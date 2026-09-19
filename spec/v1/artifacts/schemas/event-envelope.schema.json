@@ -15,7 +15,8 @@
   ],
   "properties": {
     "event_id": {
-      "$ref": "./common-ids.schema.json#/$defs/event_id"
+      "$ref": "./common-ids.schema.json#/$defs/event_id",
+      "x-arkret-preimage-commitment": "envelope_omission"
     },
     "kind": {
       "type": "string",
@@ -3087,7 +3088,8 @@
         "event_id": {
           "type": "string",
           "pattern": "^(?!ak:)",
-          "minLength": 1
+          "minLength": 1,
+          "x-arkret-preimage-commitment": "fixed_event"
         },
         "external_id": {
           "type": "string",
@@ -3336,7 +3338,7 @@
         },
         "jws": {
           "type": "string",
-          "pattern": "^[A-Za-z0-9_-]+\\.(?:[A-Za-z0-9_-]+)?\\.[A-Za-z0-9_-]+$"
+          "pattern": "^[A-Za-z0-9_-]+\\.\\.[A-Za-z0-9_-]+$"
         }
       },
       "additionalProperties": false
@@ -3395,7 +3397,7 @@
         },
         "jws": {
           "type": "string",
-          "pattern": "^[A-Za-z0-9_-]+\\.(?:[A-Za-z0-9_-]+)?\\.[A-Za-z0-9_-]+$"
+          "pattern": "^[A-Za-z0-9_-]+\\.\\.[A-Za-z0-9_-]+$"
         }
       },
       "additionalProperties": false,

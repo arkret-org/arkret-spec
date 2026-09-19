@@ -1,7 +1,7 @@
 {
   "suite": "sdk_conformance_claim",
   "profile": "ak.vector_group.schema_validation.v1",
-  "version": "2026-09-19.3",
+  "version": "2026-09-19.5",
   "runner": {
     "kind": "json_schema_and_semantic_cases",
     "schema_dialect": "https://json-schema.org/draft/2020-12/schema",
@@ -33,7 +33,7 @@
           "digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
         },
         "spec_revision": "0c12a8da75c01fbda16c475a30d140b09ded53de",
-        "contract_digest": "sha256:b30c54a87f84ae3aab838c8d363683d452f8b25fa0a89c34812b1976d9a7e5b5",
+        "contract_digest": "sha256:bac3a4dccd30177a3dbe36878a38e2ca16b232ea97dafdce033700b0aca231c2",
         "issued_at": "2026-07-11T00:00:00.000Z",
         "issuer": {
           "id": "ak:did_core:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
@@ -57,7 +57,7 @@
         ],
         "proof": {
           "kid": "did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
-          "signature": "KmGBiUEszvSYF70b6W2jK3WlkXiXgowmVmDkX8zq8MUBk4MVbPDD6cUYWkN_n5JQE4swUgk7r_vM0hR7_zOxBA",
+          "signature": "Jk8LLwLaOQZECSwLHlSm-SI_Jm-EnhkQgE6E69izl5lCwzXPwNIwpjXZT2z_kRylldYeUeIBUOWxzI3ReJ9bDw",
           "signature_algorithm": "Ed25519"
         }
       }
@@ -66,7 +66,7 @@
       "name": "zero_revision_and_digest_rejected",
       "schema_ref": "schemas/sdk-conformance-claim.schema.json",
       "expect_valid": false,
-      "first_expected_error": "$.contract_digest: 'sha256:0000000000000000000000000000000000000000000000000000000000000000' should not be valid under {'pattern': '^(sha256|blake3):0{64}$'}",
+      "first_expected_error": "$.sdk_artifact.digest: 'sha256:0000000000000000000000000000000000000000000000000000000000000000' should not be valid under {'pattern': '^(sha256|blake3):0{64}$'}",
       "semantic_outcome": "reject",
       "expected_reason_code": "schema_violation",
       "instance": {
@@ -77,11 +77,11 @@
           "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
         },
         "spec_revision": "0000000000000000000000000000000000000000",
-        "contract_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+        "contract_digest": "sha256:bac3a4dccd30177a3dbe36878a38e2ca16b232ea97dafdce033700b0aca231c2",
         "issued_at": "2026-07-11T00:00:00.000Z",
         "issuer": {
-          "id": "ak:did_core:webvh:z6mkfixturereleaseexample",
-          "verification_method": "did:webvh:z6mkfixturereleaseexample:release.example#claim-key-1"
+          "id": "ak:did_core:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
+          "verification_method": "did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd"
         },
         "clause_claims": [
           {
@@ -100,8 +100,8 @@
           }
         ],
         "proof": {
-          "kid": "did:webvh:z6mkfixturereleaseexample:release.example#claim-key-1",
-          "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "kid": "did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
+          "signature": "xKu5O18c5P5wVPyzgS-RWproeL5Ku8s3Sp3WSDHij0v0fPhs_Zy8kwfettmoyFctUeS3D_MnZ8PlGU74u8SNCA",
           "signature_algorithm": "Ed25519"
         }
       }
@@ -121,11 +121,11 @@
           "digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
         },
         "spec_revision": "1111111111111111111111111111111111111111",
-        "contract_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+        "contract_digest": "sha256:bac3a4dccd30177a3dbe36878a38e2ca16b232ea97dafdce033700b0aca231c2",
         "issued_at": "2026-07-11T00:00:00.000Z",
         "issuer": {
-          "id": "ak:did_core:webvh:z6mkfixturereleaseexample",
-          "verification_method": "did:webvh:z6mkfixturereleaseexample:release.example#claim-key-1"
+          "id": "ak:did_core:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
+          "verification_method": "did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd"
         },
         "clause_claims": [
           {
@@ -140,8 +140,8 @@
           }
         ],
         "proof": {
-          "kid": "did:webvh:z6mkfixturereleaseexample:release.example#claim-key-1",
-          "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "kid": "did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
+          "signature": "UmH4ySH_MO3QvgOHo8Ba_0y_u3Qf0ht4Hx1M3_j8VlmkqEPoVoIrebT1mtNsFEFI4pMyj1zsTH7vX2Em84GUAw",
           "signature_algorithm": "Ed25519"
         }
       }
@@ -149,10 +149,13 @@
     {
       "name": "bad_signature_semantic_rejected",
       "schema_ref": "schemas/sdk-conformance-claim.schema.json",
-      "expect_valid": false,
-      "first_expected_error": "$.proof.signature: 'not+base64url' does not match '^[A-Za-z0-9_-]+$'",
+      "expect_valid": true,
       "semantic_outcome": "reject",
-      "expected_reason_code": "schema_violation",
+      "expected_reason_code": "signature_invalid",
+      "signature_expect_valid": false,
+      "regeneration_overrides": {
+        "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      },
       "instance": {
         "sdk_name": "arkret-rust-sdk",
         "sdk_version": "1.0.0",
@@ -161,11 +164,11 @@
           "digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
         },
         "spec_revision": "1111111111111111111111111111111111111111",
-        "contract_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+        "contract_digest": "sha256:bac3a4dccd30177a3dbe36878a38e2ca16b232ea97dafdce033700b0aca231c2",
         "issued_at": "2026-07-11T00:00:00.000Z",
         "issuer": {
-          "id": "ak:did_core:webvh:z6mkfixturereleaseexample",
-          "verification_method": "did:webvh:z6mkfixturereleaseexample:release.example#claim-key-1"
+          "id": "ak:did_core:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
+          "verification_method": "did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd"
         },
         "clause_claims": [
           {
@@ -184,8 +187,8 @@
           }
         ],
         "proof": {
-          "kid": "did:webvh:z6mkfixturereleaseexample:release.example#claim-key-1",
-          "signature": "not+base64url",
+          "kid": "did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
+          "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
           "signature_algorithm": "Ed25519"
         }
       }
@@ -204,7 +207,7 @@
           "digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
         },
         "spec_revision": "0c12a8da75c01fbda16c475a30d140b09ded53de",
-        "contract_digest": "sha256:3fe64efee5dbeb6be09119170d03b83fcb7b4ac422d40b1c90263c1332a2f5cf",
+        "contract_digest": "sha256:bac3a4dccd30177a3dbe36878a38e2ca16b232ea97dafdce033700b0aca231c2",
         "issued_at": "2026-07-11T00:00:00.000Z",
         "issuer": {
           "id": "ak:did_core:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
@@ -225,7 +228,7 @@
         ],
         "proof": {
           "kid": "did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
-          "signature": "cSxP2iTqurx0qg89qvCfUchxveqVVnc-AvBnHYzW4peZHkloT0mOXEDkUDN-4LJYFHGZKAoXs_LxlMl7X5VqBw",
+          "signature": "9R9vtRZJ2-x-DT_SFCJaDZBg3ad2YeONfuFlTDRcOA9E6qpXayd6eB_3LsD0dul0Ko02yNMQKP2t4cAZT_zCAw",
           "signature_algorithm": "Ed25519"
         }
       },
@@ -245,7 +248,7 @@
           "digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
         },
         "spec_revision": "0c12a8da75c01fbda16c475a30d140b09ded53de",
-        "contract_digest": "sha256:3fe64efee5dbeb6be09119170d03b83fcb7b4ac422d40b1c90263c1332a2f5cf",
+        "contract_digest": "sha256:bac3a4dccd30177a3dbe36878a38e2ca16b232ea97dafdce033700b0aca231c2",
         "issued_at": "2026-07-11T00:00:00.000Z",
         "issuer": {
           "id": "ak:did_core:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
@@ -269,12 +272,56 @@
         ],
         "proof": {
           "kid": "did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
-          "signature": "cSxP2iTqurx0qg89qvCfUchxveqVVnc-AvBnHYzW4peZHkloT0mOXEDkUDN-4LJYFHGZKAoXs_LxlMl7X5VqBw",
+          "signature": "4QwndZJ_SJMclj8cqRsWy5LYogLYK_-REO-oFGiTMTtAOGHzWJDvs-xG6T1N77LxGvJr-Cb9gtZar3r05Sw9CA",
           "signature_algorithm": "Ed25519"
         }
       },
       "first_expected_error": "$.clause_claims[0].evidence[0]: {'kind': 'code_audit', 'evidence_ref': 'ci://arkret-rust-sdk/run/1', 'digest': 'sha256:4444444444444444444444444444444444444444444444444444444444444444', 'covers_vectors': ['ak.vector.sdk.envelope_precheck_rejects_before_consumption.v1']} should not be valid under {'required': ['covers_vectors']}"
+    },
+    {
+      "name": "wrong_contract_binding_semantic_rejected",
+      "schema_ref": "schemas/sdk-conformance-claim.schema.json",
+      "expect_valid": true,
+      "semantic_outcome": "reject_contract_binding",
+      "instance": {
+        "sdk_name": "arkret-rust-sdk",
+        "sdk_version": "1.0.0",
+        "sdk_artifact": {
+          "uri": "oci://registry.example/arkret-rust-sdk@sha256:2222222222222222222222222222222222222222222222222222222222222222",
+          "digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+        },
+        "spec_revision": "0c12a8da75c01fbda16c475a30d140b09ded53de",
+        "contract_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "issued_at": "2026-07-11T00:00:00.000Z",
+        "issuer": {
+          "id": "ak:did_core:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
+          "verification_method": "did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd"
+        },
+        "clause_claims": [
+          {
+            "clause_id": "AK-SDK-001",
+            "result": "pass",
+            "evidence": [
+              {
+                "kind": "vector_result",
+                "evidence_ref": "ci://arkret-rust-sdk/run/1",
+                "digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+                "covers_vectors": [
+                  "ak.vector.sdk.envelope_precheck_rejects_before_consumption.v1"
+                ]
+              }
+            ]
+          }
+        ],
+        "proof": {
+          "kid": "did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
+          "signature": "nv9g2RJPvm5ecztnaXacPxIc4qQVShNFJ3jDwMIQlmY6V4zr79G_EagT9Rg-qkmiqxLOOsG4rYvRUiDY_jU8Bg",
+          "signature_algorithm": "Ed25519"
+        }
+      },
+      "contract_binding_expect_valid": false,
+      "expected_reason_code": "governance_binding_mismatch"
     }
   ],
-  "description": "Signed artifact-bound SDK conformance claim cases. The positive case carries a signature that actually verifies under the scheme the schema declares (domain separator, LF, RFC 8785 JCS of the object with proof omitted) and a contract_digest recomputed from sdk_conformance_contract, so a contract edit that is not reflected here turns the gate red. A vector_result evidence entry must name the vectors its run covers; the other evidence kinds must not."
+  "description": "Signed artifact-bound SDK conformance claim cases. Every schema-positive or schema-negative case is signed over the current sdk_conformance_contract digest. Exactly one case declares contract_binding_expect_valid=false, carries a deliberately different digest, and retains a valid signature over that wrong binding so the semantic rejection is isolated."
 }

@@ -523,7 +523,7 @@ domain 迁移因此从"全网事件改写工程"降级为"issuer 侧 batch 签�
 
 公开 persona DID MAY 使用：
 
-```json
+```json fragment
 {
   "alsoKnownAs": [
     "alice:alice.dev",
@@ -531,7 +531,6 @@ domain 迁移因此从"全网事件改写工程"降级为"issuer 侧 batch 签�
   ]
 }
 ```
-
 Pairwise DID、临时 DID、agent 执行 DID 和隐私敏感关系 DID SHOULD NOT 强制绑定公开 handle。设备自身没有 DID；设备 `verification_method` / `device_id` 同样不得被当作公开 handle 主体。受限 handle 只有在 holder 明确选择公开该上下文关联时才 SHOULD 写入 `alsoKnownAs`；否则必须通过受限 claim / presentation 返回。
 
 ### 4.1 `alsoKnownAs` 的窄用途
@@ -784,7 +783,7 @@ DID Document MUST NOT 被用作跨组织身份画像。公开或半公开 DID Do
 
 如果 verifier 只需要知道“该主体拥有 Google 组织内有效账号”，presentation SHOULD 披露抽象 claim：
 
-```json
+```json illustrative
 {
   "@context": ["https://www.w3.org/ns/credentials/v2"],
   "type": [
@@ -805,10 +804,9 @@ DID Document MUST NOT 被用作跨组织身份画像。公开或半公开 DID Do
   }
 }
 ```
-
 如果确实需要显示 Google handle，presentation MAY 披露：
 
-```json
+```json fragment
 {
   "credentialSubject": {
     "id": "did:key:z6Mkgpairwise...",
@@ -817,7 +815,6 @@ DID Document MUST NOT 被用作跨组织身份画像。公开或半公开 DID Do
   }
 }
 ```
-
 该 disclosure MUST 绑定单一 verifier challenge / domain，并且 MUST NOT 自动披露其他组织 handle。
 
 ## 12. 披露请求的最小化原则

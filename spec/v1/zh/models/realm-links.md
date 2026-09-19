@@ -32,7 +32,7 @@ Realm 是硬安全边界，不承担产品导航树职责。因此 Arkret v1 不
 
 `ak.realm.link` 是 Realm link 的统一 state event。Payload：
 
-```json
+```json fragment
 {
   "kind": "ak.realm.link",
   "payload": {
@@ -44,7 +44,6 @@ Realm 是硬安全边界，不承担产品导航树职责。因此 Arkret v1 不
   }
 }
 ```
-
 Payload 字段：
 
 | 字段 | 必填 | 类型 | 说明 |

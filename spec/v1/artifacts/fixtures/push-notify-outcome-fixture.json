@@ -7,7 +7,7 @@
     "ak.vector.push.device_route_revision_cas.v1",
     "ak.vector.push.registration_handoff_lifecycle.v1"
   ],
-  "version": "2026-09-14",
+  "version": "2026-09-19.1",
   "spec_anchor": "spec/v1/zh/discovery/push-notifications.md#52-响应",
   "source_refs": [
     "spec/v1/zh/discovery/push-notifications.md",
@@ -428,7 +428,7 @@
             "payload_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
             "created_at": "2026-09-14T00:00:00.000Z",
             "audience": "ak:did_core:webvh:z6mkfixturestationa",
-            "jws": "eyJhbGciOiJFZERTQSJ9..c2lnbmF0dXJl"
+            "jws": "eyJhbGciOiJFZDI1NTE5In0..AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
           }
         }
       }

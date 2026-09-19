@@ -443,6 +443,76 @@ def check_openapi_schema_component_order(lint: Lint) -> None:
         f"position {index + 1} has {actual}, expected {wanted}",
     )
 
+def check_non_http_binding_exactness(
+    lint: Lint,
+    binding_path: Path,
+    binding: dict[str, Any],
+    known: dict[str, Any],
+) -> set[str]:
+    """Compare parsed gRPC/MQ keys to the canonical operation binding maps."""
+    grpc_services = (binding.get("grpc") or {}).get("services")
+    mq_topics = (binding.get("mq") or {}).get("topics")
+    if not isinstance(grpc_services, dict):
+        lint.fail(binding_path, "grpc.services must be an object")
+        grpc_services = {}
+    if not isinstance(mq_topics, dict):
+        lint.fail(binding_path, "mq.topics must be an object")
+        mq_topics = {}
+
+    grpc_bindings: dict[str, str] = {}
+    for service, methods in grpc_services.items():
+        if not isinstance(methods, dict) or not methods:
+            lint.fail(binding_path, f"gRPC service {service} must contain at least one method")
+            continue
+        for method, operation_id in methods.items():
+            if not isinstance(operation_id, str):
+                lint.fail(binding_path, f"gRPC binding {service}/{method} must name an operation_id")
+                continue
+            actual = f"{service}/{method}"
+            previous = grpc_bindings.setdefault(operation_id, actual)
+            if previous != actual:
+                lint.fail(binding_path, f"gRPC operation {operation_id} has duplicate bindings {previous} and {actual}")
+            expected = known["operation_grpc_map"].get(operation_id)
+            if expected != actual:
+                lint.fail(
+                    binding_path,
+                    f"gRPC binding mismatch for {operation_id}: registry={expected!r}, yaml={actual!r}",
+                )
+
+    mq_bindings: dict[str, str] = {}
+    for topic, operation_id in mq_topics.items():
+        if not isinstance(operation_id, str):
+            lint.fail(binding_path, f"MQ topic {topic} must name an operation_id")
+            continue
+        previous = mq_bindings.setdefault(operation_id, topic)
+        if previous != topic:
+            lint.fail(binding_path, f"MQ operation {operation_id} has duplicate topics {previous} and {topic}")
+        expected = known["operation_mq_map"].get(operation_id)
+        if expected != topic:
+            lint.fail(
+                binding_path,
+                f"MQ binding mismatch for {operation_id}: registry={expected!r}, yaml={topic!r}",
+            )
+
+    for operation_id, grpc in sorted(known["operation_grpc_map"].items()):
+        if grpc_bindings.get(operation_id) != grpc:
+            lint.fail(binding_path, f"registry gRPC binding absent from yaml: {operation_id} -> {grpc}")
+    for operation_id, topic in sorted(known["operation_mq_map"].items()):
+        if mq_bindings.get(operation_id) != topic:
+            lint.fail(binding_path, f"registry MQ binding absent from yaml: {operation_id} -> {topic}")
+    return set(grpc_bindings) | set(mq_bindings)
+
+
+def check_internal_operation_set_subset(
+    lint: Lint,
+    path: Path,
+    registered: set[str],
+    operation_sets: dict[str, set[str]],
+) -> None:
+    """Hard-coded policy sets may narrow the registry, never name dead operations."""
+    for label, members in operation_sets.items():
+        for operation_id in sorted(members - registered):
+            lint.fail(path, f"{label} names unregistered operation_id: {operation_id}")
 
 
 def check_operation_surfaces(lint: Lint, known: dict[str, set[str]]) -> None:
@@ -493,8 +563,9 @@ def check_operation_surfaces(lint: Lint, known: dict[str, set[str]]) -> None:
         return
     if binding.get("coverage") != "complete_except_http_only":
         lint.fail(binding_path, "non-HTTP binding coverage must be complete_except_http_only")
-    binding_text = binding_path.read_text(encoding="utf-8")
-    binding_operation_ids = set(EVENT_KIND_TOKEN_RE.findall(binding_text))
+    binding_operation_ids = check_non_http_binding_exactness(
+        lint, binding_path, binding, known
+    )
     http_only_operation_ids = known.get("http_only_operation_ids", set())
     for operation_id in sorted(binding_operation_ids - known["operation_ids"]):
         lint.fail(binding_path, f"non-HTTP binding references unregistered operation_id: {operation_id}")
@@ -914,7 +985,6 @@ def check_openapi_auth_semantics(lint: Lint) -> None:
     operations = openapi_operations_by_id(openapi)
     public_metadata_operations = {
         "ak.server.read.describe.v1",
-        "ak.self.events.read.describe.v1",
         "ak.open.mimi.read.provider_directory.v1",
         "ak.root.identity.registry.read.describe.v1",
         "ak.self.account.read.describe.v1",
@@ -948,6 +1018,24 @@ def check_openapi_auth_semantics(lint: Lint) -> None:
         "ak.root.identity.recovery_session.resource.get.v1",
         "ak.root.identity.recovery_session.command.submit_proof.v1",
     }
+    operation_registry = load_json(
+        lint, ARTIFACTS / "registry" / "operation-registry.json"
+    )
+    registered_operations = {
+        row.get("operation_id")
+        for row in (operation_registry.get("operations") or [])
+        if isinstance(row, dict) and isinstance(row.get("operation_id"), str)
+    } if isinstance(operation_registry, dict) else set()
+    check_internal_operation_set_subset(
+        lint,
+        openapi_path,
+        registered_operations,
+        {
+            "public_metadata_operations": public_metadata_operations,
+            "proof_in_body_operations": proof_in_body_operations,
+            "recovery_session_grant_operations": recovery_session_grant_operations,
+        },
+    )
     session_grant_requirement = {"sessionGrantAuth": [], "dpopProof": []}
 
     for operation_id, operation in operations.items():

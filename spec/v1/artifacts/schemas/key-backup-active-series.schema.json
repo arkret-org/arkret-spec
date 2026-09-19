@@ -75,6 +75,7 @@
         "device_authorize_event_id": {
           "type": "string",
           "pattern": "^ak:event:[A-Za-z0-9_-]{44}$",
+          "x-arkret-preimage-commitment": "fixed_event",
           "description": "Accepted current-generation ak.device.authorize Event anchoring the device that signed this active-series selection."
         }
       },

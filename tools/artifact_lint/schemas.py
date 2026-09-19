@@ -21,14 +21,14 @@ from .core import (
     PREIMAGE_EXEMPTION_REGISTRY_PATH,
     PREIMAGE_EXEMPTION_ROW_KEYS,
     PREIMAGE_EXEMPTION_SECTION_ANCHOR,
+    PREIMAGE_EXEMPTION_SECTION_CITATION,
     PREIMAGE_EXEMPTION_SECTION_PATH,
     PREIMAGE_EXEMPTION_STATUS,
     PREIMAGE_FORBIDDEN_DIRECTIONS,
-    PREIMAGE_FORWARD_DECLARATION_PHRASES,
-    PREIMAGE_IDENTITY_DERIVATION_RE,
+    PREIMAGE_COMMITMENT_KEYWORD,
+    PREIMAGE_COMMITMENT_VALUES,
     PREIMAGE_IDENTITY_EXACT_NAMES,
     PREIMAGE_IDENTITY_NAME_SUFFIXES,
-    PREIMAGE_SELF_REFERENCE_PHRASES,
     SIBLING_DIGEST_EXEMPTION_KINDS,
     SIBLING_DIGEST_EXEMPTION_REGISTRY_PATH,
     SIBLING_DIGEST_EXEMPTION_ROW_KEYS,
@@ -69,6 +69,7 @@ from .core import (
     split_ref,
     walk_json,
 )
+from .schema_members import walk_pointer
 
 
 def check_trust_domain_constraints(lint: Lint) -> None:
@@ -220,6 +221,7 @@ _DID_REF_TARGETS = {
 }
 
 _INLINE_DID_KEY_ENCODING_POINTERS = {
+    "common-ids.schema.json#/$defs/did_key_did/pattern",
     "device-pairing.schema.json#/$defs/device_pairing_target_proof/properties/device_public_key_did/pattern",
     "keys-operations.schema.json#/$defs/did_key/pattern",
     "realm-genesis.schema.json#/$defs/founding_device_descriptor/properties/device_public_key_did/pattern",
@@ -292,7 +294,7 @@ def check_did_boundary_allowlist(lint: Lint) -> None:
                     and child.startswith("^did:")
                     and "#" not in child
                     and child not in {r"^did:[a-z0-9]+$", r"^did:[a-z0-9]+:$"}
-                    and owner.name != "common-ids.schema.json"
+                    and (owner.name != "common-ids.schema.json" or child.startswith("^did:key:z"))
                 ):
                     if child.startswith("^did:key:z"):
                         inline_did_key_encodings.add(absolute)
@@ -2329,6 +2331,11 @@ def check_composite_subject_terminal_types(
                     source = component.get("field")
                     if source == "envelope.actor_id":
                         continue
+                    if source == "item.item_ref" and kind == "ak.container.rebalance":
+                        # The exact bounded for_each contract is closed by
+                        # proof_context_schemas. Its item schema is
+                        # positions[].items.item_ref, a closed object_ref.
+                        continue
                     if not isinstance(source, str) or not source.startswith("payload."):
                         lint.fail(
                             event_registry_path,
@@ -2877,11 +2884,111 @@ def check_derived_signature_projection_closure(lint: Lint) -> None:
 
 
 
-def preimage_identity_candidate(name: str, description: str) -> bool:
-    """True when a schema property is in scope for the 6.0.1 gate."""
-    if name in PREIMAGE_IDENTITY_EXACT_NAMES or name.endswith(PREIMAGE_IDENTITY_NAME_SUFFIXES):
-        return True
-    return bool(PREIMAGE_IDENTITY_DERIVATION_RE.search(description))
+def preimage_identity_candidate(name: str, field: dict[str, Any]) -> bool:
+    """True for the structural name family or an explicit commitment declaration."""
+    return (
+        name in PREIMAGE_IDENTITY_EXACT_NAMES
+        or name.endswith(PREIMAGE_IDENTITY_NAME_SUFFIXES)
+        or PREIMAGE_COMMITMENT_KEYWORD in field
+    )
+
+
+def _pointer_child(pointer: str, segment: str) -> str:
+    escaped = segment.replace("~", "~0").replace("/", "~1")
+    return f"{pointer}/{escaped}" if pointer else f"/{escaped}"
+
+
+def _pointer_json_path(pointer: str) -> str:
+    path = "$"
+    for raw in pointer.lstrip("#/").split("/") if pointer.lstrip("#/") else ():
+        segment = raw.replace("~1", "/").replace("~0", "~")
+        path += f"[{segment}]" if segment.isdigit() else f".{segment}"
+    return path
+
+
+def preimage_reachable_properties(
+    lint: Lint,
+) -> dict[tuple[str, str, str], dict[str, Any]]:
+    """Return candidate properties in the pointer-level Event-preimage closure.
+
+    Seeds are the Event envelope root and every registered payload pointer. `$ref`
+    targets are followed exactly, while `$defs` / `definitions` siblings are never
+    descended merely because a document root was reached.
+    """
+    schema_paths = sorted((ARTIFACTS / "schemas").glob("*.schema.json"))
+    docs = {
+        path.name: document
+        for path in schema_paths
+        if isinstance((document := load_json(lint, path)), dict)
+    }
+    registry_path = ARTIFACTS / "registry" / "event-kind-registry.json"
+    registry = load_json(lint, registry_path)
+    rows = registry.get("event_kinds") if isinstance(registry, dict) else None
+    if not isinstance(rows, list):
+        lint.fail(registry_path, "event_kinds must be a list for the preimage closure")
+        return {}
+
+    seeds: list[tuple[str, str]] = [("event-envelope.schema.json", "")]
+    for index, row in enumerate(rows):
+        schema_ref = row.get("payload_schema_ref") if isinstance(row, dict) else None
+        if not isinstance(schema_ref, str):
+            lint.fail(registry_path, f"event_kinds[{index}].payload_schema_ref must be a string")
+            continue
+        file_part, _, fragment = schema_ref.partition("#")
+        seeds.append((Path(file_part).name, fragment))
+
+    visited: set[tuple[str, str]] = set()
+    candidates: dict[tuple[str, str, str], dict[str, Any]] = {}
+
+    def visit(file_name: str, pointer: str, node: Any) -> None:
+        pointer = pointer.removeprefix("#")
+        location = (file_name, pointer)
+        if location in visited:
+            return
+        visited.add(location)
+        if isinstance(node, list):
+            for index, child in enumerate(node):
+                visit(file_name, _pointer_child(pointer, str(index)), child)
+            return
+        if not isinstance(node, dict):
+            return
+
+        reference = node.get("$ref")
+        if isinstance(reference, str):
+            file_part, _, fragment = reference.partition("#")
+            target_file = Path(file_part.removeprefix("./")).name if file_part else file_name
+            target_document = docs.get(target_file)
+            target = walk_pointer(target_document, fragment) if target_document is not None else None
+            if target is None:
+                lint.fail(
+                    ARTIFACTS / "schemas" / file_name,
+                    f"preimage closure cannot resolve {pointer or '#'} $ref {reference!r}",
+                )
+            else:
+                visit(target_file, fragment, target)
+
+        for keyword, child in node.items():
+            if keyword in {"$defs", "definitions", "$ref"}:
+                continue
+            child_pointer = _pointer_child(pointer, keyword)
+            if keyword == "properties" and isinstance(child, dict):
+                json_path = _pointer_json_path(child_pointer)
+                for name, field in child.items():
+                    property_pointer = _pointer_child(child_pointer, name)
+                    if isinstance(field, dict) and preimage_identity_candidate(name, field):
+                        candidates[(file_name, json_path, name)] = field
+                    visit(file_name, property_pointer, field)
+            else:
+                visit(file_name, child_pointer, child)
+
+    for file_name, fragment in seeds:
+        document = docs.get(file_name)
+        node = walk_pointer(document, fragment) if document is not None else None
+        if node is None:
+            lint.fail(registry_path, f"preimage closure seed does not resolve: {file_name}#{fragment}")
+            continue
+        visit(file_name, fragment, node)
+    return candidates
 
 
 
@@ -2895,6 +3002,17 @@ def load_preimage_identity_exemptions(lint: Lint) -> dict[tuple[str, str, str], 
     data = load_json(lint, path)
     if not isinstance(data, dict):
         return {}
+    rules = data.get("registry_rules")
+    if not isinstance(rules, dict):
+        lint.fail(path, "registry_rules must be an object")
+        rules = {}
+    if rules.get("commitment_keyword") != PREIMAGE_COMMITMENT_KEYWORD:
+        lint.fail(path, f"registry_rules.commitment_keyword must be {PREIMAGE_COMMITMENT_KEYWORD}")
+    if rules.get("allowed_commitment_declarations") != sorted(PREIMAGE_COMMITMENT_VALUES):
+        lint.fail(
+            path,
+            "registry_rules.allowed_commitment_declarations must equal the closed gate vocabulary",
+        )
     rows = data.get("exemptions")
     if not isinstance(rows, list) or not rows:
         lint.fail(path, "exemptions must be a non-empty list")
@@ -2906,7 +3024,7 @@ def load_preimage_identity_exemptions(lint: Lint) -> dict[tuple[str, str, str], 
         section_text = ""
     prose_ids = set(PREIMAGE_EXEMPTION_ID_RE.findall(section_text))
 
-    id_pattern = re.compile(str(((data.get("registry_rules") or {}).get("exemption_id_pattern")) or r"^$"))
+    id_pattern = re.compile(str(rules.get("exemption_id_pattern") or r"^$"))
     vectors = load_json(lint, ARTIFACTS / "registry" / "vector-registry.json")
     vector_rows = vectors.get("vectors", []) if isinstance(vectors, dict) else []
     vector_status = {
@@ -2951,7 +3069,8 @@ def load_preimage_identity_exemptions(lint: Lint) -> dict[tuple[str, str, str], 
         if direction in PREIMAGE_FORBIDDEN_DIRECTIONS:
             lint.fail(
                 path,
-                f"{label}.commitment_direction={direction!r} is a class A/B shape. encoding.md 6.0.1 makes "
+                f"{label}.commitment_direction={direction!r} is a class A/B shape. "
+                f"{PREIMAGE_EXEMPTION_SECTION_CITATION} makes "
                 "those unconditional: the preimage would contain a function of its own digest, so no "
                 "ordering can construct the unit. This registry MUST NOT carry such a row.",
             )
@@ -2991,7 +3110,8 @@ def load_preimage_identity_exemptions(lint: Lint) -> dict[tuple[str, str, str], 
         if exemption_id not in prose_ids:
             lint.fail(
                 path,
-                f"{label} is active but does not appear in encoding.md 6.0.1's closed list table; the "
+                f"{label} is active but does not appear in {PREIMAGE_EXEMPTION_SECTION_CITATION}'s "
+                "closed list table; the "
                 "prose list and this registry are bound in both directions",
             )
 
@@ -3018,7 +3138,8 @@ def load_preimage_identity_exemptions(lint: Lint) -> dict[tuple[str, str, str], 
     for exemption_id in sorted(prose_ids - registered_ids):
         lint.fail(
             path,
-            f"encoding.md 6.0.1 lists {exemption_id!r}, which has no row here; the closed list may not "
+            f"{PREIMAGE_EXEMPTION_SECTION_CITATION} lists {exemption_id!r}, which has no row here; "
+            "the closed list may not "
             "name an exemption this registry does not carry",
         )
     return indexed
@@ -3028,81 +3149,71 @@ def load_preimage_identity_exemptions(lint: Lint) -> dict[tuple[str, str, str], 
 def check_preimage_event_identity_commitments(lint: Lint) -> None:
     """No preimage field may commit to an Event identity except by named exemption.
 
-    encoding.md 6.0.1: `event_id` is a function of `event_digest`, whose preimage holds
-    `payload` and `refs`. Class A (the enclosing Event's own identity or a retype of it)
-    and class B (a not-yet-formed sibling of the same atomic unit or ordered submit
-    batch) have no fixed point, so they are unconstructible and are rejected here
-    unconditionally. Class C -- a one-way forward declaration naming a later Event from
-    another submission whose bytes the author already froze -- is constructible and is
-    allowed only when `preimage-identity-exemption-registry.json` carries an active row
-    for exactly that field.
-
-    The gate no longer decides by reading wording: wording only selects which rule
-    applies, and the answer for class C comes from the registry. It also runs the
-    reverse self-checks, so a registered row cannot rot into a licence for a field that
-    moved, lost its declaration, or lost its evidence.
+    The canonical section is identified by PREIMAGE_EXEMPTION_SECTION_ANCHOR. Scope is
+    the pointer-level closure of the Event envelope and registered payload pointers,
+    and the decision is the closed x-arkret-preimage-commitment value. Descriptions
+    never select a rule. Self and same-unit declarations are unconstructible; a later
+    submission additionally requires one exact active registry row.
     """
     exemptions = load_preimage_identity_exemptions(lint)
     unmatched = dict(exemptions)
 
-    for path in sorted((ARTIFACTS / "schemas").glob("*.schema.json")):
-        data = load_json(lint, path)
-        if not isinstance(data, dict):
+    for (schema_name, json_path, name), field in sorted(preimage_reachable_properties(lint).items()):
+        path = ARTIFACTS / "schemas" / schema_name
+        declaration = field.get(PREIMAGE_COMMITMENT_KEYWORD)
+        row = exemptions.get((schema_name, json_path, name))
+        if declaration not in PREIMAGE_COMMITMENT_VALUES:
+            lint.fail(
+                path,
+                f"{json_path}.{name} must declare {PREIMAGE_COMMITMENT_KEYWORD} as one of "
+                f"{sorted(PREIMAGE_COMMITMENT_VALUES)}",
+            )
             continue
-        for json_path, value, key in walk_json(data):
-            if key != "properties" or not isinstance(value, dict):
-                continue
-            for name, field in value.items():
-                if not isinstance(field, dict):
-                    continue
-                description = str(field.get("description", "")).lower()
-                if not preimage_identity_candidate(name, description):
-                    continue
-                row = exemptions.get((path.name, json_path, name))
-
-                forbidden = next(
-                    (phrase for phrase in PREIMAGE_SELF_REFERENCE_PHRASES if phrase in description),
-                    None,
+        if declaration in PREIMAGE_FORBIDDEN_DIRECTIONS:
+            lint.fail(
+                path,
+                f"{json_path}.{name} declares {declaration!r} inside the digest preimage; "
+                f"{PREIMAGE_EXEMPTION_SECTION_CITATION} class A/B forbids it unconditionally. "
+                "No registry row can exempt it.",
+            )
+            continue
+        if declaration == "no_event_identity" and (
+            name in PREIMAGE_IDENTITY_EXACT_NAMES or name.endswith(PREIMAGE_IDENTITY_NAME_SUFFIXES)
+        ):
+            lint.fail(
+                path,
+                f"{json_path}.{name} belongs to the Event-identity name family and cannot declare "
+                "no_event_identity",
+            )
+        if declaration == "envelope_omission" and (
+            schema_name, json_path, name
+        ) != ("event-envelope.schema.json", "$.properties", "event_id"):
+            lint.fail(
+                path,
+                f"{json_path}.{name}: envelope_omission is reserved for the omitted envelope event_id",
+            )
+        if declaration == "later_submission":
+            if row is None:
+                lint.fail(
+                    path,
+                    f"{json_path}.{name} declares later_submission but carries no row in "
+                    "preimage-identity-exemption-registry.json; a named class C exemption is required",
                 )
-                if forbidden is not None and not (
-                    "not the enclosing" in description or "outside the preimage" in description
-                ):
-                    lint.fail(
-                        path,
-                        f"{json_path}.{name} declares an Event identity of the {forbidden!r} inside the "
-                        "digest preimage; encoding.md 6.0.1 class A/B forbids it unconditionally because "
-                        "event_id derives from that preimage. Commit to the counterpart's payload digest, "
-                        "or move the commitment into proofs/receipts. No registry row can exempt it.",
-                    )
-                    continue
-
-                forward = any(phrase in description for phrase in PREIMAGE_FORWARD_DECLARATION_PHRASES)
-                if row is None:
-                    if forward:
-                        lint.fail(
-                            path,
-                            f"{json_path}.{name} declares a commitment to an Event that is not submitted "
-                            "yet, but carries no row in preimage-identity-exemption-registry.json. "
-                            "encoding.md 6.0.1 class C requires a named exemption; an implementation "
-                            "MUST NOT infer one.",
-                        )
-                    continue
-
-                unmatched.pop((path.name, json_path, name), None)
-                if not forward:
-                    lint.fail(
-                        path,
-                        f"{json_path}.{name} is registered as {row['exemption_id']} but its description no "
-                        "longer states that it commits to an Event from a later submission. A registered "
-                        "exemption whose declaration went vague is exactly what encoding.md 6.0.1 forbids.",
-                    )
-                if "6.0.1" not in description:
-                    lint.fail(
-                        path,
-                        f"{json_path}.{name} is registered as {row['exemption_id']} but its description does "
-                        "not cite encoding.md 6.0.1; a reader of the schema alone would not learn that this "
-                        "field is a named exemption.",
-                    )
+                continue
+            unmatched.pop((schema_name, json_path, name), None)
+            description = str(field.get("description", ""))
+            if PREIMAGE_EXEMPTION_SECTION_CITATION not in description:
+                lint.fail(
+                    path,
+                    f"{json_path}.{name} is registered as {row['exemption_id']} but its description does "
+                    f"not cite {PREIMAGE_EXEMPTION_SECTION_CITATION}",
+                )
+        elif row is not None:
+            lint.fail(
+                path,
+                f"{json_path}.{name} is registered as {row['exemption_id']} but declares "
+                f"{declaration!r} instead of later_submission",
+            )
 
     for (schema_name, json_path, field), row in sorted(unmatched.items()):
         lint.fail(

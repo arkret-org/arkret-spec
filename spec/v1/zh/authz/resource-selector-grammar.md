@@ -28,7 +28,7 @@ Arkret v1 capability 使用以下 canonical resource selector 模型：
 schema、wire grant 与 conformance 测试 MUST 以本节定义的 JSON 形态为准。字符串 shorthand（§3）只是
 为 CLI、日志、UI 和文档辅助提供的非 normative 派生形态，不进入签名输入，也不参与一致性判定。
 
-```json
+```json fragment
 {
   "resources": [
     {
@@ -56,12 +56,11 @@ schema、wire grant 与 conformance 测试 MUST 以本节定义的 JSON 形态�
   ]
 }
 ```
-
 ### 2.1 Board/List 选择
 
 Board 与 List 使用 `kind="space"` 选择器，配合 `allowed_space_kinds` 约束限制 Space 形态（`board`、`list` 等 profile 注册的 Space kind）。实现 MUST NOT 接受 `kind="board"` 或 `kind="list"` 作为 canonical resource selector kind；需要把权限范围扩到整个 Realm（覆盖所有 Space）时再使用 `kind="realm"`。
 
-```json
+```json fragment
 {
   "resources": [
     {
@@ -78,14 +77,13 @@ Board 与 List 使用 `kind="space"` 选择器，配合 `allowed_space_kinds` �
   ]
 }
 ```
-
 List 内 item 移动 SHOULD 同时约束 `allowed_from_container_refs`、`allowed_to_container_refs`、`allowed_relation_kinds` 或对应 strand move payload 字段。
 
 ### 2.2 Circle 选择
 
 Circle 使用 `kind="circle"` 选择器，配合 `allowed_circle_ids` constraint 或具体 `circle_id` 限制 Circle-scoped 管理 grant。Circle selector 只表达子事件 / 子消息边界对象本身；它不会替代 Circle membership、history visibility、delivery/query eligibility、MLS-backed Circle 的 epoch eligibility 或 `ak.audit.accessed` 配对要求。
 
-```json
+```json fragment
 {
   "resources": [
     {
@@ -103,12 +101,11 @@ Circle 使用 `kind="circle"` 选择器，配合 `allowed_circle_ids` constraint
   ]
 }
 ```
-
 ### 2.3 Strand track 选择
 
 Strand 的 track-targeted 能力面使用 `kind="strand"` 选择器，再用 `allowed_tracks` 限制 track 范围：`tracks.synthesis.content` 写入的 track 是 `synthesis`，Message timeline 操作的 track 是 `discussion`。Strand 顶层 Description（`content` / `encrypted_content`）以及 metadata / stage / lifecycle 等基础面不属于任何 track，MUST NOT 为套用 `allowed_tracks` 而被重分类成 `synthesis`；这类字段写入由 action 与 `allowed_write_fields` 收窄。实现 MUST NOT 接受 card 或 room 作为 canonical resource selector domain。
 
-```json
+```json fragment
 {
   "resources": [
     {
@@ -126,7 +123,6 @@ Strand 的 track-targeted 能力面使用 `kind="strand"` 选择器，再用 `al
   ]
 }
 ```
-
 `allowed_tracks=["discussion"]` 不会自动授予 message 读取或发送能力；message 权限仍必须命中 `ak.message.*` action，并在已有 Realm 授权内满足 `allowed_tracks` action scope、history visibility 和 E2EE key eligibility。相应地，`allowed_tracks=["synthesis"]` 只收窄已经获准的 Synthesis track 操作，不授予顶层 Description 写入权；Description 与 Synthesis 正文仍须分别出现在 `ak.strand.update` grant 的 `allowed_write_fields` 中。
 
 ## 3. 字符串 Shorthand（可选 CLI / 日志形态，non-normative）

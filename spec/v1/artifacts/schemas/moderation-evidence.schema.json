@@ -73,6 +73,7 @@
         },
         "event_id": {
           "$ref": "./common-ids.schema.json#/$defs/event_id",
+          "x-arkret-preimage-commitment": "fixed_event",
           "description": "Event ID of the encrypted Event whose receipt is proven; not the enclosing franking-proof Event ID."
         },
         "received_by": {

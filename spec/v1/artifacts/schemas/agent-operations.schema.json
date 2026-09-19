@@ -934,7 +934,7 @@
         },
         "principal_control_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id",
-          "description": "Agent PCR realm id the controller derived as retype(event_id) of the Agent PCR ak.realm.create envelope it froze locally, and signed into provision_event. A service MUST NOT choose it; commit MUST reject any value that differs from the provision payload byte for byte. It is distinct from the controller PCR that carries provision_event. This transport field is not inside any digest preimage; the ordering the controller MUST follow is key-management.md 3.6.3 and the named encoding.md 6.0.1 exemption on the payload field."
+          "description": "Agent PCR realm id the controller derived as retype(event_id) of the Agent PCR ak.realm.create envelope it froze locally, and signed into provision_event. A service MUST NOT choose it; commit MUST reject any value that differs from the provision payload byte for byte. It is distinct from the controller PCR that carries provision_event. This transport field is not inside any digest preimage; the ordering the controller MUST follow is key-management.md 3.6.3 and the named encoding.md §3.1 exemption on the payload field."
         },
         "slug": {
           "$ref": "#/$defs/agent_slug"

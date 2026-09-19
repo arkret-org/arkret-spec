@@ -1,0 +1,26 @@
+{
+  "version": "2026-09-19.1",
+  "source_of_truth": true,
+  "generated_at": "2026-09-19T18:36:57+08:00",
+  "description": "Closed coverage of every fixture resolution_commitment value. A pointer containing :: enters canonical JSON stored in the string selected by the left-hand RFC 6901 pointer.",
+  "rules": [
+    "Every fixture object shaped as {did, method_history_head, version_id}, including one embedded in a canonical JSON string, MUST have exactly one row.",
+    "The named vector MUST carry adapter evidence from which did, method_history_head and version_id recompute exactly; no placeholder or skip row is permitted.",
+    "The generator updates commitments through these pointers and recomputes any enclosing content-bound identifier."
+  ],
+  "pointers": [
+    {"fixture": "agent-vectors-fixture.json", "pointer": "/schema_validation_cases/4/instance/initial_resolution", "evidence_id": "agent_inception"},
+    {"fixture": "agent-vectors-fixture.json", "pointer": "/schema_validation_cases/5/instance/initial_resolution", "evidence_id": "agent_inception"},
+    {"fixture": "agent-vectors-fixture.json", "pointer": "/schema_validation_cases/6/instance/initial_resolution", "evidence_id": "agent_inception"},
+    {"fixture": "agent-vectors-fixture.json", "pointer": "/schema_validation_cases/7/instance/initial_resolution", "evidence_id": "agent_inception"},
+    {"fixture": "calendar-notification-fixture.json", "pointer": "/schema_validation_cases/0/instance/service_resolution", "evidence_id": "calendar_service"},
+    {"fixture": "content-bound-event-id-fixture.json", "pointer": "/cases/0/digest_preimage_canonical_bytes_utf8::/payload/object/initial_resolution", "evidence_id": "human_pcr"},
+    {"fixture": "content-bound-event-id-fixture.json", "pointer": "/cases/0/complete_wire_event/payload/object/initial_resolution", "evidence_id": "human_pcr"},
+    {"fixture": "content-bound-event-id-fixture.json", "pointer": "/cases/1/digest_preimage_canonical_bytes_utf8::/payload/object/initial_resolution", "evidence_id": "human_pcr"},
+    {"fixture": "content-bound-event-id-fixture.json", "pointer": "/cases/5/digest_preimage_canonical_bytes_utf8::/payload/object/initial_resolution", "evidence_id": "agent_inception"},
+    {"fixture": "content-bound-event-id-fixture.json", "pointer": "/cases/27/digest_preimage_canonical_bytes_utf8::/payload/object/initial_resolution", "evidence_id": "human_pcr"},
+    {"fixture": "content-bound-event-id-fixture.json", "pointer": "/cases/27/complete_wire_event/payload/object/initial_resolution", "evidence_id": "human_pcr"},
+    {"fixture": "schema-validation-fixture.json", "pointer": "/schema_validation_cases/0/instance/service_resolution", "evidence_id": "schema_service"},
+    {"fixture": "websocket-binding-fixture.json", "pointer": "/bundle_closure_cases/0/instance/service_resolution", "evidence_id": "websocket_service"}
+  ]
+}

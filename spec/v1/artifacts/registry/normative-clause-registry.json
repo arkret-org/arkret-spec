@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.3",
+  "version": "2026-09-19.7",
   "source_of_truth": true,
-  "generated_at": "2026-09-19T11:35:00+08:00",
+  "generated_at": "2026-09-19T19:26:42+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -20,15 +20,7 @@
       "privacy"
     ],
     "executable_fixture_rule": "A clause in one of executable_fixture_categories with testability_grade=vector MUST name vectors that are carried by a fixture declaring a security_evidence entry for them, and that entry MUST map every decision point of the obligation onto resolvable evidence inside the fixture. This is the successor to the deleted aggregate security-closure fixture: the obligation set is whatever is registered here, never a list inside a lint. The remaining categories are outside the rule today because clauses in them still name vectors with no fixture carrier; widening the list is how that gap gets closed, and narrowing it to keep a clause green is not.",
-    "executable_evidence_exemptions": [
-      {
-        "clause_id": "AK-NC-057",
-        "vector_id": "ak.vector.mls.rfc9420_mti_kat.v1",
-        "carrier": "spec/v1/artifacts/fixtures/mls-rfc9420-kat-fixture.json",
-        "reason": "carrier_without_decision_point_mapping",
-        "note": "Closing this row is not a mapping change. The KAT fixture carries no cases at any level and observes none of the clause's four sentences: it fixes RFC 9420 known-answer bytes for cipher suite 0x0001. Sentences 1 and 3 need new cases against mls-ciphersuite-registry.json, sentence 2 needs a new vector for the publish/claim/Commit rejection paths, and sentence 4 is blocked: mls-keypackage-endpoint-kat-fixture.json freezes two leaf_credential values that decode to a bare DeviceId and a bare did_core, which is exactly the collapse the sentence forbids, and those values are pinned by leaf_node_sha256 and keypackage_sha256. Because this list is keyed by (clause_id, vector_id) and only shrinks, giving the vector any security_evidence forces this row out and leaves sentence 4 with no ledger position, so the row stays until that conflict is ruled on. See arkret-work/tasks/spec-open/2026-09-19-1044-frozen-keypackage-kat-collapses-the-actor-id.md."
-      }
-    ],
+    "executable_evidence_exemptions": [],
     "executable_evidence_exemption_rule": "Every (clause_id, vector_id) pair inside executable_fixture_categories that does not yet have executable evidence MUST be enumerated here with its reason. The list only shrinks: once a vector gains a security_evidence carrier its row MUST be removed, and the gate fails while a stale row remains. A pair that is neither evidenced nor enumerated fails the gate, so the open gap stays visible in the canonical registry instead of inside a lint."
   },
   "registry_rules": [
@@ -69,7 +61,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#3-digest-suite",
-      "section_digest": "sha256:de5de4a7609bd2597a0d242b1fcdef639368c8bd493dcd3c2079fe299a1c6ca3",
+      "section_digest": "sha256:c81cc97aba55bc961b5b3942e6f17a0415ee54572c5bce26a205321f7f246ea2",
       "requirement": "Digest suite identifiers, canonical event digest computation and the bytewise tie-break order are fixed; implementations MUST NOT substitute another hash encoding or comparison direction.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -179,7 +171,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/sync/api-conventions.md#3-认证",
-      "section_digest": "sha256:51ca57131d79037404b27ba4f554054609b6754687accaf614281a9efd6bc887",
+      "section_digest": "sha256:06d4195ce98096b6e3859f3f7a8dd5ff2aba37c9fb5d06a94c9f9074feac064f",
       "requirement": "Protected current-v1 endpoints require sender-constrained proof of possession; a bare bearer session grant MUST NOT authenticate a protected request.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -209,7 +201,7 @@
       "status": "active",
       "category": "privacy",
       "source_anchor": "spec/v1/zh/discovery/discovery-directory.md#3-realm-discoverability",
-      "section_digest": "sha256:9d76f28f34ade6e77c8c8cf1d5680ff668771025346f04085ace96c07b4d5016",
+      "section_digest": "sha256:c8d5743fe97eff3156af356aa6bf8bbbebb289f100f6e45ead8cb844d7ac7570",
       "requirement": "Directory resolution failures are indistinguishable: unauthorized, non-existent and policy-denied targets MUST NOT be separable by error code, field set or timing.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -240,7 +232,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/capabilities.md#12-revocation",
-      "section_digest": "sha256:77eebb5d08db05b8766c726eb777e6568ee3652947cb12aae5e74fd0c5b9b3d1",
+      "section_digest": "sha256:cbfbcdcc34697edf75b09486a40b8e9db9b18b79c41ef05ed2b4ba86b573a42a",
       "requirement": "An accepted revocation invalidates the revoked grant and every grant derived from it, and forces a re-check of decisions that depended on either: pending writes MUST fail closed, allow and policy-decision cache entries MUST be invalidated in the same reducer transaction, and a revoked grant_id MUST NOT be revived. Commits accepted before the revocation remain accepted audit facts and MUST NOT be recomputed into another outcome.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -269,7 +261,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/crypto-media/call-state.md#4-会议状态事件",
-      "section_digest": "sha256:2a1f32c0a81cd57a9c758f20d2d8c14eb8635174a27c6b513ef64cdaceadacf1",
+      "section_digest": "sha256:a10aa107c50e7825f27dcac591be26ff26309a9506891f48cc9cbf3b5a8be012",
       "requirement": "Call state transitions follow the registered matrix, terminal states are absorbing, exact Event replay is a no-op, and competing commands against one revision produce one confirmed successor plus durable stale rejection outcomes. Compact media bindings carry only expires_at/issuer_kid/sig; rebuild the signed seven-tuple from the exact enclosing Event/Call and roster entry, require its frozen focus to match the accepted selection on write, and never reinterpret old signatures using a later focus.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -332,8 +324,8 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#31-内容寻址预映射",
-      "section_digest": "sha256:ea71b48273fd485ff9ba1386848dfd0901e054586da965cb03fdfb708d1e07c5",
-      "requirement": "Fields inside the event_digest preimage MUST NOT commit to the enclosing Event's own event_id, event_digest or any retype of them, nor to the identity of a not-yet-formed sibling Event in the same atomic unit or ordered submit batch; those two classes have no fixed point, MUST be rejected as event_id_digest_mismatch, and MUST NOT be exempted by any registry. Commitments of that kind MUST instead use the counterpart's payload digest or a structure outside the preimage (proofs, receipts). A one-way forward declaration naming a later Event from a separate submission whose canonical bytes the author already froze is constructible and MUST be allowed only when preimage-identity-exemption-registry.json carries an active row for exactly that field and the field's own description declares the forward commitment.",
+      "section_digest": "sha256:4db3afd022c0de3a80285900a094e77020919272c07f3d49df46eaf79325806f",
+      "requirement": "The pointer-level closure seeded by the Event envelope root and every registered payload pointer is the jurisdiction of the event_digest preimage rule; following a document-root $ref MUST NOT pull in unreferenced $defs siblings. Every Event-identity candidate in that closure MUST carry one closed x-arkret-preimage-commitment declaration, and prose wording MUST NOT select the verdict. self_identity and same_unit_sibling have no fixed point and MUST NOT be exempted. later_submission is constructible only when preimage-identity-exemption-registry.json carries the exact active row; non-Event objects outside the closure need no §3.1 exemption.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.event_id.content_bound.v1",
@@ -397,7 +389,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/identity/contact-and-direct-conversation.md#2-contact-写链回执与-contact-round",
-      "section_digest": "sha256:393f633aa31ff3a7ca134f4283f83b41d479bdc8547289e19ac5f7b2ce949e36",
+      "section_digest": "sha256:b257ae71ccaf65ce34864ad41177e40d8cba6b5f4da698f5a38b309d33a1d57f",
       "requirement": "Contact glare requests are exactly two distinct typed EventId wire strings in strict UTF-8 unsigned-byte lexical order, with receipt digests excluded as keys and tiebreakers. Receiving verifiers reject reversed or duplicate refs without normalization before deriving the round ID or founder. Participant ordering separately uses full ActorId RFC 8785 JCS bytes.",
       "testability_grade": "audit",
       "test_plan": "Run tools/check_contact_round_kat.py and the SDK Contact round KAT against the same wire-order, digest-order and object-order distinction, reversed input and duplicate refs with equal or different receipt digests. Verify source construction and receiving admission use the same SDK comparison. These checks cover ordering, not a complete two-Station glare flow."
@@ -447,7 +439,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/identity/contact-and-direct-conversation.md#2-contact-写链回执与-contact-round",
-      "section_digest": "sha256:393f633aa31ff3a7ca134f4283f83b41d479bdc8547289e19ac5f7b2ce949e36",
+      "section_digest": "sha256:b257ae71ccaf65ce34864ad41177e40d8cba6b5f4da698f5a38b309d33a1d57f",
       "requirement": "Every Contact Event carrier authenticates the exact historical producer method and Ed25519 key through the original confirmed source receipt or lineage, then verifies the original holder signature. The first carrier needs no prior relationship or private PCR disclosure. The projection is bound to one Event and cannot authorize another Event or generic Control action. Source acceptance time is fixed at the real slot confirmation, with immutable retries and the matching historical source key. The closed delegated producer branch carries delegated_actor_did exactly for legal Agent controller-device Events with executed_by; human/runtime forbid it. The source freezes a verified complete Agent public locator and the receiver independently verifies its native identity, exact Actor/controller/Station and create-locked binding. This locator grants no authority.",
       "testability_grade": "audit",
       "test_plan": "Run check_contact_round_kat.py for source-signed producer descriptors, complete receipt digests, derived normal/glare rounds, absence commitments and key/method mutation rejection. Run SDK Contact carrier cases for the original producer proof, full Account/Agent/controller/source binding and exclusion of generic Control reuse. Run Soland PostgreSQL completion, slot timestamp and historical-key recovery tests plus Inkson exact-request restart tests. The reference vectors alone do not establish a live first-contact exchange or ordinary messaging through a disconnected origin; those require the existing cross-project owner acceptance. Include the three direct/delegated producer contexts and all five carrier conditional schemas, missing/extra/null/core-only/wrong-Agent locators and altered source-signed locator bytes. Production acceptance must include a first stranger controller-device Agent Contact with no cached Agent locator and no private PCR disclosure."
@@ -469,11 +461,11 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#21-keypackage-与服务发现",
-      "section_digest": "sha256:b86f4d5013af02c17f046300f33a5e53bf83de487e54d294540404429c187061",
+      "section_digest": "sha256:03eaa16e9a02d57e72671e6d074832d2e061fd8a37057aba8d64feac40349735",
       "requirement": "Only MLS ciphersuites registered and active in mls-ciphersuite-registry.json reach the wire. KeyPackage publish, claim and Commit submission each reject an unregistered or inactive ciphersuite; an implementation MUST NOT try several suites in turn until one is accepted, and MUST NOT rewrite a foreign suite identifier into a registered value locally. The recipient endpoint and KeyPackage holder identity is the complete ActorId, and claim, Welcome delivery and leaf credential preserve it verbatim rather than collapsing it to a signing principal, bare DID or handle.",
       "testability_grade": "vector",
       "evidence_refs": [
-        "ak.vector.mls.rfc9420_mti_kat.v1"
+        "ak.vector.mls.keypackage_actor_and_ciphersuite_closure.v1"
       ]
     },
     {
@@ -511,8 +503,8 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#251-固定-groupcontext-binding",
-      "section_digest": "sha256:21b846801b74881800cf234b3e95b1c83edb316fe16e742d4fad40691a283c1d",
-      "requirement": "The fixed GroupContext binding is one closed deterministic-CBOR MlsGroupBinding: unknown, missing, indefinite-length, non-minimal, duplicate or out-of-order members are rejected, genesis is 0 -> 0 and a Commit is next_epoch = previous_epoch + 1, and scope, base, epoch and key_access_revision match the Station current public state and the Commit payload field by field. proposed_group_genesis_binding is the same binding in its pre-genesis proposal form, not a second concept: a 0 -> 0 key-access revision query without an accepted genesis MUST carry the exact immutable proposal binding, a missing one is rejected as mls_genesis_binding_proposal_required with no proof or cache entry, and a mismatched or after-the-fact one as mls_genesis_binding_proposal_mismatch. The key-access revision governs key access only and carries no authorization or membership decision of its own.",
+      "section_digest": "sha256:80c0d37dbd368215a7b2e158719a45ff966792e4c661bb292af8486f4966c8d9",
+      "requirement": "The fixed GroupContext binding is one closed, bounded deterministic-CBOR MlsGroupBinding: unknown, missing, indefinite-length, non-minimal, duplicate, out-of-order, trailing, wrong-major-type, out-of-range, invalid-length or resource-limit inputs are rejected. Genesis is 0 -> 0 and a Commit is next_epoch = previous_epoch + 1. Scope, base, epoch and the monotonic unsigned 64-bit key_access_revision counter match the Station current public state and Commit payload field by field, including for otherwise-valid RFC 9420 public material. proposed_group_genesis_binding is not a second binding shape: its formal closed carrier names the ak.mls.genesis route, proposal type, complete sender and target scope, and directly references the same binding schema. Historical accepted material is checked against its historical binding and grants no current send authority. The revision governs key access only and carries no authorization or membership decision of its own.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.mls.governance_binding_closure.v1",
@@ -544,7 +536,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/device-lifecycle.md#921-双重授权与签名-transcript",
-      "section_digest": "sha256:272fb642943e693a0a3e87a14a8e6c8304b1ced27548a73cd7e0f4ac61d15ef6",
+      "section_digest": "sha256:84713fd806dab484060ba598315d650ee008116c4235565aaaf9850e6c12e4c4",
       "requirement": "Every peer KeyPackage claim binds the accepted authorization Event id of its closed branch, an independently verifiable unique producer proof and portable signer evidence, and a destination-signed claim_receipt over the exact claim bytes. The requester checks the authorization Event embedded signer evidence, the claim receipt, the KeyPackage signature and every selector before installing a KeyPackage or authoring a Welcome. The wire carries no PCR, control-history, device or Agent signer-evidence sidecar, and an external verifier never replays PCR genesis, RealmCommits or complete control history.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -738,7 +730,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/identity/did-usage-and-verification.md#8-公开测试签名材料与保留测试标识的拒收normative",
-      "section_digest": "sha256:8c8c460ec08333f30017ab454da5e032108bd7ec288c9aa407289af7b1da04e9",
+      "section_digest": "sha256:4a966a7d60b786fe9bf3328ae74e4fb1d622308eb428373674e6a89b84386995",
       "requirement": "Published test signing material and reserved test identifiers registered in artifacts/registry/test-material-registry.json MUST be refused on every formal verification, authorization and trust-admission path, independently of whether the signature verifies, because the private key ships with the specification. Matching is by a fingerprint over algorithm-defined public key bytes, so a rename or re-encoding of the same key still matches; the did, key_id and trust_domain reserved-identifier rules are matched independently and by their own typed-identifier semantics, never inferred from the words test, fixture, did:key or example. The refusal is fail-closed with reason test_signing_material_denied, leaves no verified binding, cache entry or accepted auth state, and MUST NOT degrade to a weaker evidence class, a limited_trust pin or a retryable unavailable. Unlisted material is still verified by the ordinary rules, and the isolated conformance harness is the only place the material may execute: the formal API MUST NOT expose a switch onto the test trust path.",
       "testability_grade": "vector",
       "evidence_refs": [

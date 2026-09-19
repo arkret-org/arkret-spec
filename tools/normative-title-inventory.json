@@ -1,0 +1,1268 @@
+{
+  "version": "2026-09-19.2",
+  "source_of_truth": true,
+  "generated_at": "2026-09-19T19:24:32+08:00",
+  "description": "Closed inventory of current spec/v1/zh headings that explicitly carry the （normative） marker. Any addition, removal, rename, or move is reviewed as a protocol change and refreshes this source-of-truth inventory.",
+  "titles": [
+    {
+      "page": "authz/capabilities.md",
+      "heading": "10.1 时效与约束收窄（normative）",
+      "fragment": "101-时效与约束收窄normative"
+    },
+    {
+      "page": "authz/capabilities.md",
+      "heading": "10.2 Cycle detection（normative）",
+      "fragment": "102-cycle-detectionnormative"
+    },
+    {
+      "page": "authz/capabilities.md",
+      "heading": "10.4 Revoke 与 relinquish 的分工（normative）",
+      "fragment": "104-revoke-与-relinquish-的分工normative"
+    },
+    {
+      "page": "authz/capabilities.md",
+      "heading": "12.1 Grant typed current result 的确定性收敛（normative）",
+      "fragment": "121-grant-typed-current-result-的确定性收敛normative"
+    },
+    {
+      "page": "authz/capabilities.md",
+      "heading": "3.0.1 单一 durable signature（normative）",
+      "fragment": "301-单一-durable-signaturenormative"
+    },
+    {
+      "page": "authz/capabilities.md",
+      "heading": "3.2 首发 grant 的 issuer 自身权限上界（normative）",
+      "fragment": "32-首发-grant-的-issuer-自身权限上界normative"
+    },
+    {
+      "page": "authz/capabilities.md",
+      "heading": "3.3 注册的非 grant authority source（normative）",
+      "fragment": "33-注册的非-grant-authority-sourcenormative"
+    },
+    {
+      "page": "authz/capabilities.md",
+      "heading": "5.0.1 聚合 admin 覆盖集防权限蠕变（normative）",
+      "fragment": "501-聚合-admin-覆盖集防权限蠕变normative"
+    },
+    {
+      "page": "authz/capabilities.md",
+      "heading": "5.0.2 Action token 槽位语法（normative）",
+      "fragment": "502-action-token-槽位语法normative"
+    },
+    {
+      "page": "authz/capabilities.md",
+      "heading": "8.1 高风险操作的审批顺序（normative）",
+      "fragment": "81-高风险操作的审批顺序normative"
+    },
+    {
+      "page": "authz/capabilities.md",
+      "heading": "9.1 Agent 授权预设展开（normative）",
+      "fragment": "91-agent-授权预设展开normative"
+    },
+    {
+      "page": "authz/constraint-schema.md",
+      "heading": "15.1 求值规则（normative）",
+      "fragment": "151-求值规则normative"
+    },
+    {
+      "page": "authz/constraint-schema.md",
+      "heading": "15.4 跨 grant 全局合并（normative）",
+      "fragment": "154-跨-grant-全局合并normative"
+    },
+    {
+      "page": "authz/constraint-schema.md",
+      "heading": "16.2.1 敏感字段处理（normative）",
+      "fragment": "1621-敏感字段处理normative"
+    },
+    {
+      "page": "authz/constraint-schema.md",
+      "heading": "7.4 再授权控制字段的 reducer 求值规则（normative）",
+      "fragment": "74-再授权控制字段的-reducer-求值规则normative"
+    },
+    {
+      "page": "authz/constraint-schema.md",
+      "heading": "9.2 Approval signature（normative）",
+      "fragment": "92-approval-signaturenormative"
+    },
+    {
+      "page": "authz/constraint-schema.md",
+      "heading": "9.2.1 被签字节（normative）",
+      "fragment": "921-被签字节normative"
+    },
+    {
+      "page": "authz/constraint-schema.md",
+      "heading": "9.2.2 `approval_context`：该审批要求来自哪一层（normative）",
+      "fragment": "922-approval_context该审批要求来自哪一层normative"
+    },
+    {
+      "page": "authz/constraint-schema.md",
+      "heading": "9.2.3 `approval_target`：被批准的 exact 目标（normative）",
+      "fragment": "923-approval_target被批准的-exact-目标normative"
+    },
+    {
+      "page": "authz/constraint-schema.md",
+      "heading": "9.2.4 `input` 其余字段（normative）",
+      "fragment": "924-input-其余字段normative"
+    },
+    {
+      "page": "authz/constraint-schema.md",
+      "heading": "9.2.5 载体、接纳审计与 nonce 消费（normative）",
+      "fragment": "925-载体接纳审计与-nonce-消费normative"
+    },
+    {
+      "page": "authz/constraint-schema.md",
+      "heading": "9.2.6 三种审批形状的边界（normative）",
+      "fragment": "926-三种审批形状的边界normative"
+    },
+    {
+      "page": "authz/constraint-schema.md",
+      "heading": "9.2.7 审批模式是封闭单值（normative）",
+      "fragment": "927-审批模式是封闭单值normative"
+    },
+    {
+      "page": "authz/constraint-schema.md",
+      "heading": "9.2.8 字节 KAT（normative）",
+      "fragment": "928-字节-katnormative"
+    },
+    {
+      "page": "authz/constraint-schema.md",
+      "heading": "9.3 与 Realm 治理面审批配置的关系（normative）",
+      "fragment": "93-与-realm-治理面审批配置的关系normative"
+    },
+    {
+      "page": "authz/event-auth-state-resolution.md",
+      "heading": "14.1 持久恢复与积压终结（normative）",
+      "fragment": "141-持久恢复与积压终结normative"
+    },
+    {
+      "page": "conformance/conformance-profiles.md",
+      "heading": "2.1.2 可裁剪构建与 profile 声明对账（normative）",
+      "fragment": "212-可裁剪构建与-profile-声明对账normative"
+    },
+    {
+      "page": "conformance/encoding.md",
+      "heading": "3.4 Canonical 展示顺序（normative）",
+      "fragment": "34-canonical-展示顺序normative"
+    },
+    {
+      "page": "conformance/encoding.md",
+      "heading": "6.0.2 Proof binding object 的统一构造（normative）",
+      "fragment": "602-proof-binding-object-的统一构造normative"
+    },
+    {
+      "page": "conformance/encoding.md",
+      "heading": "7.1 HLC 编码与使用边界（normative）",
+      "fragment": "71-hlc-编码与使用边界normative"
+    },
+    {
+      "page": "conformance/encoding.md",
+      "heading": "9.1 Rank 编码（normative）",
+      "fragment": "91-rank-编码normative"
+    },
+    {
+      "page": "conformance/scalability-constraints.md",
+      "heading": "2.1 三层大小边界（normative）",
+      "fragment": "21-三层大小边界normative"
+    },
+    {
+      "page": "conformance/scalability-constraints.md",
+      "heading": "2.1.4 Content-Encoding（normative）",
+      "fragment": "214-content-encodingnormative"
+    },
+    {
+      "page": "conformance/scalability-constraints.md",
+      "heading": "2.1.5 二维 batch 与 pagination（normative）",
+      "fragment": "215-二维-batch-与-paginationnormative"
+    },
+    {
+      "page": "conformance/scalability-constraints.md",
+      "heading": "2.1.6 固定值与 Describe（normative）",
+      "fragment": "216-固定值与-describenormative"
+    },
+    {
+      "page": "conformance/scalability-constraints.md",
+      "heading": "2.1.7 Streaming 与 binary 例外（normative）",
+      "fragment": "217-streaming-与-binary-例外normative"
+    },
+    {
+      "page": "conformance/scalability-constraints.md",
+      "heading": "2.1.8 实现顺序（normative）",
+      "fragment": "218-实现顺序normative"
+    },
+    {
+      "page": "conformance/scalability-constraints.md",
+      "heading": "2.1.9 错误语义（normative）",
+      "fragment": "219-错误语义normative"
+    },
+    {
+      "page": "conformance/scalability-constraints.md",
+      "heading": "2.2 Protocol-level time tolerances（normative）",
+      "fragment": "22-protocol-level-time-tolerancesnormative"
+    },
+    {
+      "page": "conformance/schema-registry.md",
+      "heading": "1.1 schema id ↔ 文件名映射例外（normative）",
+      "fragment": "11-schema-id--文件名映射例外normative"
+    },
+    {
+      "page": "conformance/schema-registry.md",
+      "heading": "1.1.1 error code 命名空间例外（normative）",
+      "fragment": "111-error-code-命名空间例外normative"
+    },
+    {
+      "page": "conformance/schema-registry.md",
+      "heading": "1.2 `ak.*` 命名空间的机读登记边界（normative）",
+      "fragment": "12-ak-命名空间的机读登记边界normative"
+    },
+    {
+      "page": "conformance/schema-registry.md",
+      "heading": "6.1 注册表条目演进兼容级别（normative）",
+      "fragment": "61-注册表条目演进兼容级别normative"
+    },
+    {
+      "page": "conformance/schema-registry.md",
+      "heading": "6.2 禁字段的机读上下文（normative）",
+      "fragment": "62-禁字段的机读上下文normative"
+    },
+    {
+      "page": "conformance/schema-registry.md",
+      "heading": "6.3 Normative 标题身份与删除审计（normative）",
+      "fragment": "63-normative-标题身份与删除审计normative"
+    },
+    {
+      "page": "crypto-media/call-state.md",
+      "heading": "4.1 字段语义（normative）",
+      "fragment": "41-字段语义normative"
+    },
+    {
+      "page": "crypto-media/call-state.md",
+      "heading": "4.2 `state` 状态机（normative）",
+      "fragment": "42-state-状态机normative"
+    },
+    {
+      "page": "crypto-media/call-state.md",
+      "heading": "5.1 转写生命周期（normative）",
+      "fragment": "51-转写生命周期normative"
+    },
+    {
+      "page": "crypto-media/call-state.md",
+      "heading": "5.2 录制 / 转写 retention policy（normative）",
+      "fragment": "52-录制--转写-retention-policynormative"
+    },
+    {
+      "page": "crypto-media/call-state.md",
+      "heading": "6. P2P→SFU 升级（normative）",
+      "fragment": "6-p2psfu-升级normative"
+    },
+    {
+      "page": "crypto-media/call-state.md",
+      "heading": "7. 通话摘要（normative）",
+      "fragment": "7-通话摘要normative"
+    },
+    {
+      "page": "crypto-media/device-lifecycle.md",
+      "heading": "10.1 Verification checkpoint（normative）",
+      "fragment": "101-verification-checkpointnormative"
+    },
+    {
+      "page": "crypto-media/device-lifecycle.md",
+      "heading": "10.2 新设备 MLS 建立（normative）",
+      "fragment": "102-新设备-mls-建立normative"
+    },
+    {
+      "page": "crypto-media/device-lifecycle.md",
+      "heading": "2.1.2 Pairing challenge digest（normative）",
+      "fragment": "212-pairing-challenge-digestnormative"
+    },
+    {
+      "page": "crypto-media/device-lifecycle.md",
+      "heading": "2.1.4 Gate 落地与目标设备的结果观察（normative）",
+      "fragment": "214-gate-落地与目标设备的结果观察normative"
+    },
+    {
+      "page": "crypto-media/device-lifecycle.md",
+      "heading": "3.3 设备持有绑定与 grant 轮换（normative）",
+      "fragment": "33-设备持有绑定与-grant-轮换normative"
+    },
+    {
+      "page": "crypto-media/device-lifecycle.md",
+      "heading": "5.1 PCR genesis 与首设备（normative）",
+      "fragment": "51-pcr-genesis-与首设备normative"
+    },
+    {
+      "page": "crypto-media/device-lifecycle.md",
+      "heading": "5.2 Device possession transcript（normative）",
+      "fragment": "52-device-possession-transcriptnormative"
+    },
+    {
+      "page": "crypto-media/device-lifecycle.md",
+      "heading": "5.2.1 registration/recovery possession transcript（normative）",
+      "fragment": "521-registrationrecovery-possession-transcriptnormative"
+    },
+    {
+      "page": "crypto-media/device-lifecycle.md",
+      "heading": "5.2.2 `accepted_device` target proof（normative）",
+      "fragment": "522-accepted_device-target-proofnormative"
+    },
+    {
+      "page": "crypto-media/device-lifecycle.md",
+      "heading": "5.2.3 `applet_managed_delegation` possession transcript（normative）",
+      "fragment": "523-applet_managed_delegation-possession-transcriptnormative"
+    },
+    {
+      "page": "crypto-media/device-lifecycle.md",
+      "heading": "5.3 Event proof key resolution（normative）",
+      "fragment": "53-event-proof-key-resolutionnormative"
+    },
+    {
+      "page": "crypto-media/device-lifecycle.md",
+      "heading": "5.4 后续设备配对（normative）",
+      "fragment": "54-后续设备配对normative"
+    },
+    {
+      "page": "crypto-media/device-lifecycle.md",
+      "heading": "5.4.1 目标设备装配前的强制校验（normative）",
+      "fragment": "541-目标设备装配前的强制校验normative"
+    },
+    {
+      "page": "crypto-media/device-lifecycle.md",
+      "heading": "5.5 Device trust projection（normative）",
+      "fragment": "55-device-trust-projectionnormative"
+    },
+    {
+      "page": "crypto-media/device-lifecycle.md",
+      "heading": "5.5.1 Device authorization typed current result 的封闭 value（normative）",
+      "fragment": "551-device-authorization-typed-current-result-的封闭-valuenormative"
+    },
+    {
+      "page": "crypto-media/device-lifecycle.md",
+      "heading": "5.5.2 Generation 进入 wire，reducer 派生不读前态（normative）",
+      "fragment": "552-generation-进入-wirereducer-派生不读前态normative"
+    },
+    {
+      "page": "crypto-media/device-lifecycle.md",
+      "heading": "5.5.3 `device_status` 是读侧折叠，不是存储轴（normative）",
+      "fragment": "553-device_status-是读侧折叠不是存储轴normative"
+    },
+    {
+      "page": "crypto-media/device-lifecycle.md",
+      "heading": "5.5.4 Generation result 与 genesis 同批登记（normative）",
+      "fragment": "554-generation-result-与-genesis-同批登记normative"
+    },
+    {
+      "page": "crypto-media/device-lifecycle.md",
+      "heading": "8.1 `device_signature` canonical 签名输入（normative）",
+      "fragment": "81-device_signature-canonical-签名输入normative"
+    },
+    {
+      "page": "crypto-media/device-lifecycle.md",
+      "heading": "8.2 设备验签公钥目录（normative）",
+      "fragment": "82-设备验签公钥目录normative"
+    },
+    {
+      "page": "crypto-media/device-lifecycle.md",
+      "heading": "8.2.1 跨站 peer 设备目录与 prekey lookup（normative）",
+      "fragment": "821-跨站-peer-设备目录与-prekey-lookupnormative"
+    },
+    {
+      "page": "crypto-media/device-lifecycle.md",
+      "heading": "8.2.2 Human control signer evidence（normative）",
+      "fragment": "822-human-control-signer-evidencenormative"
+    },
+    {
+      "page": "crypto-media/device-lifecycle.md",
+      "heading": "8.3 客户端设备信任（normative）",
+      "fragment": "83-客户端设备信任normative"
+    },
+    {
+      "page": "crypto-media/device-lifecycle.md",
+      "heading": "9.0 KeyPackage 写路径签名 transcript（normative）",
+      "fragment": "90-keypackage-写路径签名-transcriptnormative"
+    },
+    {
+      "page": "crypto-media/device-lifecycle.md",
+      "heading": "9.0.1 统一 claim requester authorization 与重放闭包（normative）",
+      "fragment": "901-统一-claim-requester-authorization-与重放闭包normative"
+    },
+    {
+      "page": "crypto-media/device-lifecycle.md",
+      "heading": "9.1 KeyPackage 状态机（normative）",
+      "fragment": "91-keypackage-状态机normative"
+    },
+    {
+      "page": "crypto-media/device-lifecycle.md",
+      "heading": "9.2 跨 Station 原子 claim（normative）",
+      "fragment": "92-跨-station-原子-claimnormative"
+    },
+    {
+      "page": "crypto-media/device-lifecycle.md",
+      "heading": "9.3 普通 MLS join admission 与补偿（normative）",
+      "fragment": "93-普通-mls-join-admission-与补偿normative"
+    },
+    {
+      "page": "crypto-media/encryption-and-audit.md",
+      "heading": "持久恢复的完成条件（normative）",
+      "fragment": "持久恢复的完成条件normative"
+    },
+    {
+      "page": "crypto-media/media-and-blob.md",
+      "heading": "3.1 AEAD nonce uniqueness（normative）",
+      "fragment": "31-aead-nonce-uniquenessnormative"
+    },
+    {
+      "page": "crypto-media/media-and-blob.md",
+      "heading": "3.3.2 Segment nonce 构造与 §3.1 兼容关系（normative）",
+      "fragment": "332-segment-nonce-构造与-31-兼容关系normative"
+    },
+    {
+      "page": "crypto-media/media-and-blob.md",
+      "heading": "3.3.3 AAD binding（normative）",
+      "fragment": "333-aad-bindingnormative"
+    },
+    {
+      "page": "crypto-media/media-and-blob.md",
+      "heading": "3.3.6 解密 MUST（normative）",
+      "fragment": "336-解密-mustnormative"
+    },
+    {
+      "page": "crypto-media/media-and-blob.md",
+      "heading": "5.4.4.1 `audience_hint` 与 bearer-token 边界（normative）",
+      "fragment": "5441-audience_hint-与-bearer-token-边界normative"
+    },
+    {
+      "page": "crypto-media/media-and-blob.md",
+      "heading": "5.4.4.2 Bearer URL 泄漏面控制（normative）",
+      "fragment": "5442-bearer-url-泄漏面控制normative"
+    },
+    {
+      "page": "crypto-media/media-service-binding.md",
+      "heading": "2.1 完整性绑定（normative）",
+      "fragment": "21-完整性绑定normative"
+    },
+    {
+      "page": "crypto-media/media-service-binding.md",
+      "heading": "3.1 签名 domain label 分离（normative）",
+      "fragment": "31-签名-domain-label-分离normative"
+    },
+    {
+      "page": "crypto-media/media-service-binding.md",
+      "heading": "5. Focus Selection 与 Session 持久化（normative）",
+      "fragment": "5-focus-selection-与-session-持久化normative"
+    },
+    {
+      "page": "crypto-media/media-service-binding.md",
+      "heading": "5.1 P2P→SFU 升级复用本节选举（normative）",
+      "fragment": "51-p2psfu-升级复用本节选举normative"
+    },
+    {
+      "page": "crypto-media/media-service-binding.md",
+      "heading": "7. Participant Identity 交叉校验（normative）",
+      "fragment": "7-participant-identity-交叉校验normative"
+    },
+    {
+      "page": "crypto-media/media-service-binding.md",
+      "heading": "8.1 E2EE Key Injection 通用契约（normative）",
+      "fragment": "81-e2ee-key-injection-通用契约normative"
+    },
+    {
+      "page": "crypto-media/media-service-binding.md",
+      "heading": "8.2 治理绑定（normative）",
+      "fragment": "82-治理绑定normative"
+    },
+    {
+      "page": "discovery/client-preferences.md",
+      "heading": "2.1 服务端 policy projection 能力协商（normative）",
+      "fragment": "21-服务端-policy-projection-能力协商normative"
+    },
+    {
+      "page": "discovery/client-preferences.md",
+      "heading": "3.5.1 收取与过滤边界（normative）",
+      "fragment": "351-收取与过滤边界normative"
+    },
+    {
+      "page": "discovery/discovery-directory.md",
+      "heading": "3.1 `discoverability × join_rule × history_access` 兼容矩阵（normative）",
+      "fragment": "31-discoverability--join_rule--history_access-兼容矩阵normative"
+    },
+    {
+      "page": "discovery/discovery-directory.md",
+      "heading": "7.3 不变量（normative）",
+      "fragment": "73-不变量normative"
+    },
+    {
+      "page": "discovery/discovery-directory.md",
+      "heading": "8.7.1 Withdraw governance proof wire 形态与绑定（normative）",
+      "fragment": "871-withdraw-governance-proof-wire-形态与绑定normative"
+    },
+    {
+      "page": "discovery/discovery-directory.md",
+      "heading": "9.0 Handle 解析（normative）",
+      "fragment": "90-handle-解析normative"
+    },
+    {
+      "page": "discovery/discovery-directory.md",
+      "heading": "9.0.1 Requester proof wire 形态与绑定（normative）",
+      "fragment": "901-requester-proof-wire-形态与绑定normative"
+    },
+    {
+      "page": "discovery/discovery-directory.md",
+      "heading": "9.1 通用结果字段（normative）",
+      "fragment": "91-通用结果字段normative"
+    },
+    {
+      "page": "discovery/discovery-directory.md",
+      "heading": "9.1.1 Realm Join Candidate（normative）",
+      "fragment": "911-realm-join-candidatenormative"
+    },
+    {
+      "page": "discovery/object-addressing.md",
+      "heading": "3.1 Path 规则（normative）",
+      "fragment": "31-path-规则normative"
+    },
+    {
+      "page": "discovery/object-addressing.md",
+      "heading": "3.2 Query 规则（normative）",
+      "fragment": "32-query-规则normative"
+    },
+    {
+      "page": "discovery/object-addressing.md",
+      "heading": "3.3 Realm alias 与人类短地址（normative）",
+      "fragment": "33-realm-alias-与人类短地址normative"
+    },
+    {
+      "page": "discovery/object-addressing.md",
+      "heading": "4.1 Token wire syntax（normative）",
+      "fragment": "41-token-wire-syntaxnormative"
+    },
+    {
+      "page": "discovery/object-addressing.md",
+      "heading": "4.2 Token 必须绑定 canonical target（normative）",
+      "fragment": "42-token-必须绑定-canonical-targetnormative"
+    },
+    {
+      "page": "discovery/object-addressing.md",
+      "heading": "5.1 Landing / handler 域名不是信任锚（normative）",
+      "fragment": "51-landing--handler-域名不是信任锚normative"
+    },
+    {
+      "page": "discovery/push-notifications.md",
+      "heading": "3.3 Station 与 Push Gateway 的职责边界（normative）",
+      "fragment": "33-station-与-push-gateway-的职责边界normative"
+    },
+    {
+      "page": "discovery/push-notifications.md",
+      "heading": "3.4 受信公共 Gateway 注册交接（normative）",
+      "fragment": "34-受信公共-gateway-注册交接normative"
+    },
+    {
+      "page": "discovery/read-receipts.md",
+      "heading": "2.5.1 合规旁路（normative）",
+      "fragment": "251-合规旁路normative"
+    },
+    {
+      "page": "extensions/applet-integration.md",
+      "heading": "10.1 Portal Strand（normative）",
+      "fragment": "101-portal-strandnormative"
+    },
+    {
+      "page": "extensions/applet-schema.md",
+      "heading": "1.0.1 `registration_epoch` transcript 与计算算法（normative）",
+      "fragment": "101-registration_epoch-transcript-与计算算法normative"
+    },
+    {
+      "page": "extensions/applet-schema.md",
+      "heading": "2.1 Exclusive namespace 冲突判定（normative）",
+      "fragment": "21-exclusive-namespace-冲突判定normative"
+    },
+    {
+      "page": "extensions/mimi-interop.md",
+      "heading": "3.1 Provider directory 的签名 projection 与验证算法（normative）",
+      "fragment": "31-provider-directory-的签名-projection-与验证算法normative"
+    },
+    {
+      "page": "extensions/mimi-interop.md",
+      "heading": "4.2 `status` 生命周期状态机（normative）",
+      "fragment": "42-status-生命周期状态机normative"
+    },
+    {
+      "page": "extensions/mimi-interop.md",
+      "heading": "5.1 MIMI operation actor proof（normative）",
+      "fragment": "51-mimi-operation-actor-proofnormative"
+    },
+    {
+      "page": "governance/content-moderation.md",
+      "heading": "3.1.1 举报入口反滥用约束（normative）",
+      "fragment": "311-举报入口反滥用约束normative"
+    },
+    {
+      "page": "governance/history-visibility.md",
+      "heading": "3.1 floor 必须可验证（normative）",
+      "fragment": "31-floor-必须可验证normative"
+    },
+    {
+      "page": "identity/account-lifecycle.md",
+      "heading": "2.1.2 Account handoff、PCR genesis 与首次 Standard grant（normative）",
+      "fragment": "212-account-handoffpcr-genesis-与首次-standard-grantnormative"
+    },
+    {
+      "page": "identity/account-lifecycle.md",
+      "heading": "2.1.2a 绑定已发布 DID（normative）",
+      "fragment": "212a-绑定已发布-didnormative"
+    },
+    {
+      "page": "identity/account-lifecycle.md",
+      "heading": "2.1.2b 独立接收与完整 AccountId（normative）",
+      "fragment": "212b-独立接收与完整-accountidnormative"
+    },
+    {
+      "page": "identity/account-lifecycle.md",
+      "heading": "3.1 Account Authority issuer ledger 与复制载体（normative）",
+      "fragment": "31-account-authority-issuer-ledger-与复制载体normative"
+    },
+    {
+      "page": "identity/account-lifecycle.md",
+      "heading": "7.1 Deactivation Fanout（normative）",
+      "fragment": "71-deactivation-fanoutnormative"
+    },
+    {
+      "page": "identity/account-lifecycle.md",
+      "heading": "8.1 用户自助擦除入口（normative）",
+      "fragment": "81-用户自助擦除入口normative"
+    },
+    {
+      "page": "identity/contact-and-direct-conversation.md",
+      "heading": "1.1 陌生人首次接触的 new-source quota（normative）",
+      "fragment": "11-陌生人首次接触的-new-source-quotanormative"
+    },
+    {
+      "page": "identity/contact-and-direct-conversation.md",
+      "heading": "3.1 Contact 耐久效果的归属（normative）",
+      "fragment": "31-contact-耐久效果的归属normative"
+    },
+    {
+      "page": "identity/contact-and-direct-conversation.md",
+      "heading": "5.2 founder 派生（normative）",
+      "fragment": "52-founder-派生normative"
+    },
+    {
+      "page": "identity/contact-and-direct-conversation.md",
+      "heading": "9.1.1 `creation_required` 的 authoring material（normative）",
+      "fragment": "911-creation_required-的-authoring-materialnormative"
+    },
+    {
+      "page": "identity/contact-and-direct-conversation.md",
+      "heading": "9.1.2 Origin authority 供给（normative）",
+      "fragment": "912-origin-authority-供给normative"
+    },
+    {
+      "page": "identity/did-usage-and-verification.md",
+      "heading": "8. 公开测试签名材料与保留测试标识的拒收（normative）",
+      "fragment": "8-公开测试签名材料与保留测试标识的拒收normative"
+    },
+    {
+      "page": "identity/identity-did.md",
+      "heading": "2.1.2 `did_core_id` / `did` 模型（normative）",
+      "fragment": "212-did_core_id--did-模型normative"
+    },
+    {
+      "page": "identity/identity-did.md",
+      "heading": "3.4.1 Witness 的 method-native 输入合同（normative）",
+      "fragment": "341-witness-的-method-native-输入合同normative"
+    },
+    {
+      "page": "identity/identity-did.md",
+      "heading": "3.4.2 Arkret overlay policy 与 method-native policy 的分层（normative）",
+      "fragment": "342-arkret-overlay-policy-与-method-native-policy-的分层normative"
+    },
+    {
+      "page": "identity/identity-did.md",
+      "heading": "3.4.3 Witness evidence 在 Arkret 层的承载（normative）",
+      "fragment": "343-witness-evidence-在-arkret-层的承载normative"
+    },
+    {
+      "page": "identity/identity-did.md",
+      "heading": "3.4.4 `{SCID}` 占位符的替换范围（normative）",
+      "fragment": "344-scid-占位符的替换范围normative"
+    },
+    {
+      "page": "identity/identity-did.md",
+      "heading": "4.4 DID 日志的返回形态（normative）",
+      "fragment": "44-did-日志的返回形态normative"
+    },
+    {
+      "page": "identity/identity-did.md",
+      "heading": "8.4 外部 Organization DID 的本地 registration（normative）",
+      "fragment": "84-外部-organization-did-的本地-registrationnormative"
+    },
+    {
+      "page": "identity/identity-did.md",
+      "heading": "Organization principal 与 Account Authority 边界（normative）",
+      "fragment": "organization-principal-与-account-authority-边界normative"
+    },
+    {
+      "page": "identity/identity-handles.md",
+      "heading": "16. Agent requested-scope 私有披露（normative）",
+      "fragment": "16-agent-requested-scope-私有披露normative"
+    },
+    {
+      "page": "identity/identity-handles.md",
+      "heading": "3.2.1 Primary Handle Selection（normative）",
+      "fragment": "321-primary-handle-selectionnormative"
+    },
+    {
+      "page": "identity/identity-handles.md",
+      "heading": "3.2.1.1 数组规范化规则（normative）",
+      "fragment": "3211-数组规范化规则normative"
+    },
+    {
+      "page": "identity/identity-handles.md",
+      "heading": "3.2.2 Handle Claim Lifecycle and Acquisition（normative）",
+      "fragment": "322-handle-claim-lifecycle-and-acquisitionnormative"
+    },
+    {
+      "page": "identity/identity-handles.md",
+      "heading": "3.8 Mention Reference 与 Display Snapshot（normative）",
+      "fragment": "38-mention-reference-与-display-snapshotnormative"
+    },
+    {
+      "page": "identity/identity-handles.md",
+      "heading": "3.8.2 渲染规则（normative）",
+      "fragment": "382-渲染规则normative"
+    },
+    {
+      "page": "identity/key-management.md",
+      "heading": "3.6.2 Runtime request binding、审批竞态与账号通知（normative）",
+      "fragment": "362-runtime-request-binding审批竞态与账号通知normative"
+    },
+    {
+      "page": "identity/key-management.md",
+      "heading": "3.6.3 Agent PCR genesis 的构造顺序（normative）",
+      "fragment": "363-agent-pcr-genesis-的构造顺序normative"
+    },
+    {
+      "page": "identity/key-management.md",
+      "heading": "5.0.1 Root commitment 与无环约束（normative）",
+      "fragment": "501-root-commitment-与无环约束normative"
+    },
+    {
+      "page": "identity/key-management.md",
+      "heading": "5.0.2 注册中设备丢失（normative）",
+      "fragment": "502-注册中设备丢失normative"
+    },
+    {
+      "page": "identity/key-management.md",
+      "heading": "5.0.3 PCR-Policy Re-anchor Unit（normative）",
+      "fragment": "503-pcr-policy-re-anchor-unitnormative"
+    },
+    {
+      "page": "identity/key-management.md",
+      "heading": "5.0.4 Recovery-material gate（normative）",
+      "fragment": "504-recovery-material-gatenormative"
+    },
+    {
+      "page": "identity/key-management.md",
+      "heading": "6.1 Issuance record 与 ID（normative）",
+      "fragment": "61-issuance-record-与-idnormative"
+    },
+    {
+      "page": "identity/key-management.md",
+      "heading": "6.2 签发、签名边界与 durable exact replay（normative）",
+      "fragment": "62-签发签名边界与-durable-exact-replaynormative"
+    },
+    {
+      "page": "identity/key-management.md",
+      "heading": "6.3 Lifecycle、refresh、revoke 与 introspection（normative）",
+      "fragment": "63-lifecyclerefreshrevoke-与-introspectionnormative"
+    },
+    {
+      "page": "identity/key-management.md",
+      "heading": "6.4 客户端 Event signer 边界（normative）",
+      "fragment": "64-客户端-event-signer-边界normative"
+    },
+    {
+      "page": "identity/key-management.md",
+      "heading": "7.11 加密 Realm 创建 / 加入前的 Recovery 前置门（normative）",
+      "fragment": "711-加密-realm-创建--加入前的-recovery-前置门normative"
+    },
+    {
+      "page": "identity/key-management.md",
+      "heading": "7.3.1 Account MLS root 与 durable recovery unit（normative）",
+      "fragment": "731-account-mls-root-与-durable-recovery-unitnormative"
+    },
+    {
+      "page": "identity/key-management.md",
+      "heading": "7.4.1 备份签名的设备信任根锚定（normative）",
+      "fragment": "741-备份签名的设备信任根锚定normative"
+    },
+    {
+      "page": "identity/key-management.md",
+      "heading": "7.5.0 `backup_kind` 与 recipient method（normative）",
+      "fragment": "750-backup_kind-与-recipient-methodnormative"
+    },
+    {
+      "page": "identity/key-management.md",
+      "heading": "7.7 Recovery UI Requirements（normative）",
+      "fragment": "77-recovery-ui-requirementsnormative"
+    },
+    {
+      "page": "identity/key-management.md",
+      "heading": "7.7.1 Backup Unlock Proof 与 Plaintext Keybag（normative）",
+      "fragment": "771-backup-unlock-proof-与-plaintext-keybagnormative"
+    },
+    {
+      "page": "identity/key-management.md",
+      "heading": "8.2 恢复授权方与精确授权（normative）",
+      "fragment": "82-恢复授权方与精确授权normative"
+    },
+    {
+      "page": "identity/key-management.md",
+      "heading": "9.1 备份子系统泄露的组合恢复流程（normative）",
+      "fragment": "91-备份子系统泄露的组合恢复流程normative"
+    },
+    {
+      "page": "identity/key-management.md",
+      "heading": "Agent signing-key binding 与 portable signer evidence（normative）",
+      "fragment": "agent-signing-key-binding-与-portable-signer-evidencenormative"
+    },
+    {
+      "page": "identity/key-management.md",
+      "heading": "Agent 初次 session proof、holder 出示与重试（normative）",
+      "fragment": "agent-初次-session-proofholder-出示与重试normative"
+    },
+    {
+      "page": "models/account-data.md",
+      "heading": "2. Namespace key 与不透明寻址（normative）",
+      "fragment": "2-namespace-key-与不透明寻址normative"
+    },
+    {
+      "page": "models/account-data.md",
+      "heading": "3. Value encryption（normative）",
+      "fragment": "3-value-encryptionnormative"
+    },
+    {
+      "page": "models/account-data.md",
+      "heading": "5. 并发写入与收敛契约（normative）",
+      "fragment": "5-并发写入与收敛契约normative"
+    },
+    {
+      "page": "models/account-data.md",
+      "heading": "5.5 Station-CAS 同步投影（normative）",
+      "fragment": "55-station-cas-同步投影normative"
+    },
+    {
+      "page": "models/actor.md",
+      "heading": "3.3.1 `accountable_principal_ids` 的可验证性（normative）",
+      "fragment": "331-accountable_principal_ids-的可验证性normative"
+    },
+    {
+      "page": "models/common-fields.md",
+      "heading": "2.0.1 全域命名判据（normative）",
+      "fragment": "201-全域命名判据normative"
+    },
+    {
+      "page": "models/common-fields.md",
+      "heading": "2.1 Identifier 字段命名约定（normative）",
+      "fragment": "21-identifier-字段命名约定normative"
+    },
+    {
+      "page": "models/common-fields.md",
+      "heading": "3.3 公共元数据的来源与维护闭包（normative）",
+      "fragment": "33-公共元数据的来源与维护闭包normative"
+    },
+    {
+      "page": "models/common-fields.md",
+      "heading": "4.4 `agent_participation` wire 形态（normative）",
+      "fragment": "44-agent_participation-wire-形态normative"
+    },
+    {
+      "page": "models/common-fields.md",
+      "heading": "4.5 Membership FSM（normative）",
+      "fragment": "45-membership-fsmnormative"
+    },
+    {
+      "page": "models/common-fields.md",
+      "heading": "5.3.4 与本地 workflow 的关系（normative）",
+      "fragment": "534-与本地-workflow-的关系normative"
+    },
+    {
+      "page": "models/common-fields.md",
+      "heading": "6.0 create-once 对象 ID 由 create Event 派生（normative）",
+      "fragment": "60-create-once-对象-id-由-create-event-派生normative"
+    },
+    {
+      "page": "models/common-fields.md",
+      "heading": "6.1 Policy 对象 vs 内联配置的字段命名约定（normative）",
+      "fragment": "61-policy-对象-vs-内联配置的字段命名约定normative"
+    },
+    {
+      "page": "models/content-types.md",
+      "heading": "4.1.2 文本规范化与计数（normative）",
+      "fragment": "412-文本规范化与计数normative"
+    },
+    {
+      "page": "models/content-types.md",
+      "heading": "4.1.3 Fallback 规则（normative）",
+      "fragment": "413-fallback-规则normative"
+    },
+    {
+      "page": "models/content-types.md",
+      "heading": "4.1.4 选择边界（normative）",
+      "fragment": "414-选择边界normative"
+    },
+    {
+      "page": "models/content-types.md",
+      "heading": "4.1.5 下游行为（normative）",
+      "fragment": "415-下游行为normative"
+    },
+    {
+      "page": "models/content-types.md",
+      "heading": "4.9.1 改票声明与唯一计票（normative）",
+      "fragment": "491-改票声明与唯一计票normative"
+    },
+    {
+      "page": "models/content-types.md",
+      "heading": "4.9.2 状态、合并与重建（normative）",
+      "fragment": "492-状态合并与重建normative"
+    },
+    {
+      "page": "models/event-and-patch.md",
+      "heading": "4.2.1 Grammar（normative）",
+      "fragment": "421-grammarnormative"
+    },
+    {
+      "page": "models/governance-objects.md",
+      "heading": "3.5 审批配置的消费合同（normative）",
+      "fragment": "35-审批配置的消费合同normative"
+    },
+    {
+      "page": "models/morph.md",
+      "heading": "5.1 Facet 与标准 Relation / Schema 约束冲突时的仲裁（normative）",
+      "fragment": "51-facet-与标准-relation--schema-约束冲突时的仲裁normative"
+    },
+    {
+      "page": "models/morph.md",
+      "heading": "5.2 Profile-declared generic container events（normative）",
+      "fragment": "52-profile-declared-generic-container-eventsnormative"
+    },
+    {
+      "page": "models/pins.md",
+      "heading": "4.1 收敛（normative）",
+      "fragment": "41-收敛normative"
+    },
+    {
+      "page": "models/realm-and-space.md",
+      "heading": "2.3.0 Realm 组织归属与治理同意（normative）",
+      "fragment": "230-realm-组织归属与治理同意normative"
+    },
+    {
+      "page": "models/realm-and-space.md",
+      "heading": "2.3.A 字段 carrier inventory（normative）",
+      "fragment": "23a-字段-carrier-inventorynormative"
+    },
+    {
+      "page": "models/realm-and-space.md",
+      "heading": "2.5 `ak.realm.create` Reducer Bootstrap（normative）",
+      "fragment": "25-akrealmcreate-reducer-bootstrapnormative"
+    },
+    {
+      "page": "models/realm-and-space.md",
+      "heading": "2.5.0 `realm_id` 由 genesis Event 派生且自证（normative）",
+      "fragment": "250-realm_id-由-genesis-event-派生且自证normative"
+    },
+    {
+      "page": "models/realm-and-space.md",
+      "heading": "2.6.0.1 产品态\"解散 Realm\"映射（normative）",
+      "fragment": "2601-产品态解散-realm映射normative"
+    },
+    {
+      "page": "models/realm-and-space.md",
+      "heading": "2.6.1 `ak.realm.tombstone` / `ak.realm.destroy` 终态规则（normative）",
+      "fragment": "261-akrealmtombstone--akrealmdestroy-终态规则normative"
+    },
+    {
+      "page": "models/realm-and-space.md",
+      "heading": "2.6.2 跨 Station Erasure Receipt Fanout（normative）",
+      "fragment": "262-跨-station-erasure-receipt-fanoutnormative"
+    },
+    {
+      "page": "models/realm-and-space.md",
+      "heading": "2.7 Realm Membership FSM（normative）",
+      "fragment": "27-realm-membership-fsmnormative"
+    },
+    {
+      "page": "models/realm-and-space.md",
+      "heading": "2.8 Realm 角色分类（normative）",
+      "fragment": "28-realm-角色分类normative"
+    },
+    {
+      "page": "models/relation.md",
+      "heading": "4.2.1 `ReferenceProjectionState`（normative）",
+      "fragment": "421-referenceprojectionstatenormative"
+    },
+    {
+      "page": "models/relation.md",
+      "heading": "4.5 反枚举（normative）",
+      "fragment": "45-反枚举normative"
+    },
+    {
+      "page": "models/relation.md",
+      "heading": "6.3 冻结基线与修复材料（normative）",
+      "fragment": "63-冻结基线与修复材料normative"
+    },
+    {
+      "page": "models/relation.md",
+      "heading": "6.4 准入、基线覆盖与重放（normative）",
+      "fragment": "64-准入基线覆盖与重放normative"
+    },
+    {
+      "page": "models/relation.md",
+      "heading": "6.5 并发裁决与再解决（normative）",
+      "fragment": "65-并发裁决与再解决normative"
+    },
+    {
+      "page": "models/strand-and-message.md",
+      "heading": "8.5 投影脱敏（normative）",
+      "fragment": "85-投影脱敏normative"
+    },
+    {
+      "page": "models/strand-and-message.md",
+      "heading": "9.5.1 canonical revision 由 stream position 唯一决定（normative）",
+      "fragment": "951-canonical-revision-由-stream-position-唯一决定normative"
+    },
+    {
+      "page": "models/views.md",
+      "heading": "3.2 三个 View event 的写入语义（normative）",
+      "fragment": "32-三个-view-event-的写入语义normative"
+    },
+    {
+      "page": "overview/glossary.md",
+      "heading": "4.1 Arkret 自有缩写（normative）",
+      "fragment": "41-arkret-自有缩写normative"
+    },
+    {
+      "page": "sync/api-conventions.md",
+      "heading": "2.3.1 Content-Encoding 与 pre-parse 大小边界（normative）",
+      "fragment": "231-content-encoding-与-pre-parse-大小边界normative"
+    },
+    {
+      "page": "sync/api-conventions.md",
+      "heading": "2.4.1 HTTP operation selector（normative）",
+      "fragment": "241-http-operation-selectornormative"
+    },
+    {
+      "page": "sync/api-conventions.md",
+      "heading": "2.4.2 写操作的 durable Event authorship 闭包（normative）",
+      "fragment": "242-写操作的-durable-event-authorship-闭包normative"
+    },
+    {
+      "page": "sync/api-conventions.md",
+      "heading": "6.1 幂等记录保留窗口（normative）",
+      "fragment": "61-幂等记录保留窗口normative"
+    },
+    {
+      "page": "sync/api-conventions.md",
+      "heading": "6.2 客户端重试义务（normative）",
+      "fragment": "62-客户端重试义务normative"
+    },
+    {
+      "page": "sync/api-conventions.md",
+      "heading": "7.1 列表分页（normative）",
+      "fragment": "71-列表分页normative"
+    },
+    {
+      "page": "sync/api-conventions.md",
+      "heading": "7.2 单 stream 扫描用位置，不用 cursor（normative）",
+      "fragment": "72-单-stream-扫描用位置不用-cursornormative"
+    },
+    {
+      "page": "sync/client-sync.md",
+      "heading": "11.1 Events 面的 query-scope digest（normative）",
+      "fragment": "111-events-面的-query-scope-digestnormative"
+    },
+    {
+      "page": "sync/client-sync.md",
+      "heading": "14.2 History-only multi-candidate store（normative）",
+      "fragment": "142-history-only-multi-candidate-storenormative"
+    },
+    {
+      "page": "sync/client-sync.md",
+      "heading": "2.3 按需列表、详情与分段 baseline（normative）",
+      "fragment": "23-按需列表详情与分段-baselinenormative"
+    },
+    {
+      "page": "sync/client-sync.md",
+      "heading": "3.1 Account notification delta（normative）",
+      "fragment": "31-account-notification-deltanormative"
+    },
+    {
+      "page": "sync/client-sync.md",
+      "heading": "3.2 Agent signer 按需结果（normative）",
+      "fragment": "32-agent-signer-按需结果normative"
+    },
+    {
+      "page": "sync/client-sync.md",
+      "heading": "4.1 流的发现与选择（normative）",
+      "fragment": "41-流的发现与选择normative"
+    },
+    {
+      "page": "sync/client-sync.md",
+      "heading": "5.0 current 与 timeline 的载体边界（normative）",
+      "fragment": "50-current-与-timeline-的载体边界normative"
+    },
+    {
+      "page": "sync/current-results.md",
+      "heading": "2.2 消费清单（normative）",
+      "fragment": "22-消费清单normative"
+    },
+    {
+      "page": "sync/federation.md",
+      "heading": "4.1.1 Realm fanout 目标集合与持久 intent（normative）",
+      "fragment": "411-realm-fanout-目标集合与持久-intentnormative"
+    },
+    {
+      "page": "sync/federation.md",
+      "heading": "5.3.1 有界加入引导（normative）",
+      "fragment": "531-有界加入引导normative"
+    },
+    {
+      "page": "sync/invite-addressing.md",
+      "heading": "5.2 部署接收约束（normative）",
+      "fragment": "52-部署接收约束normative"
+    },
+    {
+      "page": "sync/invite-addressing.md",
+      "heading": "7.1 定向邀请的加入前预览（normative）",
+      "fragment": "71-定向邀请的加入前预览normative"
+    },
+    {
+      "page": "sync/operations-sync.md",
+      "heading": "6.3 历史完整性边界（normative）",
+      "fragment": "63-历史完整性边界normative"
+    },
+    {
+      "page": "sync/server-trusted-results.md",
+      "heading": "1.2 普通客户端的 Station 接入（normative）",
+      "fragment": "12-普通客户端的-station-接入normative"
+    },
+    {
+      "page": "sync/service-http-binding.md",
+      "heading": "2.2.4 请求材料供给闭合（normative）",
+      "fragment": "224-请求材料供给闭合normative"
+    },
+    {
+      "page": "sync/service-http-binding.md",
+      "heading": "3.1.5 Realm fanout delivery status（normative）",
+      "fragment": "315-realm-fanout-delivery-statusnormative"
+    },
+    {
+      "page": "sync/service-http-binding.md",
+      "heading": "7.1 Canonical non-HTTP binding closure（normative）",
+      "fragment": "71-canonical-non-http-binding-closurenormative"
+    },
+    {
+      "page": "sync/service-http-binding.md",
+      "heading": "8.1 覆盖集（normative）",
+      "fragment": "81-覆盖集normative"
+    },
+    {
+      "page": "sync/service-http-binding.md",
+      "heading": "8.2 Peer signature 与 content-digest（normative）",
+      "fragment": "82-peer-signature-与-content-digestnormative"
+    },
+    {
+      "page": "sync/service-http-binding.md",
+      "heading": "8.3 时效窗口与重放（normative）",
+      "fragment": "83-时效窗口与重放normative"
+    },
+    {
+      "page": "sync/service-http-binding.md",
+      "heading": "8.4 DPoP 新鲜度是独立合同（normative）",
+      "fragment": "84-dpop-新鲜度是独立合同normative"
+    },
+    {
+      "page": "sync/service-surface.md",
+      "heading": "2.6 Service DID 权威入口与路由解析（normative）",
+      "fragment": "26-service-did-权威入口与路由解析normative"
+    },
+    {
+      "page": "sync/signal.md",
+      "heading": "1.1 Plaintext payload profile 通用最小集（normative）",
+      "fragment": "11-plaintext-payload-profile-通用最小集normative"
+    },
+    {
+      "page": "sync/third-party-invites.md",
+      "heading": "2.1 验证服务威胁假设（normative）",
+      "fragment": "21-验证服务威胁假设normative"
+    },
+    {
+      "page": "sync/third-party-invites.md",
+      "heading": "3.1.1 两种模式的 commitment 与 token 字符空间（normative）",
+      "fragment": "311-两种模式的-commitment-与-token-字符空间normative"
+    },
+    {
+      "page": "sync/third-party-invites.md",
+      "heading": "6.1 失败 / 异常清理状态机（normative）",
+      "fragment": "61-失败--异常清理状态机normative"
+    },
+    {
+      "page": "sync/third-party-invites.md",
+      "heading": "7. 私有材料生命周期（normative）",
+      "fragment": "7-私有材料生命周期normative"
+    },
+    {
+      "page": "sync/third-party-invites.md",
+      "heading": "7.2 预配 provisioning（normative）",
+      "fragment": "72-预配-provisioningnormative"
+    },
+    {
+      "page": "sync/third-party-invites.md",
+      "heading": "7.3 author 与接受（normative）",
+      "fragment": "73-author-与接受normative"
+    },
+    {
+      "page": "sync/third-party-invites.md",
+      "heading": "7.4 接受证据 acceptance attestation（normative）",
+      "fragment": "74-接受证据-acceptance-attestationnormative"
+    },
+    {
+      "page": "sync/third-party-invites.md",
+      "heading": "7.5 回绑激活 activation（normative）",
+      "fragment": "75-回绑激活-activationnormative"
+    },
+    {
+      "page": "sync/third-party-invites.md",
+      "heading": "7.6 投递与状态观察（normative）",
+      "fragment": "76-投递与状态观察normative"
+    },
+    {
+      "page": "sync/third-party-invites.md",
+      "heading": "7.7 崩溃恢复、幂等与清理（normative）",
+      "fragment": "77-崩溃恢复幂等与清理normative"
+    },
+    {
+      "page": "sync/third-party-invites.md",
+      "heading": "7.8 与 present 的边界与 bundle 广告（normative）",
+      "fragment": "78-与-present-的边界与-bundle-广告normative"
+    },
+    {
+      "page": "sync/transport-bindings.md",
+      "heading": "1.1 Stream frame 序列约束的机读锚点（normative）",
+      "fragment": "11-stream-frame-序列约束的机读锚点normative"
+    },
+    {
+      "page": "sync/transport-bindings.md",
+      "heading": "6.1 Per-operation HTTP 伴生 binding（normative）",
+      "fragment": "61-per-operation-http-伴生-bindingnormative"
+    },
+    {
+      "page": "sync/websocket-binding.md",
+      "heading": "3.1 `challenge_dpop_session_v1` proof（normative）",
+      "fragment": "31-challenge_dpop_session_v1-proofnormative"
+    },
+    {
+      "page": "sync/websocket-binding.md",
+      "heading": "8.1 WebSocket close code（normative）",
+      "fragment": "81-websocket-close-codenormative"
+    }
+  ]
+}

@@ -82,6 +82,23 @@ Event canonical bytes、operation canonical body、HTTP wire bytes 是三个独�
 
 不得通过截断 refs、拆分一个 RealmCommit、把多个 stream合成总 position或接受部分 MLS Commit+Welcome事务来规避上限。
 
+### 2.2 Protocol-level time tolerances（normative）
+
+协议级时钟容差的唯一机器真源是
+[`contract-registry.json#protocol_time_tolerance_registry`](../../artifacts/registry/contract-registry.json)。
+实现 MUST 按场景标识读取容差，不得从本页、某份 schema description 或 fixture 私自复制数值。
+容差条目只定义量值；方向由场景单独定义：
+
+- `ak.time_tolerance.approval_approved_at.v1` 是单侧 future guard，只拒绝超过未来上界的
+  `approved_at`，不得据此给过去时刻增加宽限；
+- `ak.time_tolerance.temporal_constraint.v1` 对未来的 `not_before` 与过去的 `expires_at`
+  使用同一量值，边界包含在可接受区间内；
+- `ak.time_tolerance.blob_presign_ttl.v1` 对未来的 `issued_at` 与过去的 `expires_at`
+  使用其独立的短窗口量值，边界包含在可接受区间内。
+
+部署参数（例如 `revocation_index_propagation_max_ms`）不是协议时钟容差，MUST 显式声明，
+不得把上述任一量值当作未声明部署参数的隐式缺省值。
+
 ## 3. 授权与 Capability 上限
 
 | 项 | 上限 | 规则 |

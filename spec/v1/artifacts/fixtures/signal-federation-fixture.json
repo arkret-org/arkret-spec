@@ -391,6 +391,7 @@
             "missing_current_device_trust",
             "expired_device_attestation",
             "device_generation_mismatch",
+            "agent_key_authorize_event_mismatch",
             "leaf_signature_key_mismatch",
             "scope_group_mismatch",
             "mls_state_not_current_winner",

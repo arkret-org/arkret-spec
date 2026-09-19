@@ -186,7 +186,7 @@
     },
     "did_key_did": {
       "type": "string",
-      "pattern": "^did:key:z[A-Za-z0-9]+$",
+      "pattern": "^did:key:z[1-9A-HJ-NP-Za-km-z]+$",
       "maxLength": 2048,
       "description": "Canonical bare did:key identifier used at method-native key and witness evidence boundaries. This is a registered method-specific Did subtype, not a business ActorId and not a DID URL."
     },

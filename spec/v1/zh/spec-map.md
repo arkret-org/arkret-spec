@@ -161,6 +161,7 @@ see_also:
 | `models/governance-objects.md` | Schema、Policy、Capability Grant、Invite 治理对象。 |
 | `models/private-objects.md` | Read Cursor、Notification、actor-private account data 引导。 |
 | `models/account-data.md` | principal/actor-private Account Data 的存储、namespace key、value encryption、HKDF/AAD transcript 与文档放置规则单一真相源。 |
+| `models/actor-private-effects.md` | actor-private Event 的服务私有效果合同：storage owner、unique key、value/projection、字段维护、CAS/merge、exact retry 与零副作用拒绝。 |
 | `models/personal-productivity.md` | principal-private reminders、scheduled send、snooze、saved items 与 draft sync account-data key 规则。 |
 | `models/file-transfer.md` | principal-private 跨设备文件传输：encrypted account-data transfer record、Blob ciphertext、to-device key delivery、retention 与共享附件边界。 |
 | `models/event-and-patch.md` | Event Envelope、Proof、Field Patch (`ak.schema.patch.v1`)、Event Batch Receipt、reducer 总则。 |

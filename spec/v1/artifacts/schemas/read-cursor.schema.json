@@ -167,7 +167,8 @@
       "properties": {
         "event_id": {
           "type": "string",
-          "pattern": "^ak:event:[A-Za-z0-9_-]{44}$"
+          "pattern": "^ak:event:[A-Za-z0-9_-]{44}$",
+          "x-arkret-preimage-commitment": "fixed_event"
         },
         "hlc": {
           "type": "string",

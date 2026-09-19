@@ -400,9 +400,17 @@ Conformance vector：`ak.vector.agent.runtime_key_binding.v1`。
 
 `proof_of_possession` MUST 验证 `agent-operations.schema.json#/$defs/agent_runtime_key_possession_proof`，不得接受开放 JSON、实现私有字段或算法 fallback。v1 runtime key profile 固定为 Ed25519：`public_key.kty="OKP"`、`public_key.algorithm="Ed25519"`，`public_key.key` 解码后恰为 32 bytes；`public_key.kid`、request `verification_method` 与 proof `verification_method` MUST byte-identical，且该 DID URL 的 controller MUST 经注册 DID method adapter 投影为 request `agent_id`。proof `kind` 固定为 `agent_runtime_key_possession`，proof `signature_algorithm` 固定为 `Ed25519`（Arkret 自有对象不使用 JOSE 短名 `alg`，见 `signature-alg-registry.json`；`alg` 只保留给 JWS protected header 与 JWK），`signature` 是 64-byte raw Ed25519 signature 的无 padding base64url 表达。`Ed25519`也是 RFC 9864 fully-specified JOSE algorithm identifier；任何不能仅凭该算法标识唯一确定曲线和签名算法的多态别名都不属于本协议词表并 MUST fail closed。key 与 signature 解码后还 MUST 以 canonical unpadded base64url 重编码并与 wire byte-identical；非零 unused bits、padding 或其它别名表达必须拒绝。
 
+全体名为 `jws` 的 wire 成员只允许 compact detached JWS：序列化必须为
+`BASE64URL(protected) || "." || "" || "." || BASE64URL(signature)`，中间 payload segment 必须为空。
+protected header 的标准 JOSE 成员 `alg` 必须等于
+[`signature-alg-registry.json`](../../artifacts/registry/signature-alg-registry.json) 中一个 active 且
+`proof_kinds` 包含 `detached_jws` 的 `jose_algorithm`；未知值、多态别名、缺 header 的 raw signature
+或 non-empty payload segment 均 MUST fail closed。Arkret raw detached signature 继续使用独立的
+`signature_algorithm` 与 `signature` 成员，不得把 raw bytes 填入 `jws`。
+
 构造方先计算上述稳定 `runtime_key_binding_digest`，再对以下闭合对象的 JCS bytes 签名；`context` 只存在于签名输入，不是 wire 字段：
 
-```json
+```json fragment
 {
   "context": "ak.agent_runtime_key_possession_proof.v1",
   "kind": "agent_runtime_key_possession",
@@ -416,7 +424,6 @@ Conformance vector：`ak.vector.agent.runtime_key_binding.v1`。
   "signature_algorithm": "Ed25519"
 }
 ```
-
 proof `challenge` MUST byte-identical 于权威 pairing record 的 `pairing_request_id`，不得由 caller 另造；`audience_id` MUST byte-identical 于 bootstrap 与 record 的 service DID `service_id`，不得使用 URL、HTTP Host 或请求体自选 verifier；签名输入中的 `pairing_code` MUST byte-identical 于 runtime body 与 record 中的 ≥128-bit secret，但不得复制到 proof 或 controller projection。`transcript_digest` MUST 等于上述 JCS bytes 的 SHA-256 typed digest；接收方必须先独立重建并比较 digest，再用 request `public_key` 验 Ed25519 signature。任一 equality、长度、digest 或 signature 不符都在创建/更新 pending request 前 fail closed。
 
 `created_at`、proof `expires_at` 和pairing expiry使用固定UTC毫秒profile。首次接纳每份PoP须满足created_at≤now+60s、created_at<expires_at≤created_at+300s、expires_at≤pairing expiry且now<expires_at。Station耐久记录验证材料与接纳时间；后续批准有效期由handle/candidate/fence和批准scope/time约束，不因原PoP自然过期或same-binding fresh PoP替换而失效。split Authority独立复验签名与记录接纳时freshness；首次激活仍要求handle未过期，runtime session另需新的agent_key_proof，不能把曾验PoP当永久在线证明。
@@ -460,12 +467,12 @@ PCR id；PCR service binding 必须是 create accepted 后的连续 DID update�
    `ak.realm.create` canonical bytes，自算 `event_id`，再取 `realm_id = retype(event_id, "realm")`。该 create
    **此刻不提交**。
 4. **提交 `ak.agent.provision`**。payload 保留 `principal_control_realm_id`，其值就是上一步算出的 id；它是
-   对一条**尚未提交**的 Event 的**前向声明**。这是 [`../conformance/encoding.md` §6.0.1](../conformance/encoding.md)
+   对一条**尚未提交**的 Event 的**前向声明**。这是 [`../conformance/encoding.md` §3.1](../conformance/encoding.md)
    的具名 C 类例外 `ak.exemption.preimage_identity.agent_provision_principal_control_realm_id.v1`：
    inception 不依赖 PCR；genesis 只依赖 accepted inception；provision 依赖已冻结 genesis 的派生 id，依赖
    方向严格单向，每个对象都可构造。
 5. **另一次提交 genesis create**。该 create MUST 在一次**独立的提交**中送出，MUST NOT 与 provision 同属
-   一个原子 unit 或同一 ordered submit batch——那正是 §6.0.1 B 类禁令，会让两条 Event 互为原像而不可构造。
+   一个原子 unit 或同一 ordered submit batch——那正是 §3.1 B 类禁令，会让两条 Event 互为原像而不可构造。
    Genesis admission MUST 反查：controller PCR 中是否存在一条**已 accepted** 的 `ak.agent.provision`，其
    `payload.principal_control_realm_id` 逐字等于 `retype(本 create 的 event_id)`。无匹配 MUST 零写入拒绝。
 6. **发布 DID binding update**。genesis accepted 后 outcome 进入 `status=awaiting_did_binding`。controller 使用
@@ -560,7 +567,7 @@ MLS KeyPackage 携带 MLS leaf/init 等群组加入材料，但 Arkret 不为它
 
 示例：
 
-```json
+```json fragment
 {
   "id": "ak:device:01964137-0000-7000-8000-000000000000",
   "actor_id": "ak:did_core:webvh:z2dmjZ7p8K3pV4cXbKqL2nMsR9tWfH",
@@ -575,7 +582,6 @@ MLS KeyPackage 携带 MLS leaf/init 等群组加入材料，但 Arkret 不为它
   "revocation_ref": null
 }
 ```
-
 ### 4.1 Principal Control Event Stream
 
 设备、recovery 和 KeyPackage 有效性属于 principal 级状态，不属于任意 Collaboration Realm。Arkret v1 使用 **Principal Control Event Stream** 承载这些 durable identity state（其归属的 Realm 即 [Principal Control Realm](../models/realm-and-space.md#28-realm-角色分类normative)，与 Collaboration Realm 在 `models/realm-and-space.md` §2.8 中正式分类）。SessionGrant 是 Account Authority 的 issuer-ledger credential，其签发与 lifecycle 不写入 Principal Control Event Stream，见 §6。
@@ -585,7 +591,7 @@ MLS KeyPackage 携带 MLS leaf/init 等群组加入材料，但 Arkret 不为它
 - `realm_id` MUST 是该 principal 的专用 `principal_control_realm_id`，不得使用任意 Collaboration Realm 的 `realm_id`。
 - `actor_id` MUST 是签发该控制事件的 principal、已授权 device 或受信 recovery service。
 - `payload.principal_id` MUST 与该 control Realm 绑定的 principal `did_core_id` 一致；不一致时 MUST reject。
-- control Realm 的 `ak.realm.create` 或等价 genesis record MUST 绑定 principal `did_core_id`、`initial_resolution={did,method_history_head,version_id?}`、control stream policy 和可发现的 service endpoint。Station MUST 用 method adapter 独立验证 `project(did) == principal_id`，并以 genesis 初始化 `identity_resolution`。该 Realm 使用标准 `ak.schema.realm.v1`；类别由签名 genesis `purpose` 唯一决定（human / organization PCR 为 `principal_control`，Agent PCR 为 `agent_control`），materialized `fields.purpose` 只是它的只读投影（见 [`../models/realm-and-space.md` §2.3.A](../models/realm-and-space.md#23a-字段-carrier-inventorynormative)）。control realm **不**使用单独的 Realm kind——所有 Realm-level 验证（schema、boundary、E2EE、federation）走标准 Realm 路径。
+- control Realm 的 `ak.realm.create` 或等价 genesis record MUST 绑定 principal `did_core_id`、`initial_resolution={did,method_history_head,version_id}`、control stream policy 和可发现的 service endpoint。Station MUST 用 method adapter 独立验证 `project(did) == principal_id`，并以 genesis 初始化 `identity_resolution`。该 Realm 使用标准 `ak.schema.realm.v1`；类别由签名 genesis `purpose` 唯一决定（human / organization PCR 为 `principal_control`，Agent PCR 为 `agent_control`），materialized `fields.purpose` 只是它的只读投影（见 [`../models/realm-and-space.md` §2.3.A](../models/realm-and-space.md#23a-字段-carrier-inventorynormative)）。control realm **不**使用单独的 Realm kind——所有 Realm-level 验证（schema、boundary、E2EE、federation）走标准 Realm 路径。
 - 普通 Collaboration Realm 的业务事件 MAY 通过 `refs[role=authorized_by]` 引用不可变 grant record；若需引用已接受的 principal control Event，MUST 使用现有 `refs[role=attestation]` Event ref，并按被引用 Event 所属域的要求验证其原始 proof、RealmCommit 与必要的 unit／receipt closure ——该 ref 本身不授予任何 device/session authority。非 Event 的 verified snapshot reference 与 device-state authority commit 继续走各自的专用载体，MUST NOT 塞进 `semantic_ref.id`；`authorized_by` 不得使用 Event id alias，也不得把另一个 principal 的 device/session 事件直接写入该 Collaboration Realm history 来改变身份状态。
 
 **`principal_control_realm_id` 不在公开面上（normative）**：`ak.open.identity.read.resolution.v1` 的 public projection MUST NOT 携带它（见 [`./identity-did.md` §4.2](./identity-did.md)）。实际需要使用该 principal PCR 控制事实的一方，MUST 从与自身角色相符的授权来源取得并独立验证 canonical `principal_control_realm_id`：holder 与 recovery actor 用 `ak.self.identity.read.resolution_audit.v1`；关系对端只使用其特定 operation 已登记且获授权的 carrier（`ak.peer.contacts.command.submit.v1` 逐字投递的 signed Event envelope、`ak.peer.account_status.*` 的 authority evidence）；Agent 用其 DID Document 的唯一 `ArkretPrincipalControlRealm` service entry；本地账号还可用自己的 account binding。normalized principal view 只在其输入本身来自上述已验证来源时可用。外部 verifier 对敏感操作 MUST 获取最新 evidence 并独立验证；它不必长期持久化其他 principal 的 resolution，短 TTL cache 也不得代替 freshness。需要 PCR authority 的操作无法验证 control Realm 与 principal `did_core_id` / `did` projection 的绑定时，MUST fail closed。
@@ -627,10 +633,10 @@ Agent 不建立独立的面向用户 Recovery Key，也不得要求用户为每�
 首次设备授权不是账号服务签发的临时 credential，也不是在 PCR 创建后的第二个审批流程。客户端在任何外部副作用前必须 durable 保存 recovery material、method control material（若有）、device identity、HPKE、DPoP keys 与完整 registration draft，然后一次构造：
 
 - method-specific registration artifact：did:webvh inception/current entry、did:web HTTPS Document，或 did:key local expansion；active adapter 从 canonical `did` 投影稳定 `principal_id=did_core_id`，并冻结 bootstrap trust 与 control evidence；
-- `identity_creation_control_proof`，由注册时 current control key 签名并承诺 principal/PCR id、`did`、method evidence digest、create/authorize payload digest、首个 Standard session request digest、lease fence、DPoP/audience/origin/trust-domain 与 expiry；
+- `identity_creation_control_proof`，由注册时 current control key 签名并承诺 principal/PCR id、`did`、`registration_anchor_digest`、create/authorize payload digest、首个 Standard session request digest、lease fence、DPoP/audience/origin/trust-domain 与 expiry；
 - ordered `pcr_genesis_unit=[ak.realm.create, ak.device.authorize]`。create 由 registration control key 签名；authorize 由 founding device 自签，`authorization_binding_kind="registration_anchor"`。
 
-create 的 `initial_resolution` MUST 携带 `{did,method_history_head,version_id?}`。Station 验证通过后把它作为 PCR current resolution 持久化；不得只存在 Account Authority 的 registration saga 中。
+create 的 `initial_resolution` MUST 携带 `{did,method_history_head,version_id}`。Station 验证通过后把它作为 PCR current resolution 持久化；不得只存在 Account Authority 的 registration saga 中。
 
 Account Authority 将 exact draft 持久化为单调 saga：
 
@@ -702,7 +708,7 @@ gate 的作用范围是：**发起任何 post-bootstrap E2EE Realm 创建/加入
 
 `ak.device.authorize.payload` 示例：
 
-```json
+```json fragment
 {
   "principal_id": "ak:did_core:webvh:zQ3shExampleScid",
   "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
@@ -716,7 +722,6 @@ gate 的作用范围是：**发起任何 post-bootstrap E2EE Realm 创建/加入
   "device_signature": "base64url..."
 }
 ```
-
 `authorization_binding_kind="accepted_device"` 下 `authorized_by` 是**批准设备自己的 `device_id`**，不是它所属 principal 的 `did_core_id`；`registration_anchor` 与 `pcr_recovery` 才使用目标 account authority pair 的 principal `did_core_id`。批准方 accepted device 以 authorize Event proof 对完整 payload 签名；`verification_method` 必须由该 Event accepted-at 的 `did` 与 method evidence 验证，解析后的 base 必须投影为 `principal_id`，不得要求 current DID resolution。该 proof 也是 `principal_id` / `authorized_by` / `not_before` / `expires_at` / `scopes` 的唯一签名承载；新设备的 `device_signature` 只在 `accepted_device` possession transcript 上证明持有 candidate key 与自己的 `hpke_key` / `algorithms`。candidate overlay 只用于 registration genesis 与 PCR recovery unit，普通 pairing 不允许目标设备自我授权。
 
 ### 5.2 设备吊销
@@ -739,7 +744,7 @@ Control Realm 不保存 grant genesis、grant state typed current result 或其�
 
 `SignedSessionGrantClaims` 示例（`session_public_key` 的值是 canonical public-JWK JCS 字符串）：
 
-```json
+```json fragment
 {
   "kind": "ak.session.grant",
   "jti": "ak:session_grant:AZ0oygQqi49PKjNV8SXyFW3rediuQPhSh-cimdK5R62n",
@@ -768,7 +773,6 @@ Control Realm 不保存 grant genesis、grant state typed current result 或其�
   "proof_kind": "account_handoff"
 }
 ```
-
 该示例逐字段复用
 [`session-grant-issuance-fixture.json`](../../artifacts/fixtures/session-grant-issuance-fixture.json) 的
 `issuer_a_closed_preimage` KAT；其 canonical preimage、digest 与 `jti` 必须可机械复算一致。

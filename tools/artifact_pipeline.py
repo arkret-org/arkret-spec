@@ -461,6 +461,11 @@ def generated_registry_payloads(catalog: dict[str, Any]) -> dict[Path, dict[str,
         if not isinstance(section_payload, dict):
             raise SystemExit(f"contract registry missing section {section}")
         section_payload = copy.deepcopy(section_payload)
+        if section_payload.get("metadata_authority") != "contract_registry_section":
+            raise SystemExit(
+                f"contract registry section {section} must declare "
+                "metadata_authority=contract_registry_section"
+            )
         if section == "event_kind_registry":
             event_rows = section_payload.get("event_kinds")
             if not isinstance(event_rows, list):
@@ -488,7 +493,10 @@ def generated_registry_payloads(catalog: dict[str, Any]) -> dict[Path, dict[str,
             "generated_by": "tools/artifact_pipeline.py",
             **section_payload,
         }
-        payloads[path] = preserve_artifact_metadata_when_semantics_match(path, payload)
+        # The canonical section is the metadata authority for its derived view.
+        # Preserving a byte-stable file's older local metadata here would let the
+        # projection disagree indefinitely with the source that generates it.
+        payloads[path] = payload
     return payloads
 
 

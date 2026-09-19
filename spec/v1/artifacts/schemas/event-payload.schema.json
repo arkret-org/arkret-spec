@@ -412,7 +412,8 @@
           "$ref": "#/$defs/agent_action_target"
         },
         "approved_event_id": {
-          "$ref": "./common-ids.schema.json#/$defs/event_id"
+          "$ref": "./common-ids.schema.json#/$defs/event_id",
+          "x-arkret-preimage-commitment": "fixed_event"
         },
         "draft_content_digest": {
           "$ref": "#/$defs/digest"
@@ -816,7 +817,8 @@
                 "$ref": "#/$defs/agent_key_id"
               },
               "authorized_event_ref": {
-                "$ref": "#/$defs/event_ref"
+                "$ref": "#/$defs/event_ref",
+                "x-arkret-preimage-commitment": "fixed_event"
               }
             },
             "additionalProperties": false
@@ -1465,10 +1467,12 @@
           "$ref": "#/$defs/object_ref"
         },
         "paired_event_id": {
-          "$ref": "#/$defs/event_ref"
+          "$ref": "#/$defs/event_ref",
+          "x-arkret-preimage-commitment": "fixed_event"
         },
         "late_recovery_original_event_id": {
           "$ref": "#/$defs/event_ref",
+          "x-arkret-preimage-commitment": "fixed_event",
           "description": "Required when access_kind=e2ee_late_recovery; identifies the original encrypted event whose plaintext became available through late key recovery."
         },
         "purpose": {
@@ -1911,7 +1915,8 @@
                   "$ref": "#/$defs/call_recording_retention"
                 },
                 "recording_start_event_id": {
-                  "$ref": "#/$defs/event_ref"
+                  "$ref": "#/$defs/event_ref",
+                  "x-arkret-preimage-commitment": "fixed_event"
                 },
                 "artifact": {
                   "$ref": "./call-recording-artifact.schema.json",
@@ -1926,7 +1931,8 @@
                   "description": "Human-readable diagnostic for recording_state=failed. It MUST NOT contain recording plaintext or backend direct URLs."
                 },
                 "recording_stop_event_id": {
-                  "$ref": "#/$defs/event_ref"
+                  "$ref": "#/$defs/event_ref",
+                  "x-arkret-preimage-commitment": "fixed_event"
                 }
               },
               "additionalProperties": false
@@ -2061,14 +2067,16 @@
                   "$ref": "#/$defs/call_recording_retention"
                 },
                 "transcript_start_event_id": {
-                  "$ref": "#/$defs/event_ref"
+                  "$ref": "#/$defs/event_ref",
+                  "x-arkret-preimage-commitment": "fixed_event"
                 },
                 "failure_reason_code": {
                   "$ref": "#/$defs/call_capture_failure_reason_code",
                   "description": "Machine reason for transcript_state=failed."
                 },
                 "transcript_stop_event_id": {
-                  "$ref": "#/$defs/event_ref"
+                  "$ref": "#/$defs/event_ref",
+                  "x-arkret-preimage-commitment": "fixed_event"
                 }
               },
               "additionalProperties": false
@@ -2782,7 +2790,8 @@
           "const": 1
         },
         "request_event_ref": {
-          "$ref": "#/$defs/event_ref"
+          "$ref": "#/$defs/event_ref",
+          "x-arkret-preimage-commitment": "fixed_event"
         },
         "request_acceptance_receipt_digest": {
           "$ref": "#/$defs/digest"
@@ -2810,7 +2819,8 @@
           "$ref": "./contact-operations.schema.json#/$defs/contact_peer"
         },
         "request_event_ref": {
-          "$ref": "#/$defs/event_ref"
+          "$ref": "#/$defs/event_ref",
+          "x-arkret-preimage-commitment": "fixed_event"
         },
         "request_acceptance_receipt_digest": {
           "$ref": "#/$defs/digest"
@@ -2874,7 +2884,8 @@
           "minimum": 2
         },
         "predecessor_event_ref": {
-          "$ref": "#/$defs/event_ref"
+          "$ref": "#/$defs/event_ref",
+          "x-arkret-preimage-commitment": "fixed_event"
         },
         "reason": {
           "type": "string"
@@ -4863,7 +4874,8 @@
             ],
             "properties": {
               "event_id": {
-                "$ref": "#/$defs/event_ref"
+                "$ref": "#/$defs/event_ref",
+                "x-arkret-preimage-commitment": "fixed_event"
               },
               "payload_digest": {
                 "$ref": "#/$defs/digest",
@@ -5604,15 +5616,19 @@
         },
         "previous_epoch": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "maximum": 18446744073709551615
         },
         "next_epoch": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "maximum": 18446744073709551615
         },
         "covers_key_access_revision": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "maximum": 18446744073709551615,
+          "description": "Unsigned 64-bit monotonic key-access revision covered by this Commit. It is a counter, not a digest."
         },
         "commit_bytes_b64": {
           "type": "string",
@@ -5684,6 +5700,20 @@
     },
     "mls_governance_binding": {
       "type": "object",
+      "description": "The single closed Arkret MLS governance binding used identically by the Event payload, GroupContext extension 0xF1C0 and pre-Genesis proposal carrier. key_access_revision is a monotonic unsigned 64-bit counter, not a digest.",
+      "x-arkret-deterministic-cbor": {
+        "map_key_order": [
+          "next_epoch",
+          "previous_epoch",
+          "effective_scope",
+          "key_access_revision",
+          "base_group_state_ref"
+        ],
+        "maximum_input_bytes": 16384,
+        "maximum_nesting_depth": 8,
+        "maximum_collection_items": 64,
+        "reject_trailing_bytes": true
+      },
       "required": [
         "effective_scope",
         "base_group_state_ref",
@@ -5707,15 +5737,48 @@
         },
         "previous_epoch": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "maximum": 18446744073709551615
         },
         "next_epoch": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "maximum": 18446744073709551615
         },
         "key_access_revision": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "maximum": 18446744073709551615,
+          "description": "Monotonic unsigned 64-bit counter for changes to future MLS epoch key access. Equality is numeric equality; no digest alias is accepted."
+        }
+      },
+      "additionalProperties": false
+    },
+    "mls_genesis_binding_proposal_carrier": {
+      "type": "object",
+      "description": "Closed local pre-Genesis proposal carrier. It identifies the future ak.mls.genesis Event route, proposal class, complete sender and target scope, and reuses the exact mls_governance_binding definition instead of declaring a second binding shape. target_scope MUST equal proposed_group_genesis_binding.effective_scope field by field; the binding MUST carry a null base_group_state_ref, previous_epoch=0, next_epoch=0 and key_access_revision=0.",
+      "required": [
+        "event_kind",
+        "proposal_kind",
+        "sender_actor_id",
+        "target_scope",
+        "proposed_group_genesis_binding"
+      ],
+      "properties": {
+        "event_kind": {
+          "const": "ak.mls.genesis"
+        },
+        "proposal_kind": {
+          "const": "group_genesis_binding"
+        },
+        "sender_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
+        },
+        "target_scope": {
+          "$ref": "#/$defs/effective_scope"
+        },
+        "proposed_group_genesis_binding": {
+          "$ref": "#/$defs/mls_governance_binding"
         }
       },
       "additionalProperties": false
@@ -5929,7 +5992,7 @@
     },
     "morph_create_payload": {
       "type": "object",
-      "description": "Create payload uses the full Morph object schema for wire validation. Semantic validation MUST require payload.object.created_by to match the top-level actor_id and payload.object.created_at to match the top-level created_at before acceptance.",
+      "description": "Create payload uses the Morph object schema for wire validation. Semantic validation MUST require payload.object.created_by to match the top-level actor_id and payload.object.created_at to match the top-level created_at before acceptance. stage and stage_changed_at are forbidden on create; the optional business stage axis is initialized only by ak.morph.stage.set.",
       "required": [
         "object"
       ],
@@ -5945,6 +6008,14 @@
                   "id"
                 ],
                 "$comment": "zh/models/common-fields.md: the object id is derived from this create Event's own event_id; carrying it in the payload is schema_violation reason object_id_not_event_derived."
+              }
+            },
+            {
+              "not": {
+                "anyOf": [
+                  { "required": ["stage"] },
+                  { "required": ["stage_changed_at"] }
+                ]
               }
             }
           ]
@@ -7228,7 +7299,8 @@
           "$ref": "#/$defs/digest"
         },
         "counterpart_event_ref": {
-          "$ref": "#/$defs/event_ref"
+          "$ref": "#/$defs/event_ref",
+          "x-arkret-preimage-commitment": "fixed_event"
         },
         "edge_nonce": {
           "$ref": "#/$defs/non_empty_string"
@@ -7717,7 +7789,8 @@
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "replacement_event_id": {
-          "$ref": "#/$defs/event_ref"
+          "$ref": "#/$defs/event_ref",
+          "x-arkret-preimage-commitment": "fixed_event"
         }
       },
       "additionalProperties": false
@@ -7781,7 +7854,8 @@
           "const": "retain_candidate"
         },
         "retained_event_id": {
-          "$ref": "./relation.schema.json#/$defs/event_id"
+          "$ref": "./relation.schema.json#/$defs/event_id",
+          "x-arkret-preimage-commitment": "fixed_event"
         }
       },
       "additionalProperties": false
@@ -8187,7 +8261,8 @@
           "minimum": 1
         },
         "predecessor_event_ref": {
-          "$ref": "#/$defs/event_ref"
+          "$ref": "#/$defs/event_ref",
+          "x-arkret-preimage-commitment": "fixed_event"
         }
       },
       "allOf": [
@@ -8347,7 +8422,8 @@
           "$ref": "#/$defs/space_id"
         },
         "replacement_event_id": {
-          "$ref": "#/$defs/event_ref"
+          "$ref": "#/$defs/event_ref",
+          "x-arkret-preimage-commitment": "fixed_event"
         },
         "effective_at": {
           "$ref": "#/$defs/timestamp"
@@ -8962,7 +9038,7 @@
     },
     "strand_create_payload": {
       "type": "object",
-      "description": "Create payload uses the full Strand object schema for wire validation. Semantic validation MUST require payload.object.created_by to match the top-level actor_id and payload.object.created_at to match the top-level created_at before acceptance.",
+      "description": "Create payload uses the Strand object schema for wire validation. Semantic validation MUST require payload.object.created_by to match the top-level actor_id and payload.object.created_at to match the top-level created_at before acceptance. stage and stage_changed_at are forbidden on create; the optional business stage axis is initialized only by ak.strand.stage.set.",
       "required": [
         "object"
       ],
@@ -8978,6 +9054,14 @@
                   "id"
                 ],
                 "$comment": "zh/models/common-fields.md: the object id is derived from this create Event's own event_id; carrying it in the payload is schema_violation reason object_id_not_event_derived."
+              }
+            },
+            {
+              "not": {
+                "anyOf": [
+                  { "required": ["stage"] },
+                  { "required": ["stage_changed_at"] }
+                ]
               }
             }
           ]
@@ -9320,10 +9404,12 @@
       ],
       "properties": {
         "poll_event_ref": {
-          "$ref": "#/$defs/event_ref"
+          "$ref": "#/$defs/event_ref",
+          "x-arkret-preimage-commitment": "fixed_event"
         },
         "response_event_ref": {
-          "$ref": "#/$defs/event_ref"
+          "$ref": "#/$defs/event_ref",
+          "x-arkret-preimage-commitment": "fixed_event"
         }
       },
       "additionalProperties": false

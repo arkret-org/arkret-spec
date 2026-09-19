@@ -8,15 +8,12 @@ reducer contract, operation mapping, schema, fixture or profile ever produced.
 had no reachability gate of its own, so prose could mint a code and the
 machine contract never noticed. This check closes that hole as a ratchet:
 
-* every ``reason_codes[].code`` in ``error-code-registry.json`` MUST be
-  referenced as a bare token by at least one other machine artifact under
-  ``spec/v1/artifacts`` (registry / schemas / profiles / fixtures / openapi /
-  bindings -- generated ``reports/`` do not count, they are views of the
-  others), OR be listed in the frozen baseline
-  ``tools/reason-code-producer-baseline.json``;
-* a baseline code that gains a reference MUST be removed from the baseline
-  (the list only shrinks, never grows);
-* a baseline code that no longer exists in the registry is stale and fails;
+* every public ``codes[].code`` and ``reason_codes[].code`` is explicitly
+  ``active`` or ``reserved``;
+* an ``active`` code MUST be referenced as a bare token by at least one other
+  machine artifact under ``spec/v1/artifacts`` (generated ``reports/`` do not
+  count); a ``reserved`` code MUST NOT be referenced there and carries a
+  closed ``applies_to`` plus ``activation_condition`` declaration;
 * a code listed under ``removed_reason_codes`` MUST NOT come back -- not in
   the registry, not in any artifact (reports included), not in prose.
 
@@ -51,7 +48,9 @@ _BASELINE_KEYS = {
     "unreferenced_reason_codes",
     "removed_reason_codes",
 }
-_REMOVED_ROW_KEYS = {"code", "ruling", "registry_version", "why"}
+_REMOVED_ROW_REQUIRED_KEYS = {"code", "ruling", "registry_version", "why"}
+_REMOVED_ROW_OPTIONAL_KEYS = {"carried_by_code"}
+_STATUS_VALUES = {"active", "reserved"}
 
 
 def _bare_token_pattern(codes: list[str]) -> re.Pattern[str] | None:
@@ -80,6 +79,37 @@ def registry_reason_codes(lint: Lint, artifacts_root: Path) -> list[str] | None:
             continue
         codes.append(code)
     return codes
+
+
+def registry_code_rows(
+    lint: Lint, artifacts_root: Path
+) -> dict[str, list[dict[str, Any]]] | None:
+    """Return both public code arrays after validating their basic row identity."""
+    registry_path = artifacts_root / ERROR_CODE_REGISTRY_RELATIVE
+    document = load_json(lint, registry_path)
+    if not isinstance(document, dict):
+        return None
+    result: dict[str, list[dict[str, Any]]] = {}
+    seen: set[str] = set()
+    for field in ("codes", "reason_codes"):
+        rows = document.get(field)
+        if not isinstance(rows, list):
+            lint.fail(registry_path, f"{field}[] must be a list")
+            return None
+        accepted: list[dict[str, Any]] = []
+        for index, row in enumerate(rows):
+            code = row.get("code") if isinstance(row, dict) else None
+            if not isinstance(code, str) or not _CODE_RE.fullmatch(code):
+                lint.fail(registry_path, f"{field}[{index}].code must be a snake_case string")
+                continue
+            identity = f"{field}:{code}"
+            if identity in seen:
+                lint.fail(registry_path, f"{field}[{index}].code duplicates {code}")
+                continue
+            seen.add(identity)
+            accepted.append(row)
+        result[field] = accepted
+    return result
 
 
 def producer_artifact_files(artifacts_root: Path) -> list[Path]:
@@ -156,14 +186,32 @@ def load_baseline(lint: Lint, baseline_path: Path) -> dict[str, Any] | None:
         return None
     seen_removed: set[str] = set()
     for index, row in enumerate(removed):
-        if not isinstance(row, dict) or set(row) != _REMOVED_ROW_KEYS:
+        keys = set(row) if isinstance(row, dict) else set()
+        if (
+            not isinstance(row, dict)
+            or not _REMOVED_ROW_REQUIRED_KEYS <= keys
+            or keys - _REMOVED_ROW_REQUIRED_KEYS - _REMOVED_ROW_OPTIONAL_KEYS
+        ):
             lint.fail(
                 baseline_path,
-                f"removed_reason_codes[{index}] must carry exactly {sorted(_REMOVED_ROW_KEYS)}",
+                f"removed_reason_codes[{index}] must carry {sorted(_REMOVED_ROW_REQUIRED_KEYS)} "
+                f"and only optional {sorted(_REMOVED_ROW_OPTIONAL_KEYS)}",
             )
             return None
-        if not all(isinstance(row[key], str) and row[key].strip() for key in _REMOVED_ROW_KEYS):
+        if not all(
+            isinstance(row[key], str) and row[key].strip()
+            for key in _REMOVED_ROW_REQUIRED_KEYS
+        ):
             lint.fail(baseline_path, f"removed_reason_codes[{index}] fields must be non-empty strings")
+            return None
+        carrier = row.get("carried_by_code")
+        if carrier is not None and (
+            not isinstance(carrier, str) or not _CODE_RE.fullmatch(carrier)
+        ):
+            lint.fail(
+                baseline_path,
+                f"removed_reason_codes[{index}].carried_by_code must be a snake_case code",
+            )
             return None
         if not _CODE_RE.fullmatch(row["code"]):
             lint.fail(baseline_path, f"removed_reason_codes[{index}].code must be snake_case")
@@ -203,43 +251,90 @@ def check_reason_code_producer_paths(
     baseline_path: Path = REASON_CODE_PRODUCER_BASELINE_PATH,
     prose_roots: tuple[Path, ...] = (SPEC_ROOT / "zh", SPEC_ROOT / "en"),
 ) -> None:
-    """Every registered reason code has a producer path or sits in the frozen baseline;
-    removed codes never come back."""
+    """Both error-code arrays have a closed active/reserved producer contract."""
     registry_path = artifacts_root / ERROR_CODE_REGISTRY_RELATIVE
-    codes = registry_reason_codes(lint, artifacts_root)
+    code_rows = registry_code_rows(lint, artifacts_root)
     baseline = load_baseline(lint, baseline_path)
-    if codes is None or baseline is None:
+    if code_rows is None or baseline is None:
         return
-    code_set = set(codes)
+    reason_codes = [row["code"] for row in code_rows["reason_codes"]]
+    code_set = set(reason_codes)
     baselined = set(baseline["unreferenced_reason_codes"])
     removed_rows = baseline["removed_reason_codes"]
     removed = [row["code"] for row in removed_rows]
 
     files = producer_artifact_files(artifacts_root)
-    referenced = referenced_reason_codes(codes, files)
+    all_codes = [row["code"] for field in ("codes", "reason_codes") for row in code_rows[field]]
+    referenced = referenced_reason_codes(all_codes, files)
 
-    for code in codes:
-        if code in referenced or code in baselined:
-            continue
+    if baselined:
         lint.fail(
-            registry_path,
-            f"reason code {code} has no producer path: no registry / schema / profile / "
-            "fixture / openapi / binding artifact references it. Register the producer "
-            "(reducer contract, operation error mapping, schema or fixture) or do not "
-            "register the code; new entries in the baseline are not accepted",
+            baseline_path,
+            "unreferenced_reason_codes must be empty; reachability state now lives on every "
+            "registry row as active or reserved",
         )
-    for code in sorted(baselined):
-        if code not in code_set:
+
+    for field in ("codes", "reason_codes"):
+        for index, row in enumerate(code_rows[field]):
+            code = row["code"]
+            status = row.get("status")
+            where = f"{field}[{index}] ({code})"
+            if status not in _STATUS_VALUES:
+                lint.fail(
+                    registry_path,
+                    f"{where}.status must be one of {sorted(_STATUS_VALUES)}",
+                )
+                continue
+            has_producer = code in referenced
+            if status == "active":
+                if not has_producer:
+                    lint.fail(
+                        registry_path,
+                        f"{where} is active but has no machine producer path",
+                    )
+                if "activation_condition" in row:
+                    lint.fail(
+                        registry_path,
+                        f"{where} is active and MUST NOT retain activation_condition",
+                    )
+                continue
+            applies_to = row.get("applies_to")
+            if not isinstance(applies_to, list) or not applies_to or not all(
+                isinstance(value, str) and value for value in applies_to
+            ) or len(applies_to) != len(set(applies_to)):
+                lint.fail(
+                    registry_path,
+                    f"{where} is reserved and requires a non-empty unique applies_to[]",
+                )
+            condition = row.get("activation_condition")
+            if not isinstance(condition, str) or not condition.strip():
+                lint.fail(
+                    registry_path,
+                    f"{where} is reserved and requires activation_condition",
+                )
+            if has_producer:
+                lint.fail(
+                    registry_path,
+                    f"{where} is reserved but a machine artifact emits/references it; "
+                    "reserved codes MUST NOT be emitted",
+                )
+
+    top_rows = {row["code"]: row for row in code_rows["codes"]}
+    for index, row in enumerate(removed_rows):
+        carrier = row.get("carried_by_code")
+        if carrier is None:
+            continue
+        carrier_row = top_rows.get(carrier)
+        if carrier_row is None:
             lint.fail(
                 baseline_path,
-                f"baseline lists {code} but error-code-registry.json no longer registers it; "
-                "drop the stale row",
+                f"removed_reason_codes[{index}].carried_by_code {carrier} is not a top-level code",
             )
-        elif code in referenced:
+        elif carrier_row.get("status") != "active" or carrier not in referenced:
             lint.fail(
                 baseline_path,
-                f"{code} now has a producer reference; remove it from unreferenced_reason_codes "
-                "(the baseline only shrinks)",
+                f"removed_reason_codes[{index}].carried_by_code {carrier} must be active "
+                "and have a machine producer path",
             )
 
     if not removed:
@@ -273,7 +368,7 @@ def baseline_document(codes: list[str], removed_rows: list[dict[str, str]]) -> d
     """Shape of ``tools/reason-code-producer-baseline.json`` (used to (re)generate it)."""
     return {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "version": 1,
+        "version": 2,
         "kind": "reason_code_producer_baseline",
         "source_of_truth": False,
         "generated_from": [
@@ -282,14 +377,11 @@ def baseline_document(codes: list[str], removed_rows: list[dict[str, str]]) -> d
         ],
         "generated_by": "tools/artifact_lint (check_reason_code_producer_paths)",
         "description": (
-            "Frozen ledger of reason codes that error-code-registry.json registers but no "
-            "other machine artifact under spec/v1/artifacts references as a bare token "
-            "(generated reports excluded). Adopted by ruling 2026-09-04-1752 after "
-            "invalid_task_fsm_transition was found to describe a state machine that no "
-            "event kind, cell family or fsm contract could ever produce. The list is a "
-            "ratchet: check_reason_code_producer_paths fails on any new unreferenced code "
-            "and on any listed code that gains a reference without being dropped here. "
-            "removed_reason_codes pins codes a ruling deleted so they cannot return."
+            "Tombstone ledger for reason codes removed by adjudication. Live reachability "
+            "is declared per row in error-code-registry.json as active or reserved; "
+            "unreferenced_reason_codes is closed to empty. removed_reason_codes pins codes "
+            "a ruling deleted so they cannot return and may name an active replacement "
+            "through carried_by_code."
         ),
         "unreferenced_reason_codes": sorted(codes),
         "removed_reason_codes": removed_rows,

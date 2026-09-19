@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.10",
+  "version": "2026-09-19.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-16T21:30:00+08:00",
+  "generated_at": "2026-09-19T18:59:50+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "source_pattern": "^ak\\.authority\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$",
@@ -153,5 +153,6 @@
       "delegated_event_rule": "none",
       "failure_mode": "atomic_rollback"
     }
-  ]
+  ],
+  "metadata_authority": "contract_registry_section"
 }

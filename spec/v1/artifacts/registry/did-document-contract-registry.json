@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.1",
+  "version": "2026-09-19.2",
   "source_of_truth": false,
-  "generated_at": "2026-09-19T15:45:02+08:00",
+  "generated_at": "2026-09-19T18:59:50+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -106,5 +106,6 @@
       "reverse_binding": true,
       "owner": "zh/identity/key-management.md#41-principal-control-event-stream"
     }
-  ]
+  ],
+  "metadata_authority": "contract_registry_section"
 }

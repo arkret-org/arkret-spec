@@ -616,6 +616,11 @@ def check_registrations(fixture: dict[str, Any]) -> list[str]:
 
     actions = load_json(ACTION_REGISTRY_PATH)
     action_rows = actions.get("actions", actions if isinstance(actions, list) else [])
+    action_by_id = {
+        row.get("action_id") or row.get("action"): row
+        for row in action_rows
+        if isinstance(row, dict)
+    }
     registered_actions = {
         row.get("action_id") or row.get("action") for row in action_rows if isinstance(row, dict)
     }
@@ -626,12 +631,50 @@ def check_registrations(fixture: dict[str, Any]) -> list[str]:
         for row in operation_rows
         if isinstance(row, dict)
     }
+    eligibility = actions.get("approval_requirement_eligibility", {})
+    defaults = eligibility.get("event_mapping_defaults", {})
+    carriers = {
+        row.get("carrier_id"): row
+        for row in eligibility.get("carriers", [])
+        if isinstance(row, dict)
+    }
+    default_carriers = eligibility.get("default_carrier_by_eligibility_kind", {})
+    overrides = {
+        row.get("action"): row
+        for row in eligibility.get("action_overrides", [])
+        if isinstance(row, dict)
+    }
     for vector in fixture["vectors"]:
         approval_input = vector["approval_signature"]["input"]
         if approval_input["operation"] not in registered_operations:
             errors.append(f"{vector['name']}: operation is not registered")
         if approval_input["action"] not in registered_actions:
             errors.append(f"{vector['name']}: action is not registered")
+            continue
+        action_row = action_by_id[approval_input["action"]]
+        override = overrides.get(approval_input["action"])
+        eligibility_kind = (
+            override.get("eligibility_kind")
+            if isinstance(override, dict)
+            else defaults.get(action_row.get("event_mapping_kind"))
+        )
+        if eligibility_kind == "ineligible_no_registered_carrier":
+            errors.append(f"{vector['name']}: action has no registered approval carrier")
+            continue
+        carrier_id = (
+            override.get("carrier_id")
+            if isinstance(override, dict)
+            else default_carriers.get(eligibility_kind)
+        )
+        carrier = carriers.get(carrier_id)
+        if carrier is None:
+            errors.append(f"{vector['name']}: action eligibility does not resolve to a carrier")
+            continue
+        target_kind = approval_input["approval_target"]["target_kind"]
+        if target_kind not in carrier.get("allowed_target_kinds", []):
+            errors.append(f"{vector['name']}: carrier does not allow target kind {target_kind}")
+        if approval_input["operation"] != carrier.get("operation_id"):
+            errors.append(f"{vector['name']}: operation does not equal the action's registered carrier")
     return errors
 
 

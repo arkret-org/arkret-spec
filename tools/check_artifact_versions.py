@@ -16,8 +16,9 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 ARTIFACTS = ROOT / "spec" / "v1" / "artifacts"
 REFERENCE = ARTIFACTS / "reports" / "artifact-version-digests.json"
+GOVERNANCE_MANIFEST = ROOT / "tools" / "artifact-version-governance.json"
 DATE_VERSION_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
-DATED_VERSION_RE = re.compile(r"^(\d{4}-\d{2}-\d{2})(?:\.\d+)?$")
+DATED_VERSION_RE = re.compile(r"^(\d{4}-\d{2}-\d{2})(?:\.(\d+))?$")
 
 
 def canonical_json(value: Any) -> bytes:
@@ -43,6 +44,38 @@ def artifact_rows() -> list[dict[str, Any]]:
         *(ARTIFACTS / "registry").glob("*.json"),
         *(ARTIFACTS / "profiles").glob("*.json"),
     ]
+    governance = json.loads(GOVERNANCE_MANIFEST.read_text(encoding="utf-8"))
+    governed = governance.get("governed_tool_artifacts")
+    scripts = governance.get("governing_scripts")
+    if not isinstance(governed, list) or not all(isinstance(value, str) for value in governed):
+        raise ValueError(f"{GOVERNANCE_MANIFEST}: governed_tool_artifacts must be a string array")
+    if governed != sorted(set(governed)):
+        raise ValueError(f"{GOVERNANCE_MANIFEST}: governed_tool_artifacts must be sorted and unique")
+    if not isinstance(scripts, list) or not all(isinstance(value, str) for value in scripts):
+        raise ValueError(f"{GOVERNANCE_MANIFEST}: governing_scripts must be a string array")
+    if scripts != sorted(set(scripts)):
+        raise ValueError(f"{GOVERNANCE_MANIFEST}: governing_scripts must be sorted and unique")
+    for relative in scripts:
+        if not (ROOT / relative).is_file():
+            raise ValueError(f"{GOVERNANCE_MANIFEST}: governing script does not exist: {relative}")
+    paths.extend(ROOT / relative for relative in governed)
+
+    discovered_tool_ledgers: set[str] = set()
+    for path in (ROOT / "tools").glob("*.json"):
+        data = json.loads(path.read_text(encoding="utf-8"))
+        if (
+            isinstance(data, dict)
+            and isinstance(data.get("version"), (str, int))
+            and not isinstance(data.get("version"), bool)
+        ):
+            discovered_tool_ledgers.add(path.relative_to(ROOT).as_posix())
+    if set(governed) != discovered_tool_ledgers:
+        missing = sorted(discovered_tool_ledgers - set(governed))
+        stale = sorted(set(governed) - discovered_tool_ledgers)
+        raise ValueError(
+            f"{GOVERNANCE_MANIFEST}: explicit tool ledger inventory drift; "
+            f"missing={missing}, stale={stale}"
+        )
     for path in sorted(paths):
         data = json.loads(path.read_text(encoding="utf-8"))
         if not isinstance(data, dict) or "version" not in data:
@@ -53,13 +86,18 @@ def artifact_rows() -> list[dict[str, Any]]:
             raise ValueError(f"{path}: top-level version must be a string or integer")
         if generated_at is not None and not isinstance(generated_at, str):
             raise ValueError(f"{path}: top-level generated_at must be a string")
-        if isinstance(version, str) and DATE_VERSION_RE.fullmatch(version) and generated_at:
+        if isinstance(version, str) and DATED_VERSION_RE.fullmatch(version) and generated_at:
             try:
                 parsed = datetime.fromisoformat(generated_at.replace("Z", "+00:00"))
             except ValueError as exc:
                 raise ValueError(f"{path}: generated_at must be RFC3339") from exc
-            if parsed.date().isoformat() != version:
-                raise ValueError(f"{path}: generated_at date must match date version")
+            if parsed.tzinfo is None:
+                raise ValueError(f"{path}: generated_at must carry an RFC3339 offset")
+            version_day = DATED_VERSION_RE.fullmatch(version).group(1)
+            if parsed.date().isoformat() != version_day:
+                raise ValueError(
+                    f"{path}: generated_at civil date must match version date {version_day}"
+                )
         rows.append(
             {
                 "path": path.relative_to(ROOT).as_posix(),
@@ -75,8 +113,15 @@ def version_advanced(old: Any, new: Any) -> bool:
     if isinstance(old, int) and isinstance(new, int):
         return new > old
     if isinstance(old, str) and isinstance(new, str):
-        if DATE_VERSION_RE.fullmatch(old) and DATE_VERSION_RE.fullmatch(new):
-            return new > old
+        old_match = DATED_VERSION_RE.fullmatch(old)
+        new_match = DATED_VERSION_RE.fullmatch(new)
+        if old_match and new_match:
+            try:
+                old_key = (date.fromisoformat(old_match.group(1)), int(old_match.group(2) or 0))
+                new_key = (date.fromisoformat(new_match.group(1)), int(new_match.group(2) or 0))
+            except ValueError:
+                return False
+            return new_key > old_key
         return new != old
     return False
 

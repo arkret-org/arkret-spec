@@ -85,6 +85,9 @@ Realm、每个 Circle、每个 Sidecar 分别拥有独立 commit stream。当前
   同一对象上可以并存多条 redaction，协议不为它们定义任何排序或择一规则，
   因此这里既没有"最后一条生效"也没有单值 `redaction_ref`；`ak:event:` 目标只裁剪该 Event 自身；
 - `organization_discovery`：以 `payload.organization_id` 选择一个 Organization 的 discovery 设置；
+- `actor_discovery`、`applet_discovery`、`handle_discovery`：分别以完整 ActorId、AppletId 与
+  canonical handle 选择该资源的 discovery 设置；三者与 `organization_discovery` 一样整体置换
+  封闭 value，Directory 仍须独立验证 `resource_kind` 与 `directory_ids[]`；
 - `organization_moderation_policy`：以 `payload.organization_id` 选择一个 Organization 的 moderation 策略；
   与上一条是两个独立 family——同一 subject 上的两类值由两个 Event kind 各自整体置换，互不覆盖；
 - `policy`：以 `payload.policy_id` 选择一份 Policy 文档整体，由 `ak.policy.set` 单一写者整体置换
@@ -120,6 +123,41 @@ Realm、每个 Circle、每个 Sidecar 分别拥有独立 commit stream。当前
   （[`../discovery/profiles-presence.md` §2.3](../discovery/profiles-presence.md) 对此为 normative）；create 整体置换作者区域并派生 `schema` / `realm_id` / `created_at` / `updated_by` / `updated_at`，
   update 对冻结前态 `apply_patch`，六条 `allowed_paths` 只覆盖展示成员；`principal_id` 与 `actor_kind` create-locked，
   `resolution` 由 `identity_resolution` 投影、`status` 已完全移出 durable 对象（改为读取响应的可选 `account_status`，见该节）；
+- `actor_profile_realm_override`：在目标 Realm 内以 `actor_profile_id` 选择一份显示字段覆写；
+  `target_realm_id` 必须等于 envelope Realm，因而不重复进入 selector。value 是 exact patch Event 的
+  dot-tagged assertion set；读侧按 accepted commit 顺序折叠同一组六个展示路径，并以
+  `expected_state_digest` 对折叠后的当前覆写作 CAS；
+- `agent_action_approval`：以 `approval_id` 选择一条 controller 对 exact 预写 Event 的不可变确认；
+  `(controller ActorId, approval_nonce)` 是一次性分配，exact replay 返回原结果，换字节复用 nonce 必须零写入拒绝；
+- `agent_sidecar_exchange_controls`：以 `(sidecar_id, source_context_ref)` 选择 encrypted control
+  assertion keyed set；`exchange_id` 只在认证密文明文内，禁止复制到 selector。获授权参与者解密后按
+  `exchange_id`、`basis_event_ids` 与 `action` 折叠 coordinator / terminal 状态；
+- `applet_registration`：以 `applet_id` 选择 accepted 完整 registration snapshot；package proof、
+  `registration_epoch`、namespace 与 installer authority 全部在置换前验证；
+- `container_position`：以 `(item_ref, relation_kind)` 选择一个容器条目位置，值为
+  `{container_ref, relation_kind, rank}`。move 置换一项；rebalance 在完整 order digest 与覆盖检查通过后，
+  将 `positions[]` 原子展开为每项一写，任何一项失败不得留下部分结果；
+- `key_backup_active_series`：以 `(ActorId, backup_kind)` 选择当前 active series record；首次版本只能为 1，
+  后续只能为当前 `series_pointer_version + 1`，回退、跳号或同版本分叉均零写入拒绝；
+- `member_identity_updates`：在 Realm 内以 `(member_id, segment)` 选择 append-only update assertion set；
+  `replaces[]` 是读侧 effective-set fold，坏 replacement edge 不得删除被引用 Event；可选
+  `expected_state_digest` 对该 fold 的前态作 CAS；
+- `message_revision`：以 MessageId 选择 create / revise chain 的当前 accepted carrier；create 的 id
+  由 EventId 重类型，revise 明示同一 `message_id`。物化 Message 联合读取 creation history、当前 carrier
+  与独立的 `object_redaction`，不得把 redaction 伪装成 revision payload；
+- `realm_organization`：在 Realm 内以 `(organization_id, relationship)` 选择最新完整组织关系 statement；
+  `statement_id` 只承载审计/替换链，Realm-side 与 Organization-side 两层授权均在置换前验证；
+- `circle_member_state`：以 `(circle_id, member_actor_id)` 选择 Circle 内一个 Actor 的 membership；
+  `expected_membership` 是三态 CAS guard，不进入值；`effective_at` 缺省时取 accepted Event `created_at`；
+- `realm_search_policy`：Realm singleton，完整置换搜索 profile、服务 allowlist、数据类别与泄漏等级；
+- `rsvp`：以 `(event_ref, canonical occurrence, responder_actor_id)` 选择一个响应，值为完整 `rsvp_entry`；
+- `schema_definition`：以稳定 JSON Schema `$id` 选择 create-once 定义；exact replay 幂等，异字节复用同 id 拒绝；
+- `sidecar`：以 Event-derived `sidecar_id` 选择 native Sidecar 物化值；create 同时占用
+  `(realm_id, controller_account_id)` singleton，禁止第二个 live Sidecar；
+- `sidecar_context`：以 `(sidecar_id, canonical source_context_ref)` 选择版本化 UI context attach；
+- `sovereign_did_policy`：以 `trust_domain` 选择 closed DID method/root policy；
+- `strand_watch`：以 `(strand_id, watcher_actor_id)` 选择 watch current value；值是
+  `null` 或 `{level, level_public?}`，`expected_value` 只作 whole-value CAS，不进入结果；
 - `strand`：以 `strand_id` 选择 Strand；
 - `circle`、`morph`、`relation`、`space`：各以同名 `<kind>_id` 选择该对象的当前值，值就是对象自身的
   封闭 schema。四族与 `strand`、`view` 是同一形态：`ak.<kind>.create` 整体置换，
@@ -127,10 +165,11 @@ Realm、每个 Circle、每个 Sidecar 分别拥有独立 commit stream。当前
   `strand`）的 `state` 成员**只由**专用 `ak.<kind>.archive` / `.restore` / `.tombstone` 写入，
   reducer 按 [`../models/common-fields.md` §5.2](../models/common-fields.md) 的 kind → state 映射
   以 `object_lifecycle_state` 产出，payload 不携带目标状态；普通 update MUST NOT 复活终态。
-  `relation` 一族的成员来源已按 `value_member_maintenance` 逐项封闭
-  （create 七个派生、update 六条 `allowed_paths`、tombstone 零 `allowed_paths`）；
-  其余四族的成员来源闭包尚未完成，未闭合的成员与其 owner 记在
-  `reducer-managed-path-registry.json` 各自行的 `value_schema_open_gap_owner` 里；
+  五族的成员来源均按 `value_member_maintenance` 逐项封闭：create 只投影 author business region，
+  schema / Realm / creator / create-time / initial state 与 update metadata 由 reducer 派生；普通 update、
+  stage/history 专用写者及 lifecycle 写者分别登记允许路径、派生成员与完整 retained members。
+  `space_parent` / `space_child_scope_policy` 仍是 Space 对象之外的独立 family，Circle MLS group 仍由
+  `mls_group` family 单源维护，不复制为第二个可写对象字段；
 - `strand_position`：以 `typed_pair(id:space(board_space_id), id:strand(strand_id))` 选择一条
   Strand 在某个 Board 上的位置，值为 `{list_space_id, rank}` 或 `null`（尚未上板）
   （见 [`../models/realm-and-space.md` §3.6](../models/realm-and-space.md)）；

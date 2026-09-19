@@ -14,7 +14,7 @@ updated: 2026-07-02
 
 ## 1. Applet Registration Schema
 
-```json
+```json fragment
 {
   "kind": "ak.applet.registration",
   "applet_id": "ak:applet:dd552c17-0000-7000-8000-000000000000",
@@ -56,7 +56,6 @@ updated: 2026-07-02
   "created_at": "2026-04-26T00:00:00Z"
 }
 ```
-
 > 示例中 `proof` 字段省略字段不是合法 v1 wire 形态：它必须是 accepted Applet Package
 > 的 controller DID detached proof 的逐字副本，并包含 `detached_proof` schema 的全部 required
 > 字段；`payload_digest` 覆盖 canonical package（不含 package `proof` 自身）。formal registration
@@ -226,14 +225,13 @@ proof digest当作 signer evidence ref。
 
 Commit request 只有：
 
-```json
+```json fragment
 {
   "applet_package": {},
   "authoring_request": {},
   "managed_actor_bundle": {}
 }
 ```
-
 Station 从 authoring request 唯一提取管理员 Events/evidence/scope/policies，从 bundle 唯一提取四个
 Applet/Bot Events，重新计算所有 digest、Event refs、plan 与权限，并在一个 durable transaction 内原子提交完整
 formal Event 集合、Applet record、namespace/managed-authority claims 与 idempotency outcome。任何失败必须零
@@ -252,13 +250,12 @@ authoring request 此时已过期；同 key 不同 body 必须 `duplicate_confli
 
 ## 2. Namespace Pattern
 
-```json
+```json fragment
 {
   "exclusive": true,
   "pattern": "did:webvh:*:applet.example:ghost:*"
 }
 ```
-
 Pattern 语法：
 
 - `*` 匹配恰好一个 segment，且 `*` **不跨 segment 分隔符**。
@@ -312,7 +309,7 @@ Idempotency-Key: <opaque-string>
 
 请求示例（非完整 schema）：
 
-```json
+```json fragment
 {
   "applet_id": "ak:applet:01904100-0000-7000-8000-aaaaaaaaaaaa",
   "source_id": "ak:did_core:webvh:z7SrvceTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z",
@@ -324,7 +321,6 @@ Idempotency-Key: <opaque-string>
   ]
 }
 ```
-
 上例只展示 transaction carrier；`events[0]` 的其余 required EventEnvelope 字段必须按
 `event-envelope.schema.json` 补齐，不能把该缩略对象直接发送。
 
@@ -338,10 +334,9 @@ Idempotency-Key: <opaque-string>
 
 响应示例：
 
-```json
+```json fragment
 { "status": "accepted" }
 ```
-
 ## 4. Query Actor
 
 ```text
@@ -352,7 +347,7 @@ GET /_arkret/edge/applet/actors/{actor_id}
 
 响应示例（非完整 schema）：
 
-```json
+```json fragment
 {
   "exists": true,
   "actor_id": "ak:did_core:webvh:z5GhostU123Scid",
@@ -360,7 +355,6 @@ GET /_arkret/edge/applet/actors/{actor_id}
   "external_ref": {}
 }
 ```
-
 ## 5. Query Realm
 
 ```text
@@ -371,7 +365,7 @@ GET /_arkret/edge/applet/realms/{realm_id_or_alias}
 
 响应示例（非完整 schema）：
 
-```json
+```json fragment
 {
   "exists": true,
   "realm_id": "ak:realm:Adoyg50aOV537gzxNy87EOdUlHiIujznqwZcMLSGFmzg",
@@ -379,7 +373,6 @@ GET /_arkret/edge/applet/realms/{realm_id_or_alias}
   "external_ref": {}
 }
 ```
-
 ## 6. Protocol Metadata
 
 ```text
@@ -390,7 +383,7 @@ GET /_arkret/edge/applet/protocols/{protocol}
 
 响应示例（非完整 schema）：
 
-```json
+```json fragment
 {
   "protocol": "slack",
   "display_name": "Slack",
@@ -398,10 +391,9 @@ GET /_arkret/edge/applet/protocols/{protocol}
   "instances": []
 }
 ```
-
 ## 7. Bridge Error Event
 
-```json
+```json fragment
 {
   "kind": "ak.applet.bridge_error",
   "applet_id": "ak:applet:dd552c17-0000-7000-8000-000000000000",
@@ -416,7 +408,6 @@ GET /_arkret/edge/applet/protocols/{protocol}
   "retry_after_ms": 1000
 }
 ```
-
 字段：
 
 | 字段 | 类型 | 必填 | 说明与约束 |

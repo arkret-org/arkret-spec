@@ -1,5 +1,5 @@
 {
-  "version": "2026-09-19",
+  "version": "2026-09-19.1",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.encoding.content_bound_event_id.v1"
@@ -314,13 +314,13 @@
       "principal_kind": "agent",
       "realm_purpose": "agent_control",
       "step": 1,
-      "note": "Constructibility proof for the encoding.md 6.0.1 class C exemption, step 1: the controller freezes the Agent PCR genesis envelope and derives its realm id before anything is submitted. Nothing in this preimage names the provision Event.",
-      "digest_preimage_canonical_bytes_utf8": "{\"actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkagent\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"authorization_ref\":\"did:webvh:z6mkagent:agent.example#controller-delegation\",\"created_at\":\"2026-08-06T00:00:00.000Z\",\"executed_by\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkcontroller\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"kind\":\"ak.realm.create\",\"payload\":{\"object\":{\"genesis_salt\":\"Zm9vYmFyZm9vYmFyZm9vYmFyZm9vYmFyZm9vYmFyMDA\",\"governance_station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\",\"initial_discoverability\":\"secret\",\"initial_history_access\":\"since_join\",\"initial_join_rule\":\"closed\",\"initial_resolution\":{\"did\":\"did:webvh:z6mkagent:agent.example\",\"method_history_head\":\"sha256:8888888888888888888888888888888888888888888888888888888888888888\",\"version_id\":\"1-QmAgentPcrGenesisFixture\"},\"purpose\":\"agent_control\",\"schema\":\"ak.schema.realm_genesis.v1\",\"security_class\":\"high_assurance\",\"trust_domain\":\"ak:trust_domain:did.webvh.alice.example\"}},\"scope_ref\":{\"kind\":\"realm_genesis\"}}",
-      "event_digest": "sha256:a2835a9b933f0dd7ea4b2fa158cdb8a9bff2c9e193de0e89bae5dda3889c3312",
+      "note": "Constructibility proof for the encoding.md §3.1 class C exemption, step 1: the controller freezes the Agent PCR genesis envelope and derives its realm id before anything is submitted. Nothing in this preimage names the provision Event.",
+      "digest_preimage_canonical_bytes_utf8": "{\"actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"authorization_ref\":\"did:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey:agent.example#controller-delegation\",\"created_at\":\"2026-08-06T00:00:00.000Z\",\"executed_by\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkcontroller\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"kind\":\"ak.realm.create\",\"payload\":{\"object\":{\"genesis_salt\":\"Zm9vYmFyZm9vYmFyZm9vYmFyZm9vYmFyZm9vYmFyMDA\",\"governance_station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\",\"initial_discoverability\":\"secret\",\"initial_history_access\":\"since_join\",\"initial_join_rule\":\"closed\",\"initial_resolution\":{\"did\":\"did:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey:agent.example\",\"method_history_head\":\"sha256:49a25bc42670cf632b8ce25992626afb8604a9fb36c449b9e982f826af668c0f\",\"version_id\":\"1-QmXwxauG2VKw57Bbr7PmQPxKCfxw2TqdHeamzCu8jzXjbf\"},\"purpose\":\"agent_control\",\"schema\":\"ak.schema.realm_genesis.v1\",\"security_class\":\"high_assurance\",\"trust_domain\":\"ak:trust_domain:did.webvh.alice.example\"}},\"scope_ref\":{\"kind\":\"realm_genesis\"}}",
+      "event_digest": "sha256:88a4dcc0688592a488e17a751652f9e8ff8e764f8558d7542942045a333a76a9",
       "suite_wire_code": 1,
-      "event_id_bytes_hex": "01a2835a9b933f0dd7ea4b2fa158cdb8a9bff2c9e193de0e89bae5dda3889c3312",
-      "derived_event_id": "ak:event:AaKDWpuTPw3X6ksvoVjNuKm_8snhk94Oibrl3aOInDMS",
-      "derived_realm_id": "ak:realm:AaKDWpuTPw3X6ksvoVjNuKm_8snhk94Oibrl3aOInDMS",
+      "event_id_bytes_hex": "0188a4dcc0688592a488e17a751652f9e8ff8e764f8558d7542942045a333a76a9",
+      "derived_event_id": "ak:event:AYik3MBohZKkiOF6dRZS-ej_jnZPhVjXVClCBFozOnap",
+      "derived_realm_id": "ak:realm:AYik3MBohZKkiOF6dRZS-ej_jnZPhVjXVClCBFozOnap",
       "envelope_omits": [
         "event_id",
         "realm_id"
@@ -340,12 +340,12 @@
       "exemption_id": "ak.exemption.preimage_identity.agent_provision_principal_control_realm_id.v1",
       "step": 2,
       "note": "Constructibility proof step 2: the provision payload carries the realm id derived in step 1 and still hashes to a well-defined event_id. The dependency is one-way, so both Events exist; the pair is submitted in two separate submissions, never one unit or batch.",
-      "digest_preimage_canonical_bytes_utf8": "{\"actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkcontroller\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"created_at\":\"2026-08-06T00:00:00.000Z\",\"kind\":\"ak.agent.provision\",\"payload\":{\"accountability_scope\":\"agent_operator\",\"agent_id\":\"ak:did_core:webvh:z6mkagent\",\"agent_slug\":\"summary\",\"controller_authorization_ref\":\"did:webvh:z6mkagent:agent.example#controller-delegation\",\"controller_principal_id\":\"ak:did_core:webvh:z6mkcontroller\",\"created_at\":\"2026-08-06T00:00:00.000Z\",\"principal_control_realm_id\":\"ak:realm:AaKDWpuTPw3X6ksvoVjNuKm_8snhk94Oibrl3aOInDMS\",\"requested_scope_digest\":\"sha256:fc25a74d604984484de924bf889d612ba574d4bb4970620c70dc603adf22a042\",\"schema\":\"ak.schema.agent_provision.v1\",\"selector_visibility\":\"private\"},\"realm_id\":\"ak:realm:AS6asodLlIoqWPAuFMYxc--pCMkkfc-Kw9UBbV1Xyqig\",\"scope_ref\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AS6asodLlIoqWPAuFMYxc--pCMkkfc-Kw9UBbV1Xyqig\"}}",
-      "event_digest": "sha256:54395036ecf6072887ef17852c7815c37b24ae6907f31bfc60b570570805edb1",
+      "digest_preimage_canonical_bytes_utf8": "{\"actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkcontroller\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"created_at\":\"2026-08-06T00:00:00.000Z\",\"kind\":\"ak.agent.provision\",\"payload\":{\"accountability_scope\":\"agent_operator\",\"agent_id\":\"ak:did_core:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey\",\"agent_slug\":\"summary\",\"controller_authorization_ref\":\"did:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey:agent.example#controller-delegation\",\"controller_principal_id\":\"ak:did_core:webvh:z6mkcontroller\",\"created_at\":\"2026-08-06T00:00:00.000Z\",\"principal_control_realm_id\":\"ak:realm:AYik3MBohZKkiOF6dRZS-ej_jnZPhVjXVClCBFozOnap\",\"requested_scope_digest\":\"sha256:fc25a74d604984484de924bf889d612ba574d4bb4970620c70dc603adf22a042\",\"schema\":\"ak.schema.agent_provision.v1\",\"selector_visibility\":\"private\"},\"realm_id\":\"ak:realm:AS6asodLlIoqWPAuFMYxc--pCMkkfc-Kw9UBbV1Xyqig\",\"scope_ref\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AS6asodLlIoqWPAuFMYxc--pCMkkfc-Kw9UBbV1Xyqig\"}}",
+      "event_digest": "sha256:6ad005d73164355834940ad8a9c42ee77faf9b6661ab0ead71c71835cdd510c3",
       "suite_wire_code": 1,
-      "event_id_bytes_hex": "0154395036ecf6072887ef17852c7815c37b24ae6907f31bfc60b570570805edb1",
-      "derived_event_id": "ak:event:AVQ5UDbs9gcoh-8XhSx4FcN7JK5pB_Mb_GC1cFcIBe2x",
-      "declared_principal_control_realm_id": "ak:realm:AaKDWpuTPw3X6ksvoVjNuKm_8snhk94Oibrl3aOInDMS",
+      "event_id_bytes_hex": "016ad005d73164355834940ad8a9c42ee77faf9b6661ab0ead71c71835cdd510c3",
+      "derived_event_id": "ak:event:AWrQBdcxZDVYNJQK2KnELud_r5tmYasOrXHHGDXN1RDD",
+      "declared_principal_control_realm_id": "ak:realm:AYik3MBohZKkiOF6dRZS-ej_jnZPhVjXVClCBFozOnap",
       "expected": {
         "outcome": "accepted",
         "no_event_id_digest_mismatch": true,
@@ -357,7 +357,7 @@
       "vector_id": "ak.vector.event_id.content_bound.v1",
       "exemption_id": "ak.exemption.preimage_identity.agent_provision_principal_control_realm_id.v1",
       "mutation": "submit the ak.agent.provision and its declared agent_control ak.realm.create as one atomic unit or one ordered submit batch",
-      "note": "The named exemption covers a later separate submission only. Inside one unit the genesis is a not-yet-formed sibling, which is the class B shape encoding.md 6.0.1 forbids unconditionally.",
+      "note": "The named exemption covers a later separate submission only. Inside one unit the genesis is a not-yet-formed sibling, which is the class B shape encoding.md §3.1 forbids unconditionally.",
       "expected": {
         "outcome": "rejected",
         "error": "event_id_digest_mismatch",

@@ -511,7 +511,7 @@ effective_expires_at = min(temporal.expires_at[]?)
 | `message_redact_window` | `temporal` | `redact_window` | `message_redact_window` |
 | `redact_after_window_allowed` | `temporal` | `edit_window` / `redact_window` | `redact_after_window_allowed`（窗口修饰符，见 [`constraint-schema.md` §14.2](./constraint-schema.md)） |
 | `max_authority_depth` | `authority_control` | — | `max_authority_depth` |
-| `authority_path` | `authority_control` | — | `authority_path`（授权链 DID 路径约束，见 [`constraint-schema.md` §7](./constraint-schema.md)） |
+| `authority_path_ids` | `authority_control` | — | `authority_path_ids`（授权链 DID core id 路径约束，见 [`constraint-schema.md` §7](./constraint-schema.md)） |
 | `authority_regrant_allowed` | `authority_control` | — | `authority_regrant_allowed` |
 | `authority_scope` | `authority_control` | — | `authority_scope`（`narrowing_only` / `same_scope` / `custom`） |
 | `rate_limit` | `quota` | `rate` | `max_operations`, `period`, `constraint_scope`, `burst` |
@@ -525,7 +525,7 @@ effective_expires_at = min(temporal.expires_at[]?)
 | `guardian_approval_required` | `claim_based` | `accountability` | `guardian_approval_required` |
 | `controller_approval_required` | `claim_based` | `accountability` | `controller_approval_required` |
 | `required_claims` | `claim_based` | `claim` | `required_claims` |
-| `trusted_claim_issuers` | `claim_based` | `claim` | `trusted_claim_issuers` |
+| `trusted_claim_issuer_ids` | `claim_based` | `claim` | `trusted_claim_issuer_ids` |
 | `claim_refresh_required` | `claim_based` | `claim` | `claim_refresh_required` |
 | `claim_max_age` | `claim_based` | `claim` | `claim_max_age` |
 | `depends_on_moderation_state` | （缓存依赖标记，非 allow/deny 约束） | — | `depends_on_moderation_state`（fast-path cache 失效 hint，默认 `false`；MUST 显式 `true` 的三类触发条件见 §18.1。它不归入 8 个 constraint family，而是 grant cache 失效绑定字段） |
@@ -757,7 +757,7 @@ Arkret v1 采用 allow-grant + explicit revoke 模型。
 
 示例：
 
-```json
+```json fragment
 {
   "kind": "ak.capability.revoke",
   "payload": {
@@ -770,7 +770,6 @@ Arkret v1 采用 allow-grant + explicit revoke 模型。
   }
 }
 ```
-
 v1 canonical `ak.capability.revoke` payload MUST 携带顶层 `grant_id` 与 `expected_revision`；registry result selector 从 `payload.grant_id` 派生。
 
 **撤销的生效切点（normative）**：capability revoke 在目标 Realm stream 的 RealmCommit 位置生效。治理 Station在同一事务中验证目标 grant current revision 等于 `expected_revision`；竞争撤销至多一个成功，exact Event 重试返回原结果。撤销不追溯改写历史 Commit，但会阻止后续 Event 使用该 grant。

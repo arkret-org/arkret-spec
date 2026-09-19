@@ -27,7 +27,10 @@ class LongTextSchemaTest(unittest.TestCase):
         )
         prose = (ROOT / "spec/v1/zh/models/content-types.md").read_text(encoding="utf-8")
         section = prose.split("### 4.1.1 ", 1)[1].split("### 4.1.2 ", 1)[0]
-        cls.examples = [json.loads(block) for block in re.findall(r"```json\n(.*?)\n```", section, re.S)]
+        cls.examples = [
+            json.loads(block)
+            for block in re.findall(r"```json(?: [^\n]+)?\n(.*?)\n```", section, re.S)
+        ]
         assert len(cls.examples) == 2
 
     def test_prose_examples_and_both_media_types_are_constructible(self):

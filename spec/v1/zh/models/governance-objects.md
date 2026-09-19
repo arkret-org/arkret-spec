@@ -147,6 +147,14 @@ Moderation policy（举报、franking、审核流程）见 [`../governance/conte
 也不允许 `state` / `reason`、平铺 action 字段或未知 value 字段；违者 `schema_violation`。机器真源为
 [`policy_action_state_payload`](../../artifacts/schemas/event-payload.schema.json)。
 
+`approval_required=true` 还有一项写入时前置条件：`value.action` 必须由
+[`capability-action-registry.json#approval_requirement_eligibility`](../../artifacts/registry/capability-action-registry.json)
+解析为 `event_submission_carrier` 或带真实 carrier 引用的 `registered_operation_carrier`。解析为
+`ineligible_no_registered_carrier` 时 reducer MUST 拒绝为 `schema_violation`
+（reason=`approval_carrier_unregistered`），且不得写 `policy_action` current result。因而 v1 当前所有
+`event_mapping_kind=non_event_surface` action 都禁止被本配置要求审批；`approval_required=false` 只撤回本层要求，
+不需要 carrier。实现 MUST NOT 以 risk tier、action 名称或未登记的 action→operation 猜测替代 registry 判定。
+
 **这是审批配置，不是执行回执，也不是审批授权（normative）**：该 value 只声明「某 action 需不需要审批、需要几票、
 在哪个 scope 内」。一条被接受的 `ak.policy.action` Event **MUST NOT** 被读成已经满足了某次审批，也 **MUST NOT**
 被读成授予了执行该 `action` 的权限——[§3.3](#33-policy-与-capability-决策) 的「policy 不能授予权限」对本节同样成立，
@@ -200,6 +208,9 @@ approval constraint。它 MUST 在跨 grant 合并
 3. 分支 `policy_ref` 另需其 `policy_id` 指向的 Policy 文档在本次准入时刻对该操作**有效**：
    在 `R` 内可解析，且落在该文档的 `not_before` / `expires_at` 窗口内。挂在已过期或已不可解析的
    Policy 文档下的配置 MUST NOT 命中。分支 `realm_action` 没有这一项，它在 `R` 内直接生效。
+4. 当 `C.value.approval_required=true` 时，`A` 的 approval eligibility 必须仍能在 capability action registry
+   解析到登记 carrier；若 registry 与已存历史配置发生不可能的本地漂移，准入 MUST fail closed，且不得把
+   该配置视为不存在。正常写入路径已在 §3.4 阻止无 carrier 配置进入历史。
 
 只有每个 `(分支, composite key)` 的**当前值**参与求值；被替换的历史版本 MUST NOT 参与。
 

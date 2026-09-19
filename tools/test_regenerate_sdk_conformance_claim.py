@@ -42,10 +42,9 @@ class SdkConformanceClaimRegeneratorTest(unittest.TestCase):
         self.assertEqual(changed, [])
         self.assertEqual(rebuilt, self.claim)
 
-    def test_contract_edit_recomputes_digest_and_signature_only_for_positive_cases(self) -> None:
+    def test_contract_edit_recomputes_all_current_bindings_and_preserves_wrong_binding(self) -> None:
         contract = copy.deepcopy(self.contract)
         contract["sdk_conformance_contract"]["regenerator_probe"] = "changed"
-        negatives_before = copy.deepcopy(self.claim["schema_validation_cases"][1:])
 
         rebuilt, changed = rebuild(contract, self.claim, self.key_fixture)
         positive = rebuilt["schema_validation_cases"][0]["instance"]
@@ -53,7 +52,7 @@ class SdkConformanceClaimRegeneratorTest(unittest.TestCase):
         signature = _b64u_decode(positive["proof"]["signature"])
         public_key = _did_key_public_bytes(positive["proof"]["kid"])
 
-        self.assertEqual(changed, ["valid_signed_artifact_bound_claim"])
+        self.assertEqual(len(changed), len(rebuilt["schema_validation_cases"]) - 1)
         self.assertNotEqual(
             positive["contract_digest"],
             self.claim["schema_validation_cases"][0]["instance"]["contract_digest"],
@@ -62,7 +61,36 @@ class SdkConformanceClaimRegeneratorTest(unittest.TestCase):
             signature,
             CLAIM_DOMAIN + canonical_json(body).encode("utf-8"),
         )
-        self.assertEqual(rebuilt["schema_validation_cases"][1:], negatives_before)
+        expected_digest = positive["contract_digest"]
+        for case in rebuilt["schema_validation_cases"]:
+            instance = case["instance"]
+            overrides = case.get("regeneration_overrides", {})
+            if "contract_digest" in overrides:
+                self.assertEqual(instance["contract_digest"], overrides["contract_digest"], case["name"])
+            elif case.get("contract_binding_expect_valid", True):
+                self.assertEqual(instance["contract_digest"], expected_digest, case["name"])
+            else:
+                self.assertNotEqual(instance["contract_digest"], expected_digest, case["name"])
+            proof = instance["proof"]
+            if "signature" in overrides:
+                self.assertEqual(proof["signature"], overrides["signature"], case["name"])
+                continue
+            body = {key: value for key, value in instance.items() if key != "proof"}
+            Ed25519PublicKey.from_public_bytes(_did_key_public_bytes(proof["kid"])).verify(
+                _b64u_decode(proof["signature"]),
+                CLAIM_DOMAIN + canonical_json(body).encode("utf-8"),
+            )
+
+    def test_negative_case_regeneration_overrides_are_preserved(self) -> None:
+        rebuilt, _ = rebuild(self.contract, self.claim, self.key_fixture)
+        cases = {case["name"]: case for case in rebuilt["schema_validation_cases"]}
+        zero = cases["zero_revision_and_digest_rejected"]
+        self.assertEqual(
+            zero["instance"]["contract_digest"],
+            cases["valid_signed_artifact_bound_claim"]["instance"]["contract_digest"],
+        )
+        bad_signature = cases["bad_signature_semantic_rejected"]
+        self.assertEqual(bad_signature["instance"]["proof"]["signature"], "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
 
     def test_wrong_published_seed_is_refused_before_signing(self) -> None:
         key_fixture = copy.deepcopy(self.key_fixture)

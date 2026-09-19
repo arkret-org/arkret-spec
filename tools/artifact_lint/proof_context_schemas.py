@@ -366,6 +366,89 @@ def check_domain_separation_binding_fields_are_carriable(lint: Lint) -> None:
                 )
 
 
+def check_local_signature_binding_fields_match_schema(lint: Lint) -> None:
+    """Close raw local signatures without treating an outer proof carrier as its transcript."""
+
+    registry = load_json(lint, PROOF_CONTEXT_REGISTRY)
+    if not isinstance(registry, dict):
+        return
+    algorithm_path = ARTIFACTS / "registry" / "signature-alg-registry.json"
+    algorithm_registry = load_json(lint, algorithm_path)
+    algorithms = algorithm_registry.get("algorithms") if isinstance(algorithm_registry, dict) else None
+    if not isinstance(algorithms, list):
+        lint.fail(algorithm_path, "algorithms[] must be an array")
+        return
+    active_raw_algorithms = {
+        row.get("raw_signature_algorithm")
+        for row in algorithms
+        if isinstance(row, dict)
+        and row.get("status") == "active"
+        and "raw_detached_signature" in (row.get("proof_kinds") or [])
+        and isinstance(row.get("raw_signature_algorithm"), str)
+    }
+
+    rows = registry.get("domain_separations")
+    if not isinstance(rows, list):
+        return
+    for index, row in enumerate(rows):
+        if not isinstance(row, dict) or row.get("primitive") != "detached_signature":
+            continue
+        reference = row.get("schema_ref")
+        if not isinstance(reference, str):
+            continue
+        file_ref, separator, fragment = reference.partition("#")
+        schema_path = ARTIFACTS / file_ref
+        document = load_json(lint, schema_path)
+        if not isinstance(document, dict):
+            continue
+        try:
+            node = resolve_json_pointer(document, "#" + fragment) if separator else document
+        except (KeyError, IndexError, ValueError):
+            continue
+        if not isinstance(node, dict):
+            continue
+        properties = node.get("properties")
+        required = node.get("required")
+        if not isinstance(properties, dict) or not isinstance(required, list):
+            continue
+        # A shared proof carrier may be a closed object too, but its registry
+        # fields describe the nested proof leaf. Only a raw local object that
+        # directly carries both algorithm and signature selects this equality.
+        if not {"signature", "signature_algorithm"}.issubset(properties):
+            continue
+        where = f"domain_separations[{index}]"
+        domain = row.get("domain")
+        if node.get("x-arkret-signature-domain") != domain:
+            lint.fail(
+                schema_path,
+                f"{reference} must annotate x-arkret-signature-domain={domain!r}",
+            )
+        if node.get("additionalProperties") is not False:
+            lint.fail(schema_path, f"{reference} local signature object must be closed")
+        if not {"signature", "signature_algorithm"}.issubset(required):
+            lint.fail(schema_path, f"{reference} must require signature and signature_algorithm")
+            continue
+        fields = row.get("binding_fields")
+        if not isinstance(fields, list) or not all(isinstance(field, str) for field in fields):
+            continue
+        expected = set(required) - {"signature"}
+        actual = set(fields)
+        if len(fields) != len(actual) or actual != expected:
+            lint.fail(
+                PROOF_CONTEXT_REGISTRY,
+                f"{where}.binding_fields must equal required(schema_ref) minus signature; "
+                f"missing={sorted(expected - actual)!r}, extra={sorted(actual - expected)!r}",
+            )
+        algorithm_schema = properties.get("signature_algorithm")
+        algorithm = algorithm_schema.get("const") if isinstance(algorithm_schema, dict) else None
+        if algorithm not in active_raw_algorithms:
+            lint.fail(
+                schema_path,
+                f"{reference} signature_algorithm must const-select an active raw_signature_algorithm; "
+                f"got {algorithm!r}",
+            )
+
+
 _DIGEST_CONSTRUCTION_KEYS = frozenset(
     {
         "construction_id",
@@ -394,6 +477,18 @@ _CANONICAL_DIGEST_ROW_KEYS = frozenset(
         "owner_report",
     }
 )
+_BYTE_EXACT_DIGEST_KAT_KEYS = frozenset(
+    {
+        "name",
+        "domain",
+        "prefix_bytes_hex",
+        "transcript",
+        "canonical_transcript_utf8",
+        "digest_input_hex",
+        "expected_digest",
+    }
+)
+_SHA256_LOWERCASE_HEX_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
 
 
 def _digest_reference(lint: Lint, reference: object, *, prose: bool) -> Any:
@@ -420,27 +515,92 @@ def _digest_reference(lint: Lint, reference: object, *, prose: bool) -> Any:
 
 
 def _digest_kat_pairs(node: Any) -> list[tuple[dict[str, Any], str]]:
-    """Return the two explicitly registered KAT shapes; no heuristic input aliases."""
+    """Return the two explicitly registered exact-pointer KAT shapes."""
     if isinstance(node, dict) and isinstance(node.get("transcript"), dict) and isinstance(
         node.get("expected_digest"), str
     ):
         return [(node["transcript"], node["expected_digest"])]
-    pairs: list[tuple[dict[str, Any], str]] = []
+    if isinstance(node, dict) and isinstance(node.get("core"), dict) and isinstance(
+        node.get("receipt_digest"), str
+    ):
+        return [(node["core"], node["receipt_digest"])]
+    return []
 
-    def walk(value: Any) -> None:
-        if isinstance(value, dict):
-            core = value.get("core")
-            digest = value.get("receipt_digest")
-            if isinstance(core, dict) and isinstance(digest, str):
-                pairs.append((core, digest))
-            for child in value.values():
-                walk(child)
-        elif isinstance(value, list):
-            for child in value:
-                walk(child)
 
-    walk(node)
-    return pairs
+def _check_digest_kat_binding_fields(
+    lint: Lint,
+    where: str,
+    row: dict[str, Any],
+    transcript: dict[str, Any],
+) -> None:
+    fields = row.get("binding_fields")
+    if not isinstance(fields, list) or not all(isinstance(field, str) and field for field in fields):
+        return
+    required = {field for field in fields if not field.endswith("?")}
+    allowed = {field.removesuffix("?") for field in fields}
+    actual = set(transcript)
+    if not required <= actual or not actual <= allowed:
+        lint.fail(
+            PROOF_CONTEXT_REGISTRY,
+            f"{where}.known_answer_ref transcript does not cover binding_fields exactly; "
+            f"missing={sorted(required - actual)}, unknown={sorted(actual - allowed)}",
+        )
+
+
+def _check_byte_exact_digest_kat(
+    lint: Lint,
+    where: str,
+    row: dict[str, Any],
+    target: dict[str, Any],
+    expected_prefix: str,
+) -> None:
+    if set(target) != _BYTE_EXACT_DIGEST_KAT_KEYS:
+        lint.fail(
+            PROOF_CONTEXT_REGISTRY,
+            f"{where}.known_answer_ref byte KAT must have exactly the closed KAT keys",
+        )
+    domain = row.get("domain")
+    if target.get("domain") != domain:
+        lint.fail(PROOF_CONTEXT_REGISTRY, f"{where}.known_answer_ref KAT domain must equal row domain")
+    if target.get("prefix_bytes_hex") != expected_prefix:
+        lint.fail(
+            PROOF_CONTEXT_REGISTRY,
+            f"{where}.known_answer_ref KAT prefix must equal UTF8(domain + LF)",
+        )
+    transcript = target.get("transcript")
+    if not isinstance(transcript, dict):
+        return
+    canonical = json.dumps(
+        transcript, ensure_ascii=False, separators=(",", ":"), sort_keys=True
+    ).encode("utf-8")
+    try:
+        canonical_text = canonical.decode("utf-8")
+        digest_input_hex = (bytes.fromhex(expected_prefix) + canonical).hex()
+    except ValueError:
+        return
+    if target.get("canonical_transcript_utf8") != canonical_text:
+        lint.fail(
+            PROOF_CONTEXT_REGISTRY,
+            f"{where}.known_answer_ref canonical_transcript_utf8 is not RFC8785_JCS(transcript)",
+        )
+    if target.get("digest_input_hex") != digest_input_hex:
+        lint.fail(
+            PROOF_CONTEXT_REGISTRY,
+            f"{where}.known_answer_ref digest_input_hex must include the exact domain LF prefix",
+        )
+
+    if row.get("digest_construction") == "domain_prefixed_jcs_sha256_over_normalized_string_set":
+        scopes = transcript.get("scopes")
+        normalized = (
+            sorted(scopes, key=lambda value: value.encode("utf-8"))
+            if isinstance(scopes, list) and all(isinstance(value, str) for value in scopes)
+            else None
+        )
+        if not isinstance(scopes, list) or not scopes or scopes != normalized or len(scopes) != len(set(scopes)):
+            lint.fail(
+                PROOF_CONTEXT_REGISTRY,
+                f"{where}.known_answer_ref scopes must be a non-empty UTF-8 bytewise sorted unique array",
+            )
 
 
 def check_digest_construction_registration(lint: Lint) -> None:
@@ -570,24 +730,25 @@ def check_digest_construction_registration(lint: Lint) -> None:
             pairs = _digest_kat_pairs(target)
             if not pairs:
                 lint.fail(PROOF_CONTEXT_REGISTRY, f"{where}.known_answer_ref resolves no registered KAT pair")
+            if isinstance(target, dict) and "domain" in target:
+                _check_byte_exact_digest_kat(lint, where, row, target, expected_prefix or "")
             for transcript, expected_digest in pairs:
+                _check_digest_kat_binding_fields(lint, where, row, transcript)
                 canonical = json.dumps(
                     transcript, ensure_ascii=False, separators=(",", ":"), sort_keys=True
                 ).encode("utf-8")
                 digest = "sha256:" + hashlib.sha256(bytes.fromhex(expected_prefix or "") + canonical).hexdigest()
+                if _SHA256_LOWERCASE_HEX_RE.fullmatch(expected_digest) is None:
+                    lint.fail(
+                        PROOF_CONTEXT_REGISTRY,
+                        f"{where}.known_answer_ref digest must use sha256:lowercase_hex",
+                    )
                 if digest != expected_digest:
                     lint.fail(
                         PROOF_CONTEXT_REGISTRY,
                         f"{where}.known_answer_ref digest does not match its registered construction",
                     )
                     break
-            if pairs and "transcript" in (target if isinstance(target, dict) else {}):
-                fields = row.get("binding_fields")
-                if isinstance(fields, list) and set(pairs[0][0]) != set(fields):
-                    lint.fail(
-                        PROOF_CONTEXT_REGISTRY,
-                        f"{where}.known_answer_ref transcript does not cover exactly binding_fields",
-                    )
         elif known_answer_ref is None:
             if not isinstance(absence, str) or not absence.strip():
                 lint.fail(PROOF_CONTEXT_REGISTRY, f"{where} without a KAT requires kat_absence_reason")
@@ -629,9 +790,10 @@ _RESULT_PROJECTION_KINDS = frozenset(
 )
 _RESULT_KEYED_SET_KINDS = frozenset({"keyed_set_add", "keyed_set_remove_observed", "keyed_set_remove_dots"})
 
-# The exact Agent supersedes remove of foundation.py lines 1186-1193. `for_each`
-# and `keyed_set_remove_dots` exist only for this one registered write; anything
-# else would be an open-ended per-item removal loop over arbitrary families.
+# The exact Agent supersedes remove of foundation.py lines 1186-1193 is the only
+# per-item removal. A second exact expansion below is the bounded, all-or-nothing
+# container rebalance; anything else would be an open-ended loop over arbitrary
+# families.
 _AGENT_SUPERSEDES_FOR_EACH = {"field": "payload.supersedes", "max_items": 256}
 _AGENT_SUPERSEDES_SELECTOR = {
     "kind": "composite",
@@ -640,6 +802,30 @@ _AGENT_SUPERSEDES_SELECTOR = {
 _AGENT_SUPERSEDES_PROJECTION = {
     "kind": "keyed_set_remove_dots",
     "dots": {"agent_authorization_dot": {"field": "item.authorized_event_ref"}},
+}
+
+# encoding.md section 9.1 registers one other bounded expansion: a rebalance
+# atomically writes exactly one container_position row for every member of the
+# closed positions[] array.  Keep the spelling exact here; a general for_each
+# would reopen arbitrary loops and partial-write ambiguity.
+_CONTAINER_REBALANCE_FOR_EACH = {"field": "payload.positions", "max_items": 10000}
+_CONTAINER_REBALANCE_SELECTOR = {
+    "kind": "composite",
+    "components": [
+        {"kind": "canonical_json", "field": "item.item_ref"},
+        "payload.relation_kind",
+    ],
+}
+_CONTAINER_REBALANCE_PROJECTION = {
+    "kind": "set",
+    "value_projection": {
+        "kind": "object",
+        "members": [
+            {"name": "container_ref", "field": "payload.container_ref"},
+            {"name": "relation_kind", "field": "payload.relation_kind"},
+            {"name": "rank", "field": "item.rank"},
+        ],
+    },
 }
 
 # An `allowed_paths` entry names one top-level member of the family value, which
@@ -1109,13 +1295,14 @@ def _authored_members(lint: Lint, where: str, payload_schema_ref: Any, field: An
     return members - _forbidden_member_names(node)
 
 
-def _create_locked_author_paths(lint: Lint, where: str, write: dict, kind: Any) -> set[str]:
-    """Paths this very event kind is the registered create-lock owner of.
+def _owner_author_paths(lint: Lint, where: str, write: dict, kind: Any) -> set[str]:
+    """Paths this very Event kind is registered to author exclusively.
 
     `_effective_forbidden_paths` returns strings, so the basis and the owner of
     each row are gone by the time the whole-value check reads it. This re-reads
-    the same row and keeps only the `create_locked` bans whose owner is the kind
-    doing the writing.
+    the same row and keeps create-locked fields on their creator plus
+    dedicated-event-owned fields on their one dedicated writer. Both remain
+    forbidden to every generic patch and every other Event kind.
     """
     target = _patch_target(lint, where, write)
     if target is None:
@@ -1125,7 +1312,7 @@ def _create_locked_author_paths(lint: Lint, where: str, write: dict, kind: Any) 
         for entry in target["row"].get("forbidden_patch_paths") or []
         if isinstance(entry, dict)
         and isinstance(entry.get("path"), str)
-        and entry.get("basis") == "create_locked"
+        and entry.get("basis") in {"create_locked", "dedicated_event_owned"}
         and entry.get("owner_kind") == "event_kind"
         and entry.get("owner") == kind
     }
@@ -1381,7 +1568,7 @@ def check_result_value_member_closure(lint: Lint) -> None:
                 # forbidden here, and the patch surface is untouched in every
                 # case -- `_check_result_apply_patch_projection` solves against
                 # the full set.
-                exempt = _create_locked_author_paths(lint, where, write, kind)
+                exempt = _owner_author_paths(lint, where, write, kind)
                 reserved = sorted(
                     path
                     for path in authored
@@ -2044,23 +2231,37 @@ def check_result_write_contracts(lint: Lint) -> None:
             if unknown:
                 lint.fail(EVENT_KIND_REGISTRY, f"{where} has unknown member(s) {sorted(unknown)}")
             if "for_each" in write:
-                if (
+                agent_supersedes = (
                     kind != "ak.agent.key.authorize"
                     or index != 0
                     or write["for_each"] != _AGENT_SUPERSEDES_FOR_EACH
                     or write.get("result_selector") != _AGENT_SUPERSEDES_SELECTOR
                     or write.get("result_projection") != _AGENT_SUPERSEDES_PROJECTION
-                ):
+                ) is False
+                container_rebalance = (
+                    kind == "ak.container.rebalance"
+                    and index == 0
+                    and write["for_each"] == _CONTAINER_REBALANCE_FOR_EACH
+                    and write.get("result_selector") == _CONTAINER_REBALANCE_SELECTOR
+                    and write.get("result_projection") == _CONTAINER_REBALANCE_PROJECTION
+                )
+                if not agent_supersedes and not container_rebalance:
                     lint.fail(
                         EVENT_KIND_REGISTRY,
-                        f"{where}.for_each is restricted to the exact Agent supersedes remove of "
-                        "zh/identity/key-management.md section 3.6.1: write 0 of ak.agent.key.authorize, "
-                        "removing only the observed authorization dot from its old key subject",
+                        f"{where}.for_each is restricted to the exact Agent supersedes remove or "
+                        "the exact bounded container rebalance of conformance/encoding.md section "
+                        "9.4; arbitrary per-item loops have no atomicity or field-source contract",
                     )
             elif kind == "ak.agent.key.authorize" and index == 0:
                 lint.fail(
                     EVENT_KIND_REGISTRY,
                     f"{where} must enumerate the bounded exact supersedes set before the add",
+                )
+            elif kind == "ak.container.rebalance" and index == 0:
+                lint.fail(
+                    EVENT_KIND_REGISTRY,
+                    f"{where} must enumerate the bounded positions[] set before the atomic "
+                    "container_position writes",
                 )
             family = write.get("result_family")
             if not isinstance(family, str) or not RESULT_FAMILY_RE.fullmatch(family):

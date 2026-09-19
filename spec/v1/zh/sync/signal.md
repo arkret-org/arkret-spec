@@ -277,7 +277,7 @@ response: empty
 
 request 是闭合对象：
 
-```json
+```json fragment
 {
   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
   "signals": [
@@ -285,7 +285,6 @@ request 是闭合对象：
   ]
 }
 ```
-
 固定上限：
 
 | 维度 | 上限 |

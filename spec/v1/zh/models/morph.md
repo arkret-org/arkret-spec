@@ -44,7 +44,7 @@ Schema id: `ak.schema.morph.v1`
 | `fields` | no | `object` | 字段 schema 由 `schema_refs` 决定。 | 自身属性。 |
 | `state` | no | `enum(active, archived, redacted)` | lifecycle 转换与 reason_code 见本文件 Morph lifecycle 合同入口；`archived` 可逆，唯一不可逆终态是 `redacted`。 | 物化状态（物理生命周期）。 |
 | `state_changed_at` | conditional | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
-| `stage` | no | `enum(draft, proposed, planned, in_progress, blocked, done, cancelled, superseded)` | 枚举、唯一写入路径、reserved-name guard 与 reducer 规则以 [common-fields.md §5.3](./common-fields.md) 为唯一权威。generic Morph 可省略；需要进度轴的 `morph_kind` profile MAY 收紧为 create 必填，缺失时首条 `ak.morph.stage.set` 可初始化为任一合法值。 | 可选业务进度阶段（与 `state` 正交）。 |
+| `stage` | no | `enum(draft, proposed, planned, in_progress, blocked, done, cancelled, superseded)` | 枚举、唯一写入路径、reserved-name guard 与 reducer 规则以 [common-fields.md §5.3](./common-fields.md) 为唯一权威。create payload MUST NOT 携带本字段；需要进度轴时，首条 `ak.morph.stage.set` 初始化为任一合法值。 | 可选业务进度阶段（与 `state` 正交）。 |
 | `stage_changed_at` | conditional | `timestamp` | **Reducer-derived**：每次 `stage` 实际变更时由 reducer 用触发 event 的 `created_at` 覆盖写入；same-value self-transition 不更新本字段。 | 最近一次 stage 转换时间。 |
 | `created_by` | yes | `ActorId` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
@@ -59,7 +59,7 @@ Schema id: `ak.schema.morph.v1`
 
 | event kind | reducer_input | payload 形态 | capability action | 前置 / 说明 |
 | --- | --- | --- | --- | --- |
-| `ak.morph.create` | yes | full object | `ak.morph.create` | 创建 Morph；`morph_kind` create-locked，`stage` 可选（profile 可收紧），`schema_refs[]` ≥1。reducer 固化 `effective_scope`（见 §6.1 / [circle.md §6](./circle.md)）。 |
+| `ak.morph.create` | yes | full object | `ak.morph.create` | 创建 Morph；`morph_kind` create-locked；`stage` / `stage_changed_at` 禁止出现在 create payload，业务进度轴由后续首条 `ak.morph.stage.set` 初始化；`schema_refs[]` ≥1。reducer 固化 `effective_scope`（见 §6.1 / [circle.md §6](./circle.md)）。 |
 | `ak.morph.update` | yes | `ak.schema.patch.v1` | `ak.morph.update` | 改 `fields` / `metadata` / `facets` / `content`。patch path `morph_kind` / `schema_refs` / `stage` / `stage_changed_at` MUST `schema_violation`。 |
 | `ak.morph.stage.set` | yes | stage transition payload | `ak.morph.stage.set` | 唯一改 / 初始化 `stage` 的路径；缺失轴的首写可取任一合法值，`stage_changed_at` reducer-derived；后续转换合法性见 [common-fields.md §5.3](./common-fields.md)。 |
 | `ak.morph.archive` | yes | object_lifecycle_payload | `ak.morph.archive` | `active → archived`（可逆中间态，非终态）；源状态非 `active` 时 `morph_not_active`。 |

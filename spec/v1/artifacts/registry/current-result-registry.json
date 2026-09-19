@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.1",
+  "version": "2026-09-19.5",
   "source_of_truth": false,
-  "generated_at": "2026-09-19T05:38:00+08:00",
+  "generated_at": "2026-09-19T19:35:04+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Closed typed current-result families derived from authority-committed Events. Selectors are domain types, never alternate typed current result IDs. Each row also records its CONSUMPTION: consumption.class is one of the consumption_classes below, consumption.consumed_by names the zh prose sections that read the current value, and consumption.note says what is read and to decide what. check_every_result_family_has_a_writer closes the writer direction; this ledger is the reader direction, which had no gate and no record. consumed_by is non-empty for every class except record_only, and a record_only row's note MUST name the section that states the family's purpose so the classification is checkable rather than an absence of evidence. Citations resolve through check_artifact_prose_section_refs.",
@@ -811,6 +811,227 @@
         ],
         "note": "The global display value the authorized read operation ak.self.actor_profile.read.resolve.v1 serves beside the exact signed profile Event. It is ordinary causal state with no covering RealmCommit and grants no identity, capability or membership authority."
       }
+    },
+    {
+      "result_kind": "actor_discovery",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/actor_discovery_result",
+      "consumption": {
+        "class": "delivery_input",
+        "consumed_by": [
+          "discovery/discovery-directory.md §4"
+        ],
+        "note": "Directory indexing reads the Actor self-declared discovery value."
+      }
+    },
+    {
+      "result_kind": "agent_action_approval",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/agent_action_approval_result",
+      "consumption": {
+        "class": "admission_input",
+        "consumed_by": [
+          "authz/constraint-schema.md §9.2.6"
+        ],
+        "note": "Publishing the exact pre-authored Event reads the immutable controller confirmation and nonce binding."
+      }
+    },
+    {
+      "result_kind": "agent_sidecar_exchange_controls",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/agent_sidecar_exchange_controls_result",
+      "consumption": {
+        "class": "delivery_input",
+        "consumed_by": [
+          "models/sidecar.md §8"
+        ],
+        "note": "Authorized Sidecar participants decrypt and fold the control assertion set into coordinator and terminal exchange state."
+      }
+    },
+    {
+      "result_kind": "applet_discovery",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/applet_discovery_result",
+      "consumption": {
+        "class": "delivery_input",
+        "consumed_by": [
+          "discovery/discovery-directory.md §4"
+        ],
+        "note": "Directory indexing reads the Applet self-declared discovery value."
+      }
+    },
+    {
+      "result_kind": "applet_registration",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/applet_registration_result",
+      "consumption": {
+        "class": "admission_input",
+        "consumed_by": [
+          "extensions/applet-schema.md §1"
+        ],
+        "note": "Profile, namespace, webhook and requested-scope decisions read the accepted registration snapshot."
+      }
+    },
+    {
+      "result_kind": "container_position",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/container_position_result",
+      "consumption": {
+        "class": "admission_input",
+        "consumed_by": [
+          "conformance/encoding.md §9.1"
+        ],
+        "note": "Position-change CAS and rebalance completeness are evaluated against current per-item positions."
+      }
+    },
+    {
+      "result_kind": "handle_discovery",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/handle_discovery_result",
+      "consumption": {
+        "class": "delivery_input",
+        "consumed_by": [
+          "discovery/discovery-directory.md §4"
+        ],
+        "note": "Directory indexing reads the canonical handle discovery declaration."
+      }
+    },
+    {
+      "result_kind": "key_backup_active_series",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/key_backup_active_series_result",
+      "consumption": {
+        "class": "admission_input",
+        "consumed_by": [
+          "identity/key-management.md §7.6.1"
+        ],
+        "note": "Successor version admission and recovery-list selection read the current series pointer."
+      }
+    },
+    {
+      "result_kind": "member_identity_updates",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/member_identity_updates_result",
+      "consumption": {
+        "class": "delivery_input",
+        "consumed_by": [
+          "sync/client-sync.md §8.1"
+        ],
+        "note": "Client sync folds verified replacement edges into the current member identity display segment."
+      }
+    },
+    {
+      "result_kind": "message_revision",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/message_revision_result",
+      "consumption": {
+        "class": "delivery_input",
+        "consumed_by": [
+          "models/strand-and-message.md §9.5.1"
+        ],
+        "note": "Message materialization reads creation history and the current revision carrier, with redaction applied separately."
+      }
+    },
+    {
+      "result_kind": "actor_profile_realm_override",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/actor_profile_realm_override_result",
+      "consumption": {
+        "class": "delivery_input",
+        "consumed_by": [
+          "discovery/profiles-presence.md §2.4"
+        ],
+        "note": "Authorized profile resolution overlays this Realm-local display patch on the global Actor Profile."
+      }
+    },
+    {
+      "result_kind": "realm_organization",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_organization_result",
+      "consumption": {
+        "class": "delivery_input",
+        "consumed_by": [
+          "models/realm-and-space.md §2.3.0"
+        ],
+        "note": "Organization views and official-badge rendering read the latest verified relationship statement."
+      }
+    },
+    {
+      "result_kind": "circle_member_state",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/circle_member_state_result",
+      "consumption": {
+        "class": "admission_input",
+        "consumed_by": [
+          "models/circle.md §9.1"
+        ],
+        "note": "Circle join, knock, leave and ban transitions read the exact per-Circle Actor membership and its CAS basis."
+      }
+    },
+    {
+      "result_kind": "realm_search_policy",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_search_policy_result",
+      "consumption": {
+        "class": "admission_input",
+        "consumed_by": [
+          "sync/privacy-preserving-search.md"
+        ],
+        "note": "Index upload and search service admission read the current Realm allowlist, data classes and leakage profile."
+      }
+    },
+    {
+      "result_kind": "rsvp",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/rsvp_result",
+      "consumption": {
+        "class": "delivery_input",
+        "consumed_by": [
+          "models/calendar-event.md"
+        ],
+        "note": "Calendar views deliver each responder's current whole-series or occurrence-specific response."
+      }
+    },
+    {
+      "result_kind": "schema_definition",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/schema_definition_result",
+      "consumption": {
+        "class": "admission_input",
+        "consumed_by": [
+          "models/governance-objects.md §1"
+        ],
+        "note": "Schema-bound object admission resolves the immutable definition occupying the referenced schema id."
+      }
+    },
+    {
+      "result_kind": "sidecar_context",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/sidecar_context_result",
+      "consumption": {
+        "class": "delivery_input",
+        "consumed_by": [
+          "models/sidecar.md §4"
+        ],
+        "note": "Sidecar UI placement resolves the latest versioned attachment for each exact source context."
+      }
+    },
+    {
+      "result_kind": "sidecar",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/sidecar_result",
+      "consumption": {
+        "class": "admission_input",
+        "consumed_by": [
+          "models/sidecar.md §§2-5"
+        ],
+        "note": "Sidecar-scoped admission reads existence, controller, Realm and lifecycle state before accepting private-stream Events."
+      }
+    },
+    {
+      "result_kind": "sovereign_did_policy",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/sovereign_did_policy_result",
+      "consumption": {
+        "class": "admission_input",
+        "consumed_by": [
+          "identity/identity-did.md §3.6"
+        ],
+        "note": "DID resolution and proof admission read the trust-domain method allowlist and root policy."
+      }
+    },
+    {
+      "result_kind": "strand_watch",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/strand_watch_result",
+      "consumption": {
+        "class": "delivery_input",
+        "consumed_by": [
+          "models/strand-and-message.md §8"
+        ],
+        "note": "Notification dispatch and authorized watcher projection read the exact per-Strand Actor watch value."
+      }
     }
-  ]
+  ],
+  "metadata_authority": "contract_registry_section"
 }

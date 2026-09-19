@@ -41,6 +41,7 @@ sys.path.insert(0, str(ROOT))
 
 from tools.artifact_lint import fixtures as fixture_gate
 from tools.artifact_lint import proof_context_schemas as gate
+from tools.artifact_lint import redactable_fields as frontier_gate
 
 EVENT_KINDS = gate.EVENT_KIND_REGISTRY
 REDUCER_PATHS = gate.REDUCER_MANAGED_PATH_REGISTRY
@@ -168,7 +169,10 @@ class ReducerManagedPathSolveTest(_Harness):
                 }
             )
 
-        self.assertEqual(self._newly_reported({REDUCER_PATHS: ban_title_elsewhere}), [])
+        errors = self._newly_reported({REDUCER_PATHS: ban_title_elsewhere})
+        self.assertEqual(len(errors), 1)
+        self.assertIn("ak.circle.update", errors[0])
+        self.assertNotIn("ak.view.update", errors[0])
 
     def test_reaching_under_a_banned_path_is_refused(self) -> None:
         """``created_by`` is reducer-managed, so ``created_by.account_id`` is not a way in.
@@ -315,6 +319,49 @@ class ValueMemberClosureTest(_Harness):
         self.assertNewFailure(
             {REDUCER_PATHS: declare_maintenance_without_a_value}, "value_schema_ref"
         )
+
+
+class ValueMemberFrontierTest(unittest.TestCase):
+    """Mutation coverage for both measured/unmeasured frontier branches."""
+
+    def _new_errors(self, mutate) -> list[str]:
+        original = frontier_gate.load_json
+        path = frontier_gate.REDUCER_MANAGED_REGISTRY_PATH.resolve()
+
+        def run(with_mutation: bool) -> set[str]:
+            document = copy.deepcopy(original(frontier_gate.Lint(), path))
+            if with_mutation:
+                mutate(document)
+
+            def load(lint, requested):
+                if requested.resolve() == path:
+                    return document
+                return original(lint, requested)
+
+            frontier_gate.load_json = load
+            try:
+                lint = frontier_gate.Lint()
+                frontier_gate.check_reducer_managed_path_registry(lint)
+                return set(lint.errors)
+            finally:
+                frontier_gate.load_json = original
+
+        return sorted(run(True) - run(False))
+
+    def test_measured_family_cannot_keep_a_gap_owner(self) -> None:
+        def reopen(document: dict) -> None:
+            _object_row(document, "circle")["value_schema_open_gap_owner"] = "probe"
+
+        errors = self._new_errors(reopen)
+        self.assertTrue(any("MUST NOT also name a gap owner" in item for item in errors), errors)
+
+    def test_unmeasured_family_must_name_its_gap_owner(self) -> None:
+        def silence(document: dict) -> None:
+            row = _object_row(document, "circle")
+            row.pop("value_member_maintenance")
+
+        errors = self._new_errors(silence)
+        self.assertTrue(any("does not measure this family" in item for item in errors), errors)
 
 
 class AuthorWritableStateAxisTest(_Harness):

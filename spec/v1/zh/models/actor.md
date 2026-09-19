@@ -164,6 +164,12 @@ provision 原子投影问责事实，**后续独立变更仍使用通用 account
   `string_set_digest(payload.accountability_scope, ak.accountability_scope_set.v1)`：
   裸 string 按 singleton set 解释，数组按既有 UTF-8 string-set 规则归一化。
   provision 的 scope 是固定 const，仍走同一归一化，二者因此落在同一个 typed current result。
+  该函数先拒绝空集与重复项，再按原始 UTF-8 字节升序得到 `normalized_scopes`，构造唯一闭合 transcript
+  `{"scopes": normalized_scopes}`；摘要输入固定为
+  `UTF8("ak.accountability_scope_set.v1\n") || RFC8785_JCS({"scopes": normalized_scopes})`，
+  输出固定为 `"sha256:" + lowercase_hex(SHA256(input))`。domain 不是 transcript 成员，构造方与验证方
+  MUST NOT 直接摘要裸数组、保留来线数组顺序，或把输出改写为 Base64URL。逐字节向量见
+  [`canonical-json-digest-kat-fixture.json`](../../artifacts/fixtures/canonical-json-digest-kat-fixture.json)。
 - **修改 provision 问责的通用 grant MUST 写入原 controller PCR 的同一个 typed current result。**
   写入其它 Realm 是另一条记录，**不能**撤销原记录。完整 AccountId 的授权、Station 绑定与
   issuer 签名检查仍各自独立执行；MUST NOT 用 principal 相同推导 Account 等价。

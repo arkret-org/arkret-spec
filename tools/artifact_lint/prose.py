@@ -1723,6 +1723,34 @@ def first_expected_error_from_fence_meta(meta: str) -> str | None:
     return next(group for group in match.groups() if group)
 
 
+def check_json_fence_declarations(lint: Lint) -> None:
+    """Every JSON fence declares a schema or explicitly declares non-wire intent."""
+    for path in markdown_files():
+        text = path.read_text(encoding="utf-8")
+        for block_index, match in enumerate(JSON_FENCE_RE.finditer(text), start=1):
+            meta = match.group("meta")
+            schema_ref = schema_ref_from_fence_meta(meta)
+            fragment = re.search(r"(?:^|\s)fragment(?:\s|$)", meta) is not None
+            illustrative = re.search(r"(?:^|\s)illustrative(?:\s|$)", meta) is not None
+            declarations = int(schema_ref is not None) + int(fragment) + int(illustrative)
+            if declarations != 1:
+                lint.fail(
+                    path,
+                    f"json_block[{block_index}] must declare exactly one of schema=<ref>, "
+                    "fragment, or illustrative",
+                )
+                continue
+            if schema_ref is None and (
+                JSON_FENCE_EXPECT_ATTR_RE.search(meta)
+                or JSON_FENCE_FIRST_ERROR_ATTR_RE.search(meta)
+            ):
+                lint.fail(
+                    path,
+                    f"json_block[{block_index}] fragment/illustrative fence MUST NOT carry "
+                    "schema validation expectations",
+                )
+
+
 
 def check_markdown_full_object_example(lint: Lint, path: Path, block_index: int, data: Any) -> None:
     if not isinstance(data, dict):
@@ -2733,6 +2761,21 @@ def check_resolver_policy_matches_did_method_adapter_registry(lint: Lint) -> Non
                     f"role array and {RESOLVER_POLICY_ADMISSION_KEY} are the only entries allowed "
                     "to carry it",
                 )
+            if method == "did:webvh":
+                trusted = entry.get("trusted_witnesses")
+                if not isinstance(trusted, list) or not trusted:
+                    lint.fail(path, f"{where}: did:webvh.trusted_witnesses must be a non-empty did:key list")
+                else:
+                    from .fixtures import _ed25519_public_key_octets
+
+                    for index, value in enumerate(trusted):
+                        _, detail = _ed25519_public_key_octets(value)
+                        if detail is not None:
+                            lint.fail(
+                                path,
+                                f"{where}: did:webvh.trusted_witnesses[{index}] is not a "
+                                f"decodable Ed25519 did:key: {detail}",
+                            )
 
     if checked_methods == 0:
         lint.fail(path, "section 4.1 carries no resolver-policy method_policy example to check")

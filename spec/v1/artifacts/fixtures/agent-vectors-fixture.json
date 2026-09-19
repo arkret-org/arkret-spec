@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.agent_provisioning.v1",
-  "version": "2026-08-11",
+  "version": "2026-09-19.1",
   "suite": "agent_vectors",
   "runner": {
     "kind": "named_suite",
@@ -27,11 +27,11 @@
       "expect_valid": true,
       "instance": {
         "pairing_request_id": "agent_pairing_request:01964137-0000-7000-8000-000000000000",
-        "agent_id": "ak:did_core:webvh:z6mkagent",
-        "verification_method": "did:webvh:z6mkagent:agent.example#runtime-1",
+        "agent_id": "ak:did_core:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey",
+        "verification_method": "did:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey:agent.example#runtime-1",
         "public_key": {
           "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-          "kid": "did:webvh:z6mkagent:agent.example#runtime-1",
+          "kid": "did:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey:agent.example#runtime-1",
           "kty": "OKP",
           "algorithm": "Ed25519"
         },
@@ -46,11 +46,11 @@
       "first_expected_error": "contains:pairing_code",
       "instance": {
         "pairing_request_id": "agent_pairing_request:01964137-0000-7000-8000-000000000000",
-        "agent_id": "ak:did_core:webvh:z6mkagent",
-        "verification_method": "did:webvh:z6mkagent:agent.example#runtime-1",
+        "agent_id": "ak:did_core:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey",
+        "verification_method": "did:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey:agent.example#runtime-1",
         "public_key": {
           "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-          "kid": "did:webvh:z6mkagent:agent.example#runtime-1",
+          "kid": "did:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey:agent.example#runtime-1",
           "kty": "OKP",
           "algorithm": "Ed25519"
         },
@@ -66,11 +66,11 @@
       "first_expected_error": "contains:requested_scope_disclosure",
       "instance": {
         "pairing_request_id": "agent_pairing_request:01964137-0000-7000-8000-000000000000",
-        "agent_id": "ak:did_core:webvh:z6mkagent",
-        "verification_method": "did:webvh:z6mkagent:agent.example#runtime-1",
+        "agent_id": "ak:did_core:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey",
+        "verification_method": "did:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey:agent.example#runtime-1",
         "public_key": {
           "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-          "kid": "did:webvh:z6mkagent:agent.example#runtime-1",
+          "kid": "did:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey:agent.example#runtime-1",
           "kty": "OKP",
           "algorithm": "Ed25519"
         },
@@ -86,11 +86,11 @@
       "first_expected_error": "contains:proof_of_possession",
       "instance": {
         "pairing_request_id": "agent_pairing_request:01964137-0000-7000-8000-000000000000",
-        "agent_id": "ak:did_core:webvh:z6mkagent",
-        "verification_method": "did:webvh:z6mkagent:agent.example#runtime-1",
+        "agent_id": "ak:did_core:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey",
+        "verification_method": "did:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey:agent.example#runtime-1",
         "public_key": {
           "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-          "kid": "did:webvh:z6mkagent:agent.example#runtime-1",
+          "kid": "did:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey:agent.example#runtime-1",
           "kty": "OKP",
           "algorithm": "Ed25519"
         },
@@ -105,16 +105,16 @@
       "expect_valid": true,
       "instance": {
         "status": "awaiting_controller_event",
-        "agent_id": "ak:did_core:webvh:z6mkagent",
-        "did": "did:webvh:z6mkagent:agent.example",
+        "agent_id": "ak:did_core:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey",
+        "did": "did:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey:agent.example",
         "initial_resolution": {
-          "did": "did:webvh:z6mkagent:agent.example",
-          "method_history_head": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
-          "version_id": "1-Qmfixtureagentinception"
+          "did": "did:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey:agent.example",
+          "method_history_head": "sha256:49a25bc42670cf632b8ce25992626afb8604a9fb36c449b9e982f826af668c0f",
+          "version_id": "1-QmXwxauG2VKw57Bbr7PmQPxKCfxw2TqdHeamzCu8jzXjbf"
         },
         "controller_realm_id": "ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa",
         "allocation_handle": "allocation_handle_01",
-        "controller_authorization_ref": "did:webvh:z6mkagent:agent.example#managed-controller"
+        "controller_authorization_ref": "did:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey:agent.example#managed-controller"
       }
     },
     {
@@ -124,17 +124,17 @@
       "first_expected_error": "contains:principal_control_realm_id",
       "instance": {
         "status": "awaiting_controller_event",
-        "agent_id": "ak:did_core:webvh:z6mkagent",
-        "did": "did:webvh:z6mkagent:agent.example",
+        "agent_id": "ak:did_core:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey",
+        "did": "did:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey:agent.example",
         "initial_resolution": {
-          "did": "did:webvh:z6mkagent:agent.example",
-          "method_history_head": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
-          "version_id": "1-Qmfixtureagentinception"
+          "did": "did:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey:agent.example",
+          "method_history_head": "sha256:49a25bc42670cf632b8ce25992626afb8604a9fb36c449b9e982f826af668c0f",
+          "version_id": "1-QmXwxauG2VKw57Bbr7PmQPxKCfxw2TqdHeamzCu8jzXjbf"
         },
         "principal_control_realm_id": "ak:realm:AYj1hkGaeWVFOEdto3Hsqc1nmIwSKd3TswkkqrnOkPa-",
         "controller_realm_id": "ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa",
         "allocation_handle": "allocation_handle_01",
-        "controller_authorization_ref": "did:webvh:z6mkagent:agent.example#managed-controller"
+        "controller_authorization_ref": "did:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey:agent.example#managed-controller"
       }
     },
     {
@@ -143,16 +143,16 @@
       "expect_valid": true,
       "instance": {
         "status": "awaiting_pcr_genesis",
-        "agent_id": "ak:did_core:webvh:z6mkagent",
-        "did": "did:webvh:z6mkagent:agent.example",
+        "agent_id": "ak:did_core:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey",
+        "did": "did:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey:agent.example",
         "initial_resolution": {
-          "did": "did:webvh:z6mkagent:agent.example",
-          "method_history_head": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
-          "version_id": "1-Qmfixtureagentinception"
+          "did": "did:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey:agent.example",
+          "method_history_head": "sha256:49a25bc42670cf632b8ce25992626afb8604a9fb36c449b9e982f826af668c0f",
+          "version_id": "1-QmXwxauG2VKw57Bbr7PmQPxKCfxw2TqdHeamzCu8jzXjbf"
         },
         "principal_control_realm_id": "ak:realm:AYj1hkGaeWVFOEdto3Hsqc1nmIwSKd3TswkkqrnOkPa-",
         "allocation_handle": "allocation_handle_01",
-        "controller_authorization_ref": "did:webvh:z6mkagent:agent.example#managed-controller"
+        "controller_authorization_ref": "did:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey:agent.example#managed-controller"
       }
     },
     {
@@ -161,16 +161,16 @@
       "expect_valid": true,
       "instance": {
         "status": "awaiting_did_binding",
-        "agent_id": "ak:did_core:webvh:z6mkagent",
-        "did": "did:webvh:z6mkagent:agent.example",
+        "agent_id": "ak:did_core:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey",
+        "did": "did:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey:agent.example",
         "initial_resolution": {
-          "did": "did:webvh:z6mkagent:agent.example",
-          "method_history_head": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
-          "version_id": "1-Qmfixtureagentinception"
+          "did": "did:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey:agent.example",
+          "method_history_head": "sha256:49a25bc42670cf632b8ce25992626afb8604a9fb36c449b9e982f826af668c0f",
+          "version_id": "1-QmXwxauG2VKw57Bbr7PmQPxKCfxw2TqdHeamzCu8jzXjbf"
         },
         "principal_control_realm_id": "ak:realm:AYj1hkGaeWVFOEdto3Hsqc1nmIwSKd3TswkkqrnOkPa-",
         "allocation_handle": "allocation_handle_01",
-        "controller_authorization_ref": "did:webvh:z6mkagent:agent.example#managed-controller"
+        "controller_authorization_ref": "did:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey:agent.example#managed-controller"
       }
     },
     {
@@ -179,15 +179,15 @@
       "expect_valid": true,
       "instance": {
         "schema": "ak.schema.agent_provision.v1",
-        "agent_id": "ak:did_core:webvh:z6mkagent",
+        "agent_id": "ak:did_core:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey",
         "controller_principal_id": "ak:did_core:webvh:z6mkcontroller",
         "principal_control_realm_id": "ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa",
-        "controller_authorization_ref": "did:webvh:z6mkagent:agent.example#managed-controller",
+        "controller_authorization_ref": "did:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey:agent.example#managed-controller",
         "agent_slug": "summary",
         "accountability_scope": "agent_operator",
         "selector_visibility": "private",
         "created_at": "2026-08-02T00:00:00.000Z",
-        "requested_scope_digest": "sha256:cc903ad89c0e9978e90abb28354f7fff3a41c407fd06668916cdb656a875dacd"
+        "requested_scope_digest": "sha256:65f28525de85b1dd7b1086be2c06e51271b1d954b815dd581e15423efbb35084"
       }
     },
     {
@@ -197,16 +197,16 @@
       "first_expected_error": "contains:proofs",
       "instance": {
         "schema": "ak.schema.agent_provision.v1",
-        "agent_id": "ak:did_core:webvh:z6mkagent",
+        "agent_id": "ak:did_core:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey",
         "controller_principal_id": "ak:did_core:webvh:z6mkcontroller",
         "principal_control_realm_id": "ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa",
-        "controller_authorization_ref": "did:webvh:z6mkagent:agent.example#managed-controller",
+        "controller_authorization_ref": "did:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey:agent.example#managed-controller",
         "agent_slug": "summary",
         "accountability_scope": "agent_operator",
         "selector_visibility": "private",
         "created_at": "2026-08-02T00:00:00.000Z",
         "proofs": [],
-        "requested_scope_digest": "sha256:cc903ad89c0e9978e90abb28354f7fff3a41c407fd06668916cdb656a875dacd"
+        "requested_scope_digest": "sha256:65f28525de85b1dd7b1086be2c06e51271b1d954b815dd581e15423efbb35084"
       }
     },
     {
@@ -235,7 +235,7 @@
       "expect_valid": false,
       "first_expected_error": "contains:runtime_state",
       "instance": {
-        "agent_id": "ak:did_core:webvh:z6mkagent",
+        "agent_id": "ak:did_core:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey",
         "slug": "summary",
         "lifecycle": "active",
         "readiness": {
@@ -258,13 +258,13 @@
       "expect_valid": false,
       "first_expected_error": "contains:runtime_state",
       "instance": {
-        "agent_id": "ak:did_core:webvh:z6mkagent",
+        "agent_id": "ak:did_core:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey",
         "controller_account_id": {
           "principal_id": "ak:did_core:webvh:z6mkcontroller",
           "station_id": "ak:did_core:webvh:z6mkfixturestation"
         },
         "principal_control_realm_id": "ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa",
-        "controller_authorization_ref": "did:webvh:z6mkagent:agent.example#managed-controller",
+        "controller_authorization_ref": "did:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey:agent.example#managed-controller",
         "status": "active",
         "runtime_state": "pending_runtime_key",
         "requested_scope": {
@@ -308,7 +308,7 @@
       "vector_id": "ak.vector.agent.provision.v1",
       "runner": "cotest::conformance::agent_vectors::run_agent_provision_vector",
       "requested_scope_commitment": {
-        "agent_id": "ak:did_core:webvh:z6mkagent",
+        "agent_id": "ak:did_core:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey",
         "controller_principal_id": "ak:did_core:webvh:z6mkcontroller",
         "requested_scope": {
           "actions": [
@@ -322,13 +322,13 @@
             }
           ]
         },
-        "expected_digest": "sha256:cc903ad89c0e9978e90abb28354f7fff3a41c407fd06668916cdb656a875dacd"
+        "expected_digest": "sha256:65f28525de85b1dd7b1086be2c06e51271b1d954b815dd581e15423efbb35084"
       },
       "public_did_service_endpoint": {
         "realm_id": "ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa",
         "controller_did": "did:webvh:z6mkcontroller:controller.example",
-        "authorization_ref": "did:webvh:z6mkagent:agent.example#managed-controller",
-        "requested_scope_digest": "sha256:cc903ad89c0e9978e90abb28354f7fff3a41c407fd06668916cdb656a875dacd"
+        "authorization_ref": "did:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey:agent.example#managed-controller",
+        "requested_scope_digest": "sha256:65f28525de85b1dd7b1086be2c06e51271b1d954b815dd581e15423efbb35084"
       },
       "assertions": [
         "agent provision operation id remains ak.self.agent.command.provision.v1",
@@ -375,7 +375,7 @@
         "the genesis create is submitted separately and carries no refs entry naming the provision",
         "genesis admission reverse-looks-up an accepted ak.agent.provision whose payload.principal_control_realm_id equals retype of this create event_id",
         "retype of the accepted genesis event_id equals the declared principal_control_realm_id byte for byte",
-        "the whole sequence derives without event_id_digest_mismatch, which is the constructibility proof for the named encoding.md 6.0.1 class C exemption",
+        "the whole sequence derives without event_id_digest_mismatch, which is the constructibility proof for the named encoding.md §3.1 class C exemption",
         "accepting the genesis returns awaiting_did_binding and keeps the Agent invisible; only accepting controller-signed continuous DID entry 1 moves agent_status from uninitialized to active, publishes the pairing handle and returns status=complete",
         "an ak.realm.create whose purpose is not agent_control triggers neither the agent-status write nor the reverse look-up"
       ]
@@ -424,7 +424,7 @@
       "disclosure": {
         "schema": "ak.schema.agent_requested_scope_disclosure.v1",
         "request_id": "ak:request:d8764019-0000-7000-8000-000000000000",
-        "agent_id": "ak:did_core:webvh:z6mkagent",
+        "agent_id": "ak:did_core:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey",
         "controller_principal_id": "ak:did_core:webvh:z6mkcontroller",
         "requested_scope": {
           "actions": [
@@ -483,10 +483,10 @@
       "name": "agent_runtime_key_binding",
       "vector_id": "ak.vector.agent.runtime_key_binding.v1",
       "runner": "cotest::conformance::agent_vectors::run_agent_runtime_key_binding_vector",
-      "canonical_binding_json": "{\"agent_id\":\"ak:did_core:webvh:z6mkagent\",\"attestation_digest\":\"sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b\",\"kind\":\"ak.agent.runtime_key_binding.v1\",\"pairing_request_id\":\"pairing_request:01964137-0000-7000-8000-000000000000\",\"public_key_digest\":\"sha256:66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925\",\"verification_method\":\"did:webvh:z6mkagent:agent.example#runtime-1\"}",
+      "canonical_binding_json": "{\"agent_id\":\"ak:did_core:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey\",\"attestation_digest\":\"sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b\",\"kind\":\"ak.agent.runtime_key_binding.v1\",\"pairing_request_id\":\"pairing_request:01964137-0000-7000-8000-000000000000\",\"public_key_digest\":\"sha256:66687aadf862bd776c8fc18b8e9f8e20089714856ee233b3902a591d0d5f2925\",\"verification_method\":\"did:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey:agent.example#runtime-1\"}",
       "source_public_key": {
         "key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-        "kid": "did:webvh:z6mkagent:agent.example#runtime-1",
+        "kid": "did:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey:agent.example#runtime-1",
         "kty": "OKP",
         "algorithm": "Ed25519"
       },
@@ -496,8 +496,8 @@
       "expected_binding_digest": "sha256:baaf80b0befc79c9baf9b9d65a4bd730e4ae5a6ec1b65f72d2857d03426f3466",
       "pairing_request_binding_input": {
         "controller_principal_id": "ak:did_core:webvh:z6mkcontroller",
-        "agent_id": "ak:did_core:webvh:z6mkagent",
-        "verification_method": "did:webvh:z6mkagent:agent.example#runtime-1",
+        "agent_id": "ak:did_core:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey",
+        "verification_method": "did:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey:agent.example#runtime-1",
         "pairing_request_id": "pairing_request:01964137-0000-7000-8000-000000000000",
         "pairing_code": "AAAAAAAAAAAAAAAAAAAAAA",
         "pairing_expires_at_inputs": [
@@ -513,7 +513,7 @@
       "canonical_pairing_expires_at": "2026-07-17T13:50:07.734Z",
       "proof_of_possession": {
         "kind": "agent_runtime_key_possession",
-        "verification_method": "did:webvh:z6mkagent:agent.example#runtime-1",
+        "verification_method": "did:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey:agent.example#runtime-1",
         "challenge": "pairing_request:01964137-0000-7000-8000-000000000000",
         "audience_id": "ak:did_core:webvh:z6mkfixturepairexample",
         "created_at": "2026-07-17T13:45:07.734Z",
@@ -523,10 +523,10 @@
         "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
         "signature_algorithm": "Ed25519"
       },
-      "canonical_possession_transcript_json": "{\"audience_id\":\"ak:did_core:webvh:z6mkfixturepairexample\",\"challenge\":\"pairing_request:01964137-0000-7000-8000-000000000000\",\"context\":\"ak.agent_runtime_key_possession_proof.v1\",\"created_at\":\"2026-07-17T13:45:07.734Z\",\"expires_at\":\"2026-07-17T13:50:07.734Z\",\"kind\":\"agent_runtime_key_possession\",\"pairing_code\":\"AAAAAAAAAAAAAAAAAAAAAA\",\"runtime_key_binding_digest\":\"sha256:baaf80b0befc79c9baf9b9d65a4bd730e4ae5a6ec1b65f72d2857d03426f3466\",\"signature_algorithm\":\"Ed25519\",\"verification_method\":\"did:webvh:z6mkagent:agent.example#runtime-1\"}",
+      "canonical_possession_transcript_json": "{\"audience_id\":\"ak:did_core:webvh:z6mkfixturepairexample\",\"challenge\":\"pairing_request:01964137-0000-7000-8000-000000000000\",\"context\":\"ak.agent_runtime_key_possession_proof.v1\",\"created_at\":\"2026-07-17T13:45:07.734Z\",\"expires_at\":\"2026-07-17T13:50:07.734Z\",\"kind\":\"agent_runtime_key_possession\",\"pairing_code\":\"AAAAAAAAAAAAAAAAAAAAAA\",\"runtime_key_binding_digest\":\"sha256:baaf80b0befc79c9baf9b9d65a4bd730e4ae5a6ec1b65f72d2857d03426f3466\",\"signature_algorithm\":\"Ed25519\",\"verification_method\":\"did:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey:agent.example#runtime-1\"}",
       "expected_possession_transcript_digest": "sha256:edf258a36cc20f166ae9eb9eba407875bb6177c7b838303b30c11e0468705c1f",
-      "canonical_pairing_request_binding_json": "{\"agent_id\":\"ak:did_core:webvh:z6mkagent\",\"approval_request_id\":\"approval_request:01964137-0000-7000-8000-000000000000\",\"audience_id\":\"ak:did_core:webvh:z6mkfixturepairexample\",\"controller_principal_id\":\"ak:did_core:webvh:z6mkcontroller\",\"expires_at\":\"2026-07-17T13:50:07.734Z\",\"kind\":\"ak.agent.key_pairing_request_binding.v1\",\"operation_id\":\"ak.gate.account.command.pair_agent_key.v1\",\"pairing_request_id\":\"pairing_request:01964137-0000-7000-8000-000000000000\",\"runtime_key_binding_digest\":\"sha256:baaf80b0befc79c9baf9b9d65a4bd730e4ae5a6ec1b65f72d2857d03426f3466\"}",
-      "expected_pairing_request_binding_digest": "sha256:cd3cb825d1212a455dd90ec583937a294f457f15889de61736cc4e65a345d04e",
+      "canonical_pairing_request_binding_json": "{\"agent_id\":\"ak:did_core:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey\",\"approval_request_id\":\"approval_request:01964137-0000-7000-8000-000000000000\",\"audience_id\":\"ak:did_core:webvh:z6mkfixturepairexample\",\"controller_principal_id\":\"ak:did_core:webvh:z6mkcontroller\",\"expires_at\":\"2026-07-17T13:50:07.734Z\",\"kind\":\"ak.agent.key_pairing_request_binding.v1\",\"operation_id\":\"ak.gate.account.command.pair_agent_key.v1\",\"pairing_request_id\":\"pairing_request:01964137-0000-7000-8000-000000000000\",\"runtime_key_binding_digest\":\"sha256:baaf80b0befc79c9baf9b9d65a4bd730e4ae5a6ec1b65f72d2857d03426f3466\"}",
+      "expected_pairing_request_binding_digest": "sha256:27ffd9c64a9b1356c46e2f9ab65b23975d798a91796dcc7321da07f97b35fd49",
       "assertions": [
         "same stable binding retry retains approval_request_id and notification id and emits action upsert",
         "a runtime persists and reuses one local key binding for an open pairing_request_id across process restart and channel delete/recreate",

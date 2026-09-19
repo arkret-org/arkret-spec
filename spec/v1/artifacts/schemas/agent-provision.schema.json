@@ -31,7 +31,8 @@
     },
     "principal_control_realm_id": {
       "$ref": "./common-ids.schema.json#/$defs/realm_id",
-      "description": "Agent PCR realm id this provision forward-declares. The controller freezes the Agent PCR ak.realm.create envelope locally, computes its event_id and writes retype(event_id, \"realm\") here; that genesis Event is not yet submitted when this payload is authored, and it MUST be submitted separately afterwards rather than alongside this Event. This is the named class C exemption ak.exemption.preimage_identity.agent_provision_principal_control_realm_id.v1 registered under encoding.md 6.0.1: the genesis preimage carries no reference to this Event, so the dependency stays one-way. Genesis admission reverse-looks-up this declaration; a service MUST NOT choose the value."
+      "x-arkret-preimage-commitment": "later_submission",
+      "description": "Agent PCR realm id this provision forward-declares. The controller freezes the Agent PCR ak.realm.create envelope locally, computes its event_id and writes retype(event_id, \"realm\") here; that genesis Event is not yet submitted when this payload is authored, and it MUST be submitted separately afterwards rather than alongside this Event. This is the named class C exemption ak.exemption.preimage_identity.agent_provision_principal_control_realm_id.v1 registered under encoding.md §3.1: the genesis preimage carries no reference to this Event, so the dependency stays one-way. Genesis admission reverse-looks-up this declaration; a service MUST NOT choose the value."
     },
     "controller_authorization_ref": {
       "$ref": "./common-ids.schema.json#/$defs/did_url"

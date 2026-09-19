@@ -1,7 +1,7 @@
 {
   "suite": "schema_validation",
   "profile": "ak.vector_group.privacy_security.v1",
-  "version": "2026-09-15.1",
+  "version": "2026-09-19.1",
   "description": "Minimal positive and negative schema-validation cases for core wire objects. tools/artifact_lint validates schema_validation_cases[] against schema_ref.",
   "runner": {
     "kind": "json_schema_validation_cases",
@@ -18,11 +18,11 @@
       "schema_ref": "schemas/service-describe.schema.json",
       "expect_valid": true,
       "instance": {
-        "service_id": "ak:did_core:webvh:z6mkfixturealiceexamplenet",
+        "service_id": "ak:did_core:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif",
         "service_resolution": {
-          "did": "did:webvh:z6mkfixturealiceexamplenet:alice.example.net",
-          "method_history_head": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
-          "version_id": "1"
+          "did": "did:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif:alice.example.net",
+          "method_history_head": "sha256:1833a719bb80cea1886b0b2e30f217b040fe8b0e9b3683e339df68926a84cbab",
+          "version_id": "1-QmZD2g4MgxjZmppo9h1xfdABstXMt2z5WXZiuBHCqfo9kU"
         },
         "trust_domain": "ak:trust_domain:did.webvh.alice.example",
         "service_kind": "station",

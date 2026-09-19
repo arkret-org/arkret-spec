@@ -16,7 +16,7 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 
 ## 2. Blob Metadata
 
-```json
+```json fragment
 {
   "blob_id": "ak:blob:019a7360-0000-7000-8000-000000000004",
   "schema": "ak.schema.blob.v1",
@@ -29,7 +29,6 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
   "encryption": null
 }
 ```
-
 字段规则：
 
 | 字段 | 类型 | 必填 | 说明与约束 |
@@ -116,7 +115,7 @@ TUS 创建请求的 `POST` MUST 携带
 accepted genesis 或 winning commit，proof hash 必须解析到等价的 exact winning group state；无法解析、非
 winning state、hash/ref 歧义或缺少该 state 时 MUST 在密钥派生和解密前 fail closed。
 
-```json
+```json fragment
 {
   "blob_ref": "ak:blob:sha256:...",
   "encrypted": true,
@@ -130,7 +129,6 @@ winning state、hash/ref 歧义或缺少该 state 时 MUST 在密钥派生和解
   "encryption_algorithm": "xchacha20_poly1305"
 }
 ```
-
 ### 3.1 AEAD nonce uniqueness（normative）
 
 AEAD nonce 在同一 `key_ref` 下复用会使该 key 下使用相关 nonce 的密文同时失去机密性与完整性。整文件形态使用与 [`../conformance/encoding.md` §10.1](../conformance/encoding.md) 相同的 full-width counter 编码：`nonce = I2OSP(durable_sender_counter, AEAD.Nn)`；`N_AEAD`、counter 持久化、replay 防护与 AAD binding 的唯一规范源是 encoding §10.1 / §10.2。Blob / attachment envelope 的 `purpose` 取值固定为 `"blob-attachment"`。
@@ -255,7 +253,7 @@ nonce = nonce_prefix || u32_be(segment_index) || last_segment_flag
 
 #### 3.3.7 JSON 示例
 
-```json
+```json fragment
 {
   "blob_ref": "ak:blob:sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
   "encrypted": true,
@@ -271,14 +269,13 @@ nonce = nonce_prefix || u32_be(segment_index) || last_segment_flag
   "encryption_algorithm": "mls_exporter_aead_xchacha20poly1305_stream"
 }
 ```
-
 整文件形态（`ak.blob.whole_file_aead.v1`）的 envelope 仍按 §3 示例（携带单 `nonce` 而非 `nonce_prefix` / `segment_*`）。
 
 ## 4. Thumbnail
 
 Thumbnail descriptor:
 
-```json
+```json fragment
 {
   "source_blob_ref": "ak:blob:sha256:...",
   "thumbnail_blob_ref": "ak:blob:sha256:...",
@@ -287,7 +284,6 @@ Thumbnail descriptor:
   "media_type": "image/webp"
 }
 ```
-
 ## 5. Authenticated Download
 
 ```text
@@ -464,7 +460,7 @@ Cache-Control: public, immutable, max-age=31536000
 
 `presign` query 参数的值是 base64url 编码的 detached-JWS envelope，覆盖 canonical JSON：
 
-```json
+```json fragment
 {
   "scheme": "ak.blob.presign.v1",
   "blob_ref": "ak:blob:sha256:0123456789abcdef...",
@@ -481,7 +477,6 @@ Cache-Control: public, immutable, max-age=31536000
   }
 }
 ```
-
 字段约束：
 
 | 字段 | 必填 | 说明 |
@@ -507,13 +502,13 @@ Cache-Control: public, immutable, max-age=31536000
 4. **blob_ref 一致性**：envelope `blob_ref` 与 query `blob_ref` 必须完全相同
 5. **Realm 绑定校验**：若 blob metadata 有 `realm_id`，envelope `realm_id` MUST 存在且完全相同；若 envelope 省略 `realm_id`，该 blob **MUST** 是 deployment public/global 白名单中**显式登记**的 blob。服务端 **MUST NOT** 仅因 blob metadata 缺 `realm_id` 即推断其为 public/global——"缺失 `realm_id`"与"已授权公开"必须解耦：未显式登记在白名单的 realm-less blob（例如因上传 bug 漏设 `realm_id` 的 Realm-owned blob）MUST fail closed（`not_found`），不得为其签发无 Realm 绑定的 bearer URL。为 Realm A 签发的 presign 不能作为 Realm B 的授权使用。
 6. **method 校验**：本次请求方法在 envelope `access_scope.method` 列表内
-7. **TTL 校验**：`now() ∈ (issued_at, expires_at)`。允许的 clock skew tolerance MUST 取 [`../conformance/encoding.md` §7.2](../conformance/encoding.md) 两层 drift 模型的 `expected_future_skew_ms`（默认 30_000，即 ±30s）作为本短 TTL bearer 场景的 normative 容差，MUST NOT 超过 `hard_future_skew_ms`（300_000）上界。实现 MUST NOT 自定义更宽的容差使过期 presign 在无界时间内被接受。
+7. **TTL 校验**：接收方 MUST 按 [`contract-registry.json#protocol_time_tolerance_registry`](../../artifacts/registry/contract-registry.json) 的 `ak.time_tolerance.blob_presign_ttl.v1` 校验 `issued_at` 与 `expires_at`：未来 `issued_at` 和过去 `expires_at` 各自只获得该场景登记的短窗口宽限，边界包含在可接受区间内。实现 MUST NOT 换用 approval／temporal 场景的容差或方向，也 MUST NOT 自定义更宽容差使过期 presign 在无界时间内被接受。
 8. **nonce / 撤销校验**：`nonce` 未在撤销列表内；普通 `media_inline` / `thumbnail` presign 是短 TTL 多次可用 bearer URL，服务端 MUST NOT 把浏览器正常的重复 GET / HEAD / Range 请求当作 replay 拒绝。只有 profile 显式声明 single-use presign 时，才可维护 consumed set。
 9. **撤销 / 状态实时回查（normative）**：服务端在每次 presign GET / HEAD / Range 响应阶段 MUST 同步回查该 `blob_ref` 的**当前** redaction / erasure / ban / legal-hold 状态,**不得仅凭 envelope 自校验(签名 + TTL + scope)就放行**。只要当前状态命中 redaction / erasure / ban / legal hold,即便 envelope 仍在 TTL 内且签名有效，也 MUST 拒绝(`not_found`,audit `blob_redacted` / `legal_hold_active`)。该回查 MUST 在响应 bytes 之前完成，以闭合"签发后被 redact 的内容在 TTL 窗口内仍被已泄露 URL 拉取"的竞态(见 §5.4.4 撤销索引保留下界与 §5.4.4.1 fail-closed 规则)。
 
    **一致性边界（normative）**：本回查**不要求**每次都向远端撤销权威发起网络往返。参考实现 MAY 命中 §5.4.4 保留到 `expires_at` 的**本地撤销 / 失效索引**做 O(1) 查询，因此本步骤的常态成本是本地命中而非每次远程查。允许的 staleness 上界按状态类别分级：
 
-   - 普通 redaction / erasure / ban 命中：MAY 采用**有界 staleness**——本地撤销索引相对撤销权威的滞后 MUST ≤ 撤销索引传播延迟（部署声明的 `revocation_index_propagation_max_ms`，缺省取与 [`encoding.md`](../conformance/encoding.md) 两层 drift 模型同量级、SHOULD ≤ 30,000 ms）；在该窗口内本地索引尚未收到的撤销可短暂未命中，但 presign TTL（≤ 1h）与撤销索引保留下界共同把暴露面收敛在有界窗口内。
+   - 普通 redaction / erasure / ban 命中：MAY 采用**有界 staleness**——本地撤销索引相对撤销权威的滞后 MUST ≤ 部署显式声明的 `revocation_index_propagation_max_ms`；该部署参数不是协议时钟容差，不得从 `ak.time_tolerance.blob_presign_ttl.v1` 或其它场景隐式继承。在该窗口内本地索引尚未收到的撤销可短暂未命中，但 presign TTL（≤ 1h）与撤销索引保留下界共同把暴露面收敛在有界窗口内。
    - **legal-hold / erasure（强一致 MUST）**：legal hold 与硬擦除命中 MUST 强一致——服务端 MUST NOT 用可能滞后的缓存放行：本地索引未能确认"无 legal hold / 未 erased"时 MUST fail closed（`not_found` / `legal_hold_active`），不得在 staleness 窗口内放行受 legal hold 约束的内容。
 
    实现不得以"性能"为由把 legal-hold / erasure 降级为有界 staleness，也不得对普通 redaction 引入无界 staleness 使已 redact 内容在 presign 整个 TTL 内持续可取。
@@ -595,7 +590,7 @@ Cache-Control: public, immutable, max-age=31536000
 
 私有附件下载本身会暴露元数据，例如调用方 IP、在线时间、服务域名关系、blob 大小和下载频率。Realm SHOULD 使用 `ak.realm.asset_privacy_policy` 声明媒体上传、下载和代理隐私要求；无论 Realm 的 discoverability、join rule、history visibility 或 encryption profile 如何，Realm-owned blob 的 bearer presign 资格都采用 fail-closed 缺省：只有 effective policy 显式 `direct_download_allowed=true` 才可签发，缺失 policy 不等于允许。
 
-```json
+```json fragment
 {
   "kind": "ak.realm.asset_privacy_policy",
   "payload": {
@@ -624,7 +619,6 @@ Cache-Control: public, immutable, max-age=31536000
   }
 }
 ```
-
 该 Event 使用 closed `realm_asset_privacy_policy_payload`；策略字段只能位于 whole-value `payload.value`，未知字段以 `schema_violation` 拒绝。
 
 `download_mode` 取值：

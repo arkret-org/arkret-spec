@@ -36,7 +36,7 @@ sidebar:
 
 会议或通话 SHOULD 用标准 Morph 表示：
 
-```json
+```json fragment
 {
   "morph_kind": "call",
   "realm_id": "ak:realm:...",
@@ -50,7 +50,6 @@ sidebar:
   }
 }
 ```
-
 Morph 中的 `call_id` 只是对已创建 Call 的引用；Morph 不创建 Call，也不得在 `ak.call.create` accepted 前先行发布。
 
 `state`（通话生命周期，完整枚举、合法转换与终态见 §4.2）：
@@ -70,7 +69,7 @@ Morph 中的 `call_id` 只是对已创建 Call 的引用；Morph 不创建 Call�
 
 每个 Call 首先由一条 accepted `ak.call.create` 创建：
 
-```json
+```json fragment
 {
   "kind": "ak.call.create",
   "realm_id": "ak:realm:...",
@@ -79,12 +78,11 @@ Morph 中的 `call_id` 只是对已创建 Call 的引用；Morph 不创建 Call�
   }
 }
 ```
-
 create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，因而使用与 Event 相同的 33-octet / 44-character content-bound token。只有在这条 Event accepted 后，才能签发媒体 token、发送 offer/answer/candidate/focus_join 信令、创建引用该 Call 的 Morph，或提交 `ak.call.state`。接收方对未解析到 accepted create 的任何引用 MUST fail closed，不得为裸 `call_id` 自动建立占位 Call。
 
 后续状态以 durable event 记录：
 
-```json
+```json fragment
 {
   "kind": "ak.call.state",
   "realm_id": "ak:realm:...",
@@ -133,7 +131,6 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
   }
 }
 ```
-
 ### 4.1 字段语义（normative）
 
 **typed current result 归属（normative）**：每项 write 先按 canonical registry 的 `condition` 求值。只含 ready/failed 产物更新的 Event 为普通数据；只要含安全 write，整个 Event 原子等待唯一安全确认。
@@ -219,7 +216,7 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
 
 启动录制：
 
-```json
+```json fragment
 {
   "kind": "ak.call.recording.start",
   "realm_id": "ak:realm:...",
@@ -233,7 +230,6 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
   }
 }
 ```
-
 要求：
 
 - 需要 `ak.call.record` capability。`ak.call.recording.start` 通过 **required** `capture_kind`(`recording` / `transcript`)区分录制与转写两条平行生命周期(转写见 §5.1)；它选择目标 typed current result family(`call_recording_state` / `call_transcript_state`)，因此 MUST 显式携带，缺失 MUST `schema_violation`，MUST NOT 由 missing-field default 推断。
@@ -301,7 +297,7 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
 
 通话到达终态(`state ∈ { ended, missed, failed, cancelled }`)后,SHOULD 写入一条 durable `ak.call.summary` event,作为无需重放 ephemeral 信令即可呈现的持久通话记录:
 
-```json
+```json fragment
 {
   "kind": "ak.call.summary",
   "realm_id": "ak:realm:...",
@@ -319,7 +315,6 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
   }
 }
 ```
-
 - `ak.call.summary` 写入 `call_summary`，`result_selector = payload.call_id`，采用 `execution=data`、`domain reducer=current-value projection`。它无需等待新 RealmCommit；并发摘要保留全部历史身份并按固定 rank 投影单值，有权后继引用 current source。摘要不授予通话、捕获或密钥访问权限。
 - `final_state` MUST 是某终态，且该 `call_id` 的 `call_state:<call_id>` MUST 已存在终态 head;否则 reducer MUST `failed_precondition` `reason_code="call_summary_invalid"`。该前置只看 `state` 轴 typed current result——某段捕获结果尚未收敛或捕获未终结 MUST NOT 阻止 summary 写入。
 - `recording_state` / `transcript_state` 是终态时刻从各捕获段 typed current result（`call_recording_artifact` / `call_transcript_artifact`）镜像的**投影字段**；缺省表示未录制 / 未转写。通话可有多段捕获，因此这两个字段只是给 UI 的摘要投影，MUST NOT 被用作授权判据或任何状态派生输入——需要逐段真相时 MUST 读对应段的 capture typed current result。多段并存时该字段是 producer 签署的摘要声明；接收站不得自行选择不同段重写持久值。显示逐段状态时读取相同资格上下文内的完整结果集合。

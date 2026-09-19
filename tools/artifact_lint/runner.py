@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from .forbidden_wire import check_forbidden_wire_contexts
+from .approval_eligibility import check_approval_requirement_eligibility
 
 from .core import (
     Any,
@@ -101,6 +102,7 @@ from .fixtures import (
     check_content_bound_event_id_fixture,
     check_derived_relation_evidence,
     check_did_core_projection_shape,
+    check_did_webvh_witness_fixture,
     check_crypto_signature_fixture,
     check_cryptographic_suite_kat_bindings,
     check_declared_canonical_json_strings,
@@ -117,6 +119,8 @@ from .fixtures import (
     check_fixture_runner_contract,
     check_fixtures,
     check_keypackage_write_transcript_fixture,
+    check_mls_keypackage_actor_ciphersuite_closure,
+    check_resolution_commitment_coverage,
     check_mls_creator_bootstrap_transaction,
     check_normative_clause_registry,
     check_one_of_branch_discriminability,
@@ -143,10 +147,12 @@ from .naming_contracts import (
 )
 
 from .http_signature import check_http_signature_contract_closure
+from .time_tolerances import check_protocol_time_tolerance_closure
 
 from .security_evidence import check_security_evidence_closure
 
 from .test_material import (
+    check_did_key_artifact_values,
     check_sdk_claim_contract_binding,
     check_sdk_clause_vector_evidence,
     check_test_material_registry,
@@ -159,6 +165,7 @@ from .section_identity import (
     check_linked_page_section_refs,
     check_markdown_fragment_targets,
     check_normative_pointer_aliases,
+    check_normative_title_inventory,
     check_numbered_heading_identity,
     check_prose_section_identity_ledger,
 )
@@ -182,6 +189,7 @@ from .prose import (
     check_keypackage_claim_proof_shape,
     check_legacy_announce_id_form,
     check_full_markdown_example_index_resolves,
+    check_json_fence_declarations,
     check_markdown_examples,
     check_markdown_links,
     check_naming_predicates,
@@ -242,6 +250,7 @@ from .proof_context_schemas import (
     check_asserted_result_families_are_registered,
     check_author_writable_state_axis_contract,
     check_digest_construction_registration,
+    check_local_signature_binding_fields_match_schema,
     check_proof_context_object_family_schemas,
     check_proof_context_carrier_family_anchors,
     check_domain_separation_binding_fields_are_carriable,
@@ -338,6 +347,10 @@ def main(argv: list[str] | None = None) -> int:
             (
                 "domain_separation_binding_fields_are_carriable",
                 lambda: check_domain_separation_binding_fields_are_carriable(lint),
+            ),
+            (
+                "local_signature_binding_fields_match_schema",
+                lambda: check_local_signature_binding_fields_match_schema(lint),
             ),
             ("result_write_contracts", lambda: check_result_write_contracts(lint)),
             ("result_effect_ownership", lambda: check_result_effect_ownership(lint)),
@@ -536,6 +549,10 @@ def main(argv: list[str] | None = None) -> int:
             ("field_table_refs", lambda: check_operation_field_table_schema_refs(lint)),
             ("non_http_variants", lambda: check_binding_variant_non_http(lint)),
             ("capability_mapping", lambda: check_capability_action_event_mapping(lint)),
+            (
+                "approval_requirement_eligibility",
+                lambda: check_approval_requirement_eligibility(lint),
+            ),
             ("event_admission", lambda: check_event_admission_coverage(lint)),
             ("dto_closure", lambda: check_operation_dto_closure(lint)),
             (
@@ -575,6 +592,18 @@ def main(argv: list[str] | None = None) -> int:
             (
                 "test_material_registry",
                 lambda: check_test_material_registry(lint),
+            ),
+            (
+                "did_webvh_witness_fixture",
+                lambda: check_did_webvh_witness_fixture(lint),
+            ),
+            (
+                "resolution_commitment_coverage",
+                lambda: check_resolution_commitment_coverage(lint),
+            ),
+            (
+                "did_key_artifact_values",
+                lambda: check_did_key_artifact_values(lint),
             ),
             (
                 "sdk_clause_vector_evidence",
@@ -659,6 +688,10 @@ def main(argv: list[str] | None = None) -> int:
                 lambda: check_keypackage_write_transcript_fixture(lint),
             ),
             (
+                "mls_keypackage_actor_ciphersuite_closure",
+                lambda: check_mls_keypackage_actor_ciphersuite_closure(lint),
+            ),
+            (
                 "franking_proof_transcript",
                 lambda: check_franking_proof_transcript(lint),
             ),
@@ -719,6 +752,10 @@ def main(argv: list[str] | None = None) -> int:
                 "http_signature_contract_closure",
                 lambda: check_http_signature_contract_closure(lint),
             ),
+            (
+                "protocol_time_tolerance_closure",
+                lambda: check_protocol_time_tolerance_closure(lint),
+            ),
             ("cross_source", lambda: check_cross_source_drift(lint, known)),
             ("markdown_links", lambda: check_markdown_links(lint)),
             (
@@ -745,7 +782,15 @@ def main(argv: list[str] | None = None) -> int:
                 "prose_section_identity_ledger",
                 lambda: check_prose_section_identity_ledger(lint),
             ),
+            (
+                "normative_title_inventory",
+                lambda: check_normative_title_inventory(lint),
+            ),
             ("markdown_examples", lambda: check_markdown_examples(lint, known)),
+            (
+                "json_fence_declarations",
+                lambda: check_json_fence_declarations(lint),
+            ),
             (
                 "full_markdown_example_index",
                 lambda: check_full_markdown_example_index_resolves(lint),

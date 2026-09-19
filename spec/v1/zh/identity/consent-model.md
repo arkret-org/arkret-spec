@@ -37,21 +37,20 @@ current revision 不是 value 的成员：typed current result 的 `revision` �
 
 Grant payload 使用 `event-payload.schema.json#/$defs/consent_grant_payload`：
 
-```json
+```json fragment
 {
   "consent_id": "ak:consent:018f2d40-0000-7000-8000-000000000001",
   "peer": {"kind": "actor", "actor_id": "did:webvh:example.net:u:bob"},
   "consent_scope": "invite"
 }
 ```
-
 `consent_id` 必须尚未存在；相同 Event 的重试返回同一提交结果，不产生第二条 Consent。另一个 Event 复用该 ID 必须以 `failed_precondition` 拒绝。
 
 ### 3.2 `ak.consent.revoke`
 
 Revoke payload 使用同一稳定 ID，并要求调用方签入 current revision：
 
-```json
+```json fragment
 {
   "consent_id": "ak:consent:018f2d40-0000-7000-8000-000000000001",
   "expected_revision": {
@@ -61,7 +60,6 @@ Revoke payload 使用同一稳定 ID，并要求调用方签入 current revision
   "reason": "holder_request"
 }
 ```
-
 治理 Station必须在 commit 事务中同时验证目标存在、仍为 active 且 current revision 等于 `expected_revision`。成功后 revision 变为接纳该 Event 的 RealmCommit 的 `{commit_id, stream_position}` 并进入 `revoked`；stale revision、未知 ID、重复撤销或主体不匹配均拒绝。撤销只影响后续 admission，不追溯撤销已经提交的其它 Realm Event。
 
 ### 3.3 Producer 与提交

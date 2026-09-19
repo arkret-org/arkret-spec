@@ -64,7 +64,7 @@ POST /_arkret/edge/push/register-device
 
 请求示例（非完整 schema）：
 
-```json
+```json fragment
 {
   "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
   "push_gateway_url": "https://push.example.com/_arkret/edge/push/notify",
@@ -74,7 +74,6 @@ POST /_arkret/edge/push/register-device
   "display_name": "Alice's Pixel 9"
 }
 ```
-
 | 字段 | 类型 | 必需 | 说明 |
 |------|------|------|------|
 | `device_id` | id:device | MUST | 设备的 typed id,形态为 `ak:device:<uuidv7>`(与 push-operations.schema.json `device_id` pattern 一致) |
@@ -161,7 +160,7 @@ Gateway 的 role-scoped Describe 只有实际提供并通过上述持久化、�
 
 推送规则按优先级从高到低排列，由客户端在解密后对**完整有序规则链**求值，第一条匹配的规则决定推送行为。服务端内置 dispatch gate 不属于这条用户规则链，不能截断或代替客户端 first-match 求值：
 
-```json
+```json fragment
 {
   "rules": [
     {
@@ -204,7 +203,6 @@ Gateway 的 role-scoped Describe 只有实际提供并通过上述持久化、�
   ]
 }
 ```
-
 ### 4.2 规则类型 (kind)
 
 | Kind | 优先级 | 说明 |
@@ -254,7 +252,7 @@ Track 不持有独立 membership / 权限（见 [`../models/strand-and-message.m
 
 示例（synthesis 全收，discussion 仅 mention 自己）：
 
-```json
+```json fragment
 [
   {
     "rule_id": "underride.strand-synthesis-all",
@@ -279,7 +277,6 @@ Track 不持有独立 membership / 权限（见 [`../models/strand-and-message.m
   }
 ]
 ```
-
 两条规则都由客户端在解密并验证 Event 后按同一有序链求值。服务端只按 Realm 级 `wakeup_default` 与设备注册状态选择是否 blind / batch wakeup。
 
 #### 4.3.2 `watch_state` 与订阅偏好
@@ -305,7 +302,7 @@ Track 不持有独立 membership / 权限（见 [`../models/strand-and-message.m
 
 示例（user-declared override 路径 + 显式 `all` underride）：
 
-```json
+```json fragment
 [
   {
     "rule_id": "override.respect-mute",
@@ -329,7 +326,6 @@ Track 不持有独立 membership / 权限（见 [`../models/strand-and-message.m
   }
 ]
 ```
-
 `override.respect-mute` 对服务端 dispatch gate 是冗余声明，但 wire 上合法，可让客户端本地通知 trace 记录 `matched_rule="override.respect-mute"`。服务端不得声称匹配了该 encrypted rule。
 
 #### 4.3.3 Audience mention fanout
@@ -551,7 +547,7 @@ Matrix 互通部署 MAY 声明 `ak.profile.push_gateway.matrix_passthrough.v1` �
 
 用户可以配置静默时段：
 
-```json
+```json fragment
 {
   "dnd": {
     "enabled": true,
@@ -567,7 +563,6 @@ Matrix 互通部署 MAY 声明 `ak.profile.push_gateway.matrix_passthrough.v1` �
   }
 }
 ```
-
 在静默时段内，只有 `exceptions` 列表中的规则可以触发推送。
 
 `ak.dnd_schedule` 解密后的 plaintext MUST 通过

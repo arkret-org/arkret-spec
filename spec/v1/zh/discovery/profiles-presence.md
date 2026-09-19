@@ -25,7 +25,7 @@ updated: 2026-07-03
 
 每个 Actor `did_core_id` MAY 关联一个标准化的 `actor_profile` 对象，作为其公开身份信息。Profile 数据由 Actor 签名 Event 发布，并通过 Identity 解析或授权 Directory 被其他节点发现。对象字段以 [`../../artifacts/schemas/actor-profile.schema.json`](../../artifacts/schemas/actor-profile.schema.json) 为准；权限仍以 `principal_id` 指向的稳定主体及其DID 控制证明 / capability 为准。
 
-```json
+```json fragment
 {
   "id": "ak:actor_profile:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
   "schema": "ak.schema.actor_profile.v1",
@@ -48,7 +48,6 @@ updated: 2026-07-03
   "updated_at": "2026-04-26T00:01:00Z"
 }
 ```
-
 字段顺序与 §2.2 表 / canonical schema property ordering 一致（…`schema`、`realm_id`、`principal_id`、`actor_kind`、`display_name`、`handle`、`agent_slug`、`avatar_blob_ref`、`accountable_principal_ids`、`profile_fields`、`created_at`、`updated_by`、`updated_at`）；`realm_id`、`updated_by` / `updated_at` 为可选字段，初始 `ak.profile.create` 后尚未发生更新时 MAY 省略。
 
 ### 2.2 标准 Profile 字段
@@ -88,7 +87,7 @@ Profile 初始状态通过 `ak.profile.create` Event / compatible Event 提交�
 
 `payload.object` 是 `actor-profile.schema.json#/$defs/actor_profile_definition`——**作者区域**，不是物化对象：`schema`、`realm_id`、`created_at`、`updated_by`、`updated_at` 由 reducer 按 [`../models/common-fields.md` §3.3](../models/common-fields.md) 的 `object_schema_identifier` / `object_realm_binding` / `object_create_time` / `object_update_actor` / `object_update_time` 产出，作者 MUST NOT 携带；`id` 与 `resolution` 同样不在作者区域。`principal_id` 与 `actor_kind` 仍是作者输入（没有任何派生能产出「这份 profile 属于哪个 principal」），但二者 **create-locked**：`ak.profile.update` 与 `ak.profile.realm_override` 的 patch 面以 `propertyNames` 拒绝它们，换主体或换种类 MUST 新建对象，不得借 update 原地重绑；`agent_slug` 与 `actor_kind` 的既有跨字段约束不变：
 
-```json
+```json fragment
 {
   "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
   "kind": "ak.profile.create",
@@ -120,10 +119,9 @@ Profile 初始状态通过 `ak.profile.create` Event / compatible Event 提交�
   ]
 }
 ```
-
 Profile 后续变更通过 `ak.profile.update` Event / compatible Event 提交。该 payload 使用 `actor_profile_update_payload`；Event 使用 `payload.target_ref` 与 `ak.profile.create` 共用同一 profile typed current result。变更字段放在 `payload.patch`，不得使用顶层 `actor` / `body` 形态：
 
-```json
+```json fragment
 {
   "event_id": "ak:event:AWxu9WEa6ZSBa79XtJFqrj3WsshthqPPUDPk-cMq5gZM",
   "kind": "ak.profile.update",
@@ -156,7 +154,6 @@ Profile 后续变更通过 `ak.profile.update` Event / compatible Event 提交�
   ]
 }
 ```
-
 - `ak.profile.create` 初始化完整对象；`ak.profile.update` 仅携带发生变化的字段（delta 更新）
 - 其他参与者的客户端 MUST 通过授权面 `ak.self.actor_profile.read.resolve.v1` 获取该 actor 的最新全局 Profile：它以共享 Collaboration Realm 的 current effective joined membership 为授权基础，逐条返回 exact signed profile Event 与该 Event 所支撑的当前显示投影。全局 Profile 是普通 causal 状态，没有 covering RealmCommit，服务端 MUST NOT 为填充该结果等待 RealmCommit 或伪造 RealmCommit 覆盖。全局 profile Event 落在其 owner 的 Principal Control Realm，因此 **MUST NOT** 通过对该 actor 做 actor-scoped `ak.self.events.read.scan.v1` / `.stream.subscribe` 获取（见 [`../sync/service-http-binding.md` §3.3.1.1](../sync/service-http-binding.md)）；未知 actor、无 accepted profile、非成员 actor 与无权调用者一律 `profile_unavailable`，不可用于探测成员关系或账号存在性
 - 客户端 MAY 缓存 Profile 并在本地查询响应中内联展示，但 MUST 自行验证返回的 exact signed Event 及其与该 actor 和其 Principal Control Realm 的绑定，不得把裸 `actor_profile` 当作证据；一条 patch Event 不证明完整投影、无并发或全网新鲜，证明边界见 [`../sync/service-http-binding.md` §5.1](../sync/service-http-binding.md)
@@ -169,7 +166,13 @@ Profile 后续变更通过 `ak.profile.update` Event / compatible Event 提交�
 
 `ak.profile.realm_override` 是 Realm-scoped profile override 事件 kind，目标 Realm 由 `payload.target_realm_id` 唯一指定，不指向 `ak:space:` 容器，也不创建 Space 级访问边界。
 
-```json
+该 Event 写 `actor_profile_realm_override` typed current result：目标 Realm 是结果作用域，selector 只取
+`payload.target_ref`；value 是 canonical Event dot 标记的完整 override payload assertion set。读取方按
+accepted commit 顺序折叠 patch，所得当前值仅含 `display_name`、`handle`、`agent_slug`、`avatar_blob_ref`、
+`accountable_principal_ids`、`profile_fields` 六条展示路径。集合从空集开始，首条 patch 不依赖隐式空对象；
+`expected_state_digest`（若存在）绑定折叠后的前态，失配必须零写入拒绝。
+
+```json fragment
 {
   "event_id": "ak:event:AcWdky_9bM7PKl17K1UxMcj72H3_Ny9PoMhexJ2S-sK0",
   "kind": "ak.profile.realm_override",
@@ -205,7 +208,6 @@ Profile 后续变更通过 `ak.profile.update` Event / compatible Event 提交�
   ]
 }
 ```
-
 - Realm 覆写的优先级高于全局 Profile
 - `null` 值表示使用全局 Profile 的对应字段
 - `ak.profile.realm_override` MUST 同时绑定 actor DID 与目标 Realm。若作为共享 Realm history 传播，顶层 `realm_id` 是目标 Realm，事件必须通过目标 Realm 的 membership / visibility / policy 校验；若作为 actor-private 或 principal control profile state 传播，content MUST 显式包含目标 Realm id，projection 服务只可向有权读取该 Realm profile override 的请求方披露。
@@ -359,7 +361,7 @@ Presence / mention 语义补充：
 
 响应示例（非完整 schema）：
 
-```json
+```json fragment
 {
   "users": [
     {
@@ -372,7 +374,6 @@ Presence / mention 语义补充：
   "has_more": false
 }
 ```
-
 数组字段名是 `users`，不是 `results`（[`api-conventions.md` §7.1](../sync/api-conventions.md) 禁止 `results[]`）；
 每条 user 的字段集以
 [`directory-operations.schema.json#/$defs/user_search_outcome`](../../artifacts/schemas/directory-operations.schema.json)

@@ -5,7 +5,7 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.fanout.route_miss.v1"
   },
-  "version": "2026-08-15",
+  "version": "2026-09-19",
   "covers_vectors": [
     "ak.vector.fanout.route_miss.v1"
   ],
@@ -24,7 +24,7 @@
       "invariants": [
         "canonical Event, complete distinct target set and all outbox intents commit in one transaction",
         "the missing-route target is durable pending_route",
-        "submit returns pending_delivery_count 1 and clients derive pending state",
+        "delivery status contains one pending target and clients derive pending count 1 and aggregate pending state",
         "submit exposes no target_id or service_id",
         "service_unavailable is not used to roll back the admitted Event"
       ]

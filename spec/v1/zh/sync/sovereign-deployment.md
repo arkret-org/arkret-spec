@@ -153,7 +153,7 @@ Sovereign 部署 MUST 在内部使用既有 DID 方法。组织与服务主体 S
 
 部署 MUST 定义 DID resolver policy：
 
-```json
+```json fragment
 {
   "kind": "ak.sovereign.did_policy",
   "payload": {
@@ -182,7 +182,6 @@ Sovereign 部署 MUST 在内部使用既有 DID 方法。组织与服务主体 S
   }
 }
 ```
-
 规则：
 
 - `trust_roots[]` 是稳定 `did_core_id` allowlist，不是 resolver locator、bare DID 或 verification-method DID URL。对候选 bare `did` 做准入时，verifier MUST 先按已登记 method adapter 计算 `project(did)`，再与 root 逐字节比较；`did:webvh` root 因此只保留 SCID，MUST NOT 拼接 hosting domain/path。
@@ -224,7 +223,7 @@ Sovereign deployment 不增加 Realm 类型或 Realm hosting authority。实现�
 
 在该部署下，普通 Collaboration Realm 的 bootstrap MUST 使用 [`models/realm-and-space.md` §2.5](../models/realm-and-space.md) 登记的原子顺序。下面只展示各 Event 的 `kind` 与 closed `payload`；完整 Event envelope、proof、staged authority-root proof、CAS precondition 与 genesis RealmCommit 仍按该节生成，`realm_id` 必须等于首条 create Event ID 的 retype：
 
-```json
+```json fragment
 [
   {
     "kind": "ak.realm.create",
@@ -300,7 +299,6 @@ Sovereign deployment 不增加 Realm 类型或 Realm hosting authority。实现�
   }
 ]
 ```
-
 示例采用唯一治理 signer，配置在 create 显式冻结。轮换必须由旧权威确认、冻结旧写权并继承完整耐久历史；不提供多 Station 共同确认。普通 Event 按已验证缓存授权接纳，安全命令按唯一序列生效，federation_policy 与治理配置正交。
 
 推荐 policy：
@@ -338,7 +336,7 @@ Sovereign deployment 不增加 Realm 类型或 Realm hosting authority。实现�
 
 外部组织加入时 SHOULD 使用组织级 trust chain：
 
-```json
+```json fragment
 {
   "claim_kind": "external_organization_authorization",
   "issuer": "ak:did_core:webvh:zGsmzvyUSDby8As5bHG3kAtWL",
@@ -353,7 +351,6 @@ Sovereign deployment 不增加 Realm 类型或 Realm hosting authority。实现�
   "expires_at": "2026-07-26T00:00:00Z"
 }
 ```
-
 外部组织 MAY 运营自己的 Station / Events API，但受控 Realm SHOULD 要求：
 
 - 外部 service DID 已通过审批

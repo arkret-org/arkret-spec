@@ -148,6 +148,9 @@ Read marker 与个人通知偏好、saved view personalization、列宽 / 折叠
 
 ### 4.1 Agent draft、Sidecar view 与 participation account data
 
+三个 Agent actor-private Event 的 owner、request/draft/rejection 唯一键、workflow CAS、exact retry 与
+原子拒绝合同见 [`actor-private-effects.md` §3.2](./actor-private-effects.md#32-agent-draftrequest-与-rejection)。
+
 两类 controller-owned encrypted account data 类型在 `ak.agent.*` 命名空间下:
 
 - **`ak.agent.draft.v1`**:agent 通过 `ak.agent.draft.propose` / `ak.agent.action_request`(actor_private_event)提议候选内容,Station 通过 capability / policy / accountability / risk check 后,materialize 为 controller-owned `ak.agent.draft.v1` account-data。Key pattern 建议 `ak.agent.draft.v1:<agent_id>:<draft_id>`,声明 `encrypted_at_rest=true`、tombstone 与 retention 规则。Draft MUST NOT 作为 `ak.message.create` / `ak.strand.create` 或任何 `wire_scope=durable_event` 进入目标 Realm 共享历史。Draft 引用目标 `realm_id` / `strand_id` / `message_id` 不授予目标 Realm 成员读取 draft 内容的权利。

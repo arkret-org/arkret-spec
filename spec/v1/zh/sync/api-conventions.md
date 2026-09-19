@@ -220,7 +220,7 @@ HTTP method 选择 MUST 服从资源语义，而不是简单照搬 `operation_id
 
 认证与授权服务器可以分离。普通客户端 MUST 先按 [server-trusted-results §1.2](./server-trusted-results.md#12-普通客户端的-station-接入normative) 建立或核对持久 Station/认证绑定，再发送账号凭据；独立 origin 的 Authority 不改变该要求。Station 的 `/_arkret/describe` MUST 公布 `auth_metadata.account_authority` 与 `auth_metadata.methods[]`。客户端先用 `account_authority.gate_account_base_url` 定位所有客户端可见的 Arkret `/_arkret/gate/account/*` 操作，再按 `methods[]` 中的标准 discovery 找认证 provider；规范明确标记为部署内部 S2S 的 account 子操作（例如 `ak.gate.account.command.logout_auth_session.v1`）只能由 Account Authority 按对应契约调用，不能由客户端派生。不得把 OAuth/OIDC subject 当作 Arkret principal：
 
-```json
+```json fragment
 {
   "auth_metadata": {
     "account_authority": {
@@ -245,7 +245,6 @@ HTTP method 选择 MUST 服从资源语义，而不是简单照搬 `operation_id
   }
 }
 ```
-
 规则：
 
 - `sub`、email、username 或 OAuth client id MUST NOT 直接作为 `actor_id`、grant subject 或 event sender。
@@ -398,7 +397,7 @@ HTTP 成功响应没有跨 operation 的通用 envelope，也没有通用 `ok` d
 
 Arkret v1 HTTP endpoint 的所有非 2xx 响应 MUST 只使用 [RFC 9457 Problem Details](https://www.rfc-editor.org/rfc/rfc9457)，并设置 `Content-Type: application/problem+json`；该行为不依赖请求的 `Accept`，也不存在旧私有错误 envelope 的 content-negotiation 双轨。
 
-```json
+```json illustrative
 {
   "type": "https://arkret.org/problems/capability_denied",
   "title": "Capability denied",
@@ -407,7 +406,6 @@ Arkret v1 HTTP endpoint 的所有非 2xx 响应 MUST 只使用 [RFC 9457 Problem
   "instance": "ak:request:01964137-0000-7000-8000-000000000000"
 }
 ```
-
 核心成员规则如下：
 
 - `type` 是稳定且唯一的机器判别字段，固定为 `https://arkret.org/problems/{code}`；`{code}` 必须来自 `error-code-registry.json`，客户端不得从 `title` 或 `detail` 推断错误类型；
@@ -524,14 +522,13 @@ HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` �
 
 所有列表接口 MUST 返回三个字段：
 
-```json
+```json fragment
 {
   "<items_field>": [],
   "next_cursor": "ak:cursor:...",
   "has_more": false
 }
 ```
-
 **`<items_field>` 命名约定** (normative)：
 - 优先使用资源复数名（`realms[]` / `strands[]` / `morphs[]` / `spaces[]` / `backups[]` / `notifications[]` / `messages[]` 等）；
 - 没有自然资源复数名时使用语义名：全文/混合实体搜索命中使用 `matches[]`，原始查询行使用 `rows[]`，private contact discovery 仍使用 `matches[]`；
@@ -585,14 +582,13 @@ scan 若只收 opaque cursor，规范自己的 bootstrap 起不了步。federati
 
 写接口成功后 SHOULD 在响应中返回一个 barrier cursor：
 
-```json
+```json fragment
 {
   "status": "accepted",
   "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
   "cursor": "ak:cursor:..."
 }
 ```
-
 该 cursor 的 server-side handle 绑定到刚提交事件：`purpose=barrier`，`target.event_id` 与 `target.event_digest` 由 issuing server 通过 handle 解析；`target` 不出现在 cursor wire body 中。后续读接口 SHOULD 接受：
 
 ```text
@@ -630,12 +626,11 @@ X-Arkret-Wait-For: <cursor>
 
 触发限流时 MUST 返回 `rate_limited`，并 SHOULD 附带：
 
-```json
+```json fragment
 {
   "retry_after_ms": 2000
 }
 ```
-
 HTTP response MUST 同时设置 `Retry-After` header。`Retry-After` 的值按 HTTP 标准使用秒数或 HTTP date；若同时存在 `Retry-After` 与 `retry_after_ms`，客户端 MUST 优先使用 `Retry-After`。
 
 **服务端提示与本地退避的唯一组合（normative）**：服务端提示和客户端本地指数退避都是“不得早于”的独立

@@ -510,6 +510,7 @@
       "schema_id": "ak.schema.agent_sidecar.v1",
       "file": "schemas/agent-sidecar.schema.json",
       "consumers": {
+        "event_kind": "registered",
         "prose": "normative_text",
         "schema_reference": "exact",
         "startup_compile": "exact",
@@ -4025,7 +4026,6 @@
       "schema_id": "ak.schema.strand.v1",
       "file": "schemas/strand.schema.json",
       "consumers": {
-        "event_kind": "registered",
         "prose": "normative_text",
         "schema_reference": "exact",
         "startup_compile": "exact",

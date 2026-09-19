@@ -1,7 +1,7 @@
 {
-  "version": "2026-08-27.6",
+  "version": "2026-09-19.1",
   "source_of_truth": false,
-  "generated_at": "2026-08-27T09:00:00+08:00",
+  "generated_at": "2026-09-19T18:59:50+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^[a-z][a-z0-9_]*$",
@@ -29,5 +29,6 @@
       "profile_document": "zh/sync/websocket-binding.md",
       "description": "Optional authenticated multiplexed WebSocket binding; operation coverage comes only from advertised operation bundles."
     }
-  ]
+  ],
+  "metadata_authority": "contract_registry_section"
 }

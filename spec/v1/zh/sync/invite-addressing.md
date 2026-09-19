@@ -26,7 +26,7 @@ base v1 invite **MUST NOT** 依赖 `ak.find.directory.read.resolve_handle.v1(int
 
 邀请目标的规范输入是显式 `invite_address`：
 
-```json
+```json fragment
 {
   "account_id": {
     "principal_id": "ak:did_core:webvh:z2dmjBobExample",
@@ -37,7 +37,6 @@ base v1 invite **MUST NOT** 依赖 `ak.find.directory.read.resolve_handle.v1(int
   }
 }
 ```
-
 | 字段 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
 | `account_id` | `AccountId` | MUST | 被邀请 holder 的完整账号身份；`principal_id` 与 `station_id` 均不可省略或由上下文推断。 |
@@ -106,12 +105,11 @@ POST /_arkret/open/invite-locators/resolve
 
 body：
 
-```json
+```json fragment
 {
   "locator_token": "base64url-token-with-at-least-128-bit-entropy"
 }
 ```
-
 `locator_token` **MUST** 只通过 JSON body 或等价 signed proof 提交，**MUST NOT** 出现在 URL path、query string、Referer、普通 access log、analytics、crash report、local storage 或浏览器历史中。客户端读取 fragment 后 **MUST** 清理地址栏与本地临时状态。
 
 token 要求：
@@ -129,7 +127,7 @@ token 要求：
 
 最小形态：
 
-```json
+```json fragment
 {
   "schema": "ak.schema.principal_locator.v1",
   "account_id": {
@@ -156,7 +154,6 @@ token 要求：
   ]
 }
 ```
-
 验证规则：
 
 1. `account_id` MUST 是完整 closed AccountId；`service_resolution` MUST 对应 `account_id.station_id`。
@@ -172,7 +169,7 @@ token 要求：
 
 被邀请方 Station 按 subject 私有 `invite_receive_policy` 决定哪些 evidence 可以通知用户。schema id 为 `ak.schema.invite_receive_policy.v1`。
 
-```json
+```json fragment
 {
   "schema": "ak.schema.invite_receive_policy.v1",
   "account_id": {
@@ -210,7 +207,6 @@ token 要求：
   }
 }
 ```
-
 规则：
 
 - **缺省 policy（subject 未发布 `invite_receive_policy` 时）MUST fail closed（normative）**：接收方 MUST 采用保守默认——`holder_allowed_introduction_kinds` 仅含**高信任档** `{locator_ref, consent_grant, shared_realm}`;**发现信任档** `{handle_claim}` 与**低信任档** `{same_station, explicit_address}` 默认 `quarantine`（SHOULD）或 `drop`，MUST NOT 仅凭 evidence 格式正确就触发用户通知。上方示例把 `handle_claim` 与 `same_station` 列入 allowlist，是 subject / 部署的显式可达性配置，**不是协议默认**;`same_station` 与 `explicit_address` 同属低信任档（§2），默认处置对称——不得让"同一 Station 上的任意账户"仅凭同域承载即向同域任意 subject 发起会触发通知的邀请（同域无授权骚扰开口）。
@@ -267,7 +263,7 @@ effective_receive_policy =
 
 示例：
 
-```json
+```json fragment
 {
   "policy_version": "2026-06-21",
   "applies_to": ["invite_delivery", "contact_request"],
@@ -293,13 +289,12 @@ effective_receive_policy =
   "accepted_subject_did_methods": ["did:webvh"]
 }
 ```
-
 ## 6. Durable Event Boundary
 
 `ak.invite.create` 是 Realm durable Event。genesis payload MUST 只携 exact `invitee_account_id`、`introduction_evidence_digest` 与 `expires_at`；Invite ID 从 Event ID 派生，MUST NOT 在 genesis payload 重复携带。
 路由材料、locator token、raw `introduction_evidence` 与 `invite_receive_policy` MUST NOT 进入 durable payload。
 
-```json
+```json fragment
 {
   "invitee_account_id": {
     "principal_id": "ak:did_core:webvh:z2dmjBobExample",
@@ -309,7 +304,6 @@ effective_receive_policy =
   "expires_at": "2026-06-14T10:00:00Z"
 }
 ```
-
 规则：
 
 - `payload.invitee_account_id` MUST 与 `invite_address.account_id` 完整相等，不得只比较 principal。
@@ -433,7 +427,7 @@ Station、另一成员 Station、Realm governance Station、独立 Directory 与
 
 它同时 MUST 在 `supported_features[]` 声明 `ak.feature.invite_addressing.v1`，并在 registered `invite_addressing` 字段给出可协商能力：
 
-```json
+```json fragment
 {
   "invite_addressing": {
     "supported_introduction_kinds": [
@@ -462,10 +456,9 @@ Station、另一成员 Station、Realm governance Station、独立 Directory 与
   }
 }
 ```
-
 Directory 服务若支持 handle lookup，也 MAY 在 `ServiceDescribe` 或 `ak.find.directory.read.describe.v1` 的扩展字段中声明：
 
-```json
+```json fragment
 {
   "x_handle_resolution": {
     "invite_enabled": false,
@@ -473,7 +466,6 @@ Directory 服务若支持 handle lookup，也 MAY 在 `ServiceDescribe` 或 `ak.
   }
 }
 ```
-
 base clients MUST NOT require `resolve_handle(intent="invite" | "member_add")` to create or deliver an invite.
 
 ## 9. Handle 与 Mention 边界

@@ -125,6 +125,7 @@ def material_registry() -> dict:
                 "non_examples": ["ak:trust_domain:a.example.net", "recovery-fixture"],
             },
         ],
+        "identity_examples": [],
     }
 
 
@@ -232,11 +233,44 @@ def claim_fixture(contract_document: dict) -> dict:
         "signature": b64u(signature),
         "signature_algorithm": "Ed25519",
     }
+    wrong = copy.deepcopy(instance)
+    wrong["contract_digest"] = "sha256:" + "11" * 32
+    wrong_body = {key: value for key, value in wrong.items() if key != "proof"}
+    wrong["proof"]["signature"] = b64u(
+        Ed25519PrivateKey.from_private_bytes(SEED).sign(
+            gate.CLAIM_DOMAIN + jcs(wrong_body)
+        )
+    )
     return {
         "suite": "sdk_conformance_claim",
         "version": "probe",
         "schema_validation_cases": [
-            {"name": "valid", "expect_valid": True, "instance": instance}
+            {"name": "valid", "expect_valid": True, "instance": instance},
+            {
+                "name": "schema_negative_with_current_binding",
+                "expect_valid": False,
+                "instance": copy.deepcopy(instance),
+            },
+            {
+                "name": "wrong_binding",
+                "expect_valid": True,
+                "contract_binding_expect_valid": False,
+                "instance": wrong,
+            },
+            {
+                "name": "wrong_signature",
+                "expect_valid": True,
+                "signature_expect_valid": False,
+                "semantic_outcome": "reject",
+                "expected_reason_code": "signature_invalid",
+                "instance": {
+                    **copy.deepcopy(instance),
+                    "proof": {
+                        **copy.deepcopy(instance["proof"]),
+                        "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                    },
+                },
+            },
         ],
     }
 
@@ -619,6 +653,26 @@ class TestMaterialGateTest(unittest.TestCase):
             "binds a stale contract_digest",
         )
 
+    def test_a_schema_negative_with_stale_contract_digest_turns_the_gate_red(self) -> None:
+        document = contract()
+        claim = claim_fixture(document)
+        claim["schema_validation_cases"][1]["instance"]["contract_digest"] = "sha256:" + "22" * 32
+        self.assertRedWith(
+            self.run_gates(contract_document=document, claim=claim, which="claim"),
+            "schema_negative_with_current_binding binds a stale contract_digest",
+        )
+
+    def test_dedicated_wrong_binding_case_must_really_be_wrong(self) -> None:
+        document = contract()
+        claim = claim_fixture(document)
+        current = claim["schema_validation_cases"][0]["instance"]["contract_digest"]
+        case = claim["schema_validation_cases"][2]
+        case["instance"]["contract_digest"] = current
+        self.assertRedWith(
+            self.run_gates(contract_document=document, claim=claim, which="claim"),
+            "dedicated wrong-binding case but carries the current digest",
+        )
+
     def test_editing_the_contract_without_resigning_turns_the_gate_red(self) -> None:
         document = contract()
         claim = claim_fixture(document)
@@ -638,10 +692,22 @@ class TestMaterialGateTest(unittest.TestCase):
             "its signature does not verify",
         )
 
+    def test_dedicated_wrong_signature_case_must_really_be_wrong(self) -> None:
+        document = contract()
+        claim = claim_fixture(document)
+        valid_signature = claim["schema_validation_cases"][0]["instance"]["proof"]["signature"]
+        case = claim["schema_validation_cases"][3]
+        case["instance"]["proof"]["signature"] = valid_signature
+        self.assertRedWith(
+            self.run_gates(contract_document=document, claim=claim, which="claim"),
+            "dedicated wrong-signature case but its signature verifies",
+        )
+
     def test_a_claim_fixture_without_a_positive_case_turns_the_gate_red(self) -> None:
         document = contract()
         claim = claim_fixture(document)
-        claim["schema_validation_cases"][0]["expect_valid"] = False
+        for case in claim["schema_validation_cases"]:
+            case["expect_valid"] = False
         self.assertRedWith(
             self.run_gates(contract_document=document, claim=claim, which="claim"),
             "must carry at least one expect_valid case",

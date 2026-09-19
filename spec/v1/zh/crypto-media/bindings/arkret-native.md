@@ -28,7 +28,7 @@ sidebar:
 
 按 [`../media-service-binding.md` §3](../media-service-binding.md) 通用契约。`backend_token` 形态：
 
-```json
+```json fragment
 {
   "kid": "did:webvh:zCxjAemtszNh7bTFGWFS4m8gv:media.example#key-1",
   "payload": {
@@ -47,7 +47,6 @@ sidebar:
   "signature_algorithm": "Ed25519"
 }
 ```
-
 `sig` 是 base64url（无 padding）编码的 Ed25519 签名，由 token issuer 用 `kid` 指向的 service DID
 `assertionMethod` key 生成。**signing_input（normative）**：
 
@@ -72,7 +71,7 @@ issuer key 的签名在另一条验证路径下被重解释。SFU 在每次 SDP 
 
 `connect_url` 是 HTTPS endpoint（典型 `https://sfu.example.com`）。客户端发送 SFU join request：
 
-```json
+```json fragment
 {
   "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
   "realm_id": "ak:realm:...",
@@ -89,10 +88,9 @@ issuer key 的签名在另一条验证路径下被重解释。SFU 在每次 SDP 
   }
 }
 ```
-
 SFU response：
 
-```json
+```json fragment
 {
   "participant_id": "ak:rtc_participant:0198c2f4-0000-7000-8000-000000000000",
   "transport": "webrtc",
@@ -106,7 +104,6 @@ SFU response：
   }
 }
 ```
-
 `sfu_signature.sig` 同样是 base64url（无 padding）Ed25519 签名，由 SFU 用 `kid` 指向的 service DID
 `assertionMethod` key 生成。**signing_input（normative）**：
 

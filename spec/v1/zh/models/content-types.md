@@ -35,7 +35,7 @@ Message 的 `content` 字段、`ak.message.create` / `ak.message.revise` Event E
 
 Message envelope 与 Content Block 的层级关系大致如下（Message 顶层完整 schema 见 [`strand-and-message.md` §9.2](./strand-and-message.md#92-schema-与字段)，本文件后续章节只讨论 `content` 内部结构）：
 
-```json
+```json fragment
 {
   "id": "ak:message:...",
   "realm_id": "ak:realm:...",
@@ -53,7 +53,6 @@ Message envelope 与 Content Block 的层级关系大致如下（Message 顶层�
   }
 }
 ```
-
 因此本文档示例里的 `kind` / `body` / `format` 等字段都是 **Content Block 内部字段**，位于 Message `content` 之下；不要与 Message 顶层字段混在一层理解。
 
 `ak.message.create` / `ak.message.revise` 的未加密 Event payload MUST 将这个 Content Block 对象放在 `payload.content` 字段中；E2EE payload MUST 将同一对象加密后放在 `payload.encrypted_content`。`strand_id`、`blob_refs` 等字段是 envelope / reducer metadata（Message 主键是顶层 `id`，不是 `message_id`；回复关系由 `replies_to` Relation 表达，物化 Message 对象无 `reply_to` 标量字段——`ak.message.create` payload 可携带 `reply_to` 作为创建便利，reducer 据此记录该消息的回复指向并投影为 `replies_to` 关系，不要求单独的 canonical `ak.relation` 事件），不能把消息正文直接写成 payload 顶层 `body`。
@@ -72,13 +71,12 @@ final 不同不构成 Content schema 错误。
 
 ## 3. Content Block 通用结构
 
-```json
+```json fragment
 {
   "kind": "ak.content.<kind_name>",
   "body": "纯文本 fallback，用于通知、搜索索引和不支持该类型的客户端"
 }
 ```
-
 类型专有字段以同级 key 形式追加到该对象上（例如 `format` / `formatted_body` 见 §4.1 文本消息示例）。
 
 | 字段 | 类型 | 必需 | 说明 |
@@ -94,7 +92,7 @@ final 不同不构成 Content schema 错误。
 
 最基础的消息类型。
 
-```json
+```json fragment
 {
   "kind": "ak.content.text",
   "body": "@bob 请确认这个 item 的 legal 风险。",
@@ -112,7 +110,6 @@ final 不同不构成 Content schema 错误。
   ]
 }
 ```
-
 | 字段 | 类型 | 必需 | 说明 |
 |------|------|------|------|
 | `format` | string | SHOULD | 格式化类型：`plain`, `markdown`, `prosemirror_json` |
@@ -126,7 +123,7 @@ final 不同不构成 Content schema 错误。
 
 #### plaintext 形态
 
-```json
+```json fragment
 {
   "kind": "ak.content.long_text",
   "body": "前 4 KiB 内的可独立展示前缀……",
@@ -137,7 +134,6 @@ final 不同不构成 Content schema 错误。
   "media_type": "text/markdown"
 }
 ```
-
 | 字段 | 类型 | 必需 | 规则 |
 |------|------|------|------|
 | `kind` | const | MUST | `ak.content.long_text` |
@@ -156,7 +152,7 @@ shape MUST 是 `additionalProperties=false` 的闭合对象，MUST NOT 携带 `f
 
 E2EE Message 的 long-text descriptor 位于已认证的 `encrypted_content` plaintext 中，完整正文 Blob 使用现有 `encrypted_attachment` descriptor：
 
-```json
+```json fragment
 {
   "kind": "ak.content.long_text",
   "body": "已认证 fallback",
@@ -178,7 +174,6 @@ E2EE Message 的 long-text descriptor 位于已认证的 `encrypted_content` pla
   }
 }
 ```
-
 规则：
 
 - 完整正文的明文字节数由 `attachment.size_bytes` 承载（[`../crypto-media/media-and-blob.md` §3.1](../crypto-media/media-and-blob.md)：`encrypted_attachment.size_bytes` 是**明文**字节数，段数由 `N=max(1,ceil(size_bytes/segment_bytes))` 本地派生）。本 kind MUST NOT 再定义 `plaintext_size_bytes` 之类的第二个明文尺寸字段；
@@ -267,7 +262,7 @@ non-empty text => count(U+000A) + (last scalar is U+000A ? 0 : 1)
 
 ### 4.2 图片消息 `ak.content.image`
 
-```json
+```json fragment
 {
   "kind": "ak.content.image",
   "body": "screenshot.png",
@@ -286,7 +281,6 @@ non-empty text => count(U+000A) + (last scalar is U+000A ? 0 : 1)
   "alt_text": "Release dashboard showing 3 critical issues"
 }
 ```
-
 | 字段 | 类型 | 必需 | 说明 |
 |------|------|------|------|
 | `blob_ref` | string | MUST | Blob 内容地址 |
@@ -299,7 +293,7 @@ non-empty text => count(U+000A) + (last scalar is U+000A ? 0 : 1)
 
 ### 4.3 视频消息 `ak.content.video`
 
-```json
+```json fragment
 {
   "kind": "ak.content.video",
   "body": "demo-recording.mp4",
@@ -317,14 +311,13 @@ non-empty text => count(U+000A) + (last scalar is U+000A ? 0 : 1)
   }
 }
 ```
-
 | 字段 | 类型 | 必需 | 说明 |
 |------|------|------|------|
 | `duration_ms` | integer | SHOULD | 视频时长（毫秒） |
 
 ### 4.4 音频消息 `ak.content.audio`
 
-```json
+```json fragment
 {
   "kind": "ak.content.audio",
   "body": "voice-memo.ogg",
@@ -335,14 +328,13 @@ non-empty text => count(U+000A) + (last scalar is U+000A ? 0 : 1)
   "waveform": [10, 25, 48, 62, 55, 30, 15, 8]
 }
 ```
-
 | 字段 | 类型 | 必需 | 说明 |
 |------|------|------|------|
 | `waveform` | integer[] | MAY | 波形预览数据（0-100 的整数数组，用于 UI 渲染） |
 
 ### 4.5 文件消息 `ak.content.file`
 
-```json
+```json fragment
 {
   "kind": "ak.content.file",
   "body": "Q2-financial-report.pdf",
@@ -352,14 +344,13 @@ non-empty text => count(U+000A) + (last scalar is U+000A ? 0 : 1)
   "filename": "Q2-financial-report.pdf"
 }
 ```
-
 | 字段 | 类型 | 必需 | 说明 |
 |------|------|------|------|
 | `filename` | string | MUST | 原始文件名 |
 
 ### 4.6 位置消息 `ak.content.location`
 
-```json
+```json fragment
 {
   "kind": "ak.content.location",
   "body": "Meeting point: 37.7749° N, 122.4194° W",
@@ -368,7 +359,6 @@ non-empty text => count(U+000A) + (last scalar is U+000A ? 0 : 1)
   "description": "Main entrance, 2nd floor lobby"
 }
 ```
-
 | 字段 | 类型 | 必需 | 说明 |
 |------|------|------|------|
 | `geo_uri` | string | MUST | RFC 5870 Geo URI |
@@ -379,7 +369,7 @@ non-empty text => count(U+000A) + (last scalar is U+000A ? 0 : 1)
 
 用于分享代码片段：
 
-```json
+```json fragment
 {
   "kind": "ak.content.code",
   "body": "fn main() { println!(\"hello\"); }",
@@ -387,7 +377,6 @@ non-empty text => count(U+000A) + (last scalar is U+000A ? 0 : 1)
   "code": "fn main() {\n    println!(\"hello\");\n}"
 }
 ```
-
 | 字段 | 类型 | 必需 | 说明 |
 |------|------|------|------|
 | `language` | string | SHOULD | 编程语言标识（用于语法高亮） |
@@ -397,7 +386,7 @@ non-empty text => count(U+000A) + (last scalar is U+000A ? 0 : 1)
 
 由系统或 Bot/Agent 生成的通知性消息，客户端 SHOULD 通过可感知的 presentation invariant 与用户撰写消息区分；具体样式、控件和文案属于实现自由：
 
-```json
+```json fragment
 {
   "kind": "ak.content.notice",
   "body": "Agent completed task: Review legal docs",
@@ -405,12 +394,11 @@ non-empty text => count(U+000A) + (last scalar is U+000A ? 0 : 1)
   "formatted_body": "Agent completed task: **Review legal docs** [done]"
 }
 ```
-
 ### 4.9 投票消息 `ak.content.poll`
 
 根据去中心化协作需求，投票也是一种标准内容块：
 
-```json
+```json fragment
 {
   "kind": "ak.content.poll",
   "body": "What should we order for the party?",
@@ -428,7 +416,6 @@ non-empty text => count(U+000A) + (last scalar is U+000A ? 0 : 1)
   }
 }
 ```
-
 `poll` block 字段：
 
 | 字段 | 类型 | 必需 | 说明 |
@@ -479,7 +466,7 @@ non-empty text => count(U+000A) + (last scalar is U+000A ? 0 : 1)
 
 当一条消息包含多种内容（如文字说明 + 图片 + 文件附件）时使用：
 
-```json
+```json fragment
 {
   "kind": "ak.content.composite",
   "body": "Here's the updated design with the spec PDF attached.",
@@ -508,7 +495,6 @@ non-empty text => count(U+000A) + (last scalar is U+000A ? 0 : 1)
   ]
 }
 ```
-
 | 字段 | 类型 | 必需 | 说明 |
 |------|------|------|------|
 | `parts` | ContentBlock[] | MUST | 按展示顺序排列的 Content Block 数组。`parts` 是 `ak.content.composite` 的 canonical wire 字段名；旧拼写 `blocks` MUST 被 schema 以 `schema_violation` 拒绝（见 [`spec/v1/artifacts/registry/forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json)）。 |
@@ -519,7 +505,7 @@ non-empty text => count(U+000A) + (last scalar is U+000A ? 0 : 1)
 
 回复通过 Relation 表达（`message --replies_to--> message`），但为了渲染方便，消息的 `content` 中 MAY 内嵌引用上下文：
 
-```json
+```json fragment
 {
   "kind": "ak.content.text",
   "body": "> Alice: 这个方案可行吗？\n\n我觉得需要再评估一下风险。",
@@ -537,7 +523,6 @@ non-empty text => count(U+000A) + (last scalar is U+000A ? 0 : 1)
   }
 }
 ```
-
 ### 6.2 Fallback 规则
 
 - `reply_context` 是**渲染提示 (Rendering Hint)**，不是真相源。真正的回复关系由 `replies_to` Relation 决定。

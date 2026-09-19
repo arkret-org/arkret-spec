@@ -1,0 +1,104 @@
+{
+  "suite": "protocol_time_tolerance",
+  "profile": "ak.vector_group.protocol_edge_cases.v1",
+  "vector_id": "ak.vector.protocol.time_tolerance_boundaries.v1",
+  "version": "2026-09-19",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.protocol.time_tolerance.v1"
+  },
+  "source_registry": "registry/contract-registry.json#protocol_time_tolerance_registry",
+  "verification_time": "2026-09-19T08:00:00.000Z",
+  "cases": [
+    {
+      "case_id": "approval_at_future_limit_is_accepted",
+      "scenario_id": "ak.time_tolerance.approval_approved_at.v1",
+      "boundary": "future",
+      "offset_ms": 300000,
+      "expected": {
+        "accepted": true
+      }
+    },
+    {
+      "case_id": "approval_one_ms_beyond_future_limit_is_rejected",
+      "scenario_id": "ak.time_tolerance.approval_approved_at.v1",
+      "boundary": "future",
+      "offset_ms": 300001,
+      "expected": {
+        "accepted": false
+      }
+    },
+    {
+      "case_id": "temporal_not_before_at_future_limit_is_accepted",
+      "scenario_id": "ak.time_tolerance.temporal_constraint.v1",
+      "boundary": "future_not_before",
+      "offset_ms": 300000,
+      "expected": {
+        "accepted": true
+      }
+    },
+    {
+      "case_id": "temporal_not_before_one_ms_beyond_limit_is_rejected",
+      "scenario_id": "ak.time_tolerance.temporal_constraint.v1",
+      "boundary": "future_not_before",
+      "offset_ms": 300001,
+      "expected": {
+        "accepted": false
+      }
+    },
+    {
+      "case_id": "temporal_expiry_at_past_limit_is_accepted",
+      "scenario_id": "ak.time_tolerance.temporal_constraint.v1",
+      "boundary": "past_expiry",
+      "offset_ms": -300000,
+      "expected": {
+        "accepted": true
+      }
+    },
+    {
+      "case_id": "temporal_expiry_one_ms_beyond_limit_is_rejected",
+      "scenario_id": "ak.time_tolerance.temporal_constraint.v1",
+      "boundary": "past_expiry",
+      "offset_ms": -300001,
+      "expected": {
+        "accepted": false
+      }
+    },
+    {
+      "case_id": "presign_issued_at_at_future_limit_is_accepted",
+      "scenario_id": "ak.time_tolerance.blob_presign_ttl.v1",
+      "boundary": "future_not_before",
+      "offset_ms": 30000,
+      "expected": {
+        "accepted": true
+      }
+    },
+    {
+      "case_id": "presign_issued_at_one_ms_beyond_limit_is_rejected",
+      "scenario_id": "ak.time_tolerance.blob_presign_ttl.v1",
+      "boundary": "future_not_before",
+      "offset_ms": 30001,
+      "expected": {
+        "accepted": false
+      }
+    },
+    {
+      "case_id": "presign_expiry_at_past_limit_is_accepted",
+      "scenario_id": "ak.time_tolerance.blob_presign_ttl.v1",
+      "boundary": "past_expiry",
+      "offset_ms": -30000,
+      "expected": {
+        "accepted": true
+      }
+    },
+    {
+      "case_id": "presign_expiry_one_ms_beyond_limit_is_rejected",
+      "scenario_id": "ak.time_tolerance.blob_presign_ttl.v1",
+      "boundary": "past_expiry",
+      "offset_ms": -30001,
+      "expected": {
+        "accepted": false
+      }
+    }
+  ]
+}

@@ -909,7 +909,7 @@
     },
     "identity_creation_control_proof": {
       "type": "object",
-      "description": "Fresh proof signed by the WebVH registration root control key. The verifier derives that key from the accepted did:webvh entry's parameters.updateKeys[0] in principal_registration_anchor and MUST NOT treat a request-supplied key or a DID Document verificationMethod as authority. proof_kind is fixed to did_webvh_inception_update_key and MUST agree with anchor_kind=webvh_registration. Signature covers every field except signature as canonical JSON with domain separator ak.identity_creation_control_proof.v1.",
+      "description": "Fresh proof signed by the WebVH registration root control key. The verifier derives that key from the accepted did:webvh entry's parameters.updateKeys[0] in principal_registration_anchor and MUST NOT treat a request-supplied key or a DID Document verificationMethod as authority. proof_kind is fixed to did_webvh_inception_update_key and MUST agree with anchor_kind=webvh_registration. The Ed25519 signature covers every field except signature as canonical JSON with domain separator ak.identity_creation_control_proof.v1; signature_algorithm is part of those signed bytes.",
       "required": [
         "proof_kind",
         "challenge_id",
@@ -935,6 +935,7 @@
         "issued_at",
         "expires_at",
         "verification_key_multibase",
+        "signature_algorithm",
         "signature"
       ],
       "properties": {
@@ -1024,6 +1025,9 @@
           "type": "string",
           "pattern": "^z[1-9A-HJ-NP-Za-km-z]+$"
         },
+        "signature_algorithm": {
+          "const": "Ed25519"
+        },
         "signature": {
           "type": "string",
           "pattern": "^[A-Za-z0-9_-]{86}$",
@@ -1031,6 +1035,7 @@
         }
       },
       "additionalProperties": false,
+      "x-arkret-signature-domain": "ak.identity_creation_control_proof.v1",
       "$comment": "The method adapter derives the canonical pinned version/entry commitment. control_key_digest serves bounded evidence consumers, and signed method transcript positions are reconstructed from the pinned entry; caller-supplied digest mirrors are rejected."
     },
     "identity_creation_registration": {

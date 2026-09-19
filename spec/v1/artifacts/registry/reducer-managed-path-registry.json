@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-19.3",
-  "generated_at": "2026-09-19T05:38:00+08:00",
+  "version": "2026-09-19.4",
+  "generated_at": "2026-09-19T19:22:39+08:00",
   "source_of_truth": true,
   "description": "Canonical machine-readable projection of the reducer-managed-field protection defined in zh/models/event-and-patch.md section 4.2.5. It answers one question per object kind: which ak.schema.patch.v1 paths a generic update surface MUST reject because the value is owned by the reducer, by the create Event, by a dedicated event kind, or by a typed current result, rather than by the actor writing the patch. patch.schema.json is a generic document format and cannot express a per-object forbidden set, so before this registry existed every reducer, SDK and conformance runner had to hard-code its own copy of the list. Reducers, SDKs and conformance runners MUST read the set from here and MUST NOT re-derive it from prose.",
   "registry_rules": [
@@ -179,7 +179,24 @@
       "object_schema_ref": "schemas/circle.schema.json",
       "result_family": "circle",
       "value_schema_ref": "schemas/circle.schema.json",
-      "value_schema_open_gap_owner": "tasks/spec-open 0650 owns the remaining half of this object kind's write contract. The family, its value schema and its create / lifecycle writers are registered as of the 2200 landing, so the paths here now guard a value the protocol actually writes; what is still open is the member-source closure. value_member_maintenance cannot be declared until every member this object declares has a registered producer, and circle still has two without one: mls_group_id is produced by an accepted ak.mls.genesis for the Circle scope, which is a different Event writing into this object, and history_access has no registered writer at all. Until then this family is deliberately outside check_result_value_member_closure, and this sentence is the declared frontier rather than an unstated one.",
+      "value_member_maintenance": {
+        "owner": "zh/models/circle.md sections 3 and 5; zh/models/common-fields.md sections 3.3 and 5.2",
+        "always_maintained": [
+          { "path": "updated_by", "derivation": "object_update_actor", "justification": "Every accepted Circle object write records the accountable Event actor; authors cannot supply this universal reducer-managed member." },
+          { "path": "updated_at", "derivation": "object_update_time", "justification": "Every accepted Circle object write records the accepted Event time; authors cannot supply this universal reducer-managed member." }
+        ],
+        "conditional_producers": [
+          { "path": "state", "derivation": "object_initial_state", "producer_kinds": ["ak.circle.create"], "condition": "Circle create installs active." },
+          { "path": "state", "derivation": "object_lifecycle_state", "producer_kinds": ["ak.circle.archive", "ak.circle.restore", "ak.circle.tombstone"], "condition": "Accepted dedicated lifecycle transition." },
+          { "path": "state_changed_at", "derivation": "object_state_transition_time", "producer_kinds": ["ak.circle.archive", "ak.circle.restore", "ak.circle.tombstone"], "condition": "Produced with an actual lifecycle transition and absent on initial active create." }
+        ],
+        "create_locked": [
+          { "path": "schema", "derivation": "object_schema_identifier", "producer_kinds": ["ak.circle.create"], "justification": "The Circle schema identifier is fixed by the object kind." },
+          { "path": "realm_id", "derivation": "object_realm_binding", "producer_kinds": ["ak.circle.create"], "justification": "The parent Realm is the stream that accepted create, not an author assertion." },
+          { "path": "created_by", "derivation": "object_create_actor", "producer_kinds": ["ak.circle.create"], "justification": "The creator is the accepted create Event actor." },
+          { "path": "created_at", "derivation": "object_create_time", "producer_kinds": ["ak.circle.create"], "justification": "Creation time is the accepted create Event time." }
+        ]
+      },
       "update_payload_refs": [
         "schemas/event-payload.schema.json#/$defs/circle_patch_payload"
       ],
@@ -201,7 +218,25 @@
       "object_schema_ref": "schemas/morph.schema.json",
       "result_family": "morph",
       "value_schema_ref": "schemas/morph.schema.json",
-      "value_schema_open_gap_owner": "tasks/spec-open 0650 owns the remaining half of this object kind's write contract. The family, its value schema and its create / lifecycle writers are registered as of the 2200 landing, so the paths here now guard a value the protocol actually writes; what is still open is the member-source closure. value_member_maintenance cannot be declared until every member this object declares has a registered producer, and morph still has four without one: morph_kind and schema_refs are create-locked but the create payload hands them to the author, and stage / stage_changed_at belong to ak.morph.stage.set, which declares no write. Until then this family is deliberately outside check_result_value_member_closure, and this sentence is the declared frontier rather than an unstated one.",
+      "value_member_maintenance": {
+        "owner": "zh/models/morph.md sections 2 and 4; zh/models/common-fields.md sections 3.3, 5.2 and 5.3",
+        "always_maintained": [
+          { "path": "updated_by", "derivation": "object_update_actor", "justification": "Every accepted Morph object write records the accountable Event actor." },
+          { "path": "updated_at", "derivation": "object_update_time", "justification": "Every accepted Morph object write records the accepted Event time." }
+        ],
+        "conditional_producers": [
+          { "path": "state", "derivation": "object_initial_state", "producer_kinds": ["ak.morph.create"], "condition": "Morph create installs active." },
+          { "path": "state", "derivation": "object_lifecycle_state", "producer_kinds": ["ak.morph.archive", "ak.morph.restore"], "condition": "Accepted dedicated lifecycle transition." },
+          { "path": "state_changed_at", "derivation": "object_state_transition_time", "producer_kinds": ["ak.morph.archive", "ak.morph.restore"], "condition": "Produced with an actual lifecycle transition." },
+          { "path": "stage_changed_at", "derivation": "object_state_transition_time", "producer_kinds": ["ak.morph.stage.set"], "condition": "stage.set produces it only when the accepted value actually changes; create leaves the optional stage axis absent." }
+        ],
+        "create_locked": [
+          { "path": "schema", "derivation": "object_schema_identifier", "producer_kinds": ["ak.morph.create"], "justification": "The Morph schema identifier is fixed by the object kind." },
+          { "path": "realm_id", "derivation": "object_realm_binding", "producer_kinds": ["ak.morph.create"], "justification": "The Realm is the accepting stream, not an author assertion." },
+          { "path": "created_by", "derivation": "object_create_actor", "producer_kinds": ["ak.morph.create"], "justification": "The creator is the accepted create Event actor." },
+          { "path": "created_at", "derivation": "object_create_time", "producer_kinds": ["ak.morph.create"], "justification": "Creation time is the accepted create Event time." }
+        ]
+      },
       "update_payload_refs": [
         "schemas/event-payload.schema.json#/$defs/morph_update_payload"
       ],
@@ -346,7 +381,24 @@
       "object_schema_ref": "schemas/space.schema.json",
       "result_family": "space",
       "value_schema_ref": "schemas/space.schema.json",
-      "value_schema_open_gap_owner": "tasks/spec-open 0650 owns the remaining half of this object kind's write contract. The family, its value schema and its create / lifecycle writers are registered as of the 2200 landing, so the paths here now guard a value the protocol actually writes; what is still open is the member-source closure. value_member_maintenance cannot be declared until every member this object declares has a registered producer, and space still has three without one: scope_circle_id has no registered writer, while parent_space_id and child_scope_policy are owned by the separate space_parent and space_child_scope_policy families and are excluded from this object's own projection. Until then this family is deliberately outside check_result_value_member_closure, and this sentence is the declared frontier rather than an unstated one.",
+      "value_member_maintenance": {
+        "owner": "zh/models/realm-and-space.md sections 3.2 and 3.5; zh/models/common-fields.md sections 3.3 and 5.2",
+        "always_maintained": [
+          { "path": "updated_by", "derivation": "object_update_actor", "justification": "Every accepted Space object write records the accountable Event actor." },
+          { "path": "updated_at", "derivation": "object_update_time", "justification": "Every accepted Space object write records the accepted Event time." }
+        ],
+        "conditional_producers": [
+          { "path": "state", "derivation": "object_initial_state", "producer_kinds": ["ak.space.create"], "condition": "Space create installs active." },
+          { "path": "state", "derivation": "object_lifecycle_state", "producer_kinds": ["ak.space.archive", "ak.space.restore", "ak.space.tombstone"], "condition": "Accepted dedicated lifecycle transition." },
+          { "path": "state_changed_at", "derivation": "object_state_transition_time", "producer_kinds": ["ak.space.archive", "ak.space.restore", "ak.space.tombstone"], "condition": "Produced with an actual lifecycle transition." }
+        ],
+        "create_locked": [
+          { "path": "schema", "derivation": "object_schema_identifier", "producer_kinds": ["ak.space.create"], "justification": "The Space schema identifier is fixed by the object kind." },
+          { "path": "realm_id", "derivation": "object_realm_binding", "producer_kinds": ["ak.space.create"], "justification": "The Realm is the accepting stream, not an author assertion." },
+          { "path": "created_by", "derivation": "object_create_actor", "producer_kinds": ["ak.space.create"], "justification": "The creator is the accepted create Event actor." },
+          { "path": "created_at", "derivation": "object_create_time", "producer_kinds": ["ak.space.create"], "justification": "Creation time is the accepted create Event time." }
+        ]
+      },
       "update_payload_refs": [
         "schemas/event-payload.schema.json#/$defs/space_patch_payload"
       ],
@@ -386,7 +438,25 @@
       "object_schema_ref": "schemas/strand.schema.json",
       "result_family": "strand",
       "value_schema_ref": "schemas/strand.schema.json",
-      "value_schema_open_gap_owner": "tasks/spec-open 0650 owns the remaining half of this object kind's write contract. The family, its value schema and its create / lifecycle writers are registered as of the 2200 landing, so the paths here now guard a value the protocol actually writes; what is still open is the member-source closure. value_member_maintenance cannot be declared until every member this object declares has a registered producer, and strand still has two without one: stage and stage_changed_at belong to the Strand stage axis, whose event kind declares no write. Until then this family is deliberately outside check_result_value_member_closure, and this sentence is the declared frontier rather than an unstated one.",
+      "value_member_maintenance": {
+        "owner": "zh/models/strand-and-message.md sections 3.2 and 4.8; zh/models/common-fields.md sections 3.3, 5.2 and 5.3",
+        "always_maintained": [
+          { "path": "updated_by", "derivation": "object_update_actor", "justification": "Every accepted Strand object write records the accountable Event actor." },
+          { "path": "updated_at", "derivation": "object_update_time", "justification": "Every accepted Strand object write records the accepted Event time." }
+        ],
+        "conditional_producers": [
+          { "path": "state", "derivation": "object_initial_state", "producer_kinds": ["ak.strand.create"], "condition": "Strand create installs active." },
+          { "path": "state", "derivation": "object_lifecycle_state", "producer_kinds": ["ak.strand.archive", "ak.strand.restore"], "condition": "Accepted dedicated lifecycle transition." },
+          { "path": "state_changed_at", "derivation": "object_state_transition_time", "producer_kinds": ["ak.strand.archive", "ak.strand.restore"], "condition": "Produced with an actual lifecycle transition." },
+          { "path": "stage_changed_at", "derivation": "object_state_transition_time", "producer_kinds": ["ak.strand.stage.set"], "condition": "stage.set produces it only when the accepted value actually changes; create leaves the optional stage axis absent." }
+        ],
+        "create_locked": [
+          { "path": "schema", "derivation": "object_schema_identifier", "producer_kinds": ["ak.strand.create"], "justification": "The Strand schema identifier is fixed by the object kind." },
+          { "path": "realm_id", "derivation": "object_realm_binding", "producer_kinds": ["ak.strand.create"], "justification": "The Realm is the accepting stream, not an author assertion." },
+          { "path": "created_by", "derivation": "object_create_actor", "producer_kinds": ["ak.strand.create"], "justification": "The creator is the accepted create Event actor." },
+          { "path": "created_at", "derivation": "object_create_time", "producer_kinds": ["ak.strand.create"], "justification": "Creation time is the accepted create Event time." }
+        ]
+      },
       "update_payload_refs": [
         "schemas/event-payload.schema.json#/$defs/strand_patch_payload"
       ],

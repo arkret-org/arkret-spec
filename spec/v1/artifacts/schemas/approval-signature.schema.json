@@ -2,7 +2,10 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/approval-signature.schema.json",
   "title": "Arkret Approval Signature",
-  "description": "The single approval evidence type of v1 (zh/authz/constraint-schema.md section 9.2). One approver signs one exact target: either a fully authored Event that has not been submitted yet, or the original typed RequestBody of one registered operation. The object is not an Event, never enters Realm history, and MUST NOT be written into an EventEnvelope, a signed payload or an Event refs[] entry. It travels in the submission container beside the target, EventCommitSubmission.approval_signatures[] for Event targets. It proves that an approver approved that target; it proves nothing about the initiator's own authority.",
+  "description": "The single approval evidence type of v1 (zh/authz/constraint-schema.md section 9.2). One approver signs one exact target: either a fully authored Event that has not been submitted yet, or the original typed RequestBody of one operation whose evidence carrier is registered in capability-action-registry.json. The object is not an Event, never enters Realm history, and MUST NOT be written into an EventEnvelope, a signed payload or an Event refs[] entry. It travels in the carrier registered for the approved action. It proves that an approver approved that target; it proves nothing about the initiator's own authority.",
+  "x-arkret-operation-target-carrier-operations": [
+    "ak.self.events.command.submit.v1"
+  ],
   "type": "object",
   "required": [
     "input",
@@ -68,7 +71,7 @@
         },
         "approved_at": {
           "$ref": "./time.schema.json#/$defs/timestamp",
-          "description": "The signing instant. A reducer MUST reject approved_at later than now plus the protocol-level protocol-level hard upper bound hard_future_skew_ms, the same bound the temporal grant-constraint of zh/authz/constraint-schema.md section 3 uses (default 300000), and for the grant context MUST also reject approved_at earlier than that grant's issued_at, and earlier than the not_before of that grant's temporal grant-constraint when it carries one. A capability grant has no top-level not_before of its own: its validity window lives on grant-constraint.schema.json with constraint_kind temporal, so an implementation MUST read the bound from there rather than from a grant member that does not exist. Accepted history is verified against the accepted-at evidence, so a later approver key rotation or revocation MUST NOT invalidate an already accepted Event."
+          "description": "The signing instant. A reducer MUST apply the future-only guard registered as ak.time_tolerance.approval_approved_at.v1 in contract-registry.json#protocol_time_tolerance_registry. For the grant context it MUST also reject approved_at earlier than that grant's issued_at, and earlier than the not_before of that grant's temporal grant-constraint when it carries one. A capability grant has no top-level not_before of its own: its validity window lives on grant-constraint.schema.json with constraint_kind temporal, so an implementation MUST read the bound from there rather than from a grant member that does not exist. Accepted history is verified against the accepted-at evidence, so a later approver key rotation or revocation MUST NOT invalidate an already accepted Event."
         },
         "nonce": {
           "type": "string",
@@ -77,6 +80,36 @@
           "description": "Approver-private, per-approval unique random string carrying at least 128 bits of entropy. Its namespace is (approval_context, approver_did) and it MUST NOT be shared with the ak.agent.action_approve confirmation nonce, with any challenge, or with any other signature evidence. It is consumed only when the target is successfully accepted, in that same transaction."
         }
       },
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "approval_target"
+            ],
+            "properties": {
+              "approval_target": {
+                "required": [
+                  "target_kind"
+                ],
+                "properties": {
+                  "target_kind": {
+                    "const": "operation"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "operation": {
+                "enum": [
+                  "ak.self.events.command.submit.v1"
+                ]
+              }
+            }
+          }
+        }
+      ],
       "additionalProperties": false,
       "x-arkret-signature-domain": "ak.approval.signature.v1"
     },
@@ -97,7 +130,7 @@
         },
         "jws": {
           "type": "string",
-          "pattern": "^[A-Za-z0-9_-]+\\.(?:[A-Za-z0-9_-]+)?\\.[A-Za-z0-9_-]+$",
+          "pattern": "^[A-Za-z0-9_-]+\\.\\.[A-Za-z0-9_-]+$",
           "description": "Compact detached JWS whose payload is signing_bytes. The signature algorithm comes from registry/signature-alg-registry.json; this domain introduces no second proof suite and no locally assembled key material."
         }
       },
@@ -153,7 +186,7 @@
             },
             "event_id": {
               "$ref": "./common-ids.schema.json#/$defs/event_id",
-              "description": "The complete content-bound id of the target Event. Authoring and producer signing finish before any approval is signed, so this id is already fixed when the approver computes signing_bytes and is never a function of the approval. This object is not an Event and this field sits outside the preimage of every Event digest, so no content-addressing order is constrained by it. Attaching approval signatures MUST NOT change event_id: they ride in the submission container, outside the Event."
+              "description": "The complete content-bound id of the target Event. The target Event is fully authored and producer-signed but not yet submitted when the approval is signed, so this id is already fixed when the approver computes signing_bytes and is never a function of the approval. This object is not an Event and this field sits outside the preimage of every Event digest, so no content-addressing order is constrained by it. Attaching approval signatures MUST NOT change event_id: they ride in the submission container, outside the Event."
             }
           },
           "additionalProperties": false
@@ -169,7 +202,7 @@
             }
           },
           "additionalProperties": false,
-          "$comment": "A non-Event operation target, bound solely by request_canonical_digest over the original typed RequestBody. Each such operation MUST register its own evidence container in its canonical request contract; v1 registers none yet, so an operation without a registered container MUST NOT claim to support this workflow."
+          "$comment": "An operation target, bound solely by request_canonical_digest over the original typed RequestBody with its registered evidence field omitted. capability-action-registry.json is the source of truth for eligible actions and reachable carriers; the approval_signature_input conditional enumerates the current operation-target carrier projection."
         }
       ]
     }

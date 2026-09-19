@@ -25,7 +25,7 @@ sidebar:
 
 `ak.realm.media_service` 把媒体服务声明为 **multi-focus 列表 + transport-agnostic backend 描述符**。协议层永不规定 SFU 内部协议；LiveKit / mediasoup / Janus / arkret_native / MoQ-relay 都作为可替换 backend 通过 `foci[].focus_kind` 区分，具体 wire 见 [`bindings/<focus_kind>.md`](./bindings/) 附录。
 
-```json
+```json fragment
 {
   "kind": "ak.realm.media_service",
   "payload": {
@@ -66,7 +66,6 @@ sidebar:
   }
 }
 ```
-
 字段语义（normative）：
 
 - `foci[].focus_id`：focus 在该 Realm media service 内的稳定 ID；进入签名 canonical bytes 与 `session_focus` 选举（见 [`call-state.md` §4.1](./call-state.md)）。

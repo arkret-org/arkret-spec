@@ -645,6 +645,10 @@ components:
       $ref: ../schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_submit_outcome
     ErasureReceiptSubmitRequestBody:
       $ref: ../schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_submit_request_body
+    EventDeliveryStatusOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventDeliveryStatusOutcome
+    EventDeliveryStatusRequestBody:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventDeliveryStatusRequestBody
     EventId:
       type: string
       pattern: ^ak:event:[A-Za-z0-9_-]{44}$
@@ -1846,6 +1850,45 @@ paths:
       security:
       - sessionGrantAuth: []
         dpopProof: []
+  /_arkret/self/events/delivery-status:
+    query:
+      operationId: ak.self.events.read.delivery_status
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.self.events.read.delivery_status.v1
+      security:
+      - sessionGrantAuth: []
+        dpopProof: []
+      summary: Read the durable frozen fanout target set for one visible Event.
+      description: 'Canonical RFC 10008 QUERY binding for
+
+        `ak.self.events.read.delivery_status.v1`. Unknown and caller-invisible Events
+
+        share the same `not_found` response. This read does not resolve a new route,
+
+        advance delivery retry state, mutate an intent, or create another fanout round.
+
+        '
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventDeliveryStatusRequestBody'
+      responses:
+        '200':
+          description: Complete frozen target set, sorted byte-wise by opaque target_id.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventDeliveryStatusOutcome'
+        '404':
+          description: '`not_found` — no such accepted Event, or the caller may not know it exists.'
   /_arkret/self/events/subscribe:
     get:
       operationId: ak.self.events.stream.subscribe
@@ -5749,7 +5792,7 @@ paths:
           type: string
           const: ak.self.moderation.command.report.v1
       description: Accepts exactly one direct-holder signed ak.self.moderation.report Event in report_event. The
-        authenticated session principal must equal both event.actor_id and payload.reporter. The signed Event realm/scope
+        authenticated session principal must equal both the event.actor_id signing principal and payload.reporter_id. The signed Event realm/scope
         must equal the accepted target's derived governance scope; absent, invisible and scope-mismatched targets all return
         not_found. The service forwards exact bytes through authority Event submission and never authors, rebuilds, co-signs
         or adds preconditions. Exact replay returns the stored submitted outcome; the same Event id with different bytes returns

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.1",
+  "version": "2026-09-19.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-19T00:38:00+08:00",
+  "generated_at": "2026-09-19T19:22:39+08:00",
   "value_set_evolution_note": "Per zh/conformance/schema-registry.md §6.1: entries carrying value_set_evolution='open' are open registry sets (adding a value is a backward-compatible minor; codegen SHOULD use non-exhaustive Unknown(String) fallback). value_set_evolution='schema_selector' registries are algorithm-agility token sources whose canonical-object selectors are frozen per schema version (codegen MUST generate per-schema-version closed types; adding an active value requires a schema version bump). Registries WITHOUT this field are simply not classified here (they may be structural sources such as the contract registry or manifest, or value sets not yet classified); consumers MUST consult §6.1 and the registry's own registry_rules rather than assuming a registry is or is not a codegen value-set source from the mere absence of this field.",
   "registries": [
     {
@@ -382,7 +382,7 @@
       "kind": "preimage_identity_exemption_registry",
       "source_role": "canonical",
       "source_of_truth": true,
-      "description": "Closed named-exemption registry for the zh/conformance/encoding.md 6.0.1 ban on committing to an Event identity from inside the event_digest preimage. Only one-way forward declarations naming a later Event from another submission are registerable; self and same-unit sibling shapes MUST NOT appear. Consumed by tools/artifact_lint#check_preimage_event_identity_commitments."
+      "description": "Closed named-exemption registry for the zh/conformance/encoding.md §3.1 ban on committing to an Event identity from inside the event_digest preimage. Only one-way forward declarations naming a later Event from another submission are registerable; self and same-unit sibling shapes MUST NOT appear. Consumed by tools/artifact_lint#check_preimage_event_identity_commitments."
     },
     {
       "name": "profiles_dependency_graph",

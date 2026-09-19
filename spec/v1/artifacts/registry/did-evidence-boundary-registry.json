@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.8",
+  "version": "2026-09-19.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-16T18:00:00+08:00",
+  "generated_at": "2026-09-19T18:59:50+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -84,5 +84,6 @@
       "expected_core_path": "the Arkret-owned id or *_id field",
       "route_evidence": "none; an isolated core is not resolvable"
     }
-  ]
+  ],
+  "metadata_authority": "contract_registry_section"
 }

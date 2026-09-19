@@ -163,7 +163,7 @@ Applet 进入某个 Realm 的 capability MUST 由该 Realm owner、Realm admin �
 
 示例：
 
-```json
+```json fragment
 {
   "kind": "ak.applet.registration",
   "applet_id": "ak:applet:21532600-0000-7000-8000-000000000000",
@@ -234,7 +234,6 @@ Applet 进入某个 Realm 的 capability MUST 由该 Realm owner、Realm admin �
   "created_at": "2026-04-26T00:00:00Z"
 }
 ```
-
 ### 4.1 Registration 规则
 
 - `applet_id` MUST 稳定。
@@ -384,44 +383,41 @@ namespace 在 provision 证据结构上不可达的判定点仍然是判据—�
 
 Actor namespace 适用于 Ghost Actor 和 Bot Actor。
 
-```json
+```json fragment
 {
   "exclusive": true,
   "pattern": "did:webvh:*:slack-bridge.example:ghost:*"
 }
 ```
-
 SCID 位是 `*`：`did:webvh` 的 SCID 在第三个 segment，而每个 Ghost 按 §3.4 MUST 有自己独立的 validated SCID，因此把 Applet service 自己的 SCID 钉在该位置的 pattern 永不命中任何合规 Ghost。pattern 的 host 段 MUST 是字面量且等于 registration service host，path 段 MUST 存在——形状约束与 exclusive 冲突判定见 [`applet-schema.md` §2 / §2.1](./applet-schema.md#2-namespace-pattern)。通配到 SCID 位后，pattern 只证明该 DID 的 webvh log 托管在本 Applet 的 host 与 path 之下，**不证明归属**（见 §5 总则）。
 
 ### 5.2 Realm Namespace
 
 Realm namespace 适用于 portal Realm。
 
-```json
+```json fragment
 {
   "exclusive": true,
   "pattern": "slack:team:*:channel:*"
 }
 ```
-
 ### 5.3 Handle Namespace
 
 Handle namespace 适用于外部用户或 location 的人类入口。
 
-```json
+```json fragment
 {
   "exclusive": false,
   "pattern": "slack.acme.example/*"
 }
 ```
-
 ## 6. Applet Capability
 
 注册 Applet 后，Realm owner 或组织管理员 MUST 显式授予 capability。
 
 示例：
 
-```json
+```json fragment
 {
   "issuer": "did:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example",
   "subject": "did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example:bot",
@@ -447,7 +443,6 @@ Handle namespace 适用于外部用户或 location 的人类入口。
   "expires_at": "2026-07-26T00:00:00Z"
 }
 ```
-
 scope 限制 MUST 只使用 [`authz/constraint-schema.md`](../authz/constraint-schema.md) 登记的 `scope_limitation` 字段（如 `allowed_data_labels` / `allowed_endpoints` / `allowed_*_container_refs` 等）；与具体 Applet install 的安全绑定 MUST 另外使用标准 `constraint_kind="authority_control" + constraint_subkind="applet_authority"`，并完整携带 `applet_id`、`executed_by=service_id`、`registration_epoch`。§5.1 registration namespace 与 §11 Event envelope 的 `applet_id` / `authorization_ref` 是使用时的交叉校验，不能替代 grant 自身的绑定。
 
 除非 Applet 拥有 effective grant，或以委托授权身份显式代表已授权 actor 行事（此时 MUST 满足 [§11](#11-masquerading-与-delegated-agent) delegated agent 的全部字段 `executed_by` / `authorization_ref` / `applet_id` 与对应 reducer 校验），否则 Applet MUST NOT 向 Realm 写入。
@@ -498,14 +493,13 @@ GET /_arkret/edge/applet/ping
 
 返回：
 
-```json
+```json fragment
 {
   "applet_id": "ak:applet:21532600-0000-7000-8000-000000000000",
   "service_id": "ak:did_core:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z",
   "protocol_version": "1.0"
 }
 ```
-
 ### 7.2 Describe
 
 ```text
@@ -525,7 +519,7 @@ Arkret Station 向 Applet 推送 Event/Signal 批次，或按 §7.3.2 交付已�
 
 请求示例（非完整 schema）：
 
-```json
+```json fragment
 {
   "applet_id": "ak:applet:01904100-0000-7000-8000-aaaaaaaaaaaa",
   "source_id": "ak:did_core:webvh:z7SrvceTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z",
@@ -575,15 +569,13 @@ Arkret Station 向 Applet 推送 Event/Signal 批次，或按 §7.3.2 交付已�
   ]
 }
 ```
-
 响应示例（非完整 schema）：
 
-```json
+```json fragment
 {
   "status": "accepted"
 }
 ```
-
 规则：
 
 - `Idempotency-Key` MUST 作为逐次 transaction push 的 nonce / idempotency key 使用，并进入 HTTP Message Signature transcript（见 §7.3.1）。
@@ -732,7 +724,7 @@ GET /_arkret/edge/applet/actors/{percent_encoded_jcs_actor_id}
 
 返回：
 
-```json
+```json fragment
 {
   "exists": true,
   "actor_id": {
@@ -750,7 +742,6 @@ GET /_arkret/edge/applet/actors/{percent_encoded_jcs_actor_id}
   }
 }
 ```
-
 path 参数使用 percent-encoded RFC 8785 JCS(`ActorId`)；解码、closed-schema 校验或 canonical
 重编码不一致时返回 `param_invalid`。若完整 ActorId 不存在，返回 `404 not_found`。同 principal
 但 Station 或 Actor kind 不同不是同一查询目标。
@@ -765,7 +756,7 @@ GET /_arkret/edge/applet/realms/{realm_id_or_alias}
 
 返回：
 
-```json
+```json fragment
 {
   "exists": true,
   "realm_id": "ak:realm:Adoyg50aOV537gzxNy87EOdUlHiIujznqwZcMLSGFmzg",
@@ -777,7 +768,6 @@ GET /_arkret/edge/applet/realms/{realm_id_or_alias}
   }
 }
 ```
-
 ### 7.6 Protocol Metadata
 
 ```text
@@ -786,7 +776,7 @@ GET /_arkret/edge/applet/protocols/{protocol}
 
 返回：
 
-```json
+```json fragment
 {
   "protocol": "slack",
   "display_name": "Slack",
@@ -809,7 +799,6 @@ GET /_arkret/edge/applet/protocols/{protocol}
   ]
 }
 ```
-
 ### 7.7 Third-Party Lookup
 
 ```text
@@ -843,7 +832,7 @@ Applet 写入 Arkret MUST 使用常规 `/_arkret/self/events` submit 接口。
 
 示例：
 
-```json
+```json fragment
 {
   "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
   "realm_id": "ak:realm:Adoyg50aOV537gzxNy87EOdUlHiIujznqwZcMLSGFmzg",
@@ -884,7 +873,6 @@ Applet 写入 Arkret MUST 使用常规 `/_arkret/self/events` submit 接口。
   ]
 }
 ```
-
 `external_ref` 是 bridge / 外部网络 provenance 与幂等审计材料。若用于回环防护、外部消息去重、moderation audit 或用户可见出处，Producer MUST 使用 Event Envelope 顶层 signed `external_ref`；`unsigned.external_ref` 只能承载可丢弃的本地 hint，MUST NOT 作为安全决策输入。
 
 ## 9. Ghost Actor
@@ -893,7 +881,7 @@ Ghost Actor MUST 与原生人类 Actor 在协议层可区分。
 
 Ghost Actor profile SHOULD 包含（以下为 schema 合法形态；字段与约束**以 artifacts 的 [`actor-profile.schema.json`](../../artifacts/schemas/actor-profile.schema.json) 为准**）：
 
-```json
+```json fragment
 {
   "id": "ak:actor_profile:ARqc1CPEkB79f9R5Lv-dwsj7VZbUKXbAYPl3sEhUufeZ",
   "schema": "ak.schema.actor_profile.v1",
@@ -914,7 +902,6 @@ Ghost Actor profile SHOULD 包含（以下为 schema 合法形态；字段与约
   "created_at": "2026-04-30T00:00:00Z"
 }
 ```
-
 `actor-profile.schema.json` 是 `additionalProperties:false` 的封闭 schema:`id`、`schema`、`principal_id`、`actor_kind`、`display_name`、`created_at` 为 required；问责只能通过 `accountable_principal_ids` 表达。本节初始 Profile 只列同一请求中 service-signed grant 已背书的外部 service DID；不得用 Applet registration 替代 controller 自己的 accountability grant 后把 controller DID 填入数组。Applet 托管标记 `managed_by_applet` 与外部网络来源 `external_ref` MUST 放入开放容器 `profile_fields`，不得作为顶层字段(否则被 schema `schema_violation` 拒绝)。与 §3.4 / §3.4.1 一致，不存在 `accountability` 嵌套对象 wire 形态。
 
 Ghost Actor MUST NOT 被静默合并到 native DID，除非 native holder 显式声明并完成绑定。
@@ -1008,7 +995,7 @@ Alice via Calendar Applet
 
 协议字段 **MUST** 包含：
 
-```json
+```json fragment
 {
   "actor_id": {
     "kind": "account",
@@ -1025,7 +1012,6 @@ Alice via Calendar Applet
   "applet_id": "ak:applet:8a0baad5-6000-7000-8000-000000000000"
 }
 ```
-
 这些字段位于 Event Envelope 顶层并进入 canonical event bytes；实现 MUST NOT 把 `applet_id` 或 `authorization_ref` 降级为 `payload` 内业务字段或 `unsigned` hint。
 
 **Reducer normative**:

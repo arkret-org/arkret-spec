@@ -1,15 +1,17 @@
 {
-  "version": "2026-09-19.2",
+  "version": "2026-09-19.5",
   "source_of_truth": true,
-  "generated_at": "2026-09-19T15:04:17+08:00",
-  "description": "Canonical list of the published test signing material and the reserved test identifiers that identity/did-usage-and-verification.md section 8 refuses on every formal verification, authorization and trust-admission path. Published material is material whose PRIVATE key ships with the specification, so a valid signature over it proves nothing about the signer. Matching is by canonicalized public-key fingerprint over algorithm-defined key material and by the typed identifier rules below; it is never inferred from the words test, fixture, did:key or example appearing in a string.",
+  "generated_at": "2026-09-19T19:11:47+08:00",
+  "description": "Canonical test signing material, reserved identifiers, and the closed role inventory for every concrete did:webvh identity example in artifacts and normative prose. Identity roles are exactly test_material, deployment_like_example, and derived_positive; only test_material enters the reserved namespace. Derived positives bind recomputable fixture pointers.",
   "rules": [
     "published_signing_material[].fingerprint is sha256 over the ALGORITHM-DEFINED public key encoding named by public_key_encoding, never over JWK, multibase, PEM or any JSON text. The same public key carried under a different kid, DID, JWK member order or transport encoding MUST produce the same fingerprint.",
     "Every published_signing_material row MUST declare a recomputation block naming the fixture and JSON Pointers its public key is read from, so the fingerprint is recomputable from the specification's own artifacts and a rotated fixture key turns the gate red instead of silently unbinding the obligation.",
     "Every fixture under spec/v1/artifacts/fixtures that carries any member name in published_signing_material_field_names MUST appear in some row's source_fixtures. Publishing a new private signing key without registering it is what this rule refuses.",
     "reserved_identifiers[] rules are independent: did, key_id and trust_domain are matched separately and by their own typed-identifier semantics. Matching one rule MUST NOT be taken to imply the others. Each row carries examples that MUST match and non_examples that MUST NOT, so the matching semantics are executable rather than described.",
     "This registry is the only list. Domain pages, fixtures and implementations MUST NOT keep a second copy, and MUST NOT widen a rule to cover material it does not name.",
-    "Registering material here does not make unlisted material suspicious: unlisted material is still verified by the ordinary identity and trust rules."
+    "Registering material here does not make unlisted material suspicious: unlisted material is still verified by the ordinary identity and trust rules.",
+    "did:key has no reserved fixture spelling: every positive fixture value MUST carry a decodable, length-correct registered multicodec key. Public-only witness keys are named by public_fixture_keys and remain non-authoritative test material even though no private seed is published.",
+    "identity_examples is the closed occurrence inventory for concrete did:webvh values across non-report artifacts and spec/v1/zh. test_material values MUST match a reserved_identifiers rule; deployment_like_example and derived_positive MUST NOT match one. Each derived_positive binds an exact recomputable fixture JSON Pointer."
   ],
   "published_signing_material_field_names": [
     "test_private_key_jwk",
@@ -43,7 +45,7 @@
       "algorithm": "Ed25519",
       "public_key_encoding": "ed25519_rfc8032_public_key",
       "fingerprint": "sha256:56475aa75463474c0285df5dbf2bcab73da651358839e9b77481b2eab107708c",
-      "why": "Ed25519 key generated from the published fixed seed bytes 0x00 through 0x1f. It signs the Ed25519 detached-JWS KAT, the franking proof transcript, the KeyPackage write transcript, the recovery transcript and the producer signer KAT, so every one of those fixtures hands a verifier a working private key.",
+      "why": "Ed25519 key generated from the published fixed seed bytes 0x00 through 0x1f. It signs the Ed25519 detached-JWS KAT, the franking proof transcript, the KeyPackage write transcript, the human endpoint MLS KeyPackage KAT, the recovery transcript and the producer signer KAT, so every one of those fixtures hands a verifier a working private key.",
       "source_fixtures": [
         "spec/v1/artifacts/fixtures/approval-signature-kat-fixture.json",
         "spec/v1/artifacts/fixtures/contact-round-kat.json",
@@ -51,6 +53,7 @@
         "spec/v1/artifacts/fixtures/crypto-signature-fixture.json",
         "spec/v1/artifacts/fixtures/franking-proof-transcript-fixture.json",
         "spec/v1/artifacts/fixtures/keypackage-write-transcript-fixture.json",
+        "spec/v1/artifacts/fixtures/mls-keypackage-endpoint-kat-fixture.json",
         "spec/v1/artifacts/fixtures/recovery-transcript-fixture.json"
       ],
       "recomputation": {
@@ -104,6 +107,7 @@
       "why": "The RFC 8032 section 7.1 TEST 1 Ed25519 key. It is the proof-of-possession key of the WebSocket DPoP known-answer test, and it is the human PCR registration anchor's method-native update key, so it also signs that anchor's controller proof, the genesis create Event and the identity-root control transcript. Its private key has been published in an IETF document since 2017; a holder of this key can mint a syntactically perfect DPoP proof.",
       "source_fixtures": [
         "spec/v1/artifacts/fixtures/content-bound-event-id-fixture.json",
+        "spec/v1/artifacts/fixtures/mls-keypackage-endpoint-kat-fixture.json",
         "spec/v1/artifacts/fixtures/pcr-genesis-fixture.json",
         "spec/v1/artifacts/fixtures/websocket-binding-fixture.json"
       ],
@@ -116,11 +120,37 @@
       }
     }
   ],
+  "public_fixture_keys": [
+    {
+      "id": "did_webvh_witness_a_public_key",
+      "algorithm": "Ed25519",
+      "did": "did:key:z6MkhFwXNFWosLeugvSf4wcL9t3uuRXueGSFTRgSvHhWj5G2",
+      "fingerprint": "sha256:24f6ed6acbfe1009c030d7ca567c33ca4830911498236b5561a6c82abec5de28",
+      "fixture": "spec/v1/artifacts/fixtures/did-webvh-witness-fixture.json",
+      "pointer": "/cryptographic_vectors/0/public_fixture_keys/0"
+    },
+    {
+      "id": "did_webvh_witness_b_public_key",
+      "algorithm": "Ed25519",
+      "did": "did:key:z6Mkgxj2R3HLtQRpPnvfvpuKEceSqf3tZHBjdmZ3fFz3JHGG",
+      "fingerprint": "sha256:03396219237f75a64f12aeb7f39723abf400b160c364980a765dac24aeba2464",
+      "fixture": "spec/v1/artifacts/fixtures/did-webvh-witness-fixture.json",
+      "pointer": "/cryptographic_vectors/0/public_fixture_keys/1"
+    },
+    {
+      "id": "did_webvh_witness_c_public_key",
+      "algorithm": "Ed25519",
+      "did": "did:key:z6Mkg26jczDiqsPK4momfvhZTTyFefWEyxYiSisFJ2wWJFkg",
+      "fingerprint": "sha256:68894d58f18f2c34d49eb2f4b110e042cd0f3150a4dc39243d7f63bd598c0783",
+      "fixture": "spec/v1/artifacts/fixtures/did-webvh-witness-fixture.json",
+      "pointer": "/cryptographic_vectors/0/public_fixture_keys/2"
+    }
+  ],
   "reserved_identifiers": [
     {
       "id": "webvh_conformance_scid",
       "kind": "did",
-      "why": "Every DID the conformance artifacts sign under is a did:webvh whose SCID segment is hand-written rather than derived. A real webvh SCID is a base58btc digest and a real did:key multibase ed25519 value starts z6Mk with a capital M, so a lowercase z6mkfixture or z6mkagent SCID cannot collide with material a deployment actually produced.",
+      "why": "This rule reserves only hand-written did:webvh SCID segments beginning with lowercase z6mkfixture or z6mkagent. Those prefixes cannot equal a method-derived base58btc digest. The closed identity_examples inventory separately classifies deployment-like prose values and recomputable derived positives; their presence is not evidence that this reserved rule covers every conformance identity.",
       "match": {
         "terminal": "did",
         "method": "webvh",
@@ -195,6 +225,888 @@
         "ak:trust_domain:examples.net",
         "ak:trust_domain:acme-example",
         "did.webvh.alice.example"
+      ]
+    }
+  ],
+  "identity_examples": [
+    {
+      "value": "did:webvh:QmS1gUenXyfWpb5krKbJbiZ93L1yJ6wJFBrf8zNNste4v9:server.example",
+      "role": "derived_positive",
+      "sources": [
+        "spec/v1/artifacts/fixtures/resolution-commitment-fixture.json",
+        "spec/v1/artifacts/fixtures/websocket-binding-fixture.json"
+      ],
+      "derivation_ref": "spec/v1/artifacts/fixtures/resolution-commitment-fixture.json#/vectors/4/commitment/did"
+    },
+    {
+      "value": "did:webvh:QmS1gUenXyfWpb5krKbJbiZ93L1yJ6wJFBrf8zNNste4v9:server.example#update-key-1",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/resolution-commitment-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey:agent.example",
+      "role": "derived_positive",
+      "sources": [
+        "spec/v1/artifacts/fixtures/agent-vectors-fixture.json",
+        "spec/v1/artifacts/fixtures/content-bound-event-id-fixture.json",
+        "spec/v1/artifacts/fixtures/resolution-commitment-fixture.json"
+      ],
+      "derivation_ref": "spec/v1/artifacts/fixtures/resolution-commitment-fixture.json#/vectors/1/commitment/did"
+    },
+    {
+      "value": "did:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey:agent.example#controller-delegation",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/content-bound-event-id-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey:agent.example#managed-controller",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/agent-vectors-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey:agent.example#runtime-1",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/agent-vectors-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey:agent.example#update-key-1",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/resolution-commitment-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif:alice.example.net",
+      "role": "derived_positive",
+      "sources": [
+        "spec/v1/artifacts/fixtures/resolution-commitment-fixture.json",
+        "spec/v1/artifacts/fixtures/schema-validation-fixture.json"
+      ],
+      "derivation_ref": "spec/v1/artifacts/fixtures/resolution-commitment-fixture.json#/vectors/3/commitment/did"
+    },
+    {
+      "value": "did:webvh:QmU4gpEX74wmnUp5pJLotgBtQ6xhXfRM2HWcZabaztjaif:alice.example.net#update-key-1",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/resolution-commitment-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_device_01964137",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/key-backup-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_device_01964139",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/key-backup-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#backup-hpke-1",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/key-backup-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#recovery-proof-1",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/key-backup-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:QmZL2kpCm1uJHkcg6jEKpx1oWAJvdxwSbuAbXHxCVtAi2C:alice.example",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/did-webvh-v1-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:QmaN34LdvfEc2DqRBjKNGAW7jbNJhjB5gSKpcsa8E1TbMg:witness-vector.example",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/did-webvh-witness-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:QmaN34LdvfEc2DqRBjKNGAW7jbNJhjB5gSKpcsa8E1TbMg:witness-vector.example#update-key-1",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/did-webvh-witness-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:QmdL2wUSB2bBcAfyZW5cALsi13ofujgSaNvLgwcQfbD9aq:server-alpha.example",
+      "role": "derived_positive",
+      "sources": [
+        "spec/v1/artifacts/fixtures/calendar-notification-fixture.json",
+        "spec/v1/artifacts/fixtures/resolution-commitment-fixture.json"
+      ],
+      "derivation_ref": "spec/v1/artifacts/fixtures/resolution-commitment-fixture.json#/vectors/2/commitment/did"
+    },
+    {
+      "value": "did:webvh:QmdL2wUSB2bBcAfyZW5cALsi13ofujgSaNvLgwcQfbD9aq:server-alpha.example#update-key-1",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/resolution-commitment-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:example.net:u:bob",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/zh/identity/consent-model.md"
+      ]
+    },
+    {
+      "value": "did:webvh:z2dmj",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/zh/identity/identity-handles.md"
+      ]
+    },
+    {
+      "value": "did:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/zh/extensions/applet-integration.md"
+      ]
+    },
+    {
+      "value": "did:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example#admin-key-1",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/zh/extensions/applet-integration.md"
+      ]
+    },
+    {
+      "value": "did:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example#controller-key-1",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/zh/extensions/applet-schema.md"
+      ]
+    },
+    {
+      "value": "did:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:alice.example#device-1",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/zh/extensions/applet-integration.md"
+      ]
+    },
+    {
+      "value": "did:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/zh/sync/third-party-invites.md"
+      ]
+    },
+    {
+      "value": "did:webvh:z2dmjZ8r7L4nP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:bob.example.com#device-1",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/zh/sync/third-party-invites.md"
+      ]
+    },
+    {
+      "value": "did:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX:google.example",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/zh/identity/identity-handles.md"
+      ]
+    },
+    {
+      "value": "did:webvh:z5ApPLeTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:applet.example#server-key-1",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/zh/extensions/applet-schema.md"
+      ]
+    },
+    {
+      "value": "did:webvh:z5CVGhWHEfRe1HhKLRueCrxfD:server.example",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/zh/sync/transport-bindings.md"
+      ]
+    },
+    {
+      "value": "did:webvh:z5a3yeFnKQFn6ZqPY1Qgv3RrZ:server.acme.example#franking-key-1",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/zh/governance/content-moderation.md"
+      ]
+    },
+    {
+      "value": "did:webvh:z6MkGhostU123:slack-bridge.example",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/applet-managed-actor-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6MkGhostU123:slack-bridge.example:ghost:team:u123",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/zh/extensions/applet-schema.md"
+      ]
+    },
+    {
+      "value": "did:webvh:z6MkGhostU123:slack-bridge.example:ghost:u123",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/applet-managed-actor-fixture.json",
+        "spec/v1/zh/extensions/applet-integration.md",
+        "spec/v1/zh/extensions/applet-schema.md"
+      ]
+    },
+    {
+      "value": "did:webvh:z6MkGhostU123:slack-bridge.example:ghost:u123#key-1",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/zh/extensions/applet-integration.md"
+      ]
+    },
+    {
+      "value": "did:webvh:z6MkGhostU123:tenant-2.example:ghost:u123",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/applet-managed-actor-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/applet-managed-actor-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example#server-key-1",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/zh/extensions/applet-integration.md"
+      ]
+    },
+    {
+      "value": "did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example:bot",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/zh/extensions/applet-integration.md"
+      ]
+    },
+    {
+      "value": "did:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z:slack-bridge.example:ghost:u123",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/applet-managed-actor-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6TrH1Ntf6QjaSBbShfKTrNbt:identity.alice.example#invite-001",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/zh/sync/third-party-invites.md"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkagent:agent.example#runtime-1",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/agent-mls-keypackage-authorization-fixture.json",
+        "spec/v1/artifacts/fixtures/session-grant-issuance-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkagent:agent.example#runtime-2",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/agent-mls-keypackage-authorization-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkagent:agent.example#runtime-forged",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/agent-mls-keypackage-authorization-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkcontroller:controller.example",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/agent-vectors-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkcontroller:controller.example#device-1",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/agent-vectors-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixture:alice.example",
+      "role": "test_material",
+      "sources": [
+        "spec/v1/artifacts/fixtures/content-bound-event-id-fixture.json",
+        "spec/v1/artifacts/fixtures/crypto-signature-fixture.json",
+        "spec/v1/artifacts/fixtures/did-webvh-v1-fixture.json",
+        "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
+        "spec/v1/artifacts/fixtures/pcr-genesis-fixture.json",
+        "spec/v1/artifacts/fixtures/resolution-commitment-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixture:alice.example#ak",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json",
+        "spec/v1/artifacts/fixtures/pcr-genesis-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixture:alice.example#ak_device_0197",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/redaction-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixture:alice.example#device-1",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/encoding-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixture:alice.example#device-key",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/websocket-binding-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixture:alice.example#device-key-1",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/auth-session-proof-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture",
+      "role": "test_material",
+      "sources": [
+        "spec/v1/artifacts/fixtures/approval-signature-kat-fixture.json",
+        "spec/v1/artifacts/fixtures/crypto-signature-fixture.json",
+        "spec/v1/artifacts/fixtures/pcr-genesis-fixture.json",
+        "spec/v1/artifacts/fixtures/resolution-commitment-fixture.json",
+        "spec/v1/artifacts/fixtures/websocket-binding-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixture:alice.example#es256-2026-07-fixture",
+      "role": "test_material",
+      "sources": [
+        "spec/v1/artifacts/fixtures/crypto-signature-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixture:alice.example#key-1",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/handle-claim-kat.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixture:alice.example#mldsa65-2026-07-fixture",
+      "role": "test_material",
+      "sources": [
+        "spec/v1/artifacts/fixtures/crypto-signature-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixture:alice.example#session-key-1",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/auth-session-proof-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixture:issuer.example#key-1",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/handle-claim-kat.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixture:media.example#key-1",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/zh/crypto-media/media-service-binding.md"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixture:new.example",
+      "role": "test_material",
+      "sources": [
+        "spec/v1/artifacts/fixtures/did-webvh-v1-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixture:old.example",
+      "role": "test_material",
+      "sources": [
+        "spec/v1/artifacts/fixtures/did-webvh-v1-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixture:principal.example#ed25519-2026-05-fixture",
+      "role": "test_material",
+      "sources": [
+        "spec/v1/artifacts/fixtures/franking-proof-transcript-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixture:principal.example#rotated-key",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/franking-proof-transcript-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixtureaaacmeexample:aa.acme.example#aa-signing-key-1",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/realm-organization-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixtureaccountauthority:authority.example#account-status-2026",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/account-status-issuer-ledger-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixtureacmeexample:acme.example",
+      "role": "test_material",
+      "sources": [
+        "spec/v1/artifacts/fixtures/organization-registration-fixture.json",
+        "spec/v1/artifacts/fixtures/realm-organization-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixtureacmeexample:acme.example#org-control-key-1",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/organization-registration-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixtureacmeexample:acme.example#org-control-key-2",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/organization-registration-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixtureacmeexample:acme.example#org-governance-key-1",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/organization-registration-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixtureacmeexample:acme.example#org-governance-key-2",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/organization-registration-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixtureacmeexample:acme.example#org-signing-key-1",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/realm-organization-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixtureagent:agent.example#runtime-1",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixtureagent:agents.example:assistant",
+      "role": "test_material",
+      "sources": [
+        "spec/v1/artifacts/fixtures/contact-round-kat.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixtureagent:agents.example:assistant#runtime-key",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/contact-round-kat.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixtureagentexample:agent.example#runtime-1",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/keypackage-write-transcript-fixture.json",
+        "spec/v1/artifacts/fixtures/recovery-transcript-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixturealice:alice.example#device-fixture",
+      "role": "test_material",
+      "sources": [
+        "spec/v1/artifacts/fixtures/contact-round-kat.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixtureappletexample:applet.example",
+      "role": "test_material",
+      "sources": [
+        "spec/v1/artifacts/fixtures/applet-registration-epoch-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixtureappletexample:applet.example#server-key-1",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/applet-registration-epoch-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixtureappletexample:applet.example#server-key-2",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/applet-registration-epoch-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixtureauditor:auditor.example",
+      "role": "test_material",
+      "sources": [
+        "spec/v1/artifacts/fixtures/approval-signature-kat-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixturebob:bob.example#device-fixture",
+      "role": "test_material",
+      "sources": [
+        "spec/v1/artifacts/fixtures/contact-round-kat.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixturebobexample:bob.example",
+      "role": "test_material",
+      "sources": [
+        "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixturebridgeexample:bridge.example#ghost",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixturebridgeexample:bridge.example#tx-1",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixturegovacmeexample:gov.acme.example#gov-signing-key-1",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/realm-organization-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixturemanager:manager.example",
+      "role": "test_material",
+      "sources": [
+        "spec/v1/artifacts/fixtures/approval-signature-kat-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixturemanager:manager.example#ed25519-2026-09-fixture",
+      "role": "test_material",
+      "sources": [
+        "spec/v1/artifacts/fixtures/approval-signature-kat-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixturemanager:manager.example#ed25519-2026-09-other-fixture",
+      "role": "test_material",
+      "sources": [
+        "spec/v1/artifacts/fixtures/approval-signature-kat-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixturemediaexample:media.example",
+      "role": "test_material",
+      "sources": [
+        "spec/v1/artifacts/fixtures/encoding-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixturemoderatorexample:moderator.example#key-1",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixtureorgexecutor:org.example#ak",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/content-bound-event-id-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixtureotherexample:other.example#key-1",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixtureprincipalexample:principal.example",
+      "role": "test_material",
+      "sources": [
+        "spec/v1/artifacts/fixtures/pcr-genesis-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixtureproduceraexample:producer-a.example",
+      "role": "test_material",
+      "sources": [
+        "spec/v1/artifacts/fixtures/producer-allocated-identity-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixtureproducerbexample:producer-b.example",
+      "role": "test_material",
+      "sources": [
+        "spec/v1/artifacts/fixtures/producer-allocated-identity-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixturepushgateway:push.example#key-1",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/push-notify-outcome-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixtureregistryexample:registry.example#registry-signing-key-1",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/did-webvh-witness-fixture.json",
+        "spec/v1/artifacts/fixtures/organization-registration-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixturesolandexample:soland.example#federation-fanout-key",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/redaction-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
+      "role": "test_material",
+      "sources": [
+        "spec/v1/artifacts/fixtures/contact-round-kat.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixturestationb:station-b.example#assertion-fixture",
+      "role": "test_material",
+      "sources": [
+        "spec/v1/artifacts/fixtures/contact-round-kat.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixturesubjectexample:subject.example",
+      "role": "test_material",
+      "sources": [
+        "spec/v1/artifacts/fixtures/did-webvh-witness-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixturesyncexample:sync.example",
+      "role": "test_material",
+      "sources": [
+        "spec/v1/artifacts/fixtures/encoding-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixturesyncexample:sync.example#franking-key-1",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/event-kind-payload-coverage-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixtureverifier:verifier.example#key-1",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/handle-claim-kat.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixturewitnessaexample:witness-a.example#key-1",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/key-transparency-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixturewitnessbexample:witness-b.example#key-1",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/key-transparency-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkother:alice.example",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/did-webvh-v1-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6shM8wDREPSST7ZtxGkuFsk6:famous-org.example",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/zh/models/actor.md"
+      ]
+    },
+    {
+      "value": "did:webvh:z7ECJ5c1A1o5Xr1AdPqPCBD7L:media.example.com#key-1",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/zh/crypto-media/webrtc-signaling.md"
+      ]
+    },
+    {
+      "value": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com#key-1",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/zh/discovery/profiles-presence.md"
+      ]
+    },
+    {
+      "value": "did:webvh:zCYG7PrN3Yt1TdX4X8gfYFA4R:recorder.example",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/zh/crypto-media/call-state.md"
+      ]
+    },
+    {
+      "value": "did:webvh:zCxjAemtszNh7bTFGWFS4m8gv:media.example#key-1",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/zh/crypto-media/bindings/arkret-native.md",
+        "spec/v1/zh/crypto-media/call-state.md"
+      ]
+    },
+    {
+      "value": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/zh/discovery/discovery-directory.md"
+      ]
+    },
+    {
+      "value": "did:webvh:zGUwpRSnyVCLzU7upsm9iSwEv:acme.example#governance-key-1",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/zh/discovery/discovery-directory.md"
+      ]
+    },
+    {
+      "value": "did:webvh:zGiUQcWG9yy3Z9pMs15w7JHgc:ps.bob.example#server-key-1",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/zh/sync/invite-addressing.md"
+      ]
+    },
+    {
+      "value": "did:webvh:zGtABZixoZZ3m4cFx3E65LCmg:auth.example#account-status-key",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/zh/identity/account-lifecycle.md"
+      ]
+    },
+    {
+      "value": "did:webvh:zQ3sh7p8K3pV4cXbKqL2nMsR9tWfH:alice.example",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/zh/identity/identity-did.md"
+      ]
+    },
+    {
+      "value": "did:webvh:zQ3shAcmeGovScidVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/zh/identity/identity-did.md"
+      ]
+    },
+    {
+      "value": "did:webvh:zQ3shAcmeGovScidVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example#governance",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/zh/identity/identity-did.md"
+      ]
+    },
+    {
+      "value": "did:webvh:zQ3shAcmeGovScidVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example#governance-key-1",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/zh/identity/identity-did.md"
+      ]
+    },
+    {
+      "value": "did:webvh:zQ3shAcmeGovScidVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example#governance-key-2",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/zh/identity/identity-did.md"
+      ]
+    },
+    {
+      "value": "did:webvh:zQ3shAcmeGovScidVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example#governance-key-3",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/zh/identity/identity-did.md"
+      ]
+    },
+    {
+      "value": "did:webvh:zQ3shExampleScid:alice.example",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/zh/identity/identity-did.md"
       ]
     }
   ]

@@ -34,7 +34,8 @@
       "$ref": "#/$defs/recording_id"
     },
     "recording_start_event_id": {
-      "$ref": "#/$defs/event_ref"
+      "$ref": "#/$defs/event_ref",
+      "x-arkret-preimage-commitment": "fixed_event"
     },
     "blob_ref": {
       "$ref": "#/$defs/blob_ref"
@@ -180,7 +181,8 @@
               "$ref": "#/$defs/did_core_id"
             },
             "recording_start_event_id": {
-              "$ref": "#/$defs/event_ref"
+              "$ref": "#/$defs/event_ref",
+              "x-arkret-preimage-commitment": "fixed_event"
             }
           },
           "additionalProperties": false
@@ -247,6 +249,7 @@
         },
         "trigger_event_id": {
           "$ref": "#/$defs/event_ref",
+          "x-arkret-preimage-commitment": "fixed_event",
           "description": "Durable event that caused this delete attempt, when the trigger is event-backed."
         },
         "requested_at": {

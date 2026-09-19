@@ -5,7 +5,7 @@
   "covers_vectors": [
     "ak.vector.calendar.notification.v1"
   ],
-  "version": "2026-07-27",
+  "version": "2026-09-19.1",
   "spec_anchor": "spec/v1/zh/models/calendar-event.md#10-schedule-notification",
   "source_refs": [
     "spec/v1/zh/models/calendar-event.md",
@@ -37,11 +37,11 @@
       "expected_reason_code": "schema_violation",
       "first_expected_error": "contains:calendar_tzdb_versions",
       "instance": {
-        "service_id": "ak:did_core:webvh:z6mkfixtureserveralphaexample",
+        "service_id": "ak:did_core:webvh:QmdL2wUSB2bBcAfyZW5cALsi13ofujgSaNvLgwcQfbD9aq",
         "service_resolution": {
-          "did": "did:webvh:z6mkfixtureserveralphaexample:server-alpha.example",
-          "method_history_head": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
-          "version_id": "1"
+          "did": "did:webvh:QmdL2wUSB2bBcAfyZW5cALsi13ofujgSaNvLgwcQfbD9aq:server-alpha.example",
+          "method_history_head": "sha256:35df5d291e6473d8a2a4eb6e4e5f2fd779d68dc9a9202e84fb21faa4857e4acc",
+          "version_id": "1-QmZWhcrUMjEr6yt6VdyQCWZYsxEzwZyhDU415GNJ8NgABQ"
         },
         "trust_domain": "ak:trust_domain:example.test",
         "service_kind": "station",

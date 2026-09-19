@@ -187,6 +187,15 @@
     "resolution_commitment": {
       "type": "object",
       "description": "Owner-committed current did and method-native history position. For a deterministic method, method_history_head and version_id use the adapter-defined deterministic canonical values; they are never omitted.",
+      "x-arkret-adapter-derived": {
+        "registry": "registry/did-method-adapter-registry.json",
+        "members": [
+          "did",
+          "method_history_head",
+          "version_id"
+        ],
+        "fixture_pointer_registry": "tools/resolution-commitment-pointer-registry.json"
+      },
       "required": [
         "did",
         "method_history_head",

@@ -48,7 +48,7 @@ Arkret 需要明确区分三件事：
 
 Realm discovery policy SHOULD 由 `ak.realm.discovery` state event 表达：
 
-```json
+```json fragment
 {
   "kind": "ak.realm.discovery",
   "payload": {
@@ -81,7 +81,6 @@ Realm discovery policy SHOULD 由 `ak.realm.discovery` state event 表达：
   }
 }
 ```
-
 `ak.realm.discovery` 的 payload class 是 closed `realm_discovery_payload`：策略内容整体位于 whole-value
 `value` 内，`state` / `reason` 是可选的诊断成员。**MUST NOT** 把策略字段平铺到 payload 顶层，也 **MUST NOT**
 在 payload 内携带 detached `proof`——Event envelope 的 producer proof 已经覆盖同一批 canonical bytes
@@ -122,16 +121,14 @@ Realm discovery policy SHOULD 由 `ak.realm.discovery` state event 表达：
 
 `bucketed` mode 下为封闭枚举字符串：
 
-```json
+```json fragment
 { "title": "Acme", "member_count_bucket": "51-100" }
 ```
-
 `exact` mode（仅 `discoverability ∈ {public, listed}`）下为精确成员数整数：
 
-```json
+```json fragment
 { "title": "Acme Public", "member_count_bucket": 342 }
 ```
-
 **`member_count_bucket` 属 §9.1 一致性字段，MUST 携带 effective mode（normative）**：`member_count_bucket` 是 union 字段（`bucketed` 下为枚举字符串、`exact` 下为整数），其语义依赖 effective `member_count_mode`。若仅凭值类型推断 mode，则跨 Directory 对账（§7.3 不变量 2 Pluralizable、§9.1 一致性字段）会因 mode 解析歧义而无法判定"两家 Directory 是否一致"。因此：
 
 - `member_count_bucket` 一旦在 preview / 结果中出现，即**属于 §9.1 normative 一致性字段**，纳入同一资源跨 Directory 的一致性比对（针对同一 `(resource_id, source_refs checkpoint, policy_revision)`）。
@@ -212,7 +209,7 @@ E2EE 明文边界与历史 reader class 仍以 [`../governance/history-visibilit
 
 Organization discovery policy SHOULD 通过组织 profile 状态或 governance registry 记录表达：
 
-```json
+```json fragment
 {
   "kind": "ak.organization.discovery",
   "payload": {
@@ -234,7 +231,6 @@ Organization discovery policy SHOULD 通过组织 profile 状态或 governance r
   }
 }
 ```
-
 `organization_id` 是该 typed state 的稳定 subject 且必须是 `did_core_id`；策略内容位于 whole-value `value` 内。
 payload **不携带** detached `proof`：治理签名就是该 Event 的 envelope proof（§8.3）。
 
@@ -315,7 +311,7 @@ OPRF 选择：
 
 第一轮（blind）：
 
-```json
+```json fragment
 {
   "profile": "ak.private_contact_discovery.v1",
   "phase": "blind",
@@ -324,10 +320,9 @@ OPRF 选择：
   "blinded_elements": ["base64url-32bytes...", "... exactly batch_item_count entries ..."]
 }
 ```
-
 第二轮（match）：
 
-```json
+```json fragment
 {
   "profile": "ak.private_contact_discovery.v1",
   "phase": "match",
@@ -336,10 +331,9 @@ OPRF 选择：
   "derived_prefixes": ["base64url-16bytes...", "... exactly batch_item_count entries ..."]
 }
 ```
-
 第一轮响应（blind outcome）：
 
-```json
+```json fragment
 {
   "profile": "ak.private_contact_discovery.v1",
   "phase": "blind",
@@ -350,7 +344,6 @@ OPRF 选择：
   "padding": "    "
 }
 ```
-
 - `evaluated_elements` MUST 与请求的 `blinded_elements` 等长且同序。
 - `evaluation_proofs` 在 v1 MUST 恰好包含一条 64-byte RFC 9497 batched DLEQ proof；客户端以 describe 中当前 epoch 的 32-byte ristretto255 `public_key` 验证。
 - derived prefix 长度由 `ak.private_contact_discovery.v1` 固定为 16 bytes，wire outcome 不回显长度。
@@ -358,7 +351,7 @@ OPRF 选择：
 
 第二轮响应（match outcome）：
 
-```json
+```json fragment
 {
   "profile": "ak.private_contact_discovery.v1",
   "phase": "match",
@@ -374,13 +367,12 @@ OPRF 选择：
   "padding": "    "
 }
 ```
-
 - `hit_bitmap` MUST 与 blind / match 数组具有相同的 `batch_item_count` cardinality 与位置顺序。
 - `handoff_stubs_mode="always"` 时 `handoff_stubs` MUST 在每个响应中出现、与 `hit_bitmap` 等长，且未命中 / 逐目标拒绝位置携带相同 dummy stub；`handoff_stubs_mode="never"` 时每个响应都 MUST 省略该字段。不得按是否命中动态切换字段存在性。
 
 quota denial（blind 阶段，HTTP 429 + `Retry-After` header）：
 
-```json
+```json illustrative
 {
   "type": "https://arkret.org/problems/psi_quota_exhausted",
   "title": "Psi quota exhausted",
@@ -390,7 +382,6 @@ quota denial（blind 阶段，HTTP 429 + `Retry-After` header）：
   "padding": "    "
 }
 ```
-
 - 这是 §6.4 Class B 失败形态：标准 RFC 9457 Problem Details 的 PSI padding extension + canonical 错误码 `psi_quota_exhausted`；`Retry-After` 与精确 body / delay bucket 规则见 §6.4。
 - quota denial 只在 blind 阶段出现；已被接纳的 `batch_id` 的 match 请求 MUST NOT 再因 quota 被拒。
 
@@ -535,7 +526,7 @@ current-v1 仅支持资源 Station 经已认证 announce/withdraw 主动推送�
 
 请求示例（非完整 schema）：
 
-```json
+```json fragment
 {
   "as_of": "2026-05-10T08:00:00Z",
   "ttl_seconds": 86400,
@@ -583,8 +574,6 @@ current-v1 仅支持资源 Station 经已认证 announce/withdraw 主动推送�
   }
 }
 ```
-
-
 ### 8.4 推送续约
 
 资源以同一 announce 合同提供新的签名 discovery state；withdraw 使用 §8.7 的独立授权与撤销合同。Directory 不订阅未登记的资源侧 webhook 或 pull API。
@@ -653,7 +642,7 @@ detached-JWS proof 语义，并为本对象族定义独立 closed leaf——`pro
 `payload_digest` MUST 与之 byte-identical。detached JWS 的 payload segment MUST 为空，
 并对下列唯一 canonical binding object 的 JCS bytes 签名：
 
-```json
+```json fragment
 {
   "context": "ak.directory_governance_request_proof.v1",
   "payload_digest": "<proof.payload_digest>",
@@ -665,7 +654,6 @@ detached-JWS proof 语义，并为本对象族定义独立 closed leaf——`pro
   "audience_id": "<目标 Directory 的 service_id>"
 }
 ```
-
 **`audience_id` 形态（normative）**：这里的"目标 Directory 的 service DID"逐字等于该 Directory
 `ak.find.directory.read.describe.v1` 响应中的 `service_id`，即 `did_core_id` 形态
 （`ak:did_core:<method>:<msi>`）。它与 §2 `directory_restricted_claim_presentation.audience_id` 承载同一表示类别，
@@ -801,7 +789,7 @@ Directory MUST NOT 因本地存在账号就披露身份，不得替调用方发�
 `payload_digest` MUST 与之 byte-identical。detached JWS 的 payload segment MUST 为空，并对下列
 唯一 canonical binding object 的 JCS bytes 签名：
 
-```json
+```json fragment
 {
   "context": "<上表中该对象族的 context>",
   "payload_digest": "<proof.payload_digest>",
@@ -812,7 +800,6 @@ Directory MUST NOT 因本地存在账号就披露身份，不得替调用方发�
   "audience_id": "<目标 Directory 的 service_id>"
 }
 ```
-
 `audience_id` MUST 为目标 Directory 的 service DID（单值），`domain`、裸 `audience` 与 `proof_purpose`
 MUST 缺席（`governance_authorization` 只属于 §8.7.1 的写入面）。
 
@@ -916,7 +903,7 @@ optional 字段省略即可，MUST NOT 写成 `null`。
 
 Result：
 
-```json
+```json fragment
 {
   "realms": [
     {
@@ -959,13 +946,12 @@ Result：
   "has_more": false
 }
 ```
-
 响应体是 closed `directory_realm_search_outcome`：数组字段名是 `realms`（不是 `results`），
 `has_more` 必填，`next_cursor` optional 且省略即表示末尾，MUST NOT 写成 `null`。
 
 未授权对隐藏资源的精确 resolve SHOULD 返回：
 
-```json
+```json illustrative
 {
   "type": "https://arkret.org/problems/not_found",
   "title": "Not found",
@@ -973,7 +959,6 @@ Result：
   "detail": "not found"
 }
 ```
-
 **失败不可区分（含时延等同，normative）**：对"不存在"与"未授权访问的隐藏资源"，实现 MUST 使用相同的 status、相同响应结构与**相同时延等级**（constant-time 或固定时延桶，避免按是否走完整 presentation / claim / audience 校验产生可观测时序差）。该要求适用于 `resolve_realm`、`resolve_target`、`resolve_handle`、`resolve_agent_selector`、`list_handles_for_subject`、`search_users` / `search_actors` / `search_realms` 的所有 `not_found` / `unauthorized` 分支。否则攻击者可用时序差分逐个探测 handle / selector / 成员是否存在，即便响应体一致也能去匿名化组织成员名单与关系图。pre-join resolve 只返回有界 locator，不返回 authority stream head；authority freshness 由随后 nonce-bound bundle 独立验证。timing 侧信道收口对齐 [`../conformance/conformance-vectors.md`](../conformance/conformance-vectors.md) 的目录 resolve 反枚举 / blinding 条款；`resolve_target`、`resolve_handle` 与 `resolve_agent_selector` 分别由 `ak.vector.directory.resolve_target_blinding.v1`、`ak.vector.directory.resolve_handle_failure_blinding.v1`、`ak.vector.directory.resolve_agent_selector_failure_blinding.v1` 固定。
 
 ## 10. Parent Realm 与 Organization Directory

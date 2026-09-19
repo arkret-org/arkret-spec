@@ -8,8 +8,11 @@ signing, the derived public key is checked against both the fixture key and the
 claim's ``did:key`` verification method so this tool cannot silently sign with
 unrelated material.
 
-Only cases explicitly marked ``expect_valid`` are updated. Negative cases are
-left unchanged, including intentionally bad digests and signatures.
+Every case is bound and signed against the current contract, including schema
+negative cases. A case can explicitly preserve one deliberate semantic fault:
+``contract_binding_expect_valid: false`` keeps the wrong digest while signing
+that exact body, and ``signature_expect_valid: false`` replaces the otherwise
+valid signature with its registered canonical base64url mutation.
 """
 
 from __future__ import annotations
@@ -109,8 +112,7 @@ def rebuild(
     cases = claim_fixture.get("schema_validation_cases")
     if not isinstance(cases, list):
         raise ValueError("claim fixture schema_validation_cases must be an array")
-    positive_cases = [case for case in cases if isinstance(case, dict) and case.get("expect_valid")]
-    if not positive_cases:
+    if not any(isinstance(case, dict) and case.get("expect_valid") for case in cases):
         raise ValueError("claim fixture has no expect_valid case to regenerate")
 
     signing_key = _published_signing_key(key_fixture)
@@ -122,8 +124,15 @@ def rebuild(
     rebuilt = copy.deepcopy(claim_fixture)
     changed: list[str] = []
 
+    positive_template = next(
+        case for case in rebuilt["schema_validation_cases"]
+        if isinstance(case, dict) and case.get("expect_valid")
+    )["instance"]
+    template_issuer = copy.deepcopy(positive_template["issuer"])
+    template_kid = positive_template["proof"]["kid"]
+
     for case in rebuilt["schema_validation_cases"]:
-        if not isinstance(case, dict) or not case.get("expect_valid"):
+        if not isinstance(case, dict):
             continue
         name = case.get("name", "<unnamed>")
         instance = case.get("instance")
@@ -133,20 +142,33 @@ def rebuild(
         proof = instance.get("proof")
         if not isinstance(issuer, dict) or not isinstance(proof, dict):
             raise ValueError(f"positive claim case {name} has no issuer/proof object")
-        if proof.get("signature_algorithm") != "Ed25519":
-            raise ValueError(f"positive claim case {name} is not an Ed25519 claim")
-        kid = proof.get("kid")
-        if kid != issuer.get("verification_method"):
-            raise ValueError(f"positive claim case {name} proof.kid differs from issuer verification method")
-        if _did_key_public_bytes(kid) != public_key:
-            raise ValueError(f"published conformance seed does not derive {name} proof.kid")
-
         before = (instance.get("contract_digest"), proof.get("signature"))
-        instance["contract_digest"] = digest
+        instance["issuer"] = copy.deepcopy(template_issuer)
+        proof["kid"] = template_kid
+        proof["signature_algorithm"] = "Ed25519"
+        overrides = case.get("regeneration_overrides", {})
+        if not isinstance(overrides, dict) or set(overrides) - {"contract_digest", "signature"}:
+            raise ValueError(f"claim case {name} has unsupported regeneration_overrides")
+        digest_override = overrides.get("contract_digest")
+        signature_override = overrides.get("signature")
+        if digest_override is not None and not isinstance(digest_override, str):
+            raise ValueError(f"claim case {name} contract_digest override must be a string")
+        if signature_override is not None and not isinstance(signature_override, str):
+            raise ValueError(f"claim case {name} signature override must be a string")
+        if digest_override is not None:
+            instance["contract_digest"] = digest_override
+        elif case.get("contract_binding_expect_valid", True):
+            instance["contract_digest"] = digest
+        elif instance.get("contract_digest") == digest:
+            instance["contract_digest"] = "sha256:" + "1" * 64
+        if _did_key_public_bytes(proof["kid"]) != public_key:
+            raise ValueError(f"published conformance seed does not derive {name} proof.kid")
         body = {key: value for key, value in instance.items() if key != "proof"}
         proof["signature"] = _b64u(
             signing_key.sign(CLAIM_DOMAIN + canonical_json(body).encode("utf-8"))
         )
+        if signature_override is not None:
+            proof["signature"] = signature_override
         after = (instance["contract_digest"], proof["signature"])
         if before != after:
             changed.append(str(name))

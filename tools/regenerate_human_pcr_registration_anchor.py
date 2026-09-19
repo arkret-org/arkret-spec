@@ -548,6 +548,7 @@ def main() -> int:
         "issued_at": "2026-08-09T00:00:00.000Z",
         "expires_at": "2026-08-09T00:05:00.000Z",
         "verification_key_multibase": derived["root_control_key_multibase"],
+        "signature_algorithm": "Ed25519",
     }
     signed_canonical = canonical(signed)
     signature = b64u(
@@ -640,10 +641,6 @@ def main() -> int:
             ],
         },
     }
-
-    abandonment = genesis["provisional_identity_abandonment"]["challenge"]
-    abandonment["account_subject"] = account_subject
-    abandonment["did_version_id"] = derived["version_id"]
 
     # ---- test material registry ---------------------------------------------
     now_signs = {

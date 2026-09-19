@@ -78,6 +78,13 @@ Account Authority 必须使用 holder-bound handoff；普通 OAuth token、OIDC 
 3. 客户端按已登记 `did:webvh:1.0` adapter 构造 closed `principal_registration_anchor`，连同 `FoundingDeviceDescriptor` 构造 ordered genesis unit；客户端 MUST 投影出 `principal_id=did_core_id`，并从 create Event 按 `retype(event_id)` 导出 PCR id。v1 锚只有 `webvh_registration` 一支：它携注册时 exact accepted DID operation、从 inception 起无缺口的 log entries、该区间全部适用 witness records 与 exact normalized DID Document。任何其他 method（包括 `did:key` 与 `did:web`）命中 human 注册时 MUST 在 schema 与角色准入阶段以 `unsupported_did_method` fail closed，不得落到 method parser 或 history replay。`method_history_head`、`version_id` 与 control-key digest 一律由验证方从锚自身导出，不是调用方自报的镜像。客户端还必须生成独立的 `registration_did_evidence_draft`；其专用 control proof 以 `ak.registration_did_evidence_control_proof.v1` 签署 core/DID、adapter version、history/version/key pins 与 `method_evidence_digest`，不得复用或转换 `identity_creation_control_proof`。`accepted_at` 在 draft 中禁止出现：Account Authority 只有在 registry 接受 exact DID operation 后才把 registry 返回的原始 acceptance time 加入完整 `registration_did_evidence`。客户端把 `{did,method_history_head,version_id}` 写入 genesis `initial_resolution`，并构造绑定同一 device 与 handoff DPoP key 的 `InitialSessionGrantIntent`。
 4. durable challenge record 与 `identity_creation_control_proof` 必须绑定 `account_subject`、`principal_id`、`did`、PCR id、`registration_anchor_digest`、`did_version_id`、`control_key_digest`、create payload digest、founding authorize payload digest、`initial_session_request_digest`、closed unit kinds、lease/fence、DPoP JKT、audience/origin/trust-domain 与最多 300 秒窗口。`registration_anchor_digest` 是完整 typed `principal_registration_anchor` 的 canonical digest；它不是仅对 method-native log entry 计算的 event digest，验证方必须从已接受的锚对象重构并复算前者，并独立确认 `project(did) == principal_id`。`proof_kind` 固定为 `did_webvh_inception_update_key`，并且 `anchor_kind` 固定为 `webvh_registration`；任何其他值零写入拒绝。proof key MUST 是 `did_version_id` 所钉的那个 entry 的 **current active update key**（`parameters.updateKeys[0]`），且其 canonical multikey 的 SHA-256 MUST 等于承诺的 `control_key_digest`；不能从 DID Document 的 authentication / service fragment 选择，也不得采信请求自带的 key。account-first inception 时该 entry 就是 entry 0，因此本规则与既有行为一致；对已发布且已轮换的 DID，它锚在建号时刻的当前控制权而不是创世代次——后者可能早已 spent 且不可再签。
 
+   该本地签名的域固定为 `ak.identity_creation_control_proof.v1`，`signature_algorithm` 固定为
+   `Ed25519` 且属于被签对象。签名输入严格为
+   `UTF8("ak.identity_creation_control_proof.v1" || 0x0A) || RFC8785_JCS(proof_without_signature)`；
+   `proof_without_signature` 必须包含 closed schema 的全部 required 成员并只省略 `signature`，签名字节以
+   unpadded base64url 写入 `signature`。它是 Arkret raw detached signature，不是 JWS，验证方不得接受缺少
+   `signature_algorithm`、使用 JOSE `alg` 成员或遗漏任一登记绑定字段的替代形态。
+
 **challenge 与执行权独立（normative）**：客户端 MUST 完成本地材料准备与必要用户确认后再申请 challenge。签发只冻结/核对 reservation，MUST NOT 修改 lease expiry 或消费 renewal 额度；新的成功签发按 §6.1 独立预算计数。取得共享事务锁并重读当前 handoff、账号与 live holder/lease/fence 后，用服务端权威当前时间的 canonical 值 t 签发 `issued_at=t, expires_at=t+TTL`，其中 `0 < TTL <= 300 seconds`；MUST NOT 截到签发 handoff 或 lease 的截止时间。锁等待期间到期仍必须拒绝。register 在首次外部副作用前分别检查当前 handoff/账号有效、live lease 的 holder/id/fence、challenge 自身窗口及未失效状态、全部冻结材料绑定；这些条件同时成立才可继续。续租不延长原 challenge，challenge 不延长执行权。
 
 同账号、holder、lease id/fence、reservation 与全部 proof 绑定未变时，新的合法 handoff 或 same-holder renewal MUST 允许复用仍有效的原 challenge/proof，不得仅因 bearer/callback 改变而要求新签发或重签。过期后重新 acquisition 或 takeover 改变 fence 时旧 proof 不可复用，不得原地恢复旧 fence。丢响应且持有原请求时客户端 MUST 优先 exact replay；replay 不重算时间窗、不重复计数、不绕过当前授权或已替换/消费/过期状态。已提交 register 的 canonical outcome replay 与已冻结 saga 内部恢复沿用原合同，不能因证明后来到期重做外部副作用。
@@ -109,7 +116,7 @@ reconciliation 重算的是服务端 phase、合法目标与所需材料，不�
 
 **DID 首次发布的 frozen-reservation barrier（normative）**：Account Authority MUST 在首次向 DID registry 或 method-native log 提交任何 publication 请求之前，于同一原子步骤中验证当前 live `identity_creation_lease`、匹配 fence、holder、reservation 与 challenge，并冻结 `principal_id`、`did`、完整 canonical `principal_registration_anchor` bytes 及其 digest。缺少 live lease、lease 已过期、fence 不匹配或 holder 不一致的 holder-originated command MUST 在任何 registry I/O 之前 fail closed 且零写入；在 registry I/O 完成之后再检查 lease 不构成该前置条件的替代，因为已发生的外部副作用不可撤销。
 
-reservation 一旦冻结，任何首次提交、超时重试、崩溃恢复、response-loss reconciliation 与 fence takeover MUST 只查询或 exact replay 已冻结的同一份 canonical DID operation；MUST NOT 替换 `principal_id`、`did`、operation digest 或 canonical bytes，也 MUST NOT 为该 reservation 创建第二份 DID operation。registry 对 exact replay 返回的 acceptance MUST 稳定收敛到同一个 `did_published` checkpoint 与同一个 `accepted_at`。
+reservation 一旦冻结，任何首次提交、超时重试、崩溃恢复、response-loss reconciliation 与 fence takeover MUST 只查询或 exact replay 已冻结的同一份 canonical DID operation；MUST NOT 替换 `principal_id`、`did`、`registration_anchor_digest` 或 canonical bytes，也 MUST NOT 为该 reservation 创建第二份 DID operation。registry 对 exact replay 返回的 acceptance MUST 稳定收敛到同一个 `did_published` checkpoint 与同一个 `accepted_at`。
 
 **跨 Authority 时间不构成因果排序（normative）**：`registration_did_evidence.accepted_at` 记录受信 registry 按自身权威时钟首次接纳 exact DID operation 的时刻，`control_proof.created_at` 记录证明签署方在自己签名原像内承诺的时刻；两者来自不同 Authority 的独立时钟，彼此之间不存在可依赖的因果排序。任何实现 MUST NOT 以两者的先后或差值作为接受或拒绝该 evidence 的条件，MUST NOT 要求 `accepted_at` 不早于 `control_proof.created_at`，也 MUST NOT 为此引入容差窗口、clock-skew 参数或补偿偏移。完整历史 `registration_did_evidence` 同样 MUST NOT 被施加相对于接收方当前时间的新鲜度检查。`accepted_at` MUST 原样取自 registry 对 exact operation 的原始接纳结果并由 Account Authority 冻结进 evidence digest；MUST NOT 由客户端指定、取 `max()`、在重放时重新取当前时间，也 MUST NOT 为修正时间重签完整 evidence。`control_proof.created_at` 留在签名原像内且签名后不可改写，但它不是受信授时、registry receipt 或独立的新鲜度授权；首次执行权仍只由本节的 challenge 窗口、live lease/holder/fence 与 `identity_creation_control_proof` 合同保证，删除本比较不放宽其中任何一项。
 
@@ -125,7 +132,7 @@ lease/fence 授权当前 holder 冻结 reservation 并发起 holder-originated c
 
 整个 register 以 `(service_account,principal_id,registration_anchor_digest)` 与 idempotency key 做 exact replay：相同 bytes 返回同一 saga/receipt/grant outcome；同 key 不同 bytes、账号/principal 冲突或 genesis digest 变化必须零写入失败。一个 Account Authority 下一个 service account 只绑定一个 active principal，一个 principal 也只绑定一个 active account。
 
-`AccountRegisterOutcome.binding_receipt` 必须由 Account Authority 签发并闭合绑定 `account_subject`、`principal_id`、`did`、method head/version、lease/fence 与 operation digest。Account Authority 验证方法原生 registration evidence 及发行者历史，客户端消费已认证且与预期 service/issuer 绑定的注册结果，MUST 核对其账号、自己生成的 DID/设备公钥、frozen operation bytes 与派生 digest、lease/fence 和 receipt 坐标；任何冲突都 fail closed。该本地意图比对不要求回取或重放 Account Authority/主体的完整方法历史，也不把任意 registry endpoint 视为受信服务。后续 handoff 返回的 `principal_id` 若不等于本地 frozen/derived `did_core_id`，必须 `account_binding_principal_mismatch`，不得覆盖本地锚。私钥 possession 和带外设备信任按 [服务器信任与结果消费](../sync/server-trusted-results.md) 保留。
+`AccountRegisterOutcome.binding_receipt` 必须由 Account Authority 签发并闭合绑定 `account_subject`、`principal_id`、`did`、method head/version、lease/fence 与 `registration_anchor_digest`。Account Authority 验证方法原生 registration evidence 及发行者历史，客户端消费已认证且与预期 service/issuer 绑定的注册结果，MUST 核对其账号、自己生成的 DID/设备公钥、frozen operation bytes 与派生 digest、lease/fence 和 receipt 坐标；任何冲突都 fail closed。该本地意图比对不要求回取或重放 Account Authority/主体的完整方法历史，也不把任意 registry endpoint 视为受信服务。后续 handoff 返回的 `principal_id` 若不等于本地 frozen/derived `did_core_id`，必须 `account_binding_principal_mismatch`，不得覆盖本地锚。私钥 possession 和带外设备信任按 [服务器信任与结果消费](../sync/server-trusted-results.md) 保留。
 
 若设备在 PCR accepted 前物理损毁，新 holder 在旧 lease 过期后可递增 fence、继承 reservation，并用同一 registration control 对新 challenge 与 founding unit 重签。PCR create-once 使并发 unit 只有一个 winner；若旧 unit 已先 accepted，新设备必须走已接受 recovery policy，不能再次 genesis。若 PCR 未 accepted 且 registration control 也丢失，可显式放弃 provisional identity 并新建 DID/PCR。放弃必须是显式用户动作，保留 orphan-anchor tombstone/audit reservation，且不得把已放弃 checkpoint 继续暴露为账号可读状态。
 
@@ -309,7 +316,7 @@ factor 时，current DID control proof 才可作为附加分支；该分支必�
 
 状态真相是 Account Authority issuer ledger 中的 immutable signed record：
 
-```json
+```json fragment
 {
   "schema": "ak.schema.account_status_record.v1",
   "account_status_record_id": "ak:account_status_record:Aaqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
@@ -335,7 +342,6 @@ factor 时，current DID control proof 才可作为附加分支；该分支必�
   }
 }
 ```
-
 `AccountStatusRecord` 的 signer MUST 是对该 `account_id` 具有权威性的 Account Authority。holder 自助请求、appeal、管理员、风控服务或 Station 只能提交 authenticated transition command；它们不得直接签发 portable record。`proof.verification_method` 的 controller 与 `account_authority_id` 必须解析到同一 Account Authority，且 key 在 `issued_at` 对应的历史窗口内 active。record 的 account/principal/binding tuple 必须逐字匹配 Account Authority 本地已接受 binding。
 
 ### 3.1 Account Authority issuer ledger 与复制载体（normative）

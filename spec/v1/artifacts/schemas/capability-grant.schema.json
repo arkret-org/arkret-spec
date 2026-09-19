@@ -150,6 +150,7 @@
               },
               "authority_event_ref": {
                 "$ref": "./common-ids.schema.json#/$defs/event_id",
+                "x-arkret-preimage-commitment": "fixed_event",
                 "description": "The accepted Realm genesis or owner-transfer Event that established the issuing controller."
               },
               "authority_generation": {
@@ -190,7 +191,8 @@
             "$ref": "./common-ids.schema.json#/$defs/realm_id"
           },
           "authority_event_ref": {
-            "$ref": "./common-ids.schema.json#/$defs/event_id"
+            "$ref": "./common-ids.schema.json#/$defs/event_id",
+            "x-arkret-preimage-commitment": "fixed_event"
           },
           "authority_generation": {
             "type": "integer",

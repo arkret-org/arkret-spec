@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.18",
+  "version": "2026-09-19.25",
   "source_of_truth": false,
-  "generated_at": "2026-09-19T16:45:23+08:00",
+  "generated_at": "2026-09-19T19:26:03+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -7007,6 +7007,34 @@
             "closed": true
           }
         ]
+      }
+    },
+    {
+      "operation_id": "ak.self.events.read.delivery_status.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventDeliveryStatusRequestBody",
+        "schema_kind": "object",
+        "required": [
+          "event_id"
+        ],
+        "properties": [
+          "event_id"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventDeliveryStatusOutcome",
+        "schema_kind": "object",
+        "required": [
+          "event_id",
+          "targets"
+        ],
+        "properties": [
+          "event_id",
+          "targets"
+        ],
+        "closed": true
       }
     },
     {

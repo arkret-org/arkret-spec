@@ -6,7 +6,7 @@
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 338,
+  "audited_occurrence_count": 340,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -264,6 +264,13 @@
       "reason": "Binds, locates, or bounds registered evidence material without carrying a second independently authoritative proof object."
     },
     {
+      "file": "capability-action-registry.json",
+      "key": "evidence_schema_ref",
+      "occurrences": 1,
+      "disposition": "registry_contract",
+      "reason": "Names the closed approval evidence item schema required by one registered request carrier; this is carrier metadata, not an evidence instance."
+    },
+    {
       "file": "contact-operations.schema.json",
       "key": "contact_continuity_evidence",
       "occurrences": 1,
@@ -353,6 +360,13 @@
       "occurrences": 5,
       "disposition": "registry_contract",
       "reason": "Stable reference to the implementation source location used to audit a deployment support vector."
+    },
+    {
+      "file": "contract-registry.json",
+      "key": "evidence_schema_ref",
+      "occurrences": 1,
+      "disposition": "registry_contract",
+      "reason": "Names the closed approval evidence item schema required by one registered request carrier; this is carrier metadata, not an evidence instance."
     },
     {
       "file": "contract-registry.json",

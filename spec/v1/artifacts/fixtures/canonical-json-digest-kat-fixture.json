@@ -1,0 +1,72 @@
+{
+  "version": "2026-09-19.1",
+  "suite": "canonical_json_digest_known_answers",
+  "description": "Byte-exact known-answer cases for every canonical-JSON digest domain that was previously registered without a KAT.",
+  "runner": {
+    "kind": "known_answer_tests"
+  },
+  "cases": [
+    {
+      "name": "accountability_scope_set",
+      "domain": "ak.accountability_scope_set.v1",
+      "prefix_bytes_hex": "616b2e6163636f756e746162696c6974795f73636f70655f7365742e76310a",
+      "transcript": {
+        "scopes": [
+          "agent_operator",
+          "contracted_service",
+          "employment"
+        ]
+      },
+      "canonical_transcript_utf8": "{\"scopes\":[\"agent_operator\",\"contracted_service\",\"employment\"]}",
+      "digest_input_hex": "616b2e6163636f756e746162696c6974795f73636f70655f7365742e76310a7b2273636f706573223a5b226167656e745f6f70657261746f72222c22636f6e747261637465645f73657276696365222c22656d706c6f796d656e74225d7d",
+      "expected_digest": "sha256:3b184e4d6501c2b36ae5c19cfb652d5b203ebd3732e76081ba818b5ad066a9cf"
+    },
+    {
+      "name": "contact_glare_unconsumed_slot",
+      "domain": "ak.contact.glare_unconsumed_slot.v1",
+      "prefix_bytes_hex": "616b2e636f6e746163742e676c6172655f756e636f6e73756d65645f736c6f742e76310a",
+      "transcript": {
+        "subject_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+          }
+        },
+        "peer_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturebob",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationb"
+          }
+        },
+        "contact_round_id": "sha256:9b7c5aa257c85796be3ad8b3a729344f295439f502ae879600ed2a83b1a1ada3",
+        "request_receipt_digests": [
+          "sha256:7ae6ddefe272e476adcc4c5c7f4dd32636a1c91f7235d10b34929e7ffcb5d710",
+          "sha256:16cd2d1086d19850817b2b48351a8df4b979c8db154a7dee91a17603fb30bb4d"
+        ],
+        "observed_commit_event_ids": [
+          "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+          "ak:event:AWi7O9JH8Ib3wHJrt01Tl7Gf67pixYPhAmufRLOXFoBA"
+        ],
+        "complete_through": 1,
+        "slot_state": "pending_unconsumed"
+      },
+      "canonical_transcript_utf8": "{\"complete_through\":1,\"contact_round_id\":\"sha256:9b7c5aa257c85796be3ad8b3a729344f295439f502ae879600ed2a83b1a1ada3\",\"observed_commit_event_ids\":[\"ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD\",\"ak:event:AWi7O9JH8Ib3wHJrt01Tl7Gf67pixYPhAmufRLOXFoBA\"],\"peer_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturebob\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationb\"},\"kind\":\"account\"},\"request_receipt_digests\":[\"sha256:7ae6ddefe272e476adcc4c5c7f4dd32636a1c91f7235d10b34929e7ffcb5d710\",\"sha256:16cd2d1086d19850817b2b48351a8df4b979c8db154a7dee91a17603fb30bb4d\"],\"slot_state\":\"pending_unconsumed\",\"subject_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturealice\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationa\"},\"kind\":\"account\"}}",
+      "digest_input_hex": "616b2e636f6e746163742e676c6172655f756e636f6e73756d65645f736c6f742e76310a7b22636f6d706c6574655f7468726f756768223a312c22636f6e746163745f726f756e645f6964223a227368613235363a39623763356161323537633835373936626533616438623361373239333434663239353433396635303261653837393630306564326138336231613161646133222c226f627365727665645f636f6d6d69745f6576656e745f696473223a5b22616b3a6576656e743a41514a6d536731733951797a707046654a4c3430644e39325956485a654c64424274335557486139584e4f44222c22616b3a6576656e743a415769374f394a483849623377484a72743031546c3747663637706978595068416d7566524c4f58466f4241225d2c22706565725f6964223a7b226163636f756e745f6964223a7b227072696e636970616c5f6964223a22616b3a6469645f636f72653a77656276683a7a366d6b66697874757265626f62222c2273746174696f6e5f6964223a22616b3a6469645f636f72653a77656276683a7a366d6b6669787475726573746174696f6e62227d2c226b696e64223a226163636f756e74227d2c22726571756573745f726563656970745f64696765737473223a5b227368613235363a37616536646465666532373265343736616463633463356337663464643332363336613163393166373233356431306233343932396537666663623564373130222c227368613235363a31366364326431303836643139383530383137623262343833353161386466346239373963386462313534613764656539316131373630336662333062623464225d2c22736c6f745f7374617465223a2270656e64696e675f756e636f6e73756d6564222c227375626a6563745f6964223a7b226163636f756e745f6964223a7b227072696e636970616c5f6964223a22616b3a6469645f636f72653a77656276683a7a366d6b66697874757265616c696365222c2273746174696f6e5f6964223a22616b3a6469645f636f72653a77656276683a7a366d6b6669787475726573746174696f6e61227d2c226b696e64223a226163636f756e74227d7d",
+      "expected_digest": "sha256:fb5b8c35d9c35f39d1765f2af74750aa8080323e8362d9e6854a1bf25567e909"
+    },
+    {
+      "name": "contact_request_source_checkpoint",
+      "domain": "ak.contact.request_source_checkpoint.v1",
+      "prefix_bytes_hex": "616b2e636f6e746163742e726571756573745f736f757263655f636865636b706f696e742e76310a",
+      "transcript": {
+        "event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+        "event_digest": "sha256:02664a0d6cf50cb3a6915e24be3474df766151d978b74106ddd45876bd5cd383"
+      },
+      "canonical_transcript_utf8": "{\"event_digest\":\"sha256:02664a0d6cf50cb3a6915e24be3474df766151d978b74106ddd45876bd5cd383\",\"event_ref\":\"ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD\"}",
+      "digest_input_hex": "616b2e636f6e746163742e726571756573745f736f757263655f636865636b706f696e742e76310a7b226576656e745f646967657374223a227368613235363a30323636346130643663663530636233613639313565323462653334373464663736363135316439373862373431303664646434353837366264356364333833222c226576656e745f726566223a22616b3a6576656e743a41514a6d536731733951797a707046654a4c3430644e39325956485a654c64424274335557486139584e4f44227d",
+      "expected_digest": "sha256:88165cd00f7dcccefccd91340bec35784cc4aabe682d694fa8a4ef47faffe450"
+    }
+  ]
+}

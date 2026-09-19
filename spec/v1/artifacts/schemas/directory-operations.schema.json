@@ -124,7 +124,7 @@
         },
         "jws": {
           "type": "string",
-          "pattern": "^[A-Za-z0-9_-]+\\.(?:[A-Za-z0-9_-]+)?\\.[A-Za-z0-9_-]+$"
+          "pattern": "^[A-Za-z0-9_-]+\\.\\.[A-Za-z0-9_-]+$"
         }
       },
       "additionalProperties": false,
@@ -225,7 +225,8 @@
           "$ref": "#/$defs/timestamp"
         },
         "jws": {
-          "$ref": "#/$defs/non_empty_string"
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+\\.\\.[A-Za-z0-9_-]+$"
         }
       },
       "additionalProperties": false

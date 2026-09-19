@@ -30,6 +30,16 @@ def canonical_json(value: object) -> str:
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
 
 
+def base58btc(raw: bytes) -> str:
+    alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+    number = int.from_bytes(raw, "big")
+    encoded = ""
+    while number:
+        number, remainder = divmod(number, 58)
+        encoded = alphabet[remainder] + encoded
+    return "1" * (len(raw) - len(raw.lstrip(b"\x00"))) + encoded
+
+
 def common(kind: str) -> dict[str, object]:
     return {
         "schema": "ak.identity.recovery_proof.v1",
@@ -56,14 +66,14 @@ def common(kind: str) -> dict[str, object]:
     }
 
 
-def proof_inputs() -> list[tuple[str, dict[str, object], list[str]]]:
+def proof_inputs(verification_method: str) -> list[tuple[str, dict[str, object], list[str]]]:
     return [
         (
             "did_root",
             {
                 "kind": "did_root",
                 "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-                "verification_method": "did:key:z6MkfixtureRoot#z6MkfixtureRoot",
+                "verification_method": verification_method,
                 "signature_algorithm": "Ed25519",
                 "signature": "PLACEHOLDER",
             },
@@ -74,8 +84,8 @@ def proof_inputs() -> list[tuple[str, dict[str, object], list[str]]]:
             {
                 "kind": "recovery_unlock",
                 "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-                "recovery_secret_ref": "did:key:z6MkfixtureRecovery#z6MkfixtureRecovery",
-                "verification_method": "did:key:z6MkfixtureRecovery#z6MkfixtureRecovery",
+                "recovery_secret_ref": "recovery-key-fixture",
+                "verification_method": verification_method,
                 "signature_algorithm": "Ed25519",
                 "unlock_commitment": "sha256:" + "22" * 32,
                 "signature": "PLACEHOLDER",
@@ -91,13 +101,13 @@ def proof_inputs() -> list[tuple[str, dict[str, object], list[str]]]:
                 "signatures": [
                     {
                         "device_id": "ak:device:019b6a40-0000-7000-8000-000000000004",
-                        "verification_method": "did:key:z6MkfixtureDeviceA#z6MkfixtureDeviceA",
+                        "verification_method": verification_method,
                         "signature_algorithm": "Ed25519",
                         "signature": "PLACEHOLDER",
                     },
                     {
                         "device_id": "ak:device:019b6a40-0000-7000-8000-000000000005",
-                        "verification_method": "did:key:z6MkfixtureDeviceB#z6MkfixtureDeviceB",
+                        "verification_method": verification_method,
                         "signature_algorithm": "Ed25519",
                         "signature": "PLACEHOLDER",
                     },
@@ -139,8 +149,10 @@ def project(kind: str, proof: dict[str, object]) -> dict[str, object] | None:
 def main() -> None:
     test_key = json.loads(SHARED_KEY.read_text(encoding="utf-8"))["test_key"]
     signing_key = Ed25519PrivateKey.from_private_bytes(decode_b64u(test_key["private_key_seed"]))
+    multikey = "z" + base58btc(b"\xed\x01" + decode_b64u(test_key["public_key"]))
+    verification_method = f"did:key:{multikey}#{multikey}"
     cases = []
-    inputs = proof_inputs()
+    inputs = proof_inputs(verification_method)
     for index, (kind, proof, removed) in enumerate(inputs):
         transcript = common(kind)
         body = project(kind, proof)
@@ -179,7 +191,7 @@ def main() -> None:
             }
         )
     fixture = {
-        "version": "2026-09-11.1",
+        "version": "2026-09-19.1",
         "generated_by": "tools/regenerate_recovery_transcript_fixture.py",
         "domain": "ak.identity.recovery_proof.v1",
         "description": "Byte-exact signing transcripts for all four recovery factors. The verifier reconstructs these bytes from stored session state and the submitted proof; clients never submit a transcript object.",

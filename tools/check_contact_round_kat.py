@@ -42,13 +42,33 @@ def digest(value: object, domain: str | None = None) -> str:
     return "sha256:" + hashlib.sha256((prefix + canonical_json(value)).encode()).hexdigest()
 
 
+def detached_jws(key: Ed25519PrivateKey, payload: bytes) -> str:
+    protected = b64u(canonical_json({"alg": "Ed25519"}).encode("utf-8"))
+    signing_input = (protected + "." + b64u(payload)).encode("ascii")
+    return protected + ".." + b64u(key.sign(signing_input))
+
+
+def verify_detached_jws(key: Ed25519PublicKey, value: str, payload: bytes) -> None:
+    parts = value.split(".")
+    if len(parts) != 3 or parts[1] != "":
+        raise InvalidSignature("signature is not a compact detached JWS")
+    try:
+        protected = json.loads(unb64u(parts[0]))
+    except (ValueError, json.JSONDecodeError) as exc:
+        raise InvalidSignature("protected header is not JSON") from exc
+    if protected != {"alg": "Ed25519"}:
+        raise InvalidSignature("protected header does not select Ed25519")
+    signing_input = (parts[0] + "." + b64u(payload)).encode("ascii")
+    key.verify(unb64u(parts[2]), signing_input)
+
+
 def signed_fact(body: dict, method: str, created_at: str) -> dict:
     # Published conformance seed 00..1f; never a production authority input.
     key = Ed25519PrivateKey.from_private_bytes(bytes(range(32)))
     return {**body, "signature": {
         "verification_method": method,
         "created_at": created_at,
-        "jws": b64u(key.sign(canonical_json(body).encode())),
+        "jws": detached_jws(key, canonical_json(body).encode("utf-8")),
     }}
 
 
@@ -141,8 +161,7 @@ def check_producer_vectors(fixture: dict) -> None:
         canonical = canonical_json(unsigned)
         if canonical != case["canonical_unsigned"] or digest(signed) != case["expected_signed_digest"]:
             raise SystemExit(case["name"] + ": signed object canonical bytes/digest drifted")
-        signature = unb64u(signed["signature"]["jws"])
-        source_key.verify(signature, canonical.encode())
+        verify_detached_jws(source_key, signed["signature"]["jws"], canonical.encode("utf-8"))
         if "core" in signed and digest(signed["core"], CORE_DOMAIN) != signed["receipt_digest"]:
             raise SystemExit("request core digest mismatch")
         for mutation in section["negative_cases"]:
@@ -163,7 +182,7 @@ def check_producer_vectors(fixture: dict) -> None:
                 raise SystemExit(case["name"] + ": schema accepted " + mutation)
             transcript = canonical_json({k:v for k,v in tampered.items() if k != "signature"}).encode()
             try:
-                source_key.verify(signature, transcript)
+                verify_detached_jws(source_key, signed["signature"]["jws"], transcript)
             except InvalidSignature:
                 pass
             else:
@@ -260,7 +279,7 @@ def check_delegated_actor_vectors(fixture: dict) -> None:
         if digest(core, CORE_DOMAIN) != signed["receipt_digest"]:
             raise ValueError("changed signed receipt core")
         transcript = canonical_json({k:v for k,v in signed.items() if k != "signature"}).encode()
-        source_key.verify(unb64u(signed["signature"]["jws"]), transcript)
+        verify_detached_jws(source_key, signed["signature"]["jws"], transcript)
         return True
 
     rows = {row["name"]: row for row in section["cases"]}

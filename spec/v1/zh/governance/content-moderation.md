@@ -102,7 +102,7 @@ POST /_arkret/self/moderation/report
 ```
 
 请求 body 是 closed `{report_event: EventCommitSubmission}`，不得同时携带 unsigned `realm_id`、
-`target_ref`、`reporter` 或 evidence 投影。`report_event.event.kind` MUST 为
+`target_ref`、`reporter_id` 或 evidence 投影。`report_event.event.kind` MUST 为
 `ak.self.moderation.report`；payload 字段如下：
 
 | 字段 | 类型 | 必填 | 说明与约束 |
@@ -112,14 +112,14 @@ POST /_arkret/self/moderation/report
 | `target_ref` | id | required | 被举报 accepted Object / Event 的 canonical ref；服务端不得把 Operation ref 映射成另一个 ref 后代签或改写 Event。 |
 | `report_reason_code` | enum | required | 举报原因码，取值见 §3.2。 |
 | `description` | string | optional；`report_reason_code=other` 时 required | 举报说明；服务端 MAY 限制长度。 |
-| `reporter` | did_core_id | required | MUST 等于 Event `actor_id` 与认证 session principal。 |
+| `reporter_id` | did_core_id | required | MUST 等于 Event `actor_id` 的 signing principal 与认证 session principal。 |
 | `provenance` | enum | optional | self endpoint 只允许省略或 `self`；`mimi_facade` 只属于独立 MIMI facade ingress。 |
 | `evidence_refs` | id[] | optional | reporter 可见证据的 canonical refs，集合内不得重复。 |
 | `evidence_package` | object | optional | [`moderation-evidence.schema.json#/$defs/evidence_package`](../../artifacts/schemas/moderation-evidence.schema.json) 的 closed 加密证据包。 |
 | `franking_proof` | object | optional | [`moderation-evidence.schema.json#/$defs/franking_proof`](../../artifacts/schemas/moderation-evidence.schema.json) 的完整密文投递证明。 |
 
-该 self operation 只接受 reporter 本人设备直接签名：`event.actor_id == payload.reporter ==
-session principal`，并禁止 `executed_by`、`authorization_ref`、`applet_id`、`source_provider` 与
+该 self operation 只接受 reporter 本人设备直接签名：`event.actor_id` 的 signing principal
+`== payload.reporter_id == session principal`，并禁止 `executed_by`、`authorization_ref`、`applet_id`、`source_provider` 与
 MIMI facade provenance。它是 Event，其授权由当前治理 Station 在接纳事务内解析，MUST NOT 携带
 `expected_revision` 或 `preconditions`。服务端只把 exact signed bytes 送入 Event admission，
 不得构造、重建、共同签名或注入任何 guard。
@@ -134,7 +134,7 @@ MIMI facade provenance。它是 Event，其授权由当前治理 Station 在接�
 
 请求示例（非完整 schema）：
 
-```json
+```json fragment
 {
   "report_event": {
     "event": {
@@ -163,7 +163,6 @@ MIMI facade provenance。它是 Event，其授权由当前治理 Station 在接�
   }
 }
 ```
-
 #### 3.1.1 举报入口反滥用约束（normative）
 
 举报入口本身是可被滥用的写路径（举报洪水、超大 evidence_package 充塞、franking_proof 重放）。实现 MUST：
@@ -245,7 +244,7 @@ Evidence package MUST 加密给 `effective_scope` 对应 moderator audience。�
 
 Canonical franking proof 结构（示例中的 signature 字节以 `...` 省略）：
 
-```json
+```json fragment
 {
   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
   "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
@@ -256,7 +255,6 @@ Canonical franking proof 结构（示例中的 signature 字节以 `...` 省略�
   "signature": "base64url..."
 }
 ```
-
 **Durable Event 与 report 内嵌对象的单一合同（normative）**：[`moderation-evidence.schema.json#/$defs/franking_proof`](../../artifacts/schemas/moderation-evidence.schema.json) 同时是 `ak.moderation.franking_proof` durable Event 的完整 payload 合同，以及 report payload 内嵌 `franking_proof` 的合同；两处不得维护不同字段集。`payload.event_id` 是**被证明已接收的 encrypted Event ID**，也是 `moderation_franking_proof` ordered-log typed current result 的 subject；它不是承载该 proof 的外层 Event 自身 `event_id`。Proof 在接收密文时由 receiving service 生成，先于且独立于任何后续 report，因此 payload MUST NOT 携带 `report_id` 或 `target_ref`，report 与 proof 的关联由 report 内嵌该完整 proof 对象建立。
 
 当 receiving service 把 proof 发布为 `ak.moderation.franking_proof` Event 时，reducer MUST 在写 typed current result 前验证：envelope `realm_id == payload.realm_id`、envelope `actor_id == payload.received_by`、`payload.event_id` 指向同 Realm 内已接受且内容承诺可重算的 encrypted Event、`replay_nonce` 未在有效去重窗口内使用，且 payload `signature` 可由 `verification_method` 在 `received_at` 验证；该 method 的 controller 投影 MUST 等于 `received_by` 并在该 Realm 获授权。任一绑定不成立 MUST 按 `crypto_verifiable` admission fail closed；不得仅因 JSON Schema 通过就 append。
@@ -360,7 +358,7 @@ v1 不定义可复制的 Realm 级 blocklist、server ACL 或 content-filter pol
 
 Realm SHOULD 支持审核队列 (Moderation Queue) 视图，汇集用户举报记录与 §2.6 active `require_review` decision。举报 item 的 `status={submitted,resolved}` 只描述 report lifecycle；policy review item 的 pending / resolved 由对应 decision add 是否仍 active 派生，不得为后者伪造 `moderation-queue-item.status` 新枚举。举报 item 的每个成员按 §3.3 的派生规则从 `moderation_report` family、`moderation_state` 与本地工作流取得，该 View 本身不持有可写状态。建议使用标准 View 机制：
 
-```json
+```json fragment
 {
   "kind": "collection",
   "renderer": "list",
@@ -388,14 +386,13 @@ Realm SHOULD 支持审核队列 (Moderation Queue) 视图，汇集用户举报�
   }
 }
 ```
-
 ## 6. 服务器级访问控制
 
 ### 6.1 本地部署 ACL 与 Realm ACL 的边界
 
 Station 可以配置本地服务器级 ACL，控制哪些 peer 的联邦请求被接受、拒绝或停止 fanout：
 
-```json
+```json fragment
 {
   "server_acl": {
     "allow": ["*"],
@@ -406,7 +403,6 @@ Station 可以配置本地服务器级 ACL，控制哪些 peer 的联邦请求�
   }
 }
 ```
-
 该 `server_acl` 是部署本地 policy 名称，不是标准 Event kind，不进入 `event-kind-registry.json`，也不是可复制的 Realm 状态。实现 MUST NOT 接受 `ak.realm.server_acl`、`ak.server.acl` 或等价未注册 kind 作为 Realm 权威状态。
 
 规则评估顺序：先检查 `deny` 列表，再检查 `allow` 列表。支持 glob 通配符时，通配符只允许覆盖完整 DNS label；`*.example.com` 不得匹配 `example.com` 或 `badexample.com`。推荐实现同时支持 exact `service_id`、`trust_domain` 与 DNS domain 规则，并优先使用已验证 service DID。
@@ -436,7 +432,7 @@ whole-value `value`；策略内容全部位于 `value` 内，**不得**平铺到
 accepted RealmCommit state，因此 payload **不携带**独立的 detached `proof`：再签一次覆盖的是同一批 canonical
 bytes，只会多出一条可漂移的第二真相源。
 
-```json
+```json fragment
 {
   "kind": "ak.organization.moderation_policy",
   "payload": {
@@ -474,7 +470,6 @@ bytes，只会多出一条可漂移的第二真相源。
   }
 }
 ```
-
 规则：
 
 - 组织策略只对显式引用它的 Realm / 服务有权威；对官方 Realm 也仅当其 `ak.realm.organization` 背书声明组织策略适用时才生效。

@@ -51,7 +51,7 @@ Arkret 命名空间与分隔符约定（normative）：`.` 与 `:` 表达不同�
 
 因此，看到 `ak:` 先按“typed ref / special-form ref”解析，看到 `ak.` 先按“registry symbol / namespaced key”解析。领域 current-result selector 始终按其 closed JSON schema 解析，不编码成第三种字符串命名空间。完整 typed-ref special forms 以 [`id-kind-registry.json`](../../artifacts/registry/id-kind-registry.json) 和 [`encoding.md` §4](../conformance/encoding.md) 为准；缺席于当前 registry/schema 的前缀、selector kind 或拼写都不是 alias，parser MUST fail closed。
 
-需要安全域分离的固定字符串 label 也使用 registry 明确登记的 `ak.*` 值。`proof-context-registry.json` 的 `contexts[].context` 与 `domain_separations[].domain` 统一使用 `ak.<symbol-path>.v1`：`.` 分隔命名层级、层级内复合词使用 snake_case。两类 label 不靠分隔符编码语义，而由其所属数组及 `primitive` 唯一决定；同一 label MUST NOT 同时登记于两类中。历史 `ak.<kebab-case>-proof-v1` 拼写无效且不是 alias；调用点 MUST 逐字使用所属 registry 行。MLS GroupContext extension 的当前 wire 名是 `mls_governance_binding`（codepoint 0xF1C0，不使用品牌前缀），实现 MUST 用 `mls_governance_binding`、MUST NOT 接受其它拼写。
+需要安全域分离的固定字符串 label 也使用 registry 明确登记的 `ak.*` 值。`proof-context-registry.json` 的 `contexts[].context` 与 `domain_separations[].domain` 统一使用 `ak.<symbol-path>.v1`：`.` 分隔命名层级、层级内复合词使用 snake_case。两类 label 不靠分隔符编码语义，而由其所属数组及 `primitive` 唯一决定；同一 label MUST NOT 同时登记于两类中。历史 `ak.<kebab-case>-proof-v1` 拼写无效且不是 alias；调用点 MUST 逐字使用所属 registry 行。MLS GroupContext extension 的当前 wire 名是 `mls_governance_binding`（codepoint 0xF1C0，不使用品牌前缀），实现 MUST 用 `mls_governance_binding`、MUST NOT 接受其它拼写。它唯一承载 `effective_scope`、`base_group_state_ref`、`previous_epoch`、`next_epoch`、`key_access_revision` 五字段 deterministic-CBOR map；外层 key 的编码字节顺序固定为 `next_epoch`、`previous_epoch`、`effective_scope`、`key_access_revision`、`base_group_state_ref`，三个整数均为 `0..2^64-1`，其中 `key_access_revision` 是单调计数器而非摘要。精确 decoder 上限与拒绝条件见 [`encryption-and-audit.md` §2.5.1](../crypto-media/encryption-and-audit.md)。
 
 字段默认规则：
 
@@ -627,8 +627,8 @@ Realm 没有 materialized `state` 字段（§5.1 表末），因此 `ak.realm.ar
 
 | 对象 | 是否声明 `stage` | 必填语义 | 触发 event |
 | --- | --- | --- | --- |
-| `Strand` | yes | 可选；`ak.strand.create` MAY 省略，普通业务 Strand SHOULD 填写，DM 主 Strand MAY 省略或选填合法值 | `ak.strand.stage.set` |
-| `Morph` | yes | 可选；generic mirror/data Morph MAY 省略。v1 没有任何 carrier 能把顶层 `stage` 收紧为 create 必填：Realm `morph_kind_profiles` 只收紧 `fields.*` / facets / capability action（[morph.md §4](./morph.md)），`schema_refs[]` 只验业务字段 | `ak.morph.stage.set` |
+| `Strand` | yes | create payload MUST 省略；需要进度轴时由首条 `ak.strand.stage.set` 初始化。普通业务 Strand SHOULD 在创建后初始化，DM 主 Strand MAY 一直省略 | `ak.strand.stage.set` |
+| `Morph` | yes | create payload MUST 省略；generic mirror/data Morph MAY 一直无进度轴。v1 没有任何 carrier 能要求 create payload 携带顶层 `stage`：Realm `morph_kind_profiles` 只收紧 `fields.*` / facets / capability action（[morph.md §4](./morph.md)），`schema_refs[]` 只验业务字段 | `ak.morph.stage.set` |
 | Realm / Space / Message / Relation / View / Policy / ... | no | — | — |
 
 适用对象自己的 schema MUST 显式枚举允许值；`strand.schema.json` 与 `morph.schema.json` MUST 把 `stage` 声明为可选字段，且 `stage_changed_at` MUST NOT 在缺少 `stage` 时单独出现。Morph 缺失 stage 时，首条 `ak.morph.stage.set` 是初始化而非从某个隐含默认值迁移；可取任一注册值，之后才应用普通转换规则。不适用对象 MUST NOT 暴露 `stage` 顶层字段。**未来如有新对象需要 stage 轴**,扩展时 MUST 同步在本节登记。
@@ -769,7 +769,7 @@ suite-tagged 完整 digest token，此外 `ak:trust_domain:` 是 deployment-scop
 
 公共字段示例：
 
-```json
+```json fragment
 {
   "id": "ak:strand:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa",
   "schema": "ak.schema.strand.v1",
@@ -780,7 +780,6 @@ suite-tagged 完整 digest token，此外 `ak:trust_domain:` 是 deployment-scop
   "updated_at": "2026-04-26T00:00:00Z"
 }
 ```
-
 ## 7. Reducer 总则
 
 Reducer 总则的 normative 表述以 [`event-and-patch.md` §3](./event-and-patch.md#3-typed-reducer) 为唯一权威，验证步骤以 [`event-and-patch.md` §4](./event-and-patch.md#4-验证边界) 为唯一权威；本节不再重复列出验证步骤，避免两份独立维护的清单漂移。

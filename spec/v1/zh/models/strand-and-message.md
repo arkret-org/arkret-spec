@@ -68,7 +68,7 @@ Schema id: `ak.schema.strand.v1`
 | `tracks` | yes | `map<TrackName, StrandTrack>` | 至少 1 个 key；key 唯一性由 map 结构保证；至多 1 个 entry `is_primary=true`。 | 轨道定义、默认入口与轨道访问继承。 |
 | `state` | no | `enum(active, archived, redacted)` | lifecycle 转换与 reason_code 见本文件 Strand lifecycle 合同入口。**Strand 不引入独立 `tombstoned` 终态**；deletion 语义通过指向该 Strand 的 `ak.redaction` 表达。 | 物化状态（物理生命周期）。 |
 | `state_changed_at` | conditional | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
-| `stage` | no | `enum(draft, proposed, planned, in_progress, blocked, done, cancelled, superseded)` | 枚举、唯一写入路径、reserved-name guard 与 reducer 硬约束以 [common-fields.md §5.3](./common-fields.md) 为唯一权威。普通业务 Strand SHOULD 填写；DM 主 Strand MAY 省略或选填合法值。Strand 的人类解释写入 discussion Message 并 `references` stage event。 | 可选业务进度阶段（与 `state` 正交）。 |
+| `stage` | no | `enum(draft, proposed, planned, in_progress, blocked, done, cancelled, superseded)` | 枚举、唯一写入路径、reserved-name guard 与 reducer 硬约束以 [common-fields.md §5.3](./common-fields.md) 为唯一权威。create payload MUST NOT 携带本字段；需要进度轴时，首条 `ak.strand.stage.set` 初始化为合法值。Strand 的人类解释写入 discussion Message 并 `references` stage event。 | 可选业务进度阶段（与 `state` 正交）。 |
 | `stage_changed_at` | conditional | `timestamp` | **Reducer-derived**：仅当 `stage` 存在且实际变更时由 reducer 用触发 event 的 `created_at` 覆盖写入；MUST NOT 在缺少 `stage` 时单独出现；same-value self-transition 不更新本字段。 | 最近一次 stage 转换时间。 |
 | `created_by` | yes | `ActorId` |  | 创建者。 |
 | `created_at` | yes | `timestamp` |  | 创建时间。 |
@@ -136,7 +136,7 @@ Schema id: `ak.schema.strand.v1`
 
 **Wire 写入路径**：唯一 event 是 `ak.strand.stage.set`，payload 形态：
 
-```json
+```json fragment
 {
   "kind": "ak.strand.stage.set",
   "payload": {
@@ -146,7 +146,6 @@ Schema id: `ak.schema.strand.v1`
   }
 }
 ```
-
 - `strand_id`：必填。
 - `stage`：必填，必须是上面 8 值之一。
 - `expected_stage`：目标 stage typed current result 为初始态时 MAY 省略（等价 `expected_revision null`）；非初始态时 MUST 提供并编译为 typed current result `expected_revision` precondition，否则 `failed_precondition`。这与 `ak.strand.watch.set` 的 `expected_value` whole-value CAS 同模式，不存在无条件覆盖。
@@ -291,7 +290,7 @@ Track 写入路径只有一个 event kind: **`ak.strand.tracks.update`**(注意�
 
 **典型 patch 示例**:
 
-```json
+```json fragment
 {
   "kind": "ak.strand.tracks.update",
   "payload": {
@@ -305,7 +304,6 @@ Track 写入路径只有一个 event kind: **`ak.strand.tracks.update`**(注意�
   }
 }
 ```
-
 整个变更由单个 Event 的 reducer projection 原子写入同一 `current-value projection` typed current result；并发更新由 Station 在该 stream 上串行化，当前值是最后一个被接受的写入，后续写入按 [`event-and-patch.md` §4.3.1](./event-and-patch.md) 引用确切 current source，不得依赖接收顺序静默覆盖。
 
 Strand authoring 复用 current 的 `{value,source:{event_id,depth}}`，不定义第二份来源镜像。
@@ -325,7 +323,7 @@ Strand 永远只有**一个** effective scope。整个 Strand（含所有 track�
 | --- | --- | --- | --- | --- |
 | `scope_circle_id` | no | `id:circle` | 派生与校验规则以 [`circle.md` §6](./circle.md) 为唯一权威。 | 整个 Strand 的 effective scope。`null`（缺省）表示 Realm-default scope；指向 Circle 表示落在该 Circle 的 membership / history visibility / delivery / query / encryption profile 内。 |
 
-```json
+```json fragment
 {
   "tracks": {
     "synthesis": { "is_primary": true },
@@ -334,7 +332,6 @@ Strand 永远只有**一个** effective scope。整个 Strand（含所有 track�
   "scope_circle_id": "ak:circle:ARXbvtRVuDBYaF4WF9z-UaI6zlszC0W60gTZIVJDcvFR"
 }
 ```
-
 scope 派生、`scope_ref` 对照、projection 与 rebind 的详尽规则以 [`circle.md` §6](./circle.md) 为唯一权威。
 
 - 跨 Strand 的"宽 synthesis + 窄 discussion"模式见 [`circle.md` §7.2](./circle.md)：两个 Strand + `confidential_discussion_of` Relation。
@@ -479,7 +476,7 @@ value shape := { "level": "mentions_only" | "participating" | "all" | "muted",
   - `payload.level` MUST ∈ `{mentions_only, participating, all}`；写入 `level="muted"` MUST `failed_precondition`（`reason="watch_muted_must_be_self"`）。理由：`muted` 会抑制 mention / 审核 / 工作流定向通知，必须由本人主动选择，不得被管理员或自动化代写。
   - `payload.level_public` MUST 省略或显式 `false`；写入 `level_public=true` MUST `failed_precondition`（`reason="watch_level_public_must_be_self"`）。理由：是否公开自己的订阅意图属于个人 opt-in publication，不得由他人代写。
   - 每条 `.others` 写入 MUST 与一条 `ak.audit.accessed` event 形成可验证配对。**配对边由 audit event 指向业务 event，方向单向**：audit event 的 `refs[]` MUST 包含 `{id: <业务 event_id>, role: "audit_pair", critical: true}`，其 payload MUST 使用 `access_kind="watch_set_others"`，并绑定 `writer_actor_id`、`target_actor_id`、`target_result_id`、`paired_event_id`、`result_head_before` 与 `result_head_after`；业务 event 自身 **MUST NOT** 引用 audit event 的 id 或 digest。二者 MUST 位于同一 ordered submit batch；batch 验证器在接受任何一条前先检查该配对 invariant：批内 MUST 存在恰好一条 `paired_event_id` 等于该业务 event id 的 audit event，并从该 ID 解码 digest 后与业务 Event canonical digest 交叉验证。缺失、目标不一致、ID/digest 不匹配、批内配对多于一条或不在同 batch 时 reducer MUST 拒绝业务 event（`failed_precondition`，`reason="watch_set_others_audit_missing"`）。
-  - 方向不可反转（normative rationale）：`refs` 在 `event_digest` 的 preimage 内，而 `event_id` 由该 digest 派生。业务 event 若引用 audit id、audit 又承诺业务 id，两条 Event 互为原像，无解——见 [`../conformance/encoding.md` §6.0.1](../conformance/encoding.md)。业务 event 先成型、audit 后成型是唯一可构造的顺序。
+  - 方向不可反转（normative rationale）：`refs` 在 `event_digest` 的 preimage 内，而 `event_id` 由该 digest 派生。业务 event 若引用 audit id、audit 又承诺业务 id，两条 Event 互为原像，无解——见 [`../conformance/encoding.md` §3.1](../conformance/encoding.md)。业务 event 先成型、audit 后成型是唯一可构造的顺序。
   - 被加为 watcher 的 actor MAY 随时通过自写 typed current result 覆盖（升级 / 降级 / 自行 `muted` / 自行 `level_public`），无需对方同意。
 - 创建者隐式订阅：`ak.strand.create` 后，notification dispatcher MAY 在 actor-private 派生状态中把 `created_by` 视为 `level=participating`；该默认值不写共享 typed current result、不进入任何 RealmCommit。需要 durable 共享 watch 状态时，创建者客户端必须另行提交已登记的 `ak.strand.watch.set` state-changing Event。
 - 如需管理员强制静音某 actor 的通知（e.g. 反骚扰、moderation 场景），MUST 使用独立 moderation event（`ak.moderation.decision` 或 profile-specific kind），不得复用个人 watch preference。
@@ -657,7 +654,7 @@ Schema id: `ak.schema.message.v1`
 （如需要独立访问域）创建 [Circle](./circle.md) 并设置 `Strand.scope_circle_id` →
 加入成员 → 发消息 → 编辑 / 撤回 / reaction。
 
-```json
+```json fragment
 [
   {
     "kind": "ak.strand.create",
@@ -692,7 +689,6 @@ Schema id: `ak.schema.message.v1`
   }
 ]
 ```
-
 > `ak.strand.create` 的 payload 已在 `tracks.discussion` 中声明该 track 启用，无需额外事件。
 > Strand 创建后想新增 / 重新启用某个被 disable 过的 track 时通过 `ak.strand.tracks.update` 完成（见 §4.8）。
 
@@ -730,7 +726,7 @@ Agent 不要求拥有公开 handle。客户端 MAY 支持 controller-scoped agen
 
 结构化 mention 节点唯一的 wire 承载位置是所属 Content Block 的 `mentions[]` 数组（schema `$defs.mention_node`，见 [content-types.md](./content-types.md)）。节点形态（与 [`identity/identity-handles.md` §3.8.1](../identity/identity-handles.md) normative shape 对齐）：
 
-```json
+```json fragment
 {
   "kind": "mention",
   "subject_account_id": {
@@ -743,10 +739,9 @@ Agent 不要求拥有公开 handle。客户端 MAY 支持 controller-scoped agen
   "resolved_at": "2026-05-19T10:00:00.000Z"
 }
 ```
-
 Agent selector 解析后的 mention 节点示例：
 
-```json
+```json fragment
 {
   "kind": "mention",
   "subject_account_id": {
@@ -764,7 +759,6 @@ Agent selector 解析后的 mention 节点示例：
   "resolved_at": "2026-06-11T10:00:00.000Z"
 }
 ```
-
 字段语义：
 
 - `kind`（必填）：`const("mention")` 节点判别器。
@@ -798,7 +792,7 @@ Agent selector 解析后的 mention 节点示例：
 
 v1 定义 audience mention 作为一等结构化 AST 节点，唯一的 wire 承载位置是所属 Content Block 的 `audience_mentions[]` 数组（schema `$defs.audience_mention_node`）；它不是把所有成员展开成多个普通 `mention` 节点，也不在共享 history 中持久化展开后的收件人列表。典型 UI token `@all` 映射为 `audience="effective_scope_members"`：
 
-```json
+```json fragment
 {
   "kind": "audience_mention",
   "audience": "effective_scope_members",
@@ -806,7 +800,6 @@ v1 定义 audience mention 作为一等结构化 AST 节点，唯一的 wire 承
   "resolved_at": "2026-05-31T10:00:00.000Z"
 }
 ```
-
 字段语义：
 
 - `audience`（必填）：v1 core 允许 `effective_scope_members`、`strand_participants`、`strand_watchers`、`strand_engaged`、`assigned_actors`。`effective_scope_members` 表示该 Message 写入时 effective scope 内可读取该 Message 的 active actors；当 Strand 绑定 Circle 时只包含该 Circle scope 的可见成员。`strand_participants` 表示该 Strand discussion track 中至少发过一条 active Message 的 actors。`strand_watchers` 表示 §8.7.1 定义的当前有效 watcher 集合。`strand_engaged` 是 `strand_participants ∪ strand_watchers`，是 Arkret v1 对常见 UI token `@here` 的 canonical 映射。`assigned_actors` 只包含 active `assigned_to` Relation 的 `to_ref` actors。

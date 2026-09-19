@@ -167,7 +167,8 @@ request_source_checkpoint_transcript = {
 `event_ref` 是该 request Event 完整、已通过 typed EventId 校验的 wire 字符串；`event_digest` **MUST** 由
 同一 suite-tagged full-digest `event_ref` 自身解码得到，不得另行取值，二者不一致一律拒绝。字段集封闭为这两个
 成员。该 domain 与已撤销的 `ak.events.checkpoint.*` Merkle 家族无关：此处的 checkpoint 是 carrier 字段，
-不是树根。
+不是树根。包含 domain、LF prefix、canonical transcript、完整摘要输入与输出的逐字节向量见
+[`canonical-json-digest-kat-fixture.json`](../../artifacts/fixtures/canonical-json-digest-kat-fixture.json)。
 
 永久 `contact_round_id` 只从以下 stable semantics 计算。`contact_round` 是该轮次的短名，也是下列 immutable closed 建轮核心；后续 directional scope replacement / tombstone 只推进该 ID 下的 lineages，不改写此对象。计算固定为
 `H("ak.contact.round.v1", contact_round)`，即
@@ -257,6 +258,8 @@ checkpoint，从而丢失「各自独立观察到自己的 slot 未被消费」�
 判定并发时观察到的 commit 前缀，不得替换为数据库行号、map iteration 顺序或事后的 checkpoint。
 `complete_through` 是被本次 CAS 接纳的本地 slot 序号。`slot_state` 唯一合法值是字符串
 `"pending_unconsumed"`，不存在 null、false、空对象或省略编码。字段名、字段集合与 JCS bytes 必须精确匹配。
+包含 domain、LF prefix、canonical transcript、完整摘要输入与输出的逐字节向量见
+[`canonical-json-digest-kat-fixture.json`](../../artifacts/fixtures/canonical-json-digest-kat-fixture.json)。
 
 `ContactRoundEvidenceBundle` 是唯一无签名 deterministic bundle，只容纳 derived `contact_round_id`、exact request
 acceptance receipts、normal response receipt（normal 分支）、双方 glare concurrency attestations（glare 分支）

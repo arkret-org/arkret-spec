@@ -285,6 +285,10 @@ artifact。
 **MUST NOT 推迟到验签时才发现**。只按字符串形状接受，等于允许一个永远无法验签的 witness
 占据 threshold 名额，从而把门限悄悄架空。
 
+conformance case 必须在 `validation_context.cryptosuite` 给出该次校验实际选择的 suite；它是
+runner 的验证上下文，不是 `parameters` 的 method-native 成员。正向 witness key 与其 suite 必须匹配，
+可解码但算法不匹配的 key 仍必须在参数校验阶段按 malformed 拒绝。
+
 **唯一 proof 来源**：witness proofs 只来自与 `did.jsonl` 分离发布的 `did-witness.json`，
 按 `versionId` 绑定。每个适用 log entry MUST 满足其生效 threshold。
 
@@ -523,7 +527,7 @@ Resolver policy MUST 至少定义：
 
 示例：
 
-```json
+```json fragment
 {
   "default_principal_method": "did:webvh",
   "allowed_methods": ["did:webvh", "did:web", "did:key"],
@@ -540,8 +544,8 @@ Resolver policy MUST 至少定义：
       "require_witness": "required",
       "witness_threshold": 1,
       "trusted_witnesses": [
-        "did:key:z6MkfixtureWitnessAaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "did:key:z6MkfixtureWitnessBbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        "did:key:z6MkhFwXNFWosLeugvSf4wcL9t3uuRXueGSFTRgSvHhWj5G2",
+        "did:key:z6Mkgxj2R3HLtQRpPnvfvpuKEceSqf3tZHBjdmZ3fFz3JHGG"
       ],
       "outage_mode": "cache_only_low_risk_read",
       "outage_max_duration_ms": 86400000
@@ -558,7 +562,6 @@ Resolver policy MUST 至少定义：
   }
 }
 ```
-
 上面三条 `role` 都不是自由文本：`did:webvh` 满足全部五个 `role_requirements`；
 `did:web` 只满足 `service`（`native_history=false` 命中该角色的 conditional，要求
 `history_evidence_kind="none"`，adapter 正好如此）；`did:key` 的
@@ -571,7 +574,7 @@ Resolver policy MUST 至少定义：
 
 声明 AT Protocol interop profile 的部署 MAY 在同一 policy 中加入 `did:plc` 适配器：
 
-```json
+```json fragment
 {
   "did:plc": {
     "role": [],
@@ -581,7 +584,6 @@ Resolver policy MUST 至少定义：
   }
 }
 ```
-
 `did:plc` 在 v1 没有 active adapter row，因此它的 `role` MUST 是空数组：该 DID 只在 AT 互通边界内
 被当作外部 claim，不承担任何 registered role，Arkret 自身的默认创建路径也不签发 `did:plc`。
 要让它进入任何角色集合，必须先按 §10 登记 adapter 与 bootstrap trust，而不是在 policy 里写一个
@@ -609,6 +611,11 @@ attested projection，私有 resolver row、内联 DID Document 与 core→DID �
 - Event author、proof 与 PCR 当前控制状态闭合，Station 的声明或 transport 身份不能替代 method-native 验证。
 
 上述两个 history position 字段不得由实现自由命名或省略。`did:webvh:1.0` 的 `method_history_head` 是当前已验证 log entry 的 RFC 8785 JCS SHA-256，`version_id` 是同一 entry 的 method-native `versionId`；`did:web:1` 使用当前已验证 DID Document 的 RFC 8785 JCS SHA-256，并以同一摘要构造 `synthetic-jcs-sha256:<hex>`；`did:key:1` 使用 canonical `did` UTF-8 字节的 SHA-256，并以同一摘要构造 `synthetic-did-sha256:<hex>`。算法与字符串格式以 `contract-registry.json` 的 active adapter row 为唯一权威。
+
+任何 conformance fixture 中出现的 `resolution_commitment` 都必须登记到
+`tools/resolution-commitment-pointer-registry.json` 的精确 JSON Pointer；canonical JSON 字符串内部的
+commitment 使用同一登记表的双层 pointer。门禁按 active adapter 从已验证 entry/document/key expansion
+重算 `did`、`method_history_head` 与 `version_id`，三者任一自报常量、未登记实例或占位跳过均不合规。
 
 Profile 是该 typed current result 的公开 **current projection**，可以发布当前 `did`、history head、version、resolution Event ref 与更新时间；Profile 不是授权根。公开 operation `ak.open.identity.read.resolution.v1` 的两个 query/path 参数是一个 `AccountId` 的传输投影参数，服务端必须先构造并验证完整 `AccountId` 再选择账号；响应不得重复并列这两个分量。
 
@@ -690,7 +697,7 @@ Station MUST 通过 §4.2 的 immutable creation anchor 和完整 AccountId 选�
 `identity-receipt.schema.json` 的 `signature` 是非 Event detached proof。其
 `payload_digest = sha256(canonical_json(receipt_without_signature))`；detached JWS 的输入必须是：
 
-```json
+```json fragment
 {
   "context": "ak.identity_receipt_proof.v1",
   "payload_digest": "sha256:<64-hex>",
@@ -700,7 +707,6 @@ Station MUST 通过 §4.2 的 immutable creation anchor 和完整 AccountId 选�
   "created_at": "<canonical RFC3339 timestamp>"
 }
 ```
-
 该对象族的 `subject_did` 承载 method-native DID，不是稳定业务主键。签名 transcript MUST 使用 schema 与 registry 登记的 `subject_did`，不得改写为 `did`；稳定主体由 adapter 投影并与预期 principal 交叉核对。
 
 `domain` 与 `audience` 按该顺序在存在时追加。`context` 是 verifier 构造的固定对象族
@@ -767,7 +773,7 @@ DID 解析、登录认证和组织数据授权是三个不同职责：
 
 签名 payload SHOULD 使用结构化 canonical JSON，至少包含：
 
-```json
+```json fragment
 {
   "purpose": "account_binding",
   "principal_id": "ak:did_core:webvh:zQ3sh7p8K3pV4cXbKqL2nMsR9tWfH",
@@ -779,7 +785,6 @@ DID 解析、登录认证和组织数据授权是三个不同职责：
   "expires_at": "2026-04-26T00:05:00Z"
 }
 ```
-
 **device 绑定策略（normative）**：上述 challenge / 签名 payload 在 multi-device principal（principal 控制 ≥1 个授权 device key）下 MUST 额外携带并签名覆盖 `device_id`,绑定到发起绑定 / 恢复请求的具体 device,使该 challenge-response proof 不能被同 principal 的其它设备复用完成绑定 / 恢复（与 [`account-lifecycle.md` §4](./account-lifecycle.md) soft-logout 恢复的 `device_id` 必填要求一致）。仅当 principal 在 control stream 中**无任何未撤销 device record**（不持有任何当前有效的 device-bound key，proof 由 account auth key / passkey / recovery key 签署）时方可省略 `device_id`。Station Account Authority MUST 依据该 principal control stream 中 device record 的当前状态（存在 ≥1 条未撤销 device record 即豁免不成立）判定豁免，**MUST NOT** 仅凭本次 proof 的签名 key 类型判定——否则持有未撤销 device-bound key 的 multi-device principal 可用 passkey / account-auth-key 签 proof 伪造"无 device key"假象，绕过同 principal 其它设备复用 proof 的窗口。豁免不成立时不得对 device-bound 路径接受缺 `device_id` 的 proof。
 
 该豁免判定 MUST 基于 **fresh PCR control-stream checkpoint**。control stream 不可达、checkpoint stale 或 device 投影 freshness 为 `unknown` 时，Station Account Authority MUST 保守按“存在 device record”处理。DID resolver degraded 与此 PCR checkpoint 判定正交：soft logout、account recovery 和普通 device 路径不得因 DID outage 额外失败；只有显式选择 DID-root factor 的分支才读取 current DID freshness。
@@ -839,7 +844,7 @@ Identity Resolution Surface MAY 提供统一 API 来提交或查询 method-speci
 
 示例：
 
-```json
+```json fragment
 {
   "did": "did:webvh:zQ3shExampleScid:alice.example",
   "did_method": "webvh",
@@ -865,7 +870,6 @@ Identity Resolution Surface MAY 提供统一 API 来提交或查询 method-speci
   }
 }
 ```
-
 Resolver / registry / adapter MUST 拒绝：
 
 - 签名无效
@@ -883,7 +887,7 @@ Organization principal 的“所有权”由 DID 控制状态和组织治理策�
 
 组织 DID Document SHOULD 声明最小治理材料：
 
-```json
+```json fragment
 {
   "id": "did:webvh:zQ3shAcmeGovScidVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn:acme.example",
   "verificationMethod": [
@@ -928,7 +932,6 @@ Organization principal 的“所有权”由 DID 控制状态和组织治理策�
   }
 }
 ```
-
 规则：
 
 - Organization principal MUST 由其 DID Document / method history 中的密钥或委托服务控制。

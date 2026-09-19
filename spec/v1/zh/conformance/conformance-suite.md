@@ -140,7 +140,7 @@ Profile 分两类（分类口径以 [`conformance-profiles.json`](../../artifact
   - 期望输出：可验证且具备时间边界的派生有效性。
   - 撤销后既有事件在历史范围内的生效/失效行为。
 - `ak.vector.capability.approval_constraint.v1`
-  - high risk action 未满足 approval 时 MUST 走 require_review 类软拒绝（reason=`approval_required`），补齐 `EventCommitSubmission.approval_signatures[]` 后重试是唯一定义路径。
+  - 只有 capability action registry 判为 carrier-backed 的 action 才可配置 approval requirement；命中未登记 carrier 的 `non_event_surface` action 必须在 grant／policy 写入时 `schema_violation`（reason=`approval_carrier_unregistered`）。合法 action 未满足 approval 时 MUST 走 require_review 类软拒绝（reason=`approval_required`），补齐该 action 的 registry 所指 carrier 后重试是唯一定义路径；v1 的实际 carrier 为 `EventCommitSubmission.approval_signatures[]`。
   - grant 层与 Realm 治理层两个要求 MUST 能分别拒绝；`ak.agent.action_approve` 的 controller 确认MUST NOT 替代任一层（[`../authz/constraint-schema.md` §9.2.6](../authz/constraint-schema.md)）。
 
 **Capability semantic coverage（normative gate）**：下列行为已由 `protocol-edge-cases-fixture.json` 的 active 向量固化：`ak.vector.capability.issuer_authority_bound.v1`、`ak.vector.capability.validity_window.v1`、`ak.vector.capability.authority_expiry_commit.v1`、`ak.vector.capability.authority_cycle.v1`、`ak.vector.capability.moderation_dependency.v1`、`ak.vector.capability.freshness_risk_matrix.v1`、`ak.vector.capability.global_decision_merge.v1`。进入 `v1-conformance-certified` 前，capability runner MUST 执行其全部正负例并保存逐 case 结果：

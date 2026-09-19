@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.binding.websocket.v1",
-  "version": "2026-09-13.1",
+  "version": "2026-09-19.1",
   "suite": "websocket_binding",
   "runner": {
     "kind": "named_suite",
@@ -56,11 +56,11 @@
       "name": "advertised_bundle_closure_selects_websocket",
       "schema_ref": "schemas/service-describe.schema.json",
       "instance": {
-        "service_id": "ak:did_core:webvh:z6mkfixturealiceexamplenet",
+        "service_id": "ak:did_core:webvh:QmS1gUenXyfWpb5krKbJbiZ93L1yJ6wJFBrf8zNNste4v9",
         "service_resolution": {
-          "did": "did:webvh:z6mkfixturealiceexamplenet:alice.example.net",
-          "method_history_head": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
-          "version_id": "1"
+          "did": "did:webvh:QmS1gUenXyfWpb5krKbJbiZ93L1yJ6wJFBrf8zNNste4v9:server.example",
+          "method_history_head": "sha256:dda643f2ec49ac3f6f13e0c69bcfbf740e7903b80498694bec74e90104d1fad4",
+          "version_id": "1-QmRHnZHNmAMEZAhwvJwJeW7cJH6xie36NnGQwMEbeSLje7"
         },
         "trust_domain": "ak:trust_domain:did.webvh.alice.example",
         "service_kind": "station",

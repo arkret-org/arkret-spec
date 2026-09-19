@@ -1,4 +1,5 @@
 {
+  "version": "2026-09-19.1",
   "suite": "handle_claim_closed_transcripts",
   "runner": {
     "kind": "known_answer_tests",

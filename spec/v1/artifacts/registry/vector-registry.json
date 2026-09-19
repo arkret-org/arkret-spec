@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.6",
+  "version": "2026-09-19.9",
   "source_of_truth": true,
-  "generated_at": "2026-09-19T13:39:11+08:00",
+  "generated_at": "2026-09-19T19:00:49+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -663,7 +663,7 @@
       "applies_to_fixtures": [
         "approval-signature-kat-fixture.json"
       ],
-      "description": "Approval over a non-Event operation target: request_canonical_digest covers the original typed RequestBody of the registered operation and nothing else. This fixes the byte derivation only; v1 registers no evidence carrier on any non-Event operation.",
+      "description": "Approval over the carrier-backed ak.self.events.command.submit.v1 operation target for ak.strand.create: request_canonical_digest covers the original typed RequestBody with approval_signatures omitted. The accepted vector is closed against capability-action-registry.json eligibility and the carrier's reachable schema pointer.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/approval-signature-kat-fixture.json",
         "spec/v1/zh/authz/constraint-schema.md",
@@ -2811,7 +2811,7 @@
       "applies_to_fixtures": [
         "pcr-genesis-fixture.json"
       ],
-      "description": "Explicit abandonment of a provisional identity whose PCR was never accepted is a two-step account handoff challenge plus confirmation: a confirmation without a challenge or reusing the challenge-issuing handoff is rejected with zero writes, a PCR accepted between issuance and confirmation fails with the stable identity_creation_already_accepted terminal and abandons nothing, the successful path commits challenge consumption, orphan-anchor tombstone, checkpoint suppression and lease release in one transaction, the reserved_identity_creation checkpoint is afterwards unreadable on every holder-readable surface, and replaying the same request_id returns the same terminal outcome with exactly one tombstone.",
+      "description": "Explicit abandonment of a provisional identity whose PCR was never accepted is one closed request authenticated by a fresh account handoff for the current lease holder, with no preceding challenge operation. Missing lease material, a stale fence, a non-holder handoff or a request bound to another identity is rejected with zero writes; a PCR accepted before the transaction commits yields identity_creation_already_accepted and abandons nothing. Success atomically records the orphan-anchor tombstone, suppresses the reserved identity on holder-readable surfaces and releases the lease. Exact request replay returns the same terminal outcome with exactly one tombstone; the same request_id with different canonical bytes is duplicate_conflict.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/pcr-genesis-fixture.json"
       ]
@@ -3456,11 +3456,11 @@
       "status": "active",
       "domain": "mls",
       "applies_to_fixtures": [
-        "final-conformance-closure-fixture.json"
+        "mls-governance-binding-closure-fixture.json"
       ],
-      "description": "The fixed GroupContext binding is a closed deterministic-CBOR map of five members: a sixth member, a missing member, an indefinite-length head, a non-minimal integer, a duplicate key and a non-canonical key order are each rejected on the received bytes; genesis is 0 -> 0 and a Commit is next_epoch = previous_epoch + 1; scope and base match the Station current public state field by field; and the pre-genesis proposal form is the same binding, missing or mismatched instances of which are rejected without leaving a proof or cache entry.",
+      "description": "The fixed GroupContext binding is a closed deterministic-CBOR five-member map with bounded decoding. Realm, Circle, Sidecar and Genesis/null acceptance bytes are fixed; malformed, trailing, out-of-range and resource-limit inputs fail closed. Epochs and key_access_revision are unsigned 64-bit monotonic counters, a valid RFC 9420 public object still fails when its inner binding differs from the Event payload or Station state, historical replay grants no current send authority, and the closed pre-Genesis proposal carrier directly reuses the same binding schema.",
       "source_refs": [
-        "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json"
+        "spec/v1/artifacts/fixtures/mls-governance-binding-closure-fixture.json"
       ]
     },
     {
@@ -3468,11 +3468,11 @@
       "status": "active",
       "domain": "mls",
       "applies_to_fixtures": [
-        "final-conformance-closure-fixture.json"
+        "mls-governance-binding-closure-fixture.json"
       ],
-      "description": "The governance binding epochs must equal the Commit payload base and next epoch, and a rejected Commit advances neither the MLS epoch result nor the active epoch, failing with epoch_update_required.",
+      "description": "The governance binding epochs must equal the Commit payload base and next epoch, and a rejected Commit advances neither the MLS epoch result nor the active epoch, failing with governance_binding_mismatch.",
       "source_refs": [
-        "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json"
+        "spec/v1/artifacts/fixtures/mls-governance-binding-closure-fixture.json"
       ]
     },
     {
@@ -3511,6 +3511,21 @@
       "description": "The MLS key-access revision governs key access only; it carries no authorization or membership decision of its own.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.mls.keypackage_actor_and_ciphersuite_closure.v1",
+      "status": "active",
+      "domain": "mls",
+      "applies_to_fixtures": [
+        "keypackage-lifecycle-fixture.json",
+        "mls-keypackage-endpoint-kat-fixture.json"
+      ],
+      "description": "Publish, claim and Commit submission admit only an active mls-ciphersuite-registry row, reject unknown and reserved selectors without partial writes, never try several suites or rewrite a foreign selector, and preserve the complete ActorId byte-for-byte through claim, Welcome and the RFC 9420 BasicCredential identity encoded as UTF8(RFC8785_JCS(actor_id)).",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json",
+        "spec/v1/artifacts/fixtures/mls-keypackage-endpoint-kat-fixture.json",
+        "spec/v1/zh/crypto-media/encryption-and-audit.md"
       ]
     },
     {
@@ -3714,6 +3729,18 @@
       "description": "Transcript KAT for ak.event_proof.v1: digest input deletes exactly `event_id`, `proofs`, `unsigned`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.extension_manifest_proof.v1 rejected.",
       "source_refs": [
         "spec/v1/artifacts/registry/normative-clause-registry.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.protocol.time_tolerance_boundaries.v1",
+      "status": "active",
+      "domain": "protocol",
+      "applies_to_fixtures": [
+        "protocol-time-tolerance-fixture.json"
+      ],
+      "description": "Projects the three registered protocol clock-tolerance scenarios at every inclusive limit and one millisecond beyond it: approval approved_at is future-only, while temporal constraints and blob presign TTLs cover both future not-before and past-expiry edges.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/protocol-time-tolerance-fixture.json"
       ]
     },
     {

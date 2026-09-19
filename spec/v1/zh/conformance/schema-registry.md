@@ -67,6 +67,15 @@ vector MUST 使用同一 active 集合；owner 的 `schema_ref` / `profile_id` �
 
 一个 token 同时扮演两种角色时（既能作顶层服务错误返回、又能作某条目的子原因），**MUST 在两个数组中各登记一次（双注册）**，两处描述 SHOULD 一致并互相点明"dual-registered"。双注册是有意设计、不是漂移；新增码若兼具两种角色，MUST 保持两侧同步。算法-agility fail-closed 四项 `unsupported_digest_algorithm` / `unsupported_signature_alg` / `unsupported_hpke_suite` / `unsupported_ciphersuite` 即按此模型对称双注册（`codes` 均 `http_status=422` / `scope=both`，且各自在 `reason_codes` 有对应 per-item 条目），确保 digest / signature / HPKE / MLS ciphersuite 四类未识别 selector 的处置在 registry 中口径一致。
 
+两组公开 code 还共享同一条生产者纪律。每一行 MUST 显式声明 `status=active|reserved`：
+
+- `active` 行 MUST 在 `spec/v1/artifacts` 的非 report 机器工件中至少有一条逐字生产者路径；只在正文或定义自身的 registry 行出现不算生产者。
+- `reserved` 行 MUST 携带非空、无重复的 `applies_to[]` 与 `activation_condition`，并且任何生产者都 MUST NOT 发射或引用该 code。只有在同一次变更中加入 canonical 机器生产者并把行提升为 `active` 后，才允许发射。
+- 生产者消失时，行 MUST 在同次变更中转为 `reserved`（并补齐激活条件）或删除；不得用不收敛的豁免表保留“active 但不可达”的公开合同。
+- `tools/reason-code-producer-baseline.json#removed_reason_codes` 若以 `carried_by_code` 指明替代的顶层 code，该承载者 MUST 已登记为 `active` 且有机器生产者；历史删除理由不得落到一个 reserved 或不可达的承载者上。
+
+`tools/artifact_lint/reason_code_producers.py` 对 `codes[]` 与 `reason_codes[]` 同时执行上述闭包，并对 removed code 执行全仓零残留检查。
+
 ### 1.2 `ak.*` 命名空间的机读登记边界（normative）
 
 并非所有 `ak.*` 标识符都要求进入机读 registry。下列命名空间类别**豁免机读登记**，其权威定义由各自的定义文档承载；豁免类别之外、被正文当作真实 wire 标识符使用的 `ak.*` id 仍 MUST 有机读归属（registry、schema const 或 profile 矩阵），缺失即为漂移缺陷：
@@ -279,7 +288,11 @@ OpenAPI DTO MAY 使用 `additionalProperties: false`。若 DTO 内嵌 canonical 
 **a. 开放注册集（open registry set）**——以独立 registry JSON 承载的字符串值集合：event kind（`event-kind-registry.json`）、error `code` / `reason_code`（`error-code-registry.json`）、relation kind、capability action、typed id kind 与 feature id 等。
 
 - 新增条目推进 registry 的 `version` / `generated_at`；是否需要新 schema ID 由该字段所在 closed schema 决定。
-- registry / profile 的规范内容发生任何变化时，顶层 `version` MUST 推进；若该 artifact 携带 `generated_at`，该时间戳也 MUST 推进且日期必须与 date-shaped `version` 一致。`tools/check_artifact_versions.py` 的内容摘要排除这两个元数据字段，并把其余内容绑定到受版本控制的 reference manifest；内容变化但元数据未推进、或 metadata/content reference 漂移，均 MUST 使 release gate 失败。两个字段都 MUST NOT 记为尚未发生的时刻：date-shaped `version` MUST NOT 晚于 UTC+14 当日，`generated_at` MUST NOT 晚于写入 reference manifest 的时刻。推进义务只认更大的值，因此一个写在时钟之前的戳会成为后续每次发布都必须超过的基线，并让整套 registry 随每次提交继续向未来漂移；把它改回真实时刻不是一次普通推进，MUST 由 `--repair-future-date` 逐个 artifact 显式指名，且仅当记录值在未来、替换值不在未来时才被接纳。
+- registry / profile 的规范内容发生任何变化时，顶层 `version` MUST 推进；日期形 `YYYY-MM-DD` 按 `(日期, 0)` 比较，点号形 `YYYY-MM-DD.N` 按 `(日期, 十进制计数器)` 字典序严格比较，日期倒退或同日计数器不增都不算推进。若 artifact 携带 `generated_at`，该时间戳也 MUST 推进，且 `version` 的日期部分 MUST 等于 `generated_at` 按其自身 RFC 3339 offset 解释的 civil date。`tools/check_artifact_versions.py` 的内容摘要排除这两个元数据字段，并把其余内容绑定到受版本控制的 reference manifest；内容变化但元数据未推进、或 metadata/content reference 漂移，均 MUST 使 release gate 失败。两个字段都 MUST NOT 记为尚未发生的时刻：date-shaped `version` MUST NOT 晚于 UTC+14 当日，`generated_at` MUST NOT 晚于写入 reference manifest 的时刻。推进义务只认更大的值，因此一个写在时钟之前的戳会成为后续每次发布都必须超过的基线，并让整套 registry 随每次提交继续向未来漂移；把它改回真实时刻不是一次普通推进，MUST 由 `--repair-future-date` 逐个 artifact 显式指名，且仅当记录值在未来、替换值不在未来时才被接纳。
+- 同一义务适用于承载协议棘轮、豁免、身份清单或其它发布判定的 `tools/` JSON ledger。其封闭集合以 `tools/artifact-version-governance.json#governed_tool_artifacts` 为唯一机器清单，关联维护脚本以同文件的 `governing_scripts` 登记；新增带顶层 `version` 的 tools ledger 若未同批进入清单，或清单／脚本路径悬空，release gate MUST 失败。`tools/normative-title-inventory.json` 与 `tools/refresh_normative_title_inventory.py` 属于该集合。
+- 每份 fixture MUST 携带顶层字符串或整数 `version`。`fixture-digests.json` 同时记录内容摘要与该版本；已有 fixture 内容摘要变化时，版本 MUST 严格推进，内容不变时不得单独改版本。该义务由 `tools/check_fixture_digests.py --write-reference` 在写新 reference 前校验，不把 fixture 重复纳入 artifact-version reference。
+- `contract-registry.json#derived_registry_views` 指向的每个 canonical section 是对应派生 registry 的发布元数据权威，并 MUST 声明 `metadata_authority=contract_registry_section`：section 自带的 `version` / `generated_at` 覆盖 contract 顶层默认值，`generate` MUST 原样投影，磁盘上旧的派生视图元数据不得因语义内容相同而被保留；任何分歧都属于 projection drift。
+- `sdk-conformance-claim-fixture.json` 的 schema 正例与负例都 MUST 绑定当前 `sdk_conformance_contract` digest，并携带对各自 claim body 可验证的签名。恰好一条以 `contract_binding_expect_valid=false` 标记的专用语义负例 MAY 携带错误 digest，但它的签名仍 MUST 对该错误 digest 有效，以保证失败只来自 contract binding，而不是陈旧签名或别的 schema 错误。
 - 已发布实现遇到不在其本地 registry 快照中的值时，MUST 按**未知值保留**处理：不得因此让整个对象 / 信封反序列化失败。反序列化层保留之后的语义处置按各消费面既有规则执行——未知值保留**不等于**语义接受：写入权威接收方对未声明支持的标准 event kind 仍按 [conformance-profiles.md §2.1](./conformance-profiles.md) 返回 `unsupported_feature` / `unsupported_event_kind` / `schema_violation` 或 quarantine；未注册 relation kind 按 relation-kind-registry `registry_rules` 保留为 opaque edge 且不得推断语义；fail-closed 门（未知 critical feature、授权判定）照常适用。
 - 生成代码 SHOULD 为开放注册集值提供 non-exhaustive / `Unknown(String)` 兜底变体，MUST NOT 用封闭 enum 让未知值导致整体反序列化失败。
 
@@ -322,3 +335,17 @@ root 字段路径只相对于该实例根；descendants 才允许在子对象重
 `track_name/message` 只禁止物化 Message 对象复制 track；`ak.message.create` payload 的
 `track_name` 仍是必填签名事实。Message 中不相关嵌套用户字段不得被根字段规则误拒。对象整体
 替换和 patch set 的嵌套值仍按其 owning create context 检查，不能通过替换祖先逃过禁字段。
+
+### 6.3 Normative 标题身份与删除审计（normative）
+
+`tools/normative-title-inventory.json` 是 `spec/v1/zh/**/*.md` 中所有标题正文含
+`（normative）` 标记的小节身份全集。每行由相对 page、完整 heading 与按当前 Markdown 规则派生的
+fragment 三元组唯一标识；集合与顺序均封闭。新增、移动、改名或删除这类标题都属于协议变化，
+MUST 同批推进该 inventory，并由门禁对当前正文重新求全集，不得用行数阈值、同文件最近标题或裸编号
+锚点猜测等价小节。
+
+删除、移动或合并已登记标题时，变更记录 MUST 说明原义务的唯一处置：`moved`、`merged`、
+`restored` 或 `intentionally_removed`。前三者必须指向当前真实标题 fragment；后一种必须说明为何该义务
+不再属于 current v1，且必须同批清除仍断言它的 canonical registry、schema、fixture 与 operation。
+仅仅找不到机器引用，不构成删除依据；反过来，机器工件仍引用该义务时也不得把锚点改指语义不同的邻节
+来换取门禁通过。

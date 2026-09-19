@@ -18,7 +18,7 @@ updated: 2026-07-02
 
 ## 2. Query 对象
 
-```json
+```json fragment
 {
   "realm_ids": ["ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"],
   "object_kinds": ["strand", "message", "morph"],
@@ -34,7 +34,6 @@ updated: 2026-07-02
   "wait_for": "ak:cursor:..."
 }
 ```
-
 字段：
 
 - `realm_ids`: REQUIRED，查询范围。
@@ -52,14 +51,13 @@ updated: 2026-07-02
 
 ## 3. Filter
 
-```json
+```json fragment
 {
   "field": "metadata.fields.review_status",
   "op": "eq",
   "value": "in_review"
 }
 ```
-
 `filters[].op` 的合法取值是下方**封闭枚举**（normative）。`op` 的 canonical 真源是 `artifacts/schemas/query.schema.json`（`ak.schema.query.v1`），本表为人类可读视图；执行方 MUST 拒绝表外取值（`schema_violation` / `param_invalid`）。
 
 | `op`（normative enum） | 语义 |
@@ -81,7 +79,7 @@ updated: 2026-07-02
 
 ## 4. Boolean Filter
 
-```json
+```json fragment
 {
   "and": [
     { "field": "fields.workflow_type", "op": "eq", "value": "review" },
@@ -89,7 +87,6 @@ updated: 2026-07-02
   ]
 }
 ```
-
 支持：
 
 - `and`
@@ -100,14 +97,13 @@ updated: 2026-07-02
 
 ## 5. Relation Query
 
-```json
+```json fragment
 {
   "kind": "assigned_to",
   "direction": "out",
   "target_ref": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw","station_id":"ak:did_core:web:alice-station.example"}}
 }
 ```
-
 `direction` 的合法取值是下方**封闭枚举**（normative）。Relation Query `direction` 的 canonical 真源是 `artifacts/schemas/query.schema.json`（`ak.schema.query.v1`），本表为人类可读视图；执行方 MUST 拒绝表外取值。
 
 | `direction`（normative enum） | 语义 |
@@ -136,20 +132,19 @@ Strand synthesis 与 discussion 的 relation 查询必须遵守有效 access 授
 
 ## 6. Sort
 
-```json
+```json fragment
 {
   "field": "rank",
   "direction": "asc",
   "nulls": "last"
 }
 ```
-
 `direction` MUST 是 `asc` 或 `desc`。  
 `nulls` MAY 是 `first` 或 `last`。
 
 ## 7. Projection
 
-```json
+```json fragment
 [
   "id",
   "schema",
@@ -158,7 +153,6 @@ Strand synthesis 与 discussion 的 relation 查询必须遵守有效 access 授
   "metadata.fields.review_status"
 ]
 ```
-
 Projection 只减少返回字段，不提升权限。
 
 ## 8. Response

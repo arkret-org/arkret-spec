@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.12",
+  "version": "2026-09-19.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-17T02:00:00+08:00",
+  "generated_at": "2026-09-19T19:20:09+08:00",
   "description": "Closed per-field exemption registry for zh/conformance/encoding.md 4.0.1. A closed object that carries a complete content-addressed typed ref (an id_kind_registry special form marked content_addressed, with a pattern that is exactly that one form) already carries the suite and every digest octet of the referenced bytes, so any sibling digest property in that object is a forbidden wire mirror unless this registry states the distinct preimage it commits to. Rows are keyed by (schema file, json path of the properties object, digest field). content_addressed_refs must equal the current set of in-scope content-addressed ref properties in that object so a later ref addition forces a fresh ruling. Every row is a ruling: there is no undecided kind.",
   "registry_rules": {
     "exemption_id_pattern": "^ak\\.exemption\\.sibling_digest\\.[a-z0-9_]+\\.v[0-9]+$",
@@ -15,7 +15,7 @@
     "machine_gate": "tools/artifact_lint:content_addressed_ref_sibling_digests",
     "candidate_scope": "Every properties object in spec/v1/artifacts/schemas whose members, after $ref resolution, include at least one string pattern that is exactly one ak:<kind>: form of a content_addressed special form with a 64-hex digest payload (unions that also admit UUID, Event or DID forms are outside the gate by construction) and at least one string pattern of the shape ^(sha256|blake3):[0-9a-f]{64}$.",
     "row_rule": "Each row exempts exactly one digest field. preimage MUST name the bytes the digest commits to and why they differ from every listed content-addressed ref. spec_anchor MUST cite a spec/v1 prose path or heading anchor inside arkret-spec; the registry never references another repository and never carries an undecided row.",
-    "retained_mirror": "proof.event_digest inside the enclosing Event's producer/admission proofs is the only content digest that v1 deliberately retains next to the Event identity; it is registered here as a distinct_preimage row against the signer evidence refs and remains governed by encoding.md 6.0.1."
+    "retained_mirror": "proof.event_digest inside the enclosing Event's producer/admission proofs is the only content digest that v1 deliberately retains next to the Event identity; it is registered here as a distinct_preimage row against the signer evidence refs and remains governed by encoding.md §3.1."
   },
   "exemptions": [
     {

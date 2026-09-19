@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.2",
+  "version": "2026-09-19.3",
   "source_of_truth": false,
-  "generated_at": "2026-09-19T15:45:02+08:00",
+  "generated_at": "2026-09-19T19:22:39+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -108,6 +108,7 @@
       "operations": [
         "ak.self.events.command.submit.v1",
         "ak.self.events.resource.get.v1",
+        "ak.self.events.read.delivery_status.v1",
         "ak.self.events.read.scan.v1",
         "ak.self.events.stream.subscribe.v1",
         "ak.self.account.read.describe.v1",
@@ -1249,7 +1250,7 @@
       "operation_id": "ak.gate.account.exchange.create_handoff.v1",
       "http_only_variant": true,
       "http": "POST /_arkret/gate/account/authentication-handoffs",
-      "notes": "Unique current-v1 OIDC authorization-code consumer. Account Authority exchanges and validates the code and issues an opaque, short-lived account_handoff_grant bound to the request DPoP key plus the deployment-local stable account_subject. The external callback receiver that owns the redirect transaction validates state; Account Authority validates state only when it owns that transaction, and always validates issuer, token exchange/PKCE, redirect_uri and ID Token nonce. The handoff is not ak.session.grant, has no refresh-token semantics, and its closed operation allowlist is issue_identity_binding_challenge, issue_did_binding_challenge, issue_identity_abandonment_challenge, abandon_identity_creation, register, issue_session_grant, and issue_recovery_completion_grant. It returns bound, identity_creation_active, or identity_creation_busy. Bound clients normalize local evidence before choosing returning issue, pairing-first Device Setup or diagnostics; identity onboarding accepts only the other two states. Repeating the same request_id returns the same live outcome. When deployment policy allows reactivation, fresh account authentication may return a bound recovery-candidate handoff for the original deactivated account, but the handoff does not change status and ordinary register, issue and refresh remain blocked; only recovery completion may reactivate it. Policy denial returns account_deactivated with zero recovery writes.",
+      "notes": "Unique current-v1 OIDC authorization-code consumer. Account Authority exchanges and validates the code and issues an opaque, short-lived account_handoff_grant bound to the request DPoP key plus the deployment-local stable account_subject. The external callback receiver that owns the redirect transaction validates state; Account Authority validates state only when it owns that transaction, and always validates issuer, token exchange/PKCE, redirect_uri and ID Token nonce. The handoff is not ak.session.grant, has no refresh-token semantics, and its closed operation allowlist is issue_identity_binding_challenge, issue_did_binding_challenge, abandon_identity_creation, register, issue_session_grant, and issue_recovery_completion_grant. It returns bound, identity_creation_active, or identity_creation_busy. Bound clients normalize local evidence before choosing returning issue, pairing-first Device Setup or diagnostics; identity onboarding accepts only the other two states. Repeating the same request_id returns the same live outcome. When deployment policy allows reactivation, fresh account authentication may return a bound recovery-candidate handoff for the original deactivated account, but the handoff does not change status and ordinary register, issue and refresh remain blocked; only recovery completion may reactivate it. Policy denial returns account_deactivated with zero recovery writes.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "request_id",
@@ -3284,6 +3285,17 @@
         "kind": "event_log",
         "event_kind_source": "$request.event.kind"
       }
+    },
+    {
+      "operation_id": "ak.self.events.read.delivery_status.v1",
+      "http": "QUERY /_arkret/self/events/delivery-status",
+      "grpc": "SelfEvents/DeliveryStatus",
+      "mq": "self.events.read.delivery_status",
+      "notes": "Return the complete durable frozen fanout target set for one caller-visible accepted Event. Unknown and invisible Events share not_found. Rows use stable opaque target_id and are sorted byte-wise; service_id is included only when the caller can currently read an exact contributing joined-member ActorId routing projection. The query has no retry, route-resolution or delivery state side effect.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventDeliveryStatusRequestBody",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventDeliveryStatusOutcome"
     },
     {
       "operation_id": "ak.self.events.read.scan.v1",
@@ -5372,5 +5384,6 @@
         }
       ]
     }
-  ]
+  ],
+  "metadata_authority": "contract_registry_section"
 }

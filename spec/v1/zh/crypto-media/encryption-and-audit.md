@@ -33,7 +33,15 @@ signature；失败只返回不泄露库存细节的 `claim_failed`。
 
 recipient endpoint 与 KeyPackage 的持有者身份是**完整 ActorId**：account 分支携带包含 `station_id` 的
 AccountId，service 分支携带 `service_id`。claim、Welcome delivery 与 leaf credential MUST 逐字保留该完整身份，
-MUST NOT 折叠为签名 principal、裸 DID 或 handle。
+MUST NOT 折叠为签名 principal、裸 DID、device id 或 handle。RFC 9420 `BasicCredential.identity` 的 v1
+字节合同唯一固定为 `UTF8(RFC8785_JCS(actor_id))`，其中 `actor_id` 必须是
+[`common-ids.schema.json#/$defs/actor_id`](../../artifacts/schemas/common-ids.schema.json) 的闭合实例；不得改用
+摘要、展示串或任一分量。KeyPackage upload 与 claim record 的 `actor_id`、Welcome delivery 的
+`recipient_actor_id` 和 BasicCredential 解码出的对象 MUST 逐字段相等。`device_id`、Agent verification method
+及 authorization Event id 仍是独立 endpoint/authorization selector，不是 ActorId 的替代表示。两条真实
+LeafNode/KeyPackage 逐字节向量见
+[`mls-keypackage-endpoint-kat-fixture.json`](../../artifacts/fixtures/mls-keypackage-endpoint-kat-fixture.json)，其策略与拒绝矩阵由
+`ak.vector.mls.keypackage_actor_and_ciphersuite_closure.v1` 封闭。
 
 ### 2.2 Commit 与 Welcome
 
@@ -140,8 +148,8 @@ encrypted Event 与 recipient delivery 可以晚于对应 Commit 被客户端观
 
 #### 2.4.1 Membership 与 Epoch 不一致窗口
 
-治理 Station为每个 MLS scope维护单调 `key_access_revision`。current membership、leaf endpoint authorization、
-决定未来 epoch key取得者的 policy 或 scope terminal 状态改变时 revision严格增加。revision 未被 current Commit覆盖时，
+治理 Station为每个 MLS scope维护单调无符号 64 位整数 `key_access_revision`，初始值为 `0`。current membership、leaf endpoint authorization、
+决定未来 epoch key取得者的 policy 或 scope terminal 状态改变时 revision严格加一；该字段是计数器，不是摘要，也没有字符串形式或兼容别名。revision 未被 current Commit覆盖时，
 scope 是 `epoch_update_required`，Station MUST 拒绝新的 encrypted application Event 与 Add submission。
 
 不存在 advisory 降级窗口。remove先 commit时旧 epoch新消息立即失败；消息先 commit时它是 remove前合法历史。
@@ -177,18 +185,37 @@ RFC 9420 GroupContext extension `0xF1C0` 使用 deterministic CBOR 编码唯一�
 }
 ```
 
-未知字段、缺字段、indefinite-length CBOR、非最短整数、重复或乱序 map key均拒绝。Genesis 的 epoch transition为
-`0 -> 0`；Commit 必须 `next_epoch = previous_epoch + 1`。binding 的 scope、base、epoch与 revision必须逐字段匹配
-Station 的 current public state和 Commit payload。
+三个整数都限于 `0..2^64-1`。外层 map 的 deterministic-CBOR key 编码字节顺序固定为
+`next_epoch`、`previous_epoch`、`effective_scope`、`key_access_revision`、
+`base_group_state_ref`；嵌套 `effective_scope` 同样按 RFC 8949 的编码后 key 字节排序。未知字段、缺字段、
+indefinite-length CBOR、非最短整数、重复或乱序 map key、trailing bytes、错误 major type、超出整数范围、
+声明长度超过剩余输入均拒绝，接收方不得规范化后再接受。decoder 在解析前和递归中 MUST 执行共同上限：输入最多
+16384 bytes、嵌套最多 8 层、单个 map/array 最多 64 项；超过任一上限都以 `schema_violation` 拒绝，不得按声明长度
+预分配无界缓冲区。
 
-**提案形态就是同一个 binding（normative）**：`proposed_group_genesis_binding` **不是第二套 binding 概念**，
-它就是上面这个最小 `MlsGroupBinding` 在**尚无已接受 Genesis 时的提案形态**——同样的成员、同样的封闭编码、
-同样的 `0 -> 0` transition。因此：`0 -> 0` 的 group key-access revision 查询在目标 scope 尚无 accepted Genesis
-时 MUST 携带精确的提案不可变 binding，缺失以 `mls_genesis_binding_proposal_required` 拒绝且不产生 proof 或
-cache 条目；提案与签名 Genesis binding 不一致、与并发胜出的 Genesis binding 不一致，或在已有 accepted Genesis
-之后仍然携带，均以 `mls_genesis_binding_proposal_mismatch` 拒绝，落败方 MUST 丢弃该 proposal-bound proof，
-针对胜出的不可变 binding 重新无提案查询，MUST NOT 复用旧查询或 cache 条目。实现 MUST NOT 为提案态另立
-schema、另设成员或另走一条 binding 校验路径。
+Genesis 的 epoch transition为 `0 -> 0`；Commit 必须 `next_epoch = previous_epoch + 1`。binding 的 scope、base、epoch
+与 revision必须逐字段匹配 Station 的 current public state和 Commit payload。即使 GroupInfo 签名、ratchet tree、group id
+与 epoch 的 RFC 9420 公共校验全部成功，内部 binding 与外层任一字段不等仍 MUST 以
+`governance_binding_mismatch` 拒绝，并且不得推进 MLS epoch 或安装 Welcome。
+
+**提案形态就是同一个 binding（normative）**：`proposed_group_genesis_binding` **不是第二套 binding 概念**。
+正式 carrier 是 `event-payload.schema.json#/$defs/mls_genesis_binding_proposal_carrier` 的封闭对象：
+`event_kind` 固定为 `ak.mls.genesis`，`proposal_kind` 固定为 `group_genesis_binding`，`sender_actor_id` 是完整 ActorId，
+`target_scope` 是精确 effective scope，`proposed_group_genesis_binding` 直接引用同一
+`#/$defs/mls_governance_binding`。`target_scope` 必须与 binding 的 `effective_scope` 逐字段相等；提案 binding 的
+`base_group_state_ref` 为 null，三个整数均为 `0`。因此提案与 Event kind、发送者和目标 scope 都可结构化判定，
+同时没有第二份 binding 字段表或第二条校验路径。
+
+在尚无 accepted Genesis 时，消费该本地 carrier 的 `0 -> 0` key-access revision 计算 MUST 使用精确的提案不可变
+binding；缺失以 `mls_genesis_binding_proposal_required` 拒绝且不产生证明或缓存条目。提案与签名 Genesis binding
+不一致、与并发胜出的 Genesis binding 不一致，或在已有 accepted Genesis 后仍被提交，均以
+`mls_genesis_binding_proposal_mismatch` 拒绝；落败方 MUST 丢弃 proposal-bound 结果并针对胜出 binding 重新计算，
+MUST NOT 复用旧请求或缓存条目。该 carrier 是 §5.1.2 客户端本地持久化意图的一部分，不新增 HTTP operation、
+服务端持久化记录或对等方可信声明。
+
+历史 replay／恢复必须把 extension 与对应 accepted Event 的历史 binding 比较，而不是与最新 revision 比较。历史
+revision 小于 current revision 的材料仍可作为历史记录通过验证，但它不授予 current 发送权；当前发送 gate 仍因未被
+winning Commit 覆盖而返回 `epoch_update_required`。
 
 #### 2.5.2 Send gate 与 self-heal
 

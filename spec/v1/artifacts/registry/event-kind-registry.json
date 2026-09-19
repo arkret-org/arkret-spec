@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.3",
+  "version": "2026-09-19.5",
   "source_of_truth": false,
-  "generated_at": "2026-09-19T16:45:23+08:00",
+  "generated_at": "2026-09-19T19:35:04+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -111,8 +111,8 @@
     "Event carries no chain predecessor or authority-commit proof. Only RealmCommit carries previous_commit_ref, and only within the same stream.",
     "Reducers derive typed current results by replaying committed Events in stream position order. Account-private material is outside shared authority-commit streams.",
     "wire_scope=durable_event does NOT imply reducer_input=true. A durable Event is one whose exact bytes a RealmCommit can cover; reducer_input=true additionally asserts that replaying this Realm's committed Events suffices to derive the typed current results the kind writes. A kind whose real durable effect is holder-Station private service state -- keyed on material that never enters the Event stream, or on a counterpart mirror that zh/identity/contact-and-direct-conversation.md section 3 forbids from advancing a reducer -- MUST carry reducer_input=false and MUST name the canonical service_contracts row that spells out its branches, durable effect, unique key, prior-state CAS, exact retry and zero-side-effect rejection. Withdrawing Realm typed-result dispatch never withdraws the kind's admission, signature, commit evidence or private transactional effect: the five ak.contact.* kinds are the worked example (ak.contact.admission.v1). Setting reducer_input=false without registering where the effect actually lands is the defect this rule exists to prevent.",
-    "result_writes[] is the machine contract for which typed current results one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row: a declared value_projection member MUST be declared by that row's value_schema_ref, and a whole-value set MUST write every member that schema requires. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 99 of the 134 reducer_input kinds declare it; the remaining 35 still have no machine-readable reducer contract, so their registered writes exist only in prose. The declaring kinds are deliberately not enumerated here: event_kinds[] already is that list, the enumeration that used to sit in this sentence went stale behind it, and tools/artifact_lint:result_write_coverage_note now recomputes both counts from the rows and fails when this sentence disagrees. Normative prose MUST NOT cite result_writes[] for a kind that does not declare it -- a citation without a row is the exact defect this array was added to close. The converse obligation binds a declaring kind: a kind's rows MUST enumerate EVERY typed current result its accepted admission writes on the shared face, so a kind that writes four families and declares one describes itself wrongly in the artifact readers are told is the source of truth. That obligation cannot be gated here, because the lint has no second list of a kind's writes to compare a row set against; it is normative in zh/models/realm-and-space.md section 2.5.1 and it is why a kind with atomic multi-family writes lands all of them in one batch or none. Extend coverage kind by kind and shrink this note; do not narrow the rule to make it read as complete.",
-    "Every active persistent kind (durable_event or actor_private_event) MUST carry one closed result_effect_ownership object. A typed_result_writer owns non-empty result_writes[] and no second owner; a private_service_effect names an active service_contracts row whose branches cover that exact Event kind; an audit_fact_no_current_projection names its normative definition and carries no Realm typed-result write; an owned_gap names a live owner_report and an exact closure_condition while result_writes[] remains absent. Unknown classifications, unresolved references, orphan service branches or reports, and any classification that contradicts reducer_input/result_writes[] fail tools/artifact_lint:result_effect_ownership.",
+    "result_writes[] is the machine contract for which typed current results one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row: a declared value_projection member MUST be declared by that row's value_schema_ref, and a whole-value set MUST write every member that schema requires. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 129 of the 134 reducer_input kinds declare it; the remaining 5 have an explicit durable-fact or authority-commit effect classification and intentionally no typed-current-result row. The declaring kinds are deliberately not enumerated here: event_kinds[] already is that list, and tools/artifact_lint:result_write_coverage_note recomputes both counts from the rows. Normative prose MUST NOT cite result_writes[] for a kind that does not declare it. The converse obligation binds a declaring kind: its rows MUST enumerate EVERY typed current result its accepted admission writes on the shared face; atomic multi-family writes land all rows in one batch or none.",
+    "Every active persistent kind (durable_event or actor_private_event) MUST carry one closed result_effect_ownership object. A typed_result_writer owns non-empty result_writes[] and no second owner; a private_service_effect names an active service_contracts row whose branches cover that exact actor-private Event kind; a durable_fact_no_current_projection names its normative definition and carries no typed-current-result write; an authority_commit_effect names the structured authority-commit service contract and MUST NOT introduce a second governance counter; an owned_gap is temporary only while it names a live owner_report and exact closure condition. Unknown classifications, unresolved definitions, orphan service branches, shared/private mixing, malformed authority contracts or any classification that contradicts reducer_input/result_writes[] fail tools/artifact_lint:result_effect_ownership.",
     "transition_contracts declares the lifecycle axis of a typed current result family: its closed state set, its entry idiom (exactly one of initial_state / initial_states / template), its terminal states and its allowed (from, to) edges. tools/artifact_lint:fsm_reachability reads it together with every transition result_projection and requires that each declared state be reachable from the entry set, that each allowed edge have a write that can perform it, that no const edge leave the table and that no terminal state carry an outgoing edge. A family that declares a machine MUST NOT be written by any non-transition projection: a set installs a state without passing the table, which would make allowed_transitions documentation rather than a rule. Between the authority-commit clean break and 2026-09-18 this block did not exist while the gate still read it under the removed cell_* names, so check reported success over four normative paragraphs (zh/models/circle.md, zh/models/morph.md, zh/models/realm-and-space.md, zh/models/strand-and-message.md) that name transition_contracts as the source of truth for object lifecycle transitions; an absent or empty block is now a failure. Those four object families are themselves still unregistered, so their archive / restore lifecycle has no machine contract yet -- that is a coverage gap, not a licence to read the prose as satisfied."
   ],
   "payload_schema_contract": {
@@ -342,9 +342,8 @@
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/account_blocklist_payload",
       "id_source": "not_an_object_id",
       "result_effect_ownership": {
-        "kind": "owned_gap",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-1645-actor-private-events-lack-effect-owner-contracts.md",
-        "closure_condition": "Register the complete actor-private durable effect contract for ak.account.blocklist, including its storage owner, unique key, prior-state or revision CAS, exact retry behavior, zero-side-effect rejection and field maintenance sources; then change this classification to private_service_effect with its service_contract_id in the same change."
+        "kind": "private_service_effect",
+        "service_contract_id": "ak.actor_private.effects.v1"
       }
     },
     {
@@ -358,9 +357,8 @@
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/account_data_set_payload",
       "id_source": "not_an_object_id",
       "result_effect_ownership": {
-        "kind": "owned_gap",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-1645-actor-private-events-lack-effect-owner-contracts.md",
-        "closure_condition": "Register the complete actor-private durable effect contract for ak.account_data.set, including its storage owner, unique key, prior-state or revision CAS, exact retry behavior, zero-side-effect rejection and field maintenance sources; then change this classification to private_service_effect with its service_contract_id in the same change."
+        "kind": "private_service_effect",
+        "service_contract_id": "ak.actor_private.effects.v1"
       }
     },
     {
@@ -375,10 +373,30 @@
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/actor_discovery_state_payload",
       "id_source": "not_an_object_id",
       "result_effect_ownership": {
-        "kind": "owned_gap",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
-        "closure_condition": "Register the complete result_writes[] contract for ak.actor.discovery, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
-      }
+        "kind": "typed_result_writer"
+      },
+      "result_writes": [
+        {
+          "result_family": "actor_discovery",
+          "result_selector": {
+            "kind": "composite",
+            "components": [
+              {
+                "kind": "canonical_json",
+                "field": "payload.resource_id"
+              }
+            ]
+          },
+          "result_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload"
+            }
+          },
+          "value_schema_ref": "schemas/event-payload.schema.json#/$defs/actor_discovery_state_payload/properties/value",
+          "notes": "discovery/discovery-directory.md section 4. The complete ActorId selects one declaration and the closed value is replaced atomically. Directory publication still requires resource_kind=actor and exact directory_ids membership; this write never grants directory admission."
+        }
+      ]
     },
     {
       "event_kind": "ak.agent.action_approve",
@@ -391,10 +409,25 @@
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/agent_action_approve_payload",
       "id_source": "not_an_object_id",
       "result_effect_ownership": {
-        "kind": "owned_gap",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
-        "closure_condition": "Register the complete result_writes[] contract for ak.agent.action_approve, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
-      }
+        "kind": "typed_result_writer"
+      },
+      "result_writes": [
+        {
+          "result_family": "agent_action_approval",
+          "result_selector": {
+            "kind": "string",
+            "field": "payload.approval_id"
+          },
+          "result_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload"
+            }
+          },
+          "value_schema_ref": "schemas/event-payload.schema.json#/$defs/agent_action_approve_payload",
+          "notes": "authz/constraint-schema.md section 9.2.6. approval_id selects the immutable confirmation record. Before this write the reducer verifies controller authority, exact agent/draft/request and approved_event_id binding, the approval window, and uniqueness of (envelope.actor_id, payload.approval_nonce). Exact replay returns the original outcome; nonce reuse for different bytes fails with approval_nonce_reused and writes nothing."
+        }
+      ]
     },
     {
       "event_kind": "ak.agent.action_reject",
@@ -407,9 +440,8 @@
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/agent_action_reject_payload",
       "id_source": "not_an_object_id",
       "result_effect_ownership": {
-        "kind": "owned_gap",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-1645-actor-private-events-lack-effect-owner-contracts.md",
-        "closure_condition": "Register the complete actor-private durable effect contract for ak.agent.action_reject, including its storage owner, unique key, prior-state or revision CAS, exact retry behavior, zero-side-effect rejection and field maintenance sources; then change this classification to private_service_effect with its service_contract_id in the same change."
+        "kind": "private_service_effect",
+        "service_contract_id": "ak.actor_private.effects.v1"
       }
     },
     {
@@ -423,9 +455,8 @@
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/agent_action_request_payload",
       "id_source": "not_an_object_id",
       "result_effect_ownership": {
-        "kind": "owned_gap",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-1645-actor-private-events-lack-effect-owner-contracts.md",
-        "closure_condition": "Register the complete actor-private durable effect contract for ak.agent.action_request, including its storage owner, unique key, prior-state or revision CAS, exact retry behavior, zero-side-effect rejection and field maintenance sources; then change this classification to private_service_effect with its service_contract_id in the same change."
+        "kind": "private_service_effect",
+        "service_contract_id": "ak.actor_private.effects.v1"
       }
     },
     {
@@ -439,9 +470,8 @@
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/agent_draft_propose_payload",
       "id_source": "not_an_object_id",
       "result_effect_ownership": {
-        "kind": "owned_gap",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-1645-actor-private-events-lack-effect-owner-contracts.md",
-        "closure_condition": "Register the complete actor-private durable effect contract for ak.agent.draft.propose, including its storage owner, unique key, prior-state or revision CAS, exact retry behavior, zero-side-effect rejection and field maintenance sources; then change this classification to private_service_effect with its service_contract_id in the same change."
+        "kind": "private_service_effect",
+        "service_contract_id": "ak.actor_private.effects.v1"
       }
     },
     {
@@ -713,7 +743,7 @@
             }
           },
           "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/agent_pcr_genesis_declaration_value",
-          "notes": "One of the FOUR typed current results one accepted ak.agent.provision writes in a single reducer transaction; identity/key-management.md section 3.6.3 forbids exposing a partially completed state, so any required write failing rolls the whole set back. The forward declaration of an Agent PCR that does not exist yet -- the named class C preimage exemption of conformance/encoding.md section 6.0.1. The subject is the declared realm id and the value is the one-member index naming the Agent, because both readers start from a realm id and nothing else: genesis admission holds retype(create.event_id) and DID entry 1 admission holds serviceEndpoint.realm_id. They resolve the Agent here and then read the remaining create-locked members from agent_provisioning keyed by it, so no member of the create-locked four-tuple lives in two families. A second provision declaring a realm id an accepted provision already claims MUST be rejected with zero writes (agent_pcr_genesis_declaration_conflict); this family covers one controller PCR and the Station's local uniqueness index covers the rest. The genesis carries no ref back to its provision, so a missing row MUST fail closed with agent_pcr_genesis_declaration_missing and materialize neither the Realm nor the agent_status transition."
+          "notes": "One of the FOUR typed current results one accepted ak.agent.provision writes in a single reducer transaction; identity/key-management.md section 3.6.3 forbids exposing a partially completed state, so any required write failing rolls the whole set back. The forward declaration of an Agent PCR that does not exist yet -- the named class C preimage exemption of conformance/encoding.md §3.1. The subject is the declared realm id and the value is the one-member index naming the Agent, because both readers start from a realm id and nothing else: genesis admission holds retype(create.event_id) and DID entry 1 admission holds serviceEndpoint.realm_id. They resolve the Agent here and then read the remaining create-locked members from agent_provisioning keyed by it, so no member of the create-locked four-tuple lives in two families. A second provision declaring a realm id an accepted provision already claims MUST be rejected with zero writes (agent_pcr_genesis_declaration_conflict); this family covers one controller PCR and the Station's local uniqueness index covers the rest. The genesis carries no ref back to its provision, so a missing row MUST fail closed with agent_pcr_genesis_declaration_missing and materialize neither the Realm nor the agent_status transition."
         }
       ],
       "id_source": "reference",
@@ -785,10 +815,34 @@
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/agent_sidecar_exchange_control_payload",
       "id_source": "reference",
       "result_effect_ownership": {
-        "kind": "owned_gap",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
-        "closure_condition": "Register the complete result_writes[] contract for ak.agent.sidecar.exchange.control, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
-      }
+        "kind": "typed_result_writer"
+      },
+      "result_writes": [
+        {
+          "result_family": "agent_sidecar_exchange_controls",
+          "result_selector": {
+            "kind": "composite",
+            "components": [
+              "payload.sidecar_id",
+              {
+                "kind": "canonical_json",
+                "field": "payload.source_context_ref"
+              }
+            ]
+          },
+          "result_projection": {
+            "kind": "keyed_set_add",
+            "tag": {
+              "dot": true
+            },
+            "value": {
+              "field": "payload"
+            }
+          },
+          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/agent_sidecar_exchange_controls_value",
+          "notes": "models/sidecar.md section 8. The subject is the native Sidecar plus source context; the value is a dot-tagged set of exact encrypted control carriers. exchange_id remains only inside authenticated ciphertext and MUST NOT be copied into the selector. Authorized participants decrypt and fold by plaintext exchange_id, basis_event_ids and action; malformed ciphertext, wrong controller/scope/context, uncovered basis or an invalid transition fails before the add."
+        }
+      ]
     },
     {
       "event_kind": "ak.applet.bridge_error",
@@ -802,9 +856,8 @@
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/applet_bridge_error_payload",
       "id_source": "reference",
       "result_effect_ownership": {
-        "kind": "owned_gap",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
-        "closure_condition": "Register the complete result_writes[] contract for ak.applet.bridge_error, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        "kind": "durable_fact_no_current_projection",
+        "defined_in": "zh/extensions/applet-integration.md"
       }
     },
     {
@@ -819,10 +872,25 @@
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/applet_discovery_state_payload",
       "id_source": "reference",
       "result_effect_ownership": {
-        "kind": "owned_gap",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
-        "closure_condition": "Register the complete result_writes[] contract for ak.applet.discovery, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
-      }
+        "kind": "typed_result_writer"
+      },
+      "result_writes": [
+        {
+          "result_family": "applet_discovery",
+          "result_selector": {
+            "kind": "id:applet",
+            "field": "payload.resource_id"
+          },
+          "result_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload"
+            }
+          },
+          "value_schema_ref": "schemas/event-payload.schema.json#/$defs/applet_discovery_state_payload/properties/value",
+          "notes": "discovery/discovery-directory.md section 4. The complete AppletId selects one declaration and the closed value is replaced atomically; resource_kind=applet and directory_ids are checked before publication."
+        }
+      ]
     },
     {
       "event_kind": "ak.applet.managed_actor.provision",
@@ -868,9 +936,8 @@
         "actor_role=ghost: the complete initial_resolution did, never the did_core_id, matches one registered namespaces.actors pattern; otherwise applet_namespace_mismatch. A namespace hit is a routing and exclusivity verdict only and never establishes ownership or authority"
       ],
       "result_effect_ownership": {
-        "kind": "owned_gap",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
-        "closure_condition": "Register the complete result_writes[] contract for ak.applet.managed_actor.provision, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        "kind": "durable_fact_no_current_projection",
+        "defined_in": "zh/extensions/applet-integration.md"
       }
     },
     {
@@ -885,10 +952,25 @@
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/applet_registration_payload",
       "id_source": "reference",
       "result_effect_ownership": {
-        "kind": "owned_gap",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
-        "closure_condition": "Register the complete result_writes[] contract for ak.applet.registration, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
-      }
+        "kind": "typed_result_writer"
+      },
+      "result_writes": [
+        {
+          "result_family": "applet_registration",
+          "result_selector": {
+            "kind": "id:applet",
+            "field": "payload.applet_id"
+          },
+          "result_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload"
+            }
+          },
+          "value_schema_ref": "schemas/event-payload.schema.json#/$defs/applet_registration_payload",
+          "notes": "extensions/applet-schema.md section 1. AppletId selects the accepted complete registration snapshot. Installer authority, package proof, registration_epoch evidence, service/controller identities and namespace conflicts are checked before replacement; a failed guard writes nothing."
+        }
+      ]
     },
     {
       "event_kind": "ak.audit.accessed",
@@ -902,9 +984,8 @@
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/audit_accessed_payload",
       "id_source": "not_an_object_id",
       "result_effect_ownership": {
-        "kind": "owned_gap",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
-        "closure_condition": "Register the complete result_writes[] contract for ak.audit.accessed, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        "kind": "durable_fact_no_current_projection",
+        "defined_in": "zh/discovery/read-receipts.md"
       }
     },
     {
@@ -918,7 +999,7 @@
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/erasure_receipt_payload",
       "id_source": "not_an_object_id",
       "result_effect_ownership": {
-        "kind": "audit_fact_no_current_projection",
+        "kind": "durable_fact_no_current_projection",
         "defined_in": "zh/identity/account-lifecycle.md"
       }
     },
@@ -934,10 +1015,34 @@
       "id_source": "event_derived",
       "id_kind": "call",
       "result_effect_ownership": {
-        "kind": "owned_gap",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
-        "closure_condition": "Register the complete result_writes[] contract for ak.call.create, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
-      }
+        "kind": "typed_result_writer"
+      },
+      "result_writes": [
+        {
+          "result_family": "call_state",
+          "result_selector": {
+            "kind": "id:call"
+          },
+          "result_projection": {
+            "kind": "set",
+            "value_projection": {
+              "kind": "object",
+              "members": [
+                {
+                  "name": "from",
+                  "literal": null
+                },
+                {
+                  "name": "to",
+                  "field": "payload.initial_state"
+                }
+              ]
+            }
+          },
+          "value_schema_ref": "schemas/event-payload.schema.json#/$defs/call_state_payload/properties/state_transition",
+          "notes": "crypto-media/call-state.md section 4.2. The event-derived selector retypes this Event id as CallId. Creation installs {from:null,to:payload.initial_state}; the schema restricts the target to scheduled, ringing or connecting. Conflicting reuse fails before the write."
+        }
+      ]
     },
     {
       "event_kind": "ak.call.recording.start",
@@ -1465,6 +1570,15 @@
           "retained_members": [
             "schema",
             "realm_id",
+            "profile_ref",
+            "title",
+            "summary",
+            "display",
+            "directory_visibility",
+            "join_rule",
+            "history_access",
+            "agent_participation",
+            "mls_group_id",
             "created_by",
             "created_at"
           ],
@@ -1495,12 +1609,76 @@
           },
           "result_projection": {
             "kind": "set",
-            "value": {
-              "field": "payload.object"
+            "value_projection": {
+              "kind": "object",
+              "members": [
+                {
+                  "name": "profile_ref",
+                  "field": "payload.object.profile_ref"
+                },
+                {
+                  "name": "title",
+                  "field": "payload.object.title"
+                },
+                {
+                  "name": "summary",
+                  "field": "payload.object.summary"
+                },
+                {
+                  "name": "display",
+                  "field": "payload.object.display"
+                },
+                {
+                  "name": "directory_visibility",
+                  "field": "payload.object.directory_visibility"
+                },
+                {
+                  "name": "join_rule",
+                  "field": "payload.object.join_rule"
+                },
+                {
+                  "name": "history_access",
+                  "field": "payload.object.history_access"
+                },
+                {
+                  "name": "agent_participation",
+                  "field": "payload.object.agent_participation"
+                }
+              ]
             }
           },
+          "derived_members": [
+            {
+              "name": "schema",
+              "derivation": "object_schema_identifier"
+            },
+            {
+              "name": "realm_id",
+              "derivation": "object_realm_binding"
+            },
+            {
+              "name": "state",
+              "derivation": "object_initial_state"
+            },
+            {
+              "name": "created_by",
+              "derivation": "object_create_actor"
+            },
+            {
+              "name": "created_at",
+              "derivation": "object_create_time"
+            },
+            {
+              "name": "updated_by",
+              "derivation": "object_update_actor"
+            },
+            {
+              "name": "updated_at",
+              "derivation": "object_update_time"
+            }
+          ],
           "value_schema_ref": "schemas/circle.schema.json",
-          "notes": "zh/models/circle.md. The selector carries no field because ak.circle.create is id_source=event_derived: the object id IS this Event's own event_id retyped, and circle_create_payload forbids a payload-carried id for that reason. payload.object is the closed author region and the projection is the identity on it. The create-lock narrowing of zh/models/common-fields.md section 3.3 -- schema / realm_id / created_by / created_at / state produced by the reducer instead of declared in the author region -- is NOT yet done for this object kind, so no derived_members[] are claimed here; the reducer-managed-path-registry row names the owner that closes it."
+          "notes": "zh/models/circle.md sections 3 and 5. The selector retypes this create Event id. The author projection contains only Circle business fields; schema, Realm binding, initial lifecycle and audit timestamps are derived from the accepted envelope. id and mls_group_id are never author input, and mls_group_id remains absent until the Circle scope accepts its own MLS genesis."
         }
       ],
       "result_effect_ownership": {
@@ -1517,10 +1695,52 @@
       "payload": "Dedicated per-Circle monotone history-access FSM transition; only all_history_for_current_members to since_join is state-changing after create.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/circle_history_access_payload",
       "id_source": "not_an_object_id",
+      "result_writes": [
+        {
+          "result_family": "circle",
+          "result_selector": {
+            "kind": "id:circle",
+            "field": "payload.circle_id"
+          },
+          "result_projection": {
+            "kind": "merge",
+            "value_projection": {
+              "kind": "object",
+              "members": [
+                {
+                  "name": "history_access",
+                  "field": "payload.to"
+                }
+              ]
+            }
+          },
+          "derived_members": [
+            {
+              "name": "updated_by",
+              "derivation": "object_update_actor"
+            },
+            {
+              "name": "updated_at",
+              "derivation": "object_update_time"
+            }
+          ],
+          "retained_members": [
+            "schema",
+            "realm_id",
+            "title",
+            "display",
+            "directory_visibility",
+            "join_rule",
+            "state",
+            "created_by",
+            "created_at"
+          ],
+          "value_schema_ref": "schemas/circle.schema.json",
+          "notes": "zh/models/circle.md sections 3 and 5. The reducer first compares payload.from with the selected Circle history_access value, permits only the monotone all_history_for_current_members -> since_join edge after create, and rejects widening, stale from values, inactive targets and malformed replays with zero side effects. The accepted write replaces only history_access, derives update metadata from the envelope and retains every required identity, policy and lifecycle member."
+        }
+      ],
       "result_effect_ownership": {
-        "kind": "owned_gap",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
-        "closure_condition": "Register the complete result_writes[] contract for ak.circle.history_access, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        "kind": "typed_result_writer"
       }
     },
     {
@@ -1533,10 +1753,80 @@
       "payload": "Circle materialized membership state. Uses the same membership_state enum as ak.member.state (join/knock/leave/ban), scoped to a Circle. Invite remains a separate pending workflow. Reducer MUST first validate the complete member_id is a parent Realm `join` member, otherwise failed_precondition reason=circle_member_must_be_realm_member. See zh/models/circle.md §9.1.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/circle_member_state_payload",
       "id_source": "not_an_object_id",
+      "result_writes": [
+        {
+          "result_family": "circle_member_state",
+          "result_selector": {
+            "kind": "composite",
+            "components": [
+              "payload.circle_id",
+              {
+                "kind": "canonical_json",
+                "field": "payload.member_id"
+              }
+            ]
+          },
+          "condition": {
+            "kind": "field_present",
+            "field": "payload.effective_at"
+          },
+          "result_projection": {
+            "kind": "set",
+            "value_projection": {
+              "kind": "object",
+              "members": [
+                {
+                  "name": "membership",
+                  "field": "payload.membership"
+                },
+                {
+                  "name": "effective_at",
+                  "field": "payload.effective_at"
+                }
+              ]
+            }
+          },
+          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/circle_member_state_value",
+          "notes": "zh/models/circle.md section 9.1. The subject is the exact Circle plus the complete ActorId. This branch preserves a signed effective_at. expected_membership is a three-state CAS guard and is never stored. Parent-Realm membership, Circle join rule, transition legality and cross-actor authority are checked before the atomic set; rejection writes nothing."
+        },
+        {
+          "result_family": "circle_member_state",
+          "result_selector": {
+            "kind": "composite",
+            "components": [
+              "payload.circle_id",
+              {
+                "kind": "canonical_json",
+                "field": "payload.member_id"
+              }
+            ]
+          },
+          "condition": {
+            "kind": "field_absent",
+            "field": "payload.effective_at"
+          },
+          "result_projection": {
+            "kind": "set",
+            "value_projection": {
+              "kind": "object",
+              "members": [
+                {
+                  "name": "membership",
+                  "field": "payload.membership"
+                },
+                {
+                  "name": "effective_at",
+                  "envelope_field": "created_at"
+                }
+              ]
+            }
+          },
+          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/circle_member_state_value",
+          "notes": "zh/models/circle.md section 9.1. When effective_at is absent, the accepted Event created_at is the canonical transition time. This branch is complementary to the signed-time branch and shares its exact subject, CAS, FSM, parent-membership and zero-side-effect rejection contract."
+        }
+      ],
       "result_effect_ownership": {
-        "kind": "owned_gap",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
-        "closure_condition": "Register the complete result_writes[] contract for ak.circle.member.state, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        "kind": "typed_result_writer"
       }
     },
     {
@@ -1581,6 +1871,15 @@
           "retained_members": [
             "schema",
             "realm_id",
+            "profile_ref",
+            "title",
+            "summary",
+            "display",
+            "directory_visibility",
+            "join_rule",
+            "history_access",
+            "agent_participation",
+            "mls_group_id",
             "created_by",
             "created_at"
           ],
@@ -1634,6 +1933,15 @@
           "retained_members": [
             "schema",
             "realm_id",
+            "profile_ref",
+            "title",
+            "summary",
+            "display",
+            "directory_visibility",
+            "join_rule",
+            "history_access",
+            "agent_participation",
+            "mls_group_id",
             "created_by",
             "created_at"
           ],
@@ -1655,10 +1963,54 @@
       "payload": "Circle metadata patch. history_access, realm_id and MLS identity fields are create-locked.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/circle_patch_payload",
       "id_source": "reference",
+      "result_writes": [
+        {
+          "result_family": "circle",
+          "result_selector": {
+            "kind": "id:circle",
+            "field": "payload.circle_id"
+          },
+          "result_projection": {
+            "kind": "apply_patch",
+            "patch": {
+              "field": "payload.patch"
+            },
+            "allowed_paths": [
+              "title",
+              "summary",
+              "display",
+              "directory_visibility",
+              "join_rule"
+            ]
+          },
+          "derived_members": [
+            {
+              "name": "updated_by",
+              "derivation": "object_update_actor"
+            },
+            {
+              "name": "updated_at",
+              "derivation": "object_update_time"
+            }
+          ],
+          "retained_members": [
+            "schema",
+            "realm_id",
+            "profile_ref",
+            "history_access",
+            "agent_participation",
+            "mls_group_id",
+            "state",
+            "state_changed_at",
+            "created_by",
+            "created_at"
+          ],
+          "value_schema_ref": "schemas/circle.schema.json",
+          "notes": "zh/models/circle.md section 5. The patch surface is exactly title, summary, display, directory_visibility and join_rule. profile_ref, history_access, Realm/MLS identity and lifecycle paths remain create-locked or dedicated-event-owned. expected_state_digest guards the exact selected pre-state; an inactive target, forbidden path or failed digest check rejects the whole write with no derived metadata update."
+        }
+      ],
       "result_effect_ownership": {
-        "kind": "owned_gap",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
-        "closure_condition": "Register the complete result_writes[] contract for ak.circle.update, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        "kind": "typed_result_writer"
       }
     },
     {
@@ -1841,10 +2193,42 @@
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/container_move_item_payload",
       "id_source": "not_an_object_id",
       "result_effect_ownership": {
-        "kind": "owned_gap",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
-        "closure_condition": "Register the complete result_writes[] contract for ak.container.move_item, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
-      }
+        "kind": "typed_result_writer"
+      },
+      "result_writes": [
+        {
+          "result_family": "container_position",
+          "result_selector": {
+            "kind": "composite",
+            "components": [
+              "payload.item_ref",
+              "payload.relation_kind"
+            ]
+          },
+          "result_projection": {
+            "kind": "set",
+            "value_projection": {
+              "kind": "object",
+              "members": [
+                {
+                  "name": "container_ref",
+                  "field": "payload.container_ref"
+                },
+                {
+                  "name": "relation_kind",
+                  "field": "payload.relation_kind"
+                },
+                {
+                  "name": "rank",
+                  "field": "payload.rank"
+                }
+              ]
+            }
+          },
+          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/container_position_value",
+          "notes": "conformance/encoding.md sections 9.1 and 9.5. One position is selected by the exact scalar item_ref and relation kind; container_ref may change without changing identity. from_container_ref and expected_position_digest are compare-and-set guards. Scope, authorization, container compatibility and rank grammar are checked before replacement."
+        }
+      ]
     },
     {
       "event_kind": "ak.container.rebalance",
@@ -1857,10 +2241,49 @@
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/container_rebalance_payload",
       "id_source": "not_an_object_id",
       "result_effect_ownership": {
-        "kind": "owned_gap",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
-        "closure_condition": "Register the complete result_writes[] contract for ak.container.rebalance, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
-      }
+        "kind": "typed_result_writer"
+      },
+      "result_writes": [
+        {
+          "result_family": "container_position",
+          "result_selector": {
+            "kind": "composite",
+            "components": [
+              {
+                "kind": "canonical_json",
+                "field": "item.item_ref"
+              },
+              "payload.relation_kind"
+            ]
+          },
+          "result_projection": {
+            "kind": "set",
+            "value_projection": {
+              "kind": "object",
+              "members": [
+                {
+                  "name": "container_ref",
+                  "field": "payload.container_ref"
+                },
+                {
+                  "name": "relation_kind",
+                  "field": "payload.relation_kind"
+                },
+                {
+                  "name": "rank",
+                  "field": "item.rank"
+                }
+              ]
+            }
+          },
+          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/container_position_value",
+          "notes": "conformance/encoding.md section 9.1. The bounded positions array expands to one atomic write per item. expected_order_digest is checked against the complete unclipped canonical order; positions must cover every active edge exactly once and match the deterministic assignment. Any invalid item or rank rejects the whole Event with zero partial writes.",
+          "for_each": {
+            "field": "payload.positions",
+            "max_items": 10000
+          }
+        }
+      ]
     },
     {
       "event_kind": "ak.device.authorize",
@@ -1993,9 +2416,8 @@
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/device_list_update_payload",
       "id_source": "not_an_object_id",
       "result_effect_ownership": {
-        "kind": "owned_gap",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
-        "closure_condition": "Register the complete result_writes[] contract for ak.device.list_update, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        "kind": "durable_fact_no_current_projection",
+        "defined_in": "zh/identity/key-management.md"
       }
     },
     {
@@ -2005,13 +2427,12 @@
       "verb_form": "not_applicable",
       "wire_scope": "actor_private_event",
       "reducer_input": false,
-      "payload": "Server-revision-CAS active binding or revoked tombstone for an (account_id, device_id, push_route) tuple. Every write carries expected_revision; active bindings carry push_target_id, push_gateway_id, encryption_key and capabilities, while revoked tombstones carry none of those secrets. Stored as actor-private state on account_id.station_id only; MUST NOT be replicated to another Station.",
+      "payload": "Server-revision-CAS active binding or revoked tombstone for an (account_id, device_id, push_route) tuple. Every write carries expected_server_revision; active bindings carry push_target_id, push_gateway_id, encryption_key and capabilities, while revoked tombstones carry none of those secrets. Stored as actor-private state on account_id.station_id only; MUST NOT be replicated to another Station.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/device_push_route_payload",
       "id_source": "not_an_object_id",
       "result_effect_ownership": {
-        "kind": "owned_gap",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-1645-actor-private-events-lack-effect-owner-contracts.md",
-        "closure_condition": "Register the complete actor-private durable effect contract for ak.device.push_route, including its storage owner, unique key, prior-state or revision CAS, exact retry behavior, zero-side-effect rejection and field maintenance sources; then change this classification to private_service_effect with its service_contract_id in the same change."
+        "kind": "private_service_effect",
+        "service_contract_id": "ak.actor_private.effects.v1"
       }
     },
     {
@@ -2136,10 +2557,25 @@
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/handle_discovery_state_payload",
       "id_source": "not_an_object_id",
       "result_effect_ownership": {
-        "kind": "owned_gap",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
-        "closure_condition": "Register the complete result_writes[] contract for ak.handle.discovery, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
-      }
+        "kind": "typed_result_writer"
+      },
+      "result_writes": [
+        {
+          "result_family": "handle_discovery",
+          "result_selector": {
+            "kind": "string",
+            "field": "payload.resource_id"
+          },
+          "result_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload"
+            }
+          },
+          "value_schema_ref": "schemas/event-payload.schema.json#/$defs/handle_discovery_state_payload/properties/value",
+          "notes": "discovery/discovery-directory.md section 4. The canonical handle selects one declaration. The handle profile and resource_kind=handle are admission guards; the accepted closed value replaces the prior value."
+        }
+      ]
     },
     {
       "event_kind": "ak.identity.accountability_grant",
@@ -2792,10 +3228,31 @@
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/key_backup_active_series_payload",
       "id_source": "not_an_object_id",
       "result_effect_ownership": {
-        "kind": "owned_gap",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
-        "closure_condition": "Register the complete result_writes[] contract for ak.key_backup.active_series, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
-      }
+        "kind": "typed_result_writer"
+      },
+      "result_writes": [
+        {
+          "result_family": "key_backup_active_series",
+          "result_selector": {
+            "kind": "composite",
+            "components": [
+              {
+                "kind": "canonical_json",
+                "field": "payload.actor_id"
+              },
+              "payload.backup_kind"
+            ]
+          },
+          "result_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload"
+            }
+          },
+          "value_schema_ref": "schemas/key-backup-active-series.schema.json",
+          "notes": "identity/key-management.md section 7.6.1. ActorId and backup_kind select one pointer. Admission verifies signature/device authorization/source commit and requires version 1 on first write or exactly current+1 afterwards; rollback, gaps and same-version forks fail with zero writes."
+        }
+      ]
     },
     {
       "event_kind": "ak.member.identity.update",
@@ -2809,10 +3266,34 @@
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/member_identity_update_payload",
       "id_source": "not_an_object_id",
       "result_effect_ownership": {
-        "kind": "owned_gap",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
-        "closure_condition": "Register the complete result_writes[] contract for ak.member.identity.update, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
-      }
+        "kind": "typed_result_writer"
+      },
+      "result_writes": [
+        {
+          "result_family": "member_identity_updates",
+          "result_selector": {
+            "kind": "composite",
+            "components": [
+              {
+                "kind": "canonical_json",
+                "field": "payload.member_id"
+              },
+              "payload.segment"
+            ]
+          },
+          "result_projection": {
+            "kind": "keyed_set_add",
+            "tag": {
+              "dot": true
+            },
+            "value": {
+              "field": "payload"
+            }
+          },
+          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/member_identity_updates_value",
+          "notes": "sync/client-sync.md section 8.1. Realm scope plus member ActorId and segment select an append-only dot set of exact update payloads. Readers validate proofs and replacement edges, then fold replaces[] into the effective set; an invalid edge never removes its target. expected_state_digest, when present, must match that prestate or no add occurs."
+        }
+      ]
     },
     {
       "event_kind": "ak.member.state",
@@ -2893,10 +3374,24 @@
       "id_source": "event_derived",
       "id_kind": "message",
       "result_effect_ownership": {
-        "kind": "owned_gap",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
-        "closure_condition": "Register the complete result_writes[] contract for ak.message.create, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
-      }
+        "kind": "typed_result_writer"
+      },
+      "result_writes": [
+        {
+          "result_family": "message_revision",
+          "result_selector": {
+            "kind": "id:message"
+          },
+          "result_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload"
+            }
+          },
+          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/message_revision_value",
+          "notes": "models/strand-and-message.md section 9. The derived MessageId selects the revision chain and creation installs the exact closed create carrier. Admission resolves Strand/track/effective scope and checks authorization, Blob and mention gates. object_redaction remains the separate visibility overlay."
+        }
+      ]
     },
     {
       "event_kind": "ak.message.redact",
@@ -2977,10 +3472,25 @@
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/message_revise_payload",
       "id_source": "not_an_object_id",
       "result_effect_ownership": {
-        "kind": "owned_gap",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
-        "closure_condition": "Register the complete result_writes[] contract for ak.message.revise, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
-      }
+        "kind": "typed_result_writer"
+      },
+      "result_writes": [
+        {
+          "result_family": "message_revision",
+          "result_selector": {
+            "kind": "id:message",
+            "field": "payload.message_id"
+          },
+          "result_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload"
+            }
+          },
+          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/message_revision_value",
+          "notes": "models/strand-and-message.md section 9.5.1. The target MessageId selects the same family as create and the later accepted commit replaces the current exact revise carrier. Admission checks target visibility, edit authority, immutable Strand/scope, content exclusivity and mention gates. Materialization reads creation history, this current carrier and object_redaction."
+        }
+      ]
     },
     {
       "event_kind": "ak.mimi.room_binding",
@@ -3276,6 +3786,17 @@
           "retained_members": [
             "schema",
             "realm_id",
+            "scope_circle_id",
+            "schema_refs",
+            "morph_kind",
+            "facets",
+            "metadata",
+            "encrypted_metadata",
+            "content",
+            "encrypted_content",
+            "fields",
+            "stage",
+            "stage_changed_at",
             "created_by",
             "created_at"
           ],
@@ -3306,12 +3827,80 @@
           },
           "result_projection": {
             "kind": "set",
-            "value": {
-              "field": "payload.object"
+            "value_projection": {
+              "kind": "object",
+              "members": [
+                {
+                  "name": "scope_circle_id",
+                  "field": "payload.object.scope_circle_id"
+                },
+                {
+                  "name": "schema_refs",
+                  "field": "payload.object.schema_refs"
+                },
+                {
+                  "name": "morph_kind",
+                  "field": "payload.object.morph_kind"
+                },
+                {
+                  "name": "facets",
+                  "field": "payload.object.facets"
+                },
+                {
+                  "name": "metadata",
+                  "field": "payload.object.metadata"
+                },
+                {
+                  "name": "encrypted_metadata",
+                  "field": "payload.object.encrypted_metadata"
+                },
+                {
+                  "name": "content",
+                  "field": "payload.object.content"
+                },
+                {
+                  "name": "encrypted_content",
+                  "field": "payload.object.encrypted_content"
+                },
+                {
+                  "name": "fields",
+                  "field": "payload.object.fields"
+                }
+              ]
             }
           },
+          "derived_members": [
+            {
+              "name": "schema",
+              "derivation": "object_schema_identifier"
+            },
+            {
+              "name": "realm_id",
+              "derivation": "object_realm_binding"
+            },
+            {
+              "name": "state",
+              "derivation": "object_initial_state"
+            },
+            {
+              "name": "created_by",
+              "derivation": "object_create_actor"
+            },
+            {
+              "name": "created_at",
+              "derivation": "object_create_time"
+            },
+            {
+              "name": "updated_by",
+              "derivation": "object_update_actor"
+            },
+            {
+              "name": "updated_at",
+              "derivation": "object_update_time"
+            }
+          ],
           "value_schema_ref": "schemas/morph.schema.json",
-          "notes": "zh/models/morph.md. The selector carries no field because ak.morph.create is id_source=event_derived: the object id IS this Event's own event_id retyped, and morph_create_payload forbids a payload-carried id for that reason. payload.object is the closed author region and the projection is the identity on it. The create-lock narrowing of zh/models/common-fields.md section 3.3 -- schema / realm_id / created_by / created_at / state produced by the reducer instead of declared in the author region -- is NOT yet done for this object kind, so no derived_members[] are claimed here; the reducer-managed-path-registry row names the owner that closes it."
+          "notes": "zh/models/morph.md sections 2 and 4. The selector derives the Morph id from this Event. The author supplies only ordinary Morph business fields; common identity, initial lifecycle and audit members are reducer-derived. The business stage axis is initialized or changed only by ak.morph.stage.set, so create leaves stage and stage_changed_at absent."
         }
       ],
       "result_effect_ownership": {
@@ -3360,6 +3949,17 @@
           "retained_members": [
             "schema",
             "realm_id",
+            "scope_circle_id",
+            "schema_refs",
+            "morph_kind",
+            "facets",
+            "metadata",
+            "encrypted_metadata",
+            "content",
+            "encrypted_content",
+            "fields",
+            "stage",
+            "stage_changed_at",
             "created_by",
             "created_at"
           ],
@@ -3381,10 +3981,53 @@
       "payload": "Morph business-progression stage transition. Single source of truth for mutating Morph.stage / Morph.stage_changed_at; ak.morph.update patches on those paths MUST be rejected (forbidden-wire). The payload intentionally carries no reason / note / explanation field — rationale belongs in a Message on an associated discussion track that 'references' this event. Reducer enforces hard invariants from zh/models/common-fields.md §5.3.3: state=redacted yields failed_precondition reason=morph_already_terminal; state=archived yields morph_not_active; same-value self-transition is accepted but does NOT update stage_changed_at; reducer overwrites any wire-supplied stage_changed_at with the event's created_at.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/morph_stage_set_payload",
       "id_source": "reference",
+      "result_writes": [
+        {
+          "result_family": "morph",
+          "result_selector": {
+            "kind": "id:morph",
+            "field": "payload.morph_id"
+          },
+          "result_projection": {
+            "kind": "merge",
+            "value_projection": {
+              "kind": "object",
+              "members": [
+                {
+                  "name": "stage",
+                  "field": "payload.stage"
+                }
+              ]
+            }
+          },
+          "derived_members": [
+            {
+              "name": "stage_changed_at",
+              "derivation": "object_state_transition_time"
+            },
+            {
+              "name": "updated_by",
+              "derivation": "object_update_actor"
+            },
+            {
+              "name": "updated_at",
+              "derivation": "object_update_time"
+            }
+          ],
+          "retained_members": [
+            "schema",
+            "realm_id",
+            "schema_refs",
+            "morph_kind",
+            "created_by",
+            "created_at"
+          ],
+          "value_schema_ref": "schemas/morph.schema.json",
+          "notes": "zh/models/morph.md section 2 and zh/models/common-fields.md section 5.3. payload.expected_stage is a pre-state guard and is not stored. A same-value exact retry preserves the existing stage_changed_at; an actual accepted transition derives it from the Event created_at. Archived or redacted Morphs and failed guards write neither the stage nor update metadata."
+        }
+      ],
       "result_effect_ownership": {
-        "kind": "owned_gap",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
-        "closure_condition": "Register the complete result_writes[] contract for ak.morph.stage.set, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        "kind": "typed_result_writer"
       }
     },
     {
@@ -3397,10 +4040,56 @@
       "payload": "Morph patch",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/morph_update_payload",
       "id_source": "reference",
+      "result_writes": [
+        {
+          "result_family": "morph",
+          "result_selector": {
+            "kind": "id:morph",
+            "field": "payload.target_ref"
+          },
+          "result_projection": {
+            "kind": "apply_patch",
+            "patch": {
+              "field": "payload.patch"
+            },
+            "allowed_paths": [
+              "scope_circle_id",
+              "facets",
+              "metadata",
+              "encrypted_metadata",
+              "content",
+              "encrypted_content",
+              "fields"
+            ]
+          },
+          "derived_members": [
+            {
+              "name": "updated_by",
+              "derivation": "object_update_actor"
+            },
+            {
+              "name": "updated_at",
+              "derivation": "object_update_time"
+            }
+          ],
+          "retained_members": [
+            "schema",
+            "realm_id",
+            "schema_refs",
+            "morph_kind",
+            "state",
+            "state_changed_at",
+            "stage",
+            "stage_changed_at",
+            "created_by",
+            "created_at"
+          ],
+          "value_schema_ref": "schemas/morph.schema.json",
+          "notes": "zh/models/morph.md sections 2 and 4. The patch changes only ordinary Morph content and facets. morph_kind and schema_refs are create-locked; lifecycle and stage axes are owned by dedicated Events. expected_state_digest guards the exact selected base, and any inactive target, forbidden path or digest mismatch rejects atomically with no update metadata."
+        }
+      ],
       "result_effect_ownership": {
-        "kind": "owned_gap",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
-        "closure_condition": "Register the complete result_writes[] contract for ak.morph.update, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        "kind": "typed_result_writer"
       }
     },
     {
@@ -3740,10 +4429,28 @@
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/profile_realm_override_payload",
       "id_source": "not_an_object_id",
       "result_effect_ownership": {
-        "kind": "owned_gap",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
-        "closure_condition": "Register the complete result_writes[] contract for ak.profile.realm_override, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
-      }
+        "kind": "typed_result_writer"
+      },
+      "result_writes": [
+        {
+          "result_family": "actor_profile_realm_override",
+          "result_selector": {
+            "kind": "id:actor_profile",
+            "field": "payload.target_ref"
+          },
+          "result_projection": {
+            "kind": "keyed_set_add",
+            "tag": {
+              "dot": true
+            },
+            "value": {
+              "field": "payload"
+            }
+          },
+          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/actor_profile_realm_override_value",
+          "notes": "discovery/profiles-presence.md section 2.4. The result lives in payload.target_realm_id, which MUST equal the envelope Realm, so the selector contains only target_ref. The exact patch payload is retained under its canonical Event dot and readers fold assertions in accepted commit order; this makes the first patch an explicit set element rather than an update against an invented empty base. expected_state_digest freezes the folded prior override. Only the six display paths may change; identity and reducer-owned paths are rejected."
+        }
+      ]
     },
     {
       "event_kind": "ak.profile.update",
@@ -3885,9 +4592,8 @@
       "payload_schema_ref": "schemas/read-cursor.schema.json",
       "id_source": "not_an_object_id",
       "result_effect_ownership": {
-        "kind": "owned_gap",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-1645-actor-private-events-lack-effect-owner-contracts.md",
-        "closure_condition": "Register the complete actor-private durable effect contract for ak.read_cursor.advance, including its storage owner, unique key, prior-state or revision CAS, exact retry behavior, zero-side-effect rejection and field maintenance sources; then change this classification to private_service_effect with its service_contract_id in the same change."
+        "kind": "private_service_effect",
+        "service_contract_id": "ak.actor_private.effects.v1"
       }
     },
     {
@@ -4374,9 +5080,8 @@
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_governance_station_change_payload",
       "id_source": "not_an_object_id",
       "result_effect_ownership": {
-        "kind": "owned_gap",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
-        "closure_condition": "Register the complete result_writes[] contract for ak.realm.governance_station.change, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        "kind": "authority_commit_effect",
+        "service_contract_id": "ak.realm.governance_station_handoff.v1"
       }
     },
     {
@@ -4544,10 +5249,28 @@
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_organization_payload",
       "id_source": "not_an_object_id",
       "result_effect_ownership": {
-        "kind": "owned_gap",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
-        "closure_condition": "Register the complete result_writes[] contract for ak.realm.organization, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
-      }
+        "kind": "typed_result_writer"
+      },
+      "result_writes": [
+        {
+          "result_family": "realm_organization",
+          "result_selector": {
+            "kind": "composite",
+            "components": [
+              "payload.organization_id",
+              "payload.relationship"
+            ]
+          },
+          "result_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload"
+            }
+          },
+          "value_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_organization_payload",
+          "notes": "models/realm-and-space.md section 2.3.0. Realm scope plus (organization_id, relationship) selects the latest complete statement. statement_id is audit lineage, not identity. Realm-admin and organization-side authority, validity, replacement/revocation references and realm_id equality are checked before replacement."
+        }
+      ]
     },
     {
       "event_kind": "ak.realm.owner.transfer",
@@ -4829,10 +5552,22 @@
       "payload": "Realm privacy-preserving search policy",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_search_policy_payload",
       "id_source": "not_an_object_id",
+      "result_writes": [
+        {
+          "result_family": "realm_search_policy",
+          "result_selector": null,
+          "result_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload"
+            }
+          },
+          "value_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_search_policy_payload",
+          "notes": "zh/sync/privacy-preserving-search.md. Per-Realm singleton policy: the Event envelope supplies the Realm namespace, so no subject duplicates realm_id. The complete closed payload is replaced atomically; enabled profiles, service allowlist, data classes, leakage class, rotation cadence and revocation behavior are one invariant. Invalid profile combinations or unauthorized plaintext/reversible data reject before the write."
+        }
+      ],
       "result_effect_ownership": {
-        "kind": "owned_gap",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
-        "closure_condition": "Register the complete result_writes[] contract for ak.realm.search_policy, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        "kind": "typed_result_writer"
       }
     },
     {
@@ -5195,10 +5930,32 @@
       "payload": "Calendar event RSVP set",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/rsvp_set_payload",
       "id_source": "not_an_object_id",
+      "result_writes": [
+        {
+          "result_family": "rsvp",
+          "result_selector": {
+            "kind": "composite",
+            "components": [
+              "payload.event_ref",
+              "payload.occurrence",
+              {
+                "kind": "canonical_json",
+                "field": "envelope.actor_id"
+              }
+            ]
+          },
+          "result_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload.entry"
+            }
+          },
+          "value_schema_ref": "schemas/event-payload.schema.json#/$defs/rsvp_entry",
+          "notes": "models/calendar-event.md section 8. The exact Calendar Strand, canonical occurrence key (including explicit null for whole series) and accountable ActorId form the per-responder subject. The complete entry is replaced atomically; its single schedule_basis_ref binds the schedule revision the responder observed. Plaintext/encrypted branch and scope activation checks run before projection; rejection is side-effect free."
+        }
+      ],
       "result_effect_ownership": {
-        "kind": "owned_gap",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
-        "closure_condition": "Register the complete result_writes[] contract for ak.rsvp.set, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        "kind": "typed_result_writer"
       }
     },
     {
@@ -5211,10 +5968,27 @@
       "payload": "Schema definition",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/schema_define_state_payload",
       "id_source": "not_an_object_id",
+      "result_writes": [
+        {
+          "result_family": "schema_definition",
+          "result_selector": {
+            "kind": "composite",
+            "components": [
+              "payload.value.$id"
+            ]
+          },
+          "result_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload.value"
+            }
+          },
+          "value_schema_ref": "schemas/event-payload.schema.json#/$defs/schema_define_state_payload/properties/value",
+          "notes": "zh/models/governance-objects.md section 1. The stable JSON Schema $id is the exact subject. The first accepted definition occupies that id permanently; an exact replay is idempotent, while different bytes for an occupied id fail closed rather than overwrite. Validation against the registered JSON Schema 2020-12 definition profile precedes the write."
+        }
+      ],
       "result_effect_ownership": {
-        "kind": "owned_gap",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
-        "closure_condition": "Register the complete result_writes[] contract for ak.schema.define, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        "kind": "typed_result_writer"
       }
     },
     {
@@ -5446,10 +6220,31 @@
       "payload": "Controller-signed versioned binding between a native Sidecar and an existing source Strand or Relation used as UI context. It creates no Strand or Relation object and contains a required EventRef role=after to the Sidecar create Event.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/sidecar_context_attach_payload",
       "id_source": "reference",
+      "result_writes": [
+        {
+          "result_family": "sidecar_context",
+          "result_selector": {
+            "kind": "composite",
+            "components": [
+              "payload.sidecar_id",
+              {
+                "kind": "canonical_json",
+                "field": "payload.source_context_ref"
+              }
+            ]
+          },
+          "result_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload"
+            }
+          },
+          "value_schema_ref": "schemas/event-payload.schema.json#/$defs/sidecar_context_attach_payload",
+          "notes": "zh/models/sidecar.md section 4. The exact Sidecar and tagged Strand/Relation context form the subject. version=1 requires no predecessor; every successor increments by one and names the exact current predecessor Event. Stale, skipped, cross-Sidecar or mismatched predecessors reject with zero writes. This family is private UI placement metadata and creates no Strand, Relation, membership or access grant."
+        }
+      ],
       "result_effect_ownership": {
-        "kind": "owned_gap",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
-        "closure_condition": "Register the complete result_writes[] contract for ak.sidecar.context.attach, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        "kind": "typed_result_writer"
       }
     },
     {
@@ -5464,10 +6259,54 @@
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/sidecar_create_payload",
       "id_source": "event_derived",
       "id_kind": "sidecar",
+      "result_writes": [
+        {
+          "result_family": "sidecar",
+          "result_selector": {
+            "kind": "id:sidecar"
+          },
+          "result_projection": {
+            "kind": "set",
+            "value_projection": {
+              "kind": "object",
+              "members": [
+                {
+                  "name": "id",
+                  "derivation": "sidecar_id_from_event_id"
+                },
+                {
+                  "name": "schema",
+                  "literal": "ak.schema.agent_sidecar.v1"
+                },
+                {
+                  "name": "realm_id",
+                  "envelope_field": "realm_id"
+                },
+                {
+                  "name": "controller_account_id",
+                  "derivation": "sidecar_controller_account_from_actor"
+                },
+                {
+                  "name": "state",
+                  "literal": "active"
+                },
+                {
+                  "name": "created_at",
+                  "envelope_field": "created_at"
+                },
+                {
+                  "name": "updated_at",
+                  "envelope_field": "created_at"
+                }
+              ]
+            }
+          },
+          "value_schema_ref": "schemas/agent-sidecar.schema.json",
+          "notes": "zh/models/sidecar.md sections 2 and 3.1. The payload is intentionally empty: Sidecar id is this Event id retyped, Realm and time come from the accepted envelope, controller_account_id is the account branch of the accountable actor, and state starts active. Admission atomically reserves the unique (realm_id, controller_account_id) singleton; exact replay returns the same value, while a different create for an occupied singleton rejects without a second Sidecar or MLS scope."
+        }
+      ],
       "result_effect_ownership": {
-        "kind": "owned_gap",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
-        "closure_condition": "Register the complete result_writes[] contract for ak.sidecar.create, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        "kind": "typed_result_writer"
       }
     },
     {
@@ -5481,10 +6320,27 @@
       "payload": "Sovereign DID resolver policy state",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/sovereign_did_policy_state_payload",
       "id_source": "not_an_object_id",
+      "result_writes": [
+        {
+          "result_family": "sovereign_did_policy",
+          "result_selector": {
+            "kind": "composite",
+            "components": [
+              "payload.trust_domain"
+            ]
+          },
+          "result_projection": {
+            "kind": "set",
+            "value": {
+              "field": "payload.value"
+            }
+          },
+          "value_schema_ref": "schemas/event-payload.schema.json#/$defs/sovereign_did_policy_state_payload/properties/value",
+          "notes": "identity/identity-did.md section 3.6. The deployment-scoped trust_domain is the replay-boundary subject; the closed DID method policy is its whole current value. The reducer validates method syntax, non-empty allowlists, trusted root identities and self-authored authority before replacing it. A policy for another trust domain or an invalid method/root combination is rejected with no partial resolver-policy change."
+        }
+      ],
       "result_effect_ownership": {
-        "kind": "owned_gap",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
-        "closure_condition": "Register the complete result_writes[] contract for ak.sovereign.did_policy, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        "kind": "typed_result_writer"
       }
     },
     {
@@ -5529,6 +6385,15 @@
           "retained_members": [
             "schema",
             "realm_id",
+            "scope_circle_id",
+            "kind",
+            "rank",
+            "schema_refs",
+            "title",
+            "summary",
+            "labels",
+            "fields",
+            "avatar_blob_ref",
             "created_by",
             "created_at"
           ],
@@ -5641,12 +6506,80 @@
           },
           "result_projection": {
             "kind": "set",
-            "value": {
-              "field": "payload.object"
+            "value_projection": {
+              "kind": "object",
+              "members": [
+                {
+                  "name": "scope_circle_id",
+                  "field": "payload.object.scope_circle_id"
+                },
+                {
+                  "name": "kind",
+                  "field": "payload.object.kind"
+                },
+                {
+                  "name": "rank",
+                  "field": "payload.object.rank"
+                },
+                {
+                  "name": "schema_refs",
+                  "field": "payload.object.schema_refs"
+                },
+                {
+                  "name": "title",
+                  "field": "payload.object.title"
+                },
+                {
+                  "name": "summary",
+                  "field": "payload.object.summary"
+                },
+                {
+                  "name": "labels",
+                  "field": "payload.object.labels"
+                },
+                {
+                  "name": "fields",
+                  "field": "payload.object.fields"
+                },
+                {
+                  "name": "avatar_blob_ref",
+                  "field": "payload.object.avatar_blob_ref"
+                }
+              ]
             }
           },
+          "derived_members": [
+            {
+              "name": "schema",
+              "derivation": "object_schema_identifier"
+            },
+            {
+              "name": "realm_id",
+              "derivation": "object_realm_binding"
+            },
+            {
+              "name": "state",
+              "derivation": "object_initial_state"
+            },
+            {
+              "name": "created_by",
+              "derivation": "object_create_actor"
+            },
+            {
+              "name": "created_at",
+              "derivation": "object_create_time"
+            },
+            {
+              "name": "updated_by",
+              "derivation": "object_update_actor"
+            },
+            {
+              "name": "updated_at",
+              "derivation": "object_update_time"
+            }
+          ],
           "value_schema_ref": "schemas/space.schema.json",
-          "notes": "zh/models/realm-and-space.md. The selector carries no field because ak.space.create is id_source=event_derived: the object id IS this Event's own event_id retyped, and space_create_payload forbids a payload-carried id for that reason. payload.object is the closed author region and the projection is the identity on it. The create-lock narrowing of zh/models/common-fields.md section 3.3 -- schema / realm_id / created_by / created_at / state produced by the reducer instead of declared in the author region -- is NOT yet done for this object kind, so no derived_members[] are claimed here; the reducer-managed-path-registry row names the owner that closes it."
+          "notes": "zh/models/realm-and-space.md sections 3.2 and 3.5. The Space id is derived from this Event. The main object projection excludes parent_space_id and child_scope_policy because their dedicated typed-result families are written by sibling rows in the same atomic admission. Common identity, initial lifecycle and audit members are reducer-derived."
         }
       ],
       "id_source": "event_derived",
@@ -5752,6 +6685,15 @@
           "retained_members": [
             "schema",
             "realm_id",
+            "scope_circle_id",
+            "kind",
+            "rank",
+            "schema_refs",
+            "title",
+            "summary",
+            "labels",
+            "fields",
+            "avatar_blob_ref",
             "created_by",
             "created_at"
           ],
@@ -5805,6 +6747,15 @@
           "retained_members": [
             "schema",
             "realm_id",
+            "scope_circle_id",
+            "kind",
+            "rank",
+            "schema_refs",
+            "title",
+            "summary",
+            "labels",
+            "fields",
+            "avatar_blob_ref",
             "created_by",
             "created_at"
           ],
@@ -5826,6 +6777,54 @@
       "payload": "Space metadata update (title, rank, kind-specific fields)",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/space_patch_payload",
       "result_writes": [
+        {
+          "result_family": "space",
+          "result_selector": {
+            "kind": "id:space",
+            "field": "payload.space_id"
+          },
+          "condition": {
+            "kind": "field_present",
+            "field": "payload.patch"
+          },
+          "result_projection": {
+            "kind": "apply_patch",
+            "patch": {
+              "field": "payload.patch"
+            },
+            "allowed_paths": [
+              "kind",
+              "rank",
+              "schema_refs",
+              "title",
+              "summary",
+              "labels",
+              "fields",
+              "avatar_blob_ref"
+            ]
+          },
+          "derived_members": [
+            {
+              "name": "updated_by",
+              "derivation": "object_update_actor"
+            },
+            {
+              "name": "updated_at",
+              "derivation": "object_update_time"
+            }
+          ],
+          "retained_members": [
+            "schema",
+            "realm_id",
+            "scope_circle_id",
+            "state",
+            "state_changed_at",
+            "created_by",
+            "created_at"
+          ],
+          "value_schema_ref": "schemas/space.schema.json",
+          "notes": "zh/models/realm-and-space.md section 3.2. The metadata branch is conditional on payload.patch and writes the Space object family; the sibling child_scope_policy branch remains a separate typed result. scope_circle_id, parent_space_id, child_scope_policy, identity and lifecycle fields are not generic patch paths. expected_state_digest and active-state checks run before both branches, and a combined accepted Event updates them atomically."
+        },
         {
           "result_family": "space_child_scope_policy",
           "result_selector": {
@@ -5893,6 +6892,16 @@
           "retained_members": [
             "schema",
             "realm_id",
+            "scope_circle_id",
+            "schema_refs",
+            "agent_participation",
+            "metadata",
+            "encrypted_metadata",
+            "content",
+            "encrypted_content",
+            "tracks",
+            "stage",
+            "stage_changed_at",
             "created_by",
             "created_at"
           ],
@@ -5921,12 +6930,76 @@
           },
           "result_projection": {
             "kind": "set",
-            "value": {
-              "field": "payload.object"
+            "value_projection": {
+              "kind": "object",
+              "members": [
+                {
+                  "name": "scope_circle_id",
+                  "field": "payload.object.scope_circle_id"
+                },
+                {
+                  "name": "schema_refs",
+                  "field": "payload.object.schema_refs"
+                },
+                {
+                  "name": "agent_participation",
+                  "field": "payload.object.agent_participation"
+                },
+                {
+                  "name": "metadata",
+                  "field": "payload.object.metadata"
+                },
+                {
+                  "name": "encrypted_metadata",
+                  "field": "payload.object.encrypted_metadata"
+                },
+                {
+                  "name": "content",
+                  "field": "payload.object.content"
+                },
+                {
+                  "name": "encrypted_content",
+                  "field": "payload.object.encrypted_content"
+                },
+                {
+                  "name": "tracks",
+                  "field": "payload.object.tracks"
+                }
+              ]
             }
           },
+          "derived_members": [
+            {
+              "name": "schema",
+              "derivation": "object_schema_identifier"
+            },
+            {
+              "name": "realm_id",
+              "derivation": "object_realm_binding"
+            },
+            {
+              "name": "state",
+              "derivation": "object_initial_state"
+            },
+            {
+              "name": "created_by",
+              "derivation": "object_create_actor"
+            },
+            {
+              "name": "created_at",
+              "derivation": "object_create_time"
+            },
+            {
+              "name": "updated_by",
+              "derivation": "object_update_actor"
+            },
+            {
+              "name": "updated_at",
+              "derivation": "object_update_time"
+            }
+          ],
           "value_schema_ref": "schemas/strand.schema.json",
-          "notes": "strand_id is event-derived, so the id:strand selector retypes this create Event's own id exactly as ak.capability.grant does; strand_create_payload forbids a payload-carried id for that reason. payload.object is already the closed ak.schema.strand.v1 object and strand_result.value refs the same file, so the projection is the identity on it. The later ak.strand.update / stage.set / tracks.update / archive / restore kinds retarget the same subject by reference rather than by derivation and are not registered here yet."
+          "notes": "zh/models/strand-and-message.md. strand_id is derived from this Event id. The author projection contains only ordinary Strand business members; schema, Realm binding, initial lifecycle and audit members are reducer-derived. The business stage axis is initialized or changed only by ak.strand.stage.set, so create leaves stage and stage_changed_at absent."
         }
       ],
       "id_source": "event_derived",
@@ -6077,6 +7150,16 @@
           "retained_members": [
             "schema",
             "realm_id",
+            "scope_circle_id",
+            "schema_refs",
+            "agent_participation",
+            "metadata",
+            "encrypted_metadata",
+            "content",
+            "encrypted_content",
+            "tracks",
+            "stage",
+            "stage_changed_at",
             "created_by",
             "created_at"
           ],
@@ -6098,10 +7181,52 @@
       "payload": "Strand business-progression stage transition. Single source of truth for mutating Strand.stage / Strand.stage_changed_at; ak.strand.update patch on those paths MUST be rejected (forbidden-wire). The payload intentionally carries no reason / note / explanation field — rationale belongs in a Message on the Strand's discussion track that 'references' this event, and the event log's own actor_id / created_at is the audit source. Reducer enforces hard invariants from zh/models/common-fields.md §5.3.3: state=redacted yields failed_precondition reason=strand_already_terminal; state=archived yields strand_not_active; same-value self-transition is accepted but does NOT update stage_changed_at; reducer overwrites any wire-supplied stage_changed_at with the event's created_at. v1 has no per-Realm workflow profile carrier: these hard invariants are the complete transition rule and receivers MUST NOT narrow admission from Realm-private configuration (zh/models/common-fields.md §5.3.4).",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/strand_stage_set_payload",
       "id_source": "reference",
+      "result_writes": [
+        {
+          "result_family": "strand",
+          "result_selector": {
+            "kind": "id:strand",
+            "field": "payload.strand_id"
+          },
+          "result_projection": {
+            "kind": "merge",
+            "value_projection": {
+              "kind": "object",
+              "members": [
+                {
+                  "name": "stage",
+                  "field": "payload.stage"
+                }
+              ]
+            }
+          },
+          "derived_members": [
+            {
+              "name": "stage_changed_at",
+              "derivation": "object_state_transition_time"
+            },
+            {
+              "name": "updated_by",
+              "derivation": "object_update_actor"
+            },
+            {
+              "name": "updated_at",
+              "derivation": "object_update_time"
+            }
+          ],
+          "retained_members": [
+            "schema",
+            "realm_id",
+            "tracks",
+            "created_by",
+            "created_at"
+          ],
+          "value_schema_ref": "schemas/strand.schema.json",
+          "notes": "zh/models/strand-and-message.md section 3.2 and zh/models/common-fields.md section 5.3. expected_stage is a pre-state guard and is not stored. An actual accepted transition derives stage_changed_at from Event created_at; a same-value exact retry preserves it. Archived or redacted targets and failed guards have zero side effects."
+        }
+      ],
       "result_effect_ownership": {
-        "kind": "owned_gap",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
-        "closure_condition": "Register the complete result_writes[] contract for ak.strand.stage.set, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        "kind": "typed_result_writer"
       }
     },
     {
@@ -6114,10 +7239,48 @@
       "payload": "Unified Strand tracks patch. payload.patch uses ak.schema.patch.v1 against the Strand.tracks map: keys are track names (e.g. `synthesis`, `discussion`), values are patch ops that may toggle enabled, set is_primary, or modify profile / metadata on a track entry. Atomic across multiple tracks.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/strand_patch_payload",
       "id_source": "reference",
+      "result_writes": [
+        {
+          "result_family": "strand",
+          "result_selector": {
+            "kind": "id:strand",
+            "field": "payload.target_ref"
+          },
+          "result_projection": {
+            "kind": "apply_patch",
+            "patch": {
+              "field": "payload.patch"
+            },
+            "allowed_paths": [
+              "tracks"
+            ]
+          },
+          "derived_members": [
+            {
+              "name": "updated_by",
+              "derivation": "object_update_actor"
+            },
+            {
+              "name": "updated_at",
+              "derivation": "object_update_time"
+            }
+          ],
+          "retained_members": [
+            "schema",
+            "realm_id",
+            "state",
+            "state_changed_at",
+            "stage",
+            "stage_changed_at",
+            "created_by",
+            "created_at"
+          ],
+          "value_schema_ref": "schemas/strand.schema.json",
+          "notes": "zh/models/strand-and-message.md section 4.8. This dedicated writer changes only the tracks map and atomically enforces active-track and unique-primary invariants. Lifecycle, stage and identity members are retained; a disabled target, invalid post-state or failed expected_state_digest rejects without update metadata."
+        }
+      ],
       "result_effect_ownership": {
-        "kind": "owned_gap",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
-        "closure_condition": "Register the complete result_writes[] contract for ak.strand.tracks.update, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        "kind": "typed_result_writer"
       }
     },
     {
@@ -6130,10 +7293,55 @@
       "payload": "Strand patch",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/strand_patch_payload",
       "id_source": "reference",
+      "result_writes": [
+        {
+          "result_family": "strand",
+          "result_selector": {
+            "kind": "id:strand",
+            "field": "payload.target_ref"
+          },
+          "result_projection": {
+            "kind": "apply_patch",
+            "patch": {
+              "field": "payload.patch"
+            },
+            "allowed_paths": [
+              "scope_circle_id",
+              "schema_refs",
+              "agent_participation",
+              "metadata",
+              "encrypted_metadata",
+              "content",
+              "encrypted_content"
+            ]
+          },
+          "derived_members": [
+            {
+              "name": "updated_by",
+              "derivation": "object_update_actor"
+            },
+            {
+              "name": "updated_at",
+              "derivation": "object_update_time"
+            }
+          ],
+          "retained_members": [
+            "schema",
+            "realm_id",
+            "tracks",
+            "state",
+            "state_changed_at",
+            "stage",
+            "stage_changed_at",
+            "created_by",
+            "created_at"
+          ],
+          "value_schema_ref": "schemas/strand.schema.json",
+          "notes": "zh/models/strand-and-message.md sections 3.2 and 4. Ordinary Strand content/profile patching cannot reach tracks, lifecycle or stage axes. expected_state_digest freezes the selected causal base; schema/profile coherence, active target and scope checks run before the atomic write, and rejection has zero side effects."
+        }
+      ],
       "result_effect_ownership": {
-        "kind": "owned_gap",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
-        "closure_condition": "Register the complete result_writes[] contract for ak.strand.update, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        "kind": "typed_result_writer"
       }
     },
     {
@@ -6143,13 +7351,187 @@
       "verb_form": "base",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Set or clear a per-(strand, actor) watch subscription. Writes a current-value projection typed current result keyed by (strand_id, watcher_actor_id). Payload carries level in {mentions_only, participating, all, muted} (or null to clear, equivalent to mentions_only). Default invariant: payload.watcher_actor_id MUST equal envelope actor_id, unless writer holds ak.strand.watch.set.others. Cross-actor writes MUST be paired with a same-batch ak.audit.accessed event with access_kind=watch_set_others; the audit event carries refs[role=audit_pair] plus the suite-bearing paired_event_id pointing at the write, and derives its digest from that ID. The write MUST NOT reference the audit event (encoding.md 6.0.1 forbids mutual preimages). The watches Relation (actor --watches--> strand) is a derived projection of this typed current result, not a separate truth source — direct ak.relation.create relation_kind=watches MUST schema_violation. See models/strand-and-message.md §8.",
+      "payload": "Set or clear a per-(strand, actor) watch subscription. Writes a current-value projection typed current result keyed by (strand_id, watcher_actor_id). Payload carries level in {mentions_only, participating, all, muted} (or null to clear, equivalent to mentions_only). Default invariant: payload.watcher_actor_id MUST equal envelope actor_id, unless writer holds ak.strand.watch.set.others. Cross-actor writes MUST be paired with a same-batch ak.audit.accessed event with access_kind=watch_set_others; the audit event carries refs[role=audit_pair] plus the suite-bearing paired_event_id pointing at the write, and derives its digest from that ID. The write MUST NOT reference the audit event (encoding.md §3.1 forbids mutual preimages). The watches Relation (actor --watches--> strand) is a derived projection of this typed current result, not a separate truth source — direct ak.relation.create relation_kind=watches MUST schema_violation. See models/strand-and-message.md §8.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/strand_watch_set_payload",
       "id_source": "reference",
+      "result_writes": [
+        {
+          "result_family": "strand_watch",
+          "result_selector": {
+            "kind": "composite",
+            "components": [
+              "payload.strand_id",
+              {
+                "kind": "canonical_json",
+                "field": "payload.watcher_actor_id"
+              }
+            ]
+          },
+          "condition": {
+            "kind": "field_equals",
+            "field": "payload.level",
+            "const": null
+          },
+          "result_projection": {
+            "kind": "set",
+            "value": {
+              "const": null
+            }
+          },
+          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/strand_watch_value",
+          "notes": "zh/models/strand-and-message.md sections 8.3-8.4. Null clears the explicit watch value and normalizes to the mentions_only default. expected_value is a whole-value CAS guard and is not stored. The self/others authorization, Circle membership and mandatory audit-pair checks precede this atomic clear."
+        },
+        {
+          "result_family": "strand_watch",
+          "result_selector": {
+            "kind": "composite",
+            "components": [
+              "payload.strand_id",
+              {
+                "kind": "canonical_json",
+                "field": "payload.watcher_actor_id"
+              }
+            ]
+          },
+          "condition": {
+            "kind": "field_equals",
+            "field": "payload.level",
+            "const": "mentions_only"
+          },
+          "result_projection": {
+            "kind": "set",
+            "value_projection": {
+              "kind": "object",
+              "members": [
+                {
+                  "name": "level",
+                  "field": "payload.level"
+                },
+                {
+                  "name": "level_public",
+                  "field": "payload.level_public",
+                  "optional": true
+                }
+              ]
+            }
+          },
+          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/strand_watch_value",
+          "notes": "zh/models/strand-and-message.md sections 8.3-8.4. Non-null watch values are closed {level, level_public?} objects. expected_value is the exact whole-value CAS basis and is not copied. Self/others authority, scope membership and audit pairing are admission guards; rejection has zero side effects."
+        },
+        {
+          "result_family": "strand_watch",
+          "result_selector": {
+            "kind": "composite",
+            "components": [
+              "payload.strand_id",
+              {
+                "kind": "canonical_json",
+                "field": "payload.watcher_actor_id"
+              }
+            ]
+          },
+          "condition": {
+            "kind": "field_equals",
+            "field": "payload.level",
+            "const": "participating"
+          },
+          "result_projection": {
+            "kind": "set",
+            "value_projection": {
+              "kind": "object",
+              "members": [
+                {
+                  "name": "level",
+                  "field": "payload.level"
+                },
+                {
+                  "name": "level_public",
+                  "field": "payload.level_public",
+                  "optional": true
+                }
+              ]
+            }
+          },
+          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/strand_watch_value",
+          "notes": "zh/models/strand-and-message.md sections 8.3-8.4. Same closed write and whole-value CAS contract as the mentions_only branch; the literal condition makes the five value branches mutually exclusive and exhaustive over the payload schema enum."
+        },
+        {
+          "result_family": "strand_watch",
+          "result_selector": {
+            "kind": "composite",
+            "components": [
+              "payload.strand_id",
+              {
+                "kind": "canonical_json",
+                "field": "payload.watcher_actor_id"
+              }
+            ]
+          },
+          "condition": {
+            "kind": "field_equals",
+            "field": "payload.level",
+            "const": "all"
+          },
+          "result_projection": {
+            "kind": "set",
+            "value_projection": {
+              "kind": "object",
+              "members": [
+                {
+                  "name": "level",
+                  "field": "payload.level"
+                },
+                {
+                  "name": "level_public",
+                  "field": "payload.level_public",
+                  "optional": true
+                }
+              ]
+            }
+          },
+          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/strand_watch_value",
+          "notes": "zh/models/strand-and-message.md sections 8.3-8.4. Same closed write and whole-value CAS contract as the mentions_only branch; the literal condition makes the five value branches mutually exclusive and exhaustive over the payload schema enum."
+        },
+        {
+          "result_family": "strand_watch",
+          "result_selector": {
+            "kind": "composite",
+            "components": [
+              "payload.strand_id",
+              {
+                "kind": "canonical_json",
+                "field": "payload.watcher_actor_id"
+              }
+            ]
+          },
+          "condition": {
+            "kind": "field_equals",
+            "field": "payload.level",
+            "const": "muted"
+          },
+          "result_projection": {
+            "kind": "set",
+            "value_projection": {
+              "kind": "object",
+              "members": [
+                {
+                  "name": "level",
+                  "field": "payload.level"
+                },
+                {
+                  "name": "level_public",
+                  "field": "payload.level_public",
+                  "optional": true
+                }
+              ]
+            }
+          },
+          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/strand_watch_value",
+          "notes": "zh/models/strand-and-message.md sections 8.3-8.4. muted is self-write-only and is never projected to ordinary peers even when level_public is true. expected_value, self authority and scope membership are checked before the atomic write."
+        }
+      ],
       "result_effect_ownership": {
-        "kind": "owned_gap",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
-        "closure_condition": "Register the complete result_writes[] contract for ak.strand.watch.set, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        "kind": "typed_result_writer"
       }
     },
     {
@@ -6329,57 +7711,55 @@
     }
   ],
   "actor_private_contracts": {
+    "normative_source": "zh/models/actor-private-effects.md",
+    "service_contract_id": "ak.actor_private.effects.v1",
     "merge_definitions": {
-      "server_revision_cas": "Whole-value compare-and-set on expected_revision; accepted revision increments by one and the revision high-water mark survives tombstone GC.",
-      "causal_then_hlc_then_device": "Causal dominance wins; only causally incomparable positions compare HLC, and only equal HLC values compare device_id lexicographically."
+      "whole_value_version_cas": {
+        "comparison": "incoming payload.version equals current version + 1; the first accepted version is 1",
+        "accepted_result": "replace the complete value and store payload.version as the high-water mark",
+        "conflict_result": "cas_conflict with zero durable or externally visible side effects"
+      },
+      "server_revision_cas": {
+        "comparison": "payload.expected_server_revision equals the current per-key revision; 0 denotes never written",
+        "accepted_result": "replace the complete value and store revision = expected_server_revision + 1",
+        "conflict_result": "cas_conflict with zero durable or externally visible side effects; the revision high-water survives tombstone GC"
+      },
+      "create_once_digest": {
+        "comparison": "the unique key is absent, or its stored canonical Event digest equals the incoming canonical Event digest",
+        "accepted_result": "create the record once; an equal digest returns the stored outcome without another write",
+        "conflict_result": "duplicate_conflict with zero durable or externally visible side effects"
+      },
+      "target_state_cas": {
+        "comparison": "the rejection id is unused and exactly one named target exists in the non-terminal proposed/requested state",
+        "accepted_result": "atomically store the rejection and transition only that target to rejected",
+        "conflict_result": "failed_precondition or duplicate_conflict with zero durable or externally visible side effects"
+      },
+      "causal_then_hlc_then_device": {
+        "comparison": "causal dominance wins; only causally incomparable positions compare HLC, and only equal HLC values compare device_id lexicographically",
+        "accepted_result": "store the deterministic winner and retain the winner Event identity and envelope created_at",
+        "conflict_result": "when causal closure is insufficient the candidate remains provisional and no durable winner changes"
+      }
     },
     "result_families": {
       "ak.private.account.blocklist.v1": {
-        "merge": "server_revision_cas",
-        "tombstone": "value_tombstone"
+        "merge": "whole_value_version_cas",
+        "tombstone": "empty_entries_whole_value"
       },
       "ak.private.account_data.v1": {
         "merge": "server_revision_cas",
         "tombstone": "versioned_tombstone"
       },
       "ak.private.agent.draft.v1": {
-        "merge": "server_revision_cas",
-        "transition_contract": {
-          "axis": "workflow",
-          "states": [
-            "proposed",
-            "approved",
-            "rejected",
-            "published"
-          ],
-          "terminal_states": [
-            "rejected",
-            "published"
-          ],
-          "idempotent_replay": "same_candidate_revision_noop",
-          "allowed_transitions": [
-            [
-              "proposed",
-              "approved"
-            ],
-            [
-              "proposed",
-              "rejected"
-            ],
-            [
-              "approved",
-              "published"
-            ]
-          ],
-          "initial_state": "proposed",
-          "external_transitions": [
-            {
-              "from": "approved",
-              "to": "published",
-              "trigger": "approved_shared_event_accepted_and_approval_nonce_consumed"
-            }
-          ]
-        }
+        "merge": "create_once_digest",
+        "tombstone": "external_account_data_lifecycle"
+      },
+      "ak.private.agent.action_request.v1": {
+        "merge": "create_once_digest",
+        "tombstone": "terminal_workflow_record"
+      },
+      "ak.private.agent.rejection.v1": {
+        "merge": "target_state_cas",
+        "tombstone": "terminal_rejection_record"
       },
       "ak.private.device.push_route.v1": {
         "merge": "server_revision_cas",
@@ -6387,143 +7767,473 @@
       },
       "ak.private.read_cursor.v1": {
         "merge": "causal_then_hlc_then_device",
-        "provisional_when_causal_closure_missing": true
+        "tombstone": "none"
       }
     },
     "event_writes": {
-      "ak.agent.draft.propose": {
-        "result_family": "ak.private.agent.draft.v1",
-        "result_selector": {
-          "kind": "composite",
-          "components": [
-            "payload.agent_id",
-            "payload.draft_id"
-          ]
-        },
-        "result_projection": {
-          "kind": "transition",
-          "from": {
-            "const": null
-          },
-          "to": {
-            "const": "proposed"
-          }
-        }
-      },
-      "ak.agent.action_request": {
-        "result_family": "ak.private.agent.draft.v1",
-        "result_selector": {
-          "kind": "composite",
-          "components": [
-            "payload.agent_id",
-            "payload.draft_id"
-          ]
-        },
-        "result_projection": {
-          "kind": "transition",
-          "from": {
-            "const": null
-          },
-          "to": {
-            "const": "proposed"
-          }
-        }
-      },
-      "ak.agent.action_reject": {
-        "result_family": "ak.private.agent.draft.v1",
-        "result_selector": {
-          "kind": "composite",
-          "components": [
-            "payload.agent_id",
-            "payload.draft_id"
-          ]
-        },
-        "result_projection": {
-          "kind": "transition",
-          "from": {
-            "const": "proposed"
-          },
-          "to": {
-            "const": "rejected"
-          }
-        }
-      },
       "ak.account.blocklist": {
         "result_family": "ak.private.account.blocklist.v1",
-        "result_selector": {
-          "kind": "composite",
+        "durable_effect": "Replace the holder's complete personal blocklist and its shared account-data revision high-water.",
+        "storage_owner": {
+          "kind": "account_station_private_store",
+          "account_id_source": "envelope.actor_id",
+          "station_id_source": "selected_account_id.station_id"
+        },
+        "unique_key": {
           "components": [
+            "canonical_json(envelope.actor_id.account_id)",
+            "literal:ak.account.blocklist"
+          ]
+        },
+        "value_projection": {
+          "kind": "whole_value",
+          "schema_ref": "schemas/event-payload.schema.json#/$defs/account_blocklist_payload",
+          "members": [
             {
-              "kind": "canonical_json",
-              "field": "envelope.actor_id"
+              "target": "value",
+              "source": "payload"
+            },
+            {
+              "target": "revision",
+              "source": "payload.version"
+            },
+            {
+              "target": "accepted_event_id",
+              "source": "Event.event_id"
             }
           ]
         },
-        "result_projection": {
-          "kind": "set",
-          "value": {
-            "field": "payload"
+        "field_maintenance": [
+          {
+            "target": "entries",
+            "source": "payload.entries",
+            "rule": "complete replacement; omission removes an old entry and an empty array clears the list"
+          },
+          {
+            "target": "revision",
+            "source": "payload.version",
+            "rule": "share the exact counter used by ak.account_data.set for key ak.account.blocklist"
           }
-        }
+        ],
+        "concurrency": {
+          "kind": "whole_value_version_cas",
+          "precondition": "payload.version is 1 when absent, otherwise current revision + 1",
+          "accepted_write": "atomically replace value, revision, Event identity and sync projection",
+          "conflict": "skip, rollback or sibling version returns cas_conflict"
+        },
+        "exact_retry": {
+          "identity": "canonical Event bytes and their verified Event.event_id",
+          "same_bytes": "return the first accepted outcome and current revision without another write or fanout",
+          "different_bytes": "an occupied Event identity or revision with different bytes returns duplicate_conflict or cas_conflict"
+        },
+        "rejection": {
+          "conditions": [
+            "owner is not the verified envelope account",
+            "schema or blocklist uniqueness rules fail",
+            "version precondition fails"
+          ],
+          "side_effects": "zero"
+        },
+        "shared_realm_effect": "none"
       },
       "ak.account_data.set": {
         "result_family": "ak.private.account_data.v1",
-        "result_selector": {
-          "kind": "composite",
+        "durable_effect": "Replace one holder-private account-data register value or its versioned tombstone.",
+        "storage_owner": {
+          "kind": "account_station_private_store",
+          "account_id_source": "envelope.actor_id",
+          "station_id_source": "selected_account_id.station_id"
+        },
+        "unique_key": {
           "components": [
-            {
-              "kind": "canonical_json",
-              "field": "envelope.actor_id"
-            },
+            "canonical_json(envelope.actor_id.account_id)",
             "payload.key"
           ]
         },
-        "result_projection": {
-          "kind": "set",
-          "value": {
-            "field": "payload"
+        "value_projection": {
+          "kind": "tagged_whole_value_register",
+          "schema_ref": "schemas/event-payload.schema.json#/$defs/account_data_set_payload",
+          "members": [
+            {
+              "target": "account_data_key",
+              "source": "payload.key"
+            },
+            {
+              "target": "content_or_tombstone",
+              "source": "exactly_one(payload.body,payload.encrypted_payload,payload.tombstone)"
+            },
+            {
+              "target": "revision",
+              "source": "checked_add(payload.expected_server_revision,1)"
+            },
+            {
+              "target": "updated_at",
+              "source": "coalesce(payload.updated_at,envelope.created_at)"
+            }
+          ]
+        },
+        "field_maintenance": [
+          {
+            "target": "revision",
+            "source": "payload.expected_server_revision",
+            "rule": "increment exactly once and retain the high-water after tombstone GC"
+          },
+          {
+            "target": "content_or_tombstone",
+            "source": "payload tagged branch",
+            "rule": "replace as one whole value; never merge opaque encrypted bytes server-side"
           }
-        }
+        ],
+        "concurrency": {
+          "kind": "server_revision_cas",
+          "precondition": "payload.expected_server_revision equals the current per-key revision",
+          "accepted_write": "atomically store the selected value branch and revision + 1 before device fanout",
+          "conflict": "return cas_conflict with the current revision and any permitted current entry"
+        },
+        "exact_retry": {
+          "identity": "canonical Event bytes and their verified Event.event_id",
+          "same_bytes": "return the original accepted revision and outcome without increment or fanout",
+          "different_bytes": "the same Event identity or occupied revision with different bytes returns duplicate_conflict or cas_conflict"
+        },
+        "rejection": {
+          "conditions": [
+            "owner or registered key binding fails",
+            "payload value branch or schema fails",
+            "revision precondition fails"
+          ],
+          "side_effects": "zero"
+        },
+        "shared_realm_effect": "none"
+      },
+      "ak.agent.draft.propose": {
+        "result_family": "ak.private.agent.draft.v1",
+        "durable_effect": "Materialize one controller-owned encrypted draft after capability, policy, accountability and risk admission.",
+        "storage_owner": {
+          "kind": "account_station_private_store",
+          "account_id_source": "payload.controller_account_id",
+          "station_id_source": "selected_account_id.station_id"
+        },
+        "unique_key": {
+          "components": [
+            "canonical_json(payload.controller_account_id)",
+            "payload.agent_id",
+            "payload.draft_id"
+          ]
+        },
+        "value_projection": {
+          "kind": "encrypted_workflow_record",
+          "schema_ref": "schemas/event-payload.schema.json#/$defs/agent_draft_propose_payload",
+          "members": [
+            {
+              "target": "proposal",
+              "source": "payload"
+            },
+            {
+              "target": "workflow_state",
+              "source": "const:proposed"
+            },
+            {
+              "target": "accepted_event_id",
+              "source": "Event.event_id"
+            }
+          ]
+        },
+        "field_maintenance": [
+          {
+            "target": "controller_account_id",
+            "source": "payload.controller_account_id",
+            "rule": "bind the selected storage account before any materialization"
+          },
+          {
+            "target": "workflow_state",
+            "source": "const:proposed",
+            "rule": "create once; later state changes use their separately authorized workflow path"
+          }
+        ],
+        "concurrency": {
+          "kind": "create_once_digest",
+          "precondition": "the controller/agent/draft key is absent or holds this exact canonical Event digest",
+          "accepted_write": "store the encrypted proposal and proposed state atomically",
+          "conflict": "a different proposal at the occupied key returns duplicate_conflict"
+        },
+        "exact_retry": {
+          "identity": "canonical Event bytes and their verified Event.event_id",
+          "same_bytes": "return the original materialization outcome without another draft or notification",
+          "different_bytes": "same Event identity or draft key with different bytes returns duplicate_conflict"
+        },
+        "rejection": {
+          "conditions": [
+            "controller/agent binding or authority fails",
+            "capability, policy, accountability or risk check fails",
+            "schema, expiry or digest binding fails"
+          ],
+          "side_effects": "zero"
+        },
+        "shared_realm_effect": "none"
+      },
+      "ak.agent.action_request": {
+        "result_family": "ak.private.agent.action_request.v1",
+        "durable_effect": "Create one controller-private pending action request; draft_id is only an optional link, never the request identity.",
+        "storage_owner": {
+          "kind": "account_station_private_store",
+          "account_id_source": "payload.controller_account_id",
+          "station_id_source": "selected_account_id.station_id"
+        },
+        "unique_key": {
+          "components": [
+            "canonical_json(payload.controller_account_id)",
+            "payload.agent_id",
+            "payload.request_id"
+          ]
+        },
+        "value_projection": {
+          "kind": "pending_workflow_record",
+          "schema_ref": "schemas/event-payload.schema.json#/$defs/agent_action_request_payload",
+          "members": [
+            {
+              "target": "request",
+              "source": "payload"
+            },
+            {
+              "target": "workflow_state",
+              "source": "const:requested"
+            },
+            {
+              "target": "accepted_event_id",
+              "source": "Event.event_id"
+            }
+          ]
+        },
+        "field_maintenance": [
+          {
+            "target": "request_canonical_digest",
+            "source": "payload.request_canonical_digest",
+            "rule": "verify against the canonical proposed action and target before storage"
+          },
+          {
+            "target": "draft_link",
+            "source": "payload.draft_id when present",
+            "rule": "link only; absence is valid and never changes the request unique key"
+          }
+        ],
+        "concurrency": {
+          "kind": "create_once_digest",
+          "precondition": "the controller/agent/request key is absent or holds this exact canonical Event digest",
+          "accepted_write": "store the request and requested state atomically",
+          "conflict": "a different request at the occupied key returns duplicate_conflict"
+        },
+        "exact_retry": {
+          "identity": "canonical Event bytes and their verified Event.event_id",
+          "same_bytes": "return the original pending-request outcome without another request or notification",
+          "different_bytes": "same Event identity or request key with different bytes returns duplicate_conflict"
+        },
+        "rejection": {
+          "conditions": [
+            "controller/agent binding or authority fails",
+            "schema, expiry, target or canonical digest fails",
+            "request key is occupied by different bytes"
+          ],
+          "side_effects": "zero"
+        },
+        "shared_realm_effect": "none"
+      },
+      "ak.agent.action_reject": {
+        "result_family": "ak.private.agent.rejection.v1",
+        "durable_effect": "Atomically store one controller rejection and terminate exactly one named draft or action request.",
+        "storage_owner": {
+          "kind": "account_station_private_store",
+          "account_id_source": "envelope.actor_id",
+          "station_id_source": "selected_account_id.station_id"
+        },
+        "unique_key": {
+          "components": [
+            "canonical_json(envelope.actor_id.account_id)",
+            "payload.agent_id",
+            "payload.rejection_id"
+          ]
+        },
+        "value_projection": {
+          "kind": "atomic_rejection_and_transition",
+          "schema_ref": "schemas/event-payload.schema.json#/$defs/agent_action_reject_payload",
+          "members": [
+            {
+              "target": "rejection",
+              "source": "payload"
+            },
+            {
+              "target": "target_selector",
+              "source": "exactly_one(payload.request_id,payload.draft_id)"
+            },
+            {
+              "target": "target_workflow_state",
+              "source": "const:rejected"
+            }
+          ]
+        },
+        "field_maintenance": [
+          {
+            "target": "target_selector",
+            "source": "exactly_one(payload.request_id,payload.draft_id)",
+            "rule": "resolve under the same controller and agent; neither or both is invalid"
+          },
+          {
+            "target": "target_workflow_state",
+            "source": "const:rejected",
+            "rule": "terminal; clear publish eligibility and never revive the target"
+          }
+        ],
+        "concurrency": {
+          "kind": "target_state_cas",
+          "precondition": "rejection id is unused and the one selected target is present, non-terminal and owned by this controller/agent pair",
+          "accepted_write": "store rejection and target rejected state in one private transaction",
+          "conflict": "missing, mismatched or terminal target returns failed_precondition; reused id with different bytes returns duplicate_conflict"
+        },
+        "exact_retry": {
+          "identity": "canonical Event bytes and their verified Event.event_id",
+          "same_bytes": "return the original rejected outcome without a second transition or notification",
+          "different_bytes": "same Event identity or rejection id with different bytes returns duplicate_conflict"
+        },
+        "rejection": {
+          "conditions": [
+            "signer is not the target controller",
+            "exactly-one target selector or controller/agent binding fails",
+            "target is missing, terminal or otherwise not rejectable"
+          ],
+          "side_effects": "zero"
+        },
+        "shared_realm_effect": "none"
       },
       "ak.device.push_route": {
         "result_family": "ak.private.device.push_route.v1",
-        "result_selector": {
-          "kind": "composite",
+        "durable_effect": "Replace one account/device/channel push route with an active binding or revoked tombstone.",
+        "storage_owner": {
+          "kind": "account_station_private_store",
+          "account_id_source": "payload.account_id",
+          "station_id_source": "selected_account_id.station_id"
+        },
+        "unique_key": {
           "components": [
-            {
-              "kind": "canonical_json",
-              "field": "payload.account_id"
-            },
+            "canonical_json(payload.account_id)",
             "payload.device_id",
             "payload.push_route"
           ]
         },
-        "result_projection": {
-          "kind": "set",
-          "value": {
-            "field": "payload"
+        "value_projection": {
+          "kind": "active_or_revoked_whole_value",
+          "schema_ref": "schemas/event-payload.schema.json#/$defs/device_push_route_payload",
+          "members": [
+            {
+              "target": "route_value",
+              "source": "payload"
+            },
+            {
+              "target": "revision",
+              "source": "checked_add(payload.expected_server_revision,1)"
+            },
+            {
+              "target": "accepted_event_id",
+              "source": "Event.event_id"
+            }
+          ]
+        },
+        "field_maintenance": [
+          {
+            "target": "revision",
+            "source": "payload.expected_server_revision",
+            "rule": "increment exactly once and retain the high-water after route-secret GC"
+          },
+          {
+            "target": "route_secret_set",
+            "source": "payload active or revoked branch",
+            "rule": "active replaces the complete tuple; revoked removes all target, gateway, key, capabilities and expiry fields"
           }
-        }
+        ],
+        "concurrency": {
+          "kind": "server_revision_cas",
+          "precondition": "payload.expected_server_revision equals the current route revision",
+          "accepted_write": "atomically replace route value and revision before queue or gateway use",
+          "conflict": "stale, skipped or sibling revision returns cas_conflict"
+        },
+        "exact_retry": {
+          "identity": "canonical Event bytes and their verified Event.event_id",
+          "same_bytes": "return the original route revision and outcome without another write or gateway effect",
+          "different_bytes": "same Event identity or occupied revision with different bytes returns duplicate_conflict or cas_conflict"
+        },
+        "rejection": {
+          "conditions": [
+            "payload account differs from the verified envelope account",
+            "active/revoked union, target derivation, limit or rate admission fails",
+            "revision precondition fails"
+          ],
+          "side_effects": "zero"
+        },
+        "shared_realm_effect": "none"
       },
       "ak.read_cursor.advance": {
         "result_family": "ak.private.read_cursor.v1",
-        "result_selector": {
-          "kind": "composite",
+        "durable_effect": "Merge one actor/scope cursor candidate and store only the deterministic private winner.",
+        "storage_owner": {
+          "kind": "account_station_private_store",
+          "account_id_source": "payload.actor_id.account_id",
+          "station_id_source": "selected_account_id.station_id"
+        },
+        "unique_key": {
           "components": [
-            {
-              "kind": "canonical_json",
-              "field": "envelope.actor_id"
-            },
+            "canonical_json(payload.actor_id.account_id)",
             "payload.realm_id",
-            "payload.read_scope"
+            "canonical_json(payload.read_scope)"
           ]
         },
-        "result_projection": {
-          "kind": "merge",
-          "value": {
-            "field": "payload"
+        "value_projection": {
+          "kind": "deterministic_merge_winner",
+          "schema_ref": "schemas/read-cursor.schema.json",
+          "members": [
+            {
+              "target": "cursor",
+              "source": "payload"
+            },
+            {
+              "target": "winning_event_id",
+              "source": "Event.event_id"
+            },
+            {
+              "target": "derived_updated_at",
+              "source": "Event.created_at"
+            }
+          ]
+        },
+        "field_maintenance": [
+          {
+            "target": "cursor",
+            "source": "payload position, HLC and device_id",
+            "rule": "causal dominance first, HLC only for concurrency, device_id only for equal concurrent HLC"
+          },
+          {
+            "target": "derived_updated_at",
+            "source": "winning envelope.created_at",
+            "rule": "used only by derived read-marker and device-message projections; never inserted into the cursor payload"
           }
-        }
+        ],
+        "concurrency": {
+          "kind": "causal_then_hlc_then_device",
+          "precondition": "the service has sufficient causal closure to decide dominance or proven incomparability",
+          "accepted_write": "store the deterministic winner; a losing candidate is an accepted no-op",
+          "conflict": "unknown causal relation remains provisional and MUST NOT change the durable winner"
+        },
+        "exact_retry": {
+          "identity": "canonical Event bytes and their verified Event.event_id",
+          "same_bytes": "return the same winner/outcome without another write, badge recomputation or device fanout",
+          "different_bytes": "same Event identity with different bytes returns duplicate_conflict"
+        },
+        "rejection": {
+          "conditions": [
+            "payload actor differs from the verified envelope actor",
+            "realm, scope, position or visibility validation fails",
+            "the service cannot safely classify the candidate as accepted winner or accepted loser"
+          ],
+          "side_effects": "zero"
+        },
+        "shared_realm_effect": "none"
       }
     }
   },
@@ -6571,5 +8281,6 @@
     "acceptance": "A consumer accepts the Event only with a valid RealmCommit in the derived stream and a continuous authority-generation chain.",
     "schema_projection": "schemas/event-envelope.schema.json#/$defs/authority_committed_event",
     "consumer_schema_bindings": []
-  }
+  },
+  "metadata_authority": "contract_registry_section"
 }

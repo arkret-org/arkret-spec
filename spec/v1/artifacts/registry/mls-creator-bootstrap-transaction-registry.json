@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.1",
+  "version": "2026-09-19.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-19T04:34:00+08:00",
+  "generated_at": "2026-09-19T19:00:49+08:00",
   "description": "Canonical closed state machine for the single client-local durable transaction that carries one encrypted effective scope from the creator's explicit genesis intent to MLS write-ready. It is the machine-readable form of zh/crypto-media/encryption-and-audit.md section 5.1.2 and the only source a conforming client uses to decide what it must persist, in what order, and which single next arrow a recoverer may execute.",
   "registry_rules": [
     "This record is client-local normative durable state protected by the device secret. It is not a wire object, not a Realm Event, not an Account Data key and not a server transaction. It MUST NOT enter the ak.realm.create payload, any current projection or query result, client sync or federation.",
@@ -39,6 +39,18 @@
       "sidecar"
     ],
     "rule": "effective_scope.kind=\"sidecar\" keeps the independent handshake profile of zh/crypto-media/encryption-and-audit.md section 2.5.1; this transaction does not change the Sidecar contract. A conforming client MUST NOT open, resume or key this record on a sidecar scope, and a Sidecar handshake MUST NOT be read as an instance of this state machine."
+  },
+  "proposal_carrier_contract": {
+    "schema_ref": "schemas/event-payload.schema.json#/$defs/mls_genesis_binding_proposal_carrier",
+    "binding_schema_ref": "schemas/event-payload.schema.json#/$defs/mls_governance_binding",
+    "durable_state": "genesis_intent_persisted",
+    "route_constants": {
+      "event_kind": "ak.mls.genesis",
+      "proposal_kind": "group_genesis_binding"
+    },
+    "identity_and_scope_rule": "sender_actor_id is the complete owner_actor_id and target_scope equals proposed_group_genesis_binding.effective_scope field by field.",
+    "genesis_rule": "base_group_state_ref is null and previous_epoch, next_epoch and key_access_revision are all the unsigned integer 0.",
+    "wire_exposure": "none"
   },
   "selector_amendment": {
     "amendable_state": "genesis_intent_persisted",

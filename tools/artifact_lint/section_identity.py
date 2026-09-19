@@ -50,6 +50,9 @@ HTML_ANCHOR_RE = re.compile(
 POINTER_MARKER = "引用别名（normative pointer）"
 
 LEDGER_PATH = ROOT / "tools" / "prose-section-identity-ledger.json"
+NORMATIVE_TITLE_INVENTORY_PATH = (
+    ROOT / "tools" / "normative-title-inventory.json"
+)
 
 
 def _headings(text: str) -> list[tuple[int, str]]:
@@ -542,3 +545,72 @@ def check_prose_section_identity_ledger(lint: Lint) -> None:
             slug_cache,
             report_path=LEDGER_PATH,
         )
+
+
+def collect_normative_title_inventory() -> list[dict[str, str]]:
+    """Return the closed set of headings that explicitly mark themselves normative."""
+    rows: list[dict[str, str]] = []
+    zh_root = SPEC_ROOT / "zh"
+    for path in sorted(markdown_files()):
+        try:
+            relative = path.relative_to(zh_root).as_posix()
+        except ValueError:
+            continue
+        for _, heading in _headings(read_text(path)):
+            if "（normative）" not in heading:
+                continue
+            rows.append(
+                {
+                    "page": relative,
+                    "heading": heading,
+                    "fragment": markdown_heading_slug(heading),
+                }
+            )
+    return sorted(rows, key=lambda row: (row["page"], row["heading"]))
+
+
+def check_normative_title_inventory(lint: Lint) -> None:
+    """A normative heading cannot disappear or change identity without updating its ledger."""
+    path = NORMATIVE_TITLE_INVENTORY_PATH
+    if not path.is_file():
+        lint.fail(path, "normative title inventory is missing")
+        return
+    try:
+        document = json.loads(path.read_text(encoding="utf-8"))
+    except Exception as exc:
+        lint.fail(path, f"unable to parse normative title inventory: {exc}")
+        return
+    rows = document.get("titles")
+    if not isinstance(rows, list) or not rows:
+        lint.fail(path, "normative title inventory carries no titles")
+        return
+    expected_keys = {"page", "heading", "fragment"}
+    normalized: list[dict[str, str]] = []
+    seen: set[tuple[str, str]] = set()
+    for index, row in enumerate(rows):
+        label = f"titles[{index}]"
+        if not isinstance(row, dict) or set(row) != expected_keys:
+            lint.fail(path, f"{label} must contain exactly page/heading/fragment")
+            continue
+        if not all(isinstance(row[key], str) and row[key] for key in expected_keys):
+            lint.fail(path, f"{label} values must be non-empty strings")
+            continue
+        key = (row["page"], row["heading"])
+        if key in seen:
+            lint.fail(path, f"duplicate normative title {row['page']} {row['heading']!r}")
+            continue
+        seen.add(key)
+        if row["fragment"] != markdown_heading_slug(row["heading"]):
+            lint.fail(path, f"{label}.fragment does not match its heading")
+            continue
+        normalized.append(row)
+    current = collect_normative_title_inventory()
+    if normalized != current:
+        expected = {(row["page"], row["heading"]) for row in normalized}
+        actual = {(row["page"], row["heading"]) for row in current}
+        for page, heading in sorted(expected - actual):
+            lint.fail(path, f"registered normative title disappeared: {page} {heading!r}")
+        for page, heading in sorted(actual - expected):
+            lint.fail(path, f"unregistered normative title appeared: {page} {heading!r}")
+        if expected == actual:
+            lint.fail(path, "normative title inventory order or fragments are not canonical")

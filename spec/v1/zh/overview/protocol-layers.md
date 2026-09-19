@@ -88,22 +88,19 @@ accepted governance basis 求出的 capability 引用。typed current result fam
 
 普通已存在 scope 中的 durable Event，其 producer 签名输入 MUST 包含以下三种 closed shape 之一：
 
-```json
+```json illustrative
 {"kind":"realm","realm_id":"ak:realm:..."}
 ```
-
 或：
 
-```json
+```json illustrative
 {"kind":"circle","realm_id":"ak:realm:...","circle_id":"ak:circle:..."}
 ```
-
 或：
 
-```json
+```json illustrative
 {"kind":"sidecar","realm_id":"ak:realm:...","sidecar_id":"ak:sidecar:..."}
 ```
-
 `{"kind":"realm_genesis","realm_genesis_nonce":"..."}` 是 create-only 封闭例外，只允许对应的
 Realm genesis Event；它不是普通 durable scope，也不得用于后续 Realm、Circle 或 Sidecar Event。
 上述 closed union 以 `event-envelope.schema.json#/$defs/scope_ref` 为穷尽真源，正文集合必须由 lint 与其对齐。

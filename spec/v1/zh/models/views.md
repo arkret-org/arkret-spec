@@ -266,7 +266,7 @@ MUST NOT 自报 reducer-derived 的 `state_changed_at`。作者定义区域根�
 
 ### 3.5 完整示例
 
-```json
+```json fragment
 {
   "id": "ak:view:AT3Im0B7Kp3uhOc9ZgnAPWE0qkuAJ_fcxz8Tv7vEwFem",
   "schema": "ak.schema.view.v1",
@@ -311,7 +311,6 @@ MUST NOT 自报 reducer-derived 的 `state_changed_at`。作者定义区域根�
   ]
 }
 ```
-
 上述字段是 View 自己拥有的定义真相。它们决定“如何看”对象图，但不改变对象图本身。
 
 ## 4. 标准 `kind` 与 `renderer`
@@ -334,7 +333,7 @@ View 应通过结构化 query 表达对象范围。
 
 建议通用查询形状：
 
-```json
+```json fragment
 {
   "object_kinds": ["strand", "morph"],
   "facets": ["reviewable"],
@@ -352,10 +351,9 @@ View 应通过结构化 query 表达对象范围。
   "limit": 100
 }
 ```
-
 ### 5.1 看板查询示例
 
-```json
+```json fragment
 {
     "object_kinds": ["strand"],
     "filters": [
@@ -370,10 +368,9 @@ View 应通过结构化 query 表达对象范围。
   }
 }
 ```
-
 ### 5.2 Discussion 聊天查询示例
 
-```json
+```json fragment
 {
   "object_kinds": ["message"],
   "filters": [
@@ -386,7 +383,6 @@ View 应通过结构化 query 表达对象范围。
   ]
 }
 ```
-
 ### 5.3 Strand 上下文权限裁剪
 
 使用 `query.schema.json#/$defs/query_request_body` 登记的 `context_ref` 查询 Strand 时，projection

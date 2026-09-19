@@ -189,6 +189,7 @@
       "required": [
         "claim_id",
         "keypackage_ref",
+        "actor_id",
         "principal_id",
         "keypackage",
         "capabilities",
@@ -256,6 +257,10 @@
         "keypackage_ref": {
           "$ref": "#/$defs/object_ref"
         },
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id",
+          "description": "Complete KeyPackage holder ActorId. Its account principal MUST equal principal_id, and its exact RFC 8785/JCS UTF-8 bytes MUST equal the BasicCredential identity in keypackage."
+        },
         "principal_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
@@ -302,11 +307,12 @@
         }
       },
       "additionalProperties": false,
-      "description": "Closed KeyPackage claim record. The human-device and Agent branches are an exact XOR; no third identity branch exists and no mirrored actor field is carried."
+      "description": "Closed KeyPackage claim record. The human-device and Agent branches are an exact XOR; no third identity branch exists. actor_id is the authoritative complete holder identity and is preserved byte-for-byte through the BasicCredential and Welcome delivery; principal_id remains only the branch selector projection and MUST equal actor_id.account_id.principal_id."
     },
     "keypackages_upload_request_body": {
       "type": "object",
       "required": [
+        "actor_id",
         "principal_id",
         "keypackages",
         "endpoint_signature"
@@ -358,6 +364,10 @@
         }
       ],
       "properties": {
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id",
+          "description": "Complete holder ActorId whose exact RFC 8785/JCS UTF-8 bytes are carried by every uploaded KeyPackage BasicCredential. The account principal MUST equal principal_id."
+        },
         "principal_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },

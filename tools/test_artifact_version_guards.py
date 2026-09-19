@@ -11,20 +11,94 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from artifact_pipeline import preserve_artifact_metadata_when_semantics_match
+from artifact_pipeline import generated_registry_payloads, preserve_artifact_metadata_when_semantics_match
 from check_artifact_versions import (
     ARTIFACTS,
+    artifact_rows,
     date_repair_waivers,
     future_metadata_errors,
     main,
     semantic_content_digest,
     transition_errors,
+    version_advanced,
     walks_back_a_future_instant,
     walks_back_a_future_version,
 )
 
 
 class ArtifactVersionGuardTest(unittest.TestCase):
+    def test_dotted_versions_advance_by_date_then_counter(self) -> None:
+        self.assertTrue(version_advanced("2026-09-19.14", "2026-09-19.15"))
+        self.assertTrue(version_advanced("2026-09-19.14", "2026-09-20.1"))
+        self.assertFalse(version_advanced("2026-09-19.14", "2026-09-19.13"))
+        self.assertFalse(version_advanced("2026-09-19.14", "2026-09-18.99"))
+
+    def test_explicit_tool_ledger_manifest_rejects_an_unlisted_ledger(self) -> None:
+        import check_artifact_versions
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            artifacts = root / "spec/v1/artifacts"
+            (artifacts / "registry").mkdir(parents=True)
+            (artifacts / "profiles").mkdir()
+            tools = root / "tools"
+            tools.mkdir()
+            manifest_path = tools / "artifact-version-governance.json"
+            manifest = {
+                "version": "2026-09-19.1",
+                "generated_at": "2026-09-19T10:00:00+08:00",
+                "governed_tool_artifacts": ["tools/artifact-version-governance.json"],
+                "governing_scripts": ["tools/check.py"],
+            }
+            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+            (tools / "check.py").write_text("# governed\n", encoding="utf-8")
+            (tools / "unlisted.json").write_text(
+                json.dumps(
+                    {"version": "2026-09-19.1", "generated_at": "2026-09-19T10:00:00+08:00"}
+                ),
+                encoding="utf-8",
+            )
+            with (
+                patch.object(check_artifact_versions, "ROOT", root),
+                patch.object(check_artifact_versions, "ARTIFACTS", artifacts),
+                patch.object(check_artifact_versions, "GOVERNANCE_MANIFEST", manifest_path),
+            ):
+                with self.assertRaisesRegex(ValueError, "explicit tool ledger inventory drift"):
+                    artifact_rows()
+
+    def test_dotted_version_date_must_match_generated_at_civil_date(self) -> None:
+        import check_artifact_versions
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            artifacts = root / "spec/v1/artifacts"
+            registry = artifacts / "registry"
+            registry.mkdir(parents=True)
+            (artifacts / "profiles").mkdir()
+            tools = root / "tools"
+            tools.mkdir()
+            manifest_path = tools / "artifact-version-governance.json"
+            manifest = {
+                "version": "2026-09-19.1",
+                "generated_at": "2026-09-19T10:00:00+08:00",
+                "governed_tool_artifacts": ["tools/artifact-version-governance.json"],
+                "governing_scripts": [],
+            }
+            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+            (registry / "bad.json").write_text(
+                json.dumps(
+                    {"version": "2026-09-18.7", "generated_at": "2026-09-19T00:01:00+08:00"}
+                ),
+                encoding="utf-8",
+            )
+            with (
+                patch.object(check_artifact_versions, "ROOT", root),
+                patch.object(check_artifact_versions, "ARTIFACTS", artifacts),
+                patch.object(check_artifact_versions, "GOVERNANCE_MANIFEST", manifest_path),
+            ):
+                with self.assertRaisesRegex(ValueError, "civil date must match"):
+                    artifact_rows()
+
     def repair(self, old, new, argv):
         with tempfile.TemporaryDirectory() as directory:
             reference = Path(directory) / "reference.json"
@@ -247,6 +321,36 @@ class ArtifactVersionGuardTest(unittest.TestCase):
             self.assertEqual(
                 preserve_artifact_metadata_when_semantics_match(path, candidate), candidate
             )
+
+    def test_canonical_section_metadata_always_controls_derived_view(self) -> None:
+        import artifact_pipeline
+
+        catalog = {
+            "version": "2026-09-19.9",
+            "generated_at": "2026-09-19T12:00:00+08:00",
+            "derived_registry_views": [
+                {"file": "registry/event-kind-registry.json", "section": "event_kind_registry"}
+            ],
+            "event_kind_registry": {
+                "version": "2026-09-18.4",
+                "generated_at": "2026-09-18T09:00:00+08:00",
+                "metadata_authority": "contract_registry_section",
+                "event_kinds": [],
+            },
+        }
+        with tempfile.TemporaryDirectory() as directory, patch.object(
+            artifact_pipeline, "ARTIFACTS", Path(directory)
+        ):
+            payload = next(iter(generated_registry_payloads(catalog).values()))
+        self.assertEqual(payload["version"], "2026-09-18.4")
+        self.assertEqual(payload["generated_at"], "2026-09-18T09:00:00+08:00")
+
+        del catalog["event_kind_registry"]["metadata_authority"]
+        with tempfile.TemporaryDirectory() as directory, patch.object(
+            artifact_pipeline, "ARTIFACTS", Path(directory)
+        ):
+            with self.assertRaisesRegex(SystemExit, "metadata_authority"):
+                generated_registry_payloads(catalog)
 
     def test_repeated_generation_does_not_pin_unvalidated_old_metadata(self) -> None:
         import artifact_pipeline

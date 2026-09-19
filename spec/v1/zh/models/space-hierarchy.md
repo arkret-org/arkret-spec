@@ -30,7 +30,7 @@ Space hierarchy MUST 完整位于同一个 Realm 内。Realm 决定谁能接收�
 
 `ak.space.parent` payload：
 
-```json
+```json fragment
 {
   "kind": "ak.space.parent",
   "payload": {
@@ -40,7 +40,6 @@ Space hierarchy MUST 完整位于同一个 Realm 内。Realm 决定谁能接收�
   }
 }
 ```
-
 `space_parent` 的 typed current result identity、control-plane authority-commit、CAS basis、acyclic 检测、不可读 ancestor 的 fail-closed 错误与 root/hidden-parent 规则，其唯一 normative 真源是 [`realm-and-space.md` §3.5](./realm-and-space.md)。本文件只定义产品导航与查询语义；实现 MUST NOT 从本节另行派生一套 reducer。
 
 ## 4. 新资源的 Realm

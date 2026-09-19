@@ -77,7 +77,7 @@ WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
 
 主持动作通过 `ak.call.signal{signal_kind=moderation}` 或 §6.1 的 `mute_state{by=moderator}` 表达瞬时控制，并在 durable `ak.call.state` 留痕：kick / ban 写入 `moderation_delta`，end-for-all 写入 `state_transition.to="ended"`，force-mute 写入目标 leg 的 `mute_override`。`moderation` payload `data` 形态:
 
-```json
+```json fragment
 {
   "kind": "ak.call.signal",
   "payload_sequence": 60,
@@ -92,7 +92,6 @@ WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
   }
 }
 ```
-
 - `action` MUST 为 `kick` / `ban` / `end_for_all` 之一。强制静音走 §6.1 的 `mute_state{by=moderator}`，不复用本信令，但同样 MUST 由 `ak.call.moderate` 授权并落目标 leg 的 `mute_override`。
 - `kick`:移除某 `(target_actor_id, target_device_id)` 的当前 call leg。被点名设备收到后 MUST 立即拆除媒体并退出；SFU 部署中 backend 同时按 token issuer 通知断开该 `participant_id`。kick 不阻止该 actor 重新发起 join。
 - `ban`:移除某 `target_actor_id`(其全部设备)并在本通话生命周期内禁止其重新加入。被 ban 的 actor 重新兑换 join token 时，token issuer MUST 拒绝 `call_participant_removed`。
@@ -296,7 +295,7 @@ payload_sequence)` 去重；它与本节按 `(realm_id, call_id, actor_id, devic
 
 Invite payload:
 
-```json
+```json fragment
 {
   "kind": "ak.call.signal",
   "payload_sequence": 30,
@@ -317,10 +316,9 @@ Invite payload:
   }
 }
 ```
-
 Answer payload:
 
-```json
+```json fragment
 {
   "kind": "ak.call.signal",
   "payload_sequence": 31,
@@ -339,10 +337,9 @@ Answer payload:
   }
 }
 ```
-
 Candidate payload:
 
-```json
+```json fragment
 {
   "kind": "ak.call.signal",
   "payload_sequence": 32,
@@ -360,7 +357,6 @@ Candidate payload:
   }
 }
 ```
-
 字段名在 Arkret envelope 中使用 snake_case；浏览器原生 `sdpMid` / `sdpMLineIndex` MUST 映射为 `sdp_mid` / `sdp_m_line_index`。
 
 ### 6.1 通话内状态信令（renegotiate / mute_state / speaking）
@@ -369,7 +365,7 @@ Candidate payload:
 
 `renegotiate` payload —— 媒体协商变更（增删轨道、编解码变更、ICE restart）。一帧 MUST 仅携带 `offer` 与 `answer` 之一：发起侧帧带 `offer`，应答侧帧带 `answer`。
 
-```json
+```json fragment
 {
   "kind": "ak.call.signal",
   "payload_sequence": 40,
@@ -391,14 +387,13 @@ Candidate payload:
   }
 }
 ```
-
 - `reason` MUST 为 `add_track` / `remove_track` / `codec_change` / `ice_restart` 之一。
 - `ice_restart=true` 时 MUST 触发 ICE restart（见 §4.2 凭证刷新触发）；此时 `offer` / `answer` 中的 SDP MUST 携带新的 ICE ufrag/pwd。
 - `media` optional，反映本帧后发送侧期望的媒体轨道集合。
 
 `mute_state` payload —— 音频/视频静音状态变更。
 
-```json
+```json fragment
 {
   "kind": "ak.call.signal",
   "payload_sequence": 41,
@@ -412,11 +407,10 @@ Candidate payload:
   }
 }
 ```
-
 - `audio_muted` / `video_muted` 为 boolean，required。
 - `by` MUST 为 `self` 或 `moderator`。`by=moderator` MUST 由具备 `ak.call.moderate`（§3）的 actor 发出，并 MUST 携带 `target_actor_id` 与 `target_device_id` 指明被静音方；同一主持操作还 MUST 写入 durable `ak.call.state.mute_override`，并由 SFU / token issuer 收紧该 call leg 的 audio/video send permission。被静音客户端收到后 MUST 本地强制静音并向用户显示来源；若客户端拒不配合，服务端媒体权限仍必须阻断其继续推送被静音 track。`by=self` 时 MUST NOT 携带 `target_*` 字段，且不写 `mute_override`。
 
-```json
+```json fragment
 {
   "kind": "ak.call.signal",
   "payload_sequence": 42,
@@ -432,10 +426,9 @@ Candidate payload:
   }
 }
 ```
-
 `speaking` payload —— voice activity 指示，高频、best-effort。接收方 MAY 丢弃乱序/过期帧而不报错。
 
-```json
+```json fragment
 {
   "kind": "ak.call.signal",
   "payload_sequence": 43,
@@ -448,7 +441,6 @@ Candidate payload:
   }
 }
 ```
-
 - `speaking` 为 boolean，required。
 - `audio_level` optional，归一化 RMS（`0.0`–`1.0`）；不得携带原始音频样本或可重建语音内容的数据。
 - `speaking` 帧 SHOULD 限频（建议 ≤ 5 帧/秒），且 MUST NOT 触发 push 唤醒。
@@ -469,7 +461,7 @@ Candidate payload:
 
 屏幕共享是一种独立 media source：
 
-```json
+```json fragment
 {
   "kind": "ak.call.signal",
   "payload_sequence": 50,
@@ -485,7 +477,6 @@ Candidate payload:
   }
 }
 ```
-
 规则：
 
 - 需要 `ak.call.screen_share` capability。
@@ -498,7 +489,7 @@ Candidate payload:
 
 脱敏 push payload（推送上游可见部分）:
 
-```json
+```json fragment
 {
   "notification": {
     "push_target_id": "ak:pseudonym:push:lg8aqJ2eJjms1GQpkzloxGn8F802f8RfmfmfsC85eRo",
@@ -507,7 +498,6 @@ Candidate payload:
   }
 }
 ```
-
 设备本地 OS 收到唤醒后，App 拉起 P2P / Sync 通道，使用本地密钥解密 `ak.call.signal{signal_kind=invite}` envelope，从签名 envelope 中获得真实 `realm_id`、`call_id`、`sender_actor_id` 等字段并展示来电 UI。Push 上游永远看不到这些字段。
 
 Push payload MUST NOT 包含 SDP、ICE candidate、TURN credential、principal DID、Realm id、call id 或明文会议标题；provider-facing body 的唯一权威形态是 [`discovery/push-notifications.md` §5.1](../discovery/push-notifications.md) 的 blind notification。WebRTC call invite 只允许使用 `notification.push_target_id`、`notification.wakeup_kind`、可选 `notification.push_hint="incoming_call"` 以及该节允许的本地化 / 计数字段；不得携带 `urgency`、`expires_at` 或任何未登记字段。其它一切信息必须通过本地解密获得。

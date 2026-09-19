@@ -381,6 +381,13 @@ VALUE_PROJECTION_DERIVATIONS = {
     "event_digest_from_event_id",
     "mls_commit_transition_digest",
     "mls_genesis_transition_digest",
+    # zh/models/sidecar.md section 3.1: the native Sidecar identity and its
+    # controller AccountId are pure functions of the accepted create Event.
+    # Neither coordinate exists in the deliberately empty payload, so naming
+    # the derivations is the only way a whole-value projection can remain
+    # replayable without inventing an author-controlled mirror.
+    "sidecar_id_from_event_id",
+    "sidecar_controller_account_from_actor",
     # The Agent AccountId an `ak.agent.provision` selector projection binds:
     # principal component from the signed `payload.agent_id`, station
     # component from this Event's own `envelope.actor_id`, which is the
@@ -657,51 +664,35 @@ SHARED_PAYLOAD_DISPATCH: set[tuple[str, str]] = {
 
 
 
-# Class A / class B wording. encoding.md 6.0.1 makes these unconditional: no
-# registry row can exempt them, because the shape has no fixed point at all.
-PREIMAGE_SELF_REFERENCE_PHRASES = (
-    "enclosing event",
-    "carrying this",
-    "this event's own",
-    "same atomic unit",
-    "same submit batch",
-    "same ordered submit batch",
-    "same batch",
-    "sibling event",
-)
-
-
-# Class C wording: a one-way forward declaration naming a later Event from another
-# submission. Constructible, but only allowed once named in the exemption registry.
-PREIMAGE_FORWARD_DECLARATION_PHRASES = (
-    "not yet submitted",
-    "not yet been submitted",
-    "another submission",
-    "a later submission",
-    "separate submission",
-    "forward declaration",
-    "forward-declares",
-    "forward declares",
-)
-
-
-# The candidate scope is the Event-identity name family plus every field whose own
-# description says its value is derived from an Event identity. Restricting to the
-# name family alone would miss exactly the interesting case: an id that is a retype
-# of some Event id and therefore just as much an Event identity commitment.
+# Event-identity candidates are selected by their structural name family or by the
+# explicit keyword below.  Prose is never an input to the decision.
 PREIMAGE_IDENTITY_NAME_SUFFIXES = ("_event_id", "_event_ref", "_event_digest")
 
 PREIMAGE_IDENTITY_EXACT_NAMES = frozenset({"event_id"})
 
-PREIMAGE_IDENTITY_DERIVATION_RE = re.compile(
-    r"retype\(|retype of|event[- ]derived|derived from (?:the )?(?:accepted )?(?:genesis )?event"
-    r"|derives from (?:the )?event"
+PREIMAGE_COMMITMENT_KEYWORD = "x-arkret-preimage-commitment"
+
+PREIMAGE_COMMITMENT_VALUES = frozenset(
+    {
+        "envelope_omission",
+        "fixed_event",
+        "later_submission",
+        "no_event_identity",
+        "same_unit_sibling",
+        "self_identity",
+    }
 )
 
 
 PREIMAGE_EXEMPTION_REGISTRY_PATH = ARTIFACTS / "registry" / "preimage-identity-exemption-registry.json"
 
 PREIMAGE_EXEMPTION_SECTION_ANCHOR = "31-内容寻址预映射"
+
+PREIMAGE_EXEMPTION_SECTION_NUMBER = ".".join(
+    PREIMAGE_EXEMPTION_SECTION_ANCHOR.partition("-")[0]
+)
+
+PREIMAGE_EXEMPTION_SECTION_CITATION = f"encoding.md §{PREIMAGE_EXEMPTION_SECTION_NUMBER}"
 
 PREIMAGE_EXEMPTION_SECTION_PATH = SPEC_ROOT / "zh" / "conformance" / "encoding.md"
 
@@ -726,7 +717,7 @@ PREIMAGE_EXEMPTION_KINDS = frozenset({"envelope_omission", "forward_declaration"
 PREIMAGE_EXEMPTION_STATUS = frozenset({"active"})
 
 # Class A / class B directions. A row carrying one of these is a defective registry,
-# not a ruling: encoding.md 6.0.1 says those shapes are never exemptible.
+# not a ruling: the canonical preimage section says those shapes are never exemptible.
 PREIMAGE_FORBIDDEN_DIRECTIONS = frozenset({"self_identity", "same_unit_sibling"})
 
 
@@ -807,7 +798,6 @@ STATED_PREIMAGE_DIGEST_PAIRS: tuple[tuple[str, str, str, str, str], ...] = (
     ("expected_canonical_bytes_utf8", "expected_subject", "utf8", "base64url", ""),
     ("expected_canonical_bytes_utf8", "expected_digest", "utf8", "sha256_hex", ""),
     ("tag_preimage_utf8", "batch_tag", "utf8", "base64url", ""),
-    ("scope_preimage_utf8", "scope_set_component", "utf8", "base64url", ""),
     ("canonical_event_payload", "event_digest", "utf8", "sha256_hex", ""),
     ("digest_preimage_canonical_bytes_utf8", "event_digest", "utf8", "sha256_hex", ""),
     ("canonical_preimage_utf8", "sha256_digest_hex", "utf8", "raw_hex", ""),

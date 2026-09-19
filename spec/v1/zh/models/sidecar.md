@@ -77,13 +77,12 @@ created_at = event.created_at
 
 create Event 使用 parent Realm scope，因为 Sidecar 尚未存在：
 
-```json
+```json fragment
 {
   "scope_ref": {"kind":"realm", "realm_id":"ak:realm:..."},
   "payload": {}
 }
 ```
-
 payload MUST NOT 携带 `sidecar_id`、完整 Sidecar object、`controller_account_id`、成员、Circle ID、Strand ID、
 Relation ID、state 或 timestamp。Receiver MUST 重算 Sidecar ID；payload 携带这些字段必须在 schema 层拒绝。
 
@@ -95,14 +94,13 @@ Reducer 另以 `(realm_id, controller_account_id)` 执行原子 singleton reserv
 
 Sidecar create accepted 后，全部 Sidecar-private Event 必须使用：
 
-```json
+```json fragment
 {
   "kind": "sidecar",
   "realm_id": "ak:realm:...",
   "sidecar_id": "ak:sidecar:..."
 }
 ```
-
 Receiver MUST 验证 Sidecar 存在、Realm 一致、actor 属于当前有效访问集合，并将完整 `scope_ref`
 纳入 Event digest、AAD、query/delivery 裁剪与 RealmCommit coverage。普通 Circle API、Circle capability 与 Circle
 membership proof 不能授权 Sidecar Event。
@@ -114,14 +112,13 @@ membership proof 不能授权 Sidecar Event。
 
 payload 是：
 
-```json
+```json fragment
 {
   "sidecar_id": "ak:sidecar:...",
   "source_context_ref": {"kind":"strand", "strand_id":"ak:strand:..."},
   "version": 1
 }
 ```
-
 Relation context 使用 `{kind:"relation",relation_id}`。同一 `(sidecar_id, source_context_ref)` 的首次 attach
 使用 `version=1` 且不带 predecessor；后续版本必须逐次递增并引用 current head。
 
@@ -191,7 +188,7 @@ epoch key 与 reconciliation 状态彼此隔离，任何一项都不得跨 Sidec
 
 `participant_authority_digest` 必须覆盖：
 
-```json
+```json fragment
 {
   "domain": "ak.sidecar.participant_authority.v1",
   "sidecar_id": "ak:sidecar:...",
@@ -200,7 +197,6 @@ epoch key 与 reconciliation 状态彼此隔离，任何一项都不得跨 Sidec
   "desired_agent_ids": ["ak:did_core:webvh:zExampleDesiredAgentScid"]
 }
 ```
-
 `desired_agent_ids` 按 UTF-8 字节序排序去重。authority transcript 恰为上方五个成员，不包含 `effective_agent_ids`：
 effective 是当前 MLS reconciliation 的结果，不是参与者 authority 的输入。`authority_stream_head` 同样**不是** transcript
 成员，它是 `mls_context` 中与 `participant_authority_digest` 并列的独立字段（见
@@ -236,6 +232,14 @@ tombstone 的两个触发条件本身都是上游终态：controller principal �
 Sidecar 没有可用的 controller authority。
 
 ## 8. Private view 与显式发布
+
+`ak.agent.sidecar.exchange.control` 写 `agent_sidecar_exchange_controls` typed current result：subject 是
+`(payload.sidecar_id, canonical_json(payload.source_context_ref))`，value 是以 canonical Event dot 标记的
+完整 encrypted control carrier 集合。`exchange_id` 只存在于
+`ak.schema.agent_sidecar_exchange_control.v1` 认证密文明文中，MUST NOT 为了寻址复制到外层 payload 或
+result selector。获授权参与者解密集合元素后，按 plaintext `exchange_id`、`basis_event_ids` 与 `action`
+折叠 coordinator reassignment 和 terminal state；错误 controller／scope／context、无法认证的密文、
+未覆盖 basis 或非法状态迁移都必须在 keyed-set add 之前拒绝，且不得留下部分写入。
 
 客户端 MAY 在普通 Strand shell 中显示 Sidecar-private view，但必须明确标记 private provenance，且
 进入/退出 Sidecar 不得改变普通 Strand canonical history。

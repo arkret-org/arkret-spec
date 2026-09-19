@@ -409,7 +409,20 @@ def lint_subject_field_path(lint: Lint, path: Path, ref: str, value: object) -> 
     lint_field_path(lint, path, ref, value)
     if not isinstance(value, str) or FIELD_PATH_RE.fullmatch(value) is None:
         return
-    if value.startswith("payload.") or value in ENVELOPE_SUBJECT_SOURCES or (value == "item.key_id" and "ak.agent.key.authorize" in ref and ("cell_writes[0]" in ref or "result_writes[0]" in ref)):
+    if (
+        value.startswith("payload.")
+        or value in ENVELOPE_SUBJECT_SOURCES
+        or (
+            value == "item.key_id"
+            and "ak.agent.key.authorize" in ref
+            and ("cell_writes[0]" in ref or "result_writes[0]" in ref)
+        )
+        or (
+            value in {"item.item_ref", "item.rank"}
+            and "ak.container.rebalance" in ref
+            and "result_writes[0]" in ref
+        )
+    ):
         return
     if value.startswith("envelope."):
         lint.fail(path, f"{ref} uses an unregistered envelope source: {value!r}")
@@ -491,8 +504,10 @@ def lint_cell_write_condition(lint: Lint, path: Path, ref: str, condition: objec
     if condition_kind == "field_equals":
         if "const" not in condition:
             lint.fail(path, f"{ref}.const is required for field_equals")
-        elif not isinstance(condition["const"], (str, int, float, bool)):
-            lint.fail(path, f"{ref}.const must be a scalar")
+        elif condition["const"] is not None and not isinstance(
+            condition["const"], (str, int, float, bool)
+        ):
+            lint.fail(path, f"{ref}.const must be a JSON scalar or null")
 
 
 

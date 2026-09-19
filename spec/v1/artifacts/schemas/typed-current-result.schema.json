@@ -186,9 +186,611 @@
     },
     {
       "$ref": "#/$defs/device_revocation_proposals_result"
+    },
+    {
+      "$ref": "#/$defs/actor_discovery_result"
+    },
+    {
+      "$ref": "#/$defs/agent_action_approval_result"
+    },
+    {
+      "$ref": "#/$defs/agent_sidecar_exchange_controls_result"
+    },
+    {
+      "$ref": "#/$defs/applet_discovery_result"
+    },
+    {
+      "$ref": "#/$defs/applet_registration_result"
+    },
+    {
+      "$ref": "#/$defs/container_position_result"
+    },
+    {
+      "$ref": "#/$defs/handle_discovery_result"
+    },
+    {
+      "$ref": "#/$defs/key_backup_active_series_result"
+    },
+    {
+      "$ref": "#/$defs/member_identity_updates_result"
+    },
+    {
+      "$ref": "#/$defs/message_revision_result"
+    },
+    {
+      "$ref": "#/$defs/actor_profile_realm_override_result"
+    },
+    {
+      "$ref": "#/$defs/realm_organization_result"
+    },
+    {
+      "$ref": "#/$defs/circle_member_state_result"
+    },
+    {
+      "$ref": "#/$defs/realm_search_policy_result"
+    },
+    {
+      "$ref": "#/$defs/rsvp_result"
+    },
+    {
+      "$ref": "#/$defs/schema_definition_result"
+    },
+    {
+      "$ref": "#/$defs/sidecar_context_result"
+    },
+    {
+      "$ref": "#/$defs/sidecar_result"
+    },
+    {
+      "$ref": "#/$defs/sovereign_did_policy_result"
+    },
+    {
+      "$ref": "#/$defs/strand_watch_result"
     }
   ],
   "$defs": {
+    "actor_discovery_result": {
+      "type": "object",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "actor_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "actor_discovery"
+            },
+            "actor_id": {
+              "$ref": "./common-ids.schema.json#/$defs/actor_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "./event-payload.schema.json#/$defs/actor_discovery_state_payload/properties/value"
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_action_approval_result": {
+      "type": "object",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "approval_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "agent_action_approval"
+            },
+            "approval_id": {
+              "$ref": "./event-payload.schema.json#/$defs/agent_action_approve_payload/properties/approval_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "./event-payload.schema.json#/$defs/agent_action_approve_payload"
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_sidecar_exchange_control_entry": {
+      "type": "object",
+      "required": [
+        "tag_id",
+        "value"
+      ],
+      "properties": {
+        "tag_id": {
+          "$ref": "#/$defs/canonical_event_dot"
+        },
+        "value": {
+          "$ref": "./event-payload.schema.json#/$defs/agent_sidecar_exchange_control_payload"
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_sidecar_exchange_controls_value": {
+      "type": "object",
+      "required": [
+        "assertions"
+      ],
+      "properties": {
+        "assertions": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/agent_sidecar_exchange_control_entry"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_sidecar_exchange_controls_result": {
+      "type": "object",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "sidecar_id",
+            "source_context_ref"
+          ],
+          "properties": {
+            "kind": {
+              "const": "agent_sidecar_exchange_controls"
+            },
+            "sidecar_id": {
+              "$ref": "./common-ids.schema.json#/$defs/sidecar_id"
+            },
+            "source_context_ref": {
+              "$ref": "./event-payload.schema.json#/$defs/sidecar_context_attach_payload/properties/source_context_ref"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "#/$defs/agent_sidecar_exchange_controls_value"
+        }
+      },
+      "additionalProperties": false
+    },
+    "applet_discovery_result": {
+      "type": "object",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "applet_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "applet_discovery"
+            },
+            "applet_id": {
+              "$ref": "./common-ids.schema.json#/$defs/applet_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "./event-payload.schema.json#/$defs/applet_discovery_state_payload/properties/value"
+        }
+      },
+      "additionalProperties": false
+    },
+    "applet_registration_result": {
+      "type": "object",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "applet_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "applet_registration"
+            },
+            "applet_id": {
+              "$ref": "./common-ids.schema.json#/$defs/applet_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "./event-payload.schema.json#/$defs/applet_registration_payload"
+        }
+      },
+      "additionalProperties": false
+    },
+    "container_position_value": {
+      "type": "object",
+      "required": [
+        "container_ref",
+        "relation_kind",
+        "rank"
+      ],
+      "properties": {
+        "container_ref": {
+          "$ref": "./event-payload.schema.json#/$defs/object_ref"
+        },
+        "relation_kind": {
+          "$ref": "./event-payload.schema.json#/$defs/container_move_item_payload/properties/relation_kind"
+        },
+        "rank": {
+          "$ref": "./event-payload.schema.json#/$defs/rank"
+        }
+      },
+      "additionalProperties": false
+    },
+    "container_position_result": {
+      "type": "object",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "item_ref",
+            "relation_kind"
+          ],
+          "properties": {
+            "kind": {
+              "const": "container_position"
+            },
+            "item_ref": {
+              "$ref": "./event-payload.schema.json#/$defs/object_ref"
+            },
+            "relation_kind": {
+              "$ref": "./event-payload.schema.json#/$defs/container_move_item_payload/properties/relation_kind"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "#/$defs/container_position_value"
+        }
+      },
+      "additionalProperties": false
+    },
+    "handle_discovery_result": {
+      "type": "object",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "handle"
+          ],
+          "properties": {
+            "kind": {
+              "const": "handle_discovery"
+            },
+            "handle": {
+              "$ref": "./event-payload.schema.json#/$defs/handle_discovery_state_payload/properties/resource_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "./event-payload.schema.json#/$defs/handle_discovery_state_payload/properties/value"
+        }
+      },
+      "additionalProperties": false
+    },
+    "key_backup_active_series_result": {
+      "type": "object",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "actor_id",
+            "backup_kind"
+          ],
+          "properties": {
+            "kind": {
+              "const": "key_backup_active_series"
+            },
+            "actor_id": {
+              "$ref": "./common-ids.schema.json#/$defs/actor_id"
+            },
+            "backup_kind": {
+              "$ref": "./key-backup-active-series.schema.json#/$defs/backup_kind"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "./key-backup-active-series.schema.json"
+        }
+      },
+      "additionalProperties": false
+    },
+    "member_identity_update_entry": {
+      "type": "object",
+      "required": [
+        "tag_id",
+        "value"
+      ],
+      "properties": {
+        "tag_id": {
+          "$ref": "#/$defs/canonical_event_dot"
+        },
+        "value": {
+          "$ref": "./event-payload.schema.json#/$defs/member_identity_update_payload"
+        }
+      },
+      "additionalProperties": false
+    },
+    "member_identity_updates_value": {
+      "type": "object",
+      "required": [
+        "assertions"
+      ],
+      "properties": {
+        "assertions": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/member_identity_update_entry"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "member_identity_updates_result": {
+      "type": "object",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "member_id",
+            "segment"
+          ],
+          "properties": {
+            "kind": {
+              "const": "member_identity_updates"
+            },
+            "member_id": {
+              "$ref": "./common-ids.schema.json#/$defs/actor_id"
+            },
+            "segment": {
+              "$ref": "./event-payload.schema.json#/$defs/member_identity_update_payload/properties/segment"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "#/$defs/member_identity_updates_value"
+        }
+      },
+      "additionalProperties": false
+    },
+    "message_revision_value": {
+      "oneOf": [
+        {
+          "$ref": "./event-payload.schema.json#/$defs/message_create_payload"
+        },
+        {
+          "$ref": "./event-payload.schema.json#/$defs/message_revise_payload"
+        }
+      ]
+    },
+    "message_revision_result": {
+      "type": "object",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "message_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "message_revision"
+            },
+            "message_id": {
+              "$ref": "./event-payload.schema.json#/$defs/message_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "#/$defs/message_revision_value"
+        }
+      },
+      "additionalProperties": false
+    },
+    "actor_profile_realm_override_entry": {
+      "type": "object",
+      "required": [
+        "tag_id",
+        "value"
+      ],
+      "properties": {
+        "tag_id": {
+          "$ref": "#/$defs/canonical_event_dot"
+        },
+        "value": {
+          "$ref": "./event-payload.schema.json#/$defs/profile_realm_override_payload"
+        }
+      },
+      "additionalProperties": false
+    },
+    "actor_profile_realm_override_value": {
+      "type": "object",
+      "required": [
+        "assertions"
+      ],
+      "properties": {
+        "assertions": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/actor_profile_realm_override_entry"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "actor_profile_realm_override_result": {
+      "type": "object",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "actor_profile_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "actor_profile_realm_override"
+            },
+            "actor_profile_id": {
+              "$ref": "./event-payload.schema.json#/$defs/actor_profile_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "#/$defs/actor_profile_realm_override_value"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_organization_result": {
+      "type": "object",
+      "required": [
+        "selector",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "organization_id",
+            "relationship"
+          ],
+          "properties": {
+            "kind": {
+              "const": "realm_organization"
+            },
+            "organization_id": {
+              "$ref": "./event-payload.schema.json#/$defs/did_core_id"
+            },
+            "relationship": {
+              "$ref": "./event-payload.schema.json#/$defs/realm_organization_payload/properties/relationship"
+            }
+          },
+          "additionalProperties": false
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "./event-payload.schema.json#/$defs/realm_organization_payload"
+        }
+      },
+      "additionalProperties": false
+    },
     "direct_conversation_binding_endorsement_entry": {
       "type": "object",
       "description": "One endorsement of the settled Direct Conversation binding. The tag is the canonical dot of the accepted Event write that produced it; the value is that Event complete payload. binding_digest is receiver-derived and deliberately absent from both: it is not a wire field (contact-and-direct-conversation.md section 8.3), and storing it here would create a second copy of a value every reader MUST recompute anyway.",
@@ -2280,7 +2882,7 @@
         },
         "principal_control_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id",
-          "description": "The forward-declared Agent PCR. Until its ak.realm.create is accepted this names a Realm that does not exist yet; that is the registered class C preimage exemption of zh/conformance/encoding.md section 6.0.1 and not an inconsistency."
+          "description": "The forward-declared Agent PCR. Until its ak.realm.create is accepted this names a Realm that does not exist yet; that is the registered class C preimage exemption of zh/conformance/encoding.md §3.1 and not an inconsistency."
         },
         "controller_authorization_ref": {
           "$ref": "./common-ids.schema.json#/$defs/did_url"
@@ -3450,6 +4052,175 @@
         "value": {
           "$ref": "./actor-profile.schema.json"
         }
+      },
+      "additionalProperties": false
+    },
+    "circle_member_state_value": {
+      "type": "object",
+      "required": ["membership", "effective_at"],
+      "properties": {
+        "membership": { "$ref": "./event-payload.schema.json#/$defs/membership_state" },
+        "effective_at": { "$ref": "./time.schema.json#/$defs/timestamp" }
+      },
+      "additionalProperties": false
+    },
+    "circle_member_state_result": {
+      "type": "object",
+      "required": ["selector", "revision", "value"],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": ["kind", "circle_id", "member_actor_id"],
+          "properties": {
+            "kind": { "const": "circle_member_state" },
+            "circle_id": { "$ref": "./common-ids.schema.json#/$defs/circle_id" },
+            "member_actor_id": { "$ref": "./common-ids.schema.json#/$defs/actor_id" }
+          },
+          "additionalProperties": false
+        },
+        "revision": { "$ref": "#/$defs/revision" },
+        "value": { "$ref": "#/$defs/circle_member_state_value" }
+      },
+      "additionalProperties": false
+    },
+    "realm_search_policy_result": {
+      "type": "object",
+      "required": ["selector", "revision", "value"],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": ["kind"],
+          "properties": { "kind": { "const": "realm_search_policy" } },
+          "additionalProperties": false
+        },
+        "revision": { "$ref": "#/$defs/revision" },
+        "value": { "$ref": "./event-payload.schema.json#/$defs/realm_search_policy_payload" }
+      },
+      "additionalProperties": false
+    },
+    "rsvp_result": {
+      "type": "object",
+      "required": ["selector", "revision", "value"],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": ["kind", "event_ref", "occurrence", "responder_actor_id"],
+          "properties": {
+            "kind": { "const": "rsvp" },
+            "event_ref": { "$ref": "./event-payload.schema.json#/$defs/strand_id" },
+            "occurrence": { "$ref": "./event-payload.schema.json#/$defs/rsvp_set_payload/properties/occurrence" },
+            "responder_actor_id": { "$ref": "./common-ids.schema.json#/$defs/actor_id" }
+          },
+          "additionalProperties": false
+        },
+        "revision": { "$ref": "#/$defs/revision" },
+        "value": { "$ref": "./event-payload.schema.json#/$defs/rsvp_entry" }
+      },
+      "additionalProperties": false
+    },
+    "schema_definition_result": {
+      "type": "object",
+      "required": ["selector", "revision", "value"],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": ["kind", "schema_id"],
+          "properties": {
+            "kind": { "const": "schema_definition" },
+            "schema_id": { "type": "string", "pattern": "^ak\\.schema\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$" }
+          },
+          "additionalProperties": false
+        },
+        "revision": { "$ref": "#/$defs/revision" },
+        "value": { "$ref": "./event-payload.schema.json#/$defs/schema_define_state_payload/properties/value" }
+      },
+      "additionalProperties": false
+    },
+    "sidecar_context_result": {
+      "type": "object",
+      "required": ["selector", "revision", "value"],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": ["kind", "sidecar_id", "source_context_ref"],
+          "properties": {
+            "kind": { "const": "sidecar_context" },
+            "sidecar_id": { "$ref": "./common-ids.schema.json#/$defs/sidecar_id" },
+            "source_context_ref": { "$ref": "./event-payload.schema.json#/$defs/sidecar_context_attach_payload/properties/source_context_ref" }
+          },
+          "additionalProperties": false
+        },
+        "revision": { "$ref": "#/$defs/revision" },
+        "value": { "$ref": "./event-payload.schema.json#/$defs/sidecar_context_attach_payload" }
+      },
+      "additionalProperties": false
+    },
+    "sidecar_result": {
+      "type": "object",
+      "required": ["selector", "revision", "value"],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": ["kind", "sidecar_id"],
+          "properties": {
+            "kind": { "const": "sidecar" },
+            "sidecar_id": { "$ref": "./common-ids.schema.json#/$defs/sidecar_id" }
+          },
+          "additionalProperties": false
+        },
+        "revision": { "$ref": "#/$defs/revision" },
+        "value": { "$ref": "./agent-sidecar.schema.json" }
+      },
+      "additionalProperties": false
+    },
+    "sovereign_did_policy_result": {
+      "type": "object",
+      "required": ["selector", "revision", "value"],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": ["kind", "trust_domain"],
+          "properties": {
+            "kind": { "const": "sovereign_did_policy" },
+            "trust_domain": { "$ref": "./event-payload.schema.json#/$defs/sovereign_did_policy_state_payload/properties/trust_domain" }
+          },
+          "additionalProperties": false
+        },
+        "revision": { "$ref": "#/$defs/revision" },
+        "value": { "$ref": "./event-payload.schema.json#/$defs/sovereign_did_policy_state_payload/properties/value" }
+      },
+      "additionalProperties": false
+    },
+    "strand_watch_value": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "required": ["level"],
+          "properties": {
+            "level": { "type": "string", "enum": ["mentions_only", "participating", "all", "muted"] },
+            "level_public": { "type": "boolean" }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "strand_watch_result": {
+      "type": "object",
+      "required": ["selector", "revision", "value"],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": ["kind", "strand_id", "watcher_actor_id"],
+          "properties": {
+            "kind": { "const": "strand_watch" },
+            "strand_id": { "$ref": "./event-payload.schema.json#/$defs/strand_id" },
+            "watcher_actor_id": { "$ref": "./common-ids.schema.json#/$defs/actor_id" }
+          },
+          "additionalProperties": false
+        },
+        "revision": { "$ref": "#/$defs/revision" },
+        "value": { "$ref": "#/$defs/strand_watch_value" }
       },
       "additionalProperties": false
     }

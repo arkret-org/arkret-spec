@@ -141,7 +141,10 @@ context／nonce 的拒绝、`approved_at` 时间边界、同一 approver 重复�
 `ak.vector.authz.approval_signature_bytes.v1`、`ak.vector.authz.approval_signature_governance_context.v1`
 与 `ak.vector.authz.approval_signature_operation_target.v1` 是上一条要求的**字节级**落地：三条接纳向量分别
 覆盖 `grant`+`event`、`realm_governance`+`event` 与 `grant`+`operation`，每条都携带 `signing_bytes` 的十六进制、
-detached payload 与真实 Ed25519 签名，验证者 MUST 能独立重算并验签。
+detached payload 与真实 Ed25519 签名，验证者 MUST 能独立重算并验签。`operation` 接纳向量 MUST 使用
+capability action registry 中真实可达的 carrier operation；v1 固定为 `ak.strand.create` 经
+`ak.self.events.command.submit.v1` 的 `EventCommitSubmission.approval_signatures[]`，不得再用无 carrier 的
+`non_event_surface` action 只证明字节可签。
 `ak.vector.authz.approval_signature_negative.v1` 是与之配对的否例束，MUST 按三类分别给出稳定 code：
 换字节或错构造（含丢域前缀、先摘要后签、把 producer proof 当 approval proof）→ `signature_invalid`；
 形状错误 → `schema_violation`；签名有效但不可接纳 → `claim_required` 或 `failed_precondition`。

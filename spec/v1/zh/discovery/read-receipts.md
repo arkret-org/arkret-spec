@@ -79,7 +79,7 @@ Realm MAY 通过 `ak.realm.read_receipt_policy` 组件 typed current result 声�
 
 > **Realm 作用域** 由 enclosing Event envelope 的 `realm_id` 决定；payload 本身不重复 `realm_id`。Payload schema 在 [`event-payload.schema.json#/$defs/read_receipt_policy_payload`](../../artifacts/schemas/event-payload.schema.json) 为闭合对象（`additionalProperties: false`），任何未识别字段或字段拼写错误在 wire 解析阶段就会以 `schema_violation` 拒绝。Payload **MUST 至少包含一个字段**（schema `minProperties: 1`）：空 `{}` 在语义上与"从不写该 event"等价，因此 MUST 被拒绝；想要"用默认值"的 Realm 直接省略该 event 即可。
 
-```json
+```json fragment
 {
   "kind": "ak.realm.read_receipt_policy",
   "payload": {
@@ -89,7 +89,6 @@ Realm MAY 通过 `ak.realm.read_receipt_policy` 组件 typed current result 声�
   }
 }
 ```
-
 字段：
 
 | 字段 | 类型 | 默认 | 说明 |
@@ -122,12 +121,11 @@ Realm MAY 通过 `ak.realm.read_receipt_policy` 组件 typed current result 声�
 v1 合规旁路只保留 child policy 隐私收紧这一项；旧公开历史旁路字段不是 wire 字段，出现时 MUST
 `schema_violation`：
 
-```json
+```json fragment
 {
   "child_privacy_tightening_against_required": false
 }
 ```
-
 - 字段缺省或为 `false` 均按未 opt-in 处理。
 - read_receipt_policy payload schema MUST 在顶层声明 `additionalProperties=false`，未识别字段 MUST 以 `schema_violation` 在 wire 解析阶段拒绝。
 - [`event-payload.schema.json#/$defs/read_receipt_policy_payload`](../../artifacts/schemas/event-payload.schema.json) 已以 closed object 落地该结构；正文与 schema 共同构成单一现行契约。
@@ -144,7 +142,7 @@ Read Cursor 作为一种持久化的个人状态，MUST 作为加密 account dat
 
 Read cursor schema：`ak.schema.read_cursor.v1`。Read Cursor 是 actor-private 持久状态，存放在加密 account data 或 actor-private stream 中。wire 对象**没有 typed ID 也没有 `updated_at`**：它不是可原地更新的对象，身份是 `(actor_id, realm_id, read_scope)` 三元组，更新时间是承载它的 `ak.read_cursor.advance` 信封 `created_at`（§6.1）。实现 MAY 为本地存储自选 key，该 key 不进入 wire。Read Cursor 按 §6.1 / §6.6 绑定 `(actor_id, realm_id, read_scope, position, hlc, device_id)`：
 
-```json
+```json fragment
 {
   "schema": "ak.schema.read_cursor.v1",
   "actor_id": "ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw",
@@ -161,7 +159,6 @@ Read cursor schema：`ak.schema.read_cursor.v1`。Read Cursor 是 actor-private 
   }
 }
 ```
-
 - 该状态被加密存储在用户的 account data 中或单独 actor-private stream 中。
 - 用户的其他设备通过同步 account data 的变更，获取最新的游标位置，从而清除本地未读红点。
 - 多设备 read cursor MUST 按 §6.5 的因果优先三段式收敛：因果支配者胜出；
@@ -198,7 +195,7 @@ Thread 在 read scope 中的 wire 表达（normative）：Thread **不是一等�
 
 Read Cursor 是 actor-private 状态。最小结构示例：
 
-```json
+```json fragment
 {
   "actor_id": "ak:did_core:webvh:z2gNJAM6eKtNKMnbxHuqHCnaw",
   "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
@@ -214,7 +211,6 @@ Read Cursor 是 actor-private 状态。最小结构示例：
   }
 }
 ```
-
 字段层级约束以 [`../models/private-objects.md` §2](../models/private-objects.md) 为准。
 
 Read Cursor 对象 MUST NOT 携带 `id`，也 MUST NOT 携带 `updated_at`。没有 read cursor typed ID（id-kind-registry 中不存在 `read_cursor` kind）：对象身份是 `(actor_id, realm_id, read_scope)` 三元组，`ak.read_cursor.advance` 的 `id_source` 是 `not_an_object_id`。它不是可原地更新的对象（没有 revision / CAS），一次「更新」就是 author 一条新的 `ak.read_cursor.advance`，因此该次更新的时间就是那条 Event 信封的 `created_at`。`ak.self.read_cursor.command.advance.v1` 的响应 `read_marker_outcome.updated_at` 与跨设备下发的 actor-private read cursor 更新都是**派生视图**，其 `updated_at` MUST 取当前按 §6.5 胜出的那条 advance 的信封 `created_at`；服务端 MUST NOT 由此反推或要求 payload 携带任何时间字段。
@@ -224,7 +220,7 @@ Read Cursor 对象 MUST NOT 携带 `id`，也 MUST NOT 携带 `updated_at`。没
 Receipt 对谁可见取决于 Realm policy，但它始终只作为 §2.1 的 Signal plaintext 出现。
 schema：`ak.schema.read_receipt.v1`：
 
-```json
+```json fragment
 {
   "kind": "ak.receipt.read",
   "payload_sequence": 41,
@@ -237,7 +233,6 @@ schema：`ak.schema.read_receipt.v1`：
   }
 }
 ```
-
 ### 6.3 Notification 派生 projection
 
 普通源 Event 通知的身份为 `ak:notification_projection:<token>`。`token` 是 `0x01 || SHA-256(UTF8("ak.notification-projection.v1\n") || RFC8785_JCS(preimage))` 的无填充 base64url 编码，共 44 字符，保留完整 32 字节摘要；域分隔字符串末尾是单个 LF 字节。`preimage` 是 [`notification.schema.json#/$defs/projection_preimage`](../../artifacts/schemas/notification.schema.json#/$defs/projection_preimage) 定义的封闭对象：完整 `recipient_account_id`、`realm_id`、原始 `source_event_id`、`notification_kind`。不得截断摘要形成 UUID，不得重定型 Event ID。
@@ -250,7 +245,7 @@ schema：`ak.schema.read_receipt.v1`：
 
 Notification 是派生 projection，不是 canonical truth。schema：`ak.schema.notification.v1`：
 
-```json
+```json fragment
 {
   "id": "ak:notification_projection:AcDdfcnJk6U1tjvzQvBEKrNJ6zDKlNhVFeh22cy8n_2V",
   "schema": "ak.schema.notification.v1",
@@ -272,7 +267,6 @@ Notification 是派生 projection，不是 canonical truth。schema：`ak.schema
   "created_at": "2026-04-26T00:00:00Z"
 }
 ```
-
 `notification_kind` 是封闭枚举，其权威取值集合以 [`notification.schema.json`](../../artifacts/schemas/notification.schema.json) 为准:`message` / `mention` / `reply` / `assignment` / `schedule` / `invite` / `reaction` / `policy` / `call` / `applet` / `agent` / `moderation` / `system`(共 13 值);取未列值的 notification MUST 视为非法。
 
 普通源 Event 的类别判定必须使用 [`../models/private-objects.md` §3.3–§3.6](../models/private-objects.md) 及对应业务对象章节登记的 receiver-side 规则；枚举成员的存在本身不登记 producer，也不允许实现按 Event kind 名称、UI 文案或未验证 preview 猜测类别。当前 source Event、完整 recipient AccountId、effective scope / access、actor-private watch / block / DND / notification rule 与适用 accepted evidence 共同决定是否生成 projection；其中规则只影响生成与展示，不进入 §6.3 的身份前像。缺少任一必需事实时 MUST fail closed，且不得以服务端缓存的 Notification 行或 account-data 包装补成来源证据。
@@ -306,14 +300,13 @@ state=unread, cursor=<cursor>, limit=<int>
 
 响应示例（非完整 schema）：
 
-```json
+```json fragment
 {
   "notifications": [],
   "next_cursor": null,
   "counts": {}
 }
 ```
-
 ### 6.5 多设备合并
 
 多设备 read cursor 合并规则（按下列优先级,normative）：
@@ -331,6 +324,9 @@ state=unread, cursor=<cursor>, limit=<int>
 ### 6.6 跨设备同步语义
 
 `ak.read_cursor.advance` 是 actor-private event，默认进入 principal 的 encrypted account data / actor-private stream，不进入共享 Realm timeline，也不推进 Realm reducer checkpoint。其 payload MUST 使用 `ak.schema.read_cursor.v1` 的 Read Cursor 对象形态；该对象仍然必须由当前 actor 或授权 device/session 签名，并绑定 `actor_id`、`realm_id`、read_scope、position、HLC 和 device id；该对象不含 `updated_at`（§6.1）。
+
+其 storage owner、唯一键、winner projection、exact retry 与拒绝事务由
+[`../models/actor-private-effects.md` §3.4](../models/actor-private-effects.md#34-read-cursor) 统一闭合；§6.5 只定义 merge 比较顺序。
 
 跨设备已读同步流程：
 

@@ -67,6 +67,13 @@ suite 的摘要不能比较为相等。Event、RealmCommit、handoff 与 snapsho
 预映射内**不得承诺 Event 标识**：自身标识与同一原子单元内的兄弟标识都会让摘要的原像包含该摘要自身的函数，按构造不可满足。唯一允许的两类例外是 envelope omission 与 forward declaration，且必须逐条登记在
 [`preimage-identity-exemption-registry.json`](../../artifacts/registry/preimage-identity-exemption-registry.json)。**封闭例外清单**：下表是该 registry 的封闭列表投影，两侧 MUST 同批更新：
 
+本规则的机器管辖面是 `event-envelope.schema.json#` 根与
+`event-kind-registry.json` 全部 `payload_schema_ref` 的 JSON Pointer 级 `$ref` 传递闭包；
+沿 `$ref` 只进入实际目标，不遍历文档根下未被引用的 `$defs`／`definitions` 兄弟。
+闭包内 Event 标识候选属性 MUST 以封闭的 `x-arkret-preimage-commitment` 声明承诺方向，
+描述文字不参与裁决。闭包外对象不受本规则管辖；若其描述声称某字段进入 Event 原像，
+则必须由该对象的专门门禁证明这项结构事实，不能借 §3.1 的例外表取得许可。
+
 | exemption_id | kind | 说明 |
 | --- | --- | --- |
 | `ak.exemption.preimage_identity.realm_genesis.v1` | envelope_omission | `ak.realm.create` 的 envelope `realm_id`、`scope_ref.realm_id` 与 create payload object id 都不进入原像；接收方从已接受的 `event_id` 正向派生 `realm_id`。 |

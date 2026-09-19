@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.1",
+  "version": "2026-09-19.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-19T00:00:00+08:00",
+  "generated_at": "2026-09-19T18:23:59+08:00",
   "lock_kind": "fixture_schema_instance_bindings",
   "description": "Fixture objects that are real wire instances but carry no `schema` discriminator, bound by exact JSON Pointer to the schema that owns them. check_declared_schema_fixture_instances only claims objects that name their own schema, so an instance without that member has no schema landing point at all: it survives every field deletion its schema makes, and the drift surfaces only when a downstream deny_unknown_fields type finally parses it. Each row makes one such object validate in the artifact pipeline instead.",
   "registry_rules": [
@@ -58,7 +58,67 @@
       "fixture": "pcr-genesis-fixture.json",
       "pointer": "/identity_creation_control_transcript/signed_object",
       "schema_ref": "schemas/account-operations.schema.json#/$defs/identity_creation_control_proof",
-      "why": "The transcript names its schema_ref in prose but the signed object itself carries no schema member, so nothing validated the twenty-five required members the closed control proof demands. This is the object whose signature binds the registration anchor digest to the PCR realm id, so a member the schema drops or renames would silently break the only end-to-end identity-root control proof while its own signature stayed verifiable."
+      "why": "The transcript names its schema_ref in prose but the signed object itself carries no schema member, so nothing validated all required members the closed control proof demands. This is the object whose signature binds the registration anchor digest to the PCR realm id, so a member the schema drops or renames would silently break the only end-to-end identity-root control proof while its own signature stayed verifiable."
+    },
+    {
+      "fixture": "contact-round-kat.json",
+      "pointer": "/producer_signer_kat/cases/0/signed_object/signature",
+      "schema_ref": "schemas/principal-operations.schema.json#/$defs/signature",
+      "why": "The Contact producer KAT embeds this proof below a signed receipt and carries no schema discriminator on the proof object. Binding every occurrence prevents raw Ed25519 bytes from returning in a member whose wire contract is compact detached JWS."
+    },
+    {
+      "fixture": "contact-round-kat.json",
+      "pointer": "/producer_signer_kat/cases/1/signed_object/signature",
+      "schema_ref": "schemas/principal-operations.schema.json#/$defs/signature",
+      "why": "The Contact producer KAT embeds this proof below a signed receipt and carries no schema discriminator on the proof object. Binding every occurrence prevents raw Ed25519 bytes from returning in a member whose wire contract is compact detached JWS."
+    },
+    {
+      "fixture": "contact-round-kat.json",
+      "pointer": "/producer_signer_kat/cases/2/signed_object/request_receipt/signature",
+      "schema_ref": "schemas/principal-operations.schema.json#/$defs/signature",
+      "why": "The Contact producer KAT embeds this proof below a signed receipt and carries no schema discriminator on the proof object. Binding every occurrence prevents raw Ed25519 bytes from returning in a member whose wire contract is compact detached JWS."
+    },
+    {
+      "fixture": "contact-round-kat.json",
+      "pointer": "/producer_signer_kat/cases/2/signed_object/signature",
+      "schema_ref": "schemas/principal-operations.schema.json#/$defs/signature",
+      "why": "The Contact producer KAT embeds this proof below a signed receipt and carries no schema discriminator on the proof object. Binding every occurrence prevents raw Ed25519 bytes from returning in a member whose wire contract is compact detached JWS."
+    },
+    {
+      "fixture": "contact-round-kat.json",
+      "pointer": "/producer_signer_kat/cases/3/signed_object/request_receipt/signature",
+      "schema_ref": "schemas/principal-operations.schema.json#/$defs/signature",
+      "why": "The Contact producer KAT embeds this proof below a signed receipt and carries no schema discriminator on the proof object. Binding every occurrence prevents raw Ed25519 bytes from returning in a member whose wire contract is compact detached JWS."
+    },
+    {
+      "fixture": "contact-round-kat.json",
+      "pointer": "/producer_signer_kat/cases/3/signed_object/signature",
+      "schema_ref": "schemas/principal-operations.schema.json#/$defs/signature",
+      "why": "The Contact producer KAT embeds this proof below a signed receipt and carries no schema discriminator on the proof object. Binding every occurrence prevents raw Ed25519 bytes from returning in a member whose wire contract is compact detached JWS."
+    },
+    {
+      "fixture": "contact-round-kat.json",
+      "pointer": "/producer_signer_kat/cases/4/signed_object/signature",
+      "schema_ref": "schemas/principal-operations.schema.json#/$defs/signature",
+      "why": "The Contact producer KAT embeds this proof below a signed receipt and carries no schema discriminator on the proof object. Binding every occurrence prevents raw Ed25519 bytes from returning in a member whose wire contract is compact detached JWS."
+    },
+    {
+      "fixture": "contact-round-kat.json",
+      "pointer": "/delegated_actor_locator_kat/cases/0/signed_request_receipt/signature",
+      "schema_ref": "schemas/principal-operations.schema.json#/$defs/signature",
+      "why": "The delegated Actor branch reuses the same Contact receipt proof carrier. This exact binding keeps its compact detached JWS shape under generic fixture schema validation as well as the dedicated KAT checker."
+    },
+    {
+      "fixture": "contact-round-kat.json",
+      "pointer": "/delegated_actor_locator_kat/cases/1/signed_request_receipt/signature",
+      "schema_ref": "schemas/principal-operations.schema.json#/$defs/signature",
+      "why": "The delegated Actor branch reuses the same Contact receipt proof carrier. This exact binding keeps its compact detached JWS shape under generic fixture schema validation as well as the dedicated KAT checker."
+    },
+    {
+      "fixture": "contact-round-kat.json",
+      "pointer": "/delegated_actor_locator_kat/cases/2/signed_request_receipt/signature",
+      "schema_ref": "schemas/principal-operations.schema.json#/$defs/signature",
+      "why": "The delegated Actor branch reuses the same Contact receipt proof carrier. This exact binding keeps its compact detached JWS shape under generic fixture schema validation as well as the dedicated KAT checker."
     }
   ]
 }

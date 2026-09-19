@@ -809,7 +809,8 @@
           "minimum": 1
         },
         "predecessor_event_ref": {
-          "$ref": "#/$defs/event_id"
+          "$ref": "#/$defs/event_id",
+          "x-arkret-preimage-commitment": "fixed_event"
         },
         "event_ref": {
           "$ref": "#/$defs/event_id"
@@ -1703,7 +1704,8 @@
           "minimum": 2
         },
         "predecessor_event_ref": {
-          "$ref": "#/$defs/event_id"
+          "$ref": "#/$defs/event_id",
+          "x-arkret-preimage-commitment": "fixed_event"
         },
         "granted_to_peer_scopes": {
           "$ref": "#/$defs/contact_scopes"

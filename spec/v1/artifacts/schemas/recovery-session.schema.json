@@ -379,7 +379,8 @@
         "recovery_secret_ref": {
           "type": "string",
           "minLength": 1,
-          "description": "DID URL or recovery-policy key ref for the recovery key entry authorized at the session's created_at."
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+          "description": "Opaque recovery-policy key-entry label authorized at the session's created_at. This is not a DID, DID URL or public-key encoding; verification_method alone names the signing key."
         },
         "verification_method": {
           "$ref": "#/$defs/did_url"
@@ -644,7 +645,9 @@
         },
         "recovery_secret_ref": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+          "description": "Opaque recovery-policy key-entry label; never a DID or verification method."
         },
         "verification_method": {
           "$ref": "#/$defs/did_url"

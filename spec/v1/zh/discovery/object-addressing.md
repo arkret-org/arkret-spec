@@ -162,7 +162,7 @@ token 签名 payload **MUST** 包含 **target descriptor** + 生命周期字段�
 
 **Target descriptor canonical shape（确定性）**：`target_descriptor` 由 [`object-addressing.schema.json#/$defs/address_link_target_descriptor`](../../artifacts/schemas/object-addressing.schema.json) 定义，是**恰好**如下字段的对象；签名 token 公共 claims 使用同一 schema 的 `$defs/signed_address_link_token_claims`。缺省的层级字段 **MUST 整键省略**（不得写 `null`——避免 JCS 因 `null` vs 省略产生不同 digest）：
 
-```json
+```json fragment
 {
   "realm_id": "ak:realm:<44-char-token>",
   "strand_id": "ak:strand:<44-char-event-token>",
@@ -170,7 +170,6 @@ token 签名 payload **MUST** 包含 **target descriptor** + 生命周期字段�
   "address_link_kind": "invite"
 }
 ```
-
 字段出现规则：`realm_id` 与 `address_link_kind` 必含；`address_link_kind` MUST 是 token 签名 payload 声明的 effective type（`invite` 或 `preview`）；`strand_id` 仅 strand / message 目标出现；`message_id` 仅 message 目标出现。
 
 `target_digest = "sha256:" || hex(sha256(JCS(target_descriptor)))`，其中 `JCS` 是 [RFC 8785](https://www.rfc-editor.org/rfc/rfc8785) JSON Canonicalization Scheme。

@@ -39,7 +39,7 @@ Join Policy 定义加入 Realm 前由当前治理 Station在 commit admission �
 
 机器真源是 [`event-payload.schema.json#/$defs/join_policy_component`](../../artifacts/schemas/event-payload.schema.json)。最小形态：
 
-```json
+```json fragment
 {
   "gates": [
     {
@@ -52,7 +52,6 @@ Join Policy 定义加入 Realm 前由当前治理 Station在 commit admission �
   "combinator": "all"
 }
 ```
-
 | 字段 | 必填 | 约束 |
 | --- | --- | --- |
 | `gates` | yes | 1..16；`gate_id` 在数组内 MUST 唯一 |

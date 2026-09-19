@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.e2ee_client.v1",
-  "version": "2026-08-25",
+  "version": "2026-09-19.1",
   "suite": "keypackage_lifecycle",
   "runner": {
     "kind": "named_suite",
@@ -94,6 +94,13 @@
       "instance": {
         "claim_id": "device-claim-1",
         "keypackage_ref": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "actor_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixtureprincipalexample",
+            "station_id": "ak:did_core:webvh:z6mkfixturepsexample"
+          }
+        },
         "principal_id": "ak:did_core:webvh:z6mkfixtureprincipalexample",
         "device_id": "ak:device:0199d0a6-0000-7000-8000-00000000d001",
         "device_authorize_event_id": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
@@ -131,7 +138,8 @@
     "ak.vector.keypackage.peer_claim_double_authorization_privacy.v1",
     "ak.vector.keypackage.self_claim_authorization_idempotency.v1",
     "ak.vector.mls.welcome_keypackage_hash.v1",
-    "ak.vector.keypackage.group_capability_floor.v1"
+    "ak.vector.keypackage.group_capability_floor.v1",
+    "ak.vector.mls.keypackage_actor_and_ciphersuite_closure.v1"
   ],
   "unsigned_selector_transcripts": [
     {
@@ -283,6 +291,40 @@
           "requirement": "The original claim is consumed only after the Welcome is processed and the group state is durably stored; a failed durable store produces no recipient receipt, the peer surface offers no consume proxy, and an indeterminate result is recovered by replaying the same signed request rather than by rotating the claim identity or claiming a replacement in parallel.",
           "evidence": [
             "/cases/13"
+          ]
+        }
+      ]
+    },
+    {
+      "vector_id": "ak.vector.mls.keypackage_actor_and_ciphersuite_closure.v1",
+      "clause_id": "AK-NC-057",
+      "decision_points": [
+        {
+          "id": "only_registered_active_ciphersuites_reach_wire",
+          "requirement": "Only an active mls-ciphersuite-registry row reaches KeyPackage or Commit wire; unknown and reserved rows are rejected without a state change.",
+          "evidence": [
+            "/cases/14"
+          ]
+        },
+        {
+          "id": "publish_claim_and_commit_each_reject_unsupported_suites",
+          "requirement": "Publish, claim and Commit submission independently reject an unregistered or inactive ciphersuite with no partial write.",
+          "evidence": [
+            "/cases/14"
+          ]
+        },
+        {
+          "id": "no_try_many_or_local_suite_rewrite",
+          "requirement": "A receiver neither tries a sequence until one suite succeeds nor rewrites a foreign suite identifier into the active identifier.",
+          "evidence": [
+            "/cases/14"
+          ]
+        },
+        {
+          "id": "complete_actor_id_is_preserved_in_every_identity_carrier",
+          "requirement": "The claim, Welcome delivery and RFC 9420 BasicCredential preserve the same complete ActorId rather than a principal, DID, device id or handle projection.",
+          "evidence": [
+            "/cases/14"
           ]
         }
       ]
@@ -794,6 +836,13 @@
       "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
       "keypackage_claim_record": {
         "branch": "device",
+        "actor_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturebobexample",
+            "station_id": "ak:did_core:webvh:z6mkfixturepsexample"
+          }
+        },
         "target_device_id": "ak:device:0196419b-0000-7000-8000-000000000002",
         "device_authorize_event_id": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
         "agent_key_authorize_event_id": null,
@@ -943,6 +992,85 @@
         "a failed durable store produces no recipient receipt, so a receipt is never evidence of a group state that was not kept",
         "consume goes through the recipient's own Station operation ak.self.keys.keypackages.command.consume.v1; the peer surface offers no consume proxy",
         "an indeterminate network result is recovered by replaying the same signed consume request, never by rotating the claim identity, claiming a replacement KeyPackage in parallel, or returning a claimed KeyPackage to published"
+      ]
+    },
+    {
+      "name": "mls_keypackage_actor_and_ciphersuite_closure",
+      "vector_id": "ak.vector.mls.keypackage_actor_and_ciphersuite_closure.v1",
+      "kind": "keypackage_actor_and_ciphersuite_policy",
+      "registry_ref": "registry/mls-ciphersuite-registry.json",
+      "endpoint_kat_refs": [
+        "fixtures/mls-keypackage-endpoint-kat-fixture.json#/cases/0",
+        "fixtures/mls-keypackage-endpoint-kat-fixture.json#/cases/1"
+      ],
+      "active_suite": {
+        "canonical_id": "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519",
+        "rfc9420_id": "0x0001",
+        "wire_id": 1,
+        "status": "active"
+      },
+      "rejection_cases": [
+        {
+          "name": "publish_rejects_unregistered_suite",
+          "operation": "publish",
+          "presented_suite": "0x7fff",
+          "expected_reason": "unsupported_ciphersuite",
+          "state_changed": false
+        },
+        {
+          "name": "claim_rejects_reserved_suite",
+          "operation": "claim",
+          "presented_suite": "0x0003",
+          "expected_reason": "unsupported_ciphersuite",
+          "state_changed": false
+        },
+        {
+          "name": "commit_rejects_reserved_suite",
+          "operation": "commit_submission",
+          "presented_suite": "0x0003",
+          "expected_reason": "unsupported_ciphersuite",
+          "state_changed": false
+        },
+        {
+          "name": "try_many_is_not_a_fallback",
+          "operation": "claim",
+          "presented_suites": [
+            "0x0003",
+            "0x0001"
+          ],
+          "expected_reason": "unsupported_ciphersuite",
+          "accepted_later_suite": false,
+          "state_changed": false
+        },
+        {
+          "name": "foreign_suite_identifier_is_not_rewritten",
+          "operation": "commit_submission",
+          "presented_suite": "0x0003",
+          "proposed_local_rewrite": "0x0001",
+          "expected_reason": "unsupported_ciphersuite",
+          "rewrite_performed": false,
+          "state_changed": false
+        },
+        {
+          "name": "collapsed_basic_credential_is_rejected",
+          "operation": "claim",
+          "presented_identity": "ak:device:01904100-0000-7000-8000-00000000aa11",
+          "expected_identity_source": "UTF8(RFC8785_JCS(complete ActorId))",
+          "expected_reason": "claim_failed",
+          "state_changed": false
+        }
+      ],
+      "expected": {
+        "active_suite_accepted_by_publish_claim_and_commit": true,
+        "claim_actor_equals_welcome_recipient_actor": true,
+        "basic_credential_equals_actor_id_jcs_utf8": true,
+        "partial_write_on_any_rejection": false
+      },
+      "assertions": [
+        "the active registry row 0x0001 is the only v1 suite accepted by publish, claim and Commit submission",
+        "each of publish, claim and Commit independently rejects an unknown or reserved suite without a state change",
+        "a later active suite in a try-many sequence is not attempted after an unsupported selector and a foreign selector is never rewritten locally",
+        "both endpoint KAT branches carry UTF8 RFC 8785/JCS of the complete ActorId in the BasicCredential and the same ActorId is preserved by claim and Welcome"
       ]
     }
   ],

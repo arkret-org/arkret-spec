@@ -1,0 +1,665 @@
+{
+  "profile": "ak.vector_group.privacy_security.v1",
+  "version": "2026-09-19.1",
+  "suite": "mls_governance_binding_closure",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.mls.governance_binding_closure.v1"
+  },
+  "covers_vectors": [
+    "ak.vector.mls.governance_binding_closure.v1",
+    "ak.vector.mls.governance_epoch_binding.v1"
+  ],
+  "security_evidence": [
+    {
+      "vector_id": "ak.vector.mls.governance_binding_closure.v1",
+      "clause_id": "AK-NC-061",
+      "decision_points": [
+        {
+          "id": "closed_deterministic_cbor_and_bounds",
+          "requirement": "Every received binding is the exact closed deterministic-CBOR map and fails before allocation when a syntax, range or decoder bound is violated.",
+          "evidence": [
+            "/cases/0"
+          ]
+        },
+        {
+          "id": "all_scope_branches_have_fixed_acceptance_bytes",
+          "requirement": "Realm, Circle, Sidecar and Genesis/null branches each have a positive fixed-byte acceptance KAT.",
+          "evidence": [
+            "/cases/0/accepted/0",
+            "/cases/0/accepted/1",
+            "/cases/0/accepted/2",
+            "/cases/0/accepted/3"
+          ]
+        },
+        {
+          "id": "epoch_and_revision_are_unsigned_monotonic_counters",
+          "requirement": "Genesis is 0 to 0, Commit increments epoch by one, and key_access_revision is a monotonic unsigned 64-bit counter rather than a digest.",
+          "evidence": [
+            "/cases/1"
+          ]
+        },
+        {
+          "id": "valid_public_material_still_requires_exact_binding_equality",
+          "requirement": "RFC 9420-valid public material is rejected when its internal binding differs from Station state or the Event payload.",
+          "evidence": [
+            "/cases/2"
+          ]
+        },
+        {
+          "id": "historical_replay_is_not_current_send_authority",
+          "requirement": "Historical material is verified against its accepted historical binding and never grants current send authority.",
+          "evidence": [
+            "/cases/3"
+          ]
+        },
+        {
+          "id": "proposal_carrier_reuses_the_one_binding_schema",
+          "requirement": "The closed pre-Genesis carrier fixes Event route, proposal kind, complete sender and target scope while directly reusing the one binding schema.",
+          "evidence": [
+            "/cases/4"
+          ]
+        }
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "name": "governance_binding_wire_encoding_is_closed",
+      "assertions": [
+        "binding_is_exactly_the_five_registered_members",
+        "map_keys_follow_rfc8949_bytewise_deterministic_order",
+        "key_access_revision_is_an_unsigned_64_bit_monotonic_integer",
+        "non_deterministic_or_out_of_bounds_input_is_rejected_without_normalisation"
+      ],
+      "canonical_member_order": [
+        "next_epoch",
+        "previous_epoch",
+        "effective_scope",
+        "key_access_revision",
+        "base_group_state_ref"
+      ],
+      "member_order_rule": "RFC 8949 section 4.2.1 bytewise lexicographic order of deterministic key encodings.",
+      "resource_limits": {
+        "maximum_input_bytes": 16384,
+        "maximum_nesting_depth": 8,
+        "maximum_collection_items": 64
+      },
+      "accepted": [
+        {
+          "name": "realm_scope_commit",
+          "binding": {
+            "effective_scope": {
+              "kind": "realm",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+            },
+            "base_group_state_ref": "ak:event:AZk4PXzJ6MpkxXnYTUmgXzeIYNd0Wfnz3N0hwLHNV6Xq",
+            "previous_epoch": 41,
+            "next_epoch": 42,
+            "key_access_revision": 17
+          },
+          "encoded_map_hex": "a56a6e6578745f65706f6368182a6e70726576696f75735f65706f636818296f6566666563746976655f73636f7065a2646b696e64657265616c6d687265616c6d5f69647835616b3a7265616c6d3a41633161434b386151646e6b59496d7664483344466a71346a4443503139387058595743477a477556796a35736b65795f6163636573735f7265766973696f6e1174626173655f67726f75705f73746174655f7265667835616b3a6576656e743a415a6b3450587a4a364d706b78586e5954556d67587a6549594e643057666e7a334e3068774c484e56365871",
+          "expected": {
+            "decision": "accept"
+          }
+        },
+        {
+          "name": "circle_scope_commit",
+          "binding": {
+            "effective_scope": {
+              "kind": "circle",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "circle_id": "ak:circle:AcQajqaKFvyDoMpqpSlBvMh0d4gheZsVPhbHaTlqXtkV"
+            },
+            "base_group_state_ref": "ak:event:AZk4PXzJ6MpkxXnYTUmgXzeIYNd0Wfnz3N0hwLHNV6Xq",
+            "previous_epoch": 41,
+            "next_epoch": 42,
+            "key_access_revision": 17
+          },
+          "encoded_map_hex": "a56a6e6578745f65706f6368182a6e70726576696f75735f65706f636818296f6566666563746976655f73636f7065a3646b696e6466636972636c65687265616c6d5f69647835616b3a7265616c6d3a41633161434b386151646e6b59496d7664483344466a71346a4443503139387058595743477a477556796a3569636972636c655f69647836616b3a636972636c653a416351616a71614b467679446f4d707170536c42764d683064346768655a73565068624861546c7158746b56736b65795f6163636573735f7265766973696f6e1174626173655f67726f75705f73746174655f7265667835616b3a6576656e743a415a6b3450587a4a364d706b78586e5954556d67587a6549594e643057666e7a334e3068774c484e56365871",
+          "expected": {
+            "decision": "accept"
+          }
+        },
+        {
+          "name": "sidecar_scope_commit",
+          "binding": {
+            "effective_scope": {
+              "kind": "sidecar",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "sidecar_id": "ak:sidecar:AZUfzdx1qBOtCsg2CGmS3QLP7vlDe_kxRx0pxdxefWTa"
+            },
+            "base_group_state_ref": "ak:event:AZk4PXzJ6MpkxXnYTUmgXzeIYNd0Wfnz3N0hwLHNV6Xq",
+            "previous_epoch": 41,
+            "next_epoch": 42,
+            "key_access_revision": 17
+          },
+          "encoded_map_hex": "a56a6e6578745f65706f6368182a6e70726576696f75735f65706f636818296f6566666563746976655f73636f7065a3646b696e646773696465636172687265616c6d5f69647835616b3a7265616c6d3a41633161434b386151646e6b59496d7664483344466a71346a4443503139387058595743477a477556796a356a736964656361725f69647837616b3a736964656361723a415a55667a64783171424f744373673243476d5333514c5037766c44655f6b78527830707864786566575461736b65795f6163636573735f7265766973696f6e1174626173655f67726f75705f73746174655f7265667835616b3a6576656e743a415a6b3450587a4a364d706b78586e5954556d67587a6549594e643057666e7a334e3068774c484e56365871",
+          "expected": {
+            "decision": "accept"
+          }
+        },
+        {
+          "name": "realm_scope_genesis",
+          "binding": {
+            "effective_scope": {
+              "kind": "realm",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+            },
+            "base_group_state_ref": null,
+            "previous_epoch": 0,
+            "next_epoch": 0,
+            "key_access_revision": 0
+          },
+          "encoded_map_hex": "a56a6e6578745f65706f6368006e70726576696f75735f65706f6368006f6566666563746976655f73636f7065a2646b696e64657265616c6d687265616c6d5f69647835616b3a7265616c6d3a41633161434b386151646e6b59496d7664483344466a71346a4443503139387058595743477a477556796a35736b65795f6163636573735f7265766973696f6e0074626173655f67726f75705f73746174655f726566f6",
+          "expected": {
+            "decision": "accept"
+          }
+        }
+      ],
+      "rejection_samples": [
+        {
+          "name": "unknown_member",
+          "violation": "sixth member outside the closed five",
+          "encoded_map_hex": "a66a6e6578745f65706f6368182a6c73656e6465725f696e646578036e70726576696f75735f65706f636818296f6566666563746976655f73636f7065a2646b696e64657265616c6d687265616c6d5f69647835616b3a7265616c6d3a41633161434b386151646e6b59496d7664483344466a71346a4443503139387058595743477a477556796a35736b65795f6163636573735f7265766973696f6e1174626173655f67726f75705f73746174655f7265667835616b3a6576656e743a415a6b3450587a4a364d706b78586e5954556d67587a6549594e643057666e7a334e3068774c484e56365871",
+          "expected": {
+            "decision": "reject",
+            "reason": "schema_violation"
+          }
+        },
+        {
+          "name": "missing_member",
+          "violation": "key_access_revision absent",
+          "encoded_map_hex": "a46a6e6578745f65706f6368182a6e70726576696f75735f65706f636818296f6566666563746976655f73636f7065a2646b696e64657265616c6d687265616c6d5f69647835616b3a7265616c6d3a41633161434b386151646e6b59496d7664483344466a71346a4443503139387058595743477a477556796a3574626173655f67726f75705f73746174655f7265667835616b3a6576656e743a415a6b3450587a4a364d706b78586e5954556d67587a6549594e643057666e7a334e3068774c484e56365871",
+          "expected": {
+            "decision": "reject",
+            "reason": "schema_violation"
+          }
+        },
+        {
+          "name": "indefinite_length_map",
+          "violation": "indefinite-length map",
+          "encoded_map_hex": "bf6a6e6578745f65706f6368182a6e70726576696f75735f65706f636818296f6566666563746976655f73636f7065a2646b696e64657265616c6d687265616c6d5f69647835616b3a7265616c6d3a41633161434b386151646e6b59496d7664483344466a71346a4443503139387058595743477a477556796a35736b65795f6163636573735f7265766973696f6e1174626173655f67726f75705f73746174655f7265667835616b3a6576656e743a415a6b3450587a4a364d706b78586e5954556d67587a6549594e643057666e7a334e3068774c484e56365871ff",
+          "expected": {
+            "decision": "reject",
+            "reason": "schema_violation"
+          }
+        },
+        {
+          "name": "non_minimal_integer",
+          "violation": "previous_epoch uses a wider-than-minimal head",
+          "encoded_map_hex": "a56a6e6578745f65706f6368182a6e70726576696f75735f65706f63681900296f6566666563746976655f73636f7065a2646b696e64657265616c6d687265616c6d5f69647835616b3a7265616c6d3a41633161434b386151646e6b59496d7664483344466a71346a4443503139387058595743477a477556796a35736b65795f6163636573735f7265766973696f6e1174626173655f67726f75705f73746174655f7265667835616b3a6576656e743a415a6b3450587a4a364d706b78586e5954556d67587a6549594e643057666e7a334e3068774c484e56365871",
+          "expected": {
+            "decision": "reject",
+            "reason": "schema_violation"
+          }
+        },
+        {
+          "name": "duplicate_map_key",
+          "violation": "next_epoch appears twice",
+          "encoded_map_hex": "a66a6e6578745f65706f6368182a6a6e6578745f65706f6368182a6e70726576696f75735f65706f636818296f6566666563746976655f73636f7065a2646b696e64657265616c6d687265616c6d5f69647835616b3a7265616c6d3a41633161434b386151646e6b59496d7664483344466a71346a4443503139387058595743477a477556796a35736b65795f6163636573735f7265766973696f6e1174626173655f67726f75705f73746174655f7265667835616b3a6576656e743a415a6b3450587a4a364d706b78586e5954556d67587a6549594e643057666e7a334e3068774c484e56365871",
+          "expected": {
+            "decision": "reject",
+            "reason": "schema_violation"
+          }
+        },
+        {
+          "name": "out_of_order_map_key",
+          "violation": "schema declaration order is not CBOR deterministic order",
+          "encoded_map_hex": "a56f6566666563746976655f73636f7065a2646b696e64657265616c6d687265616c6d5f69647835616b3a7265616c6d3a41633161434b386151646e6b59496d7664483344466a71346a4443503139387058595743477a477556796a3574626173655f67726f75705f73746174655f7265667835616b3a6576656e743a415a6b3450587a4a364d706b78586e5954556d67587a6549594e643057666e7a334e3068774c484e563658716e70726576696f75735f65706f636818296a6e6578745f65706f6368182a736b65795f6163636573735f7265766973696f6e11",
+          "expected": {
+            "decision": "reject",
+            "reason": "schema_violation"
+          }
+        },
+        {
+          "name": "trailing_bytes",
+          "violation": "one complete map is followed by an extra item",
+          "encoded_map_hex": "a56a6e6578745f65706f6368182a6e70726576696f75735f65706f636818296f6566666563746976655f73636f7065a2646b696e64657265616c6d687265616c6d5f69647835616b3a7265616c6d3a41633161434b386151646e6b59496d7664483344466a71346a4443503139387058595743477a477556796a35736b65795f6163636573735f7265766973696f6e1174626173655f67726f75705f73746174655f7265667835616b3a6576656e743a415a6b3450587a4a364d706b78586e5954556d67587a6549594e643057666e7a334e3068774c484e5636587100",
+          "expected": {
+            "decision": "reject",
+            "reason": "schema_violation"
+          }
+        },
+        {
+          "name": "unsupported_major_type",
+          "violation": "top-level array is not the binding map",
+          "encoded_map_hex": "80",
+          "expected": {
+            "decision": "reject",
+            "reason": "schema_violation"
+          }
+        },
+        {
+          "name": "non_text_map_key",
+          "violation": "map key is an unsigned integer",
+          "encoded_map_hex": "a10000",
+          "expected": {
+            "decision": "reject",
+            "reason": "schema_violation"
+          }
+        },
+        {
+          "name": "unsigned_integer_overflow",
+          "violation": "2^64 is encoded as a bignum tag outside the uint64 contract",
+          "encoded_map_hex": "a56a6e6578745f65706f6368182a6e70726576696f75735f65706f636818296f6566666563746976655f73636f7065a2646b696e64657265616c6d687265616c6d5f69647835616b3a7265616c6d3a41633161434b386151646e6b59496d7664483344466a71346a4443503139387058595743477a477556796a35736b65795f6163636573735f7265766973696f6ec24901000000000000000074626173655f67726f75705f73746174655f7265667835616b3a6576656e743a415a6b3450587a4a364d706b78586e5954556d67587a6549594e643057666e7a334e3068774c484e56365871",
+          "expected": {
+            "decision": "reject",
+            "reason": "schema_violation"
+          }
+        },
+        {
+          "name": "truncated",
+          "violation": "declared text length exceeds the remaining input",
+          "encoded_map_hex": "a17818",
+          "expected": {
+            "decision": "reject",
+            "reason": "schema_violation"
+          }
+        },
+        {
+          "name": "resource_limit_exceeded",
+          "violation": "declared map count exceeds the decoder collection limit",
+          "encoded_map_hex": "b841",
+          "expected": {
+            "decision": "reject",
+            "reason": "schema_violation"
+          }
+        }
+      ]
+    },
+    {
+      "name": "governance_binding_epoch_transition_is_fixed",
+      "assertions": [
+        "genesis_transition_is_exactly_zero_to_zero",
+        "commit_transition_is_previous_epoch_plus_one",
+        "key_access_revision_is_monotonic_and_never_a_digest"
+      ],
+      "samples": [
+        {
+          "name": "genesis_zero_to_zero_accept",
+          "binding": {
+            "effective_scope": {
+              "kind": "realm",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+            },
+            "base_group_state_ref": null,
+            "previous_epoch": 0,
+            "next_epoch": 0,
+            "key_access_revision": 0
+          },
+          "encoded_map_hex": "a56a6e6578745f65706f6368006e70726576696f75735f65706f6368006f6566666563746976655f73636f7065a2646b696e64657265616c6d687265616c6d5f69647835616b3a7265616c6d3a41633161434b386151646e6b59496d7664483344466a71346a4443503139387058595743477a477556796a35736b65795f6163636573735f7265766973696f6e0074626173655f67726f75705f73746174655f726566f6",
+          "expected": {
+            "decision": "accept"
+          }
+        },
+        {
+          "name": "commit_increments_by_one_accept",
+          "binding": {
+            "effective_scope": {
+              "kind": "realm",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+            },
+            "base_group_state_ref": "ak:event:AZk4PXzJ6MpkxXnYTUmgXzeIYNd0Wfnz3N0hwLHNV6Xq",
+            "previous_epoch": 41,
+            "next_epoch": 42,
+            "key_access_revision": 17
+          },
+          "encoded_map_hex": "a56a6e6578745f65706f6368182a6e70726576696f75735f65706f636818296f6566666563746976655f73636f7065a2646b696e64657265616c6d687265616c6d5f69647835616b3a7265616c6d3a41633161434b386151646e6b59496d7664483344466a71346a4443503139387058595743477a477556796a35736b65795f6163636573735f7265766973696f6e1174626173655f67726f75705f73746174655f7265667835616b3a6576656e743a415a6b3450587a4a364d706b78586e5954556d67587a6549594e643057666e7a334e3068774c484e56365871",
+          "expected": {
+            "decision": "accept"
+          }
+        },
+        {
+          "name": "commit_skips_an_epoch_reject",
+          "covers_decision_points": [
+            "AK-SDK-009/governance_binding_mismatch_stops_the_commit"
+          ],
+          "binding": {
+            "effective_scope": {
+              "kind": "realm",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+            },
+            "base_group_state_ref": "ak:event:AZk4PXzJ6MpkxXnYTUmgXzeIYNd0Wfnz3N0hwLHNV6Xq",
+            "previous_epoch": 41,
+            "next_epoch": 43,
+            "key_access_revision": 17
+          },
+          "expected": {
+            "decision": "reject",
+            "reason": "governance_binding_mismatch"
+          }
+        },
+        {
+          "name": "genesis_with_a_nonzero_transition_reject",
+          "covers_decision_points": [
+            "AK-SDK-009/governance_binding_mismatch_stops_the_commit"
+          ],
+          "binding": {
+            "effective_scope": {
+              "kind": "realm",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+            },
+            "base_group_state_ref": null,
+            "previous_epoch": 0,
+            "next_epoch": 1,
+            "key_access_revision": 0
+          },
+          "expected": {
+            "decision": "reject",
+            "reason": "governance_binding_mismatch"
+          }
+        },
+        {
+          "name": "commit_repeats_the_previous_epoch_reject",
+          "covers_decision_points": [
+            "AK-SDK-009/governance_binding_mismatch_stops_the_commit"
+          ],
+          "binding": {
+            "effective_scope": {
+              "kind": "realm",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+            },
+            "base_group_state_ref": "ak:event:AZk4PXzJ6MpkxXnYTUmgXzeIYNd0Wfnz3N0hwLHNV6Xq",
+            "previous_epoch": 41,
+            "next_epoch": 41,
+            "key_access_revision": 17
+          },
+          "expected": {
+            "decision": "reject",
+            "reason": "governance_binding_mismatch"
+          }
+        },
+        {
+          "name": "revision_rollback_reject",
+          "station_public_state": {
+            "current_key_access_revision": 18
+          },
+          "binding": {
+            "effective_scope": {
+              "kind": "realm",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+            },
+            "base_group_state_ref": "ak:event:AZk4PXzJ6MpkxXnYTUmgXzeIYNd0Wfnz3N0hwLHNV6Xq",
+            "previous_epoch": 41,
+            "next_epoch": 42,
+            "key_access_revision": 17
+          },
+          "expected": {
+            "decision": "reject",
+            "reason": "governance_binding_mismatch"
+          }
+        }
+      ]
+    },
+    {
+      "name": "binding_matches_public_state_and_payload",
+      "assertions": [
+        "rfc9420_public_validation_does_not_replace_governance_binding_equality",
+        "base_revision_and_payload_extension_equality_are_checked_separately"
+      ],
+      "rfc9420_public_material": {
+        "group_info_signature_valid": true,
+        "ratchet_tree_consistent": true,
+        "group_id_matches": true,
+        "epoch_matches": true
+      },
+      "station_public_state": {
+        "effective_scope": {
+          "kind": "realm",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+        },
+        "base_group_state_ref": "ak:event:AZk4PXzJ6MpkxXnYTUmgXzeIYNd0Wfnz3N0hwLHNV6Xq",
+        "current_key_access_revision": 17
+      },
+      "event_payload_binding": {
+        "effective_scope": {
+          "kind": "realm",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+        },
+        "base_group_state_ref": "ak:event:AZk4PXzJ6MpkxXnYTUmgXzeIYNd0Wfnz3N0hwLHNV6Xq",
+        "previous_epoch": 41,
+        "next_epoch": 42,
+        "key_access_revision": 17
+      },
+      "samples": [
+        {
+          "name": "all_fields_equal_accept",
+          "binding": {
+            "effective_scope": {
+              "kind": "realm",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+            },
+            "base_group_state_ref": "ak:event:AZk4PXzJ6MpkxXnYTUmgXzeIYNd0Wfnz3N0hwLHNV6Xq",
+            "previous_epoch": 41,
+            "next_epoch": 42,
+            "key_access_revision": 17
+          },
+          "expected": {
+            "decision": "accept"
+          }
+        },
+        {
+          "name": "base_differs_reject",
+          "binding": {
+            "effective_scope": {
+              "kind": "realm",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+            },
+            "base_group_state_ref": "ak:event:AbhX3-n_FG8scl_4zkFai8VRhqvIwjOeWHvA8D3mQ9V7",
+            "previous_epoch": 41,
+            "next_epoch": 42,
+            "key_access_revision": 17
+          },
+          "expected": {
+            "decision": "reject",
+            "reason": "governance_binding_mismatch"
+          }
+        },
+        {
+          "name": "revision_differs_reject",
+          "binding": {
+            "effective_scope": {
+              "kind": "realm",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+            },
+            "base_group_state_ref": "ak:event:AZk4PXzJ6MpkxXnYTUmgXzeIYNd0Wfnz3N0hwLHNV6Xq",
+            "previous_epoch": 41,
+            "next_epoch": 42,
+            "key_access_revision": 18
+          },
+          "expected": {
+            "decision": "reject",
+            "reason": "governance_binding_mismatch"
+          }
+        },
+        {
+          "name": "payload_extension_differs_reject",
+          "binding": {
+            "effective_scope": {
+              "kind": "realm",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+            },
+            "base_group_state_ref": "ak:event:AZk4PXzJ6MpkxXnYTUmgXzeIYNd0Wfnz3N0hwLHNV6Xq",
+            "previous_epoch": 41,
+            "next_epoch": 42,
+            "key_access_revision": 16
+          },
+          "expected": {
+            "decision": "reject",
+            "reason": "governance_binding_mismatch"
+          }
+        }
+      ]
+    },
+    {
+      "name": "historical_replay_does_not_grant_current_send_authority",
+      "assertions": [
+        "historical_material_is_compared_with_its_historical_binding",
+        "historical_acceptance_does_not_grant_current_send_authority"
+      ],
+      "historical_accepted_binding": {
+        "effective_scope": {
+          "kind": "realm",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+        },
+        "base_group_state_ref": "ak:event:AZk4PXzJ6MpkxXnYTUmgXzeIYNd0Wfnz3N0hwLHNV6Xq",
+        "previous_epoch": 41,
+        "next_epoch": 42,
+        "key_access_revision": 17
+      },
+      "current_public_state": {
+        "current_key_access_revision": 18
+      },
+      "expected": {
+        "historical_replay_decision": "accept",
+        "current_send_decision": "reject",
+        "current_send_reason": "epoch_update_required"
+      }
+    },
+    {
+      "name": "pre_genesis_proposal_uses_the_same_binding_schema",
+      "assertions": [
+        "proposal_carrier_structurally_binds_event_kind_kind_sender_and_target_scope",
+        "proposal_carrier_reuses_the_one_mls_governance_binding_schema",
+        "missing_or_mismatched_proposal_leaves_no_proof_or_cache_entry"
+      ],
+      "carrier_schema_ref": "schemas/event-payload.schema.json#/$defs/mls_genesis_binding_proposal_carrier",
+      "binding_schema_ref": "schemas/event-payload.schema.json#/$defs/mls_governance_binding",
+      "accepted_carrier": {
+        "event_kind": "ak.mls.genesis",
+        "proposal_kind": "group_genesis_binding",
+        "sender_actor_id": {
+          "kind": "service",
+          "service_id": "ak:did_core:web:creator.example"
+        },
+        "target_scope": {
+          "kind": "realm",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+        },
+        "proposed_group_genesis_binding": {
+          "effective_scope": {
+            "kind": "realm",
+            "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+          },
+          "base_group_state_ref": null,
+          "previous_epoch": 0,
+          "next_epoch": 0,
+          "key_access_revision": 0
+        }
+      },
+      "rejection_samples": [
+        {
+          "name": "proposal_absent",
+          "carrier": {
+            "event_kind": "ak.mls.genesis",
+            "proposal_kind": "group_genesis_binding",
+            "sender_actor_id": {
+              "kind": "service",
+              "service_id": "ak:did_core:web:creator.example"
+            },
+            "target_scope": {
+              "kind": "realm",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+            }
+          },
+          "expected": {
+            "decision": "reject",
+            "reason": "mls_genesis_binding_proposal_required",
+            "proof_emitted": false,
+            "cache_entry_written": false
+          }
+        },
+        {
+          "name": "proposal_target_scope_differs",
+          "carrier": {
+            "event_kind": "ak.mls.genesis",
+            "proposal_kind": "group_genesis_binding",
+            "sender_actor_id": {
+              "kind": "service",
+              "service_id": "ak:did_core:web:creator.example"
+            },
+            "target_scope": {
+              "kind": "realm",
+              "realm_id": "ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J"
+            },
+            "proposed_group_genesis_binding": {
+              "effective_scope": {
+                "kind": "realm",
+                "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+              },
+              "base_group_state_ref": null,
+              "previous_epoch": 0,
+              "next_epoch": 0,
+              "key_access_revision": 0
+            }
+          },
+          "expected": {
+            "decision": "reject",
+            "reason": "mls_genesis_binding_proposal_mismatch",
+            "proof_emitted": false,
+            "cache_entry_written": false
+          }
+        },
+        {
+          "name": "proposal_event_kind_differs",
+          "carrier": {
+            "event_kind": "ak.mls.commit",
+            "proposal_kind": "group_genesis_binding",
+            "sender_actor_id": {
+              "kind": "service",
+              "service_id": "ak:did_core:web:creator.example"
+            },
+            "target_scope": {
+              "kind": "realm",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+            },
+            "proposed_group_genesis_binding": {
+              "effective_scope": {
+                "kind": "realm",
+                "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+              },
+              "base_group_state_ref": null,
+              "previous_epoch": 0,
+              "next_epoch": 0,
+              "key_access_revision": 0
+            }
+          },
+          "expected": {
+            "decision": "reject",
+            "reason": "mls_genesis_binding_proposal_mismatch",
+            "proof_emitted": false,
+            "cache_entry_written": false
+          }
+        },
+        {
+          "name": "proposal_sender_missing",
+          "carrier": {
+            "event_kind": "ak.mls.genesis",
+            "proposal_kind": "group_genesis_binding",
+            "target_scope": {
+              "kind": "realm",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+            },
+            "proposed_group_genesis_binding": {
+              "effective_scope": {
+                "kind": "realm",
+                "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+              },
+              "base_group_state_ref": null,
+              "previous_epoch": 0,
+              "next_epoch": 0,
+              "key_access_revision": 0
+            }
+          },
+          "expected": {
+            "decision": "reject",
+            "reason": "mls_genesis_binding_proposal_mismatch",
+            "proof_emitted": false,
+            "cache_entry_written": false
+          }
+        }
+      ]
+    }
+  ]
+}

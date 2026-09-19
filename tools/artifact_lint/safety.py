@@ -17,6 +17,8 @@ from .core import (
     _PROSE_ACTION_BULLET_RE,
     _PROSE_ACTION_TARGET_RE,
     _REJECT_REASON_CODE_RE,
+    base64,
+    binascii,
     json,
     load_json,
     load_schema_document,
@@ -835,6 +837,7 @@ def check_alg_registry(lint: Lint) -> None:
 
     expected_jws = sorted(algs_by_proof_kind["detached_jws"])
     expected_raw = sorted(algs_by_proof_kind["raw_detached_signature"])
+    detached_jws_pattern = r"^[A-Za-z0-9_-]+\.\.[A-Za-z0-9_-]+$"
     # `alg` belongs to standards-defined JOSE objects only. In v1 schemas the
     # only inline JOSE object is the WebSocket DPoP protected header; compact
     # detached JWS values elsewhere are opaque strings and MUST NOT duplicate
@@ -868,6 +871,16 @@ def check_alg_registry(lint: Lint) -> None:
                 )
             if name == "accepted_algs" or name.endswith("_alg"):
                 lint.fail(schema_path, f"{pointer} uses forbidden abbreviated algorithm field {name}")
+            if name == "jws":
+                if (
+                    not isinstance(property_schema, dict)
+                    or property_schema.get("type") != "string"
+                    or property_schema.get("pattern") != detached_jws_pattern
+                ):
+                    lint.fail(
+                        schema_path,
+                        f"{pointer} must be a compact detached JWS with an empty payload segment",
+                    )
             if name != "signature_algorithm" or not isinstance(property_schema, dict):
                 continue
             resolved = property_schema
@@ -911,6 +924,36 @@ def check_alg_registry(lint: Lint) -> None:
                         f"{pointer}/alg uses JOSE-only shorthand outside a protected header or JWK",
                     )
             for key, child in value.items():
+                if key == "jws":
+                    label = f"{pointer}/jws"
+                    if not isinstance(child, str) or not re.fullmatch(detached_jws_pattern, child):
+                        lint.fail(fixture_path, f"{label} must be compact detached JWS")
+                    else:
+                        protected_text, _, signature_text = child.split(".")
+                        try:
+                            protected_bytes = base64.urlsafe_b64decode(
+                                protected_text + "=" * (-len(protected_text) % 4)
+                            )
+                            signature_bytes = base64.urlsafe_b64decode(
+                                signature_text + "=" * (-len(signature_text) % 4)
+                            )
+                            if (
+                                base64.urlsafe_b64encode(protected_bytes).rstrip(b"=").decode("ascii")
+                                != protected_text
+                                or base64.urlsafe_b64encode(signature_bytes).rstrip(b"=").decode("ascii")
+                                != signature_text
+                            ):
+                                raise ValueError("non-canonical base64url")
+                            protected = json.loads(protected_bytes)
+                        except (ValueError, UnicodeDecodeError, json.JSONDecodeError, binascii.Error) as exc:
+                            lint.fail(fixture_path, f"{label} has an invalid protected header or signature: {exc}")
+                        else:
+                            if not isinstance(protected, dict) or protected.get("alg") not in expected_jws:
+                                lint.fail(
+                                    fixture_path,
+                                    f"{label} protected alg is not an active detached_jws jose_algorithm; "
+                                    f"allowed={expected_jws!r}",
+                                )
                 check_fixture_algorithm_names(child, fixture_path, f"{pointer}/{key}")
         elif isinstance(value, list):
             for index, child in enumerate(value):

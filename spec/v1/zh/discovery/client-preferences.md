@@ -20,7 +20,7 @@ updated: 2026-07-02
 
 Account Data 的存储、namespace key、`derive_account_data_key`、value encryption、HKDF/AAD transcript 与轮换规则的单一真相源是 [`../models/account-data.md`](../models/account-data.md)。本文只定义客户端偏好 data type 与服务端 policy projection 协商，不重复基础原语。
 
-```json
+```json fragment
 {
   "kind": "ak.account_data.set",
   "key": "ak.client.ui_state",
@@ -30,7 +30,6 @@ Account Data 的存储、namespace key、`derive_account_data_key`、value encry
   }
 }
 ```
-
 ### 2.1 服务端 policy projection 能力协商（normative）
 
 account data 默认是 holder-private 加密数据，Station sync surface 只存不透明密文（[`../models/account-data.md` §1](../models/account-data.md)）。presence / typing 的精确 kind、target 与 visibility policy 不交给服务端读取；发送端按 [`profiles-presence.md` §3.4](./profiles-presence.md) 选择可安全加密的 scope。服务端仅可读取其它明确声明、确有服务端执行需要的最小 policy projection（例如单独授权的 blocklist data class）。"account data 加密"与"服务端执行 policy"之间的边界必须显式协商：
@@ -50,7 +49,7 @@ account data 默认是 holder-private 加密数据，Station sync surface 只存
 
 **Key:** `ak.tags.realm.<realm_id>`
 
-```json
+```json fragment
 {
   "tags": {
     "ak.favorite": { "order": "m" },
@@ -59,7 +58,6 @@ account data 默认是 holder-private 加密数据，Station sync surface 只存
   }
 }
 ```
-
 客户端 SHOULD 根据这些标签将 Realm 在 UI 上分组或排序。`order` 是用于自定义排序的稳定 rank string（跨端确定性见 §6；客户端 MAY 在 UI 内用 float 计算临时位置，但写回 account data 时 MUST 归一为规范 rank string）。
 
 **Tag 命名保留规则（normative）**：`ak.*` tag 命名空间保留给本规范；客户端扩展 tag MUST 使用 `<vendor>.*` 反向域名风格前缀（例如 `org.example.work`）。§3.6 / §3.7 的私有 `tags` 字段沿用同一命名规则。
@@ -107,7 +105,7 @@ Actor-private View 使用 `ak.views.private.<view_id>`；加密 value MUST valid
 
 **Key:** `ak.collections.stickers`
 
-```json
+```json fragment
 {
   "images": {
     "party_parrot": {
@@ -117,14 +115,13 @@ Actor-private View 使用 `ak.views.private.<view_id>`；加密 value MUST valid
   }
 }
 ```
-
 ### 3.4 客户端 UI 偏好 (UI State)
 
 用于保存用户的视图偏好，以便在新设备登录时恢复熟悉的界面。
 
 **Key:** `ak.client.ui_state`
 
-```json
+```json fragment
 {
   "sidebar_collapsed": false,
   "recent_realms": [
@@ -134,12 +131,14 @@ Actor-private View 使用 `ak.views.private.<view_id>`；加密 value MUST valid
   "language": "zh-CN"
 }
 ```
-
 > **字段命名（normative）**：该数组承载的是 `ak:realm:` ID，canonical 字段名为 `recent_realms`。客户端 MUST 写入并读取 `recent_realms`；`recent_spaces` 不是 v1 字段名。
 
 ### 3.5 个人屏蔽与过滤 (Personal Blocklist)
 
 用户可以在私有 account data 中保存个人 blocklist。该数据只影响用户自己的客户端、本地搜索/投影、通知规则和联系请求处理，不改变 Realm 的共享事实。
+
+其持久 owner、唯一键、投影字段、共享 revision CAS、exact retry 与零副作用拒绝的 canonical 合同见
+[`../models/actor-private-effects.md` §3.1](../models/actor-private-effects.md#31-blocklist-与通用-account-data)。
 
 **Key:** `ak.account.blocklist`
 
@@ -313,7 +312,7 @@ storage key 绑定、显式确认证据与 tag 命名空间是同一客户端另
 
 **Key:** `ak.contacts.realm.<realm_id>`
 
-```json
+```json fragment
 {
   "version": 1,
   "subject": {
@@ -330,7 +329,6 @@ storage key 绑定、显式确认证据与 tag 命名空间是同一客户端另
   "updated_at": "2026-05-08T10:00:00Z"
 }
 ```
-
 字段：
 
 | 字段 | 类型 | 必需 | 说明 |
@@ -365,7 +363,7 @@ storage key 绑定、显式确认证据与 tag 命名空间是同一客户端另
 
 **Key:** `ak.read_receipt.preferences`
 
-```json
+```json fragment
 {
   "default": {
     "send": true,
@@ -383,7 +381,6 @@ storage key 绑定、显式确认证据与 tag 命名空间是同一客户端另
   }
 }
 ```
-
 字段：
 
 | 字段 | 类型 | 默认 | 说明 |

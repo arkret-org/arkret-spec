@@ -19,6 +19,9 @@ from tools.artifact_lint.core import Lint
 
 REGISTRY = ROOT / "spec" / "v1" / "artifacts" / "registry" / "proof-context-registry.json"
 CONTACT_KAT = ROOT / "spec" / "v1" / "artifacts" / "fixtures" / "contact-round-kat.json"
+DIGEST_KAT = (
+    ROOT / "spec" / "v1" / "artifacts" / "fixtures" / "canonical-json-digest-kat-fixture.json"
+)
 
 
 def _row(document: dict, domain: str) -> dict:
@@ -29,22 +32,30 @@ class DigestConstructionRegistrationTest(unittest.TestCase):
     def setUp(self) -> None:
         self.document = json.loads(REGISTRY.read_text(encoding="utf-8"))
         self.fixture = json.loads(CONTACT_KAT.read_text(encoding="utf-8"))
+        self.digest_fixture = json.loads(DIGEST_KAT.read_text(encoding="utf-8"))
 
-    def errors_after(self, mutate, fixture_mutate=None) -> list[str]:
+    def errors_after(self, mutate, fixture_mutate=None, digest_fixture_mutate=None) -> list[str]:
         document = copy.deepcopy(self.document)
         fixture = copy.deepcopy(self.fixture)
+        digest_fixture = copy.deepcopy(self.digest_fixture)
         mutate(document)
         if fixture_mutate is not None:
             fixture_mutate(fixture)
+        if digest_fixture_mutate is not None:
+            digest_fixture_mutate(digest_fixture)
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             artifacts = root / "artifacts"
             registry_path = artifacts / "registry" / "proof-context-registry.json"
             fixture_path = artifacts / "fixtures" / "contact-round-kat.json"
+            digest_fixture_path = artifacts / "fixtures" / "canonical-json-digest-kat-fixture.json"
             registry_path.parent.mkdir(parents=True)
             fixture_path.parent.mkdir(parents=True)
             registry_path.write_text(json.dumps(document), encoding="utf-8", newline="\n")
             fixture_path.write_text(json.dumps(fixture), encoding="utf-8", newline="\n")
+            digest_fixture_path.write_text(
+                json.dumps(digest_fixture), encoding="utf-8", newline="\n"
+            )
             lint = Lint()
             with (
                 mock.patch.object(gate, "ARTIFACTS", artifacts),
@@ -53,8 +64,14 @@ class DigestConstructionRegistrationTest(unittest.TestCase):
                 gate.check_digest_construction_registration(lint)
             return lint.errors
 
-    def assert_red(self, mutate, phrase: str, fixture_mutate=None) -> None:
-        errors = self.errors_after(mutate, fixture_mutate)
+    def assert_red(
+        self,
+        mutate,
+        phrase: str,
+        fixture_mutate=None,
+        digest_fixture_mutate=None,
+    ) -> None:
+        errors = self.errors_after(mutate, fixture_mutate, digest_fixture_mutate)
         self.assertTrue(any(phrase in error for error in errors), errors)
 
     def test_shipped_registry_passes(self) -> None:
@@ -141,9 +158,12 @@ class DigestConstructionRegistrationTest(unittest.TestCase):
         )
 
     def test_p12_missing_kat_requires_a_reason_and_owner(self) -> None:
+        def mutate(document: dict) -> None:
+            _row(document, "ak.contact.glare_unconsumed_slot.v1")["known_answer_ref"] = None
+
         self.assert_red(
-            lambda d: _row(d, "ak.contact.glare_unconsumed_slot.v1").pop("owner_report"),
-            "requires a spec-open owner_report",
+            mutate,
+            "requires kat_absence_reason",
         )
 
     def test_p12b_known_answer_digest_is_recomputed(self) -> None:
@@ -168,6 +188,78 @@ class DigestConstructionRegistrationTest(unittest.TestCase):
             path.write_text(json.dumps(original), encoding="utf-8", newline="\n")
             self.assertEqual(regenerate_fixture_digests.update_file(path), 0)
             self.assertEqual(json.loads(path.read_text(encoding="utf-8")), original)
+
+    def test_p14_byte_kat_domain_matches_registry_row(self) -> None:
+        self.assert_red(
+            lambda _: None,
+            "KAT domain must equal row domain",
+            digest_fixture_mutate=lambda d: d["cases"][0].__setitem__("domain", "ak.wrong.v1"),
+        )
+
+    def test_p15_byte_kat_prefix_includes_exact_lf(self) -> None:
+        self.assert_red(
+            lambda _: None,
+            "KAT prefix must equal UTF8(domain + LF)",
+            digest_fixture_mutate=lambda d: d["cases"][0].__setitem__(
+                "prefix_bytes_hex", d["cases"][0]["prefix_bytes_hex"][:-2]
+            ),
+        )
+
+    def test_p16_byte_kat_transcript_members_match_registry(self) -> None:
+        def mutate_fixture(document: dict) -> None:
+            transcript = document["cases"][0]["transcript"]
+            transcript["scope"] = transcript.pop("scopes")
+
+        self.assert_red(
+            lambda _: None,
+            "transcript does not cover binding_fields exactly",
+            digest_fixture_mutate=mutate_fixture,
+        )
+
+    def test_p17_byte_kat_output_is_lowercase_sha256_hex(self) -> None:
+        self.assert_red(
+            lambda _: None,
+            "digest must use sha256:lowercase_hex",
+            digest_fixture_mutate=lambda d: d["cases"][0].__setitem__(
+                "expected_digest", d["cases"][0]["expected_digest"].upper()
+            ),
+        )
+
+    def test_p18_byte_kat_canonical_transcript_is_recomputed(self) -> None:
+        self.assert_red(
+            lambda _: None,
+            "canonical_transcript_utf8 is not RFC8785_JCS",
+            digest_fixture_mutate=lambda d: d["cases"][0].__setitem__(
+                "canonical_transcript_utf8", "{}"
+            ),
+        )
+
+    def test_p19_byte_kat_digest_input_is_recomputed(self) -> None:
+        self.assert_red(
+            lambda _: None,
+            "digest_input_hex must include the exact domain LF prefix",
+            digest_fixture_mutate=lambda d: d["cases"][0].__setitem__(
+                "digest_input_hex", d["cases"][0]["digest_input_hex"][2:]
+            ),
+        )
+
+    def test_p20_accountability_scopes_are_normalized(self) -> None:
+        def mutate_fixture(document: dict) -> None:
+            document["cases"][0]["transcript"]["scopes"].reverse()
+
+        self.assert_red(
+            lambda _: None,
+            "UTF-8 bytewise sorted unique array",
+            digest_fixture_mutate=mutate_fixture,
+        )
+
+    def test_p21_known_answer_reference_must_resolve_one_exact_pair(self) -> None:
+        self.assert_red(
+            lambda d: _row(d, "ak.contact.request_acceptance_core.v1").__setitem__(
+                "known_answer_ref", "fixtures/contact-round-kat.json"
+            ),
+            "resolves no registered KAT pair",
+        )
 
 
 if __name__ == "__main__":

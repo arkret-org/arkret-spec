@@ -49,7 +49,7 @@ MIMI facade 不是新的真相源。Arkret native 侧的 canonical truth 是 pro
 
 支持 MIMI 的服务 MUST 在 DID Document service entry 和 `GET /_arkret/describe` 中声明：
 
-```json
+```json fragment
 {
   "service_kind": "mimi_provider_facade",
   "supported_profiles": ["ak.profile.mimi_interop.v1"],
@@ -73,7 +73,6 @@ MIMI facade 不是新的真相源。Arkret native 侧的 canonical truth 是 pro
   }
 }
 ```
-
 实现 SHOULD 同时暴露 MIMI provider directory 互操作入口：
 
 ```text
@@ -177,7 +176,7 @@ mimi://mimi.example.com/rooms/01JSMIMI
 
 `ak.mimi.room_binding` 的完整 payload 形态（含 `hub_provider_id`、`follower_provider_ids`、`content_profile`、`policy_revision`、`local_provider_role` 等全部字段）以 [`../../artifacts/schemas/mimi-interop.schema.json`](../../artifacts/schemas/mimi-interop.schema.json) 为权威机读真源；下文逐字段说明不替代该 schema。
 
-```json
+```json fragment
 {
   "kind": "ak.mimi.room_binding",
   "payload": {
@@ -200,7 +199,6 @@ mimi://mimi.example.com/rooms/01JSMIMI
   }
 }
 ```
-
 规则：
 
 - `binding_scope.realm_id` MUST 指向一个 accepted Realm。`strand_id` MUST 指向该 Realm 内启用 discussion track 的 accepted Strand；MIMI room timeline 只投影该 Strand discussion track 的消息。
@@ -357,7 +355,7 @@ MIMI DTO 中名为 `signature` 或 `proofs[]` 的字段是 Actor DID/device 对�
 
 发送方 MUST 先从 request/outcome body 移除顶层 `signature` 或 `proofs` 成员（删除成员本身，不是置为 `null`），保留所有实际存在的 optional 字段，对剩余完整对象计算 `payload_digest = sha256(canonical_json(unsigned_body))`，再以 canonical JSON 编码并签署下列 transcript：
 
-```json
+```json fragment
 {
   "context": "<该对象族在 proof-context-registry 中登记的 context>",
   "payload_digest": "sha256:<lowercase-hex>",
@@ -369,7 +367,6 @@ MIMI DTO 中名为 `signature` 或 `proofs[]` 的字段是 Actor DID/device 对�
   "audience": "<destination Station service DID>"
 }
 ```
-
 transcript 的完整 binding fields 逐族列在 registry 的 `binding_fields`：`issuer` 只在该对象族的 wire 形态定义了发起方字段时出现（`mimi_key_material_request_body.requester`、`mimi_request_consent_request_body.requester_actor_id`、`mimi_update_consent_request_body.actor_id` MUST 出现；`mimi_identifier_query_request_body.requester` 可缺席，缺席时 transcript MUST 同时省略 `issuer`），outcome 族的签发方身份只由 `verification_method` 承载。除公共字段外还 MUST 逐字加入该族的目标标识：`mimi_key_material_request_body` 加 `strand_id` 与 `device_id`；`mimi_request_consent_request_body` 加 `holder_account_id` 与 `purpose`；`mimi_update_consent_request_body` 加 `consent_id` 与 `decision`。
 
 字段顺序不影响 canonical JSON；`audience` 也可为至少覆盖目标 service DID 的非空无重复字符串数组。接收方 MUST 重算 unsigned body digest，验证 `issuer` 等于该族的发起方字段、下述当前权威来源授权的 `verification_method`、`kind=detached_jws`、`alg=Ed25519`、精确的 context/operation/domain/audience 绑定和 JWS。**接收方 MUST 拒绝 context 与本 operation 对象族不一致的 proof**：在一个族下有效的签名不得被另一个族接受，跨 operation 与 request/outcome 方向的重放由 context 本身阻断，不依赖 `operation_id` 是否被某个实现纳入 transcript。`created_at` MUST 位于接收方当前时钟前后 300 秒内。proof 失败 MUST 在写 consent state 之前拒绝；同一 proof 只能随其已绑定的完整 body 使用。相同 `consent_event.event.event_id` 与 byte-identical Event 的请求重放是 §10 定义的 retry-safe 例外，MUST 返回原 accepted Event ref；若 carried Event ID 不等于当前 canonical Event bytes 的重算值，MUST 以 `event_id_digest_mismatch` 拒绝且不得提前泄露 holder state；只有不同 canonical preimage 各自重算为同一个完整 EventId 时才按 `witness_disagreement` 隔离。

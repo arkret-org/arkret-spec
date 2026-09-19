@@ -30,7 +30,7 @@ updated: 2026-07-30
 
 所有约束使用同一个 typed flat object 结构。`constraint_kind`、`effect`、`evaluation_class` 是通用字段；类型专属字段直接放在同一对象上。Grant、policy、proposal 和 conformance schema 都 MUST 使用这一种结构。
 
-```json
+```json schema=schemas/grant-constraint.schema.json
 {
   "constraint_id": "string",
   "constraint_kind": "temporal",
@@ -38,7 +38,6 @@ updated: 2026-07-30
   "evaluation_class": "stateless"
 }
 ```
-
 字段语义：
 
 - `constraint_id`：可选稳定标识，用于审计、UI diff 和局部更新；未提供时，评估器可用 constraint 在 grant 内的数组位置和 canonical hash 作为诊断标识。
@@ -104,7 +103,7 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `constraint_subk
 | `claim_based` (`constraint_subkind=approval`) | `external` | 不可缓存 | 等待 approval event |
 | `claim_based` (`constraint_subkind=accountability`) | `grant_local` | (grant_id) | guardian / responsible 在 grant 中声明 |
 | `claim_based` (`constraint_subkind=claim`，device/session binding 子情形：claim issuer = accepted PCR device) | `realm_state` | (realm_id, source_commit_ref, actor_device_id) | device/session binding 不是独立 constraint_subkind（见 §2.2），它是 `constraint_subkind=claim` 的子情形；当需校验设备 / session 状态（来自 principal control stream）时该子判定为 `realm_state` |
-| `confidentiality` (`constraint_subkind=encryption`，纯静态声明：`encryption_required` / `min_encryption_level` / `plaintext_fallback_allowed` / `audit_trail_required` / `approved_key_issuers` 列表成员比较) | `stateless` | (constraint_digest, op_target) | 仅做布尔标志与 issuer 列表集合比较，不读取 Realm state |
+| `confidentiality` (`constraint_subkind=encryption`，纯静态声明：`encryption_required` / `min_encryption_level` / `plaintext_fallback_allowed` / `audit_trail_required` / `approved_key_issuer_ids` 列表成员比较) | `stateless` | (constraint_digest, op_target) | 仅做布尔标志与 issuer 列表集合比较，不读取 Realm state |
 | `confidentiality` (`constraint_subkind=encryption`，依赖 scope 加密态：需对照 scope 的 MLS 激活状态或当前 MLS key schedule 的判定) | `realm_state` | (realm_id, source_commit_ref) | 仅这些依赖项走 slow path |
 | `confidentiality` (`constraint_subkind=visibility`) | `realm_state` | (realm_id, source_commit_ref) | 看 Realm `history_access` |
 
@@ -127,25 +126,28 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 
 ### 3.1 时间窗口
 
-```json
+```json schema=schemas/grant-constraint.schema.json
 {
   "constraint_kind": "temporal",
   "effect": "allow",
-  "not_before": "2026-04-26T00:00:00Z",
-  "expires_at": "2026-05-26T00:00:00Z",
+  "not_before": "2026-04-26T00:00:00.000Z",
+  "expires_at": "2026-05-26T00:00:00.000Z",
   "recurrence": {
-    "frequency": "daily|weekly|monthly",
-    "days": ["mon", "tue", "wed"],
+    "frequency": "daily",
+    "days": [
+      "mon",
+      "tue",
+      "wed"
+    ],
     "window_start": "09:00:00",
     "window_end": "17:00:00",
     "timezone": "UTC"
   }
 }
 ```
-
 ### 3.2 持续时间限制
 
-```json
+```json schema=schemas/grant-constraint.schema.json
 {
   "constraint_kind": "temporal",
   "effect": "allow",
@@ -154,24 +156,26 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
   "inactivity_timeout": "PT30M"
 }
 ```
-
 > Duration 字段使用 ISO 8601 持续时间格式（`P[n]Y[n]M[n]DT[n]H[n]M[n]S`）。`grant-constraint.schema.json` 中相应字段的 `pattern` 即此格式；`"8h"` / `"1h"` / `"30m"` compact 形态在 v1 wire 上 MUST 被 schema validator 拒绝。
 
 ## 4. 字段访问约束
 
 ### 4.1 字段写入允许
 
-```json
+```json schema=schemas/grant-constraint.schema.json
 {
   "constraint_kind": "field_access",
   "effect": "allow",
-  "allowed_write_fields": ["metadata.title", "content", "metadata.fields.review_status"],
+  "allowed_write_fields": [
+    "metadata.title",
+    "content",
+    "metadata.fields.review_status"
+  ],
   "condition": {
     "kind": "object_is_owned_by_actor"
   }
 }
 ```
-
 `condition.kind` 是封闭的命名 condition enum；未注册的 kind MUST fail closed。v1 enum 见 grant-constraint schema：`object_is_owned_by_actor`、`actor_is_assignee`、`actor_is_responsible`、`actor_is_guardian`、`actor_is_controller`、`object_in_actor_container`、`object_is_unencrypted`、`object_is_encrypted`、`always`、`never`。
 
 **依赖不可判定时 fail closed**：condition 所引用的数据 typed current result 缺少验证 winner 所需的依赖／解密材料，或必要授权证据缺失时，不能 silent allow。普通消息只需完整验证所引用缓存，不把“不能证明全球最新”当成 unknown。安全状态按 RealmCommit 确认顺序求值。
@@ -180,65 +184,92 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 
 ### 4.2 字段写入拒绝
 
-```json
+```json schema=schemas/grant-constraint.schema.json
 {
   "constraint_kind": "field_access",
   "effect": "deny",
-  "denied_write_fields": ["id", "created_by", "created_at"]
+  "denied_write_fields": [
+    "id",
+    "created_by",
+    "created_at"
+  ]
 }
 ```
-
 ### 4.3 字段读取可见性
 
-```json
+```json schema=schemas/grant-constraint.schema.json
 {
   "constraint_kind": "field_access",
   "effect": "allow",
-  "allowed_read_fields": ["metadata.title", "metadata.fields.review_status"],
-  "denied_read_fields": ["metadata.fields.internal_note"],
-  "sensitive_fields": ["metadata.fields.ssn", "metadata.fields.salary"],
-  "sensitive_handling": "redact|hash|omit"
+  "allowed_read_fields": [
+    "metadata.title",
+    "metadata.fields.review_status"
+  ],
+  "denied_read_fields": [
+    "metadata.fields.internal_note"
+  ],
+  "sensitive_fields": [
+    "metadata.fields.ssn",
+    "metadata.fields.salary"
+  ],
+  "sensitive_handling": "redact"
 }
 ```
-
 `allowed_read_fields` / `denied_read_fields` / `sensitive_fields` / `sensitive_handling` 与 §4.1 / §4.2 的写入字段同属 `field_access` core family（effect=`allow`），表达读取面的字段裁剪与敏感字段处理；其求值见 §16.2（`allowed_read_fields` / `denied_read_fields` 的 admit/deny gate）与 §16.2.1（`sensitive_fields` / `sensitive_handling` 的读路径处理义务）。这四个读字段在 capabilities §6 中有对应扁平别名。
 
 ## 5. 类型限制
 
 ### 5.1 对象类型 / 声明 hint 允许列表
 
-```json
+```json schema=schemas/grant-constraint.schema.json
 {
   "constraint_kind": "kind_restriction",
   "effect": "allow",
-  "allowed_object_kinds": ["strand", "message", "morph", "space"],
-  "allowed_space_kinds": ["board", "list"],
-  "allowed_morph_kinds": ["document", "customer_case"],
-  "allowed_facets": ["stateful", "replyable", "documentable"],
-  "denied_morph_kinds": ["credential"]
+  "allowed_object_kinds": [
+    "strand",
+    "message",
+    "morph",
+    "space"
+  ],
+  "allowed_space_kinds": [
+    "board",
+    "list"
+  ],
+  "allowed_morph_kinds": [
+    "document",
+    "customer_case"
+  ],
+  "allowed_facets": [
+    "stateful",
+    "replyable",
+    "documentable"
+  ],
+  "denied_morph_kinds": [
+    "credential"
+  ]
 }
 ```
-
 `allowed_object_kinds` 只按对象类型收窄范围，不赋予能力。v1 中所有 Realm 同属一种安全边界、无 kind 区分，**不存在 Realm-kind 维度的约束**。需按结构收窄请用 `allowed_space_kinds`。**结构容器（看板、列、泳道、calendar bucket 等）由 Space 对象承担**——使用 `allowed_space_kinds` 收窄到 Space.kind（例如 `["board", "list"]` 或 profile 注册的新 kind）；allowed_space_kinds 不会把 Space 升级为独立 membership 或 E2EE 边界（Space 永远透明回退到所属 Realm）。Strand 没有顶层模式或业务分类约束；业务语义 SHOULD 通过 Realm schema/profile、`metadata.fields`、Relation、labels、Morph type 或 facet 约束表达。`allowed_facets` 只按 Realm schema / Morph profile 已声明的 facet hint 继续收窄范围，不授予写入、排序、状态转换或 renderer 能力，也不替代 `allowed_object_kinds` / `allowed_morph_kinds`。Morph 语义 SHOULD 通过 `allowed_morph_kinds` 和显式 profile 继续细分。
 
 ## 6. 范围限制
 
 ### 6.1 流程范围限制（Strand/Realm）
 
-```json
+```json schema=schemas/grant-constraint.schema.json
 {
   "constraint_kind": "scope_limitation",
   "effect": "allow",
   "allowed_strand_ids": [
     "ak:strand:Aa-h0nYxlvhQk1U9H0yQTY4hZEVTz0be75pj6U70n7qy"
   ],
-  "allowed_tracks": ["discussion"],
+  "allowed_tracks": [
+    "discussion"
+  ],
   "denied_strand_ids": [
     "ak:strand:AUn3I-TLWcdn7paR20z6uNnICjLMBH8G42CHOKW27jCs"
   ]
 }
 ```
-
 `allowed_tracks` 只限制 Strand track-targeted 操作范围，不自动授予对应 track 的 message read/write 权限。Message 操作仍必须命中 `ak.message.*` action，并在已有 Realm 授权内满足 `allowed_tracks` action scope、history visibility 和 E2EE key eligibility。Synthesis 正文写入的 target track 由 patch path `tracks.synthesis.content` / `tracks.synthesis.encrypted_content` 唯一派生；Strand 顶层 Description 与 metadata / stage / lifecycle 等基础字段没有 track 归属，MUST NOT 被 `allowed_tracks=["synthesis"]` 自动覆盖，仍须由 action 与 `allowed_write_fields` 单独授权。
 
 `discussion` 不是独立实体或 selector kind。授权 discussion track 应使用 `allowed_tracks=["discussion"]`。`tracks.<name>.profile` 只是 track-local profile hint，v1 grant constraint 不定义按 profile 名称授权的字段；能否读取、发送或管理消息仍由 action、`allowed_tracks` action scope、history visibility 和 E2EE key eligibility 决定。
@@ -251,92 +282,118 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 
 ### 6.2 视图限制
 
-```json
+```json schema=schemas/grant-constraint.schema.json
 {
   "constraint_kind": "scope_limitation",
   "effect": "allow",
-  "allowed_view_kinds": ["collection"],
-  "allowed_view_renderers": ["board", "list"],
-  "denied_view_kinds": ["graph"],
-  "denied_view_renderers": ["admin"]
+  "allowed_view_kinds": [
+    "collection"
+  ],
+  "allowed_view_renderers": [
+    "board",
+    "list"
+  ],
+  "denied_view_kinds": [
+    "graph"
+  ],
+  "denied_view_renderers": [
+    "admin"
+  ]
 }
 ```
-
 ### 6.3 结构容器移动范围（from/to container refs）
 
-```json
+```json schema=schemas/grant-constraint.schema.json
 {
   "constraint_kind": "scope_limitation",
   "effect": "allow",
-  "allowed_relation_kinds": ["contains"],
-  "allowed_view_ids": ["ak:view:AT3Im0B7Kp3uhOc9ZgnAPWE0qkuAJ_fcxz8Tv7vEwFem"],
-  "allowed_from_container_refs": ["ak:space:AScD0xd0vWSGWhC2n9BZHco7N_jYnNgmEIifpAo_uxUJ"],
-  "allowed_to_container_refs": ["ak:space:AUJj_lxym4uQ6rpZYTU9hptahzikdCscH2kDhIFurbHE"],
+  "allowed_relation_kinds": [
+    "contains"
+  ],
+  "allowed_view_ids": [
+    "ak:view:AT3Im0B7Kp3uhOc9ZgnAPWE0qkuAJ_fcxz8Tv7vEwFem"
+  ],
+  "allowed_from_container_refs": [
+    "ak:space:AScD0xd0vWSGWhC2n9BZHco7N_jYnNgmEIifpAo_uxUJ"
+  ],
+  "allowed_to_container_refs": [
+    "ak:space:AUJj_lxym4uQ6rpZYTU9hptahzikdCscH2kDhIFurbHE"
+  ],
   "wip_limit_override": false
 }
 ```
-
 `scope_limitation` 约束中的 `allowed_from_container_refs` / `allowed_to_container_refs` MUST 在授权判定中早于 operation 生效。这里的 container 是结构容器概念，不是新的对象类型或 ID 前缀；v1 标准容器由 Space 承担（例如 Board / List / 泳道）。目标 List 禁止写入、WIP 超限且无 override、或 `relation_kind` 不在 allow list 时，`ak.strand.move` / `ak.container.move_item` 不得直接生效。
 
 `allowed_space_ids` / `denied_space_ids` MUST 使用 `ak:space:` ID；`allowed_from_container_refs` / `allowed_to_container_refs` 表达可移出 / 可移入的结构容器，也 MUST 使用 `ak:space:`（或 profile 明确声明的 `ak:strand:` / `ak:morph:` 容器对象）。Realm-wide 范围收窄应写在 resource selector 的 `realm:` 维度，不得把 `ak:realm:` 塞进 Space 或 container 字段。
 
 ### 6.4 服务出口与 presign 范围
 
-```json
+```json schema=schemas/grant-constraint.schema.json
 {
   "constraint_kind": "scope_limitation",
   "effect": "allow",
   "blob_presign_scope": {
-    "allowed_purposes": ["media_inline", "thumbnail"],
-    "realm_ids": ["ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"]
+    "allowed_purposes": [
+      "media_inline",
+      "thumbnail"
+    ],
+    "realm_ids": [
+      "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+    ]
   },
-  "allowed_endpoints": ["https://api.trusted.example"],
-  "allowed_data_labels": ["public", "internal"]
+  "allowed_endpoints": [
+    "https://api.trusted.example"
+  ],
+  "allowed_data_labels": [
+    "public",
+    "internal"
+  ]
 }
 ```
-
 `blob_presign_scope` 是 `ak.self.blob.command.presign.v1` 的必需约束之一，限制可签发的 purpose、Realm 和可选 blob ref pattern。`allowed_endpoints` / `allowed_data_labels` 用于 agent、applet、export、connector 等会把数据发往外部 endpoint 的 action；实现 MUST 对请求中的目标 endpoint 与数据分类做 fail-closed 匹配，未知 data class 或 endpoint 不得按 allow 处理。
 
 ## 7. 再授权控制
 
 ### 7.1 再授权深度
 
-```json
+```json schema=schemas/grant-constraint.schema.json
 {
   "constraint_kind": "authority_control",
   "effect": "allow",
   "max_authority_depth": 2,
-  "authority_path": ["did:webvh:zABpBQTRWzuVZjF4X1cTUVGZ8:org.example.com"],
+  "authority_path_ids": [
+    "ak:did_core:webvh:zABpBQTRWzuVZjF4X1cTUVGZ8"
+  ],
   "authority_regrant_allowed": false
 }
 ```
-
 ### 7.2 再授权范围
 
-```json
+```json schema=schemas/grant-constraint.schema.json
 {
   "constraint_kind": "authority_control",
   "effect": "allow",
   "authority_scope": "narrowing_only"
 }
 ```
-
 ### 7.3 Applet 授权绑定（constraint_subkind=applet_authority）
 
 Applet install 签发的每个 `ak.capability.grant` MUST 携带以下规范约束：
 
-```json
+```json schema=schemas/grant-constraint.schema.json
 {
   "constraint_kind": "authority_control",
   "constraint_subkind": "applet_authority",
   "effect": "allow",
   "evaluation_class": "grant_local",
   "applet_id": "ak:applet:8a0baad5-6000-7000-8000-000000000000",
-  "executed_by": "ak:did_core:webvh:z9CalAppTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z",
+  "executed_by": {
+    "kind": "service",
+    "service_id": "ak:did_core:webvh:z9CalAppTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z"
+  },
   "registration_epoch": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
 }
 ```
-
 `applet_id`、`executed_by`、`registration_epoch` 三个字段 MUST 同时出现；缺少任一字段或把字段放入其他 family / subkind 均为 `schema_violation`。grant 的 `resources[]` MUST 精确覆盖单次 install 的 `effective_scope`，并作为 `(applet_id, effective_scope, registration_epoch)` 中 scope 的唯一 wire 表达；constraint 不重复存储 `effective_scope`。`executed_by` MUST 是 registration 接受的 service / `bot_actor_id` 的 `did_core_id`，或已按 Applet profile provision 的具体 ghost actor `did_core_id`；控制证明中的DID URL 必须经 adapter 投影到该值，不得仅凭 namespace wildcard 签发代表 native principal 的 grant。
 
 该约束只表达 grant-local 绑定，所以 canonical `evaluation_class=grant_local`。授权 verifier 仍 MUST 解析 `applet_id` 指向的 accepted registration，展开 `registration_epoch` evidence，并验证 grant resource selector、Event `scope_ref`、Event `executed_by` 与 registration 的当前有效 key/material 一致；这一步不得因 grant-local 分类而跳过或缓存为永远有效。未登记的 `constraint_kind` MUST fail closed。
@@ -383,7 +440,7 @@ fail closed。这些规则与 [`capabilities.md` §10.1](./capabilities.md) 的�
 
 ### 8.1 操作频率（constraint_subkind=rate）
 
-```json
+```json schema=schemas/grant-constraint.schema.json
 {
   "constraint_kind": "quota",
   "constraint_subkind": "rate",
@@ -394,7 +451,6 @@ fail closed。这些规则与 [`capabilities.md` §10.1](./capabilities.md) 的�
   "constraint_scope": "per_space"
 }
 ```
-
 `constraint_scope` 是封闭 v1 枚举，取值 MUST 属于 `{per_actor, per_space, per_realm, global}`；未注册值是 `schema_violation`，接收方 MUST fail closed。`quota` 计数器始终按 actor 绑定，并以 `grant_id` + `constraint_id`（缺失时用该 constraint 的 canonical hash）区分不同授权约束；`constraint_scope` 只选择额外切片维度：
 
 | `constraint_scope` | quota counter key |
@@ -412,7 +468,7 @@ fail closed。这些规则与 [`capabilities.md` §10.1](./capabilities.md) 的�
 
 quota authority MUST 同时满足：
 
-1. `quota_verification_time` 由 authority 的共享时钟 / transaction timestamp 固定，同一次求值只取一次，并受 §16.1 `hard_future_skew_ms` 运维门禁约束；caller / edge node 不得自报窗口时刻。
+1. `quota_verification_time` 由 authority 的共享时钟 / transaction timestamp 固定，同一次求值只取一次，并受 §16.1 `ak.time_tolerance.temporal_constraint.v1` 运维门禁约束；caller / edge node 不得自报窗口时刻。
 2. 计数单位是 operation registry 为该 operation 声明的 idempotency identity；durable Event 写入以稳定 `event_id` 为 identity。相同 identity 的成功重试返回既有 outcome 且只计一次；同 identity 不同 canonical request digest 必须按 `duplicate_conflict` 拒绝；在进入任何业务副作用前被拒绝的请求不消耗额度。
 3. authority 不可达、无法证明最新 counter、事务冲突重试耗尽或窗口时刻不可确定时，hard quota MUST fail closed（`rate_limited` / `quota_exceeded` 或 `failed_precondition`），不得降级为 advisory allow。
 4. `burst` 若存在，表示在同一 authority 上附加 token-bucket 容量；refill rate 固定为 `max_operations / period`，bucket capacity 为 `min(burst, max_operations)`，且 fixed-window 内 accepted 总数仍不得超过 `max_operations`。`burst` 绝不增加窗口总预算。未声明 `burst` 时只执行 fixed-window 上限。
@@ -421,7 +477,7 @@ quota authority MUST 同时满足：
 
 ### 8.2 资源限制（constraint_subkind=resource）
 
-```json
+```json schema=schemas/grant-constraint.schema.json
 {
   "constraint_kind": "quota",
   "constraint_subkind": "resource",
@@ -434,7 +490,6 @@ quota authority MUST 同时满足：
   "constraint_scope": "per_space"
 }
 ```
-
 `blob_presign_max_ttl_seconds` 是 `ak.self.blob.command.presign.v1` 的必需约束之一，服务端 MUST 将请求的 `max_age_seconds` 收窄到该值、deployment policy 上限和协议硬上限 3600 秒三者的最小值。`max_artifact_bytes` 限制 applet / agent / export 等操作可产生或外发的单个 artifact 大小。
 
 `max_resources` 与 `max_total_blob_bytes` 这类累计资源 quota 使用 §8.1 的同一 `constraint_scope`、window id 与逻辑 quota authority 规则，二者均 MUST 携带 `constraint_scope`。携带 `period` 时按 UTC epoch-aligned window 重置；省略 `period` 时 `window_id="lifetime"`，从该 grant 首次生效起累计到 grant revoke / expiry，绝不按节点重启或本地 cache eviction 清零。authority MUST 在创建 / 删除 / 调整资源的同一原子事务中按**实际 committed delta** reservation / refund，不能先放行业务写入再异步更新累计值；无法把资源写入与 counter 原子提交时 MUST fail closed 或先取得具有唯一 reservation id 的耐久 reservation，并在失败时幂等释放。`blob_max_bytes` / `max_artifact_bytes` 是单次操作上限，不需要历史计数，也不需要 `constraint_scope`。
@@ -445,7 +500,7 @@ quota authority MUST 同时满足：
 
 v1 的 approval constraint 只有一种模式：`approval_mode="before_commit"`——目标写入在被批准之前 MUST NOT 生效（§9.2.7）。
 
-```json
+```json schema=schemas/grant-constraint.schema.json
 {
   "constraint_kind": "claim_based",
   "constraint_subkind": "approval",
@@ -453,13 +508,21 @@ v1 的 approval constraint 只有一种模式：`approval_mode="before_commit"`�
   "approval_required": true,
   "approval_mode": "before_commit",
   "approval_actor_ids": [
-    "did:webvh:z2f4PssK2Np2TL71GtW46BC6K:manager.example.com"
+    "ak:did_core:webvh:z6mkfixturemanager"
   ],
   "approval_relation": "controller",
   "timeout": "PT72H",
   "auto_reject_on_timeout": true
 }
 ```
+审批要求的**可表达性**由
+[`capability-action-registry.json#approval_requirement_eligibility`](../../artifacts/registry/capability-action-registry.json)
+唯一裁决。签发／接纳 capability grant 时，只要 approval constraint 会作用到任一
+`eligibility_kind=ineligible_no_registered_carrier` 的 action，MUST 在写入时拒绝为
+`schema_violation`（reason=`approval_carrier_unregistered`），不得留下一个到行使时才发现无载体的 grant。
+特别地，`event_mapping_kind=non_event_surface` 在 v1 默认不可挂审批要求；只有 registry 中该 exact action
+存在 `registered_operation_carrier` override 且所指 canonical request carrier 可达时才可例外。
+实现 MUST NOT 从 action 拼写、risk tier、正文说明或自造的 action→operation 映射推断 eligibility。
 
 ### 9.2 Approval signature（normative）
 
@@ -518,7 +581,7 @@ MUST NOT 被实现成「先对 JSON 求 SHA-256、再签那个摘要」的第二
 | 支 | 形状 | `request_canonical_digest` 的 original input |
 | --- | --- | --- |
 | `event` | `{"target_kind":"event","event_id": EventId}` | **完整预写 Event**（含它自己的 producer proof）。 |
-| `operation` | `{"target_kind":"operation"}` | 该 operation 的**原始 typed RequestBody**。 |
+| `operation` | `{"target_kind":"operation"}` | 该 operation 的**原始 typed RequestBody**，省略 registry 登记的 evidence carrier 字段。该支只允许 `approval-signature.schema.json` 当前投影出的真实 carrier operation。 |
 
 `request_canonical_digest` = `sha256:` + SHA-256(JCS(original input))。
 
@@ -541,7 +604,7 @@ MUST NOT 被实现成「先对 JSON 求 SHA-256、再签那个摘要」的第二
 | `realm_id` | id | 被批准动作所在的 Realm ID。防止跨 Realm 重放。 |
 | `initiating_actor_id` | ActorId | 发起本次执行的 **exact** `ActorId`（完整 `principal_id` + `station_id`）。它不授权同一 principal 的另一个 Account：同 DID 不同 Station 的重放 MUST 拒绝。 |
 | `approver_did` | did | 签发该 approval 的 approver DID。 |
-| `approved_at` | timestamp | 签名时间。reducer MUST 拒绝 `approved_at > now + hard_future_skew_ms`；`grant` 支还 MUST 拒绝 `approved_at < grant.issued_at`；该 grant 若携带 `constraint_kind=temporal` 的约束，还 MUST 拒绝 `approved_at` 早于该约束的 `not_before`。capability grant **没有** top-level `not_before`／`expires_at`，有效期窗口由 §3 的 temporal grant-constraint 表达，实现 MUST 从那里取下界，MUST NOT 读一个 grant 上不存在的成员。此处 `hard_future_skew_ms` 就是 §3 temporal grant-constraint 采用的那个协议级硬上界（默认 300_000，即 5 分钟）：approval 属授权 state event，故取硬上界作为 future-drift reject 边界，实现 MUST NOT 自定义更宽容差。它与 [`../crypto-media/media-and-blob.md`](../crypto-media/media-and-blob.md) §5.4.3 presign TTL 校验采用的 `expected_future_skew_ms`（30 秒软容差）是**不同场景的两个独立阈值**：presign 是短 TTL bearer URL，取更紧的软容差；approval 取硬上界。二者不得互相代入。 |
+| `approved_at` | timestamp | 签名时间。reducer MUST 按 [`contract-registry.json#protocol_time_tolerance_registry`](../../artifacts/registry/contract-registry.json) 的 `ak.time_tolerance.approval_approved_at.v1` 执行单侧 future guard；`grant` 支还 MUST 拒绝 `approved_at < grant.issued_at`；该 grant 若携带 `constraint_kind=temporal` 的约束，还 MUST 拒绝 `approved_at` 早于该约束的 `not_before`。capability grant **没有** top-level `not_before`／`expires_at`，有效期窗口由 §3 的 temporal grant-constraint 表达，实现 MUST 从那里取下界，MUST NOT 读一个 grant 上不存在的成员。approval 与 presign、temporal constraint 是三个独立场景，实现 MUST NOT 互相代入容差或方向。 |
 | `nonce` | string | approver 私有的、per-approval 唯一的随机字符串（≥ 128 bit 熵）。命名空间见 §9.2.2，消费规则见 §9.2.5。 |
 
 #### 9.2.5 载体、接纳审计与 nonce 消费（normative）
@@ -551,11 +614,19 @@ MUST NOT 被实现成「先对 JSON 求 SHA-256、再签那个摘要」的第二
 位于完整 `event` 之外。所有包装 `EventCommitSubmission` 的 ingress——普通 self submit、批次提交、
 控制事务、facade 转交——MUST 复用同一字段，MUST NOT 各造 DTO。
 
-**非 Event operation** 使用同一份 evidence schema，但载体 MUST 逐个 operation 在其 canonical request
-合同里显式登记；原 typed RequestBody MUST NOT 为了容纳 evidence 而放开 `additionalProperties`。
-v1 目前**没有**任何非 Event operation 登记该载体：所有受本节或 §9.3 审批要求约束的动作都通过
-提交 Event 执行。没有登记载体的 operation MUST NOT 声称支持本节 workflow，
-也 MUST NOT 把 evidence 塞进任意既有字段。
+载体与 action eligibility 的机器真源是
+[`capability-action-registry.json#approval_requirement_eligibility`](../../artifacts/registry/capability-action-registry.json)：
+每个 mapping kind 都必须映射到封闭 eligibility enum；每个可用 carrier 必须逐项登记 operation、canonical
+request schema、carrier schema pointer、字段名、evidence schema 与允许的 target branch。门禁必须证明 carrier
+从该 operation 的 canonical request schema **真实可达**。原 typed RequestBody MUST NOT 为容纳 evidence 而放开
+`additionalProperties`，未登记字段也不得被借用。
+
+v1 的 `non_event_surface` 默认值是 `ineligible_no_registered_carrier`，当前没有 action override；因此 grant
+approval constraint 与 `ak.policy.action` 的 `approval_required=true` 都 MUST NOT 命中任何 non-event action。
+这不是「目前没有」的事实描述，而是写入时禁令。将来只有先登记真实 carrier 并为 exact action 增加
+`registered_operation_carrier` override，才可表达要求；不得为了凑闭合而虚构 action→operation 映射。
+`operation` target 支保留，但只能使用 schema 从 carrier registry 投影出的 operation；v1 的唯一值是
+`ak.self.events.command.submit.v1`，其 `EventCommitSubmission.approval_signatures[]` 是可达真实载体。
 
 **接纳审计**：治理 Station MUST 在接纳／执行的**同一原子事务**内持久化 evidence、验证依据、
 nonce 消费记录与到原始提交的绑定。共享 Realm Event store 保持原 Event 字节不变；
@@ -589,7 +660,7 @@ MUST NOT 互用 nonce，也 MUST NOT 把一方的满足自动换算成另一方�
 | 对象 | 是什么 | 绑定 | 职责 |
 | --- | --- | --- | --- |
 | 本节 approval signature（`ak.schema.approval_signature.v1`） | detached 签名证据，非 Event | `approval_context` + `approval_target` + 原请求摘要 + 投票资格 | grant 层（§9.1）与 Realm 治理层（§9.3）的通用审批 quorum 证据 |
-| `ak.agent.action_approve` | 已登记的 **Event kind**，`result_writes` 为空 | exact Agent、draft／request、完整 `approved_event_id`、私有 confirmation nonce | controller 对 exact Agent draft／预写 Event 的**安全确认命令** |
+| `ak.agent.action_approve` | 已登记的 **Event kind**，写 `agent_action_approval` typed current result | exact Agent、draft／request、完整 `approved_event_id`、私有 confirmation nonce | controller 对 exact Agent draft／预写 Event 的**安全确认命令**；`approval_id` 选择不可变记录，`(controller ActorId, approval_nonce)` 一次性分配 |
 | `agent_key_approval_evidence` | `ak.agent.key.*` payload 内的 **tagged 引用** | `evidence_ref` 指向一条已接纳 Event 或 grant | 授权 **provenance** 的可解析引用 |
 
 - Agent confirmation 成功**只**满足 Agent draft 的发布 gate，MUST NOT 免除目标 Event 的 grant／
@@ -624,7 +695,7 @@ Agent 自己的私有 draft 能力（`ak.agent.draft.propose` / `ak.agent.action
 | --- | --- |
 | `ak.vector.authz.approval_signature_bytes.v1` | `grant` + `event` 支：§9.2.1 的 `signing_bytes` 逐字节、detached JWS 空 payload 段、`request_canonical_digest` 覆盖含 producer proof 的完整 Event |
 | `ak.vector.authz.approval_signature_governance_context.v1` | `realm_governance` + `event` 支：该支不携带 `grant_id`，也不携带任何治理配置引用；一份签名 MUST NOT 跨两层复用 |
-| `ak.vector.authz.approval_signature_operation_target.v1` | `grant` + `operation` 支：摘要只覆盖原 typed RequestBody。本向量只固定字节推导，不意味着任何非 Event operation 已登记载体（§9.2.5） |
+| `ak.vector.authz.approval_signature_operation_target.v1` | `grant` + `operation` 支：action=`ak.strand.create`，operation=`ak.self.events.command.submit.v1`；摘要覆盖省略 evidence 字段的原 typed RequestBody，且该 operation 是 carrier registry 中真实可达的唯一 operation-target carrier |
 | `ak.vector.authz.approval_signature_negative.v1` | 三类否例：换字节或错构造 → `signature_invalid`；形状错误 → `schema_violation`；签名有效但不可接纳 → `claim_required` reason=`approval_required` 或 `failed_precondition` reason=`approval_nonce_reused` |
 
 fixture 的 `event_id_invariance` 块给出 §9.2.5 那句「不改变目标 Event」的可核对形式：目标 Event 的摘要
@@ -662,7 +733,7 @@ v1 还有第二个、独立的审批要求来源：Realm 治理面登记的 `pol
 
 ### 10.1 声明要求
 
-```json
+```json schema=schemas/grant-constraint.schema.json
 {
   "constraint_kind": "claim_based",
   "constraint_subkind": "claim",
@@ -670,39 +741,36 @@ v1 还有第二个、独立的审批要求来源：Realm 治理面登记的 `pol
   "required_claims": [
     {
       "claim_kind": "organization_membership",
-      "issuer": "did:webvh:zGPwcewZ4W5tpgJnGa3T8reYM:acme.com",
       "organization_id": "ak:did_core:webvh:zGPwcewZ4W5tpgJnGa3T8reYM",
       "status": "active",
-      "roles": ["employee", "contractor"]
+      "roles": [
+        "employee",
+        "contractor"
+      ],
+      "issuer_id": "ak:did_core:webvh:zGPwcewZ4W5tpgJnGa3T8reYM"
     }
   ],
-  "trusted_claim_issuers": [
-    "did:webvh:zGPwcewZ4W5tpgJnGa3T8reYM:acme.com"
+  "trusted_claim_issuer_ids": [
+    "ak:did_core:webvh:zGPwcewZ4W5tpgJnGa3T8reYM"
   ],
   "claim_refresh_required": true,
   "claim_max_age": "PT24H"
 }
 ```
-
 ### 10.2 声明验证
 
-```json
+```json schema=schemas/grant-constraint.schema.json
 {
   "constraint_kind": "claim_based",
   "constraint_subkind": "claim",
-  "effect": "allow",
-  "validation_mode": "strict|lenient",
-  "expired_claims_allowed": false,
-  "revoked_claims_allowed": false,
-  "minimum_trust_level": "high"
+  "effect": "allow"
 }
 ```
-
 ## 11. 责任约束（claim_based, constraint_subkind=accountability）
 
 ### 11.1 责任方
 
-```json
+```json schema=schemas/grant-constraint.schema.json
 {
   "constraint_kind": "claim_based",
   "constraint_subkind": "accountability",
@@ -710,14 +778,13 @@ v1 还有第二个、独立的审批要求来源：Realm 治理面登记的 `pol
   "accountability_required": true,
   "approval_relation": "guardian",
   "approval_actor_ids": [
-    "did:webvh:z2vHtethmmzFY86zLhnqXP4rr:guardian.example.com"
+    "ak:did_core:webvh:z2vHtethmmzFY86zLhnqXP4rr"
   ]
 }
 ```
-
 ### 11.2 监护人审批
 
-```json
+```json schema=schemas/grant-constraint.schema.json
 {
   "constraint_kind": "claim_based",
   "constraint_subkind": "accountability",
@@ -725,18 +792,17 @@ v1 还有第二个、独立的审批要求来源：Realm 治理面登记的 `pol
   "guardian_approval_required": true,
   "approval_relation": "guardian",
   "approval_actor_ids": [
-    "did:webvh:z82PFJkUuQZejFmNvW4u3ZU59:parent1.example.com",
-    "did:webvh:z6TTT4uWX85mtomzdpBz259yF:parent2.example.com"
+    "ak:did_core:webvh:z82PFJkUuQZejFmNvW4u3ZU59",
+    "ak:did_core:webvh:z6TTT4uWX85mtomzdpBz259yF"
   ],
   "approval_threshold": "unanimous"
 }
 ```
-
 ## 12. 加密要求（confidentiality, constraint_subkind=encryption）
 
 ### 12.1 强制加密
 
-```json
+```json schema=schemas/grant-constraint.schema.json
 {
   "constraint_kind": "confidentiality",
   "constraint_subkind": "encryption",
@@ -747,10 +813,9 @@ v1 还有第二个、独立的审批要求来源：Realm 治理面登记的 `pol
   "audit_trail_required": true
 }
 ```
-
 ### 12.2 密钥管理
 
-```json
+```json schema=schemas/grant-constraint.schema.json
 {
   "constraint_kind": "confidentiality",
   "constraint_subkind": "encryption",
@@ -758,28 +823,29 @@ v1 还有第二个、独立的审批要求来源：Realm 治理面登记的 `pol
   "key_rotation_period": "P7D",
   "max_key_age": "P30D",
   "key_backup_required": true,
-  "approved_key_issuers": [
-    "did:webvh:zJCNANaMhJJU6AhUzXiMTaXKq:keys.example.com"
+  "approved_key_issuer_ids": [
+    "ak:did_core:webvh:zJCNANaMhJJU6AhUzXiMTaXKq"
   ]
 }
 ```
-
-**evaluation_class 拆分（normative）**：`confidentiality(encryption)` 约束不是整体 `realm_state`。其纯静态声明部分——`encryption_required` / `min_encryption_level` / `plaintext_fallback_allowed` / `audit_trail_required` 这些布尔/枚举标志，以及 `approved_key_issuers` 的列表成员比较（"某 issuer DID 是否在列表中"是封闭集合比较）——只读取 grant 自身内容，求值器 MUST 按 `stateless` 对待，可走 fast path，不得仅因约束 family 是 `confidentiality(encryption)` 就把这些纯静态判定整体降级到 slow path。只有当判定真正需要对照 scope 当前加密态时——即比较 scope 的 MLS 激活状态，或对照当前 MLS key schedule 判断实际使用的 key issuer 是否落在 `approved_key_issuers` 内——该子判定才是 `realm_state`，按 §2.3 第二行处理。实现 MUST 按子判定的真实依赖分类，而不是按 family 一刀切。
+**evaluation_class 拆分（normative）**：`confidentiality(encryption)` 约束不是整体 `realm_state`。其纯静态声明部分——`encryption_required` / `min_encryption_level` / `plaintext_fallback_allowed` / `audit_trail_required` 这些布尔/枚举标志，以及 `approved_key_issuer_ids` 的列表成员比较（"某 issuer DID core id 是否在列表中"是封闭集合比较）——只读取 grant 自身内容，求值器 MUST 按 `stateless` 对待，可走 fast path，不得仅因约束 family 是 `confidentiality(encryption)` 就把这些纯静态判定整体降级到 slow path。只有当判定真正需要对照 scope 当前加密态时——即比较 scope 的 MLS 激活状态，或对照当前 MLS key schedule 判断实际使用的 key issuer 是否落在 `approved_key_issuer_ids` 内——该子判定才是 `realm_state`，按 §2.3 第二行处理。实现 MUST 按子判定的真实依赖分类，而不是按 family 一刀切。
 
 ## 13. 可见性控制（confidentiality, constraint_subkind=visibility）
 
 ### 13.1 对象可见性
 
-```json
+```json schema=schemas/grant-constraint.schema.json
 {
   "constraint_kind": "confidentiality",
   "constraint_subkind": "visibility",
   "effect": "allow",
-  "allowed_history_access_values": ["since_join", "all_history_for_current_members"],
+  "allowed_history_access_values": [
+    "since_join",
+    "all_history_for_current_members"
+  ],
   "redacted_history_allowed": true
 }
 ```
-
 `allowed_history_access_values` 的取值 MUST 来自 `history_access` 权威二态枚举：`since_join`、`all_history_for_current_members`。实际 grant MAY 只声明其中一个值；未列入的值不被该约束允许。任何旧五档值或其它枚举外值都 MUST `schema_violation`。
 
 `redacted_history_allowed` 是布尔 **allow 开关**：只有字段存在且逐字为 `true` 时，该
@@ -791,7 +857,7 @@ redacted stub，不恢复被删正文、不绕过 history visibility 或 audit g
 
 ### 14.1 Blob 大小限制
 
-```json
+```json schema=schemas/grant-constraint.schema.json
 {
   "constraint_kind": "quota",
   "constraint_subkind": "resource",
@@ -801,19 +867,20 @@ redacted stub，不恢复被删正文、不绕过 history visibility 或 audit g
   "constraint_scope": "per_space"
 }
 ```
-
 `blob_max_bytes` 限制单次上传 blob 的最大字节数。`max_total_blob_bytes` 限制 `constraint_scope` 内的累计 blob 大小；该字段 MUST 与 §8.1 的封闭 `constraint_scope` 枚举一起出现。
 
 ### 14.2 消息编辑窗口与撤回窗口
 
 规范形是两条独立约束（各自 `constraint_subkind` + `applies_to_actions`，与 §2.2 表一致）：
 
-```json
+```json fragment
 [
   {
     "constraint_kind": "temporal",
     "constraint_subkind": "edit_window",
-    "applies_to_actions": ["ak.message.revise.own"],
+    "applies_to_actions": [
+      "ak.message.revise.own"
+    ],
     "effect": "allow",
     "message_edit_window": "PT15M",
     "redact_after_window_allowed": true
@@ -821,13 +888,14 @@ redacted stub，不恢复被删正文、不绕过 history visibility 或 audit g
   {
     "constraint_kind": "temporal",
     "constraint_subkind": "redact_window",
-    "applies_to_actions": ["ak.message.redact.own"],
+    "applies_to_actions": [
+      "ak.message.redact.own"
+    ],
     "effect": "allow",
     "message_redact_window": "PT24H"
   }
 ]
 ```
-
 **字段语义**：
 
 - `message_edit_window`：发送后可编辑消息（`ak.message.revise.own`）的时间窗口，从被编辑 Message 的 `created_at` 起算。
@@ -932,12 +1000,12 @@ function evaluate_constraints_across_grants(operation, matched_grants):
 
 ### 16.1 时间匹配
 
-本节 pseudo-code 是 normative algorithm。时间约束求值的 `now` MUST 取执行授权判断的服务端时间或本地 reducer 在当前验证上下文中固定的 verification time；该时间源必须按 §17.2 绑定 [`../conformance/scalability-constraints.md`](../conformance/scalability-constraints.md) §2 登记的协议级 `hard_future_skew_ms`（默认 300_000，即 5 分钟）作为上界容差。实现 MUST 在一次 constraint evaluation 内固定同一个 `now`，不得让同一 operation 的多个 temporal constraint 因重复取时钟而跨边界产生分歧。
+本节 pseudo-code 是 normative algorithm。时间约束求值的 `now` MUST 取执行授权判断的服务端时间或本地 reducer 在当前验证上下文中固定的 verification time；容差与方向 MUST 按 [`contract-registry.json#protocol_time_tolerance_registry`](../../artifacts/registry/contract-registry.json) 的 `ak.time_tolerance.temporal_constraint.v1` 读取。实现 MUST 在一次 constraint evaluation 内固定同一个 `now`，不得让同一 operation 的多个 temporal constraint 因重复取时钟而跨边界产生分歧。
 
 ```javascript
 function matches_temporal(operation, constraint):
     now = verification_time_from_server_clock()
-    skew = hard_future_skew_ms()
+    skew = protocol_time_tolerance("ak.time_tolerance.temporal_constraint.v1")
 
     # "not applicable" is neutral for the enclosing effect fold.
     # allow constraints use true as neutral; deny/quarantine/review use false.
@@ -1065,7 +1133,7 @@ function matches_field_access(operation, constraint):
 缓解措施：
 
 - 使用服务器时间进行验证
-- 允许的时钟偏差容差 MUST 取 [`../conformance/scalability-constraints.md`](../conformance/scalability-constraints.md) §2 登记的协议级 `hard_future_skew_ms`（默认 300_000，即 ±5 分钟）作为约束 / claim 时间有效性这一较宽场景的 normative 上界容差；该值与 media-and-blob §5.4.3 presign 的短 TTL 场景容差（`expected_future_skew_ms`，±30s）是**不同场景的两个独立阈值**，均由 scalability-constraints.md 登记，二者不得被实现各自任取或互相代入。
+- 约束时间有效性 MUST 使用 `ak.time_tolerance.temporal_constraint.v1`，approval 签名时间 MUST 使用 `ak.time_tolerance.approval_approved_at.v1`，presign TTL MUST 使用 `ak.time_tolerance.blob_presign_ttl.v1`；三者都由 `contract-registry.json#protocol_time_tolerance_registry` 登记，容差量值与方向不得互相代入。
 - 记录时间验证失败
 - 监控时间操纵尝试
 
@@ -1125,11 +1193,15 @@ function matches_field_access(operation, constraint):
 
 ### 20.1 带约束的 Agent 授权
 
-```json
+```json fragment
 {
   "grant_id": "ak:grant:...",
   "subject": "ak:did_core:webvh:z7JFwDcjH8CMYDmNUkUBhGpNN",
-  "actions": ["ak.object.read", "ak.strand.create", "ak.morph.create"],
+  "actions": [
+    "ak.object.read",
+    "ak.strand.create",
+    "ak.morph.create"
+  ],
   "resources": [
     {
       "kind": "strand",
@@ -1140,17 +1212,23 @@ function matches_field_access(operation, constraint):
     {
       "constraint_kind": "temporal",
       "effect": "allow",
-      "expires_at": "2026-05-01T00:00:00Z"
+      "expires_at": "2026-05-01T00:00:00.000Z"
     },
     {
       "constraint_kind": "kind_restriction",
       "effect": "allow",
-      "allowed_object_kinds": ["strand"]
+      "allowed_object_kinds": [
+        "strand"
+      ]
     },
     {
       "constraint_kind": "field_access",
       "effect": "allow",
-      "allowed_write_fields": ["metadata.title", "metadata.fields.review_status", "metadata.fields.priority"]
+      "allowed_write_fields": [
+        "metadata.title",
+        "metadata.fields.review_status",
+        "metadata.fields.priority"
+      ]
     },
     {
       "constraint_kind": "claim_based",
@@ -1159,7 +1237,7 @@ function matches_field_access(operation, constraint):
       "accountability_required": true,
       "approval_relation": "controller",
       "approval_actor_ids": [
-        "did:webvh:zG3K9Kaj8YcWDiopkdAiWoCxY:owner.example.com"
+        "ak:did_core:webvh:zG3K9Kaj8YcWDiopkdAiWoCxY"
       ]
     },
     {
@@ -1172,35 +1250,40 @@ function matches_field_access(operation, constraint):
   ]
 }
 ```
-
 ### 20.2 临时提升访问权限
 
-```json
+```json fragment
 {
   "constraints": [
     {
       "constraint_kind": "temporal",
       "effect": "allow",
-      "not_before": "2026-04-26T09:00:00Z",
-      "expires_at": "2026-04-26T17:00:00Z",
+      "not_before": "2026-04-26T09:00:00.000Z",
+      "expires_at": "2026-04-26T17:00:00.000Z",
       "recurrence": {
         "frequency": "weekly",
-        "days": ["sat", "sun"],
+        "days": [
+          "sat",
+          "sun"
+        ],
         "timezone": "America/New_York"
       }
     },
     {
       "constraint_kind": "claim_based",
       "effect": "allow",
-      "required_claims": [{
-        "claim_kind": "organization_role",
-        "roles": ["on_call"]
-      }]
+      "required_claims": [
+        {
+          "claim_kind": "organization_role",
+          "roles": [
+            "on_call"
+          ]
+        }
+      ]
     }
   ]
 }
 ```
-
 ### 20.3 Grant 上下文常见组合
 
 Grant envelope 字段、签名规则与必填性以
@@ -1213,68 +1296,85 @@ Grant envelope 字段、签名规则与必填性以
 
 #### 20.3.1 Field-level 与 Type 限制
 
-```json
+```json fragment
 [
   {
     "constraint_kind": "temporal",
     "effect": "allow",
-    "not_before": "2026-04-26T00:00:00Z",
-    "expires_at": "2026-07-26T00:00:00Z"
+    "not_before": "2026-04-26T00:00:00.000Z",
+    "expires_at": "2026-07-26T00:00:00.000Z"
   },
   {
     "constraint_kind": "field_access",
     "effect": "allow",
-    "allowed_write_fields": ["metadata.title", "metadata.fields.review_status"]
+    "allowed_write_fields": [
+      "metadata.title",
+      "metadata.fields.review_status"
+    ]
   },
   {
     "constraint_kind": "kind_restriction",
     "effect": "allow",
-    "allowed_object_kinds": ["strand", "morph", "space"],
-    "allowed_space_kinds": ["board", "list"],
-    "allowed_morph_kinds": ["document", "customer_case"],
-    "allowed_facets": ["stateful", "replyable"]
+    "allowed_object_kinds": [
+      "strand",
+      "morph",
+      "space"
+    ],
+    "allowed_space_kinds": [
+      "board",
+      "list"
+    ],
+    "allowed_morph_kinds": [
+      "document",
+      "customer_case"
+    ],
+    "allowed_facets": [
+      "stateful",
+      "replyable"
+    ]
   }
 ]
 ```
-
 #### 20.3.2 Claim 约束
 
-```json
+```json schema=schemas/grant-constraint.schema.json
 {
   "constraint_kind": "claim_based",
   "effect": "allow",
   "required_claims": [
     {
       "claim_kind": "organization_membership_credential",
-      "trusted_issuers": ["ak:did_core:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX"],
       "subject_matches_actor": true,
       "value_constraints": {
         "organization_id": "ak:did_core:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX",
         "member": true
-      }
+      },
+      "trusted_issuer_ids": [
+        "ak:did_core:webvh:z3HmjyqtBNmTZXtJQsQQqpBnX"
+      ]
     }
-  ]
+  ],
+  "constraint_subkind": "claim"
 }
 ```
-
 #### 20.3.3 Approval 约束
 
-```json
+```json schema=schemas/grant-constraint.schema.json
 {
   "constraint_kind": "claim_based",
   "constraint_subkind": "approval",
   "effect": "require_review",
   "approval_mode": "before_commit",
-  "approval_actor_ids": ["ak:did_core:webvh:zGd8mMoLD7F4He4Kf8PpXJur1"],
+  "approval_actor_ids": [
+    "ak:did_core:webvh:zGd8mMoLD7F4He4Kf8PpXJur1"
+  ],
   "approval_threshold": "quorum",
-  "timeout": "PT24H",
-  "reason_required": true
+  "timeout": "PT24H"
 }
 ```
-
 #### 20.3.4 再授权控制
 
-```json
+```json schema=schemas/grant-constraint.schema.json
 {
   "constraint_kind": "authority_control",
   "effect": "allow",
@@ -1282,27 +1382,33 @@ Grant envelope 字段、签名规则与必填性以
   "authority_scope": "narrowing_only"
 }
 ```
-
 Child grant MUST 等于或窄于其 issuer-authority grants。`max_authority_depth`、
-`authority_path`、`authority_regrant_allowed` 见 §7.1。
+`authority_path_ids`、`authority_regrant_allowed` 见 §7.1。
 
 #### 20.3.5 Container Event Scope Constraint
 
 看板拖拽和有序集合移动 SHOULD 使用 `scope_limitation` constraint 的容器移动字段限定范围。完整字段
 见 §6.3；下例展示 grant 上下文中的常见组合：
 
-```json
+```json schema=schemas/grant-constraint.schema.json
 {
   "constraint_kind": "scope_limitation",
   "effect": "allow",
-  "allowed_relation_kinds": ["contains"],
-  "allowed_view_ids": ["ak:view:AT3Im0B7Kp3uhOc9ZgnAPWE0qkuAJ_fcxz8Tv7vEwFem"],
-  "allowed_from_container_refs": ["ak:space:AScD0xd0vWSGWhC2n9BZHco7N_jYnNgmEIifpAo_uxUJ"],
-  "allowed_to_container_refs": ["ak:space:AUJj_lxym4uQ6rpZYTU9hptahzikdCscH2kDhIFurbHE"],
+  "allowed_relation_kinds": [
+    "contains"
+  ],
+  "allowed_view_ids": [
+    "ak:view:AT3Im0B7Kp3uhOc9ZgnAPWE0qkuAJ_fcxz8Tv7vEwFem"
+  ],
+  "allowed_from_container_refs": [
+    "ak:space:AScD0xd0vWSGWhC2n9BZHco7N_jYnNgmEIifpAo_uxUJ"
+  ],
+  "allowed_to_container_refs": [
+    "ak:space:AUJj_lxym4uQ6rpZYTU9hptahzikdCscH2kDhIFurbHE"
+  ],
   "wip_limit_override": false
 }
 ```
-
 规则：
 
 - `allowed_relation_kinds` 限定可移动的 Relation 类型，避免 `assigned_to`、

@@ -1,6 +1,6 @@
 {
   "suite": "ak.fixture.pcr_genesis.v1",
-  "version": 3,
+  "version": 6,
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.identity.pcr_genesis.v1"
@@ -468,10 +468,11 @@
       "trust_domain": "ak:trust_domain:fixture.example",
       "issued_at": "2026-08-09T00:00:00.000Z",
       "expires_at": "2026-08-09T00:05:00.000Z",
-      "verification_key_multibase": "z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw"
+      "verification_key_multibase": "z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw",
+      "signature_algorithm": "Ed25519"
     },
-    "canonical_json": "{\"account_subject\":\"sha256:47a1dfc40a92fdabc2612a41dc8ef1a09ece55fd697312f881fcf2ce72c3b467\",\"audience_id\":\"ak:did_core:webvh:z6mkfixtureaccountexample\",\"challenge\":\"AAAAAAAAAAAAAAAAAAAAAA\",\"challenge_id\":\"genesis-challenge-000001\",\"control_key_digest\":\"sha256:39f07e8b4ba3818a5682b8ca6dda21287012e48a562315fe943de5b7a529c028\",\"did\":\"did:webvh:z6mkfixture:alice.example\",\"did_version_id\":\"1-QmVYPUMb3ZNa1xCxC7NzXFhtY21FbDCqPCaMVyiiJ5m7Ut\",\"dpop_jkt\":\"RmUcxdimV8pkm16cAFWb1EXxQd9Ri-7Dq6qs1u53gWI\",\"expires_at\":\"2026-08-09T00:05:00.000Z\",\"founding_authorize_payload_digest\":\"sha256:3814995a8fd02c84f94b4758fb3b8b33e96b7ae9c7fcf1e75e21a83c26f390b4\",\"genesis_unit_kinds\":[\"ak.realm.create\",\"ak.device.authorize\"],\"identity_creation_lease_id\":\"genesis-lease-fence-0001\",\"initial_session_request_digest\":\"sha256:5ac770a31d8aeb641fa5a2330d97ba821a62ccb53c12f7363619e3ca0008925e\",\"issued_at\":\"2026-08-09T00:00:00.000Z\",\"lease_fence\":1,\"origin\":\"https://account.example\",\"pcr_realm_id\":\"ak:realm:ARn9Y97Ha81FH12YY8HLiDixId_wA5Wx2c25p82mJcJ5\",\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"proof_kind\":\"did_webvh_inception_update_key\",\"purpose\":\"account_binding_and_pcr_genesis\",\"realm_create_payload_digest\":\"sha256:4e92192037e539bedbeaa6cedc8f934f6992257b11f27edac41198efb29bdc7d\",\"registration_anchor_digest\":\"sha256:670966fa7d826cbce4fdcd69387476623768002dcce3865a99b0ec283ae09494\",\"trust_domain\":\"ak:trust_domain:fixture.example\",\"verification_key_multibase\":\"z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw\"}",
-    "canonical_json_sha256": "sha256:3b1081a7943708e1ee9153d568374e8d8ad679e1061569fb86cd1260c08f29b1",
+    "canonical_json": "{\"account_subject\":\"sha256:47a1dfc40a92fdabc2612a41dc8ef1a09ece55fd697312f881fcf2ce72c3b467\",\"audience_id\":\"ak:did_core:webvh:z6mkfixtureaccountexample\",\"challenge\":\"AAAAAAAAAAAAAAAAAAAAAA\",\"challenge_id\":\"genesis-challenge-000001\",\"control_key_digest\":\"sha256:39f07e8b4ba3818a5682b8ca6dda21287012e48a562315fe943de5b7a529c028\",\"did\":\"did:webvh:z6mkfixture:alice.example\",\"did_version_id\":\"1-QmVYPUMb3ZNa1xCxC7NzXFhtY21FbDCqPCaMVyiiJ5m7Ut\",\"dpop_jkt\":\"RmUcxdimV8pkm16cAFWb1EXxQd9Ri-7Dq6qs1u53gWI\",\"expires_at\":\"2026-08-09T00:05:00.000Z\",\"founding_authorize_payload_digest\":\"sha256:3814995a8fd02c84f94b4758fb3b8b33e96b7ae9c7fcf1e75e21a83c26f390b4\",\"genesis_unit_kinds\":[\"ak.realm.create\",\"ak.device.authorize\"],\"identity_creation_lease_id\":\"genesis-lease-fence-0001\",\"initial_session_request_digest\":\"sha256:5ac770a31d8aeb641fa5a2330d97ba821a62ccb53c12f7363619e3ca0008925e\",\"issued_at\":\"2026-08-09T00:00:00.000Z\",\"lease_fence\":1,\"origin\":\"https://account.example\",\"pcr_realm_id\":\"ak:realm:ARn9Y97Ha81FH12YY8HLiDixId_wA5Wx2c25p82mJcJ5\",\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"proof_kind\":\"did_webvh_inception_update_key\",\"purpose\":\"account_binding_and_pcr_genesis\",\"realm_create_payload_digest\":\"sha256:4e92192037e539bedbeaa6cedc8f934f6992257b11f27edac41198efb29bdc7d\",\"registration_anchor_digest\":\"sha256:670966fa7d826cbce4fdcd69387476623768002dcce3865a99b0ec283ae09494\",\"signature_algorithm\":\"Ed25519\",\"trust_domain\":\"ak:trust_domain:fixture.example\",\"verification_key_multibase\":\"z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw\"}",
+    "canonical_json_sha256": "sha256:530003ce32ff781d0dc078c1a75464d59fe432678b0070f1cd789789e62a4e3b",
     "forbidden_fields": [
       "audience",
       "founding_authorize_envelope_digest",
@@ -483,7 +484,7 @@
     ],
     "schema_ref": "schemas/account-operations.schema.json#/$defs/identity_creation_control_proof",
     "signing_input": "UTF-8(\"ak.identity_creation_control_proof.v1\" || 0x0A) || JCS(signature_omitted_object)",
-    "signature": "It_VPnXua5zABLDZ3GETOz0OyLLT2O--fzJpwxYTMZfOqXqBWFDnbb9Xdz1eghXN1o1qdnPJeS2Z18YiPO4KDA",
+    "signature": "PfFq2nJXJUhCOze7l7af-hgDyYEvCfh8QtDIH3unkau5-7k5eAycI4RuEMHz3oUwTFAIXYnTlQzh3pTG_ReZAw",
     "signed_object": {
       "proof_kind": "did_webvh_inception_update_key",
       "challenge_id": "genesis-challenge-000001",
@@ -512,7 +513,8 @@
       "issued_at": "2026-08-09T00:00:00.000Z",
       "expires_at": "2026-08-09T00:05:00.000Z",
       "verification_key_multibase": "z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw",
-      "signature": "It_VPnXua5zABLDZ3GETOz0OyLLT2O--fzJpwxYTMZfOqXqBWFDnbb9Xdz1eghXN1o1qdnPJeS2Z18YiPO4KDA"
+      "signature_algorithm": "Ed25519",
+      "signature": "PfFq2nJXJUhCOze7l7af-hgDyYEvCfh8QtDIH3unkau5-7k5eAycI4RuEMHz3oUwTFAIXYnTlQzh3pTG_ReZAw"
     },
     "account_subject_preimage": {
       "domain": "ak.account-subject.v1",
@@ -561,33 +563,15 @@
     "vector_id": "ak.vector.identity.provisional_identity_abandonment.v1",
     "credential": "account_handoff_grant",
     "credential_rationale": "The PCR was never accepted, so the holder has no principal and no principal-bound ak.session.grant can exist.",
-    "challenge_operation": "ak.gate.account.command.issue_identity_abandonment_challenge.v1",
     "confirm_operation": "ak.gate.account.command.abandon_identity_creation.v1",
-    "challenge": {
+    "request": {
       "request_id": "abandonment-request-000001",
-      "challenge_id": "abandonment-challenge-000001",
-      "challenge": "BBBBBBBBBBBBBBBBBBBBBB",
-      "purpose": "provisional_identity_abandonment",
-      "account_subject": "sha256:47a1dfc40a92fdabc2612a41dc8ef1a09ece55fd697312f881fcf2ce72c3b467",
       "principal_id": "ak:did_core:webvh:z6mkfixture",
       "did_version_id": "1-QmVYPUMb3ZNa1xCxC7NzXFhtY21FbDCqPCaMVyiiJ5m7Ut",
       "identity_creation_lease_id": "genesis-lease-fence-0001",
-      "lease_fence": 1,
-      "consequence_disclosure": [
-        "orphan_anchor_permanently_unusable",
-        "orphan_anchor_cannot_be_deactivated",
-        "no_continuable_state_on_the_orphan_anchor",
-        "a_new_identity_root_did_and_pcr_must_be_created"
-      ],
-      "dpop_jkt": "RmUcxdimV8pkm16cAFWb1EXxQd9Ri-7Dq6qs1u53gWI",
-      "audience": "did:webvh:z6mkfixtureaccountexample:account.example",
-      "origin": "https://account.example",
-      "trust_domain": "fixture.example",
-      "issued_at": "2026-08-09T00:00:00.000Z",
-      "expires_at": "2026-08-09T00:05:00.000Z"
+      "lease_fence": 1
     },
     "atomic_writes": [
-      "consume_abandonment_challenge",
       "record_orphan_anchor_tombstone_audit_reservation",
       "suppress_reserved_identity_creation_on_every_holder_readable_surface",
       "release_identity_creation_lease"
@@ -595,19 +579,19 @@
     "atomic": true,
     "cases": [
       {
-        "name": "challenge_then_confirm_with_a_fresh_handoff",
+        "name": "direct_confirm_with_a_fresh_holder_handoff",
         "steps": [
-          "issue_abandonment_challenge_with_current_lease_holder_handoff",
-          "confirm_with_a_different_fresh_account_handoff_grant"
+          "authenticate_the_current_lease_holder_with_a_fresh_account_handoff_grant",
+          "submit_the_closed_abandonment_request"
         ],
-        "expected": "status_abandoned_with_all_four_atomic_writes_committed_together"
+        "expected": "status_abandoned_with_all_three_atomic_writes_committed_together"
       },
       {
-        "name": "confirm_without_a_challenge_is_rejected",
+        "name": "invalid_holder_or_lease_material_is_rejected",
         "attempts": [
-          "omit_challenge_id_and_challenge",
-          "present_a_challenge_id_that_was_never_issued",
-          "reuse_the_handoff_grant_that_obtained_the_challenge"
+          "omit_identity_creation_lease_id",
+          "present_a_stale_lease_fence",
+          "authenticate_a_non_holder_handoff"
         ],
         "expected": [
           "schema_violation",
@@ -617,12 +601,12 @@
         "zero_writes": true
       },
       {
-        "name": "pcr_accepted_between_issuance_and_confirmation",
-        "fault_after": "abandonment_challenge_issued",
-        "mutation": "accept_the_pcr_genesis_unit_before_confirmation",
+        "name": "pcr_accepted_before_abandonment_commit",
+        "fault_after": "abandonment_request_authenticated",
+        "mutation": "accept_the_pcr_genesis_unit_before_the_abandonment_transaction_commits",
         "decided_from": [
-          "challenge.did_version_id",
-          "challenge.lease_fence"
+          "request.did_version_id",
+          "request.lease_fence"
         ],
         "expected": "identity_creation_already_accepted",
         "zero_writes": true,
@@ -640,13 +624,11 @@
         "name": "same_request_id_replay_keeps_one_tombstone",
         "attempts": [
           "replay_same_request_id_and_canonical_bytes",
-          "expired_unconsumed_challenge",
-          "consumed_challenge_with_different_canonical_digest"
+          "reuse_same_request_id_with_a_different_canonical_request"
         ],
         "expected": [
           "return_recorded_outcome",
-          "identity_creation_challenge_expired",
-          "identity_creation_challenge_already_consumed"
+          "duplicate_conflict"
         ],
         "orphan_anchor_tombstone_count": 1
       }
@@ -1198,34 +1180,6 @@
       "output": {
         "fixture": "pcr-genesis-fixture.json",
         "pointer": "/identity_creation_control_transcript/account_subject_preimage/canonical_json"
-      }
-    },
-    {
-      "relation": "equal_json_value",
-      "why": "The abandonment challenge names the same account_subject the control proof signed; a second constant here would let the two drift.",
-      "inputs": {
-        "left": {
-          "fixture": "pcr-genesis-fixture.json",
-          "pointer": "/identity_creation_control_transcript/signature_omitted_object/account_subject"
-        }
-      },
-      "output": {
-        "fixture": "pcr-genesis-fixture.json",
-        "pointer": "/provisional_identity_abandonment/challenge/account_subject"
-      }
-    },
-    {
-      "relation": "equal_json_value",
-      "why": "And the same did_version_id.",
-      "inputs": {
-        "left": {
-          "fixture": "pcr-genesis-fixture.json",
-          "pointer": "/principal_registration_anchor_evidence/anchor/log_entries/0/versionId"
-        }
-      },
-      "output": {
-        "fixture": "pcr-genesis-fixture.json",
-        "pointer": "/provisional_identity_abandonment/challenge/did_version_id"
       }
     }
   ]

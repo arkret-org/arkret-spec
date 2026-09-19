@@ -31,6 +31,7 @@
     "genesis_salt": {
       "type": "string",
       "pattern": "^[A-Za-z0-9_-]{43}$",
+      "x-arkret-preimage-commitment": "no_event_identity",
       "description": "Canonical unpadded Base64URL encoding of exactly 32 CSPRNG octets. It distinguishes event-derived creation intents and has no replay, ordering, authorization, freshness, or winner semantics."
     },
     "founding_device_descriptor": {

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.4",
+  "version": "2026-09-19.6",
   "source_of_truth": true,
-  "generated_at": "2026-09-19T16:34:48+08:00",
+  "generated_at": "2026-09-19T18:23:59+08:00",
   "description": "Canonical security-domain labels for Arkret detached proofs and non-Event cryptographic transcripts. contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript, and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
     "context values and object_family values MUST be unique",
@@ -23,7 +23,8 @@
     "Every contexts[] row, and every domain_separations[] row whose primitive is detached_signature, names an object_family that some producer signs and some receiver verifies as a wire object, so it MUST resolve to a registered schema: the row declares schema_ref or a non-empty transcript_schema_refs, every referenced file is an active row of registry/schema-registry.json, every reference resolves to a real schema object, and that node is covered by a registered ak.schema.*.v1 id. Primitives that bind bytes assembled from an enclosing carrier (merkle_*, hpke_info, replay_cache_namespace, canonical_json_sha256, http_message_signature) are outside this rule by construction. machine gate: tools/artifact_lint:proof_context_object_family_schemas",
     "Those carrier-bound rows are still not free-floating: each MUST declare an independent definition through schema_ref, transcript_schema_refs, defined_in or transcript_defined_in. A bare object_family or domain occurrence in prose, a schema, a fixture, a profile or a generated view is not a definition and MUST NOT anchor the row. Every declared schema reference and prose fragment MUST resolve through its owning reference gate. Rows registered before this rule and not yet adjudicated are named in tools/proof-context-anchor-exemptions.json, which is a ratchet: a listed family that acquires an anchor MUST be removed from it. machine gate: tools/artifact_lint:proof_context_carrier_family_anchors",
     "No binding_fields entry of either array may name a field that forbidden-wire-fields.json forbids in the producer_event_envelope_root context. A field that can never appear on the wire cannot be hashed into a commitment, and skipping it silently discards the separation the row exists to provide. machine gate: tools/artifact_lint:domain_separation_binding_fields_are_carriable",
-    "Every domain_separations[] row whose primitive is canonical_json_sha256 MUST select exactly one digest_constructions[] row, carry the exact UTF-8 hex encoding of domain followed by one LF byte, name the normative transcript definition, and declare either a resolvable known_answer_ref or a non-empty kat_absence_reason plus owner_report. digest_constructions[] and these row extensions are closed objects. machine gate: tools/artifact_lint:digest_construction_registration"
+    "Every domain_separations[] row whose primitive is canonical_json_sha256 MUST select exactly one digest_constructions[] row, carry the exact UTF-8 hex encoding of domain followed by one LF byte, name the normative transcript definition, and declare either a resolvable known_answer_ref or a non-empty kat_absence_reason plus owner_report. digest_constructions[] and these row extensions are closed objects. machine gate: tools/artifact_lint:digest_construction_registration",
+    "A detached_signature row whose local closed schema directly requires signature and signature_algorithm MUST list exactly that schema's required members other than signature in binding_fields. signature_algorithm is itself signed and MUST select an active raw_signature_algorithm; an outer object that merely carries a shared proof leaf is outside this equality rule. machine gate: tools/artifact_lint:local_signature_binding_fields_match_schema"
   ],
   "digest_constructions": [
     {
@@ -45,14 +46,14 @@
       "applies_to_primitives": [
         "canonical_json_sha256"
       ],
-      "canonicalization": "normalized_utf8_string_set_then_RFC8785_JCS",
+      "canonicalization": "normalized_UTF8_bytewise_sorted_unique_string_array_in_closed_scopes_object_then_RFC8785_JCS",
       "digest_suite": "SHA-256",
       "prefix_form": "UTF8(domain + LF)",
-      "digest_input": "UNRESOLVED: UTF8(domain + LF) followed by RFC8785_JCS of either the normalized string array or a closed scopes object",
-      "digest_encoding": "UNRESOLVED: sha256:lowercase_hex or base64url",
+      "digest_input": "UTF8(domain + LF) || RFC8785_JCS({scopes: normalized_scopes})",
+      "digest_encoding": "sha256:lowercase_hex",
       "domain_is_a_transcript_member": false,
       "defined_in": "zh/models/actor.md#331-accountable_principal_ids-的可验证性normative",
-      "defining_literal": "string_set_digest(payload.accountability_scope, ak.accountability_scope_set.v1)"
+      "defining_literal": "UTF8(\"ak.accountability_scope_set.v1\\n\") || RFC8785_JCS({\"scopes\": normalized_scopes})"
     }
   ],
   "contexts": [
@@ -378,34 +379,6 @@
       ],
       "defined_in": "zh/identity/identity-handles.md",
       "schema_ref": "schemas/handle-claim.schema.json#/$defs/handle_claim_revocation"
-    },
-    {
-      "context": "ak.identity_creation_control_proof.v1",
-      "object_family": "identity_creation_control",
-      "binding_fields": [
-        "proof_kind",
-        "challenge_id",
-        "challenge",
-        "purpose",
-        "principal_id",
-        "registration_anchor_digest",
-        "pcr_realm_id",
-        "realm_create_payload_digest",
-        "founding_authorize_payload_digest",
-        "initial_session_request_digest",
-        "genesis_unit_kinds",
-        "identity_creation_lease_id",
-        "lease_fence",
-        "dpop_jkt",
-        "audience_id",
-        "origin",
-        "trust_domain",
-        "issued_at",
-        "expires_at",
-        "verification_key_multibase"
-      ],
-      "defined_in": "zh/identity/account-lifecycle.md",
-      "schema_ref": "schemas/account-operations.schema.json#/$defs/identity_creation_control_proof"
     },
     {
       "context": "ak.identity_receipt_proof.v1",
@@ -970,9 +943,7 @@
       "digest_construction": "domain_prefixed_jcs_sha256_over_normalized_string_set",
       "prefix_bytes_hex": "616b2e6163636f756e746162696c6974795f73636f70655f7365742e76310a",
       "transcript_defined_in": "zh/models/actor.md#331-accountable_principal_ids-的可验证性normative",
-      "known_answer_ref": null,
-      "kat_absence_reason": "The normalized string-set transcript shape and digest output encoding require an explicit protocol decision; close this gap by publishing the decided byte transcript and a matching KAT before removing this reason.",
-      "owner_report": "arkret-work/tasks/spec-open/2026-09-19-1627-canonical-json-digest-kats-and-accountability-scope-transcript.md",
+      "known_answer_ref": "fixtures/canonical-json-digest-kat-fixture.json#/cases/0",
       "binding_fields": [
         "scopes"
       ]
@@ -1030,12 +1001,15 @@
       "digest_construction": "domain_prefixed_jcs_sha256",
       "prefix_bytes_hex": "616b2e636f6e746163742e676c6172655f756e636f6e73756d65645f736c6f742e76310a",
       "transcript_defined_in": "zh/identity/contact-and-direct-conversation.md#2-contact-写链回执与-contact-round",
-      "known_answer_ref": null,
-      "kat_absence_reason": "No byte-level glare-unconsumed-slot vector is published; close this gap by adding a complete transcript and matching digest KAT for this domain.",
-      "owner_report": "arkret-work/tasks/spec-open/2026-09-19-1627-canonical-json-digest-kats-and-accountability-scope-transcript.md",
+      "known_answer_ref": "fixtures/canonical-json-digest-kat-fixture.json#/cases/1",
       "binding_fields": [
-        "contact_pair",
-        "slot"
+        "subject_id",
+        "peer_id",
+        "contact_round_id",
+        "request_receipt_digests",
+        "observed_commit_event_ids",
+        "complete_through",
+        "slot_state"
       ]
     },
     {
@@ -1064,10 +1038,18 @@
       "digest_construction": "domain_prefixed_jcs_sha256",
       "prefix_bytes_hex": "616b2e636f6e746163742e726571756573745f616363657074616e63655f636f72652e76310a",
       "transcript_defined_in": "zh/identity/contact-and-direct-conversation.md#2-contact-写链回执与-contact-round",
-      "known_answer_ref": "fixtures/contact-round-kat.json",
+      "known_answer_ref": "fixtures/contact-round-kat.json#/producer_signer_kat/cases/0/signed_object",
       "binding_fields": [
-        "request",
-        "acceptance"
+        "holder",
+        "peer",
+        "slot_version",
+        "slot_predecessor?",
+        "previous_terminal_contact_round_id?",
+        "request_event_ref",
+        "producer_signer",
+        "source_checkpoint",
+        "accepted_at",
+        "issuer_id"
       ]
     },
     {
@@ -1077,12 +1059,10 @@
       "digest_construction": "domain_prefixed_jcs_sha256",
       "prefix_bytes_hex": "616b2e636f6e746163742e726571756573745f736f757263655f636865636b706f696e742e76310a",
       "transcript_defined_in": "zh/identity/contact-and-direct-conversation.md#2-contact-写链回执与-contact-round",
-      "known_answer_ref": null,
-      "kat_absence_reason": "No byte-level request-source-checkpoint vector is published; close this gap by adding a complete transcript and matching digest KAT for this domain.",
-      "owner_report": "arkret-work/tasks/spec-open/2026-09-19-1627-canonical-json-digest-kats-and-accountability-scope-transcript.md",
+      "known_answer_ref": "fixtures/canonical-json-digest-kat-fixture.json#/cases/2",
       "binding_fields": [
-        "request",
-        "source_checkpoint"
+        "event_ref",
+        "event_digest"
       ]
     },
     {
@@ -1375,6 +1355,40 @@
         "source_id",
         "destination_id"
       ]
+    },
+    {
+      "domain": "ak.identity_creation_control_proof.v1",
+      "object_family": "identity_creation_control",
+      "primitive": "detached_signature",
+      "binding_fields": [
+        "proof_kind",
+        "challenge_id",
+        "challenge",
+        "purpose",
+        "account_subject",
+        "principal_id",
+        "did",
+        "registration_anchor_digest",
+        "did_version_id",
+        "control_key_digest",
+        "pcr_realm_id",
+        "realm_create_payload_digest",
+        "founding_authorize_payload_digest",
+        "initial_session_request_digest",
+        "genesis_unit_kinds",
+        "identity_creation_lease_id",
+        "lease_fence",
+        "dpop_jkt",
+        "audience_id",
+        "origin",
+        "trust_domain",
+        "issued_at",
+        "expires_at",
+        "verification_key_multibase",
+        "signature_algorithm"
+      ],
+      "defined_in": "zh/identity/account-lifecycle.md#212-account-handoffpcr-genesis-与首次-standard-grantnormative",
+      "schema_ref": "schemas/account-operations.schema.json#/$defs/identity_creation_control_proof"
     },
     {
       "domain": "ak.identity.recovery_device_possession.v1",

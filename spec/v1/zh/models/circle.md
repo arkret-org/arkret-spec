@@ -138,7 +138,7 @@ Event wire 只有一个安全作用域字段 `scope_ref`：
 
 Realm scope Event：
 
-```json
+```json fragment
 {
   "scope_ref": {
     "kind": "realm",
@@ -146,10 +146,9 @@ Realm scope Event：
   }
 }
 ```
-
 Circle scope Event：
 
-```json
+```json fragment
 {
   "scope_ref": {
     "kind": "circle",
@@ -158,7 +157,6 @@ Circle scope Event：
   }
 }
 ```
-
 Reducer 校验顺序(MUST):
 
 1. schema 校验 Event 必有 `scope_ref`，且 `scope_ref.realm_id == realm_id`。

@@ -102,6 +102,97 @@ def mls_varint(value: int) -> bytes:
     raise ValueError("MLS variable-length integer exceeds the RFC 9420 range")
 
 
+def _decode_canonical_base64url(value: Any) -> bytes:
+    if not isinstance(value, str) or not re.fullmatch(r"[A-Za-z0-9_-]+", value):
+        raise ValueError("value is not an unpadded base64url string")
+    try:
+        decoded = base64.urlsafe_b64decode(value + "=" * (-len(value) % 4))
+    except (ValueError, binascii.Error) as exc:
+        raise ValueError("value is not decodable base64url") from exc
+    if base64.urlsafe_b64encode(decoded).rstrip(b"=").decode("ascii") != value:
+        raise ValueError("value is not canonical unpadded base64url")
+    return decoded
+
+
+def _read_mls_varint(data: bytes, offset: int) -> tuple[int, int]:
+    if offset >= len(data):
+        raise ValueError("truncated MLS variable-length integer")
+    width = (1, 2, 4, 8)[data[offset] >> 6]
+    end = offset + width
+    if end > len(data):
+        raise ValueError("truncated MLS variable-length integer")
+    value = int.from_bytes(data[offset:end], "big") & ((1 << (width * 8 - 2)) - 1)
+    if mls_varint(value) != data[offset:end]:
+        raise ValueError("non-minimal MLS variable-length integer")
+    return value, end
+
+
+def _read_mls_opaque(data: bytes, offset: int) -> tuple[bytes, int]:
+    length, start = _read_mls_varint(data, offset)
+    end = start + length
+    if end > len(data):
+        raise ValueError("truncated MLS opaque vector")
+    return data[start:end], end
+
+
+def _parse_rfc9420_keypackage(data: bytes) -> dict[str, Any]:
+    """Parse the fixed RFC 9420 KeyPackage shape used by the endpoint KAT."""
+
+    if len(data) < 4:
+        raise ValueError("truncated KeyPackage header")
+    version = int.from_bytes(data[0:2], "big")
+    cipher_suite = int.from_bytes(data[2:4], "big")
+    offset = 4
+    init_key, offset = _read_mls_opaque(data, offset)
+    leaf_start = offset
+    encryption_key, offset = _read_mls_opaque(data, offset)
+    signature_key, offset = _read_mls_opaque(data, offset)
+    if offset + 2 > len(data):
+        raise ValueError("truncated MLS credential type")
+    credential_type = int.from_bytes(data[offset : offset + 2], "big")
+    offset += 2
+    credential_identity, offset = _read_mls_opaque(data, offset)
+    for _ in range(5):
+        _, offset = _read_mls_opaque(data, offset)
+    if offset >= len(data):
+        raise ValueError("truncated LeafNode source")
+    leaf_source = data[offset]
+    offset += 1
+    if leaf_source != 1:
+        raise ValueError("endpoint KAT LeafNode source is not key_package(1)")
+    if offset + 16 > len(data):
+        raise ValueError("truncated LeafNode lifetime")
+    offset += 16
+    _, offset = _read_mls_opaque(data, offset)
+    leaf_tbs_end = offset
+    leaf_signature, offset = _read_mls_opaque(data, offset)
+    leaf_end = offset
+    _, offset = _read_mls_opaque(data, offset)
+    keypackage_tbs_end = offset
+    keypackage_signature, offset = _read_mls_opaque(data, offset)
+    if offset != len(data):
+        raise ValueError("KeyPackage has trailing bytes")
+    return {
+        "version": version,
+        "cipher_suite": cipher_suite,
+        "init_key": init_key,
+        "encryption_key": encryption_key,
+        "signature_key": signature_key,
+        "credential_type": credential_type,
+        "credential_identity": credential_identity,
+        "leaf_node": data[leaf_start:leaf_end],
+        "leaf_tbs": data[leaf_start:leaf_tbs_end],
+        "leaf_signature": leaf_signature,
+        "keypackage_tbs": data[:keypackage_tbs_end],
+        "keypackage_signature": keypackage_signature,
+    }
+
+
+def _mls_sign_content(label: str, content: bytes) -> bytes:
+    label_bytes = ("MLS 1.0 " + label).encode("ascii")
+    return mls_varint(len(label_bytes)) + label_bytes + mls_varint(len(content)) + content
+
+
 def hkdf_expand_sha256(secret: bytes, info: bytes, length: int) -> bytes:
     hash_length = hashlib.sha256().digest_size
     if length < 0 or length > 255 * hash_length:
@@ -391,6 +482,273 @@ def webvh_next_version_number(predecessor: str) -> int:
     return int(head) + 1 if head.isdigit() else 1
 
 
+def check_did_webvh_witness_fixture(lint: Lint) -> None:
+    """Recompute the constructive witness vector and policy key compatibility."""
+    path = ARTIFACTS / "fixtures/did-webvh-witness-fixture.json"
+    data = load_json(lint, path)
+    if not isinstance(data, dict):
+        return
+    cases = data.get("method_policy_cases")
+    if not isinstance(cases, list) or not cases:
+        lint.fail(path, "method_policy_cases must be non-empty")
+        cases = []
+    case_names = {case.get("name") for case in cases if isinstance(case, dict)}
+    for required in {
+        "undecodable_did_key_witness_fails_closed",
+        "cryptosuite_incompatible_witness_key_fails_closed",
+    }:
+        if required not in case_names:
+            lint.fail(path, f"method_policy_cases is missing required malformed-key case {required}")
+    for index, case in enumerate(cases):
+        if not isinstance(case, dict):
+            lint.fail(path, f"method_policy_cases[{index}] must be an object")
+            continue
+        context = case.get("validation_context")
+        if context != {"cryptosuite": "eddsa-jcs-2022"}:
+            lint.fail(path, f"method_policy_cases[{index}] must select eddsa-jcs-2022 in validation_context")
+        witness = (case.get("parameters") or {}).get("witness")
+        rows = witness.get("witnesses") if isinstance(witness, dict) else []
+        incompatible = False
+        if isinstance(rows, list):
+            for row in rows:
+                value = row.get("id") if isinstance(row, dict) else None
+                if not isinstance(value, str) or not value.startswith("did:key:"):
+                    continue
+                _, detail = _ed25519_public_key_octets(value)
+                incompatible = incompatible or detail is not None
+        expects_malformed_key = case.get("name") in {
+            "undecodable_did_key_witness_fails_closed",
+            "cryptosuite_incompatible_witness_key_fails_closed",
+        }
+        if expects_malformed_key:
+            if not incompatible or case.get("expected_reason_code") != "webvh_witness_parameter_malformed":
+                lint.fail(path, f"method_policy_cases[{index}] must prove a cryptosuite-incompatible key is malformed")
+        elif incompatible and isinstance(rows, list):
+            lint.fail(path, f"method_policy_cases[{index}] uses an invalid Ed25519 witness in a non-key-negative case")
+
+    vectors = data.get("cryptographic_vectors")
+    if not isinstance(vectors, list) or len(vectors) != 1 or not isinstance(vectors[0], dict):
+        lint.fail(path, "cryptographic_vectors must contain exactly one constructive vector")
+        return
+    vector = vectors[0]
+    material_registry = load_json(lint, ARTIFACTS / "registry/test-material-registry.json")
+    public_rows = material_registry.get("public_fixture_keys") if isinstance(material_registry, dict) else None
+    registered_witnesses = {
+        (row.get("did"), row.get("fingerprint"))
+        for row in public_rows or []
+        if isinstance(row, dict) and str(row.get("id", "")).startswith("did_webvh_witness_")
+    }
+    vector_keys = vector.get("public_fixture_keys")
+    stated_witnesses = {
+        (row.get("did"), row.get("fingerprint"))
+        for row in vector_keys or []
+        if isinstance(row, dict)
+    }
+    if len(stated_witnesses) != 3 or registered_witnesses != stated_witnesses:
+        lint.fail(path, "the three public witness fixture keys must be registered exactly")
+    preliminary = vector.get("preliminary_entry")
+    entries = vector.get("did_log_entries")
+    if not isinstance(preliminary, dict) or not isinstance(entries, list) or len(entries) != 1 or not isinstance(entries[0], dict):
+        lint.fail(path, "constructive vector must carry one preliminary and one published entry")
+        return
+    published = entries[0]
+    scid = multihash_sha256_base58btc(canonical_json(preliminary).encode("utf-8"))
+
+    def substitute(value: Any) -> Any:
+        if isinstance(value, str):
+            return value.replace("{SCID}", scid)
+        if isinstance(value, list):
+            return [substitute(item) for item in value]
+        if isinstance(value, dict):
+            return {key: substitute(item) for key, item in value.items()}
+        return value
+
+    without_proof = {key: value for key, value in published.items() if key != "proof"}
+    expected_substituted = substitute(preliminary)
+    entry_hash_input = dict(expected_substituted)
+    entry_hash_input["versionId"] = scid
+    version_id = "1-" + multihash_sha256_base58btc(canonical_json(entry_hash_input).encode("utf-8"))
+    expected_substituted["versionId"] = version_id
+    if without_proof != expected_substituted:
+        lint.fail(path, "published entry is not the whole-entry SCID substitution of the preliminary entry")
+    proof_rows = published.get("proof")
+    proof = proof_rows[0] if isinstance(proof_rows, list) and len(proof_rows) == 1 else None
+    key_bytes, detail = _ed25519_public_key_octets(proof.get("verificationMethod") if isinstance(proof, dict) else None)
+    try:
+        signature = base58btc_decode(proof["proofValue"][1:]) if isinstance(proof, dict) and str(proof.get("proofValue", "")).startswith("z") else b""
+        if detail is not None or key_bytes is None or Ed25519PublicKey is None:
+            raise ValueError(detail or "cryptography unavailable")
+        Ed25519PublicKey.from_public_bytes(key_bytes).verify(signature, canonical_json(entry_hash_input).encode("utf-8"))
+    except Exception:
+        lint.fail(path, "constructive vector controller proof does not verify over the registered entry-hash input")
+    expected = vector.get("expected")
+    head = "sha256:" + hashlib.sha256(canonical_json(published).encode("utf-8")).hexdigest()
+    if not isinstance(expected, dict) or expected.get("scid") != scid or expected.get("version_id") != version_id or expected.get("method_history_head") != head or expected.get("did") != (published.get("state") or {}).get("id"):
+        lint.fail(path, "constructive vector expected DID/SCID/versionId/head does not recompute")
+    witness_json = vector.get("did_witness_json")
+    witness_proofs = witness_json.get("proof") if isinstance(witness_json, dict) else None
+    if not isinstance(witness_json, dict) or witness_json.get("versionId") != version_id or not isinstance(witness_proofs, list):
+        lint.fail(path, "did-witness.json must bind the constructive entry versionId")
+        return
+    witness_input = b"did:webvh witness proof v1\n" + version_id.encode("utf-8")
+    valid_methods: set[str] = set()
+    for index, row in enumerate(witness_proofs):
+        key_bytes, detail = _ed25519_public_key_octets(row.get("verificationMethod") if isinstance(row, dict) else None)
+        try:
+            signature = base58btc_decode(row["proofValue"][1:]) if isinstance(row, dict) and str(row.get("proofValue", "")).startswith("z") else b""
+            if detail is not None or key_bytes is None or Ed25519PublicKey is None:
+                raise ValueError(detail or "cryptography unavailable")
+            Ed25519PublicKey.from_public_bytes(key_bytes).verify(signature, witness_input)
+            valid_methods.add(row["verificationMethod"].split("#", 1)[0])
+        except Exception:
+            lint.fail(path, f"did-witness.json proof[{index}] does not verify")
+    policy = (published.get("parameters") or {}).get("witness")
+    declared = {row.get("id") for row in (policy or {}).get("witnesses", []) if isinstance(row, dict)}
+    threshold = (policy or {}).get("threshold")
+    if not isinstance(threshold, int) or len(valid_methods & declared) < threshold:
+        lint.fail(path, "constructive vector does not meet its declared witness threshold")
+    required_mutations = {
+        "controller_signature_bit_flip",
+        "witness_signature_bit_flip",
+        "witness_version_id_mismatch",
+        "one_valid_proof_is_below_threshold",
+    }
+    mutations = vector.get("mutation_cases")
+    names = {row.get("name") for row in mutations or [] if isinstance(row, dict)}
+    if names != required_mutations:
+        lint.fail(path, f"constructive vector mutation set must be exactly {sorted(required_mutations)}")
+
+
+def check_resolution_commitment_coverage(lint: Lint) -> None:
+    """Require every fixture resolution tuple to be pointer-covered and adapter-recomputed."""
+    registry_path = ROOT / "tools/resolution-commitment-pointer-registry.json"
+    vector_path = ARTIFACTS / "fixtures/resolution-commitment-fixture.json"
+    registry = load_json(lint, registry_path)
+    fixture = load_json(lint, vector_path)
+    if not isinstance(registry, dict) or not isinstance(fixture, dict):
+        return
+    rows = registry.get("pointers")
+    vectors_raw = fixture.get("vectors")
+    if not isinstance(rows, list) or not isinstance(vectors_raw, list):
+        lint.fail(registry_path, "pointer registry and resolution vector must carry arrays")
+        return
+    vectors = {
+        row.get("evidence_id"): row
+        for row in vectors_raw
+        if isinstance(row, dict) and isinstance(row.get("evidence_id"), str)
+    }
+
+    def pointer_get(document: Any, pointer: str) -> Any:
+        node = document
+        for raw in pointer.strip("/").split("/") if pointer else []:
+            token = raw.replace("~1", "/").replace("~0", "~")
+            node = node[int(token)] if isinstance(node, list) and token.isdigit() else node[token]
+        return node
+
+    documents: dict[str, Any] = {}
+    registered: set[tuple[str, str]] = set()
+    for index, row in enumerate(rows):
+        if not isinstance(row, dict):
+            lint.fail(registry_path, f"pointers[{index}] must be an object")
+            continue
+        name, pointer, evidence_id = row.get("fixture"), row.get("pointer"), row.get("evidence_id")
+        if not all(isinstance(value, str) and value for value in (name, pointer, evidence_id)):
+            lint.fail(registry_path, f"pointers[{index}] must name fixture, pointer and evidence_id")
+            continue
+        pair = (name, pointer)
+        if pair in registered:
+            lint.fail(registry_path, f"duplicate pointer row: {name}{pointer}")
+        registered.add(pair)
+        if evidence_id not in vectors:
+            lint.fail(registry_path, f"{name}{pointer} names unknown evidence {evidence_id}")
+            continue
+        document = documents.setdefault(name, load_json(lint, ARTIFACTS / "fixtures" / name))
+        try:
+            if "::" in pointer:
+                outer, inner = pointer.split("::", 1)
+                target = pointer_get(json.loads(pointer_get(document, outer)), inner)
+            else:
+                target = pointer_get(document, pointer)
+        except Exception:
+            lint.fail(registry_path, f"pointer does not resolve: {name}{pointer}")
+            continue
+        if target != vectors[evidence_id].get("commitment"):
+            lint.fail(registry_path, f"{name}{pointer} differs from evidence {evidence_id}")
+
+    observed: set[tuple[str, str]] = set()
+
+    def scan(name: str, node: Any, pointer: str) -> None:
+        if isinstance(node, dict):
+            if set(node) == {"did", "method_history_head", "version_id"}:
+                observed.add((name, pointer))
+            for key, value in node.items():
+                token = str(key).replace("~", "~0").replace("/", "~1")
+                scan(name, value, f"{pointer}/{token}")
+        elif isinstance(node, list):
+            for index, value in enumerate(node):
+                scan(name, value, f"{pointer}/{index}")
+        elif isinstance(node, str) and "initial_resolution" in node and node.startswith("{"):
+            try:
+                embedded = json.loads(node)
+            except json.JSONDecodeError:
+                return
+
+            def embedded_scan(value: Any, inner: str) -> None:
+                if isinstance(value, dict):
+                    if set(value) == {"did", "method_history_head", "version_id"}:
+                        observed.add((name, f"{pointer}::{inner}"))
+                    for key, child in value.items():
+                        token = str(key).replace("~", "~0").replace("/", "~1")
+                        embedded_scan(child, f"{inner}/{token}")
+                elif isinstance(value, list):
+                    for index, child in enumerate(value):
+                        embedded_scan(child, f"{inner}/{index}")
+
+            embedded_scan(embedded, "")
+
+    for path in sorted((ARTIFACTS / "fixtures").glob("*.json")):
+        if path.name == vector_path.name:
+            continue
+        document = load_json(lint, path)
+        if document is not None:
+            scan(path.name, document, "")
+    for name, pointer in sorted(observed - registered):
+        lint.fail(registry_path, f"uncovered resolution commitment: {name}{pointer}")
+    for name, pointer in sorted(registered - observed):
+        lint.fail(registry_path, f"stale resolution commitment pointer: {name}{pointer}")
+
+    for evidence_id, row in vectors.items():
+        entry = row.get("verified_entry")
+        commitment = row.get("commitment")
+        if not isinstance(entry, dict) or not isinstance(commitment, dict):
+            lint.fail(vector_path, f"{evidence_id} must carry verified_entry and commitment")
+            continue
+        parameters = entry.get("parameters")
+        state = entry.get("state")
+        scid = parameters.get("scid") if isinstance(parameters, dict) else None
+        did = state.get("id") if isinstance(state, dict) else None
+        if not isinstance(scid, str) or not isinstance(did, str) or did.split(":", 3)[2] != scid:
+            lint.fail(vector_path, f"{evidence_id} DID does not carry the verified SCID")
+            continue
+        hash_input = {key: value for key, value in entry.items() if key != "proof"}
+        hash_input["versionId"] = scid
+        version_id = "1-" + multihash_sha256_base58btc(canonical_json(hash_input).encode("utf-8"))
+        head = "sha256:" + hashlib.sha256(canonical_json(entry).encode("utf-8")).hexdigest()
+        expected = {"did": did, "method_history_head": head, "version_id": version_id}
+        if commitment != expected:
+            lint.fail(vector_path, f"{evidence_id} commitment does not recompute from its verified entry")
+        preliminary = row.get("preliminary_entry")
+        if isinstance(preliminary, dict):
+            derived_scid = multihash_sha256_base58btc(canonical_json(preliminary).encode("utf-8"))
+            if derived_scid != scid:
+                lint.fail(vector_path, f"{evidence_id} DID SCID does not recompute from its preliminary entry")
+        elif not isinstance(row.get("external_scid_derivation_ref"), str):
+            lint.fail(vector_path, f"{evidence_id} must carry preliminary_entry or an exact external SCID derivation ref")
+        projected = "ak:did_core:webvh:" + scid
+        if row.get("projected_core_id") != projected:
+            lint.fail(vector_path, f"{evidence_id}.projected_core_id does not follow the active adapter")
+
+
 DERIVED_RELATION_INPUTS: dict[str, dict[str, str]] = {
     "event_id_from_canonical_preimage": {
         "canonical_preimage_utf8": "ref",
@@ -605,16 +963,6 @@ REQUIRED_DERIVED_RELATIONS: tuple[tuple[str, str, str], ...] = (
         "pcr-genesis-fixture.json",
         "canonical_json_bytes_of_object",
         "fixture:pcr-genesis-fixture.json#/identity_creation_control_transcript/account_subject_preimage/canonical_json",
-    ),
-    (
-        "pcr-genesis-fixture.json",
-        "equal_json_value",
-        "fixture:pcr-genesis-fixture.json#/provisional_identity_abandonment/challenge/account_subject",
-    ),
-    (
-        "pcr-genesis-fixture.json",
-        "equal_json_value",
-        "fixture:pcr-genesis-fixture.json#/provisional_identity_abandonment/challenge/did_version_id",
     ),
     (
         "content-bound-event-id-fixture.json",
@@ -3192,6 +3540,256 @@ def check_keypackage_write_transcript_fixture(lint: Lint) -> None:
         check_json_instance_against_schema(lint, fixture_path, name, schema_ref, instance)
 
 
+def check_mls_keypackage_actor_ciphersuite_closure(lint: Lint) -> None:
+    """Pin complete ActorId credentials and fail-closed ciphersuite selection."""
+
+    fixture_path = ARTIFACTS / "fixtures" / "mls-keypackage-endpoint-kat-fixture.json"
+    lifecycle_path = ARTIFACTS / "fixtures" / "keypackage-lifecycle-fixture.json"
+    registry_path = ARTIFACTS / "registry" / "mls-ciphersuite-registry.json"
+    schema_path = ARTIFACTS / "schemas" / "keypackage-operations.schema.json"
+    fixture = load_json(lint, fixture_path)
+    lifecycle = load_json(lint, lifecycle_path)
+    registry = load_json(lint, registry_path)
+    schema = load_json(lint, schema_path)
+    if not all(isinstance(item, dict) for item in (fixture, lifecycle, registry, schema)):
+        return
+
+    vector_id = "ak.vector.mls.keypackage_actor_and_ciphersuite_closure.v1"
+    if fixture.get("covers_vectors") != [vector_id]:
+        lint.fail(fixture_path, f"covers_vectors must contain only {vector_id}")
+    cases = fixture.get("cases")
+    if not isinstance(cases, list):
+        lint.fail(fixture_path, "cases must be an array")
+        cases = []
+    expected_case_names = {"ordinary_human_device", "agent_runtime"}
+    actual_case_names = {
+        case.get("name")
+        for case in cases
+        if isinstance(case, dict) and isinstance(case.get("name"), str)
+    }
+    if len(cases) != 2 or actual_case_names != expected_case_names:
+        lint.fail(fixture_path, f"endpoint KAT cases drifted: {sorted(actual_case_names)}")
+
+    suite_rows = registry.get("ciphersuites")
+    if not isinstance(suite_rows, list):
+        lint.fail(registry_path, "ciphersuites must be an array")
+        suite_rows = []
+    active_rows = [row for row in suite_rows if isinstance(row, dict) and row.get("status") == "active"]
+    if len(active_rows) != 1:
+        lint.fail(registry_path, "v1 endpoint KAT requires exactly one active MLS ciphersuite")
+        active_row: dict[str, Any] = {}
+    else:
+        active_row = active_rows[0]
+    active_hex = active_row.get("rfc9420_id")
+    try:
+        active_wire_id = int(active_hex, 16) if isinstance(active_hex, str) else None
+    except ValueError:
+        active_wire_id = None
+    if (
+        active_row.get("canonical_id")
+        != "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519"
+        or active_hex != "0x0001"
+        or active_wire_id != 1
+    ):
+        lint.fail(registry_path, "the sole active v1 MLS ciphersuite must be the RFC 9420 0x0001 suite")
+
+    if Ed25519PublicKey is None or InvalidSignature is None:
+        lint.fail(fixture_path, "cryptography is required to verify endpoint KeyPackage signatures")
+        return
+
+    for index, case in enumerate(cases):
+        label = f"cases[{index}]"
+        if not isinstance(case, dict):
+            lint.fail(fixture_path, f"{label} must be an object")
+            continue
+        endpoint = case.get("endpoint")
+        actor_id = endpoint.get("actor_id") if isinstance(endpoint, dict) else None
+        if not isinstance(actor_id, dict):
+            lint.fail(fixture_path, f"{label}.endpoint.actor_id must be a complete ActorId object")
+            continue
+        account_id = actor_id.get("account_id")
+        if (
+            actor_id.get("kind") != "account"
+            or set(actor_id) != {"kind", "account_id"}
+            or not isinstance(account_id, dict)
+            or set(account_id) != {"principal_id", "station_id"}
+            or not all(isinstance(account_id.get(key), str) for key in ("principal_id", "station_id"))
+        ):
+            lint.fail(fixture_path, f"{label}.endpoint.actor_id is not the complete closed account ActorId")
+
+        actor_jcs = canonical_json(actor_id)
+        actor_bytes = actor_jcs.encode("utf-8")
+        if case.get("leaf_credential_jcs") != actor_jcs:
+            lint.fail(fixture_path, f"{label}.leaf_credential_jcs must equal JCS(endpoint.actor_id)")
+        try:
+            stated_credential = _decode_canonical_base64url(case.get("leaf_credential"))
+        except ValueError as exc:
+            lint.fail(fixture_path, f"{label}.leaf_credential: {exc}")
+            stated_credential = b""
+        if stated_credential != actor_bytes:
+            lint.fail(
+                fixture_path,
+                f"{label}.leaf_credential must equal UTF8(RFC8785_JCS(complete ActorId))",
+            )
+
+        if case.get("cipher_suite") != active_wire_id or case.get("cipher_suite_hex") != active_hex:
+            lint.fail(fixture_path, f"{label} must select the sole active registry ciphersuite")
+        try:
+            keypackage_bytes = _decode_canonical_base64url(case.get("keypackage"))
+            parsed = _parse_rfc9420_keypackage(keypackage_bytes)
+        except ValueError as exc:
+            lint.fail(fixture_path, f"{label}.keypackage is not the pinned RFC 9420 shape: {exc}")
+            continue
+        if parsed["version"] != 1 or parsed["cipher_suite"] != active_wire_id:
+            lint.fail(fixture_path, f"{label}.keypackage header must encode MLS 1.0 and suite 0x0001")
+        if parsed["credential_type"] != 1:
+            lint.fail(fixture_path, f"{label}.keypackage must use BasicCredential(1)")
+        if parsed["credential_identity"] != actor_bytes:
+            lint.fail(fixture_path, f"{label}.keypackage BasicCredential must contain the complete ActorId JCS bytes")
+
+        try:
+            leaf_key = _decode_canonical_base64url(case.get("leaf_signature_key"))
+            batch_key = _decode_canonical_base64url(case.get("batch_signature_public_key"))
+        except ValueError as exc:
+            lint.fail(fixture_path, f"{label} signature key is invalid: {exc}")
+            continue
+        if len(leaf_key) != 32 or leaf_key != batch_key or parsed["signature_key"] != leaf_key:
+            lint.fail(
+                fixture_path,
+                f"{label} LeafNode and batch endpoint Ed25519 keys must be the same 32 bytes",
+            )
+            continue
+        verifying_key = Ed25519PublicKey.from_public_bytes(leaf_key)
+        for signature_label, content_key, signature_key in (
+            ("LeafNodeTBS", "leaf_tbs", "leaf_signature"),
+            ("KeyPackageTBS", "keypackage_tbs", "keypackage_signature"),
+        ):
+            try:
+                verifying_key.verify(
+                    parsed[signature_key],
+                    _mls_sign_content(signature_label, parsed[content_key]),
+                )
+            except InvalidSignature:
+                lint.fail(fixture_path, f"{label} {signature_label} signature does not verify")
+
+        leaf_digest = "sha256:" + hashlib.sha256(parsed["leaf_node"]).hexdigest()
+        keypackage_digest = "sha256:" + hashlib.sha256(keypackage_bytes).hexdigest()
+        if case.get("leaf_node_sha256") != leaf_digest:
+            lint.fail(fixture_path, f"{label}.leaf_node_sha256 does not match the encoded LeafNode")
+        if case.get("keypackage_sha256") != keypackage_digest or case.get("keypackage_ref") != keypackage_digest:
+            lint.fail(fixture_path, f"{label} KeyPackage digest and reference must match the exact bytes")
+
+        upload_entry_jcs = case.get("upload_entry_jcs")
+        try:
+            upload_entry = json.loads(upload_entry_jcs) if isinstance(upload_entry_jcs, str) else None
+        except json.JSONDecodeError:
+            upload_entry = None
+        if not isinstance(upload_entry, dict) or canonical_json(upload_entry) != upload_entry_jcs:
+            lint.fail(fixture_path, f"{label}.upload_entry_jcs must be canonical JSON")
+            continue
+        if (
+            upload_entry.get("keypackage") != case.get("keypackage")
+            or upload_entry.get("keypackage_ref") != keypackage_digest
+            or upload_entry.get("cipher_suites") != [active_row.get("canonical_id")]
+        ):
+            lint.fail(fixture_path, f"{label}.upload_entry_jcs is not bound to the pinned KeyPackage and suite")
+        upload_digest = "sha256:" + hashlib.sha256(upload_entry_jcs.encode("utf-8")).hexdigest()
+        if case.get("upload_entry_sha256") != upload_digest:
+            lint.fail(fixture_path, f"{label}.upload_entry_sha256 does not match upload_entry_jcs")
+
+    definitions = schema.get("$defs")
+    if not isinstance(definitions, dict):
+        lint.fail(schema_path, "$defs must be an object")
+        definitions = {}
+    for definition_name in ("keypackage_claim_record", "keypackages_upload_request_body"):
+        definition = definitions.get(definition_name)
+        required = definition.get("required") if isinstance(definition, dict) else None
+        properties = definition.get("properties") if isinstance(definition, dict) else None
+        actor_property = properties.get("actor_id") if isinstance(properties, dict) else None
+        if (
+            not isinstance(required, list)
+            or "actor_id" not in required
+            or not isinstance(actor_property, dict)
+            or actor_property.get("$ref") != "./common-ids.schema.json#/$defs/actor_id"
+        ):
+            lint.fail(schema_path, f"$defs.{definition_name} must require the complete common ActorId")
+
+    lifecycle_cases = lifecycle.get("cases")
+    policy_cases = [
+        case
+        for case in lifecycle_cases or []
+        if isinstance(case, dict) and case.get("vector_id") == vector_id
+    ]
+    if len(policy_cases) != 1:
+        lint.fail(lifecycle_path, f"exactly one lifecycle case must implement {vector_id}")
+        return
+    policy = policy_cases[0]
+    expected_refs = {
+        "fixtures/mls-keypackage-endpoint-kat-fixture.json#/cases/0",
+        "fixtures/mls-keypackage-endpoint-kat-fixture.json#/cases/1",
+    }
+    if set(policy.get("endpoint_kat_refs", [])) != expected_refs:
+        lint.fail(lifecycle_path, "ciphersuite policy case must bind both endpoint KeyPackage KAT branches")
+    if policy.get("active_suite") != {
+        "canonical_id": active_row.get("canonical_id"),
+        "rfc9420_id": active_hex,
+        "wire_id": active_wire_id,
+        "status": "active",
+    }:
+        lint.fail(lifecycle_path, "ciphersuite policy active_suite must reproduce the active registry row")
+
+    rejection_cases = policy.get("rejection_cases")
+    if not isinstance(rejection_cases, list):
+        lint.fail(lifecycle_path, "ciphersuite policy rejection_cases must be an array")
+        rejection_cases = []
+    expected_rejections = {
+        "publish_rejects_unregistered_suite": ("publish", "unsupported_ciphersuite"),
+        "claim_rejects_reserved_suite": ("claim", "unsupported_ciphersuite"),
+        "commit_rejects_reserved_suite": ("commit_submission", "unsupported_ciphersuite"),
+        "try_many_is_not_a_fallback": ("claim", "unsupported_ciphersuite"),
+        "foreign_suite_identifier_is_not_rewritten": ("commit_submission", "unsupported_ciphersuite"),
+        "collapsed_basic_credential_is_rejected": ("claim", "claim_failed"),
+    }
+    by_name = {
+        row.get("name"): row
+        for row in rejection_cases
+        if isinstance(row, dict) and isinstance(row.get("name"), str)
+    }
+    if len(rejection_cases) != len(expected_rejections) or set(by_name) != set(expected_rejections):
+        lint.fail(lifecycle_path, f"ciphersuite rejection matrix drifted: {sorted(by_name)}")
+        return
+    registered_hex = {
+        row.get("rfc9420_id") for row in suite_rows if isinstance(row, dict) and row.get("rfc9420_id")
+    }
+    reserved_hex = {
+        row.get("rfc9420_id")
+        for row in suite_rows
+        if isinstance(row, dict) and row.get("status") == "reserved" and row.get("rfc9420_id")
+    }
+    for name, (operation, reason) in expected_rejections.items():
+        row = by_name[name]
+        if row.get("operation") != operation or row.get("expected_reason") != reason or row.get("state_changed") is not False:
+            lint.fail(lifecycle_path, f"{name} must fail with {reason} and no state change")
+    if by_name["publish_rejects_unregistered_suite"].get("presented_suite") in registered_hex:
+        lint.fail(lifecycle_path, "publish unregistered-suite case must use an actually unregistered selector")
+    for name in ("claim_rejects_reserved_suite", "commit_rejects_reserved_suite"):
+        if by_name[name].get("presented_suite") not in reserved_hex:
+            lint.fail(lifecycle_path, f"{name} must use a reserved registry selector")
+    try_many = by_name["try_many_is_not_a_fallback"]
+    if try_many.get("presented_suites") != ["0x0003", active_hex] or try_many.get("accepted_later_suite") is not False:
+        lint.fail(lifecycle_path, "try-many case must stop at the reserved selector without accepting 0x0001")
+    rewrite = by_name["foreign_suite_identifier_is_not_rewritten"]
+    if rewrite.get("proposed_local_rewrite") != active_hex or rewrite.get("rewrite_performed") is not False:
+        lint.fail(lifecycle_path, "foreign selector case must refuse local rewrite to the active suite")
+    collapsed = by_name["collapsed_basic_credential_is_rejected"]
+    if (
+        collapsed.get("expected_identity_source") != "UTF8(RFC8785_JCS(complete ActorId))"
+        or not isinstance(collapsed.get("presented_identity"), str)
+        or collapsed.get("presented_identity", "").startswith("{")
+    ):
+        lint.fail(lifecycle_path, "collapsed credential rejection must contrast a scalar with complete ActorId JCS")
+
+
 def check_fixture_schema_validation_cases(lint: Lint, path: Path, data: Any) -> None:
     if not isinstance(data, dict):
         return
@@ -4907,6 +5505,10 @@ BINDING_MEMBERS = (
     "next_epoch",
     "key_access_revision",
 )
+MLS_BINDING_MAX_INPUT_BYTES = 16384
+MLS_BINDING_MAX_NESTING_DEPTH = 8
+MLS_BINDING_MAX_COLLECTION_ITEMS = 64
+MLS_BINDING_UINT64_MAX = (1 << 64) - 1
 
 
 def _cbor_text(value: str) -> bytes:
@@ -4965,7 +5567,9 @@ class _StrictCborReader:
             raise _NonDeterministicCbor("non_minimal_integer")
         return value
 
-    def item(self) -> Any:
+    def item(self, depth: int = 0) -> Any:
+        if depth > MLS_BINDING_MAX_NESTING_DEPTH:
+            raise _NonDeterministicCbor("resource_limit_exceeded")
         head = self._byte()
         major = head >> 5
         if head == 0xF6:
@@ -4974,6 +5578,8 @@ class _StrictCborReader:
             return self._argument(head)
         if major == 3:
             length = self._argument(head)
+            if length > MLS_BINDING_MAX_INPUT_BYTES:
+                raise _NonDeterministicCbor("resource_limit_exceeded")
             if self.at + length > len(self.raw):
                 raise _NonDeterministicCbor("truncated")
             chunk = self.raw[self.at : self.at + length]
@@ -4981,11 +5587,13 @@ class _StrictCborReader:
             return chunk.decode("utf-8")
         if major == 5:
             count = self._argument(head)
+            if count > MLS_BINDING_MAX_COLLECTION_ITEMS:
+                raise _NonDeterministicCbor("resource_limit_exceeded")
             result: dict[str, Any] = {}
             previous: bytes | None = None
             for _ in range(count):
                 start = self.at
-                key = self.item()
+                key = self.item(depth + 1)
                 if not isinstance(key, str):
                     raise _NonDeterministicCbor("non_text_map_key")
                 encoded = self.raw[start : self.at]
@@ -4994,8 +5602,10 @@ class _StrictCborReader:
                 if previous is not None and encoded <= previous:
                     raise _NonDeterministicCbor("out_of_order_map_key")
                 previous = encoded
-                result[key] = self.item()
+                result[key] = self.item(depth + 1)
             return result
+        if major == 6 and self._argument(head) in (2, 3):
+            raise _NonDeterministicCbor("unsigned_integer_overflow")
         raise _NonDeterministicCbor("unsupported_major_type")
 
 
@@ -5004,10 +5614,14 @@ def _decode_binding(hex_text: str) -> tuple[Any, str | None]:
         raw = bytes.fromhex(hex_text)
     except ValueError:
         return None, "not_hexadecimal"
+    if len(raw) > MLS_BINDING_MAX_INPUT_BYTES:
+        return None, "resource_limit_exceeded"
     reader = _StrictCborReader(raw)
     try:
         value = reader.item()
-    except _NonDeterministicCbor as exc:
+    except (UnicodeDecodeError, _NonDeterministicCbor) as exc:
+        if isinstance(exc, UnicodeDecodeError):
+            return None, "invalid_utf8"
         return None, exc.kind
     if reader.at != len(raw):
         return None, "trailing_bytes"
@@ -5015,21 +5629,19 @@ def _decode_binding(hex_text: str) -> tuple[Any, str | None]:
 
 
 def check_mls_governance_binding_closure_vector(lint: Lint) -> None:
-    """Decode the AK-NC-061 binding samples rather than trust their labels.
+    """Close the one five-member MLS binding across bytes, schema and carriers."""
 
-    Without this the six rejection classes are hex strings nobody reads: an
-    implementer could not tell a genuinely non-minimal integer from a canonical
-    one relabelled, and deleting a sample would leave a decision point pointing
-    at nothing.
-    """
-
-    path = ARTIFACTS / "fixtures" / "final-conformance-closure-fixture.json"
+    path = ARTIFACTS / "fixtures" / "mls-governance-binding-closure-fixture.json"
     data = load_json(lint, path)
     if not isinstance(data, dict):
         return
+    vector_id = "ak.vector.mls.governance_binding_closure.v1"
+    epoch_vector_id = "ak.vector.mls.governance_epoch_binding.v1"
+    if data.get("covers_vectors") != [vector_id, epoch_vector_id]:
+        lint.fail(path, "the standalone fixture must cover the binding-closure and epoch-binding vectors")
     cases = data.get("cases")
     if not isinstance(cases, list):
-        lint.fail(path, "final conformance closure fixture must carry cases")
+        lint.fail(path, "MLS governance-binding closure fixture must carry cases")
         return
     by_name = {
         case.get("name"): case
@@ -5052,17 +5664,50 @@ def check_mls_governance_binding_closure_vector(lint: Lint) -> None:
     if not str(case.get("member_order_rule", "")).strip():
         lint.fail(path, "the binding case must state why that member order is canonical")
 
+    limits = case.get("resource_limits")
+    expected_limits = {
+        "maximum_input_bytes": MLS_BINDING_MAX_INPUT_BYTES,
+        "maximum_nesting_depth": MLS_BINDING_MAX_NESTING_DEPTH,
+        "maximum_collection_items": MLS_BINDING_MAX_COLLECTION_ITEMS,
+    }
+    if limits != expected_limits:
+        lint.fail(path, f"resource_limits must be the exact decoder limits {expected_limits}")
+
     accepted = case.get("accepted")
-    if not isinstance(accepted, dict):
-        lint.fail(path, "the binding case must carry an accepted encoding")
+    if not isinstance(accepted, list):
+        lint.fail(path, "the binding case must carry accepted Realm/Circle/Sidecar/Genesis encodings")
         return
-    decoded, failure = _decode_binding(str(accepted.get("encoded_map_hex", "")))
-    if failure is not None:
-        lint.fail(path, f"the accepted binding encoding is not deterministic: {failure}")
-    elif decoded != accepted.get("binding"):
-        lint.fail(path, "the accepted binding encoding does not decode to its stated members")
-    elif set(decoded) != set(BINDING_MEMBERS):
-        lint.fail(path, "the accepted binding is not the closed five members")
+    accepted_names = {
+        "realm_scope_commit",
+        "circle_scope_commit",
+        "sidecar_scope_commit",
+        "realm_scope_genesis",
+    }
+    if {item.get("name") for item in accepted if isinstance(item, dict)} != accepted_names:
+        lint.fail(path, f"accepted samples must be exactly {sorted(accepted_names)}")
+    seen_scope_kinds: set[str] = set()
+    for index, sample in enumerate(accepted):
+        if not isinstance(sample, dict):
+            lint.fail(path, f"accepted[{index}] must be an object")
+            continue
+        decoded, failure = _decode_binding(str(sample.get("encoded_map_hex", "")))
+        binding = sample.get("binding")
+        if failure is not None:
+            lint.fail(path, f"accepted[{index}] is not deterministic: {failure}")
+        elif decoded != binding:
+            lint.fail(path, f"accepted[{index}] does not decode to its stated binding")
+        if not isinstance(binding, dict) or set(binding) != set(BINDING_MEMBERS):
+            lint.fail(path, f"accepted[{index}] is not the closed five-member binding")
+            continue
+        scope = binding.get("effective_scope")
+        if isinstance(scope, dict) and isinstance(scope.get("kind"), str):
+            seen_scope_kinds.add(scope["kind"])
+        for field in ("previous_epoch", "next_epoch", "key_access_revision"):
+            value = binding.get(field)
+            if isinstance(value, bool) or not isinstance(value, int) or not 0 <= value <= MLS_BINDING_UINT64_MAX:
+                lint.fail(path, f"accepted[{index}].binding.{field} must be an unsigned 64-bit integer")
+    if seen_scope_kinds != {"realm", "circle", "sidecar"}:
+        lint.fail(path, "accepted KATs must cover Realm, Circle and Sidecar effective_scope branches")
 
     samples = case.get("rejection_samples")
     if not isinstance(samples, list) or not samples:
@@ -5105,8 +5750,20 @@ def check_mls_governance_binding_closure_vector(lint: Lint) -> None:
                 f"{failure or 'a deterministic encoding'}",
             )
 
-    for required in ("unknown_member", "missing_member", "indefinite_length_map",
-                     "non_minimal_integer", "duplicate_map_key", "out_of_order_map_key"):
+    for required in (
+        "unknown_member",
+        "missing_member",
+        "indefinite_length_map",
+        "non_minimal_integer",
+        "duplicate_map_key",
+        "out_of_order_map_key",
+        "trailing_bytes",
+        "unsupported_major_type",
+        "non_text_map_key",
+        "unsigned_integer_overflow",
+        "truncated",
+        "resource_limit_exceeded",
+    ):
         if required not in seen:
             lint.fail(path, f"the binding case does not exercise {required}")
 
@@ -5114,14 +5771,157 @@ def check_mls_governance_binding_closure_vector(lint: Lint) -> None:
     if not isinstance(epoch_case, dict):
         lint.fail(path, "the MlsGroupBinding epoch-transition case is missing")
         return
-    for index, sample in enumerate(epoch_case.get("samples", [])):
+    epoch_samples = epoch_case.get("samples", [])
+    if not isinstance(epoch_samples, list):
+        lint.fail(path, "the epoch-transition case must carry samples")
+        epoch_samples = []
+    epoch_names = {sample.get("name") for sample in epoch_samples if isinstance(sample, dict)}
+    for required in ("genesis_zero_to_zero_accept", "commit_increments_by_one_accept", "commit_skips_an_epoch_reject", "genesis_with_a_nonzero_transition_reject", "commit_repeats_the_previous_epoch_reject", "revision_rollback_reject"):
+        if required not in epoch_names:
+            lint.fail(path, f"the epoch-transition case does not exercise {required}")
+    for index, sample in enumerate(epoch_samples):
         if not isinstance(sample, dict) or "encoded_map_hex" not in sample:
+            if isinstance(sample, dict) and sample.get("expected", {}).get("decision") == "reject":
+                if sample.get("expected", {}).get("reason") != "governance_binding_mismatch":
+                    lint.fail(path, f"samples[{index}] binding mismatch must use governance_binding_mismatch")
             continue
         decoded, failure = _decode_binding(str(sample["encoded_map_hex"]))
         if failure is not None:
             lint.fail(path, f"samples[{index}] encoding is not deterministic: {failure}")
         elif decoded != sample.get("binding"):
             lint.fail(path, f"samples[{index}] encoding does not decode to its stated binding")
+
+    equality_case = by_name.get("binding_matches_public_state_and_payload")
+    if not isinstance(equality_case, dict):
+        lint.fail(path, "the valid-public-material exact-binding case is missing")
+    else:
+        public = equality_case.get("rfc9420_public_material")
+        if not isinstance(public, dict) or not public or not all(value is True for value in public.values()):
+            lint.fail(path, "the mismatch case must first establish valid RFC 9420 public material")
+        equality_samples = equality_case.get("samples")
+        names = {item.get("name") for item in equality_samples or [] if isinstance(item, dict)}
+        for required in ("all_fields_equal_accept", "base_differs_reject", "revision_differs_reject", "payload_extension_differs_reject"):
+            if required not in names:
+                lint.fail(path, f"the exact-binding case does not exercise {required}")
+        for sample in equality_samples or []:
+            if isinstance(sample, dict) and sample.get("name") != "all_fields_equal_accept":
+                if sample.get("expected", {}).get("reason") != "governance_binding_mismatch":
+                    lint.fail(path, f"{sample.get('name')} must fail with governance_binding_mismatch")
+
+    replay_case = by_name.get("historical_replay_does_not_grant_current_send_authority")
+    expected_replay = {
+        "historical_replay_decision": "accept",
+        "current_send_decision": "reject",
+        "current_send_reason": "epoch_update_required",
+    }
+    if not isinstance(replay_case, dict) or replay_case.get("expected") != expected_replay:
+        lint.fail(path, "historical replay must stay valid without granting current send authority")
+    elif replay_case.get("historical_accepted_binding", {}).get("key_access_revision", -1) >= replay_case.get("current_public_state", {}).get("current_key_access_revision", -1):
+        lint.fail(path, "historical replay sample must carry an older numeric key_access_revision")
+
+    schema_path = ARTIFACTS / "schemas" / "event-payload.schema.json"
+    schema = load_json(lint, schema_path)
+    definitions = schema.get("$defs", {}) if isinstance(schema, dict) else {}
+    binding_schema = definitions.get("mls_governance_binding")
+    if not isinstance(binding_schema, dict):
+        lint.fail(schema_path, "mls_governance_binding schema is missing")
+    else:
+        if binding_schema.get("required") != list(BINDING_MEMBERS) or binding_schema.get("additionalProperties") is not False:
+            lint.fail(schema_path, "mls_governance_binding must be the closed five-member schema")
+        cbor = binding_schema.get("x-arkret-deterministic-cbor")
+        if not isinstance(cbor, dict) or cbor.get("map_key_order") != expected_order:
+            lint.fail(schema_path, "mls_governance_binding must publish the exact deterministic-CBOR key order")
+        elif {key: cbor.get(key) for key in expected_limits} != expected_limits:
+            lint.fail(schema_path, "mls_governance_binding decoder limits differ from the closure fixture")
+        for field in ("previous_epoch", "next_epoch", "key_access_revision"):
+            shape = binding_schema.get("properties", {}).get(field, {})
+            if shape.get("type") != "integer" or shape.get("minimum") != 0 or shape.get("maximum") != MLS_BINDING_UINT64_MAX:
+                lint.fail(schema_path, f"mls_governance_binding.{field} must be uint64")
+
+    proposal_schema = definitions.get("mls_genesis_binding_proposal_carrier")
+    required_carrier = ["event_kind", "proposal_kind", "sender_actor_id", "target_scope", "proposed_group_genesis_binding"]
+    if not isinstance(proposal_schema, dict):
+        lint.fail(schema_path, "the formal pre-Genesis proposal carrier schema is missing")
+    else:
+        if proposal_schema.get("required") != required_carrier or proposal_schema.get("additionalProperties") is not False:
+            lint.fail(schema_path, "the formal proposal carrier must be the closed five-field route carrier")
+        properties = proposal_schema.get("properties", {})
+        if properties.get("event_kind", {}).get("const") != "ak.mls.genesis":
+            lint.fail(schema_path, "the proposal carrier must structurally select ak.mls.genesis")
+        if properties.get("proposal_kind", {}).get("const") != "group_genesis_binding":
+            lint.fail(schema_path, "the proposal carrier must structurally select group_genesis_binding")
+        if properties.get("sender_actor_id", {}).get("$ref") != "./common-ids.schema.json#/$defs/actor_id":
+            lint.fail(schema_path, "the proposal carrier sender must be a complete ActorId")
+        if properties.get("target_scope", {}).get("$ref") != "#/$defs/effective_scope":
+            lint.fail(schema_path, "the proposal carrier target_scope must reuse effective_scope")
+        if properties.get("proposed_group_genesis_binding", {}).get("$ref") != "#/$defs/mls_governance_binding":
+            lint.fail(schema_path, "the proposal carrier must reuse the one binding schema by direct $ref")
+
+    proposal_case = by_name.get("pre_genesis_proposal_uses_the_same_binding_schema")
+    if not isinstance(proposal_case, dict):
+        lint.fail(path, "the formal pre-Genesis proposal-carrier case is missing")
+    else:
+        carrier = proposal_case.get("accepted_carrier")
+        if not isinstance(carrier, dict) or list(carrier) != required_carrier:
+            lint.fail(path, "accepted proposal carrier must carry the five route/binding fields in schema order")
+        else:
+            proposed = carrier.get("proposed_group_genesis_binding")
+            if carrier.get("target_scope") != proposed.get("effective_scope") if isinstance(proposed, dict) else True:
+                lint.fail(path, "proposal target_scope must equal the binding effective_scope field by field")
+            if not isinstance(proposed, dict) or (
+                proposed.get("base_group_state_ref") is not None
+                or proposed.get("previous_epoch") != 0
+                or proposed.get("next_epoch") != 0
+                or proposed.get("key_access_revision") != 0
+            ):
+                lint.fail(path, "the accepted proposal binding must be the exact 0 -> 0 Genesis form")
+
+    extension_path = ARTIFACTS / "registry" / "mls-extension-registry.json"
+    extension_registry = load_json(lint, extension_path)
+    extension = next((row for row in (extension_registry or {}).get("extensions", []) if row.get("name") == "mls_governance_binding"), None)
+    if not isinstance(extension, dict):
+        lint.fail(extension_path, "mls_governance_binding extension row is missing")
+    else:
+        if extension.get("binding_schema_ref") != "schemas/event-payload.schema.json#/$defs/mls_governance_binding":
+            lint.fail(extension_path, "MLS extension row does not point at the binding schema")
+        if extension.get("proposal_carrier_schema_ref") != "schemas/event-payload.schema.json#/$defs/mls_genesis_binding_proposal_carrier":
+            lint.fail(extension_path, "MLS extension row does not point at the formal proposal carrier")
+        if extension.get("decoder_limits") != expected_limits:
+            lint.fail(extension_path, "MLS extension decoder limits differ from schema and fixture")
+
+    bootstrap_path = ARTIFACTS / "registry" / "mls-creator-bootstrap-transaction-registry.json"
+    bootstrap = load_json(lint, bootstrap_path)
+    carrier_contract = bootstrap.get("proposal_carrier_contract") if isinstance(bootstrap, dict) else None
+    if not isinstance(carrier_contract, dict):
+        lint.fail(bootstrap_path, "creator bootstrap registry has no formal proposal_carrier_contract")
+    else:
+        if carrier_contract.get("schema_ref") != "schemas/event-payload.schema.json#/$defs/mls_genesis_binding_proposal_carrier":
+            lint.fail(bootstrap_path, "creator bootstrap record does not use the formal proposal carrier")
+        if carrier_contract.get("binding_schema_ref") != "schemas/event-payload.schema.json#/$defs/mls_governance_binding":
+            lint.fail(bootstrap_path, "creator bootstrap record does not reuse the one binding schema")
+        if carrier_contract.get("durable_state") != "genesis_intent_persisted":
+            lint.fail(bootstrap_path, "proposal carrier must be durable before the pre-Genesis calculation")
+        if carrier_contract.get("route_constants") != {
+            "event_kind": "ak.mls.genesis",
+            "proposal_kind": "group_genesis_binding",
+        }:
+            lint.fail(bootstrap_path, "proposal carrier route constants are not closed")
+        if carrier_contract.get("wire_exposure") != "none":
+            lint.fail(bootstrap_path, "proposal carrier is local durable intent, not a new wire endpoint")
+
+    final_path = ARTIFACTS / "fixtures" / "final-conformance-closure-fixture.json"
+    final = load_json(lint, final_path)
+    if isinstance(final, dict):
+        if {vector_id, epoch_vector_id} & set(final.get("covers_vectors", [])):
+            lint.fail(final_path, "governance-binding vectors must live only in the standalone fixture")
+        for old_case in final.get("cases", []):
+            if not isinstance(old_case, dict):
+                continue
+            if old_case.get("vector_id") in {vector_id, epoch_vector_id}:
+                lint.fail(final_path, "standalone governance-binding cases remain duplicated in final closure")
+            old_revision = old_case.get("commit", {}).get("governance_binding", {}).get("key_access_revision")
+            if isinstance(old_revision, str):
+                lint.fail(final_path, "digest-shaped key_access_revision residue remains in final closure")
 
 
 def check_encrypted_envelope_digest_vector(lint: Lint) -> None:

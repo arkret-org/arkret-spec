@@ -31,7 +31,7 @@
         },
         "jws": {
           "type": "string",
-          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_-]+\\.\\.[A-Za-z0-9_-]+$",
           "description": "Compact detached JWS. Its verification method is the enclosing object verification_method, resolved through the published DID document of the signer at the signing instant."
         }
       },

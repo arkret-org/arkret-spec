@@ -191,7 +191,7 @@ successor 已 expired / revoked / superseded 时，必须返回登记的 `sessio
 
 每个设备 MUST 有稳定 `device_id` 和设备签名密钥。`device_id` 的类型是 `id:device`，wire form MUST 为完整 `ak:device:<uuid>`；当它出现在 JSON object key 中时也同样适用，不得改写成局部别名：
 
-```json
+```json fragment
 {
   "device_id": "ak:device:019640dd-8000-7000-8000-000000000000",
   "display_name": "Alice iPhone",
@@ -209,7 +209,6 @@ successor 已 expired / revoked / superseded 时，必须返回登记的 `sessio
   "created_at": "2026-04-26T00:00:00Z"
 }
 ```
-
 `display_name` 是用户为该设备指定的人类可读名称（如 "Alice iPhone"），用于在设备列表 / 验证 / 撤销 UI 中区分同一 principal 名下的多台设备。它是 optional、可变、UI-only 字段，无唯一性约束，不参与任何 capability、reducer 或加密信任决策；设备的协议层唯一标识始终是 `device_id`。按 [`models/common-fields.md` §3](../models/common-fields.md) 与 [`overview/glossary.md`](../overview/glossary.md) 的命名约定，device record 的人类可读名称字段统一使用 `display_name`，不得用 `device_label`、`device_name` 或裸 `name` 等别名。
 
 设备记录必须来自 root-committed PCR genesis、accepted-policy-authorized recovery unit 或当前 generation 的 accepted device 授权，并受 device-generation fence 约束。genesis 的首设备 authorize 与 recovery 的两条 Event 由各自候选设备 identity key 签署；policy factor 不代签 Event。服务端不得伪造 device identity。
@@ -246,7 +245,7 @@ identity root 只单向承诺两条 Event 的 payload digest，不承诺 Event i
 
 genesis 时候选设备签署第二条 authorize；recovery 时同一候选设备签署整个封闭 unit。设备 possession 签名对象覆盖完整 authorization core 加注入的 `account_id`；recovery 分支还必须加入 policy/session/generation binding。下面是 `registration_anchor` 分支的**完整成员集合**：
 
-```json
+```json fragment
 {
   "account_id": {"principal_id": "ak:did_core:webvh:zExamplePrincipalScid", "station_id": "ak:did_core:webvh:zExampleStationScid"},
   "device_id": "ak:device:...",
@@ -263,7 +262,6 @@ genesis 时候选设备签署第二条 authorize；recovery 时同一候选设�
   "recovery_session_id": null
 }
 ```
-
 签名输入是 `UTF8("<domain>\n") || canonical_json(上述对象)`，`canonical_json` 按 [`../conformance/encoding.md` §2](../conformance/encoding.md)（JCS），`<domain>` 按 §5.2 从 `authorization_binding_kind` 选定。
 
 `algorithms` 必须先按 UTF-8 bytewise 排序去重；缺失的 optional 字段在 transcript 中规范化为 `null`——`expires_at` / `scopes` / `recovery_session_id` 在该对象里是**必需成员**，payload 未携带时取 `null`。把它们写成 optional 会让「成员缺失」与「成员为 `null`」成为同一份授权的两串 canonical bytes，规范化就不可执行；因此 transcript 成员集合恒定，与 payload 是否携带该 optional 字段无关。
@@ -278,7 +276,7 @@ transcript 的 `account_id` 取自待签 Event 的完整 account `actor_id`，�
 
 配对时目标设备的处境相反：stage 时暂存记录是 **account-less**，它不知道哪台 sibling 会批准，因此不可能先签一个包含 `authorized_by` / `not_before` / `expires_at` / `scopes` 的对象；而批准设备在拿到目标 possession proof 之前又无法构造满足最终 DTO 的完整 Event。若两者都要求对方先动，配对就是死锁。因此 `accepted_device` 使用一个**只覆盖目标自有材料、本次账号绑定与本次 pairing challenge 绑定**的封闭对象：
 
-```json
+```json fragment
 {
   "account_id": {"principal_id": "ak:did_core:...", "station_id": "ak:did_core:..."},
   "device_id": "ak:device:...",
@@ -290,7 +288,6 @@ transcript 的 `account_id` 取自待签 Event 的完整 account `actor_id`，�
   "pairing_challenge_transcript_digest": "sha256:..."
 }
 ```
-
 签名输入是 `UTF8("ak.device_authorize_accepted_device_possession_proof.v1\n") || canonical_json(上述对象)`，`canonical_json` 按 [`../conformance/encoding.md` §2](../conformance/encoding.md)（JCS）。`algorithms` 同样必须先按 UTF-8 bytewise 排序去重。该对象没有 optional 成员，因此不存在缺失字段规范化为 `null` 的情形；签名字段、Event id、envelope digest 及其它 proof material 同样不进入该对象。
 
 **`pairing_challenge_transcript_digest` 是本 attestation 的 challenge replay 边界**：它 MUST 逐字节等于按 §2.1.2 独立重算的 challenge digest，因为该 digest 本身就承诺了整条挑战：
@@ -317,7 +314,7 @@ Applet-managed Bot / Ghost principal 在结构上不可能有 founding device：
 
 设备 possession 签名对象是 §5.2.1 的同一个 core 加 `applet_id`，完整成员集合为：
 
-```json
+```json fragment
 {
   "account_id": {"principal_id": "ak:did_core:webvh:zExampleManagedActorScid", "station_id": "ak:did_core:webvh:zExampleStationScid"},
   "device_id": "ak:device:...",
@@ -335,7 +332,6 @@ Applet-managed Bot / Ghost principal 在结构上不可能有 founding device：
   "applet_id": "ak:applet:..."
 }
 ```
-
 签名输入是 `UTF8("ak.device_authorize_applet_managed_possession_proof.v1\n") || canonical_json(上述对象)`，`canonical_json` 按 [`../conformance/encoding.md` §2](../conformance/encoding.md)（JCS）。`algorithms` 必须先按 UTF-8 bytewise 排序去重；`account_id` 与 §5.2.1 同样从 Event envelope 的完整 account `actor_id` 注入，不是 payload 字段。本分支的 `expires_at` 与 `scopes` 是 payload required 的，因此在 transcript 里 MUST 为非 `null`；`recovery_session_id` 是规范化的 `null`；`authorized_generation_ref` MUST 等于接纳时刻该 PCR 的 `current_device_generation_ref`（示例中的 `7` 只是占位值）。wire 形态是 `device_authorize_applet_managed_possession_transcript`，见 §5.2.1 的 wire 形态段。
 
 该分支的封闭约束（normative）：
@@ -493,9 +489,9 @@ Arkret 推送通道设计的目标是在不向 push gateway / vendor、上游 St
 
 #### 5.6.2 注册与撤销
 
-- 目标 account-private typed current result 的 `result_selector` 是 canonical `contract-registry.json` 登记的 composite `(payload.account_id, payload.device_id, payload.push_route)`，family 固定使用既有 `server_revision_cas`。每条 `ak.device.push_route` Event MUST 携 `expected_revision`：从未写入的 typed current result 以 `0` 创建；接受方在同一原子事务比较当前 revision，相等时存储 `revision = expected_revision + 1`，不相等时返回 `cas_conflict` 且零写入。`expected_revision` 是 account-private merge 载体，不是 authority-commit precondition；该 Event MUST NOT 携共享 reducer `preconditions` / `expected_revision`，也不进入 shared Realm RealmCommit coverage。
-- active 写入是闭合 whole-value：`(account_id, device_id, push_route, expected_revision, push_target_id, push_gateway_id, encryption_key, capabilities, expires_at?, updated_at?)`。`account_id` MUST 等于 Event `actor_id.account_id`，且 `push_target_id` MUST 等于该账号认证 session 的注册响应返回值；`push_gateway_id` MUST 是 canonical `did_core_id`，实现不得另收 `push_gateway_did`。active 形态 MUST 省略 `revoked`。
-- 撤销写入是互斥的闭合 tombstone：`(account_id, device_id, push_route, expected_revision, revoked=true, updated_at?)`。它 MUST 省略 `push_target_id`、`push_gateway_id`、`encryption_key`、`capabilities` 与 `expires_at`；撤销由 typed current result subject + revision 定址，不得为定位旧值而重传旧 `push_target_id` 或 provider 秘密。接受后 service / gateway MUST 立即停止接受旧伪名。
+- 目标 account-private effect 的 storage owner、唯一键、value projection、field maintenance、exact retry 与零副作用拒绝由 [`../models/actor-private-effects.md` §3.3](../models/actor-private-effects.md#33-push-route) 和 canonical `contract-registry.json` 共同闭合。其 composite unique key 是 `(payload.account_id, payload.device_id, payload.push_route)`，family 固定使用 `server_revision_cas`。每条 `ak.device.push_route` Event MUST 携 `expected_server_revision`：从未写入的 route 以 `0` 创建；接受方在同一原子事务比较当前 revision，相等时存储 `revision = expected_server_revision + 1`，不相等时返回 `cas_conflict` 且零写入。`expected_server_revision` 是 account-private merge 载体，不是 authority-commit precondition；该 Event MUST NOT 携共享 reducer `preconditions` / `expected_revision`，也不进入 shared Realm RealmCommit coverage。
+- active 写入是闭合 whole-value：`(account_id, device_id, push_route, expected_server_revision, push_target_id, push_gateway_id, encryption_key, capabilities, expires_at?, updated_at?)`。`account_id` MUST 等于 Event `actor_id.account_id`，且 `push_target_id` MUST 等于该账号认证 session 的注册响应返回值；`push_gateway_id` MUST 是 canonical `did_core_id`，实现不得另收 `push_gateway_did`。active 形态 MUST 省略 `revoked`。
+- 撤销写入是互斥的闭合 tombstone：`(account_id, device_id, push_route, expected_server_revision, revoked=true, updated_at?)`。它 MUST 省略 `push_target_id`、`push_gateway_id`、`encryption_key`、`capabilities` 与 `expires_at`；撤销由 private effect unique key + revision 定址，不得为定位旧值而重传旧 `push_target_id` 或 provider 秘密。接受后 service / gateway MUST 立即停止接受旧伪名。
 - 轮换是对同一 typed current result 的下一条完整 active 写入，不是局部 patch：客户端 SHOULD 在 push token 变化、设备恢复、Out-of-band 重新登录、或自定义 rotation 周期（默认 ≤ 90 天）时以当前 revision 和新注册响应的完整 active tuple 提交。create(revision 0) → rotate(revision 1) → revoke(revision 2) 三次成功写入后，typed current result revision 固定为 3；缺失 revision、stale retry 与同 revision sibling 均 fail closed。
 - 长期不可恢复性：服务方在丢弃旧 `push_target_id` 后 MUST NOT 保留可把旧 / 新伪名链接回同一 `(account_id, device)` 的索引；只允许在 rotation 时短暂保留以便迁移未投递消息。短暂保留期 MUST ≤ 24h，或与单条未投递消息 TTL 取较短者；超过该窗口 MUST 物理删除旧 `push_target_id`、provider 路由材料及可逆映射。隐私 GC 仍 MUST 永久保留按上述 typed current result subject 定址的 revision high-water 与最小幂等/审计摘要（subject digest、revision、outcome）；不得保留旧 target 明文，也不得因 GC 把 revision 退回 0 而让离线旧写复活。
 - **条数与注册速率上限（normative）**：单一 `(account_id, device_id)` 维度下并存的 active `push_route` 条数 MUST ≤ 16（v1 wire 上限；登记于 [`../conformance/scalability-constraints.md` §6.1](../conformance/scalability-constraints.md)），超过时服务端 MUST 拒绝新 `ak.device.push_route` 注册（`push_route_limit_exceeded`）。同一维度的 push-route 注册 / 轮换 MUST 限速，默认窗口 60s 内 ≤ 8 次写入；超额时返回限速响应并记内部审计 `push_route_registration_rate_limited`。该上限防止单设备通过无界 push_route 放大注册状态或制造可链接性面。
@@ -525,7 +521,7 @@ create / rotate / revoke、stale sibling、exact replay 与隐私 GC 的可执�
 
 Account Subscribe 的聚合提示 `delta.device_lists` 与本 event payload 不是同一 DTO：前者固定为 `{changed: principal_did[], left: principal_did[]}`，只指出哪些 principal 的权威设备列表需要刷新或清除；后者才携带该 principal 的具体 device 变化。实现 MUST NOT 把 `device_id` 写入 `delta.device_lists.changed/left`，也不得把聚合提示当作完整设备清单。
 
-```json
+```json fragment
 {
   "kind": "ak.device.list_update",
   "payload": {
@@ -539,7 +535,6 @@ Account Subscribe 的聚合提示 `delta.device_lists` 与本 event payload 不�
   }
 }
 ```
-
 客户端 sync MUST 暴露 device list delta。E2EE 客户端在向 principal 发送新加密内容前，MUST 查询或同步其最新 device list。
 
 ## 7. To-Device Messages
@@ -612,7 +607,7 @@ Content-Type: application/json
 
 请求示例（非完整 schema）。`messages.{principal_id}.{device_id}` 的 `{device_id}` 是**收件设备**地址,`content.from_device_id` 是**发送设备**(MUST 等于 envelope `sender_device_id`,见 §10.2),二者为不同设备，故 UUID 不同：
 
-```json
+```json fragment
 {
   "messages": {
     "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR": {
@@ -631,7 +626,6 @@ Content-Type: application/json
   }
 }
 ```
-
 未被 `ak.device.authorize` durable accepted 的新设备没有合法的 human-device sender endpoint，也不得取得 restricted fresh-device SessionGrant；因此它 MUST NOT 调用本节 send/read/ack surface，MUST NOT 通过任何 to-device kind 发现或通知 sibling devices。新设备授权只走 §2.1.1 的匿名 stage/resolve/status 与二维码、手动复制或等价带外通道；用户以带外交付动作选择批准设备。stage/resolve/status 保持 account-less，不返回 principal 或 sibling device 集合。唯一 `device_pairing_target_proof` 只经二维码/短链 fragment 到达批准设备，并按 §2.1.1 独立验签。
 
 授权前没有签发 grant，因此不存在 bootstrap grant 撤销语义：pending pairing 只能过期、被成功授权原子消费，或在记录清理后变为不可解析；它从未授予账号能力。授权后的设备撤销使用普通 `ak.device.revoke` 合同。部署 MAY 在已认证账号边界内提供不含 token、pairing code、proof、attestation 或 sibling 列表的脱敏唤醒提示，但该提示不是配对传输、不得替代带外交付，也不得使匿名请求绑定 principal。
@@ -1011,7 +1005,7 @@ peer claim MUST 同时满足两层授权，任一层缺失或失效都 MUST fail
 
 1. **participant authorization**：requester 对 `requester_authorization` 作 detached signature。签名输入精确为 UTF-8 domain separator `` `ak.peer-keypackage-claim-authorization-v1\n` `` 后接下列对象的 JCS bytes：
 
-   ```json
+   ```json fragment
    {
      "authorization": {
        "device_authorize_event_id": "<accepted authorization for requester_device_id>",
@@ -1293,6 +1287,11 @@ create-time PoP 的封闭对象由
 `did_root_transcript` / `generic_recovery_transcript` 均必须在 `requesting_device_id` 后包含此冻结值。
 只证明持有 device id 字符串或 DPoP key 不满足该条件。session create 的 canonical intent 幂等摘要覆盖完整
 请求（包括 PoP）；同 grant/request_id 异 intent 为 `duplicate_conflict`，精确重试不换 key、不换 challenge。
+
+`recovery_unlock.recovery_secret_ref` 是 accepted recovery-policy key entry 的不透明本地引用标签，
+不是 DID、DID URL 或公钥编码；它不得用看似 `did:key` 的占位文本冒充可解析验证方法。实际签名 key
+只由同一 proof 的 `verification_method` 指定，该值必须是可解析的真实 DID URL，并逐字匹配 session
+冻结的 policy entry。fixture 可使用公开测试 key，但 label 与 verification method 两个名字空间不得混用。
 
 **unit admission 与原子边界（normative）**：两条 Event 的 proof method 均使用同一已验证 account DID 下、
 fragment 精确等于 `requesting_device_id` 的设备 method。verifier 从该账号已有可信 binding/accepted PCR

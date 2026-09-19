@@ -390,6 +390,15 @@ witness 级失效触发（witness 被撤销、witness 组织归属被合并判�
 `fixture`、`did:key`、`example` 等字样推断某个标识是否被保留：公开样例里的普通字符串不因出现在样例中
 而成为保留标识。
 
+同一 registry 的 `identity_examples` 是 artifacts（不含派生报告）与本规范正文中每个 concrete
+`did:webvh` 值的封闭 occurrence inventory。每行的 `sources` MUST 精确等于该值的全部出现位置，`role`
+MUST 且只能是下列三者之一：`test_material` 表示命中 `reserved_identifiers` 的手写测试值；
+`deployment_like_example` 表示不命中保留命名空间、但也不因此获得任何部署信任的示例值；
+`derived_positive` 表示不命中保留命名空间、且 `derivation_ref` 必须精确指向可重新计算出该值的 fixture
+JSON Pointer。只有 `test_material` MUST 命中保留标识规则；另两个角色 MUST NOT 命中。验证方仍只按
+`reserved_identifiers` 执行拒收，MUST NOT 把 `identity_examples` 中出现过、或被分到某个非保留角色，
+解释成授权、真实性或部署适用性的正面证据。
+
 清单登记两类对象。
 
 **一、公开签名材料**（`published_signing_material`）。每行绑定算法、canonical 公钥指纹与来源 fixture。

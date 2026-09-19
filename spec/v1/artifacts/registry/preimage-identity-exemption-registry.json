@@ -1,8 +1,8 @@
 {
-  "version": "2026-09-16.11",
+  "version": "2026-09-19.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-16T22:10:00+08:00",
-  "description": "Closed named-exemption registry for zh/conformance/encoding.md 6.0.1. That section forbids any field inside the event_digest preimage from committing to an Event identity. Class A (the enclosing Event's own event_id/event_digest and their retype results) and class B (a not-yet-formed sibling of the same atomic unit or ordered submit batch) are unconditional: they have no fixed point and this registry MUST NOT carry a row for them. Only class C, a one-way forward declaration naming a later Event from another submission whose canonical bytes the author already froze locally, is registerable, and only with the compensating admission checks recorded here. Every active row MUST also appear in the 6.0.1 closed list table; the prose table and this registry are bound in both directions.",
+  "generated_at": "2026-09-19T17:42:15+08:00",
+  "description": "Closed named-exemption registry for zh/conformance/encoding.md 3.1. That section forbids any field inside the event_digest preimage from committing to an Event identity. Class A (the enclosing Event's own event_id/event_digest and their retype results) and class B (a not-yet-formed sibling of the same atomic unit or ordered submit batch) are unconditional: they have no fixed point and this registry MUST NOT carry a row for them. Only class C, a one-way forward declaration naming a later Event from another submission whose canonical bytes the author already froze locally, is registerable, and only with the compensating admission checks recorded here. Every active row MUST also appear in the 3.1 closed list table; the prose table and this registry are bound in both directions.",
   "registry_rules": {
     "exemption_id_pattern": "^ak\\.exemption\\.preimage_identity\\.[a-z0-9_]+\\.v[0-9]+$",
     "allowed_kinds": [
@@ -19,7 +19,16 @@
     "forbidden_direction_rationale": "Class A and class B commitments make the digest preimage contain a function of the digest itself. No ordering of the unit can produce a value that survives the encoding.md 4.0 recompute-and-compare, so the shape is unconstructible rather than merely risky. Accepting such a row here would present an impossible construction as a ruling; the machine gate MUST fail instead.",
     "prose_binding": "spec/v1/zh/conformance/encoding.md#31-内容寻址预映射",
     "machine_gate": "tools/artifact_lint:preimage_event_identity",
-    "candidate_field_scope": "Schema properties named event_id, *_event_id, *_event_ref or *_event_digest, plus any property whose description declares that its value is derived from an Event identity (retype(...), event-derived and equivalent derivation wording)."
+    "candidate_field_scope": "Pointer-level closure seeded by event-envelope.schema.json# and every event-kind-registry payload_schema_ref. The walker follows exact $ref targets and never descends an unreferenced $defs or definitions sibling. Within that closure, properties named event_id, *_event_id, *_event_ref or *_event_digest and properties carrying x-arkret-preimage-commitment are candidates; descriptions never select a rule.",
+    "commitment_keyword": "x-arkret-preimage-commitment",
+    "allowed_commitment_declarations": [
+      "envelope_omission",
+      "fixed_event",
+      "later_submission",
+      "no_event_identity",
+      "same_unit_sibling",
+      "self_identity"
+    ]
   },
   "exemptions": [
     {

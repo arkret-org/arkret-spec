@@ -35,6 +35,7 @@
         },
         "controller_terminal_event_ref": {
           "$ref": "./common-ids.schema.json#/$defs/event_id",
+          "x-arkret-preimage-commitment": "fixed_event",
           "description": "Required only on an explicit controller-membership-ended cleanup Event. It identifies the accepted terminal controller transition whose pre-state determines the exact Agent set and one-shot cascade authority."
         }
       },

@@ -222,6 +222,24 @@ MUST NOT 收到该行本身，获准知道其存在的 caller 在这里拿到的
 Typed current operation 只接受封闭 selector union。响应中的 revision 是最后影响该 typed row 的 Commit ID
 与 stream position；不接受 caller 提供的通用 state key，也不暴露其它 stream head。
 
+#### 3.1.5 Realm fanout delivery status（normative）
+
+`QUERY /_arkret/self/events/delivery-status`（`ak.self.events.read.delivery_status.v1`）以封闭
+`{event_id}` 请求读取一个 caller-visible、已接受 Event 的完整 frozen target set。服务 MUST 先执行与
+该 Event 资源读取相同的可见性判定；未知与不可见统一返回 `not_found`。读取 MUST NOT 解析新 route、
+推进 retry、改变 intent 状态或创建第二轮 fanout。
+
+响应 `targets[]` 按唯一 `target_id` 的字节序严格递增。`target_id` 是 16–128 字符的稳定 opaque id，
+MUST NOT 编码 service DID。状态封闭为 `pending_route`、`pending_delivery`、`delivered` 与
+`cancelled_authority_lost`；前两者计入 consumer 派生的 pending count，后两者不计入。aggregate state
+由 consumer 派生为“pending count 非零即 pending，否则 complete”，不得另设可漂移的服务端汇总字段。
+`service_id` 仅当 caller 按当前 membership、history 与 plaintext visibility 可以读取至少一个产生该
+target 的 joined-member ActorId routing projection 时出现，否则 MUST 省略。
+
+`ak.self.events.command.submit.v1` 的当前 authority-commit outcome 只报告本地 commit／duplicate／拒绝；
+它不承诺全部 remote target 已交付，也不重复返回 target 集或 pending count。需要投递进度的 consumer
+MUST 使用本读取面，并把这里的完整 rows 作为派生 pending count 的唯一输入。
+
 ### 3.2 Snapshot + tail
 
 首次 join、新设备和缓存修复使用 authority-signed typed snapshot，再从 snapshot 内每条获准
@@ -295,6 +313,16 @@ carrier `source_refs`。它只返回 exact match；任何缺失或越界必须 f
 
 gRPC、WebSocket 和 MQ 可以复用同一 operation 和 schema，但不得创造 HTTP 不具有的 accepted 状态、
 跨 stream 总序或更弱的 proof 验证。所有 transport 的幂等、字节上限、错误语义和权限必须等价。
+
+### 7.1 Canonical non-HTTP binding closure（normative）
+
+`contract-registry.json#operation_registry.operations` 的 `grpc` 与 `mq` 是非 HTTP 绑定名称的
+canonical source。`non-http-bindings.yaml` 是其完整投影：每个 `grpc` 值 MUST 恰好出现为
+`grpc.services.<Service>.<Method>` 对应的 `Service/Method`，每个 `mq` 值 MUST 恰好出现为
+`mq.topics` 的 topic key；投影不得改名、遗漏、重复 operation，也不得保留零方法 service。
+除显式 `http_only_variant=true` 的 operation 外，每条已登记 operation MUST 至少由一个非 HTTP
+binding 引用；`http_only_variant=true` 的 operation MUST NOT 出现在该投影中。生成器和 lint 内部的
+operation 集合只能是 canonical operation 集的子集，删除 operation 时不得留下静默失效的硬编码成员。
 
 ## 8. HTTP Message Signature
 
@@ -608,6 +636,7 @@ RFC 9449 DPoP proof 只有 `iat`，没有 `expires` parameter，因此它 **MUST
 | `ak.self.device_messages.read.list.v1` | `GET /_arkret/self/device_messages` | - | - | response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesGetOutcome |
 | `ak.self.direct_conversation.read.resolve.v1` | `POST /_arkret/self/direct-conversations/resolve` | - | - | request_schema_ref=schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_request; response_schema_ref=schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_outcome |
 | `ak.self.events.command.submit.v1` | `POST /_arkret/self/events` | - | - | request_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/submit_request; response_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/submit_outcome |
+| `ak.self.events.read.delivery_status.v1` | `QUERY /_arkret/self/events/delivery-status` | - | - | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/EventDeliveryStatusRequestBody; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/EventDeliveryStatusOutcome |
 | `ak.self.events.read.scan.v1` | `POST /_arkret/self/streams/scan` | - | - | request_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request; response_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/stream_scan_outcome |
 | `ak.self.events.resource.get.v1` | `GET /_arkret/self/events/{event_id}` | - | - | response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/EventView |
 | `ak.self.events.stream.subscribe.v1` | `GET /_arkret/self/events/subscribe` | - | - | response_schema_ref=schemas/events-subscribe-frame.schema.json |

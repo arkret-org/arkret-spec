@@ -35,7 +35,7 @@ dedupe、catch-up 与完成语义保持独立，不因共享连接而合并。
 
 服务只有在实现并通过本 profile conformance 时，才能广告：
 
-```json
+```json fragment
 {
   "kind": "websocket",
   "base_url": "wss://server.example/_arkret/ws",
@@ -43,7 +43,6 @@ dedupe、catch-up 与完成语义保持独立，不因共享连接而合并。
   "max_channels": 16
 }
 ```
-
 transport descriptor 只承载连接坐标与传输 limit，**MUST NOT** 携带自己的 operation 列表：
 `kind="websocket"` 通过 binding-kind registry 与 schema identity 固定
 `ak.profile.binding.websocket.v1`、`arkret.v1` subprotocol 和 `challenge_dpop_session_v1`
@@ -88,7 +87,7 @@ mandatory HTTP binding；不得猜测 endpoint，也不得按 descriptor 单独�
 
 Upgrade 成功不表示 authenticated。服务端首先发送：
 
-```json
+```json fragment
 {
   "kind": "challenge",
   "connection_id": "opaque-random",
@@ -96,10 +95,9 @@ Upgrade 成功不表示 authenticated。服务端首先发送：
   "expires_at": "2026-07-28T12:00:30.000Z"
 }
 ```
-
 客户端必须在 5 秒内返回 `authenticate`：
 
-```json
+```json fragment
 {
   "kind": "authenticate",
   "connection_id": "opaque-random",
@@ -107,7 +105,6 @@ Upgrade 成功不表示 authenticated。服务端首先发送：
   "dpop_proof": "compact-jws"
 }
 ```
-
 ### 3.1 `challenge_dpop_session_v1` proof（normative）
 
 本认证 proof 使用 RFC 9449 DPoP proof JWT 的 JOSE、`ath`、`nonce` 与 holder-key 规则，
@@ -120,10 +117,9 @@ context。通用 HTTP DPoP verifier **MUST NOT** 接受 `ws` / `wss` 或该 meth
 compact JWS 的 protected header 必须精确符合
 `ak.schema.websocket_dpop_protected_header.v1`：
 
-```json
+```json fragment
 {"alg":"Ed25519","jwk":{"crv":"Ed25519","kty":"OKP","x":"<43-char-base64url>"},"typ":"dpop+jwt"}
 ```
-
 payload 必须精确符合 `ak.schema.websocket_dpop_claims.v1`，字段为：
 
 | claim | 固定规则 |
@@ -214,7 +210,7 @@ frame，不依赖 WebSocket reason string 传递完整诊断。
 
 客户端发送：
 
-```json
+```json fragment
 {
   "kind": "open",
   "channel_id": "account-1",
@@ -225,7 +221,6 @@ frame，不依赖 WebSocket reason string 传递完整诊断。
   }
 }
 ```
-
 `open` 是按 operation discriminator 闭合的 union：
 
 - account：`parameters={after?,catchup?,filter?,wait_for?}`；`filter` 只有
@@ -257,14 +252,13 @@ limit 内一致执行。
 
 `data` frame 形态：
 
-```json
+```json fragment
 {
   "kind": "data",
   "channel_id": "account-1",
   "payload": {}
 }
 ```
-
 `payload` 必须逐 operation 使用 canonical frame schema：
 
 | operation | payload |

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.1",
+  "version": "2026-09-19.2",
   "source_of_truth": false,
-  "generated_at": "2026-09-19T15:45:02+08:00",
+  "generated_at": "2026-09-19T19:22:39+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical exact feature identities advertised only through ServiceDescribe.supported_features.",
@@ -183,5 +183,6 @@
       "semantic_guarantees": [],
       "conflicts": []
     }
-  ]
+  ],
+  "metadata_authority": "contract_registry_section"
 }

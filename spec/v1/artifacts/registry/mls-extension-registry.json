@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-16.10",
-  "generated_at": "2026-09-16T21:30:00+08:00",
+  "version": "2026-09-19.1",
+  "generated_at": "2026-09-19T19:00:49+08:00",
   "source_of_truth": true,
   "description": "Canonical fixed MLS extension contract for Arkret v1 groups.",
   "private_use_range": {
@@ -32,6 +32,14 @@
       ],
       "carries": "Closed deterministic-CBOR map {effective_scope, base_group_state_ref, previous_epoch, next_epoch, key_access_revision}.",
       "wire_encoding": "RFC 8949 deterministic CBOR with definite lengths and the five closed fields listed in carries",
+      "binding_schema_ref": "schemas/event-payload.schema.json#/$defs/mls_governance_binding",
+      "proposal_carrier_schema_ref": "schemas/event-payload.schema.json#/$defs/mls_genesis_binding_proposal_carrier",
+      "key_access_revision_contract": "Monotonic unsigned 64-bit integer counter; it is never encoded or compared as a digest.",
+      "decoder_limits": {
+        "maximum_input_bytes": 16384,
+        "maximum_nesting_depth": 8,
+        "maximum_collection_items": 64
+      },
       "iana_codepoint": null,
       "source_refs": [
         "spec/v1/zh/crypto-media/encryption-and-audit.md"

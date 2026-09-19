@@ -1,9 +1,10 @@
-version: '2026-09-11'
+version: '2026-09-19'
 operation_registry: ../registry/operation-registry.json
 coverage: complete_except_http_only
 coverage_contract: Every registered operation that is not marked http_only_variant=true MUST appear at least once in this
-  binding artifact. Operations marked http_only_variant=true MUST NOT appear here. tools/artifact_lint enforces both directions
-  after parsing this file as YAML.
+  binding artifact. Operations marked http_only_variant=true MUST NOT appear here. Every grpc and mq value declared by the
+  canonical contract registry MUST appear here under its exact Service/Method or topic key; empty services and duplicate
+  operation bindings are forbidden. tools/artifact_lint enforces these rules after parsing this file as YAML.
 frame_schemas:
   websocket:
     required:
@@ -63,7 +64,7 @@ grpc:
       SidecarEnsure: ak.self.agent.sidecar.command.ensure.v1
       SidecarGet: ak.self.agent.sidecar.resource.get.v1
       SidecarList: ak.self.agent.sidecar.read.list.v1
-      ParticipationSet: ak.self.agent.participation.resource.replace.v1
+      ParticipationReplace: ak.self.agent.participation.resource.replace.v1
       ParticipationGet: ak.self.agent.participation.resource.get.v1
     EdgeApplet:
       ManagedActorAuthor: ak.edge.applet.managed_actor.command.author.v1
@@ -121,7 +122,6 @@ grpc:
       Get: ak.self.realm.resource.get.v1
       Export: ak.self.realm.read.export.v1
       Streams: ak.self.realm.read.streams.v1
-    SelfRealmJoinApplication: null
     SelfConsent:
       List: ak.self.consent.read.list.v1
       Get: ak.self.consent.resource.get.v1
@@ -131,14 +131,14 @@ grpc:
     SelfAccountData:
       List: ak.self.account_data.read.list.v1
       Get: ak.self.account_data.resource.get.v1
-      Set: ak.self.account_data.resource.replace.v1
+      Replace: ak.self.account_data.resource.replace.v1
       Delete: ak.self.account_data.resource.delete.v1
     SelfReadCursor:
-      Set: ak.self.read_cursor.command.advance.v1
+      Advance: ak.self.read_cursor.command.advance.v1
       List: ak.self.read_cursor.read.list.v1
     SelfInviteReceivePolicy:
       Get: ak.self.invite_receive_policy.resource.get.v1
-      Set: ak.self.invite_receive_policy.resource.replace.v1
+      Replace: ak.self.invite_receive_policy.resource.replace.v1
     SelfDirectConversation:
       Resolve: ak.self.direct_conversation.read.resolve.v1
     FindDirectory:
@@ -158,6 +158,7 @@ grpc:
       Withdraw: ak.find.directory.command.withdraw.v1
     SelfEvents:
       Get: ak.self.events.resource.get.v1
+      DeliveryStatus: ak.self.events.read.delivery_status.v1
       Subscribe: ak.self.events.stream.subscribe.v1
       Submit: ak.self.events.command.submit.v1
     SelfStreams:
@@ -346,6 +347,7 @@ mq:
     self.security_transaction.resource.get: ak.self.security_transaction.resource.get.v1
     self.security_transaction.command.continue: ak.self.security_transaction.command.continue.v1
     self.events.command.submit: ak.self.events.command.submit.v1
+    self.events.read.delivery_status: ak.self.events.read.delivery_status.v1
     self.streams.read.scan: ak.self.events.read.scan.v1
     self.relation_conflicts.read.candidates: ak.self.relation_conflicts.read.candidates.v1
     self.events.stream.subscribe: ak.self.events.stream.subscribe.v1
@@ -475,6 +477,81 @@ mq:
     open.service.query.resolution: ak.open.service.read.resolution.v1
     edge.push.command.notify: ak.edge.push.command.notify.v1
     self.authz.query.check: ak.self.authz.read.check.v1
+    edge.applet.actor.query.resolve: ak.edge.applet.actor.read.resolve.v1
+    edge.applet.command.transaction: ak.edge.applet.command.transaction.v1
+    edge.applet.managed_actor.command.author: ak.edge.applet.managed_actor.command.author.v1
+    edge.applet.query.describe: ak.edge.applet.read.describe.v1
+    edge.applet.query.ping: ak.edge.applet.read.ping.v1
+    edge.applet.query.protocol_metadata: ak.edge.applet.read.protocol_metadata.v1
+    edge.applet.realm.query.resolve: ak.edge.applet.realm.read.resolve.v1
+    edge.applet.third_party_locations.query.list: ak.edge.applet.third_party_locations.read.list.v1
+    edge.applet.third_party_users.query.list: ak.edge.applet.third_party_users.read.list.v1
+    edge.push.command.register_device: ak.edge.push.command.register_device.v1
+    edge.push.command.unregister_device: ak.edge.push.command.unregister_device.v1
+    find.directory.query.describe: ak.find.directory.read.describe.v1
+    find.directory.query.resolve_handle: ak.find.directory.read.resolve_handle.v1
+    find.directory.query.resolve_organization: ak.find.directory.read.resolve_organization.v1
+    find.directory.query.resolve_realm: ak.find.directory.read.resolve_realm.v1
+    find.directory.query.resolve_target: ak.find.directory.read.resolve_target.v1
+    find.directory.query.search_actors: ak.find.directory.read.search_actors.v1
+    find.directory.query.search_organizations: ak.find.directory.read.search_organizations.v1
+    find.directory.query.search_realms: ak.find.directory.read.search_realms.v1
+    find.directory.query.search_users: ak.find.directory.read.search_users.v1
+    gate.account.command.finalize_device_pairing: ak.gate.account.command.finalize_device_pairing.v1
+    gate.account.command.issue_session_grant: ak.gate.account.command.issue_session_grant.v1
+    gate.account.command.pair_device: ak.gate.account.command.pair_device.v1
+    gate.account.query.claim_device_pairing_code: ak.gate.account.read.claim_device_pairing_code.v1
+    open.realm_authority.read.bundle: ak.open.realm_authority.read.bundle.v1
+    peer.account_status.command.submit: ak.peer.account_status.command.submit.v1
+    peer.erasure_receipt.command.submit: ak.peer.erasure_receipt.command.submit.v1
+    peer.erasure_receipt.resource.get: ak.peer.erasure_receipt.resource.get.v1
+    peer.streams.read.resolve_committed: ak.peer.events.read.resolve_committed.v1
+    peer.realm_authority.command.handoff: ak.peer.realm_authority.command.handoff.v1
+    root.identity.command.submit_did_operation: ak.root.identity.command.submit_did_operation.v1
+    root.identity.document.resource.get: ak.root.identity.document.resource.get.v1
+    root.identity.log.query.list: ak.root.identity.log.read.list.v1
+    root.identity.organization_registration.command.ensure: ak.root.identity.organization_registration.command.ensure.v1
+    root.identity.organization_registration.command.prepare: ak.root.identity.organization_registration.command.prepare.v1
+    root.identity.organization_registration.command.refresh: ak.root.identity.organization_registration.command.refresh.v1
+    root.identity.organization_registration.command.revoke: ak.root.identity.organization_registration.command.revoke.v1
+    root.identity.organization_registration.resource.get: ak.root.identity.organization_registration.resource.get.v1
+    root.identity.query.resolve: ak.root.identity.read.resolve.v1
+    root.identity.receipts.query.list: ak.root.identity.receipts.read.list.v1
+    root.identity.recovery_policy.command.publish: ak.root.identity.recovery_policy.command.publish.v1
+    root.identity.recovery_policy.resource.get: ak.root.identity.recovery_policy.resource.get.v1
+    root.identity.recovery_session.command.create: ak.root.identity.recovery_session.command.create.v1
+    root.identity.recovery_session.command.submit_proof: ak.root.identity.recovery_session.command.submit_proof.v1
+    root.identity.recovery_session.resource.get: ak.root.identity.recovery_session.resource.get.v1
+    root.identity.registry.query.describe: ak.root.identity.registry.read.describe.v1
+    root.identity.service_registration.command.ensure: ak.root.identity.service_registration.command.ensure.v1
+    root.identity.service_registration.resource.get: ak.root.identity.service_registration.resource.get.v1
+    self.account.query.describe: ak.self.account.read.describe.v1
+    self.applet.command.install: ak.self.applet.command.install.v1
+    self.applet.command.revoke: ak.self.applet.command.revoke.v1
+    self.applet.ghost.command.preview: ak.self.applet.ghost.command.preview.v1
+    self.applet.ghost.command.provision: ak.self.applet.ghost.command.provision.v1
+    self.applet.install.command.preview: ak.self.applet.install.command.preview.v1
+    self.applet.revoke.command.preview: ak.self.applet.revoke.command.preview.v1
+    self.authz.grants.query.effective: ak.self.authz.grants.read.effective.v1
+    self.authz.invites.query.list: ak.self.authz.invites.read.list.v1
+    self.blob.command.presign: ak.self.blob.command.presign.v1
+    self.blob.resource.get: ak.self.blob.resource.get.v1
+    self.blob.resource.head: ak.self.blob.resource.head.v1
+    self.blob.upload.create: ak.self.blob.upload.create.v1
+    self.device_messages.command.ack: ak.self.device_messages.command.ack.v1
+    self.device_messages.command.send: ak.self.device_messages.command.send.v1
+    self.device_messages.query.list: ak.self.device_messages.read.list.v1
+    self.events.resource.get: ak.self.events.resource.get.v1
+    self.invite_locator.command.issue: ak.self.invite_locator.command.issue.v1
+    self.invite_locator.command.revoke: ak.self.invite_locator.command.revoke.v1
+    self.invite_locator.command.rotate: ak.self.invite_locator.command.rotate.v1
+    self.invites.command.dispatch: ak.self.invites.command.dispatch.v1
+    self.keys.command.claim: ak.self.keys.command.claim.v1
+    self.keys.query.lookup: ak.self.keys.read.lookup.v1
+    self.keys.upload.create: ak.self.keys.upload.create.v1
+    self.media.query.ice_config: ak.self.media.read.ice_config.v1
+    self.realm_state_snapshot.query.manifest_head: ak.self.realm_state_snapshot.read.manifest_head.v1
+    server.query.describe: ak.server.read.describe.v1
 libp2p:
   envelope:
     required:

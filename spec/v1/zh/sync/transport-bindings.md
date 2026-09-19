@@ -166,7 +166,7 @@ transport MUST 各自通过 binding profile 单独 normative 化。
 
 服务描述 SHOULD 返回：
 
-```json
+```json fragment
 {
   "service_kind": "station",
   "service_id": "ak:did_core:webvh:z5CVGhWHEfRe1HhKLRueCrxfD",
@@ -188,7 +188,6 @@ transport MUST 各自通过 binding profile 单独 normative 化。
   ]
 }
 ```
-
 `transport_bindings[]` 必须通过
 [`transport-binding.schema.json`](../../artifacts/schemas/transport-binding.schema.json)
 验证。当前注册 kind 为 `http_json`、`tus` 与 `websocket`；未知 kind 不能覆盖任何 bundle pair，

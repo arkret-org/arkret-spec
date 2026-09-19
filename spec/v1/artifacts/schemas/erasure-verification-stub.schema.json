@@ -118,7 +118,8 @@
               "const": "event"
             },
             "event_id": {
-              "$ref": "./common-ids.schema.json#/$defs/event_id"
+              "$ref": "./common-ids.schema.json#/$defs/event_id",
+              "x-arkret-preimage-commitment": "fixed_event"
             }
           },
           "additionalProperties": false

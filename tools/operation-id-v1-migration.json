@@ -676,6 +676,10 @@
       "new": "ak.self.events.command.submit.v1"
     },
     {
+      "old": "ak.self.events.read.delivery_status",
+      "new": "ak.self.events.read.delivery_status.v1"
+    },
+    {
       "old": "ak.self.events.read.scan",
       "new": "ak.self.events.read.scan.v1"
     },

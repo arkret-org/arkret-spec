@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-16.10",
+  "version": "2026-09-19.13",
   "source_of_truth": false,
-  "generated_at": "2026-09-18T18:32:00+08:00",
+  "generated_at": "2026-09-19T18:59:50+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -9,6 +9,40 @@
     "low": "Read, projection, discovery, ack, and account-private affordances. Freshness fail-closed treats unknown / stale as local-pending allowed (capabilities.md §18).",
     "medium": "Ordinary authoring and object changes follow registered data execution with verified cached authority. Risk tier does not impose RealmCommit age, online origin or periodic freshness on ordinary publication.",
     "high": "Registered high-risk approvals and explicit validity constraints are enforced. Security writes revalidate exact authority and preconditions in the unique confirmation sequence; risk labels do not override execution classification."
+  },
+  "approval_requirement_eligibility": {
+    "eligibility_kind_definitions": {
+      "event_submission_carrier": "The action executes through a durable Event. An approval requirement is expressible because the registered Event submission operation carries approval evidence beside the complete Event.",
+      "registered_operation_carrier": "The non-Event action names an explicit operation carrier override whose canonical closed request schema contains the registered evidence field.",
+      "ineligible_no_registered_carrier": "The action has no registered evidence carrier. A grant approval constraint and an ak.policy.action approval requirement targeting this action are forbidden in v1."
+    },
+    "event_mapping_defaults": {
+      "same_name": "event_submission_carrier",
+      "aggregate_admin": "event_submission_carrier",
+      "polymorphic_object": "event_submission_carrier",
+      "scope_suffix_variant": "event_submission_carrier",
+      "operation_verb": "event_submission_carrier",
+      "non_event_surface": "ineligible_no_registered_carrier"
+    },
+    "carriers": [
+      {
+        "carrier_id": "event_commit_submission.approval_signatures",
+        "carrier_class": "event_submission",
+        "operation_id": "ak.self.events.command.submit.v1",
+        "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/submit_request",
+        "carrier_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventCommitSubmission/properties/approval_signatures",
+        "carrier_field": "approval_signatures",
+        "evidence_schema_ref": "schemas/approval-signature.schema.json",
+        "allowed_target_kinds": [
+          "event",
+          "operation"
+        ]
+      }
+    ],
+    "default_carrier_by_eligibility_kind": {
+      "event_submission_carrier": "event_commit_submission.approval_signatures"
+    },
+    "action_overrides": []
   },
   "registry_rules": [
     "Wire capability grant.actions[] entries MUST be drawn from this registry; wildcards / segment globs are statically rejected by capability-grant.schema.json.",
@@ -20,7 +54,8 @@
     "Every action MUST declare event_mapping_kind. action == single target_event_kind uses same_name; empty target_event_kinds uses non_event_surface; any other mapping MUST use one of the allowed deviation categories.",
     "grant_authority_actions lists the action ids an issuer holding this action MAY sign a grant for (capabilities.md section 3.2 issuer upper bound). It is a separate namespace from target_event_kinds, which only expresses direct Event admission: several actions can map to one event kind, so an event-kind subset MUST NOT be used to satisfy an action-level grant authority question.",
     "coverage_rule and grant_authority_rule declare how target_event_kinds and grant_authority_actions are derived from the other rows. When a rule is present the materialized list is a cached projection: tools/artifact_pipeline.py generate rewrites it and check rejects any hand edit on either this registry or the generated view.",
-    "root_control_only=true marks an action that only the current controller of the Realm authority-root typed current result may author. It is never grantable and never enters a derived owner authority set. subject_only=true marks a self-service action whose only authority is the target subject's own signature. reducer_only=true marks a record the reducer materializes and no principal may author. The three flags are orthogonal and combinable."
+    "root_control_only=true marks an action that only the current controller of the Realm authority-root typed current result may author. It is never grantable and never enters a derived owner authority set. subject_only=true marks a self-service action whose only authority is the target subject's own signature. reducer_only=true marks a record the reducer materializes and no principal may author. The three flags are orthogonal and combinable.",
+    "approval_requirement_eligibility is the only v1 decision source for whether a grant approval constraint or ak.policy.action approval requirement may target an action. Every event_mapping_kind resolves through event_mapping_defaults; a non_event_surface action is ineligible unless one exact action_overrides row selects registered_operation_carrier and names a reachable carrier. Implementations MUST NOT infer eligibility from action spelling, risk tier, prose, or an invented action-to-operation mapping."
   ],
   "reserved_actions": [],
   "actions": [
@@ -2035,5 +2070,6 @@
     "polymorphic_object": "Action covers the same object-lifecycle verb across multiple object event kinds.",
     "scope_suffix_variant": "Action adds actor/scope/role qualifiers while reducer admission targets a shared event kind.",
     "operation_verb": "Action token names an operation/command verb that does not match its target event kind name(s); reducer admission resolves the resulting event kind(s) via target_event_kinds. Literal action matching per the actions[] rule applies; carries no aggregate-admin family semantics."
-  }
+  },
+  "metadata_authority": "contract_registry_section"
 }
