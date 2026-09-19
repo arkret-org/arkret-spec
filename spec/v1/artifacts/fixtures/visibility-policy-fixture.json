@@ -15,6 +15,48 @@
     "ak.vector.history_access.since_join_prejoin_denied.v1",
     "ak.vector.preview.token_scoped_stripped_state.v1"
   ],
+  "security_evidence": [
+    {
+      "vector_id": "ak.vector.e2ee.mls_activation_irreversible.v1",
+      "clause_id": "AK-NC-011",
+      "decision_points": [
+        {
+          "id": "accepted_genesis_activates_the_scope",
+          "requirement": "An accepted ak.mls.genesis activates its effective scope for standard RFC 9420, and a second genesis for an already activated scope fails with mls_activation_irreversible.",
+          "evidence": [
+            "/cases/0"
+          ]
+        },
+        {
+          "id": "no_path_returns_an_activated_scope_to_plaintext",
+          "requirement": "No later Event, policy field or reducer path returns an activated scope to plaintext, so activation cannot be undone by downgrade or group replacement.",
+          "evidence": [
+            "/cases/0"
+          ]
+        }
+      ]
+    },
+    {
+      "vector_id": "ak.vector.e2ee.plaintext_write_after_activation_rejected.v1",
+      "clause_id": "AK-NC-011",
+      "decision_points": [
+        {
+          "id": "plaintext_write_after_activation_is_rejected",
+          "requirement": "A plaintext content write into an activated scope fails with mls_activation_required rather than being silently accepted or re-encrypted, while the same write is accepted before activation.",
+          "evidence": [
+            "/cases/1"
+          ]
+        },
+        {
+          "id": "activated_scope_accepts_only_rfc9420_ciphertext",
+          "requirement": "An activated scope accepts only RFC 9420 application ciphertext, so there is no second admitted content shape to downgrade into.",
+          "evidence": [
+            "/cases/1"
+          ]
+        }
+      ]
+    }
+  ],
   "cases": [
     {
       "name": "mls_activation_irreversible",

@@ -50,7 +50,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/auth-session-proof-fixture.json",
-      "sha256": "1e8e140900cf9bef32eff46fb5644bc465577ef6076862757eaf3d327546630a"
+      "sha256": "704a37cf85017a3355e1f8fa0549afae6a65adffe1a17072a821b1e7655c56fc"
     },
     {
       "path": "spec/v1/artifacts/fixtures/authority-commit-fixture.json",
@@ -354,7 +354,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/visibility-policy-fixture.json",
-      "sha256": "e2063d4b96f5414e9bc2cd7566a757241bb1a286c2cfb15ba35e680a3f73fc9e"
+      "sha256": "1a6962281c82459801b3baab9b2e64ed04f3fb8bb8120f1a342138c81b1dd39a"
     },
     {
       "path": "spec/v1/artifacts/fixtures/webrtc-media-plaintext-fixture.json",

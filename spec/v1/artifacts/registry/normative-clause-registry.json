@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-22.1",
+  "version": "2026-09-22.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-22T11:00:00+08:00",
+  "generated_at": "2026-09-22T12:00:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -22,59 +22,10 @@
     "executable_fixture_rule": "A clause in one of executable_fixture_categories with testability_grade=vector MUST name vectors that are carried by a fixture declaring a security_evidence entry for them, and that entry MUST map every decision point of the obligation onto resolvable evidence inside the fixture. This is the successor to the deleted aggregate security-closure fixture: the obligation set is whatever is registered here, never a list inside a lint. The remaining categories are outside the rule today because clauses in them still name vectors with no fixture carrier; widening the list is how that gap gets closed, and narrowing it to keep a clause green is not.",
     "executable_evidence_exemptions": [
       {
-        "clause_id": "AK-NC-010",
-        "vector_id": "ak.vector.session.pop_presentation.v1",
-        "carrier": "spec/v1/artifacts/fixtures/auth-session-proof-fixture.json",
-        "reason": "carrier_without_decision_point_mapping",
-        "note": "The vector already has a named_suite fixture carrier, but that fixture does not yet declare a security_evidence entry mapping the clause's decision points onto its cases. Closing this row is a mapping change, not a new fixture."
-      },
-      {
-        "clause_id": "AK-NC-010",
-        "vector_id": "ak.vector.session.bare_bearer_rejected_protected.v1",
-        "carrier": "spec/v1/artifacts/fixtures/auth-session-proof-fixture.json",
-        "reason": "carrier_without_decision_point_mapping",
-        "note": "The vector already has a named_suite fixture carrier, but that fixture does not yet declare a security_evidence entry mapping the clause's decision points onto its cases. Closing this row is a mapping change, not a new fixture."
-      },
-      {
-        "clause_id": "AK-NC-010",
-        "vector_id": "ak.vector.session.dpop_target_uri_binding.v1",
-        "carrier": "spec/v1/artifacts/fixtures/auth-session-proof-fixture.json",
-        "reason": "carrier_without_decision_point_mapping",
-        "note": "The vector already has a named_suite fixture carrier, but that fixture does not yet declare a security_evidence entry mapping the clause's decision points onto its cases. Closing this row is a mapping change, not a new fixture."
-      },
-      {
-        "clause_id": "AK-NC-010",
-        "vector_id": "ak.vector.session.device_identity_key_separation.v1",
-        "carrier": "spec/v1/artifacts/fixtures/auth-session-proof-fixture.json",
-        "reason": "carrier_without_decision_point_mapping",
-        "note": "The vector already has a named_suite fixture carrier, but that fixture does not yet declare a security_evidence entry mapping the clause's decision points onto its cases. Closing this row is a mapping change, not a new fixture."
-      },
-      {
-        "clause_id": "AK-NC-010",
-        "vector_id": "ak.vector.session.http_signature_operation_selector_binding.v1",
-        "carrier": "spec/v1/artifacts/fixtures/auth-session-proof-fixture.json",
-        "reason": "carrier_without_decision_point_mapping",
-        "note": "The vector already has a named_suite fixture carrier, but that fixture does not yet declare a security_evidence entry mapping the clause's decision points onto its cases. Closing this row is a mapping change, not a new fixture."
-      },
-      {
-        "clause_id": "AK-NC-011",
-        "vector_id": "ak.vector.e2ee.mls_activation_irreversible.v1",
-        "carrier": "spec/v1/artifacts/fixtures/visibility-policy-fixture.json",
-        "reason": "carrier_without_decision_point_mapping",
-        "note": "The vector already has a named_suite fixture carrier, but that fixture does not yet declare a security_evidence entry mapping the clause's decision points onto its cases. Closing this row is a mapping change, not a new fixture."
-      },
-      {
-        "clause_id": "AK-NC-011",
-        "vector_id": "ak.vector.e2ee.plaintext_write_after_activation_rejected.v1",
-        "carrier": "spec/v1/artifacts/fixtures/visibility-policy-fixture.json",
-        "reason": "carrier_without_decision_point_mapping",
-        "note": "The vector already has a named_suite fixture carrier, but that fixture does not yet declare a security_evidence entry mapping the clause's decision points onto its cases. Closing this row is a mapping change, not a new fixture."
-      },
-      {
         "clause_id": "AK-NC-011",
         "vector_id": "ak.vector.encoding.encrypted_envelope_digest.v1",
         "reason": "no_fixture_carrier",
-        "note": "The vector is registered and defined in prose but no fixture covers it; the obligation currently has no executable evidence at all."
+        "note": "The vector is registered and defined in prose but no fixture covers it. It carries the second and third sentences of AK-NC-011, which the activation vectors do not touch: the closed {version, content_type, encryption_context, ciphertext} envelope with encryption_context limited to epoch, group_state_ref and registered routing context; the receiver reconstructing that exact closed pre-encryption header from the outer signed Event, the effective scope, the Event kind, its own verified current public group result and the sender leaf rather than trusting any copy carried alongside the envelope; and any AAD, ciphertext-digest or encryption_context mismatch failing closed with no partial write, no plaintext downgrade and no retry under different secrets. This row is therefore also the record that AK-NC-011 is evidenced in part: the two e2ee vectors discharge only its first sentence, and the exemption ledger is keyed by (clause_id, vector_id), so it is the only place a partly-evidenced clause can be stated."
       },
       {
         "clause_id": "AK-NC-013",

@@ -15,6 +15,108 @@
     "ak.vector.session.http_signature_operation_selector_binding.v1",
     "ak.vector.service.http_signature_freshness_window_boundaries.v1"
   ],
+  "security_evidence": [
+    {
+      "vector_id": "ak.vector.session.pop_presentation.v1",
+      "clause_id": "AK-NC-010",
+      "decision_points": [
+        {
+          "id": "pop_transcript_covers_the_request",
+          "requirement": "The sender-constrained proof covers the method, target-uri, authority and content-digest of the request it authenticates, so a valid proof cannot be replayed onto a different method, path or body.",
+          "evidence": [
+            "/cases/1"
+          ]
+        },
+        {
+          "id": "content_digest_is_recomputed_over_the_exact_bytes",
+          "requirement": "Content-Digest is one parameter-free sha-256 Byte Sequence member recomputed against the exact HTTP content bytes before the signature is trusted; parse-then-canonicalize verification, Content-Encoding and a trailer-only digest are rejected even when the signature itself verifies.",
+          "evidence": [
+            "/cases/1"
+          ]
+        }
+      ]
+    },
+    {
+      "vector_id": "ak.vector.session.bare_bearer_rejected_protected.v1",
+      "clause_id": "AK-NC-010",
+      "decision_points": [
+        {
+          "id": "bare_bearer_never_authenticates_a_protected_request",
+          "requirement": "A production current-v1 protected endpoint rejects a bare bearer session grant unless a sender-constrained proof of possession is present.",
+          "evidence": [
+            "/cases/2"
+          ]
+        },
+        {
+          "id": "public_metadata_surfaces_do_not_launder_bare_bearer",
+          "requirement": "Public metadata surfaces MUST NOT treat a bare bearer token as session or capability authentication, so an unprotected surface cannot be used to give a bare bearer standing.",
+          "evidence": [
+            "/cases/2"
+          ]
+        },
+        {
+          "id": "replay_window_is_enforced_independently_of_the_cache",
+          "requirement": "A proof whose created/expires falls outside the replay window is rejected even after the replay cache evicted its entry, so cache eviction never substitutes for the freshness check.",
+          "evidence": [
+            "/cases/2"
+          ]
+        }
+      ]
+    },
+    {
+      "vector_id": "ak.vector.session.dpop_target_uri_binding.v1",
+      "clause_id": "AK-NC-010",
+      "decision_points": [
+        {
+          "id": "htu_binds_scheme_authority_and_path",
+          "requirement": "htu comparison drops query and fragment but retains scheme, authority and path, so the same path at a different authority or scheme is rejected.",
+          "evidence": [
+            "/cases/4"
+          ]
+        },
+        {
+          "id": "unreconstructable_external_uri_rejects",
+          "requirement": "Forwarding headers are honoured only from a configured trusted final proxy after edge scrubbing, and a verifier that cannot reconstruct the external URI rejects the request instead of falling back to path-only comparison.",
+          "evidence": [
+            "/cases/4"
+          ]
+        }
+      ]
+    },
+    {
+      "vector_id": "ak.vector.session.device_identity_key_separation.v1",
+      "clause_id": "AK-NC-010",
+      "decision_points": [
+        {
+          "id": "session_proof_key_is_not_the_device_identity_key",
+          "requirement": "The session proof key may be shared only between the DPoP and RFC 9421 session proof layers; its bytes, fingerprint and key identifier MUST be distinct from the long-term device identity key, so possession of a session proof is not possession of the device identity.",
+          "evidence": [
+            "/cases/3"
+          ]
+        }
+      ]
+    },
+    {
+      "vector_id": "ak.vector.session.http_signature_operation_selector_binding.v1",
+      "clause_id": "AK-NC-010",
+      "decision_points": [
+        {
+          "id": "operation_selector_must_be_inside_the_signature_base",
+          "requirement": "A request whose Arkret-Operation header is present and valid but absent from Signature-Input fails the coverage check, so the selector that chooses the operation is inside what the proof constrains.",
+          "evidence": [
+            "/cases/5"
+          ]
+        },
+        {
+          "id": "selector_substitution_fails_verification_not_coverage",
+          "requirement": "A covered selector replaced after signing fails signature verification rather than the coverage check, so the two failure modes stay distinguishable and neither can mask the other.",
+          "evidence": [
+            "/cases/5"
+          ]
+        }
+      ]
+    }
+  ],
   "cases": [
     {
       "name": "session_grant_audience_binding",
