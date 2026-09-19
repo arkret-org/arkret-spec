@@ -249,6 +249,7 @@ from .psi_class_b import check_psi_class_b_artifact_closure
 from .reason_code_producers import check_reason_code_producer_paths
 from .result_effect_ownership import check_result_effect_ownership
 from .agent_draft_pending_intent import check_agent_draft_pending_intent
+from .event_submit_idempotency import check_event_submit_idempotency
 from .account_data_revision_name import check_account_data_revision_name
 from .key_backup_active_series_source_anchor import check_key_backup_active_series_source_anchor
 from .key_backup_envelope_source_anchor import check_key_backup_envelope_source_anchor
@@ -361,6 +362,7 @@ def main(argv: list[str] | None = None) -> int:
             ("result_write_contracts", lambda: check_result_write_contracts(lint)),
             ("result_effect_ownership", lambda: check_result_effect_ownership(lint)),
             ("agent_draft_pending_intent", lambda: check_agent_draft_pending_intent(lint)),
+            ("event_submit_idempotency", lambda: check_event_submit_idempotency(lint)),
             ("result_value_member_closure", lambda: check_result_value_member_closure(lint)),
             (
                 "author_writable_state_axis_contract",
