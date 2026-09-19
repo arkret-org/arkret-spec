@@ -52,6 +52,22 @@ def _resolve_pointer(document: Any, pointer: str) -> Any:
     return current
 
 
+def _names_a_case(pointer: str) -> bool:
+    """True when the pointer's last step indexes a ``cases`` array.
+
+    Keying the per-case assertion check on a ``/cases/`` *prefix* only covered
+    fixtures whose executable unit is a top-level ``cases[]``. A fixture that
+    runs ``vectors[]`` and carries its cases inside one of them --
+    ``encoding-fixture.json`` is the first one to declare security evidence --
+    could point at ``/vectors/11/cases/0`` and skip the one check that asks
+    whether the named case states an expected observation at all.
+    """
+    if not pointer.startswith("/"):
+        return False
+    tokens = pointer[1:].split("/")
+    return len(tokens) >= 2 and tokens[-2] == "cases" and tokens[-1].isdigit()
+
+
 def _collect_security_evidence(
     lint: Lint,
 ) -> tuple[dict[str, tuple[Path, dict[str, Any], dict[str, Any]]], bool]:
@@ -169,7 +185,7 @@ def _check_decision_points(
                 lint.fail(path, f"{pointer_label} does not resolve to fixture content: {pointer}")
                 ok = False
                 continue
-            if pointer.startswith("/cases/") and isinstance(target, dict):
+            if _names_a_case(pointer) and isinstance(target, dict):
                 assertions = target.get("assertions")
                 if (
                     not isinstance(assertions, list)

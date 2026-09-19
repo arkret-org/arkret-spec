@@ -7,6 +7,115 @@
   "version": "2026-09-21.1",
   "description": "Canonical encoding and digest-algorithm vectors for the current authority-commit protocol.",
   "generator_semantics": "Vectors of kind *_reject_generated carry a `generator` object instead of literal input bytes: the runner MUST construct the input at execution time from the generator parameters (e.g. nesting_depth, array_item_count) following the generator.rule text, so the fixture never stores megabyte-scale literals. Rejection is asserted exactly as for literal-input vectors.",
+  "covers_vectors": [
+    "ak.vector.encoding.canonical_json.basic.v1",
+    "ak.vector.encoding.open_registry_unknown_roundtrip.v1",
+    "ak.vector.encoding.canonical_json.nested.v1",
+    "ak.vector.encoding.digest.blake3.v1",
+    "ak.vector.encoding.reject_noncanonical_numbers.v1",
+    "ak.vector.encoding.reject_malformed_json.v1",
+    "ak.vector.encoding.event_batch_receipt_digest.v1",
+    "ak.vector.encoding.signature_binding_payload.v1",
+    "ak.vector.encoding.hlc_order.v1",
+    "ak.vector.encoding.hlc_logical_overflow.v1",
+    "ak.vector.encoding.cursor_opaque.core.v1",
+    "ak.vector.encoding.encrypted_envelope_digest.v1",
+    "ak.vector.encoding.canonical_json.utf16_supplementary_order.v1",
+    "ak.vector.encoding.reject_duplicate_key.v1",
+    "ak.vector.encoding.reject_non_nfc_string.v1",
+    "ak.vector.encoding.reject_feff_injection.v1",
+    "ak.vector.encoding.reject_malformed_hlc.v1",
+    "ak.vector.encoding.reject_structure_depth_exceeded.v1",
+    "ak.vector.encoding.reject_cbor_length_bomb.v1",
+    "ak.vector.encoding.reject_cbor_indefinite_length.v1",
+    "ak.vector.encoding.reject_cbor_array_bounds.v1",
+    "ak.vector.encoding.multibase_did_key.core.v1",
+    "ak.vector.encoding.signature_binding_payload_domain.v1",
+    "ak.vector.encoding.signature_binding_payload_audience.v1",
+    "ak.vector.encoding.signature_binding_payload_domain_audience.v1",
+    "ak.vector.direct_conversation.pair_key.v1",
+    "ak.vector.direct_conversation.binding_digest.v1",
+    "ak.vector.encoding.extension_slot_roundtrip.v1"
+  ],
+  "security_evidence": [
+    {
+      "vector_id": "ak.vector.encoding.encrypted_envelope_digest.v1",
+      "clause_id": "AK-NC-011",
+      "decision_points": [
+        {
+          "id": "envelope_is_the_closed_four_member_wire",
+          "requirement": "Every encrypted envelope is the closed {version, content_type, encryption_context, ciphertext}: scope, mls_group_id, Event kind, content scheme, AEAD algorithm and any AAD digest are reconstructed and never duplicated on the wire, and a fifth member makes the envelope invalid rather than selecting another content scheme.",
+          "evidence": [
+            "/vectors/11/closed_envelope",
+            "/vectors/11/cases/1"
+          ]
+        },
+        {
+          "id": "encryption_context_is_closed_to_the_registered_members",
+          "requirement": "encryption_context is limited to epoch, group_state_ref and the registered routing context; a counter, scheme, algorithm, scope, group id, AAD digest member or a null placeholder is rejected rather than reinterpreted.",
+          "evidence": [
+            "/vectors/11/encryption_context_members",
+            "/vectors/11/cases/2"
+          ]
+        },
+        {
+          "id": "digest_covers_the_wire_projection_and_never_the_plaintext",
+          "requirement": "The envelope digest preimage is the canonical {version, content_type, encryption_context} projection followed by the decoded ciphertext bytes, and implementations never hash the plaintext payload.",
+          "evidence": [
+            "/vectors/11/digest_input_rule",
+            "/vectors/11/expected_digest",
+            "/vectors/11/rules"
+          ]
+        },
+        {
+          "id": "receiver_rebuilds_the_header_from_all_five_local_sources",
+          "requirement": "The receiver reconstructs the exact closed pre-encryption header from the outer signed Event, the effective scope, the Event kind, its own verified current public group result and the sender leaf; substituting any one of the five yields a different AAD and fails verification.",
+          "evidence": [
+            "/vectors/11/reconstructed_header",
+            "/vectors/11/cases/0"
+          ]
+        },
+        {
+          "id": "a_copy_carried_alongside_the_envelope_is_never_trusted",
+          "requirement": "A copy of the header carried alongside the envelope is refused on the member set before any AEAD open, and is not consulted even when it is byte-identical to the rebuilt header.",
+          "evidence": [
+            "/vectors/11/cases/1"
+          ]
+        },
+        {
+          "id": "aad_mismatch_fails_closed",
+          "requirement": "A rebuilt AAD differing from the AAD the ciphertext was sealed under fails with aad_digest_mismatch, and the transcript is not relaxed to the members both sides agree on.",
+          "evidence": [
+            "/vectors/11/cases/3"
+          ]
+        },
+        {
+          "id": "ciphertext_digest_mismatch_fails_closed",
+          "requirement": "A ciphertext whose raw bytes do not hash to the digest the signed outer Event references fails with payload_digest_mismatch rather than as a decrypt failure.",
+          "evidence": [
+            "/vectors/11/cases/4"
+          ]
+        },
+        {
+          "id": "encryption_context_mismatch_fails_closed",
+          "requirement": "An encryption_context the receiver's own verified current public group result does not produce fails with epoch_mismatch, and current time, current UI state or another stream head never substitute for that revision.",
+          "evidence": [
+            "/vectors/11/cases/5"
+          ]
+        },
+        {
+          "id": "fail_closed_admits_no_partial_write_no_downgrade_no_secret_reroll",
+          "requirement": "Each of the three mismatches fails closed: no typed current or outbox partial result, no plaintext downgrade, and no retry under different secrets -- an ambiguous outcome is replayed byte-identically instead of re-encrypted.",
+          "evidence": [
+            "/vectors/11/cases/3",
+            "/vectors/11/cases/4",
+            "/vectors/11/cases/5",
+            "/vectors/11/cases/6"
+          ]
+        }
+      ]
+    }
+  ],
   "vectors": [
     {
       "vector_id": "ak.vector.encoding.canonical_json.basic.v1",
@@ -370,6 +479,211 @@
         "payload_metadata is exactly {version,content_type,encryption_context}; scope, kind, group id, scheme and sender domain are reconstructed and never duplicated on wire",
         "encryption_context is closed to epoch, group_state_ref and registered routing context only; a counter, scheme, algorithm, scope, group id or AAD digest member makes the envelope invalid rather than selecting another content scheme",
         "implementations MUST NOT hash plaintext payload"
+      ],
+      "closed_envelope": {
+        "schema_ref": "spec/v1/artifacts/schemas/encrypted-envelope.schema.json",
+        "wire_members": [
+          "version",
+          "content_type",
+          "encryption_context",
+          "ciphertext"
+        ],
+        "additional_properties": false,
+        "absent_from_wire": [
+          "the effective scope",
+          "mls_group_id",
+          "the Event kind",
+          "the content scheme",
+          "the AEAD algorithm",
+          "any AAD digest",
+          "any copy of the closed header the sender assembled before encrypting"
+        ]
+      },
+      "encryption_context_members": {
+        "required": [
+          "epoch",
+          "group_state_ref"
+        ],
+        "registered_optional": [
+          "routing_context"
+        ],
+        "routing_context_members": [
+          "target_ref",
+          "routing_tag"
+        ],
+        "routing_context_admitted_for": "a registered reaction outer Event kind only; every other Event kind forbids the member, and the reaction kind plus routing_window are derived AAD/KDF inputs rather than wire fields",
+        "forbidden_members": [
+          "counter",
+          "scheme",
+          "algorithm",
+          "scope",
+          "mls_group_id",
+          "aad_digest",
+          "content_type"
+        ],
+        "forbidden_member_outcome": "envelope_invalid"
+      },
+      "reconstructed_header": {
+        "sources_in_order": [
+          "the frozen outer signed Event",
+          "the effective scope",
+          "the Event kind",
+          "the receiver's own verified current public group result",
+          "the sender leaf"
+        ],
+        "assembly_rules": [
+          "the sender assembles the closed header from those five sources before encrypting and treats it as immutable afterwards",
+          "the header is the single origin of the AAD transcript: members, order and canonical encoding are fixed",
+          "a missing member, an extra member, a null placeholder or a reordering produces a different AAD and MUST therefore be rejected",
+          "the header never travels on the wire; the receiver rebuilds it verbatim and MUST NOT trust any copy carried alongside the envelope"
+        ],
+        "aad_digest_source": "the canonical encoding of the rebuilt closed header",
+        "ciphertext_digest_source": "the raw bytes of the envelope's ciphertext member"
+      },
+      "cases": [
+        {
+          "name": "closed_header_is_rebuilt_locally_not_read_from_wire",
+          "given": "a well-formed envelope carrying exactly the four wire members, whose sender assembled the closed header from the five sources before encrypting",
+          "action": "verify and decrypt the application message",
+          "expected": {
+            "outcome": "accepted",
+            "header_rebuilt_from": [
+              "the frozen outer signed Event",
+              "the effective scope",
+              "the Event kind",
+              "the receiver's own verified current public group result",
+              "the sender leaf"
+            ],
+            "wire_members_consulted_for_the_header": []
+          },
+          "assertions": [
+            "the receiver MUST rebuild the closed header from all five local sources; the header itself is not on the wire, so there is nothing to read it from",
+            "substituting any one of the five sources -- another scope, another Event kind, another public group revision or another sender leaf -- yields a different AAD and MUST make verification fail rather than succeed on a shorter transcript",
+            "acceptance is evidence only because the rebuilt header equalled the sender's: the same ciphertext MUST NOT verify under a header rebuilt from different sources"
+          ]
+        },
+        {
+          "name": "header_copy_carried_alongside_the_envelope_is_refused",
+          "given": "the same envelope plus a fifth member repeating the sender's own closed header, byte-identical to what the receiver would rebuild",
+          "action": "validate the envelope",
+          "expected": {
+            "outcome": "reject",
+            "reason": "schema_violation",
+            "copy_consulted": false,
+            "other_content_scheme_selected": false
+          },
+          "assertions": [
+            "the envelope schema is closed, so a fifth member makes the envelope invalid rather than selecting another content scheme",
+            "the copy MUST NOT be consulted even when it is byte-identical to the rebuilt header; a receiver that accepts the envelope by reading the copy has skipped the reconstruction the clause requires",
+            "rejection happens on the member set, before any AEAD open, so a copy cannot become trusted by being correct"
+          ]
+        },
+        {
+          "name": "extra_or_null_encryption_context_member_is_refused_not_reinterpreted",
+          "given": "envelopes whose encryption_context adds counter, scheme, algorithm, scope, mls_group_id or aad_digest, and one that carries group_state_ref as null",
+          "action": "validate the envelope",
+          "expected": {
+            "outcome": "reject",
+            "reason": "schema_violation",
+            "admitted_members": [
+              "epoch",
+              "group_state_ref",
+              "routing_context"
+            ],
+            "other_content_scheme_selected": false,
+            "null_placeholder_treated_as_absent": false
+          },
+          "assertions": [
+            "encryption_context is closed to epoch, group_state_ref and the registered routing_context; every other member MUST be rejected",
+            "an added member MUST NOT be read as selecting a second content scheme, an algorithm or a group: v1 has one content scheme and the others are reconstructed",
+            "a null placeholder is a different member set, not an absent member, so it produces a different AAD and MUST be rejected rather than normalised away",
+            "routing_context is admitted only for a registered reaction outer Event kind; it is forbidden on every other kind and grants no read or write authority"
+          ]
+        },
+        {
+          "name": "aad_transcript_mismatch_fails_closed",
+          "given": "an envelope whose ciphertext was sealed under a header differing from the one the receiver rebuilds in exactly one member",
+          "action": "verify and attempt to decrypt",
+          "expected": {
+            "outcome": "reject",
+            "reason": "aad_digest_mismatch",
+            "http_status": 422,
+            "partial_write": false,
+            "plaintext_downgrade": false,
+            "retry_under_different_secrets": false
+          },
+          "assertions": [
+            "no typed current result, outbox row or partial decrypt is written",
+            "the message is not downgraded to plaintext and is not admitted under any other content scheme",
+            "verification is not retried under a different epoch secret, a different sender ratchet generation or a re-encryption of the same message",
+            "the rebuilt AAD differing from the AAD the ciphertext was sealed under MUST fail with aad_digest_mismatch",
+            "the same ciphertext MUST NOT be admitted by relaxing the transcript to the members both sides agree on"
+          ]
+        },
+        {
+          "name": "ciphertext_digest_mismatch_fails_closed",
+          "given": "an envelope whose ciphertext bytes hash to something other than the digest the signed outer Event references",
+          "action": "compare the ciphertext digest against the signed reference, then attempt to decrypt",
+          "expected": {
+            "outcome": "reject",
+            "reason": "payload_digest_mismatch",
+            "http_status": 422,
+            "digest_taken_over": "the raw bytes of the envelope's ciphertext member",
+            "partial_write": false,
+            "plaintext_downgrade": false,
+            "retry_under_different_secrets": false
+          },
+          "assertions": [
+            "no typed current result, outbox row or partial decrypt is written",
+            "the message is not downgraded to plaintext and is not admitted under any other content scheme",
+            "verification is not retried under a different epoch secret, a different sender ratchet generation or a re-encryption of the same message",
+            "the ciphertext digest is recomputed over the raw ciphertext bytes, not over a re-encoding of them, and MUST equal the digest the signed outer Event references",
+            "the mismatch MUST be reported as payload_digest_mismatch rather than as a decrypt failure, so a wire corruption is not confused with a key problem"
+          ]
+        },
+        {
+          "name": "encryption_context_disagrees_with_the_verified_group_result",
+          "given": "an envelope whose encryption_context names an epoch and group_state_ref that the receiver's own verified current public group result does not produce",
+          "action": "cross-check encryption_context against the verified group result",
+          "expected": {
+            "outcome": "reject",
+            "reason": "epoch_mismatch",
+            "http_status": 409,
+            "compared_against": "the receiver's own verified current public group result",
+            "substitutes_refused": [
+              "the current wall-clock time",
+              "the current UI state",
+              "another stream head"
+            ],
+            "partial_write": false,
+            "plaintext_downgrade": false,
+            "retry_under_different_secrets": false
+          },
+          "assertions": [
+            "no typed current result, outbox row or partial decrypt is written",
+            "the message is not downgraded to plaintext and is not admitted under any other content scheme",
+            "verification is not retried under a different epoch secret, a different sender ratchet generation or a re-encryption of the same message",
+            "the context is checked against the exact public group revision the receiver verified itself; current time, current UI state and another stream head MUST NOT substitute for that revision",
+            "the same ciphertext MUST fail under a different scope, Event kind, sender or group state, so a context that merely parses is not a context that binds"
+          ]
+        },
+        {
+          "name": "exact_retry_replays_the_same_bytes_and_never_re_encrypts",
+          "given": "a submission whose outcome is unknown to the sender",
+          "action": "retry the same message",
+          "expected": {
+            "outcome": "byte_identical_replay",
+            "re_encrypted": false,
+            "second_ciphertext_produced": false,
+            "sender_ratchet_generation_advanced": false,
+            "frozen_header_reused": true
+          },
+          "assertions": [
+            "an ambiguous outcome MUST be retried as a byte-identical replay of the same request",
+            "the retry MUST NOT re-encrypt, so it MUST NOT advance the RFC 9420 sender ratchet generation and MUST NOT produce a second ciphertext for the same message",
+            "a second ciphertext would break the one-to-one correspondence between the frozen AAD and the message already sent, which is why 'no retry under different secrets' is a property of the sender as well as the receiver"
+          ]
+        }
       ]
     },
     {

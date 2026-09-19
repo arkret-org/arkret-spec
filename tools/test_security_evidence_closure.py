@@ -223,6 +223,28 @@ class SecurityEvidenceClosureTest(unittest.TestCase):
             self.run_gate(fixtures={FIXTURE: body}), "without per-case assertions"
         )
 
+    def test_a_nested_case_without_assertions_turns_the_gate_red(self) -> None:
+        # A fixture whose executable unit is vectors[] carries its cases inside
+        # one of them. Keying the assertion check on a "/cases/" prefix let that
+        # shape point at a case body and skip the check entirely.
+        body = fixture()
+        body["vectors"] = [{"vector_id": VECTOR, "cases": [{"name": "probe", "given": "nothing"}]}]
+        body["security_evidence"][0]["decision_points"][0]["evidence"] = ["/vectors/0/cases/0"]
+        self.assertRedWith(
+            self.run_gate(fixtures={FIXTURE: body}), "without per-case assertions"
+        )
+
+    def test_a_nested_case_with_assertions_is_accepted(self) -> None:
+        body = fixture()
+        body["vectors"] = [
+            {
+                "vector_id": VECTOR,
+                "cases": [{"name": "probe", "assertions": ["the write MUST fail closed"]}],
+            }
+        ]
+        body["security_evidence"][0]["decision_points"][0]["evidence"] = ["/vectors/0/cases/0"]
+        self.assertEqual([], self.run_gate(fixtures={FIXTURE: body}))
+
     def test_an_empty_decision_point_list_turns_the_gate_red(self) -> None:
         body = fixture()
         body["security_evidence"][0]["decision_points"] = []

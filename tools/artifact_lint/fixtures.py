@@ -3641,6 +3641,92 @@ def check_encrypted_envelope_digest_vector(lint: Lint) -> None:
     if vector.get("expected_digest") != expected_digest:
         lint.fail(fixture_path, "Encrypted Envelope expected_digest mismatch")
 
+    # AK-NC-011 is three sentences, and pinning the digest only discharges the
+    # first half of the second one. The receiver-side reconstruction and the
+    # fail-closed behaviour are what the security_evidence entry for this vector
+    # maps onto, so the members carrying them are part of the vector's contract:
+    # deleting one would leave a decision point pointing at nothing, but only
+    # after someone noticed that the clause had lost its evidence.
+    closed = vector.get("closed_envelope")
+    if not isinstance(closed, dict) or closed.get("wire_members") != [
+        "version",
+        "content_type",
+        "encryption_context",
+        "ciphertext",
+    ]:
+        lint.fail(
+            fixture_path,
+            "Encrypted Envelope vector must declare closed_envelope.wire_members as the closed "
+            "four-member wire projection",
+        )
+    elif closed.get("additional_properties") is not False:
+        lint.fail(
+            fixture_path,
+            "Encrypted Envelope closed_envelope must state additional_properties=false; a wire "
+            "that admits a fifth member is not closed",
+        )
+    context_members = vector.get("encryption_context_members")
+    if not isinstance(context_members, dict) or context_members.get("required") != [
+        "epoch",
+        "group_state_ref",
+    ]:
+        lint.fail(
+            fixture_path,
+            "Encrypted Envelope vector must declare encryption_context_members.required as "
+            "[epoch, group_state_ref]",
+        )
+    elif context_members.get("registered_optional") != ["routing_context"]:
+        lint.fail(
+            fixture_path,
+            "Encrypted Envelope encryption_context_members.registered_optional must be exactly "
+            "the registered routing context",
+        )
+    header = vector.get("reconstructed_header")
+    sources = header.get("sources_in_order") if isinstance(header, dict) else None
+    if not isinstance(sources, list) or len(sources) != 5:
+        lint.fail(
+            fixture_path,
+            "Encrypted Envelope vector must declare reconstructed_header.sources_in_order as the "
+            "five sources the receiver rebuilds the closed header from; a shorter list is a "
+            "shorter AAD transcript",
+        )
+    if not isinstance(header, dict) or not header.get("assembly_rules"):
+        lint.fail(
+            fixture_path,
+            "Encrypted Envelope reconstructed_header must state the assembly rules, including that "
+            "the header never travels on the wire",
+        )
+    cases = vector.get("cases")
+    if not isinstance(cases, list) or not cases:
+        lint.fail(fixture_path, "Encrypted Envelope vector must carry cases")
+        return
+    reasons = {
+        case.get("expected", {}).get("reason")
+        for case in cases
+        if isinstance(case, dict) and isinstance(case.get("expected"), dict)
+    }
+    for reason in ("aad_digest_mismatch", "payload_digest_mismatch", "epoch_mismatch"):
+        if reason not in reasons:
+            lint.fail(
+                fixture_path,
+                f"Encrypted Envelope vector states no case expecting {reason}; AK-NC-011 names all "
+                "three mismatches as separate fail-closed outcomes",
+            )
+    for index, case in enumerate(cases):
+        if not isinstance(case, dict):
+            lint.fail(fixture_path, f"Encrypted Envelope cases[{index}] must be an object")
+            continue
+        assertions = case.get("assertions")
+        if (
+            not isinstance(assertions, list)
+            or not assertions
+            or not all(isinstance(item, str) and item.strip() for item in assertions)
+        ):
+            lint.fail(
+                fixture_path,
+                f"Encrypted Envelope cases[{index}] states no assertions, so it observes nothing",
+            )
+
 
 def check_one_of_branch_discriminability(lint: Lint) -> None:
     """Every object-union `oneOf` must have a decidable branch.
