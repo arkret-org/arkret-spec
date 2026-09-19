@@ -1,0 +1,75 @@
+{
+  "suite": "realm_join_candidate_untrusted_locator",
+  "fixture_kind": "schema_and_semantic",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.realm_join_candidate.untrusted_locator.v1"
+  },
+  "version": "2026-09-20.2",
+  "schema": "arkret.realm-join-candidate-locator-fixture.v1",
+  "vector_id": "ak.vector.realm_join_candidate.untrusted_locator.v1",
+  "accepted_candidate": {
+    "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+    "service_kind": "station",
+    "service_id": "ak:did_core:webvh:zGUwpRSnyVCLzU7upsm9iSwEv",
+    "endpoint_url": "https://candidate.example/_arkret",
+    "source": "directory",
+    "observed_at": "2026-09-20T06:00:00Z",
+    "expires_at": "2026-09-20T06:05:00Z"
+  },
+  "trust_contract": {
+    "candidate_is_authority": false,
+    "candidate_is_authorization": false,
+    "candidate_is_identity_selector": false,
+    "candidate_signature_can_raise_trust": false,
+    "client_submits_to_own_station": true,
+    "own_station_fetches_nonce_bound_authority_bundle": true,
+    "current_governance_station_source": "verified_realm_genesis_and_continuous_handoff_chain",
+    "conflicting_authority_chains": "fail_closed"
+  },
+  "source_equivalence": [
+    "invite",
+    "directory",
+    "cache"
+  ],
+  "rejected_additional_members": [
+    "proof",
+    "proofs",
+    "signature",
+    "verification_method",
+    "seal_basis",
+    "source_refs",
+    "role",
+    "operations",
+    "join_methods",
+    "encryption_profile",
+    "digest_profile",
+    "priority",
+    "authority",
+    "authority_generation",
+    "governance_station_id",
+    "current_authority",
+    "authority_bundle"
+  ],
+  "authority_chain_cases": [
+    {
+      "name": "two_locators_converge_on_one_verified_chain",
+      "candidate_count": 2,
+      "verified_chain_count": 1,
+      "expected": "forward_to_verified_current_governance_station"
+    },
+    {
+      "name": "locators_return_mutually_exclusive_valid_chains",
+      "candidate_count": 2,
+      "verified_chain_count": 2,
+      "chains_are_mutually_exclusive": true,
+      "expected": "fail_closed"
+    },
+    {
+      "name": "candidate_self_asserts_current_authority",
+      "candidate_signature_valid": true,
+      "verified_genesis_and_handoff_chain": false,
+      "expected": "reject_as_authority"
+    }
+  ]
+}

@@ -297,6 +297,7 @@ class RunnerWiringTest(unittest.TestCase):
         source = (ROOT / "tools" / "artifact_lint" / "runner.py").read_text(encoding="utf-8")
         for name in (
             "check_digest_construction_registration",
+            "check_realm_join_candidate_locator_contract",
             "check_proof_context_carrier_family_anchors",
             "check_domain_separation_binding_fields_are_carriable",
         ):

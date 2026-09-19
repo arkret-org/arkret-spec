@@ -36,7 +36,12 @@ class PeerEventSubmitGateTest(unittest.TestCase):
         }
         self.texts = {
             path.resolve(): path.read_text(encoding="utf-8")
-            for path in (gate.FIXTURE, gate.OPENAPI, *gate.PROSE_MARKERS)
+            for path in (
+                gate.FIXTURE,
+                gate.OPENAPI,
+                *gate.PROSE_MARKERS,
+                gate.SPEC_ROOT / "zh" / "sync" / "service-surface.md",
+            )
         }
 
     def run_gate(self, mutate=None, text_mutate=None, closure=False) -> list[str]:
@@ -80,6 +85,22 @@ class PeerEventSubmitGateTest(unittest.TestCase):
     def operation(self, documents: dict, operation_id: str) -> dict:
         rows = documents[gate.CONTRACT.resolve()]["operation_registry"]["operations"]
         return gate._find(rows, "operation_id", operation_id)
+
+    def schema_registry_row(self, documents: dict, schema_id: str) -> dict:
+        rows = documents[gate.CONTRACT.resolve()]["schema_registry"]["schemas"]
+        return gate._find(rows, "schema_id", schema_id)
+
+    def error_code(self, documents: dict, code: str) -> dict:
+        registry = documents[gate.ERRORS.resolve()]
+        return gate._find([*registry["codes"], *registry["reason_codes"]], "code", code)
+
+    def error_mapping(self, documents: dict, operation_id: str) -> dict:
+        return gate._find(documents[gate.ERROR_MAPPING.resolve()]["operations"], "operation_id", operation_id)
+
+    def founding_slot_invariant(self, documents: dict) -> tuple[list[str], int]:
+        invariants = documents[gate.PROFILES.resolve()]["profile_requirements"]["ak.profile.direct_conversation_realm.v1"]["binding_invariants"]
+        index = next(index for index, value in enumerate(invariants) if value.startswith("The founding slot admits"))
+        return invariants, index
 
     def test_complete_contract_passes(self) -> None:
         self.assertEqual(self.run_gate(), [])
@@ -166,6 +187,136 @@ class PeerEventSubmitGateTest(unittest.TestCase):
             texts[path] = texts[path].replace("peer_injects_deleted_receipt", "peer_without_second_finality")
 
         self.assert_red(marker="peer_injects_deleted_receipt", text_mutate=text_mutate)
+
+    def test_direct_conversation_schema_description_keeps_commit_only_marker(self) -> None:
+        def mutate(documents: dict) -> None:
+            row = self.schema_registry_row(documents, "ak.schema.direct_conversation_operations.v1")
+            row["description"] = row["description"].replace("verified founding-authority evidence", "founding transport data")
+
+        self.assert_red(mutate, "Direct Conversation schema description omits commit-only marker")
+
+    def test_direct_conversation_schema_description_rejects_deleted_receipt_semantic(self) -> None:
+        def mutate(documents: dict) -> None:
+            row = self.schema_registry_row(documents, "ak.schema.direct_conversation_operations.v1")
+            row["description"] += " It carries the source founding acceptance receipt."
+
+        self.assert_red(mutate, "Direct Conversation schema description restores deleted founding-receipt semantic")
+
+    def test_self_submit_notes_keep_commit_only_marker(self) -> None:
+        def mutate(documents: dict) -> None:
+            row = self.operation(documents, "ak.self.events.command.submit.v1")
+            row["notes"] = row["notes"].replace("fourth committed_at is the sole acceptance time", "acceptance time is stored separately")
+
+        self.assert_red(mutate, "self Event-submit notes omits commit-only marker")
+
+    def test_self_submit_notes_reject_deleted_receipt_semantic(self) -> None:
+        def mutate(documents: dict) -> None:
+            self.operation(documents, "ak.self.events.command.submit.v1")["notes"] += " It returns a source-signed receipt."
+
+        self.assert_red(mutate, "self Event-submit notes restores deleted founding-receipt semantic")
+
+    def test_unrelated_receipt_protocols_are_not_rejected(self) -> None:
+        def mutate(documents: dict) -> None:
+            self.operation(documents, "ak.self.events.command.submit.v1")["notes"] += (
+                " Contact acceptance receipt, PCR genesis receipt and MLS claim receipt remain separate protocols."
+            )
+
+        self.assertEqual(self.run_gate(mutate), [])
+
+    def test_materialization_conflict_code_keeps_commit_only_marker(self) -> None:
+        def mutate(documents: dict) -> None:
+            row = self.error_code(documents, "direct_conversation_pair_materialization_conflict")
+            row["description"] = row["description"].replace("four consecutive source RealmCommits", "an opaque acceptance result")
+
+        self.assert_red(mutate, "materialization-conflict code omits commit-only marker")
+
+    def test_materialization_conflict_code_rejects_deleted_receipt_semantic(self) -> None:
+        def mutate(documents: dict) -> None:
+            self.error_code(documents, "direct_conversation_pair_materialization_conflict")["description"] += " Both carry source acceptance receipts."
+
+        self.assert_red(mutate, "materialization-conflict code restores deleted founding-receipt semantic")
+
+    def test_slot_committed_code_keeps_commit_only_marker(self) -> None:
+        def mutate(documents: dict) -> None:
+            row = self.error_code(documents, "direct_conversation_slot_already_committed")
+            row["description"] = row["description"].replace("without changing the fourth committed_at", "without changing acceptance state")
+
+        self.assert_red(mutate, "slot-committed code omits commit-only marker")
+
+    def test_slot_committed_code_rejects_deleted_receipt_semantic(self) -> None:
+        def mutate(documents: dict) -> None:
+            self.error_code(documents, "direct_conversation_slot_already_committed")["description"] += " Replay returns the stored byte-identical receipt."
+
+        self.assert_red(mutate, "slot-committed code restores deleted founding-receipt semantic")
+
+    def test_self_submit_error_map_keeps_commit_only_marker(self) -> None:
+        def mutate(documents: dict) -> None:
+            row = self.error_mapping(documents, "ak.self.events.command.submit.v1")
+            row["description"] = row["description"].replace("four consecutive RealmCommits", "one opaque result")
+
+        self.assert_red(mutate, "self Event-submit error-map description omits commit-only marker")
+
+    def test_self_submit_error_map_rejects_deleted_receipt_semantic(self) -> None:
+        def mutate(documents: dict) -> None:
+            self.error_mapping(documents, "ak.self.events.command.submit.v1")["description"] += " It commits one receipt atomically."
+
+        self.assert_red(mutate, "self Event-submit error-map description restores deleted founding-receipt semantic")
+
+    def test_direct_conversation_profile_keeps_commit_only_marker(self) -> None:
+        def mutate(documents: dict) -> None:
+            invariants, index = self.founding_slot_invariant(documents)
+            invariants[index] = invariants[index].replace("without changing the fourth committed_at", "without changing acceptance state")
+
+        self.assert_red(mutate, "founding-slot invariant omits commit-only marker")
+
+    def test_direct_conversation_profile_rejects_deleted_receipt_semantic(self) -> None:
+        def mutate(documents: dict) -> None:
+            invariants, index = self.founding_slot_invariant(documents)
+            invariants[index] += " Replay MUST return the stored receipt without advancing accepted_at."
+
+        self.assert_red(mutate, "founding-slot invariant restores deleted founding-receipt semantic")
+
+    def test_authority_schema_founding_slot_keeps_commit_only_marker(self) -> None:
+        def mutate(documents: dict) -> None:
+            row = self.defs(documents)["direct_conversation_founding_unit_submission"]["properties"]["idempotency_key"]
+            row["description"] = row["description"].replace("same four byte-identical source RealmCommits", "same opaque result")
+
+        self.assert_red(mutate, "authority schema founding-slot description omits commit-only marker")
+
+    def test_authority_schema_founding_slot_rejects_deleted_receipt_semantic(self) -> None:
+        def mutate(documents: dict) -> None:
+            row = self.defs(documents)["direct_conversation_founding_unit_submission"]["properties"]["idempotency_key"]
+            row["description"] += " Replay returns the stored receipt."
+
+        self.assert_red(mutate, "authority schema founding-slot description restores deleted founding-receipt semantic")
+
+    def test_service_surface_keeps_commit_only_marker(self) -> None:
+        def text_mutate(texts: dict) -> None:
+            path = (gate.SPEC_ROOT / "zh" / "sync" / "service-surface.md").resolve()
+            texts[path] = texts[path].replace("第四个 Commit 的 `committed_at` 是唯一接受时间", "接受时间另行保存")
+
+        self.assert_red(marker="service-surface Event-submit section omits commit-only marker", text_mutate=text_mutate)
+
+    def test_service_surface_rejects_deleted_receipt_semantic(self) -> None:
+        def text_mutate(texts: dict) -> None:
+            path = (gate.SPEC_ROOT / "zh" / "sync" / "service-surface.md").resolve()
+            texts[path] = texts[path].replace("不返回第二张 receipt", "不返回第二张 receipt，但返回 source-signed receipt")
+
+        self.assert_red(marker="service-surface Event-submit section restores deleted founding-receipt semantic", text_mutate=text_mutate)
+
+    def test_device_lifecycle_keeps_commit_only_marker(self) -> None:
+        def text_mutate(texts: dict) -> None:
+            path = (gate.SPEC_ROOT / "zh" / "crypto-media" / "device-lifecycle.md").resolve()
+            texts[path] = texts[path].replace("不存在 founding receipt 输入或输出", "founding finality 由服务内部保存")
+
+        self.assert_red(marker="device-lifecycle accepted-founding section omits commit-only marker", text_mutate=text_mutate)
+
+    def test_device_lifecycle_rejects_deleted_receipt_semantic(self) -> None:
+        def text_mutate(texts: dict) -> None:
+            path = (gate.SPEC_ROOT / "zh" / "crypto-media" / "device-lifecycle.md").resolve()
+            texts[path] = texts[path].replace("不存在 founding receipt 输入或输出", "不存在 founding receipt 输入或输出；peer carries a source acceptance receipt")
+
+        self.assert_red(marker="device-lifecycle accepted-founding section restores deleted founding-receipt semantic", text_mutate=text_mutate)
 
     def test_atomic_unit_registry_is_closed(self) -> None:
         def mutate(documents: dict) -> None:

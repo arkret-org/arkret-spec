@@ -158,7 +158,8 @@ Describe 至少声明 self submit/read/subscribe 能力；承担 federation 的 
 Commit 是单提交；Direct Conversation founding 是四 Event 原子 unit；membership compensation 是带 closed
 transport-only evidence 与 single-use CAS 的单 Event 原子 unit。Account Station 验证本地 session 与 producer
 proof，随后把 exact bytes 交给已验证 current authority；未取得 authority-signed `RealmCommit` 不得自行报告
-`committed`。founding success 返回四个连续 Commit 与 source-signed receipt，不返回虚构的逐项 partial。
+`committed`。founding success 只返回四个连续 source Commit；第四个 Commit 的 `committed_at` 是唯一接受时间，
+不返回第二张 receipt 或虚构的逐项 partial。
 
 `ak.peer.events.command.submit.v1` 是同一路径上的三分支 closed union：`authority_forward` 只把普通 Event／MLS
 提交交给 current governance Station 首次接纳；`committed_replication` 携完整 source Event、source

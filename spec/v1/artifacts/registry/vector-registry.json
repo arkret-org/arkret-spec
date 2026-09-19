@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.9",
+  "version": "2026-09-20.11",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T06:54:55+08:00",
+  "generated_at": "2026-09-20T07:18:42+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -4037,6 +4037,19 @@
       "description": "Multi-device read cursor merge is causal-first: a causally dominating position wins even when its HLC is lower, HLC max decides only causally concurrent positions, device_id breaks equal HLCs, and an undecidable causal closure stays provisional.",
       "source_refs": [
         "spec/v1/zh/discovery/read-receipts.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.realm_join_candidate.untrusted_locator.v1",
+      "status": "active",
+      "domain": "realm_join_candidate",
+      "applies_to_fixtures": [
+        "realm-join-candidate-locator-fixture.json"
+      ],
+      "description": "RealmJoinCandidate is a closed, untrusted authority-bundle locator. It carries no proof or authority assertion, all three source values have equal trust, clients submit only to their own Station, and only a verified Realm genesis plus continuous handoff chain selects the current governance Station; mutually exclusive chains fail closed.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/realm-join-candidate-locator-fixture.json",
+        "spec/v1/zh/discovery/discovery-directory.md"
       ]
     },
     {

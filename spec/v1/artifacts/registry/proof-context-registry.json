@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.1",
+  "version": "2026-09-20.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T01:08:57+08:00",
+  "generated_at": "2026-09-20T07:04:15+08:00",
   "description": "Canonical security-domain labels for Arkret detached proofs and non-Event cryptographic transcripts. contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript, and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
     "context values and object_family values MUST be unique",
@@ -25,7 +25,8 @@
     "No binding_fields entry of either array may name a field that forbidden-wire-fields.json forbids in the producer_event_envelope_root context. A field that can never appear on the wire cannot be hashed into a commitment, and skipping it silently discards the separation the row exists to provide. machine gate: tools/artifact_lint:domain_separation_binding_fields_are_carriable",
     "Every domain_separations[] row whose primitive is canonical_json_sha256 MUST select exactly one digest_constructions[] row, carry the exact UTF-8 hex encoding of domain followed by one LF byte, name the normative transcript definition, and declare either a resolvable known_answer_ref or a non-empty kat_absence_reason plus owner_report. digest_constructions[] and these row extensions are closed objects. machine gate: tools/artifact_lint:digest_construction_registration",
     "A non-JCS raw UTF-8 literal digest MAY select domain_prefixed_utf8_literal_sha256 from an owning source-of-truth registry only when that registry closes the exact domain, literal source, output encoding and a byte-exact known-answer fixture. Such a selector is not a domain_separations[] proof/signature context and MUST have a dedicated gate that proves every registered use and KAT. The Agent draft Account Data key is the v1 registered use.",
-    "A detached_signature row whose local closed schema directly requires signature and signature_algorithm MUST list exactly that schema's required members other than signature in binding_fields. signature_algorithm is itself signed and MUST select an active raw_signature_algorithm; an outer object that merely carries a shared proof leaf is outside this equality rule. machine gate: tools/artifact_lint:local_signature_binding_fields_match_schema"
+    "A detached_signature row whose local closed schema directly requires signature and signature_algorithm MUST list exactly that schema's required members other than signature in binding_fields. signature_algorithm is itself signed and MUST select an active raw_signature_algorithm; an outer object that merely carries a shared proof leaf is outside this equality rule. machine gate: tools/artifact_lint:local_signature_binding_fields_match_schema",
+    "A closed locator schema that contains neither the shared detached-proof leaf nor a local signature member MUST NOT acquire a proof context. realm_join_candidate is an untrusted authority-bundle locator and is permanently outside contexts[] and domain_separations[]. machine gate: tools/artifact_lint:realm_join_candidate_untrusted_locator"
   ],
   "digest_constructions": [
     {
@@ -695,43 +696,6 @@
         {
           "field": "payload_digest",
           "source": "sha256(RFC8785_JCS(principal_resolution_projection_attestation with proof omitted))"
-        }
-      ]
-    },
-    {
-      "context": "ak.realm_join_candidate_proof.v1",
-      "object_family": "realm_join_candidate",
-      "binding_fields": [
-        "payload_digest",
-        "realm_id",
-        "service_id",
-        "verification_method",
-        "created_at",
-        "domain?",
-        "audience?"
-      ],
-      "defined_in": "zh/governance/join-policy.md",
-      "schema_ref": "schemas/realm-join-candidate.schema.json",
-      "injected_fields": [
-        {
-          "field": "payload_digest",
-          "source": "candidate proof projection payload_digest"
-        },
-        {
-          "field": "verification_method",
-          "source": "candidate proof projection verification_method"
-        },
-        {
-          "field": "created_at",
-          "source": "candidate proof projection created_at"
-        },
-        {
-          "field": "domain",
-          "source": "candidate proof projection domain"
-        },
-        {
-          "field": "audience",
-          "source": "candidate proof projection audience"
         }
       ]
     },

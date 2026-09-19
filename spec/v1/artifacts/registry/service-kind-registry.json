@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-16.5",
-  "generated_at": "2026-09-16T11:10:00+08:00",
+  "version": "2026-09-20.1",
+  "generated_at": "2026-09-20T07:04:15+08:00",
   "source_of_truth": true,
   "description": "Canonical service_kind vocabulary. A service_kind names an independent protocol identity or trust role that a remote party must distinguish. It never classifies Station-internal processes, operation bundles, features, limits, or transport bindings. This registry is the single source of valid values and per-context eligibility for Service Describe, Realm join candidates, ServiceRegistrationKey, and the MIMI provider directory. Consumers MUST derive their closed value space from active rows whose valid_in includes the applicable context.",
   "registry_rules": [
@@ -25,7 +25,7 @@
     },
     {
       "id": "realm_join_candidate",
-      "description": "Service class permitted as a bounded join-forwarding target (schemas/realm-join-candidate.schema.json). v1 permits only the Station carried by an exact signed invite AccountId or projected from a current joined-member ActorId; clients never submit directly to the candidate.",
+      "description": "Service class permitted in an untrusted authority-bundle locator (schemas/realm-join-candidate.schema.json). v1 permits only a Station learned from an exact signed invite AccountId or projected from a current joined-member ActorId; the value neither selects nor proves current governance authority, and clients never submit directly to it.",
       "consumers": [
         {
           "file": "schemas/realm-join-candidate.schema.json",

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.7",
+  "version": "2026-09-20.8",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T04:05:39+08:00",
+  "generated_at": "2026-09-20T07:17:33+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -549,7 +549,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/device-lifecycle.md#924-welcomeconsume-与已接受的-founding-unit",
-      "section_digest": "sha256:bc8da2fa0bb56b361a7112925c9183ebb3bebb471501ece55730a53cf5e0000f",
+      "section_digest": "sha256:107c99d05b1522c45b01004f56f46c9716b708bbb2cad00eaceecbe6d0003b53",
       "requirement": "Welcome acceptance verifies the KeyPackage binding byte-exactly before decrypting: the recipient runtime checks the accepted winning Add Commit for that Welcome and the requester, recipient, KeyPackage, group and epoch bindings of the original claim receipt and claim envelope against the same accepted device, authorization Event and active generation carried by the claim record. Any device-evidence or digest mismatch is rejected before decrypt, and the original claim is consumed only after the group state is durably stored.",
       "testability_grade": "vector",
       "evidence_refs": [

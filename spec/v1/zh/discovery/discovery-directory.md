@@ -868,14 +868,18 @@ object MUST 省略 `issuer`，签名者身份只由 `verification_method` 承载
 每个 candidate MUST 符合 [`ak.schema.realm_join_candidate.v1`](../../artifacts/schemas/realm-join-candidate.schema.json)，并满足：
 
 1. `realm_id` MUST 等于解析结果的 canonical Realm ID。
-2. `service_id` MUST 是稳定 service `did_core_id`，不是裸 DID，也不是用户 / 成员 principal `did_core_id`；调用方首次接受新 candidate、candidate binding / policy revision 变化或其 authority freshness 失效时 MUST 验证该 core 与当前 service DID binding，并确认 endpoint 支持 candidate 声明的 `operations`。同一未过期 candidate 命中已接受 binding 时直接复用，不得在每次传输前重新在线解析 DID Document。
+2. `service_id` MUST 是稳定 service `did_core_id`，不是裸 DID，也不是用户 / 成员 principal `did_core_id`；调用方首次使用新 candidate、candidate binding / policy revision 变化或其 authority freshness 失效时 MUST 验证该 core 与当前 service DID binding。candidate 不声明 operation 能力；实际调用能力由 Station 在取得并验证 authority bundle 后按目标 operation 独立确认。同一未过期 candidate 命中已接受 binding 时直接复用，不得在每次传输前重新在线解析 DID Document。
 3. `service_id` 与可选 `endpoint_url` 只是候选；接收方不得根据 Directory 声明直接认定它是 current authority。
 4. `observed_at` 与 `expires_at` 定义 locator 缓存窗口；过期时必须重新解析，不能把旧 endpoint 当作 authority continuity。
 5. `source` 只能是 `invite | directory | cache`，表示 locator 的取得方式，不表示信任等级。三者都必须走同一 authority bundle 验证。
 6. 验证成功后的 authority bundle 给出 current service、generation、Realm stream head 和 current route；Circle/Sidecar 私有 head 不出现在公开 bundle。join 成功后由申请人自己的 Station从 current authority 拉取签名 typed snapshot 与获准 stream tails，不从 candidate issuer 或 genesis Station拉全历史。
 7. Directory / invite link MAY 按 requester、join_rule、discoverability 和 anti-enumeration policy 裁剪 candidate 数量；不得泄露成员 Station 拓扑。候选不可达或 bundle 无法验证时可以尝试另一个 locator，但多个 locator 最终必须收敛到同一有效 authority chain；互斥 chain 必须 fail closed。
 
-invitee Station 的转发算法 SHOULD 按 `priority` 升序，再按本地可达性与 `service_id` 稳定排序。候选不可达、过期或 fail closed 时 MAY 尝试下一个；客户端只重试自己的 Station。所有重试 MUST 使用同一 canonical `realm_id`，不得跨 Realm 重定向。
+candidate 的封闭 wire 只含 schema 登记的 locator 字段；它 MUST NOT 携带签名证明、治理链摘要、来源 Event refs、
+Realm role、operation 宣告、排序权重或任何可被解释为 current-authority 背书的字段。Directory、invite 与 cache
+来源只说明 locator 如何取得，不能提高其信任等级。
+
+invitee Station 可按本地可达性与 `service_id` 做稳定排序。候选不可达、过期或 fail closed 时 MAY 尝试下一个；客户端只重试自己的 Station。所有重试 MUST 使用同一 canonical `realm_id`，不得跨 Realm 重定向。
 
 客户端 MUST NOT 为发起动作回真相源取证，也不验证治理历史 reducer：
 
@@ -1012,6 +1016,9 @@ Directory-capable implementations MUST test：
 - `ak.vector.directory.stale_result_rejection.v1`：stale result rejection after discovery policy update。
 - `ak.vector.psi.no_reachability_metadata.v1`：private contact discovery does not disclose raw connection identifiers、reachability proof、profile、成员列表或关系图谱。
 - `ak.vector.directory.result_common_fields.v1`：search / resolve result MUST carry §9.1 normative 字段（`as_of`、`source_refs`、`policy_revision`；支持结构化 candidate 且可披露 join 路由的 resolve 必含 `join_candidates[]`）。
+- `ak.vector.realm_join_candidate.untrusted_locator.v1`：最小 closed candidate 可通过 schema；加入 proof、authority、
+  governance history、operation 或排序字段全部拒绝；`invite | directory | cache` 不形成信任等级；互斥 authority
+  chain 必须 fail closed，只有验证通过的 Realm genesis 与连续 handoff chain 能确定 current governance Station。
 
 **Ingest 面**
 

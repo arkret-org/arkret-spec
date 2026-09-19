@@ -120,9 +120,9 @@ AND，任一失败即拒绝，不受 component `combinator` 影响；其它 gate
 
 ## 6. 联邦与路由
 
-跨域 join Event 只通过 Event submit/forward surface传输。`RealmJoinCandidate` 仅是 invitee Station用于取得 current authority bundle 的 locator，不产生 ingress authority；客户端不得直连候选服务绕过自己的 Station。
+跨域 join Event 只通过 Event submit/forward surface 传输。`RealmJoinCandidate` 仅是 invitee Station 用于取得 nonce-bound authority bundle 的不可信 locator，不携带 proof 或 authority assertion，也不产生 ingress authority；客户端不得直连候选服务绕过自己的 Station。
 
-申请人的 Station MUST 验证 authority bundle并核对 Realm、Event producer与 candidate provenance；当前治理 Station MUST 在 commit位置独立验证 producer signer、Join Policy、invite/capability和 current membership/policy。Directory/search projection、裸 URL、部署已知 peer、邀请人 Station或 mirror不得成为额外授权来源。
+申请人的 Station MUST 验证 authority bundle，并核对 Realm、Event producer 与 locator 指向的 service identity；只有 Realm genesis 与连续 handoff chain 可以确定 current governance Station。当前治理 Station MUST 在 commit 位置独立验证 producer signer、Join Policy、invite/capability 和 current membership/policy。Directory/search projection、裸 URL、部署已知 peer、邀请人 Station 或 mirror 不得成为额外授权来源。
 
 ## 7. 规范性引用
 

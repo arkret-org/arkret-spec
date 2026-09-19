@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.14",
+  "version": "2026-09-20.15",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T06:35:55+08:00",
+  "generated_at": "2026-09-20T07:15:24+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -9519,7 +9519,7 @@
         "schema_id": "ak.schema.direct_conversation_operations.v1",
         "file": "schemas/direct-conversation-operations.schema.json",
         "status": "active",
-        "description": "Closed carriers for the Direct Conversation resolver and single-sided founding: the query-only resolve request and tagged outcome, permanent coordinates, the resolver blocker set and the source founding acceptance receipt.",
+        "description": "Closed carriers for the Direct Conversation resolver and single-sided founding: the query-only resolve request and tagged outcome, permanent coordinates, the resolver blocker set and verified founding-authority evidence. Founding defines no second acceptance receipt.",
         "consumer_binding": {
           "kind": "standalone_schema_alias",
           "selector": "registered Direct Conversation resolver and founding carriers",
@@ -10140,7 +10140,7 @@
         "schema_id": "ak.schema.realm_join_candidate.v1",
         "file": "schemas/realm-join-candidate.schema.json",
         "status": "active",
-        "description": "Time-bounded transport hint returned by Realm discovery / resolve paths for reaching the already selected Station during join, invite-accept, knock, or restricted-join submission. It is neither an identity selector nor an authorization grant and cannot change an AccountId."
+        "description": "Time-bounded, untrusted authority-bundle locator returned by Realm discovery / resolve paths during join, invite-accept, knock, or restricted-join submission. It neither selects nor proves the current governance Station, is not an identity selector or authorization grant, and cannot change an AccountId."
       },
       {
         "schema_id": "ak.schema.realm_join_peer_application_status_outcome.v1",
@@ -10621,8 +10621,8 @@
         "description": "Server authentication-success frame carrying effective connection and channel limits."
       }
     ],
-    "version": "2026-09-20.14",
-    "generated_at": "2026-09-20T04:05:38+08:00",
+    "version": "2026-09-20.15",
+    "generated_at": "2026-09-20T07:15:24+08:00",
     "metadata_authority": "contract_registry_section"
   },
   "id_kind_registry": {
@@ -15463,7 +15463,7 @@
         "http": "POST /_arkret/self/events",
         "grpc": "SelfEvents/Submit",
         "mq": "self.events.command.submit",
-        "notes": "Submit an exact producer-signed Event, MLS Commit, Direct Conversation founding unit, or membership compensation unit to the current governance Station. Founding is an ordered four-Event all-or-nothing unit with a separate founding-slot fence and source-signed receipt; compensation carries closed transport-only evidence and a single-use CAS. canonical_hash/full_body remains the operation replay identity for every branch.",
+        "notes": "Submit an exact producer-signed Event, MLS Commit, Direct Conversation founding unit, or membership compensation unit to the current governance Station. Founding is an ordered four-Event all-or-nothing unit with a separate founding-slot fence; success and exact replay return the same four consecutive source RealmCommits, whose fourth committed_at is the sole acceptance time. No founding receipt exists. Compensation carries closed transport-only evidence and a single-use CAS. canonical_hash/full_body remains the operation replay identity for every branch.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "schema_resource",
         "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/self_submit_request",
@@ -16646,8 +16646,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-20.7",
-    "generated_at": "2026-09-20T06:33:46+08:00",
+    "version": "2026-09-20.8",
+    "generated_at": "2026-09-20T07:15:24+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",

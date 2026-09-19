@@ -396,7 +396,7 @@
         "idempotency_key": {
           "type": "string",
           "format": "uuid",
-          "description": "UUIDv7 founding-slot fence. Byte-identical replay returns the stored receipt; the same key with different canonical unit bytes is duplicate_conflict."
+          "description": "UUIDv7 founding-slot fence. Byte-identical replay returns the same four byte-identical source RealmCommits without changing the fourth committed_at; the same key with different canonical unit bytes is duplicate_conflict."
         },
         "events": {
           "type": "array",

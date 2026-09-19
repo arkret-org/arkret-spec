@@ -74,6 +74,34 @@ def _required(node: Any) -> set[str]:
     return {item for item in node["required"] if isinstance(item, str)}
 
 
+def _section(text: str, start: str, end: str) -> str:
+    """Return one named prose section without inspecting adjacent receipt vocabularies."""
+
+    start_at = text.find(start)
+    if start_at < 0:
+        return ""
+    end_at = text.find(end, start_at + len(start))
+    return text[start_at:] if end_at < 0 else text[start_at:end_at]
+
+
+def _check_founding_commit_only_surface(
+    lint: Lint,
+    path: Path,
+    label: str,
+    text: str,
+    required_markers: tuple[str, ...],
+    forbidden_markers: tuple[str, ...],
+) -> None:
+    """Pin one DC-founding surface without rejecting unrelated receipt protocols."""
+
+    for marker in required_markers:
+        if marker not in text:
+            _fail(lint, path, f"{label} omits commit-only marker {marker!r}")
+    for marker in forbidden_markers:
+        if marker in text:
+            _fail(lint, path, f"{label} restores deleted founding-receipt semantic {marker!r}")
+
+
 def _resolve_pointer(document: Any, fragment: str) -> Any:
     if fragment == "#":
         return document
@@ -261,6 +289,32 @@ def check_peer_event_submit_semantic_union(lint: Lint) -> None:
                     if marker not in rationale:
                         _fail(lint, CONTRACT, f"none-effect branch {index} rationale omits {marker}")
 
+    direct_schema_row = _find(
+        contract.get("schema_registry", {}).get("schemas"),
+        "schema_id",
+        "ak.schema.direct_conversation_operations.v1",
+    )
+    if not isinstance(direct_schema_row, dict):
+        _fail(lint, CONTRACT, "Direct Conversation schema registry row is missing")
+    else:
+        _check_founding_commit_only_surface(
+            lint,
+            CONTRACT,
+            "Direct Conversation schema description",
+            str(direct_schema_row.get("description", "")),
+            ("verified founding-authority evidence", "no second acceptance receipt"),
+            ("source founding acceptance receipt", "accepted_contact_evidence_digest", "DirectConversationFoundingAcceptanceReceipt"),
+        )
+    if isinstance(self_row, dict):
+        _check_founding_commit_only_surface(
+            lint,
+            CONTRACT,
+            "self Event-submit notes",
+            str(self_row.get("notes", "")),
+            ("same four consecutive source RealmCommits", "fourth committed_at is the sole acceptance time", "No founding receipt exists"),
+            ("source-signed receipt", "accepted_contact_evidence_digest", "DirectConversationFoundingAcceptanceReceipt"),
+        )
+
     code_rows = [
         *errors.get("codes", []),
         *errors.get("reason_codes", []),
@@ -287,10 +341,48 @@ def check_peer_event_submit_semantic_union(lint: Lint) -> None:
         if not isinstance(row, dict) or row.get("status") != "active" or "activation_condition" in row:
             _fail(lint, ERRORS, f"{code} must be active after its independent machine producer path is registered")
 
+    materialization_conflict = _find(code_rows, "code", "direct_conversation_pair_materialization_conflict")
+    if not isinstance(materialization_conflict, dict):
+        _fail(lint, ERRORS, "direct_conversation_pair_materialization_conflict is missing")
+    else:
+        _check_founding_commit_only_surface(
+            lint,
+            ERRORS,
+            "Direct Conversation materialization-conflict code",
+            str(materialization_conflict.get("description", "")),
+            ("four exact Events", "four consecutive source RealmCommits", "founding-authority evidence"),
+            ("source acceptance receipts", "accepted_contact_evidence_digest", "DirectConversationFoundingAcceptanceReceipt"),
+        )
+    slot_committed = _find(code_rows, "code", "direct_conversation_slot_already_committed")
+    if not isinstance(slot_committed, dict):
+        _fail(lint, ERRORS, "direct_conversation_slot_already_committed is missing")
+    else:
+        _check_founding_commit_only_surface(
+            lint,
+            ERRORS,
+            "Direct Conversation slot-committed code",
+            str(slot_committed.get("description", "")),
+            ("same four byte-identical source RealmCommits", "without changing the fourth committed_at"),
+            ("stored byte-identical receipt", "accepted_contact_evidence_digest", "DirectConversationFoundingAcceptanceReceipt"),
+        )
+
     mapping_row = _find(mapping.get("operations"), "operation_id", "ak.peer.events.command.submit.v1")
     required_codes = {"dependency_missing", "source_refs_unverifiable", "history_not_visible", "membership_compensation_conflict", "direct_conversation_founding_unit_invalid", "direct_conversation_pair_materialization_conflict"}
     if not isinstance(mapping_row, dict) or not required_codes.issubset(set(mapping_row.get("operation_specific", []))):
         _fail(lint, ERROR_MAPPING, "peer submit error map omits branch-specific rejection codes")
+
+    self_mapping_row = _find(mapping.get("operations"), "operation_id", "ak.self.events.command.submit.v1")
+    if not isinstance(self_mapping_row, dict):
+        _fail(lint, ERROR_MAPPING, "self submit error-map row is missing")
+    else:
+        _check_founding_commit_only_surface(
+            lint,
+            ERROR_MAPPING,
+            "self Event-submit error-map description",
+            str(self_mapping_row.get("description", "")),
+            ("four consecutive RealmCommits", "returns no second receipt"),
+            ("one receipt atomically", "accepted_contact_evidence_digest", "DirectConversationFoundingAcceptanceReceipt"),
+        )
 
     membership_profile = profiles.get("profile_requirements", {}).get("ak.profile.membership_join_compensation.v1", {})
     expected_wire_refs = [
@@ -299,6 +391,33 @@ def check_peer_event_submit_semantic_union(lint: Lint) -> None:
     ]
     if membership_profile.get("wire_contract_refs") != expected_wire_refs:
         _fail(lint, PROFILES, "membership compensation profile must reference both current aggregate carriers")
+
+    direct_profile = profiles.get("profile_requirements", {}).get("ak.profile.direct_conversation_realm.v1", {})
+    direct_invariants = direct_profile.get("binding_invariants", []) if isinstance(direct_profile, dict) else []
+    slot_invariant = next(
+        (item for item in direct_invariants if isinstance(item, str) and item.startswith("The founding slot admits")),
+        "",
+    )
+    _check_founding_commit_only_surface(
+        lint,
+        PROFILES,
+        "Direct Conversation founding-slot invariant",
+        slot_invariant,
+        ("same four byte-identical source RealmCommits", "without changing the fourth committed_at", "no founding receipt exists"),
+        ("return the stored receipt", "advancing accepted_at", "accepted_contact_evidence_digest", "DirectConversationFoundingAcceptanceReceipt"),
+    )
+
+    founding_slot_description = str(
+        defs["direct_conversation_founding_unit_submission"].get("properties", {}).get("idempotency_key", {}).get("description", "")
+    )
+    _check_founding_commit_only_surface(
+        lint,
+        SCHEMA,
+        "authority schema founding-slot description",
+        founding_slot_description,
+        ("same four byte-identical source RealmCommits", "without changing the fourth committed_at"),
+        ("stored receipt", "accepted_contact_evidence_digest", "DirectConversationFoundingAcceptanceReceipt"),
+    )
 
     vector_rows = vectors.get("vectors")
     peer_vector = _find(vector_rows, "vector_id", "ak.vector.peer.event_submit.semantic_union.v1")
@@ -351,6 +470,36 @@ def check_peer_event_submit_semantic_union(lint: Lint) -> None:
         for marker in markers:
             if marker not in prose:
                 _fail(lint, path, f"normative prose omits {marker!r}")
+
+    service_surface = SPEC_ROOT / "zh" / "sync" / "service-surface.md"
+    service_submit_section = _section(
+        read_text(service_surface) if service_surface.is_file() else "",
+        "### 4.2 提交 Event",
+        "### 4.3 获取单个 Event",
+    )
+    _check_founding_commit_only_surface(
+        lint,
+        service_surface,
+        "service-surface Event-submit section",
+        service_submit_section,
+        ("founding success 只返回四个连续 source Commit", "第四个 Commit 的 `committed_at` 是唯一接受时间", "不返回第二张 receipt"),
+        ("source-signed receipt", "accepted_contact_evidence_digest", "DirectConversationFoundingAcceptanceReceipt"),
+    )
+
+    device_lifecycle = SPEC_ROOT / "zh" / "crypto-media" / "device-lifecycle.md"
+    device_founding_section = _section(
+        read_text(device_lifecycle) if device_lifecycle.is_file() else "",
+        "#### 9.2.4 Welcome、consume 与已接受的 founding unit",
+        "### 9.3 普通 MLS join admission 与补偿（normative）",
+    )
+    _check_founding_commit_only_surface(
+        lint,
+        device_lifecycle,
+        "device-lifecycle accepted-founding section",
+        device_founding_section,
+        ("四笔连续 source `RealmCommit`", "`founding_authority_evidence` 与本地唯一 slot", "不存在 founding receipt 输入或输出"),
+        ("source acceptance receipt", "accepted_contact_evidence_digest", "DirectConversationFoundingAcceptanceReceipt"),
+    )
 
     forbidden_targets = (SCHEMA, CONTRACT, PROFILES, FIXTURE, OPENAPI) + tuple(PROSE_MARKERS)
     for path in forbidden_targets:

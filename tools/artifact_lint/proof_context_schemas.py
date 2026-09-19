@@ -58,10 +58,286 @@ from .core import (
 PROOF_CONTEXT_REGISTRY = ARTIFACTS / "registry" / "proof-context-registry.json"
 SCHEMA_REGISTRY = ARTIFACTS / "registry" / "schema-registry.json"
 EVENT_KIND_REGISTRY = ARTIFACTS / "registry" / "event-kind-registry.json"
+CONTRACT_REGISTRY = ARTIFACTS / "registry" / "contract-registry.json"
+SERVICE_KIND_REGISTRY = ARTIFACTS / "registry" / "service-kind-registry.json"
+VECTOR_REGISTRY = ARTIFACTS / "registry" / "vector-registry.json"
+REALM_JOIN_CANDIDATE_SCHEMA = ARTIFACTS / "schemas" / "realm-join-candidate.schema.json"
+REALM_JOIN_CANDIDATE_FIXTURE = ARTIFACTS / "fixtures" / "realm-join-candidate-locator-fixture.json"
 
 # Only these primitives describe a standalone signed wire object. Everything else
 # in DOMAIN_SEPARATION_PRIMITIVES binds bytes gathered from an enclosing carrier.
 OBJECT_BEARING_PRIMITIVES = frozenset({"detached_signature"})
+
+REALM_JOIN_CANDIDATE_SCHEMA_ID = "ak.schema.realm_join_candidate.v1"
+REALM_JOIN_CANDIDATE_VECTOR_ID = "ak.vector.realm_join_candidate.untrusted_locator.v1"
+REALM_JOIN_CANDIDATE_REMOVED_CONTEXT = "ak.realm_join_candidate_proof.v1"
+REALM_JOIN_CANDIDATE_REMOVED_FAMILY = "realm_join_candidate"
+REALM_JOIN_CANDIDATE_PROPERTIES = (
+    "realm_id",
+    "service_kind",
+    "service_id",
+    "endpoint_url",
+    "source",
+    "observed_at",
+    "expires_at",
+)
+REALM_JOIN_CANDIDATE_REQUIRED = (
+    "realm_id",
+    "service_kind",
+    "service_id",
+    "source",
+    "observed_at",
+    "expires_at",
+)
+REALM_JOIN_CANDIDATE_SOURCES = ("invite", "directory", "cache")
+REALM_JOIN_CANDIDATE_FORBIDDEN_FIELDS = frozenset(
+    {
+        "proof",
+        "proofs",
+        "signature",
+        "verification_method",
+        "seal_basis",
+        "frontier_ref",
+        "source_refs",
+        "role",
+        "operations",
+        "join_methods",
+        "encryption_profile",
+        "digest_profile",
+        "priority",
+        "authority",
+        "authority_generation",
+        "governance_station_id",
+        "current_authority",
+        "authority_bundle",
+    }
+)
+REALM_JOIN_CANDIDATE_FORBIDDEN_DESCRIPTION_CLAIMS = (
+    "already selected",
+    "join-forwarding target",
+    "join-forwarding authority",
+)
+REALM_JOIN_CANDIDATE_FIXTURE_FORBIDDEN_FIELDS = (
+    # current-v1's vocabulary guard rejects this historical token even in a
+    # negative fixture; the dedicated schema mutation test still covers it.
+    REALM_JOIN_CANDIDATE_FORBIDDEN_FIELDS - {"frontier_ref"}
+)
+
+
+def _unique_registry_row(
+    lint: Lint,
+    path: Path,
+    rows: Any,
+    key: str,
+    value: str,
+) -> dict[str, Any] | None:
+    if not isinstance(rows, list):
+        lint.fail(path, f"expected an array containing the {value!r} row")
+        return None
+    matches = [row for row in rows if isinstance(row, dict) and row.get(key) == value]
+    if len(matches) != 1:
+        lint.fail(path, f"expected exactly one {key}={value!r} row, found {len(matches)}")
+        return None
+    return matches[0]
+
+
+def _schema_property_names(node: Any) -> set[str]:
+    names: set[str] = set()
+    if isinstance(node, dict):
+        properties = node.get("properties")
+        if isinstance(properties, dict):
+            names.update(name for name in properties if isinstance(name, str))
+        for value in node.values():
+            names.update(_schema_property_names(value))
+    elif isinstance(node, list):
+        for value in node:
+            names.update(_schema_property_names(value))
+    return names
+
+
+def _check_locator_description(lint: Lint, path: Path, where: str, value: Any) -> None:
+    if not isinstance(value, str) or not value.strip():
+        lint.fail(path, f"{where} description must be a non-empty string")
+        return
+    lowered = value.casefold()
+    for required in ("untrusted", "locator"):
+        if required not in lowered:
+            lint.fail(path, f"{where} description must contain {required!r}")
+    for forbidden in REALM_JOIN_CANDIDATE_FORBIDDEN_DESCRIPTION_CLAIMS:
+        if forbidden in lowered:
+            lint.fail(
+                path,
+                f"{where} description retains the authority-elevating claim {forbidden!r}",
+            )
+
+
+def check_realm_join_candidate_locator_contract(lint: Lint) -> None:
+    """Keep RealmJoinCandidate a closed, untrusted authority-bundle locator.
+
+    A discovery candidate only gives an invitee Station somewhere to request a
+    nonce-bound authority bundle. It is not a proof, a current-authority
+    selection, or permission to submit a join directly. This gate binds that
+    distinction across the schema, both schema catalogs, the service-kind
+    context, and the proof-context registry so no one surface can silently
+    promote the locator back into authority.
+    """
+
+    proof_registry = load_json(lint, PROOF_CONTEXT_REGISTRY)
+    if isinstance(proof_registry, dict):
+        for collection in ("contexts", "domain_separations"):
+            rows = proof_registry.get(collection)
+            if not isinstance(rows, list):
+                continue
+            for index, row in enumerate(rows):
+                if not isinstance(row, dict):
+                    continue
+                if (
+                    row.get("context") == REALM_JOIN_CANDIDATE_REMOVED_CONTEXT
+                    or row.get("domain") == REALM_JOIN_CANDIDATE_REMOVED_CONTEXT
+                ):
+                    lint.fail(
+                        PROOF_CONTEXT_REGISTRY,
+                        f"{collection}[{index}] restores the removed RealmJoinCandidate proof "
+                        "context",
+                    )
+                if row.get("object_family") == REALM_JOIN_CANDIDATE_REMOVED_FAMILY:
+                    lint.fail(
+                        PROOF_CONTEXT_REGISTRY,
+                        f"{collection}[{index}] promotes the RealmJoinCandidate locator to a proof "
+                        "object family",
+                    )
+
+    schema = load_json(lint, REALM_JOIN_CANDIDATE_SCHEMA)
+    if isinstance(schema, dict):
+        properties = schema.get("properties")
+        property_names = set(properties) if isinstance(properties, dict) else set()
+        if property_names != set(REALM_JOIN_CANDIDATE_PROPERTIES):
+            lint.fail(
+                REALM_JOIN_CANDIDATE_SCHEMA,
+                "properties must be the exact closed RealmJoinCandidate locator field set "
+                f"{list(REALM_JOIN_CANDIDATE_PROPERTIES)!r}",
+            )
+        if set(schema.get("required") or ()) != set(REALM_JOIN_CANDIDATE_REQUIRED):
+            lint.fail(
+                REALM_JOIN_CANDIDATE_SCHEMA,
+                f"required must equal {list(REALM_JOIN_CANDIDATE_REQUIRED)!r}",
+            )
+        if schema.get("additionalProperties") is not False:
+            lint.fail(REALM_JOIN_CANDIDATE_SCHEMA, "additionalProperties must be false")
+        if isinstance(properties, dict):
+            service_kind = properties.get("service_kind")
+            if not isinstance(service_kind, dict) or service_kind.get("enum") != ["station"]:
+                lint.fail(
+                    REALM_JOIN_CANDIDATE_SCHEMA,
+                    "properties.service_kind.enum must equal ['station']",
+                )
+            source = properties.get("source")
+            if not isinstance(source, dict) or set(source.get("enum") or ()) != set(
+                REALM_JOIN_CANDIDATE_SOURCES
+            ):
+                lint.fail(
+                    REALM_JOIN_CANDIDATE_SCHEMA,
+                    f"properties.source.enum must equal {list(REALM_JOIN_CANDIDATE_SOURCES)!r}",
+                )
+        forbidden_fields = sorted(
+            _schema_property_names(schema) & REALM_JOIN_CANDIDATE_FORBIDDEN_FIELDS
+        )
+        if forbidden_fields:
+            lint.fail(
+                REALM_JOIN_CANDIDATE_SCHEMA,
+                f"locator schema contains authority-elevating fields {forbidden_fields!r}",
+            )
+        _check_locator_description(
+            lint, REALM_JOIN_CANDIDATE_SCHEMA, "schema", schema.get("description")
+        )
+
+    schema_registry = load_json(lint, SCHEMA_REGISTRY)
+    if isinstance(schema_registry, dict):
+        row = _unique_registry_row(
+            lint,
+            SCHEMA_REGISTRY,
+            schema_registry.get("schemas"),
+            "schema_id",
+            REALM_JOIN_CANDIDATE_SCHEMA_ID,
+        )
+        if row is not None:
+            _check_locator_description(
+                lint, SCHEMA_REGISTRY, "schema-registry row", row.get("description")
+            )
+
+    contract_registry = load_json(lint, CONTRACT_REGISTRY)
+    if isinstance(contract_registry, dict):
+        embedded = contract_registry.get("schema_registry")
+        rows = embedded.get("schemas") if isinstance(embedded, dict) else None
+        row = _unique_registry_row(
+            lint,
+            CONTRACT_REGISTRY,
+            rows,
+            "schema_id",
+            REALM_JOIN_CANDIDATE_SCHEMA_ID,
+        )
+        if row is not None:
+            _check_locator_description(
+                lint, CONTRACT_REGISTRY, "contract-registry row", row.get("description")
+            )
+
+    service_registry = load_json(lint, SERVICE_KIND_REGISTRY)
+    if isinstance(service_registry, dict):
+        row = _unique_registry_row(
+            lint,
+            SERVICE_KIND_REGISTRY,
+            service_registry.get("contexts"),
+            "id",
+            "realm_join_candidate",
+        )
+        if row is not None:
+            _check_locator_description(
+                lint, SERVICE_KIND_REGISTRY, "service-kind context", row.get("description")
+            )
+
+    vector_registry = load_json(lint, VECTOR_REGISTRY)
+    if isinstance(vector_registry, dict):
+        row = _unique_registry_row(
+            lint,
+            VECTOR_REGISTRY,
+            vector_registry.get("vectors"),
+            "vector_id",
+            REALM_JOIN_CANDIDATE_VECTOR_ID,
+        )
+        if row is not None:
+            if row.get("status") != "active" or row.get("applies_to_fixtures") != [
+                REALM_JOIN_CANDIDATE_FIXTURE.name
+            ]:
+                lint.fail(
+                    VECTOR_REGISTRY,
+                    "RealmJoinCandidate locator vector must be active and bind its sole fixture",
+                )
+
+    fixture = load_json(lint, REALM_JOIN_CANDIDATE_FIXTURE)
+    if isinstance(fixture, dict):
+        if fixture.get("vector_id") != REALM_JOIN_CANDIDATE_VECTOR_ID:
+            lint.fail(REALM_JOIN_CANDIDATE_FIXTURE, "fixture vector_id is not the registered locator vector")
+        candidate = fixture.get("accepted_candidate")
+        if not isinstance(candidate, dict) or set(candidate) != set(REALM_JOIN_CANDIDATE_PROPERTIES):
+            lint.fail(REALM_JOIN_CANDIDATE_FIXTURE, "accepted candidate must use the exact locator field set")
+        trust = fixture.get("trust_contract")
+        required_trust = {
+            "candidate_is_authority": False,
+            "candidate_is_authorization": False,
+            "candidate_is_identity_selector": False,
+            "candidate_signature_can_raise_trust": False,
+            "client_submits_to_own_station": True,
+            "own_station_fetches_nonce_bound_authority_bundle": True,
+            "current_governance_station_source": "verified_realm_genesis_and_continuous_handoff_chain",
+            "conflicting_authority_chains": "fail_closed",
+        }
+        if trust != required_trust:
+            lint.fail(REALM_JOIN_CANDIDATE_FIXTURE, "fixture trust contract must pin locator-only authority semantics")
+        rejected = fixture.get("rejected_additional_members")
+        if not isinstance(rejected, list) or not REALM_JOIN_CANDIDATE_FIXTURE_FORBIDDEN_FIELDS.issubset(
+            {value for value in rejected if isinstance(value, str)}
+        ):
+            lint.fail(REALM_JOIN_CANDIDATE_FIXTURE, "fixture must reject every authority-elevating field")
 
 
 def _registered_schema_files(lint: Lint) -> tuple[set[str], dict[str, str]] | None:

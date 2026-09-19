@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.7",
+  "version": "2026-09-20.8",
   "source_of_truth": false,
-  "generated_at": "2026-09-20T06:33:46+08:00",
+  "generated_at": "2026-09-20T07:15:24+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -3375,7 +3375,7 @@
       "http": "POST /_arkret/self/events",
       "grpc": "SelfEvents/Submit",
       "mq": "self.events.command.submit",
-      "notes": "Submit an exact producer-signed Event, MLS Commit, Direct Conversation founding unit, or membership compensation unit to the current governance Station. Founding is an ordered four-Event all-or-nothing unit with a separate founding-slot fence and source-signed receipt; compensation carries closed transport-only evidence and a single-use CAS. canonical_hash/full_body remains the operation replay identity for every branch.",
+      "notes": "Submit an exact producer-signed Event, MLS Commit, Direct Conversation founding unit, or membership compensation unit to the current governance Station. Founding is an ordered four-Event all-or-nothing unit with a separate founding-slot fence; success and exact replay return the same four consecutive source RealmCommits, whose fourth committed_at is the sole acceptance time. No founding receipt exists. Compensation carries closed transport-only evidence and a single-use CAS. canonical_hash/full_body remains the operation replay identity for every branch.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/self_submit_request",

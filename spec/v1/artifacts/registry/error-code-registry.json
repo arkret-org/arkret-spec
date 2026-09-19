@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-20.4",
-  "generated_at": "2026-09-20T06:38:29+08:00",
+  "version": "2026-09-20.5",
+  "generated_at": "2026-09-20T07:07:58+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -3757,7 +3757,7 @@
         "auth_decision",
         "state_resolution"
       ],
-      "description": "A second accepted Direct Conversation Realm was observed for the same pair_key while both carried apparently valid founder admission and source acceptance receipts, indicating slot, cutover-fence or signature equivocation by a trusted current Station. Both Realms freeze new Message, membership, policy, MLS and binding writes and all evidence is retained; implementations MUST NOT pick a winner by Realm-token lexical order or arrival order, tombstone either Realm, or migrate history. See zh/identity/contact-and-direct-conversation.md §5.7.",
+      "description": "A second accepted Direct Conversation Realm was observed for the same pair_key while both carried apparently valid founder admission, four exact Events, four consecutive source RealmCommits and founding-authority evidence, indicating slot, cutover-fence or signature equivocation by a trusted current Station. Both Realms freeze new Message, membership, policy, MLS and binding writes and all evidence is retained; implementations MUST NOT pick a winner by Realm-token lexical order or arrival order, tombstone either Realm, or migrate history. See zh/identity/contact-and-direct-conversation.md §5.7.",
       "status": "active"
     },
     {
@@ -3785,7 +3785,7 @@
         "service_call",
         "federation_transaction"
       ],
-      "description": "The founder's current Station already closed its local (founder_id, trust_domain_id, pair_key) founding slot with a different unit, so this unit is refused with zero writes. Carried under conflict. The caller MUST re-resolve the existing coordinates through ak.self.direct_conversation.read.resolve.v1 instead of authoring another unit; the service MUST NOT accept a second unit, degrade it to a partial acceptance or quarantine it. A byte-identical replay of the committed unit is not this code: it returns the stored byte-identical receipt. See zh/identity/contact-and-direct-conversation.md section 5.5.",
+      "description": "The founder's current Station already closed its local (founder_id, trust_domain_id, pair_key) founding slot with a different unit, so this unit is refused with zero writes. Carried under conflict. The caller MUST re-resolve the existing coordinates through ak.self.direct_conversation.read.resolve.v1 instead of authoring another unit; the service MUST NOT accept a second unit, degrade it to a partial acceptance or quarantine it. A byte-identical replay of the committed unit is not this code: it returns the same four byte-identical source RealmCommits without changing the fourth committed_at. See zh/identity/contact-and-direct-conversation.md section 5.5.",
       "status": "active"
     },
     {

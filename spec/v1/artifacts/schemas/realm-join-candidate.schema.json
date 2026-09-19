@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/realm-join-candidate.schema.json",
   "title": "Arkret Realm Authority Locator Hint",
-  "description": "An untrusted route hint for obtaining a nonce-bound RealmAuthorityBundle. It is never proof that the named service is current authority.",
+  "description": "A closed, untrusted locator for obtaining a nonce-bound RealmAuthorityBundle. It carries no proof, authority assertion, governance history, operation advertisement, preference, or trust level; only a verified genesis and continuous handoff chain can identify the current governance Station.",
   "type": "object",
   "required": [
     "realm_id",

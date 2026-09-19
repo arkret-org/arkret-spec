@@ -271,6 +271,7 @@ from .proof_context_schemas import (
     check_every_result_family_has_a_writer,
     check_partial_update_base_producers,
     check_pre_state_requirement_closure,
+    check_realm_join_candidate_locator_contract,
     check_registered_families_are_listed_in_prose,
     check_result_family_write_agreement,
     check_result_value_member_closure,
@@ -346,6 +347,10 @@ def main(argv: list[str] | None = None) -> int:
             ("registry_manifest", lambda: check_registry_manifest(lint)),
             ("timestamp_profile", lambda: check_timestamp_profile_single_source(lint)),
             ("proof_contexts", lambda: check_proof_context_registry(lint)),
+            (
+                "realm_join_candidate_locator_contract",
+                lambda: check_realm_join_candidate_locator_contract(lint),
+            ),
             (
                 "digest_construction_registration",
                 lambda: check_digest_construction_registration(lint),

@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-20.14",
-  "generated_at": "2026-09-20T06:35:55+08:00",
+  "version": "2026-09-20.15",
+  "generated_at": "2026-09-20T07:04:15+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -97,11 +97,11 @@
     },
     {
       "operation_id": "ak.find.directory.read.resolve_realm.v1",
-      "sha256": "sha256:ee6efbcbf1c3d0976c1e867d279e7f7c7d5c4aa77f7a95ea6705d0bdfe085a65"
+      "sha256": "sha256:1e4aed3915a4cd90aa5a5ce24fc67256d71bf0002f7c0c19a4d4c843feb51a6e"
     },
     {
       "operation_id": "ak.find.directory.read.resolve_target.v1",
-      "sha256": "sha256:8ec7a9f89472b1548db28148dcf3dde7a327ee8d2ec284a0ad1d8e6bc38dcce8"
+      "sha256": "sha256:d45c69985331a83b044ba2240c2ccbc556d5986c43031a41c4898f3afa59b6eb"
     },
     {
       "operation_id": "ak.find.directory.read.search_actors.v1",
@@ -113,7 +113,7 @@
     },
     {
       "operation_id": "ak.find.directory.read.search_realms.v1",
-      "sha256": "sha256:0bd18c7a165fa15373e3a07af23b77e78fca3064ae214d1f4547f50a32dafa10"
+      "sha256": "sha256:10f3a33739e4c6a980860426c1faf491f295cf6e9692be53f672f3af5ffd7233"
     },
     {
       "operation_id": "ak.find.directory.read.search_users.v1",
@@ -329,7 +329,7 @@
     },
     {
       "operation_id": "ak.peer.events.command.submit.v1",
-      "sha256": "sha256:5052d0d503e4f453605dd191336fb7d5d53197002d45a985a5513ee4d181ba4f"
+      "sha256": "sha256:d9deae85780f502c7318220945fb821942b11672805a4d1bbca59b2f30bf99a6"
     },
     {
       "operation_id": "ak.peer.events.read.resolve_committed.v1",
@@ -693,7 +693,7 @@
     },
     {
       "operation_id": "ak.self.events.command.submit.v1",
-      "sha256": "sha256:1149cb8db9ce4ba70e715ed4ac75e94a25f421be74ac391e3561e8d1df30091d"
+      "sha256": "sha256:00f567e7d5c216ba988522359b346c55d411d82aecfc29710d8b14f2f8f04121"
     },
     {
       "operation_id": "ak.self.events.read.delivery_status.v1",

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.14",
+  "version": "2026-09-20.15",
   "source_of_truth": false,
-  "generated_at": "2026-09-20T04:05:38+08:00",
+  "generated_at": "2026-09-20T07:15:24+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -652,7 +652,7 @@
       "schema_id": "ak.schema.direct_conversation_operations.v1",
       "file": "schemas/direct-conversation-operations.schema.json",
       "status": "active",
-      "description": "Closed carriers for the Direct Conversation resolver and single-sided founding: the query-only resolve request and tagged outcome, permanent coordinates, the resolver blocker set and the source founding acceptance receipt.",
+      "description": "Closed carriers for the Direct Conversation resolver and single-sided founding: the query-only resolve request and tagged outcome, permanent coordinates, the resolver blocker set and verified founding-authority evidence. Founding defines no second acceptance receipt.",
       "consumer_binding": {
         "kind": "standalone_schema_alias",
         "selector": "registered Direct Conversation resolver and founding carriers",
@@ -1273,7 +1273,7 @@
       "schema_id": "ak.schema.realm_join_candidate.v1",
       "file": "schemas/realm-join-candidate.schema.json",
       "status": "active",
-      "description": "Time-bounded transport hint returned by Realm discovery / resolve paths for reaching the already selected Station during join, invite-accept, knock, or restricted-join submission. It is neither an identity selector nor an authorization grant and cannot change an AccountId."
+      "description": "Time-bounded, untrusted authority-bundle locator returned by Realm discovery / resolve paths during join, invite-accept, knock, or restricted-join submission. It neither selects nor proves the current governance Station, is not an identity selector or authorization grant, and cannot change an AccountId."
     },
     {
       "schema_id": "ak.schema.realm_join_peer_application_status_outcome.v1",
