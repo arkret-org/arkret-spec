@@ -1,0 +1,285 @@
+{
+  "fixture_id": "ak.fixture.direct_conversation.admission_producers.v1",
+  "version": 1,
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.direct_conversation.admission_producers.v1"
+  },
+  "profile": "ak.profile.direct_conversation_realm.v1",
+  "write_operation_id": "ak.self.events.command.submit.v1",
+  "write_outcome_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/submit_outcome",
+  "read_operation_id": "ak.self.direct_conversation.read.resolve.v1",
+  "rules": [
+    {
+      "reason_code": "direct_conversation_binding_invalid",
+      "vector_id": "ak.vector.direct_conversation.admission.binding_invalid.v1",
+      "producer_path_id": "ak.direct_conversation.admission.binding_integrity.v1",
+      "positive": {
+        "case_id": "binding_exact_accepts",
+        "event_kind": "ak.direct_conversation.bound",
+        "all_binding_fields_match_accepted_facts": true,
+        "expected_gate": "pass"
+      },
+      "negative": [
+        {
+          "case_id": "binding_wrong_pair_key_rejects",
+          "mutation": "pair_key",
+          "expected_reason_code": "direct_conversation_binding_invalid"
+        },
+        {
+          "case_id": "binding_wrong_group_state_rejects",
+          "mutation": "initial_exact_pair_group_state_ref",
+          "expected_reason_code": "direct_conversation_binding_invalid"
+        }
+      ]
+    },
+    {
+      "reason_code": "direct_conversation_terminal_forbidden",
+      "vector_id": "ak.vector.direct_conversation.admission.terminal_forbidden.v1",
+      "producer_path_id": "ak.direct_conversation.admission.terminal_guard.v1",
+      "positive": {
+        "case_id": "archive_freeze_and_reverse_accept",
+        "event_kinds": [
+          "ak.realm.archive",
+          "ak.realm.freeze",
+          "ak.realm.restore",
+          "ak.realm.unfreeze"
+        ],
+        "expected_gate": "ordinary_authority_evaluation"
+      },
+      "negative": [
+        {
+          "case_id": "destroy_rejects",
+          "event_kind": "ak.realm.destroy",
+          "expected_reason_code": "direct_conversation_terminal_forbidden"
+        },
+        {
+          "case_id": "tombstone_rejects",
+          "event_kind": "ak.realm.tombstone",
+          "expected_reason_code": "direct_conversation_terminal_forbidden"
+        }
+      ]
+    },
+    {
+      "reason_code": "direct_conversation_member_count_invalid",
+      "vector_id": "ak.vector.direct_conversation.admission.member_count_invalid.v1",
+      "producer_path_id": "ak.direct_conversation.admission.exact_two_projection.v1",
+      "positive": {
+        "case_id": "exact_two_distinct_accepts_gate",
+        "binding_participant_count": 2,
+        "membership_participant_count": 2,
+        "distinct": true,
+        "projections_agree": true,
+        "expected_gate": "pass"
+      },
+      "negative": [
+        {
+          "case_id": "zero_participants_rejects",
+          "participant_count": 0,
+          "expected_reason_code": "direct_conversation_member_count_invalid"
+        },
+        {
+          "case_id": "one_participant_rejects",
+          "participant_count": 1,
+          "expected_reason_code": "direct_conversation_member_count_invalid"
+        },
+        {
+          "case_id": "duplicate_participant_rejects",
+          "participant_count": 2,
+          "distinct": false,
+          "expected_reason_code": "direct_conversation_member_count_invalid"
+        },
+        {
+          "case_id": "three_participants_rejects",
+          "participant_count": 3,
+          "expected_reason_code": "direct_conversation_member_count_invalid"
+        },
+        {
+          "case_id": "binding_membership_disagreement_rejects",
+          "binding_participant_count": 2,
+          "membership_participant_count": 2,
+          "projections_agree": false,
+          "expected_reason_code": "direct_conversation_member_count_invalid",
+          "expected_read_state": "suspended",
+          "expected_read_blocker": "member_count_invalid"
+        }
+      ]
+    },
+    {
+      "reason_code": "direct_conversation_third_party_member_forbidden",
+      "vector_id": "ak.vector.direct_conversation.admission.third_party_member_forbidden.v1",
+      "producer_path_id": "ak.direct_conversation.admission.third_party_member_guard.v1",
+      "positive": {
+        "case_id": "founding_peer_join_accepts",
+        "carrier": "direct_conversation_founding_unit_submission",
+        "candidate_is_bound_peer": true,
+        "expected_gate": "founding_unit_admission"
+      },
+      "negative": [
+        {
+          "case_id": "third_party_invite_rejects",
+          "event_kind": "ak.invite.create",
+          "candidate_is_bound_peer": false,
+          "expected_reason_code": "direct_conversation_third_party_member_forbidden"
+        },
+        {
+          "case_id": "third_party_direct_join_rejects",
+          "event_kind": "ak.member.state",
+          "transition": "join",
+          "candidate_is_bound_peer": false,
+          "expected_reason_code": "direct_conversation_third_party_member_forbidden"
+        },
+        {
+          "case_id": "third_party_invite_dual_match_uses_third_party_reason",
+          "event_kind": "ak.invite.third_party",
+          "candidate_is_bound_peer": false,
+          "also_matches_invite_guard": true,
+          "expected_reason_code": "direct_conversation_third_party_member_forbidden"
+        }
+      ]
+    },
+    {
+      "reason_code": "direct_conversation_invite_forbidden",
+      "vector_id": "ak.vector.direct_conversation.admission.invite_forbidden.v1",
+      "producer_path_id": "ak.direct_conversation.admission.invite_guard.v1",
+      "positive": {
+        "case_id": "founding_peer_join_accepts",
+        "carrier": "direct_conversation_founding_unit_submission",
+        "is_invite": false,
+        "expected_gate": "founding_unit_admission"
+      },
+      "negative": [
+        {
+          "case_id": "pair_member_invite_rejects",
+          "event_kind": "ak.invite.create",
+          "candidate_is_bound_peer": true,
+          "expected_reason_code": "direct_conversation_invite_forbidden"
+        }
+      ]
+    },
+    {
+      "reason_code": "direct_conversation_root_mask_violation",
+      "vector_id": "ak.vector.direct_conversation.admission.root_mask_violation.v1",
+      "producer_path_id": "ak.direct_conversation.admission.root_phase_mask.v1",
+      "positive": {
+        "case_id": "bootstrap_masked_founding_action_accepts",
+        "carrier": "direct_conversation_founding_unit_submission",
+        "phase": "founding",
+        "action": "ak.realm.create",
+        "expected_gate": "founding_unit_admission"
+      },
+      "negative": [
+        {
+          "case_id": "root_operational_action_rejects",
+          "action_family": "operational",
+          "expected_reason_code": "direct_conversation_root_mask_violation"
+        },
+        {
+          "case_id": "root_grant_action_rejects",
+          "action_family": "grant",
+          "expected_reason_code": "direct_conversation_root_mask_violation"
+        },
+        {
+          "case_id": "root_member_governance_action_rejects",
+          "action_family": "member_governance",
+          "expected_reason_code": "direct_conversation_root_mask_violation"
+        },
+        {
+          "case_id": "root_policy_action_rejects",
+          "action_family": "policy",
+          "expected_reason_code": "direct_conversation_root_mask_violation"
+        },
+        {
+          "case_id": "root_terminal_action_rejects",
+          "action_family": "terminal",
+          "expected_reason_code": "direct_conversation_root_mask_violation",
+          "precedence_note": "A concrete ak.realm.destroy or ak.realm.tombstone is classified earlier as direct_conversation_terminal_forbidden; this case covers other terminal-family root actions."
+        }
+      ]
+    },
+    {
+      "reason_code": "direct_conversation_participant_authority_denied",
+      "vector_id": "ak.vector.direct_conversation.admission.participant_authority_denied.v1",
+      "producer_path_id": "ak.direct_conversation.admission.participant_authority.v1",
+      "positive": {
+        "case_id": "all_participant_authority_inputs_accept",
+        "authority_source_id": "ak.authority.direct_conversation_participant.v1",
+        "all_activation_checks": true,
+        "expected_gate": "pass"
+      },
+      "negative": [
+        {
+          "case_id": "binding_input_missing_denies",
+          "failed_input": "stable_binding_exact",
+          "expected_reason_code": "direct_conversation_participant_authority_denied"
+        },
+        {
+          "case_id": "membership_input_missing_denies",
+          "failed_input": "actor_membership_active_join",
+          "expected_reason_code": "direct_conversation_participant_authority_denied"
+        },
+        {
+          "case_id": "mls_cross_binding_missing_denies",
+          "failed_input": "unique_scope_derived_group_state_cross_binding_exact",
+          "expected_reason_code": "direct_conversation_participant_authority_denied"
+        },
+        {
+          "case_id": "contact_input_missing_denies",
+          "failed_input": "current_signed_directional_contact_heads_gate_for_send_like_actions",
+          "expected_reason_code": "direct_conversation_participant_authority_denied"
+        },
+        {
+          "case_id": "device_gate_missing_denies",
+          "failed_input": "action_specific_device_gate",
+          "expected_reason_code": "direct_conversation_participant_authority_denied"
+        },
+        {
+          "case_id": "agent_gate_missing_denies",
+          "failed_input": "action_specific_agent_gate",
+          "expected_reason_code": "direct_conversation_participant_authority_denied"
+        },
+        {
+          "case_id": "consent_does_not_authorize",
+          "fallback_attempt": "consent",
+          "expected_reason_code": "direct_conversation_participant_authority_denied"
+        },
+        {
+          "case_id": "owner_aggregation_does_not_authorize",
+          "fallback_attempt": "realm_owner_aggregation",
+          "expected_reason_code": "direct_conversation_participant_authority_denied"
+        },
+        {
+          "case_id": "local_projection_does_not_authorize",
+          "fallback_attempt": "local_projection_row",
+          "expected_reason_code": "direct_conversation_participant_authority_denied"
+        }
+      ],
+      "observable_failure_fields": [
+        "status",
+        "reason_code"
+      ],
+      "forbidden_observable_fields": [
+        "failed_input",
+        "missing_dependency",
+        "target_exists"
+      ]
+    }
+  ],
+  "all_rejections": {
+    "status": "rejected",
+    "realm_commit_count": 0,
+    "event_write_count": 0,
+    "projection_write_count": 0,
+    "outbox_write_count": 0,
+    "durable_effect_count": 0
+  },
+  "precedence": [
+    "direct_conversation_binding_invalid",
+    "direct_conversation_terminal_forbidden",
+    "direct_conversation_member_count_invalid",
+    "direct_conversation_third_party_member_forbidden",
+    "direct_conversation_invite_forbidden",
+    "direct_conversation_root_mask_violation",
+    "direct_conversation_participant_authority_denied"
+  ]
+}

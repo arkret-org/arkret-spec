@@ -899,6 +899,46 @@ binding **MUST NOT** 携带 `binding_state`、`supersedes_binding_ref`、永久 
 
 日常写 authority 唯一来自 `ak.authority.direct_conversation_participant.v1` 与接收 Station 本地已验证的 accepted binding、exact-two membership、双方 directional Contact 授权区间、唯一 group 的 exact-pair winning state 及 action-specific lifecycle gate 的交集。这里的普通准入采用 §3 的已验证区间与已知撤销规则，不要求逐次刷新 source current lease 或联络 origin / 治理 Station；初次缺证仍 pending，已知撤销立即阻止新 live。技术 root、`created_by`、founder 身份、本地 slot 与普通 grant **MUST NOT** 替代该 evaluator。root mask 只允许 current materialization 的精确 founding/repair effects；`found` 后 **MUST NOT** 恢复 owner/admin authority。
 
+### 8.4 admission reason producer 与优先级（normative）
+
+Direct Conversation 的普通单 Event 写入继续使用 `ak.self.events.command.submit.v1`，请求中的 signed Event 位于
+`/event`，拒绝继续使用既有
+`authority-commit-operations.schema.json#/$defs/submit_outcome` 的封闭
+`{status="rejected",reason_code}` 分支；本节不新增 endpoint、批次或第二种 problem carrier。唯一机读规则表是
+`contract-registry.json#operation_registry/direct_conversation_admission_mappings`。每条规则必须在签发
+RealmCommit 之前求值；命中时 Event、RealmCommit、typed current projection、outbox、成功幂等记录与其它 durable
+effect **MUST** 全部保持零写入。拒绝不是已提交 exact replay；后来重试必须对届时 authoritative state 完整重算，
+不得复用缓存的允许或拒绝。
+
+结构化规则表中的七条 producer path 与正文义务一一对应：
+
+- `binding_integrity` 只处理 `ak.direct_conversation.bound` 的 immutable cross-field／accepted-fact 比对，失败为
+  `direct_conversation_binding_invalid`；
+- `terminal_guard` 在普通 Realm authority 之前拒绝 canonical DM 上的 `ak.realm.destroy` 与
+  `ak.realm.tombstone`，失败为 `direct_conversation_terminal_forbidden`；archive、freeze、restore 与 unfreeze
+  不命中该规则，继续普通 authority；
+- `exact_two_projection` 在 action authority 之前验证 binding 与 authoritative membership 都解析为相同的两个
+  distinct principal；新写失败为 `direct_conversation_member_count_invalid`。resolver 对已经存在的 Realm 只读返回
+  `state="suspended"` 与结构化表登记的 exact-two blocker，不得伪造一次写拒绝，也不得产生 durable write；
+- `third_party_member_guard` 比较 invite/join candidate 与 immutable pair，pair 外候选失败为
+  `direct_conversation_third_party_member_forbidden`；
+- `invite_guard` 拒绝 active DM 的 invite，失败为 `direct_conversation_invite_forbidden`；atomic founding unit 中的
+  peer join 不是 invite，不进入该 stage；
+- `root_phase_mask` 在 owner aggregation 之前拒绝技术 authority-root 对当前 exact founding/materialization mask 之外的
+  operational、grant、member-governance、policy 或 terminal family 动作，失败为
+  `direct_conversation_root_mask_violation`；
+- `ak.authority.direct_conversation_participant.v1` 的 closed evaluator 对 allowlisted action 求值所有 activation checks。
+  任一 binding、participant、membership、Realm/Strand/MLS、Contact、device、Agent、resource 或 lifecycle 输入失败，
+  都只返回 `direct_conversation_participant_authority_denied`；不得暴露失败项，也不得回退到 consent、
+  `created_by`、Realm owner aggregation 或本地 projection row。
+
+多条件同时命中时必须严格使用结构化表的 `precedence`。尤其 pair 外 invite 同时命中 third-party 与 invite guard 时，
+必须返回 `direct_conversation_third_party_member_forbidden`；具体 destroy/tombstone 同时依赖 root 时，必须返回
+`direct_conversation_terminal_forbidden`。实现不得按检查代码的偶然顺序、诊断字符串或缓存可用性选择 reason。
+[`direct-conversation-admission-fixture.json`](../../artifacts/fixtures/direct-conversation-admission-fixture.json) 与七个
+`ak.vector.direct_conversation.admission.*.v1` vector 分别固定每条规则的允许对照、exact reason 负例、零写入和双重命中优先级；
+一个 aggregate founding 拒绝或一个泛化示例不能替代任何一项。
+
 ## 9. Resolver、隐私与 SDK 边界
 
 ### 9.1 resolver 状态

@@ -173,14 +173,14 @@ class PeerEventSubmitGateTest(unittest.TestCase):
 
         self.assert_red(mutate, "membership_compensation_conflict must be active")
 
-    def test_reason_without_machine_producer_stays_reserved(self) -> None:
+    def test_independently_closed_reason_must_be_active(self) -> None:
         def mutate(documents: dict) -> None:
             rows = documents[gate.ERRORS.resolve()]["reason_codes"]
             row = gate._find(rows, "code", "direct_conversation_binding_invalid")
-            row["status"] = "active"
-            row.pop("activation_condition", None)
+            row["status"] = "reserved"
+            row["activation_condition"] = "mutation"
 
-        self.assert_red(mutate, "must remain reserved")
+        self.assert_red(mutate, "must be active after its independent machine producer")
 
     def test_error_map_covers_source_ref_failure(self) -> None:
         def mutate(documents: dict) -> None:

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.6",
+  "version": "2026-09-20.7",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T04:05:38+08:00",
+  "generated_at": "2026-09-20T04:33:43+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1649,6 +1649,90 @@
       "description": "The Direct Conversation resolver reports only server-verifiable send blockers. personal_blocked and history_key_unavailable are absent from the closed wire enum because holder blocklist state is encrypted to holder devices and history key installation is device-private, so a reply carrying either value is a schema_violation; they are carried instead by the closed client-local blocker set, which never appears on any wire surface and never turns the resolver state into suspended. presence_offline and keypackage_empty remain server-verifiable but are returned only to an existing exact-pair participant, and a non-participant probe gets the same opaque failure as a nonexistent pair.",
       "source_refs": [
         "spec/v1/zh/identity/contact-and-direct-conversation.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.direct_conversation.admission.binding_invalid.v1",
+      "status": "active",
+      "domain": "direct_conversation",
+      "applies_to_fixtures": [
+        "direct-conversation-admission-fixture.json"
+      ],
+      "description": "The binding-integrity stage accepts an exact immutable binding and atomically rejects independent pair-key and initial-group-state mutations with direct_conversation_binding_invalid before effect projection.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/direct-conversation-admission-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.direct_conversation.admission.invite_forbidden.v1",
+      "status": "active",
+      "domain": "direct_conversation",
+      "applies_to_fixtures": [
+        "direct-conversation-admission-fixture.json"
+      ],
+      "description": "The active-profile invite stage accepts the non-invite atomic founding peer join and rejects an invite for an in-pair candidate with direct_conversation_invite_forbidden and zero writes.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/direct-conversation-admission-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.direct_conversation.admission.member_count_invalid.v1",
+      "status": "active",
+      "domain": "direct_conversation",
+      "applies_to_fixtures": [
+        "direct-conversation-admission-fixture.json"
+      ],
+      "description": "The exact-two gate accepts matching two-distinct binding and membership projections; zero, one, duplicate, three, or disagreement rejects a new write with direct_conversation_member_count_invalid, while resolver read projection returns suspended with member_count_invalid and writes nothing.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/direct-conversation-admission-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.direct_conversation.admission.participant_authority_denied.v1",
+      "status": "active",
+      "domain": "direct_conversation",
+      "applies_to_fixtures": [
+        "direct-conversation-admission-fixture.json"
+      ],
+      "description": "Every required participant-authority input passes in the positive case. Each binding, membership, MLS, Contact, device, and Agent input failure plus consent, owner, and local-row fallbacks collapses to the same non-enumerating direct_conversation_participant_authority_denied result.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/direct-conversation-admission-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.direct_conversation.admission.root_mask_violation.v1",
+      "status": "active",
+      "domain": "direct_conversation",
+      "applies_to_fixtures": [
+        "direct-conversation-admission-fixture.json"
+      ],
+      "description": "A masked founding action remains on the atomic founding path; root-reliant operational, grant, member-governance, policy, and otherwise-unclassified terminal families reject with direct_conversation_root_mask_violation and zero writes.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/direct-conversation-admission-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.direct_conversation.admission.terminal_forbidden.v1",
+      "status": "active",
+      "domain": "direct_conversation",
+      "applies_to_fixtures": [
+        "direct-conversation-admission-fixture.json"
+      ],
+      "description": "Destroy and tombstone reject before general Realm authority with direct_conversation_terminal_forbidden and zero writes, while archive, freeze, restore, and unfreeze continue to ordinary authority evaluation.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/direct-conversation-admission-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.direct_conversation.admission.third_party_member_forbidden.v1",
+      "status": "active",
+      "domain": "direct_conversation",
+      "applies_to_fixtures": [
+        "direct-conversation-admission-fixture.json"
+      ],
+      "description": "The exact bound peer remains valid in the atomic founding unit. A pair-external invite or direct join rejects with direct_conversation_third_party_member_forbidden; when the same invite also matches the general invite guard, the third-party reason deterministically wins.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/direct-conversation-admission-fixture.json"
       ]
     },
     {

@@ -262,7 +262,7 @@ def check_peer_event_submit_semantic_union(lint: Lint) -> None:
         row = _find(code_rows, "code", code)
         if not isinstance(row, dict) or row.get("status") != "active" or "activation_condition" in row:
             _fail(lint, ERRORS, f"{code} must be active after its machine producer path exists")
-    required_reserved = {
+    independently_closed_active = {
         "direct_conversation_binding_invalid",
         "direct_conversation_invite_forbidden",
         "direct_conversation_member_count_invalid",
@@ -271,10 +271,10 @@ def check_peer_event_submit_semantic_union(lint: Lint) -> None:
         "direct_conversation_terminal_forbidden",
         "direct_conversation_third_party_member_forbidden",
     }
-    for code in sorted(required_reserved):
+    for code in sorted(independently_closed_active):
         row = _find(code_rows, "code", code)
-        if not isinstance(row, dict) or row.get("status") != "reserved" or not row.get("activation_condition"):
-            _fail(lint, ERRORS, f"{code} must remain reserved until its own machine producer path is registered")
+        if not isinstance(row, dict) or row.get("status") != "active" or "activation_condition" in row:
+            _fail(lint, ERRORS, f"{code} must be active after its independent machine producer path is registered")
 
     mapping_row = _find(mapping.get("operations"), "operation_id", "ak.peer.events.command.submit.v1")
     required_codes = {"dependency_missing", "source_refs_unverifiable", "history_not_visible", "membership_compensation_conflict", "direct_conversation_founding_unit_invalid", "direct_conversation_pair_materialization_conflict"}

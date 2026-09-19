@@ -269,6 +269,14 @@ holder blocklist 状态加密给 holder 设备、历史密钥安装是设备私�
 `presence_offline` 与 `keypackage_empty` 仍可由服务端验证，但只返回给既有的 exact pair 参与者；
 非参与者探测得到与不存在的 pair 完全相同的不透明失败。
 
+七个 `ak.vector.direct_conversation.admission.{binding_invalid,invite_forbidden,member_count_invalid,
+participant_authority_denied,root_mask_violation,terminal_forbidden,third_party_member_forbidden}.v1` **MUST** 逐项执行
+`direct-conversation-admission-fixture.json`：每项至少一条允许对照、每个已登记 mutation 的 exact reason 拒绝、
+RealmCommit／Event／projection／outbox 全零写入；exact-two 项还必须区分 write rejection 与 resolver 的只读
+`suspended` blocker；pair 外 invite 的双重命中必须稳定选择 `direct_conversation_third_party_member_forbidden`，destroy/tombstone 与 root
+mask 的双重命中必须稳定选择 `direct_conversation_terminal_forbidden`。不得以 founding-unit aggregate 拒绝、一个泛化 failure 或诊断文本
+匹配代替任一规则。
+
 ### 3.7 编码与 proof context
 
 `ak.vector.encoding.event_digest.v1` MUST 证明：event digest 的 preimage 是移除 `event_id`、`proofs` 与

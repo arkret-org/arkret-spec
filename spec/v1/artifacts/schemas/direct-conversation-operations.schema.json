@@ -329,6 +329,7 @@
         "mls_reconcile_required",
         "agent_runtime_unavailable",
         "peer_not_joined_mls",
+        "member_count_invalid",
         "pair_materialization_conflict",
         "realm_terminal_fault",
         "governance_station_unavailable",

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.1",
+  "version": "2026-09-20.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-19T18:59:50+08:00",
+  "generated_at": "2026-09-20T04:33:43+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "source_pattern": "^ak\\.authority\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$",
@@ -78,7 +78,9 @@
       "authority_generation_independent": true,
       "grantable": false,
       "delegated_event_rule": "conjunctive_with_executor_delegation",
-      "failure_mode": "fail_closed_or_dependency_pending"
+      "failure_mode": "fail_closed_or_dependency_pending",
+      "denial_reason_code": "direct_conversation_participant_authority_denied",
+      "denial_privacy": "collapse_all_failed_activation_checks_without_naming_the_failed_input"
     },
     {
       "authority_source_id": "ak.authority.direct_conversation_repair.v1",

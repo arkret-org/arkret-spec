@@ -1,5 +1,6 @@
 {
-  "version": "2026-09-18.1",
+  "version": "2026-09-20.1",
+  "generated_at": "2026-09-20T04:33:43+08:00",
   "source_of_truth": true,
   "description": "Explicit v1 backlog for active Event kinds with no directly searchable fixture/vector evidence. Absence from this registry is not itself proof of semantic coverage; the check uses the documented conservative token heuristic and this registry prevents uncovered kinds from remaining invisible.",
   "coverage_heuristic": {
@@ -77,21 +78,6 @@
       "rationale": "Realm profile override lacks a directly searchable vector."
     },
     {
-      "event_kind": "ak.realm.archive",
-      "priority": "high",
-      "rationale": "Realm archive lacks a directly searchable vector."
-    },
-    {
-      "event_kind": "ak.realm.destroy",
-      "priority": "critical",
-      "rationale": "Realm destroy lacks a directly searchable vector."
-    },
-    {
-      "event_kind": "ak.realm.freeze",
-      "priority": "critical",
-      "rationale": "Realm freeze lacks a directly searchable vector."
-    },
-    {
       "event_kind": "ak.realm.inheritance_policy",
       "priority": "high",
       "rationale": "Realm inheritance policy lacks a directly searchable vector."
@@ -112,24 +98,9 @@
       "rationale": "Read-receipt privacy policy lacks a directly searchable vector."
     },
     {
-      "event_kind": "ak.realm.restore",
-      "priority": "high",
-      "rationale": "Realm restore lacks a directly searchable vector."
-    },
-    {
       "event_kind": "ak.realm.set_default_strand",
       "priority": "normal",
       "rationale": "Default Strand selection lacks a directly searchable vector."
-    },
-    {
-      "event_kind": "ak.realm.tombstone",
-      "priority": "critical",
-      "rationale": "Realm tombstone lacks a directly searchable vector."
-    },
-    {
-      "event_kind": "ak.realm.unfreeze",
-      "priority": "critical",
-      "rationale": "Realm unfreeze lacks a directly searchable vector."
     },
     {
       "event_kind": "ak.schema.define",
@@ -151,6 +122,5 @@
       "priority": "normal",
       "rationale": "Strand watch-state update lacks a directly searchable vector."
     }
-  ],
-  "generated_at": "2026-09-18T23:41:00+08:00"
+  ]
 }

@@ -176,6 +176,11 @@
       "version": "2026-09-19.1"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/direct-conversation-admission-fixture.json",
+      "sha256": "0578a05fd28b33327b47c3612c6f6717ee5bb4fb60b160eea8273b4d8234327a",
+      "version": 1
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/discovery-profile-fixture.json",
       "sha256": "276e8f2abbccd010fc1e74d7d74c8ad29fe77e3344be73c04741d6cf7720d881",
       "version": "2026-07-10"

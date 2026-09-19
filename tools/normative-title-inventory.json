@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.3",
+  "version": "2026-09-20.4",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T03:28:12+08:00",
+  "generated_at": "2026-09-20T04:33:43+08:00",
   "description": "Closed inventory of current spec/v1/zh headings that explicitly carry the （normative） marker. Any addition, removal, rename, or move is reviewed as a protocol change and refreshes this source-of-truth inventory.",
   "titles": [
     {
@@ -643,6 +643,11 @@
       "page": "identity/contact-and-direct-conversation.md",
       "heading": "5.2 founder 派生（normative）",
       "fragment": "52-founder-派生normative"
+    },
+    {
+      "page": "identity/contact-and-direct-conversation.md",
+      "heading": "8.4 admission reason producer 与优先级（normative）",
+      "fragment": "84-admission-reason-producer-与优先级normative"
     },
     {
       "page": "identity/contact-and-direct-conversation.md",

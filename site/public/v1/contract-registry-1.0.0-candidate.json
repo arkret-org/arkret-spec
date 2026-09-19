@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.11",
+  "version": "2026-09-20.12",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T04:05:38+08:00",
+  "generated_at": "2026-09-20T04:33:43+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -280,7 +280,9 @@
         "authority_generation_independent": true,
         "grantable": false,
         "delegated_event_rule": "conjunctive_with_executor_delegation",
-        "failure_mode": "fail_closed_or_dependency_pending"
+        "failure_mode": "fail_closed_or_dependency_pending",
+        "denial_reason_code": "direct_conversation_participant_authority_denied",
+        "denial_privacy": "collapse_all_failed_activation_checks_without_naming_the_failed_input"
       },
       {
         "authority_source_id": "ak.authority.direct_conversation_repair.v1",
@@ -356,8 +358,8 @@
         "failure_mode": "atomic_rollback"
       }
     ],
-    "version": "2026-09-19.1",
-    "generated_at": "2026-09-19T18:59:50+08:00",
+    "version": "2026-09-20.1",
+    "generated_at": "2026-09-20T04:33:43+08:00",
     "metadata_authority": "contract_registry_section"
   },
   "event_kind_registry": {
@@ -16258,6 +16260,152 @@
         "notes": ""
       }
     ],
+    "direct_conversation_admission_mappings": {
+      "profile": "ak.profile.direct_conversation_realm.v1",
+      "write_operation_id": "ak.self.events.command.submit.v1",
+      "write_request_event_path": "/event",
+      "write_rejection_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/submit_outcome",
+      "write_rejection_shape": {
+        "status": "rejected",
+        "reason_code_source": "matched_rule.reason_code"
+      },
+      "transaction_rule": "Every mapped rejection is decided before RealmCommit signing and atomically performs zero writes: no Event, RealmCommit, projection, outbox row, dedup success, or other durable effect.",
+      "retry_rule": "A rejected request is not a committed exact replay. A later request is fully reevaluated against the then-current authoritative state and cannot reuse a cached denial or success.",
+      "precedence": [
+        "direct_conversation_binding_invalid",
+        "direct_conversation_terminal_forbidden",
+        "direct_conversation_member_count_invalid",
+        "direct_conversation_third_party_member_forbidden",
+        "direct_conversation_invite_forbidden",
+        "direct_conversation_root_mask_violation",
+        "direct_conversation_participant_authority_denied"
+      ],
+      "rules": [
+        {
+          "producer_path_id": "ak.direct_conversation.admission.binding_integrity.v1",
+          "reason_code": "direct_conversation_binding_invalid",
+          "stage": "direct_conversation_binding_integrity_before_result_application",
+          "event_kinds": [
+            "ak.direct_conversation.bound"
+          ],
+          "predicate": "Any issuer, pair_key, authorization_basis, Realm role, exact-two participant set, main Strand, founding_unit_digest, or initial MLS reference differs from the accepted founding facts or unique scope-derived group state.",
+          "positive_case": "binding_exact_accepts",
+          "negative_cases": [
+            "binding_wrong_pair_key_rejects",
+            "binding_wrong_group_state_rejects"
+          ]
+        },
+        {
+          "producer_path_id": "ak.direct_conversation.admission.terminal_guard.v1",
+          "reason_code": "direct_conversation_terminal_forbidden",
+          "stage": "profile_terminal_guard_before_general_realm_authority",
+          "event_kinds": [
+            "ak.realm.destroy",
+            "ak.realm.tombstone"
+          ],
+          "predicate": "The target is the canonical Direct Conversation Realm and the submitted Event requests an irreversible destroy or tombstone.",
+          "positive_case": "archive_freeze_and_reverse_accept",
+          "negative_cases": [
+            "destroy_rejects",
+            "tombstone_rejects"
+          ]
+        },
+        {
+          "producer_path_id": "ak.direct_conversation.admission.exact_two_projection.v1",
+          "reason_code": "direct_conversation_member_count_invalid",
+          "stage": "profile_exact_two_gate_before_action_authority",
+          "event_kinds": [
+            "*"
+          ],
+          "predicate": "A new write targets an established Direct Conversation whose immutable binding or authoritative membership projection does not resolve to exactly two distinct principal participants.",
+          "positive_case": "exact_two_distinct_accepts_gate",
+          "negative_cases": [
+            "zero_participants_rejects",
+            "one_participant_rejects",
+            "duplicate_participant_rejects",
+            "three_participants_rejects",
+            "binding_membership_disagreement_rejects"
+          ],
+          "read_projection": {
+            "operation_id": "ak.self.direct_conversation.read.resolve.v1",
+            "response_schema_ref": "schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_outcome",
+            "state": "suspended",
+            "blocker": "member_count_invalid",
+            "rule": "This read-only branch emits no write rejection and performs no durable write."
+          }
+        },
+        {
+          "producer_path_id": "ak.direct_conversation.admission.third_party_member_guard.v1",
+          "reason_code": "direct_conversation_third_party_member_forbidden",
+          "stage": "candidate_pair_membership_before_invite_class_guard",
+          "event_kinds": [
+            "ak.invite.create",
+            "ak.invite.third_party",
+            "ak.member.state"
+          ],
+          "predicate": "An invite or join candidate ActorId is not one of the immutable binding's two exact ActorIds. This rule wins over direct_conversation_invite_forbidden when both predicates match.",
+          "positive_case": "founding_peer_join_accepts",
+          "negative_cases": [
+            "third_party_invite_rejects",
+            "third_party_direct_join_rejects",
+            "third_party_invite_dual_match_uses_third_party_reason"
+          ]
+        },
+        {
+          "producer_path_id": "ak.direct_conversation.admission.invite_guard.v1",
+          "reason_code": "direct_conversation_invite_forbidden",
+          "stage": "active_profile_invite_guard_after_candidate_pair_membership",
+          "event_kinds": [
+            "ak.invite.create",
+            "ak.invite.third_party"
+          ],
+          "predicate": "An invite flow targets an active Direct Conversation and its candidate, when one is resolvable, is inside the immutable pair. The atomic founding peer join is not an invite and is outside this stage.",
+          "positive_case": "founding_peer_join_accepts",
+          "negative_cases": [
+            "pair_member_invite_rejects"
+          ]
+        },
+        {
+          "producer_path_id": "ak.direct_conversation.admission.root_phase_mask.v1",
+          "reason_code": "direct_conversation_root_mask_violation",
+          "stage": "technical_root_phase_mask_before_general_owner_aggregation",
+          "event_kinds": [
+            "*"
+          ],
+          "predicate": "The effective actor relies on the technical authority-root and the requested action is outside the exact currently active founding or materialization mask, including operational, grant, member-governance, policy, or terminal families.",
+          "positive_case": "bootstrap_masked_founding_action_accepts",
+          "negative_cases": [
+            "root_operational_action_rejects",
+            "root_grant_action_rejects",
+            "root_member_governance_action_rejects",
+            "root_policy_action_rejects",
+            "root_terminal_action_rejects"
+          ]
+        },
+        {
+          "producer_path_id": "ak.direct_conversation.admission.participant_authority.v1",
+          "reason_code": "direct_conversation_participant_authority_denied",
+          "stage": "ak.authority.direct_conversation_participant.v1_closed_evaluator",
+          "authority_source_id": "ak.authority.direct_conversation_participant.v1",
+          "predicate": "An allowlisted participant action fails any required binding, exact participant, membership, Realm/Strand/MLS, Contact, device, Agent, resource, or lifecycle check after structural profile guards. All such failures collapse to this non-enumerating reason.",
+          "positive_case": "all_participant_authority_inputs_accept",
+          "negative_cases": [
+            "binding_input_missing_denies",
+            "membership_input_missing_denies",
+            "mls_cross_binding_missing_denies",
+            "contact_input_missing_denies",
+            "device_gate_missing_denies",
+            "agent_gate_missing_denies",
+            "consent_does_not_authorize",
+            "owner_aggregation_does_not_authorize",
+            "local_projection_does_not_authorize"
+          ],
+          "privacy_rule": "The rejection returns only direct_conversation_participant_authority_denied and never identifies which evaluator input failed."
+        }
+      ],
+      "fixture_ref": "fixtures/direct-conversation-admission-fixture.json",
+      "normative_source": "zh/identity/contact-and-direct-conversation.md §8.4"
+    },
     "coordination_relations": [
       {
         "coordination_id": "ak.coordination.device_pairing.split_admission_saga.v1",
@@ -16460,8 +16608,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-20.5",
-    "generated_at": "2026-09-20T04:05:38+08:00",
+    "version": "2026-09-20.6",
+    "generated_at": "2026-09-20T04:33:43+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",

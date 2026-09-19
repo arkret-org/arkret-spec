@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-20.1",
-  "generated_at": "2026-09-20T02:45:46+08:00",
+  "version": "2026-09-20.2",
+  "generated_at": "2026-09-20T04:33:43+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -3718,9 +3718,8 @@
         "auth_decision",
         "state_resolution"
       ],
-      "description": "An authored immutable Direct Conversation binding fact has an invalid issuer, pair key, authorization basis, Realm role, exact two-member set, main Strand, founding unit digest, or founding MLS references.",
-      "status": "reserved",
-      "activation_condition": "Promote direct_conversation_binding_invalid to active only in the same release that adds a canonical machine producer path under spec/v1/artifacts outside reports and this registry."
+      "description": "The ak.self.events.command.submit.v1 Direct Conversation binding-integrity stage rejected an ak.direct_conversation.bound Event because its issuer, pair key, authorization basis, Realm role, exact two-member set, main Strand, founding unit digest, or founding MLS references did not match accepted authoritative facts. The rejection occurs before result application, is atomic, and writes nothing; see contract-registry.json operation_registry.direct_conversation_admission_mappings.",
+      "status": "active"
     },
     {
       "code": "direct_conversation_founding_unit_invalid",
@@ -3738,9 +3737,8 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "An invite operation targeted a Realm carrying ak.profile.direct_conversation_realm.v1. Direct Conversation membership is established only by the resolver's verified two-participant bootstrap; all invite flows fail closed.",
-      "status": "reserved",
-      "activation_condition": "Promote direct_conversation_invite_forbidden to active only in the same release that adds a canonical machine producer path under spec/v1/artifacts outside reports and this registry."
+      "description": "The ak.self.events.command.submit.v1 active-profile invite guard rejected an ak.invite.create or ak.invite.third_party Event targeting a Direct Conversation. A pair-external candidate is classified earlier as direct_conversation_third_party_member_forbidden; the atomic founding peer join is not an invite. The rejection writes nothing; see contract-registry.json operation_registry.direct_conversation_admission_mappings.",
+      "status": "active"
     },
     {
       "code": "direct_conversation_member_count_invalid",
@@ -3749,9 +3747,8 @@
         "auth_decision",
         "state_resolution"
       ],
-      "description": "A Direct Conversation binding or membership projection does not resolve to exactly two distinct principal participants. New writes fail closed; an existing stable conversation is returned as suspended rather than replaced.",
-      "status": "reserved",
-      "activation_condition": "Promote direct_conversation_member_count_invalid to active only in the same release that adds a canonical machine producer path under spec/v1/artifacts outside reports and this registry."
+      "description": "The ak.self.events.command.submit.v1 exact-two profile gate rejected a new write because the Direct Conversation binding or authoritative membership projection did not resolve to exactly two distinct principal participants. Existing stable conversations are returned read-only by ak.self.direct_conversation.read.resolve.v1 as suspended with blocker member_count_invalid, never as a write rejection. The rejection writes nothing; see contract-registry.json operation_registry.direct_conversation_admission_mappings.",
+      "status": "active"
     },
     {
       "code": "direct_conversation_pair_materialization_conflict",
@@ -3770,9 +3767,8 @@
         "auth_decision",
         "service_call"
       ],
-      "description": "The ak.authority.direct_conversation_participant.v1 evaluator did not establish the immutable stable binding, exact participant, active membership, Realm/Strand/current scope-derived MLS group-and-epoch cross-binding, lifecycle, resource, both directional Contact heads/scopes, device or Agent gate required for the requested allowlisted action. Consent is not an authority source. The evaluator MUST NOT fall back to created_by, membership, a local projection row, Realm owner aggregation or an arbitrary Event/typed current result reference.",
-      "status": "reserved",
-      "activation_condition": "Promote direct_conversation_participant_authority_denied to active only in the same release that adds a canonical machine producer path under spec/v1/artifacts outside reports and this registry."
+      "description": "The active ak.authority.direct_conversation_participant.v1 evaluator rejected an allowlisted action because it could not establish every required immutable binding, exact participant, active membership, Realm/Strand/current scope-derived MLS group-and-epoch cross-binding, lifecycle, resource, directional Contact, device, or Agent input. The ak.self.events.command.submit.v1 rejection exposes only this non-enumerating reason and writes nothing. Consent, created_by, a local projection row, Realm owner aggregation, or an arbitrary Event/current result cannot substitute; see contract-registry.json operation_registry.direct_conversation_admission_mappings.",
+      "status": "active"
     },
     {
       "code": "direct_conversation_root_mask_violation",
@@ -3780,9 +3776,8 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "The technical authority-root controller attempted an operational, grant, member-governance, policy or terminal action outside the Direct Conversation profile phase mask. Root owner aggregation cannot bypass the participant authority or target the other participant.",
-      "status": "reserved",
-      "activation_condition": "Promote direct_conversation_root_mask_violation to active only in the same release that adds a canonical machine producer path under spec/v1/artifacts outside reports and this registry."
+      "description": "The ak.self.events.command.submit.v1 technical-root phase-mask stage rejected an operational, grant, member-governance, policy, or terminal action outside the exact active Direct Conversation founding/materialization mask. Root owner aggregation cannot bypass participant authority or target the other participant. The rejection writes nothing; see contract-registry.json operation_registry.direct_conversation_admission_mappings.",
+      "status": "active"
     },
     {
       "code": "direct_conversation_slot_already_committed",
@@ -3809,9 +3804,8 @@
         "auth_decision",
         "state_resolution"
       ],
-      "description": "A canonical Direct Conversation Realm received ak.realm.destroy or any ak.realm.tombstone. DM coordinates are permanent and successor-free, so an irreversible terminal would leave the pair unable to ever hold a Direct Conversation while the resolver still had to return the dead coordinates. Reversible ak.realm.archive / ak.realm.freeze remain allowed through ordinary Realm authority and only surface as send blockers. See zh/identity/contact-and-direct-conversation.md §8.1.",
-      "status": "reserved",
-      "activation_condition": "Promote direct_conversation_terminal_forbidden to active only in the same release that adds a canonical machine producer path under spec/v1/artifacts outside reports and this registry."
+      "description": "The ak.self.events.command.submit.v1 profile terminal guard rejected ak.realm.destroy or ak.realm.tombstone against the canonical Direct Conversation Realm. DM coordinates are permanent and successor-free. Reversible archive/freeze and their reverse transitions remain subject to ordinary authority and do not match this reason. The rejection writes nothing; see zh/identity/contact-and-direct-conversation.md §8.1 and contract-registry.json operation_registry.direct_conversation_admission_mappings.",
+      "status": "active"
     },
     {
       "code": "direct_conversation_third_party_member_forbidden",
@@ -3819,9 +3813,8 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "An invite or join attempted to add an ActorId that is not one of the two exact ActorIds in the immutable Direct Conversation binding. Group-chat expansion requires a new ordinary Collaboration Realm.",
-      "status": "reserved",
-      "activation_condition": "Promote direct_conversation_third_party_member_forbidden to active only in the same release that adds a canonical machine producer path under spec/v1/artifacts outside reports and this registry."
+      "description": "The ak.self.events.command.submit.v1 candidate-pair membership stage rejected an invite or join whose candidate ActorId was not one of the immutable Direct Conversation binding's two exact ActorIds. This reason has precedence over direct_conversation_invite_forbidden when both predicates match. Group expansion requires a new ordinary Collaboration Realm. The rejection writes nothing; see contract-registry.json operation_registry.direct_conversation_admission_mappings.",
+      "status": "active"
     },
     {
       "code": "direct_download_disallowed_presign_forbidden",
