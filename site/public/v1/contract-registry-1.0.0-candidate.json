@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.14",
+  "version": "2026-09-19.15",
   "source_of_truth": true,
-  "generated_at": "2026-09-19T11:37:00+08:00",
+  "generated_at": "2026-09-19T13:25:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -7681,6 +7681,13 @@
         "file": "schemas/realm-state-snapshot.schema.json"
       },
       {
+        "schema_id": "ak.schema.realm_stream_list.v1",
+        "file": "schemas/realm-read-operations.schema.json",
+        "fragment": "#/$defs/realm_stream_list",
+        "status": "active",
+        "description": "Paginated ACL-filtered enumeration outcome of one Realm's authority streams: per-stream head_commit_ref, next_position and the caller's readable_floor, plus next_cursor and has_more."
+      },
+      {
         "schema_id": "ak.schema.recovery_completion_attestation.v1",
         "file": "schemas/recovery-authority.schema.json",
         "fragment": "#/$defs/recovery_completion_attestation",
@@ -8055,8 +8062,8 @@
         "description": "Server authentication-success frame carrying effective connection and channel limits."
       }
     ],
-    "version": "2026-09-19.1",
-    "generated_at": "2026-09-19T07:37:00+08:00"
+    "version": "2026-09-19.2",
+    "generated_at": "2026-09-19T13:25:00+08:00"
   },
   "id_kind_registry": {
     "namespace": "ak.",
@@ -9506,7 +9513,8 @@
           "ak.self.account.stream.subscribe.v1",
           "ak.self.account.command.revoke_cursor.v1",
           "ak.self.realm_state_snapshot.read.manifest_head.v1",
-          "ak.self.current_principal.read.resolve.v1"
+          "ak.self.current_principal.read.resolve.v1",
+          "ak.self.realm.read.streams.v1"
         ],
         "surface_class": "core"
       },
@@ -13202,6 +13210,16 @@
         "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_export"
       },
       {
+        "operation_id": "ak.self.realm.read.streams.v1",
+        "http": "GET /_arkret/self/realms/{realm_id}/streams",
+        "grpc": "SelfRealm/Streams",
+        "mq": "self.realm.query.streams",
+        "notes": "ACL-filtered paginated enumeration of the authority streams of one Realm that the caller is permitted to know exist and whose Commit chain is established. It is core, not an extension read: positional scan requires a stream_ref the caller already holds and the subscribe window is bounded to 64 streams, so without enumeration a stream outside the first screen would be undiscoverable and could starve. Pagination is one fixed server-side generation with a per-page permission recheck; a stream that appears later is discovered by a later enumeration or by the visible discovery delta, never inserted into an earlier page. Containers with no Commit yet are omitted rather than reported with an empty head.",
+        "body_class": "non_streaming_json",
+        "success_shape_kind": "typed_response",
+        "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_stream_list"
+      },
+      {
         "operation_id": "ak.self.realm.resource.get.v1",
         "http": "GET /_arkret/self/realms/{realm_id}",
         "grpc": "SelfRealm/Get",
@@ -13446,8 +13464,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-18.2",
-    "generated_at": "2026-09-18T23:07:00+08:00",
+    "version": "2026-09-19.1",
+    "generated_at": "2026-09-19T13:25:00+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",
@@ -14550,6 +14568,10 @@
           },
           {
             "operation_id": "ak.self.realm.read.export.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.self.realm.read.streams.v1",
             "binding_kind": "http_json"
           },
           {

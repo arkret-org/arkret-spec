@@ -138,14 +138,15 @@ paths:
     post:
       operationId: ak.self.security_transaction.command.continue
 
-  /_arkret/self/events/describe:
-    query:
-      operationId: ak.self.events.read.describe
   /_arkret/self/events:
     post:
       operationId: ak.self.events.command.submit
-    query:
+  /_arkret/self/streams/scan:
+    post:
       operationId: ak.self.events.read.scan
+  /_arkret/self/realms/{realm_id}/streams:
+    get:
+      operationId: ak.self.realm.read.streams
   /_arkret/self/events/subscribe:
     get:
       operationId: ak.self.events.stream.subscribe
@@ -165,10 +166,11 @@ paths:
   /_arkret/peer/events:
     post:
       operationId: ak.peer.events.command.submit
-    query:
+  /_arkret/peer/streams/scan:
+    post:
       operationId: ak.peer.events.read.scan
-  /_arkret/peer/events/resolve-committed:
-    query:
+  /_arkret/peer/streams/resolve:
+    post:
       operationId: ak.peer.events.read.resolve_committed
 
   /_arkret/self/account/viewer:
@@ -355,10 +357,11 @@ paths:
 | `ak.root.identity.document.resource.get.v1` / `ak.root.identity.log.read.list.v1` / `ak.root.identity.receipts.read.list.v1` | `GET /_arkret/root/identity/document`, `GET /_arkret/root/identity/log`, `GET /_arkret/root/identity/receipts` | gRPC Identity Registry / witness query |
 | `ak.self.security_transaction.command.create.v1` / `resource.get` / `command.continue` | `POST /_arkret/self/security-transactions`、`GET /_arkret/self/security-transactions/{transaction_id}`、`POST .../{transaction_id}/continue` | gRPC `SelfSecurityTransactions/Create` / `Get` / `Continue`；durable transaction resource，不依赖短期 HTTP cache |
 | `ak.self.events.command.submit.v1` | `POST /_arkret/self/events` | gRPC `SelfEvents/Submit` / 队列 `self.events.command.submit` |
-| `ak.self.events.resource.get.v1` / `ak.self.events.read.scan.v1` | resource.get 使用 `GET`；scan 使用 `QUERY /_arkret/self/events` | gRPC `SelfEvents/Get` / `SelfEvents/Scan` |
+| `ak.self.events.resource.get.v1` / `ak.self.events.read.scan.v1` | resource.get 使用 `GET /_arkret/self/events/{event_id}`；scan 使用 `POST /_arkret/self/streams/scan` | gRPC `SelfEvents/Get` / `SelfStreams/Scan` |
+| `ak.self.realm.read.streams.v1` | `GET /_arkret/self/realms/{realm_id}/streams` | gRPC `SelfRealm/Streams` / MQ `self.realm.query.streams`；ACL 过滤、可分页的流枚举，是 scan 与有界订阅窗口都给不出的发现面 |
 | `ak.self.events.stream.subscribe.v1` | `GET /_arkret/self/events/subscribe` (`application/x-ndjson`) | pubsub topic carrying the same NDJSON frame objects |
 | `ak.peer.events.command.submit.v1` | `POST /_arkret/peer/events` | gRPC `PeerEvents/Submit` / 队列 `peer.events.command.submit` |
-| `ak.peer.events.read.resolve_committed.v1` / `ak.peer.events.read.scan.v1` | `QUERY` bindings | gRPC `PeerEvents/ResolveCommitted` / `PeerEvents/Scan` |
+| `ak.peer.events.read.resolve_committed.v1` / `ak.peer.events.read.scan.v1` | `POST /_arkret/peer/streams/resolve` / `POST /_arkret/peer/streams/scan` | gRPC `PeerStreams/ResolveCommitted` / `PeerStreams/Scan` |
 | `ak.self.account.read.viewer.v1` | `GET /_arkret/self/account/viewer` | gRPC `SelfAccount/Viewer` / MQ `self.account.query.viewer`；响应使用 signed handle claim / ref / digest，不返回未签名裸 handle 作为账号权威字段。 |
 | `ak.self.account.command.update_profile.v1` | `POST /_arkret/self/account/profile` | gRPC `SelfAccount/UpdateProfile` / MQ `self.account.command.update_profile`；closed `{profile_event}` 只承载 holder-signed `ak.profile.create\|ak.profile.update`，create ID 从 Event 派生；Event preconditions 为空，update 并发只使用可选 signed `payload.expected_state_digest`，patch 仅限 display/avatar/profile_fields；exact replay 不重复 account-aggregate delta。 |
 | `ak.self.account.stream.subscribe.v1` | `GET /_arkret/self/account/subscribe` | HTTP `Accept: application/x-ndjson` carries account-aggregate frames(`delta` / `catchup_complete` / `checkpoint` / `heartbeat` / `dropped` / `resync_required` / `unauthorized`);`dropped` / `resync_required` MAY carry `reconnect_after_ms` |
@@ -404,7 +407,7 @@ paths:
 - OpenAPI 只定义形态，不定义核心语义。核心语义仍由本协议对象模型、授权状态、签名、同步与加密规范给出。
 - 实现不得因为支持 core Event / Account aggregate 就默认声称支持目录、MIMI、账户登录、管理员或 E2EE key-management surface；这些能力必须通过当前角色 `ServiceDescribe.supported_operation_bundles` 中的精确 carrier row、`supported_profiles` 或两者同时显式声明。
 - 所有 path 都是 `/_arkret/<信任段>/...` 形态的绝对路径，不含版本段；`servers` 只声明 `https://{host}`。生成 OpenAPI 时无需 path-level `servers` 覆盖，协议版本通过 `*.describe` 的精确 `supported_operation_bundles` 交集（可选 `Arkret-Protocol-Version` header）判定，不放进 path。
-- `GET /_arkret/self/account/subscribe`（`ak.self.account.stream.subscribe.v1`）是客户端账号视角聚合同步入口（跨 Realm delta + to_device + account_data + device_lists + unread / notification counts），HTTP binding 使用 NDJSON frame stream；presence 是有界 TTL 的 encrypted Signal，走 Signal live rail，不进入 account aggregate。`QUERY /_arkret/self/events`（`ak.self.events.read.scan.v1`，可双向、分页，默认 limit 100）是按 selector 的事件读取/历史回补；`GET /_arkret/self/events/subscribe`（`ak.self.events.stream.subscribe.v1`，可携 bounded catch-up replay）是按 selector 的事件流订阅。`ak.self.account.stream.subscribe.v1` 与 `ak.self.events.stream.subscribe.v1` 是对称但不等价的订阅（account-aggregate vs per-Realm event log）；三类操作的 selector、auth、frame schema 与 freshness 行为不同，不得互相替代，也不得新增未声明的 canonical account / events endpoint。
+- `GET /_arkret/self/account/subscribe`（`ak.self.account.stream.subscribe.v1`）是客户端账号视角聚合同步入口（跨 Realm delta + to_device + account_data + device_lists + unread / notification counts），HTTP binding 使用 NDJSON frame stream；presence 是有界 TTL 的 encrypted Signal，走 Signal live rail，不进入 account aggregate。`POST /_arkret/self/streams/scan`（`ak.self.events.read.scan.v1`）是单条 stream 的位置化读取 / 历史回补，按 `after_position` 或 `before_position` 恰选一个方向，边界是该 caller 的允许区间而不是物理整流；它要求调用方已经持有 `stream_ref`，因此流的发现由 `GET /_arkret/self/realms/{realm_id}/streams`（`ak.self.realm.read.streams.v1`）承担：ACL 过滤、可分页、只列已建立 Commit 链的流，使有界订阅窗口之外的流仍然可发现、可读取、不饥饿；`GET /_arkret/self/events/subscribe`（`ak.self.events.stream.subscribe.v1`，可携 bounded catch-up replay）是按 selector 的事件流订阅。`ak.self.account.stream.subscribe.v1` 与 `ak.self.events.stream.subscribe.v1` 是对称但不等价的订阅（account-aggregate vs per-Realm event log）；三类操作的 selector、auth、frame schema 与 freshness 行为不同，不得互相替代，也不得新增未声明的 canonical account / events endpoint。
 - 生成的 OpenAPI 引用统一 error envelope，覆盖 `404 unrecognized_endpoint`、`405 method_not_allowed`、`429 rate_limited` 与 `503 temporarily_unavailable` 的标准响应。
 - OpenAPI security scheme 不定义 query string token 认证；受保护 endpoint 使用 header / signature / mTLS / signed proof body 等认证方式。
 - Blob / media endpoint 的 schema 显式声明 `Content-Type`、`Content-Disposition`、`Range`、`Content-Range`、`Location` 和缓存头行为，避免通过 header 泄露不可见资源。

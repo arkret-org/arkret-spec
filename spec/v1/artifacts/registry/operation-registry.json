@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-18.2",
+  "version": "2026-09-19.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-18T23:07:00+08:00",
+  "generated_at": "2026-09-19T13:25:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -117,7 +117,8 @@
         "ak.self.account.stream.subscribe.v1",
         "ak.self.account.command.revoke_cursor.v1",
         "ak.self.realm_state_snapshot.read.manifest_head.v1",
-        "ak.self.current_principal.read.resolve.v1"
+        "ak.self.current_principal.read.resolve.v1",
+        "ak.self.realm.read.streams.v1"
       ],
       "surface_class": "core"
     },
@@ -3813,6 +3814,16 @@
       "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_export"
     },
     {
+      "operation_id": "ak.self.realm.read.streams.v1",
+      "http": "GET /_arkret/self/realms/{realm_id}/streams",
+      "grpc": "SelfRealm/Streams",
+      "mq": "self.realm.query.streams",
+      "notes": "ACL-filtered paginated enumeration of the authority streams of one Realm that the caller is permitted to know exist and whose Commit chain is established. It is core, not an extension read: positional scan requires a stream_ref the caller already holds and the subscribe window is bounded to 64 streams, so without enumeration a stream outside the first screen would be undiscoverable and could starve. Pagination is one fixed server-side generation with a per-page permission recheck; a stream that appears later is discovered by a later enumeration or by the visible discovery delta, never inserted into an earlier page. Containers with no Commit yet are omitted rather than reported with an empty head.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "typed_response",
+      "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_stream_list"
+    },
+    {
       "operation_id": "ak.self.realm.resource.get.v1",
       "http": "GET /_arkret/self/realms/{realm_id}",
       "grpc": "SelfRealm/Get",
@@ -5159,6 +5170,10 @@
         },
         {
           "operation_id": "ak.self.realm.read.export.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "operation_id": "ak.self.realm.read.streams.v1",
           "binding_kind": "http_json"
         },
         {

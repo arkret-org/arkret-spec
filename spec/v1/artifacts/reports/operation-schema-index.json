@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.14",
+  "version": "2026-09-19.15",
   "source_of_truth": false,
-  "generated_at": "2026-09-19T11:37:00+08:00",
+  "generated_at": "2026-09-19T13:25:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -3464,6 +3464,7 @@
         ],
         "properties": [
           "commits",
+          "readable_floor",
           "truncated"
         ],
         "closed": true
@@ -7047,6 +7048,7 @@
         ],
         "properties": [
           "commits",
+          "readable_floor",
           "truncated"
         ],
         "closed": true
@@ -8275,6 +8277,26 @@
           "generated_at",
           "operations",
           "events"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.realm.read.streams.v1",
+      "success_shape_kind": "typed_response",
+      "response": {
+        "schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_stream_list",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "streams",
+          "has_more"
+        ],
+        "properties": [
+          "realm_id",
+          "streams",
+          "next_cursor",
+          "has_more"
         ],
         "closed": true
       }

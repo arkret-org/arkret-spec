@@ -41,22 +41,22 @@
     "unresolved": "no direct vector or reviewed higher-level coverage owner has been identified; this is a release blocker."
   },
   "summary": {
-    "total_schemas": 219,
+    "total_schemas": 220,
     "by_consumer": {
       "declared_wire": 53,
       "event_kind": 6,
       "inbound": 52,
-      "outbound": 63,
+      "outbound": 64,
       "prose": 103,
       "prose_only": 2,
-      "schema_reference": 159,
-      "startup_compile": 219,
+      "schema_reference": 160,
+      "startup_compile": 220,
       "vectors": 108
     },
     "without_wire_consumer": 1,
     "explicit_prose_only": 2,
     "unresolved_consumer_coverage": 0,
-    "without_vector_coverage": 111,
+    "without_vector_coverage": 112,
     "unresolved_vector_disposition": 0
   },
   "without_wire_consumer": [
@@ -167,6 +167,7 @@
     "ak.schema.realm_organization_operations.v1",
     "ak.schema.realm_profile.v1",
     "ak.schema.realm_read_operations.v1",
+    "ak.schema.realm_stream_list.v1",
     "ak.schema.registration_did_evidence.v1",
     "ak.schema.resource_discovery_state.v1",
     "ak.schema.resource_selector.v1",
@@ -1329,6 +1330,7 @@
           "ak.schema.realm_profile.v1",
           "ak.schema.realm_read_operations.v1",
           "ak.schema.realm_state_snapshot.v1",
+          "ak.schema.realm_stream_list.v1",
           "ak.schema.recovery_completion_attestation.v1",
           "ak.schema.recovery_policy.v1",
           "ak.schema.recovery_receipt.v1",
@@ -3499,6 +3501,7 @@
         "disposition": "operation_e2e_owned",
         "owners": [
           "ak.self.realm.read.export.v1",
+          "ak.self.realm.read.streams.v1",
           "ak.self.realm.resource.get.v1"
         ],
         "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
@@ -3519,6 +3522,24 @@
         "disposition": "direct",
         "evidence": "required_schema"
       }
+    },
+    {
+      "schema_id": "ak.schema.realm_stream_list.v1",
+      "file": "schemas/realm-read-operations.schema.json",
+      "consumers": {
+        "outbound": "exact",
+        "schema_reference": "exact",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "operation_e2e_owned",
+        "owners": [
+          "ak.self.realm.read.streams.v1"
+        ],
+        "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
+      },
+      "fragment": "#/$defs/realm_stream_list"
     },
     {
       "schema_id": "ak.schema.recovery_completion_attestation.v1",
@@ -4200,6 +4221,7 @@
           "ak.schema.realm_organization_operations.v1",
           "ak.schema.realm_read_operations.v1",
           "ak.schema.realm_state_snapshot.v1",
+          "ak.schema.realm_stream_list.v1",
           "ak.schema.recovery_completion_attestation.v1",
           "ak.schema.recovery_policy.v1",
           "ak.schema.recovery_receipt.v1",

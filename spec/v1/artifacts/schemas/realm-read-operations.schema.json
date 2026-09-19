@@ -2,10 +2,13 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/realm-read-operations.schema.json",
   "title": "Arkret Realm Read Operation DTOs",
-  "description": "Closed response DTOs for the self-surface Realm read operations (ak.self.realm.*). Realm read returns the lifecycle projection and export returns a full event-log + operation dump. See spec/v1/zh/models/realm-and-space.md.",
+  "description": "Closed response DTOs for the self-surface Realm read operations (ak.self.realm.*). Realm read returns the lifecycle projection, stream enumeration returns the visible authority streams of one Realm, and export returns a full event-log + operation dump. See spec/v1/zh/models/realm-and-space.md.",
   "anyOf": [
     {
       "$ref": "#/$defs/realm_lifecycle_view"
+    },
+    {
+      "$ref": "#/$defs/realm_stream_list"
     },
     {
       "$ref": "#/$defs/realm_export"
@@ -17,6 +20,69 @@
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
+    },
+    "cursor": {
+      "$ref": "./authz-operations.schema.json#/$defs/cursor"
+    },
+    "realm_stream_row": {
+      "type": "object",
+      "description": "One authority stream of the Realm that this caller is permitted to know exists and whose Commit chain is already established. Progress uses the same {head_commit_ref, next_position} shape as zh/sync/service-surface.md section 4.6, and readable_floor is the same anchor the scan surface returns, so a client can enumerate, bind its permitted prefix and continue the tail without a second vocabulary.",
+      "required": [
+        "stream_ref",
+        "head_commit_ref",
+        "next_position"
+      ],
+      "properties": {
+        "stream_ref": {
+          "$ref": "./realm-commit.schema.json#/$defs/stream_ref"
+        },
+        "head_commit_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_commit_id",
+          "description": "Head Commit of this stream as known to the server when the page was served. A stream with no Commit yet MUST NOT appear in this list at all rather than appear with an empty head."
+        },
+        "next_position": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Next stream_position this stream expects, i.e. head stream_position + 1. Positions are never compared across streams."
+        },
+        "readable_floor": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/readable_floor",
+          "description": "Bottom of this caller's readable range on this stream. Omitted only when the caller may read no Commit of the stream while still being permitted to know that it exists."
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_stream_list": {
+      "type": "object",
+      "description": "ACL-filtered, paginated enumeration of one Realm's authority streams (ak.self.realm.read.streams.v1). It is the discovery surface that positional scan cannot be: scan requires a stream_ref the caller already knows, so without this list a stream outside the bounded subscribe window would be undiscoverable. Pagination is a fixed snapshot: the page sequence is taken against one server-side generation, so a stream that appears after the first page is NOT inserted into the earlier pages and is therefore never skipped; it is discovered by a later enumeration or by the visible discovery delta. Permissions are re-checked on every page, so a page MAY be narrower than its predecessor, and a stream the caller has stopped being permitted to know about MUST disappear rather than be served from the frozen generation.",
+      "required": [
+        "realm_id",
+        "streams",
+        "has_more"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "streams": {
+          "type": "array",
+          "maxItems": 500,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/realm_stream_row"
+          },
+          "description": "Rows sorted by unsigned bytes of RFC 8785 JCS(stream_ref), the same order the subscribe frame truncates in, so enumeration and delivery agree on which streams a bounded window kept. The Realm stream is a row like any other."
+        },
+        "next_cursor": {
+          "$ref": "#/$defs/cursor",
+          "description": "Opaque continuation of this enumeration. Absent means the current page is the last one."
+        },
+        "has_more": {
+          "type": "boolean",
+          "description": "The only field a client may use to decide whether to keep paging (zh/sync/api-conventions.md section 7.1)."
+        }
+      },
+      "additionalProperties": false
     },
     "realm_lifecycle_view": {
       "type": "object",

@@ -85,7 +85,7 @@
     },
     "stream_scan_request": {
       "type": "object",
-      "description": "Positional single-stream scan request. Pagination is by stream_position, not by an opaque cursor: within one stream the governance Station's stream_position is a strict +1 total order, so the position IS the continuation token. Exactly one of after_position / before_position MUST be present; null means 'from the stream start' (after_position) or 'from the stream head' (before_position). Continuation is the caller's job: take the largest stream_position of this batch for after_position, the smallest for before_position.",
+      "description": "Positional single-stream scan request. Pagination is by stream_position, not by an opaque cursor: within one stream the governance Station's stream_position is a strict +1 total order, so the position IS the continuation token. Exactly one of after_position / before_position MUST be present; the exclusivity is structural (the oneOf below), so a request carrying both or neither is a schema violation and MUST NOT be repaired by picking a default direction. Both bounds are read inside the range this caller is permitted to read, never over the physical stream: null means 'from the oldest position this caller may read' (after_position) or 'from the newest position this caller may read' (before_position). Continuation is the caller's job: take the largest stream_position of this batch for after_position, the smallest for before_position.",
       "required": [
         "realm_id",
         "stream_ref",
@@ -121,7 +121,7 @@
           "$ref": "./realm-commit.schema.json#/$defs/stream_ref"
         },
         "after_position": {
-          "description": "Scan toward newer commits: return commits whose stream_position is strictly greater than this value, ascending. null starts at the stream start (position 0 included).",
+          "description": "Scan toward newer commits: return commits whose stream_position is strictly greater than this value, ascending. null starts at the oldest position this caller may read, which is position 0 only when that floor is the physical stream start; see stream_scan_outcome.readable_floor.",
           "oneOf": [
             {
               "type": "integer",
@@ -133,7 +133,7 @@
           ]
         },
         "before_position": {
-          "description": "Scan toward older commits (history backfill): return commits whose stream_position is strictly smaller than this value, descending. null starts at the current stream head. This is the successor of the withdrawn timeline.prev_cursor backfill surface.",
+          "description": "Scan toward older commits (history backfill): return commits whose stream_position is strictly smaller than this value, descending. null starts at the newest position this caller may read, which is not necessarily the physical stream head. The scan stops at the caller's readable floor; positions below that floor are unreadable rather than missing and are not a gap (zh/sync/client-sync.md section 12.3.3).",
           "oneOf": [
             {
               "type": "integer",
@@ -152,8 +152,40 @@
       },
       "additionalProperties": false
     },
+    "readable_floor": {
+      "type": "object",
+      "description": "Verifiable bottom of one caller's readable range on one stream. The anchor lets a member whose history is trimmed verify that its permitted prefix is complete without ever holding position 0: it proves where the accepted chain that caller may read begins, and it proves nothing about whether the Station holds further history below it or further updates above it.",
+      "required": [
+        "oldest_position",
+        "floor_commit_id",
+        "floor_reason"
+      ],
+      "properties": {
+        "oldest_position": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Smallest stream_position this caller is permitted to read. Positions below it are unreadable, not missing: their absence MUST NOT be treated as a gap and MUST NOT be used to infer activity, membership or existence below the floor."
+        },
+        "floor_commit_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_commit_id",
+          "description": "commit_id of the RealmCommit at oldest_position, so the boundary binds to the chain the caller has already accepted. The commit at the floor is the only readable commit allowed to carry a previous_commit_ref the caller cannot resolve, because its predecessor is outside that caller's range."
+        },
+        "floor_reason": {
+          "type": "string",
+          "description": "Why the range starts here. stream_start means the floor is the physical start of the stream and oldest_position is 0; the other three are trimmed ranges and MUST NOT be reported as stream_start.",
+          "enum": [
+            "stream_start",
+            "membership_join",
+            "history_access_policy",
+            "retention_pruned"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
     "stream_row": {
       "type": "object",
+      "description": "One committed row of a single stream: the RealmCommit and the Event it accepted. The row MUST be self-consistent: when the event member carries an event_id, that event_id MUST equal commit.event_ref, and a caller MUST reject the row instead of reconciling the two. Because commit.event_ref already names the source Event, a ReferenceLockedEventStub in this position MUST carry event_id; the stub's optional event_id exists for reference projections where the source event id itself is withheld, so the stub name is never by itself a privacy guarantee. Verifying the commit is not a reference-disclosure decision: a caller not permitted to know that the source Event exists MUST NOT receive this row at all, and a caller permitted to know it exists receives here the same redacted or locked projection it receives on every other read surface.",
       "required": [
         "commit",
         "event"
@@ -171,7 +203,7 @@
     },
     "stream_scan_outcome": {
       "type": "object",
-      "description": "Positional scan result. There is no cursor and no has_more here: the caller continues from the largest (after_position) or smallest (before_position) stream_position of commits[].",
+      "description": "Positional scan result. There is no cursor and no has_more here: the caller continues from the largest (after_position) or smallest (before_position) stream_position of commits[]. Every boundary in this outcome is the caller's own permitted range: commits[] carries what this caller may read, truncated speaks only about further readable commits, and readable_floor names the verifiable bottom of that range.",
       "required": [
         "commits",
         "truncated"
@@ -180,14 +212,18 @@
         "commits": {
           "type": "array",
           "maxItems": 1000,
-          "description": "Contiguous commits of the requested stream, ordered by stream_position: ascending for after_position, descending for before_position. Callers MUST verify strictly consecutive positions and previous_commit_ref linkage within and across pages.",
+          "description": "Contiguous commits of the requested stream, ordered by stream_position: ascending for after_position, descending for before_position. Callers MUST verify consecutive positions and previous_commit_ref linkage within and across pages. The linkage check is one equation in both directions, stated on adjacent positions rather than on array order: the row at the larger stream_position MUST carry previous_commit_ref equal to the commit_id of the row at the smaller position, whether that neighbour is the next or the previous element of this array and whether it arrived in this page or in the page before it. A descending page therefore keeps its last row as the anchor for the next page, and the commit at the caller's readable floor is the only readable commit whose predecessor the caller cannot check.",
           "items": {
             "$ref": "#/$defs/stream_row"
           }
         },
+        "readable_floor": {
+          "$ref": "#/$defs/readable_floor",
+          "description": "Verifiable bottom of this caller's readable range on the requested stream. It MUST be present on every page whose scan reached that bottom (a before_position page with truncated false, and an after_position page whose first row is at it), MAY be present on any other page of the same stream, and MUST be omitted only when the caller may read no commit of this stream at all, which is also the only case in which an empty commits[] with truncated false is legal."
+        },
         "truncated": {
           "type": "boolean",
-          "description": "True when more commits exist beyond this page in the requested direction, i.e. the scan stopped on limit rather than on the end of the stream (stream start for before_position, current head for after_position)."
+          "description": "True when at least one further commit that this caller is permitted to read exists beyond this page in the requested direction, i.e. the scan stopped on limit. It is a statement about the caller's permitted range, never about the physical stream: a scan that stopped on the newest readable position (after_position) or on readable_floor.oldest_position (before_position) MUST set it false even when the Station holds further commits this caller may not read. History outside the caller's range MUST NOT set it, a page that stopped on the floor MUST NOT be presented as truncation, and truncated MUST NOT be used to conceal a floor. An empty commits[] with truncated false means the caller's permitted range is exhausted in that direction, never that the physical stream is empty or absent."
         }
       },
       "additionalProperties": false

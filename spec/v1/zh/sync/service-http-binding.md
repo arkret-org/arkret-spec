@@ -111,8 +111,39 @@ MUST NOT 推进任何 stream 的 `RealmCommit.stream_position`，也 MUST NOT �
 `POST /_arkret/self/streams/scan` 一次只扫描一条 caller 获准的 Realm、Circle 或 Sidecar stream。
 request 指定 `stream_ref`、`limit` 与**恰好一个**位置参数——`after_position`（朝更新）或
 `before_position`（朝更旧，历史回填）——方向由选用哪个参数给出，没有独立的方向字段；
-取 `null` 分别表示从流首、从流头起。response 返回连续 RealmCommit 及其可见 Event。
-页内和跨页都必须检查 position 严格递增和 `previous_commit_ref` 连续。
+两者同时出现或都不出现是 schema 违规，服务端 MUST NOT 代为选一个默认方向。取 `null` 分别表示
+从该 caller 获准读取的最旧位置、从该 caller 获准读取的最新位置起，而不是物理流首与物理流头。
+response 返回连续 RealmCommit 及其可见 Event。
+
+**边界是 caller 的允许区间，不是物理整流（normative）**：`truncated` 只表示所选方向上还有该 caller
+获准读取的 Commit。扫到允许区间上端（`after_position`）或下端（`before_position`）时它必须为 false，
+即使 Station 还持有该 caller 不获准读取的 Commit。不获准读取的历史 MUST NOT 置 `truncated`，
+停在 floor 的一页 MUST NOT 当作截断呈现，`truncated` 也 MUST NOT 用来遮盖 floor 的存在。
+`commits[]` 为空且 `truncated=false` 只表示该方向上该 caller 的允许区间已扫完，
+不表示物理流为空、不存在或没有更多 Commit。
+
+**floor 连续性 anchor（normative）**：扫到允许区间下端的每一页 MUST 携带 `readable_floor`
+（`oldest_position`、该位置的 `floor_commit_id`、`floor_reason`），使受限成员不必拿到 position 0
+就能把自己获准前缀的下边界绑定到已接受的链上。`floor_commit_id` 指向的 Commit 是唯一允许其
+`previous_commit_ref` 无法被该 caller 解析的可读 Commit。该 anchor 只证明获准前缀从哪里开始，
+既不证明 Station 没有更早历史，也不证明 Station 没有更新的更新。只有该 caller 在这条流上
+没有任何可读 Commit 时才省略它，那也是空 `commits[]` + `truncated=false` 唯一合法的情形。
+
+**链校验在两个方向上是同一条等式（normative）**：页内与跨页都按相邻位置检查，而不是按数组下标——
+position 较大那一行的 `previous_commit_ref` 必须等于 position 较小那一行的 `commit_id`，
+无论该邻居是数组的前一项还是后一项、来自本页还是上一页。倒序分页因此保留本页末行作为下一页的 anchor；
+position 连续性按 ±1 检查，`readable_floor.oldest_position` 以下的缺失不是 gap。
+
+逐页示例（物理流 0..12，该 caller 因 join floor 只获准 4..9，`limit=3`；`F` 表示
+`readable_floor = {oldest_position: 4, floor_commit_id: C4, floor_reason 取成员加入这一档}`）：
+
+| 请求 | 返回 position | `truncated` | `readable_floor` |
+| --- | --- | --- | --- |
+| `before_position: null` | 9, 8, 7 | `true` | `F`（可带） |
+| `before_position: 7` | 6, 5, 4 | `false`（停在下端，不是截断） | `F`（必带） |
+| `after_position: null` | 4, 5, 6 | `true` | `F`（必带，首行即下端） |
+| `after_position: 9` | 空 | `false`（10..12 不获准，不置 `truncated`） | `F`（可带） |
+| 该 caller 在本流无任何可读 Commit | 空 | `false` | 省略 |
 
 该面**不使用 cursor**：单条 stream 内 `stream_position` 是严格 +1 全序，位置本身就是续传凭据，
 续页由客户端取本批的最大 / 最小 `stream_position` 得到。响应不返回 `prev_cursor` / `next_cursor` /
@@ -120,6 +151,14 @@ request 指定 `stream_ref`、`limit` 与**恰好一个**位置参数——`afte
 目标 Realm policy 对该 caller 拒绝 reference disclosure 时，`commits[].event` 返回
 `RedactedEventView` 或 `ReferenceLockedEventStub`（[`models/relation.md` §4.5](../models/relation.md)）；
 这两种形态是 projection-only 证据，不得作 reducer 输入。
+
+**行内一致性与存在性 ACL（normative）**：`event` 带 `event_id` 时，该 `event_id` 必须等于同一行
+`commit.event_ref`，不等则 caller MUST 拒绝该行，MUST NOT 二者取一或试图调和。由于 `commit.event_ref`
+已经点出 source Event，出现在本面的 `ReferenceLockedEventStub` MUST 携带 `event_id`——stub 的
+`event_id` 可选是为 reference projection 里连 event id 都不披露的场合准备的，stub 这个名字本身不构成
+隐私保证。验证 Commit 不是一次 reference-disclosure 判定：不获准知道 source Event 存在的 caller
+MUST NOT 收到该行本身，获准知道其存在的 caller 在这里拿到的 redacted / locked 投影与其它读取面一致；
+实现 MUST NOT 因为 caller 能验证 Commit 就交出完整 canonical payload bytes。
 
 `POST /_arkret/peer/streams/scan` 使用相同 schema，但要求调用 Station 对该具体 stream 具有复制权。
 
@@ -554,6 +593,7 @@ RFC 9449 DPoP proof 只有 `iat`，没有 `expires` parameter，因此它 **MUST
 | `ak.self.read_cursor.command.advance.v1` | `POST /_arkret/self/read-cursors` | - | - | request_schema_ref=schemas/read-cursor-operations.schema.json#/$defs/read_cursor_advance_request_body; response_schema_ref=schemas/read-cursor-operations.schema.json#/$defs/read_marker_outcome |
 | `ak.self.read_cursor.read.list.v1` | `GET /_arkret/self/read-cursors` | - | - | response_schema_ref=schemas/read-cursor-operations.schema.json#/$defs/read_cursor_list |
 | `ak.self.realm.read.export.v1` | `GET /_arkret/self/realms/{realm_id}/export` | - | - | response_schema_ref=schemas/realm-read-operations.schema.json#/$defs/realm_export |
+| `ak.self.realm.read.streams.v1` | `GET /_arkret/self/realms/{realm_id}/streams` | - | - | response_schema_ref=schemas/realm-read-operations.schema.json#/$defs/realm_stream_list |
 | `ak.self.realm.resource.get.v1` | `GET /_arkret/self/realms/{realm_id}` | - | - | response_schema_ref=schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view |
 | `ak.self.realm_join.command.prepare.v1` | `POST /_arkret/self/realm-joins/prepare` | - | - | request_schema_ref=schemas/realm-join-intake.schema.json#/$defs/self_prepare_request_body; response_schema_ref=schemas/realm-join-intake.schema.json#/$defs/self_prepare_outcome |
 | `ak.self.realm_join.read.application_status.v1` | `POST /_arkret/self/realm-joins/application-status` | - | - | request_schema_ref=schemas/realm-join-intake.schema.json#/$defs/self_application_status_request_body; response_schema_ref=schemas/realm-join-intake.schema.json#/$defs/self_application_status_outcome |

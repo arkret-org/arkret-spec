@@ -229,6 +229,16 @@
       "reason": "has_more applies to match results; proofs are verification material for the returned page"
     },
     {
+      "file": "realm-read-operations.schema.json",
+      "pointer": "/$defs/realm_stream_list",
+      "collection_field": "streams",
+      "companion_fields": [
+        "has_more",
+        "next_cursor"
+      ],
+      "reason": "the Realm stream enumeration page owns its generic pagination companions; its rows carry per-stream boundaries instead"
+    },
+    {
       "file": "relation.schema.json",
       "pointer": "/$defs/relation_conflict_material_page",
       "collection_field": "member_event_ids",

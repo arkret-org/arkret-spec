@@ -81,6 +81,16 @@ Agent signer material 按需返回并绑定 exact Agent、controller、account �
 
 `streams[]` 有条目上限。caller 获准可见的流超过上限时，服务端 MUST 置 `streams_limited=true`，且截断规则只依赖 caller 自己的可见流集合：Realm stream 只要可见就必须保留，其余按 `JCS(stream_ref)` 的 unsigned 字节序升序填满剩余名额。客户端 MUST 用 per-stream surface 补齐其余流，MUST NOT 把未出现在 `streams[]` 里的流判定为不存在。服务端不得静默丢流。
 
+### 4.1 流的发现与选择（normative）
+
+条目上限不得使一条流不可发现或永久饥饿。`ak.self.events.read.scan.v1` 要求调用方**已经知道** `stream_ref`，因此它补不齐发现面；发现面是 `ak.self.realm.read.streams.v1`（`GET /_arkret/self/realms/{realm_id}/streams`）：ACL 过滤、可分页，返回该 caller 获准知道其存在且**已建立 Commit 链**的 `stream_ref`，以及每条流的可读 floor 与 head anchor。
+
+订阅侧可显式选择流集合：subscribe filter 的 `stream_refs` 至多 64 条，必须去重、每条属于 `realm_ids` 中的 exact Realm 且为该 caller 获准可见；分组包含 Realm stream 时它占一个名额，不含 Realm stream 的分组同样合法。缺省（不带 `stream_refs`）保持现有的有界首屏与 `streams_limited`。
+
+带 `stream_refs` 时窗口就是该选择集合：服务端只推进该集合的 tail，**未选中的流记作未投递而不是已投递且为空**；cursor handle 把 `filter_digest` 绑定到该选择集合，换组必须用新 filter 与新 cursor，而各组已到达的位置分别保留可续传（§12.1）。因此客户端 MAY 分批订阅全部流，服务端 MUST NOT 静默丢尾，也 MUST NOT 让固定的前 64 条永久占满名额。选择集合建立之后新增或移除的流，通过重新枚举或可见 discovery delta 发现，该发现 MUST NOT 被 event kind filter 屏蔽。
+
+只有已经建立 Commit 链的 stream 才作为 `streams[]` 条目出现：尚未产生 position 0 的容器没有 `head_commit_ref` 可携带，服务端 MUST NOT 构造空 head 的窗口；它在首个 Commit 落地后由枚举面或后续帧发现。
+
 ## 5. 当前结果与历史展示上下文
 
 ### 5.0 current 与 timeline 的载体边界（normative）
@@ -93,7 +103,13 @@ Typed current result至少绑定 selector、value/status、领域 revision，以
 
 ### 5.2 State At Window Start (limited timeline 边界状态)
 
-有限历史窗口 MAY 返回签名 snapshot slice 或明确 `preview_only=true`。两条路径都是**逐流**判定：某条流 `limited=true` 而服务端不返回 `state_at_window_start` 时，该流的 `streams[].preview_only` MUST 为 true。窗口起点状态来自 authority-signed typed snapshot和对应 stream head，不从首个可见 Event的前驱或 producer 时间推导。
+窗口上下文分为两类，不可互相冒充：`realm_sync_entry.state_at_window_start` 是 **Realm 级显示预览**（actor 显示行与 Realm metadata），`streams[].window_start_basis` 是**逐流的可验证重建材料**。显示预览 MUST NOT 被当作安全快照，它的存在 MUST NOT 清除任何一条流的 `preview_only`——一个 Realm 显示对象存在，不能把该 bucket 全部 Circle / Sidecar 的窗口都标成可重建。
+
+`window_start_basis` 绑定 exact Realm、exact `stream_ref`、状态所在的 exact 边界（`anchor_kind` + `anchor_position` + `anchor_commit_ref`）、承载该逐流 slice 的 authority-signed `realm-state-snapshot`（`snapshot_ref`）与其 `governance_generation`，以及重建该前缀所依赖的跨流授权依赖的 exact accepted references（`accepted_dependency_refs`，closed 四坐标 `committed_event_ref`）。列出这些引用不引入跨流总序，也不比较跨流位置。空前缀必须显式声明其 genesis 边界（`anchor_kind=stream_genesis`）；窗口起点落在 caller 可读 floor 上时用 `anchor_kind=before_readable_floor`，受限成员**不必**拿到 position 0。
+
+有限历史窗口 MAY 返回该逐流 slice，或明确 `preview_only=true`。两条路径都是**逐流**判定：某条流 `limited=true` 而帧不携带足以验证该流窗口起点的 `window_start_basis` 时，该流的 `streams[].preview_only` MUST 为 true。窗口起点状态来自 authority-signed snapshot slice 与对应 stream 的边界 anchor，不从首个可见 Event 的前驱或 producer 时间推导。只有在完成**该条流**所需上下文验证之后，其窗口起点行才能进入普通展示、reducer 输入或 MLS 安装流程。
+
+**客户端不重放治理历史（normative）**：共享授权与对象重建由 own Station 负责，客户端只验证输出绑定、producer 输入与所需 MLS bytes / epoch。上一段所说的「重建」在服务端指获准前缀的重建，在客户端只指它本地已有的展示与密码学状态；它 MUST NOT 被理解为授权客户端重放私有治理闭包，也 MUST NOT 把历史窗口当作当前权限。
 
 窗口起点之上的历史回填走 [`ak.self.events.read.scan.v1`](./service-http-binding.md) 的 `before_position`，逐流进行。subscribe 面不保留第二套分页机制。
 
@@ -203,7 +219,7 @@ cursor 必须绑定 issuer、account/device、purpose、query-scope digest、exp
 
 #### 12.3.3 历史完整性边界（两分支共用）
 
-客户端验证每条可见 stream 的 Commit连续性、snapshot head和tail衔接。Retention/history floor之前的数据不可得不构成 gap；floor之后无法解释的 position跳跃必须停止该 stream并重取 snapshot/bundle。
+客户端验证每条可见 stream 的 Commit连续性、snapshot head和tail衔接。Retention/history floor之前的数据不可得不构成 gap；floor之后无法解释的 position跳跃必须停止该 stream并重取 snapshot/bundle。受限历史的下边界必须可验证而不是只能推断：`ak.self.events.read.scan.v1` 的 `stream_scan_outcome.readable_floor` 给出 `oldest_position` 与该位置的 `floor_commit_id`，`window_start_basis.anchor_kind=before_readable_floor` 给出同一边界在窗口侧的 anchor，两者都把允许区间的下端绑定到已接受的链上，且都不要求 caller 持有 position 0。该 anchor 只证明获准前缀从哪里开始，不证明 Station 没有更早历史或更新的更新。
 
 ## 13. Initial Sync
 

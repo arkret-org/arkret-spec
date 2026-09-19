@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.14",
+  "version": "2026-09-19.15",
   "source_of_truth": false,
-  "generated_at": "2026-09-19T11:37:00+08:00",
+  "generated_at": "2026-09-19T13:25:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,14 +18,14 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 220,
+    "total_operations": 221,
     "by_completeness_class": {
       "binary_or_redirect": 2,
-      "typed_schema": 218
+      "typed_schema": 219
     },
     "by_surface_class_and_completeness_class": {
       "core": {
-        "typed_schema": 44
+        "typed_schema": 45
       },
       "deployment_local": {
         "typed_schema": 18
@@ -2789,6 +2789,19 @@
       "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_export",
       "openapi_component_refs": {
         "response": "#/components/schemas/RealmExport"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ak.self.realm.read.streams.v1",
+      "surface_class": "core",
+      "http": "GET /_arkret/self/realms/{realm_id}/streams",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": null,
+      "response_schema_ref": "schemas/realm-read-operations.schema.json#/$defs/realm_stream_list",
+      "openapi_component_refs": {
+        "response": "#/components/schemas/RealmStreamList"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."

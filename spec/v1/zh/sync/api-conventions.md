@@ -561,9 +561,14 @@ HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` �
 位置分页：
 
 - 请求是 `stream_scan_request` = `{realm_id, stream_ref, after_position | before_position（恰一个）, limit}`。
-  `after_position` 朝更新方向、`before_position` 朝更旧方向（历史回填）；取 `null` 分别表示从流首、从流头起。
-- 响应是 `stream_scan_outcome` = `{commits, truncated}`。续页由客户端取本批的
+  `after_position` 朝更新方向、`before_position` 朝更旧方向（历史回填）；两者的排他性由 request
+  合同的 `oneOf` 结构给出，同时出现或都不出现是 schema 违规。取 `null` 分别表示从该 caller
+  获准读取的最旧位置、最新位置起——**不是**物理流首与物理流头。
+- 响应是 `stream_scan_outcome` = `{commits, truncated, readable_floor?}`。续页由客户端取本批的
   最大 / 最小 `stream_position` 自行得到；响应 MUST NOT 返回 `prev_cursor` / `next_cursor` / `has_more`。
+- 边界一律按该 caller 的允许区间解释：`truncated` 只表示该方向上还有它获准读取的 Commit，
+  `readable_floor` 给出允许区间下端的 `oldest_position` 与该位置的 `floor_commit_id`。
+  语义与逐页示例见 [`service-http-binding.md` §3.1](./service-http-binding.md)。
 - 服务端 MUST NOT 在这两个 operation 上接受 `ak:cursor:` 值，也 MUST NOT 为它们签发 cursor。
 
 决定性理由：[`service-http-binding.md` §3.2](./service-http-binding.md) 的 snapshot + tail 是规范定义的

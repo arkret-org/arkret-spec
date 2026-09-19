@@ -120,6 +120,7 @@ grpc:
     SelfRealm:
       Get: ak.self.realm.resource.get.v1
       Export: ak.self.realm.read.export.v1
+      Streams: ak.self.realm.read.streams.v1
     SelfRealmJoinApplication: null
     SelfConsent:
       List: ak.self.consent.read.list.v1
@@ -157,11 +158,11 @@ grpc:
       Withdraw: ak.find.directory.command.withdraw.v1
     SelfEvents:
       Get: ak.self.events.resource.get.v1
-      Query: ak.self.events.read.scan.v1
       Subscribe: ak.self.events.stream.subscribe.v1
       Submit: ak.self.events.command.submit.v1
+    SelfStreams:
+      Scan: ak.self.events.read.scan.v1
     PeerEvents:
-      Query: ak.peer.events.read.scan.v1
       Submit: ak.peer.events.command.submit.v1
     PeerDeviceRevocations:
       Check: ak.peer.device_revocations.command.check.v1
@@ -317,6 +318,7 @@ grpc:
       Handoff: ak.peer.realm_authority.command.handoff.v1
     PeerStreams:
       ResolveCommitted: ak.peer.events.read.resolve_committed.v1
+      Scan: ak.peer.events.read.scan.v1
 mq:
   envelope:
     required:
@@ -344,13 +346,13 @@ mq:
     self.security_transaction.resource.get: ak.self.security_transaction.resource.get.v1
     self.security_transaction.command.continue: ak.self.security_transaction.command.continue.v1
     self.events.command.submit: ak.self.events.command.submit.v1
-    self.events.read.scan: ak.self.events.read.scan.v1
+    self.streams.read.scan: ak.self.events.read.scan.v1
     self.relation_conflicts.read.candidates: ak.self.relation_conflicts.read.candidates.v1
     self.events.stream.subscribe: ak.self.events.stream.subscribe.v1
     self.keys.backup_series.command.erase: ak.self.keys.backup_series.command.erase.v1
     peer.events.command.submit: ak.peer.events.command.submit.v1
     peer.device_revocations.command.check: ak.peer.device_revocations.command.check.v1
-    peer.events.read.scan: ak.peer.events.read.scan.v1
+    peer.streams.read.scan: ak.peer.events.read.scan.v1
     peer.account_status.query.resolve: ak.peer.account_status.read.resolve.v1
     peer.mls.query.group_state_material: ak.peer.mls.read.group_state_material.v1
     peer.invites.command.submit: ak.peer.invites.command.submit.v1
@@ -413,6 +415,7 @@ mq:
     self.realm_organization.query.list: ak.self.realm_organization.read.list.v1
     self.realm.resource.get: ak.self.realm.resource.get.v1
     self.realm.query.export: ak.self.realm.read.export.v1
+    self.realm.query.streams: ak.self.realm.read.streams.v1
     self.consent.query.list: ak.self.consent.read.list.v1
     self.consent.resource.get: ak.self.consent.resource.get.v1
     self.consent.command.grant: ak.self.consent.command.grant.v1

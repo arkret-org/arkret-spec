@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.1",
+  "version": "2026-09-19.2",
   "source_of_truth": false,
-  "generated_at": "2026-09-19T07:37:00+08:00",
+  "generated_at": "2026-09-19T13:25:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -1216,6 +1216,13 @@
     {
       "schema_id": "ak.schema.realm_state_snapshot.v1",
       "file": "schemas/realm-state-snapshot.schema.json"
+    },
+    {
+      "schema_id": "ak.schema.realm_stream_list.v1",
+      "file": "schemas/realm-read-operations.schema.json",
+      "fragment": "#/$defs/realm_stream_list",
+      "status": "active",
+      "description": "Paginated ACL-filtered enumeration outcome of one Realm's authority streams: per-stream head_commit_ref, next_position and the caller's readable_floor, plus next_cursor and has_more."
     },
     {
       "schema_id": "ak.schema.recovery_completion_attestation.v1",

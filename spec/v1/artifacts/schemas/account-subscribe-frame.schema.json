@@ -523,21 +523,120 @@
         },
         "limited": {
           "type": "boolean",
-          "description": "Gap marker for THIS stream: earlier history exists beyond this stream's window start. Within one frozen baseline window every segment repeats the same value; it must not change because the current segment could not fit the remaining items. Backfill goes through ak.self.events.read.scan.v1 with before_position — there is no second pagination mechanism on the subscribe surface."
+          "description": "Gap marker for THIS stream: history this caller is permitted to read exists below this stream's window start. It is read against the caller's permitted range, never against the physical stream: history below the caller's readable floor MUST NOT set it, and it MUST NOT be cleared because the remaining history happens to be unreadable. Within one frozen baseline window every segment repeats the same value; it must not change because the current segment could not fit the remaining items. Backfill goes through ak.self.events.read.scan.v1 with before_position — there is no second pagination mechanism on the subscribe surface."
         },
         "window_limit": {
           "type": "integer",
           "minimum": 0,
           "maximum": 100,
-          "description": "Cumulative item ceiling of the frozen window for THIS stream after merging the request targets (sync_filter.window_limit), not the count emitted in one frame. Constant within a window; byte budgets only decide segmentation and must never lower it. Per stream, so one stream being limited never depends on how much budget the other streams consumed."
+          "description": "Cumulative item ceiling of the frozen window for THIS stream after merging the request targets (account_filter.window_limit), not the count emitted in one frame. Constant within a window; byte budgets only decide segmentation and must never lower it. Per stream, so one stream being limited never depends on how much budget the other streams consumed. 0 is a boundary-and-context-only window: the server delivers no ordinary event rows for this stream, limited and complete still describe the caller's permitted range (complete true means the zero-row window was delivered in full, never that the stream was scanned to its start), and the client MUST NOT read a zero-row window as an empty or exhausted stream."
         },
         "complete": {
           "type": "boolean",
-          "description": "The server has delivered every segment of this stream's frozen window. Independent of realm_detail_baseline.complete, account baseline completed_channels and catchup_complete. Completion proves delivery only: not per-event authentication, decryption, display dependencies, full history or any read/write permission."
+          "description": "The server has delivered every segment of this stream's frozen window. Independent of realm_detail_baseline.complete, account baseline completed_channels and catchup_complete. Completion proves delivery only: not per-event authentication, decryption, display dependencies, full history or any read/write permission, and never that the stream was read down to position 0 — the window is bounded by window_limit and by the caller's permitted range."
         },
         "preview_only": {
           "type": "boolean",
-          "description": "Fallback path of client-sync.md §5.2, per stream: when this stream's limited=true and the server does not return realm_sync_entry.state_at_window_start, it MUST set preview_only=true. Clients then render window-start events of this stream as preview only. Repeated identically in every segment of a frozen window; the server must not switch between the two §5.2 paths because one segment ran out of budget."
+          "description": "Fallback path of client-sync.md §5.2, per stream: when this stream's limited=true and the frame does not carry a window_start_basis sufficient to verify THIS stream's window start, it MUST set preview_only=true. The Realm-level realm_sync_entry.state_at_window_start is display context and MUST NOT be taken as that basis: one Realm display object existing never makes every Circle and Sidecar window rebuildable. Clients then render window-start events of this stream as preview only, and MUST NOT feed them to a reducer or to an MLS install path. Repeated identically in every segment of a frozen window; the server must not switch between the two §5.2 paths because one segment ran out of budget."
+        },
+        "window_start_basis": {
+          "type": "object",
+          "description": "Verifiable rebuild material for THIS stream's window start, as distinct from the Realm display preview in realm_sync_entry.state_at_window_start. It names the exact boundary the state is valid at and the authority-signed realm-state-snapshot slice that carries it, so the client verifies one stream's window start without replaying governance history and without any cross-stream order. A stream whose basis is absent or insufficient MUST carry preview_only=true; only after this stream's basis verifies may its window-start rows leave preview and enter ordinary display, reducer input or MLS installation. The basis covers this stream alone: coverage MUST be stated per stream and MUST NOT be inferred for sibling streams of the same bucket.",
+          "required": [
+            "anchor_kind",
+            "snapshot_ref",
+            "governance_generation"
+          ],
+          "properties": {
+            "anchor_kind": {
+              "type": "string",
+              "description": "Which boundary the state is valid at. stream_genesis: the window starts at position 0 and the basis is the empty pre-genesis state, so an empty prefix states its genesis boundary explicitly instead of leaving it implied. after_committed_prefix: the basis is the state after applying every Commit of this stream through anchor_position, which the caller may read. before_readable_floor: the window starts at the caller's readable floor and the basis is the state immediately before anchor_commit_ref, which is the floor Commit itself; the caller is not required to hold position 0, and the unreadable history below the floor is not a gap.",
+              "enum": [
+                "stream_genesis",
+                "after_committed_prefix",
+                "before_readable_floor"
+              ]
+            },
+            "anchor_position": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "stream_position of anchor_commit_ref on THIS stream. Required unless anchor_kind is stream_genesis, and forbidden when it is. Positions are never compared across streams."
+            },
+            "anchor_commit_ref": {
+              "$ref": "./common-ids.schema.json#/$defs/realm_commit_id",
+              "description": "commit_id of the Commit at anchor_position. Required unless anchor_kind is stream_genesis, and forbidden when it is."
+            },
+            "snapshot_ref": {
+              "$ref": "./common-ids.schema.json#/$defs/realm_snapshot_id",
+              "description": "The authority-signed realm-state-snapshot whose per-stream slice carries this basis. The client verifies that snapshot's signature and generation and reads the slice for this stream_ref; a slice missing the security or MLS context this stream needs means preview_only for this stream and no other."
+            },
+            "governance_generation": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Station tenure the anchor and the snapshot slice are bound to. A client MUST refuse a basis whose generation is not the Realm's current governing tenure."
+            },
+            "accepted_dependency_refs": {
+              "type": "array",
+              "maxItems": 64,
+              "uniqueItems": true,
+              "items": {
+                "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+              },
+              "description": "Exact accepted cross-stream authorization dependencies the anchor's prefix relied on, each a closed four-coordinate committed_event_ref. They are explicit references, not an ordering: listing them introduces no cross-stream total order and no comparison of positions across streams. Omitted or empty means the prefix depended on no accepted reference outside this stream."
+            }
+          },
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "if": {
+                "required": [
+                  "anchor_kind"
+                ],
+                "properties": {
+                  "anchor_kind": {
+                    "enum": [
+                      "after_committed_prefix",
+                      "before_readable_floor"
+                    ]
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "anchor_position",
+                  "anchor_commit_ref"
+                ]
+              }
+            },
+            {
+              "if": {
+                "required": [
+                  "anchor_kind"
+                ],
+                "properties": {
+                  "anchor_kind": {
+                    "const": "stream_genesis"
+                  }
+                }
+              },
+              "then": {
+                "not": {
+                  "anyOf": [
+                    {
+                      "required": [
+                        "anchor_position"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "anchor_commit_ref"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          ]
         },
         "e2ee_epoch": {
           "oneOf": [
@@ -579,7 +678,7 @@
           "items": {
             "$ref": "#/$defs/realm_stream_window"
           },
-          "description": "Per-stream window boundaries for the streams of this Realm bucket that the caller is authorized to see. Entries MUST be sorted by unsigned bytes of RFC 8785 JCS(stream_ref) and stream_ref MUST be unique. Delivery rows live in commits[]; this array carries only the window scalars, which are per stream because Realm / each Circle / each Sidecar are independent commit streams. The caller MUST NOT infer anything about streams absent from this array other than what streams_limited states: an authorized-but-absent stream and a stream the caller cannot see are indistinguishable here by construction."
+          "description": "Per-stream window boundaries for the streams of this Realm bucket that the caller is authorized to see and whose Commit chain is already established. A container with no Commit yet MUST NOT appear here: head_commit_ref and next_position have no value to carry before position 0 exists, and the server MUST NOT fabricate a window with an empty head. Such a container becomes visible through stream enumeration (ak.self.realm.read.streams.v1) or a later frame once its first Commit lands. Entries MUST be sorted by unsigned bytes of RFC 8785 JCS(stream_ref) and stream_ref MUST be unique. Delivery rows live in commits[]; this array carries only the window scalars, which are per stream because Realm / each Circle / each Sidecar are independent commit streams. The caller MUST NOT infer anything about streams absent from this array other than what streams_limited states: an authorized-but-absent stream and a stream the caller cannot see are indistinguishable here by construction."
         },
         "streams_limited": {
           "type": "boolean",
@@ -763,7 +862,7 @@
     },
     "state_at_window_start": {
       "type": "object",
-      "description": "Derived projection-only state at the window start, Realm-level display context only. NOT part of state hash, checkpoint, or causal graph. The MLS epoch is NOT here: each Circle and each Sidecar has its own group and epoch, so e2ee_epoch lives on realm_sync_entry.streams[] instead.",
+      "description": "Derived projection-only state at the window start, Realm-level display context only. NOT part of state hash, checkpoint, or causal graph, and never a security basis: it is a display preview and MUST NOT be presented as, or accepted in place of, an authority-signed snapshot. The verifiable rebuild material is per stream in realm_sync_entry.streams[].window_start_basis, and the presence of this object MUST NOT clear any stream's preview_only. The MLS epoch is NOT here either: each Circle and each Sidecar has its own group and epoch, so e2ee_epoch lives on realm_sync_entry.streams[] instead.",
       "required": [
         "actor_profiles",
         "realm_metadata"
@@ -1076,6 +1175,15 @@
             "pattern": "^ak:strand:[A-Za-z0-9_-]{44}$"
           }
         },
+        "stream_refs": {
+          "type": "array",
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./realm-commit.schema.json#/$defs/stream_ref"
+          },
+          "description": "Optional explicit stream selection for the selected Realms, at most 64 per window. Entries MUST be unique, MUST each name a Realm present in realm_ids, and MUST each be a stream this caller is permitted to see; a member that is not is rejected rather than silently dropped. The Realm stream occupies one slot like any other entry when a group includes it, and a group that omits it is a valid selection. Omitted keeps the current behaviour: the server fills streams[] up to its own 64-entry ceiling and reports streams_limited. When present, the window is the selected set: the server advances the tail of exactly those streams, an omitted stream counts as not delivered rather than delivered-and-empty, and the cursor handle binds filter_digest to this selection, so switching groups needs a new filter and a new cursor while the position each group reached stays retrievable. Discovery of streams added or removed since the selection was made travels through ak.self.realm.read.streams.v1 or the visible discovery delta and MUST NOT be suppressed by an event-kind filter."
+        },
         "window_limit": {
           "type": "integer",
           "minimum": 0,
@@ -1110,7 +1218,7 @@
       },
       "required": [],
       "additionalProperties": false,
-      "description": "An absent or empty realm_ids collection selects no Realm detail. Global account and Realm-summary changes remain subscribed. Strands belong to the selected Realms; absent strand_ids selects their current default Strands. Current security results are not filtered by Event kind."
+      "description": "An absent or empty realm_ids collection selects no Realm detail. Global account and Realm-summary changes remain subscribed. Strands belong to the selected Realms; absent strand_ids selects their current default Strands. Streams belong to the selected Realms too: absent stream_refs keeps the bounded first screen, while a present stream_refs makes the selected set the window. Current security results are not filtered by Event kind."
     },
     "realm_list_request": {
       "type": "object",

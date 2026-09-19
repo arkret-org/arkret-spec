@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-16.81",
-  "generated_at": "2026-09-19T08:21:00+08:00",
+  "version": "2026-09-16.83",
+  "generated_at": "2026-09-19T13:25:01+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -293,7 +293,7 @@
     },
     {
       "operation_id": "ak.peer.account_status.command.submit.v1",
-      "sha256": "sha256:9ab67c7a8cab9926fdeb70623600b4b7099c949c21a12e36d5653bcb4b20ee26"
+      "sha256": "sha256:19d7d204845bdc75a7a2c2d8d78e64589ac246232092a7b5fd6a063264eadbbc"
     },
     {
       "operation_id": "ak.peer.account_status.read.resolve.v1",
@@ -321,11 +321,11 @@
     },
     {
       "operation_id": "ak.peer.events.read.resolve_committed.v1",
-      "sha256": "sha256:f9d1e99b11e026b2f1ef78a6a28bccff4b2ea18f2fc639254a3977ea386509a7"
+      "sha256": "sha256:c69399f75e5e03660ad12209dbd68bb907b25f9f009bb22857acf0bab7471a31"
     },
     {
       "operation_id": "ak.peer.events.read.scan.v1",
-      "sha256": "sha256:ad392faef8dcad6212fb3808c23b7ecfd3c2345a380d5b53ee53edd23579d30e"
+      "sha256": "sha256:783de22238b60dd779ded9a91fe48b59ec71a210fb11f663fabed892bd36eb03"
     },
     {
       "operation_id": "ak.peer.invites.command.submit.v1",
@@ -461,7 +461,7 @@
     },
     {
       "operation_id": "ak.self.account.stream.subscribe.v1",
-      "sha256": "sha256:f43323b82270cfa1e744a28ecd816c086e4c5dddc2737d3178bd03cb2043f9ef"
+      "sha256": "sha256:8ce0e39d2874e6ddf03787e78682e3a18d0db27a91ab2f523047c2ac719c7462"
     },
     {
       "operation_id": "ak.self.account_data.read.list.v1",
@@ -685,7 +685,7 @@
     },
     {
       "operation_id": "ak.self.events.read.scan.v1",
-      "sha256": "sha256:a210123661cf72e2349983821d6c069ee6f732dec0259ee2ab372d240b7d5da7"
+      "sha256": "sha256:454d251b35354d9b904b9b0a992a7af5e4cc8547c7544a1e98bbd1eff8f640f0"
     },
     {
       "operation_id": "ak.self.events.resource.get.v1",
@@ -814,6 +814,10 @@
     {
       "operation_id": "ak.self.realm.read.export.v1",
       "sha256": "sha256:03dc811b1721806c712cba8c95774c2aa1b27e88d51dcf3efb6019c10f78305c"
+    },
+    {
+      "operation_id": "ak.self.realm.read.streams.v1",
+      "sha256": "sha256:ef5ba1683d7677742541285e042b6608f58e79564311dda3f5660d687b9d7e69"
     },
     {
       "operation_id": "ak.self.realm.resource.get.v1",

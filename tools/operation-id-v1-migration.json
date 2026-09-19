@@ -808,6 +808,10 @@
       "new": "ak.self.realm.read.export.v1"
     },
     {
+      "old": "ak.self.realm.read.streams",
+      "new": "ak.self.realm.read.streams.v1"
+    },
+    {
       "old": "ak.self.realm.resource.get",
       "new": "ak.self.realm.resource.get.v1"
     },

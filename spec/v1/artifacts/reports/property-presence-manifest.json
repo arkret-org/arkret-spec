@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 8839,
+    "total_properties": 8861,
     "total_schema_documents": 164,
     "by_presence_class": {
-      "optional": 2297,
+      "optional": 2305,
       "optional_defaulted": 49,
-      "required": 6053,
+      "required": 6067,
       "required_nullable": 285,
       "tristate": 155
     },
@@ -1855,6 +1855,7 @@
         "/$defs/account_filter/properties/not_event_kinds": "optional",
         "/$defs/account_filter/properties/realm_ids": "optional",
         "/$defs/account_filter/properties/strand_ids": "optional",
+        "/$defs/account_filter/properties/stream_refs": "optional",
         "/$defs/account_filter/properties/window_limit": "optional_defaulted",
         "/$defs/account_subscribe_request/allOf/0/if/properties/replace_filter": "required",
         "/$defs/account_subscribe_request/properties/after": "optional",
@@ -1939,6 +1940,15 @@
         "/$defs/realm_stream_window/properties/preview_only": "optional",
         "/$defs/realm_stream_window/properties/stream_ref": "required",
         "/$defs/realm_stream_window/properties/window_limit": "required",
+        "/$defs/realm_stream_window/properties/window_start_basis": "optional",
+        "/$defs/realm_stream_window/properties/window_start_basis/allOf/0/if/properties/anchor_kind": "required",
+        "/$defs/realm_stream_window/properties/window_start_basis/allOf/1/if/properties/anchor_kind": "required",
+        "/$defs/realm_stream_window/properties/window_start_basis/properties/accepted_dependency_refs": "optional",
+        "/$defs/realm_stream_window/properties/window_start_basis/properties/anchor_commit_ref": "optional",
+        "/$defs/realm_stream_window/properties/window_start_basis/properties/anchor_kind": "required",
+        "/$defs/realm_stream_window/properties/window_start_basis/properties/anchor_position": "optional",
+        "/$defs/realm_stream_window/properties/window_start_basis/properties/governance_generation": "required",
+        "/$defs/realm_stream_window/properties/window_start_basis/properties/snapshot_ref": "required",
         "/$defs/realm_summary/properties/hero_ids": "optional",
         "/$defs/realm_summary/properties/invited_member_count": "optional",
         "/$defs/realm_summary/properties/joined_member_count": "optional",
@@ -2003,6 +2013,8 @@
         "/$defs/device_message_container/properties/ack_token",
         "/$defs/device_message_container/properties/next_cursor",
         "/$defs/notification_delta/properties/data",
+        "/$defs/realm_stream_window/properties/window_start_basis/properties/anchor_commit_ref",
+        "/$defs/realm_stream_window/properties/window_start_basis/properties/anchor_position",
         "/$defs/realm_sync_entry/properties/streams",
         "/properties/cursor"
       ]
@@ -3177,9 +3189,13 @@
         "/$defs/handoff_request/properties/final_stream_heads": "required",
         "/$defs/handoff_request/properties/handoff": "required",
         "/$defs/handoff_request/properties/snapshot": "required",
+        "/$defs/readable_floor/properties/floor_commit_id": "required",
+        "/$defs/readable_floor/properties/floor_reason": "required",
+        "/$defs/readable_floor/properties/oldest_position": "required",
         "/$defs/stream_row/properties/commit": "required",
         "/$defs/stream_row/properties/event": "required",
         "/$defs/stream_scan_outcome/properties/commits": "required",
+        "/$defs/stream_scan_outcome/properties/readable_floor": "optional",
         "/$defs/stream_scan_outcome/properties/truncated": "required",
         "/$defs/stream_scan_request/properties/after_position": "tristate",
         "/$defs/stream_scan_request/properties/before_position": "tristate",
@@ -9444,7 +9460,8 @@
     },
     "realm-read-operations.schema.json": {
       "schema_ids": [
-        "ak.schema.realm_read_operations.v1"
+        "ak.schema.realm_read_operations.v1",
+        "ak.schema.realm_stream_list.v1 -> #/$defs/realm_stream_list"
       ],
       "properties": {
         "/$defs/realm_export/properties/events": "required",
@@ -9459,7 +9476,15 @@
         "/$defs/realm_lifecycle_view/properties/owner_id": "required",
         "/$defs/realm_lifecycle_view/properties/realm_id": "required",
         "/$defs/realm_lifecycle_view/properties/successor_realm_id": "optional",
-        "/$defs/realm_lifecycle_view/properties/terminal_state": "optional"
+        "/$defs/realm_lifecycle_view/properties/terminal_state": "optional",
+        "/$defs/realm_stream_list/properties/has_more": "required",
+        "/$defs/realm_stream_list/properties/next_cursor": "optional",
+        "/$defs/realm_stream_list/properties/realm_id": "required",
+        "/$defs/realm_stream_list/properties/streams": "required",
+        "/$defs/realm_stream_row/properties/head_commit_ref": "required",
+        "/$defs/realm_stream_row/properties/next_position": "required",
+        "/$defs/realm_stream_row/properties/readable_floor": "optional",
+        "/$defs/realm_stream_row/properties/stream_ref": "required"
       }
     },
     "realm-state-snapshot.schema.json": {
