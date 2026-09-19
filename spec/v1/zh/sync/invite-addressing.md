@@ -3,7 +3,7 @@ title: Invite Addressing and Principal Locator
 status: candidate
 normative: true
 stability: v1
-updated: 2026-08-31
+updated: 2026-09-20
 see_also:
   - service-http-binding.md
   - third-party-invites.md
@@ -364,7 +364,7 @@ notify 分支的 holder-private 投递承载是 account-data 私有 typed curren
 
 写入语义是封闭的：
 
-- 该 typed current result 是 [`../models/account-data.md` §5](../models/account-data.md) 的 server-versioned CAS whole-value register：每次写入携带 `expected_revision`，冲突时写入方 MUST 重读当前值、按本节规则重新合并后重试，重试 MUST 有界（至多 3 次）；重试耗尽 MUST 放弃本次投递写入并以内部冲突失败，MUST NOT 以 stale revision 强行覆盖。
+- 该 typed current result 是 [`../models/account-data.md` §5](../models/account-data.md) 的 server-versioned CAS whole-value register：每次写入携带 `expected_server_revision`，冲突时写入方 MUST 重读当前值、按本节规则重新合并后重试，重试 MUST 有界（至多 3 次）；重试耗尽 MUST 放弃本次投递写入并以内部冲突失败，MUST NOT 以 stale revision 强行覆盖。
 - 每次写入 MUST 先清除 `expires_at <= now` 的过期 entry，再按 `invite_id` 去重（同一 `invite_id` 的重复投递替换旧 entry，不重复占位），随后 append 新 entry；结果超过 200 条上限时 MUST 从 `received_at` 最旧的 entry 开始逐出，直至不超过 200 条。
 - entry 的 `expires_at` MUST 取自 invite Event payload 的 `expires_at`；payload 未携带时服务端 MUST 以该 Event 的 `created_at` 加 7 天兜底。`expires_at <= now` 的 entry 是 stale 的：客户端 MUST NOT 用它执行 accept，并 MUST 在读取时按 `expires_at` 过滤。
 - 写入被 CAS 接受时，服务端 MUST 在同一事务推进 account subscribe 的 Station-CAS 投影位置，使 holder 的全部 active devices 可通过顶层 `account_data.station_cas` 的 cursor-covered upsert 取得 accepted revision/value；删除使用显式 remove。服务端 MAY 另以 `ak.account_data.update` actor-private device update 做低延迟唤醒，该 envelope 使用 `DeviceMessageSender::Service { sender_id }` 分支：`recipient_account_id == holder`，`sender_id` 等于 `recipient_account_id.station_id` 与当前接收 Station 的 service identity；该分支不携 `sender_account_id`，不伪造 origin device，不走 holder device revocation gate，也不排除任一 active holder device。to-device 不是权威投影；离线或错过它的设备从 account subscribe baseline/catch-up 恢复，list/get 只作诊断与定点恢复。CAS 冲突或其它未接受写入不得推进投影或 fanout。

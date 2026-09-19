@@ -249,6 +249,7 @@ from .psi_class_b import check_psi_class_b_artifact_closure
 from .reason_code_producers import check_reason_code_producer_paths
 from .result_effect_ownership import check_result_effect_ownership
 from .agent_draft_pending_intent import check_agent_draft_pending_intent
+from .account_data_revision_name import check_account_data_revision_name
 from .key_backup_active_series_source_anchor import check_key_backup_active_series_source_anchor
 from .proof_context_schemas import (
     check_asserted_result_families_are_registered,
@@ -446,6 +447,10 @@ def main(argv: list[str] | None = None) -> int:
             (
                 "key_backup_active_series_source_anchor",
                 lambda: check_key_backup_active_series_source_anchor(lint),
+            ),
+            (
+                "account_data_revision_name",
+                lambda: check_account_data_revision_name(lint),
             ),
             (
                 "preimage_event_identity_commitments",

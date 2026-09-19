@@ -7,8 +7,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/account-data-cas-convergence-fixture.json",
-      "sha256": "e4e114b06169a0f8afb3ed35d25b645a6ff4e1b287919bdef9f844dd76336120",
-      "version": "2026-07-29"
+      "sha256": "a0a94c362d3cda664705e54a133fd509f0c021ec307503b83e886614cbd6c1a6",
+      "version": "2026-09-20.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/account-status-issuer-ledger-fixture.json",

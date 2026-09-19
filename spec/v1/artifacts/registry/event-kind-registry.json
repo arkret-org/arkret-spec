@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.9",
+  "version": "2026-09-20.10",
   "source_of_truth": false,
-  "generated_at": "2026-09-20T00:40:27+08:00",
+  "generated_at": "2026-09-20T00:52:19+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -353,7 +353,7 @@
       "verb_form": "base",
       "wire_scope": "actor_private_event",
       "reducer_input": false,
-      "payload": "Actor-private account data update",
+      "payload": "Actor-private account data update. The closed signed payload carries the integer expected_server_revision for server_revision_cas; expected_revision is the distinct shared-result revision type and is not an alias.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/account_data_set_payload",
       "id_source": "not_an_object_id",
       "result_effect_ownership": {

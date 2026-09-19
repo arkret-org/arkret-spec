@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.3",
+  "version": "2026-09-20.4",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T00:32:02+08:00",
+  "generated_at": "2026-09-20T00:52:19+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -710,7 +710,7 @@
         "verb_form": "base",
         "wire_scope": "actor_private_event",
         "reducer_input": false,
-        "payload": "Actor-private account data update",
+        "payload": "Actor-private account data update. The closed signed payload carries the integer expected_server_revision for server_revision_cas; expected_revision is the distinct shared-result revision type and is not an alias.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/account_data_set_payload",
         "id_source": "not_an_object_id",
         "result_effect_ownership": {
@@ -8686,8 +8686,8 @@
         }
       }
     },
-    "version": "2026-09-20.9",
-    "generated_at": "2026-09-20T00:40:27+08:00",
+    "version": "2026-09-20.10",
+    "generated_at": "2026-09-20T00:52:19+08:00",
     "bootstrap_event_kinds": [
       "ak.device.authorize",
       "ak.device.reanchor",
@@ -14357,7 +14357,7 @@
         "http": "DELETE /_arkret/self/account_data/{account_data_key}",
         "grpc": "SelfAccountData/Delete",
         "mq": "self.account_data.resource.delete",
-        "notes": "Submits the caller-signed tombstone ak.account_data.set Event. The actor-private typed current result subject is composite[envelope.actor_id, payload.key], so only the holder may sign it and the service MUST NOT author it under its own DID. expected_revision is the Event payload's; it is no longer a query parameter. deletion_mode=value_tombstone keys MUST still be refused here.",
+        "notes": "Submits the caller-signed tombstone ak.account_data.set Event. The actor-private typed current result subject is composite[envelope.actor_id, payload.key], so only the holder may sign it and the service MUST NOT author it under its own DID. expected_server_revision is the Event payload's; it is no longer a query parameter. expected_revision is not accepted as an alias. deletion_mode=value_tombstone keys MUST still be refused here.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "protocol_sequence",
@@ -14384,7 +14384,7 @@
         "http": "PUT /_arkret/self/account_data/{account_data_key}",
         "grpc": "SelfAccountData/Replace",
         "mq": "self.account_data.resource.replace",
-        "notes": "Builds a ak.account_data.set actor-private write as a compare-and-set whole-value replacement: expected_revision must equal the accepted revision (0 to create) and the stored revision becomes expected_revision + 1. A mismatch returns cas_conflict with account_data_cas_conflict_details and stores nothing, so a stale offline retry can never overwrite a newer write. Controller-private registered types reject agent / applet / service principals. content is stored verbatim; clients own canonical encoding and (for sensitive keys) client-side encryption.",
+        "notes": "Builds a ak.account_data.set actor-private write as a compare-and-set whole-value replacement: expected_server_revision must equal the accepted revision (0 to create) and the stored revision becomes expected_server_revision + 1. expected_revision is not accepted as an alias or second field. A mismatch returns cas_conflict with account_data_cas_conflict_details and stores nothing, so a stale offline retry can never overwrite a newer write. Controller-private registered types reject agent / applet / service principals. content is stored verbatim; clients own canonical encoding and (for sensitive keys) client-side encryption.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "protocol_sequence",
@@ -16046,8 +16046,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-19.6",
-    "generated_at": "2026-09-19T23:20:20+08:00",
+    "version": "2026-09-20.1",
+    "generated_at": "2026-09-20T00:52:19+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",

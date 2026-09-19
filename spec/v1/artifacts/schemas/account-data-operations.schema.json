@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/account-data-operations.schema.json",
   "title": "Arkret Account Data Self-Management Operation DTOs",
-  "description": "Closed request/response DTOs for the self-surface actor-private account_data operations (ak.self.account_data.*). PUT builds a ak.account_data.set actor-private write; the server stores content verbatim (clients own canonical encoding and, for sensitive keys, client-side encryption). Every key is a server-versioned compare-and-set whole-value register: writes carry expected_revision and the accepted revision is expected_revision + 1, so concurrent multi-device writes converge instead of silently overwriting each other. See spec/v1/zh/models/account-data.md §5. account_data_key keys are dot-delimited namespaces validated against account-data-key-registry.json.",
+  "description": "Closed request/response DTOs for the self-surface actor-private account_data operations (ak.self.account_data.*). PUT builds a ak.account_data.set actor-private write; the server stores content verbatim (clients own canonical encoding and, for sensitive keys, client-side encryption). Every key is a server-versioned compare-and-set whole-value register: writes carry expected_server_revision and the accepted revision is expected_server_revision + 1, so concurrent multi-device writes converge instead of silently overwriting each other. See spec/v1/zh/models/account-data.md §5. account_data_key keys are dot-delimited namespaces validated against account-data-key-registry.json.",
   "anyOf": [
     {
       "$ref": "#/$defs/account_data_replace_request_body"
@@ -34,7 +34,7 @@
     "revision": {
       "type": "integer",
       "minimum": 0,
-      "description": "Monotonic per-key revision counter. 0 means the key has never been written. Each accepted write or delete stores expected_revision + 1. The counter is a high-water mark: it MUST NOT go backwards, not even after a tombstone is garbage-collected, so a stale offline write can never resurrect a superseded value."
+      "description": "Monotonic per-key revision counter. 0 means the key has never been written. Each accepted write or delete stores expected_server_revision + 1. The counter is a high-water mark: it MUST NOT go backwards, not even after a tombstone is garbage-collected, so a stale offline write can never resurrect a superseded value."
     },
     "account_data_entry": {
       "type": "object",
@@ -50,7 +50,7 @@
         },
         "revision": {
           "$ref": "#/$defs/revision",
-          "description": "Revision of this stored value. Pass it back as expected_revision to replace or delete the entry."
+          "description": "Revision of this stored value. Pass it back as expected_server_revision inside the caller-signed ak.account_data.set payload to replace or delete the entry."
         },
         "content": {
           "description": "Caller-supplied opaque payload, stored verbatim. Any JSON value."
@@ -63,7 +63,7 @@
     },
     "account_data_replace_request_body": {
       "type": "object",
-      "description": "Carries the caller-signed ak.account_data.set Event and nothing else. The actor-private typed current result subject is composite[envelope.actor_id, payload.key], so the subject *is* the owner: the Event MUST be signed by the holder and the service MUST NOT author it under its own DID. key, expected_revision, and body / encrypted_payload live exclusively in set_event.event.payload and MUST NOT appear at the request top level. A tombstone payload is rejected here: erasure goes through ak.self.account_data.resource.delete.v1, which enforces the registered deletion_mode.",
+      "description": "Carries the caller-signed ak.account_data.set Event and nothing else. The actor-private typed current result subject is composite[envelope.actor_id, payload.key], so the subject *is* the owner: the Event MUST be signed by the holder and the service MUST NOT author it under its own DID. key, expected_server_revision, and body / encrypted_payload live exclusively in set_event.event.payload and MUST NOT appear at the request top level. A tombstone payload is rejected here: erasure goes through ak.self.account_data.resource.delete.v1, which enforces the registered deletion_mode.",
       "required": [
         "set_event"
       ],
@@ -108,7 +108,7 @@
     },
     "account_data_delete_request_body": {
       "type": "object",
-      "description": "Carries the caller-signed tombstone ak.account_data.set Event and nothing else. Same subject rule as the replace body: composite[envelope.actor_id, payload.key] makes the holder the only legal signer. expected_revision is the payload's, not a query parameter -- one CAS precondition, one place. deletion_mode=value_tombstone keys MUST still be refused on this endpoint.",
+      "description": "Carries the caller-signed tombstone ak.account_data.set Event and nothing else. Same subject rule as the replace body: composite[envelope.actor_id, payload.key] makes the holder the only legal signer. expected_server_revision is the payload's, not a query parameter -- one CAS precondition, one place. deletion_mode=value_tombstone keys MUST still be refused on this endpoint.",
       "required": [
         "set_event"
       ],
@@ -176,7 +176,7 @@
         },
         "revision": {
           "$ref": "#/$defs/revision",
-          "description": "Revision of the stored tombstone (expected_revision + 1). Recreating the key requires this value as the next expected_revision."
+          "description": "Revision of the stored tombstone (expected_server_revision + 1). Recreating the key requires this value as the next expected_server_revision."
         }
       },
       "additionalProperties": false

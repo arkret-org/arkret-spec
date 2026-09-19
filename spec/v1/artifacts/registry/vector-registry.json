@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.13",
+  "version": "2026-09-20.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-19T23:52:20+08:00",
+  "generated_at": "2026-09-20T00:52:19+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -25,7 +25,7 @@
       "applies_to_fixtures": [
         "account-data-cas-convergence-fixture.json"
       ],
-      "description": "Account Data keys are server-versioned compare-and-set registers: a stale byte-identical retry after a newer write is rejected with cas_conflict, concurrent delete/update elects exactly one winner, opposite arrival orders reach the same final state, the revision high-water mark survives tombstone GC so deleted values cannot be resurrected, and value_tombstone key patterns refuse physical delete.",
+      "description": "Account Data keys are server-versioned compare-and-set registers whose only signed Event CAS field is expected_server_revision: the noncanonical expected_revision alias and a payload carrying both names fail schema validation; a stale byte-identical retry after a newer write is rejected with cas_conflict, concurrent delete/update elects exactly one winner, opposite arrival orders reach the same final state, the revision high-water mark survives tombstone GC so deleted values cannot be resurrected, and value_tombstone key patterns refuse physical delete.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/account-data-cas-convergence-fixture.json",
         "spec/v1/zh/models/account-data.md"
@@ -3841,7 +3841,7 @@
       "applies_to_fixtures": [
         "push-notify-outcome-fixture.json"
       ],
-      "description": "ak.device.push_route uses the actor-private server_revision_cas family for create, whole-value rotation and a secret-free revoked tombstone. Missing or stale expected_revision, concurrent siblings and old exact replay fail closed; privacy GC erases old target/provider material while retaining the revision high-water mark.",
+      "description": "ak.device.push_route uses the actor-private server_revision_cas family for create, whole-value rotation and a secret-free revoked tombstone. Missing or stale expected_server_revision, concurrent siblings and old exact replay fail closed; privacy GC erases old target/provider material while retaining the revision high-water mark.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/push-notify-outcome-fixture.json",
         "spec/v1/zh/crypto-media/device-lifecycle.md"

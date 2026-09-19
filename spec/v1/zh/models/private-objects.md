@@ -3,7 +3,7 @@ title: Private & Derived Objects
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-19
+updated: 2026-09-20
 ---
 
 ## 0. 规范语言
@@ -61,7 +61,7 @@ Schema id: `ak.schema.read_cursor.v1`
 
 `notification` SHOULD 是从 Event / Strand / Message / Relation 派生的 inbox projection，**不是 canonical truth**。它面向单个 actor 的 inbox / push pipeline，不参与协作图归约。
 
-**inbox `state` 的跨设备真源（normative）**：`notification` 对象本身不被持久化为共享 canonical event，但其可变 inbox `state`（`unread` / `read` / `dismissed` / `archived`）的跨设备收敛真源是 **actor-private account data**：`read` 由 read cursor（[`../discovery/read-receipts.md`](../discovery/read-receipts.md)）派生；`dismissed` / `archived` 由 actor-private account-data key 承载（key 规则见 [`../discovery/client-preferences.md`](../discovery/client-preferences.md)），并按 [`account-data.md` §5](./account-data.md) 的 compare-and-set 契约跨设备收敛：服务端只比较 `expected_revision`，HLC + tie-break 的领域规则由客户端在解密明文上执行。客户端 MUST 从该真源重算 inbox `state`，MUST NOT 把某设备本地的 `dismissed` / `archived` 当作不可同步的纯本地状态而在其它设备丢失。账号同步通道交付的普通当前行不携带 `state`，服务端也不得代填：`state` 只由上述两个 actor-private 真源在客户端重算，不存在第二份 inbox 状态。
+**inbox `state` 的跨设备真源（normative）**：`notification` 对象本身不被持久化为共享 canonical event，但其可变 inbox `state`（`unread` / `read` / `dismissed` / `archived`）的跨设备收敛真源是 **actor-private account data**：`read` 由 read cursor（[`../discovery/read-receipts.md`](../discovery/read-receipts.md)）派生；`dismissed` / `archived` 由 actor-private account-data key 承载（key 规则见 [`../discovery/client-preferences.md`](../discovery/client-preferences.md)），并按 [`account-data.md` §5](./account-data.md) 的 compare-and-set 契约跨设备收敛：服务端只比较 `expected_server_revision`，HLC + tie-break 的领域规则由客户端在解密明文上执行。客户端 MUST 从该真源重算 inbox `state`，MUST NOT 把某设备本地的 `dismissed` / `archived` 当作不可同步的纯本地状态而在其它设备丢失。账号同步通道交付的普通当前行不携带 `state`，服务端也不得代填：`state` 只由上述两个 actor-private 真源在客户端重算，不存在第二份 inbox 状态。
 
 完整推送规则、push gateway、E2EE 脱敏推送策略见 [`../discovery/push-notifications.md`](../discovery/push-notifications.md)。
 
@@ -164,7 +164,7 @@ selection 由 Account Authority 持有，寻址键是 `(agent_id, target_scope)`
 [`../sync/service-http-binding.md` §5](../sync/service-http-binding.md) 与
 [`../authz/capabilities.md` §11](../authz/capabilities.md)）。它 **MUST NOT** 登记 account-data key，也
 **MUST NOT** 经 `ak.account_data.set` 写入：那会给同一记录造出第二套 CAS 计数器
-（account-data 的 `expected_revision` 与本记录的 `expected_version`），两者无法互相推导。记录内容是
+（account-data 的 `expected_server_revision` 与本记录的 `expected_version`），两者无法互相推导。记录内容是
 closed `{target_scope, selection, version}`，`selection` 五位恰为
 `{reply_message, reaction_add, reaction_remove, accept_third_party_mention, act_on_behalf}`，
 `target_scope` 只允许 realm / circle / strand 的 closed XOR。首次写 `expected_version=0`，每次接受严格 +1。

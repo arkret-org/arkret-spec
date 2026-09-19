@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.full_client.v1",
-  "version": "2026-07-29",
+  "version": "2026-09-20.1",
   "suite": "account_data_cas_convergence",
   "runner": {
     "kind": "named_suite",
@@ -308,7 +308,7 @@
       }
     },
     {
-      "name": "missing_expected_revision_rejected_before_handler",
+      "name": "missing_expected_server_revision_rejected_before_handler",
       "requests": [
         {
           "id": "event_set_missing_revision",
@@ -332,6 +332,51 @@
         "all_rejected_before_handler": true,
         "error": "schema_violation"
       }
+    }
+  ],
+  "schema_validation_cases": [
+    {
+      "name": "account_data_set_expected_server_revision_valid",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/account_data_set_payload",
+      "expect_valid": true,
+      "instance": {
+        "key": "ak.preferences.v1",
+        "expected_server_revision": 0,
+        "body": "ciphertext:value"
+      }
+    },
+    {
+      "name": "account_data_set_expected_revision_alias_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/account_data_set_payload",
+      "expect_valid": false,
+      "instance": {
+        "key": "ak.preferences.v1",
+        "expected_revision": 0,
+        "body": "ciphertext:value"
+      },
+      "first_expected_error": "$: 'expected_server_revision' is a required property"
+    },
+    {
+      "name": "account_data_set_dual_revision_fields_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/account_data_set_payload",
+      "expect_valid": false,
+      "instance": {
+        "key": "ak.preferences.v1",
+        "expected_server_revision": 0,
+        "expected_revision": 0,
+        "body": "ciphertext:value"
+      },
+      "first_expected_error": "$: Additional properties are not allowed ('expected_revision' was unexpected)"
+    },
+    {
+      "name": "account_data_set_missing_revision_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/account_data_set_payload",
+      "expect_valid": false,
+      "instance": {
+        "key": "ak.preferences.v1",
+        "body": "ciphertext:value"
+      },
+      "first_expected_error": "$: 'expected_server_revision' is a required property"
     }
   ],
   "minimum_independent_runners": 2
