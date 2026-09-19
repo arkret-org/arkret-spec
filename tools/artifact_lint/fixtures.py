@@ -520,6 +520,76 @@ def _did_core_projection_prefix(lint: Lint, path: Path, method: Any) -> str | No
     return None
 
 
+DID_CORE_TOKEN_RE = re.compile(r"ak:did_core:([A-Za-z0-9_]+):([^\s\"'`,)\]}]+)")
+
+
+def _did_core_core_shape_rules(lint: Lint) -> dict[str, str] | None:
+    """Map each registered DID method to the placeholder its core projection declares.
+
+    The adapter registry is the only place that says what an `ak:did_core` payload is
+    a projection *of*: for `did:webvh` it is the validated SCID, for the other two the
+    canonical method-specific id. The id-kind registry's `payload_pattern` deliberately
+    stops at `<method>:<core>` because the core is adapter-defined, so nothing else can
+    tell a SCID apart from the host-and-path that sits next to it in the DID.
+    """
+
+    registry = load_json(lint, ARTIFACTS / "registry" / "did-method-adapter-registry.json")
+    if not isinstance(registry, dict):
+        return None
+    rules: dict[str, str] = {}
+    for adapter in registry.get("adapters", []):
+        if not isinstance(adapter, dict):
+            continue
+        method = adapter.get("method")
+        template = adapter.get("core_projection")
+        if not isinstance(method, str) or not isinstance(template, str):
+            continue
+        prefix = "ak:did_core:" + method.removeprefix("did:") + ":"
+        if not template.startswith(prefix):
+            lint.fail(
+                ARTIFACTS / "registry" / "did-method-adapter-registry.json",
+                f"{method} core_projection MUST start with {prefix}, got {template!r}",
+            )
+            continue
+        rules[method.removeprefix("did:")] = template[len(prefix) :]
+    return rules
+
+
+def check_did_core_projection_shape(lint: Lint) -> None:
+    """Every `ak:did_core` value on the wire MUST have the shape its adapter projects.
+
+    A `did:webvh` DID carries the SCID and the host-and-path in adjacent segments, and
+    projecting the wrong one produces a value that passes the typed-ID payload pattern,
+    passes every schema, and still names something the method can never resolve. Four
+    such values sat in two fixtures -- one of them inside an `expect_valid: true` case,
+    which is the corpus teaching the wrong projection.
+    """
+
+    rules = _did_core_core_shape_rules(lint)
+    if not rules:
+        return
+    for path in [*raw_artifact_files(), *markdown_files()]:
+        if path.suffix == ".json" and path.parent.name == "reports":
+            continue
+        for match in DID_CORE_TOKEN_RE.finditer(read_text(path)):
+            method, core = match.group(1), match.group(2)
+            if core.startswith("<"):
+                continue  # a documented placeholder, not a value
+            placeholder = rules.get(method)
+            if placeholder is None:
+                lint.fail(path, f"ak:did_core names no registered DID method: {method}")
+                continue
+            if placeholder != "<validated-scid>":
+                continue
+            if ":" in core or "." in core:
+                lint.fail(
+                    path,
+                    f"{match.group(0)} projects a host-and-path where the adapter declares "
+                    f"ak:did_core:{method}:{placeholder}; a webvh SCID is a base58btc digest "
+                    "and carries neither ':' nor '.'",
+                )
+
+
 def _check_one_derived_relation(
     lint: Lint, path: Path, cases: dict[str, Any], row: Any
 ) -> tuple[str, str] | None:

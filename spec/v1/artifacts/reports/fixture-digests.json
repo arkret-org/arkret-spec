@@ -210,7 +210,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json",
-      "sha256": "320afc4f8fc1f81227f379281ed7da6db047d9a6eae3348bb6d2fc3fb02f75b0"
+      "sha256": "9fef29a4404fbd2901dd49c0fe772b062ef4d459259a4a57807a9b27e140582d"
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-write-transcript-fixture.json",
@@ -274,7 +274,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/push-notify-outcome-fixture.json",
-      "sha256": "acfc11a548063bf7c37ffbf366661e7fb85fbe95dad73d114b809a9bb3be77cb"
+      "sha256": "fb18688c7549a0ff502424e1e3f6fed2524d0277517d809c8f2e7ab3629e635f"
     },
     {
       "path": "spec/v1/artifacts/fixtures/push-rule-core-fixture.json",

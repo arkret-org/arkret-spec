@@ -99,6 +99,7 @@ from .fixtures import (
     check_canonical_digest_fixtures,
     check_content_bound_event_id_fixture,
     check_derived_relation_evidence,
+    check_did_core_projection_shape,
     check_crypto_signature_fixture,
     check_cryptographic_suite_kat_bindings,
     check_declared_canonical_json_strings,
@@ -590,6 +591,10 @@ def main(argv: list[str] | None = None) -> int:
             (
                 "derived_relation_evidence",
                 lambda: check_derived_relation_evidence(lint),
+            ),
+            (
+                "did_core_projection_shape",
+                lambda: check_did_core_projection_shape(lint),
             ),
             (
                 "direct_conversation_digest_vectors",

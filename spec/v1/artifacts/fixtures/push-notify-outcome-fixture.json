@@ -419,15 +419,15 @@
           "device_id": "ak:device:0192f3a1-4c2b-7d5e-9f10-2a3b4c5d6e7f",
           "state": "active",
           "request_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "source_station_id": "ak:did_core:webvh:station-a.example",
-          "destination_gateway_id": "ak:did_core:webvh:push.example",
+          "source_station_id": "ak:did_core:webvh:z6mkfixturestationa",
+          "destination_gateway_id": "ak:did_core:webvh:z6mkfixturepushgateway",
           "stored_at": "2026-09-14T00:00:00.000Z",
           "proof": {
             "kind": "detached_jws",
-            "verification_method": "did:webvh:push.example#key-1",
+            "verification_method": "did:webvh:z6mkfixturepushgateway:push.example#key-1",
             "payload_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
             "created_at": "2026-09-14T00:00:00.000Z",
-            "audience": "ak:did_core:webvh:station-a.example",
+            "audience": "ak:did_core:webvh:z6mkfixturestationa",
             "jws": "eyJhbGciOiJFZERTQSJ9..c2lnbmF0dXJl"
           }
         }
@@ -463,8 +463,8 @@
         "push_key": "fcm:eJx9k2-example",
         "visible_notification_opt_in": false,
         "account_id": {
-          "principal_id": "ak:did_core:webvh:alice.example",
-          "station_id": "ak:did_core:webvh:station-a.example"
+          "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+          "station_id": "ak:did_core:webvh:z6mkfixturestationa"
         }
       }
     },

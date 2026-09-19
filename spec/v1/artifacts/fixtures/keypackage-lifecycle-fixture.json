@@ -94,7 +94,7 @@
       "instance": {
         "claim_id": "device-claim-1",
         "keypackage_ref": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
-        "principal_id": "ak:did_core:webvh:z6MkfixtureprincipalExample:example.test",
+        "principal_id": "ak:did_core:webvh:z6mkfixtureprincipalexample",
         "device_id": "ak:device:0199d0a6-0000-7000-8000-00000000d001",
         "device_authorize_event_id": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
         "keypackage": "AQID",
