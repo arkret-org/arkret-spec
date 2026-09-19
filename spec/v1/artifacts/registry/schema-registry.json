@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.10",
+  "version": "2026-09-20.11",
   "source_of_truth": false,
-  "generated_at": "2026-09-20T01:08:57+08:00",
+  "generated_at": "2026-09-20T01:32:41+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -781,7 +781,44 @@
     },
     {
       "schema_id": "ak.schema.key_backup.v1",
-      "file": "schemas/key-backup.schema.json"
+      "file": "schemas/key-backup.schema.json",
+      "status": "active",
+      "description": "Encrypted signed append-only key-backup envelope. Its only optional source checkpoint is source_commit_ref{realm_commit_id,device_generation_ref}; source_ref, nested/full CommittedEventRef, string generation, Seal and frontier forms are not v1 wire.",
+      "authoring_contract": {
+        "canonical_source_field": "source_commit_ref",
+        "presence": "optional",
+        "source_value_schema_ref": "schemas/key-backup.schema.json#/properties/source_commit_ref",
+        "successor_builder_input": {
+          "kind": "typed_value",
+          "type_name": "KeyBackupSourceCommitRef",
+          "required_members": [
+            "realm_commit_id",
+            "device_generation_ref"
+          ],
+          "member_types": {
+            "realm_commit_id": "RealmCommitId",
+            "device_generation_ref": "u64_positive_integer"
+          },
+          "forbidden_inputs": [
+            "source_ref",
+            "CommittedEventRef",
+            "string_device_generation_ref",
+            "seal",
+            "frontier_surrogate"
+          ]
+        },
+        "signature_transcription": {
+          "algorithm": "RFC8785_JCS",
+          "projection": "envelope_without_auth_data.signature",
+          "present_source_commit_ref_is_authenticated": true,
+          "post_signature_alias_rewrite": "forbidden"
+        },
+        "predecessor_chain": {
+          "independent_from_source_commit_ref": true,
+          "genesis": "series_seq=0 and supersedes_id/supersedes_digest absent",
+          "successor": "series_seq>=1 and exact immediate predecessor supersedes_id/supersedes_digest required"
+        }
+      }
     },
     {
       "schema_id": "ak.schema.key_backup_active_series.v1",

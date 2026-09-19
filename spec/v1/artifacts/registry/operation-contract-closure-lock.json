@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-20.2",
-  "generated_at": "2026-09-20T01:08:57+08:00",
+  "version": "2026-09-20.3",
+  "generated_at": "2026-09-20T01:32:41+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -741,7 +741,7 @@
     },
     {
       "operation_id": "ak.self.keys.backups.command.unlock.v1",
-      "sha256": "sha256:8f51fc78ce716669bc29e547168dc145313b03f0dc420a91d872a9ea91be4bfc"
+      "sha256": "sha256:87b18fca13d68db73071c4d0008ad598342e671da63afeac444630afa906b2d1"
     },
     {
       "operation_id": "ak.self.keys.backups.read.list.v1",
@@ -753,7 +753,7 @@
     },
     {
       "operation_id": "ak.self.keys.backups.resource.replace.v1",
-      "sha256": "sha256:bbac0ceca68d913eced5a3ca3464a8465c2760ee7ca6c61ff99237728e70ec02"
+      "sha256": "sha256:0833090869c89256eb3b18f307d4769035ad42dac6fcc0331308a11a74fd7821"
     },
     {
       "operation_id": "ak.self.keys.command.claim.v1",

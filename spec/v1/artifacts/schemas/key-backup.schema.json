@@ -52,7 +52,7 @@
     "series_seq": {
       "type": "integer",
       "minimum": 0,
-      "description": "0-based, strictly monotonically increasing sequence number within (actor_id, series_id). Genesis envelope of a series MUST set 0. Receivers MUST reject envelopes whose sequence does not strictly exceed the previously accepted sequence in the same series."
+      "description": "0-based, strictly monotonically increasing sequence number within (actor_id, series_id). Genesis envelope of a series MUST set 0. Receivers MUST reject envelopes whose sequence does not strictly exceed the previously accepted sequence in the same series. This predecessor/CAS axis is independent of the optional source_commit_ref checkpoint."
     },
     "supersedes_id": {
       "oneOf": [
@@ -72,7 +72,7 @@
     },
     "source_commit_ref": {
       "type": "object",
-      "description": "Optional reference to the Principal Control Realm source RealmCommit and identity-root device generation at envelope creation time.",
+      "description": "The only canonical optional source checkpoint for genesis and successor authoring. Its exact wire and public builder shape is source_commit_ref{realm_commit_id: RealmCommitId, device_generation_ref: u64 >= 1}. Producers MUST authenticate this member under the envelope signature when present and MUST NOT accept or serialize source_ref, a nested/full CommittedEventRef, a string generation, Seal data, or a frontier digest. This checkpoint is independent of series_seq, supersedes_id, and supersedes_digest and never substitutes for the successor predecessor/CAS chain.",
       "required": [
         "realm_commit_id",
         "device_generation_ref"
