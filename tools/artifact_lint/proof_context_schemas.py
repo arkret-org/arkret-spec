@@ -761,7 +761,12 @@ def check_digest_construction_registration(lint: Lint) -> None:
         else:
             lint.fail(PROOF_CONTEXT_REGISTRY, f"{where}.known_answer_ref must be a string or null")
 
-    for construction_id in sorted(set(constructions) - selected):
+    canonical_json_constructions = {
+        construction_id
+        for construction_id, construction in constructions.items()
+        if "canonical_json_sha256" in (construction.get("applies_to_primitives") or [])
+    }
+    for construction_id in sorted(canonical_json_constructions - selected):
         lint.fail(PROOF_CONTEXT_REGISTRY, f"digest construction {construction_id!r} is unused")
 
 

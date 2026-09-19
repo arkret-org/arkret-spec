@@ -3,7 +3,7 @@ title: Actor-private Event 持久效果合同
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-19
+updated: 2026-09-20
 ---
 
 ## 0. 规范语言
@@ -82,7 +82,8 @@ high-water。
 二者只有在 controller/agent binding、capability、policy、accountability、risk、expiry 与 digest
 校验全部通过后才可 materialize 到 controller-private store。`ak.agent.draft.propose` 的 materialization
 严格是 `ak.schema.agent_draft_pending_intent.v1` 的 **Station-private pending intent**，不是
-`ak.agent.draft.v1:<agent_id>:<draft_id>` encrypted account data，也不得作为后者的 current value 返回。
+`ak.agent.draft.v1:<agent_id_sha256_b64u43>:<draft_id_sha256_b64u43>` encrypted account data，也不得作为
+后者的 current value 返回。
 
 Agent MUST 把候选 `content` 按 `agent-draft-private.schema.json#/$defs/content_handoff` 用 active controller
 AccountId 的当前 accepted device `hpke_key` 分别 HPKE 加密。每个 recipient 使用新 ephemeral key；RFC 9180
@@ -101,10 +102,35 @@ federation peer 或其它 AccountId 暴露。recipient device 解密 handoff 后
 `content_digest == digest(RFC8785-JCS(content))`，再用 controller account secret 生成
 `ak.schema.account_data_encrypted_value.v1`，其解密 plaintext验证为 `ak.schema.agent_draft.v1`。
 
-首次写 `ak.agent.draft.v1:<agent_id>:<draft_id>` 时，controller holder 提交唯一的
+Agent draft Account Data key 的唯一 builder 使用下列两个不可逆 component；通用 construction 是
+`UTF8(domain + "\n") || UTF8(canonical_literal)`，不做 JCS、Unicode normalization、截断、salt 或 fallback：
+
+```text
+agent_domain = "ak.agent-draft.account-data-key.agent-id.v1"
+draft_domain = "ak.agent-draft.account-data-key.draft-id.v1"
+agent_id_sha256_b64u43 = BASE64URL_NOPAD(SHA-256(
+  UTF8(agent_domain + "\n") || UTF8(canonical agent_id)
+))
+draft_id_sha256_b64u43 = BASE64URL_NOPAD(SHA-256(
+  UTF8(draft_domain + "\n") || UTF8(draft_id)
+))
+account_data_key = "ak.agent.draft.v1:" || agent_id_sha256_b64u43 || ":" || draft_id_sha256_b64u43
+```
+
+`agent_id` 与 `draft_id` 必须先分别通过 `did_core_id` 与 proposal `draft_id` schema，再把其完整 literal 的
+UTF-8 bytes 输入 transcript。两段都是完整 32-byte SHA-256 digest 的 43 字符 unpadded base64url；总 key
+固定 105 ASCII 字符。SDK MUST 只提供这一 builder。parser MUST 要求 exact prefix、其后恰好一个分隔符、
+两段各 43 字符、解码为 32 bytes 且 decode/re-encode 逐字相等；它只返回 opaque digest components，MUST NOT
+声称反解 agent/draft literal。padding、错长度、非 canonical trailing bits、错误 prefix、额外分隔符与旧
+literal key 均必须在验签／写入前拒绝；不存在 percent-escape、literal split、兼容别名或调用方 selector。
+
+首次写
+`ak.agent.draft.v1:<agent_id_sha256_b64u43>:<draft_id_sha256_b64u43>` 时，controller holder 提交唯一的
 `ak.account_data.set` CAS：`expected_server_revision=0`、`encrypted_payload`、
 `source_pending_event_id=<proposal Event.event_id>`。Station 在**同一事务**验证 holder/owner、agent/draft/key、
-source、未过期和 available 状态；成功时仅创建 account-data `revision=1`，并把 pending intent 转为
+source、未过期和 available 状态。Station 必须仅从 `source_pending_event_id` 定位的 accepted pending row 取得
+exact `agent_id` / `draft_id`，按上式重算两段并把完整结果与 signed `payload.key` 逐字比较；MUST NOT 反解、
+猜测、规范化 payload key，或接受调用方另传的 decoded selector。成功时仅创建 account-data `revision=1`，并把 pending intent 转为
 `consumed`，记录 consuming Event id/key/revision/time。这里没有第二个 draft revision counter。
 CAS conflict、authority-commit 失败、存储中断或任一校验失败都必须同时回滚两侧，pending intent 保持
 `available`；byte-identical `ak.account_data.set` retry 返回第一次的 revision-1/consumed outcome。相同 Event id

@@ -302,8 +302,8 @@
           },
           "then": {
             "properties": {
-              "key": {
-                "pattern": "^ak\\.agent\\.draft\\.v1:[^:]+:[^:]+$"
+            "key": {
+              "$ref": "./agent-draft-private.schema.json#/$defs/agent_draft_account_data_key"
               },
               "expected_server_revision": {
                 "const": 0
@@ -340,7 +340,7 @@
         "source_pending_event_id": {
           "$ref": "./common-ids.schema.json#/$defs/event_id",
           "x-arkret-preimage-commitment": "later_submission",
-          "description": "Required only for the first create of ak.agent.draft.v1:<agent_id>:<draft_id>. It selects the available Station-private ak.agent.draft.propose pending intent that is consumed atomically with the successful account-data CAS. This one-way later-submission commitment is the named forward-declaration exception in zh/conformance/encoding.md §3.1."
+          "description": "Required only for the first create of ak.agent.draft.v1:<agent_id_sha256_b64u43>:<draft_id_sha256_b64u43>. It selects the available Station-private ak.agent.draft.propose pending intent whose exact agent_id and draft_id literals are domain-separated, SHA-256 hashed and unpadded-base64url encoded to recompute the signed key before the intent is consumed atomically with the successful account-data CAS. The Station does not reverse the components and accepts no caller-supplied selector. This one-way later-submission commitment is the named forward-declaration exception in zh/conformance/encoding.md §3.1."
         }
       },
       "additionalProperties": false

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.1",
+  "version": "2026-09-20.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T00:52:19+08:00",
+  "generated_at": "2026-09-20T01:08:57+08:00",
   "description": "Canonical registry of standard Account Data key patterns. Every row explicitly declares its closed writer authorities, holder self-surface operations, cross-device merge primitive, and delete semantics; see spec/v1/zh/models/account-data.md section 5.",
   "registry_rules": [
     "writer_authorities is a non-empty unique array over the closed v1 set holder_event | station_cas. holder_event requires non-empty write_event_kinds; station_cas requires plaintext_account_data plus plaintext_schema and does not mint an Event.",
@@ -444,7 +444,7 @@
       ]
     },
     {
-      "key_pattern": "ak.agent.draft.v1:<agent_id>:<draft_id>",
+      "key_pattern": "ak.agent.draft.v1:<agent_id_sha256_b64u43>:<draft_id_sha256_b64u43>",
       "status": "active",
       "scope": "controller_private_state",
       "storage": "encrypted_account_data",
@@ -461,6 +461,38 @@
         "ak.account_data.set"
       ],
       "encrypted_value_schema": "schemas/agent-draft-private.schema.json",
+      "key_encoding": {
+        "kind": "two_domain_separated_sha256_components",
+        "schema_ref": "schemas/agent-draft-private.schema.json#/$defs/agent_draft_account_data_key",
+        "literal_prefix": "ak.agent.draft.v1:",
+        "separator": ":",
+        "total_length": 105,
+        "component_order": [
+          "agent_id",
+          "draft_id"
+        ],
+        "components": {
+          "agent_id": {
+            "source": "pending_intent.agent_id",
+            "source_schema_ref": "schemas/common-ids.schema.json#/$defs/did_core_id",
+            "digest_construction": "domain_prefixed_utf8_literal_sha256",
+            "domain": "ak.agent-draft.account-data-key.agent-id.v1",
+            "transcript": "UTF8(domain + LF) || UTF8(canonical agent_id)",
+            "output": "BASE64URL_NOPAD(32-byte SHA-256 digest), exactly 43 ASCII characters"
+          },
+          "draft_id": {
+            "source": "pending_intent.draft_id",
+            "source_schema_ref": "schemas/event-payload.schema.json#/$defs/agent_draft_propose_payload/properties/draft_id",
+            "digest_construction": "domain_prefixed_utf8_literal_sha256",
+            "domain": "ak.agent-draft.account-data-key.draft-id.v1",
+            "transcript": "UTF8(domain + LF) || UTF8(draft_id)",
+            "output": "BASE64URL_NOPAD(32-byte SHA-256 digest), exactly 43 ASCII characters"
+          }
+        },
+        "builder": "validate both complete literals against their schemas, hash each exact UTF-8 transcript, encode both digests without padding, then concatenate literal_prefix + agent component + separator + draft component",
+        "parser": "require the exact prefix, exactly one component separator after it, exactly two 43-character canonical unpadded-base64url encodings of 32 bytes, and byte-for-byte decode/re-encode equality; return opaque digest components only",
+        "source_binding": "resolve payload.source_pending_event_id to the accepted pending row, recompute both components from that row's exact agent_id and draft_id, and compare the complete signed payload.key byte-for-byte; never accept a caller-supplied decoded selector or reverse/guess a literal"
+      },
       "source_intent": {
         "event_kind": "ak.agent.draft.propose",
         "contract_ref": "contract-registry.json#/event_kind_registry/actor_private_contracts/event_writes/ak.agent.draft.propose",
@@ -470,7 +502,7 @@
         "failure": "leave_available_and_write_nothing"
       },
       "deletion_mode": "physical_delete",
-      "description": "Controller-owned encrypted draft created only by the controller holder's ak.account_data.set CAS. ak.agent.draft.propose is not a writer: it creates a Station-private pending intent whose HPKE handoff the holder decrypts, validates and re-encrypts with the account secret. The initial create must atomically consume that exact intent; Station never sees plaintext or generates the encrypted value. Draft MUST NOT enter shared Realm history; publishing produces a new shared event referencing only an opaque digest. See actor-private-effects.md §3.2 and private-objects.md §4.1.",
+      "description": "Controller-owned encrypted draft created only by the controller holder's ak.account_data.set CAS. Both key components are fixed 43-character unpadded-base64url SHA-256 digests under distinct registered domains; they are not reversible literals. ak.agent.draft.propose is not a writer: it creates a Station-private pending intent whose HPKE handoff the holder decrypts, validates and re-encrypts with the account secret. The initial create must atomically consume that exact intent after Station recomputes the complete signed key from the source row; Station never sees plaintext or generates the encrypted value. Draft MUST NOT enter shared Realm history; publishing produces a new shared event referencing only an opaque digest. See actor-private-effects.md §3.2 and private-objects.md §4.1.",
       "source_refs": [
         "spec/v1/zh/models/actor-private-effects.md",
         "spec/v1/zh/models/private-objects.md"

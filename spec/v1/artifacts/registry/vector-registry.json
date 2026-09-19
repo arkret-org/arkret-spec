@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.1",
+  "version": "2026-09-20.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T00:52:19+08:00",
+  "generated_at": "2026-09-20T01:08:57+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -199,7 +199,7 @@
       "applies_to_fixtures": [
         "agent-draft-pending-intent-fixture.json"
       ],
-      "description": "D3 two-step Agent draft: proposal creates one owner-bound Station-private structured pending intent with controller-device HPKE handoff; the controller holder's unique initial account-data CAS atomically creates encrypted revision 1 and consumes the intent, while exact replay, conflict, expiry, rollback, no-plaintext and no-shared-reducer boundaries fail closed.",
+      "description": "D3 two-step Agent draft: proposal creates one owner-bound Station-private structured pending intent with controller-device HPKE handoff; the controller holder's unique initial account-data CAS uses two registered domain-prefixed UTF-8 SHA-256 base64url components, Station recomputes the signed 105-character key only from the source row, and revision 1 atomically consumes the intent. The vector covers byte-exact KAT, padding/length/canonicality/prefix/domain/source-selector negatives, exact replay, conflict, expiry, rollback, no-plaintext and no-shared-reducer boundaries.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/agent-draft-pending-intent-fixture.json",
         "spec/v1/zh/models/actor-private-effects.md",

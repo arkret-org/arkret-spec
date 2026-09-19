@@ -5,6 +5,13 @@
   "description": "Closed controller-private Agent draft plaintext and Station-private pending-intent contracts. The top-level schema is the plaintext encrypted by the controller holder inside ak.schema.account_data_encrypted_value.v1; Station never receives that plaintext.",
   "$ref": "#/$defs/agent_draft_account_data_value",
   "$defs": {
+    "agent_draft_account_data_key": {
+      "type": "string",
+      "minLength": 105,
+      "maxLength": 105,
+      "pattern": "^ak\\.agent\\.draft\\.v1:[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]:[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$",
+      "description": "Canonical Agent draft Account Data key. The two 43-character unpadded base64url components are SHA-256 digests, not reversible encodings: agent_component = BASE64URL_NOPAD(SHA-256(UTF8('ak.agent-draft.account-data-key.agent-id.v1\\n') || UTF8(canonical agent_id))) and draft_component = BASE64URL_NOPAD(SHA-256(UTF8('ak.agent-draft.account-data-key.draft-id.v1\\n') || UTF8(draft_id))). A parser validates the exact prefix, total length, exactly two components, canonical 32-byte base64url round-trip and no padding; it returns opaque digest components, never guessed literals. Station obtains literals only from source_pending_event_id's accepted pending row, recomputes both components and requires byte-for-byte key equality before writing."
+    },
     "agent_draft_content_handoff_plaintext": {
       "type": "object",
       "required": [
@@ -177,8 +184,7 @@
           "$ref": "./common-ids.schema.json#/$defs/event_id"
         },
         "account_data_key": {
-          "type": "string",
-          "pattern": "^ak\\.agent\\.draft\\.v1:[^:]+:[^:]+$"
+          "$ref": "#/$defs/agent_draft_account_data_key"
         },
         "accepted_revision": {
           "const": 1

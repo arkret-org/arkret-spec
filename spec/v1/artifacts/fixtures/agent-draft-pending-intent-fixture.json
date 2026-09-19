@@ -1,6 +1,6 @@
 {
   "profile": "ak.vector.agent.draft_pending_intent.v1",
-  "version": "2026-09-20.2",
+  "version": "2026-09-20.4",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.agent.draft_pending_intent.v1"
@@ -14,6 +14,42 @@
     "ak.schema.agent_draft_content_handoff_plaintext.v1",
     "ak.schema.agent_draft_pending_intent.v1"
   ],
+  "key_derivation_kat": {
+    "digest_construction": "domain_prefixed_utf8_literal_sha256",
+    "algorithm": "SHA-256",
+    "encoding": "base64url_no_pad",
+    "agent_component": {
+      "domain": "ak.agent-draft.account-data-key.agent-id.v1",
+      "domain_utf8_lf_hex": "616b2e6167656e742d64726166742e6163636f756e742d646174612d6b65792e6167656e742d69642e76310a",
+      "canonical_literal": "ak:did_core:web:agent.example",
+      "literal_utf8_hex": "616b3a6469645f636f72653a7765623a6167656e742e6578616d706c65",
+      "digest_hex": "dbdcece98bbf19b965b8691d4c40dff205b2f1f4652afd809b832cf750c1f94f",
+      "component": "29zs6Yu_GblluGkdTEDf8gWy8fRlKv2Am4Ms91DB-U8"
+    },
+    "draft_component": {
+      "domain": "ak.agent-draft.account-data-key.draft-id.v1",
+      "domain_utf8_lf_hex": "616b2e6167656e742d64726166742e6163636f756e742d646174612d6b65792e64726166742d69642e76310a",
+      "canonical_literal": "draft-001",
+      "literal_utf8_hex": "64726166742d303031",
+      "digest_hex": "1e9707cdf112bb9745b7622cd904364e9fdcee17e1e1266dcf8a4aadbc69d3fb",
+      "component": "HpcHzfESu5dFt2Is2QQ2Tp_c7hfh4SZtz4pKrbxp0_s"
+    },
+    "account_data_key": "ak.agent.draft.v1:29zs6Yu_GblluGkdTEDf8gWy8fRlKv2Am4Ms91DB-U8:HpcHzfESu5dFt2Is2QQ2Tp_c7hfh4SZtz4pKrbxp0_s",
+    "account_data_key_ascii_length": 105,
+    "negative_cases": [
+      "padded_component",
+      "wrong_component_length",
+      "noncanonical_trailing_bits",
+      "wrong_literal_prefix",
+      "extra_separator",
+      "old_literal_agent_id",
+      "agent_domain_reused_for_draft",
+      "draft_domain_reused_for_agent",
+      "wrong_source_agent_id",
+      "wrong_source_draft_id",
+      "caller_supplied_decoded_selector"
+    ]
+  },
   "cases": [
     {
       "name": "pending_intent_create_replay_conflict",
@@ -67,6 +103,14 @@
         "initial_create_exact_source",
         "initial_create_missing_source",
         "initial_create_wrong_source_owner_agent_or_draft",
+        "initial_create_canonical_digest_key",
+        "padded_key_component",
+        "wrong_key_component_length",
+        "noncanonical_key_component_trailing_bits",
+        "wrong_key_prefix_or_extra_separator",
+        "old_literal_agent_draft_key",
+        "wrong_digest_domain",
+        "caller_supplied_decoded_selector",
         "initial_create_expired_source",
         "account_data_cas_conflict",
         "failure_between_account_data_and_intent_transition",
@@ -81,6 +125,14 @@
         "initial_create_exact_source": "account_data_revision_1_and_intent_consumed_atomically",
         "initial_create_missing_source": "rejected_zero_writes",
         "initial_create_wrong_source_owner_agent_or_draft": "rejected_zero_writes",
+        "initial_create_canonical_digest_key": "account_data_key_equals_registered_kat_and_source_recomputation",
+        "padded_key_component": "rejected_before_write_zero_side_effects",
+        "wrong_key_component_length": "rejected_before_write_zero_side_effects",
+        "noncanonical_key_component_trailing_bits": "rejected_before_write_zero_side_effects",
+        "wrong_key_prefix_or_extra_separator": "rejected_before_write_zero_side_effects",
+        "old_literal_agent_draft_key": "rejected_before_write_zero_side_effects",
+        "wrong_digest_domain": "source_recomputation_mismatch_zero_writes",
+        "caller_supplied_decoded_selector": "ignored_and_rejected_when_signed_key_mismatches_source_recomputation",
         "initial_create_expired_source": "expired_no_account_data_write",
         "account_data_cas_conflict": "intent_remains_available_zero_account_data_write",
         "failure_between_account_data_and_intent_transition": "both_sides_rolled_back",

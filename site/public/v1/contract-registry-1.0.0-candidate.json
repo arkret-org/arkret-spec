@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.4",
+  "version": "2026-09-20.5",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T00:52:19+08:00",
+  "generated_at": "2026-09-20T01:08:57+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -8408,8 +8408,8 @@
             "consumption": {
               "trigger_event_kind": "ak.account_data.set",
               "source_field": "payload.source_pending_event_id",
-              "account_data_key": "ak.agent.draft.v1:<agent_id>:<draft_id>",
-              "preconditions": "holder actor equals controller owner; source selects this available unexpired pending intent; key coordinates and decrypted client-validated content_digest match; expected_server_revision=0; encrypted_payload validates as ak.schema.account_data_encrypted_value.v1",
+              "account_data_key": "ak.agent.draft.v1:<agent_id_sha256_b64u43>:<draft_id_sha256_b64u43>",
+              "preconditions": "holder actor equals controller owner; source selects this available unexpired pending intent; Station recomputes both registered domain-prefixed UTF-8 SHA-256 components from the source row's exact agent_id and draft_id and byte-compares the complete signed key; no reverse decoding or caller-supplied selector is accepted; decrypted client-validated content_digest matches; expected_server_revision=0; encrypted_payload validates as ak.schema.account_data_encrypted_value.v1",
               "atomic_effect": "create account-data revision 1 and transition available -> consumed recording the consuming Event id, key, revision and consumed_at; no second counter"
             },
             "failure_recovery": {
@@ -8686,8 +8686,8 @@
         }
       }
     },
-    "version": "2026-09-20.10",
-    "generated_at": "2026-09-20T00:52:19+08:00",
+    "version": "2026-09-20.11",
+    "generated_at": "2026-09-20T01:08:57+08:00",
     "bootstrap_event_kinds": [
       "ak.device.authorize",
       "ak.device.reanchor",
@@ -8937,7 +8937,7 @@
         "description": "Closed decrypted plaintext of controller-holder-created encrypted ak.agent.draft.v1 account data. Station never receives this plaintext.",
         "consumer_binding": {
           "kind": "account_data_storage",
-          "selector": "account-data-key-registry.json#/account_data_key_patterns[key_pattern=ak.agent.draft.v1:<agent_id>:<draft_id>]",
+          "selector": "account-data-key-registry.json#/account_data_key_patterns[key_pattern=ak.agent.draft.v1:<agent_id_sha256_b64u43>:<draft_id_sha256_b64u43>]",
           "normative_ref": "zh/models/actor-private-effects.md#32-agent-draftrequest-与-rejection"
         }
       },
@@ -10502,8 +10502,8 @@
         "description": "Server authentication-success frame carrying effective connection and channel limits."
       }
     ],
-    "version": "2026-09-20.9",
-    "generated_at": "2026-09-20T00:40:27+08:00",
+    "version": "2026-09-20.10",
+    "generated_at": "2026-09-20T01:08:57+08:00",
     "metadata_authority": "contract_registry_section"
   },
   "id_kind_registry": {

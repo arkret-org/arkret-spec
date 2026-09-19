@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.6",
+  "version": "2026-09-20.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-19T18:23:59+08:00",
+  "generated_at": "2026-09-20T01:08:57+08:00",
   "description": "Canonical security-domain labels for Arkret detached proofs and non-Event cryptographic transcripts. contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript, and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
     "context values and object_family values MUST be unique",
@@ -24,6 +24,7 @@
     "Those carrier-bound rows are still not free-floating: each MUST declare an independent definition through schema_ref, transcript_schema_refs, defined_in or transcript_defined_in. A bare object_family or domain occurrence in prose, a schema, a fixture, a profile or a generated view is not a definition and MUST NOT anchor the row. Every declared schema reference and prose fragment MUST resolve through its owning reference gate. Rows registered before this rule and not yet adjudicated are named in tools/proof-context-anchor-exemptions.json, which is a ratchet: a listed family that acquires an anchor MUST be removed from it. machine gate: tools/artifact_lint:proof_context_carrier_family_anchors",
     "No binding_fields entry of either array may name a field that forbidden-wire-fields.json forbids in the producer_event_envelope_root context. A field that can never appear on the wire cannot be hashed into a commitment, and skipping it silently discards the separation the row exists to provide. machine gate: tools/artifact_lint:domain_separation_binding_fields_are_carriable",
     "Every domain_separations[] row whose primitive is canonical_json_sha256 MUST select exactly one digest_constructions[] row, carry the exact UTF-8 hex encoding of domain followed by one LF byte, name the normative transcript definition, and declare either a resolvable known_answer_ref or a non-empty kat_absence_reason plus owner_report. digest_constructions[] and these row extensions are closed objects. machine gate: tools/artifact_lint:digest_construction_registration",
+    "A non-JCS raw UTF-8 literal digest MAY select domain_prefixed_utf8_literal_sha256 from an owning source-of-truth registry only when that registry closes the exact domain, literal source, output encoding and a byte-exact known-answer fixture. Such a selector is not a domain_separations[] proof/signature context and MUST have a dedicated gate that proves every registered use and KAT. The Agent draft Account Data key is the v1 registered use.",
     "A detached_signature row whose local closed schema directly requires signature and signature_algorithm MUST list exactly that schema's required members other than signature in binding_fields. signature_algorithm is itself signed and MUST select an active raw_signature_algorithm; an outer object that merely carries a shared proof leaf is outside this equality rule. machine gate: tools/artifact_lint:local_signature_binding_fields_match_schema"
   ],
   "digest_constructions": [
@@ -54,6 +55,20 @@
       "domain_is_a_transcript_member": false,
       "defined_in": "zh/models/actor.md#331-accountable_principal_ids-的可验证性normative",
       "defining_literal": "UTF8(\"ak.accountability_scope_set.v1\\n\") || RFC8785_JCS({\"scopes\": normalized_scopes})"
+    },
+    {
+      "construction_id": "domain_prefixed_utf8_literal_sha256",
+      "applies_to_primitives": [
+        "utf8_literal_sha256"
+      ],
+      "canonicalization": "schema-validated canonical literal encoded directly as UTF-8; no JCS, normalization, truncation or decoding fallback",
+      "digest_suite": "SHA-256",
+      "prefix_form": "UTF8(domain + LF)",
+      "digest_input": "UTF8(domain + LF) || UTF8(canonical_literal)",
+      "digest_encoding": "base64url_no_pad of the complete 32-byte digest, exactly 43 ASCII characters",
+      "domain_is_a_transcript_member": false,
+      "defined_in": "zh/models/actor-private-effects.md#32-agent-draftrequest-与-rejection",
+      "defining_literal": "UTF8(domain + \"\\n\") || UTF8(canonical_literal)"
     }
   ],
   "contexts": [

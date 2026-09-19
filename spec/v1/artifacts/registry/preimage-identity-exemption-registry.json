@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.1",
+  "version": "2026-09-20.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T00:01:06+08:00",
+  "generated_at": "2026-09-20T01:08:57+08:00",
   "description": "Closed named-exemption registry for zh/conformance/encoding.md 3.1. That section forbids any field inside the event_digest preimage from committing to an Event identity. Class A (the enclosing Event's own event_id/event_digest and their retype results) and class B (a not-yet-formed sibling of the same atomic unit or ordered submit batch) are unconditional: they have no fixed point and this registry MUST NOT carry a row for them. Only class C, a one-way forward declaration naming a later Event from another submission whose canonical bytes the author already froze locally, is registerable, and only with the compensating admission checks recorded here. Every active row MUST also appear in the 3.1 closed list table; the prose table and this registry are bound in both directions.",
   "registry_rules": {
     "exemption_id_pattern": "^ak\\.exemption\\.preimage_identity\\.[a-z0-9_]+\\.v[0-9]+$",
@@ -100,7 +100,7 @@
       "admission_compensating_checks": [
         "source_pending_event_id MUST resolve to an accepted available ak.agent.draft.propose pending intent owned by the same controller AccountId",
         "the source proposal and account-data-set Event MUST be separate submissions; a same atomic unit or ordered submit batch is forbidden",
-        "the account-data key coordinates MUST equal the source intent agent_id and draft_id and expected_server_revision MUST equal 0",
+        "the Station MUST recompute the two registered domain-prefixed UTF-8 SHA-256 base64url components from the source intent's exact agent_id and draft_id and require the complete signed account-data key to match byte-for-byte; reverse decoding and caller-supplied selectors are forbidden; expected_server_revision MUST equal 0",
         "account-data revision 1 and pending-intent consumption MUST commit atomically; any missing, expired, consumed, mismatched or CAS-conflicting source writes nothing"
       ],
       "absent_target_semantics": "The account-data-set Event is rejected with zero writes. The Station MUST NOT synthesize a pending intent, accept the opaque encrypted value without its source, or consume a different intent.",

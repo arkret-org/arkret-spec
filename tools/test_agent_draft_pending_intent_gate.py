@@ -27,6 +27,7 @@ class AgentDraftPendingIntentGateTest(unittest.TestCase):
             gate.EVENT_PAYLOAD.resolve(): read(gate.EVENT_PAYLOAD),
             gate.PRIVATE_SCHEMA.resolve(): read(gate.PRIVATE_SCHEMA),
             gate.VECTOR_REGISTRY.resolve(): read(gate.VECTOR_REGISTRY),
+            gate.PROOF_CONTEXT.resolve(): read(gate.PROOF_CONTEXT),
             gate.FIXTURE.resolve(): read(gate.FIXTURE),
         }
 
@@ -111,6 +112,76 @@ class AgentDraftPendingIntentGateTest(unittest.TestCase):
             case["variants"].remove("failure_between_account_data_and_intent_transition")
 
         self.assert_red(mutate, "rollback")
+
+    def test_key_schema_cannot_restore_ambiguous_literal_segments(self) -> None:
+        def mutate(documents: dict) -> None:
+            schema = documents[gate.PRIVATE_SCHEMA.resolve()]["$defs"]["agent_draft_account_data_key"]
+            schema["pattern"] = r"^ak\.agent\.draft\.v1:[^:]+:[^:]+$"
+
+        self.assert_red(mutate, "fixed 105-character canonical digest key")
+
+    def test_key_schema_cannot_accept_padding_or_wrong_length(self) -> None:
+        def mutate(documents: dict) -> None:
+            schema = documents[gate.PRIVATE_SCHEMA.resolve()]["$defs"]["agent_draft_account_data_key"]
+            schema["maxLength"] = 256
+
+        self.assert_red(mutate, "fixed 105-character canonical digest key")
+
+    def test_event_source_branch_must_reuse_key_schema(self) -> None:
+        def mutate(documents: dict) -> None:
+            branches = documents[gate.EVENT_PAYLOAD.resolve()]["$defs"]["account_data_set_payload"]["allOf"]
+            branches[1]["then"]["properties"]["key"] = {"type": "string"}
+
+        self.assert_red(mutate, "reuse the canonical digest-key schema")
+
+    def test_agent_and_draft_domains_cannot_be_reused(self) -> None:
+        def mutate(documents: dict) -> None:
+            row = gate._find(documents[gate.ACCOUNT_DATA.resolve()]["account_data_key_patterns"], "key_pattern", gate.KEY_PATTERN)
+            row["key_encoding"]["components"]["draft_id"]["domain"] = gate.AGENT_DOMAIN
+
+        self.assert_red(mutate, "draft_id digest component")
+
+    def test_parser_must_require_canonical_round_trip(self) -> None:
+        def mutate(documents: dict) -> None:
+            row = gate._find(documents[gate.ACCOUNT_DATA.resolve()]["account_data_key_patterns"], "key_pattern", gate.KEY_PATTERN)
+            row["key_encoding"]["parser"] = "split the key into two components"
+
+        self.assert_red(mutate, "decode/re-encode equality")
+
+    def test_source_binding_cannot_trust_caller_selector(self) -> None:
+        def mutate(documents: dict) -> None:
+            row = gate._find(documents[gate.ACCOUNT_DATA.resolve()]["account_data_key_patterns"], "key_pattern", gate.KEY_PATTERN)
+            row["key_encoding"]["source_binding"] = "accept a caller-supplied decoded selector"
+
+        self.assert_red(mutate, "source_pending_event_id")
+
+    def test_registered_digest_construction_cannot_drift(self) -> None:
+        def mutate(documents: dict) -> None:
+            construction = gate._find(documents[gate.PROOF_CONTEXT.resolve()]["digest_constructions"], "construction_id", gate.CONSTRUCTION)
+            construction["digest_suite"] = "SHA-512"
+
+        self.assert_red(mutate, "digest construction drifted")
+
+    def test_kat_digest_is_recomputed(self) -> None:
+        def mutate(documents: dict) -> None:
+            documents[gate.FIXTURE.resolve()]["key_derivation_kat"]["agent_component"]["digest_hex"] = "0" * 64
+
+        self.assert_red(mutate, "KAT does not recompute byte-exactly")
+
+    def test_kat_requires_wrong_domain_and_selector_negatives(self) -> None:
+        def mutate(documents: dict) -> None:
+            negatives = documents[gate.FIXTURE.resolve()]["key_derivation_kat"]["negative_cases"]
+            negatives.remove("agent_domain_reused_for_draft")
+            negatives.remove("caller_supplied_decoded_selector")
+
+        self.assert_red(mutate, "negative closure drifted")
+
+    def test_contract_must_recompute_from_source_row(self) -> None:
+        def mutate(documents: dict) -> None:
+            lifecycle = documents[gate.CONTRACT.resolve()]["event_kind_registry"]["actor_private_contracts"]["event_writes"][gate.EVENT_KIND]["pending_intent_lifecycle"]
+            lifecycle["consumption"]["preconditions"] = "key has two components"
+
+        self.assert_red(mutate, "source binding omits")
 
     def test_runner_invokes_gate(self) -> None:
         source = (ROOT / "tools/artifact_lint/runner.py").read_text(encoding="utf-8")

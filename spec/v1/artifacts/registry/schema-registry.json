@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.9",
+  "version": "2026-09-20.10",
   "source_of_truth": false,
-  "generated_at": "2026-09-20T00:40:27+08:00",
+  "generated_at": "2026-09-20T01:08:57+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -76,7 +76,7 @@
       "description": "Closed decrypted plaintext of controller-holder-created encrypted ak.agent.draft.v1 account data. Station never receives this plaintext.",
       "consumer_binding": {
         "kind": "account_data_storage",
-        "selector": "account-data-key-registry.json#/account_data_key_patterns[key_pattern=ak.agent.draft.v1:<agent_id>:<draft_id>]",
+        "selector": "account-data-key-registry.json#/account_data_key_patterns[key_pattern=ak.agent.draft.v1:<agent_id_sha256_b64u43>:<draft_id_sha256_b64u43>]",
         "normative_ref": "zh/models/actor-private-effects.md#32-agent-draftrequest-与-rejection"
       }
     },

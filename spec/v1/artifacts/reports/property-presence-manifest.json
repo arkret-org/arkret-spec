@@ -18,16 +18,16 @@
     "total_properties": 9048,
     "total_schema_documents": 165,
     "by_presence_class": {
-      "optional": 2308,
+      "optional": 2309,
       "optional_defaulted": 46,
       "required": 6247,
       "required_nullable": 291,
-      "tristate": 156
+      "tristate": 155
     },
-    "tristate_occurrences": 156,
-    "tristate_audit_targets": 123,
+    "tristate_occurrences": 155,
+    "tristate_audit_targets": 122,
     "tristate_sdk_dispositions": {
-      "absent_null_equivalent": 113,
+      "absent_null_equivalent": 112,
       "condition_guarded": 9,
       "distinct": 1
     }
@@ -73,7 +73,6 @@
     "erasure-receipt.schema.json/properties/legal_hold_ref",
     "erasure-verification-stub.schema.json/properties/legal_hold_ref",
     "event-payload.schema.json/$defs/account_blocklist_payload/properties/entries/items/properties/expires_at",
-    "event-payload.schema.json/$defs/account_data_set_payload/allOf/1/then/properties/key",
     "event-payload.schema.json/$defs/account_data_set_payload/properties/body",
     "event-payload.schema.json/$defs/call_summary_payload/properties/duration_ms",
     "event-payload.schema.json/$defs/call_summary_payload/properties/ended_at",
@@ -456,16 +455,6 @@
       ],
       "sdk_disposition": "condition_guarded",
       "rationale": "A conditional branch requires this property. Draft 2020-12 validation rejects missing in that branch; explicit null remains the branch's empty value."
-    },
-    {
-      "schema_file": "event-payload.schema.json",
-      "shape": "/$defs/account_data_set_payload",
-      "instance_path": "/key",
-      "occurrences": [
-        "/$defs/account_data_set_payload/allOf/1/then/properties/key"
-      ],
-      "sdk_disposition": "absent_null_equivalent",
-      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "event-payload.schema.json",
@@ -5646,7 +5635,7 @@
         "/$defs/account_data_set_payload/allOf/0/if/properties/expected_server_revision": "required",
         "/$defs/account_data_set_payload/allOf/0/if/properties/key": "required_nullable",
         "/$defs/account_data_set_payload/allOf/1/then/properties/expected_server_revision": "optional",
-        "/$defs/account_data_set_payload/allOf/1/then/properties/key": "tristate",
+        "/$defs/account_data_set_payload/allOf/1/then/properties/key": "optional",
         "/$defs/account_data_set_payload/properties/body": "tristate",
         "/$defs/account_data_set_payload/properties/encrypted_payload": "optional",
         "/$defs/account_data_set_payload/properties/expected_server_revision": "required",

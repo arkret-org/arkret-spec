@@ -409,7 +409,7 @@
       },
       "consumer_binding": {
         "kind": "account_data_storage",
-        "selector": "account-data-key-registry.json#/account_data_key_patterns[key_pattern=ak.agent.draft.v1:<agent_id>:<draft_id>]",
+        "selector": "account-data-key-registry.json#/account_data_key_patterns[key_pattern=ak.agent.draft.v1:<agent_id_sha256_b64u43>:<draft_id_sha256_b64u43>]",
         "normative_ref": "zh/models/actor-private-effects.md#32-agent-draftrequest-与-rejection"
       }
     },
