@@ -136,16 +136,37 @@ Blob 和其它 binary operation 使用各自登记的 streaming/binary body cont
 
 ### 2.6 Self 提交
 
-`POST /_arkret/self/events` 接受 `authority-commit-operations.schema.json#/$defs/submit_request`。Account
-Station 必须先耐久保存 exact producer-signed Event，再解析 current authority bundle 并转发。
-它只能返回 `queued`、`forwarding`、`committed`、`rejected` 或 `temporarily_unavailable` 的 schema 登记分支。
-没有验证到 RealmCommit 时不得返回 `committed`或对其它成员 fanout。
+`POST /_arkret/self/events` 接受
+`authority-commit-operations.schema.json#/$defs/self_submit_request`，返回
+`#/$defs/self_submit_outcome`。普通 `EventCommitSubmission` 与 MLS Commit 保持各自单提交合同；
+`direct_conversation_founding` 是恰四条有序 Event 的原子分支；`membership_compensation` 是一条 Event、
+closed transport-only evidence 与 single-use CAS 的原子分支。Account Station 必须先耐久保存 exact
+producer-signed bytes，再解析 current authority bundle 并转发；没有验证到 authority-signed
+`RealmCommit` 时不得返回 `committed` 或对其它成员 fanout。这里没有 schema 外的 `queued`／`forwarding`
+success body。
 
 ### 2.7 Peer 转发
 
-`POST /_arkret/peer/events` 只把 exact Event 转发给已验证的 current governance Station。请求必须使用
+`POST /_arkret/peer/events` 接受
+`authority-commit-operations.schema.json#/$defs/peer_submit_request`，返回
+`#/$defs/peer_submit_outcome`。它是唯一 peer Event ingress，但 body 不是语义含混的通用 batch：closed
+`branch` 只允许下列三项，解析边界必须拒绝混支字段。
+
+- `authority_forward`：携一条 exact `EventCommitSubmission` 或一份 MLS Commit submission，只允许已验证的
+  forwarding Station 调用 exact current governance Station；仅后者执行首次 admission 并签发新
+  `RealmCommit`。
+- `committed_replication`：`processing="per_item"`，携 1–100 个完整 source
+  `EventCommitSubmission + RealmCommit + recipient_witnesses`。接收方逐项验证 event/commit/ref、source
+  authority generation、同 stream 连续性、成员 route 与 history/plaintext visibility，只保存 exact source
+  bytes；不得重做首次 admission、重签 Commit 或创建第二轮 fanout。response 的同序 `results[]` 只允许
+  `stored|duplicate|rejected`，不把 replica persistence 称为 `accepted` finality。
+- `registered_atomic_unit`：只允许 registry 内的 Direct Conversation founding 与 membership compensation。
+  整个 unit 要么 materialize、要么零写；不存在 per-item partial。DC dependency 缺口使用
+  `direct_conversation_founding_missing_dependency_list` 的有界 typed set。
+
+三支都使用 operation registry 登记的 `canonical_hash/full_body/retry_safe=true`。response 丢失时只能重放
+逐字节相同完整 body，并返回原 branch outcome；同 hash 异 body 为 `duplicate_conflict`。请求必须使用
 service-to-service authentication 绑定 source/destination service identity、operation、body digest 与有界时间窗。
-非当前 authority 的接收方只能重定位或转发，不能签发 RealmCommit。
 
 ### 2.8 普通消息的完整 authoring 准备
 
@@ -564,7 +585,7 @@ RFC 9449 DPoP proof 只有 `iat`，没有 `expires` parameter，因此它 **MUST
 | `ak.peer.device_revocations.command.check.v1` | `POST /_arkret/peer/device-revocations/check` | - | - | request_schema_ref=schemas/device-revocation-state.schema.json#/$defs/device_revocation_gate_check_request_body; response_schema_ref=schemas/device-revocation-state.schema.json#/$defs/device_revocation_gate_check_outcome |
 | `ak.peer.erasure_receipt.command.submit.v1` | `POST /_arkret/peer/erasure-receipts` | - | - | request_schema_ref=schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_submit_request_body; response_schema_ref=schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_submit_outcome |
 | `ak.peer.erasure_receipt.resource.get.v1` | `GET /_arkret/peer/erasure-receipts/{receipt_id}` | - | - | response_schema_ref=schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_resource |
-| `ak.peer.events.command.submit.v1` | `POST /_arkret/peer/events` | - | - | request_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/submit_request; response_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/submit_outcome |
+| `ak.peer.events.command.submit.v1` | `POST /_arkret/peer/events` | - | - | request_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request; response_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/peer_submit_outcome |
 | `ak.peer.events.read.resolve_committed.v1` | `POST /_arkret/peer/streams/resolve` | - | - | request_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/committed_event_resolve_request; response_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/committed_event_resolve_outcome |
 | `ak.peer.events.read.scan.v1` | `POST /_arkret/peer/streams/scan` | - | - | request_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request; response_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/stream_scan_outcome |
 | `ak.peer.invites.command.submit.v1` | `POST /_arkret/peer/invites` | - | - | request_schema_ref=schemas/invite-delivery-request.schema.json; response_schema_ref=schemas/invite-delivery-request.schema.json#/$defs/invite_delivery_outcome |
@@ -655,7 +676,7 @@ RFC 9449 DPoP proof 只有 `iat`，没有 `expires` parameter，因此它 **MUST
 | `ak.self.device_messages.command.send.v1` | `POST /_arkret/self/device_messages` | - | - | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesSendRequestBody; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesSendOutcome |
 | `ak.self.device_messages.read.list.v1` | `GET /_arkret/self/device_messages` | - | - | response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesGetOutcome |
 | `ak.self.direct_conversation.read.resolve.v1` | `POST /_arkret/self/direct-conversations/resolve` | - | - | request_schema_ref=schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_request; response_schema_ref=schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_outcome |
-| `ak.self.events.command.submit.v1` | `POST /_arkret/self/events` | - | - | request_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/submit_request; response_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/submit_outcome |
+| `ak.self.events.command.submit.v1` | `POST /_arkret/self/events` | - | - | request_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/self_submit_request; response_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/self_submit_outcome |
 | `ak.self.events.read.delivery_status.v1` | `QUERY /_arkret/self/events/delivery-status` | - | - | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/EventDeliveryStatusRequestBody; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/EventDeliveryStatusOutcome |
 | `ak.self.events.read.scan.v1` | `POST /_arkret/self/streams/scan` | - | - | request_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request; response_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/stream_scan_outcome |
 | `ak.self.events.resource.get.v1` | `GET /_arkret/self/events/{event_id}` | - | - | response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/EventView |

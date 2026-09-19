@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 6,
+  "version": 7,
   "kind": "identifier_classification_registry",
   "source_of_truth": false,
   "generated_from": [
@@ -26,8 +26,8 @@
     "unregistered_object_identifier"
   ],
   "type_derived_summary": {
-    "typed_object_id": 930,
-    "responsibility_identity_material": 572,
+    "typed_object_id": 937,
+    "responsibility_identity_material": 578,
     "registry_catalog_symbol": 15
   },
   "pending_rename_convergence": [],
@@ -39,6 +39,15 @@
       "occurrences": 2,
       "example_path": "event-payload.schema.json#/$defs/policy_action_state_payload/properties/action_id",
       "reason": "Names a durable Arkret object whose kind is not registered in id-kind-registry.json; convergence is to register the kind or retype the field.",
+      "pending_convergence": true
+    },
+    {
+      "name": "admission_id",
+      "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"]]",
+      "category": "unregistered_object_identifier",
+      "occurrences": 3,
+      "example_path": "authority-commit-operations.schema.json#/$defs/membership_compensation_delegation_core/properties/admission_id",
+      "reason": "Names the durable failed-join admission whose exact identity participates in the membership-compensation single-use CAS; no ak: admission kind is registered in current v1.",
       "pending_convergence": true
     },
     {

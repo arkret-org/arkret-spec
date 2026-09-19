@@ -668,12 +668,19 @@ transcript 与同一签名输入。receipt 或 `ak.direct_conversation.bound` bi
 authorization basis、Realm role、exact two-member set、main Strand、`founding_unit_digest` 或 founding MLS
 引用任一无效时，verifier **MUST** 拒绝该 binding（reason `direct_conversation_binding_invalid`）。
 
-carrier 是 `ak.self.events.command.submit.v1` request union 中显式登记的 discriminated branch
-`DirectConversationFoundingUnitSubmission`（discriminator `unit_kind="direct_conversation_founding"`）：它精确要求恰好四条按 §6.1 顺序排列的 `EventCommitSubmission` 与 `idempotency_key`，不携带 `founding_authority_evidence`——founder 的 current Station 在同一 admission 事务内以自己 current 的 Contact round / Agent provision 证据校验该 unit（§9.1.1），并在 response union `SelfEventsSubmitOutcome` 中返回 `DirectConversationFoundingAcceptanceOutcome`。每条 Event 的实际 author `ActorId` 必须路由到接收服务，服务端只在完整本地准入后追加 admission proof。实现 **MUST NOT** 新增私有 endpoint、复用普通 batch 分支或让服务端代签 producer Event；`ak.self.direct_conversation.read.resolve.v1` 继续 query-only，**MUST NOT** 承载 create。
+carrier 是 `ak.self.events.command.submit.v1` 的 endpoint-specific
+`self_submit_request` union 中显式登记的 `direct_conversation_founding_unit_submission`
+（`unit_kind="direct_conversation_founding"`）：它精确要求恰好四条按 §6.1 顺序排列的
+`EventCommitSubmission` 与 `idempotency_key`，不携带 `founding_authority_evidence`——founder 的 current
+Station 在同一 admission 事务内以自己 current 的 Contact round / Agent provision 证据校验该 unit（§9.1.1），
+并在 `self_submit_outcome` 中返回 `direct_conversation_founding_acceptance_outcome`。每条 Event 的实际 author
+`ActorId` 必须路由到接收服务，服务端只在完整本地准入后追加 admission proof。实现 **MUST NOT** 新增私有
+endpoint、复用普通 batch 分支或让服务端代签 producer Event；
+`ak.self.direct_conversation.read.resolve.v1` 继续 query-only，**MUST NOT** 承载 create。
 
 幂等与 crash/restart 语义 **MUST** 如下封闭：
 
-- 同 `idempotency_key` 且同 `founding_unit_digest` 的 exact retry 返回 byte-identical receipt 与相同 `event_ids`，且 **MUST NOT** 推进 `accepted_at`；
+- 同 `idempotency_key` 且同 `founding_unit_digest` 的 exact retry 返回 byte-identical receipt 与相同四个 source-signed `RealmCommit`（Event ID 由各 `commit.event_ref` 唯一取得），且 **MUST NOT** 推进 `accepted_at`；
 - 同 `idempotency_key` 但不同 `founding_unit_digest` 返回 `duplicate_conflict` 且零写入；
 - 本地 slot 已被同 pair 的另一组 unit 关闭时返回 `conflict` 与 `direct_conversation_slot_already_committed` 且零写入，caller **MUST** 改用 §9.1 resolver 取回既有坐标；服务 **MUST NOT** 接受第二组 unit，也 **MUST NOT** 把它降级为 partial 或 quarantine；
 - 客户端已派生 ID、unit 已提交、四 Event 已落库、receipt 已签发、outbox 已入队与响应丢失这些崩溃点，重放同一 signed bytes **MUST** 收敛到同一 receipt、同一坐标与同一 outbox 条目，**MUST NOT** 产生第二组 Event、第二张 receipt 或第二个 slot。
@@ -684,12 +691,16 @@ carrier 是 `ak.self.events.command.submit.v1` request union 中显式登记的 
 
 Realm 尚不存在时无法取得普通 member federation authority，因此 Direct Conversation founding exception 只允许 Contact round 中完整 founder `ActorId` 所路由的服务向 invitee 自己的 Station 投递该 atomic unit、source acceptance receipt 与 bounded founding-authority dependencies。接收方必须验证 transport source、四条 Event actual author 的 route、producer proof、原子 bootstrap 授权和 exact participant pair 一致，并要求目标 pair 命中本地 Contact round；不得要求或比较 PCR id/genesis receipt。
 
-该例外的 carrier **MUST** 是 `ak.peer.events.command.submit.v1` request union 中显式登记的 discriminated
-branch `DirectConversationFoundingFederationSubmission`（discriminator
-`unit_kind="direct_conversation_founding"`），承载恰好四条按 §6.1 顺序排列的 `EventFederationSubmission`、
-source `DirectConversationFoundingAcceptanceReceipt` 与 bounded dependencies；实现 **MUST NOT** 新增私有 peer
-endpoint，也 **MUST NOT** 用普通 Realm batch 分支夹带该 unit。该 branch 是 registered atomic unit：dependency
-不足时 **MUST** 用 top-level HTTP 409 `dependency_missing` 与 `EventsDependencyMissingProblem` 并零写入，
+该例外的 carrier **MUST** 是 `ak.peer.events.command.submit.v1` 的
+`branch="registered_atomic_unit"`，其 `unit` 命中
+`direct_conversation_founding_federation_submission`（`unit_kind="direct_conversation_founding"`）。它承载恰好
+四条按 §6.1 顺序排列的 `committed_event_submission`；每项都是完整 `EventCommitSubmission` 与 source-signed
+`RealmCommit`，四个 Commit 同 Realm／generation／stream、position 连续且 `previous_commit_ref` 严格衔接。
+unit 另携 source `direct_conversation_founding_acceptance_receipt` 与 closed
+`DirectConversationFoundingAuthorityEvidence`，不存在任意 dependency bag。接收方验证后只 materialize exact
+source facts，**MUST NOT** 重签第二套 Commit 或创建第二轮 fanout。实现 **MUST NOT** 新增私有 peer endpoint，
+也 **MUST NOT** 用普通 replication batch 夹带该 unit。dependency 不足时 **MUST** 用 top-level HTTP 409
+`dependency_missing` 与 `direct_conversation_founding_missing_dependency_list` 的有界 typed set 并零写入，
 **MUST NOT** 退化为 per-item partial，也 **MUST NOT** 只接受其中一或两条。
 
 Realm 在对端 accepted 后立即回落普通 federation 规则。因 §5.4 第 3 条已钉死作者，该例外不需要方向性约束。
@@ -913,7 +924,7 @@ existing 坐标 **MUST NOT** 因 offline、presence、session、KeyPackage 库�
 
 #### 9.1.1 `creation_required` 的 authoring material（normative）
 
-`DirectConversationFoundingUnitSubmission` 的 closed shape **不携带** `founding_authority_evidence`：founder 与验证方是同一台 current Station，§5.5 的 self admission 在同一事务内以服务端自己 current 的 Contact round（或 Agent provision）证据校验四条 Event；caller 回传的副本既不进入 `founding_unit_digest` 等任何幂等身份，也不可能成为可信输入，因此不存在于 wire 上。Event origin authority 已由四条 Event 的完整 actual-author `ActorId` 及服务端追加的 admission proofs 表达。
+`direct_conversation_founding_unit_submission` 的 closed shape **不携带** `founding_authority_evidence`：founder 与验证方是同一台 current Station，§5.5 的 self admission 在同一事务内以服务端自己 current 的 Contact round（或 Agent provision）证据校验四条 Event；caller 回传的副本既不进入 `founding_unit_digest` 等任何幂等身份，也不可能成为可信输入，因此不存在于 wire 上。Event origin authority 已由四条 Event 的完整 actual-author `ActorId` 及服务端追加的 admission proofs 表达。
 
 但 founder 仍需要领料才能构造该 unit：§6.1 四条 Event 的 §5.4 critical ref、round / continuity 坐标与 §6.2 派生 baseline 都取决于 pair 当前的 Contact round（或 Agent provision）证据。若 resolver 只回一个无 material 的
 `creation_required`，则 founder 在协议层无法确定这些输入——这正是
@@ -941,7 +952,7 @@ existing 坐标 **MUST NOT** 因 offline、presence、session、KeyPackage 库�
   失败方得到 `direct_conversation_slot_already_committed` 后 **MUST** 改走 resolver 取回既有
   坐标，**MUST NOT** 用自己那份 unit 重试。material 相同不构成"两份 unit 等价"。
 
-联邦面与 self 面不同：`ak.peer.events.command.submit.v1` 的 `DirectConversationFoundingFederationSubmission`
+联邦面与 self 面不同：`ak.peer.events.command.submit.v1` 的 `direct_conversation_founding_federation_submission`
 **MUST** 显式携带 `founding_authority_evidence`——接收方是另一台 Station，读不到 source 的 Contact round / Agent
 provision 状态，该成员是跨信任域的真实载荷，由 source 服务器在 server-to-server 一跳上投影供给并由接收
 Station 独立验证；**MUST NOT** 要求 founder 客户端亲手跨服务器搬运这些证据，接收方也 **MUST NOT** 把搬运副本

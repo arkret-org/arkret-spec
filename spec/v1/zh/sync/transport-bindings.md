@@ -81,11 +81,11 @@ Transport binding MUST 映射到 `artifacts/registry/contract-registry.json#oper
 | `ak.root.identity.read.resolve.v1` | 解析 DID，返回 DID document 与 normalized principal view。 |
 | `ak.root.identity.log.read.list.v1` | 获取 DID key log。 |
 | `ak.root.identity.command.submit_did_operation.v1` | 提交 DID 更新操作。 |
-| `ak.self.events.command.submit.v1` | 提交 signed Event Envelope。 |
+| `ak.self.events.command.submit.v1` | endpoint-specific closed union：普通 Event、MLS Commit、四 Event DC founding 原子 unit 或 membership compensation 原子 unit。 |
 | `ak.self.events.resource.get.v1` | 按 ID 读取单个 Event。 |
 | `ak.self.events.read.scan.v1` | 按获准的单个 authority stream 与 `stream_position` 连续查询 Event；不使用 cursor。 |
 | `ak.self.events.stream.subscribe.v1` | 订阅获准 stream 的增量流，可选 bounded catch-up replay。 |
-| `ak.peer.events.command.submit.v1` | federation peer 推送 signed Event Envelope 批次。 |
+| `ak.peer.events.command.submit.v1` | 唯一 peer Event ingress；closed union 严分 `authority_forward` 单提交、bounded `committed_replication` 与 `registered_atomic_unit`。 |
 | `ak.peer.events.read.resolve_committed.v1` | federation peer 按 `CommittedEventRef` 精确读取 Event 与对应 RealmCommit。 |
 | `ak.peer.events.read.scan.v1` | federation peer 按获准的单个 authority stream 与 `stream_position` 拉取或回填 Event；不使用 cursor。 |
 | `ak.peer.contacts.command.submit.v1` | federation peer以closed XOR投递原签名`ak.contact.*` fact、对应source-signed acceptance receipt与可刷新current proof；不得承载`ak.direct_conversation.bound`、共享Realm Event或unsigned service row。 |
@@ -112,7 +112,7 @@ Transport binding MUST 映射到 `artifacts/registry/contract-registry.json#oper
 | `ak.self.keys.upload.create.v1` / `ak.self.keys.read.lookup.v1` / `ak.self.keys.command.claim.v1` | E2EE 设备密钥发布、查询与领取。 |
 | `ak.self.keys.backups.resource.replace.v1` / `ak.self.keys.backups.read.list.v1` / `ak.self.keys.backups.command.unlock.v1` / `ak.self.keys.backups.resource.delete.v1` | 加密密钥备份对象存储、枚举、解锁取回与删除。 |
 
-> **Federation peer surface（规范性）**：跨服务器互通必须使用 `/_arkret/peer/*` HTTP trust surface 和 `ak.peer.*` operation_id。`/_arkret/self/*` 只承接当前 principal / 已授权自服务会话的攻击面，不承接 federation server-to-server wire。**联邦接收收敛为单轨**：`POST /_arkret/peer/events`（`ak.peer.events.command.submit.v1`）是唯一的 federation Event 接收轨，Event / state-changing Event（含 Event / Anchor）统一走该 committed Event Envelope 通道；实现私有 peer 入站轨 MUST NOT 作为跨 deployment 互通入口（详见 [`federation.md` §4.1](./federation.md)）。
+> **Federation peer surface（规范性）**：跨服务器互通必须使用 `/_arkret/peer/*` HTTP trust surface 和 `ak.peer.*` operation_id。`/_arkret/self/*` 只承接当前 principal / 已授权自服务会话的攻击面，不承接 federation server-to-server wire。**联邦接收收敛为单轨**：`POST /_arkret/peer/events`（`ak.peer.events.command.submit.v1`）是唯一的 federation Event 接收轨，但 wire 必须命中闭合的 `authority_forward | committed_replication | registered_atomic_unit` 分支之一。forward 只由 current authority 首次接纳；replication 必须携 source Event+RealmCommit 并且只持久化副本；atomic unit 只能使用 registry 已登记 unit kind 并整组成功或零写。实现私有 peer 入站轨、schema 外 batch 或跨分支字段 MUST NOT 作为跨 deployment 互通入口（详见 [`federation.md` §4.1](./federation.md)）。
 
 HTTP binding MAY 把 `operation_id` 映射成路径；gRPC binding MAY 把它映射成 service method；message queue binding MAY 把它映射成 topic + message type。
 

@@ -1,4 +1,4 @@
-"""Mutation tests for Event-submit full-body replay without peer DTO adjudication."""
+"""Mutation tests for Event-submit full-body replay across endpoint unions."""
 
 from __future__ import annotations
 
@@ -90,7 +90,7 @@ class EventSubmitIdempotencyGateTest(unittest.TestCase):
         self.assert_red(
             marker="normative prose omits",
             prose_mutate=lambda prose: prose.replace(
-                "当前登记 schema 没有可供 `accepted[]`／`duplicate[]` 求差的逐项结果",
+                "不存在顶层 `accepted[]`／`duplicate[]`",
                 "当前登记 schema 允许逐项求差",
             ),
         )
@@ -98,7 +98,7 @@ class EventSubmitIdempotencyGateTest(unittest.TestCase):
     def test_prose_cannot_turn_idempotency_rule_into_peer_shape_adjudication(self) -> None:
         self.assert_red(
             marker="normative prose omits",
-            prose_mutate=lambda prose: prose.replace("不由本段幂等规则预先裁决", "由本段固定为批次 rail"),
+            prose_mutate=lambda prose: prose.replace("返回原 branch outcome 或等价幂等结果", "允许重新求值"),
         )
 
     def test_runner_invokes_gate(self) -> None:

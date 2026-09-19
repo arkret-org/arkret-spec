@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.3",
+  "version": "2026-09-20.4",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T01:48:33+08:00",
+  "generated_at": "2026-09-20T02:45:46+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1596,7 +1596,7 @@
       "applies_to_profiles": [
         "ak.profile.direct_conversation_realm.v1"
       ],
-      "description": "The creation_required resolver outcome carries next_founding_input with member names identical to the founding unit submission, exactly one founding_authority_evidence branch, no Event bytes or coordinates, temporarily_unavailable when the material cannot be assembled, and submission-side re-verification that never trusts the echoed copy.",
+      "description": "The creation_required resolver outcome carries a closed next_founding_input whose sole member is founding_authority_evidence, with exactly one evidence branch and no Event bytes or coordinates. The caller consumes that material to author four Events, but the closed self founding submission has no founding_authority_evidence member and rejects any echo; temporarily_unavailable is returned when material cannot be assembled.",
       "source_refs": [
         "spec/v1/zh/identity/contact-and-direct-conversation.md"
       ]
@@ -1608,7 +1608,7 @@
       "applies_to_profiles": [
         "ak.profile.direct_conversation_realm.v1"
       ],
-      "description": "Caller-authored first-valid founding unit: byte-exact founding_unit_digest KAT over the four ordered Event IDs, realm_id and main_strand_id retyped from the first and third Event IDs, explicit founder membership, closed self and peer carrier branch shapes, and rejection of server-allocated identifiers, reserved or materializing drafts, coordinator election, reordering, a fifth Event and a carried coordinate field.",
+      "description": "Caller-authored first-valid founding unit: byte-exact founding_unit_digest KAT over the four ordered Event IDs, realm_id and main_strand_id retyped from the first and fourth Event IDs, explicit founder membership, closed self and peer carrier branch shapes, and rejection of server-allocated identifiers, reserved or materializing drafts, coordinator election, reordering, a fifth Event and a carried coordinate field.",
       "source_refs": [
         "spec/v1/zh/identity/contact-and-direct-conversation.md"
       ]
@@ -3725,6 +3725,18 @@
       "description": "Pins the event-and-patch.md §4.2.4 slot-existence rule against the machine-readable redactable-field-registry.json: $op=\"unset\" on every registered content-carrier slot is rejected with patch_unset_redactable_field, plaintext and encrypted forms of one slot decide identically, $op=\"set\" with an empty body stays ordinary authoring, and metadata.title / metadata.summary / metadata.fields.* accept unset so an optional field can never become write-once.",
       "source_refs": [
         "spec/v1/artifacts/registry/normative-clause-registry.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.peer.event_submit.semantic_union.v1",
+      "status": "active",
+      "domain": "peer",
+      "applies_to_fixtures": [
+        "peer-event-submit-semantic-union-fixture.json"
+      ],
+      "description": "The sole peer Event ingress has exactly three mutually exclusive semantic branches: authority_forward performs first admission only at current governance; committed_replication verifies bounded full source Event/RealmCommit rows and stores exact replicas without re-signing or second fanout; registered_atomic_unit materializes Direct Conversation founding or membership compensation all-or-nothing. Full-body canonical-hash exact replay is branch-stable.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/peer-event-submit-semantic-union-fixture.json"
       ]
     },
     {

@@ -21,7 +21,7 @@
       },
       "occurrences_by_profile": {
         "actor_id": 1,
-        "did_core_id": 32
+        "did_core_id": 33
       },
       "reason": "The enclosing schema decides whether issuer authority requires an exact routed actor or a stable DID core; each occurrence remains closed to one carrier."
     },
@@ -84,7 +84,7 @@
         "did_core_id": "Stable claim, mention, selector, or accountability subject core."
       },
       "occurrences_by_profile": {
-        "actor_id": 1,
+        "actor_id": 2,
         "did_core_id": 7
       },
       "reason": "Contact concurrency requires exact actor identity while claims and selectors intentionally identify stable principals."
@@ -1859,6 +1859,86 @@
       "external_literal_owner": false,
       "terminal_signature": [
         "ref:did_url"
+      ]
+    },
+    {
+      "schema_path": "authority-commit-operations.schema.json#/$defs/direct_conversation_founding_missing_dependency/oneOf/3/properties/verification_method",
+      "property_name": "verification_method",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_url",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "pattern:^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
+      ]
+    },
+    {
+      "schema_path": "authority-commit-operations.schema.json#/$defs/membership_compensation_delegation_core/properties/executor_id",
+      "property_name": "executor_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "actor_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:actor_id"
+      ]
+    },
+    {
+      "schema_path": "authority-commit-operations.schema.json#/$defs/membership_compensation_delegation_core/properties/executor_service_id",
+      "property_name": "executor_service_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "authority-commit-operations.schema.json#/$defs/membership_compensation_delegation_core/properties/subject_id",
+      "property_name": "subject_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "actor_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:actor_id"
+      ]
+    },
+    {
+      "schema_path": "authority-commit-operations.schema.json#/$defs/membership_compensation_delegation_core/properties/verification_method",
+      "property_name": "verification_method",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_url",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "pattern:^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
+      ]
+    },
+    {
+      "schema_path": "authority-commit-operations.schema.json#/$defs/membership_compensation_terminal_certificate/properties/issuer_id",
+      "property_name": "issuer_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "authority-commit-operations.schema.json#/$defs/replication_recipient_witness/properties/member_id",
+      "property_name": "member_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "actor_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:actor_id"
+      ]
+    },
+    {
+      "schema_path": "authority-commit-operations.schema.json#/$defs/replication_recipient_witness/properties/recipient_service_id",
+      "property_name": "recipient_service_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
       ]
     },
     {

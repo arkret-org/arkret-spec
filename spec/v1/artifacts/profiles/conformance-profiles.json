@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-19.5",
-  "generated_at": "2026-09-19T21:25:01+08:00",
+  "version": "2026-09-20.1",
+  "generated_at": "2026-09-20T02:45:46+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -2033,8 +2033,14 @@
         "ak.schema.event.v1",
         "ak.schema.event_payload.v1"
       ],
-      "required_fixtures": [],
-      "required_vectors": [],
+      "required_fixtures": [
+        "peer-event-submit-semantic-union-fixture.json"
+      ],
+      "required_vectors": [
+        "ak.vector.direct_conversation.founding_admission.v1",
+        "ak.vector.direct_conversation.founding_authoring_material.v1",
+        "ak.vector.direct_conversation.founding_unit.v1"
+      ],
       "optional_extensions": [],
       "feature_discovery": {
         "required": [
@@ -2071,7 +2077,7 @@
         "Exactly the two ActorIds in the immutable binding may be Realm principal members; any third-party join or invite MUST be rejected.",
         "Space events are forbidden in a Direct Conversation Realm with direct_conversation_space_forbidden; additional ordinary Strands remain allowed.",
         "The canonical main Strand MUST be active, belong to the Realm, have no Circle scope, and expose an active primary discussion track.",
-        "First creation MUST be the founder's caller-authored four-Event unit submitted through the direct_conversation_founding branch of ak.self.events.command.submit.v1. realm_id and main_strand_id are retyped from the first and third Event IDs, so the service MUST NOT allocate an identifier, issue a reserved or materializing draft, or elect a coordinator; it only verifies the unit, CAS-closes its local (founder_id, trust_domain_id, pair_key) slot and accepts zero or four Events atomically.",
+        "First creation MUST be the founder's caller-authored four-Event unit submitted through the direct_conversation_founding branch of ak.self.events.command.submit.v1. realm_id and main_strand_id are retyped from the first and fourth Event IDs, so the service MUST NOT allocate an identifier, issue a reserved or materializing draft, or elect a coordinator; it only verifies the unit, CAS-closes its local (founder_id, trust_domain_id, pair_key) slot and accepts zero or four Events atomically.",
         "The founding slot admits the first valid unit only. A second unit for the same pair MUST be refused with direct_conversation_slot_already_committed and zero writes; a byte-identical replay MUST return the stored receipt without advancing accepted_at; the same idempotency key with a different unit MUST be duplicate_conflict. The slot MUST NOT reopen into creation_required after a committed unit.",
         "Cross-Station founding MUST NOT depend on the peer service: the founder creates the Realm and its one scope-derived MLS group and sends real ciphertext alone. Peer KeyPackage claim is participant-authorized, binds the accepted pair, Realm, main Strand and MLS group, and MUST NOT use a last-resort KeyPackage.",
         "The four founding Events MUST be accepted in order and each MUST receive its own consecutive RealmCommit in the same Realm stream. The projected baseline is join_rule=closed together with the initial current history_access=since_join facet. A Station MUST reject a missing prefix, an interleaved unrelated Event, or a same-transaction facet Event that repeats or overrides a baseline value.",
@@ -4548,9 +4554,12 @@
         "ak.schema.service_operation_dtos.v1"
       ],
       "wire_contract_refs": [
-        "schemas/service-operation-dtos.schema.json#/$defs/EventFederationSubmission"
+        "schemas/authority-commit-operations.schema.json#/$defs/membership_compensation_unit_submission",
+        "schemas/authority-commit-operations.schema.json#/$defs/membership_compensation_federation_submission"
       ],
-      "required_fixtures": [],
+      "required_fixtures": [
+        "peer-event-submit-semantic-union-fixture.json"
+      ],
       "optional_extensions": [],
       "authority_source": "ak.authority.membership_compensation.v1",
       "actions": {

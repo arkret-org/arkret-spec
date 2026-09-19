@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.8",
+  "version": "2026-09-20.9",
   "source_of_truth": false,
-  "generated_at": "2026-09-20T02:13:54+08:00",
+  "generated_at": "2026-09-20T02:45:46+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -3312,83 +3312,116 @@
       "operation_id": "ak.peer.events.command.submit.v1",
       "success_shape_kind": "schema_resource",
       "request": {
-        "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/submit_request",
+        "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
         "schema_kind": "oneOf",
-        "required": [],
-        "properties": [
-          "event",
-          "approval_signatures",
-          "commit_event",
-          "welcomes",
-          "idempotency_key"
+        "required": [
+          "branch"
         ],
-        "closed": true,
+        "properties": [
+          "branch"
+        ],
+        "closed": false,
         "variants": [
           {
-            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventCommitSubmission",
-            "schema_kind": "object",
+            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
+            "schema_kind": null,
             "required": [
-              "event"
+              "branch",
+              "event_submission"
             ],
             "properties": [
-              "event",
-              "approval_signatures"
+              "branch"
             ],
-            "closed": true
+            "closed": false
           },
           {
-            "schema_ref": "schemas/mls-commit-submission.schema.json",
-            "schema_kind": "object",
+            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
+            "schema_kind": null,
             "required": [
-              "commit_event",
-              "welcomes",
-              "idempotency_key"
+              "branch",
+              "mls_submission"
             ],
             "properties": [
-              "commit_event",
-              "welcomes",
-              "idempotency_key"
+              "branch"
             ],
-            "closed": true
+            "closed": false
+          },
+          {
+            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
+            "schema_kind": null,
+            "required": [
+              "branch",
+              "processing",
+              "submissions"
+            ],
+            "properties": [
+              "branch"
+            ],
+            "closed": false
+          },
+          {
+            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
+            "schema_kind": null,
+            "required": [
+              "branch",
+              "unit"
+            ],
+            "properties": [
+              "branch"
+            ],
+            "closed": false
           }
         ]
       },
       "response": {
-        "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/submit_outcome",
+        "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_outcome",
         "schema_kind": "oneOf",
         "required": [
-          "status"
+          "branch"
         ],
         "properties": [
-          "status",
-          "commit",
-          "reason_code"
+          "branch",
+          "outcome",
+          "results"
         ],
         "closed": true,
         "variants": [
           {
-            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/submit_outcome",
+            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_authority_forward_outcome",
             "schema_kind": "object",
             "required": [
-              "status",
-              "commit"
+              "branch",
+              "outcome"
             ],
             "properties": [
-              "status",
-              "commit"
+              "branch",
+              "outcome"
             ],
             "closed": true
           },
           {
-            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/submit_outcome",
+            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_committed_replication_outcome",
             "schema_kind": "object",
             "required": [
-              "status",
-              "reason_code"
+              "branch",
+              "results"
             ],
             "properties": [
-              "status",
-              "reason_code"
+              "branch",
+              "results"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_registered_atomic_unit_outcome",
+            "schema_kind": "object",
+            "required": [
+              "branch",
+              "outcome"
+            ],
+            "properties": [
+              "branch",
+              "outcome"
             ],
             "closed": true
           }
@@ -6928,7 +6961,7 @@
       "operation_id": "ak.self.events.command.submit.v1",
       "success_shape_kind": "schema_resource",
       "request": {
-        "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/submit_request",
+        "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/self_submit_request",
         "schema_kind": "oneOf",
         "required": [],
         "properties": [
@@ -6936,7 +6969,11 @@
           "approval_signatures",
           "commit_event",
           "welcomes",
-          "idempotency_key"
+          "idempotency_key",
+          "unit_kind",
+          "events",
+          "event_submission",
+          "membership_compensation_evidence"
         ],
         "closed": true,
         "variants": [
@@ -6966,11 +7003,41 @@
               "idempotency_key"
             ],
             "closed": true
+          },
+          {
+            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/direct_conversation_founding_unit_submission",
+            "schema_kind": "object",
+            "required": [
+              "unit_kind",
+              "idempotency_key",
+              "events"
+            ],
+            "properties": [
+              "unit_kind",
+              "idempotency_key",
+              "events"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/membership_compensation_unit_submission",
+            "schema_kind": "object",
+            "required": [
+              "unit_kind",
+              "event_submission",
+              "membership_compensation_evidence"
+            ],
+            "properties": [
+              "unit_kind",
+              "event_submission",
+              "membership_compensation_evidence"
+            ],
+            "closed": true
           }
         ]
       },
       "response": {
-        "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/submit_outcome",
+        "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/self_submit_outcome",
         "schema_kind": "oneOf",
         "required": [
           "status"
@@ -6978,33 +7045,83 @@
         "properties": [
           "status",
           "commit",
-          "reason_code"
+          "reason_code",
+          "unit_kind",
+          "commits",
+          "receipt"
         ],
         "closed": true,
         "variants": [
           {
             "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/submit_outcome",
-            "schema_kind": "object",
+            "schema_kind": "oneOf",
             "required": [
-              "status",
-              "commit"
+              "status"
             ],
             "properties": [
               "status",
-              "commit"
+              "commit",
+              "reason_code"
+            ],
+            "closed": true,
+            "variants": [
+              {
+                "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/submit_outcome",
+                "schema_kind": "object",
+                "required": [
+                  "status",
+                  "commit"
+                ],
+                "properties": [
+                  "status",
+                  "commit"
+                ],
+                "closed": true
+              },
+              {
+                "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/submit_outcome",
+                "schema_kind": "object",
+                "required": [
+                  "status",
+                  "reason_code"
+                ],
+                "properties": [
+                  "status",
+                  "reason_code"
+                ],
+                "closed": true
+              }
+            ]
+          },
+          {
+            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/direct_conversation_founding_acceptance_outcome",
+            "schema_kind": "object",
+            "required": [
+              "unit_kind",
+              "status",
+              "commits",
+              "receipt"
+            ],
+            "properties": [
+              "unit_kind",
+              "status",
+              "commits",
+              "receipt"
             ],
             "closed": true
           },
           {
-            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/submit_outcome",
+            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/membership_compensation_acceptance_outcome",
             "schema_kind": "object",
             "required": [
+              "unit_kind",
               "status",
-              "reason_code"
+              "commit"
             ],
             "properties": [
+              "unit_kind",
               "status",
-              "reason_code"
+              "commit"
             ],
             "closed": true
           }

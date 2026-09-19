@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-09-20.1",
+  "version": "2026-09-20.2",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T00:52:19+08:00",
+  "generated_at": "2026-09-20T02:45:46+08:00",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, signature_invalid, capability_denied, schema_violation, json_invalid, query_invalid, param_missing, param_invalid, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind, unsupported_protocol_version, operation_selector_required, unsupported_operation_version. These are the universal failure surface and are NOT repeated in each operation entry. unsupported_protocol_version applies only when the binding implements Arkret-Protocol-Version header or equivalent media-type negotiation; ServiceDescribe consumers also use the same stable code locally before capability intersection. operation_selector_required and unsupported_operation_version are binding-level pre-dispatch failures evaluated before body parsing for every canonical operation.",
@@ -835,12 +835,18 @@
       "operation_specific": [
         "dependency_missing",
         "duplicate_conflict",
+        "direct_conversation_founding_unit_invalid",
+        "direct_conversation_pair_materialization_conflict",
+        "direct_conversation_slot_already_committed",
         "failed_precondition",
+        "history_not_visible",
+        "membership_compensation_conflict",
         "realm_frozen",
         "quarantine",
+        "source_refs_unverifiable",
         "unknown_event_kind"
       ],
-      "description": "Authority-commit operation. Current authorization and stream-head checks are evaluated atomically by the current governance Station.",
+      "description": "Closed peer authority-forward, committed-replication and registered-atomic-unit ingress. Forward admission is evaluated by the current governance Station. Replication rejects unverifiable source Event/Commit coordinates, authority generation, chain, witness or visibility without re-signing or fanout. Direct Conversation founding and membership compensation are all-or-nothing; dependency_missing carries the registered closed details shape and no per-item partial is returned.",
       "codes": []
     },
     {
@@ -1730,12 +1736,15 @@
       "http_alias": "POST /_arkret/self/events",
       "operation_specific": [
         "duplicate_conflict",
+        "direct_conversation_founding_unit_invalid",
+        "direct_conversation_slot_already_committed",
         "failed_precondition",
+        "membership_compensation_conflict",
         "realm_frozen",
         "quarantine",
         "unknown_event_kind"
       ],
-      "description": "Authority-commit operation. Current authorization and stream-head checks are evaluated atomically by the current governance Station.",
+      "description": "Endpoint-specific self authority-commit union. Ordinary and MLS branches keep single-submit semantics; Direct Conversation founding commits exactly four ordered Events and one receipt atomically; membership compensation verifies transport-only evidence and claims its single-use CAS in the same Event transaction.",
       "codes": []
     },
     {

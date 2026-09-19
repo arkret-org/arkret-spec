@@ -331,6 +331,11 @@
       "version": 7
     },
     {
+      "path": "spec/v1/artifacts/fixtures/peer-event-submit-semantic-union-fixture.json",
+      "sha256": "0229c5c5643b2d7e1b74dc4485ae5842674e684131448ee8a5043f1d1d3faab8",
+      "version": "2026-09-20.1"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
       "sha256": "5b9c95a8ac2f13fddd9c746dae33fb8a1ea0c69c9afe0268e5ec4987c56724cb",
       "version": "2026-09-19"

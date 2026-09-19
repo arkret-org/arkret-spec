@@ -1,4 +1,4 @@
-"""Close Event-submit request replay identity without deciding peer DTO shape."""
+"""Close Event-submit request replay identity across the registered endpoint unions."""
 
 from __future__ import annotations
 
@@ -54,10 +54,10 @@ def check_event_submit_idempotency(lint: Lint) -> None:
         "至少 24 小时记录下限",
         "同 identity 异完整 body 的 `duplicate_conflict`",
         "具体 request／outcome shape 只由 operation registry 同行的 `request_schema_ref`／`response_schema_ref` 决定",
-        "当前登记 schema 没有可供 `accepted[]`／`duplicate[]` 求差的逐项结果",
-        "调用方不得据此构造 partial retry",
+        "不存在顶层 `accepted[]`／`duplicate[]`",
+        "调用方不得从完整 replay 中删去已经 stored 的 item 来构造 partial retry",
         "同一 24 小时保留窗口内",
-        "不由本段幂等规则预先裁决",
+        "返回原 branch outcome 或等价幂等结果",
     )
     for marker in required_markers:
         if marker not in prose:

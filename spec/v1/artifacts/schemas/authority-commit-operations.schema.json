@@ -76,7 +76,923 @@
             },
             "reason_code": {
               "type": "string",
-              "minLength": 1
+              "pattern": "^[a-z][a-z0-9_]{0,63}$"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "self_submit_request": {
+      "description": "Closed self Event-submit union. Ordinary Event and MLS Commit requests retain their current canonical shapes. Direct Conversation founding and membership compensation are the only aggregate branches; both are closed and are rejected on every other Event-submit endpoint.",
+      "oneOf": [
+        {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventCommitSubmission"
+        },
+        {
+          "$ref": "./mls-commit-submission.schema.json"
+        },
+        {
+          "$ref": "#/$defs/direct_conversation_founding_unit_submission"
+        },
+        {
+          "$ref": "#/$defs/membership_compensation_unit_submission"
+        }
+      ]
+    },
+    "self_submit_outcome": {
+      "description": "Closed self Event-submit outcome union. Aggregate outcomes cannot be parsed as an ordinary single-Event outcome.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/submit_outcome"
+        },
+        {
+          "$ref": "#/$defs/direct_conversation_founding_acceptance_outcome"
+        },
+        {
+          "$ref": "#/$defs/membership_compensation_acceptance_outcome"
+        }
+      ]
+    },
+    "peer_submit_request": {
+      "type": "object",
+      "description": "The only peer Event ingress. branch is a semantic discriminator, not a routing hint: authority_forward performs first admission at the current governance Station; committed_replication stores source-committed replicas; registered_atomic_unit performs one registered all-or-nothing materialization. Bodies cannot be reinterpreted across branches.",
+      "required": [
+        "branch"
+      ],
+      "properties": {
+        "branch": {
+          "enum": [
+            "authority_forward",
+            "committed_replication",
+            "registered_atomic_unit"
+          ]
+        },
+        "event_submission": {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventCommitSubmission"
+        },
+        "mls_submission": {
+          "$ref": "./mls-commit-submission.schema.json"
+        },
+        "processing": {
+          "const": "per_item"
+        },
+        "submissions": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": {
+            "$ref": "#/$defs/replicated_committed_event_submission"
+          }
+        },
+        "unit": {
+          "$ref": "#/$defs/peer_registered_atomic_unit"
+        }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "branch",
+            "event_submission"
+          ],
+          "properties": {
+            "branch": {
+              "const": "authority_forward"
+            }
+          },
+          "not": {
+            "required": [
+              "mls_submission"
+            ]
+          }
+        },
+        {
+          "required": [
+            "branch",
+            "mls_submission"
+          ],
+          "properties": {
+            "branch": {
+              "const": "authority_forward"
+            }
+          },
+          "not": {
+            "required": [
+              "event_submission"
+            ]
+          }
+        },
+        {
+          "required": [
+            "branch",
+            "processing",
+            "submissions"
+          ],
+          "properties": {
+            "branch": {
+              "const": "committed_replication"
+            }
+          }
+        },
+        {
+          "required": [
+            "branch",
+            "unit"
+          ],
+          "properties": {
+            "branch": {
+              "const": "registered_atomic_unit"
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "peer_submit_outcome": {
+      "description": "Closed peer Event-submit outcome union. Replication reports one same-order item result for every input; registered units report exactly one indivisible outcome.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/peer_authority_forward_outcome"
+        },
+        {
+          "$ref": "#/$defs/peer_committed_replication_outcome"
+        },
+        {
+          "$ref": "#/$defs/peer_registered_atomic_unit_outcome"
+        }
+      ]
+    },
+    "peer_authority_forward_outcome": {
+      "type": "object",
+      "required": [
+        "branch",
+        "outcome"
+      ],
+      "properties": {
+        "branch": {
+          "const": "authority_forward"
+        },
+        "outcome": {
+          "$ref": "#/$defs/submit_outcome"
+        }
+      },
+      "additionalProperties": false
+    },
+    "committed_event_submission": {
+      "type": "object",
+      "description": "One full producer submission paired with the source-signed RealmCommit that accepted it. submission.event.event_id MUST equal source_commit.event_ref; realm and stream coordinates, governance generation, current source authority signature and previous_commit_ref continuity MUST verify exactly. This shape never accepts EventReadRow, redacted Event views or locked stubs.",
+      "required": [
+        "submission",
+        "source_commit"
+      ],
+      "properties": {
+        "submission": {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventCommitSubmission"
+        },
+        "source_commit": {
+          "$ref": "./realm-commit.schema.json"
+        }
+      },
+      "additionalProperties": false
+    },
+    "replicated_committed_event_submission": {
+      "type": "object",
+      "description": "One committed-replication item. The receiver verifies the exact source Event/Commit pair plus destination membership, route and history/plaintext visibility at the source commit basis. It then stores those exact source bytes; it MUST NOT perform first admission, sign another RealmCommit, or enqueue a second federation fanout.",
+      "required": [
+        "committed_event",
+        "recipient_witnesses"
+      ],
+      "properties": {
+        "committed_event": {
+          "$ref": "#/$defs/committed_event_submission"
+        },
+        "recipient_witnesses": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/replication_recipient_witness"
+          },
+          "description": "Canonical bytewise-sorted unique witnesses. The authenticated destination service MUST equal every recipient_service_id selected for this request, each member route must resolve to that service, and current membership/history/plaintext visibility must authorize this exact source commit."
+        }
+      },
+      "additionalProperties": false
+    },
+    "replication_recipient_witness": {
+      "type": "object",
+      "required": [
+        "realm_id",
+        "member_id",
+        "membership_event_ref",
+        "recipient_service_id"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "member_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
+        },
+        "membership_event_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "recipient_service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        }
+      },
+      "additionalProperties": false
+    },
+    "peer_committed_replication_outcome": {
+      "type": "object",
+      "description": "Per-item replication outcome. results has exactly the same length and order as request.submissions. A stored or duplicate row names the exact source coordinates; rejected means that item was not stored. Transport retry replays the complete request body and returns the same results. This branch has no accepted finality vocabulary.",
+      "required": [
+        "branch",
+        "results"
+      ],
+      "properties": {
+        "branch": {
+          "const": "committed_replication"
+        },
+        "results": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+        "items": {
+          "$ref": "#/$defs/peer_committed_replication_record"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "peer_committed_replication_record": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "index",
+            "status",
+            "committed_ref"
+          ],
+          "properties": {
+            "index": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 99
+            },
+            "status": {
+              "enum": [
+                "stored",
+                "duplicate"
+              ]
+            },
+            "committed_ref": {
+              "$ref": "#/$defs/committed_event_ref"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "index",
+            "status",
+            "committed_ref",
+            "reason_code"
+          ],
+          "properties": {
+            "index": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 99
+            },
+            "status": {
+              "const": "rejected"
+            },
+            "committed_ref": {
+              "$ref": "#/$defs/committed_event_ref"
+            },
+            "reason_code": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]{0,63}$"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "direct_conversation_founding_unit_submission": {
+      "type": "object",
+      "description": "Self-only caller-authored Direct Conversation founding unit. The current Station recomputes authority from current evidence and therefore rejects a founding_authority_evidence echo. The four Events are accepted atomically in this exact order with consecutive RealmCommits: realm create, founder join, peer join, strand create. realm_id is retyped from events[0].event.event_id and main_strand_id from events[3].event.event_id.",
+      "required": [
+        "unit_kind",
+        "idempotency_key",
+        "events"
+      ],
+      "properties": {
+        "unit_kind": {
+          "const": "direct_conversation_founding"
+        },
+        "idempotency_key": {
+          "type": "string",
+          "format": "uuid",
+          "description": "UUIDv7 founding-slot fence. Byte-identical replay returns the stored receipt; the same key with different canonical unit bytes is duplicate_conflict."
+        },
+        "events": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "prefixItems": [
+            {
+              "$ref": "#/$defs/direct_conversation_realm_create_submission"
+            },
+            {
+              "$ref": "#/$defs/direct_conversation_member_join_submission"
+            },
+            {
+              "$ref": "#/$defs/direct_conversation_member_join_submission"
+            },
+            {
+              "$ref": "#/$defs/direct_conversation_strand_create_submission"
+            }
+          ],
+          "items": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "direct_conversation_realm_create_submission": {
+      "allOf": [
+        {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventCommitSubmission"
+        },
+        {
+          "properties": {
+            "event": {
+              "properties": {
+                "kind": {
+                  "const": "ak.realm.create"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "direct_conversation_member_join_submission": {
+      "allOf": [
+        {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventCommitSubmission"
+        },
+        {
+          "properties": {
+            "event": {
+              "properties": {
+                "kind": {
+                  "const": "ak.member.state"
+                }
+              }
+            }
+          },
+          "description": "payload action MUST be join. The first occurrence is the founder and the second is the peer; the pair and Realm bindings must match the realm-create Event."
+        }
+      ]
+    },
+    "direct_conversation_strand_create_submission": {
+      "allOf": [
+        {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventCommitSubmission"
+        },
+        {
+          "properties": {
+            "event": {
+              "properties": {
+                "kind": {
+                  "const": "ak.strand.create"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "direct_conversation_founding_federation_submission": {
+      "type": "object",
+      "description": "Peer-only source-committed Direct Conversation founding unit. The four committed rows have the same Event order as the self unit; their source commits have one Realm/generation/stream, consecutive positions and exact previous_commit_ref linkage. The receiver re-verifies the source receipt and bounded authority evidence, then materializes all four rows or none without re-signing commits or creating fanout.",
+      "required": [
+        "unit_kind",
+        "committed_events",
+        "source_acceptance_receipt",
+        "founding_authority_evidence"
+      ],
+      "properties": {
+        "unit_kind": {
+          "const": "direct_conversation_founding"
+        },
+        "committed_events": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "prefixItems": [
+            {
+              "$ref": "#/$defs/committed_direct_conversation_realm_create"
+            },
+            {
+              "$ref": "#/$defs/committed_direct_conversation_member_join"
+            },
+            {
+              "$ref": "#/$defs/committed_direct_conversation_member_join"
+            },
+            {
+              "$ref": "#/$defs/committed_direct_conversation_strand_create"
+            }
+          ],
+          "items": false
+        },
+        "source_acceptance_receipt": {
+          "$ref": "./direct-conversation-operations.schema.json#/$defs/direct_conversation_founding_acceptance_receipt"
+        },
+        "founding_authority_evidence": {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/DirectConversationFoundingAuthorityEvidence"
+        }
+      },
+      "additionalProperties": false
+    },
+    "committed_direct_conversation_realm_create": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/committed_event_submission"
+        },
+        {
+          "properties": {
+            "submission": {
+              "$ref": "#/$defs/direct_conversation_realm_create_submission"
+            }
+          }
+        }
+      ]
+    },
+    "committed_direct_conversation_member_join": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/committed_event_submission"
+        },
+        {
+          "properties": {
+            "submission": {
+              "$ref": "#/$defs/direct_conversation_member_join_submission"
+            }
+          }
+        }
+      ]
+    },
+    "committed_direct_conversation_strand_create": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/committed_event_submission"
+        },
+        {
+          "properties": {
+            "submission": {
+              "$ref": "#/$defs/direct_conversation_strand_create_submission"
+            }
+          }
+        }
+      ]
+    },
+    "direct_conversation_founding_acceptance_outcome": {
+      "type": "object",
+      "description": "One indivisible Direct Conversation founding outcome. Self first success creates the source-signed receipt. Peer success and exact replay echo the byte-identical verified source receipt and source commits. The four commits are ordered like the unit and form one consecutive source chain; no per-item partial result exists.",
+      "required": [
+        "unit_kind",
+        "status",
+        "commits",
+        "receipt"
+      ],
+      "properties": {
+        "unit_kind": {
+          "const": "direct_conversation_founding"
+        },
+        "status": {
+          "enum": [
+            "committed",
+            "duplicate"
+          ]
+        },
+        "commits": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "items": {
+            "$ref": "./realm-commit.schema.json"
+          }
+        },
+        "receipt": {
+          "$ref": "./direct-conversation-operations.schema.json#/$defs/direct_conversation_founding_acceptance_receipt"
+        }
+      },
+      "additionalProperties": false
+    },
+    "peer_registered_atomic_unit": {
+      "description": "Closed registry of peer source-committed atomic units. Every listed unit is persisted and materialized all-or-nothing and produces no new Arkret Event finality.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/direct_conversation_founding_federation_submission"
+        },
+        {
+          "$ref": "#/$defs/membership_compensation_federation_submission"
+        }
+      ]
+    },
+    "peer_registered_atomic_unit_outcome": {
+      "type": "object",
+      "required": [
+        "branch",
+        "outcome"
+      ],
+      "properties": {
+        "branch": {
+          "const": "registered_atomic_unit"
+        },
+        "outcome": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/direct_conversation_founding_acceptance_outcome"
+            },
+            {
+              "$ref": "#/$defs/membership_compensation_acceptance_outcome"
+            },
+            {
+              "$ref": "#/$defs/registered_atomic_unit_rejection"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "registered_atomic_unit_rejection": {
+      "type": "object",
+      "required": [
+        "unit_kind",
+        "status",
+        "reason_code"
+      ],
+      "properties": {
+        "unit_kind": {
+          "enum": [
+            "direct_conversation_founding",
+            "membership_compensation"
+          ]
+        },
+        "status": {
+          "const": "rejected"
+        },
+        "reason_code": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        },
+        "details": {
+          "$ref": "#/$defs/direct_conversation_founding_missing_dependency_list"
+        }
+      },
+      "additionalProperties": false
+    },
+    "membership_compensation_unit_submission": {
+      "type": "object",
+      "description": "Self-only membership compensation aggregate. The enclosed Event is an ak.member.state leave/remove whose authorization_ref equals evidence.delegation.delegation_id. Evidence is transport-only and excluded from Event canonical bytes. The destination authority claims (admission_id, delegation_id) once in the same transaction as Event acceptance; mismatch, already absent, prior use or a superseding J2/new join is membership_compensation_conflict with zero writes.",
+      "required": [
+        "unit_kind",
+        "event_submission",
+        "membership_compensation_evidence"
+      ],
+      "properties": {
+        "unit_kind": {
+          "const": "membership_compensation"
+        },
+        "event_submission": {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventCommitSubmission"
+        },
+        "membership_compensation_evidence": {
+          "$ref": "#/$defs/membership_compensation_evidence"
+        }
+      },
+      "additionalProperties": false
+    },
+    "membership_compensation_federation_submission": {
+      "type": "object",
+      "description": "Peer-only source-committed membership compensation unit. The receiver verifies the full source Event/Commit pair and the unchanged compensation evidence, then atomically claims the same single-use binding and stores the source fact without re-signing a commit or fanout.",
+      "required": [
+        "unit_kind",
+        "committed_event",
+        "membership_compensation_evidence"
+      ],
+      "properties": {
+        "unit_kind": {
+          "const": "membership_compensation"
+        },
+        "committed_event": {
+          "$ref": "#/$defs/committed_event_submission"
+        },
+        "membership_compensation_evidence": {
+          "$ref": "#/$defs/membership_compensation_evidence"
+        }
+      },
+      "additionalProperties": false
+    },
+    "membership_compensation_evidence": {
+      "type": "object",
+      "description": "Closed transport-only compensation evidence. The verifier recomputes delegation_id as ak:membership_compensation_delegation:sha256:<lowercase_hex SHA-256(JCS(core))>, verifies both signatures and exact join/admission/commit/executor bindings, and compares single_use_binding byte-for-byte. It is never inserted into Event canonical bytes.",
+      "required": [
+        "delegation",
+        "terminal_certificate",
+        "single_use_binding"
+      ],
+      "properties": {
+        "delegation": {
+          "$ref": "#/$defs/membership_compensation_delegation"
+        },
+        "terminal_certificate": {
+          "$ref": "#/$defs/membership_compensation_terminal_certificate"
+        },
+        "single_use_binding": {
+          "$ref": "#/$defs/membership_compensation_single_use_binding"
+        }
+      },
+      "additionalProperties": false
+    },
+    "membership_compensation_delegation": {
+      "type": "object",
+      "required": [
+        "delegation_id",
+        "core",
+        "proof"
+      ],
+      "properties": {
+        "delegation_id": {
+          "$ref": "./event-envelope.schema.json#/$defs/membership_compensation_delegation_ref"
+        },
+        "core": {
+          "$ref": "#/$defs/membership_compensation_delegation_core"
+        },
+        "proof": {
+          "$ref": "./principal-operations.schema.json#/$defs/signature"
+        }
+      },
+      "additionalProperties": false
+    },
+    "membership_compensation_delegation_core": {
+      "type": "object",
+      "required": [
+        "admission_id",
+        "join_event_ref",
+        "join_commit_ref",
+        "subject_id",
+        "executor_id",
+        "executor_service_id",
+        "verification_method",
+        "resource_realm_id",
+        "deadline",
+        "action"
+      ],
+      "properties": {
+        "admission_id": {
+          "$ref": "./string-profiles.schema.json#/$defs/non_typed_identifier_floor",
+          "format": "uuid"
+        },
+        "join_event_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "join_commit_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
+        },
+        "subject_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
+        },
+        "executor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
+        },
+        "executor_service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "verification_method": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
+        },
+        "resource_realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "deadline": {
+          "$ref": "./principal-operations.schema.json#/$defs/timestamp"
+        },
+        "action": {
+          "enum": [
+            "ak.member.compensate.leave",
+            "ak.member.compensate.remove"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "membership_compensation_terminal_certificate": {
+      "type": "object",
+      "required": [
+        "admission_id",
+        "delegation_id",
+        "status",
+        "certified_at",
+        "issuer_id",
+        "proof"
+      ],
+      "properties": {
+        "admission_id": {
+          "$ref": "./string-profiles.schema.json#/$defs/non_typed_identifier_floor",
+          "format": "uuid"
+        },
+        "delegation_id": {
+          "$ref": "./event-envelope.schema.json#/$defs/membership_compensation_delegation_ref"
+        },
+        "status": {
+          "const": "join_terminal_failed"
+        },
+        "certified_at": {
+          "$ref": "./principal-operations.schema.json#/$defs/timestamp"
+        },
+        "issuer_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "proof": {
+          "$ref": "./principal-operations.schema.json#/$defs/signature"
+        }
+      },
+      "additionalProperties": false
+    },
+    "membership_compensation_single_use_binding": {
+      "type": "object",
+      "required": [
+        "admission_id",
+        "delegation_id"
+      ],
+      "properties": {
+        "admission_id": {
+          "$ref": "./string-profiles.schema.json#/$defs/non_typed_identifier_floor",
+          "format": "uuid"
+        },
+        "delegation_id": {
+          "$ref": "./event-envelope.schema.json#/$defs/membership_compensation_delegation_ref"
+        }
+      },
+      "additionalProperties": false
+    },
+    "membership_compensation_acceptance_outcome": {
+      "type": "object",
+      "description": "Atomic compensation outcome. committed and duplicate both carry the one authority-signed source commit. Exact full-body replay returns the same outcome; no per-item partial exists.",
+      "required": [
+        "unit_kind",
+        "status",
+        "commit"
+      ],
+      "properties": {
+        "unit_kind": {
+          "const": "membership_compensation"
+        },
+        "status": {
+          "enum": [
+            "committed",
+            "duplicate"
+          ]
+        },
+        "commit": {
+          "$ref": "./realm-commit.schema.json"
+        }
+      },
+      "additionalProperties": false
+    },
+    "direct_conversation_founding_missing_dependency_list": {
+      "type": "object",
+      "required": [
+        "missing_dependencies"
+      ],
+      "properties": {
+        "missing_dependencies": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/direct_conversation_founding_missing_dependency"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "direct_conversation_founding_dependency_missing_problem": {
+      "type": "object",
+      "description": "Closed HTTP 409 application/problem+json response for a registered Direct Conversation founding unit whose bounded exact dependencies are not locally available. It is retryable only after canonical backfill/resolve and a new full-body request evaluation; no partial unit write occurred.",
+      "x-arkret-external-literal-object": {
+        "specification": "RFC 9457 Problem Details for HTTP APIs",
+        "anchor": "https://www.rfc-editor.org/rfc/rfc9457.html#section-3.1",
+        "reason": "The closed endpoint problem retains the RFC literal type/title/status/detail/instance member vocabulary and adds one registered details member."
+      },
+      "required": [
+        "type",
+        "title",
+        "status",
+        "detail",
+        "details"
+      ],
+      "properties": {
+        "type": {
+          "const": "https://arkret.org/problems/dependency_missing"
+        },
+        "title": {
+          "const": "Dependency missing"
+        },
+        "status": {
+          "const": 409
+        },
+        "detail": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "instance": {
+          "type": "string",
+          "format": "uri-reference",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "details": {
+          "$ref": "#/$defs/direct_conversation_founding_missing_dependency_list"
+        }
+      },
+      "additionalProperties": false
+    },
+    "direct_conversation_founding_missing_dependency": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "event_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "committed_event"
+            },
+            "event_id": {
+              "$ref": "./common-ids.schema.json#/$defs/event_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "commit_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "realm_commit"
+            },
+            "commit_id": {
+              "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "source_event_ref"
+          ],
+          "properties": {
+            "kind": {
+              "enum": [
+                "contact_round_evidence",
+                "agent_provision_ref"
+              ]
+            },
+            "source_event_ref": {
+              "$ref": "./common-ids.schema.json#/$defs/event_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "verification_method"
+          ],
+          "properties": {
+            "kind": {
+              "const": "service_verification_method"
+            },
+            "verification_method": {
+              "type": "string",
+              "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
             }
           },
           "additionalProperties": false

@@ -242,7 +242,7 @@ exact `request_event_ref` 与可选的原始 `request_message`；客户端只提
 glare 与已消费 slot 一律零写入拒绝；Contact 镜像永不通过 Event resolve 暴露。
 
 `ak.vector.direct_conversation.founding_unit.v1` MUST 证明：caller 自行作者化的 first-valid founding unit——
-对四个有序 Event ID 的 `founding_unit_digest` 逐字节 KAT，`realm_id` 与 `main_strand_id` 分别由第一与第三个
+对四个有序 Event ID 的 `founding_unit_digest` 逐字节 KAT，`realm_id` 与 `main_strand_id` 分别由第一与第四个
 Event ID 重类型得到，founder 成员身份显式表达，self 与 peer 载体分支形状封闭；拒绝服务端分配的标识符、
 保留或物化中的草稿、协调者选举、重排、第五条 Event 以及任何被携带的坐标字段。
 

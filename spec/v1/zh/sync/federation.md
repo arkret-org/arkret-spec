@@ -80,7 +80,19 @@ Event forwarding 始终保留 exact producer bytes，并只将 current authority
 
 同一 service DID 的 endpoint/record 更新只刷新 transport route，MUST NOT 改变冻结 witness、target identity 或原幂等键。AccountId 的 Station 分量变化意味着另一完整 ActorId，不是旧 intent 的 route 更新；之后同一 principal 以新 AccountId、其它 ActorId 或新 membership Event 重新加入，只能影响新 intent，MUST NOT 复活或重定向旧 intent。多个 frozen members 共享同一 service 时，一个成员退出不影响其它仍完整有效的 witness。
 
-只有经过 transport 认证、schema 校验和本轮授权求值后，目标 exact `event_id` 出现在响应**顶层当前求值**的 `accepted[] ∪ duplicate[]` 中，source 才能把该 Event / destination intent 置为 terminal `delivered`。HTTP 2xx、批次 `status`、写入 socket、`sent_at`、attempt count、batch receipt 都不是该逐项当前 delivery evidence；同批未出现于该集合的 Event 必须保持 pending 或按其当前 rejection 处理。`pending_route`、`pending_delivery`、`delivered`、`cancelled_authority_lost` 是 Realm Event fanout 的封闭 target 状态；其中前两者计入 pending，后两者不再欠投递。`accepted` 只表示本地 canonical acceptance，不表示所有 remote target 已交付；source 当前没有未结 fanout intent 也不表示 destination 当前仍持有 Event 或 Realm 历史完整。
+durable outbox 必须使用 `ak.peer.events.command.submit.v1` 的 `committed_replication` 分支。每项都携完整
+source `EventCommitSubmission`、source-signed `RealmCommit` 与本节冻结的 recipient witness；接收方重新验证
+commit/event/ref、source authority generation、连续性、route、membership 与 history/plaintext visibility，但只保存
+exact source bytes，**不得**重做首次 admission、重签 `RealmCommit` 或创建第二轮 fanout。
+
+只有经过 transport 认证、schema 校验和本轮授权求值后，目标 exact source coordinates 在同序
+`results[]` 中得到 `status="stored"|"duplicate"`，source 才能把该 Event / destination intent 置为 terminal
+`delivered`。`rejected` 保持 pending 或按 reason 的确定性策略终止；HTTP 2xx、顶层 branch、写入 socket、
+`sent_at`、attempt count、batch receipt 都不是逐项 delivery evidence。此处没有顶层
+`accepted[]`／`duplicate[]`，也不得把 replica persistence 称为新的 accepted finality。`pending_route`、
+`pending_delivery`、`delivered`、`cancelled_authority_lost` 是 Realm Event fanout 的封闭 target 状态；其中前两者
+计入 pending，后两者不再欠投递。本地 canonical acceptance 不表示所有 remote target 已交付；source 当前没有
+未结 fanout intent 也不表示 destination 当前仍持有 Event 或 Realm 历史完整。
 
 target 状态的读取面 MUST 不泄露成员拓扑：未知 Event 与不可见 Event 使用同一 `not_found`，且只有调用者按当前 Realm membership / history / plaintext visibility 规则可读取产生该 target 的 joined-member ActorId routing projection 时，对应 row 才可携带 service 身份。
 

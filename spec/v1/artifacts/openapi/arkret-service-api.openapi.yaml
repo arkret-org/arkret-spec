@@ -39,9 +39,9 @@ info:
 
     grants.query.effective}`, and the ServiceDescribe envelope. The corresponding
 
-    component schemas are named `EventsSubmitBatchRequestBody`,
+    Event-submit schemas are the endpoint-specific `self_submit_request` / `self_submit_outcome`
 
-    `EventFederationSubmission`, `EventsSubmitFederationRequestBody`, `EventsSubmitOutcome`, `EventView`,
+    and `peer_submit_request` / `peer_submit_outcome` definitions in authority-commit-operations.schema.json; Event reads use `EventView`,
 
     `CommittedEventResolveRequest` / `CommittedEventResolveOutcome`, `stream_scan_request` / `stream_scan_outcome`
     (authority-commit-operations.schema.json),
@@ -1823,9 +1823,10 @@ paths:
   /_arkret/self/events:
     post:
       operationId: ak.self.events.command.submit
-      summary: Submit an exact producer Event to its current Realm governance Station
-      description: Submit an exact producer Event to its current Realm governance Station. The Account Station reports committed
-        only after receiving RealmCommit.
+      summary: Submit one closed self Event or registered atomic-unit branch to current governance
+      description: Ordinary Event and MLS submissions keep their single-submit semantics. Direct Conversation founding is an
+        ordered four-Event all-or-nothing unit and membership compensation is a one-Event aggregate with closed transport-only
+        evidence and a single-use CAS. The Account Station reports committed only after receiving the authority-signed RealmCommit(s).
       parameters:
       - name: Arkret-Operation
         in: header
@@ -1839,14 +1840,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ../schemas/authority-commit-operations.schema.json#/$defs/submit_request
+              $ref: ../schemas/authority-commit-operations.schema.json#/$defs/self_submit_request
       responses:
         '200':
           description: Successful Arkret operation outcome.
           content:
             application/json:
               schema:
-                $ref: ../schemas/authority-commit-operations.schema.json#/$defs/submit_outcome
+                $ref: ../schemas/authority-commit-operations.schema.json#/$defs/self_submit_outcome
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -2391,10 +2392,11 @@ paths:
   /_arkret/peer/events:
     post:
       operationId: ak.peer.events.command.submit
-      summary: Forward an exact producer Event to the verified current governance Station; a non-authority peer cannot accept
-        it locally
-      description: Forward an exact producer Event to the verified current governance Station; a non-authority peer cannot
-        accept it locally.
+      summary: Process one closed peer authority-forward, committed-replication, or registered-atomic-unit branch
+      description: authority_forward sends one exact Event or MLS submission to current governance for first admission.
+        committed_replication verifies bounded full source EventCommitSubmission plus source RealmCommit rows and stores exact
+        replicas without re-signing or second fanout. registered_atomic_unit materializes only registered source-committed units
+        all-or-nothing. canonical_hash/full_body exact replay is branch-stable.
       parameters:
       - name: Arkret-Operation
         in: header
@@ -2408,14 +2410,21 @@ paths:
         content:
           application/json:
             schema:
-              $ref: ../schemas/authority-commit-operations.schema.json#/$defs/submit_request
+              $ref: ../schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request
       responses:
         '200':
           description: Successful Arkret operation outcome.
           content:
             application/json:
               schema:
-                $ref: ../schemas/authority-commit-operations.schema.json#/$defs/submit_outcome
+                $ref: ../schemas/authority-commit-operations.schema.json#/$defs/peer_submit_outcome
+        '409':
+          description: A Direct Conversation founding atomic unit lacks one or more bounded exact dependencies. No unit row is
+            materialized; details is a closed typed missing set.
+          content:
+            application/problem+json:
+              schema:
+                $ref: ../schemas/authority-commit-operations.schema.json#/$defs/direct_conversation_founding_dependency_missing_problem
       security:
       - serviceHttpMessageSignatures: []
   /_arkret/peer/invites:

@@ -1162,6 +1162,18 @@ critical submission evidence，不进入被授权Event digest。destination auth
 `(admission_id,delegation_id)`做single-use CAS；current membership head仍是J1时最多一次写入，already absent或
 已被J2/new join supersede时返回 `membership_compensation_conflict` 且零写，绝不得删除后来重新加入者。
 
+canonical carrier 是 [`authority-commit-operations.schema.json`](../../artifacts/schemas/authority-commit-operations.schema.json)
+的 closed membership-compensation aggregate。self 面使用 `membership_compensation_unit_submission`：逐字承载
+一个 `EventCommitSubmission` 与 `membership_compensation_evidence{delegation,terminal_certificate,single_use_binding}`；
+peer 面只在 `ak.peer.events.command.submit.v1` 的 `branch="registered_atomic_unit"` 下使用
+`membership_compensation_federation_submission`，将同一 evidence 与完整 source
+`EventCommitSubmission + RealmCommit` 一起传递。terminal certificate 与 delegation 必须逐字绑定同一
+`(admission_id,delegation_id)`，且 compensation Event 的 `authorization_ref` 等于该 delegation ID；evidence
+始终排除在 Event canonical bytes 之外。self authority 在 Event acceptance 同一事务内 claim single-use CAS；peer
+receiver 只 materialize 已 source-committed 的 exact fact，不重签 Commit、不触发 fanout。缺 terminal certificate、
+跨 admission、错 action／executor／proof key、already absent、已使用或 J2/new join supersede 全部
+`membership_compensation_conflict` 且零写入；exact full-body replay 返回原 outcome，不执行第二次 CAS。
+
 失败分支固定为：claim前拒绝零烧；claim后/member acceptance前只revoke原claim；member accepted/Add前执行
 membership compensation；Add已接受后先执行同一membership compensation，再由eligible committer执行标准MLS
 Remove。Remove绑定旧group/generation/leaf/commit，新generation上只能no-op。deadline触发operation failure，

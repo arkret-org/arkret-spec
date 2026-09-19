@@ -8,12 +8,12 @@
   ],
   "description": "Exhaustive classification of operation DTO schema/status/reason_code/reason properties into closed literals/enums, validated open protocol tokens, or bounded human-readable text. Any unconstrained audited string fails generation.",
   "summary": {
-    "total_fields": 64,
+    "total_fields": 70,
     "by_classification": {
       "bounded_free_text": 7,
-      "closed_enum": 29,
-      "closed_literal": 11,
-      "validated_open_reason_code": 17
+      "closed_enum": 31,
+      "closed_literal": 14,
+      "validated_open_reason_code": 18
     },
     "unclassified": 0
   },
@@ -218,6 +218,54 @@
       "pointer": "#/$defs/rejected_scope_row/properties/reason_code",
       "classification": "validated_open_reason_code",
       "basis": "^[a-z][a-z0-9_]{0,63}$"
+    },
+    {
+      "schema_file": "authority-commit-operations.schema.json",
+      "shape": "direct_conversation_founding_acceptance_outcome",
+      "field": "status",
+      "pointer": "#/$defs/direct_conversation_founding_acceptance_outcome/properties/status",
+      "classification": "closed_enum",
+      "basis": "JSON Schema enum"
+    },
+    {
+      "schema_file": "authority-commit-operations.schema.json",
+      "shape": "direct_conversation_founding_dependency_missing_problem",
+      "field": "status",
+      "pointer": "#/$defs/direct_conversation_founding_dependency_missing_problem/properties/status",
+      "classification": "closed_literal",
+      "basis": "JSON Schema const"
+    },
+    {
+      "schema_file": "authority-commit-operations.schema.json",
+      "shape": "membership_compensation_acceptance_outcome",
+      "field": "status",
+      "pointer": "#/$defs/membership_compensation_acceptance_outcome/properties/status",
+      "classification": "closed_enum",
+      "basis": "JSON Schema enum"
+    },
+    {
+      "schema_file": "authority-commit-operations.schema.json",
+      "shape": "membership_compensation_terminal_certificate",
+      "field": "status",
+      "pointer": "#/$defs/membership_compensation_terminal_certificate/properties/status",
+      "classification": "closed_literal",
+      "basis": "JSON Schema const"
+    },
+    {
+      "schema_file": "authority-commit-operations.schema.json",
+      "shape": "registered_atomic_unit_rejection",
+      "field": "reason_code",
+      "pointer": "#/$defs/registered_atomic_unit_rejection/properties/reason_code",
+      "classification": "validated_open_reason_code",
+      "basis": "^[a-z][a-z0-9_]{0,63}$"
+    },
+    {
+      "schema_file": "authority-commit-operations.schema.json",
+      "shape": "registered_atomic_unit_rejection",
+      "field": "status",
+      "pointer": "#/$defs/registered_atomic_unit_rejection/properties/status",
+      "classification": "closed_literal",
+      "basis": "JSON Schema const"
     },
     {
       "schema_file": "contact-operations.schema.json",

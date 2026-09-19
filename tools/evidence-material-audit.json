@@ -1,12 +1,12 @@
 {
-  "version": 2,
+  "version": 3,
   "source_of_truth": false,
   "narrative_source": "spec/v1/zh/models/common-fields.md#r6-证据类名词分工",
   "scope": [
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 340,
+  "audited_occurrence_count": 344,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -222,6 +222,30 @@
         "transcript"
       ],
       "reason": "Selects the closed DID-method-native version transcript whose proofs, witness attestations and commitments establish the exact registration epoch."
+    },
+    {
+      "file": "authority-commit-operations.schema.json",
+      "key": "founding_authority_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation",
+        "commitment"
+      ],
+      "reason": "Peer-only closed Direct Conversation founding authority material transported beside four source-committed rows; the recipient independently verifies it against the source receipt and current bounded trust basis."
+    },
+    {
+      "file": "authority-commit-operations.schema.json",
+      "key": "membership_compensation_evidence",
+      "occurrences": 3,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation",
+        "commitment"
+      ],
+      "reason": "Closed transport-only aggregate of the caller-signed compensation delegation, terminal failure certificate and exact single-use binding; it is excluded from Event canonical bytes."
     },
     {
       "file": "authenticated-signer-resolution-evidence.schema.json",

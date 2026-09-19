@@ -4154,6 +4154,7 @@
           "ak.schema.applet_managed_actor_provision.v1",
           "ak.schema.applet_package.v1",
           "ak.schema.applet_registration_epoch_transcript.v1",
+          "ak.schema.authority_commit_operations.v1",
           "ak.schema.backup_series_erase_confirmation.v1",
           "ak.schema.calendar_event.v1",
           "ak.schema.circle.v1",

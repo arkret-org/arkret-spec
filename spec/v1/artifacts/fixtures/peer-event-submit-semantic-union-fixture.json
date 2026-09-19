@@ -1,0 +1,142 @@
+{
+  "profile": "ak.vector.peer.event_submit.semantic_union.v1",
+  "version": "2026-09-20.1",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.peer.event_submit.semantic_union.v1"
+  },
+  "covers_vectors": [
+    "ak.vector.peer.event_submit.semantic_union.v1",
+    "ak.vector.direct_conversation.founding_admission.v1",
+    "ak.vector.direct_conversation.founding_authoring_material.v1",
+    "ak.vector.direct_conversation.founding_unit.v1"
+  ],
+  "required_schema_refs": [
+    "schemas/authority-commit-operations.schema.json#/$defs/self_submit_request",
+    "schemas/authority-commit-operations.schema.json#/$defs/self_submit_outcome",
+    "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
+    "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_outcome",
+    "schemas/authority-commit-operations.schema.json#/$defs/membership_compensation_evidence"
+  ],
+  "cases": [
+    {
+      "name": "authority_forward",
+      "variants": [
+        "ordinary_event_current_governance_commits",
+        "mls_commit_current_governance_commits",
+        "forwarding_peer_attempts_local_commit",
+        "response_lost_exact_full_body_replay",
+        "same_canonical_hash_different_full_body"
+      ],
+      "expected": {
+        "ordinary_event_current_governance_commits": "one_authority_signed_realm_commit",
+        "mls_commit_current_governance_commits": "one_authority_signed_realm_commit_and_required_welcomes",
+        "forwarding_peer_attempts_local_commit": "rejected_zero_writes",
+        "response_lost_exact_full_body_replay": "byte_identical_original_outcome_no_second_commit",
+        "same_canonical_hash_different_full_body": "duplicate_conflict_zero_writes"
+      }
+    },
+    {
+      "name": "committed_replication",
+      "variants": [
+        "bounded_source_event_and_commit_stored",
+        "exact_duplicate",
+        "missing_source_commit",
+        "event_ref_mismatch",
+        "wrong_authority_generation",
+        "broken_previous_commit_chain",
+        "redacted_or_locked_event",
+        "missing_membership_witness",
+        "history_or_plaintext_not_visible",
+        "one_item_rejected_other_item_stored",
+        "duplicate_attempts_resign",
+        "duplicate_attempts_second_fanout"
+      ],
+      "expected": {
+        "bounded_source_event_and_commit_stored": "same_order_stored_results_with_exact_source_refs",
+        "exact_duplicate": "same_order_duplicate_result_with_exact_source_ref",
+        "missing_source_commit": "rejected_zero_replica_write",
+        "event_ref_mismatch": "rejected_zero_replica_write",
+        "wrong_authority_generation": "rejected_zero_replica_write",
+        "broken_previous_commit_chain": "rejected_zero_replica_write",
+        "redacted_or_locked_event": "rejected_zero_replica_write",
+        "missing_membership_witness": "rejected_zero_replica_write",
+        "history_or_plaintext_not_visible": "rejected_zero_replica_write",
+        "one_item_rejected_other_item_stored": "per_item_results_no_retry_subtraction_contract",
+        "duplicate_attempts_resign": "rejected_no_new_realm_commit",
+        "duplicate_attempts_second_fanout": "rejected_no_new_fanout"
+      }
+    },
+    {
+      "name": "direct_conversation_founding",
+      "variants": [
+        "self_four_ordered_events_atomic_commit",
+        "self_echoes_founding_authority_evidence",
+        "main_strand_from_fourth_event",
+        "main_strand_from_third_event",
+        "peer_four_source_commits_atomic_materialization",
+        "peer_missing_event_or_commit",
+        "peer_wrong_order",
+        "peer_missing_receipt",
+        "peer_missing_authority_evidence",
+        "dependency_missing_closed_details",
+        "materialization_conflict",
+        "exact_replay"
+      ],
+      "expected": {
+        "self_four_ordered_events_atomic_commit": "four_consecutive_commits_and_one_source_receipt",
+        "self_echoes_founding_authority_evidence": "schema_rejected_zero_writes",
+        "main_strand_from_fourth_event": "accepted",
+        "main_strand_from_third_event": "direct_conversation_founding_unit_invalid_zero_writes",
+        "peer_four_source_commits_atomic_materialization": "stored_all_four_or_none_without_resigning_or_fanout",
+        "peer_missing_event_or_commit": "direct_conversation_founding_unit_invalid_zero_writes",
+        "peer_wrong_order": "direct_conversation_founding_unit_invalid_zero_writes",
+        "peer_missing_receipt": "schema_rejected_zero_writes",
+        "peer_missing_authority_evidence": "schema_rejected_zero_writes",
+        "dependency_missing_closed_details": "one_atomic_rejection_with_bounded_typed_missing_set",
+        "materialization_conflict": "direct_conversation_pair_materialization_conflict_zero_writes",
+        "exact_replay": "byte_identical_receipt_and_four_source_commits_no_second_materialization"
+      }
+    },
+    {
+      "name": "founding_authoring_material_non_echo",
+      "variants": [
+        "resolver_returns_one_closed_evidence_branch",
+        "resolver_returns_both_evidence_branches",
+        "resolver_cannot_assemble_evidence",
+        "self_submission_echoes_evidence"
+      ],
+      "expected": {
+        "resolver_returns_one_closed_evidence_branch": "creation_required_with_next_founding_input_only",
+        "resolver_returns_both_evidence_branches": "schema_rejected",
+        "resolver_cannot_assemble_evidence": "temporarily_unavailable",
+        "self_submission_echoes_evidence": "schema_rejected_zero_writes"
+      }
+    },
+    {
+      "name": "membership_compensation",
+      "variants": [
+        "self_terminal_failure_compensation",
+        "peer_source_committed_compensation",
+        "missing_terminal_certificate",
+        "wrong_delegation_digest_or_signature",
+        "cross_admission_binding",
+        "already_absent",
+        "superseded_by_j2_or_new_join",
+        "single_use_replay",
+        "peer_missing_source_commit"
+      ],
+      "expected": {
+        "self_terminal_failure_compensation": "one_authority_commit_and_single_use_claim_atomically",
+        "peer_source_committed_compensation": "source_fact_materialized_once_without_resigning_or_fanout",
+        "missing_terminal_certificate": "schema_rejected_zero_writes",
+        "wrong_delegation_digest_or_signature": "membership_compensation_conflict_zero_writes",
+        "cross_admission_binding": "membership_compensation_conflict_zero_writes",
+        "already_absent": "membership_compensation_conflict_zero_writes",
+        "superseded_by_j2_or_new_join": "membership_compensation_conflict_zero_writes",
+        "single_use_replay": "original_outcome_no_second_write",
+        "peer_missing_source_commit": "schema_rejected_zero_writes"
+      }
+    }
+  ]
+}

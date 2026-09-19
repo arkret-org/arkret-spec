@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.8",
+  "version": "2026-09-20.9",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T02:13:54+08:00",
+  "generated_at": "2026-09-20T02:45:46+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -13871,17 +13871,48 @@
         "http": "POST /_arkret/peer/events",
         "grpc": "PeerEvents/Submit",
         "mq": "peer.events.command.submit",
-        "notes": "Forward an exact producer Event to the verified current governance Station; a non-authority peer cannot accept it locally.",
+        "notes": "The sole peer Event ingress is a closed semantic union. authority_forward sends one exact producer Event or MLS Commit to the verified current governance Station, which alone may sign a new RealmCommit. committed_replication carries bounded source EventCommitSubmission + source RealmCommit rows and recipient witnesses; the receiver verifies and stores exact source facts without first admission, re-signing, or second fanout. registered_atomic_unit carries only registered all-or-nothing source-committed units (Direct Conversation founding or membership compensation), never per-item partial materialization. canonical_hash/full_body binds the complete selected branch and exact replay returns the original branch outcome.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "schema_resource",
-        "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/submit_request",
-        "response_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/submit_outcome",
+        "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
+        "response_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_outcome",
         "idempotency_mechanism": "canonical_hash",
         "canonical_hash_input": "full_body",
         "retry_safe": true,
         "durable_effect": {
-          "kind": "event_log",
-          "event_kind_source": "$request.event.kind"
+          "kind": "branched",
+          "discriminator": {
+            "request_path": "/branch",
+            "description": "Closed peer ingress semantic branch. Schema validation proves that final otherwise can only be registered_atomic_unit."
+          },
+          "effect_branches": [
+            {
+              "equals": "authority_forward",
+              "effect": {
+                "kind": "event_log",
+                "event_kind_sources": [
+                  "$request.event_submission.event.kind",
+                  "$request.mls_submission.commit_event.kind"
+                ],
+                "event_submission_path": "/event_submission",
+                "rationale": "Only the verified current governance Station performs first admission and signs the new RealmCommit."
+              }
+            },
+            {
+              "equals": "committed_replication",
+              "effect": {
+                "kind": "none",
+                "rationale": "stores_exact_source_committed_replicas_without_new_event_finality_resigning_or_second_fanout"
+              }
+            },
+            {
+              "otherwise": true,
+              "effect": {
+                "kind": "none",
+                "rationale": "atomically_materializes_a_registered_source_committed_unit_without_new_event_finality_resigning_or_second_fanout"
+              }
+            }
+          ]
         }
       },
       {
@@ -15352,17 +15383,22 @@
         "http": "POST /_arkret/self/events",
         "grpc": "SelfEvents/Submit",
         "mq": "self.events.command.submit",
-        "notes": "Submit an exact producer Event to its current Realm governance Station. The Account Station reports committed only after receiving RealmCommit.",
+        "notes": "Submit an exact producer-signed Event, MLS Commit, Direct Conversation founding unit, or membership compensation unit to the current governance Station. Founding is an ordered four-Event all-or-nothing unit with a separate founding-slot fence and source-signed receipt; compensation carries closed transport-only evidence and a single-use CAS. canonical_hash/full_body remains the operation replay identity for every branch.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "schema_resource",
-        "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/submit_request",
-        "response_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/submit_outcome",
+        "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/self_submit_request",
+        "response_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/self_submit_outcome",
         "idempotency_mechanism": "canonical_hash",
         "canonical_hash_input": "full_body",
         "retry_safe": true,
         "durable_effect": {
           "kind": "event_log",
-          "event_kind_source": "$request.event.kind"
+          "event_kind_sources": [
+            "$request.event.kind",
+            "$request.commit_event.kind",
+            "$request.events[*].event.kind",
+            "$request.event_submission.event.kind"
+          ]
         }
       },
       {
@@ -16159,8 +16195,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-20.2",
-    "generated_at": "2026-09-20T01:48:33+08:00",
+    "version": "2026-09-20.3",
+    "generated_at": "2026-09-20T02:45:46+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",
@@ -17494,7 +17530,7 @@
           "carrier_id": "event_commit_submission.approval_signatures",
           "carrier_class": "event_submission",
           "operation_id": "ak.self.events.command.submit.v1",
-          "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/submit_request",
+          "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/self_submit_request",
           "carrier_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventCommitSubmission/properties/approval_signatures",
           "carrier_field": "approval_signatures",
           "evidence_schema_ref": "schemas/approval-signature.schema.json",
@@ -19536,8 +19572,8 @@
       "scope_suffix_variant": "Action adds actor/scope/role qualifiers while reducer admission targets a shared event kind.",
       "operation_verb": "Action token names an operation/command verb that does not match its target event kind name(s); reducer admission resolves the resulting event kind(s) via target_event_kinds. Literal action matching per the actions[] rule applies; carries no aggregate-admin family semantics."
     },
-    "version": "2026-09-19.13",
-    "generated_at": "2026-09-19T18:59:50+08:00",
+    "version": "2026-09-20.14",
+    "generated_at": "2026-09-20T03:12:30+08:00",
     "metadata_authority": "contract_registry_section"
   },
   "calendar_timezone_registry": {

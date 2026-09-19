@@ -1057,6 +1057,11 @@ _SUPPLY_CALLER_SIGNED_SCHEMAS = frozenset(
         "AcceptedDevicePossessionProof",
         "AgentSessionRefreshProof",
         "keypackages_claim_service_binding",
+        # The compensation executor assembles this closed transport-only
+        # carrier from its own signed delegation plus the terminal failure
+        # certificate already held by the failed join workflow. It is not a
+        # server-state echo and no separate read endpoint can produce it.
+        "membership_compensation_evidence",
         "security_rotation_local_commit",
         "schemas/recovery-receipt.schema.json",
     }

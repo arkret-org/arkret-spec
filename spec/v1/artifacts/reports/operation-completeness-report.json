@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.8",
+  "version": "2026-09-20.9",
   "source_of_truth": false,
-  "generated_at": "2026-09-20T02:13:54+08:00",
+  "generated_at": "2026-09-20T02:45:46+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -1095,11 +1095,11 @@
       "surface_class": "extension",
       "http": "POST /_arkret/peer/events",
       "success_shape_kind": "schema_resource",
-      "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/submit_request",
-      "response_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/submit_outcome",
+      "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
+      "response_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_outcome",
       "openapi_component_refs": {
-        "request": "../schemas/authority-commit-operations.schema.json#/$defs/submit_request",
-        "response": "../schemas/authority-commit-operations.schema.json#/$defs/submit_outcome"
+        "request": "../schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
+        "response": "../schemas/authority-commit-operations.schema.json#/$defs/peer_submit_outcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2333,11 +2333,11 @@
       "surface_class": "core",
       "http": "POST /_arkret/self/events",
       "success_shape_kind": "schema_resource",
-      "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/submit_request",
-      "response_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/submit_outcome",
+      "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/self_submit_request",
+      "response_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/self_submit_outcome",
       "openapi_component_refs": {
-        "request": "../schemas/authority-commit-operations.schema.json#/$defs/submit_request",
-        "response": "../schemas/authority-commit-operations.schema.json#/$defs/submit_outcome"
+        "request": "../schemas/authority-commit-operations.schema.json#/$defs/self_submit_request",
+        "response": "../schemas/authority-commit-operations.schema.json#/$defs/self_submit_outcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

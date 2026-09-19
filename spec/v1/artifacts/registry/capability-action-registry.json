@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.13",
+  "version": "2026-09-20.14",
   "source_of_truth": false,
-  "generated_at": "2026-09-19T18:59:50+08:00",
+  "generated_at": "2026-09-20T03:12:30+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -29,7 +29,7 @@
         "carrier_id": "event_commit_submission.approval_signatures",
         "carrier_class": "event_submission",
         "operation_id": "ak.self.events.command.submit.v1",
-        "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/submit_request",
+        "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/self_submit_request",
         "carrier_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventCommitSubmission/properties/approval_signatures",
         "carrier_field": "approval_signatures",
         "evidence_schema_ref": "schemas/approval-signature.schema.json",
