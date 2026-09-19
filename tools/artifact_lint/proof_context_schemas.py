@@ -2374,6 +2374,60 @@ EVENT_PAYLOAD_SCHEMA = ARTIFACTS / "schemas" / "event-payload.schema.json"
 _ASSERTED_FAMILY_RE = re.compile(
     r"\b([a-z][a-z0-9]*(?:_[a-z0-9]+)+) typed current result\b"
 )
+_ASSERTED_SINGLE_WORD_FAMILY_RE = re.compile(
+    r"\b(?:stable|registered|canonical|sole(?: registered)?|one registered) "
+    r"([a-z][a-z0-9]*) typed current result (?:family|subject|target|write)\b",
+    re.IGNORECASE,
+)
+_NEGATED_RESULT_ASSERTION_RE = re.compile(
+    r"(?:\bno\b|\bnot\b|\bnever\b|\bwithout\b|\bdoes not\b|\bdo not\b|"
+    r"\bis not\b|\bare not\b|\bmust not\b)[^.!?]{0,120}$",
+    re.IGNORECASE,
+)
+
+
+def _asserted_result_families(text: str) -> set[str]:
+    """Return family names from the deliberately closed assertion grammar.
+
+    A token immediately before ``typed current result`` remains the broad
+    snake_case form used by the original gate.  Single-word names are accepted
+    only when an assignment word and a role noun make the sentence a claim
+    (for example, ``stable policy typed current result subject``).  This avoids
+    treating titles and ordinary phrases as family declarations while closing
+    the old ``policy`` / ``consent`` blind spot.
+
+    A syntactic negation in the same clause suppresses the candidate.  Negative
+    vectors say that a write/result does *not* exist; rejecting the family name
+    in such a sentence would turn a safety assertion into a registration claim.
+    """
+
+    asserted: set[str] = set()
+    for pattern in (_ASSERTED_FAMILY_RE, _ASSERTED_SINGLE_WORD_FAMILY_RE):
+        for match in pattern.finditer(text):
+            clause_prefix = text[max(0, match.start() - 160) : match.start()]
+            if _NEGATED_RESULT_ASSERTION_RE.search(clause_prefix):
+                continue
+            family = match.group(1).lower()
+            # ``the sole registered typed current result subject`` asserts
+            # uniqueness but names no family.  Backtracking in the assignment
+            # pattern can otherwise misread ``registered`` as the name.
+            if family in {"registered", "typed", "current"}:
+                continue
+            asserted.add(family)
+    return asserted
+
+
+def _asserted_result_family_sources() -> list[Path]:
+    """All JSON artifact surfaces, including profiles, fixtures and reports.
+
+    Generated views are intentionally included.  They are not independent
+    proof of a registration, but their prose is still consumed by implementers;
+    scanning both source and projection also makes a generated/source wording
+    split fail instead of hiding in the projection.  Projection equality is
+    enforced separately by the artifact generator.
+    """
+
+    return sorted(ARTIFACTS.rglob("*.json"))
 
 
 def check_asserted_result_families_are_registered(lint: Lint) -> None:
@@ -2391,14 +2445,14 @@ def check_asserted_result_families_are_registered(lint: Lint) -> None:
     ``result_selector`` in ``event-kind-registry.json`` that the registry does not
     contain.
 
-    The matcher is deliberately narrow: a snake_case token carrying at least one
-    underscore, immediately before the words "typed current result". Single-word
-    claims ("the policy typed current result subject") are NOT caught, because at
-    one word the same position holds ordinary English -- "the", "this", "entire",
-    "registered" -- and a matcher wide enough to catch the family names would
-    mostly catch those. That is a stated limit of this gate, not a judgement that
-    single-word assertions are safe: the fix for one of those is to write the
-    registered family name, which then falls inside this matcher.
+    The scanner covers every JSON file under ``artifacts/**`` rather than two
+    hand-picked files.  Snake-case assertions retain their broad historical
+    grammar.  A single-word family is recognized only in the stronger assignment
+    grammar ``<stable/registered/canonical/...> NAME typed current result
+    <family/subject/target/write>``; a syntactically negated clause is not an
+    assertion.  This is still an auxiliary prose audit, not a general natural
+    language parser.  Correctness continues to come from the registered writer,
+    selector, schema and maintenance gates.
 
     ``tools/asserted-result-family-exemptions.json`` is a ratchet in the same
     shape as the proof-context anchor ledger: entries may only be removed, and an
@@ -2438,13 +2492,12 @@ def check_asserted_result_families_are_registered(lint: Lint) -> None:
                 continue
             exemptions[family] = reason
 
-    sources = [EVENT_PAYLOAD_SCHEMA, ARTIFACTS / "registry" / "contract-registry.json"]
     asserted: dict[str, Path] = {}
-    for path in sources:
+    for path in _asserted_result_family_sources():
         if not path.is_file():
             continue
-        for match in _ASSERTED_FAMILY_RE.finditer(path.read_text(encoding="utf-8")):
-            asserted.setdefault(match.group(1), path)
+        for family in _asserted_result_families(path.read_text(encoding="utf-8")):
+            asserted.setdefault(family, path)
 
     for family, path in sorted(asserted.items()):
         if family in registered:
@@ -2542,7 +2595,7 @@ _PROSE_RESULT_WRITE_CITATION_RE = re.compile(r"(ak\.[a-z0-9_]+(?:\.[a-z0-9_]+)*)
 
 
 def _check_prose_result_write_citations(lint: Lint, rows: list[Any]) -> None:
-    """Normative prose may cite `<kind>.result_writes[]` only for a kind that declares it.
+    """Normative prose/artifacts may cite writes only when the kind declares them.
 
     Coverage is partial on purpose (see the event_kind_registry rule), so the
     dangerous direction is prose promising a machine contract that the registry
@@ -2555,9 +2608,10 @@ def _check_prose_result_write_citations(lint: Lint, rows: list[Any]) -> None:
         if isinstance(row, dict) and "result_writes" in row
     }
     prose_root = ARTIFACTS.parent / "zh"
-    if not prose_root.is_dir():
-        return
-    for path in sorted(prose_root.rglob("*.md")):
+    sources = list(_asserted_result_family_sources())
+    if prose_root.is_dir():
+        sources.extend(sorted(prose_root.rglob("*.md")))
+    for path in sources:
         text = path.read_text(encoding="utf-8")
         for match in _PROSE_RESULT_WRITE_CITATION_RE.finditer(text):
             kind = match.group(1)

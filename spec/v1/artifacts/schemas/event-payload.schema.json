@@ -6660,7 +6660,7 @@
     },
     "policy_action_state_payload": {
       "type": "object",
-      "description": "Closed policy action-log payload. Exactly one policy_id or action_id is present and becomes the registered coalesce subject; value carries the sole v1 approval-action document family.",
+      "description": "Closed policy action-log payload. Exactly one policy_id or action_id is present and selects one of two tagged policy_action typed current result subject branches; the two namespaces never coalesce. value carries the sole v1 approval-action document family.",
       "required": [
         "value"
       ],

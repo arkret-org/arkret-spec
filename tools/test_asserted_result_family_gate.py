@@ -19,6 +19,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACT_REGISTRY = ROOT / "spec/v1/artifacts/registry/contract-registry.json"
+ERROR_CODE_REGISTRY = ROOT / "spec/v1/artifacts/registry/error-code-registry.json"
 sys.path.insert(0, str(ROOT))
 
 from tools.artifact_lint import proof_context_schemas as gate
@@ -29,22 +30,24 @@ def errors_for(
     payload_schema: str | None = None,
     families: list[str] | None = None,
     ledger: str | None = None,
+    artifact_overrides: dict[Path, str] | None = None,
 ) -> list[str]:
     """Run the gate against substituted sources."""
     lint = gate.Lint()
     original_read = Path.read_text
     original_is_file = Path.is_file
     original_families = gate._registered_result_families
+    original_sources = gate._asserted_result_family_sources
+    overrides = dict(artifact_overrides or {})
+    if payload_schema is not None:
+        overrides[gate.EVENT_PAYLOAD_SCHEMA] = payload_schema
+        overrides[CONTRACT_REGISTRY] = "{}"
 
     def read_text(self, *args, **kwargs):  # type: ignore[no-untyped-def]
-        if payload_schema is not None and self == gate.EVENT_PAYLOAD_SCHEMA:
-            return payload_schema
+        if self in overrides:
+            return overrides[self]
         if ledger is not None and self == gate.ASSERTED_FAMILY_EXEMPTIONS:
             return ledger
-        if payload_schema is not None and self == CONTRACT_REGISTRY:
-            # The gate reads both machine-artifact sources; a substitution test
-            # that left the live one in would be testing the live tree twice.
-            return "{}"
         return original_read(self, *args, **kwargs)
 
     def is_file(self):  # type: ignore[no-untyped-def]
@@ -58,6 +61,8 @@ def errors_for(
     cached_read_text.cache_clear()
     Path.read_text = read_text  # type: ignore[method-assign]
     Path.is_file = is_file  # type: ignore[method-assign]
+    if overrides:
+        gate._asserted_result_family_sources = lambda: sorted(overrides)  # type: ignore[assignment]
     if families is not None:
         gate._registered_result_families = lambda _lint: set(families)  # type: ignore[assignment]
     try:
@@ -66,6 +71,7 @@ def errors_for(
         Path.read_text = original_read  # type: ignore[method-assign]
         Path.is_file = original_is_file  # type: ignore[method-assign]
         gate._registered_result_families = original_families  # type: ignore[assignment]
+        gate._asserted_result_family_sources = original_sources  # type: ignore[assignment]
         parse_json_file.cache_clear()
         cached_read_text.cache_clear()
     return lint.errors
@@ -151,17 +157,47 @@ class AssertedResultFamilyGateTest(unittest.TestCase):
         )
         self.assertTrue(any("must state a reason" in e for e in reported), reported)
 
-    def test_single_word_claims_are_a_stated_blind_spot(self) -> None:
-        """The matcher requires an underscore. At one word the same position
-        holds ordinary English ("the", "entire", "registered"), so widening it
-        would report prose, not defects. This test pins the limit so nobody
-        reads a green gate as proof that no single-word family is asserted."""
+    def test_single_word_assignment_claims_are_reported(self) -> None:
+        """A role noun plus ``stable`` is an assignment, not ordinary prose."""
         reported = errors_for(
             payload_schema='{"d": "policy_id is the stable policy typed current result subject."}',
             families=["realm_profile"],
             ledger='{"unregistered_families": []}',
         )
+        self.assertTrue(any("'policy'" in error for error in reported), reported)
+
+    def test_a_single_word_claim_in_another_artifact_file_is_reported(self) -> None:
+        reported = errors_for(
+            artifact_overrides={
+                ERROR_CODE_REGISTRY: '{"d": "The stable phantom typed current result family."}'
+            },
+            families=["realm_profile"],
+            ledger='{"unregistered_families": []}',
+        )
+        self.assertTrue(any("'phantom'" in error for error in reported), reported)
+
+    def test_a_negated_family_sentence_is_not_an_assignment(self) -> None:
+        reported = errors_for(
+            payload_schema=(
+                '{"d": "A refusal does not produce never_registered typed current result state."}'
+            ),
+            families=["realm_profile"],
+            ledger='{"unregistered_families": []}',
+        )
         self.assertEqual(reported, [])
+
+    def test_a_generated_only_assertion_cannot_hide_from_the_source_scan(self) -> None:
+        """Generated prose is not proof, but it remains a normative read surface."""
+        generated = ROOT / "spec/v1/artifacts/registry/event-kind-registry.json"
+        reported = errors_for(
+            artifact_overrides={
+                CONTRACT_REGISTRY: "{}",
+                generated: '{"d": "Writes generated_split typed current result state."}',
+            },
+            families=["realm_profile"],
+            ledger='{"unregistered_families": []}',
+        )
+        self.assertTrue(any("generated_split" in error for error in reported), reported)
 
     def test_the_live_ledger_entries_each_state_a_reason(self) -> None:
         document = json.loads(

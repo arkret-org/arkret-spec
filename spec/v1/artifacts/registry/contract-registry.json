@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.16",
+  "version": "2026-09-19.18",
   "source_of_truth": true,
-  "generated_at": "2026-09-19T15:44:40+08:00",
+  "generated_at": "2026-09-19T16:45:23+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -465,6 +465,7 @@
       "Reducers derive typed current results by replaying committed Events in stream position order. Account-private material is outside shared authority-commit streams.",
       "wire_scope=durable_event does NOT imply reducer_input=true. A durable Event is one whose exact bytes a RealmCommit can cover; reducer_input=true additionally asserts that replaying this Realm's committed Events suffices to derive the typed current results the kind writes. A kind whose real durable effect is holder-Station private service state -- keyed on material that never enters the Event stream, or on a counterpart mirror that zh/identity/contact-and-direct-conversation.md section 3 forbids from advancing a reducer -- MUST carry reducer_input=false and MUST name the canonical service_contracts row that spells out its branches, durable effect, unique key, prior-state CAS, exact retry and zero-side-effect rejection. Withdrawing Realm typed-result dispatch never withdraws the kind's admission, signature, commit evidence or private transactional effect: the five ak.contact.* kinds are the worked example (ak.contact.admission.v1). Setting reducer_input=false without registering where the effect actually lands is the defect this rule exists to prevent.",
       "result_writes[] is the machine contract for which typed current results one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row: a declared value_projection member MUST be declared by that row's value_schema_ref, and a whole-value set MUST write every member that schema requires. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 99 of the 134 reducer_input kinds declare it; the remaining 35 still have no machine-readable reducer contract, so their registered writes exist only in prose. The declaring kinds are deliberately not enumerated here: event_kinds[] already is that list, the enumeration that used to sit in this sentence went stale behind it, and tools/artifact_lint:result_write_coverage_note now recomputes both counts from the rows and fails when this sentence disagrees. Normative prose MUST NOT cite result_writes[] for a kind that does not declare it -- a citation without a row is the exact defect this array was added to close. The converse obligation binds a declaring kind: a kind's rows MUST enumerate EVERY typed current result its accepted admission writes on the shared face, so a kind that writes four families and declares one describes itself wrongly in the artifact readers are told is the source of truth. That obligation cannot be gated here, because the lint has no second list of a kind's writes to compare a row set against; it is normative in zh/models/realm-and-space.md section 2.5.1 and it is why a kind with atomic multi-family writes lands all of them in one batch or none. Extend coverage kind by kind and shrink this note; do not narrow the rule to make it read as complete.",
+      "Every active persistent kind (durable_event or actor_private_event) MUST carry one closed result_effect_ownership object. A typed_result_writer owns non-empty result_writes[] and no second owner; a private_service_effect names an active service_contracts row whose branches cover that exact Event kind; an audit_fact_no_current_projection names its normative definition and carries no Realm typed-result write; an owned_gap names a live owner_report and an exact closure_condition while result_writes[] remains absent. Unknown classifications, unresolved references, orphan service branches or reports, and any classification that contradicts reducer_input/result_writes[] fail tools/artifact_lint:result_effect_ownership.",
       "transition_contracts declares the lifecycle axis of a typed current result family: its closed state set, its entry idiom (exactly one of initial_state / initial_states / template), its terminal states and its allowed (from, to) edges. tools/artifact_lint:fsm_reachability reads it together with every transition result_projection and requires that each declared state be reachable from the entry set, that each allowed edge have a write that can perform it, that no const edge leave the table and that no terminal state carry an outgoing edge. A family that declares a machine MUST NOT be written by any non-transition projection: a set installs a state without passing the table, which would make allowed_transitions documentation rather than a rule. Between the authority-commit clean break and 2026-09-18 this block did not exist while the gate still read it under the removed cell_* names, so check reported success over four normative paragraphs (zh/models/circle.md, zh/models/morph.md, zh/models/realm-and-space.md, zh/models/strand-and-message.md) that name transition_contracts as the source of truth for object lifecycle transitions; an absent or empty block is now a failure. Those four object families are themselves still unregistered, so their archive / restore lifecycle has no machine contract yet -- that is a coverage gap, not a licence to read the prose as satisfied."
     ],
     "payload_schema_contract": {
@@ -692,7 +693,12 @@
         "reducer_input": false,
         "payload": "Actor-private blocklist state",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/account_blocklist_payload",
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "owned_gap",
+          "owner_report": "arkret-work/tasks/spec-open/2026-09-19-1645-actor-private-events-lack-effect-owner-contracts.md",
+          "closure_condition": "Register the complete actor-private durable effect contract for ak.account.blocklist, including its storage owner, unique key, prior-state or revision CAS, exact retry behavior, zero-side-effect rejection and field maintenance sources; then change this classification to private_service_effect with its service_contract_id in the same change."
+        }
       },
       {
         "event_kind": "ak.account_data.set",
@@ -703,7 +709,12 @@
         "reducer_input": false,
         "payload": "Actor-private account data update",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/account_data_set_payload",
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "owned_gap",
+          "owner_report": "arkret-work/tasks/spec-open/2026-09-19-1645-actor-private-events-lack-effect-owner-contracts.md",
+          "closure_condition": "Register the complete actor-private durable effect contract for ak.account_data.set, including its storage owner, unique key, prior-state or revision CAS, exact retry behavior, zero-side-effect rejection and field maintenance sources; then change this classification to private_service_effect with its service_contract_id in the same change."
+        }
       },
       {
         "event_kind": "ak.actor.discovery",
@@ -715,7 +726,12 @@
         "admission": "self_authored_proof",
         "payload": "Actor discoverability state",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/actor_discovery_state_payload",
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "owned_gap",
+          "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
+          "closure_condition": "Register the complete result_writes[] contract for ak.actor.discovery, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        }
       },
       {
         "event_kind": "ak.agent.action_approve",
@@ -726,7 +742,12 @@
         "reducer_input": true,
         "payload": "Controller-signed one-shot publication authorization in the target Realm safety sequence. approved_event_id binds the complete pre-authored Event. The same confirmed command allocates (controller ActorId, approval_nonce) once; it is not a reusable private approval followed by receiver-local consumption. The original Event remains ordinary data and requires this exact confirmation only when its explicit approval constraint applies.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/agent_action_approve_payload",
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "owned_gap",
+          "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
+          "closure_condition": "Register the complete result_writes[] contract for ak.agent.action_approve, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        }
       },
       {
         "event_kind": "ak.agent.action_reject",
@@ -737,7 +758,12 @@
         "reducer_input": false,
         "payload": "Controller rejection of a draft / action request. Draft transitions to rejected; agent runtime MUST NOT continue publish attempts.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/agent_action_reject_payload",
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "owned_gap",
+          "owner_report": "arkret-work/tasks/spec-open/2026-09-19-1645-actor-private-events-lack-effect-owner-contracts.md",
+          "closure_condition": "Register the complete actor-private durable effect contract for ak.agent.action_reject, including its storage owner, unique key, prior-state or revision CAS, exact retry behavior, zero-side-effect rejection and field maintenance sources; then change this classification to private_service_effect with its service_contract_id in the same change."
+        }
       },
       {
         "event_kind": "ak.agent.action_request",
@@ -748,7 +774,12 @@
         "reducer_input": false,
         "payload": "Agent-initiated action request. Carries proposed_action, target descriptor, and content digest. Awaits controller approval before generating shared event.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/agent_action_request_payload",
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "owned_gap",
+          "owner_report": "arkret-work/tasks/spec-open/2026-09-19-1645-actor-private-events-lack-effect-owner-contracts.md",
+          "closure_condition": "Register the complete actor-private durable effect contract for ak.agent.action_request, including its storage owner, unique key, prior-state or revision CAS, exact retry behavior, zero-side-effect rejection and field maintenance sources; then change this classification to private_service_effect with its service_contract_id in the same change."
+        }
       },
       {
         "event_kind": "ak.agent.draft.propose",
@@ -759,7 +790,12 @@
         "reducer_input": false,
         "payload": "Agent-initiated draft proposal. Submitted by agent runtime; Station materializes accepted drafts into controller-owned ak.agent.draft.v1 account-data after capability / policy / accountability / risk check. MUST NOT enter shared Realm history.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/agent_draft_propose_payload",
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "owned_gap",
+          "owner_report": "arkret-work/tasks/spec-open/2026-09-19-1645-actor-private-events-lack-effect-owner-contracts.md",
+          "closure_condition": "Register the complete actor-private durable effect contract for ak.agent.draft.propose, including its storage owner, unique key, prior-state or revision CAS, exact retry behavior, zero-side-effect rejection and field maintenance sources; then change this classification to private_service_effect with its service_contract_id in the same change."
+        }
       },
       {
         "event_kind": "ak.agent.key.authorize",
@@ -817,7 +853,10 @@
             "notes": "identity/key-management.md section 3.6.1: the stable element tag is the canonical <event_id>:<write_index> dot of models/event-and-patch.md section 2.4.2 and never a bare event_id, and the element value is the complete authorize payload. The subject MUST be the SDK composite_subject([agent_id, key_id]) and MUST NOT be spelled by string concatenation or as a diagnostic subject; agent_key_result.selector carries the two components separately for the same reason. ak.agent.key.revoke is the family's second normative writer and is now registered. Its removal is scoped to the active authorize dots alone, spelled as the existence predicate {element_field: verification_method, present: true}: agent_key_authorization_entry.value is a oneOf of agent_key_authorize_payload and agent_key_revoke_payload, both additionalProperties:false with disjoint required sets, so verification_method is present on every authorize element and forbidden on every revocation marker."
           }
         ],
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.agent.key.revoke",
@@ -870,7 +909,10 @@
             "notes": "identity/key-management.md section 3.6.1: the revocation boundary marker. The stable element tag is the canonical <event_id>:<write_index> dot of models/event-and-patch.md section 2.4.2 and never a bare event_id -- this Event carries two writes on one subject, so a bare event_id would not even be unique within it. The element value is the complete revoke payload, unassembled. The marker records a witnessed revocation boundary and is NOT an active authorization; a reader tells it apart by the absence of verification_method, which is exactly the predicate write 0 removes by. The write 0 removal cannot reach this element: keyed_set_remove_observed only removes elements alive in the frozen prior state, and this one is added by the same Event."
           }
         ],
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.agent.provision",
@@ -1027,7 +1069,10 @@
             "notes": "One of the FOUR typed current results one accepted ak.agent.provision writes in a single reducer transaction; identity/key-management.md section 3.6.3 forbids exposing a partially completed state, so any required write failing rolls the whole set back. The forward declaration of an Agent PCR that does not exist yet -- the named class C preimage exemption of conformance/encoding.md section 6.0.1. The subject is the declared realm id and the value is the one-member index naming the Agent, because both readers start from a realm id and nothing else: genesis admission holds retype(create.event_id) and DID entry 1 admission holds serviceEndpoint.realm_id. They resolve the Agent here and then read the remaining create-locked members from agent_provisioning keyed by it, so no member of the create-locked four-tuple lives in two families. A second provision declaring a realm id an accepted provision already claims MUST be rejected with zero writes (agent_pcr_genesis_declaration_conflict); this family covers one controller PCR and the Station's local uniqueness index covers the rest. The genesis carries no ref back to its provision, so a missing row MUST fail closed with agent_pcr_genesis_declaration_missing and materialize neither the Realm nor the agent_status transition."
           }
         ],
-        "id_source": "reference"
+        "id_source": "reference",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.agent.selector_claim",
@@ -1077,7 +1122,10 @@
             "notes": "The standalone writer of the family's two. models/actor.md section 3.3 fixes the subject as (controller principal, agent_slug) with NO Station component, and the target as a complete AccountId; the two are different responsibilities and neither is derived from the other. The value carries only what resolution reads -- target plus disclosure boundary. issuer_id, vouching_id, source_refs, created_at, verified_at and proofs are deliberately not projected: the head Event and its acceptance proof already carry provenance, and a portable selector response must present the real controller-signed claim rather than this row. There is no claim_scope member to project; the open one this schema used to carry was withdrawn because identity/identity-handles.md already forbids an open claim_scope on the sibling HandleClaimCore, and two normative readers were citing it inside a MUST. subject_account_id is a plain field copy here and MUST stay one: it is a binding field of this payload's own inner proof, so reusing a claim across Stations fails verification, and the projection MUST NOT rebuild it from the bare principal. audience and expires_at are projected only when the payload carries them -- an absent audience is the public case and an absent expires_at means non-expiring, and JSON null would be a third state the value schema does not have. The unbind spelling is an explicit null subject_account_id, not an omitted member and not a row removal: resolution has to be able to read \"bound to nothing\" without being able to read the superseded bind."
           }
         ],
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.agent.sidecar.exchange.control",
@@ -1088,7 +1136,12 @@
         "reducer_input": true,
         "payload": "Controller-authored durable Sidecar exchange control. The outer payload binds the native Sidecar and source context plus an MLS encrypted payload whose plaintext validates as ak.schema.agent_sidecar_exchange_control.v1. It is accepted only in the matching native Sidecar scope from that Sidecar controller and is the sole truth source for coordinator reassignment and terminal exchange state.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/agent_sidecar_exchange_control_payload",
-        "id_source": "reference"
+        "id_source": "reference",
+        "result_effect_ownership": {
+          "kind": "owned_gap",
+          "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
+          "closure_condition": "Register the complete result_writes[] contract for ak.agent.sidecar.exchange.control, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        }
       },
       {
         "event_kind": "ak.applet.bridge_error",
@@ -1100,7 +1153,12 @@
         "admission": "service_attested",
         "payload": "Bridge failure",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/applet_bridge_error_payload",
-        "id_source": "reference"
+        "id_source": "reference",
+        "result_effect_ownership": {
+          "kind": "owned_gap",
+          "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
+          "closure_condition": "Register the complete result_writes[] contract for ak.applet.bridge_error, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        }
       },
       {
         "event_kind": "ak.applet.discovery",
@@ -1112,7 +1170,12 @@
         "admission": "service_attested",
         "payload": "Applet discoverability state",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/applet_discovery_state_payload",
-        "id_source": "reference"
+        "id_source": "reference",
+        "result_effect_ownership": {
+          "kind": "owned_gap",
+          "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
+          "closure_condition": "Register the complete result_writes[] contract for ak.applet.discovery, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        }
       },
       {
         "event_kind": "ak.applet.managed_actor.provision",
@@ -1156,7 +1219,12 @@
           "actor_role=ghost: the initial_resolution did is did:webvh, its SCID segment is the ghost's own validated SCID and differs from the service and controller SCIDs, and its host segment equals the host segment of the bare did the registration service_id currently resolves to; otherwise applet_managed_actor_provision_invalid",
           "actor_role=ghost: the initial_resolution did carries at least one segment after the host segment, so a ghost DID is never the service DID with a different SCID; otherwise applet_managed_actor_provision_invalid",
           "actor_role=ghost: the complete initial_resolution did, never the did_core_id, matches one registered namespaces.actors pattern; otherwise applet_namespace_mismatch. A namespace hit is a routing and exclusivity verdict only and never establishes ownership or authority"
-        ]
+        ],
+        "result_effect_ownership": {
+          "kind": "owned_gap",
+          "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
+          "closure_condition": "Register the complete result_writes[] contract for ak.applet.managed_actor.provision, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        }
       },
       {
         "event_kind": "ak.applet.registration",
@@ -1168,7 +1236,12 @@
         "admission": "service_attested",
         "payload": "Applet registration",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/applet_registration_payload",
-        "id_source": "reference"
+        "id_source": "reference",
+        "result_effect_ownership": {
+          "kind": "owned_gap",
+          "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
+          "closure_condition": "Register the complete result_writes[] contract for ak.applet.registration, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        }
       },
       {
         "event_kind": "ak.audit.accessed",
@@ -1180,7 +1253,12 @@
         "reducer_input": true,
         "payload": "Auditable access marker for privileged reads or privacy-sensitive paired writes such as Circle metadata audit, watch_set_others, late recovery, and policy reads.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/audit_accessed_payload",
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "owned_gap",
+          "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
+          "closure_condition": "Register the complete result_writes[] contract for ak.audit.accessed, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        }
       },
       {
         "event_kind": "ak.audit.erasure_receipt",
@@ -1191,7 +1269,11 @@
         "reducer_input": false,
         "payload": "Signed hard-erasure receipt. Attests deletion outcome and retained verification stub within an issuer-declared storage boundary; does not prove independent third-party copies disappeared.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/erasure_receipt_payload",
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "audit_fact_no_current_projection",
+          "defined_in": "zh/identity/account-lifecycle.md"
+        }
       },
       {
         "event_kind": "ak.call.create",
@@ -1203,7 +1285,12 @@
         "payload": "Call genesis. call_id is omitted and derived by retyping event_id. This Event MUST be accepted before signaling, token issuance, Morph binding, or any ak.call.state Event references the call.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/call_create_payload",
         "id_source": "event_derived",
-        "id_kind": "call"
+        "id_kind": "call",
+        "result_effect_ownership": {
+          "kind": "owned_gap",
+          "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
+          "closure_condition": "Register the complete result_writes[] contract for ak.call.create, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        }
       },
       {
         "event_kind": "ak.call.recording.start",
@@ -1268,7 +1355,10 @@
             "notes": "capture_kind selects the target capture family (crypto-media/call-state.md section 5.1); the pending outcome result is created in the same atomic commit."
           }
         ],
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.call.state",
@@ -1470,7 +1560,10 @@
             }
           }
         ],
-        "id_source": "reference"
+        "id_source": "reference",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.call.summary",
@@ -1500,7 +1593,10 @@
             "notes": "Write-once after the call reaches a terminal state (crypto-media/call-state.md section 7); a second summary for the same call_id is rejected."
           }
         ],
-        "id_source": "reference"
+        "id_source": "reference",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.capability.derived",
@@ -1535,7 +1631,10 @@
             "notes": "models/realm-links.md section 6 fixes the shape: the payload carries the complete derived grant and a verbatim grant_id, so the subject is payload.grant_id rather than this Event's own id -- id_source is not_an_object_id because the GrantId was already derived by the source ak.capability.grant. The status is reducer-derived like every other projection of this family; rule 5 of that section makes a derivation from a non-active source grant invalid, so a payload.grant.status other than active MUST be rejected rather than projected. The grant body already carries its authority_depth and authority_root_refs, which is why they are not re-derived here."
           }
         ],
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.capability.grant",
@@ -1577,7 +1676,10 @@
           }
         ],
         "id_source": "event_derived",
-        "id_kind": "grant"
+        "id_kind": "grant",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.capability.relinquish",
@@ -1622,7 +1724,10 @@
             "notes": "authz/capabilities.md section 10.4: relinquish is the subject's own release and is deliberately not a revocation -- the reducer target guard accepts actor == target.subject and nothing else -- so it writes the updated_by / updated_at lifecycle pair that capability-grant.schema.json reserves for a non-revocation lifecycle update, and leaves revoked_by / revoked_at to ak.capability.revoke. The terminal status still separates the two, which is what keeps 'which authority closed this grant' answerable. Same expected_revision note as ak.capability.revoke."
           }
         ],
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.capability.revoke",
@@ -1666,7 +1771,10 @@
             "notes": "authz/capabilities.md section 12.1: revoke names an existing grant_id and moves it to the terminal revoked status, so the projection is a merge over the already-projected grant rather than a set -- the immutable grant body survives the close. revoked_by and revoked_at come from the signed envelope, never from the payload, because the closing authority is the Event's own signer. payload.expected_revision is the reducer's compare-and-set precondition; the registry has no spelling for an optimistic-concurrency guard, so it stays a prose rule."
           }
         ],
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.circle.archive",
@@ -1716,7 +1824,10 @@
             "value_schema_ref": "schemas/circle.schema.json",
             "notes": "zh/models/common-fields.md section 5.2 maps the kind to its target state, so the payload names only the target object and an optional reason. allowed_paths is empty and there is no patch field: this write moves the value only through derived_members[], which is what the state axis has always required -- `state` is in universal_forbidden_patch_paths with basis dedicated_event_owned, so no author may reach it and object_initial_state only ever produces the value a create installs. Before object_lifecycle_state existed this kind had nothing it could legally declare and sat at result_writes: []. Pre-state guards are normative in section 5.2 and in this object's own model section: a same-state transition, a restore of a tombstoned object and any lifecycle write onto a terminal object MUST fail with failed_precondition and write nothing. Every member other than the four named here is retained verbatim."
           }
-        ]
+        ],
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.circle.create",
@@ -1744,7 +1855,10 @@
             "value_schema_ref": "schemas/circle.schema.json",
             "notes": "zh/models/circle.md. The selector carries no field because ak.circle.create is id_source=event_derived: the object id IS this Event's own event_id retyped, and circle_create_payload forbids a payload-carried id for that reason. payload.object is the closed author region and the projection is the identity on it. The create-lock narrowing of zh/models/common-fields.md section 3.3 -- schema / realm_id / created_by / created_at / state produced by the reducer instead of declared in the author region -- is NOT yet done for this object kind, so no derived_members[] are claimed here; the reducer-managed-path-registry row names the owner that closes it."
           }
-        ]
+        ],
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.circle.history_access",
@@ -1755,7 +1869,12 @@
         "reducer_input": true,
         "payload": "Dedicated per-Circle monotone history-access FSM transition; only all_history_for_current_members to since_join is state-changing after create.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/circle_history_access_payload",
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "owned_gap",
+          "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
+          "closure_condition": "Register the complete result_writes[] contract for ak.circle.history_access, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        }
       },
       {
         "event_kind": "ak.circle.member.state",
@@ -1766,7 +1885,12 @@
         "reducer_input": true,
         "payload": "Circle materialized membership state. Uses the same membership_state enum as ak.member.state (join/knock/leave/ban), scoped to a Circle. Invite remains a separate pending workflow. Reducer MUST first validate the complete member_id is a parent Realm `join` member, otherwise failed_precondition reason=circle_member_must_be_realm_member. See zh/models/circle.md §9.1.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/circle_member_state_payload",
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "owned_gap",
+          "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
+          "closure_condition": "Register the complete result_writes[] contract for ak.circle.member.state, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        }
       },
       {
         "event_kind": "ak.circle.restore",
@@ -1816,7 +1940,10 @@
             "value_schema_ref": "schemas/circle.schema.json",
             "notes": "zh/models/common-fields.md section 5.2 maps the kind to its target state, so the payload names only the target object and an optional reason. allowed_paths is empty and there is no patch field: this write moves the value only through derived_members[], which is what the state axis has always required -- `state` is in universal_forbidden_patch_paths with basis dedicated_event_owned, so no author may reach it and object_initial_state only ever produces the value a create installs. Before object_lifecycle_state existed this kind had nothing it could legally declare and sat at result_writes: []. Pre-state guards are normative in section 5.2 and in this object's own model section: a same-state transition, a restore of a tombstoned object and any lifecycle write onto a terminal object MUST fail with failed_precondition and write nothing. Every member other than the four named here is retained verbatim."
           }
-        ]
+        ],
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.circle.tombstone",
@@ -1866,7 +1993,10 @@
             "value_schema_ref": "schemas/circle.schema.json",
             "notes": "zh/models/common-fields.md section 5.2 maps the kind to its target state, so the payload names only the target object and an optional reason. allowed_paths is empty and there is no patch field: this write moves the value only through derived_members[], which is what the state axis has always required -- `state` is in universal_forbidden_patch_paths with basis dedicated_event_owned, so no author may reach it and object_initial_state only ever produces the value a create installs. Before object_lifecycle_state existed this kind had nothing it could legally declare and sat at result_writes: []. Pre-state guards are normative in section 5.2 and in this object's own model section: a same-state transition, a restore of a tombstoned object and any lifecycle write onto a terminal object MUST fail with failed_precondition and write nothing. Every member other than the four named here is retained verbatim."
           }
-        ]
+        ],
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.circle.update",
@@ -1877,7 +2007,12 @@
         "reducer_input": true,
         "payload": "Circle metadata patch. history_access, realm_id and MLS identity fields are create-locked.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/circle_patch_payload",
-        "id_source": "reference"
+        "id_source": "reference",
+        "result_effect_ownership": {
+          "kind": "owned_gap",
+          "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
+          "closure_condition": "Register the complete result_writes[] contract for ak.circle.update, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        }
       },
       {
         "event_kind": "ak.consent.grant",
@@ -1912,7 +2047,10 @@
             "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/consent_value",
             "notes": "identity/consent-model.md section 2 fixes the subject as the producer-assigned stable consent_id and lists the projected members; consent_grant_payload.consent_id already names this family as its result_selector. The whole payload is the authored body, so the projection is a set. status is not in that body: it is the reducer-materialised consent_status derivation and an author-supplied value MUST be rejected. expired is not projected -- section 5 evaluates the not_before / expires_at window at verification time."
           }
-        ]
+        ],
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.consent.revoke",
@@ -1957,7 +2095,10 @@
             "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/consent_value",
             "notes": "identity/consent-model.md section 3.2 revokes an existing consent_id in place, so the projection is a merge over the already-projected grant rather than a set -- the grant body survives the close and section 4.1.2 introduction evidence still resolves against it. revoked_at comes from the signed envelope and never from payload.revoked_at, for the same reason authz/capabilities.md section 12.1 takes it from the envelope: the authority that closed this consent is this Event's signer, and an author-declared close time would be backdatable. payload.expected_revision is the reducer's compare-and-set precondition; the registry has no spelling for an optimistic-concurrency guard, so it stays a prose rule. Status stays inside this value instead of a transition_contracts axis because a consent's body and its active/revoked status carry an atomic invariant -- revoked_at and revoked_reason are the close, and a status that could be read one revision apart from them would let a reader honour a consent the same result already closed. That is the carrier rule of sync/current-results.md section 2.1, form 2; the presence of payload.expected_revision does not by itself decide the value shape (ak.moderation.decision.lift carries one and writes a keyed set)."
           }
-        ]
+        ],
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.contact.accepted",
@@ -1970,7 +2111,11 @@
         "admission": "self_authored_proof",
         "payload": "Holder-signed normal Contact acceptance: closed peer XOR, exact request/receipt digest, stable contact round, lineage version 1 and full granted_to_peer_scopes. It never reads or writes Consent. Its durable effect is holder-Station private service state under ak.contact.admission.v1 (establishing the normal round and this issuer directional initial state), not a Realm typed current result.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/contact_accepted_payload",
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "private_service_effect",
+          "service_contract_id": "ak.contact.admission.v1"
+        }
       },
       {
         "event_kind": "ak.contact.rejected",
@@ -1983,7 +2128,11 @@
         "admission": "self_authored_proof",
         "payload": "Holder-signed terminal rejection bound to the exact request Event and acceptance-receipt digest. It establishes no Contact round and carries no Consent or Contact round evidence fields. Its durable effect is holder-Station private service state under ak.contact.admission.v1 (terminating exactly the matching admission slot), not a Realm typed current result: the payload carries no round, version or lineage coordinate at all, and the never-revives guarantee is held by that slot CAS.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/contact_rejected_payload",
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "private_service_effect",
+          "service_contract_id": "ak.contact.admission.v1"
+        }
       },
       {
         "event_kind": "ak.contact.requested",
@@ -1996,7 +2145,11 @@
         "admission": "self_authored_proof",
         "payload": "Requester-signed directional Contact request: closed peer XOR plus full granted_to_peer_scopes. It precedes every acceptance receipt and contact round and never reads or writes Consent. Its durable effect is holder-Station private service state under ak.contact.admission.v1 (freezing the exact (holder, peer) admission slot with its request and receipt), not a Realm typed current result: identity/contact-and-direct-conversation.md section 2 derives contact_round_id from a source-signed acceptance receipt whose core members never enter the Event stream, so replaying this Realm's committed Events cannot reconstruct the lineage key.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/contact_requested_payload",
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "private_service_effect",
+          "service_contract_id": "ak.contact.admission.v1"
+        }
       },
       {
         "event_kind": "ak.contact.scope.update",
@@ -2008,7 +2161,11 @@
         "admission": "self_authored_proof",
         "payload": "Holder-signed issuer-local full-set granted_to_peer_scopes replacement bound to the closed peer XOR, stable contact round, version and predecessor. Expansion and narrowing are both explicit; tombstone remains the only generation terminal. Its durable effect is holder-Station private service state under ak.contact.admission.v1, not a Realm typed current result.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/contact_scope_update_payload",
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "private_service_effect",
+          "service_contract_id": "ak.contact.admission.v1"
+        }
       },
       {
         "event_kind": "ak.contact.tombstone",
@@ -2020,7 +2177,11 @@
         "admission": "self_authored_proof",
         "payload": "Holder-signed issuer-local Contact generation terminal. It consumes the stable contact round and cannot carry scope replacement or write/revoke Private Consent. Its durable effect is holder-Station private service state under ak.contact.admission.v1, not a Realm typed current result.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/contact_tombstoned_payload",
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "private_service_effect",
+          "service_contract_id": "ak.contact.admission.v1"
+        }
       },
       {
         "event_kind": "ak.container.move_item",
@@ -2031,7 +2192,12 @@
         "reducer_input": true,
         "payload": "Profile-declared container item move",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/container_move_item_payload",
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "owned_gap",
+          "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
+          "closure_condition": "Register the complete result_writes[] contract for ak.container.move_item, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        }
       },
       {
         "event_kind": "ak.container.rebalance",
@@ -2042,7 +2208,12 @@
         "reducer_input": true,
         "payload": "Profile-declared container rank rebalance",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/container_rebalance_payload",
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "owned_gap",
+          "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
+          "closure_condition": "Register the complete result_writes[] contract for ak.container.rebalance, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        }
       },
       {
         "event_kind": "ak.device.authorize",
@@ -2158,7 +2329,10 @@
             "notes": "The registration_anchor branch initializes the PCR-local generation to 1. This is the row that dissolves the 'generation family has no registered initializer' objection of crypto-media/device-lifecycle.md 5.5.4: the pcr_genesis_unit is the ordered pair [ak.realm.create, ak.device.authorize], so the unit is how this Event is atomically accepted, not a second producer standing in for it. identity/account-lifecycle.md step 7 states the same initialization from the acceptance side and the two MUST agree. The literal is 1 rather than a copy of payload.authorized_generation_ref because 5.5.2 already requires that field to equal 1 on this branch; projecting the literal makes the family's initial value unforgeable by an author. The other three binding kinds write nothing here: they join an existing generation rather than create one."
           }
         ],
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.device.list_update",
@@ -2170,7 +2344,12 @@
         "admission": "self_authored_proof",
         "payload": "Device list update",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/device_list_update_payload",
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "owned_gap",
+          "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
+          "closure_condition": "Register the complete result_writes[] contract for ak.device.list_update, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        }
       },
       {
         "event_kind": "ak.device.push_route",
@@ -2181,7 +2360,12 @@
         "reducer_input": false,
         "payload": "Server-revision-CAS active binding or revoked tombstone for an (account_id, device_id, push_route) tuple. Every write carries expected_revision; active bindings carry push_target_id, push_gateway_id, encryption_key and capabilities, while revoked tombstones carry none of those secrets. Stored as actor-private state on account_id.station_id only; MUST NOT be replicated to another Station.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/device_push_route_payload",
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "owned_gap",
+          "owner_report": "arkret-work/tasks/spec-open/2026-09-19-1645-actor-private-events-lack-effect-owner-contracts.md",
+          "closure_condition": "Register the complete actor-private durable effect contract for ak.device.push_route, including its storage owner, unique key, prior-state or revision CAS, exact retry behavior, zero-side-effect rejection and field maintenance sources; then change this classification to private_service_effect with its service_contract_id in the same change."
+        }
       },
       {
         "event_kind": "ak.device.reanchor",
@@ -2213,7 +2397,10 @@
             "notes": "The only advance of the PCR-local generation. Admission MUST require payload.previous_device_generation to equal the current value and new_device_generation to be its immediate successor, which is the CAS that makes this self-reported pre-state coordinate safe -- the same shape crypto-media/device-lifecycle.md 5.5.2 uses to justify putting authorized_generation_ref on the ak.device.authorize wire. device_generation_status is not projected: its conflicted value is a verified-conflict fold with no Event producer (5.5.4), so the keys/query device_generation_state object is the pair (this member, the folded status)."
           }
         ],
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.device.revoke",
@@ -2247,7 +2434,10 @@
             "notes": "One accepted revoke appends one immutable element; nothing ever removes a dot. crypto-media/device-lifecycle.md 5.5.3 makes the pending / rejected / revoked trio a fold of each element against the committed command result of the RealmCommit covering it, whose durability identity/security-transactions.md section 3 already requires -- so the pending-to-terminal convergence has a carrier without v1 needing a non-Event producer vocabulary, and no second Event has to mutate the element. That is also why 'several transactions count independently, rejecting one does not clear another' (security/server-threat-model.md) is structural here rather than a rule an implementation could miss. The value is the whole payload, unassembled: ak.schema.device_revocation_state.v1 is the READ shape, and its target_device_authorize_event_id / target_device_generation_ref come from joining the device_authorization result of the same device_id, its accepted_at / acceptance_seq from the accepting transaction and its committed_at / denied_actions from the covering command result. The producer therefore self-reports no derived pending selector."
           }
         ],
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.direct_conversation.bound",
@@ -2282,7 +2472,10 @@
             "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/direct_conversation_binding_value",
             "notes": "identity/contact-and-direct-conversation.md section 8.3, which is normative that this result is set-shaped and commit-ordered. The element tag is the canonical <event_id>:<write_index> dot and never a bare event_id; the element value is the complete endorsement payload. This is an add-only set with no registered remover: the payload MUST NOT carry binding_state or supersedes_binding_ref, so nothing in v1 retracts an endorsement, and a future retraction is a separate security command rather than a second projection on this family. The earlier reading that pair_key carried a write-once set is withdrawn: immutability after the first accepted write constrains the binding CONTENT -- a different semantic binding_digest is refused before projection and raises the suspended diagnostic -- and not the membership, so both participant endorsements of one binding coexist. The domain dedupe key (binding_digest, envelope.actor_id) folds one participant repeated confirmations of one digest into one endorsement; it is a read-side fold over the stored elements and MUST NOT rewrite them."
           }
-        ]
+        ],
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.handle.discovery",
@@ -2294,7 +2487,12 @@
         "admission": "self_authored_proof",
         "payload": "Handle discoverability state",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/handle_discovery_state_payload",
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "owned_gap",
+          "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
+          "closure_condition": "Register the complete result_writes[] contract for ak.handle.discovery, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        }
       },
       {
         "event_kind": "ak.identity.accountability_grant",
@@ -2360,7 +2558,10 @@
             "notes": "actor.md section 3.3.1 makes this the independent writer of a record that also has an atomic ak.agent.provision projection, and fixes the subject as (Realm, issuer principal, subject principal, normalized exact scope set). The scope component is digested rather than spelled so the wire's singleton string and its one-element array reach the same subject; the stored member is the normalized array through normalized_string_set for the same reason, which is why neither is a plain field copy. The proof is deliberately not projected: it authenticates the Event, and the head Event already answers where the record came from. expires_at is projected only when the payload carries it -- absent means non-expiring, and JSON null would be a third state the value schema does not have. ak.agent.provision now declares all four of those families in one row set, which is what the completeness rule of zh/models/realm-and-space.md section 2.5.1 requires of it; its accountability row is the one to compare against this one."
           }
         ],
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.identity.resolution.update",
@@ -2412,7 +2613,10 @@
             "notes": "identity-did.md line 586 makes this the only post-genesis writer of the create-locked identity_resolution singleton and closes its payload on next, a resolution_commitment. The selector is JSON null because that paragraph addresses the guarded result as identity_resolution:null, exactly as the ak.realm.create write already does. The stored value is the five-member resolution_projection, so the three owner-signed members come from payload.next and the two reducer-derived ones from the carrying envelope; taking them from the payload instead is what the admission contract means by 'predecessor event/history coordinates come only from that signed precondition, never from payload mirrors'."
           }
         ],
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.invite.accept",
@@ -2511,7 +2715,10 @@
               "reason_code": "invite_directed_invitee_mismatch"
             }
           }
-        ]
+        ],
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.invite.cancel",
@@ -2595,7 +2802,10 @@
               "reason_code": "invite_directed_invitee_mismatch"
             }
           }
-        ]
+        ],
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.invite.claim",
@@ -2639,7 +2849,10 @@
             "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/invite_lifecycle_value",
             "notes": "models/governance-objects.md section 5.3 gives claimed exactly one inbound edge, pending -> claimed, and restricts it to the third-party flow, so both endpoints are const. The subject-bound membership proposal the reducer materializes in the same commit is not a typed current result: only a later ak.invite.accept moves member_state from leave to join."
           }
-        ]
+        ],
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.invite.create",
@@ -2716,7 +2929,10 @@
             "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/invite_live_target_value",
             "notes": "models/governance-objects.md section 5.3 makes this slot the single source of truth for directed-invite liveness: occupancy itself means a live directed invite exists, so the slot carries no second state axis. The occupant is stored as the verbatim ak:event: create event id rather than the ak:invite: retype, because none of the seven registered value sources can change a token's typed prefix. Hitting an occupied slot MUST reject the Event atomically with failed_precondition and reason_code invite_live_target_occupied; it MUST NOT be rewritten as cas_conflict and there is no idempotent-replay branch, because a second create can never compute the first one's event id."
           }
-        ]
+        ],
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.invite.revoke",
@@ -2878,7 +3094,10 @@
               "reason_code": "invite_directed_invitee_mismatch"
             }
           }
-        ]
+        ],
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.invite.third_party",
@@ -2909,7 +3128,10 @@
             "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/invite_lifecycle_value",
             "notes": "models/governance-objects.md section 5.3 gives directed and third-party invites the same lifecycle register and the same pending entry state; the claim step is what distinguishes them afterwards. The absent invite_directed_invitee record of a third-party Invite is what the release preconditions of ak.invite.accept / cancel / revoke read, so the absence is load bearing rather than incidental."
           }
-        ]
+        ],
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.key_backup.active_series",
@@ -2921,7 +3143,12 @@
         "admission": "self_authored_proof",
         "payload": "Key backup active series selection for one principal and backup_kind.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/key_backup_active_series_payload",
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "owned_gap",
+          "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
+          "closure_condition": "Register the complete result_writes[] contract for ak.key_backup.active_series, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        }
       },
       {
         "event_kind": "ak.member.identity.update",
@@ -2933,7 +3160,12 @@
         "admission": "self_authored_proof",
         "payload": "Realm-scoped MemberIdentity segment replacement event. Append-only log entry that may supersede prior ak.member.identity.update events via payload.replaces[] without overloading ak.profile.update patch semantics. The event always enters the append-only log: proof and replacement validation are consumption/verification-surface semantics, not reducer rejection. When the MemberIdentity proof fails validation (payload_digest mismatch, signature failure, or verification_method not controlled by subject_id), receivers surface reason=member_identity_proof_invalid and MUST NOT promote the event to a verified display identity. When a replaces[] entry payload_digest or (realm_id, member_id, segment) does not match, only that replacement edge is invalid (surface member_identity_replacement_digest_mismatch); receivers MUST NOT remove the referenced event from the effective set on that basis. Only the optional expected_state_digest guard retains reducer semantics: when expected_state_digest does not equal the current effective-set digest, the server/reducer MUST reject or quarantine the event with reason=member_identity_state_mismatch. See zh/sync/client-sync.md §8.1.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/member_identity_update_payload",
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "owned_gap",
+          "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
+          "closure_condition": "Register the complete result_writes[] contract for ak.member.identity.update, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        }
       },
       {
         "event_kind": "ak.member.state",
@@ -2973,7 +3205,10 @@
             "notes": "models/realm-and-space.md section 2.7 says ak.member.state writes member_state under the complete payload.member_id ActorId, and the account branch compares both AccountId components, so the subject is the canonical JSON of the whole ActorId and never a bare DID. The shared materialized membership FSM of models/common-fields.md section 4.5 is a four-state register over join/knock/leave/ban, so the projection is a whole-value set of the one member the payload carries. member_state_value also admits an optional joined_at, but no normative paragraph names a writer for it; leaving it unprojected keeps the registry honest instead of inventing envelope.created_at as its source. ak.invite.accept drives the same leave -> join edge and is registered under its own subject: accept may only be authored by the invited party, so envelope.actor_id already is the complete ActorId that subject needs and no AccountId retype is involved. The earlier claim that the selector grammar could not express it was wrong -- {\"kind\": \"canonical_json\", \"field\": \"envelope.actor_id\"} is the same component the agent_status writes use."
           }
         ],
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.message.create",
@@ -3009,7 +3244,12 @@
           "ak.vector.message.poll_reducer.v1"
         ],
         "id_source": "event_derived",
-        "id_kind": "message"
+        "id_kind": "message",
+        "result_effect_ownership": {
+          "kind": "owned_gap",
+          "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
+          "closure_condition": "Register the complete result_writes[] contract for ak.message.create, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        }
       },
       {
         "event_kind": "ak.message.redact",
@@ -3058,7 +3298,10 @@
             "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/object_redaction_value",
             "notes": "models/event-and-patch.md section 4.2.4: Message is the only object with its own registered redact kind, so the cross-object ak.redaction schema mechanically excludes ak:message: and this row owns every ak:message: subject. The subject is the canonical typed-id string taken verbatim from payload.message_id, which is why the selector is a one-component composite rather than a coalesce over the two carriers. The projection is keyed_set_add because that section registers no rule for choosing among several redactions of one subject and states that adding a single-valued redaction_ref to Strand or Morph would invent one; message.schema.json materialises redaction_ref only because Message has exactly one redacting kind."
           }
-        ]
+        ],
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.message.revise",
@@ -3085,7 +3328,12 @@
         ],
         "payload": "Message edit patch",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/message_revise_payload",
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "owned_gap",
+          "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
+          "closure_condition": "Register the complete result_writes[] contract for ak.message.revise, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        }
       },
       {
         "event_kind": "ak.mimi.room_binding",
@@ -3114,7 +3362,10 @@
             "notes": "extensions/mimi-interop.md section 3 is the authoritative field set and the payload def already asserted this family and this subject, pointing the reader at a result_selector that did not exist -- the registry named a row in itself that it did not carry. The payload is a closed flat object with no value wrapper, so the projection is the identity on it, exactly as for realm_read_receipt_policy. mimi_room_uri stays a member of the projected value as well as the subject: the binding is a projection of an Arkret discussion track into a MIMI room and is explicitly not canonical truth, so a reader holding only the value must still be able to name the room it describes."
           }
         ],
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.mls.commit",
@@ -3161,7 +3412,10 @@
             "notes": "crypto-media/encryption-and-audit.md sections 2.4.1 and 5.2 split the two revisions between two writers: current_key_access_revision is advanced by membership, leaf endpoint authorization, policy or scope terminal changes, never by an MLS Event, and a Commit only advances the covered side to the revision it declares it covers. The projection is therefore a merge and not a set: mls_commit_payload carries no ratchet tree ref and no genesis ref, so a whole-value write would drop two required members of MlsGroupCurrent."
           }
         ],
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.mls.genesis",
@@ -3224,7 +3478,10 @@
             "notes": "crypto-media/encryption-and-audit.md section 5.1 makes ak.mls.genesis the single per-scope creator of the closed MlsGroupCurrent of section 2.5, and mls_genesis_payload carries no group id, so payload.governance_binding.effective_scope is the only subject source and is the scope_ref the mls_group selector requires. The three numeric members are read from the signed governance_binding rather than written as registry literals; mls_genesis_payload allOf-locks next_epoch and key_access_revision to 0, so the projection stays a pure function of the payload and the schema, not the registry, enforces the genesis zero. Genesis is its own current Commit, so both Event refs are this Event."
           }
         ],
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.moderation.decision",
@@ -3257,7 +3514,10 @@
             "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/moderation_state_value",
             "notes": "governance/content-moderation.md section 5.3 keys the set per moderated target and moderation_decision_payload already names the canonical string of target_ref as the subject. The element tag is the canonical <event_id>:<write_index> dot and NEVER a payload composite -- models/common-fields.md section 2 is the sole source of that join -- so issuer_id, request_canonical_digest, effective_at and expires_at all live in the element value and none of them enters set identity. The element value is the complete payload, unassembled. The active-record filter and the hard_deny > quarantine > require_review > none fold, and dismiss folding to none, are read-side folds of that section and MUST NOT become a second stored state."
           }
-        ]
+        ],
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.moderation.decision.lift",
@@ -3290,7 +3550,10 @@
             "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/moderation_state_value",
             "notes": "The lift is one more asserted element, not a removal. models/common-fields.md section 2 says every Event of a keyed-set family MUST keyed_set_add and that revocation MUST be expressed as another assertion, and reserves keyed_set_remove_observed / keyed_set_remove_dots for same-writer explicitly named sets that carry no concurrent assertion semantics -- which moderation_state is not, because content-moderation.md section 5.3 has several issuers' records active at once. Deleting the decision dot would drop one side of a concurrent (decision, lift) pair and leave the audit view unrebuildable. payload.decision_ref names which prior decision the fold must stop honouring; the reducer resolves it, the projection does not erase it. payload.expected_revision is a staleness guard on this result's revision; the registry has no spelling for an optimistic-concurrency guard, so it stays a prose rule."
           }
-        ]
+        ],
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.moderation.franking_proof",
@@ -3319,7 +3582,10 @@
             "notes": "governance/content-moderation.md section 6 defines the proof and the payload def already asserted this family and payload.event_id as its subject. The payload is the closed franking_proof object itself, so the projection is the identity on it. One proof per proven Event is the whole family: a proof is created independently of any later report, which is why report_id and target_ref are neither payload fields nor part of the subject."
           }
         ],
-        "id_source": "reference"
+        "id_source": "reference",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.morph.archive",
@@ -3369,7 +3635,10 @@
             "value_schema_ref": "schemas/morph.schema.json",
             "notes": "zh/models/common-fields.md section 5.2 maps the kind to its target state, so the payload names only the target object and an optional reason. allowed_paths is empty and there is no patch field: this write moves the value only through derived_members[], which is what the state axis has always required -- `state` is in universal_forbidden_patch_paths with basis dedicated_event_owned, so no author may reach it and object_initial_state only ever produces the value a create installs. Before object_lifecycle_state existed this kind had nothing it could legally declare and sat at result_writes: []. Pre-state guards are normative in section 5.2 and in this object's own model section: a same-state transition, a restore of a tombstoned object and any lifecycle write onto a terminal object MUST fail with failed_precondition and write nothing. Every member other than the four named here is retained verbatim."
           }
-        ]
+        ],
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.morph.create",
@@ -3397,7 +3666,10 @@
             "value_schema_ref": "schemas/morph.schema.json",
             "notes": "zh/models/morph.md. The selector carries no field because ak.morph.create is id_source=event_derived: the object id IS this Event's own event_id retyped, and morph_create_payload forbids a payload-carried id for that reason. payload.object is the closed author region and the projection is the identity on it. The create-lock narrowing of zh/models/common-fields.md section 3.3 -- schema / realm_id / created_by / created_at / state produced by the reducer instead of declared in the author region -- is NOT yet done for this object kind, so no derived_members[] are claimed here; the reducer-managed-path-registry row names the owner that closes it."
           }
-        ]
+        ],
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.morph.restore",
@@ -3447,7 +3719,10 @@
             "value_schema_ref": "schemas/morph.schema.json",
             "notes": "zh/models/common-fields.md section 5.2 maps the kind to its target state, so the payload names only the target object and an optional reason. allowed_paths is empty and there is no patch field: this write moves the value only through derived_members[], which is what the state axis has always required -- `state` is in universal_forbidden_patch_paths with basis dedicated_event_owned, so no author may reach it and object_initial_state only ever produces the value a create installs. Before object_lifecycle_state existed this kind had nothing it could legally declare and sat at result_writes: []. Pre-state guards are normative in section 5.2 and in this object's own model section: a same-state transition, a restore of a tombstoned object and any lifecycle write onto a terminal object MUST fail with failed_precondition and write nothing. Every member other than the four named here is retained verbatim."
           }
-        ]
+        ],
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.morph.stage.set",
@@ -3458,7 +3733,12 @@
         "reducer_input": true,
         "payload": "Morph business-progression stage transition. Single source of truth for mutating Morph.stage / Morph.stage_changed_at; ak.morph.update patches on those paths MUST be rejected (forbidden-wire). The payload intentionally carries no reason / note / explanation field — rationale belongs in a Message on an associated discussion track that 'references' this event. Reducer enforces hard invariants from zh/models/common-fields.md §5.3.3: state=redacted yields failed_precondition reason=morph_already_terminal; state=archived yields morph_not_active; same-value self-transition is accepted but does NOT update stage_changed_at; reducer overwrites any wire-supplied stage_changed_at with the event's created_at.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/morph_stage_set_payload",
-        "id_source": "reference"
+        "id_source": "reference",
+        "result_effect_ownership": {
+          "kind": "owned_gap",
+          "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
+          "closure_condition": "Register the complete result_writes[] contract for ak.morph.stage.set, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        }
       },
       {
         "event_kind": "ak.morph.update",
@@ -3469,7 +3749,12 @@
         "reducer_input": true,
         "payload": "Morph patch",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/morph_update_payload",
-        "id_source": "reference"
+        "id_source": "reference",
+        "result_effect_ownership": {
+          "kind": "owned_gap",
+          "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
+          "closure_condition": "Register the complete result_writes[] contract for ak.morph.update, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        }
       },
       {
         "event_kind": "ak.organization.discovery",
@@ -3498,7 +3783,10 @@
             "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/organization_discovery_value",
             "notes": "discovery/discovery-directory.md: ak.organization.discovery is an active discovery state event in the same ingest group as ak.actor.discovery, ak.applet.discovery and ak.handle.discovery. The resource self-signs its own discoverability and a Directory MUST NOT re-sign for it or widen the disclosure, so each accepted declaration replaces the whole closed value under the declaring organization_id."
           }
-        ]
+        ],
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.organization.moderation_policy",
@@ -3527,7 +3815,10 @@
             "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/organization_moderation_policy_value",
             "notes": "Sibling of organization_discovery on the same did_core_id subject, registered in the same batch so the Organization surface does not carry one registered family and one unregistered one. The payload's value is a single closed moderation policy document, so the projection is a whole-value set."
           }
-        ]
+        ],
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.pin.add",
@@ -3563,7 +3854,10 @@
             "notes": "models/pins.md section 4.1 is authoritative and spells this projection verbatim: all three pin kinds project exactly one {\"kind\":\"keyed_set_add\",\"tag\":{\"dot\":true},\"value\":{\"field\":\"payload\"}}, so a remove and a reorder add an assertion to the set instead of revoking one. That section gives the reason: keyed_set_remove_observed without a match would remove every target in the scope, and with a match it would only remove add dots alive in the frozen prior state, which converges a concurrent (add, remove) pair silently to add. The set is keyed per pin scope because the section puts the scope on the subject and target_ref on the element value; the subject is the whole closed pin_scope object, since pin_scope is a four-branch oneOf and the id alone is neither reversible nor collision-free. The asserting actor and the polarity are read from the signed envelope of the Event the dot names, not copied into the element -- and they have to be, because an add and a reorder carrying no optional member are byte-identical. The ordered roster, the remove-wins fold, the note a reorder inherits, the stable (rank, target_ref) sort, the expected_rank precondition and the conflict view are read-side folds and admission rules that the projection grammar does not express."
           }
         ],
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.pin.remove",
@@ -3599,7 +3893,10 @@
             "notes": "models/pins.md section 4.1 is authoritative and spells this projection verbatim: all three pin kinds project exactly one {\"kind\":\"keyed_set_add\",\"tag\":{\"dot\":true},\"value\":{\"field\":\"payload\"}}, so a remove and a reorder add an assertion to the set instead of revoking one. That section gives the reason: keyed_set_remove_observed without a match would remove every target in the scope, and with a match it would only remove add dots alive in the frozen prior state, which converges a concurrent (add, remove) pair silently to add. The set is keyed per pin scope because the section puts the scope on the subject and target_ref on the element value; the subject is the whole closed pin_scope object, since pin_scope is a four-branch oneOf and the id alone is neither reversible nor collision-free. The asserting actor and the polarity are read from the signed envelope of the Event the dot names, not copied into the element -- and they have to be, because an add and a reorder carrying no optional member are byte-identical. The ordered roster, the remove-wins fold, the note a reorder inherits, the stable (rank, target_ref) sort, the expected_rank precondition and the conflict view are read-side folds and admission rules that the projection grammar does not express."
           }
         ],
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.pin.reorder",
@@ -3635,7 +3932,10 @@
             "notes": "models/pins.md section 4.1 is authoritative and spells this projection verbatim: all three pin kinds project exactly one {\"kind\":\"keyed_set_add\",\"tag\":{\"dot\":true},\"value\":{\"field\":\"payload\"}}, so a remove and a reorder add an assertion to the set instead of revoking one. That section gives the reason: keyed_set_remove_observed without a match would remove every target in the scope, and with a match it would only remove add dots alive in the frozen prior state, which converges a concurrent (add, remove) pair silently to add. The set is keyed per pin scope because the section puts the scope on the subject and target_ref on the element value; the subject is the whole closed pin_scope object, since pin_scope is a four-branch oneOf and the id alone is neither reversible nor collision-free. The asserting actor and the polarity are read from the signed envelope of the Event the dot names, not copied into the element -- and they have to be, because an add and a reorder carrying no optional member are byte-identical. The ordered roster, the remove-wins fold, the note a reorder inherits, the stable (rank, target_ref) sort, the expected_rank precondition and the conflict view are read-side folds and admission rules that the projection grammar does not express."
           }
         ],
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.policy.action",
@@ -3691,7 +3991,10 @@
             "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/policy_action_value",
             "notes": "models/governance-objects.md section 3.4, the realm_action branch: a Realm-local configuration identifier that does not hang off any Policy document. action_id is a Realm-local configuration name -- not a capability token, not a global object id, and not an action inside some Policy document -- so this branch MUST NOT be read as naming one. The first accepted write binds the (action, policy_scope) pair to that action_id; a later write under the same action_id updates that configuration and MUST NOT move the name to a different action or a different scope. policy_scope MUST resolve to an exact authorized scope inside this Realm; a non-empty-string check is not that, and a legal sub-scope MUST NOT be narrowed to RealmId."
           }
-        ]
+        ],
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.policy.set",
@@ -3719,7 +4022,10 @@
             "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/policy_value",
             "notes": "models/governance-objects.md section 3.2: the payload is exactly {policy_id, value}, value.schema picks the generic Policy or the RecoveryPolicy root directly in the payload schema, and semantic admission requires policy_id to equal value.id (generic) or value.policy_id (recovery) verbatim -- so the subject is the payload's own policy_id and the projection replaces the whole document. state / reason are not wire fields of this Event."
           }
-        ]
+        ],
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.profile.create",
@@ -3770,7 +4076,10 @@
             "value_schema_ref": "schemas/actor-profile.schema.json",
             "notes": "zh/discovery/profiles-presence.md section 2.3. The selector carries no field because the profile id IS this create Event's own event_id retyped to ak:actor_profile:, which is why payload.object.id MUST be omitted. payload.object is the closed authoring region actor_profile_definition. principal_id and actor_kind are author input here and create-locked afterwards: no derivation can produce which principal a profile is for, so the create declares it under section 2.3's rule that it equals the submitter or an explicitly authorized target, and the patch surface is closed against both."
           }
-        ]
+        ],
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.profile.realm_override",
@@ -3782,7 +4091,12 @@
         "admission": "self_authored_proof",
         "payload": "Realm-scoped profile override. payload.target_realm_id is the target Realm and no Space boundary is created.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/profile_realm_override_payload",
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "owned_gap",
+          "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
+          "closure_condition": "Register the complete result_writes[] contract for ak.profile.realm_override, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        }
       },
       {
         "event_kind": "ak.profile.update",
@@ -3836,7 +4150,10 @@
             "value_schema_ref": "schemas/actor-profile.schema.json",
             "notes": "zh/discovery/profiles-presence.md section 2.3: the same family the create writes, selected by a payload.target_ref that MUST equal the derived id byte for byte. The six allowed paths are the display members; every other member actor-profile.schema.json declares is either in universal_forbidden_patch_paths or in this object's own ban set, and the payload's propertyNames guard rejects all three object-specific ones before the reducer sees them."
           }
-        ]
+        ],
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.reaction.add",
@@ -3869,7 +4186,10 @@
             "notes": "models/strand-and-message.md section 9.8.3 is authoritative and spells this projection verbatim: both reaction kinds project exactly one {\"kind\":\"keyed_set_add\",\"tag\":{\"dot\":true},\"value\":{\"field\":\"payload\"}}, so a remove adds an assertion to the set instead of revoking one. The section gives the reason: an explicit revocation would erase the removed add dot, and the audit view is required to keep both sides of a concurrent (add, remove) pair; an explicit revocation also judges against a frozen prior state, which the concurrent adds this section tombstones are not part of. The set is keyed per target because section 9.8 defines it as per-target and the closed payload carries no other target field. The asserting actor and the polarity are read from the signed envelope of the Event the dot names, not copied into the element. Remove-wins convergence, deduplication, count and the dangling-target hold are read-side folds and admission rules that the projection grammar does not express."
           }
         ],
-        "id_source": "reference"
+        "id_source": "reference",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.reaction.remove",
@@ -3902,7 +4222,10 @@
             "notes": "models/strand-and-message.md section 9.8.3 is authoritative and spells this projection verbatim: both reaction kinds project exactly one {\"kind\":\"keyed_set_add\",\"tag\":{\"dot\":true},\"value\":{\"field\":\"payload\"}}, so a remove adds an assertion to the set instead of revoking one. The section gives the reason: an explicit revocation would erase the removed add dot, and the audit view is required to keep both sides of a concurrent (add, remove) pair; an explicit revocation also judges against a frozen prior state, which the concurrent adds this section tombstones are not part of. The set is keyed per target because section 9.8 defines it as per-target and the closed payload carries no other target field. The asserting actor and the polarity are read from the signed envelope of the Event the dot names, not copied into the element. Remove-wins convergence, deduplication, count and the dangling-target hold are read-side folds and admission rules that the projection grammar does not express."
           }
         ],
-        "id_source": "reference"
+        "id_source": "reference",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.read_cursor.advance",
@@ -3913,7 +4236,12 @@
         "reducer_input": false,
         "payload": "Read cursor advance event (actor-private). Writes the actor's latest read position for a given (realm_id, read_scope) tuple. Was historically named ak.read.cursor; renamed to align the event_kind, capability action, schema id and typed ID prefix on a single noun root read_cursor.",
         "payload_schema_ref": "schemas/read-cursor.schema.json",
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "owned_gap",
+          "owner_report": "arkret-work/tasks/spec-open/2026-09-19-1645-actor-private-events-lack-effect-owner-contracts.md",
+          "closure_condition": "Register the complete actor-private durable effect contract for ak.read_cursor.advance, including its storage owner, unique key, prior-state or revision CAS, exact retry behavior, zero-side-effect rejection and field maintenance sources; then change this classification to private_service_effect with its service_contract_id in the same change."
+        }
       },
       {
         "event_kind": "ak.realm.alias",
@@ -3938,7 +4266,10 @@
             "notes": "discovery/discovery-directory.md section 12 resolves an alias from the effective ak.realm.alias typed current result and treats a tombstone as absent. The projection therefore stores the whole payload branch: collapsing the tombstone branch to null would erase the protocol difference between never-declared and durably withdrawn."
           }
         ],
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.realm.archive",
@@ -3969,7 +4300,10 @@
             "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_archive_value",
             "notes": "zh/models/realm-and-space.md section 2.6.0 table: the event kind alone decides the effect, so the projection is a constant and realm_archive_payload carries only an optional reason. The reversible pair writes one family, commit-ordered, under the same CAS contract; restore only lifts the archive and lifts no terminal, redaction, other gate or capability limit."
           }
-        ]
+        ],
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.realm.asset_privacy_policy",
@@ -3994,7 +4328,10 @@
             "notes": "crypto-media/media-and-blob.md section 6 names the family and says this kind is its own sole carrier rather than a policy_bundle component. The same section treats an omitted direct_download_allowed as false, which is a read-side default and MUST NOT be materialized by the projection."
           }
         ],
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.realm.authority.reset",
@@ -4027,7 +4364,10 @@
             "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_authority_root_value",
             "notes": "authz/capabilities.md section on authority-root successor counters fixes the whole write: the payload carries no patch, so allowed_paths is empty and the only change is the derived successor generation; controller_actor_id and controller_epoch are preserved verbatim from the CAS-frozen pre-state. Overflow of the JSON safe-integer ceiling MUST fail the Event with realm_authority_root_conflict rather than wrap, saturate or keep the old value. This is the only kind that advances authority_generation, which is why a realm_root grant ref binding a generation is a revocable delegation rather than a permanent one."
           }
-        ]
+        ],
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.realm.create",
@@ -4281,7 +4621,10 @@
           }
         ],
         "id_source": "event_derived",
-        "id_kind": "realm"
+        "id_kind": "realm",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.realm.destroy",
@@ -4306,7 +4649,10 @@
             "notes": "models/realm-and-space.md section 2.6 pairs realm_destroy with ak.realm.destroy as a commit-ordered projection that cannot be written twice and that MUST NOT carry a successor."
           }
         ],
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.realm.discovery",
@@ -4331,7 +4677,10 @@
             "notes": "models/realm-and-space.md section 2.3 makes ak.realm.discovery the sole carrier of default_discoverability and extensions/mimi-interop.md section 9.1 names the family. The payload value is a closed whole-value envelope; preview field selection belongs to ak.realm.preview_policy and is not projected here."
           }
         ],
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.realm.freeze",
@@ -4362,7 +4711,10 @@
             "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_freeze_value",
             "notes": "zh/models/realm-and-space.md section 2.6.0 table: the event kind alone decides the effect, so the projection is a constant and realm_archive_payload carries only an optional reason. The reversible pair writes one family, commit-ordered, under the same CAS contract; unfreeze only lifts the freeze and lifts no terminal, redaction, other gate or capability limit."
           }
-        ]
+        ],
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.realm.governance_station.change",
@@ -4373,7 +4725,12 @@
         "reducer_input": true,
         "payload": "Planned Realm governance Station transfer intent",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_governance_station_change_payload",
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "owned_gap",
+          "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
+          "closure_condition": "Register the complete result_writes[] contract for ak.realm.governance_station.change, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        }
       },
       {
         "event_kind": "ak.realm.history_access",
@@ -4401,7 +4758,10 @@
             "notes": "Single ratcheted FSM value. The endpoints are read from the payload rather than restated here because one row carries two edges: the create unit writes from=null once and chooses either closed initial state, and after create the only legal state-changing edge is all_history_for_current_members to since_join; widening is permanently rejected (zh/models/realm-and-space.md section 2.2)."
           }
         ],
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.realm.inheritance_policy",
@@ -4431,7 +4791,10 @@
             "notes": "extensions/mimi-interop.md section 9.1 names the family and says inheritance is per-parent; payload.source_realm_id is the only parent carrier in the closed payload, so a singleton selector would let a policy inherited from one parent overwrite another. Recorded weakness: no paragraph spells this subject out the way models/realm-links.md section 5 spells out realm_link."
           }
         ],
-        "id_source": "reference"
+        "id_source": "reference",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.realm.join_rule",
@@ -4456,7 +4819,10 @@
             "notes": "models/realm-and-space.md section 2.3 makes ak.realm.join_rule the sole canonical carrier of default_join_rule; extensions/mimi-interop.md section 9.1 names the family realm_join_rule. payload.state and payload.reason are admission and audit members, not part of the projected value."
           }
         ],
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.realm.link",
@@ -4487,7 +4853,10 @@
             "notes": "models/realm-links.md section 5 states the subject is the (target_realm_id, link_kind) tuple with the Realm given by Event scope, and that the family is an ordinary current-value projection whose current value is the last accepted write. The transition matrix of the same section is an admission rule: transition here would need a from/to over status alone and would drop every other payload member, so the projection is the identity on the closed payload."
           }
         ],
-        "id_source": "reference"
+        "id_source": "reference",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.realm.media_service",
@@ -4512,7 +4881,10 @@
             "notes": "crypto-media/media-service-binding.md section 4 calls ak.realm.media_service a single-valued commit-ordered projection and section 2.1 pins payload.value with its foci[] as the authoritative closed field set. Token issuer deployment configuration is excluded from this typed current result by the same section."
           }
         ],
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.realm.organization",
@@ -4523,7 +4895,12 @@
         "reducer_input": true,
         "payload": "Organization-authorized Realm relationship statement or revocation",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_organization_payload",
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "owned_gap",
+          "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
+          "closure_condition": "Register the complete result_writes[] contract for ak.realm.organization, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        }
       },
       {
         "event_kind": "ak.realm.owner.transfer",
@@ -4560,7 +4937,10 @@
             "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_authority_root_value",
             "notes": "authz/capabilities.md section on authority-root successor counters fixes the write: controller_actor_id is the single author-writable member and controller_epoch is derived by checked_add from the CAS-frozen pre-state, so no counter is author-selectable. authority_generation is preserved verbatim, which is what keeps every existing child grant valid across a controller rotation. Overflow MUST fail the Event with realm_authority_root_conflict. Without this write the registered controller rotation of models/realm-and-space.md section 2.5 had no machine expression at all and controller_epoch could never leave the genesis literal 0."
           }
-        ]
+        ],
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.realm.plaintext_visible_services",
@@ -4585,7 +4965,10 @@
             "notes": "models/realm-and-space.md section 2.3 lists this kind as the sole carrier of the plaintext-visible service set and extensions/mimi-interop.md section 9.1 names the family. No normative paragraph decomposes the payload, so the projection is the identity on it rather than an invented per-service keyed set."
           }
         ],
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.realm.policy",
@@ -4610,7 +4993,10 @@
             "notes": "conformance/schema-registry.md fixes this kind as a closed reference to one independently defined Policy object (payload.value.policy_id), and sync/current-results.md section 2 registers realm_policy as the current Realm policy, a per-Realm singleton whose subject may not restate the envelope realm_id. The projected value is therefore the closed {policy_id} reference and not the Policy document: no registered projection kind can dereference an id, so a family holding the document body could never be written. The optional state and reason members are admission-level lifecycle fields, not part of the projected value. The Policy document itself is carried by the still-uncovered ak.policy.set family, whose payload governance-objects.md closes to {policy_id, value}."
           }
         ],
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.realm.policy_bundle",
@@ -4635,7 +5021,10 @@
             "notes": "models/realm-and-space.md section 2.3 says the whole bundle is restated in full on every policy_revision and that its component fields MUST NOT fall back to create or generic patch, so the projection is the identity on the closed payload. The strict policy_revision monotonicity of section 2.5 is an admission precondition the projection grammar cannot express."
           }
         ],
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.realm.preview_policy",
@@ -4660,7 +5049,10 @@
             "notes": "models/realm-and-space.md section 2.3 names ak.realm.preview_policy as the sole carrier of the query field preview_policy_id, which makes the projected state a registered typed current result like every other Realm facet in that sentence. It was the one facet in the group that never acquired a result_kinds[] row; the omission was an oversight, not a decision to keep preview policy as a service-side read model. payload.reason is audit provenance on the Event and is deliberately outside the projected value, exactly as in the sibling facets."
           }
         ],
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.realm.profile",
@@ -4685,7 +5077,10 @@
             "notes": "models/realm-and-space.md section 2.1 names ak.realm.profile the sole canonical carrier of Realm title, summary and avatar_blob_ref. realm_profile_payload is the closed ak.schema.realm_profile.v1 object itself and realm_profile_result.value refs the same file, so the projection is the identity on the whole payload: every accepted Event replaces the Realm singleton wholesale. There is no per-field merge surface and no ak.realm.update."
           }
         ],
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.realm.read_receipt_policy",
@@ -4710,7 +5105,10 @@
             "notes": "discovery/read-receipts.md section 2.5 names the family and says this kind is its sole carrier. The payload is a flat closed object with no value wrapper, so the projection is the identity on it. Taking the stricter of parent Realm and Circle policy is a read-side fold, not a projection."
           }
         ],
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.realm.restore",
@@ -4741,7 +5139,10 @@
             "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_archive_value",
             "notes": "zh/models/realm-and-space.md section 2.6.0 table: the event kind alone decides the effect, so the projection is a constant and realm_archive_payload carries only an optional reason. The reversible pair writes one family, commit-ordered, under the same CAS contract; restore only lifts the archive and lifts no terminal, redaction, other gate or capability limit."
           }
-        ]
+        ],
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.realm.schema",
@@ -4766,7 +5167,10 @@
             "notes": "models/governance-objects.md section 4 names ak.realm.schema the writer of realm_schema and names the closed realm_schema_payload.value the written object in the same sentence. Per-Realm singleton: conformance/encoding.md section 9.5.1 forbids realm_id in a subject, so the selector is null."
           }
         ],
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.realm.search_policy",
@@ -4777,7 +5181,12 @@
         "reducer_input": true,
         "payload": "Realm privacy-preserving search policy",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_search_policy_payload",
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "owned_gap",
+          "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
+          "closure_condition": "Register the complete result_writes[] contract for ak.realm.search_policy, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        }
       },
       {
         "event_kind": "ak.realm.set_default_strand",
@@ -4808,7 +5217,10 @@
             "notes": "models/strand-and-message.md section 2 names the family and the current-value projection and makes default_strand_id a single pointer whose current value is the last accepted write on the stream. The same section normalizes absent and explicit null to one null before a whole-value comparison, so the projected value is the one-member object carrying default_strand_id and the wire name payload.strand_id is renamed to it exactly here. payload.strand_id is required, so every accepted write sets a non-null pointer; the canonical explicit-null form is the family initial state, not an effect this kind can produce. The anti-dangling check and the expected_default_strand_id to expected_revision compilation are admission rules outside the projection grammar."
           }
         ],
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.realm.tombstone",
@@ -4833,7 +5245,10 @@
             "notes": "models/realm-and-space.md section 2.6 says ak.realm.tombstone writes realm_tombstone as a commit-ordered projection that cannot be written twice, and requires successor_realm_id, which is carried in the value; the projection is the identity on the closed payload. Write-once is enforced by expected_revision admission, which the projection grammar cannot express."
           }
         ],
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.realm.unfreeze",
@@ -4864,7 +5279,10 @@
             "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_freeze_value",
             "notes": "zh/models/realm-and-space.md section 2.6.0 table: the event kind alone decides the effect, so the projection is a constant and realm_archive_payload carries only an optional reason. The reversible pair writes one family, commit-ordered, under the same CAS contract; unfreeze only lifts the freeze and lifts no terminal, redaction, other gate or capability limit."
           }
-        ]
+        ],
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.redaction",
@@ -4897,7 +5315,10 @@
             "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/object_redaction_value",
             "notes": "models/event-and-patch.md section 4.2.4: target_ref is the single target carrier and its lexical space covers both object targets and ak:event: targets, so the subject is well defined without a coalesce. The two spellings of one event-derived token land on two independent subjects of this family that never merge, and a reducer MUST NOT canonicalize the ak:event: spelling into the derived object's typed id; answering whether a piece of content is still there therefore means reading both subjects. The projection is keyed_set_add for the same reason as the Message row."
           }
-        ]
+        ],
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.relation.create",
@@ -4955,7 +5376,10 @@
               }
             ]
           }
-        ]
+        ],
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.relation.resolve",
@@ -4997,7 +5421,10 @@
             "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/relation_conflict_resolution_value",
             "notes": "models/relation.md section 6.2 is normative on every part of this row: ak.relation.resolve is the single registered resolution carrier, it writes the current-value projection family relation_conflict_resolution, and the subject is determined entirely by payload.conflict_domain with the Realm taken from the envelope. The subject is therefore a single-component canonical_json composite over a structured payload member, exactly as ak.pin.add keys on pin_scope: relation_conflict_domain is a closed object whose own schema excludes realm_id and Circle, so encoding.md section 9.5.1 is satisfied without a second spelling of the same domain. The projection is the identity on the whole closed payload. Keeping baseline inside the value is what section 6.5 needs: a Relation candidate discovered later and NOT covered by this frozen baseline re-triggers require_review without rewriting this adjudication, and that comparison is unmakeable from the outcome alone. Two things this row deliberately does not do: it does not touch Relation content, which stays on the create / update data-plane result, and it does not write any security-permission result, because authz/event-auth-state-resolution.md section 3 forbids an ordinary data-plane write from carrying a single-winner authority decision."
           }
-        ]
+        ],
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.relation.tombstone",
@@ -5050,7 +5477,10 @@
             "value_schema_ref": "schemas/relation.schema.json",
             "notes": "zh/models/common-fields.md section 5.2 maps the kind to its target state, so the payload names only the target object and an optional reason. allowed_paths is empty and there is no patch field: this write moves the value only through derived_members[], which is what the state axis has always required -- `state` is in universal_forbidden_patch_paths with basis dedicated_event_owned, so no author may reach it and object_initial_state only ever produces the value a create installs. Before object_lifecycle_state existed this kind had nothing it could legally declare and sat at result_writes: []. Pre-state guards are normative in section 5.2 and in this object's own model section: a same-state transition, a restore of a tombstoned object and any lifecycle write onto a terminal object MUST fail with failed_precondition and write nothing. Every member other than the four named here is retained verbatim."
           }
-        ]
+        ],
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.relation.update",
@@ -5103,7 +5533,10 @@
             "value_schema_ref": "schemas/relation.schema.json",
             "notes": "zh/models/relation.md section 6.2. The six allowed paths are exactly the members relation_definition hands the author; everything else relation.schema.json declares is either universal_forbidden_patch_paths or the object's own effective_scope ban, which relation_update_payload already enforces through its propertyNames guard. state is retained rather than patched: an ordinary update MUST NOT resurrect a tombstoned Relation or tombstone a live one, and the state axis belongs to ak.relation.tombstone alone."
           }
-        ]
+        ],
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.rsvp.set",
@@ -5114,7 +5547,12 @@
         "reducer_input": true,
         "payload": "Calendar event RSVP set",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/rsvp_set_payload",
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "owned_gap",
+          "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
+          "closure_condition": "Register the complete result_writes[] contract for ak.rsvp.set, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        }
       },
       {
         "event_kind": "ak.schema.define",
@@ -5125,7 +5563,12 @@
         "reducer_input": true,
         "payload": "Schema definition",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/schema_define_state_payload",
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "owned_gap",
+          "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
+          "closure_condition": "Register the complete result_writes[] contract for ak.schema.define, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        }
       },
       {
         "event_kind": "ak.self.agent.deactivate",
@@ -5178,7 +5621,10 @@
             "notes": "identity/account-lifecycle.md section 9.1 allows deactivation from either non-terminal state, so from MUST be read from payload.previous_status, whose enum is exactly [active, paused]; no single const could carry both edges. deactivated is terminal. The subject is the same canonical composite over the complete Agent account ActorId that the ak.realm.create genesis write uses (identity/key-management.md section 3.6.3)."
           }
         ],
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.self.agent.pause",
@@ -5231,7 +5677,10 @@
             "notes": "identity/account-lifecycle.md section 9.1 fixes the edge as active to paused. from is read from payload.previous_status, which agent_pause_payload pins to the const active, rather than restated here: a hand-copied constant beside the schema that already closes it is the drift this array exists to prevent. to cannot be read from payload.transition, whose const is the verb pause, not the state name. The subject is the same canonical composite over the complete Agent account ActorId that the ak.realm.create genesis write uses (identity/key-management.md section 3.6.3)."
           }
         ],
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.self.agent.resume",
@@ -5284,7 +5733,10 @@
             "notes": "identity/account-lifecycle.md section 9.1 fixes the edge as paused to active, and requires the reducer to re-check controller, agent, key, capability, Realm policy and accountability grant before it is taken. from is read from payload.previous_status (const paused). The subject is the same canonical composite over the complete Agent account ActorId that the ak.realm.create genesis write uses (identity/key-management.md section 3.6.3)."
           }
         ],
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.self.moderation.report",
@@ -5331,7 +5783,10 @@
             "value_schema_ref": "schemas/event-payload.schema.json#/$defs/moderation_report_payload",
             "notes": "governance/content-moderation.md section 3.3 makes the accepted report itself the canonical fact. The subject is this Event's own id retyped to an EventId, which is exactly the value ak.moderation.decision carries in payload.target_ref when decision=dismiss, so dismiss names the report by the id it already has and no retype step is added to the subject grammar. The value is the complete report payload, unassembled; the two-state queue item is a read-side View folded from this family plus the dismiss records in moderation_state, and MUST NOT become a second stored state. moderation-queue-item.schema.json stays a service response shape and is NOT this family's value: its visibility / evidence_policy / priority / assigned_to_ids members are read-side derivations and local workflow, enumerated in the same section."
           }
-        ]
+        ],
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.sidecar.context.attach",
@@ -5343,7 +5798,12 @@
         "admission": "self_authored_proof",
         "payload": "Controller-signed versioned binding between a native Sidecar and an existing source Strand or Relation used as UI context. It creates no Strand or Relation object and contains a required EventRef role=after to the Sidecar create Event.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/sidecar_context_attach_payload",
-        "id_source": "reference"
+        "id_source": "reference",
+        "result_effect_ownership": {
+          "kind": "owned_gap",
+          "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
+          "closure_condition": "Register the complete result_writes[] contract for ak.sidecar.context.attach, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        }
       },
       {
         "event_kind": "ak.sidecar.create",
@@ -5356,7 +5816,12 @@
         "payload": "Controller-signed minimal native Sidecar creation intent. The Sidecar id is derived from the Event id; controller, Realm, lifecycle and timestamps are reducer-derived. It creates no Circle, membership, Strand or Relation object. See zh/models/sidecar.md §2-§5.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/sidecar_create_payload",
         "id_source": "event_derived",
-        "id_kind": "sidecar"
+        "id_kind": "sidecar",
+        "result_effect_ownership": {
+          "kind": "owned_gap",
+          "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
+          "closure_condition": "Register the complete result_writes[] contract for ak.sidecar.create, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        }
       },
       {
         "event_kind": "ak.sovereign.did_policy",
@@ -5368,7 +5833,12 @@
         "admission": "self_authored_proof",
         "payload": "Sovereign DID resolver policy state",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/sovereign_did_policy_state_payload",
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "owned_gap",
+          "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
+          "closure_condition": "Register the complete result_writes[] contract for ak.sovereign.did_policy, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        }
       },
       {
         "event_kind": "ak.space.archive",
@@ -5418,7 +5888,10 @@
             "value_schema_ref": "schemas/space.schema.json",
             "notes": "zh/models/common-fields.md section 5.2 maps the kind to its target state, so the payload names only the target object and an optional reason. allowed_paths is empty and there is no patch field: this write moves the value only through derived_members[], which is what the state axis has always required -- `state` is in universal_forbidden_patch_paths with basis dedicated_event_owned, so no author may reach it and object_initial_state only ever produces the value a create installs. Before object_lifecycle_state existed this kind had nothing it could legally declare and sat at result_writes: []. Pre-state guards are normative in section 5.2 and in this object's own model section: a same-state transition, a restore of a tombstoned object and any lifecycle write onto a terminal object MUST fail with failed_precondition and write nothing. Every member other than the four named here is retained verbatim."
           }
-        ]
+        ],
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.space.create",
@@ -5530,7 +6003,10 @@
           }
         ],
         "id_source": "event_derived",
-        "id_kind": "space"
+        "id_kind": "space",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.space.parent",
@@ -5582,7 +6058,10 @@
             }
           }
         ],
-        "id_source": "reference"
+        "id_source": "reference",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.space.restore",
@@ -5632,7 +6111,10 @@
             "value_schema_ref": "schemas/space.schema.json",
             "notes": "zh/models/common-fields.md section 5.2 maps the kind to its target state, so the payload names only the target object and an optional reason. allowed_paths is empty and there is no patch field: this write moves the value only through derived_members[], which is what the state axis has always required -- `state` is in universal_forbidden_patch_paths with basis dedicated_event_owned, so no author may reach it and object_initial_state only ever produces the value a create installs. Before object_lifecycle_state existed this kind had nothing it could legally declare and sat at result_writes: []. Pre-state guards are normative in section 5.2 and in this object's own model section: a same-state transition, a restore of a tombstoned object and any lifecycle write onto a terminal object MUST fail with failed_precondition and write nothing. Every member other than the four named here is retained verbatim."
           }
-        ]
+        ],
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.space.tombstone",
@@ -5682,7 +6164,10 @@
             "value_schema_ref": "schemas/space.schema.json",
             "notes": "zh/models/common-fields.md section 5.2 maps the kind to its target state, so the payload names only the target object and an optional reason. allowed_paths is empty and there is no patch field: this write moves the value only through derived_members[], which is what the state axis has always required -- `state` is in universal_forbidden_patch_paths with basis dedicated_event_owned, so no author may reach it and object_initial_state only ever produces the value a create installs. Before object_lifecycle_state existed this kind had nothing it could legally declare and sat at result_writes: []. Pre-state guards are normative in section 5.2 and in this object's own model section: a same-state transition, a restore of a tombstoned object and any lifecycle write onto a terminal object MUST fail with failed_precondition and write nothing. Every member other than the four named here is retained verbatim."
           }
-        ]
+        ],
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.space.update",
@@ -5714,7 +6199,10 @@
             "notes": "The dedicated non-patch policy write. models/circle.md section 7.1 is authoritative for the enum and the reducer obligations; section 6.3 for why it is not interchangeable with Space.scope_circle_id. The write is conditional on the dedicated top-level child_scope_policy member of space_patch_payload, never on the generic patch: that payload forbids the patch from reaching the path at all and its own description makes a policy member select security execution, so the two branches of the payload's anyOf are two different admission paths rather than two spellings of one. An absent member means the Event is the metadata-patch branch and writes nothing here; it does not mean allow_any."
           }
         ],
-        "id_source": "not_an_object_id"
+        "id_source": "not_an_object_id",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.strand.archive",
@@ -5764,7 +6252,10 @@
             "value_schema_ref": "schemas/strand.schema.json",
             "notes": "zh/models/common-fields.md section 5.2 maps the kind to its target state, so the payload names only the target object and an optional reason. allowed_paths is empty and there is no patch field: this write moves the value only through derived_members[], which is what the state axis has always required -- `state` is in universal_forbidden_patch_paths with basis dedicated_event_owned, so no author may reach it and object_initial_state only ever produces the value a create installs. Before object_lifecycle_state existed this kind had nothing it could legally declare and sat at result_writes: []. Pre-state guards are normative in section 5.2 and in this object's own model section: a same-state transition, a restore of a tombstoned object and any lifecycle write onto a terminal object MUST fail with failed_precondition and write nothing. Every member other than the four named here is retained verbatim."
           }
-        ]
+        ],
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.strand.create",
@@ -5792,7 +6283,10 @@
           }
         ],
         "id_source": "event_derived",
-        "id_kind": "strand"
+        "id_kind": "strand",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.strand.move",
@@ -5839,7 +6333,10 @@
             "notes": "models/realm-and-space.md section 3.6 pins result_selector.kind to typed_pair with the two ordered components id:space(payload.board_space_id) and id:strand(payload.strand_id), forbids the tuple and composite SHA-256 subject, and pins the value shape to list_space_id with rank, or null. target_space_id is the only destination carrier on the wire because list_space_id is a forbidden wire name per models/strand-and-message.md section 7.1, so the rename happens exactly here. expected_position is an optional explicit compare-and-set outside the projection."
           }
         ],
-        "id_source": "reference"
+        "id_source": "reference",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.strand.reorder",
@@ -5886,7 +6383,10 @@
             "notes": "Same subject as ak.strand.move per models/realm-and-space.md section 3.6. A reorder happens within one List Space, carried on payload.space_id, so the whole-value write restates list_space_id rather than merging rank alone: the value shape of that section has no partial form."
           }
         ],
-        "id_source": "reference"
+        "id_source": "reference",
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.strand.restore",
@@ -5936,7 +6436,10 @@
             "value_schema_ref": "schemas/strand.schema.json",
             "notes": "zh/models/common-fields.md section 5.2 maps the kind to its target state, so the payload names only the target object and an optional reason. allowed_paths is empty and there is no patch field: this write moves the value only through derived_members[], which is what the state axis has always required -- `state` is in universal_forbidden_patch_paths with basis dedicated_event_owned, so no author may reach it and object_initial_state only ever produces the value a create installs. Before object_lifecycle_state existed this kind had nothing it could legally declare and sat at result_writes: []. Pre-state guards are normative in section 5.2 and in this object's own model section: a same-state transition, a restore of a tombstoned object and any lifecycle write onto a terminal object MUST fail with failed_precondition and write nothing. Every member other than the four named here is retained verbatim."
           }
-        ]
+        ],
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.strand.stage.set",
@@ -5947,7 +6450,12 @@
         "reducer_input": true,
         "payload": "Strand business-progression stage transition. Single source of truth for mutating Strand.stage / Strand.stage_changed_at; ak.strand.update patch on those paths MUST be rejected (forbidden-wire). The payload intentionally carries no reason / note / explanation field — rationale belongs in a Message on the Strand's discussion track that 'references' this event, and the event log's own actor_id / created_at is the audit source. Reducer enforces hard invariants from zh/models/common-fields.md §5.3.3: state=redacted yields failed_precondition reason=strand_already_terminal; state=archived yields strand_not_active; same-value self-transition is accepted but does NOT update stage_changed_at; reducer overwrites any wire-supplied stage_changed_at with the event's created_at. v1 has no per-Realm workflow profile carrier: these hard invariants are the complete transition rule and receivers MUST NOT narrow admission from Realm-private configuration (zh/models/common-fields.md §5.3.4).",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/strand_stage_set_payload",
-        "id_source": "reference"
+        "id_source": "reference",
+        "result_effect_ownership": {
+          "kind": "owned_gap",
+          "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
+          "closure_condition": "Register the complete result_writes[] contract for ak.strand.stage.set, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        }
       },
       {
         "event_kind": "ak.strand.tracks.update",
@@ -5958,7 +6466,12 @@
         "reducer_input": true,
         "payload": "Unified Strand tracks patch. payload.patch uses ak.schema.patch.v1 against the Strand.tracks map: keys are track names (e.g. `synthesis`, `discussion`), values are patch ops that may toggle enabled, set is_primary, or modify profile / metadata on a track entry. Atomic across multiple tracks.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/strand_patch_payload",
-        "id_source": "reference"
+        "id_source": "reference",
+        "result_effect_ownership": {
+          "kind": "owned_gap",
+          "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
+          "closure_condition": "Register the complete result_writes[] contract for ak.strand.tracks.update, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        }
       },
       {
         "event_kind": "ak.strand.update",
@@ -5969,7 +6482,12 @@
         "reducer_input": true,
         "payload": "Strand patch",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/strand_patch_payload",
-        "id_source": "reference"
+        "id_source": "reference",
+        "result_effect_ownership": {
+          "kind": "owned_gap",
+          "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
+          "closure_condition": "Register the complete result_writes[] contract for ak.strand.update, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        }
       },
       {
         "event_kind": "ak.strand.watch.set",
@@ -5980,7 +6498,12 @@
         "reducer_input": true,
         "payload": "Set or clear a per-(strand, actor) watch subscription. Writes a current-value projection typed current result keyed by (strand_id, watcher_actor_id). Payload carries level in {mentions_only, participating, all, muted} (or null to clear, equivalent to mentions_only). Default invariant: payload.watcher_actor_id MUST equal envelope actor_id, unless writer holds ak.strand.watch.set.others. Cross-actor writes MUST be paired with a same-batch ak.audit.accessed event with access_kind=watch_set_others; the audit event carries refs[role=audit_pair] plus the suite-bearing paired_event_id pointing at the write, and derives its digest from that ID. The write MUST NOT reference the audit event (encoding.md 6.0.1 forbids mutual preimages). The watches Relation (actor --watches--> strand) is a derived projection of this typed current result, not a separate truth source — direct ak.relation.create relation_kind=watches MUST schema_violation. See models/strand-and-message.md §8.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/strand_watch_set_payload",
-        "id_source": "reference"
+        "id_source": "reference",
+        "result_effect_ownership": {
+          "kind": "owned_gap",
+          "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0650-reducer-input-true-without-a-registered-result-family.md",
+          "closure_condition": "Register the complete result_writes[] contract for ak.strand.watch.set, including every written family, exact selector, projection, value schema, guard and field source; then change this classification to typed_result_writer in the same change."
+        }
       },
       {
         "event_kind": "ak.view.create",
@@ -6038,7 +6561,10 @@
               }
             ]
           }
-        ]
+        ],
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.view.reconcile",
@@ -6083,7 +6609,10 @@
               "created_at"
             ]
           }
-        ]
+        ],
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       },
       {
         "event_kind": "ak.view.update",
@@ -6146,7 +6675,10 @@
             "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/view_value",
             "notes": "models/views.md section 3.2 table row 2, and the one write section 3.1 makes normatively load-bearing: a shared View has no tombstone event kind, so its protocol-level removal IS this patch setting state=tombstoned. allowed_paths is not a new enumeration -- it is the complement the reducer-managed-path-registry already fixed: the 21 declared View members minus the effective forbidden set for this object, with `state` subtracted by the single registered universal exemption. The registry is read per object, so another family declaring `stage` or `resolution` cannot narrow this set and this exemption cannot widen theirs. state_changed_at stays reducer-derived and conditional: only an accepted active -> tombstoned transition produces it, an author-supplied value MUST be rejected, and a terminal View MUST fail any later update or reconcile with failed_precondition reason_code=view_already_terminal. The four retained members are the create-locked identity and creation metadata, preserved verbatim from the frozen pre-state; a patch MUST NOT reach them and this write MUST NOT re-derive them."
           }
-        ]
+        ],
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
+        }
       }
     ],
     "actor_private_contracts": {
@@ -6348,8 +6880,8 @@
         }
       }
     },
-    "version": "2026-09-19.1",
-    "generated_at": "2026-09-19T06:53:00+08:00",
+    "version": "2026-09-19.3",
+    "generated_at": "2026-09-19T16:45:23+08:00",
     "bootstrap_event_kinds": [
       "ak.device.authorize",
       "ak.device.reanchor",
