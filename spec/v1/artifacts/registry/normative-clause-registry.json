@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.8",
+  "version": "2026-09-20.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-19T21:25:01+08:00",
+  "generated_at": "2026-09-20T00:03:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -61,7 +61,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#3-digest-suite",
-      "section_digest": "sha256:c81cc97aba55bc961b5b3942e6f17a0415ee54572c5bce26a205321f7f246ea2",
+      "section_digest": "sha256:08b8a53187f4bbbbe4e5a62ba383184715a9cac7e7403183d3753594c5a26121",
       "requirement": "Digest suite identifiers, canonical event digest computation and the bytewise tie-break order are fixed; implementations MUST NOT substitute another hash encoding or comparison direction.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -324,12 +324,13 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#31-内容寻址预映射",
-      "section_digest": "sha256:4db3afd022c0de3a80285900a094e77020919272c07f3d49df46eaf79325806f",
-      "requirement": "The pointer-level closure seeded by the Event envelope root and every registered payload pointer is the jurisdiction of the event_digest preimage rule; following a document-root $ref MUST NOT pull in unreferenced $defs siblings. Every Event-identity candidate in that closure MUST carry one closed x-arkret-preimage-commitment declaration, and prose wording MUST NOT select the verdict. self_identity and same_unit_sibling have no fixed point and MUST NOT be exempted. later_submission is constructible only when preimage-identity-exemption-registry.json carries the exact active row; non-Event objects outside the closure need no §3.1 exemption.",
+      "section_digest": "sha256:d5de4cfa5330e61e4cad8b6b93a85db837795667c1e7b1cdb5e6e71af9a989f7",
+      "requirement": "The pointer-level closure seeded by the Event envelope root and every registered payload pointer is the jurisdiction of the event_digest preimage rule; following a document-root $ref MUST NOT pull in unreferenced $defs siblings. Every Event-identity candidate in that closure MUST carry one closed x-arkret-preimage-commitment declaration, and prose wording MUST NOT select the verdict. self_identity and same_unit_sibling have no fixed point and MUST NOT be exempted. later_submission is constructible only when preimage-identity-exemption-registry.json carries the exact active row, including the holder-authored Agent draft source-pending forward declaration; non-Event objects outside the closure need no §3.1 exemption.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.event_id.content_bound.v1",
-        "ak.vector.encoding.derived_relation_evidence.v1"
+        "ak.vector.encoding.derived_relation_evidence.v1",
+        "ak.vector.agent.draft_pending_intent.v1"
       ]
     },
     {

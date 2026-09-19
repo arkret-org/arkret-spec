@@ -15,19 +15,19 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 8997,
-    "total_schema_documents": 164,
+    "total_properties": 9048,
+    "total_schema_documents": 165,
     "by_presence_class": {
-      "optional": 2305,
+      "optional": 2308,
       "optional_defaulted": 46,
-      "required": 6203,
-      "required_nullable": 288,
-      "tristate": 155
+      "required": 6247,
+      "required_nullable": 291,
+      "tristate": 156
     },
-    "tristate_occurrences": 155,
-    "tristate_audit_targets": 122,
+    "tristate_occurrences": 156,
+    "tristate_audit_targets": 123,
     "tristate_sdk_dispositions": {
-      "absent_null_equivalent": 112,
+      "absent_null_equivalent": 113,
       "condition_guarded": 9,
       "distinct": 1
     }
@@ -73,6 +73,7 @@
     "erasure-receipt.schema.json/properties/legal_hold_ref",
     "erasure-verification-stub.schema.json/properties/legal_hold_ref",
     "event-payload.schema.json/$defs/account_blocklist_payload/properties/entries/items/properties/expires_at",
+    "event-payload.schema.json/$defs/account_data_set_payload/allOf/1/then/properties/key",
     "event-payload.schema.json/$defs/account_data_set_payload/properties/body",
     "event-payload.schema.json/$defs/call_summary_payload/properties/duration_ms",
     "event-payload.schema.json/$defs/call_summary_payload/properties/ended_at",
@@ -455,6 +456,16 @@
       ],
       "sdk_disposition": "condition_guarded",
       "rationale": "A conditional branch requires this property. Draft 2020-12 validation rejects missing in that branch; explicit null remains the branch's empty value."
+    },
+    {
+      "schema_file": "event-payload.schema.json",
+      "shape": "/$defs/account_data_set_payload",
+      "instance_path": "/key",
+      "occurrences": [
+        "/$defs/account_data_set_payload/allOf/1/then/properties/key"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "event-payload.schema.json",
@@ -2185,6 +2196,66 @@
         "/$defs/detached_jws/properties/jws": "required",
         "/$defs/detached_jws/properties/kind": "required"
       }
+    },
+    "agent-draft-private.schema.json": {
+      "schema_ids": [
+        "ak.schema.agent_draft.v1",
+        "ak.schema.agent_draft_content_handoff_plaintext.v1 -> #/$defs/agent_draft_content_handoff_plaintext",
+        "ak.schema.agent_draft_pending_intent.v1 -> #/$defs/agent_draft_pending_intent",
+        "ak.schema.agent_draft_content_handoff.v1 -> #/$defs/content_handoff"
+      ],
+      "properties": {
+        "/$defs/agent_draft_account_data_value/properties/agent_id": "required",
+        "/$defs/agent_draft_account_data_value/properties/content": "required_nullable",
+        "/$defs/agent_draft_account_data_value/properties/content_digest": "required",
+        "/$defs/agent_draft_account_data_value/properties/created_at": "required",
+        "/$defs/agent_draft_account_data_value/properties/draft_id": "required",
+        "/$defs/agent_draft_account_data_value/properties/expires_at": "required",
+        "/$defs/agent_draft_account_data_value/properties/proposed_action": "required",
+        "/$defs/agent_draft_account_data_value/properties/schema": "required",
+        "/$defs/agent_draft_account_data_value/properties/source_pending_event_id": "required",
+        "/$defs/agent_draft_account_data_value/properties/target": "required",
+        "/$defs/agent_draft_account_data_value/properties/workflow_state": "required",
+        "/$defs/agent_draft_content_handoff_plaintext/properties/agent_id": "required",
+        "/$defs/agent_draft_content_handoff_plaintext/properties/content": "required_nullable",
+        "/$defs/agent_draft_content_handoff_plaintext/properties/content_digest": "required",
+        "/$defs/agent_draft_content_handoff_plaintext/properties/created_at": "required",
+        "/$defs/agent_draft_content_handoff_plaintext/properties/draft_id": "required",
+        "/$defs/agent_draft_content_handoff_plaintext/properties/expires_at": "required",
+        "/$defs/agent_draft_content_handoff_plaintext/properties/schema": "required",
+        "/$defs/agent_draft_pending_intent/allOf/0/if/properties/state": "required",
+        "/$defs/agent_draft_pending_intent/allOf/1/if/properties/state": "required",
+        "/$defs/agent_draft_pending_intent/properties/accepted_event_id": "required",
+        "/$defs/agent_draft_pending_intent/properties/agent_id": "required",
+        "/$defs/agent_draft_pending_intent/properties/canonical_event_digest": "required",
+        "/$defs/agent_draft_pending_intent/properties/consumption": "optional",
+        "/$defs/agent_draft_pending_intent/properties/content_digest": "required",
+        "/$defs/agent_draft_pending_intent/properties/content_handoff": "required",
+        "/$defs/agent_draft_pending_intent/properties/controller_account_id": "required",
+        "/$defs/agent_draft_pending_intent/properties/created_at": "required",
+        "/$defs/agent_draft_pending_intent/properties/draft_id": "required",
+        "/$defs/agent_draft_pending_intent/properties/expired_at": "optional",
+        "/$defs/agent_draft_pending_intent/properties/expires_at": "required",
+        "/$defs/agent_draft_pending_intent/properties/proposed_action": "required",
+        "/$defs/agent_draft_pending_intent/properties/schema": "required",
+        "/$defs/agent_draft_pending_intent/properties/state": "required",
+        "/$defs/agent_draft_pending_intent/properties/target": "required",
+        "/$defs/content_handoff/properties/recipients": "required",
+        "/$defs/content_handoff/properties/scheme": "required",
+        "/$defs/content_handoff_recipient/properties/ciphertext": "required",
+        "/$defs/content_handoff_recipient/properties/ciphertext_digest": "required",
+        "/$defs/content_handoff_recipient/properties/enc": "required",
+        "/$defs/content_handoff_recipient/properties/recipient_device_id": "required",
+        "/$defs/content_handoff_recipient/properties/recipient_hpke_key_digest": "required",
+        "/$defs/pending_intent_consumption/properties/accepted_revision": "required",
+        "/$defs/pending_intent_consumption/properties/account_data_key": "required",
+        "/$defs/pending_intent_consumption/properties/account_data_set_event_id": "required",
+        "/$defs/pending_intent_consumption/properties/consumed_at": "required"
+      },
+      "conditionally_required": [
+        "/$defs/agent_draft_pending_intent/properties/consumption",
+        "/$defs/agent_draft_pending_intent/properties/expired_at"
+      ]
     },
     "agent-membership-cascade.schema.json": {
       "schema_ids": [
@@ -5572,10 +5643,15 @@
         "/$defs/account_blocklist_payload/properties/kind": "optional",
         "/$defs/account_blocklist_payload/properties/updated_at": "optional",
         "/$defs/account_blocklist_payload/properties/version": "required",
+        "/$defs/account_data_set_payload/allOf/0/if/properties/expected_server_revision": "required",
+        "/$defs/account_data_set_payload/allOf/0/if/properties/key": "required_nullable",
+        "/$defs/account_data_set_payload/allOf/1/then/properties/expected_server_revision": "optional",
+        "/$defs/account_data_set_payload/allOf/1/then/properties/key": "tristate",
         "/$defs/account_data_set_payload/properties/body": "tristate",
         "/$defs/account_data_set_payload/properties/encrypted_payload": "optional",
         "/$defs/account_data_set_payload/properties/expected_server_revision": "required",
         "/$defs/account_data_set_payload/properties/key": "required",
+        "/$defs/account_data_set_payload/properties/source_pending_event_id": "optional",
         "/$defs/account_data_set_payload/properties/tombstone": "optional",
         "/$defs/account_data_set_payload/properties/updated_at": "optional",
         "/$defs/actor_discovery_state_payload/properties/resource_id": "required",
@@ -5620,9 +5696,9 @@
         "/$defs/agent_deactivate_payload/properties/reason": "optional",
         "/$defs/agent_deactivate_payload/properties/status_changed_at": "required",
         "/$defs/agent_deactivate_payload/properties/transition": "required",
-        "/$defs/agent_draft_propose_payload/properties/account_data_key": "optional",
         "/$defs/agent_draft_propose_payload/properties/agent_id": "required",
         "/$defs/agent_draft_propose_payload/properties/content_digest": "required",
+        "/$defs/agent_draft_propose_payload/properties/content_handoff": "required",
         "/$defs/agent_draft_propose_payload/properties/controller_account_id": "required",
         "/$defs/agent_draft_propose_payload/properties/created_at": "required",
         "/$defs/agent_draft_propose_payload/properties/draft_id": "required",
@@ -6662,6 +6738,7 @@
         "/$defs/account_blocklist_payload/properties/entries/items/properties/target/properties/value",
         "/$defs/account_data_set_payload/properties/body",
         "/$defs/account_data_set_payload/properties/encrypted_payload",
+        "/$defs/account_data_set_payload/properties/source_pending_event_id",
         "/$defs/account_data_set_payload/properties/tombstone",
         "/$defs/agent_action_target/properties/account_data_key",
         "/$defs/agent_action_target/properties/object_ref",

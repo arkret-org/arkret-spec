@@ -3,7 +3,7 @@ title: Encoding, IDs, Hashes, and Signatures
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-16
+updated: 2026-09-20
 sidebar:
   label: Encoding & IDs
 ---
@@ -78,6 +78,7 @@ suite 的摘要不能比较为相等。Event、RealmCommit、handoff 与 snapsho
 | --- | --- | --- |
 | `ak.exemption.preimage_identity.realm_genesis.v1` | envelope_omission | `ak.realm.create` 的 envelope `realm_id`、`scope_ref.realm_id` 与 create payload object id 都不进入原像；接收方从已接受的 `event_id` 正向派生 `realm_id`。 |
 | `ak.exemption.preimage_identity.agent_provision_principal_control_realm_id.v1` | forward_declaration | `ak.agent.provision` 先声明 `principal_control_realm_id = retype(genesis event_id)`；genesis 原像不含 provision 的任何标识、引用或摘要，依赖只朝一个方向。 |
+| `ak.exemption.preimage_identity.agent_draft_source_pending_event.v1` | forward_declaration | holder 只在独立的 `ak.agent.draft.propose` 已接受、`event_id` 已固定后 author `ak.account_data.set.source_pending_event_id`；proposal 原像不含后者的任何标识、引用或摘要，依赖只朝一个方向。 |
 
 机器 fixture 声明的派生结论 MUST 以本节的原像与摘要规则被重算，而不是与输入并列书写；
 证据形态与封闭的关系词表由 `ak.vector.encoding.derived_relation_evidence.v1` 承载。

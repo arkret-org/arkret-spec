@@ -3,7 +3,7 @@ title: Private & Derived Objects
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-09
+updated: 2026-09-19
 ---
 
 ## 0. 规范语言
@@ -153,7 +153,7 @@ Read marker 与个人通知偏好、saved view personalization、列宽 / 折叠
 
 两类 controller-owned encrypted account data 类型在 `ak.agent.*` 命名空间下:
 
-- **`ak.agent.draft.v1`**:agent 通过 `ak.agent.draft.propose` / `ak.agent.action_request`(actor_private_event)提议候选内容,Station 通过 capability / policy / accountability / risk check 后,materialize 为 controller-owned `ak.agent.draft.v1` account-data。Key pattern 建议 `ak.agent.draft.v1:<agent_id>:<draft_id>`,声明 `encrypted_at_rest=true`、tombstone 与 retention 规则。Draft MUST NOT 作为 `ak.message.create` / `ak.strand.create` 或任何 `wire_scope=durable_event` 进入目标 Realm 共享历史。Draft 引用目标 `realm_id` / `strand_id` / `message_id` 不授予目标 Realm 成员读取 draft 内容的权利。
+- **`ak.agent.draft.v1`**：`ak.agent.draft.propose` 接受后只创建结构化 Station-private pending intent，并通过 controller device HPKE handoff 交付候选内容；它不写 account data。controller holder 解密、校验 content digest 后，使用 account secret 构造 encrypted value，再以唯一 `ak.account_data.set` CAS 创建 `ak.agent.draft.v1:<agent_id>:<draft_id>` revision 1，并在同一事务消费 pending intent。Station 不持 holder secret、不生成密文，pending intent 也不得冒充 account-data current value；exact owner/key/value、到期、消费和失败恢复见 [`actor-private-effects.md` §3.2](./actor-private-effects.md#32-agent-draftrequest-与-rejection)。Draft MUST NOT 作为 `ak.message.create` / `ak.strand.create` 或任何 `wire_scope=durable_event` 进入目标 Realm 共享历史。Draft 引用目标 `realm_id` / `strand_id` / `message_id` 不授予目标 Realm 成员读取 draft 内容的权利。
 - **`ak.agent.sidecar_view_state.v1`**：controller-private context view state，使用 `ak.schema.agent_sidecar_view_state.v1` plaintext。令 `controller_account_key = derive_account_data_key(RFC8785_JCS(controller_account_id))`，其中派生 primitive 严格复用 [`account-data.md` §2](./account-data.md)；Key pattern 为 `ak.agent.sidecar_view_state.v1:<controller_account_key>:<target_realm_id>:<target_strand_id>`。不得把结构化 AccountId 的 JSON 直接插入冒号分隔 key；同 principal、异 Station 必须产生不同 `controller_account_key`。该 value 保存 Sidecar 寄宿显示的 `display_mode=context_merged|sidecar_only`、pin/折叠与跨设备 HLC。它引用 `sidecar_id`，但不得产生 shared Strand durable 写入。
 
 上述两类 key 前缀不同、key 第二段语义不同（`draft` 为 agent_id，Sidecar view 为 controller_account_id），不会在 `ak.agent.*` 命名空间下冲突。注册时 MUST 在 `account-data-key-registry.json` 显式声明 key pattern、plaintext schema 与 holder principal，reducer/client 据此做归属、key/content binding 与 closed-schema 校验。

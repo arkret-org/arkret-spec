@@ -3,7 +3,7 @@ title: 实现 Profile 与一致性要求
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-12
+updated: 2026-09-19
 sidebar:
   label: 实现 Profile
 ---
@@ -678,7 +678,7 @@ MUST 支持:
 - Agent management surface 中 list/get 是 read-only；renew-pairing 只轮换 profile-local pairing artifact，不写 durable Event；pause/resume/deactivate 各写一个 lifecycle Event，其中 deactivate 的 accepted terminal parent gate 直接使全部 child authority ineffective，不接受客户端 revoke bundle；grant attach/detach 分别写 Realm-scoped capability grant/revoke Event
 - Longevity-safe 授权链:`ak.agent.key.authorize`、`ak.identity.accountability_grant` 与非 registry-required 的 agent capability grant 的 `expires_at` 均可缺省(revocation-governed);实现 MUST NOT 因缺省 `expires_at` 拒绝这些对象
 - Agent provision request 与 list/get projection 使用必填固有字段 `slug`；Agent selector claim `ak.schema.agent_selector_claim.v1` 与 Actor Profile 投影 hint 使用外部引用字段 `agent_slug`，并支持 `@<controller-handle>/<agent_slug>` 输入别名到 agent `subject_account_id`（完整 AccountId）的唯一解析；slug 不是 handle、公开 Directory search/list key 或授权主体
-- Draft-only family:`ak.agent.draft.propose` / `ak.agent.action_request` / `ak.agent.action_reject`,materialize 为 controller-owned `ak.agent.draft.v1` encrypted account-data
+- Draft-only family：`ak.agent.draft.propose` / `ak.agent.action_request` / `ak.agent.action_reject`。propose 只 materialize 结构化 Station-private pending intent；controller holder 随后用唯一 account-data CAS 创建 `ak.agent.draft.v1` encrypted value。实现 MUST 支持 owner-bound HPKE content handoff、available→consumed/expired、exact replay 与 CAS 失败零写入，且 Station MUST NOT 持有 holder secret 或生成 encrypted value。
 - Draft approval 状态机:`proposed → approved → published`；`ak.agent.action_approve` 在目标 Realm 安全确认中将 nonce 一次分配给完整 approved_event_id，私有 draft 从该确切结果派生状态。该 confirmation 只满足 Agent draft 的发布 gate：它 MUST NOT 免除目标 Event 的 grant／governance approval 要求，MUST NOT 与 `ak.schema.approval_signature.v1` 互作 alias 或互用 nonce，其 `approval_event` 引用也 MUST NOT 被当成一份 detached 签名（三者边界见 [`../authz/constraint-schema.md` §9.2.6](../authz/constraint-schema.md)）
 - Event Envelope `actor_id` / `executed_by` / `authorization_ref` attribution，以及从历史 provisioning / registration / accountability evidence 分别验证 accountable actor 与 executor
 - Pause/Resume/Deactivate 语义(见 [`../identity/account-lifecycle.md` §9.1](../identity/account-lifecycle.md))

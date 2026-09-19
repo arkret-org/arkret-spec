@@ -271,6 +271,50 @@
           ]
         }
       ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "key": {
+                "pattern": "^ak\\.agent\\.draft\\.v1:"
+              },
+              "expected_server_revision": {
+                "const": 0
+              }
+            },
+            "required": [
+              "key",
+              "expected_server_revision"
+            ]
+          },
+          "then": {
+            "required": [
+              "encrypted_payload",
+              "source_pending_event_id"
+            ]
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "source_pending_event_id"
+            ]
+          },
+          "then": {
+            "properties": {
+              "key": {
+                "pattern": "^ak\\.agent\\.draft\\.v1:[^:]+:[^:]+$"
+              },
+              "expected_server_revision": {
+                "const": 0
+              }
+            },
+            "required": [
+              "encrypted_payload"
+            ]
+          }
+        }
+      ],
       "properties": {
         "key": {
           "$ref": "#/$defs/non_empty_string"
@@ -292,6 +336,11 @@
           "type": "integer",
           "minimum": 0,
           "description": "Compare-and-set precondition against the accepted per-key revision. A mismatch MUST be rejected with cas_conflict and MUST NOT be stored; the revision counter is a high-water mark that never goes backwards, so a stale offline retry cannot resurrect a superseded value. This is the Station-maintained monotone per-key counter of the server_revision_cas merge on the account-private face. It is a different mechanism from the shared face’s typed expected_revision ({commit_id, stream_position}) and carries a different name so the two can never be compared against each other."
+        },
+        "source_pending_event_id": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id",
+          "x-arkret-preimage-commitment": "later_submission",
+          "description": "Required only for the first create of ak.agent.draft.v1:<agent_id>:<draft_id>. It selects the available Station-private ak.agent.draft.propose pending intent that is consumed atomically with the successful account-data CAS. This one-way later-submission commitment is the named forward-declaration exception in zh/conformance/encoding.md §3.1."
         }
       },
       "additionalProperties": false
@@ -635,7 +684,7 @@
     },
     "agent_draft_propose_payload": {
       "type": "object",
-      "description": "Payload for ak.agent.draft.propose. Actor-private proposal that may materialize into controller-owned encrypted draft account data after policy checks.",
+      "description": "Payload for ak.agent.draft.propose. Acceptance creates one Station-private pending intent and never creates encrypted account data. content_handoff is HPKE ciphertext for current accepted controller devices; Station cannot decrypt it.",
       "required": [
         "draft_id",
         "agent_id",
@@ -643,6 +692,7 @@
         "proposed_action",
         "target",
         "content_digest",
+        "content_handoff",
         "expires_at",
         "created_at"
       ],
@@ -672,6 +722,9 @@
         "content_digest": {
           "$ref": "#/$defs/digest"
         },
+        "content_handoff": {
+          "$ref": "./agent-draft-private.schema.json#/$defs/content_handoff"
+        },
         "expires_at": {
           "$ref": "#/$defs/timestamp"
         },
@@ -681,9 +734,6 @@
         "summary": {
           "$ref": "string-profiles.schema.json#/$defs/short_text",
           "maxLength": 2048
-        },
-        "account_data_key": {
-          "$ref": "#/$defs/non_empty_string"
         }
       },
       "additionalProperties": false

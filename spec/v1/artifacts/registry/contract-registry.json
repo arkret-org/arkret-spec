@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.29",
+  "version": "2026-09-20.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-19T23:20:20+08:00",
+  "generated_at": "2026-09-20T00:21:26+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -823,7 +823,7 @@
         "verb_form": "base",
         "wire_scope": "actor_private_event",
         "reducer_input": false,
-        "payload": "Agent-initiated draft proposal. Submitted by agent runtime; Station materializes accepted drafts into controller-owned ak.agent.draft.v1 account-data after capability / policy / accountability / risk check. MUST NOT enter shared Realm history.",
+        "payload": "Agent-initiated draft proposal. Acceptance creates one structured Station-private pending intent with HPKE content handoff after capability / policy / accountability / risk checks. A controller holder device later creates encrypted ak.agent.draft.v1 account data through the unique account-data CAS. Station MUST NOT generate ciphertext, hold the holder secret, treat the pending intent as account data, or enter it into shared Realm history.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/agent_draft_propose_payload",
         "id_source": "not_an_object_id",
         "result_effect_ownership": {
@@ -8086,6 +8086,11 @@
           "accepted_result": "create the record once; an equal digest returns the stored outcome without another write",
           "conflict_result": "duplicate_conflict with zero durable or externally visible side effects"
         },
+        "pending_intent_create_consume": {
+          "comparison": "proposal create is create-once by (controller AccountId, agent_id, draft_id) plus canonical Event digest; consumption requires state=available, now < expires_at, exact holder/key/source binding and the account-data create CAS expected_server_revision=0",
+          "accepted_result": "proposal creates one available pending intent; the later holder-authored ak.account_data.set atomically creates revision 1 of the encrypted draft and transitions that same intent to consumed without a second revision counter",
+          "conflict_result": "a different proposal at an occupied key returns duplicate_conflict; expiry, source mismatch or account-data CAS conflict writes neither account data nor a pending-intent transition"
+        },
         "target_state_cas": {
           "comparison": "the rejection id is unused and exactly one named target exists in the non-terminal proposed/requested state",
           "accepted_result": "atomically store the rejection and transition only that target to rejected",
@@ -8106,9 +8111,9 @@
           "merge": "server_revision_cas",
           "tombstone": "versioned_tombstone"
         },
-        "ak.private.agent.draft.v1": {
-          "merge": "create_once_digest",
-          "tombstone": "external_account_data_lifecycle"
+        "ak.private.agent.draft_pending_intent.v1": {
+          "merge": "pending_intent_create_consume",
+          "tombstone": "consumed_or_expired_then_retention_gc"
         },
         "ak.private.agent.action_request.v1": {
           "merge": "create_once_digest",
@@ -8226,6 +8231,10 @@
               {
                 "target": "updated_at",
                 "source": "coalesce(payload.updated_at,envelope.created_at)"
+              },
+              {
+                "target": "pending_intent_transition",
+                "source": "when payload.source_pending_event_id exists, available -> consumed with this Event.event_id and accepted revision"
               }
             ]
           },
@@ -8239,12 +8248,17 @@
               "target": "content_or_tombstone",
               "source": "payload tagged branch",
               "rule": "replace as one whole value; never merge opaque encrypted bytes server-side"
+            },
+            {
+              "target": "agent_draft_pending_intent",
+              "source": "payload.source_pending_event_id when present",
+              "rule": "for the first ak.agent.draft.v1 create, validate exact owner/agent/draft/key binding and atomically transition the available unexpired intent to consumed; later draft revisions omit the source and never consume again"
             }
           ],
           "concurrency": {
             "kind": "server_revision_cas",
             "precondition": "payload.expected_server_revision equals the current per-key revision",
-            "accepted_write": "atomically store the selected value branch and revision + 1 before device fanout",
+            "accepted_write": "atomically store the selected value branch and revision + 1 before device fanout; an initial agent-draft create also consumes its exact pending intent in this same transaction",
             "conflict": "return cas_conflict with the current revision and any permitted current entry"
           },
           "exact_retry": {
@@ -8256,15 +8270,16 @@
             "conditions": [
               "owner or registered key binding fails",
               "payload value branch or schema fails",
-              "revision precondition fails"
+              "revision precondition fails",
+              "an initial ak.agent.draft.v1 create lacks an available unexpired exact source pending intent or its owner/agent/draft/content binding fails"
             ],
             "side_effects": "zero"
           },
           "shared_realm_effect": "none"
         },
         "ak.agent.draft.propose": {
-          "result_family": "ak.private.agent.draft.v1",
-          "durable_effect": "Materialize one controller-owned encrypted draft after capability, policy, accountability and risk admission.",
+          "result_family": "ak.private.agent.draft_pending_intent.v1",
+          "durable_effect": "Create one structured Station-private pending intent after capability, policy, accountability and risk admission; this write is not encrypted Account Data and never materializes ak.agent.draft.v1.",
           "storage_owner": {
             "kind": "account_station_private_store",
             "account_id_source": "payload.controller_account_id",
@@ -8278,20 +8293,60 @@
             ]
           },
           "value_projection": {
-            "kind": "encrypted_workflow_record",
-            "schema_ref": "schemas/event-payload.schema.json#/$defs/agent_draft_propose_payload",
+            "kind": "structured_pending_intent",
+            "schema_ref": "schemas/agent-draft-private.schema.json#/$defs/agent_draft_pending_intent",
             "members": [
               {
-                "target": "proposal",
-                "source": "payload"
+                "target": "schema",
+                "source": "const:ak.schema.agent_draft_pending_intent.v1"
               },
               {
-                "target": "workflow_state",
-                "source": "const:proposed"
+                "target": "controller_account_id",
+                "source": "payload.controller_account_id"
+              },
+              {
+                "target": "agent_id",
+                "source": "payload.agent_id"
+              },
+              {
+                "target": "draft_id",
+                "source": "payload.draft_id"
+              },
+              {
+                "target": "proposed_action",
+                "source": "payload.proposed_action"
+              },
+              {
+                "target": "target",
+                "source": "payload.target"
+              },
+              {
+                "target": "content_digest",
+                "source": "payload.content_digest"
+              },
+              {
+                "target": "content_handoff",
+                "source": "payload.content_handoff"
+              },
+              {
+                "target": "expires_at",
+                "source": "payload.expires_at"
+              },
+              {
+                "target": "created_at",
+                "source": "payload.created_at"
+              },
+              {
+                "target": "state",
+                "source": "const:available"
               },
               {
                 "target": "accepted_event_id",
                 "source": "Event.event_id"
+              },
+              {
+                "target": "canonical_event_digest",
+                "source": "digest(canonical Event bytes)"
               }
             ]
           },
@@ -8302,29 +8357,66 @@
               "rule": "bind the selected storage account before any materialization"
             },
             {
-              "target": "workflow_state",
-              "source": "const:proposed",
-              "rule": "create once; later state changes use their separately authorized workflow path"
+              "target": "content_handoff",
+              "source": "payload.content_handoff",
+              "rule": "retain only the HPKE envelopes whose unique recipient devices and hpke-key digests match current accepted devices of the exact controller account; Station never decrypts or substitutes content"
+            },
+            {
+              "target": "state",
+              "source": "const:available then the registered expiry/consumption transitions",
+              "rule": "available changes exactly once to consumed or expired; neither terminal state can return to available"
             }
           ],
           "concurrency": {
-            "kind": "create_once_digest",
+            "kind": "pending_intent_create_consume",
             "precondition": "the controller/agent/draft key is absent or holds this exact canonical Event digest",
-            "accepted_write": "store the encrypted proposal and proposed state atomically",
-            "conflict": "a different proposal at the occupied key returns duplicate_conflict"
+            "accepted_write": "store the structured available pending intent in the same transaction as canonical Event and authority commit; a later exact holder CAS consumes it as defined below",
+            "conflict": "a different proposal at the occupied key returns duplicate_conflict; any failed consume leaves the available intent and account-data register unchanged"
           },
           "exact_retry": {
             "identity": "canonical Event bytes and their verified Event.event_id",
-            "same_bytes": "return the original materialization outcome without another draft or notification",
+            "same_bytes": "return the original pending-intent outcome without another intent, state transition or notification",
             "different_bytes": "same Event identity or draft key with different bytes returns duplicate_conflict"
           },
           "rejection": {
             "conditions": [
               "controller/agent binding or authority fails",
               "capability, policy, accountability or risk check fails",
-              "schema, expiry or digest binding fails"
+              "schema, expiry, content digest or controller-device HPKE recipient binding fails"
             ],
             "side_effects": "zero"
+          },
+          "pending_intent_lifecycle": {
+            "reading": {
+              "audience": "authenticated active devices of payload.controller_account_id only",
+              "delivery_surface": "existing account subscribe controller-private projection with baseline and cursor-covered catch-up",
+              "visible_value": "the structured pending intent including HPKE content_handoff; never account-data plaintext or holder secret"
+            },
+            "content_handoff": {
+              "producer": "the authorized Agent runtime",
+              "recipient_key_source": "current accepted controller device hpke_key",
+              "schema_ref": "schemas/agent-draft-private.schema.json#/$defs/content_handoff",
+              "plaintext_schema": "schemas/agent-draft-private.schema.json#/$defs/agent_draft_content_handoff_plaintext",
+              "info_and_aad": "RFC8785-JCS({schema:'ak.agent_draft_content_handoff.v1',controller_account_id,agent_id,draft_id,proposed_action,target,content_digest,created_at,expires_at,recipient_device_id,recipient_hpke_key_digest})",
+              "station_plaintext_access": "forbidden"
+            },
+            "expiry": {
+              "comparison": "at consume time Station protocol time is strictly before payload.expires_at",
+              "transition": "available -> expired exactly once; consumed is never expired",
+              "retention": "retain terminal metadata and exact-retry outcome for deployment retention, then GC ciphertext while retaining the occupied create-once key digest"
+            },
+            "consumption": {
+              "trigger_event_kind": "ak.account_data.set",
+              "source_field": "payload.source_pending_event_id",
+              "account_data_key": "ak.agent.draft.v1:<agent_id>:<draft_id>",
+              "preconditions": "holder actor equals controller owner; source selects this available unexpired pending intent; key coordinates and decrypted client-validated content_digest match; expected_server_revision=0; encrypted_payload validates as ak.schema.account_data_encrypted_value.v1",
+              "atomic_effect": "create account-data revision 1 and transition available -> consumed recording the consuming Event id, key, revision and consumed_at; no second counter"
+            },
+            "failure_recovery": {
+              "before_commit": "any validation, CAS, authority-commit or storage failure rolls back Event/account-data/pending transition together and leaves the intent available",
+              "uncertain_outcome": "retry the byte-identical signed ak.account_data.set Event; exact retry returns the stored revision-1 and consumed outcome",
+              "conflicting_retry": "same Event id with different bytes or another consumer returns duplicate_conflict/cas_conflict with zero writes"
+            }
           },
           "shared_realm_effect": "none"
         },
@@ -8594,8 +8686,8 @@
         }
       }
     },
-    "version": "2026-09-19.5",
-    "generated_at": "2026-09-19T19:35:04+08:00",
+    "version": "2026-09-20.8",
+    "generated_at": "2026-09-20T00:21:26+08:00",
     "bootstrap_event_kinds": [
       "ak.device.authorize",
       "ak.device.reanchor",
@@ -8837,6 +8929,48 @@
         "file": "schemas/actor-profile-operations.schema.json",
         "status": "active",
         "description": "Authorized shared-Realm projection of another principal's global Actor Profile. It is the only outward carrier for the PCR-resident ak.profile.create / ak.profile.update facts."
+      },
+      {
+        "schema_id": "ak.schema.agent_draft.v1",
+        "file": "schemas/agent-draft-private.schema.json",
+        "status": "active",
+        "description": "Closed decrypted plaintext of controller-holder-created encrypted ak.agent.draft.v1 account data. Station never receives this plaintext.",
+        "consumer_binding": {
+          "kind": "account_data_storage",
+          "selector": "account-data-key-registry.json#/account_data_key_patterns[key_pattern=ak.agent.draft.v1:<agent_id>:<draft_id>]",
+          "normative_ref": "zh/models/actor-private-effects.md#32-agent-draftrequest-与-rejection"
+        }
+      },
+      {
+        "schema_id": "ak.schema.agent_draft_content_handoff.v1",
+        "file": "schemas/agent-draft-private.schema.json",
+        "fragment": "#/$defs/content_handoff",
+        "status": "active",
+        "description": "Closed HPKE multi-recipient content handoff carried by ak.agent.draft.propose for accepted controller devices."
+      },
+      {
+        "schema_id": "ak.schema.agent_draft_content_handoff_plaintext.v1",
+        "file": "schemas/agent-draft-private.schema.json",
+        "fragment": "#/$defs/agent_draft_content_handoff_plaintext",
+        "status": "active",
+        "description": "Closed plaintext inside each Agent draft HPKE content handoff; only the selected accepted controller device opens it.",
+        "consumer_binding": {
+          "kind": "dynamic_schema_ref",
+          "selector": "contract-registry.json#/event_kind_registry/actor_private_contracts/event_writes/ak.agent.draft.propose/pending_intent_lifecycle/content_handoff/plaintext_schema",
+          "normative_ref": "zh/models/actor-private-effects.md#32-agent-draftrequest-与-rejection"
+        }
+      },
+      {
+        "schema_id": "ak.schema.agent_draft_pending_intent.v1",
+        "file": "schemas/agent-draft-private.schema.json",
+        "fragment": "#/$defs/agent_draft_pending_intent",
+        "status": "active",
+        "description": "Structured Station-private pending-intent value created by ak.agent.draft.propose and consumed atomically by the holder's first encrypted draft account-data CAS.",
+        "consumer_binding": {
+          "kind": "dynamic_schema_ref",
+          "selector": "contract-registry.json#/event_kind_registry/actor_private_contracts/event_writes/ak.agent.draft.propose/value_projection/schema_ref",
+          "normative_ref": "zh/models/actor-private-effects.md#32-agent-draftrequest-与-rejection"
+        }
       },
       {
         "schema_id": "ak.schema.agent_authority_state_attestation.v1",
@@ -10368,8 +10502,8 @@
         "description": "Server authentication-success frame carrying effective connection and channel limits."
       }
     ],
-    "version": "2026-09-19.6",
-    "generated_at": "2026-09-19T23:12:27+08:00",
+    "version": "2026-09-20.8",
+    "generated_at": "2026-09-20T00:14:34+08:00",
     "metadata_authority": "contract_registry_section"
   },
   "id_kind_registry": {

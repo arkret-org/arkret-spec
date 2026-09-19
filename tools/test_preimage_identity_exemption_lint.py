@@ -143,11 +143,11 @@ class PreimageIdentityExemptionLintTest(unittest.TestCase):
         errors = self._run(json_mutations={ENVELOPE_SCHEMA_PATH: mutate})
         self.assertTrue(any("cannot declare no_event_identity" in error for error in errors), errors)
 
-    def test_pointer_closure_is_35_candidates_in_13_files(self) -> None:
+    def test_pointer_closure_is_36_candidates_in_13_files(self) -> None:
         lint = Lint()
         candidates = lint_artifacts.preimage_reachable_properties(lint)
         self.assertEqual(lint.errors, [])
-        self.assertEqual(len(candidates), 35)
+        self.assertEqual(len(candidates), 36)
         self.assertEqual(len({key[0] for key in candidates}), 13)
         self.assertFalse(any(key[0] == "approval-signature.schema.json" for key in candidates))
 

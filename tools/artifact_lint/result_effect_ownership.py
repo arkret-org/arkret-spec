@@ -52,6 +52,7 @@ _ACTOR_PRIVATE_EFFECT_KEYS = frozenset(
         "shared_realm_effect",
     }
 )
+_AGENT_DRAFT_PENDING_EFFECT_KEYS = _ACTOR_PRIVATE_EFFECT_KEYS | {"pending_intent_lifecycle"}
 _ACTOR_PRIVATE_OWNER_SOURCES = {
     "ak.account.blocklist": "envelope.actor_id",
     "ak.account_data.set": "envelope.actor_id",
@@ -144,8 +145,13 @@ def _validate_actor_private_effect(
     if not isinstance(effect, dict):
         lint.fail(CONTRACT_REGISTRY, f"{where} does not resolve to a structured effect contract")
         return
-    if set(effect) != _ACTOR_PRIVATE_EFFECT_KEYS:
-        lint.fail(CONTRACT_REGISTRY, f"{where} must have exactly {sorted(_ACTOR_PRIVATE_EFFECT_KEYS)}")
+    expected_effect_keys = (
+        _AGENT_DRAFT_PENDING_EFFECT_KEYS
+        if event_kind == "ak.agent.draft.propose"
+        else _ACTOR_PRIVATE_EFFECT_KEYS
+    )
+    if set(effect) != expected_effect_keys:
+        lint.fail(CONTRACT_REGISTRY, f"{where} must have exactly {sorted(expected_effect_keys)}")
 
     family_id = effect.get("result_family")
     family = families.get(family_id) if isinstance(family_id, str) else None

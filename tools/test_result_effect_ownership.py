@@ -274,6 +274,15 @@ class ResultEffectOwnershipTest(unittest.TestCase):
         errors = self._new_errors(mutate)
         self.assertTrue(any("concurrency.kind is unknown" in error for error in errors), errors)
 
+    def test_agent_draft_requires_structured_pending_lifecycle(self) -> None:
+        def mutate(document: dict) -> None:
+            document["event_kind_registry"]["actor_private_contracts"]["event_writes"][
+                "ak.agent.draft.propose"
+            ].pop("pending_intent_lifecycle")
+
+        errors = self._new_errors(mutate)
+        self.assertTrue(any("pending_intent_lifecycle" in error for error in errors), errors)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -3,7 +3,7 @@ title: Account Data
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-29
+updated: 2026-09-19
 ---
 
 ## 0. 规范语言
@@ -18,6 +18,14 @@ updated: 2026-07-29
 本文是 principal/actor-private Account Data 的存储、寻址、加密与 key 派生单一真相源。标准 data type 与产品语义仍由消费方文档定义，并登记在 [`account-data-key-registry.json`](../../artifacts/registry/account-data-key-registry.json)。
 
 账户私有数据 SHOULD 作为 encrypted account data 或 actor-private Event 保存。通常只有 holder 的受信任设备有权读写；Sync / Station 只存储闭合加密 envelope 或不透明 bytes，不解析明文。唯一的例外形态是 registry 中 `storage="plaintext_account_data"` 且 `writer_authorities` 含 `station_cas` 的条目：这类 typed current result 由服务端在投递流程中写入（例如 `ak.account.invite_delivery`、`ak.account.holder_quarantine`），其明文内容本就是服务端基础设施已持有的材料，服务端不因此获得任何超出其既有信任域的信息；客户端 MUST 按该条目的 `plaintext_schema` 校验后再使用。`holder_event` writer 的每次 `ak.account_data.set` 是对一个 data type + key 的全量覆盖；`station_cas` 不产生、代签或合成该 Event。跨设备并发写入契约见 §5：每个 v1 key 都是 **server-versioned compare-and-set whole-value register**，merge primitive 恒为 §5.1 的 `server_revision_cas`，不得猜测字段级 merge。
+
+`ak.agent.draft.v1:<agent_id>:<draft_id>` 的首次创建还有一个不改变上述唯一 counter 的 source gate：
+holder-authored `ak.account_data.set` 必须携带 `source_pending_event_id` 并以
+`expected_server_revision=0` 消费同 owner/agent/draft 的 available、未过期
+`ak.agent.draft.propose` pending intent。account-data revision 1 与 intent `available→consumed` 在同一事务；
+CAS 或任一校验失败两侧均零写入。proposal 本身不在该 key 的 writer allowlist 中，也不是 account-data value。
+对应 `ak.vector.agent.draft_pending_intent.v1` 必须证明 revision-1 与 consume 原子提交，以及 CAS conflict
+保留 available intent。
 
 ## 2. Namespace key 与不透明寻址（normative）
 

@@ -3,7 +3,7 @@ title: Capability Model
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-13
+updated: 2026-09-19
 ---
 
 ## 0. 规范语言
@@ -624,7 +624,7 @@ canonical 展开表:
 | --- | --- | --- | --- | --- |
 | `read` | `ak.event.read` | 显式 resource selector(MUST) | 显式 Realm / Strand / Circle scope,MUST NOT Realm-wide 无约束 | 授予**内容层**事件投影读能力。`ak.event.read` 是 `non_event_surface` 的内容读能力,**MUST NOT** 被解释为授予 events 服务面本身——agent 要真正调用 events 查询 / 订阅 endpoint,其 **session 还 MUST 携带对应服务面 scope**(`ak.self.events.read.scan.v1` / `ak.self.events.stream.subscribe.v1`,§5.5;见下方「服务面 scope 与内容能力分层」)。二者按 **AND** 组合:读取 surface 由服务面 scope 授权,payload 由 `ak.event.read` + membership / history visibility 授权(见 [`../models/relation.md` §4.2](../models/relation.md))。**MUST NOT** 隐含 object content/history 读取、`ak.object.read*`、`ak.strand.read`、MLS private state 或 MLS membership。 |
 | `read_content` / `read_history` | `ak.object.read_content` / `ak.object.read_history`(按需分别授予) | 显式 resource selector(MUST) | 同上 | 对象正文 / 历史读取是**独立的 additive 预设**,不折叠进 `read`。实现若需要"读事件+读正文",MUST 分别授予这些 action,而不是扩大 `read` 的展开集合。 |
-| `draft` | `ak.agent.draft.propose`, `ak.agent.action_request` | —(revocation-governed;`expires_at` MAY 由部署 / controller 策略添加) | controller-private control surface | 允许 agent 提出候选草稿 / 动作请求，由 Station materialize controller-owned `ak.agent.draft.v1` account-data(见 [`../models/private-objects.md` §4.1](../models/private-objects.md))。两个 action 均 profile-gated 于 `ak.profile.agent_provisioning.v1`。**MUST NOT** 直接发布到 shared Realm / Strand(不得展开为 `ak.message.create` / `ak.strand.create` 或任何 `wire_scope=durable_event`)。 |
+| `draft` | `ak.agent.draft.propose`, `ak.agent.action_request` | —(revocation-governed;`expires_at` MAY 由部署 / controller 策略添加) | controller-private control surface | 允许 agent 提出候选草稿 / 动作请求。`ak.agent.draft.propose` 只让 Station 保存带 controller-device HPKE handoff 的 pending intent；controller holder 随后用 account secret 与唯一 `ak.account_data.set` CAS 创建 `ak.agent.draft.v1` encrypted account data（见 [`../models/actor-private-effects.md` §3.2](../models/actor-private-effects.md#32-agent-draftrequest-与-rejection)）。Station 不生成密文。两个 action 均 profile-gated 于 `ak.profile.agent_provisioning.v1`。**MUST NOT** 直接发布到 shared Realm / Strand(不得展开为 `ak.message.create` / `ak.strand.create` 或任何 `wire_scope=durable_event`)。 |
 | `reply_as_agent` | `ak.message.create`, `ak.reaction.add` | 显式 resource selector(MUST) | 显式 Strand / Circle scope | agent 以自身 principal identity 在授权 scope 内发消息 / 加反应。 |
 | `act_on_behalf` | `ak.message.create`(及选定 workflow actions) | controller approval / accountability 证据(MUST,见 §8)+ 有限 `expires_at`(MUST)+ resource selector narrowing + audit evidence ref | 显式 scope,MUST NOT 全 Realm 无约束 | **高风险。** `actor_id` 为 controller、`executed_by` 为 agent 的 accountable-actor 授权(§8)。MUST 携带 controller approval / accountability 约束,MUST NOT 仅做 action union。 |
 | `organizer` | `ak.strand.create`, `ak.strand.update`, `ak.relation.create`,受限 `ak.message.create` | `ak.strand.update` MUST 携带 `allowed_write_fields`(registry required);显式 resource selector(MUST) | 显式 Realm / Space scope | **中到高风险。** 结构化编排权限。包含 `ak.strand.update` 时 MUST 通过 `allowed_write_fields` 限定可写字段,MUST NOT 展开为无约束的 strand 全字段写。 |

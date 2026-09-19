@@ -1,0 +1,321 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/agent-draft-private.schema.json",
+  "title": "Arkret Agent Draft Private Contracts",
+  "description": "Closed controller-private Agent draft plaintext and Station-private pending-intent contracts. The top-level schema is the plaintext encrypted by the controller holder inside ak.schema.account_data_encrypted_value.v1; Station never receives that plaintext.",
+  "$ref": "#/$defs/agent_draft_account_data_value",
+  "$defs": {
+    "agent_draft_content_handoff_plaintext": {
+      "type": "object",
+      "required": [
+        "schema",
+        "draft_id",
+        "agent_id",
+        "content",
+        "content_digest",
+        "expires_at",
+        "created_at"
+      ],
+      "properties": {
+        "schema": {
+          "const": "ak.schema.agent_draft_content_handoff_plaintext.v1"
+        },
+        "draft_id": {
+          "allOf": [
+            {
+              "$ref": "./event-payload.schema.json#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "./string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
+        },
+        "agent_id": {
+          "$ref": "./event-payload.schema.json#/$defs/did_core_id"
+        },
+        "content": {
+          "description": "Candidate content whose RFC 8785 JCS digest equals content_digest."
+        },
+        "content_digest": {
+          "$ref": "./event-payload.schema.json#/$defs/digest"
+        },
+        "expires_at": {
+          "$ref": "./event-payload.schema.json#/$defs/timestamp"
+        },
+        "created_at": {
+          "$ref": "./event-payload.schema.json#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_draft_account_data_value": {
+      "type": "object",
+      "required": [
+        "schema",
+        "draft_id",
+        "agent_id",
+        "proposed_action",
+        "target",
+        "content",
+        "content_digest",
+        "source_pending_event_id",
+        "workflow_state",
+        "expires_at",
+        "created_at"
+      ],
+      "properties": {
+        "schema": {
+          "const": "ak.schema.agent_draft.v1"
+        },
+        "draft_id": {
+          "allOf": [
+            {
+              "$ref": "./event-payload.schema.json#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "./string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
+        },
+        "agent_id": {
+          "$ref": "./event-payload.schema.json#/$defs/did_core_id"
+        },
+        "proposed_action": {
+          "$ref": "./event-payload.schema.json#/$defs/non_empty_string"
+        },
+        "target": {
+          "$ref": "./event-payload.schema.json#/$defs/agent_action_target"
+        },
+        "content": {
+          "description": "Controller-visible proposal content recovered from the HPKE handoff. Its RFC 8785 JCS digest MUST equal content_digest before encryption and after decryption."
+        },
+        "content_digest": {
+          "$ref": "./event-payload.schema.json#/$defs/digest"
+        },
+        "source_pending_event_id": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "workflow_state": {
+          "type": "string",
+          "enum": [
+            "proposed",
+            "approved",
+            "published",
+            "rejected"
+          ]
+        },
+        "expires_at": {
+          "$ref": "./event-payload.schema.json#/$defs/timestamp"
+        },
+        "created_at": {
+          "$ref": "./event-payload.schema.json#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "content_handoff_recipient": {
+      "type": "object",
+      "required": [
+        "recipient_device_id",
+        "recipient_hpke_key_digest",
+        "enc",
+        "ciphertext",
+        "ciphertext_digest"
+      ],
+      "properties": {
+        "recipient_device_id": {
+          "$ref": "./common-ids.schema.json#/$defs/device_id"
+        },
+        "recipient_hpke_key_digest": {
+          "$ref": "./event-payload.schema.json#/$defs/digest"
+        },
+        "enc": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{43,}$"
+        },
+        "ciphertext": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{22,}$"
+        },
+        "ciphertext_digest": {
+          "$ref": "./event-payload.schema.json#/$defs/digest"
+        }
+      },
+      "additionalProperties": false
+    },
+    "content_handoff": {
+      "type": "object",
+      "required": [
+        "scheme",
+        "recipients"
+      ],
+      "properties": {
+        "scheme": {
+          "const": "ak.hpke_x25519_aead_chacha20poly1305.v1"
+        },
+        "recipients": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "items": {
+            "$ref": "#/$defs/content_handoff_recipient"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "pending_intent_consumption": {
+      "type": "object",
+      "required": [
+        "account_data_set_event_id",
+        "account_data_key",
+        "accepted_revision",
+        "consumed_at"
+      ],
+      "properties": {
+        "account_data_set_event_id": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "account_data_key": {
+          "type": "string",
+          "pattern": "^ak\\.agent\\.draft\\.v1:[^:]+:[^:]+$"
+        },
+        "accepted_revision": {
+          "const": 1
+        },
+        "consumed_at": {
+          "$ref": "./event-payload.schema.json#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_draft_pending_intent": {
+      "type": "object",
+      "required": [
+        "schema",
+        "controller_account_id",
+        "agent_id",
+        "draft_id",
+        "proposed_action",
+        "target",
+        "content_digest",
+        "content_handoff",
+        "canonical_event_digest",
+        "accepted_event_id",
+        "expires_at",
+        "created_at",
+        "state"
+      ],
+      "properties": {
+        "schema": {
+          "const": "ak.schema.agent_draft_pending_intent.v1"
+        },
+        "controller_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "agent_id": {
+          "$ref": "./event-payload.schema.json#/$defs/did_core_id"
+        },
+        "draft_id": {
+          "allOf": [
+            {
+              "$ref": "./event-payload.schema.json#/$defs/non_empty_string"
+            },
+            {
+              "$ref": "./string-profiles.schema.json#/$defs/non_typed_identifier_floor"
+            }
+          ]
+        },
+        "proposed_action": {
+          "$ref": "./event-payload.schema.json#/$defs/non_empty_string"
+        },
+        "target": {
+          "$ref": "./event-payload.schema.json#/$defs/agent_action_target"
+        },
+        "content_digest": {
+          "$ref": "./event-payload.schema.json#/$defs/digest"
+        },
+        "content_handoff": {
+          "$ref": "#/$defs/content_handoff"
+        },
+        "canonical_event_digest": {
+          "$ref": "./event-payload.schema.json#/$defs/digest"
+        },
+        "accepted_event_id": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "expires_at": {
+          "$ref": "./event-payload.schema.json#/$defs/timestamp"
+        },
+        "created_at": {
+          "$ref": "./event-payload.schema.json#/$defs/timestamp"
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "available",
+            "consumed",
+            "expired"
+          ]
+        },
+        "consumption": {
+          "$ref": "#/$defs/pending_intent_consumption"
+        },
+        "expired_at": {
+          "$ref": "./event-payload.schema.json#/$defs/timestamp"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "consumed"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "required": [
+              "consumption"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "consumption"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "expired"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "required": [
+              "expired_at"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "expired_at"
+              ]
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
+    }
+  }
+}

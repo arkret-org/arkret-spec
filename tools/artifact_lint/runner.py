@@ -248,6 +248,7 @@ from .ref_overlay_closure import check_schema_ref_overlay_closure
 from .psi_class_b import check_psi_class_b_artifact_closure
 from .reason_code_producers import check_reason_code_producer_paths
 from .result_effect_ownership import check_result_effect_ownership
+from .agent_draft_pending_intent import check_agent_draft_pending_intent
 from .proof_context_schemas import (
     check_asserted_result_families_are_registered,
     check_author_writable_state_axis_contract,
@@ -356,6 +357,7 @@ def main(argv: list[str] | None = None) -> int:
             ),
             ("result_write_contracts", lambda: check_result_write_contracts(lint)),
             ("result_effect_ownership", lambda: check_result_effect_ownership(lint)),
+            ("agent_draft_pending_intent", lambda: check_agent_draft_pending_intent(lint)),
             ("result_value_member_closure", lambda: check_result_value_member_closure(lint)),
             (
                 "author_writable_state_axis_contract",

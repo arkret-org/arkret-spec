@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.1",
+  "version": "2026-09-20.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-19T17:42:15+08:00",
+  "generated_at": "2026-09-20T00:01:06+08:00",
   "description": "Closed named-exemption registry for zh/conformance/encoding.md 3.1. That section forbids any field inside the event_digest preimage from committing to an Event identity. Class A (the enclosing Event's own event_id/event_digest and their retype results) and class B (a not-yet-formed sibling of the same atomic unit or ordered submit batch) are unconditional: they have no fixed point and this registry MUST NOT carry a row for them. Only class C, a one-way forward declaration naming a later Event from another submission whose canonical bytes the author already froze locally, is registerable, and only with the compensating admission checks recorded here. Every active row MUST also appear in the 3.1 closed list table; the prose table and this registry are bound in both directions.",
   "registry_rules": {
     "exemption_id_pattern": "^ak\\.exemption\\.preimage_identity\\.[a-z0-9_]+\\.v[0-9]+$",
@@ -83,6 +83,32 @@
         "ak.vector.event_id.content_bound.v1"
       ],
       "spec_anchor": "spec/v1/zh/identity/key-management.md#363-agent-pcr-genesis-的构造顺序normative"
+    },
+    {
+      "exemption_id": "ak.exemption.preimage_identity.agent_draft_source_pending_event.v1",
+      "status": "active",
+      "kind": "forward_declaration",
+      "subject": {
+        "event_kind": "ak.account_data.set",
+        "schema_file": "schemas/event-payload.schema.json",
+        "json_path": "$.$defs.account_data_set_payload.properties",
+        "field": "source_pending_event_id"
+      },
+      "commitment_direction": "later_submission_target",
+      "one_way_rationale": "The controller holder authors ak.account_data.set only after the separately submitted ak.agent.draft.propose Event is accepted and its event_id is fixed. The proposal preimage contains no account-data-set identity, reference or digest, so the dependency is one-way and both Events are constructible.",
+      "target_fixed_when": "the exact pending ak.agent.draft.propose Event is accepted before the holder authors the account-data-set Event",
+      "admission_compensating_checks": [
+        "source_pending_event_id MUST resolve to an accepted available ak.agent.draft.propose pending intent owned by the same controller AccountId",
+        "the source proposal and account-data-set Event MUST be separate submissions; a same atomic unit or ordered submit batch is forbidden",
+        "the account-data key coordinates MUST equal the source intent agent_id and draft_id and expected_server_revision MUST equal 0",
+        "account-data revision 1 and pending-intent consumption MUST commit atomically; any missing, expired, consumed, mismatched or CAS-conflicting source writes nothing"
+      ],
+      "absent_target_semantics": "The account-data-set Event is rejected with zero writes. The Station MUST NOT synthesize a pending intent, accept the opaque encrypted value without its source, or consume a different intent.",
+      "conformance_vector_ids": [
+        "ak.vector.agent.draft_pending_intent.v1",
+        "ak.vector.event_id.content_bound.v1"
+      ],
+      "spec_anchor": "spec/v1/zh/models/actor-private-effects.md#32-agent-draftrequest-与-rejection"
     }
   ]
 }

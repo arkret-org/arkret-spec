@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.6",
+  "version": "2026-09-20.8",
   "source_of_truth": false,
-  "generated_at": "2026-09-19T23:12:27+08:00",
+  "generated_at": "2026-09-20T00:14:34+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -68,6 +68,48 @@
       "file": "schemas/actor-profile-operations.schema.json",
       "status": "active",
       "description": "Authorized shared-Realm projection of another principal's global Actor Profile. It is the only outward carrier for the PCR-resident ak.profile.create / ak.profile.update facts."
+    },
+    {
+      "schema_id": "ak.schema.agent_draft.v1",
+      "file": "schemas/agent-draft-private.schema.json",
+      "status": "active",
+      "description": "Closed decrypted plaintext of controller-holder-created encrypted ak.agent.draft.v1 account data. Station never receives this plaintext.",
+      "consumer_binding": {
+        "kind": "account_data_storage",
+        "selector": "account-data-key-registry.json#/account_data_key_patterns[key_pattern=ak.agent.draft.v1:<agent_id>:<draft_id>]",
+        "normative_ref": "zh/models/actor-private-effects.md#32-agent-draftrequest-与-rejection"
+      }
+    },
+    {
+      "schema_id": "ak.schema.agent_draft_content_handoff.v1",
+      "file": "schemas/agent-draft-private.schema.json",
+      "fragment": "#/$defs/content_handoff",
+      "status": "active",
+      "description": "Closed HPKE multi-recipient content handoff carried by ak.agent.draft.propose for accepted controller devices."
+    },
+    {
+      "schema_id": "ak.schema.agent_draft_content_handoff_plaintext.v1",
+      "file": "schemas/agent-draft-private.schema.json",
+      "fragment": "#/$defs/agent_draft_content_handoff_plaintext",
+      "status": "active",
+      "description": "Closed plaintext inside each Agent draft HPKE content handoff; only the selected accepted controller device opens it.",
+      "consumer_binding": {
+        "kind": "dynamic_schema_ref",
+        "selector": "contract-registry.json#/event_kind_registry/actor_private_contracts/event_writes/ak.agent.draft.propose/pending_intent_lifecycle/content_handoff/plaintext_schema",
+        "normative_ref": "zh/models/actor-private-effects.md#32-agent-draftrequest-与-rejection"
+      }
+    },
+    {
+      "schema_id": "ak.schema.agent_draft_pending_intent.v1",
+      "file": "schemas/agent-draft-private.schema.json",
+      "fragment": "#/$defs/agent_draft_pending_intent",
+      "status": "active",
+      "description": "Structured Station-private pending-intent value created by ak.agent.draft.propose and consumed atomically by the holder's first encrypted draft account-data CAS.",
+      "consumer_binding": {
+        "kind": "dynamic_schema_ref",
+        "selector": "contract-registry.json#/event_kind_registry/actor_private_contracts/event_writes/ak.agent.draft.propose/value_projection/schema_ref",
+        "normative_ref": "zh/models/actor-private-effects.md#32-agent-draftrequest-与-rejection"
+      }
     },
     {
       "schema_id": "ak.schema.agent_authority_state_attestation.v1",

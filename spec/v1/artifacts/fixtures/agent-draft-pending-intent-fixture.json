@@ -1,0 +1,111 @@
+{
+  "profile": "ak.vector.agent.draft_pending_intent.v1",
+  "version": "2026-09-20.2",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.agent.draft_pending_intent.v1"
+  },
+  "covers_vectors": [
+    "ak.vector.agent.draft_pending_intent.v1"
+  ],
+  "required_schemas": [
+    "ak.schema.agent_draft.v1",
+    "ak.schema.agent_draft_content_handoff.v1",
+    "ak.schema.agent_draft_content_handoff_plaintext.v1",
+    "ak.schema.agent_draft_pending_intent.v1"
+  ],
+  "cases": [
+    {
+      "name": "pending_intent_create_replay_conflict",
+      "variants": [
+        "create_available_with_canonical_event_and_authority_commit",
+        "byte_identical_exact_replay",
+        "same_owner_agent_draft_key_different_event_digest",
+        "same_event_id_different_bytes",
+        "wrong_controller_station",
+        "recipient_device_not_current",
+        "recipient_hpke_key_digest_mismatch",
+        "expired_at_admission",
+        "capability_policy_accountability_or_risk_rejection",
+        "transaction_failure_before_commit"
+      ],
+      "expected": {
+        "create_available_with_canonical_event_and_authority_commit": "one_available_pending_intent_committed_atomically",
+        "byte_identical_exact_replay": "original_outcome_no_second_write_or_fanout",
+        "same_owner_agent_draft_key_different_event_digest": "duplicate_conflict_zero_writes",
+        "same_event_id_different_bytes": "duplicate_conflict_zero_writes",
+        "wrong_controller_station": "rejected_zero_writes",
+        "recipient_device_not_current": "rejected_zero_writes",
+        "recipient_hpke_key_digest_mismatch": "rejected_zero_writes",
+        "expired_at_admission": "rejected_zero_writes",
+        "capability_policy_accountability_or_risk_rejection": "rejected_zero_writes",
+        "transaction_failure_before_commit": "event_authority_commit_and_pending_intent_all_absent"
+      }
+    },
+    {
+      "name": "controller_read_and_content_handoff",
+      "variants": [
+        "active_controller_device_reads_ciphertext",
+        "agent_attempts_read",
+        "other_account_attempts_read",
+        "target_realm_member_attempts_read",
+        "controller_decrypts_and_digest_matches",
+        "plaintext_or_holder_secret_presented_to_station"
+      ],
+      "expected": {
+        "active_controller_device_reads_ciphertext": "delivered_by_existing_account_subscribe_private_projection",
+        "agent_attempts_read": "withheld",
+        "other_account_attempts_read": "withheld",
+        "target_realm_member_attempts_read": "withheld",
+        "controller_decrypts_and_digest_matches": "eligible_for_holder_encryption",
+        "plaintext_or_holder_secret_presented_to_station": "rejected"
+      }
+    },
+    {
+      "name": "holder_cas_consumption_and_recovery",
+      "variants": [
+        "initial_create_exact_source",
+        "initial_create_missing_source",
+        "initial_create_wrong_source_owner_agent_or_draft",
+        "initial_create_expired_source",
+        "account_data_cas_conflict",
+        "failure_between_account_data_and_intent_transition",
+        "uncertain_outcome_exact_retry",
+        "second_consumer",
+        "later_account_data_revision",
+        "proposal_used_as_account_data_writer",
+        "pending_value_returned_as_account_data_current_value",
+        "pending_intent_sent_to_shared_reducer"
+      ],
+      "expected": {
+        "initial_create_exact_source": "account_data_revision_1_and_intent_consumed_atomically",
+        "initial_create_missing_source": "rejected_zero_writes",
+        "initial_create_wrong_source_owner_agent_or_draft": "rejected_zero_writes",
+        "initial_create_expired_source": "expired_no_account_data_write",
+        "account_data_cas_conflict": "intent_remains_available_zero_account_data_write",
+        "failure_between_account_data_and_intent_transition": "both_sides_rolled_back",
+        "uncertain_outcome_exact_retry": "original_revision_1_and_consumed_outcome",
+        "second_consumer": "conflict_zero_writes",
+        "later_account_data_revision": "ordinary_holder_cas_without_second_consumption",
+        "proposal_used_as_account_data_writer": "forbidden",
+        "pending_value_returned_as_account_data_current_value": "forbidden",
+        "pending_intent_sent_to_shared_reducer": "forbidden"
+      }
+    },
+    {
+      "name": "expiry_and_retention",
+      "variants": [
+        "available_reaches_expiry",
+        "consumed_reaches_expiry",
+        "terminal_ciphertext_gc",
+        "different_proposal_after_gc"
+      ],
+      "expected": {
+        "available_reaches_expiry": "available_to_expired_once",
+        "consumed_reaches_expiry": "remains_consumed",
+        "terminal_ciphertext_gc": "metadata_outcome_and_occupied_digest_retained",
+        "different_proposal_after_gc": "duplicate_conflict"
+      }
+    }
+  ]
+}

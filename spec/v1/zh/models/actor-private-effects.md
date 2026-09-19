@@ -58,7 +58,7 @@ Realm 状态。只有 exact retry 命中已经存在的相同 outcome 时可以�
 | --- | --- | --- | --- |
 | `ak.account.blocklist` | `envelope.actor_id.account_id` | `(AccountId, "ak.account.blocklist")` | 全量 `version` successor CAS |
 | `ak.account_data.set` | `envelope.actor_id.account_id` | `(AccountId, payload.key)` | `expected_server_revision` CAS |
-| `ak.agent.draft.propose` | `payload.controller_account_id` | `(controller AccountId, agent_id, draft_id)` | canonical Event digest create-once |
+| `ak.agent.draft.propose` | `payload.controller_account_id` | `(controller AccountId, agent_id, draft_id)` | pending-intent create-once；holder CAS 原子消费 |
 | `ak.agent.action_request` | `payload.controller_account_id` | `(controller AccountId, agent_id, request_id)` | canonical Event digest create-once |
 | `ak.agent.action_reject` | `envelope.actor_id.account_id` | `(controller AccountId, agent_id, rejection_id)` | rejection-id create-once + target-state CAS |
 | `ak.device.push_route` | `payload.account_id` | `(AccountId, device_id, push_route)` | `expected_server_revision` CAS |
@@ -80,7 +80,39 @@ high-water。
 `ak.agent.draft.propose` 与 `ak.agent.action_request` 是两个不同身份空间。前者由 `draft_id` 定址；后者
 始终由 `request_id` 定址，`draft_id` 仅是可选关联，省略它仍是合法 request，也不得改用它作为唯一键。
 二者只有在 controller/agent binding、capability、policy、accountability、risk、expiry 与 digest
-校验全部通过后才可 materialize 到 controller-private store。
+校验全部通过后才可 materialize 到 controller-private store。`ak.agent.draft.propose` 的 materialization
+严格是 `ak.schema.agent_draft_pending_intent.v1` 的 **Station-private pending intent**，不是
+`ak.agent.draft.v1:<agent_id>:<draft_id>` encrypted account data，也不得作为后者的 current value 返回。
+
+Agent MUST 把候选 `content` 按 `agent-draft-private.schema.json#/$defs/content_handoff` 用 active controller
+AccountId 的当前 accepted device `hpke_key` 分别 HPKE 加密。每个 recipient 使用新 ephemeral key；RFC 9180
+`info` 与单次 AEAD `aad` 都是下列对象的 RFC 8785 JCS bytes：
+
+`{schema:"ak.agent_draft_content_handoff.v1",controller_account_id,agent_id,draft_id,proposed_action,target,content_digest,created_at,expires_at,recipient_device_id,recipient_hpke_key_digest}`。
+
+Station MUST 校验 recipient device 去重、属于 exact controller AccountId、仍 accepted，且
+`recipient_hpke_key_digest` 等于该 device 当前 HPKE key 的 digest；它只能保存和交付 ciphertext，MUST NOT
+取得 holder account secret、解密 content、生成 account-data ciphertext 或代 controller 重加密。
+
+proposal 接受时，服务在同一 private transaction 保存 canonical Event、authority commit、exact-retry outcome
+与 `state=available` pending intent。controller 的 active devices 只能通过既有 account subscribe 的
+controller-private projection（baseline + cursor-covered catch-up）读取该记录；不得向 Agent、目标 Realm 成员、
+federation peer 或其它 AccountId 暴露。recipient device 解密 handoff 后 MUST 校验 plaintext draft 坐标和
+`content_digest == digest(RFC8785-JCS(content))`，再用 controller account secret 生成
+`ak.schema.account_data_encrypted_value.v1`，其解密 plaintext验证为 `ak.schema.agent_draft.v1`。
+
+首次写 `ak.agent.draft.v1:<agent_id>:<draft_id>` 时，controller holder 提交唯一的
+`ak.account_data.set` CAS：`expected_server_revision=0`、`encrypted_payload`、
+`source_pending_event_id=<proposal Event.event_id>`。Station 在**同一事务**验证 holder/owner、agent/draft/key、
+source、未过期和 available 状态；成功时仅创建 account-data `revision=1`，并把 pending intent 转为
+`consumed`，记录 consuming Event id/key/revision/time。这里没有第二个 draft revision counter。
+CAS conflict、authority-commit 失败、存储中断或任一校验失败都必须同时回滚两侧，pending intent 保持
+`available`；byte-identical `ak.account_data.set` retry 返回第一次的 revision-1/consumed outcome。相同 Event id
+不同 bytes 或另一 consumer 返回 conflict 且零写入。后续 draft revision 不再携带 source，也不重复消费。
+
+当 Station protocol time 不再严格早于 `expires_at`，available intent 单向转成 `expired`；consumed 不得再
+过期。终态 metadata 与 exact-retry outcome 按部署 retention 保留；随后可清除 handoff ciphertext，但必须
+保留已占用 create-once key digest，防止不同 proposal 复活同一 key。
 
 `ak.agent.action_reject` 的 payload 必须在 `request_id` 与 `draft_id` 中**恰好携带一个**；两者都无或
 两者都有都必须拒绝。目标必须属于同一 controller/agent 对、存在且仍是可拒绝的非终态。服务必须在
@@ -103,6 +135,9 @@ envelope `created_at`；后者只投影为 read-marker / device-message 的 `upd
 `ak.schema.read_cursor.v1` payload。
 
 ## 4. 门禁要求
+
+一致性向量 `ak.vector.agent.draft_pending_intent.v1` 必须覆盖 create、exact replay、冲突、controller-only
+读取、HPKE handoff、到期、消费、CAS rollback、失败恢复、禁止 plaintext/account-data 冒充与禁止 shared reducer。
 
 `tools/artifact_lint:result_effect_ownership` 必须拒绝：未知或 inactive Event kind、漏 branch、重复或孤儿
 branch、`result_effect_ownership` 指向错误 service、错误 account owner source、shared/private scope
