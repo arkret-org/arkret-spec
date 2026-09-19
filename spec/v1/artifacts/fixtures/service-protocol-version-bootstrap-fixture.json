@@ -1,6 +1,6 @@
 {
   "profile": "ak.vector_group.protocol_edge_cases.v1",
-  "version": "2026-08-26",
+  "version": "2026-09-19",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.service.protocol_version_bootstrap.v1"
@@ -11,24 +11,32 @@
   "cases": [
     {
       "name": "describe_supported",
+      "covers_decision_points": [
+        "AK-SDK-024/the_bootstrap_discriminator_is_consumed_before_any_typed_claim"
+      ],
       "carrier": "service_describe",
       "protocol_version": "1.0",
       "arkret_operation": "ak.server.read.describe.v1",
       "expected": {
         "outcome": "continue_typed_validation",
         "route_cache_writes": 1,
-        "business_requests": 0
+        "business_requests": 0,
+        "protocol_version_consumed_before_typed_claim": true
       }
     },
     {
       "name": "applet_ping_supported",
+      "covers_decision_points": [
+        "AK-SDK-024/the_bootstrap_discriminator_is_consumed_before_any_typed_claim"
+      ],
       "carrier": "applet_ping",
       "protocol_version": "1.0",
       "arkret_operation": "ak.edge.applet.read.ping.v1",
       "expected": {
         "outcome": "continue_typed_validation",
         "route_cache_writes": 0,
-        "business_requests": 0
+        "business_requests": 0,
+        "protocol_version_consumed_before_typed_claim": true
       }
     },
     {
@@ -68,6 +76,10 @@
     },
     {
       "name": "describe_unsupported",
+      "covers_decision_points": [
+        "AK-SDK-024/the_bootstrap_discriminator_is_consumed_before_any_typed_claim",
+        "AK-SDK-024/unsupported_and_malformed_discriminators_stay_distinct"
+      ],
       "carrier": "service_describe",
       "protocol_version": "2.0",
       "poison_fields": {
@@ -79,95 +91,140 @@
       "expected": {
         "outcome": "unsupported_protocol_version",
         "route_cache_writes": 0,
-        "business_requests": 0
+        "business_requests": 0,
+        "protocol_version_consumed_before_typed_claim": true
       }
     },
     {
       "name": "applet_ping_unsupported",
+      "covers_decision_points": [
+        "AK-SDK-024/the_bootstrap_discriminator_is_consumed_before_any_typed_claim",
+        "AK-SDK-024/unsupported_and_malformed_discriminators_stay_distinct"
+      ],
       "carrier": "applet_ping",
       "protocol_version": "2.0",
       "expected": {
         "outcome": "unsupported_protocol_version",
         "route_cache_writes": 0,
-        "business_requests": 0
+        "business_requests": 0,
+        "protocol_version_consumed_before_typed_claim": true
       }
     },
     {
       "name": "describe_missing",
+      "covers_decision_points": [
+        "AK-SDK-024/the_bootstrap_discriminator_is_consumed_before_any_typed_claim",
+        "AK-SDK-024/unsupported_and_malformed_discriminators_stay_distinct"
+      ],
       "carrier": "service_describe",
       "expected": {
         "outcome": "schema_violation",
         "route_cache_writes": 0,
-        "business_requests": 0
+        "business_requests": 0,
+        "protocol_version_consumed_before_typed_claim": true
       }
     },
     {
       "name": "applet_ping_non_string",
+      "covers_decision_points": [
+        "AK-SDK-024/the_bootstrap_discriminator_is_consumed_before_any_typed_claim",
+        "AK-SDK-024/unsupported_and_malformed_discriminators_stay_distinct"
+      ],
       "carrier": "applet_ping",
       "protocol_version": 1,
       "expected": {
         "outcome": "schema_violation",
         "route_cache_writes": 0,
-        "business_requests": 0
+        "business_requests": 0,
+        "protocol_version_consumed_before_typed_claim": true
       }
     },
     {
       "name": "describe_non_canonical",
+      "covers_decision_points": [
+        "AK-SDK-024/the_bootstrap_discriminator_is_consumed_before_any_typed_claim",
+        "AK-SDK-024/unsupported_and_malformed_discriminators_stay_distinct"
+      ],
       "carrier": "service_describe",
       "protocol_version": "1.0.0",
       "expected": {
         "outcome": "schema_violation",
         "route_cache_writes": 0,
-        "business_requests": 0
+        "business_requests": 0,
+        "protocol_version_consumed_before_typed_claim": true
       }
     },
     {
       "name": "applet_ping_non_canonical",
+      "covers_decision_points": [
+        "AK-SDK-024/the_bootstrap_discriminator_is_consumed_before_any_typed_claim",
+        "AK-SDK-024/unsupported_and_malformed_discriminators_stay_distinct"
+      ],
       "carrier": "applet_ping",
       "protocol_version": "1.0.0",
       "expected": {
         "outcome": "schema_violation",
         "route_cache_writes": 0,
-        "business_requests": 0
+        "business_requests": 0,
+        "protocol_version_consumed_before_typed_claim": true
       }
     },
     {
       "name": "identity_service_describe_supported",
+      "covers_decision_points": [
+        "AK-SDK-024/the_bootstrap_discriminator_is_consumed_before_any_typed_claim"
+      ],
       "carrier": "identity_service_describe",
       "protocol_version": "1.0",
       "expected": {
         "outcome": "continue_typed_validation",
         "route_cache_writes": 0,
-        "business_requests": 0
+        "business_requests": 0,
+        "protocol_version_consumed_before_typed_claim": true
       }
     },
     {
       "name": "identity_service_describe_unsupported",
+      "covers_decision_points": [
+        "AK-SDK-024/the_bootstrap_discriminator_is_consumed_before_any_typed_claim",
+        "AK-SDK-024/unsupported_and_malformed_discriminators_stay_distinct"
+      ],
       "carrier": "identity_service_describe",
       "protocol_version": "2.0",
       "expected": {
         "outcome": "unsupported_protocol_version",
         "route_cache_writes": 0,
-        "business_requests": 0
+        "business_requests": 0,
+        "protocol_version_consumed_before_typed_claim": true
       }
     },
     {
       "name": "identity_service_describe_missing",
+      "covers_decision_points": [
+        "AK-SDK-024/the_bootstrap_discriminator_is_consumed_before_any_typed_claim",
+        "AK-SDK-024/unsupported_and_malformed_discriminators_stay_distinct"
+      ],
       "carrier": "identity_service_describe",
       "expected": {
         "outcome": "schema_violation",
         "route_cache_writes": 0,
-        "business_requests": 0
+        "business_requests": 0,
+        "protocol_version_consumed_before_typed_claim": true
       }
     },
     {
       "name": "identity_service_describe_non_canonical",
+      "covers_decision_points": [
+        "AK-SDK-024/the_bootstrap_discriminator_is_consumed_before_any_typed_claim",
+        "AK-SDK-024/unsupported_and_malformed_discriminators_stay_distinct"
+      ],
       "carrier": "identity_service_describe",
       "protocol_version": "1.0.0",
       "expected": {
         "outcome": "schema_violation",
         "route_cache_writes": 0,
-        "business_requests": 0
+        "business_requests": 0,
+        "protocol_version_consumed_before_typed_claim": true
       }
     }
   ]

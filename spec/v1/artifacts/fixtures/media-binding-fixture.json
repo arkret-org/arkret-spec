@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.media_service_binding.v1",
-  "version": "2026-06-19",
+  "version": "2026-09-19",
   "suite": "media_binding",
   "runner": {
     "kind": "named_suite",
@@ -79,7 +79,16 @@
     {
       "name": "e2ee_key_source",
       "vector_id": "ak.vector.media_binding.e2ee_key_source.v1",
+      "covers_decision_points": [
+        "AK-SDK-012/an_unauthorized_key_source_is_refused_before_decryption"
+      ],
       "runner": "cotest::conformance::media_binding::run_e2ee_key_source_vector",
+      "expected": {
+        "frame_key_source": "ak.rtc-frame-key/v1 exporter over the canonical six-field Context",
+        "context_change_changes_frame_key": true,
+        "backend_cloud_key_escrow": "rejected",
+        "unauthorized_source_reaches_decryption": false
+      },
       "assertions": [
         "SFrame frame keys use the ak.rtc-frame-key/v1 exporter label",
         "backend-cloud key escrow is rejected",

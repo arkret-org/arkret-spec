@@ -43,9 +43,11 @@ from .core import (
     load_json,
     re,
 )
+from .evidence_sets import check_closed_evidence_set
 
 CASE_REF_RE = re.compile(r"^(AK-SDK-\d{3})/([a-z0-9_]+)$")
 SUITE_ENTRYPOINT_RE = re.compile(r"^ak\.suite\.[a-z0-9_.-]+\.v1$")
+FIXTURE_REF_RE = re.compile(r"^fixtures/[a-z0-9][a-z0-9_.-]*\.json$")
 MIN_OWNER_REPORT_LENGTH = 8
 
 
@@ -154,6 +156,7 @@ def check_sdk_decision_point_cases(lint: Lint) -> None:
     # clause/point -> the fixture names allowed to carry a case for it.
     allowed_carriers: dict[tuple[str, str], set[str]] = {}
     declared_points: set[tuple[str, str]] = set()
+    required_case_refs: dict[tuple[str, str], Any] = {}
     clauses = contract.get("clauses")
     if not isinstance(clauses, list):
         return
@@ -176,6 +179,8 @@ def check_sdk_decision_point_cases(lint: Lint) -> None:
                 continue
             key = (clause_id, point_id)
             declared_points.add(key)
+            if "required_case_refs" in point:
+                required_case_refs[key] = point.get("required_case_refs")
             carriers: set[str] = set()
             point_vectors = point.get("vectors")
             if isinstance(point_vectors, list):
@@ -258,6 +263,8 @@ def check_sdk_decision_point_cases(lint: Lint) -> None:
             )
 
     covered: set[tuple[str, str]] = set()
+    case_index: dict[tuple[str, str], dict[str, Any]] = {}
+    runner_ready: dict[str, bool] = {}
     for fixture_path in sorted(_fixtures_dir().glob("*.json")):
         fixture = load_json(lint, fixture_path)
         if not isinstance(fixture, dict):
@@ -265,13 +272,16 @@ def check_sdk_decision_point_cases(lint: Lint) -> None:
         nodes = [node for node in _iter_nodes(fixture) if "covers_decision_points" in node]
         if not nodes:
             continue
+        fixture_ref = f"fixtures/{fixture_path.name}"
         runner = fixture.get("runner")
+        fixture_runner_ready = True
         if not isinstance(runner, dict):
             lint.fail(
                 fixture_path,
                 "carries decision point cases but declares no runner, so nothing states how the "
                 "cases execute",
             )
+            fixture_runner_ready = False
         elif runner.get("kind") == "named_suite":
             entrypoint = runner.get("entrypoint")
             if not isinstance(entrypoint, str) or not SUITE_ENTRYPOINT_RE.match(entrypoint):
@@ -280,6 +290,8 @@ def check_sdk_decision_point_cases(lint: Lint) -> None:
                     "carries decision point cases under runner.kind=named_suite but declares no "
                     "tool-neutral ak.suite.*.v1 entrypoint",
                 )
+                fixture_runner_ready = False
+        runner_ready[fixture_ref] = fixture_runner_ready
         seen_names: set[str] = set()
         for node in nodes:
             refs = node.get("covers_decision_points")
@@ -294,6 +306,7 @@ def check_sdk_decision_point_cases(lint: Lint) -> None:
                 lint.fail(fixture_path, f"decision point case name duplicates {name}")
             else:
                 seen_names.add(name)
+                case_index[(fixture_ref, name)] = node
             if not _is_non_empty(node.get("expected")):
                 lint.fail(
                     fixture_path,
@@ -332,6 +345,51 @@ def check_sdk_decision_point_cases(lint: Lint) -> None:
                     )
                     continue
                 covered.add(key)
+
+    for key, references in sorted(required_case_refs.items()):
+        clause_id, point_id = key
+        point_ref = f"{clause_id}/{point_id}"
+        label = f"{clause_id}.{point_id}.required_case_refs"
+
+        def parse_required_ref(reference: Any) -> tuple[tuple[str, str] | None, str | None]:
+            if not isinstance(reference, dict) or set(reference) != {"fixture_ref", "case_id"}:
+                return None, "must be an object with exactly fixture_ref and case_id"
+            fixture_ref = reference.get("fixture_ref")
+            case_id = reference.get("case_id")
+            if not isinstance(fixture_ref, str) or not FIXTURE_REF_RE.fullmatch(fixture_ref):
+                return None, "fixture_ref must be an artifacts-relative fixtures/*.json path"
+            if not isinstance(case_id, str) or not case_id.strip():
+                return None, "case_id must be a non-empty exact case name"
+            return (fixture_ref, case_id), None
+
+        def resolve_required_ref(reference: Any, parsed: object) -> str | None:
+            assert isinstance(parsed, tuple) and len(parsed) == 2
+            fixture_ref, case_id = parsed
+            assert isinstance(fixture_ref, str) and isinstance(case_id, str)
+            target = case_index.get((fixture_ref, case_id))
+            if target is None:
+                return f"does not resolve to a covered fixture case: {fixture_ref}#{case_id}"
+            if not runner_ready.get(fixture_ref, False):
+                return f"names {fixture_ref}#{case_id}, whose fixture has no valid registered runner"
+            refs = target.get("covers_decision_points")
+            if not isinstance(refs, list) or point_ref not in refs:
+                return f"names a case that does not cover {point_ref}: {fixture_ref}#{case_id}"
+            if not _is_non_empty(target.get("expected")):
+                return f"names a case with no non-empty expected result: {fixture_ref}#{case_id}"
+            fixture_name = fixture_ref.removeprefix("fixtures/")
+            if fixture_name not in allowed_carriers.get(key, set()):
+                return f"names {fixture_ref}#{case_id}, which carries none of the point's vectors"
+            return None
+
+        check_closed_evidence_set(
+            lint,
+            _contract_path(),
+            label,
+            references,
+            empty_error=f"{label} must be a non-empty closed list",
+            parse=parse_required_ref,
+            resolve=resolve_required_ref,
+        )
 
     for clause_id, point_id in sorted(declared_points):
         key = (clause_id, point_id)

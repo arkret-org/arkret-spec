@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.circle_conformance.v1",
-  "version": "2026-09-02",
+  "version": "2026-09-19",
   "suite": "visibility_policy",
   "runner": {
     "kind": "named_suite",
@@ -215,6 +215,9 @@
     {
       "name": "history_access_since_join_prejoin_denied",
       "vector_id": "ak.vector.history_access.since_join_prejoin_denied.v1",
+      "covers_decision_points": [
+        "AK-SDK-012/history_before_the_join_floor_is_not_decrypted"
+      ],
       "kind": "history_access_projection",
       "history_access": "since_join",
       "viewer": {

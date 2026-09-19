@@ -5,7 +5,7 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.webrtc.media_plaintext_downgrade.v1"
   },
-  "version": "2026-09-18.1",
+  "version": "2026-09-19",
   "profile": "ak.profile.webrtc_media.v1",
   "covers_vectors": [
     "ak.vector.webrtc.media_plaintext_downgrade.v1"
@@ -60,6 +60,13 @@
   "cases": [
     {
       "name": "realm_policy_has_not_authorized_media_decryption",
+      "covers_decision_points": [
+        "AK-SDK-010/no_media_key_is_published_to_an_unauthorized_service"
+      ],
+      "expected": {
+        "decision": "reject",
+        "media_key_published": false
+      },
       "given": "a decrypting conference whose Realm policy does not authorize media-service decryption",
       "action": "attempt to join and to publish the media key",
       "decision": "reject",
@@ -73,6 +80,13 @@
     },
     {
       "name": "sfu_service_did_absent_from_plaintext_visible_services",
+      "covers_decision_points": [
+        "AK-SDK-010/no_media_key_is_published_to_an_unauthorized_service"
+      ],
+      "expected": {
+        "decision": "reject",
+        "media_key_published": false
+      },
       "given": "Realm policy authorizes decryption but the SFU service DID is not in plaintext_visible_services",
       "action": "attempt to join and to publish the media key",
       "decision": "reject",
@@ -99,6 +113,14 @@
     },
     {
       "name": "no_media_key_is_published_on_any_of_the_three_refusals",
+      "covers_decision_points": [
+        "AK-SDK-010/no_media_key_is_published_to_an_unauthorized_service"
+      ],
+      "expected": {
+        "refused_joins": 3,
+        "media_keys_published": 0,
+        "partial_negotiation_retains_key_material": false
+      },
       "given": "the three refusal scenarios above",
       "action": "observe the key publication path in each",
       "decision": "accept",

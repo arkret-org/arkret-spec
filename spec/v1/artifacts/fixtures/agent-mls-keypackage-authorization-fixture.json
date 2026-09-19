@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.agent_runtime.v1",
-  "version": "2026-07-22",
+  "version": "2026-09-19",
   "suite": "agent_mls_keypackage_authorization",
   "runner": {
     "kind": "named_suite",
@@ -12,7 +12,13 @@
   "cases": [
     {
       "name": "current_agent_authorization_is_accepted",
-      "expected": "accepted",
+      "covers_decision_points": [
+        "AK-SDK-009/keypackage_did_authorization_precedes_encryption"
+      ],
+      "expected": {
+        "decision": "accepted",
+        "encryption_may_proceed": true
+      },
       "agent_id": "ak:did_core:webvh:z6mkagent",
       "claim_principal_id": "ak:did_core:webvh:z6mkagent",
       "current_agent_key_authorize_event_id": "ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g",
@@ -24,7 +30,13 @@
     },
     {
       "name": "delegated_device_binding_is_rejected",
-      "expected": "rejected",
+      "covers_decision_points": [
+        "AK-SDK-009/keypackage_did_authorization_precedes_encryption"
+      ],
+      "expected": {
+        "decision": "rejected",
+        "encryption_attempted": false
+      },
       "agent_id": "ak:did_core:webvh:z6mkagent",
       "claim_principal_id": "ak:did_core:webvh:z6mkagent",
       "current_agent_key_authorize_event_id": "ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g",
@@ -37,7 +49,13 @@
     },
     {
       "name": "stale_authorize_event_is_rejected",
-      "expected": "rejected",
+      "covers_decision_points": [
+        "AK-SDK-009/keypackage_did_authorization_precedes_encryption"
+      ],
+      "expected": {
+        "decision": "rejected",
+        "encryption_attempted": false
+      },
       "agent_id": "ak:did_core:webvh:z6mkagent",
       "claim_principal_id": "ak:did_core:webvh:z6mkagent",
       "current_agent_key_authorize_event_id": "ak:event:AbhX3-n_FG8scl_4zkFai8VRhqvIwjOeWHvA8D3mQ9V7",
@@ -49,7 +67,13 @@
     },
     {
       "name": "cross_principal_binding_is_rejected",
-      "expected": "rejected",
+      "covers_decision_points": [
+        "AK-SDK-009/keypackage_did_authorization_precedes_encryption"
+      ],
+      "expected": {
+        "decision": "rejected",
+        "encryption_attempted": false
+      },
       "agent_id": "ak:did_core:webvh:z6mkagent",
       "claim_principal_id": "ak:did_core:webvh:z6mkother",
       "current_agent_key_authorize_event_id": "ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g",
@@ -61,7 +85,13 @@
     },
     {
       "name": "revoked_authorization_is_rejected",
-      "expected": "rejected",
+      "covers_decision_points": [
+        "AK-SDK-009/keypackage_did_authorization_precedes_encryption"
+      ],
+      "expected": {
+        "decision": "rejected",
+        "encryption_attempted": false
+      },
       "agent_id": "ak:did_core:webvh:z6mkagent",
       "claim_principal_id": "ak:did_core:webvh:z6mkagent",
       "current_agent_key_authorize_event_id": "ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g",
@@ -73,7 +103,13 @@
     },
     {
       "name": "expired_authorization_is_rejected",
-      "expected": "rejected",
+      "covers_decision_points": [
+        "AK-SDK-009/keypackage_did_authorization_precedes_encryption"
+      ],
+      "expected": {
+        "decision": "rejected",
+        "encryption_attempted": false
+      },
       "agent_id": "ak:did_core:webvh:z6mkagent",
       "claim_principal_id": "ak:did_core:webvh:z6mkagent",
       "current_agent_key_authorize_event_id": "ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g",
@@ -85,7 +121,13 @@
     },
     {
       "name": "leaf_signature_key_mismatch_is_rejected",
-      "expected": "rejected",
+      "covers_decision_points": [
+        "AK-SDK-009/keypackage_did_authorization_precedes_encryption"
+      ],
+      "expected": {
+        "decision": "rejected",
+        "encryption_attempted": false
+      },
       "agent_id": "ak:did_core:webvh:z6mkagent",
       "claim_principal_id": "ak:did_core:webvh:z6mkagent",
       "current_agent_key_authorize_event_id": "ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g",
@@ -97,7 +139,13 @@
     },
     {
       "name": "invalid_leaf_signature_is_rejected",
-      "expected": "rejected",
+      "covers_decision_points": [
+        "AK-SDK-009/keypackage_did_authorization_precedes_encryption"
+      ],
+      "expected": {
+        "decision": "rejected",
+        "encryption_attempted": false
+      },
       "agent_id": "ak:did_core:webvh:z6mkagent",
       "claim_principal_id": "ak:did_core:webvh:z6mkagent",
       "current_agent_key_authorize_event_id": "ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g",

@@ -5,7 +5,7 @@
   },
   "suite": "privacy_security",
   "profile": "ak.vector_group.privacy_security.v1",
-  "version": "2026-09-02",
+  "version": "2026-09-19",
   "covers_vectors": [
     "ak.vector.directory.public_realm_search.v1",
     "ak.vector.directory.organization_search.v1",
@@ -796,6 +796,9 @@
     {
       "vector_id": "ak.vector.search.surface_separation_no_plaintext_leakage.v1",
       "name": "search_surface_separation_no_plaintext_leakage",
+      "covers_decision_points": [
+        "AK-SDK-010/search_and_bridge_surfaces_receive_no_private_plaintext"
+      ],
       "input": {
         "plaintext_canary": "needle secret launch plan",
         "surfaces": [

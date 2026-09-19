@@ -5,7 +5,7 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.identity.test_material_rejection.v1"
   },
-  "version": "2026-09-19.1",
+  "version": "2026-09-19.2",
   "profile": "ak.profile.full_client.v1",
   "covers_vectors": [
     "ak.vector.identity.test_signing_material_rejected.v1",
@@ -113,6 +113,14 @@
   "cases": [
     {
       "name": "a_published_fixture_key_is_refused_although_its_signature_verifies",
+      "covers_decision_points": [
+        "AK-SDK-014/a_valid_signature_over_published_material_does_not_admit_it"
+      ],
+      "expected": {
+        "signature_verifies": true,
+        "decision": "reject",
+        "verification_result_produced": false
+      },
       "given": "an event proof signed by the registered Ed25519 conformance key, presented on a DID authority call whose every other precondition holds: the DID resolves, the verification method is present in the resolved document, the method head and version pin match, and the freshness profile is satisfied",
       "action": "verify the proof and admit the key as the authorization basis",
       "decision": "reject",
@@ -127,6 +135,13 @@
     },
     {
       "name": "the_same_key_under_a_different_kid_and_did_is_refused",
+      "covers_decision_points": [
+        "AK-SDK-014/the_fingerprint_survives_renaming_and_re_encoding"
+      ],
+      "expected": {
+        "fingerprint_unchanged": true,
+        "decision": "reject"
+      },
       "given": "the registered Ed25519 conformance public key republished under a freshly minted deployment DID and an unrelated verification-method fragment, with a DID document that resolves and validates",
       "action": "verify a proof signed by that key",
       "decision": "reject",
@@ -140,6 +155,17 @@
     },
     {
       "name": "the_same_key_re_encoded_is_refused",
+      "covers_decision_points": [
+        "AK-SDK-014/the_fingerprint_survives_renaming_and_re_encoding"
+      ],
+      "expected": {
+        "fingerprints_identical": true,
+        "decisions": [
+          "reject",
+          "reject",
+          "reject"
+        ]
+      },
       "given": "the registered Ed25519 conformance public key carried once as a JWK with reordered members, once as a multibase multicodec value and once as a PEM SubjectPublicKeyInfo",
       "action": "verify a proof against each encoding in turn",
       "decision": "reject",
@@ -153,6 +179,16 @@
     },
     {
       "name": "published_p256_and_mldsa_material_are_refused_under_their_own_encodings",
+      "covers_decision_points": [
+        "AK-SDK-014/the_fingerprint_survives_renaming_and_re_encoding"
+      ],
+      "expected": {
+        "algorithm_defined_public_key_encodings_used": true,
+        "decisions": [
+          "reject",
+          "reject"
+        ]
+      },
       "given": "the registered P-256 conformance key presented as a SEC1 uncompressed point and the registered ML-DSA-65 conformance key presented as its FIPS 204 public key",
       "action": "verify a proof signed by each",
       "decision": "reject",
@@ -166,6 +202,13 @@
     },
     {
       "name": "the_rfc8032_test_key_is_refused_on_the_possession_path",
+      "covers_decision_points": [
+        "AK-SDK-014/a_valid_signature_over_published_material_does_not_admit_it"
+      ],
+      "expected": {
+        "proof_of_possession_valid": true,
+        "decision": "reject"
+      },
       "given": "a WebSocket DPoP proof whose confirmation key is the registered RFC 8032 TEST 1 key, with a well-formed protected header, a live nonce and an unexpired issue time",
       "action": "verify the proof of possession and bind the connection",
       "decision": "reject",
@@ -179,6 +222,13 @@
     },
     {
       "name": "unlisted_material_is_still_verified_normally",
+      "covers_decision_points": [
+        "AK-SDK-014/unlisted_material_is_still_verified_normally"
+      ],
+      "expected": {
+        "decision": "accept",
+        "ordinary_identity_and_trust_rules_used": true
+      },
       "given": "a freshly generated Ed25519 key that is not registered, presented with the same document shape, freshness and proof structure as the first case",
       "action": "verify the proof",
       "decision": "accept",
@@ -191,6 +241,15 @@
     },
     {
       "name": "a_refusal_leaves_no_cached_state_and_no_weaker_fallback",
+      "covers_decision_points": [
+        "AK-SDK-014/the_refusal_leaves_no_state_and_no_weaker_path"
+      ],
+      "expected": {
+        "decision": "reject",
+        "cache_writes": 0,
+        "accepted_auth_state_writes": 0,
+        "weaker_fallback_used": false
+      },
       "given": "a call site holding a resolution cache, a verified-binding store and more than one evidence class it could use",
       "action": "present the registered Ed25519 conformance key, then retry the same call through every other evidence class",
       "decision": "reject",
@@ -217,6 +276,15 @@
     },
     {
       "name": "a_reserved_did_scid_is_refused_by_the_did_rule_alone",
+      "covers_decision_points": [
+        "AK-SDK-014/the_three_reserved_identifier_rules_are_independent"
+      ],
+      "expected": {
+        "decision": "reject",
+        "matching_rules": [
+          "did"
+        ]
+      },
       "given": "a did:webvh whose SCID segment is a registered conformance prefix, holding an unregistered freshly generated key and an otherwise valid document",
       "action": "run a DID authority call against it",
       "decision": "reject",
@@ -230,6 +298,15 @@
     },
     {
       "name": "a_reserved_key_id_under_a_deployment_did_is_refused_by_the_key_id_rule_alone",
+      "covers_decision_points": [
+        "AK-SDK-014/the_three_reserved_identifier_rules_are_independent"
+      ],
+      "expected": {
+        "decision": "reject",
+        "matching_rules": [
+          "key_id"
+        ]
+      },
       "given": "an ordinary deployment did:webvh holding an unregistered key whose verification-method fragment carries the registered conformance suffix",
       "action": "select that verification method and verify a proof",
       "decision": "reject",
@@ -243,6 +320,15 @@
     },
     {
       "name": "a_reserved_trust_domain_is_refused_at_trust_admission",
+      "covers_decision_points": [
+        "AK-SDK-014/the_three_reserved_identifier_rules_are_independent"
+      ],
+      "expected": {
+        "decision": "reject",
+        "matching_rules": [
+          "trust_domain"
+        ]
+      },
       "given": "a trust admission request carrying an ak:trust_domain typed identifier whose value is a registered conformance trust domain, with every other admission precondition satisfied",
       "action": "admit the trust domain into the local trust surface",
       "decision": "reject",
@@ -256,6 +342,13 @@
     },
     {
       "name": "a_deployment_domain_that_merely_shares_a_tail_is_not_refused",
+      "covers_decision_points": [
+        "AK-SDK-014/the_three_reserved_identifier_rules_are_independent"
+      ],
+      "expected": {
+        "decision": "accept",
+        "matching_rules": []
+      },
       "given": "trust admission requests for a registered conformance value extended by a further label, and for a real domain whose spelling merely resembles a reserved label",
       "action": "admit each trust domain",
       "decision": "accept",
@@ -268,6 +361,13 @@
     },
     {
       "name": "the_word_fixture_alone_reserves_nothing",
+      "covers_decision_points": [
+        "AK-SDK-014/the_three_reserved_identifier_rules_are_independent"
+      ],
+      "expected": {
+        "decision": "accept",
+        "matching_rules": []
+      },
       "given": "a deployment DID, a verification-method fragment that contains but does not end with the reserved suffix, and a trust domain containing the word example as part of a longer label",
       "action": "verify a proof and admit the trust domain",
       "decision": "accept",
@@ -280,6 +380,13 @@
     },
     {
       "name": "matching_one_rule_does_not_imply_the_others",
+      "covers_decision_points": [
+        "AK-SDK-014/the_three_reserved_identifier_rules_are_independent"
+      ],
+      "expected": {
+        "each_sample_matches_exactly_one_rule": true,
+        "cross_rule_implication": false
+      },
       "given": "the three refusal cases above, each of which trips exactly one rule",
       "action": "record, for each case, which of the three rules matched",
       "decision": "reject",

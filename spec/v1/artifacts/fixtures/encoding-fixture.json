@@ -4,7 +4,7 @@
     "entrypoint": "ak.suite.encoding.core.v1"
   },
   "profile": "ak.vector_group.encoding.v1",
-  "version": "2026-09-19.1",
+  "version": "2026-09-19.2",
   "description": "Canonical encoding and digest-algorithm vectors for the current authority-commit protocol.",
   "generator_semantics": "Vectors of kind *_reject_generated carry a `generator` object instead of literal input bytes: the runner MUST construct the input at execution time from the generator parameters (e.g. nesting_depth, array_item_count) following the generator.rule text, so the fixture never stores megabyte-scale literals. Rejection is asserted exactly as for literal-input vectors.",
   "covers_vectors": [
@@ -129,6 +129,10 @@
     },
     {
       "vector_id": "ak.vector.encoding.open_registry_unknown_roundtrip.v1",
+      "name": "open_registry_unknown_value_roundtrips",
+      "covers_decision_points": [
+        "AK-SDK-016/an_unknown_open_registry_value_does_not_fail_the_object"
+      ],
       "kind": "open_registry_unknown_roundtrip",
       "input": {
         "registry_value": "ak.future.event_kind.v1",
@@ -212,7 +216,12 @@
     },
     {
       "vector_id": "ak.vector.encoding.reject_noncanonical_numbers.v1",
+      "name": "noncanonical_numbers_are_refused",
+      "covers_decision_points": [
+        "AK-SDK-006/noncanonical_numbers_are_refused"
+      ],
       "kind": "canonical_json_reject",
+      "expected": "reject_without_reserialization",
       "rejected_inputs": [
         {
           "n": "NaN"
@@ -250,27 +259,47 @@
       "cases": [
         {
           "name": "reject_overlong_utf8",
+          "covers_decision_points": [
+            "AK-SDK-006/malformed_json_is_refused_without_repair"
+          ],
           "input_hex": "7b2278223a22c0af227d",
+          "expected": "reject_without_repair",
           "expected_error": "invalid_encoding"
         },
         {
           "name": "reject_truncated_utf8_sequence",
+          "covers_decision_points": [
+            "AK-SDK-006/malformed_json_is_refused_without_repair"
+          ],
           "input_hex": "7b2278223a22e282227d",
+          "expected": "reject_without_repair",
           "expected_error": "invalid_encoding"
         },
         {
           "name": "reject_lone_low_surrogate_escape",
+          "covers_decision_points": [
+            "AK-SDK-006/malformed_json_is_refused_without_repair"
+          ],
           "input_hex": "7b2278223a225c7564633030227d",
+          "expected": "reject_without_repair",
           "expected_error": "invalid_canonical_json"
         },
         {
           "name": "reject_reversed_surrogate_pair",
+          "covers_decision_points": [
+            "AK-SDK-006/malformed_json_is_refused_without_repair"
+          ],
           "input_hex": "7b2278223a225c75646330305c7564383030227d",
+          "expected": "reject_without_repair",
           "expected_error": "invalid_canonical_json"
         },
         {
           "name": "reject_bom_codepoint_in_string",
+          "covers_decision_points": [
+            "AK-SDK-006/malformed_json_is_refused_without_repair"
+          ],
           "input_hex": "7b2278223a22efbbbf227d",
+          "expected": "reject_without_repair",
           "expected_error": "invalid_encoding"
         }
       ],
@@ -600,8 +629,11 @@
             "routing_context is admitted only for a registered reaction outer Event kind; it is forbidden on every other kind and grants no read or write authority"
           ]
         },
-        {
-          "name": "aad_transcript_mismatch_fails_closed",
+          {
+            "name": "aad_transcript_mismatch_fails_closed",
+            "covers_decision_points": [
+              "AK-SDK-009/envelope_context_mismatch_fails_closed_without_partial_write"
+            ],
           "given": "an envelope whose ciphertext was sealed under a header differing from the one the receiver rebuilds in exactly one member",
           "action": "verify and attempt to decrypt",
           "expected": {
@@ -620,8 +652,11 @@
             "the same ciphertext MUST NOT be admitted by relaxing the transcript to the members both sides agree on"
           ]
         },
-        {
-          "name": "ciphertext_digest_mismatch_fails_closed",
+          {
+            "name": "ciphertext_digest_mismatch_fails_closed",
+            "covers_decision_points": [
+              "AK-SDK-009/envelope_context_mismatch_fails_closed_without_partial_write"
+            ],
           "given": "an envelope whose ciphertext bytes hash to something other than the digest the signed outer Event references",
           "action": "compare the ciphertext digest against the signed reference, then attempt to decrypt",
           "expected": {
@@ -641,8 +676,11 @@
             "the mismatch MUST be reported as payload_digest_mismatch rather than as a decrypt failure, so a wire corruption is not confused with a key problem"
           ]
         },
-        {
-          "name": "encryption_context_disagrees_with_the_verified_group_result",
+          {
+            "name": "encryption_context_disagrees_with_the_verified_group_result",
+            "covers_decision_points": [
+              "AK-SDK-009/envelope_context_mismatch_fails_closed_without_partial_write"
+            ],
           "given": "an envelope whose encryption_context names an epoch and group_state_ref that the receiver's own verified current public group result does not produce",
           "action": "cross-check encryption_context against the verified group result",
           "expected": {
@@ -667,8 +705,11 @@
             "the same ciphertext MUST fail under a different scope, Event kind, sender or group state, so a context that merely parses is not a context that binds"
           ]
         },
-        {
-          "name": "exact_retry_replays_the_same_bytes_and_never_re_encrypts",
+          {
+            "name": "exact_retry_replays_the_same_bytes_and_never_re_encrypts",
+            "covers_decision_points": [
+              "AK-SDK-009/envelope_context_mismatch_fails_closed_without_partial_write"
+            ],
           "given": "a submission whose outcome is unknown to the sender",
           "action": "retry the same message",
           "expected": {
@@ -700,6 +741,10 @@
     },
     {
       "vector_id": "ak.vector.encoding.reject_duplicate_key.v1",
+      "name": "duplicate_key_is_refused",
+      "covers_decision_points": [
+        "AK-SDK-006/duplicate_key_is_refused_not_last_wins"
+      ],
       "kind": "canonical_json_reject_raw",
       "input_hex": "7b2261223a312c2261223a327d",
       "expected": "reject",
@@ -714,6 +759,10 @@
     },
     {
       "vector_id": "ak.vector.encoding.reject_non_nfc_string.v1",
+      "name": "non_nfc_input_is_refused",
+      "covers_decision_points": [
+        "AK-SDK-006/non_nfc_input_is_refused_not_silently_normalized"
+      ],
       "kind": "canonical_json_reject_raw",
       "input_hex": "7b2273223a2265cc81227d",
       "expected": "reject",
@@ -728,6 +777,10 @@
     },
     {
       "vector_id": "ak.vector.encoding.reject_feff_injection.v1",
+      "name": "feff_injection_is_refused",
+      "covers_decision_points": [
+        "AK-SDK-006/invisible_character_injection_is_refused"
+      ],
       "kind": "canonical_json_reject_raw",
       "input_hex": "efbbbf7b2261223a317d",
       "expected": "reject",
@@ -742,6 +795,10 @@
     },
     {
       "vector_id": "ak.vector.encoding.reject_malformed_hlc.v1",
+      "name": "malformed_hlc_is_refused",
+      "covers_decision_points": [
+        "AK-SDK-007/malformed_hlc_is_refused_without_normalization"
+      ],
       "kind": "canonical_json_reject_raw",
       "input_hex": "7b22686c63223a223030303030303030303030302d30303030227d",
       "expected": "reject",

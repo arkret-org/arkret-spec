@@ -133,6 +133,30 @@ def ratchet_row(point: str = FIRST) -> dict:
     return {"clause_id": CLAUSE, "decision_point_id": point, "owner_report": OWNER}
 
 
+def contract_with_required_cases() -> dict:
+    document = contract()
+    point = document["sdk_conformance_contract"]["clauses"][0]["vector_evidence"][
+        "decision_points"
+    ][0]
+    point["required_case_refs"] = [
+        {"fixture_ref": f"fixtures/{CARRIER}", "case_id": "a_refused_request_never_reaches_the_writer"},
+        {"fixture_ref": f"fixtures/{CARRIER}", "case_id": "the_same_refusal_is_visible_to_the_cache"},
+    ]
+    return document
+
+
+def carrier_with_required_cases() -> dict:
+    document = carrier()
+    document["cases"].append(
+        {
+            "name": "the_same_refusal_is_visible_to_the_cache",
+            "covers_decision_points": [f"{CLAUSE}/{FIRST}"],
+            "expected": {"cache_writes": 0},
+        }
+    )
+    return document
+
+
 class DecisionPointCaseGateTest(unittest.TestCase):
     def run_gate(
         self,
@@ -405,6 +429,90 @@ class DecisionPointCaseGateTest(unittest.TestCase):
         del document["sdk_conformance_contract"]["decision_point_case_ratchet_rule"]
         errors = self.run_gate(contract_document=document)
         self.assertRedWith(errors, "decision_point_case_ratchet_rule must state")
+
+    # ------------------------------------------ conjunctive required case refs
+
+    def test_a_complete_required_case_set_passes(self) -> None:
+        self.assertEqual(
+            self.run_gate(
+                contract_document=contract_with_required_cases(),
+                fixtures={CARRIER: carrier_with_required_cases()},
+            ),
+            [],
+        )
+
+    def test_deleting_one_required_case_turns_the_gate_red(self) -> None:
+        required_names = [
+            ref["case_id"]
+            for ref in contract_with_required_cases()["sdk_conformance_contract"]["clauses"][0][
+                "vector_evidence"
+            ]["decision_points"][0]["required_case_refs"]
+        ]
+        for deleted_name in required_names:
+            with self.subTest(deleted_name=deleted_name):
+                body = carrier_with_required_cases()
+                body["cases"] = [case for case in body["cases"] if case["name"] != deleted_name]
+                errors = self.run_gate(
+                    contract_document=contract_with_required_cases(), fixtures={CARRIER: body}
+                )
+                self.assertRedWith(errors, "does not resolve to a covered fixture case")
+
+    def test_removing_a_required_case_cover_label_turns_the_gate_red(self) -> None:
+        required_names = [
+            ref["case_id"]
+            for ref in contract_with_required_cases()["sdk_conformance_contract"]["clauses"][0][
+                "vector_evidence"
+            ]["decision_points"][0]["required_case_refs"]
+        ]
+        for mutated_name in required_names:
+            with self.subTest(mutated_name=mutated_name):
+                body = carrier_with_required_cases()
+                target = next(case for case in body["cases"] if case["name"] == mutated_name)
+                del target["covers_decision_points"]
+                errors = self.run_gate(
+                    contract_document=contract_with_required_cases(), fixtures={CARRIER: body}
+                )
+                self.assertRedWith(errors, "does not resolve to a covered fixture case")
+
+    def test_a_required_case_fixture_without_a_runner_turns_the_gate_red(self) -> None:
+        body = carrier_with_required_cases()
+        del body["runner"]
+        errors = self.run_gate(
+            contract_document=contract_with_required_cases(), fixtures={CARRIER: body}
+        )
+        self.assertRedWith(errors, "has no valid registered runner")
+
+    def test_a_required_ref_with_an_extra_member_turns_the_gate_red(self) -> None:
+        document = contract_with_required_cases()
+        refs = document["sdk_conformance_contract"]["clauses"][0]["vector_evidence"][
+            "decision_points"
+        ][0]["required_case_refs"]
+        refs[0]["note"] = "not part of the closed shape"
+        errors = self.run_gate(
+            contract_document=document, fixtures={CARRIER: carrier_with_required_cases()}
+        )
+        self.assertRedWith(errors, "exactly fixture_ref and case_id")
+
+    def test_a_duplicate_required_ref_turns_the_gate_red(self) -> None:
+        document = contract_with_required_cases()
+        refs = document["sdk_conformance_contract"]["clauses"][0]["vector_evidence"][
+            "decision_points"
+        ][0]["required_case_refs"]
+        refs.append(copy.deepcopy(refs[0]))
+        errors = self.run_gate(
+            contract_document=document, fixtures={CARRIER: carrier_with_required_cases()}
+        )
+        self.assertRedWith(errors, "duplicates an earlier required reference")
+
+    def test_an_empty_required_case_set_turns_the_gate_red(self) -> None:
+        document = contract_with_required_cases()
+        document["sdk_conformance_contract"]["clauses"][0]["vector_evidence"][
+            "decision_points"
+        ][0]["required_case_refs"] = []
+        errors = self.run_gate(
+            contract_document=document, fixtures={CARRIER: carrier_with_required_cases()}
+        )
+        self.assertRedWith(errors, "must be a non-empty closed list")
 
     # ------------------------------------------------ the gate stays honest about itself
 

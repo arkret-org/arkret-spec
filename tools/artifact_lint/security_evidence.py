@@ -22,6 +22,7 @@ from .core import (
     load_json,
     re,
 )
+from .evidence_sets import check_closed_evidence_set
 
 CLAUSE_ID_RE = re.compile(r"^AK-NC-\d{3}$")
 DECISION_POINT_ID_RE = re.compile(r"^[a-z][a-z0-9_]*$")
@@ -169,22 +170,16 @@ def _check_decision_points(
             )
             ok = False
 
-        evidence = point.get("evidence")
-        if not isinstance(evidence, list) or not evidence:
-            lint.fail(path, f"{point_label}.evidence must be a non-empty array of JSON Pointers")
-            ok = False
-            continue
-        for pointer_index, pointer in enumerate(evidence):
-            pointer_label = f"{point_label}.evidence[{pointer_index}]"
+        def parse_pointer(pointer: Any) -> tuple[str | None, str | None]:
             if not isinstance(pointer, str) or not pointer.startswith("/"):
-                lint.fail(path, f"{pointer_label} must be a JSON Pointer into this fixture")
-                ok = False
-                continue
+                return None, "must be a JSON Pointer into this fixture"
+            return pointer, None
+
+        def resolve_pointer(pointer: Any, key: object) -> str | None:
+            assert isinstance(pointer, str) and isinstance(key, str)
             target = _resolve_pointer(document, pointer)
             if target is None or (isinstance(target, (dict, list, str)) and not target):
-                lint.fail(path, f"{pointer_label} does not resolve to fixture content: {pointer}")
-                ok = False
-                continue
+                return f"does not resolve to fixture content: {pointer}"
             if _names_a_case(pointer) and isinstance(target, dict):
                 assertions = target.get("assertions")
                 if (
@@ -192,12 +187,22 @@ def _check_decision_points(
                     or not assertions
                     or not all(isinstance(item, str) and item.strip() for item in assertions)
                 ):
-                    lint.fail(
-                        path,
-                        f"{pointer_label} names a case without per-case assertions: {pointer}. "
-                        "A case that states no expected observation proves nothing.",
+                    return (
+                        f"names a case without per-case assertions: {pointer}. "
+                        "A case that states no expected observation proves nothing."
                     )
-                    ok = False
+            return None
+
+        if not check_closed_evidence_set(
+            lint,
+            path,
+            f"{point_label}.evidence",
+            point.get("evidence"),
+            empty_error=f"{point_label}.evidence must be a non-empty array of JSON Pointers",
+            parse=parse_pointer,
+            resolve=resolve_pointer,
+        ):
+            ok = False
     return ok
 
 

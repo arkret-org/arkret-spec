@@ -5,7 +5,7 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.sdk.precheck.v1"
   },
-  "version": "2026-09-19.1",
+  "version": "2026-09-19.2",
   "profile": "ak.profile.full_client.v1",
   "covers_vectors": [
     "ak.vector.sdk.envelope_precheck_rejects_before_consumption.v1",
@@ -22,6 +22,15 @@
     {
       "name": "an_envelope_that_fails_the_event_schema_never_reaches_the_reducer",
       "vector_id": "ak.vector.sdk.envelope_precheck_rejects_before_consumption.v1",
+      "covers_decision_points": [
+        "AK-SDK-001/envelope_schema_failure_refused",
+        "AK-SDK-001/no_effect_reaches_the_reducer"
+      ],
+      "expected": {
+        "decision": "reject",
+        "reason": "schema_violation",
+        "effect_consumed": false
+      },
       "given": "an Event Envelope that does not satisfy ak.schema.event.v1, delivered through the ordinary ingest path",
       "action": "submit it to the SDK and then read every surface the SDK exposes",
       "decision": "reject",
@@ -37,6 +46,15 @@
     {
       "name": "a_payload_that_fails_its_payload_class_never_reaches_the_reducer",
       "vector_id": "ak.vector.sdk.envelope_precheck_rejects_before_consumption.v1",
+      "covers_decision_points": [
+        "AK-SDK-001/payload_class_failure_refused",
+        "AK-SDK-001/no_effect_reaches_the_reducer"
+      ],
+      "expected": {
+        "decision": "reject",
+        "reason": "schema_violation",
+        "effect_consumed": false
+      },
       "given": "an Event Envelope that satisfies ak.schema.event.v1 but whose payload does not satisfy the payload class its event kind declares",
       "action": "submit it and read every exposed surface",
       "decision": "reject",
@@ -51,6 +69,14 @@
     {
       "name": "a_rejected_envelope_is_not_repaired_or_partially_applied",
       "vector_id": "ak.vector.sdk.envelope_precheck_rejects_before_consumption.v1",
+      "covers_decision_points": [
+        "AK-SDK-001/no_effect_reaches_the_reducer"
+      ],
+      "expected": {
+        "decision": "reject",
+        "repaired_or_readmitted": false,
+        "partial_effects": 0
+      },
       "given": "an envelope rejected by the previous two cases and an SDK that owns a retry queue",
       "action": "run every retry, reconnect and backfill path the SDK exposes",
       "decision": "reject",
@@ -65,6 +91,13 @@
     {
       "name": "hlc_at_the_event_top_level_is_refused",
       "vector_id": "ak.vector.sdk.envelope_forbidden_top_level_fields.v1",
+      "covers_decision_points": [
+        "AK-SDK-002/forbidden_top_level_members_refused"
+      ],
+      "expected": {
+        "decision": "reject",
+        "reason": "schema_violation"
+      },
       "given": "an otherwise valid Event Envelope carrying hlc as a top-level member",
       "action": "submit it",
       "decision": "reject",
@@ -78,6 +111,13 @@
     {
       "name": "producer_revision_at_the_event_top_level_is_refused",
       "vector_id": "ak.vector.sdk.envelope_forbidden_top_level_fields.v1",
+      "covers_decision_points": [
+        "AK-SDK-002/forbidden_top_level_members_refused"
+      ],
+      "expected": {
+        "decision": "reject",
+        "reason": "schema_violation"
+      },
       "given": "an otherwise valid Event Envelope carrying producer_revision as a top-level member",
       "action": "submit it",
       "decision": "reject",
@@ -91,6 +131,13 @@
     {
       "name": "domain_refs_at_the_event_top_level_is_refused",
       "vector_id": "ak.vector.sdk.envelope_forbidden_top_level_fields.v1",
+      "covers_decision_points": [
+        "AK-SDK-002/forbidden_top_level_members_refused"
+      ],
+      "expected": {
+        "decision": "reject",
+        "reason": "schema_violation"
+      },
       "given": "an otherwise valid Event Envelope carrying domain_refs as a top-level member",
       "action": "submit it",
       "decision": "reject",
@@ -104,6 +151,13 @@
     {
       "name": "requirements_at_the_event_top_level_is_refused",
       "vector_id": "ak.vector.sdk.envelope_forbidden_top_level_fields.v1",
+      "covers_decision_points": [
+        "AK-SDK-002/forbidden_top_level_members_refused"
+      ],
+      "expected": {
+        "decision": "reject",
+        "reason": "schema_violation"
+      },
       "given": "an otherwise valid Event Envelope carrying requirements as a top-level member",
       "action": "submit it",
       "decision": "reject",
@@ -118,6 +172,14 @@
     {
       "name": "the_authorization_carrying_members_cannot_be_omitted_or_defaulted",
       "vector_id": "ak.vector.sdk.envelope_forbidden_top_level_fields.v1",
+      "covers_decision_points": [
+        "AK-SDK-002/authorization_members_cannot_be_omitted_or_defaulted"
+      ],
+      "expected": {
+        "decision": "reject",
+        "reason": "schema_violation",
+        "synthesized_authorization_members": []
+      },
       "given": "four envelopes, each omitting exactly one of proofs, scope_ref, actor_id and refs with role authorized_by",
       "action": "submit each and inspect what the verification path did with the missing member",
       "decision": "reject",
@@ -132,6 +194,14 @@
     {
       "name": "an_unknown_critical_extension_fails_closed",
       "vector_id": "ak.vector.sdk.unknown_critical_feature_fail_closed.v1",
+      "covers_decision_points": [
+        "AK-SDK-013/unknown_critical_extension_is_refused_as_a_whole"
+      ],
+      "expected": {
+        "decision": "reject",
+        "reason": "unsupported_feature",
+        "effect_consumed": false
+      },
       "given": "an object declaring a critical extension this build does not recognise, valid in every other respect",
       "action": "consume it",
       "decision": "reject",
@@ -146,6 +216,14 @@
     {
       "name": "unmet_requirements_fail_closed",
       "vector_id": "ak.vector.sdk.requirements_mismatch_fail_closed.v1",
+      "covers_decision_points": [
+        "AK-SDK-013/unmet_requirement_is_a_distinct_refusal"
+      ],
+      "expected": {
+        "decision": "reject",
+        "reason": "unsupported_feature",
+        "effect_consumed": false
+      },
       "given": "an object whose declared requirements name a capability this build does not provide, with no unknown extension present",
       "action": "consume it",
       "decision": "reject",
@@ -160,6 +238,13 @@
     {
       "name": "an_unknown_non_critical_extension_is_preserved_and_admitted",
       "vector_id": "ak.vector.sdk.unknown_critical_feature_fail_closed.v1",
+      "covers_decision_points": [
+        "AK-SDK-013/unknown_non_critical_extension_is_still_admitted"
+      ],
+      "expected": {
+        "decision": "accept",
+        "unknown_extension_preserved_byte_for_byte": true
+      },
       "given": "an object carrying an unknown extension that is not declared critical",
       "action": "consume it, then re-encode and forward it",
       "decision": "accept",
@@ -173,6 +258,17 @@
     {
       "name": "the_fail_closed_decision_precedes_consumption_and_storage",
       "vector_id": "ak.vector.sdk.unknown_critical_feature_fail_closed.v1",
+      "covers_decision_points": [
+        "AK-SDK-013/unknown_critical_extension_is_refused_as_a_whole",
+        "AK-SDK-013/unmet_requirement_is_a_distinct_refusal"
+      ],
+      "expected": {
+        "decision": "reject",
+        "stored": false,
+        "projected": false,
+        "forwarded": false,
+        "payload_member_consumed": false
+      },
       "given": "the two refusing objects above and an SDK that owns a durable store",
       "action": "submit each, then inspect the durable store, the projection and the outbound queue",
       "decision": "reject",

@@ -1,6 +1,6 @@
 {
   "profile": "ak.vector_group.protocol_edge_cases.v1",
-  "version": "2026-09-19",
+  "version": "2026-09-19.1",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.protocol.edge_cases.v1"
@@ -340,21 +340,89 @@
     {
       "name": "retry_after",
       "vector_id": "ak.vector.sdk.retry_after.v1",
-      "variants": [
-        "retry_hint_absent",
-        "retry_after_zero",
-        "retry_after_shorter_than_local_backoff",
-        "retry_after_longer_than_local_cap",
-        "retry_after_date",
-        "retry_after_past_date"
-      ],
-      "expected": {
-        "formula": "max(server_hint_delay,jitter(local_backoff_delay))",
-        "zero_or_past_hint_accelerates_local_backoff": false,
-        "long_value_clamped": false,
-        "server_hint_jittered": false,
-        "local_ladder_advances_when_hint_present": true
-      }
+      "clock": "2026-09-19T08:00:00.000Z",
+      "jitter_rule": "add the injected 0..20 percent sample to local_backoff_delay only",
+      "cases": [
+        {
+          "name": "retry_after_local_backoff_branch_wins",
+          "covers_decision_points": [
+            "AK-SDK-020/the_delay_is_the_max_of_the_hint_and_jittered_local_backoff",
+            "AK-SDK-020/a_zero_or_elapsed_hint_never_accelerates_the_local_ladder"
+          ],
+          "input": {
+            "server_hint_delay_ms": 1000,
+            "local_backoff_delay_ms": 2000,
+            "jitter_percent": 10
+          },
+          "expected": {
+            "jittered_local_backoff_delay_ms": 2200,
+            "effective_delay_ms": 2200
+          }
+        },
+        {
+          "name": "retry_after_server_hint_branch_wins",
+          "covers_decision_points": [
+            "AK-SDK-020/the_delay_is_the_max_of_the_hint_and_jittered_local_backoff"
+          ],
+          "input": {
+            "server_hint_delay_ms": 4000,
+            "local_backoff_delay_ms": 2000,
+            "jitter_percent": 10
+          },
+          "expected": {
+            "jittered_local_backoff_delay_ms": 2200,
+            "effective_delay_ms": 4000,
+            "server_hint_jittered": false
+          }
+        },
+        {
+          "name": "retry_after_zero_hint_does_not_accelerate",
+          "covers_decision_points": [
+            "AK-SDK-020/a_zero_or_elapsed_hint_never_accelerates_the_local_ladder"
+          ],
+          "input": {
+            "server_hint_delay_ms": 0,
+            "local_backoff_delay_ms": 1000,
+            "jitter_percent": 20
+          },
+          "expected": {
+            "jittered_local_backoff_delay_ms": 1200,
+            "effective_delay_ms": 1200
+          }
+        },
+        {
+          "name": "retry_after_elapsed_date_does_not_accelerate",
+          "covers_decision_points": [
+            "AK-SDK-020/a_zero_or_elapsed_hint_never_accelerates_the_local_ladder"
+          ],
+          "input": {
+            "retry_after_http_date": "Sat, 19 Sep 2026 07:59:00 GMT",
+            "local_backoff_delay_ms": 2000,
+            "jitter_percent": 0
+          },
+          "expected": {
+            "server_hint_delay_ms": 0,
+            "effective_delay_ms": 2000
+          }
+        },
+        {
+          "name": "retry_after_long_hint_is_not_clamped_to_the_local_cap",
+          "covers_decision_points": [
+            "AK-SDK-020/a_long_hint_is_never_clamped_into_an_earlier_retry"
+          ],
+          "input": {
+            "server_hint_delay_ms": 120000,
+            "local_backoff_delay_ms": 60000,
+            "local_backoff_cap_ms": 60000,
+            "jitter_percent": 20
+          },
+          "expected": {
+            "jittered_local_backoff_delay_ms": 72000,
+            "effective_delay_ms": 120000,
+            "server_hint_clamped_to_local_cap": false
+          }
+        }
+      ]
     },
     {
       "name": "dnd_schedule_boundary_validation",
@@ -388,6 +456,9 @@
     {
       "name": "pagination_has_more",
       "vector_id": "ak.vector.sdk.pagination_has_more.v1",
+      "covers_decision_points": [
+        "AK-SDK-021/pagination_continues_solely_from_has_more"
+      ],
       "variants": [
         "empty_items_has_more_true",
         "full_page_has_more_false",
@@ -400,6 +471,14 @@
     {
       "name": "confusable_check",
       "vector_id": "ak.vector.encoding.confusable_check.v1",
+      "covers_decision_points": [
+        "AK-SDK-022/the_canonical_confusable_check_is_callable_from_the_public_api"
+      ],
+      "expected": {
+        "public_api_callable": true,
+        "single_input_classes_match_expected_confusable_classes": true,
+        "pairwise_results_match": true
+      },
       "inputs": [
         "alice",
         "aлice",

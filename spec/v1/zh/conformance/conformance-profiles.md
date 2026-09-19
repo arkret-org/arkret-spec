@@ -1040,6 +1040,8 @@ Conformance 面此前全部以部署形态 profile 为单位（`profile_requirem
 
 **判定点到 case（normative）**：判定点映射到向量还不是可执行证据——一份 fixture 可以只有一条 case，而条款声明五个判定点。因此每个判定点 MUST 被至少一条 fixture case 点名。case 即 `artifacts/fixtures/` 下携带 `covers_decision_points` 的对象，其值是非空的 `"<clause_id>/<decision_point_id>"` 列表；该对象 MUST 另带非空 `name` 与非空 `expected`，并 MUST 位于承载该判定点自身向量的 fixture 内——把判定点 id 放进无关 fixture 不成立。承载 fixture MUST 声明 `runner`；`runner.kind=named_suite` 时 MUST 声明工具中立的 `ak.suite.*.v1` entrypoint，未知或未映射的 suite MUST fail closed。一条 case MAY 覆盖多个判定点，一个判定点 MAY 被多条 case 覆盖。
 
+一个判定点只有由多条 case 合起来才能成立时，其 `vector_evidence.decision_points[]` 行 MUST 携带非空且封闭的 `required_case_refs`；每项恰有 `fixture_ref` 与 `case_id` 两个成员。`fixture_ref` 是从 `artifacts/` 起算的 `fixtures/*.json` 路径，`case_id` 必须逐字匹配该 fixture 内唯一的 case `name`。这些引用采用**合取**语义：每条引用都必须存在，对应 case 都必须在 `covers_decision_points` 中点名同一个判定点、携带非空 `expected`，且由该 fixture 登记的 runner 执行；删除任一必要 case、移除其覆盖标签或移除 runner 都使集合不成立。单条 case 已足够的判定点不强制携带 `required_case_refs`。这份封闭集合只登记 case 级证据全集，不复制 `requirement`、向量声明或另一份签名合同；它的可解析性也不等于其自然语言语义正确。
+
 尚无 case 的判定点 MUST 逐条登记进 `decision_point_case_ratchet`，每行携带 owner 报告；登记使门禁放行，但只表示该缺口已被点名，MUST NOT 被当作已闭合。ratchet 只减不增：已有 case 的行、契约不再声明的行，以及 `decision_point_case_ratchet_ceiling` 未冻结的新行，门禁 MUST 报红。ceiling 是该 ratchet 曾被允许持有的冻结集合，位于 `sdk_conformance_contract` 内，故扩大它会改变 `contract_digest` 并使既有签名 claim 失效。`vector_evidence_carrier_ratchet` 与其 ceiling 同理，当前均为空：任何条款都 MUST NOT 在无 fixture 承载的向量上接受 `vector_result`。
 
 门禁只证明 `clause → decision point → active vector → 承载 fixture → case → runner` 这条链可解析，**不读 `requirement` 句子、也不读 case 正文的含义**；一条 `expected` 断言错了东西的 case 照样能让门禁变绿。case 是否真的观测了该义务 MUST 在登记与变更时经人工复核，门禁绿 MUST NOT 被作为语义已覆盖的证据。

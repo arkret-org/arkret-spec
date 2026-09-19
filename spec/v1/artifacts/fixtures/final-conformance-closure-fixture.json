@@ -1,6 +1,6 @@
 {
   "profile": "ak.vector_group.privacy_security.v1",
-  "version": "2026-09-19",
+  "version": "2026-09-19.1",
   "suite": "final_conformance_closure",
   "runner": {
     "kind": "named_suite",
@@ -1091,6 +1091,9 @@
         },
         {
           "name": "commit_skips_an_epoch_reject",
+          "covers_decision_points": [
+            "AK-SDK-009/governance_binding_mismatch_stops_the_commit"
+          ],
           "binding": {
             "effective_scope": {
               "kind": "realm",
@@ -1104,11 +1107,15 @@
           "expected": {
             "decision": "reject",
             "reason": "governance_binding_mismatch",
-            "mls_epoch_result_advanced": false
+            "mls_epoch_result_advanced": false,
+            "active_epoch_advanced": false
           }
         },
         {
           "name": "genesis_with_a_nonzero_transition_reject",
+          "covers_decision_points": [
+            "AK-SDK-009/governance_binding_mismatch_stops_the_commit"
+          ],
           "binding": {
             "effective_scope": {
               "kind": "realm",
@@ -1122,11 +1129,15 @@
           "expected": {
             "decision": "reject",
             "reason": "governance_binding_mismatch",
-            "mls_epoch_result_advanced": false
+            "mls_epoch_result_advanced": false,
+            "active_epoch_advanced": false
           }
         },
         {
           "name": "commit_repeats_the_previous_epoch_reject",
+          "covers_decision_points": [
+            "AK-SDK-009/governance_binding_mismatch_stops_the_commit"
+          ],
           "binding": {
             "effective_scope": {
               "kind": "realm",
@@ -1140,7 +1151,8 @@
           "expected": {
             "decision": "reject",
             "reason": "governance_binding_mismatch",
-            "mls_epoch_result_advanced": false
+            "mls_epoch_result_advanced": false,
+            "active_epoch_advanced": false
           }
         }
       ]

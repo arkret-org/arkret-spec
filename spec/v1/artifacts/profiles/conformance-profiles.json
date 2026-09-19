@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-19.1",
-  "generated_at": "2026-09-19T11:35:00+08:00",
+  "version": "2026-09-19.3",
+  "generated_at": "2026-09-19T17:03:54+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -87,6 +87,20 @@
               "requirement": "No reducer state, projection, query result or cache shows an effect of the refused object, and no retry, reconnect or backfill path re-admits, normalizes or repairs it.",
               "vectors": [
                 "ak.vector.sdk.envelope_precheck_rejects_before_consumption.v1"
+              ],
+              "required_case_refs": [
+                {
+                  "fixture_ref": "fixtures/sdk-precheck-fixture.json",
+                  "case_id": "an_envelope_that_fails_the_event_schema_never_reaches_the_reducer"
+                },
+                {
+                  "fixture_ref": "fixtures/sdk-precheck-fixture.json",
+                  "case_id": "a_payload_that_fails_its_payload_class_never_reaches_the_reducer"
+                },
+                {
+                  "fixture_ref": "fixtures/sdk-precheck-fixture.json",
+                  "case_id": "a_rejected_envelope_is_not_repaired_or_partially_applied"
+                }
               ]
             }
           ]
@@ -114,6 +128,24 @@
               "requirement": "hlc, producer_revision, domain_refs and requirements at the Event top level are each refused with schema_violation rather than ignored or stripped.",
               "vectors": [
                 "ak.vector.sdk.envelope_forbidden_top_level_fields.v1"
+              ],
+              "required_case_refs": [
+                {
+                  "fixture_ref": "fixtures/sdk-precheck-fixture.json",
+                  "case_id": "hlc_at_the_event_top_level_is_refused"
+                },
+                {
+                  "fixture_ref": "fixtures/sdk-precheck-fixture.json",
+                  "case_id": "producer_revision_at_the_event_top_level_is_refused"
+                },
+                {
+                  "fixture_ref": "fixtures/sdk-precheck-fixture.json",
+                  "case_id": "domain_refs_at_the_event_top_level_is_refused"
+                },
+                {
+                  "fixture_ref": "fixtures/sdk-precheck-fixture.json",
+                  "case_id": "requirements_at_the_event_top_level_is_refused"
+                }
               ]
             },
             {
@@ -255,6 +287,28 @@
               "requirement": "Malformed JSON is refused rather than repaired and then hashed or verified.",
               "vectors": [
                 "ak.vector.encoding.reject_malformed_json.v1"
+              ],
+              "required_case_refs": [
+                {
+                  "fixture_ref": "fixtures/encoding-fixture.json",
+                  "case_id": "reject_overlong_utf8"
+                },
+                {
+                  "fixture_ref": "fixtures/encoding-fixture.json",
+                  "case_id": "reject_truncated_utf8_sequence"
+                },
+                {
+                  "fixture_ref": "fixtures/encoding-fixture.json",
+                  "case_id": "reject_lone_low_surrogate_escape"
+                },
+                {
+                  "fixture_ref": "fixtures/encoding-fixture.json",
+                  "case_id": "reject_reversed_surrogate_pair"
+                },
+                {
+                  "fixture_ref": "fixtures/encoding-fixture.json",
+                  "case_id": "reject_bom_codepoint_in_string"
+                }
               ]
             },
             {
@@ -383,6 +437,20 @@
               "requirement": "Governance binding epochs must equal the Commit payload base and next epoch; a rejected Commit advances neither the MLS epoch result nor the active epoch.",
               "vectors": [
                 "ak.vector.mls.governance_epoch_binding.v1"
+              ],
+              "required_case_refs": [
+                {
+                  "fixture_ref": "fixtures/final-conformance-closure-fixture.json",
+                  "case_id": "commit_skips_an_epoch_reject"
+                },
+                {
+                  "fixture_ref": "fixtures/final-conformance-closure-fixture.json",
+                  "case_id": "genesis_with_a_nonzero_transition_reject"
+                },
+                {
+                  "fixture_ref": "fixtures/final-conformance-closure-fixture.json",
+                  "case_id": "commit_repeats_the_previous_epoch_reject"
+                }
               ]
             },
             {
@@ -390,6 +458,40 @@
               "requirement": "A KeyPackage binds exclusively to the current accepted authorization Event and its runtime signing key; stale, cross-principal, revoked, superseded or key-mismatched bindings fail closed before anything is encrypted to them.",
               "vectors": [
                 "ak.vector.agent.mls_keypackage_authorization.v1"
+              ],
+              "required_case_refs": [
+                {
+                  "fixture_ref": "fixtures/agent-mls-keypackage-authorization-fixture.json",
+                  "case_id": "current_agent_authorization_is_accepted"
+                },
+                {
+                  "fixture_ref": "fixtures/agent-mls-keypackage-authorization-fixture.json",
+                  "case_id": "delegated_device_binding_is_rejected"
+                },
+                {
+                  "fixture_ref": "fixtures/agent-mls-keypackage-authorization-fixture.json",
+                  "case_id": "stale_authorize_event_is_rejected"
+                },
+                {
+                  "fixture_ref": "fixtures/agent-mls-keypackage-authorization-fixture.json",
+                  "case_id": "cross_principal_binding_is_rejected"
+                },
+                {
+                  "fixture_ref": "fixtures/agent-mls-keypackage-authorization-fixture.json",
+                  "case_id": "revoked_authorization_is_rejected"
+                },
+                {
+                  "fixture_ref": "fixtures/agent-mls-keypackage-authorization-fixture.json",
+                  "case_id": "expired_authorization_is_rejected"
+                },
+                {
+                  "fixture_ref": "fixtures/agent-mls-keypackage-authorization-fixture.json",
+                  "case_id": "leaf_signature_key_mismatch_is_rejected"
+                },
+                {
+                  "fixture_ref": "fixtures/agent-mls-keypackage-authorization-fixture.json",
+                  "case_id": "invalid_leaf_signature_is_rejected"
+                }
               ]
             },
             {
@@ -397,6 +499,24 @@
               "requirement": "An AAD, ciphertext-digest or encryption_context mismatch fails closed with no partial write, no plaintext downgrade and no retry under different secrets.",
               "vectors": [
                 "ak.vector.encoding.encrypted_envelope_digest.v1"
+              ],
+              "required_case_refs": [
+                {
+                  "fixture_ref": "fixtures/encoding-fixture.json",
+                  "case_id": "aad_transcript_mismatch_fails_closed"
+                },
+                {
+                  "fixture_ref": "fixtures/encoding-fixture.json",
+                  "case_id": "ciphertext_digest_mismatch_fails_closed"
+                },
+                {
+                  "fixture_ref": "fixtures/encoding-fixture.json",
+                  "case_id": "encryption_context_disagrees_with_the_verified_group_result"
+                },
+                {
+                  "fixture_ref": "fixtures/encoding-fixture.json",
+                  "case_id": "exact_retry_replays_the_same_bytes_and_never_re_encrypts"
+                }
               ]
             }
           ]
@@ -432,6 +552,20 @@
               "requirement": "Joining a decrypting conference is refused and no media key is published when Realm policy has not authorized media-service decryption or the SFU service DID is absent from plaintext_visible_services.",
               "vectors": [
                 "ak.vector.webrtc.media_plaintext_downgrade.v1"
+              ],
+              "required_case_refs": [
+                {
+                  "fixture_ref": "fixtures/webrtc-media-plaintext-fixture.json",
+                  "case_id": "realm_policy_has_not_authorized_media_decryption"
+                },
+                {
+                  "fixture_ref": "fixtures/webrtc-media-plaintext-fixture.json",
+                  "case_id": "sfu_service_did_absent_from_plaintext_visible_services"
+                },
+                {
+                  "fixture_ref": "fixtures/webrtc-media-plaintext-fixture.json",
+                  "case_id": "no_media_key_is_published_on_any_of_the_three_refusals"
+                }
               ]
             }
           ]
@@ -534,6 +668,16 @@
               "requirement": "An object declaring an unrecognised critical extension is refused with unsupported_feature, decided from the criticality declaration rather than from whether the extension body parses, and before any member is consumed, stored, projected or forwarded.",
               "vectors": [
                 "ak.vector.sdk.unknown_critical_feature_fail_closed.v1"
+              ],
+              "required_case_refs": [
+                {
+                  "fixture_ref": "fixtures/sdk-precheck-fixture.json",
+                  "case_id": "an_unknown_critical_extension_fails_closed"
+                },
+                {
+                  "fixture_ref": "fixtures/sdk-precheck-fixture.json",
+                  "case_id": "the_fail_closed_decision_precedes_consumption_and_storage"
+                }
               ]
             },
             {
@@ -541,6 +685,16 @@
               "requirement": "An object whose declared requirements name a capability this build does not provide is refused with unsupported_feature, and a build that provides the capability admits the identical object.",
               "vectors": [
                 "ak.vector.sdk.requirements_mismatch_fail_closed.v1"
+              ],
+              "required_case_refs": [
+                {
+                  "fixture_ref": "fixtures/sdk-precheck-fixture.json",
+                  "case_id": "unmet_requirements_fail_closed"
+                },
+                {
+                  "fixture_ref": "fixtures/sdk-precheck-fixture.json",
+                  "case_id": "the_fail_closed_decision_precedes_consumption_and_storage"
+                }
               ]
             },
             {
@@ -574,6 +728,16 @@
               "requirement": "Material registered in test-material-registry.json is refused on every formal verification, authorization and trust-admission path even when the signature verifies, because its private key ships with the specification.",
               "vectors": [
                 "ak.vector.identity.test_signing_material_rejected.v1"
+              ],
+              "required_case_refs": [
+                {
+                  "fixture_ref": "fixtures/test-material-rejection-fixture.json",
+                  "case_id": "a_published_fixture_key_is_refused_although_its_signature_verifies"
+                },
+                {
+                  "fixture_ref": "fixtures/test-material-rejection-fixture.json",
+                  "case_id": "the_rfc8032_test_key_is_refused_on_the_possession_path"
+                }
               ]
             },
             {
@@ -581,6 +745,20 @@
               "requirement": "The fingerprint is taken over algorithm-defined public key bytes, so the same key under a different kid, DID, JWK member order or transport encoding still matches.",
               "vectors": [
                 "ak.vector.identity.test_signing_material_rejected.v1"
+              ],
+              "required_case_refs": [
+                {
+                  "fixture_ref": "fixtures/test-material-rejection-fixture.json",
+                  "case_id": "the_same_key_under_a_different_kid_and_did_is_refused"
+                },
+                {
+                  "fixture_ref": "fixtures/test-material-rejection-fixture.json",
+                  "case_id": "the_same_key_re_encoded_is_refused"
+                },
+                {
+                  "fixture_ref": "fixtures/test-material-rejection-fixture.json",
+                  "case_id": "published_p256_and_mldsa_material_are_refused_under_their_own_encodings"
+                }
               ]
             },
             {
@@ -595,6 +773,32 @@
               "requirement": "The did, key_id and trust_domain rules are matched separately and by their own typed-identifier semantics; matching one does not imply the others, and the words test, fixture, did:key and example reserve nothing on their own.",
               "vectors": [
                 "ak.vector.identity.reserved_test_identifier_rejected.v1"
+              ],
+              "required_case_refs": [
+                {
+                  "fixture_ref": "fixtures/test-material-rejection-fixture.json",
+                  "case_id": "a_reserved_did_scid_is_refused_by_the_did_rule_alone"
+                },
+                {
+                  "fixture_ref": "fixtures/test-material-rejection-fixture.json",
+                  "case_id": "a_reserved_key_id_under_a_deployment_did_is_refused_by_the_key_id_rule_alone"
+                },
+                {
+                  "fixture_ref": "fixtures/test-material-rejection-fixture.json",
+                  "case_id": "a_reserved_trust_domain_is_refused_at_trust_admission"
+                },
+                {
+                  "fixture_ref": "fixtures/test-material-rejection-fixture.json",
+                  "case_id": "a_deployment_domain_that_merely_shares_a_tail_is_not_refused"
+                },
+                {
+                  "fixture_ref": "fixtures/test-material-rejection-fixture.json",
+                  "case_id": "the_word_fixture_alone_reserves_nothing"
+                },
+                {
+                  "fixture_ref": "fixtures/test-material-rejection-fixture.json",
+                  "case_id": "matching_one_rule_does_not_imply_the_others"
+                }
               ]
             },
             {
@@ -749,6 +953,16 @@
               "requirement": "The client waits max(server_hint_delay, jitter(local_backoff_delay)) rather than taking either input alone.",
               "vectors": [
                 "ak.vector.sdk.retry_after.v1"
+              ],
+              "required_case_refs": [
+                {
+                  "fixture_ref": "fixtures/protocol-edge-cases-fixture.json",
+                  "case_id": "retry_after_local_backoff_branch_wins"
+                },
+                {
+                  "fixture_ref": "fixtures/protocol-edge-cases-fixture.json",
+                  "case_id": "retry_after_server_hint_branch_wins"
+                }
               ]
             },
             {
@@ -756,6 +970,20 @@
               "requirement": "A zero, short or already elapsed Retry-After hint does not shorten the local backoff ladder.",
               "vectors": [
                 "ak.vector.sdk.retry_after.v1"
+              ],
+              "required_case_refs": [
+                {
+                  "fixture_ref": "fixtures/protocol-edge-cases-fixture.json",
+                  "case_id": "retry_after_local_backoff_branch_wins"
+                },
+                {
+                  "fixture_ref": "fixtures/protocol-edge-cases-fixture.json",
+                  "case_id": "retry_after_zero_hint_does_not_accelerate"
+                },
+                {
+                  "fixture_ref": "fixtures/protocol-edge-cases-fixture.json",
+                  "case_id": "retry_after_elapsed_date_does_not_accelerate"
+                }
               ]
             },
             {
@@ -892,6 +1120,56 @@
               "requirement": "protocol_version is inspected before typed describe or ping construction, route-cache writes, capability intersection and business traffic.",
               "vectors": [
                 "ak.vector.service.protocol_version_bootstrap.v1"
+              ],
+              "required_case_refs": [
+                {
+                  "fixture_ref": "fixtures/service-protocol-version-bootstrap-fixture.json",
+                  "case_id": "describe_supported"
+                },
+                {
+                  "fixture_ref": "fixtures/service-protocol-version-bootstrap-fixture.json",
+                  "case_id": "applet_ping_supported"
+                },
+                {
+                  "fixture_ref": "fixtures/service-protocol-version-bootstrap-fixture.json",
+                  "case_id": "describe_unsupported"
+                },
+                {
+                  "fixture_ref": "fixtures/service-protocol-version-bootstrap-fixture.json",
+                  "case_id": "applet_ping_unsupported"
+                },
+                {
+                  "fixture_ref": "fixtures/service-protocol-version-bootstrap-fixture.json",
+                  "case_id": "describe_missing"
+                },
+                {
+                  "fixture_ref": "fixtures/service-protocol-version-bootstrap-fixture.json",
+                  "case_id": "applet_ping_non_string"
+                },
+                {
+                  "fixture_ref": "fixtures/service-protocol-version-bootstrap-fixture.json",
+                  "case_id": "describe_non_canonical"
+                },
+                {
+                  "fixture_ref": "fixtures/service-protocol-version-bootstrap-fixture.json",
+                  "case_id": "applet_ping_non_canonical"
+                },
+                {
+                  "fixture_ref": "fixtures/service-protocol-version-bootstrap-fixture.json",
+                  "case_id": "identity_service_describe_supported"
+                },
+                {
+                  "fixture_ref": "fixtures/service-protocol-version-bootstrap-fixture.json",
+                  "case_id": "identity_service_describe_unsupported"
+                },
+                {
+                  "fixture_ref": "fixtures/service-protocol-version-bootstrap-fixture.json",
+                  "case_id": "identity_service_describe_missing"
+                },
+                {
+                  "fixture_ref": "fixtures/service-protocol-version-bootstrap-fixture.json",
+                  "case_id": "identity_service_describe_non_canonical"
+                }
               ]
             },
             {
@@ -899,6 +1177,44 @@
               "requirement": "A well-formed value other than 1.0 returns unsupported_protocol_version while a missing, non-string or non-canonical literal returns schema_violation.",
               "vectors": [
                 "ak.vector.service.protocol_version_bootstrap.v1"
+              ],
+              "required_case_refs": [
+                {
+                  "fixture_ref": "fixtures/service-protocol-version-bootstrap-fixture.json",
+                  "case_id": "describe_unsupported"
+                },
+                {
+                  "fixture_ref": "fixtures/service-protocol-version-bootstrap-fixture.json",
+                  "case_id": "applet_ping_unsupported"
+                },
+                {
+                  "fixture_ref": "fixtures/service-protocol-version-bootstrap-fixture.json",
+                  "case_id": "describe_missing"
+                },
+                {
+                  "fixture_ref": "fixtures/service-protocol-version-bootstrap-fixture.json",
+                  "case_id": "applet_ping_non_string"
+                },
+                {
+                  "fixture_ref": "fixtures/service-protocol-version-bootstrap-fixture.json",
+                  "case_id": "describe_non_canonical"
+                },
+                {
+                  "fixture_ref": "fixtures/service-protocol-version-bootstrap-fixture.json",
+                  "case_id": "applet_ping_non_canonical"
+                },
+                {
+                  "fixture_ref": "fixtures/service-protocol-version-bootstrap-fixture.json",
+                  "case_id": "identity_service_describe_unsupported"
+                },
+                {
+                  "fixture_ref": "fixtures/service-protocol-version-bootstrap-fixture.json",
+                  "case_id": "identity_service_describe_missing"
+                },
+                {
+                  "fixture_ref": "fixtures/service-protocol-version-bootstrap-fixture.json",
+                  "case_id": "identity_service_describe_non_canonical"
+                }
               ]
             }
           ]
@@ -909,180 +1225,9 @@
     "vector_evidence_carrier_ratchet_rule": "Each entry below names a (clause, vector) pair whose vector is registered and active but is carried by no fixture, so the SDK claiming that clause has no fixture case to run. The list is shrink-only: a pair MUST be removed in the change that gives the vector a fixture carrier, and the gate fails both on an unlisted uncarried pair and on a listed pair that now has a carrier. It is a ratchet, not an exemption: nothing may be added without moving the owner report.",
     "vector_evidence_carrier_ratchet": [],
     "contract_digest_computation": "contract_digest is sha256 over the RFC 8785 JCS bytes of this sdk_conformance_contract object exactly as it appears in artifacts/profiles/conformance-profiles.json, rendered as \"sha256:\" followed by lowercase hex. The digest therefore covers this rule, the clause set, every clause's vector_evidence and the ratchet: any edit to the contract changes it, and a claim that binds a stale digest MUST be rejected. Nothing outside sdk_conformance_contract is covered.",
-    "decision_point_case_rule": "A decision point counts as reached only when some fixture carries a case that names it. A case is any object inside a fixture under artifacts/fixtures/ that carries covers_decision_points: a non-empty list of \"<clause_id>/<decision_point_id>\" strings. Such an object MUST also carry a non-empty name and a non-empty expected result, and MUST live in a fixture that carries one of that decision point's own vectors, so that dropping the id into an unrelated fixture does not count. The carrier MUST declare a runner, and a runner.kind of named_suite MUST declare a tool-neutral ak.suite.*.v1 entrypoint, so an unloadable suite is not a pass. The gate proves reachability of clause -> decision point -> active vector -> carrier -> case -> runner and nothing more: it does not read the requirement sentence or the case body for meaning, so a case whose expected result asserts the wrong thing still passes here. Judging whether the case actually exercises the obligation is review work at registration time, and a green gate MUST NOT be reported as evidence that it does.",
+    "decision_point_case_rule": "A decision point counts as reached only when some fixture carries a case that names it. A case is any object inside a fixture under artifacts/fixtures/ that carries covers_decision_points: a non-empty list of \"<clause_id>/<decision_point_id>\" strings. Such an object MUST also carry a non-empty name and a non-empty expected result, and MUST live in a fixture that carries one of that decision point's own vectors, so that dropping the id into an unrelated fixture does not count. The carrier MUST declare a runner, and a runner.kind of named_suite MUST declare a tool-neutral ak.suite.*.v1 entrypoint, so an unloadable suite is not a pass. A decision point that needs several cases together MUST carry required_case_refs: a non-empty closed list of exact {fixture_ref, case_id} objects, where fixture_ref is an artifacts-relative fixtures/*.json path and case_id equals the unique name of a case in that fixture. Every required case MUST exist, name that same decision point in covers_decision_points, carry a non-empty expected result, and be executed by the fixture's registered runner; every listed ref is conjunctively required. The gate proves reachability and completeness of the declared evidence set for clause -> decision point -> active vector -> carrier -> case -> runner and nothing more: it does not read the requirement sentence or the case body for meaning, so a case whose expected result asserts the wrong thing still passes here. Judging whether the case actually exercises the obligation is review work at registration time, and a green gate MUST NOT be reported as evidence that it does.",
     "decision_point_case_ratchet_rule": "Each entry below names a (clause, decision point) pair the contract declares but no fixture case reaches, so an SDK claiming that clause has nothing to run for that point. The list is shrink-only: a pair MUST be removed in the change that gives the point a case, and the gate fails both on an unreached pair that is not listed and on a listed pair that now has a case. A row whose clause or decision point the contract no longer declares also fails, so renaming a point cannot silently orphan its row. It is a ratchet, not an exemption: nothing may be added without moving the owner report.",
-    "decision_point_case_ratchet": [
-      {
-        "clause_id": "AK-SDK-001",
-        "decision_point_id": "envelope_schema_failure_refused",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
-      },
-      {
-        "clause_id": "AK-SDK-001",
-        "decision_point_id": "payload_class_failure_refused",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
-      },
-      {
-        "clause_id": "AK-SDK-001",
-        "decision_point_id": "no_effect_reaches_the_reducer",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
-      },
-      {
-        "clause_id": "AK-SDK-002",
-        "decision_point_id": "forbidden_top_level_members_refused",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
-      },
-      {
-        "clause_id": "AK-SDK-002",
-        "decision_point_id": "authorization_members_cannot_be_omitted_or_defaulted",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
-      },
-      {
-        "clause_id": "AK-SDK-006",
-        "decision_point_id": "duplicate_key_is_refused_not_last_wins",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
-      },
-      {
-        "clause_id": "AK-SDK-006",
-        "decision_point_id": "malformed_json_is_refused_without_repair",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
-      },
-      {
-        "clause_id": "AK-SDK-006",
-        "decision_point_id": "non_nfc_input_is_refused_not_silently_normalized",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
-      },
-      {
-        "clause_id": "AK-SDK-006",
-        "decision_point_id": "noncanonical_numbers_are_refused",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
-      },
-      {
-        "clause_id": "AK-SDK-006",
-        "decision_point_id": "invisible_character_injection_is_refused",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
-      },
-      {
-        "clause_id": "AK-SDK-007",
-        "decision_point_id": "malformed_hlc_is_refused_without_normalization",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
-      },
-      {
-        "clause_id": "AK-SDK-009",
-        "decision_point_id": "governance_binding_mismatch_stops_the_commit",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
-      },
-      {
-        "clause_id": "AK-SDK-009",
-        "decision_point_id": "keypackage_did_authorization_precedes_encryption",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
-      },
-      {
-        "clause_id": "AK-SDK-009",
-        "decision_point_id": "envelope_context_mismatch_fails_closed_without_partial_write",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
-      },
-      {
-        "clause_id": "AK-SDK-010",
-        "decision_point_id": "search_and_bridge_surfaces_receive_no_private_plaintext",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
-      },
-      {
-        "clause_id": "AK-SDK-010",
-        "decision_point_id": "no_media_key_is_published_to_an_unauthorized_service",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
-      },
-      {
-        "clause_id": "AK-SDK-012",
-        "decision_point_id": "history_before_the_join_floor_is_not_decrypted",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
-      },
-      {
-        "clause_id": "AK-SDK-012",
-        "decision_point_id": "an_unauthorized_key_source_is_refused_before_decryption",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
-      },
-      {
-        "clause_id": "AK-SDK-013",
-        "decision_point_id": "unknown_critical_extension_is_refused_as_a_whole",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
-      },
-      {
-        "clause_id": "AK-SDK-013",
-        "decision_point_id": "unmet_requirement_is_a_distinct_refusal",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
-      },
-      {
-        "clause_id": "AK-SDK-013",
-        "decision_point_id": "unknown_non_critical_extension_is_still_admitted",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
-      },
-      {
-        "clause_id": "AK-SDK-014",
-        "decision_point_id": "a_valid_signature_over_published_material_does_not_admit_it",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
-      },
-      {
-        "clause_id": "AK-SDK-014",
-        "decision_point_id": "the_fingerprint_survives_renaming_and_re_encoding",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
-      },
-      {
-        "clause_id": "AK-SDK-014",
-        "decision_point_id": "the_refusal_leaves_no_state_and_no_weaker_path",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
-      },
-      {
-        "clause_id": "AK-SDK-014",
-        "decision_point_id": "the_three_reserved_identifier_rules_are_independent",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
-      },
-      {
-        "clause_id": "AK-SDK-014",
-        "decision_point_id": "unlisted_material_is_still_verified_normally",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
-      },
-      {
-        "clause_id": "AK-SDK-016",
-        "decision_point_id": "an_unknown_open_registry_value_does_not_fail_the_object",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
-      },
-      {
-        "clause_id": "AK-SDK-020",
-        "decision_point_id": "the_delay_is_the_max_of_the_hint_and_jittered_local_backoff",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
-      },
-      {
-        "clause_id": "AK-SDK-020",
-        "decision_point_id": "a_zero_or_elapsed_hint_never_accelerates_the_local_ladder",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
-      },
-      {
-        "clause_id": "AK-SDK-020",
-        "decision_point_id": "a_long_hint_is_never_clamped_into_an_earlier_retry",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
-      },
-      {
-        "clause_id": "AK-SDK-021",
-        "decision_point_id": "pagination_continues_solely_from_has_more",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
-      },
-      {
-        "clause_id": "AK-SDK-022",
-        "decision_point_id": "the_canonical_confusable_check_is_callable_from_the_public_api",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
-      },
-      {
-        "clause_id": "AK-SDK-024",
-        "decision_point_id": "the_bootstrap_discriminator_is_consumed_before_any_typed_claim",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
-      },
-      {
-        "clause_id": "AK-SDK-024",
-        "decision_point_id": "unsupported_and_malformed_discriminators_stay_distinct",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
-      }
-    ],
+    "decision_point_case_ratchet": [],
     "vector_evidence_carrier_ratchet_ceiling_rule": "The frozen set of (clause, vector) pairs vector_evidence_carrier_ratchet was ever allowed to hold. Every ratchet row MUST appear here, so removing a row is the only edit the gate accepts and a newly uncarried pair cannot be made to disappear by writing one more row with a plausible owner_report. It is empty because report 1955 closed the whole carrier gap: no clause may accept vector_result on a vector nothing carries. Widening it is possible and deliberately expensive -- the ceiling lives inside sdk_conformance_contract, so editing it moves contract_digest and invalidates every signed conformance claim bound to the old one.",
     "vector_evidence_carrier_ratchet_ceiling": [],
     "decision_point_case_ratchet_ceiling_rule": "The frozen set of (clause, decision point) pairs decision_point_case_ratchet was ever allowed to hold, recorded when report 1955 introduced the case-level gate and found 34 declared decision points that no fixture case reached. Every ratchet row MUST appear here, so removing a row is the only edit the gate accepts and a newly unreached decision point cannot be made to disappear by writing one more row with a plausible owner_report. Widening it is possible and deliberately expensive -- the ceiling lives inside sdk_conformance_contract, so editing it moves contract_digest and invalidates every signed conformance claim bound to the old one.",

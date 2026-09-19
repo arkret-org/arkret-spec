@@ -18,7 +18,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-mls-keypackage-authorization-fixture.json",
-      "sha256": "de279460455288684ae34faaee06ed5988f31b6c74aff6ee3f8c4030fe70450b"
+      "sha256": "0f30052809129bda8144e3351be387beffaa93399b9c6bf2ed2d337ea7055217"
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-participation-fixture.json",
@@ -134,7 +134,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/encoding-fixture.json",
-      "sha256": "7afa944e47aa83f3f615cc09e8017707787eedc016726cca773905d2a2aa6b25"
+      "sha256": "fb6e28c6e424af2b25ca4b6c4a015f456f2aae8ad3abfd2abee5c775c7ebb8dc"
     },
     {
       "path": "spec/v1/artifacts/fixtures/error-code-registry-coverage-fixture.json",
@@ -162,7 +162,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
-      "sha256": "0c0b0afda444f5355f843b1d0057a0a01bb94800541c6a03e6c7d0e921505074"
+      "sha256": "2af3ea7100c67701998c7e182f40856bd5f055ad590275237b1ddb9ca5d851a3"
     },
     {
       "path": "spec/v1/artifacts/fixtures/franking-proof-transcript-fixture.json",
@@ -222,7 +222,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/media-binding-fixture.json",
-      "sha256": "67d664c71055a8ae57c2756e5668803bb147bf8a1b48e2af10ccc4e52f2e82df"
+      "sha256": "f24c422763f95a5e7e0b32408e22ef07b32e4e524c61a9d810d22bc0419470f9"
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-creator-bootstrap-recovery-fixture.json",
@@ -254,7 +254,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
-      "sha256": "2584d1abce84c6523e39ffdd0b27768085eed73636373944c71432004c26a357"
+      "sha256": "5b9c95a8ac2f13fddd9c746dae33fb8a1ea0c69c9afe0268e5ec4987c56724cb"
     },
     {
       "path": "spec/v1/artifacts/fixtures/private-view-inbox-account-data-fixture.json",
@@ -270,7 +270,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
-      "sha256": "6312a3eaa571b80b6fcf310965b9abb662a6ca5746e74d7e2ece5286d1e0766c"
+      "sha256": "aae5bb6c91d59835a3d85fc7a18e6b79c50ffbfb4ec1e437e97f9f566dd8652d"
     },
     {
       "path": "spec/v1/artifacts/fixtures/push-notify-outcome-fixture.json",
@@ -306,7 +306,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",
-      "sha256": "e24fdcf18df5a657b029365061add3dcef49e359e57e36c087fd77ef027645d8"
+      "sha256": "1528f0585490b00d093f91b441abd318e32baabc4e18026286e125b8a4362ab9"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-event-type-axes-fixture.json",
@@ -314,7 +314,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-precheck-fixture.json",
-      "sha256": "2b510d21b7880f221d176be1df5c33420c76bcfd31dbd2ffa357042a51b85f61"
+      "sha256": "77f81d66501ebf751dbabea228f408406d2727434a36976535842af63b3cec40"
     },
     {
       "path": "spec/v1/artifacts/fixtures/security-transaction-resilience-fixture.json",
@@ -322,7 +322,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/service-protocol-version-bootstrap-fixture.json",
-      "sha256": "8ce2afb43a0041e87d023e830aa50ef9d48150d982ba461d75a003592ce383cc"
+      "sha256": "7b3177fbaac9e776af21dd416dc7f7ef64083251d198a4f18edcfe2765a54ec3"
     },
     {
       "path": "spec/v1/artifacts/fixtures/session-grant-issuance-fixture.json",
@@ -346,7 +346,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/test-material-rejection-fixture.json",
-      "sha256": "c903385c5d7a0ebe6117169c4a1c0f8a363770601fa80a18f4394a60dc62453a"
+      "sha256": "d282567215e456c6f87f1c4da3059bfdb3335112ba13697c0bbca73dbf980b52"
     },
     {
       "path": "spec/v1/artifacts/fixtures/view-write-contract-fixture.json",
@@ -354,11 +354,11 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/visibility-policy-fixture.json",
-      "sha256": "1a6962281c82459801b3baab9b2e64ed04f3fb8bb8120f1a342138c81b1dd39a"
+      "sha256": "7b54932be3a4ffe1d94254ffd64d7b03dfd3387644b1c425b9a64990acf4800b"
     },
     {
       "path": "spec/v1/artifacts/fixtures/webrtc-media-plaintext-fixture.json",
-      "sha256": "eddfb0ce11fe46f8c8d6d6480630c54b22ac0ca4bf398b74e569f1c560779432"
+      "sha256": "7b2652ec09be730deda162c656e972e6e65cd0f01db1a1a384d9092b334bfb63"
     },
     {
       "path": "spec/v1/artifacts/fixtures/websocket-binding-fixture.json",
