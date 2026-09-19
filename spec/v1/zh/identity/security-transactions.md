@@ -134,7 +134,7 @@ prepared plan binding 和 accepted-step ledger 的第二个公开完成入口。
 
 ## 2. RecoveryTransaction
 
-RecoveryTransaction 保留为账号恢复的单一原子事务，但不再创建或携带 RealmCommit。replacement device 只签两条 producer Event 与 `RecoveryReceipt`；当前治理 Station 独占 PCR stream 的 RealmCommit 签发权。
+RecoveryTransaction 保留为账号恢复的单一原子事务，但客户端输入不再创建或携带 RealmCommit。replacement device 只签两条 producer Event 与 `RecoveryReceipt`；当前治理 Station 独占 PCR stream 的 RealmCommit 签发权，并在 terminal admission 内签发两笔连续 Commit。
 
 ### 2.1 create 同时完成专用 prepare，但不产生恢复效果
 

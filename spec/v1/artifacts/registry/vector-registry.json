@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.10",
+  "version": "2026-09-19.11",
   "source_of_truth": true,
-  "generated_at": "2026-09-19T21:41:41+08:00",
+  "generated_at": "2026-09-19T22:53:39+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -4412,7 +4412,7 @@
       "applies_to_fixtures": [
         "security-transaction-resilience-fixture.json"
       ],
-      "description": "RecoveryTransaction create freezes the exact unsigned first-generation recovery unit without any recovery effect, and the single client-attested commit_recovery_unit step accepts the closed RecoveryTerminalCommit - whose wire content is only the replacement-device-signed recovery_receipt, with no RealmCommit, authority signature or precomputed commit id - so that both recovery Events, their two RealmCommits at consecutive positions of the same PCR Realm stream, the generation advance, the replacement device projection, the consumed session and the completed terminal result all become observable in one atomic commit.",
+      "description": "RecoveryTransaction create freezes two exact replacement-device-signed producer Events, the current PCR-stream predecessor and their distinct ordered [reanchor_digest, authorize_digest] values without any recovery effect. The single client-attested commit_recovery_unit step carries only the replacement-device-signed recovery_receipt, with no RealmCommit, authority signature or precomputed commit id. The governance Station alone issues the two RealmCommits at consecutive positions of the same PCR stream, so both Events, both Commits, the generation advance, the replacement device projection, the consumed session and the completed terminal result become observable in one atomic commit.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/security-transaction-resilience-fixture.json",
         "spec/v1/zh/identity/security-transactions.md"

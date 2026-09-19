@@ -130,7 +130,7 @@ see_also:
 | AuthorizationLease | 授权租约 | 仅服务显式有限期延迟执行的授权约束，绑定已确认依据、主体、设备、scope、action、risk tier 与有效窗；不能创建 capability。普通聊天不要求租约或周期更新。 |
 | IngressReceipt | 入口签收回执 | 接收方对某个 exact Event 的签收记录；不证明 reducer acceptance、投影可见性或 RealmCommit finality。 |
 | SecurityTransaction | 安全事务资源 | 可查询、可幂等续跑的闭合跨服务安全过程；v1 仅允许 RecoveryTransaction 与 SecurityRotationTransaction，不是通用 Saga/Plan DSL。 |
-| RecoveryTransaction | 恢复事务 | 固定绑定 recovery session、replacement device、authorize/reanchor Event、首个新 generation RealmCommit 与 terminal receipt 的 SecurityTransaction；唯一 client-attested step 是 `commit_recovery_unit`。 |
+| RecoveryTransaction | 恢复事务 | 固定绑定 recovery session、replacement device、按 `[reanchor, authorize]` 排列的两条 producer Event、当前 PCR stream predecessor、预期连续 authority-commit 边界与 terminal receipt 的 SecurityTransaction；唯一 client-attested step 是 `commit_recovery_unit`。replacement device 只签 Event 与 receipt，RealmCommit 仅由当前治理 Station 在原子终结时签发。 |
 | SecurityRotationTransaction | 安全轮换事务 | 固定绑定 revoke Event、新 secret commitment、backup series/envelope、active-series Event、erase confirmation 与 local commit 的 SecurityTransaction。 |
 | Rejected | 已拒绝 | 当前治理 Station 在格式、签名、schema、授权、stream head 或领域不变量校验上拒绝 Event；拒绝不写入共享 stream。 |
 | RealmCommit | 权威提交记录 | 当前治理 Station 对单个 producer Event 签发的接纳记录，包含 `commit_id`、authority generation、stream ref/position、同 stream `previous_commit_ref`、Event ID/digest、接纳时间与 Station 签名。 |

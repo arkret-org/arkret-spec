@@ -20,22 +20,36 @@ SCHEMA = (
     / "schemas"
     / "security-transaction.schema.json"
 )
+FIXTURE = (
+    ROOT
+    / "spec"
+    / "v1"
+    / "artifacts"
+    / "fixtures"
+    / "security-transaction-resilience-fixture.json"
+)
 
 
 class SecurityTransactionSchemaClosureLintTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.schema = core.parse_json_text(SCHEMA.read_text(encoding="utf-8"))
+        cls.fixture = core.parse_json_text(FIXTURE.read_text(encoding="utf-8"))
 
-    def _lint(self, mutation=None) -> list[str]:
+    def _lint(self, mutation=None, fixture_mutation=None) -> list[str]:
         schema = copy.deepcopy(self.schema)
+        fixture = copy.deepcopy(self.fixture)
         if mutation is not None:
             mutation(schema)
+        if fixture_mutation is not None:
+            fixture_mutation(fixture)
         original_load_json = schemas.load_json
 
         def load_json_with_mutation(lint, path):
             if path.resolve() == SCHEMA.resolve():
                 return schema
+            if path.resolve() == FIXTURE.resolve():
+                return fixture
             return original_load_json(lint, path)
 
         schemas.load_json = load_json_with_mutation
@@ -146,6 +160,72 @@ class SecurityTransactionSchemaClosureLintTest(unittest.TestCase):
 
         errors = self._lint(mutate)
         self.assertTrue(any("define only request and request_digest" in error for error in errors), errors)
+
+    def test_recovery_commit_intent_minimum_cardinality_drift_fails(self) -> None:
+        def mutate(schema) -> None:
+            schema["$defs"]["recovery_commit_intent"]["properties"]["unit_event_digests"]["minItems"] = 1
+
+        errors = self._lint(mutate)
+        self.assertTrue(any("minItems must be 2" in error for error in errors), errors)
+
+    def test_recovery_commit_intent_maximum_cardinality_drift_fails(self) -> None:
+        def mutate(schema) -> None:
+            schema["$defs"]["recovery_commit_intent"]["properties"]["unit_event_digests"]["maxItems"] = 3
+
+        errors = self._lint(mutate)
+        self.assertTrue(any("maxItems must be 2" in error for error in errors), errors)
+
+    def test_recovery_commit_intent_duplicate_digest_gate_fails(self) -> None:
+        def mutate(schema) -> None:
+            schema["$defs"]["recovery_commit_intent"]["properties"]["unit_event_digests"]["uniqueItems"] = False
+
+        errors = self._lint(mutate)
+        self.assertTrue(any("must require distinct digests" in error for error in errors), errors)
+
+    def test_recovery_commit_intent_digest_suite_drift_fails(self) -> None:
+        def mutate(schema) -> None:
+            schema["$defs"]["recovery_commit_intent"]["properties"]["unit_event_digests"]["items"]["pattern"] = "^.+$"
+
+        errors = self._lint(mutate)
+        self.assertTrue(any("must contain only SHA-256 digests" in error for error in errors), errors)
+
+    def test_recovery_commit_intent_order_description_drift_fails(self) -> None:
+        def mutate(schema) -> None:
+            schema["$defs"]["recovery_commit_intent"]["properties"]["unit_event_digests"]["description"] = "Two digests."
+
+        errors = self._lint(mutate)
+        self.assertTrue(any("must declare the canonical order" in error for error in errors), errors)
+
+    def test_recovery_terminal_commit_extra_realm_commit_material_fails(self) -> None:
+        def mutate(schema) -> None:
+            terminal = schema["$defs"]["recovery_terminal_commit"]
+            terminal["properties"]["realm_commit_id"] = {"$ref": "#/$defs/realm_commit_id"}
+
+        errors = self._lint(mutate)
+        self.assertTrue(any("must define only recovery_receipt" in error for error in errors), errors)
+
+    def test_missing_recovery_commit_intent_fixture_mutation_fails(self) -> None:
+        def mutate(fixture) -> None:
+            fixture["schema_validation_cases"] = [
+                case
+                for case in fixture["schema_validation_cases"]
+                if case["name"] != "recovery_commit_intent_rejects_one_digest"
+            ]
+
+        errors = self._lint(fixture_mutation=mutate)
+        self.assertTrue(any("mutation cases are incomplete" in error for error in errors), errors)
+
+    def test_recovery_digest_order_fixture_drift_fails(self) -> None:
+        def mutate(fixture) -> None:
+            case = next(
+                row
+                for row in fixture["recovery_terminal_commit_cases"]
+                if row["name"] == "swapped_event_digest_order_differs_from_the_frozen_plan"
+            )
+            case["submitted_order"] = case["frozen_order"]
+
+        errors = self._lint(fixture_mutation=mutate)
+        self.assertTrue(any("must reverse the frozen canonical order" in error for error in errors), errors)
 
     def test_non_plan_reference_does_not_hide_orphan_prepared_material(self) -> None:
         def mutate(schema) -> None:

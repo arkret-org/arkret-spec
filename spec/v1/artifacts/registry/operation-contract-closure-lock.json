@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-19.2",
-  "generated_at": "2026-09-19T19:26:03+08:00",
+  "version": "2026-09-19.3",
+  "generated_at": "2026-09-19T23:03:30+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -125,7 +125,7 @@
     },
     {
       "operation_id": "ak.gate.account.command.finalize_device_pairing.v1",
-      "sha256": "sha256:2bd09e67bb3be104531e9c9837f0d62b939b85ed6365d760a46a6538910c9ad7"
+      "sha256": "sha256:31e7deff4ff63346ac0b8dd1ea2a8da87b72a402150562a0d0fbff54e9a8f893"
     },
     {
       "operation_id": "ak.gate.account.command.introspect_session_grant.v1",
@@ -165,7 +165,7 @@
     },
     {
       "operation_id": "ak.gate.account.command.pair_device.v1",
-      "sha256": "sha256:16fcfbbcb701ed1a0fd3279e97ba2db40f96533fa24b365bd2288e53c6c74760"
+      "sha256": "sha256:7a0a015f84eb5eb780f7bc1651db3cc06d74b637a309f80df84cf8a86c96f099"
     },
     {
       "operation_id": "ak.gate.account.command.refresh_session_grant.v1",
@@ -189,7 +189,7 @@
     },
     {
       "operation_id": "ak.gate.account.read.claim_device_pairing_code.v1",
-      "sha256": "sha256:82f4ddfbf20a12152010fb11ffe0c73830cfdcb1e66538a52adbe6749fcdc61a"
+      "sha256": "sha256:2377f1c83de9cb700fe22a7fa7c30536a6add6c59e8e3621ec1475f87d957afb"
     },
     {
       "operation_id": "ak.gate.account.read.onboarding.v1",
@@ -209,15 +209,15 @@
     },
     {
       "operation_id": "ak.open.device_pairing.command.stage.v1",
-      "sha256": "sha256:62126c257bf2170fd5372fb9f4ec8c63222489c21aad87e3e3e54f9f7f503048"
+      "sha256": "sha256:9f2fa6217a30bc910e8b6026e4bf691fcd77ecba32634e0c75853b97826ac2ca"
     },
     {
       "operation_id": "ak.open.device_pairing.read.resolve.v1",
-      "sha256": "sha256:f731ed6116be7c5db041bcac88df3a66dc9476acb410238afb77d872f00e1fb4"
+      "sha256": "sha256:048f4cfbe278a01a1cdf384ebed8c5d405d0a2a02a05eb23e150aac47b8d7baa"
     },
     {
       "operation_id": "ak.open.device_pairing.read.status.v1",
-      "sha256": "sha256:7d5d8fb7293e1ea2ec4a6479ea843541b76cb34f7757f3324b79834d77fb5606"
+      "sha256": "sha256:24bb456c411bada44ffec80f96c450e66c60ccefb341e3c1495abfe682fd9352"
     },
     {
       "operation_id": "ak.open.identity.read.resolution.v1",
@@ -861,15 +861,15 @@
     },
     {
       "operation_id": "ak.self.security_transaction.command.continue.v1",
-      "sha256": "sha256:fce1e338fac7489c92645542b4dc7dfdc93b42cb45a35eece0c7dfd351d86e14"
+      "sha256": "sha256:402ad49b5060fb34a6771bcc180d0f27e9f3e537349df3321df646702e4fff2a"
     },
     {
       "operation_id": "ak.self.security_transaction.command.create.v1",
-      "sha256": "sha256:df1b30d4c065bd04a824db419918fd3055651809809798a16e98b46db602f97d"
+      "sha256": "sha256:09ae7269d032f764f16ea0882d1b85c0b2613025a3c5f386ee11092d97f321d7"
     },
     {
       "operation_id": "ak.self.security_transaction.resource.get.v1",
-      "sha256": "sha256:a1beeb28cf112a2a60506f29d14e4d4da98e1b6896bf3bcfb4caea77d5d7a97d"
+      "sha256": "sha256:113feba31ee0855f3bcd66f5fddbccc0e132b0267efe5fef68374e773a48ad85"
     },
     {
       "operation_id": "ak.self.signal.command.send.v1",

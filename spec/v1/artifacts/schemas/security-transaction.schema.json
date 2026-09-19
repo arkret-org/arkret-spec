@@ -411,7 +411,7 @@
             "signature": {
               "type": "string",
               "pattern": "^[A-Za-z0-9_-]+$",
-              "description": "base64url signature over RFC 8785 JCS of the fixed projection {step,output_ref,transaction_id,transaction_request_digest,prepared_plan_digest,attestation_digest}. attestation_digest is not a wire field: the signer and the verifier each recompute it as SHA-256(JCS(artifact)) from the typed artifact carried in this object and fill it into the projection, so artifact is authenticated transitively and is not duplicated in the outer projection. For commit_recovery_unit the artifact is the complete recovery receipt artifact, so this single outer signature covers the first recovery RealmCommit and the recovery receipt together."
+              "description": "base64url signature over RFC 8785 JCS of the fixed projection {step,output_ref,transaction_id,transaction_request_digest,prepared_plan_digest,attestation_digest}. attestation_digest is not a wire field: the signer and the verifier each recompute it as SHA-256(JCS(artifact)) from the typed artifact carried in this object and fill it into the projection, so artifact is authenticated transitively and is not duplicated in the outer projection. For commit_recovery_unit the artifact is the complete recovery receipt; this outer signature authenticates that receipt and never contains, signs or precomputes a RealmCommit."
             }
           },
           "additionalProperties": false
@@ -449,7 +449,7 @@
     },
     "continue_request": {
       "type": "object",
-      "description": "Submits the client-attested terminal step only. The resource-aware validator derives the next step from transaction kind and accepted prefix, accepts recovery index 0 or security-rotation index 4 only when that terminal step is ready, and rejects every coordinator-owned prefix with failed_precondition. Coordinator-owned steps are executed and recovered by the durable worker, never driven by this request. Recovery has no coordinator-owned prefix: commit_recovery_unit is its single step and the only wire position that carries the first recovery RealmCommit into the atomic commit.",
+      "description": "Submits the client-attested terminal step only. The resource-aware validator derives the next step from transaction kind and accepted prefix, accepts recovery index 0 or security-rotation index 4 only when that terminal step is ready, and rejects every coordinator-owned prefix with failed_precondition. Coordinator-owned steps are executed and recovered by the durable worker, never driven by this request. Recovery has no coordinator-owned prefix: commit_recovery_unit is its single step; its client artifact carries only the recovery receipt, while the governance Station issues the two PCR-stream RealmCommits inside the atomic admission.",
       "required": [
         "request_digest",
         "prepared_plan_digest",
@@ -522,7 +522,7 @@
     },
     "recovery_create_request": {
       "type": "object",
-      "description": "Closed typed recovery intent. The caller states what it wants recovered and supplies the two complete signed Events plus the coordinates of the first recovery RealmCommit; it never supplies a finished prepared_plan. The Station derives the snapshots, the exact prepared authority-commit input body and every reserved id inside its own durable prepare transaction, which produces no recovery effect.",
+      "description": "Closed typed recovery intent. The caller states what it wants recovered and supplies the two complete signed Events, the exact current PCR-stream predecessor and their ordered digests; it never supplies a finished prepared_plan or a RealmCommit. The Station derives the snapshots and every reserved id inside its own durable prepare transaction, which produces no recovery effect.",
       "required": [
         "transaction_id",
         "kind",
@@ -605,8 +605,8 @@
         },
         "unit_event_digests": {
           "type": "array",
-          "minItems": 1,
-          "maxItems": 1,
+          "minItems": 2,
+          "maxItems": 2,
           "uniqueItems": true,
           "items": {
             "type": "string",
@@ -619,7 +619,7 @@
     },
     "recovery_terminal_commit": {
       "type": "object",
-      "description": "Sole client-attested terminal artifact of a RecoveryTransaction. It carries the exact replacement-device-signed recovery receipt. The governance Station validates it and the prepared producer Events, then atomically issues the PCR-stream RealmCommit; the client artifact never contains or signs that authority record.",
+      "description": "Sole client-attested terminal artifact of a RecoveryTransaction. It carries the exact replacement-device-signed recovery receipt. The governance Station validates it and the two prepared producer Events, then atomically issues their two consecutive PCR-stream RealmCommits; the client artifact never contains or signs either authority record.",
       "required": [
         "recovery_receipt"
       ],

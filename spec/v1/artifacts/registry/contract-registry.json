@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.27",
+  "version": "2026-09-19.28",
   "source_of_truth": true,
-  "generated_at": "2026-09-19T21:41:41+08:00",
+  "generated_at": "2026-09-19T23:12:27+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -10023,7 +10023,7 @@
         "file": "schemas/security-transaction.schema.json",
         "fragment": "#/$defs/recovery_terminal_commit",
         "status": "active",
-        "description": "Closed terminal artifact of a RecoveryTransaction: the replacement-device-signed first new-generation RealmCommit together with its recovery receipt. It is the sole wire carrier that brings that RealmCommit into the single atomic commit_recovery_unit commit."
+        "description": "Closed terminal artifact of a RecoveryTransaction containing only the replacement-device-signed recovery receipt. It contains no RealmCommit, authority signature or precomputed commit id; the governance Station validates the receipt and both prepared producer Events, then issues their two consecutive PCR-stream RealmCommits inside the atomic commit_recovery_unit admission."
       },
       {
         "schema_id": "ak.schema.registration_did_evidence.v1",
@@ -10368,8 +10368,8 @@
         "description": "Server authentication-success frame carrying effective connection and channel limits."
       }
     ],
-    "version": "2026-09-19.5",
-    "generated_at": "2026-09-19T21:25:01+08:00",
+    "version": "2026-09-19.6",
+    "generated_at": "2026-09-19T23:12:27+08:00",
     "metadata_authority": "contract_registry_section"
   },
   "id_kind_registry": {
@@ -15777,7 +15777,7 @@
         "http": "POST /_arkret/self/security-transactions/{transaction_id}/continue",
         "grpc": "SelfSecurityTransactions/Continue",
         "mq": "self.security_transaction.command.continue",
-        "notes": "Continues only the canonical next transaction step. Recovery's terminal step carries the replacement-device-signed recovery receipt; the current governance Station atomically validates both prepared producer Events, issues their PCR-stream RealmCommit, advances device generation, activates the device and consumes the session. The client never supplies or signs the RealmCommit.",
+        "notes": "Continues only the canonical next transaction step. Recovery's terminal step carries the replacement-device-signed recovery receipt; the current governance Station atomically validates both prepared producer Events, issues their two consecutive PCR-stream RealmCommits, advances device generation, activates the device and consumes the session. The client never supplies or signs either RealmCommit.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "schema_resource",
         "idempotency_mechanism": "protocol_sequence",
@@ -15912,8 +15912,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-19.4",
-    "generated_at": "2026-09-19T21:41:41+08:00",
+    "version": "2026-09-19.5",
+    "generated_at": "2026-09-19T22:53:39+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",

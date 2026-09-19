@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.5",
+  "version": "2026-09-19.6",
   "source_of_truth": false,
-  "generated_at": "2026-09-19T21:25:01+08:00",
+  "generated_at": "2026-09-19T23:12:27+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -1254,7 +1254,7 @@
       "file": "schemas/security-transaction.schema.json",
       "fragment": "#/$defs/recovery_terminal_commit",
       "status": "active",
-      "description": "Closed terminal artifact of a RecoveryTransaction: the replacement-device-signed first new-generation RealmCommit together with its recovery receipt. It is the sole wire carrier that brings that RealmCommit into the single atomic commit_recovery_unit commit."
+      "description": "Closed terminal artifact of a RecoveryTransaction containing only the replacement-device-signed recovery receipt. It contains no RealmCommit, authority signature or precomputed commit id; the governance Station validates the receipt and both prepared producer Events, then issues their two consecutive PCR-stream RealmCommits inside the atomic commit_recovery_unit admission."
     },
     {
       "schema_id": "ak.schema.registration_did_evidence.v1",

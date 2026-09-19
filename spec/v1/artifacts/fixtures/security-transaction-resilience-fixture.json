@@ -1,6 +1,6 @@
 {
   "profile": "ak.vector_group.security_transaction.v1",
-  "version": "2026-09-15.2",
+  "version": "2026-09-19.2",
   "suite": "security_transaction_resilience",
   "runner": {
     "kind": "named_suite",
@@ -58,6 +58,86 @@
           }
         ]
       }
+    },
+    {
+      "name": "recovery_commit_intent_has_two_ordered_distinct_digests",
+      "schema_ref": "schemas/security-transaction.schema.json#/$defs/recovery_commit_intent",
+      "expect_valid": true,
+      "instance": {
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "predecessor_ref": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
+        "unit_event_digests": [
+          "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+        ]
+      }
+    },
+    {
+      "name": "recovery_commit_intent_rejects_zero_digests",
+      "schema_ref": "schemas/security-transaction.schema.json#/$defs/recovery_commit_intent",
+      "expect_valid": false,
+      "first_expected_error": "contains:too short",
+      "instance": {
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "predecessor_ref": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
+        "unit_event_digests": []
+      }
+    },
+    {
+      "name": "recovery_commit_intent_rejects_one_digest",
+      "schema_ref": "schemas/security-transaction.schema.json#/$defs/recovery_commit_intent",
+      "expect_valid": false,
+      "first_expected_error": "contains:too short",
+      "instance": {
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "predecessor_ref": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
+        "unit_event_digests": [
+          "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+        ]
+      }
+    },
+    {
+      "name": "recovery_commit_intent_rejects_three_digests",
+      "schema_ref": "schemas/security-transaction.schema.json#/$defs/recovery_commit_intent",
+      "expect_valid": false,
+      "first_expected_error": "contains:too long",
+      "instance": {
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "predecessor_ref": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
+        "unit_event_digests": [
+          "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+          "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+        ]
+      }
+    },
+    {
+      "name": "recovery_commit_intent_rejects_duplicate_digests",
+      "schema_ref": "schemas/security-transaction.schema.json#/$defs/recovery_commit_intent",
+      "expect_valid": false,
+      "first_expected_error": "contains:non-unique",
+      "instance": {
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "predecessor_ref": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
+        "unit_event_digests": [
+          "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+        ]
+      }
+    },
+    {
+      "name": "recovery_commit_intent_rejects_non_sha256_digest",
+      "schema_ref": "schemas/security-transaction.schema.json#/$defs/recovery_commit_intent",
+      "expect_valid": false,
+      "first_expected_error": "contains:does not match",
+      "instance": {
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "predecessor_ref": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
+        "unit_event_digests": [
+          "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "blake3:2222222222222222222222222222222222222222222222222222222222222222"
+        ]
+      }
     }
   ],
   "fault_matrix": {
@@ -89,9 +169,9 @@
     "coordinator_owned_prefix_is_advanced_only_by_the_durable_worker",
     "continue_accepts_only_a_terminal_ready_client_attestation",
     "device_attestation_readiness_is_derived_from_canonical_next_step",
-    "recovery_create_freezes_one_unsigned_commit_body_with_no_recovery_effect",
+    "recovery_create_freezes_two_signed_events_current_predecessor_and_ordered_digests_with_no_recovery_effect",
     "recovery_authoritative_results_are_all_invisible_before_the_commit_and_all_visible_after",
-    "recovery_reanchor_commit_enters_only_through_commit_recovery_unit",
+    "governance_station_issues_both_recovery_realm_commits_only_inside_commit_recovery_unit",
     "recovery_stored_outcome_is_checked_before_consumed_session_refusal",
     "only_the_atomic_generation_cas_winner_commits_a_reanchor_commit",
     "pointer_switch_precedes_every_old_series_erase",
@@ -185,15 +265,17 @@
   ],
   "recovery_terminal_commit_cases": [
     {
-      "name": "create_freezes_the_only_signable_commit_body",
+      "name": "create_freezes_events_predecessor_and_ordered_digests",
       "phase": "create",
       "expected": "freeze_prepared_plan",
       "frozen_plan_members": [
-        "binding.reanchor_batch_receipt_id",
-        "binding.reanchor_commit_id",
+        "binding.reanchor_event_id",
+        "binding.authorize_event_id",
         "binding.terminal_receipt_id",
+        "reanchor_unit",
         "reanchor_commit_intent",
-        "reanchor_commit_body"
+        "reanchor_commit_intent.predecessor_ref",
+        "reanchor_commit_intent.unit_event_digests"
       ],
       "committed_command_result_unit_event_digests": [
         "reanchor_digest",
@@ -209,8 +291,10 @@
         "request_digest",
         "prepared_plan",
         "prepared_plan_digest",
-        "binding.reanchor_commit_id",
-        "reanchor_commit_body"
+        "binding.reanchor_event_id",
+        "binding.authorize_event_id",
+        "reanchor_unit",
+        "reanchor_commit_intent"
       ]
     },
     {
@@ -220,24 +304,14 @@
       "reason_code": "duplicate_conflict"
     },
     {
-      "name": "signing_slot_fence_is_not_released_by_expiry_or_restart",
-      "phase": "create",
-      "fence_key": [
-        "realm_id",
-        "replacement_signer_slot",
-        "predecessor_ref"
-      ],
-      "expected": "reject_without_side_effect",
-      "expected_reason_code": "commit_signer_slot_fenced"
-    },
-    {
       "name": "terminal_commit_is_one_atomic_commit",
       "phase": "commit_recovery_unit",
       "expected": "accept_terminal_step",
       "invisible_before_commit": [
         "accepted_reanchor_event",
         "accepted_authorize_event",
-        "committed_reanchor_commit",
+        "committed_reanchor_realm_commit",
+        "committed_authorize_realm_commit",
         "advanced_device_generation",
         "active_verified_replacement_device",
         "consumed_recovery_session",
@@ -246,7 +320,8 @@
       "visible_after_commit": [
         "accepted_reanchor_event",
         "accepted_authorize_event",
-        "committed_reanchor_commit",
+        "committed_reanchor_realm_commit",
+        "committed_authorize_realm_commit",
         "advanced_device_generation",
         "active_verified_replacement_device",
         "consumed_recovery_session",
@@ -256,14 +331,45 @@
       ]
     },
     {
-      "name": "commit_body_differs_from_the_frozen_body",
+      "name": "ordered_event_digests_differ_from_the_frozen_intent",
       "phase": "commit_recovery_unit",
       "expected": "reject_without_side_effect",
       "reason_code": "failed_precondition"
     },
     {
-      "name": "receipt_omits_or_rebinds_reanchor_commit_id",
+      "name": "swapped_event_digest_order_differs_from_the_frozen_plan",
       "phase": "commit_recovery_unit",
+      "expected": "reject_without_side_effect",
+      "reason_code": "failed_precondition",
+      "frozen_order": [
+        "reanchor_digest",
+        "authorize_digest"
+      ],
+      "submitted_order": [
+        "authorize_digest",
+        "reanchor_digest"
+      ],
+      "zero_effects": [
+        "accepted_reanchor_event",
+        "accepted_authorize_event",
+        "committed_reanchor_realm_commit",
+        "committed_authorize_realm_commit",
+        "advanced_device_generation",
+        "active_verified_replacement_device",
+        "consumed_recovery_session",
+        "accepted_terminal_step",
+        "recovery_completion_attestation",
+        "completed_terminal_outcome"
+      ]
+    },
+    {
+      "name": "terminal_artifact_attempts_to_carry_realm_commit_material",
+      "phase": "commit_recovery_unit",
+      "forbidden_members": [
+        "realm_commit",
+        "realm_commit_id",
+        "authority_signature"
+      ],
       "expected": "reject_without_side_effect",
       "reason_code": "failed_precondition"
     },
@@ -276,7 +382,8 @@
       "zero_effects": [
         "accepted_reanchor_event",
         "accepted_authorize_event",
-        "committed_reanchor_commit",
+        "committed_reanchor_realm_commit",
+        "committed_authorize_realm_commit",
         "advanced_device_generation",
         "active_verified_replacement_device",
         "consumed_recovery_session",
