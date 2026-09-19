@@ -1660,6 +1660,48 @@ def required_fields_from_schema(lint: Lint, schema_ref: str) -> list[str]:
 
 
 
+def check_full_markdown_example_index_resolves(lint: Lint) -> None:
+    """Every FULL_MARKDOWN_EXAMPLE_SCHEMAS row must still point at a JSON object example.
+
+    The map is keyed by ``(prose file, json fence ordinal)``, so it is an index into
+    prose that nothing else maintains. A row whose example is deleted, renumbered or
+    downgraded to a non-``json`` fence stops guarding and says nothing: the lookup in
+    ``check_markdown_full_object_example`` simply misses and that example's required
+    fields go unchecked. This check makes such a row fail instead of going quiet.
+    """
+
+    for rel, mapping in sorted(FULL_MARKDOWN_EXAMPLE_SCHEMAS.items()):
+        path = ROOT / rel
+        if not path.is_file():
+            lint.fail(path, "FULL_MARKDOWN_EXAMPLE_SCHEMAS names a prose file that does not exist")
+            continue
+        blocks = list(JSON_FENCE_RE.finditer(path.read_text(encoding="utf-8")))
+        for index, schema_ref in sorted(mapping.items()):
+            if index > len(blocks):
+                lint.fail(
+                    path,
+                    f"FULL_MARKDOWN_EXAMPLE_SCHEMAS maps json_block[{index}] to {schema_ref}, "
+                    f"but this file carries {len(blocks)} json block(s); the row guards nothing",
+                )
+                continue
+            if not (ARTIFACTS / schema_ref).is_file():
+                lint.fail(
+                    path,
+                    f"FULL_MARKDOWN_EXAMPLE_SCHEMAS json_block[{index}] names a missing schema "
+                    f"{schema_ref}",
+                )
+            try:
+                data = json.loads(blocks[index - 1].group("body"))
+            except json.JSONDecodeError:
+                continue  # invalid canonical JSON is already reported by check_markdown_examples
+            if not isinstance(data, dict):
+                lint.fail(
+                    path,
+                    f"FULL_MARKDOWN_EXAMPLE_SCHEMAS json_block[{index}] is not an object, so the "
+                    f"required-field check for {schema_ref} never runs",
+                )
+
+
 def schema_ref_from_fence_meta(meta: str) -> str | None:
     match = JSON_FENCE_SCHEMA_ATTR_RE.search(meta)
     if not match:

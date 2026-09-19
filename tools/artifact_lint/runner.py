@@ -178,6 +178,7 @@ from .prose import (
     check_resolver_policy_matches_did_method_adapter_registry,
     check_keypackage_claim_proof_shape,
     check_legacy_announce_id_form,
+    check_full_markdown_example_index_resolves,
     check_markdown_examples,
     check_markdown_links,
     check_naming_predicates,
@@ -723,6 +724,10 @@ def main(argv: list[str] | None = None) -> int:
                 lambda: check_prose_section_identity_ledger(lint),
             ),
             ("markdown_examples", lambda: check_markdown_examples(lint, known)),
+            (
+                "full_markdown_example_index",
+                lambda: check_full_markdown_example_index_resolves(lint),
+            ),
             ("naming_predicates", lambda: check_naming_predicates(lint)),
             ("naming_rule_coverage", lambda: check_naming_rule_coverage_matrix(lint)),
             ("identifier_categories", lambda: check_identifier_value_categories(lint)),

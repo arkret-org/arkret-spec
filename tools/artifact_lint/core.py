@@ -190,14 +190,10 @@ FULL_MARKDOWN_EXAMPLE_SCHEMAS = {
     "spec/v1/zh/models/relation.md": {
         1: "schemas/relation.schema.json",
     },
-    "spec/v1/zh/models/event-and-patch.md": {
-        1: "schemas/event-envelope.schema.json",
-    },
     "spec/v1/zh/authz/capabilities.md": {
         1: "schemas/capability-grant.schema.json",
     },
 }
-
 
 
 class Lint:
@@ -601,7 +597,8 @@ EVENT_AUTHORING_DURABLE_EFFECT_KINDS = ("event_log", "actor_private_event")
 # persists nothing unless persist_before_projection is set — so it proves nothing on
 # its own. A downgrade additionally MUST show the state change reaches no replicated
 # cell/lattice, i.e. it never enters state_root and no peer has to converge on it.
-# See arkret-work/tasks/impl-active/2026-08-06-1723-event-log-operations-need-a-signed-request.md.
+# The report that opened this ratchet has been closed and deleted; the rule above is
+# the whole of it, so do not look for a task file to re-read.
 EVENT_LOG_OPERATIONS_WITHOUT_A_SIGNED_REQUEST: dict[str, str] = {}
 
 
