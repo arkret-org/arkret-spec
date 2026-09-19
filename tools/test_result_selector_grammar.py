@@ -252,6 +252,22 @@ class ResultSelectorGrammarTest(unittest.TestCase):
             [],
         )
 
+    def test_a_string_set_digest_component_rejects_an_unregistered_context(self) -> None:
+        reported = errors_for(
+            {
+                "kind": "composite",
+                "components": [
+                    {
+                        "kind": "string_set_digest",
+                        "field": "payload.accountability_scope",
+                        "context": "ak.unregistered_scope_set.v1",
+                    }
+                ],
+            }
+        )
+        self.assertEqual(len(reported), 1, reported)
+        self.assertIn("is not a registered domain separation", reported[0])
+
     def test_the_accountability_context_is_pinned_to_its_kind(self) -> None:
         """Domain separation is the point: the same scope set under a second
         context is a second key, and the two registered writers of

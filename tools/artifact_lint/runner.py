@@ -240,6 +240,7 @@ from .reason_code_producers import check_reason_code_producer_paths
 from .proof_context_schemas import (
     check_asserted_result_families_are_registered,
     check_author_writable_state_axis_contract,
+    check_digest_construction_registration,
     check_proof_context_object_family_schemas,
     check_proof_context_carrier_family_anchors,
     check_domain_separation_binding_fields_are_carriable,
@@ -321,6 +322,10 @@ def main(argv: list[str] | None = None) -> int:
             ("registry_manifest", lambda: check_registry_manifest(lint)),
             ("timestamp_profile", lambda: check_timestamp_profile_single_source(lint)),
             ("proof_contexts", lambda: check_proof_context_registry(lint)),
+            (
+                "digest_construction_registration",
+                lambda: check_digest_construction_registration(lint),
+            ),
             (
                 "proof_context_object_family_schemas",
                 lambda: check_proof_context_object_family_schemas(lint),

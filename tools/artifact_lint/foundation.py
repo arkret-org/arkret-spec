@@ -335,14 +335,26 @@ def lint_string_set_digest_component(
         or any(ord(character) < 0x20 or ord(character) > 0x7E for character in context)
     ):
         lint.fail(path, f"{ref}.context must be non-empty printable ASCII")
-    if (
+    accountability_context_mismatch = (
         event_kind == "ak.identity.accountability_grant"
         and context != "ak.accountability_scope_set.v1"
-    ):
+    )
+    if accountability_context_mismatch:
         lint.fail(
             path,
             f"{ref}.context must be 'ak.accountability_scope_set.v1' for {event_kind}",
         )
+    elif isinstance(context, str) and context:
+        registry_path = ARTIFACTS / "registry" / "proof-context-registry.json"
+        registry = load_json(lint, registry_path)
+        rows = registry.get("domain_separations") if isinstance(registry, dict) else None
+        registered_domains = {
+            row.get("domain")
+            for row in (rows if isinstance(rows, list) else [])
+            if isinstance(row, dict) and isinstance(row.get("domain"), str)
+        }
+        if context not in registered_domains:
+            lint.fail(path, f"{ref}.context is not a registered domain separation: {context!r}")
 
 
 

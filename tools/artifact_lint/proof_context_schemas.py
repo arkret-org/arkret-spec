@@ -37,6 +37,7 @@ level down.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import posixpath
 import re
@@ -378,6 +379,244 @@ def check_domain_separation_binding_fields_are_carriable(lint: Lint) -> None:
                     f"forbids in the {FORBIDDEN_EVENT_CONTEXT} context; a binding field that can "
                     "never appear makes the separation unimplementable",
                 )
+
+
+_DIGEST_CONSTRUCTION_KEYS = frozenset(
+    {
+        "construction_id",
+        "applies_to_primitives",
+        "canonicalization",
+        "digest_suite",
+        "prefix_form",
+        "digest_input",
+        "digest_encoding",
+        "domain_is_a_transcript_member",
+        "defined_in",
+        "defining_literal",
+    }
+)
+_CANONICAL_DIGEST_ROW_KEYS = frozenset(
+    {
+        "domain",
+        "object_family",
+        "primitive",
+        "binding_fields",
+        "digest_construction",
+        "prefix_bytes_hex",
+        "transcript_defined_in",
+        "known_answer_ref",
+        "kat_absence_reason",
+        "owner_report",
+    }
+)
+
+
+def _digest_reference(lint: Lint, reference: object, *, prose: bool) -> Any:
+    """Resolve one registry-owned reference without treating its text as authority."""
+    if not isinstance(reference, str) or not reference:
+        return None
+    file_ref, separator, fragment_body = reference.partition("#")
+    root = SPEC_ROOT if prose else ARTIFACTS
+    path = root / file_ref
+    if not path.is_file():
+        lint.fail(PROOF_CONTEXT_REGISTRY, f"digest reference does not resolve: {reference}")
+        return None
+    if prose:
+        return read_text(path)
+    document = load_json(lint, path)
+    if document is None:
+        return None
+    fragment = f"#{fragment_body}" if separator else ""
+    try:
+        return resolve_json_pointer(document, fragment)
+    except (KeyError, IndexError, ValueError):
+        lint.fail(PROOF_CONTEXT_REGISTRY, f"digest reference fragment does not resolve: {reference}")
+        return None
+
+
+def _digest_kat_pairs(node: Any) -> list[tuple[dict[str, Any], str]]:
+    """Return the two explicitly registered KAT shapes; no heuristic input aliases."""
+    if isinstance(node, dict) and isinstance(node.get("transcript"), dict) and isinstance(
+        node.get("expected_digest"), str
+    ):
+        return [(node["transcript"], node["expected_digest"])]
+    pairs: list[tuple[dict[str, Any], str]] = []
+
+    def walk(value: Any) -> None:
+        if isinstance(value, dict):
+            core = value.get("core")
+            digest = value.get("receipt_digest")
+            if isinstance(core, dict) and isinstance(digest, str):
+                pairs.append((core, digest))
+            for child in value.values():
+                walk(child)
+        elif isinstance(value, list):
+            for child in value:
+                walk(child)
+
+    walk(node)
+    return pairs
+
+
+def check_digest_construction_registration(lint: Lint) -> None:
+    """Close the construction contract for every canonical-JSON digest domain.
+
+    The construction table is deliberately closed.  The short defining literal
+    is checked in its normative source instead of comparing an entire prose
+    line, so harmless wrapping and punctuation changes do not become protocol
+    changes.  Prefix bytes are always recomputed from ``domain`` plus one LF;
+    the registry's hex is never trusted as an independent source.
+    """
+    data = load_json(lint, PROOF_CONTEXT_REGISTRY)
+    if not isinstance(data, dict):
+        lint.fail(PROOF_CONTEXT_REGISTRY, "proof context registry must be an object")
+        return
+
+    construction_rows = data.get("digest_constructions")
+    if not isinstance(construction_rows, list) or not construction_rows:
+        lint.fail(PROOF_CONTEXT_REGISTRY, "digest_constructions[] must be a non-empty array")
+        return
+
+    constructions: dict[str, dict[str, Any]] = {}
+    for index, construction in enumerate(construction_rows):
+        where = f"digest_constructions[{index}]"
+        if not isinstance(construction, dict):
+            lint.fail(PROOF_CONTEXT_REGISTRY, f"{where} must be an object")
+            continue
+        unknown = set(construction) - _DIGEST_CONSTRUCTION_KEYS
+        missing = _DIGEST_CONSTRUCTION_KEYS - set(construction)
+        if unknown or missing:
+            lint.fail(
+                PROOF_CONTEXT_REGISTRY,
+                f"{where} must have exactly the closed construction keys; "
+                f"missing={sorted(missing)}, unknown={sorted(unknown)}",
+            )
+        construction_id = construction.get("construction_id")
+        if not isinstance(construction_id, str) or not construction_id:
+            lint.fail(PROOF_CONTEXT_REGISTRY, f"{where}.construction_id must be a non-empty string")
+            continue
+        if construction_id in constructions:
+            lint.fail(PROOF_CONTEXT_REGISTRY, f"duplicate digest construction {construction_id!r}")
+        constructions[construction_id] = construction
+        primitives = construction.get("applies_to_primitives")
+        if (
+            not isinstance(primitives, list)
+            or not primitives
+            or not all(isinstance(item, str) and item for item in primitives)
+            or len(primitives) != len(set(primitives))
+        ):
+            lint.fail(
+                PROOF_CONTEXT_REGISTRY,
+                f"{where}.applies_to_primitives must be a non-empty unique string array",
+            )
+        for member in (
+            "canonicalization",
+            "digest_suite",
+            "prefix_form",
+            "digest_input",
+            "digest_encoding",
+            "defined_in",
+            "defining_literal",
+        ):
+            if not isinstance(construction.get(member), str) or not construction[member].strip():
+                lint.fail(PROOF_CONTEXT_REGISTRY, f"{where}.{member} must be a non-empty string")
+        if construction.get("domain_is_a_transcript_member") is not False:
+            lint.fail(PROOF_CONTEXT_REGISTRY, f"{where}.domain_is_a_transcript_member must be false")
+        source = _digest_reference(lint, construction.get("defined_in"), prose=True)
+        literal = construction.get("defining_literal")
+        if isinstance(source, str) and isinstance(literal, str) and literal not in source:
+            lint.fail(
+                PROOF_CONTEXT_REGISTRY,
+                f"{where}.defining_literal does not occur in {construction.get('defined_in')}",
+            )
+
+    separation_rows = data.get("domain_separations")
+    if not isinstance(separation_rows, list):
+        lint.fail(PROOF_CONTEXT_REGISTRY, "domain_separations[] must be an array")
+        return
+    selected: set[str] = set()
+    for index, row in enumerate(separation_rows):
+        if not isinstance(row, dict) or row.get("primitive") != "canonical_json_sha256":
+            continue
+        where = f"domain_separations[{index}]"
+        unknown = set(row) - _CANONICAL_DIGEST_ROW_KEYS
+        required = _CANONICAL_DIGEST_ROW_KEYS - {"kat_absence_reason", "owner_report"}
+        missing = required - set(row)
+        if unknown or missing:
+            lint.fail(
+                PROOF_CONTEXT_REGISTRY,
+                f"{where} canonical_json_sha256 row has an open or incomplete shape; "
+                f"missing={sorted(missing)}, unknown={sorted(unknown)}",
+            )
+        construction_id = row.get("digest_construction")
+        construction = constructions.get(construction_id) if isinstance(construction_id, str) else None
+        if construction is None:
+            lint.fail(PROOF_CONTEXT_REGISTRY, f"{where}.digest_construction is not registered")
+        else:
+            selected.add(construction_id)
+            primitives = construction.get("applies_to_primitives")
+            if not isinstance(primitives, list) or row.get("primitive") not in primitives:
+                lint.fail(
+                    PROOF_CONTEXT_REGISTRY,
+                    f"{where} selects a construction that does not apply to canonical_json_sha256",
+                )
+
+        domain = row.get("domain")
+        expected_prefix = (domain + "\n").encode("utf-8").hex() if isinstance(domain, str) else None
+        if row.get("prefix_bytes_hex") != expected_prefix:
+            lint.fail(
+                PROOF_CONTEXT_REGISTRY,
+                f"{where}.prefix_bytes_hex must equal UTF8(domain + LF), recomputed from domain",
+            )
+        transcript_source = _digest_reference(lint, row.get("transcript_defined_in"), prose=True)
+        if isinstance(transcript_source, str) and isinstance(domain, str) and domain not in transcript_source:
+            lint.fail(
+                PROOF_CONTEXT_REGISTRY,
+                f"{where}.transcript_defined_in does not contain its domain literal",
+            )
+
+        known_answer_ref = row.get("known_answer_ref")
+        absence = row.get("kat_absence_reason")
+        owner = row.get("owner_report")
+        if isinstance(known_answer_ref, str) and known_answer_ref:
+            if absence is not None or owner is not None:
+                lint.fail(PROOF_CONTEXT_REGISTRY, f"{where} with a KAT must not declare an absence owner")
+            target = _digest_reference(lint, known_answer_ref, prose=False)
+            pairs = _digest_kat_pairs(target)
+            if not pairs:
+                lint.fail(PROOF_CONTEXT_REGISTRY, f"{where}.known_answer_ref resolves no registered KAT pair")
+            for transcript, expected_digest in pairs:
+                canonical = json.dumps(
+                    transcript, ensure_ascii=False, separators=(",", ":"), sort_keys=True
+                ).encode("utf-8")
+                digest = "sha256:" + hashlib.sha256(bytes.fromhex(expected_prefix or "") + canonical).hexdigest()
+                if digest != expected_digest:
+                    lint.fail(
+                        PROOF_CONTEXT_REGISTRY,
+                        f"{where}.known_answer_ref digest does not match its registered construction",
+                    )
+                    break
+            if pairs and "transcript" in (target if isinstance(target, dict) else {}):
+                fields = row.get("binding_fields")
+                if isinstance(fields, list) and set(pairs[0][0]) != set(fields):
+                    lint.fail(
+                        PROOF_CONTEXT_REGISTRY,
+                        f"{where}.known_answer_ref transcript does not cover exactly binding_fields",
+                    )
+        elif known_answer_ref is None:
+            if not isinstance(absence, str) or not absence.strip():
+                lint.fail(PROOF_CONTEXT_REGISTRY, f"{where} without a KAT requires kat_absence_reason")
+            if (
+                not isinstance(owner, str)
+                or not owner.startswith("arkret-work/tasks/spec-open/")
+                or not owner.endswith(".md")
+            ):
+                lint.fail(PROOF_CONTEXT_REGISTRY, f"{where} without a KAT requires a spec-open owner_report")
+        else:
+            lint.fail(PROOF_CONTEXT_REGISTRY, f"{where}.known_answer_ref must be a string or null")
+
+    for construction_id in sorted(set(constructions) - selected):
+        lint.fail(PROOF_CONTEXT_REGISTRY, f"digest construction {construction_id!r} is unused")
 
 
 # `set` / `merge` / `transition` cover a register-shaped family. `agent_key` is
