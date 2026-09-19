@@ -1333,7 +1333,6 @@
           "ak.schema.device_revocation_state.v1",
           "ak.schema.did_binding_contracts.v1",
           "ak.schema.did_webvh_witness_receipt.v1",
-          "ak.schema.direct_conversation_operations.v1",
           "ak.schema.directory_operations.v1",
           "ak.schema.encrypted_envelope.v1",
           "ak.schema.erasure_receipt.v1",

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.8",
+  "version": "2026-09-20.9",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T06:33:46+08:00",
+  "generated_at": "2026-09-20T06:54:55+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1597,7 +1597,7 @@
       "applies_to_profiles": [
         "ak.profile.direct_conversation_realm.v1"
       ],
-      "description": "One accepted founding unit per (founder_id, trust_domain_id, pair_key) slot across same-Station, dual-Station and founder multi-device concurrency: first valid unit wins, the loser gets direct_conversation_slot_already_committed with zero writes, exact replay returns the byte-identical receipt without advancing accepted_at, the same idempotency key with a different unit is duplicate_conflict, every crash point converges to the same coordinates, and the federation branch reports a missing bounded dependency as a top-level retryable dependency_missing rather than a partial.",
+      "description": "One accepted founding unit per (founder_id, trust_domain_id, pair_key) slot across same-Station, dual-Station and founder multi-device concurrency: first valid unit wins, the loser gets direct_conversation_slot_already_committed with zero writes, exact replay returns the same four byte-identical source RealmCommits without changing the fourth committed_at, the same idempotency key with a different unit is duplicate_conflict, every crash point converges to the same coordinates, the deleted founding receipt is rejected, and the federation branch reports a missing bounded dependency as a top-level retryable dependency_missing rather than a partial.",
       "source_refs": [
         "spec/v1/zh/identity/contact-and-direct-conversation.md"
       ]

@@ -1,6 +1,6 @@
 {
   "profile": "ak.vector.peer.event_submit.semantic_union.v1",
-  "version": "2026-09-20.1",
+  "version": "2026-09-20.2",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.peer.event_submit.semantic_union.v1"
@@ -77,25 +77,25 @@
         "peer_four_source_commits_atomic_materialization",
         "peer_missing_event_or_commit",
         "peer_wrong_order",
-        "peer_missing_receipt",
+        "peer_injects_deleted_receipt",
         "peer_missing_authority_evidence",
         "dependency_missing_closed_details",
         "materialization_conflict",
         "exact_replay"
       ],
       "expected": {
-        "self_four_ordered_events_atomic_commit": "four_consecutive_commits_and_one_source_receipt",
+        "self_four_ordered_events_atomic_commit": "four_consecutive_commits_without_second_finality",
         "self_echoes_founding_authority_evidence": "schema_rejected_zero_writes",
         "main_strand_from_fourth_event": "accepted",
         "main_strand_from_third_event": "direct_conversation_founding_unit_invalid_zero_writes",
         "peer_four_source_commits_atomic_materialization": "stored_all_four_or_none_without_resigning_or_fanout",
         "peer_missing_event_or_commit": "direct_conversation_founding_unit_invalid_zero_writes",
         "peer_wrong_order": "direct_conversation_founding_unit_invalid_zero_writes",
-        "peer_missing_receipt": "schema_rejected_zero_writes",
+        "peer_injects_deleted_receipt": "schema_rejected_zero_writes",
         "peer_missing_authority_evidence": "schema_rejected_zero_writes",
         "dependency_missing_closed_details": "one_atomic_rejection_with_bounded_typed_missing_set",
         "materialization_conflict": "direct_conversation_pair_materialization_conflict_zero_writes",
-        "exact_replay": "byte_identical_receipt_and_four_source_commits_no_second_materialization"
+        "exact_replay": "same_four_byte_identical_source_commits_no_second_materialization"
       }
     },
     {

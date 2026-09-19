@@ -8,9 +8,6 @@
       "$ref": "#/$defs/direct_conversation_coordinates"
     },
     {
-      "$ref": "#/$defs/direct_conversation_founding_acceptance_receipt"
-    },
-    {
       "$ref": "#/$defs/direct_conversation_resolve_outcome"
     },
     {
@@ -41,98 +38,6 @@
         },
         "binding_event_ref": {
           "$ref": "./principal-operations.schema.json#/$defs/event_id"
-        }
-      },
-      "additionalProperties": false
-    },
-    "direct_conversation_founding_acceptance_receipt": {
-      "type": "object",
-      "description": "Source-signed evidence that the founder current Station atomically accepted exactly one Direct Conversation founding unit and closed its local unique slot. It creates no Realm, authorizes no Message and is not a global slot; a second receipt for the same pair and founder but a different unit is direct_conversation_pair_materialization_conflict evidence. proof signs the closed transcript H(\"ak.direct-conversation.founding-receipt.v1\", this object without proof); the receiver recomputes that preimage from the receipt fields and never trusts a carried digest. proof.verification_method resolves to the issuer_id current service key at accepted_at and proof.created_at equals accepted_at.",
-      "required": [
-        "pair_key",
-        "founder_id",
-        "realm_id",
-        "main_strand_id",
-        "founding_unit_digest",
-        "authorization_core",
-        "issuer_id",
-        "accepted_at",
-        "proof"
-      ],
-      "properties": {
-        "pair_key": {
-          "$ref": "./principal-operations.schema.json#/$defs/digest"
-        },
-        "founder_id": {
-          "$ref": "./common-ids.schema.json#/$defs/actor_id",
-          "description": "Exact founder ActorId. A bare principal DID is insufficient because the same principal hosted by two Stations denotes two distinct account authorities."
-        },
-        "realm_id": {
-          "$ref": "./principal-operations.schema.json#/$defs/realm_id"
-        },
-        "main_strand_id": {
-          "$ref": "./principal-operations.schema.json#/$defs/strand_id"
-        },
-        "founding_unit_digest": {
-          "$ref": "./principal-operations.schema.json#/$defs/digest"
-        },
-        "authorization_core": {
-          "oneOf": [
-            {
-              "type": "object",
-              "required": [
-                "kind",
-                "current_contact_round_id",
-                "root_contact_round_id",
-                "accepted_contact_evidence_digest"
-              ],
-              "properties": {
-                "kind": {
-                  "const": "human"
-                },
-                "current_contact_round_id": {
-                  "$ref": "./principal-operations.schema.json#/$defs/digest"
-                },
-                "root_contact_round_id": {
-                  "$ref": "./principal-operations.schema.json#/$defs/digest"
-                },
-                "accepted_contact_evidence_digest": {
-                  "$ref": "./principal-operations.schema.json#/$defs/digest"
-                }
-              },
-              "additionalProperties": false
-            },
-            {
-              "type": "object",
-              "required": [
-                "kind",
-                "agent_provision_ref",
-                "controller_binding_digest"
-              ],
-              "properties": {
-                "kind": {
-                  "const": "controller_agent"
-                },
-                "agent_provision_ref": {
-                  "$ref": "./principal-operations.schema.json#/$defs/event_id",
-                  "description": "Complete identity of the accepted Agent provision Event. Its digest is derived by decoding this suite-tagged full-digest EventId; no parallel agent_provision_digest is carried."
-                },
-                "controller_binding_digest": {
-                  "$ref": "./principal-operations.schema.json#/$defs/digest"
-                }
-              },
-              "additionalProperties": false
-            }
-          ]
-        },
-        "issuer_id": {
-          "$ref": "./principal-operations.schema.json#/$defs/did_core_id"
-        },
-        "accepted_at": {
-          "$ref": "./principal-operations.schema.json#/$defs/timestamp"
-        },
-        "proof": {
-          "$ref": "./principal-operations.schema.json#/$defs/signature"
         }
       },
       "additionalProperties": false

@@ -9,6 +9,7 @@ from .core import ARTIFACTS, SPEC_ROOT, Lint, load_json, read_text
 
 
 SCHEMA = ARTIFACTS / "schemas" / "authority-commit-operations.schema.json"
+DIRECT_SCHEMA = ARTIFACTS / "schemas" / "direct-conversation-operations.schema.json"
 CONTRACT = ARTIFACTS / "registry" / "contract-registry.json"
 ERRORS = ARTIFACTS / "registry" / "error-code-registry.json"
 ERROR_MAPPING = ARTIFACTS / "registry" / "operations-error-mapping.json"
@@ -39,6 +40,8 @@ PROSE_MARKERS = {
         "不携带 `founding_authority_evidence`",
         "重签第二套 Commit",
         "第二轮 fanout",
+        "不再定义第二张 acceptance receipt",
+        "第四个 Commit 的 `committed_at` 是唯一 founding acceptance time",
     ),
     SPEC_ROOT / "zh" / "crypto-media" / "device-lifecycle.md": (
         "`membership_compensation_unit_submission`",
@@ -118,13 +121,14 @@ def check_profile_wire_contract_refs(lint: Lint) -> None:
 
 def check_peer_event_submit_semantic_union(lint: Lint) -> None:
     schema = load_json(lint, SCHEMA)
+    direct_schema = load_json(lint, DIRECT_SCHEMA)
     contract = load_json(lint, CONTRACT)
     errors = load_json(lint, ERRORS)
     mapping = load_json(lint, ERROR_MAPPING)
     profiles = load_json(lint, PROFILES)
     vectors = load_json(lint, VECTORS)
     fixture = load_json(lint, FIXTURE)
-    if not all(isinstance(item, dict) for item in (schema, contract, errors, mapping, profiles, vectors, fixture)):
+    if not all(isinstance(item, dict) for item in (schema, direct_schema, contract, errors, mapping, profiles, vectors, fixture)):
         return
 
     defs = schema.get("$defs", {})
@@ -203,13 +207,20 @@ def check_peer_event_submit_semantic_union(lint: Lint) -> None:
         _fail(lint, SCHEMA, "self founding unit must reject founding_authority_evidence echo")
 
     peer_founding = defs["direct_conversation_founding_federation_submission"]
-    if _required(peer_founding) != {"unit_kind", "committed_events", "source_acceptance_receipt", "founding_authority_evidence"}:
-        _fail(lint, SCHEMA, "peer founding unit must require four source rows, receipt and authority evidence")
+    if _required(peer_founding) != {"unit_kind", "committed_events", "founding_authority_evidence"} or "source_acceptance_receipt" in peer_founding.get("properties", {}):
+        _fail(lint, SCHEMA, "peer founding unit must require only four source rows and authority evidence, with no receipt")
     if peer_founding.get("additionalProperties") is not False:
         _fail(lint, SCHEMA, "peer founding unit must be closed")
     founding_rows = peer_founding.get("properties", {}).get("committed_events", {})
     if founding_rows.get("minItems") != 4 or founding_rows.get("maxItems") != 4 or founding_rows.get("items") is not False:
         _fail(lint, SCHEMA, "peer founding committed row count must be exactly four")
+    founding_outcome = defs.get("direct_conversation_founding_acceptance_outcome", {})
+    if _required(founding_outcome) != {"unit_kind", "status", "commits"} or "receipt" in founding_outcome.get("properties", {}):
+        _fail(lint, SCHEMA, "founding outcome must return only the four source commits and no receipt")
+    direct_defs = direct_schema.get("$defs", {}) if isinstance(direct_schema, dict) else {}
+    direct_root_refs = {_ref_name(row) for row in direct_schema.get("oneOf", []) if isinstance(row, dict)} if isinstance(direct_schema, dict) else set()
+    if "direct_conversation_founding_acceptance_receipt" in direct_defs or "#/$defs/direct_conversation_founding_acceptance_receipt" in direct_root_refs:
+        _fail(lint, DIRECT_SCHEMA, "deleted Direct Conversation founding receipt must not be restored")
 
     atomic = defs.get("peer_registered_atomic_unit", {}).get("oneOf", [])
     atomic_refs = [_ref_name(item) for item in atomic if isinstance(item, dict)]
@@ -299,6 +310,9 @@ def check_peer_event_submit_semantic_union(lint: Lint) -> None:
     authoring = descriptions.get("ak.vector.direct_conversation.founding_authoring_material.v1", "")
     if "sole member is founding_authority_evidence" not in authoring or "rejects any echo" not in authoring:
         _fail(lint, VECTORS, "authoring-material vector must pin the evidence/submission non-echo boundary")
+    admission = descriptions.get("ak.vector.direct_conversation.founding_admission.v1", "")
+    if "same four byte-identical source RealmCommits" not in admission or "deleted founding receipt is rejected" not in admission or "fourth committed_at" not in admission:
+        _fail(lint, VECTORS, "founding-admission vector must pin commit-only finality and receipt rejection")
 
     required_cases = {"authority_forward", "committed_replication", "direct_conversation_founding", "founding_authoring_material_non_echo", "membership_compensation"}
     actual_cases = {row.get("name") for row in fixture.get("cases", []) if isinstance(row, dict)}
@@ -312,6 +326,7 @@ def check_peer_event_submit_semantic_union(lint: Lint) -> None:
         "main_strand_from_fourth_event",
         "main_strand_from_third_event",
         "self_submission_echoes_evidence",
+        "peer_injects_deleted_receipt",
         "missing_terminal_certificate",
         "superseded_by_j2_or_new_join",
         "duplicate_attempts_second_fanout",

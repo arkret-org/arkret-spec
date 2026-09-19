@@ -1,12 +1,12 @@
 {
-  "version": 3,
+  "version": 4,
   "source_of_truth": false,
   "narrative_source": "spec/v1/zh/models/common-fields.md#r6-证据类名词分工",
   "scope": [
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 344,
+  "audited_occurrence_count": 343,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -233,7 +233,7 @@
         "attestation",
         "commitment"
       ],
-      "reason": "Peer-only closed Direct Conversation founding authority material transported beside four source-committed rows; the recipient independently verifies it against the source receipt and current bounded trust basis."
+      "reason": "Peer-only closed Direct Conversation founding authority material transported beside four source-committed rows; the recipient independently verifies it against those commits and the current bounded trust basis."
     },
     {
       "file": "authority-commit-operations.schema.json",
@@ -511,13 +511,6 @@
       "occurrences": 1,
       "disposition": "registry_contract",
       "reason": "Generated evaluator-contract metadata mirrored from the contract registry."
-    },
-    {
-      "file": "direct-conversation-operations.schema.json",
-      "key": "accepted_contact_evidence_digest",
-      "occurrences": 1,
-      "disposition": "derived_summary",
-      "reason": "Commits the exact portable Contact round evidence bundle that the founder's source Station verified when it atomically accepted the Direct Conversation founding unit and closed its local unique slot."
     },
     {
       "file": "direct-conversation-operations.schema.json",

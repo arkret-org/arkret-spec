@@ -7157,8 +7157,7 @@
           "commit",
           "reason_code",
           "unit_kind",
-          "commits",
-          "receipt"
+          "commits"
         ],
         "closed": true,
         "variants": [
@@ -7209,14 +7208,12 @@
             "required": [
               "unit_kind",
               "status",
-              "commits",
-              "receipt"
+              "commits"
             ],
             "properties": [
               "unit_kind",
               "status",
-              "commits",
-              "receipt"
+              "commits"
             ],
             "closed": true
           },

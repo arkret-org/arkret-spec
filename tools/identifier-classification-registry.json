@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 8,
+  "version": 9,
   "kind": "identifier_classification_registry",
   "source_of_truth": false,
   "generated_from": [
@@ -26,8 +26,8 @@
     "unregistered_object_identifier"
   ],
   "type_derived_summary": {
-    "typed_object_id": 936,
-    "responsibility_identity_material": 578,
+    "typed_object_id": 934,
+    "responsibility_identity_material": 576,
     "registry_catalog_symbol": 15
   },
   "pending_rename_convergence": [],
@@ -235,14 +235,6 @@
       "category": "opaque_correlation",
       "occurrences": 1,
       "example_path": "contact-operations.schema.json#/$defs/bilateral_continuity_checkpoint_core/properties/covered_through_contact_round_id",
-      "reason": "Digest-derived transcript coordinate of a bilateral round; it addresses a transcript position, not an object."
-    },
-    {
-      "name": "current_contact_round_id",
-      "terminal_signature": "[[\"pattern\", \"^sha256:[0-9a-f]{64}$\"]]",
-      "category": "opaque_correlation",
-      "occurrences": 1,
-      "example_path": "direct-conversation-operations.schema.json#/$defs/direct_conversation_founding_acceptance_receipt/properties/authorization_core/oneOf/0/properties/current_contact_round_id",
       "reason": "Digest-derived transcript coordinate of a bilateral round; it addresses a transcript position, not an object."
     },
     {
@@ -643,14 +635,6 @@
       "example_path": "event-payload.schema.json#/$defs/realm_organization_payload/properties/revokes_statement_id",
       "reason": "Names a durable Arkret object whose kind is not registered in id-kind-registry.json; convergence is to register the kind or retype the field.",
       "pending_convergence": true
-    },
-    {
-      "name": "root_contact_round_id",
-      "terminal_signature": "[[\"pattern\", \"^sha256:[0-9a-f]{64}$\"]]",
-      "category": "opaque_correlation",
-      "occurrences": 1,
-      "example_path": "direct-conversation-operations.schema.json#/$defs/direct_conversation_founding_acceptance_receipt/properties/authorization_core/oneOf/0/properties/root_contact_round_id",
-      "reason": "Digest-derived transcript coordinate of a bilateral round; it addresses a transcript position, not an object."
     },
     {
       "name": "rule_id",

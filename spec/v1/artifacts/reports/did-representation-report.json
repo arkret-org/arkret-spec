@@ -21,7 +21,7 @@
       },
       "occurrences_by_profile": {
         "actor_id": 1,
-        "did_core_id": 33
+        "did_core_id": 32
       },
       "reason": "The enclosing schema decides whether issuer authority requires an exact routed actor or a stable DID core; each occurrence remains closed to one carrier."
     },
@@ -2699,26 +2699,6 @@
       "external_literal_owner": false,
       "terminal_signature": [
         "pattern:^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
-      ]
-    },
-    {
-      "schema_path": "direct-conversation-operations.schema.json#/$defs/direct_conversation_founding_acceptance_receipt/properties/founder_id",
-      "property_name": "founder_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "direct-conversation-operations.schema.json#/$defs/direct_conversation_founding_acceptance_receipt/properties/issuer_id",
-      "property_name": "issuer_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
       ]
     },
     {

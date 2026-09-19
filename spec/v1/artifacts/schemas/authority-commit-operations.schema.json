@@ -478,11 +478,10 @@
     },
     "direct_conversation_founding_federation_submission": {
       "type": "object",
-      "description": "Peer-only source-committed Direct Conversation founding unit. The four committed rows have the same Event order as the self unit; their source commits have one Realm/generation/stream, consecutive positions and exact previous_commit_ref linkage. The receiver re-verifies the source receipt and bounded authority evidence, then materializes all four rows or none without re-signing commits or creating fanout.",
+      "description": "Peer-only source-committed Direct Conversation founding unit. The four committed rows have the same Event order as the self unit; their source commits have one Realm/generation/stream, consecutive positions and exact previous_commit_ref linkage. The receiver derives every coordinate from the four Events, verifies the source commits and bounded authority evidence, then materializes all four rows or none without re-signing commits or creating fanout. No second acceptance receipt or finality object exists.",
       "required": [
         "unit_kind",
         "committed_events",
-        "source_acceptance_receipt",
         "founding_authority_evidence"
       ],
       "properties": {
@@ -508,9 +507,6 @@
             }
           ],
           "items": false
-        },
-        "source_acceptance_receipt": {
-          "$ref": "./direct-conversation-operations.schema.json#/$defs/direct_conversation_founding_acceptance_receipt"
         },
         "founding_authority_evidence": {
           "$ref": "./service-operation-dtos.schema.json#/$defs/DirectConversationFoundingAuthorityEvidence"
@@ -562,12 +558,11 @@
     },
     "direct_conversation_founding_acceptance_outcome": {
       "type": "object",
-      "description": "One indivisible Direct Conversation founding outcome. Self first success creates the source-signed receipt. Peer success and exact replay echo the byte-identical verified source receipt and source commits. The four commits are ordered like the unit and form one consecutive source chain; no per-item partial result exists.",
+      "description": "One indivisible Direct Conversation founding outcome. Self first success, peer success and exact replay return the same four verified source commits. The commits are ordered like the unit and form one consecutive source chain; the fourth committed_at is the founding acceptance time. No receipt or per-item partial result exists.",
       "required": [
         "unit_kind",
         "status",
-        "commits",
-        "receipt"
+        "commits"
       ],
       "properties": {
         "unit_kind": {
@@ -586,9 +581,6 @@
           "items": {
             "$ref": "./realm-commit.schema.json"
           }
-        },
-        "receipt": {
-          "$ref": "./direct-conversation-operations.schema.json#/$defs/direct_conversation_founding_acceptance_receipt"
         }
       },
       "additionalProperties": false

@@ -25,6 +25,7 @@ class PeerEventSubmitGateTest(unittest.TestCase):
             path.resolve(): read(path)
             for path in (
                 gate.SCHEMA,
+                gate.DIRECT_SCHEMA,
                 gate.CONTRACT,
                 gate.ERRORS,
                 gate.ERROR_MAPPING,
@@ -128,11 +129,43 @@ class PeerEventSubmitGateTest(unittest.TestCase):
 
         self.assert_red(mutate, "reject founding_authority_evidence echo")
 
-    def test_peer_founding_requires_receipt_and_evidence(self) -> None:
+    def test_peer_founding_requires_authority_evidence(self) -> None:
         def mutate(documents: dict) -> None:
-            self.defs(documents)["direct_conversation_founding_federation_submission"]["required"].remove("source_acceptance_receipt")
+            self.defs(documents)["direct_conversation_founding_federation_submission"]["required"].remove("founding_authority_evidence")
 
-        self.assert_red(mutate, "receipt and authority evidence")
+        self.assert_red(mutate, "four source rows and authority evidence")
+
+    def test_peer_founding_rejects_deleted_receipt(self) -> None:
+        def mutate(documents: dict) -> None:
+            row = self.defs(documents)["direct_conversation_founding_federation_submission"]
+            row["required"].append("source_acceptance_receipt")
+            row["properties"]["source_acceptance_receipt"] = {"type": "object"}
+
+        self.assert_red(mutate, "with no receipt")
+
+    def test_founding_outcome_rejects_deleted_receipt(self) -> None:
+        def mutate(documents: dict) -> None:
+            row = self.defs(documents)["direct_conversation_founding_acceptance_outcome"]
+            row["required"].append("receipt")
+            row["properties"]["receipt"] = {"type": "object"}
+
+        self.assert_red(mutate, "return only the four source commits")
+
+    def test_deleted_founding_receipt_schema_cannot_return(self) -> None:
+        def mutate(documents: dict) -> None:
+            documents[gate.DIRECT_SCHEMA.resolve()]["$defs"]["direct_conversation_founding_acceptance_receipt"] = {
+                "type": "object",
+                "additionalProperties": False,
+            }
+
+        self.assert_red(mutate, "deleted Direct Conversation founding receipt")
+
+    def test_founding_receipt_negative_case_must_remain(self) -> None:
+        def text_mutate(texts: dict) -> None:
+            path = gate.FIXTURE.resolve()
+            texts[path] = texts[path].replace("peer_injects_deleted_receipt", "peer_without_second_finality")
+
+        self.assert_red(marker="peer_injects_deleted_receipt", text_mutate=text_mutate)
 
     def test_atomic_unit_registry_is_closed(self) -> None:
         def mutate(documents: dict) -> None:

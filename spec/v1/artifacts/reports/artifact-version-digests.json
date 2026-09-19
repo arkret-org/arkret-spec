@@ -231,9 +231,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-09-20.13",
-      "generated_at": "2026-09-20T06:33:46+08:00",
-      "content_digest": "sha256:3afcda10ff593db68ed6e402ff1b6c67e8c8082be425a8874a440249fc5c3f10"
+      "version": "2026-09-20.14",
+      "generated_at": "2026-09-20T06:35:55+08:00",
+      "content_digest": "sha256:f4b699a287557a71852af0743fc5836c2b8682129b32f3b79fae022e3639dc00"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
@@ -369,9 +369,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/vector-registry.json",
-      "version": "2026-09-20.8",
-      "generated_at": "2026-09-20T06:33:46+08:00",
-      "content_digest": "sha256:b8f118dc85ecef0a3f7eb59da919de0597c0dd627f5304a3c0221741e7f6d6f7"
+      "version": "2026-09-20.9",
+      "generated_at": "2026-09-20T06:54:55+08:00",
+      "content_digest": "sha256:433a10bf0cbb971e1dcc1379b813315432b8105be973093ea853a2c14f0c47f1"
     },
     {
       "path": "tools/artifact-anchor-fragment-exemptions.json",
@@ -423,9 +423,9 @@
     },
     {
       "path": "tools/evidence-material-audit.json",
-      "version": 3,
+      "version": 4,
       "generated_at": null,
-      "content_digest": "sha256:a73536d9c3c8485291cf5b3b48186342ccf7fda2d275dcac9afea2bd847a075d"
+      "content_digest": "sha256:47e17e2487f4a3cb8a906f20c6638c969992cc9102cb314d1ff31f6b2127802b"
     },
     {
       "path": "tools/fixture-schema-instance-binding-registry.json",
@@ -441,9 +441,9 @@
     },
     {
       "path": "tools/identifier-classification-registry.json",
-      "version": 8,
+      "version": 9,
       "generated_at": null,
-      "content_digest": "sha256:514c699ba9c43726d9836d45047d2b906722c485cebcc0333b183a7427edf6df"
+      "content_digest": "sha256:9c7068ccb25db7839e0ac033906edf1b994ed6c74d6acd1ad9bdbbed7a89859a"
     },
     {
       "path": "tools/identifier-role-suffix-registry.json",
