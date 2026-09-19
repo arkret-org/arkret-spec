@@ -45,6 +45,19 @@ stream 的 snapshot section、head 和连续 tail。协议不存在 Realm 全局
 history floor 与 bootstrap 策略的结果：即使取值为 `all_history_for_current_members`，bootstrap 也默认 snapshot +
 recent tail；全历史是后续按需分页，不是 join 的前置条件。
 
+### 3.1 floor 必须可验证（normative）
+
+floor 不只是"更早的数据取不到"，它是该 caller 允许区间的下端，必须能被绑定到已接受的链上验证：
+`ak.self.events.read.scan.v1` 的 `stream_scan_outcome.readable_floor` 给出 `oldest_position`、该位置的
+`floor_commit_id` 与 `floor_reason`（`stream_start` / `membership_join` / `history_access_policy` /
+`retention_pruned`），窗口侧的对应形式是 `window_start_basis.anchor_kind=before_readable_floor`。
+`since_join` 的成员因此**不必**拿到 position 0 才能验证其获准前缀完整；floor 处的 Commit 是唯一允许
+携带该 caller 无法解析的 `previous_commit_ref` 的可读行。
+
+分页与扫描的所有边界都按允许区间解释：floor 以下取不到不构成 gap，也不得据此推断隐藏活动、成员或存在性；
+`truncated` 只表示该方向还有该 caller 获准读取的 Commit，空结果不表示物理流不存在。
+只有该 caller 在该流一条 Commit 都不获准读取时才省略 `readable_floor`。
+
 ## 4. MLS 历史
 
 v1 只保留 standard RFC 9420 密钥语义。新 member 或新 endpoint 只从其有效 Add/Welcome epoch 起取得

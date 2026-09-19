@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.5",
+  "version": "2026-09-19.6",
   "source_of_truth": true,
-  "generated_at": "2026-09-19T10:41:00+08:00",
+  "generated_at": "2026-09-19T13:39:11+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -3452,6 +3452,18 @@
       ]
     },
     {
+      "vector_id": "ak.vector.mls.governance_binding_closure.v1",
+      "status": "active",
+      "domain": "mls",
+      "applies_to_fixtures": [
+        "final-conformance-closure-fixture.json"
+      ],
+      "description": "The fixed GroupContext binding is a closed deterministic-CBOR map of five members: a sixth member, a missing member, an indefinite-length head, a non-minimal integer, a duplicate key and a non-canonical key order are each rejected on the received bytes; genesis is 0 -> 0 and a Commit is next_epoch = previous_epoch + 1; scope and base match the Station current public state field by field; and the pre-genesis proposal form is the same binding, missing or mismatched instances of which are rejected without leaving a proof or cache entry.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.mls.governance_epoch_binding.v1",
       "status": "active",
       "domain": "mls",
@@ -3487,18 +3499,6 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/mls-group-id-derivation-fixture.json",
         "spec/v1/zh/models/realm-and-space.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.mls.governance_binding_closure.v1",
-      "status": "active",
-      "domain": "mls",
-      "applies_to_fixtures": [
-        "final-conformance-closure-fixture.json"
-      ],
-      "description": "The fixed GroupContext binding is a closed deterministic-CBOR map of five members: a sixth member, a missing member, an indefinite-length head, a non-minimal integer, a duplicate key and a non-canonical key order are each rejected on the received bytes; genesis is 0 -> 0 and a Commit is next_epoch = previous_epoch + 1; scope and base match the Station current public state field by field; and the pre-genesis proposal form is the same binding, missing or mismatched instances of which are rejected without leaving a proof or cache entry.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json"
       ]
     },
     {
@@ -4822,6 +4822,19 @@
       ]
     },
     {
+      "vector_id": "ak.vector.sync.event_read_row_integrity.v1",
+      "status": "active",
+      "domain": "sync",
+      "applies_to_fixtures": [
+        "protocol-edge-cases-fixture.json"
+      ],
+      "description": "stream_row integrity: event_id equals commit.event_ref, locked stubs carry event_id, redacted and locked rows are not reducer input, and the existence ACL withholds the whole row.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
+        "spec/v1/zh/conformance/conformance-suite.md"
+      ]
+    },
+    {
       "vector_id": "ak.vector.sync.state_at_window_start.v1",
       "status": "active",
       "domain": "sync",
@@ -4829,6 +4842,32 @@
         "protocol-edge-cases-fixture.json"
       ],
       "description": "Deterministic limited-timeline window-start state basis with safe omission on unresolved bases.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
+        "spec/v1/zh/conformance/conformance-suite.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.sync.stream_enumeration_no_starvation.v1",
+      "status": "active",
+      "domain": "sync",
+      "applies_to_fixtures": [
+        "protocol-edge-cases-fixture.json"
+      ],
+      "description": "ACL-filtered stream enumeration plus explicit stream_refs selection over 70 visible streams: discovery, reading and continuous tail for the 65th stream, fixed-generation pagination and per-page permission recheck.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
+        "spec/v1/zh/conformance/conformance-suite.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.sync.stream_scan_permitted_range.v1",
+      "status": "active",
+      "domain": "sync",
+      "applies_to_fixtures": [
+        "protocol-edge-cases-fixture.json"
+      ],
+      "description": "Positional stream scan boundaries read against the caller's permitted range: per-page examples in both directions, a non-zero readable_floor anchor, an empty permitted range and the cross-page chain equation.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
         "spec/v1/zh/conformance/conformance-suite.md"
@@ -4844,6 +4883,32 @@
       "description": "DeviceMessageEnvelope requires a sender-assigned device_message_id; unacknowledged byte-identical redelivery executes durable handler effects once, conflicting reuse fails with duplicate_conflict/device_message_id_conflict, and distinct ids remain distinct logical messages.",
       "source_refs": [
         "spec/v1/artifacts/registry/normative-clause-registry.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.sync.window_start_basis.v1",
+      "status": "active",
+      "domain": "sync",
+      "applies_to_fixtures": [
+        "protocol-edge-cases-fixture.json"
+      ],
+      "description": "Per-stream verifiable window-start basis versus Realm display preview: mixed Realm/Circle/Sidecar starts, genesis and readable-floor anchors, and preview_only isolated to the stream whose basis is insufficient.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
+        "spec/v1/zh/conformance/conformance-suite.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.sync.zero_window_and_empty_stream.v1",
+      "status": "active",
+      "domain": "sync",
+      "applies_to_fixtures": [
+        "protocol-edge-cases-fixture.json"
+      ],
+      "description": "window_limit=0 as a boundary-and-context-only window, empty and floor-trimmed streams, and the invariance of window_limit, limited and complete under byte-budget segmentation.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
+        "spec/v1/zh/conformance/conformance-suite.md"
       ]
     },
     {

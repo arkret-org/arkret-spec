@@ -163,6 +163,14 @@ Profile 分两类（分类口径以 [`conformance-profiles.json`](../../artifact
 - cursor binding：`filter_digest` canonical 计算、query-scope digest 绑定、跨 scope 回传 cursor 时返回 `cursor_integrity_invalid`。
 - limited timeline state：实现返回确定性 `state_at_window_start` 时，MUST 分别按该 stream 上 window 起点之前的 confirmed RealmCommit 前缀重建普通投影，并按对应历史 confirmed RealmCommit state 取得安全/MLS 投影；无法计算时 MUST 使用安全降级而不得伪造状态。
 
+逐流窗口与位置化扫描另 MUST 执行同一 fixture 中的 `ak.vector.sync.window_start_basis.v1`、`ak.vector.sync.stream_scan_permitted_range.v1`、`ak.vector.sync.stream_enumeration_no_starvation.v1`、`ak.vector.sync.event_read_row_integrity.v1` 与 `ak.vector.sync.zero_window_and_empty_stream.v1`：
+
+- window start basis：同一帧混合 Realm／Circle／Sidecar 起点，逐流声明覆盖范围；`state_at_window_start` 是显示预览，MUST NOT 清除任何流的 `preview_only`；缺该流所需安全／MLS 上下文时只该流 `preview_only`，其余流继续。
+- scan 允许区间：`after_position` / `before_position` 各自的逐页结果、`truncated` 只反映获准可读的 Commit、`readable_floor` 在非零 floor 上给出可验证下端、空获准区间不等于空物理流，并在跨页上校验 `newer.previous_commit_ref == older.commit_id`。
+- 流枚举不饥饿：70 条可见流下枚举分页、显式 `stream_refs` 选择、第 65 条流在首页之后产生 Commit 仍能发现并续传、固定快照分页与每页权限重查。
+- EventReadRow 完整性：`event_id` 与 `commit.event_ref` 不一致 MUST 拒绝、locked stub 在该位置 MUST 携 `event_id`、redacted／locked 不作为 reducer 输入、对不获准知道存在性的 caller 整行不返回。
+- 零窗口与空流：`window_limit=0` 只投递边界与上下文，`complete` 只证明投递完成，`limited` 只按 caller 可读区间解释，byte budget 只影响分段。
+
 ## 5. 组件级测试矩阵（必测）
 
 | 组件 | MUST 覆盖 | SHOULD 覆盖 |

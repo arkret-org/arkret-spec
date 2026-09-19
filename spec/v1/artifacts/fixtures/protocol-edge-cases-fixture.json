@@ -30,7 +30,12 @@
     "ak.vector.invite.claim_expiry_canonical_time.v1",
     "ak.vector.device_pairing.code_claim.v1",
     "ak.vector.device_pairing.challenge_transcript.v1",
-    "ak.vector.device_pairing.accepted_device_attestation.v1"
+    "ak.vector.device_pairing.accepted_device_attestation.v1",
+    "ak.vector.sync.window_start_basis.v1",
+    "ak.vector.sync.stream_scan_permitted_range.v1",
+    "ak.vector.sync.stream_enumeration_no_starvation.v1",
+    "ak.vector.sync.event_read_row_integrity.v1",
+    "ak.vector.sync.zero_window_and_empty_stream.v1"
   ],
   "cases": [
     {
@@ -817,6 +822,175 @@
         "an unknown, wrong, expired, superseded, cross-account, not yet finalized and already consumed code all return one indistinguishable not_found with no observable difference in body, code, reason code or timing",
         "the pairing code never appears in a URL path or query string, an access log or an analytics event",
         "exceeding the per-caller-device, per-AccountId or per-service rate budget returns rate_limited and an exhausted failure budget locks the request"
+      ]
+    },
+    {
+      "name": "per_stream_window_start_basis",
+      "vector_id": "ak.vector.sync.window_start_basis.v1",
+      "basis": "realm_sync_entry.streams[].window_start_basis, evaluated once per stream_ref and never inherited from a sibling stream of the same Realm bucket",
+      "variants": [
+        "realm_stream_after_committed_prefix",
+        "circle_stream_stream_genesis",
+        "sidecar_stream_before_readable_floor",
+        "circle_stream_missing_security_context",
+        "realm_display_preview_only_present"
+      ],
+      "expected": {
+        "realm_stream_after_committed_prefix": "verified_window_start",
+        "circle_stream_stream_genesis": "verified_window_start",
+        "sidecar_stream_before_readable_floor": "verified_window_start",
+        "circle_stream_missing_security_context": "preview_only_for_that_stream_only",
+        "realm_display_preview_only_present": "every_limited_stream_stays_preview_only"
+      },
+      "assertions": [
+        "one frame carries a mixed Realm, Circle and Sidecar window start and each stream states its own coverage",
+        "state_at_window_start is display context and MUST NOT clear any stream's preview_only",
+        "stream_genesis MUST NOT carry anchor_position or anchor_commit_ref; the other two anchor kinds MUST carry both",
+        "before_readable_floor accepts a non-zero oldest_position as the start of the permitted prefix and does not require position 0",
+        "a stream whose basis is insufficient MUST NOT enter reducer input or the MLS install path while its siblings continue"
+      ]
+    },
+    {
+      "name": "stream_scan_permitted_range_paging",
+      "vector_id": "ak.vector.sync.stream_scan_permitted_range.v1",
+      "basis": "physical stream positions 0..12 with a caller permitted 4..9 through membership_join, limit 3",
+      "variants": [
+        "before_position_null_descending_first_page",
+        "before_position_7_reaches_the_floor",
+        "after_position_null_ascending_from_the_floor",
+        "after_position_9_above_the_permitted_range",
+        "caller_with_no_readable_commit",
+        "cross_page_chain_anchor"
+      ],
+      "expected": {
+        "before_position_null_descending_first_page": {
+          "positions": [
+            9,
+            8,
+            7
+          ],
+          "truncated": true,
+          "readable_floor": "optional"
+        },
+        "before_position_7_reaches_the_floor": {
+          "positions": [
+            6,
+            5,
+            4
+          ],
+          "truncated": false,
+          "readable_floor": "required"
+        },
+        "after_position_null_ascending_from_the_floor": {
+          "positions": [
+            4,
+            5,
+            6
+          ],
+          "truncated": true,
+          "readable_floor": "required"
+        },
+        "after_position_9_above_the_permitted_range": {
+          "positions": [],
+          "truncated": false,
+          "readable_floor": "optional"
+        },
+        "caller_with_no_readable_commit": {
+          "positions": [],
+          "truncated": false,
+          "readable_floor": "omitted"
+        },
+        "cross_page_chain_anchor": "accepted"
+      },
+      "assertions": [
+        "truncated reports only Commits the caller is permitted to read, so positions 10..12 MUST NOT set it",
+        "an empty commits[] with truncated false MUST NOT be read as an absent or empty physical stream",
+        "readable_floor.oldest_position is 4 and floor_commit_id is the Commit at 4, so the permitted prefix is verifiable without position 0",
+        "the commit at the floor is the only readable row allowed to carry an unresolvable previous_commit_ref",
+        "newer.previous_commit_ref equals older.commit_id in both directions and across the page boundary between the first and second page",
+        "a request carrying both or neither of after_position and before_position is a schema violation and MUST NOT be repaired by defaulting a direction",
+        "the scan surface MUST reject an ak:cursor: value and MUST NOT issue one"
+      ]
+    },
+    {
+      "name": "stream_enumeration_has_no_starvation",
+      "vector_id": "ak.vector.sync.stream_enumeration_no_starvation.v1",
+      "basis": "one Realm with 70 streams visible to the caller, a 64-entry subscribe window and ak.self.realm.read.streams.v1 paging",
+      "variants": [
+        "bounded_first_screen_reports_streams_limited",
+        "enumeration_pages_every_visible_stream",
+        "explicit_stream_refs_selection_advances_only_that_set",
+        "second_group_resumes_where_it_stopped",
+        "sixty_fifth_stream_commits_after_the_first_page",
+        "permission_narrows_between_pages",
+        "container_without_a_commit_chain"
+      ],
+      "expected": {
+        "bounded_first_screen_reports_streams_limited": "streams_limited_true_with_the_realm_stream_kept",
+        "enumeration_pages_every_visible_stream": "all_70_reachable_through_has_more",
+        "explicit_stream_refs_selection_advances_only_that_set": "omitted_streams_count_as_not_delivered",
+        "second_group_resumes_where_it_stopped": "new_filter_and_cursor_with_the_earlier_group_position_retained",
+        "sixty_fifth_stream_commits_after_the_first_page": "discovered_and_tailed",
+        "permission_narrows_between_pages": "row_disappears_rather_than_being_served_from_the_frozen_generation",
+        "container_without_a_commit_chain": "omitted_from_both_enumeration_and_streams"
+      },
+      "assertions": [
+        "a stream outside the first 64 MUST remain discoverable, readable and continuously updatable",
+        "the first 64 slots MUST NOT be permanently occupied by a fixed set, and the server MUST NOT silently drop a tail",
+        "pagination is one fixed generation: a stream appearing after page one is never inserted into an earlier page and therefore never skipped",
+        "discovery of an added or removed stream MUST NOT be suppressed by an event-kind filter",
+        "stream_refs entries MUST be unique, MUST name a Realm in realm_ids and MUST each be permitted; a non-permitted entry is rejected rather than dropped",
+        "enumeration order and subscribe truncation order are both unsigned bytes of JCS(stream_ref), so the two agree on which streams a bounded window kept"
+      ]
+    },
+    {
+      "name": "event_read_row_integrity_and_existence_acl",
+      "vector_id": "ak.vector.sync.event_read_row_integrity.v1",
+      "basis": "stream_row pairs of one RealmCommit and the EventReadRow member in the same row",
+      "variants": [
+        "full_event_id_equals_commit_event_ref",
+        "full_event_id_differs_from_commit_event_ref",
+        "reference_locked_stub_without_event_id",
+        "redacted_row_offered_as_reducer_input",
+        "caller_not_permitted_to_know_the_event_exists"
+      ],
+      "expected": {
+        "full_event_id_equals_commit_event_ref": "accepted",
+        "full_event_id_differs_from_commit_event_ref": "rejected",
+        "reference_locked_stub_without_event_id": "rejected",
+        "redacted_row_offered_as_reducer_input": "rejected",
+        "caller_not_permitted_to_know_the_event_exists": "row_withheld_entirely"
+      },
+      "assertions": [
+        "a mismatch between event_id and commit.event_ref MUST be rejected and MUST NOT be reconciled by preferring either side",
+        "commit.event_ref already names the source Event, so a stub in this position MUST carry event_id and the stub name is not a privacy guarantee",
+        "redacted and locked rows are not complete reducer input",
+        "existence ACL is enforced on the whole row, so the Commit MUST NOT be used to leak an Event the caller may not know exists"
+      ]
+    },
+    {
+      "name": "zero_window_and_empty_stream",
+      "vector_id": "ak.vector.sync.zero_window_and_empty_stream.v1",
+      "basis": "realm_stream_window scalars read against the caller's permitted range",
+      "variants": [
+        "window_limit_zero",
+        "window_limit_zero_complete_true",
+        "stream_with_no_readable_history",
+        "history_below_the_readable_floor",
+        "byte_budget_segmentation"
+      ],
+      "expected": {
+        "window_limit_zero": "boundary_and_context_only_window",
+        "window_limit_zero_complete_true": "delivery_complete_not_scanned_to_genesis",
+        "stream_with_no_readable_history": "not_reported_as_absent",
+        "history_below_the_readable_floor": "limited_stays_false",
+        "byte_budget_segmentation": "window_limit_and_limited_unchanged"
+      },
+      "assertions": [
+        "a zero-row window MUST NOT be read as an empty or exhausted stream",
+        "complete proves delivery of the frozen window only, never that the stream was read down to position 0",
+        "limited marks history the caller may read, so unreadable history below the floor MUST NOT set it and MUST NOT clear it",
+        "byte budgets decide segmentation only and MUST NOT lower window_limit or flip limited inside one window"
       ]
     }
   ]
