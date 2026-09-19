@@ -106,7 +106,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/content-bound-event-id-fixture.json",
-      "sha256": "c5db26e80f7ab35c628788a9767477d2d1d7afd24b57fbcfbc2d4383083df1e1"
+      "sha256": "297c490280ae999de3ddeddb00fa0ab2608292d74553fe55508ea70caf688f47"
     },
     {
       "path": "spec/v1/artifacts/fixtures/crypto-signature-fixture.json",

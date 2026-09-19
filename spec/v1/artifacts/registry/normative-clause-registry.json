@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-21.1",
+  "version": "2026-09-22.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-21T18:00:00+08:00",
+  "generated_at": "2026-09-22T11:00:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -169,7 +169,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#3-digest-suite",
-      "section_digest": "sha256:65522464cdb4b5017362ba3ec55788e421c2332c3bdf03f72155990d51f6c323",
+      "section_digest": "sha256:de5de4a7609bd2597a0d242b1fcdef639368c8bd493dcd3c2079fe299a1c6ca3",
       "requirement": "Digest suite identifiers, canonical event digest computation and the bytewise tie-break order are fixed; implementations MUST NOT substitute another hash encoding or comparison direction.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -432,11 +432,12 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#31-内容寻址预映射",
-      "section_digest": "sha256:4fdc42653b6c7e218bf83378b5af79aa16b4fc38d38edc5b0cb879404bf13c4a",
+      "section_digest": "sha256:ea71b48273fd485ff9ba1386848dfd0901e054586da965cb03fdfb708d1e07c5",
       "requirement": "Fields inside the event_digest preimage MUST NOT commit to the enclosing Event's own event_id, event_digest or any retype of them, nor to the identity of a not-yet-formed sibling Event in the same atomic unit or ordered submit batch; those two classes have no fixed point, MUST be rejected as event_id_digest_mismatch, and MUST NOT be exempted by any registry. Commitments of that kind MUST instead use the counterpart's payload digest or a structure outside the preimage (proofs, receipts). A one-way forward declaration naming a later Event from a separate submission whose canonical bytes the author already froze is constructible and MUST be allowed only when preimage-identity-exemption-registry.json carries an active row for exactly that field and the field's own description declares the forward commitment.",
       "testability_grade": "vector",
       "evidence_refs": [
-        "ak.vector.event_id.content_bound.v1"
+        "ak.vector.event_id.content_bound.v1",
+        "ak.vector.encoding.derived_relation_evidence.v1"
       ]
     },
     {

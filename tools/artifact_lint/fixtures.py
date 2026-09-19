@@ -147,6 +147,10 @@ def check_content_bound_event_id_fixture(lint: Lint) -> None:
         "padding_rejected",
         "wrong_decoded_length_rejected",
         "same_event_id_different_canonical_bytes_is_hash_collision",
+        "principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected",
+        "human_pcr_genesis_on_a_second_station_derives_a_distinct_realm_id",
+        "human_founding_device_authorize_binds_the_derived_realm",
+        "same_account_second_genesis_rejected_by_station_account_uniqueness",
     }
     names: set[str] = set()
     for case in data.get("cases", []):
@@ -203,6 +207,7 @@ def check_content_bound_event_id_fixture(lint: Lint) -> None:
             "human PCR vector must assert byte-identical realm_id retyping from its "
             "ak.realm.create event_id",
         )
+    _check_human_pcr_genesis_chain(lint, path, cases_by_name)
 
     agent_pcr = cases_by_name.get(
         "agent_provision_forward_declaration_is_constructible"
@@ -292,6 +297,686 @@ def check_content_bound_event_id_fixture(lint: Lint) -> None:
             if len(first) != 33 or len(second) != 33 or first[0] != second[0] or differing_bits != 1:
                 lint.fail(path, "single-bit Event-ID case must differ by exactly one digest bit")
 
+
+
+# --- general derived-relation evidence gate (0520) --------------------------
+# A fixture may assert that one value is derived from another: an Event id from
+# its canonical preimage, a Realm id from that Event token, a digest from a
+# canonical object. Those assertions used to be prose members next to the
+# values, so a case could claim "retype_is_byte_identical" while carrying no
+# bytes at all, and nothing failed. A relation row instead names the rule, the
+# exact input locations and the exact output location, and this gate recomputes
+# it. Declaring the relation is therefore the only way to pass, and deleting the
+# declaration is a failure rather than a silently lost obligation.
+
+BASE58BTC_ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+
+
+def base58btc_decode(text: str) -> bytes:
+    value = 0
+    for character in text:
+        position = BASE58BTC_ALPHABET.find(character)
+        if position < 0:
+            raise ValueError(f"{character!r} is not a base58btc character")
+        value = value * 58 + position
+    body = value.to_bytes((value.bit_length() + 7) // 8, "big")
+    return bytes(len(text) - len(text.lstrip("1"))) + body
+
+
+DERIVED_RELATION_INPUTS: dict[str, dict[str, str]] = {
+    "event_id_from_canonical_preimage": {
+        "canonical_preimage_utf8": "ref",
+        "suite_wire_code": "ref",
+    },
+    "retype_typed_id": {"source_typed_id": "ref"},
+    "reserved_nibble_only_mutation": {"accepted_typed_id": "ref"},
+    "event_preimage_member": {
+        "canonical_preimage_utf8": "ref",
+        "member_pointer": "literal",
+    },
+    "did_core_projection": {"did": "ref", "did_method": "ref"},
+    "sha256_of_canonical_json": {"object": "ref"},
+    "equal_json_value": {"left": "ref"},
+    "ed25519_signature_over_prefixed_canonical_json": {
+        "domain": "ref",
+        "canonical_json": "ref",
+        "public_key_did": "ref",
+    },
+}
+
+# Relations whose output is by construction a rejected value, so the usual
+# "accepted evidence only" rule does not apply to that one endpoint.
+NEGATIVE_OUTPUT_RELATIONS = frozenset({"reserved_nibble_only_mutation"})
+
+# (fixture, relation, canonical output reference) triples that MUST stay
+# declared. Without this table a mutation could delete the declaration and the
+# gate would report a clean fixture with nothing left to recompute.
+REQUIRED_DERIVED_RELATIONS: tuple[tuple[str, str, str], ...] = (
+    (
+        "content-bound-event-id-fixture.json",
+        "event_id_from_canonical_preimage",
+        "case:principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected#/derived_event_id",
+    ),
+    (
+        "content-bound-event-id-fixture.json",
+        "retype_typed_id",
+        "case:principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected#/derived_realm_id",
+    ),
+    (
+        "content-bound-event-id-fixture.json",
+        "reserved_nibble_only_mutation",
+        "case:principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected#/rejected_form/realm_id",
+    ),
+    (
+        "content-bound-event-id-fixture.json",
+        "did_core_projection",
+        "case:principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected#/identity_bindings/projected_principal_id",
+    ),
+    (
+        "content-bound-event-id-fixture.json",
+        "equal_json_value",
+        "case:principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected#/identity_bindings/actor_principal_id",
+    ),
+    (
+        "content-bound-event-id-fixture.json",
+        "sha256_of_canonical_json",
+        "fixture:pcr-genesis-fixture.json#/founding_device_descriptor/founding_authorize_payload_digest",
+    ),
+    (
+        "content-bound-event-id-fixture.json",
+        "ed25519_signature_over_prefixed_canonical_json",
+        "fixture:pcr-genesis-fixture.json#/device_possession/device_signature",
+    ),
+    (
+        "content-bound-event-id-fixture.json",
+        "event_id_from_canonical_preimage",
+        "case:human_pcr_genesis_on_a_second_station_derives_a_distinct_realm_id#/derived_event_id",
+    ),
+    (
+        "content-bound-event-id-fixture.json",
+        "event_id_from_canonical_preimage",
+        "case:human_founding_device_authorize_binds_the_derived_realm#/derived_event_id",
+    ),
+    (
+        "content-bound-event-id-fixture.json",
+        "event_preimage_member",
+        "case:principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected#/derived_realm_id",
+    ),
+    (
+        "content-bound-event-id-fixture.json",
+        "retype_typed_id",
+        "case:strand_object_id_is_retyped_event_id#/derived_object_id",
+    ),
+    (
+        "content-bound-event-id-fixture.json",
+        "retype_typed_id",
+        "case:agent_provision_forward_declaration_is_constructible#/derived_realm_id",
+    ),
+    (
+        "content-bound-event-id-fixture.json",
+        "equal_json_value",
+        "case:agent_provision_forward_declaration_is_constructible#/derived_realm_id",
+    ),
+)
+
+_RELATION_MISSING = object()
+
+
+def _relation_ref_key(reference: Any) -> str | None:
+    if not isinstance(reference, dict) or not isinstance(reference.get("pointer"), str):
+        return None
+    case = reference.get("case")
+    fixture = reference.get("fixture")
+    if isinstance(case, str) and fixture is None:
+        return f"case:{case}#{reference['pointer']}"
+    if isinstance(fixture, str) and case is None:
+        return f"fixture:{fixture}#{reference['pointer']}"
+    return None
+
+
+def _resolve_relation_ref(
+    lint: Lint, path: Path, cases: dict[str, Any], reference: Any
+) -> tuple[Any, str | None]:
+    """Resolve one relation endpoint. A stale reference is a failure, not a skip."""
+    key = _relation_ref_key(reference)
+    if key is None:
+        lint.fail(
+            path,
+            "derived relation endpoint MUST be {case|fixture, pointer} with exactly one "
+            f"of case/fixture: {reference!r}",
+        )
+        return _RELATION_MISSING, None
+    pointer = reference["pointer"]
+    if "case" in reference:
+        document = cases.get(reference["case"], _RELATION_MISSING)
+        if document is _RELATION_MISSING:
+            lint.fail(path, f"derived relation names no such case: {reference['case']}")
+            return _RELATION_MISSING, key
+    else:
+        target = ARTIFACTS / "fixtures" / reference["fixture"]
+        if not target.is_file():
+            lint.fail(path, f"derived relation names no such fixture: {reference['fixture']}")
+            return _RELATION_MISSING, key
+        document = load_json(lint, target)
+    try:
+        value = resolve_json_pointer(document, "#" + pointer)
+    except (KeyError, IndexError, TypeError, ValueError):
+        lint.fail(path, f"derived relation pointer does not resolve: {key}")
+        return _RELATION_MISSING, key
+    if value is None:
+        lint.fail(path, f"derived relation pointer resolves to null: {key}")
+        return _RELATION_MISSING, key
+    return value, key
+
+
+def _relation_case_outcome(cases: dict[str, Any], reference: Any) -> str | None:
+    if not isinstance(reference, dict) or not isinstance(reference.get("case"), str):
+        return None
+    case = cases.get(reference["case"])
+    if not isinstance(case, dict):
+        return None
+    expected = case.get("expected")
+    if isinstance(expected, dict) and isinstance(expected.get("outcome"), str):
+        return expected["outcome"]
+    return None
+
+
+def _typed_id_parts(value: Any) -> tuple[str, bytes] | None:
+    if not isinstance(value, str) or value.count(":") != 2:
+        return None
+    namespace, kind, token = value.split(":")
+    if namespace != "ak" or len(token) != 44:
+        return None
+    try:
+        body = base64.urlsafe_b64decode(token + "==")
+    except (binascii.Error, ValueError):
+        return None
+    if len(body) != 33 or base64.urlsafe_b64encode(body).rstrip(b"=").decode("ascii") != token:
+        return None
+    return kind, body
+
+
+def _did_core_projection_prefix(lint: Lint, path: Path, method: Any) -> str | None:
+    """Projection is method-defined, so the gate reads the adapter, never a guess."""
+    registry = load_json(lint, ARTIFACTS / "registry" / "did-method-adapter-registry.json")
+    if not isinstance(registry, dict):
+        return None
+    for adapter in registry.get("adapters", []):
+        if not isinstance(adapter, dict) or adapter.get("method") != method:
+            continue
+        if adapter.get("status") != "active":
+            lint.fail(path, f"did_core_projection names an inactive adapter: {method}")
+            return None
+        template = adapter.get("core_projection")
+        if template != "ak:did_core:webvh:<validated-scid>":
+            lint.fail(
+                path,
+                f"did_core_projection cannot recompute {method}: this gate only implements the "
+                f"validated-SCID projection, and the adapter declares {template!r}",
+            )
+            return None
+        return "ak:did_core:webvh:"
+    lint.fail(path, f"did_core_projection names no registered adapter: {method!r}")
+    return None
+
+
+def _check_one_derived_relation(
+    lint: Lint, path: Path, cases: dict[str, Any], row: Any
+) -> tuple[str, str] | None:
+    if not isinstance(row, dict):
+        lint.fail(path, "derived_relations entries MUST be objects")
+        return None
+    relation = row.get("relation")
+    specification = DERIVED_RELATION_INPUTS.get(relation) if isinstance(relation, str) else None
+    if specification is None:
+        lint.fail(path, f"unknown derived relation {relation!r}")
+        return None
+    inputs = row.get("inputs")
+    if not isinstance(inputs, dict) or set(inputs) != set(specification):
+        lint.fail(
+            path,
+            f"{relation} inputs MUST be exactly {sorted(specification)}, got "
+            f"{sorted(inputs) if isinstance(inputs, dict) else inputs!r}",
+        )
+        return None
+    output_value, output_key = _resolve_relation_ref(lint, path, cases, row.get("output"))
+    if output_key is None:
+        return None
+    if _relation_case_outcome(cases, row.get("output")) not in (None, "accepted") and (
+        relation not in NEGATIVE_OUTPUT_RELATIONS
+    ):
+        lint.fail(
+            path,
+            f"{relation} output {output_key} belongs to a rejected case, so recomputing it "
+            "proves nothing about accepted material",
+        )
+    resolved: dict[str, Any] = {}
+    for member, form in specification.items():
+        if form == "literal":
+            resolved[member] = inputs[member]
+            continue
+        value, key = _resolve_relation_ref(lint, path, cases, inputs[member])
+        if key == output_key:
+            lint.fail(path, f"{relation} input {member} is its own output: {key}")
+        if _relation_case_outcome(cases, inputs[member]) not in (None, "accepted"):
+            lint.fail(
+                path,
+                f"{relation} input {member} reads rejected case material at {key}; a negative "
+                "case cannot serve as accepted evidence",
+            )
+        resolved[member] = value
+    if output_value is _RELATION_MISSING or any(
+        value is _RELATION_MISSING for value in resolved.values()
+    ):
+        return None
+    _recompute_derived_relation(lint, path, relation, resolved, output_value, output_key)
+    return relation, output_key
+
+
+def _recompute_derived_relation(
+    lint: Lint,
+    path: Path,
+    relation: str,
+    inputs: dict[str, Any],
+    output: Any,
+    output_key: str,
+) -> None:
+    def wrong(detail: str) -> None:
+        lint.fail(path, f"{relation} does not hold for {output_key}: {detail}")
+
+    if relation == "event_id_from_canonical_preimage":
+        preimage, suite = inputs["canonical_preimage_utf8"], inputs["suite_wire_code"]
+        if not isinstance(preimage, str) or not isinstance(suite, int) or isinstance(suite, bool):
+            wrong("inputs are not canonical UTF-8 bytes plus an integer suite wire code")
+            return
+        if not 0 < suite <= 0x0F:
+            wrong(f"suite wire code {suite} is outside the uint4 range")
+            return
+        body = bytes((suite,)) + hashlib.sha256(preimage.encode("utf-8")).digest()
+        expected = "ak:event:" + base64.urlsafe_b64encode(body).rstrip(b"=").decode("ascii")
+        if output != expected:
+            wrong(f"recomputed {expected}")
+        return
+
+    if relation == "retype_typed_id":
+        source = _typed_id_parts(inputs["source_typed_id"])
+        target = _typed_id_parts(output)
+        if source is None or target is None:
+            wrong("both endpoints MUST be 33-octet typed ID tokens")
+            return
+        if source[1] != target[1]:
+            wrong("retyping MUST keep all 33 octets and change only the typed prefix")
+        elif source[0] == target[0]:
+            wrong("a retype MUST change the typed kind; the two endpoints name one kind")
+        return
+
+    if relation == "reserved_nibble_only_mutation":
+        accepted = _typed_id_parts(inputs["accepted_typed_id"])
+        mutated = _typed_id_parts(output)
+        if accepted is None or mutated is None:
+            wrong("both endpoints MUST be 33-octet typed ID tokens")
+            return
+        if accepted[0] != mutated[0]:
+            wrong("the mutation MUST keep the typed kind")
+        if accepted[1][1:] != mutated[1][1:]:
+            wrong("the mutation MUST change only the header octet")
+        if accepted[1][0] >> 4 != 0:
+            wrong("the accepted token MUST carry a zero reserved high nibble")
+        if mutated[1][0] >> 4 == 0:
+            wrong("the rejected token MUST carry a non-zero reserved high nibble")
+        if accepted[1][0] & 0x0F != mutated[1][0] & 0x0F:
+            wrong("the mutation MUST NOT also change the digest suite nibble")
+        return
+
+    if relation == "event_preimage_member":
+        preimage, pointer = inputs["canonical_preimage_utf8"], inputs["member_pointer"]
+        if not isinstance(preimage, str) or not isinstance(pointer, str):
+            wrong("inputs are not canonical UTF-8 bytes plus a JSON Pointer")
+            return
+        try:
+            document = json.loads(preimage)
+        except json.JSONDecodeError:
+            wrong("the stated preimage is not valid JSON")
+            return
+        if canonical_json(document) != preimage:
+            wrong("the stated preimage bytes are not canonical JSON")
+            return
+        try:
+            carried = resolve_json_pointer(document, "#" + pointer)
+        except (KeyError, IndexError, TypeError, ValueError):
+            wrong(f"the preimage has no member at {pointer}")
+            return
+        if carried != output:
+            wrong(f"the hashed bytes carry {carried!r} at {pointer}")
+        return
+
+    if relation == "did_core_projection":
+        prefix = _did_core_projection_prefix(lint, path, inputs["did_method"])
+        if prefix is None:
+            return
+        did = inputs["did"]
+        if not isinstance(did, str) or not did.startswith(inputs["did_method"] + ":"):
+            wrong(f"{did!r} is not a bare {inputs['did_method']} DID")
+            return
+        segments = did.split(":")
+        if len(segments) < 3 or not segments[2]:
+            wrong("the DID carries no method-specific SCID segment")
+            return
+        expected = prefix + segments[2]
+        if output != expected:
+            wrong(f"project({did}) is {expected}")
+        return
+
+    if relation == "sha256_of_canonical_json":
+        expected = "sha256:" + hashlib.sha256(
+            canonical_json(inputs["object"]).encode("utf-8")
+        ).hexdigest()
+        if output != expected:
+            wrong(f"recomputed {expected}")
+        return
+
+    if relation == "equal_json_value":
+        if inputs["left"] != output:
+            wrong(f"{inputs['left']!r} != {output!r}")
+        return
+
+    if relation == "ed25519_signature_over_prefixed_canonical_json":
+        if Ed25519PublicKey is None:  # pragma: no cover - CI installs cryptography.
+            return
+        domain, body, key_did = inputs["domain"], inputs["canonical_json"], inputs["public_key_did"]
+        if not all(isinstance(value, str) for value in (domain, body, key_did, output)):
+            wrong("every endpoint of a signature relation MUST be a string")
+            return
+        if not key_did.startswith("did:key:z"):
+            wrong(f"{key_did!r} is not a did:key multibase value")
+            return
+        try:
+            multikey = base58btc_decode(key_did.removeprefix("did:key:z"))
+        except ValueError as error:
+            wrong(f"the did:key value does not decode: {error}")
+            return
+        if multikey[:2] != b"\xed\x01" or len(multikey) != 34:
+            wrong(
+                "the did:key value is not an Ed25519 multikey (0xed01 plus 32 octets); it decodes "
+                f"to prefix {multikey[:2].hex()} and {len(multikey) - 2} key octets"
+            )
+            return
+        try:
+            signature = base64.urlsafe_b64decode(output + "=" * (-len(output) % 4))
+        except (binascii.Error, ValueError):
+            wrong("the signature is not unpadded base64url")
+            return
+        try:
+            Ed25519PublicKey.from_public_bytes(multikey[2:]).verify(
+                signature, (domain + "\n" + body).encode("utf-8")
+            )
+        except Exception:  # noqa: BLE001 - InvalidSignature plus malformed input
+            wrong("the signature does not verify over UTF8(domain) || 0x0A || canonical bytes")
+        return
+
+    lint.fail(path, f"derived relation {relation} has no recomputation")  # pragma: no cover
+
+
+def _json_leaf_paths(value: object, prefix: str = "") -> dict[str, object]:
+    """Flatten a JSON value into dotted leaf paths, so two preimages can be
+    diffed by path instead of by eyeball. Arrays index by position because a
+    reordered array is a different canonical object."""
+    if isinstance(value, dict):
+        leaves: dict[str, object] = {}
+        for key, member in value.items():
+            child = f"{prefix}.{key}" if prefix else str(key)
+            leaves.update(_json_leaf_paths(member, child))
+        return leaves
+    if isinstance(value, list):
+        leaves = {}
+        for index, member in enumerate(value):
+            leaves.update(_json_leaf_paths(member, f"{prefix}[{index}]"))
+        return leaves
+    return {prefix: value}
+
+
+def _human_chain_preimage(
+    lint: Lint, path: Path, case: dict, name: str
+) -> dict | None:
+    raw = case.get("digest_preimage_canonical_bytes_utf8")
+    if not isinstance(raw, str):
+        lint.fail(path, f"{name}: the human genesis chain requires canonical preimage bytes")
+        return None
+    try:
+        envelope = json.loads(raw)
+    except json.JSONDecodeError:
+        lint.fail(path, f"{name}: canonical preimage bytes are not JSON")
+        return None
+    if not isinstance(envelope, dict):
+        lint.fail(path, f"{name}: canonical preimage must decode to an Event envelope")
+        return None
+    return envelope
+
+
+def _check_human_pcr_genesis_chain(
+    lint: Lint, path: Path, cases_by_name: dict
+) -> None:
+    """The human Principal Control Realm chain must be constructive.
+
+    Before 0520 this case carried four label members -- principal_kind,
+    realm_purpose, realm_id_source and retype_is_byte_identical -- and no bytes
+    at all, so the gate above was checking what the case claimed rather than
+    whether the claim holds. The relation gate recomputes every declared
+    derivation; this function holds the case shape, so the bytes cannot be
+    deleted while the labels survive.
+    """
+    step1_name = "principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected"
+    step1 = cases_by_name.get(step1_name)
+    if not isinstance(step1, dict):
+        return
+
+    # 1. Step 1 must be constructive, and its Realm token must be the Event
+    #    token retyped. The generic KAT loop above recomputes the digest and the
+    #    33-octet token; what it cannot see is a case that keeps the retype
+    #    label while dropping the Realm token.
+    for member in (
+        "digest_preimage_canonical_bytes_utf8",
+        "event_digest",
+        "suite_wire_code",
+        "event_id_bytes_hex",
+        "derived_event_id",
+        "derived_realm_id",
+    ):
+        if member not in step1:
+            lint.fail(
+                path,
+                f"{step1_name}: the human PCR case asserts a byte-identical retype, "
+                f"so it MUST carry {member}",
+            )
+    accepted_event = str(step1.get("derived_event_id", "")).removeprefix("ak:event:")
+    accepted_realm = str(step1.get("derived_realm_id", "")).removeprefix("ak:realm:")
+    if not accepted_event or accepted_event != accepted_realm:
+        lint.fail(
+            path,
+            f"{step1_name}: derived_realm_id must be the derived_event_id token "
+            "byte for byte",
+        )
+
+    step1_envelope = _human_chain_preimage(lint, path, step1, step1_name)
+
+    # 2. The rejected token is a mutation of the accepted one, not an unrelated
+    #    constant. Only the reserved high nibble may move.
+    rejected = step1.get("rejected_form", {})
+    rejected_realm = str(rejected.get("realm_id", "")).removeprefix("ak:realm:")
+    if accepted_realm and rejected_realm:
+        try:
+            accepted_bytes = base64.urlsafe_b64decode(accepted_realm + "==")
+            rejected_bytes = base64.urlsafe_b64decode(rejected_realm + "==")
+        except ValueError:
+            lint.fail(path, f"{step1_name}: rejected_form.realm_id is not a typed token")
+        else:
+            if (
+                len(rejected_bytes) != 33
+                or rejected_bytes[1:] != accepted_bytes[1:]
+                or rejected_bytes[0] & 0x0F != accepted_bytes[0] & 0x0F
+                or rejected_bytes[0] >> 4 == 0
+            ):
+                lint.fail(
+                    path,
+                    f"{step1_name}: the rejected Realm token must be the accepted token "
+                    "with only the reserved high nibble changed to a non-zero value",
+                )
+            if rejected.get("expected_error") != "realm_id_not_event_derived":
+                lint.fail(
+                    path,
+                    f"{step1_name}: a non-zero reserved nibble MUST be rejected as "
+                    "realm_id_not_event_derived",
+                )
+
+    # 3. One DID on two Stations is two Realms. The claim is only worth
+    #    anything if the second preimage really differs from the first in
+    #    exactly the paths it names.
+    second_name = "human_pcr_genesis_on_a_second_station_derives_a_distinct_realm_id"
+    second = cases_by_name.get(second_name)
+    if isinstance(second, dict):
+        differs = second.get("differs_from", {})
+        if differs.get("case") != step1_name:
+            lint.fail(
+                path,
+                f"{second_name}: the distinct-Realm claim must name the step 1 case it "
+                "differs from",
+            )
+        declared = differs.get("only_in")
+        second_envelope = _human_chain_preimage(lint, path, second, second_name)
+        if (
+            isinstance(step1_envelope, dict)
+            and isinstance(second_envelope, dict)
+            and isinstance(declared, list)
+        ):
+            left = _json_leaf_paths(step1_envelope)
+            right = _json_leaf_paths(second_envelope)
+            actual = {
+                key
+                for key in set(left) | set(right)
+                if left.get(key, _RELATION_MISSING) != right.get(key, _RELATION_MISSING)
+            }
+            if actual != set(declared):
+                lint.fail(
+                    path,
+                    f"{second_name}: the two genesis preimages differ in "
+                    f"{sorted(actual)} but the case declares {sorted(declared)}",
+                )
+        if second.get("derived_realm_id") == step1.get("derived_realm_id"):
+            lint.fail(
+                path,
+                f"{second_name}: a second Station MUST derive a different realm_id",
+            )
+        if second.get("expected", {}).get("realm_id_equals_step_1") is not False:
+            lint.fail(
+                path,
+                f"{second_name}: the case must state that the derived Realm is not "
+                "step 1's Realm",
+            )
+
+    # 4. Step 2 binds to the Realm step 1 derived, and the dependency runs one
+    #    way: the create preimage MUST NOT name the authorize Event.
+    authorize_name = "human_founding_device_authorize_binds_the_derived_realm"
+    authorize = cases_by_name.get(authorize_name)
+    if isinstance(authorize, dict):
+        expected_realm = step1.get("derived_realm_id")
+        if authorize.get("realm_id") != expected_realm or authorize.get(
+            "scope_ref", {}
+        ).get("realm_id") != expected_realm:
+            lint.fail(
+                path,
+                f"{authorize_name}: the founding authorize Event must carry the Realm "
+                "derived in step 1 in both its envelope and its scope_ref",
+            )
+        authorize_envelope = _human_chain_preimage(lint, path, authorize, authorize_name)
+        if isinstance(authorize_envelope, dict) and isinstance(step1_envelope, dict):
+            if authorize_envelope.get("actor_id") != step1_envelope.get("actor_id"):
+                lint.fail(
+                    path,
+                    f"{authorize_name}: both Events of one genesis unit must carry the "
+                    "same account ActorId",
+                )
+            authorize_id = authorize.get("derived_event_id")
+            if isinstance(authorize_id, str) and authorize_id in json.dumps(
+                step1_envelope, ensure_ascii=False
+            ):
+                lint.fail(
+                    path,
+                    f"{step1_name}: the create preimage commits to the sibling "
+                    "authorize event_id, which has no fixed point",
+                )
+        if authorize.get("expected", {}).get("declares_any_sibling_event_id") is not False:
+            lint.fail(
+                path,
+                f"{authorize_name}: the unit contract must state that neither Event "
+                "declares a sibling event_id",
+            )
+
+    # 5. Account-dimension uniqueness is a state judgement. Giving this case
+    #    bytes would invite the reading that the rejection follows from the
+    #    digests, which under event-derived ids it never can.
+    state_name = "same_account_second_genesis_rejected_by_station_account_uniqueness"
+    state = cases_by_name.get(state_name)
+    if isinstance(state, dict):
+        for member in ("digest_preimage_canonical_bytes_utf8", "event_digest", "derived_event_id"):
+            if member in state:
+                lint.fail(
+                    path,
+                    f"{state_name}: account uniqueness is decided from Station state, "
+                    f"so this case MUST NOT carry {member}",
+                )
+        if not isinstance(state.get("state_input"), dict):
+            lint.fail(path, f"{state_name}: a state judgement requires an explicit state_input")
+        if not isinstance(state.get("decided_by"), str):
+            lint.fail(path, f"{state_name}: the case must name the rule that decides it")
+        expected = state.get("expected", {})
+        if (
+            expected.get("outcome") != "rejected"
+            or expected.get("writes") != 0
+            or expected.get("decided_by_id_collision") is not False
+        ):
+            lint.fail(
+                path,
+                f"{state_name}: the expected outcome must be a zero-write rejection that "
+                "is not decided by id collision",
+            )
+    if isinstance(step1, dict) and step1.get("expected", {}).get(
+        "same_account_second_genesis"
+    ) is not None:
+        lint.fail(
+            path,
+            f"{step1_name}: the account-uniqueness judgement belongs to "
+            f"{state_name}; it MUST NOT be inferred from this case's digests",
+        )
+
+
+def check_derived_relation_evidence(lint: Lint) -> None:
+    """Every declared derivation is recomputed, and the required ones stay declared."""
+    declared: set[tuple[str, str, str]] = set()
+    for path in sorted((ARTIFACTS / "fixtures").glob("*.json")):
+        data = load_json(lint, path)
+        if not isinstance(data, dict) or "derived_relations" not in data:
+            continue
+        rows = data["derived_relations"]
+        if not isinstance(rows, list) or not rows:
+            lint.fail(path, "derived_relations MUST be a non-empty array when present")
+            continue
+        cases = {
+            case["name"]: case
+            for case in data.get("cases", [])
+            if isinstance(case, dict) and isinstance(case.get("name"), str)
+        }
+        for row in rows:
+            result = _check_one_derived_relation(lint, path, cases, row)
+            if result is not None:
+                declared.add((path.name, result[0], result[1]))
+    for fixture, relation, output_key in REQUIRED_DERIVED_RELATIONS:
+        if (fixture, relation, output_key) not in declared:
+            lint.fail(
+                ARTIFACTS / "fixtures" / fixture,
+                f"required derived relation is not declared: {relation} -> {output_key}. "
+                "Deleting a derivation declaration removes the only check that the asserted "
+                "relation actually holds, so the declaration is mandatory.",
+            )
 
 def check_operation_selector_fixture(lint: Lint) -> None:
     """Single-candidate HTTP selectors are required and signature-covered."""

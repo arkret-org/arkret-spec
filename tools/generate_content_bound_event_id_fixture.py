@@ -70,10 +70,16 @@ def payload_validators() -> dict[str, Draft202012Validator]:
         for token in pointer.strip("/").split("/"):
             if token:
                 node = node[token.replace("~1", "/").replace("~0", "~")]
-        schema = dict(node)
-        schema.setdefault("$schema", "https://json-schema.org/draft/2020-12/schema")
-        schema["$id"] = document["$id"]
-        validators[kind] = Draft202012Validator(schema, registry=schema_registry())
+        if not isinstance(node, dict):
+            continue
+        # Resolve the payload subschema through the shared registry instead of
+        # re-rooting it under the document $id. A promoted subschema keeps its
+        # sibling "#/$defs/..." references, and those resolve against the
+        # promoted root, so every payload schema that reuses a sibling $def
+        # raised PointerToNowhere the moment a case first used that kind.
+        validators[kind] = Draft202012Validator(
+            {"$ref": document["$id"] + "#" + pointer}, registry=schema_registry()
+        )
     return validators
 
 
@@ -172,9 +178,17 @@ def main() -> int:
         "wrong_decoded_length_rejected",
         "same_event_id_different_canonical_bytes_is_hash_collision",
     }
+    required_constructive_cases = {
+        "principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected",
+        "human_pcr_genesis_on_a_second_station_derives_a_distinct_realm_id",
+        "human_founding_device_authorize_binds_the_derived_realm",
+        "same_account_second_genesis_rejected_by_station_account_uniqueness",
+    }
     names = {case.get("name") for case in data["cases"]}
     for missing in sorted(required_negative_cases - names):
         errors.append(f"missing negative case: {missing}")
+    for missing in sorted(required_constructive_cases - names):
+        errors.append(f"missing constructive case: {missing}")
     single_bit_case = next(
         (case for case in data["cases"] if case.get("name") == "full_digest_single_bit_difference_changes_event_id"),
         None,

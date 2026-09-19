@@ -98,6 +98,7 @@ from .fixtures import (
     check_applet_revoke_saga_contract,
     check_canonical_digest_fixtures,
     check_content_bound_event_id_fixture,
+    check_derived_relation_evidence,
     check_crypto_signature_fixture,
     check_cryptographic_suite_kat_bindings,
     check_declared_canonical_json_strings,
@@ -582,6 +583,10 @@ def main(argv: list[str] | None = None) -> int:
             (
                 "declared_canonical_json_strings",
                 lambda: check_declared_canonical_json_strings(lint),
+            ),
+            (
+                "derived_relation_evidence",
+                lambda: check_derived_relation_evidence(lint),
             ),
             (
                 "direct_conversation_digest_vectors",

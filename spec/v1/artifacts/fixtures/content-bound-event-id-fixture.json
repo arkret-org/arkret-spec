@@ -5,7 +5,9 @@
     "entrypoint": "ak.suite.encoding.content_bound_event_id.v1"
   },
   "covers_vectors": [
+    "ak.vector.encoding.derived_relation_evidence.v1",
     "ak.vector.event_id.content_bound.v1",
+    "ak.vector.identity.human_pcr_genesis_constructive.v1",
     "ak.vector.object_identity.event_derived.v1",
     "ak.vector.object_identity.event_derived_realm.v1"
   ],
@@ -13,9 +15,39 @@
     {
       "name": "principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected",
       "vector_id": "ak.vector.object_identity.event_derived_realm.v1",
+      "also_covers_vector_id": "ak.vector.identity.human_pcr_genesis_constructive.v1",
       "principal_id": "ak:did_core:webvh:z6mkfixture",
       "principal_kind": "human",
       "realm_purpose": "principal_control",
+      "note": "Step 1 of the human PCR genesis unit. Every value below is recomputed from the canonical preimage bytes: the identity bindings are read out of the hashed bytes rather than declared beside them, and the rejected Realm token is derived from the accepted one by changing only the reserved high nibble.",
+      "founding_material": {
+        "fixture": "pcr-genesis-fixture.json",
+        "founding_device_descriptor_pointer": "/founding_device_descriptor",
+        "founding_authorize_payload_pointer": "/founding_authorize/payload",
+        "device_possession_transcript_pointer": "/device_possession/canonical_object",
+        "note": "The genesis payload embeds this exact descriptor and the second Event carries this exact authorize payload, so the two fixtures are one construction input and not two copies that can drift apart."
+      },
+      "digest_preimage_canonical_bytes_utf8": "{\"actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"created_at\":\"2026-08-09T00:00:00.000Z\",\"kind\":\"ak.realm.create\",\"payload\":{\"object\":{\"founding_device_descriptor\":{\"algorithms\":[\"ak.hpke_x25519_aead_chacha20poly1305.v1\",\"ak.mls.v1\"],\"descriptor_version\":1,\"device_id\":\"ak:device:019a0000-0000-7000-8000-000000000001\",\"device_key_algorithm\":\"Ed25519\",\"device_key_purpose\":\"event_signing_and_mls_identity\",\"device_public_key_did\":\"did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd\",\"founding_authorize_payload_digest\":\"sha256:3814995a8fd02c84f94b4758fb3b8b33e96b7ae9c7fcf1e75e21a83c26f390b4\",\"hpke_key\":\"z6LSmKNkVMSskYnq6BQyEy1Min86ZZgytCePpXMsxWamDWdc\",\"hpke_key_algorithm\":\"X25519\"},\"genesis_salt\":\"X-kS8-uBvWQ_iuRqO7Rsv0WGBjZG2S2wJ533Tk2SJJ4\",\"governance_station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\",\"initial_discoverability\":\"secret\",\"initial_history_access\":\"since_join\",\"initial_join_rule\":\"closed\",\"initial_resolution\":{\"did\":\"did:webvh:z6mkfixture:alice.example\",\"method_history_head\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"version_id\":\"1-QmHumanPcrGenesisFixture\"},\"purpose\":\"principal_control\",\"schema\":\"ak.schema.realm_genesis.v1\",\"security_class\":\"high_assurance\",\"trust_domain\":\"ak:trust_domain:did.webvh.alice.example\"}},\"scope_ref\":{\"kind\":\"realm_genesis\"}}",
+      "event_digest": "sha256:806a5d9de8b8471b8254701afbb43d0e9358e326ba2c4ca85c9ba0c4b6802ca3",
+      "suite_wire_code": 1,
+      "event_id_bytes_hex": "01806a5d9de8b8471b8254701afbb43d0e9358e326ba2c4ca85c9ba0c4b6802ca3",
+      "derived_event_id": "ak:event:AYBqXZ3ouEcbglRwGvu0PQ6TWOMmuixMqFyboMS2gCyj",
+      "derived_realm_id": "ak:realm:AYBqXZ3ouEcbglRwGvu0PQ6TWOMmuixMqFyboMS2gCyj",
+      "envelope_omits": [
+        "event_id",
+        "realm_id"
+      ],
+      "scope_ref": {
+        "kind": "realm_genesis"
+      },
+      "identity_bindings": {
+        "initial_resolution_did": "did:webvh:z6mkfixture:alice.example",
+        "did_method": "did:webvh",
+        "projected_principal_id": "ak:did_core:webvh:z6mkfixture",
+        "actor_principal_id": "ak:did_core:webvh:z6mkfixture",
+        "account_station_id": "ak:did_core:webvh:z6mkfixturestationexample",
+        "governance_station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+      },
       "layout": {
         "reserved_high_nibble": 0,
         "digest_suite": 1,
@@ -34,15 +66,130 @@
         "outcome": "accepted",
         "realm_id_source": "genesis_event_derived",
         "nonzero_reserved_nibble": "rejected",
-        "same_did_on_different_stations": "distinct_realm_ids",
-        "same_account_second_genesis": "rejected_by_station_account_uniqueness"
+        "same_did_on_different_stations": "distinct_realm_ids"
       },
       "rejected_form": {
         "realm_header_hex": "11",
         "reason": "non-zero reserved high nibble",
-        "realm_id": "ak:realm:EZhLpW4uz0hs--DKssejBneEirYysC3NDtTyvwG9ulcS",
+        "realm_id": "ak:realm:EYBqXZ3ouEcbglRwGvu0PQ6TWOMmuixMqFyboMS2gCyj",
+        "derived_from": "the accepted realm_id, changing only the reserved high nibble",
         "expected_outcome": "rejected",
         "expected_error": "realm_id_not_event_derived"
+      }
+    },
+    {
+      "name": "human_pcr_genesis_on_a_second_station_derives_a_distinct_realm_id",
+      "vector_id": "ak.vector.identity.human_pcr_genesis_constructive.v1",
+      "principal_id": "ak:did_core:webvh:z6mkfixture",
+      "principal_kind": "human",
+      "realm_purpose": "principal_control",
+      "note": "A second legal genesis for the same human DID that differs from step 1 only in the account Station and the generation-0 governance Station. It proves the distinct-Realm claim by recomputation instead of assertion: one DID on two Stations is two independent, non-migratable PCRs (models/realm-and-space.md section 2.5).",
+      "founding_material": {
+        "fixture": "pcr-genesis-fixture.json",
+        "founding_device_descriptor_pointer": "/founding_device_descriptor",
+        "founding_authorize_payload_pointer": "/founding_authorize/payload",
+        "device_possession_transcript_pointer": "/device_possession/canonical_object",
+        "note": "The genesis payload embeds this exact descriptor and the second Event carries this exact authorize payload, so the two fixtures are one construction input and not two copies that can drift apart."
+      },
+      "digest_preimage_canonical_bytes_utf8": "{\"actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationb\"},\"kind\":\"account\"},\"created_at\":\"2026-08-09T00:00:00.000Z\",\"kind\":\"ak.realm.create\",\"payload\":{\"object\":{\"founding_device_descriptor\":{\"algorithms\":[\"ak.hpke_x25519_aead_chacha20poly1305.v1\",\"ak.mls.v1\"],\"descriptor_version\":1,\"device_id\":\"ak:device:019a0000-0000-7000-8000-000000000001\",\"device_key_algorithm\":\"Ed25519\",\"device_key_purpose\":\"event_signing_and_mls_identity\",\"device_public_key_did\":\"did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd\",\"founding_authorize_payload_digest\":\"sha256:3814995a8fd02c84f94b4758fb3b8b33e96b7ae9c7fcf1e75e21a83c26f390b4\",\"hpke_key\":\"z6LSmKNkVMSskYnq6BQyEy1Min86ZZgytCePpXMsxWamDWdc\",\"hpke_key_algorithm\":\"X25519\"},\"genesis_salt\":\"X-kS8-uBvWQ_iuRqO7Rsv0WGBjZG2S2wJ533Tk2SJJ4\",\"governance_station_id\":\"ak:did_core:webvh:z6mkfixturestationb\",\"initial_discoverability\":\"secret\",\"initial_history_access\":\"since_join\",\"initial_join_rule\":\"closed\",\"initial_resolution\":{\"did\":\"did:webvh:z6mkfixture:alice.example\",\"method_history_head\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"version_id\":\"1-QmHumanPcrGenesisFixture\"},\"purpose\":\"principal_control\",\"schema\":\"ak.schema.realm_genesis.v1\",\"security_class\":\"high_assurance\",\"trust_domain\":\"ak:trust_domain:did.webvh.alice.example\"}},\"scope_ref\":{\"kind\":\"realm_genesis\"}}",
+      "event_digest": "sha256:74872d8791e05dc4d8014c5a5cf2682cf64c970d0f35963d29bcf7b6631ef554",
+      "suite_wire_code": 1,
+      "event_id_bytes_hex": "0174872d8791e05dc4d8014c5a5cf2682cf64c970d0f35963d29bcf7b6631ef554",
+      "derived_event_id": "ak:event:AXSHLYeR4F3E2AFMWlzyaCz2TJcNDzWWPSm897ZjHvVU",
+      "derived_realm_id": "ak:realm:AXSHLYeR4F3E2AFMWlzyaCz2TJcNDzWWPSm897ZjHvVU",
+      "envelope_omits": [
+        "event_id",
+        "realm_id"
+      ],
+      "scope_ref": {
+        "kind": "realm_genesis"
+      },
+      "identity_bindings": {
+        "initial_resolution_did": "did:webvh:z6mkfixture:alice.example",
+        "did_method": "did:webvh",
+        "projected_principal_id": "ak:did_core:webvh:z6mkfixture",
+        "actor_principal_id": "ak:did_core:webvh:z6mkfixture",
+        "account_station_id": "ak:did_core:webvh:z6mkfixturestationb",
+        "governance_station_id": "ak:did_core:webvh:z6mkfixturestationb"
+      },
+      "differs_from": {
+        "case": "principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected",
+        "only_in": [
+          "actor_id.account_id.station_id",
+          "payload.object.governance_station_id"
+        ]
+      },
+      "expected": {
+        "outcome": "accepted",
+        "realm_id_source": "genesis_event_derived",
+        "same_initial_resolution_did": true,
+        "realm_id_equals_step_1": false
+      }
+    },
+    {
+      "name": "human_founding_device_authorize_binds_the_derived_realm",
+      "vector_id": "ak.vector.identity.human_pcr_genesis_constructive.v1",
+      "principal_id": "ak:did_core:webvh:z6mkfixture",
+      "principal_kind": "human",
+      "note": "Step 2 of the same atomic ordered unit [ak.realm.create, ak.device.authorize]. Its envelope realm_id and scope_ref carry the Realm derived in step 1, and its payload is the proof-free founding authorize payload whose canonical digest the step 1 descriptor already commits to. The dependency is one-way: step 1 commits to the payload digest, never to this Event id.",
+      "founding_material": {
+        "fixture": "pcr-genesis-fixture.json",
+        "founding_device_descriptor_pointer": "/founding_device_descriptor",
+        "founding_authorize_payload_pointer": "/founding_authorize/payload",
+        "device_possession_transcript_pointer": "/device_possession/canonical_object",
+        "note": "The genesis payload embeds this exact descriptor and the second Event carries this exact authorize payload, so the two fixtures are one construction input and not two copies that can drift apart."
+      },
+      "digest_preimage_canonical_bytes_utf8": "{\"actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"created_at\":\"2026-08-09T00:00:00.000Z\",\"kind\":\"ak.device.authorize\",\"payload\":{\"algorithms\":[\"ak.hpke_x25519_aead_chacha20poly1305.v1\",\"ak.mls.v1\"],\"authorization_binding_kind\":\"registration_anchor\",\"authorized_by\":\"ak:did_core:webvh:z6mkfixture\",\"authorized_generation_ref\":1,\"device_id\":\"ak:device:019a0000-0000-7000-8000-000000000001\",\"device_key_algorithm\":\"Ed25519\",\"device_public_key_did\":\"did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd\",\"device_signature\":\"vXlj3xRInCey4eiS0m81kEIQchwIBgq8TJQqoSvvKaRJpso7T6-EL-S77YQKKep4lPFG9lZSiLQHo91384q7AQ\",\"hpke_key\":\"z6LSmKNkVMSskYnq6BQyEy1Min86ZZgytCePpXMsxWamDWdc\",\"not_before\":\"2026-08-09T00:00:00.000Z\"},\"realm_id\":\"ak:realm:AYBqXZ3ouEcbglRwGvu0PQ6TWOMmuixMqFyboMS2gCyj\",\"scope_ref\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AYBqXZ3ouEcbglRwGvu0PQ6TWOMmuixMqFyboMS2gCyj\"}}",
+      "event_digest": "sha256:41363672ee1b730a62323e09db0d6092e5b15823dbc037f40f46444638f48899",
+      "suite_wire_code": 1,
+      "event_id_bytes_hex": "0141363672ee1b730a62323e09db0d6092e5b15823dbc037f40f46444638f48899",
+      "derived_event_id": "ak:event:AUE2NnLuG3MKYjI-CdsNYJLlsVgj28A39A9GREY49IiZ",
+      "realm_id": "ak:realm:AYBqXZ3ouEcbglRwGvu0PQ6TWOMmuixMqFyboMS2gCyj",
+      "scope_ref": {
+        "kind": "realm",
+        "realm_id": "ak:realm:AYBqXZ3ouEcbglRwGvu0PQ6TWOMmuixMqFyboMS2gCyj"
+      },
+      "unit_contract": {
+        "ordered_kinds": [
+          "ak.realm.create",
+          "ak.device.authorize"
+        ],
+        "forbidden_create_commitments": [
+          "authorize.event_id",
+          "authorize.event_digest",
+          "authorize.envelope_digest"
+        ],
+        "fixture": "pcr-genesis-fixture.json",
+        "pointer": "/unit_contract"
+      },
+      "expected": {
+        "outcome": "accepted",
+        "realm_id_equals_step_1_derived_realm_id": true,
+        "account_id_equals_step_1": true,
+        "declares_any_sibling_event_id": false
+      }
+    },
+    {
+      "name": "same_account_second_genesis_rejected_by_station_account_uniqueness",
+      "vector_id": "ak.vector.identity.human_pcr_genesis_constructive.v1",
+      "note": "Account-dimension uniqueness is a state judgement, not a byte judgement. Under event-derived ids a second genesis produces a different realm_id, so no id-collision rejection can fire and nothing about this case follows from the digests or the retype equality above.",
+      "state_input": {
+        "station_accounts_record": "already holds an accepted principal_control Realm for this AccountId",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+        },
+        "candidate": {
+          "case": "principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected",
+          "resubmitted_with": "a fresh genesis_salt"
+        }
+      },
+      "decided_by": "spec/v1/zh/models/realm-and-space.md section 2.5 account-dimension PCR uniqueness",
+      "expected": {
+        "outcome": "rejected",
+        "error": "failed_precondition",
+        "writes": 0,
+        "decided_by_id_collision": false
       }
     },
     {
@@ -346,5 +493,413 @@
     "typed_event_id_length": 53,
     "lexical_pattern": "^ak:event:[A-Za-z0-9_-]{44}$",
     "canonical_reencode_required": true
-  }
+  },
+  "derived_relations": [
+    {
+      "relation": "event_id_from_canonical_preimage",
+      "why": "The human genesis Event id is the suite-tagged digest of its own canonical bytes.",
+      "inputs": {
+        "canonical_preimage_utf8": {
+          "case": "principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected",
+          "pointer": "/digest_preimage_canonical_bytes_utf8"
+        },
+        "suite_wire_code": {
+          "case": "principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected",
+          "pointer": "/suite_wire_code"
+        }
+      },
+      "output": {
+        "case": "principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected",
+        "pointer": "/derived_event_id"
+      }
+    },
+    {
+      "relation": "retype_typed_id",
+      "why": "realm_id is the retype of that Event token, byte for byte.",
+      "inputs": {
+        "source_typed_id": {
+          "case": "principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected",
+          "pointer": "/derived_event_id"
+        }
+      },
+      "output": {
+        "case": "principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected",
+        "pointer": "/derived_realm_id"
+      }
+    },
+    {
+      "relation": "reserved_nibble_only_mutation",
+      "why": "The rejected token must be the accepted one with only the reserved nibble changed.",
+      "inputs": {
+        "accepted_typed_id": {
+          "case": "principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected",
+          "pointer": "/derived_realm_id"
+        }
+      },
+      "output": {
+        "case": "principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected",
+        "pointer": "/rejected_form/realm_id"
+      }
+    },
+    {
+      "relation": "event_preimage_member",
+      "why": "The declared human DID is the one inside the hashed bytes, not a label beside them.",
+      "inputs": {
+        "canonical_preimage_utf8": {
+          "case": "principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected",
+          "pointer": "/digest_preimage_canonical_bytes_utf8"
+        },
+        "member_pointer": "/payload/object/initial_resolution/did"
+      },
+      "output": {
+        "case": "principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected",
+        "pointer": "/identity_bindings/initial_resolution_did"
+      }
+    },
+    {
+      "relation": "event_preimage_member",
+      "why": "Same for the account Station the genesis is attributed to.",
+      "inputs": {
+        "canonical_preimage_utf8": {
+          "case": "principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected",
+          "pointer": "/digest_preimage_canonical_bytes_utf8"
+        },
+        "member_pointer": "/actor_id/account_id/station_id"
+      },
+      "output": {
+        "case": "principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected",
+        "pointer": "/identity_bindings/account_station_id"
+      }
+    },
+    {
+      "relation": "event_preimage_member",
+      "why": "Same for the generation-0 governance Station.",
+      "inputs": {
+        "canonical_preimage_utf8": {
+          "case": "principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected",
+          "pointer": "/digest_preimage_canonical_bytes_utf8"
+        },
+        "member_pointer": "/payload/object/governance_station_id"
+      },
+      "output": {
+        "case": "principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected",
+        "pointer": "/identity_bindings/governance_station_id"
+      }
+    },
+    {
+      "relation": "event_preimage_member",
+      "why": "The genesis payload embeds the founding descriptor itself, not a digest of it.",
+      "inputs": {
+        "canonical_preimage_utf8": {
+          "case": "principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected",
+          "pointer": "/digest_preimage_canonical_bytes_utf8"
+        },
+        "member_pointer": "/payload/object/founding_device_descriptor"
+      },
+      "output": {
+        "fixture": "pcr-genesis-fixture.json",
+        "pointer": "/founding_device_descriptor"
+      }
+    },
+    {
+      "relation": "did_core_projection",
+      "why": "project(initial_resolution.did) is recomputed with the method adapter registry and MUST land in the declared projection (key-management.md).",
+      "inputs": {
+        "did": {
+          "case": "principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected",
+          "pointer": "/identity_bindings/initial_resolution_did"
+        },
+        "did_method": {
+          "case": "principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected",
+          "pointer": "/identity_bindings/did_method"
+        }
+      },
+      "output": {
+        "case": "principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected",
+        "pointer": "/identity_bindings/projected_principal_id"
+      }
+    },
+    {
+      "relation": "equal_json_value",
+      "why": "The projection MUST be the principal the Event is attributed to; the next relation reads that principal out of the hashed bytes.",
+      "inputs": {
+        "left": {
+          "case": "principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected",
+          "pointer": "/identity_bindings/projected_principal_id"
+        }
+      },
+      "output": {
+        "case": "principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected",
+        "pointer": "/identity_bindings/actor_principal_id"
+      }
+    },
+    {
+      "relation": "event_preimage_member",
+      "why": "The projected principal must also be the principal the hashed bytes attribute to.",
+      "inputs": {
+        "canonical_preimage_utf8": {
+          "case": "principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected",
+          "pointer": "/digest_preimage_canonical_bytes_utf8"
+        },
+        "member_pointer": "/actor_id/account_id/principal_id"
+      },
+      "output": {
+        "case": "principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected",
+        "pointer": "/identity_bindings/actor_principal_id"
+      }
+    },
+    {
+      "relation": "sha256_of_canonical_json",
+      "why": "The descriptor commits to the canonical digest of the proof-free authorize payload.",
+      "inputs": {
+        "object": {
+          "fixture": "pcr-genesis-fixture.json",
+          "pointer": "/founding_authorize/payload"
+        }
+      },
+      "output": {
+        "fixture": "pcr-genesis-fixture.json",
+        "pointer": "/founding_device_descriptor/founding_authorize_payload_digest"
+      }
+    },
+    {
+      "relation": "ed25519_signature_over_prefixed_canonical_json",
+      "why": "The founding device possession proof must actually verify under the descriptor key.",
+      "inputs": {
+        "domain": {
+          "fixture": "pcr-genesis-fixture.json",
+          "pointer": "/device_possession/domain"
+        },
+        "canonical_json": {
+          "fixture": "pcr-genesis-fixture.json",
+          "pointer": "/device_possession/canonical_json"
+        },
+        "public_key_did": {
+          "fixture": "pcr-genesis-fixture.json",
+          "pointer": "/founding_device_descriptor/device_public_key_did"
+        }
+      },
+      "output": {
+        "fixture": "pcr-genesis-fixture.json",
+        "pointer": "/device_possession/device_signature"
+      }
+    },
+    {
+      "relation": "event_id_from_canonical_preimage",
+      "why": "The second legal genesis is recomputed, not asserted.",
+      "inputs": {
+        "canonical_preimage_utf8": {
+          "case": "human_pcr_genesis_on_a_second_station_derives_a_distinct_realm_id",
+          "pointer": "/digest_preimage_canonical_bytes_utf8"
+        },
+        "suite_wire_code": {
+          "case": "human_pcr_genesis_on_a_second_station_derives_a_distinct_realm_id",
+          "pointer": "/suite_wire_code"
+        }
+      },
+      "output": {
+        "case": "human_pcr_genesis_on_a_second_station_derives_a_distinct_realm_id",
+        "pointer": "/derived_event_id"
+      }
+    },
+    {
+      "relation": "retype_typed_id",
+      "why": "Its realm_id is the retype of its own Event token.",
+      "inputs": {
+        "source_typed_id": {
+          "case": "human_pcr_genesis_on_a_second_station_derives_a_distinct_realm_id",
+          "pointer": "/derived_event_id"
+        }
+      },
+      "output": {
+        "case": "human_pcr_genesis_on_a_second_station_derives_a_distinct_realm_id",
+        "pointer": "/derived_realm_id"
+      }
+    },
+    {
+      "relation": "event_preimage_member",
+      "why": "The second genesis carries the same human DID as step 1.",
+      "inputs": {
+        "canonical_preimage_utf8": {
+          "case": "human_pcr_genesis_on_a_second_station_derives_a_distinct_realm_id",
+          "pointer": "/digest_preimage_canonical_bytes_utf8"
+        },
+        "member_pointer": "/payload/object/initial_resolution/did"
+      },
+      "output": {
+        "case": "principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected",
+        "pointer": "/identity_bindings/initial_resolution_did"
+      }
+    },
+    {
+      "relation": "event_id_from_canonical_preimage",
+      "why": "The founding device authorize Event id is recomputed from its own canonical bytes.",
+      "inputs": {
+        "canonical_preimage_utf8": {
+          "case": "human_founding_device_authorize_binds_the_derived_realm",
+          "pointer": "/digest_preimage_canonical_bytes_utf8"
+        },
+        "suite_wire_code": {
+          "case": "human_founding_device_authorize_binds_the_derived_realm",
+          "pointer": "/suite_wire_code"
+        }
+      },
+      "output": {
+        "case": "human_founding_device_authorize_binds_the_derived_realm",
+        "pointer": "/derived_event_id"
+      }
+    },
+    {
+      "relation": "event_preimage_member",
+      "why": "Its envelope scope is the Realm derived by step 1.",
+      "inputs": {
+        "canonical_preimage_utf8": {
+          "case": "human_founding_device_authorize_binds_the_derived_realm",
+          "pointer": "/digest_preimage_canonical_bytes_utf8"
+        },
+        "member_pointer": "/scope_ref/realm_id"
+      },
+      "output": {
+        "case": "principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected",
+        "pointer": "/derived_realm_id"
+      }
+    },
+    {
+      "relation": "event_preimage_member",
+      "why": "So is its envelope realm_id.",
+      "inputs": {
+        "canonical_preimage_utf8": {
+          "case": "human_founding_device_authorize_binds_the_derived_realm",
+          "pointer": "/digest_preimage_canonical_bytes_utf8"
+        },
+        "member_pointer": "/realm_id"
+      },
+      "output": {
+        "case": "principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected",
+        "pointer": "/derived_realm_id"
+      }
+    },
+    {
+      "relation": "event_preimage_member",
+      "why": "Its payload is the exact proof-free authorize payload the descriptor commits to.",
+      "inputs": {
+        "canonical_preimage_utf8": {
+          "case": "human_founding_device_authorize_binds_the_derived_realm",
+          "pointer": "/digest_preimage_canonical_bytes_utf8"
+        },
+        "member_pointer": "/payload"
+      },
+      "output": {
+        "fixture": "pcr-genesis-fixture.json",
+        "pointer": "/founding_authorize/payload"
+      }
+    },
+    {
+      "relation": "event_id_from_canonical_preimage",
+      "why": "The collaboration Realm genesis in this fixture is derived the same way.",
+      "inputs": {
+        "canonical_preimage_utf8": {
+          "case": "realm_genesis_id_is_derived_and_self_certifying",
+          "pointer": "/digest_preimage_canonical_bytes_utf8"
+        },
+        "suite_wire_code": {
+          "case": "realm_genesis_id_is_derived_and_self_certifying",
+          "pointer": "/suite_wire_code"
+        }
+      },
+      "output": {
+        "case": "realm_genesis_id_is_derived_and_self_certifying",
+        "pointer": "/derived_event_id"
+      }
+    },
+    {
+      "relation": "retype_typed_id",
+      "why": "And its realm_id is the retype of that token.",
+      "inputs": {
+        "source_typed_id": {
+          "case": "realm_genesis_id_is_derived_and_self_certifying",
+          "pointer": "/derived_event_id"
+        }
+      },
+      "output": {
+        "case": "realm_genesis_id_is_derived_and_self_certifying",
+        "pointer": "/derived_realm_id"
+      }
+    },
+    {
+      "relation": "retype_typed_id",
+      "why": "Ordinary object retype: a Strand id is its create Event token.",
+      "inputs": {
+        "source_typed_id": {
+          "case": "strand_object_id_is_retyped_event_id",
+          "pointer": "/derived_event_id"
+        }
+      },
+      "output": {
+        "case": "strand_object_id_is_retyped_event_id",
+        "pointer": "/derived_object_id"
+      }
+    },
+    {
+      "relation": "event_id_from_canonical_preimage",
+      "why": "Agent PCR genesis, step 1 of the two-step forward declaration.",
+      "inputs": {
+        "canonical_preimage_utf8": {
+          "case": "agent_provision_forward_declaration_is_constructible",
+          "pointer": "/digest_preimage_canonical_bytes_utf8"
+        },
+        "suite_wire_code": {
+          "case": "agent_provision_forward_declaration_is_constructible",
+          "pointer": "/suite_wire_code"
+        }
+      },
+      "output": {
+        "case": "agent_provision_forward_declaration_is_constructible",
+        "pointer": "/derived_event_id"
+      }
+    },
+    {
+      "relation": "retype_typed_id",
+      "why": "Its realm_id is the retype of that frozen Event token.",
+      "inputs": {
+        "source_typed_id": {
+          "case": "agent_provision_forward_declaration_is_constructible",
+          "pointer": "/derived_event_id"
+        }
+      },
+      "output": {
+        "case": "agent_provision_forward_declaration_is_constructible",
+        "pointer": "/derived_realm_id"
+      }
+    },
+    {
+      "relation": "event_preimage_member",
+      "why": "Step 2 hashes the very Realm token step 1 derived; the declaration is not a second value.",
+      "inputs": {
+        "canonical_preimage_utf8": {
+          "case": "agent_provision_declares_the_frozen_genesis_realm_id",
+          "pointer": "/digest_preimage_canonical_bytes_utf8"
+        },
+        "member_pointer": "/payload/principal_control_realm_id"
+      },
+      "output": {
+        "case": "agent_provision_forward_declaration_is_constructible",
+        "pointer": "/derived_realm_id"
+      }
+    },
+    {
+      "relation": "equal_json_value",
+      "why": "And the value step 2 declares beside its bytes is that same Realm.",
+      "inputs": {
+        "left": {
+          "case": "agent_provision_declares_the_frozen_genesis_realm_id",
+          "pointer": "/declared_principal_control_realm_id"
+        }
+      },
+      "output": {
+        "case": "agent_provision_forward_declaration_is_constructible",
+        "pointer": "/derived_realm_id"
+      }
+    }
+  ]
 }

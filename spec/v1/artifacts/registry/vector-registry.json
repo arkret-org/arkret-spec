@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-22.1",
+  "version": "2026-09-22.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-22T09:30:00+08:00",
+  "generated_at": "2026-09-22T11:00:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -2082,6 +2082,20 @@
       ]
     },
     {
+      "vector_id": "ak.vector.encoding.derived_relation_evidence.v1",
+      "status": "active",
+      "domain": "encoding",
+      "applies_to_fixtures": [
+        "content-bound-event-id-fixture.json"
+      ],
+      "description": "Declared derivation relations are recomputed from the exact inputs they name: Event id from canonical preimage, retype, reserved-nibble-only mutation, preimage member readback, did_core projection, canonical digest, value equality and possession signature. A declaration is mandatory, so deleting one fails instead of silently dropping the obligation.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/content-bound-event-id-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/conformance/encoding.md"
+      ]
+    },
+    {
       "vector_id": "ak.vector.encoding.digest.blake3.v1",
       "status": "active",
       "domain": "encoding",
@@ -2687,6 +2701,20 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/pcr-genesis-fixture.json",
         "spec/v1/zh/identity/account-lifecycle.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.identity.human_pcr_genesis_constructive.v1",
+      "status": "active",
+      "domain": "identity",
+      "applies_to_fixtures": [
+        "content-bound-event-id-fixture.json"
+      ],
+      "description": "Constructive human Principal Control Realm genesis: the founding descriptor inside a legal ak.realm.create preimage, its recomputed Event id and byte-identical Realm id, the second Station genesis that derives a distinct Realm from the same DID, and the founding ak.device.authorize Event bound to the derived Realm.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/content-bound-event-id-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/models/realm-and-space.md"
       ]
     },
     {

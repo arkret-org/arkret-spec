@@ -315,6 +315,15 @@ digest 输入恰好删除 `event_id`、`proofs`、`unsigned` 三个成员；cano
 digest 输入删除 `proofs`；canonical binding bytes 与 detached JWS 逐字节固定；同一未签名 body 在
 `ak.registration_did_evidence_control_proof.v1` 下重放 MUST 拒绝。
 
+`ak.vector.encoding.derived_relation_evidence.v1` MUST 证明：机器 fixture 中每一条派生结论都以它所命名的
+输入被重算，而不是与输入并列书写。每条关系 MUST 声明封闭词表中的 relation、其全部输入引用与输出引用；引用只能是
+同一 fixture 内的 case 或跨 fixture 文件的 JSON pointer。引用不可解析、解析为 `null`、输入键集与该 relation 的
+定义不匹配、输出引用与某个输入引用指向同一位置（自证），以及把否例 case 的材料当作接纳证据使用，一律 MUST 失败，
+MUST NOT 降级为跳过。已登记的关系 MUST 至少覆盖：canonical preimage 到 `event_id` 的前向派生、`retype`、
+只改保留 nibble 的否例派生、原像成员回读、`project(did)` 的 core projection、canonical JSON 摘要、值相等，
+以及带域前缀的 Ed25519 占有签名验签。关系声明本身是强制项：删除某条声明 MUST 使检查失败，
+MUST NOT 使该义务静默归零。
+
 ### 3.8 Event kind 与对象寻址
 
 `ak.vector.event_kind.realm_alias_single_carrier.v1` MUST 证明：Realm alias 意图恰由一个已登记 Event kind 承载；
@@ -405,6 +414,18 @@ SCID 段匹配，key id 规则只看 fragment（因此把 fixture 的 key id 重
 `ak:trust_domain` typed identifier 的值匹配而不做 DNS 后缀猜测。仅出现 `test`、`fixture`、`did:key`、`example`
 字样不构成保留，尾部相同的部署域不被拒绝。负例 MUST 先满足其余全部身份与信任前提，不得拿一个本来就无效的标识
 冒充保留标识拒收成功。
+
+`ak.vector.identity.human_pcr_genesis_constructive.v1` MUST 证明：human Principal Control Realm 的 genesis
+是可构造的而不是可断言的。向量携带合法 `ak.realm.create` 的完整 canonical preimage bytes，其中内联封闭的
+`founding_device_descriptor` 与 `initial_resolution`；`event_digest` 由该 bytes 重算，拼接 suite code 得到 33 octets，
+`retype` 得到逐字节对应的 `realm_id`；`project(initial_resolution.did)` MUST 等于 create 的 actor principal。
+保留高 nibble 非零的否例 MUST 由该接纳形态**只改这一个 nibble**派生，并报 `realm_id_not_event_derived`。
+同一 human DID 在第二个 Station 上的合法 genesis MUST 重算出不同的 `realm_id`，两条 case 之间只允许 account
+Station 与 generation-0 governance Station 不同，从而把“一个 DID 在两个 Station 上是两个互不迁移的 PCR”
+钉成重算结果而不是文字声明。founding `ak.device.authorize` MUST 携带同一 derived Realm，
+并复用该 descriptor 冻结的 `founding_authorize_payload_digest`。account 维度唯一性是状态判定：event-derived 下
+第二次 genesis 必然得到不同 `realm_id`，因此 MUST NOT 由标识相等触发拒绝；向量以独立 state case 给出显式前置状态、
+零写入与判定依据（[`../models/realm-and-space.md` §2.5](../models/realm-and-space.md)）。
 
 ### 3.11 邀请
 

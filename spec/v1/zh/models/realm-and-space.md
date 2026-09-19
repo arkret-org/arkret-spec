@@ -283,6 +283,8 @@ receiver 按上文首次接触校验义务取得它。实现 MUST NOT 逐调用�
 不得因本地 `pk` 相同或不同改变协议身份、重放、冲突或首次接触判断。
 
 固定 KAT 与负例由 `ak.vector.object_identity.event_derived_realm.v1` 承载。
+human `purpose="principal_control"` 分支的可构造 genesis 字节、第二 Station 重算出不同 Realm 的对照，
+以及账号维度唯一性的状态判定，由 `ak.vector.identity.human_pcr_genesis_constructive.v1` 承载。
 
 **首次接触校验义务（normative）**：receiver 首次接触某个 `realm_id` 时 MUST：
 
