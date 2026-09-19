@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-20.1",
-  "generated_at": "2026-09-20T19:45:00+08:00",
+  "version": "2026-09-19.1",
+  "generated_at": "2026-09-19T01:07:00+08:00",
   "description": "Register of the section identities that the three 'stable reference anchor' layers used to hold, and of what happened to each. Zero inbound citations found by a search is not proof that nothing cites a section, so an anchor is never simply deleted: its identity, what it meant and where that meaning now lives are recorded here. check_prose_section_identity_ledger resolves every recorded target on each run.",
   "dispositions": {
     "promoted": "The section carried a real obligation and was moved into the page's prose keeping its number.",

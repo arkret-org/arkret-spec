@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-21.1",
+  "version": "2026-09-19.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-21T18:00:00+08:00",
+  "generated_at": "2026-09-19T04:34:00+08:00",
   "description": "Canonical closed state machine for the single client-local durable transaction that carries one encrypted effective scope from the creator's explicit genesis intent to MLS write-ready. It is the machine-readable form of zh/crypto-media/encryption-and-audit.md section 5.1.2 and the only source a conforming client uses to decide what it must persist, in what order, and which single next arrow a recoverer may execute.",
   "registry_rules": [
     "This record is client-local normative durable state protected by the device secret. It is not a wire object, not a Realm Event, not an Account Data key and not a server transaction. It MUST NOT enter the ak.realm.create payload, any current projection or query result, client sync or federation.",

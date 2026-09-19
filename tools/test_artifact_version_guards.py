@@ -12,31 +12,101 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from artifact_pipeline import preserve_artifact_metadata_when_semantics_match
-from check_artifact_versions import ARTIFACTS, main, repairs_future_generated_at, semantic_content_digest, transition_errors
+from check_artifact_versions import (
+    ARTIFACTS,
+    date_repair_waivers,
+    future_metadata_errors,
+    main,
+    semantic_content_digest,
+    transition_errors,
+    walks_back_a_future_instant,
+    walks_back_a_future_version,
+)
 
 
 class ArtifactVersionGuardTest(unittest.TestCase):
-    def test_future_timestamp_repair_is_explicit_and_still_requires_version_advance(self) -> None:
-        old = {"path": "registry/example.json", "version": 1,
-               "generated_at": "2099-01-01T00:00:00Z", "content_digest": "sha256:old"}
-        new = {**old, "generated_at": "2001-01-01T00:00:00Z", "content_digest": "sha256:new"}
+    def repair(self, old, new, argv):
         with tempfile.TemporaryDirectory() as directory:
             reference = Path(directory) / "reference.json"
-            with patch("check_artifact_versions.artifact_rows", return_value=[new]), \
-                 patch("check_artifact_versions.load_reference", return_value={"artifacts": [old]}), \
-                 patch("check_artifact_versions.REFERENCE", reference), \
-                 patch("check_artifact_versions.ROOT", Path(directory)):
-                self.assertEqual(main(["--write-reference", "--repair-future-generated-at"]), 1)
-                self.assertFalse(reference.exists())
-                new["version"] = 2
-                self.assertEqual(main(["--write-reference"]), 1)
-                self.assertFalse(reference.exists())
-                self.assertEqual(main(["--write-reference", "--repair-future-generated-at"]), 0)
-                self.assertEqual(json.loads(reference.read_text())["artifacts"], [new])
+            with (
+                patch("check_artifact_versions.artifact_rows", return_value=[new]),
+                patch("check_artifact_versions.load_reference", return_value={"artifacts": [old]}),
+                patch("check_artifact_versions.REFERENCE", reference),
+                patch("check_artifact_versions.ROOT", Path(directory)),
+            ):
+                code = main(argv)
+            return code, reference.exists()
 
-    def test_future_timestamp_repair_cannot_backdate_an_ordinary_transition(self) -> None:
+    def test_future_date_repair_must_name_the_artifact_it_repairs(self) -> None:
+        old = {"path": "registry/example.json", "version": "2099-01-01.1",
+               "generated_at": "2099-01-01T00:00:00Z", "content_digest": "sha256:old"}
+        new = {**old, "version": "2001-01-01.1", "generated_at": "2001-01-01T00:00:00Z"}
+        # Without the flag the walk-back is an ordinary metadata-only edit and is refused.
+        self.assertEqual(self.repair(old, new, ["--write-reference"]), (1, False))
+        # Naming some other artifact does not license this one either.
+        self.assertEqual(
+            self.repair(old, new, ["--write-reference", "--repair-future-date", "registry/other.json"]),
+            (1, False),
+        )
+        self.assertEqual(
+            self.repair(old, new, ["--write-reference", "--repair-future-date", "registry/example.json"]),
+            (0, True),
+        )
+
+    def test_naming_an_artifact_that_needs_no_repair_is_an_error(self) -> None:
+        old = {"path": "registry/example.json", "version": "2001-01-01.1",
+               "generated_at": "2001-01-01T00:00:00Z", "content_digest": "sha256:old"}
+        new = {**old, "version": "2001-01-02.1", "generated_at": "2001-01-02T00:00:00Z",
+               "content_digest": "sha256:new"}
+        # An ordinary advance is accepted on its own, so the flag has nothing to clear
+        # and must say so rather than silently widening what the run is allowed to write.
+        self.assertEqual(self.repair(old, new, ["--write-reference"]), (0, True))
+        self.assertEqual(
+            self.repair(old, new, ["--write-reference", "--repair-future-date", "registry/example.json"]),
+            (1, False),
+        )
+
+    def test_future_metadata_can_never_become_the_recorded_baseline(self) -> None:
+        old = {"path": "registry/example.json", "version": "2001-01-01.1",
+               "generated_at": "2001-01-01T00:00:00Z", "content_digest": "sha256:old"}
+        new = {**old, "version": "2099-01-01.1", "generated_at": "2099-01-01T00:00:00Z",
+               "content_digest": "sha256:new"}
+        # Both fields advance, so the transition itself is legal; it is refused only
+        # because a stamp that has not happened yet would become the next baseline.
+        self.assertEqual(transition_errors(old, new), [])
+        self.assertEqual(self.repair(old, new, ["--write-reference"]), (1, False))
+        self.assertEqual(
+            future_metadata_errors([new], datetime(2026, 9, 19, 3, 31, tzinfo=timezone.utc)),
+            [
+                "registry/example.json: version 2099-01-01.1 is dated after today",
+                "registry/example.json: generated_at 2099-01-01T00:00:00Z has not happened yet",
+            ],
+        )
+
+    def test_a_date_repair_waives_only_the_field_it_walks_back(self) -> None:
+        now = datetime(2026, 9, 19, 3, 31, tzinfo=timezone.utc)
+        old = {"path": "registry/example.json", "version": "2026-09-22.1",
+               "generated_at": "2026-09-22T09:30:00+08:00", "content_digest": "sha256:old"}
+        version_only = {**old, "version": "2026-09-19.1"}
+        self.assertEqual(
+            date_repair_waivers(old, version_only, now),
+            {
+                "registry/example.json: version changed without semantic content change",
+                "registry/example.json: content changed without version advance",
+            },
+        )
+        instant_only = {**old, "generated_at": "2026-09-19T11:00:00+08:00"}
+        self.assertEqual(
+            date_repair_waivers(old, instant_only, now),
+            {
+                "registry/example.json: generated_at changed without semantic content change",
+                "registry/example.json: content changed without generated_at advance",
+            },
+        )
+
+    def test_future_date_repair_cannot_backdate_an_ordinary_transition(self) -> None:
         now = datetime(2026, 9, 7, 10, tzinfo=timezone.utc)
-        self.assertTrue(repairs_future_generated_at(
+        self.assertTrue(walks_back_a_future_instant(
             "2026-09-07T20:20:00+08:00", "2026-09-07T18:00:00+08:00", now
         ))
         for old, new in [
@@ -46,7 +116,19 @@ class ArtifactVersionGuardTest(unittest.TestCase):
             ("2026-09-07T12:00:00Z", "2026-09-07T10:00:00"),
         ]:
             with self.subTest(old=old, new=new):
-                self.assertFalse(repairs_future_generated_at(old, new, now))
+                self.assertFalse(walks_back_a_future_instant(old, new, now))
+
+    def test_a_version_still_inside_the_last_time_zone_is_not_a_future_stamp(self) -> None:
+        # 2026-09-19T23:00+08:00 is already 2026-09-20 in UTC+14, so a release cut
+        # that evening may legitimately carry either date; the day after may not.
+        now = datetime(2026, 9, 19, 15, tzinfo=timezone.utc)
+        self.assertEqual(future_metadata_errors([{"path": "p", "version": "2026-09-20.1"}], now), [])
+        self.assertEqual(
+            future_metadata_errors([{"path": "p", "version": "2026-09-21.1"}], now),
+            ["p: version 2026-09-21.1 is dated after today"],
+        )
+        self.assertFalse(walks_back_a_future_version("2026-09-20.1", "2026-09-19.1", now))
+        self.assertTrue(walks_back_a_future_version("2026-09-21.1", "2026-09-19.1", now))
 
     def test_every_versioned_artifact_excludes_release_metadata_from_semantics(self) -> None:
         paths = sorted(

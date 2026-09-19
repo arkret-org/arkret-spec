@@ -1,6 +1,6 @@
 {
   "profile": "ak.vector_group.protocol_edge_cases.v1",
-  "version": "2026-09-21",
+  "version": "2026-09-19",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.protocol.edge_cases.v1"

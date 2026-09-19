@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-22.2",
+  "version": "2026-09-19.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-22T09:30:00+08:00",
+  "generated_at": "2026-09-19T08:18:00+08:00",
   "description": "Canonical list of the published test signing material and the reserved test identifiers that identity/did-usage-and-verification.md section 8 refuses on every formal verification, authorization and trust-admission path. Published material is material whose PRIVATE key ships with the specification, so a valid signature over it proves nothing about the signer. Matching is by canonicalized public-key fingerprint over algorithm-defined key material and by the typed identifier rules below; it is never inferred from the words test, fixture, did:key or example appearing in a string.",
   "rules": [
     "published_signing_material[].fingerprint is sha256 over the ALGORITHM-DEFINED public key encoding named by public_key_encoding, never over JWK, multibase, PEM or any JSON text. The same public key carried under a different kid, DID, JWK member order or transport encoding MUST produce the same fingerprint.",

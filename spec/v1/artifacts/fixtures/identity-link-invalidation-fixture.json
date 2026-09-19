@@ -5,7 +5,7 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.identity_link.invalidation.v1"
   },
-  "version": "2026-09-20.1",
+  "version": "2026-09-19.1",
   "profile": "ak.profile.identity_registry.v1",
   "covers_vectors": [
     "ak.vector.identity_link.eager_invalidation.v1",

@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-20.3",
-  "generated_at": "2026-09-20T18:10:00+08:00",
+  "version": "2026-09-19.1",
+  "generated_at": "2026-09-19T00:38:00+08:00",
   "description": "Ledger of `<file>.md §N` citations — inside canonical artifacts, and in the prose's own plain text — whose target section does not exist. Every entry is a normative obligation whose stated source has no home: that is a protocol gap, not a numbering slip, so it MUST NOT be repaired by editing the number. `artifact` is the citing file: a path under spec/v1/artifacts, or a zh/... prose page. check_artifact_prose_section_refs and check_prose_plain_text_section_refs both consult this ledger.",
   "ratchet": "This list may only shrink. A new entry is admissible only together with the spec report that owns the gap it records; landing that report MUST remove the entry rather than renumber the citation.",
   "exemptions": []

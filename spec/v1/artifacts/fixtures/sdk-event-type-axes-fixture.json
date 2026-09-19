@@ -1,7 +1,7 @@
 {
   "suite": "sdk_event_type_axes",
   "profile": "ak.profile.full_client.v1",
-  "version": "2026-09-21.1",
+  "version": "2026-09-19.1",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.sdk.event_type_axes.v1"

@@ -4,7 +4,7 @@
     "entrypoint": "ak.suite.encoding.core.v1"
   },
   "profile": "ak.vector_group.encoding.v1",
-  "version": "2026-09-21.1",
+  "version": "2026-09-19.1",
   "description": "Canonical encoding and digest-algorithm vectors for the current authority-commit protocol.",
   "generator_semantics": "Vectors of kind *_reject_generated carry a `generator` object instead of literal input bytes: the runner MUST construct the input at execution time from the generator parameters (e.g. nesting_depth, array_item_count) following the generator.rule text, so the fixture never stores megabyte-scale literals. Rejection is asserted exactly as for literal-input vectors.",
   "covers_vectors": [

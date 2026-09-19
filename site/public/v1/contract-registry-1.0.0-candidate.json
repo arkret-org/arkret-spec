@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-21.8",
+  "version": "2026-09-19.14",
   "source_of_truth": true,
-  "generated_at": "2026-09-21T22:00:00+08:00",
+  "generated_at": "2026-09-19T11:37:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -6348,8 +6348,8 @@
         }
       }
     },
-    "version": "2026-09-21.4",
-    "generated_at": "2026-09-21T20:00:00+08:00",
+    "version": "2026-09-19.1",
+    "generated_at": "2026-09-19T06:53:00+08:00",
     "bootstrap_event_kinds": [
       "ak.device.authorize",
       "ak.device.reanchor",
@@ -8055,8 +8055,8 @@
         "description": "Server authentication-success frame carrying effective connection and channel limits."
       }
     ],
-    "version": "2026-09-21.1",
-    "generated_at": "2026-09-21T18:00:00+08:00"
+    "version": "2026-09-19.1",
+    "generated_at": "2026-09-19T07:37:00+08:00"
   },
   "id_kind_registry": {
     "namespace": "ak.",
@@ -8984,8 +8984,8 @@
     }
   },
   "http_signature_contract_registry": {
-    "version": "2026-09-20.7",
-    "generated_at": "2026-09-20T14:50:00+08:00",
+    "version": "2026-09-18.1",
+    "generated_at": "2026-09-18T23:07:00+08:00",
     "source_of_truth": true,
     "description": "Canonical single owner of every RFC 9421 HTTP Message Signature contract in Arkret: the shared covered-component baseline, the per-scenario extensions and their trigger conditions, the required signature parameters, and the freshness window numerals. Prose enumerations, conformance profiles and vector descriptions are projections of this block.",
     "normative_source": "zh/sync/service-http-binding.md #8 HTTP Message Signature",
@@ -13446,8 +13446,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-20.1",
-    "generated_at": "2026-09-20T14:10:00+08:00",
+    "version": "2026-09-18.2",
+    "generated_at": "2026-09-18T23:07:00+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",
@@ -17370,7 +17370,7 @@
         ]
       }
     },
-    "version": "2026-09-21.1"
+    "version": "2026-09-19.1"
   },
   "binding_kind_registry": {
     "kind_pattern": "^[a-z][a-z0-9_]*$",
@@ -18395,7 +18395,7 @@
         }
       }
     ],
-    "version": "2026-09-21.5",
-    "generated_at": "2026-09-21T20:00:00+08:00"
+    "version": "2026-09-19.1",
+    "generated_at": "2026-09-19T05:38:00+08:00"
   }
 }

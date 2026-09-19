@@ -5,7 +5,7 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.consent.cache_invalidation.v1"
   },
-  "version": "2026-09-20.1",
+  "version": "2026-09-18.1",
   "profile": "ak.profile.station.v1",
   "covers_vectors": [
     "ak.vector.consent.cache_invalidation.v1"

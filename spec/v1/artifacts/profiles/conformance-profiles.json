@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-22.1",
-  "generated_at": "2026-09-22T09:30:00+08:00",
+  "version": "2026-09-19.1",
+  "generated_at": "2026-09-19T11:35:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -915,172 +915,172 @@
       {
         "clause_id": "AK-SDK-001",
         "decision_point_id": "envelope_schema_failure_refused",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
       },
       {
         "clause_id": "AK-SDK-001",
         "decision_point_id": "payload_class_failure_refused",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
       },
       {
         "clause_id": "AK-SDK-001",
         "decision_point_id": "no_effect_reaches_the_reducer",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
       },
       {
         "clause_id": "AK-SDK-002",
         "decision_point_id": "forbidden_top_level_members_refused",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
       },
       {
         "clause_id": "AK-SDK-002",
         "decision_point_id": "authorization_members_cannot_be_omitted_or_defaulted",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
       },
       {
         "clause_id": "AK-SDK-006",
         "decision_point_id": "duplicate_key_is_refused_not_last_wins",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
       },
       {
         "clause_id": "AK-SDK-006",
         "decision_point_id": "malformed_json_is_refused_without_repair",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
       },
       {
         "clause_id": "AK-SDK-006",
         "decision_point_id": "non_nfc_input_is_refused_not_silently_normalized",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
       },
       {
         "clause_id": "AK-SDK-006",
         "decision_point_id": "noncanonical_numbers_are_refused",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
       },
       {
         "clause_id": "AK-SDK-006",
         "decision_point_id": "invisible_character_injection_is_refused",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
       },
       {
         "clause_id": "AK-SDK-007",
         "decision_point_id": "malformed_hlc_is_refused_without_normalization",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
       },
       {
         "clause_id": "AK-SDK-009",
         "decision_point_id": "governance_binding_mismatch_stops_the_commit",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
       },
       {
         "clause_id": "AK-SDK-009",
         "decision_point_id": "keypackage_did_authorization_precedes_encryption",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
       },
       {
         "clause_id": "AK-SDK-009",
         "decision_point_id": "envelope_context_mismatch_fails_closed_without_partial_write",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
       },
       {
         "clause_id": "AK-SDK-010",
         "decision_point_id": "search_and_bridge_surfaces_receive_no_private_plaintext",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
       },
       {
         "clause_id": "AK-SDK-010",
         "decision_point_id": "no_media_key_is_published_to_an_unauthorized_service",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
       },
       {
         "clause_id": "AK-SDK-012",
         "decision_point_id": "history_before_the_join_floor_is_not_decrypted",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
       },
       {
         "clause_id": "AK-SDK-012",
         "decision_point_id": "an_unauthorized_key_source_is_refused_before_decryption",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
       },
       {
         "clause_id": "AK-SDK-013",
         "decision_point_id": "unknown_critical_extension_is_refused_as_a_whole",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
       },
       {
         "clause_id": "AK-SDK-013",
         "decision_point_id": "unmet_requirement_is_a_distinct_refusal",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
       },
       {
         "clause_id": "AK-SDK-013",
         "decision_point_id": "unknown_non_critical_extension_is_still_admitted",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
       },
       {
         "clause_id": "AK-SDK-014",
         "decision_point_id": "a_valid_signature_over_published_material_does_not_admit_it",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
       },
       {
         "clause_id": "AK-SDK-014",
         "decision_point_id": "the_fingerprint_survives_renaming_and_re_encoding",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
       },
       {
         "clause_id": "AK-SDK-014",
         "decision_point_id": "the_refusal_leaves_no_state_and_no_weaker_path",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
       },
       {
         "clause_id": "AK-SDK-014",
         "decision_point_id": "the_three_reserved_identifier_rules_are_independent",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
       },
       {
         "clause_id": "AK-SDK-014",
         "decision_point_id": "unlisted_material_is_still_verified_normally",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
       },
       {
         "clause_id": "AK-SDK-016",
         "decision_point_id": "an_unknown_open_registry_value_does_not_fail_the_object",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
       },
       {
         "clause_id": "AK-SDK-020",
         "decision_point_id": "the_delay_is_the_max_of_the_hint_and_jittered_local_backoff",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
       },
       {
         "clause_id": "AK-SDK-020",
         "decision_point_id": "a_zero_or_elapsed_hint_never_accelerates_the_local_ladder",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
       },
       {
         "clause_id": "AK-SDK-020",
         "decision_point_id": "a_long_hint_is_never_clamped_into_an_earlier_retry",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
       },
       {
         "clause_id": "AK-SDK-021",
         "decision_point_id": "pagination_continues_solely_from_has_more",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
       },
       {
         "clause_id": "AK-SDK-022",
         "decision_point_id": "the_canonical_confusable_check_is_callable_from_the_public_api",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
       },
       {
         "clause_id": "AK-SDK-024",
         "decision_point_id": "the_bootstrap_discriminator_is_consumed_before_any_typed_claim",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
       },
       {
         "clause_id": "AK-SDK-024",
         "decision_point_id": "unsupported_and_malformed_discriminators_stay_distinct",
-        "owner_report": "arkret-work/tasks/spec-open/2026-09-21-0030-thirty-four-sdk-decision-points-have-no-fixture-case.md"
+        "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0157b-thirty-four-sdk-decision-points-have-no-fixture-case.md"
       }
     ],
     "vector_evidence_carrier_ratchet_ceiling_rule": "The frozen set of (clause, vector) pairs vector_evidence_carrier_ratchet was ever allowed to hold. Every ratchet row MUST appear here, so removing a row is the only edit the gate accepts and a newly uncarried pair cannot be made to disappear by writing one more row with a plausible owner_report. It is empty because report 1955 closed the whole carrier gap: no clause may accept vector_result on a vector nothing carries. Widening it is possible and deliberately expensive -- the ceiling lives inside sdk_conformance_contract, so editing it moves contract_digest and invalidates every signed conformance claim bound to the old one.",

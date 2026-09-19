@@ -1,6 +1,6 @@
 {
   "suite": "account_status_issuer_ledger",
-  "version": "2026-09-20.1",
+  "version": "2026-09-18.1",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.account_status.issuer_ledger.v1"

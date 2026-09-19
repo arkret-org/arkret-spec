@@ -5,7 +5,7 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.identity.test_material_rejection.v1"
   },
-  "version": "2026-09-20.1",
+  "version": "2026-09-19.1",
   "profile": "ak.profile.full_client.v1",
   "covers_vectors": [
     "ak.vector.identity.test_signing_material_rejected.v1",

@@ -5,7 +5,7 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.webrtc.media_plaintext_downgrade.v1"
   },
-  "version": "2026-09-20.1",
+  "version": "2026-09-18.1",
   "profile": "ak.profile.webrtc_media.v1",
   "covers_vectors": [
     "ak.vector.webrtc.media_plaintext_downgrade.v1"

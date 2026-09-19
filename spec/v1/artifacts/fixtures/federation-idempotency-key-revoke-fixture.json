@@ -5,7 +5,7 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.federation.idempotency_after_key_revoke.v1"
   },
-  "version": "2026-09-20.1",
+  "version": "2026-09-18.1",
   "profile": "ak.profile.federation_minimal.v1",
   "covers_vectors": [
     "ak.vector.federation.idempotency_after_key_revoke.v1"

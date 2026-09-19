@@ -1,261 +1,261 @@
 {
-  "version": "2026-09-20.1",
-  "generated_at": "2026-09-20T19:40:00+08:00",
+  "version": "2026-09-19.1",
+  "generated_at": "2026-09-19T01:07:00+08:00",
   "description": "Ledger of prose anchors carried inside canonical artifacts whose target section does not exist. An artifact anchor is how a registry row pins a machine obligation to the prose that states it; when it dangles, the row asserts a source that cannot be read. That is a protocol gap, not a typo, so it MUST NOT be repaired by guessing a nearby heading: a silently redirected anchor moves the obligation. check_artifact_fragment_targets consults this ledger.",
   "ratchet": "This list may only shrink. A new entry is admissible only together with the spec report that owns the gap it records; landing that report MUST remove the entry rather than retarget the anchor. A listed anchor that resolves again, or that no artifact carries any more, fails the gate until its row is deleted.",
-  "owner_report": "arkret-work/tasks/spec-open/2026-09-20-2115-artifact-prose-anchors-dangle-unchecked.md",
+  "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0111b-artifact-prose-anchors-dangle-unchecked.md",
   "anchors": [
     {
       "artifact": "spec/v1/artifacts/fixtures/fanout-route-miss-fixture.json",
       "anchor": "zh/sync/federation.md#41-推送模式-push",
       "reason": "no heading produces this slug",
-      "owner_report": "arkret-work/tasks/spec-open/2026-09-20-2115-artifact-prose-anchors-dangle-unchecked.md"
+      "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0111b-artifact-prose-anchors-dangle-unchecked.md"
     },
     {
       "artifact": "spec/v1/artifacts/fixtures/independent-admission-fixture.json",
       "anchor": "zh/models/event-and-patch.md#31-独立接收与可携带授权normative",
       "reason": "no heading produces this slug",
-      "owner_report": "arkret-work/tasks/spec-open/2026-09-20-2115-artifact-prose-anchors-dangle-unchecked.md"
+      "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0111b-artifact-prose-anchors-dangle-unchecked.md"
     },
     {
       "artifact": "spec/v1/artifacts/fixtures/invite-new-source-quota-fixture.json",
       "anchor": "zh/identity/consent-model.md#6111-quota-carrier-与-effective-值normative",
       "reason": "no heading produces this slug",
-      "owner_report": "arkret-work/tasks/spec-open/2026-09-20-2115-artifact-prose-anchors-dangle-unchecked.md"
+      "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0111b-artifact-prose-anchors-dangle-unchecked.md"
     },
     {
       "artifact": "spec/v1/artifacts/fixtures/mls-creator-bootstrap-recovery-fixture.json",
       "anchor": "zh/crypto-media/encryption-and-audit.md#512-创建者-bootstrap-transactionnormative",
       "reason": "no heading produces this slug",
-      "owner_report": "arkret-work/tasks/spec-open/2026-09-20-2115-artifact-prose-anchors-dangle-unchecked.md"
+      "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0111b-artifact-prose-anchors-dangle-unchecked.md"
     },
     {
       "artifact": "spec/v1/artifacts/profiles/conformance-profiles.json",
       "anchor": "zh/conformance/conformance-profiles.md#ak-sdk-001",
       "reason": "no heading produces this slug",
-      "owner_report": "arkret-work/tasks/spec-open/2026-09-20-2115-artifact-prose-anchors-dangle-unchecked.md"
+      "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0111b-artifact-prose-anchors-dangle-unchecked.md"
     },
     {
       "artifact": "spec/v1/artifacts/profiles/conformance-profiles.json",
       "anchor": "zh/conformance/conformance-profiles.md#ak-sdk-002",
       "reason": "no heading produces this slug",
-      "owner_report": "arkret-work/tasks/spec-open/2026-09-20-2115-artifact-prose-anchors-dangle-unchecked.md"
+      "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0111b-artifact-prose-anchors-dangle-unchecked.md"
     },
     {
       "artifact": "spec/v1/artifacts/profiles/conformance-profiles.json",
       "anchor": "zh/conformance/conformance-profiles.md#ak-sdk-003",
       "reason": "no heading produces this slug",
-      "owner_report": "arkret-work/tasks/spec-open/2026-09-20-2115-artifact-prose-anchors-dangle-unchecked.md"
+      "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0111b-artifact-prose-anchors-dangle-unchecked.md"
     },
     {
       "artifact": "spec/v1/artifacts/profiles/conformance-profiles.json",
       "anchor": "zh/conformance/conformance-profiles.md#ak-sdk-004",
       "reason": "no heading produces this slug",
-      "owner_report": "arkret-work/tasks/spec-open/2026-09-20-2115-artifact-prose-anchors-dangle-unchecked.md"
+      "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0111b-artifact-prose-anchors-dangle-unchecked.md"
     },
     {
       "artifact": "spec/v1/artifacts/profiles/conformance-profiles.json",
       "anchor": "zh/conformance/conformance-profiles.md#ak-sdk-005",
       "reason": "no heading produces this slug",
-      "owner_report": "arkret-work/tasks/spec-open/2026-09-20-2115-artifact-prose-anchors-dangle-unchecked.md"
+      "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0111b-artifact-prose-anchors-dangle-unchecked.md"
     },
     {
       "artifact": "spec/v1/artifacts/profiles/conformance-profiles.json",
       "anchor": "zh/conformance/conformance-profiles.md#ak-sdk-006",
       "reason": "no heading produces this slug",
-      "owner_report": "arkret-work/tasks/spec-open/2026-09-20-2115-artifact-prose-anchors-dangle-unchecked.md"
+      "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0111b-artifact-prose-anchors-dangle-unchecked.md"
     },
     {
       "artifact": "spec/v1/artifacts/profiles/conformance-profiles.json",
       "anchor": "zh/conformance/conformance-profiles.md#ak-sdk-007",
       "reason": "no heading produces this slug",
-      "owner_report": "arkret-work/tasks/spec-open/2026-09-20-2115-artifact-prose-anchors-dangle-unchecked.md"
+      "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0111b-artifact-prose-anchors-dangle-unchecked.md"
     },
     {
       "artifact": "spec/v1/artifacts/profiles/conformance-profiles.json",
       "anchor": "zh/conformance/conformance-profiles.md#ak-sdk-008",
       "reason": "no heading produces this slug",
-      "owner_report": "arkret-work/tasks/spec-open/2026-09-20-2115-artifact-prose-anchors-dangle-unchecked.md"
+      "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0111b-artifact-prose-anchors-dangle-unchecked.md"
     },
     {
       "artifact": "spec/v1/artifacts/profiles/conformance-profiles.json",
       "anchor": "zh/conformance/conformance-profiles.md#ak-sdk-009",
       "reason": "no heading produces this slug",
-      "owner_report": "arkret-work/tasks/spec-open/2026-09-20-2115-artifact-prose-anchors-dangle-unchecked.md"
+      "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0111b-artifact-prose-anchors-dangle-unchecked.md"
     },
     {
       "artifact": "spec/v1/artifacts/profiles/conformance-profiles.json",
       "anchor": "zh/conformance/conformance-profiles.md#ak-sdk-010",
       "reason": "no heading produces this slug",
-      "owner_report": "arkret-work/tasks/spec-open/2026-09-20-2115-artifact-prose-anchors-dangle-unchecked.md"
+      "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0111b-artifact-prose-anchors-dangle-unchecked.md"
     },
     {
       "artifact": "spec/v1/artifacts/profiles/conformance-profiles.json",
       "anchor": "zh/conformance/conformance-profiles.md#ak-sdk-011",
       "reason": "no heading produces this slug",
-      "owner_report": "arkret-work/tasks/spec-open/2026-09-20-2115-artifact-prose-anchors-dangle-unchecked.md"
+      "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0111b-artifact-prose-anchors-dangle-unchecked.md"
     },
     {
       "artifact": "spec/v1/artifacts/profiles/conformance-profiles.json",
       "anchor": "zh/conformance/conformance-profiles.md#ak-sdk-012",
       "reason": "no heading produces this slug",
-      "owner_report": "arkret-work/tasks/spec-open/2026-09-20-2115-artifact-prose-anchors-dangle-unchecked.md"
+      "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0111b-artifact-prose-anchors-dangle-unchecked.md"
     },
     {
       "artifact": "spec/v1/artifacts/profiles/conformance-profiles.json",
       "anchor": "zh/conformance/conformance-profiles.md#ak-sdk-013",
       "reason": "no heading produces this slug",
-      "owner_report": "arkret-work/tasks/spec-open/2026-09-20-2115-artifact-prose-anchors-dangle-unchecked.md"
+      "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0111b-artifact-prose-anchors-dangle-unchecked.md"
     },
     {
       "artifact": "spec/v1/artifacts/profiles/conformance-profiles.json",
       "anchor": "zh/conformance/conformance-profiles.md#ak-sdk-014",
       "reason": "no heading produces this slug",
-      "owner_report": "arkret-work/tasks/spec-open/2026-09-20-2115-artifact-prose-anchors-dangle-unchecked.md"
+      "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0111b-artifact-prose-anchors-dangle-unchecked.md"
     },
     {
       "artifact": "spec/v1/artifacts/profiles/conformance-profiles.json",
       "anchor": "zh/conformance/conformance-profiles.md#ak-sdk-015",
       "reason": "no heading produces this slug",
-      "owner_report": "arkret-work/tasks/spec-open/2026-09-20-2115-artifact-prose-anchors-dangle-unchecked.md"
+      "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0111b-artifact-prose-anchors-dangle-unchecked.md"
     },
     {
       "artifact": "spec/v1/artifacts/profiles/conformance-profiles.json",
       "anchor": "zh/conformance/conformance-profiles.md#ak-sdk-016",
       "reason": "no heading produces this slug",
-      "owner_report": "arkret-work/tasks/spec-open/2026-09-20-2115-artifact-prose-anchors-dangle-unchecked.md"
+      "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0111b-artifact-prose-anchors-dangle-unchecked.md"
     },
     {
       "artifact": "spec/v1/artifacts/profiles/conformance-profiles.json",
       "anchor": "zh/conformance/conformance-profiles.md#ak-sdk-017",
       "reason": "no heading produces this slug",
-      "owner_report": "arkret-work/tasks/spec-open/2026-09-20-2115-artifact-prose-anchors-dangle-unchecked.md"
+      "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0111b-artifact-prose-anchors-dangle-unchecked.md"
     },
     {
       "artifact": "spec/v1/artifacts/profiles/conformance-profiles.json",
       "anchor": "zh/conformance/conformance-profiles.md#ak-sdk-018",
       "reason": "no heading produces this slug",
-      "owner_report": "arkret-work/tasks/spec-open/2026-09-20-2115-artifact-prose-anchors-dangle-unchecked.md"
+      "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0111b-artifact-prose-anchors-dangle-unchecked.md"
     },
     {
       "artifact": "spec/v1/artifacts/profiles/conformance-profiles.json",
       "anchor": "zh/conformance/conformance-profiles.md#ak-sdk-019",
       "reason": "no heading produces this slug",
-      "owner_report": "arkret-work/tasks/spec-open/2026-09-20-2115-artifact-prose-anchors-dangle-unchecked.md"
+      "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0111b-artifact-prose-anchors-dangle-unchecked.md"
     },
     {
       "artifact": "spec/v1/artifacts/profiles/conformance-profiles.json",
       "anchor": "zh/conformance/conformance-profiles.md#ak-sdk-020",
       "reason": "no heading produces this slug",
-      "owner_report": "arkret-work/tasks/spec-open/2026-09-20-2115-artifact-prose-anchors-dangle-unchecked.md"
+      "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0111b-artifact-prose-anchors-dangle-unchecked.md"
     },
     {
       "artifact": "spec/v1/artifacts/profiles/conformance-profiles.json",
       "anchor": "zh/conformance/conformance-profiles.md#ak-sdk-021",
       "reason": "no heading produces this slug",
-      "owner_report": "arkret-work/tasks/spec-open/2026-09-20-2115-artifact-prose-anchors-dangle-unchecked.md"
+      "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0111b-artifact-prose-anchors-dangle-unchecked.md"
     },
     {
       "artifact": "spec/v1/artifacts/profiles/conformance-profiles.json",
       "anchor": "zh/conformance/conformance-profiles.md#ak-sdk-022",
       "reason": "no heading produces this slug",
-      "owner_report": "arkret-work/tasks/spec-open/2026-09-20-2115-artifact-prose-anchors-dangle-unchecked.md"
+      "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0111b-artifact-prose-anchors-dangle-unchecked.md"
     },
     {
       "artifact": "spec/v1/artifacts/profiles/conformance-profiles.json",
       "anchor": "zh/conformance/conformance-profiles.md#ak-sdk-023",
       "reason": "no heading produces this slug",
-      "owner_report": "arkret-work/tasks/spec-open/2026-09-20-2115-artifact-prose-anchors-dangle-unchecked.md"
+      "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0111b-artifact-prose-anchors-dangle-unchecked.md"
     },
     {
       "artifact": "spec/v1/artifacts/profiles/conformance-profiles.json",
       "anchor": "zh/conformance/conformance-profiles.md#ak-sdk-024",
       "reason": "no heading produces this slug",
-      "owner_report": "arkret-work/tasks/spec-open/2026-09-20-2115-artifact-prose-anchors-dangle-unchecked.md"
+      "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0111b-artifact-prose-anchors-dangle-unchecked.md"
     },
     {
       "artifact": "spec/v1/artifacts/registry/contract-registry.json",
       "anchor": "zh/identity/identity-did.md#42-service-identity-生命周期与持久化",
       "reason": "no heading produces this slug",
-      "owner_report": "arkret-work/tasks/spec-open/2026-09-20-2115-artifact-prose-anchors-dangle-unchecked.md"
+      "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0111b-artifact-prose-anchors-dangle-unchecked.md"
     },
     {
       "artifact": "spec/v1/artifacts/registry/contract-registry.json",
       "anchor": "zh/sync/client-sync.md#1221-high-assurance-cursor-revoke",
       "reason": "no heading produces this slug",
-      "owner_report": "arkret-work/tasks/spec-open/2026-09-20-2115-artifact-prose-anchors-dangle-unchecked.md"
+      "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0111b-artifact-prose-anchors-dangle-unchecked.md"
     },
     {
       "artifact": "spec/v1/artifacts/registry/contract-registry.json",
       "anchor": "zh/sync/service-http-binding.md#role-scoped-service-describe",
       "reason": "no heading produces this slug",
-      "owner_report": "arkret-work/tasks/spec-open/2026-09-20-2115-artifact-prose-anchors-dangle-unchecked.md"
+      "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0111b-artifact-prose-anchors-dangle-unchecked.md"
     },
     {
       "artifact": "spec/v1/artifacts/registry/contract-registry.json",
       "anchor": "zh/sync/service-surface.md#account-authority-与认证方法发现",
       "reason": "no heading produces this slug",
-      "owner_report": "arkret-work/tasks/spec-open/2026-09-20-2115-artifact-prose-anchors-dangle-unchecked.md"
+      "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0111b-artifact-prose-anchors-dangle-unchecked.md"
     },
     {
       "artifact": "spec/v1/artifacts/registry/feature-registry.json",
       "anchor": "zh/sync/client-sync.md#1221-high-assurance-cursor-revoke",
       "reason": "no heading produces this slug",
-      "owner_report": "arkret-work/tasks/spec-open/2026-09-20-2115-artifact-prose-anchors-dangle-unchecked.md"
+      "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0111b-artifact-prose-anchors-dangle-unchecked.md"
     },
     {
       "artifact": "spec/v1/artifacts/registry/operation-registry.json",
       "anchor": "zh/sync/service-http-binding.md#role-scoped-service-describe",
       "reason": "no heading produces this slug",
-      "owner_report": "arkret-work/tasks/spec-open/2026-09-20-2115-artifact-prose-anchors-dangle-unchecked.md"
+      "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0111b-artifact-prose-anchors-dangle-unchecked.md"
     },
     {
       "artifact": "spec/v1/artifacts/registry/operation-registry.json",
       "anchor": "zh/sync/service-surface.md#account-authority-与认证方法发现",
       "reason": "no heading produces this slug",
-      "owner_report": "arkret-work/tasks/spec-open/2026-09-20-2115-artifact-prose-anchors-dangle-unchecked.md"
+      "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0111b-artifact-prose-anchors-dangle-unchecked.md"
     },
     {
       "artifact": "spec/v1/artifacts/registry/proof-context-registry.json",
       "anchor": "zh/discovery/discovery-directory.md#871-governance-proof-wire-形态与绑定normative",
       "reason": "no heading produces this slug",
-      "owner_report": "arkret-work/tasks/spec-open/2026-09-20-2115-artifact-prose-anchors-dangle-unchecked.md"
+      "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0111b-artifact-prose-anchors-dangle-unchecked.md"
     },
     {
       "artifact": "spec/v1/artifacts/registry/repeated-enum-registry.json",
       "anchor": "zh/models/common-fields.md#532",
       "reason": "no section carries this number",
-      "owner_report": "arkret-work/tasks/spec-open/2026-09-20-2115-artifact-prose-anchors-dangle-unchecked.md"
+      "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0111b-artifact-prose-anchors-dangle-unchecked.md"
     },
     {
       "artifact": "spec/v1/artifacts/registry/request-material-supply-exemption-registry.json",
       "anchor": "zh/sync/service-http-binding.md#222-请求材料供给闭合normative",
       "reason": "no heading produces this slug",
-      "owner_report": "arkret-work/tasks/spec-open/2026-09-20-2115-artifact-prose-anchors-dangle-unchecked.md"
+      "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0111b-artifact-prose-anchors-dangle-unchecked.md"
     },
     {
       "artifact": "spec/v1/artifacts/registry/schema-registry.json",
       "anchor": "zh/identity/identity-did.md#42-service-identity-生命周期与持久化",
       "reason": "no heading produces this slug",
-      "owner_report": "arkret-work/tasks/spec-open/2026-09-20-2115-artifact-prose-anchors-dangle-unchecked.md"
+      "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0111b-artifact-prose-anchors-dangle-unchecked.md"
     },
     {
       "artifact": "spec/v1/artifacts/reports/schema-consumer-coverage.json",
       "anchor": "zh/identity/identity-did.md#42-service-identity-生命周期与持久化",
       "reason": "no heading produces this slug",
-      "owner_report": "arkret-work/tasks/spec-open/2026-09-20-2115-artifact-prose-anchors-dangle-unchecked.md"
+      "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0111b-artifact-prose-anchors-dangle-unchecked.md"
     },
     {
       "artifact": "spec/v1/artifacts/schemas/account-subscribe-frame.schema.json",
       "anchor": "zh/sync/client-sync.md#31.",
       "reason": "no section carries this number",
-      "owner_report": "arkret-work/tasks/spec-open/2026-09-20-2115-artifact-prose-anchors-dangle-unchecked.md"
+      "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0111b-artifact-prose-anchors-dangle-unchecked.md"
     },
     {
       "artifact": "spec/v1/artifacts/schemas/notification.schema.json",
       "anchor": "zh/sync/client-sync.md#312.",
       "reason": "no section carries this number",
-      "owner_report": "arkret-work/tasks/spec-open/2026-09-20-2115-artifact-prose-anchors-dangle-unchecked.md"
+      "owner_report": "arkret-work/tasks/spec-open/2026-09-19-0111b-artifact-prose-anchors-dangle-unchecked.md"
     }
   ]
 }
