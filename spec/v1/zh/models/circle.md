@@ -123,7 +123,7 @@ Relation.effective_scope      : reducer-derived read projection，必须等于�
 
 **Circle lifecycle 求值基线（normative）**：普通 Event 的 Circle 身份、active 授权实例与 scope 由当前治理 Station 在接纳事务内从已提交 typed state 解析，允许未知撤销的传播窗口；producer 不携带、也不得替换该授权状态。安全命令从 `expected_revision` 派生确切 revision，并在唯一确认执行位置重验所有实际读取的安全 typed current result。不得合并多个同 Realm RealmCommit 为权限 view。
 
-普通消息不推进 RealmCommit。分区站尚未知道 archive/tombstone 时可暂时接纳；获知后立即阻止受影响的新 live 提交，并按关闭证明重算全部历史资格。缺必要依赖 pending，不以到达时间或旧收据保留永久资格。restore 产生新的授权 generation，不能复活旧 generation 中被关闭排除的 Event；作者必须绑定新授权重新签发后继。
+每条 accepted 普通消息都由其 Circle stream 的 RealmCommit 接纳并推进一个 position。分区的非 authority Station 只能耐久排队或转发，不能按缓存暂时接纳、更新共享 projection 或向成员 fanout；current governance Station 在接纳位置按 committed archive/tombstone 与授权状态裁决。缺必要依赖时保持 queued／retryable unavailable，不以到达时间或旧收据保留永久资格。restore 产生新的授权 generation，不能复活旧 generation 中被关闭排除的 Event；作者必须绑定新授权重新签发后继。
 
 对应 conformance vector 是 `ak.vector.circle.lifecycle_admission_barrier.v1`。
 
@@ -266,7 +266,7 @@ Circle 管理类 grant MUST 显式约束到 `allowed_circle_ids` / `circle_id` s
 1. `Circle.members ⊆ Realm.members`。reducer 在 `ak.circle.member.state -> join` 时，若 target actor 的父 Realm `ak.member.state` 不是 `join`,MUST `failed_precondition` `reason=circle_member_must_be_realm_member`。
 2. 父 Realm `ak.member.state -> leave/ban` 触发 **reducer-derived** cascade:该 actor 在该 Realm 所有 Circle 的 membership 收敛到 `leave`。对已激活 MLS 的 Circle，还 MUST 触发对应 MLS `remove` proposal；未激活的 plaintext Circle 不产生 MLS proposal。不需要 actor 显式写。
 
-   **Cascade 安全锚点（normative）**：父 Realm 的 leave/ban 与其全部 Circle 成员资格派生关闭在同一 Realm 安全序列原子生效。每项关闭按 authority-commit §5 的 member_join 坐标精确绑定原成员授权实例、generation、scope、actions 和保留历史 checkpoint；circle_active 与父 Realm lifecycle 坐标独立。已知关闭的接收站立即阻止新 live 投递；未见关闭的分区站允许临时按缓存聊天。后来补齐证明后统一重算历史，接纳先后不是永久保留依据。
+   **Cascade 安全锚点（normative）**：父 Realm 的 leave/ban 与其全部 Circle 成员资格派生关闭在同一 Realm 安全序列原子生效。每项关闭按 authority-commit §5 的 member_join 坐标精确绑定原成员授权实例、generation、scope、actions 和保留历史 checkpoint；circle_active 与父 Realm lifecycle 坐标独立。current governance Station 在接纳事务中应用已 committed 的关闭并立即阻止受影响的新 live 投递；分区的非 authority Station只能排队／转发，不能按缓存临时接纳。复制方后来补齐 Commit 后统一重算历史可见性，接收先后不是永久保留依据。
 
 Circle membership 使用 [`common-fields.md` §4.5](./common-fields.md#45-membership-fsmnormative) 的共享 materialized membership FSM，完整 `member_id: ActorId` 是 typed current result key。申请正文 MUST NOT 进入 member-state Event；部署若需附加私密材料，必须通过独立的加密扩展通道传输。
 

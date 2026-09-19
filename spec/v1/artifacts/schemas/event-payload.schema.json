@@ -5660,12 +5660,12 @@
         "group_info_ref": {
           "type": "string",
           "pattern": "^ak:blob:(?:sha256|blake3):[0-9a-f]{64}$",
-          "x-arkret-digest-suite-source": "realm_digest_algorithm"
+          "description": "Content-addressed Blob ref. Its embedded suite prefix selects the Blob digest independently of the fixed SHA-256 Event/RealmCommit identity suite."
         },
         "ratchet_tree_ref": {
           "type": "string",
           "pattern": "^ak:blob:(?:sha256|blake3):[0-9a-f]{64}$",
-          "x-arkret-digest-suite-source": "realm_digest_algorithm"
+          "description": "Content-addressed Blob ref. Its embedded suite prefix selects the Blob digest independently of the fixed SHA-256 Event/RealmCommit identity suite."
         },
         "governance_binding": {
           "$ref": "#/$defs/mls_governance_binding"
@@ -7563,7 +7563,7 @@
       "required": [
         "policy_revision"
       ],
-      "minProperties": 2,
+      "minProperties": 1,
       "properties": {
         "policy_revision": {
           "type": "integer",
@@ -7640,12 +7640,6 @@
             }
           },
           "additionalProperties": false
-        },
-        "availability_policy": {
-          "$ref": "./realm.schema.json#/properties/availability_policy"
-        },
-        "commit_compaction_max_interval_ms": {
-          "$ref": "./realm.schema.json#/properties/commit_compaction_max_interval_ms"
         },
         "max_authority_lifetime_ms": {
           "$ref": "./realm.schema.json#/properties/max_authority_lifetime_ms"

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.9",
+  "version": "2026-09-19.10",
   "source_of_truth": true,
-  "generated_at": "2026-09-19T19:00:49+08:00",
+  "generated_at": "2026-09-19T21:25:01+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -488,6 +488,19 @@
         "spec/v1/artifacts/fixtures/authority-commit-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/zh/sync/authority-commit-log.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.authority_commit.cross_stream_saga.v1",
+      "status": "active",
+      "domain": "authority_commit",
+      "applies_to_fixtures": [
+        "authority-commit-fixture.json"
+      ],
+      "description": "Atomic acceptance is limited to one authority stream even when streams share a governance Station and serializable store. A cross-stream workflow uses exact committed references and idempotent saga steps; terminal cancellation is a separately committed compensating Event and never rollback of an accepted predecessor.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/authority-commit-fixture.json",
+        "spec/v1/zh/authz/event-auth-state-resolution.md"
       ]
     },
     {
@@ -2102,7 +2115,7 @@
       "applies_to_fixtures": [
         "encoding-fixture.json"
       ],
-      "description": "BLAKE3 KAT over fixed UTF-8 bytes plus wrong-prefix, wrong-length, Realm-suite mismatch, and unknown-suite downgrade rejection cases.",
+      "description": "BLAKE3 KAT over fixed UTF-8 bytes plus wrong-prefix, wrong-length, fixed Event-identity-domain rejection and unknown-suite downgrade rejection cases. It authorizes BLAKE3 only for typed domains whose owning schema explicitly selects it; Event, Realm and RealmCommit identities remain fixed to SHA-256 in current v1.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json"
       ]

@@ -905,9 +905,8 @@
           "$ref": "#/$defs/base64url"
         },
         "event_digest": {
-          "$ref": "./account-operations.schema.json#/$defs/digest",
-          "x-arkret-digest-suite-source": "realm_digest_algorithm",
-          "description": "Digest of unsigned_event_bytes under the target Realm's effective digest_algorithm. The suite prefix is part of the value and MUST equal that Realm suite; this draft is therefore constructable for both sha256 and blake3 Realms."
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest",
+          "description": "SHA-256 digest of unsigned_event_bytes under the fixed current-v1 Event identity suite. The value MUST use the sha256 prefix; no Realm state selects or changes it."
         }
       },
       "additionalProperties": false

@@ -30,7 +30,7 @@ updated: 2026-07-13
 | `did` | DID URI string。 |
 | `id:<kind>` | `ak:<kind>:<payload>` typed ID；payload 由该 kind 在 `id-kind-registry.json` 声明的 `id_form` 唯一决定。 |
 | `ref:<kind>` | 指向 `<kind>` 的 typed reference material；wire form 同样由 `id-kind-registry.json` 或对应 profile 声明，但字段语义是因果 / proof / content-addressed / profile-scoped reference，而不是普通对象主键。 |
-| `digest` | 自描述 `<digest-suite>:<lowercase_hex_digest>`（suite 取 `digest-suite-registry.json` 的 active 套件，如 `sha256:` / `blake3:`；实际套件由 Realm `digest_algorithm` 决定）。 |
+| `digest` | 自描述 `<digest-suite>:<lowercase_hex_digest>`（suite 取 `digest-suite-registry.json` 中该字段 owning domain 允许的 active 套件，如 Blob 可用 `sha256:` / `blake3:`）。Event、Event-derived object、Realm 与 RealmCommit identity 固定为 current-v1 JCS + SHA-256，不由 Realm 状态选择。 |
 | `cursor` | `ak:cursor:<base64url>` opaque string。 |
 | `patch` | `ak.schema.patch.v1` 形态的 JSON patch 片段，具体路径与 op 规则见 [`event-and-patch.md`](./event-and-patch.md)。 |
 
@@ -262,7 +262,7 @@ Arkret 自有 W3C DID 字段 MUST 使用对象中角色唯一且显然的 `did`�
 | `created_at` | yes | `timestamp` | 不能作为因果真相。 | 创建时间。 |
 | `updated_by` | no | `ActorId` | 更新时 SHOULD 设置。 | 最近更新主体。 |
 | `updated_at` | no | `timestamp` | MUST be no earlier than `created_at`。 | 最近更新时间。 |
-| `state_changed_at` | R when state≠active | `timestamp` | **Reducer-derived,actor 不可信:** 所有具有 `state` 字段的对象（Circle / Space / Strand / Message / Morph / Relation / View）当 `state != active` 时 MUST 写入（逐对象必填性矩阵见 §3.1，统一标记 `R when state≠active`）;reducer **MUST** 忽略任何 wire payload 中 actor-supplied 的 `state_changed_at` 值。安全转换的权威值为 `max(Event.created_at, accepting_committed_at)`，其中 `accepting_committed_at` 来自唯一确认序列中 `command_results[]` 直接接受该 Event 的确切 RealmCommit；普通 Event 不依赖 RealmCommit，只取 `created_at`。MUST be no earlier than `created_at`,MUST ≤ `updated_at`(当后者存在时)。 | 最近一次 state 转换时间。 |
+| `state_changed_at` | R when state≠active | `timestamp` | **Reducer-derived,actor 不可信:** 所有具有 `state` 字段的对象（Circle / Space / Strand / Message / Morph / Relation / View）当 `state != active` 时 MUST 写入（逐对象必填性矩阵见 §3.1，统一标记 `R when state≠active`）;reducer **MUST** 忽略任何 wire payload 中 actor-supplied 的 `state_changed_at` 值。权威值为 `max(Event.created_at, accepting_committed_at)`，其中 `accepting_committed_at` 来自直接接受该 Event 的确切 RealmCommit；所有 shared durable Event 都有该值。MUST be no earlier than `created_at`,MUST ≤ `updated_at`(当后者存在时)。 | 最近一次 state 转换时间。 |
 | `stage` | conditional | `enum` | 适用对象自己的 schema 声明本字段时可用（v1 适用对象 = Strand / Morph，详见 §5.3）；二者在通用 schema 中均可省略，具体 profile MAY 收紧为必填。取值为 §5.3 的协议级 8 值枚举。**禁止与 `state` 混用**：`stage` 表达业务进度，`state` 表达物理生命周期，两者正交。Strand 的 `metadata.fields.stage` / `metadata.fields.lifecycle` / `metadata.fields.progress_state` / `metadata.fields.stage_reason`，以及 Morph 的 `fields.stage` / `fields.lifecycle` / `fields.progress_state` / `fields.stage_reason` 等同名/近名 wire 路径 MUST 被拒绝。stage 变更的"为什么"解释通过 discussion track Message 表达，不在对象字段中携带。 | 业务进度阶段。 |
 | `stage_changed_at` | conditional | `timestamp` | **Reducer-derived，actor 不可信：** 适用对象 `stage` 字段每次实际变更时 MUST 写入；Strand 缺少 `stage` 时 MUST NOT 单独出现。reducer **MUST** 忽略 wire payload 的 actor-supplied 值，以触发该 transition 的 `ak.<kind>.stage.set` event 的 `created_at` 覆盖写入。MUST be no earlier than `created_at`。same-value self-transition（stage 值未变）reducer MUST NOT 更新本字段。 | 最近一次 stage 转换时间。 |
 | `labels` | no | `array<string>` | SHOULD 小写短标签。 | 用户或系统标签。 |
@@ -401,7 +401,7 @@ duration 字符串（例如 join policy 的 `application_ttl`），不受本表�
 
 - `object_update_actor`：`updated_by` = 本次已接受 Event 的 `actor_id`（§3 表）。对象 family 的每一条已登记写入都 MUST 产出它。
 - `object_update_time`：`updated_at` = 本次已接受 Event 的 canonical lifecycle timestamp，即 §3 为 `state_changed_at`
-  定义的同一公式 `max(Event.created_at, accepting_committed_at)`；普通 Event 无 accepting RealmCommit 时取 `created_at`。
+  定义的同一公式 `max(Event.created_at, accepting_committed_at)`；shared durable Event 缺 accepting RealmCommit 时不得物化对象状态。
   MUST NOT 使用本地接收时间、任意客户端值或独立墙钟。结果 MUST 满足 §3 的 `created_at` ≤ `updated_at`。对象 family 的每一条已登记写入都 MUST 产出它。
 - `object_state_transition_time`：`state_changed_at`，条件性产出——仅当本次写入被接受为一次真实 state 转换时产出，
   公式同上，并 MUST 满足 `state_changed_at` ≤ `updated_at`。只有已登记为该转换承载者的 event kind 可以产出它。
@@ -758,9 +758,9 @@ suite-tagged 完整 digest token，此外 `ak:trust_domain:` 是 deployment-scop
 
 ### 6.1 Policy 对象 vs 内联配置的字段命名约定（normative）
 
-实现者经常困惑：同一个对象上既有 `<axis>_profile` / `<axis>_policy` 这样的内联枚举字段（如 `federation_policy`、`digest_algorithm`），又有 `<axis>_policy_id` 这样指向独立 Policy 对象的字段（如 `policy_id`、`retention_policy_id`、`disclosure_policy_id`、`rate_limit_policy_id`）。这是有意区分，规则如下：
+实现者经常困惑：同一个对象上既有 `<axis>_profile` / `<axis>_policy` 这样的内联枚举字段（如 `federation_policy`），又有 `<axis>_policy_id` 这样指向独立 Policy 对象的字段（如 `policy_id`、`retention_policy_id`、`disclosure_policy_id`、`rate_limit_policy_id`）。这是有意区分，规则如下：
 
-- **`<axis>_profile`**：v1 协议级**固定选项**（create-locked 或 reducer-enforced 收敛），值是封闭 enum 字符串（`"mls_rfc9420"` / `"quorum"` / `"sha256"` / ...）。schema 内联约束，无需引用独立对象。变更需要新 event kind（如 hash-transition RealmCommit）或新 Realm。
+- **`<axis>_profile`**：v1 协议级**固定选项**（create-locked 或 reducer-enforced 收敛），值是封闭 enum 字符串（`"mls_rfc9420"` / `"quorum"` / ...）。schema 内联约束，无需引用独立对象。Event／RealmCommit 的 content-address suite 不是 profile 字段，而是 current-v1 全局固定合同。
 - **`<axis>_policy`**：v1 协议级**软策略字段**，值仍是 enum 字符串（`"open"` / `"restricted"` / `"closed"` / `"quarantine"` 等），但描述运行时执行策略，与其他 typed current result state 有交互。同样内联，不通过引用对象。
 - **`<axis>_policy_id`**：指向独立 Policy 对象（`ak:policy:<uuid>`）的 ID，pattern `^ak:policy:[0-9a-f]{8}-...`。Policy 对象自身有 schema 与版本，可以被多个对象共享、被 governance event 修订。独立对象用于：(a) 跨对象复用、(b) 大体积或频繁变更、(c) 需要独立审计 / 签名链。
 - **`<axis>_floor`**：某条加密 / 隐私轴上的**下限**字段，值与对应 `<axis>_profile` 取同一封闭 enum，但语义是"只能向上收紧、MUST NOT 放宽继承到的上游基线"。它用于真实子作用域（Circle）声明比父 Realm 更严格的下限；authorization-transparent 的 Space 只表达 placement 谓词，不承载 floor 值。effective 值取上游 `_profile` 与各 scope `_floor` 的更严格者（见 [`circle.md` §7](./circle.md)）。

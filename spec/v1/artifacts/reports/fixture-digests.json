@@ -67,8 +67,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/authority-commit-fixture.json",
-      "sha256": "1c6194f27bac0f889d9d9f71b42a7d5960be38a27e1b1ad0ce0b61383548ef2d",
-      "version": "2026-09-19.1"
+      "sha256": "584bfd64e85ae29647c0c12d0310dea7a1ef51a9fb26ebd0b63e66fb3bb32409",
+      "version": "2026-09-19.2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/authorization-lease-issuance-fixture.json",
@@ -112,8 +112,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/circle-scope-fixture.json",
-      "sha256": "a0d42618ed7fc409e92b7eb3b9a80cff1c7c9a44bd1197a58df7809cf601c335",
-      "version": "2026-09-18.1"
+      "sha256": "4be74fdf762bb7313e009f9a2f82eacfa39b8d34bce2bcffe993af05f4cfeac0",
+      "version": "2026-09-19.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/client-sync-fixture.json",
@@ -137,8 +137,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/content-bound-event-id-fixture.json",
-      "sha256": "c2ad0528c3375584bd9e1f7178851393edf946d030d353e7f6736d9054b9881e",
-      "version": "2026-09-19.1"
+      "sha256": "50e51a19f4ed8a3dbdc1f6a393bf555a873b248f1e9daaa247c550d54ccca8b3",
+      "version": "2026-09-19.2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/crypto-signature-fixture.json",
@@ -172,8 +172,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/encoding-fixture.json",
-      "sha256": "fb6e28c6e424af2b25ca4b6c4a015f456f2aae8ad3abfd2abee5c775c7ebb8dc",
-      "version": "2026-09-19.2"
+      "sha256": "9983b592bd00f5035759e7f7384f41fbf1db19bbe86e0660e4a7eb5221f74b23",
+      "version": "2026-09-19.3"
     },
     {
       "path": "spec/v1/artifacts/fixtures/error-code-registry-coverage-fixture.json",
@@ -182,8 +182,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/event-kind-payload-coverage-fixture.json",
-      "sha256": "69acc625db29687d45f72327e39bb8e4695341ccf9874ec366720bc1143a8e94",
-      "version": "2026-08-31"
+      "sha256": "1836b700b13e8a99b394d11a91185b6cab33b62d2c683abb539c4bca3ef19c80",
+      "version": "2026-09-19"
     },
     {
       "path": "spec/v1/artifacts/fixtures/event-payload-value-closure-fixture.json",
@@ -237,8 +237,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/independent-admission-fixture.json",
-      "sha256": "fd5f9c5e7cc2dd5295e1cd233f771866503dc7b4f0b297f37d316b896fcc3bea",
-      "version": "2026-09-08"
+      "sha256": "b026fd2b642c40cadc8264fbbc481d33498175c0f456ea38efeb5cc0c02b1516",
+      "version": "2026-09-19"
     },
     {
       "path": "spec/v1/artifacts/fixtures/invite-claim-security-fixture.json",
@@ -322,8 +322,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/pcr-genesis-fixture.json",
-      "sha256": "fc6d421e94cafa4a729b3f17a9b011d94f45536e624ad2e5dcfe22f03661a405",
-      "version": 6
+      "sha256": "23709f20c2558ca9ba17a3c8d16ff3cd7023143c5ac8a0e906be903bd4c1174e",
+      "version": 7
     },
     {
       "path": "spec/v1/artifacts/fixtures/privacy-security-fixture.json",

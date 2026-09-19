@@ -250,7 +250,7 @@ MUST 支持 Full Client 的相关能力，并额外支持：
 - lost-device response
 - local plaintext search for encrypted content
 
-每个服务器 MUST 从 accepted state 判定会改变未来 MLS epoch 密钥访问资格的闭合状态：membership、实际 MLS leaf 使用的 device/Agent runtime key、MLS group membership 与相关 key-access policy。任一这类变化把该 scope 的无符号 64 位 `key_access_revision` 严格加一；它是单调计数器，不是 checkpoint 摘要。普通 capability、metadata、moderation、routing、contact/consent-only 变化不得令 revision 前进；若它们同时产生 member/leaf remove，则只由该 remove 推进一次。E2EE Event 的普通 admission 授权判定与 MLS revision 正交；服务端不得要求同一 RealmCommit 覆盖自身。
+每个服务器 MUST 从 accepted state 判定会改变未来 MLS epoch 密钥访问资格的闭合状态：membership、实际 MLS leaf 使用的 device/Agent runtime key、MLS group membership 与相关 key-access policy。任一这类变化把该 scope 的无符号 64 位 `key_access_revision` 严格加一；它是单调计数器，不是 checkpoint 摘要。普通 capability、metadata、moderation、routing、contact/consent-only 变化不得令 revision 前进；若它们同时产生 member/leaf remove，则只由该 remove 推进一次。E2EE Event 的普通 admission 授权判定与 MLS revision 正交：它必须取得自己的 covering RealmCommit，但不得把尚未签发的同一 Commit 当作接纳前置 basis，也不得因无关 revision 未前进而拒绝。
 
 E2EE 客户端消费自己 Account Station 确认的 exact scope/group/epoch/key-access-revision 结果，核对本地 MLS leaves、待签 intent 与 GroupContext extension 的对应关系，执行 MLS Commit/Welcome 密码学处理；MUST NOT 收集治理闭包、验证历史 authority 或自行重建治理 checkpoint。没有所需服务器结果时，仅相关 scope 保持 pending。该服务器 policy profile 的 proof bundle 与完整 verify/materialize mutation/limit runner 属于服务器或独立审计角色，不是普通 full/e2ee 客户端的继承要求；SDK 是共享代码位置，不代表客户端角色。客户端 conformance 覆盖已确认结果消费、错账号/Realm/scope/group/epoch/basis 绑定、pending 与端到端篡改拒绝。
 
@@ -864,7 +864,7 @@ MUST 支持：
 
 - 在接收 E2EE Event Envelope 时签发七字段 `ak.moderation.franking_proof` 事件，绑定 `realm_id`、目标 `event_id`、`received_by`、`verification_method`、`received_at`、`replay_nonce` 与 `signature`；不得携带派生 digest、sender claim、proof id 或 payload `kind`。
 - franking proof `signature` 由 service DID 在 `received_at` 有效的 verification method 签发，覆盖 `ak.franking_proof.signature.v1` 唯一 canonical transcript。
-- 每条 franking proof 必须可被独立 verify：重算目标 Event 内容承诺，验证 proof Event 的 producer proof、authority refs 与历史 service/Realm binding。若声明期限内存在，还必须取得 byte-identical durable proof Event、确认安全 RealmCommit 的确切 `existence_anchor` 与完整 checkpoint 祖先；普通 Event 不进入 RealmCommit.delta，且普通发送与验证不得等待该可选证据。仅本地命中不能替代所声明的存在证明。
+- 每条 franking proof 必须可被独立 verify：重算目标 Event 内容承诺，验证目标 Event 与 proof Event 各自的 producer proof、covering RealmCommit、authority refs 与历史 service/Realm binding。若声明期限内存在，还必须取得 byte-identical durable proof Event并确认其 exact committed ref；普通发送不得等待后来才生成的可选 franking 证据。仅本地命中不能替代所声明的存在证明。
 - 接收 reporter 提交的 `ak.self.moderation.command.report.v1` 时，把 exact durable franking proof Event 与 report Event 绑定为审计链一部分；不得仅信 reporter 单方声称。
 - franking proof cache TTL 与 service key rotation 同步：service DID 的 verification method 撤销后，旧 franking proof 仍可历史验证（用历史 key state），但不签发新 franking proof。
 

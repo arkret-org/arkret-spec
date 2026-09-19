@@ -1,4 +1,4 @@
-"""Mutation tests for explicit Realm-suite versus fixed-SHA digest sources."""
+"""Mutation tests for domain-selectable Blob versus fixed-SHA digest sources."""
 
 from __future__ import annotations
 
@@ -54,12 +54,21 @@ class StatedDigestSuiteLintTest(unittest.TestCase):
     def test_current_suite_sources_are_closed(self) -> None:
         self.assertEqual(self._lint(), [])
 
-    def test_prepared_event_draft_fixed_sha_alias_fails(self) -> None:
+    def test_prepared_event_draft_multi_suite_alias_fails(self) -> None:
         def mutate(schema) -> None:
             schema["$defs"]["prepared_event_draft"]["properties"]["event_digest"]["$ref"] = "#/$defs/digest"
 
         errors = self._lint("principal-operations.schema.json", mutate)
-        self.assertTrue(any("multi-suite Realm digest" in error for error in errors), errors)
+        self.assertTrue(any("fixed current-v1 SHA-256" in error for error in errors), errors)
+
+    def test_prepared_event_draft_realm_selector_restore_fails(self) -> None:
+        def mutate(schema) -> None:
+            schema["$defs"]["prepared_event_draft"]["properties"]["event_digest"][
+                "x-arkret-digest-suite-source"
+            ] = "realm_digest_algorithm"
+
+        errors = self._lint("principal-operations.schema.json", mutate)
+        self.assertTrue(any("must not restore a Realm-selected" in error for error in errors), errors)
 
     def test_prepared_plan_realm_suite_fails(self) -> None:
         def mutate(schema) -> None:

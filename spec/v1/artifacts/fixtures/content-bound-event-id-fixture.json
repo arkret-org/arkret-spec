@@ -1,5 +1,5 @@
 {
-  "version": "2026-09-19.1",
+  "version": "2026-09-19.2",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.encoding.content_bound_event_id.v1"
@@ -468,27 +468,6 @@
       }
     },
     {
-      "name": "blake3_suite_code_is_part_of_identity",
-      "vector_id": "ak.vector.event_id.content_bound.v1",
-      "event_digest": "blake3:af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262",
-      "suite_wire_code": 2,
-      "event_id_bytes_hex": "02af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262",
-      "derived_event_id": "ak:event:Aq8TSbn1-aGmoEBN6jbcyUmbyyXJrcESt8yak8rkHzJi",
-      "expected": {
-        "outcome": "accepted"
-      }
-    },
-    {
-      "name": "same_full_digest_different_suite_is_different_id",
-      "vector_id": "ak.vector.event_id.content_bound.v1",
-      "sha256_event_id": "ak:event:AUkO_nXXo-Wk_xfqrNVTjCRCKLK_dvLWxAu4HvQLQFnV",
-      "blake3_event_id": "ak:event:AkkO_nXXo-Wk_xfqrNVTjCRCKLK_dvLWxAu4HvQLQFnV",
-      "expected": {
-        "outcome": "accepted",
-        "ids_equal": false
-      }
-    },
-    {
       "name": "full_digest_single_bit_difference_changes_event_id",
       "vector_id": "ak.vector.event_id.content_bound.v1",
       "first_event_id": "ak:event:AUkO_nXXo-Wk_xfqrNVTjCRCKLK_dvLWxAu4HvQLQFnV",
@@ -502,10 +481,10 @@
     {
       "name": "suite_code_mismatch_rejected",
       "vector_id": "ak.vector.event_id.content_bound.v1",
-      "mutation": "replace 0x01 with active 0x02 while retaining sha256 digest",
+      "mutation": "replace fixed current-v1 suite code 0x01 with registered Blob-only code 0x02 while retaining the digest bytes",
       "expected": {
         "outcome": "rejected",
-        "error": "event_id_digest_mismatch"
+        "error": "unsupported_digest_algorithm"
       }
     },
     {
@@ -802,7 +781,7 @@
   "layout": {
     "decoded_length_bytes": 33,
     "reserved_high_nibble": 0,
-    "digest_suite_low_nibble": true,
+    "fixed_v1_suite_code": 1,
     "suite_code_offset": 0,
     "digest_offset": 1,
     "digest_length_bytes": 32,

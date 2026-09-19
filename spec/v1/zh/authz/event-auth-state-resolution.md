@@ -69,9 +69,9 @@ Snapshot 完整性由 manifest signature、typed sections、stream heads、histo
 
 每个 Realm 以 `governance_station_id` 建立 generation-0 authority，并只通过连续 `RealmAuthorityHandoff` 更换治理 Station。v1 领域规则和 digest 语义由协议版本固定；service key rotation 通过 service DID method history 处理。
 
-## 13. Hash suite transition
+## 13. 固定 content-address suite
 
-current v1不支持Realm内suite transition。Event/Commit ID使用协议固定suite；未知或错误suite fail closed。
+current v1 的 Event、Event-derived object、Realm 与 RealmCommit ID 固定使用 RFC 8785 JCS + SHA-256，33-octet token 的首字节固定为 `0x01`。Realm schema、policy、header、query 或部署配置都不得选择或切换该 suite；其它已登记 digest suite 只可被其 owning typed domain（例如 Blob ref）显式使用。上述 ID 中出现其它 suite code 必须以 `unsupported_digest_algorithm` fail closed，历史引用不重哈希。
 
 ## 14. 提交结果与积压恢复
 
@@ -101,10 +101,13 @@ Station 串行化：落后 revision 的命令以 `failed_precondition` 拒绝。
 已签名并已接纳的位置，也 MUST NOT 授权一条并行 lineage 接管该位置。崩溃后 MUST 先查原 durable outcome；
 结果未知时只能精确重投同一字节或继续查询，MUST NOT 另签一个 Event 冒充重试。
 
-**跨 Realm 原子性（normative）**：一次原子跨 Realm 效果要求这些 stream 同属**一个**治理 Station 且落在
-**一个** serializable store 上。不满足该前提的跨 Station 依赖 MUST 在产生任何效果之前失败，并如实报告缺失的
-权威或材料；实现 MUST NOT 用无限 defer、部分写入或本地补偿冒充原子性。同一部署共用数据库不构成跨
-Station 原子性。
+**跨 stream 原子性边界（normative）**：一次原子接受只能推进一个 authority stream。Realm、Circle、Sidecar
+以及不同 Realm 的 stream 即使由同一治理 Station、同一进程或同一 serializable store 承载，也仍是独立的
+权威边界；共址不得把它们合并成一个原子事务。跨 stream 工作流 MUST 以已提交的精确引用串联为 saga：每一步
+分别取得自己的 RealmCommit，重试使用同一请求身份与 exact bytes，后续不可用时不得回滚或改写已提交的前序
+事实；需要撤销业务意图时，必须在相应 stream 上提交显式补偿 Event。实现 MUST NOT 暴露或宣称跨 stream
+all-or-nothing 接受，也 MUST NOT 用本地数据库事务、无限 defer 或静默部分写入冒充协议原子性。对应的可执行
+转录为 `ak.vector.authority_commit.cross_stream_saga.v1`。
 
 暂缺依赖、损坏记录与已验证不合法的请求 MUST 区分处置：隔离单项调度故障、保留安全 gate 与可诊断恢复入口，
 MUST NOT 伪造终局拒绝。已证明无依赖的就绪工作与其它 Realm MUST 获得公平处理机会；扫描预算不是队列总量

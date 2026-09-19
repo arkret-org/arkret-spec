@@ -397,7 +397,7 @@ Bearer user session 只证明当前调用会话；它 MUST 与 `actor_id` 一致
 
 1. 验证 provider signature、room binding、destination、body digest 和重放窗口。同时 MUST 校验本 binding 的 `local_provider_role ∈ { hub, follower }`;`local_provider_role=observer` 的 binding 不得代表本地参与方提交 writes(见 §4),facade MUST 拒绝该 submit_message,reason=`mimi_observer_write_forbidden`。
 2. 验证 MLS epoch 与 `ak.mimi.room_binding.mls_group_id` 匹配。
-3. 按 MLS key-access revision binding 验证：Commit 携带的 `governance_binding.key_access_revision` 与从 accepted key-access state 重算的值相同，消息 group/epoch 指向该 current winning group state；普通 Event 独立验证其 producer proof 与治理 Station 接纳时解析出的授权实例，不引用 RealmCommit。
+3. 按 MLS key-access revision binding 验证：Commit 携带的 `governance_binding.key_access_revision` 与从 accepted key-access state 重算的值相同，消息 group/epoch 指向该 current winning group state；普通 Event 独立验证 producer proof，并验证 current governance Station 在接纳时解析授权实例后为它签发的 covering RealmCommit。Event 不把 Commit 或授权 basis 塞回 producer-signed bytes。
 4. 将 MIMI content container 映射为 `ak.message.create`、`ak.message.revise`、`ak.message.redact`、`ak.reaction.add`、`ak.reaction.remove` 或 `ak.relation.*`。
 5. 保留原始 MIMI envelope hash、provider id、message id 和 accepted timestamp 作为 interop metadata。
 6. 对无法确认授权、epoch、content 或 policy 的消息返回 `temporarily_unavailable`、`dependency_missing`、`capability_denied` 或 `quarantine`。
@@ -467,7 +467,7 @@ Arkret v1 把 Realm-level policy 映射为 state-changing Event 的 registered t
 | `realm_history_access` | `ak.realm.history_access` | MIMI 若能表达等价的 current-member history range 则映射；否则 fail closed，不臆造旧五档 visibility |
 | `realm_discovery` | `ak.realm.discovery` | `participation` 中 `discoverability` 子字段 |
 | `realm_alias` | `ak.realm.alias` | （Arkret 专属；MIMI 的 room URI / hub-local name 不是可映射 policy component） |
-| `realm_policy_bundle` | `ak.realm.policy_bundle` | 没有独立 facet event kind 的 Realm policy 组件集合（`join_policy` / `agent_participation` / `account_deactivation` / `availability_policy` / `preauth` / 加密 floor 与 scheme 等）；对应 MIMI 的 `participation.join_policy`、`preauth` 与 `bot` 子字段 |
+| `realm_policy_bundle` | `ak.realm.policy_bundle` | 没有独立 facet event kind 的 Realm policy 组件集合（`join_policy` / `agent_participation` / `account_deactivation` / `preauth` / 加密 floor 与 scheme 等）；对应 MIMI 的 `participation.join_policy`、`preauth` 与 `bot` 子字段 |
 | `realm_asset_privacy_policy` | `ak.realm.asset_privacy_policy` | `asset` |
 | `realm_plaintext_visible_services` | `ak.realm.plaintext_visible_services` | （Arkret 专属隐私透明度机制；MIMI 侧无对应） |
 | `realm_media_service` | `ak.realm.media_service` | （Arkret 专属，与 MIMI 的 hub provider 解耦） |

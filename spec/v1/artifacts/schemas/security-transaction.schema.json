@@ -51,7 +51,7 @@
     },
     "prepared_plan_digest": {
       "$ref": "#/$defs/sha256_digest",
-      "description": "SHA-256(RFC8785_JCS(prepared_plan)). Implementations MUST recompute it and persist both bytes and typed value before the first side effect. This cross-service CAS coordinate never follows a Realm digest_algorithm."
+      "description": "SHA-256(RFC8785_JCS(prepared_plan)). Implementations MUST recompute it and persist both bytes and typed value before the first side effect. This cross-service CAS coordinate is fixed independently of any domain-selectable Blob or KDF digest suite."
     },
     "accepted_steps": {
       "type": "array",

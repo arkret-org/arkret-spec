@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.2",
+  "version": "2026-09-19.3",
   "source_of_truth": true,
-  "generated_at": "2026-09-19T19:22:39+08:00",
+  "generated_at": "2026-09-19T21:25:01+08:00",
   "value_set_evolution_note": "Per zh/conformance/schema-registry.md §6.1: entries carrying value_set_evolution='open' are open registry sets (adding a value is a backward-compatible minor; codegen SHOULD use non-exhaustive Unknown(String) fallback). value_set_evolution='schema_selector' registries are algorithm-agility token sources whose canonical-object selectors are frozen per schema version (codegen MUST generate per-schema-version closed types; adding an active value requires a schema version bump). Registries WITHOUT this field are simply not classified here (they may be structural sources such as the contract registry or manifest, or value sets not yet classified); consumers MUST consult §6.1 and the registry's own registry_rules rather than assuming a registry is or is not a codegen value-set source from the mere absence of this field.",
   "registries": [
     {
@@ -177,7 +177,7 @@
       "value_set_evolution": "schema_selector",
       "source_role": "canonical",
       "source_of_truth": true,
-      "description": "Canonical digest suite (canonicalization x hash tuple) vocabulary for typed digest wire prefixes and the Realm digest_algorithm value space."
+      "description": "Canonical digest suite (canonicalization x hash tuple) vocabulary for typed digest wire prefixes. Event, Event-derived object, Realm and RealmCommit identities use the registry's fixed current-v1 SHA-256 suite; other typed domains explicitly declare any broader active-suite set."
     },
     {
       "name": "error_codes",

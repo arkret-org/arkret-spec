@@ -236,7 +236,6 @@ Sovereign deployment 不增加 Realm 类型或 Realm hosting authority。实现�
         "schema_refs": [
           "ak.schema.realm.v1"
         ],
-        "digest_algorithm": "sha256",
         "security_class": "high_assurance",
         "governance_station_id": "ak:did_core:webvh:zCnzAMiBV2XXjoWzmojUF2YbL",
         "initial_join_rule": "invite",

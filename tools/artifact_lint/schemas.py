@@ -673,7 +673,7 @@ def check_security_transaction_schema_closure(lint: Lint) -> None:
 
 
 def check_stated_digest_suite_sources(lint: Lint) -> None:
-    """Keep Realm-suite material and fixed-SHA service CAS digests disjoint.
+    """Keep domain-selectable Blob material and fixed-SHA identities/CAS digests disjoint.
 
     This is deliberately a closed path check, not a natural-language algorithm
     guesser. Each covered field either declares a machine suite source or uses the
@@ -706,11 +706,11 @@ def check_stated_digest_suite_sources(lint: Lint) -> None:
         .get("properties", {})
         .get("event_digest", {})
     )
-    expected_realm_digest = "./account-operations.schema.json#/$defs/digest"
-    if draft_digest.get("$ref") != expected_realm_digest:
-        lint.fail(principal_path, "prepared_event_draft.event_digest must use the multi-suite Realm digest definition")
-    if draft_digest.get("x-arkret-digest-suite-source") != "realm_digest_algorithm":
-        lint.fail(principal_path, "prepared_event_draft.event_digest must declare realm_digest_algorithm as its suite source")
+    expected_event_digest = "./account-operations.schema.json#/$defs/sha256_digest"
+    if draft_digest.get("$ref") != expected_event_digest:
+        lint.fail(principal_path, "prepared_event_draft.event_digest must use the fixed current-v1 SHA-256 digest definition")
+    if "x-arkret-digest-suite-source" in draft_digest:
+        lint.fail(principal_path, "prepared_event_draft.event_digest must not restore a Realm-selected digest suite source")
 
     expected_plan_digest = "#/$defs/sha256_digest"
     for json_path, value, key in walk_json(security):
@@ -733,13 +733,13 @@ def check_stated_digest_suite_sources(lint: Lint) -> None:
         for field in ("group_info_ref", "ratchet_tree_ref"):
             node = properties.get(field, {}) if isinstance(properties, dict) else {}
             if node.get("pattern") != realm_ref_pattern:
-                lint.fail(path, f"$defs/{def_name}.{field} must admit sha256 and blake3 Realm blob refs")
-            if node.get("x-arkret-digest-suite-source") != "realm_digest_algorithm":
-                lint.fail(path, f"$defs/{def_name}.{field} must declare realm_digest_algorithm as its suite source")
+                lint.fail(path, f"$defs/{def_name}.{field} must admit sha256 and blake3 Blob refs")
+            if "x-arkret-digest-suite-source" in node:
+                lint.fail(path, f"$defs/{def_name}.{field} must not restore a Realm-selected digest suite source")
 
     subject_ref = erasure.get("$defs", {}).get("subject_ref", {})
     if "ak:blob:(?:sha256|blake3):" not in str(subject_ref.get("pattern", "")):
-        lint.fail(erasure_path, "subject_ref blob branch must admit both active Realm digest suites")
+        lint.fail(erasure_path, "subject_ref blob branch must admit both active Blob digest suites")
 
     founding = genesis.get("$defs", {}).get("founding_device_descriptor", {})
     founding_members = _members(founding)

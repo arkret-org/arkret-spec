@@ -429,8 +429,9 @@ whole-round terminal 的对端确认保留 §2 允许的共享 tombstone head：
 completeness 合同不受此 direction-version 定义影响。
 current freshness 是 Contact mutation 与 Direct Conversation 安全 founding 的执行条件；初次缺少可验证 directional 授权仍不得发送。
 既有 Direct Conversation 的普通聊天发送可使用完整验证、绑定同 pair/round 的 directional 授权区间；仅 current lease 的
-`fresh_until` 经过不撤销该历史证据，不要求 source Station 在线、新 lease 或新 RealmCommit。未传播的撤销存在允许窗口；收到真实
-scope 收窄或 terminal 后立即 live fence，并按本文 §3 的方向 scope 区间与完整关闭集合重算历史资格。必要源证据未知仍 pending，不以 TTL 过期假造 revoke。
+`fresh_until` 经过不撤销该历史证据，不要求 source Station 在线、新 lease 或额外的前置 RealmCommit。消息自身仍必须由 Direct Conversation
+stream 的 current governance Station 在接纳事务中验证该区间并签发 covering RealmCommit。已 committed 的 scope 收窄或 terminal 立即
+阻止新 live admission，并按本文 §3 的方向 scope 区间与完整关闭集合重算历史资格。必要源证据未知仍 pending，不以 TTL 过期假造 revoke。
 历史方向认证 MUST 使用完整原件及其源签名时点验证真实历史 key、签名和连续区间；不要求本站曾在 `fresh_until` 前首次观察这些原件。相同 K 在不同站或重启后必须得到相同历史资格，不能靠 first_verified_at、伪造旧观察时间或 source 重新出具 current lease 补足一项并不存在的历史权限。这里没有省略源证据或关闭验证；current mutation/founding 的 `require_current` 检查仍按实际执行时刻进行。
 existing binding resolver 保留原坐标；`contact_scope_stale` 仅表示当前确切操作必需的证据尚未知或 current 安全执行条件不满足，
 不能用一个过期查询 lease 阻塞已验证区间内的 ordinary send。proof stale 不把 accepted round 回滚为 pending，也不得隐藏 participant 坐标。

@@ -1669,7 +1669,7 @@
           ]
         }
       ],
-      "description": "Holder-signed ordinary Actor Profile Event. (event.actor_id, event.station_id) MUST equal the authenticated session's exact account authority pair, and event.realm_id MUST select that pair's local unique PCR lineage. Accepted-profile presence is evaluated only within that lineage. With no accepted profile there the exact Event MUST be ak.profile.create and its materialized actor_profile ID is derived by retyping event.event_id; the create payload MUST NOT carry id. With an accepted profile there the exact Event MUST be ak.profile.update and payload.target_ref MUST equal that accepted create-derived ID. On create payload.object.principal_id MUST equal event.actor_id; on update the accepted target profile's materialized principal_id MUST equal it. Holder direct proof is required without executed_by, authorization_ref or Applet provenance. Event preconditions MUST be empty; update concurrency uses only the optional signed payload.expected_state_digest. The service submits the exact bytes through authority Event submission and MUST NOT author, rebuild, co-sign, choose an ID or add a concurrency guard. A valid ordinary profile Event returns its outcome after durable independent admission, without waiting for RealmCommit coverage or advancement; exact retry returns the stored outcome."
+      "description": "Holder-signed ordinary Actor Profile Event. (event.actor_id, event.station_id) MUST equal the authenticated session's exact account authority pair, and event.realm_id MUST select that pair's local unique PCR lineage. Accepted-profile presence is evaluated only within that lineage. With no accepted profile there the exact Event MUST be ak.profile.create and its materialized actor_profile ID is derived by retyping event.event_id; the create payload MUST NOT carry id. With an accepted profile there the exact Event MUST be ak.profile.update and payload.target_ref MUST equal that accepted create-derived ID. On create payload.object.principal_id MUST equal event.actor_id; on update the accepted target profile's materialized principal_id MUST equal it. Holder direct proof is required without executed_by, authorization_ref or Applet provenance. Event preconditions MUST be empty; update concurrency uses only the optional signed payload.expected_state_digest. The service submits the exact bytes through authority Event submission and MUST NOT author, rebuild, co-sign, choose an ID or add a concurrency guard. Success exists only after the current PCR governance Station atomically accepts the Event, materializes the profile result and signs its RealmCommit; exact retry returns the stored outcome and the same Commit."
     },
     "account_update_profile_request_body": {
       "type": "object",
@@ -1686,13 +1686,17 @@
     },
     "account_update_profile_outcome": {
       "type": "object",
-      "description": "Stored outcome after the profile Event is accepted and its effect is materialized. profile.id is the create-derived ActorProfile ID, profile.realm_id is event.realm_id, and an update projects updated_by/updated_at from event.actor_id/event.created_at. Exact Event replay returns the byte-identical stored outcome and emits no second account-aggregate delta.",
+      "description": "Stored outcome after the profile Event is authority-committed and its effect is materialized. profile.id is the create-derived ActorProfile ID, profile.realm_id is event.realm_id, and an update projects updated_by/updated_at from event.actor_id/event.created_at. commit is the exact RealmCommit covering the submitted Event. Exact Event replay returns the byte-identical stored outcome and emits no second account-aggregate delta.",
       "required": [
-        "profile"
+        "profile",
+        "commit"
       ],
       "properties": {
         "profile": {
           "$ref": "#/$defs/account_materialized_profile"
+        },
+        "commit": {
+          "$ref": "./realm-commit.schema.json"
         }
       },
       "additionalProperties": false

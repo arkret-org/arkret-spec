@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-19.4",
-  "generated_at": "2026-09-19T19:13:16+08:00",
+  "version": "2026-09-19.5",
+  "generated_at": "2026-09-19T21:25:01+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -1545,8 +1545,7 @@
     "ak.profile.encoding.cbor.v1"
   ],
   "hash_extension_profiles": [
-    "ak.profile.hash.blake3.v1",
-    "ak.profile.hash_transition.v1"
+    "ak.profile.hash.blake3.v1"
   ],
   "signature_extension_profiles": [
     "ak.profile.signature.ecdsa_p256.v1",
@@ -1627,7 +1626,6 @@
     "ak.profile.constraint.resource_limit.v1": "admin",
     "ak.profile.encoding.cbor.v1": "interop",
     "ak.profile.hash.blake3.v1": "interop",
-    "ak.profile.hash_transition.v1": "interop",
     "ak.profile.kem.hybrid_xwing.v1": "admin",
     "ak.profile.hpke.p256.v1": "admin",
     "ak.profile.signature.ecdsa_p256.v1": "admin",
@@ -6289,25 +6287,6 @@
           "hash_suite.blake3"
         ],
         "unsupported_optional": "do not claim ak.profile.hash.blake3.v1 unless this build implements and tests the declared profile"
-      }
-    },
-    "ak.profile.hash_transition.v1": {
-      "description": "Digest-suite Transition RealmCommit interoperability gate.",
-      "enforcement_phases": [
-        "conformance",
-        "peer_eligibility"
-      ],
-      "operation_requirements": [],
-      "required_event_kinds": [],
-      "rejected_event_kinds": [],
-      "required_schemas": [],
-      "required_fixtures": [],
-      "optional_extensions": [],
-      "feature_discovery": {
-        "required": [
-          "hash_transition"
-        ],
-        "unsupported_optional": "do not claim ak.profile.hash_transition.v1 unless this build implements and tests the declared profile"
       }
     },
     "ak.profile.kem.hybrid_xwing.v1": {

@@ -1607,7 +1607,7 @@
     },
     "MlsGroupStateMaterialOutcome": {
       "type": "object",
-      "description": "Exact RFC 9420 public group-state material. *_bytes_b64 use unpadded base64url. Consumers MUST decode, hash raw bytes under the target Realm digest_algorithm, compare the hashes embedded in both content-addressed refs, verify GroupInfo and ratchet_tree consistency, then derive leaf_index only from occupied leaves in the verified tree.",
+      "description": "Exact RFC 9420 public group-state material. *_bytes_b64 use unpadded base64url. Consumers MUST decode each content-addressed Blob ref's embedded suite, hash the raw bytes under that suite, compare the digest, verify GroupInfo and ratchet_tree consistency, then derive leaf_index only from occupied leaves in the verified tree. Blob suites are independent of the fixed SHA-256 Event/RealmCommit identity suite.",
       "required": [
         "realm_id",
         "effective_scope",
@@ -1638,8 +1638,7 @@
         "group_info_ref": {
           "type": "string",
           "pattern": "^ak:blob:(?:sha256|blake3):[0-9a-f]{64}$",
-          "x-arkret-digest-suite-source": "realm_digest_algorithm",
-          "description": "Copied byte-for-byte from the accepted ak.mls.genesis payload; the embedded Realm-suite digest is the sole wire carrier of the material digest (encoding.md 4.0.1)."
+          "description": "Copied byte-for-byte from the accepted ak.mls.genesis payload; the embedded Blob digest suite is the sole wire carrier of the material digest and is independent of the fixed SHA-256 Event/RealmCommit identity suite (encoding.md 4.0.1)."
         },
         "group_info_bytes_b64": {
           "type": "string",
@@ -1650,8 +1649,7 @@
         "ratchet_tree_ref": {
           "type": "string",
           "pattern": "^ak:blob:(?:sha256|blake3):[0-9a-f]{64}$",
-          "x-arkret-digest-suite-source": "realm_digest_algorithm",
-          "description": "Copied byte-for-byte from the accepted ak.mls.genesis payload; the embedded Realm-suite digest is the sole wire carrier of the material digest (encoding.md 4.0.1)."
+          "description": "Copied byte-for-byte from the accepted ak.mls.genesis payload; the embedded Blob digest suite is the sole wire carrier of the material digest and is independent of the fixed SHA-256 Event/RealmCommit identity suite (encoding.md 4.0.1)."
         },
         "ratchet_tree_bytes_b64": {
           "type": "string",
@@ -1693,14 +1691,12 @@
         "group_info_ref": {
           "type": "string",
           "pattern": "^ak:blob:(?:sha256|blake3):[0-9a-f]{64}$",
-          "x-arkret-digest-suite-source": "realm_digest_algorithm",
-          "description": "Copied byte-for-byte from the accepted ak.mls.genesis payload; the embedded Realm-suite digest is the sole wire carrier of the material digest (encoding.md 4.0.1)."
+          "description": "Copied byte-for-byte from the accepted ak.mls.genesis payload; the embedded Blob digest suite is the sole wire carrier of the material digest and is independent of the fixed SHA-256 Event/RealmCommit identity suite (encoding.md 4.0.1)."
         },
         "ratchet_tree_ref": {
           "type": "string",
           "pattern": "^ak:blob:(?:sha256|blake3):[0-9a-f]{64}$",
-          "x-arkret-digest-suite-source": "realm_digest_algorithm",
-          "description": "Copied byte-for-byte from the accepted ak.mls.genesis payload; the embedded Realm-suite digest is the sole wire carrier of the material digest (encoding.md 4.0.1)."
+          "description": "Copied byte-for-byte from the accepted ak.mls.genesis payload; the embedded Blob digest suite is the sole wire carrier of the material digest and is independent of the fixed SHA-256 Event/RealmCommit identity suite (encoding.md 4.0.1)."
         },
         "max_response_bytes": {
           "type": "integer",

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.25",
+  "version": "2026-09-19.27",
   "source_of_truth": false,
-  "generated_at": "2026-09-19T19:26:03+08:00",
+  "generated_at": "2026-09-19T21:30:23+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -4617,10 +4617,12 @@
         "schema_ref": "schemas/account-operations.schema.json#/$defs/account_update_profile_outcome",
         "schema_kind": "object",
         "required": [
-          "profile"
+          "profile",
+          "commit"
         ],
         "properties": [
-          "profile"
+          "profile",
+          "commit"
         ],
         "closed": true
       }

@@ -1,6 +1,6 @@
 {
   "suite": "event_kind_payload_coverage_fixture",
-  "version": "2026-08-31",
+  "version": "2026-09-19",
   "runner": {
     "kind": "registry_coverage",
     "inputs": [
@@ -178,6 +178,18 @@
           }
         ]
       }
+    },
+    {
+      "name": "realm_policy_bundle_accepts_empty_enabled_component_set",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_policy_bundle_payload",
+      "expect_valid": true,
+      "instance": {
+        "policy_revision": 2
+      },
+      "invariants": [
+        "the whole-value replacement clears every previously enabled optional component",
+        "each absent component returns to its protocol default rather than inheriting the prior revision"
+      ]
     },
     {
       "name": "realm_policy_bundle_rejects_bare_handle_issuer_strings",

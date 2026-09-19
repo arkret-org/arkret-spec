@@ -56,19 +56,15 @@ Account Station先验证session、Event canonical ID和producer proof，再定�
 
 每个普通 Event 单独获得结果。MLS 使用专用原子请求：一个 `ak.mls.commit` 与全部新增 recipient Welcome deliveries 全成或全败。
 
-## 6. Receipt、可用性与完整性证明
+## 6. Receipt 与完整性证明
 
 RealmCommit是唯一accepted receipt；transport/queue receipt只能说明已收到或已排队。
 
-### 6.1 AvailabilityReceipt
-
-不构成Realm finality或censorship proof。
-
-### 6.2 读己之所写屏障
+### 6.1 读己之所写屏障
 
 客户端read-your-writes以返回Commit和own Station barrier/cursor实现；cursor不是authority proof。
 
-### 6.3 历史完整性边界（normative）
+### 6.2 历史完整性边界（normative）
 
 同一获准stream的position必须连续且predecessor唯一。History/retention floor之前的裁剪不是gap；之后无法解释的跳跃必须停止该stream并重取snapshot/authority bundle。
 

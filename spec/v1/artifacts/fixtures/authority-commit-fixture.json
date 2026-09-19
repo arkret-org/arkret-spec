@@ -1,5 +1,5 @@
 {
-  "version": "2026-09-19.1",
+  "version": "2026-09-19.2",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.authority_commit.v1"
@@ -73,8 +73,61 @@
     "commit_and_welcomes_share_one_transaction": true,
     "missing_welcome_writes_nothing": true
   },
+  "cross_stream_saga": {
+    "vector_id": "ak.vector.authority_commit.cross_stream_saga.v1",
+    "streams_share_governance_station": true,
+    "streams_share_serializable_store": true,
+    "protocol_atomicity_scope": "one_authority_stream",
+    "steps": [
+      {
+        "step": 1,
+        "stream": "realm_source",
+        "action": "accept_source_event",
+        "request_key": "saga-7/source",
+        "expected": "committed",
+        "commit_ref": "source_commit_12"
+      },
+      {
+        "step": 2,
+        "stream": "realm_target",
+        "action": "submit_successor_with_exact_source_commit_ref",
+        "request_key": "saga-7/target",
+        "expected": "retryable_unavailable",
+        "writes_nothing": true
+      },
+      {
+        "step": 3,
+        "stream": "realm_target",
+        "action": "retry_exact_successor",
+        "request_key": "saga-7/target",
+        "bytes": "exact_same_canonical_bytes",
+        "expected": "committed_once",
+        "commit_ref": "target_commit_31"
+      },
+      {
+        "step": 4,
+        "stream": "realm_source",
+        "action": "duplicate_source_retry",
+        "request_key": "saga-7/source",
+        "bytes": "exact_same_canonical_bytes",
+        "expected": "original_committed_outcome"
+      }
+    ],
+    "terminal_failure_branch": {
+      "target_writes_nothing": true,
+      "source_commit_remains_immutable": true,
+      "rollback_forbidden": true,
+      "cancellation_requires": "a separately accepted compensating Event on realm_source"
+    },
+    "forbidden_claims": [
+      "cross_stream_all_or_nothing",
+      "shared_store_expands_protocol_atomicity",
+      "rollback_of_an_accepted_predecessor"
+    ]
+  },
   "covers_vectors": [
     "ak.vector.authority_commit.independent_streams.v1",
+    "ak.vector.authority_commit.cross_stream_saga.v1",
     "ak.vector.authority_commit.stream_continuity_negative.v1",
     "ak.vector.authority_commit.equivocation_freeze.v1",
     "ak.vector.authority_commit.post_handoff_write_rejected.v1",

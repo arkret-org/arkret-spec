@@ -702,7 +702,7 @@ Actor checkpoint，不重新签发或替换 evidence，不覆盖已经冻结的�
 或绑定不得复用同一幂等身份。迟到结果不得使 checkpoint 倒退、清除已知关闭或重新打开旧授权实例；接收方可以
 确认已保存的旧结果而不恢复其 live 资格。
 
-完成交付后的普通聊天不要求逐消息查询原 Station、推进 RealmCommit 或续订 RealmCommit 年龄租约。原授权的真实有限期与已知关闭继续约束新 live 提交；离线接收方尚未知撤销的传播窗口按 authority-commit §5 处理。仅因 authoring preview 的有效期已过，不得否定已经 committed 的原结果或强制重新 author；未提交的新请求仍执行 preview 的原期限。重启必须恢复原件，不得用任意入站消息的授权判定、用户填写的 RealmCommit ID 或重新读取 current DID 的结果冒充本次完成材料。
+完成交付后的普通聊天不要求逐消息查询原 Station或续订 RealmCommit 年龄租约；producer 也不需为无关 stream 前进重新 author。每条新聊天 Event 仍须由目标 stream 的 current governance Station 接纳并签发 RealmCommit。原授权的真实有限期与已 committed 关闭约束新 live 提交；非 authority 接收方只能排队／转发。仅因 authoring preview 的有效期已过，不得否定已经 committed 的原结果或强制重新 author；未提交的新请求仍执行 preview 的原期限。重启必须恢复原件，不得用任意入站消息的授权判定、用户填写的 RealmCommit ID 或重新读取 current DID 的结果冒充本次完成材料。
 
 managed Actor 后续通过普通 `ak.identity.resolution.update` 轮换时，旧 root 继续只验证旧 Event。runtime 在
 新 resolution Event accepted 后使用既有 `ak.open.identity.read.resolution.v1` 取得 exact current public

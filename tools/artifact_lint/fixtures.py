@@ -227,7 +227,7 @@ def check_content_bound_event_id_fixture(lint: Lint) -> None:
     if not isinstance(data, dict):
         return
     if data.get("generated_by") != "tools/generate_content_bound_event_id_fixture.py":
-        lint.fail(path, "suite-tagged Event-ID fixture must name its deterministic generator")
+        lint.fail(path, "fixed-suite Event-ID fixture must name its deterministic generator")
     required = {
         "full_digest_single_bit_difference_changes_event_id",
         "suite_code_mismatch_rejected",
@@ -266,7 +266,7 @@ def check_content_bound_event_id_fixture(lint: Lint) -> None:
             lint.fail(path, f"{name}: Event-ID byte/encoding length mismatch")
             continue
         if case.get("event_id_bytes_hex") != body.hex() or expected_id != "ak:event:" + token:
-            lint.fail(path, f"{name}: suite-tagged Event-ID KAT mismatch")
+            lint.fail(path, f"{name}: fixed-suite Event-ID KAT mismatch")
         preimage = case.get("digest_preimage_canonical_bytes_utf8")
         if isinstance(preimage, str) and digest_wire.startswith("sha256:"):
             if hashlib.sha256(preimage.encode("utf-8")).digest() != digest:

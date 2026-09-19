@@ -4,7 +4,7 @@
     "entrypoint": "ak.suite.encoding.core.v1"
   },
   "profile": "ak.vector_group.encoding.v1",
-  "version": "2026-09-19.2",
+  "version": "2026-09-19.3",
   "description": "Canonical encoding and digest-algorithm vectors for the current authority-commit protocol.",
   "generator_semantics": "Vectors of kind *_reject_generated carry a `generator` object instead of literal input bytes: the runner MUST construct the input at execution time from the generator parameters (e.g. nesting_depth, array_item_count) following the generator.rule text, so the fixture never stores megabyte-scale literals. Rejection is asserted exactly as for literal-input vectors.",
   "covers_vectors": [
@@ -196,21 +196,22 @@
           "expected_error": "schema_violation"
         },
         {
-          "name": "reject_realm_suite_mismatch",
-          "realm_digest_algorithm": "sha256",
+          "name": "reject_blake3_for_fixed_event_identity_domain",
+          "owning_domain": "event_identity",
           "value": "blake3:6022ce7d372dd7794a374576ca840abdf81a3c01e1aa88660b971200f1ee3fa3",
-          "expected_error": "digest_algorithm_mismatch"
+          "expected_error": "unsupported_digest_algorithm"
         },
         {
           "name": "reject_unknown_suite_downgrade",
-          "realm_digest_algorithm": "blake3",
+          "owning_domain": "blob_content_address",
           "value": "unknown:6022ce7d372dd7794a374576ca840abdf81a3c01e1aa88660b971200f1ee3fa3",
           "expected_error": "unsupported_digest_algorithm"
         }
       ],
       "rules": [
         "hash the exact UTF-8 bytes recorded by expected_input_hex without a trailing newline or Unicode normalization",
-        "the digest prefix, lowercase hex length, and Realm digest_algorithm are part of the verified suite contract",
+        "the digest prefix, lowercase hex length, active registry row and owning typed domain are part of the verified suite contract",
+        "BLAKE3 is never accepted as an Event, Event-derived object, Realm or RealmCommit identity suite in current v1",
         "implementations declaring ak.profile.hash.blake3.v1 MUST pass the positive KAT and every negative case"
       ]
     },

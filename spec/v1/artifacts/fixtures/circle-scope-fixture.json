@@ -5,7 +5,7 @@
   },
   "suite": "circle_scope",
   "profile": "ak.profile.circle_conformance.v1",
-  "version": "2026-09-18.1",
+  "version": "2026-09-19.1",
   "covers_vectors": [
     "ak.vector.circle.scope_rebind_and_admission.v1",
     "ak.vector.circle.lifecycle_admission_barrier.v1",
@@ -401,7 +401,7 @@
     },
     {
       "name": "signed_scope_ref_tamper",
-      "description": "scope_ref is producer-signed and bound by Event identity. Scope mutation invalidates the proof; ordinary data needs no RealmCommit observation.",
+      "description": "scope_ref is producer-signed and bound by Event identity. Scope mutation invalidates the proof; ordinary data needs no extra pre-existing security checkpoint, but acceptance still requires its own covering RealmCommit.",
       "event_kind": "ak.message.create",
       "original_scope_ref": {
         "kind": "circle",

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.4",
+  "version": "2026-09-19.5",
   "source_of_truth": false,
-  "generated_at": "2026-09-19T19:22:39+08:00",
+  "generated_at": "2026-09-19T21:25:01+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -297,7 +297,7 @@
       "schema_id": "ak.schema.authenticated_signer_resolution_evidence.v1",
       "file": "schemas/authenticated-signer-resolution-evidence.schema.json",
       "status": "active",
-      "description": "Content-addressed historical signer-resolution evidence pinned for Event, Station and AvailabilityReceipt signature verification."
+      "description": "Content-addressed historical signer-resolution evidence pinned for Event and Station signature verification."
     },
     {
       "schema_id": "ak.schema.authority_commit_operations.v1",

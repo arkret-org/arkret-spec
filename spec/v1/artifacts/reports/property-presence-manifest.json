@@ -15,11 +15,11 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9003,
+    "total_properties": 8997,
     "total_schema_documents": 164,
     "by_presence_class": {
-      "optional": 2308,
-      "optional_defaulted": 49,
+      "optional": 2305,
+      "optional_defaulted": 46,
       "required": 6203,
       "required_nullable": 288,
       "tristate": 155
@@ -1695,6 +1695,7 @@
         "/$defs/account_status_resolve_request_body/properties/account_id": "required",
         "/$defs/account_status_resolve_request_body/properties/from_status_seq": "required",
         "/$defs/account_status_resolve_request_body/properties/limit": "required",
+        "/$defs/account_update_profile_outcome/properties/commit": "required",
         "/$defs/account_update_profile_outcome/properties/profile": "required",
         "/$defs/account_update_profile_request_body/properties/profile_event": "required",
         "/$defs/account_view/properties/devices": "required",
@@ -2060,6 +2061,7 @@
         "/$defs/resolved_actor_profile/properties/account_status": "optional",
         "/$defs/resolved_actor_profile/properties/actor_id": "required",
         "/$defs/resolved_actor_profile/properties/actor_profile": "required",
+        "/$defs/resolved_actor_profile/properties/profile_commit": "required",
         "/$defs/resolved_actor_profile/properties/profile_event": "required"
       }
     },
@@ -6519,8 +6521,6 @@
         "/$defs/realm_policy_bundle_payload/properties/account_deactivation/properties/member_action": "required",
         "/$defs/realm_policy_bundle_payload/properties/agent_participation": "optional",
         "/$defs/realm_policy_bundle_payload/properties/allowed_third_party_invite_verification_ids": "optional",
-        "/$defs/realm_policy_bundle_payload/properties/availability_policy": "optional",
-        "/$defs/realm_policy_bundle_payload/properties/commit_compaction_max_interval_ms": "optional",
         "/$defs/realm_policy_bundle_payload/properties/federation_policy": "optional",
         "/$defs/realm_policy_bundle_payload/properties/handle_issuer_policies": "optional",
         "/$defs/realm_policy_bundle_payload/properties/handle_issuer_policies/items/properties/authorized_handle_domains": "required",
@@ -9525,18 +9525,12 @@
         "/allOf/0/not/properties/fields": "required_nullable",
         "/properties/agent_participation": "optional",
         "/properties/agent_participation/properties/agent": "required",
-        "/properties/availability_policy": "optional",
-        "/properties/availability_policy/properties/applies_to": "required",
-        "/properties/availability_policy/properties/min_holders": "required",
-        "/properties/availability_policy/properties/minimum_retention_ms": "optional_defaulted",
         "/properties/avatar_blob_ref": "optional",
-        "/properties/commit_compaction_max_interval_ms": "optional_defaulted",
         "/properties/created_at": "required",
         "/properties/created_by": "required",
         "/properties/default_discoverability": "required",
         "/properties/default_join_rule": "required",
         "/properties/default_strand_id": "tristate",
-        "/properties/digest_algorithm": "optional_defaulted",
         "/properties/federation_policy": "optional",
         "/properties/fields": "optional",
         "/properties/fields/properties/collaboration_role": "optional",

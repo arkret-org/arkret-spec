@@ -282,7 +282,7 @@
         },
         "hpke_key_digest": {
           "$ref": "./account-operations.schema.json#/$defs/sha256_digest",
-          "description": "SHA-256(UTF-8(canonical multikey)) where the preimage is the accepted founding hpke_key exactly as carried (the canonical X25519 multikey string starting with z6LS). Same encoding discipline as device_key_digest and control_key_digest; never the Realm digest_algorithm."
+          "description": "SHA-256(UTF-8(canonical multikey)) where the preimage is the accepted founding hpke_key exactly as carried (the canonical X25519 multikey string starting with z6LS). Same encoding discipline as device_key_digest and control_key_digest; fixed independently of any domain-selectable Blob or KDF digest suite."
         },
         "accepted_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"

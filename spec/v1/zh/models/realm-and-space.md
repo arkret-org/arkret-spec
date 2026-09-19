@@ -78,7 +78,7 @@ group_id_bytes = SHA-256(
 ```
 
 Arkret JSON 中的 `mls_group_id` 是 `base64url_no_pad(group_id_bytes)`，v1 固定 43 个字符。digest 固定为
-SHA-256，**不**跟随 Realm `digest_algorithm`——group identity 不为每个 Realm 增加 suite 分支。actor
+SHA-256，与 Event／RealmCommit 的固定 current-v1 content-address suite 相同——group identity 不为每个 Realm 增加 suite 分支。actor
 MUST NOT 提交该值；reducer 与 SDK 只从 effective scope 派生并逐字节验证。
 
 v1 **只有**这一个公式。实现 MUST NOT 同时接受早期的可逆编码
@@ -120,9 +120,7 @@ Schema id: `ak.schema.realm.v1`
 | `history_access` | yes | `enum(since_join, all_history_for_current_members)` | reducer 派生且在任一时点恰有一个 current 值；accepted MLS Genesis 要求 current 值为 `since_join`。 | scope-local 历史访问策略。 |
 | `preview_policy_id` | no | `id:policy` | reducer 派生或投影字段；canonical 写入路径为 `ak.realm.preview_policy`。 | 加入前 / token-scoped preview 的 policy 引用或摘要。 |
 | `federation_policy` | no | `enum(open, restricted, closed, quarantine)` | reducer 派生。 | 联邦策略。 |
-| `digest_algorithm` | no | `enum(digest-suite-registry active ids；v1: sha256, blake3)` | create 时锁定，唯一例外是 `ak.realm.digest_suite_transition`（默认 `sha256`）。 | Digest suite（canonicalization × hash 注册元组，见 [`encoding.md` §3.1–§3.3](../conformance/encoding.md)）：裸 id = canonical JSON 归一化，点分 id（如 reserved 的 `cbor.sha256`）= 备用归一化编码 suite。Realm 内单一 suite 排他；切换走控制面 suite transition RealmCommit（[`event-auth-state-resolution.md` §13](../authz/event-auth-state-resolution.md)）。 |
 | `governance_station_id` | yes | `did_core_id` | genesis 固定 generation 0；materialized Realm 由连续 handoff chain 派生当前值。 | 当前治理 Station；该 Station 为 Realm、每个 Circle、每个 Sidecar 的独立 stream 签发 RealmCommit。 |
-| `availability_policy` | no | `object` | reducer 派生，经 `ak.realm.policy_bundle` 写入；缺省逐字为 `{min_holders:1,applies_to:["commit_include"],minimum_retention_ms:86400000}`。eligible holders 只从 predecessor confirmed membership 的 ActorId routing-service projection 去重派生。 | bytes availability receipt 门槛。 |
 | `max_authority_lifetime_ms` | no | `integer` | 默认 24h；用于 [`capabilities.md` §10.1](../authz/capabilities.md) 无限期 parent grant 首次转授时冻结 `authority_expiry_commit`。effective 值取 Realm 字段与任何 grant / policy / deployment / profile 更短窗口的最小值。 | 委托防滚动续期窗口。 |
 | `avatar_blob_ref` | no | `id:blob` | 必须满足 media auth。 | 图标 Blob。 |
 | `created_by` | yes | `ActorId` | 必须是 create event 授权主体。 | 创建 Actor。 |
@@ -144,7 +142,7 @@ Schema id: `ak.schema.realm.v1`
 | `default_join_rule` | `ak.realm.join_rule`。 |
 | `history_access` | `ak.realm.history_access`。 |
 | non-public history range | 该 scope 唯一 current `ak.realm.history_access`；Event projection与授权历史分页共用它。 |
-| bundle 组件集合（本节 §2.2，含 `federation_policy`、freshness / proposal / compaction / authority-lifetime 时窗） | `ak.realm.policy_bundle`。整个 bundle 每次按 `policy_revision` 完整重述；这些字段不得回落到 create 或 generic patch。 |
+| bundle 组件集合（本节 §2.2，含 `federation_policy`、agent/account/preauth 与 authority-lifetime 等没有独立 Event kind 的 facet） | `ak.realm.policy_bundle`。整个 enabled component set 每次按 `policy_revision` 完整重述；只携 `policy_revision` 表示集合为空并恢复各 facet 的协议缺省。已拥有独立 Event kind 的字段不得回落到此 bundle 或 generic patch。 |
 | alias | `ak.realm.alias`。 |
 | plaintext-visible services | `ak.realm.plaintext_visible_services`。 |
 | Station admission policy | 直接约束 member AccountId 中的 `station_id`；不复制成员级 route evidence。 |
@@ -496,7 +494,6 @@ Realm（ak.schema.realm.v1，schema 层统一）
 - Agent 作为独立 principal 使用自己的 PCR，不得复用 controller PCR id。Agent DID 与 PCR id 的绑定、controller delegation、`actor_id` / `executed_by` authoring 和 agent/controller 控制事实落点以 [`identity/key-management.md` §4.1](../identity/key-management.md) 为权威；Agent lifecycle 的 `actor_id` 必须是 exact account variant，service variant、同 principal 异 Station 的替代或 payload principal mirror 不匹配均 fail closed。realm id 本身按 §2.5.0 通则从 genesis Event 派生，**实现私有的 deterministic id 派生不是验证证据**。Profile allowlist 虽包含 Agent PCR 与 controller PCR 两组 agent-control kind，reducer 必须按 `agent_control_event_placement` 再做落点约束，不能把 allowlist 并集解释成跨 principal 通用写权限。
 - 跨 principal 写入（另一个 principal 的 device / session 状态）MUST `unauthorized` reject。
 - "私有"语义由 **用途 + event-kind allowlist + 外露注册表** 共同锁定，不是 access control。PCR 在结构上允许 multi-member（该 principal 的所有设备 / agent）。
-- **Availability holder 的 PCR 特例是 create-locked，不是隐式 membership**：human、Agent 与 Applet-managed PCR genesis 都明确不写 `member_state`，因此首个及后续 successor RealmCommit 的 eligible holder 只从 predecessor closure 中唯一 accepted create 的、已由原始 producer proof 与 historical signer evidence 完整验证的 `station_id` 派生。该 frozen service DID 是 PCR 对 §8 AvailabilityReceipt 的唯一 holder carrier；不得把 authority-root controller、RealmCommit signer、current account row 或 session 当成 holder，也不得为满足默认 quorum 给 PCR 合成 member state。
 - **外露方向同样闭合（normative）**：`realm_event_kind_policy.allowed_event_kinds` 只锁"能写什么"。允许写入的 kind 中，有一部分必须离开该 Realm 才能让协议成立——远端做设备信任重放、RealmCommit 归属判定、Contact 验证闭环与 KeyPackage claim 都需要它们。**这些外露路径 MUST 逐条登记在 [`pcr-exposure-registry.json`](../../artifacts/registry/pcr-exposure-registry.json)**，其 `event_kinds[]` 集合 MUST 与本 allowlist 逐字相等。每条 `exposures[]` 声明 carrier 形态（`exact_event` / `derived_field` / `receipt` / `authority commit` / `did_service_entry`）、surface、`operation_id` 与方向、exact `schema_ref` 与 JSON Pointer、`authorization_policy_id`，以及适用时的 `anti_enumeration_policy_id`。`exposures[]` 为空即 **PCR-private**：该 kind MUST NOT 经任何 `ak.open.*` / `ak.peer.*` / 跨 principal `ak.self.*` 面或公开 DID Document entry 到达域外。conformance vector `ak.vector.identity.pcr_outward_exposure_registry.v1` 覆盖 registry 正反向闭合与各授权分支的反枚举等价性。
 - **`public` 是显式策略值，不是缺省**：缺少 `authorization_policy_id` MUST NOT 被解释为公开。新增任何承载 PCR 派生字段的对外面而未在该注册表登记，release gate MUST 红；把某个 carrier 悄悄扩大到第二个仍标记 private 的 kind 同样 MUST 红。
 - **PCR 历史读取（normative）**：PCR 固定 `history_access=since_join`。新 endpoint 从自己的有效 Add/Welcome 起读取密文；控制基线由 durable device-list / normalized principal view 提供。

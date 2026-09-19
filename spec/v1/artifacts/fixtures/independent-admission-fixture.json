@@ -5,7 +5,7 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.identity.independent_admission.v1"
   },
-  "version": "2026-09-08",
+  "version": "2026-09-19",
   "covers_vectors": [
     "ak.vector.identity.independent_admission.v1"
   ],
@@ -93,20 +93,22 @@
       ]
     },
     {
-      "name": "direct_to_b_with_origin_offline",
+      "name": "direct_to_current_authority_with_origin_offline",
       "given": {
         "origin_online": false,
+        "current_governance_station_online": true,
         "producer_proof_valid": true,
         "portable_authority_complete": true,
         "known_revocation": false
       },
-      "expected": "accept_live",
+      "expected": "authority_commit_then_accept_live",
       "invariants": [
         "same_full_account_id",
         "no_new_account_at_b",
         "no_station_countersignature",
         "no_session_introspection",
-        "no_new_commit"
+        "exact_event_is_covered_by_one_new_realm_commit",
+        "a_non_authority_receiver_can_only_queue_or_forward"
       ]
     },
     {

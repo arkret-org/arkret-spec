@@ -180,56 +180,6 @@
         "quarantine"
       ]
     },
-    "availability_policy": {
-      "type": "object",
-      "description": "Realm policy component governing independently signed byte-availability receipts before RealmCommit inclusion and before snapshot/backfill availability claims. Eligible holders are derived only from routing service IDs projected from effective joined-member ActorIds frozen at the predecessor view. The policy never creates an out-of-membership replication target. Absent means {min_holders:1,applies_to:['commit_include'],minimum_retention_ms:86400000}.",
-      "required": [
-        "min_holders",
-        "applies_to"
-      ],
-      "properties": {
-        "min_holders": {
-          "type": "integer",
-          "minimum": 1,
-          "maximum": 16
-        },
-        "applies_to": {
-          "type": "array",
-          "minItems": 1,
-          "uniqueItems": true,
-          "items": {
-            "type": "string",
-            "enum": [
-              "commit_include",
-              "snapshot",
-              "backfill"
-            ]
-          }
-        },
-        "minimum_retention_ms": {
-          "type": "integer",
-          "minimum": 0,
-          "default": 86400000
-        }
-      },
-      "additionalProperties": false
-    },
-    "digest_algorithm": {
-      "type": "string",
-      "enum": [
-        "sha256",
-        "blake3"
-      ],
-      "default": "sha256",
-      "description": "Digest suite (canonicalization x hash tuple) used for Event ids, RealmCommit ids and every content-addressed typed reference within this Realm. It is locked at create except for ak.realm.digest_suite_transition under ak.profile.hash_transition.v1. Defaults to sha256. Value space is the active rows of artifacts/registry/digest-suite-registry.json (this enum MUST be regenerated when a row flips active, e.g. cbor.sha256); bare ids denote canonical-JSON canonicalization, dotted ids denote alternate canonical encodings. Exactly one live suite per Realm; valid delayed Events retain the suite of their signed authority context. Transition uses the registered control-plane transition Event; the new suite takes effect from the first RealmCommit accepted under it."
-    },
-    "commit_compaction_max_interval_ms": {
-      "type": "integer",
-      "minimum": 300000,
-      "maximum": 604800000,
-      "default": 86400000,
-      "description": "Optional operational reminder for compacting an actively advancing safety log. It never requires an idle RealmCommit, expires an accepted authority reference, or gates ordinary data. Existing verified snapshots and proofs remain reusable while signers are offline."
-    },
     "max_authority_lifetime_ms": {
       "type": "integer",
       "minimum": 1,

@@ -216,6 +216,34 @@ class AuthorityCommitProtocolTest(unittest.TestCase):
             successor["previous_commit_ref"], candidate["previous_commit_ref"]
         )
 
+    def test_cross_stream_workflow_is_a_saga_not_an_atomic_write(self):
+        row = read("fixtures/authority-commit-fixture.json")["cross_stream_saga"]
+        self.assertEqual(
+            row["vector_id"], "ak.vector.authority_commit.cross_stream_saga.v1"
+        )
+        self.assertTrue(row["streams_share_governance_station"])
+        self.assertTrue(row["streams_share_serializable_store"])
+        self.assertEqual(row["protocol_atomicity_scope"], "one_authority_stream")
+
+        steps = row["steps"]
+        self.assertEqual(steps[0]["expected"], "committed")
+        self.assertEqual(steps[1]["expected"], "retryable_unavailable")
+        self.assertTrue(steps[1]["writes_nothing"])
+        self.assertEqual(steps[2]["request_key"], steps[1]["request_key"])
+        self.assertEqual(steps[2]["bytes"], "exact_same_canonical_bytes")
+        self.assertEqual(steps[2]["expected"], "committed_once")
+        self.assertEqual(steps[3]["expected"], "original_committed_outcome")
+
+        failure = row["terminal_failure_branch"]
+        self.assertTrue(failure["target_writes_nothing"])
+        self.assertTrue(failure["source_commit_remains_immutable"])
+        self.assertTrue(failure["rollback_forbidden"])
+        self.assertIn("compensating Event", failure["cancellation_requires"])
+        self.assertIn("cross_stream_all_or_nothing", row["forbidden_claims"])
+        self.assertIn(
+            "shared_store_expands_protocol_atomicity", row["forbidden_claims"]
+        )
+
     def test_event_has_no_removed_causality_or_cbs_fields(self):
         event = read("schemas/event-envelope.schema.json")
         removed = {

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.2",
+  "version": "2026-09-19.3",
   "source_of_truth": true,
-  "generated_at": "2026-09-19T19:24:32+08:00",
+  "generated_at": "2026-09-19T21:25:01+08:00",
   "description": "Closed inventory of current spec/v1/zh headings that explicitly carry the （normative） marker. Any addition, removal, rename, or move is reviewed as a protocol change and refreshes this source-of-truth inventory.",
   "titles": [
     {
@@ -1136,8 +1136,8 @@
     },
     {
       "page": "sync/operations-sync.md",
-      "heading": "6.3 历史完整性边界（normative）",
-      "fragment": "63-历史完整性边界normative"
+      "heading": "6.2 历史完整性边界（normative）",
+      "fragment": "62-历史完整性边界normative"
     },
     {
       "page": "sync/server-trusted-results.md",

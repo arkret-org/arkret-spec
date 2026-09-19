@@ -1,14 +1,15 @@
 {
-  "version": "2026-09-16.11",
-  "generated_at": "2026-09-16T23:20:00+08:00",
+  "version": "2026-09-19.1",
+  "generated_at": "2026-09-19T21:25:01+08:00",
   "source_of_truth": true,
-  "description": "Canonical digest suite vocabulary for v1 typed digest values. A digest suite is the registered tuple (canonicalization, hash_algorithm). The suite canonical_id is the wire prefix in `<suite>:<lowercase_hex>` typed digest values and the value space of the Realm `digest_algorithm` field.",
+  "description": "Canonical digest suite vocabulary for v1 typed digest values. A digest suite is the registered tuple (canonicalization, hash_algorithm), and canonical_id is the wire prefix in `<suite>:<lowercase_hex>` values. Event, Realm-derived and RealmCommit content-address identities are a separate fixed current-v1 domain and always use json_jcs + SHA-256 (suite code 0x01); no Realm field selects or transitions that suite.",
+  "fixed_v1_content_address_suite": "sha256",
   "suite_id_grammar": "suite_id = hash_id | canonicalization_id '.' hash_id ; each segment matches [a-z0-9_]+ ; at most one dot. In the v1 canonical grammar, a bare hash_id denotes canonicalization=json_jcs.",
   "registry_rules": [
     "A digest suite is an explicit canonicalization/hash tuple; only active rows are valid on wire.",
     "Unknown suites in critical Event, RealmCommit, stream-head, receipt, or content-addressed digest fields fail closed.",
-    "Producer Events use the suite selected by their Realm policy. RealmCommit binds each exact Event digest and its same-stream previous_commit_ref; historical references are never rehashed.",
-    "Activating a new suite requires a schema/profile version and conformance vectors; it MUST NOT expand a frozen schema enum in place."
+    "Producer Event, Event-derived object and RealmCommit identities always use fixed_v1_content_address_suite; any other suite code in those typed IDs fails closed as unsupported_digest_algorithm.",
+    "Other typed domains such as Blob content addressing MAY select any suite whose active row and owning schema explicitly allow it; a new suite requires conformance vectors and MUST NOT silently widen Event or RealmCommit identity."
   ],
   "hash_strength_order": {
     "order": [
@@ -39,10 +40,10 @@
       "hash_algorithm": "sha256",
       "digest_length_bytes": 32,
       "status": "active",
-      "role": "v1_default_must",
+      "role": "v1_content_address_must",
       "profile_gate": null,
       "kat_vector_id": "ak.vector.encoding.canonical_json.basic.v1",
-      "security_note": "v1 default; all receivers MUST support. SHA-2 family, not post-quantum but Grover-degraded strength remains acceptable; migration path via suite transition."
+      "security_note": "Fixed current-v1 Event, Event-derived object and RealmCommit identity suite; all receivers MUST support it. SHA-2 family, not post-quantum but Grover-degraded strength remains acceptable."
     },
     {
       "canonical_id": "blake3",
@@ -68,10 +69,9 @@
       "kat_absence_reason": "Deterministic CBOR encoding and per-suite digest vectors are not published until all activation_requirements are complete.",
       "activation_requirements": [
         "ak.profile.encoding.cbor.v1 fully specified: deterministic encoding rules pinned by directly adopting an upstream standardized deterministic CBOR profile (CDE, draft-ietf-cbor-cde, or dCBOR, draft-mcnally-deterministic-cbor) under draft-pinning discipline (draft change = new profile version) rather than a bespoke ruleset, CDDL for envelope and canonical objects, schema-agnostic JSON<->CBOR type mapping",
-        "Per-suite conformance vectors published (canonical bytes, event_digest, commit_id, receipt digest)",
-        "Suite transition vectors published for json_jcs -> cbor authority commits"
+        "Per-suite conformance vectors published for every typed domain that opts into CBOR"
       ],
-      "security_note": "Deterministic CBOR canonicalization with SHA-256. Same hash strength as sha256; the suite exists to enable encode-once/sign-the-bytes verification and MLS/COSE ecosystem alignment for Realms that opt in at create time."
+      "security_note": "Deterministic CBOR canonicalization with SHA-256. Same hash strength as sha256; any future activation is domain-specific and does not change current-v1 Event, Realm or RealmCommit identity."
     }
   ]
 }

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.7",
+  "version": "2026-09-19.8",
   "source_of_truth": true,
-  "generated_at": "2026-09-19T19:26:42+08:00",
+  "generated_at": "2026-09-19T21:25:01+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -349,10 +349,10 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/authz/event-auth-state-resolution.md#141-持久恢复与积压终结normative",
-      "section_digest": "sha256:452975f597a23ef6504578d796cecb1a19be3a0c81cadeb8930fd41cf74aad36",
-      "requirement": "Recovery preserves the durable single-writer fence, frozen exact candidate body, unique lineage, original command outcomes and outbox. Competing security commands execute with revision preconditions; rejected commands have no business effects. Timeouts cannot erase a signed position or authorize a parallel lineage. Cross-Realm atomicity requires one governance Station and one serializable store; unsupported cross-Station dependencies fail before any effect.",
+      "section_digest": "sha256:b912881f47e8ce702289ad9fd59e43cfd7dd049a53f5353835db01c27efed4d2",
+      "requirement": "Recovery preserves the durable single-writer fence, frozen exact candidate body, unique lineage, original command outcomes and outbox. Competing security commands execute with revision preconditions; rejected commands have no business effects. Timeouts cannot erase a signed position or authorize a parallel lineage. Atomic acceptance never crosses one authority stream, even when streams share a governance Station or serializable store; cross-stream workflows use exact committed references, idempotent saga steps and explicit compensating Events.",
       "testability_grade": "audit",
-      "test_plan": "Inject restart, lease expiry and old-worker revival, stale basis, old Ack authority rotation, bounded backlog and damaged individual records. Check durable outcomes and progress of independently authorized work; missing recovery prerequisites are reported instead of silently clearing gates."
+      "test_plan": "Inject restart, lease expiry and old-worker revival, stale basis, old Ack authority rotation, bounded backlog and damaged individual records. Check durable outcomes and progress of independently authorized work. Exercise a cross-stream saga whose successor is temporarily unavailable: the committed predecessor remains committed, exact retry is idempotent, and terminal cancellation is a separately committed compensating Event; no shared store may turn the workflow into a multi-stream atomic write."
     },
     {
       "clause_id": "AK-NC-040",
@@ -370,9 +370,9 @@
       "category": "authorization",
       "source_anchor": "spec/v1/zh/identity/contact-and-direct-conversation.md#83-binding-与日常-authority",
       "section_digest": "sha256:1c7eab68b50d4b75445763916a6e02edaf603634f915b8d7b736ec6ab8cdb9b4",
-      "requirement": "Any equivalent Bound endorsement accepted by the Realm confirmed sequence can establish ordinary participant authority; the display representative is not an authority head. Distinct binding semantics, wrong Strand and missing confirmation fail closed. Ordinary admission uses the receiving Station's authenticated Contact intervals and known revocations without requiring origin or governance Station availability. Founding evidence never becomes an ordinary origin co-signature requirement. Clients consume exact Station results without replaying governance history.",
+      "requirement": "Any equivalent Bound endorsement accepted by the Realm confirmed sequence can establish ordinary participant authority; the display representative is not an authority head. Distinct binding semantics, wrong Strand and missing confirmation fail closed. The current governance Station performs ordinary admission from authenticated Contact intervals and committed revocations; the origin Station need not be online, while a non-authority receiver can only queue or forward. Founding evidence never becomes an ordinary origin co-signature requirement. Clients consume exact Event plus RealmCommit results without replaying governance history.",
       "testability_grade": "audit",
-      "test_plan": "Run Direct Conversation authority and capability-ref tests with one, repeated and concurrent equivalent endorsements, missing confirmation, foreign participants and wrong Strand. Execute bidirectional encrypted messages with origin and governance Station offline beyond the old query TTL, known Contact revocation, and reload with real accounts. Client refresh failure must preserve an accepted binding; authenticated blockers and peer/account changes must invalidate it, and delayed responses cannot reinstall old context. Schema fixtures reject found without binding_event_ref."
+      "test_plan": "Run Direct Conversation authority and capability-ref tests with one, repeated and concurrent equivalent endorsements, missing confirmation, foreign participants and wrong Strand. Execute bidirectional encrypted messages with origin offline and the current governance Station online; verify each accepted Event has one covering RealmCommit and non-authority receivers only queue or forward. Repeat with the governance Station unavailable and require no shared accepted effect. Known Contact revocation and reload must preserve committed history while blocking later admission; delayed responses cannot reinstall old context. Schema fixtures reject found without binding_event_ref."
     },
     {
       "clause_id": "AK-NC-043",

@@ -266,7 +266,7 @@ Canonical franking proof 结构（示例中的 signature 字节以 `...` 省略�
 - `franking_proof` MUST NOT 包含 plaintext body、attachment filename、reply excerpt、mention 列表、private handle 或解密后内容 hash。
 - **`received_by` / `received_at` 向非群成员 moderator 最小化（normative）**：Canonical `franking_proof` 必须保留被签名的 receiving service DID 与精确接收时间，分别按 schema 的 DID / timestamp 形态承载，否则无法执行 service-key authority 与签名时点校验；实现 MUST NOT 把 DID digest 填入 canonical `received_by`，也 MUST NOT 把 bucket 值冒充 canonical `received_at`。由于这两项会暴露 Station 拓扑与秒级活动 timing，完整 proof payload 只允许在持有对应治理 capability 的验证路径内解密/读取。普通 reporter 或不具该能力的非群 moderator只能取得**非 proof 的最小化投影**：`received_by` MAY 投影为 service DID digest 或“某授权投递服务”布尔证明，`received_at` SHOULD bucket 化；该投影 MUST 标记为不可直接验签，MUST NOT 重新提交为 `ModerationReport.franking_proof` 或 `ak.moderation.franking_proof` payload。Raw Event API、backfill 与 federation 对无权 caller / peer MUST 隐去完整 payload，只可返回 payload digest / redacted stub。§3.4.1 的精确校验只发生在授权验证路径内。
 - `franking_proof` 只证明服务接收过对应密文事件；它不证明 reporter 提交的明文与密文一致，也不证明 sender 在群外不可抵赖地 authored 该明文。
-- Moderator 验证时 MUST 检查 reporter 可见性、目标消息的普通 Event 验证结果与内容承诺、franking service signature、durable proof Event 和 evidence package 签名。若请求可选的期限内存在证明，还必须独立验证安全 RealmCommit 的 `existence_anchor`；该 RealmCommit 不接受普通 Event，也不参与消息发送。具备独立 MLS/治理密钥权限时 MAY 在另一证据路径验证 AEAD/AAD；该结果不写回 franking proof。
+- Moderator 验证时 MUST 检查 reporter 可见性、目标消息 Event 及其 covering RealmCommit、内容承诺、franking service signature、durable proof Event 及其 covering RealmCommit，以及 evidence package 签名。若请求可选的期限内存在证明，还必须验证 proof Event 的 exact committed ref 与完整可见祖先；该后置证据不是消息发送的前置条件。具备独立 MLS/治理密钥权限时 MAY 在另一证据路径验证 AEAD/AAD；该结果不写回 franking proof。
 - 若任一环节缺失，moderator MAY 把材料作为人工线索，但 MUST NOT 将 `franking_proof` 视为可验证投递证明。
 
 #### 3.4.1 不存在治理密钥释放

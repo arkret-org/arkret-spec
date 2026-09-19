@@ -47,7 +47,7 @@ phase/state。客户端是否需要设备签名必须由 `terminal_outcome` 缺�
 canonical source；其中 Recovery plan 内嵌 closed `binding`，Rotation plan 的 reserved binding view 由
 `revoke_unit` 与两项 `backup_rotations[].binding` 等字段纯函数投影，不能使用任意键值或通用步骤 DSL。
 `prepared_plan_digest = SHA-256(RFC8785_JCS(prepared_plan))`，是 coordinator 对完整 plan canonical bytes
-重算并返回的固定 SHA-256、跨 Realm CAS 坐标；它不跟随任何 Realm 的 `digest_algorithm`。create request
+重算并返回的固定 SHA-256、跨 Realm CAS 坐标；它不跟随 Blob 或 KDF 等其它 typed domain 的 digest suite。create request
 不得携带该值，`prepared_plan` 内也不得携带自身 digest，计算时没有排除字段的隐式规则。
 每个 `prepared_event_unit` 的 wire 形态固定为 `{request,request_digest}`：`request` 必须独立满足
 `EventsSubmitBatchRequestBody`，`request_digest` 必须等于其 digest suite 对 `RFC8785_JCS(request)` 的计算结果。

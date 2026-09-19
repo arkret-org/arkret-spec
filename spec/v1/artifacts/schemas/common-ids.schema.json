@@ -7,11 +7,12 @@
     "event_id": {
       "type": "string",
       "pattern": "^ak:event:[A-Za-z0-9_-]{44}$",
-      "description": "Complete Arkret Event cryptographic identity. The suffix is the canonical unpadded Base64URL encoding of exactly 33 octets: one registered active digest-suite wire_code followed by all 32 octets of the Event digest. Regex validation is only lexical; receivers MUST decode, require 33 octets, canonical re-encode, and verify the suite code and full digest before use."
+      "description": "Complete Arkret Event cryptographic identity. The suffix is the canonical unpadded Base64URL encoding of exactly 33 octets: fixed current-v1 suite code 0x01 followed by all 32 octets of the SHA-256 Event digest. Regex validation is only lexical; receivers MUST decode, require 33 octets, require byte 0 == 0x01, canonical re-encode, and verify the full digest before use. Other registered digest suites remain available only to the typed domains that explicitly select them and MUST NOT appear in Event IDs."
     },
     "realm_id": {
       "type": "string",
-      "pattern": "^ak:realm:[A-Za-z0-9_-]{44}$"
+      "pattern": "^ak:realm:[A-Za-z0-9_-]{44}$",
+      "description": "Retyped ak.realm.create Event token. It therefore carries the same fixed current-v1 0x01/SHA-256 content-address identity and is not selected by Realm state."
     },
     "realm_commit_id": {
       "type": "string",

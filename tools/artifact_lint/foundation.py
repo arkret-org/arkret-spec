@@ -2027,6 +2027,8 @@ def check_event_id_suite_registry(lint: Lint) -> None:
     path = ARTIFACTS / "registry" / "digest-suite-registry.json"
     data = load_json(lint, path)
     rows = data.get("suites", []) if isinstance(data, dict) else []
+    if not isinstance(data, dict) or data.get("fixed_v1_content_address_suite") != "sha256":
+        lint.fail(path, "fixed_v1_content_address_suite must be sha256")
     expected_codes = {"sha256": 0x01, "blake3": 0x02, "cbor.sha256": 0x03}
     seen: dict[int, str] = {}
     for row in rows if isinstance(rows, list) else []:
@@ -2041,12 +2043,15 @@ def check_event_id_suite_registry(lint: Lint) -> None:
             lint.fail(path, f"wire_code 0x{code:02x} reused by {seen[code]!r} and {suite_id!r}")
         seen[code] = str(suite_id)
         if row.get("digest_length_bytes") != 32:
-            lint.fail(path, f"{suite_id!r} cannot use v1 Event-ID format with non-32-byte digest")
+            lint.fail(path, f"{suite_id!r} must remain a 32-byte registered digest suite")
         if suite_id in expected_codes and code != expected_codes[suite_id]:
             lint.fail(path, f"{suite_id} wire_code must remain 0x{expected_codes[suite_id]:02x}")
     for suite_id, code in expected_codes.items():
         if seen.get(code) != suite_id:
             lint.fail(path, f"wire_code 0x{code:02x} must be assigned to {suite_id}")
+    sha256_row = next((row for row in rows if isinstance(row, dict) and row.get("canonical_id") == "sha256"), None)
+    if not isinstance(sha256_row, dict) or sha256_row.get("status") != "active" or sha256_row.get("wire_code") != 1:
+        lint.fail(path, "the fixed current-v1 content-address suite must be the active sha256 row with wire_code 0x01")
 
 
 

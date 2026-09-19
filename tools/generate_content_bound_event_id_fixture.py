@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the deterministic suite-tagged Event-ID known-answer fixture."""
+"""Validate the deterministic fixed-suite Event-ID known-answer fixture."""
 
 from __future__ import annotations
 
@@ -129,7 +129,7 @@ def main() -> int:
     expected_layout = {
         "decoded_length_bytes": 33,
         "reserved_high_nibble": 0,
-        "digest_suite_low_nibble": True,
+        "fixed_v1_suite_code": 1,
         "suite_code_offset": 0,
         "digest_offset": 1,
         "digest_length_bytes": 32,
@@ -144,6 +144,9 @@ def main() -> int:
         digest_wire = case.get("event_digest")
         suite_code = case.get("suite_wire_code")
         if not isinstance(digest_wire, str) or not isinstance(suite_code, int):
+            continue
+        if suite_code != 1 or not digest_wire.startswith("sha256:"):
+            errors.append(f"{case['name']}: constructive Event IDs must use fixed suite code 0x01 and sha256")
             continue
         _, digest_hex = digest_wire.split(":", 1)
         if "digest_preimage_canonical_bytes_utf8" in case and digest_wire.startswith("sha256:"):
@@ -209,7 +212,7 @@ def main() -> int:
         print(error)
     if errors:
         return 1
-    print("suite-tagged Event-ID fixture: OK")
+    print("fixed-suite Event-ID fixture: OK")
     return 0
 
 

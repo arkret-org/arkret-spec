@@ -1,6 +1,6 @@
 {
   "suite": "ak.fixture.pcr_genesis.v1",
-  "version": 6,
+  "version": 7,
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.identity.pcr_genesis.v1"
@@ -644,7 +644,7 @@
   },
   "founding_device_key_digest_kat": {
     "vector_id": "ak.vector.identity.pcr_genesis.v1",
-    "rule": "SHA-256(UTF-8(canonical multikey)); fixed at SHA-256, never the Realm digest_algorithm",
+    "rule": "SHA-256(UTF-8(canonical multikey)); fixed at SHA-256 independently of every domain-selectable Blob or KDF digest suite",
     "device_key_digest": {
       "expected": "sha256:7826c7b7b276671e4e5c5c3bc07f7baf97b4f3bd6c46f89a389c9abb391aef96",
       "preimage_utf8": "z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
