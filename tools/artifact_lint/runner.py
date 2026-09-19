@@ -107,6 +107,7 @@ from .fixtures import (
     check_fixture_schema_instance_bindings,
     check_direct_conversation_digest_vectors,
     check_encrypted_envelope_digest_vector,
+    check_mls_governance_binding_closure_vector,
     check_erasure_verification_contract,
     check_event_batch_receipt_normalization_vector,
     check_fixture_runner_contract,
@@ -599,6 +600,10 @@ def main(argv: list[str] | None = None) -> int:
             (
                 "mls_creator_bootstrap_transaction",
                 lambda: check_mls_creator_bootstrap_transaction(lint),
+            ),
+            (
+                "mls_governance_binding_closure_vector",
+                lambda: check_mls_governance_binding_closure_vector(lint),
             ),
             (
                 "stated_preimage_matches_stated_digest",

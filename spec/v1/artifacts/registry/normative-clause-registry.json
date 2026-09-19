@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-22.5",
+  "version": "2026-09-22.7",
   "source_of_truth": true,
-  "generated_at": "2026-09-22T15:00:00+08:00",
+  "generated_at": "2026-09-22T16:30:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -26,14 +26,7 @@
         "vector_id": "ak.vector.mls.rfc9420_mti_kat.v1",
         "carrier": "spec/v1/artifacts/fixtures/mls-rfc9420-kat-fixture.json",
         "reason": "carrier_without_decision_point_mapping",
-        "note": "The vector already has a named_suite fixture carrier, but that fixture does not yet declare a security_evidence entry mapping the clause's decision points onto its cases. Closing this row is a mapping change, not a new fixture."
-      },
-      {
-        "clause_id": "AK-NC-061",
-        "vector_id": "ak.vector.mls.key_access_revision_key_access_only.v1",
-        "carrier": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
-        "reason": "carrier_without_decision_point_mapping",
-        "note": "The vector already has a named_suite fixture carrier, but that fixture does not yet declare a security_evidence entry mapping the clause's decision points onto its cases. Closing this row is a mapping change, not a new fixture."
+        "note": "Closing this row is not a mapping change. The KAT fixture carries no cases at any level and observes none of the clause's four sentences: it fixes RFC 9420 known-answer bytes for cipher suite 0x0001. Sentences 1 and 3 need new cases against mls-ciphersuite-registry.json, sentence 2 needs a new vector for the publish/claim/Commit rejection paths, and sentence 4 is blocked: mls-keypackage-endpoint-kat-fixture.json freezes two leaf_credential values that decode to a bare DeviceId and a bare did_core, which is exactly the collapse the sentence forbids, and those values are pinned by leaf_node_sha256 and keypackage_sha256. Because this list is keyed by (clause_id, vector_id) and only shrinks, giving the vector any security_evidence forces this row out and leaves sentence 4 with no ledger position, so the row stays until that conflict is ruled on. See arkret-work/tasks/spec-open/2026-09-22-1600-frozen-keypackage-kat-collapses-the-actor-id.md."
       }
     ],
     "executable_evidence_exemption_rule": "Every (clause_id, vector_id) pair inside executable_fixture_categories that does not yet have executable evidence MUST be enumerated here with its reason. The list only shrinks: once a vector gains a security_evidence carrier its row MUST be removed, and the gate fails while a stale row remains. A pair that is neither evidenced nor enumerated fails the gate, so the open gap stays visible in the canonical registry instead of inside a lint."
@@ -522,6 +515,7 @@
       "requirement": "The fixed GroupContext binding is one closed deterministic-CBOR MlsGroupBinding: unknown, missing, indefinite-length, non-minimal, duplicate or out-of-order members are rejected, genesis is 0 -> 0 and a Commit is next_epoch = previous_epoch + 1, and scope, base, epoch and key_access_revision match the Station current public state and the Commit payload field by field. proposed_group_genesis_binding is the same binding in its pre-genesis proposal form, not a second concept: a 0 -> 0 key-access revision query without an accepted genesis MUST carry the exact immutable proposal binding, a missing one is rejected as mls_genesis_binding_proposal_required with no proof or cache entry, and a mismatched or after-the-fact one as mls_genesis_binding_proposal_mismatch. The key-access revision governs key access only and carries no authorization or membership decision of its own.",
       "testability_grade": "vector",
       "evidence_refs": [
+        "ak.vector.mls.governance_binding_closure.v1",
         "ak.vector.mls.key_access_revision_key_access_only.v1"
       ]
     },

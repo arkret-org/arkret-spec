@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-22.2",
+  "version": "2026-09-22.3",
   "source_of_truth": true,
-  "generated_at": "2026-09-22T11:00:00+08:00",
+  "generated_at": "2026-09-22T16:00:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -3487,6 +3487,18 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/mls-group-id-derivation-fixture.json",
         "spec/v1/zh/models/realm-and-space.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.mls.governance_binding_closure.v1",
+      "status": "active",
+      "domain": "mls",
+      "applies_to_fixtures": [
+        "final-conformance-closure-fixture.json"
+      ],
+      "description": "The fixed GroupContext binding is a closed deterministic-CBOR map of five members: a sixth member, a missing member, an indefinite-length head, a non-minimal integer, a duplicate key and a non-canonical key order are each rejected on the received bytes; genesis is 0 -> 0 and a Commit is next_epoch = previous_epoch + 1; scope and base match the Station current public state field by field; and the pre-genesis proposal form is the same binding, missing or mismatched instances of which are rejected without leaving a proof or cache entry.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json"
       ]
     },
     {

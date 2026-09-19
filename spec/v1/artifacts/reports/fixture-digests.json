@@ -162,7 +162,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
-      "sha256": "3a0833af07a3deacdb0250a92188ac659b5c4db3e3c0789511f2583720627e95"
+      "sha256": "0c0b0afda444f5355f843b1d0057a0a01bb94800541c6a03e6c7d0e921505074"
     },
     {
       "path": "spec/v1/artifacts/fixtures/franking-proof-transcript-fixture.json",

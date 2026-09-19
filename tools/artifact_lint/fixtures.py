@@ -3597,6 +3597,230 @@ def check_event_batch_receipt_normalization_vector(lint: Lint) -> None:
         lint.fail(schema_path, "Event Batch Receipt events must set uniqueItems=true")
 
 
+BINDING_MEMBERS = (
+    "effective_scope",
+    "base_group_state_ref",
+    "previous_epoch",
+    "next_epoch",
+    "key_access_revision",
+)
+
+
+def _cbor_text(value: str) -> bytes:
+    raw = value.encode("utf-8")
+    if len(raw) < 24:
+        return bytes([0x60 | len(raw)]) + raw
+    return bytes([0x78, len(raw)]) + raw
+
+
+def _deterministic_member_order() -> list[str]:
+    """RFC 8949 section 4.2.1 orders map keys by their encoded bytes."""
+
+    return [name for _, name in sorted((_cbor_text(name), name) for name in BINDING_MEMBERS)]
+
+
+class _NonDeterministicCbor(Exception):
+    def __init__(self, kind: str) -> None:
+        super().__init__(kind)
+        self.kind = kind
+
+
+class _StrictCborReader:
+    """Reads only what RFC 8949 core deterministic encoding admits.
+
+    Every way the binding can be encoded wrongly raises rather than being
+    repaired, so a sample that claims to be non-minimal has to actually be
+    non-minimal for the fixture to stay green.
+    """
+
+    def __init__(self, raw: bytes) -> None:
+        self.raw = raw
+        self.at = 0
+
+    def _byte(self) -> int:
+        if self.at >= len(self.raw):
+            raise _NonDeterministicCbor("truncated")
+        value = self.raw[self.at]
+        self.at += 1
+        return value
+
+    def _argument(self, head: int) -> int:
+        extra = head & 0x1F
+        if extra < 24:
+            return extra
+        if extra == 31:
+            raise _NonDeterministicCbor("indefinite_length_map")
+        if extra > 27:
+            raise _NonDeterministicCbor("reserved_additional_information")
+        width = 1 << (extra - 24)
+        if self.at + width > len(self.raw):
+            raise _NonDeterministicCbor("truncated")
+        value = int.from_bytes(self.raw[self.at : self.at + width], "big")
+        self.at += width
+        minimum = {1: 24, 2: 1 << 8, 4: 1 << 16, 8: 1 << 32}[width]
+        if value < minimum:
+            raise _NonDeterministicCbor("non_minimal_integer")
+        return value
+
+    def item(self) -> Any:
+        head = self._byte()
+        major = head >> 5
+        if head == 0xF6:
+            return None
+        if major == 0:
+            return self._argument(head)
+        if major == 3:
+            length = self._argument(head)
+            if self.at + length > len(self.raw):
+                raise _NonDeterministicCbor("truncated")
+            chunk = self.raw[self.at : self.at + length]
+            self.at += length
+            return chunk.decode("utf-8")
+        if major == 5:
+            count = self._argument(head)
+            result: dict[str, Any] = {}
+            previous: bytes | None = None
+            for _ in range(count):
+                start = self.at
+                key = self.item()
+                if not isinstance(key, str):
+                    raise _NonDeterministicCbor("non_text_map_key")
+                encoded = self.raw[start : self.at]
+                if key in result:
+                    raise _NonDeterministicCbor("duplicate_map_key")
+                if previous is not None and encoded <= previous:
+                    raise _NonDeterministicCbor("out_of_order_map_key")
+                previous = encoded
+                result[key] = self.item()
+            return result
+        raise _NonDeterministicCbor("unsupported_major_type")
+
+
+def _decode_binding(hex_text: str) -> tuple[Any, str | None]:
+    try:
+        raw = bytes.fromhex(hex_text)
+    except ValueError:
+        return None, "not_hexadecimal"
+    reader = _StrictCborReader(raw)
+    try:
+        value = reader.item()
+    except _NonDeterministicCbor as exc:
+        return None, exc.kind
+    if reader.at != len(raw):
+        return None, "trailing_bytes"
+    return value, None
+
+
+def check_mls_governance_binding_closure_vector(lint: Lint) -> None:
+    """Decode the AK-NC-061 binding samples rather than trust their labels.
+
+    Without this the six rejection classes are hex strings nobody reads: an
+    implementer could not tell a genuinely non-minimal integer from a canonical
+    one relabelled, and deleting a sample would leave a decision point pointing
+    at nothing.
+    """
+
+    path = ARTIFACTS / "fixtures" / "final-conformance-closure-fixture.json"
+    data = load_json(lint, path)
+    if not isinstance(data, dict):
+        return
+    cases = data.get("cases")
+    if not isinstance(cases, list):
+        lint.fail(path, "final conformance closure fixture must carry cases")
+        return
+    by_name = {
+        case.get("name"): case
+        for case in cases
+        if isinstance(case, dict) and isinstance(case.get("name"), str)
+    }
+
+    case = by_name.get("governance_binding_wire_encoding_is_closed")
+    if not isinstance(case, dict):
+        lint.fail(path, "the MlsGroupBinding wire-encoding case is missing")
+        return
+
+    expected_order = _deterministic_member_order()
+    if case.get("canonical_member_order") != expected_order:
+        lint.fail(
+            path,
+            "canonical_member_order must be the RFC 8949 bytewise order "
+            f"{expected_order}",
+        )
+    if not str(case.get("member_order_rule", "")).strip():
+        lint.fail(path, "the binding case must state why that member order is canonical")
+
+    accepted = case.get("accepted")
+    if not isinstance(accepted, dict):
+        lint.fail(path, "the binding case must carry an accepted encoding")
+        return
+    decoded, failure = _decode_binding(str(accepted.get("encoded_map_hex", "")))
+    if failure is not None:
+        lint.fail(path, f"the accepted binding encoding is not deterministic: {failure}")
+    elif decoded != accepted.get("binding"):
+        lint.fail(path, "the accepted binding encoding does not decode to its stated members")
+    elif set(decoded) != set(BINDING_MEMBERS):
+        lint.fail(path, "the accepted binding is not the closed five members")
+
+    samples = case.get("rejection_samples")
+    if not isinstance(samples, list) or not samples:
+        lint.fail(path, "the binding case must carry rejection samples")
+        return
+
+    member_set_violations = {"unknown_member", "missing_member"}
+    seen: set[str] = set()
+    for index, sample in enumerate(samples):
+        if not isinstance(sample, dict):
+            lint.fail(path, f"rejection_samples[{index}] must be an object")
+            continue
+        name = sample.get("name")
+        label = f"rejection_samples[{index}]"
+        if not isinstance(name, str) or not name:
+            lint.fail(path, f"{label} must be named")
+            continue
+        seen.add(name)
+        if not str(sample.get("violation", "")).strip():
+            lint.fail(path, f"{label} must say which rule the bytes break")
+        expected = sample.get("expected")
+        if not isinstance(expected, dict) or expected.get("decision") != "reject":
+            lint.fail(path, f"{label} must be rejected")
+        decoded, failure = _decode_binding(str(sample.get("encoded_map_hex", "")))
+        if name in member_set_violations:
+            if failure is not None:
+                lint.fail(
+                    path,
+                    f"{label} is meant to be a well-formed encoding of the wrong "
+                    f"member set, but it does not decode: {failure}",
+                )
+            elif not isinstance(decoded, dict):
+                lint.fail(path, f"{label} must decode to a map")
+            elif set(decoded) == set(BINDING_MEMBERS):
+                lint.fail(path, f"{label} decodes to the closed five members")
+        elif failure != name:
+            lint.fail(
+                path,
+                f"{label} claims {name} but the strict reader reports "
+                f"{failure or 'a deterministic encoding'}",
+            )
+
+    for required in ("unknown_member", "missing_member", "indefinite_length_map",
+                     "non_minimal_integer", "duplicate_map_key", "out_of_order_map_key"):
+        if required not in seen:
+            lint.fail(path, f"the binding case does not exercise {required}")
+
+    epoch_case = by_name.get("governance_binding_epoch_transition_is_fixed")
+    if not isinstance(epoch_case, dict):
+        lint.fail(path, "the MlsGroupBinding epoch-transition case is missing")
+        return
+    for index, sample in enumerate(epoch_case.get("samples", [])):
+        if not isinstance(sample, dict) or "encoded_map_hex" not in sample:
+            continue
+        decoded, failure = _decode_binding(str(sample["encoded_map_hex"]))
+        if failure is not None:
+            lint.fail(path, f"samples[{index}] encoding is not deterministic: {failure}")
+        elif decoded != sample.get("binding"):
+            lint.fail(path, f"samples[{index}] encoding does not decode to its stated binding")
+
+
 def check_encrypted_envelope_digest_vector(lint: Lint) -> None:
     fixture_path = ARTIFACTS / "fixtures" / "encoding-fixture.json"
     fixture = load_json(lint, fixture_path)
