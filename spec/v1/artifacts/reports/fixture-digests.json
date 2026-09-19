@@ -41,6 +41,10 @@
       "sha256": "854a1274a60966e17c3910dad1c2ccf2220fd51ba7943bc6af5db96fa8fcde01"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/approval-signature-kat-fixture.json",
+      "sha256": "259df123709b24b3c7b1f888e4ef82df8ec4deed4f28971fecd4b09e7fa495ec"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/arkret-private-kdf-fixture.json",
       "sha256": "55ce015731d5a3534d37666bf376e24e8dccb33441e3a73c16f5da6ed9d6ecd3"
     },

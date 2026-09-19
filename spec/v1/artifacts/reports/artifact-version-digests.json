@@ -3,9 +3,9 @@
   "artifacts": [
     {
       "path": "spec/v1/artifacts/profiles/conformance-profiles.json",
-      "version": "2026-09-21.3",
-      "generated_at": "2026-09-21T18:00:00+08:00",
-      "content_digest": "sha256:3191b3e6462d5d0c118005afcc3050e0d8b953f82e1cd90d9a579b9381108f88"
+      "version": "2026-09-22.1",
+      "generated_at": "2026-09-22T09:30:00+08:00",
+      "content_digest": "sha256:f06e66d22846dc02a51a19e97711615311773870d1447cdcd7525953637d8d61"
     },
     {
       "path": "spec/v1/artifacts/registry/account-data-key-registry.json",
@@ -231,9 +231,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-09-16.79",
-      "generated_at": "2026-09-21T22:00:01+08:00",
-      "content_digest": "sha256:d55bd4bceb8a45106da99f36b9348adf24f8abd8d27c118e7a222db108139a82"
+      "version": "2026-09-16.80",
+      "generated_at": "2026-09-21T22:00:02+08:00",
+      "content_digest": "sha256:7951b8ec0f71ed6e200acf525a424cdca55e0930d13577dc1946df5cbe05f24b"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
@@ -357,9 +357,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/test-material-registry.json",
-      "version": "2026-09-20.1",
-      "generated_at": "2026-09-20T15:10:00+08:00",
-      "content_digest": "sha256:713026c08de10edda12d988f3cf11b717efdb4aee6d43f5929f61c43cff6f771"
+      "version": "2026-09-22.2",
+      "generated_at": "2026-09-22T09:30:00+08:00",
+      "content_digest": "sha256:001b2bc17a209a1a9b2f5689c3da99580c197bea2ebfa350389048efc700188e"
     },
     {
       "path": "spec/v1/artifacts/registry/track-name-registry.json",
@@ -369,9 +369,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/vector-registry.json",
-      "version": "2026-09-21.3",
-      "generated_at": "2026-09-21T19:00:00+08:00",
-      "content_digest": "sha256:509d69fa0799ecc6c55ce26e1329c93d0140e4bb8d54d6f35ddd2ef21243e9ce"
+      "version": "2026-09-22.1",
+      "generated_at": "2026-09-22T09:30:00+08:00",
+      "content_digest": "sha256:710befc188ff6637dd8f9232582608f64d49a0b7677f65842801cb52e31412a3"
     }
   ]
 }

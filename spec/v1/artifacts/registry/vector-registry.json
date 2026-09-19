@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-21.3",
+  "version": "2026-09-22.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-21T19:00:00+08:00",
+  "generated_at": "2026-09-22T09:30:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -615,6 +615,62 @@
       ]
     },
     {
+      "vector_id": "ak.vector.authz.approval_signature_bytes.v1",
+      "status": "active",
+      "domain": "authz",
+      "applies_to_fixtures": [
+        "approval-signature-kat-fixture.json"
+      ],
+      "description": "Grant-context approval over an already authored Event: signing_bytes is UTF8(\"ak.approval.signature.v1\") || 0x0A || JCS(input), the signature is detached with an empty JWS payload segment, and request_canonical_digest covers the complete Event including its producer proof.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/approval-signature-kat-fixture.json",
+        "spec/v1/zh/authz/constraint-schema.md",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.authz.approval_signature_governance_context.v1",
+      "status": "active",
+      "domain": "authz",
+      "applies_to_fixtures": [
+        "approval-signature-kat-fixture.json"
+      ],
+      "description": "Realm-governance-context approval over the same Event. The branch carries no grant_id and no governance configuration reference, and one signature MUST NOT be read across both approval layers: context_kind is inside the signed input.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/approval-signature-kat-fixture.json",
+        "spec/v1/zh/authz/constraint-schema.md",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.authz.approval_signature_negative.v1",
+      "status": "active",
+      "domain": "authz",
+      "applies_to_fixtures": [
+        "approval-signature-kat-fixture.json"
+      ],
+      "description": "Refutations for approval signatures, in three separable classes: substituted or wrongly constructed bytes yield signature_invalid, shape errors yield schema_violation and MUST NOT be reported as signature_invalid, and a valid signature that is still inadmissible yields claim_required with reason approval_required or failed_precondition with reason approval_nonce_reused.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/approval-signature-kat-fixture.json",
+        "spec/v1/zh/authz/constraint-schema.md",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.authz.approval_signature_operation_target.v1",
+      "status": "active",
+      "domain": "authz",
+      "applies_to_fixtures": [
+        "approval-signature-kat-fixture.json"
+      ],
+      "description": "Approval over a non-Event operation target: request_canonical_digest covers the original typed RequestBody of the registered operation and nothing else. This fixes the byte derivation only; v1 registers no evidence carrier on any non-Event operation.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/approval-signature-kat-fixture.json",
+        "spec/v1/zh/authz/constraint-schema.md",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
       "vector_id": "ak.vector.authz.authorization_lease_issuance.v1",
       "status": "active",
       "domain": "authz",
@@ -1032,7 +1088,7 @@
       "applies_to_profiles": [
         "ak.profile.constraint.approval_workflow.v1"
       ],
-      "description": "An unmet approval constraint blocks direct execution even for a high-privilege grant: a reproducible proposal/review lifecycle is required, and approval produces a verifiable completion Event that a separate action Event then consumes.",
+      "description": "An unmet approval constraint blocks direct execution even for a high-privilege grant: the write MUST NOT take effect before ak.schema.approval_signature.v1 evidence from the required approvers is verified and accepted in the same transaction. approval_mode is the closed single value before_commit, so there is no path that first materializes a proposal object and then approves that object.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-suite.md"
       ]

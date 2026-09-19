@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 8840,
+    "total_properties": 8839,
     "total_schema_documents": 164,
     "by_presence_class": {
       "optional": 2297,
       "optional_defaulted": 49,
-      "required": 6054,
+      "required": 6053,
       "required_nullable": 285,
       "tristate": 155
     },
@@ -3189,8 +3189,7 @@
         "/$defs/submit_outcome/oneOf/0/properties/commit": "required",
         "/$defs/submit_outcome/oneOf/0/properties/status": "required",
         "/$defs/submit_outcome/oneOf/1/properties/reason_code": "required",
-        "/$defs/submit_outcome/oneOf/1/properties/status": "required",
-        "/$defs/submit_request/oneOf/0/properties/event": "required"
+        "/$defs/submit_outcome/oneOf/1/properties/status": "required"
       },
       "conditionally_required": [
         "/$defs/stream_scan_request/properties/after_position",

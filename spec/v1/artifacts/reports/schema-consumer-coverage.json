@@ -51,12 +51,12 @@
       "prose_only": 2,
       "schema_reference": 159,
       "startup_compile": 219,
-      "vectors": 107
+      "vectors": 108
     },
     "without_wire_consumer": 1,
     "explicit_prose_only": 2,
     "unresolved_consumer_coverage": 0,
-    "without_vector_coverage": 112,
+    "without_vector_coverage": 111,
     "unresolved_vector_disposition": 0
   },
   "without_wire_consumer": [
@@ -91,7 +91,6 @@
     "ak.schema.applet_managed_actor_provision.v1",
     "ak.schema.applet_registration_epoch_evidence.v1",
     "ak.schema.applet_widget_declaration.v1",
-    "ak.schema.approval_signature.v1",
     "ak.schema.authenticated_signer_resolution_evidence.v1",
     "ak.schema.authority_commit_operations.v1",
     "ak.schema.authority_set_policy.v1",
@@ -929,15 +928,13 @@
       "consumers": {
         "prose": "normative_text",
         "schema_reference": "exact",
-        "startup_compile": "exact"
+        "startup_compile": "exact",
+        "vectors": "required_schema"
       },
       "wire_covered": true,
       "vector_coverage": {
-        "disposition": "composed_schema_owned",
-        "owners": [
-          "ak.schema.service_operation_dtos.v1"
-        ],
-        "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
+        "disposition": "direct",
+        "evidence": "required_schema"
       }
     },
     {

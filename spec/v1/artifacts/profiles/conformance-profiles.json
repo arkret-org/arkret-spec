@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-21.3",
-  "generated_at": "2026-09-21T18:00:00+08:00",
+  "version": "2026-09-22.1",
+  "generated_at": "2026-09-22T09:30:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -6004,16 +6004,26 @@
       }
     },
     "ak.profile.constraint.approval_workflow.v1": {
-      "description": "Constraint extension gate for approval workflows.",
+      "description": "Constraint extension gate for approval workflows. A build claiming it MUST verify ak.schema.approval_signature.v1 evidence before the write takes effect, in the same transaction, and MUST carry that evidence on EventCommitSubmission.approval_signatures[] rather than as a second Event. approval_mode is the closed single value before_commit: there is no proposal object to approve (zh/authz/constraint-schema.md section 9.2).",
       "enforcement_phases": [
         "build",
         "conformance"
       ],
-      "operation_requirements": [],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "binding_kind": "http_json"
+        }
+      ],
       "required_event_kinds": [],
       "rejected_event_kinds": [],
-      "required_schemas": [],
-      "required_fixtures": [],
+      "required_schemas": [
+        "ak.schema.approval_signature.v1"
+      ],
+      "required_fixtures": [
+        "approval-signature-kat-fixture.json"
+      ],
       "optional_extensions": [],
       "feature_discovery": {
         "required": [

@@ -541,7 +541,7 @@ MUST NOT 被实现成「先对 JSON 求 SHA-256、再签那个摘要」的第二
 | `realm_id` | id | 被批准动作所在的 Realm ID。防止跨 Realm 重放。 |
 | `initiating_actor_id` | ActorId | 发起本次执行的 **exact** `ActorId`（完整 `principal_id` + `station_id`）。它不授权同一 principal 的另一个 Account：同 DID 不同 Station 的重放 MUST 拒绝。 |
 | `approver_did` | did | 签发该 approval 的 approver DID。 |
-| `approved_at` | timestamp | 签名时间。reducer MUST 拒绝 `approved_at > now + hard_future_skew_ms`；`grant` 支还 MUST 拒绝 `approved_at < grant.effective_not_before`。此处 `hard_future_skew_ms` 取 [`../conformance/scalability-constraints.md`](../conformance/scalability-constraints.md) §2 登记的协议级硬上界（默认 300_000，即 5 分钟）——approval 属授权 state event，采用硬上界作为 future-drift reject 边界；实现 MUST NOT 自定义更宽容差。该 5 分钟容差与 [`../crypto-media/media-and-blob.md`](../crypto-media/media-and-blob.md) §5.4.3 presign TTL 校验采用的 `expected_future_skew_ms`（30 秒软容差）以及 [`capabilities.md` §18.2](./capabilities.md) 服务协商参数 `clock_skew_tolerance_ms` 是**不同场景的独立阈值**：presign 是短 TTL bearer URL，取更紧的软容差；approval 取硬上界；`clock_skew_tolerance_ms` 只用于 freshness 状态分级。三者不得互相代入。 |
+| `approved_at` | timestamp | 签名时间。reducer MUST 拒绝 `approved_at > now + hard_future_skew_ms`；`grant` 支还 MUST 拒绝 `approved_at < grant.issued_at`；该 grant 若携带 `constraint_kind=temporal` 的约束，还 MUST 拒绝 `approved_at` 早于该约束的 `not_before`。capability grant **没有** top-level `not_before`／`expires_at`，有效期窗口由 §3 的 temporal grant-constraint 表达，实现 MUST 从那里取下界，MUST NOT 读一个 grant 上不存在的成员。此处 `hard_future_skew_ms` 取 [`../conformance/scalability-constraints.md`](../conformance/scalability-constraints.md) §2 登记的协议级硬上界（默认 300_000，即 5 分钟）——approval 属授权 state event，采用硬上界作为 future-drift reject 边界；实现 MUST NOT 自定义更宽容差。该 5 分钟容差与 [`../crypto-media/media-and-blob.md`](../crypto-media/media-and-blob.md) §5.4.3 presign TTL 校验采用的 `expected_future_skew_ms`（30 秒软容差）以及 [`capabilities.md` §18.2](./capabilities.md) 服务协商参数 `clock_skew_tolerance_ms` 是**不同场景的独立阈值**：presign 是短 TTL bearer URL，取更紧的软容差；approval 取硬上界；`clock_skew_tolerance_ms` 只用于 freshness 状态分级。三者不得互相代入。 |
 | `nonce` | string | approver 私有的、per-approval 唯一的随机字符串（≥ 128 bit 熵）。命名空间见 §9.2.2，消费规则见 §9.2.5。 |
 
 #### 9.2.5 载体、接纳审计与 nonce 消费（normative）
@@ -612,6 +612,28 @@ Agent 自己的私有 draft 能力（`ak.agent.draft.propose` / `ak.agent.action
 `ak.agent.action_reject`，见 [`../conformance/conformance-profiles.md`](../conformance/conformance-profiles.md)）
 与本节无关，**不受**影响：它是 controller-owned account-data 上的 draft 流程，不是审批 constraint。
 将来若要提供真正的提案产品能力，MUST 先有完整独立设计与登记对象。
+
+#### 9.2.8 字节 KAT（normative）
+
+[`approval-signature-kat-fixture.json`](../../artifacts/fixtures/approval-signature-kat-fixture.json)
+是本节的**可执行**依据，由 [`tools/check_approval_signature_kat.py`](../../../../tools/check_approval_signature_kat.py)
+在 `artifact_pipeline check` 内重算并**真实做 Ed25519 验签**。实现 MUST 能重现它的三条接纳向量，
+并 MUST 拒绝它的每一条否例。
+
+| 向量 | 覆盖 |
+| --- | --- |
+| `ak.vector.authz.approval_signature_bytes.v1` | `grant` + `event` 支：§9.2.1 的 `signing_bytes` 逐字节、detached JWS 空 payload 段、`request_canonical_digest` 覆盖含 producer proof 的完整 Event |
+| `ak.vector.authz.approval_signature_governance_context.v1` | `realm_governance` + `event` 支：该支不携带 `grant_id`，也不携带任何治理配置引用；一份签名 MUST NOT 跨两层复用 |
+| `ak.vector.authz.approval_signature_operation_target.v1` | `grant` + `operation` 支：摘要只覆盖原 typed RequestBody。本向量只固定字节推导，不意味着任何非 Event operation 已登记载体（§9.2.5） |
+| `ak.vector.authz.approval_signature_negative.v1` | 三类否例：换字节或错构造 → `signature_invalid`；形状错误 → `schema_violation`；签名有效但不可接纳 → `claim_required` reason=`approval_required` 或 `failed_precondition` reason=`approval_nonce_reused` |
+
+fixture 的 `event_id_invariance` 块给出 §9.2.5 那句「不改变目标 Event」的可核对形式：目标 Event 的摘要
+原像不含 `proofs`，evidence 又根本不是 Event 成员，因此附加 `approval_signatures[]` 前后原像字节与
+`event_id` **逐字节相同**，而传输层 `Content-Digest`（RFC 9530）**必然改变**——两道检查互相独立，
+实现 MUST NOT 为容纳 evidence 重写 Event 字节。
+
+否例里有一条只有公开测试密钥才检验得到：目标 Event 自己的 producer proof 由同一把密钥签出，把它当作
+approval proof 提交时，签名本身**真实有效**且密钥可解析，但域分隔不同，故 MUST 拒绝。
 
 ### 9.3 与 Realm 治理面审批配置的关系（normative）
 

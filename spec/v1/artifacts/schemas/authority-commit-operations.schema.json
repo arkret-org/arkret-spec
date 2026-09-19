@@ -30,19 +30,10 @@
   ],
   "$defs": {
     "submit_request": {
-      "description": "One ordinary producer Event, or one atomic MLS Commit plus all recipient Welcome deliveries required by that Commit.",
+      "description": "One ordinary producer Event with the approval signatures its two approval layers require, or one atomic MLS Commit plus all recipient Welcome deliveries required by that Commit. The ordinary branch is EventCommitSubmission itself, not a second declaration of it: the approval evidence a constraint demands has to be carriable on the primary Event ingress, otherwise no execution could ever satisfy the constraint (zh/authz/constraint-schema.md section 9.2.5).",
       "oneOf": [
         {
-          "type": "object",
-          "required": [
-            "event"
-          ],
-          "properties": {
-            "event": {
-              "$ref": "./event-envelope.schema.json"
-            }
-          },
-          "additionalProperties": false
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventCommitSubmission"
         },
         {
           "$ref": "./mls-commit-submission.schema.json"

@@ -138,6 +138,14 @@ context／nonce 的拒绝、`approved_at` 时间边界、同一 approver 重复�
 （未达 quorum 与验证失败 MUST NOT 提前消费，exact 重放返回原 outcome，换目标返回 `approval_nonce_reused`）。
 形状错误 MUST 报 `schema_violation`，密码学错误 MUST 报 `signature_invalid`，两者不得互相冒充。
 
+`ak.vector.authz.approval_signature_bytes.v1`、`ak.vector.authz.approval_signature_governance_context.v1`
+与 `ak.vector.authz.approval_signature_operation_target.v1` 是上一条要求的**字节级**落地：三条接纳向量分别
+覆盖 `grant`+`event`、`realm_governance`+`event` 与 `grant`+`operation`，每条都携带 `signing_bytes` 的十六进制、
+detached payload 与真实 Ed25519 签名，验证者 MUST 能独立重算并验签。
+`ak.vector.authz.approval_signature_negative.v1` 是与之配对的否例束，MUST 按三类分别给出稳定 code：
+换字节或错构造（含丢域前缀、先摘要后签、把 producer proof 当 approval proof）→ `signature_invalid`；
+形状错误 → `schema_violation`；签名有效但不可接纳 → `claim_required` 或 `failed_precondition`。
+
 `ak.vector.capability.revoke_downstream_recheck.v1` MUST 证明：grant G 授权的 Event E 与由 G 派生的 child grant C
 授权的 pending Event P，在 `ak.capability.revoke` 撤销 G 被接纳后，P MUST fail closed 或隔离并给出稳定
 reason code；allow cache 与 policy decision cache 中依赖 G 或 C 的条目 MUST 在同一 reducer 事务内失效；

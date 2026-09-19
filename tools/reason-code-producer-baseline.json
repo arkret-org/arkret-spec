@@ -16,7 +16,6 @@
     "aead_nonce_counter_replay",
     "agent_grant_constraint_missing",
     "agent_grant_expiry_required",
-    "approval_nonce_reused",
     "audit_capability_incomplete",
     "authority_regrant_denied",
     "authority_scope_custom_unsupported",

@@ -68,7 +68,7 @@
         },
         "approved_at": {
           "$ref": "./time.schema.json#/$defs/timestamp",
-          "description": "The signing instant. A reducer MUST reject approved_at later than now plus the protocol-level hard_future_skew_ms registered in zh/conformance/scalability-constraints.md section 2, and for the grant context MUST also reject approved_at earlier than that grant's effective_not_before. Accepted history is verified against the accepted-at evidence, so a later approver key rotation or revocation MUST NOT invalidate an already accepted Event."
+          "description": "The signing instant. A reducer MUST reject approved_at later than now plus the protocol-level hard_future_skew_ms registered in zh/conformance/scalability-constraints.md section 2, and for the grant context MUST also reject approved_at earlier than that grant's issued_at, and earlier than the not_before of that grant's temporal grant-constraint when it carries one. A capability grant has no top-level not_before of its own: its validity window lives on grant-constraint.schema.json with constraint_kind temporal, so an implementation MUST read the bound from there rather than from a grant member that does not exist. Accepted history is verified against the accepted-at evidence, so a later approver key rotation or revocation MUST NOT invalidate an already accepted Event."
         },
         "nonce": {
           "type": "string",

@@ -1,0 +1,1530 @@
+{
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.authz.approval_signature.v1"
+  },
+  "version": "2026-09-19",
+  "covers_vectors": [
+    "ak.vector.authz.approval_signature_bytes.v1",
+    "ak.vector.authz.approval_signature_governance_context.v1",
+    "ak.vector.authz.approval_signature_operation_target.v1",
+    "ak.vector.authz.approval_signature_negative.v1"
+  ],
+  "description": "Byte known-answer tests for ak.schema.approval_signature.v1 (zh/authz/constraint-schema.md section 9.2). Every signature here is a real Ed25519 signature made with the published conformance fixture key, so a verifier reproduces the accepted vectors and refutes the rejected ones without trusting this fixture's prose. The target Event's digest preimage, event_digest and derived event_id are the ones content-bound-event-id-fixture.json already fixes, which is what makes the event_id-invariance claim checkable rather than asserted.",
+  "signing_domain": {
+    "domain": "ak.approval.signature.v1",
+    "signing_bytes": "UTF8(\"ak.approval.signature.v1\") || 0x0A || JCS(input)",
+    "jws_payload_is_signing_bytes": true,
+    "primitive": "detached_signature",
+    "registered_in": "spec/v1/artifacts/registry/proof-context-registry.json",
+    "domain_prefix_hex": "616b2e617070726f76616c2e7369676e61747572652e76310a"
+  },
+  "vectors": [
+    {
+      "name": "ak.vector.authz.approval_signature_bytes.v1",
+      "description": "Grant-context approval over an already authored Event: the canonical branch of zh/authz/constraint-schema.md section 9.2. request_canonical_digest covers the complete Event including its producer proof.",
+      "did_document_fragment": {
+        "id": "did:webvh:z6mkfixturemanager:manager.example#ed25519-2026-09-fixture",
+        "type": "JsonWebKey2020",
+        "controller": "did:webvh:z6mkfixturemanager:manager.example",
+        "publicKeyJwk": {
+          "crv": "Ed25519",
+          "x": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
+          "kty": "OKP"
+        }
+      },
+      "test_private_key_jwk": {
+        "crv": "Ed25519",
+        "d": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
+        "x": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
+        "kty": "OKP",
+        "note": "Public conformance test key only: the private key ships with the specification, so a valid signature over it proves nothing about the signer. Registered in artifacts/registry/test-material-registry.json; formal verification, authorization and trust-admission paths MUST refuse it and the reserved identifiers it uses. See zh/identity/did-usage-and-verification.md section 8."
+      },
+      "approval_signature": {
+        "input": {
+          "approval_context": {
+            "context_kind": "grant",
+            "grant_id": "ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf"
+          },
+          "approval_target": {
+            "target_kind": "event",
+            "event_id": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB"
+          },
+          "request_canonical_digest": "sha256:735a9009ddeab92723c69b8ae4fd932f31abd63ab986f1d2130b05fe8ad31d86",
+          "operation": "ak.self.events.command.submit.v1",
+          "action": "ak.strand.create",
+          "realm_id": "ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J",
+          "initiating_actor_id": {
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixture",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            },
+            "kind": "account"
+          },
+          "approver_did": "did:webvh:z6mkfixturemanager:manager.example",
+          "approved_at": "2026-08-06T00:10:00.000Z",
+          "nonce": "KFSPGziJGaKwvm8hXg-krC8iZqunf7EmJ7GIo_j-3G8"
+        },
+        "proof": {
+          "kind": "detached_jws",
+          "verification_method": "did:webvh:z6mkfixturemanager:manager.example#ed25519-2026-09-fixture",
+          "jws": "eyJhbGciOiJFZDI1NTE5In0..qkUCnD06N-31J08YMfbm9iyH58OEjhdB_OAGZ1kVwChqR1NBCDokm-yWiSpz-OfjeQu2-nrdsLxvSW7DXkRYBg"
+        }
+      },
+      "canonical_input_utf8": "{\"action\":\"ak.strand.create\",\"approval_context\":{\"context_kind\":\"grant\",\"grant_id\":\"ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf\"},\"approval_target\":{\"event_id\":\"ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB\",\"target_kind\":\"event\"},\"approved_at\":\"2026-08-06T00:10:00.000Z\",\"approver_did\":\"did:webvh:z6mkfixturemanager:manager.example\",\"initiating_actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"nonce\":\"KFSPGziJGaKwvm8hXg-krC8iZqunf7EmJ7GIo_j-3G8\",\"operation\":\"ak.self.events.command.submit.v1\",\"realm_id\":\"ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J\",\"request_canonical_digest\":\"sha256:735a9009ddeab92723c69b8ae4fd932f31abd63ab986f1d2130b05fe8ad31d86\"}",
+      "signing_domain": "ak.approval.signature.v1",
+      "signing_bytes_hex": "616b2e617070726f76616c2e7369676e61747572652e76310a7b22616374696f6e223a22616b2e737472616e642e637265617465222c22617070726f76616c5f636f6e74657874223a7b22636f6e746578745f6b696e64223a226772616e74222c226772616e745f6964223a22616b3a6772616e743a41523971566e484b3461303931347a506d483543525a4c546a5353565f3867684a4b75474769764461457866227d2c22617070726f76616c5f746172676574223a7b226576656e745f6964223a22616b3a6576656e743a41536f367a43356c587733474b4f69654b586c584a59664b6f514b6e67347359587476645541614539575242222c227461726765745f6b696e64223a226576656e74227d2c22617070726f7665645f6174223a22323032362d30382d30365430303a31303a30302e3030305a222c22617070726f7665725f646964223a226469643a77656276683a7a366d6b666978747572656d616e616765723a6d616e616765722e6578616d706c65222c22696e6974696174696e675f6163746f725f6964223a7b226163636f756e745f6964223a7b227072696e636970616c5f6964223a22616b3a6469645f636f72653a77656276683a7a366d6b66697874757265222c2273746174696f6e5f6964223a22616b3a6469645f636f72653a77656276683a7a366d6b6669787475726573746174696f6e6578616d706c65227d2c226b696e64223a226163636f756e74227d2c226e6f6e6365223a224b465350477a694a47614b77766d386858672d6b724338695a71756e6637456d4a3747496f5f6a2d334738222c226f7065726174696f6e223a22616b2e73656c662e6576656e74732e636f6d6d616e642e7375626d69742e7631222c227265616c6d5f6964223a22616b3a7265616c6d3a415468374f574c4c705564545659734b647036726b436c536355706a594a6c4631593362796a65794853384a222c22726571756573745f63616e6f6e6963616c5f646967657374223a227368613235363a37333561393030396464656162393237323363363962386165346664393332663331616264363361623938366631643231333062303566653861643331643836227d",
+      "signing_bytes_sha256": "sha256:294b2c4c98e5e5ae4354b14c61d11ecf1649627af551c83822aab4d316132111",
+      "protected_header": {
+        "alg": "Ed25519"
+      },
+      "protected_header_canonical": "{\"alg\":\"Ed25519\"}",
+      "detached_payload_b64u": "YWsuYXBwcm92YWwuc2lnbmF0dXJlLnYxCnsiYWN0aW9uIjoiYWsuc3RyYW5kLmNyZWF0ZSIsImFwcHJvdmFsX2NvbnRleHQiOnsiY29udGV4dF9raW5kIjoiZ3JhbnQiLCJncmFudF9pZCI6ImFrOmdyYW50OkFSOXFWbkhLNGEwOTE0elBtSDVDUlpMVGpTU1ZfOGdoSkt1R0dpdkRhRXhmIn0sImFwcHJvdmFsX3RhcmdldCI6eyJldmVudF9pZCI6ImFrOmV2ZW50OkFTbzZ6QzVsWHczR0tPaWVLWGxYSllmS29RS25nNHNZWHR2ZFVBYUU5V1JCIiwidGFyZ2V0X2tpbmQiOiJldmVudCJ9LCJhcHByb3ZlZF9hdCI6IjIwMjYtMDgtMDZUMDA6MTA6MDAuMDAwWiIsImFwcHJvdmVyX2RpZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZW1hbmFnZXI6bWFuYWdlci5leGFtcGxlIiwiaW5pdGlhdGluZ19hY3Rvcl9pZCI6eyJhY2NvdW50X2lkIjp7InByaW5jaXBhbF9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlIiwic3RhdGlvbl9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlc3RhdGlvbmV4YW1wbGUifSwia2luZCI6ImFjY291bnQifSwibm9uY2UiOiJLRlNQR3ppSkdhS3d2bThoWGcta3JDOGlacXVuZjdFbUo3R0lvX2otM0c4Iiwib3BlcmF0aW9uIjoiYWsuc2VsZi5ldmVudHMuY29tbWFuZC5zdWJtaXQudjEiLCJyZWFsbV9pZCI6ImFrOnJlYWxtOkFUaDdPV0xMcFVkVFZZc0tkcDZya0NsU2NVcGpZSmxGMVkzYnlqZXlIUzhKIiwicmVxdWVzdF9jYW5vbmljYWxfZGlnZXN0Ijoic2hhMjU2OjczNWE5MDA5ZGRlYWI5MjcyM2M2OWI4YWU0ZmQ5MzJmMzFhYmQ2M2FiOTg2ZjFkMjEzMGIwNWZlOGFkMzFkODYifQ",
+      "jws_signing_input": "eyJhbGciOiJFZDI1NTE5In0.YWsuYXBwcm92YWwuc2lnbmF0dXJlLnYxCnsiYWN0aW9uIjoiYWsuc3RyYW5kLmNyZWF0ZSIsImFwcHJvdmFsX2NvbnRleHQiOnsiY29udGV4dF9raW5kIjoiZ3JhbnQiLCJncmFudF9pZCI6ImFrOmdyYW50OkFSOXFWbkhLNGEwOTE0elBtSDVDUlpMVGpTU1ZfOGdoSkt1R0dpdkRhRXhmIn0sImFwcHJvdmFsX3RhcmdldCI6eyJldmVudF9pZCI6ImFrOmV2ZW50OkFTbzZ6QzVsWHczR0tPaWVLWGxYSllmS29RS25nNHNZWHR2ZFVBYUU5V1JCIiwidGFyZ2V0X2tpbmQiOiJldmVudCJ9LCJhcHByb3ZlZF9hdCI6IjIwMjYtMDgtMDZUMDA6MTA6MDAuMDAwWiIsImFwcHJvdmVyX2RpZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZW1hbmFnZXI6bWFuYWdlci5leGFtcGxlIiwiaW5pdGlhdGluZ19hY3Rvcl9pZCI6eyJhY2NvdW50X2lkIjp7InByaW5jaXBhbF9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlIiwic3RhdGlvbl9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlc3RhdGlvbmV4YW1wbGUifSwia2luZCI6ImFjY291bnQifSwibm9uY2UiOiJLRlNQR3ppSkdhS3d2bThoWGcta3JDOGlacXVuZjdFbUo3R0lvX2otM0c4Iiwib3BlcmF0aW9uIjoiYWsuc2VsZi5ldmVudHMuY29tbWFuZC5zdWJtaXQudjEiLCJyZWFsbV9pZCI6ImFrOnJlYWxtOkFUaDdPV0xMcFVkVFZZc0tkcDZya0NsU2NVcGpZSmxGMVkzYnlqZXlIUzhKIiwicmVxdWVzdF9jYW5vbmljYWxfZGlnZXN0Ijoic2hhMjU2OjczNWE5MDA5ZGRlYWI5MjcyM2M2OWI4YWU0ZmQ5MzJmMzFhYmQ2M2FiOTg2ZjFkMjEzMGIwNWZlOGFkMzFkODYifQ",
+      "jose_algorithm": "Ed25519",
+      "expected": {
+        "verification_result": "valid",
+        "signing_bytes_construction": "UTF8(domain) || 0x0A || JCS(input)",
+        "reject_if_domain_prefix_is_omitted": true,
+        "reject_if_signature_covers_a_digest_of_the_input_instead_of_the_input": true,
+        "reject_if_any_input_member_changes": true,
+        "reject_if_jws_payload_segment_is_non_empty_for_detached_profile": true,
+        "reject_if_verification_method_does_not_resolve_through_approver_did": true,
+        "approval_context_branch": "grant",
+        "approval_target_branch": "event",
+        "original_input": "complete authored Event including its producer proof"
+      }
+    },
+    {
+      "name": "ak.vector.authz.approval_signature_governance_context.v1",
+      "description": "Realm-governance-context approval over the same Event. The branch carries no grant_id and no governance configuration identifier: realm_id, action and approval_target already determine the requirement (zh/models/governance-objects.md section 3.5).",
+      "did_document_fragment": {
+        "id": "did:webvh:z6mkfixturemanager:manager.example#ed25519-2026-09-fixture",
+        "type": "JsonWebKey2020",
+        "controller": "did:webvh:z6mkfixturemanager:manager.example",
+        "publicKeyJwk": {
+          "crv": "Ed25519",
+          "x": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
+          "kty": "OKP"
+        }
+      },
+      "test_private_key_jwk": {
+        "crv": "Ed25519",
+        "d": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
+        "x": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
+        "kty": "OKP",
+        "note": "Public conformance test key only: the private key ships with the specification, so a valid signature over it proves nothing about the signer. Registered in artifacts/registry/test-material-registry.json; formal verification, authorization and trust-admission paths MUST refuse it and the reserved identifiers it uses. See zh/identity/did-usage-and-verification.md section 8."
+      },
+      "approval_signature": {
+        "input": {
+          "approval_context": {
+            "context_kind": "realm_governance"
+          },
+          "approval_target": {
+            "target_kind": "event",
+            "event_id": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB"
+          },
+          "request_canonical_digest": "sha256:735a9009ddeab92723c69b8ae4fd932f31abd63ab986f1d2130b05fe8ad31d86",
+          "operation": "ak.self.events.command.submit.v1",
+          "action": "ak.strand.create",
+          "realm_id": "ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J",
+          "initiating_actor_id": {
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixture",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            },
+            "kind": "account"
+          },
+          "approver_did": "did:webvh:z6mkfixturemanager:manager.example",
+          "approved_at": "2026-08-06T00:11:00.000Z",
+          "nonce": "Tw6aIuuTPt9Qj96WMHi0IIcwdaBvs8nMLfHbQvV4KXU"
+        },
+        "proof": {
+          "kind": "detached_jws",
+          "verification_method": "did:webvh:z6mkfixturemanager:manager.example#ed25519-2026-09-fixture",
+          "jws": "eyJhbGciOiJFZDI1NTE5In0..q17MYLnRPtdcIh4H4I4eOGTiMKl2awUgItCaMoa-q_Fjcep86Tx2jnY02_ufRdb8VTZ-pYdFkDOp_UjsImvCCA"
+        }
+      },
+      "canonical_input_utf8": "{\"action\":\"ak.strand.create\",\"approval_context\":{\"context_kind\":\"realm_governance\"},\"approval_target\":{\"event_id\":\"ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB\",\"target_kind\":\"event\"},\"approved_at\":\"2026-08-06T00:11:00.000Z\",\"approver_did\":\"did:webvh:z6mkfixturemanager:manager.example\",\"initiating_actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"nonce\":\"Tw6aIuuTPt9Qj96WMHi0IIcwdaBvs8nMLfHbQvV4KXU\",\"operation\":\"ak.self.events.command.submit.v1\",\"realm_id\":\"ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J\",\"request_canonical_digest\":\"sha256:735a9009ddeab92723c69b8ae4fd932f31abd63ab986f1d2130b05fe8ad31d86\"}",
+      "signing_domain": "ak.approval.signature.v1",
+      "signing_bytes_hex": "616b2e617070726f76616c2e7369676e61747572652e76310a7b22616374696f6e223a22616b2e737472616e642e637265617465222c22617070726f76616c5f636f6e74657874223a7b22636f6e746578745f6b696e64223a227265616c6d5f676f7665726e616e6365227d2c22617070726f76616c5f746172676574223a7b226576656e745f6964223a22616b3a6576656e743a41536f367a43356c587733474b4f69654b586c584a59664b6f514b6e67347359587476645541614539575242222c227461726765745f6b696e64223a226576656e74227d2c22617070726f7665645f6174223a22323032362d30382d30365430303a31313a30302e3030305a222c22617070726f7665725f646964223a226469643a77656276683a7a366d6b666978747572656d616e616765723a6d616e616765722e6578616d706c65222c22696e6974696174696e675f6163746f725f6964223a7b226163636f756e745f6964223a7b227072696e636970616c5f6964223a22616b3a6469645f636f72653a77656276683a7a366d6b66697874757265222c2273746174696f6e5f6964223a22616b3a6469645f636f72653a77656276683a7a366d6b6669787475726573746174696f6e6578616d706c65227d2c226b696e64223a226163636f756e74227d2c226e6f6e6365223a225477366149757554507439516a3936574d486930494963776461427673386e4d4c664862517656344b5855222c226f7065726174696f6e223a22616b2e73656c662e6576656e74732e636f6d6d616e642e7375626d69742e7631222c227265616c6d5f6964223a22616b3a7265616c6d3a415468374f574c4c705564545659734b647036726b436c536355706a594a6c4631593362796a65794853384a222c22726571756573745f63616e6f6e6963616c5f646967657374223a227368613235363a37333561393030396464656162393237323363363962386165346664393332663331616264363361623938366631643231333062303566653861643331643836227d",
+      "signing_bytes_sha256": "sha256:ba6a4421149952157ac85e76ac796f53c7e94cdc2447b07f13a5bbd59e9ab08b",
+      "protected_header": {
+        "alg": "Ed25519"
+      },
+      "protected_header_canonical": "{\"alg\":\"Ed25519\"}",
+      "detached_payload_b64u": "YWsuYXBwcm92YWwuc2lnbmF0dXJlLnYxCnsiYWN0aW9uIjoiYWsuc3RyYW5kLmNyZWF0ZSIsImFwcHJvdmFsX2NvbnRleHQiOnsiY29udGV4dF9raW5kIjoicmVhbG1fZ292ZXJuYW5jZSJ9LCJhcHByb3ZhbF90YXJnZXQiOnsiZXZlbnRfaWQiOiJhazpldmVudDpBU282ekM1bFh3M0dLT2llS1hsWEpZZktvUUtuZzRzWVh0dmRVQWFFOVdSQiIsInRhcmdldF9raW5kIjoiZXZlbnQifSwiYXBwcm92ZWRfYXQiOiIyMDI2LTA4LTA2VDAwOjExOjAwLjAwMFoiLCJhcHByb3Zlcl9kaWQiOiJkaWQ6d2Vidmg6ejZta2ZpeHR1cmVtYW5hZ2VyOm1hbmFnZXIuZXhhbXBsZSIsImluaXRpYXRpbmdfYWN0b3JfaWQiOnsiYWNjb3VudF9pZCI6eyJwcmluY2lwYWxfaWQiOiJhazpkaWRfY29yZTp3ZWJ2aDp6Nm1rZml4dHVyZSIsInN0YXRpb25faWQiOiJhazpkaWRfY29yZTp3ZWJ2aDp6Nm1rZml4dHVyZXN0YXRpb25leGFtcGxlIn0sImtpbmQiOiJhY2NvdW50In0sIm5vbmNlIjoiVHc2YUl1dVRQdDlRajk2V01IaTBJSWN3ZGFCdnM4bk1MZkhiUXZWNEtYVSIsIm9wZXJhdGlvbiI6ImFrLnNlbGYuZXZlbnRzLmNvbW1hbmQuc3VibWl0LnYxIiwicmVhbG1faWQiOiJhazpyZWFsbTpBVGg3T1dMTHBVZFRWWXNLZHA2cmtDbFNjVXBqWUpsRjFZM2J5amV5SFM4SiIsInJlcXVlc3RfY2Fub25pY2FsX2RpZ2VzdCI6InNoYTI1Njo3MzVhOTAwOWRkZWFiOTI3MjNjNjliOGFlNGZkOTMyZjMxYWJkNjNhYjk4NmYxZDIxMzBiMDVmZThhZDMxZDg2In0",
+      "jws_signing_input": "eyJhbGciOiJFZDI1NTE5In0.YWsuYXBwcm92YWwuc2lnbmF0dXJlLnYxCnsiYWN0aW9uIjoiYWsuc3RyYW5kLmNyZWF0ZSIsImFwcHJvdmFsX2NvbnRleHQiOnsiY29udGV4dF9raW5kIjoicmVhbG1fZ292ZXJuYW5jZSJ9LCJhcHByb3ZhbF90YXJnZXQiOnsiZXZlbnRfaWQiOiJhazpldmVudDpBU282ekM1bFh3M0dLT2llS1hsWEpZZktvUUtuZzRzWVh0dmRVQWFFOVdSQiIsInRhcmdldF9raW5kIjoiZXZlbnQifSwiYXBwcm92ZWRfYXQiOiIyMDI2LTA4LTA2VDAwOjExOjAwLjAwMFoiLCJhcHByb3Zlcl9kaWQiOiJkaWQ6d2Vidmg6ejZta2ZpeHR1cmVtYW5hZ2VyOm1hbmFnZXIuZXhhbXBsZSIsImluaXRpYXRpbmdfYWN0b3JfaWQiOnsiYWNjb3VudF9pZCI6eyJwcmluY2lwYWxfaWQiOiJhazpkaWRfY29yZTp3ZWJ2aDp6Nm1rZml4dHVyZSIsInN0YXRpb25faWQiOiJhazpkaWRfY29yZTp3ZWJ2aDp6Nm1rZml4dHVyZXN0YXRpb25leGFtcGxlIn0sImtpbmQiOiJhY2NvdW50In0sIm5vbmNlIjoiVHc2YUl1dVRQdDlRajk2V01IaTBJSWN3ZGFCdnM4bk1MZkhiUXZWNEtYVSIsIm9wZXJhdGlvbiI6ImFrLnNlbGYuZXZlbnRzLmNvbW1hbmQuc3VibWl0LnYxIiwicmVhbG1faWQiOiJhazpyZWFsbTpBVGg3T1dMTHBVZFRWWXNLZHA2cmtDbFNjVXBqWUpsRjFZM2J5amV5SFM4SiIsInJlcXVlc3RfY2Fub25pY2FsX2RpZ2VzdCI6InNoYTI1Njo3MzVhOTAwOWRkZWFiOTI3MjNjNjliOGFlNGZkOTMyZjMxYWJkNjNhYjk4NmYxZDIxMzBiMDVmZThhZDMxZDg2In0",
+      "jose_algorithm": "Ed25519",
+      "expected": {
+        "verification_result": "valid",
+        "signing_bytes_construction": "UTF8(domain) || 0x0A || JCS(input)",
+        "reject_if_domain_prefix_is_omitted": true,
+        "reject_if_signature_covers_a_digest_of_the_input_instead_of_the_input": true,
+        "reject_if_any_input_member_changes": true,
+        "reject_if_jws_payload_segment_is_non_empty_for_detached_profile": true,
+        "reject_if_verification_method_does_not_resolve_through_approver_did": true,
+        "approval_context_branch": "realm_governance",
+        "approval_target_branch": "event",
+        "original_input": "complete authored Event including its producer proof",
+        "reject_if_read_as_approval_of_one_particular_grant": true
+      }
+    },
+    {
+      "name": "ak.vector.authz.approval_signature_operation_target.v1",
+      "description": "Grant-context approval over a non-Event operation target: request_canonical_digest covers the original typed RequestBody of the registered operation ak.self.agent.command.renew_pairing.v1 and nothing else. This vector fixes the byte derivation only: v1 registers no evidence carrier on any non-Event operation, so no operation may claim to support the workflow (zh/authz/constraint-schema.md section 9.2.5).",
+      "did_document_fragment": {
+        "id": "did:webvh:z6mkfixturemanager:manager.example#ed25519-2026-09-fixture",
+        "type": "JsonWebKey2020",
+        "controller": "did:webvh:z6mkfixturemanager:manager.example",
+        "publicKeyJwk": {
+          "crv": "Ed25519",
+          "x": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
+          "kty": "OKP"
+        }
+      },
+      "test_private_key_jwk": {
+        "crv": "Ed25519",
+        "d": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
+        "x": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
+        "kty": "OKP",
+        "note": "Public conformance test key only: the private key ships with the specification, so a valid signature over it proves nothing about the signer. Registered in artifacts/registry/test-material-registry.json; formal verification, authorization and trust-admission paths MUST refuse it and the reserved identifiers it uses. See zh/identity/did-usage-and-verification.md section 8."
+      },
+      "approval_signature": {
+        "input": {
+          "approval_context": {
+            "context_kind": "grant",
+            "grant_id": "ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf"
+          },
+          "approval_target": {
+            "target_kind": "operation"
+          },
+          "request_canonical_digest": "sha256:7056c13ce9cef20f527ddef9343e3d9ae4f7a004adbe6a027d54eece04257c2f",
+          "operation": "ak.self.agent.command.renew_pairing.v1",
+          "action": "ak.self.agent.command.renew_pairing.v1",
+          "realm_id": "ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J",
+          "initiating_actor_id": {
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixture",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            },
+            "kind": "account"
+          },
+          "approver_did": "did:webvh:z6mkfixturemanager:manager.example",
+          "approved_at": "2026-08-06T00:12:00.000Z",
+          "nonce": "dz2DF04iGyX_aiVhcgFd2gKBgjdZbvdfaL4Q_Bf_XaY"
+        },
+        "proof": {
+          "kind": "detached_jws",
+          "verification_method": "did:webvh:z6mkfixturemanager:manager.example#ed25519-2026-09-fixture",
+          "jws": "eyJhbGciOiJFZDI1NTE5In0..z1XQcYoH3KTT25703U-wFT--rSLiguvaz7OTIPg-7-Q8mIZdDEiB4xDgcZOs_T0ccIGgivwPbb9ZNTON3MzKBw"
+        }
+      },
+      "canonical_input_utf8": "{\"action\":\"ak.self.agent.command.renew_pairing.v1\",\"approval_context\":{\"context_kind\":\"grant\",\"grant_id\":\"ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf\"},\"approval_target\":{\"target_kind\":\"operation\"},\"approved_at\":\"2026-08-06T00:12:00.000Z\",\"approver_did\":\"did:webvh:z6mkfixturemanager:manager.example\",\"initiating_actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"nonce\":\"dz2DF04iGyX_aiVhcgFd2gKBgjdZbvdfaL4Q_Bf_XaY\",\"operation\":\"ak.self.agent.command.renew_pairing.v1\",\"realm_id\":\"ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J\",\"request_canonical_digest\":\"sha256:7056c13ce9cef20f527ddef9343e3d9ae4f7a004adbe6a027d54eece04257c2f\"}",
+      "signing_domain": "ak.approval.signature.v1",
+      "signing_bytes_hex": "616b2e617070726f76616c2e7369676e61747572652e76310a7b22616374696f6e223a22616b2e73656c662e6167656e742e636f6d6d616e642e72656e65775f70616972696e672e7631222c22617070726f76616c5f636f6e74657874223a7b22636f6e746578745f6b696e64223a226772616e74222c226772616e745f6964223a22616b3a6772616e743a41523971566e484b3461303931347a506d483543525a4c546a5353565f3867684a4b75474769764461457866227d2c22617070726f76616c5f746172676574223a7b227461726765745f6b696e64223a226f7065726174696f6e227d2c22617070726f7665645f6174223a22323032362d30382d30365430303a31323a30302e3030305a222c22617070726f7665725f646964223a226469643a77656276683a7a366d6b666978747572656d616e616765723a6d616e616765722e6578616d706c65222c22696e6974696174696e675f6163746f725f6964223a7b226163636f756e745f6964223a7b227072696e636970616c5f6964223a22616b3a6469645f636f72653a77656276683a7a366d6b66697874757265222c2273746174696f6e5f6964223a22616b3a6469645f636f72653a77656276683a7a366d6b6669787475726573746174696f6e6578616d706c65227d2c226b696e64223a226163636f756e74227d2c226e6f6e6365223a22647a3244463034694779585f616956686367466432674b42676a645a62766466614c34515f42665f586159222c226f7065726174696f6e223a22616b2e73656c662e6167656e742e636f6d6d616e642e72656e65775f70616972696e672e7631222c227265616c6d5f6964223a22616b3a7265616c6d3a415468374f574c4c705564545659734b647036726b436c536355706a594a6c4631593362796a65794853384a222c22726571756573745f63616e6f6e6963616c5f646967657374223a227368613235363a37303536633133636539636566323066353237646465663933343365336439616534663761303034616462653661303237643534656563653034323537633266227d",
+      "signing_bytes_sha256": "sha256:001cd60acc038809b89fbc2693247acfc6509bf624d4c749ad6aedcb0b58126d",
+      "protected_header": {
+        "alg": "Ed25519"
+      },
+      "protected_header_canonical": "{\"alg\":\"Ed25519\"}",
+      "detached_payload_b64u": "YWsuYXBwcm92YWwuc2lnbmF0dXJlLnYxCnsiYWN0aW9uIjoiYWsuc2VsZi5hZ2VudC5jb21tYW5kLnJlbmV3X3BhaXJpbmcudjEiLCJhcHByb3ZhbF9jb250ZXh0Ijp7ImNvbnRleHRfa2luZCI6ImdyYW50IiwiZ3JhbnRfaWQiOiJhazpncmFudDpBUjlxVm5ISzRhMDkxNHpQbUg1Q1JaTFRqU1NWXzhnaEpLdUdHaXZEYUV4ZiJ9LCJhcHByb3ZhbF90YXJnZXQiOnsidGFyZ2V0X2tpbmQiOiJvcGVyYXRpb24ifSwiYXBwcm92ZWRfYXQiOiIyMDI2LTA4LTA2VDAwOjEyOjAwLjAwMFoiLCJhcHByb3Zlcl9kaWQiOiJkaWQ6d2Vidmg6ejZta2ZpeHR1cmVtYW5hZ2VyOm1hbmFnZXIuZXhhbXBsZSIsImluaXRpYXRpbmdfYWN0b3JfaWQiOnsiYWNjb3VudF9pZCI6eyJwcmluY2lwYWxfaWQiOiJhazpkaWRfY29yZTp3ZWJ2aDp6Nm1rZml4dHVyZSIsInN0YXRpb25faWQiOiJhazpkaWRfY29yZTp3ZWJ2aDp6Nm1rZml4dHVyZXN0YXRpb25leGFtcGxlIn0sImtpbmQiOiJhY2NvdW50In0sIm5vbmNlIjoiZHoyREYwNGlHeVhfYWlWaGNnRmQyZ0tCZ2pkWmJ2ZGZhTDRRX0JmX1hhWSIsIm9wZXJhdGlvbiI6ImFrLnNlbGYuYWdlbnQuY29tbWFuZC5yZW5ld19wYWlyaW5nLnYxIiwicmVhbG1faWQiOiJhazpyZWFsbTpBVGg3T1dMTHBVZFRWWXNLZHA2cmtDbFNjVXBqWUpsRjFZM2J5amV5SFM4SiIsInJlcXVlc3RfY2Fub25pY2FsX2RpZ2VzdCI6InNoYTI1Njo3MDU2YzEzY2U5Y2VmMjBmNTI3ZGRlZjkzNDNlM2Q5YWU0ZjdhMDA0YWRiZTZhMDI3ZDU0ZWVjZTA0MjU3YzJmIn0",
+      "jws_signing_input": "eyJhbGciOiJFZDI1NTE5In0.YWsuYXBwcm92YWwuc2lnbmF0dXJlLnYxCnsiYWN0aW9uIjoiYWsuc2VsZi5hZ2VudC5jb21tYW5kLnJlbmV3X3BhaXJpbmcudjEiLCJhcHByb3ZhbF9jb250ZXh0Ijp7ImNvbnRleHRfa2luZCI6ImdyYW50IiwiZ3JhbnRfaWQiOiJhazpncmFudDpBUjlxVm5ISzRhMDkxNHpQbUg1Q1JaTFRqU1NWXzhnaEpLdUdHaXZEYUV4ZiJ9LCJhcHByb3ZhbF90YXJnZXQiOnsidGFyZ2V0X2tpbmQiOiJvcGVyYXRpb24ifSwiYXBwcm92ZWRfYXQiOiIyMDI2LTA4LTA2VDAwOjEyOjAwLjAwMFoiLCJhcHByb3Zlcl9kaWQiOiJkaWQ6d2Vidmg6ejZta2ZpeHR1cmVtYW5hZ2VyOm1hbmFnZXIuZXhhbXBsZSIsImluaXRpYXRpbmdfYWN0b3JfaWQiOnsiYWNjb3VudF9pZCI6eyJwcmluY2lwYWxfaWQiOiJhazpkaWRfY29yZTp3ZWJ2aDp6Nm1rZml4dHVyZSIsInN0YXRpb25faWQiOiJhazpkaWRfY29yZTp3ZWJ2aDp6Nm1rZml4dHVyZXN0YXRpb25leGFtcGxlIn0sImtpbmQiOiJhY2NvdW50In0sIm5vbmNlIjoiZHoyREYwNGlHeVhfYWlWaGNnRmQyZ0tCZ2pkWmJ2ZGZhTDRRX0JmX1hhWSIsIm9wZXJhdGlvbiI6ImFrLnNlbGYuYWdlbnQuY29tbWFuZC5yZW5ld19wYWlyaW5nLnYxIiwicmVhbG1faWQiOiJhazpyZWFsbTpBVGg3T1dMTHBVZFRWWXNLZHA2cmtDbFNjVXBqWUpsRjFZM2J5amV5SFM4SiIsInJlcXVlc3RfY2Fub25pY2FsX2RpZ2VzdCI6InNoYTI1Njo3MDU2YzEzY2U5Y2VmMjBmNTI3ZGRlZjkzNDNlM2Q5YWU0ZjdhMDA0YWRiZTZhMDI3ZDU0ZWVjZTA0MjU3YzJmIn0",
+      "jose_algorithm": "Ed25519",
+      "expected": {
+        "verification_result": "valid",
+        "signing_bytes_construction": "UTF8(domain) || 0x0A || JCS(input)",
+        "reject_if_domain_prefix_is_omitted": true,
+        "reject_if_signature_covers_a_digest_of_the_input_instead_of_the_input": true,
+        "reject_if_any_input_member_changes": true,
+        "reject_if_jws_payload_segment_is_non_empty_for_detached_profile": true,
+        "reject_if_verification_method_does_not_resolve_through_approver_did": true,
+        "approval_context_branch": "grant",
+        "approval_target_branch": "operation",
+        "original_input": "original typed RequestBody of the registered operation",
+        "carrier_registered_in_v1": false
+      }
+    }
+  ],
+  "event_id_invariance": {
+    "vector_id": "ak.vector.authz.approval_signature_bytes.v1",
+    "description": "Attaching approval_signatures[] to EventCommitSubmission MUST NOT change the Event. The Event digest preimage omits event_id, proofs and unsigned, and the evidence is not an Event member at all, so both the preimage bytes and the derived id are byte-identical before and after. The HTTP Content-Digest over the transmitted body does change, which is why zh/authz/constraint-schema.md section 9.2.3 calls the two checks independent.",
+    "digest_preimage_canonical_bytes_utf8": "{\"actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"created_at\":\"2026-08-06T00:00:00.000Z\",\"kind\":\"ak.strand.create\",\"payload\":{\"object\":{\"created_at\":\"2026-08-06T00:00:00.000Z\",\"created_by\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"realm_id\":\"ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J\",\"schema\":\"ak.schema.strand.v1\",\"tracks\":{\"discussion\":{\"enabled\":true}}}},\"realm_id\":\"ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J\",\"scope_ref\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J\"}}",
+    "event_digest": "sha256:2a3acc2e655f0dc628e89e2979572587caa102a7838b185edbdd500684f56441",
+    "event_id_before_attaching": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB",
+    "event_id_after_attaching": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB",
+    "complete_event_canonical_utf8": "{\"actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"created_at\":\"2026-08-06T00:00:00.000Z\",\"event_id\":\"ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB\",\"kind\":\"ak.strand.create\",\"payload\":{\"object\":{\"created_at\":\"2026-08-06T00:00:00.000Z\",\"created_by\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"realm_id\":\"ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J\",\"schema\":\"ak.schema.strand.v1\",\"tracks\":{\"discussion\":{\"enabled\":true}}}},\"proofs\":[{\"created_at\":\"2026-08-06T00:00:00.000Z\",\"domain\":\"arkret-event-v1\",\"event_digest\":\"sha256:2a3acc2e655f0dc628e89e2979572587caa102a7838b185edbdd500684f56441\",\"jws\":\"eyJhbGciOiJFZDI1NTE5In0..meAfJMyDc1Suu1mO-tGk4TUvmBclTaDy8gkd7wXVrkPJnjGEZcwsHC5LX1oUAS05EAqRnFqKlxg3mqpnmUZHDQ\",\"kind\":\"detached_jws\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture\"}],\"realm_id\":\"ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J\",\"scope_ref\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J\"}}",
+    "request_canonical_digest": "sha256:735a9009ddeab92723c69b8ae4fd932f31abd63ab986f1d2130b05fe8ad31d86",
+    "submission_without_evidence_canonical_utf8": "{\"event\":{\"actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"created_at\":\"2026-08-06T00:00:00.000Z\",\"event_id\":\"ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB\",\"kind\":\"ak.strand.create\",\"payload\":{\"object\":{\"created_at\":\"2026-08-06T00:00:00.000Z\",\"created_by\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"realm_id\":\"ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J\",\"schema\":\"ak.schema.strand.v1\",\"tracks\":{\"discussion\":{\"enabled\":true}}}},\"proofs\":[{\"created_at\":\"2026-08-06T00:00:00.000Z\",\"domain\":\"arkret-event-v1\",\"event_digest\":\"sha256:2a3acc2e655f0dc628e89e2979572587caa102a7838b185edbdd500684f56441\",\"jws\":\"eyJhbGciOiJFZDI1NTE5In0..meAfJMyDc1Suu1mO-tGk4TUvmBclTaDy8gkd7wXVrkPJnjGEZcwsHC5LX1oUAS05EAqRnFqKlxg3mqpnmUZHDQ\",\"kind\":\"detached_jws\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture\"}],\"realm_id\":\"ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J\",\"scope_ref\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J\"}}}",
+    "submission_without_evidence_content_digest": "sha256:bbcde8eed085b9aad24b82ff7ca220abc3910625e4c12088a05b85d3ff0a86cb",
+    "submission_with_evidence_content_digest": "sha256:41283a6a1a462e00dca0b39bccf895d7ccb65461100ef2e72a79476ed38d8ca4",
+    "submission_with_evidence": {
+      "event": {
+        "actor_id": {
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          },
+          "kind": "account"
+        },
+        "created_at": "2026-08-06T00:00:00.000Z",
+        "kind": "ak.strand.create",
+        "payload": {
+          "object": {
+            "created_at": "2026-08-06T00:00:00.000Z",
+            "created_by": {
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixture",
+                "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+              },
+              "kind": "account"
+            },
+            "realm_id": "ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J",
+            "schema": "ak.schema.strand.v1",
+            "tracks": {
+              "discussion": {
+                "enabled": true
+              }
+            }
+          }
+        },
+        "realm_id": "ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J",
+        "scope_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J"
+        },
+        "event_id": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB",
+        "proofs": [
+          {
+            "kind": "detached_jws",
+            "verification_method": "did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture",
+            "event_digest": "sha256:2a3acc2e655f0dc628e89e2979572587caa102a7838b185edbdd500684f56441",
+            "created_at": "2026-08-06T00:00:00.000Z",
+            "domain": "arkret-event-v1",
+            "jws": "eyJhbGciOiJFZDI1NTE5In0..meAfJMyDc1Suu1mO-tGk4TUvmBclTaDy8gkd7wXVrkPJnjGEZcwsHC5LX1oUAS05EAqRnFqKlxg3mqpnmUZHDQ"
+          }
+        ]
+      },
+      "approval_signatures": [
+        {
+          "input": {
+            "approval_context": {
+              "context_kind": "grant",
+              "grant_id": "ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf"
+            },
+            "approval_target": {
+              "target_kind": "event",
+              "event_id": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB"
+            },
+            "request_canonical_digest": "sha256:735a9009ddeab92723c69b8ae4fd932f31abd63ab986f1d2130b05fe8ad31d86",
+            "operation": "ak.self.events.command.submit.v1",
+            "action": "ak.strand.create",
+            "realm_id": "ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J",
+            "initiating_actor_id": {
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixture",
+                "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+              },
+              "kind": "account"
+            },
+            "approver_did": "did:webvh:z6mkfixturemanager:manager.example",
+            "approved_at": "2026-08-06T00:10:00.000Z",
+            "nonce": "KFSPGziJGaKwvm8hXg-krC8iZqunf7EmJ7GIo_j-3G8"
+          },
+          "proof": {
+            "kind": "detached_jws",
+            "verification_method": "did:webvh:z6mkfixturemanager:manager.example#ed25519-2026-09-fixture",
+            "jws": "eyJhbGciOiJFZDI1NTE5In0..qkUCnD06N-31J08YMfbm9iyH58OEjhdB_OAGZ1kVwChqR1NBCDokm-yWiSpz-OfjeQu2-nrdsLxvSW7DXkRYBg"
+          }
+        },
+        {
+          "input": {
+            "approval_context": {
+              "context_kind": "realm_governance"
+            },
+            "approval_target": {
+              "target_kind": "event",
+              "event_id": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB"
+            },
+            "request_canonical_digest": "sha256:735a9009ddeab92723c69b8ae4fd932f31abd63ab986f1d2130b05fe8ad31d86",
+            "operation": "ak.self.events.command.submit.v1",
+            "action": "ak.strand.create",
+            "realm_id": "ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J",
+            "initiating_actor_id": {
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixture",
+                "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+              },
+              "kind": "account"
+            },
+            "approver_did": "did:webvh:z6mkfixturemanager:manager.example",
+            "approved_at": "2026-08-06T00:11:00.000Z",
+            "nonce": "Tw6aIuuTPt9Qj96WMHi0IIcwdaBvs8nMLfHbQvV4KXU"
+          },
+          "proof": {
+            "kind": "detached_jws",
+            "verification_method": "did:webvh:z6mkfixturemanager:manager.example#ed25519-2026-09-fixture",
+            "jws": "eyJhbGciOiJFZDI1NTE5In0..q17MYLnRPtdcIh4H4I4eOGTiMKl2awUgItCaMoa-q_Fjcep86Tx2jnY02_ufRdb8VTZ-pYdFkDOp_UjsImvCCA"
+          }
+        }
+      ]
+    },
+    "expected": {
+      "outcome": "accepted",
+      "event_id_unchanged": true,
+      "request_canonical_digest_unchanged": true,
+      "content_digest_changed": true,
+      "reject_if_event_bytes_are_rewritten_to_absorb_the_evidence": true
+    }
+  },
+  "negative_cases_vector_id": "ak.vector.authz.approval_signature_negative.v1",
+  "negative_cases": [
+    {
+      "name": "reject_substituted_request_canonical_digest",
+      "base_vector": "ak.vector.authz.approval_signature_bytes.v1",
+      "description": "The approved Event body is replaced by another one: request_canonical_digest no longer names the bytes that were approved, so the retained signature does not verify.",
+      "mutated_input": {
+        "approval_context": {
+          "context_kind": "grant",
+          "grant_id": "ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf"
+        },
+        "approval_target": {
+          "target_kind": "event",
+          "event_id": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB"
+        },
+        "request_canonical_digest": "sha256:08fd31e1dcbf754ca001f8e467ff080ac3e0959e3f26fe6186380c6d27f9a152",
+        "operation": "ak.self.events.command.submit.v1",
+        "action": "ak.strand.create",
+        "realm_id": "ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J",
+        "initiating_actor_id": {
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          },
+          "kind": "account"
+        },
+        "approver_did": "did:webvh:z6mkfixturemanager:manager.example",
+        "approved_at": "2026-08-06T00:10:00.000Z",
+        "nonce": "KFSPGziJGaKwvm8hXg-krC8iZqunf7EmJ7GIo_j-3G8"
+      },
+      "mutated_canonical_input_utf8": "{\"action\":\"ak.strand.create\",\"approval_context\":{\"context_kind\":\"grant\",\"grant_id\":\"ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf\"},\"approval_target\":{\"event_id\":\"ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB\",\"target_kind\":\"event\"},\"approved_at\":\"2026-08-06T00:10:00.000Z\",\"approver_did\":\"did:webvh:z6mkfixturemanager:manager.example\",\"initiating_actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"nonce\":\"KFSPGziJGaKwvm8hXg-krC8iZqunf7EmJ7GIo_j-3G8\",\"operation\":\"ak.self.events.command.submit.v1\",\"realm_id\":\"ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J\",\"request_canonical_digest\":\"sha256:08fd31e1dcbf754ca001f8e467ff080ac3e0959e3f26fe6186380c6d27f9a152\"}",
+      "mutated_jws_signing_input": "eyJhbGciOiJFZDI1NTE5In0.YWsuYXBwcm92YWwuc2lnbmF0dXJlLnYxCnsiYWN0aW9uIjoiYWsuc3RyYW5kLmNyZWF0ZSIsImFwcHJvdmFsX2NvbnRleHQiOnsiY29udGV4dF9raW5kIjoiZ3JhbnQiLCJncmFudF9pZCI6ImFrOmdyYW50OkFSOXFWbkhLNGEwOTE0elBtSDVDUlpMVGpTU1ZfOGdoSkt1R0dpdkRhRXhmIn0sImFwcHJvdmFsX3RhcmdldCI6eyJldmVudF9pZCI6ImFrOmV2ZW50OkFTbzZ6QzVsWHczR0tPaWVLWGxYSllmS29RS25nNHNZWHR2ZFVBYUU5V1JCIiwidGFyZ2V0X2tpbmQiOiJldmVudCJ9LCJhcHByb3ZlZF9hdCI6IjIwMjYtMDgtMDZUMDA6MTA6MDAuMDAwWiIsImFwcHJvdmVyX2RpZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZW1hbmFnZXI6bWFuYWdlci5leGFtcGxlIiwiaW5pdGlhdGluZ19hY3Rvcl9pZCI6eyJhY2NvdW50X2lkIjp7InByaW5jaXBhbF9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlIiwic3RhdGlvbl9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlc3RhdGlvbmV4YW1wbGUifSwia2luZCI6ImFjY291bnQifSwibm9uY2UiOiJLRlNQR3ppSkdhS3d2bThoWGcta3JDOGlacXVuZjdFbUo3R0lvX2otM0c4Iiwib3BlcmF0aW9uIjoiYWsuc2VsZi5ldmVudHMuY29tbWFuZC5zdWJtaXQudjEiLCJyZWFsbV9pZCI6ImFrOnJlYWxtOkFUaDdPV0xMcFVkVFZZc0tkcDZya0NsU2NVcGpZSmxGMVkzYnlqZXlIUzhKIiwicmVxdWVzdF9jYW5vbmljYWxfZGlnZXN0Ijoic2hhMjU2OjA4ZmQzMWUxZGNiZjc1NGNhMDAxZjhlNDY3ZmYwODBhYzNlMDk1OWUzZjI2ZmU2MTg2MzgwYzZkMjdmOWExNTIifQ",
+      "proof_jws": "eyJhbGciOiJFZDI1NTE5In0..qkUCnD06N-31J08YMfbm9iyH58OEjhdB_OAGZ1kVwChqR1NBCDokm-yWiSpz-OfjeQu2-nrdsLxvSW7DXkRYBg",
+      "public_key_jwk": {
+        "crv": "Ed25519",
+        "x": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
+        "kty": "OKP"
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "signature_invalid",
+        "reason": "The approved Event body is replaced by another one: request_canonical_digest no longer names the bytes that were approved, so the retained signature does not verify."
+      }
+    },
+    {
+      "name": "reject_substituted_event_id",
+      "base_vector": "ak.vector.authz.approval_signature_bytes.v1",
+      "description": "approval_target.event_id is repointed at a different Event. An approval is bound to one exact target, so it MUST NOT travel to another Event.",
+      "mutated_input": {
+        "approval_context": {
+          "context_kind": "grant",
+          "grant_id": "ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf"
+        },
+        "approval_target": {
+          "target_kind": "event",
+          "event_id": "ak:event:AZQ46f4F-slJbUZr3STXLp4uMH6L-OG_SP9WiwIOapJ4"
+        },
+        "request_canonical_digest": "sha256:735a9009ddeab92723c69b8ae4fd932f31abd63ab986f1d2130b05fe8ad31d86",
+        "operation": "ak.self.events.command.submit.v1",
+        "action": "ak.strand.create",
+        "realm_id": "ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J",
+        "initiating_actor_id": {
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          },
+          "kind": "account"
+        },
+        "approver_did": "did:webvh:z6mkfixturemanager:manager.example",
+        "approved_at": "2026-08-06T00:10:00.000Z",
+        "nonce": "KFSPGziJGaKwvm8hXg-krC8iZqunf7EmJ7GIo_j-3G8"
+      },
+      "mutated_canonical_input_utf8": "{\"action\":\"ak.strand.create\",\"approval_context\":{\"context_kind\":\"grant\",\"grant_id\":\"ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf\"},\"approval_target\":{\"event_id\":\"ak:event:AZQ46f4F-slJbUZr3STXLp4uMH6L-OG_SP9WiwIOapJ4\",\"target_kind\":\"event\"},\"approved_at\":\"2026-08-06T00:10:00.000Z\",\"approver_did\":\"did:webvh:z6mkfixturemanager:manager.example\",\"initiating_actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"nonce\":\"KFSPGziJGaKwvm8hXg-krC8iZqunf7EmJ7GIo_j-3G8\",\"operation\":\"ak.self.events.command.submit.v1\",\"realm_id\":\"ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J\",\"request_canonical_digest\":\"sha256:735a9009ddeab92723c69b8ae4fd932f31abd63ab986f1d2130b05fe8ad31d86\"}",
+      "mutated_jws_signing_input": "eyJhbGciOiJFZDI1NTE5In0.YWsuYXBwcm92YWwuc2lnbmF0dXJlLnYxCnsiYWN0aW9uIjoiYWsuc3RyYW5kLmNyZWF0ZSIsImFwcHJvdmFsX2NvbnRleHQiOnsiY29udGV4dF9raW5kIjoiZ3JhbnQiLCJncmFudF9pZCI6ImFrOmdyYW50OkFSOXFWbkhLNGEwOTE0elBtSDVDUlpMVGpTU1ZfOGdoSkt1R0dpdkRhRXhmIn0sImFwcHJvdmFsX3RhcmdldCI6eyJldmVudF9pZCI6ImFrOmV2ZW50OkFaUTQ2ZjRGLXNsSmJVWnIzU1RYTHA0dU1INkwtT0dfU1A5V2l3SU9hcEo0IiwidGFyZ2V0X2tpbmQiOiJldmVudCJ9LCJhcHByb3ZlZF9hdCI6IjIwMjYtMDgtMDZUMDA6MTA6MDAuMDAwWiIsImFwcHJvdmVyX2RpZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZW1hbmFnZXI6bWFuYWdlci5leGFtcGxlIiwiaW5pdGlhdGluZ19hY3Rvcl9pZCI6eyJhY2NvdW50X2lkIjp7InByaW5jaXBhbF9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlIiwic3RhdGlvbl9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlc3RhdGlvbmV4YW1wbGUifSwia2luZCI6ImFjY291bnQifSwibm9uY2UiOiJLRlNQR3ppSkdhS3d2bThoWGcta3JDOGlacXVuZjdFbUo3R0lvX2otM0c4Iiwib3BlcmF0aW9uIjoiYWsuc2VsZi5ldmVudHMuY29tbWFuZC5zdWJtaXQudjEiLCJyZWFsbV9pZCI6ImFrOnJlYWxtOkFUaDdPV0xMcFVkVFZZc0tkcDZya0NsU2NVcGpZSmxGMVkzYnlqZXlIUzhKIiwicmVxdWVzdF9jYW5vbmljYWxfZGlnZXN0Ijoic2hhMjU2OjczNWE5MDA5ZGRlYWI5MjcyM2M2OWI4YWU0ZmQ5MzJmMzFhYmQ2M2FiOTg2ZjFkMjEzMGIwNWZlOGFkMzFkODYifQ",
+      "proof_jws": "eyJhbGciOiJFZDI1NTE5In0..qkUCnD06N-31J08YMfbm9iyH58OEjhdB_OAGZ1kVwChqR1NBCDokm-yWiSpz-OfjeQu2-nrdsLxvSW7DXkRYBg",
+      "public_key_jwk": {
+        "crv": "Ed25519",
+        "x": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
+        "kty": "OKP"
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "signature_invalid",
+        "reason": "approval_target.event_id is repointed at a different Event. An approval is bound to one exact target, so it MUST NOT travel to another Event."
+      }
+    },
+    {
+      "name": "reject_substituted_realm_id",
+      "base_vector": "ak.vector.authz.approval_signature_bytes.v1",
+      "description": "realm_id is replaced: cross-Realm replay of one approval MUST fail.",
+      "mutated_input": {
+        "approval_context": {
+          "context_kind": "grant",
+          "grant_id": "ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf"
+        },
+        "approval_target": {
+          "target_kind": "event",
+          "event_id": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB"
+        },
+        "request_canonical_digest": "sha256:735a9009ddeab92723c69b8ae4fd932f31abd63ab986f1d2130b05fe8ad31d86",
+        "operation": "ak.self.events.command.submit.v1",
+        "action": "ak.strand.create",
+        "realm_id": "ak:realm:Aao0kqtfvDPJPEoGLBjEvRHKAWoc-ZpylTe0Gbon9WKI",
+        "initiating_actor_id": {
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          },
+          "kind": "account"
+        },
+        "approver_did": "did:webvh:z6mkfixturemanager:manager.example",
+        "approved_at": "2026-08-06T00:10:00.000Z",
+        "nonce": "KFSPGziJGaKwvm8hXg-krC8iZqunf7EmJ7GIo_j-3G8"
+      },
+      "mutated_canonical_input_utf8": "{\"action\":\"ak.strand.create\",\"approval_context\":{\"context_kind\":\"grant\",\"grant_id\":\"ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf\"},\"approval_target\":{\"event_id\":\"ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB\",\"target_kind\":\"event\"},\"approved_at\":\"2026-08-06T00:10:00.000Z\",\"approver_did\":\"did:webvh:z6mkfixturemanager:manager.example\",\"initiating_actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"nonce\":\"KFSPGziJGaKwvm8hXg-krC8iZqunf7EmJ7GIo_j-3G8\",\"operation\":\"ak.self.events.command.submit.v1\",\"realm_id\":\"ak:realm:Aao0kqtfvDPJPEoGLBjEvRHKAWoc-ZpylTe0Gbon9WKI\",\"request_canonical_digest\":\"sha256:735a9009ddeab92723c69b8ae4fd932f31abd63ab986f1d2130b05fe8ad31d86\"}",
+      "mutated_jws_signing_input": "eyJhbGciOiJFZDI1NTE5In0.YWsuYXBwcm92YWwuc2lnbmF0dXJlLnYxCnsiYWN0aW9uIjoiYWsuc3RyYW5kLmNyZWF0ZSIsImFwcHJvdmFsX2NvbnRleHQiOnsiY29udGV4dF9raW5kIjoiZ3JhbnQiLCJncmFudF9pZCI6ImFrOmdyYW50OkFSOXFWbkhLNGEwOTE0elBtSDVDUlpMVGpTU1ZfOGdoSkt1R0dpdkRhRXhmIn0sImFwcHJvdmFsX3RhcmdldCI6eyJldmVudF9pZCI6ImFrOmV2ZW50OkFTbzZ6QzVsWHczR0tPaWVLWGxYSllmS29RS25nNHNZWHR2ZFVBYUU5V1JCIiwidGFyZ2V0X2tpbmQiOiJldmVudCJ9LCJhcHByb3ZlZF9hdCI6IjIwMjYtMDgtMDZUMDA6MTA6MDAuMDAwWiIsImFwcHJvdmVyX2RpZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZW1hbmFnZXI6bWFuYWdlci5leGFtcGxlIiwiaW5pdGlhdGluZ19hY3Rvcl9pZCI6eyJhY2NvdW50X2lkIjp7InByaW5jaXBhbF9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlIiwic3RhdGlvbl9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlc3RhdGlvbmV4YW1wbGUifSwia2luZCI6ImFjY291bnQifSwibm9uY2UiOiJLRlNQR3ppSkdhS3d2bThoWGcta3JDOGlacXVuZjdFbUo3R0lvX2otM0c4Iiwib3BlcmF0aW9uIjoiYWsuc2VsZi5ldmVudHMuY29tbWFuZC5zdWJtaXQudjEiLCJyZWFsbV9pZCI6ImFrOnJlYWxtOkFhbzBrcXRmdkRQSlBFb0dMQmpFdlJIS0FXb2MtWnB5bFRlMEdib245V0tJIiwicmVxdWVzdF9jYW5vbmljYWxfZGlnZXN0Ijoic2hhMjU2OjczNWE5MDA5ZGRlYWI5MjcyM2M2OWI4YWU0ZmQ5MzJmMzFhYmQ2M2FiOTg2ZjFkMjEzMGIwNWZlOGFkMzFkODYifQ",
+      "proof_jws": "eyJhbGciOiJFZDI1NTE5In0..qkUCnD06N-31J08YMfbm9iyH58OEjhdB_OAGZ1kVwChqR1NBCDokm-yWiSpz-OfjeQu2-nrdsLxvSW7DXkRYBg",
+      "public_key_jwk": {
+        "crv": "Ed25519",
+        "x": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
+        "kty": "OKP"
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "signature_invalid",
+        "reason": "realm_id is replaced: cross-Realm replay of one approval MUST fail."
+      }
+    },
+    {
+      "name": "reject_substituted_action",
+      "base_vector": "ak.vector.authz.approval_signature_bytes.v1",
+      "description": "action is replaced by another registered capability action: one approval does not authorize a different action.",
+      "mutated_input": {
+        "approval_context": {
+          "context_kind": "grant",
+          "grant_id": "ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf"
+        },
+        "approval_target": {
+          "target_kind": "event",
+          "event_id": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB"
+        },
+        "request_canonical_digest": "sha256:735a9009ddeab92723c69b8ae4fd932f31abd63ab986f1d2130b05fe8ad31d86",
+        "operation": "ak.self.events.command.submit.v1",
+        "action": "ak.strand.archive",
+        "realm_id": "ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J",
+        "initiating_actor_id": {
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          },
+          "kind": "account"
+        },
+        "approver_did": "did:webvh:z6mkfixturemanager:manager.example",
+        "approved_at": "2026-08-06T00:10:00.000Z",
+        "nonce": "KFSPGziJGaKwvm8hXg-krC8iZqunf7EmJ7GIo_j-3G8"
+      },
+      "mutated_canonical_input_utf8": "{\"action\":\"ak.strand.archive\",\"approval_context\":{\"context_kind\":\"grant\",\"grant_id\":\"ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf\"},\"approval_target\":{\"event_id\":\"ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB\",\"target_kind\":\"event\"},\"approved_at\":\"2026-08-06T00:10:00.000Z\",\"approver_did\":\"did:webvh:z6mkfixturemanager:manager.example\",\"initiating_actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"nonce\":\"KFSPGziJGaKwvm8hXg-krC8iZqunf7EmJ7GIo_j-3G8\",\"operation\":\"ak.self.events.command.submit.v1\",\"realm_id\":\"ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J\",\"request_canonical_digest\":\"sha256:735a9009ddeab92723c69b8ae4fd932f31abd63ab986f1d2130b05fe8ad31d86\"}",
+      "mutated_jws_signing_input": "eyJhbGciOiJFZDI1NTE5In0.YWsuYXBwcm92YWwuc2lnbmF0dXJlLnYxCnsiYWN0aW9uIjoiYWsuc3RyYW5kLmFyY2hpdmUiLCJhcHByb3ZhbF9jb250ZXh0Ijp7ImNvbnRleHRfa2luZCI6ImdyYW50IiwiZ3JhbnRfaWQiOiJhazpncmFudDpBUjlxVm5ISzRhMDkxNHpQbUg1Q1JaTFRqU1NWXzhnaEpLdUdHaXZEYUV4ZiJ9LCJhcHByb3ZhbF90YXJnZXQiOnsiZXZlbnRfaWQiOiJhazpldmVudDpBU282ekM1bFh3M0dLT2llS1hsWEpZZktvUUtuZzRzWVh0dmRVQWFFOVdSQiIsInRhcmdldF9raW5kIjoiZXZlbnQifSwiYXBwcm92ZWRfYXQiOiIyMDI2LTA4LTA2VDAwOjEwOjAwLjAwMFoiLCJhcHByb3Zlcl9kaWQiOiJkaWQ6d2Vidmg6ejZta2ZpeHR1cmVtYW5hZ2VyOm1hbmFnZXIuZXhhbXBsZSIsImluaXRpYXRpbmdfYWN0b3JfaWQiOnsiYWNjb3VudF9pZCI6eyJwcmluY2lwYWxfaWQiOiJhazpkaWRfY29yZTp3ZWJ2aDp6Nm1rZml4dHVyZSIsInN0YXRpb25faWQiOiJhazpkaWRfY29yZTp3ZWJ2aDp6Nm1rZml4dHVyZXN0YXRpb25leGFtcGxlIn0sImtpbmQiOiJhY2NvdW50In0sIm5vbmNlIjoiS0ZTUEd6aUpHYUt3dm04aFhnLWtyQzhpWnF1bmY3RW1KN0dJb19qLTNHOCIsIm9wZXJhdGlvbiI6ImFrLnNlbGYuZXZlbnRzLmNvbW1hbmQuc3VibWl0LnYxIiwicmVhbG1faWQiOiJhazpyZWFsbTpBVGg3T1dMTHBVZFRWWXNLZHA2cmtDbFNjVXBqWUpsRjFZM2J5amV5SFM4SiIsInJlcXVlc3RfY2Fub25pY2FsX2RpZ2VzdCI6InNoYTI1Njo3MzVhOTAwOWRkZWFiOTI3MjNjNjliOGFlNGZkOTMyZjMxYWJkNjNhYjk4NmYxZDIxMzBiMDVmZThhZDMxZDg2In0",
+      "proof_jws": "eyJhbGciOiJFZDI1NTE5In0..qkUCnD06N-31J08YMfbm9iyH58OEjhdB_OAGZ1kVwChqR1NBCDokm-yWiSpz-OfjeQu2-nrdsLxvSW7DXkRYBg",
+      "public_key_jwk": {
+        "crv": "Ed25519",
+        "x": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
+        "kty": "OKP"
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "signature_invalid",
+        "reason": "action is replaced by another registered capability action: one approval does not authorize a different action."
+      }
+    },
+    {
+      "name": "reject_substituted_operation",
+      "base_vector": "ak.vector.authz.approval_signature_bytes.v1",
+      "description": "operation is replaced by another registered entry point: the same action replayed through another operation MUST fail (zh/authz/constraint-schema.md section 9.2.4).",
+      "mutated_input": {
+        "approval_context": {
+          "context_kind": "grant",
+          "grant_id": "ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf"
+        },
+        "approval_target": {
+          "target_kind": "event",
+          "event_id": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB"
+        },
+        "request_canonical_digest": "sha256:735a9009ddeab92723c69b8ae4fd932f31abd63ab986f1d2130b05fe8ad31d86",
+        "operation": "ak.peer.events.command.submit.v1",
+        "action": "ak.strand.create",
+        "realm_id": "ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J",
+        "initiating_actor_id": {
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          },
+          "kind": "account"
+        },
+        "approver_did": "did:webvh:z6mkfixturemanager:manager.example",
+        "approved_at": "2026-08-06T00:10:00.000Z",
+        "nonce": "KFSPGziJGaKwvm8hXg-krC8iZqunf7EmJ7GIo_j-3G8"
+      },
+      "mutated_canonical_input_utf8": "{\"action\":\"ak.strand.create\",\"approval_context\":{\"context_kind\":\"grant\",\"grant_id\":\"ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf\"},\"approval_target\":{\"event_id\":\"ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB\",\"target_kind\":\"event\"},\"approved_at\":\"2026-08-06T00:10:00.000Z\",\"approver_did\":\"did:webvh:z6mkfixturemanager:manager.example\",\"initiating_actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"nonce\":\"KFSPGziJGaKwvm8hXg-krC8iZqunf7EmJ7GIo_j-3G8\",\"operation\":\"ak.peer.events.command.submit.v1\",\"realm_id\":\"ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J\",\"request_canonical_digest\":\"sha256:735a9009ddeab92723c69b8ae4fd932f31abd63ab986f1d2130b05fe8ad31d86\"}",
+      "mutated_jws_signing_input": "eyJhbGciOiJFZDI1NTE5In0.YWsuYXBwcm92YWwuc2lnbmF0dXJlLnYxCnsiYWN0aW9uIjoiYWsuc3RyYW5kLmNyZWF0ZSIsImFwcHJvdmFsX2NvbnRleHQiOnsiY29udGV4dF9raW5kIjoiZ3JhbnQiLCJncmFudF9pZCI6ImFrOmdyYW50OkFSOXFWbkhLNGEwOTE0elBtSDVDUlpMVGpTU1ZfOGdoSkt1R0dpdkRhRXhmIn0sImFwcHJvdmFsX3RhcmdldCI6eyJldmVudF9pZCI6ImFrOmV2ZW50OkFTbzZ6QzVsWHczR0tPaWVLWGxYSllmS29RS25nNHNZWHR2ZFVBYUU5V1JCIiwidGFyZ2V0X2tpbmQiOiJldmVudCJ9LCJhcHByb3ZlZF9hdCI6IjIwMjYtMDgtMDZUMDA6MTA6MDAuMDAwWiIsImFwcHJvdmVyX2RpZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZW1hbmFnZXI6bWFuYWdlci5leGFtcGxlIiwiaW5pdGlhdGluZ19hY3Rvcl9pZCI6eyJhY2NvdW50X2lkIjp7InByaW5jaXBhbF9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlIiwic3RhdGlvbl9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlc3RhdGlvbmV4YW1wbGUifSwia2luZCI6ImFjY291bnQifSwibm9uY2UiOiJLRlNQR3ppSkdhS3d2bThoWGcta3JDOGlacXVuZjdFbUo3R0lvX2otM0c4Iiwib3BlcmF0aW9uIjoiYWsucGVlci5ldmVudHMuY29tbWFuZC5zdWJtaXQudjEiLCJyZWFsbV9pZCI6ImFrOnJlYWxtOkFUaDdPV0xMcFVkVFZZc0tkcDZya0NsU2NVcGpZSmxGMVkzYnlqZXlIUzhKIiwicmVxdWVzdF9jYW5vbmljYWxfZGlnZXN0Ijoic2hhMjU2OjczNWE5MDA5ZGRlYWI5MjcyM2M2OWI4YWU0ZmQ5MzJmMzFhYmQ2M2FiOTg2ZjFkMjEzMGIwNWZlOGFkMzFkODYifQ",
+      "proof_jws": "eyJhbGciOiJFZDI1NTE5In0..qkUCnD06N-31J08YMfbm9iyH58OEjhdB_OAGZ1kVwChqR1NBCDokm-yWiSpz-OfjeQu2-nrdsLxvSW7DXkRYBg",
+      "public_key_jwk": {
+        "crv": "Ed25519",
+        "x": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
+        "kty": "OKP"
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "signature_invalid",
+        "reason": "operation is replaced by another registered entry point: the same action replayed through another operation MUST fail (zh/authz/constraint-schema.md section 9.2.4)."
+      }
+    },
+    {
+      "name": "reject_substituted_initiating_actor_station",
+      "base_vector": "ak.vector.authz.approval_signature_bytes.v1",
+      "description": "initiating_actor_id keeps principal_id and changes station_id only. Accounts with the same principal at different Stations are permanently distinct, so the approval MUST NOT carry over.",
+      "mutated_input": {
+        "approval_context": {
+          "context_kind": "grant",
+          "grant_id": "ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf"
+        },
+        "approval_target": {
+          "target_kind": "event",
+          "event_id": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB"
+        },
+        "request_canonical_digest": "sha256:735a9009ddeab92723c69b8ae4fd932f31abd63ab986f1d2130b05fe8ad31d86",
+        "operation": "ak.self.events.command.submit.v1",
+        "action": "ak.strand.create",
+        "realm_id": "ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J",
+        "initiating_actor_id": {
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixtureotherstationexample"
+          },
+          "kind": "account"
+        },
+        "approver_did": "did:webvh:z6mkfixturemanager:manager.example",
+        "approved_at": "2026-08-06T00:10:00.000Z",
+        "nonce": "KFSPGziJGaKwvm8hXg-krC8iZqunf7EmJ7GIo_j-3G8"
+      },
+      "mutated_canonical_input_utf8": "{\"action\":\"ak.strand.create\",\"approval_context\":{\"context_kind\":\"grant\",\"grant_id\":\"ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf\"},\"approval_target\":{\"event_id\":\"ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB\",\"target_kind\":\"event\"},\"approved_at\":\"2026-08-06T00:10:00.000Z\",\"approver_did\":\"did:webvh:z6mkfixturemanager:manager.example\",\"initiating_actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixtureotherstationexample\"},\"kind\":\"account\"},\"nonce\":\"KFSPGziJGaKwvm8hXg-krC8iZqunf7EmJ7GIo_j-3G8\",\"operation\":\"ak.self.events.command.submit.v1\",\"realm_id\":\"ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J\",\"request_canonical_digest\":\"sha256:735a9009ddeab92723c69b8ae4fd932f31abd63ab986f1d2130b05fe8ad31d86\"}",
+      "mutated_jws_signing_input": "eyJhbGciOiJFZDI1NTE5In0.YWsuYXBwcm92YWwuc2lnbmF0dXJlLnYxCnsiYWN0aW9uIjoiYWsuc3RyYW5kLmNyZWF0ZSIsImFwcHJvdmFsX2NvbnRleHQiOnsiY29udGV4dF9raW5kIjoiZ3JhbnQiLCJncmFudF9pZCI6ImFrOmdyYW50OkFSOXFWbkhLNGEwOTE0elBtSDVDUlpMVGpTU1ZfOGdoSkt1R0dpdkRhRXhmIn0sImFwcHJvdmFsX3RhcmdldCI6eyJldmVudF9pZCI6ImFrOmV2ZW50OkFTbzZ6QzVsWHczR0tPaWVLWGxYSllmS29RS25nNHNZWHR2ZFVBYUU5V1JCIiwidGFyZ2V0X2tpbmQiOiJldmVudCJ9LCJhcHByb3ZlZF9hdCI6IjIwMjYtMDgtMDZUMDA6MTA6MDAuMDAwWiIsImFwcHJvdmVyX2RpZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZW1hbmFnZXI6bWFuYWdlci5leGFtcGxlIiwiaW5pdGlhdGluZ19hY3Rvcl9pZCI6eyJhY2NvdW50X2lkIjp7InByaW5jaXBhbF9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlIiwic3RhdGlvbl9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlb3RoZXJzdGF0aW9uZXhhbXBsZSJ9LCJraW5kIjoiYWNjb3VudCJ9LCJub25jZSI6IktGU1BHemlKR2FLd3ZtOGhYZy1rckM4aVpxdW5mN0VtSjdHSW9fai0zRzgiLCJvcGVyYXRpb24iOiJhay5zZWxmLmV2ZW50cy5jb21tYW5kLnN1Ym1pdC52MSIsInJlYWxtX2lkIjoiYWs6cmVhbG06QVRoN09XTExwVWRUVllzS2RwNnJrQ2xTY1VwallKbEYxWTNieWpleUhTOEoiLCJyZXF1ZXN0X2Nhbm9uaWNhbF9kaWdlc3QiOiJzaGEyNTY6NzM1YTkwMDlkZGVhYjkyNzIzYzY5YjhhZTRmZDkzMmYzMWFiZDYzYWI5ODZmMWQyMTMwYjA1ZmU4YWQzMWQ4NiJ9",
+      "proof_jws": "eyJhbGciOiJFZDI1NTE5In0..qkUCnD06N-31J08YMfbm9iyH58OEjhdB_OAGZ1kVwChqR1NBCDokm-yWiSpz-OfjeQu2-nrdsLxvSW7DXkRYBg",
+      "public_key_jwk": {
+        "crv": "Ed25519",
+        "x": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
+        "kty": "OKP"
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "signature_invalid",
+        "reason": "initiating_actor_id keeps principal_id and changes station_id only. Accounts with the same principal at different Stations are permanently distinct, so the approval MUST NOT carry over."
+      }
+    },
+    {
+      "name": "reject_substituted_grant_id",
+      "base_vector": "ak.vector.authz.approval_signature_bytes.v1",
+      "description": "approval_context.grant_id is repointed at another grant: a grant-context approval is evidence for one specific grant's requirement.",
+      "mutated_input": {
+        "approval_context": {
+          "context_kind": "grant",
+          "grant_id": "ak:grant:AVUSKTJZu6lLLntP9Seb0KO2ddyE8SJ86Sap4iMdB96B"
+        },
+        "approval_target": {
+          "target_kind": "event",
+          "event_id": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB"
+        },
+        "request_canonical_digest": "sha256:735a9009ddeab92723c69b8ae4fd932f31abd63ab986f1d2130b05fe8ad31d86",
+        "operation": "ak.self.events.command.submit.v1",
+        "action": "ak.strand.create",
+        "realm_id": "ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J",
+        "initiating_actor_id": {
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          },
+          "kind": "account"
+        },
+        "approver_did": "did:webvh:z6mkfixturemanager:manager.example",
+        "approved_at": "2026-08-06T00:10:00.000Z",
+        "nonce": "KFSPGziJGaKwvm8hXg-krC8iZqunf7EmJ7GIo_j-3G8"
+      },
+      "mutated_canonical_input_utf8": "{\"action\":\"ak.strand.create\",\"approval_context\":{\"context_kind\":\"grant\",\"grant_id\":\"ak:grant:AVUSKTJZu6lLLntP9Seb0KO2ddyE8SJ86Sap4iMdB96B\"},\"approval_target\":{\"event_id\":\"ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB\",\"target_kind\":\"event\"},\"approved_at\":\"2026-08-06T00:10:00.000Z\",\"approver_did\":\"did:webvh:z6mkfixturemanager:manager.example\",\"initiating_actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"nonce\":\"KFSPGziJGaKwvm8hXg-krC8iZqunf7EmJ7GIo_j-3G8\",\"operation\":\"ak.self.events.command.submit.v1\",\"realm_id\":\"ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J\",\"request_canonical_digest\":\"sha256:735a9009ddeab92723c69b8ae4fd932f31abd63ab986f1d2130b05fe8ad31d86\"}",
+      "mutated_jws_signing_input": "eyJhbGciOiJFZDI1NTE5In0.YWsuYXBwcm92YWwuc2lnbmF0dXJlLnYxCnsiYWN0aW9uIjoiYWsuc3RyYW5kLmNyZWF0ZSIsImFwcHJvdmFsX2NvbnRleHQiOnsiY29udGV4dF9raW5kIjoiZ3JhbnQiLCJncmFudF9pZCI6ImFrOmdyYW50OkFWVVNLVEpadTZsTExudFA5U2ViMEtPMmRkeUU4U0o4NlNhcDRpTWRCOTZCIn0sImFwcHJvdmFsX3RhcmdldCI6eyJldmVudF9pZCI6ImFrOmV2ZW50OkFTbzZ6QzVsWHczR0tPaWVLWGxYSllmS29RS25nNHNZWHR2ZFVBYUU5V1JCIiwidGFyZ2V0X2tpbmQiOiJldmVudCJ9LCJhcHByb3ZlZF9hdCI6IjIwMjYtMDgtMDZUMDA6MTA6MDAuMDAwWiIsImFwcHJvdmVyX2RpZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZW1hbmFnZXI6bWFuYWdlci5leGFtcGxlIiwiaW5pdGlhdGluZ19hY3Rvcl9pZCI6eyJhY2NvdW50X2lkIjp7InByaW5jaXBhbF9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlIiwic3RhdGlvbl9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlc3RhdGlvbmV4YW1wbGUifSwia2luZCI6ImFjY291bnQifSwibm9uY2UiOiJLRlNQR3ppSkdhS3d2bThoWGcta3JDOGlacXVuZjdFbUo3R0lvX2otM0c4Iiwib3BlcmF0aW9uIjoiYWsuc2VsZi5ldmVudHMuY29tbWFuZC5zdWJtaXQudjEiLCJyZWFsbV9pZCI6ImFrOnJlYWxtOkFUaDdPV0xMcFVkVFZZc0tkcDZya0NsU2NVcGpZSmxGMVkzYnlqZXlIUzhKIiwicmVxdWVzdF9jYW5vbmljYWxfZGlnZXN0Ijoic2hhMjU2OjczNWE5MDA5ZGRlYWI5MjcyM2M2OWI4YWU0ZmQ5MzJmMzFhYmQ2M2FiOTg2ZjFkMjEzMGIwNWZlOGFkMzFkODYifQ",
+      "proof_jws": "eyJhbGciOiJFZDI1NTE5In0..qkUCnD06N-31J08YMfbm9iyH58OEjhdB_OAGZ1kVwChqR1NBCDokm-yWiSpz-OfjeQu2-nrdsLxvSW7DXkRYBg",
+      "public_key_jwk": {
+        "crv": "Ed25519",
+        "x": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
+        "kty": "OKP"
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "signature_invalid",
+        "reason": "approval_context.grant_id is repointed at another grant: a grant-context approval is evidence for one specific grant's requirement."
+      }
+    },
+    {
+      "name": "reject_substituted_approval_context_branch",
+      "base_vector": "ak.vector.authz.approval_signature_bytes.v1",
+      "description": "The grant branch is rewritten as the realm_governance branch to reuse one signature across both approval layers. The context is inside the signed input, so the swap MUST fail; a governance-context vote requires its own signature.",
+      "mutated_input": {
+        "approval_context": {
+          "context_kind": "realm_governance"
+        },
+        "approval_target": {
+          "target_kind": "event",
+          "event_id": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB"
+        },
+        "request_canonical_digest": "sha256:735a9009ddeab92723c69b8ae4fd932f31abd63ab986f1d2130b05fe8ad31d86",
+        "operation": "ak.self.events.command.submit.v1",
+        "action": "ak.strand.create",
+        "realm_id": "ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J",
+        "initiating_actor_id": {
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          },
+          "kind": "account"
+        },
+        "approver_did": "did:webvh:z6mkfixturemanager:manager.example",
+        "approved_at": "2026-08-06T00:10:00.000Z",
+        "nonce": "KFSPGziJGaKwvm8hXg-krC8iZqunf7EmJ7GIo_j-3G8"
+      },
+      "mutated_canonical_input_utf8": "{\"action\":\"ak.strand.create\",\"approval_context\":{\"context_kind\":\"realm_governance\"},\"approval_target\":{\"event_id\":\"ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB\",\"target_kind\":\"event\"},\"approved_at\":\"2026-08-06T00:10:00.000Z\",\"approver_did\":\"did:webvh:z6mkfixturemanager:manager.example\",\"initiating_actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"nonce\":\"KFSPGziJGaKwvm8hXg-krC8iZqunf7EmJ7GIo_j-3G8\",\"operation\":\"ak.self.events.command.submit.v1\",\"realm_id\":\"ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J\",\"request_canonical_digest\":\"sha256:735a9009ddeab92723c69b8ae4fd932f31abd63ab986f1d2130b05fe8ad31d86\"}",
+      "mutated_jws_signing_input": "eyJhbGciOiJFZDI1NTE5In0.YWsuYXBwcm92YWwuc2lnbmF0dXJlLnYxCnsiYWN0aW9uIjoiYWsuc3RyYW5kLmNyZWF0ZSIsImFwcHJvdmFsX2NvbnRleHQiOnsiY29udGV4dF9raW5kIjoicmVhbG1fZ292ZXJuYW5jZSJ9LCJhcHByb3ZhbF90YXJnZXQiOnsiZXZlbnRfaWQiOiJhazpldmVudDpBU282ekM1bFh3M0dLT2llS1hsWEpZZktvUUtuZzRzWVh0dmRVQWFFOVdSQiIsInRhcmdldF9raW5kIjoiZXZlbnQifSwiYXBwcm92ZWRfYXQiOiIyMDI2LTA4LTA2VDAwOjEwOjAwLjAwMFoiLCJhcHByb3Zlcl9kaWQiOiJkaWQ6d2Vidmg6ejZta2ZpeHR1cmVtYW5hZ2VyOm1hbmFnZXIuZXhhbXBsZSIsImluaXRpYXRpbmdfYWN0b3JfaWQiOnsiYWNjb3VudF9pZCI6eyJwcmluY2lwYWxfaWQiOiJhazpkaWRfY29yZTp3ZWJ2aDp6Nm1rZml4dHVyZSIsInN0YXRpb25faWQiOiJhazpkaWRfY29yZTp3ZWJ2aDp6Nm1rZml4dHVyZXN0YXRpb25leGFtcGxlIn0sImtpbmQiOiJhY2NvdW50In0sIm5vbmNlIjoiS0ZTUEd6aUpHYUt3dm04aFhnLWtyQzhpWnF1bmY3RW1KN0dJb19qLTNHOCIsIm9wZXJhdGlvbiI6ImFrLnNlbGYuZXZlbnRzLmNvbW1hbmQuc3VibWl0LnYxIiwicmVhbG1faWQiOiJhazpyZWFsbTpBVGg3T1dMTHBVZFRWWXNLZHA2cmtDbFNjVXBqWUpsRjFZM2J5amV5SFM4SiIsInJlcXVlc3RfY2Fub25pY2FsX2RpZ2VzdCI6InNoYTI1Njo3MzVhOTAwOWRkZWFiOTI3MjNjNjliOGFlNGZkOTMyZjMxYWJkNjNhYjk4NmYxZDIxMzBiMDVmZThhZDMxZDg2In0",
+      "proof_jws": "eyJhbGciOiJFZDI1NTE5In0..qkUCnD06N-31J08YMfbm9iyH58OEjhdB_OAGZ1kVwChqR1NBCDokm-yWiSpz-OfjeQu2-nrdsLxvSW7DXkRYBg",
+      "public_key_jwk": {
+        "crv": "Ed25519",
+        "x": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
+        "kty": "OKP"
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "signature_invalid",
+        "reason": "The grant branch is rewritten as the realm_governance branch to reuse one signature across both approval layers. The context is inside the signed input, so the swap MUST fail; a governance-context vote requires its own signature."
+      }
+    },
+    {
+      "name": "reject_substituted_nonce",
+      "base_vector": "ak.vector.authz.approval_signature_bytes.v1",
+      "description": "nonce is replaced while the signature is kept, the shape a collector would try after learning that the original nonce was consumed.",
+      "mutated_input": {
+        "approval_context": {
+          "context_kind": "grant",
+          "grant_id": "ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf"
+        },
+        "approval_target": {
+          "target_kind": "event",
+          "event_id": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB"
+        },
+        "request_canonical_digest": "sha256:735a9009ddeab92723c69b8ae4fd932f31abd63ab986f1d2130b05fe8ad31d86",
+        "operation": "ak.self.events.command.submit.v1",
+        "action": "ak.strand.create",
+        "realm_id": "ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J",
+        "initiating_actor_id": {
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          },
+          "kind": "account"
+        },
+        "approver_did": "did:webvh:z6mkfixturemanager:manager.example",
+        "approved_at": "2026-08-06T00:10:00.000Z",
+        "nonce": "-qX2K_1ANYKzCeyFEatsjdyhNre86sIFL4n_P_BiL5M"
+      },
+      "mutated_canonical_input_utf8": "{\"action\":\"ak.strand.create\",\"approval_context\":{\"context_kind\":\"grant\",\"grant_id\":\"ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf\"},\"approval_target\":{\"event_id\":\"ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB\",\"target_kind\":\"event\"},\"approved_at\":\"2026-08-06T00:10:00.000Z\",\"approver_did\":\"did:webvh:z6mkfixturemanager:manager.example\",\"initiating_actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"nonce\":\"-qX2K_1ANYKzCeyFEatsjdyhNre86sIFL4n_P_BiL5M\",\"operation\":\"ak.self.events.command.submit.v1\",\"realm_id\":\"ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J\",\"request_canonical_digest\":\"sha256:735a9009ddeab92723c69b8ae4fd932f31abd63ab986f1d2130b05fe8ad31d86\"}",
+      "mutated_jws_signing_input": "eyJhbGciOiJFZDI1NTE5In0.YWsuYXBwcm92YWwuc2lnbmF0dXJlLnYxCnsiYWN0aW9uIjoiYWsuc3RyYW5kLmNyZWF0ZSIsImFwcHJvdmFsX2NvbnRleHQiOnsiY29udGV4dF9raW5kIjoiZ3JhbnQiLCJncmFudF9pZCI6ImFrOmdyYW50OkFSOXFWbkhLNGEwOTE0elBtSDVDUlpMVGpTU1ZfOGdoSkt1R0dpdkRhRXhmIn0sImFwcHJvdmFsX3RhcmdldCI6eyJldmVudF9pZCI6ImFrOmV2ZW50OkFTbzZ6QzVsWHczR0tPaWVLWGxYSllmS29RS25nNHNZWHR2ZFVBYUU5V1JCIiwidGFyZ2V0X2tpbmQiOiJldmVudCJ9LCJhcHByb3ZlZF9hdCI6IjIwMjYtMDgtMDZUMDA6MTA6MDAuMDAwWiIsImFwcHJvdmVyX2RpZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZW1hbmFnZXI6bWFuYWdlci5leGFtcGxlIiwiaW5pdGlhdGluZ19hY3Rvcl9pZCI6eyJhY2NvdW50X2lkIjp7InByaW5jaXBhbF9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlIiwic3RhdGlvbl9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlc3RhdGlvbmV4YW1wbGUifSwia2luZCI6ImFjY291bnQifSwibm9uY2UiOiItcVgyS18xQU5ZS3pDZXlGRWF0c2pkeWhOcmU4NnNJRkw0bl9QX0JpTDVNIiwib3BlcmF0aW9uIjoiYWsuc2VsZi5ldmVudHMuY29tbWFuZC5zdWJtaXQudjEiLCJyZWFsbV9pZCI6ImFrOnJlYWxtOkFUaDdPV0xMcFVkVFZZc0tkcDZya0NsU2NVcGpZSmxGMVkzYnlqZXlIUzhKIiwicmVxdWVzdF9jYW5vbmljYWxfZGlnZXN0Ijoic2hhMjU2OjczNWE5MDA5ZGRlYWI5MjcyM2M2OWI4YWU0ZmQ5MzJmMzFhYmQ2M2FiOTg2ZjFkMjEzMGIwNWZlOGFkMzFkODYifQ",
+      "proof_jws": "eyJhbGciOiJFZDI1NTE5In0..qkUCnD06N-31J08YMfbm9iyH58OEjhdB_OAGZ1kVwChqR1NBCDokm-yWiSpz-OfjeQu2-nrdsLxvSW7DXkRYBg",
+      "public_key_jwk": {
+        "crv": "Ed25519",
+        "x": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
+        "kty": "OKP"
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "signature_invalid",
+        "reason": "nonce is replaced while the signature is kept, the shape a collector would try after learning that the original nonce was consumed."
+      }
+    },
+    {
+      "name": "reject_substituted_approved_at",
+      "base_vector": "ak.vector.authz.approval_signature_bytes.v1",
+      "description": "approved_at is moved to bring an out-of-window approval back inside the window. The instant is signed, so it cannot be adjusted after the fact.",
+      "mutated_input": {
+        "approval_context": {
+          "context_kind": "grant",
+          "grant_id": "ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf"
+        },
+        "approval_target": {
+          "target_kind": "event",
+          "event_id": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB"
+        },
+        "request_canonical_digest": "sha256:735a9009ddeab92723c69b8ae4fd932f31abd63ab986f1d2130b05fe8ad31d86",
+        "operation": "ak.self.events.command.submit.v1",
+        "action": "ak.strand.create",
+        "realm_id": "ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J",
+        "initiating_actor_id": {
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          },
+          "kind": "account"
+        },
+        "approver_did": "did:webvh:z6mkfixturemanager:manager.example",
+        "approved_at": "2026-08-06T00:20:00.000Z",
+        "nonce": "KFSPGziJGaKwvm8hXg-krC8iZqunf7EmJ7GIo_j-3G8"
+      },
+      "mutated_canonical_input_utf8": "{\"action\":\"ak.strand.create\",\"approval_context\":{\"context_kind\":\"grant\",\"grant_id\":\"ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf\"},\"approval_target\":{\"event_id\":\"ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB\",\"target_kind\":\"event\"},\"approved_at\":\"2026-08-06T00:20:00.000Z\",\"approver_did\":\"did:webvh:z6mkfixturemanager:manager.example\",\"initiating_actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"nonce\":\"KFSPGziJGaKwvm8hXg-krC8iZqunf7EmJ7GIo_j-3G8\",\"operation\":\"ak.self.events.command.submit.v1\",\"realm_id\":\"ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J\",\"request_canonical_digest\":\"sha256:735a9009ddeab92723c69b8ae4fd932f31abd63ab986f1d2130b05fe8ad31d86\"}",
+      "mutated_jws_signing_input": "eyJhbGciOiJFZDI1NTE5In0.YWsuYXBwcm92YWwuc2lnbmF0dXJlLnYxCnsiYWN0aW9uIjoiYWsuc3RyYW5kLmNyZWF0ZSIsImFwcHJvdmFsX2NvbnRleHQiOnsiY29udGV4dF9raW5kIjoiZ3JhbnQiLCJncmFudF9pZCI6ImFrOmdyYW50OkFSOXFWbkhLNGEwOTE0elBtSDVDUlpMVGpTU1ZfOGdoSkt1R0dpdkRhRXhmIn0sImFwcHJvdmFsX3RhcmdldCI6eyJldmVudF9pZCI6ImFrOmV2ZW50OkFTbzZ6QzVsWHczR0tPaWVLWGxYSllmS29RS25nNHNZWHR2ZFVBYUU5V1JCIiwidGFyZ2V0X2tpbmQiOiJldmVudCJ9LCJhcHByb3ZlZF9hdCI6IjIwMjYtMDgtMDZUMDA6MjA6MDAuMDAwWiIsImFwcHJvdmVyX2RpZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZW1hbmFnZXI6bWFuYWdlci5leGFtcGxlIiwiaW5pdGlhdGluZ19hY3Rvcl9pZCI6eyJhY2NvdW50X2lkIjp7InByaW5jaXBhbF9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlIiwic3RhdGlvbl9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlc3RhdGlvbmV4YW1wbGUifSwia2luZCI6ImFjY291bnQifSwibm9uY2UiOiJLRlNQR3ppSkdhS3d2bThoWGcta3JDOGlacXVuZjdFbUo3R0lvX2otM0c4Iiwib3BlcmF0aW9uIjoiYWsuc2VsZi5ldmVudHMuY29tbWFuZC5zdWJtaXQudjEiLCJyZWFsbV9pZCI6ImFrOnJlYWxtOkFUaDdPV0xMcFVkVFZZc0tkcDZya0NsU2NVcGpZSmxGMVkzYnlqZXlIUzhKIiwicmVxdWVzdF9jYW5vbmljYWxfZGlnZXN0Ijoic2hhMjU2OjczNWE5MDA5ZGRlYWI5MjcyM2M2OWI4YWU0ZmQ5MzJmMzFhYmQ2M2FiOTg2ZjFkMjEzMGIwNWZlOGFkMzFkODYifQ",
+      "proof_jws": "eyJhbGciOiJFZDI1NTE5In0..qkUCnD06N-31J08YMfbm9iyH58OEjhdB_OAGZ1kVwChqR1NBCDokm-yWiSpz-OfjeQu2-nrdsLxvSW7DXkRYBg",
+      "public_key_jwk": {
+        "crv": "Ed25519",
+        "x": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
+        "kty": "OKP"
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "signature_invalid",
+        "reason": "approved_at is moved to bring an out-of-window approval back inside the window. The instant is signed, so it cannot be adjusted after the fact."
+      }
+    },
+    {
+      "name": "reject_substituted_approver_did",
+      "base_vector": "ak.vector.authz.approval_signature_bytes.v1",
+      "description": "approver_did is replaced to credit the vote to another approver while keeping the signature.",
+      "mutated_input": {
+        "approval_context": {
+          "context_kind": "grant",
+          "grant_id": "ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf"
+        },
+        "approval_target": {
+          "target_kind": "event",
+          "event_id": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB"
+        },
+        "request_canonical_digest": "sha256:735a9009ddeab92723c69b8ae4fd932f31abd63ab986f1d2130b05fe8ad31d86",
+        "operation": "ak.self.events.command.submit.v1",
+        "action": "ak.strand.create",
+        "realm_id": "ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J",
+        "initiating_actor_id": {
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          },
+          "kind": "account"
+        },
+        "approver_did": "did:webvh:z6mkfixtureauditor:auditor.example",
+        "approved_at": "2026-08-06T00:10:00.000Z",
+        "nonce": "KFSPGziJGaKwvm8hXg-krC8iZqunf7EmJ7GIo_j-3G8"
+      },
+      "mutated_canonical_input_utf8": "{\"action\":\"ak.strand.create\",\"approval_context\":{\"context_kind\":\"grant\",\"grant_id\":\"ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf\"},\"approval_target\":{\"event_id\":\"ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB\",\"target_kind\":\"event\"},\"approved_at\":\"2026-08-06T00:10:00.000Z\",\"approver_did\":\"did:webvh:z6mkfixtureauditor:auditor.example\",\"initiating_actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"nonce\":\"KFSPGziJGaKwvm8hXg-krC8iZqunf7EmJ7GIo_j-3G8\",\"operation\":\"ak.self.events.command.submit.v1\",\"realm_id\":\"ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J\",\"request_canonical_digest\":\"sha256:735a9009ddeab92723c69b8ae4fd932f31abd63ab986f1d2130b05fe8ad31d86\"}",
+      "mutated_jws_signing_input": "eyJhbGciOiJFZDI1NTE5In0.YWsuYXBwcm92YWwuc2lnbmF0dXJlLnYxCnsiYWN0aW9uIjoiYWsuc3RyYW5kLmNyZWF0ZSIsImFwcHJvdmFsX2NvbnRleHQiOnsiY29udGV4dF9raW5kIjoiZ3JhbnQiLCJncmFudF9pZCI6ImFrOmdyYW50OkFSOXFWbkhLNGEwOTE0elBtSDVDUlpMVGpTU1ZfOGdoSkt1R0dpdkRhRXhmIn0sImFwcHJvdmFsX3RhcmdldCI6eyJldmVudF9pZCI6ImFrOmV2ZW50OkFTbzZ6QzVsWHczR0tPaWVLWGxYSllmS29RS25nNHNZWHR2ZFVBYUU5V1JCIiwidGFyZ2V0X2tpbmQiOiJldmVudCJ9LCJhcHByb3ZlZF9hdCI6IjIwMjYtMDgtMDZUMDA6MTA6MDAuMDAwWiIsImFwcHJvdmVyX2RpZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZWF1ZGl0b3I6YXVkaXRvci5leGFtcGxlIiwiaW5pdGlhdGluZ19hY3Rvcl9pZCI6eyJhY2NvdW50X2lkIjp7InByaW5jaXBhbF9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlIiwic3RhdGlvbl9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlc3RhdGlvbmV4YW1wbGUifSwia2luZCI6ImFjY291bnQifSwibm9uY2UiOiJLRlNQR3ppSkdhS3d2bThoWGcta3JDOGlacXVuZjdFbUo3R0lvX2otM0c4Iiwib3BlcmF0aW9uIjoiYWsuc2VsZi5ldmVudHMuY29tbWFuZC5zdWJtaXQudjEiLCJyZWFsbV9pZCI6ImFrOnJlYWxtOkFUaDdPV0xMcFVkVFZZc0tkcDZya0NsU2NVcGpZSmxGMVkzYnlqZXlIUzhKIiwicmVxdWVzdF9jYW5vbmljYWxfZGlnZXN0Ijoic2hhMjU2OjczNWE5MDA5ZGRlYWI5MjcyM2M2OWI4YWU0ZmQ5MzJmMzFhYmQ2M2FiOTg2ZjFkMjEzMGIwNWZlOGFkMzFkODYifQ",
+      "proof_jws": "eyJhbGciOiJFZDI1NTE5In0..qkUCnD06N-31J08YMfbm9iyH58OEjhdB_OAGZ1kVwChqR1NBCDokm-yWiSpz-OfjeQu2-nrdsLxvSW7DXkRYBg",
+      "public_key_jwk": {
+        "crv": "Ed25519",
+        "x": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
+        "kty": "OKP"
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "signature_invalid",
+        "reason": "approver_did is replaced to credit the vote to another approver while keeping the signature."
+      }
+    },
+    {
+      "name": "reject_operation_target_digest_substituted",
+      "base_vector": "ak.vector.authz.approval_signature_operation_target.v1",
+      "description": "The operation branch's original typed RequestBody is replaced, so request_canonical_digest no longer covers the approved body.",
+      "mutated_input": {
+        "approval_context": {
+          "context_kind": "grant",
+          "grant_id": "ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf"
+        },
+        "approval_target": {
+          "target_kind": "operation"
+        },
+        "request_canonical_digest": "sha256:b4e7af762e0ff5f15ebfaec0b622a2eab4cc11815e322eeeb2ec1f577e4ec9ae",
+        "operation": "ak.self.agent.command.renew_pairing.v1",
+        "action": "ak.self.agent.command.renew_pairing.v1",
+        "realm_id": "ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J",
+        "initiating_actor_id": {
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          },
+          "kind": "account"
+        },
+        "approver_did": "did:webvh:z6mkfixturemanager:manager.example",
+        "approved_at": "2026-08-06T00:12:00.000Z",
+        "nonce": "dz2DF04iGyX_aiVhcgFd2gKBgjdZbvdfaL4Q_Bf_XaY"
+      },
+      "mutated_canonical_input_utf8": "{\"action\":\"ak.self.agent.command.renew_pairing.v1\",\"approval_context\":{\"context_kind\":\"grant\",\"grant_id\":\"ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf\"},\"approval_target\":{\"target_kind\":\"operation\"},\"approved_at\":\"2026-08-06T00:12:00.000Z\",\"approver_did\":\"did:webvh:z6mkfixturemanager:manager.example\",\"initiating_actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"nonce\":\"dz2DF04iGyX_aiVhcgFd2gKBgjdZbvdfaL4Q_Bf_XaY\",\"operation\":\"ak.self.agent.command.renew_pairing.v1\",\"realm_id\":\"ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J\",\"request_canonical_digest\":\"sha256:b4e7af762e0ff5f15ebfaec0b622a2eab4cc11815e322eeeb2ec1f577e4ec9ae\"}",
+      "mutated_jws_signing_input": "eyJhbGciOiJFZDI1NTE5In0.YWsuYXBwcm92YWwuc2lnbmF0dXJlLnYxCnsiYWN0aW9uIjoiYWsuc2VsZi5hZ2VudC5jb21tYW5kLnJlbmV3X3BhaXJpbmcudjEiLCJhcHByb3ZhbF9jb250ZXh0Ijp7ImNvbnRleHRfa2luZCI6ImdyYW50IiwiZ3JhbnRfaWQiOiJhazpncmFudDpBUjlxVm5ISzRhMDkxNHpQbUg1Q1JaTFRqU1NWXzhnaEpLdUdHaXZEYUV4ZiJ9LCJhcHByb3ZhbF90YXJnZXQiOnsidGFyZ2V0X2tpbmQiOiJvcGVyYXRpb24ifSwiYXBwcm92ZWRfYXQiOiIyMDI2LTA4LTA2VDAwOjEyOjAwLjAwMFoiLCJhcHByb3Zlcl9kaWQiOiJkaWQ6d2Vidmg6ejZta2ZpeHR1cmVtYW5hZ2VyOm1hbmFnZXIuZXhhbXBsZSIsImluaXRpYXRpbmdfYWN0b3JfaWQiOnsiYWNjb3VudF9pZCI6eyJwcmluY2lwYWxfaWQiOiJhazpkaWRfY29yZTp3ZWJ2aDp6Nm1rZml4dHVyZSIsInN0YXRpb25faWQiOiJhazpkaWRfY29yZTp3ZWJ2aDp6Nm1rZml4dHVyZXN0YXRpb25leGFtcGxlIn0sImtpbmQiOiJhY2NvdW50In0sIm5vbmNlIjoiZHoyREYwNGlHeVhfYWlWaGNnRmQyZ0tCZ2pkWmJ2ZGZhTDRRX0JmX1hhWSIsIm9wZXJhdGlvbiI6ImFrLnNlbGYuYWdlbnQuY29tbWFuZC5yZW5ld19wYWlyaW5nLnYxIiwicmVhbG1faWQiOiJhazpyZWFsbTpBVGg3T1dMTHBVZFRWWXNLZHA2cmtDbFNjVXBqWUpsRjFZM2J5amV5SFM4SiIsInJlcXVlc3RfY2Fub25pY2FsX2RpZ2VzdCI6InNoYTI1NjpiNGU3YWY3NjJlMGZmNWYxNWViZmFlYzBiNjIyYTJlYWI0Y2MxMTgxNWUzMjJlZWViMmVjMWY1NzdlNGVjOWFlIn0",
+      "proof_jws": "eyJhbGciOiJFZDI1NTE5In0..z1XQcYoH3KTT25703U-wFT--rSLiguvaz7OTIPg-7-Q8mIZdDEiB4xDgcZOs_T0ccIGgivwPbb9ZNTON3MzKBw",
+      "public_key_jwk": {
+        "crv": "Ed25519",
+        "x": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
+        "kty": "OKP"
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "signature_invalid",
+        "reason": "The operation branch's original typed RequestBody is replaced, so request_canonical_digest no longer covers the approved body."
+      }
+    },
+    {
+      "name": "reject_signature_over_input_without_domain_prefix",
+      "base_vector": "ak.vector.authz.approval_signature_bytes.v1",
+      "description": "A real signature over JCS(input) with the domain prefix omitted. The prefix is what separates this domain from every other signature the same key makes, so an implementation that drops it MUST NOT be accepted even though its signature verifies over its own bytes.",
+      "signed_payload_b64u": "eyJhY3Rpb24iOiJhay5zdHJhbmQuY3JlYXRlIiwiYXBwcm92YWxfY29udGV4dCI6eyJjb250ZXh0X2tpbmQiOiJncmFudCIsImdyYW50X2lkIjoiYWs6Z3JhbnQ6QVI5cVZuSEs0YTA5MTR6UG1INUNSWkxUalNTVl84Z2hKS3VHR2l2RGFFeGYifSwiYXBwcm92YWxfdGFyZ2V0Ijp7ImV2ZW50X2lkIjoiYWs6ZXZlbnQ6QVNvNnpDNWxYdzNHS09pZUtYbFhKWWZLb1FLbmc0c1lYdHZkVUFhRTlXUkIiLCJ0YXJnZXRfa2luZCI6ImV2ZW50In0sImFwcHJvdmVkX2F0IjoiMjAyNi0wOC0wNlQwMDoxMDowMC4wMDBaIiwiYXBwcm92ZXJfZGlkIjoiZGlkOndlYnZoOno2bWtmaXh0dXJlbWFuYWdlcjptYW5hZ2VyLmV4YW1wbGUiLCJpbml0aWF0aW5nX2FjdG9yX2lkIjp7ImFjY291bnRfaWQiOnsicHJpbmNpcGFsX2lkIjoiYWs6ZGlkX2NvcmU6d2Vidmg6ejZta2ZpeHR1cmUiLCJzdGF0aW9uX2lkIjoiYWs6ZGlkX2NvcmU6d2Vidmg6ejZta2ZpeHR1cmVzdGF0aW9uZXhhbXBsZSJ9LCJraW5kIjoiYWNjb3VudCJ9LCJub25jZSI6IktGU1BHemlKR2FLd3ZtOGhYZy1rckM4aVpxdW5mN0VtSjdHSW9fai0zRzgiLCJvcGVyYXRpb24iOiJhay5zZWxmLmV2ZW50cy5jb21tYW5kLnN1Ym1pdC52MSIsInJlYWxtX2lkIjoiYWs6cmVhbG06QVRoN09XTExwVWRUVllzS2RwNnJrQ2xTY1VwallKbEYxWTNieWpleUhTOEoiLCJyZXF1ZXN0X2Nhbm9uaWNhbF9kaWdlc3QiOiJzaGEyNTY6NzM1YTkwMDlkZGVhYjkyNzIzYzY5YjhhZTRmZDkzMmYzMWFiZDYzYWI5ODZmMWQyMTMwYjA1ZmU4YWQzMWQ4NiJ9",
+      "proof_jws": "eyJhbGciOiJFZDI1NTE5In0..OnhF_b-7klivONwUycP7TZHCNHwr2Qivc8lF19ZJrmRCROUwHXFo7CgfFa-7cvdl6iVgTqLWSma1RJFHtcZICg",
+      "jws_signing_input": "eyJhbGciOiJFZDI1NTE5In0.eyJhY3Rpb24iOiJhay5zdHJhbmQuY3JlYXRlIiwiYXBwcm92YWxfY29udGV4dCI6eyJjb250ZXh0X2tpbmQiOiJncmFudCIsImdyYW50X2lkIjoiYWs6Z3JhbnQ6QVI5cVZuSEs0YTA5MTR6UG1INUNSWkxUalNTVl84Z2hKS3VHR2l2RGFFeGYifSwiYXBwcm92YWxfdGFyZ2V0Ijp7ImV2ZW50X2lkIjoiYWs6ZXZlbnQ6QVNvNnpDNWxYdzNHS09pZUtYbFhKWWZLb1FLbmc0c1lYdHZkVUFhRTlXUkIiLCJ0YXJnZXRfa2luZCI6ImV2ZW50In0sImFwcHJvdmVkX2F0IjoiMjAyNi0wOC0wNlQwMDoxMDowMC4wMDBaIiwiYXBwcm92ZXJfZGlkIjoiZGlkOndlYnZoOno2bWtmaXh0dXJlbWFuYWdlcjptYW5hZ2VyLmV4YW1wbGUiLCJpbml0aWF0aW5nX2FjdG9yX2lkIjp7ImFjY291bnRfaWQiOnsicHJpbmNpcGFsX2lkIjoiYWs6ZGlkX2NvcmU6d2Vidmg6ejZta2ZpeHR1cmUiLCJzdGF0aW9uX2lkIjoiYWs6ZGlkX2NvcmU6d2Vidmg6ejZta2ZpeHR1cmVzdGF0aW9uZXhhbXBsZSJ9LCJraW5kIjoiYWNjb3VudCJ9LCJub25jZSI6IktGU1BHemlKR2FLd3ZtOGhYZy1rckM4aVpxdW5mN0VtSjdHSW9fai0zRzgiLCJvcGVyYXRpb24iOiJhay5zZWxmLmV2ZW50cy5jb21tYW5kLnN1Ym1pdC52MSIsInJlYWxtX2lkIjoiYWs6cmVhbG06QVRoN09XTExwVWRUVllzS2RwNnJrQ2xTY1VwallKbEYxWTNieWpleUhTOEoiLCJyZXF1ZXN0X2Nhbm9uaWNhbF9kaWdlc3QiOiJzaGEyNTY6NzM1YTkwMDlkZGVhYjkyNzIzYzY5YjhhZTRmZDkzMmYzMWFiZDYzYWI5ODZmMWQyMTMwYjA1ZmU4YWQzMWQ4NiJ9",
+      "expected_signing_input": "eyJhbGciOiJFZDI1NTE5In0.YWsuYXBwcm92YWwuc2lnbmF0dXJlLnYxCnsiYWN0aW9uIjoiYWsuc3RyYW5kLmNyZWF0ZSIsImFwcHJvdmFsX2NvbnRleHQiOnsiY29udGV4dF9raW5kIjoiZ3JhbnQiLCJncmFudF9pZCI6ImFrOmdyYW50OkFSOXFWbkhLNGEwOTE0elBtSDVDUlpMVGpTU1ZfOGdoSkt1R0dpdkRhRXhmIn0sImFwcHJvdmFsX3RhcmdldCI6eyJldmVudF9pZCI6ImFrOmV2ZW50OkFTbzZ6QzVsWHczR0tPaWVLWGxYSllmS29RS25nNHNZWHR2ZFVBYUU5V1JCIiwidGFyZ2V0X2tpbmQiOiJldmVudCJ9LCJhcHByb3ZlZF9hdCI6IjIwMjYtMDgtMDZUMDA6MTA6MDAuMDAwWiIsImFwcHJvdmVyX2RpZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZW1hbmFnZXI6bWFuYWdlci5leGFtcGxlIiwiaW5pdGlhdGluZ19hY3Rvcl9pZCI6eyJhY2NvdW50X2lkIjp7InByaW5jaXBhbF9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlIiwic3RhdGlvbl9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlc3RhdGlvbmV4YW1wbGUifSwia2luZCI6ImFjY291bnQifSwibm9uY2UiOiJLRlNQR3ppSkdhS3d2bThoWGcta3JDOGlacXVuZjdFbUo3R0lvX2otM0c4Iiwib3BlcmF0aW9uIjoiYWsuc2VsZi5ldmVudHMuY29tbWFuZC5zdWJtaXQudjEiLCJyZWFsbV9pZCI6ImFrOnJlYWxtOkFUaDdPV0xMcFVkVFZZc0tkcDZya0NsU2NVcGpZSmxGMVkzYnlqZXlIUzhKIiwicmVxdWVzdF9jYW5vbmljYWxfZGlnZXN0Ijoic2hhMjU2OjczNWE5MDA5ZGRlYWI5MjcyM2M2OWI4YWU0ZmQ5MzJmMzFhYmQ2M2FiOTg2ZjFkMjEzMGIwNWZlOGFkMzFkODYifQ",
+      "public_key_jwk": {
+        "crv": "Ed25519",
+        "x": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
+        "kty": "OKP"
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "signature_invalid",
+        "reason": "signing_bytes MUST begin with UTF8(ak.approval.signature.v1) || 0x0A"
+      }
+    },
+    {
+      "name": "reject_signature_over_a_digest_of_the_input",
+      "base_vector": "ak.vector.authz.approval_signature_bytes.v1",
+      "description": "A real signature over SHA-256(JCS(input)) instead of over signing_bytes. zh/authz/constraint-schema.md section 9.2.1 registers the signing input itself as the primitive and forbids the digest-then-sign shape, so this MUST fail closed rather than be accepted as an equivalent construction.",
+      "signed_payload_b64u": "BY5YJuUFwshwysRFg2bNsGImqG1dgOCoPrn0XqMxk_U",
+      "proof_jws": "eyJhbGciOiJFZDI1NTE5In0..J7HSglnRvUynOW1DkVIKpe8_lyegsfCilbY3IeOaE3RsrFXPsGt0gI8_vJPxtfYwO6y6WC8sNNCkfNL6c_ZPDQ",
+      "jws_signing_input": "eyJhbGciOiJFZDI1NTE5In0.BY5YJuUFwshwysRFg2bNsGImqG1dgOCoPrn0XqMxk_U",
+      "expected_signing_input": "eyJhbGciOiJFZDI1NTE5In0.YWsuYXBwcm92YWwuc2lnbmF0dXJlLnYxCnsiYWN0aW9uIjoiYWsuc3RyYW5kLmNyZWF0ZSIsImFwcHJvdmFsX2NvbnRleHQiOnsiY29udGV4dF9raW5kIjoiZ3JhbnQiLCJncmFudF9pZCI6ImFrOmdyYW50OkFSOXFWbkhLNGEwOTE0elBtSDVDUlpMVGpTU1ZfOGdoSkt1R0dpdkRhRXhmIn0sImFwcHJvdmFsX3RhcmdldCI6eyJldmVudF9pZCI6ImFrOmV2ZW50OkFTbzZ6QzVsWHczR0tPaWVLWGxYSllmS29RS25nNHNZWHR2ZFVBYUU5V1JCIiwidGFyZ2V0X2tpbmQiOiJldmVudCJ9LCJhcHByb3ZlZF9hdCI6IjIwMjYtMDgtMDZUMDA6MTA6MDAuMDAwWiIsImFwcHJvdmVyX2RpZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZW1hbmFnZXI6bWFuYWdlci5leGFtcGxlIiwiaW5pdGlhdGluZ19hY3Rvcl9pZCI6eyJhY2NvdW50X2lkIjp7InByaW5jaXBhbF9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlIiwic3RhdGlvbl9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlc3RhdGlvbmV4YW1wbGUifSwia2luZCI6ImFjY291bnQifSwibm9uY2UiOiJLRlNQR3ppSkdhS3d2bThoWGcta3JDOGlacXVuZjdFbUo3R0lvX2otM0c4Iiwib3BlcmF0aW9uIjoiYWsuc2VsZi5ldmVudHMuY29tbWFuZC5zdWJtaXQudjEiLCJyZWFsbV9pZCI6ImFrOnJlYWxtOkFUaDdPV0xMcFVkVFZZc0tkcDZya0NsU2NVcGpZSmxGMVkzYnlqZXlIUzhKIiwicmVxdWVzdF9jYW5vbmljYWxfZGlnZXN0Ijoic2hhMjU2OjczNWE5MDA5ZGRlYWI5MjcyM2M2OWI4YWU0ZmQ5MzJmMzFhYmQ2M2FiOTg2ZjFkMjEzMGIwNWZlOGFkMzFkODYifQ",
+      "public_key_jwk": {
+        "crv": "Ed25519",
+        "x": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
+        "kty": "OKP"
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "signature_invalid",
+        "reason": "the registered primitive is the signing input, never a digest of it"
+      }
+    },
+    {
+      "name": "reject_producer_proof_jws_presented_as_approval_proof",
+      "base_vector": "ak.vector.authz.approval_signature_bytes.v1",
+      "description": "The Event's own producer proof, made with the same key, is presented as the approval proof. Both signatures are genuine and the key resolves, yet the domains differ, so the producer proof MUST NOT count as an approval. This is the cross-domain case one published key makes testable.",
+      "proof_jws": "eyJhbGciOiJFZDI1NTE5In0..meAfJMyDc1Suu1mO-tGk4TUvmBclTaDy8gkd7wXVrkPJnjGEZcwsHC5LX1oUAS05EAqRnFqKlxg3mqpnmUZHDQ",
+      "jws_signing_input": "eyJhbGciOiJFZDI1NTE5In0.eyJhY3Rvcl9pZCI6eyJhY2NvdW50X2lkIjp7InByaW5jaXBhbF9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlIiwic3RhdGlvbl9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlc3RhdGlvbmV4YW1wbGUifSwia2luZCI6ImFjY291bnQifSwiY29udGV4dCI6ImFrLmV2ZW50X3Byb29mLnYxIiwiY3JlYXRlZF9hdCI6IjIwMjYtMDgtMDZUMDA6MDA6MDAuMDAwWiIsImRvbWFpbiI6ImFya3JldC1ldmVudC12MSIsImV2ZW50X2RpZ2VzdCI6InNoYTI1NjoyYTNhY2MyZTY1NWYwZGM2MjhlODllMjk3OTU3MjU4N2NhYTEwMmE3ODM4YjE4NWVkYmRkNTAwNjg0ZjU2NDQxIiwidmVyaWZpY2F0aW9uX21ldGhvZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZTphbGljZS5leGFtcGxlI2VkMjU1MTktMjAyNi0wNS1maXh0dXJlIn0",
+      "expected_signing_input": "eyJhbGciOiJFZDI1NTE5In0.YWsuYXBwcm92YWwuc2lnbmF0dXJlLnYxCnsiYWN0aW9uIjoiYWsuc3RyYW5kLmNyZWF0ZSIsImFwcHJvdmFsX2NvbnRleHQiOnsiY29udGV4dF9raW5kIjoiZ3JhbnQiLCJncmFudF9pZCI6ImFrOmdyYW50OkFSOXFWbkhLNGEwOTE0elBtSDVDUlpMVGpTU1ZfOGdoSkt1R0dpdkRhRXhmIn0sImFwcHJvdmFsX3RhcmdldCI6eyJldmVudF9pZCI6ImFrOmV2ZW50OkFTbzZ6QzVsWHczR0tPaWVLWGxYSllmS29RS25nNHNZWHR2ZFVBYUU5V1JCIiwidGFyZ2V0X2tpbmQiOiJldmVudCJ9LCJhcHByb3ZlZF9hdCI6IjIwMjYtMDgtMDZUMDA6MTA6MDAuMDAwWiIsImFwcHJvdmVyX2RpZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZW1hbmFnZXI6bWFuYWdlci5leGFtcGxlIiwiaW5pdGlhdGluZ19hY3Rvcl9pZCI6eyJhY2NvdW50X2lkIjp7InByaW5jaXBhbF9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlIiwic3RhdGlvbl9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlc3RhdGlvbmV4YW1wbGUifSwia2luZCI6ImFjY291bnQifSwibm9uY2UiOiJLRlNQR3ppSkdhS3d2bThoWGcta3JDOGlacXVuZjdFbUo3R0lvX2otM0c4Iiwib3BlcmF0aW9uIjoiYWsuc2VsZi5ldmVudHMuY29tbWFuZC5zdWJtaXQudjEiLCJyZWFsbV9pZCI6ImFrOnJlYWxtOkFUaDdPV0xMcFVkVFZZc0tkcDZya0NsU2NVcGpZSmxGMVkzYnlqZXlIUzhKIiwicmVxdWVzdF9jYW5vbmljYWxfZGlnZXN0Ijoic2hhMjU2OjczNWE5MDA5ZGRlYWI5MjcyM2M2OWI4YWU0ZmQ5MzJmMzFhYmQ2M2FiOTg2ZjFkMjEzMGIwNWZlOGFkMzFkODYifQ",
+      "public_key_jwk": {
+        "crv": "Ed25519",
+        "x": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
+        "kty": "OKP"
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "signature_invalid",
+        "reason": "a proof from another signing domain is not an approval signature"
+      }
+    },
+    {
+      "name": "reject_flipped_signature_bit",
+      "base_vector": "ak.vector.authz.approval_signature_bytes.v1",
+      "description": "One bit of the Ed25519 signature is flipped; every other byte of the vector is unchanged.",
+      "proof_jws": "eyJhbGciOiJFZDI1NTE5In0..q0UCnD06N-31J08YMfbm9iyH58OEjhdB_OAGZ1kVwChqR1NBCDokm-yWiSpz-OfjeQu2-nrdsLxvSW7DXkRYBg",
+      "jws_signing_input": "eyJhbGciOiJFZDI1NTE5In0.YWsuYXBwcm92YWwuc2lnbmF0dXJlLnYxCnsiYWN0aW9uIjoiYWsuc3RyYW5kLmNyZWF0ZSIsImFwcHJvdmFsX2NvbnRleHQiOnsiY29udGV4dF9raW5kIjoiZ3JhbnQiLCJncmFudF9pZCI6ImFrOmdyYW50OkFSOXFWbkhLNGEwOTE0elBtSDVDUlpMVGpTU1ZfOGdoSkt1R0dpdkRhRXhmIn0sImFwcHJvdmFsX3RhcmdldCI6eyJldmVudF9pZCI6ImFrOmV2ZW50OkFTbzZ6QzVsWHczR0tPaWVLWGxYSllmS29RS25nNHNZWHR2ZFVBYUU5V1JCIiwidGFyZ2V0X2tpbmQiOiJldmVudCJ9LCJhcHByb3ZlZF9hdCI6IjIwMjYtMDgtMDZUMDA6MTA6MDAuMDAwWiIsImFwcHJvdmVyX2RpZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZW1hbmFnZXI6bWFuYWdlci5leGFtcGxlIiwiaW5pdGlhdGluZ19hY3Rvcl9pZCI6eyJhY2NvdW50X2lkIjp7InByaW5jaXBhbF9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlIiwic3RhdGlvbl9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlc3RhdGlvbmV4YW1wbGUifSwia2luZCI6ImFjY291bnQifSwibm9uY2UiOiJLRlNQR3ppSkdhS3d2bThoWGcta3JDOGlacXVuZjdFbUo3R0lvX2otM0c4Iiwib3BlcmF0aW9uIjoiYWsuc2VsZi5ldmVudHMuY29tbWFuZC5zdWJtaXQudjEiLCJyZWFsbV9pZCI6ImFrOnJlYWxtOkFUaDdPV0xMcFVkVFZZc0tkcDZya0NsU2NVcGpZSmxGMVkzYnlqZXlIUzhKIiwicmVxdWVzdF9jYW5vbmljYWxfZGlnZXN0Ijoic2hhMjU2OjczNWE5MDA5ZGRlYWI5MjcyM2M2OWI4YWU0ZmQ5MzJmMzFhYmQ2M2FiOTg2ZjFkMjEzMGIwNWZlOGFkMzFkODYifQ",
+      "public_key_jwk": {
+        "crv": "Ed25519",
+        "x": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
+        "kty": "OKP"
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "signature_invalid",
+        "reason": "signature bytes do not verify over signing_bytes"
+      }
+    },
+    {
+      "name": "reject_non_empty_jws_payload_segment",
+      "base_vector": "ak.vector.authz.approval_signature_bytes.v1",
+      "description": "The attached compact form carries signing_bytes in the payload segment. The detached profile requires an empty middle segment even when the attached form would verify.",
+      "proof_jws": "eyJhbGciOiJFZDI1NTE5In0.YWsuYXBwcm92YWwuc2lnbmF0dXJlLnYxCnsiYWN0aW9uIjoiYWsuc3RyYW5kLmNyZWF0ZSIsImFwcHJvdmFsX2NvbnRleHQiOnsiY29udGV4dF9raW5kIjoiZ3JhbnQiLCJncmFudF9pZCI6ImFrOmdyYW50OkFSOXFWbkhLNGEwOTE0elBtSDVDUlpMVGpTU1ZfOGdoSkt1R0dpdkRhRXhmIn0sImFwcHJvdmFsX3RhcmdldCI6eyJldmVudF9pZCI6ImFrOmV2ZW50OkFTbzZ6QzVsWHczR0tPaWVLWGxYSllmS29RS25nNHNZWHR2ZFVBYUU5V1JCIiwidGFyZ2V0X2tpbmQiOiJldmVudCJ9LCJhcHByb3ZlZF9hdCI6IjIwMjYtMDgtMDZUMDA6MTA6MDAuMDAwWiIsImFwcHJvdmVyX2RpZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZW1hbmFnZXI6bWFuYWdlci5leGFtcGxlIiwiaW5pdGlhdGluZ19hY3Rvcl9pZCI6eyJhY2NvdW50X2lkIjp7InByaW5jaXBhbF9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlIiwic3RhdGlvbl9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlc3RhdGlvbmV4YW1wbGUifSwia2luZCI6ImFjY291bnQifSwibm9uY2UiOiJLRlNQR3ppSkdhS3d2bThoWGcta3JDOGlacXVuZjdFbUo3R0lvX2otM0c4Iiwib3BlcmF0aW9uIjoiYWsuc2VsZi5ldmVudHMuY29tbWFuZC5zdWJtaXQudjEiLCJyZWFsbV9pZCI6ImFrOnJlYWxtOkFUaDdPV0xMcFVkVFZZc0tkcDZya0NsU2NVcGpZSmxGMVkzYnlqZXlIUzhKIiwicmVxdWVzdF9jYW5vbmljYWxfZGlnZXN0Ijoic2hhMjU2OjczNWE5MDA5ZGRlYWI5MjcyM2M2OWI4YWU0ZmQ5MzJmMzFhYmQ2M2FiOTg2ZjFkMjEzMGIwNWZlOGFkMzFkODYifQ.qkUCnD06N-31J08YMfbm9iyH58OEjhdB_OAGZ1kVwChqR1NBCDokm-yWiSpz-OfjeQu2-nrdsLxvSW7DXkRYBg",
+      "jws_signing_input": "eyJhbGciOiJFZDI1NTE5In0.YWsuYXBwcm92YWwuc2lnbmF0dXJlLnYxCnsiYWN0aW9uIjoiYWsuc3RyYW5kLmNyZWF0ZSIsImFwcHJvdmFsX2NvbnRleHQiOnsiY29udGV4dF9raW5kIjoiZ3JhbnQiLCJncmFudF9pZCI6ImFrOmdyYW50OkFSOXFWbkhLNGEwOTE0elBtSDVDUlpMVGpTU1ZfOGdoSkt1R0dpdkRhRXhmIn0sImFwcHJvdmFsX3RhcmdldCI6eyJldmVudF9pZCI6ImFrOmV2ZW50OkFTbzZ6QzVsWHczR0tPaWVLWGxYSllmS29RS25nNHNZWHR2ZFVBYUU5V1JCIiwidGFyZ2V0X2tpbmQiOiJldmVudCJ9LCJhcHByb3ZlZF9hdCI6IjIwMjYtMDgtMDZUMDA6MTA6MDAuMDAwWiIsImFwcHJvdmVyX2RpZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZW1hbmFnZXI6bWFuYWdlci5leGFtcGxlIiwiaW5pdGlhdGluZ19hY3Rvcl9pZCI6eyJhY2NvdW50X2lkIjp7InByaW5jaXBhbF9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlIiwic3RhdGlvbl9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlc3RhdGlvbmV4YW1wbGUifSwia2luZCI6ImFjY291bnQifSwibm9uY2UiOiJLRlNQR3ppSkdhS3d2bThoWGcta3JDOGlacXVuZjdFbUo3R0lvX2otM0c4Iiwib3BlcmF0aW9uIjoiYWsuc2VsZi5ldmVudHMuY29tbWFuZC5zdWJtaXQudjEiLCJyZWFsbV9pZCI6ImFrOnJlYWxtOkFUaDdPV0xMcFVkVFZZc0tkcDZya0NsU2NVcGpZSmxGMVkzYnlqZXlIUzhKIiwicmVxdWVzdF9jYW5vbmljYWxfZGlnZXN0Ijoic2hhMjU2OjczNWE5MDA5ZGRlYWI5MjcyM2M2OWI4YWU0ZmQ5MzJmMzFhYmQ2M2FiOTg2ZjFkMjEzMGIwNWZlOGFkMzFkODYifQ",
+      "public_key_jwk": {
+        "crv": "Ed25519",
+        "x": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
+        "kty": "OKP"
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "signature_invalid",
+        "reason": "detached_jws payload segment MUST be empty in compact serialization"
+      }
+    },
+    {
+      "name": "reject_substituted_verification_method",
+      "base_vector": "ak.vector.authz.approval_signature_bytes.v1",
+      "description": "verification_method is repointed at another key of the same approver DID. The member is not signed and carries no authority: it only selects a key, so substituting it yields an invalid signature rather than a second valid reading.",
+      "proof_jws": "eyJhbGciOiJFZDI1NTE5In0..qkUCnD06N-31J08YMfbm9iyH58OEjhdB_OAGZ1kVwChqR1NBCDokm-yWiSpz-OfjeQu2-nrdsLxvSW7DXkRYBg",
+      "jws_signing_input": "eyJhbGciOiJFZDI1NTE5In0.YWsuYXBwcm92YWwuc2lnbmF0dXJlLnYxCnsiYWN0aW9uIjoiYWsuc3RyYW5kLmNyZWF0ZSIsImFwcHJvdmFsX2NvbnRleHQiOnsiY29udGV4dF9raW5kIjoiZ3JhbnQiLCJncmFudF9pZCI6ImFrOmdyYW50OkFSOXFWbkhLNGEwOTE0elBtSDVDUlpMVGpTU1ZfOGdoSkt1R0dpdkRhRXhmIn0sImFwcHJvdmFsX3RhcmdldCI6eyJldmVudF9pZCI6ImFrOmV2ZW50OkFTbzZ6QzVsWHczR0tPaWVLWGxYSllmS29RS25nNHNZWHR2ZFVBYUU5V1JCIiwidGFyZ2V0X2tpbmQiOiJldmVudCJ9LCJhcHByb3ZlZF9hdCI6IjIwMjYtMDgtMDZUMDA6MTA6MDAuMDAwWiIsImFwcHJvdmVyX2RpZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZW1hbmFnZXI6bWFuYWdlci5leGFtcGxlIiwiaW5pdGlhdGluZ19hY3Rvcl9pZCI6eyJhY2NvdW50X2lkIjp7InByaW5jaXBhbF9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlIiwic3RhdGlvbl9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlc3RhdGlvbmV4YW1wbGUifSwia2luZCI6ImFjY291bnQifSwibm9uY2UiOiJLRlNQR3ppSkdhS3d2bThoWGcta3JDOGlacXVuZjdFbUo3R0lvX2otM0c4Iiwib3BlcmF0aW9uIjoiYWsuc2VsZi5ldmVudHMuY29tbWFuZC5zdWJtaXQudjEiLCJyZWFsbV9pZCI6ImFrOnJlYWxtOkFUaDdPV0xMcFVkVFZZc0tkcDZya0NsU2NVcGpZSmxGMVkzYnlqZXlIUzhKIiwicmVxdWVzdF9jYW5vbmljYWxfZGlnZXN0Ijoic2hhMjU2OjczNWE5MDA5ZGRlYWI5MjcyM2M2OWI4YWU0ZmQ5MzJmMzFhYmQ2M2FiOTg2ZjFkMjEzMGIwNWZlOGFkMzFkODYifQ",
+      "substituted_verification_method": "did:webvh:z6mkfixturemanager:manager.example#ed25519-2026-09-other-fixture",
+      "public_key_jwk": {
+        "crv": "Ed25519",
+        "x": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
+        "kty": "OKP"
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "signature_invalid",
+        "reason": "the selected key is not the key that produced this signature"
+      }
+    },
+    {
+      "name": "reject_missing_input_member",
+      "base_vector": "ak.vector.authz.approval_signature_bytes.v1",
+      "description": "nonce is absent. input is a closed object whose ten members are all required, so a missing member is schema_violation and MUST NOT be reported as signature_invalid (zh/authz/constraint-schema.md section 9.2.5 reducer rule 1).",
+      "mutated_input": {
+        "approval_context": {
+          "context_kind": "grant",
+          "grant_id": "ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf"
+        },
+        "approval_target": {
+          "target_kind": "event",
+          "event_id": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB"
+        },
+        "request_canonical_digest": "sha256:735a9009ddeab92723c69b8ae4fd932f31abd63ab986f1d2130b05fe8ad31d86",
+        "operation": "ak.self.events.command.submit.v1",
+        "action": "ak.strand.create",
+        "realm_id": "ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J",
+        "initiating_actor_id": {
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          },
+          "kind": "account"
+        },
+        "approver_did": "did:webvh:z6mkfixturemanager:manager.example",
+        "approved_at": "2026-08-06T00:10:00.000Z"
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "schema_violation",
+        "detected_by": "schema",
+        "reason": "nonce is absent. input is a closed object whose ten members are all required, so a missing member is schema_violation and MUST NOT be reported as signature_invalid (zh/authz/constraint-schema.md section 9.2.5 reducer rule 1).",
+        "reject_if_reported_as_signature_invalid": true
+      }
+    },
+    {
+      "name": "reject_null_filled_absent_member",
+      "base_vector": "ak.vector.authz.approval_signature_bytes.v1",
+      "description": "nonce is present as null. An absent member MUST NOT be reconstructed as null or as a local default; the object is still schema-invalid.",
+      "mutated_input": {
+        "approval_context": {
+          "context_kind": "grant",
+          "grant_id": "ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf"
+        },
+        "approval_target": {
+          "target_kind": "event",
+          "event_id": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB"
+        },
+        "request_canonical_digest": "sha256:735a9009ddeab92723c69b8ae4fd932f31abd63ab986f1d2130b05fe8ad31d86",
+        "operation": "ak.self.events.command.submit.v1",
+        "action": "ak.strand.create",
+        "realm_id": "ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J",
+        "initiating_actor_id": {
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          },
+          "kind": "account"
+        },
+        "approver_did": "did:webvh:z6mkfixturemanager:manager.example",
+        "approved_at": "2026-08-06T00:10:00.000Z",
+        "nonce": null
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "schema_violation",
+        "detected_by": "schema",
+        "reason": "nonce is present as null. An absent member MUST NOT be reconstructed as null or as a local default; the object is still schema-invalid.",
+        "reject_if_reported_as_signature_invalid": true
+      }
+    },
+    {
+      "name": "reject_extra_input_member",
+      "base_vector": "ak.vector.authz.approval_signature_bytes.v1",
+      "description": "An unregistered member is added to input. The object is closed, so an extra member is schema_violation rather than an ignorable extension.",
+      "mutated_input": {
+        "approval_context": {
+          "context_kind": "grant",
+          "grant_id": "ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf"
+        },
+        "approval_target": {
+          "target_kind": "event",
+          "event_id": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB"
+        },
+        "request_canonical_digest": "sha256:735a9009ddeab92723c69b8ae4fd932f31abd63ab986f1d2130b05fe8ad31d86",
+        "operation": "ak.self.events.command.submit.v1",
+        "action": "ak.strand.create",
+        "realm_id": "ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J",
+        "initiating_actor_id": {
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          },
+          "kind": "account"
+        },
+        "approver_did": "did:webvh:z6mkfixturemanager:manager.example",
+        "approved_at": "2026-08-06T00:10:00.000Z",
+        "nonce": "KFSPGziJGaKwvm8hXg-krC8iZqunf7EmJ7GIo_j-3G8",
+        "approval_reason": "looks fine"
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "schema_violation",
+        "detected_by": "schema",
+        "reason": "An unregistered member is added to input. The object is closed, so an extra member is schema_violation rather than an ignorable extension.",
+        "reject_if_reported_as_signature_invalid": true
+      }
+    },
+    {
+      "name": "reject_proof_inside_input",
+      "base_vector": "ak.vector.authz.approval_signature_bytes.v1",
+      "description": "The proof object is nested inside input. proof MUST NOT be a member of input: nothing outside input is covered by the signature, and a self-covering input has no fixed point.",
+      "mutated_input": {
+        "approval_context": {
+          "context_kind": "grant",
+          "grant_id": "ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf"
+        },
+        "approval_target": {
+          "target_kind": "event",
+          "event_id": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB"
+        },
+        "request_canonical_digest": "sha256:735a9009ddeab92723c69b8ae4fd932f31abd63ab986f1d2130b05fe8ad31d86",
+        "operation": "ak.self.events.command.submit.v1",
+        "action": "ak.strand.create",
+        "realm_id": "ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J",
+        "initiating_actor_id": {
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          },
+          "kind": "account"
+        },
+        "approver_did": "did:webvh:z6mkfixturemanager:manager.example",
+        "approved_at": "2026-08-06T00:10:00.000Z",
+        "nonce": "KFSPGziJGaKwvm8hXg-krC8iZqunf7EmJ7GIo_j-3G8",
+        "proof": {
+          "kind": "detached_jws",
+          "verification_method": "did:webvh:z6mkfixturemanager:manager.example#ed25519-2026-09-fixture",
+          "jws": "eyJhbGciOiJFZDI1NTE5In0..qkUCnD06N-31J08YMfbm9iyH58OEjhdB_OAGZ1kVwChqR1NBCDokm-yWiSpz-OfjeQu2-nrdsLxvSW7DXkRYBg"
+        }
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "schema_violation",
+        "detected_by": "schema",
+        "reason": "The proof object is nested inside input. proof MUST NOT be a member of input: nothing outside input is covered by the signature, and a self-covering input has no fixed point.",
+        "reject_if_reported_as_signature_invalid": true
+      }
+    },
+    {
+      "name": "reject_governance_context_carrying_grant_id",
+      "base_vector": "ak.vector.authz.approval_signature_bytes.v1",
+      "description": "The realm_governance branch carries a grant_id. The branch is closed and an implementation MUST NOT fabricate a grant_id to satisfy the schema.",
+      "mutated_input": {
+        "approval_context": {
+          "context_kind": "realm_governance",
+          "grant_id": "ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf"
+        },
+        "approval_target": {
+          "target_kind": "event",
+          "event_id": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB"
+        },
+        "request_canonical_digest": "sha256:735a9009ddeab92723c69b8ae4fd932f31abd63ab986f1d2130b05fe8ad31d86",
+        "operation": "ak.self.events.command.submit.v1",
+        "action": "ak.strand.create",
+        "realm_id": "ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J",
+        "initiating_actor_id": {
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          },
+          "kind": "account"
+        },
+        "approver_did": "did:webvh:z6mkfixturemanager:manager.example",
+        "approved_at": "2026-08-06T00:10:00.000Z",
+        "nonce": "KFSPGziJGaKwvm8hXg-krC8iZqunf7EmJ7GIo_j-3G8"
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "schema_violation",
+        "detected_by": "schema",
+        "reason": "The realm_governance branch carries a grant_id. The branch is closed and an implementation MUST NOT fabricate a grant_id to satisfy the schema.",
+        "reject_if_reported_as_signature_invalid": true
+      }
+    },
+    {
+      "name": "reject_governance_context_carrying_governance_configuration_reference",
+      "base_vector": "ak.vector.authz.approval_signature_bytes.v1",
+      "description": "The realm_governance branch carries a digest of the Realm's governance configuration. A private governance reference MUST NOT ride along in evidence that may leave the Station: realm_id, action and approval_target already determine the requirement, and the branch is closed so there is nowhere to put one.",
+      "mutated_input": {
+        "approval_context": {
+          "context_kind": "realm_governance",
+          "governance_config_digest": "sha256:049f9222f3b4d86ade197063de461407724f9c8a99602cfca74275644103ecd4"
+        },
+        "approval_target": {
+          "target_kind": "event",
+          "event_id": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB"
+        },
+        "request_canonical_digest": "sha256:735a9009ddeab92723c69b8ae4fd932f31abd63ab986f1d2130b05fe8ad31d86",
+        "operation": "ak.self.events.command.submit.v1",
+        "action": "ak.strand.create",
+        "realm_id": "ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J",
+        "initiating_actor_id": {
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          },
+          "kind": "account"
+        },
+        "approver_did": "did:webvh:z6mkfixturemanager:manager.example",
+        "approved_at": "2026-08-06T00:10:00.000Z",
+        "nonce": "KFSPGziJGaKwvm8hXg-krC8iZqunf7EmJ7GIo_j-3G8"
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "schema_violation",
+        "detected_by": "schema",
+        "reason": "The realm_governance branch carries a digest of the Realm's governance configuration. A private governance reference MUST NOT ride along in evidence that may leave the Station: realm_id, action and approval_target already determine the requirement, and the branch is closed so there is nowhere to put one.",
+        "reject_if_reported_as_signature_invalid": true
+      }
+    },
+    {
+      "name": "reject_event_target_without_event_id",
+      "base_vector": "ak.vector.authz.approval_signature_bytes.v1",
+      "description": "The event branch omits event_id, leaving request_canonical_digest as the only binding. The branch is closed and requires the exact target id.",
+      "mutated_input": {
+        "approval_context": {
+          "context_kind": "grant",
+          "grant_id": "ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf"
+        },
+        "approval_target": {
+          "target_kind": "event"
+        },
+        "request_canonical_digest": "sha256:735a9009ddeab92723c69b8ae4fd932f31abd63ab986f1d2130b05fe8ad31d86",
+        "operation": "ak.self.events.command.submit.v1",
+        "action": "ak.strand.create",
+        "realm_id": "ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J",
+        "initiating_actor_id": {
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          },
+          "kind": "account"
+        },
+        "approver_did": "did:webvh:z6mkfixturemanager:manager.example",
+        "approved_at": "2026-08-06T00:10:00.000Z",
+        "nonce": "KFSPGziJGaKwvm8hXg-krC8iZqunf7EmJ7GIo_j-3G8"
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "schema_violation",
+        "detected_by": "schema",
+        "reason": "The event branch omits event_id, leaving request_canonical_digest as the only binding. The branch is closed and requires the exact target id.",
+        "reject_if_reported_as_signature_invalid": true
+      }
+    },
+    {
+      "name": "reject_operation_target_carrying_event_id",
+      "base_vector": "ak.vector.authz.approval_signature_bytes.v1",
+      "description": "The operation branch carries an event_id. The two target branches are a closed XOR and MUST remain decidable from the schema alone.",
+      "mutated_input": {
+        "approval_context": {
+          "context_kind": "grant",
+          "grant_id": "ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf"
+        },
+        "approval_target": {
+          "target_kind": "operation",
+          "event_id": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB"
+        },
+        "request_canonical_digest": "sha256:735a9009ddeab92723c69b8ae4fd932f31abd63ab986f1d2130b05fe8ad31d86",
+        "operation": "ak.self.events.command.submit.v1",
+        "action": "ak.strand.create",
+        "realm_id": "ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J",
+        "initiating_actor_id": {
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          },
+          "kind": "account"
+        },
+        "approver_did": "did:webvh:z6mkfixturemanager:manager.example",
+        "approved_at": "2026-08-06T00:10:00.000Z",
+        "nonce": "KFSPGziJGaKwvm8hXg-krC8iZqunf7EmJ7GIo_j-3G8"
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "schema_violation",
+        "detected_by": "schema",
+        "reason": "The operation branch carries an event_id. The two target branches are a closed XOR and MUST remain decidable from the schema alone.",
+        "reject_if_reported_as_signature_invalid": true
+      }
+    },
+    {
+      "name": "reject_unregistered_operation_token",
+      "base_vector": "ak.vector.authz.approval_signature_bytes.v1",
+      "description": "operation names a token that operation-registry.json does not list. It satisfies the member's syntactic pattern, so the closed schema alone cannot refute it: the registry does, and the outcome is still schema_violation rather than an unknown-entry-point runtime error.",
+      "mutated_input": {
+        "approval_context": {
+          "context_kind": "grant",
+          "grant_id": "ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf"
+        },
+        "approval_target": {
+          "target_kind": "event",
+          "event_id": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB"
+        },
+        "request_canonical_digest": "sha256:735a9009ddeab92723c69b8ae4fd932f31abd63ab986f1d2130b05fe8ad31d86",
+        "operation": "ak.self.events.command.submit_with_approval.v1",
+        "action": "ak.strand.create",
+        "realm_id": "ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J",
+        "initiating_actor_id": {
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          },
+          "kind": "account"
+        },
+        "approver_did": "did:webvh:z6mkfixturemanager:manager.example",
+        "approved_at": "2026-08-06T00:10:00.000Z",
+        "nonce": "KFSPGziJGaKwvm8hXg-krC8iZqunf7EmJ7GIo_j-3G8"
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "schema_violation",
+        "detected_by": "operation_registry",
+        "reason": "operation names a token that operation-registry.json does not list. It satisfies the member's syntactic pattern, so the closed schema alone cannot refute it: the registry does, and the outcome is still schema_violation rather than an unknown-entry-point runtime error.",
+        "reject_if_reported_as_signature_invalid": true
+      }
+    },
+    {
+      "name": "reject_short_nonce",
+      "base_vector": "ak.vector.authz.approval_signature_bytes.v1",
+      "description": "nonce is shorter than the registered minimum, so it cannot carry 128 bits of entropy.",
+      "mutated_input": {
+        "approval_context": {
+          "context_kind": "grant",
+          "grant_id": "ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf"
+        },
+        "approval_target": {
+          "target_kind": "event",
+          "event_id": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB"
+        },
+        "request_canonical_digest": "sha256:735a9009ddeab92723c69b8ae4fd932f31abd63ab986f1d2130b05fe8ad31d86",
+        "operation": "ak.self.events.command.submit.v1",
+        "action": "ak.strand.create",
+        "realm_id": "ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J",
+        "initiating_actor_id": {
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          },
+          "kind": "account"
+        },
+        "approver_did": "did:webvh:z6mkfixturemanager:manager.example",
+        "approved_at": "2026-08-06T00:10:00.000Z",
+        "nonce": "short-nonce"
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "schema_violation",
+        "detected_by": "schema",
+        "reason": "nonce is shorter than the registered minimum, so it cannot carry 128 bits of entropy.",
+        "reject_if_reported_as_signature_invalid": true
+      }
+    },
+    {
+      "name": "reject_present_and_empty_approval_signatures",
+      "base_vector": "ak.vector.authz.approval_signature_bytes.v1",
+      "description": "EventCommitSubmission.approval_signatures is present and empty. The array is omitted when no approval layer demands evidence; present-and-empty is a distinct, forbidden third state (minItems 1).",
+      "mutated_submission": {
+        "event": {
+          "actor_id": {
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixture",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            },
+            "kind": "account"
+          },
+          "created_at": "2026-08-06T00:00:00.000Z",
+          "kind": "ak.strand.create",
+          "payload": {
+            "object": {
+              "created_at": "2026-08-06T00:00:00.000Z",
+              "created_by": {
+                "account_id": {
+                  "principal_id": "ak:did_core:webvh:z6mkfixture",
+                  "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+                },
+                "kind": "account"
+              },
+              "realm_id": "ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J",
+              "schema": "ak.schema.strand.v1",
+              "tracks": {
+                "discussion": {
+                  "enabled": true
+                }
+              }
+            }
+          },
+          "realm_id": "ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J",
+          "scope_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J"
+          },
+          "event_id": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB",
+          "proofs": [
+            {
+              "kind": "detached_jws",
+              "verification_method": "did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture",
+              "event_digest": "sha256:2a3acc2e655f0dc628e89e2979572587caa102a7838b185edbdd500684f56441",
+              "created_at": "2026-08-06T00:00:00.000Z",
+              "domain": "arkret-event-v1",
+              "jws": "eyJhbGciOiJFZDI1NTE5In0..meAfJMyDc1Suu1mO-tGk4TUvmBclTaDy8gkd7wXVrkPJnjGEZcwsHC5LX1oUAS05EAqRnFqKlxg3mqpnmUZHDQ"
+            }
+          ]
+        },
+        "approval_signatures": []
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "schema_violation",
+        "detected_by": "schema",
+        "reason": "approval_signatures MUST NOT be present and empty",
+        "reject_if_reported_as_signature_invalid": true
+      }
+    },
+    {
+      "name": "reject_event_id_not_equal_to_submitted_event",
+      "base_vector": "ak.vector.authz.approval_signature_bytes.v1",
+      "description": "A signature that verifies over its own bytes, whose approval_target.event_id names an Event other than the one in this submission. Reducer rule 3 requires the two to be equal, so the requirement stays unmet.",
+      "approved_event_id": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB",
+      "submitted_event_id": "ak:event:AZQ46f4F-slJbUZr3STXLp4uMH6L-OG_SP9WiwIOapJ4",
+      "expected": {
+        "decision": "reject",
+        "error_code": "claim_required",
+        "reason_code": "approval_required",
+        "reason": "approval_target.event_id MUST equal the submitted Event's event_id",
+        "nonce_consumed": false
+      }
+    },
+    {
+      "name": "reject_nonce_reused_on_another_target",
+      "base_vector": "ak.vector.authz.approval_signature_bytes.v1",
+      "description": "The (approval_context, approver_did, nonce) triple of an already accepted target is presented for a different target. An exact replay of the accepted target returns the original outcome; a different target MUST NOT.",
+      "first_accepted_target": {
+        "target_kind": "event",
+        "event_id": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB"
+      },
+      "replayed_target": {
+        "target_kind": "event",
+        "event_id": "ak:event:AZQ46f4F-slJbUZr3STXLp4uMH6L-OG_SP9WiwIOapJ4"
+      },
+      "nonce": "KFSPGziJGaKwvm8hXg-krC8iZqunf7EmJ7GIo_j-3G8",
+      "expected": {
+        "decision": "reject",
+        "error_code": "failed_precondition",
+        "reason_code": "approval_nonce_reused",
+        "reason": "the nonce was consumed by the accepted target and is not transferable"
+      }
+    },
+    {
+      "name": "reject_approved_at_beyond_hard_future_skew",
+      "base_vector": "ak.vector.authz.approval_signature_bytes.v1",
+      "description": "approved_at is later than the verification time plus the protocol-level hard_future_skew_ms. The signature verifies; the vote is still inadmissible, and an implementation MUST NOT widen the tolerance to accept it.",
+      "verification_time": "2026-08-06T00:10:00.000Z",
+      "hard_future_skew_ms": 300000,
+      "approved_at": "2026-08-06T00:20:00.000Z",
+      "expected": {
+        "decision": "reject",
+        "error_code": "claim_required",
+        "reason_code": "approval_required",
+        "reason": "approved_at MUST NOT exceed the verification time plus hard_future_skew_ms",
+        "nonce_consumed": false
+      }
+    },
+    {
+      "name": "reject_approved_at_before_grant_issued_at",
+      "base_vector": "ak.vector.authz.approval_signature_bytes.v1",
+      "description": "A grant-context approval signed before the grant it cites existed. The lower bound is the grant's issued_at, plus the not_before of its temporal grant-constraint when it carries one; a capability grant has no top-level not_before of its own.",
+      "grant_id": "ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf",
+      "grant_issued_at": "2026-08-06T00:05:00.000Z",
+      "grant_temporal_constraint_not_before": "2026-08-06T00:08:00.000Z",
+      "approved_at": "2026-08-06T00:00:00.000Z",
+      "expected": {
+        "decision": "reject",
+        "error_code": "claim_required",
+        "reason_code": "approval_required",
+        "reason": "approved_at precedes the grant's issued_at and its temporal not_before",
+        "nonce_consumed": false
+      }
+    },
+    {
+      "name": "reject_repeated_approver_counted_twice",
+      "base_vector": "ak.vector.authz.approval_signature_bytes.v1",
+      "description": "Two distinct, individually valid signatures from the same approver_did, each with its own nonce, presented against a threshold of two. Both verify; they are one approver, so the quorum is not reached and neither nonce is consumed.",
+      "approver_did": "did:webvh:z6mkfixturemanager:manager.example",
+      "distinct_nonces": [
+        "KFSPGziJGaKwvm8hXg-krC8iZqunf7EmJ7GIo_j-3G8",
+        "0spt0yRRn7uB2NKis0G-Q9SyvXZvfcu27XNJ1WF-SJM"
+      ],
+      "approval_threshold": 2,
+      "distinct_approvers": 1,
+      "expected": {
+        "decision": "reject",
+        "error_code": "claim_required",
+        "reason_code": "approval_required",
+        "reason": "one approver casts one vote however many signatures it presents",
+        "nonce_consumed": false
+      }
+    },
+    {
+      "name": "reject_reused_votes_after_timeout",
+      "base_vector": "ak.vector.authz.approval_signature_bytes.v1",
+      "description": "After the constraint's timeout expires, signatures collected under the old window are presented again. Every approval that had not reached the threshold is void: the approver MUST re-sign with a fresh nonce (reducer rule 5).",
+      "timeout": "PT72H",
+      "collected_at": "2026-08-06T00:10:00.000Z",
+      "presented_at": "2026-08-09T01:00:00.000Z",
+      "expected": {
+        "decision": "reject",
+        "error_code": "claim_required",
+        "reason_code": "approval_required",
+        "reason": "votes that never reached the threshold do not survive the timeout",
+        "nonce_consumed": false
+      }
+    },
+    {
+      "name": "reject_agent_confirmation_counted_as_approval",
+      "base_vector": "ak.vector.authz.approval_signature_bytes.v1",
+      "description": "An accepted ak.agent.action_approve Event is offered in place of an approval signature. It is a different object with a different nonce namespace and satisfies only the Agent draft publication gate; it MUST NOT be converted into a vote (zh/authz/constraint-schema.md section 9.2.6).",
+      "offered_object": "ak.agent.action_approve",
+      "expected": {
+        "decision": "reject",
+        "error_code": "claim_required",
+        "reason_code": "approval_required",
+        "reason": "agent confirmation is not approval evidence for the target Event"
+      }
+    }
+  ],
+  "generated_by": "tools/check_approval_signature_kat.py"
+}

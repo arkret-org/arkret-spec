@@ -67,6 +67,7 @@ CONTENT_BOUND_EVENT_ID_SCRIPT = Path(__file__).with_name(
 APPLET_DELIVERY_AUTH_KAT_SCRIPT = Path(__file__).with_name(
     "check_applet_delivery_authentication_kat.py"
 )
+APPROVAL_SIGNATURE_KAT_SCRIPT = Path(__file__).with_name("check_approval_signature_kat.py")
 ARTIFACT_VERSION_SCRIPT = Path(__file__).with_name("check_artifact_versions.py")
 COMPLETENESS_REPORT_SCRIPT = Path(__file__).with_name("gen_operation_completeness_report.py")
 EVENT_REFERENCE_INVENTORY_SCRIPT = Path(__file__).with_name(
@@ -1190,6 +1191,11 @@ def run_applet_delivery_authentication_kat_check() -> int:
     return result.returncode
 
 
+def run_approval_signature_kat_check() -> int:
+    result = subprocess.run([sys.executable, str(APPROVAL_SIGNATURE_KAT_SCRIPT)], cwd=ROOT)
+    return result.returncode
+
+
 def run_artifact_version_check() -> int:
     result = subprocess.run([sys.executable, str(ARTIFACT_VERSION_SCRIPT)], cwd=ROOT)
     return result.returncode
@@ -1388,6 +1394,7 @@ def cmd_check(_: argparse.Namespace) -> int:
             "applet delivery authentication KAT",
             run_applet_delivery_authentication_kat_check,
         ),
+        ("approval signature KAT", run_approval_signature_kat_check),
         ("artifact versions", run_artifact_version_check),
         ("artifact lint", run_lint),
         ("prose lint", run_prose_lint),

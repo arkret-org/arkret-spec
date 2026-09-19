@@ -3317,6 +3317,7 @@
         "required": [],
         "properties": [
           "event",
+          "approval_signatures",
           "commit_event",
           "welcomes",
           "idempotency_key"
@@ -3324,13 +3325,14 @@
         "closed": true,
         "variants": [
           {
-            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/submit_request",
+            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventCommitSubmission",
             "schema_kind": "object",
             "required": [
               "event"
             ],
             "properties": [
-              "event"
+              "event",
+              "approval_signatures"
             ],
             "closed": true
           },
@@ -6928,6 +6930,7 @@
         "required": [],
         "properties": [
           "event",
+          "approval_signatures",
           "commit_event",
           "welcomes",
           "idempotency_key"
@@ -6935,13 +6938,14 @@
         "closed": true,
         "variants": [
           {
-            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/submit_request",
+            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventCommitSubmission",
             "schema_kind": "object",
             "required": [
               "event"
             ],
             "properties": [
-              "event"
+              "event",
+              "approval_signatures"
             ],
             "closed": true
           },
