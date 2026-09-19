@@ -2,8 +2,8 @@
   "suite": "key_backup_schema_validation",
   "fixture_kind": "schema_only",
   "profile": "ak.profile.key_backup.memory_hard.v1",
-  "version": "2026-09-19.1",
-  "description": "Schema-only positive and negative wire-form validation cases for key backup and recovery contracts. Placeholder nonce/ciphertext/signature values are intentional and MUST NOT be treated as cryptographic conformance vectors. Covers ak.schema.key_backup.v1 series chain rules (genesis vs successor), passphrase_kdf nonce_salt, Argon2id memory-hard floor, PBKDF2 degraded-profile requirement, mixed_secret_storage policy gate, Agent PCR binding across public/plaintext/AAD views, derived whole-object signature projections, and minimal ak.schema.recovery_policy.v1 / ak.schema.recovery_receipt.v1 binding cases for the closed four-method union. Per identity/key-management.md §7.3 / §7.6 / §8, identity/security-transactions.md §2, and crypto-media/device-lifecycle.md §12 / §14. Lint runs tools/artifact_lint against schema_validation_cases[]. Real AEAD/HPKE/signature transcript vectors belong in a separate crypto fixture with reproducible key material and canonical bytes.",
+  "version": "2026-09-20.1",
+  "description": "Schema-only positive and negative wire-form validation cases for key backup and recovery contracts. Placeholder nonce/ciphertext/signature values are intentional and MUST NOT be treated as cryptographic conformance vectors. Covers ak.schema.key_backup.v1 series chain rules (genesis vs successor), passphrase_kdf nonce_salt, Argon2id memory-hard floor, PBKDF2 degraded-profile requirement, mixed_secret_storage policy gate, Agent PCR binding across public/plaintext/AAD views, derived whole-object signature projections, the canonical active-series source_commit_ref{realm_commit_id,device_generation_ref} with noncanonical alias and CommittedEventRef rejection, and minimal ak.schema.recovery_policy.v1 / ak.schema.recovery_receipt.v1 binding cases for the closed four-method union. Per identity/key-management.md §7.3 / §7.6 / §8, identity/security-transactions.md §2, and crypto-media/device-lifecycle.md §12 / §14. Lint runs tools/artifact_lint against schema_validation_cases[]. Real AEAD/HPKE/signature transcript vectors belong in a separate crypto fixture with reproducible key material and canonical bytes.",
   "runner": {
     "kind": "json_schema_validation_cases",
     "schema_dialect": "https://json-schema.org/draft/2020-12/schema",
@@ -239,6 +239,123 @@
         "device_generation_ref": "7-did-version",
         "realm_commit_id": "ak:realm_commit:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
       }
+    },
+    {
+      "name": "key_backup_active_series_canonical_source_commit_ref_valid",
+      "schema_ref": "schemas/key-backup-active-series.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "schema": "ak.schema.key_backup_active_series.v1",
+        "actor_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          }
+        },
+        "backup_kind": "secret_storage",
+        "active_series_id": "ak:backup_series:01964137-1000-7000-8000-000000000000",
+        "series_pointer_version": 1,
+        "previous_series_ids": [],
+        "source_commit_ref": {
+          "realm_commit_id": "ak:realm_commit:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "device_generation_ref": 7
+        },
+        "issued_at": "2026-09-20T00:00:00.000Z",
+        "auth_data": {
+          "verification_method": "did:webvh:QmZ7p8K3pV4cXbKqL2nMsR9tWfH:alice.example#ak_device_01964137",
+          "signature_algorithm": "Ed25519",
+          "signature": "signature-base64url-placeholder",
+          "device_authorize_event_id": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD"
+        }
+      }
+    },
+    {
+      "name": "key_backup_active_series_source_ref_alias_rejected",
+      "schema_ref": "schemas/key-backup-active-series.schema.json",
+      "expect_valid": false,
+      "instance_from": "key_backup_active_series_canonical_source_commit_ref_valid",
+      "mutations": [
+        {
+          "op": "remove",
+          "path": "/source_commit_ref"
+        },
+        {
+          "op": "add",
+          "path": "/source_ref",
+          "value": {
+            "commit_ref": {
+              "event_id": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+              "commit_id": "ak:realm_commit:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "stream_ref": {
+                "kind": "realm",
+                "realm_id": "ak:realm:AcQajqaKFvyDoMpqpSlBvMh0d4gheZsVPhbHaTlqXtkV"
+              },
+              "stream_position": 4
+            },
+            "device_generation_ref": 7
+          }
+        }
+      ],
+      "first_expected_error": "$: 'source_commit_ref' is a required property"
+    },
+    {
+      "name": "key_backup_active_series_full_committed_event_ref_rejected",
+      "schema_ref": "schemas/key-backup-active-series.schema.json",
+      "expect_valid": false,
+      "instance_from": "key_backup_active_series_canonical_source_commit_ref_valid",
+      "mutations": [
+        {
+          "op": "add",
+          "path": "/source_commit_ref/event_id",
+          "value": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD"
+        },
+        {
+          "op": "add",
+          "path": "/source_commit_ref/commit_id",
+          "value": "ak:realm_commit:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+        },
+        {
+          "op": "add",
+          "path": "/source_commit_ref/stream_ref",
+          "value": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AcQajqaKFvyDoMpqpSlBvMh0d4gheZsVPhbHaTlqXtkV"
+          }
+        },
+        {
+          "op": "add",
+          "path": "/source_commit_ref/stream_position",
+          "value": 4
+        }
+      ],
+      "first_expected_error": "$.source_commit_ref: Additional properties are not allowed ('commit_id', 'event_id', 'stream_position', 'stream_ref' were unexpected)"
+    },
+    {
+      "name": "key_backup_active_series_missing_realm_commit_id_rejected",
+      "schema_ref": "schemas/key-backup-active-series.schema.json",
+      "expect_valid": false,
+      "instance_from": "key_backup_active_series_canonical_source_commit_ref_valid",
+      "mutations": [
+        {
+          "op": "remove",
+          "path": "/source_commit_ref/realm_commit_id"
+        }
+      ],
+      "first_expected_error": "$.source_commit_ref: 'realm_commit_id' is a required property"
+    },
+    {
+      "name": "key_backup_active_series_missing_device_generation_ref_rejected",
+      "schema_ref": "schemas/key-backup-active-series.schema.json",
+      "expect_valid": false,
+      "instance_from": "key_backup_active_series_canonical_source_commit_ref_valid",
+      "mutations": [
+        {
+          "op": "remove",
+          "path": "/source_commit_ref/device_generation_ref"
+        }
+      ],
+      "first_expected_error": "$.source_commit_ref: 'device_generation_ref' is a required property"
     }
   ]
 }

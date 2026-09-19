@@ -249,6 +249,7 @@ from .psi_class_b import check_psi_class_b_artifact_closure
 from .reason_code_producers import check_reason_code_producer_paths
 from .result_effect_ownership import check_result_effect_ownership
 from .agent_draft_pending_intent import check_agent_draft_pending_intent
+from .key_backup_active_series_source_anchor import check_key_backup_active_series_source_anchor
 from .proof_context_schemas import (
     check_asserted_result_families_are_registered,
     check_author_writable_state_axis_contract,
@@ -441,6 +442,10 @@ def main(argv: list[str] | None = None) -> int:
             (
                 "canonical_wire_source_closure",
                 lambda: check_canonical_wire_source_closure(lint),
+            ),
+            (
+                "key_backup_active_series_source_anchor",
+                lambda: check_key_backup_active_series_source_anchor(lint),
             ),
             (
                 "preimage_event_identity_commitments",

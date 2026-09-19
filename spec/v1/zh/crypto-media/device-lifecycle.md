@@ -3,7 +3,7 @@ title: Device Lifecycle
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-19
+updated: 2026-09-20
 ---
 
 ## 0. 规范语言
@@ -1244,7 +1244,7 @@ Client-local secret storage 的存储格式仍可使用本节的 `ak.secret_stor
 
 ### 12.1 Backup API
 
-备份上传、读取和删除仍使用 `ak.schema.key_backup.v1`。每个 successor 必须链接同一 series 的直接 predecessor；客户端验证密文摘要、设备签名以及可选 `source_commit_ref`（出现时其 `realm_commit_id` 与 `device_generation_ref` 都必须存在），但该锚点只证明备份产生时观察到的 Realm stream 位置，不证明任何 Circle 或 Sidecar stream 的位置。
+备份上传、读取和删除仍使用 `ak.schema.key_backup.v1`。每个 successor 必须链接同一 series 的直接 predecessor；客户端验证密文摘要、设备签名以及可选 `source_commit_ref`（出现时其 `realm_commit_id` 与 `device_generation_ref` 都必须存在），但该锚点只证明备份产生时观察到的 Realm stream 位置，不证明任何 Circle 或 Sidecar stream 的位置。`ak.key_backup.active_series` 的 signed payload 复用同一个闭合两字段锚：唯一顶层名是 `source_commit_ref`，`realm_commit_id` 直接使用强类型 `RealmCommitId`；`source_ref`、内层 `commit_ref` 和完整 `CommittedEventRef` 都不是 v1 wire，MUST 在验签或状态写入前拒绝。
 
 ### 12.2 Retention and Erasure
 

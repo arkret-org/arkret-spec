@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.2",
+  "version": "2026-09-20.3",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T00:21:26+08:00",
+  "generated_at": "2026-09-20T00:32:02+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -3581,7 +3581,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "admission": "self_authored_proof",
-        "payload": "Key backup active series selection for one principal and backup_kind.",
+        "payload": "Key backup active series selection for one principal and backup_kind. The signed payload has exactly one source-anchor member: source_commit_ref{realm_commit_id,device_generation_ref}; source_ref and nested CommittedEventRef shapes are invalid.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/key_backup_active_series_payload",
         "id_source": "not_an_object_id",
         "result_effect_ownership": {
@@ -3607,7 +3607,7 @@
               }
             },
             "value_schema_ref": "schemas/key-backup-active-series.schema.json",
-            "notes": "identity/key-management.md section 7.6.1. ActorId and backup_kind select one pointer. Admission verifies signature/device authorization/source commit and requires version 1 on first write or exactly current+1 afterwards; rollback, gaps and same-version forks fail with zero writes."
+            "notes": "identity/key-management.md sections 7.6 and 7.6.1. ActorId and backup_kind select one pointer. Admission verifies signature/device authorization and the exact source_commit_ref{realm_commit_id,device_generation_ref}; it does not accept source_ref, commit_ref or a full CommittedEventRef. Version must be 1 on first write or exactly current+1 afterwards; rollback, gaps and same-version forks fail with zero writes."
           }
         ]
       },
@@ -8686,8 +8686,8 @@
         }
       }
     },
-    "version": "2026-09-20.8",
-    "generated_at": "2026-09-20T00:21:26+08:00",
+    "version": "2026-09-20.9",
+    "generated_at": "2026-09-20T00:40:27+08:00",
     "bootstrap_event_kinds": [
       "ak.device.authorize",
       "ak.device.reanchor",
@@ -9648,7 +9648,7 @@
         "schema_id": "ak.schema.key_backup_active_series.v1",
         "file": "schemas/key-backup-active-series.schema.json",
         "status": "active",
-        "description": "Signed principal-control record selecting the active backup series for one (actor_id, backup_kind)."
+        "description": "Signed principal-control record selecting the active backup series for one (actor_id, backup_kind), with the sole source anchor source_commit_ref{realm_commit_id,device_generation_ref}."
       },
       {
         "schema_id": "ak.schema.key_backup_plaintext.v1",
@@ -10502,8 +10502,8 @@
         "description": "Server authentication-success frame carrying effective connection and channel limits."
       }
     ],
-    "version": "2026-09-20.8",
-    "generated_at": "2026-09-20T00:14:34+08:00",
+    "version": "2026-09-20.9",
+    "generated_at": "2026-09-20T00:40:27+08:00",
     "metadata_authority": "contract_registry_section"
   },
   "id_kind_registry": {

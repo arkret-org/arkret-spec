@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.8",
+  "version": "2026-09-20.9",
   "source_of_truth": false,
-  "generated_at": "2026-09-20T00:14:34+08:00",
+  "generated_at": "2026-09-20T00:40:27+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -787,7 +787,7 @@
       "schema_id": "ak.schema.key_backup_active_series.v1",
       "file": "schemas/key-backup-active-series.schema.json",
       "status": "active",
-      "description": "Signed principal-control record selecting the active backup series for one (actor_id, backup_kind)."
+      "description": "Signed principal-control record selecting the active backup series for one (actor_id, backup_kind), with the sole source anchor source_commit_ref{realm_commit_id,device_generation_ref}."
     },
     {
       "schema_id": "ak.schema.key_backup_plaintext.v1",

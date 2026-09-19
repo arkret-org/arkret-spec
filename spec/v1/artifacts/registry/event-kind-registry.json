@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.8",
+  "version": "2026-09-20.9",
   "source_of_truth": false,
-  "generated_at": "2026-09-20T00:21:26+08:00",
+  "generated_at": "2026-09-20T00:40:27+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -3224,7 +3224,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
-      "payload": "Key backup active series selection for one principal and backup_kind.",
+      "payload": "Key backup active series selection for one principal and backup_kind. The signed payload has exactly one source-anchor member: source_commit_ref{realm_commit_id,device_generation_ref}; source_ref and nested CommittedEventRef shapes are invalid.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/key_backup_active_series_payload",
       "id_source": "not_an_object_id",
       "result_effect_ownership": {
@@ -3250,7 +3250,7 @@
             }
           },
           "value_schema_ref": "schemas/key-backup-active-series.schema.json",
-          "notes": "identity/key-management.md section 7.6.1. ActorId and backup_kind select one pointer. Admission verifies signature/device authorization/source commit and requires version 1 on first write or exactly current+1 afterwards; rollback, gaps and same-version forks fail with zero writes."
+          "notes": "identity/key-management.md sections 7.6 and 7.6.1. ActorId and backup_kind select one pointer. Admission verifies signature/device authorization and the exact source_commit_ref{realm_commit_id,device_generation_ref}; it does not accept source_ref, commit_ref or a full CommittedEventRef. Version must be 1 on first write or exactly current+1 afterwards; rollback, gaps and same-version forks fail with zero writes."
         }
       ]
     },

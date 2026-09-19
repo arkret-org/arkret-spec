@@ -3,7 +3,7 @@ title: Key Management
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-12
+updated: 2026-09-20
 ---
 
 ## 0. 规范语言
@@ -1059,12 +1059,23 @@ v1 core 不把 `hardware_wrapped_key` 作为 `ak.schema.key_backup.v1.encryption
 
 每个 `(actor_id, backup_kind)` 的 series 使用严格递增 `series_seq` 与 digest-bound `supersedes_id` 链。Active-series record 必须由当前 accepted device 签名，签名输入固定为 `RFC8785_JCS(record 删除 auth_data.signature)`；闭合 record 的全部实际存在成员自动受认证，不携字段名清单。record 携带其 `device_authorize_event_id`，并以整数 `source_commit_ref.device_generation_ref` 绑定 current generation。服务器在 accepted PCR 状态中验证 pointer 的单调性、签名、generation 与分支，拒绝回滚、fork 和链缺口；**陈旧判据（normative）**：envelope、active-series record 与已冻结的 backup 清单只在 `source_commit_ref.device_generation_ref` 不再等于当前活动 `current_device_generation_ref` 时陈旧（`backup_revision_stale`），或在所绑 series pointer / 清单内容本身改变时失效；**同一 stream 上此后出现更晚的 RealmCommit 本身不使其陈旧**，因此不得以流头前进作废一份已冻结清单。普通客户端使用下述自己 Station 的当前指针结果，不验证 PCR 历史或要求列表携 completeness/witness evidence。
 
+Active-series signed payload 的来源锚只有一个 canonical wire 形状：顶层成员必须逐字为
+`source_commit_ref`，其闭合值必须逐字为 `{realm_commit_id, device_generation_ref}`。
+`realm_commit_id` 直接采用强类型 `RealmCommitId`；payload 不携 `source_ref`、内层 `commit_ref`，也不携
+`CommittedEventRef` 的 Event、stream 或 position 成员。producer、verifier 与签名转录不得接受别名、双读或
+从完整 committed Event reference 猜测／压缩该值。任一旧形状即 schema-invalid，并在验签或状态变异前
+fail closed。
+
 #### 7.6.1 自己 Station 的 active series 与有界列表
 
 `ak.self.keys.backups.read.list.v1` 的 `KeysBackupsList` 按 `backups, active_series, next_cursor?, has_more` 排列。
 `active_series` 是必填 `BackupActiveSeriesState`，按 `account_id, control_realm_id, authority_commit_id, secret_storage`
 排列，绑定本次已认证完整 AccountId、其 PCR 和完成当前指针判断的 已确认 basis（每 Realm 恰一个 head）。两个 backup class 始终全部返回，
 不受 series_id/backup_kind 过滤、当前页有无 envelope 或 envelope 的过期/删除影响。
+
+这里 response DTO 的 `authority_commit_id` 是 Station 对本次 current projection 给出的 confirmed-basis
+provenance；它不是 signed active-series payload 内的 `source_commit_ref`，也不得改名为后者或承载完整
+`CommittedEventRef`。两者分别由 response schema 与 Event payload schema 封闭，名称相近不建立 wire alias。
 
 每个 class 的 `BackupActiveSeriesPointer` 为 closed 分支：`{state:"absent"}` 或
 `{state:"active", active_series_id, series_pointer_version}`。active 来自该 basis 已接受的
