@@ -158,6 +158,8 @@ ActorId 一致。同 principal/device 在不同 Station 下的账号具有独立
 Signal 把来源授权、联邦准入与端到端身份分成三层，MUST NOT 因函数复用而把三个角色的
 验证责任混成一个“所有 verifier 都查询 current device directory”的要求：
 
+四个 Station 时间边界的 Realm governance 真相源始终是目标 Realm 的唯一 current governance Station。它独占 membership、capability 与 RealmCommit 的可写接纳状态；source local ingress、source 出站重检、destination peer ingress 与 recipient 投递只读已验证的 authority-committed projection，再分别执行本地 device、transport、TTL 与投递新鲜度检查。缓存只在能够证明其覆盖当前已知治理 head 且未越过该阶段要求的 freshness 边界时可复用；排队后的出站与每帧投递必须重新观察撤销/过期。projection 不可验证、已知 stale 或读取超时只可在原 Signal TTL 内有界 pending，随后丢弃；不得猜测通过、维护第二份可写 membership/capability ledger、签发 Commit 或声称第二次 accepted。对应机读阶段见 `contract-registry.json#operation_registry/direct_conversation_signal_admission_mappings`，向量 `ak.vector.direct_conversation.signal_admission.v1` 锁定四个只读 gate 与密文产品动作的分层。
+
 | 角色 | 必须独立验证的材料与边界 |
 | --- | --- |
 | sender / source Station local ingress | exact AccountId 的 current accepted device authorization、设备签名 key 和 producer signature；Realm/scope、可验证 RealmCommit、current membership、class action、TTL 与外层 MLS/AAD basis。账号 session 不替代设备授权。 |
@@ -174,7 +176,9 @@ stale 的 basis 不能靠猜测补全。该检查不要求 Station 取得 MLS se
 或 leaf-directory tracker；recipient 仍 MUST 用自己的 verified MLS state 独立完成完整绑定。
 短 TTL 和允许乱序不授予旧 epoch 或另一 fork 的接收宽限。
 
-客户端只消费自己 Account Station 的已认证 Signal stream。Station 在 self ingress / peer ingress 及投递时执行其所属的当前治理准入；客户端 MUST NOT 为每个 Signal 下载或重放 membership、capability、RealmCommit checkpoint，也不得以本地尚未取得完整治理历史阻塞解密。客户端仍核对订阅来源、Realm/scope、可信当前签名 key 与本地 MLS 的 exact leaf/group/epoch/state binding，验证 producer signature、AAD/AEAD、TTL、plaintext schema 与 replay。服务器治理结果不替代这些端到端检查。
+对 Direct Conversation，Station 外层只看 closed `SignalEnvelope` 中的 `signal_class`、Realm/scope、sender、Commit、时间与 MLS basis，以及已验证的当前 participant 投影。三项密文产品动作 `ak.call.signal.send`、`ak.receipt.broadcast`、`ak.typing.broadcast` 不映射到 Event submit，也不从 ciphertext 推断为 Station 可见的 kind-specific capability。self send 的外层 participant/class 拒绝统一用 non-enumerating Problem Details `signal_class_denied`，不暴露失败的 participant 输入；peer ingress 对单项失败 opaque drop，recipient delivery 不发 data frame，均无 Event/RealmCommit 写入。recipient 解密并验证后按 plaintext profile 对 exact kind 与 target 执行产品策略；失败不得展示或产生业务副作用，也不能回填一个服务端 reason。`signal_class=setup|moderation|session` 是外层唯一 class discriminator，不能据此推断密文里是 typing、receipt 还是 call。
+
+客户端只消费自己 Account Station 的已认证 Signal stream。Station 在 self ingress / peer ingress 及投递时读取同一个 current governance Station 已签发事实的验证投影，并执行各自时间边界的只读 fresh gate；客户端 MUST NOT 为每个 Signal 下载或重放 membership、capability、RealmCommit checkpoint，也不得以本地尚未取得完整治理历史阻塞解密。客户端仍核对订阅来源、Realm/scope、可信当前签名 key 与本地 MLS 的 exact leaf/group/epoch/state binding，验证 producer signature、AAD/AEAD、TTL、plaintext schema 与 replay。服务器治理结果不替代这些端到端检查。
 
 source 和 recipient 的设备授权使用 **current** 状态，`commit_ref` 只选择 Realm/scope 授权域，
 不选择设备授权历史。source 使用自己托管的 exact AccountId 的 accepted device projection。

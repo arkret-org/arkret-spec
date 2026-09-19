@@ -259,7 +259,7 @@ from .account_data_revision_name import check_account_data_revision_name
 from .key_backup_active_series_source_anchor import check_key_backup_active_series_source_anchor
 from .key_backup_envelope_source_anchor import check_key_backup_envelope_source_anchor
 from .signer_key_historical_coordinate import check_signer_key_historical_coordinate
-from .direct_conversation_admission import check_direct_conversation_admission_producers
+from .direct_conversation_admission import check_direct_conversation_admission_producers, check_direct_conversation_signal_admission
 from .proof_context_schemas import (
     check_asserted_result_families_are_registered,
     check_author_writable_state_axis_contract,
@@ -481,6 +481,10 @@ def main(argv: list[str] | None = None) -> int:
             (
                 "direct_conversation_admission_producers",
                 lambda: check_direct_conversation_admission_producers(lint),
+            ),
+            (
+                "direct_conversation_signal_admission",
+                lambda: check_direct_conversation_signal_admission(lint),
             ),
             (
                 "account_data_revision_name",

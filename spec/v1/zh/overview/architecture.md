@@ -186,6 +186,8 @@ Arkret 的协议文档按“服务角色”定义能力；实际落地时可以�
 
 最小个人或小团队部署只要求一个公开业务数据角色：**Station**。Account Authority 是 Station 对客户端发布的账号准入 capability/surface，不是第二个 service role，也没有独立 `service_kind`、service DID、service registration 或 role-local Describe。实现 MAY 在 Station 认证 TCB 内拆分认证进程、数据库或私有 RPC，但这些拓扑对客户端、peer Station、Directory 与 Realm policy 透明。
 
+Device Pairing 的 `ak.gate.account.*` 条目仅约束同一 Station 认证 TCB 选择拆分部署时的私有调用与崩溃恢复，不赋予 Account Authority 第二个服务身份或 Realm 治理权威。`prepared → station_accepted → completed` 是唯一 pairing ledger 的本地协调 fence；其中 `station_accepted` 记录的是 owning Station 已签发的唯一 `RealmCommit`，不是第二个 accepted Event 状态。合并部署 MAY 用一笔本地事务实现相同的唯一 ledger、Event/Commit 原子接纳与 terminal exact replay，不必发出私有 HTTP 调用或持久化跨进程 fence；两种拓扑对外必须给出相同的 public outcome。human PCR 的 current governance MUST 保持与 `AccountId.station_id` 同一 Station 身份谱系，不允许另一 Station 接管该账号或 PCR；验证仍须核对 accepted genesis/治理连续性，不能只凭 `AccountId` 字段推断一份 Commit 有效。此约束不能推广成所有 Realm 的治理规则。
+
 ```text
 Station
 ├─ principal endpoint / event storage

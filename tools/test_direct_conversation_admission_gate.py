@@ -29,15 +29,18 @@ class DirectConversationAdmissionGateTest(unittest.TestCase):
                 gate.ERRORS,
                 gate.EVENTS,
                 gate.AUTHORITY,
+                gate.ACTIONS,
                 gate.VECTORS,
                 gate.SCHEMA,
                 gate.RESOLVER_SCHEMA,
                 gate.FIXTURE,
+                gate.SIGNAL_SCHEMA,
+                gate.SIGNAL_FIXTURE,
             )
         }
         self.texts = {
             path.resolve(): path.read_text(encoding="utf-8")
-            for path in (gate.PROSE, gate.VECTOR_PROSE, gate.REALM_PROSE, gate.RUNNER)
+            for path in (gate.PROSE, gate.VECTOR_PROSE, gate.REALM_PROSE, gate.SIGNAL_PROSE, gate.RUNNER)
         }
 
     def run_gate(self, mutate=None, text_mutate=None) -> list[str]:
@@ -153,6 +156,57 @@ class DirectConversationAdmissionGateTest(unittest.TestCase):
             texts[path] = texts[path].replace("这里必须区分三件事", "这里必须区分两件事")
 
         self.assert_red(text_mutate=mutate, marker="这里必须区分三件事")
+
+    def run_signal_gate(self, mutate=None) -> list[str]:
+        documents = copy.deepcopy(self.documents)
+        if mutate is not None:
+            mutate(documents)
+        original_json = gate.load_json
+
+        def load_json(lint, path):  # type: ignore[no-untyped-def]
+            return documents.get(Path(path).resolve(), original_json(lint, path))
+
+        gate.load_json = load_json
+        try:
+            lint = Lint()
+            gate.check_direct_conversation_signal_admission(lint)
+            return lint.errors
+        finally:
+            gate.load_json = original_json
+
+    def test_signal_contract_passes(self) -> None:
+        self.assertEqual(self.run_signal_gate(), [])
+
+    def test_edge_second_admission_fails(self) -> None:
+        def mutate(documents: dict) -> None:
+            documents[gate.SIGNAL_FIXTURE.resolve()]["event_authority_role_cases"][0]["profile_admission_count"] = 1
+
+        self.assertTrue(any("must not repeat current-governance admission" in e for e in self.run_signal_gate(mutate)))
+
+    def test_signal_product_kind_leak_fails(self) -> None:
+        def mutate(documents: dict) -> None:
+            documents[gate.SIGNAL_SCHEMA.resolve()]["properties"]["signal_kind"] = {"type": "string"}
+
+        self.assertTrue(any("must remain encrypted" in e for e in self.run_signal_gate(mutate)))
+
+    def test_signal_second_governance_writer_fails(self) -> None:
+        def mutate(documents: dict) -> None:
+            documents[gate.CONTRACT.resolve()]["operation_registry"]["direct_conversation_signal_admission_mappings"]["governance_writer"] = "recipient_account_station"
+
+        self.assertTrue(any("governance_writer" in e for e in self.run_signal_gate(mutate)))
+
+    def test_signal_event_surface_mixing_fails(self) -> None:
+        def mutate(documents: dict) -> None:
+            row = next(r for r in documents[gate.AUTHORITY.resolve()]["sources"] if r["authority_source_id"] == "ak.authority.direct_conversation_participant.v1")
+            row["event_action_allowlist"].append("ak.typing.broadcast")
+
+        self.assertTrue(any("partitions" in e for e in self.run_signal_gate(mutate)))
+
+    def test_signal_stale_peer_gate_removal_fails(self) -> None:
+        def mutate(documents: dict) -> None:
+            documents[gate.CONTRACT.resolve()]["operation_registry"]["direct_conversation_signal_admission_mappings"]["freshness_stages"].pop(2)
+
+        self.assertTrue(any("four read-only freshness" in e for e in self.run_signal_gate(mutate)))
 
 
 if __name__ == "__main__":

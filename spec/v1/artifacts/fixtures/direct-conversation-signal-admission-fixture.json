@@ -1,0 +1,31 @@
+{
+  "fixture_id": "ak.fixture.direct_conversation.signal_admission.v1",
+  "vector_id": "ak.vector.direct_conversation.signal_admission.v1",
+  "version": 1,
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.direct_conversation.signal_admission.v1"
+  },
+  "operation_id": "ak.self.signal.command.send.v1",
+  "authority_source_id": "ak.authority.direct_conversation_participant.v1",
+  "event_semantic_owner": "current_governance_station",
+  "event_authority_role_cases": [
+    {"case_id": "edge_forwards_without_profile_admission", "role": "sender_account_station", "operation_branch": "authority_forward", "profile_admission_count": 0, "accepted_state_write_count": 0, "expected": "relay_exact_authority_outcome"},
+    {"case_id": "authority_evaluates_once", "role": "current_governance_station", "profile_admission_count": 1, "expected": "one_reason_or_one_realm_commit_transaction"},
+    {"case_id": "replica_materializes_without_readmission", "role": "committed_replica", "profile_admission_count": 0, "realm_commit_sign_count": 0, "expected": "verify_source_commit_and_materialize"}
+  ],
+  "encrypted_product_actions": ["ak.call.signal.send", "ak.receipt.broadcast", "ak.typing.broadcast"],
+  "cases": [
+    {"case_id": "typing_outer_valid", "product_action": "ak.typing.broadcast", "outer_class": "session", "outer_participant_valid": true, "expected": "eligible_for_recipient_decryption"},
+    {"case_id": "receipt_outer_valid", "product_action": "ak.receipt.broadcast", "outer_class": "session", "outer_participant_valid": true, "expected": "eligible_for_recipient_decryption"},
+    {"case_id": "call_outer_valid", "product_action": "ak.call.signal.send", "outer_class": "session", "outer_participant_valid": true, "expected": "eligible_for_recipient_decryption"},
+    {"case_id": "typing_participant_revoked", "product_action": "ak.typing.broadcast", "outer_participant_valid": false, "expected_self_problem": "signal_class_denied", "expected_peer": "opaque_per_item_drop", "expected_delivery": "no_authenticated_data_frame"},
+    {"case_id": "receipt_participant_revoked", "product_action": "ak.receipt.broadcast", "outer_participant_valid": false, "expected_self_problem": "signal_class_denied", "expected_peer": "opaque_per_item_drop", "expected_delivery": "no_authenticated_data_frame"},
+    {"case_id": "call_participant_revoked", "product_action": "ak.call.signal.send", "outer_participant_valid": false, "expected_self_problem": "signal_class_denied", "expected_peer": "opaque_per_item_drop", "expected_delivery": "no_authenticated_data_frame"},
+    {"case_id": "ciphertext_kind_invisible", "same_outer_envelope_for_all_product_actions": true, "station_may_infer_product_action": false, "expected": "recipient_only_product_policy"},
+    {"case_id": "queued_sender_revoked", "stage": "source_outbound_recheck", "expected": "send_or_drop", "send": false},
+    {"case_id": "peer_projection_stale", "stage": "destination_peer_ingress", "expected": "opaque_per_item_relay_or_drop", "relay": false},
+    {"case_id": "sender_revoked_before_delivery", "stage": "recipient_delivery", "expected": "authenticated_frame_or_no_frame", "deliver": false},
+    {"case_id": "no_second_governance_ledger", "governance_writer": "current_governance_station_only", "consumer_writes_membership_or_capability": false, "consumer_signs_realm_commit": false}
+  ]
+}

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.7",
+  "version": "2026-09-20.8",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T04:33:43+08:00",
+  "generated_at": "2026-09-20T06:33:46+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1698,6 +1698,14 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/direct-conversation-admission-fixture.json"
       ]
+    },
+    {
+      "vector_id": "ak.vector.direct_conversation.signal_admission.v1",
+      "status": "active",
+      "domain": "direct_conversation",
+      "applies_to_fixtures": ["direct-conversation-signal-admission-fixture.json"],
+      "description": "Typing, receipt and call share an encrypted-only Signal outer rail. Four read-only freshness boundaries gate the verified current-governance projection; self failure is non-enumerating, peer failure is opaque, delivery failure emits no frame, and only the recipient inspects exact product kind.",
+      "source_refs": ["spec/v1/artifacts/fixtures/direct-conversation-signal-admission-fixture.json", "spec/v1/zh/sync/signal.md"]
     },
     {
       "vector_id": "ak.vector.direct_conversation.admission.root_mask_violation.v1",

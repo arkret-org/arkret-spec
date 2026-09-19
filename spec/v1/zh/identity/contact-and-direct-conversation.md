@@ -653,6 +653,17 @@ founder 的 current Station **MUST** 以本地唯一约束保证同一 `(founder
 
 receipt **MUST** 绑定 `pair_key`、完整 `founder_id: ActorId`、`realm_id`、`main_strand_id`、`founding_unit_digest`、分支化 authorization core（human 为 current/root Contact round 与 evidence digest；controller↔Agent 为完整 provision Event ref 与 controller binding digest）、issuer service ID、`accepted_at` 与 proof。provision digest 必须从 suite-tagged full-digest `agent_provision_ref` 解码，wire **MUST NOT** 另带 `agent_provision_digest`。receipt 的存在本身即证明本地唯一 slot 与 founding unit 在同一事务内提交，不重复布尔回声。四条 accepted Event 的 exact author `ActorId` 与 admission proofs 是 founder authority 的唯一 carrier；不得再加 Event server sidecar。它 **MUST NOT** 创建 Realm、授权 Message 或充当全局 slot；它只让 peer verifier 确认 founder 当时的 current service 已原子接受该 unit 并关闭本地唯一 slot。
 
+receipt 是对**接纳判定**的签名证明，不是第二次 Event finality。peer verifier 必须把下列事实分开核对：
+
+| 事实 | 可验证载体 | receipt 的作用 |
+| --- | --- | --- |
+| 四条 Event 的内容、作者、顺序、Realm/main Strand 派生与 `founding_unit_digest` | 四条 signed Event | 绑定同一 digest 与派生坐标，不重新定义这些值 |
+| 连续 stream position、accepted time、签发方与 Event finality | 四条 source-signed `RealmCommit` | 不签发第二个 Commit，也不改变其 finality |
+| 接纳当时使用的 exact Contact round/evidence digest 或 Agent provision/controller binding | bounded `founding_authority_evidence` 与 receipt 的 `authorization_core` | 签名绑定该 evidence 是**本次** unit 的 admission basis；仅并列传送 evidence 与 Commit 不能证明 Station 在接纳事务内使用了它 |
+| 同一 `(founder_id, trust_domain_id, pair_key)` 的本地唯一 slot 已随该 unit 关闭 | founder Station 的本地唯一约束 | 签名声明该原子判定；peer 无法从单独一组 Commit 推导本地不存在另一组，第二张不同 unit 的有效 receipt 是可携带的冲突证据 |
+
+接收方仍 MUST 自己验证 slot key、evidence、Event 与 Commit 的一致性；一张 receipt 不能证明全局没有另一张，也不能替代当前治理 Station 的 Commit。exact retry 返回同一 receipt 与同一四笔 Commit，不产生独立的 receipt 状态机。
+
 
 `proof` 的签名 transcript 是唯一封闭前像，按 §2 的 `H` 固定为：
 
@@ -910,6 +921,8 @@ RealmCommit 之前求值；命中时 Event、RealmCommit、typed current project
 effect **MUST** 全部保持零写入。拒绝不是已提交 exact replay；后来重试必须对届时 authoritative state 完整重算，
 不得复用缓存的允许或拒绝。
 
+七条 semantic producer path 的唯一执行者是目标 Realm 的 **current governance Station**。Account Station 的 self ingress 只完成 session、producer proof 与 exact bytes 的路由/转发；不在 edge 判定以下七条 reason，也不保存第二份 profile admission outcome。跨站时使用 `ak.peer.events.command.submit.v1` 的 `authority_forward` 分支，self 响应原样回传 authority outcome；同站时可在同一事务内直接调用相同的 authority evaluator。已提交的 replication 只验证 source Commit 并物化，不重做七条 admission、不重签 Commit、不形成第二个 accepted 状态。reason precedence、零写入与后来重试的重算均以该唯一 authority transaction 为准。
+
 结构化规则表中的七条 producer path 与正文义务一一对应：
 
 - `binding_integrity` 只处理 `ak.direct_conversation.bound` 的 immutable cross-field／accepted-fact 比对，失败为
@@ -931,6 +944,8 @@ effect **MUST** 全部保持零写入。拒绝不是已提交 exact replay；后
   任一 binding、participant、membership、Realm/Strand/MLS、Contact、device、Agent、resource 或 lifecycle 输入失败，
   都只返回 `direct_conversation_participant_authority_denied`；不得暴露失败项，也不得回退到 consent、
   `created_by`、Realm owner aggregation 或本地 projection row。
+
+上述 `direct_conversation_participant_authority_denied` **只由 Event-mapped action 的单 Event submit 产生**。`ak.call.signal.send`、`ak.receipt.broadcast`、`ak.typing.broadcast` 是密文内产品动作，不能作为 `/event` 或 Station 外层 Signal selector；它们的解密后产品策略由接收端校验。Signal 外层按 [`sync/signal.md` §3](../sync/signal.md) 的可见字段执行 participant、membership、scope、MLS basis 与 `signal_class` gate，使用 Signal 自己的拒绝/丢弃载体。
 
 多条件同时命中时必须严格使用结构化表的 `precedence`。尤其 pair 外 invite 同时命中 third-party 与 invite guard 时，
 必须返回 `direct_conversation_third_party_member_forbidden`；具体 destroy/tombstone 同时依赖 root 时，必须返回

@@ -12,10 +12,14 @@ OPERATIONS = ARTIFACTS / "registry" / "operation-registry.json"
 ERRORS = ARTIFACTS / "registry" / "error-code-registry.json"
 EVENTS = ARTIFACTS / "registry" / "event-kind-registry.json"
 AUTHORITY = ARTIFACTS / "registry" / "authority-source-registry.json"
+ACTIONS = ARTIFACTS / "registry" / "capability-action-registry.json"
 VECTORS = ARTIFACTS / "registry" / "vector-registry.json"
 SCHEMA = ARTIFACTS / "schemas" / "authority-commit-operations.schema.json"
 RESOLVER_SCHEMA = ARTIFACTS / "schemas" / "direct-conversation-operations.schema.json"
 FIXTURE = ARTIFACTS / "fixtures" / "direct-conversation-admission-fixture.json"
+SIGNAL_FIXTURE = ARTIFACTS / "fixtures" / "direct-conversation-signal-admission-fixture.json"
+SIGNAL_SCHEMA = ARTIFACTS / "schemas" / "signal-envelope.schema.json"
+SIGNAL_PROSE = SPEC_ROOT / "zh" / "sync" / "signal.md"
 PROSE = SPEC_ROOT / "zh" / "identity" / "contact-and-direct-conversation.md"
 VECTOR_PROSE = SPEC_ROOT / "zh" / "conformance" / "conformance-vectors.md"
 REALM_PROSE = SPEC_ROOT / "zh" / "models" / "realm-and-space.md"
@@ -111,6 +115,16 @@ def check_direct_conversation_admission_producers(lint: Lint) -> None:
         lint.fail(CONTRACT, "Direct Conversation rejection producer must be the ordinary single-Event submit path")
     if mapping.get("write_rejection_schema_ref") != REJECTION_SCHEMA_REF:
         lint.fail(CONTRACT, "Direct Conversation rejection mapping must use the existing submit_outcome carrier")
+    expected_owner = {
+        "semantic_owner": "current_governance_station",
+        "self_ingress_role": "authenticate_producer_and_forward_exact_bytes_without_profile_admission",
+        "authority_forward_branch": "ak.peer.events.command.submit.v1#authority_forward",
+        "authority_outcome_relay": "return_exact_authority_outcome_without_second_admission",
+        "committed_replica_role": "verify_source_commit_and_materialize_without_profile_admission_or_resigning",
+    }
+    for field, expected in expected_owner.items():
+        if mapping.get(field) != expected:
+            lint.fail(CONTRACT, f"Direct Conversation single-authority mapping drift: {field}")
     if mapping.get("precedence") != list(REASONS):
         lint.fail(CONTRACT, "Direct Conversation rejection precedence must be complete and deterministic")
     for marker in ("zero", "RealmCommit", "outbox", "durable"):
@@ -145,6 +159,8 @@ def check_direct_conversation_admission_producers(lint: Lint) -> None:
             continue
         if rule.get("producer_path_id") != PATH_IDS[reason]:
             lint.fail(CONTRACT, f"{reason} must retain its unique producer_path_id")
+        if rule.get("producer_role") != "current_governance_station":
+            lint.fail(CONTRACT, f"{reason} must run only at current governance Station")
         if not isinstance(rule.get("stage"), str) or not rule.get("stage"):
             lint.fail(CONTRACT, f"{reason} must name an admission/evaluator stage")
         if not isinstance(rule.get("predicate"), str) or not rule.get("predicate"):
@@ -165,6 +181,8 @@ def check_direct_conversation_admission_producers(lint: Lint) -> None:
     participant_rule = rule_by_reason.get("direct_conversation_participant_authority_denied", {})
     if participant_rule.get("authority_source_id") != "ak.authority.direct_conversation_participant.v1" or "never identifies" not in str(participant_rule.get("privacy_rule", "")):
         lint.fail(CONTRACT, "participant denial must bind the registered evaluator and remain non-enumerating")
+    if participant_rule.get("action_surface") != "event_mapped_only":
+        lint.fail(CONTRACT, "Event participant reason must exclude encrypted Signal product actions")
 
     authority = load_json(lint, AUTHORITY)
     participant_source = _find(authority.get("sources") if isinstance(authority, dict) else None, "authority_source_id", "ak.authority.direct_conversation_participant.v1")
@@ -242,3 +260,89 @@ def check_direct_conversation_admission_producers(lint: Lint) -> None:
         lint.fail(OPERATIONS, "generated operation registry must project the canonical admission mappings")
     if "check_direct_conversation_admission_producers(lint)" not in read_text(RUNNER):
         lint.fail(RUNNER, "runner must invoke the Direct Conversation admission producer gate")
+
+
+def check_direct_conversation_signal_admission(lint: Lint) -> None:
+    contract = load_json(lint, CONTRACT)
+    operation_registry = contract.get("operation_registry", {}) if isinstance(contract, dict) else {}
+    mapping = operation_registry.get("direct_conversation_signal_admission_mappings", {})
+    expected_actions = {"ak.call.signal.send", "ak.receipt.broadcast", "ak.typing.broadcast"}
+    expected_stages = [
+        ("source_local_ingress", "sender_account_station", "read_only_verified_governance_projection_plus_current_sender_device", "self_problem_or_eligible_enqueue"),
+        ("source_outbound_recheck", "sender_account_station", "read_only_refreshed_governance_projection_plus_current_sender_device", "send_or_drop"),
+        ("destination_peer_ingress", "recipient_account_station", "read_only_verified_governance_projection", "opaque_per_item_relay_or_drop"),
+        ("recipient_delivery", "recipient_account_station", "read_only_refreshed_governance_projection_plus_current_recipient_and_sender_gate", "authenticated_frame_or_no_frame"),
+    ]
+    if mapping.get("profile") != "ak.profile.direct_conversation_realm.v1" or mapping.get("operation_id") != "ak.self.signal.command.send.v1":
+        lint.fail(CONTRACT, "Signal admission must bind the Direct Conversation profile and self Signal operation")
+    for field, expected in {
+        "governance_writer": "current_governance_station_only",
+        "governance_input": "verified_current_governance_station_committed_projection",
+        "product_policy_owner": "recipient_after_decryption",
+        "self_denial_carrier": "problem_details#signal_class_denied",
+        "peer_denial_carrier": "opaque_per_item_drop",
+        "delivery_denial_carrier": "no_authenticated_data_frame",
+        "unknown_or_stale_rule": "fail_closed_bounded_pending_within_signal_ttl_then_drop_without_governance_write",
+    }.items():
+        if mapping.get(field) != expected:
+            lint.fail(CONTRACT, f"Signal admission boundary drift: {field}")
+    if set(mapping.get("encrypted_product_actions", [])) != expected_actions:
+        lint.fail(CONTRACT, "Signal encrypted product action set must be complete")
+    stages = mapping.get("freshness_stages", [])
+    if [(x.get("stage"), x.get("owner"), x.get("state"), x.get("result")) for x in stages if isinstance(x, dict)] != expected_stages:
+        lint.fail(CONTRACT, "Signal four read-only freshness stages must be exact")
+
+    authority = load_json(lint, AUTHORITY)
+    source = _find(authority.get("sources") if isinstance(authority, dict) else None, "authority_source_id", "ak.authority.direct_conversation_participant.v1") or {}
+    actions_doc = load_json(lint, ACTIONS)
+    action_rows = actions_doc.get("actions", []) if isinstance(actions_doc, dict) else []
+    action_map = {row.get("action"): row.get("event_mapping_kind") for row in action_rows if isinstance(row, dict)}
+    event_actions = set(source.get("event_action_allowlist", []))
+    encrypted_actions = set(source.get("encrypted_signal_product_actions", []))
+    if encrypted_actions != expected_actions or event_actions | encrypted_actions != set(source.get("action_allowlist", [])) or event_actions & encrypted_actions:
+        lint.fail(AUTHORITY, "participant Event and encrypted Signal action partitions must cover the allowlist exactly")
+    if any(action_map.get(action) == "non_event_surface" for action in event_actions) or any(action_map.get(action) != "non_event_surface" for action in encrypted_actions):
+        lint.fail(ACTIONS, "participant action partitions must match capability action mapping kinds")
+    if source.get("event_denial_operation_id") != OPERATION_ID or source.get("signal_product_evaluator") != "recipient_after_decryption_only":
+        lint.fail(AUTHORITY, "participant denial and encrypted product owner must be separate")
+
+    schema = load_json(lint, SIGNAL_SCHEMA)
+    outer = set(schema.get("properties", {})) if isinstance(schema, dict) else set()
+    if not set(mapping.get("outer_selectors", [])) or any(selector.split(".")[0] not in outer for selector in mapping.get("outer_selectors", [])):
+        lint.fail(SIGNAL_SCHEMA, "Signal selectors must exist in outer envelope")
+    if {"kind", "signal_kind", "target", "product_action"} & outer or schema.get("additionalProperties") is not False:
+        lint.fail(SIGNAL_SCHEMA, "Signal exact product kind/target must remain encrypted and outer schema closed")
+    errors = load_json(lint, ERRORS)
+    code = _find(errors.get("codes") if isinstance(errors, dict) else None, "code", "signal_class_denied") or {}
+    description = str(code.get("description", ""))
+    if code.get("http_status") != 403 or "non-enumerating" not in description or "cannot inspect encrypted product kind" not in description:
+        lint.fail(ERRORS, "signal_class_denied must describe only outer-visible non-enumerating failure")
+
+    fixture = load_json(lint, SIGNAL_FIXTURE)
+    cases = {row.get("case_id"): row for row in fixture.get("cases", []) if isinstance(row, dict)} if isinstance(fixture, dict) else {}
+    authority_cases = {row.get("case_id"): row for row in fixture.get("event_authority_role_cases", []) if isinstance(row, dict)}
+    if fixture.get("event_semantic_owner") != "current_governance_station" or authority_cases.get("edge_forwards_without_profile_admission", {}).get("profile_admission_count") != 0 or authority_cases.get("authority_evaluates_once", {}).get("profile_admission_count") != 1 or authority_cases.get("replica_materializes_without_readmission", {}).get("profile_admission_count") != 0 or authority_cases.get("replica_materializes_without_readmission", {}).get("realm_commit_sign_count") != 0:
+        lint.fail(SIGNAL_FIXTURE, "self edge and replica must not repeat current-governance admission")
+    if fixture.get("operation_id") != mapping.get("operation_id") or set(fixture.get("encrypted_product_actions", [])) != expected_actions:
+        lint.fail(SIGNAL_FIXTURE, "Signal fixture must bind the operation and all encrypted product actions")
+    for product, prefix in (("ak.typing.broadcast", "typing"), ("ak.receipt.broadcast", "receipt"), ("ak.call.signal.send", "call")):
+        positive = cases.get(f"{prefix}_outer_valid", {})
+        negative = cases.get(f"{prefix}_participant_revoked", {})
+        if positive.get("product_action") != product or positive.get("expected") != "eligible_for_recipient_decryption" or negative.get("product_action") != product or negative.get("expected_self_problem") != "signal_class_denied" or negative.get("expected_peer") != "opaque_per_item_drop" or negative.get("expected_delivery") != "no_authenticated_data_frame":
+            lint.fail(SIGNAL_FIXTURE, f"{product} requires positive and outer participant-failure cases")
+    if cases.get("ciphertext_kind_invisible", {}).get("station_may_infer_product_action") is not False:
+        lint.fail(SIGNAL_FIXTURE, "encrypted product kind must be invisible to Station")
+    for case_id in ("queued_sender_revoked", "peer_projection_stale", "sender_revoked_before_delivery", "no_second_governance_ledger"):
+        if case_id not in cases:
+            lint.fail(SIGNAL_FIXTURE, f"Signal freshness case missing: {case_id}")
+    vectors = load_json(lint, VECTORS)
+    vector = _find(vectors.get("vectors") if isinstance(vectors, dict) else None, "vector_id", "ak.vector.direct_conversation.signal_admission.v1") or {}
+    if vector.get("status") != "active" or vector.get("applies_to_fixtures") != [SIGNAL_FIXTURE.name]:
+        lint.fail(VECTORS, "Signal admission vector must bind its fixture")
+    if "四个 Station 时间边界" not in read_text(SIGNAL_PROSE) or "recipient_after_decryption" not in str(mapping):
+        lint.fail(SIGNAL_PROSE, "Signal freshness and product-policy prose must be present")
+    projected = load_json(lint, OPERATIONS)
+    if projected.get("direct_conversation_signal_admission_mappings") != mapping:
+        lint.fail(OPERATIONS, "generated operation registry must project Signal admission mappings")
+    if "check_direct_conversation_signal_admission(lint)" not in read_text(RUNNER):
+        lint.fail(RUNNER, "runner must invoke Direct Conversation Signal admission gate")

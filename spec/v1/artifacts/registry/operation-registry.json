@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.6",
+  "version": "2026-09-20.7",
   "source_of_truth": false,
-  "generated_at": "2026-09-20T04:33:43+08:00",
+  "generated_at": "2026-09-20T06:33:46+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -4185,6 +4185,11 @@
       "status": "rejected",
       "reason_code_source": "matched_rule.reason_code"
     },
+    "semantic_owner": "current_governance_station",
+    "self_ingress_role": "authenticate_producer_and_forward_exact_bytes_without_profile_admission",
+    "authority_forward_branch": "ak.peer.events.command.submit.v1#authority_forward",
+    "authority_outcome_relay": "return_exact_authority_outcome_without_second_admission",
+    "committed_replica_role": "verify_source_commit_and_materialize_without_profile_admission_or_resigning",
     "transaction_rule": "Every mapped rejection is decided before RealmCommit signing and atomically performs zero writes: no Event, RealmCommit, projection, outbox row, dedup success, or other durable effect.",
     "retry_rule": "A rejected request is not a committed exact replay. A later request is fully reevaluated against the then-current authoritative state and cannot reuse a cached denial or success.",
     "precedence": [
@@ -4199,6 +4204,7 @@
     "rules": [
       {
         "producer_path_id": "ak.direct_conversation.admission.binding_integrity.v1",
+        "producer_role": "current_governance_station",
         "reason_code": "direct_conversation_binding_invalid",
         "stage": "direct_conversation_binding_integrity_before_result_application",
         "event_kinds": [
@@ -4213,6 +4219,7 @@
       },
       {
         "producer_path_id": "ak.direct_conversation.admission.terminal_guard.v1",
+        "producer_role": "current_governance_station",
         "reason_code": "direct_conversation_terminal_forbidden",
         "stage": "profile_terminal_guard_before_general_realm_authority",
         "event_kinds": [
@@ -4228,6 +4235,7 @@
       },
       {
         "producer_path_id": "ak.direct_conversation.admission.exact_two_projection.v1",
+        "producer_role": "current_governance_station",
         "reason_code": "direct_conversation_member_count_invalid",
         "stage": "profile_exact_two_gate_before_action_authority",
         "event_kinds": [
@@ -4252,6 +4260,7 @@
       },
       {
         "producer_path_id": "ak.direct_conversation.admission.third_party_member_guard.v1",
+        "producer_role": "current_governance_station",
         "reason_code": "direct_conversation_third_party_member_forbidden",
         "stage": "candidate_pair_membership_before_invite_class_guard",
         "event_kinds": [
@@ -4269,6 +4278,7 @@
       },
       {
         "producer_path_id": "ak.direct_conversation.admission.invite_guard.v1",
+        "producer_role": "current_governance_station",
         "reason_code": "direct_conversation_invite_forbidden",
         "stage": "active_profile_invite_guard_after_candidate_pair_membership",
         "event_kinds": [
@@ -4283,6 +4293,7 @@
       },
       {
         "producer_path_id": "ak.direct_conversation.admission.root_phase_mask.v1",
+        "producer_role": "current_governance_station",
         "reason_code": "direct_conversation_root_mask_violation",
         "stage": "technical_root_phase_mask_before_general_owner_aggregation",
         "event_kinds": [
@@ -4300,9 +4311,11 @@
       },
       {
         "producer_path_id": "ak.direct_conversation.admission.participant_authority.v1",
+        "producer_role": "current_governance_station",
         "reason_code": "direct_conversation_participant_authority_denied",
         "stage": "ak.authority.direct_conversation_participant.v1_closed_evaluator",
         "authority_source_id": "ak.authority.direct_conversation_participant.v1",
+        "action_surface": "event_mapped_only",
         "predicate": "An allowlisted participant action fails any required binding, exact participant, membership, Realm/Strand/MLS, Contact, device, Agent, resource, or lifecycle check after structural profile guards. All such failures collapse to this non-enumerating reason.",
         "positive_case": "all_participant_authority_inputs_accept",
         "negative_cases": [
@@ -4321,6 +4334,62 @@
     ],
     "fixture_ref": "fixtures/direct-conversation-admission-fixture.json",
     "normative_source": "zh/identity/contact-and-direct-conversation.md §8.4"
+  },
+  "direct_conversation_signal_admission_mappings": {
+    "profile": "ak.profile.direct_conversation_realm.v1",
+    "operation_id": "ak.self.signal.command.send.v1",
+    "authority_source_id": "ak.authority.direct_conversation_participant.v1",
+    "governance_writer": "current_governance_station_only",
+    "governance_input": "verified_current_governance_station_committed_projection",
+    "outer_selectors": [
+      "realm_id",
+      "scope_ref",
+      "sender_actor_id",
+      "authority_commit_id",
+      "signal_class",
+      "sent_at",
+      "expires_at",
+      "encrypted_payload.key_ref",
+      "encrypted_payload.epoch",
+      "encrypted_payload.aead_profile"
+    ],
+    "encrypted_product_actions": [
+      "ak.call.signal.send",
+      "ak.receipt.broadcast",
+      "ak.typing.broadcast"
+    ],
+    "product_policy_owner": "recipient_after_decryption",
+    "self_denial_carrier": "problem_details#signal_class_denied",
+    "peer_denial_carrier": "opaque_per_item_drop",
+    "delivery_denial_carrier": "no_authenticated_data_frame",
+    "freshness_stages": [
+      {
+        "stage": "source_local_ingress",
+        "owner": "sender_account_station",
+        "state": "read_only_verified_governance_projection_plus_current_sender_device",
+        "result": "self_problem_or_eligible_enqueue"
+      },
+      {
+        "stage": "source_outbound_recheck",
+        "owner": "sender_account_station",
+        "state": "read_only_refreshed_governance_projection_plus_current_sender_device",
+        "result": "send_or_drop"
+      },
+      {
+        "stage": "destination_peer_ingress",
+        "owner": "recipient_account_station",
+        "state": "read_only_verified_governance_projection",
+        "result": "opaque_per_item_relay_or_drop"
+      },
+      {
+        "stage": "recipient_delivery",
+        "owner": "recipient_account_station",
+        "state": "read_only_refreshed_governance_projection_plus_current_recipient_and_sender_gate",
+        "result": "authenticated_frame_or_no_frame"
+      }
+    ],
+    "unknown_or_stale_rule": "fail_closed_bounded_pending_within_signal_ttl_then_drop_without_governance_write",
+    "normative_source": "zh/sync/signal.md §3 and §4.3"
   },
   "coordination_relations": [
     {

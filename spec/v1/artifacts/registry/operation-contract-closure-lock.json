@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-20.11",
-  "generated_at": "2026-09-20T04:05:39+08:00",
+  "version": "2026-09-20.13",
+  "generated_at": "2026-09-20T06:33:46+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -885,7 +885,7 @@
     },
     {
       "operation_id": "ak.self.signal.command.send.v1",
-      "sha256": "sha256:be9c25783b448dd50cd1b1ae411069c41bcc22a5a88abc7eac4b9c7276f2bc4b"
+      "sha256": "sha256:17e9c96586c2c42ab3c7e223eec3e7b741f8509dccea8762b7d019d50dff1659"
     },
     {
       "operation_id": "ak.self.signal.stream.subscribe.v1",

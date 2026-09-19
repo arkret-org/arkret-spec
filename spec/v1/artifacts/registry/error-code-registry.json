@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-20.2",
-  "generated_at": "2026-09-20T04:33:43+08:00",
+  "version": "2026-09-20.4",
+  "generated_at": "2026-09-20T06:38:29+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -602,7 +602,7 @@
       "code": "signal_class_denied",
       "http_status": 403,
       "scope": "service_call",
-      "description": "ak.self.signal.command.send.v1 rejected the envelope because the actor lacks the kind-specific broadcast capability or Realm policy disables that signal kind.",
+      "description": "ak.self.signal.command.send.v1 rejected the envelope because an outer-visible signal_class, current participant/membership/scope authority, or Realm policy gate failed. The Station cannot inspect encrypted product kind or target; all such outer admission failures use this non-enumerating code without naming the failed input.",
       "type_uri": "https://arkret.org/problems/signal_class_denied",
       "title": "Signal class denied",
       "status": "active"
@@ -611,7 +611,7 @@
       "code": "signal_ttl_out_of_range",
       "http_status": 400,
       "scope": "service_call",
-      "description": "ak.self.signal.command.send.v1 rejected ttl_ms because it is absent when required or outside the service's advertised kind-specific range.",
+      "description": "ak.self.signal.command.send.v1 rejected the outer envelope lifetime because it is absent when required or outside the service's advertised signal_class-specific range.",
       "type_uri": "https://arkret.org/problems/signal_ttl_out_of_range",
       "title": "Signal ttl out of range",
       "status": "active"
@@ -3767,7 +3767,7 @@
         "auth_decision",
         "service_call"
       ],
-      "description": "The active ak.authority.direct_conversation_participant.v1 evaluator rejected an allowlisted action because it could not establish every required immutable binding, exact participant, active membership, Realm/Strand/current scope-derived MLS group-and-epoch cross-binding, lifecycle, resource, directional Contact, device, or Agent input. The ak.self.events.command.submit.v1 rejection exposes only this non-enumerating reason and writes nothing. Consent, created_by, a local projection row, Realm owner aggregation, or an arbitrary Event/current result cannot substitute; see contract-registry.json operation_registry.direct_conversation_admission_mappings.",
+      "description": "The current governance Station's active ak.authority.direct_conversation_participant.v1 evaluator rejected an Event-mapped allowlisted action because it could not establish every required immutable binding, exact participant, active membership, Realm/Strand/current scope-derived MLS group-and-epoch cross-binding, lifecycle, resource, directional Contact, device, or Agent input. The ak.self.events.command.submit.v1 rejection exposes only this non-enumerating reason and writes nothing. Encrypted Signal product actions use their own outer admission carrier and recipient policy, never this Event reason. Consent, created_by, a local projection row, Realm owner aggregation, or an arbitrary Event/current result cannot substitute; see contract-registry.json operation_registry.direct_conversation_admission_mappings.",
       "status": "active"
     },
     {

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.1",
+  "version": "2026-09-20.2",
   "source_of_truth": false,
-  "generated_at": "2026-09-20T04:33:43+08:00",
+  "generated_at": "2026-09-20T06:33:46+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "source_pattern": "^ak\\.authority\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$",
@@ -61,6 +61,26 @@
         "ak.strand.create",
         "ak.typing.broadcast"
       ],
+      "event_action_allowlist": [
+        "ak.call.join",
+        "ak.call.screen_share",
+        "ak.member.leave.own",
+        "ak.message.create",
+        "ak.message.redact.own",
+        "ak.message.revise.own",
+        "ak.mls.commit",
+        "ak.reaction.add",
+        "ak.reaction.remove",
+        "ak.read_cursor.advance",
+        "ak.strand.create"
+      ],
+      "encrypted_signal_product_actions": [
+        "ak.call.signal.send",
+        "ak.receipt.broadcast",
+        "ak.typing.broadcast"
+      ],
+      "signal_product_evaluator": "recipient_after_decryption_only",
+      "event_denial_operation_id": "ak.self.events.command.submit.v1",
       "activation_checks": [
         "realm_profile_and_discriminator_exact",
         "realm_create_critical_extension_present",

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.12",
+  "version": "2026-09-20.14",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T04:33:43+08:00",
+  "generated_at": "2026-09-20T06:35:55+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -247,8 +247,8 @@
         "wire_ref": "ak.authority.direct_conversation_participant.v1",
         "binding_event_kind": "ak.direct_conversation.bound",
         "binding_ref_role": "direct_conversation_binding",
-        "action_allowlist": [
-          "ak.call.join",
+      "action_allowlist": [
+        "ak.call.join",
           "ak.call.screen_share",
           "ak.call.signal.send",
           "ak.member.leave.own",
@@ -261,8 +261,12 @@
           "ak.read_cursor.advance",
           "ak.receipt.broadcast",
           "ak.strand.create",
-          "ak.typing.broadcast"
-        ],
+        "ak.typing.broadcast"
+      ],
+      "event_action_allowlist": ["ak.call.join", "ak.call.screen_share", "ak.member.leave.own", "ak.message.create", "ak.message.redact.own", "ak.message.revise.own", "ak.mls.commit", "ak.reaction.add", "ak.reaction.remove", "ak.read_cursor.advance", "ak.strand.create"],
+      "encrypted_signal_product_actions": ["ak.call.signal.send", "ak.receipt.broadcast", "ak.typing.broadcast"],
+      "signal_product_evaluator": "recipient_after_decryption_only",
+      "event_denial_operation_id": "ak.self.events.command.submit.v1",
         "activation_checks": [
           "realm_profile_and_discriminator_exact",
           "realm_create_critical_extension_present",
@@ -358,8 +362,8 @@
         "failure_mode": "atomic_rollback"
       }
     ],
-    "version": "2026-09-20.1",
-    "generated_at": "2026-09-20T04:33:43+08:00",
+    "version": "2026-09-20.2",
+    "generated_at": "2026-09-20T06:33:46+08:00",
     "metadata_authority": "contract_registry_section"
   },
   "event_kind_registry": {
@@ -16265,10 +16269,15 @@
       "write_operation_id": "ak.self.events.command.submit.v1",
       "write_request_event_path": "/event",
       "write_rejection_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/submit_outcome",
-      "write_rejection_shape": {
-        "status": "rejected",
-        "reason_code_source": "matched_rule.reason_code"
-      },
+    "write_rejection_shape": {
+      "status": "rejected",
+      "reason_code_source": "matched_rule.reason_code"
+    },
+    "semantic_owner": "current_governance_station",
+    "self_ingress_role": "authenticate_producer_and_forward_exact_bytes_without_profile_admission",
+    "authority_forward_branch": "ak.peer.events.command.submit.v1#authority_forward",
+    "authority_outcome_relay": "return_exact_authority_outcome_without_second_admission",
+    "committed_replica_role": "verify_source_commit_and_materialize_without_profile_admission_or_resigning",
       "transaction_rule": "Every mapped rejection is decided before RealmCommit signing and atomically performs zero writes: no Event, RealmCommit, projection, outbox row, dedup success, or other durable effect.",
       "retry_rule": "A rejected request is not a committed exact replay. A later request is fully reevaluated against the then-current authoritative state and cannot reuse a cached denial or success.",
       "precedence": [
@@ -16282,7 +16291,8 @@
       ],
       "rules": [
         {
-          "producer_path_id": "ak.direct_conversation.admission.binding_integrity.v1",
+        "producer_path_id": "ak.direct_conversation.admission.binding_integrity.v1",
+        "producer_role": "current_governance_station",
           "reason_code": "direct_conversation_binding_invalid",
           "stage": "direct_conversation_binding_integrity_before_result_application",
           "event_kinds": [
@@ -16296,7 +16306,8 @@
           ]
         },
         {
-          "producer_path_id": "ak.direct_conversation.admission.terminal_guard.v1",
+        "producer_path_id": "ak.direct_conversation.admission.terminal_guard.v1",
+        "producer_role": "current_governance_station",
           "reason_code": "direct_conversation_terminal_forbidden",
           "stage": "profile_terminal_guard_before_general_realm_authority",
           "event_kinds": [
@@ -16311,7 +16322,8 @@
           ]
         },
         {
-          "producer_path_id": "ak.direct_conversation.admission.exact_two_projection.v1",
+        "producer_path_id": "ak.direct_conversation.admission.exact_two_projection.v1",
+        "producer_role": "current_governance_station",
           "reason_code": "direct_conversation_member_count_invalid",
           "stage": "profile_exact_two_gate_before_action_authority",
           "event_kinds": [
@@ -16335,7 +16347,8 @@
           }
         },
         {
-          "producer_path_id": "ak.direct_conversation.admission.third_party_member_guard.v1",
+        "producer_path_id": "ak.direct_conversation.admission.third_party_member_guard.v1",
+        "producer_role": "current_governance_station",
           "reason_code": "direct_conversation_third_party_member_forbidden",
           "stage": "candidate_pair_membership_before_invite_class_guard",
           "event_kinds": [
@@ -16352,7 +16365,8 @@
           ]
         },
         {
-          "producer_path_id": "ak.direct_conversation.admission.invite_guard.v1",
+        "producer_path_id": "ak.direct_conversation.admission.invite_guard.v1",
+        "producer_role": "current_governance_station",
           "reason_code": "direct_conversation_invite_forbidden",
           "stage": "active_profile_invite_guard_after_candidate_pair_membership",
           "event_kinds": [
@@ -16366,7 +16380,8 @@
           ]
         },
         {
-          "producer_path_id": "ak.direct_conversation.admission.root_phase_mask.v1",
+        "producer_path_id": "ak.direct_conversation.admission.root_phase_mask.v1",
+        "producer_role": "current_governance_station",
           "reason_code": "direct_conversation_root_mask_violation",
           "stage": "technical_root_phase_mask_before_general_owner_aggregation",
           "event_kinds": [
@@ -16383,10 +16398,12 @@
           ]
         },
         {
-          "producer_path_id": "ak.direct_conversation.admission.participant_authority.v1",
-          "reason_code": "direct_conversation_participant_authority_denied",
-          "stage": "ak.authority.direct_conversation_participant.v1_closed_evaluator",
-          "authority_source_id": "ak.authority.direct_conversation_participant.v1",
+        "producer_path_id": "ak.direct_conversation.admission.participant_authority.v1",
+        "producer_role": "current_governance_station",
+        "reason_code": "direct_conversation_participant_authority_denied",
+        "stage": "ak.authority.direct_conversation_participant.v1_closed_evaluator",
+        "authority_source_id": "ak.authority.direct_conversation_participant.v1",
+        "action_surface": "event_mapped_only",
           "predicate": "An allowlisted participant action fails any required binding, exact participant, membership, Realm/Strand/MLS, Contact, device, Agent, resource, or lifecycle check after structural profile guards. All such failures collapse to this non-enumerating reason.",
           "positive_case": "all_participant_authority_inputs_accept",
           "negative_cases": [
@@ -16403,10 +16420,31 @@
           "privacy_rule": "The rejection returns only direct_conversation_participant_authority_denied and never identifies which evaluator input failed."
         }
       ],
-      "fixture_ref": "fixtures/direct-conversation-admission-fixture.json",
-      "normative_source": "zh/identity/contact-and-direct-conversation.md §8.4"
-    },
-    "coordination_relations": [
+    "fixture_ref": "fixtures/direct-conversation-admission-fixture.json",
+    "normative_source": "zh/identity/contact-and-direct-conversation.md §8.4"
+  },
+  "direct_conversation_signal_admission_mappings": {
+    "profile": "ak.profile.direct_conversation_realm.v1",
+    "operation_id": "ak.self.signal.command.send.v1",
+    "authority_source_id": "ak.authority.direct_conversation_participant.v1",
+    "governance_writer": "current_governance_station_only",
+    "governance_input": "verified_current_governance_station_committed_projection",
+    "outer_selectors": ["realm_id", "scope_ref", "sender_actor_id", "authority_commit_id", "signal_class", "sent_at", "expires_at", "encrypted_payload.key_ref", "encrypted_payload.epoch", "encrypted_payload.aead_profile"],
+    "encrypted_product_actions": ["ak.call.signal.send", "ak.receipt.broadcast", "ak.typing.broadcast"],
+    "product_policy_owner": "recipient_after_decryption",
+    "self_denial_carrier": "problem_details#signal_class_denied",
+    "peer_denial_carrier": "opaque_per_item_drop",
+    "delivery_denial_carrier": "no_authenticated_data_frame",
+    "freshness_stages": [
+      {"stage": "source_local_ingress", "owner": "sender_account_station", "state": "read_only_verified_governance_projection_plus_current_sender_device", "result": "self_problem_or_eligible_enqueue"},
+      {"stage": "source_outbound_recheck", "owner": "sender_account_station", "state": "read_only_refreshed_governance_projection_plus_current_sender_device", "result": "send_or_drop"},
+      {"stage": "destination_peer_ingress", "owner": "recipient_account_station", "state": "read_only_verified_governance_projection", "result": "opaque_per_item_relay_or_drop"},
+      {"stage": "recipient_delivery", "owner": "recipient_account_station", "state": "read_only_refreshed_governance_projection_plus_current_recipient_and_sender_gate", "result": "authenticated_frame_or_no_frame"}
+    ],
+    "unknown_or_stale_rule": "fail_closed_bounded_pending_within_signal_ttl_then_drop_without_governance_write",
+    "normative_source": "zh/sync/signal.md §3 and §4.3"
+  },
+  "coordination_relations": [
       {
         "coordination_id": "ak.coordination.device_pairing.split_admission_saga.v1",
         "entry_operation_id": "ak.gate.account.command.pair_device.v1",
@@ -16608,8 +16646,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-20.6",
-    "generated_at": "2026-09-20T04:33:43+08:00",
+    "version": "2026-09-20.7",
+    "generated_at": "2026-09-20T06:33:46+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",

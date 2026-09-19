@@ -181,6 +181,11 @@
       "version": 1
     },
     {
+      "path": "spec/v1/artifacts/fixtures/direct-conversation-signal-admission-fixture.json",
+      "sha256": "a1cc9f762e23b2f5e57db5bcfb8949225a9ec45b6c7d1edcc2712e30c49054a1",
+      "version": 1
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/discovery-profile-fixture.json",
       "sha256": "276e8f2abbccd010fc1e74d7d74c8ad29fe77e3344be73c04741d6cf7720d881",
       "version": "2026-07-10"
