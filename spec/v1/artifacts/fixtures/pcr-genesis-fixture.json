@@ -431,7 +431,7 @@
       ]
     },
     "canonical_json": "{\"audience\":\"did:webvh:z6mkfixtureprincipalexample:principal.example\",\"device_id\":\"ak:device:019a0000-0000-7000-8000-000000000001\",\"requested_scope\":[\"ak.self.account.read.describe.v1\",\"ak.self.events.read.scan.v1\"],\"session_public_key\":\"{\\\"crv\\\":\\\"Ed25519\\\",\\\"kty\\\":\\\"OKP\\\",\\\"x\\\":\\\"11qYAYdk9Jc1iP4Z9Qv7XKpM6Jw8LmN0RsTuVwXyZaB\\\"}\"}",
-    "digest": "sha256:83f587a5c8a466bc13b555b3a90c0f8ddfdf0427c10320e7e02caa4a298bae10",
+    "digest": "sha256:5ac770a31d8aeb641fa5a2330d97ba821a62ccb53c12f7363619e3ca0008925e",
     "rfc7638_jkt": "RmUcxdimV8pkm16cAFWb1EXxQd9Ri-7Dq6qs1u53gWI",
     "constraints": [
       "rfc7638(session_public_key) == identity_creation_control_proof.dpop_jkt",
@@ -446,16 +446,16 @@
       "challenge_id": "genesis-challenge-000001",
       "challenge": "AAAAAAAAAAAAAAAAAAAAAA",
       "purpose": "account_binding_and_pcr_genesis",
-      "account_subject": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+      "account_subject": "sha256:47a1dfc40a92fdabc2612a41dc8ef1a09ece55fd697312f881fcf2ce72c3b467",
       "principal_id": "ak:did_core:webvh:z6mkfixture",
-      "operation_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
-      "did_version_id": "1-fixturegenesis",
-      "log_head_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
-      "control_key_digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
-      "pcr_realm_id": "ak:realm:AY4dIxVSke8SdwIRtzd0nLP5OqzL02oENbMkSGDf0lu8",
-      "realm_create_payload_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "did": "did:webvh:z6mkfixture:alice.example",
+      "registration_anchor_digest": "sha256:670966fa7d826cbce4fdcd69387476623768002dcce3865a99b0ec283ae09494",
+      "did_version_id": "1-QmVYPUMb3ZNa1xCxC7NzXFhtY21FbDCqPCaMVyiiJ5m7Ut",
+      "control_key_digest": "sha256:39f07e8b4ba3818a5682b8ca6dda21287012e48a562315fe943de5b7a529c028",
+      "pcr_realm_id": "ak:realm:ARn9Y97Ha81FH12YY8HLiDixId_wA5Wx2c25p82mJcJ5",
+      "realm_create_payload_digest": "sha256:4e92192037e539bedbeaa6cedc8f934f6992257b11f27edac41198efb29bdc7d",
       "founding_authorize_payload_digest": "sha256:3814995a8fd02c84f94b4758fb3b8b33e96b7ae9c7fcf1e75e21a83c26f390b4",
-      "initial_session_request_digest": "sha256:83f587a5c8a466bc13b555b3a90c0f8ddfdf0427c10320e7e02caa4a298bae10",
+      "initial_session_request_digest": "sha256:5ac770a31d8aeb641fa5a2330d97ba821a62ccb53c12f7363619e3ca0008925e",
       "genesis_unit_kinds": [
         "ak.realm.create",
         "ak.device.authorize"
@@ -463,33 +463,99 @@
       "identity_creation_lease_id": "genesis-lease-fence-0001",
       "lease_fence": 1,
       "dpop_jkt": "RmUcxdimV8pkm16cAFWb1EXxQd9Ri-7Dq6qs1u53gWI",
-      "audience": "did:webvh:z6mkfixtureaccountexample:account.example",
+      "audience_id": "ak:did_core:webvh:z6mkfixtureaccountexample",
       "origin": "https://account.example",
-      "trust_domain": "fixture.example",
+      "trust_domain": "ak:trust_domain:fixture.example",
       "issued_at": "2026-08-09T00:00:00.000Z",
       "expires_at": "2026-08-09T00:05:00.000Z",
-      "verification_key_multibase": "z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1"
+      "verification_key_multibase": "z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw"
     },
-    "canonical_json": "{\"account_subject\":\"sha256:4444444444444444444444444444444444444444444444444444444444444444\",\"audience\":\"did:webvh:z6mkfixtureaccountexample:account.example\",\"challenge\":\"AAAAAAAAAAAAAAAAAAAAAA\",\"challenge_id\":\"genesis-challenge-000001\",\"control_key_digest\":\"sha256:6666666666666666666666666666666666666666666666666666666666666666\",\"did_version_id\":\"1-fixturegenesis\",\"dpop_jkt\":\"RmUcxdimV8pkm16cAFWb1EXxQd9Ri-7Dq6qs1u53gWI\",\"expires_at\":\"2026-08-09T00:05:00.000Z\",\"founding_authorize_payload_digest\":\"sha256:3814995a8fd02c84f94b4758fb3b8b33e96b7ae9c7fcf1e75e21a83c26f390b4\",\"genesis_unit_kinds\":[\"ak.realm.create\",\"ak.device.authorize\"],\"identity_creation_lease_id\":\"genesis-lease-fence-0001\",\"initial_session_request_digest\":\"sha256:83f587a5c8a466bc13b555b3a90c0f8ddfdf0427c10320e7e02caa4a298bae10\",\"issued_at\":\"2026-08-09T00:00:00.000Z\",\"lease_fence\":1,\"log_head_digest\":\"sha256:5555555555555555555555555555555555555555555555555555555555555555\",\"operation_digest\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"origin\":\"https://account.example\",\"pcr_realm_id\":\"ak:realm:AY4dIxVSke8SdwIRtzd0nLP5OqzL02oENbMkSGDf0lu8\",\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"proof_kind\":\"did_webvh_inception_update_key\",\"purpose\":\"account_binding_and_pcr_genesis\",\"realm_create_payload_digest\":\"sha256:2222222222222222222222222222222222222222222222222222222222222222\",\"trust_domain\":\"fixture.example\",\"verification_key_multibase\":\"z6MkrJVnaZkeFzdQyRo91my9QRBqmbW4cSUCQY4fVn4N1\"}",
-    "canonical_json_sha256": "sha256:ad61e1bbf17979397364d23ac55354e57f75612e97bf979b2b541ccff320e3cf",
+    "canonical_json": "{\"account_subject\":\"sha256:47a1dfc40a92fdabc2612a41dc8ef1a09ece55fd697312f881fcf2ce72c3b467\",\"audience_id\":\"ak:did_core:webvh:z6mkfixtureaccountexample\",\"challenge\":\"AAAAAAAAAAAAAAAAAAAAAA\",\"challenge_id\":\"genesis-challenge-000001\",\"control_key_digest\":\"sha256:39f07e8b4ba3818a5682b8ca6dda21287012e48a562315fe943de5b7a529c028\",\"did\":\"did:webvh:z6mkfixture:alice.example\",\"did_version_id\":\"1-QmVYPUMb3ZNa1xCxC7NzXFhtY21FbDCqPCaMVyiiJ5m7Ut\",\"dpop_jkt\":\"RmUcxdimV8pkm16cAFWb1EXxQd9Ri-7Dq6qs1u53gWI\",\"expires_at\":\"2026-08-09T00:05:00.000Z\",\"founding_authorize_payload_digest\":\"sha256:3814995a8fd02c84f94b4758fb3b8b33e96b7ae9c7fcf1e75e21a83c26f390b4\",\"genesis_unit_kinds\":[\"ak.realm.create\",\"ak.device.authorize\"],\"identity_creation_lease_id\":\"genesis-lease-fence-0001\",\"initial_session_request_digest\":\"sha256:5ac770a31d8aeb641fa5a2330d97ba821a62ccb53c12f7363619e3ca0008925e\",\"issued_at\":\"2026-08-09T00:00:00.000Z\",\"lease_fence\":1,\"origin\":\"https://account.example\",\"pcr_realm_id\":\"ak:realm:ARn9Y97Ha81FH12YY8HLiDixId_wA5Wx2c25p82mJcJ5\",\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"proof_kind\":\"did_webvh_inception_update_key\",\"purpose\":\"account_binding_and_pcr_genesis\",\"realm_create_payload_digest\":\"sha256:4e92192037e539bedbeaa6cedc8f934f6992257b11f27edac41198efb29bdc7d\",\"registration_anchor_digest\":\"sha256:670966fa7d826cbce4fdcd69387476623768002dcce3865a99b0ec283ae09494\",\"trust_domain\":\"ak:trust_domain:fixture.example\",\"verification_key_multibase\":\"z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw\"}",
+    "canonical_json_sha256": "sha256:3b1081a7943708e1ee9153d568374e8d8ad679e1061569fb86cd1260c08f29b1",
     "forbidden_fields": [
-      "realm_create_event_id",
+      "audience",
+      "founding_authorize_envelope_digest",
       "founding_authorize_event_id",
+      "log_head_digest",
+      "operation_digest",
       "realm_create_envelope_digest",
-      "founding_authorize_envelope_digest"
-    ]
+      "realm_create_event_id"
+    ],
+    "schema_ref": "schemas/account-operations.schema.json#/$defs/identity_creation_control_proof",
+    "signing_input": "UTF-8(\"ak.identity_creation_control_proof.v1\" || 0x0A) || JCS(signature_omitted_object)",
+    "signature": "It_VPnXua5zABLDZ3GETOz0OyLLT2O--fzJpwxYTMZfOqXqBWFDnbb9Xdz1eghXN1o1qdnPJeS2Z18YiPO4KDA",
+    "signed_object": {
+      "proof_kind": "did_webvh_inception_update_key",
+      "challenge_id": "genesis-challenge-000001",
+      "challenge": "AAAAAAAAAAAAAAAAAAAAAA",
+      "purpose": "account_binding_and_pcr_genesis",
+      "account_subject": "sha256:47a1dfc40a92fdabc2612a41dc8ef1a09ece55fd697312f881fcf2ce72c3b467",
+      "principal_id": "ak:did_core:webvh:z6mkfixture",
+      "did": "did:webvh:z6mkfixture:alice.example",
+      "registration_anchor_digest": "sha256:670966fa7d826cbce4fdcd69387476623768002dcce3865a99b0ec283ae09494",
+      "did_version_id": "1-QmVYPUMb3ZNa1xCxC7NzXFhtY21FbDCqPCaMVyiiJ5m7Ut",
+      "control_key_digest": "sha256:39f07e8b4ba3818a5682b8ca6dda21287012e48a562315fe943de5b7a529c028",
+      "pcr_realm_id": "ak:realm:ARn9Y97Ha81FH12YY8HLiDixId_wA5Wx2c25p82mJcJ5",
+      "realm_create_payload_digest": "sha256:4e92192037e539bedbeaa6cedc8f934f6992257b11f27edac41198efb29bdc7d",
+      "founding_authorize_payload_digest": "sha256:3814995a8fd02c84f94b4758fb3b8b33e96b7ae9c7fcf1e75e21a83c26f390b4",
+      "initial_session_request_digest": "sha256:5ac770a31d8aeb641fa5a2330d97ba821a62ccb53c12f7363619e3ca0008925e",
+      "genesis_unit_kinds": [
+        "ak.realm.create",
+        "ak.device.authorize"
+      ],
+      "identity_creation_lease_id": "genesis-lease-fence-0001",
+      "lease_fence": 1,
+      "dpop_jkt": "RmUcxdimV8pkm16cAFWb1EXxQd9Ri-7Dq6qs1u53gWI",
+      "audience_id": "ak:did_core:webvh:z6mkfixtureaccountexample",
+      "origin": "https://account.example",
+      "trust_domain": "ak:trust_domain:fixture.example",
+      "issued_at": "2026-08-09T00:00:00.000Z",
+      "expires_at": "2026-08-09T00:05:00.000Z",
+      "verification_key_multibase": "z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw",
+      "signature": "It_VPnXua5zABLDZ3GETOz0OyLLT2O--fzJpwxYTMZfOqXqBWFDnbb9Xdz1eghXN1o1qdnPJeS2Z18YiPO4KDA"
+    },
+    "account_subject_preimage": {
+      "domain": "ak.account-subject.v1",
+      "canonical_json": "{\"authentication_row_key\":\"01J9A0000000000000000ALICE\",\"issuer_id\":\"ak:did_core:webvh:z6mkfixtureaccountexample\"}",
+      "value": {
+        "authentication_row_key": "01J9A0000000000000000ALICE",
+        "issuer_id": "ak:did_core:webvh:z6mkfixtureaccountexample"
+      },
+      "note": "SHA-256 over UTF-8(domain || 0x0A) followed by JCS of the issuer identity and the issuer-local authentication row key. The member names are deployment-local by construction: the subject never leaves the Account Authority boundary, so the specification fixes the domain and the digest but not the row key spelling."
+    },
+    "signing_material": {
+      "test_material_registry_row": "rfc8032_test_1_ed25519_key",
+      "public_key_multibase": "z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw",
+      "public_key_did": "did:key:z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw",
+      "note": "The identity root is the registration anchor's parameters.updateKeys[0], never a normalized DID document verification method and never the founding device key. The private key is published, so this signature is reproducible and proves no authority."
+    }
   },
   "founding_event_proof_binding": {
-    "verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:019a0000-0000-7000-8000-000000000001",
-    "candidate_overlay_lookup": {
-      "method": "did:webvh:z6mkfixture:alice.example#ak:device:019a0000-0000-7000-8000-000000000001",
-      "public_key_source": "founding_authorize.payload.device_public_key_did"
+    "note": "The two Events of one genesis unit resolve their signing keys from different material: the create Event from the frozen registration anchor, the authorize Event from the root-signed descriptor and the unit-local candidate overlay. Collapsing both onto one device verification method is what left the registration_anchor admission branch with no constructible instance.",
+    "create_event": {
+      "admission": "registration_anchor",
+      "verification_method": "did:key:z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw#z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw",
+      "public_key_source": "/principal_registration_anchor_evidence/anchor/log_entries/-1/parameters/updateKeys/0",
+      "forbidden_verification_method_forms": [
+        "the founding device DID URL",
+        "any fragment resolved through the device directory",
+        "a normalized DID document verification method of the principal",
+        "the principal actor_id rewritten into a DID URL"
+      ]
     },
-    "forbidden_verification_method_forms": [
-      "did:key candidate",
-      "pre-existing accepted-device directory entry",
-      "any fragment other than the complete device_id"
-    ]
+    "authorize_event": {
+      "verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:019a0000-0000-7000-8000-000000000001",
+      "candidate_overlay_lookup": {
+        "method": "did:webvh:z6mkfixture:alice.example#ak:device:019a0000-0000-7000-8000-000000000001",
+        "public_key_source": "founding_authorize.payload.device_public_key_did"
+      },
+      "forbidden_verification_method_forms": [
+        "did:key candidate",
+        "pre-existing accepted-device directory entry",
+        "any fragment other than the complete device_id",
+        "the registration anchor root controller method"
+      ]
+    }
   },
   "provisional_identity_abandonment": {
     "vector_id": "ak.vector.identity.provisional_identity_abandonment.v1",
@@ -502,9 +568,9 @@
       "challenge_id": "abandonment-challenge-000001",
       "challenge": "BBBBBBBBBBBBBBBBBBBBBB",
       "purpose": "provisional_identity_abandonment",
-      "account_subject": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+      "account_subject": "sha256:47a1dfc40a92fdabc2612a41dc8ef1a09ece55fd697312f881fcf2ce72c3b467",
       "principal_id": "ak:did_core:webvh:z6mkfixture",
-      "did_version_id": "1-fixturegenesis",
+      "did_version_id": "1-QmVYPUMb3ZNa1xCxC7NzXFhtY21FbDCqPCaMVyiiJ5m7Ut",
       "identity_creation_lease_id": "genesis-lease-fence-0001",
       "lease_fence": 1,
       "consequence_disclosure": [
@@ -630,5 +696,537 @@
     "exact_replay_counts": false,
     "same_binding_reauthentication_reuses_proof": true,
     "lease_fence_changes_reset_budget": false
-  }
+  },
+  "principal_registration_anchor_evidence": {
+    "vector_id": "ak.vector.identity.pcr_genesis.v1",
+    "schema_ref": "schemas/principal-registration-anchor.schema.json",
+    "anchor": {
+      "anchor_kind": "webvh_registration",
+      "registration_did_operation": {
+        "did": "did:webvh:z6mkfixture:alice.example",
+        "did_method": "webvh",
+        "seq": 1,
+        "operation": {
+          "versionId": "1-QmVYPUMb3ZNa1xCxC7NzXFhtY21FbDCqPCaMVyiiJ5m7Ut",
+          "versionTime": "2026-08-08T00:00:00Z",
+          "parameters": {
+            "method": "did:webvh:1.0",
+            "scid": "z6mkfixture",
+            "updateKeys": [
+              "z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw"
+            ],
+            "nextKeyHashes": [
+              "QmSEpeEJ5xqhtg18zvfH7CwWWytCcFDuj2zeFsfvsmMaYX"
+            ]
+          },
+          "state": {
+            "@context": [
+              "https://www.w3.org/ns/did/v1",
+              "https://w3id.org/security/suites/jws-2020/v1"
+            ],
+            "id": "did:webvh:z6mkfixture:alice.example",
+            "verificationMethod": [
+              {
+                "id": "did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture",
+                "type": "JsonWebKey2020",
+                "controller": "did:webvh:z6mkfixture:alice.example",
+                "publicKeyJwk": {
+                  "crv": "Ed25519",
+                  "kty": "OKP",
+                  "x": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg"
+                }
+              }
+            ],
+            "authentication": [
+              "did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture"
+            ],
+            "assertionMethod": [
+              "did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture"
+            ]
+          },
+          "proof": [
+            {
+              "type": "DataIntegrityProof",
+              "cryptosuite": "eddsa-jcs-2022",
+              "verificationMethod": "did:key:z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw#z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw",
+              "proofPurpose": "assertionMethod",
+              "proofValue": "zytmYGi7V4WvinfrG2waLbZNuV1KrkeHF32xJ6CCQ3DTnjmDRPLXLZjEEDKpBngcVYeCML6mchDpJpSvzNzwgpjH"
+            }
+          ]
+        }
+      },
+      "log_entries": [
+        {
+          "versionId": "1-QmVYPUMb3ZNa1xCxC7NzXFhtY21FbDCqPCaMVyiiJ5m7Ut",
+          "versionTime": "2026-08-08T00:00:00Z",
+          "parameters": {
+            "method": "did:webvh:1.0",
+            "scid": "z6mkfixture",
+            "updateKeys": [
+              "z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw"
+            ],
+            "nextKeyHashes": [
+              "QmSEpeEJ5xqhtg18zvfH7CwWWytCcFDuj2zeFsfvsmMaYX"
+            ]
+          },
+          "state": {
+            "@context": [
+              "https://www.w3.org/ns/did/v1",
+              "https://w3id.org/security/suites/jws-2020/v1"
+            ],
+            "id": "did:webvh:z6mkfixture:alice.example",
+            "verificationMethod": [
+              {
+                "id": "did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture",
+                "type": "JsonWebKey2020",
+                "controller": "did:webvh:z6mkfixture:alice.example",
+                "publicKeyJwk": {
+                  "crv": "Ed25519",
+                  "kty": "OKP",
+                  "x": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg"
+                }
+              }
+            ],
+            "authentication": [
+              "did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture"
+            ],
+            "assertionMethod": [
+              "did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture"
+            ]
+          },
+          "proof": [
+            {
+              "type": "DataIntegrityProof",
+              "cryptosuite": "eddsa-jcs-2022",
+              "verificationMethod": "did:key:z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw#z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw",
+              "proofPurpose": "assertionMethod",
+              "proofValue": "zytmYGi7V4WvinfrG2waLbZNuV1KrkeHF32xJ6CCQ3DTnjmDRPLXLZjEEDKpBngcVYeCML6mchDpJpSvzNzwgpjH"
+            }
+          ]
+        }
+      ],
+      "witness_records": [],
+      "normalized_did_document": {
+        "did": "did:webvh:z6mkfixture:alice.example",
+        "contexts": [
+          "https://www.w3.org/ns/did/v1",
+          "https://w3id.org/security/suites/jws-2020/v1"
+        ],
+        "controller_dids": [
+          "did:webvh:z6mkfixture:alice.example"
+        ],
+        "also_known_as": [],
+        "verification_methods": [
+          {
+            "verification_method": "did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture",
+            "controller_did": "did:webvh:z6mkfixture:alice.example",
+            "verification_method_suite": "JsonWebKey2020",
+            "public_key_material": {
+              "crv": "Ed25519",
+              "kty": "OKP",
+              "x": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg"
+            },
+            "extensions": []
+          }
+        ],
+        "authentication": [
+          {
+            "verification_method": "did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture"
+          }
+        ],
+        "assertion_methods": [
+          {
+            "verification_method": "did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture"
+          }
+        ],
+        "key_agreements": [],
+        "capability_invocations": [],
+        "capability_delegations": [],
+        "services": [],
+        "metadata": {},
+        "extensions": []
+      }
+    },
+    "anchor_canonical_json_sha256": "sha256:670966fa7d826cbce4fdcd69387476623768002dcce3865a99b0ec283ae09494",
+    "derivations": {
+      "did": "did:webvh:z6mkfixture:alice.example",
+      "version_id": "1-QmVYPUMb3ZNa1xCxC7NzXFhtY21FbDCqPCaMVyiiJ5m7Ut",
+      "method_history_head": "sha256:3d4912ba1f736732cb788f468b628534ff792fc39686d632962d201c97900809",
+      "entry_hash_input_canonical_json": "{\"parameters\":{\"method\":\"did:webvh:1.0\",\"nextKeyHashes\":[\"QmSEpeEJ5xqhtg18zvfH7CwWWytCcFDuj2zeFsfvsmMaYX\"],\"scid\":\"z6mkfixture\",\"updateKeys\":[\"z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw\"]},\"state\":{\"@context\":[\"https://www.w3.org/ns/did/v1\",\"https://w3id.org/security/suites/jws-2020/v1\"],\"assertionMethod\":[\"did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture\"],\"authentication\":[\"did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture\"],\"id\":\"did:webvh:z6mkfixture:alice.example\",\"verificationMethod\":[{\"controller\":\"did:webvh:z6mkfixture:alice.example\",\"id\":\"did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture\",\"publicKeyJwk\":{\"crv\":\"Ed25519\",\"kty\":\"OKP\",\"x\":\"A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg\"},\"type\":\"JsonWebKey2020\"}]},\"versionId\":\"z6mkfixture\",\"versionTime\":\"2026-08-08T00:00:00Z\"}",
+      "published_entry_canonical_json": "{\"parameters\":{\"method\":\"did:webvh:1.0\",\"nextKeyHashes\":[\"QmSEpeEJ5xqhtg18zvfH7CwWWytCcFDuj2zeFsfvsmMaYX\"],\"scid\":\"z6mkfixture\",\"updateKeys\":[\"z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw\"]},\"proof\":[{\"cryptosuite\":\"eddsa-jcs-2022\",\"proofPurpose\":\"assertionMethod\",\"proofValue\":\"zytmYGi7V4WvinfrG2waLbZNuV1KrkeHF32xJ6CCQ3DTnjmDRPLXLZjEEDKpBngcVYeCML6mchDpJpSvzNzwgpjH\",\"type\":\"DataIntegrityProof\",\"verificationMethod\":\"did:key:z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw#z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw\"}],\"state\":{\"@context\":[\"https://www.w3.org/ns/did/v1\",\"https://w3id.org/security/suites/jws-2020/v1\"],\"assertionMethod\":[\"did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture\"],\"authentication\":[\"did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture\"],\"id\":\"did:webvh:z6mkfixture:alice.example\",\"verificationMethod\":[{\"controller\":\"did:webvh:z6mkfixture:alice.example\",\"id\":\"did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture\",\"publicKeyJwk\":{\"crv\":\"Ed25519\",\"kty\":\"OKP\",\"x\":\"A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg\"},\"type\":\"JsonWebKey2020\"}]},\"versionId\":\"1-QmVYPUMb3ZNa1xCxC7NzXFhtY21FbDCqPCaMVyiiJ5m7Ut\",\"versionTime\":\"2026-08-08T00:00:00Z\"}",
+      "root_control_key_multibase": "z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw",
+      "root_verification_method": "did:key:z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw#z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw",
+      "control_key_digest": "sha256:39f07e8b4ba3818a5682b8ca6dda21287012e48a562315fe943de5b7a529c028",
+      "next_key_hash": "QmSEpeEJ5xqhtg18zvfH7CwWWytCcFDuj2zeFsfvsmMaYX",
+      "rules": {
+        "anchor_canonical_json_sha256": "sha256(JCS(complete anchor))",
+        "control_key_digest": "sha256(UTF-8(parameters.updateKeys[0]))",
+        "method_history_head": "sha256(JCS(published terminal entry))",
+        "next_key_hash": "base58btc(0x12 0x20 || sha256(UTF-8(next update multikey)))",
+        "root_verification_method": "did:key:<updateKeys[0]> || '#' || <updateKeys[0]>, the controller proof method of the terminal entry",
+        "version_id": "'1-' || base58btc(0x12 0x20 || sha256(JCS(terminal entry with versionId replaced by its predecessor and proof omitted)))"
+      }
+    },
+    "signing_material": {
+      "root_update_key_registry_row": "rfc8032_test_1_ed25519_key",
+      "next_update_key_registry_row": "rfc8032_test_1_ed25519_key",
+      "published_document_key_registry_row": "conformance_ed25519_fixture_key",
+      "note": "The identity root is the method-native update key and is deliberately not the DID document's published assertion key, which stays the Ed25519 conformance key that crypto-signature-fixture.json resolves under this same DID. This log never publishes a second entry, so nextKeyHashes commits to the same published root key rather than to an unpublished one."
+    },
+    "scid_derivation": {
+      "asserted_segment": "z6mkfixture",
+      "reserved_by": "registry/test-material-registry.json#/reserved_identifiers/<webvh_conformance_scid>",
+      "derivation_vector": "fixtures/did-webvh-v1-fixture.json#/cases/<accept_scid_substituted_over_the_whole_entry>",
+      "note": "This is the one webvh relation the anchor asserts instead of deriving: every conformance did:webvh SCID is hand-written so it cannot collide with material a deployment produced, and SCID derivation is exercised by the method fixture named above. Everything downstream of the SCID in this anchor is derived."
+    },
+    "binds": {
+      "fixture": "content-bound-event-id-fixture.json",
+      "create_case": "principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected",
+      "initial_resolution_pointer": "/cases/<principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected>/complete_wire_event/payload/object/initial_resolution",
+      "producer_proof_pointer": "/cases/<principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected>/complete_wire_event/proofs/0",
+      "pcr_realm_id": "ak:realm:ARn9Y97Ha81FH12YY8HLiDixId_wA5Wx2c25p82mJcJ5",
+      "note": "The create Event's initial_resolution carries exactly the did, version_id and method_history_head derived here, and its producer proof verification method is root_verification_method. Replacing the anchor changes anchor_canonical_json_sha256 and therefore invalidates the identity-root control proof that commits to it."
+    },
+    "forbidden_substitutions": [
+      "a resolver summary, a current DID document or a partial log range in place of log_entries",
+      "the versionId entry hash in place of the complete anchor digest",
+      "a normalized_did_document verification method in place of parameters.updateKeys[0]",
+      "the founding device DID URL as the create Event's verification method",
+      "a caller-asserted method_history_head that the terminal entry does not hash to"
+    ]
+  },
+  "derived_relations": [
+    {
+      "relation": "sha256_of_canonical_json",
+      "why": "The identity-root control proof commits to the whole anchor by this digest, so the digest must be over the complete anchor and not over the versionId entry hash.",
+      "inputs": {
+        "object": {
+          "fixture": "pcr-genesis-fixture.json",
+          "pointer": "/principal_registration_anchor_evidence/anchor"
+        }
+      },
+      "output": {
+        "fixture": "pcr-genesis-fixture.json",
+        "pointer": "/principal_registration_anchor_evidence/anchor_canonical_json_sha256"
+      }
+    },
+    {
+      "relation": "sha256_of_canonical_json",
+      "why": "method_history_head is the digest of the published terminal entry, proof included; a caller-asserted head is exactly the substitution the branch forbids.",
+      "inputs": {
+        "object": {
+          "fixture": "pcr-genesis-fixture.json",
+          "pointer": "/principal_registration_anchor_evidence/anchor/log_entries/0"
+        }
+      },
+      "output": {
+        "fixture": "pcr-genesis-fixture.json",
+        "pointer": "/principal_registration_anchor_evidence/derivations/method_history_head"
+      }
+    },
+    {
+      "relation": "sha256_of_utf8_string",
+      "why": "control_key_digest is over the method-native update key multibase, never over a normalized DID document verification method.",
+      "inputs": {
+        "text": {
+          "fixture": "pcr-genesis-fixture.json",
+          "pointer": "/principal_registration_anchor_evidence/anchor/log_entries/0/parameters/updateKeys/0"
+        }
+      },
+      "output": {
+        "fixture": "pcr-genesis-fixture.json",
+        "pointer": "/principal_registration_anchor_evidence/derivations/control_key_digest"
+      }
+    },
+    {
+      "relation": "multihash_sha256_base58btc_of_utf8_string",
+      "why": "The prerotation commitment is the multihash of the next update key; this log publishes one entry, so it commits to the same root key and the commitment stays recomputable.",
+      "inputs": {
+        "text": {
+          "fixture": "pcr-genesis-fixture.json",
+          "pointer": "/principal_registration_anchor_evidence/anchor/log_entries/0/parameters/updateKeys/0"
+        }
+      },
+      "output": {
+        "fixture": "pcr-genesis-fixture.json",
+        "pointer": "/principal_registration_anchor_evidence/anchor/log_entries/0/parameters/nextKeyHashes/0"
+      }
+    },
+    {
+      "relation": "webvh_version_id_from_entry",
+      "why": "The inception versionId is the entry hash over the entry with versionId replaced by the SCID and the proof omitted; the whole adapter re-execution turns on it.",
+      "inputs": {
+        "entry": {
+          "fixture": "pcr-genesis-fixture.json",
+          "pointer": "/principal_registration_anchor_evidence/anchor/log_entries/0"
+        },
+        "predecessor_version_id": {
+          "fixture": "pcr-genesis-fixture.json",
+          "pointer": "/principal_registration_anchor_evidence/anchor/log_entries/0/parameters/scid"
+        }
+      },
+      "output": {
+        "fixture": "pcr-genesis-fixture.json",
+        "pointer": "/principal_registration_anchor_evidence/anchor/log_entries/0/versionId"
+      }
+    },
+    {
+      "relation": "eddsa_jcs_2022_entry_proof_value",
+      "why": "The terminal entry's controller proof must actually verify under the update key, over the same entry-hash bytes the versionId commits to.",
+      "inputs": {
+        "entry": {
+          "fixture": "pcr-genesis-fixture.json",
+          "pointer": "/principal_registration_anchor_evidence/anchor/log_entries/0"
+        },
+        "predecessor_version_id": {
+          "fixture": "pcr-genesis-fixture.json",
+          "pointer": "/principal_registration_anchor_evidence/anchor/log_entries/0/parameters/scid"
+        },
+        "verification_method": {
+          "fixture": "pcr-genesis-fixture.json",
+          "pointer": "/principal_registration_anchor_evidence/derivations/root_verification_method"
+        }
+      },
+      "output": {
+        "fixture": "pcr-genesis-fixture.json",
+        "pointer": "/principal_registration_anchor_evidence/anchor/log_entries/0/proof/0/proofValue"
+      }
+    },
+    {
+      "relation": "equal_json_value",
+      "why": "The derivation summary MUST read back the entry's own versionId rather than restate a constant beside it.",
+      "inputs": {
+        "left": {
+          "fixture": "pcr-genesis-fixture.json",
+          "pointer": "/principal_registration_anchor_evidence/anchor/log_entries/0/versionId"
+        }
+      },
+      "output": {
+        "fixture": "pcr-genesis-fixture.json",
+        "pointer": "/principal_registration_anchor_evidence/derivations/version_id"
+      }
+    },
+    {
+      "relation": "canonical_json_bytes_of_object",
+      "why": "The signed bytes MUST be JCS of the signature-omitted object; without this the transcript could sign one shape and publish another.",
+      "inputs": {
+        "object": {
+          "fixture": "pcr-genesis-fixture.json",
+          "pointer": "/identity_creation_control_transcript/signature_omitted_object"
+        }
+      },
+      "output": {
+        "fixture": "pcr-genesis-fixture.json",
+        "pointer": "/identity_creation_control_transcript/canonical_json"
+      }
+    },
+    {
+      "relation": "sha256_of_canonical_json",
+      "why": "And the transcript digest is over that same object.",
+      "inputs": {
+        "object": {
+          "fixture": "pcr-genesis-fixture.json",
+          "pointer": "/identity_creation_control_transcript/signature_omitted_object"
+        }
+      },
+      "output": {
+        "fixture": "pcr-genesis-fixture.json",
+        "pointer": "/identity_creation_control_transcript/canonical_json_sha256"
+      }
+    },
+    {
+      "relation": "ed25519_signature_over_prefixed_canonical_json",
+      "why": "The identity-root control proof must verify under the anchor's update key, over the domain-prefixed canonical bytes.",
+      "inputs": {
+        "domain": {
+          "fixture": "pcr-genesis-fixture.json",
+          "pointer": "/identity_creation_control_transcript/context"
+        },
+        "canonical_json": {
+          "fixture": "pcr-genesis-fixture.json",
+          "pointer": "/identity_creation_control_transcript/canonical_json"
+        },
+        "public_key_did": {
+          "fixture": "pcr-genesis-fixture.json",
+          "pointer": "/identity_creation_control_transcript/signing_material/public_key_did"
+        }
+      },
+      "output": {
+        "fixture": "pcr-genesis-fixture.json",
+        "pointer": "/identity_creation_control_transcript/signature"
+      }
+    },
+    {
+      "relation": "equal_json_value",
+      "why": "The key the control proof verifies under MUST be the anchor's active update key, not a second published key that happens to be Ed25519.",
+      "inputs": {
+        "left": {
+          "fixture": "pcr-genesis-fixture.json",
+          "pointer": "/principal_registration_anchor_evidence/anchor/log_entries/0/parameters/updateKeys/0"
+        }
+      },
+      "output": {
+        "fixture": "pcr-genesis-fixture.json",
+        "pointer": "/identity_creation_control_transcript/signing_material/public_key_multibase"
+      }
+    },
+    {
+      "relation": "sha256_of_prefixed_canonical_json",
+      "why": "account_subject is the domain-separated digest of the issuer identity and the issuer-local authentication row key, so the deployment-local member names are still bound.",
+      "inputs": {
+        "domain": {
+          "fixture": "pcr-genesis-fixture.json",
+          "pointer": "/identity_creation_control_transcript/account_subject_preimage/domain"
+        },
+        "object": {
+          "fixture": "pcr-genesis-fixture.json",
+          "pointer": "/identity_creation_control_transcript/account_subject_preimage/value"
+        }
+      },
+      "output": {
+        "fixture": "pcr-genesis-fixture.json",
+        "pointer": "/identity_creation_control_transcript/signature_omitted_object/account_subject"
+      }
+    },
+    {
+      "relation": "equal_json_value",
+      "why": "The signed registration_anchor_digest is the anchor digest recomputed above; substituting the anchor therefore invalidates this signature.",
+      "inputs": {
+        "left": {
+          "fixture": "pcr-genesis-fixture.json",
+          "pointer": "/principal_registration_anchor_evidence/anchor_canonical_json_sha256"
+        }
+      },
+      "output": {
+        "fixture": "pcr-genesis-fixture.json",
+        "pointer": "/identity_creation_control_transcript/signature_omitted_object/registration_anchor_digest"
+      }
+    },
+    {
+      "relation": "equal_json_value",
+      "why": "So is the signed control_key_digest.",
+      "inputs": {
+        "left": {
+          "fixture": "pcr-genesis-fixture.json",
+          "pointer": "/principal_registration_anchor_evidence/derivations/control_key_digest"
+        }
+      },
+      "output": {
+        "fixture": "pcr-genesis-fixture.json",
+        "pointer": "/identity_creation_control_transcript/signature_omitted_object/control_key_digest"
+      }
+    },
+    {
+      "relation": "equal_json_value",
+      "why": "And the signed did_version_id is the entry's own versionId.",
+      "inputs": {
+        "left": {
+          "fixture": "pcr-genesis-fixture.json",
+          "pointer": "/principal_registration_anchor_evidence/anchor/log_entries/0/versionId"
+        }
+      },
+      "output": {
+        "fixture": "pcr-genesis-fixture.json",
+        "pointer": "/identity_creation_control_transcript/signature_omitted_object/did_version_id"
+      }
+    },
+    {
+      "relation": "equal_json_value",
+      "why": "And the signed DID is the anchor's DID.",
+      "inputs": {
+        "left": {
+          "fixture": "pcr-genesis-fixture.json",
+          "pointer": "/principal_registration_anchor_evidence/anchor/registration_did_operation/did"
+        }
+      },
+      "output": {
+        "fixture": "pcr-genesis-fixture.json",
+        "pointer": "/identity_creation_control_transcript/signature_omitted_object/did"
+      }
+    },
+    {
+      "relation": "equal_json_value",
+      "why": "The signed founding_authorize_payload_digest is the digest the root-signed descriptor already carries.",
+      "inputs": {
+        "left": {
+          "fixture": "pcr-genesis-fixture.json",
+          "pointer": "/founding_device_descriptor/founding_authorize_payload_digest"
+        }
+      },
+      "output": {
+        "fixture": "pcr-genesis-fixture.json",
+        "pointer": "/identity_creation_control_transcript/signature_omitted_object/founding_authorize_payload_digest"
+      }
+    },
+    {
+      "relation": "sha256_of_canonical_json",
+      "why": "The signed initial_session_request_digest is over the request object itself, so the session the genesis opens is bound rather than described.",
+      "inputs": {
+        "object": {
+          "fixture": "pcr-genesis-fixture.json",
+          "pointer": "/initial_session_request/value"
+        }
+      },
+      "output": {
+        "fixture": "pcr-genesis-fixture.json",
+        "pointer": "/identity_creation_control_transcript/signature_omitted_object/initial_session_request_digest"
+      }
+    },
+    {
+      "relation": "canonical_json_bytes_of_object",
+      "why": "Same for the session request's own canonical bytes.",
+      "inputs": {
+        "object": {
+          "fixture": "pcr-genesis-fixture.json",
+          "pointer": "/initial_session_request/value"
+        }
+      },
+      "output": {
+        "fixture": "pcr-genesis-fixture.json",
+        "pointer": "/initial_session_request/canonical_json"
+      }
+    },
+    {
+      "relation": "canonical_json_bytes_of_object",
+      "why": "And for the account_subject preimage bytes, so the digest above is over bytes the fixture proves canonical.",
+      "inputs": {
+        "object": {
+          "fixture": "pcr-genesis-fixture.json",
+          "pointer": "/identity_creation_control_transcript/account_subject_preimage/value"
+        }
+      },
+      "output": {
+        "fixture": "pcr-genesis-fixture.json",
+        "pointer": "/identity_creation_control_transcript/account_subject_preimage/canonical_json"
+      }
+    },
+    {
+      "relation": "equal_json_value",
+      "why": "The abandonment challenge names the same account_subject the control proof signed; a second constant here would let the two drift.",
+      "inputs": {
+        "left": {
+          "fixture": "pcr-genesis-fixture.json",
+          "pointer": "/identity_creation_control_transcript/signature_omitted_object/account_subject"
+        }
+      },
+      "output": {
+        "fixture": "pcr-genesis-fixture.json",
+        "pointer": "/provisional_identity_abandonment/challenge/account_subject"
+      }
+    },
+    {
+      "relation": "equal_json_value",
+      "why": "And the same did_version_id.",
+      "inputs": {
+        "left": {
+          "fixture": "pcr-genesis-fixture.json",
+          "pointer": "/principal_registration_anchor_evidence/anchor/log_entries/0/versionId"
+        }
+      },
+      "output": {
+        "fixture": "pcr-genesis-fixture.json",
+        "pointer": "/provisional_identity_abandonment/challenge/did_version_id"
+      }
+    }
+  ]
 }

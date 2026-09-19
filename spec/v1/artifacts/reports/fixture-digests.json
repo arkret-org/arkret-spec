@@ -106,7 +106,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/content-bound-event-id-fixture.json",
-      "sha256": "f84b326b2bf3b22f82a22d6b9d0d6a4b7340c86c3b03775696057a5aa143123b"
+      "sha256": "f5e58f8e4e544456232fe7f411dd78cd77cba610fbecb4f54b3636ab614a6fae"
     },
     {
       "path": "spec/v1/artifacts/fixtures/crypto-signature-fixture.json",
@@ -250,7 +250,7 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/pcr-genesis-fixture.json",
-      "sha256": "778b6ea82a636646ae68548116bf6bc43d1a6e6557cea87fcf2263420bf21f2a"
+      "sha256": "f8d91e5f2c9f1aca2d23408bd819e6360da912915dc682f7b98d8c99e7f89674"
     },
     {
       "path": "spec/v1/artifacts/fixtures/privacy-security-fixture.json",

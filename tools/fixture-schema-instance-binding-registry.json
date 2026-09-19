@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-05.1",
+  "version": "2026-09-19.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-05T16:55:00+08:00",
+  "generated_at": "2026-09-19T00:00:00+08:00",
   "lock_kind": "fixture_schema_instance_bindings",
   "description": "Fixture objects that are real wire instances but carry no `schema` discriminator, bound by exact JSON Pointer to the schema that owns them. check_declared_schema_fixture_instances only claims objects that name their own schema, so an instance without that member has no schema landing point at all: it survives every field deletion its schema makes, and the drift surfaces only when a downstream deny_unknown_fields type finally parses it. Each row makes one such object validate in the artifact pipeline instead.",
   "registry_rules": [
@@ -47,6 +47,18 @@
       "pointer": "/cases/4/input/private_contact_discovery_config",
       "schema_ref": "schemas/service-describe.schema.json#/properties/private_contact_discovery",
       "why": "A vector case input, so it carries no schema member and no schema_validation_cases entry; check_declared_schema_fixture_instances cannot claim it. It shipped six members the closed describe object forbids -- distribution inside anti_enumeration_delay plus oprf_mode, ciphersuite, derived_prefix_bytes, proof_shape and response_size_buckets_bytes -- which are exactly the parameters the profile description fixes to the profile identity instead of a describe field. Nothing caught it until the SDK's deny_unknown_fields type parsed the fixture."
+    },
+    {
+      "fixture": "pcr-genesis-fixture.json",
+      "pointer": "/principal_registration_anchor_evidence/anchor",
+      "schema_ref": "schemas/principal-registration-anchor.schema.json",
+      "why": "The registration_anchor admission branch had no constructible instance anywhere in the corpus, so its closed five-member shape and the whole webvh adapter it mandates were asserted only by prose. The anchor is embedded in the genesis evidence rather than submitted on its own, so it carries no schema member; without this row a deleted or renamed log_entries / witness_records / normalized_did_document member would leave the only positive branch instance silently valid."
+    },
+    {
+      "fixture": "pcr-genesis-fixture.json",
+      "pointer": "/identity_creation_control_transcript/signed_object",
+      "schema_ref": "schemas/account-operations.schema.json#/$defs/identity_creation_control_proof",
+      "why": "The transcript names its schema_ref in prose but the signed object itself carries no schema member, so nothing validated the twenty-five required members the closed control proof demands. This is the object whose signature binds the registration anchor digest to the PCR realm id, so a member the schema drops or renames would silently break the only end-to-end identity-root control proof while its own signature stayed verifiable."
     }
   ]
 }

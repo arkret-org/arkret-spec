@@ -110,6 +110,7 @@ from .fixtures import (
     check_encrypted_envelope_digest_vector,
     check_mls_governance_binding_closure_vector,
     check_human_pcr_admission_branch_evidence,
+    check_human_pcr_registration_anchor_binding,
     check_erasure_verification_contract,
     check_event_batch_receipt_normalization_vector,
     check_fixture_runner_contract,
@@ -615,6 +616,10 @@ def main(argv: list[str] | None = None) -> int:
             (
                 "human_pcr_admission_branch_evidence",
                 lambda: check_human_pcr_admission_branch_evidence(lint),
+            ),
+            (
+                "human_pcr_registration_anchor_binding",
+                lambda: check_human_pcr_registration_anchor_binding(lint),
             ),
             (
                 "stated_preimage_matches_stated_digest",

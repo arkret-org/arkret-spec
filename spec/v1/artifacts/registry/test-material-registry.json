@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.1",
+  "version": "2026-09-19.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-19T08:18:00+08:00",
+  "generated_at": "2026-09-19T15:04:17+08:00",
   "description": "Canonical list of the published test signing material and the reserved test identifiers that identity/did-usage-and-verification.md section 8 refuses on every formal verification, authorization and trust-admission path. Published material is material whose PRIVATE key ships with the specification, so a valid signature over it proves nothing about the signer. Matching is by canonicalized public-key fingerprint over algorithm-defined key material and by the typed identifier rules below; it is never inferred from the words test, fixture, did:key or example appearing in a string.",
   "rules": [
     "published_signing_material[].fingerprint is sha256 over the ALGORITHM-DEFINED public key encoding named by public_key_encoding, never over JWK, multibase, PEM or any JSON text. The same public key carried under a different kid, DID, JWK member order or transport encoding MUST produce the same fingerprint.",
@@ -47,6 +47,7 @@
       "source_fixtures": [
         "spec/v1/artifacts/fixtures/approval-signature-kat-fixture.json",
         "spec/v1/artifacts/fixtures/contact-round-kat.json",
+        "spec/v1/artifacts/fixtures/content-bound-event-id-fixture.json",
         "spec/v1/artifacts/fixtures/crypto-signature-fixture.json",
         "spec/v1/artifacts/fixtures/franking-proof-transcript-fixture.json",
         "spec/v1/artifacts/fixtures/keypackage-write-transcript-fixture.json",
@@ -100,8 +101,10 @@
       "algorithm": "Ed25519",
       "public_key_encoding": "ed25519_rfc8032_public_key",
       "fingerprint": "sha256:21fe31dfa154a261626bf854046fd2271b7bed4b6abe45aa58877ef47f9721b9",
-      "why": "The RFC 8032 section 7.1 TEST 1 Ed25519 key. It is the proof-of-possession key of the WebSocket DPoP known-answer test, and its private key has been published in an IETF document since 2017; a holder of this key can mint a syntactically perfect DPoP proof.",
+      "why": "The RFC 8032 section 7.1 TEST 1 Ed25519 key. It is the proof-of-possession key of the WebSocket DPoP known-answer test, and it is the human PCR registration anchor's method-native update key, so it also signs that anchor's controller proof, the genesis create Event and the identity-root control transcript. Its private key has been published in an IETF document since 2017; a holder of this key can mint a syntactically perfect DPoP proof.",
       "source_fixtures": [
+        "spec/v1/artifacts/fixtures/content-bound-event-id-fixture.json",
+        "spec/v1/artifacts/fixtures/pcr-genesis-fixture.json",
         "spec/v1/artifacts/fixtures/websocket-binding-fixture.json"
       ],
       "recomputation": {

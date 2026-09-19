@@ -323,6 +323,74 @@ def base58btc_decode(text: str) -> bytes:
     return bytes(len(text) - len(text.lstrip("1"))) + body
 
 
+def base58btc_encode(payload: bytes) -> str:
+    value = int.from_bytes(payload, "big")
+    text = ""
+    while value:
+        value, remainder = divmod(value, 58)
+        text = BASE58BTC_ALPHABET[remainder] + text
+    return "1" * (len(payload) - len(payload.lstrip(b"\x00"))) + text
+
+
+def multihash_sha256_base58btc(payload: bytes) -> str:
+    """The did:webvh digest form: base58btc over the SHA-256 multihash."""
+    return base58btc_encode(b"\x12\x20" + hashlib.sha256(payload).digest())
+
+
+def _ed25519_public_key_octets(value: Any) -> tuple[bytes | None, str | None]:
+    """Decode an Ed25519 public key from a did:key URL or a bare multikey.
+
+    A did:key fragment MUST repeat the multibase value, so a URL whose fragment
+    names some other key is a failure here instead of a silently ignored
+    mismatch. The bare-multikey form is what a webvh `updateKeys` entry and a
+    published test-material row carry, so both spellings resolve to one key.
+    """
+    if not isinstance(value, str):
+        return None, "a verification key MUST be a string"
+    text = value
+    if text.startswith("did:key:"):
+        text = text.removeprefix("did:key:")
+        if "#" in text:
+            body, fragment = text.split("#", 1)
+            if fragment != body:
+                return None, (
+                    "a did:key URL fragment MUST repeat the multibase value; "
+                    f"{fragment!r} does not equal {body!r}"
+                )
+            text = body
+    if not text.startswith("z"):
+        return None, f"{value!r} is not a base58btc multibase value"
+    try:
+        multikey = base58btc_decode(text.removeprefix("z"))
+    except ValueError as error:
+        return None, f"the multibase value does not decode: {error}"
+    if multikey[:2] != b"\xed\x01" or len(multikey) != 34:
+        return None, (
+            "the value is not an Ed25519 multikey (0xed01 plus 32 octets); it decodes to prefix "
+            f"{multikey[:2].hex()} and {len(multikey) - 2} key octets"
+        )
+    return multikey[2:], None
+
+
+def webvh_entry_hash_input(entry: Any, predecessor: Any) -> tuple[dict | None, str | None]:
+    """The did:webvh entry-hash preimage: the entry without its proof array and
+    with `versionId` replaced by its predecessor -- the SCID for the inception
+    entry. Both the versionId and the controller proof are computed over these
+    bytes, so one helper serves both relations."""
+    if not isinstance(entry, dict) or not isinstance(predecessor, str):
+        return None, "inputs MUST be a did:webvh log entry object plus its predecessor versionId"
+    if not isinstance(entry.get("versionId"), str):
+        return None, "the entry carries no versionId"
+    hash_input = {key: value for key, value in entry.items() if key != "proof"}
+    hash_input["versionId"] = predecessor
+    return hash_input, None
+
+
+def webvh_next_version_number(predecessor: str) -> int:
+    head = predecessor.split("-", 1)[0]
+    return int(head) + 1 if head.isdigit() else 1
+
+
 DERIVED_RELATION_INPUTS: dict[str, dict[str, str]] = {
     "event_id_from_canonical_preimage": {
         "canonical_preimage_utf8": "ref",
@@ -341,6 +409,21 @@ DERIVED_RELATION_INPUTS: dict[str, dict[str, str]] = {
         "domain": "ref",
         "canonical_json": "ref",
         "public_key_did": "ref",
+    },
+    "sha256_of_utf8_string": {"text": "ref"},
+    "sha256_of_prefixed_canonical_json": {"domain": "ref", "object": "ref"},
+    "canonical_json_bytes_of_object": {"object": "ref"},
+    "multihash_sha256_base58btc_of_utf8_string": {"text": "ref"},
+    "webvh_version_id_from_entry": {"entry": "ref", "predecessor_version_id": "ref"},
+    "eddsa_jcs_2022_entry_proof_value": {
+        "entry": "ref",
+        "predecessor_version_id": "ref",
+        "verification_method": "ref",
+    },
+    "ed25519_detached_jws_over_canonical_binding": {
+        "protected_header_canonical": "ref",
+        "binding_object": "ref",
+        "public_key": "ref",
     },
 }
 
@@ -416,6 +499,162 @@ REQUIRED_DERIVED_RELATIONS: tuple[tuple[str, str, str], ...] = (
         "content-bound-event-id-fixture.json",
         "equal_json_value",
         "case:agent_provision_forward_declaration_is_constructible#/derived_realm_id",
+    ),
+    # 1105: the registration_anchor admission branch. Every webvh relation the
+    # anchor asserts is recomputed, the identity-root control proof is verified
+    # under the anchor's own update key, and both genesis branches' producer
+    # proofs are verified under the key their branch resolves. Deleting any of
+    # these declarations would leave the branch's only positive instance as an
+    # unchecked constant again.
+    (
+        "pcr-genesis-fixture.json",
+        "sha256_of_canonical_json",
+        "fixture:pcr-genesis-fixture.json#/principal_registration_anchor_evidence/anchor_canonical_json_sha256",
+    ),
+    (
+        "pcr-genesis-fixture.json",
+        "sha256_of_canonical_json",
+        "fixture:pcr-genesis-fixture.json#/principal_registration_anchor_evidence/derivations/method_history_head",
+    ),
+    (
+        "pcr-genesis-fixture.json",
+        "sha256_of_utf8_string",
+        "fixture:pcr-genesis-fixture.json#/principal_registration_anchor_evidence/derivations/control_key_digest",
+    ),
+    (
+        "pcr-genesis-fixture.json",
+        "multihash_sha256_base58btc_of_utf8_string",
+        "fixture:pcr-genesis-fixture.json#/principal_registration_anchor_evidence/anchor/log_entries/0/parameters/nextKeyHashes/0",
+    ),
+    (
+        "pcr-genesis-fixture.json",
+        "webvh_version_id_from_entry",
+        "fixture:pcr-genesis-fixture.json#/principal_registration_anchor_evidence/anchor/log_entries/0/versionId",
+    ),
+    (
+        "pcr-genesis-fixture.json",
+        "eddsa_jcs_2022_entry_proof_value",
+        "fixture:pcr-genesis-fixture.json#/principal_registration_anchor_evidence/anchor/log_entries/0/proof/0/proofValue",
+    ),
+    (
+        "pcr-genesis-fixture.json",
+        "equal_json_value",
+        "fixture:pcr-genesis-fixture.json#/principal_registration_anchor_evidence/derivations/version_id",
+    ),
+    (
+        "pcr-genesis-fixture.json",
+        "canonical_json_bytes_of_object",
+        "fixture:pcr-genesis-fixture.json#/identity_creation_control_transcript/canonical_json",
+    ),
+    (
+        "pcr-genesis-fixture.json",
+        "sha256_of_canonical_json",
+        "fixture:pcr-genesis-fixture.json#/identity_creation_control_transcript/canonical_json_sha256",
+    ),
+    (
+        "pcr-genesis-fixture.json",
+        "ed25519_signature_over_prefixed_canonical_json",
+        "fixture:pcr-genesis-fixture.json#/identity_creation_control_transcript/signature",
+    ),
+    (
+        "pcr-genesis-fixture.json",
+        "equal_json_value",
+        "fixture:pcr-genesis-fixture.json#/identity_creation_control_transcript/signing_material/public_key_multibase",
+    ),
+    (
+        "pcr-genesis-fixture.json",
+        "sha256_of_prefixed_canonical_json",
+        "fixture:pcr-genesis-fixture.json#/identity_creation_control_transcript/signature_omitted_object/account_subject",
+    ),
+    (
+        "pcr-genesis-fixture.json",
+        "equal_json_value",
+        "fixture:pcr-genesis-fixture.json#/identity_creation_control_transcript/signature_omitted_object/registration_anchor_digest",
+    ),
+    (
+        "pcr-genesis-fixture.json",
+        "equal_json_value",
+        "fixture:pcr-genesis-fixture.json#/identity_creation_control_transcript/signature_omitted_object/control_key_digest",
+    ),
+    (
+        "pcr-genesis-fixture.json",
+        "equal_json_value",
+        "fixture:pcr-genesis-fixture.json#/identity_creation_control_transcript/signature_omitted_object/did_version_id",
+    ),
+    (
+        "pcr-genesis-fixture.json",
+        "equal_json_value",
+        "fixture:pcr-genesis-fixture.json#/identity_creation_control_transcript/signature_omitted_object/did",
+    ),
+    (
+        "pcr-genesis-fixture.json",
+        "equal_json_value",
+        "fixture:pcr-genesis-fixture.json#/identity_creation_control_transcript/signature_omitted_object/founding_authorize_payload_digest",
+    ),
+    (
+        "pcr-genesis-fixture.json",
+        "sha256_of_canonical_json",
+        "fixture:pcr-genesis-fixture.json#/identity_creation_control_transcript/signature_omitted_object/initial_session_request_digest",
+    ),
+    (
+        "pcr-genesis-fixture.json",
+        "canonical_json_bytes_of_object",
+        "fixture:pcr-genesis-fixture.json#/initial_session_request/canonical_json",
+    ),
+    (
+        "pcr-genesis-fixture.json",
+        "canonical_json_bytes_of_object",
+        "fixture:pcr-genesis-fixture.json#/identity_creation_control_transcript/account_subject_preimage/canonical_json",
+    ),
+    (
+        "pcr-genesis-fixture.json",
+        "equal_json_value",
+        "fixture:pcr-genesis-fixture.json#/provisional_identity_abandonment/challenge/account_subject",
+    ),
+    (
+        "pcr-genesis-fixture.json",
+        "equal_json_value",
+        "fixture:pcr-genesis-fixture.json#/provisional_identity_abandonment/challenge/did_version_id",
+    ),
+    (
+        "content-bound-event-id-fixture.json",
+        "event_preimage_member",
+        "fixture:pcr-genesis-fixture.json#/founding_device_descriptor",
+    ),
+    (
+        "content-bound-event-id-fixture.json",
+        "sha256_of_canonical_json",
+        "fixture:pcr-genesis-fixture.json#/founding_device_descriptor/founding_authorize_payload_digest",
+    ),
+    (
+        "content-bound-event-id-fixture.json",
+        "ed25519_signature_over_prefixed_canonical_json",
+        "fixture:pcr-genesis-fixture.json#/device_possession/device_signature",
+    ),
+    (
+        "content-bound-event-id-fixture.json",
+        "event_preimage_member",
+        "fixture:pcr-genesis-fixture.json#/founding_authorize/payload",
+    ),
+    (
+        "content-bound-event-id-fixture.json",
+        "ed25519_detached_jws_over_canonical_binding",
+        "case:principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected#/complete_wire_event/proofs/0/jws",
+    ),
+    (
+        "content-bound-event-id-fixture.json",
+        "ed25519_detached_jws_over_canonical_binding",
+        "case:organization_governed_pcr_genesis_derives_a_distinct_realm#/complete_wire_event/proofs/0/jws",
+    ),
+    (
+        "content-bound-event-id-fixture.json",
+        "equal_json_value",
+        "fixture:pcr-genesis-fixture.json#/identity_creation_control_transcript/signature_omitted_object/pcr_realm_id",
+    ),
+    (
+        "content-bound-event-id-fixture.json",
+        "sha256_of_canonical_json",
+        "fixture:pcr-genesis-fixture.json#/identity_creation_control_transcript/signature_omitted_object/realm_create_payload_digest",
     ),
 )
 
@@ -782,6 +1021,130 @@ def _recompute_derived_relation(
             )
         except Exception:  # noqa: BLE001 - InvalidSignature plus malformed input
             wrong("the signature does not verify over UTF8(domain) || 0x0A || canonical bytes")
+        return
+
+    if relation == "sha256_of_utf8_string":
+        text = inputs["text"]
+        if not isinstance(text, str):
+            wrong("the hashed input MUST be a string")
+            return
+        if output != sha256_text(text):
+            wrong(f"recomputed {sha256_text(text)}")
+        return
+
+    if relation == "sha256_of_prefixed_canonical_json":
+        domain = inputs["domain"]
+        if not isinstance(domain, str):
+            wrong("the domain separation prefix MUST be a string")
+            return
+        expected = sha256_text(domain + "\n" + canonical_json(inputs["object"]))
+        if output != expected:
+            wrong(f"recomputed {expected}")
+        return
+
+    if relation == "canonical_json_bytes_of_object":
+        expected = canonical_json(inputs["object"])
+        if output != expected:
+            wrong("the declared canonical bytes are not JCS of the declared object")
+        return
+
+    if relation == "multihash_sha256_base58btc_of_utf8_string":
+        text = inputs["text"]
+        if not isinstance(text, str):
+            wrong("the committed input MUST be a string")
+            return
+        expected = multihash_sha256_base58btc(text.encode("utf-8"))
+        if output != expected:
+            wrong(f"recomputed {expected}")
+        return
+
+    if relation == "webvh_version_id_from_entry":
+        predecessor = inputs["predecessor_version_id"]
+        hash_input, detail = webvh_entry_hash_input(inputs["entry"], predecessor)
+        if hash_input is None:
+            wrong(detail or "the entry-hash preimage is not constructible")
+            return
+        expected = f"{webvh_next_version_number(predecessor)}-" + multihash_sha256_base58btc(
+            canonical_json(hash_input).encode("utf-8")
+        )
+        if output != expected:
+            wrong(f"recomputed {expected}")
+        return
+
+    if relation == "eddsa_jcs_2022_entry_proof_value":
+        if Ed25519PublicKey is None:  # pragma: no cover - CI installs cryptography.
+            return
+        hash_input, detail = webvh_entry_hash_input(
+            inputs["entry"], inputs["predecessor_version_id"]
+        )
+        if hash_input is None:
+            wrong(detail or "the entry-hash preimage is not constructible")
+            return
+        key_octets, detail = _ed25519_public_key_octets(inputs["verification_method"])
+        if key_octets is None:
+            wrong(detail or "the verification method carries no Ed25519 key")
+            return
+        if not isinstance(output, str) or not output.startswith("z"):
+            wrong("an eddsa-jcs-2022 proofValue MUST be a base58btc multibase string")
+            return
+        try:
+            signature = base58btc_decode(output.removeprefix("z"))
+        except ValueError as error:
+            wrong(f"the proofValue does not decode: {error}")
+            return
+        try:
+            Ed25519PublicKey.from_public_bytes(key_octets).verify(
+                signature, canonical_json(hash_input).encode("utf-8")
+            )
+        except Exception:  # noqa: BLE001 - InvalidSignature plus malformed input
+            wrong("the controller proof does not verify over the entry-hash canonical bytes")
+        return
+
+    if relation == "ed25519_detached_jws_over_canonical_binding":
+        if Ed25519PublicKey is None:  # pragma: no cover - CI installs cryptography.
+            return
+        header = inputs["protected_header_canonical"]
+        if not isinstance(header, str):
+            wrong("the protected header MUST be carried as canonical bytes")
+            return
+        try:
+            header_object = json.loads(header)
+        except json.JSONDecodeError:
+            wrong("the protected header bytes are not JSON")
+            return
+        if canonical_json(header_object) != header:
+            wrong("the protected header bytes are not canonical JSON")
+            return
+        key_octets, detail = _ed25519_public_key_octets(inputs["public_key"])
+        if key_octets is None:
+            wrong(detail or "the signing material carries no Ed25519 key")
+            return
+        if not isinstance(output, str) or output.count(".") != 2:
+            wrong("a detached JWS MUST be the three-segment compact serialization")
+            return
+        protected_segment, payload_segment, signature_segment = output.split(".")
+        if payload_segment:
+            wrong("a detached JWS MUST carry an empty payload segment")
+            return
+        if protected_segment != base64url_text(header):
+            wrong("the compact form's protected segment is not base64url of the declared header")
+            return
+        signing_input = protected_segment + "." + base64url_text(
+            canonical_json(inputs["binding_object"])
+        )
+        try:
+            signature = base64.urlsafe_b64decode(
+                signature_segment + "=" * (-len(signature_segment) % 4)
+            )
+        except (binascii.Error, ValueError):
+            wrong("the signature segment is not unpadded base64url")
+            return
+        try:
+            Ed25519PublicKey.from_public_bytes(key_octets).verify(
+                signature, signing_input.encode("ascii")
+            )
+        except Exception:  # noqa: BLE001 - InvalidSignature plus malformed input
+            wrong("the detached JWS does not verify over b64u(header).b64u(JCS(binding object))")
         return
 
     lint.fail(path, f"derived relation {relation} has no recomputation")  # pragma: no cover
@@ -4023,6 +4386,490 @@ def check_human_pcr_admission_branch_evidence(lint: Lint) -> None:
                 f"admission predicate {accepting}; the variants overlap and only the "
                 "subtraction in selected_branches() is hiding it",
             )
+
+
+PCR_GENESIS_FIXTURE = "pcr-genesis-fixture.json"
+CONTENT_BOUND_FIXTURE = "content-bound-event-id-fixture.json"
+REGISTRATION_ANCHOR_CREATE_CASE = (
+    "principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected"
+)
+DELEGATED_PCR_GENESIS_CASE = "organization_governed_pcr_genesis_derives_a_distinct_realm"
+FOUNDING_AUTHORIZE_CASE = "human_founding_device_authorize_binds_the_derived_realm"
+
+
+def _anchor_kind_const(lint: Lint) -> str | None:
+    """The branch discriminator is the schema's, never a literal repeated here."""
+    schema = load_json(lint, ARTIFACTS / "schemas" / "principal-registration-anchor.schema.json")
+    if not isinstance(schema, dict):
+        return None
+    for definition in (schema.get("$defs") or {}).values():
+        if not isinstance(definition, dict):
+            continue
+        kind = ((definition.get("properties") or {}).get("anchor_kind") or {}).get("const")
+        if isinstance(kind, str):
+            return kind
+    lint.fail(
+        ARTIFACTS / "schemas" / "principal-registration-anchor.schema.json",
+        "the anchor schema declares no anchor_kind const, so no branch discriminator exists",
+    )
+    return None
+
+
+def check_human_pcr_registration_anchor_binding(lint: Lint) -> None:
+    """The registration_anchor branch's positive instance is structurally closed.
+
+    The relation gate recomputes every digest, versionId, prerotation commitment
+    and signature this anchor asserts. What a relation cannot express is the
+    shape around those values: that the operation wrapper is the terminal entry
+    rather than a second choosable copy of it, that the normalized document never
+    republishes the update key, that the create Event's producer proof resolves
+    to the anchor's update key and not to the founding device, and that the
+    control proof's forbidden members are actually absent. Those are the
+    substitutions 1105 names, and a fixture can satisfy every recomputation while
+    failing all of them.
+    """
+
+    pcr_path = ARTIFACTS / "fixtures" / PCR_GENESIS_FIXTURE
+    content_path = ARTIFACTS / "fixtures" / CONTENT_BOUND_FIXTURE
+    pcr = load_json(lint, pcr_path)
+    content = load_json(lint, content_path)
+    if not isinstance(pcr, dict) or not isinstance(content, dict):
+        return
+    evidence = pcr.get("principal_registration_anchor_evidence")
+    if not isinstance(evidence, dict):
+        lint.fail(
+            pcr_path,
+            "the registration_anchor admission branch has no constructible instance without "
+            "principal_registration_anchor_evidence; its positive coverage then counts a "
+            "branch nothing in the corpus can produce",
+        )
+        return
+    anchor = evidence.get("anchor")
+    if not isinstance(anchor, dict):
+        lint.fail(pcr_path, "principal_registration_anchor_evidence MUST carry an anchor object")
+        return
+    cases = {
+        case["name"]: case
+        for case in content.get("cases", [])
+        if isinstance(case, dict) and isinstance(case.get("name"), str)
+    }
+
+    # --- 1. the anchor's own shape --------------------------------------------
+    expected_kind = _anchor_kind_const(lint)
+    if expected_kind is not None and anchor.get("anchor_kind") != expected_kind:
+        lint.fail(
+            pcr_path,
+            f"anchor_kind MUST be the schema's {expected_kind!r}, got "
+            f"{anchor.get('anchor_kind')!r}",
+        )
+    entries = anchor.get("log_entries")
+    if not isinstance(entries, list) or not entries or not all(
+        isinstance(entry, dict) for entry in entries
+    ):
+        lint.fail(
+            pcr_path,
+            "log_entries MUST be a non-empty array of did:webvh log entries; a resolver "
+            "summary or a partial range is the substitution the branch forbids",
+        )
+        return
+    terminal = entries[-1]
+    operation = anchor.get("registration_did_operation")
+    if not isinstance(operation, dict):
+        lint.fail(pcr_path, "registration_did_operation MUST be an object")
+        return
+    if canonical_json(operation.get("operation")) != canonical_json(terminal):
+        lint.fail(
+            pcr_path,
+            "registration_did_operation.operation MUST be canonically equal to the last "
+            "log_entries element; two independently choosable copies let the wrapper and "
+            "the log disagree while both stay schema-valid",
+        )
+    if "prev_event_digest" in operation:
+        lint.fail(
+            pcr_path,
+            "registration_did_operation MUST NOT carry prev_event_digest: inside an anchor "
+            "the predecessor is the preceding log_entries elements",
+        )
+    if operation.get("did_method") != "webvh":
+        lint.fail(pcr_path, "registration_did_operation.did_method MUST be webvh")
+    version_id = terminal.get("versionId")
+    if not isinstance(version_id, str) or "-" not in version_id:
+        lint.fail(pcr_path, "the terminal log entry MUST carry a '<number>-<entryHash>' versionId")
+        return
+    number_text = version_id.split("-", 1)[0]
+    if not number_text.isdigit():
+        lint.fail(pcr_path, f"the terminal versionId carries no version number: {version_id!r}")
+        return
+    terminal_number = int(number_text)
+    if terminal_number != len(entries):
+        lint.fail(
+            pcr_path,
+            f"the terminal versionId numbers version {terminal_number} but the anchor carries "
+            f"{len(entries)} log entries, so the log is not the complete history it claims",
+        )
+    if "seq" in operation and operation["seq"] != terminal_number:
+        lint.fail(
+            pcr_path,
+            f"registration_did_operation.seq MUST equal the terminal version number "
+            f"{terminal_number}, got {operation['seq']!r}",
+        )
+    parameters = terminal.get("parameters")
+    state = terminal.get("state")
+    if not isinstance(parameters, dict) or not isinstance(state, dict):
+        lint.fail(pcr_path, "the terminal log entry MUST carry both parameters and state")
+        return
+    did = state.get("id")
+    scid = parameters.get("scid")
+    if not isinstance(did, str) or not isinstance(scid, str):
+        lint.fail(pcr_path, "the terminal entry MUST carry state.id and parameters.scid")
+        return
+    if operation.get("did") != did:
+        lint.fail(
+            pcr_path,
+            f"registration_did_operation.did MUST be the DID the terminal entry establishes "
+            f"({did}), got {operation.get('did')!r}",
+        )
+    segments = did.split(":")
+    if len(segments) < 4 or segments[2] != scid:
+        lint.fail(
+            pcr_path,
+            f"{did} does not carry parameters.scid {scid!r} in its method-specific segment, so "
+            "the SCID the adapter validates is not the SCID the DID names",
+        )
+    update_keys = parameters.get("updateKeys")
+    if not isinstance(update_keys, list) or not update_keys or not isinstance(update_keys[0], str):
+        lint.fail(pcr_path, "the terminal entry MUST carry parameters.updateKeys[0]")
+        return
+    update_key = update_keys[0]
+    witness_records = anchor.get("witness_records")
+    if not isinstance(witness_records, list):
+        lint.fail(pcr_path, "witness_records MUST be an array, empty when no witness policy is set")
+        return
+    declares_witnesses = bool(parameters.get("witness"))
+    if declares_witnesses and not witness_records:
+        lint.fail(
+            pcr_path,
+            "the terminal entry declares a witness policy, so witness_records MUST NOT be empty",
+        )
+    if witness_records and not declares_witnesses:
+        lint.fail(
+            pcr_path,
+            "witness_records are present while the terminal entry declares no witness policy, so "
+            "the anchor carries receipts nothing required",
+        )
+
+    # --- 2. the normalized document is a projection, not a second source ------
+    normalized = anchor.get("normalized_did_document")
+    if not isinstance(normalized, dict):
+        lint.fail(pcr_path, "normalized_did_document MUST be an object")
+        return
+    if normalized.get("did") != did:
+        lint.fail(
+            pcr_path,
+            f"normalized_did_document.did MUST be {did}, got {normalized.get('did')!r}",
+        )
+    state_methods = state.get("verificationMethod")
+    published_ids = {
+        method["id"]
+        for method in (state_methods if isinstance(state_methods, list) else [])
+        if isinstance(method, dict) and isinstance(method.get("id"), str)
+    }
+    normalized_methods = normalized.get("verification_methods")
+    normalized_ids = {
+        method["verification_method"]
+        for method in (normalized_methods if isinstance(normalized_methods, list) else [])
+        if isinstance(method, dict) and isinstance(method.get("verification_method"), str)
+    }
+    if normalized_ids != published_ids:
+        lint.fail(
+            pcr_path,
+            "normalized_did_document.verification_methods MUST be exactly the terminal state's "
+            f"verificationMethod ids; it declares {sorted(normalized_ids)} against "
+            f"{sorted(published_ids)}",
+        )
+    normalized_text = canonical_json(normalized)
+    if update_key in normalized_text:
+        lint.fail(
+            pcr_path,
+            "the normalized DID document republishes parameters.updateKeys[0]; the identity root "
+            "is method-native material and a document verification method carrying it is exactly "
+            "the substitution the branch forbids",
+        )
+
+    # --- 3. the identity-root control proof -----------------------------------
+    transcript = pcr.get("identity_creation_control_transcript")
+    if not isinstance(transcript, dict):
+        lint.fail(pcr_path, "identity_creation_control_transcript MUST be an object")
+        return
+    body = transcript.get("signature_omitted_object")
+    signed = transcript.get("signed_object")
+    signature = transcript.get("signature")
+    if not isinstance(body, dict) or not isinstance(signed, dict) or not isinstance(signature, str):
+        lint.fail(
+            pcr_path,
+            "the control transcript MUST carry the signature-omitted object, the signed object "
+            "and the signature",
+        )
+        return
+    if signed != {**body, "signature": signature}:
+        lint.fail(
+            pcr_path,
+            "signed_object MUST be the signature-omitted object plus exactly the signature; a "
+            "third shape lets the published object differ from the signed one",
+        )
+    if body.get("proof_kind") != "did_webvh_inception_update_key":
+        lint.fail(
+            pcr_path,
+            "the control proof MUST declare proof_kind did_webvh_inception_update_key: the key "
+            "it verifies under is the inception update key, not a document method",
+        )
+    if body.get("verification_key_multibase") != update_key:
+        lint.fail(
+            pcr_path,
+            "the control proof's verification_key_multibase MUST be the anchor's "
+            f"parameters.updateKeys[0] ({update_key}), got "
+            f"{body.get('verification_key_multibase')!r}",
+        )
+    if body.get("did") != did:
+        lint.fail(pcr_path, f"the control proof MUST name the anchor DID {did}")
+    if body.get("did_version_id") != version_id:
+        lint.fail(
+            pcr_path,
+            "the control proof MUST name the terminal versionId, otherwise it binds a version "
+            "the anchor does not establish",
+        )
+    forbidden = transcript.get("forbidden_fields")
+    if not isinstance(forbidden, list) or not forbidden:
+        lint.fail(
+            pcr_path,
+            "the control transcript MUST enumerate the members the closed proof forbids; an "
+            "empty list makes every removed member re-addable without a failure",
+        )
+    else:
+        if forbidden != sorted(forbidden) or len(set(forbidden)) != len(forbidden):
+            lint.fail(pcr_path, "forbidden_fields MUST be a sorted list of distinct names")
+        for member in forbidden:
+            if member in body or member in signed:
+                lint.fail(
+                    pcr_path,
+                    f"the control proof carries {member!r} while declaring it forbidden",
+                )
+    ordered_kinds = (pcr.get("unit_contract") or {}).get("ordered_kinds")
+    if body.get("genesis_unit_kinds") != ordered_kinds:
+        lint.fail(
+            pcr_path,
+            "the control proof's genesis_unit_kinds MUST be the unit contract's ordered_kinds "
+            f"{ordered_kinds!r}, got {body.get('genesis_unit_kinds')!r}",
+        )
+
+    # --- 4. the create unit resolves its producer key from the anchor ---------
+    root_method = f"did:key:{update_key}#{update_key}"
+    create = cases.get(REGISTRATION_ANCHOR_CREATE_CASE)
+    if not isinstance(create, dict):
+        lint.fail(
+            content_path,
+            f"missing required case {REGISTRATION_ANCHOR_CREATE_CASE}: the anchor binds to a "
+            "create Event, so the Event must exist here",
+        )
+        return
+    event = create.get("complete_wire_event")
+    if not isinstance(event, dict):
+        lint.fail(content_path, f"{REGISTRATION_ANCHOR_CREATE_CASE}: no complete wire Event")
+        return
+    if "prev_event_digest" in event:
+        lint.fail(
+            content_path,
+            f"{REGISTRATION_ANCHOR_CREATE_CASE}: a genesis Event has no predecessor, so the "
+            "envelope MUST NOT carry prev_event_digest",
+        )
+    proofs = event.get("proofs")
+    proof = proofs[0] if isinstance(proofs, list) and proofs and isinstance(proofs[0], dict) else None
+    if proof is None:
+        lint.fail(
+            content_path,
+            f"{REGISTRATION_ANCHOR_CREATE_CASE}: the registration_anchor branch is only "
+            "constructible with a producer proof to resolve",
+        )
+        return
+    method = proof.get("verification_method")
+    if method != root_method:
+        lint.fail(
+            content_path,
+            f"{REGISTRATION_ANCHOR_CREATE_CASE}: the branch's verifier reads the producer key "
+            f"from the anchor, so the proof verification method MUST be {root_method}, got "
+            f"{method!r}",
+        )
+    if isinstance(method, str) and (
+        method.startswith("did:webvh:") or ":ak:device:" in method or "#ak:device:" in method
+    ):
+        lint.fail(
+            content_path,
+            f"{REGISTRATION_ANCHOR_CREATE_CASE}: a device DID URL here would make this the "
+            "device-resolved branch; the registration_anchor branch resolves the key from the "
+            "anchor's update key and nothing else",
+        )
+    binding = pcr.get("founding_event_proof_binding")
+    if not isinstance(binding, dict):
+        lint.fail(
+            pcr_path,
+            "founding_event_proof_binding MUST separate the two Events' signing material; one "
+            "shared device method is what left this branch unconstructible",
+        )
+        return
+    create_binding = binding.get("create_event")
+    authorize_binding = binding.get("authorize_event")
+    if not isinstance(create_binding, dict) or not isinstance(authorize_binding, dict):
+        lint.fail(
+            pcr_path,
+            "founding_event_proof_binding MUST carry a create_event and an authorize_event block",
+        )
+        return
+    if create_binding.get("admission") != "registration_anchor":
+        lint.fail(pcr_path, "founding_event_proof_binding.create_event MUST name its admission")
+    if create_binding.get("verification_method") != root_method:
+        lint.fail(
+            pcr_path,
+            f"founding_event_proof_binding.create_event MUST resolve to {root_method}",
+        )
+    source_pointer = create_binding.get("public_key_source")
+    if not isinstance(source_pointer, str) or not source_pointer.startswith("/"):
+        lint.fail(
+            pcr_path,
+            "create_event.public_key_source MUST be a JSON Pointer into this fixture, so the "
+            "key's origin is checkable rather than described",
+        )
+    else:
+        try:
+            resolved = resolve_json_pointer(
+                pcr, "#" + source_pointer.replace("/-1/", f"/{len(entries) - 1}/")
+            )
+        except (KeyError, IndexError, TypeError, ValueError):
+            resolved = None
+        if resolved != update_key:
+            lint.fail(
+                pcr_path,
+                f"create_event.public_key_source does not resolve to the anchor's update key: "
+                f"{source_pointer}",
+            )
+    authorize_method = authorize_binding.get("verification_method")
+    device_id = (pcr.get("founding_device_descriptor") or {}).get("device_id")
+    if authorize_method != f"{did}#{device_id}":
+        lint.fail(
+            pcr_path,
+            f"the founding authorize Event resolves under the principal's own DID and the "
+            f"complete device_id, so its verification method MUST be {did}#{device_id}, got "
+            f"{authorize_method!r}",
+        )
+    if authorize_method == root_method:
+        lint.fail(
+            pcr_path,
+            "the authorize Event MUST NOT be signed by the registration anchor root method; "
+            "collapsing both Events onto one key is what made the branch unconstructible",
+        )
+
+    # --- 5. the delegated branch resolves elsewhere ---------------------------
+    delegated = cases.get(DELEGATED_PCR_GENESIS_CASE)
+    if isinstance(delegated, dict):
+        delegated_proofs = (delegated.get("complete_wire_event") or {}).get("proofs")
+        delegated_method = (
+            delegated_proofs[0].get("verification_method")
+            if isinstance(delegated_proofs, list)
+            and delegated_proofs
+            and isinstance(delegated_proofs[0], dict)
+            else None
+        )
+        if delegated_method == root_method:
+            lint.fail(
+                content_path,
+                f"{DELEGATED_PCR_GENESIS_CASE}: the delegated branch resolves the executor's own "
+                "key, so it MUST NOT reuse the anchor root method",
+            )
+        if isinstance(delegated_method, str) and delegated_method.startswith(did + "#"):
+            lint.fail(
+                content_path,
+                f"{DELEGATED_PCR_GENESIS_CASE}: the executor signs under its own DID, not under "
+                f"the subject principal's {did}",
+            )
+
+    # --- 6. the evidence's own cross-references ------------------------------
+    binds = evidence.get("binds")
+    if not isinstance(binds, dict):
+        lint.fail(pcr_path, "the anchor evidence MUST state what it binds to")
+        return
+    if binds.get("fixture") != CONTENT_BOUND_FIXTURE or binds.get("create_case") != (
+        REGISTRATION_ANCHOR_CREATE_CASE
+    ):
+        lint.fail(
+            pcr_path,
+            "the anchor evidence MUST bind to the create case that actually carries the "
+            f"registration_anchor Event ({CONTENT_BOUND_FIXTURE})",
+        )
+    if binds.get("pcr_realm_id") != create.get("derived_realm_id"):
+        lint.fail(
+            pcr_path,
+            "the anchor evidence asserts a PCR Realm the bound create case does not derive: "
+            f"{binds.get('pcr_realm_id')!r} against {create.get('derived_realm_id')!r}",
+        )
+    scid_derivation = evidence.get("scid_derivation")
+    if not isinstance(scid_derivation, dict):
+        lint.fail(
+            pcr_path,
+            "the anchor asserts its SCID instead of deriving it, so it MUST say so and name the "
+            "reservation and the fixture that does derive one",
+        )
+        return
+    if scid_derivation.get("asserted_segment") != scid:
+        lint.fail(
+            pcr_path,
+            f"scid_derivation.asserted_segment MUST be the terminal entry's {scid!r}",
+        )
+    reserved = load_json(lint, ARTIFACTS / "registry" / "test-material-registry.json")
+    prefixes: list[str] = []
+    for row in (reserved or {}).get("reserved_identifiers", []):
+        if not isinstance(row, dict):
+            continue
+        candidates = (row.get("match") or {}).get("scid_segment_prefixes")
+        if isinstance(candidates, list):
+            prefixes.extend(prefix for prefix in candidates if isinstance(prefix, str))
+    if not any(scid.startswith(prefix) for prefix in prefixes):
+        lint.fail(
+            pcr_path,
+            f"the anchor's SCID {scid!r} matches no reserved conformance prefix in "
+            f"test-material-registry.json ({sorted(prefixes)}); an unreserved hand-written SCID "
+            "can collide with material a deployment produced",
+        )
+    vector = scid_derivation.get("derivation_vector")
+    if not isinstance(vector, str) or "#" not in vector:
+        lint.fail(
+            pcr_path,
+            "scid_derivation MUST name the fixture case that does derive a SCID, as "
+            "'fixtures/<file>#/cases/<name>'",
+        )
+    else:
+        target = ARTIFACTS / vector.split("#", 1)[0]
+        if not target.is_file():
+            lint.fail(pcr_path, f"scid_derivation.derivation_vector names no such artifact: {vector}")
+        else:
+            wanted = vector.split("#", 1)[1].strip("<>").rsplit("/", 1)[-1].strip("<>")
+            document = load_json(lint, target)
+            names = {
+                case.get("name")
+                for case in (document or {}).get("cases", [])
+                if isinstance(case, dict)
+            }
+            if wanted not in names:
+                lint.fail(
+                    pcr_path,
+                    f"scid_derivation.derivation_vector names no such case: {wanted}",
+                )
+    if not isinstance(evidence.get("forbidden_substitutions"), list) or not evidence[
+        "forbidden_substitutions"
+    ]:
+        lint.fail(
+            pcr_path,
+            "the anchor evidence MUST enumerate the substitutions its verifier rejects; without "
+            "them the negative half of the branch is prose in a review report",
+        )
 
 
 BINDING_MEMBERS = (

@@ -27,12 +27,12 @@
         "device_possession_transcript_pointer": "/device_possession/canonical_object",
         "note": "The genesis payload embeds this exact descriptor and the second Event carries this exact authorize payload, so the two fixtures are one construction input and not two copies that can drift apart."
       },
-      "digest_preimage_canonical_bytes_utf8": "{\"actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"created_at\":\"2026-08-09T00:00:00.000Z\",\"kind\":\"ak.realm.create\",\"payload\":{\"object\":{\"founding_device_descriptor\":{\"algorithms\":[\"ak.hpke_x25519_aead_chacha20poly1305.v1\",\"ak.mls.v1\"],\"descriptor_version\":1,\"device_id\":\"ak:device:019a0000-0000-7000-8000-000000000001\",\"device_key_algorithm\":\"Ed25519\",\"device_key_purpose\":\"event_signing_and_mls_identity\",\"device_public_key_did\":\"did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd\",\"founding_authorize_payload_digest\":\"sha256:3814995a8fd02c84f94b4758fb3b8b33e96b7ae9c7fcf1e75e21a83c26f390b4\",\"hpke_key\":\"z6LSmKNkVMSskYnq6BQyEy1Min86ZZgytCePpXMsxWamDWdc\",\"hpke_key_algorithm\":\"X25519\"},\"genesis_salt\":\"X-kS8-uBvWQ_iuRqO7Rsv0WGBjZG2S2wJ533Tk2SJJ4\",\"governance_station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\",\"initial_discoverability\":\"secret\",\"initial_history_access\":\"since_join\",\"initial_join_rule\":\"closed\",\"initial_resolution\":{\"did\":\"did:webvh:z6mkfixture:alice.example\",\"method_history_head\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"version_id\":\"1-QmHumanPcrGenesisFixture\"},\"purpose\":\"principal_control\",\"schema\":\"ak.schema.realm_genesis.v1\",\"security_class\":\"high_assurance\",\"trust_domain\":\"ak:trust_domain:did.webvh.alice.example\"}},\"scope_ref\":{\"kind\":\"realm_genesis\"}}",
-      "event_digest": "sha256:806a5d9de8b8471b8254701afbb43d0e9358e326ba2c4ca85c9ba0c4b6802ca3",
+      "digest_preimage_canonical_bytes_utf8": "{\"actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"created_at\":\"2026-08-09T00:00:00.000Z\",\"kind\":\"ak.realm.create\",\"payload\":{\"object\":{\"founding_device_descriptor\":{\"algorithms\":[\"ak.hpke_x25519_aead_chacha20poly1305.v1\",\"ak.mls.v1\"],\"descriptor_version\":1,\"device_id\":\"ak:device:019a0000-0000-7000-8000-000000000001\",\"device_key_algorithm\":\"Ed25519\",\"device_key_purpose\":\"event_signing_and_mls_identity\",\"device_public_key_did\":\"did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd\",\"founding_authorize_payload_digest\":\"sha256:3814995a8fd02c84f94b4758fb3b8b33e96b7ae9c7fcf1e75e21a83c26f390b4\",\"hpke_key\":\"z6LSmKNkVMSskYnq6BQyEy1Min86ZZgytCePpXMsxWamDWdc\",\"hpke_key_algorithm\":\"X25519\"},\"genesis_salt\":\"X-kS8-uBvWQ_iuRqO7Rsv0WGBjZG2S2wJ533Tk2SJJ4\",\"governance_station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\",\"initial_discoverability\":\"secret\",\"initial_history_access\":\"since_join\",\"initial_join_rule\":\"closed\",\"initial_resolution\":{\"did\":\"did:webvh:z6mkfixture:alice.example\",\"method_history_head\":\"sha256:3d4912ba1f736732cb788f468b628534ff792fc39686d632962d201c97900809\",\"version_id\":\"1-QmVYPUMb3ZNa1xCxC7NzXFhtY21FbDCqPCaMVyiiJ5m7Ut\"},\"purpose\":\"principal_control\",\"schema\":\"ak.schema.realm_genesis.v1\",\"security_class\":\"high_assurance\",\"trust_domain\":\"ak:trust_domain:did.webvh.alice.example\"}},\"scope_ref\":{\"kind\":\"realm_genesis\"}}",
+      "event_digest": "sha256:19fd63dec76bcd451f5d9863c1cb8838b121dff00395b1d9cdb9a7cda625c279",
       "suite_wire_code": 1,
-      "event_id_bytes_hex": "01806a5d9de8b8471b8254701afbb43d0e9358e326ba2c4ca85c9ba0c4b6802ca3",
-      "derived_event_id": "ak:event:AYBqXZ3ouEcbglRwGvu0PQ6TWOMmuixMqFyboMS2gCyj",
-      "derived_realm_id": "ak:realm:AYBqXZ3ouEcbglRwGvu0PQ6TWOMmuixMqFyboMS2gCyj",
+      "event_id_bytes_hex": "0119fd63dec76bcd451f5d9863c1cb8838b121dff00395b1d9cdb9a7cda625c279",
+      "derived_event_id": "ak:event:ARn9Y97Ha81FH12YY8HLiDixId_wA5Wx2c25p82mJcJ5",
+      "derived_realm_id": "ak:realm:ARn9Y97Ha81FH12YY8HLiDixId_wA5Wx2c25p82mJcJ5",
       "envelope_omits": [
         "event_id",
         "realm_id"
@@ -71,7 +71,7 @@
       "rejected_form": {
         "realm_header_hex": "11",
         "reason": "non-zero reserved high nibble",
-        "realm_id": "ak:realm:EYBqXZ3ouEcbglRwGvu0PQ6TWOMmuixMqFyboMS2gCyj",
+        "realm_id": "ak:realm:ERn9Y97Ha81FH12YY8HLiDixId_wA5Wx2c25p82mJcJ5",
         "derived_from": "the accepted realm_id, changing only the reserved high nibble",
         "expected_outcome": "rejected",
         "expected_error": "realm_id_not_event_derived"
@@ -110,8 +110,8 @@
             "initial_join_rule": "closed",
             "initial_resolution": {
               "did": "did:webvh:z6mkfixture:alice.example",
-              "method_history_head": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
-              "version_id": "1-QmHumanPcrGenesisFixture"
+              "method_history_head": "sha256:3d4912ba1f736732cb788f468b628534ff792fc39686d632962d201c97900809",
+              "version_id": "1-QmVYPUMb3ZNa1xCxC7NzXFhtY21FbDCqPCaMVyiiJ5m7Ut"
             },
             "purpose": "principal_control",
             "schema": "ak.schema.realm_genesis.v1",
@@ -122,22 +122,53 @@
         "scope_ref": {
           "kind": "realm_genesis"
         },
-        "event_id": "ak:event:AYBqXZ3ouEcbglRwGvu0PQ6TWOMmuixMqFyboMS2gCyj",
+        "event_id": "ak:event:ARn9Y97Ha81FH12YY8HLiDixId_wA5Wx2c25p82mJcJ5",
         "proofs": [
           {
             "kind": "detached_jws",
-            "verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:019a0000-0000-7000-8000-000000000001",
-            "event_digest": "sha256:806a5d9de8b8471b8254701afbb43d0e9358e326ba2c4ca85c9ba0c4b6802ca3",
+            "verification_method": "did:key:z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw#z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw",
+            "event_digest": "sha256:19fd63dec76bcd451f5d9863c1cb8838b121dff00395b1d9cdb9a7cda625c279",
             "created_at": "2026-08-09T00:00:00.000Z",
-            "jws": "eyJhbGciOiJFZERTQSJ9..AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+            "jws": "eyJhbGciOiJFZDI1NTE5In0..zmlpzvWmiJ_0WoNkwDK254oA5tHVuUhx9S4XaAyvKHSnphSAzRUHZnAWhWXVkGj_IdIxfpyJ7lt0hgpAg9dsCw"
           }
         ]
       },
       "admission_evidence": {
         "selector_source": "registry/contract-registry.json#/event_kind_registry/event_kinds/<ak.realm.create>/admission_variants",
         "selects_because": "purpose=principal_control with neither executed_by nor authorization_ref",
-        "verification_method_source": "typed principal_registration_anchor of this genesis unit",
-        "note": "The complete wire Event is the hashed preimage plus exactly event_id and proofs, so the bytes that are hashed and the bytes that are admitted are one construction. registration_anchor is the only admission variant whose proof verification method is resolved from the anchor rather than from the current DID resolution of the actor."
+        "verification_method_source": "the registration-time active update key of this unit's typed principal_registration_anchor, projected as its did:key controller proof method",
+        "note": "The complete wire Event is the hashed preimage plus exactly event_id and proofs, so the bytes that are hashed and the bytes that are admitted are one construction. registration_anchor is the only admission variant whose proof verification method is resolved from the anchor rather than from the current DID resolution of the actor.",
+        "proof_binding": {
+          "context": "ak.event_proof.v1",
+          "binding_object": {
+            "context": "ak.event_proof.v1",
+            "actor_id": {
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixture",
+                "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+              },
+              "kind": "account"
+            },
+            "created_at": "2026-08-09T00:00:00.000Z",
+            "event_digest": "sha256:19fd63dec76bcd451f5d9863c1cb8838b121dff00395b1d9cdb9a7cda625c279",
+            "verification_method": "did:key:z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw#z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw"
+          },
+          "canonical_binding_payload": "{\"actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"context\":\"ak.event_proof.v1\",\"created_at\":\"2026-08-09T00:00:00.000Z\",\"event_digest\":\"sha256:19fd63dec76bcd451f5d9863c1cb8838b121dff00395b1d9cdb9a7cda625c279\",\"verification_method\":\"did:key:z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw#z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw\"}",
+          "protected_header_canonical": "{\"alg\":\"Ed25519\"}",
+          "jws_signing_input": "eyJhbGciOiJFZDI1NTE5In0.eyJhY3Rvcl9pZCI6eyJhY2NvdW50X2lkIjp7InByaW5jaXBhbF9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlIiwic3RhdGlvbl9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlc3RhdGlvbmV4YW1wbGUifSwia2luZCI6ImFjY291bnQifSwiY29udGV4dCI6ImFrLmV2ZW50X3Byb29mLnYxIiwiY3JlYXRlZF9hdCI6IjIwMjYtMDgtMDlUMDA6MDA6MDAuMDAwWiIsImV2ZW50X2RpZ2VzdCI6InNoYTI1NjoxOWZkNjNkZWM3NmJjZDQ1MWY1ZDk4NjNjMWNiODgzOGIxMjFkZmYwMDM5NWIxZDljZGI5YTdjZGE2MjVjMjc5IiwidmVyaWZpY2F0aW9uX21ldGhvZCI6ImRpZDprZXk6ejZNa3R3dXBkbUxYVlZxVHpDdzRpNDZyNHVHeW9zR1hSblIzWGpONFpxN29NTXN3I3o2TWt0d3VwZG1MWFZWcVR6Q3c0aTQ2cjR1R3lvc0dYUm5SM1hqTjRacTdvTU1zdyJ9",
+          "omitted_optional_members": [
+            "audience",
+            "domain",
+            "signer_resolution_evidence_ref"
+          ]
+        },
+        "registration_anchor": {
+          "fixture": "pcr-genesis-fixture.json",
+          "pointer": "/principal_registration_anchor_evidence/anchor",
+          "anchor_canonical_json_sha256": "sha256:670966fa7d826cbce4fdcd69387476623768002dcce3865a99b0ec283ae09494",
+          "resolved_verification_method": "did:key:z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw#z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw",
+          "note": "initial_resolution.did, version_id and method_history_head are the values that anchor's own terminal entry derives, and the producer proof is made by that entry's parameters.updateKeys[0]. A create Event keeping a device DID URL here cannot be the registration_anchor branch, because the branch's verifier reads the method from the anchor and requires equality."
+        }
       }
     },
     {
@@ -154,12 +185,12 @@
         "device_possession_transcript_pointer": "/device_possession/canonical_object",
         "note": "The genesis payload embeds this exact descriptor and the second Event carries this exact authorize payload, so the two fixtures are one construction input and not two copies that can drift apart."
       },
-      "digest_preimage_canonical_bytes_utf8": "{\"actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationb\"},\"kind\":\"account\"},\"created_at\":\"2026-08-09T00:00:00.000Z\",\"kind\":\"ak.realm.create\",\"payload\":{\"object\":{\"founding_device_descriptor\":{\"algorithms\":[\"ak.hpke_x25519_aead_chacha20poly1305.v1\",\"ak.mls.v1\"],\"descriptor_version\":1,\"device_id\":\"ak:device:019a0000-0000-7000-8000-000000000001\",\"device_key_algorithm\":\"Ed25519\",\"device_key_purpose\":\"event_signing_and_mls_identity\",\"device_public_key_did\":\"did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd\",\"founding_authorize_payload_digest\":\"sha256:3814995a8fd02c84f94b4758fb3b8b33e96b7ae9c7fcf1e75e21a83c26f390b4\",\"hpke_key\":\"z6LSmKNkVMSskYnq6BQyEy1Min86ZZgytCePpXMsxWamDWdc\",\"hpke_key_algorithm\":\"X25519\"},\"genesis_salt\":\"X-kS8-uBvWQ_iuRqO7Rsv0WGBjZG2S2wJ533Tk2SJJ4\",\"governance_station_id\":\"ak:did_core:webvh:z6mkfixturestationb\",\"initial_discoverability\":\"secret\",\"initial_history_access\":\"since_join\",\"initial_join_rule\":\"closed\",\"initial_resolution\":{\"did\":\"did:webvh:z6mkfixture:alice.example\",\"method_history_head\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"version_id\":\"1-QmHumanPcrGenesisFixture\"},\"purpose\":\"principal_control\",\"schema\":\"ak.schema.realm_genesis.v1\",\"security_class\":\"high_assurance\",\"trust_domain\":\"ak:trust_domain:did.webvh.alice.example\"}},\"scope_ref\":{\"kind\":\"realm_genesis\"}}",
-      "event_digest": "sha256:74872d8791e05dc4d8014c5a5cf2682cf64c970d0f35963d29bcf7b6631ef554",
+      "digest_preimage_canonical_bytes_utf8": "{\"actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationb\"},\"kind\":\"account\"},\"created_at\":\"2026-08-09T00:00:00.000Z\",\"kind\":\"ak.realm.create\",\"payload\":{\"object\":{\"founding_device_descriptor\":{\"algorithms\":[\"ak.hpke_x25519_aead_chacha20poly1305.v1\",\"ak.mls.v1\"],\"descriptor_version\":1,\"device_id\":\"ak:device:019a0000-0000-7000-8000-000000000001\",\"device_key_algorithm\":\"Ed25519\",\"device_key_purpose\":\"event_signing_and_mls_identity\",\"device_public_key_did\":\"did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd\",\"founding_authorize_payload_digest\":\"sha256:3814995a8fd02c84f94b4758fb3b8b33e96b7ae9c7fcf1e75e21a83c26f390b4\",\"hpke_key\":\"z6LSmKNkVMSskYnq6BQyEy1Min86ZZgytCePpXMsxWamDWdc\",\"hpke_key_algorithm\":\"X25519\"},\"genesis_salt\":\"X-kS8-uBvWQ_iuRqO7Rsv0WGBjZG2S2wJ533Tk2SJJ4\",\"governance_station_id\":\"ak:did_core:webvh:z6mkfixturestationb\",\"initial_discoverability\":\"secret\",\"initial_history_access\":\"since_join\",\"initial_join_rule\":\"closed\",\"initial_resolution\":{\"did\":\"did:webvh:z6mkfixture:alice.example\",\"method_history_head\":\"sha256:3d4912ba1f736732cb788f468b628534ff792fc39686d632962d201c97900809\",\"version_id\":\"1-QmVYPUMb3ZNa1xCxC7NzXFhtY21FbDCqPCaMVyiiJ5m7Ut\"},\"purpose\":\"principal_control\",\"schema\":\"ak.schema.realm_genesis.v1\",\"security_class\":\"high_assurance\",\"trust_domain\":\"ak:trust_domain:did.webvh.alice.example\"}},\"scope_ref\":{\"kind\":\"realm_genesis\"}}",
+      "event_digest": "sha256:5ae73961fadd488e5ce5faddab02c79a88748e69d91459a186fe823b7d55a317",
       "suite_wire_code": 1,
-      "event_id_bytes_hex": "0174872d8791e05dc4d8014c5a5cf2682cf64c970d0f35963d29bcf7b6631ef554",
-      "derived_event_id": "ak:event:AXSHLYeR4F3E2AFMWlzyaCz2TJcNDzWWPSm897ZjHvVU",
-      "derived_realm_id": "ak:realm:AXSHLYeR4F3E2AFMWlzyaCz2TJcNDzWWPSm897ZjHvVU",
+      "event_id_bytes_hex": "015ae73961fadd488e5ce5faddab02c79a88748e69d91459a186fe823b7d55a317",
+      "derived_event_id": "ak:event:AVrnOWH63UiOXOX63asCx5qIdI5p2RRZoYb-gjt9VaMX",
+      "derived_realm_id": "ak:realm:AVrnOWH63UiOXOX63asCx5qIdI5p2RRZoYb-gjt9VaMX",
       "envelope_omits": [
         "event_id",
         "realm_id"
@@ -202,15 +233,15 @@
         "device_possession_transcript_pointer": "/device_possession/canonical_object",
         "note": "The genesis payload embeds this exact descriptor and the second Event carries this exact authorize payload, so the two fixtures are one construction input and not two copies that can drift apart."
       },
-      "digest_preimage_canonical_bytes_utf8": "{\"actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"created_at\":\"2026-08-09T00:00:00.000Z\",\"kind\":\"ak.device.authorize\",\"payload\":{\"algorithms\":[\"ak.hpke_x25519_aead_chacha20poly1305.v1\",\"ak.mls.v1\"],\"authorization_binding_kind\":\"registration_anchor\",\"authorized_by\":\"ak:did_core:webvh:z6mkfixture\",\"authorized_generation_ref\":1,\"device_id\":\"ak:device:019a0000-0000-7000-8000-000000000001\",\"device_key_algorithm\":\"Ed25519\",\"device_public_key_did\":\"did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd\",\"device_signature\":\"vXlj3xRInCey4eiS0m81kEIQchwIBgq8TJQqoSvvKaRJpso7T6-EL-S77YQKKep4lPFG9lZSiLQHo91384q7AQ\",\"hpke_key\":\"z6LSmKNkVMSskYnq6BQyEy1Min86ZZgytCePpXMsxWamDWdc\",\"not_before\":\"2026-08-09T00:00:00.000Z\"},\"realm_id\":\"ak:realm:AYBqXZ3ouEcbglRwGvu0PQ6TWOMmuixMqFyboMS2gCyj\",\"scope_ref\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AYBqXZ3ouEcbglRwGvu0PQ6TWOMmuixMqFyboMS2gCyj\"}}",
-      "event_digest": "sha256:41363672ee1b730a62323e09db0d6092e5b15823dbc037f40f46444638f48899",
+      "digest_preimage_canonical_bytes_utf8": "{\"actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"created_at\":\"2026-08-09T00:00:00.000Z\",\"kind\":\"ak.device.authorize\",\"payload\":{\"algorithms\":[\"ak.hpke_x25519_aead_chacha20poly1305.v1\",\"ak.mls.v1\"],\"authorization_binding_kind\":\"registration_anchor\",\"authorized_by\":\"ak:did_core:webvh:z6mkfixture\",\"authorized_generation_ref\":1,\"device_id\":\"ak:device:019a0000-0000-7000-8000-000000000001\",\"device_key_algorithm\":\"Ed25519\",\"device_public_key_did\":\"did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd\",\"device_signature\":\"vXlj3xRInCey4eiS0m81kEIQchwIBgq8TJQqoSvvKaRJpso7T6-EL-S77YQKKep4lPFG9lZSiLQHo91384q7AQ\",\"hpke_key\":\"z6LSmKNkVMSskYnq6BQyEy1Min86ZZgytCePpXMsxWamDWdc\",\"not_before\":\"2026-08-09T00:00:00.000Z\"},\"realm_id\":\"ak:realm:ARn9Y97Ha81FH12YY8HLiDixId_wA5Wx2c25p82mJcJ5\",\"scope_ref\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:ARn9Y97Ha81FH12YY8HLiDixId_wA5Wx2c25p82mJcJ5\"}}",
+      "event_digest": "sha256:640d4029e4785c7f36766d1e05c60a28735b82cb856fbb31cee050ee98aba760",
       "suite_wire_code": 1,
-      "event_id_bytes_hex": "0141363672ee1b730a62323e09db0d6092e5b15823dbc037f40f46444638f48899",
-      "derived_event_id": "ak:event:AUE2NnLuG3MKYjI-CdsNYJLlsVgj28A39A9GREY49IiZ",
-      "realm_id": "ak:realm:AYBqXZ3ouEcbglRwGvu0PQ6TWOMmuixMqFyboMS2gCyj",
+      "event_id_bytes_hex": "01640d4029e4785c7f36766d1e05c60a28735b82cb856fbb31cee050ee98aba760",
+      "derived_event_id": "ak:event:AWQNQCnkeFx_NnZtHgXGCihzW4LLhW-7Mc7gUO6Yq6dg",
+      "realm_id": "ak:realm:ARn9Y97Ha81FH12YY8HLiDixId_wA5Wx2c25p82mJcJ5",
       "scope_ref": {
         "kind": "realm",
-        "realm_id": "ak:realm:AYBqXZ3ouEcbglRwGvu0PQ6TWOMmuixMqFyboMS2gCyj"
+        "realm_id": "ak:realm:ARn9Y97Ha81FH12YY8HLiDixId_wA5Wx2c25p82mJcJ5"
       },
       "unit_contract": {
         "ordered_kinds": [
@@ -551,12 +582,12 @@
       "realm_purpose": "principal_control",
       "admission": "delegated_pcr_genesis",
       "note": "The same human principal, the same governance Station and the same genesis object, created under explicit organization authority instead of by the principal itself. The executor pair enters canonical Event bytes, so the two branches can never derive the same Realm: the branch choice is part of the identity and not metadata beside it.",
-      "digest_preimage_canonical_bytes_utf8": "{\"actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"authorization_ref\":\"ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf\",\"created_at\":\"2026-08-09T00:00:00.000Z\",\"executed_by\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixtureorgexecutor\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"kind\":\"ak.realm.create\",\"payload\":{\"object\":{\"founding_device_descriptor\":{\"algorithms\":[\"ak.hpke_x25519_aead_chacha20poly1305.v1\",\"ak.mls.v1\"],\"descriptor_version\":1,\"device_id\":\"ak:device:019a0000-0000-7000-8000-000000000001\",\"device_key_algorithm\":\"Ed25519\",\"device_key_purpose\":\"event_signing_and_mls_identity\",\"device_public_key_did\":\"did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd\",\"founding_authorize_payload_digest\":\"sha256:3814995a8fd02c84f94b4758fb3b8b33e96b7ae9c7fcf1e75e21a83c26f390b4\",\"hpke_key\":\"z6LSmKNkVMSskYnq6BQyEy1Min86ZZgytCePpXMsxWamDWdc\",\"hpke_key_algorithm\":\"X25519\"},\"genesis_salt\":\"X-kS8-uBvWQ_iuRqO7Rsv0WGBjZG2S2wJ533Tk2SJJ4\",\"governance_station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\",\"initial_discoverability\":\"secret\",\"initial_history_access\":\"since_join\",\"initial_join_rule\":\"closed\",\"initial_resolution\":{\"did\":\"did:webvh:z6mkfixture:alice.example\",\"method_history_head\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"version_id\":\"1-QmHumanPcrGenesisFixture\"},\"purpose\":\"principal_control\",\"schema\":\"ak.schema.realm_genesis.v1\",\"security_class\":\"high_assurance\",\"trust_domain\":\"ak:trust_domain:did.webvh.alice.example\"}},\"scope_ref\":{\"kind\":\"realm_genesis\"}}",
-      "event_digest": "sha256:6996154df7b2f77aa9dac0842a093c0455fab52050406f0453c3248bccac5c74",
+      "digest_preimage_canonical_bytes_utf8": "{\"actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"authorization_ref\":\"ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf\",\"created_at\":\"2026-08-09T00:00:00.000Z\",\"executed_by\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixtureorgexecutor\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"kind\":\"ak.realm.create\",\"payload\":{\"object\":{\"founding_device_descriptor\":{\"algorithms\":[\"ak.hpke_x25519_aead_chacha20poly1305.v1\",\"ak.mls.v1\"],\"descriptor_version\":1,\"device_id\":\"ak:device:019a0000-0000-7000-8000-000000000001\",\"device_key_algorithm\":\"Ed25519\",\"device_key_purpose\":\"event_signing_and_mls_identity\",\"device_public_key_did\":\"did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd\",\"founding_authorize_payload_digest\":\"sha256:3814995a8fd02c84f94b4758fb3b8b33e96b7ae9c7fcf1e75e21a83c26f390b4\",\"hpke_key\":\"z6LSmKNkVMSskYnq6BQyEy1Min86ZZgytCePpXMsxWamDWdc\",\"hpke_key_algorithm\":\"X25519\"},\"genesis_salt\":\"X-kS8-uBvWQ_iuRqO7Rsv0WGBjZG2S2wJ533Tk2SJJ4\",\"governance_station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\",\"initial_discoverability\":\"secret\",\"initial_history_access\":\"since_join\",\"initial_join_rule\":\"closed\",\"initial_resolution\":{\"did\":\"did:webvh:z6mkfixture:alice.example\",\"method_history_head\":\"sha256:3d4912ba1f736732cb788f468b628534ff792fc39686d632962d201c97900809\",\"version_id\":\"1-QmVYPUMb3ZNa1xCxC7NzXFhtY21FbDCqPCaMVyiiJ5m7Ut\"},\"purpose\":\"principal_control\",\"schema\":\"ak.schema.realm_genesis.v1\",\"security_class\":\"high_assurance\",\"trust_domain\":\"ak:trust_domain:did.webvh.alice.example\"}},\"scope_ref\":{\"kind\":\"realm_genesis\"}}",
+      "event_digest": "sha256:0f14e0135d7d76b15f326bbbb607ab2cb680782f61aab91b1275932aa56bc196",
       "suite_wire_code": 1,
-      "event_id_bytes_hex": "016996154df7b2f77aa9dac0842a093c0455fab52050406f0453c3248bccac5c74",
-      "derived_event_id": "ak:event:AWmWFU33svd6qdrAhCoJPARV-rUgUEBvBFPDJIvMrFx0",
-      "derived_realm_id": "ak:realm:AWmWFU33svd6qdrAhCoJPARV-rUgUEBvBFPDJIvMrFx0",
+      "event_id_bytes_hex": "010f14e0135d7d76b15f326bbbb607ab2cb680782f61aab91b1275932aa56bc196",
+      "derived_event_id": "ak:event:AQ8U4BNdfXaxXzJru7YHqyy2gHgvYaq5GxJ1kyqla8GW",
+      "derived_realm_id": "ak:realm:AQ8U4BNdfXaxXzJru7YHqyy2gHgvYaq5GxJ1kyqla8GW",
       "envelope_omits": [
         "event_id",
         "realm_id"
@@ -605,8 +636,8 @@
             "initial_join_rule": "closed",
             "initial_resolution": {
               "did": "did:webvh:z6mkfixture:alice.example",
-              "method_history_head": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
-              "version_id": "1-QmHumanPcrGenesisFixture"
+              "method_history_head": "sha256:3d4912ba1f736732cb788f468b628534ff792fc39686d632962d201c97900809",
+              "version_id": "1-QmVYPUMb3ZNa1xCxC7NzXFhtY21FbDCqPCaMVyiiJ5m7Ut"
             },
             "purpose": "principal_control",
             "schema": "ak.schema.realm_genesis.v1",
@@ -617,14 +648,14 @@
         "scope_ref": {
           "kind": "realm_genesis"
         },
-        "event_id": "ak:event:AWmWFU33svd6qdrAhCoJPARV-rUgUEBvBFPDJIvMrFx0",
+        "event_id": "ak:event:AQ8U4BNdfXaxXzJru7YHqyy2gHgvYaq5GxJ1kyqla8GW",
         "proofs": [
           {
             "kind": "detached_jws",
             "verification_method": "did:webvh:z6mkfixtureorgexecutor:org.example#ak:device:019a0000-0000-7000-8000-00000000000b",
-            "event_digest": "sha256:6996154df7b2f77aa9dac0842a093c0455fab52050406f0453c3248bccac5c74",
+            "event_digest": "sha256:0f14e0135d7d76b15f326bbbb607ab2cb680782f61aab91b1275932aa56bc196",
             "created_at": "2026-08-09T00:00:00.000Z",
-            "jws": "eyJhbGciOiJFZERTQSJ9..BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
+            "jws": "eyJhbGciOiJFZDI1NTE5In0..TnS-L783m8aSBQv7eRP-airGdgvZf_ecfTVpPLLBhNyBwXC8S_Gv1pSsqgWxse4Bq4GYEJS1jY7wpuxwMrjyAg"
           }
         ]
       },
@@ -632,7 +663,36 @@
         "selector_source": "registry/contract-registry.json#/event_kind_registry/event_kinds/<ak.realm.create>/admission_variants",
         "selects_because": "purpose=principal_control with both executed_by and authorization_ref",
         "verification_method_source": "the executor's own device key, never the subject principal's",
-        "note": "The proof verification method resolves to executed_by and not to actor_id: the executor signs the wire write while the subject principal stays the principal of record. A self-principal verification method here would make the delegated branch indistinguishable from registration_anchor at the proof layer even though the selector already separated them."
+        "note": "The proof verification method resolves to executed_by and not to actor_id: the executor signs the wire write while the subject principal stays the principal of record. A self-principal verification method here would make the delegated branch indistinguishable from registration_anchor at the proof layer even though the selector already separated them.",
+        "proof_binding": {
+          "context": "ak.event_proof.v1",
+          "binding_object": {
+            "context": "ak.event_proof.v1",
+            "actor_id": {
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixture",
+                "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+              },
+              "kind": "account"
+            },
+            "created_at": "2026-08-09T00:00:00.000Z",
+            "event_digest": "sha256:0f14e0135d7d76b15f326bbbb607ab2cb680782f61aab91b1275932aa56bc196",
+            "verification_method": "did:webvh:z6mkfixtureorgexecutor:org.example#ak:device:019a0000-0000-7000-8000-00000000000b"
+          },
+          "canonical_binding_payload": "{\"actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"context\":\"ak.event_proof.v1\",\"created_at\":\"2026-08-09T00:00:00.000Z\",\"event_digest\":\"sha256:0f14e0135d7d76b15f326bbbb607ab2cb680782f61aab91b1275932aa56bc196\",\"verification_method\":\"did:webvh:z6mkfixtureorgexecutor:org.example#ak:device:019a0000-0000-7000-8000-00000000000b\"}",
+          "protected_header_canonical": "{\"alg\":\"Ed25519\"}",
+          "jws_signing_input": "eyJhbGciOiJFZDI1NTE5In0.eyJhY3Rvcl9pZCI6eyJhY2NvdW50X2lkIjp7InByaW5jaXBhbF9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlIiwic3RhdGlvbl9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlc3RhdGlvbmV4YW1wbGUifSwia2luZCI6ImFjY291bnQifSwiY29udGV4dCI6ImFrLmV2ZW50X3Byb29mLnYxIiwiY3JlYXRlZF9hdCI6IjIwMjYtMDgtMDlUMDA6MDA6MDAuMDAwWiIsImV2ZW50X2RpZ2VzdCI6InNoYTI1NjowZjE0ZTAxMzVkN2Q3NmIxNWYzMjZiYmJiNjA3YWIyY2I2ODA3ODJmNjFhYWI5MWIxMjc1OTMyYWE1NmJjMTk2IiwidmVyaWZpY2F0aW9uX21ldGhvZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZW9yZ2V4ZWN1dG9yOm9yZy5leGFtcGxlI2FrOmRldmljZTowMTlhMDAwMC0wMDAwLTcwMDAtODAwMC0wMDAwMDAwMDAwMGIifQ",
+          "omitted_optional_members": [
+            "audience",
+            "domain",
+            "signer_resolution_evidence_ref"
+          ]
+        },
+        "executor_signing_material": {
+          "test_material_registry_row": "conformance_ed25519_fixture_key",
+          "public_key_multibase": "z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
+          "note": "Two Ed25519 keys are published conformance material, so the organization executor device key is the same published key as the founding device key. The reuse is a property of published test material and carries no protocol claim: the two signers are separated by verification_method, which resolves under the executor's own DID and not under the registration anchor."
+        }
       },
       "differs_from": {
         "case": "principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected",
@@ -1156,6 +1216,162 @@
       "output": {
         "case": "agent_provision_forward_declaration_is_constructible",
         "pointer": "/derived_realm_id"
+      }
+    },
+    {
+      "relation": "ed25519_detached_jws_over_canonical_binding",
+      "why": "The registration_anchor branch resolves the producer key from the anchor's active update key, so the create Event's proof is verified under updateKeys[0] itself. A create Event signed by the founding device cannot pass this row.",
+      "inputs": {
+        "protected_header_canonical": {
+          "case": "principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected",
+          "pointer": "/admission_evidence/proof_binding/protected_header_canonical"
+        },
+        "binding_object": {
+          "case": "principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected",
+          "pointer": "/admission_evidence/proof_binding/binding_object"
+        },
+        "public_key": {
+          "fixture": "pcr-genesis-fixture.json",
+          "pointer": "/principal_registration_anchor_evidence/anchor/log_entries/0/parameters/updateKeys/0"
+        }
+      },
+      "output": {
+        "case": "principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected",
+        "pointer": "/complete_wire_event/proofs/0/jws"
+      }
+    },
+    {
+      "relation": "ed25519_detached_jws_over_canonical_binding",
+      "why": "The organization-delegated branch resolves the producer key under the executor's own DID, so its proof verifies under the executor device key and not under the anchor.",
+      "inputs": {
+        "protected_header_canonical": {
+          "case": "organization_governed_pcr_genesis_derives_a_distinct_realm",
+          "pointer": "/admission_evidence/proof_binding/protected_header_canonical"
+        },
+        "binding_object": {
+          "case": "organization_governed_pcr_genesis_derives_a_distinct_realm",
+          "pointer": "/admission_evidence/proof_binding/binding_object"
+        },
+        "public_key": {
+          "case": "organization_governed_pcr_genesis_derives_a_distinct_realm",
+          "pointer": "/admission_evidence/executor_signing_material/public_key_multibase"
+        }
+      },
+      "output": {
+        "case": "organization_governed_pcr_genesis_derives_a_distinct_realm",
+        "pointer": "/complete_wire_event/proofs/0/jws"
+      }
+    },
+    {
+      "relation": "equal_json_value",
+      "why": "The binding object commits to the recomputed event_digest, so a proof made over some other digest cannot be reused here.",
+      "inputs": {
+        "left": {
+          "case": "principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected",
+          "pointer": "/event_digest"
+        }
+      },
+      "output": {
+        "case": "principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected",
+        "pointer": "/admission_evidence/proof_binding/binding_object/event_digest"
+      }
+    },
+    {
+      "relation": "equal_json_value",
+      "why": "Same for the organization-delegated branch.",
+      "inputs": {
+        "left": {
+          "case": "organization_governed_pcr_genesis_derives_a_distinct_realm",
+          "pointer": "/event_digest"
+        }
+      },
+      "output": {
+        "case": "organization_governed_pcr_genesis_derives_a_distinct_realm",
+        "pointer": "/admission_evidence/proof_binding/binding_object/event_digest"
+      }
+    },
+    {
+      "relation": "equal_json_value",
+      "why": "The wire proof and the binding object MUST name one verification method; the branch selection is read off this value.",
+      "inputs": {
+        "left": {
+          "case": "principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected",
+          "pointer": "/admission_evidence/proof_binding/binding_object/verification_method"
+        }
+      },
+      "output": {
+        "case": "principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected",
+        "pointer": "/complete_wire_event/proofs/0/verification_method"
+      }
+    },
+    {
+      "relation": "equal_json_value",
+      "why": "Same for the organization-delegated branch.",
+      "inputs": {
+        "left": {
+          "case": "organization_governed_pcr_genesis_derives_a_distinct_realm",
+          "pointer": "/admission_evidence/proof_binding/binding_object/verification_method"
+        }
+      },
+      "output": {
+        "case": "organization_governed_pcr_genesis_derives_a_distinct_realm",
+        "pointer": "/complete_wire_event/proofs/0/verification_method"
+      }
+    },
+    {
+      "relation": "equal_json_value",
+      "why": "The create Event's initial_resolution version_id is the anchor's derived versionId, not a caller-chosen label.",
+      "inputs": {
+        "left": {
+          "fixture": "pcr-genesis-fixture.json",
+          "pointer": "/principal_registration_anchor_evidence/anchor/log_entries/0/versionId"
+        }
+      },
+      "output": {
+        "case": "principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected",
+        "pointer": "/complete_wire_event/payload/object/initial_resolution/version_id"
+      }
+    },
+    {
+      "relation": "equal_json_value",
+      "why": "And its method_history_head is the digest of that anchor's terminal entry.",
+      "inputs": {
+        "left": {
+          "fixture": "pcr-genesis-fixture.json",
+          "pointer": "/principal_registration_anchor_evidence/derivations/method_history_head"
+        }
+      },
+      "output": {
+        "case": "principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected",
+        "pointer": "/complete_wire_event/payload/object/initial_resolution/method_history_head"
+      }
+    },
+    {
+      "relation": "equal_json_value",
+      "why": "The Realm the control proof signs is the Realm this Event derives, so the transcript cannot be re-pointed at another genesis.",
+      "inputs": {
+        "left": {
+          "case": "principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected",
+          "pointer": "/derived_realm_id"
+        }
+      },
+      "output": {
+        "fixture": "pcr-genesis-fixture.json",
+        "pointer": "/identity_creation_control_transcript/signature_omitted_object/pcr_realm_id"
+      }
+    },
+    {
+      "relation": "sha256_of_canonical_json",
+      "why": "And the payload digest it signs is over this Event's own create payload.",
+      "inputs": {
+        "object": {
+          "case": "principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected",
+          "pointer": "/complete_wire_event/payload"
+        }
+      },
+      "output": {
+        "fixture": "pcr-genesis-fixture.json",
+        "pointer": "/identity_creation_control_transcript/signature_omitted_object/realm_create_payload_digest"
       }
     }
   ]
