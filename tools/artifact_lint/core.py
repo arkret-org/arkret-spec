@@ -603,7 +603,7 @@ EVENT_AUTHORING_DURABLE_EFFECT_KINDS = ("event_log", "actor_private_event")
 # list. "The handler writes no Event" is true of every entry — accept_local_operations
 # persists nothing unless persist_before_projection is set — so it proves nothing on
 # its own. A downgrade additionally MUST show the state change reaches no replicated
-# cell/lattice, i.e. it never enters state_root and no peer has to converge on it.
+# typed current result, i.e. no peer has to converge on the change.
 # The report that opened this ratchet has been closed and deleted; the rule above is
 # the whole of it, so do not look for a task file to re-read.
 EVENT_LOG_OPERATIONS_WITHOUT_A_SIGNED_REQUEST: dict[str, str] = {}

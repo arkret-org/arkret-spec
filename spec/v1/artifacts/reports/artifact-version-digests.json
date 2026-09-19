@@ -453,9 +453,9 @@
     },
     {
       "path": "tools/naming-convention-rules.json",
-      "version": 1,
+      "version": 2,
       "generated_at": null,
-      "content_digest": "sha256:7b5058e966eae33473e71a7c2b2a6123ed824478c3f8c8152eb401d766244753"
+      "content_digest": "sha256:f68ad55213bd74711b30ae6fb546d3f4d4da75d780ec85db26a5ef8071506c88"
     },
     {
       "path": "tools/naming-debt-baseline.json",
@@ -501,9 +501,9 @@
     },
     {
       "path": "tools/reason-code-producer-baseline.json",
-      "version": 2,
+      "version": 3,
       "generated_at": null,
-      "content_digest": "sha256:7a09b8434bb7ef7b028f28f83ef87d7e68c440d7a8da593c72fc44ddaa849e3c"
+      "content_digest": "sha256:8f799ccf3ef596dc04abe20ee96e7611c65f4e73590784cea681c24661f870e7"
     },
     {
       "path": "tools/reducer-managed-owner-baseline.json",

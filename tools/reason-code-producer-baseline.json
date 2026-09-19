@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 2,
+  "version": 3,
   "kind": "reason_code_producer_baseline",
   "source_of_truth": false,
   "generated_from": [
@@ -171,7 +171,7 @@
       "code": "plane_cross_write",
       "ruling": "2026-09-16 authority-commit clean-break orphan reason-code adjudication",
       "registry_version": "2026-09-16.11",
-      "why": "It encodes the CBS data-plane / control-plane effect split. That split was deleted with CBS; zh/authz/event-auth-state-resolution.md section 4, which the description cites as its source, no longer contains a plane rule, and no typed current result family is classified by plane anywhere. A reducer projection that targets the wrong family now fails as reducer_projection_failed against the registered result contract."
+      "why": "It encodes a removed data-plane / control-plane effect split. zh/authz/event-auth-state-resolution.md section 4, which the description cites as its source, no longer contains such a rule, and no typed current result family is classified by plane. A reducer projection that targets the wrong family now fails as reducer_projection_failed against the registered result contract."
     },
     {
       "code": "recovery_session_terminal",
@@ -196,7 +196,7 @@
       "code": "revoke_order_unknown_requires_backfill_or_review",
       "ruling": "2026-09-04-2130",
       "registry_version": "2026-09-04.3",
-      "why": "grant/revoke 顺序由 or_set observed-remove 与 joined control view 确定性裁决，“不可确定”态按构造不存在。"
+      "why": "grant/revoke 由目标 Realm 的唯一治理 Station 按 RealmCommit 顺序执行；revoke 携带 exact expected_revision，竞争写入至多一条被接纳，因此不存在需要 backfill/review 的“顺序不可确定”共享状态。"
     },
     {
       "code": "revoke_undo_invalid_signature",

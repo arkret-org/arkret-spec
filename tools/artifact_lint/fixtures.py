@@ -1900,11 +1900,9 @@ def check_fixture_runner_contract(lint: Lint) -> None:
         },
     }
     # The table above is keyed by suite and the sweep below is keyed by file, so
-    # an entry naming a suite nobody ships is unreachable rather than wrong:
-    # c473e3c4 deleted event-kind-lattice-dispatch-fixture.json with the rest of
-    # the pre-clean-break lattice and left its row here, asserting against a file
-    # that had stopped existing. The row is gone and the two are reconciled after
-    # the sweep so the next deletion is an error instead of a silent hole.
+    # an entry naming a suite nobody ships is unreachable rather than wrong. The
+    # table and files are reconciled after the sweep so deleting a fixture without
+    # deleting its required-suite row is an error instead of a silent hole.
     declared_suites: set[str] = set()
     for path in sorted(fixture_root.glob("*.json")):
         data = load_json(lint, path)
@@ -6283,7 +6281,7 @@ def check_view_write_contract_fixture(lint: Lint) -> None:
     if not isinstance(author_writable, list) or not isinstance(reducer_managed, list):
         lint.fail(fixture_path, "author_writable and reducer_managed must both be arrays")
         return
-    author_set = set(author_writable)
+    author_fields = set(author_writable)
     managed_set = set(reducer_managed)
 
     view_schema = load_json(lint, ARTIFACTS / "schemas" / "view.schema.json")
@@ -6291,14 +6289,14 @@ def check_view_write_contract_fixture(lint: Lint) -> None:
     if not declared:
         lint.fail(fixture_path, "view.schema.json declares no properties to partition")
         return
-    if author_set | managed_set != declared:
+    if author_fields | managed_set != declared:
         lint.fail(
             fixture_path,
             "author_writable + reducer_managed must partition every member view.schema.json declares; "
-            f"unclassified {sorted(declared - author_set - managed_set)}, "
-            f"undeclared {sorted((author_set | managed_set) - declared)}",
+            f"unclassified {sorted(declared - author_fields - managed_set)}, "
+            f"undeclared {sorted((author_fields | managed_set) - declared)}",
         )
-    overlap = sorted(author_set & managed_set)
+    overlap = sorted(author_fields & managed_set)
     if overlap:
         lint.fail(fixture_path, f"{overlap} are listed as both author-writable and reducer-managed")
 
@@ -6320,12 +6318,12 @@ def check_view_write_contract_fixture(lint: Lint) -> None:
             f"{partition.get('event_kind')!r} registers no apply_patch write, so the author-writable "
             "partition has nothing to be the complement of",
         )
-    elif registered_paths != author_set:
+    elif registered_paths != author_fields:
         lint.fail(
             fixture_path,
             f"author_writable disagrees with the registered allowed_paths of "
-            f"{partition.get('event_kind')!r}: only in fixture {sorted(author_set - registered_paths)}, "
-            f"only in registry {sorted(registered_paths - author_set)}",
+            f"{partition.get('event_kind')!r}: only in fixture {sorted(author_fields - registered_paths)}, "
+            f"only in registry {sorted(registered_paths - author_fields)}",
         )
 
     cases = fixture.get("cases")
@@ -6390,7 +6388,7 @@ def check_view_write_contract_fixture(lint: Lint) -> None:
                 if not isinstance(path, str):
                     continue
                 head = path.split(".", 1)[0]
-                if head not in author_set:
+                if head not in author_fields:
                     lint.fail(
                         fixture_path,
                         f"{label} ({name}) is an accepted case whose patch addresses {path!r}, which is "
@@ -6403,7 +6401,7 @@ def check_view_write_contract_fixture(lint: Lint) -> None:
             "View removal path, and it is the half a rejection-only fixture would silently drop",
         )
 
-    _check_view_admission_cases(lint, fixture_path, fixture, author_set)
+    _check_view_admission_cases(lint, fixture_path, fixture, author_fields)
 
 
 def _check_view_value_timestamps(lint: Lint, fixture_path: Path, label: str, value: object) -> None:
@@ -6429,7 +6427,7 @@ def _check_view_value_timestamps(lint: Lint, fixture_path: Path, label: str, val
 
 
 def _check_view_admission_cases(
-    lint: Lint, fixture_path: Path, fixture: dict, author_set: set[str]
+    lint: Lint, fixture_path: Path, fixture: dict, author_fields: set[str]
 ) -> None:
     """The behavioral face: outcomes schema validation cannot express.
 
@@ -6545,7 +6543,7 @@ def _check_view_admission_cases(
         patch = payload.get("patch")
         if isinstance(patch, dict) and result == "admitted":
             for path in patch:
-                if isinstance(path, str) and path.split(".", 1)[0] not in author_set:
+                if isinstance(path, str) and path.split(".", 1)[0] not in author_fields:
                     lint.fail(
                         fixture_path,
                         f"{label} ({name}) is admitted but patches {path!r}, which is not author-writable",

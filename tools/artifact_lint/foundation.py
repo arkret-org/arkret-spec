@@ -3215,12 +3215,10 @@ def typed_id_value_occurrences(
     value. Three positions carry a value and nothing else does:
 
     * the whole string is the identifier;
-    * an object member name is the identifier, which is how cell and Realm maps
-      are keyed;
+    * an object member name is the identifier, which is how protocol maps are keyed;
     * a JSON string literal embedded in a longer string. That is canonical JSON
-      inside a digest preimage -- ``or_set_batch_add`` hashes
-      ``tag_context || 0x0A || dot || 0x0A || canonical_json(value)`` -- so the
-      quoted run is a shipped value exactly like a standalone one.
+      inside a digest preimage, so the quoted run is a shipped value exactly like
+      a standalone one.
 
     Prose that merely names a prefix is not a value and never enters this list:
     a prefix with an empty payload (``"ak:event:"`` as a concatenation operand,

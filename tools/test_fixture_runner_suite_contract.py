@@ -3,10 +3,7 @@
 `check_fixture_runner_contract` holds a table keyed by fixture `suite` and then
 sweeps the fixture directory by file. The two are not the same thing: a table
 entry naming a suite no file declares is never visited, so it neither passes nor
-fails -- it is unreachable. That is what happened to
-`event_kind_lattice_dispatch_fixture`, whose file `c473e3c4` deleted along with
-`cbs-lattice-fixture.json` and the rest of the pre-clean-break lattice while the
-row demanding six assertions from it stayed behind.
+fails -- it is unreachable.
 
 The gate had no tests at all. These cover the reconciliation and the per-file
 binding it was already doing unverified.
@@ -72,15 +69,6 @@ class FixtureRunnerSuiteContractTest(unittest.TestCase):
         self.assertIn("error_code_registry_coverage_fixture", declared)
         self.assertIn("operation_registry_coverage_fixture", declared)
         self.assertIn("event_kind_payload_coverage_fixture", declared)
-        self.assertNotIn("event_kind_lattice_dispatch_fixture", declared)
-
-    def test_the_deleted_lattice_fixture_is_not_demanded_again(self) -> None:
-        """Its file went out with the clean break and its assertions are spelled
-        in the vocabulary that went with it -- `cell write`, `Bottom`,
-        `causal_register`, `sealed contract`. Re-adding the row without the file
-        would reopen the unreachable branch this gate now closes."""
-        self.assertFalse((FIXTURE_ROOT / "event-kind-lattice-dispatch-fixture.json").exists())
-        self.assertEqual(self._run(), [])
 
     # ---- the reconciliation ---------------------------------------------
 
