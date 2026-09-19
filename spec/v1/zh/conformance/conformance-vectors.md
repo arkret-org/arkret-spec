@@ -430,6 +430,15 @@ Station 与 generation-0 governance Station 不同，从而把“一个 DID 在�
 第二次 genesis 必然得到不同 `realm_id`，因此 MUST NOT 由标识相等触发拒绝；向量以独立 state case 给出显式前置状态、
 零写入与判定依据（[`../models/realm-and-space.md` §2.5](../models/realm-and-space.md)）。
 
+`ak.vector.device_pairing.split_admission_saga.v1` MUST 证明：分离部署下三项 public open operation 仍只在
+Station origin 可见，却逐项通过已登记 internal operation 复用 exact request/outcome DTO；public stage 的两次调用
+使用不同 internal key，而同一次调用的内部重试稳定复用 key 并返回 byte-identical outcome，resolve/status 全程只读。
+Account Authority 是唯一 pending/abuse/fence/terminal owner，pair_device 只用 peer Event submit 的
+`authority_forward` branch 提交 frozen `authorize_event`。向量必须覆盖 same/changed intent 并发、五个 crash cut、
+同一 RealmCommit exact replay、receipt identity/generation/Realm/stream/EventRef/bytes 任一错配、terminal rejection
+回滚、fenced record 的 TTL/budget/finalize 保护、无 `in_progress` public state、completed replay 无第二 Event，以及
+非 owning Station internal 直调拒绝。
+
 ### 3.11 邀请
 
 `ak.vector.invite.claim_reducer_state_machine.v1` MUST 证明：`ak.invite.claim` 的 Realm reducer 权限——

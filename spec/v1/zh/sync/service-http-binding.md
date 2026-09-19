@@ -3,7 +3,7 @@ title: Service HTTP Binding
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-19
+updated: 2026-09-20
 see_also:
   - authority-commit-log.md
   - service-api-schema.mdx
@@ -71,6 +71,30 @@ receipt；它不得读取 Account Authority 的 pairing pending / abuse ledger�
 匹配的 `allow` receipt 才允许 Account Authority 继续定位 code。任何 non-allow、receipt 错配／过期或
 origin 不可用都 MUST 在 pairing lookup 前 fail closed，不得回退到 SessionGrant 快照，也不得消耗某条
 `device_pairing_request_id` 的失败预算。
+
+分离部署的 device-pairing open handoff 另有三项逐项登记的 Station→Account Authority 调用：
+
+- `ak.gate.account.command.stage_device_pairing.v1`：逐字节复用 public stage request/outcome；同一次 public ingress
+  的 Station `Idempotency-Key` 在内部重试中稳定，Authority durable dedup，同 key 异 body 零写冲突；下一次
+  public stage 必须生成新 key，不能把 public non-retry-safe 误改为 retry-safe；
+- `ak.gate.account.read.resolve_device_pairing.v1`：逐字节复用 public resolve request/bootstrap，纯只读；
+- `ak.gate.account.read.device_pairing_status.v1`：逐字节复用 public status request/outcome，纯只读。
+
+三项只接受 exact owning Station 的 deployment-internal service identity，并使用 operation registry 登记的
+`ak.http_signature.scenario.service_to_service.v1`；source/destination service id、`Arkret-Operation`、target、
+method、content digest 与 freshness window 任一不匹配都必须在读取 pairing ledger 前拒绝。Station 保持唯一
+client-visible open origin，但不保存或读取 pairing 业务状态；Account Authority 是 pending、abuse、fence 与
+terminal outcome 的唯一 owner。resolve/status 的 unknown、credential mismatch、不可用 state 与非 terminal
+fence 均向 public caller 折叠为 `not_found`；内部不可用折叠为 `temporarily_unavailable`，不得泄漏部署拓扑。
+
+`ak.gate.account.command.pair_device.v1` 的 Event leg 只能调用既有
+`ak.peer.events.command.submit.v1` 的 `authority_forward` branch。Authority 把已冻结的
+`/authorize_event` 作为 downstream `/event_submission`，重放完整 frozen peer body；owning Station 进行普通
+Event admission 并签唯一 RealmCommit。Authority 必须验证 service identity、current governance/generation、
+Realm/stream/previous-commit 连续性、Commit signature、EventRef 与 frozen bytes，且只在
+`committed | duplicate` 后推进 `station_accepted`。任何 network/retryable/receipt missing-or-mismatch 保留
+fence 并映射 `temporarily_unavailable`；可证明 Station 零写的 authenticated terminal rejection 统一映射
+`failed_precondition`，原 peer reason 只进入 private audit，禁止实现自由翻译。
 
 #### 2.2.4 请求材料供给闭合（normative）
 
@@ -552,9 +576,12 @@ RFC 9449 DPoP proof 只有 `iat`，没有 `expires` parameter，因此它 **MUST
 | `ak.gate.account.command.register.v1` | `POST /_arkret/gate/account/register` | - | - | request_schema_ref=schemas/account-operations.schema.json#/$defs/account_register_request_body; response_schema_ref=schemas/account-operations.schema.json#/$defs/account_register_outcome |
 | `ak.gate.account.command.request_erasure.v1` | `POST /_arkret/gate/account/erasure-requests` | - | - | request_schema_ref=schemas/account-operations.schema.json#/$defs/account_request_erasure_request_body; response_schema_ref=schemas/account-operations.schema.json#/$defs/account_request_erasure_outcome |
 | `ak.gate.account.command.revoke_session.v1` | `POST /_arkret/gate/account/session-grants/revoke` | - | - | request_schema_ref=schemas/account-operations.schema.json#/$defs/session_revoke_request_body; response_schema_ref=schemas/account-operations.schema.json#/$defs/session_revoke_outcome |
+| `ak.gate.account.command.stage_device_pairing.v1` | `POST /_arkret/gate/account/device-pairing/stages` | - | - | request_schema_ref=schemas/device-pairing.schema.json#/$defs/device_pairing_stage_request_body; response_schema_ref=schemas/device-pairing.schema.json#/$defs/device_pairing_stage_outcome |
 | `ak.gate.account.exchange.create_handoff.v1` | `POST /_arkret/gate/account/authentication-handoffs` | - | - | request_schema_ref=schemas/account-operations.schema.json#/$defs/account_handoff_request_body; response_schema_ref=schemas/account-operations.schema.json#/$defs/account_handoff_outcome |
 | `ak.gate.account.read.claim_device_pairing_code.v1` | `POST /_arkret/gate/account/device-pairing/code-claims` | - | - | request_schema_ref=schemas/device-pairing.schema.json#/$defs/device_pairing_code_claim_request_body; response_schema_ref=schemas/device-pairing.schema.json#/$defs/device_pairing_code_claim_outcome |
+| `ak.gate.account.read.device_pairing_status.v1` | `POST /_arkret/gate/account/device-pairing/status-queries` | - | - | request_schema_ref=schemas/device-pairing.schema.json#/$defs/device_pairing_status_request_body; response_schema_ref=schemas/device-pairing.schema.json#/$defs/device_pairing_status_outcome |
 | `ak.gate.account.read.onboarding.v1` | `GET /_arkret/gate/account/onboarding` | - | - | response_schema_ref=schemas/account-operations.schema.json#/$defs/account_onboarding_state |
+| `ak.gate.account.read.resolve_device_pairing.v1` | `POST /_arkret/gate/account/device-pairing/resolutions` | - | - | request_schema_ref=schemas/device-pairing.schema.json#/$defs/device_pairing_resolve_request_body; response_schema_ref=schemas/device-pairing.schema.json#/$defs/device_pairing_bootstrap |
 | `ak.open.agent_pairing.command.submit_runtime_key_request.v1` | `POST /_arkret/open/agent-pairing/runtime-key-requests` | - | - | request_schema_ref=schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_request_body; response_schema_ref=schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_outcome |
 | `ak.open.agent_pairing.read.resolve.v1` | `POST /_arkret/open/agent-pairing/resolve` | - | - | request_schema_ref=schemas/agent-operations.schema.json#/$defs/agent_pairing_resolve_request_body; response_schema_ref=schemas/agent-operations.schema.json#/$defs/agent_pairing_bootstrap |
 | `ak.open.agent_pairing.read.runtime_key_request_status.v1` | `POST /_arkret/open/agent-pairing/runtime-key-requests/status` | - | - | request_schema_ref=schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_status_request_body; response_schema_ref=schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_status_outcome |

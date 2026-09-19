@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.9",
+  "version": "2026-09-20.10",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T02:45:46+08:00",
+  "generated_at": "2026-09-20T03:28:12+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -11745,6 +11745,9 @@
         ],
         "machine_projections": [],
         "operations": [
+          "ak.gate.account.command.stage_device_pairing.v1",
+          "ak.gate.account.read.device_pairing_status.v1",
+          "ak.gate.account.read.resolve_device_pairing.v1",
           "ak.peer.keys.read.lookup.v1"
         ],
         "vectors": [],
@@ -12131,6 +12134,7 @@
       "Every operation_id is an explicit versioned operation identity ending in .v1. Its stable HTTP endpoint identity is derived by removing the terminal .vN and is used as the OpenAPI operationId; the unversioned identity is not an alias for a versioned operation_id.",
       "Every canonical Arkret HTTP request MUST carry exactly one Arkret-Operation header naming the exact versioned operation_id before body parsing. The receiver MUST verify that the selector is locally advertised and belongs to the selected method/path family and binding. A missing selector fails with operation_selector_required; an empty candidate set, unknown id, duplicate selector, or value outside the route family fails with unsupported_operation_version. Endpoint uniqueness, payload-shape inference, client SDK version, implicit defaults, and version fallback MUST NOT replace the selector. This invariant keeps existing clients stable when another operation version is added to the same HTTP endpoint family.",
       "operation_bundles is the only canonical bundle member source. Each registered bundle freezes one service_kind and a canonical unique set of (operation_id,binding_kind) members; changing a member requires a new bundle id.",
+      "coordination_relations is the canonical machine source for a public operation that spans independently durable services. Every relation MUST name the entry operation, every registered sub-operation, exact request/receipt bindings, the durable owner and fence transitions, crash recovery owner, terminal success boundary and closed downstream error translation. Prose alone MUST NOT create an unregistered cross-service write edge.",
       "Within one service_kind, active current-v1 bundles MUST NOT overlap on an identical (operation_id,binding_kind) pair. Pairs using a different binding kind are distinct.",
       "Only registered ak.operation_bundle.*.v1 ids may appear in current-v1 ServiceDescribe. Current-v1 defines no vendor bundle wire namespace; vendor-private collections may only appear as ignorable x_* metadata and never affect capability decisions. Unknown bundle ids fail closed and are never expanded by name.",
       "Request wire/canonical byte budget violations MUST return payload_too_large (HTTP 413); count-only schema violations with valid request bytes MUST return schema_violation (HTTP 422), except explicit operation count semantics. An otherwise valid request whose complete response or evaluation exceeds its semantic budget returns limit_exceeded (HTTP 413) or its defined typed unavailable result. Request byte errors take precedence over coincident schema errors. Error classification MUST NOT depend on diagnostic text substring matching."
@@ -12521,7 +12525,10 @@
           "ak.gate.account.command.register.v1",
           "ak.gate.account.command.finalize_device_pairing.v1",
           "ak.gate.account.command.pair_device.v1",
+          "ak.gate.account.command.stage_device_pairing.v1",
           "ak.gate.account.read.claim_device_pairing_code.v1",
+          "ak.gate.account.read.device_pairing_status.v1",
+          "ak.gate.account.read.resolve_device_pairing.v1",
           "ak.gate.account.command.issue_session_grant.v1",
           "ak.gate.account.command.refresh_session_grant.v1",
           "ak.gate.account.command.issue_recovery_completion_grant.v1",
@@ -13205,7 +13212,7 @@
         "http": "POST /_arkret/gate/account/device-pair",
         "grpc": "GateAccount/DevicePair",
         "mq": "gate.account.command.pair_device",
-        "notes": "Durable terminal exact replay is keyed by pairing request id, approving AccountId/device and canonical request digest. It returns the same accepted result without a second Event or stage consumption; same identity with changed intent conflicts. Before a terminal outcome exists, a retained request located by device_pairing_request_id consumes one unit of its service-private ten-failure budget when code, approving AccountId/device, transcript, signature, proof/staged material or ready_for_claim state is invalid. The tenth failure atomically expires an otherwise pending record; exact terminal replay never counts, and authorized or durable terminal state is never rewritten.",
+        "notes": "Account Authority owns the only pairing ledger and the durable prepared -> station_accepted -> completed admission fence. Durable terminal exact replay is keyed by pairing request id, approving AccountId/device and canonical request digest. It returns the same accepted result without a second Event or stage consumption; same identity with changed intent conflicts. On first valid intent the Authority atomically freezes the byte-exact authorize_event and then invokes ak.peer.events.command.submit.v1 authority_forward against the verified owning Station. The Station performs canonical Event admission and returns a RealmCommit; the Authority verifies service identity, current governance, exact Event bytes/EventRef, Realm/stream, commit signature and authority generation before recording station_accepted. Only local completion consumes pending/code and stores the byte-identical client outcome. Before a fence exists, a retained request located by device_pairing_request_id consumes one unit of its service-private ten-failure budget when code, approving AccountId/device, transcript, signature, proof/staged material or ready_for_claim state is invalid. The tenth failure atomically expires an otherwise pending record. Once prepared or station_accepted, the record is exempt from ordinary TTL cleanup, failure counting and later finalize supersession; resolve, status and code claim fail closed without consuming budget, and only the same pair_device intent may resume. Exact terminal replay never counts, and authorized or durable terminal state is never rewritten.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "canonical_hash",
@@ -13216,7 +13223,14 @@
           "kind": "event_log",
           "event_kinds": [
             "ak.device.authorize"
-          ]
+          ],
+          "event_submission_path": "/authorize_event",
+          "cross_service_effects": [
+            "account_authority_pairing_admission_fence_committed",
+            "owning_station_authority_forward_realm_commit_verified",
+            "account_authority_pending_consumed_and_terminal_outcome_committed"
+          ],
+          "irreversibility_note": "The owning Station's accepted RealmCommit cannot be rolled back by the Account Authority. Success is returned only after that exact receipt is durably fenced and the Authority atomically consumes the pending code and stores the terminal outcome; crash recovery resumes from the fence and never submits a different Event or creates a second pairing ledger."
         },
         "canonical_hash_input": "/"
       },
@@ -13326,6 +13340,30 @@
         }
       },
       {
+        "operation_id": "ak.gate.account.command.stage_device_pairing.v1",
+        "http_only_variant": true,
+        "http": "POST /_arkret/gate/account/device-pairing/stages",
+        "auth_requirements": {
+          "service_signature": {
+            "signature_scenario_id": "ak.http_signature.scenario.service_to_service.v1",
+            "standard": "RFC 9421 HTTP Message Signature",
+            "bearer_only_allowed": false,
+            "contract": "Covered components, signature parameters and the freshness window come from http_signature_contract_registry. This operation MUST NOT restate them."
+          }
+        },
+        "notes": "Deployment-internal Station-to-Account-Authority proxy leg for exactly one accepted invocation of ak.open.device_pairing.command.stage.v1. The authenticated owning Station sends the byte-identical public request body and a Station-generated Idempotency-Key that is stable only for that one public invocation. The Account Authority is the sole owner of the pending and abuse ledger, mints the request id/code/nonces/expiry once, durably deduplicates the internal key plus canonical body, and returns the byte-identical public stage outcome. Same key and body replays that outcome; same key with different canonical body is duplicate_conflict with zero writes. A later public stage call is intentionally a new invocation with a fresh internal key and therefore mints a fresh request; the client-visible public operation remains non-retry-safe. Ordinary clients MUST NOT call this operation, and the Station MUST NOT persist a writable pairing record or derive business state from the response.",
+        "body_class": "non_streaming_json",
+        "success_shape_kind": "typed_response",
+        "idempotency_mechanism": "idempotency_key",
+        "retry_safe": true,
+        "request_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_stage_request_body",
+        "response_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_stage_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "account_authority_single_pairing_ledger_stage_and_internal_dedup_only_no_event_is_authored"
+        }
+      },
+      {
         "operation_id": "ak.gate.account.exchange.create_handoff.v1",
         "http_only_variant": true,
         "http": "POST /_arkret/gate/account/authentication-handoffs",
@@ -13353,6 +13391,24 @@
         "response_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_code_claim_outcome"
       },
       {
+        "operation_id": "ak.gate.account.read.device_pairing_status.v1",
+        "http_only_variant": true,
+        "http": "POST /_arkret/gate/account/device-pairing/status-queries",
+        "auth_requirements": {
+          "service_signature": {
+            "signature_scenario_id": "ak.http_signature.scenario.service_to_service.v1",
+            "standard": "RFC 9421 HTTP Message Signature",
+            "bearer_only_allowed": false,
+            "contract": "Covered components, signature parameters and the freshness window come from http_signature_contract_registry. This operation MUST NOT restate them."
+          }
+        },
+        "notes": "Deployment-internal read-only Station-to-Account-Authority proxy leg for ak.open.device_pairing.read.status.v1. The authenticated owning Station forwards the byte-identical public request body; the Authority reads the sole pairing ledger and returns the byte-identical public status outcome or uniform not_found. The Station stores no pairing business state, and this read MUST NOT consume failure budget, extend TTL, alter a fence, supersede a record, or expose prepared/station_accepted as a new public in_progress state. A fenced non-completed record fails closed as not_found; completed is projected only through the existing authorized outcome.",
+        "body_class": "non_streaming_json",
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_status_request_body",
+        "response_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_status_outcome"
+      },
+      {
         "operation_id": "ak.gate.account.read.onboarding.v1",
         "http_only_variant": true,
         "http": "GET /_arkret/gate/account/onboarding",
@@ -13364,6 +13420,24 @@
           "kind": "none",
           "rationale": "reads_only_the_current_service_local_account_onboarding_projection"
         }
+      },
+      {
+        "operation_id": "ak.gate.account.read.resolve_device_pairing.v1",
+        "http_only_variant": true,
+        "http": "POST /_arkret/gate/account/device-pairing/resolutions",
+        "auth_requirements": {
+          "service_signature": {
+            "signature_scenario_id": "ak.http_signature.scenario.service_to_service.v1",
+            "standard": "RFC 9421 HTTP Message Signature",
+            "bearer_only_allowed": false,
+            "contract": "Covered components, signature parameters and the freshness window come from http_signature_contract_registry. This operation MUST NOT restate them."
+          }
+        },
+        "notes": "Deployment-internal read-only Station-to-Account-Authority proxy leg for ak.open.device_pairing.read.resolve.v1. The authenticated owning Station forwards the byte-identical public request body; the Authority reads the sole pairing ledger and returns the byte-identical public bootstrap or uniform not_found. The Station stores no pairing business state, and this read MUST NOT consume failure budget, extend TTL, alter a fence or supersede a record. A record fenced by pair_device fails closed as not_found even if its pre-fence state was ready_for_claim.",
+        "body_class": "non_streaming_json",
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_resolve_request_body",
+        "response_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_bootstrap"
       },
       {
         "operation_id": "ak.open.agent_pairing.command.submit_runtime_key_request.v1",
@@ -16184,6 +16258,197 @@
         "notes": ""
       }
     ],
+    "coordination_relations": [
+      {
+        "coordination_id": "ak.coordination.device_pairing.split_admission_saga.v1",
+        "entry_operation_id": "ak.gate.account.command.pair_device.v1",
+        "ledger_owner": "account_authority",
+        "recovery_owner": "account_authority",
+        "station_pairing_business_state": "forbidden",
+        "public_proxy_mappings": [
+          {
+            "public_operation_id": "ak.open.device_pairing.command.stage.v1",
+            "internal_operation_id": "ak.gate.account.command.stage_device_pairing.v1",
+            "request_mapping": "byte_identical_body",
+            "response_mapping": "byte_identical_body",
+            "public_retry_safe": false,
+            "internal_retry_safe": true,
+            "internal_request_identity": "station_generated_idempotency_key_per_public_invocation"
+          },
+          {
+            "public_operation_id": "ak.open.device_pairing.read.resolve.v1",
+            "internal_operation_id": "ak.gate.account.read.resolve_device_pairing.v1",
+            "request_mapping": "byte_identical_body",
+            "response_mapping": "byte_identical_body",
+            "read_only": true
+          },
+          {
+            "public_operation_id": "ak.open.device_pairing.read.status.v1",
+            "internal_operation_id": "ak.gate.account.read.device_pairing_status.v1",
+            "request_mapping": "byte_identical_body",
+            "response_mapping": "byte_identical_body",
+            "read_only": true
+          }
+        ],
+        "event_admission": {
+          "operation_id": "ak.peer.events.command.submit.v1",
+          "branch": "authority_forward",
+          "caller": "account_authority",
+          "destination": "verified_current_governance_station",
+          "entry_request_event_submission_path": "/authorize_event",
+          "downstream_request_event_submission_path": "/event_submission",
+          "frozen_bytes_rule": "byte_identical_full_authority_forward_request_and_event_commit_submission",
+          "receipt_status_path": "/outcome/status",
+          "receipt_commit_path": "/outcome/commit",
+          "accepted_statuses": [
+            "committed",
+            "duplicate"
+          ],
+          "receipt_verification": [
+            "authenticated_station_service_identity",
+            "current_governance_authority",
+            "commit_signature",
+            "authority_generation",
+            "realm_id",
+            "stream_ref",
+            "previous_commit_ref_continuity",
+            "commit_event_ref_equals_frozen_event_id",
+            "frozen_event_bytes_unchanged"
+          ],
+          "forbid_second_event_operation": true,
+          "station_commit_mode": "sign_exactly_once_on_first_admission"
+        },
+        "fence": {
+          "storage_owner": "account_authority_pairing_ledger",
+          "key_fields": [
+            "device_pairing_request_id",
+            "approving_account_id",
+            "approving_device_id"
+          ],
+          "intent_digest": "canonical_hash_of_complete_pair_device_request",
+          "states": [
+            "prepared",
+            "station_accepted",
+            "completed"
+          ],
+          "transitions": [
+            {
+              "from": "absent",
+              "to": "prepared",
+              "atomic_writes": [
+                "holder_identity",
+                "canonical_request_digest",
+                "authorize_event_bytes",
+                "authorize_event_id",
+                "downstream_operation_id",
+                "downstream_branch",
+                "downstream_full_request_bytes",
+                "downstream_full_request_digest",
+                "target_station_identity",
+                "target_authority_generation"
+              ]
+            },
+            {
+              "from": "prepared",
+              "to": "station_accepted",
+              "atomic_writes": [
+                "verified_peer_submit_status",
+                "verified_peer_outcome_bytes",
+                "verified_realm_commit_bytes",
+                "verified_realm_commit_digest"
+              ]
+            },
+            {
+              "from": "station_accepted",
+              "to": "completed",
+              "atomic_writes": [
+                "pending_consumed",
+                "pairing_code_consumed",
+                "authorized_state",
+                "terminal_outcome_bytes"
+              ]
+            },
+            {
+              "from": "prepared",
+              "to": "absent",
+              "condition": "authenticated_terminal_peer_rejection_proves_zero_station_write",
+              "atomic_writes": [
+                "rejection_mapping_recorded_before_response"
+              ]
+            }
+          ],
+          "same_intent_replay": "resume_from_recorded_state",
+          "different_digest_or_holder": "duplicate_conflict_zero_write",
+          "public_status_projection": "no_in_progress_state",
+          "nonterminal_protections": [
+            "ttl_cleanup_forbidden",
+            "failure_budget_increment_forbidden",
+            "finalize_supersession_forbidden",
+            "different_request_finalize_must_not_create_second_ready_for_claim",
+            "resolve_status_and_code_claim_fail_closed_without_budget_write"
+          ]
+        },
+        "crash_recovery": [
+          {
+            "cut": "before_prepared_commit",
+            "resume": "zero_side_effect_retry_full_validation"
+          },
+          {
+            "cut": "after_prepared_before_station_call",
+            "resume": "replay_frozen_event_to_same_peer_operation"
+          },
+          {
+            "cut": "after_station_commit_before_receipt_persist",
+            "resume": "exact_peer_request_replay_returns_same_realm_commit"
+          },
+          {
+            "cut": "after_station_accepted_before_local_completion",
+            "resume": "local_completion_only_no_peer_resubmit_required"
+          },
+          {
+            "cut": "after_completed_before_client_response",
+            "resume": "return_byte_identical_terminal_outcome"
+          }
+        ],
+        "downstream_error_translation": [
+          {
+            "source": "peer_rejected_with_any_schema_valid_reason",
+            "target": "failed_precondition",
+            "target_reason_code": "failed_precondition",
+            "source_reason_handling": "retain_in_private_audit_only_never_translate_freely",
+            "fence_action": "remove_prepared_only_after_verified_station_zero_write_rejection",
+            "pending_action": "preserve",
+            "failure_budget_action": "preserve"
+          },
+          {
+            "source": "peer_retryable_unavailable_or_network_failure",
+            "target": "temporarily_unavailable",
+            "fence_action": "preserve_for_recovery"
+          },
+          {
+            "source": "missing_or_mismatched_realm_commit_receipt",
+            "target": "temporarily_unavailable",
+            "fence_action": "preserve_for_recovery"
+          },
+          {
+            "source": "same_fence_key_different_digest_or_holder",
+            "target": "duplicate_conflict",
+            "fence_action": "zero_write"
+          },
+          {
+            "source": "internal_proxy_unavailable",
+            "target": "temporarily_unavailable",
+            "fence_action": "not_applicable"
+          },
+          {
+            "source": "proxy_read_unknown_mismatch_or_state",
+            "target": "not_found",
+            "fence_action": "zero_write"
+          }
+        ],
+        "terminal_success_boundary": "account_authority_completed_fence_committed_before_client_response"
+      }
+    ],
     "success_shape_kind_definitions": {
       "service_describe": "ServiceDescribe object returned by a describe endpoint.",
       "typed_response": "Dedicated OpenAPI component response schema.",
@@ -16195,8 +16460,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-20.3",
-    "generated_at": "2026-09-20T02:45:46+08:00",
+    "version": "2026-09-20.4",
+    "generated_at": "2026-09-20T03:28:12+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",
@@ -16918,7 +17183,19 @@
             "binding_kind": "http_json"
           },
           {
+            "operation_id": "ak.gate.account.command.stage_device_pairing.v1",
+            "binding_kind": "http_json"
+          },
+          {
             "operation_id": "ak.gate.account.read.claim_device_pairing_code.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.gate.account.read.device_pairing_status.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.gate.account.read.resolve_device_pairing.v1",
             "binding_kind": "http_json"
           },
           {

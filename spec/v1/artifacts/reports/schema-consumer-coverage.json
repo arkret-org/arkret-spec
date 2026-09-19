@@ -1729,6 +1729,7 @@
       "vector_coverage": {
         "disposition": "operation_e2e_owned",
         "owners": [
+          "ak.gate.account.read.resolve_device_pairing.v1",
           "ak.open.device_pairing.read.resolve.v1"
         ],
         "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
@@ -1748,7 +1749,10 @@
         "disposition": "operation_e2e_owned",
         "owners": [
           "ak.gate.account.command.finalize_device_pairing.v1",
+          "ak.gate.account.command.stage_device_pairing.v1",
           "ak.gate.account.read.claim_device_pairing_code.v1",
+          "ak.gate.account.read.device_pairing_status.v1",
+          "ak.gate.account.read.resolve_device_pairing.v1",
           "ak.open.device_pairing.command.stage.v1",
           "ak.open.device_pairing.read.resolve.v1",
           "ak.open.device_pairing.read.status.v1"

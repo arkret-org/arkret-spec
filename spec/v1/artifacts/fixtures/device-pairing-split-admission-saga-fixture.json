@@ -1,0 +1,173 @@
+{
+  "version": "2026-09-20.1",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.device_pairing.split_admission_saga.v1"
+  },
+  "schema": "ak.fixture.device_pairing.split_admission_saga.v1",
+  "suite_id": "ak.suite.device_pairing.split_admission_saga.v1",
+  "vector_id": "ak.vector.device_pairing.split_admission_saga.v1",
+  "coordination_id": "ak.coordination.device_pairing.split_admission_saga.v1",
+  "owners": {
+    "client_visible_open_origin": "station",
+    "pairing_ledger": "account_authority",
+    "event_admission": "verified_current_governance_station",
+    "recovery": "account_authority",
+    "station_writable_pairing_ledger": false
+  },
+  "proxy_contracts": [
+    {
+      "public_operation_id": "ak.open.device_pairing.command.stage.v1",
+      "internal_operation_id": "ak.gate.account.command.stage_device_pairing.v1",
+      "request_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_stage_request_body",
+      "response_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_stage_outcome",
+      "request_mapping": "byte_identical_body",
+      "response_mapping": "byte_identical_body",
+      "public_retry_safe": false,
+      "internal_retry_safe": true,
+      "internal_identity": "station_generated_idempotency_key_per_public_invocation"
+    },
+    {
+      "public_operation_id": "ak.open.device_pairing.read.resolve.v1",
+      "internal_operation_id": "ak.gate.account.read.resolve_device_pairing.v1",
+      "request_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_resolve_request_body",
+      "response_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_bootstrap",
+      "request_mapping": "byte_identical_body",
+      "response_mapping": "byte_identical_body",
+      "read_only": true
+    },
+    {
+      "public_operation_id": "ak.open.device_pairing.read.status.v1",
+      "internal_operation_id": "ak.gate.account.read.device_pairing_status.v1",
+      "request_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_status_request_body",
+      "response_schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_status_outcome",
+      "request_mapping": "byte_identical_body",
+      "response_mapping": "byte_identical_body",
+      "read_only": true
+    }
+  ],
+  "event_admission": {
+    "entry_operation_id": "ak.gate.account.command.pair_device.v1",
+    "entry_pointer": "/authorize_event",
+    "downstream_operation_id": "ak.peer.events.command.submit.v1",
+    "downstream_branch": "authority_forward",
+    "downstream_pointer": "/event_submission",
+    "accepted_statuses": [
+      "committed",
+      "duplicate"
+    ],
+    "receipt_pointer": "/outcome/commit",
+    "frozen_unit": "complete_authority_forward_request_bytes"
+  },
+  "fence": {
+    "states": [
+      "prepared",
+      "station_accepted",
+      "completed"
+    ],
+    "public_states": [
+      "staged",
+      "ready_for_claim",
+      "authorized",
+      "expired"
+    ],
+    "forbidden_public_state": "in_progress",
+    "protected_from": [
+      "ttl_cleanup",
+      "failure_budget_increment",
+      "finalize_supersession"
+    ]
+  },
+  "positive_cases": [
+    {
+      "case_id": "public_stage_new_invocation_uses_fresh_internal_key",
+      "expected": "new_request_and_code"
+    },
+    {
+      "case_id": "internal_stage_exact_retry",
+      "expected": "byte_identical_stage_outcome"
+    },
+    {
+      "case_id": "same_pair_intent_concurrent",
+      "expected": "one_fence_one_event_one_terminal_outcome"
+    },
+    {
+      "case_id": "peer_duplicate_exact_replay",
+      "expected": "same_realm_commit_then_complete_once"
+    },
+    {
+      "case_id": "completed_client_response_lost",
+      "expected": "byte_identical_terminal_outcome_no_peer_resubmit"
+    }
+  ],
+  "crash_cases": [
+    {
+      "cut": "before_prepared_commit",
+      "expected_resume": "zero_side_effect_retry_full_validation"
+    },
+    {
+      "cut": "after_prepared_before_station_call",
+      "expected_resume": "replay_frozen_event_to_same_peer_operation"
+    },
+    {
+      "cut": "after_station_commit_before_receipt_persist",
+      "expected_resume": "exact_peer_request_replay_returns_same_realm_commit"
+    },
+    {
+      "cut": "after_station_accepted_before_local_completion",
+      "expected_resume": "local_completion_only_no_peer_resubmit_required"
+    },
+    {
+      "cut": "after_completed_before_client_response",
+      "expected_resume": "return_byte_identical_terminal_outcome"
+    }
+  ],
+  "negative_cases": [
+    {
+      "case_id": "internal_stage_same_key_changed_body",
+      "expected_error": "duplicate_conflict",
+      "expected_writes": 0
+    },
+    {
+      "case_id": "different_pair_digest_or_holder",
+      "expected_error": "duplicate_conflict",
+      "expected_writes": 0
+    },
+    {
+      "case_id": "non_owning_station_calls_internal_proxy",
+      "expected_error": "http_signature_invalid",
+      "expected_writes": 0
+    },
+    {
+      "case_id": "peer_receipt_event_ref_mismatch",
+      "expected_error": "temporarily_unavailable",
+      "expected_fence": "prepared"
+    },
+    {
+      "case_id": "peer_receipt_wrong_authority_generation",
+      "expected_error": "temporarily_unavailable",
+      "expected_fence": "prepared"
+    },
+    {
+      "case_id": "peer_retryable_unavailable",
+      "expected_error": "temporarily_unavailable",
+      "expected_fence": "prepared"
+    },
+    {
+      "case_id": "peer_terminal_rejected_zero_write",
+      "expected_error": "failed_precondition",
+      "expected_fence": "absent",
+      "pending_preserved": true
+    },
+    {
+      "case_id": "fenced_resolve_status_or_code_claim",
+      "expected_error": "not_found",
+      "failure_budget_delta": 0
+    },
+    {
+      "case_id": "new_finalize_targets_fenced_account",
+      "expected_error": "not_found",
+      "expected_writes": 0
+    }
+  ]
+}

@@ -593,6 +593,7 @@
     },
     "account_device_pair_request_body": {
       "type": "object",
+      "description": "Account Authority-owned terminal pairing command. After validating the sole pending ledger, the Authority freezes the complete canonical request and authorize_event in its prepared fence, forwards that exact EventCommitSubmission only through ak.peer.events.command.submit.v1 authority_forward, verifies and stores the exact RealmCommit in station_accepted, then consumes pending/code and stores the byte-identical outcome in completed. The request does not carry a client-selected Station, receipt, fence state or private coordination member.",
       "required": [
         "pairing_code",
         "new_device_pubkey",
@@ -625,6 +626,7 @@
     },
     "account_device_pair_outcome": {
       "type": "object",
+      "description": "Byte-identical terminal outcome stored by the Account Authority only after the owning Station RealmCommit has been verified and the local fence reaches completed. Exact replay returns these bytes without another Event submission or pending read.",
       "required": [
         "device_id",
         "authorized_event_ref"

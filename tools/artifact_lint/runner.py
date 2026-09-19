@@ -229,6 +229,7 @@ from .account_status_replica import (
 )
 from .account_status_issuer import check_account_status_issuer_genesis
 from .device_pairing_current_gate import check_device_pairing_current_device_gate
+from .device_pairing_split_admission import check_device_pairing_split_admission_saga
 
 from .franking_transcript import check_franking_proof_transcript
 
@@ -441,6 +442,10 @@ def main(argv: list[str] | None = None) -> int:
             (
                 "device_pairing_current_device_gate",
                 lambda: check_device_pairing_current_device_gate(lint),
+            ),
+            (
+                "device_pairing_split_admission_saga",
+                lambda: check_device_pairing_split_admission_saga(lint),
             ),
         ],
         quiet=args.quiet,

@@ -156,6 +156,11 @@
       "version": "2026-09-19"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/device-pairing-split-admission-saga-fixture.json",
+      "sha256": "bc8e1ca4dacfcc1c9458b6cf10684ba51b54c82de76a94c526729979515c1eae",
+      "version": "2026-09-20.1"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/did-binding-digest-fixture.json",
       "sha256": "ad47c383ad7f27dae6b7fd6690d563b4205e099817c4c73a923ddbe452e7f5c0",
       "version": "2026-07-31"

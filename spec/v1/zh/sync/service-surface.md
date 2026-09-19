@@ -3,7 +3,7 @@ title: Service Surface And Bootstrap
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-16
+updated: 2026-09-20
 see_also:
   - service-http-binding.md
   - authority-commit-log.md
@@ -67,6 +67,19 @@ Account Authority 是 Station 的账号准入逻辑入口，不是独立 Realm a
 服务调用方 MUST 验证 `did_core_id` 对应的 method-native 当前状态、唯一 `ArkretService` entry、`serviceKind` 和 canonical HTTPS endpoint。缓存、邀请和 Directory 行都是 locator。
 
 Realm authority 还必须验证 genesis 的 generation-0 service、连续 old→new handoff chain、已观察最高 generation 的防回滚约束，以及目标 service 对 caller nonce 的短期 `current_assertion`。只有这一 bundle 验证成功后，endpoint 才可作为 current governance Station。
+
+### 2.7 Device-pairing 分离部署边界（normative）
+
+device-pairing 的 client-visible `stage/resolve/status` origin 固定为 Station；Account Authority 分离部署时，
+Station 通过三项已登记 deployment-internal operation 原样代理 canonical DTO，但不拥有 pairing 业务状态。
+Account Authority 是 pending、abuse、admission fence 与 terminal outcome 的唯一 durable owner；Station 不得维护
+第二份可写 ledger、从 proxy response 推导另一份状态，或让客户端改打 internal origin。
+
+`pair_device` 的 `ak.device.authorize` 仍由 producer 签署并经 owning Station 的
+`ak.peer.events.command.submit.v1` `authority_forward` branch 首次接纳。Station 的 Event/RealmCommit transaction
+与 Authority 的三阶段 fence/local terminal transaction 是两个独立 durable boundary，由
+`operation_registry.coordination_relations` 登记的 exact request、receipt 和恢复状态机连接；规范不得以共享数据库
+或跨库单事务作为隐含前提。
 
 ## 3. 通用服务描述接口
 

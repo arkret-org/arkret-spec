@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.4",
+  "version": "2026-09-20.5",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T02:45:46+08:00",
+  "generated_at": "2026-09-20T03:28:12+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1511,6 +1511,19 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
         "spec/v1/zh/crypto-media/device-lifecycle.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.device_pairing.split_admission_saga.v1",
+      "status": "active",
+      "domain": "device_pairing",
+      "applies_to_fixtures": [
+        "device-pairing-split-admission-saga-fixture.json"
+      ],
+      "description": "A split Station/Account-Authority deployment keeps the three public open operations on the Station while the Authority owns the only pending, abuse, fence and terminal ledger. Stage is a non-retry-safe public invocation mapped to a fresh Station internal key, while internal stage durably deduplicates that key and resolve/status remain byte-identical read-only proxies. pair_device freezes one authority_forward request, advances the Authority fence prepared -> station_accepted -> completed around the exact owning-Station RealmCommit, survives every registered crash cut without a second Event, protects fenced rows from TTL/failure-budget/finalize supersession, and exposes neither a second ledger nor an in_progress public state.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/device-pairing-split-admission-saga-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
     {

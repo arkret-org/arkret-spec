@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.2",
+  "version": "2026-09-20.3",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T01:48:33+08:00",
+  "generated_at": "2026-09-20T03:28:12+08:00",
   "description": "Closed inventory of current spec/v1/zh headings that explicitly carry the （normative） marker. Any addition, removal, rename, or move is reviewed as a protocol change and refreshes this source-of-truth inventory.",
   "titles": [
     {
@@ -1188,6 +1188,11 @@
       "page": "sync/service-surface.md",
       "heading": "2.6 Service DID 权威入口与路由解析（normative）",
       "fragment": "26-service-did-权威入口与路由解析normative"
+    },
+    {
+      "page": "sync/service-surface.md",
+      "heading": "2.7 Device-pairing 分离部署边界（normative）",
+      "fragment": "27-device-pairing-分离部署边界normative"
     },
     {
       "page": "sync/signal.md",

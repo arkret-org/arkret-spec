@@ -93,7 +93,7 @@ class OperationResidualClosureTest(unittest.TestCase):
             encoding="utf-8"
         )
         self.assertIn(
-            "| Service operation | 222 | `artifacts/registry/operation-registry.json` |",
+            "| Service operation | 225 | `artifacts/registry/operation-registry.json` |",
             readiness,
         )
 

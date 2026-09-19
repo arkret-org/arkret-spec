@@ -6386,13 +6386,15 @@ paths:
 
         device submits a canonical new_device_pubkey and a client_nonce and MUST
 
-        NOT submit a challenge proof; the service
+        NOT submit a challenge proof; the Station forwards the exact DTO through
+
+        the registered internal operation, and the Account Authority
 
         mints a fresh device_pairing_request_id and 8-character Crockford-style
 
         40-bit CSPRNG pairing_code and
 
-        stores a bounded-TTL account-less record in state staged, with a code that
+        stores the sole bounded-TTL account-less record in state staged, with a code that
 
         is unique across the whole live pending set, so a user-driven refresh is
 
@@ -6454,7 +6456,9 @@ paths:
 
         and algorithms that attestation signs.
 
-        Only a record already finalized to ready_for_claim can be resolved.
+        Only a record already finalized to ready_for_claim and not protected by
+
+        a pair_device admission fence can be resolved.
 
         Unknown id, pairing_code mismatch, expiry, or a record that is not
 
@@ -6520,7 +6524,9 @@ paths:
 
         same expired for that retention period and is indistinguishable from a
 
-        naturally elapsed TTL.
+        naturally elapsed TTL. A private prepared or station_accepted fence
+
+        returns not_found until completed; in_progress is not a public state.
 
         '
       requestBody:
@@ -9386,6 +9392,10 @@ paths:
           default: localhost
     post:
       operationId: ak.gate.account.command.pair_device
+      description: Account Authority coordinates the registered split-admission saga. It freezes authorize_event, submits it
+        byte-identically through ak.peer.events.command.submit.v1 branch=authority_forward, verifies the owning Station RealmCommit,
+        and reaches completed before returning the stored terminal outcome. Retryable or unverifiable Station results preserve
+        the private fence and return temporarily_unavailable; exact completed replay never submits a second Event.
       parameters:
       - name: Arkret-Operation
         in: header
@@ -9404,6 +9414,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AccountDevicePairOutcome'
+        '409':
+          description: The same pairing fence identity was reused with a different canonical request digest or holder.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '503':
+          $ref: '#/components/responses/TemporarilyUnavailable'
       requestBody:
         required: true
         content:
@@ -9506,6 +9524,143 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/DevicePairingFinalizeRequestBody'
+  /_arkret/gate/account/device-pairing/stages:
+    servers:
+    - url: https://{host}
+      variables:
+        host:
+          default: localhost
+    post:
+      operationId: ak.gate.account.command.stage_device_pairing
+      summary: Stage one pairing request in the Account Authority's sole ledger.
+      description: Deployment-internal owning-Station proxy. The request and response bodies are byte-identical to the public
+        stage DTOs. The Station-generated Idempotency-Key is stable only for one public invocation; exact internal replay returns
+        the original outcome, while a changed body conflicts. Ordinary clients cannot call this route.
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.gate.account.command.stage_device_pairing.v1
+      - name: Idempotency-Key
+        in: header
+        required: true
+        description: Station-generated identity for exactly one accepted public stage invocation; stable only for its internal retries.
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 128
+          pattern: ^[A-Za-z0-9._~:-]+$
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        contentDigest: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DevicePairingStageRequestBody'
+      responses:
+        '200':
+          description: Byte-identical public stage outcome from the sole Authority ledger.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DevicePairingStageOutcome'
+        '409':
+          description: Same internal Idempotency-Key with different canonical body.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '503':
+          $ref: '#/components/responses/TemporarilyUnavailable'
+  /_arkret/gate/account/device-pairing/resolutions:
+    servers:
+    - url: https://{host}
+      variables:
+        host:
+          default: localhost
+    post:
+      operationId: ak.gate.account.read.resolve_device_pairing
+      summary: Read one pairing bootstrap from the Account Authority's sole ledger.
+      description: Deployment-internal owning-Station read-only proxy. It reuses the public resolve request/bootstrap DTOs
+        byte-identically, performs no budget or lifecycle write, and keeps bootstrap.arkret_base_url bound to the public Station.
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.gate.account.read.resolve_device_pairing.v1
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        contentDigest: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DevicePairingResolveRequestBody'
+      responses:
+        '200':
+          description: Byte-identical public resolve bootstrap.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DevicePairingBootstrap'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/TemporarilyUnavailable'
+  /_arkret/gate/account/device-pairing/status-queries:
+    servers:
+    - url: https://{host}
+      variables:
+        host:
+          default: localhost
+    post:
+      operationId: ak.gate.account.read.device_pairing_status
+      summary: Read one pairing status from the Account Authority's sole ledger.
+      description: Deployment-internal owning-Station read-only proxy. It reuses the public status request/outcome DTOs
+        byte-identically, performs no budget or lifecycle write, and never projects private fence states as in_progress.
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.gate.account.read.device_pairing_status.v1
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        contentDigest: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DevicePairingStatusRequestBody'
+      responses:
+        '200':
+          description: Byte-identical public status outcome.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DevicePairingStatusOutcome'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/TemporarilyUnavailable'
   /_arkret/gate/account/device-pairing/code-claims:
     servers:
     - url: https://{host}

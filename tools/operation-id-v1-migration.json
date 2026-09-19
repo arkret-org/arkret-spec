@@ -176,6 +176,10 @@
       "new": "ak.gate.account.command.revoke_session.v1"
     },
     {
+      "old": "ak.gate.account.command.stage_device_pairing",
+      "new": "ak.gate.account.command.stage_device_pairing.v1"
+    },
+    {
       "old": "ak.gate.account.exchange.create_handoff",
       "new": "ak.gate.account.exchange.create_handoff.v1"
     },
@@ -184,8 +188,16 @@
       "new": "ak.gate.account.read.claim_device_pairing_code.v1"
     },
     {
+      "old": "ak.gate.account.read.device_pairing_status",
+      "new": "ak.gate.account.read.device_pairing_status.v1"
+    },
+    {
       "old": "ak.gate.account.read.onboarding",
       "new": "ak.gate.account.read.onboarding.v1"
+    },
+    {
+      "old": "ak.gate.account.read.resolve_device_pairing",
+      "new": "ak.gate.account.read.resolve_device_pairing.v1"
     },
     {
       "old": "ak.open.agent_pairing.command.submit_runtime_key_request",
