@@ -191,6 +191,24 @@ class SectionIdentityGateTest(unittest.TestCase):
             ),
         )
 
+    def test_a_section_number_inside_the_link_label_is_resolved(self) -> None:
+        """``[`other.md` §9.7](./other.md)`` is the shape 842 citations use."""
+        page = GREEN_PAGE + NEWLINE + "见 [`other.md` §9.7](./other.md) 的规则。" + NEWLINE
+        errors = self.run_gates(
+            pages={"probe.md": page, "other.md": OTHER_PAGE}, which="linked_sections"
+        )
+        self.assertTrue(any("does not have" in error for error in errors), errors)
+
+    def test_a_real_section_inside_the_link_label_stays_green(self) -> None:
+        page = GREEN_PAGE + NEWLINE + "见 [`other.md` §1](./other.md) 的规则。" + NEWLINE
+        self.assertEqual(
+            [],
+            self.run_gates(
+                pages={"probe.md": page, "other.md": OTHER_PAGE},
+                which="linked_sections",
+            ),
+        )
+
     # ---- numbered heading identity --------------------------------------
 
     def test_a_number_naming_two_sections_turns_the_gate_red(self) -> None:

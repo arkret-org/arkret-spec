@@ -202,6 +202,10 @@ LINKED_PAGE_SECTION_RE = re.compile(
     r"\[`(?P<label>[^`]+\.md)`\]\((?P<href>[^)\s]+)\)\s*§(?P<section>\d+(?:\.\d+)*)"
 )
 
+LABELLED_SECTION_RE = re.compile(
+    r"\[`(?P<label>[^`]+\.md)`\s*§(?P<section>\d+(?:\.\d+)*)\]\((?P<href>[^)\s]+)\)"
+)
+
 
 def check_linked_page_section_refs(lint: Lint) -> None:
     """`[`page.md`](page.md) §N` must name a section that page really has.
@@ -210,25 +214,35 @@ def check_linked_page_section_refs(lint: Lint) -> None:
     for citations, so in this very common shape the page name disappears with
     the link and the section number that follows is attributed to nothing. Fifty
     citations across the spec use it and none of them were ever resolved.
+
+    The same disappearance happens when the number sits *inside* the label --
+    ``[`page.md` §6.1.1](page.md)`` -- which is the shape 842 citations use.
+    Both forms are resolved here. A bare `§N` further down the sentence, with
+    no page of its own, still cannot be attributed to anything and is not
+    claimed to be checked.
     """
     number_cache: dict[Path, set[str]] = {}
     for path in markdown_files():
-        for match in LINKED_PAGE_SECTION_RE.finditer(read_text(path)):
-            href = match.group("href").split("#", 1)[0]
-            if SCHEME_RE.match(href):
-                continue
-            target = (path.parent / href).resolve()
-            if target.suffix != ".md" or not target.is_file():
-                continue
-            if target not in number_cache:
-                number_cache[target] = _numbers(target.read_text(encoding="utf-8"))
-            section = match.group("section")
-            if section not in number_cache[target]:
-                lint.fail(
-                    path,
-                    f"cites {match.group('label')} section {section}, which that "
-                    "page does not have",
-                )
+        text = read_text(path)
+        for pattern in (LINKED_PAGE_SECTION_RE, LABELLED_SECTION_RE):
+            for match in pattern.finditer(text):
+                href = match.group("href").split("#", 1)[0]
+                if SCHEME_RE.match(href):
+                    continue
+                target = (path.parent / href).resolve()
+                if target.suffix != ".md" or not target.is_file():
+                    continue
+                if target not in number_cache:
+                    number_cache[target] = _numbers(
+                        target.read_text(encoding="utf-8")
+                    )
+                section = match.group("section")
+                if section not in number_cache[target]:
+                    lint.fail(
+                        path,
+                        f"cites {match.group('label')} section {section}, which "
+                        "that page does not have",
+                    )
 
 
 ARTIFACT_ANCHOR_RE = re.compile(r"zh/[^\s\"'`),]*?\.md#[^\s\"'`),]+")
