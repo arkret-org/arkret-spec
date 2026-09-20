@@ -168,10 +168,10 @@ class PreimageIdentityExemptionLintTest(unittest.TestCase):
         self.assertIn({"$ref": "./recovery-policy.schema.json"}, refs)
         self.assertEqual(
             recovery["$defs"]["recovery_policy_publish_request"]["allOf"][0]["$ref"],
-            "./service-operation-dtos.schema.json#/$defs/EventCommitSubmission",
+            "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission",
         )
         self.assertEqual(
-            service["$defs"]["EventCommitSubmission"]["properties"]["approval_signatures"]["items"]["$ref"],
+            service["$defs"]["EventAdmissionSubmission"]["properties"]["approval_signatures"]["items"]["$ref"],
             "./approval-signature.schema.json",
         )
         candidates = lint_artifacts.preimage_reachable_properties(Lint())

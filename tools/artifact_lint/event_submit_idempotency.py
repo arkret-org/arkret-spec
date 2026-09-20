@@ -47,7 +47,7 @@ def check_event_submit_idempotency(lint: Lint) -> None:
     required_markers = (
         "均登记为 `canonical_hash / full_body / retry_safe=true`",
         "外层 request replay identity 是完整 `submit_request` canonical body 的 SHA-256",
-        "普通 Event 分支即完整 `EventCommitSubmission`",
+        "普通 Event 分支即完整 `EventAdmissionSubmission`",
         "内层 `event_id` 只是不变 Event 内容身份",
         "`event_id_digest_mismatch` 且零副作用",
         "`witness_disagreement` reason",

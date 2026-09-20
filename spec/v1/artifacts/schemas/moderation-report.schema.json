@@ -8,7 +8,7 @@
     "moderation_report_event_submission": {
       "allOf": [
         {
-          "$ref": "./service-operation-dtos.schema.json#/$defs/EventCommitSubmission"
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
         },
         {
           "properties": {

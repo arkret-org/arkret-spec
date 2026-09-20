@@ -577,10 +577,10 @@ EFFECT_PROJECTION_ENVELOPE_FIELDS = {
 # all — and five of them went on to mint the object id the missing Event would have
 # derived.
 #
-# Two shapes count, both already in use: the `EventCommitSubmission` wrapper
+# Two shapes count, both already in use: the `EventAdmissionSubmission` wrapper
 # (agent lifecycle, `events.command.submit`) and a bare `event-envelope.schema.json`
 # reference (`applet.command.install`'s `registration_event`).
-SIGNED_EVENT_REQUEST_MARKERS = ("EventCommitSubmission", "event-envelope.schema.json")
+SIGNED_EVENT_REQUEST_MARKERS = ("EventAdmissionSubmission", "event-envelope.schema.json")
 
 
 # `actor_private_event` is in scope for the same reason `event_log` is.

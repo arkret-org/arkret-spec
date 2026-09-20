@@ -71,7 +71,7 @@
         "set_event": {
           "allOf": [
             {
-              "$ref": "./service-operation-dtos.schema.json#/$defs/EventCommitSubmission"
+              "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
             },
             {
               "type": "object",
@@ -116,7 +116,7 @@
         "set_event": {
           "allOf": [
             {
-              "$ref": "./service-operation-dtos.schema.json#/$defs/EventCommitSubmission"
+              "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
             },
             {
               "type": "object",

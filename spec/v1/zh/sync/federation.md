@@ -70,29 +70,40 @@ Event forwarding 始终保留 exact producer bytes，并只将 current authority
 
 首次接受本地 Actor 所签 Event 的 Station 是该 Event 实时 push 的唯一编排方；通过 peer 接收面收到该 Event 的 remote Station MUST 验证、持久化并服务其本地成员，但 MUST NOT 因该次 peer ingress 再创建第二轮实时 fanout。缺失副本通过 frontier probe、pull、backfill 或 snapshot 修复，不能靠接收方无界转广播。
 
-对 Realm 共享 Event，发送方 MUST 从同一 accepted Realm view 取所有未撤销的 effective joined member ActorId，按 [`../models/common-fields.md`](../models/common-fields.md) §4.2 的封闭规则投影 routing service，排除本机并按 service `did_core_id` 去重。多个成员由同一 remote service 托管时只创建一份 Event transaction。bot、service、archive 或 search projection 若要持有 Realm Event，必须成为显式 joined ActorId，并受 membership、capability、E2EE 与 plaintext visibility 约束；已知 peer、allowlist、mirror、resolver 或部署拓扑都不自动取得内容。
+对 Realm 共享 Event，发送方 MUST 从同一 accepted Realm view 取所有未撤销的 effective joined member ActorId，按 [`../models/common-fields.md`](../models/common-fields.md) §4.2 的封闭规则投影 routing service，排除本机并按 service `did_core_id` 去重。多个成员由同一 remote service 托管时只创建一份 Event transaction。bot、service、archive 或 search projection 若要持有 Realm Event，必须成为显式 joined ActorId，并受 membership、capability、E2EE 与 canonical payload／plaintext visibility 约束；已知 peer、allowlist、mirror、resolver 或部署拓扑都不自动取得内容。只有至少一个本机托管成员被授权取得该 Event 的**完整 canonical bytes** 时，其 remote Station 才进入 committed-replication target set。只能取得 `RedactedEventView`／`ReferenceLockedEventStub` 的成员不建立 canonical replica；受限内容通过已登记 read／sync projection carrier 提供，projection 不得进入 canonical Event store 或 reducer。E2EE ciphertext 的 canonical 持有权不自动授予 Station plaintext key 或本地 caller 明文读取权。
 
 面向单个成员的 to-device、push、KeyPackage、邀请或其它 direct rail 只使用该成员 ActorId 投影出的 exact routing service，MUST NOT 扩张为 Realm fanout。发送方对目标集合中的每个 distinct service MUST 创建独立、持久的 outbox intent；本地 Event 的 accepted 状态、按 service DID 去重后的完整目标集合与全部 outbox intents MUST 在同一 durable transaction 中提交。任一写入失败时整个事务回滚。
 
 目标暂时缺少 verified route **不得**拒绝已经通过 admission 的本地 Event，也不得返回 `service_unavailable` 来撤销本地 acceptance。该目标必须以 `pending_route` 状态原子写入；已有 verified route 但尚未收到 peer 成功响应的目标写为 `pending_delivery`。两种 pending 状态都必须跨重启恢复、按同一 idempotency key 重试，并在超过部署运维阈值后告警；只要冻结的接收 authority 仍有效，就不得因 TTL、尝试次数、dead-letter 上限、cache eviction 或进程重启静默终止义务。
 
-每个 intent MUST 冻结目标 service `did_core_id`，以及使它获得投递 authority 的非空 member-witness 集。**一个 witness 是完整三元组 `(realm_id, member_id: ActorId, membership_event_ref)`，不是其中任意一个字段。** 每次真正发送前，发送方 MUST 在同一当前 accepted Realm view 中验证该 witness 的全部条件同时成立：完整 ActorId 仍是 effective joined、其 effective membership Event ref 与冻结值逐字相等，并且 `route(member_id)` 等于 intent 的冻结目标 service。只有至少一个**完整 witness**通过全部条件，目标才仍有权接收；这是 tuple 内 AND、tuple 间 OR，MUST NOT 跨两个 witness 拼凑条件，也 MUST NOT 把恒定的 ActorId routing projection、可达 endpoint 或 service resolution 当成独立授权 witness。全部 witness 失效时 intent MUST 原子进入 terminal `cancelled_authority_lost` 且绝不发送。
+每个 intent MUST 在**发送方本地 durable outbox metadata** 冻结 `target_service_id`，以及使它获得投递 authority 的非空 `fanout_authorization_basis` 集。每个 basis 是完整三元组 `(realm_id, member_id: ActorId, membership_event_ref)`，不是其中任意一个字段。每次真正发送前，发送方 MUST 在同一当前 accepted Realm view 中验证一个 basis 的全部条件同时成立：完整 ActorId 仍是 effective joined、其 effective membership Event ref 与冻结值逐字相等、`route(member_id)` 等于 intent 的冻结 target service，并且该 Event 的 scope、history、reference disclosure、canonical payload 与 plaintext policy 仍允许发送。只有至少一个完整 basis 通过全部条件，目标才仍有权接收；这是 tuple 内 AND、tuple 间 OR，MUST NOT 跨两个 basis 拼凑条件，也 MUST NOT 把恒定的 ActorId routing projection、可达 endpoint 或 service resolution 当成独立授权依据。全部 basis 失效时 intent MUST 原子进入 terminal `cancelled_authority_lost` 且绝不发送。
 
-同一 service DID 的 endpoint/record 更新只刷新 transport route，MUST NOT 改变冻结 witness、target identity 或原幂等键。AccountId 的 Station 分量变化意味着另一完整 ActorId，不是旧 intent 的 route 更新；之后同一 principal 以新 AccountId、其它 ActorId 或新 membership Event 重新加入，只能影响新 intent，MUST NOT 复活或重定向旧 intent。多个 frozen members 共享同一 service 时，一个成员退出不影响其它仍完整有效的 witness。
+同一 service DID 的 endpoint/record 更新只刷新 transport route，MUST NOT 改变冻结 basis、target identity 或原幂等键。AccountId 的 Station 分量变化意味着另一完整 ActorId，不是旧 intent 的 route 更新；之后同一 principal 以新 AccountId、其它 ActorId 或新 membership Event 重新加入，只能影响新 intent，MUST NOT 复活或重定向旧 intent。多个 frozen members 共享同一 service 时，一个成员退出不影响其它仍完整有效的 basis。
 
-durable outbox 必须使用 `ak.peer.events.command.submit.v1` 的 `committed_replication` 分支。每项都携完整
-source `EventCommitSubmission`、source-signed `RealmCommit` 与本节冻结的 recipient witness；接收方重新验证
-commit/event/ref、source authority generation、连续性、route、membership 与 history/plaintext visibility，但只保存
-exact source bytes，**不得**重做首次 admission、重签 `RealmCommit` 或创建第二轮 fanout。
+durable outbox 必须使用 `ak.peer.events.command.submit.v1` 的 `committed_replication` 分支。每项只携完整 source
+`EventAdmissionSubmission` 与 source-signed `RealmCommit`；`fanout_authorization_basis` 是发送方投递义务状态，
+**不得进入 peer body**。接收方只从 authenticated source/destination、source Event／Commit、已验证 committed
+membership history 与 typed current projection重新验证 commit/event/ref、source authority generation、连续性、
+本机托管成员资格与 history/reference/plaintext visibility；sender claim 不能成为授权事实。所需 membership、
+authority chain、predecessor 或 history floor 缺失时 MUST `dependency_missing` 并零写该项。唯一 bootstrap 例外是
+本项本身就是本机托管成员的有效 join Event：接收方可在验证 source Commit 与前缀后做无副作用 reducer 预演，
+并将 Event、Commit 与派生 membership 原子持久化；需要多 Event 的 bootstrap 仍使用 registered atomic unit。
+接收方只保存 exact source bytes，**不得**重做首次 admission、重签 `RealmCommit` 或创建第二轮 fanout。
 
-只有经过 transport 认证、schema 校验和本轮授权求值后，目标 exact source coordinates 在同序
-`results[]` 中得到 `status="stored"|"duplicate"`，source 才能把该 Event / destination intent 置为 terminal
+同一 request 的 `replications[]` 内 source coordinates 必须唯一；同一 stream 的项按 `stream_position` 严格升序，
+receiver 按数组顺序验证。重复 coordinates 或同 stream 乱序在处理任何项前拒绝整个 request；不同 stream 的
+连续性与失败互不回滚。只有经过 transport 认证、schema 校验和本轮授权求值后，对应数组位置在同序
+`replication_outcomes[]` 中得到 `status="stored"|"duplicate"`，source 才能把该 Event / destination intent 置为 terminal
 `delivered`。`rejected` 保持 pending 或按 reason 的确定性策略终止；HTTP 2xx、顶层 branch、写入 socket、
 `sent_at`、attempt count、batch receipt 都不是逐项 delivery evidence。此处没有顶层
 `accepted[]`／`duplicate[]`，也不得把 replica persistence 称为新的 accepted finality。`pending_route`、
 `pending_delivery`、`delivered`、`cancelled_authority_lost` 是 Realm Event fanout 的封闭 target 状态；其中前两者
 计入 pending，后两者不再欠投递。本地 canonical acceptance 不表示所有 remote target 已交付；source 当前没有
 未结 fanout intent 也不表示 destination 当前仍持有 Event 或 Realm 历史完整。
+
+`replication_outcomes[]` 与输入等长、同序，数组位置已经唯一关联输入项；每行只携
+`status`，拒绝时再携 `reason_code`。`index`、`committed_ref`、destination 或其它 request echo 都不增加验证或
+幂等能力，MUST NOT 出现。结果不确定时重放逐字节相同的完整 body；不得删除已 stored 项构造 partial retry。
 
 target 状态的读取面 MUST 不泄露成员拓扑：未知 Event 与不可见 Event 使用同一 `not_found`，且只有调用者按当前 Realm membership / history / plaintext visibility 规则可读取产生该 target 的 joined-member ActorId routing projection 时，对应 row 才可携带 service 身份。
 

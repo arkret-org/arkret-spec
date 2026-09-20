@@ -1922,26 +1922,6 @@
       ]
     },
     {
-      "schema_path": "authority-commit-operations.schema.json#/$defs/replication_recipient_witness/properties/member_id",
-      "property_name": "member_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "actor_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:actor_id"
-      ]
-    },
-    {
-      "schema_path": "authority-commit-operations.schema.json#/$defs/replication_recipient_witness/properties/recipient_service_id",
-      "property_name": "recipient_service_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
       "schema_path": "authority-set-policy.schema.json#/properties/authorization_rules/items/properties/issuers/items/properties/verification_method",
       "property_name": "verification_method",
       "semantic_category": "responsibility_identity_material",

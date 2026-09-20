@@ -186,7 +186,7 @@ def input_validator() -> Draft202012Validator:
 @functools.cache
 def submission_validator() -> Draft202012Validator:
     document = load_json(DTO_SCHEMA_PATH)
-    schema = copy.deepcopy(document["$defs"]["EventCommitSubmission"])
+    schema = copy.deepcopy(document["$defs"]["EventAdmissionSubmission"])
     schema["$id"] = "https://arkret.org/v1/schemas/event-commit-submission.internal.json"
     schema["$defs"] = copy.deepcopy(document["$defs"])
     return Draft202012Validator(schema, registry=schema_registry())
@@ -526,7 +526,7 @@ def check_negative(
         detected_by = expected.get("detected_by")
         if "mutated_submission" in case:
             if not list(submission_validator().iter_errors(case["mutated_submission"])):
-                fail("EventCommitSubmission accepts the mutated submission")
+                fail("EventAdmissionSubmission accepts the mutated submission")
         elif detected_by == "schema":
             if not list(input_validator().iter_errors(case["mutated_input"])):
                 fail("the closed input schema accepts this shape")

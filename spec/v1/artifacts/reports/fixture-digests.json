@@ -37,8 +37,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-vectors-fixture.json",
-      "sha256": "d68b5ca785e972d658096940b96da11c06ca1a9fb5b5b975276c3e8ff4f595b7",
-      "version": "2026-09-19.1"
+      "sha256": "eedc6f14335164bf07b1177444865c3bbaf933f6be8d25059f3585fcb1827861",
+      "version": "2026-09-19.2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-managed-actor-fixture.json",
@@ -57,8 +57,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/approval-signature-kat-fixture.json",
-      "sha256": "f90216b326b62aa789e24ad5bc32b531de945a6d34080dd52c12dffe6bcfe93f",
-      "version": "2026-09-19"
+      "sha256": "35dc6e23aae5f940f9c603ddccfc62815a6f84eedffed4a7cfff0859f14527c2",
+      "version": "2026-09-20.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/arkret-private-kdf-fixture.json",
@@ -352,8 +352,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/peer-event-submit-semantic-union-fixture.json",
-      "sha256": "40be1f1a433563065c80479b9164d9b92014f106d9c9bf08c2d33164089fa73b",
-      "version": "2026-09-20.2"
+      "sha256": "3f9cb18d0f2a5ff8d45d9617f88c69fd3d8a2b176ffcf7afd0ca510ede756771",
+      "version": "2026-09-20.3"
     },
     {
       "path": "spec/v1/artifacts/fixtures/privacy-security-fixture.json",

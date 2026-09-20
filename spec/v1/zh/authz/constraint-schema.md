@@ -609,9 +609,9 @@ MUST NOT 被实现成「先对 JSON 求 SHA-256、再签那个摘要」的第二
 
 #### 9.2.5 载体、接纳审计与 nonce 消费（normative）
 
-**Event 目标的载体**是提交容器 `EventCommitSubmission` 的 `approval_signatures[]`
+**Event 目标的载体**是提交容器 `EventAdmissionSubmission` 的 `approval_signatures[]`
 （[`service-operation-dtos.schema.json`](../../artifacts/schemas/service-operation-dtos.schema.json)），
-位于完整 `event` 之外。所有包装 `EventCommitSubmission` 的 ingress——普通 self submit、批次提交、
+位于完整 `event` 之外。所有包装 `EventAdmissionSubmission` 的 ingress——普通 self submit、批次提交、
 控制事务、facade 转交——MUST 复用同一字段，MUST NOT 各造 DTO。
 
 载体与 action eligibility 的机器真源是
@@ -626,7 +626,7 @@ approval constraint 与 `ak.policy.action` 的 `approval_required=true` 都 MUST
 这不是「目前没有」的事实描述，而是写入时禁令。将来只有先登记真实 carrier 并为 exact action 增加
 `registered_operation_carrier` override，才可表达要求；不得为了凑闭合而虚构 action→operation 映射。
 `operation` target 支保留，但只能使用 schema 从 carrier registry 投影出的 operation；v1 的唯一值是
-`ak.self.events.command.submit.v1`，其 `EventCommitSubmission.approval_signatures[]` 是可达真实载体。
+`ak.self.events.command.submit.v1`，其 `EventAdmissionSubmission.approval_signatures[]` 是可达真实载体。
 
 **接纳审计**：治理 Station MUST 在接纳／执行的**同一原子事务**内持久化 evidence、验证依据、
 nonce 消费记录与到原始提交的绑定。共享 Realm Event store 保持原 Event 字节不变；

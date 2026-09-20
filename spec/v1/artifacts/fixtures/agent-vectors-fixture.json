@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.agent_provisioning.v1",
-  "version": "2026-09-19.1",
+  "version": "2026-09-19.2",
   "suite": "agent_vectors",
   "runner": {
     "kind": "named_suite",
@@ -347,7 +347,7 @@
         "pairing and grant admission require a controller-signed verifier-bound private requested_scope disclosure whose digest matches the accepted-at DID commitment",
         "provisioning writes one durable fact whose projections include accountability and selector and never materializes Realm grants",
         "a narrower per-key scope is accepted while a wider action/resource scope or omitted mandatory provision constraint is rejected",
-        "grant attach accepts a complete controller-authored ak.capability.grant EventCommitSubmission and submits its exact bytes through authority Event submission",
+        "grant attach accepts a complete controller-authored ak.capability.grant EventAdmissionSubmission and submits its exact bytes through authority Event submission",
         "the ordinary CapabilityGrantBody has no inner proof or signature; the Event envelope proof is the sole durable issuer signature and service signing or proof fallback is rejected",
         "a narrower Realm grant is accepted while an omitted action or out-of-ceiling content resource is rejected with agent_grant_exceeds_requested_scope",
         "missing accountability grants fail with accountability_grant_missing"

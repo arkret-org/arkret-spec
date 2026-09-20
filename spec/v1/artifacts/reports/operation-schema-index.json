@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.17",
+  "version": "2026-09-20.19",
   "source_of_truth": false,
-  "generated_at": "2026-09-20T07:42:06+08:00",
+  "generated_at": "2026-09-20T12:55:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -3461,8 +3461,7 @@
             "schema_kind": null,
             "required": [
               "branch",
-              "processing",
-              "submissions"
+              "replications"
             ],
             "properties": [
               "branch"
@@ -3492,7 +3491,7 @@
         "properties": [
           "branch",
           "outcome",
-          "results"
+          "replication_outcomes"
         ],
         "closed": true,
         "variants": [
@@ -3514,11 +3513,11 @@
             "schema_kind": "object",
             "required": [
               "branch",
-              "results"
+              "replication_outcomes"
             ],
             "properties": [
               "branch",
-              "results"
+              "replication_outcomes"
             ],
             "closed": true
           },
@@ -7088,7 +7087,7 @@
         "closed": true,
         "variants": [
           {
-            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventCommitSubmission",
+            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission",
             "schema_kind": "object",
             "required": [
               "event"

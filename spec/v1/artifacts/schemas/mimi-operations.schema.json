@@ -357,7 +357,7 @@
           "$ref": "./common-ids.schema.json#/$defs/actor_id"
         },
         "room_binding_event": {
-          "$ref": "./service-operation-dtos.schema.json#/$defs/EventCommitSubmission",
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission",
           "description": "Complete caller-authored and caller-signed ak.mimi.room_binding initial submission. It is required exactly when /update/kind is ak.mimi.room_binding. The facade MUST first verify that the decoded opaque payload carries the same semantic kind, then bind the Event's exact payload to the path room, target Realm and Strand, MLS group, and authenticated MIMI operation and submit these exact bytes through authority Event submission. It MUST NOT synthesize, rebuild or co-sign the Event. Every other receipt-only branch MUST omit this field."
         }
       },
@@ -627,8 +627,8 @@
           "$ref": "./common-ids.schema.json#/$defs/actor_id"
         },
         "consent_event": {
-          "$ref": "./service-operation-dtos.schema.json#/$defs/EventCommitSubmission",
-          "description": "Exact EventCommitSubmission whose event.actor_id, actor_id, authenticated holder, and private-correlation holder are the same current Principal Control Realm authority-root controller, and whose payload.consent_id equals consent_id. authorization_ref MUST bind that authority root. A grant payload peer/scope, or the active typed current result and observed dots resolved by a revoke payload, MUST match the correlation. The root_control_only consent action supports neither separate managed-behalf execution nor consent_write delegation to a controller/agent; general PCR/co-owner grants or payload approval evidence do not substitute."
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission",
+          "description": "Exact EventAdmissionSubmission whose event.actor_id, actor_id, authenticated holder, and private-correlation holder are the same current Principal Control Realm authority-root controller, and whose payload.consent_id equals consent_id. authorization_ref MUST bind that authority root. A grant payload peer/scope, or the active typed current result and observed dots resolved by a revoke payload, MUST match the correlation. The root_control_only consent action supports neither separate managed-behalf execution nor consent_write delegation to a controller/agent; general PCR/co-owner grants or payload approval evidence do not substitute."
         },
         "signature": {
           "$ref": "#/$defs/signature"
@@ -840,7 +840,7 @@
           "$ref": "#/$defs/mimi_reporter_authority"
         },
         "report_event": {
-          "$ref": "./service-operation-dtos.schema.json#/$defs/EventCommitSubmission",
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission",
           "description": "Exact caller-authored and caller-signed ak.self.moderation.report Event admitted as the durable effect. Realm, Strand/scope, target, reason, description, evidence, franking and MIMI provenance are read only from this signed Event; its actor MUST equal reporter_authority.actor_id and its payload source_provider_id MUST equal the authenticated transport Provider-ID."
         }
       },

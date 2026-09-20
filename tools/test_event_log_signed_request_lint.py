@@ -84,7 +84,7 @@ class EventLogSignedRequestLintTest(unittest.TestCase):
 
     def test_an_operation_that_starts_carrying_an_event_must_be_delisted(self) -> None:
         # The list may only shrink. Pointing a recorded operation at a body that
-        # carries `EventCommitSubmission` is what closing one looks like, and the
+        # carries `EventAdmissionSubmission` is what closing one looks like, and the
         # gate must then demand the entry be dropped.
         def mutate(registry):
             registry["operations"].append(
@@ -93,7 +93,7 @@ class EventLogSignedRequestLintTest(unittest.TestCase):
                     "http": "POST /_arkret/self/examples",
                     "idempotency_mechanism": "none",
                     "request_schema_ref": (
-                        "schemas/service-operation-dtos.schema.json#/$defs/EventCommitSubmission"
+                        "schemas/service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
                     ),
                     "durable_effect": {"kind": "event_log", "event_kinds": ["ak.circle.create"]},
                 }

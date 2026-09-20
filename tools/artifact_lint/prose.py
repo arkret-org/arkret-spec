@@ -1407,7 +1407,7 @@ def check_event_log_operations_carry_a_signed_event(lint: Lint) -> None:
                 f"{operation_id} declares a durable event_log effect but its request carries no "
                 "caller-signed Event, and a service MUST NOT sign one on the caller's behalf "
                 "(capabilities.md sections 118/361, key-management.md section 411). Reference "
-                "service-operation-dtos.schema.json#/$defs/EventCommitSubmission (or the Event "
+                "service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission (or the Event "
                 "envelope) from the request body, as the agent lifecycle operations and "
                 "applet.command.install already do.",
             )

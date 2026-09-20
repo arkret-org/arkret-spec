@@ -3,7 +3,7 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.authz.approval_signature.v1"
   },
-  "version": "2026-09-19",
+  "version": "2026-09-20.1",
   "covers_vectors": [
     "ak.vector.authz.approval_signature_bytes.v1",
     "ak.vector.authz.approval_signature_governance_context.v1",
@@ -172,7 +172,7 @@
     },
     {
       "name": "ak.vector.authz.approval_signature_operation_target.v1",
-      "description": "Grant-context approval over the registered operation target ak.self.events.command.submit.v1 for action ak.strand.create. request_canonical_digest covers the original typed RequestBody with approval_signatures omitted. capability-action-registry.json registers EventCommitSubmission.approval_signatures as a carrier reachable from this operation; v1 permits no operation target without such a carrier (zh/authz/constraint-schema.md section 9.2.5).",
+      "description": "Grant-context approval over the registered operation target ak.self.events.command.submit.v1 for action ak.strand.create. request_canonical_digest covers the original typed RequestBody with approval_signatures omitted. capability-action-registry.json registers EventAdmissionSubmission.approval_signatures as a carrier reachable from this operation; v1 permits no operation target without such a carrier (zh/authz/constraint-schema.md section 9.2.5).",
       "did_document_fragment": {
         "id": "did:webvh:z6mkfixturemanager:manager.example#ed25519-2026-09-fixture",
         "type": "JsonWebKey2020",
@@ -248,7 +248,7 @@
   ],
   "event_id_invariance": {
     "vector_id": "ak.vector.authz.approval_signature_bytes.v1",
-    "description": "Attaching approval_signatures[] to EventCommitSubmission MUST NOT change the Event. The Event digest preimage omits event_id, proofs and unsigned, and the evidence is not an Event member at all, so both the preimage bytes and the derived id are byte-identical before and after. The HTTP Content-Digest over the transmitted body does change, which is why zh/authz/constraint-schema.md section 9.2.3 calls the two checks independent.",
+    "description": "Attaching approval_signatures[] to EventAdmissionSubmission MUST NOT change the Event. The Event digest preimage omits event_id, proofs and unsigned, and the evidence is not an Event member at all, so both the preimage bytes and the derived id are byte-identical before and after. The HTTP Content-Digest over the transmitted body does change, which is why zh/authz/constraint-schema.md section 9.2.3 calls the two checks independent.",
     "digest_preimage_canonical_bytes_utf8": "{\"actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"created_at\":\"2026-08-06T00:00:00.000Z\",\"kind\":\"ak.strand.create\",\"payload\":{\"object\":{\"created_at\":\"2026-08-06T00:00:00.000Z\",\"created_by\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"realm_id\":\"ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J\",\"schema\":\"ak.schema.strand.v1\",\"tracks\":{\"discussion\":{\"enabled\":true}}}},\"realm_id\":\"ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J\",\"scope_ref\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J\"}}",
     "event_digest": "sha256:2a3acc2e655f0dc628e89e2979572587caa102a7838b185edbdd500684f56441",
     "event_id_before_attaching": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB",
@@ -1356,7 +1356,7 @@
     {
       "name": "reject_present_and_empty_approval_signatures",
       "base_vector": "ak.vector.authz.approval_signature_bytes.v1",
-      "description": "EventCommitSubmission.approval_signatures is present and empty. The array is omitted when no approval layer demands evidence; present-and-empty is a distinct, forbidden third state (minItems 1).",
+      "description": "EventAdmissionSubmission.approval_signatures is present and empty. The array is omitted when no approval layer demands evidence; present-and-empty is a distinct, forbidden third state (minItems 1).",
       "mutated_submission": {
         "event": {
           "actor_id": {

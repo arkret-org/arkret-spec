@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.14",
+  "version": "2026-09-20.15",
   "source_of_truth": false,
-  "generated_at": "2026-09-20T03:12:30+08:00",
+  "generated_at": "2026-09-20T12:52:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -26,11 +26,11 @@
     },
     "carriers": [
       {
-        "carrier_id": "event_commit_submission.approval_signatures",
+        "carrier_id": "event_admission_submission.approval_signatures",
         "carrier_class": "event_submission",
         "operation_id": "ak.self.events.command.submit.v1",
         "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/self_submit_request",
-        "carrier_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventCommitSubmission/properties/approval_signatures",
+        "carrier_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission/properties/approval_signatures",
         "carrier_field": "approval_signatures",
         "evidence_schema_ref": "schemas/approval-signature.schema.json",
         "allowed_target_kinds": [
@@ -40,7 +40,7 @@
       }
     ],
     "default_carrier_by_eligibility_kind": {
-      "event_submission_carrier": "event_commit_submission.approval_signatures"
+      "event_submission_carrier": "event_admission_submission.approval_signatures"
     },
     "action_overrides": []
   },

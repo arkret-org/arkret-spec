@@ -131,7 +131,7 @@ evidence 解析，`RealmCommit` 签名按对应 generation 的治理 Station his
 
 `ak.vector.capability.approval_constraint.v1` MUST 证明：即使持有高权限 grant，approval constraint 未满足时
 也不得直接通过写入执行。审批证据是 `ak.schema.approval_signature.v1`（[`../authz/constraint-schema.md` §9.2](../authz/constraint-schema.md)），
-随 `EventCommitSubmission.approval_signatures[]` 与目标 Event 一同提交，**不是**第二条 Event，也不改变目标 `event_id`。
+随 `EventAdmissionSubmission.approval_signatures[]` 与目标 Event 一同提交，**不是**第二条 Event，也不改变目标 `event_id`。
 向量 MUST 覆盖：`signing_bytes` 逐字节重算、`approval_context` 两支（grant 与 realm_governance）、
 `approval_target` 两支（Event 与 operation）、换 body／`event_id`／Realm／action／operation／发起 Account／
 context／nonce 的拒绝、`approved_at` 时间边界、同一 approver 重复计票只算一票，以及 nonce 只在成功接纳时消费
@@ -143,7 +143,7 @@ context／nonce 的拒绝、`approved_at` 时间边界、同一 approver 重复�
 覆盖 `grant`+`event`、`realm_governance`+`event` 与 `grant`+`operation`，每条都携带 `signing_bytes` 的十六进制、
 detached payload 与真实 Ed25519 签名，验证者 MUST 能独立重算并验签。`operation` 接纳向量 MUST 使用
 capability action registry 中真实可达的 carrier operation；v1 固定为 `ak.strand.create` 经
-`ak.self.events.command.submit.v1` 的 `EventCommitSubmission.approval_signatures[]`，不得再用无 carrier 的
+`ak.self.events.command.submit.v1` 的 `EventAdmissionSubmission.approval_signatures[]`，不得再用无 carrier 的
 `non_event_surface` action 只证明字节可签。
 `ak.vector.authz.approval_signature_negative.v1` 是与之配对的否例束，MUST 按三类分别给出稳定 code：
 换字节或错构造（含丢域前缀、先摘要后签、把 producer proof 当 approval proof）→ `signature_invalid`；

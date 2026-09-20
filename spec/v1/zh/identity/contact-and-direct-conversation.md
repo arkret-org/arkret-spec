@@ -668,7 +668,7 @@ Realm role、exact two-member set、main Strand、`founding_unit_digest` 或 fou
 carrier 是 `ak.self.events.command.submit.v1` 的 endpoint-specific
 `self_submit_request` union 中显式登记的 `direct_conversation_founding_unit_submission`
 （`unit_kind="direct_conversation_founding"`）：它精确要求恰好四条按 §6.1 顺序排列的
-`EventCommitSubmission` 与 `idempotency_key`，不携带 `founding_authority_evidence`——founder 的 current
+`EventAdmissionSubmission` 与 `idempotency_key`，不携带 `founding_authority_evidence`——founder 的 current
 Station 在同一 admission 事务内以自己 current 的 Contact round / Agent provision 证据校验该 unit（§9.1.1），
 并在 `self_submit_outcome` 中返回 `direct_conversation_founding_acceptance_outcome`。每条 Event 的实际 author
 `ActorId` 必须路由到接收服务，服务端只在完整本地准入后追加 admission proof。实现 **MUST NOT** 新增私有
@@ -691,7 +691,7 @@ Realm 尚不存在时无法取得普通 member federation authority，因此 Dir
 该例外的 carrier **MUST** 是 `ak.peer.events.command.submit.v1` 的
 `branch="registered_atomic_unit"`，其 `unit` 命中
 `direct_conversation_founding_federation_submission`（`unit_kind="direct_conversation_founding"`）。它承载恰好
-四条按 §6.1 顺序排列的 `committed_event_submission`；每项都是完整 `EventCommitSubmission` 与 source-signed
+四条按 §6.1 顺序排列的 `committed_event_submission`；每项都是完整 `EventAdmissionSubmission` 与 source-signed
 `RealmCommit`，四个 Commit 同 Realm／generation／stream、position 连续且 `previous_commit_ref` 严格衔接。
 unit 另携 closed `DirectConversationFoundingAuthorityEvidence`，不存在 source acceptance receipt 或任意
 dependency bag。接收方验证后只 materialize exact

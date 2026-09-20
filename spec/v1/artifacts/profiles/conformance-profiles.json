@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-20.2",
-  "generated_at": "2026-09-20T07:07:58+08:00",
+  "version": "2026-09-20.3",
+  "generated_at": "2026-09-20T12:52:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -6156,7 +6156,7 @@
       }
     },
     "ak.profile.constraint.approval_workflow.v1": {
-      "description": "Constraint extension gate for approval workflows. A build claiming it MUST enforce capability-action-registry.json approval eligibility, reject requirements for actions without a registered carrier, and verify ak.schema.approval_signature.v1 evidence from the registered carrier before the write takes effect in the same transaction. v1's actual carrier is EventCommitSubmission.approval_signatures[]; evidence is never a second Event. approval_mode is the closed single value before_commit: there is no proposal object to approve (zh/authz/constraint-schema.md section 9.2).",
+      "description": "Constraint extension gate for approval workflows. A build claiming it MUST enforce capability-action-registry.json approval eligibility, reject requirements for actions without a registered carrier, and verify ak.schema.approval_signature.v1 evidence from the registered carrier before the write takes effect in the same transaction. v1's actual carrier is EventAdmissionSubmission.approval_signatures[]; evidence is never a second Event. approval_mode is the closed single value before_commit: there is no proposal object to approve (zh/authz/constraint-schema.md section 9.2).",
       "enforcement_phases": [
         "build",
         "conformance"

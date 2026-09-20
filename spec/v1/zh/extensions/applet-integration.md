@@ -336,8 +336,8 @@ projection 不完整时 MUST fail closed 并要求先重建 projection，不得�
 本地默认值猜测 grant/member/token/session。
 
 Commit MUST 携 `revoke_plan_digest`、与每个 grant intent 一一对应的 caller-signed
-`capability_revoke_events: EventCommitSubmission[]`，以及与 membership intent 一一对应的 caller-signed
-`membership_state_events: EventCommitSubmission[]`。服务端必须在首个副作用前重算 plan，并逐字节验证
+`capability_revoke_events: EventAdmissionSubmission[]`，以及与 membership intent 一一对应的 caller-signed
+`membership_state_events: EventAdmissionSubmission[]`。服务端必须在首个副作用前重算 plan，并逐字节验证
 Event kind、scope、registration epoch、grant/member target、membership transition 与 reason；任何遗漏、
 多余或不匹配均 fail closed。服务端不得代签、补写或重建 Event，也不得以本地 grant row / revoked flag
 替代正式 Event admission。Event 的 canonical bytes 完成后才能派生 Event ID；不明结果与 retry 只能重放

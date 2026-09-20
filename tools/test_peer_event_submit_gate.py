@@ -25,6 +25,7 @@ class PeerEventSubmitGateTest(unittest.TestCase):
             path.resolve(): read(path)
             for path in (
                 gate.SCHEMA,
+                gate.DTO_SCHEMA,
                 gate.DIRECT_SCHEMA,
                 gate.CONTRACT,
                 gate.ERRORS,
@@ -114,7 +115,7 @@ class PeerEventSubmitGateTest(unittest.TestCase):
 
     def test_replication_is_bounded(self) -> None:
         def mutate(documents: dict) -> None:
-            self.defs(documents)["peer_submit_request"]["properties"]["submissions"]["maxItems"] = 101
+            self.defs(documents)["peer_submit_request"]["properties"]["replications"]["maxItems"] = 101
 
         self.assert_red(mutate, "bounded to 1..100")
 
@@ -124,15 +125,84 @@ class PeerEventSubmitGateTest(unittest.TestCase):
 
         self.assert_red(mutate, "source_commit")
 
-    def test_replication_requires_witnesses(self) -> None:
+    def test_replication_rejects_wire_witnesses(self) -> None:
         def mutate(documents: dict) -> None:
-            self.defs(documents)["replicated_committed_event_submission"]["required"].remove("recipient_witnesses")
+            row = self.defs(documents)["peer_submit_request"]
+            row["properties"]["recipient_witnesses"] = {"type": "array"}
 
-        self.assert_red(mutate, "recipient_witnesses")
+        self.assert_red(mutate, "deleted peer request field")
+
+    def test_old_event_submission_type_alias_is_rejected(self) -> None:
+        def mutate(documents: dict) -> None:
+            documents[gate.DTO_SCHEMA.resolve()]["$defs"]["EventCommitSubmission"] = {
+                "$ref": "#/$defs/EventAdmissionSubmission"
+            }
+
+        self.assert_red(mutate, "no old alias")
+
+    def test_replication_item_rejects_optional_hint(self) -> None:
+        def mutate(documents: dict) -> None:
+            self.defs(documents)["committed_event_submission"]["properties"]["recipient_hint"] = {
+                "type": "string"
+            }
+
+        self.assert_red(mutate, "no optional echoes or hints")
+
+    def test_replication_outcome_record_rejects_optional_echo(self) -> None:
+        def mutate(documents: dict) -> None:
+            branch = self.defs(documents)["peer_committed_replication_outcome_record"]["oneOf"][0]
+            branch["properties"]["source_echo"] = {"type": "string"}
+
+        self.assert_red(mutate, "exact minimal set")
+
+    def test_replication_rejects_processing_echo(self) -> None:
+        def mutate(documents: dict) -> None:
+            self.defs(documents)["peer_submit_request"]["properties"]["processing"] = {"const": "per_item"}
+
+        self.assert_red(mutate, "deleted peer request field")
+
+    def test_replication_branch_rejects_atomic_unit_field(self) -> None:
+        def mutate(documents: dict) -> None:
+            branch = self.defs(documents)["peer_submit_request"]["oneOf"][2]
+            branch["not"]["anyOf"] = [
+                item for item in branch["not"]["anyOf"] if item["required"] != ["unit"]
+            ]
+
+        self.assert_red(mutate, "reject every cross-branch field")
+
+    def test_replication_rejects_committed_event_wrapper(self) -> None:
+        def mutate(documents: dict) -> None:
+            self.defs(documents)["replicated_committed_event_submission"] = {
+                "type": "object",
+                "properties": {"committed_event": {"$ref": "#/$defs/committed_event_submission"}},
+            }
+
+        self.assert_red(mutate, "deleted peer replication wrapper")
+
+    def test_replication_result_rejects_redundant_index(self) -> None:
+        def mutate(documents: dict) -> None:
+            branch = self.defs(documents)["peer_committed_replication_outcome_record"]["oneOf"][0]
+            branch["properties"]["index"] = {"type": "integer"}
+
+        self.assert_red(mutate, "redundant index or committed_ref")
+
+    def test_replication_result_rejects_redundant_committed_ref(self) -> None:
+        def mutate(documents: dict) -> None:
+            branch = self.defs(documents)["peer_committed_replication_outcome_record"]["oneOf"][0]
+            branch["properties"]["committed_ref"] = {"$ref": "#/$defs/committed_event_ref"}
+
+        self.assert_red(mutate, "redundant index or committed_ref")
+
+    def test_replication_rejects_generic_results_name(self) -> None:
+        def mutate(documents: dict) -> None:
+            outcome = self.defs(documents)["peer_committed_replication_outcome"]
+            outcome["properties"]["results"] = outcome["properties"].pop("replication_outcomes")
+
+        self.assert_red(mutate, "deleted generic results/record names")
 
     def test_replication_cannot_restore_accepted_status(self) -> None:
         def mutate(documents: dict) -> None:
-            branches = self.defs(documents)["peer_committed_replication_record"]["oneOf"]
+            branches = self.defs(documents)["peer_committed_replication_outcome_record"]["oneOf"]
             branches[0]["properties"]["status"]["enum"][0] = "accepted"
 
         self.assert_red(mutate, "stored|duplicate|rejected")

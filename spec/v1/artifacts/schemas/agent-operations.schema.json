@@ -593,7 +593,7 @@
     },
     "account_device_pair_request_body": {
       "type": "object",
-      "description": "Account Authority-owned terminal pairing command. After validating the sole pending ledger, the Authority freezes the complete canonical request and authorize_event in its prepared fence, forwards that exact EventCommitSubmission only through ak.peer.events.command.submit.v1 authority_forward, verifies and stores the exact RealmCommit in station_accepted, then consumes pending/code and stores the byte-identical outcome in completed. The request does not carry a client-selected Station, receipt, fence state or private coordination member.",
+      "description": "Account Authority-owned terminal pairing command. After validating the sole pending ledger, the Authority freezes the complete canonical request and authorize_event in its prepared fence, forwards that exact EventAdmissionSubmission only through ak.peer.events.command.submit.v1 authority_forward, verifies and stores the exact RealmCommit in station_accepted, then consumes pending/code and stores the byte-identical outcome in completed. The request does not carry a client-selected Station, receipt, fence state or private coordination member.",
       "required": [
         "pairing_code",
         "new_device_pubkey",
@@ -608,7 +608,7 @@
           "$ref": "#/$defs/public_key"
         },
         "authorize_event": {
-          "$ref": "./service-operation-dtos.schema.json#/$defs/EventCommitSubmission",
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission",
           "description": "Fully signed ak.device.authorize initial submission authored by a current accepted device. The service MUST admit this exact Event through the Event validation/reducer path; it MUST NOT mint an Event id, rewrite the Event, or directly insert a device projection. Its typed payload is the sole source of hpke_key and the target-device possession device_signature, MUST match new_device_pubkey by device id and Ed25519 key bytes, MUST set authorization_binding_kind=accepted_device, and MUST name the approving current device id in authorized_by. The proof.verification_method bare DID component MUST project through its registered adapter to Event.actor_id.account_id.principal_id and its fragment MUST equal authorized_by; appending a fragment to did_core_id is forbidden. That Event proof, not the target device_signature, binds the exact account actor, authorized_by, not_before, expires_at and scopes, because only the approving device knows those values."
         },
         "display_name": {
@@ -669,7 +669,7 @@
           "description": "Controller-signed private disclosure addressed to the authoritative pairing verifier. The endpoint MUST consume its presentation challenge once, match agent/controller/audience, recompute the public DID commitment digest, and use the disclosed scope for the subset check. It MUST NOT copy the disclosure into authorize_event or any durable/public history."
         },
         "authorize_event": {
-          "$ref": "./service-operation-dtos.schema.json#/$defs/EventCommitSubmission",
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission",
           "description": "Fully-signed ak.agent.key.authorize initial submission approved by the controller or policy engine. Its Event MUST target the Agent Principal Control Realm, carry actor_id equal to agent_id, executed_by equal to the controller DID, authorization_ref equal to the controller delegation DID URL bound by the Agent DID Document, and a proof verification method belonging to the controller or one of its currently authorized devices. The submission MUST carry ordinary publication authority evidence without rewriting the Event. Its payload.agent_key_scope MAY be narrower than, but MUST be an actions/resources/constraints subset of, the immutable provision requested_scope; every provision constraint remains mandatory. Required so key activation never depends on an unaudited pairing side effect. authorize_event.event.event_id is the pair operation idempotency identity."
         }
       },
@@ -949,7 +949,7 @@
           "$ref": "./principal-operations.schema.json#/$defs/opaque_id"
         },
         "provision_event": {
-          "$ref": "./service-operation-dtos.schema.json#/$defs/EventCommitSubmission"
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
         },
         "pairing_ttl_ms": {
           "type": "integer",
@@ -1386,7 +1386,7 @@
         "lifecycle_event": {
           "allOf": [
             {
-              "$ref": "./service-operation-dtos.schema.json#/$defs/EventCommitSubmission"
+              "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
             },
             {
               "properties": {
@@ -1420,7 +1420,7 @@
         "lifecycle_event": {
           "allOf": [
             {
-              "$ref": "./service-operation-dtos.schema.json#/$defs/EventCommitSubmission"
+              "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
             },
             {
               "properties": {
@@ -1457,7 +1457,7 @@
         "lifecycle_event": {
           "allOf": [
             {
-              "$ref": "./service-operation-dtos.schema.json#/$defs/EventCommitSubmission"
+              "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
             },
             {
               "properties": {

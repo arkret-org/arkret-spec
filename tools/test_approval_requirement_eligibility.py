@@ -85,7 +85,7 @@ class ApprovalRequirementEligibilityTest(unittest.TestCase):
                 {
                     "action": "ak.self.agent.command.renew_pairing.v1",
                     "eligibility_kind": "registered_operation_carrier",
-                    "carrier_id": "event_commit_submission.approval_signatures",
+                    "carrier_id": "event_admission_submission.approval_signatures",
                 }
             )
 

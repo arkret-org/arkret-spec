@@ -101,7 +101,7 @@ flowchart TB
 POST /_arkret/self/moderation/report
 ```
 
-请求 body 是 closed `{report_event: EventCommitSubmission}`，不得同时携带 unsigned `realm_id`、
+请求 body 是 closed `{report_event: EventAdmissionSubmission}`，不得同时携带 unsigned `realm_id`、
 `target_ref`、`reporter_id` 或 evidence 投影。`report_event.event.kind` MUST 为
 `ak.self.moderation.report`；payload 字段如下：
 

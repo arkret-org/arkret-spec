@@ -566,7 +566,7 @@ Capability 必须支持“有直接身份但需要责任主体/监护主体/控�
 - owner / guardian / controller 不会自动把自己的权限传给 subject。
 - subject 要执行操作，仍然必须命中显式 grant。
 - 高风险动作 MUST 按 action registry 的 `risk_tier` 要求 responsible / guardian / controller approval（证据形态见 [`constraint-schema.md` §9.2](./constraint-schema.md)）。
-- **接纳审计记录** MUST 可解析到 grant、issuer-authority chain、原始审批证据与执行上下文；任一项不可解析时 reducer MUST fail closed。审批证据**不在** Event 内：它随提交容器 `EventCommitSubmission.approval_signatures[]` 到达，由接纳该 Event 的治理 Station 在同一原子事务内耐久保存并绑定原始提交（[`constraint-schema.md` §9.2.5](./constraint-schema.md)）。因此 EventEnvelope 本身 MUST NOT 携带 approver 字段集。
+- **接纳审计记录** MUST 可解析到 grant、issuer-authority chain、原始审批证据与执行上下文；任一项不可解析时 reducer MUST fail closed。审批证据**不在** Event 内：它随提交容器 `EventAdmissionSubmission.approval_signatures[]` 到达，由接纳该 Event 的治理 Station 在同一原子事务内耐久保存并绑定原始提交（[`constraint-schema.md` §9.2.5](./constraint-schema.md)）。因此 EventEnvelope 本身 MUST NOT 携带 approver 字段集。
 
 风险分层硬约束：
 
@@ -582,7 +582,7 @@ v1 只有 `before_commit` 一种审批模式，顺序固定为三步，MUST NOT 
 ```txt
 1. 发起者 author 并签名完整目标 Event（得到 canonical 字节与 event_id），先不提交
 2. 每个 approver 对该 exact event_id 与原 Event 摘要签发 approval signature
-3. 发起者用 EventCommitSubmission{event, approval_signatures[]} 提交；
+3. 发起者用 EventAdmissionSubmission{event, approval_signatures[]} 提交；
    reducer 在同一接纳事务内验证证据、消费 nonce 并写入
 ```
 

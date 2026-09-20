@@ -114,7 +114,7 @@
         "grant_event": {
           "allOf": [
             {
-              "$ref": "./service-operation-dtos.schema.json#/$defs/EventCommitSubmission"
+              "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
             },
             {
               "properties": {
@@ -150,7 +150,7 @@
         "revoke_event": {
           "allOf": [
             {
-              "$ref": "./service-operation-dtos.schema.json#/$defs/EventCommitSubmission"
+              "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
             },
             {
               "properties": {

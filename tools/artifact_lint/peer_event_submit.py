@@ -9,6 +9,7 @@ from .core import ARTIFACTS, SPEC_ROOT, Lint, load_json, read_text
 
 
 SCHEMA = ARTIFACTS / "schemas" / "authority-commit-operations.schema.json"
+DTO_SCHEMA = ARTIFACTS / "schemas" / "service-operation-dtos.schema.json"
 DIRECT_SCHEMA = ARTIFACTS / "schemas" / "direct-conversation-operations.schema.json"
 CONTRACT = ARTIFACTS / "registry" / "contract-registry.json"
 ERRORS = ARTIFACTS / "registry" / "error-code-registry.json"
@@ -24,12 +25,13 @@ PROSE_MARKERS = {
         "`authority_forward`",
         "`committed_replication`",
         "`registered_atomic_unit`",
-        "不得重做首次 admission、重签 Commit 或创建第二轮 fanout",
-        "`stored|duplicate|rejected`",
+        "不得重做首次 admission",
+        "`replication_outcomes[]`",
     ),
     SPEC_ROOT / "zh" / "sync" / "federation.md": (
-        "source `EventCommitSubmission`、source-signed `RealmCommit`",
+        "`EventAdmissionSubmission` 与 source-signed",
         "`status=\"stored\"|\"duplicate\"`",
+        "`fanout_authorization_basis`",
         "不得把 replica persistence 称为新的 accepted finality",
     ),
     SPEC_ROOT / "zh" / "identity" / "contact-and-direct-conversation.md": (
@@ -149,6 +151,7 @@ def check_profile_wire_contract_refs(lint: Lint) -> None:
 
 def check_peer_event_submit_semantic_union(lint: Lint) -> None:
     schema = load_json(lint, SCHEMA)
+    dto_schema = load_json(lint, DTO_SCHEMA)
     direct_schema = load_json(lint, DIRECT_SCHEMA)
     contract = load_json(lint, CONTRACT)
     errors = load_json(lint, ERRORS)
@@ -156,17 +159,20 @@ def check_peer_event_submit_semantic_union(lint: Lint) -> None:
     profiles = load_json(lint, PROFILES)
     vectors = load_json(lint, VECTORS)
     fixture = load_json(lint, FIXTURE)
-    if not all(isinstance(item, dict) for item in (schema, direct_schema, contract, errors, mapping, profiles, vectors, fixture)):
+    if not all(isinstance(item, dict) for item in (schema, dto_schema, direct_schema, contract, errors, mapping, profiles, vectors, fixture)):
         return
 
     defs = schema.get("$defs", {})
+    dto_defs = dto_schema.get("$defs", {})
+    if "EventAdmissionSubmission" not in dto_defs or "EventCommitSubmission" in dto_defs:
+        _fail(lint, DTO_SCHEMA, "EventAdmissionSubmission must be the sole admission-submission type with no old alias")
     required_defs = {
         "self_submit_request",
         "self_submit_outcome",
         "peer_submit_request",
         "peer_submit_outcome",
         "committed_event_submission",
-        "replicated_committed_event_submission",
+        "peer_committed_replication_outcome_record",
         "direct_conversation_founding_unit_submission",
         "direct_conversation_founding_federation_submission",
         "direct_conversation_founding_acceptance_outcome",
@@ -193,32 +199,73 @@ def check_peer_event_submit_semantic_union(lint: Lint) -> None:
         constants = [item.get("properties", {}).get("branch", {}).get("const") for item in branches if isinstance(item, dict)]
         if constants != ["authority_forward", "authority_forward", "committed_replication", "registered_atomic_unit"]:
             _fail(lint, SCHEMA, "peer_submit_request alternatives drift from the registered branch partition")
+        allowed_fields = (
+            {"branch", "event_submission"},
+            {"branch", "mls_submission"},
+            {"branch", "replications"},
+            {"branch", "unit"},
+        )
+        all_branch_fields = {"event_submission", "mls_submission", "replications", "unit"}
+        for index, (item, allowed) in enumerate(zip(branches, allowed_fields, strict=True)):
+            forbidden = {
+                next(iter(_required(candidate)))
+                for candidate in item.get("not", {}).get("anyOf", [])
+                if len(_required(candidate)) == 1
+            }
+            if forbidden != all_branch_fields - allowed:
+                _fail(lint, SCHEMA, f"peer_submit_request alternative {index} must reject every cross-branch field")
 
-    submissions = peer.get("properties", {}).get("submissions", {})
-    if submissions.get("minItems") != 1 or submissions.get("maxItems") != 100:
-        _fail(lint, SCHEMA, "committed replication must remain bounded to 1..100 submissions")
-    if _ref_name(submissions.get("items")) != "#/$defs/replicated_committed_event_submission":
-        _fail(lint, SCHEMA, "replication items must use the witness-bearing committed row")
+    peer_properties = peer.get("properties", {})
+    if set(peer_properties) != {"branch", "event_submission", "mls_submission", "replications", "unit"}:
+        _fail(lint, SCHEMA, "peer_submit_request properties must be the exact branch field set")
+    replications = peer_properties.get("replications", {})
+    if replications.get("minItems") != 1 or replications.get("maxItems") != 100:
+        _fail(lint, SCHEMA, "committed replication must remain bounded to 1..100 replications")
+    if _ref_name(replications.get("items")) != "#/$defs/committed_event_submission":
+        _fail(lint, SCHEMA, "replication items must directly use the committed Event pair")
+    for deleted_field in ("processing", "submissions", "recipient_witnesses"):
+        if deleted_field in peer_properties:
+            _fail(lint, SCHEMA, f"deleted peer request field must not return: {deleted_field}")
+    for deleted_def in ("replicated_committed_event_submission", "replication_recipient_witness"):
+        if deleted_def in defs:
+            _fail(lint, SCHEMA, f"deleted peer replication wrapper must not return: {deleted_def}")
     committed = defs["committed_event_submission"]
-    if _required(committed) != {"submission", "source_commit"} or committed.get("additionalProperties") is not False:
-        _fail(lint, SCHEMA, "committed_event_submission must be closed EventCommitSubmission + source_commit")
-    replicated = defs["replicated_committed_event_submission"]
-    if _required(replicated) != {"committed_event", "recipient_witnesses"} or replicated.get("additionalProperties") is not False:
-        _fail(lint, SCHEMA, "replicated row must require exact committed_event and recipient_witnesses")
+    if _required(committed) != {"event_submission", "source_commit"} or committed.get("additionalProperties") is not False:
+        _fail(lint, SCHEMA, "committed_event_submission must be closed EventAdmissionSubmission + source_commit")
+    if set(committed.get("properties", {})) != {"event_submission", "source_commit"}:
+        _fail(lint, SCHEMA, "committed_event_submission properties must contain no optional echoes or hints")
+    if _ref_name(committed.get("properties", {}).get("event_submission")) != "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission":
+        _fail(lint, SCHEMA, "committed_event_submission.event_submission must use the canonical admission submission")
 
     replication_outcome = defs["peer_committed_replication_outcome"]
-    results = replication_outcome.get("properties", {}).get("results", {})
-    if _ref_name(results.get("items")) != "#/$defs/peer_committed_replication_record":
-        _fail(lint, SCHEMA, "replication outcome must return same-order typed results")
-    result_branches = defs.get("peer_committed_replication_record", {}).get("oneOf", [])
+    outcome_properties = replication_outcome.get("properties", {})
+    if set(outcome_properties) != {"branch", "replication_outcomes"}:
+        _fail(lint, SCHEMA, "replication outcome properties must be exactly branch and replication_outcomes")
+    outcomes = outcome_properties.get("replication_outcomes", {})
+    if _required(replication_outcome) != {"branch", "replication_outcomes"}:
+        _fail(lint, SCHEMA, "replication outcome must require only branch and replication_outcomes")
+    if outcomes.get("minItems") != 1 or outcomes.get("maxItems") != 100 or _ref_name(outcomes.get("items")) != "#/$defs/peer_committed_replication_outcome_record":
+        _fail(lint, SCHEMA, "replication outcome must return 1..100 same-order typed replication_outcomes")
+    if "results" in outcome_properties or "peer_committed_replication_record" in defs:
+        _fail(lint, SCHEMA, "deleted generic results/record names must not return")
+    result_branches = defs.get("peer_committed_replication_outcome_record", {}).get("oneOf", [])
     statuses: list[Any] = []
-    for item in result_branches if isinstance(result_branches, list) else []:
+    for index, item in enumerate(result_branches if isinstance(result_branches, list) else []):
+        properties = item.get("properties", {}) if isinstance(item, dict) else {}
+        if "index" in properties or "committed_ref" in properties:
+            _fail(lint, SCHEMA, "replication result must not echo redundant index or committed_ref")
+        expected_properties = {"status"} if index == 0 else {"status", "reason_code"}
+        if set(properties) != expected_properties:
+            _fail(lint, SCHEMA, "replication outcome record properties must be the exact minimal set")
         status = item.get("properties", {}).get("status", {}) if isinstance(item, dict) else {}
         statuses.extend(status.get("enum", []))
         if "const" in status:
             statuses.append(status["const"])
     if statuses != ["stored", "duplicate", "rejected"]:
         _fail(lint, SCHEMA, "replication result status vocabulary must be stored|duplicate|rejected")
+    if len(result_branches) == 2:
+        if _required(result_branches[0]) != {"status"} or _required(result_branches[1]) != {"status", "reason_code"}:
+            _fail(lint, SCHEMA, "replication result rows must contain only status and rejection reason_code")
 
     self_founding = defs["direct_conversation_founding_unit_submission"]
     events = self_founding.get("properties", {}).get("events", {})
@@ -440,8 +487,17 @@ def check_peer_event_submit_semantic_union(lint: Lint) -> None:
     fixture_text = read_text(FIXTURE) if FIXTURE.is_file() else ""
     for marker in (
         "missing_source_commit",
+        "wrong_authenticated_destination",
         "wrong_authority_generation",
         "broken_previous_commit_chain",
+        "wire_recipient_witness_rejected",
+        "wire_processing_rejected",
+        "no_eligible_local_member",
+        "membership_history_dependency_missing",
+        "duplicate_source_coordinates_in_batch",
+        "same_stream_out_of_order",
+        "member_exit_or_route_change_cancels_outbox",
+        "response_lost_exact_full_body_replay",
         "main_strand_from_fourth_event",
         "main_strand_from_third_event",
         "self_submission_echoes_evidence",

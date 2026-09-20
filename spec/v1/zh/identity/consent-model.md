@@ -64,7 +64,7 @@ Revoke payload 使用同一稳定 ID，并要求调用方签入 current revision
 
 ### 3.3 Producer 与提交
 
-Grant/Revoke Event 的 actor 与认证 holder 必须是 holder PCR 当前 authority-root controller，`authorization_ref` 必须绑定该控制权。服务只接受调用方给出的 `EventCommitSubmission { event }`，不得代写、重建或代签 Event。只有当前治理 Station签发的 `RealmCommit` 使更新生效。
+Grant/Revoke Event 的 actor 与认证 holder 必须是 holder PCR 当前 authority-root controller，`authorization_ref` 必须绑定该控制权。服务只接受调用方给出的 `EventAdmissionSubmission { event }`，不得代写、重建或代签 Event。只有当前治理 Station签发的 `RealmCommit` 使更新生效。
 
 ## 4. Scope
 
@@ -127,7 +127,7 @@ holder 可主动签发短期 green-light，绑定 holder、peer、scope、audien
 
 ## 7. MIMI 映射
 
-MIMI update facade只接受调用方签署的 `EventCommitSubmission`，并按 decision 映射到 `ak.consent.grant` 或 `ak.consent.revoke`。facade不得构造 Event。对外投影只暴露最小 `(peer, scope, active)`，不暴露 reason、evidence 或 revision。
+MIMI update facade只接受调用方签署的 `EventAdmissionSubmission`，并按 decision 映射到 `ak.consent.grant` 或 `ak.consent.revoke`。facade不得构造 Event。对外投影只暴露最小 `(peer, scope, active)`，不暴露 reason、evidence 或 revision。
 
 ## 8. 隐私与管理
 

@@ -2394,7 +2394,7 @@ paths:
       operationId: ak.peer.events.command.submit
       summary: Process one closed peer authority-forward, committed-replication, or registered-atomic-unit branch
       description: authority_forward sends one exact Event or MLS submission to current governance for first admission.
-        committed_replication verifies bounded full source EventCommitSubmission plus source RealmCommit rows and stores exact
+        committed_replication verifies bounded full source EventAdmissionSubmission plus source RealmCommit rows and stores exact
         replicas without re-signing or second fanout. registered_atomic_unit materializes only registered source-committed units
         all-or-nothing. canonical_hash/full_body exact replay is branch-stable.
       parameters:
@@ -3190,7 +3190,7 @@ paths:
       - sessionGrantAuth: []
         dpopProof: []
       summary: Update the authenticated principal's Actor Profile projection.
-      description: 'Carries exactly one holder-signed profile_event EventCommitSubmission.
+      description: 'Carries exactly one holder-signed profile_event EventAdmissionSubmission.
 
         event.realm_id is the account-local PCR Realm selector, and
 

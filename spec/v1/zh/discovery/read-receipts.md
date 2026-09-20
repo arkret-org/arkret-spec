@@ -330,7 +330,7 @@ state=unread, cursor=<cursor>, limit=<int>
 
 跨设备已读同步流程：
 
-1. 设备本地读到某个 read_scope 的位置后，author 并签名完整 actor-private `ak.read_cursor.advance`，通过 `ak.self.read_cursor.command.advance.v1` 的 `advance_event: EventCommitSubmission` 原样提交；服务端不得从旧 DTO 重建或代签。设备读到该位置的时间由信封 `created_at` 承载（§6.1），payload 内不存在第二份时间字段。
+1. 设备本地读到某个 read_scope 的位置后，author 并签名完整 actor-private `ak.read_cursor.advance`，通过 `ak.self.read_cursor.command.advance.v1` 的 `advance_event: EventAdmissionSubmission` 原样提交；服务端不得从旧 DTO 重建或代签。设备读到该位置的时间由信封 `created_at` 承载（§6.1），payload 内不存在第二份时间字段。
 2. Station / Station sync surface 只向同一 principal 的授权设备返回该 read cursor，可通过 `account_data` 或 `receipts` stream 增量同步。下发形态是 `ak.read_cursor.update` device message，其 content MUST 是 `ak.schema.read_cursor_update.v1`（`device-message.schema.json#/$defs/read_cursor_update_content`）：按 §6.5 胜出的 advance 的派生投影，`updated_at` 取该 advance 的信封 `created_at`；它不是 `ak.schema.read_cursor.v1` 对象，MUST NOT 以该 schema id 自述。
 3. 每个设备按 §6.5 规则合并同一 read_scope 的 marker，重新派生本地 notification state、unread count 和 push suppression state。
 4. 派生 notification 的 `state=read/unread` 不得作为共享 Realm 事实写回；需要公开已读回执时，必须使用 Realm policy 允许的 `ak.receipt.read` ephemeral / receipt stream，并与 private read cursor 分开授权。

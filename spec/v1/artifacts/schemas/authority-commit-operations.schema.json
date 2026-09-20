@@ -30,10 +30,10 @@
   ],
   "$defs": {
     "submit_request": {
-      "description": "One ordinary producer Event with the approval signatures its two approval layers require for the Event action or for this registered submit operation, or one atomic MLS Commit plus all recipient Welcome deliveries required by that Commit. The ordinary branch is EventCommitSubmission itself, not a second declaration of it: the approval evidence a constraint demands has to be carriable on the primary ingress, otherwise no execution could ever satisfy the constraint (zh/authz/constraint-schema.md section 9.2.5).",
+      "description": "One ordinary producer Event with the approval signatures its two approval layers require for the Event action or for this registered submit operation, or one atomic MLS Commit plus all recipient Welcome deliveries required by that Commit. The ordinary branch is EventAdmissionSubmission itself, not a second declaration of it: the approval evidence a constraint demands has to be carriable on the primary ingress, otherwise no execution could ever satisfy the constraint (zh/authz/constraint-schema.md section 9.2.5).",
       "oneOf": [
         {
-          "$ref": "./service-operation-dtos.schema.json#/$defs/EventCommitSubmission"
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
         },
         {
           "$ref": "./mls-commit-submission.schema.json"
@@ -87,7 +87,7 @@
       "description": "Closed self Event-submit union. Ordinary Event and MLS Commit requests retain their current canonical shapes. Direct Conversation founding and membership compensation are the only aggregate branches; both are closed and are rejected on every other Event-submit endpoint.",
       "oneOf": [
         {
-          "$ref": "./service-operation-dtos.schema.json#/$defs/EventCommitSubmission"
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
         },
         {
           "$ref": "./mls-commit-submission.schema.json"
@@ -129,20 +129,17 @@
           ]
         },
         "event_submission": {
-          "$ref": "./service-operation-dtos.schema.json#/$defs/EventCommitSubmission"
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
         },
         "mls_submission": {
           "$ref": "./mls-commit-submission.schema.json"
         },
-        "processing": {
-          "const": "per_item"
-        },
-        "submissions": {
+        "replications": {
           "type": "array",
           "minItems": 1,
           "maxItems": 100,
           "items": {
-            "$ref": "#/$defs/replicated_committed_event_submission"
+            "$ref": "#/$defs/committed_event_submission"
           }
         },
         "unit": {
@@ -161,8 +158,22 @@
             }
           },
           "not": {
-            "required": [
-              "mls_submission"
+            "anyOf": [
+              {
+                "required": [
+                  "mls_submission"
+                ]
+              },
+              {
+                "required": [
+                  "replications"
+                ]
+              },
+              {
+                "required": [
+                  "unit"
+                ]
+              }
             ]
           }
         },
@@ -177,21 +188,53 @@
             }
           },
           "not": {
-            "required": [
-              "event_submission"
+            "anyOf": [
+              {
+                "required": [
+                  "event_submission"
+                ]
+              },
+              {
+                "required": [
+                  "replications"
+                ]
+              },
+              {
+                "required": [
+                  "unit"
+                ]
+              }
             ]
           }
         },
         {
           "required": [
             "branch",
-            "processing",
-            "submissions"
+            "replications"
           ],
           "properties": {
             "branch": {
               "const": "committed_replication"
             }
+          },
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "event_submission"
+                ]
+              },
+              {
+                "required": [
+                  "mls_submission"
+                ]
+              },
+              {
+                "required": [
+                  "unit"
+                ]
+              }
+            ]
           }
         },
         {
@@ -203,6 +246,25 @@
             "branch": {
               "const": "registered_atomic_unit"
             }
+          },
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "event_submission"
+                ]
+              },
+              {
+                "required": [
+                  "mls_submission"
+                ]
+              },
+              {
+                "required": [
+                  "replications"
+                ]
+              }
+            ]
           }
         }
       ],
@@ -240,14 +302,14 @@
     },
     "committed_event_submission": {
       "type": "object",
-      "description": "One full producer submission paired with the source-signed RealmCommit that accepted it. submission.event.event_id MUST equal source_commit.event_ref; realm and stream coordinates, governance generation, current source authority signature and previous_commit_ref continuity MUST verify exactly. This shape never accepts EventReadRow, redacted Event views or locked stubs.",
+      "description": "One full producer admission submission paired with the source-signed RealmCommit that accepted it. event_submission.event.event_id MUST equal source_commit.event_ref; realm and stream coordinates, governance generation, current source authority signature and previous_commit_ref continuity MUST verify exactly. This shape never accepts EventReadRow, redacted Event views or locked stubs.",
       "required": [
-        "submission",
+        "event_submission",
         "source_commit"
       ],
       "properties": {
-        "submission": {
-          "$ref": "./service-operation-dtos.schema.json#/$defs/EventCommitSubmission"
+        "event_submission": {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
         },
         "source_commit": {
           "$ref": "./realm-commit.schema.json"
@@ -255,99 +317,41 @@
       },
       "additionalProperties": false
     },
-    "replicated_committed_event_submission": {
-      "type": "object",
-      "description": "One committed-replication item. The receiver verifies the exact source Event/Commit pair plus destination membership, route and history/plaintext visibility at the source commit basis. It then stores those exact source bytes; it MUST NOT perform first admission, sign another RealmCommit, or enqueue a second federation fanout.",
-      "required": [
-        "committed_event",
-        "recipient_witnesses"
-      ],
-      "properties": {
-        "committed_event": {
-          "$ref": "#/$defs/committed_event_submission"
-        },
-        "recipient_witnesses": {
-          "type": "array",
-          "minItems": 1,
-          "maxItems": 100,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "#/$defs/replication_recipient_witness"
-          },
-          "description": "Canonical bytewise-sorted unique witnesses. The authenticated destination service MUST equal every recipient_service_id selected for this request, each member route must resolve to that service, and current membership/history/plaintext visibility must authorize this exact source commit."
-        }
-      },
-      "additionalProperties": false
-    },
-    "replication_recipient_witness": {
-      "type": "object",
-      "required": [
-        "realm_id",
-        "member_id",
-        "membership_event_ref",
-        "recipient_service_id"
-      ],
-      "properties": {
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "member_id": {
-          "$ref": "./common-ids.schema.json#/$defs/actor_id"
-        },
-        "membership_event_ref": {
-          "$ref": "./common-ids.schema.json#/$defs/event_id"
-        },
-        "recipient_service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        }
-      },
-      "additionalProperties": false
-    },
     "peer_committed_replication_outcome": {
       "type": "object",
-      "description": "Per-item replication outcome. results has exactly the same length and order as request.submissions. A stored or duplicate row names the exact source coordinates; rejected means that item was not stored. Transport retry replays the complete request body and returns the same results. This branch has no accepted finality vocabulary.",
+      "description": "Per-item replication outcome. replication_outcomes has exactly the same length and order as request.replications. Input order identifies each row, so an outcome does not repeat an index or source coordinates. rejected means that item was not stored. Transport retry replays the complete request body and returns the same outcomes. This branch has no accepted finality vocabulary.",
       "required": [
         "branch",
-        "results"
+        "replication_outcomes"
       ],
       "properties": {
         "branch": {
           "const": "committed_replication"
         },
-        "results": {
+        "replication_outcomes": {
           "type": "array",
           "minItems": 1,
           "maxItems": 100,
-        "items": {
-          "$ref": "#/$defs/peer_committed_replication_record"
+          "items": {
+            "$ref": "#/$defs/peer_committed_replication_outcome_record"
           }
         }
       },
       "additionalProperties": false
     },
-    "peer_committed_replication_record": {
+    "peer_committed_replication_outcome_record": {
       "oneOf": [
         {
           "type": "object",
           "required": [
-            "index",
-            "status",
-            "committed_ref"
+            "status"
           ],
           "properties": {
-            "index": {
-              "type": "integer",
-              "minimum": 0,
-              "maximum": 99
-            },
             "status": {
               "enum": [
                 "stored",
                 "duplicate"
               ]
-            },
-            "committed_ref": {
-              "$ref": "#/$defs/committed_event_ref"
             }
           },
           "additionalProperties": false
@@ -355,22 +359,12 @@
         {
           "type": "object",
           "required": [
-            "index",
             "status",
-            "committed_ref",
             "reason_code"
           ],
           "properties": {
-            "index": {
-              "type": "integer",
-              "minimum": 0,
-              "maximum": 99
-            },
             "status": {
               "const": "rejected"
-            },
-            "committed_ref": {
-              "$ref": "#/$defs/committed_event_ref"
             },
             "reason_code": {
               "type": "string",
@@ -424,7 +418,7 @@
     "direct_conversation_realm_create_submission": {
       "allOf": [
         {
-          "$ref": "./service-operation-dtos.schema.json#/$defs/EventCommitSubmission"
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
         },
         {
           "properties": {
@@ -442,7 +436,7 @@
     "direct_conversation_member_join_submission": {
       "allOf": [
         {
-          "$ref": "./service-operation-dtos.schema.json#/$defs/EventCommitSubmission"
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
         },
         {
           "properties": {
@@ -461,7 +455,7 @@
     "direct_conversation_strand_create_submission": {
       "allOf": [
         {
-          "$ref": "./service-operation-dtos.schema.json#/$defs/EventCommitSubmission"
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
         },
         {
           "properties": {
@@ -521,7 +515,7 @@
         },
         {
           "properties": {
-            "submission": {
+            "event_submission": {
               "$ref": "#/$defs/direct_conversation_realm_create_submission"
             }
           }
@@ -535,7 +529,7 @@
         },
         {
           "properties": {
-            "submission": {
+            "event_submission": {
               "$ref": "#/$defs/direct_conversation_member_join_submission"
             }
           }
@@ -549,7 +543,7 @@
         },
         {
           "properties": {
-            "submission": {
+            "event_submission": {
               "$ref": "#/$defs/direct_conversation_strand_create_submission"
             }
           }
@@ -662,7 +656,7 @@
           "const": "membership_compensation"
         },
         "event_submission": {
-          "$ref": "./service-operation-dtos.schema.json#/$defs/EventCommitSubmission"
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
         },
         "membership_compensation_evidence": {
           "$ref": "#/$defs/membership_compensation_evidence"

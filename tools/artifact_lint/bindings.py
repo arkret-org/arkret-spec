@@ -256,8 +256,8 @@ def check_operation_durable_effect_contract(lint: Lint) -> None:
             if submission_path is not None:
                 submission = request_pointer_node(operation, submission_path)
                 ref = submission.get("$ref") if isinstance(submission, dict) else None
-                if not isinstance(ref, str) or "EventCommitSubmission" not in ref:
-                    lint.fail(path, f"{operation_id} {label}.event_submission_path must target EventCommitSubmission")
+                if not isinstance(ref, str) or "EventAdmissionSubmission" not in ref:
+                    lint.fail(path, f"{operation_id} {label}.event_submission_path must target EventAdmissionSubmission")
         elif kind == "actor_private_event":
             if effect.get("event_kind") not in actor_private:
                 lint.fail(path, f"{operation_id} {label} must map actor_private_event to an active private kind")
