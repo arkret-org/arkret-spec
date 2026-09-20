@@ -270,7 +270,11 @@ AAD只绑定 exact signed Event与其引用的 public group revision。客户端
 ### 2.8 Reaction routing window
 
 encrypted reaction可携带已登记的最小 routing context，使 Station在不解密正文时路由到目标 Event。routing token必须
-绑定 target、scope、sender与有界时间窗；它不授予读取或写入权限。
+绑定 target、scope、MLS epoch 与有界时间窗；它不授予读取或写入权限。v1 的 key context 不含 sender：同一
+MLS epoch、target、scope、routing window 和真实 emoji 的不同 sender 产生相同 tag，以便 `(target_ref, key)`
+跨 actor 聚合 reaction `members[]`／`count`。Station 因此可观察同窗同 target 的等值聚类与频率，客户端与
+高隐私部署 MUST NOT 宣称此 tag 按 sender 隔离或隐藏该关联性；Event 的签名 `actor_id` 与权限验证仍须
+独立执行，不能从 tag 推断或授予 sender 身份。
 
 ### 2.9 内容 scheme
 

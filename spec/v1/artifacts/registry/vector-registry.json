@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-21.5",
+  "version": "2026-09-21.6",
   "source_of_truth": true,
-  "generated_at": "2026-09-21T05:41:43+08:00",
+  "generated_at": "2026-09-21T06:20:16+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -3768,7 +3768,7 @@
       "applies_to_fixtures": [
         "arkret-private-kdf-fixture.json"
       ],
-      "description": "Byte-level reaction routing HMAC KAT covering RFC 9420 exporter derivation, NFC normalization, combining code points, emoji modifiers, and cross-label/Realm/epoch negatives.",
+      "description": "Byte-level reaction routing HMAC KAT covering RFC 9420 exporter derivation, NFC normalization, combining code points, emoji modifiers, same-context cross-sender tag equality, and cross-label/Realm/epoch negatives.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/arkret-private-kdf-fixture.json"
       ]

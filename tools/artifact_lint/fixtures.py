@@ -2873,6 +2873,55 @@ def check_private_kdf_full_width_nonce(lint: Lint, path: Path, data: dict[str, A
     if expected.get("high_order_zero_bytes") != leading_zeroes:
         lint.fail(path, "full-width counter nonce KAT high_order_zero_bytes drift")
 
+
+def check_reaction_routing_cross_sender_equality(lint: Lint, path: Path, data: dict[str, Any]) -> None:
+    cases = {
+        case.get("name"): case
+        for case in data.get("cases", [])
+        if isinstance(case, dict) and isinstance(case.get("name"), str)
+    }
+    case = cases.get("reaction_routing_hmac_nfc")
+    if not isinstance(case, dict):
+        lint.fail(path, "reaction routing HMAC KAT is missing")
+        return
+    inputs = case.get("input", {})
+    expected = case.get("expected", {})
+    cross_sender = expected.get("cross_sender_equality", {})
+    if not all(isinstance(value, dict) for value in (inputs, expected, cross_sender)):
+        lint.fail(path, "reaction routing HMAC KAT input/expected must be objects")
+        return
+    if (
+        cross_sender.get("sender_a") == cross_sender.get("sender_b")
+        or not all(isinstance(cross_sender.get(field), str) for field in ("sender_a", "sender_b"))
+        or cross_sender.get("same_scope_target_window_epoch_and_emoji") is not True
+    ):
+        lint.fail(path, "reaction routing KAT must compare two distinct senders in one context")
+        return
+    try:
+        emoji_case = inputs["emoji_cases"][2]
+        emoji = "".join(chr(int(value[2:], 16)) for value in emoji_case["source_codepoints"])
+        nfc_bytes = unicodedata.normalize("NFC", emoji).encode("utf-8")
+        key = bytes.fromhex(expected["routing_hmac_key_hex"])
+        tag = hmac.new(key, nfc_bytes, hashlib.sha256).hexdigest()
+    except (IndexError, KeyError, TypeError, ValueError):
+        lint.fail(path, "reaction routing KAT cross-sender material is malformed")
+        return
+    tags = expected.get("tags_hex")
+    if (
+        tag != cross_sender.get("tag_hex_for_both")
+        or not isinstance(tags, list)
+        or len(tags) < 3
+        or tag != tags[2]
+    ):
+        lint.fail(path, "reaction routing KAT cross-sender tag differs from the canonical HMAC")
+    registry = load_json(lint, ARTIFACTS / "registry" / "exporter-label-registry.json")
+    labels = registry.get("labels", []) if isinstance(registry, dict) else []
+    routing = next((row for row in labels if row.get("label") == "ak.reaction-routing-v1"), None)
+    if not isinstance(routing, dict) or routing.get("context_fields") != [
+        "effective_scope", "target_ref", "routing_window"
+    ]:
+        lint.fail(path, "reaction routing context must stay closed and sender-independent")
+
 def check_fixtures(lint: Lint, known: dict[str, set[str]]) -> None:
     fixture_dir = ARTIFACTS / "fixtures"
     registry_path = ARTIFACTS / "registry" / "contract-registry.json"
@@ -2894,6 +2943,7 @@ def check_fixtures(lint: Lint, known: dict[str, set[str]]) -> None:
         check_fixture_operation_contracts(lint, path, data, operation_contracts)
         if path.name == "arkret-private-kdf-fixture.json" and isinstance(data, dict):
             check_private_kdf_full_width_nonce(lint, path, data)
+            check_reaction_routing_cross_sender_equality(lint, path, data)
         if path.name == "producer-allocated-identity-collision-fixture.json":
             expected_parameter_source = {
                 "registry": "registry/contract-registry.json#id_kind_registry.id_kinds",

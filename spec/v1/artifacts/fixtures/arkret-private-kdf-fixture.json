@@ -4,7 +4,7 @@
     "entrypoint": "ak.suite.crypto.arkret_private_kdf_and_durability.v1"
   },
   "suite": "arkret_private_kdf_and_durability",
-  "version": "2026-08-23",
+  "version": "2026-09-21",
   "covers_vectors": [
     "ak.vector.signal.exporter_key_kat.v1",
     "ak.vector.aead.full_width_counter_nonce.v1",
@@ -116,6 +116,12 @@
           "e61c8ae48d2cf86d721e73c9f72969aacdff69fdbbbf5383a18e17173d2bdddb",
           "65a3319be4bc655c9967c470fe339c129ffb46fea1b5a125fe4665a4576a0158"
         ],
+        "cross_sender_equality": {
+          "sender_a": "actor-a",
+          "sender_b": "actor-b",
+          "same_scope_target_window_epoch_and_emoji": true,
+          "tag_hex_for_both": "65a3319be4bc655c9967c470fe339c129ffb46fea1b5a125fe4665a4576a0158"
+        },
         "negative_mutations": [
           "skip_NFC",
           "wrong_exporter_label",
