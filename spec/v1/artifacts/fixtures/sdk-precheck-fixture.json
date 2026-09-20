@@ -5,7 +5,7 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.sdk.precheck.v1"
   },
-  "version": "2026-09-20.1",
+  "version": "2026-09-20.2",
   "profile": "ak.profile.full_client.v1",
   "covers_vectors": [
     "ak.vector.sdk.envelope_precheck_rejects_before_consumption.v1",
@@ -13,9 +13,11 @@
   ],
   "machine_contracts": [
     "registry/error-code-registry.json",
-    "registry/event-kind-registry.json"
+    "registry/event-kind-registry.json",
+    "schemas/event-envelope.schema.json",
+    "schemas/event-payload.schema.json#/$defs/strand_create_payload"
   ],
-  "description": "Executable evidence for current-v1 SDK precheck clauses: an Event Envelope or kind-selected payload class that fails validation is refused before consumption and leaves no effect; Event root required members cannot be omitted or defaulted and the four forbidden members are refused at the closed Event root. The reserved generic requirements/critical_extensions capability is not represented by fixture-only objects. Schema admissibility is not the only observation point: effect cases also observe the absence of consumed state.",
+  "description": "Executable evidence for current-v1 SDK precheck clauses: the complete Event schema, including its kind-selected payload dispatch, refuses an invalid Event before consumption and leaves no effect; Event root required members cannot be omitted or defaulted and the four forbidden members are refused at the closed Event root. The reserved generic requirements/critical_extensions capability is not represented by fixture-only objects. Schema admissibility is not the only observation point: effect cases also observe the absence of consumed state.",
   "legal_base_event": {
     "fixture_ref": "fixtures/approval-signature-kat-fixture.json",
     "json_pointer": "/event_id_invariance/submission_with_evidence/event",
@@ -62,16 +64,16 @@
         "effect_consumed": false
       },
       "base_event_ref": "#/legal_base_event",
-      "mutation": "replace the ak.strand.create payload with an empty object while leaving the Event root valid",
-      "given": "an Event Envelope that satisfies ak.schema.event.v1 but whose payload does not satisfy the payload class its event kind declares",
-      "action": "submit it and read every exposed surface",
+      "mutation": "replace the ak.strand.create payload with an empty object while leaving every other Event root member unchanged",
+      "given": "an Event Envelope whose ak.strand.create payload does not satisfy the payload class selected inside the complete ak.schema.event.v1 validation",
+      "action": "submit it through the single complete Event schema admission and read every exposed surface",
       "decision": "reject",
       "reason": "schema_violation",
-      "observed": "the returned outcome and the reducer state",
+      "observed": "the returned outcome, reducer state, projections, query results, local caches and outbound effect port",
       "assertions": [
-        "the call returns schema_violation",
-        "no reducer state changed, so envelope-level admissibility does not open a path for an inadmissible payload",
-        "the payload class is resolved from the declared event kind rather than guessed from the payload shape"
+        "the complete ak.schema.event.v1 validator returns schema_violation because its kind-selected payload dispatch rejects the empty payload",
+        "no reducer state, projection, query result, local cache or outbound effect changed",
+        "the payload class is resolved from the declared event kind inside the complete Event schema rather than guessed from the payload shape or decided by a second acceptance gate"
       ]
     },
     {

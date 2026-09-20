@@ -3,9 +3,9 @@
   "artifacts": [
     {
       "path": "spec/v1/artifacts/profiles/conformance-profiles.json",
-      "version": "2026-09-20.6",
-      "generated_at": "2026-09-20T22:15:00+08:00",
-      "content_digest": "sha256:b3a80f8ee2c8d67eda6dfced026998295a22729b48450952d911ea901dad270e"
+      "version": "2026-09-20.7",
+      "generated_at": "2026-09-20T23:10:00+08:00",
+      "content_digest": "sha256:3f40204632792f1139c916077b536603b0dd965fe36b7f7b2bc20b388367a50c"
     },
     {
       "path": "spec/v1/artifacts/registry/account-data-key-registry.json",
@@ -369,9 +369,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/vector-registry.json",
-      "version": "2026-09-20.18",
-      "generated_at": "2026-09-20T22:56:00+08:00",
-      "content_digest": "sha256:c3d0f382e0961272abd4f4293e201760414985de5a61c6acc181643a23d0118b"
+      "version": "2026-09-20.19",
+      "generated_at": "2026-09-20T23:10:00+08:00",
+      "content_digest": "sha256:773bd9a3b01ebf15f4656037dd454fa00a04dedf980b7fc32b7f1ddd65c4aa53"
     },
     {
       "path": "tools/artifact-anchor-fragment-exemptions.json",

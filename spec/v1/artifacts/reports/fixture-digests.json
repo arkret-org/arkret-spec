@@ -432,8 +432,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",
-      "sha256": "c5ae3c1d0ac64165919031be370fb605a34154446d57a78defe9f4a78bf8f3db",
-      "version": "2026-09-20.2"
+      "sha256": "8bb5ddfe15c9ba54f22c7d40d28af5b0119372d032f8f0e113609a9c5427faf8",
+      "version": "2026-09-20.3"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-event-type-axes-fixture.json",
@@ -442,8 +442,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-precheck-fixture.json",
-      "sha256": "5e630fc53e6c6d177c4a71a4cb9a3c9e17597bbf46af62e1168444f453c0c24a",
-      "version": "2026-09-20.1"
+      "sha256": "47fa782fe025e588f7aeb405f6d17705ad9c2c6ffa65def8eac9bcab1ade055a",
+      "version": "2026-09-20.2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/security-transaction-resilience-fixture.json",

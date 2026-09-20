@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.18",
+  "version": "2026-09-20.19",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T22:56:00+08:00",
+  "generated_at": "2026-09-20T23:10:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -4148,7 +4148,7 @@
       "applies_to_profiles": [
         "ak.profile.full_client.v1"
       ],
-      "description": "An Event Envelope that fails ak.schema.event.v1 or the payload class its event kind declares is refused with schema_violation and leaves no observable effect in reducer state, projections, query results or caches; no retry, reconnect or backfill path re-admits it and nothing is normalized or defaulted into an admissible form.",
+      "description": "An Event Envelope that fails the complete ak.schema.event.v1 validation, including the payload class selected by its event kind, is refused with schema_violation and leaves no observable effect in reducer state, projections, query results, caches or outbound effect ports; no retry, reconnect or backfill path re-admits it and nothing is normalized or defaulted into an admissible form.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/zh/conformance/conformance-profiles.md",

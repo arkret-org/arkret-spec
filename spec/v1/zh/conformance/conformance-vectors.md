@@ -525,10 +525,11 @@ MUST NOT 被当作本向量的替代证据。
 同键但意图冲突的复用以 `duplicate_conflict`（reason `device_message_id_conflict`）失败；
 不同 id 始终是不同的逻辑消息。
 
-`ak.vector.sdk.envelope_precheck_rejects_before_consumption.v1` MUST 证明：不满足 `ak.schema.event.v1`
-或其事件种类所声明 payload class 的 Event Envelope 以 `schema_violation` 被拒，且在 reducer 状态、投影、查询结果
-与本地缓存中都观测不到任何效果；重试、重连与 backfill 路径都不会重新接纳它，也不会把它规整、补默认值或修复成可接纳
-形态。观测点是被消费效果的缺席，而不是 schema 判定本身。
+`ak.vector.sdk.envelope_precheck_rejects_before_consumption.v1` MUST 证明：Event Envelope 不满足完整
+`ak.schema.event.v1` 校验（其中已按 `Event.kind` 选择并执行 payload class）时以 `schema_violation` 被拒，且在
+reducer 状态、投影、查询结果、本地缓存与出向 effect port 中都观测不到任何效果；重试、重连与 backfill 路径都不会重新接纳它，
+也不会把它规整、补默认值或修复成可接纳形态。观测点是被消费效果的缺席，而不是另一个独立 payload acceptance gate；payload catalog
+仅可作为同一 canonical schema 合同的对账／authoring seam，不得形成第二套 acceptance semantics。
 
 `ak.vector.sdk.envelope_forbidden_top_level_fields.v1` MUST 证明：`hlc`、`producer_revision`、`domain_refs`、
 `requirements` 出现在 Event 顶层时逐个以 `schema_violation` 被拒，而不是被忽略或剥除；Event root required 的

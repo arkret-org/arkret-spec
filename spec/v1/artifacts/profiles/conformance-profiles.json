@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-20.6",
-  "generated_at": "2026-09-20T22:15:00+08:00",
+  "version": "2026-09-20.7",
+  "generated_at": "2026-09-20T23:10:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -58,7 +58,7 @@
           "U"
         ],
         "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#ak-sdk-001",
-        "summary": "Validate Event Envelope and payload class before consumption",
+        "summary": "Validate the complete Event schema, including its kind-selected payload, before consumption",
         "required_evidence": [
           "vector_result",
           "code_audit"
@@ -77,7 +77,7 @@
             },
             {
               "id": "payload_class_failure_refused",
-              "requirement": "A payload that does not satisfy the payload class its event kind declares is refused with schema_violation, so envelope-level admissibility opens no path for an inadmissible payload.",
+              "requirement": "The complete ak.schema.event.v1 validation selects the payload class from Event.kind and refuses a payload that does not satisfy that class with schema_violation in the same schema decision.",
               "vectors": [
                 "ak.vector.sdk.envelope_precheck_rejects_before_consumption.v1"
               ]

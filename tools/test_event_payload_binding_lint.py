@@ -16,6 +16,8 @@ ARTIFACTS = ROOT / "spec" / "v1" / "artifacts"
 CONTRACT_REGISTRY = ARTIFACTS / "registry" / "contract-registry.json"
 EVENT_ENVELOPE = ARTIFACTS / "schemas" / "event-envelope.schema.json"
 EVENT_PAYLOAD = ARTIFACTS / "schemas" / "event-payload.schema.json"
+APPROVAL_SIGNATURE_FIXTURE = ARTIFACTS / "fixtures" / "approval-signature-kat-fixture.json"
+SDK_PRECHECK_FIXTURE = ARTIFACTS / "fixtures" / "sdk-precheck-fixture.json"
 
 
 class EventPayloadBindingLintTest(unittest.TestCase):
@@ -93,6 +95,48 @@ class EventPayloadBindingLintTest(unittest.TestCase):
 
     def test_current_binding_is_closed(self) -> None:
         self.assertEqual(self._lint(), [])
+
+    def test_sdk_precheck_payload_case_fails_the_complete_event_schema(self) -> None:
+        """The payload case is one Event-schema decision, not a second gate."""
+
+        fixture = core.parse_json_text(SDK_PRECHECK_FIXTURE.read_text(encoding="utf-8"))
+        self.assertIn("schemas/event-envelope.schema.json", fixture["machine_contracts"])
+        self.assertIn(
+            "schemas/event-payload.schema.json#/$defs/strand_create_payload",
+            fixture["machine_contracts"],
+        )
+        case = next(
+            row
+            for row in fixture["cases"]
+            if row["name"]
+            == "a_payload_that_fails_its_payload_class_never_reaches_the_reducer"
+        )
+        self.assertNotIn("satisfies ak.schema.event.v1", case["given"])
+        self.assertEqual(
+            case["expected"],
+            {
+                "decision": "reject",
+                "reason": "schema_violation",
+                "effect_consumed": False,
+            },
+        )
+
+        approval_fixture = core.parse_json_text(
+            APPROVAL_SIGNATURE_FIXTURE.read_text(encoding="utf-8")
+        )
+        legal_event = approval_fixture["event_id_invariance"]["submission_with_evidence"][
+            "event"
+        ]
+        validator = core.schema_validator(EVENT_ENVELOPE.resolve(), "#")
+        self.assertEqual(list(validator.iter_errors(legal_event)), [])
+
+        malformed = copy.deepcopy(legal_event)
+        malformed["payload"] = {}
+        errors = list(validator.iter_errors(malformed))
+        self.assertEqual(len(errors), 1, errors)
+        self.assertEqual(errors[0].validator, "required")
+        self.assertEqual(list(errors[0].absolute_path), ["payload"])
+        self.assertIn("'object' is a required property", errors[0].message)
 
     def test_missing_active_binding_fails(self) -> None:
         def mutate(registry) -> None:

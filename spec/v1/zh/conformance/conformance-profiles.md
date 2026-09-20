@@ -1061,7 +1061,7 @@ Conformance 面此前全部以部署形态 profile 为单位（`profile_requirem
 
 | # | 条款（摘述） | 真相源 | 分级 |
 | --- | --- | --- | --- |
-| <a id="ak-sdk-001"></a>1 | Event Envelope MUST 先过 `ak.schema.event.v1` 与 payload class 校验，失败 MUST `schema_violation`，不得进入 reducer（先验证后消费） | 本文 §3 | **V**（`ak.vector.sdk.envelope_precheck_rejects_before_consumption.v1`，观测点是被消费效果的缺席）；"先于消费"的内部顺序为 U |
+| <a id="ak-sdk-001"></a>1 | Event Envelope MUST 在消费前通过完整 `ak.schema.event.v1`；该 schema 已在同一次校验中按 `Event.kind` 选择 payload class。任一根或 kind-selected payload 校验失败都 MUST `schema_violation`，不得进入 reducer。payload catalog 可用于 registry 对账或 producer-side authoring，但不是完整 Event 通过后的第二套接纳语义 | 本文 §3 | **V**（`ak.vector.sdk.envelope_precheck_rejects_before_consumption.v1`，观测点是被消费效果的缺席）；"先于消费"的内部顺序为 U |
 | <a id="ak-sdk-002"></a>2 | Event root required 的 `producer_proof`、`scope_ref`、`actor_id` 在 reducer 与验证逻辑中不能被跳过或补默认；`hlc` / `producer_revision` / `domain_refs` / `requirements` 出现在 Event 顶层时 MUST `schema_violation`。`semantic_refs` 是可选成员；仅具体 event-kind admission selector 能要求某个 role | 本文 §3 | **V**（`ak.vector.sdk.envelope_forbidden_top_level_fields.v1`）；"库不得暴露跳过入口"为 A |
 | <a id="ak-sdk-003"></a>3 | `auth` 约束必须执行，不得通过客户端配置豁免 | 本文 §3 | **U**（配置面审计）；辅以 A（不提供豁免配置项） |
 | <a id="ak-sdk-004"></a>4 | 对 `causal` 关系、`revoked` 与 `proof` 失效状态 MUST fail-closed，不得静默接受 | 本文 §3；conformance-vectors §3.4 | **V**（`ak.vector.authority_commit_projection.*` 并发撤销 fail closed 向量） |
