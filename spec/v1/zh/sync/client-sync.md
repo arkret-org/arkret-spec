@@ -27,6 +27,13 @@ Client Sync 是 own Account Station 向客户端提供的受信账号聚合流�
 
 聚合流不是新的 Realm 总链。客户端不得把不同 scope 的 position 排成全局序，也不从 timeline 重放治理。
 
+旧 `self/seals/frontier` 与 `self/events/frontier` 两条路径不属于 v1 读取面。客户端 MUST NOT
+把 SealBasis、actor-only Event aggregate frontier 或跨 Realm 聚合位置当作 RealmCommit stream head、
+readable floor、authoring authority 或同步完成证据。获准 stream 的发现使用
+`ak.self.realm.read.streams.v1`，snapshot manifest head 使用
+`ak.self.realm_state_snapshot.read.manifest_head.v1`；committed Event 读取按独立 stream 使用
+`ak.self.committed_event.read.scan.v1`，并分别遵守该 stream 的 visibility 与 readable floor。
+
 ## 2. Endpoint
 
 `ak.self.account.stream.subscribe.v1` 是账号聚合主入口。`ak.self.committed_event.read.scan.v1` 与 `ak.self.committed_event.stream.subscribe.v1` 用于读取一个或多个**明确获准的独立 stream**。字段、分页参数（subscribe 用 cursor，scan 用 `stream_position`）与 frame schema 见 [service-http-binding.md](./service-http-binding.md)。
