@@ -58,6 +58,8 @@ floor 不只是"更早的数据取不到"，它是该 caller 允许区间的下�
 `truncated` 只表示该方向还有该 caller 获准读取的 Commit，空结果不表示物理流不存在。
 只有该 caller 在该流一条 Commit 都不获准读取时才省略 `readable_floor`。
 
+v1 的历史可读区间只能由 current governance Station 对已接受 RealmCommit 链、current membership 与 history-access policy 求得，并通过本节已登记的 stream discovery／snapshot／scan 结果呈现。旧 Seal／CellRef closure 形式的独立 history-authority HTTP oracle 不属于 v1：服务 MUST NOT 暴露它作为另一条历史权限或可枚举查询路径，客户端 MUST NOT 将其旧结果当作 `readable_floor`、Commit provenance 或 MLS 历史密钥的替代证明。此限制不移除现行获准 stream 发现、scan/floor、历史策略与 §4 的 MLS 密钥边界。
+
 ## 4. MLS 历史
 
 v1 只保留 standard RFC 9420 密钥语义。新 member 或新 endpoint 只从其有效 Add/Welcome epoch 起取得
