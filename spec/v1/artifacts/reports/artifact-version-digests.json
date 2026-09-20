@@ -393,9 +393,9 @@
     },
     {
       "path": "tools/artifact-version-governance.json",
-      "version": "2026-09-19.1",
-      "generated_at": "2026-09-19T18:58:30+08:00",
-      "content_digest": "sha256:8c358522964473f713364b5acbcbfbbded04568f6a45fcbd9d1e0738797f245e"
+      "version": "2026-09-21.1",
+      "generated_at": "2026-09-21T02:54:53+08:00",
+      "content_digest": "sha256:1bbe8324c1316e44146027c0d9dbbf9f5b9b23d5e6f40859f62dcfcb98c1b001"
     },
     {
       "path": "tools/asserted-result-family-exemptions.json",
@@ -510,6 +510,12 @@
       "version": 1,
       "generated_at": null,
       "content_digest": "sha256:c99b755cf9727b37f22db7aa728d9fb151cc36d88bf23a48d88eb6af6ff0bff8"
+    },
+    {
+      "path": "tools/release-tool-manifest.json",
+      "version": "2026-09-21.1",
+      "generated_at": "2026-09-21T02:54:53+08:00",
+      "content_digest": "sha256:8aa1b05e1385ae4e5c3ebefc2b90ceda55ea0dd2d58bfdfe3a013e99a166e3a6"
     },
     {
       "path": "tools/resolution-commitment-pointer-registry.json",

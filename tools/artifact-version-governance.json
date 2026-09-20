@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.1",
+  "version": "2026-09-21.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-19T18:58:30+08:00",
+  "generated_at": "2026-09-21T02:54:53+08:00",
   "description": "Closed machine inventory of tools-side governance ledgers whose release metadata is governed with registry/profile artifacts. Discovery only detects inventory drift; this list is the explicit authority for which tools artifacts and governing scripts participate.",
   "governed_tool_artifacts": [
     "tools/artifact-anchor-fragment-exemptions.json",
@@ -27,12 +27,16 @@
     "tools/prose-section-identity-ledger.json",
     "tools/reason-code-producer-baseline.json",
     "tools/reducer-managed-owner-baseline.json",
+    "tools/release-tool-manifest.json",
     "tools/resolution-commitment-pointer-registry.json",
     "tools/schema-root-registry.json",
     "tools/slug-field-registry.json"
   ],
   "governing_scripts": [
+    "tools/artifact_pipeline.py",
     "tools/check_artifact_versions.py",
-    "tools/refresh_normative_title_inventory.py"
+    "tools/refresh_normative_title_inventory.py",
+    "tools/release_gate.py",
+    "tools/release_tool_manifest.py"
   ]
 }

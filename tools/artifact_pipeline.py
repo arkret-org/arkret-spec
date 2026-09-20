@@ -43,10 +43,12 @@ from typing import Any
 try:
     from .event_admission_contract import synchronize as synchronize_event_admission
     from .release_metadata import current_release_tag as read_current_release_tag
+    from .release_tool_manifest import registered_runners
     from .check_artifact_versions import semantic_content_digest, transition_errors
 except ImportError:  # Direct script execution: python tools/artifact_pipeline.py
     from event_admission_contract import synchronize as synchronize_event_admission
     from release_metadata import current_release_tag as read_current_release_tag
+    from release_tool_manifest import registered_runners
     from check_artifact_versions import semantic_content_digest, transition_errors
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -1386,38 +1388,40 @@ def cmd_check(_: argparse.Namespace) -> int:
         print(f"registry diff: {len(errors)} pre-lint pipeline error(s)")
         return verdict("check", ["pre-lint pipeline"])
     print_contract_status()
-    checks = (
-        ("authority commit protocol", lambda: subprocess.run([sys.executable, "-m", "tools.test_authority_commit_protocol"], cwd=ROOT).returncode),
-        ("result family writer gate", lambda: subprocess.run([sys.executable, "-m", "unittest", "tools.test_result_family_writer_gate"], cwd=ROOT).returncode),
-        ("current principal schema", lambda: subprocess.run([sys.executable, str(ROOT / "tools/test_current_principal_schema.py")], cwd=ROOT).returncode),
-        ("openapi operation selector", lambda: run_openapi_operation_selector("check")),
-        ("operation closure locks", lambda: run_operation_closure_locks("check")),
-        ("operation completeness report", lambda: run_operation_completeness_report("check")),
-        ("event reference inventory", lambda: run_event_reference_inventory("check")),
-        ("payload validator profile", run_payload_validator_profile_check),
-        ("event kind vector gap", run_event_kind_vector_gap_check),
-        ("property presence manifest", lambda: run_property_presence_manifest("check")),
-        ("schema consumer coverage", lambda: run_schema_consumer_coverage("check")),
-        ("operation string classification", lambda: run_operation_string_classification("check")),
-        ("operation string classification test", run_operation_string_classification_test),
-        ("long text schema test", run_long_text_schema_test),
-        ("schema constructability test", run_schema_constructability_test),
-        ("creator bootstrap transaction test", run_mls_creator_bootstrap_transaction_test),
-        ("fixture digests", run_fixture_digest_check),
-        ("session grant KAT", run_session_grant_kat_check),
-        ("contact round KAT", run_contact_round_kat_check),
-        ("handle claim KAT", run_handle_claim_kat_check),
-        ("content-bound Event-ID KAT", run_content_bound_event_id_check),
-        (
-            "applet delivery authentication KAT",
-            run_applet_delivery_authentication_kat_check,
-        ),
-        ("approval signature KAT", run_approval_signature_kat_check),
-        ("cursor negative fixture", run_cursor_negative_fixture_check),
-        ("artifact versions", run_artifact_version_check),
-        ("artifact lint", run_lint),
-        ("prose lint", run_prose_lint),
-    )
+    runners = {
+        "authority_commit_protocol": lambda: subprocess.run([sys.executable, "-m", "tools.test_authority_commit_protocol"], cwd=ROOT).returncode,
+        "result_family_writer_gate": lambda: subprocess.run([sys.executable, "-m", "unittest", "tools.test_result_family_writer_gate"], cwd=ROOT).returncode,
+        "current_principal_schema": lambda: subprocess.run([sys.executable, str(ROOT / "tools/test_current_principal_schema.py")], cwd=ROOT).returncode,
+        "openapi_operation_selector": lambda: run_openapi_operation_selector("check"),
+        "operation_closure_locks": lambda: run_operation_closure_locks("check"),
+        "operation_completeness_report": lambda: run_operation_completeness_report("check"),
+        "event_reference_inventory": lambda: run_event_reference_inventory("check"),
+        "payload_validator_profile": run_payload_validator_profile_check,
+        "event_kind_vector_gap": run_event_kind_vector_gap_check,
+        "property_presence_manifest": lambda: run_property_presence_manifest("check"),
+        "schema_consumer_coverage": lambda: run_schema_consumer_coverage("check"),
+        "operation_string_classification": lambda: run_operation_string_classification("check"),
+        "operation_string_classification_test": run_operation_string_classification_test,
+        "long_text_schema_test": run_long_text_schema_test,
+        "schema_constructability_test": run_schema_constructability_test,
+        "creator_bootstrap_transaction_test": run_mls_creator_bootstrap_transaction_test,
+        "fixture_digests": run_fixture_digest_check,
+        "session_grant_kat": run_session_grant_kat_check,
+        "contact_round_kat": run_contact_round_kat_check,
+        "handle_claim_kat": run_handle_claim_kat_check,
+        "content_bound_event_id_kat": run_content_bound_event_id_check,
+        "applet_delivery_authentication_kat": run_applet_delivery_authentication_kat_check,
+        "approval_signature_kat": run_approval_signature_kat_check,
+        "cursor_negative_fixture": run_cursor_negative_fixture_check,
+        "artifact_versions": run_artifact_version_check,
+        "artifact_lint": run_lint,
+        "prose_lint": run_prose_lint,
+    }
+    try:
+        checks = registered_runners("artifact_check", runners)
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        print(f"release tool manifest: {exc}", file=sys.stderr)
+        return verdict("check", ["release tool manifest"])
     failed = [name for name, check in checks if check()]
     return verdict("check", failed)
 

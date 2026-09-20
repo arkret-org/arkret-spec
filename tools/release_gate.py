@@ -22,8 +22,10 @@ from pathlib import Path
 
 try:
     from .release_metadata import current_release_tag
+    from .release_tool_manifest import registered_runners
 except ImportError:  # Direct script execution: python tools/release_gate.py
     from release_metadata import current_release_tag
+    from release_tool_manifest import registered_runners
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -40,12 +42,6 @@ def _pin_stdio_to_utf8() -> None:
         reconfigure = getattr(stream, "reconfigure", None)
         if reconfigure is not None:
             reconfigure(encoding="utf-8", errors="replace")
-
-
-CHECKS: list[tuple[str, list[str]]] = [
-    ("artifact pipeline", [sys.executable, "tools/artifact_pipeline.py", "check"]),
-    ("crossref", ["node", "site/scripts/crossref-check.mjs"]),
-]
 
 
 def check_stable_promotion_evidence() -> str | None:
@@ -108,9 +104,20 @@ def check_stable_promotion_evidence() -> str | None:
 def main(argv: list[str]) -> int:
     _pin_stdio_to_utf8()
     strict = "--strict" in argv
-    checks = CHECKS.copy()
-    if strict:
-        checks.append(("strict spec lint", [sys.executable, "tools/lint_spec.py", "--strict"]))
+    command_builders = {
+        "artifact_pipeline": lambda: [sys.executable, "tools/artifact_pipeline.py", "check"],
+        "crossref": lambda: ["node", "site/scripts/crossref-check.mjs"],
+        "strict_spec_lint": lambda: [sys.executable, "tools/lint_spec.py", "--strict"],
+    }
+    try:
+        registered = registered_runners(
+            "release_strict" if strict else "release_default",
+            command_builders,
+        )
+        checks = [(label, builder()) for label, builder in registered]
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        print(f"BLOCKED: release tool manifest is invalid: {exc}")
+        return 1
 
     failures: list[str] = []
     stable_error = check_stable_promotion_evidence()

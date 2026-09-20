@@ -86,6 +86,10 @@ python tools/artifact_pipeline.py generate   # 重新生成派生 registry view
 python tools/artifact_pipeline.py check      # drift 检查 + lint
 ```
 
+`tools/release-tool-manifest.json` 是 artifact/release gate 唯一可执行清单；runner 代码只实现其中已登记的
+`check_id`，漏 runner、未登记 runner、重复或不存在的 owner script 都会 fail closed。普通与 strict release
+模式也由该 manifest 选择，CI 不另存第二份步骤表。
+
 CI: [`.github/workflows/artifact-lint.yml`](./.github/workflows/artifact-lint.yml)
 
 ## 变更说明义务
