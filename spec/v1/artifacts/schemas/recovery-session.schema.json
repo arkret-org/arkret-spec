@@ -347,8 +347,7 @@
         "signature_algorithm": {
           "type": "string",
           "enum": [
-            "Ed25519",
-            "ML-DSA-65"
+            "Ed25519"
           ]
         },
         "signature": {
@@ -388,8 +387,7 @@
         "signature_algorithm": {
           "type": "string",
           "enum": [
-            "Ed25519",
-            "ML-DSA-65"
+            "Ed25519"
           ]
         },
         "unlock_commitment": {
@@ -443,8 +441,7 @@
               "signature_algorithm": {
                 "type": "string",
                 "enum": [
-                  "Ed25519",
-                  "ML-DSA-65"
+                  "Ed25519"
                 ]
               },
               "signature": {
@@ -489,8 +486,7 @@
         "signature_algorithm": {
           "type": "string",
           "enum": [
-            "Ed25519",
-            "ML-DSA-65"
+            "Ed25519"
           ]
         },
         "signature": {
@@ -655,8 +651,7 @@
         "signature_algorithm": {
           "type": "string",
           "enum": [
-            "Ed25519",
-            "ML-DSA-65"
+            "Ed25519"
           ]
         }
       },
@@ -702,8 +697,7 @@
               "signature_algorithm": {
                 "type": "string",
                 "enum": [
-                  "Ed25519",
-                  "ML-DSA-65"
+                  "Ed25519"
                 ]
               }
             },
@@ -744,8 +738,7 @@
         "signature_algorithm": {
           "type": "string",
           "enum": [
-            "Ed25519",
-            "ML-DSA-65"
+            "Ed25519"
           ]
         }
       },

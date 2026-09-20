@@ -4374,8 +4374,7 @@
             "signature_algorithm": {
               "type": "string",
               "enum": [
-                "Ed25519",
-                "ML-DSA-65"
+                "Ed25519"
               ]
             },
             "transcript_digest": {

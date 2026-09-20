@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-20.4",
-  "generated_at": "2026-09-20T16:42:00+08:00",
+  "version": "2026-09-20.5",
+  "generated_at": "2026-09-20T21:43:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -6276,7 +6276,7 @@
       }
     },
     "ak.profile.signature.pqc.v1": {
-      "description": "Profile-gated ML-DSA-65 detached-signature interoperability suite.",
+      "description": "Reserved ML-DSA-65 detached-signature interoperability profile. The identifier and isolated KAT are retained for a future atomic activation package; current-v1 implementations MUST NOT claim it.",
       "enforcement_phases": [
         "build",
         "conformance"
@@ -6288,10 +6288,8 @@
       "required_fixtures": [],
       "optional_extensions": [],
       "feature_discovery": {
-        "required": [
-          "signature_suite.ML-DSA-65"
-        ],
-        "unsupported_optional": "do not claim ak.profile.signature.pqc.v1 and reject ML-DSA-65 proofs as unsupported"
+        "required": [],
+        "unsupported_optional": "reserved: do not claim ak.profile.signature.pqc.v1; reject every ML-DSA-65 proof as unsupported_signature_alg without Ed25519 fallback"
       }
     },
     "ak.profile.mls_ciphersuite.chacha20poly1305.v1": {

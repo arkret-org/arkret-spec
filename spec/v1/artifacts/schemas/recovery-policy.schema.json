@@ -83,8 +83,7 @@
         "signature_algorithm": {
           "type": "string",
           "enum": [
-            "Ed25519",
-            "ML-DSA-65"
+            "Ed25519"
           ]
         },
         "signature": {
@@ -180,10 +179,9 @@
         "signature_algorithm": {
           "type": "string",
           "enum": [
-            "Ed25519",
-            "ML-DSA-65"
+            "Ed25519"
           ],
-          "description": "Signature algorithm used by the recovery key. Values mirror active signature-alg-registry rows; ML-DSA-65 use additionally requires the corresponding PQ-capable implementation profile."
+          "description": "Current-v1 signature algorithm used by the recovery key. Reserved algorithms, including ML-DSA-65, fail closed as unsupported until a future negotiated schema/profile activation."
         },
         "not_before": {
           "$ref": "#/$defs/timestamp",

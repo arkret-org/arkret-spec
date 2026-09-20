@@ -469,10 +469,9 @@
         "signature_algorithm": {
           "type": "string",
           "enum": [
-            "Ed25519",
-            "ML-DSA-65"
+            "Ed25519"
           ],
-          "description": "Raw signature algorithm name; MUST be an active signature-alg-registry alg whose proof_kinds includes raw_detached_signature. Ed25519 is the v1 default; ML-DSA-65 is gated behind the PQ migration profile."
+          "description": "Current-v1 raw signature algorithm name. Reserved ML-DSA-65 is not admitted until a future negotiated schema/profile activation."
         },
         "signature": {
           "type": "string",

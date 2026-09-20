@@ -3,9 +3,9 @@
   "artifacts": [
     {
       "path": "spec/v1/artifacts/profiles/conformance-profiles.json",
-      "version": "2026-09-20.4",
-      "generated_at": "2026-09-20T16:42:00+08:00",
-      "content_digest": "sha256:38d272aa15cbaefbabeb460d71b0792e4058706f85da7649a36d9e33712d052c"
+      "version": "2026-09-20.5",
+      "generated_at": "2026-09-20T21:43:00+08:00",
+      "content_digest": "sha256:4f2f099da74b9b785128f50884d82d555d835bcf3a2e5df1be2c41365695bc91"
     },
     {
       "path": "spec/v1/artifacts/registry/account-data-key-registry.json",
@@ -231,9 +231,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-09-20.27",
-      "generated_at": "2026-09-20T12:55:06+08:00",
-      "content_digest": "sha256:b81cd0cb43fb5a3a494d62a1845c3c17a696c3cece637c259391b809230fc9c3"
+      "version": "2026-09-20.28",
+      "generated_at": "2026-09-20T16:44:00+08:00",
+      "content_digest": "sha256:2f51a8e970eaf57fb7e0ef920ff138e22a97be347952ccf7a906e88d21dd935a"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
@@ -345,9 +345,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/signature-alg-registry.json",
-      "version": "2026-08-18.1",
+      "version": "2026-09-20.1",
       "generated_at": null,
-      "content_digest": "sha256:75ceacd213afaa3675d4cbeb88be0cf76ae4d38e2809a7bc8a47b0d7552896ef"
+      "content_digest": "sha256:8594c737580a5bb25f4cf3c07fd81fbb494bd234a4fb858732fea6e0fea4f909"
     },
     {
       "path": "spec/v1/artifacts/registry/string-profile-registry.json",

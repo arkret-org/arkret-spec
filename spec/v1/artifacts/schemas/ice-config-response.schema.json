@@ -155,10 +155,9 @@
         "signature_algorithm": {
           "type": "string",
           "enum": [
-            "Ed25519",
-            "ML-DSA-65"
+            "Ed25519"
           ],
-          "description": "Signature algorithm. Values MUST be active alg entries supporting detached_jws in signature-alg-registry.json. Default v1 deployments use Ed25519; stronger or deployment-specific profiles MAY require another registered algorithm while preserving the exact signing input defined in webrtc-signaling.md §4.1."
+          "description": "Current-v1 signature algorithm. Reserved algorithms, including ML-DSA-65, are rejected as unsupported until a new negotiated schema/profile activates them while preserving the exact signing input defined in webrtc-signaling.md §4.1."
         },
         "sig": {
           "type": "string",

@@ -4,7 +4,7 @@
     "entrypoint": "ak.suite.crypto.signature.v1"
   },
   "profile": "ak.vector_group.crypto_signature.v1",
-  "version": "2026-09-13.1",
+  "version": "2026-09-20.1",
   "vectors": [
     {
       "name": "ak.vector.encoding.crypto.ed25519_detached_jws.v1",
@@ -140,7 +140,7 @@
     },
     {
       "name": "ak.vector.encoding.crypto.mldsa65_raw_detached_signature.v1",
-      "description": "ML-DSA-65 (NIST FIPS 204) raw detached signature over the canonical proof binding object bytes (registry proof_kind = raw_detached_signature; no JOSE wrapping). PQC suite gated by ak.profile.signature.pqc.v1.",
+      "description": "Isolated ML-DSA-65 (NIST FIPS 204) raw detached-signature KAT over the canonical proof binding object bytes (no JOSE wrapping). The bytes are retained for future ak.profile.signature.pqc.v1 activation; ML-DSA-65 is reserved and rejected by current-v1 production admission.",
       "signature_algorithm": "ML-DSA-65",
       "proof_kind": "raw_detached_signature",
       "applies_to_profiles": [
@@ -175,7 +175,7 @@
         "reject_if_event_digest_changes": true,
         "reject_if_binding_is_not_canonical_json": true,
         "reject_if_verification_method_not_in_did_document": true,
-        "reject_if_receiver_does_not_declare_profile": "ak.profile.signature.pqc.v1"
+        "production_admission": "unsupported_signature_alg_until_ak.profile.signature.pqc.v1_is_activated"
       },
       "event_digest": "sha256:1d220b7baa7439933f94d6adf99b5e28b464369f677cd30f411eb8889d9c75b1"
     }

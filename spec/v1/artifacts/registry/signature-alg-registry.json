@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-18.1",
+  "version": "2026-09-20.1",
   "source_of_truth": true,
   "description": "Canonical signature algorithm vocabulary and explicit per-standard mappings for v1 JOSE, Arkret raw signatures, and RFC 9421 HTTP Message Signatures.",
   "registry_rules": [
@@ -58,15 +58,23 @@
       "jwk_private_parameter": "priv",
       "jwk_private_representation": "32-byte seed",
       "jose_reference": "RFC 9964",
-      "status": "active",
-      "role": "v1_profile_gated_pqc",
+      "status": "reserved",
+      "role": "reserved_pqc_signature",
       "profile_gate": "ak.profile.signature.pqc.v1",
-      "kat_vector_id": "ak.vector.encoding.crypto.mldsa65_raw_detached_signature.v1",
+      "kat_absence_reason": "The isolated FIPS 204 KAT is retained, but current-v1 has no production signer/verifier, authority key lifecycle, profile advertisement or end-to-end carrier consumer. The algorithm remains off wire until the complete activation package is released.",
       "proof_kinds": [
         "detached_jws",
         "raw_detached_signature"
       ],
-      "security_note": "NIST FIPS 204 ML-DSA category 3 suite for post-quantum hardening profiles. JOSE/JWK serialization follows RFC 9964: alg=ML-DSA-65, kty=AKP, required pub, optional private seed in priv, and empty ML-DSA context."
+      "activation_requirements": [
+        "Ship production ML-DSA-65 signer and verifier implementations that pass the retained FIPS 204 positive and negative byte-level KATs",
+        "Define RFC 9964 JWK and DID verification-method import, publication, rotation, revocation and historical-resolution behavior",
+        "Define current governance Station authority-key issuance and every end-to-end carrier and consumer that may accept ML-DSA-65",
+        "Publish profile capability discovery and negotiation that cannot downgrade or treat an unsupported algorithm as Ed25519",
+        "Add production test-material rejection after successful ML-DSA-65 verification and before any binding, cache, ledger or authenticated-state write",
+        "Release new schema versions that admit ML-DSA-65 only with the activated negotiated contract"
+      ],
+      "security_note": "Reserved NIST FIPS 204 ML-DSA category 3 suite for a future post-quantum authority-signature profile. RFC 9964 serialization and the isolated KAT are retained as activation inputs; current-v1 receivers reject it as unsupported and MUST NOT advertise the PQ signature profile."
     },
     {
       "canonical_id": "Ed25519+ML-DSA-65",

@@ -5,7 +5,7 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.identity.test_material_rejection.v1"
   },
-  "version": "2026-09-19.2",
+  "version": "2026-09-20.1",
   "profile": "ak.profile.full_client.v1",
   "covers_vectors": [
     "ak.vector.identity.test_signing_material_rejected.v1",
@@ -189,15 +189,15 @@
           "reject"
         ]
       },
-      "given": "the registered P-256 conformance key presented as a SEC1 uncompressed point and the registered ML-DSA-65 conformance key presented as its FIPS 204 public key",
-      "action": "verify a proof signed by each",
+      "given": "the registered P-256 conformance key presented as a SEC1 uncompressed point and the reserved ML-DSA-65 conformance key presented as its FIPS 204 public key",
+      "action": "verify the active P-256 proof, validate the reserved ML-DSA-65 algorithm-defined key bytes in the isolated harness, and evaluate the canonical published-material matcher for both encodings",
       "decision": "reject",
       "reason": "test_signing_material_denied",
-      "observed": "the verification outcome for each algorithm",
+      "observed": "the active P-256 verification outcome and both algorithm-defined fingerprint decisions; current-v1 production separately rejects ML-DSA-65 as unsupported",
       "assertions": [
         "each algorithm uses its own canonical public-key encoding for the fingerprint",
         "both are refused",
-        "the post-quantum key is refused on the same rule as the classical keys, so a post-quantum verification path is not an unguarded second door"
+        "the reserved post-quantum key remains registered so a future activated verifier cannot become an unguarded second door; current-v1 does not pretend this matcher-only assertion is a production ML-DSA verification path"
       ]
     },
     {

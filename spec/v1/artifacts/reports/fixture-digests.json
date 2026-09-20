@@ -147,8 +147,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/crypto-signature-fixture.json",
-      "sha256": "8ac237c151ed9dc2a1d7072f921ff7cf0b091ae70ac89941a044c977f1d4beb4",
-      "version": "2026-09-13.1"
+      "sha256": "11dbc4a9f98969b9ab3412f34fb15c4e461a2fb256bcdd41f65617d8146fbd93",
+      "version": "2026-09-20.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/cursor-negative-fixture.json",
@@ -487,8 +487,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/test-material-rejection-fixture.json",
-      "sha256": "d282567215e456c6f87f1c4da3059bfdb3335112ba13697c0bbca73dbf980b52",
-      "version": "2026-09-19.2"
+      "sha256": "772bdbecb64a2b1c405067db1923dde2c82871228b665d33cdbde23a7c732df4",
+      "version": "2026-09-20.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/view-write-contract-fixture.json",
