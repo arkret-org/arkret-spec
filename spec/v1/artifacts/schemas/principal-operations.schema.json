@@ -430,13 +430,11 @@
                         "object"
                       ]
                     },
-                    "proofs": {
-                      "items": {
-                        "not": {
-                          "required": [
-                            "signer_resolution_evidence_ref"
-                          ]
-                        }
+                    "producer_proof": {
+                      "not": {
+                        "required": [
+                          "signer_resolution_evidence_ref"
+                        ]
                       }
                     }
                   },
@@ -457,13 +455,11 @@
                     "kind": {
                       "const": "ak.device.authorize"
                     },
-                    "proofs": {
-                      "items": {
-                        "not": {
-                          "required": [
-                            "signer_resolution_evidence_ref"
-                          ]
-                        }
+                    "producer_proof": {
+                      "not": {
+                        "required": [
+                          "signer_resolution_evidence_ref"
+                        ]
                       }
                     }
                   },
@@ -895,7 +891,7 @@
     },
     "prepared_event_draft": {
       "type": "object",
-      "description": "Service-built canonical producer Event digest-payload bytes with proofs and reducer-managed fields absent. The client MUST decode these exact bytes under the suite carried by event_digest, add only the required producer proof, and return the resulting signed Event. Event id and kind are derived views, never parallel wire inputs.",
+      "description": "Service-built canonical producer Event digest-payload bytes with producer_proof and reducer-managed fields absent. The client MUST decode these exact bytes under the suite carried by event_digest, add only the required producer proof, and return the resulting signed Event. Event id and kind are derived views, never parallel wire inputs.",
       "required": [
         "unsigned_event_bytes",
         "event_digest"

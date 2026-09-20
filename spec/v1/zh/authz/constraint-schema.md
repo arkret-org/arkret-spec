@@ -699,7 +699,7 @@ Agent 自己的私有 draft 能力（`ak.agent.draft.propose` / `ak.agent.action
 | `ak.vector.authz.approval_signature_negative.v1` | 三类否例：换字节或错构造 → `signature_invalid`；形状错误 → `schema_violation`；签名有效但不可接纳 → `claim_required` reason=`approval_required` 或 `failed_precondition` reason=`approval_nonce_reused` |
 
 fixture 的 `event_id_invariance` 块给出 §9.2.5 那句「不改变目标 Event」的可核对形式：目标 Event 的摘要
-原像不含 `proofs`，evidence 又根本不是 Event 成员，因此附加 `approval_signatures[]` 前后原像字节与
+原像不含 `producer_proof`，evidence 又根本不是 Event 成员，因此附加 `approval_signatures[]` 前后原像字节与
 `event_id` **逐字节相同**，而传输层 `Content-Digest`（RFC 9530）**必然改变**——两道检查互相独立，
 实现 MUST NOT 为容纳 evidence 重写 Event 字节。
 

@@ -987,12 +987,12 @@ REQUIRED_DERIVED_RELATIONS: tuple[tuple[str, str, str], ...] = (
     (
         "content-bound-event-id-fixture.json",
         "ed25519_detached_jws_over_canonical_binding",
-        "case:principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected#/complete_wire_event/proofs/0/jws",
+        "case:principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected#/complete_wire_event/producer_proof/jws",
     ),
     (
         "content-bound-event-id-fixture.json",
         "ed25519_detached_jws_over_canonical_binding",
-        "case:organization_governed_pcr_genesis_derives_a_distinct_realm#/complete_wire_event/proofs/0/jws",
+        "case:organization_governed_pcr_genesis_derives_a_distinct_realm#/complete_wire_event/producer_proof/jws",
     ),
     (
         "content-bound-event-id-fixture.json",
@@ -3920,7 +3920,7 @@ def check_crypto_signature_fixture(lint: Lint) -> None:
         if isinstance(event, dict):
             signed_event = dict(event)
             # zh/conformance/encoding.md section 6: the digest preimage removes
-            # event_id, proofs and unsigned. event_id is excluded because
+            # event_id, producer_proof and unsigned. event_id is excluded because
             # section 4.0 derives it from this very digest.
             signed_event.pop("unsigned", None)
             signed_event.pop("event_id", None)
@@ -3934,11 +3934,11 @@ def check_crypto_signature_fixture(lint: Lint) -> None:
             event_with_proof = vector.get("event_with_proof")
             if isinstance(event_with_proof, dict):
                 unsigned = dict(event_with_proof)
-                unsigned.pop("proofs", None)
+                unsigned.pop("producer_proof", None)
                 unsigned.pop("unsigned", None)
                 unsigned.pop("event_id", None)
                 if unsigned != signed_event:
-                    lint.fail(path, f"vectors[{index}] event_with_proof without proofs differs from event_without_proofs")
+                    lint.fail(path, f"vectors[{index}] event_with_proof without producer_proof differs from event_without_proofs")
 
         binding = vector.get("binding_object")
         if isinstance(binding, dict):
@@ -4042,7 +4042,7 @@ def check_canonical_digest_fixtures(lint: Lint) -> None:
                     canonical_input = {
                         key: value
                         for key, value in canonical_input.items()
-                        if key not in {"proofs", "unsigned", "event_id"}
+                        if key not in {"producer_proof", "unsigned", "event_id"}
                     }
                 try:
                     canonical = canonical_json(canonical_input)
@@ -4403,7 +4403,7 @@ def check_stated_preimage_matches_stated_digest(lint: Lint) -> None:
             walk(fixture, fixture_path, fixture_path.name in PLACEHOLDER_DIGEST_FIXTURES)
 
 
-EVENT_PREIMAGE_RELAXED_ENVELOPE_MEMBERS = ("event_id", "proofs", "unsigned")
+EVENT_PREIMAGE_RELAXED_ENVELOPE_MEMBERS = ("event_id", "producer_proof", "unsigned")
 
 EVENT_PREIMAGE_ENVELOPE_SCHEMA_ID = (
     "https://arkret.org/v1/schemas/event-envelope-preimage.internal.json"
@@ -4414,7 +4414,7 @@ def _event_preimage_envelope_validator(lint: Lint) -> Any:
     """event-envelope.schema.json with exactly the §5 preimage omissions relaxed.
 
     zh/conformance/encoding.md §5 and §6.0.2(a) define the Event digest preimage
-    as the signed Event body: the envelope with `event_id`, `proofs` and
+    as the signed Event body: the envelope with `event_id`, `producer_proof` and
     `unsigned` deleted. Nothing else about the envelope is relaxed, so a stated
     preimage stays subject to every closed-schema rule the wire Event obeys.
     """
@@ -4425,10 +4425,10 @@ def _event_preimage_envelope_validator(lint: Lint) -> Any:
     if not isinstance(document, dict):
         return None
     required = document.get("required")
-    if not isinstance(required, list) or not {"event_id", "proofs"} <= set(required):
+    if not isinstance(required, list) or not {"event_id", "producer_proof"} <= set(required):
         lint.fail(
             schema_path,
-            "the Event envelope must still require event_id and proofs; the preimage "
+            "the Event envelope must still require event_id and producer_proof; the preimage "
             "gate relaxes exactly those members and would otherwise relax nothing",
         )
         return None
@@ -4629,7 +4629,7 @@ def check_event_batch_receipt_normalization_vector(lint: Lint) -> None:
 def _unrelaxed_event_envelope_validator(lint: Lint) -> Any:
     """The closed wire Event schema, with nothing relaxed.
 
-    _event_preimage_envelope_validator deletes event_id/proofs/unsigned from
+    _event_preimage_envelope_validator deletes event_id/producer_proof/unsigned from
     `required` because a stated preimage legitimately omits them. A complete wire
     Event omits nothing, and no fixture carried one, so the members that only a
     complete Event has -- event_id and the producer proof -- had no schema gate at
@@ -4699,7 +4699,7 @@ def check_human_pcr_admission_branch_evidence(lint: Lint) -> None:
     1105 removed the did_inception reference that used to route human PCR genesis
     and split the two branches on the executor pair instead. What the repository
     then had was a selector with no complete instance: every fixture carried a
-    digest preimage, which by definition omits event_id and proofs, so the members
+    digest preimage, which by definition omits event_id and producer_proof, so the members
     that distinguish a wire Event from its own preimage were never validated, and
     "this instance selects exactly one branch" was asserted only by a unit test
     over instances that were not valid Events at all.
@@ -4796,12 +4796,12 @@ def check_human_pcr_admission_branch_evidence(lint: Lint) -> None:
                 f"{name}: complete_wire_event.event_id must be the recomputed "
                 f"{case.get('derived_event_id')}",
             )
-        proofs = event.get("proofs")
-        if isinstance(proofs, list) and proofs and isinstance(proofs[0], dict):
-            if proofs[0].get("event_digest") != case.get("event_digest"):
+        proof = event.get("producer_proof")
+        if isinstance(proof, dict):
+            if proof.get("event_digest") != case.get("event_digest"):
                 lint.fail(
                     path,
-                    f"{name}: the producer proof signs {proofs[0].get('event_digest')} "
+                    f"{name}: the producer proof signs {proof.get('event_digest')} "
                     f"but the case derives {case.get('event_digest')}",
                 )
         source = case.get("admission_evidence", {})
@@ -5278,8 +5278,7 @@ def check_human_pcr_registration_anchor_binding(lint: Lint) -> None:
             f"{REGISTRATION_ANCHOR_CREATE_CASE}: a genesis Event has no predecessor, so the "
             "envelope MUST NOT carry prev_event_digest",
         )
-    proofs = event.get("proofs")
-    proof = proofs[0] if isinstance(proofs, list) and proofs and isinstance(proofs[0], dict) else None
+    proof = event.get("producer_proof")
     if proof is None:
         lint.fail(
             content_path,
@@ -5366,12 +5365,10 @@ def check_human_pcr_registration_anchor_binding(lint: Lint) -> None:
     # --- 5. the delegated branch resolves elsewhere ---------------------------
     delegated = cases.get(DELEGATED_PCR_GENESIS_CASE)
     if isinstance(delegated, dict):
-        delegated_proofs = (delegated.get("complete_wire_event") or {}).get("proofs")
+        delegated_proof = (delegated.get("complete_wire_event") or {}).get("producer_proof")
         delegated_method = (
-            delegated_proofs[0].get("verification_method")
-            if isinstance(delegated_proofs, list)
-            and delegated_proofs
-            and isinstance(delegated_proofs[0], dict)
+            delegated_proof.get("verification_method")
+            if isinstance(delegated_proof, dict)
             else None
         )
         if delegated_method == root_method:

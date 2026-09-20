@@ -147,7 +147,7 @@ Package -> registration 派生映射:
 | `registration_epoch` | `registration_epoch` | 由 canonical derived registration + DID/key/endpoint/auth evidence 计算。 |
 | `webhook_auth` | `webhook_auth` | 原样复制；必须覆盖 transaction push signature 验证锚点。`key_ref` 的 bare controller `did` 经已登记 adapter 投影后 MUST 等于 `service_id`，并绑定当前 `registration_epoch`；key rotate 后必须通过新的 effective registration / install 生效，旧 key 不得继续放行 inbound push。 |
 | `manifest` | `claimed_profiles` + `limits` + policies + optional widget declaration + install evidence | 作为 snapshot 放入 manifest，但不得替代顶层 required 字段；安装 authoring 时加入唯一 `registration_epoch_evidence`，并由管理员 Event proof 覆盖；widget snapshot MUST 保持 `ak.schema.applet_widget_declaration.v1` 的闭合形态。 |
-| `proof` | `proof` | accepted package 的 controller detached proof 逐字副本；`payload_digest` 只覆盖 canonical package，formal registration Event 使用独立 Event proofs。 |
+| `proof` | `proof` | accepted package 的 controller detached proof 逐字副本；`payload_digest` 只覆盖 canonical package，formal registration Event 使用独立 `producer_proof`。 |
 | `created_at` | `created_at` | 原样复制。 |
 
 Widget declaration 的字段顺序与 schema 一致：`schema`、`widget_origin`、`csp`、`token_scope`、`consent_required`。`token_scope` 是对象而非字符串数组，至少包含 `actions[]`、`resources[]` 与 `expires_at`；host / node 签发给 widget 的短期 token MUST 是该 scope 的子集，不能回退到用户 full session 权限。

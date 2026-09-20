@@ -11,7 +11,7 @@
     "actor_id",
     "created_at",
     "payload",
-    "proofs"
+    "producer_proof"
   ],
   "properties": {
     "event_id": {
@@ -85,14 +85,9 @@
     "payload": {
       "type": "object"
     },
-    "proofs": {
-      "type": "array",
-      "description": "Exactly one portable producer proof. Storage receipts are separate objects and never authorize this Event. Proofs and unsigned remain outside the canonical Event digest. Exact retries preserve the verified producer proof.",
-      "items": {
-        "$ref": "#/$defs/event_proof"
-      },
-      "minItems": 1,
-      "maxItems": 1
+    "producer_proof": {
+      "$ref": "#/$defs/event_proof",
+      "description": "The Event's sole portable producer proof. Storage receipts are separate objects and never authorize this Event. producer_proof and unsigned remain outside the canonical Event digest. Exact retries preserve the verified producer proof."
     }
   },
   "dependentRequired": {
@@ -3281,7 +3276,7 @@
     },
     "proof": {
       "type": "object",
-      "description": "Generic detached-JWS proof shape reused by non-Event schemas (snapshot signature, snapshot witness attestations, identity receipts, handle claims, etc.). MUST NOT be used as the shape of Event Envelope `proofs[]` — Event proofs reference $defs/event_proof and bind canonical Event bytes via `event_digest`. Non-Event signed objects MUST define an object-family signing-context constant and include it in the canonical proof binding object with payload_digest; the context constant is not a wire field in this generic shape. drift detection: `payload_digest#event_proof` in forbidden-wire-fields.json is the hard-reject mirror of this rule. New non-Event signed objects MAY $ref this shape; new signed Event-shaped objects MUST instead $ref event_proof.",
+      "description": "Generic detached-JWS proof shape reused by non-Event schemas (snapshot signature, snapshot witness attestations, identity receipts, handle claims, etc.). MUST NOT be used as the shape of Event Envelope `producer_proof` — Event proofs reference $defs/event_proof and bind canonical Event bytes via `event_digest`. Non-Event signed objects MUST define an object-family signing-context constant and include it in the canonical proof binding object with payload_digest; the context constant is not a wire field in this generic shape. drift detection: `payload_digest#event_proof` in forbidden-wire-fields.json is the hard-reject mirror of this rule. New non-Event signed objects MAY $ref this shape; new signed Event-shaped objects MUST instead $ref event_proof.",
       "required": [
         "kind",
         "verification_method",
@@ -3304,7 +3299,7 @@
         },
         "payload_digest": {
           "$ref": "#/$defs/digest",
-          "description": "Generic non-Event detached-proof hash. This $defs/proof shape is reused by non-Event schemas; Event.properties.proofs references $defs/event_proof and MUST use event_digest instead."
+          "description": "Generic non-Event detached-proof hash. This $defs/proof shape is reused by non-Event schemas; Event.properties.producer_proof references $defs/event_proof and MUST use event_digest instead."
         },
         "created_at": {
           "$ref": "#/$defs/timestamp"

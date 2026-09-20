@@ -3735,7 +3735,7 @@
     },
     "device_revoke_payload": {
       "type": "object",
-      "description": "Payload for ak.device.revoke. Its exact AccountId subject is derived exclusively from the Event envelope actor_id; the payload MUST NOT mirror a principal_id. The revocation's control-plane authorization basis is the current authority-committed state (covered by the canonical event bytes and proofs); its permanent cutoff is the accepted RealmCommit covering this Event. First durable canonical acceptance atomically creates ak.schema.device_revocation_state.v1 revocation_pending for the exact reducer-derived current device authorization and generation. The payload carries no checkpoint or generation field, and producers cannot self-report derived pending selectors.",
+      "description": "Payload for ak.device.revoke. Its exact AccountId subject is derived exclusively from the Event envelope actor_id; the payload MUST NOT mirror a principal_id. The revocation's control-plane authorization basis is the current authority-committed state (covered by the canonical Event bytes and producer_proof); its permanent cutoff is the accepted RealmCommit covering this Event. First durable canonical acceptance atomically creates ak.schema.device_revocation_state.v1 revocation_pending for the exact reducer-derived current device authorization and generation. The payload carries no checkpoint or generation field, and producers cannot self-report derived pending selectors.",
       "required": [
         "device_id",
         "revoked_by",

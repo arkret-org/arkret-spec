@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.13",
+  "version": "2026-09-20.14",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T07:52:58+08:00",
+  "generated_at": "2026-09-20T13:43:30+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -2282,7 +2282,7 @@
       "status": "active",
       "domain": "encoding",
       "scope": "universal",
-      "description": "The event digest preimage is the canonical Event Envelope with event_id, proofs and unsigned removed; event_id is derived forward from that digest as 33 octets of suite code plus full digest in unpadded base64url, and transport envelopes, HTTP headers, sync metadata and local receive time never enter it, so every read surface yields the same digest.",
+      "description": "The event digest preimage is the canonical Event Envelope with event_id, producer_proof and unsigned removed; event_id is derived forward from that digest as 33 octets of suite code plus full digest in unpadded base64url, and transport envelopes, HTTP headers, sync metadata and local receive time never enter it, so every read surface yields the same digest.",
       "source_refs": [
         "spec/v1/artifacts/registry/normative-clause-registry.json"
       ]
@@ -3883,7 +3883,7 @@
       "status": "active",
       "domain": "proof_context",
       "scope": "universal",
-      "description": "Transcript KAT for ak.event_proof.v1: digest input deletes exactly `event_id`, `proofs`, `unsigned`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.extension_manifest_proof.v1 rejected.",
+      "description": "Transcript KAT for ak.event_proof.v1: digest input deletes exactly `event_id`, `producer_proof`, `unsigned`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.extension_manifest_proof.v1 rejected.",
       "source_refs": [
         "spec/v1/artifacts/registry/normative-clause-registry.json"
       ]
@@ -4423,7 +4423,7 @@
       "applies_to_profiles": [
         "ak.profile.full_client.v1"
       ],
-      "description": "hlc, producer_revision, domain_refs and requirements at the Event top level are each refused with schema_violation rather than ignored or stripped, and proofs, scope_ref, actor_id and refs[role=authorized_by] cannot be omitted or synthesized from a default, the transport, the session or a neighbouring event before the verification path runs.",
+      "description": "hlc, producer_revision, domain_refs and requirements at the Event top level are each refused with schema_violation rather than ignored or stripped, and producer_proof, scope_ref, actor_id and refs[role=authorized_by] cannot be omitted or synthesized from a default, the transport, the session or a neighbouring event before the verification path runs.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/zh/conformance/conformance-profiles.md",

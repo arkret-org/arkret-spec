@@ -56,7 +56,7 @@ EVENT_PROOF_CONTEXT = "ak.event_proof.v1"
 MATERIAL_ROW = "conformance_ed25519_fixture_key"
 PUBLISHED_SEED = bytes(range(32))
 SOURCE_EVENT_CASE = "strand_object_id_is_retyped_event_id"
-PREIMAGE_OMITTED_MEMBERS = ("event_id", "proofs", "unsigned")
+PREIMAGE_OMITTED_MEMBERS = ("event_id", "producer_proof", "unsigned")
 
 # A named case may be renamed or re-argued, but it may not quietly disappear:
 # each of these is the only refutation of one distinct way to get the bytes
@@ -348,7 +348,7 @@ def check_event_id_invariance(fixture: dict[str, Any]) -> list[str]:
     stripped = {k: v for k, v in event.items() if k not in PREIMAGE_OMITTED_MEMBERS}
     if jcs_text(stripped) != preimage_text:
         errors.append(
-            "event_id_invariance: stripping event_id, proofs and unsigned from the submitted "
+            "event_id_invariance: stripping event_id, producer_proof and unsigned from the submitted "
             "Event does not reproduce the preimage bytes"
         )
     if jcs_text(event) != block["complete_event_canonical_utf8"]:
@@ -507,7 +507,7 @@ def check_negative(
                     fail("the signed payload is not SHA-256 over JCS(input)")
             if name == "reject_producer_proof_jws_presented_as_approval_proof":
                 event = fixture["event_id_invariance"]["submission_with_evidence"]["event"]
-                proof = event["proofs"][0]
+                proof = event["producer_proof"]
                 if case["proof_jws"] != proof["jws"]:
                     fail("this case must present the target Event's own producer proof verbatim")
                 binding = {

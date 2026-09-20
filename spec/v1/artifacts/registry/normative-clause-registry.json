@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.10",
+  "version": "2026-09-20.11",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T12:53:00+08:00",
+  "generated_at": "2026-09-20T13:43:30+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -61,7 +61,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#3-digest-suite",
-      "section_digest": "sha256:08b8a53187f4bbbbe4e5a62ba383184715a9cac7e7403183d3753594c5a26121",
+      "section_digest": "sha256:caef9d2d0284ae393d17d7666e26010b291308c74cbd504edf4589b6418f00d0",
       "requirement": "Digest suite identifiers, canonical event digest computation and the bytewise tie-break order are fixed; implementations MUST NOT substitute another hash encoding or comparison direction.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -76,7 +76,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#6-detached-signature",
-      "section_digest": "sha256:c17911415417389006ac552dd4128a8f3bcbe14dbdd8c2e19035f7c0e62d8514",
+      "section_digest": "sha256:3c3e8e7b6b6e86b2d2ef5d891d6bf4f0183c4e421a59677c5afbad4621a12dae",
       "requirement": "The signature carrier MUST cryptographically protect its algorithm selection, and the binding payload MUST bind domain and audience; a signature valid for one algorithm, domain or audience MUST NOT verify for another. Section 6.0.2 fixes one construction for every registered proof context: the unsigned projection deletes the proof carrier member rather than nulling it and never defaults an absent optional, an absent optional binding field is omitted rather than written as null, audience is a single string or a duplicate-free array with the single-value form mandatory for one audience, and the context constant is a binding object member rather than a JWS header parameter, so a signature valid under one object family's context MUST NOT verify for another.",
       "testability_grade": "vector",
       "evidence_refs": [

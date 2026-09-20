@@ -319,7 +319,7 @@ class MutatingLintCase(unittest.TestCase):
         device_method = self.pcr["founding_event_proof_binding"]["authorize_event"][
             "verification_method"
         ]
-        create["complete_wire_event"]["proofs"][0]["verification_method"] = device_method
+        create["complete_wire_event"]["producer_proof"]["verification_method"] = device_method
         self.assert_rejected(
             self.overrides,
             "the registration_anchor branch accepted a device DID URL as its producer method",
@@ -369,7 +369,7 @@ class MutatingLintCase(unittest.TestCase):
     def test_the_delegated_executor_cannot_be_the_anchor_root(self) -> None:
         delegated = self.cases[DELEGATED_CASE]
         root = self.pcr["founding_event_proof_binding"]["create_event"]["verification_method"]
-        delegated["complete_wire_event"]["proofs"][0]["verification_method"] = root
+        delegated["complete_wire_event"]["producer_proof"]["verification_method"] = root
         delegated["admission_evidence"]["proof_binding"]["binding_object"][
             "verification_method"
         ] = root
@@ -382,7 +382,7 @@ class MutatingLintCase(unittest.TestCase):
         delegated = self.cases[DELEGATED_CASE]
         subject = self.anchor["registration_did_operation"]["did"]
         method = f"{subject}#ak:device:019a0000-0000-7000-8000-00000000000b"
-        delegated["complete_wire_event"]["proofs"][0]["verification_method"] = method
+        delegated["complete_wire_event"]["producer_proof"]["verification_method"] = method
         delegated["admission_evidence"]["proof_binding"]["binding_object"][
             "verification_method"
         ] = method
@@ -401,7 +401,7 @@ class MutatingLintCase(unittest.TestCase):
 
     def test_the_wire_proof_and_the_binding_object_must_name_one_method(self) -> None:
         delegated = self.cases[DELEGATED_CASE]
-        delegated["complete_wire_event"]["proofs"][0]["verification_method"] = (
+        delegated["complete_wire_event"]["producer_proof"]["verification_method"] = (
             "did:webvh:z6mkfixtureorgexecutor:org.example#ak:device:"
             "019a0000-0000-7000-8000-00000000000c"
         )

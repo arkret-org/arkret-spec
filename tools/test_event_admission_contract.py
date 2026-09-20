@@ -77,7 +77,7 @@ class EventAdmissionContractTest(unittest.TestCase):
             for variant in variants:
                 if variant["admission"] not in classes or variant["when"].get("otherwise"):
                     continue
-                event = {"kind": row["event_kind"], "proofs": [{"signer_resolution_evidence_ref": "fixture"}]}
+                event = {"kind": row["event_kind"], "producer_proof": {"signer_resolution_evidence_ref": "fixture"}}
                 when = variant["when"]
                 if "payload_path" in when:
                     target = event.setdefault("payload", {})

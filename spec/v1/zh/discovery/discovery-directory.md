@@ -499,7 +499,7 @@ current-v1 仅支持资源 Station 经已认证 announce/withdraw 主动推送�
 **认证**：
 
 - Transport 层：HTTP Message Signature（RFC 9421）由资源所在 Station 的 service DID 签发，绑定 `Source-Service-ID` header。
-- Payload 层：`discovery_event` 是**已接受的 `ak.{kind}.discovery` Event 原件**，其自身 `proofs[]` 即资源 governance key 的签名（按资源 DID document 解析 effective signer）。规范**不再**定义第二份对同一事实的 detached 签名副本——同一事实两种签名形态必然漂移，且 Event 之外的“payload 内含 proof”形态在本模型中没有可移植的 canonical bytes 定义。
+- Payload 层：`discovery_event` 是**已接受的 `ak.{kind}.discovery` Event 原件**，其自身 `producer_proof` 即资源 governance key 的签名（按资源 DID document 解析 effective signer）。规范**不再**定义第二份对同一事实的 detached 签名副本——同一事实两种签名形态必然漂移，且 Event 之外的“payload 内含 proof”形态在本模型中没有可移植的 canonical bytes 定义。
 - Directory MUST 要求已验证的 `Source-Service-ID` 与从 discovery Event actual-author `ActorId` 导出的 origin service 一致；request body 不再重复携带 `station_id`。
 
 **请求字段**：
@@ -583,7 +583,7 @@ current-v1 仅支持资源 Station 经已认证 announce/withdraw 主动推送�
 Directory 接受 announce ingest前 MUST 顺序完成：
 
 1. **Transport layer**：验证发送资源服务的 HTTP Message Signature 与目标 service binding。
-2. **Discovery proof**：按 Event proof 既有规则验证 `discovery_event` 的 `proofs[]`（重算 canonical bytes 与 `event_id` 并逐字节比对），并确认其 signer 在该 Event 被 authority commit 时有效；随后按 kind 的 typed subject 规则派生资源类别与主键，不存在外层 mismatch 分支。
+2. **Discovery proof**：按 Event proof 既有规则验证 `discovery_event` 的 `producer_proof`（重算 canonical bytes 与 `event_id` 并逐字节比对），并确认其 signer 在该 Event 被 authority commit 时有效；随后按 kind 的 typed subject 规则派生资源类别与主键，不存在外层 mismatch 分支。
 3. **Directory authorization**：确认 `discovery_event.payload.value.directory_ids` 数组包含本 Directory 的 service DID。
 4. **Source refs authority 与首次抽验**：先验证 `source_ref_access` 的 source service detached JWS；其 `ak.directory_source_ref_access_proof.v1` transcript 覆盖 carrier 删除 proof 后的 `payload_digest`、`source_id`、authenticated `directory_id`、`realm_id`、`discovery_event_id`、canonical sorted/duplicate-free `source_refs` 四元组、`as_of`、`expires_at`、`verification_method`、`created_at`、Arkret `domain` 与接收 Directory `audience`。carrier 的 discovery Event / `as_of` 必须与本次 announce 逐字相等，source service 必须等于已验证 transport 来源，Directory 必须等于本服务，过期或签名不成立即拒绝。Directory 对**首次 ingest** MUST 从 carrier refs 选择至少一个，并调用 `ak.peer.events.read.resolve_committed.v1`；请求只可带 carrier 中的非空 `CommittedEventRef` 子集，不得使用 scan/list 或只提交 Event ID。
 

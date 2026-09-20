@@ -1,5 +1,5 @@
 {
-  "version": "2026-09-19.1",
+  "version": "2026-09-19.2",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.events.redaction.v1"
@@ -451,13 +451,11 @@
             "body": "pruned snapshot plaintext"
           }
         },
-        "proofs": [
-          {
-            "verification_method": "did:webvh:z6mkfixture:alice.example#ak_device_0197",
-            "payload_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
-            "signature": "signature-base64url-placeholder"
-          }
-        ],
+        "producer_proof": {
+          "verification_method": "did:webvh:z6mkfixture:alice.example#ak_device_0197",
+          "payload_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "signature": "signature-base64url-placeholder"
+        },
         "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
       },
       "redaction_receipt": {
@@ -566,13 +564,11 @@
             "body": "hard erased plaintext"
           }
         },
-        "proofs": [
-          {
-            "verification_method": "did:webvh:z6mkfixture:alice.example#ak_device_0197",
-            "payload_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
-            "signature": "signature-base64url-placeholder"
-          }
-        ],
+        "producer_proof": {
+          "verification_method": "did:webvh:z6mkfixture:alice.example#ak_device_0197",
+          "payload_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+          "signature": "signature-base64url-placeholder"
+        },
         "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
       },
       "redaction_receipt": {

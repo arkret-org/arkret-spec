@@ -243,7 +243,7 @@ genesis_salt = base64url_no_pad(CSPRNG(32 octets))
 
 canonical wire 恰为 43 chars，禁止 padding、非 URL-safe alphabet、31/33 bytes、时间/HLC/UUID/计数器或可预测 PRNG。每个新 create intent 只生成一次并先与 intent 持久化；prepare、签名、HTTP retry、receipt 查询与 crash recovery 必须复用同一 salt 以及首次持久化的 exact signed unit。salt 不是 replay nonce、授权、新鲜度、排序或 winner 输入。**PCR 与 Agent PCR 同样 MUST 携带 `genesis_salt`**：收敛为 event-derived 后它们不再是例外分支。salt 在此的作用是 (i) 消除例外、(ii) 使 PCR 地址不可由 DID 预先推算、(iii) 强制 durable intent 纪律——崩溃后重建 create 会得到不同 `event_id`，复用同一 salt 与首次持久化的 exact signed unit 才能避免产生第二个 PCR；该纪律与账号维度唯一约束互为正反面。
 
-**为什么必须省略而不是"携带并校验相等"（normative rationale）**：`event_digest` 的 preimage 只排除 `event_id` / `proofs` / `unsigned`（[`../conformance/encoding.md` §6](../conformance/encoding.md)），`realm_id` 与 `scope_ref` **仍在 preimage 内**。而 §4.0 的 `event_id` 由该 digest 决定，`realm_id` 又要等于 `retype(event_id)`——于是 `realm_id` 成为 digest 的函数，却又是 digest 的输入，**定义即循环，没有不动点可解**。唯一出路是把它移出 preimage，即从 envelope 省略；`scope_ref` 同理，故 genesis 使用不含 `realm_id` 的 `realm_genesis` 形态。这与 Matrix room v12 把 `room_id` 从 create event 移除的理由完全相同。
+**为什么必须省略而不是"携带并校验相等"（normative rationale）**：`event_digest` 的 preimage 只排除 `event_id` / `producer_proof` / `unsigned`（[`../conformance/encoding.md` §6](../conformance/encoding.md)），`realm_id` 与 `scope_ref` **仍在 preimage 内**。而 §4.0 的 `event_id` 由该 digest 决定，`realm_id` 又要等于 `retype(event_id)`——于是 `realm_id` 成为 digest 的函数，却又是 digest 的输入，**定义即循环，没有不动点可解**。唯一出路是把它移出 preimage，即从 envelope 省略；`scope_ref` 同理，故 genesis 使用不含 `realm_id` 的 `realm_genesis` 形态。这与 Matrix room v12 把 `room_id` 从 create event 移除的理由完全相同。
 
 Realm 之外的 create-once 对象没有这个问题：它们的 ID 只出现在 payload，且按 [`common-fields.md` §6.0](./common-fields.md) 一律省略。
 

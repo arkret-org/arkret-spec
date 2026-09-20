@@ -57,8 +57,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/approval-signature-kat-fixture.json",
-      "sha256": "35dc6e23aae5f940f9c603ddccfc62815a6f84eedffed4a7cfff0859f14527c2",
-      "version": "2026-09-20.1"
+      "sha256": "2f1dde9c0c9941f31a9d27d22536d3bfd7c6091f26ae4f6312d19939c7acad52",
+      "version": "2026-09-20.2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/arkret-private-kdf-fixture.json",
@@ -142,8 +142,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/content-bound-event-id-fixture.json",
-      "sha256": "50e51a19f4ed8a3dbdc1f6a393bf555a873b248f1e9daaa247c550d54ccca8b3",
-      "version": "2026-09-19.2"
+      "sha256": "1d2e9e050117535081f2d2684604d45b1619281c0e5a0fe48ed7258ddcaf9db9",
+      "version": "2026-09-19.3"
     },
     {
       "path": "spec/v1/artifacts/fixtures/crypto-signature-fixture.json",
@@ -347,8 +347,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/pcr-genesis-fixture.json",
-      "sha256": "23709f20c2558ca9ba17a3c8d16ff3cd7023143c5ac8a0e906be903bd4c1174e",
-      "version": 7
+      "sha256": "2a0227104cd4480972d6a5b1bd59e4eb03a36465324f6d5f4c7645d495f60968",
+      "version": 8
     },
     {
       "path": "spec/v1/artifacts/fixtures/peer-event-submit-semantic-union-fixture.json",
@@ -412,8 +412,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/redaction-fixture.json",
-      "sha256": "33bf8ff4e670252788319ce600daa8c2892a14816848fcb51f4d033c1e8e303f",
-      "version": "2026-09-19.1"
+      "sha256": "f88c3f8c3d1f7a3a215fa1be6d30cb73c03968a102279522b7c70dee20549251",
+      "version": "2026-09-19.2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/resolution-commitment-fixture.json",
@@ -512,8 +512,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/websocket-binding-fixture.json",
-      "sha256": "d00b797cd96f4b49625febb3b76c23c2a8dbfc44d162773c2ecc8a89e58e689b",
-      "version": "2026-09-19.1"
+      "sha256": "527bb547b3454315fa044fae5b15d7ff1517491a6eb6270b579886ffb9e8b4f0",
+      "version": "2026-09-19.2"
     }
   ],
   "fixtures_root": "spec/v1/artifacts/fixtures",

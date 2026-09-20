@@ -1005,16 +1005,16 @@ def check_keypackage_claim_proof_shape(lint: Lint) -> None:
 
 
 def check_event_proof_digest_shape(lint: Lint) -> None:
-    """Event proofs must use event_digest, not generic payload_hash."""
+    """The Event producer proof must use event_digest, not generic payload_hash."""
 
     path = ARTIFACTS / "schemas" / "event-envelope.schema.json"
     data = load_json(lint, path)
     if not isinstance(data, dict):
         return
 
-    proofs = (((data.get("properties") or {}).get("proofs") or {}).get("items") or {})
-    if proofs.get("$ref") != "#/$defs/event_proof":
-        lint.fail(path, "Event.properties.proofs.items must reference $defs/event_proof")
+    producer_proof = (data.get("properties") or {}).get("producer_proof") or {}
+    if producer_proof.get("$ref") != "#/$defs/event_proof":
+        lint.fail(path, "Event.properties.producer_proof must reference $defs/event_proof")
 
     event_proof = ((data.get("$defs") or {}).get("event_proof") or {})
     if not isinstance(event_proof, dict):
@@ -1596,7 +1596,7 @@ def check_canonical_digest_alias(lint: Lint) -> None:
                 lint.fail(
                     path,
                     f"forbidden Event digest preimage alias `{forbidden}`; "
-                    "use `envelope_without_event_id_proofs_unsigned`",
+                    "use `envelope_without_event_id_producer_proof_unsigned`",
                 )
 
 

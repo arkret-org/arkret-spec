@@ -38,7 +38,7 @@ Event Envelope 的顶层字段为：
 | `created_at` | 是 | producer 声明的展示时间，不决定提交顺序 |
 | `refs` | 否 | 封闭 role 的业务引用；`authorized_by` 只接受 `GrantId` |
 | `payload` | 是 | 由 kind 选择的 closed typed payload |
-| `proofs` | 是 | 唯一 producer proof |
+| `producer_proof` | 是 | 唯一 producer proof；是单个对象，不是数组 |
 
 Event 不携带 `producer_revision`、`hlc`、`domain_refs`、通用 `preconditions`、`commit_authorization_state`、
 `commit_base`、`expected_revision`、`requirements` 或 `unsigned`。Event 也不携带前一个 Event/Commit；

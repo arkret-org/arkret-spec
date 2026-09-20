@@ -279,7 +279,7 @@ mask 的双重命中必须稳定选择 `direct_conversation_terminal_forbidden`�
 
 ### 3.7 编码与 proof context
 
-`ak.vector.encoding.event_digest.v1` MUST 证明：event digest 的 preimage 是移除 `event_id`、`proofs` 与
+`ak.vector.encoding.event_digest.v1` MUST 证明：event digest 的 preimage 是移除 `event_id`、`producer_proof` 与
 `unsigned` 后的 canonical Event Envelope；`event_id` 由该 digest 一次前向派生，因此 MUST NOT 出现在 preimage 中。
 `event_id` 的 33 octets 为 suite code 拼接完整 digest 后做无 padding base64url。实现 MUST NOT 把 transport
 envelope、HTTP header、Station sync 面的 metadata 或本地接收时间放入 event digest；同一 Event 在不同读取面上
@@ -291,8 +291,8 @@ canonical 展示顺序——对一组互不排序的候选 Event，排序键是*
 包含一条 wire string 顺序与 decoded octets 顺序**相反**的 case，证明直接比较 `<suite>:<hex>` 或 base64url
 字符串会得到错误序列。全部候选 MUST 保留且没有 winner：该顺序 MUST NOT 决定授权、admission、finality、
 `stream_position` 或 `previous_commit_ref`，也 MUST NOT 使任一候选被删除或遮蔽。digest preimage MUST 逐字
-使用移除 `event_id`、`proofs` 与 `unsigned` 后的 canonical Event body；加入额外业务字段的实现 MUST 失败。
-仅 `proofs` 或 `unsigned` 不同而 canonical preimage 逐字相同的两个输入 MUST NOT 被报成 collision；同 suite、
+使用移除 `event_id`、`producer_proof` 与 `unsigned` 后的 canonical Event body；加入额外业务字段的实现 MUST 失败。
+仅 `producer_proof` 或 `unsigned` 不同而 canonical preimage 逐字相同的两个输入 MUST NOT 被报成 collision；同 suite、
 同 octets 而 canonical preimage 不同 MUST fail closed，MUST NOT 回退到 `event_id`、`created_at`、到达顺序或
 实现私有 ID。向量同时明示 producer 击败一个已知随机 digest 的期望尝试数约为 2，因此该顺序是 producer-biased
 的展示排列而不是公平选举。
@@ -319,11 +319,11 @@ MUST NOT 为了让 roundtrip 正例通过而绕过 criticality 验证。未知
 subject 来源；哈希化 subject、URI fragment 截断与 caller 自行分配的备用 room 标识符一律拒绝。
 
 `ak.vector.proof_context.transcript.event_envelope.v1` MUST 证明：`ak.event_proof.v1` 的 transcript KAT——
-digest 输入恰好删除 `event_id`、`proofs`、`unsigned` 三个成员；canonical binding bytes 与 detached JWS 逐字节固定；
+digest 输入恰好删除 `event_id`、`producer_proof`、`unsigned` 三个成员；canonical binding bytes 与 detached JWS 逐字节固定；
 同一未签名 body 在 `ak.extension_manifest_proof.v1` 下重放 MUST 拒绝。
 
 `ak.vector.proof_context.transcript.event_batch_receipt.v1` MUST 证明：`ak.receipt_proof.v1` 的 transcript KAT——
-digest 输入删除 `proofs`；canonical binding bytes 与 detached JWS 逐字节固定；同一未签名 body 在
+digest 输入删除 `producer_proof`；canonical binding bytes 与 detached JWS 逐字节固定；同一未签名 body 在
 `ak.registration_did_evidence_control_proof.v1` 下重放 MUST 拒绝。
 
 `ak.vector.encoding.derived_relation_evidence.v1` MUST 证明：机器 fixture 中每一条派生结论都以它所命名的
@@ -546,7 +546,7 @@ MUST NOT 被当作本向量的替代证据。
 形态。观测点是被消费效果的缺席，而不是 schema 判定本身。
 
 `ak.vector.sdk.envelope_forbidden_top_level_fields.v1` MUST 证明：`hlc`、`producer_revision`、`domain_refs`、
-`requirements` 出现在 Event 顶层时逐个以 `schema_violation` 被拒，而不是被忽略或剥除；`proofs`、`scope_ref`、
+`requirements` 出现在 Event 顶层时逐个以 `schema_violation` 被拒，而不是被忽略或剥除；`producer_proof`、`scope_ref`、
 `actor_id` 与 `refs[role=authorized_by]` 各自缺失时同样被拒，且不从默认值、传输层、会话或相邻 Event 合成替代值后
 进入验证路径。
 

@@ -69,7 +69,7 @@
       "updated_at",
       "revoked_by",
       "revoked_at",
-      "proofs",
+      "producer_proof",
       "proof"
     ]
   },

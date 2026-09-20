@@ -102,7 +102,7 @@ generation 与治理 Station proof。验证方据此重算 Commit ID 并校验�
 Event digest 只是 producer 可控内容的摘要：producer 要击败一个已知随机 digest，期望约两次尝试。因此本节
 定义的顺序只提供**跨实现确定性**，不提供中立、公平或不可操纵的 winner。
 
-- 比较输入是 §5 的 canonical event digest（移除 `event_id`、`proofs` 与 `unsigned` 后的 canonical Event body
+- 比较输入是 §5 的 canonical event digest（移除 `event_id`、`producer_proof` 与 `unsigned` 后的 canonical Event body
   摘要）。digest preimage MUST 逐字使用该 canonical body，实现不得额外加入或移除业务字段。
 - 比较对象是**解码后的 digest octets**，按 unsigned lexicographic order 升序。octets 完全相同而 suite 不同时，
   以 canonical suite id 的 UTF-8 unsigned bytewise 升序作第二键。实现 MUST NOT 直接比较 `<suite>:<hex>` 或
@@ -113,7 +113,7 @@ Event digest 只是 producer 可控内容的摘要：producer 要击败一个已
   统一时间线或审计列表——那时两个候选可以来自不同 suite。实现 MUST NOT 因为 Realm 内不可达就省略该第二键。
 - 两个不同 canonical preimage 得到同一 suite、同一 octets 的 typed digest 是 collision，MUST fail closed，
   MUST NOT 回退到 `event_id`、`created_at`、到达顺序或实现私有 ID 补全顺序。canonical preimage 逐字相同、
-  只有 `proofs` 或 `unsigned` 不同的两个输入 MUST NOT 被报成 collision。
+  只有 `producer_proof` 或 `unsigned` 不同的两个输入 MUST NOT 被报成 collision。
 
 该顺序只允许用于 canonical set 序列化、审计列表与 timeline/展示的稳定排列，并且全部候选 MUST 保持完整可见。
 **本节只定义一个 comparator，不是任何展示面的默认序**：这是 scope restriction（允许用在哪里），不是
@@ -185,7 +185,7 @@ DID），MUST NOT 改写下面四条的编码语义。
 `receipt_digest` / `envelope_digest` 之一时，该 digest 的原像按下列顺序得到：
 
 1. 取被签对象，**整体删除 proof carrier 成员**。carrier 名由该族 schema 决定（`proof` / `proofs` /
-   `signature` / `governance_proof`）；Event Envelope 另按 §5 删除 `event_id` / `proofs` / `unsigned`。
+   `signature` / `governance_proof`）；Event Envelope 另按 §5 删除 `event_id` / `producer_proof` / `unsigned`。
 2. 删除的是**成员本身**，MUST NOT 置为 `null`，也 MUST NOT 保留空对象或空数组占位：`null` 与缺席在
    canonical JSON 下是不同字节，两种写法会产生两个互不验证的 digest。
 3. 实际存在的 optional 字段逐字保留；缺席的 optional 字段 MUST NOT 被补写默认值、空串、`0` 或 `null`。

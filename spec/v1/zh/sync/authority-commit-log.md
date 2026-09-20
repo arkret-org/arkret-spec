@@ -37,7 +37,7 @@ Realm membership、policy 和 authority 变更只提交到 Realm stream。治理
 
 共享 Event 是 closed producer-signed object，只含：
 
-`event_id, kind, realm_id?, scope_ref, actor_id, executed_by?, authorization_ref?, applet_id?, external_ref?, created_at, refs?, payload, proofs`。
+`event_id, kind, realm_id?, scope_ref, actor_id, executed_by?, authorization_ref?, applet_id?, external_ref?, created_at, refs?, payload, producer_proof`。
 
 `realm_id` 仅在 `ak.realm.create` 的现有派生例外中省略。`refs` 只表示注册的业务引用。Event 不得携带 `producer_revision`、`hlc`、`domain_refs`、`preconditions`、`commit_authorization_state`、`commit_base`、`expected_revision`、`requirements` 或 `unsigned`。该封闭禁用集合的机读投影是 [`forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json) 的 `producer_event_envelope_root` context。
 

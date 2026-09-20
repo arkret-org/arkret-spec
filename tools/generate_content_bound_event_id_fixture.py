@@ -24,7 +24,7 @@ FIXTURE = ARTIFACTS / "fixtures/content-bound-event-id-fixture.json"
 # signed Event body, which is the envelope with these three members deleted.
 # Everything else about the envelope still holds, so a preimage that the closed
 # envelope schema rejects is not a preimage any implementation can produce.
-PREIMAGE_RELAXED_ENVELOPE_MEMBERS = ("event_id", "proofs", "unsigned")
+PREIMAGE_RELAXED_ENVELOPE_MEMBERS = ("event_id", "producer_proof", "unsigned")
 PREIMAGE_ENVELOPE_SCHEMA_ID = (
     "https://arkret.org/v1/schemas/event-envelope-preimage.internal.json"
 )

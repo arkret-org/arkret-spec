@@ -1,6 +1,6 @@
 {
   "suite": "ak.fixture.pcr_genesis.v1",
-  "version": 7,
+  "version": 8,
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.identity.pcr_genesis.v1"
@@ -118,9 +118,9 @@
       "canonical_timestamp": "2026-08-09T00:00:00.000Z",
       "equal_fields": [
         "events[0].created_at",
-        "events[0].proofs[0].created_at",
+        "events[0].producer_proof.created_at",
         "events[1].created_at",
-        "events[1].proofs[0].created_at"
+        "events[1].producer_proof.created_at"
       ],
       "sub_millisecond_policy": "floor_before_any_event_digest_or_producer_proof",
       "second_clock_read": "forbidden"
@@ -317,7 +317,7 @@
       "expected": "reject_zero_writes"
     },
     {
-      "field": "genesis_unit.events[0].proofs[0].created_at",
+      "field": "genesis_unit.events[0].producer_proof.created_at",
       "mutation": "one_millisecond_after_frozen_checkpoint",
       "expected": "reject_zero_writes"
     },
@@ -327,7 +327,7 @@
       "expected": "reject_zero_writes"
     },
     {
-      "field": "genesis_unit.events[1].proofs[0].created_at",
+      "field": "genesis_unit.events[1].producer_proof.created_at",
       "mutation": "one_millisecond_after_frozen_checkpoint",
       "expected": "reject_zero_writes"
     },
@@ -865,7 +865,7 @@
       "fixture": "content-bound-event-id-fixture.json",
       "create_case": "principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected",
       "initial_resolution_pointer": "/cases/<principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected>/complete_wire_event/payload/object/initial_resolution",
-      "producer_proof_pointer": "/cases/<principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected>/complete_wire_event/proofs/0",
+      "producer_proof_pointer": "/cases/<principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected>/complete_wire_event/producer_proof",
       "pcr_realm_id": "ak:realm:ARn9Y97Ha81FH12YY8HLiDixId_wA5Wx2c25p82mJcJ5",
       "note": "The create Event's initial_resolution carries exactly the did, version_id and method_history_head derived here, and its producer proof verification method is root_verification_method. Replacing the anchor changes anchor_canonical_json_sha256 and therefore invalidates the identity-root control proof that commits to it."
     },

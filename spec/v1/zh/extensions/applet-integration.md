@@ -646,7 +646,7 @@ delivery_authentication_record_digest =
 
 receiver MUST 从本地派生记录重算 digest，不得信任 caller 或 cache 输入的预算值。domain label 不是 `delivery_authentication_record` 的成员，实现 **MUST NOT** 把它以 `domain`、`profile` 或任何其他键插入记录后改算 `SHA256(JCS(record))`；该标签只以上式的 UTF-8 前缀形态参与摘要。记录的字段集封闭为本节列出的成员，**MUST NOT** 追加 `Signature` bytes、原始 `Signature-Input` 字符串、webhook 认证配置或请求摘要等本节未列出的成员。幂等 / replay equality 是重算后的 digest 相等；实现私有 audit metadata 可以与记录并列保存，但不得改变该 equality。实现不得只用裸 `Idempotency-Key` 或 body 内 `source_id` 决定重复投递，也不得在 service DID key rotate、registration epoch 改变或 active install 撤销后把旧记录当成新授权。
 
-`source_id` 只认证来源服务，不认证每条 durable Event 的业务 actor。arkret edge 把 Applet transaction 落为 Arkret Event 时，仍 MUST 对每条 Event 独立验证 `actor_id`、`applet_id`、`authorization_ref`、`external_ref` / provenance、`proofs[]` 与 registration `namespaces.actors` / capability grant；ghost actor、bot actor 或 delegated native actor 与 source service 不一致时 MUST fail closed（`applet_namespace_mismatch` / `capability_denied` / `applet_registration_unauthorized`，按失败层级选择）。
+`source_id` 只认证来源服务，不认证每条 durable Event 的业务 actor。arkret edge 把 Applet transaction 落为 Arkret Event 时，仍 MUST 对每条 Event 独立验证 `actor_id`、`applet_id`、`authorization_ref`、`external_ref` / provenance、`producer_proof` 与 registration `namespaces.actors` / capability grant；ghost actor、bot actor 或 delegated native actor 与 source service 不一致时 MUST fail closed（`applet_namespace_mismatch` / `capability_denied` / `applet_registration_unauthorized`，按失败层级选择）。
 
 **失败码（normative）**：
 
@@ -661,7 +661,7 @@ code 与 `type` URI，接收方 MUST 直接返回该 code，MUST NOT 返回通�
 - inbound 方向 `Source-Service-ID` 无 active effective install 或与 registration service DID 不一致：fail closed，code=`applet_registration_unauthorized`（403，与 §4 / §4b 同门槛）。
 - 幂等 identity 已存在但 canonical body digest 或 `delivery_authentication_record` 不一致：认证成功后 MUST 返回 `duplicate_conflict`；认证未通过时 MUST 优先返回上述对应的认证失败 code，避免泄露历史 transaction 状态。
 
-transaction push 的逐次签名是传输层来源认证，**不替代** §8 每条 Applet-originated 写入 Event 的 envelope event signature（`proofs[]`）与 capability grant 校验：arkret 把外部 transaction 落为 durable Arkret Event 时，仍 MUST 按 §8 / §11 校验每条 Event 的 `actor_id` / `applet_id` / `authorization_ref` / `proofs[]`。
+transaction push 的逐次签名是传输层来源认证，**不替代** §8 每条 Applet-originated 写入 Event 的 envelope event signature（`producer_proof`）与 capability grant 校验：arkret 把外部 transaction 落为 durable Arkret Event 时，仍 MUST 按 §8 / §11 校验每条 Event 的 `actor_id` / `applet_id` / `authorization_ref` / `producer_proof`。
 
 #### 7.3.2 已确认 managed Actor 的 authoring 初始化
 

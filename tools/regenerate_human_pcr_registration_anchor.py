@@ -286,7 +286,7 @@ def recompute_case(entry: dict[str, Any]) -> None:
             {
                 key: value
                 for key, value in wire.items()
-                if key not in ("event_id", "proofs", "unsigned")
+                if key not in ("event_id", "producer_proof", "unsigned")
             }
         )
     else:
@@ -312,7 +312,7 @@ def recompute_case(entry: dict[str, Any]) -> None:
 def resign(entry: dict[str, Any], seed: bytes, verification_method: str) -> dict[str, Any]:
     """Replace the case's single producer proof with a reproducible detached JWS."""
     wire = entry["complete_wire_event"]
-    proof = wire["proofs"][0]
+    proof = wire["producer_proof"]
     proof["verification_method"] = verification_method
     proof["event_digest"] = entry["event_digest"]
     binding = {
@@ -389,7 +389,7 @@ def main() -> int:
     delegated_evidence["proof_binding"] = resign(
         delegated,
         CONFORMANCE_ED25519_SEED,
-        delegated["complete_wire_event"]["proofs"][0]["verification_method"],
+        delegated["complete_wire_event"]["producer_proof"]["verification_method"],
     )
     delegated_evidence["executor_signing_material"] = {
         "test_material_registry_row": "conformance_ed25519_fixture_key",
@@ -483,7 +483,7 @@ def main() -> int:
                 + ">/complete_wire_event/payload/object/initial_resolution"
             ),
             "producer_proof_pointer": (
-                "/cases/<" + SELF_CASE + ">/complete_wire_event/proofs/0"
+                "/cases/<" + SELF_CASE + ">/complete_wire_event/producer_proof"
             ),
             "pcr_realm_id": realm_id,
             "note": (

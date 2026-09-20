@@ -1,5 +1,5 @@
 {
-  "version": "2026-09-19.2",
+  "version": "2026-09-19.3",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.encoding.content_bound_event_id.v1"
@@ -123,21 +123,19 @@
           "kind": "realm_genesis"
         },
         "event_id": "ak:event:ARn9Y97Ha81FH12YY8HLiDixId_wA5Wx2c25p82mJcJ5",
-        "proofs": [
-          {
-            "kind": "detached_jws",
-            "verification_method": "did:key:z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw#z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw",
-            "event_digest": "sha256:19fd63dec76bcd451f5d9863c1cb8838b121dff00395b1d9cdb9a7cda625c279",
-            "created_at": "2026-08-09T00:00:00.000Z",
-            "jws": "eyJhbGciOiJFZDI1NTE5In0..zmlpzvWmiJ_0WoNkwDK254oA5tHVuUhx9S4XaAyvKHSnphSAzRUHZnAWhWXVkGj_IdIxfpyJ7lt0hgpAg9dsCw"
-          }
-        ]
+        "producer_proof": {
+          "kind": "detached_jws",
+          "verification_method": "did:key:z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw#z6MktwupdmLXVVqTzCw4i46r4uGyosGXRnR3XjN4Zq7oMMsw",
+          "event_digest": "sha256:19fd63dec76bcd451f5d9863c1cb8838b121dff00395b1d9cdb9a7cda625c279",
+          "created_at": "2026-08-09T00:00:00.000Z",
+          "jws": "eyJhbGciOiJFZDI1NTE5In0..zmlpzvWmiJ_0WoNkwDK254oA5tHVuUhx9S4XaAyvKHSnphSAzRUHZnAWhWXVkGj_IdIxfpyJ7lt0hgpAg9dsCw"
+        }
       },
       "admission_evidence": {
         "selector_source": "registry/contract-registry.json#/event_kind_registry/event_kinds/<ak.realm.create>/admission_variants",
         "selects_because": "purpose=principal_control with neither executed_by nor authorization_ref",
         "verification_method_source": "the registration-time active update key of this unit's typed principal_registration_anchor, projected as its did:key controller proof method",
-        "note": "The complete wire Event is the hashed preimage plus exactly event_id and proofs, so the bytes that are hashed and the bytes that are admitted are one construction. registration_anchor is the only admission variant whose proof verification method is resolved from the anchor rather than from the current DID resolution of the actor.",
+        "note": "The complete wire Event is the hashed preimage plus exactly event_id and producer_proof, so the bytes that are hashed and the bytes that are admitted are one construction. registration_anchor is the only admission variant whose proof verification method is resolved from the anchor rather than from the current DID resolution of the actor.",
         "proof_binding": {
           "context": "ak.event_proof.v1",
           "binding_object": {
@@ -628,15 +626,13 @@
           "kind": "realm_genesis"
         },
         "event_id": "ak:event:AQ8U4BNdfXaxXzJru7YHqyy2gHgvYaq5GxJ1kyqla8GW",
-        "proofs": [
-          {
-            "kind": "detached_jws",
-            "verification_method": "did:webvh:z6mkfixtureorgexecutor:org.example#ak:device:019a0000-0000-7000-8000-00000000000b",
-            "event_digest": "sha256:0f14e0135d7d76b15f326bbbb607ab2cb680782f61aab91b1275932aa56bc196",
-            "created_at": "2026-08-09T00:00:00.000Z",
-            "jws": "eyJhbGciOiJFZDI1NTE5In0..TnS-L783m8aSBQv7eRP-airGdgvZf_ecfTVpPLLBhNyBwXC8S_Gv1pSsqgWxse4Bq4GYEJS1jY7wpuxwMrjyAg"
-          }
-        ]
+        "producer_proof": {
+          "kind": "detached_jws",
+          "verification_method": "did:webvh:z6mkfixtureorgexecutor:org.example#ak:device:019a0000-0000-7000-8000-00000000000b",
+          "event_digest": "sha256:0f14e0135d7d76b15f326bbbb607ab2cb680782f61aab91b1275932aa56bc196",
+          "created_at": "2026-08-09T00:00:00.000Z",
+          "jws": "eyJhbGciOiJFZDI1NTE5In0..TnS-L783m8aSBQv7eRP-airGdgvZf_ecfTVpPLLBhNyBwXC8S_Gv1pSsqgWxse4Bq4GYEJS1jY7wpuxwMrjyAg"
+        }
       },
       "admission_evidence": {
         "selector_source": "registry/contract-registry.json#/event_kind_registry/event_kinds/<ak.realm.create>/admission_variants",
@@ -1216,7 +1212,7 @@
       },
       "output": {
         "case": "principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected",
-        "pointer": "/complete_wire_event/proofs/0/jws"
+        "pointer": "/complete_wire_event/producer_proof/jws"
       }
     },
     {
@@ -1238,7 +1234,7 @@
       },
       "output": {
         "case": "organization_governed_pcr_genesis_derives_a_distinct_realm",
-        "pointer": "/complete_wire_event/proofs/0/jws"
+        "pointer": "/complete_wire_event/producer_proof/jws"
       }
     },
     {
@@ -1280,7 +1276,7 @@
       },
       "output": {
         "case": "principal_control_realm_id_is_event_derived_and_nonzero_nibble_rejected",
-        "pointer": "/complete_wire_event/proofs/0/verification_method"
+        "pointer": "/complete_wire_event/producer_proof/verification_method"
       }
     },
     {
@@ -1294,7 +1290,7 @@
       },
       "output": {
         "case": "organization_governed_pcr_genesis_derives_a_distinct_realm",
-        "pointer": "/complete_wire_event/proofs/0/verification_method"
+        "pointer": "/complete_wire_event/producer_proof/verification_method"
       }
     },
     {

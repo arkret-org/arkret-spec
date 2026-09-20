@@ -52,7 +52,7 @@ plaintext value，并在写入 account-data 前加密。`message_payload` MUST �
 合并后重试；服务端不得解密 payload，也不得为该 key 另造
 `duplicate_conflict`。
 
-到期 dispatch MUST 先完成 `ak.message.create` 除 `event_id`、`proofs` 外的全部 producer-authored envelope 字段，
+到期 dispatch MUST 先完成 `ak.message.create` 除 `event_id`、`producer_proof` 外的全部 producer-authored envelope 字段，
 再按 Event digest 规则派生完整 `EventId`，并由同一 33-byte token 派生 `MessageId`。只有此时最终
 Event / Message 身份才存在。
 

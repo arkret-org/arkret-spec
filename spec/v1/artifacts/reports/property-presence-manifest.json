@@ -18,16 +18,16 @@
     "total_properties": 9158,
     "total_schema_documents": 165,
     "by_presence_class": {
-      "optional": 2323,
+      "optional": 2325,
       "optional_defaulted": 46,
       "required": 6336,
       "required_nullable": 295,
-      "tristate": 158
+      "tristate": 156
     },
-    "tristate_occurrences": 158,
-    "tristate_audit_targets": 125,
+    "tristate_occurrences": 156,
+    "tristate_audit_targets": 124,
     "tristate_sdk_dispositions": {
-      "absent_null_equivalent": 115,
+      "absent_null_equivalent": 114,
       "condition_guarded": 9,
       "distinct": 1
     }
@@ -125,8 +125,6 @@
     "object-addressing.schema.json/$defs/signed_address_link_token_claims/allOf/1/properties/target_descriptor",
     "patch.schema.json/additionalProperties/oneOf/1/properties/value",
     "principal-locator.schema.json/$defs/invite_locator_rotate_request_body/properties/display_hint",
-    "principal-operations.schema.json/$defs/pcr_genesis_unit/properties/events/prefixItems/0/allOf/1/properties/proofs",
-    "principal-operations.schema.json/$defs/pcr_genesis_unit/properties/events/prefixItems/1/allOf/1/properties/proofs",
     "query.schema.json/$defs/field_filter/properties/value",
     "query.schema.json/$defs/query_request_body/properties/cursor",
     "query.schema.json/$defs/query_request_body/properties/relation",
@@ -893,17 +891,6 @@
       "instance_path": "/display_hint",
       "occurrences": [
         "/$defs/invite_locator_rotate_request_body/properties/display_hint"
-      ],
-      "sdk_disposition": "absent_null_equivalent",
-      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
-    },
-    {
-      "schema_file": "principal-operations.schema.json",
-      "shape": "/$defs/pcr_genesis_unit",
-      "instance_path": "/events/proofs",
-      "occurrences": [
-        "/$defs/pcr_genesis_unit/properties/events/prefixItems/0/allOf/1/properties/proofs",
-        "/$defs/pcr_genesis_unit/properties/events/prefixItems/1/allOf/1/properties/proofs"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -5744,7 +5731,7 @@
         "/properties/external_ref": "optional",
         "/properties/kind": "required",
         "/properties/payload": "required",
-        "/properties/proofs": "required",
+        "/properties/producer_proof": "required",
         "/properties/realm_id": "optional",
         "/properties/refs": "optional",
         "/properties/scope_ref": "required"
@@ -9103,9 +9090,9 @@
         "/$defs/pcr_genesis_unit/properties/events/prefixItems/0/allOf/1/properties/kind": "required",
         "/$defs/pcr_genesis_unit/properties/events/prefixItems/0/allOf/1/properties/payload": "optional",
         "/$defs/pcr_genesis_unit/properties/events/prefixItems/0/allOf/1/properties/payload/properties/object": "required",
-        "/$defs/pcr_genesis_unit/properties/events/prefixItems/0/allOf/1/properties/proofs": "tristate",
+        "/$defs/pcr_genesis_unit/properties/events/prefixItems/0/allOf/1/properties/producer_proof": "optional",
         "/$defs/pcr_genesis_unit/properties/events/prefixItems/1/allOf/1/properties/kind": "required",
-        "/$defs/pcr_genesis_unit/properties/events/prefixItems/1/allOf/1/properties/proofs": "tristate",
+        "/$defs/pcr_genesis_unit/properties/events/prefixItems/1/allOf/1/properties/producer_proof": "optional",
         "/$defs/prepared_event_draft/properties/event_digest": "required",
         "/$defs/prepared_event_draft/properties/unsigned_event_bytes": "required",
         "/$defs/receiver_eligibility_basis/oneOf/0/properties/kind": "required",

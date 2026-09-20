@@ -239,7 +239,7 @@ schema：`ak.schema.read_receipt.v1`：
 
 同一源、账户、Realm 和类别在所有设备上 MUST 得到相同身份。规则 ID、revision、read cursor、preview、语言、设备与时间不参与身份。关闭后重新启用规则或清缓存重建 MUST 复用身份；修改源 Event 或类别则必须重新派生。每个源 Event 对每个接收账户、每个类别至多产生一个身份。
 
-普通分支的 `actor_id` MUST 是接收账户的完整 account ActorId，`realm_id` 必填；接收方 MUST 重算并比较身份。摘要本身不证明来源、不授予读取权限。客户端必须先验证原始源 Event 及其适用接受证据，再依据当前访问权和规则本地派生。不得改写源 Event 的作者、payload 或 proofs 来承载通知，不得把普通通知装入 `account_data.events[]`，也不得新增第二套通知 HTTP 读取面；普通当前行的唯一交付通道是 account subscribe `notifications.items` 的普通分支（[`../sync/client-sync.md` §3.1.2](../sync/client-sync.md)），其行内容不含 `state`。源缺失、redaction 或撤权时必须清除旧 preview；保留的 inbox 处置状态不能用于恢复正文。
+普通分支的 `actor_id` MUST 是接收账户的完整 account ActorId，`realm_id` 必填；接收方 MUST 重算并比较身份。摘要本身不证明来源、不授予读取权限。客户端必须先验证原始源 Event 及其适用接受证据，再依据当前访问权和规则本地派生。不得改写源 Event 的作者、payload 或 producer_proof 来承载通知，不得把普通通知装入 `account_data.events[]`，也不得新增第二套通知 HTTP 读取面；普通当前行的唯一交付通道是 account subscribe `notifications.items` 的普通分支（[`../sync/client-sync.md` §3.1.2](../sync/client-sync.md)），其行内容不含 `state`。源缺失、redaction 或撤权时必须清除旧 preview；保留的 inbox 处置状态不能用于恢复正文。
 
 `ak:notification:<uuidv7>` 仅用于 Agent approval 专用分支，继续要求原 producer authority 合同；普通投影摘要不得替代该 UUID。Invite 使用独立的 InviteDeliveryEntry，不属于普通源 Event Notification 分支。共享 inbox 的 key 尾部及解密 value 的 `notification_id` 必须同属一个身份分支且完全相等；archive/dismiss 沿用 encrypted account-data CAS、HLC/device 合并与冲突后重读合并，read/unread 仍独立由 read cursor 派生。
 

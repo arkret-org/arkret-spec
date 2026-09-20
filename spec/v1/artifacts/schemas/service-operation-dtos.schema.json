@@ -1118,7 +1118,7 @@
               ]
             }
           ],
-          "description": "The accepted ak.{kind}.discovery Event itself, delivered in its original signed form exactly as peer contact delivery carries the original ak.contact.* Event. resource_kind is derived from Event kind; resource_id is derived from the signed Event subject mapping. The Event's own proofs carry the resource governance signature, so no second signed copy of the same fact is defined (discovery-directory.md 8.3)."
+          "description": "The accepted ak.{kind}.discovery Event itself, delivered in its original signed form exactly as peer contact delivery carries the original ak.contact.* Event. resource_kind is derived from Event kind; resource_id is derived from the signed Event subject mapping. The Event's sole producer signature carries the resource governance signature, so no second signed copy of the same fact is defined (discovery-directory.md 8.3)."
         },
         "source_ref_access": {
           "$ref": "#/$defs/DirectorySourceRefAccess",
