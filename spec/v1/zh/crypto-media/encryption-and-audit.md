@@ -18,6 +18,8 @@ Arkret 使用 RFC 9420 MLS 为 Realm 或 Circle 的应用内容提供端到端�
 group transition、authority commit、recipient delivery queue 与路由 metadata；它不得取得 epoch secret、
 KeyPackage init private key、Welcome plaintext、private ratchet tree、application plaintext 或成员 private state。
 
+v1 不定义 `minimal_metadata_realm` MLS profile，也没有以 Realm `schema_refs` 激活 profile 的通道。旧实现专属的 pairwise author identity 与一小时 epoch 上限不是现行可声明的安全合同，不能由客户端私有判定重新启用或向用户宣称已由治理 Station 强制执行。带旧标记的持久 Realm 状态按 [Realm schema 集合规则](../models/realm-and-space.md) fail closed；所有现行 Realm 仍须满足本章的通用 MLS 验证与治理准入义务。
+
 ## 2. MLS 与 authority commit
 
 ### 2.1 KeyPackage 与服务发现

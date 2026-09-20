@@ -166,6 +166,8 @@ genesis 的五值 `purpose` 枚举与 materialized `fields.purpose` 的三值枚
 
 **核心 schema 与激活集合（normative）**：materialized Realm 的 `schema_refs` 必填，由 genesis reducer 初始化为唯一已注册核心 schema `["ak.schema.realm.v1"]`。不存在 `ak.realm.schema` facet 时，有效集合就是该核心 schema，**不得为未注册 schema 发明默认值**。`ak.realm.schema.payload.value.schema_refs` 是后续激活集合的唯一作者入口，采用**完整替换**语义：每次更新 MUST 显式包含核心 schema，其它成员 MUST 是已注册 `ak.schema.*.vN`；未知 / 未注册 id 与缺核心 schema 均 fail closed。materialized `schema_refs` MUST 与当前 accepted `realm_schema` 集合精确一致，不存在 genesis 集合与 facet 集合的不透明 union。`realm_schema.value` 的 `morph_kind_profiles` 等其它配置仍按各自已有闭合合同验证。
 
+旧 minimal-metadata MLS profile 不在 v1 注册集合，且 profile 不是 Realm `schema_refs` 的合法成员。接收方 MUST 将带此旧标记的 genesis、schema 更新或未经验证的本地旧投影视为不受支持并 fail closed；客户端 MUST NOT 把它静默解释为普通 Realm 后继续提交 Event、MLS Commit 或应用密文。既存历史数据只能在验证其现行治理 genesis 与 current schema 后按普通 Realm 继续；不能通过删除缓存中的旧标记来伪造一次升级，也不定义兼容性双读路径。
+
 v1 不定义 monolithic `ak.realm.update` 或 `realm_metadata`。实现 MUST 拒绝这些形态，
 所有实现只读写上述唯一 carrier，不得把完整 Realm create object 缓存为第二真相源。
 
