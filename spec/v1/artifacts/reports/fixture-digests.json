@@ -81,11 +81,6 @@
       "version": "2026-09-20"
     },
     {
-      "path": "spec/v1/artifacts/fixtures/authorization-lease-issuance-fixture.json",
-      "sha256": "02c1ba03cacfd1f08fd241e64c6694c1caf6b8dbe103851200cb226194b76157",
-      "version": "2026-07-29"
-    },
-    {
       "path": "spec/v1/artifacts/fixtures/bilateral-continuity-checkpoint-fixture.json",
       "sha256": "19beb51c1e315297fda402d37026e88331586997979d59b9ea99f01cf9b45dcc",
       "version": "2026-09-10"

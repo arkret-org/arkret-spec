@@ -178,7 +178,7 @@ see_also:
 | --- | --- |
 | `authz/capabilities.md` | Capability、delegation、revocation、claim 条件。 |
 | `sync/authority-commit-log.md` | Authority commit、独立 stream、治理 Station 轮换与 handoff。 |
-| `authz/offline-publication.md` | AuthorizationLease、IngressReceipt 与离线发布窗口。 |
+| `authz/offline-publication.md` | 离线 Event 排队、提交时当前授权与不签发通用离线租约的边界。 |
 | `authz/constraint-schema.md` | Capability / policy 约束表达式、条件字段和组合语义。 |
 | `authz/resource-selector-grammar.md` | Resource selector 的语法、匹配范围和解析规则。 |
 | `authz/event-auth-state-resolution.md` | 当前治理 Station在 commit位置的 producer/authz校验、typed reducer和 committed/rejected状态。 |

@@ -26,6 +26,11 @@ Station 按提交位置的 current authorization、typed revision 和 MLS gate �
 
 v1 不提供可在未来抵消撤销的离线 authorization lease。在 Event 提交前发生的成员移除、device/runtime
 撤销、capability 撤销、policy 变更或 MLS key-access revision 推进，都对接纳判断立即有效。
+v1 也没有 Agent runtime 可自行调用的通用 authorization-lease issuance 服务动作或
+`ak.self.authorization.leases.command.issue.v1` 操作；`ak.self.events.command.submit.v1` 是
+Event 提交入口，不能视为 lease-issue 的别名。旧 ordered-batch／genesis-anchor 通用发行向量
+不属于 active v1 conformance。此边界不取消安全轮换中备份擦除的高风险授权要求；其独立
+lease carrier／发行合同尚未闭合，不能借通用 Agent 发行面补空。
 
 需要并发保护的领域写入在 typed payload 中携带 `expected_revision`。排队期间 revision 变化时，治理
 Station 返回 `cas_conflict`，客户端必须获取新 current、要求用户确认语义变化，并生成新 Event。
