@@ -15,10 +15,10 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 8799,
+    "total_properties": 8798,
     "total_schema_documents": 163,
     "by_presence_class": {
-      "optional": 2145,
+      "optional": 2144,
       "optional_defaulted": 47,
       "required": 6158,
       "required_nullable": 294,
@@ -6470,7 +6470,6 @@
         "/$defs/realm_tombstone_payload/properties/successor_realm_id": "required",
         "/$defs/relation_create_payload/properties/expected_revision": "required_nullable",
         "/$defs/relation_create_payload/properties/primary_conflict_domain": "required",
-        "/$defs/relation_create_payload/properties/rank": "optional",
         "/$defs/relation_create_payload/properties/relation": "required",
         "/$defs/relation_tombstone_payload/properties/expected_revision": "required",
         "/$defs/relation_tombstone_payload/properties/primary_conflict_domain": "required",

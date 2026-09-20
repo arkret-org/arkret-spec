@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.24",
+  "version": "2026-09-20.25",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T22:58:00+08:00",
+  "generated_at": "2026-09-20T23:30:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -6092,6 +6092,7 @@
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/relation_create_payload",
         "admission_checks": [
           "payload.primary_conflict_domain MUST exactly equal the registered domain derived from payload.relation; truth_source shapes are rejected",
+          "payload.relation MUST be the closed relation_definition authoring region; payload.relation.rank is the only create-time rank carrier, top-level payload.rank and materialized Relation members are rejected",
           "payload.expected_revision MUST be null when the domain has never been written, or equal the exact current revision when the domain value is tombstoned; an active current value rejects create even at an exact revision",
           "CAS mismatch and every semantic rejection produce zero typed current result writes and no RealmCommit; exact Event replay returns the original Commit"
         ],
@@ -8693,8 +8694,8 @@
         }
       }
     },
-    "version": "2026-09-20.15",
-    "generated_at": "2026-09-20T22:56:00+08:00",
+    "version": "2026-09-20.16",
+    "generated_at": "2026-09-20T23:30:00+08:00",
     "bootstrap_event_kinds": [
       "ak.device.authorize",
       "ak.device.reanchor",

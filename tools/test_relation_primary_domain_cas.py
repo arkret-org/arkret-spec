@@ -99,6 +99,62 @@ class RelationPrimaryDomainCasTest(unittest.TestCase):
             create_revision["oneOf"][1], {"type": "null"}
         )
 
+    def test_create_has_one_closed_authoring_shape_and_one_rank_carrier(self) -> None:
+        create = self.payloads["$defs"]["relation_create_payload"]
+        self.assertEqual(
+            sorted(create["properties"]),
+            ["expected_revision", "primary_conflict_domain", "relation"],
+        )
+        self.assertNotIn("rank", create["properties"])
+        self.assertEqual(
+            create["properties"]["relation"],
+            {"$ref": "#/$defs/relation_create_object"},
+        )
+        self.assertEqual(
+            self.payloads["$defs"]["relation_create_object"]["$ref"],
+            "./relation.schema.json#/$defs/relation_definition",
+        )
+
+        definition = self.relation["$defs"]["relation_definition"]
+        self.assertFalse(definition["additionalProperties"])
+        self.assertEqual(
+            sorted(definition["properties"]),
+            [
+                "fields",
+                "from_ref",
+                "rank",
+                "relation_kind",
+                "scope_circle_id",
+                "to_ref",
+            ],
+        )
+        self.assertEqual(
+            set(definition["required"]), {"relation_kind", "from_ref", "to_ref"}
+        )
+        for reducer_owned in (
+            "schema",
+            "realm_id",
+            "id",
+            "effective_scope",
+            "state",
+            "state_changed_at",
+            "created_by",
+            "created_at",
+            "updated_by",
+            "updated_at",
+        ):
+            self.assertNotIn(reducer_owned, definition["properties"])
+
+        create_row = self.rows["ak.relation.create"]
+        self.assertEqual(
+            create_row["result_writes"][0]["result_projection"]["value"],
+            {"field": "payload.relation"},
+        )
+        self.assertNotIn(
+            "payload.rank",
+            json.dumps(create_row["result_writes"], ensure_ascii=False),
+        )
+
     def test_update_cannot_move_primary_domain(self) -> None:
         write = self.rows["ak.relation.update"]["result_writes"][0]
         self.assertEqual(

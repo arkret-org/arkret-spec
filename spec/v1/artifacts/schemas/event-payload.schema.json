@@ -7840,7 +7840,7 @@
     },
     "relation_create_payload": {
       "type": "object",
-      "description": "Create or replace the Relation current value at one registered primary conflict domain. primary_conflict_domain is the signed typed-current-result subject and MUST exactly match payload.relation's registered relation_kind/from_ref/to_ref shape. expected_revision is null only when the domain has never been written; after a tombstone, a new event-derived RelationId MAY replace that tombstoned value only at its exact revision. An active current value cannot be replaced by create.",
+      "description": "Create or replace the Relation current value at one registered primary conflict domain. primary_conflict_domain is the signed typed-current-result subject and MUST exactly match payload.relation's registered relation_kind/from_ref/to_ref shape. payload.relation is the closed six-field relation_definition authoring region; its optional relation.rank is the only create-time rank carrier, and materialized Relation members are forbidden. expected_revision is null only when the domain has never been written; after a tombstone, a new event-derived RelationId MAY replace that tombstoned value only at its exact revision. An active current value cannot be replaced by create.",
       "properties": {
         "primary_conflict_domain": {
           "$ref": "./relation.schema.json#/$defs/relation_primary_conflict_domain"
@@ -7857,9 +7857,6 @@
         },
         "relation": {
           "$ref": "#/$defs/relation_create_object"
-        },
-        "rank": {
-          "$ref": "#/$defs/rank"
         }
       },
       "additionalProperties": false,
@@ -9404,7 +9401,7 @@
     },
     "relation_create_object": {
       "$ref": "./relation.schema.json#/$defs/relation_definition",
-      "description": "Relation create input: the closed authoring region of relation.schema.json, not the materialized object. See that definition for why the five reducer-owned members are gone."
+      "description": "Relation create input: the closed six-field authoring region of relation.schema.json, not the materialized object. Its optional rank is the only create-time rank carrier. See that definition for why reducer-owned members are absent."
     },
     "realm_governance_station_change_payload": {
       "type": "object",

@@ -5,7 +5,7 @@
   },
   "suite": "circle_scope",
   "profile": "ak.profile.circle_conformance.v1",
-  "version": "2026-09-20.1",
+  "version": "2026-09-20.2",
   "covers_vectors": [
     "ak.vector.circle.scope_rebind_and_admission.v1",
     "ak.vector.circle.lifecycle_admission_barrier.v1",
@@ -295,7 +295,7 @@
     },
     {
       "name": "relation_create_payload_carrying_effective_scope_rejected",
-      "description": "ak.relation.create whose payload.relation carries effective_scope MUST be rejected with schema_violation reason=effective_scope_reducer_managed and MUST NOT produce any projection write. The decision is schema-level and needs no projection pre-state: event-payload.schema.json#/$defs/relation_create_object is relation.schema.json minus id, the banned `type` name and effective_scope, so Relation create is decided exactly like the Strand / Morph / Space create shapes while relation.schema.json keeps `fields` open for free edge metadata.",
+      "description": "ak.relation.create whose payload.relation carries effective_scope or any other materialized Relation member MUST be rejected with schema_violation and MUST NOT produce any projection write. The decision is schema-level and needs no projection pre-state: event-payload.schema.json#/$defs/relation_create_object resolves to the closed six-field relation_definition authoring region, while the reducer alone derives and maintains materialized members.",
       "event_kind": "ak.relation.create",
       "decided_by": "payload_schema",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/relation_create_payload",
@@ -343,6 +343,32 @@
       },
       "expect_reducer_result": "schema_violation",
       "reason": "effective_scope_reducer_managed",
+      "expected_projection_writes": 0
+    },
+    {
+      "name": "relation_create_top_level_rank_rejected",
+      "description": "The former top-level payload.rank is not a Relation create input. relation.rank inside the closed relation_definition is the only signed rank carrier and the only rank consumed by the create projection; accepting both would create two signed truths for one value.",
+      "event_kind": "ak.relation.create",
+      "decided_by": "payload_schema",
+      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/relation_create_payload",
+      "invalid_submit_payload": {
+        "primary_conflict_domain": {
+          "domain_kind": "tuple",
+          "relation_kind": "references",
+          "from_ref": "ak:strand:AUifoAUG8AEOHYXp999WnI7WlLt19ByDoqYUsFwbw4A4",
+          "to_ref": "ak:strand:AQdknt9AByYY2gb16KB093xeB4J8b02mTEd4Mt8z2rO-"
+        },
+        "expected_revision": null,
+        "relation": {
+          "relation_kind": "references",
+          "from_ref": "ak:strand:AUifoAUG8AEOHYXp999WnI7WlLt19ByDoqYUsFwbw4A4",
+          "to_ref": "ak:strand:AQdknt9AByYY2gb16KB093xeB4J8b02mTEd4Mt8z2rO-",
+          "rank": "U"
+        },
+        "rank": "V"
+      },
+      "expect_reducer_result": "schema_violation",
+      "reason": "unknown_field",
       "expected_projection_writes": 0
     },
     {

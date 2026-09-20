@@ -117,8 +117,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/circle-scope-fixture.json",
-      "sha256": "a1902b4ac53c4cc022dd31e04fdae6a3e2f731e2ee3af34527f4eb5cdbc6704e",
-      "version": "2026-09-20.1"
+      "sha256": "de61ff5f8e76e00921bdc3597bedc3a4023c2f702f62a24d4b4768ea00722ebb",
+      "version": "2026-09-20.2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/client-sync-fixture.json",
