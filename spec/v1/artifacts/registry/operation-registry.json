@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-21.3",
+  "version": "2026-09-21.5",
   "source_of_truth": false,
-  "generated_at": "2026-09-21T05:30:53+08:00",
+  "generated_at": "2026-09-21T05:51:57+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -53,7 +53,7 @@
     "Every canonical Arkret HTTP request MUST carry exactly one Arkret-Operation header naming the exact versioned operation_id before body parsing. The receiver MUST verify that the selector is locally advertised and belongs to the selected method/path family and binding. A missing selector fails with operation_selector_required; an empty candidate set, unknown id, duplicate selector, or value outside the route family fails with unsupported_operation_version. Endpoint uniqueness, payload-shape inference, client SDK version, implicit defaults, and version fallback MUST NOT replace the selector. This invariant keeps existing clients stable when another operation version is added to the same HTTP endpoint family.",
     "operation_bundles is the only canonical bundle member source. Each registered bundle freezes one service_kind and a canonical unique set of (operation_id,binding_kind) members; changing a member requires a new bundle id.",
     "coordination_relations is the canonical machine source for a public operation that spans independently durable services. Every relation MUST name the entry operation, every registered sub-operation, exact request/receipt bindings, the durable owner and fence transitions, crash recovery owner, terminal success boundary and closed downstream error translation. Prose alone MUST NOT create an unregistered cross-service write edge.",
-    "Within one service_kind, active current-v1 bundles MUST NOT overlap on an identical (operation_id,binding_kind) pair. Pairs using a different binding kind are distinct.",
+    "Within one service_kind, active current-v1 bundles MUST NOT overlap on an identical (operation_id,binding_kind) pair, except the exact directory_service.public_read subset of directory_service.http_core. The two Directory bundles are alternative deployment claims: a read-only service advertises public_read but not http_core; a full implementation may advertise http_core without needing the redundant subset. Pairs using a different binding kind are distinct.",
     "Only registered ak.operation_bundle.*.v1 ids may appear in current-v1 ServiceDescribe. Current-v1 defines no vendor bundle wire namespace; vendor-private collections may only appear as ignorable x_* metadata and never affect capability decisions. Unknown bundle ids fail closed and are never expanded by name.",
     "Request wire/canonical byte budget violations MUST return payload_too_large (HTTP 413); count-only schema violations with valid request bytes MUST return schema_violation (HTTP 422), except explicit operation count semantics. An otherwise valid request whose complete response or evaluation exceeds its semantic budget returns limit_exceeded (HTTP 413) or its defined typed unavailable result. Request byte errors take precedence over coincident schema errors. Error classification MUST NOT depend on diagnostic text substring matching."
   ],
@@ -4405,6 +4405,27 @@
           "operation_id": "ak.find.directory.command.withdraw.v1",
           "binding_kind": "http_json"
         },
+        {
+          "operation_id": "ak.find.directory.read.describe.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "operation_id": "ak.find.directory.read.resolve_realm.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "operation_id": "ak.find.directory.read.search_realms.v1",
+          "binding_kind": "http_json"
+        }
+      ]
+    },
+    {
+      "operation_bundle_id": "ak.operation_bundle.directory_service.public_read.v1",
+      "service_kind": "directory_service",
+      "deployment_evidence": [
+        "ak.deployment_prototype.teabay_directory_service.v1"
+      ],
+      "members": [
         {
           "operation_id": "ak.find.directory.read.describe.v1",
           "binding_kind": "http_json"

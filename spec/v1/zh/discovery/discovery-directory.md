@@ -19,6 +19,8 @@ Directory v1 只是可重建的公开 Realm metadata 索引。它不保存或提
 restricted discovery、private-contact discovery 或 PSI。Directory 查询结果不得被后续加入、认证、读写或权限流程
 当作 current-authority 或 authorization evidence；这些流程必须直接向目标 Realm 的 current governance Station 重新验证。
 
+在 announce／withdraw 的 detached proof transcript 与独立 current-governance／opt-in 证据路径闭合前，部署 MAY 仅广告 `ak.operation_bundle.directory_service.public_read.v1`（describe、search_realms、resolve_realm），不得广告含写入的 `ak.operation_bundle.directory_service.http_core.v1` 或宣称完整 `ak.profile.directory_service.v1`。这种只读部署 MUST 对 announce／withdraw fail closed、零写入；未按本节当前证据重新验证的既存索引行也 MUST 隐藏，而不是以旧数据维持非空结果。只读 bundle 不授予 Directory 任何治理权威，且不改变已登记写 operation 的未来闭合义务。
+
 ## 2. 可索引条件（normative）
 
 Directory 仅在以下条件同时成立时建立或保留条目：

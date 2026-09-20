@@ -1803,7 +1803,14 @@ def check_operation_bundles_and_features(lint: Lint) -> None:
                 lint.fail(operation_path, f"{member_spot} references unknown binding {binding_kind!r}")
             owner_key = (str(service_kind), str(operation_id), str(binding_kind))
             previous = pair_owners.get(owner_key)
-            if previous is not None:
+            directory_read_alternative = {
+                bundle_id,
+                previous,
+            } == {
+                "ak.operation_bundle.directory_service.http_core.v1",
+                "ak.operation_bundle.directory_service.public_read.v1",
+            }
+            if previous is not None and not directory_read_alternative:
                 lint.fail(operation_path, f"{bundle_id} overlaps {previous} on pair {pair!r}")
             pair_owners[owner_key] = bundle_id
             bundle_pairs.add((str(operation_id), str(binding_kind)))
@@ -1882,8 +1889,16 @@ def check_operation_bundles_and_features(lint: Lint) -> None:
     if directory_core != directory_surface:
         lint.fail(
             operation_path,
-            "directory_service.http_core must be the exact Soland/Teabay common support vector",
+            "directory_service.http_core must be the exact full Directory discovery surface",
         )
+    directory_public_read = exact_http_members("ak.operation_bundle.directory_service.public_read.v1")
+    expected_public_read = {
+        "ak.find.directory.read.describe.v1",
+        "ak.find.directory.read.resolve_realm.v1",
+        "ak.find.directory.read.search_realms.v1",
+    }
+    if directory_public_read != expected_public_read:
+        lint.fail(operation_path, "directory_service.public_read must contain exactly the three registered read operations")
     auth_account_authority = exact_http_members(
         "ak.operation_bundle.station.account_authority.v1"
     )
