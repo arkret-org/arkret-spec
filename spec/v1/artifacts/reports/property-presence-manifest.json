@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 8798,
+    "total_properties": 8800,
     "total_schema_documents": 163,
     "by_presence_class": {
-      "optional": 2144,
+      "optional": 2141,
       "optional_defaulted": 47,
-      "required": 6158,
+      "required": 6163,
       "required_nullable": 294,
       "tristate": 155
     },
@@ -10405,6 +10405,8 @@
         "/$defs/DirectoryWithdrawRequestBody/properties/realm_id": "required",
         "/$defs/DirectoryWithdrawRequestBody/properties/reason": "optional",
         "/$defs/DirectoryWithdrawRequestBody/properties/request_id": "required",
+        "/$defs/EffectiveCapabilityGrantRow/properties/grant": "required",
+        "/$defs/EffectiveCapabilityGrantRow/properties/revision": "required",
         "/$defs/EventAdmissionSubmission/properties/approval_signatures": "optional",
         "/$defs/EventAdmissionSubmission/properties/event": "required",
         "/$defs/EventDeliveryStatusOutcome/properties/event_id": "required",
@@ -10415,9 +10417,9 @@
         "/$defs/EventDeliveryTargetStatus/properties/target_id": "required",
         "/$defs/EventDisclosure/properties/status": "required",
         "/$defs/EventsSubmitBatchRequestBody/properties/events": "required",
-        "/$defs/GrantList/properties/evaluated_at": "optional",
-        "/$defs/GrantList/properties/grants": "optional",
-        "/$defs/GrantList/properties/state_digest": "optional",
+        "/$defs/GrantList/properties/evaluated_at": "required",
+        "/$defs/GrantList/properties/grants": "required",
+        "/$defs/GrantList/properties/state_digest": "required",
         "/$defs/HumanSessionGrantRefreshRequest/properties/accepted_device_possession_proof": "required",
         "/$defs/HumanSessionGrantRefreshRequest/properties/audience_id": "optional",
         "/$defs/HumanSessionGrantRefreshRequest/properties/device_id": "required",

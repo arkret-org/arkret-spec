@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-20.35",
-  "generated_at": "2026-09-20T23:30:02+08:00",
+  "version": "2026-09-21.1",
+  "generated_at": "2026-09-21T01:46:34+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -497,7 +497,7 @@
     },
     {
       "operation_id": "ak.self.authz.grants.read.effective.v1",
-      "sha256": "sha256:7deb706a225aaf1c2953e535095e295f54dac58df31538d6bb82b497b5fb1bf0"
+      "sha256": "sha256:a06fe2c33811d7ed60ebd5a5bf39f9b45e3bf88f9f808530bd5f7fc035d799c2"
     },
     {
       "operation_id": "ak.self.authz.invites.read.list.v1",

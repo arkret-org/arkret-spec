@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-21.1",
+  "version": "2026-09-21.3",
   "source_of_truth": true,
-  "generated_at": "2026-09-21T01:08:00+08:00",
+  "generated_at": "2026-09-21T01:54:51+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1257,6 +1257,18 @@
       "description": "After an accepted ak.capability.revoke of grant G, a pending Event authorized by a child grant derived from G fails closed or is quarantined with a stable reason code, allow and policy-decision cache entries depending on G or its child are invalidated in the same reducer transaction, and later snapshots and exports never present G as currently valid.",
       "source_refs": [
         "spec/v1/artifacts/registry/normative-clause-registry.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.capability.relinquish_authoring_basis.v1",
+      "status": "active",
+      "domain": "capability",
+      "applies_to_fixtures": [
+        "capability-relinquish-authoring-fixture.json"
+      ],
+      "description": "The governing Station atomically returns each active effective CapabilityGrant with its exact capability_grant current-result revision. Relinquish copies only that row revision; a list digest, historical evaluation, missing revision or silent post-refresh replacement blocks authoring. Concurrent revoke and relinquish have one CAS winner, while unauthorized, missing and terminal targets remain non-enumerating.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/capability-relinquish-authoring-fixture.json"
       ]
     },
     {

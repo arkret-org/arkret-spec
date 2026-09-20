@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.25",
+  "version": "2026-09-21.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-20T23:30:00+08:00",
+  "generated_at": "2026-09-21T01:46:34+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -5068,7 +5068,11 @@
       "response": {
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/GrantList",
         "schema_kind": "object",
-        "required": [],
+        "required": [
+          "grants",
+          "state_digest",
+          "evaluated_at"
+        ],
         "properties": [
           "grants",
           "state_digest",

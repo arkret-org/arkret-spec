@@ -1,0 +1,177 @@
+{
+  "profile": "ak.vector_group.capability.v1",
+  "version": "2026-09-21.4",
+  "suite": "capability_relinquish_authoring",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.capability.relinquish_authoring.v1"
+  },
+  "covers_vectors": [
+    "ak.vector.capability.relinquish_authoring_basis.v1"
+  ],
+  "security_evidence": [
+    {
+      "vector_id": "ak.vector.capability.relinquish_authoring_basis.v1",
+      "clause_id": "AK-NC-071",
+      "decision_points": [
+        {
+          "id": "exact_atomic_authoring_basis",
+          "requirement": "One active effective grant and its exact revision come from the same capability_grant current result; list digests and historical evaluation results cannot authorize signing.",
+          "evidence": [
+            "/cases/0",
+            "/cases/1",
+            "/cases/2"
+          ]
+        },
+        {
+          "id": "stale_and_concurrent_cas",
+          "requirement": "A stale basis writes nothing, and concurrent revoke and relinquish against one revision have exactly one winner.",
+          "evidence": [
+            "/cases/3",
+            "/cases/4"
+          ]
+        },
+        {
+          "id": "reconfirmation_and_non_enumeration",
+          "requirement": "A refreshed revision requires explicit reconfirmation, while unauthorized, missing and terminal targets expose no authorable row and remain indistinguishable.",
+          "evidence": [
+            "/cases/5",
+            "/cases/6"
+          ]
+        }
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "name": "active_row_supplies_exact_atomic_revision",
+      "assertions": [
+        "grant and revision are read from one durable capability_grant current result",
+        "the row revision is copied verbatim only after explicit user confirmation"
+      ],
+      "list_result": {
+        "row_state": "active_effective",
+        "grant_and_revision_same_current_result": true,
+        "revision": {
+          "commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
+          "stream_position": 41
+        },
+        "state_digest": "sha256:7777777777777777777777777777777777777777777777777777777777777777"
+      },
+      "authoring": {
+        "copied_row_revision_verbatim": true,
+        "user_confirmed": true
+      },
+      "expected": {
+        "decision": "allow_authoring",
+        "basis_is_row_revision": true
+      }
+    },
+    {
+      "name": "historical_evaluation_must_refresh_before_authoring",
+      "assertions": [
+        "a query carrying at is evaluation-only and produces no authoring submission",
+        "the client refreshes without at and requires new confirmation"
+      ],
+      "list_result": {
+        "query_has_at": true,
+        "row_revision_present": true
+      },
+      "expected": {
+        "decision": "block_authoring",
+        "requires_current_query_without_at": true,
+        "requires_user_reconfirmation": true,
+        "submissions": 0
+      }
+    },
+    {
+      "name": "list_digest_is_not_revision",
+      "assertions": [
+        "state_digest never substitutes for a missing CurrentRevision",
+        "no signature or submission is produced without the row revision"
+      ],
+      "list_result": {
+        "row_revision_present": false,
+        "state_digest": "sha256:8888888888888888888888888888888888888888888888888888888888888888"
+      },
+      "authoring": {
+        "attempted_basis": "state_digest"
+      },
+      "expected": {
+        "decision": "block_authoring",
+        "submissions": 0,
+        "signatures": 0
+      }
+    },
+    {
+      "name": "stale_revision_conflicts_without_write",
+      "assertions": [
+        "a stale exact revision returns cas_conflict with zero projection writes",
+        "refresh never silently re-signs against a replacement revision"
+      ],
+      "authoring": {
+        "row_revision_is_current": false,
+        "user_confirmed": true
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "cas_conflict",
+        "projection_writes": 0,
+        "requires_refresh_and_user_reconfirmation": true,
+        "automatic_resign": false
+      }
+    },
+    {
+      "name": "concurrent_revoke_and_relinquish_have_one_winner",
+      "assertions": [
+        "revoke and relinquish sharing one expected revision have exactly one successful commit",
+        "the losing operation has no durable or projection effect"
+      ],
+      "operations": [
+        "ak.capability.revoke",
+        "ak.capability.relinquish"
+      ],
+      "same_expected_revision": true,
+      "expected": {
+        "successful_operations": 1,
+        "cas_conflicts": 1,
+        "projection_writes": 1
+      }
+    },
+    {
+      "name": "refresh_requires_explicit_reconfirmation",
+      "assertions": [
+        "a changed revision invalidates the earlier confirmation",
+        "the client blocks submission until the user confirms the refreshed row"
+      ],
+      "authoring": {
+        "initial_user_confirmation": true,
+        "revision_changed_after_refresh": true,
+        "second_user_confirmation": false
+      },
+      "expected": {
+        "decision": "block_authoring",
+        "automatic_resign": false,
+        "submissions": 0
+      }
+    },
+    {
+      "name": "unreadable_missing_and_terminal_are_non_enumerating",
+      "assertions": [
+        "unauthorized missing revoked and relinquished targets expose no effective row",
+        "their caller-visible outcome is indistinguishable and cannot be authored"
+      ],
+      "requested_states": [
+        "unauthorized",
+        "missing",
+        "revoked",
+        "relinquished"
+      ],
+      "expected": {
+        "rows_returned": 0,
+        "distinguishable_outcomes": 1,
+        "authoring_allowed": false
+      }
+    }
+  ]
+}

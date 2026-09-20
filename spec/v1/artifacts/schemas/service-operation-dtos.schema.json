@@ -1306,21 +1306,45 @@
       },
       "additionalProperties": false
     },
+    "EffectiveCapabilityGrantRow": {
+      "type": "object",
+      "description": "One active effective capability grant and the exact revision of that same capability_grant current result, read atomically by the governing Station. This revision is the only valid authoring basis for a subject-signed ak.capability.relinquish Event; state_digest, evaluated_at, Event ids and locally folded history MUST NOT substitute for it.",
+      "required": [
+        "grant",
+        "revision"
+      ],
+      "properties": {
+        "grant": {
+          "$ref": "./capability-grant.schema.json"
+        },
+        "revision": {
+          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+        }
+      },
+      "additionalProperties": false
+    },
     "GrantList": {
       "type": "object",
+      "description": "Atomic subject-visible snapshot of active effective grants. Each row carries its own exact current-result revision; state_digest authenticates the list as a whole and is never a per-grant CAS operand.",
+      "required": [
+        "grants",
+        "state_digest",
+        "evaluated_at"
+      ],
       "properties": {
         "grants": {
           "type": "array",
           "items": {
-            "$ref": "./capability-grant.schema.json"
+            "$ref": "#/$defs/EffectiveCapabilityGrantRow"
           }
         },
         "state_digest": {
           "type": "string",
-          "pattern": "^(sha256|blake3):[0-9a-f]{64}$"
+          "pattern": "^(sha256|blake3):[0-9a-f]{64}$",
+          "description": "Digest of the complete effective-list snapshot. It MUST NOT be copied into expected_revision or otherwise treated as one grant's revision."
         },
         "evaluated_at": {
-          "type": "string"
+          "$ref": "./time.schema.json#/$defs/timestamp"
         }
       },
       "additionalProperties": false

@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-20.7",
-  "generated_at": "2026-09-20T23:10:00+08:00",
+  "version": "2026-09-21.1",
+  "generated_at": "2026-09-21T01:46:34+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -2627,6 +2627,11 @@
         },
         {
           "direction": "consume",
+          "operation_id": "ak.self.authz.grants.read.effective.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
           "operation_id": "ak.root.identity.read.resolve.v1",
           "binding_kind": "http_json"
         }
@@ -2653,7 +2658,8 @@
         "ak.schema.read_cursor.v1"
       ],
       "required_fixtures": [
-        "privacy-security-fixture.json"
+        "privacy-security-fixture.json",
+        "capability-relinquish-authoring-fixture.json"
       ],
       "optional_extensions": [
         "ak.profile.e2ee_client.v1",
@@ -2991,6 +2997,11 @@
         },
         {
           "direction": "provide",
+          "operation_id": "ak.self.authz.grants.read.effective.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
           "operation_id": "ak.peer.account_status.command.submit.v1",
           "binding_kind": "http_json"
         },
@@ -3054,7 +3065,8 @@
       ],
       "required_fixtures": [
         "privacy-security-fixture.json",
-        "session-grant-issuance-fixture.json"
+        "session-grant-issuance-fixture.json",
+        "capability-relinquish-authoring-fixture.json"
       ],
       "required_vectors": [],
       "optional_extensions": [
