@@ -263,9 +263,9 @@ founding unit——首个有效 unit 胜出，失败方得到 `direct_conversati
 且不继承任何历史、MLS 状态、密钥、审计身份或权限。
 
 `ak.vector.direct_conversation.send_blocker_authority.v1` MUST 证明：Direct Conversation 解析器只报告
-服务端可验证的发送阻塞原因。`personal_blocked` 与 `history_key_unavailable` 不在封闭 wire 枚举中——
-holder blocklist 状态加密给 holder 设备、历史密钥安装是设备私有——因此携带其一的响应判 `schema_violation`；
-它们只由封闭的客户端本地阻塞集合承载，永不出现在任何 wire 面，也不把解析器状态变成 suspended。
+服务端可验证的发送阻塞原因。`personal_blocked` 不在封闭 wire 枚举中——
+holder blocklist 状态加密给 holder 设备——因此携带它的响应判 `schema_violation`；
+它只由封闭的客户端本地阻塞集合承载，永不出现在任何 wire 面，也不把解析器状态变成 suspended。缺少现行 MLS 发送状态时客户端另行 fail closed，不恢复旧 history-key 专用 blocker。
 `presence_offline` 与 `keypackage_empty` 仍可由服务端验证，但只返回给既有的 exact pair 参与者；
 非参与者探测得到与不存在的 pair 完全相同的不透明失败。
 

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-21.3",
+  "version": "2026-09-21.5",
   "source_of_truth": true,
-  "generated_at": "2026-09-21T01:54:51+08:00",
+  "generated_at": "2026-09-21T05:41:43+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1669,7 +1669,7 @@
       "applies_to_profiles": [
         "ak.profile.direct_conversation_realm.v1"
       ],
-      "description": "The Direct Conversation resolver reports only server-verifiable send blockers. personal_blocked and history_key_unavailable are absent from the closed wire enum because holder blocklist state is encrypted to holder devices and history key installation is device-private, so a reply carrying either value is a schema_violation; they are carried instead by the closed client-local blocker set, which never appears on any wire surface and never turns the resolver state into suspended. presence_offline and keypackage_empty remain server-verifiable but are returned only to an existing exact-pair participant, and a non-participant probe gets the same opaque failure as a nonexistent pair.",
+      "description": "The Direct Conversation resolver reports only server-verifiable send blockers. personal_blocked is absent from the closed wire enum because holder blocklist state is encrypted to holder devices, so a reply carrying it is a schema_violation; it is carried instead by the closed client-local blocker set, which never appears on any wire surface and never turns the resolver state into suspended. Current MLS group, epoch and send-secret readiness is checked separately and fails closed; no historical-key-specific blocker is restored. presence_offline and keypackage_empty remain server-verifiable but are returned only to an existing exact-pair participant, and a non-participant probe gets the same opaque failure as a nonexistent pair.",
       "source_refs": [
         "spec/v1/zh/identity/contact-and-direct-conversation.md"
       ]

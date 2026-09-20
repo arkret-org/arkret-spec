@@ -82,13 +82,6 @@ def check_error_code_closure(lint: Lint) -> None:
         # §5, service-http-binding.md §1015); the bare frame.kind ends in
         # _required and would otherwise trip the code-shape heuristic.
         "resync_required",
-        # Direct Conversation client-local send blocker, not a reason code and
-        # deliberately absent from every wire surface. Registered in
-        # conformance-profiles.json under
-        # ak.profile.direct_conversation_realm.v1#client_local_send_blockers
-        # (contact-and-direct-conversation.md §9.1); it ends in _unavailable and
-        # would otherwise trip the code-shape heuristic.
-        "history_key_unavailable",
         # Direct Conversation resolver outcome state, not a reason code
         # (direct-conversation-operations.schema.json#/$defs/
         # direct_conversation_resolve_outcome, contact-and-direct-conversation
@@ -262,6 +255,22 @@ def check_consent_current_clean_break(lint: Lint) -> None:
     for retired in ("requested_at", "active_grant_dots", "grant_dots", "revoked_dots"):
         if retired in properties:
             lint.fail(schema_path, f"consent_view must not restore retired or inferred field {retired!r}")
+
+
+def check_direct_conversation_local_blocker_clean_break(lint: Lint) -> None:
+    profiles_path = ARTIFACTS / "profiles" / "conformance-profiles.json"
+    vectors_path = ARTIFACTS / "registry" / "vector-registry.json"
+    profiles = load_json(lint, profiles_path)
+    vectors = load_json(lint, vectors_path)
+    if not isinstance(profiles, dict) or not isinstance(vectors, dict):
+        return
+    role = profiles.get("profile_requirements", {}).get("ak.profile.direct_conversation_realm.v1", {})
+    values = role.get("client_local_send_blockers", {}).get("values")
+    if values != ["personal_blocked"]:
+        lint.fail(profiles_path, "Direct Conversation client-local blockers must be exactly personal_blocked")
+    rows = [row for row in vectors.get("vectors", []) if isinstance(row, dict) and row.get("vector_id") == "ak.vector.direct_conversation.send_blocker_authority.v1"]
+    if len(rows) != 1 or "history_key_unavailable" in rows[0].get("description", ""):
+        lint.fail(vectors_path, "send blocker vector must not restore retired history_key_unavailable")
 
 
 def check_operations_error_mapping_closure(lint: Lint) -> None:
