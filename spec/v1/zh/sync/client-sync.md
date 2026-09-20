@@ -307,6 +307,8 @@ MLS Genesis 在某 scope首次 authority commit 后不可逆激活；此前内�
 
 `ak.mls.commit` 与所有新增 recipient 的 `MlsWelcomeDelivery` 在 authority submission 中原子持久化。Commit accepted 后发送方立即安装 staged post-state，不等待 Welcome ACK。Welcome 重试按 `welcome_id` 幂等。
 
+旧 Seal closure 形式的 MLS accepted-artifact 与 Welcome-ref 独立读取端点不属于 v1，服务 MUST NOT 将其作为 Commit 接纳证明或 recipient delivery 的第二读取源。Commit 的公开接纳事实由已登记的 committed Event／RealmCommit 读取面取得；`MlsWelcomeDelivery` 仍必须留在同一事务写入的 recipient-private queue，通过 §10 的 account delivery delta／同队列补拉交付并显式 ACK。移除旧端点不得删除 Welcome ciphertext、重试队列、outbox 或扩大其它客户端的可读范围。
+
 每个 MLS scope维护单调 `key_access_revision`。Encrypted application Event只有在 epoch、group state ref、covered revision都等于 current public state时才能 commit；membership/device authorization变化推进 revision并阻塞 stale epoch新消息。
 
 ### 15.1 `decryption_pending` timeout and recovery
