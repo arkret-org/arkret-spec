@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-21.7",
+  "version": "2026-09-21.9",
   "source_of_truth": true,
-  "generated_at": "2026-09-21T07:00:14+08:00",
+  "generated_at": "2026-09-21T07:13:36+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -4710,6 +4710,18 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/signal-sequence-high-water-fixture.json",
         "spec/v1/zh/sync/signal.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.state.strand_watch_current_read.v1",
+      "status": "active",
+      "domain": "state",
+      "applies_to_fixtures": [
+        "strand-watch-current-read-fixture.json"
+      ],
+      "description": "Exact own watch current read distinguishes never-written from a written null with revision, binds one confirmed governing generation and effective stream head, preserves whole-value CAS including level_public, and rejects foreign/invisible selectors, stale handoff results and raw Event arrival-order guesses.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/strand-watch-current-read-fixture.json"
       ]
     },
     {

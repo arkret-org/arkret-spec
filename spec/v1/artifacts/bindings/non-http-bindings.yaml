@@ -281,6 +281,8 @@ grpc:
       List: ak.self.space.read.list.v1
     SelfStrand:
       List: ak.self.strand.read.list.v1
+    SelfStrandWatch:
+      Current: ak.self.strand.watch.read.current.v1
     SelfMorph:
       List: ak.self.morph.read.list.v1
       Get: ak.self.morph.resource.get.v1
@@ -424,6 +426,7 @@ mq:
     self.moderation.command.report: ak.self.moderation.command.report.v1
     self.space.query.list: ak.self.space.read.list.v1
     self.strand.query.list: ak.self.strand.read.list.v1
+    self.strand.watch.query.current: ak.self.strand.watch.read.current.v1
     self.morph.query.list: ak.self.morph.read.list.v1
     self.morph.resource.get: ak.self.morph.resource.get.v1
     open.mimi.query.provider_directory: ak.open.mimi.read.provider_directory.v1

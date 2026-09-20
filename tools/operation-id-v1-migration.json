@@ -816,6 +816,10 @@
       "new": "ak.self.strand.read.list.v1"
     },
     {
+      "old": "ak.self.strand.watch.read.current",
+      "new": "ak.self.strand.watch.read.current.v1"
+    },
+    {
       "old": "ak.self.third_party_invite.read.acceptance_attestation",
       "new": "ak.self.third_party_invite.read.acceptance_attestation.v1"
     },

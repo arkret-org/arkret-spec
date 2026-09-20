@@ -81,9 +81,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
-      "version": "2026-09-21.6",
-      "generated_at": "2026-09-21T05:51:57+08:00",
-      "content_digest": "sha256:d6c7cfebe034d2826018eb76c052e9f743b4cbdff1176b6aa69b705bccf87141"
+      "version": "2026-09-21.7",
+      "generated_at": "2026-09-21T07:06:54+08:00",
+      "content_digest": "sha256:750b23ef669477cb9dbabb5fed36cf356fae2b134d18d51b90c285e945143c47"
     },
     {
       "path": "spec/v1/artifacts/registry/current-result-registry.json",
@@ -141,9 +141,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/event-kind-vector-gap-registry.json",
-      "version": "2026-09-21.2",
-      "generated_at": "2026-09-21T03:47:00+08:00",
-      "content_digest": "sha256:e6b215ef6f2a3e0596467559db54a082f1431bc3f94d22dfba457f0d04717eb0"
+      "version": "2026-09-21.3",
+      "generated_at": "2026-09-21T07:06:54+08:00",
+      "content_digest": "sha256:422bad94b60d4c2555be2e20ebec0d16d8bcf1a345fb411351348e02b1e1e06f"
     },
     {
       "path": "spec/v1/artifacts/registry/exporter-label-registry.json",
@@ -219,9 +219,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-bundle-closure-lock.json",
-      "version": "2026-09-21.2",
-      "generated_at": "2026-09-21T05:47:42+08:00",
-      "content_digest": "sha256:2fa1e7104d6b27e200324083cf109e7a3dc8699feb97f7070e9da11c9159e2e3"
+      "version": "2026-09-21.3",
+      "generated_at": "2026-09-21T07:06:54+08:00",
+      "content_digest": "sha256:4b6829f98751ae8b5507e2d707eada0fe8e6f13d4d6cc9a0bd022618e9e813ef"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-clause-registry.json",
@@ -231,21 +231,21 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-09-21.5",
-      "generated_at": "2026-09-21T05:30:53+08:00",
-      "content_digest": "sha256:baa9039df5af5e13730734ddf0915ee8fe31871ced52054b380bb0c720778671"
+      "version": "2026-09-21.7",
+      "generated_at": "2026-09-21T07:06:55+08:00",
+      "content_digest": "sha256:2c4e14f84b708dfd9e797b339717f4d63fa211aae031288acb91c923e94ef495"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
-      "version": "2026-09-21.5",
-      "generated_at": "2026-09-21T05:51:57+08:00",
-      "content_digest": "sha256:2e5aee2b92f559606632d4757f8198f12fe767524b56098fa57f759f910c04d9"
+      "version": "2026-09-21.6",
+      "generated_at": "2026-09-21T07:06:54+08:00",
+      "content_digest": "sha256:1a679c01db2376393ac5d474066b256ac0ee9a332f94da9e3597e1179d62bb73"
     },
     {
       "path": "spec/v1/artifacts/registry/operations-error-mapping.json",
-      "version": "2026-09-21.2",
-      "generated_at": "2026-09-21T05:20:34+08:00",
-      "content_digest": "sha256:ed725f2576ab803932ef88a6e91fa3db1b4a6d40c7288de2f1645a22e715416a"
+      "version": "2026-09-21.3",
+      "generated_at": "2026-09-21T07:13:36+08:00",
+      "content_digest": "sha256:42eaf3c983beaa7770683afd27440d5db6b3fb75a884375ff8d47a21a5c165ea"
     },
     {
       "path": "spec/v1/artifacts/registry/outward-disclosure-policy-registry.json",
@@ -369,9 +369,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/vector-registry.json",
-      "version": "2026-09-21.7",
-      "generated_at": "2026-09-21T07:00:14+08:00",
-      "content_digest": "sha256:3502e7053188a67c7e7a0214cf9d5881fe6295d86cb32e7ba6d10af36b3ba4e8"
+      "version": "2026-09-21.9",
+      "generated_at": "2026-09-21T07:13:36+08:00",
+      "content_digest": "sha256:0a6489f80ba126e366a9c1399204cf18ee31ff00d98992d698da7694f5174c72"
     },
     {
       "path": "tools/artifact-anchor-fragment-exemptions.json",
@@ -441,9 +441,9 @@
     },
     {
       "path": "tools/identifier-classification-registry.json",
-      "version": 14,
+      "version": 15,
       "generated_at": null,
-      "content_digest": "sha256:42e49fd014f4201e5cf732533b8c79edf061ddbb408fb2d869310d4e6cd56cb1"
+      "content_digest": "sha256:d3fda97b9501e0aefb197fbdf37fb16f069cb03f98af949ff97dbdce90bdb57a"
     },
     {
       "path": "tools/identifier-role-suffix-registry.json",

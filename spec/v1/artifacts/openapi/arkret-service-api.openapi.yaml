@@ -900,6 +900,10 @@ components:
       $ref: ../schemas/signer-key-operations.schema.json#/$defs/query_request_body
     SortSpec:
       $ref: ../schemas/query.schema.json#/$defs/sort_spec
+    StrandWatchCurrentOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentOutcome
+    StrandWatchCurrentRequestBody:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentRequestBody
     ThirdPartyInviteAcceptanceAttestationOutcome:
       $ref: ../schemas/invite.schema.json#/$defs/third_party_invite_acceptance_attestation_outcome
     ThirdPartyInviteAcceptanceAttestationRequestBody:
@@ -4056,6 +4060,42 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProjectionStrandList'
+  /_arkret/self/strands/watch/current:
+    post:
+      operationId: ak.self.strand.watch.read.current
+      summary: Read the authenticated actor's exact Strand watch current value.
+      description: >-
+        Current governing Station reads one exact watch selector and its effective-scope
+        authorization from one confirmed durable basis. A never-written result is explicit;
+        a previously cleared null value carries a real revision. This operation does not
+        enumerate watchers or authorize reads of another actor's private watch state.
+      security:
+      - sessionGrantAuth: []
+        dpopProof: []
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.self.strand.watch.read.current.v1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StrandWatchCurrentRequestBody'
+      responses:
+        '200':
+          description: Exact authorized watch current or proven never-written state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StrandWatchCurrentOutcome'
   /_arkret/self/realms/{realm_id}/morphs:
     get:
       operationId: ak.self.morph.read.list

@@ -6996,6 +6996,16 @@
       ]
     },
     {
+      "schema_path": "service-operation-dtos.schema.json#/$defs/StrandWatchCurrentRequestBody/properties/watcher_actor_id",
+      "property_name": "watcher_actor_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "actor_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:actor_id"
+      ]
+    },
+    {
       "schema_path": "signal-envelope.schema.json#/$defs/signal_proof/properties/verification_method",
       "property_name": "verification_method",
       "semantic_category": "responsibility_identity_material",

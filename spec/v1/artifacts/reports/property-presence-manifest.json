@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 8773,
+    "total_properties": 8786,
     "total_schema_documents": 163,
     "by_presence_class": {
       "optional": 2128,
       "optional_defaulted": 47,
-      "required": 6149,
+      "required": 6162,
       "required_nullable": 294,
       "tristate": 155
     },
@@ -10714,7 +10714,20 @@
         "/$defs/SignedSessionGrantClaims/properties/scope_details": "optional",
         "/$defs/SignedSessionGrantClaims/properties/scopes": "required",
         "/$defs/SignedSessionGrantClaims/properties/session_id": "required",
-        "/$defs/SignedSessionGrantClaims/properties/session_public_key": "required"
+        "/$defs/SignedSessionGrantClaims/properties/session_public_key": "required",
+        "/$defs/StrandWatchCurrentNeverWritten/properties/governance_generation": "required",
+        "/$defs/StrandWatchCurrentNeverWritten/properties/realm_id": "required",
+        "/$defs/StrandWatchCurrentNeverWritten/properties/selector": "required",
+        "/$defs/StrandWatchCurrentNeverWritten/properties/status": "required",
+        "/$defs/StrandWatchCurrentNeverWritten/properties/stream_head": "required",
+        "/$defs/StrandWatchCurrentPresent/properties/governance_generation": "required",
+        "/$defs/StrandWatchCurrentPresent/properties/realm_id": "required",
+        "/$defs/StrandWatchCurrentPresent/properties/result": "required",
+        "/$defs/StrandWatchCurrentPresent/properties/status": "required",
+        "/$defs/StrandWatchCurrentPresent/properties/stream_head": "required",
+        "/$defs/StrandWatchCurrentRequestBody/properties/realm_id": "required",
+        "/$defs/StrandWatchCurrentRequestBody/properties/strand_id": "required",
+        "/$defs/StrandWatchCurrentRequestBody/properties/watcher_actor_id": "required"
       },
       "conditionally_required": [
         "/$defs/AcceptedDevicePossessionProof/properties/account_handoff_grant_digest",

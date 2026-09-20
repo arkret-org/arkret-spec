@@ -1,0 +1,67 @@
+{
+  "profile": "ak.vector_group.state.v1",
+  "version": "2026-09-21",
+  "suite": "strand_watch_current_read",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.state.strand_watch_current_read.v1"
+  },
+  "covers_vectors": [
+    "ak.vector.state.strand_watch_current_read.v1"
+  ],
+  "cases": [
+    {
+      "name": "never_written_is_explicit_at_confirmed_head",
+      "same_effective_actor": true,
+      "current_scope_readable": true,
+      "accepted_watch_writes": 0,
+      "expected": {
+        "status": "never_written",
+        "revision_present": false,
+        "value_present": false,
+        "can_omit_expected_value_for_first_write": true
+      }
+    },
+    {
+      "name": "written_clear_is_current_null_not_never_written",
+      "accepted_watch_writes": 2,
+      "last_write_level": null,
+      "expected": {
+        "status": "current",
+        "value": null,
+        "revision_present": true,
+        "next_write_expected_value": null
+      }
+    },
+    {
+      "name": "whole_value_public_flag_must_match",
+      "current_value": {"level": "all", "level_public": true},
+      "attempt_expected_value": {"level": "all"},
+      "expected": {"decision": "failed_precondition", "effect_count": 0}
+    },
+    {
+      "name": "reverse_arrival_and_missing_tail_do_not_change_current",
+      "local_raw_event_order": ["newer", "older"],
+      "station_accepted_commit_order": ["older", "newer"],
+      "expected": {"read_source": "durable_typed_current_at_confirmed_head", "uses_local_raw_event_order": false}
+    },
+    {
+      "name": "foreign_or_invisible_selector_is_non_enumerating",
+      "variants": ["foreign_watcher", "invisible_circle_strand", "unknown_strand"],
+      "expected": {"same_result": "not_found", "watch_value_disclosed": false}
+    },
+    {
+      "name": "others_write_does_not_grant_private_read",
+      "has_watch_set_others": true,
+      "has_notification_audit": false,
+      "expected": {"read_result": "not_found", "watch_value_disclosed": false}
+    },
+    {
+      "name": "handoff_and_cas_conflict_require_re_read",
+      "old_governance_generation": true,
+      "concurrent_watch_write": true,
+      "expected": {"old_read_usable": false, "automatic_retry_with_old_value": false, "action": "refresh_current_and_reconfirm"}
+    }
+  ],
+  "minimum_independent_runners": 2
+}

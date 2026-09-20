@@ -491,6 +491,11 @@
       "version": "2026-09-20.2"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/strand-watch-current-read-fixture.json",
+      "sha256": "b8a7e3a0c7c56bddf24284a09b11fa5ed38142f06a089b279e6e42d9cf45d336",
+      "version": "2026-09-21"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/string-profile-fixture.json",
       "sha256": "1f19a092023d01b4058af3408620f92ecbbad953e15827f81e1fe6a8b6adde23",
       "version": "2026-08-02"

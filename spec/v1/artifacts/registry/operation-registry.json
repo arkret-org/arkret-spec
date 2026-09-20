@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-21.5",
+  "version": "2026-09-21.6",
   "source_of_truth": false,
-  "generated_at": "2026-09-21T05:51:57+08:00",
+  "generated_at": "2026-09-21T07:06:54+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -119,6 +119,7 @@
         "ak.self.account.stream.subscribe.v1",
         "ak.self.account.command.revoke_cursor.v1",
         "ak.self.realm_state_snapshot.read.manifest_head.v1",
+        "ak.self.strand.watch.read.current.v1",
         "ak.self.current_principal.read.resolve.v1",
         "ak.self.realm.read.streams.v1"
       ],
@@ -3840,6 +3841,22 @@
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ProjectionStrandList"
     },
     {
+      "operation_id": "ak.self.strand.watch.read.current.v1",
+      "http": "POST /_arkret/self/strands/watch/current",
+      "grpc": "SelfStrandWatch/Current",
+      "mq": "self.strand.watch.query.current",
+      "notes": "Exact non-enumerating self watch current read from the governing Station's durable typed reducer under one confirmed governance generation and effective-scope authorization basis. Request watcher_actor_id MUST be the current authenticated effective ActorId; writing another actor under ak.strand.watch.set.others does not grant this read. Response discriminates never_written from current, including a written value:null with a real revision. Invisible/foreign/unknown selectors collapse to not_found; unresolved current authority returns revision_unavailable. The returned stream head and generation are observations, not future CAS authority. No snapshot omission, local raw Event order or default level proves absence.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentRequestBody",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentOutcome",
+      "max_canonical_body_bytes": 16384,
+      "durable_effect": {
+        "kind": "none",
+        "rationale": "read_only_exact_current_projection_no_event_or_durable_mutation"
+      }
+    },
+    {
       "operation_id": "ak.self.third_party_invite.read.acceptance_attestation.v1",
       "http": "POST /_arkret/self/third-party-invites/acceptance-attestation",
       "grpc": "SelfThirdPartyInvite/AcceptanceAttestation",
@@ -5201,6 +5218,10 @@
         },
         {
           "operation_id": "ak.self.strand.read.list.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "operation_id": "ak.self.strand.watch.read.current.v1",
           "binding_kind": "http_json"
         }
       ]

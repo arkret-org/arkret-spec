@@ -324,6 +324,11 @@ selector——响应可见范围仍由 [§3](#3-当前结果响应) 决定。
 响应只包含调用者当前有权读取的 selector。省略不表示空值、删除或权限；领域若允许显式空值，必须由其 typed value
 表达。成员退出、Circle 撤权或 Station 更换后，客户端必须按新授权范围清除不可再见的缓存，但不得由响应差异推断隐藏对象。
 
+`strand_watch` 的 whole-value CAS 不能从本列表、Realm snapshot 或 stream scan 中的缺项推断
+`never_written`。本人需调用 [`strand-and-message.md` §8.3](../models/strand-and-message.md)
+的 exact current read；它在同一治理任期和 effective stream head 下明确区分未写入与写后清空。
+该精确响应也只是一时观察，不豁免提交时的当前授权与 CAS 再验证。
+
 ## 4. 有界基线与续传
 
 `AccountCurrentResult.coverage` 携带 `realm_id`、`stream_heads[]` 与 `complete_for_authorized_streams`。只有在：

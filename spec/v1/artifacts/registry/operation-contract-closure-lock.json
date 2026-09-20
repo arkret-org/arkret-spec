@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-21.5",
-  "generated_at": "2026-09-21T05:30:53+08:00",
+  "version": "2026-09-21.7",
+  "generated_at": "2026-09-21T07:06:55+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -822,6 +822,10 @@
     {
       "operation_id": "ak.self.strand.read.list.v1",
       "sha256": "sha256:87accfd312457d70625faba311f70d64b1a9fedc73afa6416d216ad55b8e0f17"
+    },
+    {
+      "operation_id": "ak.self.strand.watch.read.current.v1",
+      "sha256": "sha256:d9227165820cfc6e17d27bb52c1bf00aaf1da56c6fcb2ee88b5b9e20eb35c707"
     },
     {
       "operation_id": "ak.self.third_party_invite.read.acceptance_attestation.v1",

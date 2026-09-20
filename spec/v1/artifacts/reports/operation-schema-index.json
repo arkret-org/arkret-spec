@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-21.6",
+  "version": "2026-09-21.7",
   "source_of_truth": false,
-  "generated_at": "2026-09-21T05:51:57+08:00",
+  "generated_at": "2026-09-21T07:06:54+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -8362,6 +8362,84 @@
           "has_more"
         ],
         "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.strand.watch.read.current.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentRequestBody",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "strand_id",
+          "watcher_actor_id"
+        ],
+        "properties": [
+          "realm_id",
+          "strand_id",
+          "watcher_actor_id"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentOutcome",
+        "schema_kind": "oneOf",
+        "required": [
+          "status",
+          "realm_id",
+          "governance_generation",
+          "stream_head"
+        ],
+        "properties": [
+          "status",
+          "realm_id",
+          "governance_generation",
+          "stream_head",
+          "selector",
+          "result"
+        ],
+        "closed": true,
+        "variants": [
+          {
+            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentNeverWritten",
+            "schema_kind": "object",
+            "required": [
+              "status",
+              "realm_id",
+              "governance_generation",
+              "stream_head",
+              "selector"
+            ],
+            "properties": [
+              "status",
+              "realm_id",
+              "governance_generation",
+              "stream_head",
+              "selector"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentPresent",
+            "schema_kind": "object",
+            "required": [
+              "status",
+              "realm_id",
+              "governance_generation",
+              "stream_head",
+              "result"
+            ],
+            "properties": [
+              "status",
+              "realm_id",
+              "governance_generation",
+              "stream_head",
+              "result"
+            ],
+            "closed": true
+          }
+        ]
       }
     },
     {

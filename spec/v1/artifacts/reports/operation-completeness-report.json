@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-21.6",
+  "version": "2026-09-21.7",
   "source_of_truth": false,
-  "generated_at": "2026-09-21T05:51:57+08:00",
+  "generated_at": "2026-09-21T07:06:54+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,14 +18,14 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 205,
+    "total_operations": 206,
     "by_completeness_class": {
       "binary_or_redirect": 2,
-      "typed_schema": 203
+      "typed_schema": 204
     },
     "by_surface_class_and_completeness_class": {
       "core": {
-        "typed_schema": 45
+        "typed_schema": 46
       },
       "deployment_local": {
         "typed_schema": 15
@@ -2809,6 +2809,20 @@
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ak.self.strand.watch.read.current.v1",
+      "surface_class": "core",
+      "http": "POST /_arkret/self/strands/watch/current",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentRequestBody",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentOutcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/StrandWatchCurrentRequestBody",
+        "response": "#/components/schemas/StrandWatchCurrentOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
       "operation_id": "ak.self.third_party_invite.read.acceptance_attestation.v1",
