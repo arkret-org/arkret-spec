@@ -86,6 +86,29 @@ class RecoveryTranscriptClosureLintTest(unittest.TestCase):
             any("recovery_method branch kinds must be exactly" in error for error in errors), errors
         )
 
+    def test_removed_recovery_unlock_field_cannot_return(self) -> None:
+        schema = recovery_transcripts.SCHEMA.resolve()
+
+        def mutate(path, value):
+            if path == schema:
+                proof = value["$defs"]["recovery_unlock_proof"]
+                proof["properties"]["unlock_commitment"] = {"$ref": "#/$defs/digest"}
+                proof["required"].append("unlock_commitment")
+
+        errors = self._recovery_lint(mutate)
+        self.assertTrue(any("recovery_unlock_proof must expose exactly" in error for error in errors), errors)
+
+    def test_recovery_unlock_projection_must_delete_only_signature(self) -> None:
+        fixture = recovery_transcripts.FIXTURE.resolve()
+
+        def mutate(path, value):
+            if path == fixture:
+                case = next(case for case in value["cases"] if case["kind"] == "recovery_unlock")
+                case["forbidden_signature_carriers"].append("unlock_commitment")
+
+        errors = self._recovery_lint(mutate)
+        self.assertTrue(any("must delete only signature" in error for error in errors), errors)
+
     def test_registered_context_schema_copy_fails(self) -> None:
         original = recovery_transcripts.load_json
         target = recovery_transcripts.SCHEMA.resolve()

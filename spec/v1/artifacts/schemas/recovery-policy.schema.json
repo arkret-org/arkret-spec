@@ -169,7 +169,7 @@
       "properties": {
         "verification_method": {
           "$ref": "#/$defs/did_url",
-          "description": "Exact recovery signing method; recovery_secret_ref resolves only to this accepted method entry, never arbitrary DID Document membership."
+          "description": "Exact and sole recovery signing-key selector used by recovery_unlock proofs. It resolves only within this accepted policy entry, never through arbitrary DID Document membership or a caller-provided fallback."
         },
         "public_key_multibase": {
           "type": "string",

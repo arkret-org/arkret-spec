@@ -1256,6 +1256,15 @@ Policy 签名输入固定为 `UTF8("ak.identity.recovery_policy.signature.v1\n")
 
 **唯一方法来源**：signed policy 只有 `methods[]`，tag 每种最多一条，v1 的封闭四项是 `did_root {}`、`recovery_unlock {keys[]}`、`device_quorum {k,member_ids[]}`、`trusted_recovery_service {services[]}`。每个 entry 是独立 OR 恢复方法。device_quorum 必须按不同有效设备去重并满足 2 ≤ k ≤ n。trusted_recovery_service 的 `services[]` 之间也是 OR：恰好一条 entry 的 `service_id`、`authorization_verification_method` 与 `audience` MUST 与提交的授权逐字相等，没有跨 entry 门限，也不存在部署级恢复签发方；不能用 DID Document membership 或任意字段“提及”替代。did_root 只声明 opt-in，由 DID history/pre-rotation 验证当前 root，不钉一把跨代静态 root，也不接受设备 key 代替。一个方法的证明不得拼给另一个方法凑门限。
 
+`recovery_unlock` proof 的唯一 key selector 是其已签名 `verification_method`。接收方 MUST 在 session 冻结的
+accepted policy/version 中按该 DID URL 逐字选择**恰好一条** `recovery_unlock.keys[]` entry，并在 session
+`created_at` 检查其算法、公钥、`not_before` / `expires_at` / `revoked_at`，同时按本节撤销规则重查后继显式撤销；
+零条或多条匹配都 fail closed。不得从 current DID Document、current policy、调用方自报公钥或 deployment
+fallback 选 key。proof 与其 signature-independent body 均不携 `recovery_secret_ref` 或 `unlock_commitment`：前者
+没有 policy/session 中的规范映射，后者只是任何人都可对已签公开 transcript 重算的无密钥 hash，不增加持钥、
+freshness、authorization 或 replay protection。`signature` 是唯一持钥证明，并覆盖完整
+`generic_recovery_transcript`；其 proof body 只删除 `signature`，不得以 null 或兼容别名替代。
+
 publication authority、UI 与 session verifier MUST 从该 entry 同源派生：rule id = kind，role 固定 identity_recovery，action 固定 ak.device.reanchor；recovery_unlock 的 issuer = active keys、门限 1；device_quorum issuer 来自该 accepted basis 上 member_ids 对应 active device methods、门限 k；trusted service issuer 为 `services[]` 的 exact `authorization_verification_method` 集合、门限 1；did_root 从 accepted DID history 取 root authority。排序去重与有效期检查在计算 authority_set_digest 前完成。衍生 rule 不是 policy 中第二份可编辑配置。
 
 **可执行性与失败合同**：v1 没有通用 approval AND 层、announcement 等待或部署级支持矩阵；`min_approvals`、`announcement_required`、`attestation_required` 与服务 k-of-n 都不是 v1 wire 字段，实现 MUST NOT 复活它们。

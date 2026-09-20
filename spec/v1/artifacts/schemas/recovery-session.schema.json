@@ -362,10 +362,8 @@
       "required": [
         "kind",
         "challenge",
-        "recovery_secret_ref",
         "verification_method",
         "signature_algorithm",
-        "unlock_commitment",
         "signature"
       ],
       "properties": {
@@ -375,24 +373,15 @@
         "challenge": {
           "$ref": "#/$defs/challenge"
         },
-        "recovery_secret_ref": {
-          "type": "string",
-          "minLength": 1,
-          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
-          "description": "Opaque recovery-policy key-entry label authorized at the session's created_at. This is not a DID, DID URL or public-key encoding; verification_method alone names the signing key."
-        },
         "verification_method": {
-          "$ref": "#/$defs/did_url"
+          "$ref": "#/$defs/did_url",
+          "description": "Sole recovery signing-key selector. It MUST uniquely and exactly match one in-window, non-revoked recovery_unlock key entry in the session's frozen accepted policy/version."
         },
         "signature_algorithm": {
           "type": "string",
           "enum": [
             "Ed25519"
           ]
-        },
-        "unlock_commitment": {
-          "$ref": "#/$defs/digest",
-          "description": "Public binding hash over the session transcript and recovery_secret_ref. Possession is proven by signature; this commitment prevents proof-shell substitution."
         },
         "signature": {
           "type": "string",
@@ -624,11 +613,10 @@
     },
     "recovery_unlock_proof_body": {
       "type": "object",
-      "description": "Signature-independent recovery_unlock projection. signature and unlock_commitment are deleted, never replaced by null, before transcript canonicalization.",
+      "description": "Signature-independent recovery_unlock projection. Only signature is deleted, never replaced by null, before transcript canonicalization; verification_method remains the exact frozen-policy key selector.",
       "required": [
         "kind",
         "challenge",
-        "recovery_secret_ref",
         "verification_method",
         "signature_algorithm"
       ],
@@ -639,14 +627,9 @@
         "challenge": {
           "$ref": "#/$defs/challenge"
         },
-        "recovery_secret_ref": {
-          "type": "string",
-          "minLength": 1,
-          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
-          "description": "Opaque recovery-policy key-entry label; never a DID or verification method."
-        },
         "verification_method": {
-          "$ref": "#/$defs/did_url"
+          "$ref": "#/$defs/did_url",
+          "description": "Sole recovery signing-key selector, bound by the transcript signature and resolved only in the session's frozen accepted policy/version."
         },
         "signature_algorithm": {
           "type": "string",

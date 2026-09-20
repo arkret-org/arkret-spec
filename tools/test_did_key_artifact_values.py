@@ -72,14 +72,6 @@ class DidKeyArtifactValuesTest(unittest.TestCase):
         del self.body["method_policy_cases"][0]["validation_context"]
         self.assertTrue(any("validation_context" in error for error in self.witness_errors()))
 
-    def test_recovery_label_cannot_masquerade_as_did_key(self) -> None:
-        path = ROOT / "spec/v1/artifacts/fixtures/recovery-transcript-fixture.json"
-        body = json.loads(path.read_text(encoding="utf-8"))
-        case = next(case for case in body["cases"] if case["kind"] == "recovery_unlock")
-        case["source_proof"]["recovery_secret_ref"] = "did:key:z6MkfixtureRecovery"
-        self.value_overrides[path.resolve()] = body
-        self.assertTrue(any("opaque policy label" in error for error in self.value_errors()))
-
     def test_decodable_wrong_algorithm_case_is_required(self) -> None:
         self.body["method_policy_cases"] = [
             case for case in self.body["method_policy_cases"]

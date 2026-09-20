@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 8832,
+    "total_properties": 8829,
     "total_schema_documents": 163,
     "by_presence_class": {
       "optional": 2153,
       "optional_defaulted": 47,
-      "required": 6183,
+      "required": 6180,
       "required_nullable": 294,
       "tristate": 155
     },
@@ -9720,14 +9720,11 @@
         "/$defs/recovery_session_state/properties/updated_at": "required",
         "/$defs/recovery_unlock_proof/properties/challenge": "required",
         "/$defs/recovery_unlock_proof/properties/kind": "required",
-        "/$defs/recovery_unlock_proof/properties/recovery_secret_ref": "required",
         "/$defs/recovery_unlock_proof/properties/signature": "required",
         "/$defs/recovery_unlock_proof/properties/signature_algorithm": "required",
-        "/$defs/recovery_unlock_proof/properties/unlock_commitment": "required",
         "/$defs/recovery_unlock_proof/properties/verification_method": "required",
         "/$defs/recovery_unlock_proof_body/properties/challenge": "required",
         "/$defs/recovery_unlock_proof_body/properties/kind": "required",
-        "/$defs/recovery_unlock_proof_body/properties/recovery_secret_ref": "required",
         "/$defs/recovery_unlock_proof_body/properties/signature_algorithm": "required",
         "/$defs/recovery_unlock_proof_body/properties/verification_method": "required",
         "/$defs/trusted_recovery_service_proof/properties/audience": "required",

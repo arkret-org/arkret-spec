@@ -564,8 +564,6 @@ def check_did_key_artifact_values(lint: Lint) -> None:
         if isinstance(node, dict):
             for key, value in node.items():
                 token = str(key).replace("~", "~0").replace("/", "~1")
-                if key == "recovery_secret_ref" and isinstance(value, str) and value.startswith("did:"):
-                    lint.fail(path, f"{pointer}/{token}: recovery_secret_ref is an opaque policy label, not a DID")
                 visit(path, value, f"{pointer}/{token}", allowed_invalid_prefix)
             return
         if isinstance(node, list):

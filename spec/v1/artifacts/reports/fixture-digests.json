@@ -402,8 +402,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/recovery-transcript-fixture.json",
-      "sha256": "2d9fc4290b4cdca98922781927df58117c7e06af88d1fa40cc42db17aebdd8c6",
-      "version": "2026-09-19.1"
+      "sha256": "4b1d3655ec0d037f6390bb33c12e755019f9c808d76d1e442595e36b30081a36",
+      "version": "2026-09-20.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/redaction-fixture.json",

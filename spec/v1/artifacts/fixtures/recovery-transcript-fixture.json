@@ -1,5 +1,5 @@
 {
-  "version": "2026-09-19.1",
+  "version": "2026-09-20.1",
   "generated_by": "tools/regenerate_recovery_transcript_fixture.py",
   "domain": "ak.identity.recovery_proof.v1",
   "description": "Byte-exact signing transcripts for all four recovery factors. The verifier reconstructs these bytes from stored session state and the submitted proof; clients never submit a transcript object.",
@@ -92,15 +92,12 @@
       "source_proof": {
         "kind": "recovery_unlock",
         "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-        "recovery_secret_ref": "recovery-key-fixture",
         "verification_method": "did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
         "signature_algorithm": "Ed25519",
-        "unlock_commitment": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
-        "signature": "MJCqtN3_8wkW0iuERBIQ4_YwR9CCLxfWob0z9wDHb0_ri6Ug0ArLcqDrye2lt96IZoKPNoruZz2FI76g6IKvBQ"
+        "signature": "GRnxz_03jrr4fyvYXGPIoVBwEUr4_mnjBPi695LmTllq9ZBujuxwQMLcSWgLE1_zVUjp-f6_-Cq9P8E7r4QoBg"
       },
       "forbidden_signature_carriers": [
-        "signature",
-        "unlock_commitment"
+        "signature"
       ],
       "transcript": {
         "schema": "ak.identity.recovery_proof.v1",
@@ -127,14 +124,13 @@
         "proof_body": {
           "kind": "recovery_unlock",
           "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-          "recovery_secret_ref": "recovery-key-fixture",
           "verification_method": "did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
           "signature_algorithm": "Ed25519"
         }
       },
-      "transcript_jcs": "{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixtureprincipalexample\",\"station_id\":\"ak:did_core:webvh:z6mkfixtureserviceexample\"},\"challenge\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\"created_at\":\"2026-08-23T09:00:00.000Z\",\"expires_at\":\"2026-08-23T09:30:00.000Z\",\"identity_model\":\"pcr_policy\",\"kind\":\"recovery_unlock\",\"model_generation_ref\":19,\"policy_id\":\"ak:policy:019b6a40-0000-7000-8000-000000000002\",\"policy_version\":7,\"proof_body\":{\"challenge\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\"kind\":\"recovery_unlock\",\"recovery_secret_ref\":\"recovery-key-fixture\",\"signature_algorithm\":\"Ed25519\",\"verification_method\":\"did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd\"},\"publication_authority_context_digest\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"recovery_session_id\":\"ak:recovery_session:019b6a40-0000-7000-8000-000000000003\",\"request_id\":\"ak:request:019b6a40-0000-7000-8000-000000000000\",\"requesting_device_id\":\"ak:device:019b6a40-0000-7000-8000-000000000001\",\"requesting_device_public_key_did\":\"did:key:z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBVLLqxYgNwxGEhiP\",\"schema\":\"ak.identity.recovery_proof.v1\",\"session_grant_cnf_jkt\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\"session_grant_id\":\"ak:session_grant:ARZh3t6pUePAQHfZ8vZbYERKa2BqFWV_dynfVmrmHA_N\",\"trust_domain\":\"ak:trust_domain:recovery-fixture\"}",
-      "transcript_digest": "sha256:d8f72abe911c806a0a728d50110bf930a7ba1c42ecbe1299ef8e8a6ced50c420",
-      "signature_b64u": "MJCqtN3_8wkW0iuERBIQ4_YwR9CCLxfWob0z9wDHb0_ri6Ug0ArLcqDrye2lt96IZoKPNoruZz2FI76g6IKvBQ",
+      "transcript_jcs": "{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixtureprincipalexample\",\"station_id\":\"ak:did_core:webvh:z6mkfixtureserviceexample\"},\"challenge\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\"created_at\":\"2026-08-23T09:00:00.000Z\",\"expires_at\":\"2026-08-23T09:30:00.000Z\",\"identity_model\":\"pcr_policy\",\"kind\":\"recovery_unlock\",\"model_generation_ref\":19,\"policy_id\":\"ak:policy:019b6a40-0000-7000-8000-000000000002\",\"policy_version\":7,\"proof_body\":{\"challenge\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\"kind\":\"recovery_unlock\",\"signature_algorithm\":\"Ed25519\",\"verification_method\":\"did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd\"},\"publication_authority_context_digest\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"recovery_session_id\":\"ak:recovery_session:019b6a40-0000-7000-8000-000000000003\",\"request_id\":\"ak:request:019b6a40-0000-7000-8000-000000000000\",\"requesting_device_id\":\"ak:device:019b6a40-0000-7000-8000-000000000001\",\"requesting_device_public_key_did\":\"did:key:z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBVLLqxYgNwxGEhiP\",\"schema\":\"ak.identity.recovery_proof.v1\",\"session_grant_cnf_jkt\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\"session_grant_id\":\"ak:session_grant:ARZh3t6pUePAQHfZ8vZbYERKa2BqFWV_dynfVmrmHA_N\",\"trust_domain\":\"ak:trust_domain:recovery-fixture\"}",
+      "transcript_digest": "sha256:ffa200c4ff99d568120bb1b9a76aaa0fe183dcd18e3fb1233793ee9d5b171841",
+      "signature_b64u": "GRnxz_03jrr4fyvYXGPIoVBwEUr4_mnjBPi695LmTllq9ZBujuxwQMLcSWgLE1_zVUjp-f6_-Cq9P8E7r4QoBg",
       "expected_result": "accept",
       "cross_factor_replay": {
         "replayed_kind": "device_quorum",
@@ -163,7 +159,6 @@
           "proof_body": {
             "kind": "recovery_unlock",
             "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-            "recovery_secret_ref": "recovery-key-fixture",
             "verification_method": "did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
             "signature_algorithm": "Ed25519"
           }

@@ -84,13 +84,11 @@ def proof_inputs(verification_method: str) -> list[tuple[str, dict[str, object],
             {
                 "kind": "recovery_unlock",
                 "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-                "recovery_secret_ref": "recovery-key-fixture",
                 "verification_method": verification_method,
                 "signature_algorithm": "Ed25519",
-                "unlock_commitment": "sha256:" + "22" * 32,
                 "signature": "PLACEHOLDER",
             },
-            ["signature", "unlock_commitment"],
+            ["signature"],
         ),
         (
             "device_quorum",
@@ -137,7 +135,6 @@ def project(kind: str, proof: dict[str, object]) -> dict[str, object] | None:
     body = copy.deepcopy(proof)
     if kind == "recovery_unlock":
         body.pop("signature")
-        body.pop("unlock_commitment")
     elif kind == "device_quorum":
         for row in body["signatures"]:
             row.pop("signature")
@@ -191,7 +188,7 @@ def main() -> None:
             }
         )
     fixture = {
-        "version": "2026-09-19.1",
+        "version": "2026-09-20.1",
         "generated_by": "tools/regenerate_recovery_transcript_fixture.py",
         "domain": "ak.identity.recovery_proof.v1",
         "description": "Byte-exact signing transcripts for all four recovery factors. The verifier reconstructs these bytes from stored session state and the submitted proof; clients never submit a transcript object.",

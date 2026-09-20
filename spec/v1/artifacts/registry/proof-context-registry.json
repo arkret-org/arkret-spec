@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.4",
+  "version": "2026-09-20.5",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T16:42:00+08:00",
+  "generated_at": "2026-09-20T22:01:09+08:00",
   "description": "Canonical security-domain labels for Arkret detached proofs and non-Event cryptographic transcripts. contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript, and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
     "context values and object_family values MUST be unique",
@@ -1221,7 +1221,7 @@
         "created_at",
         "proof_body?"
       ],
-      "conditional_binding_rule": "kind=did_root MUST omit proof_body; kind in recovery_unlock|device_quorum|trusted_recovery_service MUST include the matching closed signature-independent proof_body projection",
+      "conditional_binding_rule": "kind=did_root MUST omit proof_body; kind=recovery_unlock MUST include the closed proof_body projection obtained by deleting only signature and MUST select the frozen policy key by exact verification_method; kind in device_quorum|trusted_recovery_service MUST include the matching closed signature-independent proof_body projection",
       "transcript_schema_refs": [
         "schemas/recovery-session.schema.json#/$defs/did_root_transcript",
         "schemas/recovery-session.schema.json#/$defs/generic_recovery_transcript"

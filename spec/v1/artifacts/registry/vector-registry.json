@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.15",
+  "version": "2026-09-20.16",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T16:42:00+08:00",
+  "generated_at": "2026-09-20T22:01:09+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -2806,7 +2806,7 @@
       "applies_to_fixtures": [
         "recovery-transcript-fixture.json"
       ],
-      "description": "Byte-exact recovery signing transcripts for every registered recovery factor; the verifier rebuilds the bytes from stored session state and the submitted proof.",
+      "description": "Byte-exact recovery signing transcripts for every registered recovery factor; recovery_unlock deletes only signature from its proof-body projection and selects the frozen accepted-policy key by exact verification_method.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/recovery-transcript-fixture.json"
       ]

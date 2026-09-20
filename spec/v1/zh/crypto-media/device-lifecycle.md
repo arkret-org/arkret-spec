@@ -1322,10 +1322,12 @@ create-time PoP 的封闭对象由
 只证明持有 device id 字符串或 DPoP key 不满足该条件。session create 的 canonical intent 幂等摘要覆盖完整
 请求（包括 PoP）；同 grant/request_id 异 intent 为 `duplicate_conflict`，精确重试不换 key、不换 challenge。
 
-`recovery_unlock.recovery_secret_ref` 是 accepted recovery-policy key entry 的不透明本地引用标签，
-不是 DID、DID URL 或公钥编码；它不得用看似 `did:key` 的占位文本冒充可解析验证方法。实际签名 key
-只由同一 proof 的 `verification_method` 指定，该值必须是可解析的真实 DID URL，并逐字匹配 session
-冻结的 policy entry。fixture 可使用公开测试 key，但 label 与 verification method 两个名字空间不得混用。
+`recovery_unlock` 只以同一 proof 中已签名的 exact `verification_method` 选择 recovery signing key：该值必须是
+可解析的真实 DID URL，并在 session `created_at` 时逐字唯一匹配 session 冻结的 accepted policy/version 的
+`methods[kind=recovery_unlock].keys[]` entry。proof 不携 `recovery_secret_ref`、调用方公钥或其它第二 key identity，
+也不携对同一公开 transcript 的 `unlock_commitment`；持钥、freshness、Account/Station、grant/JKT、replacement
+device、policy/generation、authority digest、challenge 与时间窗全部由 `ak.identity.recovery_proof.v1` 的唯一
+Ed25519 signature 认证。consumer 不得查询 current DID Document、current policy 或 deployment fallback 改选 key。
 
 **unit admission 与原子边界（normative）**：两条 Event 的 proof method 均使用同一已验证 account DID 下、
 fragment 精确等于 `requesting_device_id` 的设备 method。verifier 从该账号已有可信 binding/accepted PCR

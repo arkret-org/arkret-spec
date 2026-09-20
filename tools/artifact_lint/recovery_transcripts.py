@@ -20,9 +20,10 @@ FIXTURE = ARTIFACTS / "fixtures" / "recovery-transcript-fixture.json"
 VECTOR_ID = "ak.vector.identity.recovery_transcript.v1"
 DOMAIN = "ak.identity.recovery_proof.v1"
 CONDITIONAL_RULE = (
-    "kind=did_root MUST omit proof_body; kind in "
-    "recovery_unlock|device_quorum|trusted_recovery_service "
-    "MUST include the matching closed signature-independent proof_body projection"
+    "kind=did_root MUST omit proof_body; kind=recovery_unlock MUST include the closed proof_body "
+    "projection obtained by deleting only signature and MUST select the frozen policy key by exact "
+    "verification_method; kind in device_quorum|trusted_recovery_service MUST include the matching "
+    "closed signature-independent proof_body projection"
 )
 KINDS = [
     "did_root",
@@ -57,6 +58,15 @@ BODY_DEFS = {
     "device_quorum": "device_quorum_proof_body",
     "trusted_recovery_service": "trusted_recovery_service_proof_body",
 }
+RECOVERY_UNLOCK_PROOF_FIELDS = {
+    "kind",
+    "challenge",
+    "verification_method",
+    "signature_algorithm",
+    "signature",
+}
+RECOVERY_UNLOCK_BODY_FIELDS = RECOVERY_UNLOCK_PROOF_FIELDS - {"signature"}
+REMOVED_RECOVERY_UNLOCK_FIELDS = {"recovery_secret_ref", "unlock_commitment"}
 
 
 def _b64u_decode(value: Any) -> bytes | None:
@@ -79,7 +89,6 @@ def _projection(kind: str, proof: Any) -> dict[str, Any] | None:
     body = {key: value for key, value in proof.items()}
     if kind == "recovery_unlock":
         body.pop("signature", None)
-        body.pop("unlock_commitment", None)
     elif kind == "trusted_recovery_service":
         body.pop("signature", None)
     elif kind == "device_quorum":
@@ -150,6 +159,24 @@ def check_recovery_transcript_closure(lint: Lint) -> None:
     expected_submit = [f"{kind}_proof" for kind in KINDS]
     if submit_refs != expected_submit:
         lint.fail(SCHEMA, f"proof submit oneOf must be exactly {expected_submit}")
+
+    for def_name, expected_fields in (
+        ("recovery_unlock_proof", RECOVERY_UNLOCK_PROOF_FIELDS),
+        ("recovery_unlock_proof_body", RECOVERY_UNLOCK_BODY_FIELDS),
+    ):
+        definition = defs.get(def_name)
+        properties = definition.get("properties") if isinstance(definition, dict) else None
+        required = definition.get("required") if isinstance(definition, dict) else None
+        if (
+            not isinstance(properties, dict)
+            or set(properties) != expected_fields
+            or not isinstance(required, list)
+            or set(required) != expected_fields
+            or definition.get("additionalProperties") is not False
+        ):
+            lint.fail(SCHEMA, f"$defs.{def_name} must expose exactly {sorted(expected_fields)}")
+        if isinstance(properties, dict) and REMOVED_RECOVERY_UNLOCK_FIELDS & set(properties):
+            lint.fail(SCHEMA, f"$defs.{def_name} must not restore removed recovery unlock fields")
 
     did_root = defs.get("did_root_transcript")
     generic = defs.get("generic_recovery_transcript")
@@ -223,6 +250,11 @@ def check_recovery_transcript_closure(lint: Lint) -> None:
         if set(transcript) != expected_keys:
             lint.fail(FIXTURE, f"cases[{index}].transcript does not bind the exact factor field closure")
         projected = _projection(kind, proof)
+        if kind == "recovery_unlock":
+            if not isinstance(proof, dict) or set(proof) != RECOVERY_UNLOCK_PROOF_FIELDS:
+                lint.fail(FIXTURE, "recovery_unlock source_proof must use the exact current-v1 field closure")
+            if case.get("forbidden_signature_carriers") != ["signature"]:
+                lint.fail(FIXTURE, "recovery_unlock projection must delete only signature")
         if kind == "did_root":
             if "proof_body" in transcript:
                 lint.fail(FIXTURE, "did_root fixture transcript must omit proof_body")
