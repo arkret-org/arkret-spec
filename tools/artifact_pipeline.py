@@ -68,6 +68,9 @@ APPLET_DELIVERY_AUTH_KAT_SCRIPT = Path(__file__).with_name(
     "check_applet_delivery_authentication_kat.py"
 )
 APPROVAL_SIGNATURE_KAT_SCRIPT = Path(__file__).with_name("check_approval_signature_kat.py")
+CURSOR_NEGATIVE_FIXTURE_SCRIPT = Path(__file__).with_name(
+    "check_cursor_negative_fixture.py"
+)
 ARTIFACT_VERSION_SCRIPT = Path(__file__).with_name("check_artifact_versions.py")
 COMPLETENESS_REPORT_SCRIPT = Path(__file__).with_name("gen_operation_completeness_report.py")
 EVENT_REFERENCE_INVENTORY_SCRIPT = Path(__file__).with_name(
@@ -1305,6 +1308,13 @@ def run_operation_closure_locks(mode: str) -> int:
     return result.returncode
 
 
+def run_cursor_negative_fixture_check() -> int:
+    result = subprocess.run(
+        [sys.executable, str(CURSOR_NEGATIVE_FIXTURE_SCRIPT)], cwd=ROOT
+    )
+    return result.returncode
+
+
 def cmd_generate(_: argparse.Namespace) -> int:
     synchronize_event_admission(ROOT, check=False)
     write_capability_action_derivations()
@@ -1403,6 +1413,7 @@ def cmd_check(_: argparse.Namespace) -> int:
             run_applet_delivery_authentication_kat_check,
         ),
         ("approval signature KAT", run_approval_signature_kat_check),
+        ("cursor negative fixture", run_cursor_negative_fixture_check),
         ("artifact versions", run_artifact_version_check),
         ("artifact lint", run_lint),
         ("prose lint", run_prose_lint),

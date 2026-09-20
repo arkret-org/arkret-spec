@@ -152,8 +152,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/cursor-negative-fixture.json",
-      "sha256": "8d4a9a80cc2c3b417c452e541d8f860772d022c1c2158c0fed6e6c5659320561",
-      "version": "2026-09-19"
+      "sha256": "9d254028cdea7e6dc0497e002a36c581b243a18d81260547dfc92e9698525bab",
+      "version": "2026-09-20.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/detached-object-signature-kat-fixture.json",
