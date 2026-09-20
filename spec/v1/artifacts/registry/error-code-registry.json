@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-21.2",
-  "generated_at": "2026-09-21T01:13:30+08:00",
+  "version": "2026-09-21.3",
+  "generated_at": "2026-09-21T03:47:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -588,15 +588,6 @@
         "service_call"
       ],
       "activation_condition": "Promote overbroad_request to active only in the same release that adds a canonical machine producer path under spec/v1/artifacts outside reports and this registry."
-    },
-    {
-      "code": "read_receipt_compliance_floor_violated",
-      "http_status": 422,
-      "scope": "both",
-      "description": "A child Realm's read-receipt policy attempted to cross the parent's compliance floor (parent disclosure='required' â†’ child 'optional' or 'disabled') without the parent explicitly setting child_privacy_tightening_against_required=true. Reducer MUST reject the offending ak.realm.read_receipt_policy Event with this wire code. See zh/discovery/read-receipts.md §2.5.",
-      "type_uri": "https://arkret.org/problems/read_receipt_compliance_floor_violated",
-      "title": "Read receipt compliance floor violated",
-      "status": "active"
     },
     {
       "code": "signal_class_denied",

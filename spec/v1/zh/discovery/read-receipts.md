@@ -96,7 +96,6 @@ Realm MAY 通过 `ak.realm.read_receipt_policy` 组件 typed current result 声�
 | `disclosure` | `enum(required, optional, disabled)` | `optional` | 披露要求级别。该字段同时影响隐私上限与合规义务：`required` = 合规客户端 MUST 在该 scope 发送 receipt；`optional` = 完全交给 Client Preference；`disabled` = 发送客户端 MUST NOT 生成、接收客户端 MUST 丢弃该 scope 的 `ak.receipt.read`。 |
 | `visibility` | `enum(public, members, private)` | `members` | receipt 可见性。`public` = Strand 的 effective scope 可见性允许的全部观察者；`members` = Strand effective scope 的可见成员（`scope_circle_id=null` 时为父 Realm 成员，`scope_circle_id` 指向 Circle 时为该 Circle 成员）；`private` = 仅消息发送者本人。**执行点在客户端**：服务端看不到加密 `SignalEnvelope` 内的 `event_id`，只能按签名 `scope_ref` 收窄 fanout，不能按发送者定向投递（判据见下方规则表）。**警告**：`history_access=all_history_for_current_members` 只扩大当前成员可恢复的正文 epoch range，不扩大 receipt 观察者集合；metadata-private 场景仍 SHOULD 把 receipt-policy 收紧为 `members` 或 `private`。 |
 | `scope_overrides_allowed` | `bool` | `true` | 是否允许 Realm 内的 [Circle](../models/circle.md) 声明独立、**收紧**（不放宽）的 read receipt policy。visibility 的收紧方向固定为 `private` > `members` > `public`。 |
-| `child_privacy_tightening_against_required` | `bool` | `false` | 父 policy 是否允许 child 将 `required` 收紧为 `optional` 或 `disabled`；这是顶层唯一合规旁路，历史访问二态不在这里另设旁路。 |
 
 规则：
 
@@ -109,25 +108,20 @@ Realm MAY 通过 `ak.realm.read_receipt_policy` 组件 typed current result 声�
   `private` 的执行点固定在客户端：加密 `SignalEnvelope` 的服务端看不到内部
   `event_id` 或 signal kind，只能执行外层 scope 收窄。实现 MUST NOT 为定向
   receipt fanout 在 Signal 外层增加产品语义选择器。
-- Child Realm policy MUST 等于或更严格于父策略，同时不得破坏父策略声明的合规下限。visibility 仅允许 `public→members→private` 方向收紧。disclosure 的隐私收紧方向是 `optional→disabled`；父策略为 `required` 时，child 不得降到 `optional` 或 `disabled`，除非父 policy 顶层显式声明 `child_privacy_tightening_against_required=true`。放宽方向 MUST 被 reducer 拒绝。
+- 每个 Realm 的 read-receipt policy 只由该 Realm 的本地 `ak.realm.read_receipt_policy` 决定。Realm link、`governed_by`
+  关系或 source Realm policy 不产生 parent floor，也不参与 reducer 接纳。产品可把其它 Realm policy 作为 authoring 建议，
+  但必须由目标 Realm controller 重新签发本地 Event。
 - 与 §2.3 防雪崩规则共存：即便 `disclosure="required"`，客户端仍 MUST 按 debounce / merge 规则发送，不得为合规绕开限流。
 
-#### 2.5.1 合规旁路（normative）
+#### 2.5.1 与 history access 的独立性（normative）
 
 `history_access` 的 `since_join|all_history_for_current_members` 只决定正文历史范围，不改变 read-receipt
 `visibility`，也不产生公开匿名读取者。二者不得组合出第三套 policy matrix。metadata-private
 场景仍 MUST 把 receipt `visibility` 收紧为 `members` 或 `private`。
 
-v1 合规旁路只保留 child policy 隐私收紧这一项；旧公开历史旁路字段不是 wire 字段，出现时 MUST
-`schema_violation`：
-
-```json fragment
-{
-  "child_privacy_tightening_against_required": false
-}
-```
-- 字段缺省或为 `false` 均按未 opt-in 处理。
 - read_receipt_policy payload schema MUST 在顶层声明 `additionalProperties=false`，未识别字段 MUST 以 `schema_violation` 在 wire 解析阶段拒绝。
+- `child_privacy_tightening_against_required` 与其它 parent-policy bypass 不是 current-v1 wire 字段，出现时 MUST
+  `schema_violation`。
 - [`event-payload.schema.json#/$defs/read_receipt_policy_payload`](../../artifacts/schemas/event-payload.schema.json) 已以 closed object 落地该结构；正文与 schema 共同构成单一现行契约。
 
 ## 3. Read Cursor (私有游标)

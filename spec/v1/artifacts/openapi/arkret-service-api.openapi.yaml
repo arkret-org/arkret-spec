@@ -821,8 +821,6 @@ components:
       $ref: ../schemas/read-cursor-operations.schema.json#/$defs/read_cursor_list
     ReadMarkerOutcome:
       $ref: ../schemas/read-cursor-operations.schema.json#/$defs/read_marker_outcome
-    RealmEffectivePolicyOutcome:
-      $ref: ../schemas/realm-link-operations.schema.json#/$defs/realm_effective_policy_outcome
     RealmExport:
       $ref: ../schemas/realm-read-operations.schema.json#/$defs/realm_export
     RealmId:
@@ -7314,33 +7312,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RealmLinkList'
-  /_arkret/self/realms/{realm_id}/effective-policy:
-    get:
-      operationId: ak.self.realm_link.read.effective_policy
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      summary: Read the merged effective policy after walking inheritance.
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.realm_link.read.effective_policy.v1
-      - in: path
-        name: realm_id
-        required: true
-        schema:
-          type: string
-      responses:
-        '200':
-          description: Effective policy.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RealmEffectivePolicyOutcome'
   /_arkret/self/realms/{realm_id}/organizations:
     get:
       operationId: ak.self.realm_organization.read.list

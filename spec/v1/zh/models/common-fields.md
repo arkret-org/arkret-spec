@@ -103,7 +103,6 @@ Arkret 命名空间与分隔符约定（normative）：`.` 与 `:` 表达不同�
   | kind | 过去分词形态的语义理由 |
   | --- | --- |
   | `ak.audit.accessed` | 纯审计通告，记录敏感访问已经发生的事实。 |
-  | `ak.capability.derived` | 记录 capability 派生已经完成的结果。 |
   | `ak.contact.accepted` | Contact round 已进入接受终态的通告。 |
   | `ak.contact.rejected` | Contact round 已进入拒绝终态的通告。 |
   | `ak.contact.requested` | Contact round 已进入请求状态的通告。 |

@@ -115,7 +115,6 @@ grpc:
       ScopeRotate: ak.self.circle.command.rotate_scope.v1
     SelfRealmLink:
       List: ak.self.realm_link.read.list.v1
-      EffectivePolicy: ak.self.realm_link.read.effective_policy.v1
     SelfRealmOrganization:
       List: ak.self.realm_organization.read.list.v1
     SelfRealm:
@@ -395,7 +394,6 @@ mq:
     self.circle.member.resource.delete: ak.self.circle.member.resource.delete.v1
     self.circle.command.rotate_scope: ak.self.circle.command.rotate_scope.v1
     self.realm_link.query.list: ak.self.realm_link.read.list.v1
-    self.realm_link.query.effective_policy: ak.self.realm_link.read.effective_policy.v1
     self.realm_organization.query.list: ak.self.realm_organization.read.list.v1
     self.realm.resource.get: ak.self.realm.resource.get.v1
     self.realm.query.export: ak.self.realm.read.export.v1

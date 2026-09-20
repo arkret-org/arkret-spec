@@ -668,25 +668,6 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "ak.capability.derived"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/capability_derived_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
             "const": "ak.capability.grant"
           }
         },
@@ -2085,25 +2066,6 @@
         "properties": {
           "payload": {
             "$ref": "./event-payload.schema.json#/$defs/history_access_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.realm.inheritance_policy"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/realm_inheritance_policy_payload"
           }
         }
       }
@@ -6114,7 +6076,6 @@
                 "ak.call.recording.start",
                 "ak.call.state",
                 "ak.call.summary",
-                "ak.capability.derived",
                 "ak.capability.grant",
                 "ak.capability.relinquish",
                 "ak.capability.revoke",
@@ -6187,7 +6148,6 @@
                 "ak.realm.freeze",
                 "ak.realm.governance_station.change",
                 "ak.realm.history_access",
-                "ak.realm.inheritance_policy",
                 "ak.realm.join_rule",
                 "ak.realm.link",
                 "ak.realm.media_service",
@@ -6272,7 +6232,6 @@
             "ak.call.recording.start",
             "ak.call.state",
             "ak.call.summary",
-            "ak.capability.derived",
             "ak.capability.grant",
             "ak.capability.relinquish",
             "ak.capability.revoke",
@@ -6347,7 +6306,6 @@
             "ak.realm.freeze",
             "ak.realm.governance_station.change",
             "ak.realm.history_access",
-            "ak.realm.inheritance_policy",
             "ak.realm.join_rule",
             "ak.realm.link",
             "ak.realm.media_service",

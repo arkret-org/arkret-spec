@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.6",
+  "version": "2026-09-21.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T22:56:00+08:00",
+  "generated_at": "2026-09-21T03:47:00+08:00",
   "description": "Closed inventory of current spec/v1/zh headings that explicitly carry the （normative） marker. Any addition, removal, rename, or move is reviewed as a protocol change and refreshes this source-of-truth inventory.",
   "titles": [
     {
@@ -546,8 +546,8 @@
     },
     {
       "page": "discovery/read-receipts.md",
-      "heading": "2.5.1 合规旁路（normative）",
-      "fragment": "251-合规旁路normative"
+      "heading": "2.5.1 与 history access 的独立性（normative）",
+      "fragment": "251-与-history-access-的独立性normative"
     },
     {
       "page": "extensions/applet-integration.md",
@@ -988,6 +988,11 @@
       "page": "models/realm-and-space.md",
       "heading": "2.8 Realm 角色分类（normative）",
       "fragment": "28-realm-角色分类normative"
+    },
+    {
+      "page": "models/realm-links.md",
+      "heading": "6. Link 不传播状态（normative）",
+      "fragment": "6-link-不传播状态normative"
     },
     {
       "page": "models/relation.md",

@@ -345,7 +345,7 @@ human `purpose="principal_control"` 分支的可构造 genesis 字节、第二 S
 
 - 授权判定 MUST 使用该 typed current result 在同一 RealmCommit basis 下的 registered inclusion proof，并逐项校验 `controller_actor_id`、`controller_epoch` 与 `authority_generation`，再由该 Realm 的 fixed reducer semantics compiled rules 判定 owner coverage。任何以 `created_by`、membership、projection mirror 或运行时 registry digest 回退的实现都重新引入了隐式提权洞。
 - 服务实现若维护 `realm_state.owner` 一类投影镜像，它只能是该 typed current result 的可丢弃 projection mirror，MUST NOT 参与授权判定。
-- 该 authority 的 resource 固定为本 Realm 的 `realm_wide`，MUST NOT 为其它 Realm 提供普通 issuer upper bound；跨 Realm 派生只能走已注册的 `ak.capability.derived` 规则（[`realm-links.md` §6](./realm-links.md)）。
+- 该 authority 的 resource 固定为本 Realm 的 `realm_wide`，MUST NOT 为其它 Realm 提供普通 issuer upper bound。跨 Realm 不自动派生 authority；另一 Realm 必须由其 current controller／获授权 issuer 独立签发本地 grant（[`realm-links.md` §6](./realm-links.md)）。
 - 普通 `ak.realm.owner` grant 只表示**可撤销的 co-owner**：持有人具有 owner 的 operational / grant authority，但不控制 authority-root typed current result，因而不能 author root-control Event。`ak.realm.owner` 逐字存在于 owner 的 `grant_authority_actions`，所以 root controller 与 co-owner **都可以**把 `ak.realm.owner` 继续授予他人——这是期望行为，不是漏洞；它不改变"root-control 平面唯一且不可经普通 grant 获得"。
 - current-v1 没有 authority-policy override / role-assignment singleton。owner/admin 的可配置差异由显式 capability grant、revoke、constraint 与既有 policy control typed results 表达；未知 typed current result、部署配置、`ServiceDescribe` 或 UI role 不得进入 owner 判定。`ak.realm.owner.target_event_kinds` 与 `grant_authority_actions` 只来自 fixed reducer semantics compiled bundle，并保持 direct-author 与 grant-issuer 两个集合分离。
 
@@ -455,6 +455,11 @@ payload 只接受已登记的可选 reason，不接受 archived/frozen boolean�
 Invite 过期只推进 `invite_lifecycle`，不写共享 member typed current result。base v1 bare `knock` 的过期只影响 operation eligibility，不会由本地计时器自动改写共享 member typed current result；其清理必须由上表列出的 authorized writer 提交显式 `leave`。receiver MUST NOT 根据本地墙钟合成 reducer-derived member event。
 
 共享表未列出的 transition MUST `failed_precondition`，reason=`invalid_membership_transition` 或更具体的 join-policy reason。`ban -> join`、`join -> join`、`leave -> leave` 等均非法；需要重试时 producer 必须基于当前 state 重新提交合法 transition。父 Realm `join -> leave/ban` 的 cascade 对 Circle membership 的影响见 [`circle.md` §9.1](./circle.md)。
+
+`parent_membership` 只是在目标 join 接纳时读取同一 current governing Station 所持有的 source Realm authoritative
+`member_state`，不是持续继承关系。接受后的目标 `member_state` 是独立的 Realm-local current result；后续 source
+leave／ban、link tombstone 或 Realm handoff不会级联改写或撤销它。接纳时的 active link、co-governance、事务锁与并发规则
+由 [`../governance/join-policy.md` §4](../governance/join-policy.md) 定义。
 
 上表 `leave -> join` 另有一个封闭的 Agent controller carve-out：当 writer 是 target agent 的已验证 controller、writer 自身在目标 Realm 为 active `join`、target agent lifecycle 为 `active`，且 accountability / Realm agent policy / Join Policy / MLS admission 全部通过时，controller MAY 直接写入 target agent 的 `join`。该写入不产生 invite，也不需要 agent runtime 接受；payload 的 `agent_controller_binding` MUST 钉住 controller exact authority pair 与建立当前 `join` 的 Event ID。该 carve-out 不授予 writer 通用 `ak.realm.admin`，不得用于其他 principal。
 

@@ -760,10 +760,6 @@
       "new": "ak.self.realm_join.read.preview.v1"
     },
     {
-      "old": "ak.self.realm_link.read.effective_policy",
-      "new": "ak.self.realm_link.read.effective_policy.v1"
-    },
-    {
       "old": "ak.self.realm_link.read.list",
       "new": "ak.self.realm_link.read.list.v1"
     },

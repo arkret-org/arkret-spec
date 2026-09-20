@@ -1,4 +1,4 @@
-"""The `capability_grant` family must have all four of its writers.
+"""The `capability_grant` family must have exactly its three local writers.
 
 `zh/authz/capabilities.md` section 12.1 says a Grant's closed current result
 carries a status, and section 10.4 says two different authorities can close a
@@ -8,10 +8,6 @@ NOT require `ak.capability.revoke`. Neither Event kind declared a
 `result_writes[]` row, so nothing in the registry could ever move a projected
 Grant out of `active`, and the value schema had no slot to move it into --
 `revoked_at` alone cannot say which of the two authorities closed it.
-
-`ak.capability.derived` was missing for the same reason on the create side:
-`models/realm-links.md` section 6 fixes its payload as the complete derived
-grant plus a verbatim `grant_id`, and that is a projection of this family.
 
 Each test states one proposition about the closed lifecycle.
 """
@@ -55,11 +51,10 @@ def writes_by_kind() -> dict[str, list[dict]]:
 
 
 class CapabilityGrantLifecycleTest(unittest.TestCase):
-    def test_the_family_has_exactly_its_four_writers(self) -> None:
+    def test_the_family_has_exactly_its_three_local_writers(self) -> None:
         self.assertEqual(
             sorted(writes_by_kind()),
             [
-                "ak.capability.derived",
                 "ak.capability.grant",
                 "ak.capability.relinquish",
                 "ak.capability.revoke",
@@ -105,14 +100,91 @@ class CapabilityGrantLifecycleTest(unittest.TestCase):
                 self.assertFalse(alternative["additionalProperties"])
                 self.assertEqual(forbidden & set(alternative["properties"]), set())
 
-    def test_cross_realm_derivation_has_no_producer_selected_revision(self) -> None:
-        payload = load(SCHEMAS / "event-payload.schema.json")["$defs"][
-            "capability_derived_payload"
-        ]
-        self.assertFalse(payload["additionalProperties"])
-        self.assertEqual(set(payload["required"]), {"grant", "grant_id"})
-        self.assertNotIn("expected_revision", payload["properties"])
-        self.assertNotIn("auth_state_digest", payload["properties"])
+    def test_cross_realm_automatic_derivation_is_absent(self) -> None:
+        registry = load(REGISTRY)
+        payloads = load(SCHEMAS / "event-payload.schema.json")["$defs"]
+        kinds = {
+            row["event_kind"]
+            for row in registry["event_kind_registry"]["event_kinds"]
+        }
+        actions = {
+            row["action"]
+            for row in registry["capability_action_registry"]["actions"]
+        }
+        self.assertNotIn("ak.capability.derived", kinds)
+        self.assertNotIn("ak.capability.derived", actions)
+        self.assertNotIn("capability_derived_payload", payloads)
+
+    def test_automatic_realm_inheritance_cluster_is_absent(self) -> None:
+        registry = load(REGISTRY)
+        payloads = load(SCHEMAS / "event-payload.schema.json")["$defs"]
+        typed = load(SCHEMAS / "typed-current-result.schema.json")["$defs"]
+        link_schema = load(SCHEMAS / "realm-link-operations.schema.json")
+        event_kinds = {
+            row["event_kind"]
+            for row in registry["event_kind_registry"]["event_kinds"]
+        }
+        operation_ids = {
+            row["operation_id"]
+            for row in registry["operation_registry"]["operations"]
+        }
+        result_kinds = {
+            row["result_kind"]
+            for row in registry["current_result_registry"]["result_kinds"]
+        }
+        core_link_kinds = link_schema["$defs"]["link_kind"]["anyOf"][0]["enum"]
+
+        self.assertNotIn("ak.realm.inheritance_policy", event_kinds)
+        self.assertNotIn("realm_inheritance_policy_payload", payloads)
+        self.assertNotIn("realm_inheritance_policy_result", typed)
+        self.assertNotIn("realm_inheritance_policy", result_kinds)
+        self.assertNotIn(
+            "ak.self.realm_link.read.effective_policy.v1", operation_ids
+        )
+        self.assertNotIn("realm_effective_policy_outcome", link_schema["$defs"])
+        self.assertNotIn("inherits_policy_from", core_link_kinds)
+
+        read_receipt = payloads["read_receipt_policy_payload"]["properties"]
+        self.assertNotIn("child_privacy_tightening_against_required", read_receipt)
+        errors = load(ROOT / "spec/v1/artifacts/registry/error-code-registry.json")
+        self.assertNotIn(
+            "read_receipt_compliance_floor_violated",
+            {row["code"] for row in errors["codes"]},
+        )
+
+    def test_parent_membership_is_co_governed_and_wire_shape_stays_closed(self) -> None:
+        payloads = load(SCHEMAS / "event-payload.schema.json")["$defs"]
+        gates = payloads["join_policy_gate"]["oneOf"]
+        parent = next(
+            branch
+            for branch in gates
+            if branch["allOf"][1]["properties"]["kind"].get("const")
+            == "parent_membership"
+        )["allOf"][1]
+        self.assertEqual(
+            set(parent["required"]),
+            {"kind", "membership_source_realm_ids", "require_min_membership"},
+        )
+        self.assertEqual(
+            set(parent["properties"]),
+            {"kind", "membership_source_realm_ids", "require_min_membership"},
+        )
+        description = parent["properties"]["kind"]["description"]
+        self.assertIn("authority-tenure service_id", description)
+        self.assertIn("generation numbers are not compared across Realms", description)
+        self.assertIn("at least one source must be joined", description)
+
+        prose = (ROOT / "spec/v1/zh/governance/join-policy.md").read_text(
+            encoding="utf-8"
+        )
+        for required in (
+            'link_kind="join_gate_from"',
+            "同一内部事务 cut",
+            "不能用 saga 补偿",
+            "不级联撤销",
+        ):
+            with self.subTest(required=required):
+                self.assertIn(required, prose)
 
     def test_authority_generation_is_reset_not_station_tenure(self) -> None:
         typed = load(SCHEMAS / "typed-current-result.schema.json")
@@ -179,14 +251,13 @@ class CapabilityGrantLifecycleTest(unittest.TestCase):
 
     def test_only_genesis_retypes_its_own_event_id(self) -> None:
         """`ak.capability.grant` is the one kind whose Event id becomes the
-        GrantId; the other three name an existing grant_id, so a fieldless
+        GrantId; the other two name an existing grant_id, so a fieldless
         subject there would silently address the wrong object."""
         found = writes_by_kind()
         self.assertEqual(
             found["ak.capability.grant"][0]["result_selector"], {"kind": "id:grant"}
         )
         for kind in (
-            "ak.capability.derived",
             "ak.capability.revoke",
             "ak.capability.relinquish",
         ):

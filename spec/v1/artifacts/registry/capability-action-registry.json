@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.17",
+  "version": "2026-09-21.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-20T22:56:00+08:00",
+  "generated_at": "2026-09-21T03:47:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -319,19 +319,6 @@
       ],
       "profile": null,
       "event_mapping_kind": "scope_suffix_variant"
-    },
-    {
-      "action": "ak.capability.derived",
-      "category": "management",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.capability.derived"
-      ],
-      "profile": null,
-      "reducer_only": true,
-      "notes": "Reducer-materialized record of a Realm-link inheritance derivation (zh/models/realm-links.md section 6). No principal authors it and no principal can be granted it, so it is excluded from every derived owner authority set.",
-      "event_mapping_kind": "same_name"
     },
     {
       "action": "ak.capability.grant",
@@ -1070,7 +1057,6 @@
         "ak.realm.read_receipt_policy",
         "ak.realm.media_service",
         "ak.realm.schema",
-        "ak.realm.inheritance_policy",
         "ak.realm.search_policy",
         "ak.realm.set_default_strand",
         "ak.applet.registration",
@@ -1235,7 +1221,6 @@
         "ak.realm.discovery",
         "ak.realm.freeze",
         "ak.realm.history_access",
-        "ak.realm.inheritance_policy",
         "ak.realm.join_rule",
         "ak.realm.link",
         "ak.realm.media_service",

@@ -2569,23 +2569,6 @@
       },
       "additionalProperties": false
     },
-    "capability_derived_payload": {
-      "type": "object",
-      "required": [
-        "grant",
-        "grant_id"
-      ],
-      "description": "Reducer-authored cross-Realm capability derivation. Unlike capability genesis this references an existing Grant and therefore carries the already-derived grant_id and complete materialized grant body, including status, authority_depth and authority_root_refs. Exact issuer and concrete-subject identity is preserved inside ActorId and MUST NOT be replaced with a local reducer or receiving service identity. This closed payload carries no expected_revision or auth_state_digest: the target Realm governing Station verifies a fresh authenticated current source result and local inheritance policy at acceptance and records the actual dependency basis internally.",
-      "properties": {
-        "grant": {
-          "$ref": "./capability-grant.schema.json"
-        },
-        "grant_id": {
-          "$ref": "#/$defs/grant_id"
-        }
-      },
-      "additionalProperties": false
-    },
     "capability_relinquish_payload": {
       "type": "object",
       "description": "ak.capability.relinquish — subject-only release of the actor own grant. The authority is the target grant subject's signature, never a capability: a narrowly-scoped holder that was never granted ak.capability.revoke must still be able to give up what it holds. The reducer target guard accepts actor == target.subject and nothing else, so this can never become an unauthorized revocation. Descendants of the released grant fail through their issuer_authority_refs at read time.",
@@ -4052,13 +4035,6 @@
         ]
       }
     },
-    "inheritance_policy_status": {
-      "type": "string",
-      "enum": [
-        "active",
-        "tombstoned"
-      ]
-    },
     "invite_id": {
       "type": "string",
       "pattern": "^ak:invite:[A-Za-z0-9_-]{44}$"
@@ -4661,7 +4637,8 @@
               ],
               "properties": {
                 "kind": {
-                  "const": "parent_membership"
+                  "const": "parent_membership",
+                  "description": "Realm-local admission gate evaluated only when every source Realm and the target Realm have the same verified current authority-tenure service_id and the target has an active join_gate_from link to each source. Each Realm's governance_generation must independently be current and generation numbers are not compared across Realms. The Station reads authoritative current member_state rows in the accepting transaction; all dependencies must be available and at least one source must be joined. Cross-Station, cached, replicated, historical, directory, or caller-supplied membership evidence fails closed."
                 },
                 "membership_source_realm_ids": {
                   "type": "array",
@@ -7138,7 +7115,7 @@
       "additionalProperties": false
     },
     "read_receipt_policy_payload": {
-      "$comment": "Payload for ak.realm.read_receipt_policy. Closed object so typos cause schema_violation. The enclosing Event carries realm_id; payload does not duplicate it. minProperties=1 rejects an empty no-op policy. The sole compliance exception is child_privacy_tightening_against_required; history_access is not a read-receipt input. See zh/discovery/read-receipts.md §2.5.1.",
+      "$comment": "Payload for ak.realm.read_receipt_policy. Closed object so typos cause schema_violation. The enclosing Event carries realm_id; payload does not duplicate it. minProperties=1 rejects an empty no-op policy. Realm links and source Realm policies do not create a parent compliance floor. See zh/discovery/read-receipts.md §2.5.1.",
       "type": "object",
       "minProperties": 1,
       "properties": {
@@ -7160,10 +7137,6 @@
         },
         "scope_overrides_allowed": {
           "type": "boolean"
-        },
-        "child_privacy_tightening_against_required": {
-          "type": "boolean",
-          "description": "Privacy-floor escape switch. When the parent policy sets disclosure='required' and this is true, a child Realm MAY tighten disclosure to 'optional' or 'disabled'; otherwise the reducer rejects with read_receipt_compliance_floor_violated. Absent means false."
         }
       },
       "additionalProperties": false
@@ -7257,63 +7230,6 @@
       },
       "additionalProperties": false
     },
-    "realm_inheritance_policy_payload": {
-      "type": "object",
-      "required": [
-        "source_realm_id",
-        "inherits",
-        "mode"
-      ],
-      "properties": {
-        "source_realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "inherits": {
-          "type": "object",
-          "minProperties": 1,
-          "properties": {
-            "membership": {
-              "type": "boolean"
-            },
-            "capability_bundles": {
-              "type": "array",
-              "items": {
-                "$ref": "#/$defs/non_empty_string"
-              },
-              "uniqueItems": true
-            },
-            "policy_rules": {
-              "type": "array",
-              "items": {
-                "$ref": "#/$defs/non_empty_string"
-              },
-              "uniqueItems": true
-            },
-            "notification_defaults": {
-              "type": "boolean"
-            }
-          },
-          "additionalProperties": false
-        },
-        "mode": {
-          "type": "string",
-          "enum": [
-            "narrow_only"
-          ]
-        },
-        "max_depth": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "status": {
-          "$ref": "#/$defs/inheritance_policy_status"
-        },
-        "reason": {
-          "type": "string"
-        }
-      },
-      "additionalProperties": false
-    },
     "realm_link_payload": {
       "type": "object",
       "required": [
@@ -7331,7 +7247,6 @@
             "governed_by",
             "discoverable_from",
             "join_gate_from",
-            "inherits_policy_from",
             "confidential_extension_of",
             "mirror_of",
             "split_from",

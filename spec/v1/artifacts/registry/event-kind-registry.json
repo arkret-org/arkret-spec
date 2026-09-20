@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-21.1",
+  "version": "2026-09-21.2",
   "source_of_truth": false,
-  "generated_at": "2026-09-21T03:10:00+08:00",
+  "generated_at": "2026-09-21T03:47:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -111,7 +111,7 @@
     "Event carries no chain predecessor or authority-commit proof. Only RealmCommit carries previous_commit_ref, and only within the same stream.",
     "Reducers derive typed current results by replaying committed Events in stream position order. Account-private material is outside shared authority-commit streams.",
     "wire_scope=durable_event does NOT imply reducer_input=true. A durable Event is one whose exact bytes a RealmCommit can cover; reducer_input=true additionally asserts that replaying this Realm's committed Events suffices to derive the typed current results the kind writes. A kind whose real durable effect is holder-Station private service state -- keyed on material that never enters the Event stream, or on a counterpart mirror that zh/identity/contact-and-direct-conversation.md section 3 forbids from advancing a reducer -- MUST carry reducer_input=false and MUST name the canonical service_contracts row that spells out its branches, durable effect, unique key, prior-state CAS, exact retry and zero-side-effect rejection. Withdrawing Realm typed-result dispatch never withdraws the kind's admission, signature, commit evidence or private transactional effect: the five ak.contact.* kinds are the worked example (ak.contact.admission.v1). Setting reducer_input=false without registering where the effect actually lands is the defect this rule exists to prevent.",
-    "result_writes[] is the machine contract for which typed current results one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row: a declared value_projection member MUST be declared by that row's value_schema_ref, and a whole-value set MUST write every member that schema requires. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 128 of the 133 reducer_input kinds declare it; the remaining 5 have an explicit durable-fact or authority-commit effect classification and intentionally no typed-current-result row. The declaring kinds are deliberately not enumerated here: event_kinds[] already is that list, and tools/artifact_lint:result_write_coverage_note recomputes both counts from the rows. Normative prose MUST NOT cite result_writes[] for a kind that does not declare it. The converse obligation binds a declaring kind: its rows MUST enumerate EVERY typed current result its accepted admission writes on the shared face; atomic multi-family writes land all rows in one batch or none.",
+    "result_writes[] is the machine contract for which typed current results one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row: a declared value_projection member MUST be declared by that row's value_schema_ref, and a whole-value set MUST write every member that schema requires. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 126 of the 131 reducer_input kinds declare it; the remaining 5 have an explicit durable-fact or authority-commit effect classification and intentionally no typed-current-result row. The declaring kinds are deliberately not enumerated here: event_kinds[] already is that list, and tools/artifact_lint:result_write_coverage_note recomputes both counts from the rows. Normative prose MUST NOT cite result_writes[] for a kind that does not declare it. The converse obligation binds a declaring kind: its rows MUST enumerate EVERY typed current result its accepted admission writes on the shared face; atomic multi-family writes land all rows in one batch or none.",
     "Every active persistent kind (durable_event or actor_private_event) MUST carry one closed result_effect_ownership object. A typed_result_writer owns non-empty result_writes[] and no second owner; a private_service_effect names an active service_contracts row whose branches cover that exact actor-private Event kind; a durable_fact_no_current_projection names its normative definition and carries no typed-current-result write; an authority_commit_effect names the structured authority-commit service contract and MUST NOT introduce a second governance counter; an owned_gap is temporary only while it names a live owner_report and exact closure condition. Unknown classifications, unresolved definitions, orphan service branches, shared/private mixing, malformed authority contracts or any classification that contradicts reducer_input/result_writes[] fail tools/artifact_lint:result_effect_ownership.",
     "transition_contracts declares the lifecycle axis of a typed current result family: its closed state set, its entry idiom (exactly one of initial_state / initial_states / template), its terminal states and its allowed (from, to) edges. tools/artifact_lint:fsm_reachability reads it together with every transition result_projection and requires that each declared state be reachable from the entry set, that each allowed edge have a write that can perform it, that no const edge leave the table and that no terminal state carry an outgoing edge. A family that declares a machine MUST NOT be written by any non-transition projection: a set installs a state without passing the table, which would make allowed_transitions documentation rather than a rule. Between the authority-commit clean break and 2026-09-18 this block did not exist while the gate still read it under the removed cell_* names, so check reported success over four normative paragraphs (zh/models/circle.md, zh/models/morph.md, zh/models/realm-and-space.md, zh/models/strand-and-message.md) that name transition_contracts as the source of truth for object lifecycle transitions; an absent or empty block is now a failure. Those four object families are themselves still unregistered, so their archive / restore lifecycle has no machine contract yet -- that is a coverage gap, not a licence to read the prose as satisfied."
   ],
@@ -1351,44 +1351,6 @@
       }
     },
     {
-      "event_kind": "ak.capability.derived",
-      "category": "authz",
-      "status": "active",
-      "verb_form": "past_participle",
-      "verb_form_rationale": "Pure derivation announcement: the Event records the result of a grant derivation; the deriving action itself is carried by ak.capability.grant.",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "payload": "Derived capability state",
-      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/capability_derived_payload",
-      "result_writes": [
-        {
-          "result_family": "capability_grant",
-          "result_selector": {
-            "kind": "id:grant",
-            "field": "payload.grant_id"
-          },
-          "result_projection": {
-            "kind": "set",
-            "value": {
-              "field": "payload.grant"
-            }
-          },
-          "derived_members": [
-            {
-              "name": "capability_status",
-              "derivation": "capability_status"
-            }
-          ],
-          "value_schema_ref": "schemas/capability-grant.schema.json",
-          "notes": "models/realm-links.md section 6 fixes the shape: the payload carries the complete derived grant and a verbatim grant_id, so the subject is payload.grant_id rather than this Event's own id -- id_source is not_an_object_id because the GrantId was already derived by the source ak.capability.grant. The status is reducer-derived like every other projection of this family; rule 5 of that section makes a derivation from a non-active source grant invalid, so a payload.grant.status other than active MUST be rejected rather than projected. The grant body already carries its authority_depth and authority_root_refs, which is why they are not re-derived here."
-        }
-      ],
-      "id_source": "not_an_object_id",
-      "result_effect_ownership": {
-        "kind": "typed_result_writer"
-      }
-    },
-    {
       "event_kind": "ak.capability.grant",
       "category": "authz",
       "status": "active",
@@ -1424,7 +1386,7 @@
             }
           ],
           "value_schema_ref": "schemas/capability-grant.schema.json",
-          "notes": "grant_id is event-derived, so the id:grant selector retypes this create Event's id; encoding.md section 9.5.1 allows envelope.event_id only through that derived form, never as a bare subject field. The projected status is active. status, authority_depth and authority_root_refs are required reducer-materialised members and are not part of the producer's closed authoring body, so an author-supplied value MUST be rejected rather than trusted. issuer_authority_refs are signed semantic lineage only: the governing Station resolves and locks target-Realm local current dependencies at the accepting RealmCommit; producer-selected per-ref revisions, digests and Station-local commit wrappers are forbidden, and cross-Realm authority must first use ak.capability.derived. A derivation outside the closed set is a new normative reducer rule, not a registry edit."
+          "notes": "grant_id is event-derived, so the id:grant selector retypes this create Event's id; encoding.md section 9.5.1 allows envelope.event_id only through that derived form, never as a bare subject field. The projected status is active. status, authority_depth and authority_root_refs are required reducer-materialised members and are not part of the producer's closed authoring body, so an author-supplied value MUST be rejected rather than trusted. issuer_authority_refs are signed semantic lineage only: the governing Station resolves and locks target-Realm local current dependencies at the accepting RealmCommit; producer-selected per-ref revisions, digests and Station-local commit wrappers are forbidden, and every root or parent grant must belong to the target Realm. A derivation outside the closed set is a new normative reducer rule, not a registry edit."
         }
       ],
       "id_source": "event_derived",
@@ -3303,7 +3265,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "capability_gated",
-      "payload": "Realm membership state. Agent join/cleanup Events carry an exact agent_controller_binding. Effective Agent membership additionally AND-gates the controller authority pair and bound join Event generation, lifecycle and provision/accountability validity. Controller terminal transitions never synthesize this Event: self leave uses the registered atomic agent_membership_cascade unit; third-party emergency removal freezes a durable exact-set cleanup intent and the original initiator later signs the complete Agent leave set.",
+      "payload": "Realm membership state. Agent join/cleanup Events carry an exact agent_controller_binding. Effective Agent membership additionally AND-gates the controller authority pair and bound join Event generation, lifecycle and provision/accountability validity. Controller terminal transitions never synthesize this Event: self leave uses the registered atomic agent_membership_cascade unit; third-party emergency removal freezes a durable exact-set cleanup intent and the original initiator later signs the complete Agent leave set. A parent_membership join must revalidate co-governance, active join_gate_from links and source authoritative current member_state rows in the accepting transaction.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/membership_payload",
       "result_writes": [
         {
@@ -5116,39 +5078,6 @@
       }
     },
     {
-      "event_kind": "ak.realm.inheritance_policy",
-      "category": "realm",
-      "status": "active",
-      "verb_form": "not_applicable",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "payload": "Per-parent inheritance policy; one entry per source Realm",
-      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_inheritance_policy_payload",
-      "result_writes": [
-        {
-          "result_family": "realm_inheritance_policy",
-          "result_selector": {
-            "kind": "composite",
-            "components": [
-              "payload.source_realm_id"
-            ]
-          },
-          "result_projection": {
-            "kind": "set",
-            "value": {
-              "field": "payload"
-            }
-          },
-          "value_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_inheritance_policy_payload",
-          "notes": "extensions/mimi-interop.md section 9.1 names the family and says inheritance is per-parent; payload.source_realm_id is the only parent carrier in the closed payload, so a singleton selector would let a policy inherited from one parent overwrite another. Recorded weakness: no paragraph spells this subject out the way models/realm-links.md section 5 spells out realm_link."
-        }
-      ],
-      "id_source": "reference",
-      "result_effect_ownership": {
-        "kind": "typed_result_writer"
-      }
-    },
-    {
       "event_kind": "ak.realm.join_rule",
       "category": "realm",
       "status": "active",
@@ -5183,7 +5112,7 @@
       "verb_form": "not_applicable",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Typed Realm link graph edge. link_kind declares governance / discoverability / import-export / confidential-extension semantics; it is never generic parent/child containment and never implicitly propagates membership, capabilities, history, E2EE keys, retention, or federation policy.",
+      "payload": "Typed Realm link graph edge. link_kind declares governance / discoverability / import-export / confidential-extension semantics; it is never generic parent/child containment and never implicitly propagates membership, capabilities, history, E2EE keys, retention, or federation policy. join_gate_from is only a Realm-local opt-in for parent_membership when source and target share the same verified current authority-tenure service_id.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_link_payload",
       "result_writes": [
         {
@@ -5375,7 +5304,7 @@
       "verb_form": "not_applicable",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Enabled Realm policy components set, written wholesale into the commit-ordered projection typed current result (every revision restates the complete component set). Payload MUST carry monotonic policy_revision; reducer rejects rollback or gaps and policy_revision MUST cover policy_revision. A bundle whose join_policy component conflicts with the accepted join_rule (restricted/knock_restricted without at least one auto gate, or a degenerate combinator) MUST be rejected with failed_precondition reason_code=join_rule_policy_mismatch. See zh/governance/join-policy.md §2.",
+      "payload": "Enabled Realm policy components set, written wholesale into the commit-ordered projection typed current result (every revision restates the complete component set). Payload MUST carry monotonic policy_revision; reducer rejects rollback or gaps and policy_revision MUST cover policy_revision. A bundle whose join_policy component conflicts with the accepted join_rule (restricted/knock_restricted without at least one auto gate, or a degenerate combinator) MUST be rejected with failed_precondition reason_code=join_rule_policy_mismatch. A parent_membership gate additionally requires current active join_gate_from links and source/target authority tenures with the same service_id at policy admission. See zh/governance/join-policy.md §2 and §3.1.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_policy_bundle_payload",
       "result_writes": [
         {
@@ -5459,7 +5388,7 @@
       "verb_form": "not_applicable",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Realm read receipt disclosure policy (disclosure / visibility / scope_overrides_allowed / child_privacy_tightening_against_required); see zh/discovery/read-receipts.md §2.5",
+      "payload": "Realm-local read receipt disclosure policy (disclosure / visibility / scope_overrides_allowed); Realm links do not create a parent policy floor; see zh/discovery/read-receipts.md §2.5",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/read_receipt_policy_payload",
       "result_writes": [
         {

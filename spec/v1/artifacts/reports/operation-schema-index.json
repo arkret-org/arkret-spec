@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-21.2",
+  "version": "2026-09-21.3",
   "source_of_truth": false,
-  "generated_at": "2026-09-21T03:07:32+08:00",
+  "generated_at": "2026-09-21T03:47:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -7924,27 +7924,6 @@
           "request_id",
           "authority_bundle",
           "preview"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.realm_link.read.effective_policy.v1",
-      "success_shape_kind": "typed_response",
-      "response": {
-        "schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_effective_policy_outcome",
-        "schema_kind": "object",
-        "required": [
-          "realm_id",
-          "effective_policy",
-          "inheritance_chain_ids",
-          "inheritance_mode"
-        ],
-        "properties": [
-          "realm_id",
-          "effective_policy",
-          "inheritance_chain_ids",
-          "inheritance_mode"
         ],
         "closed": true
       }

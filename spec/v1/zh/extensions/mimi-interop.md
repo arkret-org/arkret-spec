@@ -472,7 +472,6 @@ Arkret v1 把 Realm-level policy 映射为 state-changing Event 的 registered t
 | `realm_plaintext_visible_services` | `ak.realm.plaintext_visible_services` | （Arkret 专属隐私透明度机制；MIMI 侧无对应） |
 | `realm_media_service` | `ak.realm.media_service` | （Arkret 专属，与 MIMI 的 hub provider 解耦） |
 | `realm_schema` | `ak.realm.schema` | （Arkret 专属，schema_refs 声明） |
-| `realm_inheritance_policy` | `ak.realm.inheritance_policy` | （Arkret 专属，per-parent 继承） |
 | `realm_archive` | `ak.realm.archive` | （部分等价于 MIMI lifecycle hint，目前 MIMI 草案未规范） |
 | `realm_freeze` | `ak.realm.freeze` | 同上 |
 | `realm_tombstone` | `ak.realm.tombstone` | 同上 |

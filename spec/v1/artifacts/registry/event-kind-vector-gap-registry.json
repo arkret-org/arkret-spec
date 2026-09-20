@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-21.1",
-  "generated_at": "2026-09-21T01:46:34+08:00",
+  "version": "2026-09-21.2",
+  "generated_at": "2026-09-21T03:47:00+08:00",
   "source_of_truth": true,
   "description": "Explicit v1 backlog for active Event kinds with no directly searchable fixture/vector evidence. Absence from this registry is not itself proof of semantic coverage; the check uses the documented conservative token heuristic and this registry prevents uncovered kinds from remaining invisible.",
   "coverage_heuristic": {
@@ -26,11 +26,6 @@
       "event_kind": "ak.call.create",
       "priority": "normal",
       "rationale": "Call creation lacks a directly searchable vector."
-    },
-    {
-      "event_kind": "ak.capability.derived",
-      "priority": "high",
-      "rationale": "Derived capability admission lacks a directly searchable vector."
     },
     {
       "event_kind": "ak.circle.history_access",
@@ -71,11 +66,6 @@
       "event_kind": "ak.profile.realm_override",
       "priority": "high",
       "rationale": "Realm profile override lacks a directly searchable vector."
-    },
-    {
-      "event_kind": "ak.realm.inheritance_policy",
-      "priority": "high",
-      "rationale": "Realm inheritance policy lacks a directly searchable vector."
     },
     {
       "event_kind": "ak.realm.plaintext_visible_services",

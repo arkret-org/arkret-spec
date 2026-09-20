@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.1",
+  "version": "2026-09-21.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-20T22:56:00+08:00",
+  "generated_at": "2026-09-21T03:47:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Closed typed current-result families derived from authority-committed Events. Selectors are domain types, never alternate typed current result IDs. Each row also records its CONSUMPTION: consumption.class is one of the consumption_classes below, consumption.consumed_by names the zh prose sections that read the current value, and consumption.note says what is read and to decide what. check_every_result_family_has_a_writer closes the writer direction; this ledger is the reader direction, which had no gate and no record. consumed_by is non-empty for every class except record_only, and a record_only row's note MUST name the section that states the family's purpose so the classification is checkable rather than an absence of evidence. Citations resolve through check_artifact_prose_section_refs.",
@@ -51,9 +51,10 @@
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
-          "models/realm-and-space.md §2.7"
+          "models/realm-and-space.md §2.7",
+          "governance/join-policy.md §4"
         ],
-        "note": "The Realm membership FSM reads the current member state to decide which membership transitions are accepted."
+        "note": "The Realm membership FSM reads the current member state to decide which membership transitions are accepted; parent_membership also reads source authoritative current membership in the co-governing Station's accepting transaction."
       }
     },
     {
@@ -292,9 +293,10 @@
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
-          "models/realm-links.md §4"
+          "models/realm-links.md §4",
+          "governance/join-policy.md §4"
         ],
-        "note": "Link state decides whether cross-Realm derivation and propagation hold."
+        "note": "Link state drives link-graph and navigation semantics only; it never propagates membership, capability, policy, retention, or notification state. An active join_gate_from row is a required local admission input for co-governed parent_membership, not a membership carrier."
       }
     },
     {
@@ -336,9 +338,10 @@
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
-          "crypto-media/media-service-binding.md §8.2"
+          "crypto-media/media-service-binding.md §8.2",
+          "governance/join-policy.md §4"
         ],
-        "note": "The governance binding decides media-service authority against the bundle's current value."
+        "note": "The governance binding decides media-service authority against the bundle's current value; join admission reads the same current bundle before evaluating parent_membership."
       }
     },
     {
@@ -394,17 +397,6 @@
           "discovery/object-addressing.md §4.3"
         ],
         "note": "Preview-token acceptance runs against the effective policy digest allowlist, and the response is trimmed to the fields this policy allows."
-      }
-    },
-    {
-      "result_kind": "realm_inheritance_policy",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_inheritance_policy_result",
-      "consumption": {
-        "class": "admission_input",
-        "consumed_by": [
-          "models/governance-objects.md §4.3"
-        ],
-        "note": "A derived capability Event MUST satisfy the target Realm's current inheritance declaration."
       }
     },
     {

@@ -23,10 +23,10 @@ Realm 是硬安全边界，不承担产品导航树职责。因此 Arkret v1 不
 1. Realm link 是有向图，不是树。
 2. Link kind 必须显式声明语义；实现不得把任意 Realm link 解释成 containment。
 3. Link 不自动级联 membership、capability、history visibility、E2EE key、schema、policy、retention、notification 或 Applet permission。
-4. 任何跨 Realm 继承或派生 grant 必须由目标 Realm 显式 opt-in，且只能收窄。
+4. Link graph 不承载跨 Realm 状态继承；目标 Realm 的成员、policy 与 capability 必须由目标 Realm 的本地 Event 独立表达。
 5. 遍历 link graph 时，节点 MUST 对每个 Realm 独立做授权和历史可见性检查。
 6. Link graph MAY 含环；遍历器 MUST 以 visited-set 截断重复节点，不得把一般有向图误判为树。`target_realm_id` 等于事件所属 Realm 的 self-link 没有跨边界语义，reducer MUST 以 `schema_violation`、`reason_code=realm_link_self_reference` 拒绝。
-7. Realm 之间的治理、发现、继承、迁移或 mirror 边 MUST 使用 `ak.realm.link`；实现 MUST NOT 用端点为 Realm 的 `ak.relation` 绕过本文件的 reciprocal、commitment 与 no-cascade 规则。Relation 仍可把 Realm 当作普通内容引用端点，但不得获得 Realm-link 语义。
+7. Realm 之间的治理、发现、准入引用、迁移或 mirror 边 MUST 使用 `ak.realm.link`；实现 MUST NOT 用端点为 Realm 的 `ak.relation` 绕过本文件的 reciprocal、commitment 与 no-cascade 规则。Relation 仍可把 Realm 当作普通内容引用端点，但不得获得 Realm-link 语义。
 
 ## 3. 标准 Link Kind
 
@@ -60,10 +60,9 @@ Payload 字段：
 
 | kind | 含义 | 是否允许授权派生 |
 | --- | --- | --- |
-| `governed_by` | 本 Realm 的治理根或组织治理 Realm。 | MAY，但必须由本 Realm policy 显式声明。 |
+| `governed_by` | 本 Realm 的治理根或组织治理 Realm；它只表达关系，不传播 authority 或 policy。 | no |
 | `discoverable_from` | 本 Realm 可从目标 Realm 或其公开目录发现。 | no |
-| `join_gate_from` | 本 Realm 的 join policy 可引用目标 Realm 的 membership / claim snapshot 作为 gate。 | no |
-| `inherits_policy_from` | 本 Realm 选择性继承目标 Realm 的收窄型 policy。 | MAY，必须 narrow-only。 |
+| `join_gate_from` | 本 Realm 的 join policy 可在两个 Realm 由同一 current governing Station 治理时，引用目标 Realm 的 current membership 作为 gate。 | no |
 | `confidential_extension_of` | 本 Realm 是另一个 Realm 中某个 Strand / Space / discussion 的机密扩展。 | no |
 | `mirror_of` | 本 Realm 是目标 Realm 的镜像、只读副本或同步投影；mirror profile 必须定义方向、冲突处理、commitment / evidence transcript 与可写边界。 | no |
 | `split_from` | 本 Realm 从目标 Realm 拆分或迁移而来。 | no |
@@ -73,7 +72,7 @@ Profile MAY 注册额外 `link_kind`。扩展值 MUST 使用 `x.<reverse-dns>.<n
 
 - 是否需要双方确认。
 - 是否可被目录展示。
-- 是否允许任何 derived grant。
+- 是否允许任何 derived grant；current-v1 的答案 MUST 为 `false`，未来 profile 只有完整注册 source evidence、peer operation、freshness、handoff 与撤销传播合同后才能改变。
 - 是否涉及 cross-Realm export / import。
 - 是否需要 commitment / evidence / attestation。
 
@@ -100,7 +99,7 @@ Profile MAY 注册额外 `link_kind`。扩展值 MUST 使用 `x.<reverse-dns>.<n
 
 Projection MAY 派生：
 
-- `confirmed`：仅当声明该 link 的 profile 明确要求双方确认，并登记 `reciprocal_kind` 后才可派生；source 侧 `(source → target, link_kind)` 与 target 侧 `(target → source, reciprocal_kind)` 必须同时 active 且 commitment transcript 匹配。只有 profile 明确把 kind 声明为 symmetric 时，`reciprocal_kind` 才可与 `link_kind` 相同；`governed_by`、`discoverable_from`、`join_gate_from`、`inherits_policy_from`、`confidential_extension_of`、`mirror_of`、`split_from` 与 `replaces` 均不得仅因反向出现同名 kind 就判为 confirmed。
+- `confirmed`：仅当声明该 link 的 profile 明确要求双方确认，并登记 `reciprocal_kind` 后才可派生；source 侧 `(source → target, link_kind)` 与 target 侧 `(target → source, reciprocal_kind)` 必须同时 active 且 commitment transcript 匹配。只有 profile 明确把 kind 声明为 symmetric 时，`reciprocal_kind` 才可与 `link_kind` 相同；`governed_by`、`discoverable_from`、`join_gate_from`、`confidential_extension_of`、`mirror_of`、`split_from` 与 `replaces` 均不得仅因反向出现同名 kind 就判为 confirmed。
 - `unconfirmed_link`：只有一侧声明。
 - `rejected`：任一侧拒绝。
 - `tombstoned`：任一侧 tombstone 或 Realm lifecycle 使 link 失效。
@@ -123,24 +122,28 @@ Projection MAY 派生：
 
 例如，Alice 是 governance Realm 成员，不代表 Alice 自动能读取 governed Realm。
 
-## 6. 显式继承
+`join_gate_from` 是本节 no-cascade 规则的受限读取例外，不复制 membership：它只允许目标 Realm 的 join admission 按
+[`../governance/join-policy.md` §3.1](../governance/join-policy.md) 在**同一 current governing Station** 的原子接纳事务中
+读取 source Realm authoritative current `member_state`。它不承载 claim snapshot，不授予跨 Station 读取权，也不让 source
+membership 成为目标 Realm current row。缺少 active link、两个 Realm 不再由同一 Station 治理、handoff 正在发生，或
+authoritative row 无法在一致事务 cut 中读取时，gate MUST fail closed。
 
-若 Realm 需要从另一个 Realm 派生 capability 或 policy，必须使用目标 Realm 内的显式 policy：
+## 6. Link 不传播状态（normative）
 
-- `ak.realm.inheritance_policy`：声明允许从哪个 source Realm 继承哪些收窄型 policy / capability bundle。
-- `ak.capability.derived`：reducer-only 派生 grant；`payload.grant.issuer_authority_refs[]` 中唯一的 `kind="grant"` 条目引用 source grant，目标 Realm 当前有效的 inheritance policy 表达本地 opt-in。payload 只携带完整 materialized `grant` 与逐字相等的 `grant_id`，不得复制 policy、progress sidecar、`expected_revision` 或 `auth_state_digest`。目标 Realm governing Station 在接纳事务中验证 source Realm governing Station 的 authenticated current-result proof/checkpoint 与 freshness=`current`，并把实际 dependency revision/checkpoint 记入内部审计 backing；它不是 producer 可选择的签名 basis。
+current-v1 的 Realm link 只表达显式关系，**永不**自动传播 membership、capability、policy、retention 或 notification
+状态。`governed_by` 也不构成 source Realm current state 的 authenticated carrier，不能把 source Realm 的成员、grant 或
+policy 解释成目标 Realm authority。
 
-继承规则：
+需要在多个 Realm 表达相同治理意图时，每个目标 Realm 的 current controller／获授权 issuer 必须分别签发该 Realm 的本地
+member、join-policy、policy 或 `ak.capability.grant` Event；governing Station 按各 Realm 自己的 current state 接纳。
+产品 MAY 提供批量 authoring workflow，但每个输出仍是目标 Realm 的独立 Event、EventId、签名和 RealmCommit，不得产生
+隐式继承 row、共享 revision 或跨 Realm 自动撤销。
 
-1. 目标 Realm 本地 policy 必须 opt-in。
-2. derived grant 的 action、resource、constraint、expiry 不得宽于 source grant。
-3. 本地 deny / revoke / ban 覆盖 inherited allow。
-4. `max_depth` 默认 1，禁止无限级联。
-5. source grant revoke 后，derived grant MUST 在 causal 后继中失效。
-
-普通 `ak.capability.grant` 不得直接引用远端 root 或 parent grant；跨 Realm 只通过本节的本地 materialization 边界进入目标 Realm。source proof 缺失、非 current、freshness 为 `unknown` / `stale`、source grant 已终态，或目标 Realm inheritance policy 不再允许时，`ak.capability.derived` MUST fail closed，且不得写 Event、RealmCommit 或 `capability_grant` current result。接受后的本地 derived row 是后续 child 唯一需要锁定的 parent；其 `authority_root_refs[]` 继续保留远端 root lineage 供审计和持续失效判定。
-
-`ak.capability.derived` MUST NOT 作为普通 actor 可直接 grant 的 action。
+普通 `ak.capability.grant` 的 root 和 parent refs 必须属于 Event 的目标 Realm。source Realm 状态 MAY 作为 UI 建议，
+但不得成为 reducer 输入或授权依据。旧 `ak.realm.inheritance_policy`、`ak.capability.derived`、
+`inherits_policy_from` 与 effective-policy merge surface 已从 current-v1 删除；实现不得 reserved、alias、双读或把历史
+projection 重新解释为目标 Realm current state。未来 profile 若要重新引入自动传播，必须同时定义真实 producer、source
+Station 签名的 current evidence、peer operation、freshness、handoff 与撤销传播合同。
 
 ## 7. Query
 

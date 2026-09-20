@@ -188,7 +188,6 @@ Signal plaintext payload kind（`ak.presence` / `ak.typing` / `ak.receipt.read` 
 | `ak.realm.alias` | Realm alias declaration or durable value tombstone（alias 的唯一 wire 承载） |
 | `ak.realm.organization` | Organization-authorized Realm relationship statement or revocation |
 | `ak.realm.link` | Typed Realm link graph edge |
-| `ak.realm.inheritance_policy` | Policy inheritance declaration from a source Realm (subject=`payload.source_realm_id`) |
 | `ak.realm.join_rule` | Join rule state |
 | `ak.realm.history_access` | History visibility state |
 | `ak.realm.discovery` | Discoverability state |
@@ -241,7 +240,6 @@ Signal plaintext payload kind（`ak.presence` / `ak.typing` / `ak.receipt.read` 
 | --- | --- |
 | `ak.capability.grant` | Grant |
 | `ak.capability.revoke` | Revocation |
-| `ak.capability.derived` | Derived capability state |
 | `ak.profile.create` | Actor profile create |
 | `ak.profile.update` | Actor profile patch |
 | `ak.profile.realm_override` | Realm-scoped profile override |

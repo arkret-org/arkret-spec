@@ -116,9 +116,6 @@
       "$ref": "#/$defs/moderation_franking_proof_result"
     },
     {
-      "$ref": "#/$defs/realm_inheritance_policy_result"
-    },
-    {
       "$ref": "#/$defs/realm_tombstone_result"
     },
     {
@@ -2357,40 +2354,6 @@
         },
         "value": {
           "$ref": "./event-payload.schema.json#/$defs/preview_policy_payload/properties/value"
-        }
-      },
-      "additionalProperties": false
-    },
-    "realm_inheritance_policy_result": {
-      "type": "object",
-      "description": "What this Realm inherits from one parent Realm. extensions/mimi-interop.md section 9.1 makes inheritance per-parent, and payload.source_realm_id is the parent carrier.",
-      "required": [
-        "selector",
-        "revision",
-        "value"
-      ],
-      "properties": {
-        "selector": {
-          "type": "object",
-          "required": [
-            "kind",
-            "source_realm_id"
-          ],
-          "properties": {
-            "kind": {
-              "const": "realm_inheritance_policy"
-            },
-            "source_realm_id": {
-              "$ref": "./common-ids.schema.json#/$defs/realm_id"
-            }
-          },
-          "additionalProperties": false
-        },
-        "revision": {
-          "$ref": "#/$defs/revision"
-        },
-        "value": {
-          "$ref": "./event-payload.schema.json#/$defs/realm_inheritance_policy_payload"
         }
       },
       "additionalProperties": false

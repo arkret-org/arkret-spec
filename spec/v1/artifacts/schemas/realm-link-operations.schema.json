@@ -6,9 +6,6 @@
   "anyOf": [
     {
       "$ref": "#/$defs/realm_link_list"
-    },
-    {
-      "$ref": "#/$defs/realm_effective_policy_outcome"
     }
   ],
   "$defs": {
@@ -23,7 +20,6 @@
             "governed_by",
             "discoverable_from",
             "join_gate_from",
-            "inherits_policy_from",
             "confidential_extension_of",
             "mirror_of",
             "split_from",
@@ -102,40 +98,6 @@
           "items": {
             "$ref": "#/$defs/realm_link_entry"
           }
-        }
-      },
-      "additionalProperties": false
-    },
-    "realm_effective_policy_outcome": {
-      "type": "object",
-      "description": "Merged effective policy after walking governed_by / inherits_policy_from ancestors per the Realm's ak.realm.inheritance_policy declaration.",
-      "required": [
-        "realm_id",
-        "effective_policy",
-        "inheritance_chain_ids",
-        "inheritance_mode"
-      ],
-      "properties": {
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "effective_policy": {
-          "type": "object",
-          "description": "Merged policy view (e.g. allowed_policies[], allowed_capability_bundles[])."
-        },
-        "inheritance_chain_ids": {
-          "type": "array",
-          "items": {
-            "$ref": "./common-ids.schema.json#/$defs/realm_id"
-          }
-        },
-        "inheritance_mode": {
-          "type": "string",
-          "enum": [
-            "explicit",
-            "none"
-          ],
-          "description": "explicit when the Realm has projected a ak.realm.inheritance_policy; none otherwise (implicit inheritance is forbidden)."
         }
       },
       "additionalProperties": false

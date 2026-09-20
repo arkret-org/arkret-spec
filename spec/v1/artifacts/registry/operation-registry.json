@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-21.1",
+  "version": "2026-09-21.2",
   "source_of_truth": false,
-  "generated_at": "2026-09-21T01:46:34+08:00",
+  "generated_at": "2026-09-21T03:47:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -203,7 +203,6 @@
       "surface": "realm_governance_links",
       "operations": [
         "ak.self.realm_link.read.list.v1",
-        "ak.self.realm_link.read.effective_policy.v1",
         "ak.self.realm_organization.read.list.v1"
       ],
       "surface_class": "extension"
@@ -3704,16 +3703,6 @@
       "max_canonical_body_bytes": 65536
     },
     {
-      "operation_id": "ak.self.realm_link.read.effective_policy.v1",
-      "http": "GET /_arkret/self/realms/{realm_id}/effective-policy",
-      "grpc": "SelfRealmLink/EffectivePolicy",
-      "mq": "self.realm_link.query.effective_policy",
-      "notes": "Returns the merged effective policy after walking governed_by / inherits_policy_from ancestors per the Realm's ak.realm.inheritance_policy. inheritance_mode=none when no inheritance policy is projected (implicit inheritance is forbidden).",
-      "body_class": "non_streaming_json",
-      "success_shape_kind": "typed_response",
-      "response_schema_ref": "schemas/realm-link-operations.schema.json#/$defs/realm_effective_policy_outcome"
-    },
-    {
       "operation_id": "ak.self.realm_link.read.list.v1",
       "http": "GET /_arkret/self/realms/{realm_id}/links",
       "grpc": "SelfRealmLink/List",
@@ -5147,10 +5136,6 @@
         },
         {
           "operation_id": "ak.self.realm_join.read.preview.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "operation_id": "ak.self.realm_link.read.effective_policy.v1",
           "binding_kind": "http_json"
         },
         {

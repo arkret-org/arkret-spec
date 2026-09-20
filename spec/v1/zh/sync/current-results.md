@@ -107,9 +107,13 @@ Realm、每个 Circle、每个 Sidecar 分别拥有独立 commit stream。当前
   三个 reducer 派生成员在 registry 内逐项封闭；写者清单以 views.md §3.2 为准；
 - `realm_link`：以 `(target_realm_id, link_kind)` 选择一条 Realm 间链接
   （见 [`../models/realm-links.md` §5](../models/realm-links.md)）；
-- `realm_inheritance_policy`：以 `source_realm_id` 选择自某一父 Realm 继承的策略——
-  继承是 per-parent 的，单例 subject 会让一个父 Realm 的继承覆盖另一个；
 - `member_state`：以完整 `actor_id` 选择成员状态；
+
+`parent_membership` admission 同时把 current `realm_policy_bundle`、目标 Realm 内每个 source 对应的 active
+`realm_link{link_kind="join_gate_from"}`、source/target current authority tenure 与 source `member_state` 当作权威事务输入。
+它们必须在 governing Station 的同一原子接纳事务中锁定、读取并重验；进程内 projection、replica、snapshot、历史 Event、
+Directory 或 caller proof 都不是 current result。全部 source 依赖必须可验证，随后至少一个 source 的 exact current
+membership 为 `join` 才满足 gate（[`../governance/join-policy.md` §4](../governance/join-policy.md)）。
 - `actor_profile`：以 `actor_profile_id` 选择一个全局 Actor Profile，由 `ak.profile.create` 与 `ak.profile.update` 共写
   （[`../discovery/profiles-presence.md` §2.3](../discovery/profiles-presence.md) 对此为 normative）；create 整体置换作者区域并派生 `schema` / `realm_id` / `created_at` / `updated_by` / `updated_at`，
   update 对冻结前态 `apply_patch`，六条 `allowed_paths` 只覆盖展示成员；`principal_id` 与 `actor_kind` create-locked，

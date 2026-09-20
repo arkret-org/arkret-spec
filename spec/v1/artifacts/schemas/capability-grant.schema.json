@@ -162,7 +162,7 @@
               }
             },
             "additionalProperties": false,
-            "description": "A committed Realm authority root. It is terminal for cycle checks. realm_id is explicit because ak.capability.derived can carry roots from another Realm. The accepting Station verifies the named Event/controller/generation against authenticated current authority; the ref does not carry a Station-local commit wrapper."
+            "description": "A committed authority root in the same Realm as the grant. It is terminal for cycle checks. The accepting Station verifies the named Event/controller/generation against durable current authority; the ref does not carry a Station-local commit wrapper."
           }
         ]
       }

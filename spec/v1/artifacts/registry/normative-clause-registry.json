@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-21.3",
+  "version": "2026-09-21.4",
   "source_of_truth": true,
-  "generated_at": "2026-09-21T03:10:00+08:00",
+  "generated_at": "2026-09-21T03:47:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -211,7 +211,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/capabilities.md#10-issuer-authority",
-      "section_digest": "sha256:b8524704d58b5937591374d53291181358546cad7d08aabbf03a439709f37c04",
+      "section_digest": "sha256:a77c37851b8b96aae1988fdacf2193c3a2cdb3f77d52ef0dff7976d5c9dd4c14",
       "requirement": "A grant stays within the union of the authorities its issuer_authority_refs name and within their per-action validity window. A grant without ordinary authority_control cannot be a grant ref; a ref with authority_regrant_allowed=false can issue only an explicitly terminal max_authority_depth=0 child. A grant ref supplies issuer authority only when its concrete subject ActorId equals the child issuer ActorId in full; cycles, inactive refs and same-DID cross-Station replay MUST fail closed rather than widen the effective permission set. A realm_root ref is valid only while the authority-root typed current result's current authority_generation still equals the generation the ref carries, read under the registered inclusion proof at a RealmCommit basis; that delegation generation advances only on ak.realm.authority.reset and MUST NOT be conflated with the governing Station tenure governance_generation, so a planned Station handoff MUST NOT invalidate any grant and a controller transfer MUST leave every child grant valid.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -227,7 +227,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/capabilities.md#12-revocation",
-      "section_digest": "sha256:6208983474ed7c791ce6d40394140f297eac23bf9857223802559dae1c607181",
+      "section_digest": "sha256:dd3bb79eceac6a69fc0cc40661708a45a44f298404e8b44143c8eb4266c8051c",
       "requirement": "An accepted revocation invalidates the revoked grant and every grant derived from it, and forces a re-check of decisions that depended on either: pending writes MUST fail closed, allow and policy-decision cache entries MUST be invalidated in the same reducer transaction, and a revoked grant_id MUST NOT be revived. Commits accepted before the revocation remain accepted audit facts and MUST NOT be recomputed into another outcome.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -598,7 +598,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/authz/capabilities.md#104-revoke-与-relinquish-的分工normative",
-      "section_digest": "sha256:7fa6d21e08b035bde389687530ed82bf76bc3939c8d7f3879d83092412e55bbb",
+      "section_digest": "sha256:0c6d303ec3d89e97b153f01ce97146455cdad07d26cdb30ec276b70e176915d0",
       "requirement": "ak.capability.relinquish is subject-only self-service: the reducer accepts it only when the acting actor is the grant's own subject, and it MUST NOT additionally require the actor to hold ak.capability.revoke, because a narrow holder would otherwise be unable to give up what it holds. A relinquish by anyone other than the subject is rejected with reason grant_relinquish_not_subject. Descendants of the relinquished grant fail on read through refs, exactly as they do after a revoke.",
       "testability_grade": "vector",
       "evidence_refs": [

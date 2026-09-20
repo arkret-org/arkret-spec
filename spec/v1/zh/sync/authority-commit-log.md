@@ -69,6 +69,17 @@ key；`verification_method` 必须属于该 exact service identity。验证方�
 
 `governance_generation` 是**治理 Station 任期代次**，只由已接受的 `ak.realm.governance_station.change` 递增，其 `payload.expected_governance_generation` 就是对该计数器的 CAS。它与 authority-root typed current result 的 `authority_generation`（授权委派代次，只由 `ak.realm.authority.reset` 递增）是两个不同的计数器，MUST NOT 互相替代；一次 planned handoff 不改变任何 grant 的有效性。
 
+同一 governing Station 对多个 Realm 执行 [`../governance/join-policy.md` §4](../governance/join-policy.md) 的
+`parent_membership` gate 时，接纳事务必须按 RealmId canonical bytes 排序锁定每个 Realm 的 current authority tenure
+`(service_id, governance_generation)`、目标 policy／link rows 与 source authoritative `member_state` lookup。各 Realm 的
+`governance_generation` 只须分别为 current，数值不得跨 Realm 比较；`authority_generation` 也不能替代它。只有全部 tenure
+的 `service_id` 相同且所有依赖处于同一内部原子事务 cut 时才能继续。同 Station 的分库实现若不能形成该 cut，必须
+fail closed，不能以 saga、cache 或 snapshot 近似。
+
+source membership、target link 或任一 Realm handoff 与 join 并发时，统一锁序给出唯一线性结果：依赖变更先提交则 join
+零写入失败；join 先提交则该次 admission 有效，后续 source change 不追溯撤销目标 membership。handoff 后必须从新 tenure
+rows 重新判断 co-governance；旧 generation 的内存 projection 不得继续授权。
+
 同一个 Event 最多有一个 successful Commit。exact retry 返回同一 Commit；拒绝和暂不可用不占 position。同一 `(realm_id, stream_ref, governance_generation, stream_position)` 上出现两个不同但签名有效的 Commit 是治理方 equivocation，消费方必须冻结该 Realm 的相关 stream，不得自动选 winner。
 
 ## 4. 写入状态
