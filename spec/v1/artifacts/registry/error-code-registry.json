@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-21.3",
-  "generated_at": "2026-09-21T03:47:00+08:00",
+  "version": "2026-09-21.4",
+  "generated_at": "2026-09-21T05:20:34+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -632,11 +632,10 @@
       "description": "The path is inside the protocol namespace but not implemented by the service.",
       "type_uri": "https://arkret.org/problems/unrecognized_endpoint",
       "title": "Unrecognized endpoint",
-      "status": "reserved",
+      "status": "active",
       "applies_to": [
         "endpoint"
-      ],
-      "activation_condition": "Promote unrecognized_endpoint to active only in the same release that adds a canonical machine producer path under spec/v1/artifacts outside reports and this registry."
+      ]
     },
     {
       "code": "method_not_allowed",
@@ -645,11 +644,10 @@
       "description": "The path exists but the HTTP method is not supported.",
       "type_uri": "https://arkret.org/problems/method_not_allowed",
       "title": "Method not allowed",
-      "status": "reserved",
+      "status": "active",
       "applies_to": [
         "endpoint"
-      ],
-      "activation_condition": "Promote method_not_allowed to active only in the same release that adds a canonical machine producer path under spec/v1/artifacts outside reports and this registry."
+      ]
     },
     {
       "code": "conflict",

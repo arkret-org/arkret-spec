@@ -922,7 +922,8 @@ components:
       $ref: ../schemas/invite.schema.json#/$defs/third_party_invite_provision_request_body
   responses:
     MethodNotAllowed:
-      description: Method not allowed.
+      description: Pre-dispatch router failure for a registered path with an unsupported method; Problem code method_not_allowed (HTTP 405). No operation is entered.
+      x-arkret-route-error-code: method_not_allowed
       headers:
         Allow:
           schema:
@@ -932,7 +933,14 @@ components:
           schema:
             $ref: '#/components/schemas/Problem'
     NotFound:
-      description: Not found or not visible.
+      description: Not found or not visible; an unregistered /_arkret/* path instead uses the pre-dispatch unrecognized_endpoint response (HTTP 404).
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    UnrecognizedEndpoint:
+      description: Pre-dispatch router failure for an unregistered /_arkret/* path; Problem code unrecognized_endpoint (HTTP 404). No operation is entered.
+      x-arkret-route-error-code: unrecognized_endpoint
       content:
         application/problem+json:
           schema:

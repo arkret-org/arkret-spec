@@ -255,6 +255,48 @@ def check_operations_error_mapping_closure(lint: Lint) -> None:
     if not isinstance(registry, dict) or not isinstance(mapping, dict):
         return
 
+    # Route failures happen before an operation_id exists. Keep their producer
+    # path machine-readable and tied to active typed error codes and OpenAPI.
+    route_rows = mapping.get("pre_dispatch_route_errors")
+    expected_route_codes = {
+        "unrecognized_endpoint": 404,
+        "method_not_allowed": 405,
+    }
+    if not isinstance(route_rows, list) or len(route_rows) != 2:
+        lint.fail(mapping_path, "pre_dispatch_route_errors must contain exactly the 404/405 router producers")
+    else:
+        actual_route_codes: dict[str, int] = {}
+        for row in route_rows:
+            if not isinstance(row, dict):
+                lint.fail(mapping_path, "pre_dispatch_route_errors entry must be an object")
+                continue
+            code = row.get("code")
+            if code in actual_route_codes:
+                lint.fail(mapping_path, f"duplicate pre-dispatch route producer: {code!r}")
+            if isinstance(code, str):
+                actual_route_codes[code] = row.get("http_status")
+            if row.get("producer_stage") != "router_before_operation_dispatch" or row.get("side_effects") != "none" or row.get("problem_content_type") != "application/problem+json":
+                lint.fail(mapping_path, f"invalid pre-dispatch route producer contract: {code!r}")
+        if actual_route_codes != expected_route_codes:
+            lint.fail(mapping_path, "pre_dispatch_route_errors code/status pair must be unrecognized_endpoint/404 and method_not_allowed/405")
+
+    active_codes = {
+        row.get("code"): row.get("http_status")
+        for row in registry.get("codes", [])
+        if isinstance(row, dict) and row.get("status") == "active"
+    }
+    for code, status in expected_route_codes.items():
+        if active_codes.get(code) != status:
+            lint.fail(registry_path, f"route producer {code!r} requires active HTTP {status} registry code")
+
+    openapi_path = ARTIFACTS / "openapi" / "arkret-service-api.openapi.yaml"
+    openapi = load_yaml(lint, openapi_path)
+    responses = (openapi or {}).get("components", {}).get("responses", {}) if isinstance(openapi, dict) else {}
+    for response_name, code in (("UnrecognizedEndpoint", "unrecognized_endpoint"), ("MethodNotAllowed", "method_not_allowed")):
+        response = responses.get(response_name, {})
+        if response.get("x-arkret-route-error-code") != code or "application/problem+json" not in response.get("content", {}):
+            lint.fail(openapi_path, f"{response_name} must expose canonical route Problem code {code!r}")
+
     known_codes = {
         row.get("code")
         for section in ("codes", "reason_codes")

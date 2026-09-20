@@ -129,9 +129,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/error-code-registry.json",
-      "version": "2026-09-21.3",
-      "generated_at": "2026-09-21T03:47:00+08:00",
-      "content_digest": "sha256:db03c9f637e4d7f3ac2bb31107fa4a5ea044fb74c06951325739017e7d7eac12"
+      "version": "2026-09-21.4",
+      "generated_at": "2026-09-21T05:20:34+08:00",
+      "content_digest": "sha256:c7dde881edd6689decb0c28bd6236eb26f400179e036802a59721fc85606cb7a"
     },
     {
       "path": "spec/v1/artifacts/registry/event-kind-registry.json",
@@ -243,9 +243,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operations-error-mapping.json",
-      "version": "2026-09-21.1",
-      "generated_at": "2026-09-21T03:47:00+08:00",
-      "content_digest": "sha256:76551db04054dbc04547b773ab2de16106a2b72d6c267f2bcdb276e59972a279"
+      "version": "2026-09-21.2",
+      "generated_at": "2026-09-21T05:20:34+08:00",
+      "content_digest": "sha256:ed725f2576ab803932ef88a6e91fa3db1b4a6d40c7288de2f1645a22e715416a"
     },
     {
       "path": "spec/v1/artifacts/registry/outward-disclosure-policy-registry.json",
