@@ -132,6 +132,8 @@ producer-signed bytes，再解析 current authority bundle 并转发；没有验
 `RealmCommit` 时不得返回 `committed` 或对其它成员 fanout。这里没有 schema 外的 `queued`／`forwarding`
 success body。
 
+旧 Seal-style 的 pending-control 查询、prepare/fence 与 submit 命令不属于 v1 公开 operation 或 HTTP binding；服务 MUST NOT 暴露这些路径作为第二套 Event 接纳、frontier 或设备撤销状态真相源。设备 `revocation_pending` 仍由 [device-lifecycle.md §5.5.3](../crypto-media/device-lifecycle.md) 的 durable proposal 与 covering RealmCommit command result 折叠，pairing/current-device gate 仍必须 fail closed；移除旧路由不得删除这些事实或改变本节正式 Event submit 的事务与幂等语义。
+
 ### 2.7 Peer 转发
 
 `POST /_arkret/peer/events` 接受
