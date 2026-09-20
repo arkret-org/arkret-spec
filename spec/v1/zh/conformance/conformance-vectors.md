@@ -344,12 +344,12 @@ MUST 被 `view.schema.json` 拒绝。
 同 revision 的竞争迁移被串行化，过期命令拒绝且不改变已确认状态；一般图环仍然有效；
 自引用以 `realm_link_self_reference` 拒绝。
 
-`ak.vector.relation.conflict_resolution.v1` MUST 证明：`ak.relation.resolve` 是唯一登记载体，用于了结一个
-Relation 主冲突域——`retain_candidate` 恰好保留一个被覆盖候选并沿用其原 RelationId，`void_all` 使被覆盖集合
-不留 active 边但保留事实。每次解决都绑定完整的冻结基线；缺失、重复、已被取代或外来的成员使整条提交被拒。
-内联诊断最多携带十六个候选，更大的集合使用同一套完整分页载体。并发解决由 `expected_revision` compare-and-set 串行化：落后 revision 的解决以 `failed_precondition` 拒绝且零写入，
-全部 Event 身份保留；后续获授权的解决以当前裁决的 `CurrentRevision` 为 `expected_revision` 接纳后取代它。冻结基线之外新发现的候选
-重新置回 `require_review` 作为显式跨域检查。
+`ak.vector.relation.primary_domain_cas.v1` MUST 证明：每个直接写 Relation shape 只有一个
+`primary_conflict_domain` current-result subject；create/update/tombstone 都携 signed domain 与领域
+`expected_revision`，domain 不匹配、stale revision、错误 RelationId 与 active domain 上的重复 create 都零写入拒绝。
+两个离线作者从同一 revision 竞争时至多一个取得 RealmCommit，反向提交顺序同样成立；exact replay 返回原 Commit。
+tombstone 后携其 revision 可创建新 event-derived RelationId。`relation_kind/from_ref/to_ref` create-lock，改变身份必须
+显式 tombstone + create，update 触及身份字段必须 `schema_violation`；派生 `contains` / `watches` 直接写入仍拒绝。
 
 ### 3.9 Federation 与 MIMI
 

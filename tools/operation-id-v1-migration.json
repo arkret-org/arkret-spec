@@ -788,10 +788,6 @@
       "new": "ak.self.realm.resource.get.v1"
     },
     {
-      "old": "ak.self.relation_conflicts.read.candidates",
-      "new": "ak.self.relation_conflicts.read.candidates.v1"
-    },
-    {
       "old": "ak.self.security_transaction.command.continue",
       "new": "ak.self.security_transaction.command.continue.v1"
     },

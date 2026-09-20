@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 3,
+  "version": 4,
   "kind": "reason_code_producer_baseline",
   "source_of_truth": false,
   "generated_from": [
@@ -69,7 +69,7 @@
       "code": "cardinality_violation",
       "ruling": "2026-09-04-2130",
       "registry_version": "2026-09-04.3",
-      "why": "标准关系冲突由 require_review 收敛；并发候选上限由 relation_conflict_fanout_exceeded 承载。协议不提供关系数量限制配置。"
+      "why": "标准 Relation 基数由单治理 Station 在 primary_conflict_domain typed current result 上执行 expected_revision CAS；stale 写零副作用拒绝。协议不提供关系数量限制配置。"
     },
     {
       "code": "claim_rate_limited",

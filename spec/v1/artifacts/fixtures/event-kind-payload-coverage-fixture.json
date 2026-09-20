@@ -1,6 +1,6 @@
 {
   "suite": "event_kind_payload_coverage_fixture",
-  "version": "2026-09-19",
+  "version": "2026-09-20",
   "runner": {
     "kind": "registry_coverage",
     "inputs": [
@@ -232,6 +232,16 @@
       "schema_ref": "schemas/event-payload.schema.json#/$defs/relation_tombstone_payload",
       "expect_valid": true,
       "instance": {
+        "primary_conflict_domain": {
+          "domain_kind": "tuple",
+          "relation_kind": "references",
+          "from_ref": "ak:strand:AUifoAUG8AEOHYXp999WnI7WlLt19ByDoqYUsFwbw4A4",
+          "to_ref": "ak:strand:AQdknt9AByYY2gb16KB093xeB4J8b02mTEd4Mt8z2rO-"
+        },
+        "expected_revision": {
+          "commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
+          "stream_position": 41
+        },
         "relation_id": "ak:relation:AUifoAUG8AEOHYXp999WnI7WlLt19ByDoqYUsFwbw4A4",
         "reason": "relationship no longer applies"
       }
@@ -240,7 +250,7 @@
       "name": "relation_tombstone_rejects_update_payload_shape",
       "schema_ref": "schemas/event-payload.schema.json#/$defs/relation_tombstone_payload",
       "expect_valid": false,
-      "first_expected_error": "contains:relation_id",
+      "first_expected_error": "contains:primary_conflict_domain",
       "instance": {
         "target_ref": "ak:relation:AUifoAUG8AEOHYXp999WnI7WlLt19ByDoqYUsFwbw4A4",
         "patch": []

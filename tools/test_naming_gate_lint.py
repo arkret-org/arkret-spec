@@ -411,7 +411,7 @@ class WrapperWordTest(unittest.TestCase):
             tuple(rules["rejected_wrapper_words"]), DEFAULT_REJECTED_WRAPPER_WORDS
         )
         self.assertEqual(
-            unregistered_wrapper_word("RelationConflictCandidate", DEFAULT_REJECTED_WRAPPER_WORDS),
+            unregistered_wrapper_word("RelationPrimaryDomainCandidate", DEFAULT_REJECTED_WRAPPER_WORDS),
             "Candidate",
         )
         self.assertIsNone(
@@ -422,7 +422,7 @@ class WrapperWordTest(unittest.TestCase):
         """R4 is one axis in two casings; the `$defs` spelling must not be a hole."""
 
         for name, expected in (
-            ("relation_conflict_candidate", "candidate"),
+            ("relation_primary_domain_candidate", "candidate"),
             ("realm_list_item", "item"),
             ("poll_response_body", "response_body"),
             ("member_state_result", "result"),

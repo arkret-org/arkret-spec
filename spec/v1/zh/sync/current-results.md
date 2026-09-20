@@ -105,15 +105,6 @@ Realm、每个 Circle、每个 Sidecar 分别拥有独立 commit stream。当前
   自报的 `id` 不进值内——subject 已经是它；三个写者的 `result_writes[]` 均已登记，
   `ak.view.update` 的 `allowed_paths` 与 `state_changed_at` / `updated_by` / `updated_at`
   三个 reducer 派生成员在 registry 内逐项封闭；写者清单以 views.md §3.2 为准；
-- `relation_conflict_resolution`：以封闭的 `payload.conflict_domain`（`canonical_json`）选择一个 Relation
-  **主冲突域**的当前裁决，由 `ak.relation.resolve` 单一写者整体置换
-  （[`../models/relation.md` §6.2](../models/relation.md) 对此为 normative）；
-  **subject 不含 `realm_id`、也不含 Circle**——Realm 取自 envelope，Circle 按 §6 从不进冲突 key，
-  因此同一个域不可能有第二种拼法；值是整条封闭 payload 而**不只是** `outcome`：
-  §6.5 规定不在本次冻结 `baseline` 内的新候选会重新触发 `require_review`，
-  读不到 `baseline` 就无法作出这个判断；本 family 只承载**组裁决数据**，
-  Relation 内容仍由 `ak.relation.create` / `ak.relation.update` 的数据面结果提供，
-  active edge 投影联合读取二者，本 Event 不写任何安全许可结果；
 - `realm_link`：以 `(target_realm_id, link_kind)` 选择一条 Realm 间链接
   （见 [`../models/realm-links.md` §5](../models/realm-links.md)）；
 - `realm_inheritance_policy`：以 `source_realm_id` 选择自某一父 Realm 继承的策略——
@@ -159,9 +150,13 @@ Realm、每个 Circle、每个 Sidecar 分别拥有独立 commit stream。当前
 - `strand_watch`：以 `(strand_id, watcher_actor_id)` 选择 watch current value；值是
   `null` 或 `{level, level_public?}`，`expected_value` 只作 whole-value CAS，不进入结果；
 - `strand`：以 `strand_id` 选择 Strand；
-- `circle`、`morph`、`relation`、`space`：各以同名 `<kind>_id` 选择该对象的当前值，值就是对象自身的
-  封闭 schema。四族与 `strand`、`view` 是同一形态：`ak.<kind>.create` 整体置换，
-  后续写入按引用指名 subject。带物理 lifecycle 的五族（`circle` / `morph` / `relation` / `space` /
+- `circle`、`morph`、`space`：各以同名 `<kind>_id` 选择该对象的当前值，值就是对象自身的
+  封闭 schema；`relation` 以封闭的 `payload.primary_conflict_domain`（single-component
+  `canonical_json` composite）选择一个可直接写关系域，值是带 event-derived RelationId 的完整 Relation。
+  create/update/tombstone 都写同一 domain subject并由 payload 的 exact `expected_revision` CAS；
+  relation identity 字段 create-lock，改变 domain 必须 tombstone 旧值后 create 新值（见
+  [`../models/relation.md` §6](../models/relation.md)）。这些族与 `strand`、`view` 是同一对象 current-value 形态。
+  带物理 lifecycle 的五族（`circle` / `morph` / `relation` / `space` /
   `strand`）的 `state` 成员**只由**专用 `ak.<kind>.archive` / `.restore` / `.tombstone` 写入，
   reducer 按 [`../models/common-fields.md` §5.2](../models/common-fields.md) 的 kind → state 映射
   以 `object_lifecycle_state` 产出，payload 不携带目标状态；普通 update MUST NOT 复活终态。

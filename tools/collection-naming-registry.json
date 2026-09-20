@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "schema": "arkret.collection-naming-registry.v1",
-  "version": "2026-09-20",
+  "version": "2026-09-20.1",
   "source_of_truth": false,
   "normative_rule": "NC-COLLECTION-001",
   "description": "Reviewed exact exceptions to the default object-collection plural grammar, plus named pagination object contracts. Entry, Row, View, Preview, Projection and Descriptor are semantic words, not representation suffixes; referenced item type names never determine property names.",
@@ -197,15 +197,6 @@
         "next_cursor"
       ],
       "reason": "the Realm stream enumeration page owns its generic pagination companions; its rows carry per-stream boundaries instead"
-    },
-    {
-      "file": "relation.schema.json",
-      "pointer": "/$defs/relation_conflict_material_page",
-      "collection_field": "member_event_ids",
-      "companion_fields": [
-        "next_cursor"
-      ],
-      "reason": "one chained page of the frozen Relation conflict repair material owns the cursor that continues its own chain"
     },
     {
       "file": "service-operation-dtos.schema.json",

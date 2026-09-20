@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.14",
+  "version": "2026-09-20.15",
   "source_of_truth": false,
-  "generated_at": "2026-09-20T22:15:00+08:00",
+  "generated_at": "2026-09-20T22:56:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -111,7 +111,7 @@
     "Event carries no chain predecessor or authority-commit proof. Only RealmCommit carries previous_commit_ref, and only within the same stream.",
     "Reducers derive typed current results by replaying committed Events in stream position order. Account-private material is outside shared authority-commit streams.",
     "wire_scope=durable_event does NOT imply reducer_input=true. A durable Event is one whose exact bytes a RealmCommit can cover; reducer_input=true additionally asserts that replaying this Realm's committed Events suffices to derive the typed current results the kind writes. A kind whose real durable effect is holder-Station private service state -- keyed on material that never enters the Event stream, or on a counterpart mirror that zh/identity/contact-and-direct-conversation.md section 3 forbids from advancing a reducer -- MUST carry reducer_input=false and MUST name the canonical service_contracts row that spells out its branches, durable effect, unique key, prior-state CAS, exact retry and zero-side-effect rejection. Withdrawing Realm typed-result dispatch never withdraws the kind's admission, signature, commit evidence or private transactional effect: the five ak.contact.* kinds are the worked example (ak.contact.admission.v1). Setting reducer_input=false without registering where the effect actually lands is the defect this rule exists to prevent.",
-    "result_writes[] is the machine contract for which typed current results one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row: a declared value_projection member MUST be declared by that row's value_schema_ref, and a whole-value set MUST write every member that schema requires. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 129 of the 134 reducer_input kinds declare it; the remaining 5 have an explicit durable-fact or authority-commit effect classification and intentionally no typed-current-result row. The declaring kinds are deliberately not enumerated here: event_kinds[] already is that list, and tools/artifact_lint:result_write_coverage_note recomputes both counts from the rows. Normative prose MUST NOT cite result_writes[] for a kind that does not declare it. The converse obligation binds a declaring kind: its rows MUST enumerate EVERY typed current result its accepted admission writes on the shared face; atomic multi-family writes land all rows in one batch or none.",
+    "result_writes[] is the machine contract for which typed current results one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row: a declared value_projection member MUST be declared by that row's value_schema_ref, and a whole-value set MUST write every member that schema requires. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 128 of the 133 reducer_input kinds declare it; the remaining 5 have an explicit durable-fact or authority-commit effect classification and intentionally no typed-current-result row. The declaring kinds are deliberately not enumerated here: event_kinds[] already is that list, and tools/artifact_lint:result_write_coverage_note recomputes both counts from the rows. Normative prose MUST NOT cite result_writes[] for a kind that does not declare it. The converse obligation binds a declaring kind: its rows MUST enumerate EVERY typed current result its accepted admission writes on the shared face; atomic multi-family writes land all rows in one batch or none.",
     "Every active persistent kind (durable_event or actor_private_event) MUST carry one closed result_effect_ownership object. A typed_result_writer owns non-empty result_writes[] and no second owner; a private_service_effect names an active service_contracts row whose branches cover that exact actor-private Event kind; a durable_fact_no_current_projection names its normative definition and carries no typed-current-result write; an authority_commit_effect names the structured authority-commit service contract and MUST NOT introduce a second governance counter; an owned_gap is temporary only while it names a live owner_report and exact closure condition. Unknown classifications, unresolved definitions, orphan service branches, shared/private mixing, malformed authority contracts or any classification that contradicts reducer_input/result_writes[] fail tools/artifact_lint:result_effect_ownership.",
     "transition_contracts declares the lifecycle axis of a typed current result family: its closed state set, its entry idiom (exactly one of initial_state / initial_states / template), its terminal states and its allowed (from, to) edges. tools/artifact_lint:fsm_reachability reads it together with every transition result_projection and requires that each declared state be reachable from the entry set, that each allowed edge have a write that can perform it, that no const edge leave the table and that no terminal state carry an outgoing edge. A family that declares a machine MUST NOT be written by any non-transition projection: a set installs a state without passing the table, which would make allowed_transitions documentation rather than a rule. Between the authority-commit clean break and 2026-09-18 this block did not exist while the gate still read it under the removed cell_* names, so check reported success over four normative paragraphs (zh/models/circle.md, zh/models/morph.md, zh/models/realm-and-space.md, zh/models/strand-and-message.md) that name transition_contracts as the source of truth for object lifecycle transitions; an absent or empty block is now a failure. Those four object families are themselves still unregistered, so their archive / restore lifecycle has no machine contract yet -- that is a coverage gap, not a licence to read the prose as satisfied."
   ],
@@ -5711,13 +5711,24 @@
       "reducer_input": true,
       "payload": "Relation create",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/relation_create_payload",
+      "admission_checks": [
+        "payload.primary_conflict_domain MUST exactly equal the registered domain derived from payload.relation; truth_source shapes are rejected",
+        "payload.expected_revision MUST be null when the domain has never been written, or equal the exact current revision when the domain value is tombstoned; an active current value rejects create even at an exact revision",
+        "CAS mismatch and every semantic rejection produce zero typed current result writes and no RealmCommit; exact Event replay returns the original Commit"
+      ],
       "id_source": "event_derived",
       "id_kind": "relation",
       "result_writes": [
         {
           "result_family": "relation",
           "result_selector": {
-            "kind": "id:relation"
+            "kind": "composite",
+            "components": [
+              {
+                "kind": "canonical_json",
+                "field": "payload.primary_conflict_domain"
+              }
+            ]
           },
           "result_projection": {
             "kind": "set",
@@ -5726,7 +5737,7 @@
             }
           },
           "value_schema_ref": "schemas/relation.schema.json",
-          "notes": "zh/models/relation.md sections 6.2-6.5. relation_id is event-derived, so the id:relation selector retypes this create Event's own id and relation_create_object forbids a payload-carried id. payload.relation is now relation.schema.json#/$defs/relation_definition -- the edge and its metadata -- rather than the materialized object, so the seven members the reducer owns are produced here instead of being authored and then retained verbatim forever. state_changed_at is NOT produced: zh/models/common-fields.md section 3.3 forbids a create from leaving the initial state, so the member is absent until a lifecycle Event moves it.",
+          "notes": "zh/models/relation.md section 6. payload.primary_conflict_domain is the single domain subject and MUST match payload.relation's registered immutable identity fields. relation_id remains event-derived inside the value; the selector no longer uses it. expected_revision is an admission-only CAS guard and is not projected. A null revision is valid only for an unwritten domain; a tombstoned value may be replaced at its exact revision with a new event-derived RelationId, while an active value cannot be overwritten by create. payload.relation is relation_definition, so reducer-owned object members are derived here.",
           "derived_members": [
             {
               "name": "schema",
@@ -5764,66 +5775,30 @@
       }
     },
     {
-      "event_kind": "ak.relation.resolve",
-      "category": "relation",
-      "status": "active",
-      "verb_form": "base",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "payload": "Single registered carrier that settles one Relation primary conflict domain. The ordinary causal repair Event retains exactly one still-valid candidate head of the covered group or voids the covered set after proving it observed the complete conflict domain; and ak.relation.update / ak.relation.tombstone each address one Relation and therefore cannot prove the author covered the complete head set. payload.conflict_domain is the whole typed current result subject, payload.baseline is the frozen data-plane completeness commitment the receiver rebuilds independently, and payload.outcome is closed to retain_candidate or void_all. The Event writes only the registered group ordinary causal typed current result; Relation content stays on its own data typed results and the active-edge projection reads both.",
-      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/relation_resolve_payload",
-      "admission": "capability_gated",
-      "admission_checks": [
-        "conflict_domain resolves to a directly writable relation-kind-registry.json shape whose registered primary_conflict_domain equals conflict_domain.domain_kind; a derived_projection shape is rejected with schema_violation (reason=relation_kind_contains_derived or relation_kind_watches_derived)",
-        "the receiver rebuilds the complete active candidate head set of the domain from its own accepted Relation history under this Event's frozen predecessor view, recomputes the chained commitment of zh/models/relation.md section 6.3, and requires byte equality with payload.baseline.members_digest and payload.baseline.member_count; a missing member, a superseded head, a duplicate, a foreign-domain member or any later group change rejects the Event with failed_precondition reason=relation_conflict_baseline_stale and zero typed current result writes",
-        "when payload.baseline.member_event_ids is present it MUST equal that rebuilt set element by element in canonical bytewise-ascending order; member_count above 64 omits the inline list and is proven by members_digest alone, and the ordinary 16-head diagnostic bound MUST NOT be applied to this evidence",
-        "a retain_candidate outcome names a retained_event_id that belongs to this Event's own baseline; a name outside the covered set is rejected with failed_precondition reason=relation_conflict_baseline_stale",
-        "the actor independently holds the registered ak.relation.resolve capability over every candidate in the covered group and its scope; holding ak.relation.update on one member never authorizes adjudicating the others",
-        "Relation conflict resolution is an ordinary causal successor. It observes the complete intended domain candidate set and does not reset security state or invoke an unregistered recovery authority."
-      ],
-      "id_source": "not_an_object_id",
-      "result_writes": [
-        {
-          "result_family": "relation_conflict_resolution",
-          "result_selector": {
-            "kind": "composite",
-            "components": [
-              {
-                "kind": "canonical_json",
-                "field": "payload.conflict_domain"
-              }
-            ]
-          },
-          "result_projection": {
-            "kind": "set",
-            "value": {
-              "field": "payload"
-            }
-          },
-          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/relation_conflict_resolution_value",
-          "notes": "models/relation.md section 6.2 is normative on every part of this row: ak.relation.resolve is the single registered resolution carrier, it writes the current-value projection family relation_conflict_resolution, and the subject is determined entirely by payload.conflict_domain with the Realm taken from the envelope. The subject is therefore a single-component canonical_json composite over a structured payload member, exactly as ak.pin.add keys on pin_scope: relation_conflict_domain is a closed object whose own schema excludes realm_id and Circle, so encoding.md section 9.5.1 is satisfied without a second spelling of the same domain. The projection is the identity on the whole closed payload. Keeping baseline inside the value is what section 6.5 needs: a Relation candidate discovered later and NOT covered by this frozen baseline re-triggers require_review without rewriting this adjudication, and that comparison is unmakeable from the outcome alone. Two things this row deliberately does not do: it does not touch Relation content, which stays on the create / update data-plane result, and it does not write any security-permission result, because authz/event-auth-state-resolution.md section 3 forbids an ordinary data-plane write from carrying a single-winner authority decision."
-        }
-      ],
-      "result_effect_ownership": {
-        "kind": "typed_result_writer"
-      }
-    },
-    {
       "event_kind": "ak.relation.tombstone",
       "category": "relation",
       "status": "active",
       "verb_form": "base",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Irreversible Relation lifecycle transition. payload.relation_id is the sole target carrier; payload.target_ref and update-style payload.patch are forbidden. Optional payload.reason is retained on the Event, while the materialized Relation stores only state=tombstoned and state_changed_at=Event.created_at.",
+      "payload": "Irreversible Relation lifecycle transition. payload.primary_conflict_domain is the sole typed-result selector, payload.relation_id is the current value identity guard, and payload.expected_revision is the exact CAS guard. payload.target_ref and update-style payload.patch are forbidden. Optional payload.reason is retained on the Event, while the materialized Relation stores only state=tombstoned and state_changed_at=Event.created_at.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/relation_tombstone_payload",
+      "admission_checks": [
+        "payload.primary_conflict_domain MUST select the current relation value in this Realm; that value MUST be active and its id MUST equal payload.relation_id",
+        "payload.expected_revision MUST equal the exact current relation revision; mismatch rejects with zero writes and no RealmCommit"
+      ],
       "id_source": "reference",
       "result_writes": [
         {
           "result_family": "relation",
           "result_selector": {
-            "kind": "id:relation",
-            "field": "payload.relation_id"
+            "kind": "composite",
+            "components": [
+              {
+                "kind": "canonical_json",
+                "field": "payload.primary_conflict_domain"
+              }
+            ]
           },
           "result_projection": {
             "kind": "apply_patch",
@@ -5873,13 +5848,23 @@
       "reducer_input": true,
       "payload": "Relation patch",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/relation_update_payload",
+      "admission_checks": [
+        "payload.primary_conflict_domain MUST select the current relation value in this Realm; that value MUST be active and its id MUST equal payload.relation_id",
+        "payload.expected_revision MUST equal the exact current relation revision; mismatch rejects with zero writes and no RealmCommit",
+        "relation_kind, from_ref and to_ref are create-locked primary-domain identity and MUST NOT appear in payload.patch"
+      ],
       "id_source": "reference",
       "result_writes": [
         {
           "result_family": "relation",
           "result_selector": {
-            "kind": "id:relation",
-            "field": "payload.relation_id"
+            "kind": "composite",
+            "components": [
+              {
+                "kind": "canonical_json",
+                "field": "payload.primary_conflict_domain"
+              }
+            ]
           },
           "result_projection": {
             "kind": "apply_patch",
@@ -5888,9 +5873,6 @@
             },
             "allowed_paths": [
               "scope_circle_id",
-              "relation_kind",
-              "from_ref",
-              "to_ref",
               "rank",
               "fields"
             ]
@@ -5910,10 +5892,13 @@
             "realm_id",
             "created_by",
             "created_at",
+            "relation_kind",
+            "from_ref",
+            "to_ref",
             "state"
           ],
           "value_schema_ref": "schemas/relation.schema.json",
-          "notes": "zh/models/relation.md section 6.2. The six allowed paths are exactly the members relation_definition hands the author; everything else relation.schema.json declares is either universal_forbidden_patch_paths or the object's own effective_scope ban, which relation_update_payload already enforces through its propertyNames guard. state is retained rather than patched: an ordinary update MUST NOT resurrect a tombstoned Relation or tombstone a live one, and the state axis belongs to ak.relation.tombstone alone."
+          "notes": "zh/models/relation.md sections 6.2-6.3. The three allowed paths are mutable metadata only. relation_kind, from_ref and to_ref define primary_conflict_domain and are create-locked; changing them requires an explicit tombstone on the old domain followed by create on the new domain, never a cross-domain patch or move. effective_scope remains reducer-managed. state is retained rather than patched and expected_revision is an admission-only CAS guard."
         }
       ],
       "result_effect_ownership": {

@@ -45,8 +45,8 @@
     "by_consumer": {
       "declared_wire": 55,
       "event_kind": 8,
-      "inbound": 50,
-      "outbound": 61,
+      "inbound": 49,
+      "outbound": 60,
       "prose": 103,
       "prose_only": 2,
       "schema_reference": 162,
@@ -3690,8 +3690,6 @@
       "schema_id": "ak.schema.relation.v1",
       "file": "schemas/relation.schema.json",
       "consumers": {
-        "inbound": "fragment",
-        "outbound": "fragment",
         "prose": "normative_text",
         "schema_reference": "exact",
         "startup_compile": "exact",

@@ -167,15 +167,9 @@
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
     },
-    "digest": {
-      "$ref": "./event-envelope.schema.json#/$defs/digest"
-    },
-    "event_id": {
-      "$ref": "./common-ids.schema.json#/$defs/event_id"
-    },
-    "relation_conflict_domain": {
+    "relation_primary_conflict_domain": {
       "type": "object",
-      "description": "The single primary conflict domain a require_review group and its ak.relation.resolve Event address. The Realm is never a member: an Event takes it from its own envelope and a read takes it from the request selector, so one domain can never be spelled two ways. Circle is never a component either (models/relation.md §6). domain_kind is the registered primary_conflict_domain of the matching relation-kind-registry.json shape and is not producer-selectable: tuple keys on (relation_kind, from_ref, to_ref) and from keys on (relation_kind, from_ref). truth_source shapes have no directly writable Relation and therefore no resolvable domain.",
+      "description": "The unique typed-current-result subject for one directly writable Relation domain. Realm comes from the Event envelope and Circle is not a key component. domain_kind MUST equal the matching relation-kind-registry.json shape's registered primary_conflict_domain: tuple keys on (relation_kind, from_ref, to_ref), while from keys on (relation_kind, from_ref). truth_source shapes have no directly writable Relation domain.",
       "required": [
         "domain_kind",
         "relation_kind",
@@ -192,14 +186,14 @@
         "relation_kind": {
           "type": "string",
           "minLength": 1,
-          "description": "The relation_kind of every candidate in the group. It MUST resolve to a directly writable relation-kind-registry.json shape whose registered primary_conflict_domain equals domain_kind; a derived_projection shape is rejected with schema_violation (reason=relation_kind_contains_derived / relation_kind_watches_derived)."
+          "description": "The current Relation's create-locked relation_kind. It MUST resolve to a directly writable relation-kind-registry.json shape whose registered primary_conflict_domain equals domain_kind; a derived_projection shape is rejected with schema_violation (reason=relation_kind_contains_derived / relation_kind_watches_derived)."
         },
         "from_ref": {
           "$ref": "#/$defs/relation_endpoint"
         },
         "to_ref": {
           "$ref": "#/$defs/relation_endpoint",
-          "description": "Present exactly when domain_kind=tuple. A from domain already contains every duplicate tuple under the same from_ref, so carrying to_ref there would create a second, independently adjudicable sub-group."
+          "description": "Present exactly when domain_kind=tuple. A from domain already identifies the single current Relation for the from_ref, so carrying to_ref there would create a second spelling of the subject."
         }
       },
       "allOf": [
@@ -228,219 +222,6 @@
           }
         }
       ],
-      "additionalProperties": false
-    },
-    "relation_conflict_baseline": {
-      "type": "object",
-      "description": "The frozen data-plane candidate baseline a Relation conflict resolution is signed against. expected_revision freezes governance state only, so it never proves that every Relation Event in the group was observed; this object is the separate data-plane commitment. members_digest is the chained commitment defined in zh/models/relation.md §6.3 and binds realm, domain, member_count, the canonical member ordering and every member. A root, a count or a handful of inclusion proofs on their own do not prove the absence of an omitted member.",
-      "required": [
-        "member_count",
-        "members_digest"
-      ],
-      "properties": {
-        "member_count": {
-          "type": "integer",
-          "minimum": 2,
-          "description": "Complete number of active candidate heads in the domain under this baseline. It is NOT bounded by the ordinary 16-head diagnostic limit: a group that exceeded the diagnostic fanout is still repaired through this same carrier."
-        },
-        "members_digest": {
-          "$ref": "#/$defs/digest",
-          "description": "Chained complete-set commitment over the canonically ordered member list (zh/models/relation.md §6.3)."
-        },
-        "member_event_ids": {
-          "type": "array",
-          "description": "Complete canonical member list, bytewise-ascending and duplicate-free. Present exactly when member_count <= 64 so a small group stays self-contained; above that the Event carries only members_digest and the material is read page by page through ak.self.relation_conflicts.read.candidates.v1 instead of growing an unbounded Event.",
-          "minItems": 2,
-          "maxItems": 64,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "#/$defs/event_id"
-          }
-        }
-      },
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "member_count": {
-                "maximum": 64
-              }
-            },
-            "required": [
-              "member_count"
-            ]
-          },
-          "then": {
-            "required": [
-              "member_event_ids"
-            ]
-          },
-          "else": {
-            "not": {
-              "required": [
-                "member_event_ids"
-              ]
-            }
-          }
-        }
-      ],
-      "additionalProperties": false
-    },
-    "relation_conflict_material_page": {
-      "type": "object",
-      "description": "One page of the frozen repair material. A page never takes effect on its own: the reader MUST walk every page in ascending page_index, recompute page_digest over the chain, and only then compare the final chain value with baseline.members_digest. prev_page_digest chains the pages so a dropped, reordered or duplicated page cannot pass unnoticed.",
-      "required": [
-        "page_index",
-        "page_digest",
-        "member_event_ids"
-      ],
-      "properties": {
-        "page_index": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "prev_page_digest": {
-          "$ref": "#/$defs/digest",
-          "description": "page_digest of page_index-1. Absent exactly on page_index=0, where the canonical preimage encodes null."
-        },
-        "page_digest": {
-          "$ref": "#/$defs/digest"
-        },
-        "member_event_ids": {
-          "type": "array",
-          "minItems": 1,
-          "maxItems": 256,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "#/$defs/event_id"
-          }
-        },
-        "next_cursor": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 4096,
-          "description": "Opaque continuation cursor for the next page. Absent on the last page. A resumed read continues from this cursor and MUST restart from page_index=0 when the chain no longer matches (relation_conflict_material_page_gap)."
-        }
-      },
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "page_index": {
-                "const": 0
-              }
-            },
-            "required": [
-              "page_index"
-            ]
-          },
-          "then": {
-            "not": {
-              "required": [
-                "prev_page_digest"
-              ]
-            }
-          },
-          "else": {
-            "required": [
-              "prev_page_digest"
-            ]
-          }
-        }
-      ],
-      "additionalProperties": false
-    },
-    "relation_conflict_candidates_request_body": {
-      "type": "object",
-      "description": "Request body of ak.self.relation_conflicts.read.candidates.v1. The caller names one Realm and one primary conflict domain; the receiving Station verifies the caller's read authorization over every candidate in the group before returning any page.",
-      "required": [
-        "realm_id",
-        "conflict_domain"
-      ],
-      "properties": {
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "conflict_domain": {
-          "$ref": "#/$defs/relation_conflict_domain"
-        },
-        "cursor": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 4096,
-          "description": "next_cursor of the previously returned page. Absent on the first request, which always returns page_index=0."
-        }
-      },
-      "additionalProperties": false
-    },
-    "relation_conflict_candidates_outcome": {
-      "type": "object",
-      "description": "Server-validated result of ak.self.relation_conflicts.read.candidates.v1. The client trusts its own Station for candidate completeness and admission (zh/sync/server-trusted-results.md) and only checks that the echoed selector matches what it asked for, that the page chain is intact and that the final chain value equals baseline.members_digest before signing an ak.relation.resolve against it. This outcome is projection-only evidence: reducer_input MUST be false.",
-      "required": [
-        "realm_id",
-        "conflict_domain",
-        "baseline",
-        "page"
-      ],
-      "properties": {
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "conflict_domain": {
-          "$ref": "#/$defs/relation_conflict_domain"
-        },
-        "baseline": {
-          "$ref": "#/$defs/relation_conflict_baseline"
-        },
-        "page": {
-          "$ref": "#/$defs/relation_conflict_material_page"
-        },
-        "diagnostic": {
-          "$ref": "#/$defs/relation_conflict_diagnostic",
-          "description": "The ordinary require_review diagnostic, present exactly when baseline.member_count is 2..16. Its absence above 16 removes the display shortcut, never the repair path."
-        }
-      },
-      "additionalProperties": false
-    },
-    "relation_conflict_diagnostic": {
-      "type": "object",
-      "description": "Projection-only require_review diagnostic containing the complete bounded concurrent head set. reducer_input MUST be false; MUST NOT be treated as canonical event bytes, a winner, or dedupe authority. heads is bounded at 16 because that is the ordinary projection/display bound of one diagnostic, NOT a statement that a domain holds at most 16 candidates and NOT a bound on repair evidence: the 17th and every later candidate is retained, and relation_conflict_baseline carries an unbounded member_count for the same domain. See zh/models/relation.md §6.",
-      "required": [
-        "conflict_domain",
-        "heads"
-      ],
-      "properties": {
-        "conflict_domain": {
-          "$ref": "#/$defs/relation_conflict_domain",
-          "description": "The typed primary conflict domain these candidates collided under. It replaces the former opaque dedupe_key string so a producer can neither invent a bucket nor bypass the registered mutual-exclusion shape."
-        },
-        "heads": {
-          "type": "array",
-          "description": "Complete canonical concurrent head set, sorted by event_id for wire stability only. No member is a winner or loser.",
-          "minItems": 2,
-          "maxItems": 16,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "#/$defs/relation_conflict_candidate"
-          }
-        }
-      },
-      "additionalProperties": false
-    },
-    "relation_conflict_candidate": {
-      "type": "object",
-      "required": [
-        "event_id"
-      ],
-      "properties": {
-        "event_id": {
-          "$ref": "#/$defs/event_id"
-        },
-        "reason": {
-          "type": "string",
-          "description": "Optional reason code for this candidate's disposition (e.g. relation_conflict_fanout_exceeded)."
-        }
-      },
       "additionalProperties": false
     },
     "relation_definition": {

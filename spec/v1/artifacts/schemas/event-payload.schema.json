@@ -7840,7 +7840,21 @@
     },
     "relation_create_payload": {
       "type": "object",
+      "description": "Create or replace the Relation current value at one registered primary conflict domain. primary_conflict_domain is the signed typed-current-result subject and MUST exactly match payload.relation's registered relation_kind/from_ref/to_ref shape. expected_revision is null only when the domain has never been written; after a tombstone, a new event-derived RelationId MAY replace that tombstoned value only at its exact revision. An active current value cannot be replaced by create.",
       "properties": {
+        "primary_conflict_domain": {
+          "$ref": "./relation.schema.json#/$defs/relation_primary_conflict_domain"
+        },
+        "expected_revision": {
+          "oneOf": [
+            {
+              "$ref": "./typed-current-result.schema.json#/$defs/revision"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "relation": {
           "$ref": "#/$defs/relation_create_object"
         },
@@ -7850,79 +7864,29 @@
       },
       "additionalProperties": false,
       "required": [
+        "primary_conflict_domain",
+        "expected_revision",
         "relation"
-      ],
-      "description": "Relation creation. The payload carries the whole relation object under `relation`: the registered result_projection is set value = payload.relation, and event-and-patch.md 2.4.2 permits a projection to move an existing root path wholesale but never to assemble one, so a flat {relation_id, kind, from_ref, to_ref} form has no derivable typed current result value."
+      ]
     },
     "relation_id": {
       "$ref": "./agent-operations.schema.json#/$defs/relation_id"
     },
-    "relation_resolve_payload": {
-      "type": "object",
-      "description": "Payload for ak.relation.resolve, the single registered carrier that settles one Relation primary conflict domain. conflict_domain names the whole group and is the entire typed current result subject; baseline is the frozen data-plane completeness commitment the receiver independently rebuilds; outcome retains exactly one still-valid candidate head or voids the covered set. The Realm comes from the envelope. There is no free-form resolved_value, no new endpoint and no per-relation patch here: later content edits stay on ak.relation.update, and ending one Relation stays on ak.relation.tombstone.",
-      "required": [
-        "conflict_domain",
-        "baseline",
-        "outcome"
-      ],
-      "properties": {
-        "conflict_domain": {
-          "$ref": "./relation.schema.json#/$defs/relation_conflict_domain"
-        },
-        "baseline": {
-          "$ref": "./relation.schema.json#/$defs/relation_conflict_baseline"
-        },
-        "outcome": {
-          "oneOf": [
-            {
-              "$ref": "#/$defs/relation_resolve_retain_outcome"
-            },
-            {
-              "$ref": "#/$defs/relation_resolve_void_all_outcome"
-            }
-          ]
-        }
-      },
-      "additionalProperties": false
-    },
-    "relation_resolve_retain_outcome": {
-      "type": "object",
-      "description": "Exactly one candidate head of the covered group keeps producing an active edge. retained_event_id MUST be a member of this Event's own baseline; the retained Relation keeps its original RelationId and the exact state that head determines. Every other covered candidate stops producing an active edge while its Events and its adjudication stay auditable.",
-      "required": [
-        "kind",
-        "retained_event_id"
-      ],
-      "properties": {
-        "kind": {
-          "const": "retain_candidate"
-        },
-        "retained_event_id": {
-          "$ref": "./relation.schema.json#/$defs/event_id",
-          "x-arkret-preimage-commitment": "fixed_event"
-        }
-      },
-      "additionalProperties": false
-    },
-    "relation_resolve_void_all_outcome": {
-      "type": "object",
-      "description": "No candidate in the covered group keeps producing an active edge. This voids only the candidates this Event explicitly covered: it preserves their facts for audit, does not revive a tombstoned or redacted object, changes no capability, and does not forbid a later lawful ak.relation.create under the same domain.",
-      "required": [
-        "kind"
-      ],
-      "properties": {
-        "kind": {
-          "const": "void_all"
-        }
-      },
-      "additionalProperties": false
-    },
     "relation_tombstone_payload": {
       "type": "object",
-      "description": "Payload for ak.relation.tombstone. relation_id is the sole target carrier for the irreversible active -> tombstoned transition; target_ref and update-style patch fields are forbidden. When supplied, reason is retained on the Event and is not copied into the materialized Relation object.",
+      "description": "Payload for ak.relation.tombstone. primary_conflict_domain is the signed typed-current-result subject; relation_id MUST equal the current value's id at that domain, and expected_revision MUST equal its exact revision. The transition is irreversible for that RelationId. When supplied, reason is retained on the Event and is not copied into the materialized Relation object.",
       "required": [
+        "primary_conflict_domain",
+        "expected_revision",
         "relation_id"
       ],
       "properties": {
+        "primary_conflict_domain": {
+          "$ref": "./relation.schema.json#/$defs/relation_primary_conflict_domain"
+        },
+        "expected_revision": {
+          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+        },
         "relation_id": {
           "$ref": "#/$defs/relation_id"
         },
@@ -7936,15 +7900,19 @@
     },
     "relation_update_payload": {
       "type": "object",
-      "description": "Relation patch payload. relation_id is the sole target carrier. effective_scope and every effective_scope.* descendant path are the reducer-materialized projection of the verified Event.scope_ref and are forbidden on this generic update surface (reason=effective_scope_reducer_managed); the object-specific forbidden path set is machine-indexed in registry/reducer-managed-path-registry.json.",
+      "description": "Relation patch payload. primary_conflict_domain is the signed typed-current-result subject; relation_id MUST equal the current value's id at that domain, and expected_revision MUST equal its exact revision. relation_kind/from_ref/to_ref are create-locked because they define the subject; changing them requires an explicit tombstone followed by create. effective_scope and every effective_scope.* descendant path remain reducer-managed.",
       "required": [
+        "primary_conflict_domain",
+        "expected_revision",
         "patch",
         "relation_id"
       ],
       "properties": {
-        "expected_state_digest": {
-          "$ref": "#/$defs/digest",
-          "description": "Signed frozen pre-state selector and integrity guard. For multiple observed sources in the target scope/typed current result, this field is required and MUST select one complete source value by its canonical digest; matching sources with equal complete values are equivalent. The patch result supersedes only explicitly referenced sources. No match or ambiguous values fail closed. contract-registry.json registers nothing for it: apply_patch is not in the v1 result_projection closed set and no expected_prestate member has ever existed, so this is an admission rule outside the projection grammar."
+        "primary_conflict_domain": {
+          "$ref": "./relation.schema.json#/$defs/relation_primary_conflict_domain"
+        },
+        "expected_revision": {
+          "$ref": "./typed-current-result.schema.json#/$defs/revision"
         },
         "patch": {
           "allOf": [
@@ -7955,6 +7923,27 @@
               "propertyNames": {
                 "not": {
                   "pattern": "^effective_scope(?:\\.|$)"
+                }
+              }
+            },
+            {
+              "propertyNames": {
+                "not": {
+                  "pattern": "^relation_kind(?:\\.|$)"
+                }
+              }
+            },
+            {
+              "propertyNames": {
+                "not": {
+                  "pattern": "^from_ref(?:\\.|$)"
+                }
+              }
+            },
+            {
+              "propertyNames": {
+                "not": {
+                  "pattern": "^to_ref(?:\\.|$)"
                 }
               }
             }

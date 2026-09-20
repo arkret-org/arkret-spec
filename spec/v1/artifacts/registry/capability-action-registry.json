@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.16",
+  "version": "2026-09-20.17",
   "source_of_truth": false,
-  "generated_at": "2026-09-20T16:42:00+08:00",
+  "generated_at": "2026-09-20T22:56:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -1253,7 +1253,6 @@
         "ak.realm.unfreeze",
         "ak.redaction",
         "ak.relation.create",
-        "ak.relation.resolve",
         "ak.relation.tombstone",
         "ak.relation.update",
         "ak.schema.define",
@@ -1349,7 +1348,6 @@
         "ak.realm.set_default_strand",
         "ak.receipt.broadcast",
         "ak.relation.create",
-        "ak.relation.resolve",
         "ak.relation.tombstone",
         "ak.relation.update",
         "ak.rsvp.set",
@@ -1524,18 +1522,6 @@
         "ak.relation.create"
       ],
       "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.relation.resolve",
-      "category": "strand",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.relation.resolve"
-      ],
-      "profile": null,
-      "notes": "Adjudicating a whole Relation conflict domain decides one outcome for every candidate in the group, including candidates the actor did not author, so it is registered separately from the per-Relation write actions. The reducer MUST verify the grant covers every candidate and scope in the covered group; ak.relation.update or ak.relation.tombstone on one member never substitutes.",
       "event_mapping_kind": "same_name"
     },
     {

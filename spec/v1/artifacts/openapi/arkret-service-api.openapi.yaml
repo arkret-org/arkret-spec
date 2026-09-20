@@ -864,10 +864,6 @@ components:
       $ref: ../schemas/recovery-authority.schema.json#/$defs/issue_recovery_completion_grant_outcome
     RecoveryCompletionGrantRequestBody:
       $ref: ../schemas/recovery-authority.schema.json#/$defs/issue_recovery_completion_grant_request
-    RelationConflictCandidatesOutcome:
-      $ref: ../schemas/relation.schema.json#/$defs/relation_conflict_candidates_outcome
-    RelationConflictCandidatesRequestBody:
-      $ref: ../schemas/relation.schema.json#/$defs/relation_conflict_candidates_request_body
     RelationQuery:
       $ref: ../schemas/query.schema.json#/$defs/relation_query
     SearchRequestBody:
@@ -3936,55 +3932,6 @@ paths:
             application/json:
               schema:
                 $ref: ../schemas/realm-state-snapshot.schema.json
-  /_arkret/self/relation-conflicts/candidates:
-    query:
-      operationId: ak.self.relation_conflicts.read.candidates
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.relation_conflicts.read.candidates.v1
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-      summary: Read one page of the frozen Relation conflict repair material.
-      description: 'Canonical RFC 10008 QUERY binding for
-
-        `ak.self.relation_conflicts.read.candidates.v1`. The JSON content names one
-
-        Realm and one primary conflict domain; the response carries the frozen
-
-        baseline, one 256-member page of the canonically ordered candidate list
-
-        and the page chain digests. The ordinary 16-head diagnostic bound governs
-
-        only the optional diagnostic field and never truncates this material.
-
-        '
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RelationConflictCandidatesRequestBody'
-      responses:
-        '200':
-          description: One verified page of the Relation conflict repair material.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RelationConflictCandidatesOutcome'
-        '404':
-          description: '`not_found` — no such Realm, domain, or the caller may not know the group exists.'
-        '409':
-          description: '`failed_precondition` — `relation_conflict_group_not_visible`, `relation_conflict_material_unavailable`,
-            or `relation_conflict_material_page_gap`.'
   /_arkret/self/realms/{realm_id}/spaces:
     get:
       operationId: ak.self.space.read.list

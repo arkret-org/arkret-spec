@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.6",
+  "version": "2026-09-20.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-19T21:25:01+08:00",
+  "generated_at": "2026-09-20T22:56:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Closed typed current-result families derived from authority-committed Events. Selectors are domain types, never alternate typed current result IDs. Each row also records its CONSUMPTION: consumption.class is one of the consumption_classes below, consumption.consumed_by names the zh prose sections that read the current value, and consumption.note says what is read and to decide what. check_every_result_family_has_a_writer closes the writer direction; this ledger is the reader direction, which had no gate and no record. consumed_by is non-empty for every class except record_only, and a record_only row's note MUST name the section that states the family's purpose so the classification is checkable rather than an absence of evidence. Citations resolve through check_artifact_prose_section_refs.",
@@ -683,17 +683,6 @@
       }
     },
     {
-      "result_kind": "relation_conflict_resolution",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/relation_conflict_resolution_result",
-      "consumption": {
-        "class": "admission_input",
-        "consumed_by": [
-          "models/relation.md §6.5"
-        ],
-        "note": "Concurrent adjudication and re-resolution are decided against the current resolution value."
-      }
-    },
-    {
       "result_kind": "device_authorization",
       "schema_ref": "schemas/typed-current-result.schema.json#/$defs/device_authorization_result",
       "consumption": {
@@ -764,7 +753,7 @@
           "zh/models/relation.md",
           "zh/models/common-fields.md section 5.2"
         ],
-        "note": "The object's own current value. Its state member gates every later write on the object: a lifecycle write checks the pre-state and an ordinary write is refused while the object is not active, so reading it decides admission."
+        "note": "The single current Relation value for one primary_conflict_domain. create/update/tombstone compare its exact revision and lifecycle before writing; its event-derived RelationId remains in the value for stable history and object references."
       }
     },
     {

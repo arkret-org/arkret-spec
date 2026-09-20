@@ -5,11 +5,12 @@
   },
   "suite": "circle_scope",
   "profile": "ak.profile.circle_conformance.v1",
-  "version": "2026-09-19.1",
+  "version": "2026-09-20.1",
   "covers_vectors": [
     "ak.vector.circle.scope_rebind_and_admission.v1",
     "ak.vector.circle.lifecycle_admission_barrier.v1",
-    "ak.vector.relation.effective_scope_reducer_managed.v1"
+    "ak.vector.relation.effective_scope_reducer_managed.v1",
+    "ak.vector.relation.primary_domain_cas.v1"
   ],
   "description": "Machine-contract fixture for signed Event scope_ref, projected object effective_scope, and Circle lifecycle admission. Producer supplies scope_circle_id where the payload owns it and signs the matching scope_ref; the reducer verifies that scope and may materialize effective_scope only in object read projections. Covers source-Station serializable admission ordering, archive and tombstone barriers, restore re-signing, Event expected_revision checks, rebind transitions, and negative cases. See spec/v1/zh/models/circle.md §6.1 / §6.2 / §7 / §9.2 / §10.2.",
   "submit_payload_shape": {
@@ -299,6 +300,19 @@
       "decided_by": "payload_schema",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/relation_create_payload",
       "invalid_submit_payload": {
+        "primary_conflict_domain": {
+          "domain_kind": "tuple",
+          "relation_kind": "assigned_to",
+          "from_ref": "ak:strand:AUifoAUG8AEOHYXp999WnI7WlLt19ByDoqYUsFwbw4A4",
+          "to_ref": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:web:alice.example.com",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            }
+          }
+        },
+        "expected_revision": null,
         "relation": {
           "schema": "ak.schema.relation.v1",
           "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
@@ -338,6 +352,22 @@
       "decided_by": "payload_schema",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/relation_update_payload",
       "invalid_submit_payload": {
+        "primary_conflict_domain": {
+          "domain_kind": "tuple",
+          "relation_kind": "assigned_to",
+          "from_ref": "ak:strand:AUifoAUG8AEOHYXp999WnI7WlLt19ByDoqYUsFwbw4A4",
+          "to_ref": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:web:alice.example.com",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            }
+          }
+        },
+        "expected_revision": {
+          "commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
+          "stream_position": 41
+        },
         "relation_id": "ak:relation:AUifoAUG8AEOHYXp999WnI7WlLt19ByDoqYUsFwbw4A4",
         "patch": {
           "effective_scope": {
@@ -354,6 +384,40 @@
       },
       "expect_reducer_result": "schema_violation",
       "reason": "effective_scope_reducer_managed",
+      "expected_projection_writes": 0
+    },
+    {
+      "name": "relation_update_primary_domain_identity_patch_rejected",
+      "description": "relation_kind/from_ref/to_ref define the primary_conflict_domain and are create-locked. ak.relation.update MUST reject a patch touching any of them; changing domain is an explicit tombstone followed by create, never a cross-domain move.",
+      "event_kind": "ak.relation.update",
+      "decided_by": "payload_schema",
+      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/relation_update_payload",
+      "invalid_submit_payload": {
+        "primary_conflict_domain": {
+          "domain_kind": "tuple",
+          "relation_kind": "assigned_to",
+          "from_ref": "ak:strand:AUifoAUG8AEOHYXp999WnI7WlLt19ByDoqYUsFwbw4A4",
+          "to_ref": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:web:alice.example.com",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            }
+          }
+        },
+        "expected_revision": {
+          "commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
+          "stream_position": 41
+        },
+        "relation_id": "ak:relation:AUifoAUG8AEOHYXp999WnI7WlLt19ByDoqYUsFwbw4A4",
+        "patch": {
+          "to_ref": {
+            "$op": "set",
+            "value": "ak:strand:AQdknt9AByYY2gb16KB093xeB4J8b02mTEd4Mt8z2rO-"
+          }
+        }
+      },
+      "expect_reducer_result": "schema_violation",
       "expected_projection_writes": 0
     },
     {

@@ -299,8 +299,6 @@ grpc:
       CursorRevoke: ak.self.account.command.revoke_cursor.v1
     SelfRealmStateSnapshot:
       Head: ak.self.realm_state_snapshot.read.manifest_head.v1
-    SelfRelationConflicts:
-      Candidates: ak.self.relation_conflicts.read.candidates.v1
     OpenRealmAuthority:
       Bundle: ak.open.realm_authority.read.bundle.v1
     PeerRealmAuthority:
@@ -335,7 +333,6 @@ mq:
     self.events.command.submit: ak.self.events.command.submit.v1
     self.events.read.delivery_status: ak.self.events.read.delivery_status.v1
     self.streams.read.scan: ak.self.committed_event.read.scan.v1
-    self.relation_conflicts.read.candidates: ak.self.relation_conflicts.read.candidates.v1
     self.committed_event.stream.subscribe: ak.self.committed_event.stream.subscribe.v1
     self.keys.backup_series.command.erase: ak.self.keys.backup_series.command.erase.v1
     peer.events.command.submit: ak.peer.events.command.submit.v1

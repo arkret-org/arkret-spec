@@ -3379,7 +3379,6 @@ CONTENT_ADDRESSED_REF_MIRROR_REMOVALS = (
     ("agent-membership-cascade.schema.json", ("$defs", "agent_cleanup_record"), "controller_terminal_event_id", "controller_terminal_event_digest"),
     ("event-payload.schema.json", ("$defs", "audit_accessed_payload"), "paired_event_id", "paired_event_digest"),
     ("recovery-authority.schema.json", ("$defs", "recovery_completion_attestation"), "device_authorization_event_ref", "device_authorization_event_digest"),
-    ("relation.schema.json", ("$defs", "relation_conflict_candidate"), "event_id", "event_digest"),
     ("contact-operations.schema.json", ("$defs", "contact_current_proof"), "head_event_ref", "head_digest"),
     ("contact-operations.schema.json", ("$defs", "request_acceptance_receipt_core"), "request_event_ref", "request_digest"),
     ("contact-operations.schema.json", ("$defs", "normal_response_acceptance_receipt"), "response_event_ref", "response_digest"),

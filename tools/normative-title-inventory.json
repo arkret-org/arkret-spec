@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.5",
+  "version": "2026-09-20.6",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T16:37:40+08:00",
+  "generated_at": "2026-09-20T22:56:00+08:00",
   "description": "Closed inventory of current spec/v1/zh headings that explicitly carry the （normative） marker. Any addition, removal, rename, or move is reviewed as a protocol change and refreshes this source-of-truth inventory.",
   "titles": [
     {
@@ -998,21 +998,6 @@
       "page": "models/relation.md",
       "heading": "4.5 反枚举（normative）",
       "fragment": "45-反枚举normative"
-    },
-    {
-      "page": "models/relation.md",
-      "heading": "6.3 冻结基线与修复材料（normative）",
-      "fragment": "63-冻结基线与修复材料normative"
-    },
-    {
-      "page": "models/relation.md",
-      "heading": "6.4 准入、基线覆盖与重放（normative）",
-      "fragment": "64-准入基线覆盖与重放normative"
-    },
-    {
-      "page": "models/relation.md",
-      "heading": "6.5 并发裁决与再解决（normative）",
-      "fragment": "65-并发裁决与再解决normative"
     },
     {
       "page": "models/strand-and-message.md",

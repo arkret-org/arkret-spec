@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.17",
+  "version": "2026-09-20.18",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T22:15:00+08:00",
+  "generated_at": "2026-09-20T22:56:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -3897,15 +3897,16 @@
       ]
     },
     {
-      "vector_id": "ak.vector.relation.conflict_resolution.v1",
+      "vector_id": "ak.vector.relation.primary_domain_cas.v1",
       "status": "active",
       "domain": "relation",
       "applies_to_profiles": [
         "ak.profile.core_event_store.v1"
       ],
-      "description": "ak.relation.resolve is the single registered carrier that settles one Relation primary conflict domain: retain_candidate keeps exactly one covered candidate with its original RelationId, while void_all leaves no active edge for the covered set and preserves the facts. Every resolution binds the complete frozen baseline; missing, duplicate, superseded or foreign members reject the whole submission. The inline diagnostic may carry at most sixteen candidates, while larger sets use the same complete paged carrier. Concurrent resolutions retain every Event identity and select one deterministic winner by (depth,EventId); a later authorized resolution references that winner and produces a higher-depth successor. Newly discovered Relation candidates outside the frozen baseline restore require_review as an explicit cross-domain check.",
+      "description": "Every directly writable Relation shape has one primary_conflict_domain current-result subject. create, update and tombstone carry the closed domain plus its exact expected_revision; two writes from one revision admit at most one RealmCommit, stale writes are side-effect free and exact replay returns the original Commit. relation_kind, from_ref and to_ref are create-locked; changing identity is an explicit tombstone followed by create. A tombstoned domain may create a new event-derived RelationId at that tombstone revision, while truth_source shapes remain non-writable.",
       "source_refs": [
-        "spec/v1/zh/models/relation.md"
+        "spec/v1/zh/models/relation.md",
+        "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
     {

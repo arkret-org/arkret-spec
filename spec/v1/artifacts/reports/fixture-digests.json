@@ -117,8 +117,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/circle-scope-fixture.json",
-      "sha256": "4be74fdf762bb7313e009f9a2f82eacfa39b8d34bce2bcffe993af05f4cfeac0",
-      "version": "2026-09-19.1"
+      "sha256": "a1902b4ac53c4cc022dd31e04fdae6a3e2f731e2ee3af34527f4eb5cdbc6704e",
+      "version": "2026-09-20.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/client-sync-fixture.json",
@@ -202,8 +202,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/event-kind-payload-coverage-fixture.json",
-      "sha256": "1836b700b13e8a99b394d11a91185b6cab33b62d2c683abb539c4bca3ef19c80",
-      "version": "2026-09-19"
+      "sha256": "e3e8a70f985dc6758c6bd4dd5a7c91b45ffaa505d9c6e981fb8cc38090da3ad4",
+      "version": "2026-09-20"
     },
     {
       "path": "spec/v1/artifacts/fixtures/event-payload-value-closure-fixture.json",

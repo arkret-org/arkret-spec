@@ -1,5 +1,5 @@
 {
-  "version": "2026-09-20",
+  "version": "2026-09-20.1",
   "source_of_truth": false,
   "normative_rule": "NC-IDROLE-001",
   "forbidden_arkret_owned_fields": [
@@ -751,7 +751,7 @@
     },
     {
       "file": "relation.schema.json",
-      "pointer": "/$defs/relation_conflict_domain/properties/from_ref",
+      "pointer": "/$defs/relation_primary_conflict_domain/properties/from_ref",
       "terminal_categories": [
         "actor_id"
       ],
@@ -759,7 +759,7 @@
     },
     {
       "file": "relation.schema.json",
-      "pointer": "/$defs/relation_conflict_domain/properties/to_ref",
+      "pointer": "/$defs/relation_primary_conflict_domain/properties/to_ref",
       "terminal_categories": [
         "actor_id"
       ],

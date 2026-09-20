@@ -7,7 +7,7 @@
   "generated_by": "tools/gen_event_reference_inventory.py",
   "description": "Complete schema-property inventory for Event ID/ref/digest fields. EventId is itself the complete suite-tagged cryptographic identity; no companion-digest wrapper or truncated identity class exists. External protocol event identifiers are classified separately and never enter the Arkret EventId value space.",
   "counts": {
-    "complete_event_id": 157,
+    "complete_event_id": 153,
     "digest_copy_or_commitment": 8,
     "external_event_namespace": 1
   },
@@ -626,12 +626,6 @@
     },
     {
       "schema": "event-payload.schema.json",
-      "json_pointer": "/$defs/relation_resolve_retain_outcome/properties/retained_event_id",
-      "field": "retained_event_id",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "event-payload.schema.json",
       "json_pointer": "/$defs/sidecar_context_attach_payload/properties/predecessor_event_ref",
       "field": "predecessor_event_ref",
       "classification": "complete_event_id"
@@ -874,24 +868,6 @@
       "schema": "recovery-receipt.schema.json",
       "json_pointer": "/properties/reanchor_event_id",
       "field": "reanchor_event_id",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "relation.schema.json",
-      "json_pointer": "/$defs/relation_conflict_baseline/properties/member_event_ids",
-      "field": "member_event_ids",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "relation.schema.json",
-      "json_pointer": "/$defs/relation_conflict_candidate/properties/event_id",
-      "field": "event_id",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "relation.schema.json",
-      "json_pointer": "/$defs/relation_conflict_material_page/properties/member_event_ids",
-      "field": "member_event_ids",
       "classification": "complete_event_id"
     },
     {

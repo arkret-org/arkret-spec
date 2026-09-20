@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 4,
   "source_of_truth": false,
   "narrative_source": "spec/v1/zh/models/common-fields.md#2-类型记法",
   "classification_registry": "spec/v1/artifacts/registry/classification-field-registry.json",
@@ -156,15 +156,6 @@
           "basis": "domain_subject",
           "reason": "A saved item is the user-facing domain object of the save/collection feature and carries its own `kind` discriminator; it is not a row inside some enclosing list type.",
           "anchor": "spec/v1/zh/extensions/personal-productivity.md"
-        },
-        {
-          "id": "relation-conflict-candidate-domain-subject",
-          "file": "relation.schema.json",
-          "pointer": "/$defs/relation_conflict_candidate",
-          "name": "relation_conflict_candidate",
-          "basis": "domain_subject",
-          "reason": "A conflict candidate is the domain noun for one competing relation Event under adjudication, named by the conflict-resolution rule rather than by a structural position.",
-          "anchor": "spec/v1/zh/models/relation.md"
         }
       ]
     },
@@ -396,7 +387,7 @@
     },
     {
       "rule_id": "NC-TYPE-001",
-      "candidate": "RelationConflictCandidate",
+      "candidate": "RelationPrimaryDomainCandidate",
       "expected": "reject"
     },
     {

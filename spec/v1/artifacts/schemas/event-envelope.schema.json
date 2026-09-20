@@ -2473,25 +2473,6 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "ak.relation.resolve"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/relation_resolve_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
             "const": "ak.relation.tombstone"
           }
         },
@@ -6226,7 +6207,6 @@
                 "ak.realm.unfreeze",
                 "ak.redaction",
                 "ak.relation.create",
-                "ak.relation.resolve",
                 "ak.relation.tombstone",
                 "ak.relation.update",
                 "ak.rsvp.set",
@@ -6387,7 +6367,6 @@
             "ak.realm.unfreeze",
             "ak.redaction",
             "ak.relation.create",
-            "ak.relation.resolve",
             "ak.relation.tombstone",
             "ak.relation.update",
             "ak.rsvp.set",

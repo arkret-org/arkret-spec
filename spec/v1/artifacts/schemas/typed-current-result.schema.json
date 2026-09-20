@@ -3534,43 +3534,6 @@
       },
       "additionalProperties": false
     },
-    "relation_conflict_resolution_value": {
-      "$ref": "./event-payload.schema.json#/$defs/relation_resolve_payload"
-    },
-    "relation_conflict_resolution_result": {
-      "type": "object",
-      "required": [
-        "selector",
-        "revision",
-        "value"
-      ],
-      "description": "The current adjudication of one Relation primary conflict domain (models/relation.md section 6.2). ak.relation.resolve is the single registered carrier and this is the only family it writes: Relation CONTENT stays on the data-plane result the create / update kinds produce, and the active-edge projection reads the two together. The subject is the closed relation_conflict_domain, whose own schema excludes the Realm (the Event takes it from its envelope) and excludes Circle, so one domain can never be spelled two ways. The value is the whole accepted payload rather than the outcome alone, for the same reason mimi_room_binding keeps its subject inside its value: section 6.5 makes a later candidate that is NOT inside this adjudication's frozen baseline re-trigger require_review, so a reader that cannot see baseline from the current result cannot decide the one question the family exists to answer. Nothing here confers authority: section 6.2 is normative that the Event writes no security-permission typed current result and overwrites no historical Event.",
-      "properties": {
-        "selector": {
-          "type": "object",
-          "required": [
-            "kind",
-            "conflict_domain"
-          ],
-          "properties": {
-            "kind": {
-              "const": "relation_conflict_resolution"
-            },
-            "conflict_domain": {
-              "$ref": "./relation.schema.json#/$defs/relation_conflict_domain"
-            }
-          },
-          "additionalProperties": false
-        },
-        "revision": {
-          "$ref": "#/$defs/revision"
-        },
-        "value": {
-          "$ref": "#/$defs/relation_conflict_resolution_value"
-        }
-      },
-      "additionalProperties": false
-    },
     "device_authorization_value": {
       "type": "object",
       "description": "Closed value of the device_authorization typed current result, fixed by zh/crypto-media/device-lifecycle.md section 5.5.1. One accepted ak.device.authorize replaces it whole; there is no partial patch. Every member but device_authorize_event_id is a verbatim copy of the signed payload, and that one member comes from this Event's own envelope event_id because the payload MUST NOT carry it. device_status is deliberately absent: section 5.5.3 makes the lifecycle axis a read-side fold over this result, the revocation proposal set, the current generation and verified conflict evidence, so storing it here would be a second, staler truth. attested_at and the attestation's own expires_at are absent for the same reason in reverse: they are freshness coordinates of the section 8.2 device_projection_attestation, which is a DOWNSTREAM signed projection of this result and MUST NOT define it. authorization_window is not a member either -- it is the paired presentation of not_before and expires_at on the keys/query surface. No account_id or principal_id copy appears: the PCR and the Event envelope already fix them.",
@@ -3864,7 +3827,7 @@
     },
     "relation_result": {
       "type": "object",
-      "description": "Registered projection of one Relation object (zh/models/relation.md). ak.relation.create writes the whole object and the dedicated ak.relation.archive / restore / tombstone kinds move its state member through the mapping zh/models/common-fields.md section 5.2 fixes. The subject carries the object id because only the create Event derives it from its own event_id; every later write names it in the payload.",
+      "description": "The single Relation current value for one registered primary conflict domain (zh/models/relation.md section 6). Realm comes from the accepted Event envelope. The value retains its event-derived RelationId and immutable domain identity; create/update/tombstone all address this same subject and use exact revision CAS.",
       "required": [
         "selector",
         "revision",
@@ -3875,15 +3838,14 @@
           "type": "object",
           "required": [
             "kind",
-            "relation_id"
+            "primary_conflict_domain"
           ],
           "properties": {
             "kind": {
               "const": "relation"
             },
-            "relation_id": {
-              "type": "string",
-              "pattern": "^ak:relation:[A-Za-z0-9_-]{44}$"
+            "primary_conflict_domain": {
+              "$ref": "./relation.schema.json#/$defs/relation_primary_conflict_domain"
             }
           },
           "additionalProperties": false

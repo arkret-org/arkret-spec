@@ -7655,7 +7655,7 @@
     },
     {
       "source": "event_kind_registry.value_projection.members",
-      "schema_path": "event-kind-registry.json#/event_kinds/127/result_writes/0/result_projection/value_projection/members/3/name",
+      "schema_path": "event-kind-registry.json#/event_kinds/126/result_writes/0/result_projection/value_projection/members/3/name",
       "property_name": "controller_account_id",
       "resolved_carrier": "ambiguous",
       "required_subject_class": "account",
