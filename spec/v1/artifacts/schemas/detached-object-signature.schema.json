@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/detached-object-signature.schema.json",
   "title": "Arkret Detached Object Signature",
-  "description": "Closed detached signature over the canonical unsigned body of an authority or recipient-delivery object. This is not an Event producer proof.",
+  "description": "Closed Ed25519 detached signature over one registered object-family transcript. The verifier removes the registered signature member or members from the closed host object, computes signed_digest as sha256:lowercase_hex(SHA-256(RFC8785_JCS(unsigned_projection))), then verifies sig over UTF8(context + LF) || RFC8785_JCS({context,signature_algorithm,verification_method,signed_digest,created_at}). context is intentionally bound both by the prefix and as an envelope member. This is not an Event producer proof.",
   "type": "object",
   "required": [
     "context",
@@ -30,7 +30,9 @@
       "$ref": "./event-envelope.schema.json#/$defs/proof/properties/verification_method"
     },
     "signed_digest": {
-      "$ref": "./event-envelope.schema.json#/$defs/digest"
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "SHA-256 of the RFC8785 JCS bytes of the complete registered unsigned host projection. A verifier MUST recompute this value from the host object before signature verification."
     },
     "created_at": {
       "$ref": "./time.schema.json#/$defs/timestamp"

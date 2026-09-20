@@ -244,6 +244,14 @@ revoke或claim timeout只影响尚未被 accepted Commit消费的 reservation。
 
 #### 2.6.1 Welcome producer proof
 
+`producer_proof` 使用 `ak.mls_welcome_delivery_signature.v1`。unsigned projection 是从完整 closed Welcome delivery
+删除 `producer_proof` 后的全部实际存在成员。producer 先对其 RFC 8785 JCS bytes 计算带 `sha256:` 前缀的小写
+SHA-256 digest，再对 `UTF8("ak.mls_welcome_delivery_signature.v1\n")` 与五成员 signature envelope 的 RFC 8785
+JCS bytes 串接值作 Ed25519 签名；`sig` 是完整 64-byte 签名的 86 字符无 padding Base64URL。接收方必须从原始
+Welcome delivery 重建 projection、digest、prefix 与完整签名输入，不能信任载荷自报 digest。authority basis 必须解析
+`commit_event_ref` 所指 winning `ak.mls.commit` Event 的 exact producer signing authority，并要求
+`verification_method` 等于该 producer proof 已验证的方法；治理 Station、recipient 或 claim service key 均不能替代。
+
 producer proof覆盖 delivery中除 proof 自身外的完整 canonical object，并绑定 exact Commit EventId、recipient endpoint、
 claim ref与ciphertext digest。Station在 Commit transaction中验签；recipient在解密前再次验签和核对。
 

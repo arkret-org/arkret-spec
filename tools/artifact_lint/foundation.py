@@ -3672,6 +3672,7 @@ SHARED_PROOF_LEAF = ("event-envelope.schema.json", "/$defs/proof")
 PROOF_CONTEXT_ANNOTATION = "x-arkret-proof-context"
 PROOF_CONTEXT_SET_ANNOTATION = "x-arkret-proof-contexts"
 SIGNATURE_DOMAIN_ANNOTATION = "x-arkret-signature-domain"
+SIGNATURE_DOMAIN_SET_ANNOTATION = "x-arkret-signature-domains"
 SECURITY_DOMAIN_LABEL_PATTERN = r"ak\.[a-z][a-z0-9_]*(?:\.[a-z][a-z0-9_]*)*\.v1"
 LEGACY_PROOF_CONTEXT_PATTERN = r"ak\.[a-z0-9-]+-proof-v1"
 REPLAY_CACHE_NAMESPACE_PRIMITIVE = "replay_cache_namespace"
@@ -4240,11 +4241,20 @@ def check_proof_context_registry(lint: Lint) -> None:
                 file_name, fragment, node = _resolve_proof_schema_ref(documents, schema_ref)
                 if not isinstance(node, dict):
                     lint.fail(path, f"domain_separations[{index}].schema_ref does not resolve: {schema_ref}")
-                elif primitive == "detached_signature" and node.get(SIGNATURE_DOMAIN_ANNOTATION) != domain:
-                    lint.fail(
-                        ARTIFACTS / "schemas" / file_name,
-                        f"{fragment or '/'} must declare {SIGNATURE_DOMAIN_ANNOTATION}={domain!r}",
-                    )
+                elif primitive == "detached_signature":
+                    declared_domain = node.get(SIGNATURE_DOMAIN_ANNOTATION)
+                    declared_domains = node.get(SIGNATURE_DOMAIN_SET_ANNOTATION)
+                    if declared_domain != domain and not (
+                        isinstance(declared_domains, list)
+                        and len(declared_domains) == len(set(declared_domains))
+                        and all(isinstance(item, str) for item in declared_domains)
+                        and domain in declared_domains
+                    ):
+                        lint.fail(
+                            ARTIFACTS / "schemas" / file_name,
+                            f"{fragment or '/'} must declare {SIGNATURE_DOMAIN_ANNOTATION}={domain!r} "
+                            f"or include it in {SIGNATURE_DOMAIN_SET_ANNOTATION}",
+                        )
         _check_domain_binding_schema_closure(lint, path, documents, index, row)
         if primitive != REPLAY_CACHE_NAMESPACE_PRIMITIVE:
             continue

@@ -264,6 +264,7 @@ from .proof_context_schemas import (
     check_asserted_result_families_are_registered,
     check_author_writable_state_axis_contract,
     check_digest_construction_registration,
+    check_detached_object_signature_registration,
     check_local_signature_binding_fields_match_schema,
     check_proof_context_object_family_schemas,
     check_proof_context_carrier_family_anchors,
@@ -359,6 +360,10 @@ def main(argv: list[str] | None = None) -> int:
             (
                 "digest_construction_registration",
                 lambda: check_digest_construction_registration(lint),
+            ),
+            (
+                "detached_object_signature_registration",
+                lambda: check_detached_object_signature_registration(lint),
             ),
             (
                 "proof_context_object_family_schemas",

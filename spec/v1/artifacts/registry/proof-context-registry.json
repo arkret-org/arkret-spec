@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.2",
+  "version": "2026-09-20.3",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T07:04:15+08:00",
+  "generated_at": "2026-09-20T07:51:54+08:00",
   "description": "Canonical security-domain labels for Arkret detached proofs and non-Event cryptographic transcripts. contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript, and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
     "context values and object_family values MUST be unique",
@@ -26,7 +26,8 @@
     "Every domain_separations[] row whose primitive is canonical_json_sha256 MUST select exactly one digest_constructions[] row, carry the exact UTF-8 hex encoding of domain followed by one LF byte, name the normative transcript definition, and declare either a resolvable known_answer_ref or a non-empty kat_absence_reason plus owner_report. digest_constructions[] and these row extensions are closed objects. machine gate: tools/artifact_lint:digest_construction_registration",
     "A non-JCS raw UTF-8 literal digest MAY select domain_prefixed_utf8_literal_sha256 from an owning source-of-truth registry only when that registry closes the exact domain, literal source, output encoding and a byte-exact known-answer fixture. Such a selector is not a domain_separations[] proof/signature context and MUST have a dedicated gate that proves every registered use and KAT. The Agent draft Account Data key is the v1 registered use.",
     "A detached_signature row whose local closed schema directly requires signature and signature_algorithm MUST list exactly that schema's required members other than signature in binding_fields. signature_algorithm is itself signed and MUST select an active raw_signature_algorithm; an outer object that merely carries a shared proof leaf is outside this equality rule. machine gate: tools/artifact_lint:local_signature_binding_fields_match_schema",
-    "A closed locator schema that contains neither the shared detached-proof leaf nor a local signature member MUST NOT acquire a proof context. realm_join_candidate is an untrusted authority-bundle locator and is permanently outside contexts[] and domain_separations[]. machine gate: tools/artifact_lint:realm_join_candidate_untrusted_locator"
+    "A closed locator schema that contains neither the shared detached-proof leaf nor a local signature member MUST NOT acquire a proof context. realm_join_candidate is an untrusted authority-bundle locator and is permanently outside contexts[] and domain_separations[]. machine gate: tools/artifact_lint:realm_join_candidate_untrusted_locator",
+    "The six detached-object-signature.schema.json context branches MUST map one-to-one to detached_signature rows. Each row closes the host schema, signature member exclusions, JCS/SHA-256 digest, UTF8(domain + LF) prefix, five-member signed envelope, Ed25519 encoding, signer authority and byte KAT. A verifier MUST reconstruct every byte from the host and registered domain rather than trusting signed_digest or fixture expected fields. machine gate: tools/artifact_lint:detached_object_signature_registration"
   ],
   "digest_constructions": [
     {
@@ -812,39 +813,6 @@
       ]
     },
     {
-      "context": "ak.realm_state_snapshot_proof.v1",
-      "object_family": "realm_state_snapshot",
-      "binding_fields": [
-        "payload_digest",
-        "realm_state_snapshot_id",
-        "realm_id",
-        "verification_method",
-        "created_at",
-        "domain?",
-        "audience?"
-      ],
-      "defined_in": "zh/conformance/realm-state-snapshot-schema.md",
-      "schema_ref": "schemas/realm-state-snapshot.schema.json",
-      "injected_fields": [
-        {
-          "field": "realm_state_snapshot_id",
-          "source": "snapshot.id"
-        },
-        {
-          "field": "payload_digest",
-          "source": "digest of unsigned snapshot"
-        },
-        {
-          "field": "domain",
-          "source": "registered proof domain"
-        },
-        {
-          "field": "audience",
-          "source": "snapshot receiver audience"
-        }
-      ]
-    },
-    {
       "context": "ak.third_party_invite_provision_request_proof.v1",
       "object_family": "third_party_invite_provision_request",
       "binding_fields": [
@@ -1596,6 +1564,206 @@
       "transcript_schema_refs": [
         "schemas/event-payload.schema.json#/$defs/realm_organization_payload"
       ]
+    },
+    {
+      "domain": "ak.realm_commit_signature.v1",
+      "object_family": "realm_commit_signature",
+      "primitive": "detached_signature",
+      "schema_ref": "schemas/realm-commit.schema.json",
+      "transcript_schema_refs": [
+        "schemas/detached-object-signature.schema.json#/$defs/realm_commit_signature"
+      ],
+      "signature_member": "signature",
+      "excluded_signature_members": [
+        "signature"
+      ],
+      "binding_fields": [
+        "context",
+        "signature_algorithm",
+        "verification_method",
+        "signed_digest",
+        "created_at"
+      ],
+      "canonicalization": "RFC8785_JCS",
+      "digest_suite": "SHA-256",
+      "digest_input": "RFC8785_JCS(unsigned_projection)",
+      "digest_encoding": "sha256:lowercase_hex",
+      "prefix_form": "UTF8(domain + LF)",
+      "prefix_bytes_hex": "616b2e7265616c6d5f636f6d6d69745f7369676e61747572652e76310a",
+      "signature_input": "prefix_bytes || RFC8785_JCS(signature_envelope_without_sig)",
+      "signature_algorithm": "Ed25519",
+      "signature_encoding": "base64url_no_pad_64_bytes",
+      "domain_is_a_transcript_member": true,
+      "signer_authority": "governance_generation exact governance Station service signing key authorized by the verified authority chain; verification_method belongs to that exact service identity",
+      "defined_in": "zh/sync/authority-commit-log.md#3-realmcommit-与逐-stream-单链",
+      "known_answer_ref": "fixtures/detached-object-signature-kat-fixture.json#/cases/0"
+    },
+    {
+      "domain": "ak.realm_authority_handoff_old_signature.v1",
+      "object_family": "realm_authority_handoff_old_signature",
+      "primitive": "detached_signature",
+      "schema_ref": "schemas/realm-authority-handoff.schema.json",
+      "transcript_schema_refs": [
+        "schemas/detached-object-signature.schema.json#/$defs/realm_authority_handoff_old_signature"
+      ],
+      "signature_member": "old_authority_signature",
+      "excluded_signature_members": [
+        "old_authority_signature",
+        "new_authority_acceptance_signature"
+      ],
+      "binding_fields": [
+        "context",
+        "signature_algorithm",
+        "verification_method",
+        "signed_digest",
+        "created_at"
+      ],
+      "canonicalization": "RFC8785_JCS",
+      "digest_suite": "SHA-256",
+      "digest_input": "RFC8785_JCS(unsigned_projection)",
+      "digest_encoding": "sha256:lowercase_hex",
+      "prefix_form": "UTF8(domain + LF)",
+      "prefix_bytes_hex": "616b2e7265616c6d5f617574686f726974795f68616e646f66665f6f6c645f7369676e61747572652e76310a",
+      "signature_input": "prefix_bytes || RFC8785_JCS(signature_envelope_without_sig)",
+      "signature_algorithm": "Ed25519",
+      "signature_encoding": "base64url_no_pad_64_bytes",
+      "domain_is_a_transcript_member": true,
+      "signer_authority": "from_generation and from_service_id exact old governance Station service signing key that remains current at the frozen handoff cut",
+      "defined_in": "zh/sync/authority-commit-log.md#8-治理-station-更换",
+      "known_answer_ref": "fixtures/detached-object-signature-kat-fixture.json#/cases/1"
+    },
+    {
+      "domain": "ak.realm_authority_handoff_new_acceptance_signature.v1",
+      "object_family": "realm_authority_handoff_new_acceptance_signature",
+      "primitive": "detached_signature",
+      "schema_ref": "schemas/realm-authority-handoff.schema.json",
+      "transcript_schema_refs": [
+        "schemas/detached-object-signature.schema.json#/$defs/realm_authority_handoff_new_acceptance_signature"
+      ],
+      "signature_member": "new_authority_acceptance_signature",
+      "excluded_signature_members": [
+        "old_authority_signature",
+        "new_authority_acceptance_signature"
+      ],
+      "binding_fields": [
+        "context",
+        "signature_algorithm",
+        "verification_method",
+        "signed_digest",
+        "created_at"
+      ],
+      "canonicalization": "RFC8785_JCS",
+      "digest_suite": "SHA-256",
+      "digest_input": "RFC8785_JCS(unsigned_projection)",
+      "digest_encoding": "sha256:lowercase_hex",
+      "prefix_form": "UTF8(domain + LF)",
+      "prefix_bytes_hex": "616b2e7265616c6d5f617574686f726974795f68616e646f66665f6e65775f616363657074616e63655f7369676e61747572652e76310a",
+      "signature_input": "prefix_bytes || RFC8785_JCS(signature_envelope_without_sig)",
+      "signature_algorithm": "Ed25519",
+      "signature_encoding": "base64url_no_pad_64_bytes",
+      "domain_is_a_transcript_member": true,
+      "signer_authority": "to_generation and to_service_id exact new governance Station service signing key after complete validation and import of the frozen handoff",
+      "defined_in": "zh/sync/authority-commit-log.md#8-治理-station-更换",
+      "known_answer_ref": "fixtures/detached-object-signature-kat-fixture.json#/cases/2"
+    },
+    {
+      "domain": "ak.realm_authority_current_assertion_signature.v1",
+      "object_family": "realm_authority_current_assertion_signature",
+      "primitive": "detached_signature",
+      "schema_ref": "schemas/realm-authority-bundle.schema.json#/$defs/current_assertion",
+      "transcript_schema_refs": [
+        "schemas/detached-object-signature.schema.json#/$defs/realm_authority_current_assertion_signature"
+      ],
+      "signature_member": "signature",
+      "excluded_signature_members": [
+        "signature"
+      ],
+      "binding_fields": [
+        "context",
+        "signature_algorithm",
+        "verification_method",
+        "signed_digest",
+        "created_at"
+      ],
+      "canonicalization": "RFC8785_JCS",
+      "digest_suite": "SHA-256",
+      "digest_input": "RFC8785_JCS(unsigned_projection)",
+      "digest_encoding": "sha256:lowercase_hex",
+      "prefix_form": "UTF8(domain + LF)",
+      "prefix_bytes_hex": "616b2e7265616c6d5f617574686f726974795f63757272656e745f617373657274696f6e5f7369676e61747572652e76310a",
+      "signature_input": "prefix_bytes || RFC8785_JCS(signature_envelope_without_sig)",
+      "signature_algorithm": "Ed25519",
+      "signature_encoding": "base64url_no_pad_64_bytes",
+      "domain_is_a_transcript_member": true,
+      "signer_authority": "current_generation and current_service_id exact current governance Station service signing key derived from the verified genesis-to-handoff chain",
+      "defined_in": "zh/sync/service-surface.md#26-service-did-权威入口与路由解析normative",
+      "known_answer_ref": "fixtures/detached-object-signature-kat-fixture.json#/cases/3"
+    },
+    {
+      "domain": "ak.realm_snapshot_signature.v1",
+      "object_family": "realm_snapshot_signature",
+      "primitive": "detached_signature",
+      "schema_ref": "schemas/realm-state-snapshot.schema.json",
+      "transcript_schema_refs": [
+        "schemas/detached-object-signature.schema.json#/$defs/realm_snapshot_signature"
+      ],
+      "signature_member": "signature",
+      "excluded_signature_members": [
+        "signature"
+      ],
+      "binding_fields": [
+        "context",
+        "signature_algorithm",
+        "verification_method",
+        "signed_digest",
+        "created_at"
+      ],
+      "canonicalization": "RFC8785_JCS",
+      "digest_suite": "SHA-256",
+      "digest_input": "RFC8785_JCS(unsigned_projection)",
+      "digest_encoding": "sha256:lowercase_hex",
+      "prefix_form": "UTF8(domain + LF)",
+      "prefix_bytes_hex": "616b2e7265616c6d5f736e617073686f745f7369676e61747572652e76310a",
+      "signature_input": "prefix_bytes || RFC8785_JCS(signature_envelope_without_sig)",
+      "signature_algorithm": "Ed25519",
+      "signature_encoding": "base64url_no_pad_64_bytes",
+      "domain_is_a_transcript_member": true,
+      "signer_authority": "governance_generation exact current governance Station service signing key verified through the current authority bundle",
+      "defined_in": "zh/conformance/realm-state-snapshot-schema.md#4-创建与验证",
+      "known_answer_ref": "fixtures/detached-object-signature-kat-fixture.json#/cases/4"
+    },
+    {
+      "domain": "ak.mls_welcome_delivery_signature.v1",
+      "object_family": "mls_welcome_delivery_signature",
+      "primitive": "detached_signature",
+      "schema_ref": "schemas/mls-welcome-delivery.schema.json",
+      "transcript_schema_refs": [
+        "schemas/detached-object-signature.schema.json#/$defs/mls_welcome_delivery_signature"
+      ],
+      "signature_member": "producer_proof",
+      "excluded_signature_members": [
+        "producer_proof"
+      ],
+      "binding_fields": [
+        "context",
+        "signature_algorithm",
+        "verification_method",
+        "signed_digest",
+        "created_at"
+      ],
+      "canonicalization": "RFC8785_JCS",
+      "digest_suite": "SHA-256",
+      "digest_input": "RFC8785_JCS(unsigned_projection)",
+      "digest_encoding": "sha256:lowercase_hex",
+      "prefix_form": "UTF8(domain + LF)",
+      "prefix_bytes_hex": "616b2e6d6c735f77656c636f6d655f64656c69766572795f7369676e61747572652e76310a",
+      "signature_input": "prefix_bytes || RFC8785_JCS(signature_envelope_without_sig)",
+      "signature_algorithm": "Ed25519",
+      "signature_encoding": "base64url_no_pad_64_bytes",
+      "domain_is_a_transcript_member": true,
+      "signer_authority": "commit_event_ref exact winning ak.mls.commit Event producer signing authority and its already verified verification_method",
+      "defined_in": "zh/crypto-media/encryption-and-audit.md#261-welcome-producer-proof",
+      "known_answer_ref": "fixtures/detached-object-signature-kat-fixture.json#/cases/5"
     },
     {
       "domain": "ak.websocket_auth.v1",

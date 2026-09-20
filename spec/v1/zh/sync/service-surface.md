@@ -68,6 +68,13 @@ Account Authority 是 Station 的账号准入逻辑入口，不是独立 Realm a
 
 Realm authority 还必须验证 genesis 的 generation-0 service、连续 old→new handoff chain、已观察最高 generation 的防回滚约束，以及目标 service 对 caller nonce 的短期 `current_assertion`。只有这一 bundle 验证成功后，endpoint 才可作为 current governance Station。
 
+`current_assertion.signature` 使用 `ak.realm_authority_current_assertion_signature.v1`。其 unsigned projection 是从
+closed `current_assertion` 删除 `signature` 后的全部实际存在成员，包括 `nonce`、`expires_at`，以及允许为 `null` 的
+`last_handoff_ref`；缺席成员不得补 `null`。验证方对该投影作 RFC 8785 JCS 与 SHA-256，比较载荷内 `signed_digest`，
+再验证 `UTF8(context + "\n")` 与五成员 signature envelope JCS 串接后的 Ed25519 签名。authority basis 必须证明
+`current_generation/current_service_id` 与已验证 genesis→handoff chain 得出的 current governance Station 完全相同，
+并证明 `verification_method` 是该 Station 的 service signing key；自报 method 不能自行授权。
+
 ### 2.7 Device-pairing 分离部署边界（normative）
 
 device-pairing 的 client-visible `stage/resolve/status` origin 固定为 Station；Account Authority 分离部署时，

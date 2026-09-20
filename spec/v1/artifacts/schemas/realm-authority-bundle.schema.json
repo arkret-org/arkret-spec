@@ -76,6 +76,7 @@
       "description": "The Event must be ak.realm.governance_station.change in the Realm stream; all IDs and consecutive generations must match the handoff."
     },
     "current_assertion": {
+      "x-arkret-signature-domain": "ak.realm_authority_current_assertion_signature.v1",
       "type": "object",
       "required": [
         "realm_id",

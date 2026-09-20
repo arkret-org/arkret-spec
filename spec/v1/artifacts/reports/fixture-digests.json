@@ -156,6 +156,11 @@
       "version": "2026-09-19"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/detached-object-signature-kat-fixture.json",
+      "sha256": "9cea525e06c6cf736559cc1d54088da5371a400ecd64261962dd94fc6bb72eaf",
+      "version": "2026-09-20.3"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/device-pairing-split-admission-saga-fixture.json",
       "sha256": "bc8e1ca4dacfcc1c9458b6cf10684ba51b54c82de76a94c526729979515c1eae",
       "version": "2026-09-20.1"

@@ -2,6 +2,10 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/realm-authority-handoff.schema.json",
   "title": "Arkret Realm Authority Handoff",
+  "x-arkret-signature-domains": [
+    "ak.realm_authority_handoff_old_signature.v1",
+    "ak.realm_authority_handoff_new_acceptance_signature.v1"
+  ],
   "description": "Closed planned transfer from one Realm authority generation to its unique successor. Both service signatures and the controller-authored change Event are required; this is not a quorum vote.",
   "type": "object",
   "required": [

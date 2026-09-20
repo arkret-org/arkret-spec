@@ -37,12 +37,17 @@ level down.
 
 from __future__ import annotations
 
+import base64
+import copy
 import hashlib
 import json
 import posixpath
 import re
 from pathlib import Path
 from typing import Any
+
+from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 
 from .core import (
     ARTIFACTS,
@@ -51,6 +56,7 @@ from .core import (
     SPEC_ROOT,
     TOOLS_ROOT,
     load_json,
+    jsonschema_errors,
     read_text,
     resolve_json_pointer,
 )
@@ -63,6 +69,8 @@ SERVICE_KIND_REGISTRY = ARTIFACTS / "registry" / "service-kind-registry.json"
 VECTOR_REGISTRY = ARTIFACTS / "registry" / "vector-registry.json"
 REALM_JOIN_CANDIDATE_SCHEMA = ARTIFACTS / "schemas" / "realm-join-candidate.schema.json"
 REALM_JOIN_CANDIDATE_FIXTURE = ARTIFACTS / "fixtures" / "realm-join-candidate-locator-fixture.json"
+DETACHED_OBJECT_SIGNATURE_SCHEMA = ARTIFACTS / "schemas" / "detached-object-signature.schema.json"
+DETACHED_OBJECT_SIGNATURE_FIXTURE = ARTIFACTS / "fixtures" / "detached-object-signature-kat-fixture.json"
 REALM_JOIN_INTAKE_SCHEMA = ARTIFACTS / "schemas" / "realm-join-intake.schema.json"
 INVITE_DELIVERY_REQUEST_SCHEMA = ARTIFACTS / "schemas" / "invite-delivery-request.schema.json"
 INVITE_DELIVERY_SCHEMA = ARTIFACTS / "schemas" / "invite-delivery.schema.json"
@@ -955,6 +963,449 @@ def check_local_signature_binding_fields_match_schema(lint: Lint) -> None:
                 f"{reference} signature_algorithm must const-select an active raw_signature_algorithm; "
                 f"got {algorithm!r}",
             )
+
+
+DETACHED_SIGNATURE_CONTEXTS: dict[str, dict[str, Any]] = {
+    "ak.realm_commit_signature.v1": {
+        "object_family": "realm_commit_signature",
+        "schema_ref": "schemas/realm-commit.schema.json",
+        "signature_member": "signature",
+        "excluded_signature_members": ["signature"],
+        "definition": "realm_commit_signature",
+        "defined_in": "zh/sync/authority-commit-log.md#3-realmcommit-与逐-stream-单链",
+        "case_id": "realm_commit",
+        "test_key_ref": "conformance_ed25519_fixture_key",
+        "signer_authority": "governance_generation exact governance Station service signing key authorized by the verified authority chain; verification_method belongs to that exact service identity",
+    },
+    "ak.realm_authority_handoff_old_signature.v1": {
+        "object_family": "realm_authority_handoff_old_signature",
+        "schema_ref": "schemas/realm-authority-handoff.schema.json",
+        "signature_member": "old_authority_signature",
+        "excluded_signature_members": [
+            "old_authority_signature",
+            "new_authority_acceptance_signature",
+        ],
+        "definition": "realm_authority_handoff_old_signature",
+        "defined_in": "zh/sync/authority-commit-log.md#8-治理-station-更换",
+        "case_id": "realm_authority_handoff_old",
+        "test_key_ref": "conformance_ed25519_fixture_key",
+        "signer_authority": "from_generation and from_service_id exact old governance Station service signing key that remains current at the frozen handoff cut",
+    },
+    "ak.realm_authority_handoff_new_acceptance_signature.v1": {
+        "object_family": "realm_authority_handoff_new_acceptance_signature",
+        "schema_ref": "schemas/realm-authority-handoff.schema.json",
+        "signature_member": "new_authority_acceptance_signature",
+        "excluded_signature_members": [
+            "old_authority_signature",
+            "new_authority_acceptance_signature",
+        ],
+        "definition": "realm_authority_handoff_new_acceptance_signature",
+        "defined_in": "zh/sync/authority-commit-log.md#8-治理-station-更换",
+        "case_id": "realm_authority_handoff_new_acceptance",
+        "test_key_ref": "rfc8032_test_1_ed25519_key",
+        "signer_authority": "to_generation and to_service_id exact new governance Station service signing key after complete validation and import of the frozen handoff",
+    },
+    "ak.realm_authority_current_assertion_signature.v1": {
+        "object_family": "realm_authority_current_assertion_signature",
+        "schema_ref": "schemas/realm-authority-bundle.schema.json#/$defs/current_assertion",
+        "signature_member": "signature",
+        "excluded_signature_members": ["signature"],
+        "definition": "realm_authority_current_assertion_signature",
+        "defined_in": "zh/sync/service-surface.md#26-service-did-权威入口与路由解析normative",
+        "case_id": "realm_authority_current_assertion",
+        "test_key_ref": "rfc8032_test_1_ed25519_key",
+        "signer_authority": "current_generation and current_service_id exact current governance Station service signing key derived from the verified genesis-to-handoff chain",
+    },
+    "ak.realm_snapshot_signature.v1": {
+        "object_family": "realm_snapshot_signature",
+        "schema_ref": "schemas/realm-state-snapshot.schema.json",
+        "signature_member": "signature",
+        "excluded_signature_members": ["signature"],
+        "definition": "realm_snapshot_signature",
+        "defined_in": "zh/conformance/realm-state-snapshot-schema.md#4-创建与验证",
+        "case_id": "realm_snapshot",
+        "test_key_ref": "rfc8032_test_1_ed25519_key",
+        "signer_authority": "governance_generation exact current governance Station service signing key verified through the current authority bundle",
+    },
+    "ak.mls_welcome_delivery_signature.v1": {
+        "object_family": "mls_welcome_delivery_signature",
+        "schema_ref": "schemas/mls-welcome-delivery.schema.json",
+        "signature_member": "producer_proof",
+        "excluded_signature_members": ["producer_proof"],
+        "definition": "mls_welcome_delivery_signature",
+        "defined_in": "zh/crypto-media/encryption-and-audit.md#261-welcome-producer-proof",
+        "case_id": "mls_welcome_delivery",
+        "test_key_ref": "conformance_ed25519_fixture_key",
+        "signer_authority": "commit_event_ref exact winning ak.mls.commit Event producer signing authority and its already verified verification_method",
+    },
+}
+DETACHED_SIGNATURE_BINDING_FIELDS = [
+    "context",
+    "signature_algorithm",
+    "verification_method",
+    "signed_digest",
+    "created_at",
+]
+REMOVED_REALM_SNAPSHOT_PROOF_CONTEXT = "ak.realm_state_snapshot_proof.v1"
+DETACHED_SIGNATURE_ROW_KEYS = frozenset(
+    {
+        "domain",
+        "object_family",
+        "primitive",
+        "schema_ref",
+        "transcript_schema_refs",
+        "signature_member",
+        "excluded_signature_members",
+        "binding_fields",
+        "canonicalization",
+        "digest_suite",
+        "digest_input",
+        "digest_encoding",
+        "prefix_form",
+        "prefix_bytes_hex",
+        "signature_input",
+        "signature_algorithm",
+        "signature_encoding",
+        "domain_is_a_transcript_member",
+        "signer_authority",
+        "defined_in",
+        "known_answer_ref",
+    }
+)
+
+
+def _detached_jcs(value: Any) -> bytes:
+    return json.dumps(
+        value,
+        ensure_ascii=False,
+        allow_nan=False,
+        separators=(",", ":"),
+        sort_keys=True,
+    ).encode("utf-8")
+
+
+def _detached_schema_node(lint: Lint, schema_ref: str) -> dict[str, Any] | None:
+    file_ref, separator, body = schema_ref.partition("#")
+    document = load_json(lint, ARTIFACTS / file_ref)
+    if not isinstance(document, dict):
+        return None
+    try:
+        node = resolve_json_pointer(document, f"#{body}" if separator else "")
+    except (KeyError, IndexError, ValueError):
+        lint.fail(DETACHED_OBJECT_SIGNATURE_SCHEMA, f"host schema reference does not resolve: {schema_ref}")
+        return None
+    if not isinstance(node, dict):
+        lint.fail(DETACHED_OBJECT_SIGNATURE_SCHEMA, f"host schema reference is not an object: {schema_ref}")
+        return None
+    return node
+
+
+def _detached_authority_basis(case: dict[str, Any]) -> dict[str, Any] | None:
+    context = case.get("context")
+    host = case.get("host_object")
+    public_key = case.get("public_key_b64u")
+    verification_method = (
+        case.get("signature_envelope_without_sig", {}).get("verification_method")
+        if isinstance(case.get("signature_envelope_without_sig"), dict)
+        else None
+    )
+    test_key_ref = case.get("test_key_ref")
+    if not isinstance(host, dict):
+        return None
+    if context == "ak.realm_commit_signature.v1":
+        return {
+            "basis_kind": "governance_generation_current_station",
+            "coordinate": {
+                "governance_generation": host.get("governance_generation"),
+                "service_id": "ak:did_core:webvh:z6mkfixturestationa",
+            },
+            "resolved_controller_did": "did:webvh:z6mkfixturestationa:station-a.example",
+            "authorized_verification_method": verification_method,
+            "public_key_b64u": public_key,
+            "test_key_ref": test_key_ref,
+        }
+    if context == "ak.realm_authority_handoff_old_signature.v1":
+        return {
+            "basis_kind": "handoff_old_current_at_frozen_cut",
+            "coordinate": {
+                "generation": host.get("from_generation"),
+                "service_id": host.get("from_service_id"),
+            },
+            "resolved_controller_did": "did:webvh:z6mkfixturestationa:station-a.example",
+            "authorized_verification_method": verification_method,
+            "public_key_b64u": public_key,
+            "test_key_ref": test_key_ref,
+        }
+    if context == "ak.realm_authority_handoff_new_acceptance_signature.v1":
+        return {
+            "basis_kind": "handoff_new_after_verified_import",
+            "coordinate": {
+                "generation": host.get("to_generation"),
+                "service_id": host.get("to_service_id"),
+            },
+            "resolved_controller_did": "did:webvh:z6mkfixturestationb:station-b.example",
+            "authorized_verification_method": verification_method,
+            "public_key_b64u": public_key,
+            "test_key_ref": test_key_ref,
+        }
+    if context == "ak.realm_authority_current_assertion_signature.v1":
+        return {
+            "basis_kind": "verified_chain_current_station",
+            "coordinate": {
+                "current_generation": host.get("current_generation"),
+                "current_service_id": host.get("current_service_id"),
+            },
+            "resolved_controller_did": "did:webvh:z6mkfixturestationb:station-b.example",
+            "authorized_verification_method": verification_method,
+            "public_key_b64u": public_key,
+            "test_key_ref": test_key_ref,
+        }
+    if context == "ak.realm_snapshot_signature.v1":
+        return {
+            "basis_kind": "current_bundle_generation_station",
+            "coordinate": {
+                "governance_generation": host.get("governance_generation"),
+                "service_id": "ak:did_core:webvh:z6mkfixturestationb",
+            },
+            "resolved_controller_did": "did:webvh:z6mkfixturestationb:station-b.example",
+            "authorized_verification_method": verification_method,
+            "public_key_b64u": public_key,
+            "test_key_ref": test_key_ref,
+        }
+    if context == "ak.mls_welcome_delivery_signature.v1":
+        return {
+            "basis_kind": "winning_commit_event_exact_producer",
+            "coordinate": {
+                "commit_event_ref": host.get("commit_event_ref"),
+                "producer_actor_id": {
+                    "kind": "service",
+                    "service_id": "ak:did_core:webvh:z6mkfixturealice",
+                },
+            },
+            "resolved_controller_did": "did:webvh:z6mkfixturealice:alice.example",
+            "authorized_verification_method": verification_method,
+            "public_key_b64u": public_key,
+            "test_key_ref": test_key_ref,
+        }
+    return None
+
+
+def _decode_detached_b64u(value: Any) -> bytes | None:
+    if not isinstance(value, str) or len(value) != 86 or "=" in value:
+        return None
+    if re.fullmatch(r"[A-Za-z0-9_-]{86}", value) is None:
+        return None
+    try:
+        raw = base64.urlsafe_b64decode(value + "==")
+    except (ValueError, TypeError):
+        return None
+    if len(raw) != 64 or base64.urlsafe_b64encode(raw).rstrip(b"=").decode("ascii") != value:
+        return None
+    return raw
+
+
+def check_detached_object_signature_registration(lint: Lint) -> None:
+    """Close and execute all six raw detached-object signature transcripts."""
+
+    signature_schema = load_json(lint, DETACHED_OBJECT_SIGNATURE_SCHEMA)
+    registry = load_json(lint, PROOF_CONTEXT_REGISTRY)
+    fixture = load_json(lint, DETACHED_OBJECT_SIGNATURE_FIXTURE)
+    vector_registry = load_json(lint, VECTOR_REGISTRY)
+    if not all(isinstance(value, dict) for value in (signature_schema, registry, fixture, vector_registry)):
+        return
+
+    contexts = registry.get("contexts")
+    if any(
+        isinstance(row, dict)
+        and row.get("context") == REMOVED_REALM_SNAPSHOT_PROOF_CONTEXT
+        for row in contexts or []
+    ):
+        lint.fail(
+            PROOF_CONTEXT_REGISTRY,
+            f"removed snapshot proof context must not return: {REMOVED_REALM_SNAPSHOT_PROOF_CONTEXT}",
+        )
+
+    expected_contexts = list(DETACHED_SIGNATURE_CONTEXTS)
+    properties = signature_schema.get("properties")
+    defs = signature_schema.get("$defs")
+    enum = properties.get("context", {}).get("enum") if isinstance(properties, dict) else None
+    if enum != expected_contexts:
+        lint.fail(DETACHED_OBJECT_SIGNATURE_SCHEMA, "context enum must contain exactly the six registered detached-object contexts in canonical order")
+    if not isinstance(defs, dict) or set(defs) != {
+        config["definition"] for config in DETACHED_SIGNATURE_CONTEXTS.values()
+    }:
+        lint.fail(DETACHED_OBJECT_SIGNATURE_SCHEMA, "$defs must contain exactly one branch for each of the six contexts")
+    else:
+        for context, config in DETACHED_SIGNATURE_CONTEXTS.items():
+            branch = defs.get(config["definition"])
+            try:
+                branch_context = branch["allOf"][1]["properties"]["context"]["const"]
+            except (KeyError, IndexError, TypeError):
+                branch_context = None
+            if branch_context != context:
+                lint.fail(DETACHED_OBJECT_SIGNATURE_SCHEMA, f"$defs.{config['definition']} must const-bind {context}")
+    digest_schema = properties.get("signed_digest") if isinstance(properties, dict) else None
+    if digest_schema != {
+        "type": "string",
+        "pattern": "^sha256:[0-9a-f]{64}$",
+        "description": "SHA-256 of the RFC8785 JCS bytes of the complete registered unsigned host projection. A verifier MUST recompute this value from the host object before signature verification.",
+    }:
+        lint.fail(DETACHED_OBJECT_SIGNATURE_SCHEMA, "signed_digest must be the closed sha256:lowercase_hex carrier")
+
+    rows = registry.get("domain_separations")
+    detached_rows = {
+        row.get("domain"): row
+        for row in rows or []
+        if isinstance(row, dict) and row.get("domain") in DETACHED_SIGNATURE_CONTEXTS
+    }
+    if set(detached_rows) != set(DETACHED_SIGNATURE_CONTEXTS):
+        lint.fail(PROOF_CONTEXT_REGISTRY, "domain_separations must contain exactly the six detached-object signature rows")
+
+    cases = fixture.get("cases")
+    if not isinstance(cases, list) or len(cases) != 6:
+        lint.fail(DETACHED_OBJECT_SIGNATURE_FIXTURE, "cases must contain exactly six detached-object KATs")
+        return
+    case_by_context = {
+        case.get("context"): case for case in cases if isinstance(case, dict)
+    }
+    if set(case_by_context) != set(DETACHED_SIGNATURE_CONTEXTS):
+        lint.fail(DETACHED_OBJECT_SIGNATURE_FIXTURE, "fixture contexts must map one-to-one to the six registered domains")
+
+    vector_rows = vector_registry.get("vectors")
+    vector = next(
+        (
+            row
+            for row in vector_rows or []
+            if isinstance(row, dict)
+            and row.get("vector_id") == "ak.vector.detached_object_signature_transcripts.v1"
+        ),
+        None,
+    )
+    if not isinstance(vector, dict) or vector.get("status") != "active" or vector.get("applies_to_fixtures") != [DETACHED_OBJECT_SIGNATURE_FIXTURE.name]:
+        lint.fail(VECTOR_REGISTRY, "detached-object transcript vector must be active and execute the dedicated fixture")
+
+    for index, context in enumerate(expected_contexts):
+        config = DETACHED_SIGNATURE_CONTEXTS[context]
+        row = detached_rows.get(context)
+        case = case_by_context.get(context)
+        where = f"domain_separations[{context}]"
+        if not isinstance(row, dict) or not isinstance(case, dict):
+            continue
+        if set(row) != DETACHED_SIGNATURE_ROW_KEYS:
+            lint.fail(PROOF_CONTEXT_REGISTRY, f"{where} must have the closed detached-signature row shape")
+        exact_row = {
+            "domain": context,
+            "object_family": config["object_family"],
+            "primitive": "detached_signature",
+            "schema_ref": config["schema_ref"],
+            "transcript_schema_refs": [
+                f"schemas/detached-object-signature.schema.json#/$defs/{config['definition']}"
+            ],
+            "signature_member": config["signature_member"],
+            "excluded_signature_members": config["excluded_signature_members"],
+            "binding_fields": DETACHED_SIGNATURE_BINDING_FIELDS,
+            "canonicalization": "RFC8785_JCS",
+            "digest_suite": "SHA-256",
+            "digest_input": "RFC8785_JCS(unsigned_projection)",
+            "digest_encoding": "sha256:lowercase_hex",
+            "prefix_form": "UTF8(domain + LF)",
+            "prefix_bytes_hex": (context + "\n").encode("utf-8").hex(),
+            "signature_input": "prefix_bytes || RFC8785_JCS(signature_envelope_without_sig)",
+            "signature_algorithm": "Ed25519",
+            "signature_encoding": "base64url_no_pad_64_bytes",
+            "domain_is_a_transcript_member": True,
+            "signer_authority": config["signer_authority"],
+            "defined_in": config["defined_in"],
+            "known_answer_ref": f"fixtures/{DETACHED_OBJECT_SIGNATURE_FIXTURE.name}#/cases/{index}",
+        }
+        for key, value in exact_row.items():
+            if row.get(key) != value:
+                lint.fail(PROOF_CONTEXT_REGISTRY, f"{where}.{key} does not match the closed construction")
+
+        host_schema = _detached_schema_node(lint, config["schema_ref"])
+        host_properties = host_schema.get("properties") if isinstance(host_schema, dict) else None
+        member_schema = host_properties.get(config["signature_member"]) if isinstance(host_properties, dict) else None
+        expected_ref = f"./detached-object-signature.schema.json#/$defs/{config['definition']}"
+        if not isinstance(member_schema, dict) or member_schema.get("$ref") != expected_ref:
+            lint.fail(DETACHED_OBJECT_SIGNATURE_SCHEMA, f"{config['schema_ref']} must directly reference {expected_ref} at {config['signature_member']}")
+
+        if case.get("case_id") != config["case_id"] or case.get("schema_ref") != config["schema_ref"]:
+            lint.fail(DETACHED_OBJECT_SIGNATURE_FIXTURE, f"case {context} has the wrong case_id or schema_ref")
+        if case.get("signature_member") != config["signature_member"] or case.get("excluded_signature_members") != config["excluded_signature_members"]:
+            lint.fail(DETACHED_OBJECT_SIGNATURE_FIXTURE, f"case {context} has the wrong signature member exclusions")
+        if case.get("expected_result") != "accept" or case.get("test_key_ref") != config["test_key_ref"]:
+            lint.fail(DETACHED_OBJECT_SIGNATURE_FIXTURE, f"case {context} has the wrong result or test key authority")
+
+        host = case.get("host_object")
+        if not isinstance(host, dict):
+            lint.fail(DETACHED_OBJECT_SIGNATURE_FIXTURE, f"case {context} host_object must be an object")
+            continue
+        for error in jsonschema_errors(lint, DETACHED_OBJECT_SIGNATURE_FIXTURE, config["schema_ref"], host):
+            lint.fail(DETACHED_OBJECT_SIGNATURE_FIXTURE, f"case {context} host schema validation failed: {error}")
+        excluded = config["excluded_signature_members"]
+        if not all(member in host for member in excluded):
+            lint.fail(DETACHED_OBJECT_SIGNATURE_FIXTURE, f"case {context} host must contain every excluded signature member")
+            continue
+        projection = {key: copy.deepcopy(value) for key, value in host.items() if key not in excluded}
+        unsigned_bytes = _detached_jcs(projection)
+        digest = "sha256:" + hashlib.sha256(unsigned_bytes).hexdigest()
+        if case.get("unsigned_projection") != projection:
+            lint.fail(DETACHED_OBJECT_SIGNATURE_FIXTURE, f"case {context} unsigned_projection must be rebuilt from the complete host object")
+        if case.get("unsigned_jcs_utf8_hex") != unsigned_bytes.hex():
+            lint.fail(DETACHED_OBJECT_SIGNATURE_FIXTURE, f"case {context} unsigned_jcs_utf8_hex does not match recomputed RFC8785 JCS bytes")
+        if case.get("expected_signed_digest") != digest:
+            lint.fail(DETACHED_OBJECT_SIGNATURE_FIXTURE, f"case {context} expected_signed_digest does not match recomputed host digest")
+
+        carrier = host.get(config["signature_member"])
+        if not isinstance(carrier, dict):
+            continue
+        envelope = {key: copy.deepcopy(value) for key, value in carrier.items() if key != "sig"}
+        if set(envelope) != set(DETACHED_SIGNATURE_BINDING_FIELDS):
+            lint.fail(DETACHED_OBJECT_SIGNATURE_FIXTURE, f"case {context} signature envelope must contain exactly the five bound members")
+        if envelope.get("context") != context or envelope.get("signed_digest") != digest:
+            lint.fail(DETACHED_OBJECT_SIGNATURE_FIXTURE, f"case {context} carrier context or signed_digest differs from recomputation")
+        if envelope.get("signature_algorithm") != "Ed25519":
+            lint.fail(DETACHED_OBJECT_SIGNATURE_FIXTURE, f"case {context} signature_algorithm must be Ed25519")
+        if case.get("signature_envelope_without_sig") != envelope:
+            lint.fail(DETACHED_OBJECT_SIGNATURE_FIXTURE, f"case {context} envelope expected field differs from the host carrier")
+        prefix = (context + "\n").encode("utf-8")
+        signature_input = prefix + _detached_jcs(envelope)
+        if case.get("prefix_bytes_hex") != prefix.hex():
+            lint.fail(DETACHED_OBJECT_SIGNATURE_FIXTURE, f"case {context} prefix_bytes_hex must be recomputed from context plus one LF")
+        if case.get("signature_input_hex") != signature_input.hex():
+            lint.fail(DETACHED_OBJECT_SIGNATURE_FIXTURE, f"case {context} signature_input_hex differs from the reconstructed transcript")
+        if case.get("expected_sig") != carrier.get("sig"):
+            lint.fail(DETACHED_OBJECT_SIGNATURE_FIXTURE, f"case {context} expected_sig differs from the host carrier")
+
+        public_text = case.get("public_key_b64u")
+        signature = _decode_detached_b64u(carrier.get("sig"))
+        try:
+            public_raw = base64.urlsafe_b64decode(str(public_text) + "==")
+            canonical_public = base64.urlsafe_b64encode(public_raw).rstrip(b"=").decode("ascii")
+        except (ValueError, TypeError):
+            public_raw = b""
+            canonical_public = ""
+        if len(public_raw) != 32 or public_text != canonical_public:
+            lint.fail(DETACHED_OBJECT_SIGNATURE_FIXTURE, f"case {context} public key must be canonical base64url of 32 bytes")
+        elif signature is None:
+            lint.fail(DETACHED_OBJECT_SIGNATURE_FIXTURE, f"case {context} sig must be canonical unpadded base64url of exactly 64 bytes")
+        else:
+            try:
+                Ed25519PublicKey.from_public_bytes(public_raw).verify(signature, signature_input)
+            except (InvalidSignature, ValueError):
+                lint.fail(DETACHED_OBJECT_SIGNATURE_FIXTURE, f"case {context} Ed25519 signature does not verify over reconstructed input")
+
+        expected_basis = _detached_authority_basis(case)
+        if case.get("authority_basis") != expected_basis:
+            lint.fail(DETACHED_OBJECT_SIGNATURE_FIXTURE, f"case {context} authority_basis does not bind the host coordinate, exact method, key and authority class")
+
+    old_case = case_by_context.get("ak.realm_authority_handoff_old_signature.v1")
+    new_case = case_by_context.get("ak.realm_authority_handoff_new_acceptance_signature.v1")
+    if isinstance(old_case, dict) and isinstance(new_case, dict):
+        if old_case.get("unsigned_projection") != new_case.get("unsigned_projection") or old_case.get("expected_signed_digest") != new_case.get("expected_signed_digest"):
+            lint.fail(DETACHED_OBJECT_SIGNATURE_FIXTURE, "handoff old and new cases must share the identical unsigned projection and digest")
+        if old_case.get("public_key_b64u") == new_case.get("public_key_b64u") or old_case.get("test_key_ref") == new_case.get("test_key_ref"):
+            lint.fail(DETACHED_OBJECT_SIGNATURE_FIXTURE, "handoff old and new cases must use two distinct registered test keys")
 
 
 _DIGEST_CONSTRUCTION_KEYS = frozenset(

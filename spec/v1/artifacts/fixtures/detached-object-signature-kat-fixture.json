@@ -1,0 +1,529 @@
+{
+  "suite": "detached_object_signature_transcripts",
+  "fixture_kind": "cryptographic_known_answer",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.detached_object_signature_transcripts.v1"
+  },
+  "version": "2026-09-20.3",
+  "schema": "arkret.detached-object-signature-kat-fixture.v1",
+  "vector_id": "ak.vector.detached_object_signature_transcripts.v1",
+  "covers_vectors": [
+    "ak.vector.detached_object_signature_transcripts.v1"
+  ],
+  "security_evidence": [
+    {
+      "vector_id": "ak.vector.detached_object_signature_transcripts.v1",
+      "clause_id": "AK-NC-062",
+      "decision_points": [
+        {
+          "id": "welcome_unsigned_projection_is_complete_and_digest_is_recomputed",
+          "requirement": "The Welcome verifier removes only producer_proof, canonicalizes the complete remaining closed host object, and compares its independently recomputed SHA-256 digest before trusting the signature.",
+          "evidence": [
+            "/cases/5/unsigned_projection",
+            "/cases/5/expected_signed_digest"
+          ]
+        },
+        {
+          "id": "welcome_context_prefix_and_envelope_are_byte_exact",
+          "requirement": "The exact context plus one LF prefixes the RFC 8785 JCS five-member envelope, and Ed25519 verifies over those reconstructed bytes.",
+          "evidence": [
+            "/cases/5/prefix_bytes_hex",
+            "/cases/5/signature_input_hex"
+          ]
+        },
+        {
+          "id": "welcome_signer_is_the_exact_commit_producer",
+          "requirement": "The structured authority basis binds commit_event_ref to the winning Commit Event's exact producer actor, verified method and public key rather than a governance, recipient or claim-service key.",
+          "evidence": [
+            "/cases/5/authority_basis"
+          ]
+        }
+      ]
+    }
+  ],
+  "test_material_warning": "Published conformance-only private seeds; MUST NOT be used in production.",
+  "test_keys": [
+    {
+      "test_key_ref": "conformance_ed25519_fixture_key",
+      "private_seed_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+      "public_key_b64u": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
+      "production_use": "forbidden"
+    },
+    {
+      "test_key_ref": "rfc8032_test_1_ed25519_key",
+      "private_seed_hex": "9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60",
+      "public_key_b64u": "11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo",
+      "production_use": "forbidden"
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "realm_commit",
+      "context": "ak.realm_commit_signature.v1",
+      "schema_ref": "schemas/realm-commit.schema.json",
+      "signature_member": "signature",
+      "excluded_signature_members": [
+        "signature"
+      ],
+      "host_object": {
+        "commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "stream_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+        },
+        "stream_position": 0,
+        "previous_commit_ref": null,
+        "event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+        "governance_generation": 1,
+        "authority_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+        "committed_at": "2026-09-20T00:00:00.000Z",
+        "signature": {
+          "context": "ak.realm_commit_signature.v1",
+          "signature_algorithm": "Ed25519",
+          "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
+          "signed_digest": "sha256:fd778be71a6bbea85ca326438efd6f3478c7268b1db71e69a0489e76fc86d8d0",
+          "created_at": "2026-09-20T00:00:00.000Z",
+          "sig": "jWBLjI88A3F2Qe_Y4PaU1_Udhl7ArLP6PSlnn-_XmZ-2eWdNhcsLgJyTQkwgqH3Ij8ARyXybOP06U60P2BKECA"
+        }
+      },
+      "unsigned_projection": {
+        "commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "stream_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+        },
+        "stream_position": 0,
+        "previous_commit_ref": null,
+        "event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+        "governance_generation": 1,
+        "authority_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+        "committed_at": "2026-09-20T00:00:00.000Z"
+      },
+      "unsigned_jcs_utf8_hex": "7b22617574686f726974795f726566223a22616b3a6576656e743a41514a6d536731733951797a707046654a4c3430644e39325956485a654c64424274335557486139584e4f44222c22636f6d6d69745f6964223a22616b3a7265616c6d5f636f6d6d69743a41524e526d7a4469327237387a76654f4c6d6f484f623641657068464d7756754745316677586d436f656f34222c22636f6d6d69747465645f6174223a22323032362d30392d32305430303a30303a30302e3030305a222c226576656e745f726566223a22616b3a6576656e743a41514a6d536731733951797a707046654a4c3430644e39325956485a654c64424274335557486139584e4f44222c22676f7665726e616e63655f67656e65726174696f6e223a312c2270726576696f75735f636f6d6d69745f726566223a6e756c6c2c227265616c6d5f6964223a22616b3a7265616c6d3a41633161434b386151646e6b59496d7664483344466a71346a4443503139387058595743477a477556796a35222c2273747265616d5f706f736974696f6e223a302c2273747265616d5f726566223a7b226b696e64223a227265616c6d222c227265616c6d5f6964223a22616b3a7265616c6d3a41633161434b386151646e6b59496d7664483344466a71346a4443503139387058595743477a477556796a35227d7d",
+      "expected_signed_digest": "sha256:fd778be71a6bbea85ca326438efd6f3478c7268b1db71e69a0489e76fc86d8d0",
+      "signature_envelope_without_sig": {
+        "context": "ak.realm_commit_signature.v1",
+        "signature_algorithm": "Ed25519",
+        "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
+        "signed_digest": "sha256:fd778be71a6bbea85ca326438efd6f3478c7268b1db71e69a0489e76fc86d8d0",
+        "created_at": "2026-09-20T00:00:00.000Z"
+      },
+      "prefix_bytes_hex": "616b2e7265616c6d5f636f6d6d69745f7369676e61747572652e76310a",
+      "signature_input_hex": "616b2e7265616c6d5f636f6d6d69745f7369676e61747572652e76310a7b22636f6e74657874223a22616b2e7265616c6d5f636f6d6d69745f7369676e61747572652e7631222c22637265617465645f6174223a22323032362d30392d32305430303a30303a30302e3030305a222c227369676e61747572655f616c676f726974686d223a2245643235353139222c227369676e65645f646967657374223a227368613235363a66643737386265373161366262656138356361333236343338656664366633343738633732363862316462373165363961303438396537366663383664386430222c22766572696669636174696f6e5f6d6574686f64223a226469643a77656276683a7a366d6b6669787475726573746174696f6e613a73746174696f6e2d612e6578616d706c6523617373657274696f6e2d66697874757265227d",
+      "public_key_b64u": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
+      "expected_sig": "jWBLjI88A3F2Qe_Y4PaU1_Udhl7ArLP6PSlnn-_XmZ-2eWdNhcsLgJyTQkwgqH3Ij8ARyXybOP06U60P2BKECA",
+      "test_key_ref": "conformance_ed25519_fixture_key",
+      "authority_basis": {
+        "basis_kind": "governance_generation_current_station",
+        "coordinate": {
+          "governance_generation": 1,
+          "service_id": "ak:did_core:webvh:z6mkfixturestationa"
+        },
+        "resolved_controller_did": "did:webvh:z6mkfixturestationa:station-a.example",
+        "authorized_verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
+        "public_key_b64u": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
+        "test_key_ref": "conformance_ed25519_fixture_key"
+      },
+      "expected_result": "accept"
+    },
+    {
+      "case_id": "realm_authority_handoff_old",
+      "context": "ak.realm_authority_handoff_old_signature.v1",
+      "schema_ref": "schemas/realm-authority-handoff.schema.json",
+      "signature_member": "old_authority_signature",
+      "excluded_signature_members": [
+        "old_authority_signature",
+        "new_authority_acceptance_signature"
+      ],
+      "host_object": {
+        "handoff_id": "ak:realm_authority_handoff:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "from_generation": 1,
+        "to_generation": 2,
+        "from_service_id": "ak:did_core:webvh:z6mkfixturestationa",
+        "to_service_id": "ak:did_core:webvh:z6mkfixturestationb",
+        "final_stream_heads_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "snapshot_ref": "ak:realm_snapshot:BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+        "change_event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+        "change_commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
+        "old_authority_signature": {
+          "context": "ak.realm_authority_handoff_old_signature.v1",
+          "signature_algorithm": "Ed25519",
+          "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
+          "signed_digest": "sha256:fc71b0b616036a9a27b1c303038cead535edbeecf258300ac946260929603386",
+          "created_at": "2026-09-20T00:00:00.000Z",
+          "sig": "ifu9i65buXs4S2OHnNBQRSjm6NCo6YaTguM7kbmSThBNBJ_A_B1zHZRwG4cTmAB2xnYoSTjlTiFkNNZ7K1bGDQ"
+        },
+        "new_authority_acceptance_signature": {
+          "context": "ak.realm_authority_handoff_new_acceptance_signature.v1",
+          "signature_algorithm": "Ed25519",
+          "verification_method": "did:webvh:z6mkfixturestationb:station-b.example#assertion-fixture",
+          "signed_digest": "sha256:fc71b0b616036a9a27b1c303038cead535edbeecf258300ac946260929603386",
+          "created_at": "2026-09-20T00:00:00.000Z",
+          "sig": "LHb20hMgOmTmejCKSmgrlZIxesyMaJq76BRBH2tAQ4zFzLMKajHbUqaGUfLGnq20kERsRfMQkXhHm2sSrZcmCA"
+        }
+      },
+      "unsigned_projection": {
+        "handoff_id": "ak:realm_authority_handoff:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "from_generation": 1,
+        "to_generation": 2,
+        "from_service_id": "ak:did_core:webvh:z6mkfixturestationa",
+        "to_service_id": "ak:did_core:webvh:z6mkfixturestationb",
+        "final_stream_heads_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "snapshot_ref": "ak:realm_snapshot:BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+        "change_event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+        "change_commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4"
+      },
+      "unsigned_jcs_utf8_hex": "7b226368616e67655f636f6d6d69745f6964223a22616b3a7265616c6d5f636f6d6d69743a41524e526d7a4469327237387a76654f4c6d6f484f623641657068464d7756754745316677586d436f656f34222c226368616e67655f6576656e745f726566223a22616b3a6576656e743a41514a6d536731733951797a707046654a4c3430644e39325956485a654c64424274335557486139584e4f44222c2266696e616c5f73747265616d5f68656164735f646967657374223a227368613235363a31313131313131313131313131313131313131313131313131313131313131313131313131313131313131313131313131313131313131313131313131313131222c2266726f6d5f67656e65726174696f6e223a312c2266726f6d5f736572766963655f6964223a22616b3a6469645f636f72653a77656276683a7a366d6b6669787475726573746174696f6e61222c2268616e646f66665f6964223a22616b3a7265616c6d5f617574686f726974795f68616e646f66663a4141414141414141414141414141414141414141414141414141414141414141414141414141414141414141222c227265616c6d5f6964223a22616b3a7265616c6d3a41633161434b386151646e6b59496d7664483344466a71346a4443503139387058595743477a477556796a35222c22736e617073686f745f726566223a22616b3a7265616c6d5f736e617073686f743a4242424242424242424242424242424242424242424242424242424242424242424242424242424242424242222c22746f5f67656e65726174696f6e223a322c22746f5f736572766963655f6964223a22616b3a6469645f636f72653a77656276683a7a366d6b6669787475726573746174696f6e62227d",
+      "expected_signed_digest": "sha256:fc71b0b616036a9a27b1c303038cead535edbeecf258300ac946260929603386",
+      "signature_envelope_without_sig": {
+        "context": "ak.realm_authority_handoff_old_signature.v1",
+        "signature_algorithm": "Ed25519",
+        "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
+        "signed_digest": "sha256:fc71b0b616036a9a27b1c303038cead535edbeecf258300ac946260929603386",
+        "created_at": "2026-09-20T00:00:00.000Z"
+      },
+      "prefix_bytes_hex": "616b2e7265616c6d5f617574686f726974795f68616e646f66665f6f6c645f7369676e61747572652e76310a",
+      "signature_input_hex": "616b2e7265616c6d5f617574686f726974795f68616e646f66665f6f6c645f7369676e61747572652e76310a7b22636f6e74657874223a22616b2e7265616c6d5f617574686f726974795f68616e646f66665f6f6c645f7369676e61747572652e7631222c22637265617465645f6174223a22323032362d30392d32305430303a30303a30302e3030305a222c227369676e61747572655f616c676f726974686d223a2245643235353139222c227369676e65645f646967657374223a227368613235363a66633731623062363136303336613961323762316333303330333863656164353335656462656563663235383330306163393436323630393239363033333836222c22766572696669636174696f6e5f6d6574686f64223a226469643a77656276683a7a366d6b6669787475726573746174696f6e613a73746174696f6e2d612e6578616d706c6523617373657274696f6e2d66697874757265227d",
+      "public_key_b64u": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
+      "expected_sig": "ifu9i65buXs4S2OHnNBQRSjm6NCo6YaTguM7kbmSThBNBJ_A_B1zHZRwG4cTmAB2xnYoSTjlTiFkNNZ7K1bGDQ",
+      "test_key_ref": "conformance_ed25519_fixture_key",
+      "authority_basis": {
+        "basis_kind": "handoff_old_current_at_frozen_cut",
+        "coordinate": {
+          "generation": 1,
+          "service_id": "ak:did_core:webvh:z6mkfixturestationa"
+        },
+        "resolved_controller_did": "did:webvh:z6mkfixturestationa:station-a.example",
+        "authorized_verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
+        "public_key_b64u": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
+        "test_key_ref": "conformance_ed25519_fixture_key"
+      },
+      "expected_result": "accept"
+    },
+    {
+      "case_id": "realm_authority_handoff_new_acceptance",
+      "context": "ak.realm_authority_handoff_new_acceptance_signature.v1",
+      "schema_ref": "schemas/realm-authority-handoff.schema.json",
+      "signature_member": "new_authority_acceptance_signature",
+      "excluded_signature_members": [
+        "old_authority_signature",
+        "new_authority_acceptance_signature"
+      ],
+      "host_object": {
+        "handoff_id": "ak:realm_authority_handoff:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "from_generation": 1,
+        "to_generation": 2,
+        "from_service_id": "ak:did_core:webvh:z6mkfixturestationa",
+        "to_service_id": "ak:did_core:webvh:z6mkfixturestationb",
+        "final_stream_heads_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "snapshot_ref": "ak:realm_snapshot:BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+        "change_event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+        "change_commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
+        "old_authority_signature": {
+          "context": "ak.realm_authority_handoff_old_signature.v1",
+          "signature_algorithm": "Ed25519",
+          "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
+          "signed_digest": "sha256:fc71b0b616036a9a27b1c303038cead535edbeecf258300ac946260929603386",
+          "created_at": "2026-09-20T00:00:00.000Z",
+          "sig": "ifu9i65buXs4S2OHnNBQRSjm6NCo6YaTguM7kbmSThBNBJ_A_B1zHZRwG4cTmAB2xnYoSTjlTiFkNNZ7K1bGDQ"
+        },
+        "new_authority_acceptance_signature": {
+          "context": "ak.realm_authority_handoff_new_acceptance_signature.v1",
+          "signature_algorithm": "Ed25519",
+          "verification_method": "did:webvh:z6mkfixturestationb:station-b.example#assertion-fixture",
+          "signed_digest": "sha256:fc71b0b616036a9a27b1c303038cead535edbeecf258300ac946260929603386",
+          "created_at": "2026-09-20T00:00:00.000Z",
+          "sig": "LHb20hMgOmTmejCKSmgrlZIxesyMaJq76BRBH2tAQ4zFzLMKajHbUqaGUfLGnq20kERsRfMQkXhHm2sSrZcmCA"
+        }
+      },
+      "unsigned_projection": {
+        "handoff_id": "ak:realm_authority_handoff:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "from_generation": 1,
+        "to_generation": 2,
+        "from_service_id": "ak:did_core:webvh:z6mkfixturestationa",
+        "to_service_id": "ak:did_core:webvh:z6mkfixturestationb",
+        "final_stream_heads_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "snapshot_ref": "ak:realm_snapshot:BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+        "change_event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+        "change_commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4"
+      },
+      "unsigned_jcs_utf8_hex": "7b226368616e67655f636f6d6d69745f6964223a22616b3a7265616c6d5f636f6d6d69743a41524e526d7a4469327237387a76654f4c6d6f484f623641657068464d7756754745316677586d436f656f34222c226368616e67655f6576656e745f726566223a22616b3a6576656e743a41514a6d536731733951797a707046654a4c3430644e39325956485a654c64424274335557486139584e4f44222c2266696e616c5f73747265616d5f68656164735f646967657374223a227368613235363a31313131313131313131313131313131313131313131313131313131313131313131313131313131313131313131313131313131313131313131313131313131222c2266726f6d5f67656e65726174696f6e223a312c2266726f6d5f736572766963655f6964223a22616b3a6469645f636f72653a77656276683a7a366d6b6669787475726573746174696f6e61222c2268616e646f66665f6964223a22616b3a7265616c6d5f617574686f726974795f68616e646f66663a4141414141414141414141414141414141414141414141414141414141414141414141414141414141414141222c227265616c6d5f6964223a22616b3a7265616c6d3a41633161434b386151646e6b59496d7664483344466a71346a4443503139387058595743477a477556796a35222c22736e617073686f745f726566223a22616b3a7265616c6d5f736e617073686f743a4242424242424242424242424242424242424242424242424242424242424242424242424242424242424242222c22746f5f67656e65726174696f6e223a322c22746f5f736572766963655f6964223a22616b3a6469645f636f72653a77656276683a7a366d6b6669787475726573746174696f6e62227d",
+      "expected_signed_digest": "sha256:fc71b0b616036a9a27b1c303038cead535edbeecf258300ac946260929603386",
+      "signature_envelope_without_sig": {
+        "context": "ak.realm_authority_handoff_new_acceptance_signature.v1",
+        "signature_algorithm": "Ed25519",
+        "verification_method": "did:webvh:z6mkfixturestationb:station-b.example#assertion-fixture",
+        "signed_digest": "sha256:fc71b0b616036a9a27b1c303038cead535edbeecf258300ac946260929603386",
+        "created_at": "2026-09-20T00:00:00.000Z"
+      },
+      "prefix_bytes_hex": "616b2e7265616c6d5f617574686f726974795f68616e646f66665f6e65775f616363657074616e63655f7369676e61747572652e76310a",
+      "signature_input_hex": "616b2e7265616c6d5f617574686f726974795f68616e646f66665f6e65775f616363657074616e63655f7369676e61747572652e76310a7b22636f6e74657874223a22616b2e7265616c6d5f617574686f726974795f68616e646f66665f6e65775f616363657074616e63655f7369676e61747572652e7631222c22637265617465645f6174223a22323032362d30392d32305430303a30303a30302e3030305a222c227369676e61747572655f616c676f726974686d223a2245643235353139222c227369676e65645f646967657374223a227368613235363a66633731623062363136303336613961323762316333303330333863656164353335656462656563663235383330306163393436323630393239363033333836222c22766572696669636174696f6e5f6d6574686f64223a226469643a77656276683a7a366d6b6669787475726573746174696f6e623a73746174696f6e2d622e6578616d706c6523617373657274696f6e2d66697874757265227d",
+      "public_key_b64u": "11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo",
+      "expected_sig": "LHb20hMgOmTmejCKSmgrlZIxesyMaJq76BRBH2tAQ4zFzLMKajHbUqaGUfLGnq20kERsRfMQkXhHm2sSrZcmCA",
+      "test_key_ref": "rfc8032_test_1_ed25519_key",
+      "authority_basis": {
+        "basis_kind": "handoff_new_after_verified_import",
+        "coordinate": {
+          "generation": 2,
+          "service_id": "ak:did_core:webvh:z6mkfixturestationb"
+        },
+        "resolved_controller_did": "did:webvh:z6mkfixturestationb:station-b.example",
+        "authorized_verification_method": "did:webvh:z6mkfixturestationb:station-b.example#assertion-fixture",
+        "public_key_b64u": "11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo",
+        "test_key_ref": "rfc8032_test_1_ed25519_key"
+      },
+      "expected_result": "accept"
+    },
+    {
+      "case_id": "realm_authority_current_assertion",
+      "context": "ak.realm_authority_current_assertion_signature.v1",
+      "schema_ref": "schemas/realm-authority-bundle.schema.json#/$defs/current_assertion",
+      "signature_member": "signature",
+      "excluded_signature_members": [
+        "signature"
+      ],
+      "host_object": {
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "current_generation": 2,
+        "current_service_id": "ak:did_core:webvh:z6mkfixturestationb",
+        "last_handoff_ref": "ak:realm_authority_handoff:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        "realm_stream_head": {
+          "stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+          },
+          "stream_position": 0,
+          "commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4"
+        },
+        "nonce": "AAAAAAAAAAAAAAAAAAAAAA",
+        "expires_at": "2026-09-20T00:05:00.000Z",
+        "signature": {
+          "context": "ak.realm_authority_current_assertion_signature.v1",
+          "signature_algorithm": "Ed25519",
+          "verification_method": "did:webvh:z6mkfixturestationb:station-b.example#assertion-fixture",
+          "signed_digest": "sha256:d285dcba2ddc49d94231b6c3483b3adfb6f8794446dfdf84c9e2366060780b2e",
+          "created_at": "2026-09-20T00:00:00.000Z",
+          "sig": "HVUFQr4kgKCMe2B7bpyCsY6V1GOp-xiaHwIaF4a4-Fjh8o8PTE4J-F53JVHol0TPtSQDWAMh41tTkK04LrBFCg"
+        }
+      },
+      "unsigned_projection": {
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "current_generation": 2,
+        "current_service_id": "ak:did_core:webvh:z6mkfixturestationb",
+        "last_handoff_ref": "ak:realm_authority_handoff:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        "realm_stream_head": {
+          "stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+          },
+          "stream_position": 0,
+          "commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4"
+        },
+        "nonce": "AAAAAAAAAAAAAAAAAAAAAA",
+        "expires_at": "2026-09-20T00:05:00.000Z"
+      },
+      "unsigned_jcs_utf8_hex": "7b2263757272656e745f67656e65726174696f6e223a322c2263757272656e745f736572766963655f6964223a22616b3a6469645f636f72653a77656276683a7a366d6b6669787475726573746174696f6e62222c22657870697265735f6174223a22323032362d30392d32305430303a30353a30302e3030305a222c226c6173745f68616e646f66665f726566223a22616b3a7265616c6d5f617574686f726974795f68616e646f66663a4141414141414141414141414141414141414141414141414141414141414141414141414141414141414141222c226e6f6e6365223a2241414141414141414141414141414141414141414141222c227265616c6d5f6964223a22616b3a7265616c6d3a41633161434b386151646e6b59496d7664483344466a71346a4443503139387058595743477a477556796a35222c227265616c6d5f73747265616d5f68656164223a7b22636f6d6d69745f6964223a22616b3a7265616c6d5f636f6d6d69743a41524e526d7a4469327237387a76654f4c6d6f484f623641657068464d7756754745316677586d436f656f34222c2273747265616d5f706f736974696f6e223a302c2273747265616d5f726566223a7b226b696e64223a227265616c6d222c227265616c6d5f6964223a22616b3a7265616c6d3a41633161434b386151646e6b59496d7664483344466a71346a4443503139387058595743477a477556796a35227d7d7d",
+      "expected_signed_digest": "sha256:d285dcba2ddc49d94231b6c3483b3adfb6f8794446dfdf84c9e2366060780b2e",
+      "signature_envelope_without_sig": {
+        "context": "ak.realm_authority_current_assertion_signature.v1",
+        "signature_algorithm": "Ed25519",
+        "verification_method": "did:webvh:z6mkfixturestationb:station-b.example#assertion-fixture",
+        "signed_digest": "sha256:d285dcba2ddc49d94231b6c3483b3adfb6f8794446dfdf84c9e2366060780b2e",
+        "created_at": "2026-09-20T00:00:00.000Z"
+      },
+      "prefix_bytes_hex": "616b2e7265616c6d5f617574686f726974795f63757272656e745f617373657274696f6e5f7369676e61747572652e76310a",
+      "signature_input_hex": "616b2e7265616c6d5f617574686f726974795f63757272656e745f617373657274696f6e5f7369676e61747572652e76310a7b22636f6e74657874223a22616b2e7265616c6d5f617574686f726974795f63757272656e745f617373657274696f6e5f7369676e61747572652e7631222c22637265617465645f6174223a22323032362d30392d32305430303a30303a30302e3030305a222c227369676e61747572655f616c676f726974686d223a2245643235353139222c227369676e65645f646967657374223a227368613235363a64323835646362613264646334396439343233316236633334383362336164666236663837393434343664666466383463396532333636303630373830623265222c22766572696669636174696f6e5f6d6574686f64223a226469643a77656276683a7a366d6b6669787475726573746174696f6e623a73746174696f6e2d622e6578616d706c6523617373657274696f6e2d66697874757265227d",
+      "public_key_b64u": "11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo",
+      "expected_sig": "HVUFQr4kgKCMe2B7bpyCsY6V1GOp-xiaHwIaF4a4-Fjh8o8PTE4J-F53JVHol0TPtSQDWAMh41tTkK04LrBFCg",
+      "test_key_ref": "rfc8032_test_1_ed25519_key",
+      "authority_basis": {
+        "basis_kind": "verified_chain_current_station",
+        "coordinate": {
+          "current_generation": 2,
+          "current_service_id": "ak:did_core:webvh:z6mkfixturestationb"
+        },
+        "resolved_controller_did": "did:webvh:z6mkfixturestationb:station-b.example",
+        "authorized_verification_method": "did:webvh:z6mkfixturestationb:station-b.example#assertion-fixture",
+        "public_key_b64u": "11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo",
+        "test_key_ref": "rfc8032_test_1_ed25519_key"
+      },
+      "expected_result": "accept"
+    },
+    {
+      "case_id": "realm_snapshot",
+      "context": "ak.realm_snapshot_signature.v1",
+      "schema_ref": "schemas/realm-state-snapshot.schema.json",
+      "signature_member": "signature",
+      "excluded_signature_members": [
+        "signature"
+      ],
+      "host_object": {
+        "snapshot_id": "ak:realm_snapshot:BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "governance_generation": 2,
+        "visible_stream_heads": [
+          {
+            "stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+            },
+            "stream_position": 0,
+            "commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4"
+          }
+        ],
+        "current_state_entries": [],
+        "retention_and_history_floor": {
+          "history_access": "since_join",
+          "stream_floors": []
+        },
+        "created_at": "2026-09-20T00:00:00.000Z",
+        "signature": {
+          "context": "ak.realm_snapshot_signature.v1",
+          "signature_algorithm": "Ed25519",
+          "verification_method": "did:webvh:z6mkfixturestationb:station-b.example#assertion-fixture",
+          "signed_digest": "sha256:bf65a3e076d238790463f0f7f43c93edd632cc51ebc667a08b70c9c81e000f9f",
+          "created_at": "2026-09-20T00:00:00.000Z",
+          "sig": "iH2R2JbIcIswfzF-XRsD6lUdpRvorMlIJO9Dh3Dzy9gLOFjtR9BFIJYFnfnRELj5wQufurobROgJJ5aaUvDwDw"
+        }
+      },
+      "unsigned_projection": {
+        "snapshot_id": "ak:realm_snapshot:BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "governance_generation": 2,
+        "visible_stream_heads": [
+          {
+            "stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+            },
+            "stream_position": 0,
+            "commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4"
+          }
+        ],
+        "current_state_entries": [],
+        "retention_and_history_floor": {
+          "history_access": "since_join",
+          "stream_floors": []
+        },
+        "created_at": "2026-09-20T00:00:00.000Z"
+      },
+      "unsigned_jcs_utf8_hex": "7b22637265617465645f6174223a22323032362d30392d32305430303a30303a30302e3030305a222c2263757272656e745f73746174655f656e7472696573223a5b5d2c22676f7665726e616e63655f67656e65726174696f6e223a322c227265616c6d5f6964223a22616b3a7265616c6d3a41633161434b386151646e6b59496d7664483344466a71346a4443503139387058595743477a477556796a35222c22726574656e74696f6e5f616e645f686973746f72795f666c6f6f72223a7b22686973746f72795f616363657373223a2273696e63655f6a6f696e222c2273747265616d5f666c6f6f7273223a5b5d7d2c22736e617073686f745f6964223a22616b3a7265616c6d5f736e617073686f743a4242424242424242424242424242424242424242424242424242424242424242424242424242424242424242222c2276697369626c655f73747265616d5f6865616473223a5b7b22636f6d6d69745f6964223a22616b3a7265616c6d5f636f6d6d69743a41524e526d7a4469327237387a76654f4c6d6f484f623641657068464d7756754745316677586d436f656f34222c2273747265616d5f706f736974696f6e223a302c2273747265616d5f726566223a7b226b696e64223a227265616c6d222c227265616c6d5f6964223a22616b3a7265616c6d3a41633161434b386151646e6b59496d7664483344466a71346a4443503139387058595743477a477556796a35227d7d5d7d",
+      "expected_signed_digest": "sha256:bf65a3e076d238790463f0f7f43c93edd632cc51ebc667a08b70c9c81e000f9f",
+      "signature_envelope_without_sig": {
+        "context": "ak.realm_snapshot_signature.v1",
+        "signature_algorithm": "Ed25519",
+        "verification_method": "did:webvh:z6mkfixturestationb:station-b.example#assertion-fixture",
+        "signed_digest": "sha256:bf65a3e076d238790463f0f7f43c93edd632cc51ebc667a08b70c9c81e000f9f",
+        "created_at": "2026-09-20T00:00:00.000Z"
+      },
+      "prefix_bytes_hex": "616b2e7265616c6d5f736e617073686f745f7369676e61747572652e76310a",
+      "signature_input_hex": "616b2e7265616c6d5f736e617073686f745f7369676e61747572652e76310a7b22636f6e74657874223a22616b2e7265616c6d5f736e617073686f745f7369676e61747572652e7631222c22637265617465645f6174223a22323032362d30392d32305430303a30303a30302e3030305a222c227369676e61747572655f616c676f726974686d223a2245643235353139222c227369676e65645f646967657374223a227368613235363a62663635613365303736643233383739303436336630663766343363393365646436333263633531656263363637613038623730633963383165303030663966222c22766572696669636174696f6e5f6d6574686f64223a226469643a77656276683a7a366d6b6669787475726573746174696f6e623a73746174696f6e2d622e6578616d706c6523617373657274696f6e2d66697874757265227d",
+      "public_key_b64u": "11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo",
+      "expected_sig": "iH2R2JbIcIswfzF-XRsD6lUdpRvorMlIJO9Dh3Dzy9gLOFjtR9BFIJYFnfnRELj5wQufurobROgJJ5aaUvDwDw",
+      "test_key_ref": "rfc8032_test_1_ed25519_key",
+      "authority_basis": {
+        "basis_kind": "current_bundle_generation_station",
+        "coordinate": {
+          "governance_generation": 2,
+          "service_id": "ak:did_core:webvh:z6mkfixturestationb"
+        },
+        "resolved_controller_did": "did:webvh:z6mkfixturestationb:station-b.example",
+        "authorized_verification_method": "did:webvh:z6mkfixturestationb:station-b.example#assertion-fixture",
+        "public_key_b64u": "11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo",
+        "test_key_ref": "rfc8032_test_1_ed25519_key"
+      },
+      "expected_result": "accept"
+    },
+    {
+      "case_id": "mls_welcome_delivery",
+      "context": "ak.mls_welcome_delivery_signature.v1",
+      "schema_ref": "schemas/mls-welcome-delivery.schema.json",
+      "signature_member": "producer_proof",
+      "excluded_signature_members": [
+        "producer_proof"
+      ],
+      "host_object": {
+        "welcome_id": "ak:mls_welcome_delivery:0199aaaa-aaaa-7aaa-8aaa-aaaaaaaaaaaa",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "effective_scope": {
+          "kind": "realm",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+        },
+        "commit_event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+        "recipient_actor_id": {
+          "kind": "service",
+          "service_id": "ak:did_core:webvh:z6mkfixturestationb"
+        },
+        "recipient_endpoint": {
+          "kind": "device",
+          "device_id": "ak:device:0199bbbb-bbbb-7bbb-8bbb-bbbbbbbbbbbb"
+        },
+        "keypackage_claim_ref": "ak:keypackage_claim:0199cccc-cccc-7ccc-8ccc-cccccccccccc",
+        "ciphertext_b64": "AQIDBA",
+        "producer_proof": {
+          "context": "ak.mls_welcome_delivery_signature.v1",
+          "signature_algorithm": "Ed25519",
+          "verification_method": "did:webvh:z6mkfixturealice:alice.example#device-fixture",
+          "signed_digest": "sha256:f51a607977aa5ba077764b06209d77c0231822b23a59be07cdb44f11f6582a29",
+          "created_at": "2026-09-20T00:00:00.000Z",
+          "sig": "R_RF4nAmz0yEIvqPt7BLemCd4npd36B5p5wyhSB8gXy2AL2AHTZHypwUsIsbqL5mZ3uesmfoOdcO8vbShWzNDw"
+        }
+      },
+      "unsigned_projection": {
+        "welcome_id": "ak:mls_welcome_delivery:0199aaaa-aaaa-7aaa-8aaa-aaaaaaaaaaaa",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "effective_scope": {
+          "kind": "realm",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+        },
+        "commit_event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+        "recipient_actor_id": {
+          "kind": "service",
+          "service_id": "ak:did_core:webvh:z6mkfixturestationb"
+        },
+        "recipient_endpoint": {
+          "kind": "device",
+          "device_id": "ak:device:0199bbbb-bbbb-7bbb-8bbb-bbbbbbbbbbbb"
+        },
+        "keypackage_claim_ref": "ak:keypackage_claim:0199cccc-cccc-7ccc-8ccc-cccccccccccc",
+        "ciphertext_b64": "AQIDBA"
+      },
+      "unsigned_jcs_utf8_hex": "7b22636970686572746578745f623634223a22415149444241222c22636f6d6d69745f6576656e745f726566223a22616b3a6576656e743a41514a6d536731733951797a707046654a4c3430644e39325956485a654c64424274335557486139584e4f44222c226566666563746976655f73636f7065223a7b226b696e64223a227265616c6d222c227265616c6d5f6964223a22616b3a7265616c6d3a41633161434b386151646e6b59496d7664483344466a71346a4443503139387058595743477a477556796a35227d2c226b65797061636b6167655f636c61696d5f726566223a22616b3a6b65797061636b6167655f636c61696d3a30313939636363632d636363632d376363632d386363632d636363636363636363636363222c227265616c6d5f6964223a22616b3a7265616c6d3a41633161434b386151646e6b59496d7664483344466a71346a4443503139387058595743477a477556796a35222c22726563697069656e745f6163746f725f6964223a7b226b696e64223a2273657276696365222c22736572766963655f6964223a22616b3a6469645f636f72653a77656276683a7a366d6b6669787475726573746174696f6e62227d2c22726563697069656e745f656e64706f696e74223a7b226465766963655f6964223a22616b3a6465766963653a30313939626262622d626262622d376262622d386262622d626262626262626262626262222c226b696e64223a22646576696365227d2c2277656c636f6d655f6964223a22616b3a6d6c735f77656c636f6d655f64656c69766572793a30313939616161612d616161612d376161612d386161612d616161616161616161616161227d",
+      "expected_signed_digest": "sha256:f51a607977aa5ba077764b06209d77c0231822b23a59be07cdb44f11f6582a29",
+      "signature_envelope_without_sig": {
+        "context": "ak.mls_welcome_delivery_signature.v1",
+        "signature_algorithm": "Ed25519",
+        "verification_method": "did:webvh:z6mkfixturealice:alice.example#device-fixture",
+        "signed_digest": "sha256:f51a607977aa5ba077764b06209d77c0231822b23a59be07cdb44f11f6582a29",
+        "created_at": "2026-09-20T00:00:00.000Z"
+      },
+      "prefix_bytes_hex": "616b2e6d6c735f77656c636f6d655f64656c69766572795f7369676e61747572652e76310a",
+      "signature_input_hex": "616b2e6d6c735f77656c636f6d655f64656c69766572795f7369676e61747572652e76310a7b22636f6e74657874223a22616b2e6d6c735f77656c636f6d655f64656c69766572795f7369676e61747572652e7631222c22637265617465645f6174223a22323032362d30392d32305430303a30303a30302e3030305a222c227369676e61747572655f616c676f726974686d223a2245643235353139222c227369676e65645f646967657374223a227368613235363a66353161363037393737616135626130373737363462303632303964373763303233313832326232336135396265303763646234346631316636353832613239222c22766572696669636174696f6e5f6d6574686f64223a226469643a77656276683a7a366d6b66697874757265616c6963653a616c6963652e6578616d706c65236465766963652d66697874757265227d",
+      "public_key_b64u": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
+      "expected_sig": "R_RF4nAmz0yEIvqPt7BLemCd4npd36B5p5wyhSB8gXy2AL2AHTZHypwUsIsbqL5mZ3uesmfoOdcO8vbShWzNDw",
+      "test_key_ref": "conformance_ed25519_fixture_key",
+      "authority_basis": {
+        "basis_kind": "winning_commit_event_exact_producer",
+        "coordinate": {
+          "commit_event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+          "producer_actor_id": {
+            "kind": "service",
+            "service_id": "ak:did_core:webvh:z6mkfixturealice"
+          }
+        },
+        "resolved_controller_did": "did:webvh:z6mkfixturealice:alice.example",
+        "authorized_verification_method": "did:webvh:z6mkfixturealice:alice.example#device-fixture",
+        "public_key_b64u": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
+        "test_key_ref": "conformance_ed25519_fixture_key"
+      },
+      "expected_result": "accept"
+    }
+  ]
+}

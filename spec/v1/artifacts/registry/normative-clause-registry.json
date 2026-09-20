@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.8",
+  "version": "2026-09-20.9",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T07:17:33+08:00",
+  "generated_at": "2026-09-20T08:05:17+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -517,10 +517,12 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#261-welcome-producer-proof",
-      "section_digest": "sha256:e587eb96d8566e5da1bbddc116ae25c127adbfa9a6f0d68a0458b91ab0401b8e",
-      "requirement": "The Welcome producer proof covers the complete canonical delivery object except the proof itself and binds the exact Commit EventId, the recipient endpoint, the claim ref and the ciphertext digest. The Station verifies it inside the Commit transaction and the recipient verifies it again before decrypting.",
-      "testability_grade": "audit",
-      "test_plan": "Audited against the MlsWelcomeDelivery contract: a review pass asserts the proof transcript covers every delivery member except the proof, and that both the Station admission path and the recipient path verify it. The recipient-side digest equality is separately proven by ak.vector.mls.welcome_keypackage_hash.v1 under AK-NC-066; this clause is the producer-proof coverage half, which no vector covers."
+      "section_digest": "sha256:8d5e618f29fde83f580a0fab5771bcd6b3d02258ba2f974ee265e01c6d1794db",
+      "requirement": "The Welcome producer proof removes only producer_proof from the closed delivery, recomputes its RFC 8785 JCS SHA-256 digest, signs the registered context-plus-LF and five-member envelope with Ed25519, and is authorized only by the exact winning Commit Event producer method.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.detached_object_signature_transcripts.v1"
+      ]
     },
     {
       "clause_id": "AK-NC-064",

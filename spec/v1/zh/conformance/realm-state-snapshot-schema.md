@@ -40,6 +40,13 @@ authority bundle 或普通 join snapshot 获得隐藏 stream 列表。
 
 ## 4. 创建与验证
 
+Snapshot 的 `signature` 使用 `ak.realm_snapshot_signature.v1`。unsigned projection 是从完整 closed Snapshot 删除
+`signature` 后保留的全部实际存在成员；验证方对其作 RFC 8785 JCS，重算
+`sha256:lowercase_hex(SHA-256(unsigned_bytes))`，先与 envelope 的 `signed_digest` 逐字比较，再验证
+`UTF8("ak.realm_snapshot_signature.v1\n") || RFC8785_JCS({context,signature_algorithm,verification_method,signed_digest,created_at})`
+上的 64-byte Ed25519 签名。`governance_generation` 必须等于 current authority bundle 已验证的当前治理 Station 任期，
+`verification_method` 必须是该 exact Station 的 service signing key；上一 generation 的有效 key 也必须拒绝。
+
 当前治理 Station 在同一一致性快照中读取 visible stream heads 与 typed current rows，构造 canonical body，
 计算 snapshot ID 并签名。接收方必须验证：
 

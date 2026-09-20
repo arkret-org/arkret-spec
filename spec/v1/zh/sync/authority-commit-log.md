@@ -51,6 +51,14 @@ Event 不指向“上一个 Event”。producer 可能离线签名，且多个 p
 
 每个 `RealmCommit` 必须携带 `stream_ref`、`stream_position` 与 `previous_commit_ref`：
 
+`RealmCommit.signature` 使用 `ak.realm_commit_signature.v1`。签名方必须是
+`governance_generation` 对应、且由已验证 genesis→handoff authority chain 授权的治理 Station service signing
+key；`verification_method` 必须属于该 exact service identity。验证方从完整 Commit 删除 `signature`，对其余实际存在
+成员作 RFC 8785 JCS，重算 `sha256:` 小写 SHA-256 digest；再以
+`UTF8("ak.realm_commit_signature.v1\n") || RFC8785_JCS({context,signature_algorithm,verification_method,signed_digest,created_at})`
+为 Ed25519 输入。验证方必须先逐字比较重算 digest，再按上述 authority chain 解析 key；不得信任 carrier 自报 digest 或
+仅按自报 `verification_method` 选 key。
+
 - `stream_ref` 必须由 Event 的 effective scope 和注册 kind 派生，caller 不得选择；
 - 每条 stream 的 position 从 0 开始严格加一；
 - position 0 的 `previous_commit_ref` 必须为 null；
@@ -127,6 +135,14 @@ Snapshot 是当前治理 Station 签署的 typed current sections，必须绑定
 ## 8. 治理 Station 更换
 
 只支持旧治理方在线的计划 handoff。controller 先提交 `ak.realm.governance_station.change` 到 Realm stream；旧方随后冻结所有 stream，生成包含每条 final head 的 Snapshot，并签署 `RealmAuthorityHandoff`。新方必须完成验证和导入后签署 acceptance。
+
+handoff 的旧方 `ak.realm_authority_handoff_old_signature.v1` 与新方
+`ak.realm_authority_handoff_new_acceptance_signature.v1` 共享同一个 unsigned projection：从完整 handoff 同时删除
+`old_authority_signature` 和 `new_authority_acceptance_signature`，除此之外保留全部实际存在成员。两份
+`signed_digest` 必须相同；旧方 key 必须属于 `from_generation/from_service_id` 在冻结 cut 上仍为 current 的治理
+Station，新方 key 必须属于 `to_generation/to_service_id`，且只能在完整验证并导入 frozen handoff 后签 acceptance。
+两者分别用自己的 context prefix 与完整五成员 signature envelope 按本章 §3 的相同 RFC 8785 JCS、SHA-256、Ed25519
+构造签名；验证方独立重算投影、digest、prefix 和签名输入，且不得互换 old/new context 或 key。
 
 Handoff 必须绑定：连续 generation、旧/新 service identity、change Event、Realm-stream final change Commit、全部 `final_stream_heads` 的 canonical digest、Snapshot ID/digest，以及旧方和新方签名。
 

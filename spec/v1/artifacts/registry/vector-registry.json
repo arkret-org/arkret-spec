@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.12",
+  "version": "2026-09-20.13",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T07:26:35+08:00",
+  "generated_at": "2026-09-20T07:52:58+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1446,6 +1446,18 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/keypackage-write-transcript-fixture.json",
         "spec/v1/zh/crypto-media/device-lifecycle.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.detached_object_signature_transcripts.v1",
+      "status": "active",
+      "domain": "detached_object_signature_transcripts",
+      "applies_to_fixtures": [
+        "detached-object-signature-kat-fixture.json"
+      ],
+      "description": "Six byte-exact Ed25519 detached-object signature transcripts independently reconstruct each closed host projection, JCS SHA-256 digest, context-plus-LF prefix, five-member envelope, signer authority basis and 64-byte unpadded Base64URL signature; handoff old and new signatures share one unsigned projection while using distinct contexts and test keys.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/detached-object-signature-kat-fixture.json"
       ]
     },
     {
