@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.agent_provisioning.v1",
-  "version": "2026-09-20",
+  "version": "2026-09-21",
   "suite": "agent_vectors",
   "runner": {
     "kind": "named_suite",
@@ -447,7 +447,7 @@
           {
             "kind": "detached_jws",
             "verification_method": "did:webvh:z6mkcontroller:controller.example#device-1",
-            "payload_digest": "sha256:0fb2136c651fa229b74763aa8ff34044b8ab8dfb5272e7fc81328bb5a348aa15",
+            "payload_digest": "sha256:b47419a362a8fec4d908e2c505a9363165b987c85d981da597fd2814fe42f1fb",
             "created_at": "2026-04-26T00:00:00.000Z",
             "audience": "https://pair.example/_arkret/gate/account/agent-key-pair",
             "jws": "eyJhbGciOiJFZDI1NTE5In0..c2ln"
