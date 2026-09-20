@@ -182,6 +182,41 @@ class RelationPrimaryDomainCasTest(unittest.TestCase):
             },
         )
 
+    def test_relation_uses_the_shared_canonical_lifecycle_timestamp(self) -> None:
+        prose = (ROOT / "spec" / "v1" / "zh" / "models" / "relation.md").read_text(
+            encoding="utf-8"
+        )
+        common = (
+            ROOT / "spec" / "v1" / "zh" / "models" / "common-fields.md"
+        ).read_text(encoding="utf-8")
+        self.assertNotIn("state_changed_at = Event.created_at", prose)
+        self.assertIn(
+            "max(Event.created_at, accepting RealmCommit.committed_at)", prose
+        )
+        self.assertIn(
+            "max(Event.created_at, accepting_committed_at)", common
+        )
+
+        create = self.rows["ak.relation.create"]["result_writes"][0]
+        update = self.rows["ak.relation.update"]["result_writes"][0]
+        tombstone = self.rows["ak.relation.tombstone"]["result_writes"][0]
+        self.assertIn(
+            {"name": "created_at", "derivation": "object_create_time"},
+            create["derived_members"],
+        )
+        self.assertIn(
+            {"name": "updated_at", "derivation": "object_update_time"},
+            update["derived_members"],
+        )
+        self.assertIn(
+            {"name": "state_changed_at", "derivation": "object_state_transition_time"},
+            tombstone["derived_members"],
+        )
+        self.assertIn(
+            {"name": "updated_at", "derivation": "object_update_time"},
+            tombstone["derived_members"],
+        )
+
 
 if __name__ == "__main__":  # pragma: no cover
     unittest.main()

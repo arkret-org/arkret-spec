@@ -57,7 +57,13 @@ Schema id: `ak.schema.relation.v1`
 
 `relation_kind`、`from_ref`、`to_ref` 共同决定主冲突域，create 后 MUST 锁定；`ak.relation.update` 只可 patch `scope_circle_id`、`rank`、`fields`，触及身份三字段或 `effective_scope` MUST `schema_violation`。改变 kind／端点不是 update 或 move：调用方先以旧 domain 的 exact revision tombstone，再以新 domain 的 current revision（从未写入则 `null`）create 新 RelationId。这是两个独立、可重试、用户可见的操作；协议不提供跨 domain 双 CAS、隐式搬迁或原子 move。
 
-`ak.relation.tombstone` 的可选 `reason` 只保留在 Event 上；接受后执行 `active → tombstoned`，物化 `state_changed_at = Event.created_at`，不把 reason 复制到 Relation 对象。`target_ref`、`expected_state_digest` 及 update-style `patch` 都不是 tombstone 字段。
+`ak.relation.tombstone` 的可选 `reason` 只保留在 Event 上；接受后执行 `active → tombstoned`。
+物化 `state_changed_at` 与 `updated_at` 必须在同一原子写入内分别由
+[`common-fields.md` §3.3](./common-fields.md)
+的 `object_state_transition_time` 与 `object_update_time` 产出，二者均为
+`max(Event.created_at, accepting RealmCommit.committed_at)`；Relation 不定义第二套局部时间公式。
+不把 reason 复制到 Relation 对象。`target_ref`、`expected_state_digest` 及 update-style `patch`
+都不是 tombstone 字段。
 
 ```text
 {
