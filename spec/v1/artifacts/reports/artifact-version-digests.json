@@ -357,9 +357,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/test-material-registry.json",
-      "version": "2026-09-20.2",
-      "generated_at": "2026-09-20T16:42:00+08:00",
-      "content_digest": "sha256:b48ef57710dd0e7f1545843147a87e21d15f891df02f55fc69da040f5ed92d92"
+      "version": "2026-09-21.1",
+      "generated_at": "2026-09-21T00:18:36+08:00",
+      "content_digest": "sha256:e0410483d1249ba441b4debb3a46b15072c01a113dd79ec943871bfbd273fe0c"
     },
     {
       "path": "spec/v1/artifacts/registry/track-name-registry.json",

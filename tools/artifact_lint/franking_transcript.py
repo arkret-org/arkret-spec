@@ -51,6 +51,21 @@ def _verifies(public_key: Any, signature: Any, transcript: Any) -> bool:
     return True
 
 
+def _project_webvh_method_controller(verification_method: Any) -> str | None:
+    """Apply the registered did:webvh -> did_core projection to one DID URL."""
+
+    if not isinstance(verification_method, str) or "#" not in verification_method:
+        return None
+    controller, _fragment = verification_method.rsplit("#", 1)
+    prefix = "did:webvh:"
+    if not controller.startswith(prefix):
+        return None
+    scid = controller.removeprefix(prefix).split(":", 1)[0]
+    if not scid:
+        return None
+    return f"ak:did_core:webvh:{scid}"
+
+
 def check_franking_proof_transcript(lint: Lint) -> None:
     registry = load_json(lint, REGISTRY)
     vectors = load_json(lint, VECTOR_REGISTRY)
@@ -106,6 +121,11 @@ def check_franking_proof_transcript(lint: Lint) -> None:
     expected = {"domain": DOMAIN, **{field: payload.get(field) for field in FIELDS[1:]}}
     if transcript != expected or list(transcript) != FIELDS:
         lint.fail(FIXTURE, "transcript must be the exact ordered seven-field projection")
+    if _project_webvh_method_controller(payload.get("verification_method")) != payload.get("received_by"):
+        lint.fail(
+            FIXTURE,
+            "accept verification_method controller must project exactly to received_by",
+        )
     transcript_jcs = canonical_json(transcript)
     transcript_digest = "sha256:" + hashlib.sha256(transcript_jcs.encode("utf-8")).hexdigest()
     if case.get("transcript_jcs") != transcript_jcs or case.get("transcript_digest") != transcript_digest:
@@ -134,3 +154,9 @@ def check_franking_proof_transcript(lint: Lint) -> None:
             or _verifies(public_key, signature, mutated)
         ):
             lint.fail(FIXTURE, f"mutation of bound field {field} does not fail closed")
+        if field == "verification_method" and isinstance(mutated, dict):
+            if _project_webvh_method_controller(mutated.get("verification_method")) != transcript.get("received_by"):
+                lint.fail(
+                    FIXTURE,
+                    "verification_method mutation must retain the received_by controller so rejection proves signature binding",
+                )

@@ -232,8 +232,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/franking-proof-transcript-fixture.json",
-      "sha256": "602f97f85dcd11532467b90f9de11a4a5d2f436cd2376eca90f1e1f36206a24c",
-      "version": "2026-09-19.1"
+      "sha256": "862864dd59960940071f288cbad1d1e8fdff614ceb837fff0dc81f4b91de22a6",
+      "version": "2026-09-21.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/handle-claim-kat.json",

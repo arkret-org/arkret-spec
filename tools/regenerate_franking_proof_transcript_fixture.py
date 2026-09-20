@@ -23,6 +23,7 @@ FIXTURE = ROOT / "spec" / "v1" / "artifacts" / "fixtures" / "franking-proof-tran
 DOMAIN = "ak.franking_proof.signature.v1"
 PRIVATE_SEED = "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8"
 PUBLIC_KEY = "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg"
+VERSION = "2026-09-21.1"
 
 
 def b64u(raw: bytes) -> str:
@@ -34,7 +35,7 @@ def build_fixture() -> dict[str, Any]:
         "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
         "event_id": "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY",
         "received_by": "ak:did_core:webvh:z6mkfixtureprincipalexample",
-        "verification_method": "did:webvh:z6mkfixture:principal.example#ed25519-2026-05-fixture",
+        "verification_method": "did:webvh:z6mkfixtureprincipalexample:principal.example#ed25519-2026-05-fixture",
         "received_at": "2026-05-02T00:00:00.000Z",
         "replay_nonce": "ZnJhbmtpbmctbm9uY2UtMDE",
     }
@@ -50,7 +51,7 @@ def build_fixture() -> dict[str, Any]:
         "realm_id": "ak:realm:AY4dIxVSke8SdwIRtzd0nLP5OqzL02oENbMkSGDf0lu8",
         "event_id": "ak:event:AYPZ73QecBPnUvir4K5wgH_jtDMWOCIHOY7rhzIZ5vUK",
         "received_by": "ak:did_core:webvh:z6mkotherprincipalexample",
-        "verification_method": "did:webvh:z6mkfixture:principal.example#rotated-key",
+        "verification_method": "did:webvh:z6mkfixtureprincipalexample:principal.example#rotated-key",
         "received_at": "2026-05-02T00:00:01.000Z",
         "replay_nonce": "ZnJhbmtpbmctbm9uY2UtMDI",
     }
@@ -66,6 +67,7 @@ def build_fixture() -> dict[str, Any]:
         )
 
     return {
+        "version": VERSION,
         "suite": "franking_proof_transcript",
         "vector_id": "ak.vector.moderation.franking_proof_transcript.v1",
         "runner": {
