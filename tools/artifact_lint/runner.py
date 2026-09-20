@@ -203,6 +203,7 @@ from .prose import (
 from .safety import (
     check_action_reference_closure,
     check_alg_registry,
+    check_consent_current_clean_break,
     check_applet_install_epoch_evidence_carrier,
     check_device_messages_cursor_binding,
     check_error_code_closure,
@@ -894,6 +895,7 @@ def main(argv: list[str] | None = None) -> int:
         [
             ("error_uniqueness", lambda: check_error_code_registry_uniqueness(lint)),
             ("error_mapping", lambda: check_operations_error_mapping_closure(lint)),
+            ("consent_current_clean_break", lambda: check_consent_current_clean_break(lint)),
             ("fixture_reasons", lambda: check_fixture_reject_reason_closure(lint)),
             ("error_closure", lambda: check_error_code_closure(lint)),
             (

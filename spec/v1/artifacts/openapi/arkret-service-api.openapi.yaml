@@ -32,7 +32,7 @@ info:
 
     prose. The typed surface currently covers `ak.self.events.{command.submit, resource.get,
 
-    read.scan, stream.subscribe}`, `ak.peer.events.{command.submit, read.resolve_committed, read.scan}`, `ak.self.account.{read.viewer,
+    read.scan, stream.subscribe}`, `ak.peer.events.{command.submit, read.scan}`, `ak.self.account.{read.viewer,
     stream.subscribe, command.update_profile}`, `ak.gate.account.{command.register, command.revoke_session}`, `ak.self.realm_state_snapshot.read.manifest_head.v1`,
 
     `ak.root.identity.{read.resolve, document.resource.get, receipts.read.list, command.submit_did_operation}`, `ak.self.authz.{read.check,
@@ -43,7 +43,7 @@ info:
 
     and `peer_submit_request` / `peer_submit_outcome` definitions in authority-commit-operations.schema.json; Event reads use `EventView`,
 
-    `CommittedEventResolveRequest` / `CommittedEventResolveOutcome`, `stream_scan_request` / `stream_scan_outcome`
+    `stream_scan_request` / `stream_scan_outcome`
     (authority-commit-operations.schema.json),
 
     `RealmCommit`, `SignalSubmitOutcome`,

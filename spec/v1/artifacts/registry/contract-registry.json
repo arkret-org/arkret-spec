@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-21.3",
+  "version": "2026-09-21.4",
   "source_of_truth": true,
-  "generated_at": "2026-09-21T03:47:00+08:00",
+  "generated_at": "2026-09-21T05:30:53+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -14849,7 +14849,7 @@
         "http": "POST /_arkret/self/consent/results/revoke",
         "grpc": "SelfConsent/Revoke",
         "mq": "self.consent.command.revoke",
-        "notes": "Submits the caller-signed ak.consent.revoke Event carried in revoke_event through authority Event submission. Its payload.revoked_event_refs MUST enumerate the active grant dots being removed for the (consent_id, peer, consent_scope), read back from consent_view.active_grant_dots. Revoking consent_scope=any cascades all concrete scopes and MUST still enumerate every dot; revoking a concrete scope leaves others intact.",
+        "notes": "Submits the caller-signed ak.consent.revoke Event carried in revoke_event through authority Event submission. The payload identifies exactly one stable consent_id and expected_revision; the governing Station performs an atomic current-row CAS and sets that Consent to revoked. No grant dots or revoked_event_refs exist. An any-scope Consent is independent: revoking it does not cascade to concrete-scope Consent rows; clients that intend to revoke multiple rows must sign one exact-revision Event per consent_id.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
@@ -16089,8 +16089,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-21.2",
-    "generated_at": "2026-09-21T03:47:00+08:00",
+    "version": "2026-09-21.3",
+    "generated_at": "2026-09-21T05:30:53+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",

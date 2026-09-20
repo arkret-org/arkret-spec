@@ -25,11 +25,13 @@ Consent 不授予 Realm capability，也不替代目标 Realm 的 membership、p
 - 完整 peer ActorId；
 - `consent_scope`；
 - 可选 `not_before`、`expires_at`、约束、证据引用与理由；
-- `active | revoked | expired` 状态。
+- `active | revoked` reducer 状态；`expired` 不是物化状态，而是读取／准入时对 `not_before`、`expires_at` 的窗口判定。
 
 current revision 不是 value 的成员：typed current result 的 `revision` 与 `value` 同层，是封闭的 `{commit_id, stream_position}`（见 [`sync/current-results.md` §2](../sync/current-results.md)），`commit_id` 即产生该 revision 的 RealmCommit。
 
 同一 `consent_id` 在任一时刻只有一个 current value。治理 Station按 PCR Realm stream 的 Commit 顺序执行 reducer；协议不暴露集合标签、写索引或合流元数据。
+
+holder-private `ConsentView.state` 逐字映射这一 current 状态，`ConsentList.consents[]` 只列有稳定 `consent_id` 与 exact current revision 的记录；不存在的 Consent 不以伪 `no_consent` row 表示。请求待处理不是 Consent current 状态，也不得从无记录或时间戳猜成 `pending`。如产品需要待处理列表，必须另行注册具备来源与生命周期的 holder-private request carrier。
 
 ## 3. Event
 

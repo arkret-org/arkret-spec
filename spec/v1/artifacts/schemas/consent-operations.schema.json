@@ -47,7 +47,7 @@
       "type": "string",
       "enum": [
         "active",
-        "no_consent"
+        "revoked"
       ]
     },
     "consent_view": {
@@ -75,9 +75,6 @@
           "$ref": "#/$defs/consent_state"
         },
         "expires_at": {
-          "$ref": "#/$defs/timestamp"
-        },
-        "requested_at": {
           "$ref": "#/$defs/timestamp"
         },
         "updated_at": {

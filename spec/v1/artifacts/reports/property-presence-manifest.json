@@ -15,10 +15,10 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 8774,
+    "total_properties": 8773,
     "total_schema_documents": 163,
     "by_presence_class": {
-      "optional": 2129,
+      "optional": 2128,
       "optional_defaulted": 47,
       "required": 6149,
       "required_nullable": 294,
@@ -3813,7 +3813,6 @@
         "/$defs/consent_view/properties/consent_scope": "required",
         "/$defs/consent_view/properties/expires_at": "optional",
         "/$defs/consent_view/properties/peer": "required",
-        "/$defs/consent_view/properties/requested_at": "optional",
         "/$defs/consent_view/properties/revision": "required",
         "/$defs/consent_view/properties/state": "required",
         "/$defs/consent_view/properties/updated_at": "required"

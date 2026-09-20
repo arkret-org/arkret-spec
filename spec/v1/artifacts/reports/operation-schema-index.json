@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-21.3",
+  "version": "2026-09-21.4",
   "source_of_truth": false,
-  "generated_at": "2026-09-21T03:47:00+08:00",
+  "generated_at": "2026-09-21T05:30:53+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -5484,7 +5484,6 @@
           "consent_scope",
           "state",
           "expires_at",
-          "requested_at",
           "updated_at",
           "revision"
         ],
@@ -5550,7 +5549,6 @@
           "consent_scope",
           "state",
           "expires_at",
-          "requested_at",
           "updated_at",
           "revision"
         ],
@@ -5592,7 +5590,6 @@
           "consent_scope",
           "state",
           "expires_at",
-          "requested_at",
           "updated_at",
           "revision"
         ],
