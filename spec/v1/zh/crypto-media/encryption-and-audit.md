@@ -148,6 +148,10 @@ encrypted Event 与 recipient delivery 可以晚于对应 Commit 被客户端观
 新 member 或 endpoint 只从其 Add/Welcome epoch 获得密文读取能力。治理 Station不得发送加入前 standard MLS secret，
 也不得从 public tree恢复 private state。
 
+**晚到 epoch 材料与审计标记的边界（normative）**：密文先到、该接收端合法 Add/Welcome 与连续 MLS transition 后到，仍按本节普通 `decryption_pending` → verified timeline 路径处理；客户端必须逐项验证原 encrypted Event 的 accepted historical group binding、自己的目标 epoch private state，以及该 Event 所在 stream 的已授权历史可见范围。正常重试不得因为本地材料晚到而被废止，也不得从当前 roster、Event 到达顺序或跨 stream 的裸 `stream_position` 猜原事件时点的成员关系。若既有可验证 MLS/stream 证据不完整，继续保持密文 pending／不可见；持有密钥字节本身不构成访问权。
+
+`ak.audit.accessed{access_kind="e2ee_late_recovery",late_recovery_original_event_id}` 仅是受授权写入的访问审计记录，不是历史成员证明、epoch-to-commit 证明、解密成功回执或客户端展示许可。v1 不登记独立晚到恢复明文展示捷径、强制“旧消息刚解密”横幅或专属 wire 拒绝码；客户端 MUST NOT 因看见此 audit Event、未登记 raw JSON 布尔标记、当前成员列表或旧 history-secret 捷径而解锁原密文。若未来要提供超出本节普通 MLS 路径的晚到恢复，必须另行闭合接收者完整 ActorId、原 Event/effective scope/epoch、跨 stream 已接纳历史基数及受限读取权限；不得借本审计字段隐式补足。
+
 #### 2.4.1 Membership 与 Epoch 不一致窗口
 
 治理 Station为每个 MLS scope维护单调无符号 64 位整数 `key_access_revision`，初始值为 `0`。current membership、leaf endpoint authorization、

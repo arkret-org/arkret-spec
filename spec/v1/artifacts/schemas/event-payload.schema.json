@@ -1523,7 +1523,7 @@
         "late_recovery_original_event_id": {
           "$ref": "#/$defs/event_ref",
           "x-arkret-preimage-commitment": "fixed_event",
-          "description": "Required when access_kind=e2ee_late_recovery; identifies the original encrypted event whose plaintext became available through late key recovery."
+          "description": "Required when access_kind=e2ee_late_recovery; identifies the original encrypted event recorded by this audit marker. The marker is not historical membership proof, an epoch-to-commit proof, a decrypt-success receipt, or authorization to reveal plaintext. Ordinary verified MLS pending-decrypt retry remains separate."
         },
         "purpose": {
           "type": "string",

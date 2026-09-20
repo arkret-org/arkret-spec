@@ -142,7 +142,7 @@
         },
         "late_recovery_original_event_id": {
           "$ref": "#/$defs/event_id",
-          "description": "REQUIRED (at the application layer) when access_kind == e2ee_late_recovery. References the original event the late recovery targets."
+          "description": "REQUIRED (at the application layer) when access_kind == e2ee_late_recovery. References the original encrypted event for audit only; this marker does not prove historical membership or authorize plaintext disclosure."
         }
       },
       "additionalProperties": false
