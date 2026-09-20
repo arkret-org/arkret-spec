@@ -1056,6 +1056,7 @@ _SUPPLY_CALLER_SIGNED_SCHEMAS = frozenset(
         "cancel_receipt",
         "AcceptedDevicePossessionProof",
         "AgentSessionRefreshProof",
+        "AgentSessionGrantRequest",
         "keypackages_claim_service_binding",
         # The compensation executor assembles this closed transport-only
         # carrier from its own signed delegation plus the terminal failure

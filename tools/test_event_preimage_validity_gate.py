@@ -100,13 +100,13 @@ class EventPreimageValidityGateTest(unittest.TestCase):
         )
 
     def test_empty_refs_array_fails(self) -> None:
-        # `"refs": []` violates the envelope minItems. The absent-vs-empty
+        # `"semantic_refs": []` violates the envelope minItems. The absent-vs-empty
         # distinction is exactly what encoding.md 6.0.2(a)(2) forbids collapsing.
         def mutate(fixture):
             self._patch_preimage(
                 fixture,
                 "strand_object_id_is_retyped_event_id",
-                lambda envelope: envelope.__setitem__("refs", []),
+                lambda envelope: envelope.__setitem__("semantic_refs", []),
             )
 
         errors = self._validity_errors(mutate)

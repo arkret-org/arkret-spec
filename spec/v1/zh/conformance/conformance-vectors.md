@@ -191,7 +191,7 @@ envelope `actor_id`、follow-up MUST 在登记白名单内、整个 unit 原子�
 等待期间的可观测结果只能是本地的 `queued` / `forwarding` 或明确失败，协议不新增共享 pending 返回值。
 
 `ak.vector.authority_commit_projection.causal_predecessor_unavailable_fails_closed.v1` MUST 证明：
-`refs[role=causal]` 指向的前驱在本地不可解析或尚未取得有效 `RealmCommit` 时，依赖它的 Event MUST fail closed 或保持本地等待，
+`semantic_refs[role=causal]` 指向的前驱在本地不可解析或尚未取得有效 `RealmCommit` 时，依赖它的 Event MUST fail closed 或保持本地等待，
 MUST NOT 被静默接受、补造前驱或按到达顺序自行判定成立；前驱取得 Commit 后同一 Event 才可被接纳。
 
 `ak.vector.authority_commit_projection.revoked_authorization_fails_closed.v1` MUST 证明：
@@ -204,7 +204,7 @@ producer proof 或 `RealmCommit` 签名无效、绑定错误 `governance_generat
 MUST NOT 降级为“签名可疑但内容看起来合理”的接受路径。
 
 `ak.vector.authority_commit_projection.exact_retry_preserves_authorization_and_cas.v1` MUST 证明：
-以 exact 相同 canonical bytes 重试等待中的 Event 时，`refs[role=authorized_by]` 与领域 `expected_revision`
+以 exact 相同 canonical bytes 重试等待中的 Event 时，`semantic_refs[role=authorized_by]` 与领域 `expected_revision`
 MUST 逐字保留：重试 MUST NOT 剥除授权引用、MUST NOT 把陈旧 CAS 改写成当前值、也 MUST NOT 因为“已经试过一次”而跳过
 当前授权重判。陈旧 CAS 的重试仍 MUST 以确定性失败被拒，不产生 Commit。
 
@@ -322,10 +322,6 @@ subject 来源；哈希化 subject、URI fragment 截断与 caller 自行分配�
 digest 输入恰好删除 `event_id`、`producer_proof`、`unsigned` 三个成员；canonical binding bytes 与 detached JWS 逐字节固定；
 同一未签名 body 在 `ak.extension_manifest_proof.v1` 下重放 MUST 拒绝。
 
-`ak.vector.proof_context.transcript.event_batch_receipt.v1` MUST 证明：`ak.receipt_proof.v1` 的 transcript KAT——
-digest 输入删除 `producer_proof`；canonical binding bytes 与 detached JWS 逐字节固定；同一未签名 body 在
-`ak.registration_did_evidence_control_proof.v1` 下重放 MUST 拒绝。
-
 `ak.vector.encoding.derived_relation_evidence.v1` MUST 证明：机器 fixture 中每一条派生结论都以它所命名的
 输入被重算，而不是与输入并列书写。每条关系 MUST 声明封闭词表中的 relation、其全部输入引用与输出引用；引用只能是
 同一 fixture 内的 case 或跨 fixture 文件的 JSON pointer。引用不可解析、解析为 `null`、输入键集与该 relation 的
@@ -438,15 +434,6 @@ Station 与 generation-0 governance Station 不同，从而把“一个 DID 在�
 第二次 genesis 必然得到不同 `realm_id`，因此 MUST NOT 由标识相等触发拒绝；向量以独立 state case 给出显式前置状态、
 零写入与判定依据（[`../models/realm-and-space.md` §2.5](../models/realm-and-space.md)）。
 
-`ak.vector.device_pairing.split_admission_saga.v1` MUST 证明：分离部署下三项 public open operation 仍只在
-Station origin 可见，却逐项通过已登记 internal operation 复用 exact request/outcome DTO；public stage 的两次调用
-使用不同 internal key，而同一次调用的内部重试稳定复用 key 并返回 byte-identical outcome，resolve/status 全程只读。
-Account Authority 是唯一 pending/abuse/fence/terminal owner，pair_device 只用 peer Event submit 的
-`authority_forward` branch 提交 frozen `authorize_event`。向量必须覆盖 same/changed intent 并发、五个 crash cut、
-同一 RealmCommit exact replay、receipt identity/generation/Realm/stream/EventRef/bytes 任一错配、terminal rejection
-回滚、fenced record 的 TTL/budget/finalize 保护、无 `in_progress` public state、completed replay 无第二 Event，以及
-非 owning Station internal 直调拒绝。
-
 `ak.vector.signer_key.historical_commit_coordinate.v1` MUST 证明：account subscribe 与 per-stream scan 的已验证
 `stream_row{commit,event}` 是 historical signer selector 唯一坐标来源；两个 historical selector 都携完整
 `committed_event_ref` 并拒绝裸 `event_id`。selector target 与 key `authorization_ref` 分别验证且允许不相等；
@@ -547,7 +534,7 @@ MUST NOT 被当作本向量的替代证据。
 
 `ak.vector.sdk.envelope_forbidden_top_level_fields.v1` MUST 证明：`hlc`、`producer_revision`、`domain_refs`、
 `requirements` 出现在 Event 顶层时逐个以 `schema_violation` 被拒，而不是被忽略或剥除；`producer_proof`、`scope_ref`、
-`actor_id` 与 `refs[role=authorized_by]` 各自缺失时同样被拒，且不从默认值、传输层、会话或相邻 Event 合成替代值后
+`actor_id` 与 `semantic_refs[role=authorized_by]` 各自缺失时同样被拒，且不从默认值、传输层、会话或相邻 Event 合成替代值后
 进入验证路径。
 
 `ak.vector.sdk.unknown_critical_feature_fail_closed.v1` MUST 证明：声明了本构建不识别的 critical extension 的

@@ -803,7 +803,7 @@ binding 尚不存在时普通 DM participant authority 未激活，因此 **MUST
 
 每条 Event **MUST** 使用该 source 的 registered `authorization_ref`/proof context 并携 action-specific critical refs；owned Agent 分支仍叠加 controller delegation。wire 承载是 `authorization_ref` 的封闭常量
 `direct_conversation_bootstrap_authority_ref`（值为 `ak.authority.direct_conversation_bootstrap_participant.v1`），
-**MUST** 恰好配一条 critical `refs[role=direct_conversation_founding_unit]` 指向该 unit 的 accepted
+**MUST** 恰好配一条 critical `semantic_refs[role=direct_conversation_founding_unit]` 指向该 unit 的 accepted
 `ak.realm.create`；binding 尚不存在，因此该阶段 **MUST NOT** 使用 `direct_conversation_binding` ref role 或
 `ak.authority.direct_conversation_participant.v1`。phase 由 verifier 从 accepted facts 重算，producer 不得在 wire
 上声明。首个合法 binding endorsement accepted 后两 phase **MUST** 永久退出，后续业务动作只走

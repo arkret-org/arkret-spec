@@ -416,7 +416,7 @@ provider/room/Realm/Strand/MLS group 与 current key-access revision、来源 pr
 目标 Message 的修改/删除权限。HTTP provider signature 只证明来源传输，不能替代 Event
 proof，也不能把外部 sender 的 authority 转授给 facade。两种 admission 分支不得同时匹配。
 
-Arkret native 客户端发送到 MIMI room 时，facade MUST 将 signed Arkret event 转换为 MIMI message，并把 MIMI provider accepted timestamp / message id 写回可验证 receipt 或 interop metadata。不得把 MIMI provider accepted timestamp 当作 Arkret event 的 creation truth；timeline 排序仍以 Arkret HLC / reducer 规则为准。
+Arkret native 客户端发送到 MIMI room 时，facade MUST 将 signed Arkret Event 转换为 MIMI message，并把 MIMI provider accepted timestamp / message id 写回可验证 receipt 或 interop metadata。不得把 MIMI provider accepted timestamp 当作 Arkret Event 的 creation truth 或排序权：同一 Arkret stream 的事实顺序只由已验证 RealmCommit 的 `stream_position` 与 `previous_commit_ref` 决定；跨 stream 没有协议总序，只能使用已登记的 caller-scoped 展示排序规则。
 
 ## 8. Content Mapping
 
@@ -614,5 +614,5 @@ Arkret v1 的 MIMI 支持固定为 facade profile：
 - 不用 MIMI room id 替代 `realm_id`。
 - 不用 MIMI user identifier 替代 DID。
 - 不绕过 Arkret capability state-changing Event refs 与本地授权检查。
-- 不把 MIMI provider accepted timestamp 替代 Arkret HLC / event hash。
+- 不把 MIMI provider accepted timestamp 当作 Arkret Event ID、RealmCommit 顺序、授权、接纳或 finality 的替代物。
 - 支持 MIMI 草案版本 pinning，并允许未来 profile 处理草案变化。

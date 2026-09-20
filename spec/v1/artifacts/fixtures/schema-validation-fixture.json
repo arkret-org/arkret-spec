@@ -1,7 +1,7 @@
 {
   "suite": "schema_validation",
   "profile": "ak.vector_group.privacy_security.v1",
-  "version": "2026-09-19.1",
+  "version": "2026-09-20",
   "description": "Minimal positive and negative schema-validation cases for core wire objects. tools/artifact_lint validates schema_validation_cases[] against schema_ref.",
   "runner": {
     "kind": "json_schema_validation_cases",
@@ -98,128 +98,6 @@
         "canonical_bytes_base64url": "eyJ2ZXJzaW9uSWQiOiIyLWZpeHR1cmUifQ",
         "digest": "sha256:355328413688da845d249c9fd70b13d0a79d5b4e9e6ee874dcddf2bae9d1a4cf"
       }
-    },
-    {
-      "name": "psi_padded_problem_quota_exhausted_valid",
-      "schema_ref": "schemas/directory-operations.schema.json#/$defs/psi_padded_problem",
-      "expect_valid": true,
-      "instance": {
-        "type": "https://arkret.org/problems/psi_quota_exhausted",
-        "title": "Psi quota exhausted",
-        "status": 429,
-        "detail": "psi quota exhausted for this device in the current quota window",
-        "instance": "ak:request:0196429a-0000-7000-8000-0000000000aa",
-        "padding": "    "
-      }
-    },
-    {
-      "name": "psi_padded_problem_policy_denied_valid",
-      "schema_ref": "schemas/directory-operations.schema.json#/$defs/psi_padded_problem",
-      "expect_valid": true,
-      "instance": {
-        "type": "https://arkret.org/problems/policy_denied",
-        "title": "Policy denied",
-        "status": 403,
-        "detail": "private contact discovery is disabled for this requester",
-        "instance": "ak:request:0196429a-0000-7000-8000-0000000000ab",
-        "padding": "    "
-      }
-    },
-    {
-      "name": "psi_padded_problem_duplicate_conflict_valid",
-      "schema_ref": "schemas/directory-operations.schema.json#/$defs/psi_padded_problem",
-      "expect_valid": true,
-      "instance": {
-        "type": "https://arkret.org/problems/duplicate_conflict",
-        "title": "Duplicate conflict",
-        "status": 409,
-        "detail": "batch id was reused with different canonical request bytes",
-        "instance": "ak:request:0196429a-0000-7000-8000-0000000000ac",
-        "padding": "    "
-      }
-    },
-    {
-      "name": "psi_padded_problem_batch_unavailable_valid",
-      "schema_ref": "schemas/directory-operations.schema.json#/$defs/psi_padded_problem",
-      "expect_valid": true,
-      "instance": {
-        "type": "https://arkret.org/problems/psi_batch_unavailable",
-        "title": "Psi batch unavailable",
-        "status": 410,
-        "detail": "private contact discovery batch is unavailable",
-        "instance": "ak:request:0196429a-0000-7000-8000-0000000000ad",
-        "padding": "    "
-      }
-    },
-    {
-      "name": "psi_padded_problem_old_envelope_rejected",
-      "schema_ref": "schemas/directory-operations.schema.json#/$defs/psi_padded_problem",
-      "expect_valid": false,
-      "first_expected_error": "contains:is a required property",
-      "instance": {
-        "ok": false,
-        "error": {
-          "code": "psi_quota_exhausted",
-          "message": "quota exhausted"
-        },
-        "request_id": "ak:request:0196429a-0000-7000-8000-0000000000aa",
-        "padding": "    "
-      }
-    },
-    {
-      "name": "psi_padded_problem_extra_extension_rejected",
-      "schema_ref": "schemas/directory-operations.schema.json#/$defs/psi_padded_problem",
-      "expect_valid": false,
-      "first_expected_error": "contains:Additional properties are not allowed",
-      "instance_from": "psi_padded_problem_quota_exhausted_valid",
-      "mutations": [
-        {
-          "op": "add",
-          "path": "/request_id",
-          "value": "ak:request:0196429a-0000-7000-8000-0000000000aa"
-        }
-      ]
-    },
-    {
-      "name": "psi_padded_problem_type_status_mismatch_rejected",
-      "schema_ref": "schemas/directory-operations.schema.json#/$defs/psi_padded_problem",
-      "expect_valid": false,
-      "first_expected_error": "contains:is not valid under any of the given schemas",
-      "instance_from": "psi_padded_problem_quota_exhausted_valid",
-      "mutations": [
-        {
-          "op": "replace",
-          "path": "/status",
-          "value": 403
-        }
-      ]
-    },
-    {
-      "name": "psi_padded_problem_missing_padding_rejected",
-      "schema_ref": "schemas/directory-operations.schema.json#/$defs/psi_padded_problem",
-      "expect_valid": false,
-      "first_expected_error": "contains:'padding' is a required property",
-      "instance_from": "psi_padded_problem_quota_exhausted_valid",
-      "mutations": [
-        {
-          "op": "remove",
-          "path": "/padding"
-        }
-      ]
-    },
-    {
-      "name": "psi_padded_problem_non_space_padding_rejected",
-      "schema_ref": "schemas/directory-operations.schema.json#/$defs/psi_padded_problem",
-      "expect_valid": false,
-      "first_expected_error": "contains:does not match '^ *$'",
-      "instance_from": "psi_padded_problem_quota_exhausted_valid",
-      "mutations": [
-        {
-          "op": "replace",
-          "path": "/padding",
-          "value": " x "
-        }
-      ]
     }
   ]
 }

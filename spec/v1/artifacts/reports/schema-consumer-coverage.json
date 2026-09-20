@@ -41,22 +41,22 @@
     "unresolved": "no direct vector or reviewed higher-level coverage owner has been identified; this is a release blocker."
   },
   "summary": {
-    "total_schemas": 224,
+    "total_schemas": 222,
     "by_consumer": {
-      "declared_wire": 56,
+      "declared_wire": 55,
       "event_kind": 8,
-      "inbound": 52,
-      "outbound": 64,
-      "prose": 105,
+      "inbound": 50,
+      "outbound": 61,
+      "prose": 103,
       "prose_only": 2,
-      "schema_reference": 163,
-      "startup_compile": 224,
-      "vectors": 112
+      "schema_reference": 162,
+      "startup_compile": 222,
+      "vectors": 111
     },
     "without_wire_consumer": 1,
     "explicit_prose_only": 2,
     "unresolved_consumer_coverage": 0,
-    "without_vector_coverage": 112,
+    "without_vector_coverage": 111,
     "unresolved_vector_disposition": 0
   },
   "without_wire_consumer": [
@@ -125,7 +125,6 @@
     "ak.schema.invite_receive_policy.v1",
     "ak.schema.keypackage_operations.v1",
     "ak.schema.keys_operations.v1",
-    "ak.schema.list_handles_for_subject_response.v1",
     "ak.schema.media_operations.v1",
     "ak.schema.media_service_binding_outcome.v1",
     "ak.schema.media_service_binding_request.v1",
@@ -1054,12 +1053,11 @@
         "disposition": "operation_e2e_owned",
         "owners": [
           "ak.open.realm_authority.read.bundle.v1",
+          "ak.peer.committed_event.read.scan.v1",
           "ak.peer.events.command.submit.v1",
-          "ak.peer.events.read.resolve_committed.v1",
-          "ak.peer.events.read.scan.v1",
           "ak.peer.realm_authority.command.handoff.v1",
-          "ak.self.events.command.submit.v1",
-          "ak.self.events.read.scan.v1"
+          "ak.self.committed_event.read.scan.v1",
+          "ak.self.events.command.submit.v1"
         ],
         "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
       }
@@ -1255,6 +1253,21 @@
       }
     },
     {
+      "schema_id": "ak.schema.committed_event_subscribe_frame.v1",
+      "file": "schemas/committed-event-subscribe-frame.schema.json",
+      "consumers": {
+        "outbound": "exact",
+        "schema_reference": "exact",
+        "startup_compile": "exact",
+        "vectors": "required_schema"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "direct",
+        "evidence": "required_schema"
+      }
+    },
+    {
       "schema_id": "ak.schema.common_ids.v1",
       "file": "schemas/common-ids.schema.json",
       "consumers": {
@@ -1317,6 +1330,7 @@
           "ak.schema.capability.v1",
           "ak.schema.circle.v1",
           "ak.schema.circle_operations.v1",
+          "ak.schema.committed_event_subscribe_frame.v1",
           "ak.schema.consent_operations.v1",
           "ak.schema.contact_operations.v1",
           "ak.schema.contact_remark.v1",
@@ -1339,9 +1353,7 @@
           "ak.schema.erasure_receipt_operations.v1",
           "ak.schema.erasure_verification_stub.v1",
           "ak.schema.event.v1",
-          "ak.schema.event_batch_receipt.v1",
           "ak.schema.event_payload.v1",
-          "ak.schema.events_subscribe_frame.v1",
           "ak.schema.extension_manifest.v1",
           "ak.schema.grant_constraint.v1",
           "ak.schema.handle_claim.v1",
@@ -1362,7 +1374,6 @@
           "ak.schema.key_transparency.v1",
           "ak.schema.keypackage_operations.v1",
           "ak.schema.keys_operations.v1",
-          "ak.schema.list_handles_for_subject_response.v1",
           "ak.schema.media_metadata.v1",
           "ak.schema.media_operations.v1",
           "ak.schema.media_service_binding_outcome.v1",
@@ -1593,17 +1604,19 @@
       "schema_id": "ak.schema.controller_account_gate_attestation_issue_outcome.v1",
       "file": "schemas/agent-authority-evidence.schema.json",
       "consumers": {
-        "outbound": "exact",
         "schema_reference": "exact",
         "startup_compile": "exact"
       },
       "wire_covered": true,
       "vector_coverage": {
-        "disposition": "operation_e2e_owned",
+        "disposition": "composed_schema_owned",
         "owners": [
-          "ak.gate.account.command.issue_controller_gate_attestation.v1"
+          "ak.schema.agent_authority_state_attestation.v1",
+          "ak.schema.agent_authority_state_evidence.v1",
+          "ak.schema.controller_account_gate_attestation.v1",
+          "ak.schema.controller_account_gate_attestation_issue_request_body.v1"
         ],
-        "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
+        "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
       },
       "fragment": "#/$defs/controller_account_gate_attestation_issue_outcome"
     },
@@ -1611,17 +1624,19 @@
       "schema_id": "ak.schema.controller_account_gate_attestation_issue_request_body.v1",
       "file": "schemas/agent-authority-evidence.schema.json",
       "consumers": {
-        "inbound": "exact",
         "schema_reference": "exact",
         "startup_compile": "exact"
       },
       "wire_covered": true,
       "vector_coverage": {
-        "disposition": "operation_e2e_owned",
+        "disposition": "composed_schema_owned",
         "owners": [
-          "ak.gate.account.command.issue_controller_gate_attestation.v1"
+          "ak.schema.agent_authority_state_attestation.v1",
+          "ak.schema.agent_authority_state_evidence.v1",
+          "ak.schema.controller_account_gate_attestation.v1",
+          "ak.schema.controller_account_gate_attestation_issue_outcome.v1"
         ],
-        "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
+        "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
       },
       "fragment": "#/$defs/controller_account_gate_attestation_issue_request_body"
     },
@@ -1728,7 +1743,6 @@
       "vector_coverage": {
         "disposition": "operation_e2e_owned",
         "owners": [
-          "ak.gate.account.read.resolve_device_pairing.v1",
           "ak.open.device_pairing.read.resolve.v1"
         ],
         "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
@@ -1748,10 +1762,7 @@
         "disposition": "operation_e2e_owned",
         "owners": [
           "ak.gate.account.command.finalize_device_pairing.v1",
-          "ak.gate.account.command.stage_device_pairing.v1",
           "ak.gate.account.read.claim_device_pairing_code.v1",
-          "ak.gate.account.read.device_pairing_status.v1",
-          "ak.gate.account.read.resolve_device_pairing.v1",
           "ak.open.device_pairing.command.stage.v1",
           "ak.open.device_pairing.read.resolve.v1",
           "ak.open.device_pairing.read.status.v1"
@@ -1783,8 +1794,6 @@
       "file": "schemas/device-revocation-state.schema.json",
       "consumers": {
         "event_kind": "registered",
-        "inbound": "fragment",
-        "outbound": "fragment",
         "prose": "normative_text",
         "schema_reference": "fragment",
         "startup_compile": "exact",
@@ -1873,17 +1882,8 @@
       "vector_coverage": {
         "disposition": "operation_e2e_owned",
         "owners": [
-          "ak.find.directory.read.list_handles_for_subject.v1",
-          "ak.find.directory.read.private_contact_discovery.v1",
-          "ak.find.directory.read.resolve_agent_selector.v1",
-          "ak.find.directory.read.resolve_handle.v1",
-          "ak.find.directory.read.resolve_organization.v1",
           "ak.find.directory.read.resolve_realm.v1",
-          "ak.find.directory.read.resolve_target.v1",
-          "ak.find.directory.read.search_actors.v1",
-          "ak.find.directory.read.search_organizations.v1",
-          "ak.find.directory.read.search_realms.v1",
-          "ak.find.directory.read.search_users.v1"
+          "ak.find.directory.read.search_realms.v1"
         ],
         "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
       }
@@ -2014,48 +2014,12 @@
       }
     },
     {
-      "schema_id": "ak.schema.event_batch_receipt.v1",
-      "file": "schemas/event-batch-receipt.schema.json",
-      "consumers": {
-        "declared_wire": "dynamic_schema_ref",
-        "prose": "normative_text",
-        "schema_reference": "exact",
-        "startup_compile": "exact",
-        "vectors": "required_schema"
-      },
-      "wire_covered": true,
-      "vector_coverage": {
-        "disposition": "direct",
-        "evidence": "required_schema"
-      },
-      "consumer_binding": {
-        "kind": "dynamic_schema_ref",
-        "selector": "schema=ak.schema.event_batch_receipt.v1",
-        "normative_ref": "zh/conformance/encoding.md"
-      }
-    },
-    {
       "schema_id": "ak.schema.event_payload.v1",
       "file": "schemas/event-payload.schema.json",
       "consumers": {
         "inbound": "exact",
         "prose": "normative_text",
         "schema_reference": "fragment",
-        "startup_compile": "exact",
-        "vectors": "required_schema"
-      },
-      "wire_covered": true,
-      "vector_coverage": {
-        "disposition": "direct",
-        "evidence": "required_schema"
-      }
-    },
-    {
-      "schema_id": "ak.schema.events_subscribe_frame.v1",
-      "file": "schemas/events-subscribe-frame.schema.json",
-      "consumers": {
-        "outbound": "exact",
-        "schema_reference": "exact",
         "startup_compile": "exact",
         "vectors": "required_schema"
       },
@@ -2486,23 +2450,6 @@
           "ak.self.keys.command.claim.v1",
           "ak.self.keys.read.lookup.v1",
           "ak.self.keys.upload.create.v1"
-        ],
-        "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
-      }
-    },
-    {
-      "schema_id": "ak.schema.list_handles_for_subject_response.v1",
-      "file": "schemas/list-handles-for-subject-response.schema.json",
-      "consumers": {
-        "outbound": "exact",
-        "prose": "normative_text",
-        "startup_compile": "exact"
-      },
-      "wire_covered": true,
-      "vector_coverage": {
-        "disposition": "operation_e2e_owned",
-        "owners": [
-          "ak.find.directory.read.list_handles_for_subject.v1"
         ],
         "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
       }
@@ -3338,7 +3285,6 @@
       "vector_coverage": {
         "disposition": "composed_schema_owned",
         "owners": [
-          "ak.schema.directory_operations.v1",
           "ak.schema.invite_delivery.v1",
           "ak.schema.invite_delivery_request.v1",
           "ak.schema.realm_join_bootstrap_outcome.v1",
@@ -3773,7 +3719,7 @@
       "consumer_binding": {
         "kind": "standalone_schema_alias",
         "selector": "generic SDK consumer projection over the three exact resource discovery-state Event payloads",
-        "normative_ref": "zh/discovery/discovery-directory.md#3-realm-discoverability"
+        "normative_ref": "zh/discovery/discovery-directory.md#2-可索引条件normative"
       },
       "fragment": "#/$defs/resource_discovery_state"
     },
@@ -4180,7 +4126,6 @@
           "ak.schema.contact_remark.v1",
           "ak.schema.contact_scope_update.v1",
           "ak.schema.did_binding_contracts.v1",
-          "ak.schema.directory_operations.v1",
           "ak.schema.event_payload.v1",
           "ak.schema.handle_claim.v1",
           "ak.schema.handle_claim_core.v1",
@@ -4188,7 +4133,6 @@
           "ak.schema.invite_delivery_request.v1",
           "ak.schema.keypackage_operations.v1",
           "ak.schema.keys_operations.v1",
-          "ak.schema.list_handles_for_subject_response.v1",
           "ak.schema.member_identity.v1",
           "ak.schema.mimi_operations.v1",
           "ak.schema.morph.v1",
@@ -4273,7 +4217,6 @@
           "ak.schema.erasure_receipt_operations.v1",
           "ak.schema.erasure_verification_stub.v1",
           "ak.schema.event.v1",
-          "ak.schema.event_batch_receipt.v1",
           "ak.schema.event_payload.v1",
           "ak.schema.extension_manifest.v1",
           "ak.schema.file_transfer.v1",
@@ -4294,7 +4237,6 @@
           "ak.schema.key_transparency.v1",
           "ak.schema.keypackage_operations.v1",
           "ak.schema.keys_operations.v1",
-          "ak.schema.list_handles_for_subject_response.v1",
           "ak.schema.media_service_binding_outcome.v1",
           "ak.schema.media_service_binding_request.v1",
           "ak.schema.member_identity.v1",

@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-20.5",
-  "generated_at": "2026-09-20T07:07:58+08:00",
+  "version": "2026-09-20.6",
+  "generated_at": "2026-09-20T16:42:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -981,24 +981,6 @@
       "status": "active"
     },
     {
-      "code": "psi_batch_unavailable",
-      "http_status": 410,
-      "scope": "both",
-      "description": "The private-contact-discovery batch is unavailable for match or replay because it is unknown, belongs to another authenticated device credential, or exceeded batch_completion_ttl_seconds (after which its pinned VOPRF epoch may be released). These causes intentionally share one response. A conforming provider MUST retain the pinned epoch for the full completion TTL. Returned as a padded PSI Class B RFC 9457 Problem Details; callers must start a new blind batch, subject to the existing PSI quota. See zh/discovery/discovery-directory.md §6.4.",
-      "type_uri": "https://arkret.org/problems/psi_batch_unavailable",
-      "title": "Psi batch unavailable",
-      "status": "active"
-    },
-    {
-      "code": "psi_quota_exhausted",
-      "http_status": 429,
-      "scope": "both",
-      "description": "The authenticated device exhausted `max_psi_queries_per_window` for private contact discovery in the current quota window. Returned only at first blind admission, before any target is evaluated; admitted match and exact retries MUST NOT be quota-denied. The response is a PSI Class B RFC 9457 Problem Details with required top-level ASCII-SP padding, exact phase Content-Length bucket, no Content-Encoding/content coding, and the advertised anti-enumeration delay distribution. It MUST carry a decimal-seconds `Retry-After` rounded up to a 300s multiple (minimum 300). Distinct from generic `rate_limited` and from 403 `quota_exceeded`. See zh/discovery/discovery-directory.md §6.3/§6.4.",
-      "type_uri": "https://arkret.org/problems/psi_quota_exhausted",
-      "title": "Psi quota exhausted",
-      "status": "active"
-    },
-    {
       "code": "timeout",
       "http_status": 504,
       "scope": "both",
@@ -1176,15 +1158,6 @@
       "description": "The proposed_group_genesis_binding differs from the signed Genesis binding, from the winning concurrently accepted Genesis binding, or is supplied after an accepted Genesis already exists. The losing caller MUST discard the proposal-bound proof, re-query without a proposal against the winning immutable binding, and MUST NOT reuse the old query/cache entry.",
       "type_uri": "https://arkret.org/problems/mls_genesis_binding_proposal_mismatch",
       "title": "MLS genesis binding proposal mismatch",
-      "status": "active"
-    },
-    {
-      "code": "handle_unverified",
-      "http_status": 403,
-      "scope": "endpoint",
-      "description": "A handle or alias exists but lacks a verifiable current claim binding for the requested operation.",
-      "type_uri": "https://arkret.org/problems/handle_unverified",
-      "title": "Handle unverified",
       "status": "active"
     },
     {
@@ -1488,7 +1461,7 @@
       "code": "policy_combination_invalid",
       "http_status": 422,
       "scope": "both",
-      "description": "The submitted Realm policy combination (discoverability Ã— join_rule Ã— history_access) violates the v1 normative compatibility matrix in zh/discovery/discovery-directory.md §3.1. Reducer keeps the prior accepted state.",
+      "description": "The submitted Realm policy combination (discoverability × join_rule × history_access) violates the Realm policy compatibility rules. Reducer keeps the prior accepted state.",
       "type_uri": "https://arkret.org/problems/policy_combination_invalid",
       "title": "Policy combination invalid",
       "status": "reserved",
@@ -3284,7 +3257,7 @@
         "authz",
         "event_auth_state"
       ],
-      "description": "The grant referenced by refs[role=authorized_by] or an ancestor grant in its delegation chain has been revoked, superseded, expired, or tombstoned.",
+      "description": "The grant referenced by semantic_refs[role=authorized_by] or an ancestor grant in its delegation chain has been revoked, superseded, expired, or tombstoned.",
       "status": "reserved",
       "activation_condition": "Promote authorized_grant_revoked to active only in the same release that adds a canonical machine producer path under spec/v1/artifacts outside reports and this registry."
     },
@@ -4099,15 +4072,6 @@
       "status": "active"
     },
     {
-      "code": "handle_subject_mismatch",
-      "applies_to": [
-        "auth_decision",
-        "service_call"
-      ],
-      "description": "Handle resolution returned an AccountId that does not match the expected applicant, member, or invitee account. Clients and reducers MUST reject the candidate before building invite or join material. See zh/identity/identity-handles.md §3.7.",
-      "status": "active"
-    },
-    {
       "code": "harassment",
       "applies_to": [
         "moderation_report"
@@ -4844,14 +4808,6 @@
         "pcr_genesis"
       ],
       "description": "The deterministic Principal Control Realm already has a different authoritative genesis unit. The receiver MUST perform zero writes and MUST NOT replace the accepted founding device.",
-      "status": "active"
-    },
-    {
-      "code": "pcr_genesis_not_first",
-      "applies_to": [
-        "pcr_genesis"
-      ],
-      "description": "Genesis admission was attempted after the PCR checkpoint ceased to be empty, or after a PCR genesis receipt already existed. The caller must use device pairing or PCR-policy re-anchor.",
       "status": "active"
     },
     {
@@ -5944,7 +5900,7 @@
       "applies_to": [
         "client_sync"
       ],
-      "description": "One authorized commit stream cannot be continued from the caller's durable cursor: the tail range between that cursor and the stream's current head is unavailable to this service (retention or history floor reached, or the durable range is otherwise not servable). It is per-stream and scoped to exactly one stream_ref, so the client re-acquires the snapshot and tail for that stream alone and MUST NOT reset other Realm / Circle / Sidecar streams, the account baseline or to-device ACKs. It is NOT the same as an empty tail: an authorized stream that is simply at its head returns zero items and `accepted`. It is also NOT interchangeable with the absence bucket of ak.peer.events.read.resolve_committed.v1, whose contract returns only exact matches with zero return and zero side effects so that non-existence, lost authorization and a hidden scope stay indistinguishable; emitting this code for a stream the caller may not read, or for one that does not exist, would turn that anti-enumeration bucket into an oracle. Only a stream the caller is currently authorized to read may be reported with it. See zh/sync/client-sync.md section 3.",
+      "description": "One authorized commit stream cannot be continued from the caller's durable cursor: the tail range between that cursor and the stream's current head is unavailable to this service (retention or history floor reached, or the durable range is otherwise not servable). It is per-stream and scoped to exactly one stream_ref, so the client re-acquires the snapshot and tail for that stream alone and MUST NOT reset other Realm / Circle / Sidecar streams, the account baseline or to-device ACKs. It is NOT the same as an empty tail: an authorized stream that is simply at its head returns zero items and `accepted`. emitting this code for a stream the caller may not read, or for one that does not exist, would turn that anti-enumeration bucket into an oracle. Only a stream the caller is currently authorized to read may be reported with it. See zh/sync/client-sync.md section 3.",
       "status": "active"
     },
     {
@@ -6279,7 +6235,7 @@
       "applies_to": [
         "auth_decision"
       ],
-      "description": "A `ak.strand.watch.set` write that uses `ak.strand.watch.set.others` to set another actor's watch state was rejected because it lacked refs[role=audit_pair] to a same-batch `ak.audit.accessed` event, or the paired audit payload did not identify the same writer DID, target actor DID, typed current result id, paired event id/digest, and before/after heads. See zh/models/strand-and-message.md §8.4.",
+      "description": "A `ak.strand.watch.set` write that uses `ak.strand.watch.set.others` to set another actor's watch state was rejected because it lacked semantic_refs[role=audit_pair] to a same-batch `ak.audit.accessed` event, or the paired audit payload did not identify the same writer DID, target actor DID, typed current result id, paired event id/digest, and before/after heads. See zh/models/strand-and-message.md §8.4.",
       "status": "reserved",
       "activation_condition": "Promote watch_set_others_audit_missing to active only in the same release that adds a canonical machine producer path under spec/v1/artifacts outside reports and this registry."
     },

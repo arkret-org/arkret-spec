@@ -342,11 +342,9 @@ Arkret v1 core **不定义**用户注册、handle 申请、邀请审批、管理
 2. issuer / Auth Server / 部署本地 API MAY 让用户选择 handle、提交申请、触发人工审批、由管理员直接分配、续签或撤销；这些 API 的 endpoint、权限模型、通知机制和状态机不属于 v1 core。
 3. 这些外部流程一旦要把结果暴露给 Arkret 客户端或其它服务，MUST 输出完整 `ak.schema.handle_claim.v1` status view；revoked 必须内联独立 revocation carrier。仅让 Directory / roster 不再返回该 claim 不能证明撤销，未签名 issuer-side 状态不得替代 carrier。
 
-已知 exact `subject_account_id` 时，客户端 / renderer 优先使用 roster 内联 `handle_claims[]` 构造候选集。`ak.find.directory.read.list_handles_for_subject.v1` 的查询与响应 echo 均使用完整 `account_id: AccountId`；返回 view 的 `claim.subject_account_id` 必须与请求逐字相等，不得把同 core 的其它 Station 账号作为本账号。已知 handle 字符串时使用 `ak.find.directory.read.resolve_handle.v1`，返回 view 同样按完整 AccountId 验证。
 
 contact request / invite / member-add 不再把 `resolve_handle(intent="contact_request" | "invite" | "member_add")` 作为 base 安全路径；正式 invite 寻址见 [`../sync/invite-addressing.md`](../sync/invite-addressing.md) 的 `invite_address + introduction_evidence` 模型，联系人请求见 [`contact-and-direct-conversation.md`](./contact-and-direct-conversation.md) 的 `contact_address + introduction_evidence` 模型。Directory 可选返回的 handle claim / candidate 只能作为 introduction evidence 或 builder evidence，不能替代显式 address、principal locator、receive policy 或 Join Policy 复核。
 
-管理员或 issuer 后期修改 handle 的可见效果由 claim/status set 变化驱动：issuer 签发新 immutable core、发布带 revocation carrier 的 `status=revoked` view、或 core expiry / signed `fresh_until` 变化后，`ak.find.directory.read.list_handles_for_subject.v1` 和 roster hint MUST 反映新的 effective status-view set。客户端 MAY 发布新的 `ak.member.identity.update` 来刷新 display-profile cache，但这不是 handle 变更生效的条件。
 
 ### 3.2.3 Registration and Invitation Strands（informative）
 
@@ -395,7 +393,7 @@ AccountId 和独立 claim，不能只更换显示 handle。
 verifier MUST 验证 canonical handle、closed AccountId、issuer authority、proof、audience、created_at/expires_at、撤销状态
 与 intent disclosure policy。任一 AccountId 分量缺失或不匹配、同 core 但 server 不同、unknown JSON member、claim
 过期或 issuer 无权时 MUST fail closed。解析返回的 AccountId 与预期 applicant、member 或 invitee 账号不一致时，
-reducer 与客户端 MUST 以 `handle_subject_mismatch` 拒绝该候选，不得据其构造 invite 或 join 材料。
+reducer 与客户端 MUST 拒绝该候选，不得据其构造 invite 或 join 材料。这是本地验证失败，不是 Directory 的公开错误面。
 通过这些检查仍只得到寻址结果，不能直接写 membership。
 ### 3.8 Mention Reference 与 Display Snapshot（normative）
 
@@ -515,7 +513,6 @@ holder 的实时身份面还 MUST 应用 [`discovery/client-preferences.md` §3.
 - 旧事件内的 mention / profile reference 权威字段是 `subject_account_id`，subject 不变；
 - 渲染时按 §3.2.1 解析当前 primary handle，得到新 domain 的 handle 字符串；
 - 历史事件本身**不需要**rewrite、migration script 或 schema upgrade；
-- 唯一需要的 issuer-side 操作是按 §6 批量重发 handle_claim（new domain），随后 Directory withdraw 旧 entry；当前显示投影随 issuer / Auth Server 刷新路径、`ak.find.directory.read.list_handles_for_subject.v1` 或 roster claim hints 的下一次刷新自然更新，不要求任何 `ak.member.identity.update`。
 
 domain 迁移因此从"全网事件改写工程"降级为"issuer 侧 batch 签名 + claim cache TTL 冷却"。事件内的 `handle_at_time` metadata 与 issuer 的 as-of claim ledger 让 audit 仍可重建任意历史时刻的 handle 字符串。
 
@@ -563,8 +560,6 @@ holder DID Document: subject_account_id → handle   (列入 alsoKnownAs，holde
 
 Handle 解析分为两个方向：
 
-- **handle → subject**：输入是 canonical `handle = <localpart>:<domain>`（或 normalize 自显示形态），使用 `ak.find.directory.read.resolve_handle.v1` 或下列 issuer discovery 路径；invite/member-add 的 base 投递不得依赖该方向。
-- **subject/context → current handles**：输入是 exact `subject_account_id`、当前 Realm / audience / requester context，使用 `ak.find.directory.read.list_handles_for_subject.v1` 或 roster 内联 `handle_claims[]`。该方向用于 member roster、mention renderer 和 issuer 重签 / 撤销 claim 后的显示刷新。
 
 已知 handle 时，自己 Station 的 verifier 按以下顺序尝试 issuer，第一个成功签发可验证 claim 的就是该 handle 的 issuer：
 
@@ -576,12 +571,10 @@ Handle 解析分为两个方向：
      - **纯 resolver（只索引 / 转发、自身签不了 handle claim 的服务）MUST NOT 占用该路径返回未签名的 issuer-probe 结果。** 纯 resolver 在 `.well-known/arkret/handle` 的合规行为只有两种：(a) **不提供该端点 / 返回 `404`**；或 (b) **显式委托**到上游可签发 issuer（例如 HTTP 重定向到该 issuer 的 well-known，或在响应中给出可独立验签的上游 `source_refs` 指向 signed claim）。它 MUST NOT 在该路径返回任何未签名的 handle / subject / probe payload——否则 verifier 会把一个签不了 claim 的服务误当 issuer，污染 §5 的 issuer 选择与 §6 的双向验证。
      - resolver 想暴露"这个 handle 我索引到哪个 subject / issuer"这类 **issuer-probe / 索引查询**，MUST 走产品私有面（私有 API、内部 directory query 等），不得借用 `.well-known/arkret/handle`。需要被 Arkret verifier 采信时，走第 3 步 signed Directory response（`ak.schema.handle_claim.v1` + `source_refs`），而不是未签名 probe。
 2. **DNS TXT**：`_arkret.<domain>` 或 `_arkret.<localpart>.<domain>`。仅当 DNSSEC validation 成功**且** TXT 内含可验证签名时才能作为 issuer 通道；裸 DNS TXT 只是发现 hint。
-3. **Directory / Organization 服务**：`POST /_arkret/find/directory/resolve-handle`（[`discovery/discovery-directory.md` §9.0](../discovery/discovery-directory.md)）或 `POST /_arkret/find/directory/list-handles-for-subject`（已知 subject 时）。response 仍是签名 `ak.schema.handle_claim.v1`。
 4. **Bridge / 外部 issuer**：当 handle 来自 bridge 或外部体系（例如组织自有 IDP），claim 由该体系签发并通过 §7 VC presentation 出示。
 
 解析结果 MUST 包含 §3.2 列出的字段；audience / scope / expiry 决定使用范围。multiple issuer 同时签发同一 handle 时，verifier 先按 §3.2.1 的域授权与 `issuer_class` 收敛：有效 `domain_authority` claim 优先于 delegated issuer，二者都优先于 Directory mirror；Directory claim 的 `source_refs` MUST 验证到该域权威根，否则直接排除。只有同一最高 issuer class 内仍存在不同 `subject_account_id` 的有效 claim 才 MUST fail closed 并交人工处理。低 authority 冲突不得让已经验证的域权威绑定失效，从而避免镜像 issuer 注入冲突造成解析 DoS。
 
-账号侧 claim 管理不走 Directory 搜索，但 v1 core 也不定义账号侧管理 API：当前登录 principal 如何在注册、换设备、管理员修改或 claim 续期后拿到自己的 claims，是 issuer / Auth Server / 部署本地 bootstrap 的职责。Directory 只解析已经签发且对调用方可见的 claims；它不得被当作 handle 申请、审批或管理员治理接口。`ak.find.directory.read.list_handles_for_subject.v1` MUST 应用与 `resolve_handle` 相同的 visibility、audience、requester proof、不可区分拒绝与限速规则；未授权调用方不得通过已知 subject 枚举其受限组织 handle。
 
 Handle 解析示例：
 
@@ -927,7 +920,6 @@ Verifier MUST 原子消费 `(verifier_id, request_id, challenge)`。同一 wire 
 - `acct:<percent-encoded-localpart>@<A-label-domain>` 是 `handle_aliases[]` 中的 RFC 7565 alias，不含 port；它不是 canonical handle，也不参与 Arkret 内部唯一性比较。
 - **Handle 字符串的 wire-level 作用域**（normative）：handle 字符串作为 wire-level **权威字段**（actor reference、authorization subject、audit attribution、解析输入）MUST 只在以下三类位置出现：
   1. **Handle claim lifecycle 对象与 issuer / Auth Server 本地管理请求**：`ak.schema.handle_claim.v1`、issuer / Auth Server 定义的申请、审批、重签、撤销、Directory withdraw、handle reassignment 等显式管理 handle 生命周期的请求、响应、签名 claim 与 audit receipt。这些管理 API 不属于 Arkret v1 core，但一旦在 Arkret wire 上作为 claim evidence 被消费，必须产出可验证的 `ak.schema.handle_claim.v1` 或明确的 revocation / audit evidence。
-  2. **Discovery / Directory query 请求与响应**：`/.well-known/arkret/handle?localpart=...`、`POST /_arkret/find/directory/resolve-handle`、`POST /_arkret/find/directory/list-handles-for-subject` 等解析路径的输入与输出。
   3. **客户端入口解析瞬间**：用户键入 handle 字符串到客户端 → 客户端解析为 `subject_account_id` 的临时过程；解析完成后 handle 字符串 MUST NOT 作为权威字段写入持久化事件、Realm history、grant 记录、ACL 表或缓存键以外的存储。
 
   以下位置是**允许的派生投影 / audit 例外**，handle 字符串在其中不构成权威源：

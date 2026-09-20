@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.2",
+  "version": "2026-09-20",
   "source_of_truth": true,
-  "generated_at": "2026-09-19T19:00:49+08:00",
+  "generated_at": "2026-09-20T16:42:00+08:00",
   "description": "Canonical closed state machine for the single client-local durable transaction that carries one encrypted effective scope from the creator's explicit genesis intent to MLS write-ready. It is the machine-readable form of zh/crypto-media/encryption-and-audit.md section 5.1.2 and the only source a conforming client uses to decide what it must persist, in what order, and which single next arrow a recoverer may execute.",
   "registry_rules": [
     "This record is client-local normative durable state protected by the device secret. It is not a wire object, not a Realm Event, not an Account Data key and not a server transaction. It MUST NOT enter the ak.realm.create payload, any current projection or query result, client sync or federation.",
@@ -113,7 +113,7 @@
       "state_id": "realm_accepted",
       "ordinal": 2,
       "kind": "progress",
-      "authority_source": "own_station_accepted_realm_create_event",
+      "authority_source": "accepted_realm_create_event_from_own_station",
       "entry_predicate": "The client obtained an accepted ak.realm.create from its own Station, either as the submit result or by exact resolve, and an exact accepted-Genesis query for this scope returned a definite absent. An unknown result, a timeout or a missing projection MUST NOT enter this state.",
       "required_durable_fields": [
         "accepted Realm-create Event id and the digest of its exact accepted bytes",

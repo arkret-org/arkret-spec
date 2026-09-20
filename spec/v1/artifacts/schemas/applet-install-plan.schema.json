@@ -223,11 +223,13 @@
           "type": "object",
           "additionalProperties": true
         },
-        "refs": {
+        "semantic_refs": {
           "type": "array",
+          "minItems": 1,
+          "maxItems": 128,
+          "uniqueItems": true,
           "items": {
-            "type": "object",
-            "additionalProperties": true
+            "$ref": "./event-envelope.schema.json#/$defs/semantic_ref"
           }
         }
       },

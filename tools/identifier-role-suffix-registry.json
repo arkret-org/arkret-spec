@@ -1,5 +1,5 @@
 {
-  "version": "2026-08-28",
+  "version": "2026-09-20",
   "source_of_truth": false,
   "normative_rule": "NC-IDROLE-001",
   "forbidden_arkret_owned_fields": [
@@ -30,18 +30,6 @@
         "did_core_id": "Stable peer service or principal core named by a receipt."
       },
       "reason": "Contact concurrency needs exact actor equality while independent receipt subjects use a stable DID core; no individual occurrence is polymorphic."
-    },
-    {
-      "field": "resource_id",
-      "representation_profiles": [
-        "actor_id",
-        "did_core_id"
-      ],
-      "profile_meanings": {
-        "actor_id": "Exact actor resource stored by the actor-discovery projection.",
-        "did_core_id": "Stable DID-core branch of the directory withdrawal resource selector."
-      },
-      "reason": "Discovery projections preserve exact actors, while the directory withdrawal union separately admits a stable DID-core resource branch."
     },
     {
       "field": "revoked_by",

@@ -605,19 +605,10 @@ def check_service_describe_alignment(lint: Lint) -> None:
         lint.fail(schema_path, "ServiceDescribe.properties.trust_domain missing")
     if "trust_domain" not in (component.get("properties") or {}):
         lint.fail(openapi_path, "components.schemas.ServiceDescribe.properties.trust_domain missing")
-    directory_fields = {
-        "resource_kinds",
-        "restricted_query_proof",
-        "accept_policy_kind",
-        "accept_policy_ref",
-        "default_ttl_seconds",
-        "max_ttl_seconds",
-        "revalidation_grace_seconds",
-        "accepted_resource_kinds",
-        "accepted_did_methods",
-        "takedown_contact",
-        "rate_limits",
-    }
+    # The Directory describe projection exposes only the closed public-Realm
+    # resource family.  Policy, PSI, DID-method and takedown configuration are
+    # service-private and MUST NOT be advertised on the shared describe shape.
+    directory_fields = {"resource_kinds"}
     schema_properties = service_schema.get("properties") or {}
     openapi_properties = component.get("properties") or {}
     for field in sorted(directory_fields):
@@ -882,9 +873,9 @@ def check_openapi_core_selector_constraints(lint: Lint) -> None:
         if not isinstance(schema, dict) or schema.get("$ref") != ref:
             lint.fail(openapi_path, f"{operation_id}.{name} parameter must reference {ref}")
 
-    expect_any_of("ak.self.events.stream.subscribe.v1", [["realm_ids"], ["actor_ids"]])
-    expect_array_param("ak.self.events.stream.subscribe.v1", "realm_ids", "#/components/schemas/RealmId")
-    subscribe = op("ak.self.events.stream.subscribe.v1")
+    expect_any_of("ak.self.committed_event.stream.subscribe.v1", [["realm_ids"], ["actor_ids"]])
+    expect_array_param("ak.self.committed_event.stream.subscribe.v1", "realm_ids", "#/components/schemas/RealmId")
+    subscribe = op("ak.self.committed_event.stream.subscribe.v1")
     if subscribe is not None:
         actor_param = next((p for p in subscribe.get("parameters", []) if p.get("name") == "actor_ids"), {})
         actor_schema = actor_param.get("schema", {})
@@ -900,15 +891,15 @@ def check_openapi_core_selector_constraints(lint: Lint) -> None:
             or "ActorId" not in actor_param.get("description", "")
         ):
             lint.fail(openapi_path, "events subscribe actor_ids must use repeated percent-encoded JCS ActorId values")
-    expect_param_ref("ak.self.events.stream.subscribe.v1", "after", "#/components/schemas/Cursor")
-    expect_param_ref("ak.self.events.resource.get.v1", "event_id", "#/components/schemas/EventId")
+    expect_param_ref("ak.self.committed_event.stream.subscribe.v1", "after", "#/components/schemas/Cursor")
+    expect_param_ref("ak.self.committed_event.resource.get.v1", "event_id", "#/components/schemas/EventId")
     expect_param_ref("ak.self.realm_state_snapshot.read.manifest_head.v1", "realm_id", "#/components/schemas/RealmId")
 
-    query_body = op("ak.self.events.read.scan.v1")
+    query_body = op("ak.self.committed_event.read.scan.v1")
     if query_body is not None:
         schema = resolve_openapi_schema_node(lint, openapi_path, openapi.get("components", {}).get("schemas", {}), openapi_request_schema(query_body))
         if not isinstance(schema, dict):
-            lint.fail(openapi_path, "ak.self.events.read.scan.v1 requestBody schema missing")
+            lint.fail(openapi_path, "ak.self.committed_event.read.scan.v1 requestBody schema missing")
         else:
             # One scan request selects exactly one authority stream and walks it
             # by continuous stream_position, so the body names a single
@@ -917,7 +908,7 @@ def check_openapi_core_selector_constraints(lint: Lint) -> None:
             if schema.get("required") != expected_required:
                 lint.fail(
                     openapi_path,
-                    "ak.self.events.read.scan.v1 requestBody must require exactly "
+                    "ak.self.committed_event.read.scan.v1 requestBody must require exactly "
                     f"{expected_required}",
                 )
             # Direction is carried by which position parameter is present, not by
@@ -938,14 +929,14 @@ def check_openapi_core_selector_constraints(lint: Lint) -> None:
             if schema.get("oneOf") != expected_direction_choice:
                 lint.fail(
                     openapi_path,
-                    "ak.self.events.read.scan.v1 requestBody must require exactly one of "
+                    "ak.self.committed_event.read.scan.v1 requestBody must require exactly one of "
                     "after_position / before_position",
                 )
             if schema.get("additionalProperties") is not False:
-                lint.fail(openapi_path, "ak.self.events.read.scan.v1 requestBody must be closed")
+                lint.fail(openapi_path, "ak.self.committed_event.read.scan.v1 requestBody must be closed")
             properties = schema.get("properties")
             if not isinstance(properties, dict):
-                lint.fail(openapi_path, "ak.self.events.read.scan.v1 requestBody properties missing")
+                lint.fail(openapi_path, "ak.self.committed_event.read.scan.v1 requestBody properties missing")
             else:
                 for name, ref in (
                     ("realm_id", "./common-ids.schema.json#/$defs/realm_id"),
@@ -953,12 +944,12 @@ def check_openapi_core_selector_constraints(lint: Lint) -> None:
                 ):
                     property_schema = properties.get(name)
                     if not isinstance(property_schema, dict):
-                        lint.fail(openapi_path, f"ak.self.events.read.scan.v1.{name} property missing")
+                        lint.fail(openapi_path, f"ak.self.committed_event.read.scan.v1.{name} property missing")
                         continue
                     if property_schema.get("$ref") != ref and not schema_ref_targets(
                         property_schema, ref.rsplit("/", 1)[-1]
                     ):
-                        lint.fail(openapi_path, f"ak.self.events.read.scan.v1.{name} must reference {ref}")
+                        lint.fail(openapi_path, f"ak.self.committed_event.read.scan.v1.{name} must reference {ref}")
                 for position_name in ("after_position", "before_position"):
                     position_schema = properties.get(position_name)
                     if not isinstance(position_schema, dict) or position_schema.get("oneOf") != [
@@ -967,12 +958,12 @@ def check_openapi_core_selector_constraints(lint: Lint) -> None:
                     ]:
                         lint.fail(
                             openapi_path,
-                            f"ak.self.events.read.scan.v1.{position_name} must be a non-negative "
+                            f"ak.self.committed_event.read.scan.v1.{position_name} must be a non-negative "
                             "stream position or null",
                         )
                 limit = properties.get("limit")
                 if not isinstance(limit, dict) or limit.get("type") != "integer" or limit.get("minimum") != 1:
-                    lint.fail(openapi_path, "ak.self.events.read.scan.v1.limit must be a bounded positive integer")
+                    lint.fail(openapi_path, "ak.self.committed_event.read.scan.v1.limit must be a bounded positive integer")
 
 
 

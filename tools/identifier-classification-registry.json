@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 11,
+  "version": 12,
   "kind": "identifier_classification_registry",
   "source_of_truth": false,
   "generated_from": [
@@ -26,8 +26,8 @@
     "unregistered_object_identifier"
   ],
   "type_derived_summary": {
-    "typed_object_id": 932,
-    "responsibility_identity_material": 573,
+    "typed_object_id": 905,
+    "responsibility_identity_material": 539,
     "registry_catalog_symbol": 15
   },
   "pending_rename_convergence": [],
@@ -143,8 +143,8 @@
       "name": "claim_id",
       "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"], [\"type\", \"\\\"string\\\"\"]]",
       "category": "unregistered_object_identifier",
-      "occurrences": 4,
-      "example_path": "directory-operations.schema.json#/$defs/directory_presented_claim/properties/claim_id",
+      "occurrences": 3,
+      "example_path": "keypackage-operations.schema.json#/$defs/peer_keypackages_claim_unsigned_request/properties/claim_id",
       "reason": "Names a durable Arkret object whose kind is not registered in id-kind-registry.json; convergence is to register the kind or retype the field.",
       "pending_convergence": true
     },
@@ -265,7 +265,7 @@
       "name": "did_version_id",
       "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"]]",
       "category": "external_system_identifier",
-      "occurrences": 3,
+      "occurrences": 2,
       "example_path": "principal-operations.schema.json#/$defs/pcr_genesis_submit_request/properties/did_version_id",
       "reason": "did:webvh DID Log coordinate copied verbatim; its lexical space belongs to the external method."
     },
@@ -612,20 +612,20 @@
       "reason": "Caller/service request correlation token scoped to its operation and not an Arkret object identity."
     },
     {
+      "name": "request_id",
+      "terminal_signature": "[[\"format\", \"uuid\"], [\"pattern\", \"^(?!ak:)[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$\"]]",
+      "category": "opaque_correlation",
+      "occurrences": 2,
+      "example_path": "service-operation-dtos.schema.json#/$defs/DirectoryAnnounceRequestBody/properties/request_id",
+      "reason": "Caller-generated UUID scoped to one Directory announce or withdrawal request; it correlates exact retries and carries no authority by itself."
+    },
+    {
       "name": "resource_id",
       "terminal_signature": "[[\"format\", \"arkret-canonical-handle\"], [\"pattern\", \"^(?!ak:)\"], [\"pattern\", \"^(?!ak:)[^\\\\s:@/#?\\\\\\\\]+:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\\\\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$\"]]",
       "category": "external_system_identifier",
       "occurrences": 1,
       "example_path": "event-payload.schema.json#/$defs/handle_discovery_state_payload/properties/resource_id",
-      "reason": "Canonical Handle coordinate in the external domain-owned handle namespace; the enclosing discovery event binds it to the Arkret resource projection without turning it into a typed object ID."
-    },
-    {
-      "name": "resource_id",
-      "terminal_signature": "[[\"pattern\", \"^(?:ak:(realm):[A-Za-z0-9_-]{44}|ak:(applet):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$\"], [\"pattern\", \"^[a-z0-9][a-z0-9._+-]{0,127}:[a-z0-9.-]{1,253}$\"], [\"pattern\", \"^ak:did_core:[a-z0-9]+:[^\\\\s/?#]+$\"]]",
-      "category": "typed_object_id",
-      "occurrences": 1,
-      "example_path": "service-operation-dtos.schema.json#/$defs/DirectoryWithdrawRequestBody/properties/resource_id",
-      "reason": "Admits more than one identifier form including at least one the type table cannot read; 2.1.2 requires a `_ref` name for a genuinely polymorphic reference."
+      "reason": "Canonical Handle coordinate in the external domain-owned handle namespace; the enclosing Realm-local projection binds it without turning it into a typed object ID."
     },
     {
       "name": "revokes_statement_id",

@@ -1,12 +1,12 @@
 {
-  "version": 5,
+  "version": 6,
   "source_of_truth": false,
   "narrative_source": "spec/v1/zh/models/common-fields.md#r6-证据类名词分工",
   "scope": [
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 344,
+  "audited_occurrence_count": 339,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -353,7 +353,7 @@
     {
       "file": "contract-registry.json",
       "key": "deployment_evidence",
-      "occurrences": 34,
+      "occurrences": 32,
       "disposition": "registry_contract",
       "reason": "References the registered implementation prototype or normative role requirement that proves one frozen operation bundle support vector."
     },
@@ -523,13 +523,6 @@
         "commitment"
       ],
       "reason": "Authoring material returned by the creation_required resolver outcome so the founder can construct the unit at all; it is consumed to author the four Events and is not echoed back on the self founding submission. Same closed XOR branches and same material families as the service-operation-dtos.schema.json federation registration."
-    },
-    {
-      "file": "event-batch-receipt.schema.json",
-      "key": "registration_evidence_digest",
-      "occurrences": 1,
-      "disposition": "qualifier",
-      "reason": "Reverse-binding commitment to the complete frozen registration DID evidence accepted for PCR genesis."
     },
     {
       "file": "event-kind-registry.json",
@@ -845,7 +838,7 @@
     {
       "file": "operation-registry.json",
       "key": "deployment_evidence",
-      "occurrences": 34,
+      "occurrences": 32,
       "disposition": "registry_contract",
       "reason": "Generated operation-bundle projection of the canonical deployment evidence references."
     },

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.19",
+  "version": "2026-09-20.21",
   "source_of_truth": false,
-  "generated_at": "2026-09-20T12:55:00+08:00",
+  "generated_at": "2026-09-20T16:44:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -161,17 +161,6 @@
           "rate_limit_policy",
           "egress_network_policy",
           "resource_kinds",
-          "private_contact_discovery",
-          "restricted_query_proof",
-          "accept_policy_kind",
-          "accept_policy_ref",
-          "default_ttl_seconds",
-          "max_ttl_seconds",
-          "revalidation_grace_seconds",
-          "accepted_resource_kinds",
-          "accepted_did_methods",
-          "takedown_contact",
-          "rate_limits",
           "verified_profiles",
           "interop_surfaces",
           "development_mode",
@@ -448,16 +437,27 @@
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceRequestBody",
         "schema_kind": "object",
         "required": [
-          "discovery_event",
-          "source_ref_access",
-          "as_of"
+          "realm_id",
+          "directory_id",
+          "discoverability",
+          "public_metadata",
+          "authority_generation",
+          "request_id",
+          "issued_at",
+          "expires_at",
+          "governance_proof"
         ],
         "properties": [
-          "discovery_event",
-          "source_ref_access",
-          "as_of",
-          "ttl_seconds",
-          "supersedes_announce_id"
+          "realm_id",
+          "directory_id",
+          "discoverability",
+          "public_metadata",
+          "authority_generation",
+          "request_id",
+          "issued_at",
+          "expires_at",
+          "supersedes_announce_id",
+          "governance_proof"
         ],
         "closed": true
       },
@@ -487,14 +487,21 @@
         "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawRequestBody",
         "schema_kind": "object",
         "required": [
-          "resource_id",
+          "realm_id",
+          "directory_id",
+          "authority_generation",
+          "request_id",
+          "issued_at",
           "governance_proof"
         ],
         "properties": [
-          "resource_id",
+          "realm_id",
+          "directory_id",
+          "authority_generation",
+          "request_id",
+          "issued_at",
           "reason",
-          "governance_proof",
-          "effective_at"
+          "governance_proof"
         ],
         "closed": true
       },
@@ -554,17 +561,6 @@
           "rate_limit_policy",
           "egress_network_policy",
           "resource_kinds",
-          "private_contact_discovery",
-          "restricted_query_proof",
-          "accept_policy_kind",
-          "accept_policy_ref",
-          "default_ttl_seconds",
-          "max_ttl_seconds",
-          "revalidation_grace_seconds",
-          "accepted_resource_kinds",
-          "accepted_did_methods",
-          "takedown_contact",
-          "rate_limits",
           "verified_profiles",
           "interop_surfaces",
           "development_mode",
@@ -576,422 +572,33 @@
       }
     },
     {
-      "operation_id": "ak.find.directory.read.list_handles_for_subject.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_list_handles_for_subject_request_body",
-        "schema_kind": "object",
-        "required": [
-          "account_id"
-        ],
-        "properties": [
-          "account_id",
-          "realm_id",
-          "intent",
-          "requester_id",
-          "proof_challenge",
-          "proofs",
-          "as_of",
-          "cursor",
-          "limit"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/list-handles-for-subject-response.schema.json",
-        "schema_kind": "object",
-        "required": [
-          "account_id",
-          "claims",
-          "as_of",
-          "has_more"
-        ],
-        "properties": [
-          "account_id",
-          "claims",
-          "primary_handle",
-          "as_of",
-          "next_cursor",
-          "has_more"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.find.directory.read.private_contact_discovery.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_private_contact_discovery_request_body",
-        "schema_kind": "oneOf",
-        "required": [
-          "profile",
-          "phase",
-          "batch_id",
-          "key_epoch"
-        ],
-        "properties": [
-          "profile",
-          "phase",
-          "batch_id",
-          "key_epoch",
-          "blinded_elements",
-          "derived_prefixes"
-        ],
-        "closed": true,
-        "variants": [
-          {
-            "schema_ref": "schemas/directory-operations.schema.json#/$defs/psi_blind_request_body",
-            "schema_kind": "object",
-            "required": [
-              "profile",
-              "phase",
-              "batch_id",
-              "key_epoch",
-              "blinded_elements"
-            ],
-            "properties": [
-              "profile",
-              "phase",
-              "batch_id",
-              "key_epoch",
-              "blinded_elements"
-            ],
-            "closed": true
-          },
-          {
-            "schema_ref": "schemas/directory-operations.schema.json#/$defs/psi_match_request_body",
-            "schema_kind": "object",
-            "required": [
-              "profile",
-              "phase",
-              "batch_id",
-              "key_epoch",
-              "derived_prefixes"
-            ],
-            "properties": [
-              "profile",
-              "phase",
-              "batch_id",
-              "key_epoch",
-              "derived_prefixes"
-            ],
-            "closed": true
-          }
-        ]
-      },
-      "response": {
-        "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_private_contact_discovery_outcome",
-        "schema_kind": "oneOf",
-        "required": [
-          "profile",
-          "phase",
-          "batch_id",
-          "key_epoch",
-          "padding"
-        ],
-        "properties": [
-          "profile",
-          "phase",
-          "batch_id",
-          "key_epoch",
-          "evaluated_elements",
-          "evaluation_proofs",
-          "padding",
-          "hit_bitmap",
-          "handoff_stubs"
-        ],
-        "closed": true,
-        "variants": [
-          {
-            "schema_ref": "schemas/directory-operations.schema.json#/$defs/psi_blind_outcome",
-            "schema_kind": "object",
-            "required": [
-              "profile",
-              "phase",
-              "batch_id",
-              "key_epoch",
-              "evaluated_elements",
-              "evaluation_proofs",
-              "padding"
-            ],
-            "properties": [
-              "profile",
-              "phase",
-              "batch_id",
-              "key_epoch",
-              "evaluated_elements",
-              "evaluation_proofs",
-              "padding"
-            ],
-            "closed": true
-          },
-          {
-            "schema_ref": "schemas/directory-operations.schema.json#/$defs/psi_match_outcome",
-            "schema_kind": "object",
-            "required": [
-              "profile",
-              "phase",
-              "batch_id",
-              "key_epoch",
-              "hit_bitmap",
-              "padding"
-            ],
-            "properties": [
-              "profile",
-              "phase",
-              "batch_id",
-              "key_epoch",
-              "hit_bitmap",
-              "handoff_stubs",
-              "padding"
-            ],
-            "closed": true
-          }
-        ]
-      }
-    },
-    {
-      "operation_id": "ak.find.directory.read.resolve_agent_selector.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_agent_selector_request_body",
-        "schema_kind": "object",
-        "required": [
-          "controller_handle",
-          "agent_slug",
-          "intent",
-          "requester_id"
-        ],
-        "properties": [
-          "controller_handle",
-          "agent_slug",
-          "expected_actor_id",
-          "proof_challenge",
-          "intent",
-          "realm_id",
-          "requester_id",
-          "proofs"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_agent_selector_resolution_outcome",
-        "schema_kind": "object",
-        "required": [
-          "controller_subject_id",
-          "subject_account_id",
-          "agent_slug",
-          "selector_claim"
-        ],
-        "properties": [
-          "controller_subject_id",
-          "subject_account_id",
-          "agent_slug",
-          "selector_claim",
-          "source_refs",
-          "expires_at"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.find.directory.read.resolve_handle.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_handle_request_body",
-        "schema_kind": "object",
-        "required": [
-          "handle"
-        ],
-        "properties": [
-          "handle",
-          "expected_account_id",
-          "proof_challenge",
-          "claim_presentations",
-          "intent",
-          "requester_id",
-          "audience",
-          "realm_id",
-          "proofs"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_handle_resolution_outcome",
-        "schema_kind": "object",
-        "required": [
-          "account_id",
-          "handle",
-          "verified"
-        ],
-        "properties": [
-          "account_id",
-          "handle",
-          "verified",
-          "claims",
-          "source_refs",
-          "expires_at"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.find.directory.read.resolve_organization.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_organization_request_body",
-        "schema_kind": "object",
-        "required": [],
-        "properties": [
-          "organization_id",
-          "handle",
-          "proofs"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_organization_resolution_outcome",
-        "schema_kind": "object",
-        "required": [
-          "organization_preview"
-        ],
-        "properties": [
-          "organization_preview",
-          "did_document_ref",
-          "endorsements"
-        ],
-        "closed": true
-      }
-    },
-    {
       "operation_id": "ak.find.directory.read.resolve_realm.v1",
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_realm_request_body",
         "schema_kind": "object",
-        "required": [],
+        "required": [
+          "realm_id"
+        ],
+        "properties": [
+          "realm_id"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/directory-operations.schema.json#/$defs/public_realm_directory_entry",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "public_metadata",
+          "indexed_at",
+          "expires_at"
+        ],
         "properties": [
           "realm_id",
-          "alias",
-          "invite_token",
-          "signed_link",
-          "requester_id",
-          "proof_challenge",
-          "claim_presentations"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_realm_resolution_outcome",
-        "schema_kind": "object",
-        "required": [
-          "realm_preview"
-        ],
-        "properties": [
-          "realm_preview",
-          "join_rule",
-          "join_candidates"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.find.directory.read.resolve_target.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_target_request_body",
-        "schema_kind": "object",
-        "required": [
-          "address"
-        ],
-        "properties": [
-          "address",
-          "requester_id",
-          "proof_challenge",
-          "claim_presentations",
-          "proofs",
-          "token"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_target_resolution_outcome",
-        "schema_kind": "object",
-        "required": [
-          "target_kind",
-          "as_of",
-          "policy_revision"
-        ],
-        "properties": [
-          "target_kind",
-          "realm_preview",
-          "object_preview",
-          "join_rule",
-          "as_of",
-          "source_refs",
-          "policy_revision",
-          "join_candidates"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.find.directory.read.search_actors.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_search_actors_request_body",
-        "schema_kind": "object",
-        "required": [],
-        "properties": [
-          "query",
-          "realm_id",
-          "organization_id",
-          "cursor",
-          "limit"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_actor_search_outcome",
-        "schema_kind": "object",
-        "required": [
-          "actors",
-          "has_more"
-        ],
-        "properties": [
-          "actors",
-          "next_cursor",
-          "has_more"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.find.directory.read.search_organizations.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_search_organizations_request_body",
-        "schema_kind": "object",
-        "required": [],
-        "properties": [
-          "query",
-          "claims",
-          "cursor",
-          "limit"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_organization_search_outcome",
-        "schema_kind": "object",
-        "required": [
-          "organizations",
-          "has_more"
-        ],
-        "properties": [
-          "organizations",
-          "next_cursor",
-          "has_more"
+          "public_metadata",
+          "indexed_at",
+          "expires_at"
         ],
         "closed": true
       }
@@ -1005,13 +612,8 @@
         "required": [],
         "properties": [
           "query",
-          "organization_id",
-          "source_realm_id",
-          "requester_id",
-          "proof_challenge",
-          "claim_presentations",
-          "cursor",
-          "limit"
+          "limit",
+          "cursor"
         ],
         "closed": true
       },
@@ -1024,41 +626,8 @@
         ],
         "properties": [
           "realms",
-          "next_cursor",
-          "has_more"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.find.directory.read.search_users.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_search_users_request_body",
-        "schema_kind": "object",
-        "required": [
-          "query"
-        ],
-        "properties": [
-          "query",
-          "realm_id",
-          "limit",
-          "intent",
-          "cursor"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_user_search_outcome",
-        "schema_kind": "object",
-        "required": [
-          "users",
-          "has_more"
-        ],
-        "properties": [
-          "users",
-          "next_cursor",
-          "has_more"
+          "has_more",
+          "next_cursor"
         ],
         "closed": true
       }
@@ -1135,87 +704,6 @@
           "device_pairing_request_id",
           "state",
           "expires_at"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.gate.account.command.introspect_session_grant.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectRequestBody",
-        "schema_kind": "oneOf",
-        "required": [],
-        "properties": [],
-        "closed": false,
-        "variants": [
-          {
-            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectRequestBody",
-            "schema_kind": null,
-            "required": [
-              "id"
-            ],
-            "properties": [],
-            "closed": false
-          },
-          {
-            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectRequestBody",
-            "schema_kind": null,
-            "required": [
-              "grant_jwt"
-            ],
-            "properties": [],
-            "closed": false
-          }
-        ]
-      },
-      "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectOutcome",
-        "schema_kind": "object",
-        "required": [
-          "active",
-          "status",
-          "proof_required",
-          "one_time_use_consumed"
-        ],
-        "properties": [
-          "active",
-          "status",
-          "proof_required",
-          "one_time_use_consumed",
-          "grant"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.gate.account.command.issue_controller_gate_attestation.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/agent-authority-evidence.schema.json#/$defs/controller_account_gate_attestation_issue_request_body",
-        "schema_kind": "object",
-        "required": [
-          "request_id",
-          "principal_id",
-          "agent_authority_id"
-        ],
-        "properties": [
-          "request_id",
-          "principal_id",
-          "agent_authority_id"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/agent-authority-evidence.schema.json#/$defs/controller_account_gate_attestation_issue_outcome",
-        "schema_kind": "object",
-        "required": [
-          "request_id",
-          "controller_account_gate_attestation"
-        ],
-        "properties": [
-          "request_id",
-          "controller_account_gate_attestation"
         ],
         "closed": true
       }
@@ -1516,37 +1004,6 @@
       }
     },
     {
-      "operation_id": "ak.gate.account.command.logout_auth_session.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthSessionLogoutRequestBody",
-        "schema_kind": "object",
-        "required": [
-          "grant_jwt"
-        ],
-        "properties": [
-          "grant_jwt",
-          "logout_request_digest",
-          "validated_at",
-          "reason_code"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/AuthSessionLogoutOutcome",
-        "schema_kind": "object",
-        "required": [
-          "grant_chain_terminated",
-          "auth_session_logged_out"
-        ],
-        "properties": [
-          "grant_chain_terminated",
-          "auth_session_logged_out"
-        ],
-        "closed": true
-      }
-    },
-    {
       "operation_id": "ak.gate.account.command.pair_agent_key.v1",
       "success_shape_kind": "typed_response",
       "request": {
@@ -1746,8 +1203,8 @@
           "profile",
           "registration_audit",
           "binding_receipt",
-          "pcr_genesis_receipt",
-          "session_grant_outcome"
+          "session_grant_outcome",
+          "pcr_genesis_commits"
         ],
         "closed": true
       }
@@ -1812,44 +1269,6 @@
         "properties": [
           "revoked_count",
           "revoked_session_grant_ids"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.gate.account.command.stage_device_pairing.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_stage_request_body",
-        "schema_kind": "object",
-        "required": [
-          "new_device_pubkey",
-          "client_nonce"
-        ],
-        "properties": [
-          "new_device_pubkey",
-          "client_nonce",
-          "display_name",
-          "device_metadata"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_stage_outcome",
-        "schema_kind": "object",
-        "required": [
-          "device_pairing_request_id",
-          "pairing_code",
-          "gate_audience_uri",
-          "server_nonce",
-          "expires_at"
-        ],
-        "properties": [
-          "device_pairing_request_id",
-          "pairing_code",
-          "gate_audience_uri",
-          "server_nonce",
-          "expires_at"
         ],
         "closed": true
       }
@@ -1926,36 +1345,6 @@
       }
     },
     {
-      "operation_id": "ak.gate.account.read.device_pairing_status.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_status_request_body",
-        "schema_kind": "object",
-        "required": [
-          "device_pairing_request_id",
-          "pairing_code"
-        ],
-        "properties": [
-          "device_pairing_request_id",
-          "pairing_code"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_status_outcome",
-        "schema_kind": "object",
-        "required": [
-          "state"
-        ],
-        "properties": [
-          "state",
-          "device_id",
-          "authorized_event_ref"
-        ],
-        "closed": true
-      }
-    },
-    {
       "operation_id": "ak.gate.account.read.onboarding.v1",
       "success_shape_kind": "typed_response",
       "response": {
@@ -1974,48 +1363,6 @@
           "observed_at",
           "binding",
           "goal"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.gate.account.read.resolve_device_pairing.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_resolve_request_body",
-        "schema_kind": "object",
-        "required": [
-          "pairing_token"
-        ],
-        "properties": [
-          "pairing_token"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_bootstrap",
-        "schema_kind": "object",
-        "required": [
-          "arkret_base_url",
-          "device_pairing_request_id",
-          "pairing_code",
-          "new_device_pubkey",
-          "client_nonce",
-          "gate_audience_uri",
-          "server_nonce",
-          "expires_at"
-        ],
-        "properties": [
-          "arkret_base_url",
-          "device_pairing_request_id",
-          "pairing_code",
-          "new_device_pubkey",
-          "client_nonce",
-          "gate_audience_uri",
-          "server_nonce",
-          "display_name",
-          "device_metadata",
-          "expires_at"
         ],
         "closed": true
       }
@@ -3293,43 +2640,6 @@
       }
     },
     {
-      "operation_id": "ak.peer.device_revocations.command.check.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/device-revocation-state.schema.json#/$defs/device_revocation_gate_check_request_body",
-        "schema_kind": "object",
-        "required": [
-          "account_id",
-          "device_id",
-          "action_class",
-          "intent_digest",
-          "requested_at"
-        ],
-        "properties": [
-          "account_id",
-          "device_id",
-          "expected_device_authorize_event_id",
-          "expected_device_generation_ref",
-          "action_class",
-          "intent_digest",
-          "accepted_device_possession_proof",
-          "requested_at"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/device-revocation-state.schema.json#/$defs/device_revocation_gate_check_outcome",
-        "schema_kind": "object",
-        "required": [
-          "decision_receipt"
-        ],
-        "properties": [
-          "decision_receipt"
-        ],
-        "closed": true
-      }
-    },
-    {
       "operation_id": "ak.peer.erasure_receipt.command.submit.v1",
       "success_shape_kind": "typed_response",
       "request": {
@@ -3538,37 +2848,7 @@
       }
     },
     {
-      "operation_id": "ak.peer.events.read.resolve_committed.v1",
-      "success_shape_kind": "schema_resource",
-      "request": {
-        "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/committed_event_resolve_request",
-        "schema_kind": "object",
-        "required": [
-          "realm_id",
-          "source_ref_access",
-          "refs"
-        ],
-        "properties": [
-          "realm_id",
-          "source_ref_access",
-          "refs"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/committed_event_resolve_outcome",
-        "schema_kind": "object",
-        "required": [
-          "items"
-        ],
-        "properties": [
-          "items"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.peer.events.read.scan.v1",
+      "operation_id": "ak.peer.committed_event.read.scan.v1",
       "success_shape_kind": "schema_resource",
       "request": {
         "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request",
@@ -3601,11 +2881,11 @@
         "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_outcome",
         "schema_kind": "object",
         "required": [
-          "commits",
+          "committed_events",
           "truncated"
         ],
         "properties": [
-          "commits",
+          "committed_events",
           "readable_floor",
           "truncated"
         ],
@@ -3826,62 +3106,6 @@
           "group_info_bytes_b64",
           "ratchet_tree_ref",
           "ratchet_tree_bytes_b64"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.peer.principal_genesis.command.submit.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/principal-operations.schema.json#/$defs/pcr_genesis_submit_request",
-        "schema_kind": "object",
-        "required": [
-          "account_authority_id",
-          "principal_id",
-          "did",
-          "pcr_realm_id",
-          "did_version_id",
-          "control_key_digest",
-          "idempotency_key",
-          "registration_request_digest",
-          "principal_registration_anchor",
-          "registration_did_evidence",
-          "identity_creation_control_proof",
-          "genesis_unit"
-        ],
-        "properties": [
-          "account_authority_id",
-          "principal_id",
-          "did",
-          "pcr_realm_id",
-          "did_version_id",
-          "control_key_digest",
-          "idempotency_key",
-          "registration_request_digest",
-          "principal_registration_anchor",
-          "registration_did_evidence",
-          "identity_creation_control_proof",
-          "genesis_unit"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/principal-operations.schema.json#/$defs/pcr_genesis_submit_outcome",
-        "schema_kind": "object",
-        "required": [
-          "principal_id",
-          "pcr_realm_id",
-          "accepted_device_id",
-          "resolution",
-          "receipt"
-        ],
-        "properties": [
-          "principal_id",
-          "pcr_realm_id",
-          "accepted_device_id",
-          "resolution",
-          "receipt"
         ],
         "closed": true
       }
@@ -4632,17 +3856,6 @@
           "rate_limit_policy",
           "egress_network_policy",
           "resource_kinds",
-          "private_contact_discovery",
-          "restricted_query_proof",
-          "accept_policy_kind",
-          "accept_policy_ref",
-          "default_ttl_seconds",
-          "max_ttl_seconds",
-          "revalidation_grace_seconds",
-          "accepted_resource_kinds",
-          "accepted_did_methods",
-          "takedown_contact",
-          "rate_limits",
           "verified_profiles",
           "interop_surfaces",
           "development_mode",
@@ -4811,17 +4024,6 @@
           "rate_limit_policy",
           "egress_network_policy",
           "resource_kinds",
-          "private_contact_discovery",
-          "restricted_query_proof",
-          "accept_policy_kind",
-          "accept_policy_ref",
-          "default_ttl_seconds",
-          "max_ttl_seconds",
-          "revalidation_grace_seconds",
-          "accepted_resource_kinds",
-          "accepted_did_methods",
-          "takedown_contact",
-          "rate_limits",
           "verified_profiles",
           "interop_surfaces",
           "development_mode",
@@ -7263,7 +6465,7 @@
       }
     },
     {
-      "operation_id": "ak.self.events.read.scan.v1",
+      "operation_id": "ak.self.committed_event.read.scan.v1",
       "success_shape_kind": "schema_resource",
       "request": {
         "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request",
@@ -7296,11 +6498,11 @@
         "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_outcome",
         "schema_kind": "object",
         "required": [
-          "commits",
+          "committed_events",
           "truncated"
         ],
         "properties": [
-          "commits",
+          "committed_events",
           "readable_floor",
           "truncated"
         ],
@@ -7308,27 +6510,55 @@
       }
     },
     {
-      "operation_id": "ak.self.events.resource.get.v1",
+      "operation_id": "ak.self.committed_event.resource.get.v1",
       "success_shape_kind": "typed_response",
       "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventView",
-        "schema_kind": "object",
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CommittedEventView",
+        "schema_kind": "oneOf",
         "required": [
-          "event"
+          "commit"
         ],
         "properties": [
+          "commit",
           "event",
-          "visibility",
-          "receipts"
+          "event_disclosure"
         ],
-        "closed": true
+        "closed": true,
+        "variants": [
+          {
+            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CommittedEventView",
+            "schema_kind": "object",
+            "required": [
+              "commit",
+              "event"
+            ],
+            "properties": [
+              "commit",
+              "event"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CommittedEventView",
+            "schema_kind": "object",
+            "required": [
+              "commit",
+              "event_disclosure"
+            ],
+            "properties": [
+              "commit",
+              "event_disclosure"
+            ],
+            "closed": true
+          }
+        ]
       }
     },
     {
-      "operation_id": "ak.self.events.stream.subscribe.v1",
+      "operation_id": "ak.self.committed_event.stream.subscribe.v1",
       "success_shape_kind": "event_stream",
       "response": {
-        "schema_ref": "schemas/events-subscribe-frame.schema.json",
+        "schema_ref": "schemas/committed-event-subscribe-frame.schema.json",
         "schema_kind": "oneOf",
         "required": [
           "kind"
@@ -7340,7 +6570,7 @@
         "closed": false,
         "variants": [
           {
-            "schema_ref": "schemas/events-subscribe-frame.schema.json",
+            "schema_ref": "schemas/committed-event-subscribe-frame.schema.json",
             "schema_kind": null,
             "required": [
               "kind",
@@ -7355,7 +6585,7 @@
             "closed": false
           },
           {
-            "schema_ref": "schemas/events-subscribe-frame.schema.json",
+            "schema_ref": "schemas/committed-event-subscribe-frame.schema.json",
             "schema_kind": null,
             "required": [
               "kind",
@@ -7369,7 +6599,7 @@
             "closed": false
           },
           {
-            "schema_ref": "schemas/events-subscribe-frame.schema.json",
+            "schema_ref": "schemas/committed-event-subscribe-frame.schema.json",
             "schema_kind": null,
             "required": [
               "kind",
@@ -7381,7 +6611,7 @@
             "closed": false
           },
           {
-            "schema_ref": "schemas/events-subscribe-frame.schema.json",
+            "schema_ref": "schemas/committed-event-subscribe-frame.schema.json",
             "schema_kind": null,
             "required": [
               "kind",
@@ -7394,7 +6624,7 @@
             "closed": false
           },
           {
-            "schema_ref": "schemas/events-subscribe-frame.schema.json",
+            "schema_ref": "schemas/committed-event-subscribe-frame.schema.json",
             "schema_kind": null,
             "required": [
               "kind"
@@ -7405,7 +6635,7 @@
             "closed": false
           },
           {
-            "schema_ref": "schemas/events-subscribe-frame.schema.json",
+            "schema_ref": "schemas/committed-event-subscribe-frame.schema.json",
             "schema_kind": null,
             "required": [
               "kind"
@@ -7416,13 +6646,26 @@
             "closed": false
           },
           {
-            "schema_ref": "schemas/events-subscribe-frame.schema.json",
+            "schema_ref": "schemas/committed-event-subscribe-frame.schema.json",
             "schema_kind": null,
             "required": [
               "kind"
             ],
             "properties": [
               "kind"
+            ],
+            "closed": false
+          },
+          {
+            "schema_ref": "schemas/committed-event-subscribe-frame.schema.json",
+            "schema_kind": null,
+            "required": [
+              "kind",
+              "payload"
+            ],
+            "properties": [
+              "kind",
+              "payload"
             ],
             "closed": false
           }
@@ -7451,8 +6694,9 @@
         "required": [
           "account_id",
           "principal_control_realm_id",
-          "principal_genesis_receipt",
           "principal_genesis_event",
+          "founding_device_authorize_event",
+          "genesis_commits",
           "current_resolution_event",
           "predecessor_resolution_events",
           "accepted_commit",
@@ -7461,8 +6705,9 @@
         "properties": [
           "account_id",
           "principal_control_realm_id",
-          "principal_genesis_receipt",
           "principal_genesis_event",
+          "founding_device_authorize_event",
+          "genesis_commits",
           "current_resolution_event",
           "predecessor_resolution_events",
           "accepted_commit",
@@ -9249,17 +8494,6 @@
           "rate_limit_policy",
           "egress_network_policy",
           "resource_kinds",
-          "private_contact_discovery",
-          "restricted_query_proof",
-          "accept_policy_kind",
-          "accept_policy_ref",
-          "default_ttl_seconds",
-          "max_ttl_seconds",
-          "revalidation_grace_seconds",
-          "accepted_resource_kinds",
-          "accepted_did_methods",
-          "takedown_contact",
-          "rate_limits",
           "verified_profiles",
           "interop_surfaces",
           "development_mode",

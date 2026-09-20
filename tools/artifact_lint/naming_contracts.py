@@ -2207,13 +2207,6 @@ DURATION_FIELD_EXCEPTIONS = (
         "admits only values the canonical pattern already admits.",
     },
     {
-        "file": "service-describe.schema.json",
-        "pointer": "/properties/private_contact_discovery/properties/max_psi_queries_per_window",
-        "name": "max_psi_queries_per_window",
-        "reason": "A rate count per window, not the window's length; the integer "
-        "counts queries, so no unit suffix applies.",
-    },
-    {
         "file": "invite-receive-policy.schema.json",
         "pointer": "/properties/new_source_quota/properties/new_sources_per_window",
         "name": "new_sources_per_window",

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.4",
+  "version": "2026-09-20.5",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T04:33:43+08:00",
+  "generated_at": "2026-09-20T16:37:40+08:00",
   "description": "Closed inventory of current spec/v1/zh headings that explicitly carry the （normative） marker. Any addition, removal, rename, or move is reviewed as a protocol change and refreshes this source-of-truth inventory.",
   "titles": [
     {
@@ -481,38 +481,28 @@
     },
     {
       "page": "discovery/discovery-directory.md",
-      "heading": "3.1 `discoverability × join_rule × history_access` 兼容矩阵（normative）",
-      "fragment": "31-discoverability--join_rule--history_access-兼容矩阵normative"
+      "heading": "1. 产品边界（normative）",
+      "fragment": "1-产品边界normative"
     },
     {
       "page": "discovery/discovery-directory.md",
-      "heading": "7.3 不变量（normative）",
-      "fragment": "73-不变量normative"
+      "heading": "2. 可索引条件（normative）",
+      "fragment": "2-可索引条件normative"
     },
     {
       "page": "discovery/discovery-directory.md",
-      "heading": "8.7.1 Withdraw governance proof wire 形态与绑定（normative）",
-      "fragment": "871-withdraw-governance-proof-wire-形态与绑定normative"
+      "heading": "3. 写入（normative）",
+      "fragment": "3-写入normative"
     },
     {
       "page": "discovery/discovery-directory.md",
-      "heading": "9.0 Handle 解析（normative）",
-      "fragment": "90-handle-解析normative"
+      "heading": "4. 查询（normative）",
+      "fragment": "4-查询normative"
     },
     {
       "page": "discovery/discovery-directory.md",
-      "heading": "9.0.1 Requester proof wire 形态与绑定（normative）",
-      "fragment": "901-requester-proof-wire-形态与绑定normative"
-    },
-    {
-      "page": "discovery/discovery-directory.md",
-      "heading": "9.1 通用结果字段（normative）",
-      "fragment": "91-通用结果字段normative"
-    },
-    {
-      "page": "discovery/discovery-directory.md",
-      "heading": "9.1.1 Realm Join Candidate（normative）",
-      "fragment": "911-realm-join-candidatenormative"
+      "heading": "5. 删除的旧面（normative）",
+      "fragment": "5-删除的旧面normative"
     },
     {
       "page": "discovery/object-addressing.md",

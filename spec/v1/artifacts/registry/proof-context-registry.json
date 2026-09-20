@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.3",
+  "version": "2026-09-20.4",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T07:51:54+08:00",
+  "generated_at": "2026-09-20T16:42:00+08:00",
   "description": "Canonical security-domain labels for Arkret detached proofs and non-Event cryptographic transcripts. contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript, and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
     "context values and object_family values MUST be unique",
@@ -281,13 +281,12 @@
       "binding_fields": [
         "payload_digest",
         "operation_id",
-        "resource_id",
         "verification_method",
         "created_at",
         "proof_purpose",
         "audience_id"
       ],
-      "defined_in": "zh/discovery/discovery-directory.md#871-withdraw-governance-proof-wire-形态与绑定normative",
+      "defined_in": "zh/discovery/discovery-directory.md#3-写入normative",
       "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryGovernanceProof",
       "transcript_schema_refs": [
         "schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawRequestBody"
@@ -298,26 +297,6 @@
           "source": "constant ak.find.directory.command.withdraw.v1"
         }
       ]
-    },
-    {
-      "context": "ak.directory_source_ref_access_proof.v1",
-      "object_family": "directory_source_ref_access",
-      "binding_fields": [
-        "payload_digest",
-        "source_id",
-        "directory_id",
-        "realm_id",
-        "discovery_event_id",
-        "source_refs",
-        "as_of",
-        "expires_at",
-        "verification_method",
-        "created_at",
-        "domain",
-        "audience"
-      ],
-      "defined_in": "zh/discovery/discovery-directory.md#85-验签与接受规则",
-      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectorySourceRefAccess"
     },
     {
       "context": "ak.event_proof.v1",
@@ -716,20 +695,6 @@
       "schema_ref": "schemas/event-payload.schema.json#/$defs/join_gate_proof"
     },
     {
-      "context": "ak.receipt_proof.v1",
-      "object_family": "event_batch_receipt",
-      "binding_fields": [
-        "payload_digest",
-        "issuer_id",
-        "verification_method",
-        "created_at",
-        "domain?",
-        "audience?"
-      ],
-      "defined_in": "zh/conformance/encoding.md",
-      "schema_ref": "schemas/event-batch-receipt.schema.json"
-    },
-    {
       "context": "ak.registration_did_evidence_control_proof.v1",
       "object_family": "registration_did_evidence_control",
       "binding_fields": [
@@ -1125,146 +1090,6 @@
       "schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_target_proof",
       "transcript_schema_refs": [
         "schemas/device-pairing.schema.json#/$defs/device_pairing_target_proof"
-      ]
-    },
-    {
-      "domain": "ak.directory_list_handles_for_subject_request_proof.v1",
-      "object_family": "directory_list_handles_for_subject_request",
-      "primitive": "detached_signature",
-      "binding_fields": [
-        "payload_digest",
-        "issuer",
-        "operation_id",
-        "account_id",
-        "verification_method",
-        "created_at",
-        "audience_id"
-      ],
-      "defined_in": "zh/discovery/discovery-directory.md#901-requester-proof-wire-形态与绑定normative",
-      "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_list_handles_for_subject_request_body",
-      "transcript_schema_refs": [
-        "schemas/directory-operations.schema.json#/$defs/proof"
-      ],
-      "injected_fields": [
-        {
-          "field": "issuer",
-          "source": "request.requester_id"
-        },
-        {
-          "field": "operation_id",
-          "source": "constant ak.find.directory.read.list_handles_for_subject.v1"
-        }
-      ]
-    },
-    {
-      "domain": "ak.directory_resolve_agent_selector_request_proof.v1",
-      "object_family": "directory_resolve_agent_selector_request",
-      "primitive": "detached_signature",
-      "binding_fields": [
-        "payload_digest",
-        "issuer",
-        "operation_id",
-        "controller_handle",
-        "agent_slug",
-        "verification_method",
-        "created_at",
-        "audience_id"
-      ],
-      "defined_in": "zh/discovery/discovery-directory.md#901-requester-proof-wire-形态与绑定normative",
-      "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_agent_selector_request_body",
-      "transcript_schema_refs": [
-        "schemas/directory-operations.schema.json#/$defs/proof"
-      ],
-      "injected_fields": [
-        {
-          "field": "issuer",
-          "source": "request.requester_id"
-        },
-        {
-          "field": "operation_id",
-          "source": "constant ak.find.directory.read.resolve_agent_selector.v1"
-        }
-      ]
-    },
-    {
-      "domain": "ak.directory_resolve_handle_request_proof.v1",
-      "object_family": "directory_resolve_handle_request",
-      "primitive": "detached_signature",
-      "binding_fields": [
-        "payload_digest",
-        "issuer",
-        "operation_id",
-        "handle",
-        "verification_method",
-        "created_at",
-        "audience_id"
-      ],
-      "defined_in": "zh/discovery/discovery-directory.md#901-requester-proof-wire-形态与绑定normative",
-      "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_handle_request_body",
-      "transcript_schema_refs": [
-        "schemas/directory-operations.schema.json#/$defs/proof"
-      ],
-      "injected_fields": [
-        {
-          "field": "issuer",
-          "source": "request.requester_id"
-        },
-        {
-          "field": "operation_id",
-          "source": "constant ak.find.directory.read.resolve_handle.v1"
-        }
-      ]
-    },
-    {
-      "domain": "ak.directory_resolve_organization_request_proof.v1",
-      "object_family": "directory_resolve_organization_request",
-      "primitive": "detached_signature",
-      "binding_fields": [
-        "payload_digest",
-        "operation_id",
-        "verification_method",
-        "created_at",
-        "audience_id"
-      ],
-      "defined_in": "zh/discovery/discovery-directory.md#901-requester-proof-wire-形态与绑定normative",
-      "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_organization_request_body",
-      "transcript_schema_refs": [
-        "schemas/directory-operations.schema.json#/$defs/proof"
-      ],
-      "injected_fields": [
-        {
-          "field": "operation_id",
-          "source": "constant ak.find.directory.read.resolve_organization.v1"
-        }
-      ]
-    },
-    {
-      "domain": "ak.directory_resolve_target_request_proof.v1",
-      "object_family": "directory_resolve_target_request",
-      "primitive": "detached_signature",
-      "binding_fields": [
-        "payload_digest",
-        "issuer",
-        "operation_id",
-        "address",
-        "verification_method",
-        "created_at",
-        "audience_id"
-      ],
-      "defined_in": "zh/discovery/discovery-directory.md#901-requester-proof-wire-形态与绑定normative",
-      "schema_ref": "schemas/directory-operations.schema.json#/$defs/directory_resolve_target_request_body",
-      "transcript_schema_refs": [
-        "schemas/directory-operations.schema.json#/$defs/proof"
-      ],
-      "injected_fields": [
-        {
-          "field": "issuer",
-          "source": "request.requester_id"
-        },
-        {
-          "field": "operation_id",
-          "source": "constant ak.find.directory.read.resolve_target.v1"
-        }
       ]
     },
     {

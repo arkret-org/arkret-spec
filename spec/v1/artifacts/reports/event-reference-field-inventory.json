@@ -7,7 +7,7 @@
   "generated_by": "tools/gen_event_reference_inventory.py",
   "description": "Complete schema-property inventory for Event ID/ref/digest fields. EventId is itself the complete suite-tagged cryptographic identity; no companion-digest wrapper or truncated identity class exists. External protocol event identifiers are classified separately and never enter the Arkret EventId value space.",
   "counts": {
-    "complete_event_id": 163,
+    "complete_event_id": 157,
     "digest_copy_or_commitment": 8,
     "external_event_namespace": 1
   },
@@ -487,18 +487,6 @@
       "classification": "complete_event_id"
     },
     {
-      "schema": "device-revocation-state.schema.json",
-      "json_pointer": "/$defs/device_revocation_gate_check_request_body/properties/expected_device_authorize_event_id",
-      "field": "expected_device_authorize_event_id",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "device-revocation-state.schema.json",
-      "json_pointer": "/$defs/device_revocation_gate_decision_receipt/properties/target_device_authorize_event_id",
-      "field": "target_device_authorize_event_id",
-      "classification": "complete_event_id"
-    },
-    {
       "schema": "direct-conversation-operations.schema.json",
       "json_pointer": "/$defs/direct_conversation_coordinates/properties/binding_event_ref",
       "field": "binding_event_ref",
@@ -515,12 +503,6 @@
       "json_pointer": "/properties/event_digest",
       "field": "event_digest",
       "classification": "digest_copy_or_commitment"
-    },
-    {
-      "schema": "event-batch-receipt.schema.json",
-      "json_pointer": "/$defs/event_receipt_row/properties/event_id",
-      "field": "event_id",
-      "classification": "complete_event_id"
     },
     {
       "schema": "event-envelope.schema.json",
@@ -950,12 +932,6 @@
     },
     {
       "schema": "service-operation-dtos.schema.json",
-      "json_pointer": "/$defs/DirectorySourceRefAccess/properties/discovery_event_id",
-      "field": "discovery_event_id",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "service-operation-dtos.schema.json",
       "json_pointer": "/$defs/EventDeliveryStatusOutcome/properties/event_id",
       "field": "event_id",
       "classification": "complete_event_id"
@@ -976,18 +952,6 @@
       "schema": "service-operation-dtos.schema.json",
       "json_pointer": "/$defs/MlsGroupStateMaterialRequestBody/properties/group_state_event_id",
       "field": "group_state_event_id",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "service-operation-dtos.schema.json",
-      "json_pointer": "/$defs/RedactedEventView/properties/event_id",
-      "field": "event_id",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "service-operation-dtos.schema.json",
-      "json_pointer": "/$defs/ReferenceLockedEventStub/properties/event_id",
-      "field": "event_id",
       "classification": "complete_event_id"
     },
     {

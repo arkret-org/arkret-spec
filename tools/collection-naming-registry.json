@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "schema": "arkret.collection-naming-registry.v1",
-  "version": "2026-09-10",
+  "version": "2026-09-20",
   "source_of_truth": false,
   "normative_rule": "NC-COLLECTION-001",
   "description": "Reviewed exact exceptions to the default object-collection plural grammar, plus named pagination object contracts. Entry, Row, View, Preview, Projection and Descriptor are semantic words, not representation suffixes; referenced item type names never determine property names.",
@@ -161,26 +161,6 @@
     },
     {
       "file": "directory-operations.schema.json",
-      "pointer": "/$defs/directory_actor_search_outcome",
-      "collection_field": "actors",
-      "companion_fields": [
-        "has_more",
-        "next_cursor"
-      ],
-      "reason": "directory actor search paginates actor results"
-    },
-    {
-      "file": "directory-operations.schema.json",
-      "pointer": "/$defs/directory_organization_search_outcome",
-      "collection_field": "organizations",
-      "companion_fields": [
-        "has_more",
-        "next_cursor"
-      ],
-      "reason": "directory organization search paginates organization results"
-    },
-    {
-      "file": "directory-operations.schema.json",
       "pointer": "/$defs/directory_realm_search_outcome",
       "collection_field": "realms",
       "companion_fields": [
@@ -188,16 +168,6 @@
         "next_cursor"
       ],
       "reason": "directory realm search paginates realm results"
-    },
-    {
-      "file": "directory-operations.schema.json",
-      "pointer": "/$defs/directory_user_search_outcome",
-      "collection_field": "users",
-      "companion_fields": [
-        "has_more",
-        "next_cursor"
-      ],
-      "reason": "directory user search paginates user results"
     },
     {
       "file": "keys-operations.schema.json",
@@ -208,16 +178,6 @@
         "next_cursor"
       ],
       "reason": "key-backup list paginates backups"
-    },
-    {
-      "file": "list-handles-for-subject-response.schema.json",
-      "pointer": "",
-      "collection_field": "claims",
-      "companion_fields": [
-        "has_more",
-        "next_cursor"
-      ],
-      "reason": "the response root paginates handle claims"
     },
     {
       "file": "mimi-operations.schema.json",

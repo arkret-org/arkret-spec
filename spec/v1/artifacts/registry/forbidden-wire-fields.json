@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 63,
+  "version": 64,
   "kind": "forbidden_wire_fields",
   "source_of_truth": true,
   "description": "Field names and values forbidden on current Arkret v1 wire only in the registered context. Consumers MUST first select context_definitions using the trusted document kind and owning schema reference, then apply the entry matcher inside the selected instance_pointer and match_scope. A same-named field in another context is not forbidden by this entry. allowed_contexts only exempts references in documentation, interop definitions and negative tests; it never exempts submitted wire data.",
@@ -12,7 +12,7 @@
     "interop_module": "Reference in an explicit interop binding (e.g., MIMI interop) where the cross-protocol mapping requires the field.",
     "negative_test": "Reference in negative fixtures / cotest drift tests that assert rejection."
   },
-  "generated_at": "2026-09-19T07:37:00+08:00",
+  "generated_at": "2026-09-20T16:42:00+08:00",
   "context_matching": {
     "schema_reference_base": "../schemas/",
     "document_kinds": [
@@ -268,34 +268,6 @@
         {
           "document_kind": "schema_instance",
           "schema_ref": "event-payload.schema.json#/$defs/device_authorize_payload",
-          "instance_pointer": "",
-          "match_scope": "root"
-        }
-      ]
-    },
-    "directory_projection": {
-      "selectors": [
-        {
-          "document_kind": "schema_instance",
-          "schema_ref": "directory-operations.schema.json#/$defs/realm_preview",
-          "instance_pointer": "",
-          "match_scope": "root"
-        },
-        {
-          "document_kind": "schema_instance",
-          "schema_ref": "directory-operations.schema.json#/$defs/organization_preview",
-          "instance_pointer": "",
-          "match_scope": "root"
-        },
-        {
-          "document_kind": "schema_instance",
-          "schema_ref": "directory-operations.schema.json#/$defs/actor_preview",
-          "instance_pointer": "",
-          "match_scope": "root"
-        },
-        {
-          "document_kind": "schema_instance",
-          "schema_ref": "directory-operations.schema.json#/$defs/object_preview",
           "instance_pointer": "",
           "match_scope": "root"
         }
@@ -1919,24 +1891,6 @@
       }
     },
     {
-      "id": "avatar",
-      "context": "directory_projection",
-      "since_revision": "2026-05-24",
-      "rejection_level": "hard_reject",
-      "replacement": "avatar_blob_ref",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "Directory / projection rows use canonical avatar_blob_ref, not an avatar alias.",
-      "match": {
-        "kind": "field",
-        "values": [
-          "avatar"
-        ]
-      }
-    },
-    {
       "id": "avatar_ref",
       "context": "member_identity.display_profile",
       "since_revision": "2026-05-29",
@@ -3392,24 +3346,6 @@
       }
     },
     {
-      "id": "name",
-      "context": "directory_projection",
-      "since_revision": "2026-05-24",
-      "rejection_level": "hard_reject",
-      "replacement": "title",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "Directory / projection rows use canonical title, not a name alias.",
-      "match": {
-        "kind": "field",
-        "values": [
-          "name"
-        ]
-      }
-    },
-    {
       "id": "not_after",
       "context": "wire_schema_or_payload",
       "since_revision": "2026-05-24",
@@ -3532,24 +3468,6 @@
         "kind": "field",
         "values": [
           "object_types"
-        ]
-      }
-    },
-    {
-      "id": "official_organizations",
-      "context": "directory_projection",
-      "since_revision": "2026-05-24",
-      "rejection_level": "hard_reject",
-      "replacement": "owning_organization_ids",
-      "allowed_contexts": [
-        "changelog",
-        "negative_test"
-      ],
-      "notes": "Directory / projection rows use canonical owning_organization_ids, not an official_organizations alias.",
-      "match": {
-        "kind": "field",
-        "values": [
-          "official_organizations"
         ]
       }
     },
@@ -5383,7 +5301,7 @@
         "changelog",
         "negative_test"
       ],
-      "notes": "The Event carries no separate domain reference array. Registered business references travel in 'refs'; authorization dependencies are resolved inside the admission transaction.",
+      "notes": "The Event carries no separate domain reference array. Registered business references travel in 'semantic_refs'; authorization dependencies are resolved inside the admission transaction.",
       "match": {
         "kind": "field",
         "values": [

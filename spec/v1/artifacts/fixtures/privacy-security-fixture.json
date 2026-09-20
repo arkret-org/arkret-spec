@@ -5,36 +5,16 @@
   },
   "suite": "privacy_security",
   "profile": "ak.vector_group.privacy_security.v1",
-  "version": "2026-09-19",
+  "version": "2026-09-20",
   "covers_vectors": [
     "ak.vector.directory.public_realm_search.v1",
-    "ak.vector.directory.organization_search.v1",
-    "ak.vector.directory.restricted_claim_presentation.v1",
-    "ak.vector.directory.unlisted_exact_resolve.v1",
-    "ak.vector.directory.invite_not_found_blinding.v1",
-    "ak.vector.directory.resolve_target_blinding.v1",
-    "ak.vector.directory.resolve_handle_failure_blinding.v1",
-    "ak.vector.directory.resolve_agent_selector_failure_blinding.v1",
-    "ak.vector.directory.organization_badge_verification.v1",
-    "ak.vector.directory.pairwise_did_exclusion.v1",
-    "ak.vector.directory.stale_result_rejection.v1",
-    "ak.vector.directory.result_common_fields.v1",
     "ak.vector.directory.announce_bidirectional_opt_in.v1",
-    "ak.vector.directory.announce_source_ref_access_bounds.v1",
     "ak.vector.directory.announce_directory_not_authorized.v1",
     "ak.vector.directory.announce_bad_signature.v1",
     "ak.vector.directory.announce_signature_stale.v1",
-    "ak.vector.directory.policy_revision_rollback.v1",
-    "ak.vector.directory.accept_policy_denied.v1",
     "ak.vector.directory.reannounce_idempotent_ttl.v1",
     "ak.vector.directory.ttl_expiry_removal.v1",
     "ak.vector.directory.withdraw_blinded_not_found.v1",
-    "ak.vector.directory.operator_takedown_audit.v1",
-    "ak.vector.directory.takedown_reannounce_rejected.v1",
-    "ak.vector.psi.oprf_two_round_shape.v1",
-    "ak.vector.psi.padding_and_cardinality.v1",
-    "ak.vector.psi.no_reachability_metadata.v1",
-    "ak.vector.psi.quota_blinded_denial.v1",
     "ak.vector.search.blind_index_stale_posting_fail_closed.v1",
     "ak.vector.search.result_not_authz_proof.v1",
     "ak.vector.search.surface_separation_no_plaintext_leakage.v1",
@@ -46,94 +26,6 @@
   ],
   "security_evidence": [
     {
-      "vector_id": "ak.vector.directory.invite_not_found_blinding.v1",
-      "clause_id": "AK-NC-013",
-      "decision_points": [
-        {
-          "id": "realm_resolution_failures_share_one_error_code",
-          "requirement": "A nonexistent Realm, a secret Realm and an invite-only Realm resolved without proof are not separable by error code: one status and one code cover all three.",
-          "evidence": [
-            "/cases/0"
-          ]
-        },
-        {
-          "id": "realm_resolution_failures_share_one_field_set",
-          "requirement": "The three Realm resolution failures carry the same response body shape, so the field set does not separate unauthorized from nonexistent from policy-denied, and no branch discloses the Realm id, title, join rule, discoverability, member ids or service endpoints.",
-          "evidence": [
-            "/cases/0"
-          ]
-        },
-        {
-          "id": "realm_resolution_failures_share_one_timing_class",
-          "requirement": "The three Realm resolution failures sit in one timing equivalence group, so the branch that runs the full discoverability and invite check is not observably slower than the branch that finds nothing.",
-          "evidence": [
-            "/cases/0"
-          ]
-        }
-      ]
-    },
-    {
-      "vector_id": "ak.vector.directory.resolve_handle_failure_blinding.v1",
-      "clause_id": "AK-NC-013",
-      "decision_points": [
-        {
-          "id": "handle_resolution_failures_share_one_error_code",
-          "requirement": "A missing handle, a hidden handle and a handle the requester may not resolve are not separable by error code: one status and one code cover all three.",
-          "evidence": [
-            "/cases/1"
-          ]
-        },
-        {
-          "id": "handle_resolution_failures_share_one_field_set",
-          "requirement": "The three handle resolution failures carry the same response body shape, and none discloses the subject, issuer, binding state, account id, audience or claim digest behind the handle.",
-          "evidence": [
-            "/cases/1"
-          ]
-        },
-        {
-          "id": "handle_resolution_failures_share_one_timing_class",
-          "requirement": "The three handle resolution failures sit in one timing equivalence group, so the branch that runs the presentation, claim and audience checks is not observably slower than the branch that finds nothing.",
-          "evidence": [
-            "/cases/1"
-          ]
-        }
-      ]
-    },
-    {
-      "vector_id": "ak.vector.directory.resolve_target_blinding.v1",
-      "clause_id": "AK-NC-013",
-      "decision_points": [
-        {
-          "id": "target_resolution_failures_are_byte_identical",
-          "requirement": "A nonexistent target, an undiscoverable target, an unauthorized preview and a token bound to another object return byte-identical not_found responses, so none of the four is separable by error code or field set.",
-          "evidence": [
-            "/cases/18"
-          ]
-        },
-        {
-          "id": "target_resolution_reveals_no_target_metadata",
-          "requirement": "No target resolution failure reveals the target kind, the Realm, Strand or Message id, a preview object, the join rule, join candidates or the policy revision.",
-          "evidence": [
-            "/cases/18"
-          ]
-        },
-        {
-          "id": "target_resolution_failures_share_one_timing_class",
-          "requirement": "All four target resolution failures sit in one timing equivalence group, so the branch that recomputes a token target descriptor digest before failing is not observably slower than the branch that finds nothing.",
-          "evidence": [
-            "/cases/18"
-          ]
-        },
-        {
-          "id": "token_validity_is_never_an_existence_oracle",
-          "requirement": "A token that is valid on its own but whose target descriptor names another object fails as not_found rather than as a token error, so a caller cannot use token handling to learn that the addressed object exists.",
-          "evidence": [
-            "/cases/18"
-          ]
-        }
-      ]
-    },
-    {
       "vector_id": "ak.vector.directory.withdraw_blinded_not_found.v1",
       "clause_id": "AK-NC-013",
       "decision_points": [
@@ -141,28 +33,28 @@
           "id": "withdraw_response_is_not_an_index_oracle",
           "requirement": "Withdrawing a resource that was never indexed, one announced to another Directory and one already withdrawn produce the same status and body shape, and the response carries no field saying whether the resource was indexed.",
           "evidence": [
-            "/cases/19"
+            "/cases/12"
           ]
         },
         {
           "id": "post_withdraw_resolve_is_indistinguishable",
           "requirement": "After withdrawal the exact resolve of that resource returns not_found, indistinguishable by error code and field set from an unlisted resource and from one that never existed.",
           "evidence": [
-            "/cases/19"
+            "/cases/12"
           ]
         },
         {
           "id": "post_withdraw_resolve_shares_the_timing_class",
           "requirement": "The post-withdraw resolve sits in the same timing equivalence group as the other hidden not_found branches, so the extra state lookup a withdrawn entry requires is not observable.",
           "evidence": [
-            "/cases/19"
+            "/cases/12"
           ]
         },
         {
           "id": "disclosure_stops_within_the_deadline_and_mid_page",
           "requirement": "Disclosure stops within the one-hour deadline, and a search response already paging stops disclosing the withdrawn entry at the next cursor advance rather than finishing the page it started.",
           "evidence": [
-            "/cases/19"
+            "/cases/12"
           ]
         }
       ]
@@ -170,473 +62,39 @@
   ],
   "cases": [
     {
-      "vector_id": "ak.vector.directory.invite_not_found_blinding.v1",
-      "name": "hidden_realm_resolve_indistinguishable",
-      "operation_id": "ak.find.directory.read.resolve_realm.v1",
-      "inputs": [
-        {
-          "label": "missing",
-          "body": {
-            "realm_id": "ak:realm:AUluXL7CRrekD0AIypsGAQgY9zjTsBHlvN2r6jtPI8Lz",
-            "requester": "ak:did_core:webvh:z6mkfixturemalloryexample"
-          }
-        },
-        {
-          "label": "hidden",
-          "body": {
-            "realm_id": "ak:realm:AYYgLvwSNGGLJgZP4-vIp98a14ou-Q6vcd5Aa3dk7UdV",
-            "requester": "ak:did_core:webvh:z6mkfixturemalloryexample"
-          }
-        },
-        {
-          "label": "invite_only_without_proof",
-          "body": {
-            "realm_id": "ak:realm:AUb7xUm8TEEX2FHiygiVYAzc82hEvM7dO9I2PpEMhDxU",
-            "requester": "ak:did_core:webvh:z6mkfixturemalloryexample"
-          }
-        }
-      ],
-      "expected": {
-        "same_http_status": 404,
-        "same_error_code": "not_found",
-        "same_body_shape": [
-          "ok",
-          "error.code",
-          "request_id"
-        ],
-        "timing_equivalence_group": "privacy_not_found",
-        "must_not_include": [
-          "realm_id",
-          "title",
-          "join_rule",
-          "discoverability",
-          "member_ids",
-          "service_endpoints"
-        ]
-      },
-      "assertions": [
-        "a nonexistent Realm, a secret Realm and an invite-only Realm resolved without proof all return the same HTTP status and the same error code",
-        "the three responses carry the same body shape, so a caller cannot separate them by field set either",
-        "all three fall in one timing equivalence group, so the branch that runs a full discoverability and invite check is not observably slower than the branch that finds nothing",
-        "no response reveals the Realm id, title, join rule, discoverability, member ids or service endpoints of the target"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.directory.resolve_handle_failure_blinding.v1",
-      "name": "resolve_handle_failure_blinding",
-      "operation_id": "ak.find.directory.read.resolve_handle.v1",
-      "inputs": [
-        {
-          "label": "missing_handle",
-          "body": {
-            "handle": "missing:example.test",
-            "requester": "ak:did_core:webvh:z6mkfixturemalloryexample"
-          }
-        },
-        {
-          "label": "hidden_handle",
-          "body": {
-            "handle": "hidden:example.test",
-            "requester": "ak:did_core:webvh:z6mkfixturemalloryexample"
-          }
-        },
-        {
-          "label": "unauthorized_handle",
-          "body": {
-            "handle": "restricted:example.test",
-            "requester": "ak:did_core:webvh:z6mkfixturemalloryexample"
-          }
-        }
-      ],
-      "expected": {
-        "same_http_status": 404,
-        "same_error_code": "not_found",
-        "same_body_shape": [
-          "ok",
-          "error.code",
-          "request_id"
-        ],
-        "timing_equivalence_group": "directory_hidden_not_found",
-        "must_not_include": [
-          "subject",
-          "issuer",
-          "binding_state",
-          "account_id",
-          "audience",
-          "claim_digest"
-        ]
-      },
-      "assertions": [
-        "a missing handle, a hidden handle and a handle the requester is not authorized to resolve return the same status and the same error code",
-        "the three responses carry the same body shape, so the field set does not separate them",
-        "all three fall in one timing equivalence group, so the branch that runs the presentation, claim and audience checks is not observably slower than the branch that finds nothing",
-        "no response reveals the subject, issuer, binding state, account id, audience or claim digest behind the handle"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.directory.resolve_agent_selector_failure_blinding.v1",
-      "name": "resolve_agent_selector_failure_blinding",
-      "operation_id": "ak.find.directory.read.resolve_agent_selector.v1",
-      "inputs": [
-        {
-          "label": "missing_selector",
-          "body": {
-            "controller_subject": "ak:did_core:webvh:z6mkfixture",
-            "agent_slug": "missing",
-            "requester": "ak:did_core:webvh:z6mkfixturemalloryexample"
-          }
-        },
-        {
-          "label": "hidden_selector",
-          "body": {
-            "controller_subject": "ak:did_core:webvh:z6mkfixture",
-            "agent_slug": "private-summary",
-            "requester": "ak:did_core:webvh:z6mkfixturemalloryexample"
-          }
-        },
-        {
-          "label": "unauthorized_selector",
-          "body": {
-            "controller_subject": "ak:did_core:webvh:z6mkfixture",
-            "agent_slug": "restricted-summary",
-            "requester": "ak:did_core:webvh:z6mkfixturemalloryexample"
-          }
-        }
-      ],
-      "expected": {
-        "same_http_status": 404,
-        "same_error_code": "not_found",
-        "same_body_shape": [
-          "ok",
-          "error.code",
-          "request_id"
-        ],
-        "timing_equivalence_group": "directory_hidden_not_found",
-        "must_not_include": [
-          "agent_id",
-          "controller_subject",
-          "binding_state",
-          "endpoint",
-          "capability_refs",
-          "audience"
-        ]
-      }
-    },
-    {
-      "vector_id": "ak.vector.psi.padding_and_cardinality.v1",
-      "name": "private_contact_discovery_padding_and_cardinality",
-      "operation_id": "ak.find.directory.read.private_contact_discovery.v1",
-      "input": {
-        "local_real_identifier_count": 2,
-        "private_contact_discovery_config": {
-          "profile": "ak.private_contact_discovery.v1",
-          "public_key": "yAPizGsF_BUGRUm1kgZZykp3ssym8E9rNXAJM1R2rU4",
-          "key_epoch": 14,
-          "batch_item_count": 4,
-          "handoff_stubs_mode": "always",
-          "blind_response_bucket_bytes": 4096,
-          "match_response_bucket_bytes": 4096,
-          "batch_completion_ttl_seconds": 3600,
-          "max_psi_queries_per_window": 1,
-          "quota_window_seconds": 86400,
-          "anti_enumeration_delay": {
-            "minimum_ms": 100,
-            "jitter_ms": 50
-          }
-        },
-        "blind_request": {
-          "profile": "ak.private_contact_discovery.v1",
-          "phase": "blind",
-          "batch_id": "ak:batch:0196429a-0000-7000-8000-000000000000",
-          "ciphersuite": "ristretto255-SHA512",
-          "key_epoch": 14,
-          "blinded_elements": [
-            "hj8zDMGhJZ7VpZmKI6z9N_tDUaeTpbPAkLZC3cQ5uUU",
-            "kKAUXqnaKSVMOla-T-GFRl67O_KhgB9xJLu62sdR5lQ",
-            "zAsqNQEBiB2KTLpMgCQddPt9y_3kph_eL5FEPCv57ww",
-            "YJoK5owVo89pA3ZkYTB-XIuy-V5-ZVDh_6LcmeQSgDw"
-          ]
-        },
-        "match_request": {
-          "profile": "ak.private_contact_discovery.v1",
-          "phase": "match",
-          "batch_id": "ak:batch:0196429a-0000-7000-8000-000000000000",
-          "key_epoch": 14,
-          "derived_prefixes": [
-            "ABEiM0RVZneImaq7zN3u_w",
-            "ECEyQ1RldoeYqbrL3O3-Dw",
-            "IDFCU2R1hpeoucrb7P0OHw",
-            "MEFSY3SFlqe4ydrr_A0eLw"
-          ]
-        }
-      },
-      "expected": {
-        "wire_batch_cardinality_equals_advertised_batch_item_count": 4,
-        "wire_batch_cardinality_does_not_equal_real_identifier_count": true,
-        "evaluated_elements_same_length_and_order_as_blinded_elements": true,
-        "derived_prefixes_and_hit_bitmap_same_length_and_order": true,
-        "single_batched_dleq_proof_verified_with_described_public_key": true,
-        "result_count_does_not_reveal_match_count": true,
-        "no_raw_connection_identifier": true,
-        "handoff_stubs_if_present_same_cardinality_dummy_padded": true,
-        "per_target_policy_denied_and_no_match_byte_indistinguishable_in_hit_bitmap": true,
-        "success_content_length_bytes": 4096,
-        "content_encoding_header_absent": true,
-        "cache_control": "no-store, no-transform"
-      }
-    },
-    {
-      "vector_id": "ak.vector.psi.quota_blinded_denial.v1",
-      "name": "private_contact_discovery_quota_blind_phase_denial",
-      "operation_id": "ak.find.directory.read.private_contact_discovery.v1",
-      "input": {
-        "private_contact_discovery_config": {
-          "profile": "ak.private_contact_discovery.v1",
-          "public_key": "yAPizGsF_BUGRUm1kgZZykp3ssym8E9rNXAJM1R2rU4",
-          "key_epoch": 14,
-          "batch_item_count": 4,
-          "handoff_stubs_mode": "always",
-          "blind_response_bucket_bytes": 4096,
-          "match_response_bucket_bytes": 4096,
-          "batch_completion_ttl_seconds": 3600,
-          "max_psi_queries_per_window": 1,
-          "quota_window_seconds": 86400,
-          "anti_enumeration_delay": {
-            "minimum_ms": 100,
-            "jitter_ms": 50
-          }
-        },
-        "quota_state": {
-          "max_psi_queries_per_window": 1,
-          "queries_already_charged_in_window": 1,
-          "quota_window_seconds": 86400,
-          "seconds_until_window_roll": 3123
-        },
-        "blind_request": {
-          "profile": "ak.private_contact_discovery.v1",
-          "phase": "blind",
-          "batch_id": "ak:batch:0196429a-0000-7000-8000-000000000001",
-          "ciphersuite": "ristretto255-SHA512",
-          "key_epoch": 14,
-          "blinded_elements": [
-            "hj8zDMGhJZ7VpZmKI6z9N_tDUaeTpbPAkLZC3cQ5uUU",
-            "kKAUXqnaKSVMOla-T-GFRl67O_KhgB9xJLu62sdR5lQ",
-            "zAsqNQEBiB2KTLpMgCQddPt9y_3kph_eL5FEPCv57ww",
-            "YJoK5owVo89pA3ZkYTB-XIuy-V5-ZVDh_6LcmeQSgDw"
-          ]
-        },
-        "replay_cases": [
-          "same_blind_digest",
-          "different_blind_digest_same_batch_id",
-          "same_match_digest",
-          "different_match_digest_same_batch_id",
-          "unknown_wrong_device_or_expired_batch"
-        ]
-      },
-      "expected": {
-        "denial_phase": "blind",
-        "http_status": 429,
-        "error_code": "psi_quota_exhausted",
-        "class_b_problem_schema_ref": "schemas/directory-operations.schema.json#/$defs/psi_padded_problem",
-        "class_b_problem_maximal_string_projection": {
-          "detail_code_point": "U+0001",
-          "detail_length": 256,
-          "instance_prefix": "ak:request:",
-          "instance_fill": "a",
-          "instance_length": 128,
-          "padding": ""
-        },
-        "class_b_problem_projections": [
-          {
-            "phase": "blind",
-            "error_code": "psi_quota_exhausted",
-            "type": "https://arkret.org/problems/psi_quota_exhausted",
-            "title": "Psi quota exhausted",
-            "status": 429,
-            "response_bucket_field": "blind_response_bucket_bytes",
-            "minimal_bucket_bytes": 4096,
-            "retry_after_required": true
-          },
-          {
-            "phase": "blind",
-            "error_code": "policy_denied",
-            "type": "https://arkret.org/problems/policy_denied",
-            "title": "Policy denied",
-            "status": 403,
-            "response_bucket_field": "blind_response_bucket_bytes",
-            "minimal_bucket_bytes": 4096,
-            "retry_after_required": false
-          },
-          {
-            "phase": "blind",
-            "error_code": "duplicate_conflict",
-            "type": "https://arkret.org/problems/duplicate_conflict",
-            "title": "Duplicate conflict",
-            "status": 409,
-            "response_bucket_field": "blind_response_bucket_bytes",
-            "minimal_bucket_bytes": 4096,
-            "retry_after_required": false
-          },
-          {
-            "phase": "match",
-            "error_code": "policy_denied",
-            "type": "https://arkret.org/problems/policy_denied",
-            "title": "Policy denied",
-            "status": 403,
-            "response_bucket_field": "match_response_bucket_bytes",
-            "minimal_bucket_bytes": 4096,
-            "retry_after_required": false
-          },
-          {
-            "phase": "match",
-            "error_code": "duplicate_conflict",
-            "type": "https://arkret.org/problems/duplicate_conflict",
-            "title": "Duplicate conflict",
-            "status": 409,
-            "response_bucket_field": "match_response_bucket_bytes",
-            "minimal_bucket_bytes": 4096,
-            "retry_after_required": false
-          },
-          {
-            "phase": "match",
-            "error_code": "psi_batch_unavailable",
-            "type": "https://arkret.org/problems/psi_batch_unavailable",
-            "title": "Psi batch unavailable",
-            "status": 410,
-            "response_bucket_field": "match_response_bucket_bytes",
-            "minimal_bucket_bytes": 4096,
-            "retry_after_required": false
-          }
-        ],
-        "class_b_problem_negative_schema_mutations": [
-          "additional_extension",
-          "missing_padding",
-          "non_space_padding",
-          "wrong_type_status_pair",
-          "wrong_title",
-          "overlong_detail",
-          "overlong_instance"
-        ],
-        "retry_after_seconds": 3300,
-        "retry_after_quantum_seconds": 300,
-        "content_length_bytes": 4096,
-        "content_encoding_header_absent": true,
-        "cache_control": "no-store, no-transform",
-        "same_advertised_delay_distribution_as_success_path": true,
-        "not_disguised_as_no_match_outcome": true,
-        "admitted_batch_match_request_not_quota_denied": true,
-        "no_per_target_information_in_denial": true,
-        "exact_blind_retry_not_recharged_and_returns_cached_outcome": true,
-        "exact_match_retry_returns_cached_outcome": true,
-        "different_digest_same_batch_id_error_code": "duplicate_conflict",
-        "unknown_wrong_device_or_expired_batch_error_code": "psi_batch_unavailable",
-        "pinned_epoch_retained_for_full_completion_ttl": true
-      }
-    },
-    {
       "name": "directory_query_and_ingest_vector_closure",
       "operation_ids": [
         "ak.find.directory.read.search_realms.v1",
         "ak.find.directory.read.resolve_realm.v1",
-        "ak.find.directory.read.resolve_target.v1",
         "ak.find.directory.command.announce.v1",
-        "ak.find.directory.command.withdraw.v1",
-        "ak.find.directory.read.private_contact_discovery.v1"
+        "ak.find.directory.command.withdraw.v1"
       ],
       "covers_vectors": [
         "ak.vector.directory.public_realm_search.v1",
-        "ak.vector.directory.organization_search.v1",
-        "ak.vector.directory.restricted_claim_presentation.v1",
-        "ak.vector.directory.unlisted_exact_resolve.v1",
-        "ak.vector.directory.resolve_target_blinding.v1",
-        "ak.vector.directory.organization_badge_verification.v1",
-        "ak.vector.directory.pairwise_did_exclusion.v1",
-        "ak.vector.directory.stale_result_rejection.v1",
-        "ak.vector.directory.result_common_fields.v1",
         "ak.vector.directory.announce_bidirectional_opt_in.v1",
-        "ak.vector.directory.announce_source_ref_access_bounds.v1",
         "ak.vector.directory.announce_directory_not_authorized.v1",
         "ak.vector.directory.announce_bad_signature.v1",
         "ak.vector.directory.announce_signature_stale.v1",
-        "ak.vector.directory.policy_revision_rollback.v1",
-        "ak.vector.directory.accept_policy_denied.v1",
         "ak.vector.directory.reannounce_idempotent_ttl.v1",
         "ak.vector.directory.ttl_expiry_removal.v1",
-        "ak.vector.directory.withdraw_blinded_not_found.v1",
-        "ak.vector.directory.operator_takedown_audit.v1",
-        "ak.vector.directory.takedown_reannounce_rejected.v1",
-        "ak.vector.psi.oprf_two_round_shape.v1",
-        "ak.vector.psi.no_reachability_metadata.v1",
-        "ak.vector.psi.quota_blinded_denial.v1"
+        "ak.vector.directory.withdraw_blinded_not_found.v1"
       ],
       "expected": {
-        "query_results_require_common_fields": [
-          "as_of",
-          "source_refs",
-          "policy_revision"
-        ],
-        "resolve_target_hidden_targets_are_indistinguishable": true,
-        "ingest_requires_resource_directory_opt_in": true,
-        "first_ingest_uses_authenticated_source_ref_access": true,
-        "source_ref_access_is_exact_announce_scoped": true,
+        "query_results_are_closed_public_realm_metadata": true,
+        "resolve_unknown_and_withdrawn_realms_are_indistinguishable": true,
+        "ingest_requires_current_governance_station": true,
         "ingest_rejects_bad_signature_and_stale_signature": true,
-        "withdraw_and_takedown_have_blinded_external_responses": true,
-        "psi_is_set_membership_only": true,
-        "psi_denials_are_padded_and_timing_blinded": true
-      }
-    },
-    {
-      "vector_id": "ak.vector.directory.announce_source_ref_access_bounds.v1",
-      "name": "first_ingest_source_ref_access_is_current_exact_and_bounded",
-      "operation_id": "ak.find.directory.command.announce.v1",
-      "input": {
-        "authenticated_source_id": "ak:did_core:web:source.example",
-        "authenticated_directory_id": "ak:did_core:web:directory.example",
-        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-        "discovery_event_id": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
-        "source_refs": [
-          "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
-          "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY"
-        ],
-        "first_ingest_selector": [
-          "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape"
-        ],
-        "same_principal_distinct_actor_keys": [
-          {
-            "kind": "account",
-            "account_id": {
-              "principal_id": "ak:did_core:web:alice.example",
-              "station_id": "ak:did_core:web:station-a.example"
-            }
-          },
-          {
-            "kind": "account",
-            "account_id": {
-              "principal_id": "ak:did_core:web:alice.example",
-              "station_id": "ak:did_core:web:station-b.example"
-            }
-          }
+        "withdraw_has_blinded_external_responses": true,
+        "forbidden_resource_families": [
+          "organization",
+          "user",
+          "actor",
+          "applet",
+          "handle",
+          "private_contact",
+          "psi",
+          "source_ref"
         ]
-      },
-      "mutations": [
-        "wrong_authenticated_source",
-        "wrong_authenticated_directory",
-        "empty_source_refs",
-        "selector_outside_carrier",
-        "discovery_event_mismatch",
-        "carrier_reused_from_another_announce",
-        "expired_carrier",
-        "discovery_withdrawn",
-        "discovery_superseded"
-      ],
-      "expected": {
-        "baseline_result": "accept",
-        "baseline_first_ingest_peer_exact_resolve_calls": 1,
-        "baseline_resolved_selector_is_carrier_subset": true,
-        "mutation_result": "reject",
-        "mutation_index_writes": 0,
-        "mutation_peer_history_scan_calls": 0,
-        "actor_keys_remain_distinct": true
       }
     },
     {
@@ -1165,72 +623,6 @@
         ],
         "distinct_from": "device_result_unavailable"
       }
-    },
-    {
-      "vector_id": "ak.vector.directory.resolve_target_blinding.v1",
-      "name": "resolve_target_failure_blinding",
-      "operation_id": "ak.find.directory.read.resolve_target.v1",
-      "inputs": [
-        {
-          "label": "nonexistent_target",
-          "body": {
-            "address": "web+arkret:realm/AUluXL7CRrekD0AIypsGAQgY9zjTsBHlvN2r6jtPI8Lz/strand/AYmiUmxJsrv2V7hZQD_aDNP3rUe8_9sFQPkW2-tYFaKp",
-            "requester_id": "ak:did_core:webvh:z6mkfixturemalloryexample"
-          }
-        },
-        {
-          "label": "undiscoverable_target",
-          "body": {
-            "address": "web+arkret:realm/AYYgLvwSNGGLJgZP4-vIp98a14ou-Q6vcd5Aa3dk7UdV/strand/AYmiUmxJsrv2V7hZQD_aDNP3rUe8_9sFQPkW2-tYFaKp",
-            "requester_id": "ak:did_core:webvh:z6mkfixturemalloryexample"
-          }
-        },
-        {
-          "label": "unauthorized_preview",
-          "body": {
-            "address": "web+arkret:realm/AUb7xUm8TEEX2FHiygiVYAzc82hEvM7dO9I2PpEMhDxU/strand/AYmiUmxJsrv2V7hZQD_aDNP3rUe8_9sFQPkW2-tYFaKp",
-            "requester_id": "ak:did_core:webvh:z6mkfixturemalloryexample"
-          }
-        },
-        {
-          "label": "policy_denied_token_for_another_object",
-          "body": {
-            "address": "web+arkret:realm/AUb7xUm8TEEX2FHiygiVYAzc82hEvM7dO9I2PpEMhDxU/strand/AYmiUmxJsrv2V7hZQD_aDNP3rUe8_9sFQPkW2-tYFaKp?lt=invite",
-            "requester_id": "ak:did_core:webvh:z6mkfixturemalloryexample",
-            "token": "fixture-invite-token-bound-to-another-strand"
-          }
-        }
-      ],
-      "expected": {
-        "same_http_status": 404,
-        "same_error_code": "not_found",
-        "same_body_shape": [
-          "ok",
-          "error.code",
-          "request_id"
-        ],
-        "responses_are_byte_identical": true,
-        "timing_equivalence_group": "directory_hidden_not_found",
-        "must_not_include": [
-          "target_kind",
-          "realm_id",
-          "strand_id",
-          "message_id",
-          "realm_preview",
-          "object_preview",
-          "join_rule",
-          "join_candidates",
-          "policy_revision"
-        ]
-      },
-      "assertions": [
-        "a nonexistent target, an undiscoverable target, an unauthorized preview and a token whose target descriptor names another object all return byte-identical not_found responses",
-        "the failure classes are not separable by error code: one code covers all four",
-        "the failure classes are not separable by field set: the response body shape is the same in all four, and no branch adds a field the others omit",
-        "the failure classes are not separable by timing: all four sit in one timing equivalence group, so the branch that recomputes a token target digest before failing is not observably slower than the branch that finds nothing",
-        "no response reveals the target kind, the Realm, Strand or Message id, any preview object, the join rule, join candidates or the policy revision",
-        "a token that is valid on its own but bound to another object fails as not_found rather than as a token error, so token validity is never an oracle for object existence"
-      ]
     },
     {
       "vector_id": "ak.vector.directory.withdraw_blinded_not_found.v1",

@@ -35,7 +35,7 @@ libp2p）属于 **binding extension profile**，core 实现 **不要求** 提供
 
 ### 1.1 Stream frame 序列约束的机读锚点（normative）
 
-`ak.self.account.stream.subscribe.v1` 与 `ak.self.events.stream.subscribe.v1` 的 NDJSON 多帧序列必须按各自 frame schema 与下列完整 trace 断言测试；逐帧 JSON Schema validation 不能替代序列测试：
+`ak.self.account.stream.subscribe.v1` 与 `ak.self.committed_event.stream.subscribe.v1` 的 NDJSON 多帧序列必须按各自 frame schema 与下列完整 trace 断言测试；逐帧 JSON Schema validation 不能替代序列测试：
 
 - 必须固化并执行的 frame 序列约束（散文真相源见 client-sync.md，本节集中列举其 testable 形式）：
   1. `catchup=true` 时，`catchup_complete` 之前 MUST 至少出现一个 `delta` frame（baseline / catch-up delta）；`catchup=false` 时 MUST NOT 出现 `catchup_complete`。
@@ -82,12 +82,11 @@ Transport binding MUST 映射到 `artifacts/registry/contract-registry.json#oper
 | `ak.root.identity.log.read.list.v1` | 获取 DID key log。 |
 | `ak.root.identity.command.submit_did_operation.v1` | 提交 DID 更新操作。 |
 | `ak.self.events.command.submit.v1` | endpoint-specific closed union：普通 Event、MLS Commit、四 Event DC founding 原子 unit 或 membership compensation 原子 unit。 |
-| `ak.self.events.resource.get.v1` | 按 ID 读取单个 Event。 |
-| `ak.self.events.read.scan.v1` | 按获准的单个 authority stream 与 `stream_position` 连续查询 Event；不使用 cursor。 |
-| `ak.self.events.stream.subscribe.v1` | 订阅获准 stream 的增量流，可选 bounded catch-up replay。 |
+| `ak.self.committed_event.resource.get.v1` | 按 ID 读取单个 Event。 |
+| `ak.self.committed_event.read.scan.v1` | 按获准的单个 authority stream 与 `stream_position` 连续查询 Event；不使用 cursor。 |
+| `ak.self.committed_event.stream.subscribe.v1` | 订阅获准 stream 的增量流，可选 bounded catch-up replay。 |
 | `ak.peer.events.command.submit.v1` | 唯一 peer Event ingress；closed union 严分 `authority_forward` 单提交、bounded `committed_replication` 与 `registered_atomic_unit`。 |
-| `ak.peer.events.read.resolve_committed.v1` | federation peer 按 `CommittedEventRef` 精确读取 Event 与对应 RealmCommit。 |
-| `ak.peer.events.read.scan.v1` | federation peer 按获准的单个 authority stream 与 `stream_position` 拉取或回填 Event；不使用 cursor。 |
+| `ak.peer.committed_event.read.scan.v1` | federation peer 按获准的单个 authority stream 与 `stream_position` 拉取或回填 Event；不使用 cursor。 |
 | `ak.peer.contacts.command.submit.v1` | federation peer以closed XOR投递原签名`ak.contact.*` fact、对应source-signed acceptance receipt与可刷新current proof；不得承载`ak.direct_conversation.bound`、共享Realm Event或unsigned service row。 |
 | `ak.self.contact.command.scope_update.v1` | Contact issuer-local signed full-set scope replacement，固定`phase=prepare|commit`。 |
 | `ak.self.agent.participation.resource.replace.v1` | controller 通过 bearer+DPoP 在自己的 Account Authority 原子替换一个 versioned per-scope selection；不产生 Realm Event、不走 peer relay。 |
@@ -98,8 +97,6 @@ Transport binding MUST 映射到 `artifacts/registry/contract-registry.json#oper
 | `ak.gate.account.command.issue_identity_binding_challenge.v1` | 为当前 handoff lease 保留DID operation，并签发服务端持久化的一次性 root-control challenge。 |
 | `ak.gate.account.command.register.v1` | 注册 / account binding；account-first 分支内部发布客户端签名的 DID inception 并按 account/principal/operation digest 幂等绑定；不接受裸 `handle` 或 root secret。 |
 | `ak.gate.account.command.revoke_session.v1` | 撤销 session grant；不撤销 device authorization。 |
-| `ak.find.directory.read.search_realms.v1` / `ak.find.directory.read.search_organizations.v1` / `ak.find.directory.read.search_actors.v1` / `ak.find.directory.read.search_users.v1` | 授权搜索 Realm / Organization / Actor，以及用户目录条目（actor profile / handle 视图）。 |
-| `ak.find.directory.read.resolve_realm.v1` / `ak.find.directory.read.resolve_organization.v1` / `ak.find.directory.read.resolve_handle.v1` / `ak.find.directory.read.resolve_agent_selector.v1` / `ak.find.directory.read.list_handles_for_subject.v1` | 精确解析 Realm / Organization / handle / controller-scoped agent selector，以及按完整 AccountId 列出已知账号的当前可见 handle claims。 |
 | `ak.self.blob.upload.create.v1` | 上传 blob。 |
 | `ak.self.blob.resource.get.v1` | 获取 blob 或下载授权。 |
 | `ak.edge.push.command.register_device.v1` | 注册推送设备和推送网关。 |

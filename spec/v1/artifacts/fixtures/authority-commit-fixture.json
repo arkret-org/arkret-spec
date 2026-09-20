@@ -1,5 +1,5 @@
 {
-  "version": "2026-09-19.2",
+  "version": "2026-09-20",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.authority_commit.v1"
@@ -895,7 +895,7 @@
           "action": "submit",
           "event": "E_dependent",
           "state_changing": true,
-          "refs": [
+          "semantic_refs": [
             {
               "role": "causal",
               "target": "E_predecessor"
@@ -940,7 +940,7 @@
           "action": "submit",
           "event": "E_dependent",
           "state_changing": true,
-          "refs": [
+          "semantic_refs": [
             {
               "role": "causal",
               "target": "E_predecessor"

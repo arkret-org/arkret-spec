@@ -100,12 +100,12 @@ def check_signer_key_historical_coordinate(lint: Lint) -> None:
     if not isinstance(committed, dict) or committed.get("required") != ["event_id", "commit_id", "stream_ref", "stream_position"]:
         lint.fail(AUTHORITY_SCHEMA, "committed_event_ref must remain the closed four-coordinate reference")
     scan = authority_defs.get("stream_scan_outcome")
-    scan_items = scan.get("properties", {}).get("commits", {}).get("items", {}).get("$ref") if isinstance(scan, dict) else None
+    scan_items = scan.get("properties", {}).get("committed_events", {}).get("items", {}).get("$ref") if isinstance(scan, dict) else None
     if scan_items != "#/$defs/stream_row":
         lint.fail(AUTHORITY_SCHEMA, "per-stream scan must continue to carry canonical stream_row values")
     account_sync = load_json(lint, ACCOUNT_SYNC_SCHEMA)
     realm_sync = _defs(account_sync).get("realm_sync_entry")
-    account_items = realm_sync.get("properties", {}).get("commits", {}).get("items", {}).get("$ref") if isinstance(realm_sync, dict) else None
+    account_items = realm_sync.get("properties", {}).get("committed_events", {}).get("items", {}).get("$ref") if isinstance(realm_sync, dict) else None
     if account_items != "./authority-commit-operations.schema.json#/$defs/stream_row":
         lint.fail(ACCOUNT_SYNC_SCHEMA, "account subscribe must continue to carry the same canonical stream_row")
 
@@ -134,7 +134,7 @@ def check_signer_key_historical_coordinate(lint: Lint) -> None:
     else:
         if fixture.get("carrier_sources") != [
             "account_subscribe.realm_sync_entry.commits",
-            "ak.self.events.read.scan.v1.stream_scan_outcome.commits",
+            "ak.self.committed_event.read.scan.v1.stream_scan_outcome.commits",
         ]:
             lint.fail(FIXTURE, "fixture must retain exactly the two existing stream_row carrier sources")
         positive = fixture.get("positive_case")

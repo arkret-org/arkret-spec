@@ -4,7 +4,7 @@
     "entrypoint": "ak.suite.encoding.core.v1"
   },
   "profile": "ak.vector_group.encoding.v1",
-  "version": "2026-09-19.3",
+  "version": "2026-09-20",
   "description": "Canonical encoding and digest-algorithm vectors for the current authority-commit protocol.",
   "generator_semantics": "Vectors of kind *_reject_generated carry a `generator` object instead of literal input bytes: the runner MUST construct the input at execution time from the generator parameters (e.g. nesting_depth, array_item_count) following the generator.rule text, so the fixture never stores megabyte-scale literals. Rejection is asserted exactly as for literal-input vectors.",
   "covers_vectors": [
@@ -14,7 +14,6 @@
     "ak.vector.encoding.digest.blake3.v1",
     "ak.vector.encoding.reject_noncanonical_numbers.v1",
     "ak.vector.encoding.reject_malformed_json.v1",
-    "ak.vector.encoding.event_batch_receipt_digest.v1",
     "ak.vector.encoding.signature_binding_payload.v1",
     "ak.vector.encoding.hlc_order.v1",
     "ak.vector.encoding.hlc_logical_overflow.v1",
@@ -46,71 +45,71 @@
           "id": "envelope_is_the_closed_four_member_wire",
           "requirement": "Every encrypted envelope is the closed {version, content_type, encryption_context, ciphertext}: scope, mls_group_id, Event kind, content scheme, AEAD algorithm and any AAD digest are reconstructed and never duplicated on the wire, and a fifth member makes the envelope invalid rather than selecting another content scheme.",
           "evidence": [
-            "/vectors/11/closed_envelope",
-            "/vectors/11/cases/1"
+            "/vectors/10/closed_envelope",
+            "/vectors/10/cases/1"
           ]
         },
         {
           "id": "encryption_context_is_closed_to_the_registered_members",
           "requirement": "encryption_context is limited to epoch, group_state_ref and the registered routing context; a counter, scheme, algorithm, scope, group id, AAD digest member or a null placeholder is rejected rather than reinterpreted.",
           "evidence": [
-            "/vectors/11/encryption_context_members",
-            "/vectors/11/cases/2"
+            "/vectors/10/encryption_context_members",
+            "/vectors/10/cases/2"
           ]
         },
         {
           "id": "digest_covers_the_wire_projection_and_never_the_plaintext",
           "requirement": "The envelope digest preimage is the canonical {version, content_type, encryption_context} projection followed by the decoded ciphertext bytes, and implementations never hash the plaintext payload.",
           "evidence": [
-            "/vectors/11/digest_input_rule",
-            "/vectors/11/expected_digest",
-            "/vectors/11/rules"
+            "/vectors/10/digest_input_rule",
+            "/vectors/10/expected_digest",
+            "/vectors/10/rules"
           ]
         },
         {
           "id": "receiver_rebuilds_the_header_from_all_five_local_sources",
           "requirement": "The receiver reconstructs the exact closed pre-encryption header from the outer signed Event, the effective scope, the Event kind, its own verified current public group result and the sender leaf; substituting any one of the five yields a different AAD and fails verification.",
           "evidence": [
-            "/vectors/11/reconstructed_header",
-            "/vectors/11/cases/0"
+            "/vectors/10/reconstructed_header",
+            "/vectors/10/cases/0"
           ]
         },
         {
           "id": "a_copy_carried_alongside_the_envelope_is_never_trusted",
           "requirement": "A copy of the header carried alongside the envelope is refused on the member set before any AEAD open, and is not consulted even when it is byte-identical to the rebuilt header.",
           "evidence": [
-            "/vectors/11/cases/1"
+            "/vectors/10/cases/1"
           ]
         },
         {
           "id": "aad_mismatch_fails_closed",
           "requirement": "A rebuilt AAD differing from the AAD the ciphertext was sealed under fails with aad_digest_mismatch, and the transcript is not relaxed to the members both sides agree on.",
           "evidence": [
-            "/vectors/11/cases/3"
+            "/vectors/10/cases/3"
           ]
         },
         {
           "id": "ciphertext_digest_mismatch_fails_closed",
           "requirement": "A ciphertext whose raw bytes do not hash to the digest the signed outer Event references fails with payload_digest_mismatch rather than as a decrypt failure.",
           "evidence": [
-            "/vectors/11/cases/4"
+            "/vectors/10/cases/4"
           ]
         },
         {
           "id": "encryption_context_mismatch_fails_closed",
           "requirement": "An encryption_context the receiver's own verified current public group result does not produce fails with epoch_mismatch, and current time, current UI state or another stream head never substitute for that revision.",
           "evidence": [
-            "/vectors/11/cases/5"
+            "/vectors/10/cases/5"
           ]
         },
         {
           "id": "fail_closed_admits_no_partial_write_no_downgrade_no_secret_reroll",
           "requirement": "Each of the three mismatches fails closed: no typed current or outbox partial result, no plaintext downgrade, and no retry under different secrets -- an ambiguous outcome is replayed byte-identically instead of re-encrypted.",
           "evidence": [
-            "/vectors/11/cases/3",
-            "/vectors/11/cases/4",
-            "/vectors/11/cases/5",
-            "/vectors/11/cases/6"
+            "/vectors/10/cases/3",
+            "/vectors/10/cases/4",
+            "/vectors/10/cases/5",
+            "/vectors/10/cases/6"
           ]
         }
       ]
@@ -315,99 +314,6 @@
         "duplicate keys MUST NOT be silently overwritten by parser default",
         "malformed strings MUST NOT be replaced with U+FFFD before signing",
         "rejection MUST be auditable; reason_code SHOULD be schema_violation, invalid_canonical_json, or invalid_encoding"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.encoding.event_batch_receipt_digest.v1",
-      "kind": "canonical_json_digest",
-      "input": {
-        "schema": "ak.schema.event_batch_receipt.v1",
-        "receipt_id": "ak:receipt:01964186-0000-7000-8000-000000000000",
-        "issuer": "ak:did_core:webvh:z6mkfixture",
-        "scope": {
-          "actor_id": {
-            "kind": "service",
-            "service_id": "ak:did_core:webvh:z6mkfixture"
-          }
-        },
-        "events": [
-          {
-            "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
-            "kind": "ak.message.create"
-          },
-          {
-            "event_id": "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY",
-            "kind": "ak.realm.create"
-          }
-        ],
-        "created_at": "2026-04-26T00:00:00.000Z"
-      },
-      "expected_canonical_bytes_utf8": "{\"created_at\":\"2026-04-26T00:00:00.000Z\",\"events\":[{\"event_id\":\"ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-\",\"kind\":\"ak.message.create\"},{\"event_id\":\"ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY\",\"kind\":\"ak.realm.create\"}],\"issuer\":\"ak:did_core:webvh:z6mkfixture\",\"receipt_id\":\"ak:receipt:01964186-0000-7000-8000-000000000000\",\"schema\":\"ak.schema.event_batch_receipt.v1\",\"scope\":{\"actor_id\":{\"kind\":\"service\",\"service_id\":\"ak:did_core:webvh:z6mkfixture\"}}}",
-      "expected_digest": "sha256:c57b1ff31cba87a1b9d1aa79640b74243e7e0cb2059cbf7a63d47838f0c3d8d8",
-      "normalization_cases": [
-        {
-          "name": "reverse_and_duplicate_normalizes_to_same_set",
-          "input_events": [
-            {
-              "event_id": "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY",
-              "kind": "ak.realm.create"
-            },
-            {
-              "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
-              "kind": "ak.message.create"
-            },
-            {
-              "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
-              "kind": "ak.message.create"
-            }
-          ],
-          "expected_events": [
-            {
-              "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
-              "kind": "ak.message.create"
-            },
-            {
-              "event_id": "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY",
-              "kind": "ak.realm.create"
-            }
-          ],
-          "expected_digest": "sha256:c57b1ff31cba87a1b9d1aa79640b74243e7e0cb2059cbf7a63d47838f0c3d8d8"
-        },
-        {
-          "name": "unsorted_signed_wire_rejected",
-          "wire_events": [
-            {
-              "event_id": "ak:event:AR8bu-n-kOOB3nRUvYuIEglCX5B-JpFaNTex9gxs_cWY",
-              "kind": "ak.realm.create"
-            },
-            {
-              "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
-              "kind": "ak.message.create"
-            }
-          ],
-          "expected": "schema_violation_before_digest_verification"
-        },
-        {
-          "name": "duplicate_signed_wire_rejected",
-          "wire_events": [
-            {
-              "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
-              "kind": "ak.message.create"
-            },
-            {
-              "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
-              "kind": "ak.message.create"
-            }
-          ],
-          "expected": "schema_violation_before_digest_verification"
-        }
-      ],
-      "fail_conditions": [
-        "producer hashes events before canonical set normalization",
-        "receiver accepts an unsorted or duplicate signed wire events array",
-        "proof field included in receipt digest",
-        "issuer/scope/events/created_at/schema excluded from digest",
-        "receipt_id case-folded by implementation"
       ]
     },
     {
@@ -630,11 +536,11 @@
             "routing_context is admitted only for a registered reaction outer Event kind; it is forbidden on every other kind and grants no read or write authority"
           ]
         },
-          {
-            "name": "aad_transcript_mismatch_fails_closed",
-            "covers_decision_points": [
-              "AK-SDK-009/envelope_context_mismatch_fails_closed_without_partial_write"
-            ],
+        {
+          "name": "aad_transcript_mismatch_fails_closed",
+          "covers_decision_points": [
+            "AK-SDK-009/envelope_context_mismatch_fails_closed_without_partial_write"
+          ],
           "given": "an envelope whose ciphertext was sealed under a header differing from the one the receiver rebuilds in exactly one member",
           "action": "verify and attempt to decrypt",
           "expected": {
@@ -653,11 +559,11 @@
             "the same ciphertext MUST NOT be admitted by relaxing the transcript to the members both sides agree on"
           ]
         },
-          {
-            "name": "ciphertext_digest_mismatch_fails_closed",
-            "covers_decision_points": [
-              "AK-SDK-009/envelope_context_mismatch_fails_closed_without_partial_write"
-            ],
+        {
+          "name": "ciphertext_digest_mismatch_fails_closed",
+          "covers_decision_points": [
+            "AK-SDK-009/envelope_context_mismatch_fails_closed_without_partial_write"
+          ],
           "given": "an envelope whose ciphertext bytes hash to something other than the digest the signed outer Event references",
           "action": "compare the ciphertext digest against the signed reference, then attempt to decrypt",
           "expected": {
@@ -677,11 +583,11 @@
             "the mismatch MUST be reported as payload_digest_mismatch rather than as a decrypt failure, so a wire corruption is not confused with a key problem"
           ]
         },
-          {
-            "name": "encryption_context_disagrees_with_the_verified_group_result",
-            "covers_decision_points": [
-              "AK-SDK-009/envelope_context_mismatch_fails_closed_without_partial_write"
-            ],
+        {
+          "name": "encryption_context_disagrees_with_the_verified_group_result",
+          "covers_decision_points": [
+            "AK-SDK-009/envelope_context_mismatch_fails_closed_without_partial_write"
+          ],
           "given": "an envelope whose encryption_context names an epoch and group_state_ref that the receiver's own verified current public group result does not produce",
           "action": "cross-check encryption_context against the verified group result",
           "expected": {
@@ -706,11 +612,11 @@
             "the same ciphertext MUST fail under a different scope, Event kind, sender or group state, so a context that merely parses is not a context that binds"
           ]
         },
-          {
-            "name": "exact_retry_replays_the_same_bytes_and_never_re_encrypts",
-            "covers_decision_points": [
-              "AK-SDK-009/envelope_context_mismatch_fails_closed_without_partial_write"
-            ],
+        {
+          "name": "exact_retry_replays_the_same_bytes_and_never_re_encrypts",
+          "covers_decision_points": [
+            "AK-SDK-009/envelope_context_mismatch_fails_closed_without_partial_write"
+          ],
           "given": "a submission whose outcome is unknown to the sender",
           "action": "retry the same message",
           "expected": {
@@ -1362,5 +1268,6 @@
     "ak:strand:AUOjN8M8xm-W1G1Ve9UR6sHKJh7JPG7bM8ZDnzcGJ2Vh",
     "ak:strand:AUWg9ZNZBVNnkaSzPmpzkVewAlUWyhg0zoQttwVeVCzo",
     "ak:strand:Aa_yypFNAdL0fMTRCl3Tb739_jiYeVw86xHIG2TdjNh7"
-  ]
+  ],
+  "applies_to_vectors": []
 }

@@ -490,23 +490,6 @@ def check_realm_join_locator_carriers_and_bounds(lint: Lint) -> None:
             must_be_required=True,
         )
 
-    directory = load_json(lint, DIRECTORY_OPERATIONS_SCHEMA)
-    if isinstance(directory, dict):
-        for definition in (
-            "realm_preview",
-            "directory_realm_resolution_outcome",
-            "directory_target_resolution_outcome",
-        ):
-            _check_realm_join_locator_array_schema(
-                lint,
-                DIRECTORY_OPERATIONS_SCHEMA,
-                directory,
-                ("$defs", definition, "properties", "join_candidates"),
-                required_owner_keys=("$defs", definition),
-                field_name="join_candidates",
-                must_be_required=False,
-            )
-
     fixture = load_json(lint, REALM_JOIN_CANDIDATE_FIXTURE)
     if isinstance(fixture, dict):
         array_contract = fixture.get("locator_array_contract")

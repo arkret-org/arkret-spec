@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.binding.websocket.v1",
-  "version": "2026-09-19.2",
+  "version": "2026-09-20",
   "suite": "websocket_binding",
   "runner": {
     "kind": "named_suite",
@@ -122,7 +122,7 @@
       "required_bundle": "ak.operation_bundle.station.websocket.v1",
       "required_operations": [
         "ak.self.account.stream.subscribe.v1",
-        "ak.self.events.stream.subscribe.v1",
+        "ak.self.committed_event.stream.subscribe.v1",
         "ak.self.signal.stream.subscribe.v1"
       ],
       "expect_valid": true,
@@ -303,7 +303,7 @@
     {
       "name": "open_events",
       "direction_schema_ref": "schemas/websocket-frame.schema.json#/$defs/client_frame",
-      "wire_utf8": "{\"channel_id\":\"events-1\",\"kind\":\"open\",\"operation_id\":\"ak.self.events.stream.subscribe.v1\",\"parameters\":{\"catchup\":false,\"realm_ids\":[\"ak:realm:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6\"]}}",
+      "wire_utf8": "{\"channel_id\":\"events-1\",\"kind\":\"open\",\"operation_id\":\"ak.self.committed_event.stream.subscribe.v1\",\"parameters\":{\"catchup\":false,\"realm_ids\":[\"ak:realm:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6\"]}}",
       "expect_valid": true
     },
     {
@@ -321,7 +321,7 @@
     {
       "name": "opened_events",
       "direction_schema_ref": "schemas/websocket-frame.schema.json#/$defs/server_frame",
-      "wire_utf8": "{\"channel_id\":\"events-1\",\"kind\":\"opened\",\"operation_id\":\"ak.self.events.stream.subscribe.v1\"}",
+      "wire_utf8": "{\"channel_id\":\"events-1\",\"kind\":\"opened\",\"operation_id\":\"ak.self.committed_event.stream.subscribe.v1\"}",
       "expect_valid": true
     },
     {
@@ -339,7 +339,7 @@
     {
       "name": "events_data",
       "direction_schema_ref": "schemas/websocket-frame.schema.json#/$defs/server_frame",
-      "wire_utf8": "{\"channel_id\":\"events-1\",\"kind\":\"data\",\"payload\":{\"cursor\":\"ak:cursor:ZXZlbnRzLWN1cnNvci0wMDAx\",\"kind\":\"event\",\"payload\":{\"actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationexample\"},\"kind\":\"account\"},\"created_at\":\"2026-05-02T00:00:00.000Z\",\"event_id\":\"ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrqv\",\"kind\":\"ak.message.create\",\"payload\":{\"content\":{\"body\":\"hello\",\"kind\":\"ak.content.text\"},\"strand_id\":\"ak:strand:AQ9vwMrZNs64XfX4CVfhG2FPvja_JU2XLAIWCbvWK5kG\",\"track_name\":\"discussion\"},\"producer_proof\":{\"created_at\":\"2026-05-02T00:00:00.000Z\",\"domain\":\"arkret-event-v1\",\"event_digest\":\"sha256:41244b66a2bf197edf0faf20e58a5d72ad1fe950540a313c006478f65c52baaf\",\"jws\":\"eyJhbGciOiJFZDI1NTE5In0.._LDaUvdWTts7-Gjg9uRyhmh5-evFIXGzQaQI2th3khFXq__KV0K1KhKR3vd2amR0ksXl_K9p_lQ5sLMSqhvpDA\",\"kind\":\"detached_jws\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture\"},\"realm_id\":\"ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw\",\"scope_ref\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw\"}},\"realm_id\":\"ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw\"}}",
+      "wire_utf8": "{\"channel_id\":\"events-1\",\"kind\":\"data\",\"payload\":{\"cursor\":\"ak:cursor:ZXZlbnRzLWN1cnNvci0wMDAx\",\"kind\":\"committed_event\",\"payload\":{\"commit\":{\"commit_id\":\"ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4\",\"realm_id\":\"ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5\",\"stream_ref\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5\"},\"stream_position\":0,\"previous_commit_ref\":null,\"event_ref\":\"ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD\",\"governance_generation\":1,\"authority_ref\":\"ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD\",\"committed_at\":\"2026-09-20T00:00:00.000Z\",\"signature\":{\"context\":\"ak.realm_commit_signature.v1\",\"signature_algorithm\":\"Ed25519\",\"verification_method\":\"did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture\",\"signed_digest\":\"sha256:fd778be71a6bbea85ca326438efd6f3478c7268b1db71e69a0489e76fc86d8d0\",\"created_at\":\"2026-09-20T00:00:00.000Z\",\"sig\":\"jWBLjI88A3F2Qe_Y4PaU1_Udhl7ArLP6PSlnn-_XmZ-2eWdNhcsLgJyTQkwgqH3Ij8ARyXybOP06U60P2BKECA\"}},\"event_disclosure\":{\"status\":\"withheld\"}},\"realm_id\":\"ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5\"}}",
       "expect_valid": true
     },
     {
@@ -612,41 +612,35 @@
         "kind": "data",
         "payload": {
           "cursor": "ak:cursor:ZXZlbnRzLWN1cnNvci0wMDAx",
-          "kind": "event",
+          "kind": "committed_event",
           "payload": {
-            "event_id": "ak:event:AW9liRF__7KeqYYQwBB_XocDNUDVtxe0SgRxshKC7IGT",
-            "kind": "ak.message.create",
-            "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw",
-            "scope_ref": {
-              "kind": "realm",
-              "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw"
-            },
-            "actor_id": {
-              "kind": "account",
-              "account_id": {
-                "principal_id": "ak:did_core:webvh:z6mkfixture",
-                "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            "commit": {
+              "commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "stream_ref": {
+                "kind": "realm",
+                "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+              },
+              "stream_position": 0,
+              "previous_commit_ref": null,
+              "event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+              "governance_generation": 1,
+              "authority_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+              "committed_at": "2026-09-20T00:00:00.000Z",
+              "signature": {
+                "context": "ak.realm_commit_signature.v1",
+                "signature_algorithm": "Ed25519",
+                "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
+                "signed_digest": "sha256:fd778be71a6bbea85ca326438efd6f3478c7268b1db71e69a0489e76fc86d8d0",
+                "created_at": "2026-09-20T00:00:00.000Z",
+                "sig": "jWBLjI88A3F2Qe_Y4PaU1_Udhl7ArLP6PSlnn-_XmZ-2eWdNhcsLgJyTQkwgqH3Ij8ARyXybOP06U60P2BKECA"
               }
             },
-            "created_at": "2026-05-02T00:00:00.000Z",
-            "payload": {
-              "strand_id": "ak:strand:AQ9vwMrZNs64XfX4CVfhG2FPvja_JU2XLAIWCbvWK5kG",
-              "track_name": "discussion",
-              "content": {
-                "kind": "ak.content.text",
-                "body": "hello"
-              }
-            },
-            "producer_proof": {
-              "kind": "detached_jws",
-              "verification_method": "did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture",
-              "created_at": "2026-05-02T00:00:00.000Z",
-              "domain": "arkret-event-v1",
-              "jws": "eyJhbGciOiJFZDI1NTE5In0..Q8Wtme9Q6fiys4lg2cPbuIWwaSAjrJz3PkcZUK8YXhJef7XC4Vza_27b3EUsQedzkSJ47HlyejUb2Xyx8OyzDg",
-              "event_digest": "sha256:6f6589117fffb29ea98610c0107f5e87033540d5b717b44a0471b21282ec8193"
+            "event_disclosure": {
+              "status": "withheld"
             }
           },
-          "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw"
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
         }
       },
       "expect_valid": true

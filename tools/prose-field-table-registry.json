@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "source_of_truth": false,
   "narrative_source": "spec/v1/zh",
   "$comment": "Bindings between a normative prose field table and the schema object it documents. check_prose_field_tables requires the table rows and the schema properties to carry the same names in the same order, and requires every field name mentioned in the object own descriptions to be either declared by that object or listed in external_field_mentions.",
@@ -31,21 +31,6 @@
       "document": "spec/v1/zh/discovery/client-preferences.md",
       "schema_ref": "contact-remark.schema.json#",
       "external_field_mentions": []
-    },
-    {
-      "document": "spec/v1/zh/discovery/discovery-directory.md",
-      "schema_ref": "service-operation-dtos.schema.json#/$defs/DirectoryAnnounceOutcome",
-      "external_field_mentions": []
-    },
-    {
-      "document": "spec/v1/zh/discovery/discovery-directory.md",
-      "schema_ref": "service-operation-dtos.schema.json#/$defs/DirectoryAnnounceRequestBody",
-      "external_field_mentions": [
-        "discovery_event_id",
-        "resource_id",
-        "resource_kind",
-        "source_refs"
-      ]
     },
     {
       "document": "spec/v1/zh/discovery/profiles-presence.md",
@@ -217,7 +202,8 @@
       "document": "spec/v1/zh/models/strand-and-message.md",
       "schema_ref": "event-payload.schema.json#/$defs/strand_watch_set_payload",
       "external_field_mentions": [
-        "access_kind"
+        "access_kind",
+        "semantic_refs"
       ]
     },
     {

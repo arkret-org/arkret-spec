@@ -1,6 +1,6 @@
 {
   "profile": "ak.vector_group.protocol_edge_cases.v1",
-  "version": "2026-09-19.3",
+  "version": "2026-09-20",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.protocol.edge_cases.v1"
@@ -34,7 +34,7 @@
     "ak.vector.sync.window_start_basis.v1",
     "ak.vector.sync.stream_scan_permitted_range.v1",
     "ak.vector.sync.stream_enumeration_no_starvation.v1",
-    "ak.vector.sync.event_read_row_integrity.v1",
+    "ak.vector.sync.committed_event_view_integrity.v1",
     "ak.vector.sync.zero_window_and_empty_stream.v1"
   ],
   "cases": [
@@ -900,8 +900,7 @@
         "failure_budget_key": "device_pairing_request_id",
         "failure_budget_limit": 10,
         "failure_budget_visibility": "service_private",
-        "current_device_gate_operation": "ak.peer.device_revocations.command.check.v1",
-        "current_device_gate_action_class": "device_pairing_code_claim",
+        "current_device_gate_boundary": "station_tcb_private_current_device_decision",
         "current_device_gate_order": [
           "authenticate_standard_session_grant_and_exact_http_dpop_jti",
           "apply_caller_device_account_and_service_transport_buckets",
@@ -928,10 +927,10 @@
         "an unknown, wrong, expired, superseded, cross-account, not yet finalized and already consumed code all return one indistinguishable not_found with no observable difference in body, code, reason code or timing",
         "the pairing code never appears in a URL path or query string, an access log or an analytics event",
         "exceeding the per-caller-device, per-AccountId or per-service rate budget returns rate_limited; those transport buckets neither replace nor reset the exact-request failure budget",
-        "the Account Authority verifies an active Standard human SessionGrant and exact HTTP DPoP JTI, applies all transport buckets, and obtains a fresh matching allow receipt through ak.peer.device_revocations.command.check.v1 with action_class device_pairing_code_claim before it performs any pairing-code lookup",
-        "the origin Station compares both expected selectors from the signed device_binding against its locked durable current projection; the SessionGrant snapshot alone never authorizes claim, and device_pairing_code_claim is never represented as event_write",
-        "revocation_pending, revoked, authority_mismatch, generation_mismatch, receipt mismatch or expiry, and origin unavailability all fail closed before pending lookup with no code-dependent disclosure and no request-id failure-budget write",
-        "after allow, only the Account Authority reads its single gate-side pending and abuse ledger; the origin current-device gate receives an intent digest rather than the plaintext pairing code and never reads or mirrors pairing state",
+        "the Station TCB verifies an active Standard human SessionGrant and exact HTTP DPoP JTI, applies all transport buckets, and obtains a fresh current-device decision before it performs any pairing-code lookup",
+        "the private current-device decision compares both expected selectors from the signed device_binding against its locked durable current projection; the SessionGrant snapshot alone never authorizes claim",
+        "revocation_pending, revoked, authority_mismatch, generation_mismatch, decision mismatch or staleness, and internal unavailability all fail closed before pending lookup with no code-dependent disclosure and no request-id failure-budget write",
+        "only the pairing authority reads its single gate-side pending and abuse ledger; private current-device validation never reads or mirrors pairing state",
         "only a failure after an exact retained request is located can create or increment the ledger row keyed by device_pairing_request_id; an unknown request id or a code that resolves to no exact request creates no row",
         "the first nine counted failures leave staged or ready_for_claim unchanged, while the tenth count, pending-to-expired transition, code consumption and bounded tombstone are one durable transaction",
         "a failed counter transaction rolls back both the increment and pending-state transition, so no partial abuse-control or business write is observable",
@@ -1059,28 +1058,28 @@
       ]
     },
     {
-      "name": "event_read_row_integrity_and_existence_acl",
-      "vector_id": "ak.vector.sync.event_read_row_integrity.v1",
-      "basis": "stream_row pairs of one RealmCommit and the EventReadRow member in the same row",
+      "name": "committed_event_view_integrity_and_disclosure",
+      "vector_id": "ak.vector.sync.committed_event_view_integrity.v1",
+      "basis": "CommittedEventView is exactly a RealmCommit paired with either its full Event or the closed withheld disclosure marker",
       "variants": [
         "full_event_id_equals_commit_event_ref",
         "full_event_id_differs_from_commit_event_ref",
-        "reference_locked_stub_without_event_id",
-        "redacted_row_offered_as_reducer_input",
-        "caller_not_permitted_to_know_the_event_exists"
+        "withheld_marker",
+        "withheld_marker_offered_as_reducer_input",
+        "obsolete_redacted_or_stub_shape"
       ],
       "expected": {
         "full_event_id_equals_commit_event_ref": "accepted",
         "full_event_id_differs_from_commit_event_ref": "rejected",
-        "reference_locked_stub_without_event_id": "rejected",
-        "redacted_row_offered_as_reducer_input": "rejected",
-        "caller_not_permitted_to_know_the_event_exists": "row_withheld_entirely"
+        "withheld_marker": "accepted_as_non_reducer_view",
+        "withheld_marker_offered_as_reducer_input": "rejected",
+        "obsolete_redacted_or_stub_shape": "schema_violation"
       },
       "assertions": [
         "a mismatch between event_id and commit.event_ref MUST be rejected and MUST NOT be reconciled by preferring either side",
-        "commit.event_ref already names the source Event, so a stub in this position MUST carry event_id and the stub name is not a privacy guarantee",
-        "redacted and locked rows are not complete reducer input",
-        "existence ACL is enforced on the whole row, so the Commit MUST NOT be used to leak an Event the caller may not know exists"
+        "the withheld branch contains only commit and event_disclosure.status=withheld",
+        "a withheld view is not complete reducer input",
+        "obsolete redacted Event and locked-stub shapes are not members of CommittedEventView"
       ]
     },
     {

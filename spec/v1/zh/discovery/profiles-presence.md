@@ -94,7 +94,6 @@ Profile 初始状态通过 `ak.profile.create` Event / compatible Event 提交�
   "realm_id": "ak:realm:ARmJMvTcKFyiF-V_8oL4mIoHfnlqERCrcgNBONtY4HQD",
   "actor_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
   "created_at": "2026-04-26T00:00:00Z",
-  "refs": [],
   "payload": {
     "object": {
       "principal_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
@@ -128,7 +127,7 @@ Profile 后续变更通过 `ak.profile.update` Event / compatible Event 提交�
   "realm_id": "ak:realm:ARmJMvTcKFyiF-V_8oL4mIoHfnlqERCrcgNBONtY4HQD",
   "actor_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
   "created_at": "2026-04-26T00:01:00Z",
-  "refs": [
+  "semantic_refs": [
     {
       "id": "ak:grant:AT-1QUIBViI1bcGaLssADWkxqZ9bCtHDhnKqduYlKaQz",
       "role": "authorized_by",
@@ -155,7 +154,7 @@ Profile 后续变更通过 `ak.profile.update` Event / compatible Event 提交�
 }
 ```
 - `ak.profile.create` 初始化完整对象；`ak.profile.update` 仅携带发生变化的字段（delta 更新）
-- 其他参与者的客户端 MUST 通过授权面 `ak.self.actor_profile.read.resolve.v1` 获取该 actor 的最新全局 Profile：它以共享 Collaboration Realm 的 current effective joined membership 为授权基础，逐条返回 exact signed profile Event、接纳该 Event 的 exact RealmCommit 与该 Event 所支撑的当前显示投影。服务端 MUST 验证 Event／Commit／PCR stream／authority generation 的逐字绑定，缺少覆盖 Commit 时返回 `profile_unavailable`，不得把本地缓存或 account aggregate 冒充 accepted profile。全局 profile Event 落在其 owner 的 Principal Control Realm，因此 **MUST NOT** 通过对该 actor 做 actor-scoped `ak.self.events.read.scan.v1` / `.stream.subscribe` 获取（见 [`../sync/service-http-binding.md` §3.3.1.1](../sync/service-http-binding.md)）；未知 actor、无 accepted profile、非成员 actor、缺失 committed provenance 与无权调用者一律 `profile_unavailable`，不可用于探测成员关系或账号存在性
+- 其他参与者的客户端 MUST 通过授权面 `ak.self.actor_profile.read.resolve.v1` 获取该 actor 的最新全局 Profile：它以共享 Collaboration Realm 的 current effective joined membership 为授权基础，逐条返回 exact signed profile Event、接纳该 Event 的 exact RealmCommit 与该 Event 所支撑的当前显示投影。服务端 MUST 验证 Event／Commit／PCR stream／authority generation 的逐字绑定，缺少覆盖 Commit 时返回 `profile_unavailable`，不得把本地缓存或 account aggregate 冒充 accepted profile。全局 profile Event 落在其 owner 的 Principal Control Realm，因此 **MUST NOT** 通过对该 actor 做 actor-scoped `ak.self.committed_event.read.scan.v1` / `.stream.subscribe` 获取（见 [`../sync/service-http-binding.md` §3.3.1.1](../sync/service-http-binding.md)）；未知 actor、无 accepted profile、非成员 actor、缺失 committed provenance 与无权调用者一律 `profile_unavailable`，不可用于探测成员关系或账号存在性
 - 客户端 MAY 缓存 Profile 并在本地查询响应中内联展示，但 MUST 自行验证返回的 exact signed Event、covering RealmCommit 及其与该 actor 和其 Principal Control Realm stream 的绑定，不得把裸 `actor_profile` 当作证据；一条 patch Event 与其 Commit 不证明完整投影、无并发或全网新鲜，证明边界见 [`../sync/service-http-binding.md` §5.1](../sync/service-http-binding.md)
 
 `ak.profile.create` 与 `ak.profile.update` 是 principal-scoped profile state。顶层 `realm_id` MUST 是该 actor 的 `principal_control_realm_id`；不得把全局 profile 更新写入任意 Collaboration Realm history（Principal Control Realm 与 Collaboration Realm 的分类见 [`models/realm-and-space.md` §2.8](../models/realm-and-space.md)）。两 kind 共写入同一 typed current result，登记名为 **`actor_profile`**（`current-value projection`；当前值是该 stream 上最后一个被接受的写入，次序由 `stream_position` 给出），`result_selector` 由 schema registry 派生：create 把 `envelope.event_id` retype 为 `ak:actor_profile:*`，update 使用必须逐字等于该派生 ID 的 `payload.target_ref`。本段曾把它写成 `profile_create:<target_actor_profile_id>`——那是一个 create-only 的拼法，而 update 写的是同一个值；登记名只有一个，不登记别名、也不另造 create-only family。
@@ -179,7 +178,7 @@ accepted commit 顺序折叠 patch，所得当前值仅含 `display_name`、`han
   "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
   "actor_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
   "created_at": "2026-04-26T00:02:00Z",
-  "refs": [
+  "semantic_refs": [
     {
       "id": "ak:grant:AT-1QUIBViI1bcGaLssADWkxqZ9bCtHDhnKqduYlKaQz",
       "role": "authorized_by",
@@ -345,10 +344,8 @@ plaintext 内；不得把目标 Strand 或精确 kind 暴露给 Station sync sur
 
 Directory Service 或客户端本地联系人索引 MAY 提供用户搜索功能，用于 `@mention` 自动完成和联系人发现。
 
-> **Normative 源（normative）**：`search-users` 的 request / response 字段、授权过滤、分页字段（`has_more` / `next_cursor`）以 [`discovery-directory.md` §9](./discovery-directory.md) `ak.find.directory.read.search_users.v1` 为**唯一规范源**；本节只补充 presence / mention 特有的 UI 语义（例如 autocomplete intent、普通 mention 不得请求投递上下文、以及 `results[].membership` 仅作本地展示 hint）。字段名、必填性或分页语义与 directory §9 冲突时，MUST 以 directory §9 为准。
 
 ```
-POST /_arkret/find/directory/search-users
 
 { "query": "alice", "realm_id": "ak:realm:...", "limit": 10 }
 ```

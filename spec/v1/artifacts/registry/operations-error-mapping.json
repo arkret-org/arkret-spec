@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-09-20.6",
+  "version": "2026-09-20.7",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T12:52:00+08:00",
+  "generated_at": "2026-09-20T16:42:00+08:00",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, signature_invalid, capability_denied, schema_violation, json_invalid, query_invalid, param_missing, param_invalid, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind, unsupported_protocol_version, operation_selector_required, unsupported_operation_version. These are the universal failure surface and are NOT repeated in each operation entry. unsupported_protocol_version applies only when the binding implements Arkret-Protocol-Version header or equivalent media-type negotiation; ServiceDescribe consumers also use the same stable code locally before capability intersection. operation_selector_required and unsupported_operation_version are binding-level pre-dispatch failures evaluated before body parsing for every canonical operation.",
@@ -164,102 +164,6 @@
       "codes": []
     },
     {
-      "operation_id": "ak.find.directory.read.list_handles_for_subject.v1",
-      "http_alias": "POST /_arkret/find/directory/list-handles-for-subject",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface.",
-      "codes": []
-    },
-    {
-      "operation_id": "ak.find.directory.read.private_contact_discovery.v1",
-      "http_alias": "POST /_arkret/find/directory/private-contact-discovery",
-      "operation_specific": [
-        "psi_quota_exhausted",
-        "psi_batch_unavailable",
-        "duplicate_conflict",
-        "policy_denied"
-      ],
-      "class_b_problem_projections": [
-        {
-          "phase": "blind",
-          "error_code": "psi_quota_exhausted",
-          "http_status": 429,
-          "schema_ref": "schemas/directory-operations.schema.json#/$defs/psi_padded_problem",
-          "response_bucket_field": "blind_response_bucket_bytes",
-          "retry_after_required": true
-        },
-        {
-          "phase": "blind",
-          "error_code": "policy_denied",
-          "http_status": 403,
-          "schema_ref": "schemas/directory-operations.schema.json#/$defs/psi_padded_problem",
-          "response_bucket_field": "blind_response_bucket_bytes",
-          "retry_after_required": false
-        },
-        {
-          "phase": "blind",
-          "error_code": "duplicate_conflict",
-          "http_status": 409,
-          "schema_ref": "schemas/directory-operations.schema.json#/$defs/psi_padded_problem",
-          "response_bucket_field": "blind_response_bucket_bytes",
-          "retry_after_required": false
-        },
-        {
-          "phase": "match",
-          "error_code": "policy_denied",
-          "http_status": 403,
-          "schema_ref": "schemas/directory-operations.schema.json#/$defs/psi_padded_problem",
-          "response_bucket_field": "match_response_bucket_bytes",
-          "retry_after_required": false
-        },
-        {
-          "phase": "match",
-          "error_code": "duplicate_conflict",
-          "http_status": 409,
-          "schema_ref": "schemas/directory-operations.schema.json#/$defs/psi_padded_problem",
-          "response_bucket_field": "match_response_bucket_bytes",
-          "retry_after_required": false
-        },
-        {
-          "phase": "match",
-          "error_code": "psi_batch_unavailable",
-          "http_status": 410,
-          "schema_ref": "schemas/directory-operations.schema.json#/$defs/psi_padded_problem",
-          "response_bucket_field": "match_response_bucket_bytes",
-          "retry_after_required": false
-        }
-      ],
-      "description": "psi_quota_exhausted (429) is first-blind PSI window quota denial; psi_batch_unavailable (410) merges unknown/wrong-device/expired match state; duplicate_conflict (409) rejects reuse of a device-scoped batch_id with different canonical blind or match bytes; policy_denied (403) is only for requester/batch-level Class B policy. These failures use the phase's exact padded body bucket and advertised delay distribution. Per-target conditions MUST NOT surface as error codes and remain unmatched bits in the fixed-cardinality hit_bitmap. See zh/discovery/discovery-directory.md §6.4.",
-      "codes": []
-    },
-    {
-      "operation_id": "ak.find.directory.read.resolve_agent_selector.v1",
-      "http_alias": "POST /_arkret/find/directory/resolve-agent-selector",
-      "operation_specific": [
-        "not_found",
-        "limit_exceeded"
-      ],
-      "description": "Exact Agent selector resolution: Directory resolves controller_handle to a controller DID and verifies the visible ak.schema.agent_selector_claim.v1 (controller_subject, agent_slug) -> subject binding, proof, and accountability grant. Failure, unauthorized, not-visible, revoked / expired / ambiguous, missing controller, or hidden agent all collapse into a single not_found surface indistinguishable from nonexistence (zh/discovery/discovery-directory.md §9); the op never returns selector candidates.",
-      "codes": []
-    },
-    {
-      "operation_id": "ak.find.directory.read.resolve_handle.v1",
-      "http_alias": "POST /_arkret/find/directory/resolve-handle",
-      "operation_specific": [
-        "not_found",
-        "handle_unverified",
-        "handle_subject_mismatch"
-      ],
-      "codes": []
-    },
-    {
-      "operation_id": "ak.find.directory.read.resolve_organization.v1",
-      "http_alias": "POST /_arkret/find/directory/resolve-organization",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface.",
-      "codes": []
-    },
-    {
       "operation_id": "ak.find.directory.read.resolve_realm.v1",
       "http_alias": "POST /_arkret/find/directory/resolve-realm",
       "operation_specific": [
@@ -268,40 +172,11 @@
       "codes": []
     },
     {
-      "operation_id": "ak.find.directory.read.resolve_target.v1",
-      "http_alias": "POST /_arkret/find/directory/resolve-target",
-      "operation_specific": [
-        "not_found"
-      ],
-      "codes": []
-    },
-    {
-      "operation_id": "ak.find.directory.read.search_actors.v1",
-      "http_alias": "POST /_arkret/find/directory/search-actors",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface.",
-      "codes": []
-    },
-    {
-      "operation_id": "ak.find.directory.read.search_organizations.v1",
-      "http_alias": "POST /_arkret/find/directory/search-organizations",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface.",
-      "codes": []
-    },
-    {
       "operation_id": "ak.find.directory.read.search_realms.v1",
       "http_alias": "POST /_arkret/find/directory/search-realms",
       "operation_specific": [
         "cursor_invalid"
       ],
-      "codes": []
-    },
-    {
-      "operation_id": "ak.find.directory.read.search_users.v1",
-      "http_alias": "POST /_arkret/find/directory/search-users",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface.",
       "codes": []
     },
     {
@@ -324,25 +199,6 @@
         "proof_invalid"
       ],
       "description": "Unknown device_pairing_request_id, a pairing_code mismatch, an expired record and a record that is no longer staged MUST all return the same not_found, so this authenticated surface stays as unenumerable as the anonymous resolve. A schema-valid target proof that fails Ed25519 decoding, signature verification, transcript reconstruction, or whose signed account_id is not byte-equal to the AccountId the presented account handoff is bound to, returns failed_precondition with reason_code proof_invalid. Missing required members remain schema_violation. The same request id replayed with different canonical content returns duplicate_conflict and MUST NOT re-attach a proof. After an id locates a retained record, code/account/transcript/signature/proof/state failures count against its private ten-failure budget without changing any of those public errors; an unknown id and a byte-identical successful retry do not count, and the tenth failure atomically expires a pending record.",
-      "codes": []
-    },
-    {
-      "operation_id": "ak.gate.account.command.introspect_session_grant.v1",
-      "http_alias": "POST /_arkret/gate/account/session-grants/introspect",
-      "operation_specific": [],
-      "description": "Server-to-server session-grant introspection is read-only and reports issuer-ledger state in a typed 200 outcome. It carries no reusable device-revocation receipt; the origin Station gates each protected self request against its own durable device state in the local request transaction.",
-      "codes": []
-    },
-    {
-      "operation_id": "ak.gate.account.command.issue_controller_gate_attestation.v1",
-      "http_alias": "POST /_arkret/gate/account/controller-gate-attestations",
-      "operation_specific": [
-        "not_found",
-        "duplicate_conflict",
-        "schema_violation",
-        "temporarily_unavailable"
-      ],
-      "description": "not_found is the single unenumerable outcome for an unknown principal, a principal whose current binding names another authority, an agent_authority_id that differs from the authenticated caller or from the Station of the controller's complete AccountId, and an unauthorized caller; the caller MUST NOT be able to distinguish these. duplicate_conflict is returned when the same request_id was already used with a different canonical intent, and nothing is issued in that case, while an exact replay returns the original bytes rather than an error. schema_violation covers a body that is not the closed {request_id, principal_id, agent_authority_id} object, including any re-introduced service resolution carrier or caller-asserted account-active flag. temporarily_unavailable covers an indeterminate reservation outcome, where the caller retries the same request_id.",
       "codes": []
     },
     {
@@ -419,13 +275,6 @@
       "http_alias": "POST /_arkret/gate/account/logout",
       "operation_specific": [],
       "description": "Account Authority ordinary hard logout (account-lifecycle §4.1): the only client-visible logout entry. It validates the current ak.session.grant + DPoP, terminates the Auth-side auth session / grant rotation chain, and completes or durably schedules Principal-side local account/device session cleanup plus to-device/push removal. Does not create an AccountStatusRecord, emit ak.device.revoke, or erase durable device authorization. Idempotent — no domain-specific failure beyond the universal surface.",
-      "codes": []
-    },
-    {
-      "operation_id": "ak.gate.account.command.logout_auth_session.v1",
-      "http_alias": "POST /_arkret/gate/account/auth-sessions/logout",
-      "operation_specific": [],
-      "description": "Account Authority to Auth Server S2S Auth-side logout sub-operation (account-lifecycle §4.1): a validated client-visible account /logout is represented by service-to-service authentication, and the Auth Server logs out the Auth-side browser/auth session owning the supplied grant so the rotation chain cannot be resumed. Idempotent: re-presenting an already-logged-out, revoked, unknown, or pruned auth session/grant succeeds with the chain treated as terminated. Ordinary clients MUST NOT call this operation; they retry ak.gate.account.command.logout.v1.",
       "codes": []
     },
     {
@@ -520,15 +369,6 @@
       "codes": []
     },
     {
-      "operation_id": "ak.gate.account.command.stage_device_pairing.v1",
-      "http_alias": "POST /_arkret/gate/account/device-pairing/stages",
-      "operation_specific": [
-        "duplicate_conflict"
-      ],
-      "description": "Deployment-internal stage proxy. Same Station Idempotency-Key plus the same canonical public stage body returns the stored stage outcome; the same key with different body returns duplicate_conflict with zero writes. An unauthenticated or non-owning Station is rejected by the service-authentication surface. The public proxy maps internal unavailability to temporarily_unavailable and never exposes deployment topology or internal authentication failures.",
-      "codes": []
-    },
-    {
       "operation_id": "ak.gate.account.exchange.create_handoff.v1",
       "http_alias": "POST /_arkret/gate/account/authentication-handoffs",
       "operation_specific": [
@@ -546,24 +386,10 @@
       "codes": []
     },
     {
-      "operation_id": "ak.gate.account.read.device_pairing_status.v1",
-      "http_alias": "POST /_arkret/gate/account/device-pairing/status-queries",
-      "operation_specific": [],
-      "description": "Deployment-internal read-only status proxy. Unknown id, credential mismatch, unusable state and every prepared or station_accepted fence return uniform not_found; no in_progress state exists. Internal unavailability maps to temporarily_unavailable at the public proxy. The read never consumes budget or mutates TTL, supersession, fence or terminal state.",
-      "codes": []
-    },
-    {
       "operation_id": "ak.gate.account.read.onboarding.v1",
       "http_alias": "GET /_arkret/gate/account/onboarding",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface. The live DPoP-bound handoff selects the account and holder; the response is a read-only projection of durable lease or binding state.",
-      "codes": []
-    },
-    {
-      "operation_id": "ak.gate.account.read.resolve_device_pairing.v1",
-      "http_alias": "POST /_arkret/gate/account/device-pairing/resolutions",
-      "operation_specific": [],
-      "description": "Deployment-internal read-only resolve proxy. Unknown id, credential mismatch, unusable state and every prepared or station_accepted fence return uniform not_found. Internal unavailability maps to temporarily_unavailable at the public proxy. The read never consumes budget or mutates TTL, supersession, fence or terminal state.",
       "codes": []
     },
     {
@@ -822,16 +648,6 @@
       "codes": []
     },
     {
-      "operation_id": "ak.peer.device_revocations.command.check.v1",
-      "http_alias": "POST /_arkret/peer/device-revocations/check",
-      "operation_specific": [
-        "failed_precondition",
-        "duplicate_conflict"
-      ],
-      "description": "Authenticated exact-intent origin-PS linearization. Unauthorized callers fail before private lookup. A validated request returns one signed typed 200 decision receipt, including pending/revoked/mismatch; conflicting intent identity is duplicate_conflict. The blocked business operation, not this gate query, emits device_revocation_pending/device_revoked.",
-      "codes": []
-    },
-    {
       "operation_id": "ak.peer.erasure_receipt.command.submit.v1",
       "http_alias": "POST /_arkret/peer/erasure-receipts",
       "operation_specific": [
@@ -874,14 +690,7 @@
       "codes": []
     },
     {
-      "operation_id": "ak.peer.events.read.resolve_committed.v1",
-      "http_alias": "POST /_arkret/peer/streams/resolve",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface.",
-      "codes": []
-    },
-    {
-      "operation_id": "ak.peer.events.read.scan.v1",
+      "operation_id": "ak.peer.committed_event.read.scan.v1",
       "http_alias": "POST /_arkret/peer/streams/scan",
       "operation_specific": [],
       "codes": []
@@ -936,20 +745,6 @@
         "limit_exceeded"
       ],
       "description": "dependency_missing covers an accepted genesis whose referenced object bytes are not currently available; digest_mismatch and state_mismatch reject ref/raw-byte or RFC 9420 GroupInfo/tree inconsistency; the operation never returns partial material.",
-      "codes": []
-    },
-    {
-      "operation_id": "ak.peer.principal_genesis.command.submit.v1",
-      "http_alias": "POST /_arkret/peer/principal-genesis",
-      "operation_specific": [
-        "pcr_genesis_conflict",
-        "pcr_genesis_not_first",
-        "pcr_genesis_unit_invalid",
-        "founding_device_commitment_mismatch",
-        "identity_creation_lease_fenced",
-        "initial_session_request_mismatch"
-      ],
-      "description": "Atomically accepts the exact root-committed PCR genesis pair. Transport service authentication is not content authority; any proof, commitment, create-once or fence failure performs zero writes.",
       "codes": []
     },
     {
@@ -1366,7 +1161,7 @@
       "operation_specific": [
         "not_found"
       ],
-      "description": "not_found is returned both for nonexistent agent principals and for agents not visible to the caller (uniform failure surface, matches ak.self.events.resource.get.v1 pattern).",
+      "description": "not_found is returned both for nonexistent agent principals and for agents not visible to the caller (uniform failure surface, matches ak.self.committed_event.resource.get.v1 pattern).",
       "codes": []
     },
     {
@@ -1781,13 +1576,13 @@
       "codes": []
     },
     {
-      "operation_id": "ak.self.events.read.scan.v1",
+      "operation_id": "ak.self.committed_event.read.scan.v1",
       "http_alias": "POST /_arkret/self/streams/scan",
       "operation_specific": [],
       "codes": []
     },
     {
-      "operation_id": "ak.self.events.resource.get.v1",
+      "operation_id": "ak.self.committed_event.resource.get.v1",
       "http_alias": "GET /_arkret/self/events/{event_id}",
       "operation_specific": [
         "not_found"
@@ -1796,7 +1591,7 @@
       "codes": []
     },
     {
-      "operation_id": "ak.self.events.stream.subscribe.v1",
+      "operation_id": "ak.self.committed_event.stream.subscribe.v1",
       "http_alias": "GET /_arkret/self/events/subscribe",
       "operation_specific": [
         "cursor_invalid",

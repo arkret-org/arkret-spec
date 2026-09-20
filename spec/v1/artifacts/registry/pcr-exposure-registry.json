@@ -1,5 +1,5 @@
 {
-  "version": "2026-09-16.6",
+  "version": "2026-09-20",
   "source_of_truth": true,
   "description": "Closed outward-exposure decision for every event kind admitted into a Principal Control Realm. ak.profile.principal_control_realm.v1 realm_event_kind_policy.allowed_event_kinds closes the write direction; this registry closes the read direction. A kind with an empty exposures[] is PCR-private and MUST NOT be reachable through any ak.open.* / ak.peer.* / cross-principal ak.self.* surface or public DID Document entry. A kind with exposures[] declares every path by which it legitimately leaves the Realm, each with its carrier form, exact schema location and gating authorization policy. Adding an outward path without registering it here is a release-gate failure, not an implementation detail.",
   "registry_rules": [
@@ -361,18 +361,6 @@
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
         },
         {
-          "carrier": "receipt",
-          "surface": "operation",
-          "operation_id": "ak.self.identity.read.resolution_audit.v1",
-          "direction": "response",
-          "schema_ref": "schemas/identity-resolution.schema.json#/$defs/principal_resolution_audit_evidence",
-          "json_pointers": [
-            "/$defs/principal_resolution_audit_evidence/properties/principal_genesis_receipt"
-          ],
-          "authorization_policy_id": "ak.pcr_exposure_policy.current_holder_authorized.v1",
-          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
-        },
-        {
           "carrier": "derived_field",
           "surface": "operation",
           "operation_id": "ak.self.identity.read.resolution_audit.v1",
@@ -395,28 +383,6 @@
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.current_holder_authorized.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
-        },
-        {
-          "carrier": "exact_event",
-          "surface": "operation",
-          "operation_id": "ak.peer.principal_genesis.command.submit.v1",
-          "direction": "request",
-          "schema_ref": "schemas/principal-operations.schema.json#/$defs/pcr_genesis_submit_request",
-          "json_pointers": [
-            "/$defs/pcr_genesis_submit_request/properties/genesis_unit"
-          ],
-          "authorization_policy_id": "ak.pcr_exposure_policy.account_authority_service_auth.v1"
-        },
-        {
-          "carrier": "derived_field",
-          "surface": "operation",
-          "operation_id": "ak.peer.principal_genesis.command.submit.v1",
-          "direction": "request",
-          "schema_ref": "schemas/principal-operations.schema.json#/$defs/pcr_genesis_submit_request",
-          "json_pointers": [
-            "/$defs/pcr_genesis_submit_request/properties/pcr_realm_id"
-          ],
-          "authorization_policy_id": "ak.pcr_exposure_policy.account_authority_service_auth.v1"
         }
       ]
     },
@@ -433,5 +399,5 @@
       "exposures": []
     }
   ],
-  "generated_at": "2026-09-16T16:30:00+08:00"
+  "generated_at": "2026-09-20T16:42:00+08:00"
 }

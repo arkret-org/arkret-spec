@@ -29,7 +29,7 @@ Client Sync 是 own Account Station 向客户端提供的受信账号聚合流�
 
 ## 2. Endpoint
 
-`ak.self.account.stream.subscribe.v1` 是账号聚合主入口。`ak.self.events.read.scan.v1` 与 `ak.self.events.stream.subscribe.v1` 用于读取一个或多个**明确获准的独立 stream**。字段、分页参数（subscribe 用 cursor，scan 用 `stream_position`）与 frame schema 见 [service-http-binding.md](./service-http-binding.md)。
+`ak.self.account.stream.subscribe.v1` 是账号聚合主入口。`ak.self.committed_event.read.scan.v1` 与 `ak.self.committed_event.stream.subscribe.v1` 用于读取一个或多个**明确获准的独立 stream**。字段、分页参数（subscribe 用 cursor，scan 用 `stream_position`）与 frame schema 见 [service-http-binding.md](./service-http-binding.md)。
 
 ### 2.1 多账号上下文 UX 指引（SHOULD）
 
@@ -127,7 +127,7 @@ terminal removal、no-resurrection、active controller device allow、四类 aud
 
 ### 4.1 流的发现与选择（normative）
 
-条目上限不得使一条流不可发现或永久饥饿。`ak.self.events.read.scan.v1` 要求调用方**已经知道** `stream_ref`，因此它补不齐发现面；发现面是 `ak.self.realm.read.streams.v1`（`GET /_arkret/self/realms/{realm_id}/streams`）：ACL 过滤、可分页，返回该 caller 获准知道其存在且**已建立 Commit 链**的 `stream_ref`，以及每条流的可读 floor 与 head anchor。
+条目上限不得使一条流不可发现或永久饥饿。`ak.self.committed_event.read.scan.v1` 要求调用方**已经知道** `stream_ref`，因此它补不齐发现面；发现面是 `ak.self.realm.read.streams.v1`（`GET /_arkret/self/realms/{realm_id}/streams`）：ACL 过滤、可分页，返回该 caller 获准知道其存在且**已建立 Commit 链**的 `stream_ref`，以及每条流的可读 floor 与 head anchor。
 
 订阅侧可显式选择流集合：subscribe filter 的 `stream_refs` 至多 64 条，必须去重、每条属于 `realm_ids` 中的 exact Realm 且为该 caller 获准可见；分组包含 Realm stream 时它占一个名额，不含 Realm stream 的分组同样合法。缺省（不带 `stream_refs`）保持现有的有界首屏与 `streams_limited`。
 
@@ -163,7 +163,7 @@ arrival order 或缓存拼坐标。redacted／reference-locked row 不提供可�
 
 **客户端不重放治理历史（normative）**：共享授权与对象重建由 own Station 负责，客户端只验证输出绑定、producer 输入与所需 MLS bytes / epoch。上一段所说的「重建」在服务端指获准前缀的重建，在客户端只指它本地已有的展示与密码学状态；它 MUST NOT 被理解为授权客户端重放私有治理闭包，也 MUST NOT 把历史窗口当作当前权限。
 
-窗口起点之上的历史回填走 [`ak.self.events.read.scan.v1`](./service-http-binding.md) 的 `before_position`，逐流进行。subscribe 面不保留第二套分页机制。
+窗口起点之上的历史回填走 [`ak.self.committed_event.read.scan.v1`](./service-http-binding.md) 的 `before_position`，逐流进行。subscribe 面不保留第二套分页机制。
 
 ## 6. Event Ordering
 
@@ -271,7 +271,7 @@ cursor 必须绑定 issuer、account/device、purpose、query-scope digest、exp
 
 #### 12.3.3 历史完整性边界（两分支共用）
 
-客户端验证每条可见 stream 的 Commit连续性、snapshot head和tail衔接。Retention/history floor之前的数据不可得不构成 gap；floor之后无法解释的 position跳跃必须停止该 stream并重取 snapshot/bundle。受限历史的下边界必须可验证而不是只能推断：`ak.self.events.read.scan.v1` 的 `stream_scan_outcome.readable_floor` 给出 `oldest_position` 与该位置的 `floor_commit_id`，`window_start_basis.anchor_kind=before_readable_floor` 给出同一边界在窗口侧的 anchor，两者都把允许区间的下端绑定到已接受的链上，且都不要求 caller 持有 position 0。该 anchor 只证明获准前缀从哪里开始，不证明 Station 没有更早历史或更新的更新。
+客户端验证每条可见 stream 的 Commit连续性、snapshot head和tail衔接。Retention/history floor之前的数据不可得不构成 gap；floor之后无法解释的 position跳跃必须停止该 stream并重取 snapshot/bundle。受限历史的下边界必须可验证而不是只能推断：`ak.self.committed_event.read.scan.v1` 的 `stream_scan_outcome.readable_floor` 给出 `oldest_position` 与该位置的 `floor_commit_id`，`window_start_basis.anchor_kind=before_readable_floor` 给出同一边界在窗口侧的 anchor，两者都把允许区间的下端绑定到已接受的链上，且都不要求 caller 持有 position 0。该 anchor 只证明获准前缀从哪里开始，不证明 Station 没有更早历史或更新的更新。
 
 ## 13. Initial Sync
 

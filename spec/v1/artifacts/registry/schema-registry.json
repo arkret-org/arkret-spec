@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.17",
+  "version": "2026-09-20.18",
   "source_of_truth": false,
-  "generated_at": "2026-09-20T07:42:06+08:00",
+  "generated_at": "2026-09-20T16:42:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -719,23 +719,14 @@
       "file": "schemas/event-envelope.schema.json"
     },
     {
-      "schema_id": "ak.schema.event_batch_receipt.v1",
-      "file": "schemas/event-batch-receipt.schema.json",
-      "consumer_binding": {
-        "kind": "dynamic_schema_ref",
-        "selector": "schema=ak.schema.event_batch_receipt.v1",
-        "normative_ref": "zh/conformance/encoding.md"
-      }
-    },
-    {
       "schema_id": "ak.schema.event_payload.v1",
       "file": "schemas/event-payload.schema.json"
     },
     {
-      "schema_id": "ak.schema.events_subscribe_frame.v1",
-      "file": "schemas/events-subscribe-frame.schema.json",
+      "schema_id": "ak.schema.committed_event_subscribe_frame.v1",
+      "file": "schemas/committed-event-subscribe-frame.schema.json",
       "status": "active",
-      "description": "Closed data/control frame union for ak.self.events.stream.subscribe.v1."
+      "description": "Closed data/control frame union for ak.self.committed_event.stream.subscribe.v1."
     },
     {
       "schema_id": "ak.schema.extension_manifest.v1",
@@ -941,12 +932,6 @@
       "file": "schemas/keys-operations.schema.json",
       "status": "active",
       "description": "Closed request/response DTO bundle for ak.self.keys.upload.create.v1, query, claim, and key backup put/list/delete responses."
-    },
-    {
-      "schema_id": "ak.schema.list_handles_for_subject_response.v1",
-      "file": "schemas/list-handles-for-subject-response.schema.json",
-      "status": "active",
-      "description": "Directory response listing currently visible handle claims for a disclosed subject DID."
     },
     {
       "schema_id": "ak.schema.media_metadata.v1",
@@ -1430,7 +1415,7 @@
       "consumer_binding": {
         "kind": "standalone_schema_alias",
         "selector": "generic SDK consumer projection over the three exact resource discovery-state Event payloads",
-        "normative_ref": "zh/discovery/discovery-directory.md#3-realm-discoverability"
+        "normative_ref": "zh/discovery/discovery-directory.md#2-可索引条件normative"
       }
     },
     {
@@ -1493,7 +1478,7 @@
       "schema_id": "ak.schema.service_describe.v1",
       "file": "schemas/service-describe.schema.json",
       "status": "active",
-      "description": "Canonical ServiceDescribe response for ak.server.read.describe.v1 and per-surface describe operations: base service metadata plus exact supported_operation_bundles and claim-level partitions (supported_features / supported_profiles / verified_profiles / interop_surfaces), with the registered directory_service overlay fields used by ak.find.directory.read.describe.v1. Enforces development_mode=true => verified_profiles=[]. interop_surfaces is limited to external interop surfaces. See service-surface.md §3.0 and discovery-directory.md §8.9."
+      "description": "Canonical ServiceDescribe response for ak.server.read.describe.v1 and per-surface describe operations: base service metadata plus exact supported_operation_bundles and claim-level partitions (supported_features / supported_profiles / verified_profiles / interop_surfaces). Directory describe exposes only its public-Realm resource kind, never private policy or resolver configuration. Enforces development_mode=true => verified_profiles=[]. interop_surfaces is limited to external interop surfaces. See service-surface.md §3.0."
     },
     {
       "schema_id": "ak.schema.service_identity_bundle.v1",

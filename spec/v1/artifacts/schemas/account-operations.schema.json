@@ -1553,11 +1553,23 @@
         "binding_receipt": {
           "$ref": "#/$defs/account_binding_receipt"
         },
-        "pcr_genesis_receipt": {
-          "$ref": "./event-batch-receipt.schema.json"
-        },
         "session_grant_outcome": {
           "$ref": "./service-operation-dtos.schema.json#/$defs/SessionGrantOutcome"
+        },
+        "pcr_genesis_commits": {
+          "type": "array",
+          "description": "Optional authorized disclosure of the two PCR genesis RealmCommit objects in registered unit order.",
+          "minItems": 2,
+          "maxItems": 2,
+          "prefixItems": [
+            {
+              "$ref": "./realm-commit.schema.json"
+            },
+            {
+              "$ref": "./realm-commit.schema.json"
+            }
+          ],
+          "items": false
         }
       },
       "not": {

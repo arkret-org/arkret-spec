@@ -223,9 +223,12 @@ domain 或 audience 任一不同也 MUST NOT 互相验证。
 
 ### 7.1 HLC 编码与使用边界（normative）
 
-v1 的 Event Envelope **不携带 `hlc`**。HLC 只出现在 actor-private 的收敛状态里——read cursor
-（[`../discovery/read-receipts.md` §6.5](../discovery/read-receipts.md)）以及客户端在 account data
-compare-and-set 循环中对解密明文执行的领域合并（[`../models/account-data.md` §5](../models/account-data.md)）。
+v1 的 Event Envelope **不携带 `hlc`**。HLC 只出现在不参与共享治理排序的私有或临时材料中：read cursor
+（[`../discovery/read-receipts.md` §6.5](../discovery/read-receipts.md)）、客户端在 encrypted account data
+compare-and-set 循环中对解密明文执行的领域合并（[`../models/account-data.md` §5](../models/account-data.md)）、
+加密草稿／文件传输／notification inbox 等领域当前值、可选 read receipt，以及 Sidecar 加密 exchange binding
+的 `request_context.source_hlc`。HLC 即使位于共享 Event 的加密 payload 内，也仍只是接收方私有展示或合并线索，
+治理 Station 不得解读它来排序、授权或接纳。
 
 Hybrid Logical Clock 的 wire 形态固定为 `<unix_ms_hex>-<logical_hex>-<node_id_hash>`，例如
 `01970e589d21-0004-a13f9c2e`：
@@ -245,10 +248,13 @@ Hybrid Logical Clock 的 wire 形态固定为 `<unix_ms_hex>-<logical_hex>-<node
 MUST NOT 为逃避溢出伪造更大的 wall clock skew。消费者观察到同一 producer 的 `unix_ms` 不变而 `logical_hex`
 从 `ffff` 回绕到更小值时，MUST 视为无效 HLC 并拒绝，MUST NOT 当作正常排序值接受。
 
-**使用边界（normative）**：HLC 是 advisory 字段，**只在两个候选因果不可比时**用于选出确定性 winner；
-因果可比时 MUST 取因果支配者，MUST NOT 用 HLC 反转。HLC MUST NOT 进入授权决策、admission、finality，
-MUST NOT 决定共享协议状态的 winner，也 MUST NOT 替代同一 stream 的 `stream_position`。服务端不参与该
-tie-break，它只比较 `expected_revision`。
+**使用边界（normative）**：HLC 是不可信的 advisory 字段，**只在某领域已登记的两个候选因果不可比时**用于
+选出确定性 winner；因果可比时 MUST 取因果支配者，MUST NOT 用 HLC 反转。时钟偏移不能证明真实先后；领域在
+无法建立因果闭包或安全决定 winner 时 MUST 保留 provisional／冲突副本并在补齐材料后重算。HLC MUST NOT 进入
+授权决策、admission、finality，MUST NOT 决定共享协议状态的 winner，也 MUST NOT 替代同一 stream 的
+`stream_position`。encrypted account data 服务端不参与明文 tie-break，只比较 `expected_server_revision`；CAS
+冲突后由获准解密的客户端按领域规则合并并重新写入。read cursor 则先比较 causal dominance，只在并发时比较 HLC，
+全等时再以 `device_id` 决胜；read receipt 与 Sidecar `source_hlc` 不得反向改变治理历史。
 
 ### 7.2 绝对时刻
 
@@ -269,8 +275,8 @@ Cursor 是签发服务端可验证的不透明 continuation token。v1 core 只�
 
 **cursor 的适用面（normative）**：v1 只有两处用 cursor——account 聚合流的续传（`purpose=stream`）与列表分页，
 外加写后读屏障（`purpose=barrier`）。**单条 stream 的扫描不用 cursor**：治理 Station 在每条 stream 上给出严格
-+1 的 `stream_position`，位置本身就是完整续传凭据，`ak.self.events.read.scan.v1` 与
-`ak.peer.events.read.scan.v1` 因此收 `after_position` / `before_position` 整数而不是 token，见
++1 的 `stream_position`，位置本身就是完整续传凭据，`ak.self.committed_event.read.scan.v1` 与
+`ak.peer.committed_event.read.scan.v1` 因此收 `after_position` / `before_position` 整数而不是 token，见
 [`../sync/api-conventions.md` §7.2](../sync/api-conventions.md)。
 
 ### 8.3 Cursor 范围绑定

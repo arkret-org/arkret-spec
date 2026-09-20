@@ -72,7 +72,7 @@
     "created_at": {
       "$ref": "#/$defs/canonical_event_timestamp"
     },
-    "refs": {
+    "semantic_refs": {
       "type": "array",
       "description": "Optional semantic refs with role. Omit when there are no semantic references; an explicitly empty array is not canonical. Admission selectors determine any required references. PCR policy recovery has no DID-root anchor reference; its policy/session/replacement-key authority is verified separately.",
       "minItems": 1,
@@ -135,10 +135,10 @@
       },
       "then": {
         "required": [
-          "refs"
+          "semantic_refs"
         ],
         "properties": {
-          "refs": {
+          "semantic_refs": {
             "contains": {
               "type": "object",
               "required": [
@@ -183,10 +183,10 @@
       },
       "then": {
         "required": [
-          "refs"
+          "semantic_refs"
         ],
         "properties": {
-          "refs": {
+          "semantic_refs": {
             "contains": {
               "type": "object",
               "required": [
@@ -213,7 +213,7 @@
       }
     },
     {
-      "$comment": "Reject these top-level field names. The Event Envelope root is closed (additionalProperties=false); extension data belongs in payload or requirements.critical_extensions. The root field names type / auth_refs / target_ref / operation_id are dropped and MUST NOT appear at the root; use kind / refs[role=authorized_by] / payload.* fields / SDK-internal id instead (see operations-sync.md §5).",
+      "$comment": "Reject these top-level field names. The Event Envelope root is closed (additionalProperties=false); extension data belongs in payload or requirements.critical_extensions. The root field names type / auth_refs / target_ref / operation_id are dropped and MUST NOT appear at the root; use kind / semantic_refs[role=authorized_by] / payload.* fields / SDK-internal id instead (see operations-sync.md §5).",
       "not": {
         "anyOf": [
           {
@@ -225,7 +225,7 @@
             "required": [
               "auth_refs"
             ],
-            "$comment": "auth_refs is dropped; it MUST NOT appear at the root, use refs[role=authorized_by]"
+            "$comment": "auth_refs is dropped; it MUST NOT appear at the root, use semantic_refs[role=authorized_by]"
           },
           {
             "required": [
@@ -3044,9 +3044,6 @@
     "applet_id": {
       "$ref": "./common-ids.schema.json#/$defs/applet_id"
     },
-    "did_core_id": {
-      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-    },
     "external_ref": {
       "type": "object",
       "description": "Signed external provenance. Extension profiles define exact field vocabulary; common fields include protocol, network_id, instance_id, user_id, location_id, event_id, external_id, and url. Implementations MUST preserve all fields in canonical bytes and MUST NOT use unsigned.external_ref for security decisions.",
@@ -3202,7 +3199,7 @@
     "direct_conversation_participant_authority_ref": {
       "type": "string",
       "const": "ak.authority.direct_conversation_participant.v1",
-      "description": "The daily profile-scoped non-grant authorization source accepted by Event.authorization_ref. It is meaningful solely in ak.profile.direct_conversation_realm.v1 and requires one critical refs[] role=direct_conversation_binding Event reference. The evaluator rederives the pair's unique immutable binding, exact-two participant membership, Realm/Strand/MLS cross-binding, lifecycle, both directional Contact heads/scopes and action-specific gates without consulting Consent; this constant never authorizes arbitrary Realm or third-party writes."
+      "description": "The daily profile-scoped non-grant authorization source accepted by Event.authorization_ref. It is meaningful solely in ak.profile.direct_conversation_realm.v1 and requires one critical semantic_refs[] role=direct_conversation_binding Event reference. The evaluator rederives the pair's unique immutable binding, exact-two participant membership, Realm/Strand/MLS cross-binding, lifecycle, both directional Contact heads/scopes and action-specific gates without consulting Consent; this constant never authorizes arbitrary Realm or third-party writes."
     },
     "direct_conversation_bootstrap_authority_ref": {
       "type": "string",
@@ -3880,7 +3877,7 @@
                             },
                             {
                               "properties": {
-                                "refs": {
+                                "semantic_refs": {
                                   "contains": {
                                     "properties": {
                                       "role": {
@@ -3900,7 +3897,7 @@
                                 }
                               },
                               "required": [
-                                "refs"
+                                "semantic_refs"
                               ]
                             },
                             {
@@ -3973,7 +3970,7 @@
                             },
                             {
                               "properties": {
-                                "refs": {
+                                "semantic_refs": {
                                   "contains": {
                                     "properties": {
                                       "role": {
@@ -3993,7 +3990,7 @@
                                 }
                               },
                               "required": [
-                                "refs"
+                                "semantic_refs"
                               ]
                             }
                           ]
@@ -4026,7 +4023,7 @@
                             },
                             {
                               "properties": {
-                                "refs": {
+                                "semantic_refs": {
                                   "contains": {
                                     "properties": {
                                       "role": {
@@ -4046,7 +4043,7 @@
                                 }
                               },
                               "required": [
-                                "refs"
+                                "semantic_refs"
                               ]
                             }
                           ]
@@ -4193,7 +4190,7 @@
                             },
                             {
                               "properties": {
-                                "refs": {
+                                "semantic_refs": {
                                   "contains": {
                                     "properties": {
                                       "role": {
@@ -4213,7 +4210,7 @@
                                 }
                               },
                               "required": [
-                                "refs"
+                                "semantic_refs"
                               ]
                             },
                             {
@@ -4286,7 +4283,7 @@
                             },
                             {
                               "properties": {
-                                "refs": {
+                                "semantic_refs": {
                                   "contains": {
                                     "properties": {
                                       "role": {
@@ -4306,7 +4303,7 @@
                                 }
                               },
                               "required": [
-                                "refs"
+                                "semantic_refs"
                               ]
                             }
                           ]
@@ -4339,7 +4336,7 @@
                             },
                             {
                               "properties": {
-                                "refs": {
+                                "semantic_refs": {
                                   "contains": {
                                     "properties": {
                                       "role": {
@@ -4359,7 +4356,7 @@
                                 }
                               },
                               "required": [
-                                "refs"
+                                "semantic_refs"
                               ]
                             }
                           ]
@@ -4427,7 +4424,7 @@
                       },
                       {
                         "properties": {
-                          "refs": {
+                          "semantic_refs": {
                             "contains": {
                               "properties": {
                                 "role": {
@@ -4447,7 +4444,7 @@
                           }
                         },
                         "required": [
-                          "refs"
+                          "semantic_refs"
                         ]
                       },
                       {
@@ -4599,7 +4596,7 @@
                             },
                             {
                               "properties": {
-                                "refs": {
+                                "semantic_refs": {
                                   "contains": {
                                     "properties": {
                                       "role": {
@@ -4619,7 +4616,7 @@
                                 }
                               },
                               "required": [
-                                "refs"
+                                "semantic_refs"
                               ]
                             }
                           ]
@@ -4652,7 +4649,7 @@
                             },
                             {
                               "properties": {
-                                "refs": {
+                                "semantic_refs": {
                                   "contains": {
                                     "properties": {
                                       "role": {
@@ -4672,7 +4669,7 @@
                                 }
                               },
                               "required": [
-                                "refs"
+                                "semantic_refs"
                               ]
                             }
                           ]
@@ -4853,7 +4850,7 @@
                             },
                             {
                               "properties": {
-                                "refs": {
+                                "semantic_refs": {
                                   "contains": {
                                     "properties": {
                                       "role": {
@@ -4873,7 +4870,7 @@
                                 }
                               },
                               "required": [
-                                "refs"
+                                "semantic_refs"
                               ]
                             },
                             {
@@ -4912,7 +4909,7 @@
                             },
                             {
                               "properties": {
-                                "refs": {
+                                "semantic_refs": {
                                   "contains": {
                                     "properties": {
                                       "role": {
@@ -4932,7 +4929,7 @@
                                 }
                               },
                               "required": [
-                                "refs"
+                                "semantic_refs"
                               ]
                             }
                           ]
@@ -4965,7 +4962,7 @@
                             },
                             {
                               "properties": {
-                                "refs": {
+                                "semantic_refs": {
                                   "contains": {
                                     "properties": {
                                       "role": {
@@ -4985,7 +4982,7 @@
                                 }
                               },
                               "required": [
-                                "refs"
+                                "semantic_refs"
                               ]
                             }
                           ]
@@ -5053,7 +5050,7 @@
                       },
                       {
                         "properties": {
-                          "refs": {
+                          "semantic_refs": {
                             "contains": {
                               "properties": {
                                 "role": {
@@ -5073,7 +5070,7 @@
                           }
                         },
                         "required": [
-                          "refs"
+                          "semantic_refs"
                         ]
                       }
                     ]
@@ -5185,7 +5182,7 @@
                             },
                             {
                               "properties": {
-                                "refs": {
+                                "semantic_refs": {
                                   "contains": {
                                     "properties": {
                                       "role": {
@@ -5205,7 +5202,7 @@
                                 }
                               },
                               "required": [
-                                "refs"
+                                "semantic_refs"
                               ]
                             },
                             {
@@ -5278,7 +5275,7 @@
                             },
                             {
                               "properties": {
-                                "refs": {
+                                "semantic_refs": {
                                   "contains": {
                                     "properties": {
                                       "role": {
@@ -5298,7 +5295,7 @@
                                 }
                               },
                               "required": [
-                                "refs"
+                                "semantic_refs"
                               ]
                             }
                           ]
@@ -5366,7 +5363,7 @@
                       },
                       {
                         "properties": {
-                          "refs": {
+                          "semantic_refs": {
                             "contains": {
                               "properties": {
                                 "role": {
@@ -5386,7 +5383,7 @@
                           }
                         },
                         "required": [
-                          "refs"
+                          "semantic_refs"
                         ]
                       }
                     ]
@@ -5498,7 +5495,7 @@
                             },
                             {
                               "properties": {
-                                "refs": {
+                                "semantic_refs": {
                                   "contains": {
                                     "properties": {
                                       "role": {
@@ -5518,7 +5515,7 @@
                                 }
                               },
                               "required": [
-                                "refs"
+                                "semantic_refs"
                               ]
                             },
                             {
@@ -5591,7 +5588,7 @@
                             },
                             {
                               "properties": {
-                                "refs": {
+                                "semantic_refs": {
                                   "contains": {
                                     "properties": {
                                       "role": {
@@ -5611,7 +5608,7 @@
                                 }
                               },
                               "required": [
-                                "refs"
+                                "semantic_refs"
                               ]
                             }
                           ]
@@ -5786,7 +5783,7 @@
                             },
                             {
                               "properties": {
-                                "refs": {
+                                "semantic_refs": {
                                   "contains": {
                                     "properties": {
                                       "role": {
@@ -5806,7 +5803,7 @@
                                 }
                               },
                               "required": [
-                                "refs"
+                                "semantic_refs"
                               ]
                             },
                             {
@@ -5879,7 +5876,7 @@
                             },
                             {
                               "properties": {
-                                "refs": {
+                                "semantic_refs": {
                                   "contains": {
                                     "properties": {
                                       "role": {
@@ -5899,7 +5896,7 @@
                                 }
                               },
                               "required": [
-                                "refs"
+                                "semantic_refs"
                               ]
                             }
                           ]
@@ -5932,7 +5929,7 @@
                             },
                             {
                               "properties": {
-                                "refs": {
+                                "semantic_refs": {
                                   "contains": {
                                     "properties": {
                                       "role": {
@@ -5952,7 +5949,7 @@
                                 }
                               },
                               "required": [
-                                "refs"
+                                "semantic_refs"
                               ]
                             }
                           ]
@@ -6109,7 +6106,7 @@
         }
       ]
     },
-    "authority_committed_event": {
+    "shared_event_envelope": {
       "$comment": "A complete producer Event from an authority-committed visibility stream. Consumers verify the producer proof and the matching RealmCommit plus authority chain.",
       "allOf": [
         {

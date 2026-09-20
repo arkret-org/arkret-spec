@@ -46,8 +46,8 @@ class EventAdmissionContractTest(unittest.TestCase):
         for count in [0, 1]:
             validator = Draft202012Validator(predicate_schema({"ref_role": "attestation", "ref_exact_count": count}))
             self.assertEqual(validator.is_valid({}), count == 0)
-            self.assertEqual(validator.is_valid({"refs": []}), count == 0)
-            self.assertEqual(validator.is_valid({"refs": [{"role": "attestation"}]}), count == 1)
+            self.assertEqual(validator.is_valid({"semantic_refs": []}), count == 0)
+            self.assertEqual(validator.is_valid({"semantic_refs": [{"role": "attestation"}]}), count == 1)
 
     def test_negative_payload_selector_covers_absent_path(self):
         validator = Draft202012Validator(predicate_schema({"payload_path": "object.purpose", "not_const": "agent_control"}))
@@ -88,7 +88,7 @@ class EventAdmissionContractTest(unittest.TestCase):
                 for field in when.get("top_level_fields_present", []):
                     event[field] = "fixture"
                 if "ref_role" in when and when.get("ref_exact_count", 1):
-                    event["refs"] = [{"role": when["ref_role"], "critical": when.get("ref_critical", True)}]
+                    event["semantic_refs"] = [{"role": when["ref_role"], "critical": when.get("ref_critical", True)}]
                 self.assertTrue(validator.is_valid(event), (row["event_kind"], variant))
                 covered.add(variant["admission"])
         self.assertEqual(covered, set(classes))
@@ -124,9 +124,9 @@ class EventAdmissionContractTest(unittest.TestCase):
         self.assertIn("current_governance_generation", contract["required_evidence"])
         self.assertEqual(
             contract["schema_projection"],
-            "schemas/event-envelope.schema.json#/$defs/authority_committed_event",
+            "schemas/event-envelope.schema.json#/$defs/shared_event_envelope",
         )
-        projection = self.envelope["$defs"]["authority_committed_event"]
+        projection = self.envelope["$defs"]["shared_event_envelope"]
         self.assertIn({"$ref": "#"}, projection["allOf"])
 
     def test_capability_class_cannot_be_added_to_native_exceptions(self):

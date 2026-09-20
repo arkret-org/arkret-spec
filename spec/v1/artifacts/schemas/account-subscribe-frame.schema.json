@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/account-subscribe-frame.schema.json",
   "title": "Arkret Account Subscribe Frame",
-  "description": "Single NDJSON frame on the ak.self.account.stream.subscribe.v1 streaming channel (GET /_arkret/self/account/subscribe, Content-Type: application/x-ndjson). Each newline-delimited line is one frame object. Discriminated by the `kind` field: `delta` carries account-aggregate data (per-Realm stream heads, to_device, account_data, agent_draft_pending_intents, device_lists, notifications, unread counts); the other kinds are control frames that mirror ak.self.events.stream.subscribe.v1 (`catchup_complete`, `checkpoint`, `heartbeat`, `dropped`, `resync_required`, `unauthorized`). Agent draft pending intents use their own holder-private baseline/delta channel and never reuse account_data.events, account_data.station_cas, notifications, or to_device. Encrypted broadcast signals use the optional Signal Extension rail and never appear in this durable/account aggregate stream. `dropped` and `resync_required` MAY carry `reconnect_after_ms` as a server-directed minimum delay before opening another account subscribe stream for the same principal/device/filter scope.",
+  "description": "Single NDJSON frame on the ak.self.account.stream.subscribe.v1 streaming channel (GET /_arkret/self/account/subscribe, Content-Type: application/x-ndjson). Each newline-delimited line is one frame object. Discriminated by the `kind` field: `delta` carries account-aggregate data (per-Realm stream heads, to_device, account_data, agent_draft_pending_intents, device_lists, notifications, unread counts); the other kinds are control frames that mirror ak.self.committed_event.stream.subscribe.v1 (`catchup_complete`, `checkpoint`, `heartbeat`, `dropped`, `resync_required`, `unauthorized`). Agent draft pending intents use their own holder-private baseline/delta channel and never reuse account_data.events, account_data.station_cas, notifications, or to_device. Encrypted broadcast signals use the optional Signal Extension rail and never appear in this durable/account aggregate stream. `dropped` and `resync_required` MAY carry `reconnect_after_ms` as a server-directed minimum delay before opening another account subscribe stream for the same principal/device/filter scope.",
   "type": "object",
   "required": [
     "kind"
@@ -57,7 +57,7 @@
     },
     "partial": {
       "type": "boolean",
-      "description": "This frame contains at least one limited stream window (some streams[].limited is true). Missing older history is loaded on user demand through ak.self.events.read.scan.v1 with before_position; partial does not describe account baseline completion."
+      "description": "This frame contains at least one limited stream window (some streams[].limited is true). Missing older history is loaded on user demand through ak.self.committed_event.read.scan.v1 with before_position; partial does not describe account baseline completion."
     },
     "priority": {
       "type": "string",
@@ -101,7 +101,7 @@
         "events": {
           "type": "array",
           "items": {
-            "$ref": "./event-envelope.schema.json#/$defs/authority_committed_event"
+            "$ref": "./event-envelope.schema.json#/$defs/shared_event_envelope"
           },
           "maxItems": 100
         }
@@ -760,7 +760,7 @@
         },
         "limited": {
           "type": "boolean",
-          "description": "Gap marker for THIS stream: history this caller is permitted to read exists below this stream's window start. It is read against the caller's permitted range, never against the physical stream: history below the caller's readable floor MUST NOT set it, and it MUST NOT be cleared because the remaining history happens to be unreadable. Within one frozen baseline window every segment repeats the same value; it must not change because the current segment could not fit the remaining items. Backfill goes through ak.self.events.read.scan.v1 with before_position — there is no second pagination mechanism on the subscribe surface."
+          "description": "Gap marker for THIS stream: history this caller is permitted to read exists below this stream's window start. It is read against the caller's permitted range, never against the physical stream: history below the caller's readable floor MUST NOT set it, and it MUST NOT be cleared because the remaining history happens to be unreadable. Within one frozen baseline window every segment repeats the same value; it must not change because the current segment could not fit the remaining items. Backfill goes through ak.self.committed_event.read.scan.v1 with before_position — there is no second pagination mechanism on the subscribe surface."
         },
         "window_limit": {
           "type": "integer",
@@ -919,15 +919,7 @@
         },
         "streams_limited": {
           "type": "boolean",
-          "description": "True when the caller is authorized to see more streams in this Realm than the 64-entry streams[] ceiling admits. Truncation is deterministic and depends only on the caller's own visible stream set: the Realm stream (stream_ref.kind='realm') MUST be retained whenever the caller can see it, and the remaining slots are filled in ascending unsigned-byte order of JCS(stream_ref). The server MUST NOT silently drop streams — a client that reads this as false may treat streams[] as the complete visible set, while true means it MUST fetch the remainder through the per-stream surfaces (ak.self.events.read.scan.v1 and Realm detail) and MUST NOT conclude that an absent stream does not exist. Omitted means false."
-        },
-        "commits": {
-          "type": "array",
-          "maxItems": 100,
-          "items": {
-            "$ref": "./authority-commit-operations.schema.json#/$defs/stream_row"
-          },
-          "description": "Committed rows delivered by this segment for this Realm bucket, flat across streams. Each row carries its own stream_ref and stream_position (realm-commit.schema.json), which is the only ordering information: there is no cross-stream protocol order and a delivery batch never needs one (zh/sync/client-sync.md §6). Rows MUST belong to a stream present in streams[]. This is a delivery channel, not a sort structure; the field is named commits[] to match stream_scan_outcome.commits[], which carries the same row type."
+          "description": "True when the caller is authorized to see more streams in this Realm than the 64-entry streams[] ceiling admits. Truncation is deterministic and depends only on the caller's own visible stream set: the Realm stream (stream_ref.kind='realm') MUST be retained whenever the caller can see it, and the remaining slots are filled in ascending unsigned-byte order of JCS(stream_ref). The server MUST NOT silently drop streams — a client that reads this as false may treat streams[] as the complete visible set, while true means it MUST fetch the remainder through the per-stream surfaces (ak.self.committed_event.read.scan.v1 and Realm detail) and MUST NOT conclude that an absent stream does not exist. Omitted means false."
         },
         "window_snapshot_cursor": {
           "$ref": "#/$defs/cursor_value",
@@ -998,7 +990,8 @@
                 "revision_unavailable",
                 "limit_exceeded",
                 "temporarily_unavailable",
-                "not_found"
+                "not_found",
+                "witness_disagreement"
               ]
             }
           },
@@ -1006,6 +999,14 @@
             "error_code"
           ],
           "additionalProperties": false
+        },
+        "committed_events": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "$ref": "./authority-commit-operations.schema.json#/$defs/stream_row"
+          },
+          "description": "Caller-visible committed Event views delivered by this Realm bucket. Each item carries its RealmCommit, so there is no cross-stream protocol order."
         }
       },
       "additionalProperties": false,
@@ -1031,7 +1032,7 @@
                 },
                 {
                   "required": [
-                    "commits"
+                    "committed_events"
                   ]
                 },
                 {
@@ -1261,7 +1262,7 @@
           "type": "array",
           "description": "Optional inline effective ak.member.identity.update Event envelopes. When present these are the original events, not query-time re-encryption or projection rewrites. MUST be omitted unless subject_account_id is disclosed, because plaintext or decryptable identity events can disclose the same member subject.",
           "items": {
-            "$ref": "./event-envelope.schema.json#/$defs/authority_committed_event"
+            "$ref": "./event-envelope.schema.json#/$defs/shared_event_envelope"
           }
         },
         "handle_claim_digests": {
@@ -1275,7 +1276,7 @@
         },
         "handle_claims": {
           "type": "array",
-          "description": "Optional inline signed handle claim status evidence. MUST be omitted unless subject_account_id is disclosed, and every included status view MUST have claim.subject_account_id byte-for-byte equal to the entry subject_account_id across both components. Services may omit this for privacy, size, or freshness. A client backfills through ak.find.directory.read.list_handles_for_subject.v1 using that exact AccountId; a claim whose principal_id matches but whose station_id differs MUST be discarded.",
+          "description": "Optional inline signed handle claim status evidence. MUST be omitted unless subject_account_id is disclosed, and every included status view MUST have claim.subject_account_id byte-for-byte equal to the entry subject_account_id across both components. Services may omit this for privacy, size, or freshness. a claim whose principal_id matches but whose station_id differs MUST be discarded.",
           "items": {
             "$ref": "./handle-claim.schema.json"
           }

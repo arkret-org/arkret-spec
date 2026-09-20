@@ -74,7 +74,7 @@ RealmCommit是唯一accepted receipt；transport/queue receipt只能说明已收
 
 ## 8. 查询响应证据
 
-Own Station返回typed current result和source committed ref。Directory exact resolve使用`DirectorySourceRefAccess`并只解析carrier中四元组子集。
+Own Station 返回 typed current result 和 source committed ref。Directory 只发布当前治理 Station 直接签写的 closed public Realm metadata，不提供 source-ref callback 或通用历史解析面。
 
 ## 9. 冲突与收敛
 

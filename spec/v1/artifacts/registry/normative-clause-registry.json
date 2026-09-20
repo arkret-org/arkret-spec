@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.11",
+  "version": "2026-09-20.12",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T13:43:30+08:00",
+  "generated_at": "2026-09-20T16:42:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -67,8 +67,7 @@
       "evidence_refs": [
         "ak.vector.encoding.digest.blake3.v1",
         "ak.vector.encoding.event_digest.v1",
-        "ak.vector.encoding.canonical_event_tie_break.v1",
-        "ak.vector.encoding.event_batch_receipt_digest.v1"
+        "ak.vector.encoding.canonical_event_tie_break.v1"
       ]
     },
     {
@@ -85,8 +84,7 @@
         "ak.vector.encoding.signature_binding_payload_audience.v1",
         "ak.vector.encoding.signature_binding_payload_domain_audience.v1",
         "ak.vector.encoding.crypto.signature_negative.v1",
-        "ak.vector.proof_context.transcript.event_envelope.v1",
-        "ak.vector.proof_context.transcript.event_batch_receipt.v1"
+        "ak.vector.proof_context.transcript.event_envelope.v1"
       ]
     },
     {
@@ -94,7 +92,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#7-时间",
-      "section_digest": "sha256:c29bcc5de7abb204ae570669edd6a40ef8bbf715585aea2c0bf1650e71feb202",
+      "section_digest": "sha256:eaf57f8cf3d74fb6b723ad596cea48778c1acd721ba513cd78518b6431ae0ba7",
       "requirement": "HLC well-formedness, logical-counter overflow handling and the causal-first usage boundary: HLC breaks ties between causally incomparable items only and MUST NOT select a winner in shared protocol state.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -108,7 +106,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#8-cursor",
-      "section_digest": "sha256:f24cd529264e122fd3078f32dc64a8b7f438c1b0c0eeff7054da72bb52a36f10",
+      "section_digest": "sha256:e0160697346a0382e756714510a622485370f912db41bbb9cd5ee9fc13af9596",
       "requirement": "Cursors are opaque server-issued tokens bound to their query scope; clients MUST NOT parse or forge them and cross-scope replay MUST be rejected.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -134,7 +132,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/sync/api-conventions.md#2-http-传输与编码",
-      "section_digest": "sha256:846c41e5cd42bbe435323bc01ad4c7150441b539f82fca13d4fde29b206057a9",
+      "section_digest": "sha256:447fdfdcf9c644ba0d87a35e82d09aceefa5b8ae0eda4a69db9379a7e35898e1",
       "requirement": "Transport encoding bounds: Content-Encoding is forbidden on non-streaming JSON operations and every size limit MUST be enforced before the body is fully buffered or parsed.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -149,7 +147,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/sync/api-conventions.md#24-operation-id-kindaction-taxonomy",
-      "section_digest": "sha256:588f88bfa24f22825438fd84c61db63149942f34dab327d3b5ea1c6e839b5c5b",
+      "section_digest": "sha256:ba17ddf86004438656483d2677d8e421b07022613408d3e6572807feadab485a",
       "requirement": "Every operation_id ends with <kind>.<action> drawn from the closed kind set, and the action MUST describe a protocol effect rather than an HTTP method name.",
       "testability_grade": "api_shape",
       "test_plan": "Enforced mechanically by tools/artifact_lint: every operation_id in operation-registry.json is checked against the closed kind set and against forbidden HTTP-method action names. There is no runtime vector because the obligation is on the published contract, not on request handling."
@@ -171,7 +169,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/sync/api-conventions.md#3-认证",
-      "section_digest": "sha256:06d4195ce98096b6e3859f3f7a8dd5ff2aba37c9fb5d06a94c9f9074feac064f",
+      "section_digest": "sha256:4197a1af991dbcff4de9b92d59db1a41f32e0b2e08ed24157b728c91617ab025",
       "requirement": "Protected current-v1 endpoints require sender-constrained proof of possession; a bare bearer session grant MUST NOT authenticate a protected request.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -200,14 +198,11 @@
       "clause_id": "AK-NC-013",
       "status": "active",
       "category": "privacy",
-      "source_anchor": "spec/v1/zh/discovery/discovery-directory.md#3-realm-discoverability",
-      "section_digest": "sha256:c8d5743fe97eff3156af356aa6bf8bbbebb289f100f6e45ead8cb844d7ac7570",
-      "requirement": "Directory resolution failures are indistinguishable: unauthorized, non-existent and policy-denied targets MUST NOT be separable by error code, field set or timing.",
+      "source_anchor": "spec/v1/zh/discovery/discovery-directory.md#2-可索引条件normative",
+      "section_digest": "sha256:b17d5b4f076534f37a94b019245cca3350c56d2c1223b53849b76fc2c048400b",
+      "requirement": "Directory indexes only closed public Realm metadata published by the Realm's current governance Station; it exposes no organization, user, actor, applet, handle, private-contact, PSI or source-reference resolution surface, and withdrawn or unknown Realm locators remain indistinguishable.",
       "testability_grade": "vector",
       "evidence_refs": [
-        "ak.vector.directory.resolve_target_blinding.v1",
-        "ak.vector.directory.resolve_handle_failure_blinding.v1",
-        "ak.vector.directory.invite_not_found_blinding.v1",
         "ak.vector.directory.withdraw_blinded_not_found.v1"
       ]
     },
@@ -216,7 +211,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/capabilities.md#10-issuer-authority",
-      "section_digest": "sha256:169a9d068e7a443e8cee02f8d77ba1c5c13d36b372385deb6d328d5ea11da5ed",
+      "section_digest": "sha256:b758331ef2c5cda159b0f26ae77b106e822c394c79ffac662573351799e27fb9",
       "requirement": "A grant stays within the union of the authorities its issuer_authority_refs name and within their per-action validity window. A grant without ordinary authority_control cannot be a grant ref; a ref with authority_regrant_allowed=false can issue only an explicitly terminal max_authority_depth=0 child. A grant ref supplies issuer authority only when its concrete subject ActorId equals the child issuer ActorId in full; cycles, inactive refs and same-DID cross-Station replay MUST fail closed rather than widen the effective permission set. A realm_root ref is valid only while the authority-root typed current result's current authority_generation still equals the generation the ref carries, read under the registered inclusion proof at a RealmCommit basis; that delegation generation advances only on ak.realm.authority.reset and MUST NOT be conflated with the governing Station tenure governance_generation, so a planned Station handoff MUST NOT invalidate any grant and a controller transfer MUST leave every child grant valid.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -380,7 +375,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/identity/contact-and-direct-conversation.md#72-bootstrap-participant-authority",
-      "section_digest": "sha256:8bea2bc826871351d1bf81983d010cfe84a3a2fdb490039b79cc5bade6670730",
+      "section_digest": "sha256:9d52673dd423438f10ca12f5d4346a4a4459d80e5c00a954b2c743672c33892f",
       "requirement": "Only the exact founder uses registered provisional message authority before peer durable Welcome, with accepted Genesis and current gates. First accepted Bound permanently exits bootstrap; equivalent later endorsements cannot reactivate it.",
       "testability_grade": "audit",
       "test_plan": "Run registered provisional-source policy tests; block exact private Realm claim at epoch 0 and consume after Add, then verify real submitted message epoch, peer since_join boundary and eventual convergence. Test post-Bound rejection of bootstrap authority and equivalent endorsement accumulation."

@@ -1024,7 +1024,6 @@ service identity registration 分开：三者的主体模型不同，混用会�
 | Realm relationship | 由 `ak.realm.organization` statement 表达 | 不因本地 registration 自动获得 |
 | service delegation | organization → service DID 的 purpose/scope/validity | 另行验证，registration 不代替 |
 
-`ak.find.directory.read.resolve_organization.v1` 只提供可见的 discovery/resolve 结果，
 `ak.self.realm_organization.read.list.v1` 只是既有 Realm relationship 的投影。
 **能解析或能引用，不产生本地管理权**——规范必须堵住"可见 ⇒ 可管理"的权限升级。
 

@@ -569,10 +569,6 @@ components:
       $ref: ../schemas/device-pairing.schema.json#/$defs/device_pairing_status_outcome
     DevicePairingStatusRequestBody:
       $ref: ../schemas/device-pairing.schema.json#/$defs/device_pairing_status_request_body
-    DeviceRevocationGateCheckOutcome:
-      $ref: ../schemas/device-revocation-state.schema.json#/$defs/device_revocation_gate_check_outcome
-    DeviceRevocationGateCheckRequestBody:
-      $ref: ../schemas/device-revocation-state.schema.json#/$defs/device_revocation_gate_check_request_body
     DidBindingChallengeOutcome:
       $ref: ../schemas/account-operations.schema.json#/$defs/did_binding_challenge_outcome
     DidBindingChallengeRequestBody:
@@ -585,54 +581,18 @@ components:
       $ref: ../schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_outcome
     DirectConversationResolveRequestBody:
       $ref: ../schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_request
-    DirectoryActorSearchOutcome:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_actor_search_outcome
-    DirectoryAgentSelectorResolutionOutcome:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_agent_selector_resolution_outcome
     DirectoryAnnounceOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceOutcome
     DirectoryAnnounceRequestBody:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceRequestBody
-    DirectoryHandleResolutionOutcome:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_handle_resolution_outcome
-    DirectoryListHandlesForSubjectRequestBody:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_list_handles_for_subject_request_body
-    DirectoryOrganizationResolutionOutcome:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_organization_resolution_outcome
-    DirectoryOrganizationSearchOutcome:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_organization_search_outcome
-    DirectoryPrivateContactDiscoveryOutcome:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_private_contact_discovery_outcome
-    DirectoryPrivateContactDiscoveryRequestBody:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_private_contact_discovery_request_body
     DirectoryRealmResolutionOutcome:
       $ref: ../schemas/directory-operations.schema.json#/$defs/directory_realm_resolution_outcome
     DirectoryRealmSearchOutcome:
       $ref: ../schemas/directory-operations.schema.json#/$defs/directory_realm_search_outcome
-    DirectoryResolveAgentSelectorRequestBody:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_resolve_agent_selector_request_body
-    DirectoryResolveHandleRequestBody:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_resolve_handle_request_body
-    DirectoryResolveOrganizationRequestBody:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_resolve_organization_request_body
     DirectoryResolveRealmRequestBody:
       $ref: ../schemas/directory-operations.schema.json#/$defs/directory_resolve_realm_request_body
-    DirectoryResolveTargetRequestBody:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_resolve_target_request_body
-    DirectorySearchActorsRequestBody:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_search_actors_request_body
-    DirectorySearchOrganizationsRequestBody:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_search_organizations_request_body
     DirectorySearchRealmsRequestBody:
       $ref: ../schemas/directory-operations.schema.json#/$defs/directory_search_realms_request_body
-    DirectorySearchUsersRequestBody:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_search_users_request_body
-    DirectorySubjectHandleList:
-      $ref: ../schemas/list-handles-for-subject-response.schema.json
-    DirectoryTargetResolutionOutcome:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_target_resolution_outcome
-    DirectoryUserSearchOutcome:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/directory_user_search_outcome
     DirectoryWithdrawOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawOutcome
     DirectoryWithdrawRequestBody:
@@ -653,10 +613,10 @@ components:
       type: string
       pattern: ^ak:event:[A-Za-z0-9_-]{44}$
     EventsSubscribeFrame:
-      x-arkret-schema-ref: ../schemas/events-subscribe-frame.schema.json
-      $ref: ../schemas/events-subscribe-frame.schema.json
+      x-arkret-schema-ref: ../schemas/committed-event-subscribe-frame.schema.json
+      $ref: ../schemas/committed-event-subscribe-frame.schema.json
     EventView:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/EventView
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/CommittedEventView
     FieldFilter:
       $ref: ../schemas/query.schema.json#/$defs/field_filter
     GhostActorProvisionOutcome:
@@ -837,8 +797,6 @@ components:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ProjectionSpaceList
     ProjectionStrandList:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ProjectionStrandList
-    PsiPaddedProblem:
-      $ref: ../schemas/directory-operations.schema.json#/$defs/psi_padded_problem
     PushNotifyOutcome:
       $ref: ../schemas/push-operations.schema.json#/$defs/push_notify_outcome
     PushNotifyRequestBody:
@@ -1890,9 +1848,9 @@ paths:
                 $ref: '#/components/schemas/EventDeliveryStatusOutcome'
         '404':
           description: '`not_found` — no such accepted Event, or the caller may not know it exists.'
-  /_arkret/self/events/subscribe:
+  /_arkret/self/committed-events/subscribe:
     get:
-      operationId: ak.self.events.stream.subscribe
+      operationId: ak.self.committed_event.stream.subscribe
       x-arkret-required-any-of:
       - - realm_ids
       - - actor_ids
@@ -1932,7 +1890,7 @@ paths:
         description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
-          const: ak.self.events.stream.subscribe.v1
+          const: ak.self.committed_event.stream.subscribe.v1
       - name: realm_ids
         in: query
         description: Filter by Realm IDs. UNION within, intersection with `actor_ids[]`.
@@ -1960,7 +1918,7 @@ paths:
         explode: true
       - name: after
         in: query
-        description: Subscription start cursor (exclusive). Same semantics as ak.self.events.read.scan.v1's `after=` parameter.
+        description: Subscription start cursor (exclusive). Same semantics as ak.self.committed_event.read.scan.v1's `after=` parameter.
         schema:
           $ref: '#/components/schemas/Cursor'
       - name: catchup
@@ -1977,9 +1935,9 @@ paths:
             application/x-ndjson:
               schema:
                 $ref: '#/components/schemas/EventsSubscribeFrame'
-  /_arkret/self/events/{event_id}:
+  /_arkret/self/committed-events/{event_id}:
     get:
-      operationId: ak.self.events.resource.get
+      operationId: ak.self.committed_event.resource.get
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -1993,7 +1951,7 @@ paths:
         description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
-          const: ak.self.events.resource.get.v1
+          const: ak.self.committed_event.resource.get.v1
       - name: event_id
         in: path
         required: true
@@ -2011,73 +1969,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EventView'
-  /_arkret/peer/principal-genesis:
-    post:
-      operationId: ak.peer.principal_genesis.command.submit
-      security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-        contentDigest: []
-      summary: Atomically accept a root-committed PCR genesis unit.
-      description: 'Account Authority relays the client''s exact signed unit. Its service
-
-        signature authenticates transport and correlation only. The Station
-
-        independently verifies the identity-root creation transcript,
-
-        ordered root-signed realm create, founding-device possession signature,
-
-        event-derived PCR id, account-dimension create-once fence and all
-
-        payload commitments. The PCR id is retype(create.event_id); it is never
-
-        derived from the principal DID or subject and is never server-chosen.
-
-        It accepts both Events or neither and returns a durable batch receipt
-
-        whose scope.kind is pcr_genesis_unit. Exact retries return that receipt;
-
-        a conflicting genesis for an existing PCR performs zero writes.
-
-        '
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.peer.principal_genesis.command.submit.v1
-      - name: Idempotency-Key
-        in: header
-        required: true
-        schema:
-          type: string
-          minLength: 1
-          maxLength: 128
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PcrGenesisSubmitRequestBody'
-      responses:
-        '200':
-          description: PCR genesis atomically accepted or replayed byte-identically.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PcrGenesisSubmitOutcome'
-        '409':
-          description: The account already has a different authoritative PCR genesis. Event-derived ids never collide across
-            two genesis attempts, so this uniqueness is enforced at the account dimension rather than by realm_id equality.
-          content:
-            application/problem+json:
-              schema:
-                $ref: '#/components/schemas/Problem'
   /_arkret/peer/account-status/resolve:
     post:
       operationId: ak.peer.account_status.read.resolve
@@ -2346,49 +2237,6 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
-  /_arkret/peer/device-revocations/check:
-    post:
-      operationId: ak.peer.device_revocations.command.check
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.peer.device_revocations.command.check.v1
-      security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-        contentDigest: []
-      summary: Derive the current device binding and linearize an exact immutable device-bound action intent against origin
-        revocation state.
-      description: The authenticated Account Authority supplies only selectors it can verify itself. The origin Station derives
-        the current authorization Event and PCR-local integer generation from its own durable device projection under the
-        same serializable fence used for revoke acceptance, compares them with any expected binding in the request, and persists
-        an exact-intent signed decision receipt. A validated request always returns HTTP 200 with a closed allow, revocation_pending,
-        revoked, authority_mismatch or generation_mismatch receipt; 409 device_revocation_pending/device_revoked belongs only
-        to the protected business operation. Only allow carries the derived binding, which is the sole source for the issued
-        grant device_binding. An allow receipt is valid for at most 30 seconds and only for the exact issue/refresh intent
-        bytes; introspection carries no receipt.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DeviceRevocationGateCheckRequestBody'
-      responses:
-        '200':
-          description: Signed durable allow, revocation_pending, revoked, authority_mismatch or generation_mismatch decision
-            receipt. A validated request always uses this typed 200 outcome; 409 gate errors belong to the blocked business
-            operation.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DeviceRevocationGateCheckOutcome'
   /_arkret/peer/events:
     post:
       operationId: ak.peer.events.command.submit
@@ -4359,148 +4207,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DocumentMorphProjectionOutcome'
-  /_arkret/find/directory/resolve-handle:
-    post:
-      operationId: ak.find.directory.read.resolve_handle
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.find.directory.read.resolve_handle.v1
-      security:
-      - bearerAuth: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
-      responses:
-        '200':
-          description: Handle resolution result
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DirectoryHandleResolutionOutcome'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DirectoryResolveHandleRequestBody'
-  /_arkret/find/directory/resolve-agent-selector:
-    post:
-      operationId: ak.find.directory.read.resolve_agent_selector
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.find.directory.read.resolve_agent_selector.v1
-      security:
-      - bearerAuth: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
-      responses:
-        '200':
-          description: Agent selector resolution result
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DirectoryAgentSelectorResolutionOutcome'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DirectoryResolveAgentSelectorRequestBody'
-  /_arkret/find/directory/list-handles-for-subject:
-    post:
-      operationId: ak.find.directory.read.list_handles_for_subject
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.find.directory.read.list_handles_for_subject.v1
-      security:
-      - bearerAuth: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
-      summary: List current visible handle claims for a subject in context.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DirectoryListHandlesForSubjectRequestBody'
-      responses:
-        '200':
-          description: Subject handle claims visible to the requester.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DirectorySubjectHandleList'
-  /_arkret/find/directory/private-contact-discovery:
-    post:
-      operationId: ak.find.directory.read.private_contact_discovery
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.find.directory.read.private_contact_discovery.v1
-      description: Two-round OPRF set-membership PSI (zh/discovery/discovery-directory.md §6.2/§6.3); the request/response
-        phase field discriminates the blind and match rounds correlated by batch_id. Per-target conditions are encoded as
-        unmatched bits inside the fixed-cardinality hit_bitmap and never surface as error codes.
-      security:
-      - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DirectoryPrivateContactDiscoveryRequestBody'
-      responses:
-        '200':
-          description: Phase-discriminated PSI success outcome (blind evaluations or fixed-cardinality match hit bitmap),
-            padded to the exact advertised phase Content-Length bucket
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-                const: no-store, no-transform
-            Content-Length:
-              schema:
-                type: integer
-                enum:
-                - 4096
-                - 16384
-                - 65536
-                - 262144
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DirectoryPrivateContactDiscoveryOutcome'
-        '403':
-          $ref: '#/components/responses/PsiPolicyDenied'
-        '409':
-          $ref: '#/components/responses/PsiDuplicateConflict'
-        '410':
-          $ref: '#/components/responses/PsiBatchUnavailable'
-        '429':
-          $ref: '#/components/responses/PsiQuotaExhausted'
   /_arkret/self/blob/upload:
     post:
       operationId: ak.self.blob.upload.create
@@ -6524,7 +6230,7 @@ paths:
 
         same expired for that retention period and is indistinguishable from a
 
-        naturally elapsed TTL. A private prepared or station_accepted fence
+        naturally elapsed TTL. A private prepared or commit_recorded fence
 
         returns not_found until completed; in_progress is not a public state.
 
@@ -6542,6 +6248,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DevicePairingStatusOutcome'
+
   /_arkret/open/mimi/provider-directory:
     get:
       operationId: ak.open.mimi.read.provider_directory
@@ -7021,156 +6728,6 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/DirectoryResolveRealmRequestBody'
-  /_arkret/find/directory/resolve-target:
-    post:
-      operationId: ak.find.directory.read.resolve_target
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.find.directory.read.resolve_target.v1
-      security:
-      - bearerAuth: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
-      responses:
-        '200':
-          description: Authorized object address resolution
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DirectoryTargetResolutionOutcome'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DirectoryResolveTargetRequestBody'
-  /_arkret/find/directory/search-organizations:
-    post:
-      operationId: ak.find.directory.read.search_organizations
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.find.directory.read.search_organizations.v1
-      security:
-      - bearerAuth: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
-      responses:
-        '200':
-          description: Authorized organization search
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DirectoryOrganizationSearchOutcome'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DirectorySearchOrganizationsRequestBody'
-  /_arkret/find/directory/resolve-organization:
-    post:
-      operationId: ak.find.directory.read.resolve_organization
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.find.directory.read.resolve_organization.v1
-      security:
-      - bearerAuth: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
-      responses:
-        '200':
-          description: Authorized organization resolution
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DirectoryOrganizationResolutionOutcome'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DirectoryResolveOrganizationRequestBody'
-  /_arkret/find/directory/search-actors:
-    post:
-      operationId: ak.find.directory.read.search_actors
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.find.directory.read.search_actors.v1
-      security:
-      - bearerAuth: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
-      responses:
-        '200':
-          description: Authorized actor search
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DirectoryActorSearchOutcome'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DirectorySearchActorsRequestBody'
-  /_arkret/find/directory/search-users:
-    post:
-      operationId: ak.find.directory.read.search_users
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.find.directory.read.search_users.v1
-      security:
-      - bearerAuth: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
-      responses:
-        '200':
-          description: Mention autocomplete user search
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DirectoryUserSearchOutcome'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DirectorySearchUsersRequestBody'
   /_arkret/self/authz/invites:
     get:
       operationId: ak.self.authz.invites.read.list
@@ -9036,210 +8593,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RecoveryCompletionGrantOutcome'
-  /_arkret/gate/account/auth-sessions/logout:
-    servers:
-    - url: https://{host}
-      variables:
-        host:
-          default: localhost
-    post:
-      operationId: ak.gate.account.command.logout_auth_session
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.gate.account.command.logout_auth_session.v1
-      security:
-      - bearerAuth: []
-      summary: Auth-side session logout sub-operation.
-      description: 'Account Authority to Auth Server service-to-service sub-operation used
-
-        by the single client-visible account logout. The Account Authority has
-
-        already validated Authorization: DPoP <ak.session.grant> plus its matching DPoP proof on
-
-        POST /_arkret/gate/account/logout. It calls this endpoint with the
-
-        deployment-internal authentication channel registered in
-
-        service-http-binding 2.2.3 to log out the Auth-side
-
-        browser/auth session owning the supplied grant and terminate that
-
-        session''s grant rotation chain.
-
-
-        Ordinary clients MUST NOT call this endpoint, MUST NOT derive it from
-
-        gate_account_base_url, and MUST NOT retry it directly. Clients retry only
-
-        POST /_arkret/gate/account/logout.
-
-        '
-      responses:
-        '200':
-          description: Auth-side session logout completed or was already inactive.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AuthSessionLogoutOutcome'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AuthSessionLogoutRequestBody'
-  /_arkret/gate/account/session-grants/introspect:
-    servers:
-    - url: https://{host}
-      variables:
-        host:
-          default: localhost
-    post:
-      operationId: ak.gate.account.command.introspect_session_grant
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.gate.account.command.introspect_session_grant.v1
-      security:
-      - bearerAuth: []
-      summary: Server-to-server session-grant introspection.
-      description: 'RFC 7662-style introspection used by a Station to validate a
-
-        presented session grant. The caller supplies the grant id or grant_jwt
-
-        (plus an optional audience and optional S2S holder confirmation) and
-
-        gets back whether the grant is active, a standardized status, and
-
-        non-secret grant metadata — including session_public_key for RFC 9421
-
-        PoP verification and cnf_jkt for local DPoP verification on
-
-        /_arkret/self/*. READ-ONLY: introspection MUST NOT consume or revoke
-
-        the grant (consumption/rotation is the refresh endpoint''s job).
-
-        Authenticated by the deployment-internal authentication channel
-
-        registered in service-http-binding 2.2.3. Request-admission
-
-        introspection MUST use the grant_jwt branch carrying the exact
-
-        presented token plus the caller''s own audience_id; the resource
-
-        server MUST NOT re-verify that JWT signature, replay the issuer DID
-
-        history or recompute the issuance preimage, suite-tagged ID or jti.
-
-        '
-      responses:
-        '200':
-          description: Introspection result (active flag, status, grant metadata).
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SessionGrantIntrospectOutcome'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SessionGrantIntrospectRequestBody'
-  /_arkret/gate/account/controller-gate-attestations:
-    servers:
-    - url: https://{host}
-      variables:
-        host:
-          default: localhost
-    post:
-      operationId: ak.gate.account.command.issue_controller_gate_attestation
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.gate.account.command.issue_controller_gate_attestation.v1
-      security:
-      - bearerAuth: []
-      x-arkret-auth:
-        public_metadata: false
-        holder_bound_authorization: false
-        notes: Deployment-internal authentication only. The credential is a pre-configured deployment relationship that
-          the Account Authority resolves to one configured caller identity; nothing in the request body, and no
-          Source-Service-ID header, self-asserted DID, URL or public key, is an identity source. The authenticated
-          caller MUST equal agent_authority_id and the Station of the controller's complete AccountId.
-      summary: Issue the Account Authority controller-account eligibility gate for one Agent Authority.
-      description: 'An Agent Authority cannot synthesize Account Authority evidence. When it
-
-        needs current-query semantics and holds no unexpired gate matching the
-
-        controller principal, it calls this operation with a closed
-
-        {request_id, principal_id, agent_authority_id} body.
-
-
-        The Account Authority reads status and binding from its own authoritative
-
-        records and never accepts a caller-asserted account-active value. An unknown
-
-        principal, a wrong authority or an unauthorized caller all return the same
-
-        unenumerable not_found.
-
-
-        The response is not weakened by the request being internally authenticated:
-
-        it enters an external Agent evidence chain, so the attestation signature, the
-
-        public DID assertion authorization of its verification method, the TTL and
-
-        exact replay all remain. Positive validity MUST NOT exceed 300 seconds.
-
-
-        Replaying the same request_id with the same canonical intent returns the
-
-        original bytes; a different intent under that request_id is a
-
-        duplicate_conflict with zero issuance.
-
-        '
-      responses:
-        '200':
-          description: Signed controller-account gate attestation for the requested principal.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ControllerAccountGateAttestationIssueOutcome'
-        '404':
-          description: Unknown principal, wrong authority or unauthorized caller, reported without enumeration.
-          content:
-            application/problem+json:
-              schema:
-                $ref: '#/components/schemas/Problem'
-        '409':
-          description: The same request_id was already used with a different canonical intent; nothing was issued.
-          content:
-            application/problem+json:
-              schema:
-                $ref: '#/components/schemas/Problem'
-        '503':
-          $ref: '#/components/responses/TemporarilyUnavailable'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ControllerAccountGateAttestationIssueRequestBody'
   /_arkret/gate/account/logout:
     servers:
     - url: https://{host}
@@ -9524,143 +8877,6 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/DevicePairingFinalizeRequestBody'
-  /_arkret/gate/account/device-pairing/stages:
-    servers:
-    - url: https://{host}
-      variables:
-        host:
-          default: localhost
-    post:
-      operationId: ak.gate.account.command.stage_device_pairing
-      summary: Stage one pairing request in the Account Authority's sole ledger.
-      description: Deployment-internal owning-Station proxy. The request and response bodies are byte-identical to the public
-        stage DTOs. The Station-generated Idempotency-Key is stable only for one public invocation; exact internal replay returns
-        the original outcome, while a changed body conflicts. Ordinary clients cannot call this route.
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.gate.account.command.stage_device_pairing.v1
-      - name: Idempotency-Key
-        in: header
-        required: true
-        description: Station-generated identity for exactly one accepted public stage invocation; stable only for its internal retries.
-        schema:
-          type: string
-          minLength: 1
-          maxLength: 128
-          pattern: ^[A-Za-z0-9._~:-]+$
-      security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DevicePairingStageRequestBody'
-      responses:
-        '200':
-          description: Byte-identical public stage outcome from the sole Authority ledger.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DevicePairingStageOutcome'
-        '409':
-          description: Same internal Idempotency-Key with different canonical body.
-          content:
-            application/problem+json:
-              schema:
-                $ref: '#/components/schemas/Problem'
-        '503':
-          $ref: '#/components/responses/TemporarilyUnavailable'
-  /_arkret/gate/account/device-pairing/resolutions:
-    servers:
-    - url: https://{host}
-      variables:
-        host:
-          default: localhost
-    post:
-      operationId: ak.gate.account.read.resolve_device_pairing
-      summary: Read one pairing bootstrap from the Account Authority's sole ledger.
-      description: Deployment-internal owning-Station read-only proxy. It reuses the public resolve request/bootstrap DTOs
-        byte-identically, performs no budget or lifecycle write, and keeps bootstrap.arkret_base_url bound to the public Station.
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.gate.account.read.resolve_device_pairing.v1
-      security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DevicePairingResolveRequestBody'
-      responses:
-        '200':
-          description: Byte-identical public resolve bootstrap.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DevicePairingBootstrap'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '503':
-          $ref: '#/components/responses/TemporarilyUnavailable'
-  /_arkret/gate/account/device-pairing/status-queries:
-    servers:
-    - url: https://{host}
-      variables:
-        host:
-          default: localhost
-    post:
-      operationId: ak.gate.account.read.device_pairing_status
-      summary: Read one pairing status from the Account Authority's sole ledger.
-      description: Deployment-internal owning-Station read-only proxy. It reuses the public status request/outcome DTOs
-        byte-identically, performs no budget or lifecycle write, and never projects private fence states as in_progress.
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.gate.account.read.device_pairing_status.v1
-      security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DevicePairingStatusRequestBody'
-      responses:
-        '200':
-          description: Byte-identical public status outcome.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DevicePairingStatusOutcome'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '503':
-          $ref: '#/components/responses/TemporarilyUnavailable'
   /_arkret/gate/account/device-pairing/code-claims:
     servers:
     - url: https://{host}
@@ -10210,7 +9426,7 @@ paths:
       security: []
   /_arkret/peer/streams/scan:
     post:
-      operationId: ak.peer.events.read.scan
+      operationId: ak.peer.committed_event.read.scan
       summary: Replicate one visibility-authorized stream from its current governance Station
       description: Replicate one visibility-authorized stream from its current governance Station.
       parameters:
@@ -10220,7 +9436,7 @@ paths:
         description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
-          const: ak.peer.events.read.scan.v1
+          const: ak.peer.committed_event.read.scan.v1
       requestBody:
         required: true
         content:
@@ -10266,7 +9482,7 @@ paths:
       - serviceHttpMessageSignatures: []
   /_arkret/self/streams/scan:
     post:
-      operationId: ak.self.events.read.scan
+      operationId: ak.self.committed_event.read.scan
       summary: Read one authorized Realm, Circle, or Sidecar stream by continuous stream_position
       description: Read one authorized Realm, Circle, or Sidecar stream by continuous stream_position.
       parameters:
@@ -10276,7 +9492,7 @@ paths:
         description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
-          const: ak.self.events.read.scan.v1
+          const: ak.self.committed_event.read.scan.v1
       requestBody:
         required: true
         content:
@@ -10293,35 +9509,3 @@ paths:
       security:
       - sessionGrantAuth: []
         dpopProof: []
-  /_arkret/peer/streams/resolve:
-    post:
-      operationId: ak.peer.events.read.resolve_committed
-      summary: 'Directory-only exact resolve: authenticate the Directory, revalidate its source-signed DirectorySourceRefAccess,
-        and resolve only byte-identical Event/Commit/stream/position refs contained by that carrier; no scan or caller-supplied
-        Event is accepted as proof'
-      description: 'Directory-only exact resolve: authenticate the Directory, revalidate its source-signed DirectorySourceRefAccess,
-        and resolve only byte-identical Event/Commit/stream/position refs contained by that carrier; no scan or caller-supplied
-        Event is accepted as proof.'
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.peer.events.read.resolve_committed.v1
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: ../schemas/authority-commit-operations.schema.json#/$defs/committed_event_resolve_request
-      responses:
-        '200':
-          description: Successful Arkret operation outcome.
-          content:
-            application/json:
-              schema:
-                $ref: ../schemas/authority-commit-operations.schema.json#/$defs/committed_event_resolve_outcome
-      security:
-      - serviceHttpMessageSignatures: []

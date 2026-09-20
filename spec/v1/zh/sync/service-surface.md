@@ -178,15 +178,14 @@ proof，随后把 exact bytes 交给已验证 current authority；未取得 auth
 
 ### 4.3 获取单个 Event
 
-`ak.self.events.resource.get.v1` 返回调用方可见的 committed Event 及其 Commit 坐标。不可见与不存在保持不可区分。
+`ak.self.committed_event.resource.get.v1` 返回调用方可见的 committed Event 及其 Commit 坐标。不可见与不存在保持不可区分。
 
 ### 4.4 批量获取 Event
 
-跨 Station 精确取证统一使用 `ak.peer.events.read.resolve_committed.v1`。selector 是 `{event_id, commit_id, stream_ref, stream_position}`；响应必须让调用方逐项核对，不接受 caller-supplied Event、裸 Event ID 或 scan 分页结果作为完整性证明。
 
 ### 4.5 列出 / 回填 Event
 
-`ak.self.events.read.scan.v1` 与 `ak.peer.events.read.scan.v1` 按**单个获准 stream**的连续 position 分页。每页不得把多个 Circle/Sidecar 拼成 Realm 总序，也不得用隐藏 stream 的 position gap 暗示其活动。历史可见性、membership join floor 和 retention 可以裁剪可读起点。
+`ak.self.committed_event.read.scan.v1` 与 `ak.peer.committed_event.read.scan.v1` 按**单个获准 stream**的连续 position 分页。每页不得把多个 Circle/Sidecar 拼成 Realm 总序，也不得用隐藏 stream 的 position gap 暗示其活动。历史可见性、membership join floor 和 retention 可以裁剪可读起点。
 
 ### 4.6 获取 stream head
 
@@ -254,7 +253,6 @@ metadata 查询遵守引用 Event 的当前访问控制。
 
 ## 8. Directory Surface
 
-Directory 只提供可验证投影与 locator。其 `DirectorySourceRefAccess.source_refs` 是 `CommittedEventRef[]`，每项绑定 Event、Commit、stream、position，并只通过 `ak.peer.events.read.resolve_committed.v1` 验证。
 
 ### 8.1 描述 directory
 

@@ -20,7 +20,7 @@ HTTP/JSON、NDJSON binding。
 第一版只覆盖：
 
 - `ak.self.account.stream.subscribe.v1`
-- `ak.self.events.stream.subscribe.v1`
+- `ak.self.committed_event.stream.subscribe.v1`
 - `ak.self.signal.stream.subscribe.v1`
 
 它不覆盖 Event submit、Signal send、Blob、媒体、federation peer 或其它 command/resource/query
@@ -264,7 +264,7 @@ limit 内一致执行。
 | operation | payload |
 | --- | --- |
 | `ak.self.account.stream.subscribe.v1` | `AccountSubscribeFrame` |
-| `ak.self.events.stream.subscribe.v1` | canonical `EventsSubscribeFrame` |
+| `ak.self.committed_event.stream.subscribe.v1` | canonical `EventsSubscribeFrame` |
 | `ak.self.signal.stream.subscribe.v1` | `SignalStreamFrame` 中 `kind=signal` |
 
 `data.payload` 只接受 account `delta`、events `event` 或 Signal `signal`；`control` 的

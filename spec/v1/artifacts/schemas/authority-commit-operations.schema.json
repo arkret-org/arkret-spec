@@ -16,12 +16,6 @@
       "$ref": "#/$defs/stream_scan_outcome"
     },
     {
-      "$ref": "#/$defs/committed_event_resolve_request"
-    },
-    {
-      "$ref": "#/$defs/committed_event_resolve_outcome"
-    },
-    {
       "$ref": "#/$defs/authority_bundle_request"
     },
     {
@@ -302,7 +296,7 @@
     },
     "committed_event_submission": {
       "type": "object",
-      "description": "One full producer admission submission paired with the source-signed RealmCommit that accepted it. event_submission.event.event_id MUST equal source_commit.event_ref; realm and stream coordinates, governance generation, current source authority signature and previous_commit_ref continuity MUST verify exactly. This shape never accepts EventReadRow, redacted Event views or locked stubs.",
+      "description": "One full producer admission submission paired with the source-signed RealmCommit that accepted it. event_submission.event.event_id MUST equal source_commit.event_ref; realm and stream coordinates, governance generation, current source authority signature and previous_commit_ref continuity MUST verify exactly. This shape accepts only the full producer Event, never a withheld or projection-only read view.",
       "required": [
         "event_submission",
         "source_commit"
@@ -1086,35 +1080,20 @@
       "additionalProperties": false
     },
     "stream_row": {
-      "type": "object",
-      "description": "One committed row of a single stream: the RealmCommit and the Event it accepted. The row MUST be self-consistent: when the event member carries an event_id, that event_id MUST equal commit.event_ref, and a caller MUST reject the row instead of reconciling the two. Because commit.event_ref already names the source Event, a ReferenceLockedEventStub in this position MUST carry event_id; the stub's optional event_id exists for reference projections where the source event id itself is withheld, so the stub name is never by itself a privacy guarantee. Verifying the commit is not a reference-disclosure decision: a caller not permitted to know that the source Event exists MUST NOT receive this row at all, and a caller permitted to know it exists receives here the same redacted or locked projection it receives on every other read surface.",
-      "required": [
-        "commit",
-        "event"
-      ],
-      "properties": {
-        "commit": {
-          "$ref": "./realm-commit.schema.json"
-        },
-        "event": {
-          "description": "Committed event as delivered to this caller. A full EventEnvelope is the only reducer input shape; when the target Realm policy denies reference disclosure to this caller the row carries RedactedEventView or ReferenceLockedEventStub instead (zh/models/relation.md §4.5 Raw Event API boundary), which are projection-only evidence and MUST NOT be fed to a reducer.",
-          "$ref": "./service-operation-dtos.schema.json#/$defs/EventReadRow"
-        }
-      },
-      "additionalProperties": false
+      "$ref": "./service-operation-dtos.schema.json#/$defs/CommittedEventView"
     },
     "stream_scan_outcome": {
       "type": "object",
-      "description": "Positional scan result. There is no cursor and no has_more here: the caller continues from the largest (after_position) or smallest (before_position) stream_position of commits[]. Every boundary in this outcome is the caller's own permitted range: commits[] carries what this caller may read, truncated speaks only about further readable commits, and readable_floor names the verifiable bottom of that range.",
+      "description": "Positional scan result over caller-visible committed Event views. There is no cursor or cross-stream order; continuation uses stream_position from committed_events[].",
       "required": [
-        "commits",
+        "committed_events",
         "truncated"
       ],
       "properties": {
-        "commits": {
+        "committed_events": {
           "type": "array",
           "maxItems": 1000,
-          "description": "Contiguous commits of the requested stream, ordered by stream_position: ascending for after_position, descending for before_position. Callers MUST verify consecutive positions and previous_commit_ref linkage within and across pages. The linkage check is one equation in both directions, stated on adjacent positions rather than on array order: the row at the larger stream_position MUST carry previous_commit_ref equal to the commit_id of the row at the smaller position, whether that neighbour is the next or the previous element of this array and whether it arrived in this page or in the page before it. A descending page therefore keeps its last row as the anchor for the next page, and the commit at the caller's readable floor is the only readable commit whose predecessor the caller cannot check.",
+          "description": "Contiguous caller-visible committed Event views for the requested stream, ordered by RealmCommit stream_position. Full and withheld rows preserve the same verifiable Commit chain.",
           "items": {
             "$ref": "#/$defs/stream_row"
           }
@@ -1152,51 +1131,6 @@
         "stream_position": {
           "type": "integer",
           "minimum": 0
-        }
-      },
-      "additionalProperties": false
-    },
-    "committed_event_resolve_request": {
-      "type": "object",
-      "required": [
-        "realm_id",
-        "source_ref_access",
-        "refs"
-      ],
-      "properties": {
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "source_ref_access": {
-          "$ref": "./service-operation-dtos.schema.json#/$defs/DirectorySourceRefAccess",
-          "description": "Source-signed, Directory-bound authorization. The authenticated caller service MUST equal directory_id; realm_id MUST match this request; every requested ref MUST be a byte-identical member of source_refs."
-        },
-        "refs": {
-          "type": "array",
-          "minItems": 1,
-          "maxItems": 100,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "#/$defs/committed_event_ref"
-          },
-          "description": "Canonical ascending unique refs. Every stream_ref realm_id equals the request realm_id and every ref is a byte-identical member of source_ref_access.source_refs."
-        }
-      },
-      "additionalProperties": false
-    },
-    "committed_event_resolve_outcome": {
-      "type": "object",
-      "required": [
-        "items"
-      ],
-      "properties": {
-        "items": {
-          "type": "array",
-          "maxItems": 100,
-          "items": {
-            "$ref": "#/$defs/stream_row"
-          },
-          "description": "Only exact matches, in request order. Callers fail closed when any requested ref is absent."
         }
       },
       "additionalProperties": false

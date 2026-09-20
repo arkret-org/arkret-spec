@@ -48,7 +48,7 @@ recent tail；全历史是后续按需分页，不是 join 的前置条件。
 ### 3.1 floor 必须可验证（normative）
 
 floor 不只是"更早的数据取不到"，它是该 caller 允许区间的下端，必须能被绑定到已接受的链上验证：
-`ak.self.events.read.scan.v1` 的 `stream_scan_outcome.readable_floor` 给出 `oldest_position`、该位置的
+`ak.self.committed_event.read.scan.v1` 的 `stream_scan_outcome.readable_floor` 给出 `oldest_position`、该位置的
 `floor_commit_id` 与 `floor_reason`（`stream_start` / `membership_join` / `history_access_policy` /
 `retention_pruned`），窗口侧的对应形式是 `window_start_basis.anchor_kind=before_readable_floor`。
 `since_join` 的成员因此**不必**拿到 position 0 才能验证其获准前缀完整；floor 处的 Commit 是唯一允许

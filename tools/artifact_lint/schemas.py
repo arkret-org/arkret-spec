@@ -769,7 +769,6 @@ def check_stated_digest_suite_sources(lint: Lint) -> None:
     dto_path = schema_dir / "service-operation-dtos.schema.json"
     erasure_path = schema_dir / "erasure-verification-stub.schema.json"
     genesis_path = schema_dir / "realm-genesis.schema.json"
-    receipt_path = schema_dir / "event-batch-receipt.schema.json"
 
     principal = load_json(lint, principal_path)
     security = load_json(lint, security_path)
@@ -777,9 +776,8 @@ def check_stated_digest_suite_sources(lint: Lint) -> None:
     dto = load_json(lint, dto_path)
     erasure = load_json(lint, erasure_path)
     genesis = load_json(lint, genesis_path)
-    receipt = load_json(lint, receipt_path)
     if not all(isinstance(value, dict) for value in (
-        principal, security, event_payload, dto, erasure, genesis, receipt
+        principal, security, event_payload, dto, erasure, genesis
     )):
         return
 
@@ -829,14 +827,6 @@ def check_stated_digest_suite_sources(lint: Lint) -> None:
     for removed in ("device_key_digest", "hpke_key_digest"):
         if removed in founding_members:
             lint.fail(genesis_path, f"founding_device_descriptor must not restore derived {removed}")
-    receipt_properties = receipt.get("$defs", {}).get("pcr_genesis_scope", {}).get("properties", {})
-    fixed_ref = "./account-operations.schema.json#/$defs/sha256_digest"
-    for field in ("device_key_digest", "hpke_key_digest"):
-        node = receipt_properties.get(field, {}) if isinstance(receipt_properties, dict) else {}
-        if node.get("$ref") != fixed_ref:
-            lint.fail(receipt_path, f"pcr_genesis_scope.{field} must remain fixed SHA-256")
-
-
 def _members(node: Any) -> set[str]:
     if not isinstance(node, dict):
         return set()
@@ -885,7 +875,6 @@ def check_canonical_wire_source_closure(lint: Lint) -> None:
     agent_path = schema_dir / "agent-operations.schema.json"
     cleanup_path = schema_dir / "agent-membership-cascade.schema.json"
     account_data_path = schema_dir / "account-data-encrypted-value.schema.json"
-    receipt_path = schema_dir / "event-batch-receipt.schema.json"
     key_backup_path = schema_dir / "key-backup.schema.json"
     active_series_path = schema_dir / "key-backup-active-series.schema.json"
     principal = load_json(lint, principal_path)
@@ -893,7 +882,6 @@ def check_canonical_wire_source_closure(lint: Lint) -> None:
     agent = load_json(lint, agent_path)
     cleanup = load_json(lint, cleanup_path)
     account_data = load_json(lint, account_data_path)
-    receipt = load_json(lint, receipt_path)
     key_backup = load_json(lint, key_backup_path)
     active_series = load_json(lint, active_series_path)
     if not all(isinstance(value, dict) for value in (
@@ -902,7 +890,6 @@ def check_canonical_wire_source_closure(lint: Lint) -> None:
         agent,
         cleanup,
         account_data,
-        receipt,
         key_backup,
         active_series,
     )):
@@ -964,33 +951,6 @@ def check_canonical_wire_source_closure(lint: Lint) -> None:
         lint.fail(account_data_path, f"account-data envelope duplicates local digests {duplicated_account_digests}")
 
     _check_aead_carrier_mirrors(lint, schema_dir)
-
-    receipt_defs = receipt.get("$defs", {})
-    receipt_item = receipt_defs.get("event_receipt_row") if isinstance(receipt_defs, dict) else None
-    receipt_required = set(receipt_item.get("required", [])) if isinstance(receipt_item, dict) else set()
-    receipt_properties = set(receipt_item.get("properties", {})) if isinstance(receipt_item, dict) else set()
-    if "event_digest" in receipt_required or "event_digest" in receipt_properties:
-        lint.fail(receipt_path, "event receipt item must derive event_digest from event_id")
-    receipt_required_root = set(receipt.get("required", []))
-    receipt_properties_root = set(receipt.get("properties", {}))
-    if "frontier" in receipt_required_root or "frontier" in receipt_properties_root:
-        lint.fail(
-            receipt_path,
-            "Event Batch Receipt must not claim an unscoped partial frontier; each stream head is named by its own stream_ref and stream_position",
-        )
-    for scope_name, derived_fields in (
-        ("device_reanchor_scope", {"reanchor_digest", "replacement_authorize_digest"}),
-        ("pcr_genesis_scope", {"create_digest", "founding_authorize_digest"}),
-    ):
-        scope = receipt_defs.get(scope_name) if isinstance(receipt_defs, dict) else None
-        scope_required = set(scope.get("required", [])) if isinstance(scope, dict) else set()
-        scope_properties = set(scope.get("properties", {})) if isinstance(scope, dict) else set()
-        duplicated = sorted(derived_fields & (scope_required | scope_properties))
-        if duplicated:
-            lint.fail(
-                receipt_path,
-                f"{scope_name} must derive typed Event digests from events[].event_id, found {duplicated}",
-            )
 
     generation_ref = "./recovery-session.schema.json#/$defs/pcr_generation_ref"
     backup_commit_ref = key_backup.get("properties", {}).get("source_commit_ref", {})
@@ -1063,8 +1023,8 @@ def check_agent_runtime_scope_registry(lint: Lint, known: dict[str, set[str]]) -
         lint.fail(path, "capability_sets must contain exactly interactive_chat and e2ee")
     expected_selection_rule = "any_activation_operation_present_in_immutable_provision_actions"
     expected_interactive = {
-        "ak.self.events.stream.subscribe.v1",
-        "ak.self.events.read.scan.v1",
+        "ak.self.committed_event.stream.subscribe.v1",
+        "ak.self.committed_event.read.scan.v1",
         "ak.self.events.command.submit.v1",
     }
     expected_e2ee = {"ak.self.keys.keypackages.upload.create.v1"}
@@ -1119,7 +1079,7 @@ def check_agent_runtime_scope_registry(lint: Lint, known: dict[str, set[str]]) -
         for row in (requirements.get("ak.profile.core_event_store.v1") or {}).get("operation_requirements", [])
         if isinstance(row, dict)
     }
-    if "ak.self.events.read.scan.v1" not in core_endpoints:
+    if "ak.self.committed_event.read.scan.v1" not in core_endpoints:
         lint.fail(profiles_path, "core_event_store must require the stream scan operation")
     child_endpoints = (requirements.get("ak.profile.station_events_api.v1") or {}).get("operation_requirements")
     if child_endpoints != []:
@@ -2487,7 +2447,7 @@ def check_event_schema_coverage(lint: Lint, known: dict[str, set[str]]) -> None:
     required = data.get("required", [])
     if "actor_kind" in properties or "actor_kind" in required:
         lint.fail(path, "Event Envelope must not declare the removed actor_kind stamp")
-    for field in ("refs",):
+    for field in ("semantic_refs",):
         schema = properties.get(field, {})
         if field in required:
             lint.fail(path, f"{field} must be optional and omitted when empty")
@@ -2832,7 +2792,6 @@ def check_read_scope_schema_closure(lint: Lint) -> None:
 def check_signed_object_closure(lint: Lint) -> None:
     envelope_path = ARTIFACTS / "schemas" / "encrypted-envelope.schema.json"
     identity_path = ARTIFACTS / "schemas" / "identity-receipt.schema.json"
-    batch_path = ARTIFACTS / "schemas" / "event-batch-receipt.schema.json"
 
     envelope = load_json(lint, envelope_path)
     if isinstance(envelope, dict):
@@ -2850,33 +2809,6 @@ def check_signed_object_closure(lint: Lint) -> None:
     identity = load_json(lint, identity_path)
     if isinstance(identity, dict) and identity.get("additionalProperties") is not False:
         lint.fail(identity_path, "identity receipt root additionalProperties must be false")
-
-    batch = load_json(lint, batch_path)
-    if isinstance(batch, dict):
-        def is_closed_object_schema(schema: object) -> bool:
-            if not isinstance(schema, dict):
-                return False
-            if schema.get("additionalProperties") is False:
-                return True
-            ref = schema.get("$ref")
-            if isinstance(ref, str) and ref.startswith("#/$defs/"):
-                target: object = batch
-                for token in ref[2:].split("/"):
-                    if not isinstance(target, dict):
-                        return False
-                    target = target.get(token)
-                return is_closed_object_schema(target)
-            branches = schema.get("oneOf")
-            return isinstance(branches, list) and bool(branches) and all(is_closed_object_schema(branch) for branch in branches)
-
-        if batch.get("additionalProperties") is not False:
-            lint.fail(batch_path, "event batch receipt root additionalProperties must be false")
-        properties = batch.get("properties") or {}
-        for name in ("scope",):
-            schema = properties.get(name)
-            if not is_closed_object_schema(schema):
-                lint.fail(batch_path, f"event batch receipt {name} additionalProperties must be false")
-
 
 
 def check_derived_signature_projection_closure(lint: Lint) -> None:
@@ -3448,7 +3380,6 @@ CONTENT_ADDRESSED_REF_MIRROR_REMOVALS = (
     ("event-payload.schema.json", ("$defs", "audit_accessed_payload"), "paired_event_id", "paired_event_digest"),
     ("recovery-authority.schema.json", ("$defs", "recovery_completion_attestation"), "device_authorization_event_ref", "device_authorization_event_digest"),
     ("relation.schema.json", ("$defs", "relation_conflict_candidate"), "event_id", "event_digest"),
-    ("service-operation-dtos.schema.json", ("$defs", "RedactedEventView"), "event_id", "event_digest"),
     ("contact-operations.schema.json", ("$defs", "contact_current_proof"), "head_event_ref", "head_digest"),
     ("contact-operations.schema.json", ("$defs", "request_acceptance_receipt_core"), "request_event_ref", "request_digest"),
     ("contact-operations.schema.json", ("$defs", "normal_response_acceptance_receipt"), "response_event_ref", "response_digest"),
@@ -3460,7 +3391,6 @@ CONTENT_ADDRESSED_REF_MIRROR_REMOVALS = (
     ("direct-conversation-operations.schema.json", ("$defs", "direct_conversation_resolve_outcome", "oneOf", 4), "group_state_ref", "group_state_digest"),
     ("direct-conversation-operations.schema.json", ("$defs", "direct_conversation_resolve_outcome", "oneOf", 5), "group_state_ref", "group_state_digest"),
     ("holder-quarantine.schema.json", ("$defs", "quarantine_entry"), "invite_event_id", "invite_event_digest"),
-    ("service-operation-dtos.schema.json", ("$defs", "ReferenceLockedEventStub"), "event_id", "event_digest"),
     ("event-payload.schema.json", ("$defs", "mls_genesis_payload"), "group_info_ref", "group_info_digest"),
     ("event-payload.schema.json", ("$defs", "mls_genesis_payload"), "ratchet_tree_ref", "ratchet_tree_digest"),
     ("service-operation-dtos.schema.json", ("$defs", "MlsGroupStateMaterialRequestBody"), "group_info_ref", "group_info_digest"),

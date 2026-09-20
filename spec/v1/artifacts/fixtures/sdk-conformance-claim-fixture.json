@@ -1,7 +1,7 @@
 {
   "suite": "sdk_conformance_claim",
   "profile": "ak.vector_group.schema_validation.v1",
-  "version": "2026-09-19.5",
+  "version": "2026-09-20",
   "runner": {
     "kind": "json_schema_and_semantic_cases",
     "schema_dialect": "https://json-schema.org/draft/2020-12/schema",
@@ -33,7 +33,7 @@
           "digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
         },
         "spec_revision": "0c12a8da75c01fbda16c475a30d140b09ded53de",
-        "contract_digest": "sha256:bac3a4dccd30177a3dbe36878a38e2ca16b232ea97dafdce033700b0aca231c2",
+        "contract_digest": "sha256:48731f15bfbb66db140d48c893a5e4cf2b5bc18602dee84ee817e00afeb82dd2",
         "issued_at": "2026-07-11T00:00:00.000Z",
         "issuer": {
           "id": "ak:did_core:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
@@ -57,7 +57,7 @@
         ],
         "proof": {
           "kid": "did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
-          "signature": "Jk8LLwLaOQZECSwLHlSm-SI_Jm-EnhkQgE6E69izl5lCwzXPwNIwpjXZT2z_kRylldYeUeIBUOWxzI3ReJ9bDw",
+          "signature": "mJnwsle3198KOCDPcwz8LmF9eBnmkVtZZK9Oe__0oiCyc2uHanc4mEaibQ3Bv4182ae2-hJIJQWVjQ1e7ivVAw",
           "signature_algorithm": "Ed25519"
         }
       }
@@ -77,7 +77,7 @@
           "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
         },
         "spec_revision": "0000000000000000000000000000000000000000",
-        "contract_digest": "sha256:bac3a4dccd30177a3dbe36878a38e2ca16b232ea97dafdce033700b0aca231c2",
+        "contract_digest": "sha256:48731f15bfbb66db140d48c893a5e4cf2b5bc18602dee84ee817e00afeb82dd2",
         "issued_at": "2026-07-11T00:00:00.000Z",
         "issuer": {
           "id": "ak:did_core:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
@@ -101,7 +101,7 @@
         ],
         "proof": {
           "kid": "did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
-          "signature": "xKu5O18c5P5wVPyzgS-RWproeL5Ku8s3Sp3WSDHij0v0fPhs_Zy8kwfettmoyFctUeS3D_MnZ8PlGU74u8SNCA",
+          "signature": "6A62CdtpgEVMVV_KArdueP_cvcRJdm1mvvo1r__AAiYPd-WKzPKl9q-7v3XyGQSgMjO6O3jARhuvbFksbghsBA",
           "signature_algorithm": "Ed25519"
         }
       }
@@ -121,7 +121,7 @@
           "digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
         },
         "spec_revision": "1111111111111111111111111111111111111111",
-        "contract_digest": "sha256:bac3a4dccd30177a3dbe36878a38e2ca16b232ea97dafdce033700b0aca231c2",
+        "contract_digest": "sha256:48731f15bfbb66db140d48c893a5e4cf2b5bc18602dee84ee817e00afeb82dd2",
         "issued_at": "2026-07-11T00:00:00.000Z",
         "issuer": {
           "id": "ak:did_core:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
@@ -141,7 +141,7 @@
         ],
         "proof": {
           "kid": "did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
-          "signature": "UmH4ySH_MO3QvgOHo8Ba_0y_u3Qf0ht4Hx1M3_j8VlmkqEPoVoIrebT1mtNsFEFI4pMyj1zsTH7vX2Em84GUAw",
+          "signature": "XMWH-i0cDSvO64yj0jO7CVIrPLZoREcEje9IOKFVsOyqkR4wUpWVKVATiSKPreqWmmWbcIqrb6zfr3C8ujzGAQ",
           "signature_algorithm": "Ed25519"
         }
       }
@@ -164,7 +164,7 @@
           "digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
         },
         "spec_revision": "1111111111111111111111111111111111111111",
-        "contract_digest": "sha256:bac3a4dccd30177a3dbe36878a38e2ca16b232ea97dafdce033700b0aca231c2",
+        "contract_digest": "sha256:48731f15bfbb66db140d48c893a5e4cf2b5bc18602dee84ee817e00afeb82dd2",
         "issued_at": "2026-07-11T00:00:00.000Z",
         "issuer": {
           "id": "ak:did_core:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
@@ -207,7 +207,7 @@
           "digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
         },
         "spec_revision": "0c12a8da75c01fbda16c475a30d140b09ded53de",
-        "contract_digest": "sha256:bac3a4dccd30177a3dbe36878a38e2ca16b232ea97dafdce033700b0aca231c2",
+        "contract_digest": "sha256:48731f15bfbb66db140d48c893a5e4cf2b5bc18602dee84ee817e00afeb82dd2",
         "issued_at": "2026-07-11T00:00:00.000Z",
         "issuer": {
           "id": "ak:did_core:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
@@ -228,7 +228,7 @@
         ],
         "proof": {
           "kid": "did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
-          "signature": "9R9vtRZJ2-x-DT_SFCJaDZBg3ad2YeONfuFlTDRcOA9E6qpXayd6eB_3LsD0dul0Ko02yNMQKP2t4cAZT_zCAw",
+          "signature": "69PgGJuaRdbOtf-Mddvu7HRnNk8IdlYU6lMbWT5zVM7-FvhQMfPaWnVIDH1ojiCb97SET90RorierbXbdxN0BA",
           "signature_algorithm": "Ed25519"
         }
       },
@@ -248,7 +248,7 @@
           "digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
         },
         "spec_revision": "0c12a8da75c01fbda16c475a30d140b09ded53de",
-        "contract_digest": "sha256:bac3a4dccd30177a3dbe36878a38e2ca16b232ea97dafdce033700b0aca231c2",
+        "contract_digest": "sha256:48731f15bfbb66db140d48c893a5e4cf2b5bc18602dee84ee817e00afeb82dd2",
         "issued_at": "2026-07-11T00:00:00.000Z",
         "issuer": {
           "id": "ak:did_core:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
@@ -272,7 +272,7 @@
         ],
         "proof": {
           "kid": "did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
-          "signature": "4QwndZJ_SJMclj8cqRsWy5LYogLYK_-REO-oFGiTMTtAOGHzWJDvs-xG6T1N77LxGvJr-Cb9gtZar3r05Sw9CA",
+          "signature": "XVPHWRsWjMaDPjuh_vgjUtgP2mZVNoWxdqfHQU0_0k-uXDovRue4Nhahtismru3i01153ekHP_moDrZH46KzDA",
           "signature_algorithm": "Ed25519"
         }
       },

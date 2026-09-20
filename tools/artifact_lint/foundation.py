@@ -1878,29 +1878,12 @@ def check_operation_bundles_and_features(lint: Lint) -> None:
         )
 
     directory_surface = surface_operations.get("directory_discovery", set())
-    directory_optional = {
-        "ak.find.directory.read.private_contact_discovery.v1",
-        "ak.find.directory.read.resolve_agent_selector.v1",
-    }
     directory_core = exact_http_members("ak.operation_bundle.directory_service.http_core.v1")
-    if directory_core != directory_surface - directory_optional:
+    if directory_core != directory_surface:
         lint.fail(
             operation_path,
             "directory_service.http_core must be the exact Soland/Teabay common support vector",
         )
-    for bundle_id, operation_id in (
-        (
-            "ak.operation_bundle.directory_service.private_contact_discovery.v1",
-            "ak.find.directory.read.private_contact_discovery.v1",
-        ),
-        (
-            "ak.operation_bundle.directory_service.resolve_agent_selector.v1",
-            "ak.find.directory.read.resolve_agent_selector.v1",
-        ),
-    ):
-        if exact_http_members(bundle_id) != {operation_id}:
-            lint.fail(operation_path, f"{bundle_id} must contain only {operation_id}")
-
     auth_account_authority = exact_http_members(
         "ak.operation_bundle.station.account_authority.v1"
     )

@@ -10,6 +10,8 @@ see_also:
   - ../identity/identity-handles.md
 ---
 
+Realm join locator 的闭包由 `ak.vector.realm_join_candidate.untrusted_locator.v1` 验证；Directory 不承载或返回 `RealmJoinCandidate`。
+
 ## 0. 规范语言
 
 本文中的规范关键字（**MUST** / **SHOULD** / **MAY** 等）按 [`../conformance/normative-language.md`](../conformance/normative-language.md) 解释；仅大写形式具规范约束力。
@@ -22,7 +24,6 @@ Realm invite 的基础寻址模型是：
 invite_delivery = invite_address + introduction_evidence
 ```
 
-base v1 invite **MUST NOT** 依赖 `ak.find.directory.read.resolve_handle.v1(intent="invite" | "member_add")` 才能投递。Handle 是人类可读入口，不是邀请投递授权；实现不得把猜到的 `<localpart>:<domain>` 字符串自动升级成可投递邀请。用户 MAY 显式发布 handle 并允许 verified handle 作为 first-contact / invite 入口，但接收方仍必须把解析结果归约为 exact `account_id`、可验证 handle claim 与 `invite_receive_policy` 判定。
 
 邀请目标的规范输入是显式 `invite_address`：
 
@@ -470,8 +471,5 @@ base clients MUST NOT require `resolve_handle(intent="invite" | "member_add")` t
 
 ## 9. Handle 与 Mention 边界
 
-`ak.find.directory.read.resolve_handle.v1(intent="contact_request" | "invite" | "member_add")` 是可选 Directory 能力，不是 base first-contact / invite / member-add 的安全关键路径。Directory 只可返回逐字绑定 exact AccountId 的可验证 handle claim；reducer 仍 MUST 按 Join Policy 验证 target holder acceptance，不能把解析成功当作 membership。
 
 Realm 内 mention 不依赖公网 handle resolve。客户端在用户输入 `@alice:acme.example` 时 MUST 先从当前 Realm roster、MemberIdentity subject disclosure、内联 signed `handle_claims[]` 或本地已授权 claim cache 中解析到 `subject_account_id`。发送 Message 前必须持久化 DID-committed mention reference；handle 字符串只能作为 audit / search metadata。
-
-已知 `subject_account_id` 需要显示当前 handle 时，客户端 MAY 使用 roster 内联 `handle_claims[]` 或 `ak.find.directory.read.list_handles_for_subject.v1`。这条 subject -> current handles 路径不得反向用来发现未知主体、发起 invite delivery 或构造 membership grant；只有 holder/issuer 已发布 verified handle claim，且 subject policy 与部署约束允许 `handle_claim` evidence 时，客户端才可把 handle 解析结果作为 first-contact / invite 的 introduction evidence。

@@ -87,7 +87,7 @@ Realm 则是协作数据边界。它定义 membership、capability scope、schem
 
 ### 2.2 Signed Event 与逐 stream 投影
 
-Arkret v1 的协议一等概念是 **signed Event** 与 **按同一 authority stream 的 RealmCommit position 做的确定性投影**，不是任何形式的内容仓库或公开发布记录。producer 签名的 Event Envelope 只携带 `actor_id` 与注册的 `refs`，**不指向上一条 Event**；顺序由当前治理 Station 在接纳时分配的 `stream_position` 唯一决定。
+Arkret v1 的协议一等概念是 **signed Event** 与 **按同一 authority stream 的 RealmCommit position 做的确定性投影**，不是任何形式的内容仓库或公开发布记录。producer 签名的 Event Envelope 只携带 `actor_id` 与注册的 `semantic_refs`，**不指向上一条 Event**；顺序由当前治理 Station 在接纳时分配的 `stream_position` 唯一决定。
 
 它承担：
 
@@ -186,7 +186,7 @@ Arkret 的协议文档按“服务角色”定义能力；实际落地时可以�
 
 最小个人或小团队部署只要求一个公开业务数据角色：**Station**。Account Authority 是 Station 对客户端发布的账号准入 capability/surface，不是第二个 service role，也没有独立 `service_kind`、service DID、service registration 或 role-local Describe。实现 MAY 在 Station 认证 TCB 内拆分认证进程、数据库或私有 RPC，但这些拓扑对客户端、peer Station、Directory 与 Realm policy 透明。
 
-Device Pairing 的 `ak.gate.account.*` 条目仅约束同一 Station 认证 TCB 选择拆分部署时的私有调用与崩溃恢复，不赋予 Account Authority 第二个服务身份或 Realm 治理权威。`prepared → station_accepted → completed` 是唯一 pairing ledger 的本地协调 fence；其中 `station_accepted` 记录的是 owning Station 已签发的唯一 `RealmCommit`，不是第二个 accepted Event 状态。合并部署 MAY 用一笔本地事务实现相同的唯一 ledger、Event/Commit 原子接纳与 terminal exact replay，不必发出私有 HTTP 调用或持久化跨进程 fence；两种拓扑对外必须给出相同的 public outcome。human PCR 的 current governance MUST 保持与 `AccountId.station_id` 同一 Station 身份谱系，不允许另一 Station 接管该账号或 PCR；验证仍须核对 accepted genesis/治理连续性，不能只凭 `AccountId` 字段推断一份 Commit 有效。此约束不能推广成所有 Realm 的治理规则。
+Device Pairing 的 `ak.gate.account.*` 条目只定义 client-visible Account Authority surface，不赋予 Account Authority 第二个服务身份或 Realm 治理权威。Account Authority 与 owning Station 之间的函数、RPC、journal、outbox 与恢复状态都是 Station TCB 的实现细节，不登记 canonical self-call 或中间态。共库、拆进程与拆库实现都必须产生相同的唯一 pairing ledger、Event／RealmCommit、terminal outcome 与 exact replay。human PCR 的 current governance MUST 保持与 `AccountId.station_id` 同一 Station 身份谱系，不允许另一 Station 接管该账号或 PCR；验证仍须核对 accepted genesis/治理连续性，不能只凭 `AccountId` 字段推断一份 Commit 有效。此约束不能推广成所有 Realm 的治理规则。
 
 ```text
 Station
@@ -503,7 +503,7 @@ producer proof 能证明：
 
 - 哪个 principal 发布了哪些 Event
 - Event 的签名与 `event_id` 是否成立
-- 注册的 `refs` 是否指向调用者已获权的对象
+- 注册的 `semantic_refs` 是否指向调用者已获权的对象
 
 顺序不由 producer 证明：它来自接纳该 Event 的 RealmCommit 在其 stream 上的 `stream_position`。producer proof 单独不能定义共享 realm 的最终当前态。
 

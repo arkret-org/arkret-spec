@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-20.2",
-  "generated_at": "2026-09-20T03:28:13+08:00",
+  "version": "2026-09-20.6",
+  "generated_at": "2026-09-20T12:55:03+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json"
@@ -31,15 +31,7 @@
     },
     {
       "operation_bundle_id": "ak.operation_bundle.directory_service.http_core.v1",
-      "sha256": "sha256:ac4abab0be3f9d03bd47698a9ca5be7c9de182ef689c512c74f6034cd1c44aa4"
-    },
-    {
-      "operation_bundle_id": "ak.operation_bundle.directory_service.private_contact_discovery.v1",
-      "sha256": "sha256:92d091d90a49daee95f8d1bf627de9f085afff5d3128ba60d48b44f28c74bf4a"
-    },
-    {
-      "operation_bundle_id": "ak.operation_bundle.directory_service.resolve_agent_selector.v1",
-      "sha256": "sha256:9002daf6db340492917b6cdb20cc8c1651a3c99d2085373bc2a4a50ae496ba4b"
+      "sha256": "sha256:d73d98296b33ae3fc17993ebe647ad1f53fd464e878edc5e8d2ab5f96589dd35"
     },
     {
       "operation_bundle_id": "ak.operation_bundle.identity_registry.describe.v1",
@@ -87,7 +79,7 @@
     },
     {
       "operation_bundle_id": "ak.operation_bundle.station.account_authority_support.v1",
-      "sha256": "sha256:ca631bd4fff3c0cc361f78021527641f167fb8cf4e1bf3998dba4645ebb3f0a4"
+      "sha256": "sha256:79094b228a9912e927b8b5187aa7d48732ed6c4d3cab9df22d6f0f419a90c6b7"
     },
     {
       "operation_bundle_id": "ak.operation_bundle.station.agent_pairing_handoff.v1",
@@ -119,7 +111,7 @@
     },
     {
       "operation_bundle_id": "ak.operation_bundle.station.http_core.v1",
-      "sha256": "sha256:8605e2fd109c90a1286130183dc9e625cccaaa6516f94ff9fbbcf70eee7d2ba6"
+      "sha256": "sha256:3710b95ee2f423e2c1528351890c97c746654766e4784720fb1bfdc7194c72a1"
     },
     {
       "operation_bundle_id": "ak.operation_bundle.station.mimi_interop.v1",
@@ -139,7 +131,7 @@
     },
     {
       "operation_bundle_id": "ak.operation_bundle.station.websocket.v1",
-      "sha256": "sha256:1bc838d7a1c028f6403ff38503e521e8a47ef6ca3cccde555588325afac04352"
+      "sha256": "sha256:2c3018ad095bdc8a51033a6cf88e839ae8df59aa748b02ed1f15ab7245453043"
     },
     {
       "operation_bundle_id": "ak.operation_bundle.turn_service.describe.v1",

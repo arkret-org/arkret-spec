@@ -127,7 +127,7 @@ envelope 成员取承载该 message 的 `DeviceMessageEnvelope` 原始 canonical
 
 CAS 冲突（`cas_conflict`）时客户端 MUST 重新解密 `current_entry`、按上述规则合并后以新的 `expected_server_revision` 重写一次；离线设备的旧字节级 retry 因此必然失败，不会把已被覆盖的状态整体写回。如果设备本地时钟或 HLC 来源不可信，客户端 SHOULD 保留本地冲突副本供用户恢复，但 shared reducer 不参与 file-transfer 合并。
 
-客户端断线恢复 MUST 使用 `ak.self.account.stream.subscribe.v1?after=<cursor>&catchup=true` 重放账号聚合 delta；不得用 `ak.self.events.read.scan.v1` 代替，因为 file-transfer account-data 和 to-device key messages 不属于裸 Realm Event 查询面。
+客户端断线恢复 MUST 使用 `ak.self.account.stream.subscribe.v1?after=<cursor>&catchup=true` 重放账号聚合 delta；不得用 `ak.self.committed_event.read.scan.v1` 代替，因为 file-transfer account-data 和 to-device key messages 不属于裸 Realm Event 查询面。
 
 ## 6. 下载与访问控制
 

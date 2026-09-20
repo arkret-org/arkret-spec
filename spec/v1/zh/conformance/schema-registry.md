@@ -129,7 +129,6 @@ vector MUST 使用同一 active 集合；owner 的 `schema_ref` / `profile_id` �
 | `ak.schema.capability.v1` | Capability Grant |
 | `ak.schema.event.v1` | Event Envelope |
 | `ak.schema.event_payload.v1` | Standard Event Payload Classes |
-| `ak.schema.event_batch_receipt.v1` | Event Batch Receipt |
 | `ak.schema.cursor.v1` | Cursor |
 | `ak.schema.realm_state_snapshot.v1` | Snapshot Manifest |
 | `ak.schema.realm_state_snapshot.v1` | Authority-signed typed current snapshot、per-stream heads、history floors 与 chunk digests |

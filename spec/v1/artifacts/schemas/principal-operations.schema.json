@@ -227,7 +227,7 @@
         "expected_version": {
           "type": "integer",
           "minimum": 0,
-          "maximum": 9223372036854775806
+          "maximum": 9223372036854776000
         }
       },
       "additionalProperties": false
@@ -299,7 +299,7 @@
         "pcr_realm_id",
         "accepted_device_id",
         "resolution",
-        "receipt"
+        "commits"
       ],
       "properties": {
         "principal_id": {
@@ -314,17 +314,26 @@
         "resolution": {
           "$ref": "./identity-resolution.schema.json#/$defs/resolution_projection"
         },
-        "receipt": {
-          "$ref": "./event-batch-receipt.schema.json"
+        "commits": {
+          "type": "array",
+          "description": "Exactly two consecutive RealmCommit objects in registered unit order: realm.create then device.authorize.",
+          "minItems": 2,
+          "maxItems": 2,
+          "prefixItems": [
+            {
+              "$ref": "./realm-commit.schema.json"
+            },
+            {
+              "$ref": "./realm-commit.schema.json"
+            }
+          ],
+          "items": false
         }
       },
       "additionalProperties": false
     },
     "pcr_genesis_submit_request": {
       "type": "object",
-      "x-arkret-pcr-outward-event-kinds": [
-        "ak.realm.create"
-      ],
       "description": "Account-Authority-to-Station relay. The outer service signature authenticates transport only; content authorization is exclusively the frozen registration anchor, the identity-root control proof and the two Event proofs. The Station verifies principal_registration_anchor and registration_did_evidence without consulting current DID resolution.",
       "required": [
         "account_authority_id",

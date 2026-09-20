@@ -36,7 +36,7 @@ class RequiredConstantFamilySchemaTest(unittest.TestCase):
             ("principal-locator.schema.json", "invite_locator_revoke_outcome", ("status",)),
             ("recovery-session.schema.json", "recovery_session_proof_submit_outcome", ("state", "verification")),
             ("service-operation-dtos.schema.json", "ModerationReportOutcome", ("status",)),
-            ("service-operation-dtos.schema.json", "ReferenceLockedEventStub", ("status",)),
+            ("service-operation-dtos.schema.json", "EventDisclosure", ("status",)),
         ]
         for file_name, definition, members in cases:
             with self.subTest(file_name=file_name, definition=definition):

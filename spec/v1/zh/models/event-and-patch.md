@@ -36,7 +36,7 @@ Event Envelope 的顶层字段为：
 | `applet_id` | 否 | Applet provenance |
 | `external_ref` | 否 | 外部系统幂等/provenance 引用 |
 | `created_at` | 是 | producer 声明的展示时间，不决定提交顺序 |
-| `refs` | 否 | 封闭 role 的业务引用；`authorized_by` 只接受 `GrantId` |
+| `semantic_refs` | 否 | 封闭 role 的业务引用；`authorized_by` 只接受 `GrantId` |
 | `payload` | 是 | 由 kind 选择的 closed typed payload |
 | `producer_proof` | 是 | 唯一 producer proof；是单个对象，不是数组 |
 
@@ -46,9 +46,9 @@ Event 不携带 `producer_revision`、`hlc`、`domain_refs`、通用 `preconditi
 
 ## 2. Event 提交与业务引用
 
-`refs[]` 只表达不可由 payload 更清楚表达的业务关系。`role=authorized_by` 的 `id` 必须是
+`semantic_refs[]` 只表达不可由 payload 更清楚表达的业务关系。`role=authorized_by` 的 `id` 必须是
 `ak:grant:`；其它已登记 role 使用 immutable Event reference。排序、可见性和状态 head 不得编码为
-`refs[]`。
+`semantic_refs[]`。
 
 Poll 改票使用 payload 中的 typed `poll_response_heads[]`，每项同时指明原 poll Event 与被覆盖的 response
 Event；不得恢复通用 `domain_refs`。
@@ -69,7 +69,7 @@ SDK 必须在签名和发送前构造 immutable、schema-valid Event；服务不
 
 ### 2.6 关系与业务前驱
 
-业务关系使用 typed payload 或封闭 `refs` role；排序前驱只使用 RealmCommit。
+业务关系使用 typed payload 或封闭 `semantic_refs` role；排序前驱只使用 RealmCommit。
 
 ### 2.7 内容对象
 

@@ -39,12 +39,12 @@ def predicate_schema(when: dict) -> dict:
         if not isinstance(count, int) or isinstance(count, bool) or count < 0:
             raise ValueError("invalid reference count")
         if count == 0:
-            clauses.append({"properties": {"refs": {"not": {"contains": match}}}})
+            clauses.append({"properties": {"semantic_refs": {"not": {"contains": match}}}})
         else:
             constraint = {"contains": match, "minContains": count}
             if "ref_exact_count" in when:
                 constraint["maxContains"] = count
-            clauses.append({"properties": {"refs": constraint}, "required": ["refs"]})
+            clauses.append({"properties": {"semantic_refs": constraint}, "required": ["semantic_refs"]})
     elif "ref_critical" in when or "ref_exact_count" in when:
         raise ValueError("reference selector without role")
     if "top_level_fields_present" in when and "top_level_fields_absent" in when:
@@ -104,7 +104,7 @@ def schema_definitions(registry: dict) -> dict:
             "$comment": "Generated from canonical event_kind_registry.admission_variants; do not hand-edit. Semantic authority verification is additional.",
             "allOf": guards,
         },
-        "authority_committed_event": {
+        "shared_event_envelope": {
             "$comment": "A complete producer Event from an authority-committed visibility stream. Consumers verify the producer proof and the matching RealmCommit plus authority chain.",
             "allOf": [
                 {"$ref": "#"},
@@ -138,7 +138,7 @@ def synchronize(root: Path, *, check: bool) -> None:
         target = document
         for token in tokens[:-1]:
             target = target[int(token)] if isinstance(target, list) else target[token]
-        shared_ref = "./event-envelope.schema.json#/$defs/authority_committed_event"
+        shared_ref = "./event-envelope.schema.json#/$defs/shared_event_envelope"
         if check:
             if target[tokens[-1]] != shared_ref:
                 raise ValueError(f"authority-committed consumer drift: {binding}")

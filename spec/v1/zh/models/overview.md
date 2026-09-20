@@ -81,7 +81,6 @@ Read Cursor（actor-private 已读位置，[private-objects.md](./private-object
 
 | Typed ID | 对象 | 说明 |
 | --- | --- | --- |
-| `ak:receipt:` | Event Batch Receipt | 可选审计 / 同步加速对象，不是 reducer 输入 |
 | ``、`ak:cursor:`、`ak:realm_commit:` | 状态 / 同步原语 | 不是协作图对象；语义见 `authz/event-auth-state-resolution.md`、`sync/operations-sync.md` 与 `conformance/encoding.md` |
 
 字段级、必填性、枚举值与 wire 约束统一以 [`common-fields.md`](./common-fields.md) 与各对象文件中的字段表为准。Schema 引用见 `artifacts/schemas/`，event/operation registry 见 `artifacts/registry/`。

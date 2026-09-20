@@ -160,10 +160,10 @@
     "nonzero_reserved_nibble": "permanently_invalid",
     "digest_suite_range": "1..1",
     "digest_suites": {
-      "1": "sha256",
-      "2..14": "reserved",
       "0": "invalid",
-      "15": "reserved"
+      "1": "sha256",
+      "15": "reserved",
+      "2..14": "reserved"
     },
     "digest_length_bytes": 32,
     "event_derived_retype_identity": "Realm and Event token headers are identical, so an ak.realm.create Event token is byte-identical to its Realm token and retyping only swaps the ak:event: / ak:realm: prefix. v1 Realm identity is fixed to SHA-256, so only a creating Event with header 0x01 is Realm-eligible.",

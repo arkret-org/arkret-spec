@@ -8,11 +8,11 @@
   ],
   "description": "Exhaustive classification of operation DTO schema/status/reason_code/reason properties into closed literals/enums, validated open protocol tokens, or bounded human-readable text. Any unconstrained audited string fails generation.",
   "summary": {
-    "total_fields": 70,
+    "total_fields": 69,
     "by_classification": {
       "bounded_free_text": 7,
-      "closed_enum": 31,
-      "closed_literal": 14,
+      "closed_enum": 29,
+      "closed_literal": 15,
       "validated_open_reason_code": 18
     },
     "unclassified": 0
@@ -292,14 +292,6 @@
       "basis": "JSON Schema enum"
     },
     {
-      "schema_file": "directory-operations.schema.json",
-      "shape": "psi_padded_problem",
-      "field": "status",
-      "pointer": "#/$defs/psi_padded_problem/properties/status",
-      "classification": "closed_enum",
-      "basis": "JSON Schema enum"
-    },
-    {
       "schema_file": "erasure-receipt-operations.schema.json",
       "shape": "erasure_receipt_acceptance",
       "field": "status",
@@ -517,6 +509,14 @@
     },
     {
       "schema_file": "service-operation-dtos.schema.json",
+      "shape": "EventDisclosure",
+      "field": "status",
+      "pointer": "#/$defs/EventDisclosure/properties/status",
+      "classification": "closed_literal",
+      "basis": "JSON Schema const"
+    },
+    {
+      "schema_file": "service-operation-dtos.schema.json",
       "shape": "OrganizationRegistrationReceipt",
       "field": "status",
       "pointer": "#/$defs/OrganizationRegistrationReceipt/properties/status",
@@ -528,14 +528,6 @@
       "shape": "OrganizationRegistrationRevokeRequestBody",
       "field": "reason_code",
       "pointer": "#/$defs/OrganizationRegistrationRevokeRequestBody/properties/reason_code",
-      "classification": "closed_enum",
-      "basis": "JSON Schema enum"
-    },
-    {
-      "schema_file": "service-operation-dtos.schema.json",
-      "shape": "ReferenceLockedEventStub",
-      "field": "reason_code",
-      "pointer": "#/$defs/ReferenceLockedEventStub/properties/reason_code",
       "classification": "closed_enum",
       "basis": "JSON Schema enum"
     },

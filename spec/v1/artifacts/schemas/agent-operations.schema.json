@@ -593,7 +593,7 @@
     },
     "account_device_pair_request_body": {
       "type": "object",
-      "description": "Account Authority-owned terminal pairing command. After validating the sole pending ledger, the Authority freezes the complete canonical request and authorize_event in its prepared fence, forwards that exact EventAdmissionSubmission only through ak.peer.events.command.submit.v1 authority_forward, verifies and stores the exact RealmCommit in station_accepted, then consumes pending/code and stores the byte-identical outcome in completed. The request does not carry a client-selected Station, receipt, fence state or private coordination member.",
+      "description": "Account Authority terminal pairing command. The Station TCB validates the sole pending ledger and current-device authority, admits the exact authorize_event once, stores its unique RealmCommit, consumes pending/code once, and stores a byte-identical terminal outcome. Exact retry returns the same Event, Commit and outcome; changed intent conflicts with zero writes. The request does not carry a client-selected Station, receipt, internal recovery state or private coordination member.",
       "required": [
         "pairing_code",
         "new_device_pubkey",

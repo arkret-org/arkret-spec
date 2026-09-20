@@ -28,10 +28,9 @@ see_also:
 | 非流式 HTTP message content | 16 MiB | 完整解析/JCS 前停止读取。 |
 | 单 header value / aggregate | 8 KiB / 32 KiB | 专用字段可更小。 |
 | path + query | 8 KiB | 大 selector 使用注册的 POST body。 |
-| Event `refs[]` | 128 | typed business refs；不存在 predecessor/actor-chain refs。 |
+| Event `semantic_refs[]` | 128 | typed business refs；不存在 predecessor/actor-chain refs。 |
 | 一次 authority submit | 1 Event | v1 不定义通用 Event batch原子提交。 |
 | stream scan page | 1,000 Commits | 一次仅一个 `stream_ref`。 |
-| committed exact-resolve refs | 100 | 必须是 `DirectorySourceRefAccess.source_refs` 的逐字子集。 |
 | authority generation | unsigned 64-bit | 严格单调；不能回滚。 |
 | stream position | unsigned 64-bit | 每条 Realm/Circle/Sidecar stream各自从 0 连续递增。 |
 | canonical JSON/CBOR嵌套深度 | 64 | 超限 `structure_depth_exceeded`。 |
@@ -103,7 +102,7 @@ Event canonical bytes、operation canonical body、HTTP wire bytes 是三个独�
 
 | 项 | 上限 | 规则 |
 | --- | ---: | --- |
-| Event `refs[role=authorized_by]` | 64 | 只携带业务所需 exact refs；current authority仍在 commit位置求值。 |
+| Event `semantic_refs[role=authorized_by]` | 64 | 只携带业务所需 exact refs；current authority仍在 commit位置求值。 |
 | capability constraints | schema定义，默认≤64 | 未知 critical constraint fail closed。 |
 | join policy gates | 16 | gate id唯一。 |
 | authority handoff chain item | 每代 1 | generation严格+1；同代互斥项为安全故障。 |

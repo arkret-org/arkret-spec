@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-20.3",
-  "generated_at": "2026-09-20T12:52:00+08:00",
+  "version": "2026-09-20.4",
+  "generated_at": "2026-09-20T16:42:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -150,7 +150,7 @@
             },
             {
               "id": "authorization_members_cannot_be_omitted_or_defaulted",
-              "requirement": "proofs, scope_ref, actor_id and refs[role=authorized_by] are each refused when omitted, and none is filled in from a default, the transport, the session or a neighbouring event before the verification path runs.",
+              "requirement": "proofs, scope_ref, actor_id and semantic_refs[role=authorized_by] are each refused when omitted, and none is filled in from a default, the transport, the session or a neighbouring event before the verification path runs.",
               "vectors": [
                 "ak.vector.sdk.envelope_forbidden_top_level_fields.v1"
               ]
@@ -223,7 +223,7 @@
             },
             {
               "id": "causal_predecessor_unavailable_fails_closed",
-              "requirement": "An Event whose refs[role=causal] predecessor is unresolvable or uncommitted fails closed or waits locally, and is never silently accepted, synthesized or decided by arrival order.",
+              "requirement": "An Event whose semantic_refs[role=causal] predecessor is unresolvable or uncommitted fails closed or waits locally, and is never silently accepted, synthesized or decided by arrival order.",
               "vectors": [
                 "ak.vector.authority_commit_projection.causal_predecessor_unavailable_fails_closed.v1"
               ]
@@ -396,7 +396,7 @@
             },
             {
               "id": "exact_retry_preserves_the_authorization_ref_and_the_cas",
-              "requirement": "An exact canonical-bytes retry carries refs[role=authorized_by] and the domain expected_revision verbatim, re-decides current authorization, never rewrites a stale CAS to the current value, and still deterministically rejects a stale CAS without producing a Commit.",
+              "requirement": "An exact canonical-bytes retry carries semantic_refs[role=authorized_by] and the domain expected_revision verbatim, re-decides current authorization, never rewrites a stale CAS to the current value, and still deterministically rejects a stale CAS without producing a Commit.",
               "vectors": [
                 "ak.vector.authority_commit_projection.exact_retry_preserves_authorization_and_cas.v1"
               ]
@@ -1655,7 +1655,6 @@
   ],
   "privacy_hardening": [
     "asset_download_privacy_policy",
-    "private_contact_discovery",
     "connection_identifier_separation",
     "ak.profile.traffic_metadata_hardened.v1",
     "history_access_and_private_recovery",
@@ -1821,7 +1820,7 @@
         },
         {
           "direction": "consume",
-          "operation_id": "ak.self.events.read.scan.v1",
+          "operation_id": "ak.self.committed_event.read.scan.v1",
           "binding_kind": "http_json"
         }
       ]
@@ -1905,7 +1904,7 @@
       "operation_requirements": [
         {
           "direction": "consume",
-          "operation_id": "ak.self.events.read.scan.v1",
+          "operation_id": "ak.self.committed_event.read.scan.v1",
           "binding_kind": "http_json"
         }
       ]
@@ -1982,7 +1981,7 @@
         },
         {
           "direction": "provide",
-          "operation_id": "ak.peer.events.read.scan.v1",
+          "operation_id": "ak.peer.committed_event.read.scan.v1",
           "binding_kind": "http_json"
         }
       ],
@@ -2081,7 +2080,7 @@
         "The founding slot admits the first valid unit only. A second unit for the same pair MUST be refused with direct_conversation_slot_already_committed and zero writes; a byte-identical replay MUST return the same four byte-identical source RealmCommits without changing the fourth committed_at; the same idempotency key with a different unit MUST be duplicate_conflict. The slot MUST NOT reopen into creation_required after a committed unit, and no founding receipt exists.",
         "Cross-Station founding MUST NOT depend on the peer service: the founder creates the Realm and its one scope-derived MLS group and sends real ciphertext alone. Peer KeyPackage claim is participant-authorized, binds the accepted pair, Realm, main Strand and MLS group, and MUST NOT use a last-resort KeyPackage.",
         "The four founding Events MUST be accepted in order and each MUST receive its own consecutive RealmCommit in the same Realm stream. The projected baseline is join_rule=closed together with the initial current history_access=since_join facet. A Station MUST reject a missing prefix, an interleaved unrelated Event, or a same-transaction facet Event that repeats or overrides a baseline value.",
-        "Between the accepted founding unit and the first legal binding endorsement, pre-binding writes MUST cite authorization_ref=ak.authority.direct_conversation_bootstrap_participant.v1 with exactly one critical refs[] role=direct_conversation_founding_unit reference to the accepted ak.realm.create. The verifier recomputes the mutually exclusive phase from accepted facts; the producer MUST NOT declare it. Both phases retire permanently once the first legal endorsement is accepted.",
+        "Between the accepted founding unit and the first legal binding endorsement, pre-binding writes MUST cite authorization_ref=ak.authority.direct_conversation_bootstrap_participant.v1 with exactly one critical semantic_refs[] role=direct_conversation_founding_unit reference to the accepted ak.realm.create. The verifier recomputes the mutually exclusive phase from accepted facts; the producer MUST NOT declare it. Both phases retire permanently once the first legal endorsement is accepted.",
         "The binding is immutable and fixes pair_key, participant pair, Realm and main Strand exactly once. It carries no authored lifecycle state or MLS group; an encrypted Direct Conversation has one scope-derived group and one monotonic epoch lineage projected from accepted history.",
         "Principal-private deletion and global content/key erasure retain stable pair, Realm and main Strand identity. The resolver never returns a competing candidate or performs winner selection.",
         "Participant authority and root-owner masking are conjunctive profile admission rules and MUST be evaluated from the same accepted evidence basis as the target action; neither created_by nor membership alone is an authorization source."
@@ -2175,12 +2174,12 @@
         },
         {
           "direction": "provide",
-          "operation_id": "ak.self.events.read.scan.v1",
+          "operation_id": "ak.self.committed_event.read.scan.v1",
           "binding_kind": "http_json"
         },
         {
           "direction": "provide",
-          "operation_id": "ak.self.events.resource.get.v1",
+          "operation_id": "ak.self.committed_event.resource.get.v1",
           "binding_kind": "http_json"
         },
         {
@@ -2201,11 +2200,6 @@
         {
           "direction": "provide",
           "operation_id": "ak.self.keys.keypackages.command.revoke.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.peer.principal_genesis.command.submit.v1",
           "binding_kind": "http_json"
         }
       ],
@@ -2368,12 +2362,12 @@
         },
         {
           "direction": "provide",
-          "operation_id": "ak.self.events.resource.get.v1",
+          "operation_id": "ak.self.committed_event.resource.get.v1",
           "binding_kind": "http_json"
         },
         {
           "direction": "provide",
-          "operation_id": "ak.self.events.read.scan.v1",
+          "operation_id": "ak.self.committed_event.read.scan.v1",
           "binding_kind": "http_json"
         }
       ],
@@ -2387,7 +2381,6 @@
       "required_schemas": [
         "ak.schema.event.v1",
         "ak.schema.event_payload.v1",
-        "ak.schema.event_batch_receipt.v1",
         "ak.schema.cursor.v1"
       ],
       "required_constraint_kinds": [
@@ -2406,7 +2399,6 @@
         "protocol-edge-cases-fixture.json"
       ],
       "optional_extensions": [
-        "event_batch_receipt",
         "realm_state_snapshot_bootstrap"
       ],
       "feature_discovery": {
@@ -2432,7 +2424,7 @@
         },
         {
           "direction": "consume",
-          "operation_id": "ak.self.events.read.scan.v1",
+          "operation_id": "ak.self.committed_event.read.scan.v1",
           "binding_kind": "http_json"
         }
       ],
@@ -2523,7 +2515,7 @@
       "operation_requirements": [
         {
           "direction": "consume",
-          "operation_id": "ak.self.events.read.scan.v1",
+          "operation_id": "ak.self.committed_event.read.scan.v1",
           "binding_kind": "http_json"
         }
       ],
@@ -2577,12 +2569,12 @@
         },
         {
           "direction": "consume",
-          "operation_id": "ak.self.events.resource.get.v1",
+          "operation_id": "ak.self.committed_event.resource.get.v1",
           "binding_kind": "http_json"
         },
         {
           "direction": "consume",
-          "operation_id": "ak.self.events.read.scan.v1",
+          "operation_id": "ak.self.committed_event.read.scan.v1",
           "binding_kind": "http_json"
         }
       ],
@@ -2658,7 +2650,7 @@
         },
         {
           "direction": "consume",
-          "operation_id": "ak.self.events.stream.subscribe.v1",
+          "operation_id": "ak.self.committed_event.stream.subscribe.v1",
           "binding_kind": "http_json"
         },
         {
@@ -2858,16 +2850,6 @@
       "operation_requirements": [
         {
           "direction": "consume",
-          "operation_id": "ak.find.directory.read.resolve_organization.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "consume",
-          "operation_id": "ak.find.directory.read.search_organizations.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "consume",
           "operation_id": "ak.self.authz.grants.read.effective.v1",
           "binding_kind": "http_json"
         }
@@ -2925,31 +2907,6 @@
         },
         {
           "direction": "provide",
-          "operation_id": "ak.find.directory.read.search_organizations.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.find.directory.read.resolve_organization.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.find.directory.read.search_actors.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.find.directory.read.search_users.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.find.directory.read.resolve_handle.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
           "operation_id": "ak.find.directory.command.announce.v1",
           "binding_kind": "http_json"
         },
@@ -2978,7 +2935,6 @@
         "privacy-security-fixture.json"
       ],
       "optional_extensions": [
-        "ak.private_contact_discovery.v1",
         "pull_mode_ingest",
         "restricted_query_proofs",
         "operator_console"
@@ -3019,7 +2975,6 @@
       ],
       "required_fixtures": [],
       "optional_extensions": [
-        "event_batch_receipt",
         "witness_receipt"
       ],
       "feature_discovery": {
@@ -3059,12 +3014,12 @@
         },
         {
           "direction": "provide",
-          "operation_id": "ak.self.events.stream.subscribe.v1",
+          "operation_id": "ak.self.committed_event.stream.subscribe.v1",
           "binding_kind": "http_json"
         },
         {
           "direction": "provide",
-          "operation_id": "ak.self.events.read.scan.v1",
+          "operation_id": "ak.self.committed_event.read.scan.v1",
           "binding_kind": "http_json"
         },
         {
@@ -3084,11 +3039,6 @@
         },
         {
           "direction": "provide",
-          "operation_id": "ak.peer.device_revocations.command.check.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
           "operation_id": "ak.gate.account.command.issue_session_grant.v1",
           "binding_kind": "http_json"
         },
@@ -3100,11 +3050,6 @@
         {
           "direction": "provide",
           "operation_id": "ak.gate.account.command.revoke_session.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.gate.account.command.introspect_session_grant.v1",
           "binding_kind": "http_json"
         },
         {
@@ -3202,7 +3147,7 @@
         },
         {
           "direction": "provide",
-          "operation_id": "ak.peer.events.read.scan.v1",
+          "operation_id": "ak.peer.committed_event.read.scan.v1",
           "binding_kind": "http_json"
         }
       ],
@@ -3218,8 +3163,7 @@
       ],
       "required_schemas": [
         "ak.schema.event.v1",
-        "ak.schema.event_payload.v1",
-        "ak.schema.event_batch_receipt.v1"
+        "ak.schema.event_payload.v1"
       ],
       "required_fixtures": [],
       "prose_requirement_coverage": [
@@ -3233,7 +3177,6 @@
         {
           "requirement": "federation transaction idempotency and per-item accepted/rejected/quarantine results",
           "coverage": [
-            "ak.schema.event_batch_receipt.v1",
             "independent-admission-fixture.json"
           ]
         },
@@ -3248,8 +3191,7 @@
         {
           "requirement": "dependency missing pull/backfill recovery",
           "coverage": [
-            "ak.peer.events.read.scan.v1",
-            "ak.peer.events.read.resolve_committed.v1",
+            "ak.peer.committed_event.read.scan.v1",
             "authority-commit-fixture.json"
           ]
         },
@@ -4098,7 +4040,7 @@
         },
         {
           "direction": "provide",
-          "operation_id": "ak.self.events.stream.subscribe.v1",
+          "operation_id": "ak.self.committed_event.stream.subscribe.v1",
           "binding_kind": "http_json"
         },
         {
@@ -4108,7 +4050,7 @@
         },
         {
           "direction": "provide",
-          "operation_id": "ak.self.events.read.scan.v1",
+          "operation_id": "ak.self.committed_event.read.scan.v1",
           "binding_kind": "http_json"
         },
         {
@@ -4199,7 +4141,7 @@
         },
         {
           "direction": "provide",
-          "operation_id": "ak.self.events.read.scan.v1",
+          "operation_id": "ak.self.committed_event.read.scan.v1",
           "binding_kind": "http_json"
         }
       ],
@@ -4364,7 +4306,7 @@
         },
         {
           "direction": "provide",
-          "operation_id": "ak.self.events.read.scan.v1",
+          "operation_id": "ak.self.committed_event.read.scan.v1",
           "binding_kind": "http_json"
         }
       ],
@@ -4682,7 +4624,7 @@
         },
         {
           "direction": "provide",
-          "operation_id": "ak.self.events.read.scan.v1",
+          "operation_id": "ak.self.committed_event.read.scan.v1",
           "binding_kind": "http_json"
         },
         {
@@ -4692,7 +4634,7 @@
         },
         {
           "direction": "provide",
-          "operation_id": "ak.peer.events.read.scan.v1",
+          "operation_id": "ak.peer.committed_event.read.scan.v1",
           "binding_kind": "http_json"
         }
       ],
@@ -4773,7 +4715,7 @@
         },
         {
           "direction": "provide",
-          "operation_id": "ak.self.events.read.scan.v1",
+          "operation_id": "ak.self.committed_event.read.scan.v1",
           "binding_kind": "http_json"
         },
         {
@@ -4783,7 +4725,7 @@
         },
         {
           "direction": "provide",
-          "operation_id": "ak.peer.events.read.scan.v1",
+          "operation_id": "ak.peer.committed_event.read.scan.v1",
           "binding_kind": "http_json"
         }
       ],
@@ -5249,11 +5191,6 @@
       "operation_requirements": [
         {
           "direction": "provide",
-          "operation_id": "ak.find.directory.read.resolve_organization.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
           "operation_id": "ak.self.authz.grants.read.effective.v1",
           "binding_kind": "http_json"
         }
@@ -5471,7 +5408,7 @@
         },
         {
           "direction": "provide",
-          "operation_id": "ak.self.events.stream.subscribe.v1",
+          "operation_id": "ak.self.committed_event.stream.subscribe.v1",
           "binding_kind": "http_json"
         },
         {
@@ -5584,7 +5521,7 @@
         },
         {
           "direction": "provide",
-          "operation_id": "ak.self.events.stream.subscribe.v1",
+          "operation_id": "ak.self.committed_event.stream.subscribe.v1",
           "binding_kind": "websocket"
         },
         {
@@ -5599,7 +5536,7 @@
       "rejected_event_kinds": [],
       "required_schemas": [
         "ak.schema.account_subscribe_frame.v1",
-        "ak.schema.events_subscribe_frame.v1",
+        "ak.schema.committed_event_subscribe_frame.v1",
         "ak.schema.signal_stream_frame.v1",
         "ak.schema.transport_binding.v1",
         "ak.schema.websocket_frame.v1",
@@ -5708,7 +5645,7 @@
         },
         {
           "direction": "provide",
-          "operation_id": "ak.self.events.read.scan.v1",
+          "operation_id": "ak.self.committed_event.read.scan.v1",
           "binding_kind": "http_json"
         }
       ],
@@ -5775,7 +5712,7 @@
         },
         {
           "direction": "consume",
-          "operation_id": "ak.self.events.read.scan.v1",
+          "operation_id": "ak.self.committed_event.read.scan.v1",
           "binding_kind": "http_json"
         },
         {
@@ -5918,7 +5855,7 @@
         },
         {
           "direction": "consume",
-          "operation_id": "ak.self.events.read.scan.v1",
+          "operation_id": "ak.self.committed_event.read.scan.v1",
           "binding_kind": "http_json"
         }
       ],
@@ -5962,7 +5899,7 @@
         },
         {
           "direction": "provide",
-          "operation_id": "ak.self.events.read.scan.v1",
+          "operation_id": "ak.self.committed_event.read.scan.v1",
           "binding_kind": "http_json"
         }
       ],
@@ -6004,7 +5941,7 @@
         },
         {
           "direction": "consume",
-          "operation_id": "ak.self.events.read.scan.v1",
+          "operation_id": "ak.self.committed_event.read.scan.v1",
           "binding_kind": "http_json"
         }
       ],
@@ -6085,7 +6022,7 @@
         },
         {
           "direction": "provide",
-          "operation_id": "ak.self.events.read.scan.v1",
+          "operation_id": "ak.self.committed_event.read.scan.v1",
           "binding_kind": "http_json"
         }
       ],
@@ -6125,7 +6062,7 @@
         },
         {
           "direction": "provide",
-          "operation_id": "ak.self.events.read.scan.v1",
+          "operation_id": "ak.self.committed_event.read.scan.v1",
           "binding_kind": "http_json"
         }
       ],

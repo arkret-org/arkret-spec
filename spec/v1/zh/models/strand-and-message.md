@@ -475,8 +475,8 @@ value shape := { "level": "mentions_only" | "participating" | "all" | "muted",
 - 帮他人订阅：actor 持有 `ak.strand.watch.set.others` capability（high risk_tier）时 MAY 写入 `payload.watcher_actor_id != envelope.actor_id` 的 watch typed current result，典型用法是 Strand creator 在创建对话时把核心相关人加为 `participating`。`.others` 写入受以下硬约束：
   - `payload.level` MUST ∈ `{mentions_only, participating, all}`；写入 `level="muted"` MUST `failed_precondition`（`reason="watch_muted_must_be_self"`）。理由：`muted` 会抑制 mention / 审核 / 工作流定向通知，必须由本人主动选择，不得被管理员或自动化代写。
   - `payload.level_public` MUST 省略或显式 `false`；写入 `level_public=true` MUST `failed_precondition`（`reason="watch_level_public_must_be_self"`）。理由：是否公开自己的订阅意图属于个人 opt-in publication，不得由他人代写。
-  - 每条 `.others` 写入 MUST 与一条 `ak.audit.accessed` event 形成可验证配对。**配对边由 audit event 指向业务 event，方向单向**：audit event 的 `refs[]` MUST 包含 `{id: <业务 event_id>, role: "audit_pair", critical: true}`，其 payload MUST 使用 `access_kind="watch_set_others"`，并绑定 `writer_actor_id`、`target_actor_id`、`target_result_id`、`paired_event_id`、`result_head_before` 与 `result_head_after`；业务 event 自身 **MUST NOT** 引用 audit event 的 id 或 digest。二者 MUST 位于同一 ordered submit batch；batch 验证器在接受任何一条前先检查该配对 invariant：批内 MUST 存在恰好一条 `paired_event_id` 等于该业务 event id 的 audit event，并从该 ID 解码 digest 后与业务 Event canonical digest 交叉验证。缺失、目标不一致、ID/digest 不匹配、批内配对多于一条或不在同 batch 时 reducer MUST 拒绝业务 event（`failed_precondition`，`reason="watch_set_others_audit_missing"`）。
-  - 方向不可反转（normative rationale）：`refs` 在 `event_digest` 的 preimage 内，而 `event_id` 由该 digest 派生。业务 event 若引用 audit id、audit 又承诺业务 id，两条 Event 互为原像，无解——见 [`../conformance/encoding.md` §3.1](../conformance/encoding.md)。业务 event 先成型、audit 后成型是唯一可构造的顺序。
+  - 每条 `.others` 写入 MUST 与一条 `ak.audit.accessed` event 形成可验证配对。**配对边由 audit event 指向业务 event，方向单向**：audit event 的 `semantic_refs[]` MUST 包含 `{id: <业务 event_id>, role: "audit_pair", critical: true}`，其 payload MUST 使用 `access_kind="watch_set_others"`，并绑定 `writer_actor_id`、`target_actor_id`、`target_result_id`、`paired_event_id`、`result_head_before` 与 `result_head_after`；业务 event 自身 **MUST NOT** 引用 audit event 的 id 或 digest。二者 MUST 位于同一 ordered submit batch；batch 验证器在接受任何一条前先检查该配对 invariant：批内 MUST 存在恰好一条 `paired_event_id` 等于该业务 event id 的 audit event，并从该 ID 解码 digest 后与业务 Event canonical digest 交叉验证。缺失、目标不一致、ID/digest 不匹配、批内配对多于一条或不在同 batch 时 reducer MUST 拒绝业务 event（`failed_precondition`，`reason="watch_set_others_audit_missing"`）。
+  - 方向不可反转（normative rationale）：`semantic_refs` 在 `event_digest` 的 preimage 内，而 `event_id` 由该 digest 派生。业务 event 若引用 audit id、audit 又承诺业务 id，两条 Event 互为原像，无解——见 [`../conformance/encoding.md` §3.1](../conformance/encoding.md)。业务 event 先成型、audit 后成型是唯一可构造的顺序。
   - 被加为 watcher 的 actor MAY 随时通过自写 typed current result 覆盖（升级 / 降级 / 自行 `muted` / 自行 `level_public`），无需对方同意。
 - 创建者隐式订阅：`ak.strand.create` 后，notification dispatcher MAY 在 actor-private 派生状态中把 `created_by` 视为 `level=participating`；该默认值不写共享 typed current result、不进入任何 RealmCommit。需要 durable 共享 watch 状态时，创建者客户端必须另行提交已登记的 `ak.strand.watch.set` state-changing Event。
 - 如需管理员强制静音某 actor 的通知（e.g. 反骚扰、moderation 场景），MUST 使用独立 moderation event（`ak.moderation.decision` 或 profile-specific kind），不得复用个人 watch preference。
@@ -712,7 +712,6 @@ Markdown 链接。客户端 reducer 可从 Message content AST 派生 mention �
 规则处理：源消息可暴露 ref 与最小 metadata，目标对象内容与 preview 必须重新按
 目标 Realm policy 授权。
 
-客户端 MAY 允许用户输入 handle（例如 `@alice:acme.example`）完成 mention autocomplete；发送前 MUST 从当前 Realm roster、MemberIdentity subject disclosure、内联 signed `handle_claims[]` 或本地已授权 claim cache 解析为 DID，并在结构化 mention 节点中以 `subject_account_id` 为权威字段保存解析结果（完整 `AccountId`，含 `principal_id` 与 `station_id` 两个分量）。Realm message mention **MUST NOT** 自动调用外部 `ak.find.directory.read.resolve_handle.v1(intent="mention")` 来发现未知主体；当前 handle 展示可使用 roster 内联 claim，该调用所需的 exact AccountId 就是 mention 自己携带的 `subject_account_id`，实现 MUST NOT 从任何裸 principal 反猜 Station。handle 字符串本身**不**作为权威字段进入 mention 节点；MAY 携带 §3.8.1 定义的 audit / fallback metadata（`handle_at_time` / `display_name_at_time` / `controller_subject_account_id` / `controller_handle_at_time` / `agent_slug_at_time` / `mention_text_original`）。授权、通知路由、audit attribution 一律按 `subject_account_id` 处理，且 MUST 按完整 AccountId 逐字节比较——同 principal 不同 Station 的账号 MUST NOT 命中。
 
 Agent 不要求拥有公开 handle。客户端 MAY 支持 controller-scoped agent mention selector：
 
@@ -827,7 +826,7 @@ Audience mention 的失败不得污染普通消息写入语义：实现 MAY 接�
 当一条 `ak.message.create` / `ak.message.revise`（含 direct mention 与 audience mention）的某个 mention target 是一个 **Agent** principal 时，dispatcher / reducer 在为该 agent 派生 mention notification 前 MUST 解析该 message effective_scope（Strand → Circle / Realm），并以当前 `controller selection ∩ deployment/Realm/Circle/Strand governance policy` 求出 participation gate。`accept_third_party_mention` 只决定是否允许第三方触发投递；requested scope、key scope、Realm capability、membership/history 与 E2EE access 仍是独立前置条件，任一缺失都拒绝投递：
 
 - mention 作者 == 该 agent 的 controller principal：照常投递（仍受该 agent 是否被授权读取该 scope 约束）。
-- mention 作者 != controller 且 effective `accept_third_party_mention=false`：MUST NOT 为该 agent 派生任何 mention notification、inbox row、push wakeup，也 MUST NOT 把该 mention 纳入该 agent 的 `ak.self.events.stream.subscribe.v1` 投影。该抑制只针对该 agent 自身；对 message 的其他人类 target、shared history、其它投影无影响。
+- mention 作者 != controller 且 effective `accept_third_party_mention=false`：MUST NOT 为该 agent 派生任何 mention notification、inbox row、push wakeup，也 MUST NOT 把该 mention 纳入该 agent 的 `ak.self.committed_event.stream.subscribe.v1` 投影。该抑制只针对该 agent 自身；对 message 的其他人类 target、shared history、其它投影无影响。
 - effective `accept_third_party_mention=true`：照常投递，并继续受 `level=muted`、个人 blocklist、DND、rate-limit 等本节既有更高优先级规则约束（§9.4.1–§9.4.4）。
 
 该 gate 是 reducer / dispatcher 强制规则，不依赖 agent runtime 自觉；runtime 可从 session `scope_details.participation` 与 `ak.self.agent.participation.resource.get.v1` 取得 selection/version 用于主动遵守，但 target MUST 以当前本地治理状态重新求交，不得信任客户端复制的 effective 值。任一 required policy source 未知或 stale 时 MUST fail closed 为不投递。
@@ -835,7 +834,7 @@ Audience mention 的失败不得污染普通消息写入语义：实现 MAY 接�
 求值时点与非追溯语义（normative）：
 
 - 本 gate 对每条 message event 在其进入 notification fanout / 投影派生时**一次性**求值，输入是该时刻该 agent 的 effective participation；求值结果（投递或抑制）随该 event 的派生产物固化。
-- participation 的任一来源（controller selection 或任一层级 ceiling）之后发生变化，MUST NOT 触发对既有 event 的重新 fanout：由 `false` 翻转为 `true` 不补发、不回溯派生此前被抑制的 mention notification / inbox row / push wakeup / `ak.self.events.stream.subscribe.v1` 投影条目；由 `true` 翻转为 `false` 也不追溯撤销已派生的 notification（redaction / erasure / retention 等既有机制不受影响）。该时间语义与 `level=muted` 一致：策略只约束变更之后新派生的投递。
+- participation 的任一来源（controller selection 或任一层级 ceiling）之后发生变化，MUST NOT 触发对既有 event 的重新 fanout：由 `false` 翻转为 `true` 不补发、不回溯派生此前被抑制的 mention notification / inbox row / push wakeup / `ak.self.committed_event.stream.subscribe.v1` 投影条目；由 `true` 翻转为 `false` 也不追溯撤销已派生的 notification（redaction / erasure / retention 等既有机制不受影响）。该时间语义与 `level=muted` 一致：策略只约束变更之后新派生的投递。
 - 抑制只作用于**定向投递平面**。被抑制 mention 所在的 message 仍是普通 shared history；该 agent 此后能否把这条 message 作为普通历史读到，由其对该 scope 的读取授权、[history-visibility](../governance/history-visibility.md) gate 与 E2EE key 可达性决定，与本 gate 无关。实现 MUST NOT 把本 gate 解释或复用为读取权控制；需要对 agent 隐藏消息本体的部署，应使用读取授权 / history visibility 表达。
 
 ### 9.5 冲突与收敛规则

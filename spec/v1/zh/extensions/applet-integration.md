@@ -709,7 +709,6 @@ managed Actor 后续通过普通 `ak.identity.resolution.update` 轮换时，旧
 resolution，并通过既有 exact `authenticated_signer_resolution_evidence` governance-dependency carrier
 取得/核对签署 projection attestation 的 Station `Service` leaf，构建并原子保存新 `Principal` root 后才用新
 method author 普通 Event；不新增 Applet evidence endpoint。远端 Event verifier 同样只按 proof ref 经既有
-验证方通过 `ak.peer.events.read.resolve_committed.v1` 与对应 self read 解析 exact committed references。
 
 同机 host MAY 经内部类型化存储交付相同结果，但 MUST 保持以上来源、原件、原子保存及重复处理规则，不能用一个公开 bool 或裸配置字符串替代它们。
 
@@ -852,7 +851,6 @@ Applet 写入 Arkret MUST 使用常规 `/_arkret/self/events` submit 接口。
     "event_id": "1714040000.000100"
   },
   "created_at": "2026-04-26T00:00:01Z",
-  "refs": [],
   "payload": {
     "strand_id": "ak:strand:AUPkhcWNNoG21KvR89voO-SRUnh1ZFG80N_5xygyYq0O",
     "track_name": "discussion",

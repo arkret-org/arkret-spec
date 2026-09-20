@@ -2051,7 +2051,7 @@
     },
     "realm_alias_result": {
       "type": "object",
-      "description": "The Realm alias declaration or its tombstone. discovery/discovery-directory.md section 12 resolves an alias from this family and treats a tombstone as absent, so the tombstone branch is retained rather than collapsed to null.",
+      "description": "The Realm-local alias declaration or its tombstone. The tombstone branch is retained rather than collapsed to null so durable withdrawal remains distinguishable from never-declared; Directory does not resolve aliases.",
       "required": [
         "selector",
         "revision",
@@ -3291,7 +3291,7 @@
         "revision",
         "value"
       ],
-      "description": "Registered projection of one Organization's discovery declaration. discovery/discovery-directory.md puts ak.organization.discovery in the same active discovery state event group as ak.actor.discovery, ak.applet.discovery and ak.handle.discovery: the resource self-signs its own discoverability and a Directory only indexes resources its directory_ids[] names, so each accepted declaration replaces the whole closed value.",
+      "description": "Registered Realm-local projection of one Organization declaration. Each accepted declaration replaces the whole closed value and grants no public Directory organization-resolution surface.",
       "properties": {
         "selector": {
           "type": "object",

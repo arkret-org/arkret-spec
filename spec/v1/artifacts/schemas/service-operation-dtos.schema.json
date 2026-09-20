@@ -74,9 +74,6 @@
       "$ref": "#/$defs/DirectoryAnnounceRequestBody"
     },
     {
-      "$ref": "#/$defs/DirectorySourceRefAccess"
-    },
-    {
       "$ref": "#/$defs/DirectoryWithdrawOutcome"
     },
     {
@@ -93,9 +90,6 @@
     },
     {
       "$ref": "#/$defs/EventSubmitEnvelope"
-    },
-    {
-      "$ref": "#/$defs/EventView"
     },
     {
       "$ref": "#/$defs/EventsSubmitBatchRequestBody"
@@ -189,6 +183,9 @@
     },
     {
       "$ref": "#/$defs/SignedSessionGrantClaims"
+    },
+    {
+      "$ref": "#/$defs/CommittedEventView"
     }
   ],
   "$defs": {
@@ -1087,104 +1084,52 @@
     },
     "DirectoryAnnounceRequestBody": {
       "type": "object",
-      "additionalProperties": false,
+      "description": "Direct current-governance Station submission of one public Realm entry to the exact opted-in Directory.",
       "required": [
-        "discovery_event",
-        "source_ref_access",
-        "as_of"
-      ],
-      "properties": {
-        "discovery_event": {
-          "allOf": [
-            {
-              "$ref": "./principal-operations.schema.json#/$defs/signed_event"
-            },
-            {
-              "type": "object",
-              "properties": {
-                "kind": {
-                  "type": "string",
-                  "enum": [
-                    "ak.realm.discovery",
-                    "ak.organization.discovery",
-                    "ak.actor.discovery",
-                    "ak.applet.discovery",
-                    "ak.handle.discovery"
-                  ]
-                }
-              },
-              "required": [
-                "kind"
-              ]
-            }
-          ],
-          "description": "The accepted ak.{kind}.discovery Event itself, delivered in its original signed form exactly as peer contact delivery carries the original ak.contact.* Event. resource_kind is derived from Event kind; resource_id is derived from the signed Event subject mapping. The Event's sole producer signature carries the resource governance signature, so no second signed copy of the same fact is defined (discovery-directory.md 8.3)."
-        },
-        "source_ref_access": {
-          "$ref": "#/$defs/DirectorySourceRefAccess",
-          "description": "Source-signed bounded authorization whose discovery_event_id and as_of equal this request and whose source_refs are the only announced checkpoint."
-        },
-        "as_of": {
-          "$ref": "./time.schema.json#/$defs/timestamp"
-        },
-        "ttl_seconds": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "supersedes_announce_id": {
-          "type": "string",
-          "pattern": "^ak:announce:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-        }
-      }
-    },
-    "DirectorySourceRefAccess": {
-      "type": "object",
-      "description": "Short-lived source Station authorization for one authenticated Directory to resolve only the exact bounded authority-committed source_refs of one current signed discovery announce. Each ref closes Event, Commit, stream and position; the source revalidates the current discovery Event, directory_ids opt-in and withdrawal/supersession state on every resolve. The proof is not a bearer token and cannot authorize scan, list or unrelated history.",
-      "required": [
-        "kind",
-        "source_id",
-        "directory_id",
         "realm_id",
-        "discovery_event_id",
-        "source_refs",
-        "as_of",
+        "directory_id",
+        "discoverability",
+        "public_metadata",
+        "authority_generation",
+        "request_id",
+        "issued_at",
         "expires_at",
-        "proof"
+        "governance_proof"
       ],
       "properties": {
-        "kind": {
-          "const": "directory_announce"
-        },
-        "source_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "directory_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         },
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        "discoverability": {
+          "const": "public"
         },
-        "discovery_event_id": {
-          "$ref": "#/$defs/EventId"
+        "public_metadata": {
+          "$ref": "#/$defs/PublicRealmMetadata"
         },
-        "source_refs": {
-          "type": "array",
-          "minItems": 1,
-          "maxItems": 100,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
-          },
-          "description": "Canonical sorted unique committed refs, all in realm_id, including the discovery_event_id ref."
+        "authority_generation": {
+          "type": "integer",
+          "minimum": 0
         },
-        "as_of": {
+        "request_id": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^(?!ak:)[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "issued_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
         },
         "expires_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
         },
-        "proof": {
-          "$ref": "./event-envelope.schema.json#/$defs/proof"
+        "supersedes_announce_id": {
+          "type": "string",
+          "pattern": "^ak:announce:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "governance_proof": {
+          "$ref": "#/$defs/DirectoryGovernanceProof"
         }
       },
       "additionalProperties": false
@@ -1209,38 +1154,42 @@
     },
     "DirectoryWithdrawRequestBody": {
       "type": "object",
-      "additionalProperties": false,
+      "description": "Direct current-governance Station withdrawal of the exact Realm entry at one Directory.",
       "required": [
-        "resource_id",
+        "realm_id",
+        "directory_id",
+        "authority_generation",
+        "request_id",
+        "issued_at",
         "governance_proof"
       ],
       "properties": {
-        "resource_id": {
-          "oneOf": [
-            {
-              "type": "string",
-              "pattern": "^(?:ak:(realm):[A-Za-z0-9_-]{44}|ak:(applet):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$"
-            },
-            {
-              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-            },
-            {
-              "type": "string",
-              "pattern": "^[a-z0-9][a-z0-9._+-]{0,127}:[a-z0-9.-]{1,253}$"
-            }
-          ]
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "directory_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "authority_generation": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "request_id": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^(?!ak:)[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "issued_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
         },
         "reason": {
           "$ref": "string-profiles.schema.json#/$defs/audit_reason_text"
         },
         "governance_proof": {
-          "$ref": "#/$defs/DirectoryGovernanceProof",
-          "description": "Signature proof by the resource governance key, equivalent strength to announce.discovery_state.proof; wire form and binding per discovery-directory.md section 8.7.1."
-        },
-        "effective_at": {
-          "$ref": "./time.schema.json#/$defs/timestamp"
+          "$ref": "#/$defs/DirectoryGovernanceProof"
         }
-      }
+      },
+      "additionalProperties": false
     },
     "EventId": {
       "$ref": "./account-operations.schema.json#/$defs/event_id"
@@ -1335,47 +1284,9 @@
       },
       "additionalProperties": false
     },
-    "EventReadRow": {
-      "description": "A readable event item. Complete EventEnvelope is the only reducer input shape. RedactedEventView and ReferenceLockedEventStub are projection/completeness evidence for callers that may know the source event exists but may not receive its full canonical payload bytes.",
-      "oneOf": [
-        {
-          "$ref": "./event-envelope.schema.json#/$defs/authority_committed_event"
-        },
-        {
-          "$ref": "#/$defs/RedactedEventView"
-        },
-        {
-          "$ref": "#/$defs/ReferenceLockedEventStub"
-        }
-      ]
-    },
     "EventSubmitEnvelope": {
       "$ref": "./event-envelope.schema.json",
       "description": "Actor-supplied ak.self.events.command.submit.v1 input envelope. It reuses the complete canonical Event shape, including the required producer-signed scope_ref. Object payload schemas independently forbid actor-supplied effective_scope where that name is reserved for a read-only materialized object projection."
-    },
-    "EventView": {
-      "type": "object",
-      "description": "Result of ak.self.events.resource.get.v1 — a single complete Event Envelope, RedactedEventView, or ReferenceLockedEventStub with optional visibility / receipt hints. Redacted / locked variants are projection-only evidence and MUST NOT be used as reducer input.",
-      "required": [
-        "event"
-      ],
-      "properties": {
-        "event": {
-          "$ref": "#/$defs/EventReadRow"
-        },
-        "visibility": {
-          "type": "object",
-          "description": "Caller-visible policy hint for this event (history visibility class, E2EE envelope class)."
-        },
-        "receipts": {
-          "type": "array",
-          "description": "Event batch receipts witnessing this event, if visible.",
-          "items": {
-            "type": "object"
-          }
-        }
-      },
-      "additionalProperties": false
     },
     "EventsSubmitBatchRequestBody": {
       "type": "object",
@@ -2624,117 +2535,6 @@
         }
       }
     },
-    "RealmId": {
-      "$ref": "./common-ids.schema.json#/$defs/realm_id"
-    },
-    "RedactedEventView": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "view_kind",
-        "event_id",
-        "kind",
-        "realm_id",
-        "redaction_reason",
-        "hidden_fields",
-        "reducer_input"
-      ],
-      "properties": {
-        "view_kind": {
-          "const": "redacted_event_view"
-        },
-        "event_id": {
-          "$ref": "#/$defs/EventId"
-        },
-        "kind": {
-          "type": "string",
-          "pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
-        },
-        "realm_id": {
-          "$ref": "#/$defs/RealmId"
-        },
-        "created_at": {
-          "$ref": "./time.schema.json#/$defs/timestamp"
-        },
-        "payload_digest": {
-          "type": "string",
-          "pattern": "^(sha256|blake3):[0-9a-f]{64}$",
-          "description": "Optional digest commitment to the canonical payload object before masking."
-        },
-        "redaction_reason": {
-          "type": "string",
-          "enum": [
-            "reference_locked",
-            "history_not_visible",
-            "policy_hidden",
-            "redacted",
-            "retention_pruned",
-            "unknown"
-          ]
-        },
-        "hidden_fields": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "pattern": "^(payload|payload\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*|proofs|unsigned)$"
-          },
-          "uniqueItems": true
-        },
-        "inclusion_proof": {
-          "type": "object",
-          "description": "Optional proof that the suite-bearing digest decoded from event_id is included in an Event set or RealmCommit root visible to the caller; it does not prove historical completeness."
-        },
-        "reducer_input": {
-          "const": false,
-          "description": "Redacted views are projection-only evidence and MUST NOT be fed into a reducer as Event Envelope input."
-        }
-      }
-    },
-    "ReferenceLockedEventStub": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "view_kind",
-        "realm_id",
-        "reason_code",
-        "reducer_input"
-      ],
-      "properties": {
-        "view_kind": {
-          "const": "reference_locked_event_stub"
-        },
-        "event_id": {
-          "$ref": "#/$defs/EventId",
-          "description": "Present only when the source event id is already visible to the caller; omitted when even the event id would distinguish target existence."
-        },
-        "kind": {
-          "type": "string",
-          "pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
-        },
-        "realm_id": {
-          "$ref": "#/$defs/RealmId",
-          "description": "The source Realm boundary visible to the caller. Target Realm identifiers hidden by reference-disclosure policy MUST NOT appear."
-        },
-        "reason_code": {
-          "type": "string",
-          "enum": [
-            "reference_locked",
-            "history_not_visible",
-            "policy_hidden",
-            "not_found_or_unauthorized"
-          ],
-          "description": "Reasons that would reveal target existence MUST be collapsed to not_found_or_unauthorized for unauthorized callers."
-        },
-        "inclusion_proof": {
-          "type": "object",
-          "description": "Optional non-disclosing proof commitment. MUST NOT contain hidden target refs or target Realm metadata."
-        },
-        "reducer_input": {
-          "const": false,
-          "description": "Locked stubs are projection-only evidence and MUST NOT be fed into a reducer as Event Envelope input."
-        }
-      }
-    },
     "ServiceDidDocument": {
       "type": "object",
       "x-arkret-external-literal-object": {
@@ -3174,7 +2974,7 @@
     },
     "SessionGrantDeviceBinding": {
       "type": "object",
-      "description": "Authorization state committed into a standard device grant. An Account Authority MUST populate it verbatim from the allow receipt of ak.peer.device_revocations.command.check.v1, which is the only source of the origin-derived authorization Event and generation; it MUST NOT be taken from client input, a local cache or a private lookup. Stations compare it with the current active device generation on admission.",
+      "description": "Authorization state committed into a standard device grant. An Account Authority MUST populate it verbatim from the Station TCB current-device decision, which is the only source of the origin-derived authorization Event and generation; it MUST NOT be taken from client input, a local cache or a private lookup. Stations compare it with the current active device generation on admission.",
       "required": [
         "device_id",
         "authorization_event_id",
@@ -4287,6 +4087,83 @@
             "revoked",
             "superseded"
           ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "EventDisclosure": {
+      "type": "object",
+      "description": "Caller-scoped marker stating that canonical Event bytes are withheld. It carries no Event identity, reason, digest, preview or reducer input.",
+      "required": [
+        "status"
+      ],
+      "properties": {
+        "status": {
+          "const": "withheld"
+        }
+      },
+      "additionalProperties": false
+    },
+    "CommittedEventView": {
+      "description": "Caller-scoped, non-durable read representation pairing one RealmCommit with either the exact producer-signed Event or a minimal withheld marker. It has no independent identity, signature or persistence semantics and is never reducer input.",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "commit",
+            "event"
+          ],
+          "properties": {
+            "commit": {
+              "$ref": "./realm-commit.schema.json"
+            },
+            "event": {
+              "$ref": "./event-envelope.schema.json#/$defs/shared_event_envelope"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "commit",
+            "event_disclosure"
+          ],
+          "properties": {
+            "commit": {
+              "$ref": "./realm-commit.schema.json"
+            },
+            "event_disclosure": {
+              "$ref": "#/$defs/EventDisclosure"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "PublicRealmMetadata": {
+      "type": "object",
+      "description": "Closed public metadata deliberately published by a Realm. It grants no membership, join, history, capability or current-authority status.",
+      "required": [
+        "display_name"
+      ],
+      "properties": {
+        "display_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "summary": {
+          "type": "string",
+          "maxLength": 512
+        },
+        "public_locator": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048
+        },
+        "avatar_blob_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/blob_ref"
         }
       },
       "additionalProperties": false

@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://arkret.org/v1/schemas/events-subscribe-frame.schema.json",
-  "title": "EventsSubscribeFrame",
-  "description": "Closed frame union emitted by ak.self.events.stream.subscribe.v1 over NDJSON or as the payload of an Arkret WebSocket channel frame.",
+  "$id": "https://arkret.org/v1/schemas/committed-event-subscribe-frame.schema.json",
+  "title": "CommittedEventSubscribeFrame",
+  "description": "Closed frame union emitted by ak.self.committed_event.stream.subscribe.v1 over NDJSON or an Arkret WebSocket channel.",
   "type": "object",
   "required": [
     "kind"
@@ -11,14 +11,15 @@
     "kind": {
       "type": "string",
       "enum": [
-        "event",
+        "committed_event",
         "checkpoint",
         "heartbeat",
         "catchup_complete",
         "epoch_rotation",
         "dropped",
         "resync_required",
-        "unauthorized"
+        "unauthorized",
+        "quarantined"
       ]
     },
     "realm_id": {
@@ -42,10 +43,10 @@
     {
       "properties": {
         "kind": {
-          "const": "event"
+          "const": "committed_event"
         },
         "payload": {
-          "$ref": "./event-envelope.schema.json#/$defs/authority_committed_event"
+          "$ref": "./service-operation-dtos.schema.json#/$defs/CommittedEventView"
         }
       },
       "required": [
@@ -211,6 +212,56 @@
           {
             "required": [
               "payload"
+            ]
+          },
+          {
+            "required": [
+              "reconnect_after_ms"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "properties": {
+        "kind": {
+          "const": "quarantined"
+        },
+        "payload": {
+          "type": "object",
+          "required": [
+            "realm_id",
+            "error_code",
+            "affected_stream_refs"
+          ],
+          "properties": {
+            "realm_id": {
+              "$ref": "./common-ids.schema.json#/$defs/realm_id"
+            },
+            "error_code": {
+              "const": "witness_disagreement"
+            },
+            "affected_stream_refs": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "$ref": "./realm-commit.schema.json#/$defs/stream_ref"
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "kind",
+        "payload"
+      ],
+      "not": {
+        "anyOf": [
+          {
+            "required": [
+              "cursor"
             ]
           },
           {

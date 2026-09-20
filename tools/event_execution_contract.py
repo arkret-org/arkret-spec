@@ -28,8 +28,8 @@ def condition_guard(condition: dict | None) -> dict:
         count = condition["count"]
         match = {"properties": {"role": {"const": condition["role"]}, "critical": {"const": True}}, "required": ["role", "critical"]}
         if count == 0:
-            return {"properties": {"refs": {"not": {"contains": match}}}}
-        return {"required": ["refs"], "properties": {"refs": {"contains": match, "minContains": count, "maxContains": count}}}
+            return {"properties": {"semantic_refs": {"not": {"contains": match}}}}
+        return {"required": ["semantic_refs"], "properties": {"semantic_refs": {"contains": match, "minContains": count, "maxContains": count}}}
     if kind == "field_equals":
         return field_guard(condition["field"], {"const": condition["const"]})
     raise ValueError(f"unregistered execution condition: {condition}")

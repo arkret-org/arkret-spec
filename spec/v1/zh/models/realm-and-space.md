@@ -309,7 +309,6 @@ human `purpose="principal_control"` 分支的可构造 genesis 字节、第二 S
 
 `ak.realm.create` 是 Realm 生命周期的 genesis Event，只建立 Realm identity/security core、generation-0 governance Station 与终身稳定的 authority root。显示内容、policy 与 membership 都由同一原子 bootstrap unit 中各自的 registered facet Event 建立。
 
-**Human Principal Control Realm 分支（normative）**：当 create 满足 `purpose="principal_control"`、PCR profile、`actor_id=principal DID`，且 `executed_by` 与 `authorization_ref` 均缺席时，root-signed genesis 必须携带 `FoundingDeviceDescriptor`，第二条固定为 founding-device-signed `ak.device.authorize`。两条 proof 必须省略 `signer_resolution_evidence_ref`：root key 只从同一提交冻结的 registration DID/root-control evidence 解析，founding device key 只从 root-signed descriptor、authorize payload 与 unit-local candidate overlay 解析。两条通过 `ak.peer.principal_genesis.command.submit.v1` 原子接受，均免 `expected_revision`；descriptor 与 authorize payload 必须逐字段/digest 相等。任一 Event 脱离完整 unit/receipt closure 均不可接纳或复验，省略规则不得用于其它 create/authorize。Agent PCR 的 controller-authorized分支 MUST 使用 `purpose="agent_control"`，且不使用 human `pcr_genesis_unit` 或 `FoundingDeviceDescriptor`。
 
 以下两项是所有 purpose 共有的无条件 registered writes；另有五条 registered condition row。任何实现不得由 create 顺带写 profile 或 member 状态；Agent lifecycle 与三个互斥 purpose 的 history-access 初始化仅限下述已登记条件写入。完整集合及条件以机读 registry 为准。
 

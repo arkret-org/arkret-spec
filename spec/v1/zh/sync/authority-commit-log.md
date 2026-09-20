@@ -37,9 +37,9 @@ Realm membership、policy 和 authority 变更只提交到 Realm stream。治理
 
 共享 Event 是 closed producer-signed object，只含：
 
-`event_id, kind, realm_id?, scope_ref, actor_id, executed_by?, authorization_ref?, applet_id?, external_ref?, created_at, refs?, payload, producer_proof`。
+`event_id, kind, realm_id?, scope_ref, actor_id, executed_by?, authorization_ref?, applet_id?, external_ref?, created_at, semantic_refs?, payload, producer_proof`。
 
-`realm_id` 仅在 `ak.realm.create` 的现有派生例外中省略。`refs` 只表示注册的业务引用。Event 不得携带 `producer_revision`、`hlc`、`domain_refs`、`preconditions`、`commit_authorization_state`、`commit_base`、`expected_revision`、`requirements` 或 `unsigned`。该封闭禁用集合的机读投影是 [`forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json) 的 `producer_event_envelope_root` context。
+`realm_id` 仅在 `ak.realm.create` 的现有派生例外中省略。`semantic_refs` 只表示注册的业务引用。Event 不得携带 `producer_revision`、`hlc`、`domain_refs`、`preconditions`、`commit_authorization_state`、`commit_base`、`expected_revision`、`requirements` 或 `unsigned`。该封闭禁用集合的机读投影是 [`forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json) 的 `producer_event_envelope_root` context。
 
 Event 不指向“上一个 Event”。producer 可能离线签名，且多个 producer 会并发；让 Event 绑定 head 会导致合法排队请求因其它写先提交而重签，MLS 请求甚至需要重建密码材料。最终顺序只能由接纳方分配。
 
@@ -93,17 +93,8 @@ Account Station 对本地提交只可报告 `queued`、`forwarding`、`committed
 跨 stream 不提供原子提交。跨 Realm/Circle/Sidecar 工作流使用 exact committed ref、幂等 saga 和明确补偿 Event。
 
 `exact committed ref` 是闭合四元组 `event_id + commit_id + stream_ref + stream_position`。
-Directory 需要按公告来源向 source Station 取证时，必须调用
-`ak.peer.events.read.resolve_committed.v1`。请求闭合为
-`{realm_id, source_ref_access, refs[]}`：`source_ref_access` 是 source Station 签发且绑定 exact
-Directory、Realm、当前 discovery Event、有效期与允许四元组集合的 `DirectorySourceRefAccess`；
-`refs[]` 的每项必须逐字属于 carrier 的 `source_refs`。source Station 每次调用都重新验证已认证 caller
-等于 `directory_id`、proof/expiry、当前 announce 未被撤销或取代，以及每个四元组仍匹配 exact
-`RealmCommit + Event`。任一检查失败均零返回、零副作用。
-
-其它业务不得把这个 Directory 专用 operation 当作通用 peer history API。任何 verifier 仍必须验证
-Commit 签名与 authority chain；caller-supplied Event、仅 Event ID、猜测性 scan 或脱离 carrier 的 ref
-都不是已接纳证明。该合同只解析各自 stream 内的位置，不建立任何跨 stream 顺序。
+任何 verifier 仍必须验证 Commit 签名与 authority chain；caller-supplied Event、仅 Event ID、猜测性 scan
+或脱离已验证读取结果的 ref 都不是已接纳证明。该合同只解析各自 stream 内的位置，不建立任何跨 stream 顺序。
 
 ## 6. 读取、验证与完整性边界
 

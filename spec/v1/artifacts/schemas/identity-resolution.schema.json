@@ -467,8 +467,9 @@
       "required": [
         "account_id",
         "principal_control_realm_id",
-        "principal_genesis_receipt",
         "principal_genesis_event",
+        "founding_device_authorize_event",
+        "genesis_commits",
         "current_resolution_event",
         "predecessor_resolution_events",
         "accepted_commit",
@@ -483,12 +484,26 @@
           "$ref": "./common-ids.schema.json#/$defs/realm_id",
           "description": "Realm id derived from principal_genesis_event under the registered PCR derivation rule; it is not a producer-selected alternate scope."
         },
-        "principal_genesis_receipt": {
-          "$ref": "./event-batch-receipt.schema.json",
-          "description": "Account-local signed pcr_genesis_unit receipt. It supports audit/recovery and is not an external account-local-lineage identifier."
-        },
         "principal_genesis_event": {
           "$ref": "#/$defs/principal_genesis_event"
+        },
+        "founding_device_authorize_event": {
+          "$ref": "#/$defs/founding_device_authorize_event"
+        },
+        "genesis_commits": {
+          "type": "array",
+          "description": "The two consecutive RealmCommit objects accepting principal_genesis_event and founding_device_authorize_event in that order.",
+          "minItems": 2,
+          "maxItems": 2,
+          "prefixItems": [
+            {
+              "$ref": "./realm-commit.schema.json"
+            },
+            {
+              "$ref": "./realm-commit.schema.json"
+            }
+          ],
+          "items": false
         },
         "current_resolution_event": {
           "$ref": "#/$defs/current_resolution_event"
@@ -709,6 +724,25 @@
       },
       "additionalProperties": false,
       "x-arkret-max-canonical-bytes": 65536
+    },
+    "founding_device_authorize_event": {
+      "allOf": [
+        {
+          "$ref": "./event-envelope.schema.json"
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "const": "ak.device.authorize"
+            }
+          }
+        }
+      ],
+      "description": "The founding device authorization Event immediately following the PCR realm.create Event."
     }
   }
 }

@@ -50,51 +50,14 @@ Station-to-Station 请求必须绑定 exact source/destination service identity�
 
 #### 2.2.3 Deployment-internal channel
 
-部署内通道可使用独立认证 profile，但必须在 operation registry 逐项登记，不得作为通用 peer 降级路径。
+同一 Station TCB 内部的函数、RPC、标准认证 provider API、journal 与 outbox 都是实现细节，不登记 canonical
+operation，也不得借用 peer operation 假装成跨服务互操作。实现 MAY 为拆进程或拆库选择私有认证与恢复机制，
+但其内部请求、receipt 和中间态不得进入 operation registry、HTTP binding、schema、fixture 或 conformance surface。
 
-`ak.peer.device_revocations.command.check.v1` 是 Account Authority／其它已登记 issuer 向 exact origin
-Station 取得 current-device 与 revocation 权威判定的唯一 deployment-internal operation。其
-`gate_action_class` 是闭集；device-pairing 短码认领必须使用专用
-`device_pairing_code_claim`，MUST NOT 冒充 `event_write`、`keypackage_claim` 或其它相邻 class。
-
-Account Authority 调用该 class 前 MUST 已验证 active Standard human SessionGrant、该 grant 的 exact
-`AccountId` / human-device holder、当前 HTTP target/method 的 DPoP 与未消费 JTI；随后必须把 signed
-`device_binding` 中的 authorization Event / generation 作为两个 expected selector 一起提交。SessionGrant
-和 `device_binding` 只是 issuer-verified selector 来源，MUST NOT 自行替代 origin 的 current-state 判定；
-`device_pairing_code_claim` 禁带 `AcceptedDevicePossessionProof`。`intent_digest` 必须绑定 operation id、
-exact `AccountId`、caller device id 与 canonical code-claim request，内部请求只传 digest，不传明文
-pairing code。
-
-origin Station 必须在一个 device lock / serializable transaction 内比较 current accepted generation，判定
-`allow | revocation_pending | revoked | authority_mismatch | generation_mismatch` 并持久化短时 decision
-receipt；它不得读取 Account Authority 的 pairing pending / abuse ledger。只有 fresh、channel-bound、逐字段
-匹配的 `allow` receipt 才允许 Account Authority 继续定位 code。任何 non-allow、receipt 错配／过期或
-origin 不可用都 MUST 在 pairing lookup 前 fail closed，不得回退到 SessionGrant 快照，也不得消耗某条
-`device_pairing_request_id` 的失败预算。
-
-分离部署的 device-pairing open handoff 另有三项逐项登记的 Station→Account Authority 调用：
-
-- `ak.gate.account.command.stage_device_pairing.v1`：逐字节复用 public stage request/outcome；同一次 public ingress
-  的 Station `Idempotency-Key` 在内部重试中稳定，Authority durable dedup，同 key 异 body 零写冲突；下一次
-  public stage 必须生成新 key，不能把 public non-retry-safe 误改为 retry-safe；
-- `ak.gate.account.read.resolve_device_pairing.v1`：逐字节复用 public resolve request/bootstrap，纯只读；
-- `ak.gate.account.read.device_pairing_status.v1`：逐字节复用 public status request/outcome，纯只读。
-
-三项只接受 exact owning Station 的 deployment-internal service identity，并使用 operation registry 登记的
-`ak.http_signature.scenario.service_to_service.v1`；source/destination service id、`Arkret-Operation`、target、
-method、content digest 与 freshness window 任一不匹配都必须在读取 pairing ledger 前拒绝。Station 保持唯一
-client-visible open origin，但不保存或读取 pairing 业务状态；Account Authority 是 pending、abuse、fence 与
-terminal outcome 的唯一 owner。resolve/status 的 unknown、credential mismatch、不可用 state 与非 terminal
-fence 均向 public caller 折叠为 `not_found`；内部不可用折叠为 `temporarily_unavailable`，不得泄漏部署拓扑。
-
-`ak.gate.account.command.pair_device.v1` 的 Event leg 只能调用既有
-`ak.peer.events.command.submit.v1` 的 `authority_forward` branch。Authority 把已冻结的
-`/authorize_event` 作为 downstream `/event_submission`，重放完整 frozen peer body；owning Station 进行普通
-Event admission 并签唯一 RealmCommit。Authority 必须验证 service identity、current governance/generation、
-Realm/stream/previous-commit 连续性、Commit signature、EventRef 与 frozen bytes，且只在
-`committed | duplicate` 后推进 `station_accepted`。任何 network/retryable/receipt missing-or-mismatch 保留
-fence 并映射 `temporarily_unavailable`；可证明 Station 零写的 authenticated terminal rejection 统一映射
-`failed_precondition`，原 peer reason 只进入 private audit，禁止实现自由翻译。
+所有部署都必须在公开 operation 的边界上给出相同结果：current-device、generation、revocation pending、proof、
+session/DPoP 与 intent 的判定 fail closed；成功的 Event、唯一 RealmCommit 与 terminal outcome 可 exact replay；
+未知或不确定内部状态不得扩大公开信息。只有确实跨独立 service identity 与治理边界的调用才使用本章的
+Station-to-Station binding。
 
 #### 2.2.4 请求材料供给闭合（normative）
 
@@ -267,21 +230,14 @@ position 连续性按 ±1 检查，`readable_floor.oldest_position` 以下的缺
 该面**不使用 cursor**：单条 stream 内 `stream_position` 是严格 +1 全序，位置本身就是续传凭据，
 续页由客户端取本批的最大 / 最小 `stream_position` 得到。响应不返回 `prev_cursor` / `next_cursor` /
 `has_more`，服务端也不得在此接受 `ak:cursor:` 值（[`api-conventions.md` §7.2](./api-conventions.md)）。
-目标 Realm policy 对该 caller 拒绝 reference disclosure 时，`commits[].event` 返回
-`RedactedEventView` 或 `ReferenceLockedEventStub`（[`models/relation.md` §4.5](../models/relation.md)）；
-这两种形态是 projection-only 证据，不得作 reducer 输入。
-
-**行内一致性与存在性 ACL（normative）**：`event` 带 `event_id` 时，该 `event_id` 必须等于同一行
-`commit.event_ref`，不等则 caller MUST 拒绝该行，MUST NOT 二者取一或试图调和。由于 `commit.event_ref`
-已经点出 source Event，出现在本面的 `ReferenceLockedEventStub` MUST 携带 `event_id`——stub 的
-`event_id` 可选是为 reference projection 里连 event id 都不披露的场合准备的，stub 这个名字本身不构成
-隐私保证。验证 Commit 不是一次 reference-disclosure 判定：不获准知道 source Event 存在的 caller
-MUST NOT 收到该行本身，获准知道其存在的 caller 在这里拿到的 redacted / locked 投影与其它读取面一致；
-实现 MUST NOT 因为 caller 能验证 Commit 就交出完整 canonical payload bytes。
+目标 Realm policy 对该 caller 拒绝 Event disclosure 时，`CommittedEventView` 使用 closed withheld 分支
+`{commit,event_disclosure:{status:"withheld"}}`；允许披露时使用 full 分支 `{commit,event}`，且
+`event.event_id` MUST 等于 `commit.event_ref`。不等则 caller MUST 拒绝该项，MUST NOT 二者取一或试图调和。
+验证 Commit 不是 Event disclosure 判定；实现 MUST NOT 因为 caller 能验证 Commit 就交出完整 canonical
+payload bytes。两种分支都只由既有 Commit 定位，不产生新的资源 ID、签名或存储对象；只有 full 分支可作 reducer 输入。
 
 `POST /_arkret/peer/streams/scan` 使用相同 schema，但要求调用 Station 对该具体 stream 具有复制权。
 
-`POST /_arkret/peer/streams/resolve` 只接受 canonical sorted/unique 的 exact committed refs；每项
 必须同时给出 `event_id`、`commit_id`、`stream_ref` 与 `stream_position`。响应返回匹配的
 `RealmCommit + Event`。调用方必须对缺项、任一字段不匹配、Commit 签名失败或 authority chain
 不成立 fail closed。该操作用于 Directory 首次 ingest 等精确依赖验证，不得退化为按 Event ID
@@ -361,11 +317,6 @@ ACK 才提交。Station 只验证 RFC 9420 公开 transition、roster、sender �
 ### 5.1 MLS 运输
 
 MLS private bytes 保持端到端加密；Station 只处理公开 transition 和 recipient-addressed Welcome ciphertext。
-`ak.peer.events.read.resolve_committed.v1` 是 Directory ingest 的专用 exact-resolve，不是通用 peer
-读取入口。其 body 必须包含 `realm_id`、`source_ref_access` 和 `refs[]`。服务在读任何 Event 前
-MUST 验证 authenticated caller 等于 carrier `directory_id`，carrier 的 source/Realm/proof/expiry 与
-当前 announce 有效，并确认每个 `{event_id, commit_id, stream_ref, stream_position}` 都逐字属于
-carrier `source_refs`。它只返回 exact match；任何缺失或越界必须 fail closed，且不得退化为 scan。
 
 ## 6. 错误与缓存
 
@@ -555,39 +506,24 @@ RFC 9449 DPoP proof 只有 `iat`，没有 `expires` parameter，因此它 **MUST
 | `ak.find.directory.command.announce.v1` | `POST /_arkret/find/directory/announce` | - | - | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceRequestBody; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceOutcome |
 | `ak.find.directory.command.withdraw.v1` | `POST /_arkret/find/directory/withdraw` | - | - | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawRequestBody; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawOutcome |
 | `ak.find.directory.read.describe.v1` | `GET /_arkret/find/directory/describe` | - | - | response_schema_ref=schemas/service-describe.schema.json |
-| `ak.find.directory.read.list_handles_for_subject.v1` | `POST /_arkret/find/directory/list-handles-for-subject` | - | - | request_schema_ref=schemas/directory-operations.schema.json#/$defs/directory_list_handles_for_subject_request_body; response_schema_ref=schemas/list-handles-for-subject-response.schema.json |
-| `ak.find.directory.read.private_contact_discovery.v1` | `POST /_arkret/find/directory/private-contact-discovery` | - | - | request_schema_ref=schemas/directory-operations.schema.json#/$defs/directory_private_contact_discovery_request_body; response_schema_ref=schemas/directory-operations.schema.json#/$defs/directory_private_contact_discovery_outcome |
-| `ak.find.directory.read.resolve_agent_selector.v1` | `POST /_arkret/find/directory/resolve-agent-selector` | - | - | request_schema_ref=schemas/directory-operations.schema.json#/$defs/directory_resolve_agent_selector_request_body; response_schema_ref=schemas/directory-operations.schema.json#/$defs/directory_agent_selector_resolution_outcome |
-| `ak.find.directory.read.resolve_handle.v1` | `POST /_arkret/find/directory/resolve-handle` | - | - | request_schema_ref=schemas/directory-operations.schema.json#/$defs/directory_resolve_handle_request_body; response_schema_ref=schemas/directory-operations.schema.json#/$defs/directory_handle_resolution_outcome |
-| `ak.find.directory.read.resolve_organization.v1` | `POST /_arkret/find/directory/resolve-organization` | - | - | request_schema_ref=schemas/directory-operations.schema.json#/$defs/directory_resolve_organization_request_body; response_schema_ref=schemas/directory-operations.schema.json#/$defs/directory_organization_resolution_outcome |
 | `ak.find.directory.read.resolve_realm.v1` | `POST /_arkret/find/directory/resolve-realm` | - | - | request_schema_ref=schemas/directory-operations.schema.json#/$defs/directory_resolve_realm_request_body; response_schema_ref=schemas/directory-operations.schema.json#/$defs/directory_realm_resolution_outcome |
-| `ak.find.directory.read.resolve_target.v1` | `POST /_arkret/find/directory/resolve-target` | - | - | request_schema_ref=schemas/directory-operations.schema.json#/$defs/directory_resolve_target_request_body; response_schema_ref=schemas/directory-operations.schema.json#/$defs/directory_target_resolution_outcome |
-| `ak.find.directory.read.search_actors.v1` | `POST /_arkret/find/directory/search-actors` | - | - | request_schema_ref=schemas/directory-operations.schema.json#/$defs/directory_search_actors_request_body; response_schema_ref=schemas/directory-operations.schema.json#/$defs/directory_actor_search_outcome |
-| `ak.find.directory.read.search_organizations.v1` | `POST /_arkret/find/directory/search-organizations` | - | - | request_schema_ref=schemas/directory-operations.schema.json#/$defs/directory_search_organizations_request_body; response_schema_ref=schemas/directory-operations.schema.json#/$defs/directory_organization_search_outcome |
 | `ak.find.directory.read.search_realms.v1` | `POST /_arkret/find/directory/search-realms` | - | - | request_schema_ref=schemas/directory-operations.schema.json#/$defs/directory_search_realms_request_body; response_schema_ref=schemas/directory-operations.schema.json#/$defs/directory_realm_search_outcome |
-| `ak.find.directory.read.search_users.v1` | `POST /_arkret/find/directory/search-users` | - | - | request_schema_ref=schemas/directory-operations.schema.json#/$defs/directory_search_users_request_body; response_schema_ref=schemas/directory-operations.schema.json#/$defs/directory_user_search_outcome |
 | `ak.gate.account.command.abandon_identity_creation.v1` | `POST /_arkret/gate/account/identity-abandonments` | - | - | request_schema_ref=schemas/account-operations.schema.json#/$defs/identity_abandonment_request_body; response_schema_ref=schemas/account-operations.schema.json#/$defs/identity_abandonment_outcome |
 | `ak.gate.account.command.finalize_device_pairing.v1` | `POST /_arkret/gate/account/device-pairing/finalizations` | - | - | request_schema_ref=schemas/device-pairing.schema.json#/$defs/device_pairing_finalize_request_body; response_schema_ref=schemas/device-pairing.schema.json#/$defs/device_pairing_finalize_outcome |
-| `ak.gate.account.command.introspect_session_grant.v1` | `POST /_arkret/gate/account/session-grants/introspect` | - | - | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectRequestBody; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectOutcome |
-| `ak.gate.account.command.issue_controller_gate_attestation.v1` | `POST /_arkret/gate/account/controller-gate-attestations` | - | - | request_schema_ref=schemas/agent-authority-evidence.schema.json#/$defs/controller_account_gate_attestation_issue_request_body; response_schema_ref=schemas/agent-authority-evidence.schema.json#/$defs/controller_account_gate_attestation_issue_outcome |
 | `ak.gate.account.command.issue_did_binding_challenge.v1` | `POST /_arkret/gate/account/did-binding-challenges` | - | - | request_schema_ref=schemas/account-operations.schema.json#/$defs/did_binding_challenge_request_body; response_schema_ref=schemas/account-operations.schema.json#/$defs/did_binding_challenge_outcome |
 | `ak.gate.account.command.issue_identity_binding_challenge.v1` | `POST /_arkret/gate/account/identity-binding-challenges` | - | - | request_schema_ref=schemas/account-operations.schema.json#/$defs/identity_binding_challenge_request_body; response_schema_ref=schemas/account-operations.schema.json#/$defs/identity_binding_challenge_outcome |
 | `ak.gate.account.command.issue_recovery_completion_grant.v1` | `POST /_arkret/gate/account/recovery-session-grants/issue` | - | - | request_schema_ref=schemas/recovery-authority.schema.json#/$defs/issue_recovery_completion_grant_request; response_schema_ref=schemas/recovery-authority.schema.json#/$defs/issue_recovery_completion_grant_outcome |
 | `ak.gate.account.command.issue_session_grant.v1` | `POST /_arkret/gate/account/session-grants` | - | - | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRequestBody; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/SessionGrantOutcome |
 | `ak.gate.account.command.logout.v1` | `POST /_arkret/gate/account/logout` | - | - | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/AccountLogoutRequestBody; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/AccountLogoutOutcome |
-| `ak.gate.account.command.logout_auth_session.v1` | `POST /_arkret/gate/account/auth-sessions/logout` | - | - | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/AuthSessionLogoutRequestBody; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/AuthSessionLogoutOutcome |
 | `ak.gate.account.command.pair_agent_key.v1` | `POST /_arkret/gate/account/agent-key-pair` | - | - | request_schema_ref=schemas/agent-operations.schema.json#/$defs/agent_key_pair_request_body; response_schema_ref=schemas/agent-operations.schema.json#/$defs/agent_key_pair_outcome |
 | `ak.gate.account.command.pair_device.v1` | `POST /_arkret/gate/account/device-pair` | - | - | request_schema_ref=schemas/agent-operations.schema.json#/$defs/account_device_pair_request_body; response_schema_ref=schemas/agent-operations.schema.json#/$defs/account_device_pair_outcome |
 | `ak.gate.account.command.refresh_session_grant.v1` | `POST /_arkret/gate/account/session-grants/refresh` | - | - | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/SessionGrantRefreshRequestBody; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/SessionGrantOutcome |
 | `ak.gate.account.command.register.v1` | `POST /_arkret/gate/account/register` | - | - | request_schema_ref=schemas/account-operations.schema.json#/$defs/account_register_request_body; response_schema_ref=schemas/account-operations.schema.json#/$defs/account_register_outcome |
 | `ak.gate.account.command.request_erasure.v1` | `POST /_arkret/gate/account/erasure-requests` | - | - | request_schema_ref=schemas/account-operations.schema.json#/$defs/account_request_erasure_request_body; response_schema_ref=schemas/account-operations.schema.json#/$defs/account_request_erasure_outcome |
 | `ak.gate.account.command.revoke_session.v1` | `POST /_arkret/gate/account/session-grants/revoke` | - | - | request_schema_ref=schemas/account-operations.schema.json#/$defs/session_revoke_request_body; response_schema_ref=schemas/account-operations.schema.json#/$defs/session_revoke_outcome |
-| `ak.gate.account.command.stage_device_pairing.v1` | `POST /_arkret/gate/account/device-pairing/stages` | - | - | request_schema_ref=schemas/device-pairing.schema.json#/$defs/device_pairing_stage_request_body; response_schema_ref=schemas/device-pairing.schema.json#/$defs/device_pairing_stage_outcome |
 | `ak.gate.account.exchange.create_handoff.v1` | `POST /_arkret/gate/account/authentication-handoffs` | - | - | request_schema_ref=schemas/account-operations.schema.json#/$defs/account_handoff_request_body; response_schema_ref=schemas/account-operations.schema.json#/$defs/account_handoff_outcome |
 | `ak.gate.account.read.claim_device_pairing_code.v1` | `POST /_arkret/gate/account/device-pairing/code-claims` | - | - | request_schema_ref=schemas/device-pairing.schema.json#/$defs/device_pairing_code_claim_request_body; response_schema_ref=schemas/device-pairing.schema.json#/$defs/device_pairing_code_claim_outcome |
-| `ak.gate.account.read.device_pairing_status.v1` | `POST /_arkret/gate/account/device-pairing/status-queries` | - | - | request_schema_ref=schemas/device-pairing.schema.json#/$defs/device_pairing_status_request_body; response_schema_ref=schemas/device-pairing.schema.json#/$defs/device_pairing_status_outcome |
 | `ak.gate.account.read.onboarding.v1` | `GET /_arkret/gate/account/onboarding` | - | - | response_schema_ref=schemas/account-operations.schema.json#/$defs/account_onboarding_state |
-| `ak.gate.account.read.resolve_device_pairing.v1` | `POST /_arkret/gate/account/device-pairing/resolutions` | - | - | request_schema_ref=schemas/device-pairing.schema.json#/$defs/device_pairing_resolve_request_body; response_schema_ref=schemas/device-pairing.schema.json#/$defs/device_pairing_bootstrap |
 | `ak.open.agent_pairing.command.submit_runtime_key_request.v1` | `POST /_arkret/open/agent-pairing/runtime-key-requests` | - | - | request_schema_ref=schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_request_body; response_schema_ref=schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_outcome |
 | `ak.open.agent_pairing.read.resolve.v1` | `POST /_arkret/open/agent-pairing/resolve` | - | - | request_schema_ref=schemas/agent-operations.schema.json#/$defs/agent_pairing_resolve_request_body; response_schema_ref=schemas/agent-operations.schema.json#/$defs/agent_pairing_bootstrap |
 | `ak.open.agent_pairing.read.runtime_key_request_status.v1` | `POST /_arkret/open/agent-pairing/runtime-key-requests/status` | - | - | request_schema_ref=schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_status_request_body; response_schema_ref=schemas/agent-operations.schema.json#/$defs/agent_runtime_approval_status_outcome |
@@ -615,18 +551,15 @@ RFC 9449 DPoP proof 只有 `iat`，没有 `expires` parameter，因此它 **MUST
 | `ak.peer.account_status.command.submit.v1` | `POST /_arkret/peer/account-status` | - | - | request_schema_ref=schemas/account-operations.schema.json#/$defs/account_status_publication_request_body; response_schema_ref=schemas/account-operations.schema.json#/$defs/account_status_publication_outcome |
 | `ak.peer.account_status.read.resolve.v1` | `POST /_arkret/peer/account-status/resolve` | - | - | request_schema_ref=schemas/account-operations.schema.json#/$defs/account_status_resolve_request_body; response_schema_ref=schemas/account-operations.schema.json#/$defs/account_status_resolve_outcome |
 | `ak.peer.contacts.command.submit.v1` | `POST /_arkret/peer/contacts` | - | - | request_schema_ref=schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request; response_schema_ref=schemas/contact-operations.schema.json#/$defs/peer_contact_submit_outcome |
-| `ak.peer.device_revocations.command.check.v1` | `POST /_arkret/peer/device-revocations/check` | - | - | request_schema_ref=schemas/device-revocation-state.schema.json#/$defs/device_revocation_gate_check_request_body; response_schema_ref=schemas/device-revocation-state.schema.json#/$defs/device_revocation_gate_check_outcome |
 | `ak.peer.erasure_receipt.command.submit.v1` | `POST /_arkret/peer/erasure-receipts` | - | - | request_schema_ref=schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_submit_request_body; response_schema_ref=schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_submit_outcome |
 | `ak.peer.erasure_receipt.resource.get.v1` | `GET /_arkret/peer/erasure-receipts/{receipt_id}` | - | - | response_schema_ref=schemas/erasure-receipt-operations.schema.json#/$defs/erasure_receipt_resource |
 | `ak.peer.events.command.submit.v1` | `POST /_arkret/peer/events` | - | - | request_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request; response_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/peer_submit_outcome |
-| `ak.peer.events.read.resolve_committed.v1` | `POST /_arkret/peer/streams/resolve` | - | - | request_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/committed_event_resolve_request; response_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/committed_event_resolve_outcome |
-| `ak.peer.events.read.scan.v1` | `POST /_arkret/peer/streams/scan` | - | - | request_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request; response_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/stream_scan_outcome |
+| `ak.peer.committed_event.read.scan.v1` | `POST /_arkret/peer/streams/scan` | - | - | request_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request; response_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/stream_scan_outcome |
 | `ak.peer.invites.command.submit.v1` | `POST /_arkret/peer/invites` | - | - | request_schema_ref=schemas/invite-delivery-request.schema.json; response_schema_ref=schemas/invite-delivery-request.schema.json#/$defs/invite_delivery_outcome |
 | `ak.peer.keys.keypackages.command.claim.v1` | `POST /_arkret/peer/keys/keypackages/claim` | - | - | request_schema_ref=schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_request_body; response_schema_ref=schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_command_outcome |
 | `ak.peer.keys.keypackages.read.claim.v1` | `POST /_arkret/peer/keys/keypackages/claims/query` | - | - | request_schema_ref=schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_query_request_body; response_schema_ref=schemas/keypackage-operations.schema.json#/$defs/peer_keypackages_claim_query_outcome |
 | `ak.peer.keys.read.lookup.v1` | `POST /_arkret/peer/keys/query` | - | - | request_schema_ref=schemas/keys-operations.schema.json#/$defs/peer_keys_query_request_body; response_schema_ref=schemas/keys-operations.schema.json#/$defs/peer_keys_query_outcome |
 | `ak.peer.mls.read.group_state_material.v1` | `POST /_arkret/peer/mls/group-state-material` | - | - | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialRequestBody; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialOutcome |
-| `ak.peer.principal_genesis.command.submit.v1` | `POST /_arkret/peer/principal-genesis` | - | - | request_schema_ref=schemas/principal-operations.schema.json#/$defs/pcr_genesis_submit_request; response_schema_ref=schemas/principal-operations.schema.json#/$defs/pcr_genesis_submit_outcome |
 | `ak.peer.realm_authority.command.handoff.v1` | `POST /_arkret/peer/realm-authority/handoff` | - | - | request_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/handoff_request; response_schema_ref=schemas/realm-authority-handoff.schema.json |
 | `ak.peer.realm_join.read.application_status.v1` | `POST /_arkret/peer/realm-joins/application-status` | - | - | request_schema_ref=schemas/realm-join-intake.schema.json#/$defs/peer_application_status_request_body; response_schema_ref=schemas/realm-join-intake.schema.json#/$defs/peer_application_status_outcome |
 | `ak.peer.realm_join.read.bootstrap.v1` | `POST /_arkret/peer/realm-joins/bootstrap` | - | - | request_schema_ref=schemas/realm-join-intake.schema.json#/$defs/peer_bootstrap_request_body; response_schema_ref=schemas/realm-join-intake.schema.json#/$defs/peer_bootstrap_outcome |
@@ -711,9 +644,9 @@ RFC 9449 DPoP proof 只有 `iat`，没有 `expires` parameter，因此它 **MUST
 | `ak.self.direct_conversation.read.resolve.v1` | `POST /_arkret/self/direct-conversations/resolve` | - | - | request_schema_ref=schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_request; response_schema_ref=schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_outcome |
 | `ak.self.events.command.submit.v1` | `POST /_arkret/self/events` | - | - | request_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/self_submit_request; response_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/self_submit_outcome |
 | `ak.self.events.read.delivery_status.v1` | `QUERY /_arkret/self/events/delivery-status` | - | - | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/EventDeliveryStatusRequestBody; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/EventDeliveryStatusOutcome |
-| `ak.self.events.read.scan.v1` | `POST /_arkret/self/streams/scan` | - | - | request_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request; response_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/stream_scan_outcome |
-| `ak.self.events.resource.get.v1` | `GET /_arkret/self/events/{event_id}` | - | - | response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/EventView |
-| `ak.self.events.stream.subscribe.v1` | `GET /_arkret/self/events/subscribe` | - | - | response_schema_ref=schemas/events-subscribe-frame.schema.json |
+| `ak.self.committed_event.read.scan.v1` | `POST /_arkret/self/streams/scan` | - | - | request_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request; response_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/stream_scan_outcome |
+| `ak.self.committed_event.resource.get.v1` | `GET /_arkret/self/committed-events/{event_id}` | - | - | response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/CommittedEventView |
+| `ak.self.committed_event.stream.subscribe.v1` | `GET /_arkret/self/committed-events/subscribe` | - | - | response_schema_ref=schemas/committed-event-subscribe-frame.schema.json |
 | `ak.self.identity.read.resolution_audit.v1` | `POST /_arkret/self/identity/resolution-audit/query` | - | - | request_schema_ref=schemas/identity-resolution.schema.json#/$defs/principal_resolution_audit_request; response_schema_ref=schemas/identity-resolution.schema.json#/$defs/principal_resolution_audit_evidence |
 | `ak.self.invite_locator.command.issue.v1` | `POST /_arkret/self/invite-locators` | - | - | request_schema_ref=schemas/principal-locator.schema.json#/$defs/invite_locator_issue_request_body; response_schema_ref=schemas/principal-locator.schema.json#/$defs/invite_locator_issue_outcome |
 | `ak.self.invite_locator.command.revoke.v1` | `POST /_arkret/self/invite-locators/revoke` | - | - | request_schema_ref=schemas/principal-locator.schema.json#/$defs/invite_locator_revoke_request_body; response_schema_ref=schemas/principal-locator.schema.json#/$defs/invite_locator_revoke_outcome |

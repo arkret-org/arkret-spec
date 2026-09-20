@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.14",
+  "version": "2026-09-20.15",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T13:43:30+08:00",
+  "generated_at": "2026-09-20T16:42:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -551,7 +551,7 @@
       "applies_to_profiles": [
         "ak.profile.core_event_store.v1"
       ],
-      "description": "An Event whose refs[role=causal] predecessor is unresolvable or not yet committed fails closed or waits locally instead of being silently accepted, synthesized or decided by arrival order.",
+      "description": "An Event whose semantic_refs[role=causal] predecessor is unresolvable or not yet committed fails closed or waits locally instead of being silently accepted, synthesized or decided by arrival order.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-suite.md",
         "spec/v1/zh/conformance/conformance-vectors.md",
@@ -565,7 +565,7 @@
       "applies_to_profiles": [
         "ak.profile.core_event_store.v1"
       ],
-      "description": "An exact canonical-bytes retry of a waiting Event preserves refs[role=authorized_by] and the domain expected_revision verbatim, re-decides current authorization, and still deterministically rejects a stale CAS without producing a Commit.",
+      "description": "An exact canonical-bytes retry of a waiting Event preserves semantic_refs[role=authorized_by] and the domain expected_revision verbatim, re-decides current authorization, and still deterministically rejects a stale CAS without producing a Commit.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-suite.md",
         "spec/v1/zh/conformance/conformance-vectors.md",
@@ -1519,23 +1519,10 @@
       "applies_to_fixtures": [
         "protocol-edge-cases-fixture.json"
       ],
-      "description": "Device pairing is a two-phase pending request: stage stays account-less, and finalize is the one authenticated step that binds the record to an exact AccountId by attaching a target proof signed over a transcript that includes it. The eight-character code is unique across the whole live pending window, so a second stage call always mints a distinct one and is the only input of the authenticated code claim, which returns the byte-equivalent bootstrap and proof of the QR path and never a weaker code-only branch. Before code lookup, the Account Authority verifies an active Standard human SessionGrant and exact HTTP DPoP JTI, applies caller-device/AccountId/service transport buckets, then uses ak.peer.device_revocations.command.check.v1 with the dedicated device_pairing_code_claim action class and both signed device_binding selectors. SessionGrant alone is never current-device authority and the action MUST NOT be represented as event_write. Every non-allow, unavailable, mismatched or expired receipt fails before lookup with no pairing disclosure or request-id budget write. After allow, only the Account Authority reads its single gate-side pending and abuse ledger. staged advances one way to ready_for_claim, and a successful finalize supersedes every other unaccepted ready_for_claim record of the same AccountId into terminal expired in the same durable transaction, keyed by AccountId alone so a refreshed page and a different device behave identically, never rewriting an outcome pair_device already accepted and never superseding twice on an exact retry. The Account Authority's separate service-private ledger is keyed only by device_pairing_request_id: unknown ids or codes create no row, exact successful replays never count, failures one through nine preserve pending state, and the tenth count atomically expires and consumes a pending record while authorized and durable pair_device outcomes remain immutable. An unknown, wrong, expired, superseded, locked, cross-account, not yet finalized or already consumed code is indistinguishable from every other in one uniform not_found, while status still reports expired for a superseded or locked record exactly as it does for an elapsed TTL.",
+      "description": "Device pairing is a two-phase pending request: stage stays account-less, and finalize is the one authenticated step that binds the record to an exact AccountId by attaching a target proof signed over a transcript that includes it. The eight-character code is unique across the whole live pending window, so a second stage call always mints a distinct one and is the only input of the authenticated code claim, which returns the byte-equivalent bootstrap and proof of the QR path and never a weaker code-only branch. Before code lookup, the Account Authority verifies an active Standard human SessionGrant and exact HTTP DPoP JTI, applies caller-device/AccountId/service transport buckets, then obtains a fresh private current-device decision using both signed device_binding selectors. SessionGrant alone is never current-device authority. Every non-allow, unavailable, mismatched or expired receipt fails before lookup with no pairing disclosure or request-id budget write. After allow, only the Account Authority reads its single gate-side pending and abuse ledger. staged advances one way to ready_for_claim, and a successful finalize supersedes every other unaccepted ready_for_claim record of the same AccountId into terminal expired in the same durable transaction, keyed by AccountId alone so a refreshed page and a different device behave identically, never rewriting an outcome pair_device already accepted and never superseding twice on an exact retry. The Account Authority's separate service-private ledger is keyed only by device_pairing_request_id: unknown ids or codes create no row, exact successful replays never count, failures one through nine preserve pending state, and the tenth count atomically expires and consumes a pending record while authorized and durable pair_device outcomes remain immutable. An unknown, wrong, expired, superseded, locked, cross-account, not yet finalized or already consumed code is indistinguishable from every other in one uniform not_found, while status still reports expired for a superseded or locked record exactly as it does for an elapsed TTL.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
         "spec/v1/zh/crypto-media/device-lifecycle.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.device_pairing.split_admission_saga.v1",
-      "status": "active",
-      "domain": "device_pairing",
-      "applies_to_fixtures": [
-        "device-pairing-split-admission-saga-fixture.json"
-      ],
-      "description": "A split Station/Account-Authority deployment keeps the three public open operations on the Station while the Authority owns the only pending, abuse, fence and terminal ledger. Stage is a non-retry-safe public invocation mapped to a fresh Station internal key, while internal stage durably deduplicates that key and resolve/status remain byte-identical read-only proxies. pair_device freezes one authority_forward request, advances the Authority fence prepared -> station_accepted -> completed around the exact owning-Station RealmCommit, survives every registered crash cut without a second Event, protects fenced rows from TTL/failure-budget/finalize supersession, and exposes neither a second ledger nor an in_progress public state.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/device-pairing-split-admission-saga-fixture.json",
-        "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
     {
@@ -1715,9 +1702,14 @@
       "vector_id": "ak.vector.direct_conversation.signal_admission.v1",
       "status": "active",
       "domain": "direct_conversation",
-      "applies_to_fixtures": ["direct-conversation-signal-admission-fixture.json"],
+      "applies_to_fixtures": [
+        "direct-conversation-signal-admission-fixture.json"
+      ],
       "description": "Typing, receipt and call share an encrypted-only Signal outer rail. Four read-only freshness boundaries gate the verified current-governance projection; self failure is non-enumerating, peer failure is opaque, delivery failure emits no frame, and only the recipient inspects exact product kind.",
-      "source_refs": ["spec/v1/artifacts/fixtures/direct-conversation-signal-admission-fixture.json", "spec/v1/zh/sync/signal.md"]
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/direct-conversation-signal-admission-fixture.json",
+        "spec/v1/zh/sync/signal.md"
+      ]
     },
     {
       "vector_id": "ak.vector.direct_conversation.admission.root_mask_violation.v1",
@@ -1753,19 +1745,6 @@
       "description": "The exact bound peer remains valid in the atomic founding unit. A pair-external invite or direct join rejects with direct_conversation_third_party_member_forbidden; when the same invite also matches the general invite guard, the third-party reason deterministically wins.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/direct-conversation-admission-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.directory.accept_policy_denied.v1",
-      "status": "active",
-      "domain": "directory",
-      "applies_to_fixtures": [
-        "privacy-security-fixture.json"
-      ],
-      "description": "A resource outside the declared Directory accept_policy is rejected with accept_policy_denied and produces no entry, no partial state and no information about other resources.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
-        "spec/v1/zh/discovery/discovery-directory.md"
       ]
     },
     {
@@ -1821,97 +1800,6 @@
       ]
     },
     {
-      "vector_id": "ak.vector.directory.announce_source_ref_access_bounds.v1",
-      "status": "active",
-      "domain": "directory",
-      "applies_to_fixtures": [
-        "privacy-security-fixture.json"
-      ],
-      "description": "Directory announce accepts only a current source-signed carrier for the authenticated Directory and exact announce, and peer exact resolve returns only requested refs inside that carrier; wrong source, wrong Directory, expiry, supersession, withdrawal and out-of-carrier selectors fail closed.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
-        "spec/v1/zh/discovery/discovery-directory.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.directory.invite_not_found_blinding.v1",
-      "status": "active",
-      "domain": "directory",
-      "applies_to_fixtures": [
-        "privacy-security-fixture.json"
-      ],
-      "description": "Missing, hidden and invite-only-without-proof Realm resolutions return the same 404 not_found status, body shape and timing bucket, and never leak realm_id, title, join_rule, discoverability, member_ids or service endpoints.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
-        "spec/v1/zh/discovery/discovery-directory.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.directory.operator_takedown_audit.v1",
-      "status": "active",
-      "domain": "directory",
-      "applies_to_fixtures": [
-        "privacy-security-fixture.json"
-      ],
-      "description": "An operator takedown records an auditable decision, blocks the entry from further external exposure, and gives external callers a blinded response indistinguishable from absence.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
-        "spec/v1/zh/discovery/discovery-directory.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.directory.organization_badge_verification.v1",
-      "status": "active",
-      "domain": "directory",
-      "applies_to_fixtures": [
-        "privacy-security-fixture.json"
-      ],
-      "description": "An organization badge is shown only from independently verified evidence bound to the organization DID control state; unverified or expired evidence yields no badge rather than a weaker claim.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
-        "spec/v1/zh/discovery/discovery-directory.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.directory.organization_search.v1",
-      "status": "active",
-      "domain": "directory",
-      "applies_to_fixtures": [
-        "privacy-security-fixture.json"
-      ],
-      "description": "Organization search returns only entries whose discoverability admits keyword search, and every result carries the common as_of, source_refs and policy_revision fields.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
-        "spec/v1/zh/discovery/discovery-directory.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.directory.pairwise_did_exclusion.v1",
-      "status": "active",
-      "domain": "directory",
-      "applies_to_fixtures": [
-        "privacy-security-fixture.json"
-      ],
-      "description": "The Directory never holds or returns pairwise or private persona DIDs: they are excluded from ingest, from query results and from any derived index.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
-        "spec/v1/zh/discovery/discovery-directory.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.directory.policy_revision_rollback.v1",
-      "status": "active",
-      "domain": "directory",
-      "applies_to_fixtures": [
-        "privacy-security-fixture.json"
-      ],
-      "description": "An announce whose as_of predates the stored entry, or whose policy_revision derives from a checkpoint already superseded, is rejected with policy_revision_rollback; the digest itself is never compared lexicographically.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
-        "spec/v1/zh/discovery/discovery-directory.md"
-      ]
-    },
-    {
       "vector_id": "ak.vector.directory.public_realm_search.v1",
       "status": "active",
       "domain": "directory",
@@ -1938,97 +1826,6 @@
       ]
     },
     {
-      "vector_id": "ak.vector.directory.resolve_agent_selector_failure_blinding.v1",
-      "status": "active",
-      "domain": "directory",
-      "applies_to_fixtures": [
-        "privacy-security-fixture.json"
-      ],
-      "description": "resolve_agent_selector failure branches for missing, hidden, and unauthorized selectors return the same status, body shape, error class, and timing bucket.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
-        "spec/v1/zh/discovery/discovery-directory.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.directory.resolve_handle_failure_blinding.v1",
-      "status": "active",
-      "domain": "directory",
-      "applies_to_fixtures": [
-        "privacy-security-fixture.json"
-      ],
-      "description": "resolve_handle failure branches for missing, hidden, and unauthorized handles return the same status, body shape, error class, and timing bucket.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
-        "spec/v1/zh/discovery/discovery-directory.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.directory.resolve_target_blinding.v1",
-      "status": "active",
-      "domain": "directory",
-      "applies_to_fixtures": [
-        "privacy-security-fixture.json"
-      ],
-      "description": "Resolving a hidden target is indistinguishable from resolving a target that does not exist, in status, body shape and timing bucket.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
-        "spec/v1/zh/discovery/discovery-directory.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.directory.restricted_claim_presentation.v1",
-      "status": "active",
-      "domain": "directory",
-      "applies_to_fixtures": [
-        "privacy-security-fixture.json"
-      ],
-      "description": "A restricted handle or claim is returned only when the caller satisfies the registered presentation and policy gate; otherwise the account_id and claim contents are withheld rather than partially disclosed.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
-        "spec/v1/zh/discovery/discovery-directory.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.directory.result_common_fields.v1",
-      "status": "active",
-      "domain": "directory",
-      "applies_to_fixtures": [
-        "privacy-security-fixture.json"
-      ],
-      "description": "Every Directory result carries as_of and policy_revision, and carries a non-empty sorted duplicate-free CommittedEventRef[] source_refs whenever it has an Event source, omitting the field entirely when it has none.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
-        "spec/v1/zh/discovery/discovery-directory.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.directory.stale_result_rejection.v1",
-      "status": "active",
-      "domain": "directory",
-      "applies_to_fixtures": [
-        "privacy-security-fixture.json"
-      ],
-      "description": "A result past its TTL or contradicting the verified source_refs checkpoint is marked stale or removed, and consumers reject it instead of treating it as current.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
-        "spec/v1/zh/discovery/discovery-directory.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.directory.takedown_reannounce_rejected.v1",
-      "status": "active",
-      "domain": "directory",
-      "applies_to_fixtures": [
-        "privacy-security-fixture.json"
-      ],
-      "description": "Re-announcing a resource under an in-force takedown is rejected with takedown_in_force and the external response stays blinded.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
-        "spec/v1/zh/discovery/discovery-directory.md"
-      ]
-    },
-    {
       "vector_id": "ak.vector.directory.ttl_expiry_removal.v1",
       "status": "active",
       "domain": "directory",
@@ -2036,19 +1833,6 @@
         "privacy-security-fixture.json"
       ],
       "description": "An entry whose TTL expires without renewal is marked stale or removed, and never keeps answering queries as a current entry.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
-        "spec/v1/zh/discovery/discovery-directory.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.directory.unlisted_exact_resolve.v1",
-      "status": "active",
-      "domain": "directory",
-      "applies_to_fixtures": [
-        "privacy-security-fixture.json"
-      ],
-      "description": "An unlisted resource stays out of keyword search but, where policy allows, resolves by exact id, alias, signed invite or source Realm edge, and a disallowed attempt fails indistinguishably from absence.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -2263,18 +2047,6 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json",
         "spec/v1/zh/models/sidecar.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.encoding.event_batch_receipt_digest.v1",
-      "status": "active",
-      "domain": "encoding",
-      "applies_to_fixtures": [
-        "encoding-fixture.json"
-      ],
-      "description": "Event Batch Receipt events[] is a canonical set projection sorted by UTF8(canonical_json(item)) with duplicates removed before signing; receivers reject unsorted or duplicate signed wire arrays before digest verification.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/encoding-fixture.json"
       ]
     },
     {
@@ -3869,16 +3641,6 @@
       ]
     },
     {
-      "vector_id": "ak.vector.proof_context.transcript.event_batch_receipt.v1",
-      "status": "active",
-      "domain": "proof_context",
-      "scope": "universal",
-      "description": "Transcript KAT for ak.receipt_proof.v1: digest input deletes `proofs`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.registration_did_evidence_control_proof.v1 rejected.",
-      "source_refs": [
-        "spec/v1/artifacts/registry/normative-clause-registry.json"
-      ]
-    },
-    {
       "vector_id": "ak.vector.proof_context.transcript.event_envelope.v1",
       "status": "active",
       "domain": "proof_context",
@@ -3898,58 +3660,6 @@
       "description": "Projects the three registered protocol clock-tolerance scenarios at every inclusive limit and one millisecond beyond it: approval approved_at is future-only, while temporal constraints and blob presign TTLs cover both future not-before and past-expiry edges.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/protocol-time-tolerance-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.psi.no_reachability_metadata.v1",
-      "status": "active",
-      "domain": "psi",
-      "applies_to_fixtures": [
-        "privacy-security-fixture.json"
-      ],
-      "description": "Private contact discovery returns set membership only: it never exposes reachability, provider routing, presence or any other metadata about the queried identifiers.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
-        "spec/v1/zh/discovery/discovery-directory.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.psi.oprf_two_round_shape.v1",
-      "status": "active",
-      "domain": "psi",
-      "applies_to_fixtures": [
-        "privacy-security-fixture.json"
-      ],
-      "description": "Private contact discovery keeps the fixed two-round blind/match OPRF shape bound to the advertised key epoch, and a request that collapses or reorders the rounds is refused rather than answered.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
-        "spec/v1/zh/discovery/discovery-directory.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.psi.padding_and_cardinality.v1",
-      "status": "active",
-      "domain": "psi",
-      "applies_to_fixtures": [
-        "privacy-security-fixture.json"
-      ],
-      "description": "The wire batch cardinality equals the advertised batch_item_count rather than the real identifier count, evaluated elements and derived prefixes keep the same length and order as the blinded input, a single batched DLEQ proof verifies under the described public key, and the result count never reveals the match count.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
-        "spec/v1/zh/discovery/discovery-directory.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.psi.quota_blinded_denial.v1",
-      "status": "active",
-      "domain": "psi",
-      "applies_to_fixtures": [
-        "privacy-security-fixture.json"
-      ],
-      "description": "Quota exhaustion in the blind phase returns 429 psi_quota_exhausted as a padded Class-B problem whose maximal string projection is fixed, so the denial reveals neither the real batch contents nor which phase-specific condition fired.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
-        "spec/v1/zh/discovery/discovery-directory.md"
       ]
     },
     {
@@ -4058,10 +3768,10 @@
       "applies_to_fixtures": [
         "realm-join-candidate-locator-fixture.json"
       ],
-      "description": "RealmJoinCandidate is one closed, untrusted authority-bundle locator core shared directly by Directory, invite delivery, and join intake. Locator arrays contain 1..8 entries strictly ordered by service_id UTF-8 bytes and reject duplicate or conflicting service identities as a whole. Realm and freshness come only from the enclosing carrier and nonce-bound current assertion; only verified Realm genesis plus a continuous handoff chain selects the current governance Station.",
+      "description": "RealmJoinCandidate is one closed, untrusted authority-bundle locator core shared by invite delivery and join intake. Locator arrays contain 1..8 entries strictly ordered by service_id UTF-8 bytes and reject duplicate or conflicting service identities as a whole. Realm and freshness come only from the enclosing carrier and nonce-bound current assertion; only verified Realm genesis plus a continuous handoff chain selects the current governance Station. Directory never returns this carrier.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/realm-join-candidate-locator-fixture.json",
-        "spec/v1/zh/discovery/discovery-directory.md"
+        "spec/v1/zh/sync/invite-addressing.md"
       ]
     },
     {
@@ -4315,7 +4025,7 @@
       "applies_to_fixtures": [
         "scalability-limits-fixture.json"
       ],
-      "description": "Event refs[role=authorized_by] stays within its limit of 64 entries and the overall refs[] within 128, and an over-limit Event is rejected whole rather than truncated to fit.",
+      "description": "Event semantic_refs[role=authorized_by] stays within its limit of 64 entries and the overall semantic_refs[] within 128, and an over-limit Event is rejected whole rather than truncated to fit.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
       ]
@@ -4399,7 +4109,7 @@
       "applies_to_fixtures": [
         "scalability-limits-fixture.json"
       ],
-      "description": "Event refs[] is capped at 128 typed business references and an over-limit Event is rejected as a whole; there are no predecessor or actor-chain refs to spill into.",
+      "description": "Event semantic_refs[] is capped at 128 typed business references and an over-limit Event is rejected as a whole; there are no predecessor or actor-chain references to spill into.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
       ]
@@ -4423,7 +4133,7 @@
       "applies_to_profiles": [
         "ak.profile.full_client.v1"
       ],
-      "description": "hlc, producer_revision, domain_refs and requirements at the Event top level are each refused with schema_violation rather than ignored or stripped, and producer_proof, scope_ref, actor_id and refs[role=authorized_by] cannot be omitted or synthesized from a default, the transport, the session or a neighbouring event before the verification path runs.",
+      "description": "hlc, producer_revision, domain_refs and requirements at the Event top level are each refused with schema_violation rather than ignored or stripped, and producer_proof, scope_ref, actor_id and semantic_refs[role=authorized_by] cannot be omitted or synthesized from a default, the transport, the session or a neighbouring event before the verification path runs.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/zh/conformance/conformance-profiles.md",
@@ -5032,13 +4742,13 @@
       ]
     },
     {
-      "vector_id": "ak.vector.sync.event_read_row_integrity.v1",
+      "vector_id": "ak.vector.sync.committed_event_view_integrity.v1",
       "status": "active",
       "domain": "sync",
       "applies_to_fixtures": [
         "protocol-edge-cases-fixture.json"
       ],
-      "description": "stream_row integrity: event_id equals commit.event_ref, locked stubs carry event_id, redacted and locked rows are not reducer input, and the existence ACL withholds the whole row.",
+      "description": "CommittedEventView integrity: a full Event id equals commit.event_ref; the only non-full branch is the closed withheld marker, which is never reducer input; obsolete redacted and locked-stub shapes are rejected.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
         "spec/v1/zh/conformance/conformance-suite.md"

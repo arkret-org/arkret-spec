@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.agent_provisioning.v1",
-  "version": "2026-09-19.2",
+  "version": "2026-09-20",
   "suite": "agent_vectors",
   "runner": {
     "kind": "named_suite",
@@ -187,7 +187,7 @@
         "accountability_scope": "agent_operator",
         "selector_visibility": "private",
         "created_at": "2026-08-02T00:00:00.000Z",
-        "requested_scope_digest": "sha256:65f28525de85b1dd7b1086be2c06e51271b1d954b815dd581e15423efbb35084"
+        "requested_scope_digest": "sha256:fcdc0d9a579d073a680854d396140edf510ff90eff74f52124baca4cc2313e83"
       }
     },
     {
@@ -206,7 +206,7 @@
         "selector_visibility": "private",
         "created_at": "2026-08-02T00:00:00.000Z",
         "proofs": [],
-        "requested_scope_digest": "sha256:65f28525de85b1dd7b1086be2c06e51271b1d954b815dd581e15423efbb35084"
+        "requested_scope_digest": "sha256:fcdc0d9a579d073a680854d396140edf510ff90eff74f52124baca4cc2313e83"
       }
     },
     {
@@ -274,7 +274,7 @@
           "resources": [
             {
               "kind": "operation",
-              "operation": "ak.self.events.read.scan.v1"
+              "operation": "ak.self.committed_event.read.scan.v1"
             }
           ]
         }
@@ -313,22 +313,22 @@
         "requested_scope": {
           "actions": [
             "ak.event.read",
-            "ak.self.events.stream.subscribe.v1"
+            "ak.self.committed_event.stream.subscribe.v1"
           ],
           "resources": [
             {
               "kind": "operation",
-              "operation": "ak.self.events.stream.subscribe.v1"
+              "operation": "ak.self.committed_event.stream.subscribe.v1"
             }
           ]
         },
-        "expected_digest": "sha256:65f28525de85b1dd7b1086be2c06e51271b1d954b815dd581e15423efbb35084"
+        "expected_digest": "sha256:fcdc0d9a579d073a680854d396140edf510ff90eff74f52124baca4cc2313e83"
       },
       "public_did_service_endpoint": {
         "realm_id": "ak:realm:ATH75ame6bMfYpXtcoLOVb7FKmgpWVniZZqVBz1dUdQa",
         "controller_did": "did:webvh:z6mkcontroller:controller.example",
         "authorization_ref": "did:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey:agent.example#managed-controller",
-        "requested_scope_digest": "sha256:65f28525de85b1dd7b1086be2c06e51271b1d954b815dd581e15423efbb35084"
+        "requested_scope_digest": "sha256:fcdc0d9a579d073a680854d396140edf510ff90eff74f52124baca4cc2313e83"
       },
       "assertions": [
         "agent provision operation id remains ak.self.agent.command.provision.v1",
@@ -429,12 +429,12 @@
         "requested_scope": {
           "actions": [
             "ak.event.read",
-            "ak.self.events.stream.subscribe.v1"
+            "ak.self.committed_event.stream.subscribe.v1"
           ],
           "resources": [
             {
               "kind": "operation",
-              "operation": "ak.self.events.stream.subscribe.v1"
+              "operation": "ak.self.committed_event.stream.subscribe.v1"
             }
           ]
         },

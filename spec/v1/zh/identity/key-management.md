@@ -308,7 +308,6 @@ caller 自报 active 布尔值都是 schema violation。
 Account Authority 是同一 owning Station 下的独立签名职责，可以使用专用 verification method，但没有独立 service DID（见 overview/architecture.md 与 sync/service-surface.md）。消费者从实际 Agent 完整 AccountId 独立取得 Station：gate.authority_id MUST 等于该 Station；controller 的完整 AccountId 从 key_authorization_event 的已验证原始 producer proof 与可携带授权 与 producer 身份取得，MUST 等于 {principal_id: binding.controller_principal_id, station_id: Agent AccountId.station_id}。同 principal 在另一 Station 的 Account 或 gate 自报 authority 均不能替代。controller binding 使用该 Event 冻结的 producer method/key 验签；设备 method 不要求出现在 Principal DID assertionMethod 中，不再携带独立 controller signer evidence ref。
 
 Agent authority **不能自行合成 Account Authority evidence**。当签发或直接消费需要 current-query 语义的结果且缺少未过期、匹配 controller principal 的 gate 时，
-它 MUST 使用部署内已登记的 `ak.gate.account.command.issue_controller_gate_attestation.v1`，提交 closed
 `{request_id, principal_id, agent_authority_id}`。该请求走**部署内认证合同**：认证 MUST 绑定已配置的调用方、目标
 Station、trust domain 与允许的 operation，Account Authority MUST 只从该已认证调用关系取得调用方身份。请求体不携带、
 也不得重新引入任何 service resolution carrier；`Source-Service-ID`、客户端自报的 `internal` 字段、裸 DID、URL、bearer
@@ -592,7 +591,7 @@ MLS KeyPackage 携带 MLS leaf/init 等群组加入材料，但 Arkret 不为它
 - `actor_id` MUST 是签发该控制事件的 principal、已授权 device 或受信 recovery service。
 - `payload.principal_id` MUST 与该 control Realm 绑定的 principal `did_core_id` 一致；不一致时 MUST reject。
 - control Realm 的 `ak.realm.create` 或等价 genesis record MUST 绑定 principal `did_core_id`、`initial_resolution={did,method_history_head,version_id}`、control stream policy 和可发现的 service endpoint。Station MUST 用 method adapter 独立验证 `project(did) == principal_id`，并以 genesis 初始化 `identity_resolution`。该 Realm 使用标准 `ak.schema.realm.v1`；类别由签名 genesis `purpose` 唯一决定（human / organization PCR 为 `principal_control`，Agent PCR 为 `agent_control`），materialized `fields.purpose` 只是它的只读投影（见 [`../models/realm-and-space.md` §2.3.A](../models/realm-and-space.md#23a-字段-carrier-inventorynormative)）。control realm **不**使用单独的 Realm kind——所有 Realm-level 验证（schema、boundary、E2EE、federation）走标准 Realm 路径。
-- 普通 Collaboration Realm 的业务事件 MAY 通过 `refs[role=authorized_by]` 引用不可变 grant record；若需引用已接受的 principal control Event，MUST 使用现有 `refs[role=attestation]` Event ref，并按被引用 Event 所属域的要求验证其原始 proof、RealmCommit 与必要的 unit／receipt closure ——该 ref 本身不授予任何 device/session authority。非 Event 的 verified snapshot reference 与 device-state authority commit 继续走各自的专用载体，MUST NOT 塞进 `semantic_ref.id`；`authorized_by` 不得使用 Event id alias，也不得把另一个 principal 的 device/session 事件直接写入该 Collaboration Realm history 来改变身份状态。
+- 普通 Collaboration Realm 的业务事件 MAY 通过 `semantic_refs[role=authorized_by]` 引用不可变 grant record；若需引用已接受的 principal control Event，MUST 使用现有 `semantic_refs[role=attestation]` Event ref，并按被引用 Event 所属域的要求验证其原始 proof、RealmCommit 与必要的 unit／receipt closure ——该 ref 本身不授予任何 device/session authority。非 Event 的 verified snapshot reference 与 device-state authority commit 继续走各自的专用载体，MUST NOT 塞进 `semantic_ref.id`；`authorized_by` 不得使用 Event id alias，也不得把另一个 principal 的 device/session 事件直接写入该 Collaboration Realm history 来改变身份状态。
 
 **`principal_control_realm_id` 不在公开面上（normative）**：`ak.open.identity.read.resolution.v1` 的 public projection MUST NOT 携带它（见 [`./identity-did.md` §4.2](./identity-did.md)）。实际需要使用该 principal PCR 控制事实的一方，MUST 从与自身角色相符的授权来源取得并独立验证 canonical `principal_control_realm_id`：holder 与 recovery actor 用 `ak.self.identity.read.resolution_audit.v1`；关系对端只使用其特定 operation 已登记且获授权的 carrier（`ak.peer.contacts.command.submit.v1` 逐字投递的 signed Event envelope、`ak.peer.account_status.*` 的 authority evidence）；Agent 用其 DID Document 的唯一 `ArkretPrincipalControlRealm` service entry；本地账号还可用自己的 account binding。normalized principal view 只在其输入本身来自上述已验证来源时可用。外部 verifier 对敏感操作 MUST 获取最新 evidence 并独立验证；它不必长期持久化其他 principal 的 resolution，短 TTL cache 也不得代替 freshness。需要 PCR authority 的操作无法验证 control Realm 与 principal `did_core_id` / `did` projection 的绑定时，MUST fail closed。
 
@@ -644,7 +643,6 @@ Account Authority 将 exact draft 持久化为单调 saga：
 reserved -> did_published -> pcr_accepted -> account_bound -> completed
 ```
 
-它发布 exact client-signed DID operation，再通过 `ak.peer.principal_genesis.command.submit.v1` 透明 relay exact genesis unit。Station 独立验证所有内容 proof，并原子接受两条 Event，返回 `scope.kind="pcr_genesis_unit"` 的 batch receipt。Account Authority 只有在 receipt 与 frozen registration 逐字一致后才能提交一账号一 principal binding，并从 durable issuer ledger 签发首个 `credential_class="standard"` grant。
 
 #### 5.0.1 Root commitment 与无环约束（normative）
 
@@ -755,7 +753,7 @@ Control Realm 不保存 grant genesis、grant state typed current result 或其�
   "audience_id": "ak:did_core:webvh:z6mkfixtureserviceexample",
   "scopes": [
     "ak.self.account.read.describe.v1",
-    "ak.self.events.read.scan.v1"
+    "ak.self.committed_event.read.scan.v1"
   ],
   "not_before": "2026-08-08T12:00:00.000Z",
   "expires_at": "2026-08-08T13:00:00.000Z",

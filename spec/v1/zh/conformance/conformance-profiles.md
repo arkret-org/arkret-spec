@@ -174,7 +174,7 @@ MAY 支持 gossip、snapshot-assisted bootstrap、MIMI facade、Applet bridge �
 
 - 事件名必须符合 `ak.` 命名规则，且标准 `ak.*` Event kind 必须在 `artifacts/registry/event-kind-registry.json` 注册；schema id 必须在 `artifacts/registry/schema-registry.json` 注册。
 - Event Envelope MUST 先通过 `ak.schema.event.v1`，再按 `Event.kind` 通过 `ak.schema.event_payload.v1` 对应 payload class；active 标准 kind 未匹配 payload class 或 payload 校验失败时 MUST 返回 `schema_violation`，不得进入 reducer。
-- Event 的 `created_at`、`realm_id`、`producer_proof`、`scope_ref`、`actor_id`、`refs[role=authorized_by]` 在 reducer 与验证逻辑中不能被跳过。Event 不携带 `hlc`、`producer_revision`、`domain_refs` 或 `requirements`（封闭禁用集合见 [`../models/event-and-patch.md` §2.2](../models/event-and-patch.md)），因此 SDK MUST NOT 为它们保留读取或校验入口；每个 Event kind 绑定的封闭 typed reducer 由 `event-kind-registry.json` 唯一决定。
+- Event 的 `created_at`、`realm_id`、`producer_proof`、`scope_ref`、`actor_id`、`semantic_refs[role=authorized_by]` 在 reducer 与验证逻辑中不能被跳过。Event 不携带 `hlc`、`producer_revision`、`domain_refs` 或 `requirements`（封闭禁用集合见 [`../models/event-and-patch.md` §2.2](../models/event-and-patch.md)），因此 SDK MUST NOT 为它们保留读取或校验入口；每个 Event kind 绑定的封闭 typed reducer 由 `event-kind-registry.json` 唯一决定。
 - `auth` 约束必须执行，不得通过客户端配置豁免。
 - State / snapshot / projection 进度和 wait-for token MUST 以 `CommittedEventRef`、stream ref 与 RealmCommit position 为语义单位；`operation_id` 只可表示服务 canonical operation。
 - Snapshot MUST 绑定 `governance_generation`、调用方获准的全部 `visible_stream_heads[]` 与 `retention_and_history_floor`，并由当前治理 Station 签名；接收方 MUST 按 [`realm-state-snapshot-schema.md` §4](./realm-state-snapshot-schema.md) 逐条验证，任一项失败时整份丢弃，MUST NOT 部分采用 rows。snapshot 本身不证明无遗漏，遗漏只能由逐 stream tail 的连续承接排除。
@@ -345,7 +345,6 @@ MUST 支持：
 
 - `ak.gate.account.command.issue_session_grant.v1` / `/_arkret/gate/account/session-grants` 的规范化签发路径
 - `ak.gate.account.command.refresh_session_grant.v1`、`ak.gate.account.command.revoke_session.v1` 与
-  `ak.gate.account.command.introspect_session_grant.v1`
 - 至少一种登录因子（password / passkey / OIDC / SSO / device pairing / recovery challenge）
 - 短期、audience-bound `ak.session.grant` 签发
 - session_grant TTL 上限远低于 Realm policy review horizon（minutes-to-hours，不得跨越多日）
@@ -1063,13 +1062,13 @@ Conformance 面此前全部以部署形态 profile 为单位（`profile_requirem
 | # | 条款（摘述） | 真相源 | 分级 |
 | --- | --- | --- | --- |
 | <a id="ak-sdk-001"></a>1 | Event Envelope MUST 先过 `ak.schema.event.v1` 与 payload class 校验，失败 MUST `schema_violation`，不得进入 reducer（先验证后消费） | 本文 §3 | **V**（`ak.vector.sdk.envelope_precheck_rejects_before_consumption.v1`，观测点是被消费效果的缺席）；"先于消费"的内部顺序为 U |
-| <a id="ak-sdk-002"></a>2 | `producer_proof`、`scope_ref`、`actor_id`、`refs[role=authorized_by]` 在 reducer 与验证逻辑中不能被跳过；`hlc` / `producer_revision` / `domain_refs` / `requirements` 出现在 Event 顶层时 MUST `schema_violation` | 本文 §3 | **V**（`ak.vector.sdk.envelope_forbidden_top_level_fields.v1`）；"库不得暴露跳过入口"为 A |
+| <a id="ak-sdk-002"></a>2 | `producer_proof`、`scope_ref`、`actor_id`、`semantic_refs[role=authorized_by]` 在 reducer 与验证逻辑中不能被跳过；`hlc` / `producer_revision` / `domain_refs` / `requirements` 出现在 Event 顶层时 MUST `schema_violation` | 本文 §3 | **V**（`ak.vector.sdk.envelope_forbidden_top_level_fields.v1`）；"库不得暴露跳过入口"为 A |
 | <a id="ak-sdk-003"></a>3 | `auth` 约束必须执行，不得通过客户端配置豁免 | 本文 §3 | **U**（配置面审计）；辅以 A（不提供豁免配置项） |
 | <a id="ak-sdk-004"></a>4 | 对 `causal` 关系、`revoked` 与 `proof` 失效状态 MUST fail-closed，不得静默接受 | 本文 §3；conformance-vectors §3.4 | **V**（`ak.vector.authority_commit_projection.*` 并发撤销 fail closed 向量） |
 | <a id="ak-sdk-005"></a>5 | cursor MUST 当作不透明字符串保存回传；SDK / 应用层 MUST NOT 解析内部字段构造请求 | encoding §8；vector-registry.json（`ak.vector.encoding.cursor_opaque.core.v1`） | **A**（不暴露结构化解码 API）；黑盒仅能以变异 handle cursor 抽样旁证 |
 | <a id="ak-sdk-006"></a>6 | canonicalization 失败（duplicate key、malformed UTF-8、隐式 NFC 归一）MUST reject，不得"修复"后继续 hash / 验签 | encoding §2 | **V**（encoding 负例向量） |
 | <a id="ak-sdk-007"></a>7 | malformed HLC MUST reject，不得截断、补零或大小写折叠后接受 | encoding §7.1 | **V** |
-| <a id="ak-sdk-008"></a>8 | 重试 / 等待期间 `refs[role=authorized_by]` 与领域 `expected_revision` 约束 MUST NOT 放松 | api-conventions §6.2 | **V**（重放向量）；内部重试路径为 U |
+| <a id="ak-sdk-008"></a>8 | 重试 / 等待期间 `semantic_refs[role=authorized_by]` 与领域 `expected_revision` 约束 MUST NOT 放松 | api-conventions §6.2 | **V**（重放向量）；内部重试路径为 U |
 | <a id="ak-sdk-009"></a>9 | E2EE：`governance_binding` root 不匹配 MUST NOT 继续解密正文；未验证 KeyPackage 所属 DID 不得加密 | 本文 §6；conformance-vectors §2.5.7 | **V**（root mismatch 拒收向量）；"不解密"的本地行为为 U，KeyPackage DID 验证入口为 A |
 | <a id="ak-sdk-010"></a>10 | E2EE：MUST NOT 把明文 / 解密密钥交给未授权 Sync / search / projection 服务 | 本文 §6、§8 | **V**（privacy regression 出向流量观测）为主；本地泄露面为 U |
 | <a id="ak-sdk-011"></a>11 | 轻客户端 MUST NOT 以单条 Event 的本地投影结论替代 `RealmCommit` 接纳，也 MUST NOT 让同批次较早 Event 的投影成为后续 Event 的授权依据，MUST hold pending 或 fail closed | conformance-vectors §3.4 | **V**（以 SDK API 输出为观测点） |
@@ -1096,7 +1095,7 @@ Conformance 面此前全部以部署形态 profile 为单位（`profile_requirem
 - SHOULD 采用"验证即构造"（parse, don't validate）类型形态：未通过 envelope schema + proof 验证的字节不产出可直接消费的 Event 值类型（对应条款 1、2）。
 - SHOULD 把 fail-closed 判定（causal / revoked / proof 失效、未知 critical feature）实现为默认路径；任何放宽行为 SHOULD 是显式、可审计的 opt-in，而非默认参数（对应条款 3、4、13）。
 - SHOULD 将开放注册集建模为可保留未知字符串的 non-exhaustive 类型，并为 schema 明示扩展位保留 raw canonical value；不得用封闭 enum 或丢弃未知字段的通用反序列化默认破坏条款 16、17。
-- SHOULD 将 cursor 与 `ack_token` 都建模为 opaque newtype，并让 paginator 只消费 `has_more`；自动重试器必须显式消费 operation 的 `retry_safe` 与服务端 `Retry-After`（对应条款 18–21）。条款 21 的 `has_more` 合同只覆盖列表分页：`ak.self.events.read.scan.v1` / `ak.peer.events.read.scan.v1` 既无 cursor 也无 `has_more`，续页由调用方从本批的 `stream_position` 自行推进（[api-conventions §7.2](../sync/api-conventions.md)），SDK 不得把列表 paginator 套到该面上。
+- SHOULD 将 cursor 与 `ack_token` 都建模为 opaque newtype，并让 paginator 只消费 `has_more`；自动重试器必须显式消费 operation 的 `retry_safe` 与服务端 `Retry-After`（对应条款 18–21）。条款 21 的 `has_more` 合同只覆盖列表分页：`ak.self.committed_event.read.scan.v1` / `ak.peer.committed_event.read.scan.v1` 既无 cursor 也无 `has_more`，续页由调用方从本批的 `stream_position` 自行推进（[api-conventions §7.2](../sync/api-conventions.md)），SDK 不得把列表 paginator 套到该面上。
 - SHOULD 提供不依赖 UI 的 confusable-check public utility，并以 canonical test set 固定输出（对应条款 22）。
 - MUST 让 outer shape 与 payload shape 的非法组合无法通过公开构造器产生；raw wire Event 只能进入解析/草稿态，必须显式转换成 immutable verified submission 后才可交给 publication evidence 或 submit API（对应条款 23）。
 - SHOULD 让 describe/ping 的公开消费 API 从 raw JSON bootstrap 判别开始，并只在版本精确匹配后产出 typed service 值；不得提供跳过该判别而直接写入已验证路由缓存的公开入口（对应条款 24）。

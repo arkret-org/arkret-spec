@@ -1,5 +1,5 @@
 {
-  "version": "2026-09-20.1",
+  "version": "2026-09-20.2",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.signer_key.historical_commit_coordinate.v1"
@@ -12,7 +12,7 @@
   },
   "carrier_sources": [
     "account_subscribe.realm_sync_entry.commits",
-    "ak.self.events.read.scan.v1.stream_scan_outcome.commits"
+    "ak.self.committed_event.read.scan.v1.stream_scan_outcome.commits"
   ],
   "construction_rule": {
     "preconditions": [

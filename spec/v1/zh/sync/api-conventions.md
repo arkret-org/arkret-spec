@@ -101,7 +101,7 @@ ak.<surface>.<domain-or-subject...>.<kind>.<action>.v1
 - `command.publish` 表示发布调用方签名的 policy / identity state / 权威文档，由服务端按签名、版本和 `supersedes` 链验证后接受；除非目标 URI 本身就是可完整替换的 slot，否则 MUST 使用 `POST`。
 - `command.send` / `command.notify` 表示投递、入队或 fanout；即使有幂等键，也不是 `resource.replace`。
 - `command.ack` 表示对已投递数据做显式确认；天然幂等，但不得被 cursor 推进隐式替代。
-HTTP method 不是 operation action 的来源。以 `ak.self.events.read.scan.v1` 为例，其 HTTP binding 唯一为 `POST /_arkret/self/streams/scan`（`/_arkret/self/events` 是 `ak.self.events.command.submit` 的 binding，不是 scan 的），OpenAPI Operation Object 使用稳定、无版本的 endpoint identity `ak.self.events.read.scan` 作为 `operationId`。实现不得为同一 operation 暴露未登记的 GET / POST 别名；gRPC / MQ 同样只暴露 registry 中的 canonical operation contract。
+HTTP method 不是 operation action 的来源。以 `ak.self.committed_event.read.scan.v1` 为例，其 HTTP binding 唯一为 `POST /_arkret/self/streams/scan`（`/_arkret/self/events` 是 `ak.self.events.command.submit` 的 binding，不是 scan 的），OpenAPI Operation Object 使用稳定、无版本的 endpoint identity `ak.self.events.read.scan` 作为 `operationId`。实现不得为同一 operation 暴露未登记的 GET / POST 别名；gRPC / MQ 同样只暴露 registry 中的 canonical operation contract。
 
 ### 2.4.1 HTTP operation selector（normative）
 
@@ -218,7 +218,6 @@ HTTP method 选择 MUST 服从资源语义，而不是简单照搬 `operation_id
 
 ### 3.1 认证服务发现
 
-认证与授权服务器可以分离。普通客户端 MUST 先按 [server-trusted-results §1.2](./server-trusted-results.md#12-普通客户端的-station-接入normative) 建立或核对持久 Station/认证绑定，再发送账号凭据；独立 origin 的 Authority 不改变该要求。Station 的 `/_arkret/describe` MUST 公布 `auth_metadata.account_authority` 与 `auth_metadata.methods[]`。客户端先用 `account_authority.gate_account_base_url` 定位所有客户端可见的 Arkret `/_arkret/gate/account/*` 操作，再按 `methods[]` 中的标准 discovery 找认证 provider；规范明确标记为部署内部 S2S 的 account 子操作（例如 `ak.gate.account.command.logout_auth_session.v1`）只能由 Account Authority 按对应契约调用，不能由客户端派生。不得把 OAuth/OIDC subject 当作 Arkret principal：
 
 ```json fragment
 {
@@ -314,7 +313,6 @@ Station 对每次 `/_arkret/self/*` 请求 MUST 校验（任一项判定为不�
 
 - **DPoP 签名**:DPoP proof JWT MUST 用该 grant 的 grant-binding(DPoP)key 签名，其公钥 JWK thumbprint（[RFC 7638](https://www.rfc-editor.org/rfc/rfc7638)）MUST 等于 grant 的 `cnf.jkt`(Station 通过 session-grant 内省取得 `cnf_jkt`,见 §3.1 与下文)。
 - **DPoP 绑定声明**:`htm` MUST 等于请求方法、`htu` MUST 等于请求 URL、`ath` MUST 等于所出示 grant 的 hash;这些把该 proof 钉死到「本方法 + 本 URL + 本 grant」,防跨 endpoint / 跨 grant 复用。`htu` 比对遵循 [RFC 9449](https://www.rfc-editor.org/rfc/rfc9449) §4.3,先剥离 query 与 fragment，再逐字比较经规范化的 scheme + authority + path。**外部 URI 重建**:`htu` 的 authority 是客户端看到的 gate origin。直连部署 MUST 使用请求自身的 scheme 与 authority；反向代理部署 MUST 使用静态配置的 public origin，或仅接受由受信最后一跳代理写入、并在入口清洗所有客户端同名 header 后得到的 `Forwarded` / `X-Forwarded-Host` / `X-Forwarded-Proto`。实现不得信任任意首跳转发值，也不得退化为 path-only 比对；无法可靠重建完整外部 URI 时 MUST 以 `unauthenticated` 拒绝 DPoP 出示。
-- **grant active**:grant MUST 经 exact-token 内省判定 issuer ledger 当前为 active(`ak.gate.account.command.introspect_session_grant.v1`,提交本次出示的完整 token 与本 Station 的 `audience_id`)。本地 session/cache 只是有 freshness 上限的投影，MUST NOT 覆盖 issuer 返回的 revoked/superseded/expired 或成为第二真相源。内省的 `proof` 字段是部署内部 S2S 的可选附加确认；默认 self-path 客户端只发送本节的 `Authorization` + `DPoP`，Station MUST 依据内省返回的 `cnf_jkt` 在本地校验该请求的 DPoP，不得要求客户端再发送额外的 session-grant introspection proof header。
 - **grant class/binding**：JWT 与内省必须使用
   `service-operation-dtos.schema.json#/$defs/SignedSessionGrantClaims` 的 typed
   `credential_class`，Arkret v1 固定为 `standard` 并必须携带 `holder_binding`。恢复完成入口在核验 replacement
@@ -487,7 +485,7 @@ Applet transaction push 的幂等记录（[`applet-integration.md` §7.3](../ext
 
 > **Scope（normative）**：本节只定义 cursor 在 HTTP/JSON binding 上的**使用契约**——出现位置、`purpose` 语义、分页方向（`before` / `after` / `prev_cursor` / `next_cursor`）与不透明性约束;cursor 的内部 canonical 结构、字段 schema、编码与 TTL 硬上限数值见 [`encoding.md` §8](../conformance/encoding.md) 与 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json)。
 >
-> **具名例外（normative）**：单条 stream 的扫描——`ak.self.events.read.scan.v1` 与 federation peer `ak.peer.events.read.scan.v1`——**不使用 cursor**，见 §7.2。本节的 cursor 出现位置、方向表与三字段合同都不覆盖这两个 operation；任何把它们读成"cursor 分页"的实现都是错的。
+> **具名例外（normative）**：单条 stream 的扫描——`ak.self.committed_event.read.scan.v1` 与 federation peer `ak.peer.committed_event.read.scan.v1`——**不使用 cursor**，见 §7.2。本节的 cursor 出现位置、方向表与三字段合同都不覆盖这两个 operation；任何把它们读成"cursor 分页"的实现都是错的。
 
 Arkret v1 在**仍然需要**不透明 token 的位置使用**单一** `cursor` 类型，wire 形态固定为 `ak:cursor:<base64url(canonical_json)>`，schema 见 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json)。它承担 account 聚合流的增量同步、列表分页和写后读屏障三类用途；单 stream 扫描不在其中（§7.2）。
 
@@ -540,7 +538,7 @@ HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` �
 - `next_cursor` 是 optional：缺省表示当前批次已经是末尾。
 - `has_more: boolean` MUST 出现：客户端 MUST 仅按 `has_more` 决定是否继续翻页；不得仅靠 `next_cursor` 是否存在做判断（实现可能在末尾仍返回 `next_cursor` 用作 long-poll resume token）。
 
-本小节的三字段合同**不**适用于单 stream 扫描：`ak.self.events.read.scan.v1` / `ak.peer.events.read.scan.v1`
+本小节的三字段合同**不**适用于单 stream 扫描：`ak.self.committed_event.read.scan.v1` / `ak.peer.committed_event.read.scan.v1`
 既不返回 `next_cursor` 也不返回 `has_more`，字段集是 `stream_scan_outcome` 的 `{commits, truncated}`
 （[`authority-commit-operations.schema.json`](../../artifacts/schemas/authority-commit-operations.schema.json)），
 语义见 [`service-http-binding.md` §3.1](./service-http-binding.md) 与本文 §7.2。
@@ -555,7 +553,7 @@ HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` �
 
 治理 Station 在每条 stream 上给出严格 +1 的 `RealmCommit.stream_position`
 （[`authority-commit-log.md`](./authority-commit-log.md)），因此**在单条 stream 内位置本身就是完整的续传凭据**，
-不需要服务端签发的不透明 token。`ak.self.events.read.scan.v1` 与 `ak.peer.events.read.scan.v1` 因此使用
+不需要服务端签发的不透明 token。`ak.self.committed_event.read.scan.v1` 与 `ak.peer.committed_event.read.scan.v1` 因此使用
 位置分页：
 
 - 请求是 `stream_scan_request` = `{realm_id, stream_ref, after_position | before_position（恰一个）, limit}`。

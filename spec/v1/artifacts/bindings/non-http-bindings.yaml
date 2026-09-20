@@ -144,29 +144,19 @@ grpc:
     FindDirectory:
       Announce: ak.find.directory.command.announce.v1
       Describe: ak.find.directory.read.describe.v1
-      PrivateContactDiscovery: ak.find.directory.read.private_contact_discovery.v1
-      ResolveHandle: ak.find.directory.read.resolve_handle.v1
-      ResolveAgentSelector: ak.find.directory.read.resolve_agent_selector.v1
-      ListHandlesForSubject: ak.find.directory.read.list_handles_for_subject.v1
-      ResolveOrganization: ak.find.directory.read.resolve_organization.v1
       ResolveRealm: ak.find.directory.read.resolve_realm.v1
-      ResolveTarget: ak.find.directory.read.resolve_target.v1
-      SearchActors: ak.find.directory.read.search_actors.v1
-      SearchOrganizations: ak.find.directory.read.search_organizations.v1
       SearchRealms: ak.find.directory.read.search_realms.v1
-      SearchUsers: ak.find.directory.read.search_users.v1
       Withdraw: ak.find.directory.command.withdraw.v1
+    SelfCommittedEvent:
+      Get: ak.self.committed_event.resource.get.v1
+      Subscribe: ak.self.committed_event.stream.subscribe.v1
     SelfEvents:
-      Get: ak.self.events.resource.get.v1
       DeliveryStatus: ak.self.events.read.delivery_status.v1
-      Subscribe: ak.self.events.stream.subscribe.v1
       Submit: ak.self.events.command.submit.v1
     SelfStreams:
-      Scan: ak.self.events.read.scan.v1
+      Scan: ak.self.committed_event.read.scan.v1
     PeerEvents:
       Submit: ak.peer.events.command.submit.v1
-    PeerDeviceRevocations:
-      Check: ak.peer.device_revocations.command.check.v1
     PeerAccountStatus:
       Resolve: ak.peer.account_status.read.resolve.v1
       Submit: ak.peer.account_status.command.submit.v1
@@ -217,8 +207,6 @@ grpc:
       Create: ak.self.security_transaction.command.create.v1
       Get: ak.self.security_transaction.resource.get.v1
       Continue: ak.self.security_transaction.command.continue.v1
-    PeerPrincipalGenesis:
-      Submit: ak.peer.principal_genesis.command.submit.v1
     SelfKeys:
       Claim: ak.self.keys.command.claim.v1
       BackupSeriesErase: ak.self.keys.backup_series.command.erase.v1
@@ -318,8 +306,7 @@ grpc:
     PeerRealmAuthority:
       Handoff: ak.peer.realm_authority.command.handoff.v1
     PeerStreams:
-      ResolveCommitted: ak.peer.events.read.resolve_committed.v1
-      Scan: ak.peer.events.read.scan.v1
+      Scan: ak.peer.committed_event.read.scan.v1
 mq:
   envelope:
     required:
@@ -342,19 +329,17 @@ mq:
       signatures:
         type: array
   topics:
-    peer.principal_genesis.command.submit: ak.peer.principal_genesis.command.submit.v1
     self.security_transaction.command.create: ak.self.security_transaction.command.create.v1
     self.security_transaction.resource.get: ak.self.security_transaction.resource.get.v1
     self.security_transaction.command.continue: ak.self.security_transaction.command.continue.v1
     self.events.command.submit: ak.self.events.command.submit.v1
     self.events.read.delivery_status: ak.self.events.read.delivery_status.v1
-    self.streams.read.scan: ak.self.events.read.scan.v1
+    self.streams.read.scan: ak.self.committed_event.read.scan.v1
     self.relation_conflicts.read.candidates: ak.self.relation_conflicts.read.candidates.v1
-    self.events.stream.subscribe: ak.self.events.stream.subscribe.v1
+    self.committed_event.stream.subscribe: ak.self.committed_event.stream.subscribe.v1
     self.keys.backup_series.command.erase: ak.self.keys.backup_series.command.erase.v1
     peer.events.command.submit: ak.peer.events.command.submit.v1
-    peer.device_revocations.command.check: ak.peer.device_revocations.command.check.v1
-    peer.streams.read.scan: ak.peer.events.read.scan.v1
+    peer.streams.read.scan: ak.peer.committed_event.read.scan.v1
     peer.account_status.query.resolve: ak.peer.account_status.read.resolve.v1
     peer.mls.query.group_state_material: ak.peer.mls.read.group_state_material.v1
     peer.invites.command.submit: ak.peer.invites.command.submit.v1
@@ -429,9 +414,6 @@ mq:
     self.account_data.resource.delete: ak.self.account_data.resource.delete.v1
     self.read_cursor.command.advance: ak.self.read_cursor.command.advance.v1
     self.read_cursor.query.list: ak.self.read_cursor.read.list.v1
-    find.directory.query.private_contact_discovery: ak.find.directory.read.private_contact_discovery.v1
-    find.directory.query.resolve_agent_selector: ak.find.directory.read.resolve_agent_selector.v1
-    find.directory.query.list_handles_for_subject: ak.find.directory.read.list_handles_for_subject.v1
     find.directory.command.announce: ak.find.directory.command.announce.v1
     find.directory.command.withdraw: ak.find.directory.command.withdraw.v1
     self.keys.keypackages.upload.create: ak.self.keys.keypackages.upload.create.v1
@@ -489,14 +471,8 @@ mq:
     edge.push.command.register_device: ak.edge.push.command.register_device.v1
     edge.push.command.unregister_device: ak.edge.push.command.unregister_device.v1
     find.directory.query.describe: ak.find.directory.read.describe.v1
-    find.directory.query.resolve_handle: ak.find.directory.read.resolve_handle.v1
-    find.directory.query.resolve_organization: ak.find.directory.read.resolve_organization.v1
     find.directory.query.resolve_realm: ak.find.directory.read.resolve_realm.v1
-    find.directory.query.resolve_target: ak.find.directory.read.resolve_target.v1
-    find.directory.query.search_actors: ak.find.directory.read.search_actors.v1
-    find.directory.query.search_organizations: ak.find.directory.read.search_organizations.v1
     find.directory.query.search_realms: ak.find.directory.read.search_realms.v1
-    find.directory.query.search_users: ak.find.directory.read.search_users.v1
     gate.account.command.finalize_device_pairing: ak.gate.account.command.finalize_device_pairing.v1
     gate.account.command.issue_session_grant: ak.gate.account.command.issue_session_grant.v1
     gate.account.command.pair_device: ak.gate.account.command.pair_device.v1
@@ -505,7 +481,6 @@ mq:
     peer.account_status.command.submit: ak.peer.account_status.command.submit.v1
     peer.erasure_receipt.command.submit: ak.peer.erasure_receipt.command.submit.v1
     peer.erasure_receipt.resource.get: ak.peer.erasure_receipt.resource.get.v1
-    peer.streams.read.resolve_committed: ak.peer.events.read.resolve_committed.v1
     peer.realm_authority.command.handoff: ak.peer.realm_authority.command.handoff.v1
     root.identity.command.submit_did_operation: ak.root.identity.command.submit_did_operation.v1
     root.identity.document.resource.get: ak.root.identity.document.resource.get.v1
@@ -541,7 +516,7 @@ mq:
     self.device_messages.command.ack: ak.self.device_messages.command.ack.v1
     self.device_messages.command.send: ak.self.device_messages.command.send.v1
     self.device_messages.query.list: ak.self.device_messages.read.list.v1
-    self.events.resource.get: ak.self.events.resource.get.v1
+    self.committed_event.resource.get: ak.self.committed_event.resource.get.v1
     self.invite_locator.command.issue: ak.self.invite_locator.command.issue.v1
     self.invite_locator.command.revoke: ak.self.invite_locator.command.revoke.v1
     self.invite_locator.command.rotate: ak.self.invite_locator.command.rotate.v1

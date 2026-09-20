@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/approval-signature.schema.json",
   "title": "Arkret Approval Signature",
-  "description": "The single approval evidence type of v1 (zh/authz/constraint-schema.md section 9.2). One approver signs one exact target: either a fully authored Event that has not been submitted yet, or the original typed RequestBody of one operation whose evidence carrier is registered in capability-action-registry.json. The object is not an Event, never enters Realm history, and MUST NOT be written into an EventEnvelope, a signed payload or an Event refs[] entry. It travels in the carrier registered for the approved action. It proves that an approver approved that target; it proves nothing about the initiator's own authority.",
+  "description": "The single approval evidence type of v1 (zh/authz/constraint-schema.md section 9.2). One approver signs one exact target: either a fully authored Event that has not been submitted yet, or the original typed RequestBody of one operation whose evidence carrier is registered in capability-action-registry.json. The object is not an Event, never enters Realm history, and MUST NOT be written into an EventEnvelope, a signed payload or an Event semantic_refs[] entry. It travels in the carrier registered for the approved action. It proves that an approver approved that target; it proves nothing about the initiator's own authority.",
   "x-arkret-operation-target-carrier-operations": [
     "ak.self.events.command.submit.v1"
   ],

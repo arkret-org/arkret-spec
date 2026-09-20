@@ -45,7 +45,6 @@ from .schemas import (
     check_classification_context_paths,
     check_blob_identifier_form_closure,
     check_closed_object_required_declared,
-    check_device_reanchor_payload_receipt_binding,
     check_derived_signature_projection_closure,
     check_did_and_device_constraints,
     check_did_boundary_allowlist,
@@ -115,7 +114,6 @@ from .fixtures import (
     check_human_pcr_admission_branch_evidence,
     check_human_pcr_registration_anchor_binding,
     check_erasure_verification_contract,
-    check_event_batch_receipt_normalization_vector,
     check_fixture_runner_contract,
     check_fixtures,
     check_keypackage_write_transcript_fixture,
@@ -228,8 +226,6 @@ from .account_status_replica import (
     check_account_status_replica_decision_table,
 )
 from .account_status_issuer import check_account_status_issuer_genesis
-from .device_pairing_current_gate import check_device_pairing_current_device_gate
-from .device_pairing_split_admission import check_device_pairing_split_admission_saga
 
 from .franking_transcript import check_franking_proof_transcript
 
@@ -246,7 +242,6 @@ from .expanded_projections import check_expanded_projection_registry
 from .prose_field_tables import check_prose_field_tables
 from .ref_overlay_closure import check_schema_ref_overlay_closure
 
-from .psi_class_b import check_psi_class_b_artifact_closure
 from .reason_code_producers import check_reason_code_producer_paths
 from .result_effect_ownership import check_result_effect_ownership
 from .agent_draft_pending_intent import check_agent_draft_pending_intent
@@ -456,14 +451,6 @@ def main(argv: list[str] | None = None) -> int:
                 lambda: check_event_kind_verb_form_registration(lint),
             ),
             ("protocol_layers", lambda: check_protocol_layer_registry(lint)),
-            (
-                "device_pairing_current_device_gate",
-                lambda: check_device_pairing_current_device_gate(lint),
-            ),
-            (
-                "device_pairing_split_admission_saga",
-                lambda: check_device_pairing_split_admission_saga(lint),
-            ),
         ],
         quiet=args.quiet,
         timing=args.timing,
@@ -567,10 +554,6 @@ def main(argv: list[str] | None = None) -> int:
             ),
             ("reducer_payloads", lambda: check_reducer_payload_closure(lint)),
             ("account_identity_carriers", lambda: check_account_identity_carrier_closure(lint)),
-            (
-                "device_reanchor_binding",
-                lambda: check_device_reanchor_payload_receipt_binding(lint),
-            ),
             ("circle_membership", lambda: check_circle_membership_enum_single_source(lint)),
             (
                 "classification_contexts",
@@ -712,10 +695,6 @@ def main(argv: list[str] | None = None) -> int:
             (
                 "direct_conversation_digest_vectors",
                 lambda: check_direct_conversation_digest_vectors(lint),
-            ),
-            (
-                "event_batch_receipt_normalization_vector",
-                lambda: check_event_batch_receipt_normalization_vector(lint),
             ),
             (
                 "mls_creator_bootstrap_transaction",
@@ -915,7 +894,6 @@ def main(argv: list[str] | None = None) -> int:
         [
             ("error_uniqueness", lambda: check_error_code_registry_uniqueness(lint)),
             ("error_mapping", lambda: check_operations_error_mapping_closure(lint)),
-            ("psi_class_b", lambda: check_psi_class_b_artifact_closure(lint)),
             ("fixture_reasons", lambda: check_fixture_reject_reason_closure(lint)),
             ("error_closure", lambda: check_error_code_closure(lint)),
             (

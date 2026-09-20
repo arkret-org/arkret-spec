@@ -94,7 +94,7 @@
     },
     "device_pairing_state": {
       "type": "string",
-      "description": "Public lifecycle projection of the Account Authority-owned device-pairing record. A staged record starts staged and account-less, moves one way to ready_for_claim once ak.gate.account.command.finalize_device_pairing.v1 attaches a valid target proof for an exact AccountId, flips to authorized only after ak.gate.account.command.pair_device.v1 reaches its durable completed fence, and reports expired once its bounded TTL has elapsed, once a later successful finalize supersedes it, or once the Account Authority atomically records the tenth countable failure. Private prepared and station_accepted admission-fence states are deliberately absent: resolve, status and code claim return not_found while either is active, never an in_progress extension. There is no path back from ready_for_claim to staged and no path that reaches authorized without passing through ready_for_claim; authorized and a durable pair_device terminal outcome are never rewritten by failure counting.",
+      "description": "Public lifecycle projection of the sole device-pairing record. A staged record starts staged and account-less, moves one way to ready_for_claim once ak.gate.account.command.finalize_device_pairing.v1 attaches a valid target proof for an exact AccountId, flips to authorized only after ak.gate.account.command.pair_device.v1 durably commits the Event, unique RealmCommit and terminal outcome, and reports expired once its bounded TTL has elapsed, once a later successful finalize supersedes it, or once the Account Authority atomically records the tenth countable failure. Internal recovery progress is never exposed as a public state: resolve, status and code claim return not_found while admission is incomplete, never an in_progress extension. There is no path back from ready_for_claim to staged and no path that reaches authorized without passing through ready_for_claim; authorized and a durable pair_device terminal outcome are never rewritten by failure counting.",
       "enum": [
         "staged",
         "ready_for_claim",
@@ -104,7 +104,7 @@
     },
     "device_pairing_stage_request_body": {
       "type": "object",
-      "description": "Unauthenticated public stage request that the Station proxies byte-identically through ak.gate.account.command.stage_device_pairing.v1 to the Account Authority, sole pairing-ledger owner. It mints a fresh account-less pending pairing record and carries only the canonical public key and a client nonce: the target proof cannot exist yet, because it must commit to the request id, pairing code, expiry, gate audience and server nonce that this call mints. It deliberately omits hpke_key and algorithms. Each public invocation is new and non-retry-safe; only its deployment-internal Station-generated Idempotency-Key is retry-safe and durably deduplicated. The record binds no principal and grants nothing until an authenticated device authorizes it.",
+      "description": "Unauthenticated public stage request that mints a fresh account-less pending pairing record and carries only the canonical public key and a client nonce: the target proof cannot exist yet, because it must commit to the request id, pairing code, expiry, gate audience and server nonce that this call mints. It deliberately omits hpke_key and algorithms. Each public invocation is new and non-retry-safe; an implementation-internal retry of the same ingress must not mint a second record. The record binds no principal and grants nothing until an authenticated device authorizes it.",
       "required": [
         "new_device_pubkey",
         "client_nonce"
@@ -313,7 +313,7 @@
     },
     "device_pairing_status_outcome": {
       "type": "object",
-      "description": "Authorization status for a staged device-pairing record read from the Account Authority's sole ledger through the read-only Station proxy. While the record is account-less the state is staged; after finalize it is ready_for_claim. Private prepared or station_accepted admission-fence state returns not_found and is never exposed as in_progress or ready_for_claim. Once pair_device durably completes, state is authorized and device_id plus authorized_event_ref are present. An open record whose bounded TTL has elapsed reports state expired, as does a record a later finalize superseded or whose exact-request failure budget reached ten; all causes are indistinguishable for the bounded tombstone retention period.",
+      "description": "Authorization status for a staged device-pairing record read from the sole ledger. While the record is account-less the state is staged; after finalize it is ready_for_claim. Incomplete admission returns not_found and is never exposed as in_progress or ready_for_claim. Once pair_device durably completes, state is authorized and device_id plus authorized_event_ref are present. An open record whose bounded TTL has elapsed reports state expired, as does a record a later finalize superseded or whose exact-request failure budget reached ten; all causes are indistinguishable for the bounded tombstone retention period.",
       "required": [
         "state"
       ],
