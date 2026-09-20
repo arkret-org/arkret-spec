@@ -71,7 +71,7 @@ Profile 不支持某个标准能力时的默认行为：
 - 写入接收方收到 active 标准 Event kind 时，若该 kind 不在本实现声明的 supported_event_kinds / profile 范围内，且该实现负责该 Realm 的 accepted history，MUST 返回 `unsupported_feature`、`unsupported_event_kind`、`schema_violation` 或 quarantine，不得把未知标准事件 accepted 后静默丢给 reducer。
 - 只读客户端或 projection 服务遇到未实现但已 accepted 的标准 Event kind，MAY 保留 raw event、显示 generic fallback 或把对应 projection 标记为 incomplete；不得声称已完整执行该 kind 的 reducer 语义。
 - 未知 Morph type、未知非 critical extension field 和未声明 renderer 可以保留并忽略，但不能影响授权、排序、状态机、redaction、E2EE、notification 或 state hash。
-- Event 的 `requirements.features[]`、`requirements.critical_extensions[]` 或 `requirements.schema[]` 出现不支持的标识时，接收方 MUST fail closed。Fixed reducer semantics 从该 Event 的 authority-commit governance basis 读取；本地未实现时返回 `unsupported_profile`。
+- current-v1 Event 不携带通用 `requirements` 或 `critical_extensions` carrier；顶层出现这些成员必须按封闭 Event schema 以 `schema_violation` 拒绝。写入方只能提交 registry 已登记的 Event kind 与对应 payload class；负责接纳的治理 Station 对本地未实现的已登记 wire feature / producer class 返回 `unsupported_feature` 或该 registry 指定的稳定错误，不得把未实现语义当作可忽略扩展。未来若激活通用 critical capability，必须在同一 contract release 提供具体 schema、typed model、criticality/preservation 规则、生产 consumer 与正负向量。
 - `rejected_event_kinds` 表示 profile 必须拒绝或不接收的 wire scope / kind。`optional_extensions` 表示可以不提供交互能力；它不授权实现静默接受依赖该 extension 的 critical Event。
 
 机器可读默认行为见 `artifacts/profiles/conformance-profiles.json.default_unsupported_behavior`。其中 `must_not_accept`、`must_fail_closed`、`allowed_results` 等字段用于 conformance lint / test，而不是自由文本提示。
@@ -928,7 +928,7 @@ SHOULD 支持：
 - downgrade / unsupported feature tests
 - unknown-field rejection / extension-slot preservation tests
 
-所有 profile MUST 能按 `../models/common-fields.md` 与各对象专属文件（`realm-and-space.md` / `strand-and-message.md` / `morph.md` / `relation.md` / `event-and-patch.md` 等）解码和验证其声明支持的核心对象字段。实现 MUST 拒绝 canonical object schema 未声明的未知字段，对 schema 显式声明扩展位（已登记的 `payload.x_*` 槽、`requirements.critical_extensions[].parameters`）中的未识别内容 MUST 保留，并覆盖“schema 未声明字段被拒绝”与“扩展位内容在 hash/signature 校验、存储、联邦转发、backfill 后仍存在”的测试；未知 critical feature MUST fail closed。实现 MUST reject 类型错误、必填字段缺失、非法 enum、非法 ID/hash/timestamp/cursor pattern，以及违反条件必填规则的对象。标准 Event 必须加载 `event-kind-registry.json` 与 `event-payload.schema.json`，确认每个 active durable kind 都有可执行 payload 校验路径。
+所有 profile MUST 能按 `../models/common-fields.md` 与各对象专属文件（`realm-and-space.md` / `strand-and-message.md` / `morph.md` / `relation.md` / `event-and-patch.md` 等）解码和验证其声明支持的核心对象字段。实现 MUST 拒绝 canonical object schema 未声明的未知字段，对具体 schema 显式声明的 `x_*` 槽中的未识别内容 MUST 保留，并覆盖“schema 未声明字段被拒绝”与“已声明扩展槽内容在 hash/signature 校验、存储、联邦转发、backfill 后仍存在”的测试。current-v1 没有通用 critical-extension carrier；实现不得用私有 DTO 或测试 matcher 补出一个。实现 MUST reject 类型错误、必填字段缺失、非法 enum、非法 ID/hash/timestamp/cursor pattern，以及违反条件必填规则的对象。标准 Event 必须加载 `event-kind-registry.json` 与 `event-payload.schema.json`，确认每个 active durable kind 都有可执行 payload 校验路径。
 
 所有 profile MUST 按 `conformance-vectors.md` 覆盖 canonical JSON、hash、signature binding、Ed25519 detached JWS fixture、HLC 和 cursor 的基础向量。Events API、Full Client 与 E2EE Client MUST 额外覆盖 event digest；Events API 节点 SHOULD 覆盖 event-batch receipt digest；E2EE Client 和 Station MUST 覆盖 encrypted envelope digest。
 
@@ -1062,7 +1062,7 @@ Conformance 面此前全部以部署形态 profile 为单位（`profile_requirem
 | # | 条款（摘述） | 真相源 | 分级 |
 | --- | --- | --- | --- |
 | <a id="ak-sdk-001"></a>1 | Event Envelope MUST 先过 `ak.schema.event.v1` 与 payload class 校验，失败 MUST `schema_violation`，不得进入 reducer（先验证后消费） | 本文 §3 | **V**（`ak.vector.sdk.envelope_precheck_rejects_before_consumption.v1`，观测点是被消费效果的缺席）；"先于消费"的内部顺序为 U |
-| <a id="ak-sdk-002"></a>2 | `producer_proof`、`scope_ref`、`actor_id`、`semantic_refs[role=authorized_by]` 在 reducer 与验证逻辑中不能被跳过；`hlc` / `producer_revision` / `domain_refs` / `requirements` 出现在 Event 顶层时 MUST `schema_violation` | 本文 §3 | **V**（`ak.vector.sdk.envelope_forbidden_top_level_fields.v1`）；"库不得暴露跳过入口"为 A |
+| <a id="ak-sdk-002"></a>2 | Event root required 的 `producer_proof`、`scope_ref`、`actor_id` 在 reducer 与验证逻辑中不能被跳过或补默认；`hlc` / `producer_revision` / `domain_refs` / `requirements` 出现在 Event 顶层时 MUST `schema_violation`。`semantic_refs` 是可选成员；仅具体 event-kind admission selector 能要求某个 role | 本文 §3 | **V**（`ak.vector.sdk.envelope_forbidden_top_level_fields.v1`）；"库不得暴露跳过入口"为 A |
 | <a id="ak-sdk-003"></a>3 | `auth` 约束必须执行，不得通过客户端配置豁免 | 本文 §3 | **U**（配置面审计）；辅以 A（不提供豁免配置项） |
 | <a id="ak-sdk-004"></a>4 | 对 `causal` 关系、`revoked` 与 `proof` 失效状态 MUST fail-closed，不得静默接受 | 本文 §3；conformance-vectors §3.4 | **V**（`ak.vector.authority_commit_projection.*` 并发撤销 fail closed 向量） |
 | <a id="ak-sdk-005"></a>5 | cursor MUST 当作不透明字符串保存回传；SDK / 应用层 MUST NOT 解析内部字段构造请求 | encoding §8；vector-registry.json（`ak.vector.encoding.cursor_opaque.core.v1`） | **A**（不暴露结构化解码 API）；黑盒仅能以变异 handle cursor 抽样旁证 |
@@ -1073,11 +1073,11 @@ Conformance 面此前全部以部署形态 profile 为单位（`profile_requirem
 | <a id="ak-sdk-010"></a>10 | E2EE：MUST NOT 把明文 / 解密密钥交给未授权 Sync / search / projection 服务 | 本文 §6、§8 | **V**（privacy regression 出向流量观测）为主；本地泄露面为 U |
 | <a id="ak-sdk-011"></a>11 | 轻客户端 MUST NOT 以单条 Event 的本地投影结论替代 `RealmCommit` 接纳，也 MUST NOT 让同批次较早 Event 的投影成为后续 Event 的授权依据，MUST hold pending 或 fail closed | conformance-vectors §3.4 | **V**（以 SDK API 输出为观测点） |
 | <a id="ak-sdk-012"></a>12 | late key recovery：`T0` 不可见 / key source unauthorized 时 MUST 拒绝解密（先验证后消费） | conformance-vectors §3.6、§3.15 | **V**（`ak.vector.history_access.since_join_prejoin_denied.v1`、`ak.vector.media_binding.e2ee_key_source.v1`） |
-| <a id="ak-sdk-013"></a>13 | 未知 critical feature / `requirements` 不匹配 MUST fail closed；未声明 critical 的未知扩展仍 MUST 接纳并逐字节保留 | 本文 §3、§20 | **V**（`ak.vector.sdk.unknown_critical_feature_fail_closed.v1`、`ak.vector.sdk.requirements_mismatch_fail_closed.v1`） |
+| <a id="ak-sdk-013"></a>13 | 通用 Event `requirements` / `critical_extensions` capability 在 current-v1 为 reserved；SDK MUST NOT 暴露、声明支持或用私有 carrier 模拟。重新激活必须同批交付 closed schema、typed model、criticality 与 canonical-preservation 规则、存储／转发／backfill consumer 及正负向量 | 本文 §3、§20 | **A**（public API / carrier inventory） |
 | <a id="ak-sdk-014"></a>14 | 正式的验证、授权与信任准入路径 MUST 拒绝 `test-material-registry.json` 登记的公开测试签名材料与保留测试标识，签名验证通过不构成准入 | identity/did-usage-and-verification §8 | **V**（`ak.vector.identity.test_signing_material_rejected.v1`、`ak.vector.identity.reserved_test_identifier_rejected.v1`） |
 | <a id="ak-sdk-015"></a>15 | 裁剪构建若移除任一已声明 profile 的 MUST 能力，MUST 同时移除该 profile claim；构建产物的 capability inventory 与 claim 必须对账 | 本文 §2.1.2 | **U**（构建配置审计）；辅以 A（公开 API / capability inventory） |
 | <a id="ak-sdk-016"></a>16 | 开放注册集中的未知值 MUST 在反序列化时原样保留，不得因本地 registry 快照较旧而使整个对象解码失败 | schema-registry §6.1 | **V**（`ak.vector.encoding.open_registry_unknown_roundtrip.v1`）；辅以 A（非封闭 enum API 形状） |
-| <a id="ak-sdk-017"></a>17 | schema 明示的 `x_*` 与 `critical_extensions[].parameters` 未识别内容 MUST 在 decode/encode、存储、联邦转发与 backfill 后逐字节保留，且继续进入 canonical bytes | 本文 §20；schema-registry §6 | **V**（`ak.vector.encoding.extension_slot_roundtrip.v1`）；内部存储/转发路径为 U |
+| <a id="ak-sdk-017"></a>17 | 具体 schema 明示的 `x_*` 槽中未识别内容 MUST 在 decode/encode、存储、联邦转发与 backfill 后逐字节保留，且继续进入 canonical bytes；该正例不得推广成任意对象都接受扩展 | 本文 §20；schema-registry §6 | **V**（`ak.vector.encoding.extension_slot_roundtrip.v1`）；内部存储/转发路径为 U |
 | <a id="ak-sdk-018"></a>18 | `ack_token` MUST 作为不透明字符串原样回传，SDK MUST NOT 解析其内部结构 | client-sync §10.1 | **A**（不暴露结构化解码 API） |
 | <a id="ak-sdk-019"></a>19 | `retry_safe=false` 的 operation MUST NOT 自动全量重试；请求内容改变时 MUST 换 request key | api-conventions §6.2 | **A/U**（重试 API 与配置审计） |
 | <a id="ak-sdk-020"></a>20 | 客户端 MUST 以 `max(server_hint_delay, jitter(local_backoff_delay))` 组合 `Retry-After` 与本地退避；0/已过期提示不得加速本地梯子，长提示不得按本地上限截断，且不存在忽略服务端提示的配置开关 | api-conventions §9 | **V/U**（注入时钟、配置审计与出向请求观测） |

@@ -16,7 +16,7 @@
     "ak.vector.calendar.attendee_roster.v1",
     "ak.vector.calendar.rsvp_privacy.v1"
   ],
-  "version": "2026-07-27",
+  "version": "2026-09-20",
   "spec_anchor": "spec/v1/zh/models/calendar-event.md#1-模型与激活",
   "source_refs": [
     "spec/v1/zh/models/calendar-event.md",
@@ -1097,14 +1097,6 @@
       "action": "ak.strand.update removes only the schema ref",
       "semantic_outcome": "reject",
       "expected_reason_code": "calendar_activation_mismatch"
-    },
-    {
-      "name": "activation_write_without_requirements_schema_binding_rejected",
-      "vector_id": "ak.vector.calendar.profile_activation.v1",
-      "precondition": "target Strand activates the calendar schema",
-      "action": "ak.strand.update writes metadata.fields.calendar without listing ak.schema.calendar_event.v1 in requirements.schema[]",
-      "semantic_outcome": "reject",
-      "expected_reason_code": "schema_violation"
     },
     {
       "name": "schedule_shape_end_not_after_start_rejected",

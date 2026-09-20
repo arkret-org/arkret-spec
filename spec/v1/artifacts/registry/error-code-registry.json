@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-20.6",
-  "generated_at": "2026-09-20T16:42:00+08:00",
+  "version": "2026-09-20.7",
+  "generated_at": "2026-09-20T22:15:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -6046,7 +6046,7 @@
       "applies_to": [
         "event_envelope"
       ],
-      "description": "Event kind does not appear in any known registry entry; treat per non_critical_extension_rule (preserve canonical bytes, ignore in reducer) unless declared in critical_extensions.",
+      "description": "Event kind does not appear in the current registry. Fail closed; an unknown kind is not a non-critical extension and current-v1 has no generic critical_extensions carrier that can make it admissible.",
       "status": "active"
     },
     {

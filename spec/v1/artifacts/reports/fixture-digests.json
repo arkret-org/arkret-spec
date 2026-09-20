@@ -97,8 +97,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/calendar-rsvp-fixture.json",
-      "sha256": "63b3f0838b2a1ffcfe35ec0da87f4aed910e92f0a36618606e704771cc71e4bd",
-      "version": "2026-07-27"
+      "sha256": "b7aa38760854ac31621892a83fad75524242cde90ce2bb9a63f2841c0ee0c968",
+      "version": "2026-09-20"
     },
     {
       "path": "spec/v1/artifacts/fixtures/call-state-core-fixture.json",
@@ -192,8 +192,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/encoding-fixture.json",
-      "sha256": "9beae6c08ff28393722c5533e7e0dc035fb097b573f4b68a7d19da0735b8c064",
-      "version": "2026-09-20"
+      "sha256": "958e26dd4ce38777fc2513f71c6bab216c29fd92f426fe69be648e251df5ae09",
+      "version": "2026-09-20.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/error-code-registry-coverage-fixture.json",
@@ -432,8 +432,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",
-      "sha256": "d807ed78805dab0ac7d334ea9055317f68ba9e9b53e672ba1fc022c18d3fd972",
-      "version": "2026-09-20"
+      "sha256": "c5ae3c1d0ac64165919031be370fb605a34154446d57a78defe9f4a78bf8f3db",
+      "version": "2026-09-20.2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-event-type-axes-fixture.json",
@@ -442,8 +442,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-precheck-fixture.json",
-      "sha256": "77f81d66501ebf751dbabea228f408406d2727434a36976535842af63b3cec40",
-      "version": "2026-09-19.2"
+      "sha256": "5e630fc53e6c6d177c4a71a4cb9a3c9e17597bbf46af62e1168444f453c0c24a",
+      "version": "2026-09-20.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/security-transaction-resilience-fixture.json",

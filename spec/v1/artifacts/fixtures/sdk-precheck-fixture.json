@@ -5,19 +5,23 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.sdk.precheck.v1"
   },
-  "version": "2026-09-19.2",
+  "version": "2026-09-20.1",
   "profile": "ak.profile.full_client.v1",
   "covers_vectors": [
     "ak.vector.sdk.envelope_precheck_rejects_before_consumption.v1",
-    "ak.vector.sdk.envelope_forbidden_top_level_fields.v1",
-    "ak.vector.sdk.unknown_critical_feature_fail_closed.v1",
-    "ak.vector.sdk.requirements_mismatch_fail_closed.v1"
+    "ak.vector.sdk.envelope_forbidden_top_level_fields.v1"
   ],
   "machine_contracts": [
     "registry/error-code-registry.json",
     "registry/event-kind-registry.json"
   ],
-  "description": "Executable evidence for the SDK precheck clauses: an Event Envelope or payload that fails validation is refused before consumption and leaves no effect; the members that carry authorization cannot be omitted or defaulted and the four members that are forbidden at the Event top level are refused; an unknown critical extension and an unmet requirement each fail closed, while an unknown non-critical extension is preserved. Schema admissibility is not the observation point in any case: each case observes the absence or presence of a consumed effect.",
+  "description": "Executable evidence for current-v1 SDK precheck clauses: an Event Envelope or kind-selected payload class that fails validation is refused before consumption and leaves no effect; Event root required members cannot be omitted or defaulted and the four forbidden members are refused at the closed Event root. The reserved generic requirements/critical_extensions capability is not represented by fixture-only objects. Schema admissibility is not the only observation point: effect cases also observe the absence of consumed state.",
+  "legal_base_event": {
+    "fixture_ref": "fixtures/approval-signature-kat-fixture.json",
+    "json_pointer": "/event_id_invariance/submission_with_evidence/event",
+    "kind": "ak.strand.create",
+    "note": "This is a complete current Event with a schema-valid kind-selected payload and producer_proof. Each field mutation below starts from these exact bytes and changes only the named member."
+  },
   "cases": [
     {
       "name": "an_envelope_that_fails_the_event_schema_never_reaches_the_reducer",
@@ -31,6 +35,8 @@
         "reason": "schema_violation",
         "effect_consumed": false
       },
+      "base_event_ref": "#/legal_base_event",
+      "mutation": "add an undeclared top-level member vendor_top and change no other member",
       "given": "an Event Envelope that does not satisfy ak.schema.event.v1, delivered through the ordinary ingest path",
       "action": "submit it to the SDK and then read every surface the SDK exposes",
       "decision": "reject",
@@ -55,6 +61,8 @@
         "reason": "schema_violation",
         "effect_consumed": false
       },
+      "base_event_ref": "#/legal_base_event",
+      "mutation": "replace the ak.strand.create payload with an empty object while leaving the Event root valid",
       "given": "an Event Envelope that satisfies ak.schema.event.v1 but whose payload does not satisfy the payload class its event kind declares",
       "action": "submit it and read every exposed surface",
       "decision": "reject",
@@ -98,6 +106,8 @@
         "decision": "reject",
         "reason": "schema_violation"
       },
+      "base_event_ref": "#/legal_base_event",
+      "mutation": "add top-level hlc=2026-09-20T00:00:00.000Z-0001-node and change no other member",
       "given": "an otherwise valid Event Envelope carrying hlc as a top-level member",
       "action": "submit it",
       "decision": "reject",
@@ -118,6 +128,8 @@
         "decision": "reject",
         "reason": "schema_violation"
       },
+      "base_event_ref": "#/legal_base_event",
+      "mutation": "add top-level producer_revision=1 and change no other member",
       "given": "an otherwise valid Event Envelope carrying producer_revision as a top-level member",
       "action": "submit it",
       "decision": "reject",
@@ -138,6 +150,8 @@
         "decision": "reject",
         "reason": "schema_violation"
       },
+      "base_event_ref": "#/legal_base_event",
+      "mutation": "add top-level domain_refs=[] and change no other member",
       "given": "an otherwise valid Event Envelope carrying domain_refs as a top-level member",
       "action": "submit it",
       "decision": "reject",
@@ -158,6 +172,8 @@
         "decision": "reject",
         "reason": "schema_violation"
       },
+      "base_event_ref": "#/legal_base_event",
+      "mutation": "add top-level requirements={} and change no other member",
       "given": "an otherwise valid Event Envelope carrying requirements as a top-level member",
       "action": "submit it",
       "decision": "reject",
@@ -166,118 +182,79 @@
       "assertions": [
         "the member is refused rather than ignored or stripped",
         "the refusal is schema_violation",
-        "top-level requirements is refused here, which is a different observation from the unmet-requirements semantics exercised by the requirements vector"
+        "current-v1 has no generic requirements carrier, so this is a closed-root schema decision rather than feature negotiation"
       ]
     },
     {
-      "name": "the_authorization_carrying_members_cannot_be_omitted_or_defaulted",
+      "name": "producer_proof_cannot_be_omitted_or_defaulted",
       "vector_id": "ak.vector.sdk.envelope_forbidden_top_level_fields.v1",
       "covers_decision_points": [
-        "AK-SDK-002/authorization_members_cannot_be_omitted_or_defaulted"
+        "AK-SDK-002/required_event_members_cannot_be_omitted_or_defaulted"
       ],
       "expected": {
         "decision": "reject",
         "reason": "schema_violation",
-        "synthesized_authorization_members": []
+        "synthesized_members": []
       },
-      "given": "four envelopes, each omitting exactly one of proofs, scope_ref, actor_id and refs with role authorized_by",
-      "action": "submit each and inspect what the verification path did with the missing member",
+      "base_event_ref": "#/legal_base_event",
+      "mutation": "remove producer_proof and change no other member",
+      "given": "the legal base Event with producer_proof omitted",
+      "action": "submit it and inspect whether any proof is synthesized",
       "decision": "reject",
       "reason": "schema_violation",
-      "observed": "the returned outcome for each envelope and the values the verification path used",
+      "observed": "the returned outcome and the values the verification path used",
       "assertions": [
-        "each omission is refused on its own",
-        "no member is filled in from a default, from the transport, from the session or from a neighbouring event",
-        "the verification path is not reached with a synthesized value in place of the missing member"
+        "the independent omission is refused",
+        "producer_proof is not filled in from the transport, session or a neighbouring event",
+        "the verification path is not reached with a synthesized proof"
       ]
     },
     {
-      "name": "an_unknown_critical_extension_fails_closed",
-      "vector_id": "ak.vector.sdk.unknown_critical_feature_fail_closed.v1",
+      "name": "scope_ref_cannot_be_omitted_or_defaulted",
+      "vector_id": "ak.vector.sdk.envelope_forbidden_top_level_fields.v1",
       "covers_decision_points": [
-        "AK-SDK-013/unknown_critical_extension_is_refused_as_a_whole"
+        "AK-SDK-002/required_event_members_cannot_be_omitted_or_defaulted"
       ],
       "expected": {
         "decision": "reject",
-        "reason": "unsupported_feature",
-        "effect_consumed": false
+        "reason": "schema_violation",
+        "synthesized_members": []
       },
-      "given": "an object declaring a critical extension this build does not recognise, valid in every other respect",
-      "action": "consume it",
+      "base_event_ref": "#/legal_base_event",
+      "mutation": "remove scope_ref and change no other member",
+      "given": "the legal base Event with scope_ref omitted",
+      "action": "submit it and inspect whether any scope is synthesized",
       "decision": "reject",
-      "reason": "unsupported_feature",
-      "observed": "the returned outcome and the reducer state",
+      "reason": "schema_violation",
+      "observed": "the returned outcome and the values the verification path used",
       "assertions": [
-        "the object is refused as a whole",
-        "no part of it is applied, and the unrecognised extension is not skipped so the rest can proceed",
-        "the decision is made from the criticality declaration, not from whether the extension body happens to parse"
+        "the independent omission is refused",
+        "scope_ref is not filled in from the transport, session or a neighbouring event",
+        "the verification path is not reached with a synthesized scope"
       ]
     },
     {
-      "name": "unmet_requirements_fail_closed",
-      "vector_id": "ak.vector.sdk.requirements_mismatch_fail_closed.v1",
+      "name": "actor_id_cannot_be_omitted_or_defaulted",
+      "vector_id": "ak.vector.sdk.envelope_forbidden_top_level_fields.v1",
       "covers_decision_points": [
-        "AK-SDK-013/unmet_requirement_is_a_distinct_refusal"
+        "AK-SDK-002/required_event_members_cannot_be_omitted_or_defaulted"
       ],
       "expected": {
         "decision": "reject",
-        "reason": "unsupported_feature",
-        "effect_consumed": false
+        "reason": "schema_violation",
+        "synthesized_members": []
       },
-      "given": "an object whose declared requirements name a capability this build does not provide, with no unknown extension present",
-      "action": "consume it",
+      "base_event_ref": "#/legal_base_event",
+      "mutation": "remove actor_id and change no other member",
+      "given": "the legal base Event with actor_id omitted",
+      "action": "submit it and inspect whether any actor is synthesized",
       "decision": "reject",
-      "reason": "unsupported_feature",
-      "observed": "the returned outcome and the reducer state",
+      "reason": "schema_violation",
+      "observed": "the returned outcome and the values the verification path used",
       "assertions": [
-        "the object is refused because the requirement is unmet, which is a different decision from an unknown critical extension",
-        "no part of it is applied",
-        "a build that provides the capability admits the identical object, so the case observes the requirement check and not a schema failure"
-      ]
-    },
-    {
-      "name": "an_unknown_non_critical_extension_is_preserved_and_admitted",
-      "vector_id": "ak.vector.sdk.unknown_critical_feature_fail_closed.v1",
-      "covers_decision_points": [
-        "AK-SDK-013/unknown_non_critical_extension_is_still_admitted"
-      ],
-      "expected": {
-        "decision": "accept",
-        "unknown_extension_preserved_byte_for_byte": true
-      },
-      "given": "an object carrying an unknown extension that is not declared critical",
-      "action": "consume it, then re-encode and forward it",
-      "decision": "accept",
-      "observed": "the admission outcome and the re-encoded bytes",
-      "assertions": [
-        "the object is admitted",
-        "the unknown extension survives the round trip byte for byte",
-        "an implementation that refused every unknown value would fail here, which is why fail-closed is scoped to criticality and to requirements"
-      ]
-    },
-    {
-      "name": "the_fail_closed_decision_precedes_consumption_and_storage",
-      "vector_id": "ak.vector.sdk.unknown_critical_feature_fail_closed.v1",
-      "covers_decision_points": [
-        "AK-SDK-013/unknown_critical_extension_is_refused_as_a_whole",
-        "AK-SDK-013/unmet_requirement_is_a_distinct_refusal"
-      ],
-      "expected": {
-        "decision": "reject",
-        "stored": false,
-        "projected": false,
-        "forwarded": false,
-        "payload_member_consumed": false
-      },
-      "given": "the two refusing objects above and an SDK that owns a durable store",
-      "action": "submit each, then inspect the durable store, the projection and the outbound queue",
-      "decision": "reject",
-      "reason": "unsupported_feature",
-      "observed": "the durable store, the projection and the outbound queue",
-      "assertions": [
-        "neither object is stored, projected or forwarded",
-        "the refusal happens before any payload member is consumed",
-        "a later registry refresh does not resurrect the refused object from a staged copy, because no copy was staged"
+        "the independent omission is refused",
+        "actor_id is not filled in from the transport, session or a neighbouring event",
+        "the verification path is not reached with a synthesized actor"
       ]
     }
   ]

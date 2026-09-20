@@ -28,7 +28,7 @@ Calendar event 是一个带 Calendar schedule 子树的 Strand，而不是新的
 - **双向共现**：schema ref 与 `metadata.fields.calendar` 子树 MUST 在 **post-patch 对象**上同时出现或同时不出现。只删 ref 保留子树、或只删子树保留 ref，均 MUST 以 `schema_violation` reason=`calendar_activation_mismatch` 拒绝。
 - 容器 self-schema `ak.schema.strand.v1` MUST NOT 出现在 `schema_refs[]`（与 [`morph.md` §4](./morph.md) 同一规则）。
 - 扁平 `metadata.fields.start` / `end` / `timezone` / `all_day` / `recurrence` / `attendees`，以及 `metadata.fields.profile` / `profile_refs`，都 MUST 被 Strand schema 拒绝。实现 MUST NOT 通过"存在若干字段"推断 Calendar 语义。
-- 写入 Calendar 子树的 `ak.strand.create` / `ak.strand.update` MUST 按 [`event-and-patch.md` §2.7](./event-and-patch.md) 在 `requirements.schema[]` 中列出 `ak.schema.calendar_event.v1`；replay MUST 使用该 per-event 绑定校验，MUST NOT 使用对象当前的 `schema_refs[]`。
+- 写入 Calendar 子树的 `ak.strand.create` / `ak.strand.update` MUST 由 event-kind registry 选择其封闭 payload class，并在治理 Station 接纳时对 post-patch Strand 的 `schema_refs[]` ↔ `metadata.fields.calendar` 双向共现与完整 Calendar 子树执行校验；replay 重跑同一已登记 reducer/schema 版本，不读取不存在的 per-Event `requirements` carrier。
 - profile-aware validator MUST 对 create 与 post-patch 的完整子树做全对象校验，而不是只校验被 patch 触及的字段。
 
 `schema_refs` 是公开、被签名、可路由的对象 schema 激活信息。它会暴露"这是一个 Calendar Strand"这一分类事实：加密部署 MUST 在 privacy disclosure 中把它列为有意的 routing metadata，MUST NOT 声称 schedule 完全不可观察。metadata 加密时，producer MUST 在加密前校验、授权客户端 MUST 在解密后校验；不能解密的服务只校验 `schema_refs` 与 envelope，MUST NOT 声称验证过 schedule plaintext。

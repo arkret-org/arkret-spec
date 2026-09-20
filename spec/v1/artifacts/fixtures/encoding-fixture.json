@@ -4,7 +4,7 @@
     "entrypoint": "ak.suite.encoding.core.v1"
   },
   "profile": "ak.vector_group.encoding.v1",
-  "version": "2026-09-20",
+  "version": "2026-09-20.1",
   "description": "Canonical encoding and digest-algorithm vectors for the current authority-commit protocol.",
   "generator_semantics": "Vectors of kind *_reject_generated carry a `generator` object instead of literal input bytes: the runner MUST construct the input at execution time from the generator parameters (e.g. nesting_depth, array_item_count) following the generator.rule text, so the fixture never stores megabyte-scale literals. Rejection is asserted exactly as for literal-input vectors.",
   "covers_vectors": [
@@ -1099,8 +1099,7 @@
         "nested values, array order and string content inside the slot MUST NOT be dropped, defaulted or normalized",
         "slot content MUST keep entering canonical bytes, so changing it changes the applicable digest and signature verification",
         "byte comparison follows the existing canonical contract: JSON whitespace and written member order carry no preservation obligation",
-        "a field the schema does not declare is still rejected; the extension-slot rule does not admit it",
-        "an unsupported critical extension still fails closed as a whole; roundtrip preservation of critical_extensions[].parameters is required only once that critical feature is supported"
+        "a field the schema does not declare is still rejected; the extension-slot rule does not admit it"
       ],
       "cases": [
         {
@@ -1228,22 +1227,8 @@
             "outcome": "rejected",
             "top_level_code": "schema_violation",
             "admitted_by_the_extension_slot_rule": false
-          }
-        },
-        {
-          "name": "an_unsupported_critical_feature_is_not_admitted_by_the_roundtrip_rule",
-          "covers_decision_points": [
-            "AK-SDK-017/an_unsupported_critical_feature_is_not_admitted_by_the_roundtrip_rule"
-          ],
-          "mutation": "declare requirements.critical_extensions[0].id as a feature this build does not support, carrying well-formed unknown parameters",
-          "expected": {
-            "outcome": "rejected",
-            "top_level_code": "unsupported_feature",
-            "decided_from": "the criticality declaration, not from whether the parameters parse",
-            "parameters_preserved_instead_of_rejecting": false,
-            "cross_reference_vector": "ak.vector.sdk.unknown_critical_feature_fail_closed.v1"
-          }
         }
+      }
       ]
     }
   ],

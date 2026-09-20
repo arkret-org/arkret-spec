@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-20.5",
-  "generated_at": "2026-09-20T21:43:00+08:00",
+  "version": "2026-09-20.6",
+  "generated_at": "2026-09-20T22:15:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -113,7 +113,7 @@
           "A"
         ],
         "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#ak-sdk-002",
-        "summary": "Do not expose a bypass for proof, HLC, actor sequence, prev refs, or authorization refs",
+        "summary": "Require current Event root security members and reject forbidden top-level fields",
         "required_evidence": [
           "vector_result",
           "public_api_inventory"
@@ -149,10 +149,24 @@
               ]
             },
             {
-              "id": "authorization_members_cannot_be_omitted_or_defaulted",
-              "requirement": "proofs, scope_ref, actor_id and semantic_refs[role=authorized_by] are each refused when omitted, and none is filled in from a default, the transport, the session or a neighbouring event before the verification path runs.",
+              "id": "required_event_members_cannot_be_omitted_or_defaulted",
+              "requirement": "Event root required members producer_proof, scope_ref and actor_id are each refused when omitted, and none is filled in from a default, the transport, the session or a neighbouring event before the verification path runs; semantic_refs remains optional unless a concrete event-kind admission selector requires a role.",
               "vectors": [
                 "ak.vector.sdk.envelope_forbidden_top_level_fields.v1"
+              ],
+              "required_case_refs": [
+                {
+                  "fixture_ref": "fixtures/sdk-precheck-fixture.json",
+                  "case_id": "producer_proof_cannot_be_omitted_or_defaulted"
+                },
+                {
+                  "fixture_ref": "fixtures/sdk-precheck-fixture.json",
+                  "case_id": "scope_ref_cannot_be_omitted_or_defaulted"
+                },
+                {
+                  "fixture_ref": "fixtures/sdk-precheck-fixture.json",
+                  "case_id": "actor_id_cannot_be_omitted_or_defaulted"
+                }
               ]
             }
           ]
@@ -650,62 +664,13 @@
       {
         "clause_id": "AK-SDK-013",
         "grades": [
-          "V"
+          "A"
         ],
         "source_anchor": "spec/v1/zh/conformance/conformance-profiles.md#ak-sdk-013",
-        "summary": "Fail closed on unknown critical features or unmet requirements",
+        "summary": "Keep generic Event requirements and critical-extension carriers reserved until a complete activation package exists",
         "required_evidence": [
-          "vector_result"
-        ],
-        "vector_evidence": {
-          "vectors": [
-            "ak.vector.sdk.unknown_critical_feature_fail_closed.v1",
-            "ak.vector.sdk.requirements_mismatch_fail_closed.v1"
-          ],
-          "decision_points": [
-            {
-              "id": "unknown_critical_extension_is_refused_as_a_whole",
-              "requirement": "An object declaring an unrecognised critical extension is refused with unsupported_feature, decided from the criticality declaration rather than from whether the extension body parses, and before any member is consumed, stored, projected or forwarded.",
-              "vectors": [
-                "ak.vector.sdk.unknown_critical_feature_fail_closed.v1"
-              ],
-              "required_case_refs": [
-                {
-                  "fixture_ref": "fixtures/sdk-precheck-fixture.json",
-                  "case_id": "an_unknown_critical_extension_fails_closed"
-                },
-                {
-                  "fixture_ref": "fixtures/sdk-precheck-fixture.json",
-                  "case_id": "the_fail_closed_decision_precedes_consumption_and_storage"
-                }
-              ]
-            },
-            {
-              "id": "unmet_requirement_is_a_distinct_refusal",
-              "requirement": "An object whose declared requirements name a capability this build does not provide is refused with unsupported_feature, and a build that provides the capability admits the identical object.",
-              "vectors": [
-                "ak.vector.sdk.requirements_mismatch_fail_closed.v1"
-              ],
-              "required_case_refs": [
-                {
-                  "fixture_ref": "fixtures/sdk-precheck-fixture.json",
-                  "case_id": "unmet_requirements_fail_closed"
-                },
-                {
-                  "fixture_ref": "fixtures/sdk-precheck-fixture.json",
-                  "case_id": "the_fail_closed_decision_precedes_consumption_and_storage"
-                }
-              ]
-            },
-            {
-              "id": "unknown_non_critical_extension_is_still_admitted",
-              "requirement": "An unknown extension that is not declared critical is admitted and survives the round trip byte for byte, so fail-closed is scoped to criticality and to requirements.",
-              "vectors": [
-                "ak.vector.sdk.unknown_critical_feature_fail_closed.v1"
-              ]
-            }
-          ]
-        }
+          "public_api_inventory"
+        ]
       },
       {
         "clause_id": "AK-SDK-014",
@@ -871,7 +836,7 @@
           "decision_points": [
             {
               "id": "extension_slot_content_survives_the_canonical_round_trip",
-              "requirement": "On a legal object of a concrete schema that declares the slot, unrecognised x_* and critical_extensions[].parameters content survives decode and encode byte for byte, with nested values, array order and string content neither dropped, defaulted nor normalized.",
+              "requirement": "On a legal object of a concrete schema that declares the slot, unrecognised x_* content survives decode and encode byte for byte, with nested values, array order and string content neither dropped, defaulted nor normalized.",
               "vectors": [
                 "ak.vector.encoding.extension_slot_roundtrip.v1"
               ]
@@ -893,13 +858,6 @@
             {
               "id": "a_schema_undeclared_field_is_still_rejected",
               "requirement": "A member matching no declared property and no declared extension pattern is still rejected with schema_violation; the extension-slot rule does not admit it.",
-              "vectors": [
-                "ak.vector.encoding.extension_slot_roundtrip.v1"
-              ]
-            },
-            {
-              "id": "an_unsupported_critical_feature_is_not_admitted_by_the_roundtrip_rule",
-              "requirement": "An object declaring an unsupported critical extension is refused as a whole even though its parameters would round-trip; preservation of unknown parameters is required only once the critical feature is supported.",
               "vectors": [
                 "ak.vector.encoding.extension_slot_roundtrip.v1"
               ]
@@ -1394,7 +1352,7 @@
       "may_ignore_for_reducer": true,
       "must_not_affect_state_digest": true
     },
-    "unknown_required_feature_or_critical_extension": {
+    "unsupported_registered_wire_feature": {
       "must_fail_closed": true,
       "allowed_results": [
         "unsupported_feature",
@@ -2072,7 +2030,6 @@
       "binding_invariants": [
         "schema_refs MUST contain ak.profile.direct_conversation_realm.v1 and fields.collaboration_role MUST equal direct_conversation; either marker without the other is schema_violation.",
         "The Realm scope is plaintext until its single ak.mls.genesis is accepted; that accepted RealmCommit irreversibly activates standard RFC 9420 for the scope and every later content write MUST be an MLS application message.",
-        "The ak.realm.create Event requirements.schema MUST contain ak.profile.direct_conversation_realm.v1 and requirements.critical_extensions MUST contain fail_closed=true id ak.feature.direct_conversation_realm_role.v1 for payload scope.",
         "Exactly the two ActorIds in the immutable binding may be Realm principal members; any third-party join or invite MUST be rejected.",
         "Space events are forbidden in a Direct Conversation Realm with direct_conversation_space_forbidden; additional ordinary Strands remain allowed.",
         "The canonical main Strand MUST be active, belong to the Realm, have no Circle scope, and expose an active primary discussion track.",

@@ -297,8 +297,8 @@ canonical 展示顺序——对一组互不排序的候选 Event，排序键是*
 实现私有 ID。向量同时明示 producer 击败一个已知随机 digest 的期望尝试数约为 2，因此该顺序是 producer-biased
 的展示排列而不是公平选举。
 
-`ak.vector.encoding.extension_slot_roundtrip.v1` MUST 证明：schema 明示的 `x_*` 槽位与
-`critical_extensions[].parameters` 中未识别的内容，在 decode 与 encode、存储、联邦转发与 backfill 之后逐字节保留，
+`ak.vector.encoding.extension_slot_roundtrip.v1` MUST 证明：具体 schema 明示的 `x_*` 槽位中未识别的内容，
+在 decode 与 encode、存储、联邦转发与 backfill 之后逐字节保留，
 并继续进入 canonical bytes。该向量的输入 MUST 是**具体 canonical schema 明示允许扩展槽**的合法对象；
 任意容器上的 `x_*` 正例 MUST NOT 被推广成“所有 schema 都允许扩展”。向量 MUST 固定扩展值与 canonical 输出
 bytes／digest，并逐项证明往返后未知成员、嵌套值、数组顺序与字符串内容都没有被丢弃、补默认或归一化。
@@ -309,11 +309,9 @@ backfill 重放，以及 canonical bytes／digest／签名校验。字节比较�
 引入新的保留义务。改变扩展槽内容 MUST 改变适用的 canonical digest 与签名校验结果，
 从而把观测点钉在“扩展内容确实进入了 canonical bytes”而不是“对象仍能解析”。
 
-同一向量 MUST 保留两组负向对照：schema 未声明的字段仍 MUST 被拒绝，不得借扩展槽规则放行；
-声明了本构建不支持的 critical extension 的对象仍 MUST 整体 fail closed
-（判定见 `ak.vector.sdk.unknown_critical_feature_fail_closed.v1`），
-MUST NOT 为了让 roundtrip 正例通过而绕过 criticality 验证。未知
-`critical_extensions[].parameters` 的逐字节保留只在该 critical feature 已被支持时才被要求。
+同一向量 MUST 保留 schema 未声明字段的负向对照：该字段仍 MUST 被拒绝，不得借某个具体 schema 的扩展槽规则
+推广成任意对象都接受扩展。通用 `critical_extensions` carrier 在 current-v1 为 reserved，不属于本向量输入；其重新激活
+必须与具体 schema、typed model、criticality 判定和 canonical-preservation 向量同批落地。
 
 `ak.vector.encoding.result_selector_uri.v1` MUST 证明：canonical MIMI room URI 是 typed current result 的
 subject 来源；哈希化 subject、URI fragment 截断与 caller 自行分配的备用 room 标识符一律拒绝。
@@ -533,18 +531,17 @@ MUST NOT 被当作本向量的替代证据。
 形态。观测点是被消费效果的缺席，而不是 schema 判定本身。
 
 `ak.vector.sdk.envelope_forbidden_top_level_fields.v1` MUST 证明：`hlc`、`producer_revision`、`domain_refs`、
-`requirements` 出现在 Event 顶层时逐个以 `schema_violation` 被拒，而不是被忽略或剥除；`producer_proof`、`scope_ref`、
-`actor_id` 与 `semantic_refs[role=authorized_by]` 各自缺失时同样被拒，且不从默认值、传输层、会话或相邻 Event 合成替代值后
-进入验证路径。
+`requirements` 出现在 Event 顶层时逐个以 `schema_violation` 被拒，而不是被忽略或剥除；Event root required 的
+`producer_proof`、`scope_ref` 与 `actor_id` 各自缺失时同样被拒，且不从默认值、传输层、会话或相邻 Event 合成替代值后
+进入验证路径。`semantic_refs` 是 optional；只有具体 event-kind admission selector 能要求某一 role，本通用向量不得把
+`semantic_refs[role=authorized_by]` 虚构成所有 Event 的 required member。
 
-`ak.vector.sdk.unknown_critical_feature_fail_closed.v1` MUST 证明：声明了本构建不识别的 critical extension 的
-对象以 `unsupported_feature` 整体拒收，判定取自 criticality 声明而非扩展体是否恰好可解析，且拒收发生在任何 payload
-成员被消费、落盘、投影或转发之前；未声明 critical 的未知扩展仍被接纳并在往返中逐字节保留，因此把全部未知值一律拒收的
-实现在此失败。
-
-`ak.vector.sdk.requirements_mismatch_fail_closed.v1` MUST 证明：声明的 `requirements` 指向本构建不提供的能力时
-以 `unsupported_feature` 拒收，这是与未知 critical extension 不同的判定；提供该能力的构建接纳同一个对象，从而把
-观测点钉在 requirements 检查而不是 schema 失败上。
+`ak.vector.sdk.unknown_critical_feature_fail_closed.v1` 与
+`ak.vector.sdk.requirements_mismatch_fail_closed.v1` 在 current-v1 均为 **reserved**：Event/root schema、typed SDK model 与
+operation catalog 没有通用 `critical_extensions` / `requirements` carrier，因此不存在可执行输入。实现不得用私有对象或
+fixture-only matcher 声称通过。未来重新激活这两个向量时，必须在同一 contract release 登记一个具体 closed carrier、
+criticality 判定、`unsupported_feature` producer、canonical bytes 与 preservation 规则、storage/forward/backfill consumer，
+以及接受与拒绝向量。
 
 ### 3.15 媒体
 

@@ -80,7 +80,7 @@
         "type": "string",
         "pattern": "^ak\\.schema\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$"
       },
-      "description": "Optional authoritative schema set for profile-defined metadata.fields subtrees. Unlike Morph, a plain Strand carries no profile subtree and omits this field entirely; when present it MUST list at least one profile schema id. The container self-schema ak.schema.strand.v1 MUST NOT appear here. Every listed profile schema and its metadata.fields namespace MUST co-occur in both directions: the ref without the subtree and the subtree without the ref are both schema_violation, evaluated on the post-patch object. Writers MUST also bind the same schema id in the Event requirements.schema[] so replay validates against the write-time schema instead of the object's current schema_refs.",
+      "description": "Optional authoritative schema set for profile-defined metadata.fields subtrees. Unlike Morph, a plain Strand carries no profile subtree and omits this field entirely; when present it MUST list at least one profile schema id. The container self-schema ak.schema.strand.v1 MUST NOT appear here. Every listed profile schema and its metadata.fields namespace MUST co-occur in both directions: the ref without the subtree and the subtree without the ref are both schema_violation, evaluated on the post-patch object by the registered event-kind payload class and reducer. Current-v1 has no per-Event requirements.schema[] carrier.",
       "$comment": "Bidirectional co-presence for concrete profiles is enforced in allOf below; see zh/models/strand-and-message.md."
     },
     "agent_participation": {

@@ -57,7 +57,7 @@ Arkret 命名空间与分隔符约定（normative）：`.` 与 `:` 表达不同�
 
 - 未标记 optional 的字段为 required。
 - `null` 只有在类型中明确写出时才允许。
-- Event Envelope 顶层未知字段 MUST 被 schema validation 拒绝；非关键扩展只能放入 `payload.x_*`，且仅当该 payload kind 的 schema 显式声明 `x_*` patternProperties 扩展槽时才可使用——未声明扩展槽的 payload kind 不接受任何未知字段（payload schema 的 `additionalProperties: false` 即权威判定）。实现 MUST 在 canonical bytes、存储、转发和 backfill 中保留 schema 允许的 `x_*` 字段，但 MUST NOT 让 `x_*` 字段绕过 capability、schema、policy 或加密约束。需要扩展槽的 payload kind SHOULD 先在对应 schema 登记 `x_*` patternProperties 槽再使用；当前已声明扩展槽的 payload kind 以 schema 为准（Invite 的六个逐 Event payload schema 各自声明该槽）。未知 critical extension MUST fail closed。
+- Event Envelope 顶层未知字段 MUST 被 schema validation 拒绝；非关键扩展只能放入 `payload.x_*`，且仅当该 payload kind 的 schema 显式声明 `x_*` patternProperties 扩展槽时才可使用——未声明扩展槽的 payload kind 不接受任何未知字段（payload schema 的 `additionalProperties: false` 即权威判定）。实现 MUST 在 canonical bytes、存储、转发和 backfill 中保留 schema 允许的 `x_*` 字段，但 MUST NOT 让 `x_*` 字段绕过 capability、schema、policy 或加密约束。需要扩展槽的 payload kind SHOULD 先在对应 schema 登记 `x_*` patternProperties 槽再使用；当前已声明扩展槽的 payload kind 以 schema 为准（Invite 的六个逐 Event payload schema 各自声明该槽）。current-v1 不提供通用 critical-extension carrier；需要 critical 新语义时必须新增或升级具体 kind/schema 并同步登记生产 consumer 与向量。
 - 签名和 hash 输入 MUST 使用 canonical JSON。
 - `id:<kind>` 在 wire、canonical object、fixture、签名和跨服务引用中 MUST 使用完整 typed ID。数据库内部 MAY 只存 raw id，但在序列化、签名、hash、联邦、sync cursor 和审计回放前必须恢复 `ak:<kind>:` 前缀；不得把数据库主键或表名当作协议 ID 的替代品。
 - 前缀由字段的**语义类型**决定，不由承载介质决定。配置、环境变量、数据库、HTTP header 或签名 transcript 不会把裸字符串自动升级成协议 ID；一旦一个值被声明为 `id:<kind>`，它在进入领域模型时就 MUST 已是完整 canonical typed ID，签名与 hash 层 MUST 原样承诺该值，MUST NOT 在签名前后补前缀、去前缀、大小写折叠或接受裸 payload alias。

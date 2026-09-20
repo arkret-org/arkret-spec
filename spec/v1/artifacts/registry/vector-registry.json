@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.16",
+  "version": "2026-09-20.17",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T22:01:09+08:00",
+  "generated_at": "2026-09-20T22:15:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -814,7 +814,7 @@
       "applies_to_fixtures": [
         "calendar-rsvp-fixture.json"
       ],
-      "description": "Calendar Strands activate exactly one way: Strand.schema_refs carries ak.schema.calendar_event.v1 and metadata.fields.calendar co-occurs in both directions on the post-patch object, the container self-schema is refused in schema_refs, flat schedule fields and metadata.fields.profile/profile_refs impostors are refused, and writes bind the schema in requirements.schema[].",
+      "description": "Calendar Strands activate exactly one way: Strand.schema_refs carries ak.schema.calendar_event.v1 and metadata.fields.calendar co-occurs in both directions on the post-patch object, the container self-schema is refused in schema_refs, and flat schedule fields and metadata.fields.profile/profile_refs impostors are refused. The registered event-kind payload class and reducer validate this closed shape; current-v1 has no per-Event requirements.schema[] carrier.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/calendar-rsvp-fixture.json"
       ]
@@ -2064,7 +2064,7 @@
       "status": "active",
       "domain": "encoding",
       "scope": "universal",
-      "description": "Schema-declared x_* slots and unrecognised critical_extensions[].parameters survive decode, encode, storage, federation forwarding and backfill byte for byte on a legal object of a concrete schema that declares them, keep entering canonical bytes so that changing them changes the digest and the signature verdict, and neither admit a schema-undeclared field nor bypass criticality validation.",
+      "description": "Schema-declared x_* slots survive decode, encode, storage, federation forwarding and backfill byte for byte on a legal object of a concrete schema that declares them, keep entering canonical bytes so that changing them changes the digest and the signature verdict, and do not admit a schema-undeclared field. Generic critical_extensions are reserved and outside this vector until a concrete carrier is activated.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-profiles.md",
         "spec/v1/zh/conformance/conformance-vectors.md",
@@ -4133,7 +4133,7 @@
       "applies_to_profiles": [
         "ak.profile.full_client.v1"
       ],
-      "description": "hlc, producer_revision, domain_refs and requirements at the Event top level are each refused with schema_violation rather than ignored or stripped, and producer_proof, scope_ref, actor_id and semantic_refs[role=authorized_by] cannot be omitted or synthesized from a default, the transport, the session or a neighbouring event before the verification path runs.",
+      "description": "hlc, producer_revision, domain_refs and requirements at the Event top level are each refused with schema_violation rather than ignored or stripped, and Event root required producer_proof, scope_ref and actor_id cannot be omitted or synthesized from a default, the transport, the session or a neighbouring event before the verification path runs. semantic_refs is optional unless a concrete event-kind admission selector requires a role.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/zh/conformance/conformance-profiles.md",
@@ -4182,16 +4182,14 @@
     },
     {
       "vector_id": "ak.vector.sdk.requirements_mismatch_fail_closed.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "sdk",
       "applies_to_profiles": [
         "ak.profile.full_client.v1"
       ],
-      "description": "An object whose declared requirements name a capability this build does not provide is refused with unsupported_feature, which is a different decision from an unknown critical extension; a build that provides the capability admits the identical object, so the observation point is the requirement check and not a schema failure.",
+      "description": "Reserved until a concrete canonical requirements carrier is registered. Activation requires the closed schema and typed model, feature-resolution and unsupported_feature producer, canonicalization rule, storage/forward/backfill consumers, and executable accept/reject vectors in one contract release.",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/zh/conformance/conformance-profiles.md",
-        "spec/v1/artifacts/fixtures/sdk-precheck-fixture.json"
+        "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
     {
@@ -4208,16 +4206,14 @@
     },
     {
       "vector_id": "ak.vector.sdk.unknown_critical_feature_fail_closed.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "sdk",
       "applies_to_profiles": [
         "ak.profile.full_client.v1"
       ],
-      "description": "An object declaring a critical extension this build does not recognise is refused as a whole with unsupported_feature, decided from the criticality declaration rather than from whether the extension body parses, and refused before any payload member is consumed, stored, projected or forwarded; an unknown non-critical extension is still admitted and preserved byte for byte.",
+      "description": "Reserved until a concrete canonical critical-extension carrier is registered. Activation requires the closed schema and typed model, criticality and unsupported_feature producer, canonical parameter preservation, storage/forward/backfill consumers, and executable accept/reject vectors in one contract release.",
       "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/zh/conformance/conformance-profiles.md",
-        "spec/v1/artifacts/fixtures/sdk-precheck-fixture.json"
+        "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
     {

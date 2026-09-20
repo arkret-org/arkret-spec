@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.21",
+  "version": "2026-09-20.22",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T16:44:00+08:00",
+  "generated_at": "2026-09-20T22:15:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -499,7 +499,7 @@
       "payload_schema_file": "schemas/event-payload.schema.json",
       "coverage_required": true,
       "validation_rule": "Every active standard ak.* event kind MUST be validated by the Event Envelope schema and one payload class selected by kind. Unknown standard kind, unmatched active kind, or payload class failure is schema_violation before reducer execution.",
-      "non_critical_extension_rule": "Unknown non-critical payload fields are preserved in canonical bytes and MAY be ignored by reducers. Unknown critical payload semantics MUST be declared in Event.requirements.critical_extensions and fail closed when unsupported.",
+      "non_critical_extension_rule": "Only x_* fields explicitly admitted by a concrete payload schema are non-critical extensions; they are preserved in canonical bytes and MAY be ignored by reducers. Current-v1 has no generic Event requirements or critical_extensions carrier. New critical semantics require a new or upgraded registered kind/schema and a complete activation package.",
       "explicit_binding_rule": "Each active standard event kind declares exactly one payload_schema_ref, and the Event Envelope dispatch selects that exact location. Missing, dangling, duplicate, or divergent bindings fail closed. Consumers MUST NOT infer a payload schema from kind spelling or naming conventions."
     },
     "transition_contracts": {
@@ -8708,8 +8708,8 @@
         }
       }
     },
-    "version": "2026-09-20.13",
-    "generated_at": "2026-09-20T16:42:00+08:00",
+    "version": "2026-09-20.14",
+    "generated_at": "2026-09-20T22:15:00+08:00",
     "bootstrap_event_kinds": [
       "ak.device.authorize",
       "ak.device.reanchor",

@@ -88,7 +88,7 @@ candidate v1 目标基线下，机器 registry 的当前覆盖范围由下表索
 - Event Envelope 必须先验证 envelope schema，再验证 kind-selected payload schema，最后才进入 auth / reducer
 - Snapshot 签名不能单独证明无遗漏；实现必须逐 stream 用同 stream tail 承接每个 `visible_stream_heads[]`
 - Sync、Directory、Blob、Push、Moderation、Agent 和受托 search / projection 等服务 MUST NOT 绕过 capability、Realm policy、history visibility、plaintext-visible service 或 E2EE 边界
-- canonical object schema 未声明的未知字段必须被 schema validation 拒绝；schema 显式声明扩展位（已登记的 `payload.x_*` 槽、`requirements.critical_extensions[].parameters`）中的未识别内容必须在 canonical bytes、存储、转发和 backfill 中保留
+- canonical object schema 未声明的未知字段必须被 schema validation 拒绝；具体 schema 显式声明的 `x_*` 扩展槽中的未识别内容必须在 canonical bytes、存储、转发和 backfill 中保留；current-v1 不存在通用 `requirements` / `critical_extensions` carrier
 - 未知 critical extension 必须 fail closed
 
 ## 5. 发布门槛

@@ -213,7 +213,7 @@
       }
     },
     {
-      "$comment": "Reject these top-level field names. The Event Envelope root is closed (additionalProperties=false); extension data belongs in payload or requirements.critical_extensions. The root field names type / auth_refs / target_ref / operation_id are dropped and MUST NOT appear at the root; use kind / semantic_refs[role=authorized_by] / payload.* fields / SDK-internal id instead (see operations-sync.md §5).",
+      "$comment": "Reject these top-level field names. The Event Envelope root is closed (additionalProperties=false); current-v1 has no generic requirements or critical_extensions carrier, and non-critical extension data is legal only in a concrete payload schema that explicitly declares an x_* slot. The root field names type / auth_refs / target_ref / operation_id are dropped and MUST NOT appear at the root; use kind / event-kind-specific semantic_refs, payload.* fields / SDK-internal id instead (see operations-sync.md §5).",
       "not": {
         "anyOf": [
           {
