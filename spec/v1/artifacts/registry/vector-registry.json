@@ -1,9 +1,21 @@
 {
-  "version": "2026-09-20.19",
+  "version": "2026-09-21.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T23:10:00+08:00",
+  "generated_at": "2026-09-21T01:08:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
+    {
+      "vector_id": "ak.vector.crypto.aead_nonce_replay.v1",
+      "status": "active",
+      "domain": "crypto",
+      "applies_to_fixtures": [
+        "aead-nonce-replay-fixture.json"
+      ],
+      "description": "The receiver binds each whole-file AEAD (key_ref, purpose, aead_profile, counter) tuple to the exact ciphertext digest before decryption: a first ciphertext binds, an exact retry folds, and a different ciphertext under the same tuple fails with failed_precondition/aead_nonce_counter_replay with zero decrypt or durable effect.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/aead-nonce-replay-fixture.json"
+      ]
+    },
     {
       "vector_id": "ak.vector.account.blocklist_projection.v1",
       "status": "active",
@@ -3932,6 +3944,18 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
         "spec/v1/zh/models/relation.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.relation.structural_realm.v1",
+      "status": "active",
+      "domain": "relation",
+      "applies_to_fixtures": [
+        "relation-structural-realm-fixture.json"
+      ],
+      "description": "The current governance Station reducer resolves both endpoints: same-Realm structural Relations proceed, cross-Realm contains/belongs_to fail with failed_precondition/cross_realm_structural_relation and zero commit/projection effect, while weak-semantic cross-Realm edges continue to the independent two-sided authorization path. Producer/SDK prechecks never authorize admission.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/relation-structural-realm-fixture.json"
       ]
     },
     {

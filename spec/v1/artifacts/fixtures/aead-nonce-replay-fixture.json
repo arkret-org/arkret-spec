@@ -1,0 +1,53 @@
+{
+  "profile": "ak.profile.blob_node.v1",
+  "version": "2026-09-21.1",
+  "suite": "aead_nonce_replay",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.crypto.aead_nonce_replay.v1"
+  },
+  "covers_vectors": [
+    "ak.vector.crypto.aead_nonce_replay.v1"
+  ],
+  "receiver_state_key": [
+    "key_ref",
+    "purpose",
+    "aead_profile",
+    "counter"
+  ],
+  "cases": [
+    {
+      "case": "first_ciphertext_binds_tuple",
+      "prior_binding": null,
+      "candidate_ciphertext_digest": "sha256:53a854a2840e4d0f3227b90489fa1e78e2d946c72bb02a42d9fcbe8dbcf0edb1",
+      "expected": {
+        "decision": "accept",
+        "bind_digest": true,
+        "decrypt_attempts": 1
+      }
+    },
+    {
+      "case": "same_ciphertext_retry_folds",
+      "prior_binding": "sha256:53a854a2840e4d0f3227b90489fa1e78e2d946c72bb02a42d9fcbe8dbcf0edb1",
+      "candidate_ciphertext_digest": "sha256:53a854a2840e4d0f3227b90489fa1e78e2d946c72bb02a42d9fcbe8dbcf0edb1",
+      "expected": {
+        "decision": "fold",
+        "bind_digest": false,
+        "decrypt_attempts": 0
+      }
+    },
+    {
+      "case": "different_ciphertext_reusing_tuple_rejected",
+      "prior_binding": "sha256:53a854a2840e4d0f3227b90489fa1e78e2d946c72bb02a42d9fcbe8dbcf0edb1",
+      "candidate_ciphertext_digest": "sha256:b4169f096b92e19380d6084b15aab2f19433a36cd9a102f186255158ff39ea71",
+      "expected": {
+        "decision": "reject",
+        "error_code": "failed_precondition",
+        "reason_code": "aead_nonce_counter_replay",
+        "bind_digest": false,
+        "decrypt_attempts": 0,
+        "durable_effects": 0
+      }
+    }
+  ]
+}

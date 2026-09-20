@@ -1,0 +1,52 @@
+{
+  "profile": "ak.profile.core_event_store.v1",
+  "version": "2026-09-21.1",
+  "suite": "relation_structural_realm",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.relation.structural_realm.v1"
+  },
+  "covers_vectors": [
+    "ak.vector.relation.structural_realm.v1"
+  ],
+  "authority": "current_governance_station_reducer",
+  "cases": [
+    {
+      "case": "same_realm_contains_accepted",
+      "relation_kind": "contains",
+      "relation_realm": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+      "resolved_from_realm": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+      "resolved_to_realm": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+      "expected": {
+        "decision": "accept",
+        "commits": 1
+      }
+    },
+    {
+      "case": "cross_realm_contains_rejected",
+      "relation_kind": "contains",
+      "relation_realm": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+      "resolved_from_realm": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+      "resolved_to_realm": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw",
+      "expected": {
+        "decision": "reject",
+        "error_code": "failed_precondition",
+        "reason_code": "cross_realm_structural_relation",
+        "commits": 0,
+        "projection_writes": 0
+      }
+    },
+    {
+      "case": "cross_realm_reference_continues_to_authorization",
+      "relation_kind": "references",
+      "relation_realm": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+      "resolved_from_realm": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+      "resolved_to_realm": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw",
+      "expected": {
+        "decision": "continue_two_sided_authorization",
+        "structural_realm_rejection": false
+      }
+    }
+  ],
+  "non_authoritative_precheck_rule": "Producer and SDK prechecks MAY mirror this predicate for early feedback but MUST NOT authorize admission; the current governance Station always resolves both endpoint realms and revalidates it."
+}

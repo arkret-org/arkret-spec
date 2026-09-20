@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.media_service_binding.v1",
-  "version": "2026-06-19",
+  "version": "2026-09-21.1",
   "suite": "call_state_core",
   "runner": {
     "kind": "named_suite",
@@ -88,6 +88,7 @@
         "roster leave and moderation restore remove exactly the payload revoked_event_ref",
         "mute override validation sets the complete per-leg payload value",
         "capture lifecycle transition and capture result are projected into separate exact typed current result writes",
+        "a recording_transition or transcript_transition whose edge is illegal, whose from value differs from the current capture head, or whose current capture head is terminal fails with failed_precondition reason recording_state_transition_invalid and writes neither the capture state nor result nor main call-state axis",
         "any derived projection kind, tag, value, from, or to mismatch fails with reducer_projection_failed",
         "an unchanged axis produces no projected write and a redundant same-value write is rejected",
         "focus validation sets the complete focus value and cannot omit or replace a committed session_focus",

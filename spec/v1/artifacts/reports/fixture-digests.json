@@ -16,6 +16,11 @@
       "version": "2026-09-19.1"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/aead-nonce-replay-fixture.json",
+      "sha256": "7d280b33cb0514f7efc372eced1a0f41ab8b160b768dd0d85620e0ba07eb8a51",
+      "version": "2026-09-21.1"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/agent-draft-pending-intent-fixture.json",
       "sha256": "52ddfdc7852d274cfff2e1d923687754c4fdfab5eaf202e4dd178414f1f91815",
       "version": "2026-09-20.6"
@@ -102,8 +107,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/call-state-core-fixture.json",
-      "sha256": "d0e82a3a87aeb8756746239beaef9f82510e5f3d2fedb9b8ffec79effedcb474",
-      "version": "2026-06-19"
+      "sha256": "98b40e6546de9ccc46e144e222b87f061c65729610ea52f3b316c647df04cdb5",
+      "version": "2026-09-21.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/call-state-media-lifecycle-fixture.json",
@@ -409,6 +414,11 @@
       "path": "spec/v1/artifacts/fixtures/redaction-fixture.json",
       "sha256": "f88c3f8c3d1f7a3a215fa1be6d30cb73c03968a102279522b7c70dee20549251",
       "version": "2026-09-19.2"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/relation-structural-realm-fixture.json",
+      "sha256": "21d7de5358f9dc8ef3d30261e444fd668944b48e9af4cfc662986fab952b96a1",
+      "version": "2026-09-21.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/resolution-commitment-fixture.json",

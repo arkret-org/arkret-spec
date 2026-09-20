@@ -92,7 +92,7 @@
             "nonce": {
               "type": "string",
               "pattern": "^[A-Za-z0-9_-]{16,64}$",
-              "$comment": "zh/crypto-media/media-and-blob.md §3.1: the whole-file nonce MUST be the canonical full-width I2OSP(durable_sender_counter, AEAD.Nn) encoding; a nonce that is not that deterministic derivation (truncated prefix, counter rollback, exhausted-counter continue, or random fallback) is rejected with reason aead_nonce_derivation_invalid."
+              "$comment": "zh/crypto-media/media-and-blob.md §3.1: the whole-file nonce MUST be the canonical full-width I2OSP(durable_sender_counter, AEAD.Nn) encoding; a nonce that is not that deterministic derivation (truncated prefix, counter rollback, exhausted-counter continue, or random fallback) is rejected with reason aead_nonce_derivation_invalid. Before AEAD decryption the receiver binds (key_ref, purpose, aead_profile, counter) to the exact ciphertext digest: an identical retry folds idempotently, while a different ciphertext under an already bound tuple is rejected with failed_precondition reason aead_nonce_counter_replay and produces no plaintext or durable effect."
             }
           },
           "required": [

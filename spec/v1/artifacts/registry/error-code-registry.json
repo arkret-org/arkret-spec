@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-20.8",
-  "generated_at": "2026-09-20T22:56:00+08:00",
+  "version": "2026-09-21.2",
+  "generated_at": "2026-09-21T01:13:30+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -2945,8 +2945,7 @@
         "encoding"
       ],
       "description": "An AEAD-encrypted payload (encrypted_payload, blob attachment, to_device, etc.) repeated a per-(key_ref, epoch, device_id) counter already seen by the receiver. The receiver MUST reject the payload before AEAD decryption to prevent attempted nonce reuse against a valid sender device. See zh/crypto-media/media-and-blob.md §3.1 and zh/conformance/encoding.md §10.1.",
-      "status": "reserved",
-      "activation_condition": "Promote aead_nonce_counter_replay to active only in the same release that adds a canonical machine producer path under spec/v1/artifacts outside reports and this registry."
+      "status": "active"
     },
     {
       "code": "aead_nonce_derivation_invalid",
@@ -3525,8 +3524,7 @@
         "auth_decision"
       ],
       "description": "A structural `contains` Relation was submitted that would cross Realm boundaries. Structural containment (Board â†’ List â†’ Strand / Space hierarchy) MUST stay within a single Realm; cross-Realm links use the dedicated `ak.relation.*` non-structural kinds. See zh/models/relation.md §4.",
-      "status": "reserved",
-      "activation_condition": "Promote cross_realm_structural_relation to active only in the same release that adds a canonical machine producer path under spec/v1/artifacts outside reports and this registry."
+      "status": "active"
     },
     {
       "code": "cursor_expired",
@@ -4853,8 +4851,7 @@
         "state_resolution"
       ],
       "description": "A ak.realm.policy_bundle update skipped one or more monotonic policy_revision values. Reducer MUST reject instead of accepting a discontinuous realm_policy revision.",
-      "status": "reserved",
-      "activation_condition": "Promote policy_revision_gap to active only in the same release that adds a canonical machine producer path under spec/v1/artifacts outside reports and this registry."
+      "status": "active"
     },
     {
       "code": "policy_revoked",
@@ -5298,8 +5295,7 @@
         "event_envelope"
       ],
       "description": "An `ak.call.state` event requested a `recording_transition` or `transcript_transition` not listed in the per-capture controlled state machine (e.g. transitioning out of terminal `ready` / `failed`, `stopped â†’ failed`, or attempting to enter a capturing state without a new `ak.call.recording.start`). The reducer MUST `failed_precondition`. The same code covers both orthogonal capture dimensions. See zh/crypto-media/call-state.md §4.2.",
-      "status": "reserved",
-      "activation_condition": "Promote recording_state_transition_invalid to active only in the same release that adds a canonical machine producer path under spec/v1/artifacts outside reports and this registry."
+      "status": "active"
     },
     {
       "code": "recovery_evidence_unbound",
