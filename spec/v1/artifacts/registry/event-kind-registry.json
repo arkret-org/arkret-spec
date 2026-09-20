@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.16",
+  "version": "2026-09-21.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-20T23:30:00+08:00",
+  "generated_at": "2026-09-21T03:10:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -1424,7 +1424,7 @@
             }
           ],
           "value_schema_ref": "schemas/capability-grant.schema.json",
-          "notes": "grant_id is event-derived, so the id:grant selector retypes this create Event's id; encoding.md section 9.5.1 allows envelope.event_id only through that derived form, never as a bare subject field. The projected status is active. status, authority_depth and authority_root_refs are reducer-materialised and are not part of the producer's closed authoring body, so an author-supplied value MUST be rejected rather than trusted. A derivation outside the closed set is a new normative reducer rule, not a registry edit."
+          "notes": "grant_id is event-derived, so the id:grant selector retypes this create Event's id; encoding.md section 9.5.1 allows envelope.event_id only through that derived form, never as a bare subject field. The projected status is active. status, authority_depth and authority_root_refs are required reducer-materialised members and are not part of the producer's closed authoring body, so an author-supplied value MUST be rejected rather than trusted. issuer_authority_refs are signed semantic lineage only: the governing Station resolves and locks target-Realm local current dependencies at the accepting RealmCommit; producer-selected per-ref revisions, digests and Station-local commit wrappers are forbidden, and cross-Realm authority must first use ak.capability.derived. A derivation outside the closed set is a new normative reducer rule, not a registry edit."
         }
       ],
       "id_source": "event_derived",

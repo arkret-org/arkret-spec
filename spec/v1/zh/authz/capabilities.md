@@ -83,6 +83,15 @@ ID 语义：
       "authority_generation": 0
     }
   ],
+  "authority_depth": 1,
+  "authority_root_refs": [
+    {
+      "kind": "realm_root",
+      "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+      "authority_event_ref": "ak:event:AUEkS2aivxl-3w-vIOWKXXKtH-lQVAoxPABkePZcUrqv",
+      "authority_generation": 0
+    }
+  ],
   "actions": [
     "ak.strand.read",
     "ak.strand.update",
@@ -135,7 +144,7 @@ Grant 的 `subject` 可以是具体 ActorId，也可以是条件选择器。
 
 以 `kind="grant"` ref 签出的 grant 由 §10.1 强制逐 action 的 `child.actions[] ⊆ union(refs.actions)`、resources 收窄等上界约束，防止再授权扩权。**以 `kind="realm_root"` ref 签出的 grant 受对称的 issuer 自身权限上界约束**：仅持有 `ak.capability.grant` action 本身**不足以**签发任意 grant。两条路径是同一种 grant，只是 `issuer_authority_refs[]` 的 ref 类型不同。
 
-签发以 `realm_root` ref 为根的 `ak.capability.grant` 时，reducer **MUST** 校验：grant 的 `actions[]` 与 `resources[]` 所表达的能力 **MUST ⊆** issuer 在签发时点（按该 grant 的 authority commit basis / `auth_state_digest`）**自身有效持有**的 effective capability。effective capability 的来源是一个**封闭列表**：active 上游 grant（含 `ak.realm.admin` / `ak.policy.manage` 等 admin capability 与 `ak.realm.owner` co-owner grant），或本节下文的 Realm authority-root typed current result current controller。**membership、`created_by`、Realm 角色标签与任何 `realm_state.owner` 一类投影镜像都不是授权来源**，MUST NOT 参与该判定。issuer 不得签发授予他人超出自身持有能力的 grant。
+签发以 `realm_root` ref 为根的 `ak.capability.grant` 时，reducer **MUST** 校验：grant 的 `actions[]` 与 `resources[]` 所表达的能力 **MUST ⊆** issuer 在治理 Station 接纳该 Event 的原子判定点**自身当前有效持有**的 effective capability。effective capability 的来源是一个**封闭列表**：active 上游 grant（含 `ak.realm.admin` / `ak.policy.manage` 等 admin capability 与 `ak.realm.owner` co-owner grant），或本节下文的 Realm authority-root typed current result current controller。**membership、`created_by`、Realm 角色标签与任何 `realm_state.owner` 一类投影镜像都不是授权来源**，MUST NOT 参与该判定。issuer 不得签发授予他人超出自身持有能力的 grant。
 
 聚合 admin action（如 `ak.realm.admin` / `ak.policy.manage`）在该上界校验中的展开 **MUST** 使用 Realm 的冻结 fixed reducer semantics compiled rules：reducer 先解析 child grant 每个 `actions[]` 的 `target_event_kinds`，再从同一 profile 解释器解析 issuer 持有的聚合 action 覆盖集。issuer 字面持有 child action 时可直接满足上界；issuer 仅持有聚合 action 时，只有当该 profile 的 effective coverage set 覆盖 child action 的全部 `target_event_kinds`，且 issuer resources / constraints 覆盖 child resources / constraints 时，才视为满足上界。覆盖集为空（`target_event_kinds == []`）的 child action **MUST NOT** 由任何聚合满足——空集是任意集合的子集，若不显式拦下，每个非事件面 action 都会被每个聚合"覆盖"。同一稳定 fixed reducer semantics 的 coverage set 永久冻结；新增 durable Event/action coverage 必须进入 successor profile。聚合展开 **MUST NOT** 授权 `event_mapping_kind="non_event_surface"` 的 child action；这类 action 只有三个已注册的上界来源：issuer 字面持有相同 action、由 profile 显式声明的非事件面授权规则覆盖，或由下文 Realm owner authority 的 `grant_authority_actions` 逐字命中。
 
@@ -157,8 +166,7 @@ Profile 对 non-event action 的显式授权规则必须登记在
 `issuer_owner_authority_allowed`。`issuer_owner_authority_allowed=true` 时 issuer 侧另接受
 Realm effective owner（authority-root typed current result current controller 或 active co-owner grant）；
 该扩展只替换 issuer 来源，profile 的 registration / constraint / evidence gate 一条不减。
-Reducer 只有在同一
-`expected_revision` 对应的已确认状态下 issuer 的 active grant 覆盖 `issuer_action`（或按上一句取得
+Reducer 只有在同一接纳判定点的 current confirmed state 下 issuer 的 active grant 覆盖 `issuer_action`（或按上一句取得
 effective owner）和 child resource，
 且被引用 registration、subject、constraint、epoch、scope、requested action 全部满足规则时，
 才可把该规则视为 child action 的 issuer 上界；任一 registration 缺失、profile 未声明、
@@ -170,20 +178,21 @@ unsupported 时都必须 `grant_exceeds_issuer_authority` fail closed。该机�
 Capability grant wire body MUST NOT 携带 registry version、timestamp 或 digest。`capability-action-registry.json` 只作为 spec/codegen/conformance 输入；production reducer 根据 Realm fixed reducer semantics 的 compiled action descriptors 判定 aggregate coverage 与 grant authority。
 
 - 越界（`actions[]` 含 issuer 自身不持有的 action，或 `resources[]` 超出 issuer 自身命中范围）时 reducer **MUST** fail closed：对 actions / resources 越界返回 `schema_violation`（`reason="grant_exceeds_issuer_authority"`），对授权前置不成立（issuer 在该 basis 下不持有所需上界能力）返回 `failed_precondition`（`reason="grant_exceeds_issuer_authority"`）。实现 **MUST NOT** 把"持有 `ak.capability.grant` action"误当作"可凭空铸造任意 capability"。
-- 该校验在 issuer 的有效权限随撤销 / 过期收缩时同样适用：issuer 在签发 basis 下不再持有某 action，则不得据此签发包含该 action 的首发 grant。
+- 该校验在 issuer 的有效权限随撤销 / 过期收缩时同样适用：issuer 在接纳判定点不再持有某 action，则不得据此签发包含该 action 的首发 grant。
 - Realm 的结构角色（由签名 genesis `purpose` 决定）不得扩张 owner ceiling，Realm `schema_refs` 中的任何 schema id 同样不得。`ak.realm.owner.grant_authority_actions` 是 fixed reducer semantics bundle 的冻结精确清单：默认 derivation 只选择 `profile=null` action，profile action 只有在 owner 的 compiled `grant_authority_rule.include_actions[]` 中逐字列出时才可由 root/co-owner 签发；这不是 generic active-profile 机制，也不授予 owner 直接 author 该 Event。current-v1 唯一显式 application exception 是 `ak.rsvp.set`：grant 可在 Calendar Strand 创建前签发，但后续 Event 仍必须由 `Strand.schema_refs` 中的 `ak.schema.calendar_event.v1` 与 `metadata.fields.calendar` 双向 guard 激活并命中 grant resource/constraint，否则拒绝。其它带 `profile` 的 action 仍只能经本节登记的 `non_event_grant_authority_rules[]` 及其完整 registration / constraint / evidence gate，或未来 fixed reducer semantics 明确加入 exact action；receiver MUST NOT 从 Realm profile、ServiceDescribe 或对象任意 schema ref 自行推导 owner ceiling。
 - 此规则关闭"窄 `ak.capability.grant` 持有者凭空签出更宽 grant"的权限提升面，与 §10.1 委派收窄对称；它**不**妨碍合法的 admin 角色分配——持有 `ak.realm.admin` 等 admin capability 的 issuer 本身即持有相应 action 上界，因此可正常把这些 action 授予他人。
 - v1 授权图的唯一 genesis base case 是 [`realm-and-space.md` §2.5](../models/realm-and-space.md#25-akrealmcreate-reducer-bootstrapnormative) 的 `realm_authority_root` typed current result，它由 `ak.realm.create` 的注册 reducer contract 在 genesis RealmCommit 的同一接纳事务内原子物化，**不是**一条 per-person grant，因此不存在"issuer 凭空给自己签发一条 grant"的路径。root controller 的上界仍完整适用本节：child action 必须逐字命中该 Realm fixed reducer semantics 中 `ak.realm.owner` 的 frozen `grant_authority_actions`。typed current result 缺失、controller 不匹配或 epoch/generation 不一致时 MUST fail closed（`failed_precondition`，`reason="realm_authority_root_missing"` 或 `"realm_authority_controller_mismatch"`）。
 - 除该 registered authority root 外，v1 不定义“可凭空授予自身不持有能力”的 sovereign 豁免，也不承认任何形态的 creator / owner omnipotence 捷径。部署 policy 不得自行放宽本节上界；需要不同 bootstrap authority 的 extension 必须注册独立 profile、完整定义机器可验证的权限来源与收窄规则，未声明 / 不支持该 profile 时 fail closed。
 
-**确定性 basis 与 freshness 解耦（normative）**：首发 grant 的 issuer 上界校验 MUST 有确定性求值 basis，不得退化为对 §18.2 freshness 的循环依赖（"上界够新才算够新"）。具体：
+**接纳 basis 与 freshness 解耦（normative）**：首发 grant 的 issuer 上界校验 MUST 由唯一 governing Station 在接受该 Event 的安全确认顺序中完成。签名只绑定 closed `issuer_authority_refs[]` 语义 lineage；ref **MUST NOT** 携带 producer 选择的 `expected_revision`、`auth_state_digest`、Station id 或 `CommittedEventRef`。接纳该 Event 的 RealmCommit 是该次决定的唯一 durable basis，不得退化为对 §18.2 freshness 的循环依赖（"上界够新才算够新"）。具体：
 
-- issuer 自身有效持有的 effective capability 必须从签名 expected_revision 中各 Realm 的确认状态验证，并将可撤销的实际安全读取加入事务 revision/锁集合；执行时重新检查，不能靠 RealmCommit 年龄推断当前资格。
-- 若 issuer 的上界 ancestor 能力在该 `expected_revision` 对应的已确认状态下**被撤销 / superseded / expired / tombstoned**（即 ancestor 已不授权），首发 grant **MUST** `failed_precondition`（`reason="grant_exceeds_issuer_authority"`），不论 freshness 状态如何——这是 basis 内确定性结果，不是 freshness 问题。
-- 若 issuer 的上界 ancestor 能力在该已确认状态下存活，但该 basis 的 **freshness 为 `unknown`**（[§18.2](#182-撤销传播与当前检查)）：`ak.capability.grant` 属高风险授权动作，**按 §18.2 风险表对高风险动作 `unknown` 即 fail closed** 处理，首发 grant **MUST** `failed_precondition`（`reason="grant_exceeds_issuer_authority"`，附 `freshness_state`），不得在 freshness 不可确认时仍签出依赖该 ancestor 的首发 grant。`stale` 状态按 §18.2 高风险行同样 fail closed。
-- 配置、确认前缀或确切授权依赖不能验证时 fail closed/pending；同 Realm 竞争 RealmCommit 不产生可选权限 heads。
+- 同 Realm 的 grant/root/policy/claim 等可撤销安全读取必须按 canonical dependency key 排序，加入接纳事务的 current-result 行锁／revision 集，并在 Event、RealmCommit 与 materialized grant 原子写入前重新检查；竞争变化导致整条 Event 零写入失败，不能靠 RealmCommit 年龄或进程内 cache 推断当前资格。
+- 普通 `ak.capability.grant` 的 direct `realm_root` 必须属于 Event 的目标 Realm，`kind="grant"` ref 也必须解析为该目标 Realm 内的 current `capability_grant` row；普通 grant 不得直接锁定远端 Realm。跨 Realm capability 只能先经 [`../models/realm-links.md` §6](../models/realm-links.md) 的 reducer-only `ak.capability.derived` 与目标 Realm inheritance policy 物化为目标 Realm 本地 row，随后 child 只锁该本地 derived row。远端 source 的 authenticated current proof/checkpoint 不成立、非 current 或 freshness 非 `current` 时，derived Event 零写入失败；producer 不能选择该 revision，也不能借 semantic ref 固定旧的 active 前态。
+- 若 issuer 的上界 ancestor 能力在接纳判定点**被撤销 / superseded / expired / tombstoned**（即 ancestor 已不授权），首发 grant **MUST** `failed_precondition`（`reason="grant_exceeds_issuer_authority"`），不论 freshness 状态如何——这是 current state 的确定性结果，不是 freshness 问题。
+- 若 issuer 的上界 ancestor 能力存活，但其 current proof 的 **freshness 为 `unknown`**（[§18.2](#182-撤销传播与当前检查)）：`ak.capability.grant` 属高风险授权动作，**按 §18.2 风险表对高风险动作 `unknown` 即 fail closed** 处理，首发 grant **MUST** `failed_precondition`（`reason="grant_exceeds_issuer_authority"`，附 `freshness_state`）。`stale` 状态同样 fail closed。
+- 配置、确认前缀或确切授权依赖不能验证时 fail closed/pending；同 Realm 竞争 RealmCommit 不产生可选权限 heads。当前依赖检查与 child Event 接纳不可分割，绝不允许先接纳后补判。
 
-该规则使首发 grant 的上界校验有“先按 expected_revision 对应的已确认状态确定性解析 ancestor 授权，再按 §18.2 对 basis 新鲜度做高风险 fail-closed”的两步确定性算法，消除 §18.2 freshness 与上界校验之间的循环依赖。
+该规则使首发 grant 的上界校验有“先在接纳点解析 current ancestor 授权，再按 §18.2 对该 current proof 的新鲜度做高风险 fail-closed”的两步确定性算法，消除 §18.2 freshness 与上界校验之间的循环依赖。它也明确区分 issuance acceptance 与 ongoing liveness：接纳后每次使用仍按当前 parent status 与 root generation 重算；历史 acceptance dependency revision 只用于审计，既不是 wire，也不是永久相等条件。
 
 ### 3.3 注册的非 grant authority source（normative）
 
@@ -310,8 +319,8 @@ Arkret v1 支持以下 18 项 `kind`（完整 kind 集以 [`resource-selector.sc
 聚合 admin 动作（`ak.realm.admin`、`ak.policy.manage` 等，见上表第一类）的 `target_event_kinds` 是一个随 registry 演进可能增长的集合。若允许它随 registry 静默膨胀，则一个早先签发、覆盖范围较窄的历史 grant 会因后续向某聚合 action 的 `target_event_kinds` 新增成员而**自动扩大**其实际授权面（权限蠕变 / authority creep）。为关闭该面，v1 固定：
 
 - 向任一聚合 admin action 的 `target_event_kinds` **新增成员 MUST 经 RFC**（与 §5.0 末段的偏离类别变更同级流程），MUST NOT 通过 lint 例外、注释或非 RFC 的 registry 直接编辑引入。
-- 既有 grant 对该新增成员的覆盖 **MUST NOT 对历史 grant 自动生效**。`target_event_kinds` 扩张后，一个在扩张前签发的 grant 持有该聚合 action 时，其对**新增** event kind 的授权 MUST 由部署**显式 opt-in**（部署 policy 声明接受该聚合 action 的新版本覆盖集）或对受影响 grant **重签**（issuer 在扩张后的 registry basis 下重新签发 grant）后才生效。
-- 实现 MUST 能区分"grant 签发时点聚合 action 覆盖的 event kind 集"与"当前 registry 覆盖集"，并在历史 grant 未 opt-in / 未重签时，对**仅由扩张才纳入**的 event kind **fail closed**（按未授权处理），而不是按当前 registry 集自动放行。该 basis 与 §3.2 首发 grant issuer 上界校验、§18.1 `auth_state_digest` 绑定的 registry 版本协同：grant 的有效覆盖集锚定到其签发 basis，registry 扩张不回溯放宽历史授权。
+- 既有 grant 对该新增成员的覆盖 **MUST NOT 对历史 grant 自动生效**。`target_event_kinds` 扩张后，一个在扩张前签发的 grant 持有该聚合 action 时，其对**新增** event kind 的授权 MUST 由部署**显式 opt-in**（部署 policy 声明接受该聚合 action 的 successor fixed-semantics version）或对受影响 grant **重签**后才生效。
+- 实现 MUST 能区分"grant 接纳时使用的 fixed reducer semantics 覆盖集"与 successor semantics 覆盖集，并在历史 grant 未 opt-in / 未重签时，对**仅由扩张才纳入**的 event kind **fail closed**（按未授权处理），而不是按新集合自动放行。该 semantics version 由接纳 RealmCommit 所属的冻结 semantics bundle 决定并进入审计 backing，不是 grant wire 上的 registry version、timestamp、digest 或 `auth_state_digest`；registry 扩张不回溯放宽历史授权。
 - 收窄（从 `target_event_kinds` 移除成员）不受 opt-in 约束——移除只会收紧历史 grant 的覆盖，不构成权限放大。
 
 ### 5.1 通用动作
@@ -720,7 +729,7 @@ Reducer MUST 把 `issuer_authority_refs[]` 中 `kind="grant"` 的条目视为有
 4. 当某条 ref grant 已被 revoke 但 freshness 未到达时，reducer 仍 MUST 把它视为 cycle detection 的 ancestor 节点（防止攻击者 revoke-then-re-issue 构造环）。
 5. 同一 Event 携带的多 child grant（批量签发）MUST 整体 fail-or-pass；部分接受会产生不完整的图结构，reducer MUST NOT 部分接受。
 
-grant SHOULD 同时记录签发时点的 `auth_state_digest` / `auth_revision`（可放入 `semantic_refs[role="auth_revision"]`、grant audit metadata 或 profile 声明的等价字段）。该记录不替代实时 revoke / freshness 校验，但用于审计 child grant 是基于哪个 policy / auth checkpoint 派生的；缺失时实现仍 MUST 重新按当前 checkpoint 验证，MUST NOT 把 child grant 当作不可追溯授权。
+治理 Station 的内部审计 backing SHOULD 记录接纳时实际读取的 dependency revisions/checkpoints、freshness verdict 与 fixed reducer semantics version，用于说明 child grant 是基于哪个 current state 接纳；这些记录不是 producer wire，不得放入 `issuer_authority_refs[]`、`semantic_refs[]` 或 materialized `CapabilityGrant`，也不得作为未来 current liveness 的替代。缺少可验证 current dependency 时接纳本身必须 fail closed，不能以“以后重新验证”弥补。
 
 实现 SHOULD 维护 in-memory authority-graph adjacency cache，以使每次校验为 O(depth)；冷启动时从 committed control Events 与可验证 Event 授权引用重建。
 
@@ -787,7 +796,7 @@ v1 canonical `ak.capability.revoke` payload MUST 携带顶层 `grant_id` 与 `ex
 
 ### 12.1 Grant typed current result 的确定性收敛（normative）
 
-capability 授权状态投影到 typed current result family `capability_grant`。该 family 有且只有四个已登记写入方，见 [`registry/contract-registry.json`](../../artifacts/registry/contract-registry.json) 中 `ak.capability.grant`、`ak.capability.derived`、`ak.capability.revoke`、`ak.capability.relinquish` 的 `result_writes[]`。每个 `grant_id` 有一个 closed current result；其公开 typed schema 只携 selector、包含 canonical grant 与 status 的 value，以及 revision。治理 Station的内部投影／审计 backing 还必须保留产生该 revision 的 `CommittedEventRef`，但 effective-list row 不重复暴露该 ref，客户端也不得把 Event ref 当成 revision。`status` 是 grant body 自身的字段，与 `revoked_by` / `revoked_at` 同处一层，由封闭派生 `capability_status` 物化，**MUST NOT** 由 producer 自填。再授予使用同一个 `ak.capability.grant`，并通过 `issuer_authority_refs[]` 指向上游 grant。治理 Station按目标 Realm stream 的 RealmCommit 顺序执行：
+capability 授权状态投影到 typed current result family `capability_grant`。该 family 有且只有四个已登记写入方，见 [`registry/contract-registry.json`](../../artifacts/registry/contract-registry.json) 中 `ak.capability.grant`、`ak.capability.derived`、`ak.capability.revoke`、`ak.capability.relinquish` 的 `result_writes[]`。每个 `grant_id` 有一个 closed current result；其公开 typed schema 只携 selector、包含 canonical grant 与 status 的 value，以及 revision。canonical materialized grant **MUST** 包含 reducer-derived `authority_depth`、`authority_root_refs[]` 与 `status`；三者都在 producer create body 中禁止。治理 Station的内部投影／审计 backing 还必须保留产生该 revision 的 `CommittedEventRef` 及接纳 dependency basis，但 effective-list row 不重复暴露这些内部字段，客户端也不得把 Event ref 当成 revision。`status` 是 grant body自身的字段，与 `revoked_by` / `revoked_at` 同处一层，由封闭派生 `capability_status` 物化，**MUST NOT** 由 producer 自填。再授予使用同一个 `ak.capability.grant`，并通过 `issuer_authority_refs[]` 指向上游 grant。治理 Station按目标 Realm stream 的 RealmCommit 顺序执行：
 
 - **grant**：`grant_id` 必须尚未存在，初始 revision 为接纳该 Event 的 RealmCommit 的 `{commit_id, stream_position}`，status=`active`；subject 由 `retype(event_id,"grant")` 派生，projection 为 `set`。
 - **derived**：`ak.capability.derived` 以 `payload.grant_id` 为 subject 物化跨 Realm 派生 grant（[`../models/realm-links.md` §6](../models/realm-links.md)），status 同样为 `active`；源 grant 非 active 时该派生无效，reducer MUST 拒绝而不是投影出一个终态 grant。

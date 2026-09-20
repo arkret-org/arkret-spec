@@ -899,7 +899,7 @@
         "authority_generation": {
           "type": "integer",
           "minimum": 0,
-          "description": "Increments only on a planned governance Station handoff. Genesis is 0."
+          "description": "Realm delegation-root generation. Genesis is 0 and only accepted ak.realm.authority.reset increments it; owner transfer and planned governance Station handoff preserve it, so neither invalidates existing grants."
         }
       },
       "additionalProperties": false

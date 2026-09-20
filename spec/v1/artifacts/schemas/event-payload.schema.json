@@ -2522,7 +2522,7 @@
       "required": [
         "grant"
       ],
-      "description": "Canonical ak.capability.grant genesis payload. Both top-level grant_id and grant.id are forbidden because the durable GrantId is derived by retyping this Event's event_id. authority_depth and authority_root_refs are reducer-derived and forbidden in this closed authoring shape. issuer_id and a concrete subject are already exact ActorIds; no parallel station sidecar is permitted. The Event envelope proof is the sole durable issuer signature.",
+      "description": "Canonical ak.capability.grant genesis payload. Both top-level grant_id and grant.id are forbidden because the durable GrantId is derived by retyping this Event's event_id. status, authority_depth and authority_root_refs are reducer-derived and forbidden in this closed authoring shape. issuer_id and a concrete subject are already exact ActorIds; no parallel Station sidecar is permitted. issuer_authority_refs is signed semantic lineage and cannot carry expected_revision, auth_state_digest or a Station-local commit basis; current authority is checked by the governing Station at acceptance. The Event envelope proof is the sole durable issuer signature.",
       "properties": {
         "grant": {
           "type": "object",
@@ -2575,7 +2575,7 @@
         "grant",
         "grant_id"
       ],
-      "description": "Reducer-authored cross-Realm capability derivation. Unlike capability genesis this references an existing Grant and therefore carries the already-derived grant_id and complete projected grant body. Exact issuer and concrete-subject identity is preserved inside ActorId and MUST NOT be replaced with a local reducer or receiving service identity.",
+      "description": "Reducer-authored cross-Realm capability derivation. Unlike capability genesis this references an existing Grant and therefore carries the already-derived grant_id and complete materialized grant body, including status, authority_depth and authority_root_refs. Exact issuer and concrete-subject identity is preserved inside ActorId and MUST NOT be replaced with a local reducer or receiving service identity. This closed payload carries no expected_revision or auth_state_digest: the target Realm governing Station verifies a fresh authenticated current source result and local inheritance policy at acceptance and records the actual dependency basis internally.",
       "properties": {
         "grant": {
           "$ref": "./capability-grant.schema.json"

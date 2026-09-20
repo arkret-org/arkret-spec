@@ -18,9 +18,9 @@
     "total_properties": 8800,
     "total_schema_documents": 163,
     "by_presence_class": {
-      "optional": 2141,
+      "optional": 2139,
       "optional_defaulted": 47,
-      "required": 6163,
+      "required": 6165,
       "required_nullable": 294,
       "tristate": 155
     },
@@ -3635,8 +3635,8 @@
         "/allOf/0/then/properties/constraints": "required",
         "/allOf/0/then/properties/constraints/contains/properties/depends_on_moderation_state": "required",
         "/properties/actions": "required",
-        "/properties/authority_depth": "optional",
-        "/properties/authority_root_refs": "optional",
+        "/properties/authority_depth": "required",
+        "/properties/authority_root_refs": "required",
         "/properties/authority_root_refs/items/properties/authority_event_ref": "required",
         "/properties/authority_root_refs/items/properties/authority_generation": "required",
         "/properties/authority_root_refs/items/properties/kind": "required",

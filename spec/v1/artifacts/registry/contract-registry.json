@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-21.1",
+  "version": "2026-09-21.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-21T01:46:34+08:00",
+  "generated_at": "2026-09-21T03:07:32+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -1803,7 +1803,7 @@
               }
             ],
             "value_schema_ref": "schemas/capability-grant.schema.json",
-            "notes": "grant_id is event-derived, so the id:grant selector retypes this create Event's id; encoding.md section 9.5.1 allows envelope.event_id only through that derived form, never as a bare subject field. The projected status is active. status, authority_depth and authority_root_refs are reducer-materialised and are not part of the producer's closed authoring body, so an author-supplied value MUST be rejected rather than trusted. A derivation outside the closed set is a new normative reducer rule, not a registry edit."
+            "notes": "grant_id is event-derived, so the id:grant selector retypes this create Event's id; encoding.md section 9.5.1 allows envelope.event_id only through that derived form, never as a bare subject field. The projected status is active. status, authority_depth and authority_root_refs are required reducer-materialised members and are not part of the producer's closed authoring body, so an author-supplied value MUST be rejected rather than trusted. issuer_authority_refs are signed semantic lineage only: the governing Station resolves and locks target-Realm local current dependencies at the accepting RealmCommit; producer-selected per-ref revisions, digests and Station-local commit wrappers are forbidden, and cross-Realm authority must first use ak.capability.derived. A derivation outside the closed set is a new normative reducer rule, not a registry edit."
           }
         ],
         "id_source": "event_derived",
@@ -8694,8 +8694,8 @@
         }
       }
     },
-    "version": "2026-09-20.16",
-    "generated_at": "2026-09-20T23:30:00+08:00",
+    "version": "2026-09-21.1",
+    "generated_at": "2026-09-21T03:10:00+08:00",
     "bootstrap_event_kinds": [
       "ak.device.authorize",
       "ak.device.reanchor",

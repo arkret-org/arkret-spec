@@ -70,7 +70,9 @@ class CapabilityGrantLifecycleTest(unittest.TestCase):
         grant = load(SCHEMAS / "capability-grant.schema.json")
         status = grant["properties"]["status"]
         self.assertEqual(status["enum"], ["active", "revoked", "relinquished"])
-        self.assertIn("status", grant["required"])
+        for member in ("status", "authority_depth", "authority_root_refs"):
+            with self.subTest(member=member):
+                self.assertIn(member, grant["required"])
 
     def test_an_author_cannot_declare_the_status(self) -> None:
         """Section 3.0.1: the genesis body is closed and reducer-derived members
@@ -80,7 +82,45 @@ class CapabilityGrantLifecycleTest(unittest.TestCase):
             "capability_grant_payload"
         ]["properties"]["grant"]
         self.assertFalse(body["additionalProperties"])
-        self.assertNotIn("status", body["properties"])
+        for member in ("status", "authority_depth", "authority_root_refs"):
+            with self.subTest(member=member):
+                self.assertNotIn(member, body["properties"])
+
+    def test_authority_refs_are_semantic_lineage_not_client_selected_state(self) -> None:
+        grant = load(SCHEMAS / "capability-grant.schema.json")
+        alternatives = grant["properties"]["issuer_authority_refs"]["items"]["oneOf"]
+        by_kind = {
+            alternative["properties"]["kind"]["const"]: alternative
+            for alternative in alternatives
+        }
+        self.assertEqual(set(by_kind), {"grant", "realm_root"})
+        forbidden = {
+            "expected_revision",
+            "auth_state_digest",
+            "governance_station_id",
+            "basis",
+        }
+        for kind, alternative in by_kind.items():
+            with self.subTest(kind=kind):
+                self.assertFalse(alternative["additionalProperties"])
+                self.assertEqual(forbidden & set(alternative["properties"]), set())
+
+    def test_cross_realm_derivation_has_no_producer_selected_revision(self) -> None:
+        payload = load(SCHEMAS / "event-payload.schema.json")["$defs"][
+            "capability_derived_payload"
+        ]
+        self.assertFalse(payload["additionalProperties"])
+        self.assertEqual(set(payload["required"]), {"grant", "grant_id"})
+        self.assertNotIn("expected_revision", payload["properties"])
+        self.assertNotIn("auth_state_digest", payload["properties"])
+
+    def test_authority_generation_is_reset_not_station_tenure(self) -> None:
+        typed = load(SCHEMAS / "typed-current-result.schema.json")
+        description = typed["$defs"]["realm_authority_root_value"]["properties"][
+            "authority_generation"
+        ]["description"]
+        self.assertIn("ak.realm.authority.reset", description)
+        self.assertIn("handoff preserve", description)
 
     def test_every_writer_derives_the_status(self) -> None:
         """One field, one mechanism. A write that set it any other way would be a

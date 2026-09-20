@@ -17,7 +17,9 @@
     "resources",
     "issued_at",
     "status",
-    "issuer_authority_refs"
+    "issuer_authority_refs",
+    "authority_depth",
+    "authority_root_refs"
   ],
   "properties": {
     "id": {
@@ -113,7 +115,7 @@
       "minItems": 1,
       "uniqueItems": true,
       "maxItems": 16,
-      "description": "The committed authority this grant was issued under. A root controller's grant anchors on the accepted Realm authority Event; any further grant anchors on grants its issuer already holds. Authorization is recomputed from these refs on every decision, so revoking an ancestor invalidates its descendants without a cascading write.",
+      "description": "The signed semantic authority lineage this grant was issued under. A root controller's grant anchors on the accepted Realm authority Event; any further grant anchors on grants its issuer already holds. These closed refs intentionally carry no producer-selected current-result revision, authorization-state digest, Station id or commit basis: the governing Station resolves their current typed results at acceptance, fails closed when current authority cannot be proved fresh, and records the accepting RealmCommit as the decision basis. Authorization is recomputed from these refs on every decision, so revoking an ancestor invalidates its descendants without a cascading write.",
       "items": {
         "oneOf": [
           {
@@ -131,7 +133,7 @@
               }
             },
             "additionalProperties": false,
-            "description": "A grant the issuer holds. The issuer MUST be that grant's subject, and the ref MUST be active at evaluation time; its capability, resources and constraints all bound this child."
+            "description": "A grant the issuer holds. The issuer MUST be that grant's subject, and the ref MUST be active both at acceptance and evaluation time; its capability, resources and constraints all bound this child. Its current-result revision is an acceptance-time Station input, not a signed wire member."
           },
           {
             "type": "object",
@@ -160,7 +162,7 @@
               }
             },
             "additionalProperties": false,
-            "description": "A committed Realm authority root. It is terminal for cycle checks. realm_id is explicit because ak.capability.derived can carry roots from another Realm."
+            "description": "A committed Realm authority root. It is terminal for cycle checks. realm_id is explicit because ak.capability.derived can carry roots from another Realm. The accepting Station verifies the named Event/controller/generation against authenticated current authority; the ref does not carry a Station-local commit wrapper."
           }
         ]
       }

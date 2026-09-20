@@ -128,7 +128,7 @@ Projection MAY 派生：
 若 Realm 需要从另一个 Realm 派生 capability 或 policy，必须使用目标 Realm 内的显式 policy：
 
 - `ak.realm.inheritance_policy`：声明允许从哪个 source Realm 继承哪些收窄型 policy / capability bundle。
-- `ak.capability.derived`：reducer-only 派生 grant；`payload.grant.issuer_authority_refs[]` 中唯一的 `kind="grant"` 条目引用 source grant，目标 Realm 当前有效的 inheritance policy 表达本地 opt-in，承载 Event 的 `expected_revision` 固定有效治理基线。payload 只携带完整的派生 `grant` 与逐字相等的 `grant_id`，不得复制 policy 或进度 sidecar 字段。
+- `ak.capability.derived`：reducer-only 派生 grant；`payload.grant.issuer_authority_refs[]` 中唯一的 `kind="grant"` 条目引用 source grant，目标 Realm 当前有效的 inheritance policy 表达本地 opt-in。payload 只携带完整 materialized `grant` 与逐字相等的 `grant_id`，不得复制 policy、progress sidecar、`expected_revision` 或 `auth_state_digest`。目标 Realm governing Station 在接纳事务中验证 source Realm governing Station 的 authenticated current-result proof/checkpoint 与 freshness=`current`，并把实际 dependency revision/checkpoint 记入内部审计 backing；它不是 producer 可选择的签名 basis。
 
 继承规则：
 
@@ -137,6 +137,8 @@ Projection MAY 派生：
 3. 本地 deny / revoke / ban 覆盖 inherited allow。
 4. `max_depth` 默认 1，禁止无限级联。
 5. source grant revoke 后，derived grant MUST 在 causal 后继中失效。
+
+普通 `ak.capability.grant` 不得直接引用远端 root 或 parent grant；跨 Realm 只通过本节的本地 materialization 边界进入目标 Realm。source proof 缺失、非 current、freshness 为 `unknown` / `stale`、source grant 已终态，或目标 Realm inheritance policy 不再允许时，`ak.capability.derived` MUST fail closed，且不得写 Event、RealmCommit 或 `capability_grant` current result。接受后的本地 derived row 是后续 child 唯一需要锁定的 parent；其 `authority_root_refs[]` 继续保留远端 root lineage 供审计和持续失效判定。
 
 `ak.capability.derived` MUST NOT 作为普通 actor 可直接 grant 的 action。
 
