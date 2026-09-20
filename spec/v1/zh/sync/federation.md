@@ -52,6 +52,14 @@ actor Event aggregate 或跨 stream 的聚合位置当作 RealmCommit head、复
 补缺和恢复使用已登记的 `ak.peer.committed_event.read.scan.v1`，对每条获准 stream 分别验证
 `stream_ref`、`stream_position`、Commit 链与可读边界；本文所说的 frontier probe 不定义旧聚合 API。
 
+旧 `QUERY peer/events`、`QUERY peer/events/resolve` 与
+`QUERY peer/events/sibling-positions` 也不属于 v1 peer 读取面。peer MUST NOT 通过跨 Realm／actor
+query、仅凭 Event ID／digest 的 resolve，或 `actor_seq` sibling oracle 代替逐流复制和精确依赖验证。
+Directory 首次 ingest 所需的依赖 MUST 以同一条获准 stream 中的 exact
+`(event_id, commit_id, stream_ref, stream_position)` 及相符的 RealmCommit + Event 验证；
+本规则不撤销已登记的 `ak.peer.events.command.submit.v1` 的 `POST peer/events`，也不放宽
+其接纳、来源证明或可见性门禁。
+
 ### 3.2 服务签名验证
 
 服务签名先于任何内层对象处理，但不替代 Event/Commit proof。
