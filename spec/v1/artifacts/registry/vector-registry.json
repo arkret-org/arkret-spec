@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-21.9",
+  "version": "2026-09-21.10",
   "source_of_truth": true,
-  "generated_at": "2026-09-21T07:13:36+08:00",
+  "generated_at": "2026-09-21T07:39:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -168,13 +168,13 @@
       ]
     },
     {
-      "vector_id": "ak.vector.agent.mention_selector.v1",
+      "vector_id": "ak.vector.agent.selector_label_known_account.v1",
       "status": "active",
       "domain": "agent",
       "applies_to_fixtures": [
         "agent-participation-fixture.json"
       ],
-      "description": "Agent mention selectors resolve through selector_claim.subject_account_id: ambiguous or unavailable selectors fail closed, a slug change keeps the historical target, the same principal on another Station is a different account, and retargeted stations, proof reuse and expected_actor_id hints are rejected rather than used to break ambiguity.",
+      "description": "An authorized picker starts with an exact full Agent AccountId; a visible current selector claim may verify its label only when proof and bound target match byte for byte. Free-text controller-handle/slug input cannot create a mention; ambiguous or unavailable labels fail closed without changing an ordinary known-account mention.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/agent-participation-fixture.json"
       ]

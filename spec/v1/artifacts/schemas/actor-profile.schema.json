@@ -47,7 +47,7 @@
     },
     "agent_slug": {
       "$ref": "string-profiles.schema.json#/$defs/agent_slug",
-      "description": "Projection hint for a controller-scoped selector slug backed by ak.schema.agent_selector_claim.v1. Only valid when actor_kind=agent under ak.profile.agent_provisioning.v1; it is not a global handle and MUST NOT be used for authorization, attribution, or Directory discovery. The mention input token @<controller-handle>/<agent_slug> resolves to this actor's principal_id before persistence only after selector claim validation."
+      "description": "Projection hint for a controller-scoped Agent label backed by ak.schema.agent_selector_claim.v1. Only valid when actor_kind=agent under ak.profile.agent_provisioning.v1; it is not a global handle, free-text mention address, authorization subject, attribution key, or Directory discovery key. A client may verify this label only after obtaining the exact full Agent AccountId from an authorized source."
     },
     "avatar_blob_ref": {
       "type": "string",
@@ -128,7 +128,7 @@
         },
         "agent_slug": {
           "$ref": "string-profiles.schema.json#/$defs/agent_slug",
-          "description": "Projection hint for a controller-scoped selector slug backed by ak.schema.agent_selector_claim.v1. Only valid when actor_kind=agent under ak.profile.agent_provisioning.v1; it is not a global handle and MUST NOT be used for authorization, attribution, or Directory discovery. The mention input token @<controller-handle>/<agent_slug> resolves to this actor's principal_id before persistence only after selector claim validation."
+          "description": "Projection hint for a controller-scoped Agent label backed by ak.schema.agent_selector_claim.v1. Only valid when actor_kind=agent under ak.profile.agent_provisioning.v1; it is not a global handle, free-text mention address, authorization subject, attribution key, or Directory discovery key. A client may verify this label only after obtaining the exact full Agent AccountId from an authorized source."
         },
         "avatar_blob_ref": {
           "type": "string",

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.18",
+  "version": "2026-09-21.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-20T16:42:00+08:00",
+  "generated_at": "2026-09-21T07:39:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -236,7 +236,7 @@
       "schema_id": "ak.schema.agent_selector_claim.v1",
       "file": "schemas/agent-selector-claim.schema.json",
       "status": "active",
-      "description": "Signed controller-scoped Agent selector claim for @<controller-handle>/<agent_slug> resolution."
+      "description": "Signed controller-scoped Agent label claim for verification of an already-known full Agent AccountId; not a free-text mention resolver."
     },
     {
       "schema_id": "ak.schema.agent_sidecar.v1",
@@ -663,7 +663,7 @@
       "schema_id": "ak.schema.directory_operations.v1",
       "file": "schemas/directory-operations.schema.json",
       "status": "active",
-      "description": "Closed request/response DTO bundle for Directory discovery search, resolve, private contact discovery, handle lookup, and agent selector lookup operations."
+      "description": "Closed request/response DTO bundle for registered Directory discovery search, resolve, and private contact discovery operations; no Agent selector lookup operation is registered."
     },
     {
       "schema_id": "ak.schema.dnd_schedule.v1",

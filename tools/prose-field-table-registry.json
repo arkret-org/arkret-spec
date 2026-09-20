@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "source_of_truth": false,
   "narrative_source": "spec/v1/zh",
   "$comment": "Bindings between a normative prose field table and the schema object it documents. check_prose_field_tables requires the table rows and the schema properties to carry the same names in the same order, and requires every field name mentioned in the object own descriptions to be either declared by that object or listed in external_field_mentions.",
@@ -76,9 +76,7 @@
     {
       "document": "spec/v1/zh/identity/identity-handles.md",
       "schema_ref": "event-payload.schema.json#/$defs/mention_node",
-      "external_field_mentions": [
-        "agent_slug"
-      ]
+      "external_field_mentions": []
     },
     {
       "document": "spec/v1/zh/models/calendar-event.md",

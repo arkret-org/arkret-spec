@@ -1240,7 +1240,7 @@
     },
     "agent_slug": {
       "$ref": "string-profiles.schema.json#/$defs/agent_slug",
-      "description": "Controller-scoped Agent selector slug used by @<controller-handle>/<agent_slug>. Not a global handle or authorization subject."
+      "description": "Controller-scoped Agent label slug. Not a free-text mention address, global handle, or authorization subject."
     },
     "applet_bridge_error_payload": {
       "type": "object",
@@ -5075,11 +5075,11 @@
         },
         "controller_subject_account_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_id",
-          "description": "Audit metadata for @<controller-handle>/<agent_slug> inputs, carried as the complete controller AccountId. MUST NOT replace subject_account_id for routing, authorization, or attribution."
+          "description": "Optional audit metadata for verified known-Agent picker selections, carried as the complete controller AccountId. MUST NOT replace subject_account_id for routing, authorization, or attribution."
         },
         "controller_handle_at_time": {
           "$ref": "string-profiles.schema.json#/$defs/canonical_handle",
-          "description": "Canonical controller handle snapshot from an agent selector input. Audit / debug / search metadata only."
+          "description": "Canonical verified controller handle snapshot from a known-Agent picker. Audit / debug / search metadata only; not a free-text resolver input."
         },
         "agent_slug_at_time": {
           "$ref": "#/$defs/agent_slug"

@@ -128,7 +128,7 @@ Realm 意图确认与 namespace 激活是两个明确阶段，不声称跨 Realm
 
 **混淆防护（normative）**：realm alias 的 canonical equality 是 prepared localpart + lowercase A-label domain 的精确相等。registrar MAY 按 handle §17 在同一 authority 的 **realm-alias namespace** 内建立 UTS #39 skeleton collision index并要求 `Highly Restrictive`；碰撞返回 `failed_precondition` `reason="realm_alias_homograph_forbidden"`。skeleton 不得进入 wire equality。handle 与 realm alias namespace 不相交，跨 namespace skeleton 相同不构成冲突，由 sigil 与类型上下文消歧。
 
-**Agent Agent selector slug（normative）**：`@<controller-handle>/<agent_slug>` 的 `agent_slug` 复用 `arkret_human_identifier` preparation，prepared 长度为 1..64 Unicode code points；`/`、`@`、`:`、`#`、`?`、`\\`、空白与控制字符均禁止。`总结助手` 是合法 canonical slug。slug 只在 controller namespace 内唯一，是可变、可撤销、非授权的用户标签；若实现需要 URL path / machine-only ASCII token，必须定义独立字段，不能收窄 `agent_slug`。
+**Agent selector label slug（normative）**：`agent_slug` 复用 `arkret_human_identifier` preparation，prepared 长度为 1..64 Unicode code points；`/`、`@`、`:`、`#`、`?`、`\\`、空白与控制字符均禁止。`总结助手` 是合法 canonical slug。slug 只在 controller namespace 内唯一，是可变、可撤销、非授权的已知 Agent 标签，不构成 `@<controller-handle>/<agent_slug>` 自由文本输入地址；若实现需要 URL path / machine-only ASCII token，必须定义独立字段，不能收窄 `agent_slug`。
 
 ## 4. Link 类型与授权 token
 

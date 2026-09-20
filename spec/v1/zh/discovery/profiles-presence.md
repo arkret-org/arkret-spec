@@ -61,7 +61,7 @@ updated: 2026-07-03
 | `actor_kind` | enum | MUST | `user`、`organization`、`team`、`agent`、`bot`、`service` 或 `integration`；`agent` 只表示 Agent，Applet automation 使用 `bot`（不含 `device`：设备非 actor 主体，见 [`../models/actor.md` §2](../models/actor.md)）。 |
 | `display_name` | string | MUST | 人类可读的显示名；按 `arkret_single_line_display_text` 验证，最大 128 个 Unicode code point，与 Contact `confirmed_display_name` 共用 `display_text_128` 机读 profile。 |
 | `handle` | string | 可选 | 本地或目录展示 handle。经 Directory / projection 披露时同受 §5 handle 披露 gate 约束（不得旁路 handle 搜索披露限制）。 |
-| `agent_slug` | string | 可选 | Agent 的 controller-scoped selector projection。必须由当前有效 `ak.schema.agent_selector_claim.v1` 支撑；只与 controller handle 组合为 `@<controller-handle>/<agent_slug>` 输入别名；不是全局 handle 或公开目录发现键。 |
+| `agent_slug` | string | 可选 | Agent 的 controller-scoped selector label projection。必须由当前有效 `ak.schema.agent_selector_claim.v1` 支撑，仅用于已获授权且已知完整 Agent AccountId 的 picker 展示/校验；不得与 controller handle 拼作自由文本寻址；不是全局 handle 或公开目录发现键。 |
 | `avatar_blob_ref` | id:blob | 可选 | 头像图片的 Blob 引用。 |
 | `accountable_principal_ids` | did[] | 可选 | agent / service / 托管账号的责任主体。 |
 | `profile_fields` | object | 可选 | 个人简介的 canonical 落点是 `profile_fields.bio`；此外可承载代词、时区、locale、状态消息与组织自定义展示字段。`bio` 与 `status_message` 各 MUST ≤ 256 字符（Unicode code point 计），并受 §3.3 相同的 NFC / 控制字符约束。`avatar_url` 不是协议字段；头像必须先保存为 Blob，再写入顶层 `avatar_blob_ref`。 |

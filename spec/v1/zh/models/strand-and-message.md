@@ -716,15 +716,11 @@ Markdown 链接。客户端 reducer 可从 Message content AST 派生 mention �
 目标 Realm policy 授权。
 
 
-Agent 不要求拥有公开 handle。客户端 MAY 支持 controller-scoped agent mention selector：
+Agent 不要求拥有公开 handle。v1 仅允许已授权 picker 从已知完整 Agent `subject_account_id` 构造普通结构化 mention；picker MAY 展示经当前 `ak.schema.agent_selector_claim.v1` 与该 AccountId 逐字节校验的 controller-scoped `agent_slug` label。claim 的 `visibility` / `audience` 必须允许该 requester 与当前 Realm 的 `intent="mention"`，并检查 Agent active lifecycle、Agent Profile 分类和已验证 accountability；没有通过校验的 label 不显示为 verified，也不能参与目标选择。已知 AccountId 仍需独立满足 Message effective scope 的成员、历史可读性及 Agent gate；label 不授予这些权限。
 
-```text
-@<controller-handle>/<agent_slug>
-```
+自由文本 `@<controller-handle>/<agent_slug>` 在 v1 **不是** Agent mention 输入别名。客户端 MUST NOT 用 controller handle、slug、roster/Profile hint、某一 Station 的 selector current 行或本地 Event/cache 猜出完整 Agent AccountId，也不得恢复旧 transport convenience／未登记 Directory resolve。原因是 selector namespace 只有 `(controller principal, agent_slug)`，而同 principal 在不同 Station 的 Account/PCR 独立；现行协议没有跨 Station 完整 current 候选集与 absence proof，单站读数不能证明全局唯一。未解析 token MAY 保留为普通文本，但 MUST NOT 生成 mention 节点、Agent selector metadata 或定向通知。已知目标 picker 成功后，mention 节点的 `subject_account_id` MUST 逐字节来自该获授权完整 AccountId，不得从裸 principal、controller handle Station、DID 默认 Station 或当前 authoring Station 重建。服务端 / reducer / dispatcher 对已提交事件仍只信任 `subject_account_id` 与已验证 agent/accountability/provisioning 状态，不信任 `mention_text_original`。
 
-例如 `@alice:acme.example/summary`。该 token 是**输入别名**，不是 handle 子路径；`<controller-handle>` 按上段 handle 规则解析为 controller 的完整 `AccountId`，`<agent_slug>` 必须匹配 [`actor.md` §3.2](./actor.md) 的 `agent_slug` 规则。发送前客户端 MUST 验证一个当前可见的 `ak.schema.agent_selector_claim.v1`，其 `controller_subject_id` 等于左侧 controller 账号的 principal 分量（agent selector claim 是 principal 级 selector namespace，与 mention 的账号级 target 是两个不同的登记字段），`agent_slug` 等于 token 右侧，`subject_account_id` 是唯一 active Agent 的**完整 AccountId**，当前有效且未撤销的 bind，`visibility` / `audience` 覆盖当前 requester 与 Realm intent（该 claim **没有**开放 `claim_scope`，理由见 [`../identity/identity-handles.md` §3.2](../identity/identity-handles.md)：开放对象无法承载 MUST 级授权判定所依赖的状态而仍让所有 verifier 判定一致），且 proof 由 controller 或 controller 授权 issuer 签发。客户端还 MUST 验证该 agent 的 Actor Profile `actor_kind="agent"`，并存在已验证 `ak.identity.accountability_grant` 证明该 agent 的 controller / accountable principal 等于 `controller_subject_id`。解析结果 MUST 写成普通结构化 mention 节点，其 `subject_account_id` **逐字节复制已验证 claim 的 `subject_account_id`**。客户端 MUST NOT 从裸 principal 重建它：不得取本机 authoring Station、controller handle 的 Station、DID 默认 Station 或当前解析 facade 的 Station，也不得靠「roster 里恰好只有一个同 principal 账号」凑出来。本地已授权 cache、roster 内联来源与已登记且获授权的 resolver 必须给出同一个目标。同一 principal 在两个 Station 各有一个有效目标时是 **ambiguous**，MUST fail closed，不得按 principal 去重后当成唯一。解析不到、解析出多个 current valid selector claims（含同 principal 异 Station 的两个有效目标）、controller handle 未披露、selector claim 不可见、accountability grant 未验证或 agent profile 不可见时，客户端 MUST fail closed：不得构造 mention 节点，可要求用户从 picker 选择或把输入保留为普通文本。服务端 / reducer / dispatcher 对已提交事件仍只信任 `subject_account_id` 与已验证 agent/accountability/provisioning 状态，不信任 `mention_text_original`。
-
-任何支持跨 roster / Directory / bridge 的 selector resolve surface 都 MUST 复用 Directory 的反枚举姿态：只有当请求者已与该 agent 共享一个可见 scope、或 selector claim `visibility="public"` / 当前 `audience` 明确授权该 requester 与 `intent="mention"` 时，才可返回 agent DID 或 selector claim。未授权、slug 不存在、controller 不存在、agent 不可见、claim expired / revoked / ambiguous 等情况 MUST 使用不可区分的失败形态（例如统一 `not_found` / 空结果 / opaque denial），不得泄露"该 controller 是否拥有某 slug 的 agent"。
+任何跨 roster / Directory / bridge 的已知 Agent label 披露仍须反枚举：只有请求者已与目标共享可见 scope，或当前 selector claim `visibility="public"`／`audience` 明确授权该 requester 与 `intent="mention"`，才可展示 slug/claim。未授权、claim 不存在、controller 不可见、过期、撤销或冲突一律不泄露该 label，不得用错误形态探测 Agent 是否存在。本规则不注册一个以 slug 为检索键的公开目录或跨 Station resolver。
 
 结构化 mention 节点唯一的 wire 承载位置是所属 Content Block 的 `mentions[]` 数组（schema `$defs.mention_node`，见 [content-types.md](./content-types.md)）。节点形态（与 [`identity/identity-handles.md` §3.8.1](../identity/identity-handles.md) normative shape 对齐）：
 
@@ -741,7 +737,7 @@ Agent 不要求拥有公开 handle。客户端 MAY 支持 controller-scoped agen
   "resolved_at": "2026-05-19T10:00:00.000Z"
 }
 ```
-Agent selector 解析后的 mention 节点示例：
+从已授权 picker 取得完整 Agent AccountId，并验证当前可见 selector label 后的 mention 节点示例：
 
 ```json fragment
 {
@@ -757,7 +753,6 @@ Agent selector 解析后的 mention 节点示例：
   },
   "controller_handle_at_time": "alice:acme.example",
   "agent_slug_at_time": "summary",
-  "mention_text_original": "@alice:acme.example/summary",
   "resolved_at": "2026-06-11T10:00:00.000Z"
 }
 ```
@@ -767,11 +762,11 @@ Agent selector 解析后的 mention 节点示例：
 - `subject_account_id`（必填）：被 mention 主体的完整 `AccountId`（`principal_id` + `station_id`）。授权、通知路由、audit attribution、阅读侧渲染查找一律以此为准，比较 MUST 覆盖两个分量。
 - `display_name_at_time`（可选）：发送时刻 subject 的 display name 快照；persistent snapshot 语义，写入后不再随 subject 改名而变化（反冒充护栏）。
 - `handle_at_time`（可选）：发送时刻的 canonical handle string；**仅** audit / debug / 全文搜索用途，**MUST NOT** 作为阅读侧主显示路径的当前 handle 来源。
-- `controller_subject_account_id`（可选）：当 mention 由 `@<controller-handle>/<agent_slug>` 解析而来时，记录 controller 的完整 `AccountId`；仅 audit / debug / fallback metadata，MUST NOT 替代 `subject_account_id`。
-- `controller_handle_at_time`（可选）：agent selector 左侧 controller handle 的 canonical 快照；仅 audit / debug / 全文搜索用途，MUST NOT 作为当前 controller 解析来源。
-- `agent_slug_at_time`（可选）：agent selector 右侧 slug 快照；仅 audit / debug / 全文搜索用途，MUST NOT 作为当前 agent 解析来源。
+- `controller_subject_account_id`（可选）：已知目标 picker 所验证 controller 的完整 `AccountId` 快照；仅 audit / debug / fallback metadata，MUST NOT 替代 `subject_account_id`。
+- `controller_handle_at_time`（可选）：已验证 controller handle 的 canonical 快照；仅 audit / debug / 全文搜索用途，MUST NOT 作为自由文本解析输入。
+- `agent_slug_at_time`（可选）：已验证 selector label 的 slug 快照；仅 audit / debug / 全文搜索用途，MUST NOT 作为自由文本解析输入。
 - `mention_text_original`（可选）：用户键入的原始字符串（例如 `@alice:acme.example`）；audit 与搜索索引用途。
-- `resolved_at`（可选）：handle / subject / agent selector 解析时刻；audit metadata，标记 `handle_at_time`、`display_name_at_time` 或 selector 快照对应的时间点。
+- `resolved_at`（可选）：handle / subject 解析或已知目标 label 校验时刻；audit metadata，标记相关快照的时间点。
 
 阅读侧渲染 MUST 按 [`identity/identity-handles.md` §3.8.2](../identity/identity-handles.md) 流程解析当前 primary handle（使用 Realm-scoped MemberIdentity disclosure + roster handle-claim snapshot；没有经验证的当前披露时不显示当前 handle），**不得**用节点内 `handle_at_time` 作为当前显示值；mention 自己携带的 `subject_account_id` 已含 Station，渲染路径不需要、也不得再去猜。`handle` 重分配的语义自然结果：旧消息里 `alice:acme.example` 这条 mention 解析到的 `subject_account_id` 仍是原 Alice，渲染时显示她**当前**的 primary handle；新拿到 `alice` localpart 的人是不同的 `subject_account_id`，不会被回填进历史 mention。若 renderer 检测到 `handle_at_time` 与当前 primary handle 不一致，MAY 加 "handle changed since" 提示（显示层增强，非 normative）。
 

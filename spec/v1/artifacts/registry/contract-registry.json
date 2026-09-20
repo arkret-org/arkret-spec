@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-21.7",
+  "version": "2026-09-21.8",
   "source_of_truth": true,
-  "generated_at": "2026-09-21T07:06:54+08:00",
+  "generated_at": "2026-09-21T07:39:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -9034,7 +9034,7 @@
         "schema_id": "ak.schema.agent_selector_claim.v1",
         "file": "schemas/agent-selector-claim.schema.json",
         "status": "active",
-        "description": "Signed controller-scoped Agent selector claim for @<controller-handle>/<agent_slug> resolution."
+        "description": "Signed controller-scoped Agent label claim for verification of an already-known full Agent AccountId; not a free-text mention resolver."
       },
       {
         "schema_id": "ak.schema.agent_sidecar.v1",
@@ -9461,7 +9461,7 @@
         "schema_id": "ak.schema.directory_operations.v1",
         "file": "schemas/directory-operations.schema.json",
         "status": "active",
-        "description": "Closed request/response DTO bundle for Directory discovery search, resolve, private contact discovery, handle lookup, and agent selector lookup operations."
+        "description": "Closed request/response DTO bundle for registered Directory discovery search, resolve, and private contact discovery operations; no Agent selector lookup operation is registered."
       },
       {
         "schema_id": "ak.schema.dnd_schedule.v1",
@@ -10537,8 +10537,8 @@
         "description": "Server authentication-success frame carrying effective connection and channel limits."
       }
     ],
-    "version": "2026-09-20.18",
-    "generated_at": "2026-09-20T16:42:00+08:00",
+    "version": "2026-09-21.1",
+    "generated_at": "2026-09-21T07:39:00+08:00",
     "metadata_authority": "contract_registry_section"
   },
   "id_kind_registry": {
@@ -20781,7 +20781,7 @@
           "consumed_by": [
             "models/actor.md §3.3"
           ],
-          "note": "The (controller principal, agent_slug) binding resolves agent identity, which Actor-scoped admission depends on."
+          "note": "The (controller principal, agent_slug) claim binds an already-known exact Agent AccountId; it may verify a disclosed picker label but cannot resolve a free-text mention or grant a new read."
         }
       },
       {
@@ -21223,8 +21223,8 @@
         }
       }
     ],
-    "version": "2026-09-21.1",
-    "generated_at": "2026-09-21T03:47:00+08:00",
+    "version": "2026-09-21.2",
+    "generated_at": "2026-09-21T07:39:00+08:00",
     "metadata_authority": "contract_registry_section"
   }
 }
