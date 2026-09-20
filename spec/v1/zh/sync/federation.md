@@ -46,6 +46,12 @@ handoff proof 必须分别验证。
 
 消费 Station 可以投影和缓存 current state，但不能用本地重放产生另一种 accepted 判决。
 
+旧 `peer/events/frontier` 与 `peer/seals/frontier` 两条路径不属于 v1 peer 读取面，
+`/.well-known/arkret` MUST NOT 广告 `peer_events_frontier` 假能力。peer MUST NOT 把 SealBasis、
+actor Event aggregate 或跨 stream 的聚合位置当作 RealmCommit head、复制权、visibility 或 readable floor。
+补缺和恢复使用已登记的 `ak.peer.committed_event.read.scan.v1`，对每条获准 stream 分别验证
+`stream_ref`、`stream_position`、Commit 链与可读边界；本文所说的 frontier probe 不定义旧聚合 API。
+
 ### 3.2 服务签名验证
 
 服务签名先于任何内层对象处理，但不替代 Event/Commit proof。
