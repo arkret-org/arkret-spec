@@ -522,8 +522,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/websocket-binding-fixture.json",
-      "sha256": "024d6d4cce7fe57a4ba4e7ec3ae326b2445906d239f78c222f36a6ab23fd7f3a",
-      "version": "2026-09-20"
+      "sha256": "8464dd5db5974c6d0f44726e91261034096801825f53de32e133152aa6a6bbc8",
+      "version": "2026-09-21"
     }
   ],
   "fixtures_root": "spec/v1/artifacts/fixtures",
