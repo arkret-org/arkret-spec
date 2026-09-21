@@ -63,7 +63,7 @@ MLS只保留shared `ak.mls.genesis`和`ak.mls.commit` Event。治理 Station跟�
 
 ## 11. 安全状态根与序列化
 
-Snapshot 完整性由 manifest signature、typed sections、stream heads、history floors 和 chunk digests 提供；它不授权新写入。
+Snapshot 完整性由 current governing Station 对 closed body 的签名保证，body 内联 `current_state_entries[]`、可见 stream heads 与 history floors；没有独立 sections/chunk digest/state-root 层，也没有对隐藏 stream 的 omission proof。它不授权新写入。
 
 ## 12. Governance Station 与领域规则
 

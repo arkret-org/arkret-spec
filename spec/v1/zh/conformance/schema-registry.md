@@ -131,7 +131,7 @@ vector MUST 使用同一 active 集合；owner 的 `schema_ref` / `profile_id` �
 | `ak.schema.event_payload.v1` | Standard Event Payload Classes |
 | `ak.schema.cursor.v1` | Cursor |
 | `ak.schema.realm_state_snapshot.v1` | Snapshot Manifest |
-| `ak.schema.realm_state_snapshot.v1` | Authority-signed typed current snapshot、per-stream heads、history floors 与 chunk digests |
+| `ak.schema.realm_state_snapshot.v1` | Authority-signed 内联 `current_state_entries[]`、per-stream visible heads 与 history floors；无独立 chunk digest |
 | `ak.schema.grant_constraint.v1` | Grant Constraint |
 | `ak.schema.resource_selector.v1` | Resource Selector |
 | `ak.schema.identity_resolution.v1` | did_core_id/did resolution、PCR evidence 与 AuthenticatedServiceResolution |

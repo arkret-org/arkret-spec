@@ -3,7 +3,7 @@
   "$id": "https://arkret.org/v1/schemas/realm-state-snapshot.schema.json",
   "title": "Arkret Realm Snapshot",
   "x-arkret-signature-domain": "ak.realm_snapshot_signature.v1",
-  "description": "Authority-signed typed materialization for current bootstrap. It includes only requester-visible streams and is followed by each stream's commit tail; it is not a typed current result tree, replay container or independent omission proof.",
+  "description": "Current governing Station-signed closed inline materialization for current bootstrap. visible_stream_heads, current_state_entries and retention_and_history_floor are read from one durable cut and include only requester-visible streams/results; each visible head is followed by its own commit tail. No separate sections, chunk digests, state root, replay container or independent omission proof exists.",
   "type": "object",
   "required": [
     "snapshot_id",
@@ -31,18 +31,21 @@
       "type": "array",
       "minItems": 1,
       "uniqueItems": true,
+      "description": "All and only the caller-visible stream heads at the same durable cut as current_state_entries and retention_and_history_floor; hidden Circle/Sidecar streams are not enumerated.",
       "items": {
         "$ref": "./realm-commit.schema.json#/$defs/stream_head"
       }
     },
     "current_state_entries": {
       "type": "array",
+      "description": "Inline closed typed current results for the caller-visible streams at the same durable cut as visible_stream_heads. An empty array is not a placeholder for an unregistered chunk fetch and proves nothing about hidden streams.",
       "items": {
         "$ref": "./typed-current-result.schema.json"
       }
     },
     "retention_and_history_floor": {
       "type": "object",
+      "description": "Caller-authorized per-stream history floors and Realm history policy at the same durable cut as visible_stream_heads and current_state_entries; no floor for a hidden stream may be disclosed.",
       "required": [
         "history_access",
         "stream_floors"

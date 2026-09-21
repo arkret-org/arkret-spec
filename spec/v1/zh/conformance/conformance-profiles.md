@@ -177,7 +177,7 @@ MAY 支持 gossip、snapshot-assisted bootstrap、MIMI facade、Applet bridge �
 - Event 的 `created_at`、`realm_id`、`producer_proof`、`scope_ref`、`actor_id`、`semantic_refs[role=authorized_by]` 在 reducer 与验证逻辑中不能被跳过。Event 不携带 `hlc`、`producer_revision`、`domain_refs` 或 `requirements`（封闭禁用集合见 [`../models/event-and-patch.md` §2.2](../models/event-and-patch.md)），因此 SDK MUST NOT 为它们保留读取或校验入口；每个 Event kind 绑定的封闭 typed reducer 由 `event-kind-registry.json` 唯一决定。
 - `auth` 约束必须执行，不得通过客户端配置豁免。
 - State / snapshot / projection 进度和 wait-for token MUST 以 `CommittedEventRef`、stream ref 与 RealmCommit position 为语义单位；`operation_id` 只可表示服务 canonical operation。
-- Snapshot MUST 绑定 `governance_generation`、调用方获准的全部 `visible_stream_heads[]` 与 `retention_and_history_floor`，并由当前治理 Station 签名；接收方 MUST 按 [`realm-state-snapshot-schema.md` §4](./realm-state-snapshot-schema.md) 逐条验证，任一项失败时整份丢弃，MUST NOT 部分采用 rows。snapshot 本身不证明无遗漏，遗漏只能由逐 stream tail 的连续承接排除。
+- Snapshot MUST 绑定 `governance_generation`、调用方获准的全部 `visible_stream_heads[]`、内联 `current_state_entries[]` 与 `retention_and_history_floor`，并由当前治理 Station 从同一 durable cut 签名；接收方 MUST 按 [`realm-state-snapshot-schema.md` §4](./realm-state-snapshot-schema.md) 逐条验证，任一项失败时整份丢弃，MUST NOT 部分采用 rows。snapshot 本身不提供对治理方在 head 前隐去 current row 的独立 omission proof；逐 stream tail 连续承接只排除已验证 head 之后的缺口。
 - 裸名事件（如 `realm.create`）MUST 被拒绝，不能作为新增标准互操作行为。
 - 实现 MUST 对 `causal` 关系、`revoked` 与 `proof` 失效状态进行一致性拒绝（fail-closed），不能“静默接受”。
 

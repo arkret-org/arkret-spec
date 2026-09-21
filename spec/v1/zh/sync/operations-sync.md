@@ -82,7 +82,7 @@ Own Station 返回 typed current result 和 source committed ref。Directory 只
 
 ## 10. Snapshot
 
-Snapshot由current authority签名，包含typed sections、每条获准stream head、history floor、Station计算的state root与chunk digests。
+Snapshot 由 current authority 签名，按 closed `realm-state-snapshot.schema.json` 内联 `current_state_entries[]` typed current rows、每条获准 `visible_stream_heads[]` 与 `retention_and_history_floor`；三者来自同一 durable cut。v1 没有额外 sections、state root 或 chunk digests wire 字段。
 
 ## 11. 首次加入 Realm
 

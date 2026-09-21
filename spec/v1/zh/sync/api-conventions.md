@@ -703,7 +703,7 @@ Access-Control-Expose-Headers: Retry-After, Content-Digest, Digest, Content-Disp
 
 ### 11.2 出站网络目标策略与 SSRF 防护
 
-任何服务在访问由用户、远端 peer、DID Document、Directory、Blob/Media metadata、Snapshot manifest、Applet/Agent endpoint、Webhook 或 service discovery 返回的 URL 之前，MUST 执行出站网络目标策略。该规则覆盖 DID resolution、联邦 push/pull/checkpoint probe、媒体抓取、thumbnail 生成、snapshot/chunk fetch、webhook、agent/applet handoff 以及等价的非 HTTP binding。
+任何服务在访问由用户、远端 peer、DID Document、Directory、Blob/Media metadata、Snapshot authority locator、Applet/Agent endpoint、Webhook 或 service discovery 返回的 URL 之前，MUST 执行出站网络目标策略。该规则覆盖 DID resolution、联邦 push/pull/checkpoint probe、媒体抓取、thumbnail 生成、Realm Snapshot fetch、已登记 Blob chunk fetch、webhook、agent/applet handoff 以及等价的非 HTTP binding。
 
 **Scheme allowlist（normative）**：出站网络目标策略 MUST 先按 **scheme 白名单** fail-closed。默认允许集**只含** `https`（`http` 仅在 §2.1 允许明文的本地开发 / 测试 / 受控内网场景下 MAY 加入），任何其它 scheme（`file`、`gopher`、`ftp`、`data`、`blob`、`dict`、`ldap`、`ws`、`wss` 以及任意未登记 scheme）MUST 直接拒绝（`policy_denied`），不得进入后续 host / IP 分类。理由：IP 分类只对基于网络 host 的 scheme 有意义；非网络 scheme 会整体旁路下面的 host/IP 判定，把 URL 解析变成本地文件读取或协议走私向量。scheme 判定 MUST 在 host 解析之前执行，并在每次 redirect / Alt-Svc / 协议升级改变 scheme 时重新判定。
 
@@ -723,7 +723,7 @@ Access-Control-Expose-Headers: Retry-After, Content-Digest, Digest, Content-Disp
 - 明文 HTTP 到公网目标默认 SHOULD 拒绝；仅本地开发、测试网络或 Realm / deployment policy 明确授权的受控内网例外可放行。
 - 允许访问私网或 link-local 的例外 MUST 是显式 policy：绑定用途、service DID、trust domain、CIDR、端口、过期时间和审计要求。`development_mode=true` 的 loopback 例外不得出现在生产 ServiceDescribe 或 verified profile claim 中。
 - 拒绝时 SHOULD 返回 `policy_denied`，并在仅对 operator 可见的审计细节中记录被拦截的地址类别、规范化 URL digest、解析 IP、调用用途和 policy version。已登记 operation（例如 `ak.open.mimi.command.proxy_download.v1`）在 wire 上承载该拒绝时 reason code 为 `egress_policy_denied`。公开错误不得泄露内网拓扑。
-- **出站联邦 / 媒体 / snapshot fetch 的两层校验为合取（normative）**：出站联邦 push / pull / checkpoint probe、媒体抓取、以及 snapshot manifest / chunk fetch，MUST **同时**满足 (a) 本节 §11.2 的地址分类 fail-closed 检查，与 (b) [`federation.md` §3.4`](./federation.md) 的 federation peer policy（`deny` 先于 `allow` 评估，且 peer policy 只能收紧不能放宽地址分类）。两层是**合取**：任一层拒绝即 fail closed，不存在"地址分类通过即放行而跳过 peer policy"或"peer policy allow 即跳过地址分类"的旁路。snapshot manifest / chunk fetch 的目标 host（含 `chunks[].chunk_ref` 指向的 blob host、`realm_state_snapshot_bootstrap` 内的 endpoint）MUST 同样纳入这两层校验——既按 §11.2 做地址分类，也按 §3.4 peer policy 判定该 host / service DID 是否在出站允许集中；任一层拒绝即拒绝该 chunk fetch，不得静默退回未校验地址。
+- **出站联邦 / 媒体 / snapshot fetch 的两层校验为合取（normative）**：出站联邦 push / pull / checkpoint probe、媒体抓取、以及 current authority 的 Realm Snapshot 获取，MUST **同时**满足 (a) 本节 §11.2 的地址分类 fail-closed 检查，与 (b) [`federation.md` §3.4`](./federation.md) 的 federation peer policy（`deny` 先于 `allow` 评估，且 peer policy 只能收紧不能放宽地址分类）。两层是**合取**：任一层拒绝即 fail closed，不存在"地址分类通过即放行而跳过 peer policy"或"peer policy allow 即跳过地址分类"的旁路。`realm_state_snapshot_bootstrap` 的 endpoint 和任何其它已登记的出站 Blob/Media 目标 host MUST 同样纳入这两层校验；任一层拒绝即拒绝该 fetch。v1 Realm Snapshot 是单个 closed inline 对象，没有 `chunks[].chunk_ref` 或另一个 snapshot chunk fetch URL；不得凭旧字段创造新出站例外。
 
 服务 MAY 在 `ServiceDescribe.egress_network_policy` 暴露粗粒度出站策略，供 peer 和客户端理解是否支持安全的外部 URL 解析。公开 describe 不应暴露敏感私网 allowlist；认证后的 operator describe MAY 返回完整策略。
 
@@ -733,7 +733,7 @@ Access-Control-Expose-Headers: Retry-After, Content-Digest, Digest, Content-Disp
 
 - 对所有输入做 schema validation
 - 对签名和 capability 做独立验证
-- 对 blob / snapshot / chunk 做内容哈希校验
+- 对有内容地址的 blob / chunk 和 Realm Snapshot `snapshot_id` 做各自已登记的内容哈希校验；不得假设 Realm Snapshot 有独立 chunk digest
 - 防止错误信息泄露不可见资源存在性
 - 对高成本查询执行配额控制
 - 对公开 endpoint 做滥用防护

@@ -144,7 +144,7 @@ Station 不是身份本身，也不能替 principal 伪造 Event，**更不是�
 
 ### 2.5 Blob Store
 
-Blob Store 提供附件、大对象和可选 snapshot chunk 的内容存储。
+Blob Store 提供附件和大对象的内容存储；v1 Realm State Snapshot 是内联 closed 对象，不经独立 chunk 存储。
 
 Blob 地址可以多源，校验应基于内容哈希而不是单一 URL。
 
@@ -626,7 +626,7 @@ Arkret v1 不允许实现用单一聚合服务隐藏已声明的 Station / Direc
 - Capability cache 只能作为优化。缓存命中必须绑定 exact authority revision、grant / revoke / claim 状态和 policy version；上下文缺失、过期或无法验证时 MUST fail closed 或重新执行完整 authz。
 - 多 Station 或受托 search / projection 服务并存时，客户端 MUST 比较 DID service delegation、Realm policy、checkpoint、snapshot hash、fixed reducer semantics 和 plaintext visibility 后再选用服务。
 - 加密 envelope、Station device/key surface、MLS KeyPackage、Welcome、epoch backfill 和 key backup 按 `encryption-and-audit.md`、`device-lifecycle.md`、`key-management.md` 与 `media-and-blob.md` 执行。
-- Export / import MUST 以 snapshot manifest、state hash、chunk digest、Event replay 和 policy / redaction metadata 为边界；导入端 MUST NOT 仅信任外部 projection 或 search dump。
+- 部署本地 export / import 若存在，仍须独立审查 Event replay、policy/redaction 与材料完整性，导入端 MUST NOT 仅信任外部 projection 或 search dump；current-v1 不登记可互操作的 export/import package、state hash 或 chunk digest wire（见 [`sovereign-deployment.md`](../sync/sovereign-deployment.md)）。`RealmStateSnapshot` 只按其 closed inline schema 与当前治理 Station 签名验证，不得从本地导出流程推导额外 snapshot 字段。
 
 ### 普通客户端与服务器的验证职责
 

@@ -197,7 +197,7 @@ expected_<role>_<kind>_id
 规则：
 
 - canonical materialized object 自身 primary identity 字段 MUST 使用 `id`，不得写成 `strand_id` / `message_id` / `actor_profile_id` 等带对象名前缀的字段。Actor / user-facing identity 在 v1 中由 Actor Profile 表达：Profile 对象自身仍使用 `id`，其授权主体 DID 另用 `principal_id`。
-- Snapshot manifest 自身也使用 `id`；`realm_state_snapshot_ref` 只在其他对象、chunk payload、challenge 或 API hint 指向该 manifest 时使用。
+- Realm State Snapshot 是签名协议 artifact，自身使用 closed `snapshot_id`；其它对象如需引用它必须使用各自 schema 登记的 typed ref。v1 不登记独立 Snapshot chunk payload 或由 `realm_state_snapshot_ref` 构造的泛化引用层。
 - Event Envelope、Receipt、Attestation、Key Backup、Applet 等协议 artifact 或非通用 materialized object MAY 使用 `<artifact>_id` 作为自身标识（例如 `event_id`、`receipt_id`、`attestation_id`、`backup_id`、`applet_id`），因为这些对象经常与 `realm_id`、`actor_id`、`policy_id`、`device_id` 等并列并进入签名 transcript，需要在混合上下文中消歧。该例外不得反向用于 Realm / Space / Strand / Message / Morph / Relation / View / Policy / Actor Profile 等普通 canonical object。
 - 单一具体 kind MUST 在字段名中出现 kind slug，例如 `space_id`、`parent_space_id`、`scope_circle_id`、`policy_id`、`retention_policy_id`。
 - protocol responsibility subject 的 carrier 与可验证主体类别必须同时反映在字段名：principal/service/Station/hardware module 的 `DidCoreId` 分别使用 `<role>_principal_id` / `<role>_service_id` / `<role>_station_id` / `<role>_hardware_module_id`；完整 account 使用 `<role>_account_id: AccountId`；account-or-service actor 使用 `<role>_actor_id: ActorId`。`actor_id`、`principal_id`、`agent_id` 等主体词本身已闭合 carrier 的既有 canonical 字段继续保留。
@@ -271,7 +271,7 @@ Arkret 自有 W3C DID 字段 MUST 使用对象中角色唯一且显然的 `did`�
 
 ### 3.0.1 Size 字段命名
 
-表示字节数的字段 MUST 使用 `_bytes` 后缀，例如 `size_bytes`、`max_total_blob_bytes`、`canonical_payload_bytes`。不得新增裸 `size` 表示字节数；Blob metadata、Media metadata、Content Block descriptor 与 Snapshot chunk descriptor 均使用 `size_bytes`。
+表示字节数的字段 MUST 使用 `_bytes` 后缀，例如 `size_bytes`、`max_total_blob_bytes`、`canonical_payload_bytes`。不得新增裸 `size` 表示字节数；Blob metadata、Media metadata 与 Content Block descriptor 均使用 `size_bytes`。v1 Realm Snapshot 不登记 chunk descriptor。
 
 ### 3.0.2 Duration 字段命名
 

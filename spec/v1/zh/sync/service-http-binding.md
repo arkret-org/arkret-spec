@@ -272,7 +272,7 @@ MUST 使用本读取面，并把这里的完整 rows 作为派生 pending count 
 ### 3.2 Snapshot + tail
 
 首次 join、新设备和缓存修复使用 authority-signed typed snapshot，再从 snapshot 内每条获准
-stream head 的下一 position 拉取 tail。Snapshot 不包含 typed current result chunk、通用 state root 或隐藏 stream
+stream head 的下一 position 拉取 tail。Snapshot 内联 `current_state_entries[]` typed current rows，不包含独立 typed current result chunk、通用 state root 或隐藏 stream
 的 position。历史可见性仍由 join/history/retention policy 决定，不默认拉全历史。
 
 ### 3.3 站间操作

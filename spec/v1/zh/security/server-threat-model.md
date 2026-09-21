@@ -65,8 +65,8 @@ sidebar:
 14. **历史冲突与 fork 影响（Fork / Duplicate Conflict）**
     利用伪造的 `event_id` / canonical bytes 不匹配、完整 hash collision evidence、actor over-fork 或竞争确认凭证制造普通状态错误、错误 authority-commit query basis 或安全域停摆。合法的普通并发写由 Station 在该 stream 上串行化为单值，被取代不等于 quarantine；仍获权的作者可以靠高频重写反复抢占当前值，这是需限速、审计和最终撤权的数据完整性/资源残余风险。两个互不可达 confirmed RealmCommit 是共识安全故障，不能作为普通可合并冲突；接收方必须按安全域故障停摆。
 
-15. **快照与快照块投毒（Snapshot / Snapshot Chunk Poisoning）**
-    通过伪造 snapshot manifest、chunk/索引入口、签名链错误，劫持 bootstrap 或跳过一致性回放。
+15. **快照投毒（Snapshot Poisoning）**
+    通过伪造 Realm Snapshot、可见 stream head／current row／history floor 或签名链错误，劫持 bootstrap 或跳过逐 stream 连续性验证；v1 没有独立 snapshot chunk 入口。
 
 16. **跨域边界绕过（Cross-domain/Scope Confusion）**
     混淆 `realm_id` / `service scope` / `destination` / `organization` 的绑定域，触发越权写入或错误可见性。
@@ -98,7 +98,7 @@ sidebar:
     即使 Event body、MLS payload 与 service signatures 都正确，联邦 peer、网络运营方或受托 relay 仍可能通过 fanout 时间、batch 大小、重试节奏、provider 组合和跨 Realm burst 关联组织活动。base v1 不提供针对该侧信道的直接防御。高隐私部署 SHOULD 声明 `ak.profile.traffic_metadata_hardened.v1`（profile 定义见 [`conformance/conformance-profiles.md` §11.1](../conformance/conformance-profiles.md)）；一旦声明，该部署 MUST 使用 OHTTP / relay indirection / decoy traffic 之一，并对批处理 padding、发送延迟抖动、固定大小 federation batch、retry cadence padding 和 blind / batch wakeup 执行该 profile 的可测试参数。未声明该 profile 时，不得把 E2EE 误表述为隐藏 federation traffic metadata。
 
 24. **出站 URL / SSRF（Server-Side Request Forgery）**
-    攻击者通过 DID Document serviceEndpoint、媒体 URL、snapshot chunk、Webhook、Applet/Agent endpoint 或联邦 peer discovery 引导服务访问 loopback、私网、link-local、metadata endpoint 或内部控制面。
+    攻击者通过 DID Document serviceEndpoint、媒体 URL、Snapshot authority endpoint、Webhook、Applet/Agent endpoint 或联邦 peer discovery 引导服务访问 loopback、私网、link-local、metadata endpoint 或内部控制面。
 
 25. **Directory ingest 写路径滥用（Directory Ingest Abuse）**
     攻击者污染 Directory 的发现 / 投影 ingest 写路径（与 [`discovery/discovery-directory.md` §8.10 / §11](../discovery/discovery-directory.md) 交叉引用）。具体向量:**announce replay**(重放过期 announce 让陈旧条目复活)、**`as_of` skew**(伪造 `as_of` 时间使旧状态看似最新)、**policy_revision rollback**(回退 policy_revision 绕过更严策略)、**DID hijack**(劫持 announce 来源 DID 冒名注入条目)、**source-ref 伪造**(伪造来源引用让未授权条目进入 directory)、**takedown spoofing**(伪造下架 / takedown 让合法条目被移除)。防护以 discovery-directory §8.10 / §11 的来源 DID 验签、`as_of` 单调 / 时间锚校验、policy_revision 单调、announce 一次性 / 过期窗口、source-ref 授权核验与 takedown 授权链为权威。
@@ -184,7 +184,7 @@ sidebar:
 | 拓扑污染 | 是 | 实际接纳/审计角色按 [discovery-directory §8.10 / §11](../discovery/discovery-directory.md) 验来源签名、source-ref 与背书授权，按 service-surface §2.6 验服务路由；普通客户端按已登记 Station 结果消费。不定义通用双签载体。 |
 | 解析污染 | **部分** | resolver trust domain pinning、method adapter 证据核验、SCID 自证与 entry hash chain、freshness profile 的同步刷新或 fail closed。**默认 `did:webvh` 部署对 hosting 方 split-view 与历史截断不构成完整缓解**——witness 在 base v1 可选、consistency proof 仅高保障 profile 要求，见 §2.1a 的两条 residual risk。 |
 | 冲突/分叉 | **部分** | hash collision 与 actor over-fork 按各自可验证规则 quarantine；普通合法写入保留历史并由该 stream 的接纳次序收敛为单值，不能仅因陈旧或已被取代隔离。已授权恶意作者仍可写恶意内容、延长分支或消耗资源，依靠限速、审计、撤权与数据基准关闭缓解。 |
-| 快照投毒 | 是 | snapshot manifest 与 chunk hash 链路签名、checkpoint 一致性双重校验。 |
+| 快照投毒 | 是 | 当前治理 Station 对 closed inline Snapshot 签名，验证 generation、可见 stream head／current row／history floor 同 cut 与后续逐 stream Commit 连续性；不依赖不存在的 chunk hash 链。 |
 | 跨域边界绕过 | 是 | source/destination/scope 每一层 must-bind 校验，禁止空域回退。 |
 | 邀请令牌滥用 | 是 | token 一次性约束、过期窗口、绑定 proof 重放检测。 |
 | 会话凭证滥用 | 是 | `account-lifecycle` 强制撤销链路、推送网关 token 与 service token 的短期有效策略。 |

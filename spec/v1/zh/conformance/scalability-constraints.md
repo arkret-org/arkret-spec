@@ -119,7 +119,7 @@ Authority commit 预算如下：
 | 单 position有效 Commit | 1 | 两个不同有效签名为 authority equivocation，冻结该 Realm/stream。 |
 | Realm active Circle数 | 1,000 | Circle各有独立 stream。 |
 | Realm active Sidecar数 | 10,000 | Sidecar各有独立 stream；部署可收紧。 |
-| snapshot chunk | 8 MiB | chunk hash必须匹配 manifest。 |
+| Realm State Snapshot inline response | 8 MiB | `ak.self.realm_state_snapshot.read.manifest_head.v1` 属于 non-streaming JSON；超限必须 fail closed，不得截断 `current_state_entries[]`、visible heads 或 floors；v1 未登记 chunk/paging fallback。 |
 | snapshot manifest streams | 11,001 | Realm + 上述 Circle/Sidecar理论上限；只返回 caller获准的 streams。 |
 | handoff manifest streams | 同上 | 私有传输覆盖全部 stream heads，不公开隐藏 stream。 |
 

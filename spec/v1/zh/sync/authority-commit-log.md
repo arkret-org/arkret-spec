@@ -122,7 +122,7 @@ Account Station 对本地提交只可报告 `queued`、`forwarding`、`committed
 
 ## 7. Snapshot 与 join bootstrap
 
-Snapshot 是当前治理 Station 签署的 typed current sections，必须绑定 `governance_generation` 和调用方获准的全部 stream heads。它不含 typed current result chunks、state root、RealmCommit、fixed reducer semantics 或稀疏 Merkle proof。
+Snapshot 是当前治理 Station 签署的 closed `realm-state-snapshot.schema.json` 对象：内联 `current_state_entries[]` 是可见范围内的 typed current result rows，并与 `governance_generation`、调用方获准的全部 `visible_stream_heads[]`、`retention_and_history_floor` 取自同一 durable cut。它不含另一个 `sections`／`chunk_digests` wire 层、独立 typed-current chunk/tree、state root、RealmCommit、fixed reducer semantics 或稀疏 Merkle proof。签名确认当前治理方对这份 materialization 负责；它不证明隐藏 stream 不存在，也不构成独立 omission proof。
 
 加入流程必须为：
 
