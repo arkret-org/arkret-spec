@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-21.2",
+  "version": "2026-09-22.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-21T03:47:00+08:00",
+  "generated_at": "2026-09-22T09:25:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -103,6 +103,283 @@
       "position": "final",
       "value_shape": "boolean"
     }
+  },
+  "typed_current_key_derivations": {
+    "algorithm_profile": {
+      "id": "ak.typed_current_key.sha256_domain_lf_jcs_array.v1",
+      "preimage": "UTF8(domain) || 0x0A || RFC8785_JCS(normalized_components)",
+      "output": "base64url_nopad(SHA-256(preimage))",
+      "role": "opaque_current_row_locator",
+      "public_generic_api": false,
+      "authority_semantics": "none"
+    },
+    "coverage_audit": {
+      "soland_missing_helper_callers": 10,
+      "active_family_callers": 9,
+      "registered_active_families": 4,
+      "excluded_per_leg_mute": {
+        "observed_component_order": [
+          "call_id",
+          "actor_id",
+          "device_id"
+        ],
+        "active_result_family": "call_mute_override",
+        "active_component_order": [
+          "payload.call_id"
+        ],
+        "disposition": "no_compatibility_api_fail_closed"
+      }
+    },
+    "families": [
+      {
+        "derivation_id": "ak.current_key.member_state.v1",
+        "result_family": "member_state",
+        "api_name": "derive_member_state_current_key",
+        "parameters": [
+          {
+            "name": "member_actor_id",
+            "value_shape": "ActorId"
+          }
+        ],
+        "domain": "ak.current_key.member_state.v1",
+        "components": [
+          {
+            "parameter": "member_actor_id",
+            "normalization": "rfc8785_jcs_value",
+            "registry_sources": [
+              "envelope.actor_id",
+              "payload.member_id"
+            ]
+          }
+        ],
+        "kat": {
+          "arguments": {
+            "member_actor_id": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixturemember",
+                "station_id": "ak:did_core:webvh:z6mkfixturestation"
+              }
+            }
+          },
+          "normalized_components": [
+            {
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixturemember",
+                "station_id": "ak:did_core:webvh:z6mkfixturestation"
+              },
+              "kind": "account"
+            }
+          ],
+          "preimage_utf8": "ak.current_key.member_state.v1\n[{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturemember\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"},\"kind\":\"account\"}]",
+          "expected_output": "skNSTfT-fp3xvq7ZDIjPEfry6fz9p160YeTYRoGCW_o",
+          "negative_cases": {
+            "reordered_components": {
+              "disposition": "not_applicable_single_component"
+            },
+            "wrong_family_domain": {
+              "domain": "ak.current_key.wrong_family.v1",
+              "expected_output": "z_ZkY0rlTlRfElc7foIIeSzq4C8BSD-PGuQTgh_DYgc"
+            },
+            "extra_component": {
+              "disposition": "reject_before_hash"
+            },
+            "type_mismatch": {
+              "disposition": "reject_before_hash"
+            }
+          }
+        }
+      },
+      {
+        "derivation_id": "ak.current_key.agent_status.v1",
+        "result_family": "agent_status",
+        "api_name": "derive_agent_status_current_key",
+        "parameters": [
+          {
+            "name": "agent_actor_id",
+            "value_shape": "ActorId"
+          }
+        ],
+        "domain": "ak.current_key.agent_status.v1",
+        "components": [
+          {
+            "parameter": "agent_actor_id",
+            "normalization": "rfc8785_jcs_value",
+            "registry_sources": [
+              "envelope.actor_id"
+            ]
+          }
+        ],
+        "kat": {
+          "arguments": {
+            "agent_actor_id": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+                "station_id": "ak:did_core:webvh:z6mkfixturestation"
+              }
+            }
+          },
+          "normalized_components": [
+            {
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+                "station_id": "ak:did_core:webvh:z6mkfixturestation"
+              },
+              "kind": "account"
+            }
+          ],
+          "preimage_utf8": "ak.current_key.agent_status.v1\n[{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixtureagent\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"},\"kind\":\"account\"}]",
+          "expected_output": "1-8BcBY4BwpOnF47FI4Vc2KfTP0OMyAdHkKyKbGNXZU",
+          "negative_cases": {
+            "reordered_components": {
+              "disposition": "not_applicable_single_component"
+            },
+            "wrong_family_domain": {
+              "domain": "ak.current_key.wrong_family.v1",
+              "expected_output": "8QJq0Gi9vERfaXlJ-IkFstU8g5zLIueZT55i-kekKlY"
+            },
+            "extra_component": {
+              "disposition": "reject_before_hash"
+            },
+            "type_mismatch": {
+              "disposition": "reject_before_hash"
+            }
+          }
+        }
+      },
+      {
+        "derivation_id": "ak.current_key.agent_key.v1",
+        "result_family": "agent_key",
+        "api_name": "derive_agent_key_current_key",
+        "parameters": [
+          {
+            "name": "agent_id",
+            "value_shape": "DidCoreId"
+          },
+          {
+            "name": "key_id",
+            "value_shape": "AgentKeyId"
+          }
+        ],
+        "domain": "ak.current_key.agent_key.v1",
+        "components": [
+          {
+            "parameter": "agent_id",
+            "normalization": "wire_scalar",
+            "registry_sources": [
+              "payload.agent_id"
+            ]
+          },
+          {
+            "parameter": "key_id",
+            "normalization": "wire_scalar",
+            "registry_sources": [
+              "item.key_id",
+              "payload.key_id"
+            ]
+          }
+        ],
+        "kat": {
+          "arguments": {
+            "agent_id": "ak:did_core:webvh:z6mkfixtureagent",
+            "key_id": "did:webvh:z6mkfixtureagent:agent.example#runtime-1"
+          },
+          "normalized_components": [
+            "ak:did_core:webvh:z6mkfixtureagent",
+            "did:webvh:z6mkfixtureagent:agent.example#runtime-1"
+          ],
+          "preimage_utf8": "ak.current_key.agent_key.v1\n[\"ak:did_core:webvh:z6mkfixtureagent\",\"did:webvh:z6mkfixtureagent:agent.example#runtime-1\"]",
+          "expected_output": "PfgyVkXhI1H9x4sv9t1SYQ-_HMqFNm0iiOtE_s_cODU",
+          "negative_cases": {
+            "reordered_components": {
+              "expected_output": "81mRszOIXlPY523kSrncRmktgEbQ0_5JpdP65ml0PCc"
+            },
+            "wrong_family_domain": {
+              "domain": "ak.current_key.wrong_family.v1",
+              "expected_output": "qCsEjY2f2RJ9gYyWeMkdl_NGuuJrDAtDE7oNCaGKV2Y"
+            },
+            "extra_component": {
+              "disposition": "reject_before_hash"
+            },
+            "type_mismatch": {
+              "disposition": "reject_before_hash"
+            }
+          }
+        }
+      },
+      {
+        "derivation_id": "ak.current_key.key_backup_active_series.v1",
+        "result_family": "key_backup_active_series",
+        "api_name": "derive_key_backup_active_series_current_key",
+        "parameters": [
+          {
+            "name": "actor_id",
+            "value_shape": "ActorId"
+          },
+          {
+            "name": "backup_kind",
+            "value_shape": "BackupKind"
+          }
+        ],
+        "domain": "ak.current_key.key_backup_active_series.v1",
+        "components": [
+          {
+            "parameter": "actor_id",
+            "normalization": "rfc8785_jcs_value",
+            "registry_sources": [
+              "payload.actor_id"
+            ]
+          },
+          {
+            "parameter": "backup_kind",
+            "normalization": "wire_scalar",
+            "registry_sources": [
+              "payload.backup_kind"
+            ]
+          }
+        ],
+        "kat": {
+          "arguments": {
+            "actor_id": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixturemember",
+                "station_id": "ak:did_core:webvh:z6mkfixturestation"
+              }
+            },
+            "backup_kind": "secret_storage"
+          },
+          "normalized_components": [
+            {
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixturemember",
+                "station_id": "ak:did_core:webvh:z6mkfixturestation"
+              },
+              "kind": "account"
+            },
+            "secret_storage"
+          ],
+          "preimage_utf8": "ak.current_key.key_backup_active_series.v1\n[{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturemember\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"},\"kind\":\"account\"},\"secret_storage\"]",
+          "expected_output": "wfWg_46S_n3Iuu_w8t9uuQ_yiNYjEqWOSjykPH-11Sc",
+          "negative_cases": {
+            "reordered_components": {
+              "expected_output": "sefgoFcbcI9ljlq2RkSZVVOKZxRIfQkew_bP-t7qBac"
+            },
+            "wrong_family_domain": {
+              "domain": "ak.current_key.wrong_family.v1",
+              "expected_output": "VMGzO5QZxvBod1MLeI0OK5memSK7smP7FXWqdNfaz5U"
+            },
+            "extra_component": {
+              "disposition": "reject_before_hash"
+            },
+            "type_mismatch": {
+              "disposition": "reject_before_hash"
+            }
+          }
+        }
+      }
+    ]
   },
   "registry_rules": [
     "Every standard ak.* Event.kind admitted through Event Envelope MUST appear in this registry and resolve to exactly one closed payload schema.",
@@ -527,7 +804,7 @@
             }
           },
           "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/agent_key_value",
-          "notes": "identity/key-management.md section 3.6.1: the stable element tag is the canonical <event_id>:<write_index> dot of models/event-and-patch.md section 2.4.2 and never a bare event_id, and the element value is the complete authorize payload. The subject MUST be the SDK composite_subject([agent_id, key_id]) and MUST NOT be spelled by string concatenation or as a diagnostic subject; agent_key_result.selector carries the two components separately for the same reason. ak.agent.key.revoke is the family's second normative writer and is now registered. Its removal is scoped to the active authorize dots alone, spelled as the existence predicate {element_field: verification_method, present: true}: agent_key_authorization_entry.value is a oneOf of agent_key_authorize_payload and agent_key_revoke_payload, both additionalProperties:false with disjoint required sets, so verification_method is present on every authorize element and forbidden on every revocation marker."
+          "notes": "identity/key-management.md section 3.6.1: the stable element tag is the canonical <event_id>:<write_index> dot of models/event-and-patch.md section 2.4.2 and never a bare event_id, and the element value is the complete authorize payload. The current-row locator MUST come from the registered family-specific derive_agent_key_current_key(agent_id, key_id) typed API and MUST NOT be spelled by a generic composite helper, string concatenation or a diagnostic subject; agent_key_result.selector carries the two components separately for the same reason. ak.agent.key.revoke is the family's second normative writer and is now registered. Its removal is scoped to the active authorize dots alone, spelled as the existence predicate {element_field: verification_method, present: true}: agent_key_authorization_entry.value is a oneOf of agent_key_authorize_payload and agent_key_revoke_payload, both additionalProperties:false with disjoint required sets, so verification_method is present on every authorize element and forbidden on every revocation marker."
         }
       ],
       "id_source": "not_an_object_id",

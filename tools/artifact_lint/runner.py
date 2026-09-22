@@ -278,6 +278,7 @@ from .proof_context_schemas import (
     check_result_write_target_uniqueness,
     check_result_write_coverage_note,
 )
+from .typed_current_key_derivations import check_typed_current_key_derivations
 
 
 
@@ -379,6 +380,10 @@ def main(argv: list[str] | None = None) -> int:
                 lambda: check_local_signature_binding_fields_match_schema(lint),
             ),
             ("result_write_contracts", lambda: check_result_write_contracts(lint)),
+            (
+                "typed_current_key_derivations",
+                lambda: check_typed_current_key_derivations(lint),
+            ),
             ("result_effect_ownership", lambda: check_result_effect_ownership(lint)),
             ("agent_draft_pending_intent", lambda: check_agent_draft_pending_intent(lint)),
             ("event_submit_idempotency", lambda: check_event_submit_idempotency(lint)),

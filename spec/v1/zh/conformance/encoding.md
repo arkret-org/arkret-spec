@@ -394,6 +394,37 @@ v1 的 envelope 来源白名单只包含 `envelope.actor_id` 一项；`envelope.
 ##### 9.5.2 复合键编码
 
 复合业务键的成员、顺序和正规化由具体 schema 封闭定义，不使用通用 typed current result subject hash。
+registry 中的 `result_selector.kind="composite"` 只是对应 `result_family` 的 **family-specific closed ordered
+descriptor**：它声明 reducer 从哪些 schema-validated 字段、按什么顺序和正规化取得数据库 row locator 的输入，
+不把任意 component 数组开放给 caller。
+
+需要跨 producer／reader 复算 opaque current-row locator 的 family，MUST 先在
+`event-kind-registry.json#typed_current_key_derivations` 登记唯一 `derivation_id`、typed 参数、固定 component
+来源／顺序／正规化、family domain、family-specific API 名与 KAT。已登记 profile 的唯一算法是：
+
+```text
+preimage = UTF8(family_domain) || 0x0A || RFC8785_JCS(normalized_components)
+locator  = base64url_nopad(SHA-256(preimage))
+```
+
+generated SDK API MUST 在求 hash 前按 typed signature 拒绝参数类型错误、缺项和额外 component；不得暴露接受
+`&[T]`、`Vec<Value>` 或 caller-selected JSON 的 `composite_subject`／等价入口。重排 component 或换用另一
+family domain 必须得到不同输出。派生结果只是不透明数据库 current-row locator，不是 wire typed ID、Event／
+RealmCommit 签名 basis、revision、tenure、proof、capability 或 governance authority；current governing Station 的
+accepted RealmCommit 与权限门仍是唯一 authority。
+
+当前登记的 closed API 是：
+
+| result family | family-specific typed API | 固定参数顺序 |
+| --- | --- | --- |
+| `member_state` | `derive_member_state_current_key` | `(member_actor_id: ActorId)` |
+| `agent_status` | `derive_agent_status_current_key` | `(agent_actor_id: ActorId)` |
+| `agent_key` | `derive_agent_key_current_key` | `(agent_id: DidCoreId, key_id: AgentKeyId)` |
+| `key_backup_active_series` | `derive_key_backup_active_series_current_key` | `(actor_id: ActorId, backup_kind: BackupKind)` |
+
+未登记 family 不得推断或生成兼容 API。特别地，active `call_mute_override` selector 只有
+`[payload.call_id]`；旧实现的 per-leg `[call_id, actor_id, device_id]` 键不对应该 active family，必须继续
+fail closed 并随 clean-break 删除或按正式 current ingress 重建，不得借本节生成第五个兼容 derivation。
 
 ## 10. 大小与拒绝
 
