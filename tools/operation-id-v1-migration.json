@@ -56,14 +56,6 @@
       "new": "ak.edge.push.command.unregister_device.v1"
     },
     {
-      "old": "ak.find.directory.command.announce",
-      "new": "ak.find.directory.command.announce.v1"
-    },
-    {
-      "old": "ak.find.directory.command.withdraw",
-      "new": "ak.find.directory.command.withdraw.v1"
-    },
-    {
       "old": "ak.find.directory.read.describe",
       "new": "ak.find.directory.read.describe.v1"
     },

@@ -1,6 +1,6 @@
 {
   "suite": "scalability_limits",
-  "version": "2026-09-10.5",
+  "version": "2026-09-22.1",
   "profile": "ak.profile.core_event_store.v1",
   "runner": {
     "kind": "generated_limit_cases",
@@ -14,6 +14,7 @@
     "ak.vector.scalability.circle_count_limit.v1",
     "ak.vector.scalability.envelope_size_limit.v1",
     "ak.vector.scalability.operation_body_size_limit.v1",
+    "ak.vector.scalability.snapshot_inline_capacity.v1",
     "ak.vector.scalability.http_body_preparse_limit.v1",
     "ak.vector.scalability.content_encoding_forbidden.v1",
     "ak.vector.scalability.batch_page_byte_count.v1",
@@ -55,6 +56,56 @@
         "byte_overflow_error_code": "payload_too_large",
         "count_overflow_error_code": "schema_violation",
         "partial_accept_forbidden": true
+      }
+    },
+    {
+      "name": "snapshot_capacity_accepts_exact_eight_mib_maximal_projection",
+      "vector_id": "ak.vector.scalability.snapshot_inline_capacity.v1",
+      "given_state": {
+        "generator": {
+          "kind": "realm_snapshot_maximal_disclosure_projection",
+          "canonical_signed_body_bytes_after_candidate_commit": 8388608
+        }
+      },
+      "expected": {
+        "decision": "accept_when_all_other_admission_checks_pass",
+        "measurement": "RFC8785 canonical bytes of the complete signed body",
+        "paging_or_truncation_used": false
+      }
+    },
+    {
+      "name": "snapshot_capacity_rejects_candidate_commit_over_eight_mib",
+      "vector_id": "ak.vector.scalability.snapshot_inline_capacity.v1",
+      "given_state": {
+        "generator": {
+          "kind": "realm_snapshot_maximal_disclosure_projection",
+          "canonical_signed_body_bytes_after_candidate_commit": 8388609
+        }
+      },
+      "expected": {
+        "decision": "reject",
+        "error_code": "failed_precondition",
+        "reason_code": "snapshot_capacity_exceeded",
+        "state_unchanged": true,
+        "partial_snapshot_or_hidden_overflow": false
+      }
+    },
+    {
+      "name": "snapshot_capacity_concurrent_candidates_share_one_admission_boundary",
+      "vector_id": "ak.vector.scalability.snapshot_inline_capacity.v1",
+      "given_state": {
+        "generator": {
+          "kind": "concurrent_realm_snapshot_capacity_candidates",
+          "each_candidate_individually_fits_old_cut": true,
+          "combined_canonical_signed_body_bytes": 8388609
+        }
+      },
+      "expected": {
+        "accepted_winners": 1,
+        "loser_rechecks_current_cut": true,
+        "loser_error_code": "failed_precondition",
+        "loser_reason_code": "snapshot_capacity_exceeded",
+        "final_state_within_limit": true
       }
     },
     {

@@ -1143,8 +1143,8 @@
         },
         "series": {
           "type": "array",
-          "minItems": 2,
-          "maxItems": 2,
+          "minItems": 1,
+          "maxItems": 1,
           "uniqueItems": true,
           "items": {
             "$ref": "./security-transaction.schema.json#/$defs/backup_rotation_binding"
@@ -1234,8 +1234,8 @@
         },
         "series": {
           "type": "array",
-          "minItems": 2,
-          "maxItems": 2,
+          "minItems": 1,
+          "maxItems": 1,
           "uniqueItems": true,
           "items": {
             "$ref": "./security-transaction.schema.json#/$defs/backup_rotation_binding"

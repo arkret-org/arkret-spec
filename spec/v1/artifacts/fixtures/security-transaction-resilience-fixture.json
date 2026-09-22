@@ -1,6 +1,6 @@
 {
   "profile": "ak.vector_group.security_transaction.v1",
-  "version": "2026-09-19.2",
+  "version": "2026-09-22.1",
   "suite": "security_transaction_resilience",
   "runner": {
     "kind": "named_suite",
@@ -32,6 +32,38 @@
             "ciphertext_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
           }
         ]
+      }
+    },
+    {
+      "name": "backup_series_erase_accepts_the_single_planned_secret_storage_binding",
+      "schema_ref": "schemas/keys-operations.schema.json#/$defs/backup_series_erase_request_body",
+      "expect_valid": true,
+      "instance": {
+        "transaction_id": "ak:transaction:019a7400-0000-7000-8000-000000000006",
+        "transaction_request_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "prepared_plan_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "erase_confirmation_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "series": [
+          {
+            "backup_kind": "secret_storage",
+            "previous_series_id": "ak:backup_series:019a7400-0000-7000-8000-000000000001",
+            "new_series_id": "ak:backup_series:019a7400-0000-7000-8000-000000000002",
+            "new_backups": [
+              {
+                "backup_id": "ak:backup:019a7400-0000-7000-8000-000000000003",
+                "ciphertext_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              }
+            ],
+            "active_series_event_id": "ak:event:AWKDhmQTc5zyfilaLwPF3xnhoZAjxSha7Z-6grioN9aW",
+            "old_backups": [
+              {
+                "backup_id": "ak:backup:019a7400-0000-7000-8000-000000000005",
+                "ciphertext_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+              }
+            ]
+          }
+        ],
+        "authority_commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4"
       }
     },
     {
@@ -174,6 +206,9 @@
     "governance_station_issues_both_recovery_realm_commits_only_inside_commit_recovery_unit",
     "recovery_stored_outcome_is_checked_before_consumed_session_refusal",
     "only_the_atomic_generation_cas_winner_commits_a_reanchor_commit",
+    "security_rotation_create_requires_fresh_high_risk_authentication_and_binds_the_authenticated_authorizing_device",
+    "erase_rechecks_live_transaction_active_account_non_revoked_authorizing_device_and_current_authority_commit",
+    "authorization_lease_is_not_issued_or_accepted",
     "pointer_switch_precedes_every_old_series_erase",
     "erased_series_never_becomes_active_again",
     "public_store_log_telemetry_and_crash_artifact_contain_no_secret_material"
@@ -194,7 +229,19 @@
       }
     },
     {
-      "name": "erase_before_both_pointer_switches",
+      "name": "erase_before_secret_storage_pointer_switch",
+      "authoritative_new_pointers": [
+        "secret_storage"
+      ],
+      "expected": {
+        "decision": "reject",
+        "reason": "failed_precondition",
+        "old_backup_deleted": false
+      }
+    },
+    {
+      "name": "erase_after_authorizing_device_revoked",
+      "authorizing_device_current": false,
       "authoritative_new_pointers": [
         "secret_storage"
       ],

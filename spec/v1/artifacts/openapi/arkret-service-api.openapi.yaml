@@ -581,10 +581,6 @@ components:
       $ref: ../schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_outcome
     DirectConversationResolveRequestBody:
       $ref: ../schemas/direct-conversation-operations.schema.json#/$defs/direct_conversation_resolve_request
-    DirectoryAnnounceOutcome:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceOutcome
-    DirectoryAnnounceRequestBody:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceRequestBody
     DirectoryRealmResolutionOutcome:
       $ref: ../schemas/directory-operations.schema.json#/$defs/directory_realm_resolution_outcome
     DirectoryRealmSearchOutcome:
@@ -593,10 +589,6 @@ components:
       $ref: ../schemas/directory-operations.schema.json#/$defs/directory_resolve_realm_request_body
     DirectorySearchRealmsRequestBody:
       $ref: ../schemas/directory-operations.schema.json#/$defs/directory_search_realms_request_body
-    DirectoryWithdrawOutcome:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawOutcome
-    DirectoryWithdrawRequestBody:
-      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawRequestBody
     DocumentMorphProjectionOutcome:
       $ref: ../schemas/view.schema.json#/$defs/document_morph_projection_outcome
     ErasureReceiptResource:
@@ -6642,66 +6634,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ServiceDescribe'
-  /_arkret/find/directory/announce:
-    post:
-      operationId: ak.find.directory.command.announce
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.find.directory.command.announce.v1
-      security:
-      - bearerAuth: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
-      responses:
-        '200':
-          description: Directory ingest acknowledgement (push mode)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DirectoryAnnounceOutcome'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DirectoryAnnounceRequestBody'
-  /_arkret/find/directory/withdraw:
-    post:
-      operationId: ak.find.directory.command.withdraw
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.find.directory.command.withdraw.v1
-      security:
-      - bearerAuth: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        contentDigest: []
-      responses:
-        '200':
-          description: Directory entry withdrawal acknowledgement
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DirectoryWithdrawOutcome'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DirectoryWithdrawRequestBody'
   /_arkret/find/directory/search-realms:
     post:
       operationId: ak.find.directory.read.search_realms

@@ -89,13 +89,16 @@ canonical source；其中 Recovery plan 内嵌 closed `binding`，Rotation plan 
 | `ak.self.security_transaction.resource.get.v1` | `GET /_arkret/self/security-transactions/{transaction_id}` | `SecurityTransaction` |
 | `ak.self.security_transaction.command.continue.v1` | `POST /_arkret/self/security-transactions/{transaction_id}/continue` | `#/$defs/continue_request` → `SecurityTransaction` |
 
-SecurityRotation `create` 只接受完整 typed plan；Recovery `create` 只接受 closed typed `recovery_intent`，
+SecurityRotation `create` 只接受完整 typed plan，并且必须携带与当前高风险认证 session 中设备完全一致的
+`authorizing_device_id`；Recovery `create` 只接受 closed typed `recovery_intent`，
 typed prepared plan 一律由 coordinator 在 §2.1 的专用 prepare transaction 中派生，客户端不得提交一份已经填完的
 `prepared_plan`。两种 `create` 都必须在一个 durable transaction 中保存 canonical request
 bytes/digest、typed prepared plan、自己重算的 plan digest、全部 reserved ids 与初始 resource，然后才能执行第一个副作用。
 Recovery create 还必须只接受属于同一 Station-local AccountId、已 verified 且尚未绑定其它 transaction 的
 recovery session，并在同一 durable commit 中 CAS 绑定该 session；SecurityRotation create
-不依赖 recovery session，必须验证当前 AccountId 的 high-risk action authority。`continue` 的 `request_digest`、
+不依赖 recovery session，而由 Account Authority 按部署的 recent login／WebAuthn／recovery key 等策略验证 fresh
+high-risk action authentication，将 `authorizing_device_id` 与认证 session 逐字核对，并在任何副作用前持久化到事务。
+不满足时返回 `reauthentication_required` 且零写入；该步骤不签发、不接受 `AuthorizationLease`。`continue` 的 `request_digest`、
 `prepared_plan_digest` 必须与当前 resource 精确相等，`expected_accepted_step_count` 必须等于当前
 `accepted_steps.length`，否则
 `duplicate_conflict` / `failed_precondition`；它不是提交任意步骤列表的接口。coordinator-owned prefix 只属于
@@ -169,10 +172,10 @@ RecoveryReceipt 签入 transaction/request/plan、两条 producer EventId、prev
 
 ## 3. SecurityRotationTransaction
 
-固定绑定 revoke Event、新 secret commitment、按 `backup_kind` 闭合的两条
-`backup_rotations[]`、erase confirmation digest 与 local commit digest。数组必须按
+固定绑定 revoke Event、新 secret commitment、唯一 `secret_storage`
+`backup_rotations[]`、erase confirmation digest 与 local commit digest。数组恰有一项并必须包含
 `previous_series_id`、`new_series_id`、完整 `new_backups[]`、`active_series_event_id` 与完整
-`old_backups[]`。两项或其任一 backup id/digest 在 create 后都不得替换。
+`old_backups[]`。该项或其任一 backup id/digest 在 create 后都不得替换。
 
 两个预留 digest 必须使用下列非循环 JCS 投影计算；不得把
 `transaction_request_digest`、`prepared_plan_digest`、digest 自身或运行时 timestamp 纳入
@@ -209,13 +212,15 @@ terminal result，不能重新上传或重新 erase。
 
 `erase_old_material` 的唯一 wire operation 是
 `ak.self.keys.backup_series.command.erase.v1`。request 必须携带 transaction/request/plan digest、
-预留 `erase_confirmation_digest`、两条完整 binding、high-risk
-`AuthorizationLease(action=ak.self.keys.backup_series.command.erase.v1)` 与必要authority-commit bundle。服务端必须先验证：
+预留 `erase_confirmation_digest`、一条完整 `secret_storage` binding 与当前 `authority_commit_id`。该内部请求由
+durable transaction worker 从已保存的 plan 构造，不携带也不接受 `AuthorizationLease`。服务端必须先验证：
 
 1. transaction当前next step确为`erase_old_material`；
-2. 两个new series及其各自`ak.key_backup.active_series` Event均已accepted且仍是authoritative；
+2. 唯一new series及其`ak.key_backup.active_series` Event已accepted且仍是authoritative；
 3. target恰等于prepared plan的old backups，任何active、未计划、缺digest或额外backup均拒绝；
-4. lease的basis/rule/actor/device/scope覆盖当前transaction且未过期。
+4. transaction 未过期、Account 仍 active、`authorizing_device_id` 仍是该 Account 的 current non-revoked device，且
+   `authority_commit_id` 仍是 current authoritative basis。任一检查失败都必须在擦除前停线；不得用 create 时的普通
+   session 快照绕过执行时 current/revocation 检查。
 
 response按backup kind返回durable `series_records[]`。storage partial failure只能把尚未擦除项标为
 `pending`或`failed_retryable`；已经擦除项必须单调保持`erased`，重启或精确重试不得复活、改写
@@ -223,7 +228,7 @@ digest或重新加入remaining集合。`request_digest`是完整erase request ca
 相同transaction id但request digest不同必须`duplicate_conflict`。每个result的
 `erased_backups ∪ remaining_backups`必须恰等于plan中该kind的`old_backups`，两集合不相交且均按
 backup id canonical升序；`status=erased`当且仅当remaining为空，`reason_code`只允许
-`failed_retryable`。只有两个series的全部planned objects都确认擦除时，status才可为
+`failed_retryable`。只有该series的全部planned objects都确认擦除时，status才可为
 `complete`并返回`ak.schema.backup_series_erase_confirmation.v1`。confirmation只含create时已固定
 的transaction/request/plan与series bytes；receiver 必须核对最终 request/plan 引用，并按本节
 非循环 projection 重算且逐字等于预留 `erase_confirmation_digest`；这是SecurityTransaction accepted erase step
@@ -237,8 +242,8 @@ transaction 和一组 reserved ids。
 
 上述矩阵由`ak.vector.security_transaction.resilience.v1`、
 `ak.vector.security_transaction.recovery_terminal_commit.v1`与
-`ak.vector_group.security_transaction.v1`固定；runner必须覆盖Recovery A/B与Rotation双
-backup-kind，并输出canonical结果digest供第二个独立实现对拍。Recovery 分支还必须证明提交前无任何权威结果可观察、
+`ak.vector_group.security_transaction.v1`固定；runner必须覆盖Recovery A/B与Rotation唯一 `secret_storage`
+backup kind，并输出canonical结果digest供第二个独立实现对拍。Recovery 分支还必须证明提交前无任何权威结果可观察、
 提交后全部结果同时可观察，且不存在 completed 但未 RealmCommit 或 pending 但已 verified 的中间状态。
 
 正例：pointer switch 已成功但响应丢失；重试查询同一 transaction，继续 erase。

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 17,
+  "version": 18,
   "kind": "identifier_classification_registry",
   "source_of_truth": false,
   "generated_from": [
@@ -26,8 +26,8 @@
     "unregistered_object_identifier"
   ],
   "type_derived_summary": {
-    "typed_object_id": 901,
-    "responsibility_identity_material": 540,
+    "typed_object_id": 899,
+    "responsibility_identity_material": 537,
     "registry_catalog_symbol": 15
   },
   "pending_rename_convergence": [],
@@ -610,14 +610,6 @@
       "occurrences": 5,
       "example_path": "keys-operations.schema.json#/$defs/keys_backups_issue_delete_challenge_request_body/properties/request_id",
       "reason": "Caller/service request correlation token scoped to its operation and not an Arkret object identity."
-    },
-    {
-      "name": "request_id",
-      "terminal_signature": "[[\"format\", \"uuid\"], [\"pattern\", \"^(?!ak:)[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$\"]]",
-      "category": "opaque_correlation",
-      "occurrences": 2,
-      "example_path": "service-operation-dtos.schema.json#/$defs/DirectoryAnnounceRequestBody/properties/request_id",
-      "reason": "Caller-generated UUID scoped to one Directory announce or withdrawal request; it correlates exact retries and carries no authority by itself."
     },
     {
       "name": "resource_id",

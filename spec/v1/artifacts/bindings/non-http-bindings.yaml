@@ -141,11 +141,9 @@ grpc:
     SelfDirectConversation:
       Resolve: ak.self.direct_conversation.read.resolve.v1
     FindDirectory:
-      Announce: ak.find.directory.command.announce.v1
       Describe: ak.find.directory.read.describe.v1
       ResolveRealm: ak.find.directory.read.resolve_realm.v1
       SearchRealms: ak.find.directory.read.search_realms.v1
-      Withdraw: ak.find.directory.command.withdraw.v1
     SelfCommittedEvent:
       Get: ak.self.committed_event.resource.get.v1
       Subscribe: ak.self.committed_event.stream.subscribe.v1
@@ -414,8 +412,6 @@ mq:
     self.account_data.resource.delete: ak.self.account_data.resource.delete.v1
     self.read_cursor.command.advance: ak.self.read_cursor.command.advance.v1
     self.read_cursor.query.list: ak.self.read_cursor.read.list.v1
-    find.directory.command.announce: ak.find.directory.command.announce.v1
-    find.directory.command.withdraw: ak.find.directory.command.withdraw.v1
     self.keys.keypackages.upload.create: ak.self.keys.keypackages.upload.create.v1
     self.keys.keypackages.command.claim: ak.self.keys.keypackages.command.claim.v1
     self.keys.keypackages.command.consume: ak.self.keys.keypackages.command.consume.v1

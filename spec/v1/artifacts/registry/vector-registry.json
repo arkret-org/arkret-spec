@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-22",
+  "version": "2026-09-22.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-22T08:43:00+08:00",
+  "generated_at": "2026-09-22T09:30:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1760,58 +1760,6 @@
       ]
     },
     {
-      "vector_id": "ak.vector.directory.announce_bad_signature.v1",
-      "status": "active",
-      "domain": "directory",
-      "applies_to_fixtures": [
-        "privacy-security-fixture.json"
-      ],
-      "description": "Directory ingest rejects an announce whose governance signature does not verify, before any entry, TTL or policy_revision is established.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
-        "spec/v1/zh/discovery/discovery-directory.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.directory.announce_bidirectional_opt_in.v1",
-      "status": "active",
-      "domain": "directory",
-      "applies_to_fixtures": [
-        "privacy-security-fixture.json"
-      ],
-      "description": "Directory ingest requires bidirectional opt-in: the resource must opt in to the Directory and the Directory must accept the resource; a one-sided announce establishes no entry.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
-        "spec/v1/zh/discovery/discovery-directory.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.directory.announce_directory_not_authorized.v1",
-      "status": "active",
-      "domain": "directory",
-      "applies_to_fixtures": [
-        "privacy-security-fixture.json"
-      ],
-      "description": "An announce from a service that is not an authorized Directory writer is rejected with directory_unauthorized without revealing whether the target resource exists.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
-        "spec/v1/zh/discovery/discovery-directory.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.directory.announce_signature_stale.v1",
-      "status": "active",
-      "domain": "directory",
-      "applies_to_fixtures": [
-        "privacy-security-fixture.json"
-      ],
-      "description": "An announce whose governance signature is valid but stale relative to the accepted source_refs checkpoint is rejected with signature_stale rather than silently refreshing the entry.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
-        "spec/v1/zh/discovery/discovery-directory.md"
-      ]
-    },
-    {
       "vector_id": "ak.vector.directory.public_realm_search.v1",
       "status": "active",
       "domain": "directory",
@@ -1825,19 +1773,6 @@
       ]
     },
     {
-      "vector_id": "ak.vector.directory.reannounce_idempotent_ttl.v1",
-      "status": "active",
-      "domain": "directory",
-      "applies_to_fixtures": [
-        "privacy-security-fixture.json"
-      ],
-      "description": "Re-announcing the same resource state is idempotent: it refreshes the effective TTL within max_ttl_seconds without creating a second entry or advancing policy_revision on unchanged input.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
-        "spec/v1/zh/discovery/discovery-directory.md"
-      ]
-    },
-    {
       "vector_id": "ak.vector.directory.ttl_expiry_removal.v1",
       "status": "active",
       "domain": "directory",
@@ -1845,19 +1780,6 @@
         "privacy-security-fixture.json"
       ],
       "description": "An entry whose TTL expires without renewal is marked stale or removed, and never keeps answering queries as a current entry.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
-        "spec/v1/zh/discovery/discovery-directory.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.directory.withdraw_blinded_not_found.v1",
-      "status": "active",
-      "domain": "directory",
-      "applies_to_fixtures": [
-        "privacy-security-fixture.json"
-      ],
-      "description": "After withdrawal the entry stops answering queries and external callers receive the same blinded not_found response as for a resource that never existed.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -4099,6 +4021,18 @@
         "scalability-limits-fixture.json"
       ],
       "description": "A canonical operation body above 8 MiB is rejected with payload_too_large, independently of the 16 MiB HTTP message content bound and the 1 MiB single-Event bound.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.scalability.snapshot_inline_capacity.v1",
+      "status": "active",
+      "domain": "scalability",
+      "applies_to_fixtures": [
+        "scalability-limits-fixture.json"
+      ],
+      "description": "Realm governance admission measures the complete RFC 8785 canonical signed maximal-disclosure snapshot projection at the candidate durable cut. Exactly 8 MiB may be accepted; a one-byte overflow is rejected atomically with snapshot_capacity_exceeded, concurrent candidates recheck the winning cut, and no paging, truncation or partial state is introduced.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/scalability-limits-fixture.json"
       ]

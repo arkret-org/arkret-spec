@@ -362,8 +362,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
-      "sha256": "60ff7fc70b2dfa2d5cddfc35e7db40823ad5a8132dadce37248966c5c1f682ff",
-      "version": "2026-09-20"
+      "sha256": "39dc28250ae822cdcedf89419ce7ea16917324f0fc526760f94a9c3030773a45",
+      "version": "2026-09-22.2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/private-view-inbox-account-data-fixture.json",
@@ -377,8 +377,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/producer-allocated-identity-fixture.json",
-      "sha256": "dccffe19ac3316b3b81df396bc4ecfc96841830ced405672c82883db5a3a00c7",
-      "version": "2026-09-19.1"
+      "sha256": "2ff8c166fa3d0028aa41ad56860794b8dac596a43dd725daa2378152f0874d39",
+      "version": "2026-09-22.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
@@ -432,8 +432,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/scalability-limits-fixture.json",
-      "sha256": "7fa008b65cd03ed4d898d349b2b3bd03b495b5045263517890f57d8600f6e3fe",
-      "version": "2026-09-10.5"
+      "sha256": "07758e6acdc3ba33261da64ff2f3b6caf2f21bbd39fda1d16deef4aaffe7f7bc",
+      "version": "2026-09-22.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-definition-validator-kat.json",
@@ -462,8 +462,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/security-transaction-resilience-fixture.json",
-      "sha256": "0b02043cdff7483eb3ff128ddb1546179fcb161135bf955e4b70e8305e58d6fa",
-      "version": "2026-09-19.2"
+      "sha256": "fcb1018caeb465d2b0b580febab1d5fe79f64912165e1f9c7d9d54aa6a3ff756",
+      "version": "2026-09-22.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/service-protocol-version-bootstrap-fixture.json",

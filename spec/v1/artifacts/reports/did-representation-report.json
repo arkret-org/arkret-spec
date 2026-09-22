@@ -6396,46 +6396,6 @@
       ]
     },
     {
-      "schema_path": "service-operation-dtos.schema.json#/$defs/DirectoryAnnounceRequestBody/properties/directory_id",
-      "property_name": "directory_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "service-operation-dtos.schema.json#/$defs/DirectoryGovernanceProof/properties/audience_id",
-      "property_name": "audience_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
-      "schema_path": "service-operation-dtos.schema.json#/$defs/DirectoryGovernanceProof/properties/verification_method",
-      "property_name": "verification_method",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_url",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_url"
-      ]
-    },
-    {
-      "schema_path": "service-operation-dtos.schema.json#/$defs/DirectoryWithdrawRequestBody/properties/directory_id",
-      "property_name": "directory_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
       "schema_path": "service-operation-dtos.schema.json#/$defs/EventDeliveryTargetStatus/properties/service_id",
       "property_name": "service_id",
       "semantic_category": "responsibility_identity_material",

@@ -198,12 +198,6 @@ paths:
   /_arkret/find/directory/resolve-realm:
     post:
       operationId: ak.find.directory.read.resolve_realm
-  /_arkret/find/directory/announce:
-    post:
-      operationId: ak.find.directory.command.announce
-  /_arkret/find/directory/withdraw:
-    post:
-      operationId: ak.find.directory.command.withdraw
   /_arkret/self/blob/upload:
     post:
       operationId: ak.self.blob.upload.create
@@ -347,7 +341,6 @@ paths:
 | `ak.peer.signal.command.relay.v1` | `POST /_arkret/peer/signal` | gRPC `PeerSignal/Relay` / MQ `peer.signal.command.relay`；可选 profile 的单跳 encrypted relay，opaque outcome、无 durable state、无自动重试 |
 | `ak.self.realm_state_snapshot.read.manifest_head.v1` | `GET /_arkret/self/realm-state-snapshot/head` | snapshot manifest |
 | `ak.self.space.read.list.v1` / `ak.self.strand.read.list.v1` / `ak.self.morph.read.list.v1` / `ak.self.morph.resource.get.v1` | `GET /_arkret/self/realms/{realm_id}/spaces`, `GET /_arkret/self/realms/{realm_id}/strands`, `GET /_arkret/self/realms/{realm_id}/morphs`, `GET /_arkret/self/realms/{realm_id}/morphs/{morph_id}` | gRPC `SelfSpace/List` / `SelfStrand/List` / `SelfMorph/List` / `SelfMorph/Get`; MQ `self.space.query.list` / `self.strand.query.list` / `self.morph.query.list` / `self.morph.resource.get` |
-| `ak.find.directory.command.announce.v1` / `ak.find.directory.command.withdraw.v1` | `POST /_arkret/find/directory/announce`, `POST /_arkret/find/directory/withdraw` | gRPC Discovery Ingest Service |
 | `ak.self.blob.upload.create.v1` / `ak.self.blob.resource.head.v1` / `ak.self.blob.resource.get.v1` | `POST /_arkret/self/blob/upload`, `HEAD/GET /_arkret/self/blob/get` | Object-store signed URL binding / gRPC blob service |
 | `ak.edge.push.command.register_device.v1` / `ak.edge.push.command.notify.v1` | `POST /_arkret/edge/push/register-device`, `POST /_arkret/edge/push/notify` | APNs/FCM adapter / MQ wakeup topic |
 | `ak.self.device_messages.command.send.v1` / `ak.self.device_messages.read.list.v1` | `POST /_arkret/self/device_messages`, `GET /_arkret/self/device_messages` | MQ device topic / 本地 IPC |

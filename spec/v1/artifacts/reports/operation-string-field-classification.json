@@ -8,9 +8,9 @@
   ],
   "description": "Exhaustive classification of operation DTO schema/status/reason_code/reason properties into closed literals/enums, validated open protocol tokens, or bounded human-readable text. Any unconstrained audited string fails generation.",
   "summary": {
-    "total_fields": 75,
+    "total_fields": 74,
     "by_classification": {
-      "bounded_free_text": 7,
+      "bounded_free_text": 6,
       "closed_enum": 31,
       "closed_literal": 17,
       "validated_open_reason_code": 20
@@ -522,14 +522,6 @@
       "pointer": "#/$defs/DidOperationSubmitOutcome/properties/status",
       "classification": "closed_enum",
       "basis": "JSON Schema enum"
-    },
-    {
-      "schema_file": "service-operation-dtos.schema.json",
-      "shape": "DirectoryWithdrawRequestBody",
-      "field": "reason",
-      "pointer": "#/$defs/DirectoryWithdrawRequestBody/properties/reason",
-      "classification": "bounded_free_text",
-      "basis": "human-readable text with schema boundary"
     },
     {
       "schema_file": "service-operation-dtos.schema.json",

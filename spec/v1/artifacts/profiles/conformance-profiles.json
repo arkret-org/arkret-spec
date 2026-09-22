@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-21.1",
-  "generated_at": "2026-09-21T01:46:34+08:00",
+  "version": "2026-09-22.1",
+  "generated_at": "2026-09-22T09:30:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -2847,7 +2847,7 @@
       }
     },
     "ak.profile.directory_service.v1": {
-      "description": "Arkret v1 Directory Service profile. Directory Services index resource-signed discovery state, expose blinded search/resolve endpoints, and support at least one §8 ingest mode without becoming a source of truth.",
+      "description": "Arkret v1 read-only Directory Service profile. Current v1 exposes only describe, blinded search and exact resolve; it defines no interoperable ingest/write operation and cannot claim current governance authority.",
       "enforcement_phases": [
         "conformance",
         "startup_claim_guard"
@@ -2867,49 +2867,24 @@
           "direction": "provide",
           "operation_id": "ak.find.directory.read.resolve_realm.v1",
           "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.find.directory.command.announce.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.find.directory.command.withdraw.v1",
-          "binding_kind": "http_json"
         }
       ],
       "inherits": [],
-      "required_event_kinds": [
-        "ak.realm.discovery",
-        "ak.organization.discovery",
-        "ak.actor.discovery",
-        "ak.applet.discovery",
-        "ak.handle.discovery"
-      ],
+      "required_event_kinds": [],
       "rejected_event_kinds": [
         "wire_scope:actor_private_event"
       ],
-      "required_schemas": [
-        "ak.schema.actor_profile.v1",
-        "ak.schema.handle_claim.v1"
-      ],
+      "required_schemas": [],
       "required_fixtures": [
         "privacy-security-fixture.json"
       ],
       "optional_extensions": [
-        "pull_mode_ingest",
-        "restricted_query_proofs",
         "operator_console"
       ],
       "feature_discovery": {
         "required": [
           "service_id",
           "resource_kinds",
-          "ingest_modes",
-          "accept_policy_kind",
-          "accepted_resource_kinds",
-          "accepted_did_methods",
           "rate_limits"
         ],
         "unsupported_optional": "omit optional profile or return unsupported_feature without leaking hidden resources"

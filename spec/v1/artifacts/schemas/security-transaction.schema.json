@@ -30,6 +30,10 @@
       "$ref": "./common-ids.schema.json#/$defs/account_id",
       "description": "Exact account owner. Its station_id is the coordinator: the service core identity of the executing Station, not an arbitrary external coordinator. Process separation is deployment-private and creates no public coordinator role."
     },
+    "authorizing_device_id": {
+      "$ref": "./common-ids.schema.json#/$defs/device_id",
+      "description": "SecurityRotation only. Exact device from the fresh high-risk authenticated create session. The coordinator binds it to that session and persists it before any side effect; the worker rechecks that the account and this device are still active immediately before old-material erasure."
+    },
     "expires_at": {
       "$ref": "./time.schema.json#/$defs/timestamp"
     },
@@ -86,6 +90,11 @@
             "$ref": "#/$defs/pcr_policy_accepted_steps"
           }
         },
+        "not": {
+          "required": [
+            "authorizing_device_id"
+          ]
+        },
         "allOf": [
           {
             "$ref": "#/$defs/pcr_policy_progress_contract"
@@ -93,6 +102,9 @@
         ]
       },
       "else": {
+        "required": [
+          "authorizing_device_id"
+        ],
         "properties": {
           "prepared_plan": {
             "$ref": "#/$defs/security_rotation_plan"
@@ -781,6 +793,7 @@
         "transaction_id",
         "kind",
         "account_id",
+        "authorizing_device_id",
         "expires_at",
         "prepared_plan"
       ],
@@ -794,6 +807,10 @@
         },
         "account_id": {
           "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "authorizing_device_id": {
+          "$ref": "./common-ids.schema.json#/$defs/device_id",
+          "description": "Must equal the device in the fresh high-risk authenticated create session; caller text alone is not authoritative."
         },
         "expires_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"

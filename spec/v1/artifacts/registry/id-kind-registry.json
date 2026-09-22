@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.1",
+  "version": "2026-09-22.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-19T18:59:50+08:00",
+  "generated_at": "2026-09-22T09:30:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "namespace": "ak.",
@@ -350,29 +350,11 @@
       ]
     },
     {
-      "kind": "announce",
-      "category": "discovery",
-      "status": "active",
-      "wire_form": "ak:announce:<uuidv7>",
-      "description": "Directory-local announce ingest record ID. It is typed and UUIDv7-shaped for validator consistency, but it is scoped to the issuing Directory and is not a global federated object authority.",
-      "id_form": "producer_allocated",
-      "identity_authority": "producer_signature"
-    },
-    {
       "kind": "applet",
       "category": "extension",
       "status": "active",
       "wire_form": "ak:applet:<uuidv7>",
       "description": "Applet registration/service ID",
-      "id_form": "producer_allocated",
-      "identity_authority": "producer_signature"
-    },
-    {
-      "kind": "authorization_lease",
-      "category": "authz",
-      "status": "active",
-      "wire_form": "ak:authorization_lease:<uuidv7>",
-      "description": "Basis-bound AuthorizationLease identifier.",
       "id_form": "producer_allocated",
       "identity_authority": "producer_signature"
     },

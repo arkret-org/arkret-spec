@@ -126,7 +126,6 @@ see_also:
 | Control Plane | 控制面 | membership、capability、policy、lifecycle 与 MLS epoch 等治理 Event；它们与业务 Event 使用相同的 producer Event + authority commit 路径，并由各自 typed payload 定义额外 signer 与 domain invariant。 |
 | authority commit | 权威提交 | 当前治理 Station 对一个 producer Event 的接纳记录。Realm、每个 Circle、每个 Sidecar 各有独立连续 stream；只有 RealmCommit 携带同 stream 的 `previous_commit_ref`。 |
 | Authority Set | 权威集合 | 在某个 authority-commit basis 下决定 signer、quorum、delegation 与 revocation authority 的已接受 policy。wire 引用统一为 `{authority_set_id, authority_set_digest}`，不得只按可变名称解析。 |
-| AuthorizationLease | 授权租约 | 仅服务显式有限期延迟执行的授权约束，绑定已确认依据、主体、设备、scope、action、risk tier 与有效窗；不能创建 capability。普通聊天不要求租约或周期更新。 |
 | IngressReceipt | 入口签收回执 | 接收方对某个 exact Event 的签收记录；不证明 reducer acceptance、投影可见性或 RealmCommit finality。 |
 | SecurityTransaction | 安全事务资源 | 可查询、可幂等续跑的闭合跨服务安全过程；v1 仅允许 RecoveryTransaction 与 SecurityRotationTransaction，不是通用 Saga/Plan DSL。 |
 | RecoveryTransaction | 恢复事务 | 固定绑定 recovery session、replacement device、按 `[reanchor, authorize]` 排列的两条 producer Event、当前 PCR stream predecessor、预期连续 authority-commit 边界与 terminal receipt 的 SecurityTransaction；唯一 client-attested step 是 `commit_recovery_unit`。replacement device 只签 Event 与 receipt，RealmCommit 仅由当前治理 Station 在原子终结时签发。 |

@@ -708,13 +708,12 @@ Handle 解析结果是带时间边界的绑定，不是永久身份事实。
 
 #### 6.1.2 撤销与失效信号
 
-v1 不引入专门的 handle 撤销 event。撤销通过下列三条独立路径完成，客户端 / Directory / Station 任一通道发现失效即 MUST 同步本地缓存：
+v1 不引入专门的 handle 撤销 event。撤销通过下列两条独立路径完成，客户端或 Station 任一通道发现失效即 MUST 同步本地缓存：
 
 1. **TTL 自然过期**：缓存到达 `expires_at` 后 MUST 重新拉取；不得在 TTL 之外使用。
-2. **Directory withdrawal**：handle issuer 通过 [`ak.find.directory.command.withdraw.v1`](../discovery/discovery-directory.md) 撤回该 handle 的 directory entry；订阅该 handle 的客户端在下一次 directory refresh 或 withdraw notification 收到后 MUST 立即失效缓存。
-3. **DID Document / status 变化**：holder 移除 `alsoKnownAs` 中的 canonical handle，或 issuer 发布 `status=revoked` view、signed `fresh_until` 到期、core 到达 `claim.expires_at`；下一次 verify pass 失败时 MUST 失效。`expired` 不编码进 status。
+2. **DID Document / status 变化**：holder 移除 `alsoKnownAs` 中的 canonical handle，或 issuer 发布 `status=revoked` view、signed `fresh_until` 到期、core 到达 `claim.expires_at`；下一次 verify pass 失败时 MUST 失效。`expired` 不编码进 status。
 
-handle issuer SHOULD 把 cache 失效信号与 TTL 一起使用：发布短 TTL（≤1h）的高变更 handle、配合 Directory withdraw 主动通知。**v1 不要求**服务端推送 handle 失效事件；客户端 MUST 按 TTL + 上述三路径处理失效，**不得**依赖未注册的 `ak.handle.*` wire kind。
+handle issuer SHOULD 对高变更 handle 发布短 TTL（≤1h）。**v1 不要求**服务端推送 handle 失效事件；客户端 MUST 按 TTL + DID/status 路径处理失效，**不得**依赖 Directory write/notification 或未注册的 `ak.handle.*` wire kind。
 
 #### 6.1.3 Handle 重分配与历史归因
 

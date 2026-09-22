@@ -1,5 +1,5 @@
 {
-  "version": "2026-09-19.1",
+  "version": "2026-09-22.1",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.identity.producer_allocated_collision.v1"
@@ -13,9 +13,7 @@
       "identity_authority": "producer_signature"
     },
     "selected_id_kinds": [
-      "announce",
       "applet",
-      "authorization_lease",
       "backup",
       "backup_series",
       "batch",

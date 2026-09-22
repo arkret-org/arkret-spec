@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-22.2",
+  "version": "2026-09-22.3",
   "source_of_truth": false,
-  "generated_at": "2026-09-22T09:25:00+08:00",
+  "generated_at": "2026-09-22T09:30:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -426,95 +426,6 @@
           "device_id",
           "push_key",
           "app_id"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.find.directory.command.announce.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceRequestBody",
-        "schema_kind": "object",
-        "required": [
-          "realm_id",
-          "directory_id",
-          "discoverability",
-          "public_metadata",
-          "authority_generation",
-          "request_id",
-          "issued_at",
-          "expires_at",
-          "governance_proof"
-        ],
-        "properties": [
-          "realm_id",
-          "directory_id",
-          "discoverability",
-          "public_metadata",
-          "authority_generation",
-          "request_id",
-          "issued_at",
-          "expires_at",
-          "supersedes_announce_id",
-          "governance_proof"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceOutcome",
-        "schema_kind": "object",
-        "required": [
-          "announce_id",
-          "indexed_at",
-          "effective_ttl_seconds",
-          "next_revalidation_after"
-        ],
-        "properties": [
-          "announce_id",
-          "indexed_at",
-          "effective_ttl_seconds",
-          "next_revalidation_after",
-          "warnings"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.find.directory.command.withdraw.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawRequestBody",
-        "schema_kind": "object",
-        "required": [
-          "realm_id",
-          "directory_id",
-          "authority_generation",
-          "request_id",
-          "issued_at",
-          "governance_proof"
-        ],
-        "properties": [
-          "realm_id",
-          "directory_id",
-          "authority_generation",
-          "request_id",
-          "issued_at",
-          "reason",
-          "governance_proof"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawOutcome",
-        "schema_kind": "object",
-        "required": [
-          "withdrawal_ref",
-          "acked_at"
-        ],
-        "properties": [
-          "withdrawal_ref",
-          "acked_at"
         ],
         "closed": true
       }
@@ -8106,6 +8017,7 @@
           "transaction_id",
           "kind",
           "account_id",
+          "authorizing_device_id",
           "expires_at",
           "created_at",
           "request_digest",
@@ -8135,6 +8047,7 @@
           "account_id",
           "expires_at",
           "recovery_intent",
+          "authorizing_device_id",
           "prepared_plan"
         ],
         "closed": true,
@@ -8165,6 +8078,7 @@
               "transaction_id",
               "kind",
               "account_id",
+              "authorizing_device_id",
               "expires_at",
               "prepared_plan"
             ],
@@ -8172,6 +8086,7 @@
               "transaction_id",
               "kind",
               "account_id",
+              "authorizing_device_id",
               "expires_at",
               "prepared_plan"
             ],
@@ -8197,6 +8112,7 @@
           "transaction_id",
           "kind",
           "account_id",
+          "authorizing_device_id",
           "expires_at",
           "created_at",
           "request_digest",
@@ -8229,6 +8145,7 @@
           "transaction_id",
           "kind",
           "account_id",
+          "authorizing_device_id",
           "expires_at",
           "created_at",
           "request_digest",

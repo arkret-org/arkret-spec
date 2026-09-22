@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-22.2",
+  "version": "2026-09-22.3",
   "source_of_truth": true,
-  "generated_at": "2026-09-22T09:25:00+08:00",
+  "generated_at": "2026-09-22T09:30:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -11171,29 +11171,11 @@
         ]
       },
       {
-        "kind": "announce",
-        "category": "discovery",
-        "status": "active",
-        "wire_form": "ak:announce:<uuidv7>",
-        "description": "Directory-local announce ingest record ID. It is typed and UUIDv7-shaped for validator consistency, but it is scoped to the issuing Directory and is not a global federated object authority.",
-        "id_form": "producer_allocated",
-        "identity_authority": "producer_signature"
-      },
-      {
         "kind": "applet",
         "category": "extension",
         "status": "active",
         "wire_form": "ak:applet:<uuidv7>",
         "description": "Applet registration/service ID",
-        "id_form": "producer_allocated",
-        "identity_authority": "producer_signature"
-      },
-      {
-        "kind": "authorization_lease",
-        "category": "authz",
-        "status": "active",
-        "wire_form": "ak:authorization_lease:<uuidv7>",
-        "description": "Basis-bound AuthorizationLease identifier.",
         "id_form": "producer_allocated",
         "identity_authority": "producer_signature"
       },
@@ -11701,8 +11683,8 @@
     "uuid_form_rules": "The construction is declared per kind by id_form. producer_allocated = RFC 9562 UUIDv7. event_derived = the creating Event's 33-byte token (zero reserved high nibble plus uint4 suite wire_code followed by all 32 octets of its digest), canonically encoded as 44 unpadded Base64URL characters and retyped only by replacing the ak:<kind>: prefix. The token requires strict decode plus canonical re-encode validation; regex alone is insufficient.",
     "event_token_pattern": "^[A-Za-z0-9_-]{44}$",
     "typed_event_token_pattern": "^ak:<kind>:[A-Za-z0-9_-]{44}$",
-    "version": "2026-09-19.1",
-    "generated_at": "2026-09-19T18:59:50+08:00",
+    "version": "2026-09-22.1",
+    "generated_at": "2026-09-22T09:30:00+08:00",
     "notification_projection_identity_contract": {
       "applies_to_id_kinds": [
         "notification_projection"
@@ -12337,7 +12319,7 @@
       "Every canonical Arkret HTTP request MUST carry exactly one Arkret-Operation header naming the exact versioned operation_id before body parsing. The receiver MUST verify that the selector is locally advertised and belongs to the selected method/path family and binding. A missing selector fails with operation_selector_required; an empty candidate set, unknown id, duplicate selector, or value outside the route family fails with unsupported_operation_version. Endpoint uniqueness, payload-shape inference, client SDK version, implicit defaults, and version fallback MUST NOT replace the selector. This invariant keeps existing clients stable when another operation version is added to the same HTTP endpoint family.",
       "operation_bundles is the only canonical bundle member source. Each registered bundle freezes one service_kind and a canonical unique set of (operation_id,binding_kind) members; changing a member requires a new bundle id.",
       "coordination_relations is the canonical machine source for a public operation that spans independently durable services. Every relation MUST name the entry operation, every registered sub-operation, exact request/receipt bindings, the durable owner and fence transitions, crash recovery owner, terminal success boundary and closed downstream error translation. Prose alone MUST NOT create an unregistered cross-service write edge.",
-      "Within one service_kind, active current-v1 bundles MUST NOT overlap on an identical (operation_id,binding_kind) pair, except the exact directory_service.public_read subset of directory_service.http_core. The two Directory bundles are alternative deployment claims: a read-only service advertises public_read but not http_core; a full implementation may advertise http_core without needing the redundant subset. Pairs using a different binding kind are distinct.",
+      "Within one service_kind, active current-v1 bundles MUST NOT overlap on an identical (operation_id,binding_kind) pair. Pairs using a different binding kind are distinct.",
       "Only registered ak.operation_bundle.*.v1 ids may appear in current-v1 ServiceDescribe. Current-v1 defines no vendor bundle wire namespace; vendor-private collections may only appear as ignorable x_* metadata and never affect capability decisions. Unknown bundle ids fail closed and are never expanded by name.",
       "Request wire/canonical byte budget violations MUST return payload_too_large (HTTP 413); count-only schema violations with valid request bytes MUST return schema_violation (HTTP 422), except explicit operation count semantics. An otherwise valid request whose complete response or evaluation exceeds its semantic budget returns limit_exceeded (HTTP 413) or its defined typed unavailable result. Request byte errors take precedence over coincident schema errors. Error classification MUST NOT depend on diagnostic text substring matching."
     ],
@@ -12447,9 +12429,7 @@
         "operations": [
           "ak.find.directory.read.describe.v1",
           "ak.find.directory.read.search_realms.v1",
-          "ak.find.directory.read.resolve_realm.v1",
-          "ak.find.directory.command.announce.v1",
-          "ak.find.directory.command.withdraw.v1"
+          "ak.find.directory.read.resolve_realm.v1"
         ],
         "surface_class": "extension"
       },
@@ -12994,54 +12974,6 @@
           "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
         },
         "notes": "Provided only by the authenticated AccountId.station_id Station role. The optional station.push bundle contains both registration operations; a push_gateway role does not acquire Account registration authority."
-      },
-      {
-        "operation_id": "ak.find.directory.command.announce.v1",
-        "did_authority": {
-          "evidence_class": "ongoing_governance",
-          "freshness_profile_id": "ak.did_freshness.ongoing_governance.v1",
-          "purpose": "Verify the announce governance proof of the announcing service or organization, and resolve the Station endpoint inside the same first-ingest admission."
-        },
-        "http": "POST /_arkret/find/directory/announce",
-        "grpc": "FindDirectory/Announce",
-        "mq": "find.directory.command.announce",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "typed_response",
-        "idempotency_mechanism": "canonical_hash",
-        "canonical_hash_input": "/",
-        "retry_safe": true,
-        "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceRequestBody",
-        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryAnnounceOutcome",
-        "durable_effect": {
-          "kind": "none",
-          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
-        },
-        "notes": ""
-      },
-      {
-        "operation_id": "ak.find.directory.command.withdraw.v1",
-        "did_authority": {
-          "evidence_class": "ongoing_governance",
-          "freshness_profile_id": "ak.did_freshness.ongoing_governance.v1",
-          "purpose": "Verify the withdraw governance signature of the service or organization that owns the directory entry."
-        },
-        "http": "POST /_arkret/find/directory/withdraw",
-        "grpc": "FindDirectory/Withdraw",
-        "mq": "find.directory.command.withdraw",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "typed_response",
-        "idempotency_mechanism": "object_id",
-        "retry_safe": false,
-        "uncertain_outcome": {
-          "strategy": "manual_confirmation"
-        },
-        "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawRequestBody",
-        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DirectoryWithdrawOutcome",
-        "durable_effect": {
-          "kind": "none",
-          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
-        },
-        "notes": ""
       },
       {
         "operation_id": "ak.find.directory.read.describe.v1",
@@ -15566,7 +15498,7 @@
         "http": "POST /_arkret/self/keys/backup-series/erase",
         "grpc": "SelfKeys/BackupSeriesErase",
         "mq": "self.keys.backup_series.command.erase",
-        "notes": "Transaction-bound monotonic erasure of the exact old secret_storage series reserved by a SecurityRotationTransaction. Partial outcomes persist per series/object; exact retry never resurrects or rewrites an erased item. A complete outcome carries the sole canonical erase confirmation.",
+        "notes": "Transaction-bound monotonic erasure of the one exact old secret_storage series reserved by a SecurityRotationTransaction. There is no AuthorizationLease. Fresh high-risk authentication is accepted once by the Account Authority at transaction create and bound to authorizing_device_id; immediately before erasure the worker rechecks the transaction is live, the account is active, that device is not revoked, the authority commit is current, and the new series is authoritative. Partial outcomes persist per object; exact retry never resurrects or rewrites an erased item. A complete outcome carries the sole canonical erase confirmation.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "schema_resource",
         "idempotency_mechanism": "canonical_hash",
@@ -16056,7 +15988,7 @@
         "http": "POST /_arkret/self/security-transactions",
         "grpc": "SelfSecurityTransactions/Create",
         "mq": "self.security_transaction.command.create",
-        "notes": "Creates exactly one durable RecoveryTransaction or SecurityRotationTransaction. The coordinator MUST atomically persist canonical request bytes, request_digest, the closed typed prepared_plan and prepared_plan_digest, all reserved public ids, and the initial resource before the first irreversible side effect. Recovery create also CAS-binds one already verified recovery session to this transaction. Same transaction_id plus identical bytes returns the recorded resource; different bytes returns duplicate_conflict.",
+        "notes": "Creates exactly one durable RecoveryTransaction or SecurityRotationTransaction. The coordinator MUST atomically persist canonical request bytes, request_digest, the closed typed prepared_plan and prepared_plan_digest, all reserved public ids, and the initial resource before the first irreversible side effect. Recovery create also CAS-binds one already verified recovery session to this transaction. SecurityRotation create requires fresh high-risk action authentication judged by the Account Authority and binds authorizing_device_id to the authenticated session; it issues no AuthorizationLease. Same transaction_id plus identical bytes returns the recorded resource; different bytes returns duplicate_conflict.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "schema_resource",
         "idempotency_mechanism": "protocol_sequence",
@@ -16406,8 +16338,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-22.1",
-    "generated_at": "2026-09-22T08:58:00+08:00",
+    "version": "2026-09-22.2",
+    "generated_at": "2026-09-22T09:30:00+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",
@@ -16705,36 +16637,6 @@
           },
           {
             "operation_id": "ak.root.identity.registry.read.describe.v1",
-            "binding_kind": "http_json"
-          }
-        ]
-      },
-      {
-        "operation_bundle_id": "ak.operation_bundle.directory_service.http_core.v1",
-        "service_kind": "directory_service",
-        "deployment_evidence": [
-          "ak.deployment_prototype.soland_directory_service.v1",
-          "ak.deployment_prototype.teabay_directory_service.v1"
-        ],
-        "members": [
-          {
-            "operation_id": "ak.find.directory.command.announce.v1",
-            "binding_kind": "http_json"
-          },
-          {
-            "operation_id": "ak.find.directory.command.withdraw.v1",
-            "binding_kind": "http_json"
-          },
-          {
-            "operation_id": "ak.find.directory.read.describe.v1",
-            "binding_kind": "http_json"
-          },
-          {
-            "operation_id": "ak.find.directory.read.resolve_realm.v1",
-            "binding_kind": "http_json"
-          },
-          {
-            "operation_id": "ak.find.directory.read.search_realms.v1",
             "binding_kind": "http_json"
           }
         ]

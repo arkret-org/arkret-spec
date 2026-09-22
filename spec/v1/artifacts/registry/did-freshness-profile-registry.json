@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-16.6",
-  "generated_at": "2026-09-16T16:30:00+08:00",
+  "version": "2026-09-22.1",
+  "generated_at": "2026-09-22T09:30:00+08:00",
   "source_of_truth": true,
   "description": "Canonical registry of the did-usage-and-verification.md section 5.4 freshness profile ids a DID authority call site may reference. Registration fixes the id and its risk_tier; the numeric windows are declared per deployment and enter profile_policy of the section 5.3 resolver policy snapshot, so no network-wide minute count is implied.",
   "registry_rules": [
@@ -119,20 +119,6 @@
     }
   ],
   "call_sites": [
-    {
-      "site_kind": "operation",
-      "site_id": "ak.find.directory.command.announce.v1",
-      "evidence_class": "ongoing_governance",
-      "freshness_profile_id": "ak.did_freshness.ongoing_governance.v1",
-      "purpose": "Verify the announce governance proof of the announcing service or organization, and resolve the Station endpoint inside the same first-ingest admission."
-    },
-    {
-      "site_kind": "operation",
-      "site_id": "ak.find.directory.command.withdraw.v1",
-      "evidence_class": "ongoing_governance",
-      "freshness_profile_id": "ak.did_freshness.ongoing_governance.v1",
-      "purpose": "Verify the withdraw governance signature of the service or organization that owns the directory entry."
-    },
     {
       "site_kind": "operation",
       "site_id": "ak.gate.account.command.issue_identity_binding_challenge.v1",

@@ -50,7 +50,7 @@ PATCH_SCHEMA = SCHEMA_DIR / "patch.schema.json"
 WEBVH_PARAMETERS = "ServiceWebvhInceptionParameters"
 # An ordinary Arkret-owned DTO in the same file, used to prove the exemption
 # cannot leak out of the object that declares it.
-ARKRET_OWNED_DTO = "DirectoryAnnounceRequestBody"
+ARKRET_OWNED_DTO = "SessionGrantRequestBody"
 
 
 def drop_reader_caches() -> None:

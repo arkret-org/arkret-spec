@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 8811,
+    "total_properties": 8782,
     "total_schema_documents": 164,
     "by_presence_class": {
-      "optional": 2130,
+      "optional": 2128,
       "optional_defaulted": 47,
-      "required": 6185,
+      "required": 6158,
       "required_nullable": 294,
       "tristate": 155
     },
@@ -10004,6 +10004,7 @@
         "/$defs/recovery_create_request/properties/transaction_id": "required",
         "/$defs/recovery_terminal_commit/properties/recovery_receipt": "required",
         "/$defs/security_rotation_create_request/properties/account_id": "required",
+        "/$defs/security_rotation_create_request/properties/authorizing_device_id": "required",
         "/$defs/security_rotation_create_request/properties/expires_at": "required",
         "/$defs/security_rotation_create_request/properties/kind": "required",
         "/$defs/security_rotation_create_request/properties/prepared_plan": "required",
@@ -10049,6 +10050,7 @@
         "/allOf/2/then/properties/terminal_outcome": "optional",
         "/properties/accepted_steps": "required",
         "/properties/account_id": "required",
+        "/properties/authorizing_device_id": "optional",
         "/properties/created_at": "required",
         "/properties/expires_at": "required",
         "/properties/kind": "required",
@@ -10057,7 +10059,10 @@
         "/properties/request_digest": "required",
         "/properties/terminal_outcome": "optional",
         "/properties/transaction_id": "required"
-      }
+      },
+      "conditionally_required": [
+        "/properties/authorizing_device_id"
+      ]
     },
     "service-describe.schema.json": {
       "schema_ids": [
@@ -10384,37 +10389,6 @@
         "/$defs/DirectConversationFoundingAuthorityEvidence/oneOf/1/properties/agent_provision_ref": "required",
         "/$defs/DirectConversationFoundingAuthorityEvidence/oneOf/1/properties/controller_binding_digest": "required",
         "/$defs/DirectConversationFoundingAuthorityEvidence/oneOf/1/properties/kind": "required",
-        "/$defs/DirectoryAnnounceOutcome/properties/announce_id": "required",
-        "/$defs/DirectoryAnnounceOutcome/properties/effective_ttl_seconds": "required",
-        "/$defs/DirectoryAnnounceOutcome/properties/indexed_at": "required",
-        "/$defs/DirectoryAnnounceOutcome/properties/next_revalidation_after": "required",
-        "/$defs/DirectoryAnnounceOutcome/properties/warnings": "optional",
-        "/$defs/DirectoryAnnounceRequestBody/properties/authority_generation": "required",
-        "/$defs/DirectoryAnnounceRequestBody/properties/directory_id": "required",
-        "/$defs/DirectoryAnnounceRequestBody/properties/discoverability": "required",
-        "/$defs/DirectoryAnnounceRequestBody/properties/expires_at": "required",
-        "/$defs/DirectoryAnnounceRequestBody/properties/governance_proof": "required",
-        "/$defs/DirectoryAnnounceRequestBody/properties/issued_at": "required",
-        "/$defs/DirectoryAnnounceRequestBody/properties/public_metadata": "required",
-        "/$defs/DirectoryAnnounceRequestBody/properties/realm_id": "required",
-        "/$defs/DirectoryAnnounceRequestBody/properties/request_id": "required",
-        "/$defs/DirectoryAnnounceRequestBody/properties/supersedes_announce_id": "optional",
-        "/$defs/DirectoryGovernanceProof/properties/audience_id": "required",
-        "/$defs/DirectoryGovernanceProof/properties/created_at": "required",
-        "/$defs/DirectoryGovernanceProof/properties/jws": "required",
-        "/$defs/DirectoryGovernanceProof/properties/kind": "required",
-        "/$defs/DirectoryGovernanceProof/properties/payload_digest": "required",
-        "/$defs/DirectoryGovernanceProof/properties/proof_purpose": "required",
-        "/$defs/DirectoryGovernanceProof/properties/verification_method": "required",
-        "/$defs/DirectoryWithdrawOutcome/properties/acked_at": "required",
-        "/$defs/DirectoryWithdrawOutcome/properties/withdrawal_ref": "required",
-        "/$defs/DirectoryWithdrawRequestBody/properties/authority_generation": "required",
-        "/$defs/DirectoryWithdrawRequestBody/properties/directory_id": "required",
-        "/$defs/DirectoryWithdrawRequestBody/properties/governance_proof": "required",
-        "/$defs/DirectoryWithdrawRequestBody/properties/issued_at": "required",
-        "/$defs/DirectoryWithdrawRequestBody/properties/realm_id": "required",
-        "/$defs/DirectoryWithdrawRequestBody/properties/reason": "optional",
-        "/$defs/DirectoryWithdrawRequestBody/properties/request_id": "required",
         "/$defs/EffectiveCapabilityGrantRow/properties/grant": "required",
         "/$defs/EffectiveCapabilityGrantRow/properties/revision": "required",
         "/$defs/EventAdmissionSubmission/properties/approval_signatures": "optional",

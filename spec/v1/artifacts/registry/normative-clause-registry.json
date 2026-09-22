@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-21.4",
+  "version": "2026-09-22.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-21T03:47:00+08:00",
+  "generated_at": "2026-09-22T09:30:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -199,11 +199,11 @@
       "status": "active",
       "category": "privacy",
       "source_anchor": "spec/v1/zh/discovery/discovery-directory.md#2-可索引条件normative",
-      "section_digest": "sha256:b17d5b4f076534f37a94b019245cca3350c56d2c1223b53849b76fc2c048400b",
-      "requirement": "Directory indexes only closed public Realm metadata published by the Realm's current governance Station; it exposes no organization, user, actor, applet, handle, private-contact, PSI or source-reference resolution surface, and withdrawn or unknown Realm locators remain indistinguishable.",
+      "section_digest": "sha256:bbcdb8ed5ed8b4af75026446710d8419a5d65ec5dfc55f8f2ddecf16c05d70a3",
+      "requirement": "Directory v1 is read-only and exposes only closed public Realm metadata through describe, search and exact resolve. It registers no announce, withdraw, ingest proof or governance-authority surface; hidden, expired and unknown Realm locators remain indistinguishable, and no query result is authorization evidence.",
       "testability_grade": "vector",
       "evidence_refs": [
-        "ak.vector.directory.withdraw_blinded_not_found.v1"
+        "ak.vector.directory.public_realm_search.v1"
       ]
     },
     {

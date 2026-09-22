@@ -3,7 +3,7 @@
   "$id": "https://arkret.org/v1/schemas/realm-state-snapshot.schema.json",
   "title": "Arkret Realm Snapshot",
   "x-arkret-signature-domain": "ak.realm_snapshot_signature.v1",
-  "description": "Current governing Station-signed closed inline materialization for current bootstrap. visible_stream_heads, current_state_entries and retention_and_history_floor are read from one durable cut and include only requester-visible streams/results; each visible head is followed by its own commit tail. No separate sections, chunk digests, state root, replay container or independent omission proof exists.",
+  "description": "Current governing Station-signed closed inline materialization for current bootstrap. visible_stream_heads, current_state_entries and retention_and_history_floor are read from one durable cut and include only requester-visible streams/results; each visible head is followed by its own commit tail. The complete RFC 8785 canonical signed body is at most 8,388,608 bytes. Governance admission preflights the maximal-disclosure projection and rejects a state transition that would exceed this hard Realm capacity; there is no paging or chunk fallback. No separate sections, chunk digests, state root, replay container or independent omission proof exists.",
   "type": "object",
   "required": [
     "snapshot_id",

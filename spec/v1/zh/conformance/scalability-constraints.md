@@ -119,11 +119,25 @@ Authority commit 预算如下：
 | 单 position有效 Commit | 1 | 两个不同有效签名为 authority equivocation，冻结该 Realm/stream。 |
 | Realm active Circle数 | 1,000 | Circle各有独立 stream。 |
 | Realm active Sidecar数 | 10,000 | Sidecar各有独立 stream；部署可收紧。 |
-| Realm State Snapshot inline response | 8 MiB | `ak.self.realm_state_snapshot.read.manifest_head.v1` 属于 non-streaming JSON；超限必须 fail closed，不得截断 `current_state_entries[]`、visible heads 或 floors；v1 未登记 chunk/paging fallback。 |
+| Realm State Snapshot inline response | 8 MiB | `ak.self.realm_state_snapshot.read.manifest_head.v1` 属于 non-streaming JSON；超限必须 fail closed，不得截断 `current_state_entries[]`、visible heads 或 floors；v1 未登记 chunk/paging fallback。治理 Station 必须把可向任一 caller 披露的最大 closed signed snapshot 的 RFC 8785 canonical bytes 作为 Realm 硬容量预算。 |
 | snapshot manifest streams | 11,001 | Realm + 上述 Circle/Sidecar理论上限；只返回 caller获准的 streams。 |
 | handoff manifest streams | 同上 | 私有传输覆盖全部 stream heads，不公开隐藏 stream。 |
 
-### 4.1 Progressive authority-commit Backfill Profile
+### 4.1 Realm Snapshot 硬容量预算
+
+v1 选择内联硬上限，不增加分页、chunk、continuation cursor 或第二套 snapshot identity。治理 Station 在接纳任何会改变
+visible stream head、typed current row 或 history floor 的 RealmCommit 前，必须以该事务的候选 durable cut 构造
+「最大披露投影」：包含该 cut 下全部可能对任一合法 caller 披露的 streams、rows 与 floors，加入完整固定长度 Ed25519
+signature 字段后按 RFC 8785 序列化。结果不得超过 8,388,608 bytes。超限时整个写入以
+`failed_precondition`／`snapshot_capacity_exceeded` 拒绝，Realm 状态零变化；不得先提交再让 snapshot read 失败。
+
+任一实际 caller 的返回只能是该最大披露投影按权限删除元素后的 closed 同-cut 子投影，因此不得比已验收的最大投影更大。
+实现不得依赖元素计数或平均大小估算，必须测量最终 canonical bytes。并发写入必须在同一 durable admission serialization/CAS
+边界内计算，不能让两个分别未超限的候选共同越界。读取仍须复测最终 body；若旧数据、损坏或迁移造成超限，读取整份
+`payload_too_large` fail closed。该 Realm 随后只允许能在同一事务中使最大披露投影回到上限内的治理缩减写入，其他写入拒绝；
+不得截断、返回 partial success 或恢复旧 unsigned chunk。
+
+### 4.2 Progressive authority-commit Backfill Profile
 
 渐进恢复固定为：验证 current authority bundle → 验证 typed snapshot → 对每条获准 stream 从 snapshot head 逐 position 补 tail。单条 stream 失败不允许从其它 stream 推测缺失 Commit，也不阻塞无关 stream。
 

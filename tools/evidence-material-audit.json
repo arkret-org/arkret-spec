@@ -1,12 +1,12 @@
 {
-  "version": 9,
+  "version": 10,
   "source_of_truth": false,
   "narrative_source": "spec/v1/zh/models/common-fields.md#r6-证据类名词分工",
   "scope": [
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 342,
+  "audited_occurrence_count": 334,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -353,7 +353,7 @@
     {
       "file": "contract-registry.json",
       "key": "deployment_evidence",
-      "occurrences": 33,
+      "occurrences": 32,
       "disposition": "registry_contract",
       "reason": "References the registered implementation prototype or normative role requirement that proves one frozen operation bundle support vector."
     },
@@ -367,7 +367,7 @@
     {
       "file": "contract-registry.json",
       "key": "evidence_class",
-      "occurrences": 16,
+      "occurrences": 14,
       "disposition": "registry_contract",
       "reason": "Closed DID-authority evidence classification on exact operation and Event call sites; it carries no evidence instance."
     },
@@ -466,7 +466,7 @@
     {
       "file": "did-freshness-profile-registry.json",
       "key": "evidence_class",
-      "occurrences": 22,
+      "occurrences": 20,
       "disposition": "registry_contract",
       "reason": "Bidirectional call-site metadata distinguishing registration, historical, current, successor, recovery and governance checks."
     },
@@ -838,14 +838,14 @@
     {
       "file": "operation-registry.json",
       "key": "deployment_evidence",
-      "occurrences": 33,
+      "occurrences": 32,
       "disposition": "registry_contract",
       "reason": "Generated operation-bundle projection of the canonical deployment evidence references."
     },
     {
       "file": "operation-registry.json",
       "key": "evidence_class",
-      "occurrences": 12,
+      "occurrences": 10,
       "disposition": "registry_contract",
       "reason": "Generated exact DID-authority call-site classification for registered operations."
     },

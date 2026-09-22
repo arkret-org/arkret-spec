@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-21.4",
-  "generated_at": "2026-09-21T05:20:34+08:00",
+  "version": "2026-09-22.1",
+  "generated_at": "2026-09-22T09:30:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -377,42 +377,6 @@
       "status": "active"
     },
     {
-      "code": "directory_unauthorized",
-      "http_status": 403,
-      "scope": "service_call",
-      "description": "Directory ingest rejected an announce or withdraw because the signed resource payload does not authorize this Directory service DID.",
-      "type_uri": "https://arkret.org/problems/directory_unauthorized",
-      "title": "Directory unauthorized",
-      "status": "active"
-    },
-    {
-      "code": "accept_policy_denied",
-      "http_status": 403,
-      "scope": "service_call",
-      "description": "Directory ingest rejected the resource because it is outside the directory's advertised accept policy.",
-      "type_uri": "https://arkret.org/problems/accept_policy_denied",
-      "title": "Accept policy denied",
-      "status": "active"
-    },
-    {
-      "code": "directory_governance_proof_signature_invalid",
-      "http_status": 400,
-      "scope": "service_call",
-      "description": "Directory ingest rejected a resource governance proof because its detached signature is invalid or cannot be canonicalized.",
-      "type_uri": "https://arkret.org/problems/directory_governance_proof_signature_invalid",
-      "title": "Directory governance proof signature invalid",
-      "status": "active"
-    },
-    {
-      "code": "signature_stale",
-      "http_status": 400,
-      "scope": "service_call",
-      "description": "Directory ingest rejected a signed payload because its as_of timestamp is outside the configured freshness window.",
-      "type_uri": "https://arkret.org/problems/signature_stale",
-      "title": "Signature stale",
-      "status": "active"
-    },
-    {
       "code": "source_refs_unverifiable",
       "http_status": 400,
       "scope": "service_call",
@@ -422,37 +386,10 @@
       "status": "active"
     },
     {
-      "code": "governance_key_invalid",
-      "http_status": 400,
-      "scope": "service_call",
-      "description": "Directory ingest rejected a governance proof because the signing key is not valid for the resource DID document's current epoch.",
-      "type_uri": "https://arkret.org/problems/governance_key_invalid",
-      "title": "Governance key invalid",
-      "status": "active"
-    },
-    {
-      "code": "ttl_out_of_range",
-      "http_status": 400,
-      "scope": "service_call",
-      "description": "A service-call TTL is outside the operation's allowed range, including directory ttl_seconds outside [1, max_ttl_seconds] or ephemeral ttl_ms beyond the advertised kind-specific limit.",
-      "type_uri": "https://arkret.org/problems/ttl_out_of_range",
-      "title": "Ttl out of range",
-      "status": "active"
-    },
-    {
-      "code": "takedown_in_force",
-      "http_status": 409,
-      "scope": "service_call",
-      "description": "Directory ingest rejected an announce because an active withdrawal or operator takedown blocks acceptance of the resource.",
-      "type_uri": "https://arkret.org/problems/takedown_in_force",
-      "title": "Takedown in force",
-      "status": "active"
-    },
-    {
       "code": "policy_revision_rollback",
       "http_status": 409,
       "scope": "service_call",
-      "description": "Directory ingest rejected an announce because policy_revision or as_of is older than the indexed entry.",
+      "description": "A reducer rejected a Realm policy update because policy_revision is older than the current accepted revision.",
       "type_uri": "https://arkret.org/problems/policy_revision_rollback",
       "title": "Policy revision rollback",
       "status": "active"
