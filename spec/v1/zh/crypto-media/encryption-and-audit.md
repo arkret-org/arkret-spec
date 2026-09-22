@@ -213,7 +213,8 @@ Genesis 的 epoch transition为 `0 -> 0`；Commit 必须 `next_epoch = previous_
 同时没有第二份 binding 字段表或第二条校验路径。
 
 在尚无 accepted Genesis 时，消费该本地 carrier 的 `0 -> 0` key-access revision 计算 MUST 使用精确的提案不可变
-binding；缺失以 `mls_genesis_binding_proposal_required` 拒绝且不产生证明或缓存条目。提案与签名 Genesis binding
+binding。carrier 缺少 `sender_actor_id`、`proposed_group_genesis_binding` 或任何其他 required member 时，必须先以
+`schema_violation` 拒绝且不进入语义校验、不产生证明或缓存条目；v1 不定义 partial/pre-validation carrier。提案与签名 Genesis binding
 不一致、与并发胜出的 Genesis binding 不一致，或在已有 accepted Genesis 后仍被提交，均以
 `mls_genesis_binding_proposal_mismatch` 拒绝；落败方 MUST 丢弃 proposal-bound 结果并针对胜出 binding 重新计算，
 MUST NOT 复用旧请求或缓存条目。该 carrier 是 §5.1.2 客户端本地持久化意图的一部分，不新增 HTTP operation、

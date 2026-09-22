@@ -108,6 +108,26 @@ class MlsGovernanceBindingClosureTest(unittest.TestCase):
 
         self.assertTrue(any("target_scope" in error for error in self._run(FIXTURE, mutate)))
 
+    def test_missing_proposal_member_fails_at_closed_schema(self) -> None:
+        def mutate(value):
+            sample = next(
+                item for item in value["cases"][4]["rejection_samples"]
+                if item["name"] == "proposal_binding_member_missing"
+            )
+            sample["expected"]["reason"] = "mls_genesis_binding_proposal_required"
+
+        self.assertTrue(any("schema_violation" in error for error in self._run(FIXTURE, mutate)))
+
+    def test_missing_proposal_sender_fails_at_closed_schema(self) -> None:
+        def mutate(value):
+            sample = next(
+                item for item in value["cases"][4]["rejection_samples"]
+                if item["name"] == "proposal_sender_missing"
+            )
+            sample["expected"]["reason"] = "mls_genesis_binding_proposal_mismatch"
+
+        self.assertTrue(any("schema_violation" in error for error in self._run(FIXTURE, mutate)))
+
     def test_extension_registry_must_point_at_the_carrier(self) -> None:
         def mutate(value):
             value["extensions"][1]["proposal_carrier_schema_ref"] = (

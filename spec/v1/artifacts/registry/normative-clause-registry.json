@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-22.1",
+  "version": "2026-09-22.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-22T09:30:00+08:00",
+  "generated_at": "2026-09-22T23:33:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -499,8 +499,8 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#251-固定-groupcontext-binding",
-      "section_digest": "sha256:80c0d37dbd368215a7b2e158719a45ff966792e4c661bb292af8486f4966c8d9",
-      "requirement": "The fixed GroupContext binding is one closed, bounded deterministic-CBOR MlsGroupBinding: unknown, missing, indefinite-length, non-minimal, duplicate, out-of-order, trailing, wrong-major-type, out-of-range, invalid-length or resource-limit inputs are rejected. Genesis is 0 -> 0 and a Commit is next_epoch = previous_epoch + 1. Scope, base, epoch and the monotonic unsigned 64-bit key_access_revision counter match the Station current public state and Commit payload field by field, including for otherwise-valid RFC 9420 public material. proposed_group_genesis_binding is not a second binding shape: its formal closed carrier names the ak.mls.genesis route, proposal type, complete sender and target scope, and directly references the same binding schema. Historical accepted material is checked against its historical binding and grants no current send authority. The revision governs key access only and carries no authorization or membership decision of its own.",
+      "section_digest": "sha256:0f27169b4eee2d07de8e2de24c633de369f33b7e9d921cb0b5a2035244744d1e",
+      "requirement": "The fixed GroupContext binding is one closed, bounded deterministic-CBOR MlsGroupBinding: unknown, missing, indefinite-length, non-minimal, duplicate, out-of-order, trailing, wrong-major-type, out-of-range, invalid-length or resource-limit inputs are rejected. Genesis is 0 -> 0 and a Commit is next_epoch = previous_epoch + 1. Scope, base, epoch and the monotonic unsigned 64-bit key_access_revision counter match the Station current public state and Commit payload field by field, including for otherwise-valid RFC 9420 public material. proposed_group_genesis_binding is not a second binding shape: its formal closed carrier names the ak.mls.genesis route, proposal type, complete sender and target scope, and directly references the same binding schema; any missing required carrier member is rejected as schema_violation before semantic evaluation. Historical accepted material is checked against its historical binding and grants no current send authority. The revision governs key access only and carries no authorization or membership decision of its own.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.mls.governance_binding_closure.v1",

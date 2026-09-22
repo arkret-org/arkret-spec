@@ -5934,6 +5934,35 @@ def check_mls_governance_binding_closure_vector(lint: Lint) -> None:
             ):
                 lint.fail(path, "the accepted proposal binding must be the exact 0 -> 0 Genesis form")
 
+        rejection_samples = {
+            sample.get("name"): sample
+            for sample in proposal_case.get("rejection_samples", [])
+            if isinstance(sample, dict)
+        }
+        closed_schema_rejections = {
+            "proposal_binding_member_missing": "proposed_group_genesis_binding",
+            "proposal_sender_missing": "sender_actor_id",
+        }
+        expected_schema_rejection = {
+            "decision": "reject",
+            "reason": "schema_violation",
+            "proof_emitted": False,
+            "cache_entry_written": False,
+        }
+        for sample_name, missing_member in closed_schema_rejections.items():
+            sample = rejection_samples.get(sample_name)
+            sample_carrier = sample.get("carrier") if isinstance(sample, dict) else None
+            if (
+                not isinstance(sample_carrier, dict)
+                or missing_member in sample_carrier
+                or set(sample_carrier) != set(required_carrier) - {missing_member}
+                or sample.get("expected") != expected_schema_rejection
+            ):
+                lint.fail(
+                    path,
+                    f"{sample_name} must omit only {missing_member} and fail as schema_violation",
+                )
+
     extension_path = ARTIFACTS / "registry" / "mls-extension-registry.json"
     extension_registry = load_json(lint, extension_path)
     extension = next((row for row in (extension_registry or {}).get("extensions", []) if row.get("name") == "mls_governance_binding"), None)

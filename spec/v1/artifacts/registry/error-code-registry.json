@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-22.1",
-  "generated_at": "2026-09-22T09:30:00+08:00",
+  "version": "2026-09-22.2",
+  "generated_at": "2026-09-22T23:33:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -1066,15 +1066,6 @@
       "description": "The requested DID exists in historical registry state but has been deactivated, revoked, or superseded.",
       "type_uri": "https://arkret.org/problems/did_revoked",
       "title": "DID revoked",
-      "status": "active"
-    },
-    {
-      "code": "mls_genesis_binding_proposal_required",
-      "http_status": 422,
-      "scope": "endpoint",
-      "description": "A 0 -> 0 group_key_access_revision query targets a scope/group with no accepted MLS Genesis but omits proposed_group_genesis_binding. The caller must resubmit the exact proposed immutable binding; the failed request produces no proof and no cache entry.",
-      "type_uri": "https://arkret.org/problems/mls_genesis_binding_proposal_required",
-      "title": "MLS genesis binding proposal required",
       "status": "active"
     },
     {

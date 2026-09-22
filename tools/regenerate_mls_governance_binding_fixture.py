@@ -261,23 +261,24 @@ def build_fixture() -> dict[str, Any]:
             "assertions": [
                 "proposal_carrier_structurally_binds_event_kind_kind_sender_and_target_scope",
                 "proposal_carrier_reuses_the_one_mls_governance_binding_schema",
-                "missing_or_mismatched_proposal_leaves_no_proof_or_cache_entry",
+                "missing_required_carrier_member_is_a_schema_violation",
+                "mismatched_complete_proposal_leaves_no_proof_or_cache_entry",
             ],
             "carrier_schema_ref": "schemas/event-payload.schema.json#/$defs/mls_genesis_binding_proposal_carrier",
             "binding_schema_ref": "schemas/event-payload.schema.json#/$defs/mls_governance_binding",
             "accepted_carrier": carrier,
             "rejection_samples": [
-                {"name": "proposal_absent", "carrier": {key: value for key, value in carrier.items() if key != "proposed_group_genesis_binding"}, "expected": {"decision": "reject", "reason": "mls_genesis_binding_proposal_required", "proof_emitted": False, "cache_entry_written": False}},
+                {"name": "proposal_binding_member_missing", "carrier": {key: value for key, value in carrier.items() if key != "proposed_group_genesis_binding"}, "expected": {"decision": "reject", "reason": "schema_violation", "proof_emitted": False, "cache_entry_written": False}},
                 {"name": "proposal_target_scope_differs", "carrier": {**carrier, "target_scope": {"kind": "realm", "realm_id": OTHER_REALM_ID}}, "expected": {"decision": "reject", "reason": "mls_genesis_binding_proposal_mismatch", "proof_emitted": False, "cache_entry_written": False}},
                 {"name": "proposal_event_kind_differs", "carrier": {**carrier, "event_kind": "ak.mls.commit"}, "expected": {"decision": "reject", "reason": "mls_genesis_binding_proposal_mismatch", "proof_emitted": False, "cache_entry_written": False}},
-                {"name": "proposal_sender_missing", "carrier": {key: value for key, value in carrier.items() if key != "sender_actor_id"}, "expected": {"decision": "reject", "reason": "mls_genesis_binding_proposal_mismatch", "proof_emitted": False, "cache_entry_written": False}},
+                {"name": "proposal_sender_missing", "carrier": {key: value for key, value in carrier.items() if key != "sender_actor_id"}, "expected": {"decision": "reject", "reason": "schema_violation", "proof_emitted": False, "cache_entry_written": False}},
             ],
         },
     ]
 
     return {
         "profile": "ak.vector_group.privacy_security.v1",
-        "version": "2026-09-19.1",
+        "version": "2026-09-22.1",
         "suite": "mls_governance_binding_closure",
         "runner": {"kind": "named_suite", "entrypoint": "ak.suite.mls.governance_binding_closure.v1"},
         "covers_vectors": [VECTOR_ID, EPOCH_VECTOR_ID],
@@ -290,7 +291,7 @@ def build_fixture() -> dict[str, Any]:
                 {"id": "epoch_and_revision_are_unsigned_monotonic_counters", "requirement": "Genesis is 0 to 0, Commit increments epoch by one, and key_access_revision is a monotonic unsigned 64-bit counter rather than a digest.", "evidence": ["/cases/1"]},
                 {"id": "valid_public_material_still_requires_exact_binding_equality", "requirement": "RFC 9420-valid public material is rejected when its internal binding differs from Station state or the Event payload.", "evidence": ["/cases/2"]},
                 {"id": "historical_replay_is_not_current_send_authority", "requirement": "Historical material is verified against its accepted historical binding and never grants current send authority.", "evidence": ["/cases/3"]},
-                {"id": "proposal_carrier_reuses_the_one_binding_schema", "requirement": "The closed pre-Genesis carrier fixes Event route, proposal kind, complete sender and target scope while directly reusing the one binding schema.", "evidence": ["/cases/4"]},
+                {"id": "proposal_carrier_reuses_the_one_binding_schema", "requirement": "The closed pre-Genesis carrier fixes Event route, proposal kind, complete sender and target scope while directly reusing the one binding schema; a missing required member fails schema validation before semantic evaluation.", "evidence": ["/cases/4"]},
             ],
         }],
         "cases": cases,

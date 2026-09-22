@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 4,
+  "version": 5,
   "kind": "reason_code_producer_baseline",
   "source_of_truth": false,
   "generated_from": [
@@ -142,6 +142,12 @@
       "ruling": "2026-09-04-2130",
       "registry_version": "2026-09-04.3",
       "why": "条件由已接线顶层 code unsupported_event_kind/unsupported_feature 承载（conformance-profiles.md:71, api-conventions.md:408）。"
+    },
+    {
+      "code": "mls_genesis_binding_proposal_required",
+      "ruling": "0082 closed MLS proposal carrier schema-first",
+      "registry_version": "2026-09-22.2",
+      "why": "唯一正式 proposal carrier 是五字段 closed object，且没有允许整个 proposal 缺省的外层 typed carrier；缺 proposed_group_genesis_binding 按 schema_violation 拒绝，故该专用 reason 无合法生产点。"
     },
     {
       "code": "moderation_control_lifted",

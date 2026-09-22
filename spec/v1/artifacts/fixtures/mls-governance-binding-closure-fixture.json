@@ -1,6 +1,6 @@
 {
   "profile": "ak.vector_group.privacy_security.v1",
-  "version": "2026-09-19.1",
+  "version": "2026-09-22.1",
   "suite": "mls_governance_binding_closure",
   "runner": {
     "kind": "named_suite",
@@ -55,7 +55,7 @@
         },
         {
           "id": "proposal_carrier_reuses_the_one_binding_schema",
-          "requirement": "The closed pre-Genesis carrier fixes Event route, proposal kind, complete sender and target scope while directly reusing the one binding schema.",
+          "requirement": "The closed pre-Genesis carrier fixes Event route, proposal kind, complete sender and target scope while directly reusing the one binding schema; a missing required member fails schema validation before semantic evaluation.",
           "evidence": [
             "/cases/4"
           ]
@@ -522,7 +522,8 @@
       "assertions": [
         "proposal_carrier_structurally_binds_event_kind_kind_sender_and_target_scope",
         "proposal_carrier_reuses_the_one_mls_governance_binding_schema",
-        "missing_or_mismatched_proposal_leaves_no_proof_or_cache_entry"
+        "missing_required_carrier_member_is_a_schema_violation",
+        "mismatched_complete_proposal_leaves_no_proof_or_cache_entry"
       ],
       "carrier_schema_ref": "schemas/event-payload.schema.json#/$defs/mls_genesis_binding_proposal_carrier",
       "binding_schema_ref": "schemas/event-payload.schema.json#/$defs/mls_governance_binding",
@@ -550,7 +551,7 @@
       },
       "rejection_samples": [
         {
-          "name": "proposal_absent",
+          "name": "proposal_binding_member_missing",
           "carrier": {
             "event_kind": "ak.mls.genesis",
             "proposal_kind": "group_genesis_binding",
@@ -565,7 +566,7 @@
           },
           "expected": {
             "decision": "reject",
-            "reason": "mls_genesis_binding_proposal_required",
+            "reason": "schema_violation",
             "proof_emitted": false,
             "cache_entry_written": false
           }
@@ -654,7 +655,7 @@
           },
           "expected": {
             "decision": "reject",
-            "reason": "mls_genesis_binding_proposal_mismatch",
+            "reason": "schema_violation",
             "proof_emitted": false,
             "cache_entry_written": false
           }

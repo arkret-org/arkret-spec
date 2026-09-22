@@ -129,9 +129,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/error-code-registry.json",
-      "version": "2026-09-22.1",
-      "generated_at": "2026-09-22T09:30:00+08:00",
-      "content_digest": "sha256:e90f532b9fc0e51603a43acc6bd92c016f5ae54be9e1b69874295d4e5bc59864"
+      "version": "2026-09-22.2",
+      "generated_at": "2026-09-22T23:33:00+08:00",
+      "content_digest": "sha256:12f1abe1a93ce0854e7d5cb9c8f08f212f19cbbfa1507feae0266edd4bb54785"
     },
     {
       "path": "spec/v1/artifacts/registry/event-kind-registry.json",
@@ -213,9 +213,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/normative-clause-registry.json",
-      "version": "2026-09-22.1",
-      "generated_at": "2026-09-22T09:30:00+08:00",
-      "content_digest": "sha256:66a9e3a17ac166d4dfd45ea172a4f38c63a253c9c0e62720e3390a9cc2ab5beb"
+      "version": "2026-09-22.2",
+      "generated_at": "2026-09-22T23:33:00+08:00",
+      "content_digest": "sha256:2746c73102e15b3442ffec9d6118e7d57c76d8d21607590d11d532fad2ebc58f"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-bundle-closure-lock.json",
@@ -501,9 +501,9 @@
     },
     {
       "path": "tools/reason-code-producer-baseline.json",
-      "version": 4,
+      "version": 5,
       "generated_at": null,
-      "content_digest": "sha256:5f722d602088bcd14ee878a48855db8dcfb8b985a0b6212fe86207dceae537db"
+      "content_digest": "sha256:c790e98ce13771aa1424b0fa660ce410f868beb2160e8166b9b6d1e9cd81f90b"
     },
     {
       "path": "tools/reducer-managed-owner-baseline.json",

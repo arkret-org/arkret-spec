@@ -322,8 +322,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-governance-binding-closure-fixture.json",
-      "sha256": "05b5ce02c061ece513f5960b5b2c2d47334e6addd658545d532a5748ae2a5c27",
-      "version": "2026-09-19.1"
+      "sha256": "6a936d98382ac045796020e12a7e7f5659e80f95c3407d79919965ae86e94429",
+      "version": "2026-09-22.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-group-id-derivation-fixture.json",
