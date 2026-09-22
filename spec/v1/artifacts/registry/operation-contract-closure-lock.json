@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-22",
-  "generated_at": "2026-09-22T08:43:00+08:00",
+  "version": "2026-09-22.2",
+  "generated_at": "2026-09-22T09:25:00+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -477,7 +477,7 @@
     },
     {
       "operation_id": "ak.self.applet.command.revoke.v1",
-      "sha256": "sha256:140c97395f2249cf556f06d27b0eef711b34b792fd721a312b002622da26e280"
+      "sha256": "sha256:41a50be423d397f72c597b5f0760b96a7acdaa828b29fd32b9f17e3d1eff806d"
     },
     {
       "operation_id": "ak.self.applet.ghost.command.preview.v1",

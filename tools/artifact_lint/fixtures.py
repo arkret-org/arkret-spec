@@ -2154,6 +2154,9 @@ def check_applet_revoke_saga_contract(lint: Lint) -> None:
         "plan_digest_covers_capability_expected_revision",
         "submitted_revoke_revision_matches_plan",
         "stale_revision_requires_repreview_and_resign",
+        "event_step_reference_is_closed_by_status",
+        "local_effect_ref_never_carries_event_identity",
+        "revoked_refs_exclude_submitted_or_rejected_identity",
     }
     if set(fixture.get("invariants", [])) != required_invariants:
         lint.fail(fixture_path, "revoke saga fixture invariants are incomplete or drifted")
@@ -2172,6 +2175,52 @@ def check_applet_revoke_saga_contract(lint: Lint) -> None:
         "widget_token:0",
     }.issubset(step_ids):
         lint.fail(fixture_path, "revoke saga plan must contain unique Event, external, and local steps")
+
+    step_kat = fixture.get("step_reference_kat")
+    step_schema_ref = "schemas/applet-install-operations.schema.json#/$defs/applet_revoke_step"
+    if not isinstance(step_kat, dict) or step_kat.get("schema_ref") != step_schema_ref:
+        lint.fail(fixture_path, "step_reference_kat must bind the closed Applet revoke step schema")
+    else:
+        expected_step_cases = {
+            "submitted_pending",
+            "submitted_rejected",
+            "committed_accepted",
+            "local_pending",
+        }
+        if set(step_kat) != expected_step_cases | {"schema_ref"}:
+            lint.fail(fixture_path, "step_reference_kat must contain the closed four-case matrix")
+        for name in sorted(expected_step_cases):
+            check_json_instance_against_schema(
+                lint,
+                fixture_path,
+                f"step_reference_kat.{name}",
+                step_schema_ref,
+                step_kat.get(name),
+            )
+
+    invalid_steps = fixture.get("invalid_step_reference_cases")
+    expected_invalid_steps = {
+        "pending_event_with_committed_coordinate",
+        "accepted_event_with_only_submitted_identity",
+        "event_id_disguised_as_local_effect_ref",
+        "event_step_disguised_as_local_resource",
+    }
+    invalid_by_name = {
+        row.get("name"): row.get("value")
+        for row in invalid_steps or []
+        if isinstance(row, dict) and isinstance(row.get("name"), str)
+    }
+    if set(invalid_by_name) != expected_invalid_steps:
+        lint.fail(fixture_path, "invalid Applet revoke step references must contain the closed four-case matrix")
+    for name, value in invalid_by_name.items():
+        check_json_instance_against_schema(
+            lint,
+            fixture_path,
+            f"invalid_step_reference_cases.{name}",
+            step_schema_ref,
+            value,
+            expect_valid=False,
+        )
 
     cases = fixture.get("cases", [])
     case_by_name = {

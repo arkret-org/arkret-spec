@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.applet_service.v1",
-  "version": "2026-09-22",
+  "version": "2026-09-22.1",
   "suite": "applet_revoke_saga",
   "runner": {
     "kind": "named_suite",
@@ -68,6 +68,80 @@
       }
     ]
   },
+  "step_reference_kat": {
+    "schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_revoke_step",
+    "submitted_pending": {
+      "effect_kind": "capability_revoke_event",
+      "submitted_event_id": "ak:event:AXKJvMpMFIFTD9GYNEzOeImU-2ytvLCtsCq3Mrq9-Ci8",
+      "status": "pending"
+    },
+    "submitted_rejected": {
+      "effect_kind": "membership_state_event",
+      "submitted_event_id": "ak:event:AXKJvMpMFIFTD9GYNEzOeImU-2ytvLCtsCq3Mrq9-Ci8",
+      "status": "rejected",
+      "reason_code": "cas_conflict"
+    },
+    "committed_accepted": {
+      "effect_kind": "capability_revoke_event",
+      "committed_event_ref": {
+        "event_id": "ak:event:AXKJvMpMFIFTD9GYNEzOeImU-2ytvLCtsCq3Mrq9-Ci8",
+        "commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
+        "stream_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw"
+        },
+        "stream_position": 42
+      },
+      "status": "accepted"
+    },
+    "local_pending": {
+      "effect_kind": "local_applet_fence",
+      "effect_ref": "ak:applet:019a6aa0-0000-7000-8000-000000000000",
+      "status": "pending"
+    }
+  },
+  "invalid_step_reference_cases": [
+    {
+      "name": "pending_event_with_committed_coordinate",
+      "value": {
+        "effect_kind": "capability_revoke_event",
+        "committed_event_ref": {
+          "event_id": "ak:event:AXKJvMpMFIFTD9GYNEzOeImU-2ytvLCtsCq3Mrq9-Ci8",
+          "commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
+          "stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw"
+          },
+          "stream_position": 42
+        },
+        "status": "pending"
+      }
+    },
+    {
+      "name": "accepted_event_with_only_submitted_identity",
+      "value": {
+        "effect_kind": "membership_state_event",
+        "submitted_event_id": "ak:event:AXKJvMpMFIFTD9GYNEzOeImU-2ytvLCtsCq3Mrq9-Ci8",
+        "status": "accepted"
+      }
+    },
+    {
+      "name": "event_id_disguised_as_local_effect_ref",
+      "value": {
+        "effect_kind": "local_applet_fence",
+        "effect_ref": "ak:event:AXKJvMpMFIFTD9GYNEzOeImU-2ytvLCtsCq3Mrq9-Ci8",
+        "status": "pending"
+      }
+    },
+    {
+      "name": "event_step_disguised_as_local_resource",
+      "value": {
+        "effect_kind": "capability_revoke_event",
+        "effect_ref": "ak:applet:019a6aa0-0000-7000-8000-000000000000",
+        "status": "pending"
+      }
+    }
+  ],
   "invariants": [
     "persist_ledger_before_first_effect",
     "ledger_binds_principal_service_and_admin_actor",
@@ -80,7 +154,10 @@
     "preview_revision_is_same_snapshot_grant_revision",
     "plan_digest_covers_capability_expected_revision",
     "submitted_revoke_revision_matches_plan",
-    "stale_revision_requires_repreview_and_resign"
+    "stale_revision_requires_repreview_and_resign",
+    "event_step_reference_is_closed_by_status",
+    "local_effect_ref_never_carries_event_identity",
+    "revoked_refs_exclude_submitted_or_rejected_identity"
   ],
   "cases": [
     {

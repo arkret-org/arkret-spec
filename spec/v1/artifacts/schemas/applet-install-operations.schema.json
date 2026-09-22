@@ -543,6 +543,76 @@
       "additionalProperties": false
     },
     "applet_revoke_step": {
+      "description": "Closed state-dependent saga step. Event steps use the immutable submitted EventId before acceptance and the exact CommittedEventRef only after acceptance or duplicate resolution. Local effects always use a non-Event typed resource reference.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/applet_revoke_submitted_event_step"
+        },
+        {
+          "$ref": "#/$defs/applet_revoke_committed_event_step"
+        },
+        {
+          "$ref": "#/$defs/applet_revoke_local_effect_step"
+        }
+      ]
+    },
+    "applet_revoke_submitted_event_step": {
+      "type": "object",
+      "required": [
+        "effect_kind",
+        "submitted_event_id",
+        "status"
+      ],
+      "properties": {
+        "effect_kind": {
+          "$ref": "#/$defs/applet_revoke_event_effect_kind"
+        },
+        "submitted_event_id": {
+          "$ref": "#/$defs/event_ref"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "rejected"
+          ]
+        },
+        "reason_code": {
+          "$ref": "#/$defs/non_empty_string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "applet_revoke_committed_event_step": {
+      "type": "object",
+      "required": [
+        "effect_kind",
+        "committed_event_ref",
+        "status"
+      ],
+      "properties": {
+        "effect_kind": {
+          "$ref": "#/$defs/applet_revoke_event_effect_kind"
+        },
+        "committed_event_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "accepted",
+            "duplicate"
+          ]
+        },
+        "reason_code": {
+          "$ref": "#/$defs/non_empty_string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "applet_revoke_local_effect_step": {
       "type": "object",
       "required": [
         "effect_kind",
@@ -553,15 +623,13 @@
         "effect_kind": {
           "type": "string",
           "enum": [
-            "capability_revoke_event",
-            "membership_state_event",
             "widget_token_invalidation",
             "delegated_session_revocation",
             "local_applet_fence"
           ]
         },
         "effect_ref": {
-          "$ref": "#/$defs/applet_revoke_effect_ref"
+          "$ref": "#/$defs/applet_revoke_local_effect_ref"
         },
         "status": {
           "type": "string",
@@ -578,6 +646,13 @@
         }
       },
       "additionalProperties": false
+    },
+    "applet_revoke_event_effect_kind": {
+      "type": "string",
+      "enum": [
+        "capability_revoke_event",
+        "membership_state_event"
+      ]
     },
     "applet_revoke_outcome": {
       "type": "object",
@@ -634,10 +709,14 @@
           "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
         },
         {
-          "type": "string",
-          "pattern": "^ak:(?!event:|realm_commit:)[a-z][a-z0-9_]*:[A-Za-z0-9._~:/-]+$"
+          "$ref": "#/$defs/applet_revoke_local_effect_ref"
         }
       ]
+    },
+    "applet_revoke_local_effect_ref": {
+      "description": "Typed service-local revoke effect reference. EventId and RealmCommitId are forbidden because only Event admission can produce a committed Event coordinate.",
+      "type": "string",
+      "pattern": "^ak:(?!event:|realm_commit:)[a-z][a-z0-9_]*:[A-Za-z0-9._~:/-]+$"
     }
   }
 }

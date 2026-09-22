@@ -359,7 +359,12 @@ revoke_plan_digest, exact_event_submissions, status, steps[])`。每个 step 的
 session revoke、widget token 作废与本地 applet fence 可以跨服务执行，不得声称分布式原子；restart MUST
 从 ledger 恢复同一 submissions 与尚未完成步骤。只有全部 required replicated Events 已
 accepted/duplicate、widget token 已作废、delegated-session 子操作完成且 local fence durable 后才返回
-`status=complete, ok=true`。每个 durable Event step 的 `effect_ref` MUST 是完整 `CommittedEventRef`；widget token、delegated session 与 local fence 等本地 effect 才能使用非 Event 的 typed resource string。`revoked_refs[]` 使用相同的闭合 union，禁止以裸 EventId 或 RealmCommitId 代替。部分成功返回 `in_progress|partially_completed` 与精确 steps/rejected refs；已
+`status=complete, ok=true`。Event-backed step 是按状态封闭的 union：`pending`／`rejected` MUST 携原 caller-signed
+bytes 唯一派生的 immutable `submitted_event_id`，且 MUST NOT 携 `CommittedEventRef`；只有
+`accepted`／`duplicate` MUST 携 admission 返回的完整 `committed_event_ref`，且不得退化为裸 EventId。
+widget token、delegated session 与 local fence 等本地 step 始终携非 Event typed resource `effect_ref`；该分支
+不得承载 EventId／RealmCommitId。`revoked_refs[]` 只列实际完成的 effect，使用 `CommittedEventRef` 或本地 typed
+resource 的闭合 union，submitted/rejected identity 不得进入。部分成功返回 `in_progress|partially_completed` 与精确 steps/rejected refs；已
 accepted Event 不回滚、不重签，只继续缺失步骤。
 
 从第一条相关 `ak.capability.revoke` 或 `ak.member.state` 被 accepted 起，目标 `effective_scope` 内未来 Applet

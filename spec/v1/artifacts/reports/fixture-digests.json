@@ -57,8 +57,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-revoke-saga-fixture.json",
-      "sha256": "ae10f9cfeb497e50ae87c49c8913afc60366767979a4b58df611c9da0c5422b8",
-      "version": "2026-09-22"
+      "sha256": "371ce2c41811d0ffadcf0554e125d2dc45033301679af13fac94b4277d3a8bd8",
+      "version": "2026-09-22.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/approval-signature-kat-fixture.json",
