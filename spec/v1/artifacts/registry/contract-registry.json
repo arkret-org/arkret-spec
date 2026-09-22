@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-22",
+  "version": "2026-09-22.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-22T08:43:00+08:00",
+  "generated_at": "2026-09-22T08:58:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -14516,7 +14516,7 @@
           "restart_recovery": "resume_exact_persisted_submissions_and_pending_steps",
           "first_revoke_acceptance_fences_future_writes": true
         },
-        "notes": ""
+        "notes": "Before the first domain effect, the Station recomputes the canonical AppletRevokePlan and verifies every caller-signed capability revoke against the plan's grant_id, expected_revision, registration_epoch and reason_code. A plan mismatch or stale capability CAS produces no new domain effect and requires a new preview, user confirmation and signature. Exact response-loss retries replay the persisted signed bytes; neither client nor Station rewrites expected_revision."
       },
       {
         "operation_id": "ak.self.applet.ghost.command.preview.v1",
@@ -14588,9 +14588,9 @@
         "response_schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_revoke_preview_outcome",
         "durable_effect": {
           "kind": "none",
-          "rationale": "query_only_recomputed_revoke_plan"
+          "rationale": "query_only_recomputed_revoke_plan_from_one_durable_current_snapshot"
         },
-        "notes": ""
+        "notes": "Each capability revoke intent atomically pairs an active Grant selected from the exact Applet install with that same capability_grant current result's expected_revision. The revision is a required canonical plan member covered by the caller-computed revoke_plan_digest and must be copied unchanged into the signed CapabilityRevokePayload. Grant ids, create Event ids, Realm heads, list digests and locally folded state are not revision carriers."
       },
       {
         "operation_id": "ak.self.authz.grants.read.effective.v1",
@@ -16129,8 +16129,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-22",
-    "generated_at": "2026-09-22T08:43:00+08:00",
+    "version": "2026-09-22.1",
+    "generated_at": "2026-09-22T08:58:00+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",

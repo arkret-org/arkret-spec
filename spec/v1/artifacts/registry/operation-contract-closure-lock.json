@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-21.12",
-  "generated_at": "2026-09-21T07:39:04+08:00",
+  "version": "2026-09-22",
+  "generated_at": "2026-09-22T08:43:00+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -477,7 +477,7 @@
     },
     {
       "operation_id": "ak.self.applet.command.revoke.v1",
-      "sha256": "sha256:5c716a848340e8311fb0510e92ccc18e910960e632743f2b06e50fc7ff0cd41f"
+      "sha256": "sha256:140c97395f2249cf556f06d27b0eef711b34b792fd721a312b002622da26e280"
     },
     {
       "operation_id": "ak.self.applet.ghost.command.preview.v1",
@@ -493,7 +493,7 @@
     },
     {
       "operation_id": "ak.self.applet.revoke.command.preview.v1",
-      "sha256": "sha256:e7b0e152f91800420640101d18cff41311f01e44354d5e4a1012e1004108ea24"
+      "sha256": "sha256:f3cefb4bb5e16e0112bb8216e7e0c072f65550639b7a7be599d842e037816222"
     },
     {
       "operation_id": "ak.self.authz.grants.read.effective.v1",

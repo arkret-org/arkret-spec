@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.applet_service.v1",
-  "version": "2026-08-08",
+  "version": "2026-09-22",
   "suite": "applet_revoke_saga",
   "runner": {
     "kind": "named_suite",
@@ -22,13 +22,24 @@
       "registration_epoch": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
       "reason_code": "operator_revocation",
       "revoke_mode": "revoke_all",
-      "capability_revocations": [],
+      "capability_revocations": [
+        {
+          "event_kind": "ak.capability.revoke",
+          "grant_id": "ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf",
+          "expected_revision": {
+            "commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
+            "stream_position": 41
+          },
+          "registration_epoch": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "reason_code": "operator_revocation"
+        }
+      ],
       "membership_removals": [],
       "widget_token_refs": [],
       "delegated_session_refs": []
     },
-    "revoke_plan_jcs": "{\"applet_id\":\"ak:applet:019a6aa0-0000-7000-8000-000000000000\",\"capability_revocations\":[],\"delegated_session_refs\":[],\"effective_scope\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw\"},\"membership_removals\":[],\"reason_code\":\"operator_revocation\",\"registration_epoch\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"revoke_mode\":\"revoke_all\",\"widget_token_refs\":[]}",
-    "expected_revoke_plan_digest": "sha256:5fadba3c75ddfa08638286a7885173c72651adeb9705f2714c79ab0b45d5029c"
+    "revoke_plan_jcs": "{\"applet_id\":\"ak:applet:019a6aa0-0000-7000-8000-000000000000\",\"capability_revocations\":[{\"event_kind\":\"ak.capability.revoke\",\"expected_revision\":{\"commit_id\":\"ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4\",\"stream_position\":41},\"grant_id\":\"ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf\",\"reason_code\":\"operator_revocation\",\"registration_epoch\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\"}],\"delegated_session_refs\":[],\"effective_scope\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw\"},\"membership_removals\":[],\"reason_code\":\"operator_revocation\",\"registration_epoch\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"revoke_mode\":\"revoke_all\",\"widget_token_refs\":[]}",
+    "expected_revoke_plan_digest": "sha256:07e43b2172773f2e62f2d5cd2ef3113aa65aff0756a39519843729ed5fc5150a"
   },
   "plan": {
     "revoke_plan_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -65,7 +76,11 @@
     "accepted_or_duplicate_steps_are_never_reexecuted",
     "rejected_step_cannot_be_skipped",
     "first_accepted_revoke_event_fences_future_applet_writes",
-    "complete_requires_every_planned_step_terminal_success"
+    "complete_requires_every_planned_step_terminal_success",
+    "preview_revision_is_same_snapshot_grant_revision",
+    "plan_digest_covers_capability_expected_revision",
+    "submitted_revoke_revision_matches_plan",
+    "stale_revision_requires_repreview_and_resign"
   ],
   "cases": [
     {
@@ -172,6 +187,28 @@
       ],
       "expected_status": "param_invalid",
       "expected_new_effect_count": 0
+    },
+    {
+      "name": "stale_preview_revision_requires_repreview",
+      "request_binding": "key-7/body-a",
+      "timeline": [
+        "reject_stale_recomputed_plan"
+      ],
+      "expected_status": "failed_precondition",
+      "expected_new_effect_count": 0,
+      "required_recovery": "repreview_reconfirm_resign"
+    },
+    {
+      "name": "stale_signed_event_cas_has_no_domain_effect",
+      "request_binding": "key-8/body-a",
+      "timeline": [
+        "persist_ledger",
+        "rejected:capability:0",
+        "persist_outcome"
+      ],
+      "expected_status": "partially_completed",
+      "expected_new_domain_effect_count": 0,
+      "required_recovery": "repreview_reconfirm_resign"
     }
   ]
 }

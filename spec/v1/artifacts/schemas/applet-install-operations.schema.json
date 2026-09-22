@@ -475,6 +475,7 @@
       "required": [
         "event_kind",
         "grant_id",
+        "expected_revision",
         "registration_epoch",
         "reason_code"
       ],
@@ -484,6 +485,10 @@
         },
         "grant_id": {
           "$ref": "#/$defs/grant_id"
+        },
+        "expected_revision": {
+          "$ref": "./typed-current-result.schema.json#/$defs/revision",
+          "description": "Exact revision of the same active capability_grant current result returned by the governing Station in this preview plan. It is covered by the canonical plan digest and MUST be copied byte-for-byte into the caller-signed ak.capability.revoke payload."
         },
         "registration_epoch": {
           "$ref": "#/$defs/digest"

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-21.10",
+  "version": "2026-09-22",
   "source_of_truth": true,
-  "generated_at": "2026-09-21T07:39:00+08:00",
+  "generated_at": "2026-09-22T08:43:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -435,7 +435,7 @@
       "applies_to_fixtures": [
         "applet-revoke-saga-fixture.json"
       ],
-      "description": "Caller-signed Applet revoke plan binding, durable pre-effect ledger bound to principal service and admin actor, exact replay, conflict rejection, non-skip partial outcomes, restart recovery, and first-accepted-event write fencing.",
+      "description": "Caller-signed Applet revoke plan binding, same-snapshot capability Grant value and exact revision, plan-digest coverage of expected_revision, stale preview and stale Event rejection with re-preview/reconfirmation/re-signing, durable pre-effect ledger bound to principal service and admin actor, exact replay, conflict rejection, non-skip partial outcomes, restart recovery, and first-accepted-event write fencing.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/applet-revoke-saga-fixture.json"
       ]

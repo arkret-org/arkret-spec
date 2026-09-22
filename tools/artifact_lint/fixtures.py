@@ -2150,6 +2150,10 @@ def check_applet_revoke_saga_contract(lint: Lint) -> None:
         "rejected_step_cannot_be_skipped",
         "first_accepted_revoke_event_fences_future_applet_writes",
         "complete_requires_every_planned_step_terminal_success",
+        "preview_revision_is_same_snapshot_grant_revision",
+        "plan_digest_covers_capability_expected_revision",
+        "submitted_revoke_revision_matches_plan",
+        "stale_revision_requires_repreview_and_resign",
     }
     if set(fixture.get("invariants", [])) != required_invariants:
         lint.fail(fixture_path, "revoke saga fixture invariants are incomplete or drifted")
@@ -2183,9 +2187,11 @@ def check_applet_revoke_saga_contract(lint: Lint) -> None:
         "same_key_different_actor_or_service_conflicts",
         "external_effect_partial_then_restart",
         "plan_or_submission_mismatch_is_pre_effect",
+        "stale_preview_revision_requires_repreview",
+        "stale_signed_event_cas_has_no_domain_effect",
     }
     if set(case_by_name) != required_cases:
-        lint.fail(fixture_path, "revoke saga fixture must contain the closed seven-case matrix")
+        lint.fail(fixture_path, "revoke saga fixture must contain the closed nine-case matrix")
         return
 
     effect_prefixes = ("accepted:", "duplicate:", "rejected:")
@@ -2241,6 +2247,20 @@ def check_applet_revoke_saga_contract(lint: Lint) -> None:
     mismatch = case_by_name["plan_or_submission_mismatch_is_pre_effect"]
     if mismatch.get("timeline") != ["reject_plan_or_submission_mismatch"]:
         lint.fail(fixture_path, "plan/submission mismatch must fail before ledger or effects")
+    stale_preview = case_by_name["stale_preview_revision_requires_repreview"]
+    if (
+        stale_preview.get("timeline") != ["reject_stale_recomputed_plan"]
+        or stale_preview.get("expected_new_effect_count") != 0
+        or stale_preview.get("required_recovery") != "repreview_reconfirm_resign"
+    ):
+        lint.fail(fixture_path, "stale preview revision must fail pre-effect and require a newly signed plan")
+    stale_event = case_by_name["stale_signed_event_cas_has_no_domain_effect"]
+    if (
+        stale_event.get("timeline") != ["persist_ledger", "rejected:capability:0", "persist_outcome"]
+        or stale_event.get("expected_new_domain_effect_count") != 0
+        or stale_event.get("required_recovery") != "repreview_reconfirm_resign"
+    ):
+        lint.fail(fixture_path, "stale signed capability Event must have no domain effect and require re-signing")
 
     rows = operations.get("operations", [])
     revoke = next(
@@ -2301,6 +2321,14 @@ def check_applet_revoke_saga_contract(lint: Lint) -> None:
             check_json_instance_against_schema(
                 lint, fixture_path, "preview_plan_digest_kat.revoke_plan", plan_ref, revoke_plan
             )
+            intents = revoke_plan.get("capability_revocations")
+            if not isinstance(intents, list) or len(intents) != 1:
+                lint.fail(fixture_path, "preview plan KAT must carry one capability revoke intent")
+            else:
+                intent = intents[0]
+                revision = intent.get("expected_revision") if isinstance(intent, dict) else None
+                if not isinstance(revision, dict) or set(revision) != {"commit_id", "stream_position"}:
+                    lint.fail(fixture_path, "capability revoke intent must carry one closed exact revision")
             jcs = canonical_json(revoke_plan)
             if kat.get("revoke_plan_jcs") != jcs:
                 lint.fail(fixture_path, "preview_plan_digest_kat.revoke_plan_jcs must equal RFC 8785 JCS of revoke_plan")
@@ -2310,6 +2338,11 @@ def check_applet_revoke_saga_contract(lint: Lint) -> None:
                     fixture_path,
                     "preview_plan_digest_kat.expected_revoke_plan_digest must equal SHA-256 over the JCS bytes of revoke_plan",
                 )
+            if isinstance(revoke_plan.get("capability_revocations"), list):
+                changed = json.loads(json.dumps(revoke_plan))
+                changed["capability_revocations"][0]["expected_revision"]["stream_position"] += 1
+                if canonical_json(changed) == jcs:
+                    lint.fail(fixture_path, "capability expected_revision must change canonical plan bytes")
 
 
 def check_normative_clause_registry(lint: Lint) -> None:

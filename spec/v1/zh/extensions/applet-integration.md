@@ -331,17 +331,26 @@ preview MUST 从该 current effective install 精确枚举每个 active
 grant、applet-managed bot/ghost membership、widget scoped token 与 delegated session，返回 canonical
 `AppletRevokePlan`；preview outcome 不携 `revoke_plan_digest`，caller 自算
 `revoke_plan_digest = SHA-256(RFC 8785 JCS(revoke_plan))` 并填入 commit request。plan 中每个 grant 对应一条
-`ak.capability.revoke` intent；每个需要离开/移除的 managed member 对应一条 `ak.member.state` intent。
+`ak.capability.revoke` intent。每条 intent MUST 必填 `expected_revision`，并且 Station MUST 从同一个 durable
+`capability_grant` current-result snapshot 原子取得 active Grant value 与该 revision；不得把 authorization 内存索引、
+另一次 current read、GrantId、create EventId、Realm stream head 或列表 digest 拼成 authoring basis。该 revision 是 canonical
+plan 的成员，因此进入 JCS bytes 与 `revoke_plan_digest`；caller MUST 原样复制到对应 caller-signed
+`CapabilityRevokePayload.expected_revision`。每个需要离开/移除的 managed member 对应一条 `ak.member.state` intent。
 projection 不完整时 MUST fail closed 并要求先重建 projection，不得按 namespace pattern、旧 request 或
 本地默认值猜测 grant/member/token/session。
 
 Commit MUST 携 `revoke_plan_digest`、与每个 grant intent 一一对应的 caller-signed
 `capability_revoke_events: EventAdmissionSubmission[]`，以及与 membership intent 一一对应的 caller-signed
 `membership_state_events: EventAdmissionSubmission[]`。服务端必须在首个副作用前重算 plan，并逐字节验证
-Event kind、scope、registration epoch、grant/member target、membership transition 与 reason；任何遗漏、
+Event kind、scope、registration epoch、grant/member target、capability `expected_revision`、membership transition 与 reason；任何遗漏、
 多余或不匹配均 fail closed。服务端不得代签、补写或重建 Event，也不得以本地 grant row / revoked flag
 替代正式 Event admission。Event 的 canonical bytes 完成后才能派生 Event ID；不明结果与 retry 只能重放
 request 中相同的 signed Event bytes。
+
+preview 之后若任一 Grant revision 已变化，commit 重算的 plan/digest mismatch 或 Event admission 的 `cas_conflict`
+MUST 零新增领域副作用；caller MUST 重新 preview、重新取得用户确认并重签整组受影响 Event。服务端与客户端均不得把
+旧 signed Event 在线改写为新 revision。response-loss retry 只能重放原 exact request bytes；它可以返回原幂等结果，
+不能借 retry 放宽 current CAS。
 
 Commit 在首个副作用前 MUST 持久化 saga ledger：绑定
 `(principal_service_id, admin_actor_id, Idempotency-Key, canonical_request_digest,
@@ -480,8 +489,8 @@ Base URL 来自 registration 的 `base_url`。
 | `ak.self.applet.install.command.preview.v1` | self（管理员→Station） | `applet_package`; `authoring_request_basis`（唯一内嵌 caller-signed registration/grant Events） | 无 | `{plan, authoring_request}`（契约 `applet-install-authoring.schema.json`） | Station 重算 plan、限制短期 expiry 并签名；registration epoch evidence 只在 registration Event manifest，不属于 package digest / proof。 |
 | `ak.edge.applet.managed_actor.command.author.v1` | edge（客户端→Applet service） | `authoring_request` | 无 | `managed_actor_bundle` | 统一消费 `purpose=install_bot|provision_ghost`；四个 role-neutral Event 仅在 bundle 出现一次。 |
 | `ak.self.applet.command.install.v1` | self（管理员→Station） | `Idempotency-Key`; `applet_package`; `authoring_request`; 首次分支 `managed_actor_bundle` 或后续分支 `reuse_existing_managed_actor` | 无 | install / commit response 的完整 required 字段集合以 [`applet-schema.md` §1b](./applet-schema.md) 与契约 `applet-install-operations.schema.json` 为权威源 | 两分支 closed XOR；同一 applet/target PS 后续 scope install 必须复用首次 anchors。 |
-| `ak.self.applet.revoke.command.preview.v1` | self（管理员→Station） | `path.applet_id`; `effective_scope`; `reason_code`; `revoke_mode` | 无 | `revoke_plan` | 只读枚举 exact revoke intents；`revoke_plan_digest` 由 caller 自算；见 §4b。 |
-| `ak.self.applet.command.revoke.v1` | self（管理员→Station） | `header.Idempotency-Key`; `path.applet_id`; `revoke_plan_digest`; `effective_scope`; `reason_code`; `revoke_mode`; `capability_revoke_events[]`; `membership_state_events[]` | `proof?: AccountLifecycleProof` | `operation_id`; `revoke_plan_digest`; `status`; `steps[]`; `revoked_refs: AppletRevokeEffectRef[]?`; `rejected[]?` | Event effect 使用 `CommittedEventRef`；服务本地 effect 使用非 Event typed resource string；见 §4b。 |
+| `ak.self.applet.revoke.command.preview.v1` | self（管理员→Station） | `path.applet_id`; `effective_scope`; `reason_code`; `revoke_mode` | 无 | `revoke_plan` | 从同一 durable current snapshot 枚举 exact revoke intents；每个 capability intent 必填同一 Grant 的 `expected_revision`，并进入 caller 自算的 `revoke_plan_digest`；见 §4b。 |
+| `ak.self.applet.command.revoke.v1` | self（管理员→Station） | `header.Idempotency-Key`; `path.applet_id`; `revoke_plan_digest`; `effective_scope`; `reason_code`; `revoke_mode`; `capability_revoke_events[]`; `membership_state_events[]` | `proof?: AccountLifecycleProof` | `operation_id`; `revoke_plan_digest`; `status`; `steps[]`; `revoked_refs: AppletRevokeEffectRef[]?`; `rejected[]?` | 重算 plan 并逐项校验 signed revoke 的 exact revision；stale 必须重新 preview／确认／重签。Event effect 使用 `CommittedEventRef`；服务本地 effect 使用非 Event typed resource string；见 §4b。 |
 | `ak.self.applet.ghost.command.preview.v1` | self（已安装 Applet service→Station） | `path.applet_id`; `realm_id`; `external_ref` | `display_name` | `authoring_request` | PS 从 active install 派生全部 current 坐标并签发唯一 current generation；preview 有 durable winner/supersede ledger。 |
 | `ak.self.applet.ghost.command.provision.v1` | self（已安装 Applet service→Station） | `header.Idempotency-Key`; `path.applet_id`; `authoring_request`; `managed_actor_bundle` | 无 | Ghost provision outcome | commit 重验 PS proof、Applet bundle proof、`governance_station_id`、external tuple 与 active install；不接受裸四 Event body。 |
 

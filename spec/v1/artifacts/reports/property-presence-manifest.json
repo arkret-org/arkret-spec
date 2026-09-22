@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 8802,
+    "total_properties": 8803,
     "total_schema_documents": 164,
     "by_presence_class": {
       "optional": 2128,
       "optional_defaulted": 47,
-      "required": 6178,
+      "required": 6179,
       "required_nullable": 294,
       "tristate": 155
     },
@@ -2935,6 +2935,7 @@
       ],
       "properties": {
         "/$defs/applet_capability_revoke_intent/properties/event_kind": "required",
+        "/$defs/applet_capability_revoke_intent/properties/expected_revision": "required",
         "/$defs/applet_capability_revoke_intent/properties/grant_id": "required",
         "/$defs/applet_capability_revoke_intent/properties/reason_code": "required",
         "/$defs/applet_capability_revoke_intent/properties/registration_epoch": "required",
