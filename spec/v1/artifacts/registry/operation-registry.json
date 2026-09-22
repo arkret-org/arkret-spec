@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-21.6",
+  "version": "2026-09-22",
   "source_of_truth": false,
-  "generated_at": "2026-09-21T07:06:54+08:00",
+  "generated_at": "2026-09-22T08:43:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -121,6 +121,7 @@
         "ak.self.realm_state_snapshot.read.manifest_head.v1",
         "ak.self.strand.watch.read.current.v1",
         "ak.self.current_principal.read.resolve.v1",
+        "ak.self.current_results.read.exact.v1",
         "ak.self.realm.read.streams.v1"
       ],
       "surface_class": "core"
@@ -3024,6 +3025,22 @@
       "max_canonical_body_bytes": 65536
     },
     {
+      "operation_id": "ak.self.current_results.read.exact.v1",
+      "http": "POST /_arkret/self/current-results/exact",
+      "grpc": "SelfCurrentResults/ReadExact",
+      "mq": "self.current_results.query.exact",
+      "notes": "Authenticated non-enumerating read of exactly one closed Relation primary_conflict_domain or moderation_state target_ref selector from the current governing Station. The outcome binds realm_id, governance_generation, effective_stream_head and either one selector-identical present entry or an affirmative never_written selector from the same durable cut. never_written may supply expected_revision=null only for Relation create; moderation lift and Relation update/tombstone require present. Invisible, foreign, unknown and unauthorized selectors all return the same not_found and MUST NOT return never_written. Unavailable authority, incomplete coverage, timeout, stale generation, snapshot omission and holder-local history prove no absence. Consumers verify selector equality, Realm/stream binding, current governance generation and revision not ahead of the effective head before authoring; CAS conflict requires a new read, user confirmation and signature.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/exact-current-results-read.schema.json#/$defs/exact_current_results_read_request",
+      "response_schema_ref": "schemas/exact-current-results-read.schema.json#/$defs/exact_current_results_read_outcome",
+      "max_canonical_body_bytes": 65536,
+      "durable_effect": {
+        "kind": "none",
+        "rationale": "read_only_exact_current_projection_no_event_or_durable_mutation"
+      }
+    },
+    {
       "operation_id": "ak.self.device_messages.command.ack.v1",
       "http": "POST /_arkret/self/device_messages/ack",
       "grpc": "SelfDeviceMessages/Ack",
@@ -5018,6 +5035,10 @@
         },
         {
           "operation_id": "ak.self.current_principal.read.resolve.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "operation_id": "ak.self.current_results.read.exact.v1",
           "binding_kind": "http_json"
         },
         {

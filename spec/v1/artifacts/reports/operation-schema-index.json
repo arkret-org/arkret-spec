@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-21.8",
+  "version": "2026-09-22",
   "source_of_truth": false,
-  "generated_at": "2026-09-21T07:39:00+08:00",
+  "generated_at": "2026-09-22T08:43:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -6061,6 +6061,82 @@
           "resolution_projection"
         ],
         "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.current_results.read.exact.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/exact-current-results-read.schema.json#/$defs/exact_current_results_read_request",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "selector"
+        ],
+        "properties": [
+          "realm_id",
+          "selector"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/exact-current-results-read.schema.json#/$defs/exact_current_results_read_outcome",
+        "schema_kind": "oneOf",
+        "required": [
+          "status",
+          "realm_id",
+          "governance_generation",
+          "effective_stream_head"
+        ],
+        "properties": [
+          "status",
+          "realm_id",
+          "governance_generation",
+          "effective_stream_head",
+          "entry",
+          "selector"
+        ],
+        "closed": true,
+        "variants": [
+          {
+            "schema_ref": "schemas/exact-current-results-read.schema.json#/$defs/exact_current_result_present",
+            "schema_kind": "object",
+            "required": [
+              "status",
+              "realm_id",
+              "governance_generation",
+              "effective_stream_head",
+              "entry"
+            ],
+            "properties": [
+              "status",
+              "realm_id",
+              "governance_generation",
+              "effective_stream_head",
+              "entry"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/exact-current-results-read.schema.json#/$defs/exact_current_result_never_written",
+            "schema_kind": "object",
+            "required": [
+              "status",
+              "realm_id",
+              "governance_generation",
+              "effective_stream_head",
+              "selector"
+            ],
+            "properties": [
+              "status",
+              "realm_id",
+              "governance_generation",
+              "effective_stream_head",
+              "selector"
+            ],
+            "closed": true
+          }
+        ]
       }
     },
     {

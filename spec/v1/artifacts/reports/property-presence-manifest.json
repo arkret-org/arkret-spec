@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 8786,
-    "total_schema_documents": 163,
+    "total_properties": 8802,
+    "total_schema_documents": 164,
     "by_presence_class": {
       "optional": 2128,
       "optional_defaulted": 47,
-      "required": 6162,
+      "required": 6178,
       "required_nullable": 294,
       "tristate": 155
     },
@@ -6620,6 +6620,29 @@
         "/$defs/space_patch_payload/properties/child_scope_policy",
         "/$defs/space_patch_payload/properties/patch"
       ]
+    },
+    "exact-current-results-read.schema.json": {
+      "schema_ids": [
+        "ak.schema.exact_current_results_read.v1"
+      ],
+      "properties": {
+        "/$defs/exact_current_result_never_written/properties/effective_stream_head": "required",
+        "/$defs/exact_current_result_never_written/properties/governance_generation": "required",
+        "/$defs/exact_current_result_never_written/properties/realm_id": "required",
+        "/$defs/exact_current_result_never_written/properties/selector": "required",
+        "/$defs/exact_current_result_never_written/properties/status": "required",
+        "/$defs/exact_current_result_present/properties/effective_stream_head": "required",
+        "/$defs/exact_current_result_present/properties/entry": "required",
+        "/$defs/exact_current_result_present/properties/governance_generation": "required",
+        "/$defs/exact_current_result_present/properties/realm_id": "required",
+        "/$defs/exact_current_result_present/properties/status": "required",
+        "/$defs/exact_current_results_read_request/properties/realm_id": "required",
+        "/$defs/exact_current_results_read_request/properties/selector": "required",
+        "/$defs/moderation_state_exact_current_selector/properties/kind": "required",
+        "/$defs/moderation_state_exact_current_selector/properties/target_ref": "required",
+        "/$defs/relation_exact_current_selector/properties/kind": "required",
+        "/$defs/relation_exact_current_selector/properties/primary_conflict_domain": "required"
+      }
     },
     "extension-manifest.schema.json": {
       "schema_ids": [

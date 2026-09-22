@@ -207,6 +207,16 @@ viewer、profile、account subscribe 与 cursor revoke 只作用于已认证账�
 
 Event 状态只区分本地 queued/forwarding 与 authority 的 committed/rejected。领域 current result 由治理 Station 按 commit 顺序执行对应 typed reducer 产生，并带来源 `commit_id`、`stream_ref`、`stream_position` 和领域 revision。客户端不得从 timeline 最后一个同 kind Event 推测 current result。
 
+`ak.self.current_results.read.exact.v1` 是 authenticated、非枚举的 exact-current 入口。请求只允许
+`relation {primary_conflict_domain}` 与 `moderation_state {target_ref}` 两种封闭 selector；响应把
+`realm_id`、当前 `governance_generation`、该 selector 的 `effective_stream_head` 与同一 durable cut 的
+`present {entry}` 或 `never_written {selector}` 绑定。`entry` 必须是正式 `relation_result` 或
+`moderation_state_result`，并携 exact `CurrentRevision`。权限不足、不可见、外 Realm 与未知 selector
+统一返回 `not_found`，不得用 `never_written` 泄漏存在性；authority/current basis 暂时不可确认时返回
+`revision_unavailable`。snapshot omission、本地 raw Event 顺序、超时或旧 generation 都不证明 never-written。
+`never_written` 只允许 Relation create 据此签 `expected_revision=null`；Relation update/tombstone 与
+moderation lift 必须取得 `present`。任何 CAS 冲突都要求重新读取、重新确认并重签，不能静默复用旧 Event bytes。
+
 ### 5.4 明文与服务信任
 
 MLS 未激活的 scope 是明文 scope，治理 Station可见内容；这必须向用户披露。MLS 激活后治理 Station仍可见 sender、scope、时间、大小、routing 和 group churn，但不持有 group secret。Directory、Push 与未授权投影服务不得接收正文。

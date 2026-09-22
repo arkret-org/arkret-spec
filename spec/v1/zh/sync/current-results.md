@@ -160,6 +160,12 @@ membership 为 `join` 才满足 gate（[`../governance/join-policy.md` §4](../g
   create/update/tombstone 都写同一 domain subject并由 payload 的 exact `expected_revision` CAS；
   relation identity 字段 create-lock，改变 domain 必须 tombstone 旧值后 create 新值（见
   [`../models/relation.md` §6](../models/relation.md)）。这些族与 `strand`、`view` 是同一对象 current-value 形态。
+  需要给 producer 取得该 exact revision 时，只能调用
+  `ak.self.current_results.read.exact.v1`：它以 closed `primary_conflict_domain` 或 moderation `target_ref`
+  读取一个 selector，并在同一 durable cut 返回当前治理任期、effective stream head 与 selector-identical
+  `present` entry／获授权 `never_written`。`never_written` 只为 Relation create 的 null CAS 开口；Relation
+  update/tombstone 与 moderation lift 必须消费 `present.revision`。权限不足、不可见、未知或跨 Realm 统一
+  `not_found`，不得通过 absence 分支枚举状态；generation/head/selector 不匹配一律 fail closed；
   带物理 lifecycle 的五族（`circle` / `morph` / `relation` / `space` /
   `strand`）的 `state` 成员**只由**专用 `ak.<kind>.archive` / `.restore` / `.tombstone` 写入，
   reducer 按 [`../models/common-fields.md` §5.2](../models/common-fields.md) 的 kind → state 映射

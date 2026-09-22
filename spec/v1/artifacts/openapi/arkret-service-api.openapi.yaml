@@ -617,6 +617,10 @@ components:
       $ref: ../schemas/committed-event-subscribe-frame.schema.json
     EventView:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/CommittedEventView
+    ExactCurrentResultsReadOutcome:
+      $ref: ../schemas/exact-current-results-read.schema.json#/$defs/exact_current_results_read_outcome
+    ExactCurrentResultsReadRequestBody:
+      $ref: ../schemas/exact-current-results-read.schema.json#/$defs/exact_current_results_read_request
     FieldFilter:
       $ref: ../schemas/query.schema.json#/$defs/field_filter
     GhostActorProvisionOutcome:
@@ -4861,6 +4865,43 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CurrentPrincipalOutcome'
+  /_arkret/self/current-results/exact:
+    post:
+      operationId: ak.self.current_results.read.exact
+      summary: Read one exact Relation or moderation current result.
+      description: >-
+        The authenticated caller selects one closed Relation primary conflict domain or
+        moderation target. The current governing Station answers from one durable cut with
+        the current governance generation and effective stream head. Unauthorized, invisible,
+        foreign and unknown selectors are indistinguishable not_found outcomes and never
+        produce never_written.
+      security:
+      - sessionGrantAuth: []
+        dpopProof: []
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.self.current_results.read.exact.v1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExactCurrentResultsReadRequestBody'
+      responses:
+        '200':
+          description: Selector-identical present entry or authorized same-cut never-written result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExactCurrentResultsReadOutcome'
   /_arkret/self/media-service-bindings/query:
     post:
       operationId: ak.self.media_service_binding.read.resolve

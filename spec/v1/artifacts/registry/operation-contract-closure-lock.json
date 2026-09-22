@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-21.10",
-  "generated_at": "2026-09-21T07:39:02+08:00",
+  "version": "2026-09-21.12",
+  "generated_at": "2026-09-21T07:39:04+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -614,6 +614,10 @@
     {
       "operation_id": "ak.self.current_principal.read.resolve.v1",
       "sha256": "sha256:c72c3d0c84e88ccac8e5ff0217dd65262a334db488c11d2ef7ca3986402ca851"
+    },
+    {
+      "operation_id": "ak.self.current_results.read.exact.v1",
+      "sha256": "sha256:f8ebd5085ef1be87d7505093a8eaa48d56d5968c9847663bafc6ba355c6a6cb9"
     },
     {
       "operation_id": "ak.self.device_messages.command.ack.v1",

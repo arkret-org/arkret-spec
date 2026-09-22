@@ -1,0 +1,160 @@
+{
+  "fixture_id": "ak.fixture.exact_current_results_read.v1",
+  "version": "2026-09-22",
+  "suite": "exact_current_results_read",
+  "fixture_kind": "schema_only",
+  "spec_anchor": "spec/v1/zh/sync/current-results.md",
+  "source_refs": [
+    "spec/v1/artifacts/schemas/exact-current-results-read.schema.json",
+    "spec/v1/zh/sync/current-results.md",
+    "spec/v1/zh/sync/service-surface.md"
+  ],
+  "runner": {
+    "kind": "json_schema_validation_cases",
+    "schema_dialect": "https://json-schema.org/draft/2020-12/schema",
+    "assertion_fields": [
+      "schema_ref",
+      "expect_valid",
+      "instance"
+    ]
+  },
+  "description": "Closed exact-current read cases for Relation primary-domain and moderation-target selectors. All outcomes bind one Realm, governing generation and effective stream head; invalid cases must fail before a caller can treat local state as current authority.",
+  "schema_ref": "schemas/exact-current-results-read.schema.json",
+  "request": {
+    "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+    "selector": {
+      "kind": "relation",
+      "primary_conflict_domain": {
+        "domain_kind": "tuple",
+        "relation_kind": "assigned_to",
+        "from_ref": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+        "to_ref": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:web:alice.example",
+            "station_id": "ak:did_core:web:station.example"
+          }
+        }
+      }
+    }
+  },
+  "valid_outcomes": [
+    {
+      "name": "authorized_relation_never_written",
+      "value": {
+        "status": "never_written",
+        "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+        "governance_generation": 4,
+        "effective_stream_head": {
+          "stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+          },
+          "stream_position": 12,
+          "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
+        },
+        "selector": {
+          "kind": "relation",
+          "primary_conflict_domain": {
+            "domain_kind": "tuple",
+            "relation_kind": "assigned_to",
+            "from_ref": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+            "to_ref": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:web:alice.example",
+                "station_id": "ak:did_core:web:station.example"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "authorized_moderation_present",
+      "value": {
+        "status": "present",
+        "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+        "governance_generation": 4,
+        "effective_stream_head": {
+          "stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+          },
+          "stream_position": 12,
+          "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
+        },
+        "entry": {
+          "selector": {
+            "kind": "moderation_state",
+            "target_ref": "ak:message:Abz8ZrG1_9zdkxN9VA-u0IBsaEOpJkC71uo1V6fZ72VY"
+          },
+          "revision": {
+            "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq",
+            "stream_position": 12
+          },
+          "value": {
+            "assertions": [
+              {
+                "tag_id": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD:0",
+                "value": {
+                  "target_ref": "ak:message:Abz8ZrG1_9zdkxN9VA-u0IBsaEOpJkC71uo1V6fZ72VY",
+                  "decision": "quarantine",
+                  "issuer_id": "ak:did_core:web:moderator.example",
+                  "request_canonical_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "schema_validation_cases": [
+    {
+      "name": "moderation_never_written_is_not_a_schema_outcome",
+      "schema_ref": "schemas/exact-current-results-read.schema.json#/$defs/exact_current_results_read_outcome",
+      "expect_valid": false,
+      "first_expected_error": "contains:not valid under any of the given schemas",
+      "instance": {
+        "status": "never_written",
+        "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+        "governance_generation": 4,
+        "effective_stream_head": {
+          "stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+          },
+          "stream_position": 12,
+          "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
+        },
+        "selector": {
+          "kind": "moderation_state",
+          "target_ref": "ak:message:Abz8ZrG1_9zdkxN9VA-u0IBsaEOpJkC71uo1V6fZ72VY"
+        }
+      }
+    }
+  ],
+  "runtime_rejections": [
+    {
+      "name": "different_selector",
+      "reason": "response selector must byte-match the requested closed selector"
+    },
+    {
+      "name": "different_realm_or_stream",
+      "reason": "response Realm and effective stream head must belong to the requested Realm"
+    },
+    {
+      "name": "revision_ahead_of_effective_head",
+      "reason": "present revision cannot be newer than the same-cut effective stream head"
+    },
+    {
+      "name": "stale_governance_generation",
+      "reason": "consumer must verify the returned generation against current governing-Station state"
+    },
+    {
+      "name": "unauthorized_or_invisible_selector",
+      "reason": "returns indistinguishable not_found, never never_written"
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-21.1",
+  "version": "2026-09-22",
   "source_of_truth": false,
-  "generated_at": "2026-09-21T07:39:00+08:00",
+  "generated_at": "2026-09-22T08:43:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -721,6 +721,12 @@
     {
       "schema_id": "ak.schema.event_payload.v1",
       "file": "schemas/event-payload.schema.json"
+    },
+    {
+      "schema_id": "ak.schema.exact_current_results_read.v1",
+      "file": "schemas/exact-current-results-read.schema.json",
+      "status": "active",
+      "description": "Closed authenticated request/outcome carrier for one exact Relation primary-domain or moderation-target current result at a governing-Station durable cut."
     },
     {
       "schema_id": "ak.schema.committed_event_subscribe_frame.v1",

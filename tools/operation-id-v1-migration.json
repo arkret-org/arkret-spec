@@ -608,6 +608,10 @@
       "new": "ak.self.current_principal.read.resolve.v1"
     },
     {
+      "old": "ak.self.current_results.read.exact",
+      "new": "ak.self.current_results.read.exact.v1"
+    },
+    {
       "old": "ak.self.device_messages.command.ack",
       "new": "ak.self.device_messages.command.ack.v1"
     },

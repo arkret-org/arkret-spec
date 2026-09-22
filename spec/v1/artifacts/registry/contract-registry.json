@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-21.8",
+  "version": "2026-09-22",
   "source_of_truth": true,
-  "generated_at": "2026-09-21T07:39:00+08:00",
+  "generated_at": "2026-09-22T08:43:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -9521,6 +9521,12 @@
         "file": "schemas/event-payload.schema.json"
       },
       {
+        "schema_id": "ak.schema.exact_current_results_read.v1",
+        "file": "schemas/exact-current-results-read.schema.json",
+        "status": "active",
+        "description": "Closed authenticated request/outcome carrier for one exact Relation primary-domain or moderation-target current result at a governing-Station durable cut."
+      },
+      {
         "schema_id": "ak.schema.committed_event_subscribe_frame.v1",
         "file": "schemas/committed-event-subscribe-frame.schema.json",
         "status": "active",
@@ -10537,8 +10543,8 @@
         "description": "Server authentication-success frame carrying effective connection and channel limits."
       }
     ],
-    "version": "2026-09-21.1",
-    "generated_at": "2026-09-21T07:39:00+08:00",
+    "version": "2026-09-22",
+    "generated_at": "2026-09-22T08:43:00+08:00",
     "metadata_authority": "contract_registry_section"
   },
   "id_kind_registry": {
@@ -12122,6 +12128,7 @@
           "ak.self.realm_state_snapshot.read.manifest_head.v1",
           "ak.self.strand.watch.read.current.v1",
           "ak.self.current_principal.read.resolve.v1",
+          "ak.self.current_results.read.exact.v1",
           "ak.self.realm.read.streams.v1"
         ],
         "surface_class": "core"
@@ -15025,6 +15032,22 @@
         "max_canonical_body_bytes": 65536
       },
       {
+        "operation_id": "ak.self.current_results.read.exact.v1",
+        "http": "POST /_arkret/self/current-results/exact",
+        "grpc": "SelfCurrentResults/ReadExact",
+        "mq": "self.current_results.query.exact",
+        "notes": "Authenticated non-enumerating read of exactly one closed Relation primary_conflict_domain or moderation_state target_ref selector from the current governing Station. The outcome binds realm_id, governance_generation, effective_stream_head and either one selector-identical present entry or an affirmative never_written selector from the same durable cut. never_written may supply expected_revision=null only for Relation create; moderation lift and Relation update/tombstone require present. Invisible, foreign, unknown and unauthorized selectors all return the same not_found and MUST NOT return never_written. Unavailable authority, incomplete coverage, timeout, stale generation, snapshot omission and holder-local history prove no absence. Consumers verify selector equality, Realm/stream binding, current governance generation and revision not ahead of the effective head before authoring; CAS conflict requires a new read, user confirmation and signature.",
+        "body_class": "non_streaming_json",
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/exact-current-results-read.schema.json#/$defs/exact_current_results_read_request",
+        "response_schema_ref": "schemas/exact-current-results-read.schema.json#/$defs/exact_current_results_read_outcome",
+        "max_canonical_body_bytes": 65536,
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "read_only_exact_current_projection_no_event_or_durable_mutation"
+        }
+      },
+      {
         "operation_id": "ak.self.device_messages.command.ack.v1",
         "http": "POST /_arkret/self/device_messages/ack",
         "grpc": "SelfDeviceMessages/Ack",
@@ -16106,8 +16129,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-21.6",
-    "generated_at": "2026-09-21T07:06:54+08:00",
+    "version": "2026-09-22",
+    "generated_at": "2026-09-22T08:43:00+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",
@@ -17021,6 +17044,10 @@
           },
           {
             "operation_id": "ak.self.current_principal.read.resolve.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.self.current_results.read.exact.v1",
             "binding_kind": "http_json"
           },
           {

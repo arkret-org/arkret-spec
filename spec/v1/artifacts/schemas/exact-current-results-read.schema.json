@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/exact-current-results-read.schema.json",
+  "title": "Arkret Exact Current Results Read",
+  "description": "Closed authenticated self read for the exact Relation primary-domain or moderation-target current result at one governing-Station durable cut. It is non-enumerating and does not make a local projection authoritative.",
+  "oneOf": [
+    { "$ref": "#/$defs/exact_current_results_read_request" },
+    { "$ref": "#/$defs/exact_current_results_read_outcome" }
+  ],
+  "$defs": {
+    "exact_current_result_selector": {
+      "oneOf": [
+        { "$ref": "#/$defs/relation_exact_current_selector" },
+        { "$ref": "#/$defs/moderation_state_exact_current_selector" }
+      ]
+    },
+    "relation_exact_current_selector": {
+      "type": "object",
+      "required": ["kind", "primary_conflict_domain"],
+      "properties": {
+        "kind": { "const": "relation" },
+        "primary_conflict_domain": {
+          "$ref": "./relation.schema.json#/$defs/relation_primary_conflict_domain"
+        }
+      },
+      "additionalProperties": false
+    },
+    "moderation_state_exact_current_selector": {
+      "type": "object",
+      "required": ["kind", "target_ref"],
+      "properties": {
+        "kind": { "const": "moderation_state" },
+        "target_ref": {
+          "$ref": "./event-payload.schema.json#/$defs/object_ref"
+        }
+      },
+      "additionalProperties": false
+    },
+    "exact_current_results_read_request": {
+      "type": "object",
+      "description": "One exact, non-enumerating selector in one Realm. The caller cannot supply a revision, stream or governance Station.",
+      "required": ["realm_id", "selector"],
+      "properties": {
+        "realm_id": { "$ref": "./common-ids.schema.json#/$defs/realm_id" },
+        "selector": { "$ref": "#/$defs/exact_current_result_selector" }
+      },
+      "additionalProperties": false
+    },
+    "exact_current_result_entry": {
+      "oneOf": [
+        { "$ref": "./typed-current-result.schema.json#/$defs/relation_result" },
+        { "$ref": "./typed-current-result.schema.json#/$defs/moderation_state_result" }
+      ]
+    },
+    "exact_current_results_read_outcome": {
+      "description": "One authorized same-cut answer. never_written is an affirmative Station result, never an inference from omission, timeout or invisibility.",
+      "oneOf": [
+        { "$ref": "#/$defs/exact_current_result_present" },
+        { "$ref": "#/$defs/exact_current_result_never_written" }
+      ]
+    },
+    "exact_current_result_present": {
+      "type": "object",
+      "required": [
+        "status",
+        "realm_id",
+        "governance_generation",
+        "effective_stream_head",
+        "entry"
+      ],
+      "properties": {
+        "status": { "const": "present" },
+        "realm_id": { "$ref": "./common-ids.schema.json#/$defs/realm_id" },
+        "governance_generation": { "type": "integer", "minimum": 0 },
+        "effective_stream_head": {
+          "$ref": "./realm-commit.schema.json#/$defs/stream_head"
+        },
+        "entry": { "$ref": "#/$defs/exact_current_result_entry" }
+      },
+      "additionalProperties": false
+    },
+    "exact_current_result_never_written": {
+      "type": "object",
+      "required": [
+        "status",
+        "realm_id",
+        "governance_generation",
+        "effective_stream_head",
+        "selector"
+      ],
+      "properties": {
+        "status": { "const": "never_written" },
+        "realm_id": { "$ref": "./common-ids.schema.json#/$defs/realm_id" },
+        "governance_generation": { "type": "integer", "minimum": 0 },
+        "effective_stream_head": {
+          "$ref": "./realm-commit.schema.json#/$defs/stream_head"
+        },
+        "selector": { "$ref": "#/$defs/relation_exact_current_selector" }
+      },
+      "additionalProperties": false
+    }
+  }
+}
