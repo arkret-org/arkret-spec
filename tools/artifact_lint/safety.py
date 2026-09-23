@@ -367,16 +367,19 @@ def check_operations_error_mapping_closure(lint: Lint) -> None:
     op_registry_path = ARTIFACTS / "registry" / "operation-registry.json"
     op_registry = load_json(lint, op_registry_path)
     if isinstance(op_registry, dict) and isinstance(operations, list):
-        registry_ids = {
-            row.get("operation_id")
+        registry_http = {
+            row["operation_id"]: row.get("http")
             for row in op_registry.get("operations", [])
             if isinstance(row, dict) and isinstance(row.get("operation_id"), str)
         }
+        registry_ids = set(registry_http)
         mapping_counts: dict[str, int] = {}
         for row in operations:
             if isinstance(row, dict) and isinstance(row.get("operation_id"), str):
                 op_id = row["operation_id"]
                 mapping_counts[op_id] = mapping_counts.get(op_id, 0) + 1
+                if op_id in registry_http and row.get("http_alias") != registry_http[op_id]:
+                    lint.fail(mapping_path, f"operations[] http_alias differs from operation-registry.json for {op_id!r}")
         for op_id in sorted(registry_ids):
             count = mapping_counts.get(op_id, 0)
             if count == 0:
