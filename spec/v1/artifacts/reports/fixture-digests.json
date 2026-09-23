@@ -287,8 +287,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/key-backup-hardening-fixture.json",
-      "sha256": "513dbfa21d98ec81b7c37980d2fc15835a5828beff2c85eafc60547eb1213fcb",
-      "version": "2026-09-24.3"
+      "sha256": "5b4ab7d313336f72f9cf96526537954f8b3d4f9bd40ae54eb62e2115fa13e744",
+      "version": "2026-09-24.4"
     },
     {
       "path": "spec/v1/artifacts/fixtures/key-transparency-fixture.json",

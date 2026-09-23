@@ -1015,7 +1015,14 @@ v1 的 `backup_kind` 固定为 `secret_storage`。它可使用 `passphrase_kdf`�
 
 #### 7.5.1 `passphrase_kdf`
 
-参考 §7.2：Argon2id（或显式 degraded PBKDF2）派生 root key，HKDF 派生 `commitment_key` 与 `nonce_key`，AEAD AAD 覆盖全部 envelope metadata。`passphrase_kdf` 仅用于 `secret_storage` envelope。它不得解锁或封装 MLS state、epoch/exporter secret、sender counter、leaf key或 pending Welcome。
+参考 §7.2：Argon2id（或显式 degraded PBKDF2）派生 root key，HKDF 派生 `commitment_key` 与 `nonce_key`，AEAD AAD 使用 §7.2 唯一构造。`passphrase_kdf` 仅用于 `secret_storage` envelope。它不得解锁或封装 MLS state、epoch/exporter secret、sender counter、leaf key或 pending Welcome。
+
+`passphrase_kdf` 的逐字节合同固定如下，sealer/opener MUST 从 envelope 的实际 `kdf` 参数执行，MUST NOT 使用本地默认参数代替 wire 参数：
+
+1. passphrase 输入是用户提交字符串的 UTF-8 bytes，不做 Unicode normalization、trim、大小写折叠或隐式编码转换。`kdf.salt` 是无 padding 的 canonical base64url，解码后恰好 16 bytes。Argon2id 使用 RFC 9106 的 version `0x13`、wire `memory_kib`/`iterations`/`parallelism`、32-byte raw output；PBKDF2 使用 wire `digest_algorithm` 指定的 HMAC-SHA256/SHA384/SHA512、wire `iterations`、32-byte raw output。参数 floor 仍由 schema 约束；Argon2id 不得携 PBKDF2 专属字段，PBKDF2 不得携 Argon2id 专属字段。
+2. 上述 32 bytes 是 `root_key`。所有下游 subkey 使用 HKDF-SHA256，`salt` 缺省（等价于 32 个零 byte 的 Extract salt），`IKM=root_key`，Expand 输出恰好 32 bytes。AEAD key 的 UTF-8 `info` 是 §7.2 的 `arkret-key-backup/secret_storage/<subdomain>/v1`；`commitment_key` 的 `info` 是 `arkret-key-backup/secret_storage/commitment/v1`；`nonce_key` 的 `info` 是 `arkret-key-backup-aead-nonce-v1`。
+3. `key_commitment` 的 digest 是 `SHA-256(commitment_key 的原始 32 bytes)`，wire 表示为 `sha256:` 加 64 个小写十六进制字符；不得 hash UTF-8 hex 或 base64url 表示，也不得选 `blake3`。先核对 commitment 再解密，错误必须拒绝。
+4. `passphrase_kdf` 对称加密只用 XChaCha20-Poly1305，32-byte key、24-byte nonce、16-byte tag；ciphertext 字段是 `plaintext` 经 §7.2 AAD 加密后的 `ciphertext || tag` 的无 padding canonical base64url。`nonce_salt` 解码后至少 16 bytes，producer 每条新 envelope 随机生成；nonce 转录固定为 `RFC8785_JCS({backup_id,actor_id,device_id,backup_kind,backup_version,created_at,aead:"xchacha20_poly1305",aead_profile:"ak.aead.xchacha20_poly1305.v1",nonce_salt})`，其中 `device_id` 缺席时仍为 JSON `null`，`created_at` 采用 canonical timestamp，`aead_profile` 缺席时仍取该 effective 默认值。`nonce=HMAC-SHA256(nonce_key,转录)[0:24]`，receiver 必须逐字节重算并比较。AEAD AAD 仅由 §7.2 构造，不额外加入 nonce 转录成员。
 
 **与 recovery secret 的关系（normative）**：内容恢复的标准用户凭证是 §3.3 recovery secret；它经固定域派生 backup-HPKE key。实现 SHOULD NOT 引入独立 vault 口令作为标准凭证。
 

@@ -231,9 +231,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-09-24.3",
-      "generated_at": "2026-09-24T00:50:01+08:00",
-      "content_digest": "sha256:7bc9f5e0fe12aeb5898a2f3d9c06546a2df52312ef554bcaf25839fae439ea13"
+      "version": "2026-09-24.5",
+      "generated_at": "2026-09-24T03:58:40+08:00",
+      "content_digest": "sha256:777bb3f2f4986aed6d1e0580cd93169e5e0d17844ba979746c2ada87cf2bf500"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
@@ -369,9 +369,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/vector-registry.json",
-      "version": "2026-09-23.7",
-      "generated_at": "2026-09-23T22:27:30+08:00",
-      "content_digest": "sha256:7ad724e5c6b4c0d97efbc12761ea98a954d06a7b8d2f33345592826eb29548ce"
+      "version": "2026-09-24.1",
+      "generated_at": "2026-09-24T03:58:40+08:00",
+      "content_digest": "sha256:ca49111acd95628db8590bb2b05f81eec57c24b4b3eebf6b83e278a7a86c9f7f"
     },
     {
       "path": "tools/artifact-anchor-fragment-exemptions.json",

@@ -161,7 +161,8 @@
             },
             "salt": {
               "type": "string",
-              "pattern": "^[A-Za-z0-9_-]+$"
+              "pattern": "^[A-Za-z0-9_-]{22}$",
+              "description": "Canonical unpadded base64url of exactly 16 KDF salt bytes; decoders MUST check the decoded length and canonical re-encoding."
             },
             "params": {
               "type": "object",
@@ -217,6 +218,11 @@
                 "required": [
                   "params"
                 ],
+                "not": {
+                  "required": [
+                    "degraded_profile_reason"
+                  ]
+                },
                 "properties": {
                   "params": {
                     "required": [
@@ -224,6 +230,11 @@
                       "iterations",
                       "parallelism"
                     ],
+                    "not": {
+                      "required": [
+                        "digest_algorithm"
+                      ]
+                    },
                     "properties": {
                       "memory_kib": {
                         "type": "integer",
@@ -264,6 +275,12 @@
                       "iterations",
                       "digest_algorithm"
                     ],
+                    "not": {
+                      "anyOf": [
+                        { "required": ["memory_kib"] },
+                        { "required": ["parallelism"] }
+                      ]
+                    },
                     "properties": {
                       "iterations": {
                         "type": "integer",
@@ -311,7 +328,7 @@
             "nonce": {
               "type": "string",
               "pattern": "^[A-Za-z0-9_-]+$",
-              "description": "base64url AEAD nonce. Required for the symmetric methods (passphrase_kdf / secret_storage_key). For recipient_method=passphrase_kdf this MUST equal HMAC-SHA256(HKDF(derived_key, info='arkret-key-backup-aead-nonce-v1'), canonical_json({backup_id, actor_id, device_id, backup_kind, backup_version, created_at, aead.name, aead.aead_profile?, aead.nonce_salt}))[0:N_AEAD]; receivers recompute and reject mismatches. Absent for recovery_public_key (HPKE derives its nonce internally)."
+              "description": "base64url AEAD nonce. Required for the symmetric methods (passphrase_kdf / secret_storage_key). For passphrase_kdf this is HMAC-SHA256(nonce_key, the exact §7.5.1 JCS nonce transcript)[0:24]; an absent aead_profile uses the effective XChaCha20-Poly1305 v1 profile in that transcript. Receivers recompute and reject mismatches. Absent for recovery_public_key (HPKE derives its nonce internally)."
             },
             "nonce_salt": {
               "type": "string",
@@ -345,14 +362,32 @@
           },
           "then": {
             "required": [
-              "kdf"
+              "kdf",
+              "key_commitment"
             ],
             "properties": {
               "aead": {
                 "required": [
                   "nonce",
                   "nonce_salt"
-                ]
+                ],
+                "properties": {
+                  "name": {
+                    "const": "xchacha20_poly1305"
+                  },
+                  "nonce": {
+                    "pattern": "^[A-Za-z0-9_-]{32}$"
+                  },
+                  "nonce_salt": {
+                    "pattern": "^[A-Za-z0-9_-]{22,128}$"
+                  },
+                  "aead_profile": {
+                    "const": "ak.aead.xchacha20_poly1305.v1"
+                  }
+                }
+              },
+              "key_commitment": {
+                "pattern": "^sha256:[0-9a-f]{64}$"
               }
             }
           }

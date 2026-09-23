@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.e2ee_client.v1",
-  "version": "2026-09-24.3",
+  "version": "2026-09-24.4",
   "suite": "key_backup_hardening",
   "runner": {
     "kind": "named_suite",
@@ -38,7 +38,7 @@
           "recipient_method": "passphrase_kdf",
           "kdf": {
             "name": "argon2id",
-            "salt": "c2FsdC1hcmdvbjJpZC1mbG9vcg",
+            "salt": "MDEyMzQ1Njc4OWFiY2RlZg",
             "params": {
               "memory_kib": 65536,
               "iterations": 3,
@@ -47,8 +47,8 @@
           },
           "aead": {
             "name": "xchacha20_poly1305",
-            "nonce": "bm9uY2UtYXJnb24yLWZsb29y",
-            "nonce_salt": "bm9uY2Utc2FsdC1hcmdvbjJpZA"
+            "nonce": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+            "nonce_salt": "MDEyMzQ1Njc4OWFiY2RlZg"
           },
           "key_commitment": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         },
@@ -57,7 +57,7 @@
           "recipient_method": "passphrase_kdf",
           "kdf": {
             "name": "pbkdf2",
-            "salt": "c2FsdC1wYmtkZjItZmxvb3I",
+            "salt": "MDEyMzQ1Njc4OWFiY2RlZg",
             "params": {
               "iterations": 600000,
               "digest_algorithm": "sha512"
@@ -66,8 +66,8 @@
           },
           "aead": {
             "name": "xchacha20_poly1305",
-            "nonce": "bm9uY2UtcGJrZGYyLWZsb29y",
-            "nonce_salt": "bm9uY2Utc2FsdC1wYmtkZjI"
+            "nonce": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+            "nonce_salt": "MDEyMzQ1Njc4OWFiY2RlZg"
           },
           "key_commitment": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
         }
@@ -78,7 +78,7 @@
           "recipient_method": "passphrase_kdf",
           "kdf": {
             "name": "argon2id",
-            "salt": "c2FsdC1sb3ctbWVtb3J5",
+            "salt": "MDEyMzQ1Njc4OWFiY2RlZg",
             "params": {
               "memory_kib": 32768,
               "iterations": 3,
@@ -87,8 +87,8 @@
           },
           "aead": {
             "name": "xchacha20_poly1305",
-            "nonce": "bm9uY2UtbG93LW1lbW9yeQ",
-            "nonce_salt": "bm9uY2Utc2FsdC1sb3dtZW0"
+            "nonce": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+            "nonce_salt": "MDEyMzQ1Njc4OWFiY2RlZg"
           },
           "key_commitment": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
         },
@@ -97,7 +97,7 @@
           "recipient_method": "passphrase_kdf",
           "kdf": {
             "name": "pbkdf2",
-            "salt": "c2FsdC1sb3ctaXRlcnM",
+            "salt": "MDEyMzQ1Njc4OWFiY2RlZg",
             "params": {
               "iterations": 310000,
               "digest_algorithm": "sha256"
@@ -106,8 +106,8 @@
           },
           "aead": {
             "name": "xchacha20_poly1305",
-            "nonce": "bm9uY2UtbG93LWl0ZXJz",
-            "nonce_salt": "bm9uY2Utc2FsdC1sb3dpdA"
+            "nonce": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+            "nonce_salt": "MDEyMzQ1Njc4OWFiY2RlZg"
           },
           "key_commitment": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
         },
@@ -116,7 +116,7 @@
           "recipient_method": "passphrase_kdf",
           "kdf": {
             "name": "pbkdf2",
-            "salt": "c2FsdC1oYXNoLWZpZWxk",
+            "salt": "MDEyMzQ1Njc4OWFiY2RlZg",
             "params": {
               "iterations": 600000,
               "hash": "sha512"
@@ -125,8 +125,8 @@
           },
           "aead": {
             "name": "xchacha20_poly1305",
-            "nonce": "bm9uY2UtaGFzaC1maWVsZA",
-            "nonce_salt": "bm9uY2Utc2FsdC1oYXNo"
+            "nonce": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+            "nonce_salt": "MDEyMzQ1Njc4OWFiY2RlZg"
           },
           "key_commitment": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
         }
@@ -297,6 +297,87 @@
         "ordinary current-device proof, non-tail single deletion, insufficient quorum, and expired or consumed recovery sessions fail closed",
         "backup_id, reason, audience, and nonce are bound into the canonical delete-intent transcript",
         "a byte-identical retry returns the stored terminal outcome without re-admitting the consumed challenge"
+      ]
+    },
+    {
+      "name": "passphrase_kdf_kat",
+      "vector_id": "ak.vector.key_backup.passphrase_kdf_kat.v1",
+      "kind": "passphrase_kdf_crypto",
+      "passphrase_utf8": "correct horse battery staple",
+      "binding": {
+        "backup_id": "ak:backup:01964137-0000-7000-8000-000000000000",
+        "actor_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixture",
+            "station_id": "ak:did_core:web:station.example"
+          }
+        },
+        "device_id": null,
+        "backup_kind": "secret_storage",
+        "backup_version": "kb_1",
+        "created_at": "2026-08-24T00:00:00.000Z",
+        "subdomain": "recovery_vault",
+        "item_kinds": [
+          "private_account_state"
+        ],
+        "recipient_method": "passphrase_kdf"
+      },
+      "salt_b64u": "AAECAwQFBgcICQoLDA0ODw",
+      "nonce_salt_b64u": "EBESExQVFhcYGRobHB0eHw",
+      "aad_canonical_json": "{\"actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:web:station.example\"},\"kind\":\"account\"},\"backup_kind\":\"secret_storage\",\"backup_version\":\"kb_1\",\"created_at\":\"2026-08-24T00:00:00.000Z\",\"device_id\":null,\"item_kinds\":[\"private_account_state\"],\"recipient_method\":\"passphrase_kdf\",\"schema\":\"ak.schema.key_backup.v1\"}",
+      "nonce_transcript_canonical_json": "{\"actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:web:station.example\"},\"kind\":\"account\"},\"aead\":\"xchacha20_poly1305\",\"aead_profile\":\"ak.aead.xchacha20_poly1305.v1\",\"backup_id\":\"ak:backup:01964137-0000-7000-8000-000000000000\",\"backup_kind\":\"secret_storage\",\"backup_version\":\"kb_1\",\"created_at\":\"2026-08-24T00:00:00.000Z\",\"device_id\":null,\"nonce_salt\":\"EBESExQVFhcYGRobHB0eHw\"}",
+      "plaintext_canonical_json": "{\"backup_kind\":\"secret_storage\",\"items\":[{\"item_kind\":\"private_account_state\",\"secret_b64u\":\"c2VjcmV0LW9uZQ\",\"secret_generation\":3,\"secret_id\":\"account.state\"}]}",
+      "algorithms": [
+        {
+          "name": "argon2id",
+          "kdf": {
+            "name": "argon2id",
+            "salt": "AAECAwQFBgcICQoLDA0ODw",
+            "params": {
+              "memory_kib": 65536,
+              "iterations": 3,
+              "parallelism": 1
+            }
+          },
+          "expected": {
+            "root_key_hex": "0d1a3c6523c8f06e4e0af9c515aa5b5448cfebd6838f2d52c3d8b6ef8ddc3c2e",
+            "aead_key_hex": "e7a6af850ce8181cba3d849182686af8f09bd7b69cce60bff59753d9837bd0b3",
+            "commitment_key_hex": "1345bcd78a3c9edbbd899ba62f17c1da15cdd3c7fcddf137e92aecaa6a09e44c",
+            "nonce_key_hex": "07aa5a12884ff18247febbc594545fe087c7c3d6ef1591a66d22607525e08585",
+            "key_commitment": "sha256:303ef5d00665693793334f41b4b808a09e124bae0277a84678a8877751c50790",
+            "nonce_b64u": "laMvJWNrSsFxYRygwgRkjGpVjEiQFfAx",
+            "ciphertext_b64u": "TZdvYS08RwFdrmXarZN04O0JyZPxqRB8rYotksM-A8j2sdL_YXCTMjpXu_LAlxzIuaXJSRfG7kfAtUC55CFs9LjwQhQfvALEWltAQNVfMgDq8NILvmDEP-N7lNgekhOrA7BqLkgtPHtE63S0qRKIJekNQYcFrDcIXjvz86_VB8ZztoX6P7ZQKV_npdjS-kr2hepKALYpPSNB1k89QRFWujyL3A8fNRrXzRNEw24miWZx",
+            "ciphertext_digest": "sha256:5b5811bc35df09c22d21acd173101f994e0eceed13c9074f142eb732981c7666"
+          }
+        },
+        {
+          "name": "pbkdf2",
+          "kdf": {
+            "name": "pbkdf2",
+            "salt": "AAECAwQFBgcICQoLDA0ODw",
+            "params": {
+              "iterations": 600000,
+              "digest_algorithm": "sha512"
+            },
+            "degraded_profile_reason": "platform_memory_hard_kdf_unavailable"
+          },
+          "expected": {
+            "root_key_hex": "1cf30a518878f44aecb75c0e0d0d69a02ac5f9181a53b5292092e10a3c0cbb41",
+            "aead_key_hex": "2725839ba5d78f23d8b44a304e933fe857f3255cfc52eafcc903609cb688186d",
+            "commitment_key_hex": "4449f36b7e5abface96c5715300de53b1ca593a9f97a155133914b8cd77b8a39",
+            "nonce_key_hex": "d097b7975cd06bf49777b9d3831734f601979d45356dd06826f13b2fe9098445",
+            "key_commitment": "sha256:bf0b08611807cff9f049ecf552bc3b3ac757b1784fc92e4ee462bd43e9b3d372",
+            "nonce_b64u": "IPvU2mXE8cPTAvu0OLmZFBCoJ8k_Kc_b",
+            "ciphertext_b64u": "HdFFPuNeErY1Amtnf5S4NROBHxOzq_VWmygQVNLS8_acZ4OnIYZMOWbJcot4Z0RDCFMCNEzOARs3KFV9kXXGVkjNhy9jjIFh0xtPmCZoWVbbsPGWf8UBIbjBenfejKqPYO6ZM_Xb3Y8PdJczztIl1gfisns5C5XmllLcw_fNWia3FGlWeKsqn7pb0OTFBYZzbvcG0gctyOtlTG1HcZedCJSJ7oEAwM0kZS4TqQLUhyNg",
+            "ciphertext_digest": "sha256:0938510b4b25e6dadf5b2ef53a82f9671649cf026b40488a2519a8ed1bbcfbf7"
+          }
+        }
+      ],
+      "assertions": [
+        "Argon2id v0x13 and PBKDF2-HMAC-SHA512 at the v1 floors derive the exact 32-byte roots",
+        "HKDF-SHA256 keys, raw-key commitment, deterministic nonce, AAD and XChaCha20-Poly1305 ciphertext match the pinned bytes",
+        "Wrong passphrase, modified parameters, commitment, nonce or AAD are rejected"
       ]
     }
   ],

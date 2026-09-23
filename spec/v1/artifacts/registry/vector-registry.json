@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-23.7",
+  "version": "2026-09-24.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-23T22:27:30+08:00",
+  "generated_at": "2026-09-24T03:58:40+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -2998,7 +2998,7 @@
       "applies_to_fixtures": [
         "key-backup-hardening-fixture.json"
       ],
-      "description": "Passphrase key backup pins the Argon2id and PBKDF2 floors with known-answer encryption cases: parameters at the floor are accepted and anything below it is rejected, with the key commitment verified rather than inferred.",
+      "description": "Byte-exact passphrase key-backup KAT for Argon2id v0x13 and PBKDF2-HMAC-SHA512 at their floors: UTF-8 passphrase, 16-byte salt, 32-byte root, HKDF-SHA256 keys, raw-key SHA-256 commitment, JCS AAD and nonce transcript, and XChaCha20-Poly1305 ciphertext are recomputed against fixed expected bytes. Wrong passphrase, altered KDF parameters and altered AAD are rejected. Schema floor checks remain a separate vector.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/key-backup-hardening-fixture.json"
       ]
