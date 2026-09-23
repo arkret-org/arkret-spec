@@ -1,0 +1,63 @@
+{
+  "fixture_id": "ak.fixture.mimi.admission_guards.v1",
+  "version": 2,
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.mimi.admission_guards.v1"
+  },
+  "operation_id": "ak.open.mimi.command.submit_message.v1",
+  "covers_vectors": [
+    "ak.vector.mimi.admission_guards.v1"
+  ],
+  "spec_anchor": "spec/v1/zh/extensions/mimi-interop.md §4, §7",
+  "cases": [
+    {
+      "case_id": "observer_binding_rejects_before_effects",
+      "producer_path_id": "mimi.submit_message.observer_role_guard",
+      "current_accepted_room_binding_role": "observer",
+      "expected_reason_code": "mimi_observer_write_forbidden",
+      "expected_effect_counts": {
+        "constructed_events": 0,
+        "accepted_events": 0,
+        "realm_commits": 0,
+        "typed_current_results": 0,
+        "outbox_rows": 0,
+        "receipts": 0,
+        "fanout_deliveries": 0
+      }
+    },
+    {
+      "case_id": "hub_binding_passes_observer_guard",
+      "producer_path_id": "mimi.submit_message.observer_role_guard",
+      "current_accepted_room_binding_role": "hub",
+      "expected_guard_result": "continue_to_remaining_admission_checks"
+    },
+    {
+      "case_id": "follower_binding_passes_observer_guard",
+      "producer_path_id": "mimi.submit_message.observer_role_guard",
+      "current_accepted_room_binding_role": "follower",
+      "expected_guard_result": "continue_to_remaining_admission_checks"
+    },
+    {
+      "case_id": "verified_group_info_group_id_mismatch",
+      "producer_path_id": "mimi.submit_message.group_id_binding_guard",
+      "mutation": "verified_group_info_group_id",
+      "expected_reason_code": "mimi_governance_binding_mismatch",
+      "expected_projection_writes": 0
+    },
+    {
+      "case_id": "room_binding_group_id_mismatch",
+      "producer_path_id": "mimi.submit_message.group_id_binding_guard",
+      "mutation": "current_room_binding_mls_group_id",
+      "expected_reason_code": "mimi_governance_binding_mismatch",
+      "expected_projection_writes": 0
+    },
+    {
+      "case_id": "current_scope_derived_group_id_mismatch",
+      "producer_path_id": "mimi.submit_message.group_id_binding_guard",
+      "mutation": "current_accepted_mls_group_effective_scope",
+      "expected_reason_code": "mimi_governance_binding_mismatch",
+      "expected_projection_writes": 0
+    }
+  ]
+}

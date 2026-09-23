@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-23.1",
-  "generated_at": "2026-09-23T23:11:29+08:00",
+  "version": "2026-09-24.1",
+  "generated_at": "2026-09-24T03:23:48+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -4424,7 +4424,7 @@
         "service_call",
         "state_resolution"
       ],
-      "description": "A MIMI facade found a governance binding, but its realm_id, strand_id, mls_group_id, provider DID, or endpoint digest does not match the incoming MIMI room state. Receiver MUST quarantine or reject fail-closed. See zh/extensions/mimi-interop.md §4.1.",
+      "description": "A MIMI facade found a governance binding, but its authenticated GroupInfo/GroupContext group id, room-binding group id, group id derived from current accepted MlsGroupCurrent.effective_scope, fixed binding fields, provider DID or target Realm/Strand do not agree. Receiver MUST quarantine or reject with zero projection writes. See zh/extensions/mimi-interop.md §4.1.",
       "status": "active"
     },
     {
@@ -4442,9 +4442,8 @@
         "service_call",
         "authz"
       ],
-      "description": "A MIMI submit_message was attempted over a provider binding whose local_provider_role is observer, which MUST NOT submit writes on behalf of local participants. The submission MUST be rejected. See zh/extensions/mimi-interop.md section 7.",
-      "status": "reserved",
-      "activation_condition": "Promote mimi_observer_write_forbidden to active only in the same release that adds a canonical machine producer path under spec/v1/artifacts outside reports and this registry."
+      "description": "The current accepted MIMI room binding has local_provider_role=observer during ak.open.mimi.command.submit_message.v1. The registered observer_role_guard rejects the whole request before Event construction, persistence, receipt or fanout, with zero write effect. Producer path: contract-registry.json operation_registry admission_guards. See zh/extensions/mimi-interop.md §7.",
+      "status": "active"
     },
     {
       "code": "mimi_policy_revision_mismatch",
@@ -4463,6 +4462,14 @@
       "description": "Required MIMI provider directory, key material, or groupInfo dependency is temporarily unreachable. Facade MAY retry with bounded backoff but MUST NOT accept fallback state without governance binding. See zh/extensions/mimi-interop.md §4.1.",
       "status": "reserved",
       "activation_condition": "Promote mimi_provider_unreachable to active only in the same release that adds a canonical machine producer path under spec/v1/artifacts outside reports and this registry."
+    },
+    {
+      "code": "mimi_room_binding_migration_proof_invalid",
+      "applies_to": [
+        "state_resolution"
+      ],
+      "description": "A structurally valid ak.mimi.room_binding Event carries migration fields on another transition, its committed Event/RealmCommit lineage is not the same-room adjacent accepted->migrating current source, its asserted topology conflicts with the selected outcome, or its target MLS group conflicts with current accepted authenticated public state. Authority Event admission MUST reject with zero durable effects; missing or unpaired fields fail schema_violation first. See zh/extensions/mimi-interop.md §4.2.",
+      "status": "active"
     },
     {
       "code": "mimi_room_binding_status_transition_invalid",
@@ -6024,7 +6031,7 @@
         "service_call",
         "auth_decision"
       ],
-      "description": "HPKE suite id on an application-layer committed surface (key-backup recipient_method=recovery_public_key, ak.secret.send, member-application encryption_envelope, file-transfer key_envelope) is not an active row in artifacts/registry/hpke-suite-registry.json (unknown, inactive, or reserved-but-not-activated). Receivers MUST fail closed rather than infer suite parameters from the AEAD name. Dual-registered as a reason_code and a top-level service code (see codes[]). See zh/identity/key-management.md §7.5.2.",
+      "description": "HPKE suite id on an application-layer committed surface (key-backup recipient_method=recovery_public_key, member-application encryption_envelope, file-transfer key_envelope) is not an active row in artifacts/registry/hpke-suite-registry.json (unknown, inactive, or reserved-but-not-activated). Receivers MUST fail closed rather than infer suite parameters from the AEAD name. Dual-registered as a reason_code and a top-level service code (see codes[]). See zh/identity/key-management.md §7.5.2.",
       "status": "active"
     },
     {

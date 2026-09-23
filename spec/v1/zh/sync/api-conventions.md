@@ -319,19 +319,19 @@ Station 对每次 `/_arkret/self/*` 请求 MUST 校验（任一项判定为不�
   device 后直接签发同一种 Standard grant，不存在临时恢复凭据类。`standard.holder_binding` 在 JWT 与 introspection
   共用同一 closed discriminated XOR wire：human 分支恰为
   `{kind="human_device",device_binding}`，并禁止全部 Agent runtime字段；Agent分支恰为
-  `{kind="agent_runtime",agent_id,device_id,agent_key_authorization_ref,verification_method}`，并禁止
-  `device_binding`。
+  `{kind="agent_runtime",agent_id,agent_key_authorization_ref,verification_method}`，并禁止
+  `device_id` 与 `device_binding`。这三个字段逐字绑定 Agent MLS endpoint；不能由 session 或 token 派生假设备身份。
   `agent_key_authorization_ref`就是唯一 authorization代次，必须 resolve为 current accepted
   active authorization，不存在额外 `generation`字段或隐式数据库 generation轴。Station 在每个
-  self-path admission 中必须依据本请求取得的权威内省结果同时重验 token subject、分支 binding ref、runtime device、current accepted Agent
+  self-path admission 中必须依据本请求取得的权威内省结果同时重验 token subject、分支 binding ref、Agent verification method、current accepted Agent
   key authorization及 Agent/controller current lifecycle；仅匹配 kind、key digest、scope内 device字符串或
   service-private row均不得替代 signed binding。持 active authorized Agent key但尚无 session的 runtime可凭 PoP
   取得 standard Agent session，不能伪装 human device。
 - **audience**:grant 的 audience MUST 等于本 Station 的 service DID。
 - **scope**：grant scope MUST 含当前 endpoint 对应的 operation scope；scope 只表达服务操作授权，MUST NOT
   使用旧 `session.bind` 哨兵或 device scope 代替 typed holder binding。
-- **principal / device 绑定**：grant 的 subject 与 typed `holder_binding` MUST 与请求 principal / device 一致；
-  introspection 若同时返回顶层 device metadata，它也 MUST 与 signed holder binding 逐字一致。
+- **principal / endpoint 绑定**：grant 的 subject 与 typed `holder_binding` MUST 与请求 principal / endpoint 一致；
+  human introspection 若同时返回顶层 device metadata，它也 MUST 与 signed human holder binding 逐字一致；Agent introspection MUST NOT 注入 device metadata。
 - **未过期**:grant 与 DPoP proof 均 MUST 未过期。
 - **DPoP 重放防护**:Station MUST 按 DPoP `jti` + `iat` 新鲜度窗口拒绝重放。DPoP proof 只有 `iat`、没有 `expires` parameter，因此该窗口是**独立合同** `ak.dpop.freshness.v1`，正文见 [`service-http-binding.md` §8.4](./service-http-binding.md)；它 MUST NOT 继承 RFC 9421 的 `created` / `expires` 算法，两者共用同一把 grant-binding key 也不合并合同。
 
@@ -539,7 +539,7 @@ HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` �
 - `has_more: boolean` MUST 出现：客户端 MUST 仅按 `has_more` 决定是否继续翻页；不得仅靠 `next_cursor` 是否存在做判断（实现可能在末尾仍返回 `next_cursor` 用作 long-poll resume token）。
 
 本小节的三字段合同**不**适用于单 stream 扫描：`ak.self.committed_event.read.scan.v1` / `ak.peer.committed_event.read.scan.v1`
-既不返回 `next_cursor` 也不返回 `has_more`，字段集是 `stream_scan_outcome` 的 `{commits, truncated}`
+既不返回 `next_cursor` 也不返回 `has_more`，字段集是 `stream_scan_outcome` 的 `{committed_events, truncated, readable_floor?}`
 （[`authority-commit-operations.schema.json`](../../artifacts/schemas/authority-commit-operations.schema.json)），
 语义见 [`service-http-binding.md` §3.1](./service-http-binding.md) 与本文 §7.2。
 
@@ -560,7 +560,7 @@ HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` �
   `after_position` 朝更新方向、`before_position` 朝更旧方向（历史回填）；两者的排他性由 request
   合同的 `oneOf` 结构给出，同时出现或都不出现是 schema 违规。取 `null` 分别表示从该 caller
   获准读取的最旧位置、最新位置起——**不是**物理流首与物理流头。
-- 响应是 `stream_scan_outcome` = `{commits, truncated, readable_floor?}`。续页由客户端取本批的
+- 响应是 `stream_scan_outcome` = `{committed_events, truncated, readable_floor?}`。续页由客户端取本批的
   最大 / 最小 `stream_position` 自行得到；响应 MUST NOT 返回 `prev_cursor` / `next_cursor` / `has_more`。
 - 边界一律按该 caller 的允许区间解释：`truncated` 只表示该方向上还有它获准读取的 Commit，
   `readable_floor` 给出允许区间下端的 `oldest_position` 与该位置的 `floor_commit_id`。

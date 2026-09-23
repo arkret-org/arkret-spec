@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-22.1",
+  "version": "2026-09-23.7",
   "source_of_truth": true,
-  "generated_at": "2026-09-22T09:30:00+08:00",
+  "generated_at": "2026-09-23T22:27:30+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -3255,6 +3255,18 @@
       ]
     },
     {
+      "vector_id": "ak.vector.mimi.admission_guards.v1",
+      "status": "active",
+      "domain": "mimi",
+      "applies_to_fixtures": [
+        "mimi-admission-guards-fixture.json"
+      ],
+      "description": "The submit_message observer-role guard rejects before Event construction and every durable or external effect. Verified GroupInfo, current room binding and the sole group-id derivation from current accepted MlsGroupCurrent.effective_scope must agree; each mismatch has zero projection writes.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/mimi-admission-guards-fixture.json"
+      ]
+    },
+    {
       "vector_id": "ak.vector.mimi.identifier_query_source_signature.v1",
       "status": "active",
       "domain": "mimi",
@@ -3276,6 +3288,18 @@
       "description": "The provider directory carries its full required security core and capability declaration, and its detached JWS verifies over the exact canonical unsigned projection: missing required capabilities or empty capability arrays, tampered endpoints / cipher suites / content profiles / room policy components, a proof controller different from service_id, an unknown extension attempting to change routing, a stale created_at, a dev digest in place of a signature, and an HTTP-signature-valid but directory-JWS-invalid response (and the reverse) MUST all be rejected.",
       "source_refs": [
         "spec/v1/zh/extensions/mimi-interop.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.mimi.room_binding_migration_proof.v1",
+      "status": "active",
+      "domain": "mimi",
+      "applies_to_fixtures": [
+        "mimi-room-binding-migration-fixture.json"
+      ],
+      "description": "A migrating->accepted Event carries paired migration_outcome and closed four-reference migration_proof. Committed same-room adjacent accepted->migrating lineage and completed candidate or rolled_back prior topology are mandatory; missing, swapped, stale, cross-room and misplaced migration fields reject with zero Event, RealmCommit or typed-current writes.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/mimi-room-binding-migration-fixture.json"
       ]
     },
     {
@@ -3404,13 +3428,26 @@
       ]
     },
     {
+      "vector_id": "ak.vector.mls.welcome_recipient_delivery_queue.v1",
+      "status": "active",
+      "domain": "mls",
+      "applies_to_profiles": [
+        "ak.profile.e2ee_client.v1",
+        "ak.profile.agent_runtime.v1"
+      ],
+      "description": "An accepted MLS Commit atomically queues exact producer-signed MlsWelcomeDelivery objects. Account delta and same-queue list return ordered device_message/mls_welcome discriminator branches with one position, cursor and cumulative ACK. Welcome deduplicates by recipient endpoint plus welcome_id; wrong branch, changed bytes, cross-endpoint token, stale Agent authorization, premature ACK and dropped-item silence fail closed. Unacknowledged deliveries survive content expiry; full endpoint capacity rejects fresh DeviceMessage or Commit+Welcome atomically without evicting old items or writing request idempotency. Human devices and Agent runtimes use their own authenticated endpoint without synthetic device ids or an independent Welcome-ref GET.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
       "vector_id": "ak.vector.mls.welcome_keypackage_hash.v1",
       "status": "active",
       "domain": "mls",
       "applies_to_fixtures": [
         "keypackage-lifecycle-fixture.json"
       ],
-      "description": "Welcome acceptance binds the claimed KeyPackage digest to the same PCR current accepted requester device, authorization Event and active model generation carried by the claim record; any device evidence or digest mismatch is rejected before decrypt.",
+      "description": "A producer-signed MlsWelcomeDelivery is queued with the winning Add Commit and carries one typed keypackage_claim_ref, recipient endpoint and exact ciphertext. Before decrypting, the recipient resolves the durable claim record, recomputes the KeyPackage digest and signed LeafNode capability set, checks current endpoint authority, and binds the delivery to the accepted winning Commit on the same lineage. A Welcome Event payload, duplicate claim_ref digest, claim_envelope or embedded claim_receipt MUST NOT be accepted; the original claim is consumed only after durable group state.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json"
       ]
@@ -4604,7 +4641,7 @@
       "applies_to_fixtures": [
         "arkret-private-kdf-fixture.json"
       ],
-      "description": "Byte-level ak.history-v1 -> ak.signal-v1 ExpandWithLabel KAT for per-sender-device SignalEnvelope AEAD keys, including JCS({sender_device_id}), distinct valid-device keys under a forced equal nonce, and label/context/device/epoch negative mutations.",
+      "description": "Byte-level MLS-Exporter ak.signal-root-v1 with canonical effective scope key context, followed by ak.signal-v1 ExpandWithLabel with the verified sender domain as raw UTF-8 context. Covers distinct sender keys under an equal nonce and label, context, sender, and epoch mutations.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/arkret-private-kdf-fixture.json"
       ]

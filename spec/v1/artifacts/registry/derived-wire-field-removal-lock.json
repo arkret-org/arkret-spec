@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.2",
+  "version": "2026-09-23.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T16:42:00+08:00",
+  "generated_at": "2026-09-23T13:44:53+08:00",
   "lock_kind": "derived_wire_field_removals",
   "description": "Closed regression lock for every adjudicated deletion of a derived wire field: a member that a ruling removed from a schema object because it is a pure function of members that stay on the wire (or of the enclosing carrier), and whose transcript or verifier role, if any, is now filled by recomputation. Each row pins one exact (schema, path, removed) triple: the removed member MUST NOT return to that object's properties or required (directly or through an allOf/oneOf/anyOf/if-then-else overlay of the same object) and the declared source member MUST remain declared. The lock never infers semantics from field names; a row exists only because a ruling named the exact path.",
   "registry_rules": {
@@ -236,9 +236,9 @@
       "path": "/$defs/mimi_report_abuse_request_body",
       "removed": "abuse_reason_code",
       "source": {
-        "field": "report_event"
+        "field": "report_claim"
       },
-      "derivation": "abuse_reason_code := report_event.event.payload reason",
+      "derivation": "abuse_reason_code := report_claim.report_reason_code",
       "spec_anchor": "spec/v1/zh/extensions/mimi-interop.md"
     },
     {
@@ -248,9 +248,9 @@
       "path": "/$defs/mimi_report_abuse_request_body",
       "removed": "description",
       "source": {
-        "field": "report_event"
+        "field": "report_claim"
       },
-      "derivation": "description := report_event.event.payload description",
+      "derivation": "description := report_claim.description",
       "spec_anchor": "spec/v1/zh/extensions/mimi-interop.md"
     },
     {
@@ -260,9 +260,9 @@
       "path": "/$defs/mimi_report_abuse_request_body",
       "removed": "evidence_package",
       "source": {
-        "field": "report_event"
+        "field": "report_claim"
       },
-      "derivation": "evidence_package := report_event.event.payload evidence",
+      "derivation": "evidence_package := report_claim.evidence_package",
       "spec_anchor": "spec/v1/zh/extensions/mimi-interop.md"
     },
     {
@@ -272,9 +272,9 @@
       "path": "/$defs/mimi_report_abuse_request_body",
       "removed": "franking_proof",
       "source": {
-        "field": "report_event"
+        "field": "report_claim"
       },
-      "derivation": "franking_proof := report_event.event.payload franking evidence",
+      "derivation": "franking_proof := report_claim.franking_proof",
       "spec_anchor": "spec/v1/zh/extensions/mimi-interop.md"
     },
     {
@@ -284,9 +284,9 @@
       "path": "/$defs/mimi_report_abuse_request_body",
       "removed": "mimi_room_uri",
       "source": {
-        "field": "report_event"
+        "field": "reporter_authority"
       },
-      "derivation": "mimi_room_uri := report_event.event.payload MIMI provenance room",
+      "derivation": "mimi_room_uri := reporter_authority.room_binding_ref exact committed room binding payload",
       "spec_anchor": "spec/v1/zh/extensions/mimi-interop.md"
     },
     {
@@ -296,9 +296,9 @@
       "path": "/$defs/mimi_report_abuse_request_body",
       "removed": "realm_id",
       "source": {
-        "field": "report_event"
+        "field": "report_claim"
       },
-      "derivation": "realm_id := report_event.event.realm_id",
+      "derivation": "realm_id := report_claim.realm_id",
       "spec_anchor": "spec/v1/zh/extensions/mimi-interop.md"
     },
     {
@@ -310,19 +310,7 @@
       "source": {
         "field": "reporter_authority"
       },
-      "derivation": "reporter_id := reporter_authority.actor_id.signing_principal_id, cross-checked against report_event.event.actor_id",
-      "spec_anchor": "spec/v1/zh/extensions/mimi-interop.md"
-    },
-    {
-      "lock_id": "ak.lock.derived_wire_field_removal.mimi_report_abuse_request_source_provider_id.v1",
-      "ruling": "2026-09-02-2005",
-      "schema": "schemas/mimi-operations.schema.json",
-      "path": "/$defs/mimi_report_abuse_request_body",
-      "removed": "source_provider_id",
-      "source": {
-        "field": "report_event"
-      },
-      "derivation": "provider := authenticated transport Provider-ID; report_event.event.payload.source_provider_id MUST equal it",
+      "derivation": "reporter_id := reporter_authority.actor_id.signing_principal_id; service-authored Event.actor_id is the authenticated facade service",
       "spec_anchor": "spec/v1/zh/extensions/mimi-interop.md"
     },
     {
@@ -332,9 +320,9 @@
       "path": "/$defs/mimi_report_abuse_request_body",
       "removed": "strand_id",
       "source": {
-        "field": "report_event"
+        "field": "report_claim"
       },
-      "derivation": "strand_id := report_event.event.payload strand scope",
+      "derivation": "strand_id := report_claim.scope_ref when the claim is Circle-scoped",
       "spec_anchor": "spec/v1/zh/extensions/mimi-interop.md"
     },
     {
@@ -344,9 +332,9 @@
       "path": "/$defs/mimi_report_abuse_request_body",
       "removed": "target_ref",
       "source": {
-        "field": "report_event"
+        "field": "report_claim"
       },
-      "derivation": "target_ref := report_event.event.payload target",
+      "derivation": "target_ref := report_claim.target_ref",
       "spec_anchor": "spec/v1/zh/extensions/mimi-interop.md"
     },
     {

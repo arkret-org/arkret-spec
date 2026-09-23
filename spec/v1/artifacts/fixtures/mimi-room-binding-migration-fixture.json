@@ -1,0 +1,93 @@
+{
+  "fixture_id": "ak.fixture.mimi.room_binding_migration.v1",
+  "version": 2,
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.mimi.room_binding_migration.v1"
+  },
+  "covers_vectors": [
+    "ak.vector.mimi.room_binding_migration_proof.v1"
+  ],
+  "spec_anchor": "spec/v1/zh/extensions/mimi-interop.md §4.2",
+  "basis": {
+    "previous_accepted": "accepted ak.mimi.room_binding Event and its covering RealmCommit for one canonical mimi_room_uri",
+    "current_migrating": "immediately succeeding accepted migrating Event and its covering RealmCommit, pinned as the typed current result source",
+    "candidate_topology_fields": [
+      "hub_provider_id",
+      "follower_provider_ids",
+      "local_provider_role",
+      "mls_group_id"
+    ]
+  },
+  "cases": [
+    {
+      "case_id": "completed_candidate_topology",
+      "migration_outcome": "completed",
+      "migration_proof": "four exact committed lineage IDs",
+      "submitted_topology": "current migrating candidate topology",
+      "expected": "accepted"
+    },
+    {
+      "case_id": "rolled_back_previous_topology",
+      "migration_outcome": "rolled_back",
+      "migration_proof": "four exact committed lineage IDs",
+      "submitted_topology": "previous accepted topology",
+      "expected": "accepted"
+    },
+    {
+      "case_id": "outcome_without_proof",
+      "mutation": "omit migration_proof",
+      "expected_reason_code": "schema_violation"
+    },
+    {
+      "case_id": "proof_without_outcome",
+      "mutation": "omit migration_outcome",
+      "expected_reason_code": "schema_violation"
+    },
+    {
+      "case_id": "both_migration_fields_missing",
+      "mutation": "submit migrating->accepted without either migration field",
+      "expected_reason_code": "mimi_room_binding_migration_proof_invalid"
+    },
+    {
+      "case_id": "stale_migrating_commit",
+      "mutation": "replace migrating_commit_id with an older valid commit",
+      "expected_reason_code": "mimi_room_binding_migration_proof_invalid"
+    },
+    {
+      "case_id": "cross_room_previous_event",
+      "mutation": "replace previous_accepted_event_id with a valid Event from another room",
+      "expected_reason_code": "mimi_room_binding_migration_proof_invalid"
+    },
+    {
+      "case_id": "non_adjacent_previous_event",
+      "mutation": "reference a valid but superseded accepted binding Event",
+      "expected_reason_code": "mimi_room_binding_migration_proof_invalid"
+    },
+    {
+      "case_id": "completed_with_previous_topology",
+      "mutation": "declare completed but submit the previous accepted topology instead of the migrating candidate",
+      "expected_reason_code": "mimi_room_binding_migration_proof_invalid"
+    },
+    {
+      "case_id": "rolled_back_with_candidate_topology",
+      "mutation": "declare rolled_back but submit the migrating candidate topology",
+      "expected_reason_code": "mimi_room_binding_migration_proof_invalid"
+    },
+    {
+      "case_id": "target_mls_group_not_current",
+      "mutation": "submitted mls_group_id matches selected topology but differs from current accepted scope-derived group id or authenticated GroupInfo",
+      "expected_reason_code": "mimi_room_binding_migration_proof_invalid"
+    },
+    {
+      "case_id": "migration_fields_on_other_transition",
+      "mutation": "carry outcome and proof on proposed->accepted or accepted->migrating",
+      "expected_reason_code": "mimi_room_binding_migration_proof_invalid"
+    }
+  ],
+  "rejected_effect_counts": {
+    "accepted_events": 0,
+    "realm_commits": 0,
+    "typed_current_results": 0
+  }
+}

@@ -1,5 +1,5 @@
 {
-  "version": "2026-09-20",
+  "version": "2026-09-23",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.auth.session_grant_issuer_record.v1"
@@ -170,7 +170,6 @@
   "agent_initial_proof": {
     "request": {
       "principal_id": "ak:did_core:webvh:z6mkagent",
-      "device_id": "ak:device:0196419b-0000-7000-8000-000000000001",
       "requested_scope": [
         "ak.self.account.read.describe.v1"
       ],
@@ -186,14 +185,14 @@
         "issued_at": "2026-09-09T00:00:00.000Z",
         "expires_at": "2026-09-09T00:05:00.000Z",
         "verification_method": "did:webvh:z6mkagent:agent.example#runtime-1",
-        "request_canonical_digest": "sha256:1c93602cd5338cede5405843a1d2859d9f05df051e69b3035aa2d79e5f4a73c7",
-        "signature": "GXOq04DigWkZKY2H-P2E9RwIth9pX4V0cRRdFiCCJn7DKKZw1h_S7vz-GiZQfBak0-ZG5LnhzwEejsOCzaL2DQ"
+        "request_canonical_digest": "sha256:9f98bb6b2e49c576ae8ad468ca3935f9e1dbf16370f099dd67cb873d72736bd9",
+        "signature": "FY4cmuhmqe4AKN3_2_cBluJBAO9zmI6OupqTPOdBqv1M8ntdNp0betjzsvzTfXILOrk8ziNiz4x-EAT78IfzAw"
       }
     },
     "runtime_public_key_b64u": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
-    "request_canonical_bytes_utf8": "{\"agent_key_authorization_ref\":\"ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g\",\"agent_scope_request\":{},\"device_id\":\"ak:device:0196419b-0000-7000-8000-000000000001\",\"dpop_binding_proof\":{\"proof_jwt\":\"eyJhbGciOiJFZERTQSIsImp3ayI6eyJjcnYiOiJFZDI1NTE5Iiwia3R5IjoiT0tQIiwieCI6IktheTY0VUc4eXZDeUxocVUwMDBMeHpZZVVtMExfaExJbDVTOGt5S1diZGMifSwidHlwIjoiZHBvcCtqd3QifQ.eyJodG0iOiJQT1NUIiwiaHR1IjoiaHR0cHM6Ly9hdXRoLmV4YW1wbGUvX2Fya3JldC9nYXRlL2FjY291bnQvc2Vzc2lvbi1ncmFudHMiLCJpYXQiOjE3ODg5MTIwMDAsImp0aSI6ImZpeHR1cmUtaW5pdGlhbC1ob2xkZXItcHJvb2YifQ.f1lgest-fTwZHdDqxrmc7-_1bfUiz_9a6jFQ9ZUb9GWVBUSVwrQ7J3kBdhP8XHAA2i6QZqqkGcodUTsaLOdiDg\"},\"principal_id\":\"ak:did_core:webvh:z6mkagent\",\"proof\":{\"audience_id\":\"ak:did_core:webvh:z6mkfixtureserviceexample\",\"challenge\":\"AAECAwQFBgcICQoLDA0ODw\",\"expires_at\":\"2026-09-09T00:05:00.000Z\",\"issued_at\":\"2026-09-09T00:00:00.000Z\",\"proof_kind\":\"agent_key_proof\",\"verification_method\":\"did:webvh:z6mkagent:agent.example#runtime-1\"},\"requested_scope\":[\"ak.self.account.read.describe.v1\"]}",
-    "proof_canonical_bytes_utf8": "{\"audience_id\":\"ak:did_core:webvh:z6mkfixtureserviceexample\",\"challenge\":\"AAECAwQFBgcICQoLDA0ODw\",\"expires_at\":\"2026-09-09T00:05:00.000Z\",\"issued_at\":\"2026-09-09T00:00:00.000Z\",\"proof_kind\":\"agent_key_proof\",\"request_canonical_digest\":\"sha256:1c93602cd5338cede5405843a1d2859d9f05df051e69b3035aa2d79e5f4a73c7\",\"verification_method\":\"did:webvh:z6mkagent:agent.example#runtime-1\"}",
-    "request_digest": "sha256:1c93602cd5338cede5405843a1d2859d9f05df051e69b3035aa2d79e5f4a73c7",
+    "request_canonical_bytes_utf8": "{\"agent_key_authorization_ref\":\"ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g\",\"agent_scope_request\":{},\"dpop_binding_proof\":{\"proof_jwt\":\"eyJhbGciOiJFZERTQSIsImp3ayI6eyJjcnYiOiJFZDI1NTE5Iiwia3R5IjoiT0tQIiwieCI6IktheTY0VUc4eXZDeUxocVUwMDBMeHpZZVVtMExfaExJbDVTOGt5S1diZGMifSwidHlwIjoiZHBvcCtqd3QifQ.eyJodG0iOiJQT1NUIiwiaHR1IjoiaHR0cHM6Ly9hdXRoLmV4YW1wbGUvX2Fya3JldC9nYXRlL2FjY291bnQvc2Vzc2lvbi1ncmFudHMiLCJpYXQiOjE3ODg5MTIwMDAsImp0aSI6ImZpeHR1cmUtaW5pdGlhbC1ob2xkZXItcHJvb2YifQ.f1lgest-fTwZHdDqxrmc7-_1bfUiz_9a6jFQ9ZUb9GWVBUSVwrQ7J3kBdhP8XHAA2i6QZqqkGcodUTsaLOdiDg\"},\"principal_id\":\"ak:did_core:webvh:z6mkagent\",\"proof\":{\"audience_id\":\"ak:did_core:webvh:z6mkfixtureserviceexample\",\"challenge\":\"AAECAwQFBgcICQoLDA0ODw\",\"expires_at\":\"2026-09-09T00:05:00.000Z\",\"issued_at\":\"2026-09-09T00:00:00.000Z\",\"proof_kind\":\"agent_key_proof\",\"verification_method\":\"did:webvh:z6mkagent:agent.example#runtime-1\"},\"requested_scope\":[\"ak.self.account.read.describe.v1\"]}",
+    "proof_canonical_bytes_utf8": "{\"audience_id\":\"ak:did_core:webvh:z6mkfixtureserviceexample\",\"challenge\":\"AAECAwQFBgcICQoLDA0ODw\",\"expires_at\":\"2026-09-09T00:05:00.000Z\",\"issued_at\":\"2026-09-09T00:00:00.000Z\",\"proof_kind\":\"agent_key_proof\",\"request_canonical_digest\":\"sha256:9f98bb6b2e49c576ae8ad468ca3935f9e1dbf16370f099dd67cb873d72736bd9\",\"verification_method\":\"did:webvh:z6mkagent:agent.example#runtime-1\"}",
+    "request_digest": "sha256:9f98bb6b2e49c576ae8ad468ca3935f9e1dbf16370f099dd67cb873d72736bd9",
     "time_cases": [
       {
         "name": "valid",

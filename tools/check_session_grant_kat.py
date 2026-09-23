@@ -626,6 +626,24 @@ def check_agent_initial_proof() -> list[str]:
         registry=registry,
     )
     errors = [f"agent request schema: {e.message}" for e in validator.iter_errors(request)]
+    forbidden_device_request = copy.deepcopy(request)
+    forbidden_device_request["device_id"] = "ak:device:0196419b-0000-7000-8000-000000000001"
+    if validator.is_valid(forbidden_device_request):
+        errors.append("agent request accepts forbidden synthetic device_id")
+    holder_validator = jsonschema.Draft202012Validator(
+        {"$ref": (schemas / "principal-operations.schema.json").as_uri() + "#/$defs/session_grant_holder_binding"},
+        registry=registry,
+    )
+    agent_holder = {
+        "kind": "agent_runtime",
+        "agent_id": request["principal_id"],
+        "agent_key_authorization_ref": request["agent_key_authorization_ref"],
+        "verification_method": request["proof"]["verification_method"],
+    }
+    if not holder_validator.is_valid(agent_holder):
+        errors.append("agent holder binding rejects the canonical three-field endpoint")
+    if holder_validator.is_valid(dict(agent_holder, device_id=forbidden_device_request["device_id"])):
+        errors.append("agent holder binding accepts forbidden synthetic device_id")
     proof = request["proof"]
     signature = _strict_base64url(proof.pop("signature"), 64)
     proof_bytes = jcs_text(proof).encode()

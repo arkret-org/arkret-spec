@@ -156,7 +156,7 @@ stage 请求携带 proof / gate 缺 staged request / stage 泄露 principal 或 
 
 用户确认后的授权落地 MUST 发生在 `/_arkret/gate/account/*` 认证面，使用 `ak.gate.account.command.pair_device.v1`。批准设备提交 staged `device_pairing_request_id`、`pairing_code`、`new_device_pubkey`、自己 author 的完整 `ak.device.authorize`，以及自身 fresh device proof；从已验签 `device_pairing_target_proof` 取得的 `hpke_key` 与 `device_signature` 只写入该 authorize Event payload，不在 commit 顶层重复。gate MUST 首次接纳时从仍为 `ready_for_claim` 的 staged record 按 §2.1.2 独立重算 challenge digest，再按 §5.2.2 用该 digest、该记录的签名 `account_id` 与提交 payload 重建 accepted_device possession 对象并验签 payload 内 `device_signature`，MUST NOT 接受无 staged request 的替代 transcript，也不得只做逐字段相等比较。gate 返回的 `authorized_event_ref` 只是 durable `ak.device.authorize` / `ak.device.list_update` 已被接受的引用或等价结果。新设备只通过 §2.1.1 status、后续 full `ak.self.account.stream.subscribe.v1` device list baseline，或重新通过 `ak.gate.account.command.issue_session_grant.v1` 取得 Standard grant 来观察授权结果；它 MUST 验证 durable device list，并在本地装配前完成 §5.4.1 的强制校验。
 
-已授权设备在该 gate 接纳后 MAY 发布 `ak.device.list_update`，并在用户或 policy 允许时按 §10.2 共享账户级 secret-storage material 或 MLS Welcome；identity root / device private key 永不共享。
+已授权设备在该 gate 接纳后 MAY 发布 `ak.device.list_update`。新设备的 MLS 建立只通过 §10.2 的独立 `MlsWelcomeDelivery`；账户级 secret-storage material 只通过 §12 的端到端加密备份恢复，identity root / device private key 永不共享。
 
 **pairing-originated verified checkpoint（normative）**：一次经本节落地成功的 accepted-device pairing 同时产生两个**正交**结果：lifecycle 上新设备取得 accepted `ak.device.authorize` 并成为 `active`；trust 上产生一条 `verification_source=pairing_code` 的 §10.1 verification checkpoint。它不是「验证成功自动变成授权」，而是同一次用户在环的配对 ceremony 同时提交了授权结果与信任证据。该 checkpoint 的建立条件是 §10.1 的五项合取，其中带外确认由 §2.1.1 第 4 条的扫码 / 链接显式确认或第 5 条的输入短码满足，账号绑定由 §5.2.2 的签名 `account_id` 满足。accepted `ak.device.authorize` 与该 checkpoint MUST 在同一原子提交可见，或可从同一 accepted authorization 与已签 transcript 确定性重建；两者 MUST NOT 分叉。授权与信任此后仍是两个维度，各自按自己的规则撤销、过期与 fence。
 
@@ -195,6 +195,14 @@ stage 请求携带 proof / gate 缺 staged request / stage 泄露 principal 或 
 - **持有绑定(cnf.jkt)**:签发 `ak.session.grant` 时,Auth Server MUST 要求客户端出示一个由其 **grant-binding key**(即 DPoP key,RFC 9449 DPoP 式持有证明)签名的 proof,并把该 key 的 RFC 7638 JWK 指纹写入 grant 的 `cnf.jkt`(RFC 7800 confirmation)。`cnf.jkt` 把 grant 绑定到「持有该私钥的会话/设备」,而非仅记一个 `device_id` 字符串。客户端签的是本次 holder/request proof；Auth Server 签的是自己的 credential，两者都不替代设备或 principal Event proof。
 - **grant 直接出示、短期轮换**:Station 不铸第二个本地会话凭据；客户端以 `ak.session.grant` + DPoP 直接访问 `/_arkret/self/*`。grant 自身为分钟到小时级 TTL，客户端在 grant 临期时用**仍有效的 grant** 与同一 grant-binding key 轮换出新 grant。
 - **轮换(rotation)**:grant 临近自身过期时，客户端用**同一 grant-binding key** 签 DPoP 持有证明，向 Auth Server 的 session-grant 轮换端点(见 [`../sync/service-http-binding.md` §2.3](../sync/service-http-binding.md))换出一张新 grant。Auth Server MUST 校验 proof 的 JWK 指纹等于旧 grant 的 `cnf.jkt`(证明持有同一 grant-binding 私钥)。稳定 request identity 是 `(predecessor_grant_id, refresh_request_digest)`；同一 issuer transaction MUST 创建保持 `cnf.jkt`、subject/scope/audience 与独立 `session_id` 的 successor，并把 predecessor 原子标为 `superseded`。exact replay 必须返回同一 successor；同 identity 异 canonical intent 必须 `duplicate_conflict` 且零状态变化。如此滚动使设备会话存活到天级，**直到设备被吊销、grant 链被吊销、或底层 `browser_session` 被终结(登出)**——三者任一即拒绝继续轮换(见 [`../identity/account-lifecycle.md` §4.1](../identity/account-lifecycle.md))。
+
+Agent runtime 轮换沿用同一原子 successor／predecessor 规则，但其 endpoint 没有设备 ID，不能套用上段的人类设备吊销条件。
+`AgentSessionGrantRefreshRequest` MUST 携带 `principal_id`（即 agent_id）、已接受的
+`agent_key_authorization_ref` 与 `agent_session_refresh_proof`，MUST NOT 携带 `device_id`；proof 的
+`verification_method` 与前两者组成 predecessor `AgentRuntime` holder 的精确三元组。刷新 intent digest
+覆盖 predecessor JWT digest、该三元组及 audience；Auth Server MUST 验证三元组与 predecessor grant 相等，
+在同一当前 authority cut 再查 Agent lifecycle、当前 runtime key 授权、controller 与 grant 链状态，
+任一失效、换 key、授权 Event 被取代或 DPoP holder 不符均拒绝且零 successor／supersede 写入。
 - **不引入长期离线续期凭据**:本协议以「grant-binding key 轮换 grant」承担续期职责,grant 自身保持分钟到小时级 TTL;不依赖、也不要求签发 OAuth `offline_access` 类长期续期凭据。
 - **登出即终结**:轮换链挂靠在 Auth Server 的 `browser_session` 上；`browser_session` 被登出终结后，即便持有正确的 grant-binding 私钥(指纹匹配 `cnf.jkt`)也 MUST NOT 再轮换出新 grant——续期必须重新走完整认证。
 
@@ -570,23 +578,23 @@ To-device wire object MUST 使用 `DeviceMessageEnvelope`，而不是持久 `Eve
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
 | `device_message_id` | `id:device_message` | required | 发送方为一个逻辑消息分配的稳定 UUIDv7 typed ID；服务端在重试、分页和重投时 MUST 原样保留。接收端按完整 closed sender identity 与 `device_message_id` 去重。 |
-| `kind` | `string` | required | 消息 kind，例如 `ak.secret.request`。标准 to-device kind 由 `device-message.schema.json` 的闭合 dispatch 定义，不得登记成 Event.kind。 |
+| `kind` | `string` | required | 消息 kind，例如 `ak.mls.application`；`ak.secret.request` / `ak.secret.send` 不可接纳。标准 to-device kind 由 `device-message.schema.json` 与对应 profile 定义，不得登记成 Event.kind。 |
 | `sender_account_id` + `sender_device_id` | `AccountId` + `id:device` | conditional | human device sender；完整账号与设备共同标识发送端，并与完整 `sender_agent_*` 三元组、`sender_id` 严格 XOR。 |
 | `sender_agent_id` / `sender_agent_verification_method` / `sender_agent_key_authorize_event_id` | `did_core_id` / `did_url` / `id:event` | conditional | Agent sender 的完整 signer-evidence 三元组；`sender_agent_id` 是唯一 Agent 身份 carrier，不得再携同值 principal 镜像。 |
 | `sender_id` | `did_core_id` | conditional | 受限 Station sender。只允许 `device-message.schema.json#/$defs/actor_private_update_kind` 闭集，且 `sender_id == recipient_account_id.station_id`；不得自报 holder sender 身份。 |
 | `recipient_account_id` | `AccountId` | required | 接收方完整账号；MUST 逐分量等于投递路径中的目标账号。 |
 | `recipient_device_id` | `id:device` | required | 接收设备；MUST 等于投递路径中的目标设备。 |
 | `sent_at` | `datetime` | required | 发送时间。 |
-| `expires_at` | `datetime` | required | 队列过期时间；不得晚于该 kind/profile 声明的 TTL 上限。 |
+| `expires_at` | `datetime` | required | 新入队及接收端业务新鲜度截止时间；不得晚于该 kind/profile 声明的 TTL 上限，不能删除未 ACK 队列项。 |
 | `content` | `object` | required | 类型相关内容；私密内容 SHOULD 端到端加密。 |
 
 `device_message_id`、closed sender branch、`recipient_account_id` 和 `recipient_device_id` MUST 被签名、device proof 或加密 AAD 覆盖。发送接口的 `messages.{principal_id}.{device_id}` 是当前认证 Station 内显式登记的局部队列坐标；服务端在入队前 MUST 以当前 Station 补全目标 `AccountId`，不得跨 Station 解释该标量。接收端 MUST 拒绝 envelope 目标与当前登录完整账号或设备不一致的消息。
 
-发送方 MUST 在第一次构造逻辑消息时分配 `device_message_id`，应用重试、HTTP batch 重试和服务端重投都 MUST 沿用该值；重新分配 ID 表示新的逻辑消息，接收端 MUST 独立处理。服务端 MUST 以完整 closed sender identity 与 `device_message_id` 维护至少覆盖队列 TTL 与短 grace period 的幂等记录：human device 使用 `(sender_account_id,sender_device_id,device_message_id)`，Agent 使用 `(sender_agent_id,device_message_id)`，Station service 使用 `(sender_id,device_message_id)`。相同 canonical target intent 重试返回既有入队结果且不得新增队列项；同 key 但 `kind`、recipient、`expires_at` 或 `content` 不同，MUST 以 `duplicate_conflict`（reason `device_message_id_conflict`）拒绝整个发送请求且不得入队任一冲突版本。canonical target intent 包含 `device_message_id`、`kind`、当前且仅当前 sender 分支的全部字段、`recipient_account_id`、`recipient_device_id`、`expires_at` 与 `content`；不含服务端物化的 `sent_at`、`unsigned` 或 HTTP `Idempotency-Key`。
+发送方 MUST 在第一次构造逻辑消息时分配 `device_message_id`，应用重试、HTTP batch 重试和服务端重投都 MUST 沿用该值；重新分配 ID 表示新的逻辑消息，接收端 MUST 独立处理。服务端 MUST 以完整 closed sender identity 与 `device_message_id` 维护至少到该消息 ACK 取消后短 grace period 的幂等记录：human device 使用 `(sender_account_id,sender_device_id,device_message_id)`，Agent 使用 `(sender_agent_id,device_message_id)`，Station service 使用 `(sender_id,device_message_id)`。相同 canonical target intent 重试返回既有入队结果且不得新增队列项；同 key 但 `kind`、recipient、`expires_at` 或 `content` 不同，MUST 以 `duplicate_conflict`（reason `device_message_id_conflict`）拒绝整个发送请求且不得入队任一冲突版本。canonical target intent 包含 `device_message_id`、`kind`、当前且仅当前 sender 分支的全部字段、`recipient_account_id`、`recipient_device_id`、`expires_at` 与 `content`；不含服务端物化的 `sent_at`、`unsigned` 或 HTTP `Idempotency-Key`。
 
 `sender_id` 只表示 Station 对 holder actor-private CAS typed current result 已接受 revision 的内部队列物化者，不把 service 冒充成 holder，也不授予任意 service 发送普通 to-device kind 的能力。该分支不走 holder device revocation gate，不排除所谓 origin device，而是 fanout 到 holder 的全部 active devices；service identity 由当前 authenticated Station transport / service resolution 绑定，MUST NOT 作为可跨服务转交的 bearer delegation。`ak.self.device_messages.command.send.v1` 是规范客户端 surface，MUST 拒绝任何试图提交或诱导物化 service sender 的请求；只有 Station 内部 actor-private materializer 可以产生该分支。
 
-To-device 消息是短期队列对象，不是长期 Event history。发送方 MUST 设置 `expires_at`；服务端 MUST 拒绝缺失 `expires_at`、已经过期、早于 `sent_at` 或超过当前 service / Realm / profile TTL 上限的消息。默认最大队列 TTL 为 24 小时；高安全 profile SHOULD 使用更短值。标准验证请求仍受第 8.2 节约束，`request.expires_at` MUST be no later than `timestamp + 10m`。过期消息 MUST 从投递队列中清除，`GET /_arkret/self/device_messages` 不得返回；服务 MAY 仅保留最小幂等记录和脱敏审计摘要到 `expires_at` 后的短 grace period。
+To-device 消息不是长期 Event history。发送方 MUST 设置 `expires_at`；服务端 MUST 在新入队前拒绝缺失 `expires_at`、已经过期、早于 `sent_at` 或超过当前 service / Realm / profile TTL 上限的消息。默认最大入队 TTL 为 24 小时；高安全 profile SHOULD 使用更短值。`expires_at` 限制新入队与接收端业务新鲜度，不是队列删除条件：未 ACK 的 DeviceMessage MUST 持久保留，`GET /_arkret/self/device_messages` MUST 继续返回，直到该 endpoint 的累计 ACK 取消它。接收端在处理密文或业务动作前独立判断过期；队列不得因过期或容量压力删除未确认项。容量满时按 [`client-sync.md` §10.1](../sync/client-sync.md) 与同队列 Welcome 的合计容量原子拒绝新入队且零部分写入。
 
 发送接口：
 
@@ -607,8 +615,8 @@ Content-Type: application/json
 | `messages.{principal_id}` | body | `object` | required | map key MUST 是 `did_core_id`（`ak:did_core:<method>:<core>`），不是 bare DID、AccountId 或 ActorId JSON。 |
 | `messages.{principal_id}.{device_id}` | body | `object` | required | 目标设备消息；`{device_id}` MUST 是完整 `id:device` wire key。 |
 | `messages.{principal_id}.{device_id}.device_message_id` | body | `id:device_message` | required | 发送方分配的稳定逻辑消息 ID；服务端 MUST 原样复制到 `DeviceMessageEnvelope.device_message_id`。 |
-| `messages.{principal_id}.{device_id}.kind` | body | `string` | required | to-device 消息 kind，例如 `ak.secret.request`。 |
-| `messages.{principal_id}.{device_id}.expires_at` | body | `datetime` | required | 队列过期时间；服务端物化 envelope 后必须复制到 `DeviceMessageEnvelope.expires_at`。 |
+| `messages.{principal_id}.{device_id}.kind` | body | `string` | required | to-device 消息 kind，例如 `ak.mls.application`。 |
+| `messages.{principal_id}.{device_id}.expires_at` | body | `datetime` | required | 新入队及业务新鲜度截止时间；服务端物化 envelope 后必须复制到 `DeviceMessageEnvelope.expires_at`。 |
 | `messages.{principal_id}.{device_id}.content` | body | `object` | required | 消息内容；私密内容 SHOULD 端到端加密。 |
 
 **Station-local 边界（normative）**：本 `ak.self.device_messages.command.send.v1` 请求在认证绑定的被调用 Station 内寻址；`principal_id` 与该 Station 组成目标本地 AccountId，设备 MUST 来自该账号当前已接受的 device projection。队列、发送方幂等键、投递结果与接收 cursor MUST 同时受该 Station-local account 边界约束，同 DID 在另一 Station 的设备或消息不能被合并或命中。body 不承载远端 Station 路由，接收方 MUST NOT 从 principal DID、DID Document 或当前 handle 猜测跨 Station 目标；非本地可投递设备按 `unknown_devices` 处理。该有边界的 principal map 不替代 Event / membership / Relation 的完整 ActorId，也不得把 ActorId JSON 编成 map key。`delivered` / `unknown_devices` 使用同一 `did_core_id -> device_id` key grammar。
@@ -627,7 +635,7 @@ Content-Type: application/json
 - **覆盖关系**：`delivered` 与 `unknown_devices` 的设备集合 MUST 互不相交，且其并集 MUST 等于请求 `messages` 中的全部 `(principal_id, device_id)` 目标全集（每个目标恰好出现在二者之一）。consumer 据此可断言无目标被静默丢弃。
 - 单设备因 TTL / `expires_at` 等可投递性原因不可入队时，该设备 MUST 计入 `unknown_devices`（携带可投递性失败语义），不使整请求失败。
 
-请求示例（非完整 schema）。`messages.{principal_id}.{device_id}` 的 `{device_id}` 是**收件设备**地址,`content.from_device_id` 是**发送设备**(MUST 等于 envelope `sender_device_id`,见 §10.2),二者为不同设备，故 UUID 不同：
+请求示例（非完整 schema）。`messages.{principal_id}.{device_id}` 的 `{device_id}` 是**收件设备**地址；发送设备身份由认证会话和最终 envelope 的 `sender_device_id` 绑定：
 
 ```json fragment
 {
@@ -635,14 +643,9 @@ Content-Type: application/json
     "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR": {
       "ak:device:01964137-0000-7000-8000-000000000000": {
         "device_message_id": "ak:device_message:01964137-1000-7000-8000-000000000000",
-        "kind": "ak.secret.request",
+        "kind": "ak.mls.application",
         "expires_at": "2026-04-26T00:10:00Z",
-        "content": {
-          "request_id": "req_123",
-          "secret_id": "example_mls_account_secret",
-          "from_device_id": "ak:device:019641aa-0000-7000-8000-000000000001",
-          "recipient_hpke_public_key": "9CKz3Ai9iQz0kHhZcH0H2jqvS-LcQ0YjvKq3aH9mQ0U"
-        }
+        "content": {"ciphertext": "base64url-opaque-ciphertext"}
       }
     }
   }
@@ -667,20 +670,20 @@ Authorization: Bearer <token>
 
 | 字段 | 位置 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- | --- |
-| `Authorization` | header | `bearer token` 或 `device proof` | required | 必须绑定当前接收设备。 |
-| `after` | query | `cursor` | optional | 上次同步位置（stream cursor）。 |
+| `Authorization` | header | `bearer token` 或 `device proof` | required | 必须绑定当前接收 human device 或 Agent runtime endpoint；Agent 不得借用 controller device。 |
+| `after` | query | `cursor` | optional | 上次读取的同一 recipient queue 位置；它不是 account/Realm stream cursor。 |
 | `limit` | query | `int` | optional | 返回数量上限；服务端 MUST enforce 最大值。 |
 
 响应字段：
 
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
-| `messages` | `object[]` | required | 当前设备可见的 to-device 消息（`DeviceMessageEnvelope[]`，不是 Event Envelope）。 |
-| `ack_token` | `string` | optional | `messages` 非空时 MUST 返回。覆盖本页及之前所有已投递消息的不透明确认令牌；客户端持久化处理完成后回传给 `ak.self.device_messages.command.ack.v1`。语义见 [`client-sync.md` §10.1](../sync/client-sync.md)。 |
-| `next_cursor` | `cursor` | optional | 下一次读取 stream cursor（只读位置，不触发删除）。 |
-| `has_more` | `boolean` | required | 是否还有后续消息页。 |
+| `deliveries` | `object[]` | required | 当前 endpoint 可见的有序 recipient delivery 判别联合：`device_message` 原样携 `DeviceMessageEnvelope`，`mls_welcome` 原样携 `MlsWelcomeDelivery`；均不是共享 Event Envelope。 |
+| `ack_token` | `string` | optional | `deliveries` 非空时 MUST 返回。覆盖本页及之前两类已投递对象的不透明确认令牌；客户端逐项持久化处理完成后回传给 `ak.self.device_messages.command.ack.v1`。语义见 [`client-sync.md` §10.1](../sync/client-sync.md)。 |
+| `next_cursor` | `cursor` | optional | 同一 recipient queue 的下一次读取位置（只读，不触发删除）。 |
+| `has_more` | `boolean` | required | 是否还有后续投递页。 |
 | `limited` | `boolean` | optional | 是否因 limit 被截断。 |
-| `lost` | `boolean` | optional | 自该设备上次确认位置以来，服务端因过期或容量约束丢弃过未确认消息时 SHOULD 置 `true`；客户端 SHOULD 触发密钥恢复路径。 |
+| `lost` | `boolean` | optional | 仅当自该 endpoint 上次确认位置以来有持久证据证明历史缺口或故障时 SHOULD 置 `true`；正常 TTL／容量不得丢弃任一类未确认投递，满队列须在入队前拒绝。客户端见 `true` MUST 重建 MLS／密钥就绪状态。 |
 
 确认接口：
 
@@ -969,10 +972,10 @@ lookup 前拒绝。不确定结果必须使用原 `claim_request_id + request_di
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
 | `claim_request_id` | `base64url` | required | 与 request/receipt 一致。 |
-| `claims` | `object[]` | required | 每个 claimed KeyPackage 的 `claim_id`、`keypackage_ref`、完整 `keypackage` bytes、closed endpoint binding、expiry 与 capabilities。upload endpoint signature 只在发布准入时验证；claim record 不复制无法从该 record 重建前像的签名。 |
+| `claims` | `object[]` | required | 每个 claimed KeyPackage 的 `claim_id`、`keypackage_ref`、完整 `keypackage` bytes、closed endpoint binding、expiry 与 capabilities。`claim_id` 是 claim 服务在首次原子接纳时分配的 `KeypackageClaimId`（`ak:keypackage_claim:<uuidv7>`），与 Welcome 的 `keypackage_claim_ref` 逐字节相同；同一原始 claim 幂等重放返回同一个 ID，不能重新分配。upload endpoint signature 只在发布准入时验证；claim record 不复制无法从该 record 重建前像的签名。 |
 | `claim_receipt` | `peer_keypackage_claim_receipt` | required | destination authority 签名；local source/destination 相等。 |
 
-`consume` request MUST validate `schemas/keypackage-operations.schema.json#/$defs/keypackages_consume_request_body`，并由 Welcome 接收方或授权发送方在 Welcome 成功处理且新的 MLS group state 已 durable 持久化后调用。command required 且仅有单数 `claim_id`、`recipient_durable_receipt` 与 `signature`；owner principal、KeyPackage、Welcome、Realm、MLS group、epoch、recipient service 与 closed device/Agent signer branch 全部从签名覆盖的 nested durable receipt 读取，Strand 从 accepted Welcome/Realm governance 派生，不得在 command 另设 selector 或坐标镜像。`user_session` 只承担 endpoint 访问控制与限流：human device 与 Agent branch 的 session actor 必须匹配 nested recipient principal。consume admission MUST 逐字绑定 consume signer、durable receipt、Welcome recipient、exact claim record、KeyPackage signer 与 endpoint authority。`keypackage_consume_receipt` 顶层只携 service 新生成的 `request_digest + claim_id + consumed_at`、完整 `recipient_durable_receipt` 与 service signature；普通包只有在single-use claim转入consumed后签发，last-resort包则只终结该exact claim audit并保持KeyPackage published。`keypackages_consume_outcome` 只返回完整 signed `consume_receipt`。若持久化失败，runtime MUST NOT 调用 consume；若 consume 响应丢失，必须以同一 signed typed request 幂等重试。服务端 MUST 从 durable terminal ledger 返回首次签发的同一 receipt，不得重新签名；完整 request digest 不同即冲突。对于 Direct Conversation，服务端还必须从 accepted Welcome 与 immutable binding 重新派生 Realm、Strand、MLS group 与 epoch；任何不一致均 fail closed。`revoke` request MUST validate `#/$defs/keypackages_revoke_request_body`，可由设备、principal controller 或 policy 授权服务发起。
+`consume` request MUST validate `schemas/keypackage-operations.schema.json#/$defs/keypackages_consume_request_body`，并由 Welcome 接收方或授权发送方在 Welcome 成功处理且新的 MLS group state 已 durable 持久化后调用。command required 且仅有单数 `claim_id`、`recipient_durable_receipt` 与 `signature`；该 `claim_id` MUST 与 accepted Welcome 的 `keypackage_claim_ref`、claim outcome、durable ledger 记录和 consume receipt 完全相同，不能用自由字符串或私有映射代替。owner principal、KeyPackage、Welcome、Realm、MLS group、epoch、recipient service 与 closed device/Agent signer branch 全部从签名覆盖的 nested durable receipt 读取，Strand 从 accepted Welcome/Realm governance 派生，不得在 command 另设 selector 或坐标镜像。`user_session` 只承担 endpoint 访问控制与限流：human device 与 Agent branch 的 session actor 必须匹配 nested recipient principal。consume admission MUST 逐字绑定 consume signer、durable receipt、Welcome recipient、exact claim record、KeyPackage signer 与 endpoint authority。`keypackage_consume_receipt` 顶层只携 service 新生成的 `request_digest + claim_id + consumed_at`、完整 `recipient_durable_receipt` 与 service signature；普通包只有在single-use claim转入consumed后签发，last-resort包则只终结该exact claim audit并保持KeyPackage published。`keypackages_consume_outcome` 只返回完整 signed `consume_receipt`。若持久化失败，runtime MUST NOT 调用 consume；若 consume 响应丢失，必须以同一 signed typed request 幂等重试。服务端 MUST 从 durable terminal ledger 返回首次签发的同一 receipt，不得重新签名；完整 request digest 不同即冲突。对于 Direct Conversation，服务端还必须从 accepted Welcome 与 immutable binding 重新派生 Realm、Strand、MLS group 与 epoch；任何不一致均 fail closed。`revoke` request MUST validate `#/$defs/keypackages_revoke_request_body`，可由设备、principal controller 或 policy 授权服务发起。
 
 规则：
 
@@ -980,9 +983,9 @@ lookup 前拒绝。不确定结果必须使用原 `claim_request_id + request_di
 - 同一 `keypackage_ref` 不得被多个 active claim 使用。
 - 过期、撤销、设备被移除或 principal control state 失效时，服务 MUST NOT 返回该 KeyPackage。
 - **registered `required_capabilities` ⊆ signed LeafNode `capabilities`（normative subset rule）**：claim request 中每个 `required_capabilities` 值 MUST 是 [`keypackage-capability-registry.json`](../../artifacts/registry/keypackage-capability-registry.json) 的 active 行，且集合 MUST 是被领取 KeyPackage 的 signed LeafNode `keypackage_capabilities` (`0xF1C1`) 的子集；外层 upload / claim record `capabilities` 必须与该 LeafNode 列表逐项、逐序相等。形状合法但未登记的发布值保留为 unsupported，永远不得满足 required 集合。任何未登记 required 值、`required_capabilities ∖ signed_leaf_capabilities ≠ ∅` 或 outer / LeafNode 不一致的 claim MUST 被服务端拒绝（与其它 claim 失败一致使用统一不透明错误码 `claim_failed`，服务端内部审计统一归入既有 `keypackage_capability_overreach` 类别并记录具体 predicate）。该 claim 检查只是领取前置；committer 还 MUST 按 [`encryption-and-audit.md` §2.6](./encryption-and-audit.md) 把群实际要求写入 `required_keypackage_capabilities` GroupContext extension，并在 Add / Update / Join 时复核。
-- Station device/key surface 在 claim 成功响应中返回完整 `keypackage` bytes、`capabilities` 与 claimed endpoint 的 trust binding，不返回同体 digest 回声。普通 device 携带该设备 accepted `ak.device.authorize` 的 `device_authorize_event_id`；Agent 携带当前 accepted `ak.agent.key.authorize` 的 `agent_key_authorize_event_id`。两者 MUST 精确 XOR。Consumer MUST 从 claim record 的完整 bytes 重算 `keypackage_digest`、从 capabilities 重算 `capabilities_digest`，再要求 `payload.claim_ref.keypackage_digest` / `payload.claim_ref.capabilities_digest` 与重算值逐字一致。比较只有这两端——claim record 里的完整 bytes 与 capabilities，和 Welcome 的 `claim_ref`。KeyPackage 的发布不产生 durable Event（`ak.self.keys.keypackages.upload.create.v1` 的 `durable_effect.kind` 为 `none`），因此不存在可作第三个比较项的已发布 digest；Welcome 顶层同样不复制 KeyPackage digest。`payload.claim_ref` 还必须携带同一 closed endpoint binding，接收端在解密前确认 device/Agent authority 仍 current，防止 group manager 或中间服务替换 KeyPackage、扩大能力集合或复用旧 authority。
-- `payload.claim_envelope` 是 requester 对本次 Welcome 的独立签名 transcript，签名身份绑定 requester 而不是被 claim 的 endpoint。普通 principal requester MUST 携带 `requester_device_id` 与 `device_authorize_event_id`，并用该设备当前 accepted `ak.device.authorize.payload.device_public_key_did` 签名；Agent requester MUST 携带 `requester_agent_id + requester_agent_verification_method + requester_agent_key_authorize_event_id`，并用所声明的 active Agent key 签名，禁止携带或借用 `requester_device_id`。两者 MUST 精确 XOR。服务端和接收端 MUST 校验 envelope 的 requester identity、closed endpoint、authority binding、signature `kid` 与当前投影/Realm affinity 一致；不得把 recipient KeyPackage 的 authority 当作 requester 签名身份使用。
-- 每个成功 Welcome 必须携带唯一的 `claim_receipt`，其类型固定为 destination-signed `peer_keypackage_claim_receipt`；same-service claim 也使用同一类型，且 `source_id=destination_id=current authority`。`claim_request_id`、`request_digest`、`claims_digest`、exact unsigned request 与 source/destination service 均进入签名 transcript。Agent 使用仍有效的可复用 authority lease/gate；接收端独立核对 receipt、实际 claim 与 Agent key/authorization/scope。claim 自身签名已绑定请求，不新增 Agent observation 包装。
+- Station device/key surface 在 claim 成功响应中返回完整 `keypackage` bytes、`capabilities` 与 claimed endpoint 的 trust binding，不返回同体 digest 回声。普通 device 携带该设备 accepted `ak.device.authorize` 的 `device_authorize_event_id`；Agent 携带当前 accepted `ak.agent.key.authorize` 的 `agent_key_authorize_event_id`。两者 MUST 精确 XOR。Consumer MUST 从 exact claim record 的完整 bytes 重算 KeyPackage digest、从 signed LeafNode 重算并核对 capabilities，再将这些值与 claimed endpoint、current authority、group requirement 逐字绑定。独立的 `MlsWelcomeDelivery.keypackage_claim_ref` 只指向同一 claim ledger 项；Welcome 不复制 digest、`claim_ref`、`claim_envelope` 或 `claim_receipt`。接收端 MUST 在解密前确认该 claim、签名投递对象、accepted winning Add Commit 与 device/Agent current authority 一致，防止替换 KeyPackage、扩大能力集合或复用旧 authority。
+- `MlsWelcomeDelivery.producer_proof` 使用专用 `ak.mls_welcome_delivery_signature.v1` 上下文，签署除 proof 自身以外的 exact delivery object。producer 的 requester 身份、closed endpoint 与 authority 由 Commit Event、claim ledger 与已接受的 current projection 校验；不得把 recipient KeyPackage 的 authority 当作 requester 的签名身份，也不得在 Welcome 上增加旧 `claim_envelope` 分支。
+- 每次成功 claim 的目标服务 MUST 签发 `peer_keypackage_claim_receipt` 并在 durable ledger 保存；same-service claim 也使用同一类型，且 `source_id=destination_id=current authority`。`claim_request_id`、`request_digest`、`claims_digest`、exact unsigned request 与 source/destination service 均进入 receipt 签名 transcript。Welcome delivery 仅以 `keypackage_claim_ref` 引用同一 claim；治理 Station 与接收端从已登记 claim ledger/outcome 查询并验证 receipt、实际 claim 与 Agent key/authorization/scope，不在 delivery 内复制 receipt。
 - `claim` 失败响应 MUST 对不存在、不可见、无可用设备、policy denied、subset-rule 违反（§上条 `keypackage_capability_overreach`）、过期、`revocation_pending` 与已撤销状态做反枚举处理。所有 deployment profile 的对外错误码 MUST 合并为单一不透明 `claim_failed`；HTTP status、body shape/size class、target-sensitive headers 与量化后的 delay distribution 也必须按 `ak.outward_disclosure.target_private_claim.v1` 同形。不得返回逐 target `failures[]`、`available_count` 或可区分 error message。精确 reason 只进入受限 audit，普通日志与 metrics label 只记录 outward bucket。
 - 设备 SHOULD 维持 `keypackage_min_available` 低水位，v1 默认目标 `N=8`。`N` 是端点补货的操作目标，不是“设备离线期间任意领取突发均可成功”的协议可用性保证；任何有限 `N` 都不能提供该保证。v1 不存在 owner inventory、maintenance query 或包级终态通知，upload、self/peer claim 与 peer outcome-query 均不得返回 `available_count`。客户端维护 endpoint-scoped 本地 inventory ledger，只在本地 usable 数量低于当前目标 `N` 时于一个 single-flight maintenance cycle 上传一个至多包含 `N - local_usable_count` 个 fresh 包的 deficit batch；默认配置下即为 `8 - local_usable_count`。健康 inventory 重载必须零上传。并发 runtime MAY 短暂 overfill，但每个 cycle 不得超过其启动时 deficit。
 - 本地 `usable` 是端点根据自己已经持久观察的 publish、Welcome/consume/revoke 与 KeyPackage 自身 `expires_at` 求出的保守补货输入，不是 Station 当前可领取库存的镜像。另一个 requester 已 claim、但 owner 尚未观察到 Welcome/consume 的普通包，MAY 暂时仍被本地账本计为 usable；这只会造成服务器侧可领取库存低于本地估计，不授权复用该包，也不允许从不透明 `claim_failed` 推测库存。v1 明确不保证该观察窗口内及时补回未观察的 claim；若产品需要更强的离线领取 SLO，部署只能提高本地目标并自行量测，不能改变 wire、枚举库存或恢复已领取包。
@@ -1062,9 +1065,9 @@ peer claim MUST 同时满足两层授权，任一层缺失或失效都 MUST fail
 
    `Idempotency-Key` MUST 逐字等于 body `claim_request_id`。
 
-成功响应的反方向也必须闭合。每条 `keypackage_claim_record` MUST 携带与分支一致的 principal/device 或 Agent endpoint、authorization Event id、KeyPackage digest 与 signature；目标 Station 的签名 `claim_receipt` 对 exact claim bytes 可验证归责。requester MUST 核对 authorization Event 的内嵌 可携带 producer signer evidence、claim receipt、KeyPackage 签名与所有 selector，任一不匹配都不得安装 KeyPackage 或 author Welcome。wire 不得携 PCR/control-history/device/Agent signer-evidence sidecar，外部 verifier 不重放 PCR genesis、RealmCommit 或完整控制历史。
+成功响应的反方向也必须闭合。每条 `keypackage_claim_record` MUST 携带与分支一致的 principal/device 或 Agent endpoint、authorization Event id、完整 KeyPackage bytes 与 capabilities；目标 Station 的签名 `claim_receipt` 覆盖 exact claim bytes，可验证归责。requester MUST 从完整 bytes 重算 digest，核对 authorization Event 的内嵌可携带 producer signer evidence、claim receipt、KeyPackage 签名、signed LeafNode capabilities 与所有 selector，任一不匹配都不得安装 KeyPackage 或 author Welcome。wire 不得携 PCR/control-history/device/Agent signer-evidence sidecar，外部 verifier 不重放 PCR genesis、RealmCommit 或完整控制历史。
 
-`claim_request_id` MUST 由 CSPRNG 生成并含至少 128 bits 不可预测熵。它是同一 claim transaction 的唯一随机值：HTTP `Idempotency-Key`、durable ledger key 以及 Welcome `claim_envelope` canonical 签名 transcript 中的 `claim_request_id` MUST 是同一值。该 transcript 值 MUST 从同一 Welcome 的 destination-signed `claim_receipt.claim_request_id` 取得，且不得在 `claim_envelope` wire 中重复。byte-identical replay 必须复用同一值；新尝试必须生成新值；同一 `(source_id, claim_request_id)` 下任何其它 request bytes 均为 `duplicate_conflict`。`requester_authorization.signed_at` 不得在接收方当前时间未来 60 秒以上；`expires_at` MUST 晚于 `signed_at` 且 `expires_at - signed_at <= 300s`。外层 HTTP signature 的 `created` / `expires` 判据是 [`../sync/service-http-binding.md` §8.3](../sync/service-http-binding.md) 的共享窗口，本节不另定数值。participant signature 绑定 source / destination service DID；外层 service signature 另绑定双方 trust domain，合并阻断转发到另一目标或另一部署的重放。
+`claim_request_id` MUST 由 CSPRNG 生成并含至少 128 bits 不可预测熵。它是同一 claim transaction 的唯一随机值：HTTP `Idempotency-Key` 与 durable ledger key MUST 是同一值；`MlsWelcomeDelivery.keypackage_claim_ref` 必须解析到该 exact ledger 项及其 destination-signed `claim_receipt.claim_request_id`，不在 Welcome wire 中重复该随机值。byte-identical replay 必须复用同一值；新尝试必须生成新值；同一 `(source_id, claim_request_id)` 下任何其它 request bytes 均为 `duplicate_conflict`。`requester_authorization.signed_at` 不得在接收方当前时间未来 60 秒以上；`expires_at` MUST 晚于 `signed_at` 且 `expires_at - signed_at <= 300s`。外层 HTTP signature 的 `created` / `expires` 判据是 [`../sync/service-http-binding.md` §8.3](../sync/service-http-binding.md) 的共享窗口，本节不另定数值。participant signature 绑定 source / destination service DID；外层 service signature 另绑定双方 trust domain，合并阻断转发到另一目标或另一部署的重放。
 
 #### 9.2.2 目标 authority 的独立准入
 
@@ -1124,7 +1127,7 @@ ledger GC 后过期 command 必须拒绝，不能成为新 claim；网络发送�
 
 成功 outcome 的 `claim_receipt.signature` 由目标服务对 `` `ak.peer-keypackage-claim-receipt-v1\n` `` + JCS(receipt 除 `signature` 外全部字段) 签名；receipt MUST 携带并签名覆盖 `source_id`、`destination_id` 与原 participant-authorized `request`（即不含 authorization / transport-only evidence 的 unsigned request 字段），`request_digest` 绑定完整 peer command，`claims_digest` 绑定 `claims[]` canonical bytes。`claim_request_id`、receipt.request 内同名字段与 outcome 同名字段必须一致。ledger 的可查询 outcome MUST 至少保留到 claim `expires_at + 10 minutes`；其后实现 MAY 只保留符合隐私 / 审计策略的 hash replay tombstone，不得长期保留可关联 private Realm 的不必要明文。
 
-通过统一 claim 生成的 `MlsWelcomeDelivery` MUST 原样携带 `claim_receipt`。当前治理 Station 必须在接纳 `MlsCommitSubmission` 的同一数据库事务内验证 receipt 目标服务签名；精确匹配 `source_id`；查询 `(source_id, claim_request_id)` durable ledger 并逐字匹配 `request_digest` 与 stored outcome；验证 requester、target principal、intended Realm、MLS group、recipient endpoint、claim id 与 KeyPackage ref/digest。缺 receipt、ledger 未就绪或任一绑定不一致时整个 submission fail closed，Commit、public group state 与全部 recipient delivery 均不得部分落盘。Direct Conversation 还必须把 receipt.request 的 `pair_key` 与 `strand_id` 精确匹配已提交的 founding unit。Delivery 是收件人队列对象，不进入任何 Event stream，也没有独立 finality。
+通过统一 claim 生成的 `MlsWelcomeDelivery` MUST 只携正式 schema 规定的 `keypackage_claim_ref`，不得嵌入 `claim_receipt`。当前治理 Station 必须在接纳 `MlsCommitSubmission` 的同一数据库事务内通过该 ref 解析 exact durable claim ledger，验证 stored receipt 的目标服务签名、`source_id`、`claim_request_id`、`request_digest` 与 stored outcome，并核对 requester、target principal、intended Realm、MLS group、recipient endpoint、claim id 与从 KeyPackage bytes 重算的 digest。ledger 未就绪、receipt 缺失或任一绑定不一致时整个 submission fail closed，Commit、public group state 与全部 recipient delivery 均不得部分落盘。Direct Conversation 还必须把 stored receipt.request 的 `pair_key` 与 `strand_id` 精确匹配已提交的 founding unit。Delivery 是收件人队列对象，不进入任何 Event stream，也没有独立 finality。
 
 所有目标不存在、任一方 Contact head/scope 不满足、设备不可见、KeyPackage 耗尽、capability 不满足、policy denied、participant authorization 失效和限速失败，对**已通过外层服务认证**的 peer caller 必须收敛为同一 `claim_failed` 外观；不得返回 `available_count`、目标设备列表或逐设备 `failures[]`。外层 RFC 9421 signature / source service identity 无法通过时，接收方在读取 target 状态前返回通用 `unauthenticated` / `signature_invalid`；该响应必须只由 transport authentication 决定，对任意 closed target selector（human AccountId、Agent id 或 pairwise method）完全相同。
 
@@ -1132,7 +1135,7 @@ ledger GC 后过期 command 必须拒绝，不能成为新 claim；网络发送�
 
 Direct Conversation 唯一 Realm 与 main Strand **MUST** 从已接受的 caller-authored founding unit、四笔连续 source `RealmCommit`、`founding_authority_evidence` 与 pair 唯一 slot 验证，遵循 [私聊 §5–§7](../identity/contact-and-direct-conversation.md)。resolver 只读；不得创建 coordinator、reserved/materializing operation、第二张 acceptance receipt 或第二套坐标选择机制。唯一 MLS group 从 effective scope 派生；Add 与 Welcome 必须沿同一 accepted Genesis / winning Commit lineage 推进。
 
-Station **MUST** 在 founding self/peer admission 时验证 exact unit、四条 exact Event、四笔连续 source `RealmCommit`、peer 分支的 `founding_authority_evidence` 与本地唯一 slot；不存在 founding receipt 输入或输出。recipient runtime **MUST** 通过已登记的 accepted Event/RealmCommit/governance dependency 读取面验证 exact founding unit、pair、Realm、main Strand、current membership/endpoint gates、Welcome 对应的 accepted winning Add Commit，以及原 claim receipt / claim envelope 的 requester、recipient、KeyPackage、group 和 epoch 绑定。runtime 不得被要求读取 Station 私有 slot 或未提供查询入口的 founding evidence；也不得用未验证的本地缓存替代 accepted 证明。首次 Welcome 不得以最终 `ak.direct_conversation.bound` 已 accepted 为前提：该 endorsement 只能在 recipient durable 接受之后完成。已有 binding 时仍必须逐字匹配既有坐标与同一 group，不得另建候选 Realm 或重置 epoch。
+Station **MUST** 在 founding self/peer admission 时验证 exact unit、四条 exact Event、四笔连续 source `RealmCommit`、peer 分支的 `founding_authority_evidence` 与本地唯一 slot；不存在 founding receipt 输入或输出。recipient runtime **MUST** 通过已登记的 accepted Event/RealmCommit/governance dependency 读取面验证 exact founding unit、pair、Realm、main Strand、current membership/endpoint gates、Welcome 对应的 accepted winning Add Commit，以及 `MlsWelcomeDelivery.keypackage_claim_ref` 所指 durable claim ledger 的 requester、recipient、KeyPackage、group 和 epoch 绑定。runtime 不得被要求读取 Station 私有 slot 或未提供查询入口的 founding evidence；也不得用未验证的本地缓存替代 accepted 证明。首次 Welcome 不得以最终 `ak.direct_conversation.bound` 已 accepted 为前提：该 endorsement 只能在 recipient durable 接受之后完成。已有 binding 时仍必须逐字匹配既有坐标与同一 group，不得另建候选 Realm 或重置 epoch。
 
 Welcome 成功处理且 group state durable 保存后，才可生成 recipient durable receipt，并通过 own Station 的 `ak.self.keys.keypackages.command.consume.v1` 消费原 claim；peer surface 不提供 consume 代理。保存失败不得签收。consume 的 signed request 与原 outcome 按 §9.1 幂等恢复。
 
@@ -1233,6 +1236,8 @@ account `device_summary` 的 `verification_source` MUST 在 evidence=`verified` 
 ### 10.2 新设备 MLS 建立（normative）
 
 新设备不得向旧设备请求或接收账户 secret、MLS epoch/exporter secret 或 active group state。完成 §10.1 verification checkpoint 与当前设备授权后，它只能发布自己的 KeyPackage，由每个目标 scope 的当前成员提交 Add，并通过该设备专属的 `MlsWelcomeDelivery` 取得 Welcome。Welcome 只建立从该次 Add 开始的成员资格，不补发加入前的解密材料。
+
+`ak.secret.request` / `ak.secret.send` to-device 分支在 v1 中不可接纳。DeviceMessage 接纳与读取均 MUST 拒绝这两个 kind，不得把结构上看似合法的旧 HPKE 密文解释成获准的密钥传递；两者没有 v1 `info` transcript 或 conformance KAT。历史本地数据不得迁移为 §12 备份或 MLS Welcome。
 
 账户级 `secret_storage` 恢复仅使用 §12 的端到端加密备份；identity root、device private key、MLS private state、sender counter 与 pending Welcome 永不通过 to-device 消息共享。配对二维码、短码和链接也不得携带这些材料。
 

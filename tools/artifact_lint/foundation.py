@@ -708,7 +708,136 @@ def complementary_conditions(left: object, right: object) -> bool:
 
 
 
+def check_ordinary_realm_bootstrap_carrier(lint: Lint) -> None:
+    """Keep the closed wire tuples in sync with the canonical slot registry."""
+    registry_path = ARTIFACTS / "registry" / "contract-registry.json"
+    schema_path = ARTIFACTS / "schemas" / "authority-commit-operations.schema.json"
+    registry = load_json(lint, registry_path) or {}
+    schema = load_json(lint, schema_path) or {}
+    ordinary = (registry.get("realm_bootstrap_registry") or {}).get("ordinary_collaboration") or {}
+    slots = ordinary.get("ordered_slots") or []
+    defs = schema.get("$defs") or {}
+    submission = defs.get("ordinary_realm_bootstrap_unit_submission") or {}
+    if ordinary.get("self_submit_operation_id") != "ak.self.events.command.submit.v1":
+        lint.fail(registry_path, "ordinary Realm bootstrap has no canonical self-submit operation")
+    if ordinary.get("self_submit_unit_kind") != "ordinary_realm_bootstrap":
+        lint.fail(registry_path, "ordinary Realm bootstrap unit kind differs from wire branch")
+    if (submission.get("properties") or {}).get("unit_kind", {}).get("const") != ordinary.get("self_submit_unit_kind"):
+        lint.fail(schema_path, "ordinary Realm bootstrap wire discriminator differs from registry")
+
+    expected = [[]]
+    for slot in slots:
+        if not isinstance(slot, dict) or not isinstance(slot.get("event_kind"), str):
+            lint.fail(registry_path, "ordinary Realm bootstrap has a malformed ordered slot")
+            return
+        presence = slot.get("presence")
+        if presence == "required":
+            expected = [row + [slot["event_kind"]] for row in expected]
+        elif presence in {"optional", "conditional"}:
+            expected = expected + [row + [slot["event_kind"]] for row in expected]
+        else:
+            lint.fail(registry_path, f"ordinary Realm bootstrap has unknown presence {presence!r}")
+            return
+
+    actual = []
+    for variant in ((submission.get("properties") or {}).get("events") or {}).get("oneOf", []):
+        refs = variant.get("prefixItems") or []
+        if variant.get("items") is not False or variant.get("minItems") != len(refs) or variant.get("maxItems") != len(refs):
+            lint.fail(schema_path, "ordinary Realm bootstrap tuple must have an exact length")
+        kinds = []
+        for item in refs:
+            ref = item.get("$ref", "") if isinstance(item, dict) else ""
+            definition = defs.get(ref.removeprefix("#/$defs/")) if ref.startswith("#/$defs/") else None
+            constraints = (definition or {}).get("allOf") or []
+            kind = ((constraints[-1].get("properties") or {}).get("event") or {}).get("properties", {}).get("kind", {}).get("const") if constraints else None
+            kinds.append(kind)
+        actual.append(kinds)
+    if sorted(expected) != sorted(actual):
+        lint.fail(schema_path, "ordinary Realm bootstrap wire tuples drift from ordered_slots")
+
+
+def check_mimi_admission_guards(lint: Lint) -> None:
+    """Bind the MIMI observer reason and group check to runnable negative cases."""
+    registry_path = ARTIFACTS / "registry" / "contract-registry.json"
+    errors_path = ARTIFACTS / "registry" / "error-code-registry.json"
+    fixture_path = ARTIFACTS / "fixtures" / "mimi-admission-guards-fixture.json"
+    registry = load_json(lint, registry_path) or {}
+    errors = load_json(lint, errors_path) or {}
+    fixture = load_json(lint, fixture_path) or {}
+    operations = (registry.get("operation_registry") or {}).get("operations") or []
+    operation = next((row for row in operations if row.get("operation_id") == "ak.open.mimi.command.submit_message.v1"), {})
+    guards = {row.get("reason_code"): row for row in operation.get("admission_guards", [])}
+    observer = guards.get("mimi_observer_write_forbidden") or {}
+    if observer.get("producer_path_id") != "mimi.submit_message.observer_role_guard" or observer.get("rejection_effects") != "none" or observer.get("stage") != "before_event_construction_or_any_durable_or_external_effect":
+        lint.fail(registry_path, "MIMI observer write reason lacks its pre-effect producer path")
+    group = guards.get("mimi_governance_binding_mismatch") or {}
+    if group.get("producer_path_id") != "mimi.submit_message.group_id_binding_guard" or group.get("rejection_effects") != "none" or "canonical_effective_scope_key_bytes(effective_scope)" not in group.get("derivation", ""):
+        lint.fail(registry_path, "MIMI group-id guard lacks the current-scope derivation")
+    reason_rows = errors.get("reason_codes") or []
+    observer_reason = next((row for row in reason_rows if row.get("code") == "mimi_observer_write_forbidden"), {})
+    if observer_reason.get("status") != "active":
+        lint.fail(errors_path, "MIMI observer write reason must be active with its producer")
+    cases = {row.get("case_id"): row for row in fixture.get("cases", [])}
+    rejected = cases.get("observer_binding_rejects_before_effects") or {}
+    if rejected.get("producer_path_id") != observer.get("producer_path_id") or rejected.get("expected_reason_code") != "mimi_observer_write_forbidden":
+        lint.fail(fixture_path, "MIMI observer rejection case is not bound to its producer")
+    effect_counts = rejected.get("expected_effect_counts") or {}
+    required_effects = {"constructed_events", "accepted_events", "realm_commits", "typed_current_results", "outbox_rows", "receipts", "fanout_deliveries"}
+    if not required_effects.issubset(effect_counts) or any(effect_counts.get(name) != 0 for name in required_effects):
+        lint.fail(fixture_path, "MIMI observer rejection must assert zero write and fanout effects")
+    for case_id in ("verified_group_info_group_id_mismatch", "room_binding_group_id_mismatch", "current_scope_derived_group_id_mismatch"):
+        case = cases.get(case_id) or {}
+        if case.get("producer_path_id") != group.get("producer_path_id") or case.get("expected_reason_code") != "mimi_governance_binding_mismatch" or case.get("expected_projection_writes") != 0:
+            lint.fail(fixture_path, f"MIMI {case_id} must reject without projection writes")
+
+
+def check_mimi_room_binding_migration(lint: Lint) -> None:
+    """Pin the migration carrier, its second schema view, and rejection suite."""
+    event_path = ARTIFACTS / "schemas" / "event-payload.schema.json"
+    interop_path = ARTIFACTS / "schemas" / "mimi-interop.schema.json"
+    errors_path = ARTIFACTS / "registry" / "error-code-registry.json"
+    fixture_path = ARTIFACTS / "fixtures" / "mimi-room-binding-migration-fixture.json"
+    event_defs = (load_json(lint, event_path) or {}).get("$defs") or {}
+    binding = event_defs.get("mimi_room_binding_payload") or {}
+    proof = event_defs.get("mimi_room_binding_migration_proof") or {}
+    fields = (binding.get("properties") or {})
+    expected_refs = (
+        "previous_accepted_event_id",
+        "previous_accepted_commit_id",
+        "migrating_event_id",
+        "migrating_commit_id",
+    )
+    if binding.get("additionalProperties") is not False or fields.get("migration_proof", {}).get("$ref") != "#/$defs/mimi_room_binding_migration_proof":
+        lint.fail(event_path, "MIMI migration proof must be inside the closed Event payload")
+    if set(proof.get("required") or []) != set(expected_refs) or set((proof.get("properties") or {})) != set(expected_refs) or proof.get("additionalProperties") is not False:
+        lint.fail(event_path, "MIMI migration proof must be the closed four-reference lineage")
+    paired = {"migration_outcome": ["migration_proof"], "migration_proof": ["migration_outcome"]}
+    if binding.get("dependentRequired") != paired or fields.get("migration_outcome", {}).get("enum") != ["completed", "rolled_back"]:
+        lint.fail(event_path, "MIMI migration outcome and proof must be paired")
+    interop = (load_json(lint, interop_path) or {}).get("$defs") or {}
+    mirrored = (((interop.get("room_binding") or {}).get("properties") or {}).get("payload") or {})
+    mirrored_fields = mirrored.get("properties") or {}
+    if mirrored.get("dependentRequired") != paired or mirrored_fields.get("migration_proof", {}).get("$ref") != "./event-payload.schema.json#/$defs/mimi_room_binding_migration_proof" or mirrored_fields.get("migration_outcome", {}).get("enum") != fields.get("migration_outcome", {}).get("enum"):
+        lint.fail(interop_path, "MIMI interop payload migration fields drift from the Event payload")
+    reasons = (load_json(lint, errors_path) or {}).get("reason_codes") or []
+    if not any(row.get("code") == "mimi_room_binding_migration_proof_invalid" and row.get("status") == "active" for row in reasons):
+        lint.fail(errors_path, "MIMI migration proof rejection reason must be active")
+    fixture = load_json(lint, fixture_path) or {}
+    cases = {row.get("case_id"): row for row in fixture.get("cases", [])}
+    for case_id in ("completed_candidate_topology", "rolled_back_previous_topology"):
+        if cases.get(case_id, {}).get("expected") != "accepted":
+            lint.fail(fixture_path, f"MIMI migration positive case {case_id} is missing")
+    for case_id in ("both_migration_fields_missing", "stale_migrating_commit", "cross_room_previous_event", "non_adjacent_previous_event", "completed_with_previous_topology", "rolled_back_with_candidate_topology", "target_mls_group_not_current", "migration_fields_on_other_transition"):
+        if cases.get(case_id, {}).get("expected_reason_code") != "mimi_room_binding_migration_proof_invalid":
+            lint.fail(fixture_path, f"MIMI migration rejection case {case_id} is missing")
+    if any(value != 0 for value in (fixture.get("rejected_effect_counts") or {}).values()):
+        lint.fail(fixture_path, "MIMI migration rejected cases must have zero durable effects")
+
+
 def check_registries(lint: Lint) -> dict[str, set[str]]:
+    check_ordinary_realm_bootstrap_carrier(lint)
+    check_mimi_admission_guards(lint)
+    check_mimi_room_binding_migration(lint)
     event_path = ARTIFACTS / "registry" / "event-kind-registry.json"
     schema_path = ARTIFACTS / "registry" / "schema-registry.json"
     track_path = ARTIFACTS / "registry" / "track-name-registry.json"

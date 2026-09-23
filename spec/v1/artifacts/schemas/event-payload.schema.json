@@ -5620,8 +5620,54 @@
           ],
           "description": "Lifecycle state of the binding. Initial status MUST be proposed or accepted; legal transitions are defined in zh/extensions/mimi-interop.md §4.2. accepted bindings authorize projection; revoked bindings stop new MIMI writes; migrating stops new writes until a verified migration proof returns the binding to accepted or revoked."
         },
+        "migration_outcome": {
+          "type": "string",
+          "enum": [
+            "completed",
+            "rolled_back"
+          ],
+          "description": "Required exactly for a migrating->accepted transition, paired with migration_proof. The signed Event asserts whether the migrating candidate topology became effective or the previous accepted topology was restored."
+        },
+        "migration_proof": {
+          "$ref": "#/$defs/mimi_room_binding_migration_proof"
+        },
         "created_at": {
           "$ref": "#/$defs/timestamp"
+        }
+      },
+      "dependentRequired": {
+        "migration_outcome": [
+          "migration_proof"
+        ],
+        "migration_proof": [
+          "migration_outcome"
+        ]
+      },
+      "additionalProperties": false
+    },
+    "mimi_room_binding_migration_proof": {
+      "type": "object",
+      "description": "Commit-backed lineage proof for a migrating->accepted room-binding Event. Each Event ID MUST name an accepted ak.mimi.room_binding Event and each Commit ID MUST be its covering RealmCommit in the same Realm. Admission verifies that the migrating pair is the current typed-result source and the previous_accepted pair was the immediately preceding accepted binding state; see zh/extensions/mimi-interop.md §4.2.",
+      "required": [
+        "previous_accepted_event_id",
+        "previous_accepted_commit_id",
+        "migrating_event_id",
+        "migrating_commit_id"
+      ],
+      "properties": {
+        "previous_accepted_event_id": {
+          "$ref": "#/$defs/event_ref",
+          "x-arkret-preimage-commitment": "fixed_event"
+        },
+        "previous_accepted_commit_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
+        },
+        "migrating_event_id": {
+          "$ref": "#/$defs/event_ref",
+          "x-arkret-preimage-commitment": "fixed_event"
+        },
+        "migrating_commit_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
         }
       },
       "additionalProperties": false
@@ -5726,14 +5772,16 @@
     },
     "mls_governance_binding": {
       "type": "object",
-      "description": "The single closed Arkret MLS governance binding used identically by the Event payload, GroupContext extension 0xF1C0 and pre-Genesis proposal carrier. key_access_revision is a monotonic unsigned 64-bit counter, not a digest.",
+      "description": "The single closed Arkret MLS governance binding used identically by the Event payload, GroupContext extension 0xF1C0 and pre-Genesis proposal carrier. Sidecar scope additionally signs the participant authority digest and accepted authority cut. key_access_revision is a monotonic unsigned 64-bit counter, not a digest.",
       "x-arkret-deterministic-cbor": {
         "map_key_order": [
           "next_epoch",
           "previous_epoch",
           "effective_scope",
           "key_access_revision",
-          "base_group_state_ref"
+          "base_group_state_ref",
+          "authority_stream_head",
+          "participant_authority_digest"
         ],
         "maximum_input_bytes": 16384,
         "maximum_nesting_depth": 8,
@@ -5776,8 +5824,48 @@
           "minimum": 0,
           "maximum": 18446744073709551615,
           "description": "Monotonic unsigned 64-bit counter for changes to future MLS epoch key access. Equality is numeric equality; no digest alias is accepted."
+        },
+        "participant_authority_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "authority_stream_head": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/event_ref"
+          },
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "UTF-8 byte-lexicographically sorted accepted Event IDs at the exact Sidecar participant decision cut; same value as AgentSidecarView.mls_context.authority_stream_head."
         }
       },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "effective_scope": {
+                "properties": {
+                  "kind": {
+                    "const": "sidecar"
+                  }
+                },
+                "required": ["kind"]
+              }
+            },
+            "required": ["effective_scope"]
+          },
+          "then": {
+            "required": ["participant_authority_digest", "authority_stream_head"]
+          },
+          "else": {
+            "not": {
+              "anyOf": [
+                {"required": ["participant_authority_digest"]},
+                {"required": ["authority_stream_head"]}
+              ]
+            }
+          }
+        }
+      ],
       "additionalProperties": false
     },
     "mls_genesis_binding_proposal_carrier": {
@@ -5951,7 +6039,7 @@
             "self",
             "mimi_facade"
           ],
-          "description": "Delivery provenance. Absent or \"self\" is a native report; \"mimi_facade\" is a report relayed through the authenticated MIMI provider. Both are authored by the exact reporter Actor's current device or authorized agent proxy under self_authored_proof; the facade never signs on the reporter's behalf. source_provider_id is required only for mimi_facade."
+          "description": "Delivery provenance. Absent or \"self\" is a native self-authored report. \"mimi_facade\" is a service-attested report authored by the authorized receiving facade service after authenticating the source Provider and the reporter's claim and current authority. The facade never writes the reporter Actor as Event actor; source_provider_id is required only for mimi_facade."
         },
         "source_provider_id": {
           "$ref": "#/$defs/did_core_id",
@@ -7100,7 +7188,7 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 128,
-          "description": "Reaction key. Plaintext scopes SHOULD use a single Unicode emoji cluster or registered short tag. End-to-end-encrypted scopes MUST carry the v1 keyed-HMAC routing tag here and carry the equivalent base64url tag in encrypted_payload.encryption_context.routing_context. The exact derivation is ExpandWithLabel(routing_root[N], \"ak.reaction-routing-v1\", JCS({effective_scope,target_ref,routing_window}), 32), followed by HMAC-SHA256 over NFC(canonical_emoji); routing_root[N] is the epoch_content_root for exporter mode or MLS-Exporter(\"ak.reaction-routing-root-v1\", canonical_effective_scope_key_bytes(effective_scope), KDF.Nh) for standard mode. routing_window is derived from outer Event.created_at and does not require an hourly MLS Commit. See zh/crypto-media/encryption-and-audit.md §2.8. The canonical emoji travels only in encrypted_payload."
+          "description": "Reaction key. Plaintext scopes SHOULD use a single Unicode emoji cluster or registered short tag. End-to-end-encrypted scopes MUST carry the v1 keyed-HMAC routing tag here and carry the equivalent base64url tag in encrypted_payload.encryption_context.routing_context. The exact standard MLS derivation is routing_root[N] = MLS-Exporter(\"ak.reaction-routing-root-v1\", canonical_effective_scope_key_bytes(effective_scope), KDF.Nh), then ExpandWithLabel(routing_root[N], \"ak.reaction-routing-v1\", JCS({effective_scope,target_ref,routing_window}), 32), followed by HMAC-SHA256 over NFC(canonical_emoji). routing_window is derived from outer Event.created_at and does not require an hourly MLS Commit. See zh/crypto-media/encryption-and-audit.md §2.8. The canonical emoji travels only in encrypted_payload."
         },
         "annotation": {
           "type": "string",
@@ -9195,7 +9283,7 @@
     },
     "strand_watch_set_payload": {
       "type": "object",
-      "description": "Payload for ak.strand.watch.set. Writes the (strand_id, watcher_actor_id) watch typed current result. The new typed current result value is computed from payload.level + payload.level_public: when level is null the effect is set null (clear, equivalent to mentions_only); when level is a string the effect is set { level, level_public? }. Reducer invariants: (1) watcher_actor_id MUST equal envelope.actor_id unless writer holds ak.strand.watch.set.others; (2) when watcher_actor_id != envelope.actor_id (.others write), level MUST be one of {mentions_only, participating, all} and level_public MUST be omitted or false — writing muted or level_public=true on behalf of another actor MUST failed_precondition; (3) .others writes MUST carry semantic_refs[role=audit_pair] to a same-batch ak.audit.accessed event whose payload access_kind=watch_set_others identifies writer / target / typed current result / before-after heads. See models/strand-and-message.md §8.4.",
+      "description": "Payload for ak.strand.watch.set. Writes the (strand_id, watcher_actor_id) watch typed current result. The new typed current result value is computed from payload.level + payload.level_public: when level is null the effect is set null (clear, equivalent to mentions_only); when level is a string the effect is set { level, level_public? }. Reducer invariants: (1) watcher_actor_id MUST equal envelope.actor_id unless writer holds ak.strand.watch.set.others; (2) when watcher_actor_id != envelope.actor_id (.others write), level MUST be one of {mentions_only, participating, all} and level_public MUST be omitted or false — writing muted or level_public=true on behalf of another actor MUST failed_precondition; (3) .others writes MUST have one same-batch ak.audit.accessed event pointing to the watch Event with semantic_refs[role=audit_pair], and its payload access_kind=watch_set_others must bind writer_actor_id, target_actor_id, target_ref=strand_id and paired_event_id. The Station validates current watch state and atomically commits both Events; no caller-authored result head is carried. See models/strand-and-message.md §8.4.",
       "required": [
         "strand_id",
         "watcher_actor_id",

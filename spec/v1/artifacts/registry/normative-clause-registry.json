@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-24.1",
+  "version": "2026-09-24.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-24T02:03:15+08:00",
+  "generated_at": "2026-09-24T03:23:48+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -169,7 +169,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/sync/api-conventions.md#3-认证",
-      "section_digest": "sha256:4197a1af991dbcff4de9b92d59db1a41f32e0b2e08ed24157b728c91617ab025",
+      "section_digest": "sha256:3e00d9745b2b049a345cff3bedfd66c54db7dd437f40b1312b64064990bcab18",
       "requirement": "Protected current-v1 endpoints require sender-constrained proof of possession; a bare bearer session grant MUST NOT authenticate a protected request.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -296,12 +296,13 @@
       "status": "active",
       "category": "distributed_write",
       "source_anchor": "spec/v1/zh/sync/client-sync.md#10-to-device-delivery",
-      "section_digest": "sha256:a57e6ae60e20b2ca118b6f6d93066136f785db9b2503cfb812f75e5eb87d0ce0",
-      "requirement": "To-device delivery executes each durable handler effect exactly once: redelivery is deduplicated by the closed sender endpoint plus device_message_id and queue removal happens only on explicit ack.",
+      "section_digest": "sha256:a99c5f392a83b6e89bf9123e5320cb4929522ac0a3a70cf28162068946a79436",
+      "requirement": "Recipient-private delivery preserves exact DeviceMessageEnvelope and MlsWelcomeDelivery branches in one ordered queue: each kind uses its closed durable deduplication key, unacknowledged items survive content expiry and capacity pressure, full capacity rejects new admission atomically, and queue removal happens only after explicit cumulative ACK of durably processed items by the same authenticated endpoint.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.sync.to_device_message_idempotency.v1",
-        "ak.vector.sync.delivery_ack.v1"
+        "ak.vector.sync.delivery_ack.v1",
+        "ak.vector.mls.welcome_recipient_delivery_queue.v1"
       ]
     },
     {
@@ -415,7 +416,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/sync/server-trusted-results.md#56-按次-current-与精确历史签名公钥",
-      "section_digest": "sha256:8c5dbfe3a16e9658799785447b85550a163117099f5171983527575fa1bc6f3b",
+      "section_digest": "sha256:808971462e739de4f617d1c51a77b2bb5bc04eaf7f94d6af8debe78df289a2f7",
       "requirement": "Self signer keys omit actor/method mirrors, retain complete selector association and invocation context, require historical committed_event_ref plus an independent committed authorization_ref/current revision/governance generation, and leave Signal standalone identity and peer portable evidence intact.",
       "testability_grade": "api_shape",
       "test_plan": "Run tools.test_self_signer_result_schema and tools.test_residual_simplification for closed query keys, mandatory authorization, historical separation, reordered/unavailable results, duplicate/missing selectors, different methods/Events and invocation mismatch. Runtime authorization, producer signatures and Signal gates remain required and tracked by the existing owner."
@@ -534,7 +535,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/device-lifecycle.md#921-双重授权与签名-transcript",
-      "section_digest": "sha256:84713fd806dab484060ba598315d650ee008116c4235565aaaf9850e6c12e4c4",
+      "section_digest": "sha256:1ac0728bad2916d585d56b7762b290dca81f27ee75234ea6d70ebf5c9893490f",
       "requirement": "Every peer KeyPackage claim binds the accepted authorization Event id of its closed branch, an independently verifiable unique producer proof and portable signer evidence, and a destination-signed claim_receipt over the exact claim bytes. The requester checks the authorization Event embedded signer evidence, the claim receipt, the KeyPackage signature and every selector before installing a KeyPackage or authoring a Welcome. The wire carries no PCR, control-history, device or Agent signer-evidence sidecar, and an external verifier never replays PCR genesis, RealmCommits or complete control history.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -546,8 +547,8 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/device-lifecycle.md#924-welcomeconsume-与已接受的-founding-unit",
-      "section_digest": "sha256:107c99d05b1522c45b01004f56f46c9716b708bbb2cad00eaceecbe6d0003b53",
-      "requirement": "Welcome acceptance verifies the KeyPackage binding byte-exactly before decrypting: the recipient runtime checks the accepted winning Add Commit for that Welcome and the requester, recipient, KeyPackage, group and epoch bindings of the original claim receipt and claim envelope against the same accepted device, authorization Event and active generation carried by the claim record. Any device-evidence or digest mismatch is rejected before decrypt, and the original claim is consumed only after the group state is durably stored.",
+      "section_digest": "sha256:c63d80213ceba6577f7b944afd312575511a45545510646847e439b201f97b05",
+      "requirement": "Before decrypting a producer-signed MlsWelcomeDelivery, the recipient resolves its typed keypackage_claim_ref to the exact durable claim ledger entry, recomputes the KeyPackage digest and signed LeafNode capabilities, verifies current endpoint authorization and the accepted winning Add Commit on the same Genesis lineage, and compares requester, recipient, KeyPackage, group and epoch bindings. A Welcome Event payload, duplicate claim_ref digest, claim_envelope or embedded claim_receipt MUST NOT be accepted. The original claim is consumed only after new group state is durably stored.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.mls.welcome_keypackage_hash.v1"
@@ -568,7 +569,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/sync/server-trusted-results.md#56-按次-current-与精确历史签名公钥",
-      "section_digest": "sha256:8c5dbfe3a16e9658799785447b85550a163117099f5171983527575fa1bc6f3b",
+      "section_digest": "sha256:808971462e739de4f617d1c51a77b2bb5bc04eaf7f94d6af8debe78df289a2f7",
       "requirement": "An ordinary client obtains exact historical signing keys from its own Station using a committed_event_ref copied only from a verified stream_row. Every result independently keeps the accepted authorization coordinate, revision and governance generation so historical MLS binding remains verifiable; target and authorization refs may differ, and a stable (actor, method, key) triple never substitutes for either exact Event instance.",
       "testability_grade": "audit",
       "test_plan": "Run ak.vector.signer_key.historical_commit_coordinate.v1 and tools.test_signer_key_historical_coordinate_gate: both historical selectors require the four-coordinate ref, target and authorization remain independent, redacted/current-projection/cursor/time sources stay unresolved, and missing coordinates never downgrade to current query. The fixture is a machine semantic suite; production signer resolution and commit verification remain implementation evidence."
@@ -578,7 +579,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/sync/server-trusted-results.md#56-按次-current-与精确历史签名公钥",
-      "section_digest": "sha256:8c5dbfe3a16e9658799785447b85550a163117099f5171983527575fa1bc6f3b",
+      "section_digest": "sha256:808971462e739de4f617d1c51a77b2bb5bc04eaf7f94d6af8debe78df289a2f7",
       "requirement": "A current self signing-key result serves only the operation that froze it. A same-batch or byte-identical in-flight query may be merged, but a completed result MUST NOT be reused for a future Signal, a future operation or a reconnection. Result association uses complete selector equality rather than array position, and a duplicate, missing or extra selector rejects the whole result.",
       "testability_grade": "audit",
       "test_plan": "Audited against signer-key-operations.schema.json and the self query contract: the review pass asserts results carry no reusable lifetime, that the request context is echoed verbatim and bound to the authenticated SessionGrant account, and that association is specified by complete selector equality with no index-based path. No vector exists because the obligation forbids a later reuse rather than fixing a byte artifact."

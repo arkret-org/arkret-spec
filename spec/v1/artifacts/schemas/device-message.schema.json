@@ -69,6 +69,21 @@
   "additionalProperties": false,
   "allOf": [
     {
+      "not": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "ak.secret.request",
+              "ak.secret.send"
+            ]
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      }
+    },
+    {
       "$comment": "Closed sender endpoint XOR: sender_account_id plus sender_device_id, the complete sender_agent_* triple, or sender_id. Half-filled and mixed branches are rejected.",
       "oneOf": [
         {
@@ -182,44 +197,6 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "ak.secret.request"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "content": {
-            "$ref": "#/$defs/secret_request_content"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.secret.send"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "content": {
-            "$ref": "#/$defs/secret_send_content"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
             "const": "ak.read_cursor.update"
           }
         },
@@ -262,41 +239,6 @@
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
     },
-    "transaction_id": {
-      "type": "string",
-      "pattern": "^[A-Za-z0-9._~=-]{1,128}$"
-    },
-    "secret_request_content": {
-      "type": "object",
-      "description": "ak.secret.request to-device content (device-lifecycle.md §10.2). A newly authorized device asks an existing authorized device to hand over an account-scope secret over HPKE. Carries no secret material itself.",
-      "required": [
-        "request_id",
-        "secret_id",
-        "from_device_id",
-        "recipient_hpke_public_key"
-      ],
-      "properties": {
-        "request_id": {
-          "$ref": "#/$defs/transaction_id",
-          "description": "Caller-generated random correlation id; MUST NOT be reused after the request is answered or cancelled."
-        },
-        "secret_id": {
-          "type": "string",
-          "pattern": "^[a-z0-9_]+$",
-          "description": "Opaque identifier of the requested secret, e.g. example_mls_account_secret."
-        },
-        "from_device_id": {
-          "$ref": "#/$defs/device_id",
-          "description": "Requesting (new) device; MUST equal envelope sender_device_id."
-        },
-        "recipient_hpke_public_key": {
-          "type": "string",
-          "minLength": 1,
-          "description": "base64url X25519 HPKE public key the requesting device controls and the responder encrypts to. It MUST be byte-identical to the hpke_key registered for from_device in the current accepted device projection. A responder MUST fail closed on any mismatch and MUST NOT accept an ephemeral key merely because it appeared in some other transcript; a verification checkpoint binds the device signing key and the accepted hpke_key, never an unverified encryption key."
-        }
-      },
-      "additionalProperties": true
-    },
     "read_cursor_update_content": {
       "type": "object",
       "description": "ak.read_cursor.update actor-private sibling-device content (read-receipts.md §6.6 step 2). A derived projection of the ak.read_cursor.advance Event that currently wins the causal-first merge for one (actor_id, realm_id, read_scope); it is NOT the ak.schema.read_cursor.v1 payload object (which has no id and no updated_at) and never enters shared Realm history. updated_at is the winning advance Event envelope created_at.",
@@ -336,47 +278,6 @@
         }
       },
       "additionalProperties": false
-    },
-    "secret_send_content": {
-      "type": "object",
-      "description": "ak.secret.send to-device content (device-lifecycle.md §10.2). The existing authorized device returns the requested secret HPKE-committed to the requester's recipient_hpke_public_key. The plaintext is never visible to the queue service.",
-      "required": [
-        "request_id",
-        "secret_id",
-        "from_device_id",
-        "scheme",
-        "enc",
-        "ciphertext"
-      ],
-      "properties": {
-        "request_id": {
-          "$ref": "#/$defs/transaction_id",
-          "description": "Correlates to the pending ak.secret.request; MUST equal the request_id authenticated inside the committed plaintext and HPKE AAD. Receivers MUST drop sends that do not match a locally pending request_id."
-        },
-        "secret_id": {
-          "type": "string",
-          "pattern": "^[a-z0-9_]+$",
-          "description": "Opaque requested secret identifier; MUST equal the secret_id authenticated inside the committed plaintext and HPKE AAD."
-        },
-        "from_device_id": {
-          "$ref": "#/$defs/device_id",
-          "description": "Authorizing (existing) device; MUST equal envelope sender_device_id and MUST be a non-revoked device of the recipient principal."
-        },
-        "scheme": {
-          "const": "ak.hpke_x25519_aead_chacha20poly1305.v1"
-        },
-        "enc": {
-          "type": "string",
-          "minLength": 1,
-          "description": "base64url HPKE (RFC 9180) encapsulated key (KEM output)."
-        },
-        "ciphertext": {
-          "type": "string",
-          "minLength": 1,
-          "description": "base64url HPKE AEAD ciphertext over the secret plaintext. The plaintext MUST carry the requested secret body, version, request_id and secret_id. For this human-device-only secret branch, the HPKE AAD is the RFC 8785 JCS canonical JSON of {device_message_id, kind, sender_account_id, sender_device_id, recipient_account_id, recipient_device_id, request_id, secret_id, expires_at}; both AccountId objects are covered in full. expires_at is the exact already-validated canonical Arkret UTC millisecond string from DeviceMessageEnvelope and MUST NOT be converted to a second epoch field. Freshness for server-assigned sent_at is bound by the sender-assigned device_message_id plus the one-time request_id authenticated inside the committed plaintext and AAD."
-        }
-      },
-      "additionalProperties": true
     }
   }
 }

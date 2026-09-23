@@ -4,7 +4,7 @@
     "entrypoint": "ak.suite.crypto.arkret_private_kdf_and_durability.v1"
   },
   "suite": "arkret_private_kdf_and_durability",
-  "version": "2026-09-21",
+  "version": "2026-09-23",
   "covers_vectors": [
     "ak.vector.signal.exporter_key_kat.v1",
     "ak.vector.aead.full_width_counter_nonce.v1",
@@ -45,7 +45,7 @@
       "input": {
         "exporter_secret_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
         "realm_id_utf8": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw",
-        "epoch_content_root_label": "ak.epoch-content-root-v1",
+        "signal_root_label": "ak.signal-root-v1",
         "signal_label": "ak.signal-v1",
         "sender_domain_kind": "ordinary_device",
         "verified_sender_domain_utf8": "ak:device:01904100-0000-7000-8000-000000000006",
@@ -54,11 +54,11 @@
         "aead_profile": "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519"
       },
       "expected": {
-        "epoch_content_root_hex": "da6d1a676c3a373655845b6fad02cb19a5a30727fca231e77d642fe2ebc855e9",
+        "signal_root_hex": "f4dc59fd70a0c28a7ea1526ab7c080eab9d85ec051be8e02663c442771d6a2dc",
         "signal_expand_with_label_info_hex": "0010144d4c5320312e3020616b2e7369676e616c2d76312e616b3a6465766963653a30313930343130302d303030302d373030302d383030302d303030303030303030303036",
-        "signal_key_hex": "b6db0bdf6ac63f29db36f214ed8899e4",
+        "signal_key_hex": "c960cc8494409c8f6b48017d13b20041",
         "peer_verified_sender_domain_utf8": "ak:device:01904100-0000-7000-8000-00000000000e",
-        "peer_signal_key_hex": "e5a38183f75c1205740f99083a89abeb",
+        "peer_signal_key_hex": "d17c11525d6eda38810667942be58078",
         "forced_equal_nonce_hex": "000000000102030405060708",
         "same_raw_aead_key": false,
         "negative_mutations": [
@@ -77,7 +77,8 @@
       "input": {
         "exporter_secret_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
         "realm_id_utf8": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw",
-        "routing_root_hex": "da6d1a676c3a373655845b6fad02cb19a5a30727fca231e77d642fe2ebc855e9",
+        "routing_root_label": "ak.reaction-routing-root-v1",
+        "routing_root_hex": "d499f8c5c470770810b6e7f9448b372c355e9e0230db3e7613757d1d3cbfb572",
         "expand_with_label": "ak.reaction-routing-v1",
         "effective_scope": {
           "kind": "realm",
@@ -110,17 +111,17 @@
         ]
       },
       "expected": {
-        "routing_hmac_key_hex": "0599b6e51be62e8baf6cdec6bf5f326fe1a7c3cf1d56e38d091029b5a7dcf675",
+        "routing_hmac_key_hex": "1c40aa88a9bb62ebc6311deba830256552e0311f83f65a6b18fa0501537e92ee",
         "tags_hex": [
-          "e61c8ae48d2cf86d721e73c9f72969aacdff69fdbbbf5383a18e17173d2bdddb",
-          "e61c8ae48d2cf86d721e73c9f72969aacdff69fdbbbf5383a18e17173d2bdddb",
-          "65a3319be4bc655c9967c470fe339c129ffb46fea1b5a125fe4665a4576a0158"
+          "2fbbd107c5273c48dc8b04b92f71c650104244f7a2b5eb864e12a6f24707c1a8",
+          "2fbbd107c5273c48dc8b04b92f71c650104244f7a2b5eb864e12a6f24707c1a8",
+          "9bb1116c79381ded0677a0fc578395f06355f0ed2201006fd0caba736806bab1"
         ],
         "cross_sender_equality": {
           "sender_a": "actor-a",
           "sender_b": "actor-b",
           "same_scope_target_window_epoch_and_emoji": true,
-          "tag_hex_for_both": "65a3319be4bc655c9967c470fe339c129ffb46fea1b5a125fe4665a4576a0158"
+          "tag_hex_for_both": "9bb1116c79381ded0677a0fc578395f06355f0ed2201006fd0caba736806bab1"
         },
         "negative_mutations": [
           "skip_NFC",

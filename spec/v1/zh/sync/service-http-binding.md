@@ -126,11 +126,22 @@ Blob 和其它 binary operation 使用各自登记的 streaming/binary body cont
 `POST /_arkret/self/events` 接受
 `authority-commit-operations.schema.json#/$defs/self_submit_request`，返回
 `#/$defs/self_submit_outcome`。普通 `EventAdmissionSubmission` 与 MLS Commit 保持各自单提交合同；
+`ordinary_realm_bootstrap` 是按 `contract-registry.json.realm_bootstrap_registry.ordinary_collaboration`
+固定 slot 顺序、在同一治理 Station／Realm stream 上整体接纳或整体回滚的原子分支；
 `direct_conversation_founding` 是恰四条有序 Event 的原子分支；`membership_compensation` 是一条 Event、
 closed transport-only evidence 与 single-use CAS 的原子分支。Account Station 必须先耐久保存 exact
 producer-signed bytes，再解析 current authority bundle 并转发；没有验证到 authority-signed
 `RealmCommit` 时不得返回 `committed` 或对其它成员 fanout。这里没有 schema 外的 `queued`／`forwarding`
 success body。
+
+`ordinary_realm_bootstrap` 以 UUIDv7 `idempotency_key` 与完整 caller-signed
+`EventAdmissionSubmission[]` 提交；每条 Event 单独取得连续 RealmCommit，成功与
+exact replay 均按原顺序返回同一批完整 source Commit，失败不产生部分成功。
+旧 `service-operation-dtos.schema.json#/$defs/EventsSubmitBatchRequestBody` 只供
+`security-transaction.schema.json#/$defs/prepared_event_unit` 内嵌使用，不是此
+HTTP operation 的通用 batch 分支。以后若登记独立 Event 的便捷 batch，必须
+另行定义逐项 outcome、无 staged 同批依赖与无整组原子性；本 operation 当前
+不接受 caller 自选任意 Event 集合或 `atomic=true`。
 
 旧 Seal-style 的 pending-control 查询、prepare/fence 与 submit 命令不属于 v1 公开 operation 或 HTTP binding；服务 MUST NOT 暴露这些路径作为第二套 Event 接纳、frontier 或设备撤销状态真相源。设备 `revocation_pending` 仍由 [device-lifecycle.md §5.5.3](../crypto-media/device-lifecycle.md) 的 durable proposal 与 covering RealmCommit command result 折叠，pairing/current-device gate 仍必须 fail closed；移除旧路由不得删除这些事实或改变本节正式 Event submit 的事务与幂等语义。
 
@@ -203,7 +214,7 @@ response 返回连续 RealmCommit 及其可见 Event。
 获准读取的 Commit。扫到允许区间上端（`after_position`）或下端（`before_position`）时它必须为 false，
 即使 Station 还持有该 caller 不获准读取的 Commit。不获准读取的历史 MUST NOT 置 `truncated`，
 停在 floor 的一页 MUST NOT 当作截断呈现，`truncated` 也 MUST NOT 用来遮盖 floor 的存在。
-`commits[]` 为空且 `truncated=false` 只表示该方向上该 caller 的允许区间已扫完，
+`committed_events[]` 为空且 `truncated=false` 只表示该方向上该 caller 的允许区间已扫完，
 不表示物理流为空、不存在或没有更多 Commit。
 
 **floor 连续性 anchor（normative）**：扫到允许区间下端的每一页 MUST 携带 `readable_floor`
@@ -211,7 +222,7 @@ response 返回连续 RealmCommit 及其可见 Event。
 就能把自己获准前缀的下边界绑定到已接受的链上。`floor_commit_id` 指向的 Commit 是唯一允许其
 `previous_commit_ref` 无法被该 caller 解析的可读 Commit。该 anchor 只证明获准前缀从哪里开始，
 既不证明 Station 没有更早历史，也不证明 Station 没有更新的更新。只有该 caller 在这条流上
-没有任何可读 Commit 时才省略它，那也是空 `commits[]` + `truncated=false` 唯一合法的情形。
+没有任何可读 Commit 时才省略它，那也是空 `committed_events[]` + `truncated=false` 唯一合法的情形。
 
 **链校验在两个方向上是同一条等式（normative）**：页内与跨页都按相邻位置检查，而不是按数组下标——
 position 较大那一行的 `previous_commit_ref` 必须等于 position 较小那一行的 `commit_id`，

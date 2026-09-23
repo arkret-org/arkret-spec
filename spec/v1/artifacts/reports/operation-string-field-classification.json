@@ -8,10 +8,10 @@
   ],
   "description": "Exhaustive classification of operation DTO schema/status/reason_code/reason properties into closed literals/enums, validated open protocol tokens, or bounded human-readable text. Any unconstrained audited string fails generation.",
   "summary": {
-    "total_fields": 74,
+    "total_fields": 75,
     "by_classification": {
       "bounded_free_text": 6,
-      "closed_enum": 31,
+      "closed_enum": 32,
       "closed_literal": 17,
       "validated_open_reason_code": 20
     },
@@ -282,6 +282,14 @@
       "pointer": "#/$defs/membership_compensation_terminal_certificate/properties/status",
       "classification": "closed_literal",
       "basis": "JSON Schema const"
+    },
+    {
+      "schema_file": "authority-commit-operations.schema.json",
+      "shape": "ordinary_realm_bootstrap_acceptance_outcome",
+      "field": "status",
+      "pointer": "#/$defs/ordinary_realm_bootstrap_acceptance_outcome/properties/status",
+      "classification": "closed_enum",
+      "basis": "JSON Schema enum"
     },
     {
       "schema_file": "authority-commit-operations.schema.json",

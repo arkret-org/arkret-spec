@@ -4155,7 +4155,19 @@ def check_canonical_digest_fixtures(lint: Lint) -> None:
         if data is None:
             continue
 
+        # §8.3 hashes a normalized object whose participant member differs
+        # from the signed wire input. Its dedicated guard checks that exact
+        # transcript, including the mutation cases below.
+        derived_binding_nodes: set[int] = set()
+        if fixture_path.name == "encoding-fixture.json" and isinstance(data, dict):
+            for vector in data.get("vectors", []):
+                if isinstance(vector, dict) and vector.get("vector_id") == "ak.vector.direct_conversation.binding_digest.v1":
+                    derived_binding_nodes.add(id(vector))
+                    derived_binding_nodes.update(id(case) for case in vector.get("mutation_cases", []) if isinstance(case, dict))
+
         for case in iter_dict_nodes(data):
+            if id(case) in derived_binding_nodes:
+                continue
             for input_key, digest_key in shapes:
                 if input_key not in case or digest_key not in case:
                     continue
@@ -4259,9 +4271,9 @@ def check_direct_conversation_digest_vectors(lint: Lint) -> None:
     expected_binding_domain = "ak.direct-conversation.binding-digest.v1\n"
     if binding.get("domain_separator_utf8") != expected_binding_domain:
         lint.fail(fixture_path, "direct-conversation binding_digest KAT has the wrong domain separator")
-    canonical_binding = binding.get("input")
+    binding_input = binding.get("input")
     valid_digest = binding.get("expected_digest")
-    if not isinstance(canonical_binding, dict) or not isinstance(valid_digest, str):
+    if not isinstance(binding_input, dict) or not isinstance(valid_digest, str):
         lint.fail(fixture_path, "direct-conversation binding_digest KAT lacks input or digest")
         return
 
@@ -4274,8 +4286,8 @@ def check_direct_conversation_digest_vectors(lint: Lint) -> None:
         "authorization_basis",
         "initial_exact_pair_group_state_ref",
     }
-    if set(canonical_binding) != expected_binding_fields:
-        lint.fail(fixture_path, "binding_digest canonical object has the wrong closed field set")
+    if set(binding_input) != expected_binding_fields:
+        lint.fail(fixture_path, "binding_digest wire input has the wrong closed field set")
 
     def normalize_payload(payload: Any, label: str) -> dict[str, Any] | None:
         if not isinstance(payload, dict):
@@ -4307,7 +4319,7 @@ def check_direct_conversation_digest_vectors(lint: Lint) -> None:
             return None
         return {
             "pair_key": payload["pair_key"],
-            "unordered_participant_ids": sorted(
+            "participants_unordered": sorted(
                 participants, key=lambda value: canonical_json(value).encode("utf-8")
             ),
             "realm_id": payload["realm_id"],
@@ -4321,6 +4333,17 @@ def check_direct_conversation_digest_vectors(lint: Lint) -> None:
                 "initial_exact_pair_group_state_ref"
             ],
         }
+
+    canonical_binding = normalize_payload(binding_input, "binding input")
+    if canonical_binding is None:
+        return
+    expected_canonical = canonical_json(canonical_binding)
+    if binding.get("expected_canonical_bytes_utf8") != expected_canonical:
+        lint.fail(fixture_path, "binding_digest KAT canonical bytes differ from §8.3")
+    if binding.get("digest_input_hex") != (expected_binding_domain + expected_canonical).encode("utf-8").hex():
+        lint.fail(fixture_path, "binding_digest KAT transcript bytes differ from §8.3")
+    if valid_digest != sha256_text(expected_binding_domain + expected_canonical):
+        lint.fail(fixture_path, "binding_digest KAT digest differs from §8.3")
 
     normalization_cases = binding.get("normalization_cases")
     if not isinstance(normalization_cases, list) or not normalization_cases:
@@ -4371,6 +4394,13 @@ def check_direct_conversation_digest_vectors(lint: Lint) -> None:
             or changed.get("expected_digest") == valid_digest
         ):
             lint.fail(fixture_path, "semantic binding mutation is not a strict negative")
+        elif isinstance(changed.get("input"), dict):
+            changed_object = normalize_payload(changed["input"], "semantic_main_strand_change")
+            if changed_object is not None:
+                changed_canonical = canonical_json(changed_object)
+                changed_digest = sha256_text(expected_binding_domain + changed_canonical)
+                if changed.get("expected_canonical_bytes_utf8") != changed_canonical or changed.get("expected_digest") != changed_digest:
+                    lint.fail(fixture_path, "semantic binding mutation transcript differs from §8.3")
 
     schema_path = ARTIFACTS / "schemas" / "event-payload.schema.json"
     schema = load_json(lint, schema_path)
@@ -5885,9 +5915,12 @@ def check_mls_governance_binding_closure_vector(lint: Lint) -> None:
         lint.fail(schema_path, "mls_governance_binding schema is missing")
     else:
         if binding_schema.get("required") != list(BINDING_MEMBERS) or binding_schema.get("additionalProperties") is not False:
-            lint.fail(schema_path, "mls_governance_binding must be the closed five-member schema")
+            lint.fail(schema_path, "mls_governance_binding must require its five shared members")
         cbor = binding_schema.get("x-arkret-deterministic-cbor")
-        if not isinstance(cbor, dict) or cbor.get("map_key_order") != expected_order:
+        sidecar_members = ("participant_authority_digest", "authority_stream_head")
+        all_members = BINDING_MEMBERS + sidecar_members
+        complete_order = [name for _, name in sorted((_cbor_text(name), name) for name in all_members)]
+        if not isinstance(cbor, dict) or cbor.get("map_key_order") != complete_order:
             lint.fail(schema_path, "mls_governance_binding must publish the exact deterministic-CBOR key order")
         elif {key: cbor.get(key) for key in expected_limits} != expected_limits:
             lint.fail(schema_path, "mls_governance_binding decoder limits differ from the closure fixture")

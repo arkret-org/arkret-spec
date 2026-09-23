@@ -155,7 +155,7 @@ Typed current result至少绑定 selector、value/status、领域 revision，以
 该 source coordinate 只绑定写出 current entry 的 source Event，不绑定 entry value 中任意嵌套 Event。历史
 signer-key selector 的 `committed_event_ref` 只能从已验证 `realm_sync_entry.commits[]` 的
 `stream_row{commit,event}` 逐字构造；窗口外回填继续使用 §5.2 的 per-stream scan，其
-`stream_scan_outcome.commits[]` 复用同一个 `stream_row`。两条面必须核对 Commit signature／generation、
+`stream_scan_outcome.committed_events[]` 复用同一个 `stream_row`。两条面必须核对 Commit signature／generation、
 Realm／stream／position／predecessor 与 `commit.event_ref == event.event_id` 后才可建本地耐久索引；不得新增
 Event 字段、account sibling map 或 signer 专用 carrier，也不得从 current projection、cursor、producer time、
 arrival order 或缓存拼坐标。redacted／reference-locked row 不提供可验 producer envelope，必须保持 unresolved。
@@ -212,20 +212,35 @@ Account-private 状态不进入 RealmCommit，包括 UI preference、DND、local
 
 ## 10. To-Device Delivery
 
-DeviceMessage 与 `MlsWelcomeDelivery` 是 recipient-scoped delivery，不是共享 Event。它们按 delivery ID 去重
-并由接收设备显式 ACK。
+DeviceMessage 与 `MlsWelcomeDelivery` 是 recipient-scoped delivery，不是共享 Event。两者进入同一个
+recipient-private、有序耐久队列：account delta 的 `to_device.deliveries[]` 和
+`ak.self.device_messages.read.list.v1` 的 `deliveries[]` 均使用闭合判别联合，
+`delivery_kind="device_message"` 携原样 `device_message`，`delivery_kind="mls_welcome"` 携
+原样且带 producer proof 的 `mls_welcome`。客户端先按判别分支验证完整对象，再持久化、处理并显式 ACK；
+不得把 Welcome 转成 DeviceMessage、共享 Event，或从另一个 URL 补取 Welcome。human device 的主路径是
+account delta，两个分支都可从同一队列的 list 补拉。Agent runtime 使用其自身已授权 session 调用同一 list/ACK，
+按 `(recipient_actor_id, recipient_endpoint.verification_method, current agent_key_authorize_event_id)`
+绑定队列与 token；不能借用 controller 的 account/device 队列、session 或 synthetic device_id。
 
 **恰好一次的 durable handler 副作用（normative）**：重投递是正常路径——新建订阅、补拉、cursor 重置或
 服务端重试都会把未确认的 delivery 再次交给客户端，并**原样保留** `device_message_id`。客户端 MUST 在执行
-handler 副作用**之前**查询 durable 去重记录，去重键是**封闭的发送端点加 `device_message_id`**：human device
+handler 副作用**之前**查询 durable 去重记录。DeviceMessage 的键是**封闭的发送端点加 `device_message_id`**：human device
 用 `(sender_account_id, sender_device_id, device_message_id)`，Agent 用 `(sender_agent_id, device_message_id)`，
 Station service 用 `(sender_id, device_message_id)`。命中且已成功持久化的 delivery 只恢复完成位点，MUST NOT
 再次执行 handler。kind 专属的 `transaction_id` / `request_id` 只关联该业务 transcript，MUST NOT 充当通用去重键。
 `device_message_id` 相同而 envelope canonical 内容不同视为协议冲突，MUST fail closed，MUST NOT 覆盖既有去重记录。
+Welcome 的键是 `(recipient_actor_id, recipient_endpoint, welcome_id)`，并绑定完整 producer-signed
+`MlsWelcomeDelivery` canonical bytes；同键不同 bytes MUST fail closed。Welcome 没有
+`device_message_id` 或 DeviceMessage sender endpoint，不能从其 Commit Event id 推造去重键。
+两类去重记录都必须先于 handler 副作用 durable；队列 ACK 不代替此去重。
 
 ### 10.0 主接收路径与补拉路径 (normative)
 
-主路径是 account stream 的 delivery delta；补拉路径与其共享同一 recipient queue 和 ACK token，不创建第二份消息。
+human device 的主路径是 account stream 的 delivery delta；补拉路径与其共享同一 recipient queue 和 ACK
+token，不创建第二份消息。`deliveries[]` 按同一队列位置顺序返回，可交错出现两种分支；pagination
+cursor 与累计 ACK 均按队列位置计算，不按分支分别推进。Agent runtime 的 Welcome 由同一 list/ACK
+operation 读取其 Agent endpoint 队列；service MUST 以当前 Agent session 与 accepted key authorization
+精确选择该队列，不可把 human device 的 account delta 暴露给 Agent。
 
 ### 10.1 显式投递确认 (normative)
 
@@ -233,8 +248,20 @@ Station service 用 `(sender_id, device_message_id)`。命中且已成功持久�
 任何 delivery，补拉路径的 `after=` 读取位置同样只读。ACK 是累计且单调的——服务端删除该 token 覆盖位置（含）
 之前的全部已投递 delivery；ACK 一个早于当前确认位置的 token 是合法 no-op，MUST NOT 回退确认位置。并行
 dispatcher MUST 维护"最高已连续持久化位点"，MUST NOT ACK 覆盖位置晚于任何尚未持久化的 delivery。cursor
-失效、`dropped` 或 resync 都不使已签发的 ACK token 失效；服务端 MUST 仍按其 `(account_id, device_id)` 绑定
-校验并执行累计删除。
+失效、`dropped` 或 resync 都不使已签发的 ACK token 失效；服务端 MUST 仍按签发时的 exact recipient
+endpoint 绑定校验并执行累计删除。human device token 绑定完整 `(account_id, device_id)`；Agent token
+绑定 `(agent_id, verification_method, accepted authorization Event id)`，current authorization 被替换或撤销后
+旧 Agent token 不可被新 session 用于读、ACK 或清除新 endpoint 的队列。任一 token 覆盖的两类 delivery
+只要尚有一项未 durable processing，客户端 MUST NOT ACK 到该位置。
+
+未确认的 `DeviceMessageEnvelope` 与 `MlsWelcomeDelivery` MUST 持久保留，不得因入队后的
+`expires_at`、默认 TTL 或队列容量而删除。`expires_at` 限制发送／业务处理有效性，不能充当
+队列 ACK。配置的 endpoint 队列容量是**入队前置限制**：满额时服务端 MUST 在同一原子写入
+边界拒绝新的投递，既不淘汰旧项，也不消费该请求的幂等 identity；DeviceMessage send 使用
+通用 `quota_exceeded`，且同一批次零部分入队；MLS Commit 携 Welcome 时，容量拒绝必须使
+Commit、公开 MLS state 与所有 Welcome 一起零写入。队列容量按同一 exact endpoint 下两种
+未确认分支合计，已 ACK 项不占容量。`lost` 仅可表示有持久证据的历史缺口或故障，不得把
+正常 TTL／容量淘汰当作它的生产来源；`lost` 为真时客户端 MUST 重建 MLS／密钥就绪状态。
 
 ### 10.2 队列分页
 
@@ -314,7 +341,7 @@ MLS Genesis 在某 scope首次 authority commit 后不可逆激活；此前内�
 
 `ak.mls.commit` 与所有新增 recipient 的 `MlsWelcomeDelivery` 在 authority submission 中原子持久化。Commit accepted 后发送方立即安装 staged post-state，不等待 Welcome ACK。Welcome 重试按 `welcome_id` 幂等。
 
-旧 Seal closure 形式的 MLS accepted-artifact 与 Welcome-ref 独立读取端点不属于 v1，服务 MUST NOT 将其作为 Commit 接纳证明或 recipient delivery 的第二读取源。Commit 的公开接纳事实由已登记的 committed Event／RealmCommit 读取面取得；`MlsWelcomeDelivery` 仍必须留在同一事务写入的 recipient-private queue，通过 §10 的 account delivery delta／同队列补拉交付并显式 ACK。移除旧端点不得删除 Welcome ciphertext、重试队列、outbox 或扩大其它客户端的可读范围。
+旧 Seal closure 形式的 MLS accepted-artifact 与 Welcome-ref 独立读取端点不属于 v1，服务 MUST NOT 将其作为 Commit 接纳证明或 recipient delivery 的第二读取源。Commit 的公开接纳事实由已登记的 committed Event／RealmCommit 读取面取得；`MlsWelcomeDelivery` 仍必须留在同一事务写入的 recipient-private queue，作为 §10 的 `delivery_kind="mls_welcome"` 原样交付：human device 经 account delta 或同队列补拉，Agent runtime 经自身 endpoint 的同队列补拉，均在 durable processing 后显式 ACK。移除旧端点不得删除 Welcome ciphertext、重试队列、outbox 或扩大其它客户端的可读范围。
 
 每个 MLS scope维护单调 `key_access_revision`。Encrypted application Event只有在 epoch、group state ref、covered revision都等于 current public state时才能 commit；membership/device authorization变化推进 revision并阻塞 stale epoch新消息。
 

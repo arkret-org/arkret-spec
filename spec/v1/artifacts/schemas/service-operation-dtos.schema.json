@@ -739,9 +739,6 @@
       },
       "additionalProperties": false
     },
-    "DeviceMessageEnvelope": {
-      "$ref": "./device-message.schema.json"
-    },
     "DeviceMessageTarget": {
       "type": "object",
       "required": [
@@ -778,7 +775,7 @@
         "pruned_count": {
           "type": "integer",
           "minimum": 0,
-          "description": "Number of queued messages actually deleted by this acknowledgement; zero is the legal result for a repeated or older acknowledgement token."
+          "description": "Number of recipient deliveries acknowledged by this token: DeviceMessage rows deleted plus Welcome rows marked delivered and retained for audit; zero is legal for a repeated or older token."
         }
       },
       "additionalProperties": false
@@ -793,7 +790,7 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 1024,
-          "description": "Acknowledgement token previously issued to the same (principal_id, device_id) via an account subscribe to_device batch or a device_messages get page. Acknowledgement is cumulative and monotonic: the server prunes all delivered messages up to and including the token's bound queue position. Unknown / expired / cross-bound tokens MUST be rejected with param_invalid (reason invalid_ack_token) without deleting anything. Naturally idempotent; no Idempotency-Key required."
+          "description": "Acknowledgement token previously issued to the same authenticated recipient endpoint by account subscribe or the recipient-delivery list. It cumulatively prunes both DeviceMessage and MlsWelcomeDelivery queue items through the bound position, only after every covered item was durably processed. Unknown / expired / cross-bound tokens MUST be rejected with param_invalid (reason invalid_ack_token) without deleting anything. Naturally idempotent; no Idempotency-Key required."
         }
       },
       "additionalProperties": false
@@ -801,22 +798,22 @@
     "DeviceMessagesGetOutcome": {
       "type": "object",
       "required": [
-        "messages",
+        "deliveries",
         "has_more"
       ],
       "properties": {
-        "messages": {
+        "deliveries": {
           "type": "array",
-          "description": "DeviceMessageEnvelope items; not Event Envelope objects. This endpoint does not serve the durable Event timeline.",
+          "description": "Ordered recipient-private queue items, each discriminated as an unchanged DeviceMessageEnvelope or MlsWelcomeDelivery. These are not shared Event Envelope objects.",
           "items": {
-            "$ref": "#/$defs/DeviceMessageEnvelope"
+            "$ref": "./account-subscribe-frame.schema.json#/$defs/recipient_delivery"
           }
         },
         "ack_token": {
           "type": "string",
           "minLength": 1,
           "maxLength": 1024,
-          "description": "Server-issued opaque acknowledgement token, REQUIRED whenever messages[] is non-empty. Covers this page plus all previously delivered messages for the authenticated device. Queue deletion happens only through ak.self.device_messages.command.ack.v1 with this token, never through the after= read cursor (client-sync.md §10.1)."
+          "description": "Server-issued opaque acknowledgement token, REQUIRED whenever deliveries[] is non-empty. Covers both delivery kinds in this page and earlier items for the authenticated recipient endpoint. Queue deletion happens only through ak.self.device_messages.command.ack.v1 with this token, never through the after= read cursor (client-sync.md §10.1)."
         },
         "next_cursor": {
           "type": "string",
@@ -830,14 +827,14 @@
         },
         "lost": {
           "type": "boolean",
-          "description": "SHOULD be true when unacknowledged messages were dropped (expiry or capacity) since the device's last acknowledged position; clients SHOULD trigger key recovery paths."
+          "description": "SHOULD be true only for a durably evidenced historical gap or failure since this recipient endpoint's last acknowledged position; normal expiry and capacity MUST NOT delete unacknowledged deliveries of either kind. Clients MUST re-establish MLS/key readiness when true."
         }
       },
       "allOf": [
         {
           "if": {
             "properties": {
-              "messages": {
+              "deliveries": {
                 "minItems": 1
               }
             }
@@ -1147,7 +1144,7 @@
     },
     "EventsSubmitBatchRequestBody": {
       "type": "object",
-      "description": "Batch ak.self.events.command.submit.v1 request used by account clients.",
+      "description": "Legacy-named typed array retained only as the nested prepared_event_unit request in security-transaction.schema.json. It is not an ak.self.events.command.submit.v1 request: that operation accepts only authority-commit-operations.schema.json#/$defs/self_submit_request, including its closed ordinary_realm_bootstrap branch. The parent security transaction fixes the recovery unit type, slot count, order and authorization; this array alone grants no generic Event batch admission.",
       "required": [
         "events"
       ],
@@ -3461,10 +3458,12 @@
     },
     "AgentSessionGrantRefreshRequest": {
       "type": "object",
+      "description": "Agent rotation binds the predecessor grant's agent_id, accepted agent_key_authorization_ref and proof.verification_method. Agent MLS endpoints have no device_id; a refresh carrying one is invalid.",
       "additionalProperties": false,
       "required": [
         "grant_jwt",
-        "device_id",
+        "principal_id",
+        "agent_key_authorization_ref",
         "agent_session_refresh_proof"
       ],
       "properties": {
@@ -3477,8 +3476,11 @@
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
           "description": "If present, MUST equal the predecessor grant audience."
         },
-        "device_id": {
-          "$ref": "./common-ids.schema.json#/$defs/device_id"
+        "principal_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "agent_key_authorization_ref": {
+          "$ref": "./account-operations.schema.json#/$defs/event_id"
         },
         "agent_session_refresh_proof": {
           "$ref": "#/$defs/AgentSessionRefreshProof"
@@ -3558,10 +3560,10 @@
     },
     "AgentSessionGrantRequest": {
       "type": "object",
+      "description": "Agent runtime session issuance is bound to principal_id (agent_id), proof.verification_method and the current accepted agent_key_authorization_ref. This closed branch MUST NOT carry a device_id or derive one from the Agent key.",
       "additionalProperties": false,
       "required": [
         "principal_id",
-        "device_id",
         "requested_scope",
         "agent_key_authorization_ref",
         "agent_scope_request",
@@ -3571,9 +3573,6 @@
       "properties": {
         "principal_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "device_id": {
-          "$ref": "./common-ids.schema.json#/$defs/device_id"
         },
         "requested_scope": {
           "type": "array",

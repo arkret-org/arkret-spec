@@ -326,9 +326,9 @@ operation_id = ak.self.invites.command.dispatch.v1
 请求 body 使用 `ak.schema.invite_delivery_request.v1#/$defs/self_invite_dispatch_request_body`，只携
 `schema=ak.schema.invite_delivery_request.v1`、`invite_event_id`、`invite_address`、`introduction_evidence` 与 `idempotency_key`。服务端 MUST 以
 `invite_event_id` 读取自己已接受并持久化的 canonical Event bytes；客户端不得回声、代签、重新 author
-或重建该 Event。两条前置的拒绝语义是封闭的：Event 未被本服务接受 MUST
-`failed_precondition` / `invite_event_unaccepted`；持久化 Event 的签署者不等于当前认证 session actor
-MUST `failed_precondition` / `invite_event_actor_mismatch`。两类拒绝 MUST NOT 产生任何投递、outbox
+或重建该 Event。Event 未被本服务接受，或持久化 Event 的签署者不等于当前认证 session actor，
+MUST 以 active `failed_precondition` 拒绝；未激活的 `invite_event_unaccepted` 与
+`invite_event_actor_mismatch` 不得发射。两类拒绝 MUST NOT 产生任何投递、outbox
 入队或 holder-private 写入。由于 self wire 不再承载 Event bytes，不存在客户端 Event bytes
 不一致的协议分支。
 

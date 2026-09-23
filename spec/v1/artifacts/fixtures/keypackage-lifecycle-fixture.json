@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.e2ee_client.v1",
-  "version": "2026-09-19.1",
+  "version": "2026-09-23.3",
   "suite": "keypackage_lifecycle",
   "runner": {
     "kind": "named_suite",
@@ -92,7 +92,7 @@
       "expect_valid": false,
       "first_expected_error": "contains:Additional properties are not allowed",
       "instance": {
-        "claim_id": "device-claim-1",
+        "claim_id": "ak:keypackage_claim:0199eeee-eeee-7eee-8eee-eeeeeeeeeeee",
         "keypackage_ref": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
         "actor_id": {
           "kind": "account",
@@ -127,6 +127,73 @@
       "expect_valid": false,
       "first_expected_error": "contains:does not match",
       "instance": "mls"
+    },
+    {
+      "name": "mls_welcome_delivery_valid",
+      "schema_ref": "schemas/mls-welcome-delivery.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "welcome_id": "ak:mls_welcome_delivery:0199aaaa-aaaa-7aaa-8aaa-aaaaaaaaaaaa",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "effective_scope": {
+          "kind": "realm",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+        },
+        "commit_event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+        "recipient_actor_id": {
+          "kind": "service",
+          "service_id": "ak:did_core:webvh:z6mkfixturestationb"
+        },
+        "recipient_endpoint": {
+          "kind": "device",
+          "device_id": "ak:device:0199bbbb-bbbb-7bbb-8bbb-bbbbbbbbbbbb"
+        },
+        "keypackage_claim_ref": "ak:keypackage_claim:0199cccc-cccc-7ccc-8ccc-cccccccccccc",
+        "ciphertext_b64": "AQIDBA",
+        "producer_proof": {
+          "context": "ak.mls_welcome_delivery_signature.v1",
+          "signature_algorithm": "Ed25519",
+          "verification_method": "did:webvh:z6mkfixturealice:alice.example#device-fixture",
+          "signed_digest": "sha256:f51a607977aa5ba077764b06209d77c0231822b23a59be07cdb44f11f6582a29",
+          "created_at": "2026-09-20T00:00:00.000Z",
+          "sig": "R_RF4nAmz0yEIvqPt7BLemCd4npd36B5p5wyhSB8gXy2AL2AHTZHypwUsIsbqL5mZ3uesmfoOdcO8vbShWzNDw"
+        }
+      }
+    },
+    {
+      "name": "mls_welcome_queue_branch_valid",
+      "schema_ref": "schemas/account-subscribe-frame.schema.json#/$defs/recipient_delivery",
+      "expect_valid": true,
+      "instance": {
+        "delivery_kind": "mls_welcome",
+        "mls_welcome": {
+          "welcome_id": "ak:mls_welcome_delivery:0199aaaa-aaaa-7aaa-8aaa-aaaaaaaaaaaa",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "effective_scope": {
+            "kind": "realm",
+            "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+          },
+          "commit_event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+          "recipient_actor_id": {
+            "kind": "service",
+            "service_id": "ak:did_core:webvh:z6mkfixturestationb"
+          },
+          "recipient_endpoint": {
+            "kind": "device",
+            "device_id": "ak:device:0199bbbb-bbbb-7bbb-8bbb-bbbbbbbbbbbb"
+          },
+          "keypackage_claim_ref": "ak:keypackage_claim:0199cccc-cccc-7ccc-8ccc-cccccccccccc",
+          "ciphertext_b64": "AQIDBA",
+          "producer_proof": {
+            "context": "ak.mls_welcome_delivery_signature.v1",
+            "signature_algorithm": "Ed25519",
+            "verification_method": "did:webvh:z6mkfixturealice:alice.example#device-fixture",
+            "signed_digest": "sha256:f51a607977aa5ba077764b06209d77c0231822b23a59be07cdb44f11f6582a29",
+            "created_at": "2026-09-20T00:00:00.000Z",
+            "sig": "R_RF4nAmz0yEIvqPt7BLemCd4npd36B5p5wyhSB8gXy2AL2AHTZHypwUsIsbqL5mZ3uesmfoOdcO8vbShWzNDw"
+          }
+        }
+      }
     }
   ],
   "covers_vectors": [
@@ -260,14 +327,14 @@
       "decision_points": [
         {
           "id": "keypackage_digest_is_recomputed_before_decrypt",
-          "requirement": "The Welcome claim_ref keypackage_digest is compared byte-exactly against the digest recomputed from the claimed KeyPackage bytes, and the comparison is made only against values recomputed from the claim record because KeyPackage publication writes no durable Event.",
+          "requirement": "The signed MlsWelcomeDelivery keypackage_claim_ref resolves the exact durable claim record; the recipient recomputes the KeyPackage digest from those claimed bytes before decrypting. The delivery has no duplicated digest or Event payload.",
           "evidence": [
             "/cases/8"
           ]
         },
         {
           "id": "capabilities_digest_mismatch_rejects_before_decrypt",
-          "requirement": "A Welcome whose claim_ref capabilities_digest does not match the digest recomputed from the claimed KeyPackage capabilities, or which requires capabilities outside the claimed subset, is rejected before decrypting.",
+          "requirement": "The recipient checks the signed LeafNode capability set in the exact claimed KeyPackage against group requirements before decrypting; a mismatch is rejected without relying on a duplicated Welcome capability digest.",
           "evidence": [
             "/cases/9"
           ]
@@ -281,7 +348,7 @@
         },
         {
           "id": "five_way_binding_resolves_against_one_claim_record",
-          "requirement": "The requester, recipient, KeyPackage, group and epoch bindings of both the original claim receipt and the claim envelope resolve against the same accepted device, authorization Event and active generation carried by the claim record; the two carriers disagreeing on any one of the five is a rejection rather than a choice between them, and an unverified local cache entry is never accepted as proof.",
+          "requirement": "The signed delivery, durable claim ledger and accepted winning Add Commit agree on requester, recipient endpoint, KeyPackage claim, group and epoch; a mismatch or unverified local cache entry rejects before decrypting.",
           "evidence": [
             "/cases/12"
           ]
@@ -454,7 +521,7 @@
         "attempt": 6
       },
       "expired_claim": {
-        "claim_id": "mls-keypackage-claim-expired",
+        "claim_id": "ak:keypackage_claim:0199dddd-dddd-7ddd-8ddd-dddddddddddd",
         "keypackage_ref": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "expires_at": "2026-06-19T00:00:00.000Z",
         "consume_at": "2026-06-19T00:01:00.000Z"
@@ -503,8 +570,8 @@
       "normal_keypackage_ref": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
       "last_resort_keypackage_ref": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
       "last_resort_claim_ids": [
-        "mls-keypackage-claim-lr-1",
-        "mls-keypackage-claim-lr-2"
+        "ak:keypackage_claim:0199aaaa-aaaa-7aaa-8aaa-aaaaaaaaaaaa",
+        "ak:keypackage_claim:0199bbbb-bbbb-7bbb-8bbb-bbbbbbbbbbbb"
       ],
       "expected": {
         "normal_preferred_when_available": true,
@@ -745,64 +812,69 @@
     {
       "name": "welcome_keypackage_hash",
       "vector_id": "ak.vector.mls.welcome_keypackage_hash.v1",
-      "kind": "welcome_keypackage_digest_binding",
+      "kind": "welcome_delivery_claim_ledger_binding",
       "keypackage_ref": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
       "keypackage_digest": "sha256:039058c6f2c0cb492c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81",
       "mismatched_keypackage_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-      "capabilities_digest": "sha256:5bc109a59cd6e594bbe6acf4d54bad93c45ba091d03d8c677b93e706c11313ff",
-      "claim_id": "mls-keypackage-claim-normal-1",
-      "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-      "requester_actor_id": {
-        "kind": "service",
-        "service_id": "ak:did_core:webvh:z6mkfixture"
-      },
-      "requester_device_id": "ak:device:0196419b-0000-7000-8000-000000000001",
-      "requester_verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001",
+      "claim_id": "ak:keypackage_claim:0199cccc-cccc-7ccc-8ccc-cccccccccccc",
+      "keypackage_claim_ref": "ak:keypackage_claim:0199cccc-cccc-7ccc-8ccc-cccccccccccc",
       "device_authorization_event_id": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
-      "model_generation_ref": 1,
-      "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAA",
-      "welcome_digest": "sha256:039058c6f2c0cb492c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81",
+      "welcome_delivery": {
+        "welcome_id": "ak:mls_welcome_delivery:0199aaaa-aaaa-7aaa-8aaa-aaaaaaaaaaaa",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "effective_scope": {
+          "kind": "realm",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+        },
+        "commit_event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+        "recipient_actor_id": {
+          "kind": "service",
+          "service_id": "ak:did_core:webvh:z6mkfixturestationb"
+        },
+        "recipient_endpoint": {
+          "kind": "device",
+          "device_id": "ak:device:0199bbbb-bbbb-7bbb-8bbb-bbbbbbbbbbbb"
+        },
+        "keypackage_claim_ref": "ak:keypackage_claim:0199cccc-cccc-7ccc-8ccc-cccccccccccc",
+        "ciphertext_b64": "AQIDBA",
+        "producer_proof": {
+          "context": "ak.mls_welcome_delivery_signature.v1",
+          "signature_algorithm": "Ed25519",
+          "verification_method": "did:webvh:z6mkfixturealice:alice.example#device-fixture",
+          "signed_digest": "sha256:f51a607977aa5ba077764b06209d77c0231822b23a59be07cdb44f11f6582a29",
+          "created_at": "2026-09-20T00:00:00.000Z",
+          "sig": "R_RF4nAmz0yEIvqPt7BLemCd4npd36B5p5wyhSB8gXy2AL2AHTZHypwUsIsbqL5mZ3uesmfoOdcO8vbShWzNDw"
+        }
+      },
       "expected": {
         "reject_before_decrypt": true,
-        "reason": "keypackage_welcome_envelope_mismatch",
-        "all_digest_fields_equal": true
+        "reason": "keypackage_welcome_envelope_mismatch"
       },
       "assertions": [
-        "Welcome claim_ref.keypackage_digest must match the digest recomputed from the claimed KeyPackage bytes",
-        "claim_ref digests are compared only against the values recomputed from the claim record; KeyPackage publication writes no durable Event, so there is no third published digest to compare",
-        "the claim signer is an accepted current-generation requester device",
-        "a mismatch is rejected before decrypting or accepting the Welcome"
+        "the closed MlsWelcomeDelivery carries one typed keypackage_claim_ref, producer proof and exact ciphertext; it is not an Event payload",
+        "recipient resolves the exact durable claim ledger entry by keypackage_claim_ref and recomputes the KeyPackage digest from the claimed bytes before decrypting",
+        "a mismatched digest or claim binding rejects the delivery before decryption; the delivery has no duplicated claim_ref digest field"
       ]
     },
     {
       "name": "welcome_capabilities_digest_mismatch",
       "vector_id": "ak.vector.mls.welcome_keypackage_hash.v1",
-      "kind": "welcome_capabilities_digest_binding",
-      "keypackage_ref": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
-      "keypackage_digest": "sha256:039058c6f2c0cb492c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81",
-      "capabilities_digest": "sha256:5bc109a59cd6e594bbe6acf4d54bad93c45ba091d03d8c677b93e706c11313ff",
-      "mismatched_capabilities_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-      "claim_id": "mls-keypackage-claim-normal-1",
-      "intended_realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
-      "requester_actor_id": {
-        "kind": "service",
-        "service_id": "ak:did_core:webvh:z6mkfixture"
-      },
-      "requester_device_id": "ak:device:0196419b-0000-7000-8000-000000000001",
-      "requester_verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001",
-      "device_authorization_event_id": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
-      "model_generation_ref": 1,
-      "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAA",
-      "welcome_digest": "sha256:039058c6f2c0cb492c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81",
+      "kind": "welcome_claimed_leaf_capability_binding",
+      "claim_ref": "ak:keypackage_claim:0199cccc-cccc-7ccc-8ccc-cccccccccccc",
+      "required_capabilities": [
+        "ak.content.v1"
+      ],
+      "claimed_leaf_capabilities": [
+        "ak.content.v1"
+      ],
+      "mismatched_leaf_capabilities": [],
       "expected": {
         "reject_before_decrypt": true,
-        "reason": "welcome_capability_mismatch",
-        "all_digest_fields_equal": false
+        "reason": "welcome_capability_mismatch"
       },
       "assertions": [
-        "Welcome claim_ref.capabilities_digest must match the digest recomputed from the claimed KeyPackage capabilities",
-        "a Welcome requiring capabilities outside the claimed subset is rejected with the same reason",
-        "a mismatch is rejected before decrypting or accepting the Welcome"
+        "the recipient rechecks required capabilities against the claimed signed LeafNode and exact claim ledger entry before decrypting",
+        "a capability mismatch rejects before decryption; the delivery does not carry a duplicate capabilities digest"
       ]
     },
     {
@@ -901,14 +973,14 @@
       "name": "welcome_add_commit_and_claim_record_binding",
       "vector_id": "ak.vector.mls.welcome_keypackage_hash.v1",
       "kind": "welcome_accepted_lineage_and_claim_record_binding",
-      "claim_id": "mls-keypackage-claim-normal-1",
+      "claim_id": "ak:keypackage_claim:0199cccc-cccc-7ccc-8ccc-cccccccccccc",
       "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
       "intended_realm_id": "ak:realm:AS-0RWJz6zv6mr92HyIWAP4vU2xUwY46P0DKOC-3MxLT",
       "mls_group_id": "fixture-dm-group-1",
       "epoch": 1,
       "accepted_winning_add_commit": {
         "commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
-        "member_event_id": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
+        "member_event_id": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
         "read_surface": "registered accepted Event / RealmCommit / governance dependency read"
       },
       "claim_record": {
@@ -925,21 +997,16 @@
         "group",
         "epoch"
       ],
-      "binding_carriers_compared": [
-        "claim_receipt",
-        "claim_envelope"
-      ],
       "negative_mutations": [
         "welcome_has_no_accepted_winning_add_commit",
         "welcome_matches_a_losing_add_commit_of_the_same_epoch",
         "add_commit_accepted_on_another_genesis_lineage",
-        "claim_receipt_and_claim_envelope_disagree_on_the_requester",
-        "claim_receipt_and_claim_envelope_disagree_on_the_epoch",
-        "claim_envelope_group_id_differs_from_the_add_commit_group",
         "binding_device_is_accepted_but_not_the_device_in_the_claim_record",
         "binding_authorization_event_is_superseded_by_a_later_generation",
-        "active_generation_differs_between_the_two_carriers",
-        "bindings_satisfied_only_by_an_unverified_local_cache_entry"
+        "bindings_satisfied_only_by_an_unverified_local_cache_entry",
+        "delivery_claim_ref_names_another_claim",
+        "delivery_commit_event_ref_names_a_losing_commit",
+        "delivery_recipient_endpoint_differs_from_claim"
       ],
       "expected": {
         "reject_before_decrypt": true,
@@ -950,24 +1017,38 @@
         "station_private_slot_read_required": false
       },
       "assertions": [
-        "the recipient runtime checks the accepted winning Add Commit for this Welcome, so a Welcome with no accepted Add Commit, or one matching a losing Commit of the same epoch, is rejected",
-        "the Add Commit and the Welcome must advance along the same accepted Genesis lineage; a Commit accepted on another lineage does not bind",
-        "the requester, recipient, KeyPackage, group and epoch bindings of the original claim receipt AND of the claim envelope are compared against the same claim record, so the two carriers disagreeing on any one of the five is a rejection rather than a choice between them",
-        "those bindings resolve to the same accepted device, authorization Event and active generation that the claim record carries; an accepted device that is not the claim record's device, and a superseded authorization Event, both fail",
-        "every mismatch is rejected before decrypting the Welcome",
-        "the checks read only registered accepted Event, RealmCommit and governance dependency surfaces: an unverified local cache entry is never accepted as proof, and no Station-private slot read is required"
+        "the recipient verifies that the signed delivery names the accepted winning Add Commit on the same Genesis lineage",
+        "the delivery claim ref resolves one durable claim record whose recipient and endpoint match the accepted Commit and current authorization",
+        "a losing or unrelated Commit, changed claim reference or endpoint, or unverified local cache entry rejects before decryption"
+      ],
+      "delivery_binding": {
+        "commit_event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+        "recipient_actor_id": {
+          "kind": "service",
+          "service_id": "ak:did_core:webvh:z6mkfixturestationb"
+        },
+        "recipient_endpoint": {
+          "kind": "device",
+          "device_id": "ak:device:0199bbbb-bbbb-7bbb-8bbb-bbbbbbbbbbbb"
+        },
+        "keypackage_claim_ref": "ak:keypackage_claim:0199cccc-cccc-7ccc-8ccc-cccccccccccc"
+      },
+      "binding_carriers_compared": [
+        "signed_delivery",
+        "durable_claim_ledger",
+        "accepted_winning_add_commit"
       ]
     },
     {
       "name": "welcome_consume_only_after_durable_group_state",
       "vector_id": "ak.vector.mls.welcome_keypackage_hash.v1",
       "kind": "welcome_consume_ordering",
-      "claim_id": "mls-keypackage-claim-normal-1",
+      "claim_id": "ak:keypackage_claim:0199cccc-cccc-7ccc-8ccc-cccccccccccc",
       "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
       "mls_group_id": "fixture-dm-group-1",
       "consume_operation": "ak.self.keys.keypackages.command.consume.v1",
       "sequence": [
-        "welcome_processed",
+        "signed_mls_welcome_delivery_processed",
         "group_state_durably_stored",
         "recipient_durable_receipt_generated",
         "original_claim_consumed_through_own_station"
@@ -988,10 +1069,8 @@
         "idempotent_recovery_of_consume_by_signed_request": true
       },
       "assertions": [
-        "the original claim is consumed only after the Welcome is processed and the group state is durably stored; the consume step is unreachable before that point",
-        "a failed durable store produces no recipient receipt, so a receipt is never evidence of a group state that was not kept",
-        "consume goes through the recipient's own Station operation ak.self.keys.keypackages.command.consume.v1; the peer surface offers no consume proxy",
-        "an indeterminate network result is recovered by replaying the same signed consume request, never by rotating the claim identity, claiming a replacement KeyPackage in parallel, or returning a claimed KeyPackage to published"
+        "the recipient durably stores new MLS group state and signs its durable receipt before consuming the exact claim",
+        "consume through the owner's Station is idempotent under the original signed request; a response timeout cannot authorize a new claim identity"
       ]
     },
     {

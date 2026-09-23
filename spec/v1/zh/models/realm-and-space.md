@@ -337,6 +337,17 @@ human `purpose="principal_control"` 分支的可构造 genesis 字节、第二 S
 
 以上两条无条件写入加五条条件 row 构成 create 的完整 projection；第 5 至 7 条按唯一 `payload.object.purpose` 互斥命中。普通 Collaboration 的 history 初值仍来自显式 bootstrap facet；profile、member 与其它初始 state 由后续 slots 的 registered writes 产生，完整 unit 的所有 writes 在**同一个接纳事务**内一起落下；各条 Event 各自获得同一 Realm stream 上 position 连续的独立 RealmCommit（一条 RealmCommit 恰好接纳一条 Event，见 [`../identity/contact-and-direct-conversation.md` §6.1](../identity/contact-and-direct-conversation.md)），不存在一笔覆盖整个 unit 的 Commit。任一 required write 失败，整个 unit MUST 原子回滚；authority-root 缺失时返回 `realm_authority_root_missing`。
 
+普通 Collaboration bootstrap 的唯一 self 提交载体是 `ak.self.events.command.submit.v1`
+的 `ordinary_realm_bootstrap` closed 分支（`POST /_arkret/self/events`，见
+[`../sync/service-http-binding.md` §2.6](../sync/service-http-binding.md)）。请求携
+`unit_kind`、UUIDv7 `idempotency_key` 与按
+`contract-registry.json.realm_bootstrap_registry.ordinary_collaboration` 排列的
+完整 `EventAdmissionSubmission[]`；每项保留原 caller-signed Event bytes，所需
+`approval_signatures` 仍只在该项唯一的 transport sidecar，不进入 Event preimage。
+这不是 caller 可任意选择成员的通用原子 batch，也不授权跨 Realm、Circle 或
+Sidecar stream 的共同 position／事务。旧 `EventsSubmitBatchRequestBody` 不属于
+此 self operation 的请求合同。
+
 **result_writes[] 的覆盖度（normative）**：`result_writes[]` 是「某个 Event kind 写哪些 typed current result、顺序如何、条件是什么」的唯一机读合同，由 `tools/artifact_lint:result_write_contracts` 校验。**当前它只在部分 Event kind 上登记**（见 `contract-registry.json` 的 `event_kind_registry.registry_rules`，其中记录了确切的已覆盖 / 未覆盖计数）；其余 reducer-input kind 的 registered writes 目前只存在于正文。规范正文 **MUST NOT** 对尚未登记的 kind 引用其 `result_writes[]`——引用一个不存在的登记项，正是这个数组被引入来消除的缺陷。扩大覆盖面时同时收缩该注记，**MUST NOT** 把规则改写成看起来已经完整。
 
 反方向的义务同样是规范性的，且强度相同：**已登记的 kind，它的 `result_writes[]` MUST 穷举该 kind 被接纳时在共享面上写的每一个 typed current result**。部分登记算违规——一个原子写四个家族的 kind 只登记其中一个，就是在「唯一机读合同」这份工件里把自己描述错了，而读者正是被告知要以它为准。因此这类 kind 的登记是**整体的**：四个家族要么在同一批一起落，要么一个都不落，`ak.agent.provision` 就是这条规则的判例（见 [`../identity/key-management.md` §3.6.3](../identity/key-management.md)）。
@@ -365,12 +376,13 @@ Authz 含义：
 - 同批 facet 在 creator member slot 生效前依赖 staged authority-root proof，而不是 create 隐式 membership。批次外的授权不得回退到 envelope actor、create author 或服务本地 owner mirror。
 - `ak.realm.policy_bundle` payload MUST 携带单调递增的 `policy_revision`。初始 revision 为 `1`；后续更新必须满足 `new.policy_revision == previous.policy_revision + 1`，否则 reducer MUST 拒绝：回退用顶层 code=`policy_revision_rollback`，跳号用 code=`failed_precondition` 且 reason_code=`policy_revision_gap`。任何用于缓存或 identity_link 的 `policy_revision` MUST 覆盖 `policy_revision`，不得只 hash policy 字段值集合；MLS key-access revision 则只投影 key-access 字段，MUST NOT 因无关 revision 前进而变化。
 - **加密激活不可逆（normative）**：scope 在其唯一 `ak.mls.genesis` 被接受之前是明文 scope；该 Genesis 的 accepted RealmCommit 把 scope 不可逆地激活为 standard RFC 9420。协议不提供任何把已激活 scope 退回明文的 Event、policy 字段或 reducer 路径；激活后到达的明文内容写入 MUST `failed_precondition`，reason=`mls_activation_required`。Realm 与 Circle 各自独立激活，Circle 侧规则见 [`circle.md` §7](./circle.md)。
-- 同一 submit 批次内 reducer MUST 按 wire 顺序处理。普通 Realm：create 第一，其后是白名单内的 follow-up；human PCR：root-anchored create 第一、founding-device-signed authorize 第二且 unit 到此结束。顺序或形态不符以 `pcr_genesis_unit_invalid` 原子拒绝。
+- 同一 submit 批次内 reducer MUST 按 wire 顺序处理。普通 Realm：create 第一，其后是白名单内的 follow-up，最后是创建者显式 join；slot 数量、kind 或顺序不符按 closed request schema 以 `schema_violation` 整组零写入拒绝。human PCR：root-anchored create 第一、founding-device-signed authorize 第二且 unit 到此结束；其顺序或形态不符以 `pcr_genesis_unit_invalid` 原子拒绝。
 - byte-identical unit retry 返回原 accepted identity/receipt，不产生第二个 Realm 或副作用；不同 canonical bytes 声称同一 Realm id 时 MUST `realm_already_exists` 或 collision quarantine。
 
 Server 端实现合规要点：
 
 - server 必须先在隔离 staged state 上按 wire order 验证完整 unit，再以一个 storage transaction 提交 canonical Events、全部 registered typed results、receipt/ack 与 federation outbox；任何失败后上述可观察状态均为零。
+- `ordinary_realm_bootstrap` 的成功 outcome 按输入顺序返回同一 Realm stream 上连续的完整 source RealmCommits；`committed` 与 exact `duplicate` 重试均返回原 Commit bytes，不重签或重置 `committed_at`。同一 `idempotency_key` 携不同 canonical 请求 MUST `duplicate_conflict` 且零写入。不存在批次级超级 Commit 或另一个可被引用的 receipt；失败只返回整组拒绝，不得返回部分 committed 结果。source outbox 在事务提交后才可见；peer 即使逐条收到已确认 Event，也必须在完整 bootstrap closure 与 genesis state commitment 验证前保持 unresolved。
 - effective Realm query 必须组合 genesis/profile/discovery/join/history/policy/alias/lifecycle typed results；不得把 create payload 原样复制为完整 Realm，也不得读取 `realm_metadata` typed current result。
 - 不允许通过 spec 之外的 REST 端点（如 `POST /spaces` 之类的私造 lifecycle 命令面）来兜底 bootstrap。此类端点违反 [`sync/service-http-binding.md` §2.1](../sync/service-http-binding.md#21-rest-api-命名空间组织) 的"实现不得用未声明路径绕过 canonical operation"规则，且会让事件流上的 read-only consumer 看不到完整的 source-of-truth 事件。
 

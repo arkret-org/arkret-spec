@@ -201,9 +201,19 @@ epoch key 与 reconciliation 状态彼此隔离，任何一项都不得跨 Sidec
 effective 是当前 MLS reconciliation 的结果，不是参与者 authority 的输入。`authority_stream_head` 同样**不是** transcript
 成员，它是 `mls_context` 中与 `participant_authority_digest` 并列的独立字段（见
 [`../sync/service-http-binding.md` §5](../sync/service-http-binding.md) 的 `AgentSidecarView`），承载派生 `desired_agent_ids`
-所依据的 accepted refs。它只能包含 Sidecar genesis、
+所依据的 accepted EventId refs。它只能包含 Sidecar genesis、
 ownership、Agent lifecycle/runtime-key authorization 与 exact Realm membership 的 accepted refs；不得包含 Circle membership、
 Sidecar selection Event、action participation selection 或 MLS/key-readiness 结果。
+
+Sidecar 的 `ak.mls.genesis`、每次 MLS Commit Event、pre-Genesis proposal 与 MLS GroupContext extension
+都 MUST 在唯一 `mls_governance_binding` 中同时携带已签名的 `participant_authority_digest` 和
+`authority_stream_head`；两字段的格式与 `AgentSidecarView.mls_context` 对应字段相同，后者只是读取投影，
+不能代替签名载体。Realm／Circle scope MUST NOT 携带这两个字段。签名前应在同一 accepted authority cut
+由上述允许的 refs 派生 `desired_agent_ids`、五成员 transcript 和摘要，并以 UTF-8 字节序排列、去重
+`authority_stream_head`。Station 接受 Genesis／Commit 时 MUST 以其明确承诺的 cut 重算 roster 和摘要，
+逐字段比对 Event payload binding、MLS GroupContext extension 与 accepted refs；遗漏、过期 cut、摘要不符、
+额外或未排序 refs 均 MUST fail closed，零 Event／RealmCommit／MLS epoch／Welcome 副作用。并发 authority
+变更先于该 MLS Event 接受时，旧 cut 不可继续获准；应以新 cut 重新生成并签名，而不能由服务器改写签名 binding。
 
 新 desired Agent 在 Welcome、KeyPackage consume 与设备 readiness 全部完成前不得接收 Sidecar payload。
 Agent 失去 desired 资格后，服务端必须立即停止新寻址/投递，并保留 MLS remove/rotate obligation；旧 epoch

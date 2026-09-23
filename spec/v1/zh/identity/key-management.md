@@ -702,7 +702,7 @@ gate 的作用范围是：**发起任何 post-bootstrap E2EE Realm 创建/加入
 3. 已授权设备扫描或打开带外 pairing payload 调用匿名 body-only resolve，或只输入 8 位短码调用认证的 `ak.gate.account.read.claim_device_pairing_code.v1`，两条入口按 [`device-lifecycle.md` §2.1.1](../crypto-media/device-lifecycle.md) 解析到同一份请求与 byte-equivalent 的唯一 `device_pairing_target_proof`，独立重算并验签后显示 requesting-device metadata、完整 pairing code 与所属账号；key fingerprint、`device_id` 与 `gate_audience` 继续参与机器校验但 MAY 收进高级信息。用户必须确认这是自己正在添加的设备；经输入短码进入时，输入动作本身已完成短码比对。新设备在本步骤不得发送任何 to-device 消息；已授权设备的选择由带外交付动作完成，不存在 fresh-device sibling target discovery。
 4. push 或 to-device 通知不是本 bootstrap 的一部分，也不得承载 token、pairing code、target proof 或 sibling device 列表。部署若在已认证账号边界内提供额外的脱敏唤醒，只能作为可选 UI 提示，不能替代步骤 3 的带外交付、验签和人工确认，也不能给予新设备任何账号能力。
 5. 用户在已授权设备上逐位核对 pairing code 并批准后，该设备先验签 `device_pairing_target_proof`、从中取出 `hpke_key` 与 `algorithms`（MUST NOT 从服务端响应或 UI 输入取），据此对完整 `ak.device.authorize` payload 签署 Event Initial Submission，再调用 `POST /_arkret/gate/account/device-pair`，提交 transcript 绑定的 `pairing_code`、`new_device_pubkey`、payload 内 exact `hpke_key`、exact `device_signature`、完整 `authorize_event` 与当前设备 fresh proof；challenge digest 的重建规则见 [`device-lifecycle.md` §2.1.2](../crypto-media/device-lifecycle.md)，target `device_signature` 的 `accepted_device` possession domain 与签名对象见 [`device-lifecycle.md` §5.2](../crypto-media/device-lifecycle.md) §5.2.2。服务端必须按普通 Event admission 接受该 exact submission，不得自行 mint Event 或直接写 device projection。`/_arkret/self/devices/pairing-requests*` 不是 v1 core approval surface。 <!-- lint-ignore: CW001 - forbidden historical path named only as a negative example. -->
-6. Events API / identity registry durable 接受并传播 `ak.device.authorize` 与 `ak.device.list_update`；gate 返回 `authorized_event_ref` 或等价引用。新设备可通过 [`device-lifecycle.md` §2.1.1](../crypto-media/device-lifecycle.md) 的匿名 status、重新签发/升级后的 session grant、或后续 account subscribe/device list baseline 观察结果，但 MUST 以 durable device list 为准；只有观察到该 exact authorize Event 已进入 current durable device list 后，才可发送 `ak.secret.request`、开始同步 Event history、Realm membership 和必要的 MLS Welcome / key share。
+6. Events API / identity registry durable 接受并传播 `ak.device.authorize` 与 `ak.device.list_update`；gate 返回 `authorized_event_ref` 或等价引用。新设备可通过 [`device-lifecycle.md` §2.1.1](../crypto-media/device-lifecycle.md) 的匿名 status、重新签发/升级后的 session grant、或后续 account subscribe/device list baseline 观察结果，但 MUST 以 durable device list 为准；只有观察到该 exact authorize Event 已进入 current durable device list 后，才可开始同步 Event history、Realm membership，发布自己的 KeyPackage 并接收必要的 MLS Welcome；账户级 material 按 §12 加密备份恢复，不发送 `ak.secret.request`。
 
 如果用户没有任何可用的已授权设备，UI SHOULD 明确优先提示"在已有设备确认"；确认不可用后，才进入恢复密钥 / social recovery 路径。新设备仅凭登录 session grant MUST NOT 获得 MLS private state 或既有密文的解密材料。
 
@@ -817,8 +817,8 @@ MUST 使用 UTC canonical millisecond；optional 字段无值时 MUST 省略而�
 credential class、holder binding 与 human device authorization binding 都是 preimage 的身份材料：Arkret v1
 的 `credential_class` 固定为 `standard`，并且 MUST 携带 `holder_binding`。`holder_binding.kind="human_device"`
 时完整 `device_binding` 必填且只能逐字取自 origin current-device gate 的 `allow` receipt；
-`holder_binding.kind="agent_runtime"` 时 `device_binding` 禁带，该 holder 的完整 endpoint 身份只落在
-Agent runtime 分支内。
+`holder_binding.kind="agent_runtime"` 时 `device_id` 与 `device_binding` 均禁带，该 holder 的完整 endpoint 身份是
+`(agent_id,verification_method,agent_key_authorization_ref)`；其中 ref 必须指向当前已接受且 active 的 Agent key authorization。Agent request 的 `principal_id` 必须逐字等于 holder 的 `agent_id`，`proof.verification_method` 必须逐字等于 holder 的 method。授权轮换使旧 holder、旧 session 与旧队列 selector 失效，不得借用 controller device。
 current-v1 不存在缺 `device_binding` 的
 fresh-device human grant。恢复完成在核验 replacement device 后直接签发同一种 Standard grant，不存在临时
 恢复凭据类。因而修改任一 binding 必须改变 canonical preimage、digest、grant ID 与 `jti`；verifier 不得把
@@ -1074,7 +1074,7 @@ fail closed。
 
 `ak.self.keys.backups.read.list.v1` 的 `KeysBackupsList` 按 `backups, active_series, next_cursor?, has_more` 排列。
 `active_series` 是必填 `BackupActiveSeriesState`，按 `account_id, control_realm_id, authority_commit_id, secret_storage`
-排列，绑定本次已认证完整 AccountId、其 PCR 和完成当前指针判断的已确认 basis（每 Realm 恰一个 head）。v1 唯一的 `secret_storage` backup class 始终返回，
+排列，绑定本次已认证完整 AccountId、其 PCR 和完成当前指针判断的已确认 basis（每 Realm 恰一个 head）。当前 schema 唯一登记的 `secret_storage` backup class 始终返回，
 不受 series_id/backup_kind 过滤、当前页有无 envelope 或 envelope 的过期/删除影响。
 
 这里 response DTO 的 `authority_commit_id` 是 Station 对本次 current projection 给出的 confirmed-basis

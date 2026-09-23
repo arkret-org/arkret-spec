@@ -273,7 +273,8 @@
               ]
             },
             "mls_group_id": {
-              "$ref": "./common-ids.schema.json#/$defs/mls_group_id"
+              "$ref": "./common-ids.schema.json#/$defs/mls_group_id",
+              "description": "For E2EE projection this value MUST equal the authenticated RFC 9420 GroupInfo/GroupContext group id and the sole group id derived from the current accepted MlsGroupCurrent.effective_scope. The five-field governance binding has no mls_group_id member; see zh/extensions/mimi-interop.md §4 and zh/models/realm-and-space.md §2.2."
             },
             "content_profile": {
               "type": "string",
@@ -304,8 +305,19 @@
                 "completed",
                 "rolled_back"
               ],
-              "description": "Outcome of a migrating->accepted transition: completed (new topology in effect) or rolled_back (original topology restored). MUST be present on a migrating->accepted Event so the result is auditable; MUST be absent on other transitions. Normative: zh/extensions/mimi-interop.md §4.2."
+              "description": "Outcome of a migrating->accepted transition: completed (candidate topology in effect) or rolled_back (previous accepted topology restored). MUST be paired with migration_proof and absent on other transitions. Normative: zh/extensions/mimi-interop.md §4.2."
+            },
+            "migration_proof": {
+              "$ref": "./event-payload.schema.json#/$defs/mimi_room_binding_migration_proof"
             }
+          },
+          "dependentRequired": {
+            "migration_outcome": [
+              "migration_proof"
+            ],
+            "migration_proof": [
+              "migration_outcome"
+            ]
           },
           "additionalProperties": true
         }

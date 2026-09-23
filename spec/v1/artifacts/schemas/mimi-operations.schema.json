@@ -830,18 +830,54 @@
     },
     "mimi_report_abuse_request_body": {
       "type": "object",
-      "description": "Compact MIMI abuse-report submission. The body carries no unsigned mirrors of the signed report_event payload and no provider identity echo: the facade derives report semantics from report_event, cross-checks its actor against reporter_authority, and authenticates the source provider at the transport layer.",
+      "description": "Holder-signed MIMI report claim for a service-authored moderation Event. The body carries no provider identity, reporter identity or pre-signed Event mirror: the facade derives them from authenticated transport, reporter_authority and this exact claim.",
       "required": [
         "reporter_authority",
-        "report_event"
+        "report_claim"
       ],
       "properties": {
         "reporter_authority": {
           "$ref": "#/$defs/mimi_reporter_authority"
         },
-        "report_event": {
-          "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission",
-          "description": "Exact caller-authored and caller-signed ak.self.moderation.report Event admitted as the durable effect. Realm, Strand/scope, target, reason, description, evidence, franking and MIMI provenance are read only from this signed Event; its actor MUST equal reporter_authority.actor_id and its payload source_provider_id MUST equal the authenticated transport Provider-ID."
+        "report_claim": {
+          "$ref": "#/$defs/mimi_report_claim"
+        }
+      },
+      "additionalProperties": false
+    },
+    "mimi_report_claim": {
+      "type": "object",
+      "description": "Exact reporter-signed input to the facade's service-authored ak.self.moderation.report Event. The facade derives reporter_id, provenance and source_provider_id from authenticated authority, never from a body echo.",
+      "required": [
+        "realm_id",
+        "scope_ref",
+        "target_ref",
+        "report_reason_code"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "scope_ref": {
+          "$ref": "./event-envelope.schema.json#/$defs/scope_ref"
+        },
+        "target_ref": {
+          "$ref": "./event-payload.schema.json#/$defs/moderation_report_payload/properties/target_ref"
+        },
+        "report_reason_code": {
+          "$ref": "./event-payload.schema.json#/$defs/moderation_report_payload/properties/report_reason_code"
+        },
+        "description": {
+          "$ref": "./event-payload.schema.json#/$defs/moderation_report_payload/properties/description"
+        },
+        "evidence_refs": {
+          "$ref": "./event-payload.schema.json#/$defs/moderation_report_payload/properties/evidence_refs"
+        },
+        "evidence_package": {
+          "$ref": "./event-payload.schema.json#/$defs/moderation_report_payload/properties/evidence_package"
+        },
+        "franking_proof": {
+          "$ref": "./event-payload.schema.json#/$defs/moderation_report_payload/properties/franking_proof"
         }
       },
       "additionalProperties": false
@@ -849,11 +885,11 @@
     "mimi_reporter_authority": {
       "type": "object",
       "x-arkret-signature-domain": "ak.mimi_reporter_authority_proof.v1",
-      "description": "Holder-signed, short-lived binding from the external reporter to one complete current Arkret ActorId. The proof transcript covers the compact report body with only reporter_authority.proof omitted: reporter_authority, report_event and any authority_commit_proof_bundles. The verifier independently resolves the proof key from the exact Actor current device or registered authorized proxy state, cross-checks report_event.event.actor_id, authenticates the provider at the transport layer, and verifies both referenced Events remain the unique current accepted participation/binding; carrier fields never self-authorize.",
+      "description": "Holder-signed, short-lived binding from the external reporter to one complete current Arkret ActorId. The proof transcript covers the complete closed request with only reporter_authority.proof omitted: reporter_authority and report_claim. The verifier resolves the current device or authorized Agent proxy key independently, authenticates the Provider at the transport layer, and verifies both full CommittedEventRefs remain current before the facade service authors an Event; carrier fields never self-authorize.",
       "required": [
         "actor_id",
-        "membership_event_id",
-        "room_binding_event_id",
+        "membership_ref",
+        "room_binding_ref",
         "expires_at",
         "proof"
       ],
@@ -861,11 +897,11 @@
         "actor_id": {
           "$ref": "./common-ids.schema.json#/$defs/actor_id"
         },
-        "membership_event_id": {
-          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        "membership_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
         },
-        "room_binding_event_id": {
-          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        "room_binding_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp"

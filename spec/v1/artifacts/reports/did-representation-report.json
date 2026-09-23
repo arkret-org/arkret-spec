@@ -6286,6 +6286,16 @@
       ]
     },
     {
+      "schema_path": "service-operation-dtos.schema.json#/$defs/AgentSessionGrantRefreshRequest/properties/principal_id",
+      "property_name": "principal_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
       "schema_path": "service-operation-dtos.schema.json#/$defs/AgentSessionGrantRequest/properties/principal_id",
       "property_name": "principal_id",
       "semantic_category": "responsibility_identity_material",
