@@ -1074,7 +1074,7 @@ fail closed。
 
 `ak.self.keys.backups.read.list.v1` 的 `KeysBackupsList` 按 `backups, active_series, next_cursor?, has_more` 排列。
 `active_series` 是必填 `BackupActiveSeriesState`，按 `account_id, control_realm_id, authority_commit_id, secret_storage`
-排列，绑定本次已认证完整 AccountId、其 PCR 和完成当前指针判断的 已确认 basis（每 Realm 恰一个 head）。两个 backup class 始终全部返回，
+排列，绑定本次已认证完整 AccountId、其 PCR 和完成当前指针判断的已确认 basis（每 Realm 恰一个 head）。v1 唯一的 `secret_storage` backup class 始终返回，
 不受 series_id/backup_kind 过滤、当前页有无 envelope 或 envelope 的过期/删除影响。
 
 这里 response DTO 的 `authority_commit_id` 是 Station 对本次 current projection 给出的 confirmed-basis
