@@ -13,6 +13,7 @@
     "created_at",
     "encryption",
     "domain_separation",
+    "contents",
     "ciphertext",
     "ciphertext_digest",
     "auth_data"
@@ -435,6 +436,28 @@
         }
       },
       "additionalProperties": false
+    },
+    "contents": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Signed, nonempty public index of every encrypted plaintext item. Each entry is matched by item_kind and secret_id after decryption; item_kinds for the §7.2 AEAD AAD are derived only from this closed index.",
+      "items": {
+        "type": "object",
+        "required": [
+          "item_kind",
+          "secret_id"
+        ],
+        "properties": {
+          "item_kind": {
+            "$ref": "./key-backup-plaintext.schema.json#/$defs/secret_storage_item/properties/item_kind"
+          },
+          "secret_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.-]+$"
+          }
+        },
+        "additionalProperties": false
+      }
     },
     "ciphertext": {
       "type": "string",

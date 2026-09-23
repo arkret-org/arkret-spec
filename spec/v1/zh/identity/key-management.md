@@ -926,6 +926,8 @@ envelope genesis／successor 的唯一公开来源锚类型 MUST 等价于 `KeyB
 
 `domain_separation` 只携带 producer 选择的 `subdomain` 与可选 `aead_aad_extensions`；不得携带 `hkdf_info` 或固定 AAD 成员的 wire 镜像。`hkdf_info` 的唯一派生式是 `arkret-key-backup/<backup_kind>/<subdomain>/v1`。AEAD/HPKE AAD 的唯一构造过程如下，sealer 与 opener MUST 使用同一过程，任一输入缺失、扩展名非法或扩展与固定字段冲突时 MUST 在解密前 fail closed：
 
+envelope `contents` 是必填、非空、闭合的明文 item 索引；每项只携带 `item_kind` 与 `secret_id`。解密后必须逐项核对 plaintext 的这两个字段；任何缺项、额外字段或不一致均拒绝。`secret_generation` 只属于 plaintext，不是公开索引或 AAD 的输入。既有缺少 `contents` 的 envelope 不能作为 v1 正例迁移或静默补默认值，须由持有明文及授权签名 key 的客户端重新加密、重签并按 series 规则发布后继 envelope。
+
 1. 从 `contents[].item_kind` 取 UTF-8 字节串，按 unsigned UTF-8 bytewise lexicographic order 排序，并按逐字 byte equality 去重，得到唯一的 `item_kinds` 数组；content 原始顺序和重复 item 不得改变 AAD。
 2. 构造固定 base object：`{schema:"ak.schema.key_backup.v1",actor_id,device_id,backup_kind,backup_version,created_at,item_kinds,recipient_method}`。`device_id` 缺失时 base 中该 key 的值固定为 JSON `null`；`recipient_method` 从 `encryption.recipient_method` 派生。仅当 `encryption.recipient_key_ref` 实际存在时，向 base 加入 `recipient_key_ref`。
 3. 将 `domain_separation.aead_aad_extensions` 的每个 `x_*` 成员逐字合并进 base；extension map 不得包含非 `x_*` 名称，也不得覆盖任何固定成员。

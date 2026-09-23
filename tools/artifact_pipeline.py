@@ -70,6 +70,7 @@ APPLET_DELIVERY_AUTH_KAT_SCRIPT = Path(__file__).with_name(
     "check_applet_delivery_authentication_kat.py"
 )
 APPROVAL_SIGNATURE_KAT_SCRIPT = Path(__file__).with_name("check_approval_signature_kat.py")
+KEY_BACKUP_HARDENING_KAT_SCRIPT = Path(__file__).with_name("regenerate_key_backup_hardening_kat.mjs")
 CURSOR_NEGATIVE_FIXTURE_SCRIPT = Path(__file__).with_name(
     "check_cursor_negative_fixture.py"
 )
@@ -1209,6 +1210,11 @@ def run_approval_signature_kat_check() -> int:
     return result.returncode
 
 
+def run_key_backup_hardening_kat_check() -> int:
+    result = subprocess.run(["node", str(KEY_BACKUP_HARDENING_KAT_SCRIPT), "--check"], cwd=ROOT)
+    return result.returncode
+
+
 def run_artifact_version_check() -> int:
     result = subprocess.run([sys.executable, str(ARTIFACT_VERSION_SCRIPT)], cwd=ROOT)
     return result.returncode
@@ -1412,6 +1418,7 @@ def cmd_check(_: argparse.Namespace) -> int:
         "content_bound_event_id_kat": run_content_bound_event_id_check,
         "applet_delivery_authentication_kat": run_applet_delivery_authentication_kat_check,
         "approval_signature_kat": run_approval_signature_kat_check,
+        "key_backup_hardening_kat": run_key_backup_hardening_kat_check,
         "cursor_negative_fixture": run_cursor_negative_fixture_check,
         "artifact_versions": run_artifact_version_check,
         "artifact_lint": run_lint,

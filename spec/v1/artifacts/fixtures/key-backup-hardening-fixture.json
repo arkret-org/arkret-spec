@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.e2ee_client.v1",
-  "version": "2026-07-03",
+  "version": "2026-09-24.2",
   "suite": "key_backup_hardening",
   "runner": {
     "kind": "named_suite",
@@ -161,7 +161,7 @@
         "created_at": "2026-06-19T00:00:00.000Z",
         "observed_at": "2026-06-19T00:01:00.000Z",
         "expires_at": "2026-06-19T00:15:00.000Z",
-        "requesting_device_public_key_did": "did:key:z6MkwVDfCg9LbbY6xjH3EZk8YSFQZujV5Y4y1ZWeER9tDiN3"
+        "requesting_device_public_key_did": "did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd"
       },
       "envelope": {
         "backup_id": "ak:backup:0196419b-0000-7000-8000-000000000200",
@@ -173,18 +173,36 @@
           }
         },
         "backup_kind": "secret_storage",
+        "backup_version": "kb_hardening_kat",
         "series_id": "ak:backup_series:0196419b-0000-7000-8000-000000000300",
-        "series_seq": 4,
-        "ciphertext_digest": "sha256:d1364f14e4156577c877af4befea36f776012775e8bb8a9d6b6b90f44a59cfc4",
+        "series_seq": 0,
         "created_at": "2026-06-19T00:00:00.000Z",
         "encryption": {
           "recipient_method": "secret_storage_key",
-          "aead": "chacha20_poly1305",
-          "nonce_b64u": "oKGio6Slpqeoqaqr",
-          "aad_kind": "arkret_key_backup_envelope_v1"
+          "recipient_key_ref": "ak.secret_storage.v1",
+          "aead": {
+            "name": "chacha20_poly1305",
+            "nonce": "oKGio6Slpqeoqaqr"
+          }
         },
-        "ciphertext_b64u": "d4kaPi6Nt93_Zpc2xtickKc8stwoHxCZhOnih0VT-m5BsCa6nuTIuvb82IUtYUhrevR6CDk8W7EXZjtwbgaHqtCYDDtItvmZTJTwsy_DzB1y_Hu8b8j50hpPL6Ki7snP-SoUgrUAFtfGNAUPy6tymyzgiXc4PJn6z57PJsLPw1scX5mK-viZombeqk0l3nJgu_4jmhNLeDSKKOXfjfDEPrrZLAQy_lA9nZmgYuvUDj-Syr00YL2L8Vnxqzx-OGpsUt2LYXOpbyIPT6xRAkSEQt9DIpeA7jTBX0P8ge9sqbiQ2aUkqMoWO9z-HV5WN6TMvgpj7rL1G-apzOqz5-ZXsUWCBYkOKaVzaA5OqADcv3LQo-VyHh7jqZNrnlioaERV1PRoKxnDwVfesuB-a1rRujHQO9jayRr86KoskXzPPWD1ifOdiVD8Q2E1opcEz7aRAc1cf-1lzXc",
-        "tag_b64u": "aUefu6dhZ5-QlTrQ0bfCPg"
+        "domain_separation": {
+          "subdomain": "key_backup"
+        },
+        "contents": [
+          {
+            "item_kind": "mls_group_secrets_backup_key",
+            "secret_id": "mls_group_secrets_backup_key"
+          }
+        ],
+        "ciphertext": "d4kaPi6Nt93_Zpc2xtickKc8stwoHxCZhOnih0VT-m5BsCa6nuTIuvb82IUtYUhrevR6CDk8W7EXZjtwbgaHqtCYDDtItvmZTJTwsy_DzB1y_Hu8b8j50hpPL6Ki7snP-SoUgrUAFtfGNAUPy6tymyzgiXc4PJn6z57PJsLPw1scX5mK-viZombeqk0l3nJgu_4jmhNLeDSKKOXfjfDEPrrZLAQy_lA9nZmgYuvUDj-Syr00YL2L8Vnxqzx-OGpsUt2LYXOpbyIPT6xRAkSEQt9DIpeA7jTBX0P8ge9sqbiQ2aUkqMoWO9z-HV5WN6TMvgpj7rL1G-apzOqz5-ZXsUWCBYkOKaVzaA5OqADcv3LQo-VyHh7jqZNrnlioaERV1PRoKxnDwVfesuB-a1rRujHQO9jayRr86KoskXzPPWD1ifOdiVD8Q2E1opcEz7aRAc1cf-1lyXckZ1XPHb9QHXmixzbxDuH-",
+        "ciphertext_digest": "sha256:0c31fc0b3acbe8b18db4d70fa825ff47b70976bca4edfd9a2f4770086f4ac1e4",
+        "auth_data": {
+          "device_id": "ak:device:0196419b-0000-7000-8000-000000000002",
+          "verification_method": "did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
+          "signature_algorithm": "Ed25519",
+          "signature": "x5lazNQzgdpV2rRCUYdm5cIv5-VkViWMXwYpBM9eOXMPl9Qnn0EBKQkstIQ37PeSrcS24cvV3MfujL8a5IwBBQ",
+          "device_authorize_event_id": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD"
+        }
       },
       "proof": {
         "schema": "ak.schema.key_backup_unlock_proof.v1",
@@ -197,12 +215,12 @@
         "backup_id": "ak:backup:0196419b-0000-7000-8000-000000000200",
         "backup_kind": "secret_storage",
         "series_id": "ak:backup_series:0196419b-0000-7000-8000-000000000300",
-        "ciphertext_digest": "sha256:d1364f14e4156577c877af4befea36f776012775e8bb8a9d6b6b90f44a59cfc4",
+        "ciphertext_digest": "sha256:0c31fc0b3acbe8b18db4d70fa825ff47b70976bca4edfd9a2f4770086f4ac1e4",
         "issued_at": "2026-06-19T00:00:00.000Z",
         "auth_data": {
-          "verification_method": "did:key:z6MkwVDfCg9LbbY6xjH3EZk8YSFQZujV5Y4y1ZWeER9tDiN3#z6MkwVDfCg9LbbY6xjH3EZk8YSFQZujV5Y4y1ZWeER9tDiN3",
+          "verification_method": "did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd",
           "signature_algorithm": "Ed25519",
-          "signature": "aMTYVdLEp99b_n-NTDj67-7D1XzIKodtopYLyRzF_zGymR7tDk_wDzGezXHNeT5MQu_m1jt-JI8aeRsVZ9A9Ag"
+          "signature": "a-7ERBdA9H3wVIO9SON9aTe_AyZPdLFFbJutA0gwgsiafSTHLlucpeTKqkbKcwir13Trk8OReln4WoDzPSmVCA"
         },
         "kind": "recovery_session",
         "challenge": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
@@ -215,7 +233,7 @@
         "backup_id": "ak:backup:0196419b-0000-7000-8000-000000000200",
         "backup_kind": "secret_storage",
         "series_id": "ak:backup_series:0196419b-0000-7000-8000-000000000300",
-        "series_seq": 4,
+        "series_seq": 0,
         "items": [
           {
             "secret_id": "mls_group_secrets_backup_key",
@@ -229,22 +247,27 @@
         "aead": "chacha20_poly1305",
         "key_b64u": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
         "nonce_b64u": "oKGio6Slpqeoqaqr",
-        "aad_canonical_json": "{\"actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixtureStation\"},\"kind\":\"account\"},\"backup_id\":\"ak:backup:0196419b-0000-7000-8000-000000000200\",\"backup_kind\":\"secret_storage\",\"created_at\":\"2026-06-19T00:00:00.000Z\",\"recipient_method\":\"secret_storage_key\",\"schema\":\"ak.schema.key_backup.v1\",\"series_id\":\"ak:backup_series:0196419b-0000-7000-8000-000000000300\",\"series_seq\":4}",
-        "plaintext_canonical_json": "{\"backup_id\":\"ak:backup:0196419b-0000-7000-8000-000000000200\",\"backup_kind\":\"secret_storage\",\"items\":[{\"item_kind\":\"mls_group_secrets_backup_key\",\"secret_b64u\":\"c2VjcmV0\",\"secret_id\":\"mls_group_secrets_backup_key\"}],\"schema\":\"ak.schema.key_backup_plaintext.v1\",\"series_id\":\"ak:backup_series:0196419b-0000-7000-8000-000000000300\",\"series_seq\":4}",
-        "ciphertext_b64u": "d4kaPi6Nt93_Zpc2xtickKc8stwoHxCZhOnih0VT-m5BsCa6nuTIuvb82IUtYUhrevR6CDk8W7EXZjtwbgaHqtCYDDtItvmZTJTwsy_DzB1y_Hu8b8j50hpPL6Ki7snP-SoUgrUAFtfGNAUPy6tymyzgiXc4PJn6z57PJsLPw1scX5mK-viZombeqk0l3nJgu_4jmhNLeDSKKOXfjfDEPrrZLAQy_lA9nZmgYuvUDj-Syr00YL2L8Vnxqzx-OGpsUt2LYXOpbyIPT6xRAkSEQt9DIpeA7jTBX0P8ge9sqbiQ2aUkqMoWO9z-HV5WN6TMvgpj7rL1G-apzOqz5-ZXsUWCBYkOKaVzaA5OqADcv3LQo-VyHh7jqZNrnlioaERV1PRoKxnDwVfesuB-a1rRujHQO9jayRr86KoskXzPPWD1ifOdiVD8Q2E1opcEz7aRAc1cf-1lzXc",
-        "tag_b64u": "aUefu6dhZ5-QlTrQ0bfCPg",
-        "ciphertext_and_tag_b64u": "d4kaPi6Nt93_Zpc2xtickKc8stwoHxCZhOnih0VT-m5BsCa6nuTIuvb82IUtYUhrevR6CDk8W7EXZjtwbgaHqtCYDDtItvmZTJTwsy_DzB1y_Hu8b8j50hpPL6Ki7snP-SoUgrUAFtfGNAUPy6tymyzgiXc4PJn6z57PJsLPw1scX5mK-viZombeqk0l3nJgu_4jmhNLeDSKKOXfjfDEPrrZLAQy_lA9nZmgYuvUDj-Syr00YL2L8Vnxqzx-OGpsUt2LYXOpbyIPT6xRAkSEQt9DIpeA7jTBX0P8ge9sqbiQ2aUkqMoWO9z-HV5WN6TMvgpj7rL1G-apzOqz5-ZXsUWCBYkOKaVzaA5OqADcv3LQo-VyHh7jqZNrnlioaERV1PRoKxnDwVfesuB-a1rRujHQO9jayRr86KoskXzPPWD1ifOdiVD8Q2E1opcEz7aRAc1cf-1lzXdpR5-7p2Fnn5CVOtDRt8I-",
-        "ciphertext_digest": "sha256:d1364f14e4156577c877af4befea36f776012775e8bb8a9d6b6b90f44a59cfc4",
-        "tag_length_bytes": 16
+        "aad_canonical_json": "{\"actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixtureStation\"},\"kind\":\"account\"},\"backup_kind\":\"secret_storage\",\"backup_version\":\"kb_hardening_kat\",\"created_at\":\"2026-06-19T00:00:00.000Z\",\"device_id\":null,\"item_kinds\":[\"mls_group_secrets_backup_key\"],\"recipient_key_ref\":\"ak.secret_storage.v1\",\"recipient_method\":\"secret_storage_key\",\"schema\":\"ak.schema.key_backup.v1\"}",
+        "plaintext_canonical_json": "{\"backup_id\":\"ak:backup:0196419b-0000-7000-8000-000000000200\",\"backup_kind\":\"secret_storage\",\"items\":[{\"item_kind\":\"mls_group_secrets_backup_key\",\"secret_b64u\":\"c2VjcmV0\",\"secret_id\":\"mls_group_secrets_backup_key\"}],\"schema\":\"ak.schema.key_backup_plaintext.v1\",\"series_id\":\"ak:backup_series:0196419b-0000-7000-8000-000000000300\",\"series_seq\":0}",
+        "ciphertext_b64u": "d4kaPi6Nt93_Zpc2xtickKc8stwoHxCZhOnih0VT-m5BsCa6nuTIuvb82IUtYUhrevR6CDk8W7EXZjtwbgaHqtCYDDtItvmZTJTwsy_DzB1y_Hu8b8j50hpPL6Ki7snP-SoUgrUAFtfGNAUPy6tymyzgiXc4PJn6z57PJsLPw1scX5mK-viZombeqk0l3nJgu_4jmhNLeDSKKOXfjfDEPrrZLAQy_lA9nZmgYuvUDj-Syr00YL2L8Vnxqzx-OGpsUt2LYXOpbyIPT6xRAkSEQt9DIpeA7jTBX0P8ge9sqbiQ2aUkqMoWO9z-HV5WN6TMvgpj7rL1G-apzOqz5-ZXsUWCBYkOKaVzaA5OqADcv3LQo-VyHh7jqZNrnlioaERV1PRoKxnDwVfesuB-a1rRujHQO9jayRr86KoskXzPPWD1ifOdiVD8Q2E1opcEz7aRAc1cf-1lyXc",
+        "tag_b64u": "JGdVzx2_UB15osc28Q7h_g",
+        "ciphertext_and_tag_b64u": "d4kaPi6Nt93_Zpc2xtickKc8stwoHxCZhOnih0VT-m5BsCa6nuTIuvb82IUtYUhrevR6CDk8W7EXZjtwbgaHqtCYDDtItvmZTJTwsy_DzB1y_Hu8b8j50hpPL6Ki7snP-SoUgrUAFtfGNAUPy6tymyzgiXc4PJn6z57PJsLPw1scX5mK-viZombeqk0l3nJgu_4jmhNLeDSKKOXfjfDEPrrZLAQy_lA9nZmgYuvUDj-Syr00YL2L8Vnxqzx-OGpsUt2LYXOpbyIPT6xRAkSEQt9DIpeA7jTBX0P8ge9sqbiQ2aUkqMoWO9z-HV5WN6TMvgpj7rL1G-apzOqz5-ZXsUWCBYkOKaVzaA5OqADcv3LQo-VyHh7jqZNrnlioaERV1PRoKxnDwVfesuB-a1rRujHQO9jayRr86KoskXzPPWD1ifOdiVD8Q2E1opcEz7aRAc1cf-1lyXckZ1XPHb9QHXmixzbxDuH-",
+        "ciphertext_digest": "sha256:0c31fc0b3acbe8b18db4d70fa825ff47b70976bca4edfd9a2f4770086f4ac1e4",
+        "tag_length_bytes": 16,
+        "envelope_signing_jcs": "{\"actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixtureStation\"},\"kind\":\"account\"},\"auth_data\":{\"device_authorize_event_id\":\"ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD\",\"device_id\":\"ak:device:0196419b-0000-7000-8000-000000000002\",\"signature_algorithm\":\"Ed25519\",\"verification_method\":\"did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd\"},\"backup_id\":\"ak:backup:0196419b-0000-7000-8000-000000000200\",\"backup_kind\":\"secret_storage\",\"backup_version\":\"kb_hardening_kat\",\"ciphertext\":\"d4kaPi6Nt93_Zpc2xtickKc8stwoHxCZhOnih0VT-m5BsCa6nuTIuvb82IUtYUhrevR6CDk8W7EXZjtwbgaHqtCYDDtItvmZTJTwsy_DzB1y_Hu8b8j50hpPL6Ki7snP-SoUgrUAFtfGNAUPy6tymyzgiXc4PJn6z57PJsLPw1scX5mK-viZombeqk0l3nJgu_4jmhNLeDSKKOXfjfDEPrrZLAQy_lA9nZmgYuvUDj-Syr00YL2L8Vnxqzx-OGpsUt2LYXOpbyIPT6xRAkSEQt9DIpeA7jTBX0P8ge9sqbiQ2aUkqMoWO9z-HV5WN6TMvgpj7rL1G-apzOqz5-ZXsUWCBYkOKaVzaA5OqADcv3LQo-VyHh7jqZNrnlioaERV1PRoKxnDwVfesuB-a1rRujHQO9jayRr86KoskXzPPWD1ifOdiVD8Q2E1opcEz7aRAc1cf-1lyXckZ1XPHb9QHXmixzbxDuH-\",\"ciphertext_digest\":\"sha256:0c31fc0b3acbe8b18db4d70fa825ff47b70976bca4edfd9a2f4770086f4ac1e4\",\"contents\":[{\"item_kind\":\"mls_group_secrets_backup_key\",\"secret_id\":\"mls_group_secrets_backup_key\"}],\"created_at\":\"2026-06-19T00:00:00.000Z\",\"domain_separation\":{\"subdomain\":\"key_backup\"},\"encryption\":{\"aead\":{\"name\":\"chacha20_poly1305\",\"nonce\":\"oKGio6Slpqeoqaqr\"},\"recipient_key_ref\":\"ak.secret_storage.v1\",\"recipient_method\":\"secret_storage_key\"},\"series_id\":\"ak:backup_series:0196419b-0000-7000-8000-000000000300\",\"series_seq\":0}",
+        "proof_signing_jcs": "{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixtureStation\"},\"audience\":\"https://station.example\",\"auth_data\":{\"signature_algorithm\":\"Ed25519\",\"verification_method\":\"did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd\"},\"backup_id\":\"ak:backup:0196419b-0000-7000-8000-000000000200\",\"backup_kind\":\"secret_storage\",\"challenge\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\"ciphertext_digest\":\"sha256:0c31fc0b3acbe8b18db4d70fa825ff47b70976bca4edfd9a2f4770086f4ac1e4\",\"expires_at\":\"2026-06-19T00:15:00.000Z\",\"issued_at\":\"2026-06-19T00:00:00.000Z\",\"kind\":\"recovery_session\",\"recovery_session_id\":\"ak:recovery_session:0196419b-0000-7000-8000-000000000100\",\"requesting_device_id\":\"ak:device:0196419b-0000-7000-8000-000000000002\",\"schema\":\"ak.schema.key_backup_unlock_proof.v1\",\"series_id\":\"ak:backup_series:0196419b-0000-7000-8000-000000000300\",\"service_id\":\"ak:did_core:webvh:z6mkfixtureStation\"}"
       },
       "expected": {
-        "valid_unlock": "accepted",
+        "valid_unlock": "test_material_denied",
         "binding_mismatch_reason": "recovery_evidence_unbound",
         "bearer_only_reason": "unauthenticated",
         "cross_actor_reason": "capability_denied",
         "plaintext_metadata_matches_envelope": true,
         "wrong_replacement_key_reason": "signature_invalid",
-        "signature_mutation_reason": "signature_invalid"
+        "signature_mutation_reason": "signature_invalid",
+        "cryptographic_envelope_signature": "valid",
+        "cryptographic_proof_signature": "valid",
+        "cryptographic_aead_open": "valid"
       },
       "assertions": [
         "unlock proof is submitted in the request body and validates against ak.schema.key_backup_unlock_proof.v1",
@@ -252,8 +275,14 @@
         "the fixture AEAD transcript opens to plaintext using crypto_transcript.key_b64u, nonce_b64u, and aad_canonical_json",
         "bearer-only access without a fresh device proof is rejected",
         "plaintext metadata must match the outer envelope after decrypt/open",
-        "the real Ed25519 signature verifies only under the frozen replacement device key; altered signature or replacement key is rejected"
-      ]
+        "The published Ed25519 key proves offline transcript validity; live authorization rejects this key as test_material_denied."
+      ],
+      "test_key": {
+        "algorithm": "Ed25519",
+        "private_key_seed": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
+        "public_key": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
+        "note": "Public offline conformance key registered in test-material-registry.json; live authorization MUST reject it as test_material_denied."
+      }
     },
     {
       "name": "delete_authority",
@@ -270,5 +299,6 @@
         "a byte-identical retry returns the stored terminal outcome without re-admitting the consumed challenge"
       ]
     }
-  ]
+  ],
+  "generated_by": "tools/regenerate_key_backup_hardening_kat.mjs"
 }

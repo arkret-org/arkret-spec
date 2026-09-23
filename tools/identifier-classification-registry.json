@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 18,
+  "version": 19,
   "kind": "identifier_classification_registry",
   "source_of_truth": false,
   "generated_from": [
@@ -648,7 +648,7 @@
       "name": "secret_id",
       "terminal_signature": "[[\"pattern\", \"^[A-Za-z0-9_.-]+$\"]]",
       "category": "opaque_correlation",
-      "occurrences": 1,
+      "occurrences": 2,
       "example_path": "key-backup-plaintext.schema.json#/$defs/secret_storage_item/properties/secret_id",
       "reason": "Bounded opaque handle used to select a stored record; the record, not the handle, carries authority."
     },

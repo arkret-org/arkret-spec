@@ -7107,6 +7107,7 @@
           "created_at",
           "encryption",
           "domain_separation",
+          "contents",
           "ciphertext",
           "ciphertext_digest",
           "auth_data"
@@ -7129,6 +7130,7 @@
           "updated_at",
           "encryption",
           "domain_separation",
+          "contents",
           "ciphertext",
           "ciphertext_digest",
           "plaintext_commitment",
@@ -7194,6 +7196,7 @@
           "created_at",
           "encryption",
           "domain_separation",
+          "contents",
           "ciphertext",
           "ciphertext_digest",
           "auth_data"
@@ -7216,6 +7219,7 @@
           "updated_at",
           "encryption",
           "domain_separation",
+          "contents",
           "ciphertext",
           "ciphertext_digest",
           "plaintext_commitment",

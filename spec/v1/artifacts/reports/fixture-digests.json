@@ -282,13 +282,13 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/key-backup-fixture.json",
-      "sha256": "814c16f93fbc5177cb238e3236b660c63aa23d4e97e5161fb46fa56b2453c1c0",
-      "version": "2026-09-20.2"
+      "sha256": "3f71143fc9ebec6a215468e950ae32b949d71e3a17b1e5d59336c0db0c5011db",
+      "version": "2026-09-24.2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/key-backup-hardening-fixture.json",
-      "sha256": "b9336f8a0656c246696b704c6740a35c482ee7653b9d905b36d9c643116428d0",
-      "version": "2026-07-03"
+      "sha256": "14aed94f8d30a7b24832f148cec9f5327515839fbf63defa10c6b505623600ad",
+      "version": "2026-09-24.2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/key-transparency-fixture.json",

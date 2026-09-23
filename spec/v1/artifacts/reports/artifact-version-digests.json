@@ -231,9 +231,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-09-22.5",
-      "generated_at": "2026-09-22T09:30:01+08:00",
-      "content_digest": "sha256:8a2b5dfe2fe86df2ae2ceaabf08e8a0d33c6769f5a415cbd372e3580bca62746"
+      "version": "2026-09-24.2",
+      "generated_at": "2026-09-24T00:50:00+08:00",
+      "content_digest": "sha256:2b1b3a58425966f0db89400ae86fb4f696f8a7ba83f42d357fe8d480534e99aa"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
@@ -357,9 +357,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/test-material-registry.json",
-      "version": "2026-09-22.1",
-      "generated_at": "2026-09-22T09:25:00+08:00",
-      "content_digest": "sha256:53854c22aec890b1e0d14edd6fddc441a3fc981b3b5435350953956e1eb5e24a"
+      "version": "2026-09-24.1",
+      "generated_at": "2026-09-24T00:45:00+08:00",
+      "content_digest": "sha256:9b1c5fdb19a9dc09d65a72f8fe81a451fedcaac07e1bb8275f71228ea9baa2d4"
     },
     {
       "path": "spec/v1/artifacts/registry/track-name-registry.json",
@@ -441,9 +441,9 @@
     },
     {
       "path": "tools/identifier-classification-registry.json",
-      "version": 18,
+      "version": 19,
       "generated_at": null,
-      "content_digest": "sha256:83a1eda333e66f9e7a08f55d286470cf7a7b4918a57204dca315923f7f54084a"
+      "content_digest": "sha256:8750fd88be06bdb09ca0297faae52acb36a779ba9ff0fb5060117f047477bb8b"
     },
     {
       "path": "tools/identifier-role-suffix-registry.json",
@@ -513,9 +513,9 @@
     },
     {
       "path": "tools/release-tool-manifest.json",
-      "version": "2026-09-21.1",
-      "generated_at": "2026-09-21T02:54:53+08:00",
-      "content_digest": "sha256:8aa1b05e1385ae4e5c3ebefc2b90ceda55ea0dd2d58bfdfe3a013e99a166e3a6"
+      "version": "2026-09-24.1",
+      "generated_at": "2026-09-24T00:45:00+08:00",
+      "content_digest": "sha256:966d0e3d8ee3753fa97987fc8dd2d950d87a0b2d88c3731c18af3dda9ab9336a"
     },
     {
       "path": "tools/resolution-commitment-pointer-registry.json",
