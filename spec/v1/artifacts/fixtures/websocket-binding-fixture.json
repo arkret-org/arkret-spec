@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.binding.websocket.v1",
-  "version": "2026-09-21",
+  "version": "2026-09-23.1",
   "suite": "websocket_binding",
   "runner": {
     "kind": "named_suite",
@@ -341,7 +341,7 @@
     {
       "name": "signal_data",
       "direction_schema_ref": "schemas/websocket-frame.schema.json#/$defs/server_frame",
-      "wire_utf8": "{\"channel_id\":\"signal-1\",\"kind\":\"data\",\"payload\":{\"delivery_authority\":{\"key\":{\"actor\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"},\"kind\":\"account\"},\"authorization_ref\":\"ak:event:ARf0hBMoVkQqflOWgdkxNzM3DDLeIZcTJgfcuk16MrSh\",\"public_key_b64u\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#device-key\"},\"recipient_account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"}},\"envelope\":{\"authority_commit_id\":\"ak:realm_commit:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw\",\"encrypted_payload\":{\"aead_profile\":\"MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519\",\"ciphertext\":\"AAAAAAAAAAAAAAAAAAAAAA\",\"epoch\":7,\"key_ref\":{\"group_state_ref\":\"sha256:2222222222222222222222222222222222222222222222222222222222222222\"},\"nonce\":\"AAAAAAAAAAAAAAAA\",\"purpose\":\"ak.signal.v1\",\"scheme\":\"ak.signal_exporter_aead.v1\"},\"expires_at\":\"2026-07-29T00:01:30.000Z\",\"proof\":{\"envelope_digest\":\"sha256:4444444444444444444444444444444444444444444444444444444444444444\",\"jws\":\"e30..AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\"kind\":\"detached_jws\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#device-key\"},\"realm_id\":\"ak:realm:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6\",\"scope_ref\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6\"},\"sender_actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"},\"kind\":\"account\"},\"sender_device_id\":\"ak:device:0196419b-0000-7000-8000-000000000002\",\"sent_at\":\"2026-07-29T00:01:00.000Z\",\"signal_class\":\"session\"},\"kind\":\"signal\"}}",
+      "wire_utf8": "{\"channel_id\":\"signal-1\",\"kind\":\"data\",\"payload\":{\"delivery_authority\":{\"key\":{\"actor\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"},\"kind\":\"account\"},\"authorization_ref\":\"ak:event:ARf0hBMoVkQqflOWgdkxNzM3DDLeIZcTJgfcuk16MrSh\",\"public_key_b64u\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000002\"},\"recipient_account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"}},\"envelope\":{\"authority_commit_id\":\"ak:realm_commit:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw\",\"encrypted_payload\":{\"aead_profile\":\"MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519\",\"ciphertext\":\"AAAAAAAAAAAAAAAAAAAAAA\",\"epoch\":7,\"key_ref\":{\"group_state_ref\":\"sha256:2222222222222222222222222222222222222222222222222222222222222222\"},\"nonce\":\"AAAAAAAAAAAAAAAA\",\"purpose\":\"ak.signal.v1\",\"scheme\":\"ak.signal_exporter_aead.v1\"},\"expires_at\":\"2026-07-29T00:01:30.000Z\",\"proof\":{\"envelope_digest\":\"sha256:27fa7559bd09fb59725f88e4f4b2b05070b82ea8d89d4279f9d1a50e022ea639\",\"jws\":\"e30..AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\"kind\":\"detached_jws\",\"verification_method\":\"did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000002\"},\"realm_id\":\"ak:realm:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6\",\"scope_ref\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AQwfxZZieb7Udz28u8Z_wXvR3hFpZzHl4sWKOICaiKC6\"},\"sender_actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"},\"kind\":\"account\"},\"sender_device_id\":\"ak:device:0196419b-0000-7000-8000-000000000002\",\"sent_at\":\"2026-07-29T00:01:00.000Z\",\"signal_class\":\"session\"},\"kind\":\"signal\"}}",
       "expect_valid": true
     },
     {
@@ -461,7 +461,7 @@
     {
       "name": "payload_does_not_match_channel_operation",
       "channel_operation": "ak.self.signal.stream.subscribe.v1",
-      "wire_utf8": "{\"channel_id\":\"signal-1\",\"frame_scope\":\"channel\",\"kind\":\"control\",\"payload\":{\"cursor\":\"ak:cursor:ZXZlbnRzLWN1cnNvci0wMDAx\",\"kind\":\"frontier\"}}",
+      "wire_utf8": "{\"channel_id\":\"signal-1\",\"frame_scope\":\"channel\",\"kind\":\"control\",\"payload\":{\"kind\":\"resync_required\"}}",
       "rejection_stage": "channel_operation_schema",
       "expected_channel_result": "error_then_closed",
       "connection_remains_open": true

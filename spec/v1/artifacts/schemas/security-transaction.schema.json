@@ -518,7 +518,7 @@
       "properties": {
         "request": {
           "$ref": "./service-operation-dtos.schema.json#/$defs/EventsSubmitBatchRequestBody",
-          "description": "Exact typed Event batch submit request; the unit type fixes this sole schema identity."
+          "description": "Exact nested two-Event recovery unit shape. The parent security transaction fixes its operation, slot order and authority; this array is not an ordinary self Event-submit batch."
         },
         "request_digest": {
           "$ref": "#/$defs/digest"

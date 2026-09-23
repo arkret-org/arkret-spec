@@ -1,6 +1,6 @@
 {
   "suite": "client_sync",
-  "version": "2026-09-16",
+  "version": "2026-09-23",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.sync.client_account_stream.v1"
@@ -267,6 +267,22 @@
       "action": "ack_from_backfill_path",
       "expected": "removed_from_recipient_queue",
       "second_copy_created": false
+    },
+    {
+      "name": "expired_content_without_ack_remains_in_queue",
+      "device_message_id": "ak:device_message:01964137-2000-7000-8000-000000000025",
+      "durably_processed": false,
+      "action": "advance_time_past_content_expiry_without_ack",
+      "expected": "still_queued",
+      "reason": "content expiry does not authorize recipient queue deletion"
+    },
+    {
+      "name": "full_endpoint_rejects_new_delivery_without_eviction",
+      "device_message_id": "ak:device_message:01964137-2000-7000-8000-000000000026",
+      "durably_processed": false,
+      "action": "enqueue_new_delivery_at_full_capacity",
+      "expected": "rejected_quota_exceeded_with_old_delivery_still_queued",
+      "request_idempotency_written": false
     }
   ]
 }

@@ -78,7 +78,7 @@
       ]
     },
     "self_submit_request": {
-      "description": "Closed self Event-submit union. Ordinary Event and MLS Commit requests retain their current canonical shapes. Direct Conversation founding and membership compensation are the only aggregate branches; both are closed and are rejected on every other Event-submit endpoint.",
+      "description": "Closed self Event-submit union. Ordinary Event and MLS Commit requests retain their current canonical shapes. Ordinary Realm bootstrap, Direct Conversation founding and membership compensation are the only aggregate branches; all are closed and are rejected on every other Event-submit endpoint.",
       "oneOf": [
         {
           "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
@@ -88,6 +88,9 @@
         },
         {
           "$ref": "#/$defs/direct_conversation_founding_unit_submission"
+        },
+        {
+          "$ref": "#/$defs/ordinary_realm_bootstrap_unit_submission"
         },
         {
           "$ref": "#/$defs/membership_compensation_unit_submission"
@@ -102,6 +105,9 @@
         },
         {
           "$ref": "#/$defs/direct_conversation_founding_acceptance_outcome"
+        },
+        {
+          "$ref": "#/$defs/ordinary_realm_bootstrap_acceptance_outcome"
         },
         {
           "$ref": "#/$defs/membership_compensation_acceptance_outcome"
@@ -368,6 +374,351 @@
           "additionalProperties": false
         }
       ]
+    },
+    "ordinary_realm_bootstrap_unit_submission": {
+      "type": "object",
+      "description": "Self-only ordinary Collaboration Realm bootstrap. The caller submits the complete registered ordered unit to one current governance Station. Slot 0 derives the Realm ID; all following Events use that Realm and the same actor authority. The optional alias and conditional plaintext-visible-services slots retain registry order. The Station validates all slots against staged state, then atomically stores one consecutive RealmCommit per Event, every registered typed result, idempotency outcome and outbox or stores none. No batch-level authority artifact or receipt exists.",
+      "required": [
+        "unit_kind",
+        "idempotency_key",
+        "events"
+      ],
+      "properties": {
+        "unit_kind": {
+          "const": "ordinary_realm_bootstrap"
+        },
+        "idempotency_key": {
+          "type": "string",
+          "format": "uuid",
+          "description": "UUIDv7 whole-unit replay fence. Same key and identical canonical request return the original ordered RealmCommits; same key with different request bytes is duplicate_conflict."
+        },
+        "events": {
+          "description": "Exactly the ordinary_collaboration ordered slots in contract-registry.json.realm_bootstrap_registry. Runtime validation also checks the conditional visibility slot, all producer/approval proofs, staged authority-root evidence, exact Realm and actor bindings, and the final creator join.",
+          "oneOf": [
+            {
+              "type": "array",
+              "minItems": 7,
+              "maxItems": 7,
+              "prefixItems": [
+                {
+                  "$ref": "#/$defs/ordinary_realm_bootstrap_realm_create_submission"
+                },
+                {
+                  "$ref": "#/$defs/ordinary_realm_bootstrap_profile_submission"
+                },
+                {
+                  "$ref": "#/$defs/ordinary_realm_bootstrap_policy_bundle_submission"
+                },
+                {
+                  "$ref": "#/$defs/ordinary_realm_bootstrap_join_rule_submission"
+                },
+                {
+                  "$ref": "#/$defs/ordinary_realm_bootstrap_history_access_submission"
+                },
+                {
+                  "$ref": "#/$defs/ordinary_realm_bootstrap_discovery_submission"
+                },
+                {
+                  "$ref": "#/$defs/ordinary_realm_bootstrap_creator_join_submission"
+                }
+              ],
+              "items": false
+            },
+            {
+              "type": "array",
+              "minItems": 8,
+              "maxItems": 8,
+              "prefixItems": [
+                {
+                  "$ref": "#/$defs/ordinary_realm_bootstrap_realm_create_submission"
+                },
+                {
+                  "$ref": "#/$defs/ordinary_realm_bootstrap_profile_submission"
+                },
+                {
+                  "$ref": "#/$defs/ordinary_realm_bootstrap_policy_bundle_submission"
+                },
+                {
+                  "$ref": "#/$defs/ordinary_realm_bootstrap_join_rule_submission"
+                },
+                {
+                  "$ref": "#/$defs/ordinary_realm_bootstrap_history_access_submission"
+                },
+                {
+                  "$ref": "#/$defs/ordinary_realm_bootstrap_discovery_submission"
+                },
+                {
+                  "$ref": "#/$defs/ordinary_realm_bootstrap_alias_submission"
+                },
+                {
+                  "$ref": "#/$defs/ordinary_realm_bootstrap_creator_join_submission"
+                }
+              ],
+              "items": false
+            },
+            {
+              "type": "array",
+              "minItems": 8,
+              "maxItems": 8,
+              "prefixItems": [
+                {
+                  "$ref": "#/$defs/ordinary_realm_bootstrap_realm_create_submission"
+                },
+                {
+                  "$ref": "#/$defs/ordinary_realm_bootstrap_profile_submission"
+                },
+                {
+                  "$ref": "#/$defs/ordinary_realm_bootstrap_policy_bundle_submission"
+                },
+                {
+                  "$ref": "#/$defs/ordinary_realm_bootstrap_join_rule_submission"
+                },
+                {
+                  "$ref": "#/$defs/ordinary_realm_bootstrap_history_access_submission"
+                },
+                {
+                  "$ref": "#/$defs/ordinary_realm_bootstrap_discovery_submission"
+                },
+                {
+                  "$ref": "#/$defs/ordinary_realm_bootstrap_plaintext_visible_services_submission"
+                },
+                {
+                  "$ref": "#/$defs/ordinary_realm_bootstrap_creator_join_submission"
+                }
+              ],
+              "items": false
+            },
+            {
+              "type": "array",
+              "minItems": 9,
+              "maxItems": 9,
+              "prefixItems": [
+                {
+                  "$ref": "#/$defs/ordinary_realm_bootstrap_realm_create_submission"
+                },
+                {
+                  "$ref": "#/$defs/ordinary_realm_bootstrap_profile_submission"
+                },
+                {
+                  "$ref": "#/$defs/ordinary_realm_bootstrap_policy_bundle_submission"
+                },
+                {
+                  "$ref": "#/$defs/ordinary_realm_bootstrap_join_rule_submission"
+                },
+                {
+                  "$ref": "#/$defs/ordinary_realm_bootstrap_history_access_submission"
+                },
+                {
+                  "$ref": "#/$defs/ordinary_realm_bootstrap_discovery_submission"
+                },
+                {
+                  "$ref": "#/$defs/ordinary_realm_bootstrap_alias_submission"
+                },
+                {
+                  "$ref": "#/$defs/ordinary_realm_bootstrap_plaintext_visible_services_submission"
+                },
+                {
+                  "$ref": "#/$defs/ordinary_realm_bootstrap_creator_join_submission"
+                }
+              ],
+              "items": false
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "ordinary_realm_bootstrap_realm_create_submission": {
+      "allOf": [
+        {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
+        },
+        {
+          "properties": {
+            "event": {
+              "properties": {
+                "kind": {
+                  "const": "ak.realm.create"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "ordinary_realm_bootstrap_profile_submission": {
+      "allOf": [
+        {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
+        },
+        {
+          "properties": {
+            "event": {
+              "properties": {
+                "kind": {
+                  "const": "ak.realm.profile"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "ordinary_realm_bootstrap_policy_bundle_submission": {
+      "allOf": [
+        {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
+        },
+        {
+          "properties": {
+            "event": {
+              "properties": {
+                "kind": {
+                  "const": "ak.realm.policy_bundle"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "ordinary_realm_bootstrap_join_rule_submission": {
+      "allOf": [
+        {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
+        },
+        {
+          "properties": {
+            "event": {
+              "properties": {
+                "kind": {
+                  "const": "ak.realm.join_rule"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "ordinary_realm_bootstrap_history_access_submission": {
+      "allOf": [
+        {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
+        },
+        {
+          "properties": {
+            "event": {
+              "properties": {
+                "kind": {
+                  "const": "ak.realm.history_access"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "ordinary_realm_bootstrap_discovery_submission": {
+      "allOf": [
+        {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
+        },
+        {
+          "properties": {
+            "event": {
+              "properties": {
+                "kind": {
+                  "const": "ak.realm.discovery"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "ordinary_realm_bootstrap_alias_submission": {
+      "allOf": [
+        {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
+        },
+        {
+          "properties": {
+            "event": {
+              "properties": {
+                "kind": {
+                  "const": "ak.realm.alias"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "ordinary_realm_bootstrap_plaintext_visible_services_submission": {
+      "allOf": [
+        {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
+        },
+        {
+          "properties": {
+            "event": {
+              "properties": {
+                "kind": {
+                  "const": "ak.realm.plaintext_visible_services"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "ordinary_realm_bootstrap_creator_join_submission": {
+      "allOf": [
+        {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
+        },
+        {
+          "properties": {
+            "event": {
+              "properties": {
+                "kind": {
+                  "const": "ak.member.state"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "description": "The final slot is the genesis actor's explicit member.state join with expected_revision null; the Station verifies payload and actor bindings against slot 0."
+    },
+    "ordinary_realm_bootstrap_acceptance_outcome": {
+      "type": "object",
+      "description": "One indivisible ordinary Realm bootstrap outcome. The ordered commits match the submitted Events and form one consecutive source Realm stream chain. Exact whole-unit replay returns the same commits. No per-item partial success or batch-level receipt exists.",
+      "required": [
+        "unit_kind",
+        "status",
+        "commits"
+      ],
+      "properties": {
+        "unit_kind": {
+          "const": "ordinary_realm_bootstrap"
+        },
+        "status": {
+          "enum": [
+            "committed",
+            "duplicate"
+          ]
+        },
+        "commits": {
+          "type": "array",
+          "minItems": 7,
+          "maxItems": 9,
+          "items": {
+            "$ref": "./realm-commit.schema.json"
+          }
+        }
+      },
+      "additionalProperties": false
     },
     "direct_conversation_founding_unit_submission": {
       "type": "object",

@@ -1,12 +1,12 @@
 {
-  "version": 10,
+  "version": 11,
   "source_of_truth": false,
   "narrative_source": "spec/v1/zh/models/common-fields.md#r6-证据类名词分工",
   "scope": [
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 334,
+  "audited_occurrence_count": 336,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -780,6 +780,25 @@
       "occurrences": 2,
       "disposition": "qualifier",
       "reason": "Locates the immutable historical signer evidence containing this exact device attestation; the client-facing query_device_record and the Station-to-Station peer_query_device_record carry the same reference."
+    },
+    {
+      "file": "mimi-operations.schema.json",
+      "key": "evidence_package",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation",
+        "receipt"
+      ],
+      "reason": "The signed MIMI report claim carries the closed encrypted moderation evidence package; the facade copies it only after verifying reporter authority."
+    },
+    {
+      "file": "mimi-operations.schema.json",
+      "key": "evidence_refs",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "The signed report claim identifies external evidence objects without treating those references as authorization or plaintext."
     },
     {
       "file": "moderation-evidence.schema.json",

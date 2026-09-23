@@ -27,6 +27,16 @@ Authority-commit 基线由 `ak.vector.authority_commit.independent_streams.v1` �
 4. join locator 只是提示；snapshot 与获准 stream tails 来自验证后的当前治理 Station。
 5. MLS Add Commit 与全部 Welcome deliveries 在同一 authority transaction 全成或全败。
 
+`ak.vector.mls.welcome_recipient_delivery_queue.v1` MUST 证明：同事务入队的
+`MlsWelcomeDelivery` 在 account delta 与同队列补拉中保持原始签名对象，和
+`DeviceMessageEnvelope` 以闭合 `delivery_kind` 分支交错排序；两者共用位置、只读 cursor 与累计 ACK。
+Welcome 使用 `(recipient_actor_id, recipient_endpoint, welcome_id)` 耐久去重，human device 与 Agent runtime
+分别使用自己的认证 endpoint。相同 ID 不同 bytes、跨 endpoint／旧 Agent authorization 的 token、
+未持久化就 ACK、遗漏截断页或静默丢弃 Welcome 均必须 fail closed；不能恢复独立 Welcome-ref GET。
+同一向量还 MUST 覆盖未 ACK delivery 超过内容 `expires_at` 仍可补拉、容量满拒绝新
+DeviceMessage 或 MLS Commit+Welcome 并保持原队列与请求幂等 ledger 零变更，以及 ACK 后
+跨两分支累计取消；`lost` 只能由持久证据证明历史缺口或故障。
+
 ## 2. 领域向量
 
 Typed reducer、身份、能力、媒体与扩展领域的向量必须使用本规范定义的 Event/RealmCommit 边界，并由 vector registry 登记。
@@ -568,6 +578,10 @@ Sidecar 不存在明文分支；该 Agent 经 Sidecar MLS Welcome 加入后只�
 
 `ak.vector.sidecar.mls_bootstrap_binding.v1` MUST 证明：participant 集合精确等于 controller 加当前 Realm 作用域的
 `desired_agent_ids`，排序去重后的 authority transcript digest 与 `participant_authority_digest` 一致；
+Sidecar Genesis 提案、签名 Event 与 MLS GroupContext extension 的唯一 governance binding 都带相同
+`participant_authority_digest` 和已排序去重的 `authority_stream_head`，且后续 Add／Remove／Update Commit
+在各自 accepted authority cut 重算并签署这两个字段；缺少任一字段、旧 cut、摘要或 refs 变异、
+非 Sidecar binding 私带这些字段均零写入拒绝，读取投影不能替代签名 binding；
 只有一个 genesis 通过标准 Event 准入与 CAS 成为 canonical 胜者，服务端不得生成 MLS 私有状态、伪造
 GroupInfo 或 ratchet-tree 摘要、也不得提供绕过 Event proof 的 bootstrap 端点；全部 binding 变异 MUST fail closed，
 native Sidecar scope 缺少匹配的 `sidecar_binding`、以及普通 Realm 或 Circle 携带该字段，都必须拒绝；

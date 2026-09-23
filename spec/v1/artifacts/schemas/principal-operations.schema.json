@@ -963,7 +963,6 @@
           "required": [
             "kind",
             "agent_id",
-            "device_id",
             "agent_key_authorization_ref",
             "verification_method"
           ],
@@ -973,9 +972,6 @@
             },
             "agent_id": {
               "$ref": "#/$defs/did_core_id"
-            },
-            "device_id": {
-              "$ref": "#/$defs/device_id"
             },
             "agent_key_authorization_ref": {
               "$ref": "#/$defs/event_id"

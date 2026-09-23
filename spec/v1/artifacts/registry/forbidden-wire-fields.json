@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 64,
+  "version": 65,
   "kind": "forbidden_wire_fields",
   "source_of_truth": true,
   "description": "Field names and values forbidden on current Arkret v1 wire only in the registered context. Consumers MUST first select context_definitions using the trusted document kind and owning schema reference, then apply the entry matcher inside the selected instance_pointer and match_scope. A same-named field in another context is not forbidden by this entry. allowed_contexts only exempts references in documentation, interop definitions and negative tests; it never exempts submitted wire data.",
@@ -12,7 +12,7 @@
     "interop_module": "Reference in an explicit interop binding (e.g., MIMI interop) where the cross-protocol mapping requires the field.",
     "negative_test": "Reference in negative fixtures / cotest drift tests that assert rejection."
   },
-  "generated_at": "2026-09-20T16:42:00+08:00",
+  "generated_at": "2026-09-23T12:41:00+08:00",
   "context_matching": {
     "schema_reference_base": "../schemas/",
     "document_kinds": [
@@ -39,11 +39,11 @@
     "entry_matching": "id remains an audit identifier. match.kind selects field (literal member name), path (dot-separated member path relative to root), patch_path (property names of the canonical patch object defined by patch.schema.json), value (exact scalar value), prefix (scalar prefix), or pattern (scalar regular expression). match.values are alternatives. No heuristic interpretation of id is permitted. patch_path rejects its exact path and descendants for every operation. For an ancestor set/add or direct-value replacement, inspect the replacement value at the remaining registered path. A patch is never an array of path/op records. Patch value objects MUST also be checked against their owning create payload contexts; replacing an ancestor does not bypass a nested forbidden path."
   },
   "context_definitions": {
-    "account_subscribe_device_message_container": {
+    "account_subscribe_recipient_delivery_container": {
       "selectors": [
         {
           "document_kind": "schema_instance",
-          "schema_ref": "account-subscribe-frame.schema.json#/$defs/device_message_container",
+          "schema_ref": "account-subscribe-frame.schema.json#/$defs/recipient_delivery_container",
           "instance_pointer": "",
           "match_scope": "root"
         }
@@ -2468,15 +2468,15 @@
     },
     {
       "id": "events",
-      "context": "account_subscribe_device_message_container",
+      "context": "account_subscribe_recipient_delivery_container",
       "since_revision": "2026-05-24",
       "rejection_level": "hard_reject",
-      "replacement": "messages",
+      "replacement": "deliveries",
       "allowed_contexts": [
         "changelog",
         "negative_test"
       ],
-      "notes": "Account subscribe to_device container carries DeviceMessageEnvelope objects, not Event envelopes.",
+      "notes": "Account subscribe to_device container carries closed recipient delivery branches for DeviceMessageEnvelope and MlsWelcomeDelivery, not shared Event envelopes.",
       "match": {
         "kind": "field",
         "values": [

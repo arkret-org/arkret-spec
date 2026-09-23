@@ -67,8 +67,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/arkret-private-kdf-fixture.json",
-      "sha256": "1e445a2ca347192e37c4c889f8af734f5057fa74396cf3b8ae906ac7a835e3d7",
-      "version": "2026-09-21"
+      "sha256": "d36787496ba9574cbee2e94763d7857715dec1adaf4ca5c9444423f2bd5692b0",
+      "version": "2026-09-23"
     },
     {
       "path": "spec/v1/artifacts/fixtures/auth-session-proof-fixture.json",
@@ -127,8 +127,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/client-sync-fixture.json",
-      "sha256": "7296f30270c396ededbfe5910de32b4f76314b8a6473f676c4108a5ca958938c",
-      "version": "2026-09-16"
+      "sha256": "556861c6bf756d108d30cac7af1e53bea4ea01b42a539b7a248378934726a66f",
+      "version": "2026-09-23"
     },
     {
       "path": "spec/v1/artifacts/fixtures/consent-cache-invalidation-fixture.json",
@@ -197,8 +197,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/encoding-fixture.json",
-      "sha256": "958e26dd4ce38777fc2513f71c6bab216c29fd92f426fe69be648e251df5ae09",
-      "version": "2026-09-20.1"
+      "sha256": "387acb2936cb1ea88b6d7df2fdb85e8a1585c78ff739f87f18573d1ce365e23d",
+      "version": "2026-09-23"
     },
     {
       "path": "spec/v1/artifacts/fixtures/error-code-registry-coverage-fixture.json",
@@ -297,8 +297,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json",
-      "sha256": "b3faa40fce3ba571734a93e016e8d6be5d1bf246deb21c86880d3744cbe9de8a",
-      "version": "2026-09-19.1"
+      "sha256": "fb82fe0f506ce1919356df04dec856989fa387e89b0c93d50c96ce5bbccd6622",
+      "version": "2026-09-23.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-write-transcript-fixture.json",
@@ -314,6 +314,16 @@
       "path": "spec/v1/artifacts/fixtures/media-binding-fixture.json",
       "sha256": "f24c422763f95a5e7e0b32408e22ef07b32e4e524c61a9d810d22bc0419470f9",
       "version": "2026-09-19"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/mimi-admission-guards-fixture.json",
+      "sha256": "131d25f67bfe20385f19dfa2b0a4c9130067c1ea0faeeed3e472b8b53fc19788",
+      "version": 2
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/mimi-room-binding-migration-fixture.json",
+      "sha256": "47a525549ff5e9c1e2759b82069aed5ce1ec1d32e0764219d2305d1c9cefd52a",
+      "version": 2
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-creator-bootstrap-recovery-fixture.json",
@@ -472,8 +482,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/session-grant-issuance-fixture.json",
-      "sha256": "18ec924cdbcc36d3fedb5e9eb1e7e540c33e116dbc6fdb35163e374b495e1fc4",
-      "version": "2026-09-20"
+      "sha256": "3bf5def26d45d75f394295daf6b7d08b7de42ca5e7a316c41b984f873c948708",
+      "version": "2026-09-23"
     },
     {
       "path": "spec/v1/artifacts/fixtures/signal-federation-fixture.json",
@@ -527,8 +537,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/websocket-binding-fixture.json",
-      "sha256": "8464dd5db5974c6d0f44726e91261034096801825f53de32e133152aa6a6bbc8",
-      "version": "2026-09-21"
+      "sha256": "d4337dcab3c2a7e57cbb3712f1ac9fbd33e8cd28f436a16112086659e6ac0294",
+      "version": "2026-09-23.1"
     }
   ],
   "fixtures_root": "spec/v1/artifacts/fixtures",

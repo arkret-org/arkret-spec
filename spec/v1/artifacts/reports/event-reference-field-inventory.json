@@ -614,6 +614,18 @@
     },
     {
       "schema": "event-payload.schema.json",
+      "json_pointer": "/$defs/mimi_room_binding_migration_proof/properties/migrating_event_id",
+      "field": "migrating_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "event-payload.schema.json",
+      "json_pointer": "/$defs/mimi_room_binding_migration_proof/properties/previous_accepted_event_id",
+      "field": "previous_accepted_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "event-payload.schema.json",
       "json_pointer": "/$defs/poll_response_head/properties/poll_event_ref",
       "field": "poll_event_ref",
       "classification": "complete_event_id"
@@ -754,18 +766,6 @@
       "schema": "mimi-interop.schema.json",
       "json_pointer": "/$defs/content_mapping_receipt/properties/arkret_event_id",
       "field": "arkret_event_id",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "mimi-operations.schema.json",
-      "json_pointer": "/$defs/mimi_reporter_authority/properties/membership_event_id",
-      "field": "membership_event_id",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "mimi-operations.schema.json",
-      "json_pointer": "/$defs/mimi_reporter_authority/properties/room_binding_event_id",
-      "field": "room_binding_event_id",
       "classification": "complete_event_id"
     },
     {

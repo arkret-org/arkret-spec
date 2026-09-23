@@ -15,19 +15,19 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 8782,
+    "total_properties": 8828,
     "total_schema_documents": 164,
     "by_presence_class": {
-      "optional": 2128,
+      "optional": 2146,
       "optional_defaulted": 47,
-      "required": 6158,
-      "required_nullable": 294,
-      "tristate": 155
+      "required": 6176,
+      "required_nullable": 295,
+      "tristate": 164
     },
-    "tristate_occurrences": 155,
-    "tristate_audit_targets": 123,
+    "tristate_occurrences": 164,
+    "tristate_audit_targets": 132,
     "tristate_sdk_dispositions": {
-      "absent_null_equivalent": 113,
+      "absent_null_equivalent": 122,
       "condition_guarded": 9,
       "distinct": 1
     }
@@ -45,9 +45,9 @@
     "account-operations.schema.json/$defs/account_profile_event_submission/allOf/2/oneOf/1/properties/event/properties/payload",
     "account-operations.schema.json/$defs/registration_anchor_control_proof_pairing/allOf/0/then/properties/control_proof",
     "account-operations.schema.json/$defs/registration_anchor_control_proof_pairing/allOf/0/then/properties/identity_creation_control_proof",
-    "account-subscribe-frame.schema.json/$defs/device_message_container/allOf/0/if/properties/messages",
     "account-subscribe-frame.schema.json/$defs/realm_list_page/allOf/0/then/properties/items",
     "account-subscribe-frame.schema.json/$defs/realm_stream_window/properties/e2ee_epoch",
+    "account-subscribe-frame.schema.json/$defs/recipient_delivery_container/allOf/0/if/properties/deliveries",
     "agent-operations.schema.json/$defs/agent_readiness/allOf/0/then/properties/blockers",
     "agent-operations.schema.json/$defs/agent_readiness/allOf/1/then/properties/blockers",
     "agent-sidecar-exchange-projection.schema.json/allOf/0/then/properties/user_facing_response_event_ids",
@@ -59,6 +59,15 @@
     "authority-commit-operations.schema.json/$defs/direct_conversation_member_join_submission/allOf/1/properties/event",
     "authority-commit-operations.schema.json/$defs/direct_conversation_realm_create_submission/allOf/1/properties/event",
     "authority-commit-operations.schema.json/$defs/direct_conversation_strand_create_submission/allOf/1/properties/event",
+    "authority-commit-operations.schema.json/$defs/ordinary_realm_bootstrap_alias_submission/allOf/1/properties/event",
+    "authority-commit-operations.schema.json/$defs/ordinary_realm_bootstrap_creator_join_submission/allOf/1/properties/event",
+    "authority-commit-operations.schema.json/$defs/ordinary_realm_bootstrap_discovery_submission/allOf/1/properties/event",
+    "authority-commit-operations.schema.json/$defs/ordinary_realm_bootstrap_history_access_submission/allOf/1/properties/event",
+    "authority-commit-operations.schema.json/$defs/ordinary_realm_bootstrap_join_rule_submission/allOf/1/properties/event",
+    "authority-commit-operations.schema.json/$defs/ordinary_realm_bootstrap_plaintext_visible_services_submission/allOf/1/properties/event",
+    "authority-commit-operations.schema.json/$defs/ordinary_realm_bootstrap_policy_bundle_submission/allOf/1/properties/event",
+    "authority-commit-operations.schema.json/$defs/ordinary_realm_bootstrap_profile_submission/allOf/1/properties/event",
+    "authority-commit-operations.schema.json/$defs/ordinary_realm_bootstrap_realm_create_submission/allOf/1/properties/event",
     "authority-commit-operations.schema.json/$defs/stream_scan_request/properties/after_position",
     "authority-commit-operations.schema.json/$defs/stream_scan_request/properties/before_position",
     "blob.schema.json/properties/encryption",
@@ -159,7 +168,7 @@
     "service-describe.schema.json/allOf/1/then/properties/supported_features",
     "service-describe.schema.json/allOf/2/then/properties/verified_profiles",
     "service-describe.schema.json/allOf/4/then/properties/auth_metadata",
-    "service-operation-dtos.schema.json/$defs/DeviceMessagesGetOutcome/allOf/0/if/properties/messages",
+    "service-operation-dtos.schema.json/$defs/DeviceMessagesGetOutcome/allOf/0/if/properties/deliveries",
     "service-operation-dtos.schema.json/$defs/ProjectionMorphRow/properties/created_at",
     "service-operation-dtos.schema.json/$defs/ProjectionMorphRow/properties/created_by",
     "service-operation-dtos.schema.json/$defs/ProjectionMorphRow/properties/stage",
@@ -249,16 +258,6 @@
     },
     {
       "schema_file": "account-subscribe-frame.schema.json",
-      "shape": "/$defs/device_message_container",
-      "instance_path": "/messages",
-      "occurrences": [
-        "/$defs/device_message_container/allOf/0/if/properties/messages"
-      ],
-      "sdk_disposition": "absent_null_equivalent",
-      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
-    },
-    {
-      "schema_file": "account-subscribe-frame.schema.json",
       "shape": "/$defs/realm_list_page",
       "instance_path": "/items",
       "occurrences": [
@@ -273,6 +272,16 @@
       "instance_path": "/e2ee_epoch",
       "occurrences": [
         "/$defs/realm_stream_window/properties/e2ee_epoch"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "account-subscribe-frame.schema.json",
+      "shape": "/$defs/recipient_delivery_container",
+      "instance_path": "/deliveries",
+      "occurrences": [
+        "/$defs/recipient_delivery_container/allOf/0/if/properties/deliveries"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -347,6 +356,96 @@
       "instance_path": "/event",
       "occurrences": [
         "/$defs/direct_conversation_strand_create_submission/allOf/1/properties/event"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "authority-commit-operations.schema.json",
+      "shape": "/$defs/ordinary_realm_bootstrap_alias_submission",
+      "instance_path": "/event",
+      "occurrences": [
+        "/$defs/ordinary_realm_bootstrap_alias_submission/allOf/1/properties/event"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "authority-commit-operations.schema.json",
+      "shape": "/$defs/ordinary_realm_bootstrap_creator_join_submission",
+      "instance_path": "/event",
+      "occurrences": [
+        "/$defs/ordinary_realm_bootstrap_creator_join_submission/allOf/1/properties/event"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "authority-commit-operations.schema.json",
+      "shape": "/$defs/ordinary_realm_bootstrap_discovery_submission",
+      "instance_path": "/event",
+      "occurrences": [
+        "/$defs/ordinary_realm_bootstrap_discovery_submission/allOf/1/properties/event"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "authority-commit-operations.schema.json",
+      "shape": "/$defs/ordinary_realm_bootstrap_history_access_submission",
+      "instance_path": "/event",
+      "occurrences": [
+        "/$defs/ordinary_realm_bootstrap_history_access_submission/allOf/1/properties/event"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "authority-commit-operations.schema.json",
+      "shape": "/$defs/ordinary_realm_bootstrap_join_rule_submission",
+      "instance_path": "/event",
+      "occurrences": [
+        "/$defs/ordinary_realm_bootstrap_join_rule_submission/allOf/1/properties/event"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "authority-commit-operations.schema.json",
+      "shape": "/$defs/ordinary_realm_bootstrap_plaintext_visible_services_submission",
+      "instance_path": "/event",
+      "occurrences": [
+        "/$defs/ordinary_realm_bootstrap_plaintext_visible_services_submission/allOf/1/properties/event"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "authority-commit-operations.schema.json",
+      "shape": "/$defs/ordinary_realm_bootstrap_policy_bundle_submission",
+      "instance_path": "/event",
+      "occurrences": [
+        "/$defs/ordinary_realm_bootstrap_policy_bundle_submission/allOf/1/properties/event"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "authority-commit-operations.schema.json",
+      "shape": "/$defs/ordinary_realm_bootstrap_profile_submission",
+      "instance_path": "/event",
+      "occurrences": [
+        "/$defs/ordinary_realm_bootstrap_profile_submission/allOf/1/properties/event"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "authority-commit-operations.schema.json",
+      "shape": "/$defs/ordinary_realm_bootstrap_realm_create_submission",
+      "instance_path": "/event",
+      "occurrences": [
+        "/$defs/ordinary_realm_bootstrap_realm_create_submission/allOf/1/properties/event"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -1138,9 +1237,9 @@
     {
       "schema_file": "service-operation-dtos.schema.json",
       "shape": "/$defs/DeviceMessagesGetOutcome",
-      "instance_path": "/messages",
+      "instance_path": "/deliveries",
       "occurrences": [
-        "/$defs/DeviceMessagesGetOutcome/allOf/0/if/properties/messages"
+        "/$defs/DeviceMessagesGetOutcome/allOf/0/if/properties/deliveries"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -1907,13 +2006,6 @@
         "/$defs/agent_runtime_approval_notification_removal_data/properties/reason": "required",
         "/$defs/device_list_changes/properties/changed_ids": "required",
         "/$defs/device_list_changes/properties/left_ids": "required",
-        "/$defs/device_message_container/allOf/0/if/properties/messages": "tristate",
-        "/$defs/device_message_container/allOf/1/if/properties/limited": "required",
-        "/$defs/device_message_container/properties/ack_token": "optional",
-        "/$defs/device_message_container/properties/limited": "optional",
-        "/$defs/device_message_container/properties/lost": "optional",
-        "/$defs/device_message_container/properties/messages": "required",
-        "/$defs/device_message_container/properties/next_cursor": "optional",
         "/$defs/event_container/properties/events": "required",
         "/$defs/member_roster/properties/entries": "required",
         "/$defs/member_roster/properties/limited": "required",
@@ -2006,6 +2098,17 @@
         "/$defs/realm_sync_entry/properties/unavailable/properties/error_code": "required",
         "/$defs/realm_sync_entry/properties/unread_notifications": "optional",
         "/$defs/realm_sync_entry/properties/window_snapshot_cursor": "optional",
+        "/$defs/recipient_delivery/oneOf/0/properties/delivery_kind": "required",
+        "/$defs/recipient_delivery/oneOf/0/properties/device_message": "required",
+        "/$defs/recipient_delivery/oneOf/1/properties/delivery_kind": "required",
+        "/$defs/recipient_delivery/oneOf/1/properties/mls_welcome": "required",
+        "/$defs/recipient_delivery_container/allOf/0/if/properties/deliveries": "tristate",
+        "/$defs/recipient_delivery_container/allOf/1/if/properties/limited": "required",
+        "/$defs/recipient_delivery_container/properties/ack_token": "optional",
+        "/$defs/recipient_delivery_container/properties/deliveries": "required",
+        "/$defs/recipient_delivery_container/properties/limited": "optional",
+        "/$defs/recipient_delivery_container/properties/lost": "optional",
+        "/$defs/recipient_delivery_container/properties/next_cursor": "optional",
         "/$defs/state_at_window_start/properties/actor_profiles": "required",
         "/$defs/state_at_window_start/properties/actor_profiles/items/properties/actor_id": "required",
         "/$defs/state_at_window_start/properties/actor_profiles/items/properties/avatar_blob_ref": "optional",
@@ -2050,12 +2153,12 @@
         "/$defs/account_subscribe_request/properties/filter",
         "/$defs/agent_draft_pending_intent_removal/properties/consumption",
         "/$defs/agent_draft_pending_intent_removal/properties/expired_at",
-        "/$defs/device_message_container/properties/ack_token",
-        "/$defs/device_message_container/properties/next_cursor",
         "/$defs/notification_delta/properties/data",
         "/$defs/realm_stream_window/properties/window_start_basis/properties/anchor_commit_ref",
         "/$defs/realm_stream_window/properties/window_start_basis/properties/anchor_position",
         "/$defs/realm_sync_entry/properties/streams",
+        "/$defs/recipient_delivery_container/properties/ack_token",
+        "/$defs/recipient_delivery_container/properties/next_cursor",
         "/properties/cursor"
       ]
     },
@@ -3378,6 +3481,30 @@
         "/$defs/membership_compensation_unit_submission/properties/event_submission": "required",
         "/$defs/membership_compensation_unit_submission/properties/membership_compensation_evidence": "required",
         "/$defs/membership_compensation_unit_submission/properties/unit_kind": "required",
+        "/$defs/ordinary_realm_bootstrap_acceptance_outcome/properties/commits": "required",
+        "/$defs/ordinary_realm_bootstrap_acceptance_outcome/properties/status": "required",
+        "/$defs/ordinary_realm_bootstrap_acceptance_outcome/properties/unit_kind": "required",
+        "/$defs/ordinary_realm_bootstrap_alias_submission/allOf/1/properties/event": "tristate",
+        "/$defs/ordinary_realm_bootstrap_alias_submission/allOf/1/properties/event/properties/kind": "optional",
+        "/$defs/ordinary_realm_bootstrap_creator_join_submission/allOf/1/properties/event": "tristate",
+        "/$defs/ordinary_realm_bootstrap_creator_join_submission/allOf/1/properties/event/properties/kind": "optional",
+        "/$defs/ordinary_realm_bootstrap_discovery_submission/allOf/1/properties/event": "tristate",
+        "/$defs/ordinary_realm_bootstrap_discovery_submission/allOf/1/properties/event/properties/kind": "optional",
+        "/$defs/ordinary_realm_bootstrap_history_access_submission/allOf/1/properties/event": "tristate",
+        "/$defs/ordinary_realm_bootstrap_history_access_submission/allOf/1/properties/event/properties/kind": "optional",
+        "/$defs/ordinary_realm_bootstrap_join_rule_submission/allOf/1/properties/event": "tristate",
+        "/$defs/ordinary_realm_bootstrap_join_rule_submission/allOf/1/properties/event/properties/kind": "optional",
+        "/$defs/ordinary_realm_bootstrap_plaintext_visible_services_submission/allOf/1/properties/event": "tristate",
+        "/$defs/ordinary_realm_bootstrap_plaintext_visible_services_submission/allOf/1/properties/event/properties/kind": "optional",
+        "/$defs/ordinary_realm_bootstrap_policy_bundle_submission/allOf/1/properties/event": "tristate",
+        "/$defs/ordinary_realm_bootstrap_policy_bundle_submission/allOf/1/properties/event/properties/kind": "optional",
+        "/$defs/ordinary_realm_bootstrap_profile_submission/allOf/1/properties/event": "tristate",
+        "/$defs/ordinary_realm_bootstrap_profile_submission/allOf/1/properties/event/properties/kind": "optional",
+        "/$defs/ordinary_realm_bootstrap_realm_create_submission/allOf/1/properties/event": "tristate",
+        "/$defs/ordinary_realm_bootstrap_realm_create_submission/allOf/1/properties/event/properties/kind": "optional",
+        "/$defs/ordinary_realm_bootstrap_unit_submission/properties/events": "required",
+        "/$defs/ordinary_realm_bootstrap_unit_submission/properties/idempotency_key": "required",
+        "/$defs/ordinary_realm_bootstrap_unit_submission/properties/unit_kind": "required",
         "/$defs/peer_authority_forward_outcome/properties/branch": "required",
         "/$defs/peer_authority_forward_outcome/properties/outcome": "required",
         "/$defs/peer_committed_replication_outcome/properties/branch": "required",
@@ -6147,6 +6274,10 @@
         "/$defs/mimi_message_provenance/properties/room_binding_ref": "required",
         "/$defs/mimi_message_provenance/properties/source_envelope_digest": "required",
         "/$defs/mimi_message_provenance/properties/source_provider_id": "required",
+        "/$defs/mimi_room_binding_migration_proof/properties/migrating_commit_id": "required",
+        "/$defs/mimi_room_binding_migration_proof/properties/migrating_event_id": "required",
+        "/$defs/mimi_room_binding_migration_proof/properties/previous_accepted_commit_id": "required",
+        "/$defs/mimi_room_binding_migration_proof/properties/previous_accepted_event_id": "required",
         "/$defs/mimi_room_binding_payload/properties/binding_scope": "required",
         "/$defs/mimi_room_binding_payload/properties/binding_scope/properties/realm_id": "required",
         "/$defs/mimi_room_binding_payload/properties/binding_scope/properties/strand_id": "required",
@@ -6155,6 +6286,8 @@
         "/$defs/mimi_room_binding_payload/properties/follower_provider_ids": "optional",
         "/$defs/mimi_room_binding_payload/properties/hub_provider_id": "required",
         "/$defs/mimi_room_binding_payload/properties/local_provider_role": "required",
+        "/$defs/mimi_room_binding_payload/properties/migration_outcome": "optional",
+        "/$defs/mimi_room_binding_payload/properties/migration_proof": "optional",
         "/$defs/mimi_room_binding_payload/properties/mimi_room_uri": "required",
         "/$defs/mimi_room_binding_payload/properties/mls_group_id": "optional",
         "/$defs/mimi_room_binding_payload/properties/policy_revision": "optional",
@@ -6182,10 +6315,14 @@
         "/$defs/mls_genesis_payload/properties/governance_binding": "required",
         "/$defs/mls_genesis_payload/properties/group_info_ref": "required",
         "/$defs/mls_genesis_payload/properties/ratchet_tree_ref": "required",
+        "/$defs/mls_governance_binding/allOf/0/if/properties/effective_scope": "required_nullable",
+        "/$defs/mls_governance_binding/allOf/0/if/properties/effective_scope/properties/kind": "required",
+        "/$defs/mls_governance_binding/properties/authority_stream_head": "optional",
         "/$defs/mls_governance_binding/properties/base_group_state_ref": "required_nullable",
         "/$defs/mls_governance_binding/properties/effective_scope": "required",
         "/$defs/mls_governance_binding/properties/key_access_revision": "required",
         "/$defs/mls_governance_binding/properties/next_epoch": "required",
+        "/$defs/mls_governance_binding/properties/participant_authority_digest": "optional",
         "/$defs/mls_governance_binding/properties/previous_epoch": "required",
         "/$defs/moderation_decision_lift_payload/properties/decision_ref": "required",
         "/$defs/moderation_decision_lift_payload/properties/effective_at": "optional",
@@ -6616,6 +6753,8 @@
         "/$defs/message_create_payload/properties/encrypted_content",
         "/$defs/message_revise_payload/properties/content",
         "/$defs/message_revise_payload/properties/encrypted_content",
+        "/$defs/mls_governance_binding/properties/authority_stream_head",
+        "/$defs/mls_governance_binding/properties/participant_authority_digest",
         "/$defs/moderation_report_payload/properties/description",
         "/$defs/moderation_report_payload/properties/source_provider_id",
         "/$defs/policy_action_state_payload/properties/action_id",
@@ -8198,6 +8337,7 @@
         "/$defs/room_binding/properties/payload/properties/hub_provider_id": "required",
         "/$defs/room_binding/properties/payload/properties/local_provider_role": "required",
         "/$defs/room_binding/properties/payload/properties/migration_outcome": "optional",
+        "/$defs/room_binding/properties/payload/properties/migration_proof": "optional",
         "/$defs/room_binding/properties/payload/properties/mimi_room_uri": "required",
         "/$defs/room_binding/properties/payload/properties/mls_group_id": "optional",
         "/$defs/room_binding/properties/payload/properties/policy_revision": "optional",
@@ -8272,13 +8412,21 @@
         "/$defs/mimi_proxy_download_request_body/properties/strand_id": "optional",
         "/$defs/mimi_report_abuse_outcome/properties/report_id": "required",
         "/$defs/mimi_report_abuse_outcome/properties/routed_to_ids": "optional",
-        "/$defs/mimi_report_abuse_request_body/properties/report_event": "required",
+        "/$defs/mimi_report_abuse_request_body/properties/report_claim": "required",
         "/$defs/mimi_report_abuse_request_body/properties/reporter_authority": "required",
+        "/$defs/mimi_report_claim/properties/description": "optional",
+        "/$defs/mimi_report_claim/properties/evidence_package": "optional",
+        "/$defs/mimi_report_claim/properties/evidence_refs": "optional",
+        "/$defs/mimi_report_claim/properties/franking_proof": "optional",
+        "/$defs/mimi_report_claim/properties/realm_id": "required",
+        "/$defs/mimi_report_claim/properties/report_reason_code": "required",
+        "/$defs/mimi_report_claim/properties/scope_ref": "required",
+        "/$defs/mimi_report_claim/properties/target_ref": "required",
         "/$defs/mimi_reporter_authority/properties/actor_id": "required",
         "/$defs/mimi_reporter_authority/properties/expires_at": "required",
-        "/$defs/mimi_reporter_authority/properties/membership_event_id": "required",
+        "/$defs/mimi_reporter_authority/properties/membership_ref": "required",
         "/$defs/mimi_reporter_authority/properties/proof": "required",
-        "/$defs/mimi_reporter_authority/properties/room_binding_event_id": "required",
+        "/$defs/mimi_reporter_authority/properties/room_binding_ref": "required",
         "/$defs/mimi_request_consent_outcome/properties/challenge": "optional",
         "/$defs/mimi_request_consent_outcome/properties/consent_id": "required",
         "/$defs/mimi_request_consent_request_body/properties/expires_at": "optional",
@@ -8794,7 +8942,6 @@
         "/$defs/session_grant_holder_binding/oneOf/0/properties/kind": "required",
         "/$defs/session_grant_holder_binding/oneOf/1/properties/agent_id": "required",
         "/$defs/session_grant_holder_binding/oneOf/1/properties/agent_key_authorization_ref": "required",
-        "/$defs/session_grant_holder_binding/oneOf/1/properties/device_id": "required",
         "/$defs/session_grant_holder_binding/oneOf/1/properties/kind": "required",
         "/$defs/session_grant_holder_binding/oneOf/1/properties/verification_method": "required",
         "/$defs/session_grant_holder_binding/oneOf/2/properties/device_id": "required",
@@ -10246,17 +10393,17 @@
         "/$defs/AccountCursorRevokeRequestBody/properties/reason_code": "required",
         "/$defs/AccountCursorRevokeRequestBody/properties/revoke_scope": "optional_defaulted",
         "/$defs/AccountLogoutOutcome/properties/revoked": "required",
+        "/$defs/AgentSessionGrantRefreshRequest/properties/agent_key_authorization_ref": "required",
         "/$defs/AgentSessionGrantRefreshRequest/properties/agent_session_refresh_proof": "required",
         "/$defs/AgentSessionGrantRefreshRequest/properties/audience_id": "optional",
-        "/$defs/AgentSessionGrantRefreshRequest/properties/device_id": "required",
         "/$defs/AgentSessionGrantRefreshRequest/properties/grant_jwt": "required",
+        "/$defs/AgentSessionGrantRefreshRequest/properties/principal_id": "required",
         "/$defs/AgentSessionGrantRequest/properties/agent_key_authorization_ref": "required",
         "/$defs/AgentSessionGrantRequest/properties/agent_scope_request": "required",
         "/$defs/AgentSessionGrantRequest/properties/agent_scope_request/properties/realm_ids": "optional",
         "/$defs/AgentSessionGrantRequest/properties/agent_scope_request/properties/strand_ids": "optional",
         "/$defs/AgentSessionGrantRequest/properties/agent_scope_request/properties/track_names": "optional",
         "/$defs/AgentSessionGrantRequest/properties/applet_authority": "optional",
-        "/$defs/AgentSessionGrantRequest/properties/device_id": "required",
         "/$defs/AgentSessionGrantRequest/properties/dpop_binding_proof": "required",
         "/$defs/AgentSessionGrantRequest/properties/principal_id": "required",
         "/$defs/AgentSessionGrantRequest/properties/proof": "required",
@@ -10359,12 +10506,12 @@
         "/$defs/DeviceMessageUnknownRow/properties/status": "required",
         "/$defs/DeviceMessagesAckOutcome/properties/pruned_count": "required",
         "/$defs/DeviceMessagesAckRequestBody/properties/ack_token": "required",
-        "/$defs/DeviceMessagesGetOutcome/allOf/0/if/properties/messages": "tristate",
+        "/$defs/DeviceMessagesGetOutcome/allOf/0/if/properties/deliveries": "tristate",
         "/$defs/DeviceMessagesGetOutcome/properties/ack_token": "optional",
+        "/$defs/DeviceMessagesGetOutcome/properties/deliveries": "required",
         "/$defs/DeviceMessagesGetOutcome/properties/has_more": "required",
         "/$defs/DeviceMessagesGetOutcome/properties/limited": "optional",
         "/$defs/DeviceMessagesGetOutcome/properties/lost": "optional",
-        "/$defs/DeviceMessagesGetOutcome/properties/messages": "required",
         "/$defs/DeviceMessagesGetOutcome/properties/next_cursor": "optional",
         "/$defs/DeviceMessagesSendOutcome/properties/delivered": "required",
         "/$defs/DeviceMessagesSendOutcome/properties/unknown_devices": "required",

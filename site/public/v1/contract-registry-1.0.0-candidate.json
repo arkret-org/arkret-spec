@@ -1,13 +1,17 @@
 {
-  "version": "2026-09-22.3",
+  "version": "2026-09-23.6",
   "source_of_truth": true,
-  "generated_at": "2026-09-22T09:30:00+08:00",
+  "generated_at": "2026-09-23T13:56:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
     "ordinary_collaboration": {
       "atomic": true,
       "all_or_nothing": true,
+      "self_submit_operation_id": "ak.self.events.command.submit.v1",
+      "self_submit_unit_kind": "ordinary_realm_bootstrap",
+      "same_realm_stream": true,
+      "consecutive_realm_commits": true,
       "ordered_slots": [
         {
           "event_kind": "ak.realm.create",
@@ -13485,11 +13489,9 @@
         "mq": "open.mimi.command.report_abuse",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
-        "idempotency_mechanism": "none",
-        "retry_safe": false,
-        "uncertain_outcome": {
-          "strategy": "manual_confirmation"
-        },
+        "idempotency_mechanism": "canonical_hash",
+        "canonical_hash_input": "full_body",
+        "retry_safe": true,
         "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_report_abuse_request_body",
         "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_report_abuse_outcome",
         "durable_effect": {
@@ -13498,7 +13500,7 @@
             "ak.self.moderation.report"
           ]
         },
-        "notes": ""
+        "notes": "The authenticated Provider-ID scopes the canonical full-body hash. The service atomically binds that key to the service-authored Event and Commit; exact retry returns the same result, while a proof reused with different claim bytes is rejected."
       },
       {
         "operation_id": "ak.open.mimi.command.request_consent.v1",
@@ -13534,11 +13536,27 @@
         },
         "request_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_submit_message_request_body",
         "response_schema_ref": "schemas/mimi-operations.schema.json#/$defs/mimi_submit_message_outcome",
+        "admission_guards": [
+          {
+            "producer_path_id": "mimi.submit_message.observer_role_guard",
+            "guard": "current_accepted_room_binding.local_provider_role_is_observer",
+            "reason_code": "mimi_observer_write_forbidden",
+            "stage": "before_event_construction_or_any_durable_or_external_effect",
+            "rejection_effects": "none"
+          },
+          {
+            "producer_path_id": "mimi.submit_message.group_id_binding_guard",
+            "guard": "verified_group_info_group_id_equals_room_binding_group_id_equals_group_id_derived_from_current_accepted_mls_group_effective_scope",
+            "derivation": "base64url_no_pad(SHA-256(UTF8(\"ak.mls.group_id.v1\") || 0x00 || canonical_effective_scope_key_bytes(effective_scope)))",
+            "reason_code": "mimi_governance_binding_mismatch",
+            "rejection_effects": "none"
+          }
+        ],
         "durable_effect": {
           "kind": "none",
           "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
         },
-        "notes": ""
+        "notes": "Observer role is rejected before Event construction, durable state, receipt or fanout. MIMI group identity is checked against verified RFC 9420 public group material and the sole group-id derivation from current accepted MlsGroupCurrent.effective_scope; the five-field governance binding carries no group id."
       },
       {
         "operation_id": "ak.open.mimi.command.update_consent.v1",
@@ -15261,7 +15279,7 @@
         "http": "POST /_arkret/self/device_messages/ack",
         "grpc": "SelfDeviceMessages/Ack",
         "mq": "self.device_messages.command.ack",
-        "notes": "Explicit, cumulative, monotonic to-device delivery acknowledgement (client-sync.md §10.1). Queue deletion happens only here; stream cursor advancement (account subscribe after=, device_messages after=) is read-only and MUST NOT prune the queue. Re-acking the same or an older token is a legal no-op. Unknown / expired / cross-bound tokens are rejected with param_invalid (reason invalid_ack_token) without deleting anything.",
+        "notes": "Explicit, cumulative, monotonic recipient-delivery acknowledgement for one authenticated human-device or Agent-runtime endpoint (client-sync.md §10.1). The token covers one ordered queue containing both DeviceMessageEnvelope and MlsWelcomeDelivery branches; only this operation prunes it. Account stream and list cursors are read-only. Re-acking the same or an older token is a legal no-op. Unknown / expired / cross-bound tokens are rejected with param_invalid (reason invalid_ack_token) without deleting anything.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "protocol_sequence",
@@ -15278,7 +15296,7 @@
         "http": "POST /_arkret/self/device_messages",
         "grpc": "SelfDeviceMessages/Send",
         "mq": "self.device_messages.command.send",
-        "notes": "Enqueues caller-supplied DeviceMessageEnvelope targets into recipient device queues. The sender's exact durable device/generation state is checked in the queue transaction; revocation_pending returns device_revocation_pending and enqueues nothing. Each target carries a sender-assigned device_message_id copied unchanged into the stored envelope; the service deduplicates logical messages by (sender_account_id, sender_device_id, device_message_id), returning the existing outcome for identical canonical target content and duplicate_conflict/device_message_id_conflict for different content. HTTP batch replay is additionally deduplicated by (sender, Idempotency-Key). Queue pruning is only via ak.self.device_messages.command.ack.v1.",
+        "notes": "Enqueues caller-supplied DeviceMessageEnvelope targets into recipient device queues. The sender's exact durable device/generation state is checked in the queue transaction; revocation_pending returns device_revocation_pending and enqueues nothing. Each target carries a sender-assigned device_message_id copied unchanged into the stored envelope; the service deduplicates logical messages by (sender_account_id, sender_device_id, device_message_id), returning the existing outcome for identical canonical target content and duplicate_conflict/device_message_id_conflict for different content. HTTP batch replay is additionally deduplicated by (sender, Idempotency-Key). Queue pruning is only via ak.self.device_messages.command.ack.v1. Full endpoint capacity returns universal quota_exceeded before any batch queue or idempotency write; it never evicts an unacknowledged DeviceMessage or Welcome.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "idempotency_key",
@@ -15298,7 +15316,7 @@
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/DeviceMessagesGetOutcome",
-        "notes": ""
+        "notes": "Reads the authenticated recipient endpoint's single ordered private queue. Each deliveries[] item is a closed device_message or mls_welcome branch; the same queue position, read-only cursor and cumulative ACK token span both. Human devices may also receive these items in account delta; Agent runtimes use their own current authorized endpoint and MUST NOT borrow a controller/device queue. See client-sync.md §10."
       },
       {
         "operation_id": "ak.self.direct_conversation.read.resolve.v1",
@@ -15316,7 +15334,7 @@
         "http": "POST /_arkret/self/events",
         "grpc": "SelfEvents/Submit",
         "mq": "self.events.command.submit",
-        "notes": "Submit an exact producer-signed Event, MLS Commit, Direct Conversation founding unit, or membership compensation unit to the current governance Station. Founding is an ordered four-Event all-or-nothing unit with a separate founding-slot fence; success and exact replay return the same four consecutive source RealmCommits, whose fourth committed_at is the sole acceptance time. No founding receipt exists. Compensation carries closed transport-only evidence and a single-use CAS. canonical_hash/full_body remains the operation replay identity for every branch.",
+        "notes": "Submit an exact producer-signed Event, MLS Commit, ordinary Realm bootstrap unit, Direct Conversation founding unit, or membership compensation unit to the current governance Station. Ordinary bootstrap uses the registered ordered slots in one Realm stream and one all-or-nothing storage transaction; success and exact replay return the same consecutive source RealmCommits without a batch-level receipt. Direct Conversation founding is its own ordered four-Event all-or-nothing unit with a separate founding-slot fence; success and exact replay return the same four consecutive source RealmCommits, whose fourth committed_at is the sole acceptance time. No founding receipt exists. Compensation carries closed transport-only evidence and a single-use CAS. canonical_hash/full_body remains the operation replay identity for every branch; no arbitrary atomic Event batch is admitted.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "schema_resource",
         "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/self_submit_request",
@@ -16338,8 +16356,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-22.2",
-    "generated_at": "2026-09-22T09:30:00+08:00",
+    "version": "2026-09-23.4",
+    "generated_at": "2026-09-23T13:56:00+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",

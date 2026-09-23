@@ -817,8 +817,8 @@ MUST 使用 UTC canonical millisecond；optional 字段无值时 MUST 省略而�
 credential class、holder binding 与 human device authorization binding 都是 preimage 的身份材料：Arkret v1
 的 `credential_class` 固定为 `standard`，并且 MUST 携带 `holder_binding`。`holder_binding.kind="human_device"`
 时完整 `device_binding` 必填且只能逐字取自 origin current-device gate 的 `allow` receipt；
-`holder_binding.kind="agent_runtime"` 时 `device_binding` 禁带，该 holder 的完整 endpoint 身份只落在
-Agent runtime 分支内。
+`holder_binding.kind="agent_runtime"` 时 `device_id` 与 `device_binding` 均禁带，该 holder 的完整 endpoint 身份是
+`(agent_id,verification_method,agent_key_authorization_ref)`；其中 ref 必须指向当前已接受且 active 的 Agent key authorization。Agent request 的 `principal_id` 必须逐字等于 holder 的 `agent_id`，`proof.verification_method` 必须逐字等于 holder 的 method。授权轮换使旧 holder、旧 session 与旧队列 selector 失效，不得借用 controller device。
 current-v1 不存在缺 `device_binding` 的
 fresh-device human grant。恢复完成在核验 replacement device 后直接签发同一种 Standard grant，不存在临时
 恢复凭据类。因而修改任一 binding 必须改变 canonical preimage、digest、grant ID 与 `jti`；verifier 不得把
@@ -1072,7 +1072,7 @@ fail closed。
 
 `ak.self.keys.backups.read.list.v1` 的 `KeysBackupsList` 按 `backups, active_series, next_cursor?, has_more` 排列。
 `active_series` 是必填 `BackupActiveSeriesState`，按 `account_id, control_realm_id, authority_commit_id, secret_storage`
-排列，绑定本次已认证完整 AccountId、其 PCR 和完成当前指针判断的 已确认 basis（每 Realm 恰一个 head）。两个 backup class 始终全部返回，
+排列，绑定本次已认证完整 AccountId、其 PCR 和完成当前指针判断的已确认 basis（每 Realm 恰一个 head）。当前 schema 唯一登记的 `secret_storage` backup class 始终返回，
 不受 series_id/backup_kind 过滤、当前页有无 envelope 或 envelope 的过期/删除影响。
 
 这里 response DTO 的 `authority_commit_id` 是 Station 对本次 current projection 给出的 confirmed-basis

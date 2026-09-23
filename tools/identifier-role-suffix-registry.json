@@ -1,5 +1,5 @@
 {
-  "version": "2026-09-20.1",
+  "version": "2026-09-23",
   "source_of_truth": false,
   "normative_rule": "NC-IDROLE-001",
   "forbidden_arkret_owned_fields": [
@@ -670,6 +670,14 @@
   ],
   "exact_exceptions": [
     {
+      "file": "agent-operations.schema.json",
+      "pointer": "/$defs/agent_sidecar_mls_context/properties/authority_stream_head",
+      "terminal_categories": [
+        "typed_object_id"
+      ],
+      "reason": "Existing Sidecar authority-cut field denotes the accepted stream-head evidence as one semantic value, serialized as an ordered EventId array; its established signed/read wire name remains authority_stream_head."
+    },
+    {
       "file": "applet-package.schema.json",
       "pointer": "/$defs/actor_namespace_entry/properties/pattern",
       "reason": "Wildcard namespace pattern over actor did:webvh DIDs, not a DID identifier. The SCID segment is the wildcard because every Ghost carries its own validated SCID, so the value never denotes one resolvable DID and cannot take a _did role suffix.",
@@ -692,6 +700,14 @@
         "mixed[did_url,typed_object_id]"
       ],
       "reason": "closed, lexically disjoint authorization reference union governed by the independent _ref grammar"
+    },
+    {
+      "file": "event-payload.schema.json",
+      "pointer": "/$defs/mls_governance_binding/properties/authority_stream_head",
+      "terminal_categories": [
+        "typed_object_id"
+      ],
+      "reason": "Sidecar signed MLS binding must byte-match the existing AgentSidecarView authority_stream_head field and its semantic authority-cut value; the EventId array is not a newly named generic ID collection."
     },
     {
       "file": "event-payload.schema.json",

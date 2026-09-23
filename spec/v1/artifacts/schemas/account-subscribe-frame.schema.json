@@ -36,7 +36,7 @@
       "maxProperties": 16
     },
     "to_device": {
-      "$ref": "#/$defs/device_message_container",
+      "$ref": "#/$defs/recipient_delivery_container",
       "description": "To-device message batch on `delta` frames."
     },
     "device_lists": {
@@ -668,31 +668,54 @@
       },
       "additionalProperties": false
     },
-    "device_message_container": {
+    "recipient_delivery": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["delivery_kind", "device_message"],
+          "properties": {
+            "delivery_kind": { "const": "device_message" },
+            "device_message": { "$ref": "./device-message.schema.json" }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["delivery_kind", "mls_welcome"],
+          "properties": {
+            "delivery_kind": { "const": "mls_welcome" },
+            "mls_welcome": { "$ref": "./mls-welcome-delivery.schema.json" }
+          },
+          "additionalProperties": false
+        }
+      ],
+      "description": "One exact recipient-private queue item. The discriminator selects an unchanged DeviceMessageEnvelope or producer-signed MlsWelcomeDelivery; neither payload is rewritten into the other."
+    },
+    "recipient_delivery_container": {
       "type": "object",
       "required": [
-        "messages"
+        "deliveries"
       ],
       "properties": {
-        "messages": {
+        "deliveries": {
           "type": "array",
           "items": {
-            "$ref": "./device-message.schema.json"
+            "$ref": "#/$defs/recipient_delivery"
           }
         },
         "ack_token": {
           "type": "string",
           "minLength": 1,
           "maxLength": 1024,
-          "description": "Server-issued opaque acknowledgement token, REQUIRED whenever messages[] is non-empty. Bound server-side to (principal_id, device_id, queue high-water position of this batch) and covering this batch plus all previously delivered messages. NOT a cursor: no ak:cursor: wire form, no cursor schema/TTL/purpose. The client passes it verbatim to ak.self.device_messages.command.ack.v1 AFTER durably persisting the batch payloads; queue deletion happens only through that explicit ack, never through stream cursor advancement (client-sync.md §10.1)."
+          "description": "Server-issued opaque acknowledgement token, REQUIRED whenever deliveries[] is non-empty. Bound server-side to the authenticated recipient endpoint and queue high-water position of this batch, covering both delivery kinds and all earlier queue items. NOT a cursor. The client passes it verbatim to ak.self.device_messages.command.ack.v1 only after durably processing every covered delivery (client-sync.md §10.1)."
         },
         "lost": {
           "type": "boolean",
-          "description": "SHOULD be set true when the server has dropped unacknowledged messages for this device (expiry or capacity) since the device's last acknowledged position. Clients SHOULD trigger key recovery paths (key backup / key re-request) and MUST NOT silently assume the queue was complete."
+          "description": "SHOULD be true only when durable evidence proves a historical gap or failure since this recipient endpoint's last acknowledged position. Normal expiry and capacity MUST NOT delete unacknowledged deliveries of either kind; clients MUST NOT silently assume completeness when lost is true."
         },
         "limited": {
           "type": "boolean",
-          "description": "True when this account subscribe to_device batch is truncated because the device queue exceeds the stream frame budget. When true, `next_cursor` is REQUIRED and the client MUST continue with ak.self.device_messages.read.list.v1?after=<next_cursor>; the top-level account stream cursor MUST NOT be used as the to-device queue pagination cursor."
+          "description": "True when this account subscribe recipient-delivery batch is truncated by the stream frame budget. When true, `next_cursor` is REQUIRED and the client MUST continue the same queue with ak.self.device_messages.read.list.v1?after=<next_cursor>."
         },
         "next_cursor": {
           "$ref": "#/$defs/cursor_value",
@@ -703,7 +726,7 @@
         {
           "if": {
             "properties": {
-              "messages": {
+              "deliveries": {
                 "minItems": 1
               }
             }
@@ -732,7 +755,7 @@
           }
         }
       ],
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "realm_stream_window": {
       "type": "object",
