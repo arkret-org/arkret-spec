@@ -1,11 +1,11 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-09-22.1",
+  "version": "2026-09-23.1",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-09-22T09:30:00+08:00",
-  "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3.",
+  "generated_at": "2026-09-23T23:11:29+08:00",
+  "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3. snapshot_capacity_exceeded applies to every event_log admission branch in the operation registry, including peer authority_forward; committed_replication and other non-admission branches do not produce it.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, signature_invalid, capability_denied, schema_violation, json_invalid, query_invalid, param_missing, param_invalid, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind, unsupported_protocol_version, operation_selector_required, unsupported_operation_version. These are the universal failure surface and are NOT repeated in each operation entry. unsupported_protocol_version applies only when the binding implements Arkret-Protocol-Version header or equivalent media-type negotiation; ServiceDescribe consumers also use the same stable code locally before capability intersection. operation_selector_required and unsupported_operation_version are binding-level pre-dispatch failures evaluated before body parsing for every canonical operation.",
     "operation_specific": "operation_specific[] lists the error codes that are semantically tied to this operation's domain logic (event ingest, key claim, blob upload, push gateway, directory ingest, ...). An entry may name either a top-level code from error-code-registry.json `codes` or a sub-code from its `reason_codes` section (carried under a top-level code such as failed_precondition or schema_violation). Consumers discriminate by first matching the entry against the registry's top-level `codes` set; an entry not found there is a reason_code and matches the error reply's `reason_code` field rather than its top-level `code`. Receivers SHOULD recognize and surface these codes specifically.",
@@ -290,7 +290,8 @@
       "http_alias": "POST /_arkret/gate/account/device-pair",
       "operation_specific": [
         "failed_precondition",
-        "proof_invalid"
+        "proof_invalid",
+        "snapshot_capacity_exceeded"
       ],
       "description": "A schema-valid target possession proof that fails Ed25519 material decoding, signature verification or reconstructed stage binding returns failed_precondition with reason_code proof_invalid. Missing required request members or signature_material shape violations remain schema_violation. Before the durable fence is installed, a retained request located by device_pairing_request_id counts code, approving-account/device, transcript, proof/stage or usable-state failures toward its private ten-failure budget. Once prepared, retryable/network failure or a missing/mismatched RealmCommit maps to temporarily_unavailable and preserves the fence; an authenticated terminal peer rejection proven zero-write removes only prepared and maps uniformly to failed_precondition with reason_code failed_precondition, while its peer reason remains private audit material rather than implementation-defined public translation. Same fence identity with another digest or holder is duplicate_conflict with zero writes. Exact completed replay returns the stored outcome, never counts and never submits a second Event.",
       "codes": []
@@ -332,7 +333,8 @@
         "pcr_genesis_unit_invalid",
         "proof_invalid",
         "device_revocation_pending",
-        "device_revoked"
+        "device_revoked",
+        "snapshot_capacity_exceeded"
       ],
       "description": "Account registration validates the frozen DID operation, root control transcript, exact PCR genesis unit and InitialSessionGrantRequest; relays the unit to the Station; verifies the pcr_genesis_unit receipt; commits the one-account/one-principal binding; then obtains a fresh exact-intent origin-PS revocation-gate allow before issuing the first Standard grant from the durable issuer ledger. device_revocation_pending and device_revoked create no grant or issuer-ledger outcome.",
       "codes": []
@@ -472,7 +474,8 @@
       "operation_specific": [
         "http_signature_required",
         "http_signature_invalid",
-        "signature_window_invalid"
+        "signature_window_invalid",
+        "snapshot_capacity_exceeded"
       ],
       "description": "Provider-to-provider writes require the per-delivery RFC 9421 HTTP Message Signature of zh/extensions/mimi-interop.md 5; missing, invalid and stale-window signatures each return their own registered Problem type rather than a generic code plus reason.",
       "codes": []
@@ -507,7 +510,8 @@
         "http_signature_required",
         "http_signature_invalid",
         "signature_window_invalid",
-        "not_found"
+        "not_found",
+        "snapshot_capacity_exceeded"
       ],
       "description": "Provider-to-provider writes require the per-delivery RFC 9421 HTTP Message Signature of zh/extensions/mimi-interop.md 5; missing, invalid and stale-window signatures each return their own registered Problem type rather than a generic code plus reason. Unknown, expired, source-mismatched and holder-invisible private correlations deliberately share the same not_found shape.",
       "codes": []
@@ -519,7 +523,8 @@
         "http_signature_required",
         "http_signature_invalid",
         "signature_window_invalid",
-        "mimi_room_binding_event_invalid"
+        "mimi_room_binding_event_invalid",
+        "snapshot_capacity_exceeded"
       ],
       "description": "Provider-to-provider writes require the per-delivery RFC 9421 HTTP Message Signature of zh/extensions/mimi-interop.md 5; missing, invalid and stale-window signatures each return their own registered Problem type rather than a generic code plus reason. Missing, unexpected, kind-inconsistent and binding-mismatched room_binding_event inputs share one pre-admission failure envelope; the exact reason is audit-only.",
       "codes": []
@@ -677,7 +682,9 @@
         "realm_frozen",
         "quarantine",
         "source_refs_unverifiable",
-        "unknown_event_kind"
+        "unknown_event_kind",
+        "snapshot_capacity_exceeded",
+        "approval_carrier_unregistered"
       ],
       "description": "Closed peer authority-forward, committed-replication and registered-atomic-unit ingress. Forward admission is evaluated by the current governance Station. Replication rejects unverifiable source Event/Commit coordinates, authority generation, chain, witness or visibility without re-signing or fanout. Direct Conversation founding and membership compensation are all-or-nothing; dependency_missing carries the registered closed details shape and no per-item partial is returned.",
       "codes": []
@@ -906,7 +913,8 @@
         "recovery_policy_genesis_not_v1",
         "recovery_policy_supersedes_invalid",
         "recovery_policy_version_not_monotonic",
-        "recovery_proof_kind_unknown"
+        "recovery_proof_kind_unknown",
+        "snapshot_capacity_exceeded"
       ],
       "description": "Publishing or rotating a recovery policy requires authenticated principal isolation, valid Event/lease and the closed policy signature transcript/authority, a known proof-kind enum, and strictly monotonic version/supersedes linkage. revision_unavailable is the retry-safe response while the submitted Event is valid but its covering control RealmCommit/AuthorityRevision has not materialized.",
       "codes": []
@@ -992,7 +1000,8 @@
         "unsupported_profile_patch_path",
         "failed_precondition",
         "revision_unavailable",
-        "duplicate_conflict"
+        "duplicate_conflict",
+        "snapshot_capacity_exceeded"
       ],
       "description": "Profile self-service accepts exactly one holder-signed ak.profile.create or ak.profile.update EventAdmissionSubmission. failed_precondition covers create against an existing Profile, update without an accepted Profile, target/PCR/session authority mismatch, expected_state_digest mismatch, and deterministic profile reducer guards. revision_unavailable is retry-safe while the valid Event lacks accepted RealmCommit coverage. Replaying the same Event identity with different bytes returns duplicate_conflict; exact replay after coverage returns the stored outcome without another aggregate delta. Update patch paths remain limited to display_name, avatar_blob_ref, and profile_fields.<key>; avatar_url is rejected.",
       "codes": []
@@ -1071,7 +1080,8 @@
       "operation_specific": [
         "agent_deactivated",
         "failed_precondition",
-        "controller_signed_event_required"
+        "controller_signed_event_required",
+        "snapshot_capacity_exceeded"
       ],
       "description": "agent_deactivated is returned for idempotent re-deactivation of an already-terminal Agent. Missing or invalid proof on the sole controller-authored lifecycle Event returns controller_signed_event_required. Once that Event is accepted, the terminal parent lifecycle gate immediately makes every child authorization ineffective; client-supplied key/grant revoke bundles are schema-invalid and asynchronous cleanup failure cannot roll back deactivation.",
       "codes": []
@@ -1083,7 +1093,8 @@
         "agent_paused",
         "agent_deactivated",
         "failed_precondition",
-        "controller_signed_event_required"
+        "controller_signed_event_required",
+        "snapshot_capacity_exceeded"
       ],
       "description": "agent_paused is returned for idempotent re-pause; agent_deactivated is terminal. A lifecycle Event without its required controller proof returns controller_signed_event_required.",
       "codes": []
@@ -1095,7 +1106,8 @@
         "failed_precondition",
         "accountability_grant_missing",
         "agent_requested_scope_commitment_invalid",
-        "agent_provision_scope_migration_required"
+        "agent_provision_scope_migration_required",
+        "snapshot_capacity_exceeded"
       ],
       "description": "Provision an Agent principal. The controller first publishes a PCR-independent Agent DID inception. prepare verifies its caller-supplied did and returns the exact accepted initial_resolution plus an allocation without generating a DID/private key or choosing a PCR id. commit accepts exactly one controller-signed ak.agent.provision Event that forward-declares the realm id derived from the locally frozen genesis create, atomically projects provision/accountability/selector/realm-id-claim and returns awaiting_pcr_genesis. Separate PCR acceptance advances to awaiting_did_binding; only the controller-signed continuous DID entry 1 with the exact create-locked binding advances to complete and exposes pairing/list/get. requested_scope is a ceiling, not a grant; the service never generates Agent DID/PCR/MLS private state.",
       "codes": []
@@ -1119,7 +1131,8 @@
         "agent_deactivated",
         "failed_precondition",
         "accountability_grant_missing",
-        "controller_signed_event_required"
+        "controller_signed_event_required",
+        "snapshot_capacity_exceeded"
       ],
       "description": "Resume revalidates controller, agent key, capability, Realm policy, and accountability grant freshness; any stale precondition fails closed. Sidecar desired membership is re-derived after admission and is not a request precondition. A lifecycle Event without its required controller proof returns controller_signed_event_required.",
       "codes": []
@@ -1164,7 +1177,8 @@
         "sidecar_create_denied",
         "agent_paused",
         "agent_deactivated",
-        "failed_precondition"
+        "failed_precondition",
+        "snapshot_capacity_exceeded"
       ],
       "description": "Idempotent ensure: the protocol identity key is `(realm_id, controller_account_id)` for the Agent Sidecar; `(sidecar_id, normalized_source_context_ref)` deduplicates context mappings without creating another protocol object. `agent_id` is not part of either key. Clients MUST NOT supply Idempotency-Key. sidecar_create_denied is a deliberately generic existence-privacy precondition.",
       "codes": []
@@ -1194,7 +1208,9 @@
         "applet_install_plan_mismatch",
         "applet_namespace_pattern_invalid",
         "applet_namespace_conflict",
-        "applet_registration_unauthorized"
+        "applet_registration_unauthorized",
+        "snapshot_capacity_exceeded",
+        "approval_carrier_unregistered"
       ],
       "description": "Applet install commit recomputes the InstallPlan, binds approval to plan_digest, persists fan-out idempotency state, and emits registration/grant/profile/membership facts. Recomputing the plan re-runs the actor namespace pattern shape and exclusive conflict checks, so a package that previewed cleanly against a stale view still fails closed here with the same codes.",
       "codes": []
@@ -1206,7 +1222,8 @@
         "duplicate_conflict",
         "applet_revoked",
         "not_found",
-        "failed_precondition"
+        "failed_precondition",
+        "snapshot_capacity_exceeded"
       ],
       "description": "Applet revoke validates caller-signed revoke/member submissions against a fresh plan, then resumes a durable event/external/local saga; the first accepted revoke fences future writes.",
       "codes": []
@@ -1226,7 +1243,8 @@
       "http_alias": "POST /_arkret/self/applets/{applet_id}/ghosts/provision",
       "operation_specific": [
         "applet_namespace_mismatch",
-        "applet_registration_unauthorized"
+        "applet_registration_unauthorized",
+        "snapshot_capacity_exceeded"
       ],
       "description": "Ghost Actor provisioning atomically accepts (or idempotently re-confirms) the caller-signed fixed four-Event unit: ak.applet.managed_actor.provision, the applet_managed_control PCR ak.realm.create genesis, ak.identity.accountability_grant, and ak.profile.create. The unit freezes the exact account ActorId, registration/grant authority, initial resolution, PCR lineage, accountability, and external principal tuple. The server never signs for the Applet service or Ghost. It fails closed on invalid proofs/checkpoints, a caller service DID that does not match the active applet registration, a realm outside effective scope (applet_registration_unauthorized), or a ghost_actor_id outside the registered actor namespace (applet_namespace_mismatch). See zh/extensions/applet-integration.md §9.1.",
       "codes": []
@@ -1341,8 +1359,10 @@
     {
       "operation_id": "ak.self.circle.command.create.v1",
       "http_alias": "POST /_arkret/self/circles",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface.",
+      "operation_specific": [
+        "snapshot_capacity_exceeded"
+      ],
+      "description": "Event admission may reject with failed_precondition/snapshot_capacity_exceeded before signing a RealmCommit when the final maximal-disclosure inline Realm snapshot would exceed 8 MiB; rejection has zero durable effects.",
       "codes": []
     },
     {
@@ -1355,15 +1375,19 @@
     {
       "operation_id": "ak.self.circle.member.command.add.v1",
       "http_alias": "POST /_arkret/self/circles/{circle_id}/members",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface.",
+      "operation_specific": [
+        "snapshot_capacity_exceeded"
+      ],
+      "description": "Event admission may reject with failed_precondition/snapshot_capacity_exceeded before signing a RealmCommit when the final maximal-disclosure inline Realm snapshot would exceed 8 MiB; rejection has zero durable effects.",
       "codes": []
     },
     {
       "operation_id": "ak.self.circle.member.resource.delete.v1",
       "http_alias": "DELETE /_arkret/self/circles/{circle_id}/members/{actor_id}",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface.",
+      "operation_specific": [
+        "snapshot_capacity_exceeded"
+      ],
+      "description": "Event admission may reject with failed_precondition/snapshot_capacity_exceeded before signing a RealmCommit when the final maximal-disclosure inline Realm snapshot would exceed 8 MiB; rejection has zero durable effects.",
       "codes": []
     },
     {
@@ -1383,8 +1407,10 @@
     {
       "operation_id": "ak.self.consent.command.grant.v1",
       "http_alias": "POST /_arkret/self/consent/results/{holder_account_id}/grant",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface.",
+      "operation_specific": [
+        "snapshot_capacity_exceeded"
+      ],
+      "description": "Event admission may reject with failed_precondition/snapshot_capacity_exceeded before signing a RealmCommit when the final maximal-disclosure inline Realm snapshot would exceed 8 MiB; rejection has zero durable effects.",
       "codes": []
     },
     {
@@ -1397,8 +1423,10 @@
     {
       "operation_id": "ak.self.consent.command.revoke.v1",
       "http_alias": "POST /_arkret/self/consent/results/{holder_account_id}/revoke",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface.",
+      "operation_specific": [
+        "snapshot_capacity_exceeded"
+      ],
+      "description": "Event admission may reject with failed_precondition/snapshot_capacity_exceeded before signing a RealmCommit when the final maximal-disclosure inline Realm snapshot would exceed 8 MiB; rejection has zero durable effects.",
       "codes": []
     },
     {
@@ -1434,7 +1462,8 @@
         "not_found",
         "failed_precondition",
         "source_refs_unverifiable",
-        "contact_lineage_conflict"
+        "contact_lineage_conflict",
+        "snapshot_capacity_exceeded"
       ],
       "description": "Only the request target may sign the proposal-terminal rejection. Glare, late reverse requests, slot conflicts and consumed refs fail closed; no Private Consent is written.",
       "codes": []
@@ -1449,7 +1478,8 @@
         "source_refs_unverifiable",
         "contact_lineage_conflict",
         "continuity_evidence_unavailable",
-        "continuity_invalid"
+        "continuity_invalid",
+        "snapshot_capacity_exceeded"
       ],
       "description": "Two-phase holder-local Contact request acceptance stores one signed fact and its source receipt. Target resolution and delivery occur later through the receipted peer carrier, so an unresolved target does not reject prepare. It writes no Private Consent and conflicts on byte drift, slot reuse or an already-consumed request ref; revision_unavailable is retry-safe while the holder PCR actor or accepted RealmCommit checkpoint is unavailable.",
       "codes": []
@@ -1461,7 +1491,8 @@
         "not_found",
         "failed_precondition",
         "source_refs_unverifiable",
-        "contact_lineage_conflict"
+        "contact_lineage_conflict",
+        "snapshot_capacity_exceeded"
       ],
       "description": "Only the request target may sign a normal acceptance. Glare, late reverse requests, slot conflicts and consumed refs fail closed; rejection uses the separate reject operation.",
       "codes": []
@@ -1471,7 +1502,8 @@
       "http_alias": "POST /_arkret/self/contacts/scope-update",
       "operation_specific": [
         "contact_lineage_conflict",
-        "contact_scope_stale"
+        "contact_scope_stale",
+        "snapshot_capacity_exceeded"
       ],
       "description": "Issuer-local version/predecessor conflicts quarantine; stale current proof cannot authorize an update or subsequent Contact-based create/send.",
       "codes": []
@@ -1482,7 +1514,8 @@
       "operation_specific": [
         "failed_precondition",
         "source_refs_unverifiable",
-        "contact_lineage_conflict"
+        "contact_lineage_conflict",
+        "snapshot_capacity_exceeded"
       ],
       "description": "A holder-signed tombstone ends one issuer-local Contact generation and cannot be replayed as a scope replacement or Private Consent revocation.",
       "codes": []
@@ -1561,7 +1594,9 @@
         "membership_compensation_conflict",
         "realm_frozen",
         "quarantine",
-        "unknown_event_kind"
+        "unknown_event_kind",
+        "snapshot_capacity_exceeded",
+        "approval_carrier_unregistered"
       ],
       "description": "Endpoint-specific self authority-commit union. Ordinary and MLS branches keep single-submit semantics; Direct Conversation founding atomically commits exactly four ordered Events into four consecutive RealmCommits and returns no second receipt; membership compensation verifies transport-only evidence and claims its single-use CAS in the same Event transaction.",
       "codes": []
@@ -1837,7 +1872,8 @@
       "operation_specific": [
         "not_found",
         "evidence_recipient_mismatch",
-        "duplicate_conflict"
+        "duplicate_conflict",
+        "snapshot_capacity_exceeded"
       ],
       "description": "not_found is the single anti-oracle result for an absent target, a target not visible to the reporter, or any declared Realm/effective-scope mismatch. evidence_recipient_mismatch rejects a canonical evidence package whose recipient_public_key_ref and encrypted_to differ or whose key is not authorized for the exact target scope. Exact replay of one accepted report Event returns the stored submitted outcome; reuse of the same Event identity with different canonical bytes returns duplicate_conflict and appends neither a report log entry nor a queue item.",
       "codes": []

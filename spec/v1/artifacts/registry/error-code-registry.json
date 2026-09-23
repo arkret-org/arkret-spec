@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-22.2",
-  "generated_at": "2026-09-22T23:33:00+08:00",
+  "version": "2026-09-23.1",
+  "generated_at": "2026-09-23T23:11:29+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -3078,9 +3078,8 @@
         "auth_decision",
         "event_envelope"
       ],
-      "description": "A grant approval constraint or ak.policy.action approval requirement targeted a capability action whose approval_requirement_eligibility resolves to ineligible_no_registered_carrier. The configuration is rejected at write time with top-level schema_violation; it MUST NOT be stored and deferred until an execution that has no place to carry evidence. See zh/authz/constraint-schema.md section 9.1 and zh/models/governance-objects.md section 3.4.",
-      "status": "reserved",
-      "activation_condition": "Promote approval_carrier_unregistered to active only in the same release that adds a canonical machine producer path under spec/v1/artifacts outside reports and this registry."
+      "description": "A grant approval constraint or ak.policy.action approval requirement targets a capability action whose approval_requirement_eligibility is ineligible_no_registered_carrier. The governance Station rejects the authoring Event at write admission with top-level schema_violation (HTTP 422), this reason_code, and zero Event/RealmCommit/current-result effects. The canonical eligibility registry is capability-action-registry.json; the direct producers are ak.self.events.command.submit.v1 and ak.peer.events.command.submit.v1 authority_forward, with ak.self.applet.command.install.v1 covering its grant Event. See zh/authz/constraint-schema.md section 9.1 and zh/models/governance-objects.md section 3.4.",
+      "status": "active"
     },
     {
       "code": "approval_nonce_reused",
@@ -5636,6 +5635,15 @@
         "client_sync"
       ],
       "description": "Sub-reason for failed_precondition when any plaintext broadcast envelope is submitted or received. Signal is encrypted-only in every scope; implementations MUST fail closed and MUST NOT advertise Signal for a scope unless they can verify its MLS basis, AAD, and proof. See zh/sync/signal.md §1 and §3.",
+      "status": "active"
+    },
+    {
+      "code": "snapshot_capacity_exceeded",
+      "applies_to": [
+        "event_envelope",
+        "auth_decision"
+      ],
+      "description": "The candidate RealmCommit would make the maximal-disclosure, current governance Station-signed inline Realm State Snapshot exceed 8 MiB of complete RFC 8785 canonical signed bytes. Every operation branch that first admits an Event and signs a RealmCommit rechecks the final durable cut in the same transaction; overflow returns top-level failed_precondition (HTTP 409) with this reason_code and zero Event, RealmCommit, typed current, and snapshot writes. Exact 8 MiB is allowed. See zh/conformance/scalability-constraints.md section 4.1 and fixtures/scalability-limits-fixture.json.",
       "status": "active"
     },
     {
