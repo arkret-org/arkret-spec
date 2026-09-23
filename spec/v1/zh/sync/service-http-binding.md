@@ -214,7 +214,7 @@ response 返回连续 RealmCommit 及其可见 Event。
 获准读取的 Commit。扫到允许区间上端（`after_position`）或下端（`before_position`）时它必须为 false，
 即使 Station 还持有该 caller 不获准读取的 Commit。不获准读取的历史 MUST NOT 置 `truncated`，
 停在 floor 的一页 MUST NOT 当作截断呈现，`truncated` 也 MUST NOT 用来遮盖 floor 的存在。
-`commits[]` 为空且 `truncated=false` 只表示该方向上该 caller 的允许区间已扫完，
+`committed_events[]` 为空且 `truncated=false` 只表示该方向上该 caller 的允许区间已扫完，
 不表示物理流为空、不存在或没有更多 Commit。
 
 **floor 连续性 anchor（normative）**：扫到允许区间下端的每一页 MUST 携带 `readable_floor`
@@ -222,7 +222,7 @@ response 返回连续 RealmCommit 及其可见 Event。
 就能把自己获准前缀的下边界绑定到已接受的链上。`floor_commit_id` 指向的 Commit 是唯一允许其
 `previous_commit_ref` 无法被该 caller 解析的可读 Commit。该 anchor 只证明获准前缀从哪里开始，
 既不证明 Station 没有更早历史，也不证明 Station 没有更新的更新。只有该 caller 在这条流上
-没有任何可读 Commit 时才省略它，那也是空 `commits[]` + `truncated=false` 唯一合法的情形。
+没有任何可读 Commit 时才省略它，那也是空 `committed_events[]` + `truncated=false` 唯一合法的情形。
 
 **链校验在两个方向上是同一条等式（normative）**：页内与跨页都按相邻位置检查，而不是按数组下标——
 position 较大那一行的 `previous_commit_ref` 必须等于 position 较小那一行的 `commit_id`，

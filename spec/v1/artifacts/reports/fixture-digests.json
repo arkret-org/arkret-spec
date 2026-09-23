@@ -297,13 +297,13 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json",
-      "sha256": "fb82fe0f506ce1919356df04dec856989fa387e89b0c93d50c96ce5bbccd6622",
-      "version": "2026-09-23.1"
+      "sha256": "31484f1cb87e0eba730934fecf25d13007d87129fbcec0cef51a418718b2ec2c",
+      "version": "2026-09-23.3"
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-write-transcript-fixture.json",
-      "sha256": "7238f6062e72665baa1997df6e584e9b3d06d933078a7e85f20a93a98da96332",
-      "version": "2026-09-19.1"
+      "sha256": "3bf54a0e823f1b81ac9996e2a43ce1d119c41c1ad7c531c1806370fb7fc9bcdc",
+      "version": "2026-09-23.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/long-text-content-fixture.json",
@@ -502,8 +502,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/signer-key-historical-coordinate-fixture.json",
-      "sha256": "ca715d583afa77450153811956abb3bdced81c1b0d7c325653bc8d0702d87601",
-      "version": "2026-09-20.2"
+      "sha256": "787bb99a30344d9949e4e6b365680afbbad42d978abb4b41544d9ade3d3b3944",
+      "version": "2026-09-23.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/strand-watch-current-read-fixture.json",

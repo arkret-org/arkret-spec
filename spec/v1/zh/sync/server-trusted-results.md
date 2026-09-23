@@ -133,7 +133,7 @@ MLS public state 由 accepted Genesis/Commit Event 及其 RealmCommit 投影。
 `realm_id`。该引用是“待验 producer 签名的 historical Event”；结果 key 的 `authorization_ref` 是“使该 key
 在该历史点有效的 accepted authorization Event”。两者 MAY 相同但 MUST 独立验证，协议不得强制相等、互相替代
 或因 key bytes 相同而合并授权代次。唯一构造来源是已验证
-`realm_sync_entry.commits[]` 或 `stream_scan_outcome.commits[]` 的 `stream_row{commit,event}`：客户端先验证
+`realm_sync_entry.commits[]` 或 `stream_scan_outcome.committed_events[]` 的 `stream_row{commit,event}`：客户端先验证
 RealmCommit signature／generation／stream／position／predecessor，并核对 `commit.event_ref == event.event_id`，
 再逐字复制四坐标。current projection 中嵌套的 Event、`event_states[]`、account cursor、arrival order、
 `created_at`、SignerEvidenceRef 或本地曾见同 EventId 都不能补出坐标；current entry 的 source coordinate 只证明

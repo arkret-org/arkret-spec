@@ -234,13 +234,12 @@
         },
         "committed_event_refs": {
           "type": "array",
-          "minItems": 1,
           "maxItems": 1024,
           "uniqueItems": true,
           "items": {
             "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
           },
-          "description": "Exact committed references for every durable Event accepted by this transaction. A successful or partial outcome cannot be represented by status alone."
+          "description": "Exact committed references for every durable Event accepted by this transaction. The array is empty when only Signals were accepted. A successful or partial outcome cannot be represented by status alone."
         }
       },
       "additionalProperties": false,
@@ -420,7 +419,7 @@
     },
     "applet_event_transaction_request_body": {
       "type": "object",
-      "description": "Event and/or Signal delivery under the existing per-delivery source authentication rules; at least one non-empty array is required.",
+      "description": "Producer Event submission, committed Event delivery, and/or Signal delivery under the existing per-delivery source authentication rules; at least one non-empty array is required. events is Applet-to-Station only; committed_events is Station-to-Applet only.",
       "required": [
         "applet_id",
         "source_id"
@@ -441,6 +440,13 @@
             "$ref": "./event-envelope.schema.json"
           }
         },
+        "committed_events": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/applet_committed_event"
+          }
+        },
         "signals": {
           "type": "array",
           "minItems": 1,
@@ -458,10 +464,38 @@
         },
         {
           "required": [
+            "committed_events"
+          ]
+        },
+        {
+          "required": [
             "signals"
           ]
         }
       ],
+      "not": {
+        "required": [
+          "events",
+          "committed_events"
+        ]
+      },
+      "additionalProperties": false
+    },
+    "applet_committed_event": {
+      "type": "object",
+      "description": "Exact producer-signed Event paired with its covering signed RealmCommit for Station-to-Applet delivery; withheld markers are forbidden.",
+      "required": [
+        "commit",
+        "event"
+      ],
+      "properties": {
+        "commit": {
+          "$ref": "./realm-commit.schema.json"
+        },
+        "event": {
+          "$ref": "./event-envelope.schema.json#/$defs/shared_event_envelope"
+        }
+      },
       "additionalProperties": false
     },
     "applet_managed_actor_committed_request": {

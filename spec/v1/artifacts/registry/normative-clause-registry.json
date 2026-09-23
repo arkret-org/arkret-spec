@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-23.4",
+  "version": "2026-09-23.6",
   "source_of_truth": true,
-  "generated_at": "2026-09-23T17:36:06+08:00",
+  "generated_at": "2026-09-23T22:38:31+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -211,7 +211,7 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/capabilities.md#10-issuer-authority",
-      "section_digest": "sha256:a77c37851b8b96aae1988fdacf2193c3a2cdb3f77d52ef0dff7976d5c9dd4c14",
+      "section_digest": "sha256:8f1afac5cba42bf0084171cd6fe85ce43b3f65372c2ed85f875bf3e689c84be1",
       "requirement": "A grant stays within the union of the authorities its issuer_authority_refs name and within their per-action validity window. A grant without ordinary authority_control cannot be a grant ref; a ref with authority_regrant_allowed=false can issue only an explicitly terminal max_authority_depth=0 child. A grant ref supplies issuer authority only when its concrete subject ActorId equals the child issuer ActorId in full; cycles, inactive refs and same-DID cross-Station replay MUST fail closed rather than widen the effective permission set. A realm_root ref is valid only while the authority-root typed current result's current authority_generation still equals the generation the ref carries, read under the registered inclusion proof at a RealmCommit basis; that delegation generation advances only on ak.realm.authority.reset and MUST NOT be conflated with the governing Station tenure governance_generation, so a planned Station handoff MUST NOT invalidate any grant and a controller transfer MUST leave every child grant valid.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -416,7 +416,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/sync/server-trusted-results.md#56-按次-current-与精确历史签名公钥",
-      "section_digest": "sha256:8c5dbfe3a16e9658799785447b85550a163117099f5171983527575fa1bc6f3b",
+      "section_digest": "sha256:808971462e739de4f617d1c51a77b2bb5bc04eaf7f94d6af8debe78df289a2f7",
       "requirement": "Self signer keys omit actor/method mirrors, retain complete selector association and invocation context, require historical committed_event_ref plus an independent committed authorization_ref/current revision/governance generation, and leave Signal standalone identity and peer portable evidence intact.",
       "testability_grade": "api_shape",
       "test_plan": "Run tools.test_self_signer_result_schema and tools.test_residual_simplification for closed query keys, mandatory authorization, historical separation, reordered/unavailable results, duplicate/missing selectors, different methods/Events and invocation mismatch. Runtime authorization, producer signatures and Signal gates remain required and tracked by the existing owner."
@@ -569,7 +569,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/sync/server-trusted-results.md#56-按次-current-与精确历史签名公钥",
-      "section_digest": "sha256:8c5dbfe3a16e9658799785447b85550a163117099f5171983527575fa1bc6f3b",
+      "section_digest": "sha256:808971462e739de4f617d1c51a77b2bb5bc04eaf7f94d6af8debe78df289a2f7",
       "requirement": "An ordinary client obtains exact historical signing keys from its own Station using a committed_event_ref copied only from a verified stream_row. Every result independently keeps the accepted authorization coordinate, revision and governance generation so historical MLS binding remains verifiable; target and authorization refs may differ, and a stable (actor, method, key) triple never substitutes for either exact Event instance.",
       "testability_grade": "audit",
       "test_plan": "Run ak.vector.signer_key.historical_commit_coordinate.v1 and tools.test_signer_key_historical_coordinate_gate: both historical selectors require the four-coordinate ref, target and authorization remain independent, redacted/current-projection/cursor/time sources stay unresolved, and missing coordinates never downgrade to current query. The fixture is a machine semantic suite; production signer resolution and commit verification remain implementation evidence."
@@ -579,7 +579,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/sync/server-trusted-results.md#56-按次-current-与精确历史签名公钥",
-      "section_digest": "sha256:8c5dbfe3a16e9658799785447b85550a163117099f5171983527575fa1bc6f3b",
+      "section_digest": "sha256:808971462e739de4f617d1c51a77b2bb5bc04eaf7f94d6af8debe78df289a2f7",
       "requirement": "A current self signing-key result serves only the operation that froze it. A same-batch or byte-identical in-flight query may be merged, but a completed result MUST NOT be reused for a future Signal, a future operation or a reconnection. Result association uses complete selector equality rather than array position, and a duplicate, missing or extra selector rejects the whole result.",
       "testability_grade": "audit",
       "test_plan": "Audited against signer-key-operations.schema.json and the self query contract: the review pass asserts results carry no reusable lifetime, that the request context is echoed verbatim and bound to the authenticated SessionGrant account, and that association is specified by complete selector equality with no index-based path. No vector exists because the obligation forbids a later reuse rather than fixing a byte artifact."

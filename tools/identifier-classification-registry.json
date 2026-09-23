@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 22,
+  "version": 23,
   "kind": "identifier_classification_registry",
   "source_of_truth": false,
   "generated_from": [
@@ -26,7 +26,7 @@
     "unregistered_object_identifier"
   ],
   "type_derived_summary": {
-    "typed_object_id": 899,
+    "typed_object_id": 900,
     "responsibility_identity_material": 538,
     "registry_catalog_symbol": 15
   },
@@ -138,15 +138,6 @@
       "occurrences": 9,
       "example_path": "websocket-frame.schema.json#/$defs/open_account/properties/channel_id",
       "reason": "Bounded opaque coordinate minted to correlate one request or flow; it carries no authority by itself."
-    },
-    {
-      "name": "claim_id",
-      "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"], [\"type\", \"\\\"string\\\"\"]]",
-      "category": "unregistered_object_identifier",
-      "occurrences": 3,
-      "example_path": "keypackage-operations.schema.json#/$defs/peer_keypackages_claim_unsigned_request/properties/claim_id",
-      "reason": "Names a durable Arkret object whose kind is not registered in id-kind-registry.json; convergence is to register the kind or retype the field.",
-      "pending_convergence": true
     },
     {
       "name": "claim_request_id",
@@ -597,14 +588,6 @@
     },
     {
       "name": "request_id",
-      "terminal_signature": "[[\"pattern\", \"^[A-Za-z0-9._~=-]{1,128}$\"]]",
-      "category": "opaque_correlation",
-      "occurrences": 2,
-      "example_path": "device-message.schema.json#/$defs/secret_request_content/properties/request_id",
-      "reason": "Bounded opaque coordinate minted to correlate one request or flow; it carries no authority by itself."
-    },
-    {
-      "name": "request_id",
       "terminal_signature": "[[\"pattern\", \"^[A-Za-z0-9_-]+$\"]]",
       "category": "opaque_correlation",
       "occurrences": 5,
@@ -650,14 +633,6 @@
       "category": "opaque_correlation",
       "occurrences": 1,
       "example_path": "key-backup-plaintext.schema.json#/$defs/secret_storage_item/properties/secret_id",
-      "reason": "Bounded opaque handle used to select a stored record; the record, not the handle, carries authority."
-    },
-    {
-      "name": "secret_id",
-      "terminal_signature": "[[\"pattern\", \"^[a-z0-9_]+$\"]]",
-      "category": "opaque_correlation",
-      "occurrences": 2,
-      "example_path": "device-message.schema.json#/$defs/secret_request_content/properties/secret_id",
       "reason": "Bounded opaque handle used to select a stored record; the record, not the handle, carries authority."
     },
     {

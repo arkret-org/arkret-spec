@@ -539,7 +539,7 @@ HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` �
 - `has_more: boolean` MUST 出现：客户端 MUST 仅按 `has_more` 决定是否继续翻页；不得仅靠 `next_cursor` 是否存在做判断（实现可能在末尾仍返回 `next_cursor` 用作 long-poll resume token）。
 
 本小节的三字段合同**不**适用于单 stream 扫描：`ak.self.committed_event.read.scan.v1` / `ak.peer.committed_event.read.scan.v1`
-既不返回 `next_cursor` 也不返回 `has_more`，字段集是 `stream_scan_outcome` 的 `{commits, truncated}`
+既不返回 `next_cursor` 也不返回 `has_more`，字段集是 `stream_scan_outcome` 的 `{committed_events, truncated, readable_floor?}`
 （[`authority-commit-operations.schema.json`](../../artifacts/schemas/authority-commit-operations.schema.json)），
 语义见 [`service-http-binding.md` §3.1](./service-http-binding.md) 与本文 §7.2。
 
@@ -560,7 +560,7 @@ HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` �
   `after_position` 朝更新方向、`before_position` 朝更旧方向（历史回填）；两者的排他性由 request
   合同的 `oneOf` 结构给出，同时出现或都不出现是 schema 违规。取 `null` 分别表示从该 caller
   获准读取的最旧位置、最新位置起——**不是**物理流首与物理流头。
-- 响应是 `stream_scan_outcome` = `{commits, truncated, readable_floor?}`。续页由客户端取本批的
+- 响应是 `stream_scan_outcome` = `{committed_events, truncated, readable_floor?}`。续页由客户端取本批的
   最大 / 最小 `stream_position` 自行得到；响应 MUST NOT 返回 `prev_cursor` / `next_cursor` / `has_more`。
 - 边界一律按该 caller 的允许区间解释：`truncated` 只表示该方向上还有它获准读取的 Commit，
   `readable_floor` 给出允许区间下端的 `oldest_position` 与该位置的 `floor_commit_id`。

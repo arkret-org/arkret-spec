@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-23.6",
+  "version": "2026-09-23.8",
   "source_of_truth": true,
-  "generated_at": "2026-09-23T13:56:00+08:00",
+  "generated_at": "2026-09-23T22:32:19+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -4771,7 +4771,7 @@
               }
             },
             "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/organization_moderation_policy_value",
-            "notes": "Sibling of organization_discovery on the same did_core_id subject, registered in the same batch so the Organization surface does not carry one registered family and one unregistered one. The payload's value is a single closed moderation policy document, so the projection is a whole-value set."
+            "notes": "Sibling of organization_discovery on the same did_core_id subject. The payload's value is a single closed moderation policy document, so the projection is a whole-value set. Production admission is fail closed until the Organization DID's authenticated unique policy authority Realm binding and cross-Realm source Commit read carrier exist; no arrival-order winner is permitted. See governance/content-moderation.md section 7."
           }
         ],
         "result_effect_ownership": {
@@ -8904,8 +8904,8 @@
         }
       }
     },
-    "version": "2026-09-22.1",
-    "generated_at": "2026-09-22T09:25:00+08:00",
+    "version": "2026-09-23.1",
+    "generated_at": "2026-09-23T22:32:19+08:00",
     "bootstrap_event_kinds": [
       "ak.device.authorize",
       "ak.device.reanchor",
@@ -21060,7 +21060,7 @@
           "consumed_by": [
             "governance/content-moderation.md §7"
           ],
-          "note": "Organization-level moderation policy participates in the Realm-internal moderation state boundary."
+          "note": "Organization-level moderation policy is one global current result per Organization DID. Production writes and dependent cross-Realm reads fail closed until the unique authenticated policy authority Realm binding and verified source Commit carrier exist; no arrival-order winner is permitted."
         }
       },
       {
@@ -21150,11 +21150,11 @@
         "schema_ref": "schemas/typed-current-result.schema.json#/$defs/circle_result",
         "consumption": {
           "class": "admission_input",
-            "consumed_by": [
-              "zh/models/circle.md",
-              "zh/models/common-fields.md section 5.2"
-            ],
-            "note": "The object's own current value. Its state member gates every later write on the object: a lifecycle write checks the pre-state and an ordinary write is refused while the object is not active, so reading it decides admission."
+          "consumed_by": [
+            "zh/models/circle.md",
+            "zh/models/common-fields.md section 5.2"
+          ],
+          "note": "The object's own current value. Its state member gates every later write on the object: a lifecycle write checks the pre-state and an ordinary write is refused while the object is not active, so reading it decides admission."
         }
       },
       {
@@ -21174,11 +21174,11 @@
         "schema_ref": "schemas/typed-current-result.schema.json#/$defs/relation_result",
         "consumption": {
           "class": "admission_input",
-            "consumed_by": [
-              "zh/models/relation.md",
-              "zh/models/common-fields.md section 5.2"
-            ],
-            "note": "The single current Relation value for one primary_conflict_domain. create/update/tombstone compare its exact revision and lifecycle before writing; its event-derived RelationId remains in the value for stable history and object references."
+          "consumed_by": [
+            "zh/models/relation.md",
+            "zh/models/common-fields.md section 5.2"
+          ],
+          "note": "The single current Relation value for one primary_conflict_domain. create/update/tombstone compare its exact revision and lifecycle before writing; its event-derived RelationId remains in the value for stable history and object references."
         }
       },
       {
@@ -21447,8 +21447,8 @@
         }
       }
     ],
-    "version": "2026-09-21.2",
-    "generated_at": "2026-09-21T07:39:00+08:00",
+    "version": "2026-09-23.1",
+    "generated_at": "2026-09-23T22:32:19+08:00",
     "metadata_authority": "contract_registry_section"
   }
 }

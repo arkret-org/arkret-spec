@@ -134,7 +134,7 @@ def check_signer_key_historical_coordinate(lint: Lint) -> None:
     else:
         if fixture.get("carrier_sources") != [
             "account_subscribe.realm_sync_entry.commits",
-            "ak.self.committed_event.read.scan.v1.stream_scan_outcome.commits",
+            "ak.self.committed_event.read.scan.v1.stream_scan_outcome.committed_events",
         ]:
             lint.fail(FIXTURE, "fixture must retain exactly the two existing stream_row carrier sources")
         positive = fixture.get("positive_case")
@@ -148,7 +148,7 @@ def check_signer_key_historical_coordinate(lint: Lint) -> None:
 
     prose = {
         SERVER_PROSE: ("历史坐标来源与双引用分离", "MAY 相同", "不得降级成 `current_admission`"),
-        SYNC_PROSE: ("realm_sync_entry.commits[]", "stream_scan_outcome.commits[]", "不得新增"),
+        SYNC_PROSE: ("realm_sync_entry.commits[]", "stream_scan_outcome.committed_events[]", "不得新增"),
         VECTOR_PROSE: (VECTOR_ID, "authorization_ref", "current-query 降级"),
     }
     for path, markers in prose.items():

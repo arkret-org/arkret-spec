@@ -422,6 +422,8 @@ Server ACL 在联邦层（参见 [`../sync/federation.md`](../sync/federation.md
 
 Organization MAY 为其控制或背书的 Realm 与服务发布组织级审核策略。该策略仅通过显式引用生效，不会隐式继承、自动级联或作为全局默认策略适用。
 
+每个 `organization_id` 仅有一个由 Organization DID 当前认证治理状态指定的 policy authority Realm；仅该 Realm 的已接受 `ak.organization.moderation_policy` Event 可以更新全局 `(organization_id)` typed current result。`ak.realm.organization` 关系只决定适用范围，不授予普通 Realm 写权威。接纳方 MUST 验证认证绑定、Event 外层 `realm_id`、covering RealmCommit 与当前绑定相同，并在同一治理事务中校验 source revision；跨 Realm 复制或读取方 MUST 验证同一 source Commit 和未被取代的绑定，不能按到达顺序选 winner。v1 当前没有可认证的唯一绑定及跨 Realm current 读取载体，因此该 Event 的生产接纳和依赖它的跨 Realm join/federation deny 读取 MUST fail closed 且零写入，不得从本地配置、发现投影、关系、PCR 密文或首个到达的 Event 推断权威。转移协议落规前不得变更 authority Realm；本段不引入新的转移入口。
+
 该策略由 `ak.organization.moderation_policy` Event 承载。它的 payload 是
 [`event-payload.schema.json#/$defs/organization_moderation_policy_state_payload`](../../artifacts/schemas/event-payload.schema.json)：
 `organization_id: did_core_id`（即唯一 typed current result subject）加上

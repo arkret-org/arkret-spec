@@ -476,9 +476,9 @@ value shape := { "level": "mentions_only" | "participating" | "all" | "muted",
 - 默认：`ak.strand.watch.set` MUST 满足 `payload.watcher_actor_id == envelope.actor_id`。reducer 在写入前校验，不满足 `failed_precondition`（`reason="watch_must_be_self"`）。普通成员写入自己的 watch state 需要持有 `ak.strand.watch.set` capability（low risk_tier，admin 默认 bundle 给所有成员）。
 - 帮他人订阅：actor 持有 `ak.strand.watch.set.others` capability（high risk_tier）时 MAY 写入 `payload.watcher_actor_id != envelope.actor_id` 的 watch typed current result，典型用法是 Strand creator 在创建对话时把核心相关人加为 `participating`。`.others` 写入受以下硬约束：
   - `.others` 不是读取他人私有 watch 前态的权限。若需精确前态，只能走 §8.5 已有 `ak.realm.notification.audit` + `ak.audit.accessed(access_kind="watch_audit_read")` accepted 审计读闭环；缺该权限或审计证据时不得借本人的 exact current 操作、公开 watcher 列表或 `level_public` 猜测前态。首次写可尝试省略 `expected_value`，但仅从未写入时由 Station CAS 接纳；冲突后没有合法读面就 fail closed。
-  - `payload.level` MUST ∈ `{mentions_only, participating, all}`；写入 `level="muted"` MUST `failed_precondition`（`reason="watch_muted_must_be_self"`）。理由：`muted` 会抑制 mention / 审核 / 工作流定向通知，必须由本人主动选择，不得被管理员或自动化代写。
-  - `payload.level_public` MUST 省略或显式 `false`；写入 `level_public=true` MUST `failed_precondition`（`reason="watch_level_public_must_be_self"`）。理由：是否公开自己的订阅意图属于个人 opt-in publication，不得由他人代写。
-  - 每条 `.others` 写入 MUST 与一条 `ak.audit.accessed` event 形成可验证配对。**配对边由 audit event 指向业务 event，方向单向**：audit event 的 `semantic_refs[]` MUST 包含 `{id: <业务 event_id>, role: "audit_pair", critical: true}`，其 payload MUST 使用 `access_kind="watch_set_others"`，并绑定 `writer_actor_id`、`target_actor_id`、`target_result_id`、`paired_event_id`、`result_head_before` 与 `result_head_after`；业务 event 自身 **MUST NOT** 引用 audit event 的 id 或 digest。二者 MUST 位于同一 ordered submit batch；batch 验证器在接受任何一条前先检查该配对 invariant：批内 MUST 存在恰好一条 `paired_event_id` 等于该业务 event id 的 audit event，并从该 ID 解码 digest 后与业务 Event canonical digest 交叉验证。缺失、目标不一致、ID/digest 不匹配、批内配对多于一条或不在同 batch 时 reducer MUST 拒绝业务 event（`failed_precondition`，`reason="watch_set_others_audit_missing"`）。
+  - `payload.level` MUST ∈ `{mentions_only, participating, all}`；写入 `level="muted"` MUST 以 active `failed_precondition` 拒绝且零写入。理由：`muted` 会抑制 mention / 审核 / 工作流定向通知，必须由本人主动选择，不得被管理员或自动化代写。
+  - `payload.level_public` MUST 省略或显式 `false`；写入 `level_public=true` MUST 以 active `failed_precondition` 拒绝且零写入。理由：是否公开自己的订阅意图属于个人 opt-in publication，不得由他人代写。
+  - 每条 `.others` 写入 MUST 与一条 `ak.audit.accessed` Event 形成可验证配对。**配对边由 audit Event 指向业务 Event，方向单向**：audit Event 的 `semantic_refs[]` MUST 包含 `{id: <业务 event_id>, role: "audit_pair", critical: true}`，其 payload MUST 使用 `access_kind="watch_set_others"`，`writer_actor_id` 等于业务 Event 的 actor，`target_actor_id` 等于 `watcher_actor_id`，`target_ref` 等于业务 payload 的 `strand_id`，`paired_event_id` 等于业务 Event id；业务 Event 自身 **MUST NOT** 引用 audit Event 的 id 或 digest。二者 MUST 位于同一 ordered submit batch；batch 验证器在接受任何一条前先检查该配对 invariant：批内 MUST 存在恰好一条满足全部绑定的 audit Event，并从业务 Event id 解码 digest 后与业务 Event canonical digest 交叉验证。Station 在同批提交时依据当前 typed watch result 验证 CAS 并原子写入两条 Event 与结果；audit payload 不承载签署时尚不可知的前后 result head。缺失、目标不一致、ID/digest 不匹配、批内配对多于一条或不在同 batch 时 reducer MUST 以 active `failed_precondition` 整批拒绝且零写入；三个未激活的 `.others` 专用 reason 不得发射。
   - 方向不可反转（normative rationale）：`semantic_refs` 在 `event_digest` 的 preimage 内，而 `event_id` 由该 digest 派生。业务 event 若引用 audit id、audit 又承诺业务 id，两条 Event 互为原像，无解——见 [`../conformance/encoding.md` §3.1](../conformance/encoding.md)。业务 event 先成型、audit 后成型是唯一可构造的顺序。
   - 被加为 watcher 的 actor MAY 随时通过自写 typed current result 覆盖（升级 / 降级 / 自行 `muted` / 自行 `level_public`），无需对方同意。
 - 创建者隐式订阅：`ak.strand.create` 后，notification dispatcher MAY 在 actor-private 派生状态中把 `created_by` 视为 `level=participating`；该默认值不写共享 typed current result、不进入任何 RealmCommit。需要 durable 共享 watch 状态时，创建者客户端必须另行提交已登记的 `ak.strand.watch.set` state-changing Event。
@@ -495,7 +495,7 @@ Watch 级别暴露程度按下表派发。projection executor MUST 在响应包�
 | `level=all` | 完整 `{actor, level}` | 默认**不出现**；`level_public=true` 时见下方 opt-in 规则 | 完整可见 | 完整 level |
 | `level=muted` | "已静音" | **不出现**在 watcher 列表（投影上与"无记录"不可区分） | 完整可见 | 一律不推送 |
 
-`ak.realm.notification.audit` 是纯 READ capability（target_event_kinds 为空），授予"读取完整 watch 状态（含 `muted`）"的权限。审计写入闭环要求读取方**同时**持有 `ak.audit.accessed` capability，并在每次 audit 读取前提交一条 accepted durable event（payload 使用 `access_kind="watch_audit_read"`，包含 `writer_actor_id`、`target_actor_id`、`target_result_id`、`target_ref`、`purpose`、`accessed_at`），或在同一投影事务中提交该 audit event 后再释放完整 watch 结果。
+`ak.realm.notification.audit` 是纯 READ capability（target_event_kinds 为空），授予"读取完整 watch 状态（含 `muted`）"的权限。审计写入闭环要求读取方**同时**持有 `ak.audit.accessed` capability，并在每次 audit 读取前提交一条 accepted durable Event（payload 使用 `access_kind="watch_audit_read"`，`writer_actor_id` 为读取方、`target_actor_id` 为 watcher、`target_ref` 为 Strand id，并包含 `purpose`、`accessed_at`），或在同一投影事务中提交该 audit Event 后再释放完整 watch 结果。Station 从 `(target_ref, target_actor_id)` 定位 typed watch result，并在同一授权读取边界中验证 audit 已接纳；payload 不包含独立 result id 或调用方自报的 result head。
 
 当 Strand 设置了 `scope_circle_id` 指向 Circle 时，watch typed current result 落在该 Circle 的 scope namespace（单源），projection 直接受 Circle membership 约束：watcher 列表只对该 Circle 的成员、本人、通知 dispatcher 和完成 `ak.audit.accessed` 配对的 audit reader 可见。仅持有父 Realm membership 不得推断某 actor 正在观察 Circle scope 的机密 Strand。
 
@@ -912,9 +912,9 @@ Payload schema：[`event-payload.schema.json#/$defs/reaction_payload`](../../art
 
 #### 9.8.2 Target 范围（v1 决策）
 
-v1 core 的 Reaction `target_ref` MUST 指向与该 reaction 同一 effective scope 内的一条 `ak:message:`（即 discussion track 上的 Message）。`reaction_payload.target_ref` 的 wire 类型虽是通用 `ref:object`，但 reducer MUST 对 v1 core 拒绝非 `ak:message:` 的 target（`schema_violation`，`reason="reaction_target_unsupported"`）。Profile MAY 注册额外可表态对象（例如 Strand synthesis、Morph）；未声明该 profile 的实现遇到未知 target kind MUST fail closed，不得静默接受。
+v1 core 的 Reaction `target_ref` MUST 指向与该 reaction 同一 effective scope 内的一条 `ak:message:`（即 discussion track 上的 Message）。`reaction_payload.target_ref` 的 wire 类型虽是通用 `ref:object`，但 reducer MUST 对 v1 core 以 active `schema_violation` 拒绝非 `ak:message:` 的 target，且零写入。Profile MAY 注册额外可表态对象（例如 Strand synthesis、Morph）；未声明该 profile 的实现遇到未知 target kind MUST fail closed，不得静默接受。
 
-跨 security scope 表态不允许：`target_ref` 必须落在 reaction Event 自身签名 `scope_ref` 内，否则 `failed_precondition`（`reason="reaction_scope_mismatch"`）。
+跨 security scope 表态不允许：`target_ref` 必须落在 reaction Event 自身签名 `scope_ref` 内，否则以 active `failed_precondition` 拒绝且零写入。未激活的 `reaction_target_unsupported` 与 `reaction_scope_mismatch` 不得发射。
 
 #### 9.8.3 Reaction-specific remove-wins set 收敛（authoritative）
 

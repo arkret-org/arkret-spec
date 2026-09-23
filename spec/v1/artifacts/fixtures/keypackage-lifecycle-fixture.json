@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.e2ee_client.v1",
-  "version": "2026-09-23.1",
+  "version": "2026-09-23.3",
   "suite": "keypackage_lifecycle",
   "runner": {
     "kind": "named_suite",
@@ -92,7 +92,7 @@
       "expect_valid": false,
       "first_expected_error": "contains:Additional properties are not allowed",
       "instance": {
-        "claim_id": "device-claim-1",
+        "claim_id": "ak:keypackage_claim:0199eeee-eeee-7eee-8eee-eeeeeeeeeeee",
         "keypackage_ref": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
         "actor_id": {
           "kind": "account",
@@ -521,7 +521,7 @@
         "attempt": 6
       },
       "expired_claim": {
-        "claim_id": "mls-keypackage-claim-expired",
+        "claim_id": "ak:keypackage_claim:0199dddd-dddd-7ddd-8ddd-dddddddddddd",
         "keypackage_ref": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "expires_at": "2026-06-19T00:00:00.000Z",
         "consume_at": "2026-06-19T00:01:00.000Z"
@@ -570,8 +570,8 @@
       "normal_keypackage_ref": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
       "last_resort_keypackage_ref": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
       "last_resort_claim_ids": [
-        "mls-keypackage-claim-lr-1",
-        "mls-keypackage-claim-lr-2"
+        "ak:keypackage_claim:0199aaaa-aaaa-7aaa-8aaa-aaaaaaaaaaaa",
+        "ak:keypackage_claim:0199bbbb-bbbb-7bbb-8bbb-bbbbbbbbbbbb"
       ],
       "expected": {
         "normal_preferred_when_available": true,
@@ -816,7 +816,7 @@
       "keypackage_ref": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
       "keypackage_digest": "sha256:039058c6f2c0cb492c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81",
       "mismatched_keypackage_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-      "claim_id": "mls-keypackage-claim-normal-1",
+      "claim_id": "ak:keypackage_claim:0199cccc-cccc-7ccc-8ccc-cccccccccccc",
       "keypackage_claim_ref": "ak:keypackage_claim:0199cccc-cccc-7ccc-8ccc-cccccccccccc",
       "device_authorization_event_id": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
       "welcome_delivery": {
@@ -973,7 +973,7 @@
       "name": "welcome_add_commit_and_claim_record_binding",
       "vector_id": "ak.vector.mls.welcome_keypackage_hash.v1",
       "kind": "welcome_accepted_lineage_and_claim_record_binding",
-      "claim_id": "mls-keypackage-claim-normal-1",
+      "claim_id": "ak:keypackage_claim:0199cccc-cccc-7ccc-8ccc-cccccccccccc",
       "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
       "intended_realm_id": "ak:realm:AS-0RWJz6zv6mr92HyIWAP4vU2xUwY46P0DKOC-3MxLT",
       "mls_group_id": "fixture-dm-group-1",
@@ -1043,7 +1043,7 @@
       "name": "welcome_consume_only_after_durable_group_state",
       "vector_id": "ak.vector.mls.welcome_keypackage_hash.v1",
       "kind": "welcome_consume_ordering",
-      "claim_id": "mls-keypackage-claim-normal-1",
+      "claim_id": "ak:keypackage_claim:0199cccc-cccc-7ccc-8ccc-cccccccccccc",
       "claim_request_id": "AAAAAAAAAAAAAAAAAAAAAQ",
       "mls_group_id": "fixture-dm-group-1",
       "consume_operation": "ak.self.keys.keypackages.command.consume.v1",

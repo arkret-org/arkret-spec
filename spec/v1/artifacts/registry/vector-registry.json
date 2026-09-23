@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-23.6",
+  "version": "2026-09-23.7",
   "source_of_truth": true,
-  "generated_at": "2026-09-23T17:36:06+08:00",
+  "generated_at": "2026-09-23T22:27:30+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -4641,7 +4641,7 @@
       "applies_to_fixtures": [
         "arkret-private-kdf-fixture.json"
       ],
-      "description": "Byte-level ak.history-v1 -> ak.signal-v1 ExpandWithLabel KAT for per-sender-device SignalEnvelope AEAD keys, including JCS({sender_device_id}), distinct valid-device keys under a forced equal nonce, and label/context/device/epoch negative mutations.",
+      "description": "Byte-level MLS-Exporter ak.signal-root-v1 with canonical effective scope key context, followed by ak.signal-v1 ExpandWithLabel with the verified sender domain as raw UTF-8 context. Covers distinct sender keys under an equal nonce and label, context, sender, and epoch mutations.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/arkret-private-kdf-fixture.json"
       ]

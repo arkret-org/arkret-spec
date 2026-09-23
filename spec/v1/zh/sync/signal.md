@@ -418,9 +418,7 @@ service-level profile preflight 后报告 peer relay unavailable，但不得暴�
 
 ## 5. 与 to-device 的硬边界
 
-`ak.secret.request/send` 以及直接参与设备信任确认、
-密钥分发、历史恢复的消息使用 `DeviceMessageEnvelope` 和可靠队列。它们不得进入 broadcast
-Signal，也不得使用 signal TTL/单跳 fanout 语义。
+设备专属控制消息使用 `DeviceMessageEnvelope` 和可靠队列，不得进入 broadcast Signal，也不得使用 signal TTL/单跳 fanout 语义。新设备的密钥恢复与 MLS 加入分别遵循备份和 `MlsWelcomeDelivery` 合同；`ak.secret.request` / `ak.secret.send` 在 v1 不可接纳。
 
 ## 6. 最小正反例
 

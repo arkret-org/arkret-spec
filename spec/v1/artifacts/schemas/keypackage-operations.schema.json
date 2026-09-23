@@ -244,14 +244,7 @@
       ],
       "properties": {
         "claim_id": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/non_empty_string"
-            },
-            {
-              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-            }
-          ]
+          "$ref": "./mls-welcome-delivery.schema.json#/properties/keypackage_claim_ref"
         },
         "keypackage_ref": {
           "$ref": "#/$defs/object_ref"
@@ -1398,14 +1391,7 @@
           "$ref": "#/$defs/digest"
         },
         "claim_id": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/non_empty_string"
-            },
-            {
-              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-            }
-          ]
+          "$ref": "./mls-welcome-delivery.schema.json#/properties/keypackage_claim_ref"
         },
         "recipient_durable_receipt": {
           "$ref": "#/$defs/recipient_mls_durable_receipt"
@@ -1430,14 +1416,7 @@
       ],
       "properties": {
         "claim_id": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/non_empty_string"
-            },
-            {
-              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-            }
-          ]
+          "$ref": "./mls-welcome-delivery.schema.json#/properties/keypackage_claim_ref"
         },
         "recipient_durable_receipt": {
           "$ref": "#/$defs/recipient_mls_durable_receipt",

@@ -734,7 +734,7 @@ Reducer MUST 把 `issuer_authority_refs[]` 中 `kind="grant"` 的条目视为有
 
 ### 10.3 Revoke 因果传播
 
-已确认撤销对所有依赖该 grant 的委托链按 action 与 scope 传递。新 grant 和安全操作在唯一安全确认顺序处检查真实当前前态；祖先已关闭时返回 `grant_revoked_upstream`。
+已确认撤销对所有依赖该 grant 的委托链按 action 与 scope 传递。新 grant 和安全操作在唯一安全确认顺序处检查真实当前前态；祖先已撤销、被取代、过期、tombstoned 或缺少可验证当前状态时 MUST 以 active `failed_precondition` 拒绝且零写入。`grant_revoked_upstream` 尚未激活，不得发射。
 
 所有共享持久 Event 都由当前治理 Station在 RealmCommit 位置读取 current grant 状态。消费方可以缓存 committed 结果，但缓存不得形成独立 accepted 状态；缺少 current authority 或必需依赖时保持 queued/pending，不得本地放行。
 

@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-23.1",
-  "generated_at": "2026-09-23T11:33:53+08:00",
+  "version": "2026-09-23.2",
+  "generated_at": "2026-09-23T22:27:30+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -6023,7 +6023,7 @@
         "service_call",
         "auth_decision"
       ],
-      "description": "HPKE suite id on an application-layer committed surface (key-backup recipient_method=recovery_public_key, ak.secret.send, member-application encryption_envelope, file-transfer key_envelope) is not an active row in artifacts/registry/hpke-suite-registry.json (unknown, inactive, or reserved-but-not-activated). Receivers MUST fail closed rather than infer suite parameters from the AEAD name. Dual-registered as a reason_code and a top-level service code (see codes[]). See zh/identity/key-management.md §7.5.2.",
+      "description": "HPKE suite id on an application-layer committed surface (key-backup recipient_method=recovery_public_key, member-application encryption_envelope, file-transfer key_envelope) is not an active row in artifacts/registry/hpke-suite-registry.json (unknown, inactive, or reserved-but-not-activated). Receivers MUST fail closed rather than infer suite parameters from the AEAD name. Dual-registered as a reason_code and a top-level service code (see codes[]). See zh/identity/key-management.md §7.5.2.",
       "status": "active"
     },
     {
