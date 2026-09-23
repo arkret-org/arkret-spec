@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.e2ee_client.v1",
-  "version": "2026-09-24.2",
+  "version": "2026-09-24.3",
   "suite": "key_backup_hardening",
   "runner": {
     "kind": "named_suite",
@@ -258,7 +258,7 @@
         "proof_signing_jcs": "{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixture\",\"station_id\":\"ak:did_core:webvh:z6mkfixtureStation\"},\"audience\":\"https://station.example\",\"auth_data\":{\"signature_algorithm\":\"Ed25519\",\"verification_method\":\"did:key:z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd#z6MkehRgf7yJbgaGfYsdoAsKdBPE3dj2CYhowQdcjqSJgvVd\"},\"backup_id\":\"ak:backup:0196419b-0000-7000-8000-000000000200\",\"backup_kind\":\"secret_storage\",\"challenge\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\"ciphertext_digest\":\"sha256:0c31fc0b3acbe8b18db4d70fa825ff47b70976bca4edfd9a2f4770086f4ac1e4\",\"expires_at\":\"2026-06-19T00:15:00.000Z\",\"issued_at\":\"2026-06-19T00:00:00.000Z\",\"kind\":\"recovery_session\",\"recovery_session_id\":\"ak:recovery_session:0196419b-0000-7000-8000-000000000100\",\"requesting_device_id\":\"ak:device:0196419b-0000-7000-8000-000000000002\",\"schema\":\"ak.schema.key_backup_unlock_proof.v1\",\"series_id\":\"ak:backup_series:0196419b-0000-7000-8000-000000000300\",\"service_id\":\"ak:did_core:webvh:z6mkfixtureStation\"}"
       },
       "expected": {
-        "valid_unlock": "test_material_denied",
+        "valid_unlock": "test_signing_material_denied",
         "binding_mismatch_reason": "recovery_evidence_unbound",
         "bearer_only_reason": "unauthenticated",
         "cross_actor_reason": "capability_denied",
@@ -281,7 +281,7 @@
         "algorithm": "Ed25519",
         "private_key_seed": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
         "public_key": "A6EHv_POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg",
-        "note": "Public offline conformance key registered in test-material-registry.json; live authorization MUST reject it as test_material_denied."
+        "note": "Public offline conformance key registered in test-material-registry.json; live authorization MUST reject it as test_signing_material_denied."
       }
     },
     {

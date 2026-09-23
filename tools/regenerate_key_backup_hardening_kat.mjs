@@ -85,7 +85,7 @@ delete proofUnsigned.auth_data.signature;
 vector.proof.auth_data.signature = b64u(sign(null, Buffer.from(canonical(proofUnsigned)), privateKey));
 vector.test_key = {
   algorithm: 'Ed25519', private_key_seed: b64u(seed), public_key: b64u(publicBytes),
-  note: 'Public offline conformance key registered in test-material-registry.json; live authorization MUST reject it as test_material_denied.'
+  note: 'Public offline conformance key registered in test-material-registry.json; live authorization MUST reject it as test_signing_material_denied.'
 };
 vector.crypto_transcript = {
   fixture_kind: 'cryptographic_transcript', aead: 'chacha20_poly1305',
@@ -94,12 +94,12 @@ vector.crypto_transcript = {
   ciphertext_and_tag_b64u: b64u(combined), ciphertext_digest: digest, tag_length_bytes: 16,
   envelope_signing_jcs: canonical(envelopeUnsigned), proof_signing_jcs: canonical(proofUnsigned)
 };
-vector.expected.valid_unlock = 'test_material_denied';
+vector.expected.valid_unlock = 'test_signing_material_denied';
 vector.expected.cryptographic_envelope_signature = 'valid';
 vector.expected.cryptographic_proof_signature = 'valid';
 vector.expected.cryptographic_aead_open = 'valid';
 vector.assertions = vector.assertions.map(a => a.includes('the real Ed25519 signature')
-  ? 'The published Ed25519 key proves offline transcript validity; live authorization rejects this key as test_material_denied.' : a);
+  ? 'The published Ed25519 key proves offline transcript validity; live authorization rejects this key as test_signing_material_denied.' : a);
 fixture.generated_by = 'tools/regenerate_key_backup_hardening_kat.mjs';
 
 // Independent cryptographic checks, including negative mutation controls.
