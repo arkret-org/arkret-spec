@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-24.1",
-  "generated_at": "2026-09-24T03:23:48+08:00",
+  "version": "2026-09-24.2",
+  "generated_at": "2026-09-24T07:50:30+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -728,7 +728,7 @@
       "code": "epoch_mismatch",
       "http_status": 409,
       "scope": "both",
-      "description": "The referenced encryption epoch is stale or unavailable.",
+      "description": "An encrypted authoring request references an epoch, group_state_ref or key_access_revision that differs from the ready current MLS group. HTTP 409. After verifying and acquiring current local MLS state, the sender re-encrypts into a new request; an exact retry of the old request does not re-encrypt. If the current scope itself awaits a winning Commit, failed_precondition with epoch_update_required takes precedence. Historical accepted Event replay and peer committed replication use their accepted historical binding.",
       "type_uri": "https://arkret.org/problems/epoch_mismatch",
       "title": "Epoch mismatch",
       "status": "active"

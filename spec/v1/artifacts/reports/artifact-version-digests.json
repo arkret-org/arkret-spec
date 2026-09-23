@@ -129,9 +129,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/error-code-registry.json",
-      "version": "2026-09-24.1",
-      "generated_at": "2026-09-24T03:23:48+08:00",
-      "content_digest": "sha256:4360821cc9398a60583c1afab188fe19282c54d21ac277368eddcf9341cd33cb"
+      "version": "2026-09-24.2",
+      "generated_at": "2026-09-24T07:50:30+08:00",
+      "content_digest": "sha256:bcd057ea9b18f5915aa0f66896514da8a45b54adee8ffd3205b3a07cdb8b90cc"
     },
     {
       "path": "spec/v1/artifacts/registry/event-kind-registry.json",
@@ -213,9 +213,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/normative-clause-registry.json",
-      "version": "2026-09-24.2",
-      "generated_at": "2026-09-24T03:23:48+08:00",
-      "content_digest": "sha256:c3b92429de4ba0127c4ab6a9cfc4847b83accdb06b9d046c420712e29832bbad"
+      "version": "2026-09-24.3",
+      "generated_at": "2026-09-24T07:51:31+08:00",
+      "content_digest": "sha256:1cd64c30b1e060c93cf02478f9621a5e7f2427f9f962930df895e72b71c8df96"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-bundle-closure-lock.json",
@@ -231,9 +231,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-09-24.5",
-      "generated_at": "2026-09-24T03:58:40+08:00",
-      "content_digest": "sha256:777bb3f2f4986aed6d1e0580cd93169e5e0d17844ba979746c2ada87cf2bf500"
+      "version": "2026-09-24.7",
+      "generated_at": "2026-09-24T07:50:30+08:00",
+      "content_digest": "sha256:d8f8022316e999e86308c1bf0458c751f968e78c4aefcbfdfca34a32d74aad92"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
@@ -243,9 +243,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operations-error-mapping.json",
-      "version": "2026-09-23.2",
-      "generated_at": "2026-09-23T23:22:59+08:00",
-      "content_digest": "sha256:e1f6312721e97b3b911726110d00af457efd056e7633ef1199c9ff449d7d4605"
+      "version": "2026-09-24.1",
+      "generated_at": "2026-09-24T07:50:30+08:00",
+      "content_digest": "sha256:6775b1b79868bf61610c28dc9be94732db115f50e7f11542703a5f90d2ba5c35"
     },
     {
       "path": "spec/v1/artifacts/registry/outward-disclosure-policy-registry.json",

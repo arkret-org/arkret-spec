@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-24.5",
-  "generated_at": "2026-09-24T03:58:40+08:00",
+  "version": "2026-09-24.7",
+  "generated_at": "2026-09-24T07:50:30+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -261,7 +261,7 @@
     },
     {
       "operation_id": "ak.peer.events.command.submit.v1",
-      "sha256": "sha256:d29e99ee75504bf1b5a88475a6c8c80a7cf8668c4cf73f26b2d307691df57490"
+      "sha256": "sha256:02e7c869de569f93dc49888a3ddfd2407491446d692af508654ea32a7199192e"
     },
     {
       "operation_id": "ak.peer.invites.command.submit.v1",
@@ -629,7 +629,7 @@
     },
     {
       "operation_id": "ak.self.events.command.submit.v1",
-      "sha256": "sha256:4a3a3e599eec8fde11834125386feb9cb77a4f8d539b193ba747eb6cb21325f4"
+      "sha256": "sha256:8ccff7db21d383ca6cbefe481d3fefa153ceeeed1653151bb1ed1fd8b27b246d"
     },
     {
       "operation_id": "ak.self.events.read.delivery_status.v1",
@@ -729,7 +729,7 @@
     },
     {
       "operation_id": "ak.self.messages.command.prepare.v1",
-      "sha256": "sha256:2346f436d2d6a2d6e0b400bece7cfbee30949a46d175c822637ad5fc10b44015"
+      "sha256": "sha256:62d8a2dcd1402d6449cb3ba54c71bb9fb69f81682699da8064b81f968075dcc1"
     },
     {
       "operation_id": "ak.self.moderation.command.report.v1",

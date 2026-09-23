@@ -194,6 +194,14 @@ MUST NOT 代替客户端加密，Station 在该 scope 中 MUST NOT 取得明文�
 的同一请求。该重试 MUST NOT 重新加密，因此 MUST NOT 推进 RFC 9420 sender ratchet 的 generation，也 MUST NOT
 产生第二份 ciphertext。为同一条消息生成第二份 ciphertext 会使已冻结的 AAD 与已送出的那份不再唯一对应。
 
+**MLS current 失配的唯一拒绝身份（normative）**：`kind="mls"` 的 prepare 以及后续 self／peer authority-forward
+Event submit，若 current scope 已有覆盖当前 key-access checkpoint 的 winning Commit，但冻结的 `epoch`、
+`group_state_ref` 或 `key_access_revision` 与 current `mls_group` result 不符，MUST 返回顶层
+`epoch_mismatch`（HTTP 409）；客户端验证并取得 current 本地 MLS state 后重新加密、构造新请求。若 current
+scope 尚待 winning Commit 覆盖，MUST 优先返回 `failed_precondition` + `epoch_update_required`，客户端暂停
+发送并等待或促成 repair Commit。已接受历史 Event 的读取／重放与 peer committed replication 按历史 binding
+验证，不套用 current send gate。
+
 **两请求路径假定发送就绪与本地 MLS state（normative）**：prepare + submit 这条两请求路径**假定**调用方已经
 send-ready 且已持有目标 epoch 的本地 MLS state。prepare MUST NOT 授予权限、MUST NOT 预留 sequence、
 MUST NOT 推进任何 stream 的 `RealmCommit.stream_position`，也 MUST NOT 建立、修复或代替本地 MLS state；
@@ -337,7 +345,7 @@ MLS private bytes 保持端到端加密；Station 只处理公开 transition 和
 - `authority_mismatch`：目标不是验证后的 current authority。
 - `stream_conflict`：expected position/predecessor 与当前 stream head 不符。
 - `cas_conflict`：typed payload 的领域 `expected_revision` 不符。
-- `epoch_mismatch`：MLS epoch/group-state/key-access revision 不符。
+- `epoch_mismatch`：发送请求冻结的 MLS epoch／group-state／key-access revision 与已就绪的 current group 不符。
 - `duplicate_conflict`：相同幂等身份或内容 ID 对应不同 canonical bytes。
 - `temporarily_unavailable`：可安全 exact retry，且未产生 Commit。
 

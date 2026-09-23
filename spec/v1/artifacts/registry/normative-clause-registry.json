@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-24.2",
+  "version": "2026-09-24.3",
   "source_of_truth": true,
-  "generated_at": "2026-09-24T03:23:48+08:00",
+  "generated_at": "2026-09-24T07:51:31+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -589,10 +589,10 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/sync/service-http-binding.md#28-普通消息的完整-authoring-准备",
-      "section_digest": "sha256:1450a0c4efeb7b446e3195bf9879607fe846544ee7f2150f745f3b7a18d75ff7",
-      "requirement": "Message prepare distinguishes local plaintext intent from the encrypted wire request: the intent content oneOf is closed, a plaintext prepare is rejected in an MLS-activated scope, and the client freezes its AAD inputs and encrypts locally before calling prepare rather than letting the Station encrypt. The client compares the returned draft ciphertext, encrypted metadata and bindings byte-for-byte against what it froze and fails closed on any difference. An exact retry replays byte-identical bytes, so it never re-encrypts and never consumes another sender ratchet generation. The two-request path assumes send readiness and local MLS state: prepare grants no permission, reserves no sequence, advances no stream position and does not establish MLS state.",
+      "section_digest": "sha256:26747904bbed269a5c4be85a31bf1017aa1d0436a3cc9ac363ed9d8fefb88a28",
+      "requirement": "Message prepare distinguishes local plaintext intent from the encrypted wire request: the intent content oneOf is closed, a plaintext prepare is rejected in an MLS-activated scope, and the client freezes its AAD inputs and encrypts locally before calling prepare rather than letting the Station encrypt. The client compares the returned draft ciphertext, encrypted metadata and bindings byte-for-byte against what it froze and fails closed on any difference. An exact retry replays byte-identical bytes, so it never re-encrypts and never consumes another sender ratchet generation. When the current checkpoint awaits a winning Commit, failed_precondition with epoch_update_required requires the client to pause; when a ready current group differs from the frozen encryption context, top-level epoch_mismatch requires fresh local MLS state and a newly encrypted request. The two-request path assumes send readiness and local MLS state: prepare grants no permission, reserves no sequence, advances no stream position and does not establish MLS state.",
       "testability_grade": "audit",
-      "test_plan": "Audited against message-authoring.schema.json: the review pass asserts message_authoring_content is a closed oneOf of plaintext and mls, that message_prepare_outcome returns only a draft with no acceptance, reservation or position, and that no prepare request member carries a key or would let the Station encrypt. A conformance run replays a byte-identical prepare and asserts a single ciphertext and no second sender ratchet generation. No vector exists because the obligation spans a client-local encryption step the vector harness does not author."
+      "test_plan": "Audited against message-authoring.schema.json and operations-error-mapping.json: the review pass asserts message_authoring_content is a closed oneOf of plaintext and mls, that message_prepare_outcome returns only a draft with no acceptance, reservation or position, that epoch_mismatch is registered for prepare and current send admission, and that no prepare request member carries a key or would let the Station encrypt. A conformance run replays a byte-identical prepare and asserts a single ciphertext and no second sender ratchet generation; separate stale-group and pending-Commit cases assert epoch_mismatch versus epoch_update_required and the respective re-encrypt versus pause action. No vector exists because the obligation spans a client-local encryption step the vector harness does not author."
     },
     {
       "clause_id": "AK-NC-071",

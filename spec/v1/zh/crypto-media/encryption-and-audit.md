@@ -226,10 +226,19 @@ winning Commit 覆盖而返回 `epoch_update_required`。
 
 #### 2.5.2 Send gate 与 self-heal
 
-encrypted application Event携带 `epoch`、`group_state_ref` 与 `key_access_revision`。Station 仅在三者匹配
-current `mls_group` result且 producer current-authorized时提交。revision不一致返回
-`epoch_update_required`。任一 active、获权客户端可以从 current public state和 desired roster构造 repair Commit；
-同一 base 上只有第一个合法 Commit成功 CAS。
+encrypted application Event 携带 `epoch`、`group_state_ref` 与 `key_access_revision`。Station 仅在三者匹配
+current `mls_group` result 且 producer current-authorized 时提交。治理 Station MUST 先判定 current scope 的
+membership／policy／key-access checkpoint 是否已被 winning Commit 覆盖；尚未覆盖时返回
+`failed_precondition` + `epoch_update_required`，客户端 MUST 暂停新的 encrypted application Event，等待或由获权客户端
+促成 repair Commit，不得对尚不存在的目标 epoch 盲目重新加密。若 current scope 已被 winning Commit 覆盖，
+但本次发送冻结的 `epoch`、`group_state_ref` 或 `key_access_revision` 与 current `mls_group` result 不符，
+MUST 返回顶层 `epoch_mismatch`（HTTP 409）。客户端 MUST 获取并验证 current public group result 与连续 MLS
+transition，在取得对应本地 private state 后重新加密，构造新的 prepare／submit 请求；不得把旧 ciphertext 改绑到新
+epoch，也不得在原请求的 exact retry 中重新加密。`mls_governance_binding_stale` 只用于 current epoch 对具体
+key-access 消费的覆盖不足，不表示本次请求引用了被取代的 epoch。上述 current send gate 不适用于已接受历史
+Event 的重放或 peer committed replication；这些材料依其 accepted historical binding 验证。
+任一 active、获权客户端可以从 current public state 和 desired roster 构造 repair Commit；同一 base 上只有第一个
+合法 Commit 成功 CAS。
 
 #### 2.5.3 GroupContext extension 与客户端验证
 
