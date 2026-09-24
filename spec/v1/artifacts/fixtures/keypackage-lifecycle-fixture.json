@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.e2ee_client.v1",
-  "version": "2026-09-23.3",
+  "version": "2026-09-25.1",
   "suite": "keypackage_lifecycle",
   "runner": {
     "kind": "named_suite",
@@ -919,9 +919,7 @@
         "device_authorize_event_id": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
         "agent_key_authorize_event_id": null,
         "keypackage_digest": "sha256:039058c6f2c0cb492c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81",
-        "signature_verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001",
-        "producer_proof_present_in_authorization_event_envelope": true,
-        "signer_resolution_evidence_ref": "sha256:5bc109a59cd6e594bbe6acf4d54bad93c45ba091d03d8c677b93e706c11313ff"
+        "signature_verification_method": "did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001"
       },
       "claim_receipt": {
         "signer_id": "ak:did_core:webvh:z6mkfixtureserverbetaexample",
@@ -930,7 +928,7 @@
         "covers_recomputed_claim_bytes": true
       },
       "requester_checks_before_install": [
-        "authorization_event_embedded_portable_producer_signer_evidence",
+        "peer_device_directory_attestation_binds_authorize_event_and_signing_key",
         "destination_signed_claim_receipt",
         "keypackage_signature",
         "every_selector_of_the_claim_record"
@@ -946,7 +944,7 @@
         "claim_record_carries_both_branch_authorization_event_ids",
         "claim_record_authorization_event_id_names_another_accepted_event",
         "producer_proof_verifiable_only_by_replaying_the_producer_control_history",
-        "signer_resolution_evidence_ref_resolves_to_a_superseded_key",
+        "directory_attestation_names_a_superseded_key_or_another_authorize_event",
         "claim_receipt_signed_over_a_reserialization_of_the_claim_bytes",
         "claim_receipt_claim_request_id_differs_from_the_request",
         "keypackage_signature_valid_but_selector_mismatched"
@@ -955,19 +953,28 @@
         "install_keypackage_before_all_four_checks_pass": false,
         "author_welcome_before_all_four_checks_pass": false,
         "branch_authorization_event_id_is_required_and_exact_xor": true,
-        "producer_proof_verifiable_without_any_sidecar_or_history_replay": true,
+        "device_signer_verified_from_peer_directory_attestation_without_sidecar_or_history_replay": true,
         "claim_receipt_verified_over_recomputed_claim_bytes": true,
         "external_verifier_replays_pcr_genesis_or_realmcommits": false,
         "any_mutation_blocks_both_install_and_welcome_authoring": true
       },
       "assertions": [
         "the claim record carries the accepted authorization Event id of its own closed branch, and the device and Agent ids are an exact XOR rather than two optional members",
-        "the producer proof is verifiable independently of the producer: the requester resolves it from the authorization Event envelope and its portable signer evidence, never by replaying the producer's control history",
+        "on the device branch the requester Station obtains the target device's signed peer_query_device_record through ak.peer.keys.read.lookup.v1 with purpose mls_group_admission, verifies it by the section 8.2 rules, and requires attestation device_authorize_event_id to equal the claim record's and device_signing_key_did to be the key that verified the KeyPackage and LeafNode signatures; the Agent branch keeps its existing Agent signer evidence rule; no producer's control history is ever replayed",
         "the destination-signed claim_receipt is verified over the claim bytes the requester recomputes, not over a reserialization the response supplies",
-        "all four checks -- authorization Event signer evidence, claim receipt, KeyPackage signature and every selector -- complete before the KeyPackage is installed and before a Welcome is authored, so a later mismatch cannot be discovered after the group already exists",
+        "all four checks -- peer device-directory attestation (or Agent signer evidence), claim receipt, KeyPackage signature and every selector -- complete before the KeyPackage is installed and before a Welcome is authored, so a later mismatch cannot be discovered after the group already exists",
         "any one of the eight mutations blocks both installing the KeyPackage and authoring the Welcome; neither is reached on a partial verification",
         "the wire carries no PCR, control-history, device or Agent signer-evidence sidecar, and an external verifier never replays PCR genesis, RealmCommits or complete control history"
-      ]
+      ],
+      "peer_device_directory_lookup": {
+        "operation_id": "ak.peer.keys.read.lookup.v1",
+        "purpose": "mls_group_admission",
+        "row_type": "peer_query_device_record",
+        "verification": "device-lifecycle.md section 8.2 four rules",
+        "attestation_device_authorize_event_id_equals_claim_record": true,
+        "attestation_device_signing_key_did_verifies_keypackage_and_leaf_node_signature": true,
+        "agent_branch": "unchanged Agent signer evidence rule"
+      }
     },
     {
       "name": "welcome_add_commit_and_claim_record_binding",

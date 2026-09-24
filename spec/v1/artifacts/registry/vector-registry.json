@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-25.1",
+  "version": "2026-09-25.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-25T00:44:00+08:00",
+  "generated_at": "2026-09-25T01:00:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -3138,7 +3138,7 @@
       "applies_to_fixtures": [
         "keypackage-lifecycle-fixture.json"
       ],
-      "description": "Peer KeyPackage claim requires both a participant signature bound to the exact request/service destination and the source-service HTTP Message Signature. Destination authority, both directional Contact heads/scopes, capability, freshness and Direct Conversation no-last-resort gates fail closed behind one claim_failed surface without inventory leakage; Consent is not queried.",
+      "description": "Peer KeyPackage claim requires both a participant signature bound to the exact request/service destination and the source-service HTTP Message Signature. Destination authority, both directional Contact heads/scopes, capability, freshness and Direct Conversation no-last-resort gates fail closed behind one claim_failed surface without inventory leakage; Consent is not queried. Before installing a claimed device-branch KeyPackage or authoring a Welcome, the requester Station verifies the target device's signed peer directory attestation (ak.peer.keys.read.lookup.v1, purpose mls_group_admission) and requires its device_authorize_event_id and device_signing_key_did to match the claim record and the KeyPackage/LeafNode signer; a superseded key or another authorize Event blocks install.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json"
       ]
