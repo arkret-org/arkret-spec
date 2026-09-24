@@ -2,7 +2,7 @@
   "suite": "key_backup_schema_validation",
   "fixture_kind": "schema_only",
   "profile": "ak.profile.key_backup.memory_hard.v1",
-  "version": "2026-09-24.2",
+  "version": "2026-09-24.3",
   "description": "Schema-only positive and negative wire-form validation cases for key backup and recovery contracts. Placeholder nonce/ciphertext/signature values are intentional and MUST NOT be treated as cryptographic conformance vectors. Covers ak.schema.key_backup.v1 series chain rules (genesis vs successor), passphrase_kdf nonce_salt, Argon2id memory-hard floor, PBKDF2 degraded-profile requirement, mixed_secret_storage policy gate, Agent PCR binding across public/plaintext/AAD views, derived whole-object signature projections, the canonical envelope and active-series source_commit_ref{realm_commit_id,device_generation_ref} with noncanonical alias, CommittedEventRef, string generation and missing-member rejection, source-anchor optionality, predecessor-chain independence, and minimal ak.schema.recovery_policy.v1 / ak.schema.recovery_receipt.v1 binding cases for the closed four-method union. Per identity/key-management.md §7.2 / §7.3 / §7.6 / §8, identity/security-transactions.md §2, and crypto-media/device-lifecycle.md §12 / §14. Lint runs tools/artifact_lint against schema_validation_cases[]. Real AEAD/HPKE/signature transcript vectors belong in a separate crypto fixture with reproducible key material and canonical bytes. Signed public contents index is required and closed; empty, unknown item kind, missing identity, and extra members fail schema.",
   "runner": {
     "kind": "json_schema_validation_cases",
@@ -227,7 +227,7 @@
       "expect_valid": true,
       "instance": {
         "device_generation_ref": 7,
-        "realm_commit_id": "ak:realm_commit:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+        "realm_commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4"
       }
     },
     {
@@ -258,7 +258,7 @@
         "series_pointer_version": 1,
         "previous_series_ids": [],
         "source_commit_ref": {
-          "realm_commit_id": "ak:realm_commit:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "realm_commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
           "device_generation_ref": 7
         },
         "issued_at": "2026-09-20T00:00:00.000Z",
@@ -377,7 +377,7 @@
         "supersedes_id": "ak:backup:01964137-1000-7000-8000-000000000001",
         "supersedes_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
         "source_commit_ref": {
-          "realm_commit_id": "ak:realm_commit:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "realm_commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
           "device_generation_ref": 7
         },
         "created_at": "2026-09-20T00:00:00.000Z",

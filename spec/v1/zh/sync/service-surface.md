@@ -77,20 +77,22 @@ closed `current_assertion` 删除 `signature` 后的全部实际存在成员，�
 
 ### 2.7 Device-pairing 分离部署边界（normative）
 
-device-pairing 的 client-visible `stage/resolve/status` origin 固定为 Station；Account Authority 分离部署时，
-Station 通过三项已登记 deployment-internal operation 原样代理 canonical DTO，但不拥有 pairing 业务状态。
-`finalize_device_pairing` 与 `claim_device_pairing_code` 仍由 Account Authority 作唯一业务裁决和耐久写入；
-承载这两个 `ak.gate.account.*` 路由的 Station 角色 endpoint 只能在实际挂载并代理到该 Authority 时广告
+device-pairing 的 client-visible origin 固定为 Station。Account Authority 是 Station 内部职责，不取得独立
+`service_kind` 或 Service DID；分离部署时，Station 按 [`service-http-binding.md` §2.2.3](./service-http-binding.md#223-deployment-internal-channel)
+的部署内私有通道，把 `ak.open.device_pairing.command.stage.v1`、`ak.open.device_pairing.read.resolve.v1`、
+`ak.open.device_pairing.read.status.v1` 三项 open operation 以及 `ak.gate.account.command.finalize_device_pairing.v1`、
+`ak.gate.account.read.claim_device_pairing_code.v1` 两项 gate operation 的已登记 canonical DTO 原样代理给 Account
+Authority。该通道不登记任何 operation，代理范围只限这五项 operation 的请求与响应转交，不扩大 Station 的写入职责。
+`finalize_device_pairing` 与 `claim_device_pairing_code` 由 Account Authority 作唯一业务裁决和耐久写入；承载这两个
+gate 路由的 Station 角色 endpoint 只能在实际挂载并代理到该 Authority 时广告
 `ak.operation_bundle.station.account_gate_pairing.v1`。其它 Station endpoint 不得仅凭共同 Station 身份广告此 bundle。
-Account Authority 是 Station 内部职责，不取得独立 `service_kind` 或 Service DID。
-Account Authority 是 pending、abuse、admission fence 与 terminal outcome 的唯一 durable owner；Station 不得维护
-第二份可写 ledger、从 proxy response 推导另一份状态，或让客户端改打 internal origin。
+Account Authority 是 pending、abuse、admission fence 与 terminal outcome 的唯一 durable owner；Station 不拥有 pairing
+业务状态，不得维护第二份可写 ledger、从 proxy response 推导另一份状态，或让客户端改打 internal origin。
 
-`pair_device` 的 `ak.device.authorize` 仍由 producer 签署并经 owning Station 的
-`ak.peer.events.command.submit.v1` `authority_forward` branch 首次接纳。Station 的 Event/RealmCommit transaction
-与 Authority 的三阶段 fence/local terminal transaction 是两个独立 durable boundary，由
-`operation_registry.coordination_relations` 登记的 exact request、receipt 和恢复状态机连接；规范不得以共享数据库
-或跨库单事务作为隐含前提。
+`pair_device` 的 `ak.device.authorize` 仍由 producer 签署，由 owning Station 在自己的 Event／RealmCommit 事务中接纳。
+该事务与 Account Authority terminal 之间的连接与恢复属于实现私有机制，规范不得以共享数据库或跨库单事务作为隐含前提；
+对外只要求公开 operation 边界上的结果：成功的 Event、唯一 RealmCommit 与 terminal outcome 可 exact replay，
+内部状态未知或不确定时 fail closed，不扩大公开信息。
 
 ## 3. 通用服务描述接口
 

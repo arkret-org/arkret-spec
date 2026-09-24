@@ -307,6 +307,9 @@ context mappings。
 
 ### 10.1 必跑 conformance vectors
 
+下列向量在 [`vector-registry.json`](../../artifacts/registry/vector-registry.json) 中当前均为 `reserved`：
+尚无机器 fixture 承载，激活前不构成认证证据。每个向量在补齐 fixture 并回到 `active` 的同一变更中成为必跑项。
+
 - `ak.vector.sidecar.mls_bootstrap_binding.v1`
 - `ak.vector.sidecar.mls_effective_access.v1`
 - `ak.vector.sidecar.ensure_idempotent.v1`
@@ -324,7 +327,6 @@ context mappings。
 - `ak.vector.sidecar.revoke_fail_closed.v1`
 - `ak.vector.sidecar.explicit_publish.v1`
 - `ak.vector.sidecar.accepted_request_identity.v1`
-- `ak.vector.sidecar.hosted_ui_matrix.v1`
 
 ## 11. 规范性引用
 

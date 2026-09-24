@@ -204,6 +204,16 @@ def main() -> None:
     new_requested_digest = "sha256:" + hashlib.sha256(canonical(requested_preimage).encode("utf-8")).hexdigest()
     agent = replace(agent, old_requested_digest, new_requested_digest)
     runtime = next(case for case in agent["cases"] if case.get("name") == "agent_runtime_key_binding")
+    old_binding_digest = runtime["expected_binding_digest"]
+    new_binding_digest = "sha256:" + hashlib.sha256(runtime["canonical_binding_json"].encode("utf-8")).hexdigest()
+    agent = replace(agent, old_binding_digest, new_binding_digest)
+    runtime = next(case for case in agent["cases"] if case.get("name") == "agent_runtime_key_binding")
+    old_transcript_digest = runtime["expected_possession_transcript_digest"]
+    new_transcript_digest = "sha256:" + hashlib.sha256(
+        runtime["canonical_possession_transcript_json"].encode("utf-8")
+    ).hexdigest()
+    agent = replace(agent, old_transcript_digest, new_transcript_digest)
+    runtime = next(case for case in agent["cases"] if case.get("name") == "agent_runtime_key_binding")
     runtime["expected_pairing_request_binding_digest"] = "sha256:" + hashlib.sha256(
         runtime["canonical_pairing_request_binding_json"].encode("utf-8")
     ).hexdigest()

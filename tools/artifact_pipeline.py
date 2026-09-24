@@ -74,6 +74,9 @@ KEY_BACKUP_HARDENING_KAT_SCRIPT = Path(__file__).with_name("regenerate_key_backu
 CURSOR_NEGATIVE_FIXTURE_SCRIPT = Path(__file__).with_name(
     "check_cursor_negative_fixture.py"
 )
+VECTOR_REGISTRY_TRACEABILITY_SCRIPT = Path(__file__).with_name(
+    "check_vector_registry_traceability.py"
+)
 ARTIFACT_VERSION_SCRIPT = Path(__file__).with_name("check_artifact_versions.py")
 COMPLETENESS_REPORT_SCRIPT = Path(__file__).with_name("gen_operation_completeness_report.py")
 EVENT_REFERENCE_INVENTORY_SCRIPT = Path(__file__).with_name(
@@ -1323,6 +1326,13 @@ def run_cursor_negative_fixture_check() -> int:
     return result.returncode
 
 
+def run_vector_registry_traceability_check() -> int:
+    result = subprocess.run(
+        [sys.executable, str(VECTOR_REGISTRY_TRACEABILITY_SCRIPT)], cwd=ROOT
+    )
+    return result.returncode
+
+
 def cmd_generate(_: argparse.Namespace) -> int:
     synchronize_event_admission(ROOT, check=False)
     write_capability_action_derivations()
@@ -1412,6 +1422,7 @@ def cmd_check(_: argparse.Namespace) -> int:
         "schema_constructability_test": run_schema_constructability_test,
         "creator_bootstrap_transaction_test": run_mls_creator_bootstrap_transaction_test,
         "fixture_digests": run_fixture_digest_check,
+        "vector_registry_traceability": run_vector_registry_traceability_check,
         "session_grant_kat": run_session_grant_kat_check,
         "contact_round_kat": run_contact_round_kat_check,
         "handle_claim_kat": run_handle_claim_kat_check,

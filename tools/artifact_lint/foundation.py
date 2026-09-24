@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import base64
+import binascii
 import hashlib
 
 from .core import (
     ARTIFACTS,
+    NEGATIVE_TOKEN_PATH_SEGMENTS,
     Any,
     CELL_FAMILY_RE,
     CELL_SUBJECT_COMPONENT_ONLY_KINDS,
@@ -3616,6 +3618,148 @@ def check_typed_id_fixture_value_closure(lint: Lint) -> None:
             f"stale fixture typed ID exemption: {key[0]} ({key[1]}) no longer carries "
             f"{key[2]!r} or no longer needs an exemption",
         )
+
+    check_typed_id_fixture_positive_content_address_suites(lint, registry, exemptions)
+
+
+SUITE_TAGGED_CONTENT_ADDRESS_PAYLOAD = "[A-Za-z0-9_-]{44}"
+
+
+def fixture_case_declares_rejection(node: dict[str, Any]) -> bool:
+    """True when a fixture case object declares, by a structured outcome, that it is rejected."""
+    if node.get("expect_valid") is False:
+        return True
+    if node.get("semantic_outcome") == "reject":
+        return True
+    expected_result = node.get("expected_result")
+    return isinstance(expected_result, str) and expected_result.startswith("reject")
+
+
+def suite_tagged_content_address_kinds(registry: dict[str, Any]) -> dict[str, bool]:
+    """Return ``wire segment -> fixed-suite`` for every 33-byte suite-tagged content address.
+
+    The set is read from the registry, never listed here: every ``id_kinds`` row
+    whose ``id_form`` is ``event_derived`` or ``suite_tagged_full_digest`` and
+    every content-addressed ``special_forms`` row whose payload is the 44-char
+    suite-tagged token. The flag marks the kinds digest-suite-registry.json pins
+    to ``fixed_v1_content_address_suite`` (Event, Event-derived objects and
+    RealmCommit); the others only need a registered active suite byte.
+    """
+    kinds: dict[str, bool] = {}
+    for row in registry.get("id_kinds") or []:
+        if not isinstance(row, dict) or not isinstance(row.get("kind"), str):
+            continue
+        if row.get("id_form") == "event_derived":
+            kinds[row["kind"]] = True
+        elif row.get("id_form") == "suite_tagged_full_digest":
+            kinds[row["kind"]] = False
+    for row in registry.get("special_forms") or []:
+        if (
+            isinstance(row, dict)
+            and isinstance(row.get("kind"), str)
+            and row.get("content_addressed") is True
+            and row.get("payload_pattern") == SUITE_TAGGED_CONTENT_ADDRESS_PAYLOAD
+        ):
+            kinds[row["kind"]] = row["kind"] == "realm_commit"
+    return kinds
+
+
+def check_typed_id_fixture_positive_content_address_suites(
+    lint: Lint,
+    registry: dict[str, Any],
+    exemptions: dict[tuple[str, str, str], str],
+) -> None:
+    """Hold every positive fixture content address to a registered digest suite.
+
+    The value closure above proves a 44-char token has the registered shape; it
+    cannot see the leading suite byte. `ak:realm_commit:AAAA…` is shape-valid,
+    yet it decodes to suite code 0x00, which digest-suite-registry.json leaves
+    permanently unassigned, so a receiver MUST reject it with
+    `unsupported_digest_algorithm`. Publishing it in an `expect_valid: true`
+    case asks conforming implementations to accept a value the protocol forbids.
+
+    Every suite-tagged content address a positive case ships therefore has to
+    decode to 33 canonical bytes with a zero reserved nibble and an active
+    registered suite code; kinds pinned to the fixed v1 content-address suite
+    must carry exactly that code. A subtree whose case object declares rejection
+    (`expect_valid: false`, `semantic_outcome: "reject"`, `expected_result:
+    "reject…"`) is a negative vector and stays out of scope, as does a
+    `rejected_form(s)` branch (the fixture pass's NEGATIVE_TOKEN_PATH_SEGMENTS)
+    and an exact pointer registered in tools/fixture-typed-id-exemption-registry.json.
+    """
+    suite_path = ARTIFACTS / "registry" / "digest-suite-registry.json"
+    suites = load_json(lint, suite_path)
+    if not isinstance(suites, dict):
+        return
+    active_codes = {
+        row.get("wire_code")
+        for row in suites.get("suites") or []
+        if isinstance(row, dict) and row.get("status") == "active" and isinstance(row.get("wire_code"), int)
+    }
+    fixed_suite = suites.get("fixed_v1_content_address_suite")
+    fixed_codes = {
+        row.get("wire_code")
+        for row in suites.get("suites") or []
+        if isinstance(row, dict) and row.get("canonical_id") == fixed_suite
+    }
+    if not active_codes or len(fixed_codes) != 1:
+        lint.fail(suite_path, "digest suite registry must expose active wire codes and one fixed v1 content-address suite")
+        return
+    fixed_code = next(iter(fixed_codes))
+    kinds = suite_tagged_content_address_kinds(registry)
+
+    def check_value(path: Path, pointer: str, position: str, segment: str, payload: str, value: str) -> None:
+        if segment not in kinds:
+            return
+        if (f"{path.name}#{pointer}", position, value) in exemptions:
+            return
+        token = payload[:44]
+        try:
+            body = base64.urlsafe_b64decode(token + "=" * (-len(token) % 4))
+        except (ValueError, binascii.Error):
+            body = b""
+        if len(body) != 33 or base64.urlsafe_b64encode(body).rstrip(b"=").decode("ascii") != token:
+            lint.fail(path, f"{pointer} positive case ships ak:{segment} value {value!r} that is not a canonical 33-byte suite-tagged token")
+            return
+        header = body[0]
+        suite_code = header & 0x0F
+        if header >> 4:
+            lint.fail(path, f"{pointer} positive case ships ak:{segment} value {value!r} with non-zero reserved header nibble")
+        elif suite_code not in active_codes:
+            lint.fail(
+                path,
+                f"{pointer} positive case ships ak:{segment} value {value!r} whose digest-suite code "
+                f"0x{suite_code:02x} is not an active row of registry/digest-suite-registry.json; a receiver "
+                "must reject it as unsupported_digest_algorithm",
+            )
+        elif kinds[segment] and suite_code != fixed_code:
+            lint.fail(
+                path,
+                f"{pointer} positive case ships ak:{segment} value {value!r} with digest-suite code "
+                f"0x{suite_code:02x}; this identity is fixed to suite 0x{fixed_code:02x}",
+            )
+
+    def visit(path: Path, node: Any, pointer: str) -> None:
+        if isinstance(node, dict):
+            if fixture_case_declares_rejection(node):
+                return
+            for key, child in node.items():
+                if f".{key}." in NEGATIVE_TOKEN_PATH_SEGMENTS:
+                    continue
+                child_pointer = f"{pointer}/{json_pointer_token(key)}"
+                for row in typed_id_value_occurrences(key, child_pointer, "object_key"):
+                    check_value(path, *row)
+                visit(path, child, child_pointer)
+        elif isinstance(node, list):
+            for index, child in enumerate(node):
+                visit(path, child, f"{pointer}/{index}")
+        elif isinstance(node, str):
+            for row in typed_id_value_occurrences(node, pointer, "value"):
+                check_value(path, *row)
+
+    for path, document in typed_id_value_documents(lint):
+        if document is not None:
+            visit(path, document, "")
 
 
 EVENT_KIND_VERB_FORMS = ("base", "past_participle", "not_applicable")

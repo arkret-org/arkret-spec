@@ -303,9 +303,9 @@ registration/grant，任一失败整个单元不可见。membership、E2EE 与 w
   Realm owner、membership、package controller proof 或 install endpoint authentication
   均不得替代该 authority。规则只覆盖 `ak.applet.ghost.provision`，不得类推到其它
   non-event action。
-  Conformance 必须执行
-  `ak.vector.capability.applet_bridge_non_event_grant_authority.v1` 的 owner/profile/binding
-  正负向矩阵。
+  owner/profile/binding 正负向矩阵由
+  `ak.vector.capability.applet_bridge_non_event_grant_authority.v1` 定义；该向量当前为 `reserved`，
+  补齐 fixture 并回到 `active` 后 conformance 必须执行。
 
 当 controller proof 无效、DID Document 不可解析或 key ref 不匹配、namespace pattern 非法（`applet_namespace_pattern_invalid`）、exclusive namespace 与 active install 冲突（`applet_namespace_conflict`）、requested action 不在 capability registry、effective_scope 所属 Realm policy 禁止 Applet/Ghost Actor/widget/E2EE、或 package 已过期时，Preview MUST fail closed。Commit 重算 plan 时 MUST 复验这两项并返回同一 code。
 

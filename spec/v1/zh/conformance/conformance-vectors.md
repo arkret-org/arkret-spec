@@ -112,8 +112,12 @@ DID route 只是 authority locator 信号；权威身份仍由 genesis 和 old�
 
 ## 3. 向量定义
 
-本节逐条定义 [`vector-registry.json`](../../artifacts/registry/vector-registry.json) 登记的一致性向量，
-其中一部分另有可执行 fixture 证据。每条给出该向量 MUST 证明的判定点；适用面、profile 与正文依据以 registry 行为准。
+本节逐条定义 [`vector-registry.json`](../../artifacts/registry/vector-registry.json) 登记的一致性向量。
+每条给出该向量 MUST 证明的判定点；适用面、profile、状态与正文依据以 registry 行为准。`status=active` 的向量
+MUST 由 `spec/v1/artifacts/fixtures/` 下的 fixture 以 `vector_id`／`negative_cases_vector_id`／`name`／`covers_vectors`
+可追溯地承载，`tools/check_vector_registry_traceability.py` 与 Cotest strict vector registry gate 执行同一判定；
+尚无 fixture 的现行义务登记为 `reserved`，registry 行写明原因与激活条件，其判定点仍按本节定义，但在激活前
+不构成认证证据，任何实现不得声称已通过。
 `normative-clause-registry.json` 的 `coverage_scope.executable_fixture_categories` 列出的条款类别中，
 每个向量 MUST 有一份 fixture 用 `security_evidence` 把本节的判定点逐条映射到该 fixture 内可解析的 case；
 尚未闭合的 (条款, 向量) 对必须逐条登记在同一 registry 的 `executable_evidence_exemptions` 里，该清单只减不增。
@@ -302,11 +306,12 @@ mask 的双重命中必须稳定选择 `direct_conversation_terminal_forbidden`�
 
 ### 3.7 编码与 proof context
 
-`ak.vector.encoding.event_digest.v1` MUST 证明：event digest 的 preimage 是移除 `event_id`、`producer_proof` 与
+`ak.vector.event_id.content_bound.v1` MUST 证明：event digest 的 preimage 是移除 `event_id`、`producer_proof` 与
 `unsigned` 后的 canonical Event Envelope；`event_id` 由该 digest 一次前向派生，因此 MUST NOT 出现在 preimage 中。
-`event_id` 的 33 octets 为 suite code 拼接完整 digest 后做无 padding base64url。实现 MUST NOT 把 transport
-envelope、HTTP header、Station sync 面的 metadata 或本地接收时间放入 event digest；同一 Event 在不同读取面上
-MUST 得到相同 digest。
+`event_id` 的 33 octets 为 suite code 拼接完整 digest 后做无 padding base64url；携带的 `event_id` 与重算不符、
+suite code 不符或未登记、reserved nibble 非零、带 padding 或解码长度错误均 MUST 拒绝。按
+[`encoding.md` §5](./encoding.md)，transport envelope、HTTP header、Station sync 面的 metadata 与本地接收时间
+都不进入该 preimage。
 
 `ak.vector.encoding.canonical_event_tie_break.v1` MUST 证明：[`encoding.md` §3.4](./encoding.md) 的
 canonical 展示顺序——对一组互不排序的候选 Event，排序键是**解码后的 digest octets** 的 unsigned lexicographic
@@ -339,9 +344,10 @@ backfill 重放，以及 canonical bytes／digest／签名校验。字节比较�
 `ak.vector.encoding.result_selector_uri.v1` MUST 证明：canonical MIMI room URI 是 typed current result 的
 subject 来源；哈希化 subject、URI fragment 截断与 caller 自行分配的备用 room 标识符一律拒绝。
 
-`ak.vector.proof_context.transcript.event_envelope.v1` MUST 证明：`ak.event_proof.v1` 的 transcript KAT——
-digest 输入恰好删除 `event_id`、`producer_proof`、`unsigned` 三个成员；canonical binding bytes 与 detached JWS 逐字节固定；
-同一未签名 body 在 `ak.extension_manifest_proof.v1` 下重放 MUST 拒绝。
+`ak.event_proof.v1` 的 transcript KAT 由 `ak.vector.encoding.signature_binding_payload.v1` 系列与
+`ak.vector.encoding.crypto.ed25519_detached_jws.v1` 承载：binding object 的 `event_digest` 取上述 preimage，
+canonical binding bytes 与 detached JWS 逐字节固定；`context` 作为 binding object 成员进入签名输入
+（[`encoding.md` §6.0.2](./encoding.md)），因此同一未签名 body 在另一 proof context 下重放不能通过验证。
 
 `ak.vector.encoding.derived_relation_evidence.v1` MUST 证明：机器 fixture 中每一条派生结论都以它所命名的
 输入被重算，而不是与输入并列书写。每条关系 MUST 声明封闭词表中的 relation、其全部输入引用与输出引用；引用只能是
@@ -648,9 +654,6 @@ message 字段按封闭 schema 拒绝且不创建 Strand 或 Relation；本地�
 保持可见，缺失的 Sidecar 私有视图显示空态而不回退到共享读写；合并视图按 Sidecar Event id 去重并持续显示
 来源与仅 controller 可见标识；只有 request 与显式面向用户的响应可进入回显，内部协作 Event 与 Sidecar 内
 native Event 不创建回显；第二设备得到相同排序、状态与去重结果，且无需在来源 Realm 重放私有 Event。
-
-`ak.vector.sidecar.hosted_ui_matrix.v1` MUST 证明：Chrome 与 Edge 上执行 hosted 的多 Track、多模式、多设备、
-多 Agent 与响应式 UI 矩阵，状态保持且具备增量切换证据。
 
 `ak.vector.sidecar.non_disclosure_surface_matrix.v1` MUST 证明：每一个共享列表、展开、动态、导出、URL、
 日志与遥测面都不披露 Sidecar 定位符、身份、内容或折叠输入。

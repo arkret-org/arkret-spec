@@ -24,8 +24,22 @@ KEY_B_SEED = bytes.fromhex(
 REALM_ID = "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
 EVENT_ID = "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD"
 COMMIT_ID = "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4"
-HANDOFF_ID = "ak:realm_authority_handoff:" + "A" * 44
-SNAPSHOT_ID = "ak:realm_snapshot:" + "B" * 44
+
+
+def fixture_content_address(kind: str) -> str:
+    """Return a stable suite-0x01 content-address token for a fixture-only ID.
+
+    These KATs pin signature bytes, not the referenced body's digest, so the
+    token only has to be a registered wire form: header byte 0x01 (the fixed
+    v1 sha256 suite) followed by SHA-256 of a fixed per-kind label.
+    """
+
+    body = b"\x01" + hashlib.sha256(f"ak.fixture.detached_object_signature.{kind}.v1".encode("utf-8")).digest()
+    return f"ak:{kind}:" + base64.urlsafe_b64encode(body).rstrip(b"=").decode("ascii")
+
+
+HANDOFF_ID = fixture_content_address("realm_authority_handoff")
+SNAPSHOT_ID = fixture_content_address("realm_snapshot")
 OLD_SERVICE = "ak:did_core:webvh:z6mkfixturestationa"
 NEW_SERVICE = "ak:did_core:webvh:z6mkfixturestationb"
 PRODUCER_SERVICE = "ak:did_core:webvh:z6mkfixturealice"
@@ -352,7 +366,7 @@ def build_fixture() -> dict:
             "kind": "named_suite",
             "entrypoint": "ak.suite.detached_object_signature_transcripts.v1",
         },
-        "version": "2026-09-20.3",
+        "version": "2026-09-24",
         "schema": "arkret.detached-object-signature-kat-fixture.v1",
         "vector_id": "ak.vector.detached_object_signature_transcripts.v1",
         "covers_vectors": ["ak.vector.detached_object_signature_transcripts.v1"],

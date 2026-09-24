@@ -37,7 +37,10 @@ EXEMPTIONS = lint_artifacts.FIXTURE_TYPED_ID_EXEMPTION_PATH
 SYNTHETIC = FIXTURES / "synthetic-fixture.json"
 
 EVENT_TOKEN = "AZwvW3iEuBDjklBhqPTd1nmetaHgvhyZPMRSw1O0Lo09"
-COMMIT_TOKEN = "BZwvW3iEuBDjklBhqPTd1nmetaHgvhyZPMRSw1O0Lo09"
+COMMIT_TOKEN = "ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4"
+ZERO_SUITE_COMMIT = "ak:realm_commit:" + "A" * 44
+BLAKE3_SUITE_COMMIT = "ak:realm_commit:AhNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4"
+BLAKE3_SUITE_SNAPSHOT = "ak:realm_snapshot:AhNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4"
 REGISTERED_COMMIT = f"ak:realm_commit:{COMMIT_TOKEN}"
 UNREGISTERED_COMMIT = "ak:realm_commit:01964185-0400-7000-8000-00000000000a"
 
@@ -307,6 +310,33 @@ class TypedIdFixtureClosureLintTest(unittest.TestCase):
                 "01964185-0400-7000-8000-00000000000a", forms["realm_commit"]
             )
         )
+
+    # --- positive content addresses carry a registered suite byte ---------
+
+    def test_positive_zero_suite_realm_commit_is_rejected(self) -> None:
+        self._assert_rejected(
+            self._run(
+                {"schema_validation_cases": [{"expect_valid": True, "instance": {"realm_commit_ref": ZERO_SUITE_COMMIT}}]}
+            ),
+            "digest-suite code 0x00 is not an active row",
+        )
+
+    def test_negative_case_zero_suite_realm_commit_stays_out_of_scope(self) -> None:
+        for marker in ({"expect_valid": False}, {"semantic_outcome": "reject"}, {"expected_result": "reject_signature_invalid"}):
+            with self.subTest(marker=marker):
+                self.assertEqual(
+                    self._run({"cases": [{**marker, "instance": {"realm_commit_ref": ZERO_SUITE_COMMIT}}]}),
+                    [],
+                )
+
+    def test_realm_commit_is_pinned_to_the_fixed_v1_suite(self) -> None:
+        self._assert_rejected(
+            self._run({"value": BLAKE3_SUITE_COMMIT}),
+            "this identity is fixed to suite 0x01",
+        )
+
+    def test_other_content_address_accepts_any_active_suite(self) -> None:
+        self.assertEqual(self._run({"value": BLAKE3_SUITE_SNAPSHOT}), [])
 
 
 if __name__ == "__main__":

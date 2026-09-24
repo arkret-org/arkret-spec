@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-24.1",
+  "version": "2026-09-24.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-24T00:45:00+08:00",
+  "generated_at": "2026-09-24T21:30:00+08:00",
   "description": "Closed executable inventory for the artifact and release gates. Pipelines execute only listed check ids; runner code supplies implementation but cannot add an unregistered check.",
   "pipelines": {
     "artifact_check": [
@@ -22,6 +22,7 @@
       "schema_constructability_test",
       "creator_bootstrap_transaction_test",
       "fixture_digests",
+      "vector_registry_traceability",
       "session_grant_kat",
       "contact_round_kat",
       "handle_claim_kat",
@@ -75,6 +76,7 @@
     { "check_id": "schema_constructability_test", "label": "schema constructability test", "owner_script": "tools/test_schema_constructability_lint.py" },
     { "check_id": "schema_consumer_coverage", "label": "schema consumer coverage", "owner_script": "tools/gen_schema_consumer_coverage.py" },
     { "check_id": "session_grant_kat", "label": "session grant KAT", "owner_script": "tools/check_session_grant_kat.py" },
-    { "check_id": "strict_spec_lint", "label": "strict spec lint", "owner_script": "tools/lint_spec.py" }
+    { "check_id": "strict_spec_lint", "label": "strict spec lint", "owner_script": "tools/lint_spec.py" },
+    { "check_id": "vector_registry_traceability", "label": "vector registry traceability", "owner_script": "tools/check_vector_registry_traceability.py" }
   ]
 }

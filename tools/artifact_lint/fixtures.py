@@ -4178,16 +4178,6 @@ def check_canonical_digest_fixtures(lint: Lint) -> None:
                     # Non-sha256 algorithms are out of scope for this guard.
                     continue
                 canonical_input = case[input_key]
-                if (
-                    case.get("vector_id") == "ak.vector.encoding.event_digest.v1"
-                    and input_key == "input"
-                    and isinstance(canonical_input, dict)
-                ):
-                    canonical_input = {
-                        key: value
-                        for key, value in canonical_input.items()
-                        if key not in {"producer_proof", "unsigned", "event_id"}
-                    }
                 try:
                     canonical = canonical_json(canonical_input)
                 except (TypeError, ValueError) as exc:
@@ -6987,6 +6977,114 @@ def websocket_canonical_wss_errors(value: object) -> list[str]:
     return errors
 
 
+def check_agent_runtime_key_binding_digest_chain(
+    lint: Lint,
+    path: Path,
+    case: dict[str, Any],
+    possession: dict[str, Any],
+) -> None:
+    """Recompute the runtime key binding -> possession transcript digest chain.
+
+    key-management.md §4 defines the stable binding as the JCS SHA-256 of
+    `{kind, agent_id, pairing_request_id, verification_method,
+    public_key_digest, attestation_digest}` and the possession transcript as the
+    JCS SHA-256 of the closed signing input that embeds that binding digest. An
+    identity rewrite that edits the canonical JSON without recomputing the
+    downstream digests leaves a vector no conforming verifier can reproduce, so
+    every stated digest is recomputed from its own preimage here.
+    """
+    binding_json = case.get("canonical_binding_json")
+    if not isinstance(binding_json, str):
+        lint.fail(path, "agent_runtime_key_binding omits canonical_binding_json")
+        return
+    try:
+        binding = json.loads(binding_json)
+    except json.JSONDecodeError as exc:
+        lint.fail(path, f"canonical_binding_json is invalid JSON: {exc}")
+        return
+    if not isinstance(binding, dict) or canonical_json(binding) != binding_json:
+        lint.fail(path, "canonical_binding_json is not an RFC 8785 JCS object")
+        return
+    if sorted(binding) != [
+        "agent_id",
+        "attestation_digest",
+        "kind",
+        "pairing_request_id",
+        "public_key_digest",
+        "verification_method",
+    ] or binding.get("kind") != "ak.agent.runtime_key_binding.v1":
+        lint.fail(path, "canonical_binding_json must be the closed ak.agent.runtime_key_binding.v1 object")
+
+    public_key = case.get("source_public_key")
+    raw_key = None
+    if isinstance(public_key, dict) and isinstance(public_key.get("key"), str):
+        try:
+            raw_key = base64.urlsafe_b64decode(public_key["key"] + "=" * (-len(public_key["key"]) % 4))
+        except (ValueError, binascii.Error):
+            raw_key = None
+    if raw_key is None or len(raw_key) != 32:
+        lint.fail(path, "agent_runtime_key_binding.source_public_key.key must decode to 32 raw Ed25519 bytes")
+    else:
+        public_key_digest = "sha256:" + hashlib.sha256(raw_key).hexdigest()
+        for label, stated in (
+            ("expected_public_key_digest", case.get("expected_public_key_digest")),
+            ("canonical_binding_json.public_key_digest", binding.get("public_key_digest")),
+        ):
+            if stated != public_key_digest:
+                lint.fail(path, f"agent_runtime_key_binding.{label} drifted from the raw public key: {stated!r} != {public_key_digest!r}")
+    attestation_digest = sha256_text(canonical_json(case.get("source_runtime_attestation")))
+    for label, stated in (
+        ("expected_attestation_digest", case.get("expected_attestation_digest")),
+        ("canonical_binding_json.attestation_digest", binding.get("attestation_digest")),
+    ):
+        if stated != attestation_digest:
+            lint.fail(path, f"agent_runtime_key_binding.{label} drifted from source_runtime_attestation: {stated!r} != {attestation_digest!r}")
+    for field in ("agent_id", "pairing_request_id", "verification_method"):
+        request_input = case.get("pairing_request_binding_input")
+        if isinstance(request_input, dict) and binding.get(field) != request_input.get(field):
+            lint.fail(path, f"canonical_binding_json.{field} differs from pairing_request_binding_input.{field}")
+
+    binding_digest = sha256_text(binding_json)
+    for label, stated in (
+        ("expected_binding_digest", case.get("expected_binding_digest")),
+        ("proof_of_possession.runtime_key_binding_digest", possession.get("runtime_key_binding_digest")),
+    ):
+        if stated != binding_digest:
+            lint.fail(path, f"agent_runtime_key_binding.{label} drifted from canonical_binding_json: {stated!r} != {binding_digest!r}")
+
+    transcript_json = case.get("canonical_possession_transcript_json")
+    if not isinstance(transcript_json, str):
+        lint.fail(path, "agent_runtime_key_binding omits canonical_possession_transcript_json")
+        return
+    request_input = case.get("pairing_request_binding_input")
+    pairing_code = request_input.get("pairing_code") if isinstance(request_input, dict) else None
+    expected_transcript = {
+        "context": "ak.agent_runtime_key_possession_proof.v1",
+        "kind": possession.get("kind"),
+        "verification_method": possession.get("verification_method"),
+        "challenge": possession.get("challenge"),
+        "audience_id": possession.get("audience_id"),
+        "created_at": possession.get("created_at"),
+        "expires_at": possession.get("expires_at"),
+        "pairing_code": pairing_code,
+        "runtime_key_binding_digest": binding_digest,
+        "signature_algorithm": possession.get("signature_algorithm"),
+    }
+    if canonical_json(expected_transcript) != transcript_json:
+        lint.fail(
+            path,
+            "canonical_possession_transcript_json is not the JCS signing input rebuilt from "
+            "proof_of_possession, the pairing secret and the recomputed binding digest",
+        )
+    transcript_digest = sha256_text(transcript_json)
+    for label, stated in (
+        ("expected_possession_transcript_digest", case.get("expected_possession_transcript_digest")),
+        ("proof_of_possession.transcript_digest", possession.get("transcript_digest")),
+    ):
+        if stated != transcript_digest:
+            lint.fail(path, f"agent_runtime_key_binding.{label} drifted from its transcript bytes: {stated!r} != {transcript_digest!r}")
+
+
 def check_agent_requested_scope_commitment_digest(lint: Lint) -> None:
     """Recompute the Agent requested-scope commitment digest from its preimage.
 
@@ -7094,6 +7192,7 @@ def check_agent_requested_scope_commitment_digest(lint: Lint) -> None:
     if not isinstance(possession, dict):
         lint.fail(path, "agent_runtime_key_binding omits proof_of_possession")
         return
+    check_agent_runtime_key_binding_digest_chain(lint, path, runtime_pairing, possession)
     binding_json = runtime_pairing.get("canonical_pairing_request_binding_json")
     if not isinstance(binding_json, str):
         lint.fail(path, "agent_runtime_key_binding omits canonical_pairing_request_binding_json")

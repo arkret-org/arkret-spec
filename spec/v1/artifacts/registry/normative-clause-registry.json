@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-24.5",
+  "version": "2026-09-24.6",
   "source_of_truth": true,
-  "generated_at": "2026-09-24T23:25:52+08:00",
+  "generated_at": "2026-09-24T23:36:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -66,8 +66,7 @@
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.encoding.digest.blake3.v1",
-        "ak.vector.encoding.event_digest.v1",
-        "ak.vector.encoding.canonical_event_tie_break.v1"
+        "ak.vector.event_id.content_bound.v1"
       ]
     },
     {
@@ -83,8 +82,7 @@
         "ak.vector.encoding.signature_binding_payload_domain.v1",
         "ak.vector.encoding.signature_binding_payload_audience.v1",
         "ak.vector.encoding.signature_binding_payload_domain_audience.v1",
-        "ak.vector.encoding.crypto.signature_negative.v1",
-        "ak.vector.proof_context.transcript.event_envelope.v1"
+        "ak.vector.encoding.crypto.signature_negative.v1"
       ]
     },
     {
@@ -216,23 +214,9 @@
       "requirement": "A grant stays within the union of the authorities its issuer_authority_refs name and within their per-action validity window. A grant without ordinary authority_control cannot be a grant ref; a ref with authority_regrant_allowed=false can issue only an explicitly terminal max_authority_depth=0 child. A grant ref supplies issuer authority only when its concrete subject ActorId equals the child issuer ActorId in full; cycles, inactive refs and same-DID cross-Station replay MUST fail closed rather than widen the effective permission set. A first-issued grant whose ancestor no longer authorizes uses failed_precondition with grant_exceeds_issuer_authority; other security operations use capability_denied without disclosing inaccessible ancestor state. A realm_root ref is valid only while the authority-root typed current result's current authority_generation still equals the generation the ref carries, read under the registered inclusion proof at a RealmCommit basis; that delegation generation advances only on ak.realm.authority.reset and MUST NOT be conflated with the governing Station tenure governance_generation, so a planned Station handoff MUST NOT invalidate any grant and a controller transfer MUST leave every child grant valid.",
       "testability_grade": "vector",
       "evidence_refs": [
-        "ak.vector.capability.authority_chain.v1",
         "ak.vector.capability.authority_cycle.v1",
         "ak.vector.capability.authority_expiry_commit.v1",
-        "ak.vector.capability.issuer_authority_bound.v1",
-        "ak.vector.capability.authority_audit.v1"
-      ]
-    },
-    {
-      "clause_id": "AK-NC-017",
-      "status": "active",
-      "category": "authorization",
-      "source_anchor": "spec/v1/zh/authz/capabilities.md#12-revocation",
-      "section_digest": "sha256:dd3bb79eceac6a69fc0cc40661708a45a44f298404e8b44143c8eb4266c8051c",
-      "requirement": "An accepted revocation invalidates the revoked grant and every grant derived from it, and forces a re-check of decisions that depended on either: pending writes MUST fail closed, allow and policy-decision cache entries MUST be invalidated in the same reducer transaction, and a revoked grant_id MUST NOT be revived. Commits accepted before the revocation remain accepted audit facts and MUST NOT be recomputed into another outcome.",
-      "testability_grade": "vector",
-      "evidence_refs": [
-        "ak.vector.capability.revoke_downstream_recheck.v1"
+        "ak.vector.capability.issuer_authority_bound.v1"
       ]
     },
     {
@@ -244,12 +228,8 @@
       "requirement": "Field patches apply atomically against the declared pre-state; a partially applied patch or an unbound pre-state MUST be rejected. $op=\"unset\" MUST NOT remove a registered redactable content-carrier slot, while $op=\"set\" on the same slot and $op=\"unset\" on metadata paths MUST be accepted. A patch path MUST NOT address a reducer-managed field of the target object kind; the per-object forbidden set, its universal minimum set and its one named View state exemption are read from registry/reducer-managed-path-registry.json, never re-derived from prose.",
       "testability_grade": "vector",
       "evidence_refs": [
-        "ak.vector.patch.atomic_application.v1",
         "ak.vector.patch.path_grammar_bounds.v1",
-        "ak.vector.patch.projection_prestate_binding.v1",
-        "ak.vector.patch.redactable_content_slot_unset_ban.v1",
-        "ak.vector.relation.effective_scope_reducer_managed.v1",
-        "ak.vector.strand_tracks_update.atomic.v1"
+        "ak.vector.relation.effective_scope_reducer_managed.v1"
       ]
     },
     {
@@ -281,18 +261,6 @@
       ]
     },
     {
-      "clause_id": "AK-NC-024",
-      "status": "active",
-      "category": "distributed_write",
-      "source_anchor": "spec/v1/zh/discovery/read-receipts.md#65-多设备合并",
-      "section_digest": "sha256:61abee752934aa90dc031ab5954cd5d53fa6a67bcc16d614793f883d506118ef",
-      "requirement": "Multi-device read cursor merge is causal-first: a causally dominating position wins regardless of HLC, HLC decides only concurrent positions, and device_id only breaks equal HLCs.",
-      "testability_grade": "vector",
-      "evidence_refs": [
-        "ak.vector.read_cursor.multi_device_merge.v1"
-      ]
-    },
-    {
       "clause_id": "AK-NC-025",
       "status": "active",
       "category": "distributed_write",
@@ -301,9 +269,7 @@
       "requirement": "Recipient-private delivery preserves exact DeviceMessageEnvelope and MlsWelcomeDelivery branches in one ordered queue: each kind uses its closed durable deduplication key, unacknowledged items survive content expiry and capacity pressure, full capacity rejects new admission atomically, and queue removal happens only after explicit cumulative ACK of durably processed items by the same authenticated endpoint.",
       "testability_grade": "vector",
       "evidence_refs": [
-        "ak.vector.sync.to_device_message_idempotency.v1",
-        "ak.vector.sync.delivery_ack.v1",
-        "ak.vector.mls.welcome_recipient_delivery_queue.v1"
+        "ak.vector.sync.delivery_ack.v1"
       ]
     },
     {

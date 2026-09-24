@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-24.5",
+  "version": "2026-09-24.6",
   "source_of_truth": true,
-  "generated_at": "2026-09-24T23:33:10+08:00",
+  "generated_at": "2026-09-24T23:36:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -133,12 +133,12 @@
     },
     {
       "vector_id": "ak.vector.agent.historical_evidence_materialization.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "agent",
       "applies_to_profiles": [
         "ak.profile.agent_signer_evidence.v1"
       ],
-      "description": "Historical Agent materialization freezes original state and tagged acceptance: the original producer proof and authorization evidence, or a distinct receiver receipt. Same selector and acceptance replay returns the original root; conflicting acceptance/root never overwrites it. Complete historical method evidence is evaluated at original proof times, independent of verifier-now expiry.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: Historical Agent materialization freezes original state and tagged acceptance: the original producer proof and authorization evidence, or a distinct receiver receipt. Same selector and acceptance replay returns the original root; conflicting acceptance/root never overwrites it. Complete historical method evidence is evaluated at original proof times, independent of verifier-now expiry. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/identity/key-management.md"
       ]
@@ -380,12 +380,12 @@
     },
     {
       "vector_id": "ak.vector.agent.signer_evidence_binding.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "agent",
       "applies_to_profiles": [
         "ak.profile.agent_signer_evidence.v1"
       ],
-      "description": "Executes reusable current Agent state, original same-Station or independent receiver historical admission, independent lifecycle gates, canonical witnesses, original genesis producer proof after resume, Station-admitted controller device binding, MLS cross-binding and tamper cases.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: Executes reusable current Agent state, original same-Station or independent receiver historical admission, independent lifecycle gates, canonical witnesses, original genesis producer proof after resume, Station-admitted controller device binding, MLS cross-binding and tamper cases. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/identity/key-management.md"
       ]
@@ -467,12 +467,12 @@
     },
     {
       "vector_id": "ak.vector.auth.sensitive_field_handling.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "auth",
       "applies_to_profiles": [
         "ak.profile.station.v1"
       ],
-      "description": "field_access.sensitive_fields read projection handling: redact/hash/omit remove original values, hash uses keyed/salted digest discipline, and unenforceable handling falls back to omit.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: field_access.sensitive_fields read projection handling: redact/hash/omit remove original values, hash uses keyed/salted digest discipline, and unenforceable handling falls back to omit. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/authz/constraint-schema.md"
       ]
@@ -1111,12 +1111,12 @@
     },
     {
       "vector_id": "ak.vector.capability.applet_bridge_non_event_grant_authority.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "capability",
       "applies_to_profiles": [
         "ak.profile.applet_bridge.v1"
       ],
-      "description": "Profile-declared non-event grant authority permits only exact Realm-admin-to-active-bridge-registration ak.applet.ghost.provision grants and rejects owner shortcuts or binding drift.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: Profile-declared non-event grant authority permits only exact Realm-admin-to-active-bridge-registration ak.applet.ghost.provision grants and rejects owner shortcuts or binding drift. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/authz/capabilities.md",
         "spec/v1/zh/extensions/applet-integration.md"
@@ -1124,36 +1124,36 @@
     },
     {
       "vector_id": "ak.vector.capability.approval_constraint.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "capability",
       "applies_to_profiles": [
         "ak.profile.constraint.approval_workflow.v1"
       ],
-      "description": "An unmet approval constraint blocks direct execution even for a high-privilege grant: the write MUST NOT take effect before ak.schema.approval_signature.v1 evidence from the required approvers is verified and accepted in the same transaction. approval_mode is the closed single value before_commit, so there is no path that first materializes a proposal object and then approves that object.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: An unmet approval constraint blocks direct execution even for a high-privilege grant: the write MUST NOT take effect before ak.schema.approval_signature.v1 evidence from the required approvers is verified and accepted in the same transaction. approval_mode is the closed single value before_commit, so there is no path that first materializes a proposal object and then approves that object. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-suite.md"
       ]
     },
     {
       "vector_id": "ak.vector.capability.authority_audit.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "capability",
       "applies_to_profiles": [
         "ak.profile.station.v1"
       ],
-      "description": "Capability materialization preserves exact issuer and concrete-subject ActorIds, derives maximum depth plus canonical sorted and deduplicated root identities, and requires each parent subject ActorId to equal the child issuer ActorId in full. Producer-supplied derived members and same-DID cross-Station replay are rejected; missing parents remain dependency-pending and independent reducers produce the same state-root input.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: Capability materialization preserves exact issuer and concrete-subject ActorIds, derives maximum depth plus canonical sorted and deduplicated root identities, and requires each parent subject ActorId to equal the child issuer ActorId in full. Producer-supplied derived members and same-DID cross-Station replay are rejected; missing parents remain dependency-pending and independent reducers produce the same state-root input. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
-        "spec/v1/artifacts/registry/normative-clause-registry.json"
+        "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
     {
       "vector_id": "ak.vector.capability.authority_chain.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "capability",
       "applies_to_profiles": [
         "ak.profile.station.v1"
       ],
-      "description": "A multi-level authority chain built from one grant shape: each grant records the grant it was issued under in issuer_authority_refs, and revoking an ancestor invalidates its descendants at read time without any cascading write.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: A multi-level authority chain built from one grant shape: each grant records the grant it was issued under in issuer_authority_refs, and revoking an ancestor invalidates its descendants at read time without any cascading write. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-suite.md"
       ]
@@ -1186,12 +1186,12 @@
     },
     {
       "vector_id": "ak.vector.capability.direct_conversation_participant_authority.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "capability",
       "applies_to_profiles": [
         "ak.profile.direct_conversation_realm.v1"
       ],
-      "description": "Direct Conversation participant authority is a profile-scoped non-grant source, survives root generation changes, requires the pair's unique immutable binding, and cannot issue child grants.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: Direct Conversation participant authority is a profile-scoped non-grant source, survives root generation changes, requires the pair's unique immutable binding, and cannot issue child grants. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/authz/capabilities.md"
       ]
@@ -1250,14 +1250,14 @@
     },
     {
       "vector_id": "ak.vector.capability.revoke_downstream_recheck.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "capability",
       "applies_to_profiles": [
         "ak.profile.station.v1"
       ],
-      "description": "After an accepted ak.capability.revoke of grant G, a pending Event authorized by a child grant derived from G fails closed or is quarantined with a stable reason code, allow and policy-decision cache entries depending on G or its child are invalidated in the same reducer transaction, and later snapshots and exports never present G as currently valid.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: After an accepted ak.capability.revoke of grant G, a pending Event authorized by a child grant derived from G fails closed or is quarantined with a stable reason code, allow and policy-decision cache entries depending on G or its child are invalidated in the same reducer transaction, and later snapshots and exports never present G as currently valid. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
-        "spec/v1/artifacts/registry/normative-clause-registry.json"
+        "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
     {
@@ -1377,24 +1377,24 @@
     },
     {
       "vector_id": "ak.vector.contact.next_prepare_input.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "contact",
       "applies_to_profiles": [
         "ak.profile.direct_conversation_realm.v1"
       ],
-      "description": "The ak.self.contact.read.list.v1 projection carries the closed next_prepare_input successor cursor: an accepted row MUST carry it and the five non-authorable contact_state values MUST NOT, its contact_round_id, version and predecessor_event_ref are copied verbatim into the scope_update and tombstone prepare phases, version is the next Event's version and predecessor_event_ref is the current lineage head rather than that head's predecessor, and a stale cursor is refused with contact_lineage_conflict or contact_scope_stale and MUST be re-read rather than guessed or retried unchanged. It also covers the direction-independent founding edge: the normal responder's accepted Event is its own direction's version 1, while the normal requester and both glare sides take their own request Event ID as the bootstrap predecessor and MUST author their first successor at version 2, so a normal requester narrowing scope or tombstoning right after acceptance is accepted rather than refused as a glare-only shape; complete_through agrees with that version 1 in all three directions, and a first successor naming the wrong issuer, the wrong contact round, a head that is not the current lineage head, or a version other than 2 is refused with zero writes.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: The ak.self.contact.read.list.v1 projection carries the closed next_prepare_input successor cursor: an accepted row MUST carry it and the five non-authorable contact_state values MUST NOT, its contact_round_id, version and predecessor_event_ref are copied verbatim into the scope_update and tombstone prepare phases, version is the next Event's version and predecessor_event_ref is the current lineage head rather than that head's predecessor, and a stale cursor is refused with contact_lineage_conflict or contact_scope_stale and MUST be re-read rather than guessed or retried unchanged. It also covers the direction-independent founding edge: the normal responder's accepted Event is its own direction's version 1, while the normal requester and both glare sides take their own request Event ID as the bootstrap predecessor and MUST author their first successor at version 2, so a normal requester narrowing scope or tombstoning right after acceptance is accepted rather than refused as a glare-only shape; complete_through agrees with that version 1 in all three directions, and a first successor naming the wrong issuer, the wrong contact round, a head that is not the current lineage head, or a version other than 2 is refused with zero writes. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/identity/contact-and-direct-conversation.md"
       ]
     },
     {
       "vector_id": "ak.vector.contact.pending_incoming_prepare.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "contact",
       "applies_to_profiles": [
         "ak.profile.direct_conversation_realm.v1"
       ],
-      "description": "Own-Station verified incoming request projection includes exact request_event_ref and optional original request_message. The client submits peer/ref, checks the prepared intent and signs without resolving the request Event or verifying foreign receipts/history. The server loads durable evidence and rejects stale, wrong-holder, wrong-peer, glare and consumed slots with zero writes. Contact mirrors are never exposed through Event resolve.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: Own-Station verified incoming request projection includes exact request_event_ref and optional original request_message. The client submits peer/ref, checks the prepared intent and signs without resolving the request Event or verifying foreign receipts/history. The server loads durable evidence and rejects stale, wrong-holder, wrong-peer, glare and consumed slots with zero writes. Contact mirrors are never exposed through Event resolve. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/identity/contact-and-direct-conversation.md"
       ]
@@ -1618,12 +1618,12 @@
     },
     {
       "vector_id": "ak.vector.direct_conversation.founder_loss_terminality.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "direct_conversation",
       "applies_to_profiles": [
         "ak.profile.direct_conversation_realm.v1"
       ],
-      "description": "A lost Direct Conversation founder never transfers the existing pair slot: ordinary recovery of the exact same (principal_id, station_id) resumes as the original founder, while timeout, root Contact recovery policy, third-party attestation and after-the-fact bilateral designation all write nothing. The non-founder remains awaiting_founder, the closed wire union has no founder_unrecoverable state, and only a genuinely different stable participant pair derives a new pair_key with no inherited history, MLS state, keys, audit identity or authority.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: A lost Direct Conversation founder never transfers the existing pair slot: ordinary recovery of the exact same (principal_id, station_id) resumes as the original founder, while timeout, root Contact recovery policy, third-party attestation and after-the-fact bilateral designation all write nothing. The non-founder remains awaiting_founder, the closed wire union has no founder_unrecoverable state, and only a genuinely different stable participant pair derives a new pair_key with no inherited history, MLS state, keys, audit identity or authority. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/identity/contact-and-direct-conversation.md"
       ]
@@ -1637,6 +1637,7 @@
       ],
       "description": "One accepted founding unit per (founder_id, trust_domain_id, pair_key) slot across same-Station, dual-Station and founder multi-device concurrency: first valid unit wins, the loser gets direct_conversation_slot_already_committed with zero writes, exact replay returns the same four byte-identical source RealmCommits without changing the fourth committed_at, the same idempotency key with a different unit is duplicate_conflict, every crash point converges to the same coordinates, the deleted founding receipt is rejected, and the federation branch reports a missing bounded dependency as a top-level retryable dependency_missing rather than a partial.",
       "source_refs": [
+        "spec/v1/artifacts/fixtures/peer-event-submit-semantic-union-fixture.json",
         "spec/v1/zh/identity/contact-and-direct-conversation.md"
       ]
     },
@@ -1649,6 +1650,7 @@
       ],
       "description": "The creation_required resolver outcome carries a closed next_founding_input whose sole member is founding_authority_evidence, with exactly one evidence branch and no Event bytes or coordinates. The caller consumes that material to author four Events, but the closed self founding submission has no founding_authority_evidence member and rejects any echo; temporarily_unavailable is returned when material cannot be assembled.",
       "source_refs": [
+        "spec/v1/artifacts/fixtures/peer-event-submit-semantic-union-fixture.json",
         "spec/v1/zh/identity/contact-and-direct-conversation.md"
       ]
     },
@@ -1661,6 +1663,7 @@
       ],
       "description": "Caller-authored first-valid founding unit: byte-exact founding_unit_digest KAT over the four ordered Event IDs, realm_id and main_strand_id retyped from the first and fourth Event IDs, explicit founder membership, closed self and peer carrier branch shapes, and rejection of server-allocated identifiers, reserved or materializing drafts, coordinator election, reordering, a fifth Event and a carried coordinate field.",
       "source_refs": [
+        "spec/v1/artifacts/fixtures/peer-event-submit-semantic-union-fixture.json",
         "spec/v1/zh/identity/contact-and-direct-conversation.md"
       ]
     },
@@ -1679,12 +1682,12 @@
     },
     {
       "vector_id": "ak.vector.direct_conversation.send_blocker_authority.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "direct_conversation",
       "applies_to_profiles": [
         "ak.profile.direct_conversation_realm.v1"
       ],
-      "description": "The Direct Conversation resolver reports only server-verifiable send blockers. personal_blocked is absent from the closed wire enum because holder blocklist state is encrypted to holder devices, so a reply carrying it is a schema_violation; it is carried instead by the closed client-local blocker set, which never appears on any wire surface and never turns the resolver state into suspended. Current MLS group, epoch and send-secret readiness is checked separately and fails closed; no historical-key-specific blocker is restored. presence_offline and keypackage_empty remain server-verifiable but are returned only to an existing exact-pair participant, and a non-participant probe gets the same opaque failure as a nonexistent pair.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: The Direct Conversation resolver reports only server-verifiable send blockers. personal_blocked is absent from the closed wire enum because holder blocklist state is encrypted to holder devices, so a reply carrying it is a schema_violation; it is carried instead by the closed client-local blocker set, which never appears on any wire surface and never turns the resolver state into suspended. Current MLS group, epoch and send-secret readiness is checked separately and fails closed; no historical-key-specific blocker is restored. presence_offline and keypackage_empty remain server-verifiable but are returned only to an existing exact-pair participant, and a non-participant probe gets the same opaque failure as a nonexistent pair. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/identity/contact-and-direct-conversation.md"
       ]
@@ -1863,12 +1866,12 @@
     },
     {
       "vector_id": "ak.vector.encoding.canonical_event_tie_break.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "encoding",
       "scope": "universal",
-      "description": "Canonical presentation order over unordered candidate Events sorts on decoded digest octets in unsigned lexicographic order with the canonical suite id as the second key, includes a case where wire-string order contradicts octet order, keeps every candidate with no winner, and never lets the order decide authorization, admission, finality, stream_position or previous_commit_ref.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: Canonical presentation order over unordered candidate Events sorts on decoded digest octets in unsigned lexicographic order with the canonical suite id as the second key, includes a case where wire-string order contradicts octet order, keeps every candidate with no winner, and never lets the order decide authorization, admission, finality, stream_position or previous_commit_ref. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
-        "spec/v1/artifacts/registry/normative-clause-registry.json"
+        "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
     {
@@ -1973,12 +1976,10 @@
       "status": "active",
       "domain": "encoding",
       "applies_to_fixtures": [
-        "cursor-negative-fixture.json",
         "encoding-fixture.json"
       ],
-      "description": "A cursor is an opaque server-issued token: clients round-trip it verbatim without parsing its decoded payload to derive a position, and the paired negative fixture rejects every schema-valid-looking token before any server-side state advances.",
+      "description": "A cursor is an opaque server-issued token: clients round-trip it verbatim without parsing its decoded payload to derive a position. Rejection of malformed or oversized tokens is the separate negative vector ak.vector.encoding.reject_invalid_cursor.core.v1.",
       "source_refs": [
-        "spec/v1/artifacts/fixtures/cursor-negative-fixture.json",
         "spec/v1/artifacts/fixtures/encoding-fixture.json",
         "spec/v1/zh/conformance/conformance-profiles.md"
       ]
@@ -2020,16 +2021,6 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/encoding-fixture.json",
         "spec/v1/zh/models/sidecar.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.encoding.event_digest.v1",
-      "status": "active",
-      "domain": "encoding",
-      "scope": "universal",
-      "description": "The event digest preimage is the canonical Event Envelope with event_id, producer_proof and unsigned removed; event_id is derived forward from that digest as 33 octets of suite code plus full digest in unpadded base64url, and transport envelopes, HTTP headers, sync metadata and local receive time never enter it, so every read surface yields the same digest.",
-      "source_refs": [
-        "spec/v1/artifacts/registry/normative-clause-registry.json"
       ]
     },
     {
@@ -2227,10 +2218,10 @@
     },
     {
       "vector_id": "ak.vector.encoding.result_selector_uri.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "encoding",
       "scope": "universal",
-      "description": "The canonical MIMI room URI is the typed current result subject source; hashed subjects, URI fragment truncation and caller-allocated alternate room identifiers are all rejected.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: The canonical MIMI room URI is the typed current result subject source; hashed subjects, URI fragment truncation and caller-allocated alternate room identifiers are all rejected. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/extensions/mimi-interop.md"
       ]
@@ -2393,12 +2384,12 @@
     },
     {
       "vector_id": "ak.vector.event_kind.realm_alias_single_carrier.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "event_kind",
       "applies_to_profiles": [
         "ak.profile.core_event_store.v1"
       ],
-      "description": "Realm alias intent is carried by exactly one registered Event kind; namespace activation separately enforces unique names across Realms. Resolution requires both facts, a stale expected_revision rejects, and RealmId chat does not depend on the issuer.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: Realm alias intent is carried by exactly one registered Event kind; namespace activation separately enforces unique names across Realms. Resolution requires both facts, a stale expected_revision rejects, and RealmId chat does not depend on the issuer. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/discovery/object-addressing.md"
       ]
@@ -2540,7 +2531,7 @@
     },
     {
       "vector_id": "ak.vector.identity.device_reanchor.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "identity",
       "applies_to_profiles": [
         "ak.profile.e2ee_client.v1",
@@ -2548,7 +2539,7 @@
         "ak.profile.station.v1",
         "ak.profile.identity_registry.v1"
       ],
-      "description": "Complete recovery units freeze one canonical millisecond authoring checkpoint shared byte-for-byte by both Event created_at values and both producer-proof created_at values; mismatch, non-canonical time, a missing pre-signing floor, or a checkpoint outside the applicable window is rejected before any write. Valid units advance the device generation only through Committed results on the unique lawful PCR Realm stream.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: Complete recovery units freeze one canonical millisecond authoring checkpoint shared byte-for-byte by both Event created_at values and both producer-proof created_at values; mismatch, non-canonical time, a missing pre-signing floor, or a checkpoint outside the applicable window is rejected before any write. Valid units advance the device generation only through Committed results on the unique lawful PCR Realm stream. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/crypto-media/device-lifecycle.md",
         "spec/v1/zh/identity/key-management.md"
@@ -2672,12 +2663,12 @@
     },
     {
       "vector_id": "ak.vector.identity.pcr_outward_exposure_registry.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "identity",
       "applies_to_profiles": [
         "ak.profile.identity_registry.v1"
       ],
-      "description": "Every PCR outward carrier has an exact registered operation/direction/schema/pointer/policy reverse edge; private kinds have none, and shared-Realm Actor Profile resolution merges unknown, unauthorized and wrong-selector failures.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: Every PCR outward carrier has an exact registered operation/direction/schema/pointer/policy reverse edge; private kinds have none, and shared-Realm Actor Profile resolution merges unknown, unauthorized and wrong-selector failures. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/models/realm-and-space.md"
       ]
@@ -2708,12 +2699,12 @@
     },
     {
       "vector_id": "ak.vector.identity.public_resolution_minimization.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "identity",
       "applies_to_profiles": [
         "ak.profile.identity_registry.v1"
       ],
-      "description": "The unauthenticated principal-resolution response contains only a service-attested current projection and method-history evidence; every PCR id, Event, receipt, RealmCommit and history field is forbidden.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: The unauthenticated principal-resolution response contains only a service-attested current projection and method-history evidence; every PCR id, Event, receipt, RealmCommit and history field is forbidden. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/identity/identity-did.md"
       ]
@@ -2733,33 +2724,33 @@
     },
     {
       "vector_id": "ak.vector.identity.recovery_key_role_separation.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "identity",
       "applies_to_profiles": [
         "ak.profile.e2ee_client.v1",
         "ak.profile.full_client.v1",
         "ak.profile.station.v1"
       ],
-      "description": "Recovery policy separates roles inline: every recovery-proof signing entry carries its own backup_hpke entry with a policy-unique key_agreement_ref, proof verification uses only the signing entry, and dangling or duplicate refs, revoked or expired entries, reused signing/HPKE material, suite mismatch and DID-document-only declarations are all rejected.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: Recovery policy separates roles inline: every recovery-proof signing entry carries its own backup_hpke entry with a policy-unique key_agreement_ref, proof verification uses only the signing entry, and dangling or duplicate refs, revoked or expired entries, reused signing/HPKE material, suite mismatch and DID-document-only declarations are all rejected. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/identity/key-management.md"
       ]
     },
     {
       "vector_id": "ak.vector.identity.recovery_policy_publication.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "identity",
       "applies_to_profiles": [
         "ak.profile.identity_registry.v1"
       ],
-      "description": "Canonical recovery-policy submission shape, closed method-entry validity, PCR allowlist/reducer admission, acceptance-basis materialization and fail-closed retry semantics.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: Canonical recovery-policy submission shape, closed method-entry validity, PCR allowlist/reducer admission, acceptance-basis materialization and fail-closed retry semantics. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/identity/key-management.md"
       ]
     },
     {
       "vector_id": "ak.vector.identity.recovery_secret_handoff.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "identity",
       "applies_to_profiles": [
         "ak.profile.e2ee_client.v1",
@@ -2767,7 +2758,7 @@
         "ak.profile.station.v1",
         "ak.profile.identity_registry.v1"
       ],
-      "description": "Without a pre-existing independent authority an in-place same-DID handoff after secret compromise is refused and the DID must be re-minted; with one, only a two-entry staged handoff with durable checkpoints is accepted, and the old policy key is revoked last, after re-anchor, new policy, re-wrapped backup envelopes and pointer advance, with idempotent resume from any crash point.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: Without a pre-existing independent authority an in-place same-DID handoff after secret compromise is refused and the DID must be re-minted; with one, only a two-entry staged handoff with durable checkpoints is accepted, and the old policy key is revoked last, after re-anchor, new policy, re-wrapped backup envelopes and pointer advance, with idempotent resume from any crash point. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/identity/key-management.md"
       ]
@@ -2882,12 +2873,12 @@
     },
     {
       "vector_id": "ak.vector.invite.consumed_token_resubject_rejected.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "invite",
       "applies_to_profiles": [
         "ak.profile.station.v1"
       ],
-      "description": "A third-party invite token consumed with a subject-bound binding_proof cannot be reissued to a different subject: only a request binding the same (invite_id, claim_nonce, subject_id, binding_proof_digest) replays the existing proof idempotently, a re-subjected ak.invite.claim is rejected with duplicate_conflict, and the external failure stays indistinguishable from not_found.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: A third-party invite token consumed with a subject-bound binding_proof cannot be reissued to a different subject: only a request binding the same (invite_id, claim_nonce, subject_id, binding_proof_digest) replays the existing proof idempotently, a re-subjected ak.invite.claim is rejected with duplicate_conflict, and the external failure stays indistinguishable from not_found. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/sync/third-party-invites.md"
       ]
@@ -2971,12 +2962,12 @@
     },
     {
       "vector_id": "ak.vector.invite.provisioning_activation_binding.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "invite",
       "applies_to_profiles": [
         "ak.profile.station.v1"
       ],
-      "description": "Third-party invite private-material lifecycle: provisioning is idempotent on request_id and refuses a reused id with different intent, activation only binds on a fresh and member-for-member matching Station acceptance attestation, one provisioning record never rebinds to a second invite, an identical retry after a restart returns the original binding, and out-of-band delivery never starts before activation.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: Third-party invite private-material lifecycle: provisioning is idempotent on request_id and refuses a reused id with different intent, activation only binds on a fresh and member-for-member matching Station acceptance attestation, one provisioning record never rebinds to a second invite, an identical retry after a restart returns the original binding, and out-of-band delivery never starts before activation. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/sync/third-party-invites.md"
       ]
@@ -3283,12 +3274,12 @@
     },
     {
       "vector_id": "ak.vector.message.poll_reducer.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "message",
       "applies_to_profiles": [
         "ak.profile.chat_mvp.v1"
       ],
-      "description": "Accepted Message Events are the sole Poll truth source. A partition (Realm or Circle scope, poll, full ActorId) lies inside exactly one authority stream, so that actor’s accepted responses are totally ordered by RealmCommit stream_position and the current vote is the greatest position, taken whole. payload.poll_response_heads[] is the producer’s cleartext revote declaration and never a winner criterion: an entry naming another poll, actor or scope rejects the response with zero writes. Arrival permutations, a stream prefix with gaps, invalidation and commutative/associative/idempotent replica union must converge in current vote, selections and tally.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: Accepted Message Events are the sole Poll truth source. A partition (Realm or Circle scope, poll, full ActorId) lies inside exactly one authority stream, so that actor’s accepted responses are totally ordered by RealmCommit stream_position and the current vote is the greatest position, taken whole. payload.poll_response_heads[] is the producer’s cleartext revote declaration and never a winner criterion: an entry naming another poll, actor or scope rejects the response with zero writes. Arrival permutations, a stream prefix with gaps, invalidation and commutative/associative/idempotent replica union must converge in current vote, selections and tally. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/models/content-types.md"
       ]
@@ -3307,24 +3298,24 @@
     },
     {
       "vector_id": "ak.vector.mimi.identifier_query_source_signature.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "mimi",
       "applies_to_profiles": [
         "ak.profile.mimi_interop.v1"
       ],
-      "description": "Every identifiers PSI query carries a per-request RFC 9421 provider-source signature. Missing or invalid signatures fail before PSI evaluation; a present but unsigned Arkret-Operation header fails the coverage check, and a selector replaced after signing fails signature verification. mimi-room-uri is required whenever the endpoint addresses one MIMI room. The provider-directory read does not inherit this profile.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: Every identifiers PSI query carries a per-request RFC 9421 provider-source signature. Missing or invalid signatures fail before PSI evaluation; a present but unsigned Arkret-Operation header fails the coverage check, and a selector replaced after signing fails signature verification. mimi-room-uri is required whenever the endpoint addresses one MIMI room. The provider-directory read does not inherit this profile. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/extensions/mimi-interop.md"
       ]
     },
     {
       "vector_id": "ak.vector.mimi.provider_directory_signature.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "mimi",
       "applies_to_profiles": [
         "ak.profile.mimi_interop.v1"
       ],
-      "description": "The provider directory carries its full required security core and capability declaration, and its detached JWS verifies over the exact canonical unsigned projection: missing required capabilities or empty capability arrays, tampered endpoints / cipher suites / content profiles / room policy components, a proof controller different from service_id, an unknown extension attempting to change routing, a stale created_at, a dev digest in place of a signature, and an HTTP-signature-valid but directory-JWS-invalid response (and the reverse) MUST all be rejected.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: The provider directory carries its full required security core and capability declaration, and its detached JWS verifies over the exact canonical unsigned projection: missing required capabilities or empty capability arrays, tampered endpoints / cipher suites / content profiles / room policy components, a proof controller different from service_id, an unknown extension attempting to change routing, a stale created_at, a dev digest in place of a signature, and an HTTP-signature-valid but directory-JWS-invalid response (and the reverse) MUST all be rejected. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/extensions/mimi-interop.md"
       ]
@@ -3343,12 +3334,12 @@
     },
     {
       "vector_id": "ak.vector.mimi.room_update_branched_effect.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "mimi",
       "applies_to_profiles": [
         "ak.profile.mimi_interop.v1"
       ],
-      "description": "The semantic /update/kind discriminator selects exactly one branch: ak.mimi.room_binding requires one matching caller-authored Event admitted unchanged, while every other kind is receipt-only and forbids that Event; all pre-admission branch errors share one outward bucket.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: The semantic /update/kind discriminator selects exactly one branch: ak.mimi.room_binding requires one matching caller-authored Event admitted unchanged, while every other kind is receipt-only and forbids that Event; all pre-admission branch errors share one outward bucket. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/extensions/mimi-interop.md"
       ]
@@ -3468,13 +3459,13 @@
     },
     {
       "vector_id": "ak.vector.mls.welcome_recipient_delivery_queue.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "mls",
       "applies_to_profiles": [
         "ak.profile.e2ee_client.v1",
         "ak.profile.agent_runtime.v1"
       ],
-      "description": "An accepted MLS Commit atomically queues exact producer-signed MlsWelcomeDelivery objects. Account delta and same-queue list return ordered device_message/mls_welcome discriminator branches with one position, cursor and cumulative ACK. Welcome deduplicates by recipient endpoint plus welcome_id; wrong branch, changed bytes, cross-endpoint token, stale Agent authorization, premature ACK and dropped-item silence fail closed. Unacknowledged deliveries survive content expiry; full endpoint capacity rejects fresh DeviceMessage or Commit+Welcome atomically without evicting old items or writing request idempotency. Human devices and Agent runtimes use their own authenticated endpoint without synthetic device ids or an independent Welcome-ref GET.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: An accepted MLS Commit atomically queues exact producer-signed MlsWelcomeDelivery objects. Account delta and same-queue list return ordered device_message/mls_welcome discriminator branches with one position, cursor and cumulative ACK. Welcome deduplicates by recipient endpoint plus welcome_id; wrong branch, changed bytes, cross-endpoint token, stale Agent authorization, premature ACK and dropped-item silence fail closed. Unacknowledged deliveries survive content expiry; full endpoint capacity rejects fresh DeviceMessage or Commit+Welcome atomically without evicting old items or writing request idempotency. Human devices and Agent runtimes use their own authenticated endpoint without synthetic device ids or an independent Welcome-ref GET. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
@@ -3580,14 +3571,14 @@
     },
     {
       "vector_id": "ak.vector.patch.atomic_application.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "patch",
       "applies_to_profiles": [
         "ak.profile.core_event_store.v1"
       ],
-      "description": "Field patches apply atomically against the declared pre-state: a partially applied patch or an unbound pre-state is rejected and the target object is left completely unchanged.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: Field patches apply atomically against the declared pre-state: a partially applied patch or an unbound pre-state is rejected and the target object is left completely unchanged. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
-        "spec/v1/artifacts/registry/normative-clause-registry.json"
+        "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
     {
@@ -3604,26 +3595,26 @@
     },
     {
       "vector_id": "ak.vector.patch.projection_prestate_binding.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "patch",
       "applies_to_profiles": [
         "ak.profile.core_event_store.v1"
       ],
-      "description": "Pins strand update/tracks update to data-plane target_ref routing while stage.set follows its registered execution contract; reducer projections are recomputed from the single registered base, remain independent of receiver-local projections, hold on missing dependencies, and reject missing/multiple bases or non-canonical projected post-state with reducer_projection_failed.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: Pins strand update/tracks update to data-plane target_ref routing while stage.set follows its registered execution contract; reducer projections are recomputed from the single registered base, remain independent of receiver-local projections, hold on missing dependencies, and reject missing/multiple bases or non-canonical projected post-state with reducer_projection_failed. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
-        "spec/v1/artifacts/registry/normative-clause-registry.json"
+        "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
     {
       "vector_id": "ak.vector.patch.redactable_content_slot_unset_ban.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "patch",
       "applies_to_profiles": [
         "ak.profile.core_event_store.v1"
       ],
-      "description": "Pins the event-and-patch.md §4.2.4 slot-existence rule against the machine-readable redactable-field-registry.json: $op=\"unset\" on every registered content-carrier slot is rejected with patch_unset_redactable_field, plaintext and encrypted forms of one slot decide identically, $op=\"set\" with an empty body stays ordinary authoring, and metadata.title / metadata.summary / metadata.fields.* accept unset so an optional field can never become write-once.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: Pins the event-and-patch.md §4.2.4 slot-existence rule against the machine-readable redactable-field-registry.json: $op=\"unset\" on every registered content-carrier slot is rejected with patch_unset_redactable_field, plaintext and encrypted forms of one slot decide identically, $op=\"set\" with an empty body stays ordinary authoring, and metadata.title / metadata.summary / metadata.fields.* accept unset so an optional field can never become write-once. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
-        "spec/v1/artifacts/registry/normative-clause-registry.json"
+        "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
     {
@@ -3648,16 +3639,6 @@
       "description": "Preview authority exposes only the registered stripped projection with no history events and no exporter secrets, never creates current membership or committed-history eligibility, and makes unknown, expired and wrong-scope tokens outwardly indistinguishable.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/visibility-policy-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.proof_context.transcript.event_envelope.v1",
-      "status": "active",
-      "domain": "proof_context",
-      "scope": "universal",
-      "description": "Transcript KAT for ak.event_proof.v1: digest input deletes exactly `event_id`, `producer_proof`, `unsigned`; canonical binding bytes, detached JWS, and the same unsigned body replayed under ak.extension_manifest_proof.v1 rejected.",
-      "source_refs": [
-        "spec/v1/artifacts/registry/normative-clause-registry.json"
       ]
     },
     {
@@ -3737,12 +3718,12 @@
     },
     {
       "vector_id": "ak.vector.reaction.remove_wins_join.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "reaction",
       "applies_to_profiles": [
         "ak.profile.chat_mvp.v1"
       ],
-      "description": "Concurrent reaction add and remove converge on remove, a reaction never revives after redaction, a reaction across MLS epochs stays bound to its target Event and scope, and after a capability revoke new reactions from that actor fail closed while existing ones remain as historical facts.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: Concurrent reaction add and remove converge on remove, a reaction never revives after redaction, a reaction across MLS epochs stays bound to its target Event and scope, and after a capability revoke new reactions from that actor fail closed while existing ones remain as historical facts. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/models/strand-and-message.md"
       ]
@@ -3761,12 +3742,12 @@
     },
     {
       "vector_id": "ak.vector.read_cursor.multi_device_merge.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "read_cursor",
       "applies_to_profiles": [
         "ak.profile.full_client.v1"
       ],
-      "description": "Multi-device read cursor merge is causal-first: a causally dominating position wins even when its HLC is lower, HLC max decides only causally concurrent positions, device_id breaks equal HLCs, and an undecidable causal closure stays provisional.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: Multi-device read cursor merge is causal-first: a causally dominating position wins even when its HLC is lower, HLC max decides only causally concurrent positions, device_id breaks equal HLCs, and an undecidable causal closure stays provisional. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/discovery/read-receipts.md"
       ]
@@ -3786,12 +3767,12 @@
     },
     {
       "vector_id": "ak.vector.realm_link.transition_matrix.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "realm_link",
       "applies_to_profiles": [
         "ak.profile.core_event_store.v1"
       ],
-      "description": "Realm Link transition contract: all declared initial states and transitions are accepted, tombstoned is terminal except byte-equivalent replay, undeclared transitions reject with realm_link_invalid_transition, competing same-revision transitions are serialized and stale commands reject without changing the confirmed state, general graph cycles remain valid, and self-reference rejects with realm_link_self_reference.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: Realm Link transition contract: all declared initial states and transitions are accepted, tombstoned is terminal except byte-equivalent replay, undeclared transitions reject with realm_link_invalid_transition, competing same-revision transitions are serialized and stale commands reject without changing the confirmed state, general graph cycles remain valid, and self-reference rejects with realm_link_self_reference. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/models/realm-links.md"
       ]
@@ -3915,8 +3896,9 @@
       ],
       "description": "Every directly writable Relation shape has one primary_conflict_domain current-result subject. create, update and tombstone carry the closed domain plus its exact expected_revision; two writes from one revision admit at most one RealmCommit, stale writes are side-effect free and exact replay returns the original Commit. relation_kind, from_ref and to_ref are create-locked; changing identity is an explicit tombstone followed by create. A tombstoned domain may create a new event-derived RelationId at that tombstone revision, while truth_source shapes remain non-writable.",
       "source_refs": [
-        "spec/v1/zh/models/relation.md",
-        "spec/v1/zh/conformance/conformance-vectors.md"
+        "spec/v1/artifacts/fixtures/circle-scope-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/zh/models/relation.md"
       ]
     },
     {
@@ -4432,108 +4414,108 @@
     },
     {
       "vector_id": "ak.vector.sidecar.accepted_request_identity.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "sidecar",
       "applies_to_profiles": [
         "ak.profile.agent_sidecar.v1"
       ],
-      "description": "Runtime producer and controller consumer bind exchange identity only to the accepted request Event id and reject message, local-intent and unaccepted identities.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: Runtime producer and controller consumer bind exchange identity only to the accepted request Event id and reject message, local-intent and unaccepted identities. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/models/sidecar.md"
       ]
     },
     {
       "vector_id": "ak.vector.sidecar.canonical_sibling_digest.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "sidecar",
       "applies_to_profiles": [
         "ak.profile.agent_sidecar.v1"
       ],
-      "description": "Same-sequence request and control siblings choose the bytewise maximum canonical accepted Event envelope digest, never Event id, HLC, arrival or database order.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: Same-sequence request and control siblings choose the bytewise maximum canonical accepted Event envelope digest, never Event id, HLC, arrival or database order. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/models/sidecar.md"
       ]
     },
     {
       "vector_id": "ak.vector.sidecar.context_locator_recovery.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "sidecar",
       "applies_to_profiles": [
         "ak.profile.agent_sidecar.v1"
       ],
-      "description": "Controller-only complete pagination and structural Event pairing recover private Sidecar context locators without adding a disclosure endpoint.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: Controller-only complete pagination and structural Event pairing recover private Sidecar context locators without adding a disclosure endpoint. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/models/sidecar.md"
       ]
     },
     {
       "vector_id": "ak.vector.sidecar.eligibility_states.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "sidecar",
       "applies_to_profiles": [
         "ak.profile.agent_sidecar.v1"
       ],
-      "description": "An owned Agent without a published KeyPackage is in desired_agent_ids but outside effective access with access_readiness=key_material_pending and no plaintext branch; it gains only post-join epoch keys through the Sidecar Welcome, and once deactivated or out of the Realm it leaves the derived desired set, addressing and delivery stop immediately, a durable MLS removal obligation is created, and its later proofs, writes and queries fail closed.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: An owned Agent without a published KeyPackage is in desired_agent_ids but outside effective access with access_readiness=key_material_pending and no plaintext branch; it gains only post-join epoch keys through the Sidecar Welcome, and once deactivated or out of the Realm it leaves the derived desired set, addressing and delivery stop immediately, a durable MLS removal obligation is created, and its later proofs, writes and queries fail closed. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/models/sidecar.md"
       ]
     },
     {
       "vector_id": "ak.vector.sidecar.ensure_idempotent.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "sidecar",
       "applies_to_profiles": [
         "ak.profile.agent_sidecar.v1"
       ],
-      "description": "Concurrent prepare and create for one (realm_id, controller_account_id) converge on a single Sidecar whose sidecar_id is the winning create event_id retyped, callers may not supply or overwrite it, a mutated draft conflicts with zero writes while the exact draft replays idempotently, and context attach only projects the (sidecar_id, source_context_ref) mapping without creating a Circle, membership, Strand or Relation.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: Concurrent prepare and create for one (realm_id, controller_account_id) converge on a single Sidecar whose sidecar_id is the winning create event_id retyped, callers may not supply or overwrite it, a mutated draft conflicts with zero writes while the exact draft replays idempotently, and context attach only projects the (sidecar_id, source_context_ref) mapping without creating a Circle, membership, Strand or Relation. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/models/sidecar.md"
       ]
     },
     {
       "vector_id": "ak.vector.sidecar.exchange_binding_closed_loop.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "sidecar",
       "applies_to_profiles": [
         "ak.profile.agent_sidecar.v1"
       ],
-      "description": "Explicit response closed loop with runtime addressed/self eligibility and restart dedupe gates, coordinator completion policy, causal request refs, controller validation, fail-closed non-echo handling, and controller-authored durable close control.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: Explicit response closed loop with runtime addressed/self eligibility and restart dedupe gates, coordinator completion policy, causal request refs, controller validation, fail-closed non-echo handling, and controller-authored durable close control. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/models/sidecar.md"
       ]
     },
     {
       "vector_id": "ak.vector.sidecar.exchange_binding_containment.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "sidecar",
       "applies_to_profiles": [
         "ak.profile.agent_sidecar.v1"
       ],
-      "description": "Containment: plaintext or shared-scope occurrences of exchange binding/control schema ids or exchange_id are hard rejects/invalid; publish output, Account Data, and public/shared surfaces carry no exchange material.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: Containment: plaintext or shared-scope occurrences of exchange binding/control schema ids or exchange_id are hard rejects/invalid; publish output, Account Data, and public/shared surfaces carry no exchange material. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/models/sidecar.md"
       ]
     },
     {
       "vector_id": "ak.vector.sidecar.exchange_projection_recovery.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "sidecar",
       "applies_to_profiles": [
         "ak.profile.agent_sidecar.v1"
       ],
-      "description": "Event-fold and local-cache recovery: rebuild from accepted private history, fold validation, no Account Data merge, controller-controlled ordering and sibling resolution, terminal absorption, reassignment, action-by-response-set mapping, and projection schema state invariants.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: Event-fold and local-cache recovery: rebuild from accepted private history, fold validation, no Account Data merge, controller-controlled ordering and sibling resolution, terminal absorption, reassignment, action-by-response-set mapping, and projection schema state invariants. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/models/sidecar.md"
       ]
     },
     {
       "vector_id": "ak.vector.sidecar.existence_privacy.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "sidecar",
       "applies_to_profiles": [
         "ak.profile.agent_sidecar.v1"
       ],
-      "description": "To a caller who is neither the controller nor one of its owned Agents, the account Event stream yields zero Events referencing the Sidecar native scope, no protocol Relation enumerates Sidecars or their source-context mappings, the Realm directory has no hit for sidecar_id or controller mapping, Sidecar Events raise no notification for source Strand participants, and they appear in Realm commit metadata only as opaque commitments.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: To a caller who is neither the controller nor one of its owned Agents, the account Event stream yields zero Events referencing the Sidecar native scope, no protocol Relation enumerates Sidecars or their source-context mappings, the Realm directory has no hit for sidecar_id or controller mapping, Sidecar Events raise no notification for source Strand participants, and they appear in Realm commit metadata only as opaque commitments. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/models/circle.md",
         "spec/v1/zh/models/sidecar.md"
@@ -4541,108 +4523,96 @@
     },
     {
       "vector_id": "ak.vector.sidecar.explicit_publish.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "sidecar",
       "applies_to_profiles": [
         "ak.profile.agent_sidecar.v1"
       ],
-      "description": "Only explicit controller confirmation creates one allowlisted ordinary shared Event, with zero private identifiers, history or locators.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: Only explicit controller confirmation creates one allowlisted ordinary shared Event, with zero private identifiers, history or locators. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/models/sidecar.md"
       ]
     },
     {
       "vector_id": "ak.vector.sidecar.hosted_projection.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "sidecar",
       "applies_to_profiles": [
         "ak.profile.agent_sidecar.v1"
       ],
-      "description": "Context attach establishes only the source-context mapping and rejects extra track or message fields under the closed schema; the local echo projection rebuilds without duplicating requests or Agent executions, orders after the last seen shared position by stable key, keeps the main Strand title, breadcrumb and track tabs visible in both modes, shows an empty state instead of falling back to shared read/write, and admits only requests and explicit user-facing responses into the echo.",
-      "source_refs": [
-        "spec/v1/zh/models/sidecar.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.sidecar.hosted_ui_matrix.v1",
-      "status": "active",
-      "domain": "sidecar",
-      "applies_to_profiles": [
-        "ak.profile.agent_sidecar.v1"
-      ],
-      "description": "Chrome and Edge execute the hosted multi-track, multi-mode, multi-device, multi-Agent and responsive UI matrix with preserved state and incremental switching evidence.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: Context attach establishes only the source-context mapping and rejects extra track or message fields under the closed schema; the local echo projection rebuilds without duplicating requests or Agent executions, orders after the last seen shared position by stable key, keeps the main Strand title, breadcrumb and track tabs visible in both modes, shows an empty state instead of falling back to shared read/write, and admits only requests and explicit user-facing responses into the echo. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/models/sidecar.md"
       ]
     },
     {
       "vector_id": "ak.vector.sidecar.mls_bootstrap_binding.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "sidecar",
       "applies_to_profiles": [
         "ak.profile.agent_sidecar.v1"
       ],
-      "description": "The Sidecar participant set is exactly the controller plus the current Realm-scoped desired_agent_ids with a sorted deduplicated authority transcript digest equal to participant_authority_digest; exactly one genesis wins through Station admission and compare-and-set, the server generates no MLS private state, forges no GroupInfo or ratchet-tree digest and offers no bootstrap endpoint bypassing Event proof, and every binding mutation fails closed.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: The Sidecar participant set is exactly the controller plus the current Realm-scoped desired_agent_ids with a sorted deduplicated authority transcript digest equal to participant_authority_digest; exactly one genesis wins through Station admission and compare-and-set, the server generates no MLS private state, forges no GroupInfo or ratchet-tree digest and offers no bootstrap endpoint bypassing Event proof, and every binding mutation fails closed. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/models/sidecar.md"
       ]
     },
     {
       "vector_id": "ak.vector.sidecar.mls_effective_access.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "sidecar",
       "applies_to_profiles": [
         "ak.profile.agent_sidecar.v1"
       ],
-      "description": "Desired membership, a delivered Welcome and a claimed KeyPackage are each insufficient alone and any incomplete combination stays pending; only an accepted Add Commit, a matching accepted Welcome referencing it, and that device consuming the same claim on an authenticated session together make the device effective, and other devices of the same principal gain nothing automatically.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: Desired membership, a delivered Welcome and a claimed KeyPackage are each insufficient alone and any incomplete combination stays pending; only an accepted Add Commit, a matching accepted Welcome referencing it, and that device consuming the same claim on an authenticated session together make the device effective, and other devices of the same principal gain nothing automatically. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/models/sidecar.md"
       ]
     },
     {
       "vector_id": "ak.vector.sidecar.multi_agent_publish.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "sidecar",
       "applies_to_profiles": [
         "ak.profile.agent_sidecar.v1"
       ],
-      "description": "When an Agent publishes, actor_id and executed_by are a single Agent DID with no group-style composite attribution; publishing content covered only by another Agent's grant, or without a fresh approval, fails closed, while its own grant lets it publish independently under its single DID.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: When an Agent publishes, actor_id and executed_by are a single Agent DID with no group-style composite attribution; publishing content covered only by another Agent's grant, or without a fresh approval, fails closed, while its own grant lets it publish independently under its single DID. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/models/sidecar.md"
       ]
     },
     {
       "vector_id": "ak.vector.sidecar.non_disclosure_surface_matrix.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "sidecar",
       "applies_to_profiles": [
         "ak.profile.agent_sidecar.v1"
       ],
-      "description": "Every shared list, expansion, activity, export, URL, log and telemetry surface discloses no Sidecar locator, identity, content or fold input.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: Every shared list, expansion, activity, export, URL, log and telemetry surface discloses no Sidecar locator, identity, content or fold input. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/models/sidecar.md"
       ]
     },
     {
       "vector_id": "ak.vector.sidecar.revoke_fail_closed.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "sidecar",
       "applies_to_profiles": [
         "ak.profile.agent_sidecar.v1"
       ],
-      "description": "Accepted Agent revoke, pause or deactivate immediately stops new delivery, execution and writes without implicitly terminating exchanges.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: Accepted Agent revoke, pause or deactivate immediately stops new delivery, execution and writes without implicitly terminating exchanges. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/models/sidecar.md"
       ]
     },
     {
       "vector_id": "ak.vector.sidecar.union_history_checkpoint.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "sidecar",
       "applies_to_profiles": [
         "ak.profile.agent_sidecar.v1"
       ],
-      "description": "Sidecar union history exposes a checkpoint bounded by the controller's own eligibility; it never widens historical visibility beyond the effective access of the requesting principal.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: Sidecar union history exposes a checkpoint bounded by the controller's own eligibility; it never widens historical visibility beyond the effective access of the requesting principal. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/models/sidecar.md"
       ]
@@ -4736,14 +4706,14 @@
     },
     {
       "vector_id": "ak.vector.strand_tracks_update.atomic.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "strand_tracks_update",
       "applies_to_profiles": [
         "ak.profile.core_event_store.v1"
       ],
-      "description": "One ak.strand.tracks.update patches tracks atomically: switching the primary within a single Event never exposes an intermediate projection with two or zero is_primary=true, enable/disable and profile updates land in the same typed current update, a violating Event is rejected with schema_violation leaving tracks unchanged, and unregistered TrackNames are rejected rather than created from regex shape.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: One ak.strand.tracks.update patches tracks atomically: switching the primary within a single Event never exposes an intermediate projection with two or zero is_primary=true, enable/disable and profile updates land in the same typed current update, a violating Event is rejected with schema_violation leaving tracks unchanged, and unregistered TrackNames are rejected rather than created from regex shape. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
-        "spec/v1/artifacts/registry/normative-clause-registry.json"
+        "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
     {
@@ -4851,14 +4821,14 @@
     },
     {
       "vector_id": "ak.vector.sync.to_device_message_idempotency.v1",
-      "status": "active",
+      "status": "reserved",
       "domain": "sync",
       "applies_to_profiles": [
         "ak.profile.full_client.v1"
       ],
-      "description": "DeviceMessageEnvelope requires a sender-assigned device_message_id; unacknowledged byte-identical redelivery executes durable handler effects once, conflicting reuse fails with duplicate_conflict/device_message_id_conflict, and distinct ids remain distinct logical messages.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: DeviceMessageEnvelope requires a sender-assigned device_message_id; unacknowledged byte-identical redelivery executes durable handler effects once, conflicting reuse fails with duplicate_conflict/device_message_id_conflict, and distinct ids remain distinct logical messages. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
-        "spec/v1/artifacts/registry/normative-clause-registry.json"
+        "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
     {

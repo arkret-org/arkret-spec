@@ -5,7 +5,7 @@
   "covers_vectors": [
     "ak.vector.realm_organization.schema_semantic.v1"
   ],
-  "version": "2026-09-02.1",
+  "version": "2026-09-24",
   "spec_anchor": "spec/v1/zh/models/realm-and-space.md#230-realm-组织归属与治理同意normative",
   "source_refs": [
     "spec/v1/zh/models/realm-and-space.md",
@@ -46,7 +46,7 @@
         "issued_at": "2026-05-01T00:00:00.000Z",
         "not_before": "2026-05-01T00:00:00.000Z",
         "expires_at": null,
-        "realm_commit_ref": "ak:realm_commit:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        "realm_commit_ref": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
         "authorization": {
           "issuer_id": "ak:did_core:webvh:z6mkfixtureacmeexample",
           "issuer_role": "organization",

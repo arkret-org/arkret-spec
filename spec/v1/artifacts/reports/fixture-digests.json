@@ -42,8 +42,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-vectors-fixture.json",
-      "sha256": "7d7594aa7c13497420f6101442ddf5c52d89456a8b241002c3c8eba933ec84a0",
-      "version": "2026-09-21"
+      "sha256": "f29b07c5099892d1766298669ab8db537c8afc0ef826f51513df66c91da155a2",
+      "version": "2026-09-24"
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-managed-actor-fixture.json",
@@ -162,8 +162,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/detached-object-signature-kat-fixture.json",
-      "sha256": "9cea525e06c6cf736559cc1d54088da5371a400ecd64261962dd94fc6bb72eaf",
-      "version": "2026-09-20.3"
+      "sha256": "6fd94a74b5e0e69d9a61e7d5ae014557ca01ec08747b100506a27f6097be54d4",
+      "version": "2026-09-24"
     },
     {
       "path": "spec/v1/artifacts/fixtures/did-binding-digest-fixture.json",
@@ -282,8 +282,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/key-backup-fixture.json",
-      "sha256": "3f71143fc9ebec6a215468e950ae32b949d71e3a17b1e5d59336c0db0c5011db",
-      "version": "2026-09-24.2"
+      "sha256": "3db629509b4543b0881fba6986249f7e509a00c49e6a623d65f40cc43eb1e54e",
+      "version": "2026-09-24.3"
     },
     {
       "path": "spec/v1/artifacts/fixtures/key-backup-hardening-fixture.json",
@@ -417,8 +417,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/realm-organization-fixture.json",
-      "sha256": "86951c7d9e665f1c9bb36c027112dfa4ee16c01a2a103373b022838f715e7cac",
-      "version": "2026-09-02.1"
+      "sha256": "3e815ac73d94ca5f3571fa276fbf0d367d9f1631467ac0b7ab3db55c5ee74656",
+      "version": "2026-09-24"
     },
     {
       "path": "spec/v1/artifacts/fixtures/recovery-transcript-fixture.json",
