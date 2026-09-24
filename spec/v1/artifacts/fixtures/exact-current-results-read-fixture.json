@@ -1,6 +1,6 @@
 {
   "fixture_id": "ak.fixture.exact_current_results_read.v1",
-  "version": "2026-09-22",
+  "version": "2026-09-24",
   "suite": "exact_current_results_read",
   "fixture_kind": "schema_only",
   "spec_anchor": "spec/v1/zh/sync/current-results.md",
@@ -88,6 +88,10 @@
           "selector": {
             "kind": "moderation_state",
             "target_ref": "ak:message:Abz8ZrG1_9zdkxN9VA-u0IBsaEOpJkC71uo1V6fZ72VY"
+          },
+          "source_stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
           },
           "revision": {
             "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq",
