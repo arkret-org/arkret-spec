@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-21.1",
+  "version": "2026-09-25.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-21T03:47:00+08:00",
+  "generated_at": "2026-09-25T00:44:00+08:00",
   "description": "Closed inventory of current spec/v1/zh headings that explicitly carry the （normative） marker. Any addition, removal, rename, or move is reviewed as a protocol change and refreshes this source-of-truth inventory.",
   "titles": [
     {
@@ -366,8 +366,8 @@
     },
     {
       "page": "crypto-media/device-lifecycle.md",
-      "heading": "8.2.2 Human control signer evidence（normative）",
-      "fragment": "822-human-control-signer-evidencenormative"
+      "heading": "8.2.2 Human 设备 producer 解析（normative）",
+      "fragment": "822-human-设备-producer-解析normative"
     },
     {
       "page": "crypto-media/device-lifecycle.md",

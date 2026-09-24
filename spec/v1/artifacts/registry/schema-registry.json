@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-24.3",
+  "version": "2026-09-25.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-24T18:31:43+08:00",
+  "generated_at": "2026-09-25T00:44:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -415,7 +415,7 @@
       "schema_id": "ak.schema.account_device_signer_evidence.v1",
       "file": "schemas/account-device-signer-evidence.schema.json",
       "status": "active",
-      "description": "Closed content-addressed ordinary account-device signer evidence retaining the exact origin attestation and full method-native Service resolution.",
+      "description": "Closed content-addressed account-device signer evidence retaining the exact origin attestation and full method-native Service resolution; the same type is the cross-Station authority_forward producer_device_evidence.",
       "consumer_binding": {
         "kind": "standalone_schema_alias",
         "selector": "schemas/account-device-signer-evidence.schema.json",
@@ -1205,7 +1205,7 @@
       "schema_id": "ak.schema.principal_registration_anchor.v1",
       "file": "schemas/principal-registration-anchor.schema.json",
       "status": "active",
-      "description": "Closed adapter-discriminated registration anchor consumed identically by human registration, PCR genesis and the portable account_device_control root."
+      "description": "Closed adapter-discriminated registration anchor consumed identically by human registration and PCR genesis."
     },
     {
       "schema_id": "ak.schema.public_key.v1",

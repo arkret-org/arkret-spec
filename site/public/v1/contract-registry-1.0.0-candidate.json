@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-24.9",
+  "version": "2026-09-25.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-24T23:33:10+08:00",
+  "generated_at": "2026-09-25T00:44:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -9494,7 +9494,7 @@
         "schema_id": "ak.schema.account_device_signer_evidence.v1",
         "file": "schemas/account-device-signer-evidence.schema.json",
         "status": "active",
-        "description": "Closed content-addressed ordinary account-device signer evidence retaining the exact origin attestation and full method-native Service resolution.",
+        "description": "Closed content-addressed account-device signer evidence retaining the exact origin attestation and full method-native Service resolution; the same type is the cross-Station authority_forward producer_device_evidence.",
         "consumer_binding": {
           "kind": "standalone_schema_alias",
           "selector": "schemas/account-device-signer-evidence.schema.json",
@@ -10284,7 +10284,7 @@
         "schema_id": "ak.schema.principal_registration_anchor.v1",
         "file": "schemas/principal-registration-anchor.schema.json",
         "status": "active",
-        "description": "Closed adapter-discriminated registration anchor consumed identically by human registration, PCR genesis and the portable account_device_control root."
+        "description": "Closed adapter-discriminated registration anchor consumed identically by human registration and PCR genesis."
       },
       {
         "schema_id": "ak.schema.public_key.v1",
@@ -10864,8 +10864,8 @@
         "description": "Server authentication-success frame carrying effective connection and channel limits."
       }
     ],
-    "version": "2026-09-24.3",
-    "generated_at": "2026-09-24T18:31:43+08:00",
+    "version": "2026-09-25.1",
+    "generated_at": "2026-09-25T00:44:00+08:00",
     "metadata_authority": "contract_registry_section"
   },
   "id_kind_registry": {
@@ -20065,7 +20065,7 @@
       "A did is a canonical bare DID and therefore contains no path, query or fragment. Each active adapter deterministically emits method_history_head, version_id and service_resolution_event_ref according to its registered rules, including synthetic values for methods without native history.",
       "For a generic Event proof, the verifier extracts the canonical bare did base from proof.verification_method, validates the active adapter and key at the cited accepted-at method history, projects that did, and compares the resulting did_core_id to executed_by when present or actor_id otherwise. registration_anchor and pcr_recovery are the only registered special admissions and never convert current DID control into generic human PCR authority.",
       "A principal resolution update is admitted only in its derived identity-control Realm and only when one exact expected_revision precondition guards ak:result:identity_resolution:null. The guarded whole resolution_projection MUST equal the accepted current typed current result; predecessor event/history coordinates come only from that signed precondition, never from payload mirrors.",
-      "Exactly one active adapter, did:webvh:1.0, carries human_principal_anchor=true and declares registration_anchor_kind=webvh_registration; that value is the sole discriminator of the closed principal-registration-anchor contract. A human principal is registered, given PCR genesis and later replayed from a portable account_device_control root only through that branch. Every other method, including did:key and did:web, carries human_principal_anchor=false and MUST fail closed with unsupported_did_method at schema and role admission, before any method parser, history replay or registry write. Adding another human anchor requires a newly registered portable publication-proof or independent-witness trust model with its own threat model and conformance vectors; it MUST NOT enter through a test fixture, an optional sidecar member or a locally widened allowlist."
+      "Exactly one active adapter, did:webvh:1.0, carries human_principal_anchor=true and declares registration_anchor_kind=webvh_registration; that value is the sole discriminator of the closed principal-registration-anchor contract. A human principal is registered and given PCR genesis only through that branch. Every other method, including did:key and did:web, carries human_principal_anchor=false and MUST fail closed with unsupported_did_method at schema and role admission, before any method parser, history replay or registry write. Adding another human anchor requires a newly registered portable publication-proof or independent-witness trust model with its own threat model and conformance vectors; it MUST NOT enter through a test fixture, an optional sidecar member or a locally widened allowlist."
     ],
     "principal_resolution_contract": {
       "version": "2026-08-30.1",
@@ -20299,8 +20299,8 @@
         ]
       }
     },
-    "version": "2026-09-19.2",
-    "generated_at": "2026-09-19T18:59:50+08:00",
+    "version": "2026-09-25.1",
+    "generated_at": "2026-09-25T00:44:00+08:00",
     "metadata_authority": "contract_registry_section"
   },
   "binding_kind_registry": {

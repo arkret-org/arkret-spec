@@ -19,6 +19,13 @@ VECTORS = ARTIFACTS / "registry" / "vector-registry.json"
 FIXTURE = ARTIFACTS / "fixtures" / "peer-event-submit-semantic-union-fixture.json"
 OPENAPI = ARTIFACTS / "openapi" / "arkret-service-api.openapi.yaml"
 RUNNER = Path(__file__).with_name("runner.py")
+PRODUCER_EVIDENCE_VECTOR = "ak.vector.federation.authority_forward_producer_device_evidence.v1"
+PRODUCER_DEVICE_CODES = (
+    "device_unauthorized",
+    "device_revoked",
+    "device_revocation_pending",
+    "device_generation_fenced",
+)
 
 PROSE_MARKERS = {
     SPEC_ROOT / "zh" / "sync" / "service-http-binding.md": (
@@ -27,12 +34,15 @@ PROSE_MARKERS = {
         "`registered_atomic_unit`",
         "不得重做首次 admission",
         "`replication_outcomes[]`",
+        "`producer_device_evidence`",
     ),
     SPEC_ROOT / "zh" / "sync" / "federation.md": (
         "`EventAdmissionSubmission` 与 source-signed",
         "`status=\"stored\"|\"duplicate\"`",
         "`fanout_authorization_basis`",
         "不得把 replica persistence 称为新的 accepted finality",
+        "**跨站 human 设备 producer（normative）**",
+        "`producer_device_evidence`",
     ),
     SPEC_ROOT / "zh" / "identity" / "contact-and-direct-conversation.md": (
         "`direct_conversation_founding_unit_submission`",
@@ -46,6 +56,9 @@ PROSE_MARKERS = {
         "第四个 Commit 的 `committed_at` 是唯一 founding acceptance time",
     ),
     SPEC_ROOT / "zh" / "crypto-media" / "device-lifecycle.md": (
+        "#### 8.2.2 Human 设备 producer 解析（normative）",
+        "`producer_device_evidence`",
+        "不按 Control／Data／actor-private 或 event kind 分流",
         "`membership_compensation_unit_submission`",
         "`membership_compensation_federation_submission`",
         "`membership_compensation_conflict` 且零写入",
@@ -200,12 +213,12 @@ def check_peer_event_submit_semantic_union(lint: Lint) -> None:
         if constants != ["authority_forward", "authority_forward", "committed_replication", "registered_atomic_unit"]:
             _fail(lint, SCHEMA, "peer_submit_request alternatives drift from the registered branch partition")
         allowed_fields = (
-            {"branch", "event_submission"},
-            {"branch", "mls_submission"},
+            {"branch", "event_submission", "producer_device_evidence"},
+            {"branch", "mls_submission", "producer_device_evidence"},
             {"branch", "replications"},
             {"branch", "unit"},
         )
-        all_branch_fields = {"event_submission", "mls_submission", "replications", "unit"}
+        all_branch_fields = {"event_submission", "mls_submission", "producer_device_evidence", "replications", "unit"}
         for index, (item, allowed) in enumerate(zip(branches, allowed_fields, strict=True)):
             forbidden = {
                 next(iter(_required(candidate)))
@@ -216,8 +229,14 @@ def check_peer_event_submit_semantic_union(lint: Lint) -> None:
                 _fail(lint, SCHEMA, f"peer_submit_request alternative {index} must reject every cross-branch field")
 
     peer_properties = peer.get("properties", {})
-    if set(peer_properties) != {"branch", "event_submission", "mls_submission", "replications", "unit"}:
+    if set(peer_properties) != {"branch", "event_submission", "mls_submission", "producer_device_evidence", "replications", "unit"}:
         _fail(lint, SCHEMA, "peer_submit_request properties must be the exact branch field set")
+    if _ref_name(peer_properties.get("producer_device_evidence")) != "./account-device-signer-evidence.schema.json":
+        _fail(lint, SCHEMA, "authority_forward producer_device_evidence must directly reuse account-device-signer-evidence")
+    if isinstance(branches, list):
+        for item in branches:
+            if isinstance(item, dict) and "producer_device_evidence" in _required(item):
+                _fail(lint, SCHEMA, "producer_device_evidence presence is decided by the Event and must not be schema-required")
     replications = peer_properties.get("replications", {})
     if replications.get("minItems") != 1 or replications.get("maxItems") != 100:
         _fail(lint, SCHEMA, "committed replication must remain bounded to 1..100 replications")
@@ -470,6 +489,22 @@ def check_peer_event_submit_semantic_union(lint: Lint) -> None:
     peer_vector = _find(vector_rows, "vector_id", "ak.vector.peer.event_submit.semantic_union.v1")
     if not isinstance(peer_vector, dict) or peer_vector.get("applies_to_fixtures") != [FIXTURE.name]:
         _fail(lint, VECTORS, "peer semantic-union vector must bind the executable fixture")
+    forward_vector = _find(vector_rows, "vector_id", PRODUCER_EVIDENCE_VECTOR)
+    if (
+        not isinstance(forward_vector, dict)
+        or forward_vector.get("status") != "active"
+        or forward_vector.get("applies_to_fixtures") != [FIXTURE.name]
+    ):
+        _fail(lint, VECTORS, "authority-forward producer-evidence vector must be active and bind the executable fixture")
+    forward_case = _find(fixture.get("cases"), "name", "authority_forward_producer_device_evidence")
+    if not isinstance(forward_case, dict) or forward_case.get("vector_id") != PRODUCER_EVIDENCE_VECTOR:
+        _fail(lint, FIXTURE, "authority-forward producer-evidence case must carry its vector_id")
+    for operation_id in ("ak.peer.events.command.submit.v1", "ak.self.events.command.submit.v1"):
+        row = _find(mapping.get("operations"), "operation_id", operation_id)
+        codes = set(row.get("operation_specific", [])) if isinstance(row, dict) else set()
+        missing_device_codes = sorted(set(PRODUCER_DEVICE_CODES) - codes)
+        if missing_device_codes:
+            _fail(lint, ERROR_MAPPING, f"{operation_id} error map omits human producer device codes {missing_device_codes}")
     descriptions = {row.get("vector_id"): row.get("description", "") for row in vector_rows if isinstance(row, dict)} if isinstance(vector_rows, list) else {}
     if "first and fourth Event IDs" not in descriptions.get("ak.vector.direct_conversation.founding_unit.v1", ""):
         _fail(lint, VECTORS, "founding-unit vector must derive main Strand from the fourth Event")
@@ -480,7 +515,14 @@ def check_peer_event_submit_semantic_union(lint: Lint) -> None:
     if "same four byte-identical source RealmCommits" not in admission or "deleted founding receipt is rejected" not in admission or "fourth committed_at" not in admission:
         _fail(lint, VECTORS, "founding-admission vector must pin commit-only finality and receipt rejection")
 
-    required_cases = {"authority_forward", "committed_replication", "direct_conversation_founding", "founding_authoring_material_non_echo", "membership_compensation"}
+    required_cases = {
+        "authority_forward",
+        "authority_forward_producer_device_evidence",
+        "committed_replication",
+        "direct_conversation_founding",
+        "founding_authoring_material_non_echo",
+        "membership_compensation",
+    }
     actual_cases = {row.get("name") for row in fixture.get("cases", []) if isinstance(row, dict)}
     if actual_cases != required_cases:
         _fail(lint, FIXTURE, f"fixture cases drift: expected {sorted(required_cases)}, got {sorted(actual_cases)}")
@@ -505,6 +547,13 @@ def check_peer_event_submit_semantic_union(lint: Lint) -> None:
         "missing_terminal_certificate",
         "superseded_by_j2_or_new_join",
         "duplicate_attempts_second_fanout",
+        "same_station_control_event_accepted",
+        "cross_station_forward_with_fresh_evidence_accepted",
+        "exact_replay_after_evidence_expiry_returns_original_outcome",
+        "source_station_differs_from_attested_account_station",
+        "service_history_lacks_method_at_attested_at",
+        "agent_producer_carries_evidence",
+        "human_producer_without_evidence",
     ):
         if marker not in fixture_text:
             _fail(lint, FIXTURE, f"fixture omits mutation case {marker}")

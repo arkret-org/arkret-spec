@@ -176,7 +176,8 @@ proof，随后把 exact bytes 交给已验证 current authority；未取得 auth
 不返回第二张 receipt 或虚构的逐项 partial。
 
 `ak.peer.events.command.submit.v1` 是同一路径上的三分支 closed union：`authority_forward` 只把普通 Event／MLS
-提交交给 current governance Station 首次接纳；`committed_replication` 携完整 source Event、source
+提交交给 current governance Station 首次接纳，跨站 human 设备 producer 由本分支的 `producer_device_evidence`
+承载设备证据（[`../crypto-media/device-lifecycle.md` §8.2.2](../crypto-media/device-lifecycle.md)）；`committed_replication` 携完整 source Event、source
 `RealmCommit`，接收方从自己的已验证 committed history 求值接收资格，并以
 `stored|duplicate|rejected` 同序逐项保存副本；wire 不携 membership witness、per-item mode、destination、
 输入 index 或 source-coordinate echo；

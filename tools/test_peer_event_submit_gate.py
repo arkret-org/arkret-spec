@@ -170,6 +170,44 @@ class PeerEventSubmitGateTest(unittest.TestCase):
 
         self.assert_red(mutate, "reject every cross-branch field")
 
+    def test_replication_branch_rejects_producer_device_evidence(self) -> None:
+        def mutate(documents: dict) -> None:
+            branch = self.defs(documents)["peer_submit_request"]["oneOf"][2]
+            branch["not"]["anyOf"] = [
+                item for item in branch["not"]["anyOf"] if item["required"] != ["producer_device_evidence"]
+            ]
+
+        self.assert_red(mutate, "reject every cross-branch field")
+
+    def test_producer_device_evidence_reuses_account_device_evidence(self) -> None:
+        def mutate(documents: dict) -> None:
+            self.defs(documents)["peer_submit_request"]["properties"]["producer_device_evidence"] = {
+                "$ref": "./keys-operations.schema.json#/$defs/device_projection_attestation"
+            }
+
+        self.assert_red(mutate, "directly reuse account-device-signer-evidence")
+
+    def test_producer_device_evidence_is_not_schema_required(self) -> None:
+        def mutate(documents: dict) -> None:
+            self.defs(documents)["peer_submit_request"]["oneOf"][0]["required"].append("producer_device_evidence")
+
+        self.assert_red(mutate, "must not be schema-required")
+
+    def test_peer_error_map_keeps_producer_device_codes(self) -> None:
+        def mutate(documents: dict) -> None:
+            self.error_mapping(documents, "ak.peer.events.command.submit.v1")["operation_specific"].remove(
+                "device_revocation_pending"
+            )
+
+        self.assert_red(mutate, "human producer device codes")
+
+    def test_producer_evidence_vector_must_stay_active(self) -> None:
+        def mutate(documents: dict) -> None:
+            rows = documents[gate.VECTORS.resolve()]["vectors"]
+            gate._find(rows, "vector_id", gate.PRODUCER_EVIDENCE_VECTOR)["status"] = "reserved"
+
+        self.assert_red(mutate, "must be active and bind the executable fixture")
+
     def test_replication_rejects_committed_event_wrapper(self) -> None:
         def mutate(documents: dict) -> None:
             self.defs(documents)["replicated_committed_event_submission"] = {

@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-24.17",
-  "generated_at": "2026-09-24T23:25:52+08:00",
+  "version": "2026-09-24.18",
+  "generated_at": "2026-09-24T23:33:10+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -89,7 +89,7 @@
     },
     {
       "operation_id": "ak.gate.account.command.issue_identity_binding_challenge.v1",
-      "sha256": "sha256:c04100a9478ebc50621736515fe9689231987d77df047b06f7366b765bdde8ba"
+      "sha256": "sha256:800cc9331567dc12bc8c602aeadc171c98d83daeec073b3c25d6a3ad38f448c5"
     },
     {
       "operation_id": "ak.gate.account.command.issue_recovery_completion_grant.v1",
@@ -117,7 +117,7 @@
     },
     {
       "operation_id": "ak.gate.account.command.register.v1",
-      "sha256": "sha256:17b1d85473b3d074586e2db49a94b93f093064a00317f91ff222064116a47bd9"
+      "sha256": "sha256:7d63382584df7014c7eabfe2408b934a0bf3f7590c26680920f75cecc15c54cc"
     },
     {
       "operation_id": "ak.gate.account.command.request_erasure.v1",
@@ -129,7 +129,7 @@
     },
     {
       "operation_id": "ak.gate.account.exchange.create_handoff.v1",
-      "sha256": "sha256:6d09947c3cfc7a872054e0391e2273e29eae5aafaa9d8c30318abaf53c54061f"
+      "sha256": "sha256:5dbbaf54e6bac523bbaf58920269777727529c381074908fd8166656d2e9a263"
     },
     {
       "operation_id": "ak.gate.account.read.claim_device_pairing_code.v1",
@@ -137,7 +137,7 @@
     },
     {
       "operation_id": "ak.gate.account.read.onboarding.v1",
-      "sha256": "sha256:a057aec53dda1e428795808a2b8a192dc47437d45bf3cd2d27fc16120e17f106"
+      "sha256": "sha256:e928215273e5dce5a58c78b56273a773363ed6597d0bcdcc458e113e3f8c51ba"
     },
     {
       "operation_id": "ak.open.agent_pairing.command.submit_runtime_key_request.v1",
@@ -261,7 +261,7 @@
     },
     {
       "operation_id": "ak.peer.events.command.submit.v1",
-      "sha256": "sha256:8670235d90cf53d8a94c1a4474bdfab79df9488aaea2cb8914150f65a266bb09"
+      "sha256": "sha256:3d1deb0b9a9f6480e064f8174028e63c9b2480e466a7d885e161608921ee000b"
     },
     {
       "operation_id": "ak.peer.invites.command.submit.v1",
@@ -629,7 +629,7 @@
     },
     {
       "operation_id": "ak.self.events.command.submit.v1",
-      "sha256": "sha256:e0c866982c0b8e3192c8858ad1909cdba782b2c0357a9ac5a34809fa81ab84f5"
+      "sha256": "sha256:562204506ce17f0b0176199f42b64002238582f5f6a1103fa826f1ac97a59de5"
     },
     {
       "operation_id": "ak.self.events.read.delivery_status.v1",

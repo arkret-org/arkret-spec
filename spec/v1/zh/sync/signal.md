@@ -185,9 +185,10 @@ source 和 recipient 的设备授权使用 **current** 状态，`commit_ref` 只
 source 每次准入与出站 fresh 检查 MUST 同时满足原 accepted 设备授权的 `now >= not_before`，
 以及非空 `expires_at` 的 `now < expires_at`；缓存 `active` 标记和 Signal TTL 不延长该有效期。
 跨账号投递由 recipient 自己的 Station 使用 [`device-lifecycle.md` §8.2/§8.3](../crypto-media/device-lifecycle.md)
-的 origin Station 已签 `device_projection_attestation` 完成公共授权验证。cold foreign sender 由该 Station
-调用 `ak.peer.current_signer_evidence.read.resolve.v1`，每批最多 16 个 exact selector；不得转发用户
-SessionGrant、请求私有 device gate、用 KeyPackage claim 代替 current projection，或透传未验证证据。
+的 origin Station 已签 `device_projection_attestation` 完成公共授权验证。cold foreign human sender 由该 Station
+按 [`device-lifecycle.md` §8.2.1](../crypto-media/device-lifecycle.md) 经既有 `ak.peer.keys.read.lookup.v1` 取材，
+每批最多 16 个 exact AccountId；不得转发用户 SessionGrant、请求私有 device gate、用 KeyPackage claim 代替
+current projection，或透传未验证证据。
 
 每次发出 authenticated self data frame 前，Station MUST 对 exact sender Actor/method、目标 Realm/scope、
 exact recipient Account 和当前连接会话执行完整 current gate；排队期间撤销、过期、fence、成员或 action

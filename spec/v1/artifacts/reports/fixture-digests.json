@@ -367,13 +367,13 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/peer-event-submit-semantic-union-fixture.json",
-      "sha256": "3f9cb18d0f2a5ff8d45d9617f88c69fd3d8a2b176ffcf7afd0ca510ede756771",
-      "version": "2026-09-20.3"
+      "sha256": "f8679d5e4cafc32298b531148a15985637ea1f4bf08d821b614b230aa273e7d7",
+      "version": "2026-09-25.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
-      "sha256": "3bea88e14721952f69290d454fe80aa990d67cddc6e91f9c4e28e45240df2921",
-      "version": "2026-09-24.1"
+      "sha256": "ae471706da37f8fd2f7c5bbc61ceef8c895be64254f3d2b5428d118ee4cfedb5",
+      "version": "2026-09-25.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/private-view-inbox-account-data-fixture.json",

@@ -1,12 +1,12 @@
 {
-  "version": 15,
+  "version": 16,
   "source_of_truth": false,
   "narrative_source": "spec/v1/zh/models/common-fields.md#r6-证据类名词分工",
   "scope": [
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 341,
+  "audited_occurrence_count": 342,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -239,6 +239,17 @@
         "commitment"
       ],
       "reason": "Closed transport-only aggregate of the caller-signed compensation delegation, terminal failure certificate and exact single-use binding; it is excluded from Event canonical bytes."
+    },
+    {
+      "file": "authority-commit-operations.schema.json",
+      "key": "producer_device_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation"
+      ],
+      "reason": "authority_forward-only carrier of the complete account_device signer evidence (origin device projection attestation plus method-native Service resolution) that a forwarding account Station signs fresh per attempt so the cross-Station governance Station can resolve a human device producer; its presence is decided by the Event."
     },
     {
       "file": "authenticated-signer-resolution-evidence.schema.json",

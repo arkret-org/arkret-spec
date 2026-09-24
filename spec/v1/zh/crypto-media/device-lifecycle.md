@@ -380,9 +380,9 @@ Applet-managed Bot / Ghost principal 在结构上不可能有 founding device：
 
 **`applet_managed_delegation` 的签名方不是设备（normative）**：该分支的 `ak.device.authorize` 由 Applet-managed principal 自己的 DID controller method 签署，不由任何设备签署。因此其 `proof.verification_method` MUST 是该 managed principal 已验证 `did` 下的 **DID Document verification method** DID URL，fragment 是该 DID Document 中的 verification method fragment，**MUST NOT** 是 `ak:device:<uuid>`。receiver 仍 MUST 取 bare `did`、经已登记 method adapter 验证并要求 `project(did) == Event.actor_id.account_id.principal_id`。上一段「fragment 逐字等于完整 `signing_device_id`」只约束由设备签署的 Event，不适用于本分支；本分支同样 MUST NOT 由 principal core 拼 fragment，也 MUST NOT 以候选设备的 `did:key` 作为 verification method。
 
-**本分支不使用 candidate overlay，也不得省略 `signer_resolution_evidence_ref`（normative）**：[`../conformance/encoding.md` §4](../conformance/encoding.md) 中「省略 `signer_resolution_evidence_ref` + unit-local candidate overlay」的豁免是一张**恰含两项的封闭表**——human PCR genesis 的 root create 加 founding-device authorize，以及 PCR-policy recovery 的 reanchor 加 replacement authorize。那两项成立的**唯一**理由是：signer 在该原子 unit 被接纳之前，尚不存在可被引用的 accepted signer projection。`applet_managed_delegation` 不满足这个前提：它的 signer 是该 managed principal 的 controller method，而 `ak.applet.managed_actor.provision` 冻结的 `initial_resolution`、`method_history_evidence` 与 `JCS(actor_id)` 的 current resolution typed current result 在本 Event 之前**已经**被接受，可引用的 accepted signer projection 是存在的。因此本分支 MUST 携带 `signer_resolution_evidence_ref`，MUST NOT 建立任何 unit-local candidate overlay，也 MUST NOT 与另一条 Event 组成原子 native unit。实现 MUST NOT 把本分支加进那张封闭表；那张表在 v1 **恰为两项**，把它扩成三项是本条明确禁止的结果。候选设备 key 也不需要 overlay：它由同一 payload 的 `device_public_key_did` 与 `device_signature` 自证持有，而 overlay 要解决的是**签名方**不可解析，本分支的签名方完全可解析。
+**本分支不使用 candidate overlay（normative）**：unit-local candidate overlay 只属于一张**恰含两项的封闭表**——human PCR genesis 的 root create 加 founding-device authorize，以及 PCR-policy recovery 的 reanchor 加 replacement authorize。那两项成立的**唯一**理由是：signer 在该原子 unit 被接纳之前，尚不存在可被解析的 accepted signer projection。`applet_managed_delegation` 不满足这个前提：它的 signer 是该 managed principal 的 controller method，而 `ak.applet.managed_actor.provision` 冻结的 `initial_resolution`、`method_history_evidence` 与 `JCS(actor_id)` 的 current resolution typed current result 在本 Event 之前**已经**被接受，签名方完全可解析。因此 receiver MUST 从该 accepted current resolution 解析本分支的 controller method，MUST NOT 建立任何 unit-local candidate overlay，也 MUST NOT 让本 Event 与另一条 Event 组成原子 native unit。实现 MUST NOT 把本分支加进那张封闭表；那张表在 v1 **恰为两项**，把它扩成三项是本条明确禁止的结果。候选设备 key 也不需要 overlay：它由同一 payload 的 `device_public_key_did` 与 `device_signature` 自证持有，而 overlay 要解决的是**签名方**不可解析，本分支的签名方完全可解析。
 
-- 对普通 Event，receiver 从当前 accepted PCR device directory 解析该 method；
+- 对 human Account 设备签署的普通 Event（不分 Control／Data），receiver 按 §8.2.2 的单一 producer 解析规则解析该 method：同站读取本地 accepted PCR device directory，跨站只使用 `authority_forward` 携带的 `producer_device_evidence`；
 - 对 `applet_managed_delegation` 的 authorize，receiver 从该 managed principal 已接受的 current resolution typed current result 解析 controller method；不查 PCR device directory（该目录此时可能为空），不建立 overlay，也不接受 provision 之外的 resolution 来源；
 - 对 genesis unit 的第二条 authorize，以及 recovery unit 的 re-anchor 和 authorize 两条 Event，目录尚未包含 candidate。verifier 必须建立只在本次 unit 内可见的 candidate overlay。genesis 的 key 来自经 root 承诺的 descriptor；recovery 的 key 必须同时等于已验证 session 的 `requesting_device_public_key_did` 和 authorize payload 的 `device_public_key_did`。overlay 将规范 account DID URL/device fragment 映射到该 key，只提供验签材料，不授予权限。verifier 先验证对应 descriptor 或 accepted policy/session、payload/digest、possession signature 和全部 Event proof，全部成功后才原子写入 durable directory；
 - 不得查询未接受的 projection，不得回退到同 fragment 的旧 key，也不得在验签前产生可观察目录状态。
@@ -777,7 +777,7 @@ Station↔Station 面的 `peer_query_device_record` MUST 恰以 `algorithms`、`
 
 两个 row 的 `account_id` 都由外层 entry 定位、`device_id` 都由内层 map key 定位，不是 device row 的镜像字段，MUST NOT 作为冗余字段重复出现。设备 row 不得回显 DID Document 的设备或 service authority。
 
-`device_projection_attestation` 是 **origin Station 对 exact device projection 的签名断言**，覆盖 `(account_id, device_id, device_signing_key_did, hpke_key, device_authorize_event_id, authorized_generation_ref, device_status, authorization_window, attested_at, expires_at)`。它是 §5.5.1 `device_authorization` result 与 §5.5.4 `device_generation` result 的**下游签名投影**，不是这两个 result 的定义：`device_signing_key_did` / `hpke_key` / `device_authorize_event_id` / `authorized_generation_ref` 逐字取自前者（`device_signing_key_did` 是 payload `device_public_key_did` 在本面的既有名），`device_status` 是 §5.5.3 的读侧折叠，`authorization_window` 是 `(not_before, expires_at)` 的成对呈现，`attested_at` 与证明 `expires_at` 由签发本次断言的动作产生。本面成员表 **MUST NOT** 被当作 device typed current result 的封闭 value 来源。该断言的 proof context 为 `ak.device_projection_attestation_proof.v1`（见 [`proof-context-registry.json`](../../artifacts/registry/proof-context-registry.json)）。origin Station MUST 继续生成并持久化它，它是 §8.2.1 peer row 与 `account_device` signer evidence 的载体；客户端面的 row 不携带它。`signer_evidence_ref` MUST 定位包含该 exact attestation 的不可变 [`account_device_signer_evidence`](../../artifacts/schemas/account-device-signer-evidence.schema.json)，它是 `AuthenticatedSignerResolutionEvidence` 之外的独立 closed sibling，恰由 `device_projection_attestation` 与 `service_resolution` 两成员组成；后者是既有 `AuthenticatedServiceResolution`，包含完整 method-native 历史与 normalized DID Document。该 ref 为完整对象的 `ak:signer_evidence:sha256:` 加 RFC 8785 JCS SHA-256 十六进制摘要，不能只散列 attestation 或裁剪投影。origin Station MUST 在返回 row 前持久化该完整对象及 ref，供普通成员历史响应按签名时刻验签；验证者 MUST 独立验证 Service 历史在 `attested_at` 时的 assertion method、Station 身份及 attestation 签名。客户端面 row 上的 `signer_evidence_ref` 与 peer row 上的是同一个引用，仍指向那份完整不可变 evidence；任何一方 MUST NOT 从删去 proof 的 `device_projection` 重新计算该 ref，也 MUST NOT 因本裁剪删除后续 Event / 历史闭包确实使用的 ref。`current_signer_evidence` 的 account-device item MUST 返回同一引用。该引用不引入另一份设备 authority，也不授权通用 Control Event；历史响应规则见 [`history-visibility.md`](../governance/history-visibility.md)。attestation 是本 keys/query 面唯一的设备投影验证载体；PCR genesis、device authorization chain 与 accepted RealmCommit 不得经 keys/query 披露。它们只可经 §8.2.2 的 holder / 合法 Event verifier 限用途依赖读取或既有 resolution audit 读取，不因此开放任意 PCR 枚举。
+`device_projection_attestation` 是 **origin Station 对 exact device projection 的签名断言**，覆盖 `(account_id, device_id, device_signing_key_did, hpke_key, device_authorize_event_id, authorized_generation_ref, device_status, authorization_window, attested_at, expires_at)`。它是 §5.5.1 `device_authorization` result 与 §5.5.4 `device_generation` result 的**下游签名投影**，不是这两个 result 的定义：`device_signing_key_did` / `hpke_key` / `device_authorize_event_id` / `authorized_generation_ref` 逐字取自前者（`device_signing_key_did` 是 payload `device_public_key_did` 在本面的既有名），`device_status` 是 §5.5.3 的读侧折叠，`authorization_window` 是 `(not_before, expires_at)` 的成对呈现，`attested_at` 与证明 `expires_at` 由签发本次断言的动作产生。本面成员表 **MUST NOT** 被当作 device typed current result 的封闭 value 来源。该断言的 proof context 为 `ak.device_projection_attestation_proof.v1`（见 [`proof-context-registry.json`](../../artifacts/registry/proof-context-registry.json)）。origin Station MUST 继续生成并持久化它，它是 §8.2.1 peer row 与 `account_device` signer evidence 的载体；客户端面的 row 不携带它。`signer_evidence_ref` MUST 定位包含该 exact attestation 的不可变 [`account_device_signer_evidence`](../../artifacts/schemas/account-device-signer-evidence.schema.json)，它是 `AuthenticatedSignerResolutionEvidence` 之外的独立 closed sibling，恰由 `device_projection_attestation` 与 `service_resolution` 两成员组成；后者是既有 `AuthenticatedServiceResolution`，包含完整 method-native 历史与 normalized DID Document。该 ref 为完整对象的 `ak:signer_evidence:sha256:` 加 RFC 8785 JCS SHA-256 十六进制摘要，不能只散列 attestation 或裁剪投影。origin Station MUST 在返回 row 前持久化该完整对象及 ref，供普通成员历史响应按签名时刻验签；验证者 MUST 独立验证 Service 历史在 `attested_at` 时的 assertion method、Station 身份及 attestation 签名。客户端面 row 上的 `signer_evidence_ref` 与 peer row 上的是同一个引用，仍指向那份完整不可变 evidence；任何一方 MUST NOT 从删去 proof 的 `device_projection` 重新计算该 ref，也 MUST NOT 因本裁剪删除后续 Event / 历史闭包确实使用的 ref。跨站 `authority_forward` 的 `producer_device_evidence`（§8.2.2）也是这一类型的完整对象，但由 forwarding Station 在每次转发尝试前现签，不复用 keys/query 返回过的对象。该引用不引入另一份设备 authority；历史响应规则见 [`history-visibility.md`](../governance/history-visibility.md)。attestation 是本 keys/query 面唯一的设备投影验证载体；PCR genesis、device authorization chain 与 accepted RealmCommit 不得经 keys/query 披露。它们只可经 holder 自己的既有读取面或既有 resolution audit 读取；§8.2.2 的跨站 producer 解析同样只携带本节的 attestation 证据，不披露它们，也不因此开放任意 PCR 枚举。
 
 origin Station MUST 在签发时从同一耐久读取 cut 的 PCR typed `device_authorization` / `device_generation`、exact `ak.device.authorize` Event 与其 accepted RealmCommit 验证该 exact account-device 的授权实例、generation、状态及授权有效期：当前时刻 `now >= not_before`，且原授权 `expires_at` 非空时 `now < expires_at`；仅有缓存的 `active` 标记不能替代这项检查。缺少对应 accepted 授权 Event、时间材料无法验证、授权尚未生效或已经到期时，MUST NOT 签发可用 row。`authorization_window` 必须逐字表达原 device grant 的 not_before 与可空 expires_at。证明的短 expires_at 只限制当前查询缓存，普通消息缓存复用按 authorization_window 与关闭证明判断，不要求每条消息重签。证明的 `attested_at` 表示本次当前投影检查的时刻，证明 `expires_at` MUST 晚于 `attested_at`，且 MUST NOT 晚于原授权非空的 `expires_at`；实现自定的短 TTL 只能进一步收紧此上界，不能延长原设备授权。没有有效剩余窗口时，按下述非枚举失败形态省略 row，不得通过重签证明、刷新缓存或依赖后台过期扫描延续授权。
 
@@ -796,11 +796,11 @@ origin Station MUST 在签发时从同一耐久读取 cut 的 PCR typed `device_
 
 普通 Event proof method 继续按 §5.3 解析：它是基于已验证 principal `did` 的 DID URL；receiver 取 bare `did` 经 adapter 验证并要求其投影等于 actor/principal `did_core_id`，再要求 fragment 逐字等于 `device_id`，不得从 actor core 拼接 fragment。
 
-普通 human Account device 的 Event signer evidence 用途是下列封闭分流：写 shared authority-commit Data 的 Event 使用 `account_device`；event-kind registry 明确登记为 `wire_scope=actor_private_event` 且 `reducer_input=false` 的 actor-private Event 也使用 `account_device`；写 shared authority-commit Control 的 generic Control Event 使用 §8.2.2 的 `account_device_control`。authority-commit 分类 `None` 只表示 actor-private Event 不进入共享 reducer，绝不得将它改判为 Control。两个 native unit 继续由其专用 verifier 处理。
+human Account 设备作为 Event 实际签名方时，producer 解析只有 §8.2.2 一条规则，不按 Control／Data／actor-private 分流；event-kind registry 的 `wire_scope`、`reducer_input` 或 authority-commit 分类都不改变该规则，也不存在 Control 专用的 signer root。native unit（`registration_anchor`、`pcr_recovery` 与 `ak.device.reanchor`）以及 §5.3 的 `applet_managed_delegation` 继续由其专用 verifier 处理。
 
-`account_device` 接受 actor-private Event 时，验证方 MUST 验证完整 attestation 及 Service attester 历史闭包，并逐字绑定 Event actual producer 的完整 `AccountId`、exact `device_id`、DID method/key、原 `ak.device.authorize` 实例、generation 和 Event 签名时刻所在的原 `authorization_window`；live 提交仍独立检查 current generation 及 revoked/expired/fenced/pending-revoke 状态。只有 session/transport authentication、`principal` 证据、`account_device_control` 证据、错误 Account/Station、错误 device/method、错误授权实例，或签名时刻在授权窗口外时 MUST 拒绝。该 `wire_scope` 分支只为 actual producer 是普通 human Account device 的 Event 补齐用途，不允许 Agent/Service actor 借用 human device evidence，也不放宽 Event kind、payload、holder-only writer 或 actor-private 可见性校验。
+验证方使用 `account_device` evidence 认证 human producer 时（§8.2.2 的跨站 `producer_device_evidence`，或历史响应按签名时刻验签），MUST 验证完整 attestation 及 Service attester 历史闭包，并逐字绑定 Event actual producer 的完整 `AccountId`、exact `device_id`、DID method/key、原 `ak.device.authorize` 实例、generation 和 Event 签名时刻所在的原 `authorization_window`；live 接纳仍按 §8.2.2 独立检查当前时刻与 current generation 及 revoked/expired/fenced/pending-revoke 状态。只有 session/transport authentication、`principal` 证据、错误 Account/Station、错误 device/method、错误授权实例，或签名时刻在授权窗口外时 MUST 拒绝。它只服务 actual producer 是普通 human Account device 的 Event，不允许 Agent/Service actor 借用 human device evidence，也不放宽 Event kind、payload、holder-only writer 或 actor-private 可见性校验。
 
-本 evidence 的完整对象、内容地址与失败矩阵由 [`ak.vector.device.account_device_signer_evidence.v1`](../../artifacts/registry/vector-registry.json) 固定；缺 accepted covering Commit、错 Service 历史 assertion method、错 ref 或把 ordinary evidence 用作 `account_device_control` 均不得产生成功 row 或 Control 授权。
+本 evidence 的完整对象、内容地址与失败矩阵由 [`ak.vector.device.account_device_signer_evidence.v1`](../../artifacts/registry/vector-registry.json) 固定；缺 accepted covering Commit、错 Service 历史 assertion method、错 ref 均不得产生可用 row，也不得作为 `producer_device_evidence` 被接纳；跨站转发的正负例由 [`ak.vector.federation.authority_forward_producer_device_evidence.v1`](../../artifacts/registry/vector-registry.json) 固定。
 
 #### 8.2.1 跨站 peer 设备目录与 prekey lookup（normative）
 
@@ -813,11 +813,11 @@ typed 结果放进同一个 `keys_query_outcome`。客户端 MUST NOT 直接调�
 覆盖集与时效窗口（共享的 `ak.http_signature.freshness.v1`）的判据与数值见
 [`../sync/service-http-binding.md` §8.1 / §8.3](../sync/service-http-binding.md)，本节不复制。
 
-**既有操作已覆盖的范围（normative 盘点）**：`ak.peer.current_signer_evidence.read.resolve.v1` 只在一个具名
-Realm 内交付 signer evidence，既不给设备目录也不给 prekey bundle；
-`ak.peer.keys.keypackages.command.claim.v1` 是跨站单次 MLS 材料的**唯一**原子领取合同。因此 v1 的
+**既有操作已覆盖的范围（normative 盘点）**：`ak.peer.keys.keypackages.command.claim.v1` 是跨站单次 MLS 材料的
+**唯一**原子领取合同；跨站 Event 接纳所需的 producer 设备证据只随 `authority_forward` 携带（§8.2.2），不经任何
+peer 读取面交付。因此 v1 的
 `self/keys/claim` 单次 one-time prekey 领取 MUST 只针对 `account_id.station_id` 等于本 Station 的目标；跨站单次
-材料走 KeyPackage claim，不得为非 MLS one-time prekey 另建第二套联邦消费 ledger。本节只补两者都不覆盖的那段：
+材料走 KeyPackage claim，不得为非 MLS one-time prekey 另建第二套联邦消费 ledger。本节只补它们都不覆盖的那段：
 **跨站设备目录与已发布 prekey bundle 的只读取材**。
 
 请求字段：
@@ -868,11 +868,46 @@ genesis、authorization chain、RealmCommit 或目标的 Realm/Contact 清单。
 不存在／不可见／无关系／已撤销／已 fence／policy 拒绝在响应体、状态码与时序上完全同形，且 transport 认证在读取任何
 目标状态前判定；后者证明取材失败与"对方没有设备"是两件事，且不得靠缓存、空列表或延长有效期掩盖。
 
-#### 8.2.2 Human control signer evidence（normative）
+#### 8.2.2 Human 设备 producer 解析（normative）
 
-Human 设备签署高风险 Control Event 需要独立的 `account_device_control` portable root，绑定 Account、device method/key、current generation 与授权 Event 的 `CommittedEventRef`，并由验证方核对 producer proof、current lifecycle、authority generation 和目标 stream 的连续 RealmCommit。`AuthenticatedSignerResolutionEvidence` 只登记 `principal/service/agent` 三支六成员，§8.2 的 `account_device_signer_evidence` 仅用于已签目录投影与普通 Event，二者都不构成该 Control root。v1 尚无该 root 的 closed carrier；在其单独落规并实现前，高风险 Control Event MUST fail closed，MUST NOT 以普通设备目录证据、session、当前公钥或 Service attestation 代替。
+human Account 设备签署的任何 Event 只有一条 producer 解析规则，不按 Control／Data／actor-private 或 event kind 分流；v1 不存在 Control 专用的 human signer root，也不存在按 Event 类别 fail closed 的分支。native unit（`registration_anchor`、`pcr_recovery` 与 `ak.device.reanchor`）与 §5.3 的 `applet_managed_delegation` 继续由各自专用 verifier 处理，不适用本节。
 
-Evidence 只证明 exact signer 在该 generation 的授权来源；membership、scope、capability、recovery policy 与领域 revision 仍由当前治理 Station在 commit 位置独立验证。
+治理 Station 接纳 human 设备 producer 的 Event 时，MUST 解析实际签名方（有 `executed_by` 时取它，否则取 `actor_id`）的 exact `AccountId`、`device_id`、签名 key、授权实例（`device_authorize_event_id`）、generation 与状态，并 MUST 在 commit 位置独立判定 membership、capability、policy 与领域 revision；设备证据只证明 exact signer 在该 generation 的授权来源，不替代这些判定。取材只有两条路径：
+
+- **同站**：producer 的 `account_id.station_id` 等于本治理 Station 时，MUST 在接纳事务的同一耐久 cut 读取本地 PCR 的 `device_authorization`／`device_generation` typed current result（§5.5.1、§5.5.4）完成解析；请求不携带任何设备证据。
+- **跨站**：否则 MUST 且只能使用 `ak.peer.events.command.submit.v1` 的 `authority_forward` 分支携带的 `producer_device_evidence`。session、transport 认证、`keys/query` 结果、缓存公钥、`principal` 证据或其它 Service attestation 都 MUST NOT 替代它。
+
+**载体**：`producer_device_evidence` 位于 `peer_submit_request` 的 `authority_forward` 分支，与 `event_submission` 或 `mls_submission` 并列，类型直接是 §8.2 的 [`account_device_signer_evidence`](../../artifacts/schemas/account-device-signer-evidence.schema.json)；其它两个分支 MUST NOT 携带它。它的有无完全由 Event 决定，不是可选字段：实际签名方是 Account 且 `proof.verification_method` 的 fragment 是 `ak:device:` 形态时 MUST 携带，其它情况（例如 Agent、Service 或 principal controller method 签名的 Event）MUST NOT 携带；MLS submission 以其 Commit Event 的实际签名方为准。schema 只能表达分支归属，“由 Event 决定必带或禁带”由治理 Station 在解析 producer 后检查，缺失、多余或形状错误均以 `schema_violation` 零写入拒绝。
+
+**生产（forwarding Station A）**：A 即 producer 的 account Station。A MUST 在每次转发尝试前，从自己 live gate 的同一耐久 cut 按 §8.2 的签发规则现签 attestation 并组装完整对象，先持久化完整对象及其 `signer_evidence_ref`，再发送；MUST NOT 复用缓存对象或 `keys/query` 返回过的对象。设备此时已不可用时，A MUST NOT 转发，并以已有的设备码拒绝；A 暂时无法取材时返回 `temporarily_unavailable`。response 丢失时 A MAY 逐字节重放同一完整 body（含原证据）；A 发起新的转发尝试时 MUST 重新现签。
+
+**验证（治理 Station B）**：B MUST 在任何写入前完成下列全部检查，任一步失败即零写入：
+
+1. 已认证的 `Source-Service-ID` 逐字等于 `attestation.account_id.station_id`；
+2. 用对象自带的 `service_resolution` 核对 `attested_at` 时刻的 assertion method、Station 身份与 attestation 签名；
+3. 当前时刻早于 attestation `expires_at`；
+4. 原 `authorization_window` 同时覆盖 Event `created_at` 与当前时刻，且 `device_status=active`；
+5. attestation 的 `account_id`／`device_id` 逐字等于 producer 与 proof fragment，且 `device_signing_key_did` 能验过 producer proof。
+
+**幂等**：exact 重复的 Event 先返回原 outcome，再检查证据时效。过期证据不会把已提交的 Event 改判为失败；A 为同一 Event 现签新证据的新尝试同样返回原 outcome，不产生第二个 `RealmCommit`。尚未被接纳的 Event 仍按上述五步判定。
+
+**留存**：B MUST 在接纳事务内持久化完整 evidence 与其 ref，仅供审计；本节不新增任何读取面。历史 replay 以 B 的 `RealmCommit` 与治理权威链为准，不重验 attestation 时效。
+
+**错误码**（全部复用已激活码；同站由治理 Station 从本地 PCR 判定，跨站的撤销、撤销待定与 fence 由 A 在现签前判定，B 只从证据判定其余各项）：
+
+| 情形 | 码 |
+| --- | --- |
+| 证据缺失或多余、形状错误 | `schema_violation` |
+| 签名、key 或 Service 历史不符；来源 Station 不符 | `signature_invalid` |
+| 设备未授权、窗口外或证据过期 | `device_unauthorized` |
+| 已撤销 | `device_revoked` |
+| 撤销待定 | `device_revocation_pending` |
+| generation 被 fence | `device_generation_fenced` |
+| A 暂时无法取材 | `temporarily_unavailable` |
+
+**残余风险（informative）**：A 若被攻破，可以伪造本站用户的设备，以该用户身份对 B 治理的 Realm 做任何操作。这与同站情形相同，暴露窗口受 attestation `expires_at` 上限约束；从注册锚重放全部 PCR 历史属于独立的威胁模型决策，v1 不采用。
+
+本节正负例由 [`ak.vector.federation.authority_forward_producer_device_evidence.v1`](../../artifacts/registry/vector-registry.json) 固定。
 
 #### 8.3 客户端设备信任（normative）
 
@@ -880,7 +915,7 @@ Evidence 只证明 exact signer 在该 generation 的授权来源；membership�
 
 客户端 MUST 核对请求的完整 AccountId、device_id、密钥、generation、状态和有效期，并保留 KeyPackage/MLS/消息认证与 §10.1 的带外 verification checkpoint。服务器确认授权不能将未带外确认的新设备或替换密钥标为用户已验证。缓存按账号/自己 Station 会话隔离，已知撤销或 generation 变化立即失效，不越过 `expires_at`。收到 `device_directory_unavailable` 时，客户端 MUST 把该 `(account_id, device_id)` 视为**本次不可用**并保持等待或重试，MUST NOT 解释为该设备不存在、已撤销或对方无设备，MUST NOT 据此降级加密、跳过收件人或推进任何带外验证状态。
 
-客户端把 `keys/query` 结果落到本地 authoring 授权状态时，只 MUST 保存这份可信 self 投影及后续确实使用的 `signer_evidence_ref` 与时态；**MUST NOT** 把未签名的 `device_projection` 填进任何声明为完整签名证据的位置，特别是 `current_signer_evidence` 的 `account_device` item——该 item 仍 MUST 返回 origin 的同一 `signer_evidence_ref`，其所指对象仍是那份含完整 attestation 的不可变 evidence。重启恢复按同一规则从 durable 状态重建，不得用缓存投影冒充证据。若某个 self 入口实际承担 portable evidence 交付，该入口保持完整；本节只裁剪不承担交付的 `keys/query` 普通结果。
+客户端把 `keys/query` 结果落到本地 authoring 授权状态时，只 MUST 保存这份可信 self 投影及后续确实使用的 `signer_evidence_ref` 与时态；**MUST NOT** 把未签名的 `device_projection` 填进任何声明为完整签名证据的位置，特别是 `producer_device_evidence` 或任何 `account_device_signer_evidence` 位置——`signer_evidence_ref` 所指对象始终是 origin 那份含完整 attestation 的不可变 evidence。重启恢复按同一规则从 durable 状态重建，不得用缓存投影冒充证据。若某个 self 入口实际承担 portable evidence 交付，该入口保持完整；本节只裁剪不承担交付的 `keys/query` 普通结果。
 
 跨账号查询不得披露 PCR genesis / authorization chain / RealmCommit。服务间 attestation 继续是 origin 可归责的已签载体；客户端无需复制其历史证据闭包。
 
@@ -1235,7 +1270,7 @@ checkpoint 的失效遵守既有 lifecycle 与 generation 规则，不另设独�
 - authorize generation 被 fence，或设备 key rotation 后 checkpoint 不再绑定 exact key：evidence MUST 变为 `stale`；
 - 没有可验证 checkpoint，或 PCR evidence 出现 gap / 冲突：evidence 保持 `unresolved`，MUST NOT TOFU。
 
-account `device_summary` 的 `verification_source` MUST 在 evidence=`verified` 时出现，在 evidence=`unresolved` 时缺省；曾 verified 后转 `stale` 的 row 保留原 `verification_source` 作为 provenance，但 MUST NOT 据此继续 live authorization。该字段是 provenance 投影，不是第二个真相源：checkpoint 本身仍由 accepted PCR evidence（§5.5）与上述条件决定。`verified` 的 provenance 只由 `verification_source` 与 `authorized_event_ref` 表达；`device_summary` 不携带 signer evidence ref，可移植签名者证据只经 §8.2 的 `account_device_signer_evidence` 交付，高风险 Control 仍按 §8.2.2 fail closed。
+account `device_summary` 的 `verification_source` MUST 在 evidence=`verified` 时出现，在 evidence=`unresolved` 时缺省；曾 verified 后转 `stale` 的 row 保留原 `verification_source` 作为 provenance，但 MUST NOT 据此继续 live authorization。该字段是 provenance 投影，不是第二个真相源：checkpoint 本身仍由 accepted PCR evidence（§5.5）与上述条件决定。`verified` 的 provenance 只由 `verification_source` 与 `authorized_event_ref` 表达；`device_summary` 不携带 signer evidence ref，可移植签名者证据只经 §8.2 的 `account_device_signer_evidence` 交付，human 设备 producer 统一按 §8.2.2 解析。
 
 `stale` / `unresolved` 的历史设备、受控导入设备与 key rotation 后的设备统一重新走 §2.1 的 account-bound pairing / re-verification ceremony 取得新 checkpoint。v1 不提供第二套 device-level 验证协议，也不定义独立的“验证设备”页面或 verification 专用二维码；§2.1.1 的 pairing 二维码是唯一 QR 载体。
 

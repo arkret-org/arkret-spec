@@ -5,7 +5,7 @@
   },
   "suite": "privacy_security",
   "profile": "ak.vector_group.privacy_security.v1",
-  "version": "2026-09-24.1",
+  "version": "2026-09-25.1",
   "covers_vectors": [
     "ak.vector.directory.public_realm_search.v1",
     "ak.vector.directory.ttl_expiry_removal.v1",
@@ -577,7 +577,7 @@
         "exact current accepted device authorization and generation are read at one durable cut with the authorization Event and covering RealmCommit",
         "the origin persists the complete root and its content ref before returning a peer or self row",
         "the Service resolution method-native history verifies the attestation assertion method at attested_at",
-        "the ordinary historical Event producer binds exact AccountId, device, method, authorization instance, generation and authorization_window"
+        "the Event producer verified with this evidence binds exact AccountId, device, method, authorization instance, generation and authorization_window, whether the evidence is read for a historical response or carried as authority_forward producer_device_evidence"
       ],
       "negative": [
         "attestation signed by a Service other than account_id.station_id",
@@ -585,10 +585,9 @@
         "outer account or device differs from the signed attestation",
         "attested_at outside original authorization_window",
         "signer_evidence_ref hashes only the attestation or the pruned self projection",
-        "authorization Event lacks an accepted covering RealmCommit",
-        "ordinary account_device evidence offered for high-risk account_device_control"
+        "authorization Event lacks an accepted covering RealmCommit"
       ],
-      "expected": "no usable row or Control authorization for any negative case; no synthetic evidence ref"
+      "expected": "no usable row and no accepted producer_device_evidence for any negative case; no synthetic evidence ref"
     },
     {
       "vector_id": "ak.vector.device.directory_unavailable_not_empty.v1",

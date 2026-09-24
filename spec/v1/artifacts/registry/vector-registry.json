@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-24.6",
+  "version": "2026-09-25.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-24T23:36:00+08:00",
+  "generated_at": "2026-09-25T00:44:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1492,7 +1492,7 @@
       "applies_to_fixtures": [
         "privacy-security-fixture.json"
       ],
-      "description": "A complete account_device evidence object contains the exact signed device projection and full method-native Service resolution, and its signer_evidence_ref hashes the complete canonical object. Wrong Station, historical assertion method, device, authorization window, ref or missing accepted authorization Commit blocks a usable row; ordinary evidence never authorizes account_device_control.",
+      "description": "A complete account_device evidence object contains the exact signed device projection and full method-native Service resolution, and its signer_evidence_ref hashes the complete canonical object. Wrong Station, historical assertion method, device, authorization window, ref or missing accepted authorization Commit blocks a usable row and cannot be accepted as authority_forward producer_device_evidence.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/crypto-media/device-lifecycle.md",
@@ -2404,6 +2404,20 @@
       "description": "Realm Event canonical acceptance atomically freezes the complete distinct member-service target set and durable intents; route miss is pending_route rather than submission failure, authority is rechecked before every send, lost authority terminally cancels the exact old intent, restart never loses an obligation, and authorized reads preserve topology visibility.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/fanout-route-miss-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.federation.authority_forward_producer_device_evidence.v1",
+      "status": "active",
+      "domain": "federation",
+      "applies_to_fixtures": [
+        "peer-event-submit-semantic-union-fixture.json"
+      ],
+      "description": "A human device producer has one resolution rule for every Event kind, with no Control/Data split. A same-Station governance Station resolves the exact AccountId, device, key, authorization instance, generation and status from its local PCR at the acceptance cut and carries no evidence; a cross-Station authority_forward is accepted only with producer_device_evidence freshly signed by the producer's account Station. Revoked, revocation-pending, fenced, not-yet-valid or expired authorization, fragment/key mismatch, source Station mismatch, attestation signed by another Station key, expired evidence, Service history lacking the method at attested_at, evidence carried for an Agent or Service producer, and a human producer without evidence are rejected with the registered active codes and zero writes; an exact replay after evidence expiry returns the original outcome.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/peer-event-submit-semantic-union-fixture.json",
+        "spec/v1/zh/crypto-media/device-lifecycle.md",
+        "spec/v1/zh/sync/federation.md"
       ]
     },
     {

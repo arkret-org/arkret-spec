@@ -154,7 +154,11 @@ HTTP operation 的通用 batch 分支。以后若登记独立 Event 的便捷 ba
 
 - `authority_forward`：携一条 exact `EventAdmissionSubmission` 或一份 MLS Commit submission，只允许已验证的
   forwarding Station 调用 exact current governance Station；仅后者执行首次 admission 并签发新
-  `RealmCommit`。
+  `RealmCommit`。本分支另有唯一成员 `producer_device_evidence`（`account_device_signer_evidence`），其有无由
+  Event 决定：实际签名方是 Account 且 proof fragment 为 `ak:device:` 时必带，其它情况禁带，MLS 以 Commit Event
+  的 producer 为准；缺失或多余为 `schema_violation`。forwarding Station 每次转发尝试前现签并先持久化，治理
+  Station 按 [`../crypto-media/device-lifecycle.md` §8.2.2](../crypto-media/device-lifecycle.md) 验证后才接纳；
+  其它两支不得携带它。
 - `committed_replication`：携 `replications[1..100]`；每项直接是
   `{event_submission: EventAdmissionSubmission, source_commit: RealmCommit}`。`processing`、`committed_event`
   wrapper、`recipient_witnesses` 与 destination echo 均不存在。接收方逐项验证 event/commit/ref、source

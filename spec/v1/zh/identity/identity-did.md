@@ -215,8 +215,8 @@ Arkret v1 core conformance 要求如下：
 - Core resolver / verifier MUST 支持 DID Core 解析 / 验证抽象、`did:webvh`、`did:web` 和 `did:key`，但 method 能被解析不代表可用于任意角色或能力：human principal anchor 的封闭集合只有 `did:webvh`。
   - `did:webvh:1.0` 是 v1 core MTI adapter 与 default human/service method。method evidence 的 `parameters.method` MUST 等于 `did:webvh:1.0`；缺失或未知版本 MUST `unsupported_did_method`。
   - `did:webvh:1.0` 的 method parameter registry 是 closed：只允许 `method`、`scid`、`updateKeys`、`nextKeyHashes`、`witness`、`watchers`、`portable`。构造器与 verifier MUST 消费 `did-method-adapter-registry.json` 的同一 `parameter_allowlist` 与 `parameter_consumption`；任何其他 member（特别是 `governance`）必须在 proof、hash 与持久化之前以 `param_invalid` 拒绝。`portable` 缺失或 false 时，host-and-path 变化 MUST 以 `did_method_successor_invalid` 拒绝；只有 predecessor 的 effective `portable=true` 才能授权后继 relocation，在 relocation entry 自身首次设 true 不授权本次搬迁。`watchers` 由 method parser 验证并保留，但 v1 明确接受而不消费：它不得影响 authorization、admission、controller 选择、witness quorum、freshness、routing 或 policy。组织治理只存在于 typed DID Document `arkret_governance` / `ArkretGovernanceService` overlay，不得写入 method-native parameters，也不得与 witness quorum 混同。
-  - `did:key` MUST NOT 作为 human identity anchor，也没有 `registration_anchor_kind` 分支；human 注册、PCR genesis 与 portable `account_device_control` root 命中它时 MUST 以 `unsupported_did_method` fail closed。它继续用于已登记的 deterministic local expansion、设备/Agent 密钥与 service evidence，但这些角色合同不得升级为 human Account/PCR。
-  - `did:web` MUST NOT 作为 human identity anchor。它没有 `registration_anchor_kind` 分支，human 注册、PCR genesis 与 portable `account_device_control` root 都不接受它；命中时 MUST 以 `unsupported_did_method` fail closed。它继续可用于已登记的 current / no-history service resolution 与外部互通，并且 MUST 在 ServiceDescribe / resolver evidence 中声明无历史信任强度。
+  - `did:key` MUST NOT 作为 human identity anchor，也没有 `registration_anchor_kind` 分支；human 注册与 PCR genesis 命中它时 MUST 以 `unsupported_did_method` fail closed。它继续用于已登记的 deterministic local expansion、设备/Agent 密钥与 service evidence，但这些角色合同不得升级为 human Account/PCR。
+  - `did:web` MUST NOT 作为 human identity anchor。它没有 `registration_anchor_kind` 分支，human 注册与 PCR genesis 都不接受它；命中时 MUST 以 `unsupported_did_method` fail closed。它继续可用于已登记的 current / no-history service resolution 与外部互通，并且 MUST 在 ServiceDescribe / resolver evidence 中声明无历史信任强度。
 - `did:webvh` 的 history/pre-rotation 只开启 relocation 与可选 DID-root recovery 能力；它们不是 human anchor 的统一准入门槛。organization、Agent 与 service 是否要求持续 DID governance 由各自角色合同决定。
 - AT Protocol interop（`did:plc`）、wallet binding（`did:pkh`）、KERI 等 method 可以由 extension 解析为外部 claim；要进入 human anchor 或其它角色集合，必须先在 adapter registry 登记对应能力与 bootstrap trust，而不能由 implementation-local policy 增加。
 - 实现 MUST NOT 将任何外部 DID Document 重写为 Arkret 私有 DID method。
@@ -1167,8 +1167,7 @@ Arkret v1 对 DID 实现要求如下：
 
 - v1 human principal DID 创建 MUST 使用满足 registry `human_principal_anchor` 角色要求的 active adapter；当前
   集合只有 `did:webvh`，其 v1 core MTI/default adapter `did:webvh:1.0` MUST 声明
-  `registration_anchor_kind=webvh_registration`，并且 human 注册、PCR genesis 与 portable
-  `account_device_control` root 只接受该分支。default service
+  `registration_anchor_kind=webvh_registration`，并且 human 注册与 PCR genesis 只接受该分支。default service
   DID method 是 `did:webvh`，显式 no-history service profile MAY 使用 registry-derived service
   allowlist 中的 `did:web`。deployment policy 只能收紧这些集合，不能增加任何角色的 method；
   `did:webvh` outage 只允许 cache-only degraded mode。

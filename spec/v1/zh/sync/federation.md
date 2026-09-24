@@ -80,6 +80,19 @@ Authority 离线时可继续读已缓存字节，但整个 Realm 不能生成新
 
 Event forwarding 始终保留 exact producer bytes，并只将 current authority 的 Commit 视为 accepted。
 
+**跨站 human 设备 producer（normative）**：transport 认证不证明 producer 设备授权，治理 Station 也没有 producer
+account Station 的 PCR。因此 producer 是 human Account 设备且其 `account_id.station_id` 不是治理 Station 时，
+`ak.peer.events.command.submit.v1` 的 `authority_forward` MUST 携带 `producer_device_evidence`，其它 producer
+MUST NOT 携带；同站接纳读取本地 PCR，不携带证据。forwarding Station 在每次转发尝试前从自己 live gate 的同一
+耐久 cut 现签完整 `account_device_signer_evidence`，先持久化对象与 ref 再发送，不复用缓存；设备已不可用时不转发。
+治理 Station 在任何写入前核对已认证 `Source-Service-ID` 等于 `attestation.account_id.station_id`、对象自带
+Service 历史在 `attested_at` 的 assertion method 与签名、attestation `expires_at`、原 `authorization_window`
+同时覆盖 Event `created_at` 与当前时刻、`device_status=active`，以及 producer／proof fragment／签名 key 的逐字
+绑定；任一失败零写入。exact 重复的 Event 先返回原 outcome 再检查证据时效；完整 evidence 与 ref 在接纳事务内
+持久化，仅供审计，历史 replay 以 `RealmCommit` 与治理权威链为准。完整规则与错误码见
+[`../crypto-media/device-lifecycle.md` §8.2.2](../crypto-media/device-lifecycle.md)，正负例由
+[`ak.vector.federation.authority_forward_producer_device_evidence.v1`](../../artifacts/registry/vector-registry.json) 固定。
+
 #### 4.1.1 Realm fanout 目标集合与持久 intent（normative）
 
 首次接受本地 Actor 所签 Event 的 Station 是该 Event 实时 push 的唯一编排方；通过 peer 接收面收到该 Event 的 remote Station MUST 验证、持久化并服务其本地成员，但 MUST NOT 因该次 peer ingress 再创建第二轮实时 fanout。缺失副本通过 frontier probe、pull、backfill 或 snapshot 修复，不能靠接收方无界转广播。

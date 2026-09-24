@@ -15,10 +15,10 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 8914,
+    "total_properties": 8915,
     "total_schema_documents": 165,
     "by_presence_class": {
-      "optional": 2144,
+      "optional": 2145,
       "optional_defaulted": 47,
       "required": 6254,
       "required_nullable": 302,
@@ -3552,6 +3552,7 @@
         "/$defs/peer_submit_request/properties/branch": "required",
         "/$defs/peer_submit_request/properties/event_submission": "optional",
         "/$defs/peer_submit_request/properties/mls_submission": "optional",
+        "/$defs/peer_submit_request/properties/producer_device_evidence": "optional",
         "/$defs/peer_submit_request/properties/replications": "optional",
         "/$defs/peer_submit_request/properties/unit": "optional",
         "/$defs/readable_floor/properties/floor_commit_id": "required",

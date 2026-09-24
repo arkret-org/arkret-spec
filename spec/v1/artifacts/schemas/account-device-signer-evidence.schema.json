@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/account-device-signer-evidence.schema.json",
   "title": "Arkret Account Device Signer Evidence",
-  "description": "Immutable account_device evidence for an ordinary device Event. The origin Station persists this complete object before returning a keys/query row; the signer_evidence_ref is SHA-256(RFC 8785 JCS of this object). This sibling does not add a branch or member to AuthenticatedSignerResolutionEvidence. Conformance vector ak.vector.device.account_device_signer_evidence.v1 checks the exact closure and negative mutations.",
+  "description": "Immutable account_device evidence for a human device producer. The origin Station persists this complete object before returning a keys/query row or before sending it as authority_forward producer_device_evidence, which it signs fresh for every forwarding attempt; the signer_evidence_ref is SHA-256(RFC 8785 JCS of this object). This sibling does not add a branch or member to AuthenticatedSignerResolutionEvidence. Conformance vector ak.vector.device.account_device_signer_evidence.v1 checks the exact closure and negative mutations.",
   "type": "object",
   "required": [
     "device_projection_attestation",
