@@ -42,6 +42,7 @@ PROSE_MARKERS = {
         "`fanout_authorization_basis`",
         "不得把 replica persistence 称为新的 accepted finality",
         "**跨站 human 设备 producer（normative）**",
+        "**非治理接收方以治理签名为准（normative）**",
         "`producer_device_evidence`",
     ),
     SPEC_ROOT / "zh" / "identity" / "contact-and-direct-conversation.md": (
@@ -519,6 +520,7 @@ def check_peer_event_submit_semantic_union(lint: Lint) -> None:
         "authority_forward",
         "authority_forward_producer_device_evidence",
         "committed_replication",
+        "non_governance_receiver_trusts_governance_commit",
         "direct_conversation_founding",
         "founding_authoring_material_non_echo",
         "membership_compensation",
@@ -554,6 +556,9 @@ def check_peer_event_submit_semantic_union(lint: Lint) -> None:
         "service_history_lacks_method_at_attested_at",
         "agent_producer_carries_evidence",
         "human_producer_without_evidence",
+        "foreign_human_producer_replica_stored",
+        "commit_signed_by_non_current_governance_station",
+        "local_account_producer_key_mismatch",
     ):
         if marker not in fixture_text:
             _fail(lint, FIXTURE, f"fixture omits mutation case {marker}")

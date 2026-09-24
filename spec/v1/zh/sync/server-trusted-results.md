@@ -37,7 +37,7 @@ v1 保留三类可被 Account Station 转达的权威结果：
 4. 对 Commit 验证同 stream 的 position/predecessor 连续性；
 5. 对 snapshot/current 验证 selector 和可见性没有扩张到其它 Circle/Sidecar。
 
-客户端仍独立验证 Event producer proof、MLS/attachment 密码学和用户意图。Authority signature 不能替代 producer signature。
+客户端仍独立验证 Event producer proof 的自身一致性（[`federation.md` §3](./federation.md)）、MLS/attachment 密码学和用户意图。外站 human 设备的授权以治理 Station 的 RealmCommit 为准；authority signature 不能替代 producer proof 的自身一致性检查，也不能替代 MLS 认证。
 
 ## 3. 转发与缓存
 

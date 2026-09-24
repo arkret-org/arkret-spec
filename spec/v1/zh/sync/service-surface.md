@@ -33,7 +33,7 @@ DID method state 用于解析稳定 `did_core_id`、service identity、verificat
 - producer Event 是内容与用户意图的真实性来源；
 - 当前治理 Station 是 admission、顺序、finality、复制和 current projection 的唯一权威；
 - `RealmCommit` 绑定 exact Event、stream、position 和同 stream predecessor；
-- 消费 Station验证 producer proof、authority chain、commit signature 与逐 stream 连续性；
+- 消费 Station验证 producer proof 自身一致、authority chain、commit signature 与逐 stream 连续性；外站 human 设备的授权以治理 Station 的 RealmCommit 为准（[`federation.md` §3](./federation.md)），本站托管账号的 producer 仍按本地 PCR 验签；
 - Directory、invite、cache 和 mirror 只提供 locator，不能产生或替代 authority。
 
 治理 Station可能审查、扣留或停止写入，因此 v1 明确接受单权威的可用性与治理信任代价。协议不再要求客户端交叉验证 authority-commit、RealmCommit、typed current result root、actor chain 或 fixed reducer semantics。

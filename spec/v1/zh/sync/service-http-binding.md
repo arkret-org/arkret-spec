@@ -162,7 +162,8 @@ HTTP operation 的通用 batch 分支。以后若登记独立 Event 的便捷 ba
 - `committed_replication`：携 `replications[1..100]`；每项直接是
   `{event_submission: EventAdmissionSubmission, source_commit: RealmCommit}`。`processing`、`committed_event`
   wrapper、`recipient_witnesses` 与 destination echo 均不存在。接收方逐项验证 event/commit/ref、source
-  authority generation、同 stream 连续性，并只从自己已验证的 committed membership history／typed current
+  authority generation、同 stream 连续性；producer proof 只按 [`federation.md` §3](./federation.md) 的
+  “非治理接收方以治理签名为准”核对自身一致与治理签名，不独立解析外站 human 设备 key；并只从自己已验证的 committed membership history／typed current
   projection 求值本机托管成员的 scope、history、reference disclosure 与 plaintext visibility；发送方字段不得
   充当 membership proof。依赖缺失时 fail closed。接收方只保存 exact source bytes，不得重做首次 admission、
   重签 Commit 或创建第二轮 fanout。response 的同序 `replication_outcomes[]` 只允许

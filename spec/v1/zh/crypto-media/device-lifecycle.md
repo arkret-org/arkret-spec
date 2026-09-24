@@ -382,7 +382,7 @@ Applet-managed Bot / Ghost principal 在结构上不可能有 founding device：
 
 **本分支不使用 candidate overlay（normative）**：unit-local candidate overlay 只属于一张**恰含两项的封闭表**——human PCR genesis 的 root create 加 founding-device authorize，以及 PCR-policy recovery 的 reanchor 加 replacement authorize。那两项成立的**唯一**理由是：signer 在该原子 unit 被接纳之前，尚不存在可被解析的 accepted signer projection。`applet_managed_delegation` 不满足这个前提：它的 signer 是该 managed principal 的 controller method，而 `ak.applet.managed_actor.provision` 冻结的 `initial_resolution`、`method_history_evidence` 与 `JCS(actor_id)` 的 current resolution typed current result 在本 Event 之前**已经**被接受，签名方完全可解析。因此 receiver MUST 从该 accepted current resolution 解析本分支的 controller method，MUST NOT 建立任何 unit-local candidate overlay，也 MUST NOT 让本 Event 与另一条 Event 组成原子 native unit。实现 MUST NOT 把本分支加进那张封闭表；那张表在 v1 **恰为两项**，把它扩成三项是本条明确禁止的结果。候选设备 key 也不需要 overlay：它由同一 payload 的 `device_public_key_did` 与 `device_signature` 自证持有，而 overlay 要解决的是**签名方**不可解析，本分支的签名方完全可解析。
 
-- 对 human Account 设备签署的普通 Event（不分 Control／Data），receiver 按 §8.2.2 的单一 producer 解析规则解析该 method：同站读取本地 accepted PCR device directory，跨站只使用 `authority_forward` 携带的 `producer_device_evidence`；
+- 对 human Account 设备签署的普通 Event（不分 Control／Data），接纳它的治理 Station 按 §8.2.2 的单一 producer 解析规则解析该 method：同站读取本地 accepted PCR device directory，跨站只使用 `authority_forward` 携带的 `producer_device_evidence`；非治理的 committed Event 接收方按 [`../sync/federation.md` §3](../sync/federation.md) 以治理签名为准，只有 producer 为本站托管账号时才读本地 PCR；
 - 对 `applet_managed_delegation` 的 authorize，receiver 从该 managed principal 已接受的 current resolution typed current result 解析 controller method；不查 PCR device directory（该目录此时可能为空），不建立 overlay，也不接受 provision 之外的 resolution 来源；
 - 对 genesis unit 的第二条 authorize，以及 recovery unit 的 re-anchor 和 authorize 两条 Event，目录尚未包含 candidate。verifier 必须建立只在本次 unit 内可见的 candidate overlay。genesis 的 key 来自经 root 承诺的 descriptor；recovery 的 key 必须同时等于已验证 session 的 `requesting_device_public_key_did` 和 authorize payload 的 `device_public_key_did`。overlay 将规范 account DID URL/device fragment 映射到该 key，只提供验签材料，不授予权限。verifier 先验证对应 descriptor 或 accepted policy/session、payload/digest、possession signature 和全部 Event proof，全部成功后才原子写入 durable directory；
 - 不得查询未接受的 projection，不得回退到同 fragment 的旧 key，也不得在验签前产生可观察目录状态。
@@ -892,6 +892,8 @@ human Account 设备签署的任何 Event 只有一条 producer 解析规则，�
 **幂等**：exact 重复的 Event 先返回原 outcome，再检查证据时效。过期证据不会把已提交的 Event 改判为失败；A 为同一 Event 现签新证据的新尝试同样返回原 outcome，不产生第二个 `RealmCommit`。尚未被接纳的 Event 仍按上述五步判定。
 
 **留存**：B MUST 在接纳事务内持久化完整 evidence 与其 ref，仅供审计；本节不新增任何读取面。历史 replay 以 B 的 `RealmCommit` 与治理权威链为准，不重验 attestation 时效。
+
+**非治理接收方**：`committed_replication` 成员 Station、邀请投递接收方与其它非治理的 committed Event 消费方不执行本节解析，也不为此取材；它们按 [`../sync/federation.md` §3](../sync/federation.md) 只核对 producer proof 自身一致、治理 `RealmCommit` 签名及其签发方为当时的 current governance Station、以及 ref／position 连续性。producer 为本站托管账号时仍用本地 PCR 完整验签。
 
 **错误码**（全部复用已激活码；同站由治理 Station 从本地 PCR 判定，跨站的撤销、撤销待定与 fence 由 A 在现签前判定，B 只从证据判定其余各项）：
 

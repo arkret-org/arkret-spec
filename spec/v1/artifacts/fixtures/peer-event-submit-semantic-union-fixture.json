@@ -1,6 +1,6 @@
 {
   "profile": "ak.vector.peer.event_submit.semantic_union.v1",
-  "version": "2026-09-25.1",
+  "version": "2026-09-25.2",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.peer.event_submit.semantic_union.v1"
@@ -10,7 +10,8 @@
     "ak.vector.direct_conversation.founding_admission.v1",
     "ak.vector.direct_conversation.founding_authoring_material.v1",
     "ak.vector.direct_conversation.founding_unit.v1",
-    "ak.vector.federation.authority_forward_producer_device_evidence.v1"
+    "ak.vector.federation.authority_forward_producer_device_evidence.v1",
+    "ak.vector.federation.non_governance_receiver_trusts_governance_commit.v1"
   ],
   "required_schema_refs": [
     "schemas/authority-commit-operations.schema.json#/$defs/self_submit_request",
@@ -476,6 +477,109 @@
         "the governance Station checks source Station, Service history at attested_at, evidence expiry, authorization_window over created_at and now, device_status and exact producer/fragment/key binding before any write; every failure writes nothing",
         "an exact duplicate Event returns its original outcome before evidence freshness is checked; historical replay relies on the RealmCommit and governance authority chain and does not re-verify attestation freshness",
         "membership, capability, policy and revision are still judged independently at the commit position"
+      ]
+    },
+    {
+      "name": "non_governance_receiver_trusts_governance_commit",
+      "vector_id": "ak.vector.federation.non_governance_receiver_trusts_governance_commit.v1",
+      "receivers": [
+        "committed_replication_member_station",
+        "invite_delivery_receiver"
+      ],
+      "checks": [
+        "producer_proof_self_consistent: event_digest covers exact canonical Event bytes; verification_method bare DID projects to the actual signer principal; human device fragment equals the full device_id",
+        "governance_commit_signature_valid_and_signer_is_current_governance_station_of_that_generation_in_verified_authority_chain",
+        "commit_event_ref_position_and_previous_commit_ref_continuity"
+      ],
+      "foreign_human_device_key_resolution": "none: no peer directory lookup and no producer_device_evidence",
+      "variants": [
+        {
+          "name": "foreign_human_producer_replica_stored",
+          "producer": "foreign_station_human_device",
+          "expected": {
+            "decision": "store",
+            "device_key_resolved": false
+          }
+        },
+        {
+          "name": "foreign_human_invite_delivery_verified",
+          "receiver": "invite_delivery_receiver",
+          "producer": "foreign_station_human_device",
+          "expected": {
+            "decision": "continue_to_receive_policy",
+            "device_key_resolved": false
+          }
+        },
+        {
+          "name": "proof_event_digest_mismatch",
+          "mutation": "producer_proof.event_digest differs from the digest of the exact canonical Event bytes",
+          "expected": {
+            "decision": "reject",
+            "rejected_as": "signature_invalid",
+            "replica_writes": 0
+          }
+        },
+        {
+          "name": "fragment_differs_from_device_id",
+          "mutation": "verification_method fragment is not the full ak:device: id of the signing device",
+          "expected": {
+            "decision": "reject",
+            "rejected_as": "signature_invalid",
+            "replica_writes": 0
+          }
+        },
+        {
+          "name": "verification_method_projection_differs_from_signer",
+          "mutation": "verification_method bare DID projects to a principal other than executed_by or actor_id",
+          "expected": {
+            "decision": "reject",
+            "rejected_as": "signature_invalid",
+            "replica_writes": 0
+          }
+        },
+        {
+          "name": "governance_commit_signature_invalid",
+          "mutation": "RealmCommit signature does not verify",
+          "expected": {
+            "decision": "reject",
+            "rejected_as": "signature_invalid",
+            "replica_writes": 0
+          }
+        },
+        {
+          "name": "commit_signed_by_non_current_governance_station",
+          "mutation": "RealmCommit verifies under a Station that the verified genesis/handoff chain does not name as current governance for that generation",
+          "expected": {
+            "decision": "reject",
+            "rejected_as": "signature_invalid",
+            "replica_writes": 0
+          }
+        },
+        {
+          "name": "local_account_producer_verified_against_local_pcr",
+          "producer": "receiver_hosted_account_device",
+          "expected": {
+            "decision": "store",
+            "device_key_resolved": true,
+            "resolution_source": "local_pcr_device_authorization_and_device_generation"
+          }
+        },
+        {
+          "name": "local_account_producer_key_mismatch",
+          "producer": "receiver_hosted_account_device",
+          "mutation": "producer proof does not verify under the local PCR key of that device",
+          "expected": {
+            "decision": "reject",
+            "rejected_as": "signature_invalid",
+            "replica_writes": 0
+          }
+        }
+      ],
+      "assertions": [
+        "a non-governance receiver never resolves or fetches a foreign human device key; the governance RealmCommit is its signed commitment to the device-authorization decision",
+        "a producer hosted by the receiver itself is still fully verified against local PCR",
+        "Agent producers keep their existing signer evidence rule",
+        "every rejection writes no replica, delivery or holder-private state"
       ]
     }
   ]

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-25.2",
+  "version": "2026-09-25.3",
   "source_of_truth": true,
-  "generated_at": "2026-09-25T01:00:00+08:00",
+  "generated_at": "2026-09-25T04:20:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -2432,6 +2432,19 @@
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/registry/error-code-registry.json",
         "spec/v1/artifacts/fixtures/federation-idempotency-key-revoke-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.federation.non_governance_receiver_trusts_governance_commit.v1",
+      "status": "active",
+      "domain": "federation",
+      "applies_to_fixtures": [
+        "peer-event-submit-semantic-union-fixture.json"
+      ],
+      "description": "A non-governance committed-Event receiver (committed replication member Station, invite delivery receiver) does not resolve a foreign human device key. It stores the replica when the producer proof is self-consistent (event_digest, verification_method projection to the actual signer, fragment equal to device_id), the governance RealmCommit signature is valid and its signer is the current governance Station of that generation in the verified authority chain, and ref/position/predecessor continuity holds. Digest mismatch, fragment not equal to device_id, projection not equal to the signer, invalid governance signature and a Commit from a non-current governance Station are rejected; a producer hosted by the receiver is still verified against local PCR and a key mismatch is rejected.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/peer-event-submit-semantic-union-fixture.json",
+        "spec/v1/zh/sync/federation.md"
       ]
     },
     {

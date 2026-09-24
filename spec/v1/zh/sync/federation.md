@@ -41,8 +41,26 @@ handoff proof 必须分别验证。
 1. authority generation 与已验证的 genesis/handoff chain 一致；
 2. position 从请求起点严格递增；
 3. `previous_commit_ref` 只引用同 stream 的直接前驱；
-4. Commit/Event ID 、治理签名和 producer proof 均有效；
+4. Commit/Event ID 有效，并按下文“非治理接收方以治理签名为准”验证 producer proof 与治理签名；
 5. response 不携带调用方不可见的其它 stream head。
+
+**非治理接收方以治理签名为准（normative）**：接收 `committed_replication` 的成员 Station、接收邀请投递的
+Station，以及其它非治理的 committed Event 消费方，MUST NOT 为验签独立解析外站 human 设备的 key，也不为此
+取材（不调用 peer 设备目录、不要求 `producer_device_evidence`）。它们只验证以下三项：
+
+1. producer proof 自身一致：`event_digest` 覆盖 exact canonical Event bytes；`verification_method` 的 bare DID
+   经已登记 adapter 投影后等于实际签名方（有 `executed_by` 时取它，否则取 `actor_id`）的 principal；human
+   设备的 fragment 逐字等于完整 `device_id`；
+2. 治理 Station 签发的 `RealmCommit` 签名有效，且该 Station 在已验证的 authority chain（genesis／handoff）中是
+   该 Commit 所在 generation 当时的 current governance Station；
+3. `RealmCommit` 与 Event 的 ref、position、`previous_commit_ref` 连续性按上文第 1–3 项核对。
+
+producer 设备的授权由接纳它的治理 Station 负责（[`../crypto-media/device-lifecycle.md` §8.2.2](../crypto-media/device-lifecycle.md)），
+其 `RealmCommit` 即是对这次授权判定的签名承诺。producer 恰为本站托管账号时，接收方仍 MUST 用本地 PCR 的
+`device_authorization`／`device_generation` 完整验签，key 不符即拒绝。Agent producer 的既有证据规则不变。
+残余风险（informative）：被攻破的治理 Station 可以在自己治理的 Realm 内以外站用户的名义伪造 Event；消息内容
+仍受 MLS 认证保护，该风险与它对 ordering、membership 的既有权力同级。正负例由
+[`ak.vector.federation.non_governance_receiver_trusts_governance_commit.v1`](../../artifacts/registry/vector-registry.json) 固定。
 
 消费 Station 可以投影和缓存 current state，但不能用本地重放产生另一种 accepted 判决。
 
