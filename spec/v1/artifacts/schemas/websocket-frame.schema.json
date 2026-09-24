@@ -36,11 +36,6 @@
     "cursor": {
       "$ref": "./account-subscribe-frame.schema.json#/$defs/cursor_value"
     },
-    "event_kind": {
-      "type": "string",
-      "pattern": "^ak\\.[a-z][a-z0-9_]*(?:\\.[a-z][a-z0-9_]*)+$",
-      "maxLength": 128
-    },
     "account_filter": {
       "$ref": "./account-subscribe-frame.schema.json#/$defs/account_filter"
     },

@@ -195,7 +195,10 @@ MUST NOT 代替客户端加密，Station 在该 scope 中 MUST NOT 取得明文�
 产生第二份 ciphertext。为同一条消息生成第二份 ciphertext 会使已冻结的 AAD 与已送出的那份不再唯一对应。
 
 **MLS current 失配的唯一拒绝身份（normative）**：`kind="mls"` 的 prepare 以及后续 self／peer authority-forward
-Event submit，若 current scope 已有覆盖当前 key-access checkpoint 的 winning Commit，但冻结的 `epoch`、
+Event submit，在治理 Station 确定 scope 没有 accepted `ak.mls.genesis`／current group 时 MUST 返回通用
+`failed_precondition`（无专用 reason），不得写入；客户端必须先激活 scope 或改发明文，不得 exact retry 期待该密文成功。
+Station 暂时无法读取自身 current MLS 结果时两入口均 MUST 返回 `temporarily_unavailable`，仅在未产生 Commit
+时允许 byte-identical exact retry。若 current scope 已有覆盖当前 key-access checkpoint 的 winning Commit，但冻结的 `epoch`、
 `group_state_ref` 或 `key_access_revision` 与 current `mls_group` result 不符，MUST 返回顶层
 `epoch_mismatch`（HTTP 409）；客户端验证并取得 current 本地 MLS state 后重新加密、构造新请求。若 current
 scope 尚待 winning Commit 覆盖，MUST 优先返回 `failed_precondition` + `epoch_update_required`，客户端暂停
@@ -342,8 +345,8 @@ MLS private bytes 保持端到端加密；Station 只处理公开 transition 和
 ## 6. 错误与缓存
 
 - `schema_violation`：closed schema、canonical encoding 或 typed ID 失败。
-- `authority_mismatch`：目标不是验证后的 current authority。
-- `stream_conflict`：expected position/predecessor 与当前 stream head 不符。
+- 目标不是验证后的 current authority：使用已登记的 authority bundle 验证失败面，不输出未登记的顶层码。
+- expected position/predecessor 与当前 stream head 不符：使用 `revision_stale`；领域 CAS 不符使用 `cas_conflict`。
 - `cas_conflict`：typed payload 的领域 `expected_revision` 不符。
 - `epoch_mismatch`：发送请求冻结的 MLS epoch／group-state／key-access revision 与已就绪的 current group 不符。
 - `duplicate_conflict`：相同幂等身份或内容 ID 对应不同 canonical bytes。
@@ -674,7 +677,6 @@ RFC 9449 DPoP proof 只有 `iat`，没有 `expires` parameter，因此它 **MUST
 | `ak.self.invite_receive_policy.resource.get.v1` | `GET /_arkret/self/invite-receive-policy` | - | - | response_schema_ref=schemas/invite-receive-policy.schema.json |
 | `ak.self.invite_receive_policy.resource.replace.v1` | `PUT /_arkret/self/invite-receive-policy` | - | - | request_schema_ref=schemas/invite-receive-policy.schema.json; response_schema_ref=schemas/invite-receive-policy.schema.json |
 | `ak.self.invites.command.dispatch.v1` | `POST /_arkret/self/invites/dispatch` | - | - | request_schema_ref=schemas/invite-delivery-request.schema.json#/$defs/self_invite_dispatch_request_body; response_schema_ref=schemas/invite-delivery-request.schema.json#/$defs/invite_delivery_outcome |
-| `ak.self.keys.backup_series.command.erase.v1` | `POST /_arkret/self/keys/backup-series/erase` | - | - | request_schema_ref=schemas/keys-operations.schema.json#/$defs/backup_series_erase_request_body; response_schema_ref=schemas/keys-operations.schema.json#/$defs/backup_series_erase_outcome |
 | `ak.self.keys.backups.command.issue_delete_challenge.v1` | `POST /_arkret/self/keys/backups/{backup_id}/delete-challenge` | - | - | request_schema_ref=schemas/keys-operations.schema.json#/$defs/keys_backups_issue_delete_challenge_request_body; response_schema_ref=schemas/keys-operations.schema.json#/$defs/keys_backups_delete_challenge |
 | `ak.self.keys.backups.command.issue_unlock_challenge.v1` | `POST /_arkret/self/keys/backups/{backup_id}/unlock-challenge` | - | - | request_schema_ref=schemas/keys-operations.schema.json#/$defs/keys_backups_issue_unlock_challenge_request_body; response_schema_ref=schemas/keys-operations.schema.json#/$defs/keys_backups_unlock_challenge |
 | `ak.self.keys.backups.command.unlock.v1` | `POST /_arkret/self/keys/backups/{backup_id}/unlock` | - | - | request_schema_ref=schemas/keys-operations.schema.json#/$defs/keys_backups_unlock_request_body; response_schema_ref=schemas/key-backup.schema.json |

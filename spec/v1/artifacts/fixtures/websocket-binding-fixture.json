@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.binding.websocket.v1",
-  "version": "2026-09-23.1",
+  "version": "2026-09-23.2",
   "suite": "websocket_binding",
   "runner": {
     "kind": "named_suite",
@@ -98,7 +98,7 @@
         "development_mode": false,
         "supported_operation_bundles": [
           "ak.operation_bundle.station.describe.v1",
-          "ak.operation_bundle.station.http_core.v1",
+          "ak.operation_bundle.station.http_core_current.v1",
           "ak.operation_bundle.station.websocket.v1"
         ],
         "transport_bindings": [

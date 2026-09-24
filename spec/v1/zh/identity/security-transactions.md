@@ -3,7 +3,7 @@ title: 安全事务资源
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-15
+updated: 2026-09-24
 ---
 
 # 安全事务资源
@@ -54,13 +54,19 @@ canonical source；其中 Recovery plan 内嵌 closed `binding`，Rotation plan 
 该 unit 的 operation 固定为 `ak.self.events.command.submit.v1`，request schema 固定为上述 DTO，destination 与 audience
 都从父 transaction 的 `account_id.station_id` 取得；这四项与 canonical request bytes 是构造时的 computed view，
 不得作为平行 wire 输入或 durable 真相源。coordinator 必须以同一 `JCS(request)` bytes 执行和持久化。
-`accepted_steps[]` 的每项固定为
-`{prepared_material_digest, acceptor, output_ref, output_digest, accepted_at}`；数组位置按下述固定步骤表
-唯一决定 step kind，整个数组必须是连续前缀，不能跳步、重排或为同一步记录第二个 digest。活动事务的下一步
+`accepted_steps[]` 的每项固定为 `{acceptor, accepted_at}`；数组位置按下述固定步骤表
+唯一决定 step kind，整个数组必须是连续前缀，不能跳步、重排或为同一步重复记录。活动事务的下一步
 等于 `steps(kind)[accepted_steps.length]`；resource 不重复序列化该派生值。
 `acceptor` 是接受该步骤的稳定 participant identity，closed 为
 `{kind: principal, principal_id: DidCoreId} | {kind: device, device_id: DeviceId}`；服务 participant
 必须写入永久 Arkret core identity，不得写入 W3C 裸 DID、transport URI 或 mixed identifier string。
+`accepted_steps` 仅记录已接受的位置和参与者，不是效果证明。Recovery terminal 必须从 plan 的
+`terminal_receipt_id` 与实际 accepted Commit、completion result 核对；SecurityRotation 的
+`revoke` 必须核对 closed `revoke_command_outcome`，upload 必须核对 plan 中每个已持久上传的
+`new_backup_envelopes`，switch 必须核对 `active_series_unit` 的 accepted Commit 与 current pointer，
+erase 必须核对完整 durable erase confirmation，local commit 必须核对客户端签署的 terminal artifact。
+plan 中预留的 ID 或 digest 本身不证明效果已经执行。worker 只有在对应效果耐久完成且核对成功后，
+才能原子追加该步；重启时也必须从这些原始耐久结果重新核对，不得从预留字段合成 accepted step。
 
 共同不变量：
 
@@ -69,7 +75,7 @@ canonical source；其中 Recovery plan 内嵌 closed `binding`，Rotation plan 
    全部公开 Event/object/series/ticket id；
 3. 同 id + 同 canonical bytes 返回 byte-identical 已记录 result；
 4. 同 id + 不同 bytes 返回 `duplicate_conflict`；
-5. store 分别保存唯一 typed prepared plan/canonical bytes、首次 result 与每步 accepted output，
+5. store 分别保存唯一 typed prepared plan/canonical bytes、首次 result 与每步实际完成的耐久结果，
    不能只保存“见过 id”或用一个 ref 混淆 reserved/prepared/accepted；
 6. coordinator restart、response lost 与重试都从 transaction resource 续跑；
 7. 可按 id 权威查询，不由客户端猜进度；
@@ -125,8 +131,12 @@ transaction resource 复制 `transaction_id`、`request_digest`、`prepared_plan
 attestation_digest})`，其中投影成员 `attestation_digest := SHA-256(JCS(artifact))` 由签名方与 verifier
 各自从同载体 `artifact` 重算填入，不从 wire 读取；wire 上也不携字段名清单。coordinator 必须重算 artifact
 digest，验证 outer attestation；recovery 还必须验证 receipt 自己的
-device signature transcript。其它 step 对应非 terminal-ready resource 的 attestation 必须拒绝。`get` 是
-response loss、restart 与跨设备续跑的权威进度查询，不得从短期 HTTP idempotency cache 合成。
+device signature transcript。其它 step 对应非 terminal-ready resource 的 attestation 必须拒绝。
+`client_attestation.auth_data.verification_method` MUST 是当前 Account DID 加 `#<device_id>` 构成的
+canonical DID URL。verifier MUST 在同一 accepted PCR cut 解析该设备的当前授权签名 key、generation、
+revocation 与 pending 状态，核对 attestation 的签名设备与 typed artifact 中的设备逐字相同，
+并拒绝不属于该 Account 或当前未获授权的 key。仅有调用方自报的 DID URL 不构成授权。
+`get` 是 response loss、restart 与跨设备续跑的权威进度查询，不得从短期 HTTP idempotency cache 合成。
 当 coordinator-owned prefix 已完成而最终 client-attested step 尚未提交时，resource 仍不携带
 `terminal_outcome`；它不会被误判为 completed，因为完整 accepted prefix 与 `result=completed` 的 terminal
 result 仍是成功终态的必要条件。
@@ -193,8 +203,11 @@ complete erase confirmation 与 local commit artifact 仍必须回显最终
 上述投影复算预留 digest。这样 outcome 与最终 plan 逐字绑定，同时不形成 request/plan digest
 的哈希不动点。
 
-`prepared_plan.backup_rotations[]` 的内嵌 binding 是每项 reserved series/object refs 的唯一 source，并同时保存 encrypted material与
-active-series Event prepared unit。公开transaction/checkpoint只保存该typed public plan；
+`prepared_plan.backup_rotations[]` 的内嵌 binding 是每项 reserved series/object refs 的唯一 source，并同时保存
+closed `new_backup_envelopes: [KeyBackup]` 与 active-series Event prepared unit。envelope 数组必须按
+`backup_id` canonical 升序排列且互异；每项的 `{backup_id,ciphertext_digest}` 必须与
+`binding.new_backups[]` 逐项相等。coordinator 必须验证每份完整 envelope 的签名、归属和 ciphertext digest，
+不得接受开放材料包装或只验证 binding 摘要。公开 transaction/checkpoint 只保存该 typed public plan；
 staged account secret、明文keybag、MLS secret与私钥只能留在zeroizing secure-store slot，
 且终态必须清除。
 
@@ -206,16 +219,16 @@ revoke
 → local_commit
 ```
 
-每一步必须以 reserved id 和前一步 accepted ref 为 precondition。新 pointer 未成为权威状态前
+每一步必须以 reserved id、前一步已核实的耐久结果和当前 authoritative state 为 precondition。新 pointer 未成为权威状态前
 不得 erase；erase 已接受后不得切回旧 pointer。客户端本地 commit 丢失时只能查询并重放相同
 terminal result，不能重新上传或重新 erase。
 
 `revoke` 第一步的 proposal 接纳和命令终局是两个边界。治理 Station 接纳计划中的完整 `ak.device.revoke` Event 与 covering RealmCommit 时，必须在同一 durable commit 保存 `revoke_proposal{proposal_event_id,covering_commit_id}`；此时只形成不可变 pending proposal，不得据此计入 `accepted_steps` 或当成 revoked。worker 对 exact proposal 的效果作终局裁决时，必须将 closed `revoke_command_outcome` 与 `accepted_steps[0]`（accepted）或 `terminal_outcome=aborted|expired`（rejected）原子提交。已有 proposal 的 abort/expiry 不得省略 rejected 结果；尚未接纳 proposal 的 abort/expiry 不得制造结果。相同终局精确重放读取首次保存的资源，不同终局或不同 Commit 引用为冲突。该结果只在完整事务、Event、Commit、PCR current 与本地结果 ledger 的同一快照连接核对后进入 [`device-lifecycle.md` §5.5.3](../crypto-media/device-lifecycle.md) 的 `device_status` 折叠；RealmCommit 的十成员签名对象保持不变。
 
-`erase_old_material` 的唯一 wire operation 是
-`ak.self.keys.backup_series.command.erase.v1`。request 必须携带 transaction/request/plan digest、
-预留 `erase_confirmation_digest`、一条完整 `secret_storage` binding 与当前 `authority_commit_id`。该内部请求由
-durable transaction worker 从已保存的 plan 构造，不携带也不接受 `AuthorizationLease`。服务端必须先验证：
+`erase_old_material` 只由 durable transaction worker 执行，没有公开 self HTTP operation；外部客户端
+不得调用、驱动或重放 erase。worker 从已保存 plan 构造内部请求，包含 transaction/request/plan digest、
+预留 `erase_confirmation_digest`、一条完整 `secret_storage` binding 与当前 `authority_commit_id`，
+不携带也不接受 `AuthorizationLease`。worker 必须先验证：
 
 1. transaction当前next step确为`erase_old_material`；
 2. 唯一new series及其`ak.key_backup.active_series` Event已accepted且仍是authoritative；
@@ -224,7 +237,7 @@ durable transaction worker 从已保存的 plan 构造，不携带也不接受 `
    `authority_commit_id` 仍是 current authoritative basis。任一检查失败都必须在擦除前停线；不得用 create 时的普通
    session 快照绕过执行时 current/revocation 检查。
 
-response按backup kind返回durable `series_records[]`。storage partial failure只能把尚未擦除项标为
+worker 的内部 durable 执行结果按 backup kind 保存 `series_records[]`。storage partial failure只能把尚未擦除项标为
 `pending`或`failed_retryable`；已经擦除项必须单调保持`erased`，重启或精确重试不得复活、改写
 digest或重新加入remaining集合。`request_digest`是完整erase request canonical bytes的SHA-256；
 相同transaction id但request digest不同必须`duplicate_conflict`。每个result的
@@ -233,8 +246,9 @@ backup id canonical升序；`status=erased`当且仅当remaining为空，`reason
 `failed_retryable`。只有该series的全部planned objects都确认擦除时，status才可为
 `complete`并返回`ak.schema.backup_series_erase_confirmation.v1`。confirmation只含create时已固定
 的transaction/request/plan与series bytes；receiver 必须核对最终 request/plan 引用，并按本节
-非循环 projection 重算且逐字等于预留 `erase_confirmation_digest`；这是SecurityTransaction accepted erase step
-`output_digest`的唯一来源。partial outcome、单对象DELETE响应、日志或本地flag都不能推进该step。
+非循环 projection 重算且逐字等于预留 `erase_confirmation_digest`；只有完整 durable confirmation
+核对成功后才可原子追加 accepted erase step。partial outcome、单对象 DELETE 响应、日志或本地 flag
+都不能推进该 step。
 
 ## 4. 故障点要求
 

@@ -4442,41 +4442,6 @@ def _stated_digest(data: bytes, encoding: str) -> str:
     raise AssertionError(f"unknown stated-digest encoding: {encoding}")
 
 
-def check_schema_fixture_canonical_public_material(lint: Lint) -> None:
-    """Keep CanonicalPublicMaterial fixtures internally reproducible."""
-    fixture_path = ARTIFACTS / "fixtures" / "schema-validation-fixture.json"
-    fixture = load_json(lint, fixture_path)
-    if fixture is None:
-        return
-
-    found = 0
-    required = {"canonical_encoding", "value", "canonical_bytes_base64url", "digest"}
-    for json_path, node, _ in walk_json(fixture):
-        if not isinstance(node, dict) or not required.issubset(node):
-            continue
-        found += 1
-        if node["canonical_encoding"] != "canonical_json":
-            continue
-        canonical_bytes = canonical_json(node["value"]).encode("utf-8")
-        encoded = base64.urlsafe_b64encode(canonical_bytes).rstrip(b"=").decode("ascii")
-        digest = "sha256:" + hashlib.sha256(canonical_bytes).hexdigest()
-        if node["canonical_bytes_base64url"] != encoded:
-            lint.fail(
-                fixture_path,
-                f"{json_path}.canonical_bytes_base64url does not encode canonical JSON of value",
-            )
-        if node["digest"] != digest:
-            lint.fail(
-                fixture_path,
-                f"{json_path}.digest={node['digest']} but canonical JSON of value hashes to {digest}",
-            )
-    if found == 0:
-        lint.fail(
-            fixture_path,
-            "schema fixture must retain a CanonicalPublicMaterial structural case",
-        )
-
-
 def check_stated_preimage_matches_stated_digest(lint: Lint) -> None:
     """Every fixture that spells out a preimage MUST hash to the digest beside it.
 

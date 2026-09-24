@@ -304,16 +304,10 @@
     "accepted_step": {
       "type": "object",
       "required": [
-        "prepared_material_digest",
         "acceptor",
-        "output_ref",
-        "output_digest",
         "accepted_at"
       ],
       "properties": {
-        "prepared_material_digest": {
-          "$ref": "#/$defs/digest"
-        },
         "acceptor": {
           "oneOf": [
             {
@@ -350,18 +344,12 @@
             }
           ]
         },
-        "output_ref": {
-          "$ref": "#/$defs/step_output_ref"
-        },
-        "output_digest": {
-          "$ref": "#/$defs/digest"
-        },
         "accepted_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"
         }
       },
       "additionalProperties": false,
-      "description": "Evidence accepted at one position in the kind-specific fixed step order. The position, not a duplicated label, determines the step kind."
+      "description": "Accepted position in the kind-specific fixed step order. The index determines the step; execution evidence is verified against the typed plan and durable outcomes, never inferred from reserved IDs or digests alone."
     },
     "backup_id": {
       "$ref": "./agent-operations.schema.json#/$defs/backup_id"
@@ -433,15 +421,20 @@
       "type": "object",
       "required": [
         "binding",
-        "encrypted_backup_material",
+        "new_backup_envelopes",
         "active_series_unit"
       ],
       "properties": {
         "binding": {
           "$ref": "#/$defs/backup_rotation_binding"
         },
-        "encrypted_backup_material": {
-          "$ref": "./recovery-authority.schema.json#/$defs/canonical_public_material"
+        "new_backup_envelopes": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 512,
+          "uniqueItems": true,
+          "items": {"$ref": "./key-backup.schema.json"},
+          "description": "Complete signed KeyBackup envelopes in canonical ascending backup_id order, with distinct IDs. Each envelope's backup_id and ciphertext_digest MUST equal the corresponding binding.new_backups entry; signatures and ciphertext digests MUST be verified."
         },
         "active_series_unit": {
           "$ref": "#/$defs/prepared_event_unit"
@@ -486,7 +479,11 @@
           ]
         },
         "output_ref": {
-          "$ref": "#/$defs/step_output_ref"
+          "oneOf": [
+            {"$ref": "#/$defs/receipt_id"},
+            {"$ref": "#/$defs/sha256_digest"}
+          ],
+          "description": "Exact echo of prepared_plan.binding.terminal_receipt_id for commit_recovery_unit or prepared_plan.local_commit_digest for local_commit. The verifier MUST compare the value against the selected transaction's closed plan."
         },
         "transaction_id": {
           "$ref": "#/$defs/transaction_id"
@@ -516,7 +513,8 @@
           ],
           "properties": {
             "verification_method": {
-              "$ref": "./common-ids.schema.json#/$defs/did_url"
+              "$ref": "./common-ids.schema.json#/$defs/did_url",
+              "description": "Canonical current Account DID URL with fragment #<device_id>. The verifier resolves the device's authorized signing key, generation, revocation and pending state at the same accepted PCR cut and binds the device and artifact exactly."
             },
             "signature_algorithm": {
               "type": "string",
@@ -1054,11 +1052,6 @@
         "erase_old_material",
         "local_commit"
       ]
-    },
-    "step_output_ref": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 2048
     },
     "terminal_outcome": {
       "oneOf": [

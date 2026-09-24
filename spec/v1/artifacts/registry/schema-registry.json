@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-24.2",
+  "version": "2026-09-24.3",
   "source_of_truth": false,
-  "generated_at": "2026-09-24T11:53:30+08:00",
+  "generated_at": "2026-09-24T18:31:43+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -456,7 +456,12 @@
       "file": "schemas/keys-operations.schema.json",
       "fragment": "#/$defs/backup_series_erase_confirmation",
       "status": "active",
-      "description": "Immutable transaction-bound completion artifact proving all planned old secret_storage backup objects were erased after authoritative pointer switch."
+      "description": "Immutable transaction-bound completion artifact proving all planned old secret_storage backup objects were erased after authoritative pointer switch.",
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "schemas/keys-operations.schema.json#/$defs/backup_series_erase_confirmation",
+        "normative_ref": "zh/identity/security-transactions.md#3-securityrotationtransaction"
+      }
     },
     {
       "schema_id": "ak.schema.blob.v1",

@@ -8,12 +8,12 @@
   ],
   "description": "Exhaustive classification of operation DTO schema/status/reason_code/reason properties into closed literals/enums, validated open protocol tokens, or bounded human-readable text. Any unconstrained audited string fails generation.",
   "summary": {
-    "total_fields": 75,
+    "total_fields": 72,
     "by_classification": {
       "bounded_free_text": 6,
-      "closed_enum": 32,
+      "closed_enum": 30,
       "closed_literal": 17,
-      "validated_open_reason_code": 20
+      "validated_open_reason_code": 19
     },
     "unclassified": 0
   },
@@ -362,30 +362,6 @@
       "pointer": "#/$defs/backup_series_erase_confirmation/properties/schema",
       "classification": "closed_literal",
       "basis": "JSON Schema const"
-    },
-    {
-      "schema_file": "keys-operations.schema.json",
-      "shape": "backup_series_erase_outcome",
-      "field": "status",
-      "pointer": "#/$defs/backup_series_erase_outcome/properties/status",
-      "classification": "closed_enum",
-      "basis": "JSON Schema enum"
-    },
-    {
-      "schema_file": "keys-operations.schema.json",
-      "shape": "backup_series_erase_record",
-      "field": "reason_code",
-      "pointer": "#/$defs/backup_series_erase_record/properties/reason_code",
-      "classification": "validated_open_reason_code",
-      "basis": "^[a-z][a-z0-9_]{0,63}$"
-    },
-    {
-      "schema_file": "keys-operations.schema.json",
-      "shape": "backup_series_erase_record",
-      "field": "status",
-      "pointer": "#/$defs/backup_series_erase_record/properties/status",
-      "classification": "closed_enum",
-      "basis": "JSON Schema enum"
     },
     {
       "schema_file": "keys-operations.schema.json",

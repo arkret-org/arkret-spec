@@ -133,6 +133,22 @@ class RequestMaterialSupplyLintTest(unittest.TestCase):
             errors,
         )
 
+    def test_terminal_output_echo_requires_both_prepared_plan_sources(self) -> None:
+        def mutate(schema):
+            schema["$defs"]["security_rotation_plan"]["properties"].pop(
+                "local_commit_digest"
+            )
+
+        errors = self._run(json_mutations={SECURITY_TRANSACTION_PATH: mutate})
+        self.assertTrue(
+            any(
+                "ak.self.security_transaction.command.continue.v1" in error
+                and "client_attestation.output_ref" in error
+                for error in errors
+            ),
+            errors,
+        )
+
     def test_referenced_union_branches_retain_supply_requirements(self) -> None:
         # client_attestation.artifact is a oneOf whose branches are all local
         # $refs. An unsupplied required member added inside one referenced

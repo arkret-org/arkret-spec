@@ -656,10 +656,6 @@
       "new": "ak.self.invites.command.dispatch.v1"
     },
     {
-      "old": "ak.self.keys.backup_series.command.erase",
-      "new": "ak.self.keys.backup_series.command.erase.v1"
-    },
-    {
       "old": "ak.self.keys.backups.command.issue_delete_challenge",
       "new": "ak.self.keys.backups.command.issue_delete_challenge.v1"
     },

@@ -1,6 +1,6 @@
 {
   "profile": "ak.vector_group.security_transaction.v1",
-  "version": "2026-09-24.3",
+  "version": "2026-09-24.4",
   "suite": "security_transaction_resilience",
   "runner": {
     "kind": "named_suite",
@@ -11,6 +11,32 @@
     "ak.vector.security_transaction.recovery_terminal_commit.v1"
   ],
   "schema_validation_cases": [
+    {
+      "name": "accepted_step_has_only_acceptor_and_time",
+      "schema_ref": "schemas/security-transaction.schema.json#/$defs/accepted_step",
+      "expect_valid": true,
+      "instance": {
+        "acceptor": {
+          "kind": "device",
+          "device_id": "ak:device:019a7400-0000-7000-8000-000000000007"
+        },
+        "accepted_at": "2026-09-24T00:00:00.000Z"
+      }
+    },
+    {
+      "name": "accepted_step_rejects_redundant_output_evidence",
+      "schema_ref": "schemas/security-transaction.schema.json#/$defs/accepted_step",
+      "expect_valid": false,
+      "first_expected_error": "contains:Additional properties",
+      "instance": {
+        "acceptor": {
+          "kind": "device",
+          "device_id": "ak:device:019a7400-0000-7000-8000-000000000007"
+        },
+        "accepted_at": "2026-09-24T00:00:00.000Z",
+        "output_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    },
     {
       "name": "backup_rotation_binding_is_closed_per_kind",
       "schema_ref": "schemas/security-transaction.schema.json#/$defs/backup_rotation_binding",
@@ -35,14 +61,14 @@
       }
     },
     {
-      "name": "backup_series_erase_accepts_the_single_planned_secret_storage_binding",
-      "schema_ref": "schemas/keys-operations.schema.json#/$defs/backup_series_erase_request_body",
+      "name": "durable_worker_erase_confirmation_is_closed",
+      "schema_ref": "schemas/keys-operations.schema.json#/$defs/backup_series_erase_confirmation",
       "expect_valid": true,
       "instance": {
+        "schema": "ak.schema.backup_series_erase_confirmation.v1",
         "transaction_id": "ak:transaction:019a7400-0000-7000-8000-000000000006",
         "transaction_request_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
         "prepared_plan_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
-        "erase_confirmation_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
         "series": [
           {
             "backup_kind": "secret_storage",
@@ -61,32 +87,6 @@
                 "ciphertext_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
               }
             ]
-          }
-        ],
-        "authority_commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4"
-      }
-    },
-    {
-      "name": "partial_series_erase_outcome_has_no_confirmation",
-      "schema_ref": "schemas/keys-operations.schema.json#/$defs/backup_series_erase_outcome",
-      "expect_valid": true,
-      "instance": {
-        "transaction_id": "ak:transaction:019a7400-0000-7000-8000-000000000006",
-        "request_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-        "status": "partial",
-        "series_records": [
-          {
-            "backup_kind": "secret_storage",
-            "previous_series_id": "ak:backup_series:019a7400-0000-7000-8000-000000000001",
-            "new_series_id": "ak:backup_series:019a7400-0000-7000-8000-000000000002",
-            "status": "erased",
-            "erased_backups": [
-              {
-                "backup_id": "ak:backup:019a7400-0000-7000-8000-000000000005",
-                "ciphertext_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
-              }
-            ],
-            "remaining_backups": []
           }
         ]
       }
@@ -258,7 +258,12 @@
   },
   "assertions": [
     "one_transaction_id_and_one_reserved_id_set",
-    "request_plan_step_outputs_and_first_terminal_outcome_are_durable",
+    "request_plan_effect_results_accepted_positions_and_first_terminal_outcome_are_durable",
+    "accepted_step_contains_only_acceptor_and_accepted_at",
+    "reserved_plan_ids_and_digests_alone_never_prove_a_completed_effect",
+    "backup_envelopes_are_signed_digest_checked_and_match_binding_in_canonical_backup_id_order",
+    "client_attestation_method_resolves_current_device_key_at_same_accepted_pcr_cut",
+    "erase_is_only_worker_executed_and_has_no_public_self_operation",
     "exact_replay_returns_the_stored_outcome",
     "conflicting_replay_returns_duplicate_conflict",
     "accepted_webvh_entry_resumes_the_same_reanchor_unit",
@@ -281,6 +286,32 @@
     "verified_pcr_fork_index_is_same_snapshot_and_rebuilt_after_restart"
   ],
   "rotation_cases": [
+    {
+      "name": "reserved_upload_ids_without_durable_envelopes_do_not_accept_step",
+      "prepared_plan_has_reserved_new_backups": true,
+      "durable_uploaded_envelopes": [],
+      "expected": "do_not_append_accepted_step"
+    },
+    {
+      "name": "backup_envelope_digest_or_order_mismatch_rejected",
+      "new_backup_envelopes_match_binding": false,
+      "expected": "reject_without_side_effect"
+    },
+    {
+      "name": "self_erase_attempt_cannot_drive_worker_step",
+      "driver": "external_client",
+      "expected": "no_public_operation"
+    },
+    {
+      "name": "local_commit_method_uses_wrong_device_fragment",
+      "verification_method_device_matches_artifact": false,
+      "expected": "reject_without_side_effect"
+    },
+    {
+      "name": "local_commit_method_key_revoked_at_accepted_pcr_cut",
+      "device_current_at_accepted_pcr_cut": false,
+      "expected": "reject_without_side_effect"
+    },
     {
       "name": "partial_secret_storage_erase_then_restart",
       "authoritative_new_pointers": [

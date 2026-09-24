@@ -602,8 +602,30 @@ def check_security_transaction_schema_closure(lint: Lint) -> None:
         lint.fail(path, "$defs/accepted_step must not require a derived step label")
     if not isinstance(accepted_properties, dict) or "step" in accepted_properties:
         lint.fail(path, "$defs/accepted_step must not define a derived step label")
+    accepted_fields = {"acceptor", "accepted_at"}
+    if not isinstance(accepted_required, list) or set(accepted_required) != accepted_fields:
+        lint.fail(path, "$defs/accepted_step must require only acceptor and accepted_at")
+    if not isinstance(accepted_properties, dict) or set(accepted_properties) != accepted_fields:
+        lint.fail(path, "$defs/accepted_step must define only acceptor and accepted_at")
+    if not isinstance(accepted_step, dict) or accepted_step.get("additionalProperties") is not False:
+        lint.fail(path, "$defs/accepted_step must reject redundant output evidence")
     if any(name.startswith("accepted_") and name != "accepted_step" for name in defs):
         lint.fail(path, "per-step accepted wrapper definitions are forbidden")
+
+    rotation_plan = defs.get("backup_rotation_plan")
+    rotation_required = rotation_plan.get("required") if isinstance(rotation_plan, dict) else None
+    rotation_properties = rotation_plan.get("properties") if isinstance(rotation_plan, dict) else None
+    rotation_fields = {"binding", "new_backup_envelopes", "active_series_unit"}
+    if not isinstance(rotation_required, list) or set(rotation_required) != rotation_fields:
+        lint.fail(path, "$defs/backup_rotation_plan must require the closed envelope array")
+    if not isinstance(rotation_properties, dict) or set(rotation_properties) != rotation_fields:
+        lint.fail(path, "$defs/backup_rotation_plan must define only binding, envelopes and active unit")
+    else:
+        envelopes = rotation_properties.get("new_backup_envelopes")
+        if not isinstance(envelopes, dict) or envelopes.get("items") != {"$ref": "./key-backup.schema.json"}:
+            lint.fail(path, "$defs/backup_rotation_plan envelopes must contain KeyBackup")
+    if not isinstance(rotation_plan, dict) or rotation_plan.get("additionalProperties") is not False:
+        lint.fail(path, "$defs/backup_rotation_plan must reject legacy material wrappers")
 
     resource_required = data.get("required", [])
     resource_properties = data.get("properties", {})

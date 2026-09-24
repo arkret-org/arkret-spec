@@ -206,7 +206,6 @@ grpc:
       Continue: ak.self.security_transaction.command.continue.v1
     SelfKeys:
       Claim: ak.self.keys.command.claim.v1
-      BackupSeriesErase: ak.self.keys.backup_series.command.erase.v1
       BackupsDelete: ak.self.keys.backups.resource.delete.v1
       BackupsIssueDeleteChallenge: ak.self.keys.backups.command.issue_delete_challenge.v1
       BackupsIssueUnlockChallenge: ak.self.keys.backups.command.issue_unlock_challenge.v1
@@ -336,7 +335,6 @@ mq:
     self.events.read.delivery_status: ak.self.events.read.delivery_status.v1
     self.streams.read.scan: ak.self.committed_event.read.scan.v1
     self.committed_event.stream.subscribe: ak.self.committed_event.stream.subscribe.v1
-    self.keys.backup_series.command.erase: ak.self.keys.backup_series.command.erase.v1
     peer.events.command.submit: ak.peer.events.command.submit.v1
     peer.streams.read.scan: ak.peer.committed_event.read.scan.v1
     peer.account_status.query.resolve: ak.peer.account_status.read.resolve.v1

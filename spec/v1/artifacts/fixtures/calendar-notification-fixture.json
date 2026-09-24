@@ -5,7 +5,7 @@
   "covers_vectors": [
     "ak.vector.calendar.notification.v1"
   ],
-  "version": "2026-09-19.1",
+  "version": "2026-09-19.2",
   "spec_anchor": "spec/v1/zh/models/calendar-event.md#10-schedule-notification",
   "source_refs": [
     "spec/v1/zh/models/calendar-event.md",
@@ -58,7 +58,7 @@
         "development_mode": false,
         "supported_operation_bundles": [
           "ak.operation_bundle.station.describe.v1",
-          "ak.operation_bundle.station.http_core.v1"
+          "ak.operation_bundle.station.http_core_current.v1"
         ],
         "transport_bindings": [
           {

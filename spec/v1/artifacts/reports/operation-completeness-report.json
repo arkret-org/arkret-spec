@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-24.6",
+  "version": "2026-09-24.7",
   "source_of_truth": false,
-  "generated_at": "2026-09-24T11:54:30+08:00",
+  "generated_at": "2026-09-24T18:30:33+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,10 +18,10 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 206,
+    "total_operations": 205,
     "by_completeness_class": {
       "binary_or_redirect": 2,
-      "typed_schema": 204
+      "typed_schema": 203
     },
     "by_surface_class_and_completeness_class": {
       "core": {
@@ -32,7 +32,7 @@
       },
       "extension": {
         "binary_or_redirect": 2,
-        "typed_schema": 120
+        "typed_schema": 119
       },
       "interop_bridge": {
         "typed_schema": 21
@@ -2263,20 +2263,6 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/SelfInviteDispatchRequestBody",
         "response": "#/components/schemas/InviteDeliveryOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ak.self.keys.backup_series.command.erase.v1",
-      "surface_class": "extension",
-      "http": "POST /_arkret/self/keys/backup-series/erase",
-      "success_shape_kind": "schema_resource",
-      "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/backup_series_erase_request_body",
-      "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/backup_series_erase_outcome",
-      "openapi_component_refs": {
-        "request": "../schemas/keys-operations.schema.json#/$defs/backup_series_erase_request_body",
-        "response": "../schemas/keys-operations.schema.json#/$defs/backup_series_erase_outcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

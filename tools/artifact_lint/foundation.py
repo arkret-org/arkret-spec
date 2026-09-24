@@ -1939,6 +1939,14 @@ def check_operation_bundles_and_features(lint: Lint) -> None:
         if canonical_members != sorted(set(canonical_members)):
             lint.fail(operation_path, f"{bundle_id}.members must be unique and canonical-sorted")
 
+    uncovered_operations = sorted(operations - {operation_id for operation_id, _ in bundle_pairs})
+    if uncovered_operations:
+        lint.fail(
+            operation_path,
+            "registered operations absent from every operation bundle: "
+            f"{uncovered_operations}",
+        )
+
     describe_pair = ("ak.server.read.describe.v1", "http_json")
     for service_kind in sorted(service_kinds):
         describe_bundle_id = f"ak.operation_bundle.{service_kind}.describe.v1"
@@ -2032,7 +2040,7 @@ def check_operation_bundles_and_features(lint: Lint) -> None:
             "station.account_authority must exactly project Coauth's deployment-private Account Authority routes",
         )
 
-    principal_core = exact_http_members("ak.operation_bundle.station.http_core.v1")
+    principal_core = exact_http_members("ak.operation_bundle.station.http_core_current.v1")
     leaked_role_operations = sorted(principal_core & (identity_surface | directory_surface))
     if leaked_role_operations:
         lint.fail(

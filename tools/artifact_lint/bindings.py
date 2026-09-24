@@ -2276,6 +2276,25 @@ def check_request_material_supply_closure(lint: Lint) -> None:
     ]
     used_rows: set[str] = set()
 
+    def security_transaction_terminal_output_has_plan_source() -> bool:
+        """The terminal output echo has two closed sources in the returned plan."""
+        schema = schema_files.get("schemas/security-transaction.schema.json", {})
+        defs = schema.get("$defs", {}) if isinstance(schema, dict) else {}
+        attestation = defs.get("client_step_attestation", {})
+        output = attestation.get("properties", {}).get("output_ref", {})
+        recovery = defs.get("pcr_policy_recovery_binding", {})
+        rotation = defs.get("security_rotation_plan", {})
+        return (
+            output.get("oneOf") == [
+                {"$ref": "#/$defs/receipt_id"},
+                {"$ref": "#/$defs/sha256_digest"},
+            ]
+            and recovery.get("properties", {}).get("terminal_receipt_id")
+            == {"$ref": "#/$defs/receipt_id"}
+            and rotation.get("properties", {}).get("local_commit_digest", {}).get("$ref")
+            in {"#/$defs/digest", "#/$defs/sha256_digest"}
+        )
+
     def exempted(operation_id: str, field_path: str) -> bool:
         for row in exemption_rows:
             if row["operation_id"] != operation_id:
@@ -2321,6 +2340,12 @@ def check_request_material_supply_closure(lint: Lint) -> None:
             name = demand["name"]
             ref_def = demand["ref_def"]
             untyped = demand["untyped"]
+            if (
+                operation_id == "ak.self.security_transaction.command.continue.v1"
+                and demand["path"] == "client_attestation.output_ref"
+                and security_transaction_terminal_output_has_plan_source()
+            ):
+                return False
             if not untyped and not demand["chain_required"]:
                 return False
             evidence_shaped = bool(

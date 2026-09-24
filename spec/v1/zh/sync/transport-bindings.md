@@ -181,7 +181,7 @@ transport MUST 各自通过 binding profile 单独 normative 化。
   ],
   "supported_operation_bundles": [
     "ak.operation_bundle.station.describe.v1",
-    "ak.operation_bundle.station.http_core.v1"
+    "ak.operation_bundle.station.http_core_current.v1"
   ]
 }
 ```

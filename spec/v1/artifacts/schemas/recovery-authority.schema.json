@@ -4,38 +4,6 @@
   "title": "Arkret Recovery Completion Carriers",
   "description": "Closed recovery completion attestation and Standard-grant issuance carriers. Device recovery is authorized by the accepted PCR recovery policy; an optional DID-root proof is only one explicitly enabled factor. When deployment policy permits reactivation, the same completed closure is the only operation that may atomically author a deactivated-to-active successor for the original account before issuing its new-generation Standard grant.",
   "$defs": {
-    "canonical_public_material": {
-      "type": "object",
-      "description": "Typed public material plus the exact canonical bytes persisted by the coordinator. canonical_bytes_base64url MUST decode to the canonical JSON/CBOR representation of value and digest MUST recompute over those bytes.",
-      "required": [
-        "canonical_encoding",
-        "value",
-        "canonical_bytes_base64url",
-        "digest"
-      ],
-      "properties": {
-        "canonical_encoding": {
-          "type": "string",
-          "enum": [
-            "canonical_json",
-            "deterministic_cbor"
-          ]
-        },
-        "value": {
-          "type": "object",
-          "minProperties": 1,
-          "additionalProperties": true
-        },
-        "canonical_bytes_base64url": {
-          "type": "string",
-          "pattern": "^[A-Za-z0-9_-]+$"
-        },
-        "digest": {
-          "$ref": "#/$defs/digest"
-        }
-      },
-      "additionalProperties": false
-    },
     "pcr_generation_ref": {
       "type": "integer",
       "minimum": 1

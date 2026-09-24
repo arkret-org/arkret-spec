@@ -44,12 +44,6 @@
       "$ref": "#/$defs/keys_backups_delete_request_body"
     },
     {
-      "$ref": "#/$defs/backup_series_erase_request_body"
-    },
-    {
-      "$ref": "#/$defs/backup_series_erase_outcome"
-    },
-    {
       "$ref": "#/$defs/keys_backups_issue_unlock_challenge_request_body"
     },
     {
@@ -678,14 +672,6 @@
         "supersedes_digest": {
           "$ref": "#/$defs/digest"
         },
-        "source_commit_ref": {
-          "type": "object",
-          "additionalProperties": true
-        },
-        "recovery_policy_ref": {
-          "type": "object",
-          "additionalProperties": true
-        },
         "expires_at": {
           "oneOf": [
             {
@@ -1001,7 +987,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Bounded Account Station metadata page with both current accepted backup-class pointers, independent of list filters. key-management.md section 7.6.1 fixes cursor and unknown-state semantics."
+      "description": "Bounded Account Station metadata page with the current accepted secret_storage backup-class pointer, independent of list filters. key-management.md section 7.6.1 fixes cursor and unknown-state semantics."
     },
     "keys_backups_unlock_request_body": {
       "type": "object",
@@ -1117,99 +1103,6 @@
       },
       "additionalProperties": false
     },
-    "backup_series_erase_request_body": {
-      "type": "object",
-      "description": "Transaction-bound exact request for erasing every old backup object reserved by one SecurityRotationTransaction plan.",
-      "required": [
-        "transaction_id",
-        "transaction_request_digest",
-        "prepared_plan_digest",
-        "erase_confirmation_digest",
-        "series",
-        "authority_commit_id"
-      ],
-      "properties": {
-        "transaction_id": {
-          "$ref": "./security-transaction.schema.json#/$defs/transaction_id"
-        },
-        "transaction_request_digest": {
-          "$ref": "#/$defs/digest"
-        },
-        "prepared_plan_digest": {
-          "$ref": "#/$defs/digest"
-        },
-        "erase_confirmation_digest": {
-          "$ref": "#/$defs/digest"
-        },
-        "series": {
-          "type": "array",
-          "minItems": 1,
-          "maxItems": 1,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "./security-transaction.schema.json#/$defs/backup_rotation_binding"
-          }
-        },
-        "authority_commit_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
-        }
-      },
-      "additionalProperties": false
-    },
-    "backup_series_erase_record": {
-      "type": "object",
-      "required": [
-        "backup_kind",
-        "previous_series_id",
-        "new_series_id",
-        "status",
-        "erased_backups",
-        "remaining_backups"
-      ],
-      "properties": {
-        "backup_kind": {
-          "type": "string",
-          "enum": [
-            "secret_storage"
-          ]
-        },
-        "previous_series_id": {
-          "$ref": "#/$defs/backup_series_id"
-        },
-        "new_series_id": {
-          "$ref": "#/$defs/backup_series_id"
-        },
-        "status": {
-          "type": "string",
-          "enum": [
-            "pending",
-            "failed_retryable",
-            "erased"
-          ]
-        },
-        "erased_backups": {
-          "type": "array",
-          "maxItems": 512,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "./security-transaction.schema.json#/$defs/backup_object_ref"
-          }
-        },
-        "remaining_backups": {
-          "type": "array",
-          "maxItems": 512,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "./security-transaction.schema.json#/$defs/backup_object_ref"
-          }
-        },
-        "reason_code": {
-          "type": "string",
-          "pattern": "^[a-z][a-z0-9_]{0,63}$"
-        }
-      },
-      "additionalProperties": false
-    },
     "backup_series_erase_confirmation": {
       "type": "object",
       "required": [
@@ -1242,69 +1135,6 @@
           }
         }
       },
-      "additionalProperties": false
-    },
-    "backup_series_erase_outcome": {
-      "type": "object",
-      "required": [
-        "transaction_id",
-        "request_digest",
-        "status",
-        "series_records"
-      ],
-      "properties": {
-        "transaction_id": {
-          "$ref": "./security-transaction.schema.json#/$defs/transaction_id"
-        },
-        "request_digest": {
-          "$ref": "#/$defs/digest"
-        },
-        "status": {
-          "type": "string",
-          "enum": [
-            "partial",
-            "complete"
-          ]
-        },
-        "series_records": {
-          "type": "array",
-          "minItems": 1,
-          "maxItems": 1,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "#/$defs/backup_series_erase_record"
-          }
-        },
-        "confirmation": {
-          "$ref": "#/$defs/backup_series_erase_confirmation"
-        }
-      },
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "status": {
-                "const": "complete"
-              }
-            },
-            "required": [
-              "status"
-            ]
-          },
-          "then": {
-            "required": [
-              "confirmation"
-            ]
-          },
-          "else": {
-            "not": {
-              "required": [
-                "confirmation"
-              ]
-            }
-          }
-        }
-      ],
       "additionalProperties": false
     },
     "backup_active_series_pointer": {

@@ -1083,6 +1083,9 @@ fail closed。
 `active_series` 是必填 `BackupActiveSeriesState`，按 `account_id, control_realm_id, authority_commit_id, secret_storage`
 排列，绑定本次已认证完整 AccountId、其 PCR 和完成当前指针判断的已确认 basis（每 Realm 恰一个 head）。当前 schema 唯一登记的 `secret_storage` backup class 始终返回，
 不受 series_id/backup_kind 过滤、当前页有无 envelope 或 envelope 的过期/删除影响。
+`backups[]` 的 metadata 仅用于不下载 ciphertext 时分类；它不携带 `source_commit_ref` 或 `recovery_policy_ref`。
+需要这些引用的消费者 MUST 读取完整签名 KeyBackup envelope，并按其闭合 schema 验证；不得从列表副本推断
+active series 或接受旧 ref 形状。
 
 这里 response DTO 的 `authority_commit_id` 是 Station 对本次 current projection 给出的 confirmed-basis
 provenance；它不是 signed active-series payload 内的 `source_commit_ref`，也不得改名为后者或承载完整
@@ -1326,7 +1329,7 @@ recovery secret 疑似泄露时 MUST 按 §3.3 分流：有独立权威才允许
 
 1. **轮换 backup series**：按 §7.6 为受影响 `backup_kind` 开启**新 `series_id`**（不是在旧 series 上追加），用轮换后的接收密钥重新加密当前需要保留的内容并上传新 series。新设备发现 canonical series 的方式见下方“active series 指针”。
 2. **推进受影响 MLS 群组 epoch（PCS）**：轮换备份密钥本身**不**提供 post-compromise security——它只更换“备份包装”。要使后续消息密钥与被泄状态解耦，MUST 对受影响 Realm 触发 MLS Remove / Update 推进 epoch（与 §9 step 3 同一动作），并按 `crypto-media/encryption-and-audit.md` 绑定 governance checkpoint。
-3. **删除旧 series**：在新 series 确认可恢复**之后**，按 `crypto-media/device-lifecycle.md` §12.2 retention 流程删除旧 `series` 的服务端密文。删除 MUST 在确认新备份可用之后进行，且 MUST 整组迁移而非删除链中间节点。若触发源是设备revoke，`secret_storage`必须由同一`SecurityRotationTransaction`预留并通过`ak.self.keys.backup_series.command.erase.v1`返回逐series durable progress；只有complete typed confirmation的canonical digest可推进事务。
+3. **删除旧 series**：在新 series 确认可恢复**之后**，按 `crypto-media/device-lifecycle.md` §12.2 retention 流程删除旧 `series` 的服务端密文。删除 MUST 在确认新备份可用之后进行，且 MUST 整组迁移而非删除链中间节点。若触发源是设备revoke，`secret_storage`必须由同一`SecurityRotationTransaction`预留并由同一 SecurityRotation durable worker 内部擦除旧 series，记录逐 series durable progress；只有complete typed confirmation的canonical digest可推进事务。
 
 **不可挽回边界（MUST 在 UI 明示）**：上述流程只缩小**后续**暴露面；攻击者在泄露窗口内**已经下载**的旧密文用旧密钥永远可解，轮换/删除无法撤销。
 

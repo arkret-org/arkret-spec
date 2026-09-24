@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-24.1",
+  "version": "2026-09-24.2",
   "source_of_truth": false,
-  "generated_at": "2026-09-24T10:08:00+08:00",
+  "generated_at": "2026-09-24T18:31:29+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -537,16 +537,6 @@
       ],
       "profile": null,
       "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.self.keys.backup_series.command.erase.v1",
-      "category": "service",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [],
-      "profile": null,
-      "event_mapping_kind": "non_event_surface",
-      "notes": "Authorizes only the transaction-bound old-series targets in a fixed SecurityRotationTransaction plan after both replacement active-series pointers are accepted. It never authorizes deleting an active or unplanned backup series."
     },
     {
       "action": "ak.member.leave.own",

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-24.6",
+  "version": "2026-09-24.7",
   "source_of_truth": false,
-  "generated_at": "2026-09-24T11:54:30+08:00",
+  "generated_at": "2026-09-24T18:30:33+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -6967,49 +6967,6 @@
           "disclosed_outcome",
           "received_at",
           "retry_after_ms"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.keys.backup_series.command.erase.v1",
-      "success_shape_kind": "schema_resource",
-      "request": {
-        "schema_ref": "schemas/keys-operations.schema.json#/$defs/backup_series_erase_request_body",
-        "schema_kind": "object",
-        "required": [
-          "transaction_id",
-          "transaction_request_digest",
-          "prepared_plan_digest",
-          "erase_confirmation_digest",
-          "series",
-          "authority_commit_id"
-        ],
-        "properties": [
-          "transaction_id",
-          "transaction_request_digest",
-          "prepared_plan_digest",
-          "erase_confirmation_digest",
-          "series",
-          "authority_commit_id"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/keys-operations.schema.json#/$defs/backup_series_erase_outcome",
-        "schema_kind": "object",
-        "required": [
-          "transaction_id",
-          "request_digest",
-          "status",
-          "series_records"
-        ],
-        "properties": [
-          "transaction_id",
-          "request_digest",
-          "status",
-          "series_records",
-          "confirmation"
         ],
         "closed": true
       }

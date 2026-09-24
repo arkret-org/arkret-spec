@@ -137,13 +137,13 @@ class SignerKeyHistoricalCoordinateGateTest(unittest.TestCase):
 
     def test_scan_reuses_stream_row(self) -> None:
         def mutate(docs: dict) -> None:
-            docs[gate.AUTHORITY_SCHEMA.resolve()]["$defs"]["stream_scan_outcome"]["properties"]["commits"]["items"]["$ref"] = "#/$defs/committed_event_ref"
+            docs[gate.AUTHORITY_SCHEMA.resolve()]["$defs"]["stream_scan_outcome"]["properties"]["committed_events"]["items"]["$ref"] = "#/$defs/committed_event_ref"
 
         self.assert_red(mutate, "per-stream scan")
 
     def test_account_subscribe_reuses_stream_row(self) -> None:
         def mutate(docs: dict) -> None:
-            docs[gate.ACCOUNT_SYNC_SCHEMA.resolve()]["$defs"]["realm_sync_entry"]["properties"]["commits"]["items"]["$ref"] = "./event-envelope.schema.json"
+            docs[gate.ACCOUNT_SYNC_SCHEMA.resolve()]["$defs"]["realm_sync_entry"]["properties"]["committed_events"]["items"]["$ref"] = "./event-envelope.schema.json"
 
         self.assert_red(mutate, "account subscribe")
 

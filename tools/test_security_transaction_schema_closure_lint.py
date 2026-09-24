@@ -85,6 +85,25 @@ class SecurityTransactionSchemaClosureLintTest(unittest.TestCase):
             errors,
         )
 
+    def test_redundant_accepted_output_fails(self) -> None:
+        def mutate(schema) -> None:
+            schema["$defs"]["accepted_step"]["properties"]["output_digest"] = {
+                "$ref": "#/$defs/digest"
+            }
+
+        errors = self._lint(mutate)
+        self.assertTrue(any("only acceptor and accepted_at" in error for error in errors), errors)
+
+    def test_open_backup_material_wrapper_fails(self) -> None:
+        def mutate(schema) -> None:
+            plan = schema["$defs"]["backup_rotation_plan"]
+            plan["properties"]["encrypted_backup_material"] = {
+                "$ref": "./recovery-authority.schema.json#/$defs/canonical_public_material"
+            }
+
+        errors = self._lint(mutate)
+        self.assertTrue(any("only binding, envelopes and active unit" in error for error in errors), errors)
+
     def test_resource_derived_next_step_fails(self) -> None:
         def mutate(schema) -> None:
             schema["properties"]["next_required_step"] = {"type": "string"}

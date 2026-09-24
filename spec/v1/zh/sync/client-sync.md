@@ -126,7 +126,7 @@ terminal removal、no-resurrection、active controller device allow、四类 aud
 
 ## 4. Realm Buckets
 
-每个 Realm bucket 包含 Realm stream 和 caller 可见的 Circle/Sidecar stream 子项。子项是 `realm_sync_entry.streams[]`，每条各自携带 `{head_commit_ref, next_position}` 与自己的窗口标量（`limited` / `window_limit` / `complete` / `preview_only` / `e2ee_epoch`）；不得存在一个覆盖全部 scope 的 `realm_position`，也不得存在 bucket 级的窗口边界布尔——bucket 跨 N 条流时它没有指称对象，且会让一条流的窗口边界成为另一条流活动的函数。投递行在 bucket 级的扁平 `commits[]` 里，每行自带 `stream_ref` 与 `stream_position`；批次不需要跨流序（§6）。
+每个 Realm bucket 包含 Realm stream 和 caller 可见的 Circle/Sidecar stream 子项。子项是 `realm_sync_entry.streams[]`，每条各自携带 `{head_commit_ref, next_position}` 与自己的窗口标量（`limited` / `window_limit` / `complete` / `preview_only` / `e2ee_epoch`）；不得存在一个覆盖全部 scope 的 `realm_position`，也不得存在 bucket 级的窗口边界布尔——bucket 跨 N 条流时它没有指称对象，且会让一条流的窗口边界成为另一条流活动的函数。投递行在 bucket 级的扁平 `committed_events[]` 里，每行自带 `stream_ref` 与 `stream_position`；批次不需要跨流序（§6）。
 
 看不到某 private stream 时，客户端不能从 position gap推断其存在或活动。**这条同时是 account 聚合 cursor 保持不透明的理由**：明文位置向量会把 caller 可见流集合的形状暴露出去，而单条 stream 的扫描因为位置本身不跨越可见性边界，才可以位置化（[`api-conventions.md` §7.2](./api-conventions.md)）。
 
@@ -138,7 +138,7 @@ terminal removal、no-resurrection、active controller device allow、四类 aud
 
 订阅侧可显式选择流集合：subscribe filter 的 `stream_refs` 至多 64 条，必须去重、每条属于 `realm_ids` 中的 exact Realm 且为该 caller 获准可见；分组包含 Realm stream 时它占一个名额，不含 Realm stream 的分组同样合法。缺省（不带 `stream_refs`）保持现有的有界首屏与 `streams_limited`。
 
-带 `stream_refs` 时窗口就是该选择集合：服务端只推进该集合的 tail，**未选中的流记作未投递而不是已投递且为空**；cursor handle 把 `filter_digest` 绑定到该选择集合，换组必须用新 filter 与新 cursor，而各组已到达的位置分别保留可续传（§12.1）。因此客户端 MAY 分批订阅全部流，服务端 MUST NOT 静默丢尾，也 MUST NOT 让固定的前 64 条永久占满名额。选择集合建立之后新增或移除的流，通过重新枚举或可见 discovery delta 发现，该发现 MUST NOT 被 event kind filter 屏蔽。
+带 `stream_refs` 时窗口就是该选择集合：服务端只推进该集合的 tail，**未选中的流记作未投递而不是已投递且为空**；cursor handle 把 `filter_digest` 绑定到该选择集合，换组必须用新 filter 与新 cursor，而各组已到达的位置分别保留可续传（§12.1）。因此客户端 MAY 分批订阅全部流，服务端 MUST NOT 静默丢尾，也 MUST NOT 让固定的前 64 条永久占满名额。选择集合建立之后新增或移除的流，通过重新枚举或可见 discovery delta 发现。Event kind 与 Strand 展示过滤仅在客户端处理，不得截断服务端投递的 Commit 链。
 
 只有已经建立 Commit 链的 stream 才作为 `streams[]` 条目出现：尚未产生 position 0 的容器没有 `head_commit_ref` 可携带，服务端 MUST NOT 构造空 head 的窗口；它在首个 Commit 落地后由枚举面或后续帧发现。
 
@@ -155,7 +155,7 @@ Typed current result至少绑定 selector、value/status、领域二元 revision
 RealmCommit。客户端核对 request/account/Realm/selector 与来源范围后安装结果，不执行 authority-commit projection/typed current result reducer。
 
 该 source coordinate 只绑定写出 current entry 的 source Event，不绑定 entry value 中任意嵌套 Event。历史
-signer-key selector 的 `committed_event_ref` 只能从已验证 `realm_sync_entry.commits[]` 的
+signer-key selector 的 `committed_event_ref` 只能从已验证 `realm_sync_entry.committed_events[]` 的
 `stream_row{commit,event}` 逐字构造；窗口外回填继续使用 §5.2 的 per-stream scan，其
 `stream_scan_outcome.committed_events[]` 复用同一个 `stream_row`。两条面必须核对 Commit signature／generation、
 Realm／stream／position／predecessor 与 `commit.event_ref == event.event_id` 后才可建本地耐久索引；不得新增
@@ -166,11 +166,13 @@ arrival order 或缓存拼坐标。redacted／reference-locked row 不提供可�
 
 窗口上下文分为两类，不可互相冒充：`realm_sync_entry.state_at_window_start` 是 **Realm 级显示预览**（actor 显示行与 Realm metadata），`streams[].window_start_basis` 是**逐流的可验证重建材料**。显示预览 MUST NOT 被当作安全快照，它的存在 MUST NOT 清除任何一条流的 `preview_only`——一个 Realm 显示对象存在，不能把该 bucket 全部 Circle / Sidecar 的窗口都标成可重建。
 
-`window_start_basis` 绑定 exact Realm、exact `stream_ref`、状态所在的 exact 边界（`anchor_kind` + `anchor_position` + `anchor_commit_ref`）、承载该逐流 slice 的 authority-signed `realm-state-snapshot`（`snapshot_ref`）与其 `governance_generation`，以及重建该前缀所依赖的跨流授权依赖的 exact accepted references（`accepted_dependency_refs`，closed 四坐标 `committed_event_ref`）。列出这些引用不引入跨流总序，也不比较跨流位置。空前缀必须显式声明其 genesis 边界（`anchor_kind=stream_genesis`）；窗口起点落在 caller 可读 floor 上时用 `anchor_kind=before_readable_floor`，受限成员**不必**拿到 position 0。
+`window_start_basis` 只用于起点 position > 0 的窗口，绑定 exact Realm、exact `stream_ref`、状态所在的 exact 边界（`anchor_kind` + `anchor_position` + `anchor_commit_ref`）、承载该逐流 slice 的 authority-signed `realm-state-snapshot`（`snapshot_ref`）与其 `governance_generation`，以及重建该前缀所依赖的跨流授权依赖的 exact accepted references（`accepted_dependency_refs`，closed 四坐标 `committed_event_ref`）。列出这些引用不引入跨流总序，也不比较跨流位置。起点为 position 0 时无 basis，客户端从该流的 genesis Commit 开始验证连续链，该窗口不因无 basis 而成为 preview。窗口起点落在 caller 可读 floor 上且 floor > 0 时用 `anchor_kind=before_readable_floor`，受限成员**不必**拿到 position 0。
 
-非 preview 窗口引用的 exact `snapshot_ref` 必须能由 [`ak.self.realm_state_snapshot.read.by_ref.v1`](./service-http-binding.md) 向同一认证账号取回原完整签名对象；当前 `/head` 即使来自同一 Realm 也不得替代旧 ref。own Station 若不能在该窗口可消费期间保留并向该账号披露原对象，必须对该逐流窗口改报 `preview_only=true`，且不得继续给出名义可验的 basis。客户端逐字核对请求 ref、Realm、snapshot 与 basis 的同一历史任期，并用 fresh current nonce-bound authority bundle 的历史链验证该任期当时的签名 Station；再按 [`realm-state-snapshot-schema.md` §4](../conformance/realm-state-snapshot-schema.md) 验证 current rows、heads、floors 和每流 tail。任一失败时该窗口不得进入普通投影或 MLS。`readable_floor` 仅说明可读下界，不能补造 snapshot slice。
+非 preview 窗口引用的 exact `snapshot_ref` 必须能由 [`ak.self.realm_state_snapshot.read.by_ref.v1`](./service-http-binding.md) 向同一认证账号取回原完整签名对象；当前 `/head` 即使来自同一 Realm 也不得替代旧 ref。own Station 必须从签发承载窗口的 Account stream cursor 起，至少保留该原对象至该 cursor 的 `expires_at`；该边界由 cursor 的 `issued_at`／`expires_at` 合同确定，实际 TTL 不得超过 stream cursor 的 7 天上限，不得误用 barrier cursor 的 1 小时上限。cursor wire 对客户端仍是不透明的，客户端无需解析其过期时刻。Station 若不能在该实际有效期内保留并向该账号披露原对象，必须对该逐流窗口改报 `preview_only=true`，且不得继续给出名义可验的 basis。客户端持久处理该帧之前必须取回并验证所需 basis，逐字核对请求 ref、Realm、snapshot 与 basis 的同一历史任期，并用 fresh current nonce-bound authority bundle 的历史链验证该任期当时的签名 Station；再按 [`realm-state-snapshot-schema.md` §4](../conformance/realm-state-snapshot-schema.md) 验证 current rows、heads、floors 和每流 tail。`readable_floor` 仅说明可读下界，不能补造 snapshot slice。
 
-有限历史窗口 MAY 返回该逐流 slice，或明确 `preview_only=true`。两条路径都是**逐流**判定：某条流 `limited=true` 而帧不携带足以验证该流窗口起点的 `window_start_basis` 时，该流的 `streams[].preview_only` MUST 为 true。窗口起点状态来自 authority-signed snapshot slice 与对应 stream 的边界 anchor，不从首个可见 Event 的前驱或 producer 时间推导。只有在完成**该条流**所需上下文验证之后，其窗口起点行才能进入普通展示、reducer 输入或 MLS 安装流程。
+起点 > 0 的窗口 MAY 返回该逐流 slice，或明确 `preview_only=true`。两条路径都是**逐流**判定：无论 `limited` 值为何，帧不携带足以验证该流窗口起点的 `window_start_basis` 时，该流的 `streams[].preview_only` MUST 为 true。窗口起点状态来自 authority-signed snapshot slice 与对应 stream 的边界 anchor，不从首个可见 Event 的前驱或 producer 时间推导。只有在完成**该条流**所需上下文验证之后，其窗口起点行才能进入普通展示、reducer 输入或 MLS 安装流程。对 floor=0 且能取得 position 0 到目标 head 的完整连续链，verified per-stream scan MAY 解除该流 preview；floor > 0 的不可读历史不能靠客户端回溯补齐。扫描不得用于自建 typed current，current 仍须取 Station 的可信结果。历史 limited timeline 缺 exact basis 时继续失败关闭；live bootstrap 依照 0101 从 current `/head` 接连续 tail。
+
+签名 snapshot、row、head、floor 或 tail 任一验证失败时，客户端 MUST 拒绝持久化**整份 Account 帧**，且不得推进 Account 聚合 cursor；`preview_only` 仅是逐流展示状态，不代表整帧验证失败。这里不得推进的 cursor 专指 Account 聚合 cursor。
 
 **客户端不重放治理历史（normative）**：共享授权与对象重建由 own Station 负责，客户端只验证输出绑定、producer 输入与所需 MLS bytes / epoch。上一段所说的「重建」在服务端指获准前缀的重建，在客户端只指它本地已有的展示与密码学状态；它 MUST NOT 被理解为授权客户端重放私有治理闭包，也 MUST NOT 把历史窗口当作当前权限。
 

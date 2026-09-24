@@ -5462,36 +5462,6 @@ paths:
             application/json:
               schema:
                 $ref: ../schemas/key-backup.schema.json
-  /_arkret/self/keys/backup-series/erase:
-    post:
-      operationId: ak.self.keys.backup_series.command.erase
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.keys.backup_series.command.erase.v1
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: ../schemas/keys-operations.schema.json#/$defs/backup_series_erase_request_body
-      responses:
-        '200':
-          description: Durable monotonic per-series erasure progress or immutable completion confirmation.
-          content:
-            application/json:
-              schema:
-                $ref: ../schemas/keys-operations.schema.json#/$defs/backup_series_erase_outcome
   /_arkret/self/keys/backups:
     get:
       operationId: ak.self.keys.backups.read.list

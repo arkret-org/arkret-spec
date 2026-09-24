@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-24.1",
-  "generated_at": "2026-09-24T10:08:00+08:00",
+  "version": "2026-09-24.2",
+  "generated_at": "2026-09-24T18:30:33+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -1830,11 +1830,6 @@
         {
           "direction": "consume",
           "operation_id": "ak.self.security_transaction.command.continue.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "consume",
-          "operation_id": "ak.self.keys.backup_series.command.erase.v1",
           "binding_kind": "http_json"
         }
       ]

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-24.2",
+  "version": "2026-09-24.3",
   "source_of_truth": true,
-  "generated_at": "2026-09-24T11:53:00+08:00",
+  "generated_at": "2026-09-24T18:30:33+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1832,6 +1832,18 @@
         "visibility-policy-fixture.json"
       ],
       "description": "A plaintext write submitted after the accepted ak.mls.genesis is rejected rather than silently accepted or re-encrypted.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/visibility-policy-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.e2ee.ciphertext_write_before_activation_rejected.v1",
+      "status": "active",
+      "domain": "e2ee",
+      "applies_to_fixtures": [
+        "visibility-policy-fixture.json"
+      ],
+      "description": "Encrypted prepare and authority-forward submit into a definitely inactive MLS scope return generic failed_precondition with zero writes; transient current-read failure returns temporarily_unavailable.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/visibility-policy-fixture.json"
       ]

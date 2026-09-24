@@ -92,8 +92,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/calendar-notification-fixture.json",
-      "sha256": "664509f8c74e0f178c834852d26f155775c6a739359d108fb9f81147ee119fe5",
-      "version": "2026-09-19.1"
+      "sha256": "48c7353f79668ff6c9b44fce2052ea00b4eb0260c63fd962ddd6ef0751459544",
+      "version": "2026-09-19.2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/calendar-rsvp-fixture.json",
@@ -392,8 +392,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
-      "sha256": "2cd9da0bb85ff81f3ec58216e52005d11553561e20303f27ccd1de9e5565dab4",
-      "version": "2026-09-20"
+      "sha256": "24ce1e4037b52289e95ea5e5b0c81cd1f8ab0b2cc040273eb7b93393056c7ae2",
+      "version": "2026-09-20.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-time-tolerance-fixture.json",
@@ -452,8 +452,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "ba967d14e942d83e644777dbce849c7a6b6632b511d9a9645a7563900724a70d",
-      "version": "2026-09-20"
+      "sha256": "7fb3cbc48e3aa247e3d65de8725f7ac2a8be6325702f545205135968bcc388a6",
+      "version": "2026-09-20.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",
@@ -472,13 +472,13 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/security-transaction-resilience-fixture.json",
-      "sha256": "ac1d5f8d87f737db0b080f99878bf49847aef97ba96d61056504f9c350328018",
-      "version": "2026-09-24.3"
+      "sha256": "1e1dfb852cde06b8b1c6244aa7b2c920446cde7bec481d63cac35e4fb7116a3a",
+      "version": "2026-09-24.4"
     },
     {
       "path": "spec/v1/artifacts/fixtures/service-protocol-version-bootstrap-fixture.json",
-      "sha256": "7b3177fbaac9e776af21dd416dc7f7ef64083251d198a4f18edcfe2765a54ec3",
-      "version": "2026-09-19"
+      "sha256": "ec057f445758c7aa36dcdd49e7273f3817fd163bff8622cc2f35a130dace40c9",
+      "version": "2026-09-19.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/session-grant-issuance-fixture.json",
@@ -502,8 +502,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/signer-key-historical-coordinate-fixture.json",
-      "sha256": "787bb99a30344d9949e4e6b365680afbbad42d978abb4b41544d9ade3d3b3944",
-      "version": "2026-09-23.1"
+      "sha256": "1476fa79ae36a96d2c454bc115e3a2b2ff8596eaabbc31f7c52f21248d7a9de5",
+      "version": "2026-09-24.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/strand-watch-current-read-fixture.json",
@@ -527,8 +527,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/visibility-policy-fixture.json",
-      "sha256": "7b54932be3a4ffe1d94254ffd64d7b03dfd3387644b1c425b9a64990acf4800b",
-      "version": "2026-09-19"
+      "sha256": "8fdc189cec61982692771d277b8cfb03bcf1c3704878e69e72aba33a2640b31a",
+      "version": "2026-09-19.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/webrtc-media-plaintext-fixture.json",
@@ -537,8 +537,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/websocket-binding-fixture.json",
-      "sha256": "d4337dcab3c2a7e57cbb3712f1ac9fbd33e8cd28f436a16112086659e6ac0294",
-      "version": "2026-09-23.1"
+      "sha256": "7988efee04b2bdd155587f82c153253f49e149988c40717cd5f50593881578dd",
+      "version": "2026-09-23.2"
     }
   ],
   "fixtures_root": "spec/v1/artifacts/fixtures",

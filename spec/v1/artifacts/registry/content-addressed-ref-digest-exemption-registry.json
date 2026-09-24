@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20",
+  "version": "2026-09-24.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T16:42:00+08:00",
+  "generated_at": "2026-09-24T18:30:33+08:00",
   "description": "Closed per-field exemption registry for zh/conformance/encoding.md 4.0.1. A closed object that carries a complete content-addressed typed ref (an id_kind_registry special form marked content_addressed, with a pattern that is exactly that one form) already carries the suite and every digest octet of the referenced bytes, so any sibling digest property in that object is a forbidden wire mirror unless this registry states the distinct preimage it commits to. Rows are keyed by (schema file, json path of the properties object, digest field). content_addressed_refs must equal the current set of in-scope content-addressed ref properties in that object so a later ref addition forces a fresh ruling. Every row is a ruling: there is no undecided kind.",
   "registry_rules": {
     "exemption_id_pattern": "^ak\\.exemption\\.sibling_digest\\.[a-z0-9_]+\\.v[0-9]+$",
@@ -62,51 +62,6 @@
       },
       "preimage": "SHA-256 of the decoded 32-byte Ed25519 runtime public key; signer_resolution_evidence_ref addresses the complete authenticated signer-resolution evidence root",
       "spec_anchor": "spec/v1/zh/identity/key-management.md"
-    },
-    {
-      "exemption_id": "ak.exemption.sibling_digest.backup_series_erase_confirmation_digest.v1",
-      "status": "active",
-      "kind": "distinct_preimage",
-      "subject": {
-        "schema_file": "schemas/keys-operations.schema.json",
-        "json_path": "$.$defs.backup_series_erase_request_body.properties",
-        "digest_field": "erase_confirmation_digest",
-        "content_addressed_refs": [
-          "authority_commit_id"
-        ]
-      },
-      "preimage": "Digest of the caller-signed erase confirmation for this backup series; authority_commit_id addresses the RealmCommit, not the confirmation",
-      "spec_anchor": "spec/v1/zh/identity/security-transactions.md"
-    },
-    {
-      "exemption_id": "ak.exemption.sibling_digest.backup_series_erase_prepared_plan_digest.v1",
-      "status": "active",
-      "kind": "distinct_preimage",
-      "subject": {
-        "schema_file": "schemas/keys-operations.schema.json",
-        "json_path": "$.$defs.backup_series_erase_request_body.properties",
-        "digest_field": "prepared_plan_digest",
-        "content_addressed_refs": [
-          "authority_commit_id"
-        ]
-      },
-      "preimage": "Digest of the prepared transaction plan the coordinator froze before the terminal step; authority_commit_id addresses the RealmCommit, not the plan",
-      "spec_anchor": "spec/v1/zh/identity/security-transactions.md"
-    },
-    {
-      "exemption_id": "ak.exemption.sibling_digest.backup_series_erase_transaction_request_digest.v1",
-      "status": "active",
-      "kind": "distinct_preimage",
-      "subject": {
-        "schema_file": "schemas/keys-operations.schema.json",
-        "json_path": "$.$defs.backup_series_erase_request_body.properties",
-        "digest_field": "transaction_request_digest",
-        "content_addressed_refs": [
-          "authority_commit_id"
-        ]
-      },
-      "preimage": "Digest of the canonical security-transaction request bytes; authority_commit_id addresses the RealmCommit that anchors the erase, which is a different object",
-      "spec_anchor": "spec/v1/zh/identity/security-transactions.md"
     },
     {
       "exemption_id": "ak.exemption.sibling_digest.blob_root_content_digest.v1",

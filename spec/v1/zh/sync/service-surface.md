@@ -79,6 +79,10 @@ closed `current_assertion` 删除 `signature` 后的全部实际存在成员，�
 
 device-pairing 的 client-visible `stage/resolve/status` origin 固定为 Station；Account Authority 分离部署时，
 Station 通过三项已登记 deployment-internal operation 原样代理 canonical DTO，但不拥有 pairing 业务状态。
+`finalize_device_pairing` 与 `claim_device_pairing_code` 仍由 Account Authority 作唯一业务裁决和耐久写入；
+承载这两个 `ak.gate.account.*` 路由的 Station 角色 endpoint 只能在实际挂载并代理到该 Authority 时广告
+`ak.operation_bundle.station.account_gate_pairing.v1`。其它 Station endpoint 不得仅凭共同 Station 身份广告此 bundle。
+Account Authority 是 Station 内部职责，不取得独立 `service_kind` 或 Service DID。
 Account Authority 是 pending、abuse、admission fence 与 terminal outcome 的唯一 durable owner；Station 不得维护
 第二份可写 ledger、从 proxy response 推导另一份状态，或让客户端改打 internal origin。
 
@@ -100,7 +104,8 @@ Account Authority 是 pending、abuse、admission fence 与 terminal outcome 的
 其中三个字段承载**不同强度**的断言，实现与下游 MUST 明确区分，MUST NOT 互相替代：
 
 - `supported_operation_bundles` 只表示 **wire 可达性**：展开后的 `(operation_id, binding_kind)` union 是唯一
-  可达性真源。它不构成任何 profile claim。
+  可达性真源。它不构成任何 profile claim。`surface_class` 的 core/extension/deployment_local 等 tier
+  只用于文档与 lint，不隐含任何 operation 可达；endpoint 必须实际实现其广告 bundle 的全部成员。
 - `supported_features` 表示服务**有实现代码**，但不一定通过 conformance verification。构建 conformance
   matrix 的工具 MUST 把它视为严格弱于 `supported_profiles`。
 - `supported_profiles` 是**当前构建与本角色 endpoint 唯一的完整 profile 自声明集合**。每一项 MUST 满足该
@@ -205,7 +210,7 @@ viewer、profile、account subscribe 与 cursor revoke 只作用于已认证账�
 
 #### Snapshot exact read
 
-`ak.self.realm_state_snapshot.read.by_ref.v1` 按 exact `realm_id` 与 `snapshot_id` 取回先前已向同一认证账号披露、且仍被非 preview `window_start_basis` 引用的**原完整签名对象**。响应复用上述 closed schema，两个 ID 必须与请求逐字相等；读取时重新检查该账号对 Realm 及 snapshot 中每项 row、head、floor 的披露权限。snapshot ID 不是授权凭据，不得向另一账号转发、按当前状态重造同名对象、重签或以当前 `/head` 替换。Station 发出可验证窗口时必须保证引用在该窗口可消费期间可取回；不能保证时该流只许 `preview_only=true`。无权、失效或缺失时沿既有授权／unavailable 错误面失败关闭，客户端不得由本地缓存或 shape-only cursor 猜测前态。
+`ak.self.realm_state_snapshot.read.by_ref.v1` 按 exact `realm_id` 与 `snapshot_id` 取回先前已向同一认证账号披露的**原完整签名对象**。响应复用上述 closed schema，两个 ID 必须与请求逐字相等；读取时重新检查该账号当前对 Realm 及 snapshot 中每项 row、head、floor 的披露权限。snapshot ID 不是授权凭据，不得向另一账号转发、按当前状态重造同名对象、重签或以当前 `/head` 替换。Station 发出非 preview 窗口时，必须从承载窗口的 Account stream cursor 签发起至少保留引用至该 cursor 的 `expires_at`，并保证同一账号在仍有披露权限时可取回；现有 cursor 合同的 stream TTL 上限为 7 天，不能以 barrier cursor 的 1 小时上限代替。客户端将 cursor 视为 opaque，无需解析过期时刻。不能保证保留与披露时该流只许 `preview_only=true`。cursor 有效期后允许现有 `realm_state_snapshot_unavailable`；无权、失效或缺失时沿既有授权／unavailable 错误面失败关闭，客户端不得由本地缓存或 shape-only cursor 猜测前态。
 
 ### 5.3 Event / RealmCommit 状态与确定性 current
 

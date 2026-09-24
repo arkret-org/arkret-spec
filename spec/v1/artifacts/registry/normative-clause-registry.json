@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-24.3",
+  "version": "2026-09-24.4",
   "source_of_truth": true,
-  "generated_at": "2026-09-24T07:51:31+08:00",
+  "generated_at": "2026-09-24T18:30:33+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -186,11 +186,12 @@
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#23-应用载荷加密",
       "section_digest": "sha256:142c5425068c863b0def0c9207ff7c67a5414e3674b5f7272373f443ff3a0f42",
-      "requirement": "An accepted ak.mls.genesis activates its effective scope irreversibly: no later Event, downgrade or group replacement returns that scope to plaintext, and a plaintext write after activation is rejected rather than silently accepted or re-encrypted. Every encrypted envelope is the closed {version, content_type, encryption_context, ciphertext} with encryption_context limited to epoch, group_state_ref and registered routing context; the receiver reconstructs the exact closed pre-encryption header from the outer signed Event, the effective scope, the Event kind, its own verified current public group result and the sender leaf, and MUST NOT trust any copy carried alongside the envelope. Any AAD, ciphertext-digest or encryption_context mismatch fails closed with no partial write, no plaintext downgrade and no retry under different secrets.",
+      "requirement": "An accepted ak.mls.genesis activates its effective scope irreversibly: no later Event, downgrade or group replacement returns that scope to plaintext, and a plaintext write after activation is rejected rather than silently accepted or re-encrypted. Encrypted prepare and authority-forward submit into a definitely inactive scope return generic failed_precondition without a durable write; a temporarily unreadable current MLS result returns temporarily_unavailable. Every encrypted envelope is the closed {version, content_type, encryption_context, ciphertext} with encryption_context limited to epoch, group_state_ref and registered routing context; the receiver reconstructs the exact closed pre-encryption header from the outer signed Event, the effective scope, the Event kind, its own verified current public group result and the sender leaf, and MUST NOT trust any copy carried alongside the envelope. Any AAD, ciphertext-digest or encryption_context mismatch fails closed with no partial write, no plaintext downgrade and no retry under different secrets.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.e2ee.mls_activation_irreversible.v1",
         "ak.vector.e2ee.plaintext_write_after_activation_rejected.v1",
+        "ak.vector.e2ee.ciphertext_write_before_activation_rejected.v1",
         "ak.vector.encoding.encrypted_envelope_digest.v1"
       ]
     },
@@ -406,7 +407,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/sync/service-surface.md#30-describe-response-claim-levels",
-      "section_digest": "sha256:75e7f3bc92c4823544e986c9b3fb886ec32fb2abd316d4f4374f2cdac9bb7a23",
+      "section_digest": "sha256:85c2da139264a35873fd016c4279154363842c0fbb3828baa9f21ddec4686d1f",
       "requirement": "supported_profiles is the sole complete-profile self-declaration. verified_profiles ids are unique and contained in supported_profiles, with independently verified evidence. Both calendar profiles require nonempty executable registered TZDB releases.",
       "testability_grade": "api_shape",
       "test_plan": "Run tools.test_residual_simplification and full schema fixtures for both calendar profiles, supported/verified advertisements, missing/empty/unknown TZDB, forbidden claimed_profiles and verified subset violations. This is schema and reference semantic evidence, not a live profile activation or calendar execution test."
@@ -416,7 +417,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/sync/server-trusted-results.md#56-按次-current-与精确历史签名公钥",
-      "section_digest": "sha256:808971462e739de4f617d1c51a77b2bb5bc04eaf7f94d6af8debe78df289a2f7",
+      "section_digest": "sha256:4612b1bb7d83137df9799cef6e94b19d83341aef6b24f1e68e8ce9da401bb011",
       "requirement": "Self signer keys omit actor/method mirrors, retain complete selector association and invocation context, require historical committed_event_ref plus an independent committed authorization_ref/current revision/governance generation, and leave Signal standalone identity and peer portable evidence intact.",
       "testability_grade": "api_shape",
       "test_plan": "Run tools.test_self_signer_result_schema and tools.test_residual_simplification for closed query keys, mandatory authorization, historical separation, reordered/unavailable results, duplicate/missing selectors, different methods/Events and invocation mismatch. Runtime authorization, producer signatures and Signal gates remain required and tracked by the existing owner."
@@ -569,7 +570,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/sync/server-trusted-results.md#56-按次-current-与精确历史签名公钥",
-      "section_digest": "sha256:808971462e739de4f617d1c51a77b2bb5bc04eaf7f94d6af8debe78df289a2f7",
+      "section_digest": "sha256:4612b1bb7d83137df9799cef6e94b19d83341aef6b24f1e68e8ce9da401bb011",
       "requirement": "An ordinary client obtains exact historical signing keys from its own Station using a committed_event_ref copied only from a verified stream_row. Every result independently keeps the accepted authorization coordinate, revision and governance generation so historical MLS binding remains verifiable; target and authorization refs may differ, and a stable (actor, method, key) triple never substitutes for either exact Event instance.",
       "testability_grade": "audit",
       "test_plan": "Run ak.vector.signer_key.historical_commit_coordinate.v1 and tools.test_signer_key_historical_coordinate_gate: both historical selectors require the four-coordinate ref, target and authorization remain independent, redacted/current-projection/cursor/time sources stay unresolved, and missing coordinates never downgrade to current query. The fixture is a machine semantic suite; production signer resolution and commit verification remain implementation evidence."
@@ -579,7 +580,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/sync/server-trusted-results.md#56-按次-current-与精确历史签名公钥",
-      "section_digest": "sha256:808971462e739de4f617d1c51a77b2bb5bc04eaf7f94d6af8debe78df289a2f7",
+      "section_digest": "sha256:4612b1bb7d83137df9799cef6e94b19d83341aef6b24f1e68e8ce9da401bb011",
       "requirement": "A current self signing-key result serves only the operation that froze it. A same-batch or byte-identical in-flight query may be merged, but a completed result MUST NOT be reused for a future Signal, a future operation or a reconnection. Result association uses complete selector equality rather than array position, and a duplicate, missing or extra selector rejects the whole result.",
       "testability_grade": "audit",
       "test_plan": "Audited against signer-key-operations.schema.json and the self query contract: the review pass asserts results carry no reusable lifetime, that the request context is echoed verbatim and bound to the authenticated SessionGrant account, and that association is specified by complete selector equality with no index-based path. No vector exists because the obligation forbids a later reuse rather than fixing a byte artifact."
@@ -589,8 +590,8 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/sync/service-http-binding.md#28-普通消息的完整-authoring-准备",
-      "section_digest": "sha256:26747904bbed269a5c4be85a31bf1017aa1d0436a3cc9ac363ed9d8fefb88a28",
-      "requirement": "Message prepare distinguishes local plaintext intent from the encrypted wire request: the intent content oneOf is closed, a plaintext prepare is rejected in an MLS-activated scope, and the client freezes its AAD inputs and encrypts locally before calling prepare rather than letting the Station encrypt. The client compares the returned draft ciphertext, encrypted metadata and bindings byte-for-byte against what it froze and fails closed on any difference. An exact retry replays byte-identical bytes, so it never re-encrypts and never consumes another sender ratchet generation. When the current checkpoint awaits a winning Commit, failed_precondition with epoch_update_required requires the client to pause; when a ready current group differs from the frozen encryption context, top-level epoch_mismatch requires fresh local MLS state and a newly encrypted request. The two-request path assumes send readiness and local MLS state: prepare grants no permission, reserves no sequence, advances no stream position and does not establish MLS state.",
+      "section_digest": "sha256:5774f815ba0eaf234bb2b807073d32068103dcc25545e18d680166b9e1df1460",
+      "requirement": "Message prepare distinguishes local plaintext intent from the encrypted wire request: the intent content oneOf is closed, a plaintext prepare is rejected in an MLS-activated scope, and the client freezes its AAD inputs and encrypts locally before calling prepare rather than letting the Station encrypt. The client compares the returned draft ciphertext, encrypted metadata and bindings byte-for-byte against what it froze and fails closed on any difference. An exact retry replays byte-identical bytes, so it never re-encrypts and never consumes another sender ratchet generation. Encrypted prepare and authority-forward submit into a definitely inactive scope return generic failed_precondition without a write; a temporarily unreadable current MLS result returns temporarily_unavailable with exact retry only before a Commit. When the current checkpoint awaits a winning Commit, failed_precondition with epoch_update_required requires the client to pause; when a ready current group differs from the frozen encryption context, top-level epoch_mismatch requires fresh local MLS state and a newly encrypted request. The two-request path assumes send readiness and local MLS state: prepare grants no permission, reserves no sequence, advances no stream position and does not establish MLS state.",
       "testability_grade": "audit",
       "test_plan": "Audited against message-authoring.schema.json and operations-error-mapping.json: the review pass asserts message_authoring_content is a closed oneOf of plaintext and mls, that message_prepare_outcome returns only a draft with no acceptance, reservation or position, that epoch_mismatch is registered for prepare and current send admission, and that no prepare request member carries a key or would let the Station encrypt. A conformance run replays a byte-identical prepare and asserts a single ciphertext and no second sender ratchet generation; separate stale-group and pending-Commit cases assert epoch_mismatch versus epoch_update_required and the respective re-encrypt versus pause action. No vector exists because the obligation spans a client-local encryption step the vector harness does not author."
     },

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-24.6",
+  "version": "2026-09-24.7",
   "source_of_truth": true,
-  "generated_at": "2026-09-24T11:54:30+08:00",
+  "generated_at": "2026-09-24T18:30:33+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -9535,7 +9535,12 @@
         "file": "schemas/keys-operations.schema.json",
         "fragment": "#/$defs/backup_series_erase_confirmation",
         "status": "active",
-        "description": "Immutable transaction-bound completion artifact proving all planned old secret_storage backup objects were erased after authoritative pointer switch."
+        "description": "Immutable transaction-bound completion artifact proving all planned old secret_storage backup objects were erased after authoritative pointer switch.",
+        "consumer_binding": {
+          "kind": "standalone_schema_alias",
+          "selector": "schemas/keys-operations.schema.json#/$defs/backup_series_erase_confirmation",
+          "normative_ref": "zh/identity/security-transactions.md#3-securityrotationtransaction"
+        }
       },
       {
         "schema_id": "ak.schema.blob.v1",
@@ -10859,8 +10864,8 @@
         "description": "Server authentication-success frame carrying effective connection and channel limits."
       }
     ],
-    "version": "2026-09-24.2",
-    "generated_at": "2026-09-24T11:53:30+08:00",
+    "version": "2026-09-24.3",
+    "generated_at": "2026-09-24T18:31:43+08:00",
     "metadata_authority": "contract_registry_section"
   },
   "id_kind_registry": {
@@ -12338,7 +12343,7 @@
       "New operation_id values MUST be added here before any OpenAPI, HTTP binding table, SDK generator, or alternative transport binding references them.",
       "Generated views MAY change shape, grouping, or field order, but MUST NOT introduce, rename, or remove operation_id values that are absent from this catalog.",
       "Supporting Arkret core does not imply support for every registered operation. Implementations MUST advertise registered supported_operation_bundles and supported_profiles explicitly.",
-      "Each surface_groups entry carries a tier (see surface_classes); only the core tier is implied by claiming v1 protocol support. Extension, interop_bridge, and deployment_local surfaces require explicit advertisement.",
+      "surface_classes and surface_groups are documentation and lint groupings only; no surface tier implies wire reachability. A registered active operation MUST belong to at least one operation bundle advertised by its actual executing endpoint, and an endpoint MUST implement every member of each bundle it advertises.",
       "surface_classes defines the closed tier vocabulary and surface_groups is the sole canonical operation grouping view; generators MUST NOT emit a third top-level surfaces collection.",
       "Profile matrices in artifacts/profiles/conformance-profiles.json define role-level MUST/SHOULD requirements; the surface groups below define machine-readable capability families for discovery, docs, and lint.",
       "Each operation MUST declare success_shape_kind so SDKs can determine success handling without endpoint-name hard-coding.",
@@ -12363,7 +12368,7 @@
       "Request wire/canonical byte budget violations MUST return payload_too_large (HTTP 413); count-only schema violations with valid request bytes MUST return schema_violation (HTTP 422), except explicit operation count semantics. An otherwise valid request whose complete response or evaluation exceeds its semantic budget returns limit_exceeded (HTTP 413) or its defined typed unavailable result. Request byte errors take precedence over coincident schema errors. Error classification MUST NOT depend on diagnostic text substring matching."
     ],
     "surface_classes": {
-      "core": "Base interoperable surfaces implied by claiming Arkret v1 protocol support (service discovery, identity registry, events/account aggregate).",
+      "core": "Base interoperable surfaces used for documentation and lint; v1 support does not imply wire reachability without explicit supported_operation_bundles advertisement.",
       "extension": "Optional interoperable surfaces that are part of the Arkret specification but require explicit discovery/profile advertisement.",
       "interop_bridge": "Adapter surfaces that bridge Arkret to external protocols (MIMI Internet-Drafts, third-party Applet hosts). Implementations advertise these only when the external protocol is supported; bridge operations are not part of any core or extension profile and frequently mirror an in-spec operation via bridges_to.",
       "deployment_local": "Deployment-specific, operator, or product-local surfaces that MUST NOT be assumed from core protocol support alone."
@@ -12606,8 +12611,7 @@
           "ak.self.keys.backups.command.unlock.v1",
           "ak.self.keys.backups.command.issue_delete_challenge.v1",
           "ak.self.keys.backups.command.issue_unlock_challenge.v1",
-          "ak.self.keys.backups.resource.delete.v1",
-          "ak.self.keys.backup_series.command.erase.v1"
+          "ak.self.keys.backups.resource.delete.v1"
         ],
         "surface_class": "extension"
       },
@@ -15548,24 +15552,6 @@
         }
       },
       {
-        "operation_id": "ak.self.keys.backup_series.command.erase.v1",
-        "http": "POST /_arkret/self/keys/backup-series/erase",
-        "grpc": "SelfKeys/BackupSeriesErase",
-        "mq": "self.keys.backup_series.command.erase",
-        "notes": "Transaction-bound monotonic erasure of the one exact old secret_storage series reserved by a SecurityRotationTransaction. There is no AuthorizationLease. Fresh high-risk authentication is accepted once by the Account Authority at transaction create and bound to authorizing_device_id; immediately before erasure the worker rechecks the transaction is live, the account is active, that device is not revoked, the authority commit is current, and the new series is authoritative. Partial outcomes persist per object; exact retry never resurrects or rewrites an erased item. A complete outcome carries the sole canonical erase confirmation.",
-        "body_class": "non_streaming_json",
-        "success_shape_kind": "schema_resource",
-        "idempotency_mechanism": "canonical_hash",
-        "canonical_hash_input": "/transaction_id",
-        "retry_safe": true,
-        "request_schema_ref": "schemas/keys-operations.schema.json#/$defs/backup_series_erase_request_body",
-        "response_schema_ref": "schemas/keys-operations.schema.json#/$defs/backup_series_erase_outcome",
-        "durable_effect": {
-          "kind": "none",
-          "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
-        }
-      },
-      {
         "operation_id": "ak.self.keys.backups.command.issue_delete_challenge.v1",
         "http": "POST /_arkret/self/keys/backups/{backup_id}/delete-challenge",
         "grpc": "SelfKeys/BackupsIssueDeleteChallenge",
@@ -16402,8 +16388,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-24.1",
-    "generated_at": "2026-09-24T10:08:00+08:00",
+    "version": "2026-09-24.2",
+    "generated_at": "2026-09-24T18:31:29+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",
@@ -17027,16 +17013,12 @@
         ]
       },
       {
-        "operation_bundle_id": "ak.operation_bundle.station.http_core.v1",
+        "operation_bundle_id": "ak.operation_bundle.station.http_core_current.v1",
         "service_kind": "station",
         "deployment_evidence": [
           "ak.deployment_prototype.soland_station.v1"
         ],
         "members": [
-          {
-            "operation_id": "ak.gate.account.command.finalize_device_pairing.v1",
-            "binding_kind": "http_json"
-          },
           {
             "operation_id": "ak.gate.account.command.logout.v1",
             "binding_kind": "http_json"
@@ -17050,15 +17032,15 @@
             "binding_kind": "http_json"
           },
           {
-            "operation_id": "ak.gate.account.read.claim_device_pairing_code.v1",
-            "binding_kind": "http_json"
-          },
-          {
             "operation_id": "ak.open.identity.read.resolution.v1",
             "binding_kind": "http_json"
           },
           {
             "operation_id": "ak.open.invite_locator.read.resolve.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.open.realm_authority.read.bundle.v1",
             "binding_kind": "http_json"
           },
           {
@@ -17314,6 +17296,10 @@
             "binding_kind": "http_json"
           },
           {
+            "operation_id": "ak.self.events.read.delivery_status.v1",
+            "binding_kind": "http_json"
+          },
+          {
             "operation_id": "ak.self.identity.read.resolution_audit.v1",
             "binding_kind": "http_json"
           },
@@ -17335,10 +17321,6 @@
           },
           {
             "operation_id": "ak.self.invite_receive_policy.resource.replace.v1",
-            "binding_kind": "http_json"
-          },
-          {
-            "operation_id": "ak.self.keys.backup_series.command.erase.v1",
             "binding_kind": "http_json"
           },
           {
@@ -17634,6 +17616,49 @@
         "members": [
           {
             "operation_id": "ak.edge.push.command.notify.v1",
+            "binding_kind": "http_json"
+          }
+        ]
+      },
+      {
+        "operation_bundle_id": "ak.operation_bundle.station.account_gate_pairing.v1",
+        "service_kind": "station",
+        "deployment_evidence": [
+          "normative:zh/sync/service-surface.md#3-通用服务描述接口"
+        ],
+        "members": [
+          {
+            "operation_id": "ak.gate.account.command.finalize_device_pairing.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.gate.account.read.claim_device_pairing_code.v1",
+            "binding_kind": "http_json"
+          }
+        ]
+      },
+      {
+        "operation_bundle_id": "ak.operation_bundle.station.invite_delivery.v1",
+        "service_kind": "station",
+        "deployment_evidence": [
+          "normative:zh/sync/service-surface.md#3-通用服务描述接口"
+        ],
+        "members": [
+          {
+            "operation_id": "ak.self.invites.command.dispatch.v1",
+            "binding_kind": "http_json"
+          }
+        ]
+      },
+      {
+        "operation_bundle_id": "ak.operation_bundle.station.realm_authority_handoff.v1",
+        "service_kind": "station",
+        "deployment_evidence": [
+          "normative:zh/sync/service-surface.md#3-通用服务描述接口"
+        ],
+        "members": [
+          {
+            "operation_id": "ak.peer.realm_authority.command.handoff.v1",
             "binding_kind": "http_json"
           }
         ]
@@ -18175,16 +18200,6 @@
         ],
         "profile": null,
         "event_mapping_kind": "same_name"
-      },
-      {
-        "action": "ak.self.keys.backup_series.command.erase.v1",
-        "category": "service",
-        "risk_tier": "high",
-        "required_constraints": [],
-        "target_event_kinds": [],
-        "profile": null,
-        "event_mapping_kind": "non_event_surface",
-        "notes": "Authorizes only the transaction-bound old-series targets in a fixed SecurityRotationTransaction plan after both replacement active-series pointers are accepted. It never authorizes deleting an active or unplanned backup series."
       },
       {
         "action": "ak.member.leave.own",
@@ -19689,8 +19704,8 @@
       "scope_suffix_variant": "Action adds actor/scope/role qualifiers while reducer admission targets a shared event kind.",
       "operation_verb": "Action token names an operation/command verb that does not match its target event kind name(s); reducer admission resolves the resulting event kind(s) via target_event_kinds. Literal action matching per the actions[] rule applies; carries no aggregate-admin family semantics."
     },
-    "version": "2026-09-24.1",
-    "generated_at": "2026-09-24T10:08:00+08:00",
+    "version": "2026-09-24.2",
+    "generated_at": "2026-09-24T18:31:29+08:00",
     "metadata_authority": "contract_registry_section"
   },
   "calendar_timezone_registry": {

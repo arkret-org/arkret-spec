@@ -228,7 +228,11 @@ winning Commit 覆盖而返回 `epoch_update_required`。
 
 encrypted application Event 携带 `epoch`、`group_state_ref` 与 `key_access_revision`。Station 仅在三者匹配
 current `mls_group` result 且 producer current-authorized 时提交。治理 Station MUST 先判定 current scope 的
-membership／policy／key-access checkpoint 是否已被 winning Commit 覆盖；尚未覆盖时返回
+MLS 状态：确定没有 accepted `ak.mls.genesis`／current group 时，密文 prepare 与 self／peer authority-forward
+submit 均 MUST 返回通用 `failed_precondition`（无专用 reason），且不得写入；客户端必须先激活该 scope 或改发明文，
+不得 exact retry 期待该密文成功。治理 Station 暂时无法读取自身 current MLS 结果时，两入口均 MUST 返回
+`temporarily_unavailable`；仅在未产生 Commit 时允许 byte-identical exact retry。已有 current group 时，
+Station MUST 判定 membership／policy／key-access checkpoint 是否已被 winning Commit 覆盖；尚未覆盖时返回
 `failed_precondition` + `epoch_update_required`，客户端 MUST 暂停新的 encrypted application Event，等待或由获权客户端
 促成 repair Commit，不得对尚不存在的目标 epoch 盲目重新加密。若 current scope 已被 winning Commit 覆盖，
 但本次发送冻结的 `epoch`、`group_state_ref` 或 `key_access_revision` 与 current `mls_group` result 不符，

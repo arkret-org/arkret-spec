@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.circle_conformance.v1",
-  "version": "2026-09-19",
+  "version": "2026-09-19.1",
   "suite": "visibility_policy",
   "runner": {
     "kind": "named_suite",
@@ -9,6 +9,7 @@
   "covers_vectors": [
     "ak.vector.e2ee.mls_activation_irreversible.v1",
     "ak.vector.e2ee.plaintext_write_after_activation_rejected.v1",
+    "ak.vector.e2ee.ciphertext_write_before_activation_rejected.v1",
     "ak.vector.circle.activation_independent_of_realm.v1",
     "ak.vector.circle.directory_visibility_members_indistinguishable.v1",
     "ak.vector.circle.directory_visibility_realm_members_indistinguishable.v1",
@@ -52,6 +53,19 @@
           "requirement": "An activated scope accepts only RFC 9420 application ciphertext, so there is no second admitted content shape to downgrade into.",
           "evidence": [
             "/cases/1"
+          ]
+        }
+      ]
+    },
+    {
+      "vector_id": "ak.vector.e2ee.ciphertext_write_before_activation_rejected.v1",
+      "clause_id": "AK-NC-011",
+      "decision_points": [
+        {
+          "id": "inactive_scope_ciphertext_rejected_without_write",
+          "requirement": "When the governing Station definitely has no accepted MLS Genesis or current group, encrypted prepare and self/peer authority-forward submit return generic failed_precondition without a special reason or durable write; a temporarily unreadable current MLS result instead returns temporarily_unavailable and permits exact retry only before a Commit.",
+          "evidence": [
+            "/cases/2"
           ]
         }
       ]
@@ -110,6 +124,34 @@
         "plaintext content writes are accepted before the scope is activated",
         "a plaintext content write into an activated scope fails with mls_activation_required",
         "the activated scope accepts only RFC 9420 application ciphertext"
+      ]
+    },
+    {
+      "name": "ciphertext_write_before_activation_rejected",
+      "vector_id": "ak.vector.e2ee.ciphertext_write_before_activation_rejected.v1",
+      "kind": "mls_activation",
+      "scope": "realm_default",
+      "expected": {
+        "outcome": "failed_precondition",
+        "durable_writes": 0
+      },
+      "controls": [
+        {
+          "state": "no_accepted_genesis",
+          "write": "plaintext_content",
+          "outcome": "accepted"
+        },
+        {
+          "state": "current_mls_result_temporarily_unreadable",
+          "write": "encrypted_content",
+          "outcome": "temporarily_unavailable",
+          "exact_retry_before_commit": true
+        }
+      ],
+      "assertions": [
+        "encrypted prepare and self or peer authority-forward submit into a definitely inactive scope return generic failed_precondition without a special reason",
+        "the refusal has no durable Event or RealmCommit write",
+        "a temporarily unreadable current MLS result uses temporarily_unavailable and permits only byte-identical exact retry before a Commit"
       ]
     },
     {

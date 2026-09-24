@@ -124,7 +124,6 @@ from .fixtures import (
     check_one_of_branch_discriminability,
     check_operation_selector_fixture,
     check_producer_allocated_identity_vectors,
-    check_schema_fixture_canonical_public_material,
     check_stated_event_preimage_is_a_valid_event,
     check_stated_preimage_matches_stated_digest,
     check_string_profile_format_vectors,
@@ -776,10 +775,6 @@ def main(argv: list[str] | None = None) -> int:
                 lambda: check_agent_requested_scope_commitment_digest(lint),
             ),
             ("fixture_runner", lambda: check_fixture_runner_contract(lint)),
-            (
-                "canonical_public_material",
-                lambda: check_schema_fixture_canonical_public_material(lint),
-            ),
             ("encrypted_digest", lambda: check_encrypted_envelope_digest_vector(lint)),
             ("one_of_branches", lambda: check_one_of_branch_discriminability(lint)),
         ],

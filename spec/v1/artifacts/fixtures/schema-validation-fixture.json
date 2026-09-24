@@ -1,7 +1,7 @@
 {
   "suite": "schema_validation",
   "profile": "ak.vector_group.privacy_security.v1",
-  "version": "2026-09-20",
+  "version": "2026-09-20.1",
   "description": "Minimal positive and negative schema-validation cases for core wire objects. tools/artifact_lint validates schema_validation_cases[] against schema_ref.",
   "runner": {
     "kind": "json_schema_validation_cases",
@@ -60,7 +60,7 @@
         "development_mode": false,
         "supported_operation_bundles": [
           "ak.operation_bundle.station.describe.v1",
-          "ak.operation_bundle.station.http_core.v1"
+          "ak.operation_bundle.station.http_core_current.v1"
         ],
         "transport_bindings": [
           {
@@ -85,19 +85,6 @@
         }
       ],
       "expect_valid": true
-    },
-    {
-      "name": "recovery_proof_canonical_public_material_valid",
-      "schema_ref": "schemas/recovery-authority.schema.json#/$defs/canonical_public_material",
-      "expect_valid": true,
-      "instance": {
-        "canonical_encoding": "canonical_json",
-        "value": {
-          "versionId": "2-fixture"
-        },
-        "canonical_bytes_base64url": "eyJ2ZXJzaW9uSWQiOiIyLWZpeHR1cmUifQ",
-        "digest": "sha256:355328413688da845d249c9fd70b13d0a79d5b4e9e6ee874dcddf2bae9d1a4cf"
-      }
     }
   ]
 }

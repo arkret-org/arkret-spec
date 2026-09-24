@@ -43,13 +43,13 @@
   "summary": {
     "total_schemas": 226,
     "by_consumer": {
-      "declared_wire": 58,
+      "declared_wire": 59,
       "event_kind": 8,
       "inbound": 50,
       "outbound": 61,
       "prose": 103,
       "prose_only": 2,
-      "schema_reference": 163,
+      "schema_reference": 162,
       "startup_compile": 226,
       "vectors": 111
     },
@@ -1128,8 +1128,8 @@
       "schema_id": "ak.schema.backup_series_erase_confirmation.v1",
       "file": "schemas/keys-operations.schema.json",
       "consumers": {
+        "declared_wire": "standalone_schema_alias",
         "prose": "normative_text",
-        "schema_reference": "exact",
         "startup_compile": "exact",
         "vectors": "required_schema"
       },
@@ -1137,6 +1137,11 @@
       "vector_coverage": {
         "disposition": "direct",
         "evidence": "required_schema"
+      },
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "schemas/keys-operations.schema.json#/$defs/backup_series_erase_confirmation",
+        "normative_ref": "zh/identity/security-transactions.md#3-securityrotationtransaction"
       },
       "fragment": "#/$defs/backup_series_erase_confirmation"
     },
@@ -2368,6 +2373,7 @@
         "inbound": "exact",
         "outbound": "exact",
         "prose": "normative_text",
+        "schema_reference": "exact",
         "startup_compile": "exact",
         "vectors": "required_schema"
       },
@@ -2484,7 +2490,6 @@
         "disposition": "operation_e2e_owned",
         "owners": [
           "ak.peer.keys.read.lookup.v1",
-          "ak.self.keys.backup_series.command.erase.v1",
           "ak.self.keys.backups.command.issue_delete_challenge.v1",
           "ak.self.keys.backups.command.issue_unlock_challenge.v1",
           "ak.self.keys.backups.command.unlock.v1",
@@ -4611,7 +4616,6 @@
       "consumers": {
         "declared_wire": "standalone_schema_alias",
         "prose": "normative_text",
-        "schema_reference": "fragment",
         "startup_compile": "exact",
         "vectors": "required_schema"
       },

@@ -1,6 +1,6 @@
 {
   "profile": "ak.vector_group.protocol_edge_cases.v1",
-  "version": "2026-09-20",
+  "version": "2026-09-20.1",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.protocol.edge_cases.v1"
@@ -944,24 +944,37 @@
       "basis": "realm_sync_entry.streams[].window_start_basis, evaluated once per stream_ref and never inherited from a sibling stream of the same Realm bucket",
       "variants": [
         "realm_stream_after_committed_prefix",
-        "circle_stream_stream_genesis",
+        "circle_stream_position_zero_no_basis",
         "sidecar_stream_before_readable_floor",
         "circle_stream_missing_security_context",
-        "realm_display_preview_only_present"
+        "realm_display_preview_only_present",
+        "start_after_zero_limited_false_missing_basis",
+        "signed_snapshot_row_head_floor_or_tail_invalid",
+        "verified_scan_full_genesis_to_head",
+        "scan_starts_above_zero_floor",
+        "basis_unavailable_after_cursor_expiry"
       ],
       "expected": {
         "realm_stream_after_committed_prefix": "verified_window_start",
-        "circle_stream_stream_genesis": "verified_window_start",
+        "circle_stream_position_zero_no_basis": "verified_window_start_without_basis",
         "sidecar_stream_before_readable_floor": "verified_window_start",
         "circle_stream_missing_security_context": "preview_only_for_that_stream_only",
-        "realm_display_preview_only_present": "every_limited_stream_stays_preview_only"
+        "realm_display_preview_only_present": "every_nonzero_start_without_exact_basis_stays_preview_only",
+        "start_after_zero_limited_false_missing_basis": "preview_only_for_that_stream_only",
+        "signed_snapshot_row_head_floor_or_tail_invalid": "reject_entire_account_frame_without_aggregate_cursor_advance",
+        "verified_scan_full_genesis_to_head": "may_clear_preview_without_typed_current_reconstruction",
+        "scan_starts_above_zero_floor": "cannot_clear_preview",
+        "basis_unavailable_after_cursor_expiry": "realm_state_snapshot_unavailable"
       },
       "assertions": [
-        "one frame carries a mixed Realm, Circle and Sidecar window start and each stream states its own coverage",
-        "state_at_window_start is display context and MUST NOT clear any stream's preview_only",
-        "stream_genesis MUST NOT carry anchor_position or anchor_commit_ref; the other two anchor kinds MUST carry both",
-        "before_readable_floor accepts a non-zero oldest_position as the start of the permitted prefix and does not require position 0",
-        "a stream whose basis is insufficient MUST NOT enter reducer input or the MLS install path while its siblings continue"
+        "one frame carries mixed Realm, Circle and Sidecar window starts and each stream states its own coverage",
+        "state_at_window_start is display context and MUST NOT clear any stream preview_only",
+        "a position-0 start has no basis and verifies from genesis; both remaining anchor kinds carry anchor_position and anchor_commit_ref",
+        "a nonzero start missing exact basis MUST be preview_only regardless of limited",
+        "before_readable_floor accepts a nonzero oldest_position without requiring position 0",
+        "a snapshot, row, head, floor or tail verification failure rejects the whole Account frame and leaves its aggregate cursor unchanged; preview_only remains a per-stream display state",
+        "a scan clears preview only with the complete continuous position-0-to-target-head chain and cannot build typed current",
+        "the exact signed snapshot remains available to the same authorized account for the actual Account stream cursor lifetime from issued_at through expires_at, at most 7 days; expiry does not require a new wire field"
       ]
     },
     {
@@ -1018,7 +1031,7 @@
       },
       "assertions": [
         "truncated reports only Commits the caller is permitted to read, so positions 10..12 MUST NOT set it",
-        "an empty commits[] with truncated false MUST NOT be read as an absent or empty physical stream",
+        "an empty committed_events[] with truncated false MUST NOT be read as an absent or empty physical stream",
         "readable_floor.oldest_position is 4 and floor_commit_id is the Commit at 4, so the permitted prefix is verifiable without position 0",
         "the commit at the floor is the only readable row allowed to carry an unresolvable previous_commit_ref",
         "newer.previous_commit_ref equals older.commit_id in both directions and across the page boundary between the first and second page",
