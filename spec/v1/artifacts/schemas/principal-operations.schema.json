@@ -406,7 +406,7 @@
     },
     "pcr_genesis_unit": {
       "type": "object",
-      "description": "Exact ordered, atomic PCR genesis unit. The first Event is identity-root signed ak.realm.create; the second is founding-device signed ak.device.authorize. Both producer proofs MUST omit signer_resolution_evidence_ref because neither signer has an accepted Arkret signer projection before this unit. The first key is resolved only from principal_registration_anchor, registration_did_evidence and identity_creation_control_proof; the second key is resolved only from the root-signed founding descriptor, authorize payload and unit-local candidate overlay. For the second Event proof.verification_method, the verifier parses the DID URL, requires the registered adapter to project its bare DID component to principal_id, and requires its fragment to equal device_id (the complete ak:device UUID string); constructing a DID URL by appending to did_core_id is forbidden, and did:key is not accepted for this slot. The verifier MUST NOT consult or mutate the durable device directory until every check succeeds. These Events are replayable only inside this complete unit and its accepted receipt closure, never as standalone shared-history Events. No partial acceptance is permitted.",
+      "description": "Exact ordered, atomic PCR genesis unit. The first Event is identity-root signed ak.realm.create; the second is founding-device signed ak.device.authorize. Neither signer has an accepted Arkret signer projection before this unit, so neither producer proof is resolved through the ordinary device directory. The first key is resolved only from principal_registration_anchor, registration_did_evidence and identity_creation_control_proof; the second key is resolved only from the root-signed founding descriptor, authorize payload and unit-local candidate overlay. For the second Event proof.verification_method, the verifier parses the DID URL, requires the registered adapter to project its bare DID component to principal_id, and requires its fragment to equal device_id (the complete ak:device UUID string); constructing a DID URL by appending to did_core_id is forbidden, and did:key is not accepted for this slot. The verifier MUST NOT consult or mutate the durable device directory until every check succeeds. These Events are replayable only inside this complete unit and its accepted receipt closure, never as standalone shared-history Events. No partial acceptance is permitted.",
       "required": [
         "events"
       ],
@@ -438,13 +438,6 @@
                       "required": [
                         "object"
                       ]
-                    },
-                    "producer_proof": {
-                      "not": {
-                        "required": [
-                          "signer_resolution_evidence_ref"
-                        ]
-                      }
                     }
                   },
                   "required": [
@@ -463,13 +456,6 @@
                   "properties": {
                     "kind": {
                       "const": "ak.device.authorize"
-                    },
-                    "producer_proof": {
-                      "not": {
-                        "required": [
-                          "signer_resolution_evidence_ref"
-                        ]
-                      }
                     }
                   },
                   "required": [

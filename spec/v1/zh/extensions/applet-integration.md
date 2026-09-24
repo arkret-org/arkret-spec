@@ -879,8 +879,7 @@ Applet 写入 Arkret MUST 使用常规 `/_arkret/self/events` submit 接口。
       "verification_method": "did:webvh:z6MkGhostU123:slack-bridge.example:ghost:u123#key-1",
       "event_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
       "created_at": "2026-04-26T00:00:01Z",
-      "jws": "a..b",
-      "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+      "jws": "a..b"
     }
   ]
 }

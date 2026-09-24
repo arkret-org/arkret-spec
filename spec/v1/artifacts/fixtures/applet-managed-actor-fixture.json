@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.applet_bridge.v1",
-  "version": "2026-09-15",
+  "version": "2026-09-25.1",
   "suite": "applet_managed_actor_authority",
   "runner": {
     "kind": "named_suite",
@@ -220,9 +220,9 @@
       "expect": "schema_violation"
     },
     {
-      "name": "delegated_device_authorize_requires_signer_resolution_evidence_ref",
-      "mutation": "omit proof.signer_resolution_evidence_ref and resolve the managed controller method through a unit-local candidate overlay instead of the accepted resolution typed current result",
-      "expect": "schema_violation"
+      "name": "delegated_device_authorize_resolves_signer_only_from_accepted_resolution",
+      "mutation": "sign the delegated ak.device.authorize with a controller method that exists only in a unit-local candidate overlay and not in the managed principal's accepted current resolution typed current result",
+      "expect": "signature_invalid"
     },
     {
       "name": "delegated_device_authorize_authorized_by_must_self_anchor",

@@ -15,10 +15,10 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 8915,
+    "total_properties": 8913,
     "total_schema_documents": 165,
     "by_presence_class": {
-      "optional": 2145,
+      "optional": 2143,
       "optional_defaulted": 47,
       "required": 6254,
       "required_nullable": 302,
@@ -8933,9 +8933,7 @@
         "/$defs/pcr_genesis_unit/properties/events/prefixItems/0/allOf/1/properties/kind": "required",
         "/$defs/pcr_genesis_unit/properties/events/prefixItems/0/allOf/1/properties/payload": "optional",
         "/$defs/pcr_genesis_unit/properties/events/prefixItems/0/allOf/1/properties/payload/properties/object": "required",
-        "/$defs/pcr_genesis_unit/properties/events/prefixItems/0/allOf/1/properties/producer_proof": "optional",
         "/$defs/pcr_genesis_unit/properties/events/prefixItems/1/allOf/1/properties/kind": "required",
-        "/$defs/pcr_genesis_unit/properties/events/prefixItems/1/allOf/1/properties/producer_proof": "optional",
         "/$defs/prepared_event_draft/properties/event_digest": "required",
         "/$defs/prepared_event_draft/properties/unsigned_event_bytes": "required",
         "/$defs/receiver_eligibility_basis/oneOf/0/properties/kind": "required",

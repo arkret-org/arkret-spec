@@ -112,8 +112,7 @@ Profile 初始状态通过 `ak.profile.create` Event / compatible Event 提交�
       "verification_method": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com#key-1",
       "event_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       "created_at": "2026-04-26T00:00:00Z",
-      "jws": "eyJhbGciOiJFZDI1NTE5In0..c2ln",
-      "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+      "jws": "eyJhbGciOiJFZDI1NTE5In0..c2ln"
     }
   ]
 }
@@ -147,8 +146,7 @@ Profile 后续变更通过 `ak.profile.update` Event / compatible Event 提交�
       "verification_method": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com#key-1",
       "event_digest": "sha256:6b5ad6b5ad6b7ad6b5ad6b5ad6b5ad6b6b5ad6b5ad6b7ad6b5ad6b5ad6b5ad6b",
       "created_at": "2026-04-26T00:01:00Z",
-      "jws": "eyJhbGciOiJFZDI1NTE5In0..c2ln",
-      "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+      "jws": "eyJhbGciOiJFZDI1NTE5In0..c2ln"
     }
   ]
 }
@@ -201,8 +199,7 @@ accepted commit 顺序折叠 patch，所得当前值仅含 `display_name`、`han
       "verification_method": "did:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR:alice.example.com#key-1",
       "event_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
       "created_at": "2026-04-26T00:02:00Z",
-      "jws": "eyJhbGciOiJFZDI1NTE5In0..c2ln",
-      "signer_resolution_evidence_ref": "ak:signer_evidence:sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+      "jws": "eyJhbGciOiJFZDI1NTE5In0..c2ln"
     }
   ]
 }

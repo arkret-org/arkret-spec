@@ -218,8 +218,9 @@ handle、method history 与 provision state。restart 后 exact replay 返回原
 genesis/Profile 则由相同 service 作为 `executed_by`；尚未 accepted 的 Bot/Ghost 不签这四条 Event。Applet
 service MUST 从 request 中唯一的 registration epoch evidence 与自己已验证的完整 method-native DID state 构建
 一份 `AuthenticatedSignerResolutionEvidence::Service`，使用统一 canonical helper 重算
-`signer_resolution_evidence_ref`，在返回 bundle 前原子保存 exact root，并令四条 Event 的唯一 producer proof
-全部引用该 ref。目标 Station 独立重建并逐字核对 service id、method、key、registration epoch 与 ref；任一不匹配
+`signer_resolution_evidence_ref`，在返回 bundle 前原子保存 exact root；四条 Event 的唯一 producer proof 是 closed
+Event proof，不携带该 ref，其 verification method 与 key MUST 逐字等于该 root 绑定的值。目标 Station 独立重建并逐字
+核对 service id、method、key、registration epoch 与 ref；任一不匹配
 使 closed aggregate 零写入。不得把 verification-method hash、registration epoch、HTTP message signature 或 bundle
 proof digest当作 signer evidence ref。
 

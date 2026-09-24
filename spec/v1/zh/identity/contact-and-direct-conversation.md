@@ -330,8 +330,8 @@ lineage 的签名时刻只定位 source assertion key，不充当未携带的 co
 原 holder 仍有当前授权；保留旧事实不等于允许它绕过当前撤销。
 
 该材料只在上述五类 Contact 历史 carrier 中补全原 producer 验签，不授权另一 Event、generic Control
-admission、DID 更新、governance-Station handoff 或普通消息新 live。必须保留原 Event bytes 与正常 `expected_revision`，不得改签 Event
-以补 `signer_resolution_evidence_ref`，不得把普通消息或其它 Control Event 放进此例外。已签的 source
+admission、DID 更新、governance-Station handoff 或普通消息新 live。必须保留原 Event bytes 与正常 `expected_revision`，不得改签 Event，
+不得把普通消息或其它 Control Event 放进此例外。已签的 source
 receipt/lineage 同时绑定该 Event 与其 key，是此 carrier 的取材合同，不要求先有 Contact 或共同 Realm，
 不触发关系门控设备查询，也不扩张 `account_device` 历史响应分支的权限。同站与跨站均耐久保留完整原件，
 重放只重验原证据，不以新的查询 TTL 取代历史授权关闭规则。

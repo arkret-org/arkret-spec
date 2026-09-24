@@ -333,7 +333,6 @@ def resign(entry: dict[str, Any], seed: bytes, verification_method: str) -> dict
         "omitted_optional_members": [
             "audience",
             "domain",
-            "signer_resolution_evidence_ref",
         ],
     }
 

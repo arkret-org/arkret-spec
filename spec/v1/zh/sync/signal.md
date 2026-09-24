@@ -187,7 +187,7 @@ source 每次准入与出站 fresh 检查 MUST 同时满足原 accepted 设备�
 跨账号投递由 recipient 自己的 Station 使用 [`device-lifecycle.md` §8.2/§8.3](../crypto-media/device-lifecycle.md)
 的 origin Station 已签 `device_projection_attestation` 完成公共授权验证。cold foreign human sender 由该 Station
 按 [`device-lifecycle.md` §8.2.1](../crypto-media/device-lifecycle.md) 经既有 `ak.peer.keys.read.lookup.v1` 取材，
-每批最多 16 个 exact AccountId；不得转发用户 SessionGrant、请求私有 device gate、用 KeyPackage claim 代替
+使用既有 `purpose=e2ee_message_encryption`（Signal 是 E2EE 消息场景，不另设 purpose），每批最多 16 个 exact AccountId；不得转发用户 SessionGrant、请求私有 device gate、用 KeyPackage claim 代替
 current projection，或透传未验证证据。
 
 每次发出 authenticated self data frame 前，Station MUST 对 exact sender Actor/method、目标 Realm/scope、

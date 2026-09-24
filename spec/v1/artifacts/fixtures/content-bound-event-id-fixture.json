@@ -1,5 +1,5 @@
 {
-  "version": "2026-09-19.3",
+  "version": "2026-09-25.1",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.encoding.content_bound_event_id.v1"
@@ -156,8 +156,7 @@
           "jws_signing_input": "eyJhbGciOiJFZDI1NTE5In0.eyJhY3Rvcl9pZCI6eyJhY2NvdW50X2lkIjp7InByaW5jaXBhbF9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlIiwic3RhdGlvbl9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlc3RhdGlvbmV4YW1wbGUifSwia2luZCI6ImFjY291bnQifSwiY29udGV4dCI6ImFrLmV2ZW50X3Byb29mLnYxIiwiY3JlYXRlZF9hdCI6IjIwMjYtMDgtMDlUMDA6MDA6MDAuMDAwWiIsImV2ZW50X2RpZ2VzdCI6InNoYTI1NjoxOWZkNjNkZWM3NmJjZDQ1MWY1ZDk4NjNjMWNiODgzOGIxMjFkZmYwMDM5NWIxZDljZGI5YTdjZGE2MjVjMjc5IiwidmVyaWZpY2F0aW9uX21ldGhvZCI6ImRpZDprZXk6ejZNa3R3dXBkbUxYVlZxVHpDdzRpNDZyNHVHeW9zR1hSblIzWGpONFpxN29NTXN3I3o2TWt0d3VwZG1MWFZWcVR6Q3c0aTQ2cjR1R3lvc0dYUm5SM1hqTjRacTdvTU1zdyJ9",
           "omitted_optional_members": [
             "audience",
-            "domain",
-            "signer_resolution_evidence_ref"
+            "domain"
           ]
         },
         "registration_anchor": {
@@ -659,8 +658,7 @@
           "jws_signing_input": "eyJhbGciOiJFZDI1NTE5In0.eyJhY3Rvcl9pZCI6eyJhY2NvdW50X2lkIjp7InByaW5jaXBhbF9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlIiwic3RhdGlvbl9pZCI6ImFrOmRpZF9jb3JlOndlYnZoOno2bWtmaXh0dXJlc3RhdGlvbmV4YW1wbGUifSwia2luZCI6ImFjY291bnQifSwiY29udGV4dCI6ImFrLmV2ZW50X3Byb29mLnYxIiwiY3JlYXRlZF9hdCI6IjIwMjYtMDgtMDlUMDA6MDA6MDAuMDAwWiIsImV2ZW50X2RpZ2VzdCI6InNoYTI1NjowZjE0ZTAxMzVkN2Q3NmIxNWYzMjZiYmJiNjA3YWIyY2I2ODA3ODJmNjFhYWI5MWIxMjc1OTMyYWE1NmJjMTk2IiwidmVyaWZpY2F0aW9uX21ldGhvZCI6ImRpZDp3ZWJ2aDp6Nm1rZml4dHVyZW9yZ2V4ZWN1dG9yOm9yZy5leGFtcGxlI2FrOmRldmljZTowMTlhMDAwMC0wMDAwLTcwMDAtODAwMC0wMDAwMDAwMDAwMGIifQ",
           "omitted_optional_members": [
             "audience",
-            "domain",
-            "signer_resolution_evidence_ref"
+            "domain"
           ]
         },
         "executor_signing_material": {

@@ -1003,7 +1003,7 @@ DID 控制权证明 SHOULD 优先使用签名挑战，而不是“能解开某�
 分量直接拼接 fragment。完整 Account/Station 身份 MUST 独立取自已接受 authorization 并与 envelope
 `actor_id` 逐字绑定；仅凭 DidUrl 不得定位账号。`device_authorize_event_id` 必须解析为该 device 在 envelope
 checkpoint 的 accepted authorization。Verifier
-KeyPackage 对外 claim 不携带 PCR/device history sidecar。账号当前所在的 source Station 在本地检查 registration、generation 与 revocation 后签发承载该 KeyPackage 的 claim；普通 Event federation receiver 独立验证 Event 的唯一 producer proof、其 `signer_resolution_evidence_ref` 闭包与接纳该 Event 的 RealmCommit 所锚定的授权实例，不依赖 source 或账号原站在线。
+KeyPackage 对外 claim 不携带 PCR/device history sidecar。账号当前所在的 source Station 在本地检查 registration、generation 与 revocation 后签发承载该 KeyPackage 的 claim；普通 Event federation receiver 独立验证 Event 的唯一 producer proof 与接纳该 Event 的 RealmCommit 所锚定的授权实例，不依赖 source 或账号原站在线。
 
 ### 7.5 Recipient Method Profiles
 
