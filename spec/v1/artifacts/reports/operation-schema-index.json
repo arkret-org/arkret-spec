@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-23.8",
+  "version": "2026-09-24.2",
   "source_of_truth": false,
-  "generated_at": "2026-09-23T22:32:19+08:00",
+  "generated_at": "2026-09-24T10:09:20+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -7982,6 +7982,35 @@
           "realm_id",
           "relationships",
           "declared_organization_hint_ids"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.realm_state_snapshot.read.by_ref.v1",
+      "success_shape_kind": "schema_resource",
+      "response": {
+        "schema_ref": "schemas/realm-state-snapshot.schema.json",
+        "schema_kind": "object",
+        "required": [
+          "snapshot_id",
+          "realm_id",
+          "governance_generation",
+          "visible_stream_heads",
+          "current_state_entries",
+          "retention_and_history_floor",
+          "created_at",
+          "signature"
+        ],
+        "properties": [
+          "snapshot_id",
+          "realm_id",
+          "governance_generation",
+          "visible_stream_heads",
+          "current_state_entries",
+          "retention_and_history_floor",
+          "created_at",
+          "signature"
         ],
         "closed": true
       }

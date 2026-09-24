@@ -3895,6 +3895,42 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DirectConversationResolveOutcome'
+  /_arkret/self/realm-state-snapshot/{snapshot_id}:
+    get:
+      operationId: ak.self.realm_state_snapshot.read.by_ref
+      security:
+      - sessionGrantAuth: []
+        dpopProof: []
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+      summary: Read an exact previously issued signed Realm snapshot by reference.
+      description: The authenticated account must still be entitled to every disclosed row, head, and floor. A current head cannot substitute for this exact snapshot.
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.self.realm_state_snapshot.read.by_ref.v1
+      - name: snapshot_id
+        in: path
+        required: true
+        schema:
+          $ref: ../schemas/common-ids.schema.json#/$defs/realm_snapshot_id
+      - name: realm_id
+        in: query
+        required: true
+        schema:
+          $ref: '#/components/schemas/RealmId'
+      responses:
+        '200':
+          description: The original complete signed Realm State Snapshot whose two IDs exactly match the request.
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/realm-state-snapshot.schema.json
   /_arkret/self/realm-state-snapshot/head:
     get:
       operationId: ak.self.realm_state_snapshot.read.manifest_head
@@ -3919,21 +3955,7 @@ paths:
           $ref: '#/components/schemas/RealmId'
       responses:
         '200':
-          description: 'The current recommended Snapshot manifest (does NOT carry chunk
-
-            bytes). The manifest carries the full signed transcript, so the
-
-            client can verify the detached signature, then fetch chunk bytes
-
-            from the blob surface via chunks[].chunk_ref. Servers that cannot
-
-            produce a fully signed manifest MUST NOT advertise this operation
-
-            and MUST respond not_implemented; fabricated signature material
-
-            MUST NOT be served.
-
-            '
+          description: The current governance Station's complete closed signed Realm State Snapshot with inline current rows, visible heads, and history floors.
           content:
             application/json:
               schema:

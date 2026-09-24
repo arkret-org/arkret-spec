@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-23.4",
+  "version": "2026-09-24.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-23T13:56:00+08:00",
+  "generated_at": "2026-09-24T10:08:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -118,6 +118,7 @@
         "ak.self.actor_profile.read.resolve.v1",
         "ak.self.account.stream.subscribe.v1",
         "ak.self.account.command.revoke_cursor.v1",
+        "ak.self.realm_state_snapshot.read.by_ref.v1",
         "ak.self.realm_state_snapshot.read.manifest_head.v1",
         "ak.self.strand.watch.read.current.v1",
         "ak.self.current_principal.read.resolve.v1",
@@ -3705,6 +3706,16 @@
       "response_schema_ref": "schemas/realm-organization-operations.schema.json#/$defs/realm_organization_relationship_list"
     },
     {
+      "operation_id": "ak.self.realm_state_snapshot.read.by_ref.v1",
+      "http": "GET /_arkret/self/realm-state-snapshot/{snapshot_id}",
+      "grpc": "SelfRealmStateSnapshot/ByRef",
+      "mq": "self.realm_state_snapshot.query.by_ref",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "schema_resource",
+      "response_schema_ref": "schemas/realm-state-snapshot.schema.json",
+      "notes": "Required query realm_id. Returns the exact previously issued closed signed snapshot identified by snapshot_id only to the same authenticated account while Realm and every disclosed row/head/floor remain authorized. A referenced non-preview window requires durable exact retrieval for its consumption lifetime; unavailable references require per-stream preview_only. Response IDs MUST exactly match request IDs; never regenerate, resign or substitute current head."
+    },
+    {
       "operation_id": "ak.self.realm_state_snapshot.read.manifest_head.v1",
       "http": "GET /_arkret/self/realm-state-snapshot/head",
       "grpc": "SelfRealmStateSnapshot/Head",
@@ -5177,6 +5188,19 @@
         },
         {
           "operation_id": "ak.self.strand.watch.read.current.v1",
+          "binding_kind": "http_json"
+        }
+      ]
+    },
+    {
+      "operation_bundle_id": "ak.operation_bundle.station.snapshot_exact_read.v1",
+      "service_kind": "station",
+      "deployment_evidence": [
+        "normative:zh/sync/service-surface.md#snapshot-exact-read"
+      ],
+      "members": [
+        {
+          "operation_id": "ak.self.realm_state_snapshot.read.by_ref.v1",
           "binding_kind": "http_json"
         }
       ]

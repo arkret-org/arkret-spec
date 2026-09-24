@@ -705,6 +705,7 @@ RFC 9449 DPoP proof 只有 `iat`，没有 `expires` parameter，因此它 **MUST
 | `ak.self.realm_link.read.list.v1` | `GET /_arkret/self/realms/{realm_id}/links` | - | - | response_schema_ref=schemas/realm-link-operations.schema.json#/$defs/realm_link_list |
 | `ak.self.realm_organization.read.list.v1` | `GET /_arkret/self/realms/{realm_id}/organizations` | - | - | response_schema_ref=schemas/realm-organization-operations.schema.json#/$defs/realm_organization_relationship_list |
 | `ak.self.realm_state_snapshot.read.manifest_head.v1` | `GET /_arkret/self/realm-state-snapshot/head` | - | - | response_schema_ref=schemas/realm-state-snapshot.schema.json |
+| `ak.self.realm_state_snapshot.read.by_ref.v1` | `GET /_arkret/self/realm-state-snapshot/{snapshot_id}` | - | - | response_schema_ref=schemas/realm-state-snapshot.schema.json; required query `realm_id` |
 | `ak.self.security_transaction.command.continue.v1` | `POST /_arkret/self/security-transactions/{transaction_id}/continue` | - | - | request_schema_ref=schemas/security-transaction.schema.json#/$defs/continue_request; response_schema_ref=schemas/security-transaction.schema.json |
 | `ak.self.security_transaction.command.create.v1` | `POST /_arkret/self/security-transactions` | - | - | request_schema_ref=schemas/security-transaction.schema.json#/$defs/create_request; response_schema_ref=schemas/security-transaction.schema.json |
 | `ak.self.security_transaction.resource.get.v1` | `GET /_arkret/self/security-transactions/{transaction_id}` | - | - | response_schema_ref=schemas/security-transaction.schema.json |

@@ -203,6 +203,10 @@ viewer、profile、account subscribe 与 cursor revoke 只作用于已认证账�
 
 `ak.self.realm_state_snapshot.read.manifest_head.v1` 返回 current governance Station 签署的 closed typed snapshot。其 wire 成员是 `snapshot_id`、`realm_id`、`governance_generation`、每条获准 `visible_stream_heads[]`、内联 `current_state_entries[]`、`retention_and_history_floor`、`created_at` 与 `signature`；rows 是 typed current results，必须和 heads/floors 来自同一 durable cut 且只覆盖请求者可见范围。完整 canonical signed body 不得超过 8 MiB；治理 Station 必须按 [`scalability-constraints.md` §4.1](../conformance/scalability-constraints.md) 在写入 admission 时预检最大披露投影并拒绝会越界的状态。v1 不存在另一个 `sections`／`chunk_digests`、分页、state root 或 reducer replay program 字段。客户端从 current authority 取得 snapshot，再从各自 head 继续拉获准 tail；签名不证明未授权隐藏 stream 的存在或缺席。
 
+#### Snapshot exact read
+
+`ak.self.realm_state_snapshot.read.by_ref.v1` 按 exact `realm_id` 与 `snapshot_id` 取回先前已向同一认证账号披露、且仍被非 preview `window_start_basis` 引用的**原完整签名对象**。响应复用上述 closed schema，两个 ID 必须与请求逐字相等；读取时重新检查该账号对 Realm 及 snapshot 中每项 row、head、floor 的披露权限。snapshot ID 不是授权凭据，不得向另一账号转发、按当前状态重造同名对象、重签或以当前 `/head` 替换。Station 发出可验证窗口时必须保证引用在该窗口可消费期间可取回；不能保证时该流只许 `preview_only=true`。无权、失效或缺失时沿既有授权／unavailable 错误面失败关闭，客户端不得由本地缓存或 shape-only cursor 猜测前态。
+
 ### 5.3 Event / RealmCommit 状态与确定性 current
 
 Event 状态只区分本地 queued/forwarding 与 authority 的 committed/rejected。领域 current result 由治理 Station 按 commit 顺序执行对应 typed reducer 产生，并带来源 `commit_id`、`stream_ref`、`stream_position` 和领域 revision。客户端不得从 timeline 最后一个同 kind Event 推测 current result。

@@ -833,7 +833,7 @@
             "governance_generation": {
               "type": "integer",
               "minimum": 0,
-              "description": "Station tenure the anchor and the snapshot slice are bound to. A client MUST refuse a basis whose generation is not the Realm's current governing tenure."
+              "description": "Station tenure the anchor and snapshot slice are bound to. A client MUST resolve this historical generation and its Station through a fresh verified genesis-to-current authority bundle; an unknown generation or Station is invalid. The snapshot_ref names the exact signed object from this tenure, not a substitute current head."
             },
             "accepted_dependency_refs": {
               "type": "array",

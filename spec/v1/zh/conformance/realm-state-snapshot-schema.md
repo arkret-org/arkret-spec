@@ -52,13 +52,16 @@ Snapshot 的 `signature` 使用 `ak.realm_snapshot_signature.v1`。unsigned proj
 `signature` 后保留的全部实际存在成员；验证方对其作 RFC 8785 JCS，重算
 `sha256:lowercase_hex(SHA-256(unsigned_bytes))`，先与 envelope 的 `signed_digest` 逐字比较，再验证
 `UTF8("ak.realm_snapshot_signature.v1\n") || RFC8785_JCS({context,signature_algorithm,verification_method,signed_digest,created_at})`
-上的 64-byte Ed25519 签名。`governance_generation` 必须等于 current authority bundle 已验证的当前治理 Station 任期，
-`verification_method` 必须是该 exact Station 的 service signing key；上一 generation 的有效 key 也必须拒绝。
+上的 64-byte Ed25519 签名。当前 `/head` snapshot 的 `governance_generation` 必须等于 fresh current authority bundle 的当前任期，
+其 `verification_method` 必须是当前 Station 的 service signing key。按已发出 `snapshot_ref` 读取的历史 exact snapshot 可属于更早任期；
+接收方必须由同一 fresh current authority bundle 的完整 genesis-to-current 历史链定位该 generation 当时的治理 Station，
+以该 Station 在 snapshot 签署时有效的 exact service signing key 验签。未知 generation、链外 Station、旧 key 代签新任期均必须拒绝；
+不能拿当前 Station key 替旧任期签名，也不能把已被取代的 snapshot 冒充当前 `/head`。
 
 当前治理 Station 在同一一致性快照中读取 visible stream heads、`current_state_entries[]` 与 history floors，构造 canonical body，
 计算 snapshot ID 并签名。接收方必须验证：
 
-1. authority bundle 证明签名 Station 是该 `governance_generation` 的当前治理 Station；
+1. fresh current authority bundle 证明签名 Station 是 snapshot 的 `governance_generation` 当时的治理 Station；当前 `/head` 还必须处于当前任期；
 2. snapshot ID 与 canonical body 匹配；
 3. Station proof 的 domain separation 与 payload digest 匹配；
 4. 每个 visible head 可由随后下载的同 stream tail 连续承接；

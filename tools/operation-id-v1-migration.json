@@ -764,6 +764,10 @@
       "new": "ak.self.realm_organization.read.list.v1"
     },
     {
+      "old": "ak.self.realm_state_snapshot.read.by_ref",
+      "new": "ak.self.realm_state_snapshot.read.by_ref.v1"
+    },
+    {
       "old": "ak.self.realm_state_snapshot.read.manifest_head",
       "new": "ak.self.realm_state_snapshot.read.manifest_head.v1"
     },

@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-23.1",
-  "generated_at": "2026-09-23T12:54:50+08:00",
+  "version": "2026-09-24.1",
+  "generated_at": "2026-09-24T10:08:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -2962,6 +2962,11 @@
         },
         {
           "direction": "provide",
+          "operation_id": "ak.self.realm_state_snapshot.read.by_ref.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
           "operation_id": "ak.self.realm_state_snapshot.read.manifest_head.v1",
           "binding_kind": "http_json"
         },
@@ -5198,6 +5203,11 @@
         "conformance"
       ],
       "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.realm_state_snapshot.read.by_ref.v1",
+          "binding_kind": "http_json"
+        },
         {
           "direction": "provide",
           "operation_id": "ak.self.realm_state_snapshot.read.manifest_head.v1",

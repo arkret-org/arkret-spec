@@ -299,6 +299,7 @@ grpc:
       Subscribe: ak.self.account.stream.subscribe.v1
       CursorRevoke: ak.self.account.command.revoke_cursor.v1
     SelfRealmStateSnapshot:
+      ByRef: ak.self.realm_state_snapshot.read.by_ref.v1
       Head: ak.self.realm_state_snapshot.read.manifest_head.v1
     OpenRealmAuthority:
       Bundle: ak.open.realm_authority.read.bundle.v1
@@ -522,6 +523,7 @@ mq:
     self.keys.query.lookup: ak.self.keys.read.lookup.v1
     self.keys.upload.create: ak.self.keys.upload.create.v1
     self.media.query.ice_config: ak.self.media.read.ice_config.v1
+    self.realm_state_snapshot.query.by_ref: ak.self.realm_state_snapshot.read.by_ref.v1
     self.realm_state_snapshot.query.manifest_head: ak.self.realm_state_snapshot.read.manifest_head.v1
     server.query.describe: ak.server.read.describe.v1
 libp2p:

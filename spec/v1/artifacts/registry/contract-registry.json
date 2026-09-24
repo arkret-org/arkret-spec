@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-23.8",
+  "version": "2026-09-24.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-23T22:32:19+08:00",
+  "generated_at": "2026-09-24T10:09:20+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -12388,6 +12388,7 @@
           "ak.self.actor_profile.read.resolve.v1",
           "ak.self.account.stream.subscribe.v1",
           "ak.self.account.command.revoke_cursor.v1",
+          "ak.self.realm_state_snapshot.read.by_ref.v1",
           "ak.self.realm_state_snapshot.read.manifest_head.v1",
           "ak.self.strand.watch.read.current.v1",
           "ak.self.current_principal.read.resolve.v1",
@@ -15975,6 +15976,16 @@
         "response_schema_ref": "schemas/realm-organization-operations.schema.json#/$defs/realm_organization_relationship_list"
       },
       {
+        "operation_id": "ak.self.realm_state_snapshot.read.by_ref.v1",
+        "http": "GET /_arkret/self/realm-state-snapshot/{snapshot_id}",
+        "grpc": "SelfRealmStateSnapshot/ByRef",
+        "mq": "self.realm_state_snapshot.query.by_ref",
+        "body_class": "non_streaming_json",
+        "success_shape_kind": "schema_resource",
+        "response_schema_ref": "schemas/realm-state-snapshot.schema.json",
+        "notes": "Required query realm_id. Returns the exact previously issued closed signed snapshot identified by snapshot_id only to the same authenticated account while Realm and every disclosed row/head/floor remain authorized. A referenced non-preview window requires durable exact retrieval for its consumption lifetime; unavailable references require per-stream preview_only. Response IDs MUST exactly match request IDs; never regenerate, resign or substitute current head."
+      },
+      {
         "operation_id": "ak.self.realm_state_snapshot.read.manifest_head.v1",
         "http": "GET /_arkret/self/realm-state-snapshot/head",
         "grpc": "SelfRealmStateSnapshot/Head",
@@ -16356,8 +16367,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-23.4",
-    "generated_at": "2026-09-23T13:56:00+08:00",
+    "version": "2026-09-24.1",
+    "generated_at": "2026-09-24T10:08:00+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",
@@ -17449,6 +17460,19 @@
           },
           {
             "operation_id": "ak.self.strand.watch.read.current.v1",
+            "binding_kind": "http_json"
+          }
+        ]
+      },
+      {
+        "operation_bundle_id": "ak.operation_bundle.station.snapshot_exact_read.v1",
+        "service_kind": "station",
+        "deployment_evidence": [
+          "normative:zh/sync/service-surface.md#snapshot-exact-read"
+        ],
+        "members": [
+          {
+            "operation_id": "ak.self.realm_state_snapshot.read.by_ref.v1",
             "binding_kind": "http_json"
           }
         ]
@@ -19307,6 +19331,15 @@
         "event_mapping_kind": "non_event_surface"
       },
       {
+        "action": "ak.self.realm_state_snapshot.read.by_ref.v1",
+        "category": "service",
+        "risk_tier": "low",
+        "required_constraints": [],
+        "target_event_kinds": [],
+        "profile": null,
+        "event_mapping_kind": "non_event_surface"
+      },
+      {
         "action": "ak.self.realm_state_snapshot.read.manifest_head.v1",
         "category": "service",
         "risk_tier": "low",
@@ -19621,8 +19654,8 @@
       "scope_suffix_variant": "Action adds actor/scope/role qualifiers while reducer admission targets a shared event kind.",
       "operation_verb": "Action token names an operation/command verb that does not match its target event kind name(s); reducer admission resolves the resulting event kind(s) via target_event_kinds. Literal action matching per the actions[] rule applies; carries no aggregate-admin family semantics."
     },
-    "version": "2026-09-21.1",
-    "generated_at": "2026-09-21T03:47:00+08:00",
+    "version": "2026-09-24.1",
+    "generated_at": "2026-09-24T10:08:00+08:00",
     "metadata_authority": "contract_registry_section"
   },
   "calendar_timezone_registry": {
@@ -20406,6 +20439,10 @@
         "service_kinds": [],
         "required_operation_pairs": [
           {
+            "operation_id": "ak.self.realm_state_snapshot.read.by_ref.v1",
+            "binding_kind": "http_json"
+          },
+          {
             "operation_id": "ak.self.realm_state_snapshot.read.manifest_head.v1",
             "binding_kind": "http_json"
           }
@@ -20432,8 +20469,8 @@
         "conflicts": []
       }
     ],
-    "version": "2026-09-19.2",
-    "generated_at": "2026-09-19T19:22:39+08:00",
+    "version": "2026-09-24.1",
+    "generated_at": "2026-09-24T10:08:00+08:00",
     "metadata_authority": "contract_registry_section"
   },
   "current_result_registry": {

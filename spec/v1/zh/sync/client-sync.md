@@ -166,6 +166,8 @@ arrival order 或缓存拼坐标。redacted／reference-locked row 不提供可�
 
 `window_start_basis` 绑定 exact Realm、exact `stream_ref`、状态所在的 exact 边界（`anchor_kind` + `anchor_position` + `anchor_commit_ref`）、承载该逐流 slice 的 authority-signed `realm-state-snapshot`（`snapshot_ref`）与其 `governance_generation`，以及重建该前缀所依赖的跨流授权依赖的 exact accepted references（`accepted_dependency_refs`，closed 四坐标 `committed_event_ref`）。列出这些引用不引入跨流总序，也不比较跨流位置。空前缀必须显式声明其 genesis 边界（`anchor_kind=stream_genesis`）；窗口起点落在 caller 可读 floor 上时用 `anchor_kind=before_readable_floor`，受限成员**不必**拿到 position 0。
 
+非 preview 窗口引用的 exact `snapshot_ref` 必须能由 [`ak.self.realm_state_snapshot.read.by_ref.v1`](./service-http-binding.md) 向同一认证账号取回原完整签名对象；当前 `/head` 即使来自同一 Realm 也不得替代旧 ref。own Station 若不能在该窗口可消费期间保留并向该账号披露原对象，必须对该逐流窗口改报 `preview_only=true`，且不得继续给出名义可验的 basis。客户端逐字核对请求 ref、Realm、snapshot 与 basis 的同一历史任期，并用 fresh current nonce-bound authority bundle 的历史链验证该任期当时的签名 Station；再按 [`realm-state-snapshot-schema.md` §4](../conformance/realm-state-snapshot-schema.md) 验证 current rows、heads、floors 和每流 tail。任一失败时该窗口不得进入普通投影或 MLS。`readable_floor` 仅说明可读下界，不能补造 snapshot slice。
+
 有限历史窗口 MAY 返回该逐流 slice，或明确 `preview_only=true`。两条路径都是**逐流**判定：某条流 `limited=true` 而帧不携带足以验证该流窗口起点的 `window_start_basis` 时，该流的 `streams[].preview_only` MUST 为 true。窗口起点状态来自 authority-signed snapshot slice 与对应 stream 的边界 anchor，不从首个可见 Event 的前驱或 producer 时间推导。只有在完成**该条流**所需上下文验证之后，其窗口起点行才能进入普通展示、reducer 输入或 MLS 安装流程。
 
 **客户端不重放治理历史（normative）**：共享授权与对象重建由 own Station 负责，客户端只验证输出绑定、producer 输入与所需 MLS bytes / epoch。上一段所说的「重建」在服务端指获准前缀的重建，在客户端只指它本地已有的展示与密码学状态；它 MUST NOT 被理解为授权客户端重放私有治理闭包，也 MUST NOT 把历史窗口当作当前权限。
