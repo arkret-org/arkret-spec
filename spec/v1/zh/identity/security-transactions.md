@@ -210,6 +210,8 @@ revoke
 不得 erase；erase 已接受后不得切回旧 pointer。客户端本地 commit 丢失时只能查询并重放相同
 terminal result，不能重新上传或重新 erase。
 
+`revoke` 第一步的 proposal 接纳和命令终局是两个边界。治理 Station 接纳计划中的完整 `ak.device.revoke` Event 与 covering RealmCommit 时，必须在同一 durable commit 保存 `revoke_proposal{proposal_event_id,covering_commit_id}`；此时只形成不可变 pending proposal，不得据此计入 `accepted_steps` 或当成 revoked。worker 对 exact proposal 的效果作终局裁决时，必须将 closed `revoke_command_outcome` 与 `accepted_steps[0]`（accepted）或 `terminal_outcome=aborted|expired`（rejected）原子提交。已有 proposal 的 abort/expiry 不得省略 rejected 结果；尚未接纳 proposal 的 abort/expiry 不得制造结果。相同终局精确重放读取首次保存的资源，不同终局或不同 Commit 引用为冲突。该结果只在完整事务、Event、Commit、PCR current 与本地结果 ledger 的同一快照连接核对后进入 [`device-lifecycle.md` §5.5.3](../crypto-media/device-lifecycle.md) 的 `device_status` 折叠；RealmCommit 的十成员签名对象保持不变。
+
 `erase_old_material` 的唯一 wire operation 是
 `ak.self.keys.backup_series.command.erase.v1`。request 必须携带 transaction/request/plan digest、
 预留 `erase_confirmation_digest`、一条完整 `secret_storage` binding 与当前 `authority_commit_id`。该内部请求由

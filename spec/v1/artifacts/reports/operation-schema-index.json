@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-24.2",
+  "version": "2026-09-24.4",
   "source_of_truth": false,
-  "generated_at": "2026-09-24T10:09:20+08:00",
+  "generated_at": "2026-09-24T10:26:30+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -8089,6 +8089,8 @@
           "prepared_plan",
           "prepared_plan_digest",
           "accepted_steps",
+          "revoke_proposal",
+          "revoke_command_outcome",
           "terminal_outcome"
         ],
         "closed": true
@@ -8184,6 +8186,8 @@
           "prepared_plan",
           "prepared_plan_digest",
           "accepted_steps",
+          "revoke_proposal",
+          "revoke_command_outcome",
           "terminal_outcome"
         ],
         "closed": true
@@ -8217,6 +8221,8 @@
           "prepared_plan",
           "prepared_plan_digest",
           "accepted_steps",
+          "revoke_proposal",
+          "revoke_command_outcome",
           "terminal_outcome"
         ],
         "closed": true

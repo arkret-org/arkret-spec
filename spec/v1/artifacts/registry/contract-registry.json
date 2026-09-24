@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-24.2",
+  "version": "2026-09-24.4",
   "source_of_truth": true,
-  "generated_at": "2026-09-24T10:09:20+08:00",
+  "generated_at": "2026-09-24T10:26:30+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -9711,6 +9711,30 @@
         "description": "Authority-commit-owned durable state for ak.device.revoke security transactions: exact authority/device/generation binding, universal revocation_pending gates, terminal command-result release, fault retention and consecutive same-stream RealmCommit finality."
       },
       {
+        "schema_id": "ak.schema.pcr_device_conflict_index_cut.v1",
+        "file": "schemas/device-revocation-state.schema.json",
+        "fragment": "#/$defs/pcr_device_conflict_index_cut",
+        "status": "active",
+        "description": "Station-local complete index marker for locally ingested verified PCR forks at one accepted head and conflict revision.",
+        "consumer_binding": {
+          "kind": "standalone_schema_alias",
+          "selector": "PCR governance Station durable device-conflict index cut: schemas/device-revocation-state.schema.json#/$defs/pcr_device_conflict_index_cut",
+          "normative_ref": "zh/crypto-media/device-lifecycle.md#553-device_status-是读侧折叠不是存储轴normative"
+        }
+      },
+      {
+        "schema_id": "ak.schema.verified_pcr_fork_record.v1",
+        "file": "schemas/device-revocation-state.schema.json",
+        "fragment": "#/$defs/verified_pcr_fork_record",
+        "status": "active",
+        "description": "Station-local verified pair of existing signed PCR RealmCommit and Event objects at one predecessor and position.",
+        "consumer_binding": {
+          "kind": "standalone_schema_alias",
+          "selector": "PCR governance Station durable verified fork ledger: schemas/device-revocation-state.schema.json#/$defs/verified_pcr_fork_record",
+          "normative_ref": "zh/crypto-media/device-lifecycle.md#553-device_status-是读侧折叠不是存储轴normative"
+        }
+      },
+      {
         "schema_id": "ak.schema.did_binding_contracts.v1",
         "file": "schemas/did-binding-contracts.schema.json",
         "status": "active",
@@ -10824,8 +10848,8 @@
         "description": "Server authentication-success frame carrying effective connection and channel limits."
       }
     ],
-    "version": "2026-09-22",
-    "generated_at": "2026-09-22T08:43:00+08:00",
+    "version": "2026-09-24.1",
+    "generated_at": "2026-09-24T10:25:14+08:00",
     "metadata_authority": "contract_registry_section"
   },
   "id_kind_registry": {

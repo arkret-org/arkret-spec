@@ -472,8 +472,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/security-transaction-resilience-fixture.json",
-      "sha256": "fcb1018caeb465d2b0b580febab1d5fe79f64912165e1f9c7d9d54aa6a3ff756",
-      "version": "2026-09-22.1"
+      "sha256": "ac1d5f8d87f737db0b080f99878bf49847aef97ba96d61056504f9c350328018",
+      "version": "2026-09-24.3"
     },
     {
       "path": "spec/v1/artifacts/fixtures/service-protocol-version-bootstrap-fixture.json",

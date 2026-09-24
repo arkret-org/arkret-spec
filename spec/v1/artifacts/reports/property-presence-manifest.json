@@ -15,19 +15,19 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 8826,
+    "total_properties": 8857,
     "total_schema_documents": 164,
     "by_presence_class": {
-      "optional": 2147,
+      "optional": 2152,
       "optional_defaulted": 47,
-      "required": 6172,
-      "required_nullable": 296,
-      "tristate": 164
+      "required": 6189,
+      "required_nullable": 302,
+      "tristate": 167
     },
-    "tristate_occurrences": 164,
-    "tristate_audit_targets": 132,
+    "tristate_occurrences": 167,
+    "tristate_audit_targets": 134,
     "tristate_sdk_dispositions": {
-      "absent_null_equivalent": 122,
+      "absent_null_equivalent": 124,
       "condition_guarded": 9,
       "distinct": 1
     }
@@ -165,6 +165,9 @@
     "security-transaction.schema.json/$defs/security_rotation_progress_contract/allOf/0/then/properties/accepted_steps",
     "security-transaction.schema.json/$defs/security_rotation_progress_contract/allOf/1/then/properties/accepted_steps",
     "security-transaction.schema.json/allOf/1/then/properties/terminal_outcome",
+    "security-transaction.schema.json/allOf/5/then/properties/revoke_command_outcome",
+    "security-transaction.schema.json/allOf/6/else/then/properties/accepted_steps",
+    "security-transaction.schema.json/allOf/6/then/properties/accepted_steps",
     "service-describe.schema.json/allOf/1/then/properties/supported_features",
     "service-describe.schema.json/allOf/2/then/properties/verified_profiles",
     "service-describe.schema.json/allOf/4/then/properties/auth_metadata",
@@ -1168,6 +1171,27 @@
       "instance_path": "/evidence",
       "occurrences": [
         "/$defs/clause_claim/allOf/0/else/properties/evidence"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "security-transaction.schema.json",
+      "shape": "#",
+      "instance_path": "/accepted_steps",
+      "occurrences": [
+        "/allOf/6/else/then/properties/accepted_steps",
+        "/allOf/6/then/properties/accepted_steps"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "security-transaction.schema.json",
+      "shape": "#",
+      "instance_path": "/revoke_command_outcome",
+      "occurrences": [
+        "/allOf/5/then/properties/revoke_command_outcome"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -4655,7 +4679,9 @@
     },
     "device-revocation-state.schema.json": {
       "schema_ids": [
-        "ak.schema.device_revocation_state.v1"
+        "ak.schema.device_revocation_state.v1",
+        "ak.schema.pcr_device_conflict_index_cut.v1 -> #/$defs/pcr_device_conflict_index_cut",
+        "ak.schema.verified_pcr_fork_record.v1 -> #/$defs/verified_pcr_fork_record"
       ],
       "properties": {
         "/$defs/common_record/properties/acceptance_seq": "required",
@@ -4670,7 +4696,14 @@
         "/$defs/device_revocation_pending_state/allOf/1/properties/status": "required",
         "/$defs/device_revocation_rejected_state/allOf/1/properties/status": "required",
         "/$defs/device_revoked_state/allOf/1/properties/committed_at": "required",
-        "/$defs/device_revoked_state/allOf/1/properties/status": "required"
+        "/$defs/device_revoked_state/allOf/1/properties/status": "required",
+        "/$defs/pcr_device_conflict_index_cut/properties/conflict_revision": "required",
+        "/$defs/pcr_device_conflict_index_cut/properties/pcr_head_commit_id": "required",
+        "/$defs/verified_pcr_fork_record/properties/first_commit": "required",
+        "/$defs/verified_pcr_fork_record/properties/first_event": "required",
+        "/$defs/verified_pcr_fork_record/properties/second_commit": "required",
+        "/$defs/verified_pcr_fork_record/properties/second_event": "required",
+        "/$defs/verified_pcr_fork_record/properties/verified_at": "required"
       }
     },
     "did-binding-contracts.schema.json": {
@@ -10150,6 +10183,12 @@
         "/$defs/recovery_create_request/properties/recovery_intent": "required",
         "/$defs/recovery_create_request/properties/transaction_id": "required",
         "/$defs/recovery_terminal_commit/properties/recovery_receipt": "required",
+        "/$defs/revoke_command_outcome/properties/covering_commit_id": "required",
+        "/$defs/revoke_command_outcome/properties/decided_at": "required",
+        "/$defs/revoke_command_outcome/properties/proposal_event_id": "required",
+        "/$defs/revoke_command_outcome/properties/result": "required",
+        "/$defs/revoke_proposal/properties/covering_commit_id": "required",
+        "/$defs/revoke_proposal/properties/proposal_event_id": "required",
         "/$defs/security_rotation_create_request/properties/account_id": "required",
         "/$defs/security_rotation_create_request/properties/authorizing_device_id": "required",
         "/$defs/security_rotation_create_request/properties/expires_at": "required",
@@ -10194,7 +10233,23 @@
         "/allOf/2/if/properties/kind": "required",
         "/allOf/2/if/properties/terminal_outcome": "required_nullable",
         "/allOf/2/if/properties/terminal_outcome/properties/outcome": "required",
+        "/allOf/2/then/properties/revoke_command_outcome": "required_nullable",
+        "/allOf/2/then/properties/revoke_command_outcome/properties/result": "optional",
         "/allOf/2/then/properties/terminal_outcome": "optional",
+        "/allOf/5/if/properties/terminal_outcome": "required_nullable",
+        "/allOf/5/if/properties/terminal_outcome/properties/outcome": "required",
+        "/allOf/5/then/properties/revoke_command_outcome": "tristate",
+        "/allOf/5/then/properties/revoke_command_outcome/properties/result": "optional",
+        "/allOf/6/else/then/properties/accepted_steps": "tristate",
+        "/allOf/6/else/then/properties/terminal_outcome": "required_nullable",
+        "/allOf/6/else/then/properties/terminal_outcome/properties/outcome": "required",
+        "/allOf/6/if/properties/revoke_command_outcome": "required_nullable",
+        "/allOf/6/if/properties/revoke_command_outcome/properties/result": "required",
+        "/allOf/6/then/properties/accepted_steps": "tristate",
+        "/allOf/7/if/properties/accepted_steps": "required_nullable",
+        "/allOf/7/if/properties/kind": "required",
+        "/allOf/7/then/properties/revoke_command_outcome": "required_nullable",
+        "/allOf/7/then/properties/revoke_command_outcome/properties/result": "optional",
         "/properties/accepted_steps": "required",
         "/properties/account_id": "required",
         "/properties/authorizing_device_id": "optional",
@@ -10204,11 +10259,16 @@
         "/properties/prepared_plan": "required",
         "/properties/prepared_plan_digest": "required",
         "/properties/request_digest": "required",
+        "/properties/revoke_command_outcome": "optional",
+        "/properties/revoke_proposal": "optional",
         "/properties/terminal_outcome": "optional",
         "/properties/transaction_id": "required"
       },
       "conditionally_required": [
-        "/properties/authorizing_device_id"
+        "/properties/authorizing_device_id",
+        "/properties/revoke_command_outcome",
+        "/properties/revoke_proposal",
+        "/properties/terminal_outcome"
       ]
     },
     "service-describe.schema.json": {

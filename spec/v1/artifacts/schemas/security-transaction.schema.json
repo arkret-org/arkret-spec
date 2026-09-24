@@ -65,6 +65,14 @@
       },
       "description": "Durable accepted prefix. Entry i has the step kind at index i of the fixed order selected by kind; entries never carry a duplicate step label."
     },
+    "revoke_proposal": {
+      "$ref": "#/$defs/revoke_proposal",
+      "description": "SecurityRotation only. Immutable exact PCR proposal Event/Commit binding, persisted when that accepted proposal becomes visible."
+    },
+    "revoke_command_outcome": {
+      "$ref": "#/$defs/revoke_command_outcome",
+      "description": "SecurityRotation only. Immutable Station-local decision for the exact accepted revoke proposal; absence is pending only while the authoritative transaction and result ledger are complete at the read cut."
+    },
     "terminal_outcome": {
       "$ref": "#/$defs/terminal_outcome"
     }
@@ -91,8 +99,10 @@
           }
         },
         "not": {
-          "required": [
-            "authorizing_device_id"
+          "anyOf": [
+            {"required": ["authorizing_device_id"]},
+            {"required": ["revoke_proposal"]},
+            {"required": ["revoke_command_outcome"]}
           ]
         },
         "allOf": [
@@ -192,6 +202,78 @@
                 }
               ]
             }
+          },
+          "revoke_command_outcome": {
+            "properties": {"result": {"const": "accepted"}}
+          }
+        },
+        "required": ["revoke_command_outcome"]
+      }
+    },
+    {
+      "if": {"required": ["revoke_command_outcome"]},
+      "then": {"required": ["revoke_proposal"]}
+    },
+    {
+      "if": {"required": ["revoke_proposal", "terminal_outcome"]},
+      "then": {"required": ["revoke_command_outcome"]}
+    },
+    {
+      "if": {
+        "required": ["revoke_proposal", "terminal_outcome"],
+        "properties": {
+          "terminal_outcome": {
+            "properties": {"outcome": {"enum": ["aborted", "expired"]}},
+            "required": ["outcome"]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "revoke_command_outcome": {
+            "properties": {"result": {"const": "rejected"}}
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": ["revoke_command_outcome"],
+        "properties": {
+          "revoke_command_outcome": {
+            "required": ["result"],
+            "properties": {"result": {"const": "accepted"}}
+          }
+        }
+      },
+      "then": {"properties": {"accepted_steps": {"minItems": 1}}},
+      "else": {
+        "if": {"required": ["revoke_command_outcome"]},
+        "then": {
+          "required": ["terminal_outcome"],
+          "properties": {
+            "accepted_steps": {"maxItems": 0},
+            "terminal_outcome": {
+              "required": ["outcome"],
+              "properties": {"outcome": {"enum": ["aborted", "expired"]}}
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": ["kind", "accepted_steps"],
+        "properties": {
+          "kind": {"const": "security_rotation"},
+          "accepted_steps": {"minItems": 1}
+        }
+      },
+      "then": {
+        "required": ["revoke_proposal", "revoke_command_outcome"],
+        "properties": {
+          "revoke_command_outcome": {
+            "properties": {"result": {"const": "accepted"}}
           }
         }
       }
@@ -199,6 +281,26 @@
   ],
   "additionalProperties": false,
   "$defs": {
+    "revoke_command_outcome": {
+      "type": "object",
+      "required": ["proposal_event_id", "covering_commit_id", "result", "decided_at"],
+      "properties": {
+        "proposal_event_id": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
+        "covering_commit_id": {"$ref": "./common-ids.schema.json#/$defs/realm_commit_id"},
+        "result": {"type": "string", "enum": ["accepted", "rejected"]},
+        "decided_at": {"$ref": "./time.schema.json#/$defs/timestamp"}
+      },
+      "additionalProperties": false
+    },
+    "revoke_proposal": {
+      "type": "object",
+      "required": ["proposal_event_id", "covering_commit_id"],
+      "properties": {
+        "proposal_event_id": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
+        "covering_commit_id": {"$ref": "./common-ids.schema.json#/$defs/realm_commit_id"}
+      },
+      "additionalProperties": false
+    },
     "accepted_step": {
       "type": "object",
       "required": [
