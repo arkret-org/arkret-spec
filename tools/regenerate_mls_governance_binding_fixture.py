@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+import base64
+import hashlib
 import json
 from pathlib import Path
 from typing import Any
@@ -22,6 +24,21 @@ CIRCLE_ID = "ak:circle:AcQajqaKFvyDoMpqpSlBvMh0d4gheZsVPhbHaTlqXtkV"
 SIDECAR_ID = "ak:sidecar:AZUfzdx1qBOtCsg2CGmS3QLP7vlDe_kxRx0pxdxefWTa"
 BASE_REF = "ak:event:AZk4PXzJ6MpkxXnYTUmgXzeIYNd0Wfnz3N0hwLHNV6Xq"
 OTHER_BASE_REF = "ak:event:AbhX3-n_FG8scl_4zkFai8VRhqvIwjOeWHvA8D3mQ9V7"
+SIDECAR_MEMBERS = ("participant_authority_digest", "authority_stream_head")
+
+
+def _fixture_event_ref(label: str) -> str:
+    raw = b"\x01" + hashlib.sha256(label.encode("utf-8")).digest()
+    return "ak:event:" + base64.urlsafe_b64encode(raw).decode("ascii").rstrip("=")
+
+
+PARTICIPANT_AUTHORITY_DIGEST = "sha256:" + hashlib.sha256(
+    b"mls-governance-binding-closure/sidecar/participant-authority"
+).hexdigest()
+AUTHORITY_STREAM_HEAD = sorted(
+    _fixture_event_ref(f"mls-governance-binding-closure/sidecar/authority-ref/{index}")
+    for index in range(3)
+)
 
 
 def _head(major: int, value: int) -> bytes:
@@ -50,6 +67,8 @@ def encode(value: Any) -> bytes:
     if isinstance(value, str):
         raw = value.encode("utf-8")
         return _head(3, len(raw)) + raw
+    if isinstance(value, list):
+        return _head(4, len(value)) + b"".join(encode(item) for item in value)
     if isinstance(value, dict):
         pairs = sorted((encode(key), encode(item)) for key, item in value.items())
         return _head(5, len(pairs)) + b"".join(key + item for key, item in pairs)
@@ -70,13 +89,17 @@ def sidecar_scope() -> dict[str, str]:
 
 def binding(scope: dict[str, str], *, base: str | None = BASE_REF,
             previous: int = 41, next_: int = 42, revision: int = 17) -> dict[str, Any]:
-    return {
+    value: dict[str, Any] = {
         "effective_scope": scope,
         "base_group_state_ref": base,
         "previous_epoch": previous,
         "next_epoch": next_,
         "key_access_revision": revision,
     }
+    if scope["kind"] == "sidecar":
+        value["participant_authority_digest"] = PARTICIPANT_AUTHORITY_DIGEST
+        value["authority_stream_head"] = list(AUTHORITY_STREAM_HEAD)
+    return value
 
 
 def accepted(name: str, value: dict[str, Any]) -> dict[str, Any]:
@@ -117,7 +140,16 @@ def build_fixture() -> dict[str, Any]:
     unknown["sender_index"] = 3
     missing = dict(realm)
     del missing["key_access_revision"]
+    sidecar_missing = dict(sidecar)
+    del sidecar_missing["authority_stream_head"]
+    realm_with_sidecar_member = dict(realm)
+    realm_with_sidecar_member["participant_authority_digest"] = PARTICIPANT_AUTHORITY_DIGEST
+    unsorted_head = dict(sidecar)
+    unsorted_head["authority_stream_head"] = list(reversed(AUTHORITY_STREAM_HEAD))
+    duplicate_head = dict(sidecar)
+    duplicate_head["authority_stream_head"] = [AUTHORITY_STREAM_HEAD[0], *AUTHORITY_STREAM_HEAD]
     keys = sorted((encode(key), key) for key in realm)
+    all_members = sorted((encode(key), key) for key in sidecar)
     canonical_pairs = [(raw_key, encode(realm[key])) for raw_key, key in keys]
     duplicate = _head(5, 6) + canonical_pairs[0][0] + canonical_pairs[0][1] + b"".join(
         key + item for key, item in canonical_pairs
@@ -148,12 +180,15 @@ def build_fixture() -> dict[str, Any]:
         {
             "name": "governance_binding_wire_encoding_is_closed",
             "assertions": [
-                "binding_is_exactly_the_five_registered_members",
+                "binding_is_the_five_shared_members_plus_the_two_sidecar_only_members",
+                "sidecar_members_are_required_for_sidecar_and_forbidden_elsewhere",
+                "authority_stream_head_is_strictly_ascending_and_bounded_by_the_collection_limit",
                 "map_keys_follow_rfc8949_bytewise_deterministic_order",
                 "key_access_revision_is_an_unsigned_64_bit_monotonic_integer",
                 "non_deterministic_or_out_of_bounds_input_is_rejected_without_normalisation",
             ],
-            "canonical_member_order": [key for _, key in keys],
+            "canonical_member_order": [key for _, key in all_members],
+            "sidecar_only_members": list(SIDECAR_MEMBERS),
             "member_order_rule": "RFC 8949 section 4.2.1 bytewise lexicographic order of deterministic key encodings.",
             "resource_limits": {
                 "maximum_input_bytes": 16384,
@@ -167,8 +202,12 @@ def build_fixture() -> dict[str, Any]:
                 accepted("realm_scope_genesis", genesis),
             ],
             "rejection_samples": [
-                rejected("unknown_member", "sixth member outside the closed five", encode(unknown)),
+                rejected("unknown_member", "member outside the registered binding members", encode(unknown)),
                 rejected("missing_member", "key_access_revision absent", encode(missing)),
+                rejected("sidecar_member_missing", "Sidecar scope omits authority_stream_head", encode(sidecar_missing)),
+                rejected("non_sidecar_carries_sidecar_member", "Realm scope carries participant_authority_digest", encode(realm_with_sidecar_member)),
+                rejected("authority_stream_head_unsorted", "authority_stream_head is not in UTF-8 byte order", encode(unsorted_head)),
+                rejected("authority_stream_head_duplicate", "authority_stream_head repeats one Event ID", encode(duplicate_head)),
                 rejected("indefinite_length_map", "indefinite-length map", indefinite),
                 rejected("non_minimal_integer", "previous_epoch uses a wider-than-minimal head", non_minimal),
                 rejected("duplicate_map_key", "next_epoch appears twice", duplicate),
@@ -278,7 +317,7 @@ def build_fixture() -> dict[str, Any]:
 
     return {
         "profile": "ak.vector_group.privacy_security.v1",
-        "version": "2026-09-22.1",
+        "version": "2026-09-24.1",
         "suite": "mls_governance_binding_closure",
         "runner": {"kind": "named_suite", "entrypoint": "ak.suite.mls.governance_binding_closure.v1"},
         "covers_vectors": [VECTOR_ID, EPOCH_VECTOR_ID],
@@ -287,6 +326,7 @@ def build_fixture() -> dict[str, Any]:
             "clause_id": "AK-NC-061",
             "decision_points": [
                 {"id": "closed_deterministic_cbor_and_bounds", "requirement": "Every received binding is the exact closed deterministic-CBOR map and fails before allocation when a syntax, range or decoder bound is violated.", "evidence": ["/cases/0"]},
+                {"id": "sidecar_members_are_scope_bound", "requirement": "The Sidecar scope carries both signed Sidecar members with a strictly ascending authority_stream_head; a Sidecar binding missing either, a Realm or Circle binding carrying either, and an unsorted or duplicated authority_stream_head are each rejected as schema_violation.", "evidence": ["/cases/0/accepted/2", "/cases/0/rejection_samples/2", "/cases/0/rejection_samples/3", "/cases/0/rejection_samples/4", "/cases/0/rejection_samples/5"]},
                 {"id": "all_scope_branches_have_fixed_acceptance_bytes", "requirement": "Realm, Circle, Sidecar and Genesis/null branches each have a positive fixed-byte acceptance KAT.", "evidence": ["/cases/0/accepted/0", "/cases/0/accepted/1", "/cases/0/accepted/2", "/cases/0/accepted/3"]},
                 {"id": "epoch_and_revision_are_unsigned_monotonic_counters", "requirement": "Genesis is 0 to 0, Commit increments epoch by one, and key_access_revision is a monotonic unsigned 64-bit counter rather than a digest.", "evidence": ["/cases/1"]},
                 {"id": "valid_public_material_still_requires_exact_binding_equality", "requirement": "RFC 9420-valid public material is rejected when its internal binding differs from Station state or the Event payload.", "evidence": ["/cases/2"]},

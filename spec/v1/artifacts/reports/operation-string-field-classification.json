@@ -8,12 +8,12 @@
   ],
   "description": "Exhaustive classification of operation DTO schema/status/reason_code/reason properties into closed literals/enums, validated open protocol tokens, or bounded human-readable text. Any unconstrained audited string fails generation.",
   "summary": {
-    "total_fields": 72,
+    "total_fields": 71,
     "by_classification": {
       "bounded_free_text": 6,
       "closed_enum": 30,
       "closed_literal": 17,
-      "validated_open_reason_code": 19
+      "validated_open_reason_code": 18
     },
     "unclassified": 0
   },
@@ -482,14 +482,6 @@
       "pointer": "#/$defs/DeviceMessageDeliveredRow/properties/status",
       "classification": "closed_literal",
       "basis": "JSON Schema const"
-    },
-    {
-      "schema_file": "service-operation-dtos.schema.json",
-      "shape": "DeviceMessageUnknownRow",
-      "field": "reason_code",
-      "pointer": "#/$defs/DeviceMessageUnknownRow/properties/reason_code",
-      "classification": "validated_open_reason_code",
-      "basis": "^[a-z][a-z0-9_]{0,63}$"
     },
     {
       "schema_file": "service-operation-dtos.schema.json",

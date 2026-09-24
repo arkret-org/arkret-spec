@@ -1,6 +1,6 @@
 {
   "profile": "ak.vector_group.protocol_edge_cases.v1",
-  "version": "2026-09-20.1",
+  "version": "2026-09-24.1",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.protocol.edge_cases.v1"
@@ -35,7 +35,9 @@
     "ak.vector.sync.stream_scan_permitted_range.v1",
     "ak.vector.sync.stream_enumeration_no_starvation.v1",
     "ak.vector.sync.committed_event_view_integrity.v1",
-    "ak.vector.sync.zero_window_and_empty_stream.v1"
+    "ak.vector.sync.zero_window_and_empty_stream.v1",
+    "ak.vector.agent.action_approve_expiry.v1",
+    "ak.vector.sync.device_message_send_admission.v1"
   ],
   "cases": [
     {
@@ -266,7 +268,8 @@
             "expired",
             "before_sent_at",
             "over_limit"
-          ]
+          ],
+          "failure": "param_invalid"
         },
         {
           "field": "push_routes",
@@ -1118,6 +1121,171 @@
         "complete proves delivery of the frozen window only, never that the stream was read down to position 0",
         "limited marks history the caller may read, so unreadable history below the floor MUST NOT set it and MUST NOT clear it",
         "byte budgets decide segmentation only and MUST NOT lower window_limit or flip limited inside one window"
+      ]
+    },
+    {
+      "name": "agent_action_approve_expiry_committed_at",
+      "vector_id": "ak.vector.agent.action_approve_expiry.v1",
+      "clock": "covering_realm_commit_committed_at",
+      "tolerance_ms": 0,
+      "payload_expires_at": "2026-09-24T10:00:00.000Z",
+      "variants": [
+        {
+          "name": "confirmation_committed_at_equal_to_expiry_accepted",
+          "subject": "confirmation_event",
+          "covering_committed_at": "2026-09-24T10:00:00.000Z",
+          "expected": {
+            "decision": "accept",
+            "nonce_allocated": true
+          }
+        },
+        {
+          "name": "confirmation_committed_one_ms_after_expiry_rejected",
+          "subject": "confirmation_event",
+          "covering_committed_at": "2026-09-24T10:00:00.001Z",
+          "expected": {
+            "decision": "reject",
+            "nonce_allocated": false,
+            "durable_writes": 0
+          }
+        },
+        {
+          "name": "confirmation_created_at_is_not_compared",
+          "subject": "confirmation_event",
+          "envelope_created_at": "2026-09-24T10:05:00.000Z",
+          "covering_committed_at": "2026-09-24T09:59:00.000Z",
+          "expected": {
+            "decision": "accept",
+            "nonce_allocated": true
+          }
+        },
+        {
+          "name": "approved_event_committed_at_equal_to_expiry_published",
+          "subject": "approved_event",
+          "confirmation_committed_at": "2026-09-24T09:59:00.000Z",
+          "covering_committed_at": "2026-09-24T10:00:00.000Z",
+          "expected": {
+            "decision": "accept"
+          }
+        },
+        {
+          "name": "approved_event_published_after_expiry_rejected",
+          "subject": "approved_event",
+          "confirmation_committed_at": "2026-09-24T09:59:00.000Z",
+          "covering_committed_at": "2026-09-24T10:00:00.001Z",
+          "expected": {
+            "decision": "reject",
+            "rejected_as": "no_valid_confirmation",
+            "durable_writes": 0
+          }
+        },
+        {
+          "name": "confirmation_exact_retry_after_expiry_keeps_original_commit",
+          "subject": "confirmation_event",
+          "original_covering_committed_at": "2026-09-24T09:59:59.999Z",
+          "station_clock_at_retry": "2026-09-24T10:30:00.000Z",
+          "expected": {
+            "decision": "original_commit",
+            "committed_at_rewritten": false,
+            "additional_writes": 0
+          }
+        }
+      ],
+      "assertions": [
+        "the only judging clock is the signed committed_at of the RealmCommit covering each Event; the comparison is inclusive with zero tolerance",
+        "envelope created_at and Station-local current time are never compared with expires_at",
+        "a late confirmation or a late approved Event is rejected with zero durable writes; the late approved Event fails as if no valid confirmation existed, through the existing publication-gate failure surface",
+        "historical replay compares the signed committed_at and yields the same decision; exact retry returns the original Commit without re-judging expiry"
+      ]
+    },
+    {
+      "name": "device_message_send_admission",
+      "vector_id": "ak.vector.sync.device_message_send_admission.v1",
+      "station_max_ttl_ms": 86400000,
+      "request_sent_at": "2026-09-24T02:00:00.000Z",
+      "variants": [
+        {
+          "name": "mixed_batch_with_one_invalid_expires_at_rejected_whole",
+          "targets": [
+            {
+              "principal_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
+              "device_id": "ak:device:01964137-0000-7000-8000-000000000001",
+              "device_message_id": "ak:device_message:01964137-1000-7000-8000-000000000011",
+              "expires_at": "2026-09-24T02:10:00.000Z"
+            },
+            {
+              "principal_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
+              "device_id": "ak:device:01964137-0000-7000-8000-000000000002",
+              "device_message_id": "ak:device_message:01964137-1000-7000-8000-000000000012",
+              "expires_at_variant": [
+                "missing",
+                "expired",
+                "before_sent_at",
+                "over_limit"
+              ]
+            }
+          ],
+          "expected": {
+            "decision": "reject",
+            "error_code": "param_invalid",
+            "enqueued": 0,
+            "unknown_devices_written": false
+          }
+        },
+        {
+          "name": "exact_retry_after_expiry_returns_original_result",
+          "original_result": {
+            "delivered": [
+              {
+                "principal_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
+                "device_id": "ak:device:01964137-0000-7000-8000-000000000001",
+                "device_message_id": "ak:device_message:01964137-1000-7000-8000-000000000021"
+              }
+            ]
+          },
+          "retry": {
+            "same_device_message_id": true,
+            "same_canonical_intent": true,
+            "station_clock_after_expires_at": true
+          },
+          "expected": {
+            "decision": "original_result",
+            "additional_enqueued": 0,
+            "expiry_rejudged": false
+          }
+        },
+        {
+          "name": "unknown_and_revoked_recipients_are_indistinguishable",
+          "targets": [
+            {
+              "principal_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
+              "device_id": "ak:device:01964137-0000-7000-8000-000000000003",
+              "device_message_id": "ak:device_message:01964137-1000-7000-8000-000000000031",
+              "recipient_state": "never_authorized"
+            },
+            {
+              "principal_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
+              "device_id": "ak:device:01964137-0000-7000-8000-000000000004",
+              "device_message_id": "ak:device_message:01964137-1000-7000-8000-000000000032",
+              "recipient_state": "revoked"
+            }
+          ],
+          "expected": {
+            "decision": "accept",
+            "unknown_row_members": [
+              "device_message_id",
+              "status"
+            ],
+            "rows_differ_only_by_device_message_id": true,
+            "enqueued": 0
+          }
+        }
+      ],
+      "assertions": [
+        "any target not matched by an exact idempotency record whose expires_at is missing, expired, earlier than sent_at or beyond the Station TTL limit fails the whole request with top-level param_invalid and enqueues nothing",
+        "the exact device_message_id plus canonical intent check runs before the expiry check, so an exact retry after expires_at returns the original enqueue result",
+        "unknown_devices rows carry only device_message_id and status=unknown; unknown, revoked, fenced or non-local recipients are indistinguishable",
+        "no reserved error code is activated and no unknown-row reason is produced"
       ]
     }
   ]

@@ -188,10 +188,6 @@
         "authorized_event_ref": {
           "$ref": "#/$defs/event_id"
         },
-        "signer_resolution_evidence_ref": {
-          "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref",
-          "description": "Durably materialized account_device_control evidence for this exact confirmed device authorization. It is historical provenance and remains available after revoke, expiry or generation fencing; current status still gates new authoring."
-        },
         "authorized_at": {
           "$ref": "#/$defs/timestamp"
         },
@@ -227,8 +223,7 @@
           "then": {
             "required": [
               "verification_source",
-              "authorized_event_ref",
-              "signer_resolution_evidence_ref"
+              "authorized_event_ref"
             ]
           }
         },

@@ -215,6 +215,11 @@ Sidecar 的 `ak.mls.genesis`、每次 MLS Commit Event、pre-Genesis proposal �
 额外或未排序 refs 均 MUST fail closed，零 Event／RealmCommit／MLS epoch／Welcome 副作用。并发 authority
 变更先于该 MLS Event 接受时，旧 cut 不可继续获准；应以新 cut 重新生成并签名，而不能由服务器改写签名 binding。
 
+`authority_stream_head` 最多 64 项，等于 binding decoder 的 `maximum_collection_items`（见
+[`../crypto-media/encryption-and-audit.md` §2.5.1](../crypto-media/encryption-and-audit.md)）。任何 authority 变更若会使某个
+Sidecar 的派生 cut 超过 64 项，治理 Station MUST 在**接受该变更时**以既有 `failed_precondition` 零写入拒绝，
+不得拖到 MLS Genesis／Commit 时失败；不另设 reason，也不调高 decoder 上限。
+
 新 desired Agent 在 Welcome、KeyPackage consume 与设备 readiness 全部完成前不得接收 Sidecar payload。
 Agent 失去 desired 资格后，服务端必须立即停止新寻址/投递，并保留 MLS remove/rotate obligation；旧 epoch
 key、旧 session 或本地缓存不能继续授权新写。

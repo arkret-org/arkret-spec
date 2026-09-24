@@ -67,6 +67,56 @@ class MlsGovernanceBindingClosureTest(unittest.TestCase):
 
         self.assertTrue(any("resource_limit_exceeded" in error for error in self._run(FIXTURE, mutate)))
 
+    def test_sidecar_acceptance_kat_must_carry_both_sidecar_members(self) -> None:
+        def mutate(value):
+            sample = next(
+                item for item in value["cases"][0]["accepted"]
+                if item["name"] == "sidecar_scope_commit"
+            )
+            del sample["binding"]["authority_stream_head"]
+
+        self.assertTrue(any("sidecar_member_missing" in error for error in self._run(FIXTURE, mutate)))
+
+    def test_each_scope_member_rejection_class_is_required(self) -> None:
+        for name in (
+            "sidecar_member_missing",
+            "non_sidecar_carries_sidecar_member",
+            "authority_stream_head_unsorted",
+            "authority_stream_head_duplicate",
+        ):
+            with self.subTest(name=name):
+                def mutate(value, name=name):
+                    value["cases"][0]["rejection_samples"] = [
+                        sample for sample in value["cases"][0]["rejection_samples"]
+                        if sample["name"] != name
+                    ]
+
+                self.assertTrue(any(name in error for error in self._run(FIXTURE, mutate)))
+
+    def test_scope_member_rejection_bytes_must_break_the_named_rule(self) -> None:
+        def mutate(value):
+            samples = value["cases"][0]["rejection_samples"]
+            accepted = next(
+                item for item in value["cases"][0]["accepted"]
+                if item["name"] == "sidecar_scope_commit"
+            )
+            unsorted = next(item for item in samples if item["name"] == "authority_stream_head_unsorted")
+            unsorted["encoded_map_hex"] = accepted["encoded_map_hex"]
+
+        self.assertTrue(any("authority_stream_head_unsorted" in error for error in self._run(FIXTURE, mutate)))
+
+    def test_schema_must_bound_authority_stream_head(self) -> None:
+        def mutate(value):
+            del value["$defs"]["mls_governance_binding"]["properties"]["authority_stream_head"]["maxItems"]
+
+        self.assertTrue(any("maxItems" in error for error in self._run(SCHEMA, mutate)))
+
+    def test_schema_must_forbid_sidecar_members_outside_sidecar(self) -> None:
+        def mutate(value):
+            del value["$defs"]["mls_governance_binding"]["allOf"][0]["else"]
+
+        self.assertTrue(any("forbid them" in error for error in self._run(SCHEMA, mutate)))
+
     def test_decoder_limits_must_match_the_gate(self) -> None:
         def mutate(value):
             value["cases"][0]["resource_limits"]["maximum_collection_items"] = 65

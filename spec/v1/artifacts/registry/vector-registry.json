@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-24.3",
+  "version": "2026-09-24.4",
   "source_of_truth": true,
-  "generated_at": "2026-09-24T18:30:33+08:00",
+  "generated_at": "2026-09-24T23:25:52+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -217,6 +217,19 @@
         "spec/v1/zh/models/actor-private-effects.md",
         "spec/v1/zh/models/account-data.md",
         "spec/v1/zh/sync/client-sync.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.agent.action_approve_expiry.v1",
+      "status": "active",
+      "domain": "agent",
+      "applies_to_fixtures": [
+        "protocol-edge-cases-fixture.json"
+      ],
+      "description": "ak.agent.action_approve expires_at is judged only against the signed committed_at of the covering RealmCommit, inclusive with zero tolerance: equality accepts, one millisecond later rejects with zero writes, an approved Event published after expiry fails its publication gate as if unconfirmed, envelope created_at and Station-local time are never compared, and exact retry returns the original Commit without re-judging.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
+        "spec/v1/zh/authz/constraint-schema.md"
       ]
     },
     {
@@ -4769,6 +4782,19 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
         "spec/v1/zh/conformance/conformance-suite.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.sync.device_message_send_admission.v1",
+      "status": "active",
+      "domain": "sync",
+      "applies_to_fixtures": [
+        "protocol-edge-cases-fixture.json"
+      ],
+      "description": "DeviceMessage send: one target with a missing, expired, pre-sent_at or over-TTL expires_at fails the whole mixed batch with top-level param_invalid and enqueues nothing; an exact device_message_id plus canonical intent retry after expiry returns the original result; unknown and revoked recipients yield indistinguishable unknown_devices rows without a reason member.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
+        "spec/v1/zh/crypto-media/device-lifecycle.md"
       ]
     },
     {

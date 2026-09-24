@@ -332,8 +332,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-governance-binding-closure-fixture.json",
-      "sha256": "6a936d98382ac045796020e12a7e7f5659e80f95c3407d79919965ae86e94429",
-      "version": "2026-09-22.1"
+      "sha256": "7c4445d06571b5c916e22e56db119f605050fdc4c708045be3fd9fdf6661b866",
+      "version": "2026-09-24.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-group-id-derivation-fixture.json",
@@ -392,8 +392,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
-      "sha256": "24ce1e4037b52289e95ea5e5b0c81cd1f8ab0b2cc040273eb7b93393056c7ae2",
-      "version": "2026-09-20.1"
+      "sha256": "ced416d7545b68037c666c637986222017d1dd240e9805db08fb3e01b00054e5",
+      "version": "2026-09-24.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/protocol-time-tolerance-fixture.json",
@@ -452,8 +452,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "7fb3cbc48e3aa247e3d65de8725f7ac2a8be6325702f545205135968bcc388a6",
-      "version": "2026-09-20.1"
+      "sha256": "7d18d66f4cdce5622184345021fbd1c7859240102de9109c5f8db977db881ab8",
+      "version": "2026-09-24.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",

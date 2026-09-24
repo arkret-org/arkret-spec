@@ -417,7 +417,6 @@
         "target",
         "approved_event_id",
         "approval_nonce",
-        "approved_at",
         "expires_at"
       ],
       "properties": {
@@ -472,11 +471,9 @@
           "pattern": "^[A-Za-z0-9_-]{22,86}$",
           "description": "At least 128 bits of controller-generated entropy; one immutable allocation per controller ActorId and target Realm. It cannot be released or reassigned."
         },
-        "approved_at": {
-          "$ref": "#/$defs/timestamp"
-        },
         "expires_at": {
-          "$ref": "#/$defs/timestamp"
+          "$ref": "#/$defs/timestamp",
+          "description": "Inclusive confirmation deadline judged only against signed RealmCommit committed_at with zero tolerance: the covering commit of this confirmation and the covering commit of the approved Event MUST each have committed_at <= expires_at. Envelope created_at is display-only and is not compared; no Station-local current time is read."
         }
       },
       "additionalProperties": false
@@ -5772,7 +5769,7 @@
     },
     "mls_governance_binding": {
       "type": "object",
-      "description": "The single closed Arkret MLS governance binding used identically by the Event payload, GroupContext extension 0xF1C0 and pre-Genesis proposal carrier. Sidecar scope additionally signs the participant authority digest and accepted authority cut. key_access_revision is a monotonic unsigned 64-bit counter, not a digest.",
+      "description": "The single closed Arkret MLS governance binding used identically by the Event payload, GroupContext extension 0xF1C0 and pre-Genesis proposal carrier. Five members are shared by every scope; the Sidecar scope additionally requires the signed participant authority digest and accepted authority cut, and any other scope carrying either is a schema_violation. key_access_revision is a monotonic unsigned 64-bit counter, not a digest.",
       "x-arkret-deterministic-cbor": {
         "map_key_order": [
           "next_epoch",
@@ -5834,8 +5831,9 @@
             "$ref": "#/$defs/event_ref"
           },
           "minItems": 1,
+          "maxItems": 64,
           "uniqueItems": true,
-          "description": "UTF-8 byte-lexicographically sorted accepted Event IDs at the exact Sidecar participant decision cut; same value as AgentSidecarView.mls_context.authority_stream_head."
+          "description": "UTF-8 byte-lexicographically sorted accepted Event IDs at the exact Sidecar participant decision cut; same value as AgentSidecarView.mls_context.authority_stream_head. maxItems equals the decoder maximum_collection_items; the governance Station rejects, at acceptance time and with failed_precondition and zero writes, any authority change whose derived Sidecar cut would exceed it."
         }
       },
       "allOf": [

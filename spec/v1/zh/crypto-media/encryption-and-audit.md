@@ -179,7 +179,7 @@ MlsGroupCurrent {
 #### 2.5.1 固定 GroupContext binding
 
 RFC 9420 GroupContext extension `0xF1C0` 使用 deterministic CBOR 编码唯一固定的 v1
-`MlsGroupBinding`：
+`MlsGroupBinding`：五个公共成员，加上仅 Sidecar scope 必需的两个成员。
 
 ```text
 {
@@ -187,15 +187,20 @@ RFC 9420 GroupContext extension `0xF1C0` 使用 deterministic CBOR 编码唯一�
   base_group_state_ref,
   previous_epoch,
   next_epoch,
-  key_access_revision
+  key_access_revision,
+  participant_authority_digest,   // 仅 Sidecar
+  authority_stream_head           // 仅 Sidecar
 }
 ```
 
-三个整数都限于 `0..2^64-1`。外层 map 的 deterministic-CBOR key 编码字节顺序固定为
-`next_epoch`、`previous_epoch`、`effective_scope`、`key_access_revision`、
-`base_group_state_ref`；嵌套 `effective_scope` 同样按 RFC 8949 的编码后 key 字节排序。未知字段、缺字段、
+`effective_scope.kind=sidecar` 时两个 Sidecar 成员 MUST 同时出现（语义见
+[`../models/sidecar.md` §6](../models/sidecar.md)）；Realm／Circle 携带其中任一字段即 `schema_violation`。
+`authority_stream_head` 按 UTF-8 字节序排序、去重，最多 64 项。三个整数都限于 `0..2^64-1`。外层 map 的
+deterministic-CBOR key 编码字节顺序逐字等于 schema `map_key_order`：`next_epoch`、`previous_epoch`、
+`effective_scope`、`key_access_revision`、`base_group_state_ref`、`authority_stream_head`、
+`participant_authority_digest`，缺席成员直接跳过；嵌套 `effective_scope` 同样按 RFC 8949 的编码后 key 字节排序。未知字段、缺字段、
 indefinite-length CBOR、非最短整数、重复或乱序 map key、trailing bytes、错误 major type、超出整数范围、
-声明长度超过剩余输入均拒绝，接收方不得规范化后再接受。decoder 在解析前和递归中 MUST 执行共同上限：输入最多
+声明长度超过剩余输入、`authority_stream_head` 未排序或重复均拒绝，接收方不得规范化后再接受。decoder 在解析前和递归中 MUST 执行共同上限：输入最多
 16384 bytes、嵌套最多 8 层、单个 map/array 最多 64 项；超过任一上限都以 `schema_violation` 拒绝，不得按声明长度
 预分配无界缓冲区。
 

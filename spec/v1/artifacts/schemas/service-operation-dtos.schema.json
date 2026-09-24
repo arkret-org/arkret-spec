@@ -873,7 +873,7 @@
         },
         "unknown_devices": {
           "type": "object",
-          "description": "Principal-id to device-id map for targets that were not deliverable.",
+          "description": "Principal-id to device-id map for recipient targets that are not deliverable. Membership alone is the whole result: unknown, revoked, fenced or otherwise undeliverable devices are indistinguishable. A sender-side invalid expires_at never lands here; it fails the whole request.",
           "propertyNames": {
             "$ref": "./common-ids.schema.json#/$defs/did_core_id"
           },
@@ -3745,8 +3745,7 @@
       "type": "object",
       "required": [
         "device_message_id",
-        "status",
-        "reason_code"
+        "status"
       ],
       "properties": {
         "device_message_id": {
@@ -3755,12 +3754,6 @@
         "status": {
           "const": "unknown",
           "description": "Retained on purpose: DeviceMessagesSendOutcome dispatches this item by its position in the unknown_devices map, and the status member keeps a detached item self-describing against DeviceMessageDeliveredRow. It is a positional discriminator, not a success-only outcome constant."
-        },
-        "reason_code": {
-          "type": "string",
-          "pattern": "^[a-z][a-z0-9_]{0,63}$",
-          "minLength": 1,
-          "maxLength": 128
         }
       },
       "additionalProperties": false

@@ -596,11 +596,11 @@ To-device wire object MUST 使用 `DeviceMessageEnvelope`，而不是持久 `Eve
 
 `device_message_id`、closed sender branch、`recipient_account_id` 和 `recipient_device_id` MUST 被签名、device proof 或加密 AAD 覆盖。发送接口的 `messages.{principal_id}.{device_id}` 是当前认证 Station 内显式登记的局部队列坐标；服务端在入队前 MUST 以当前 Station 补全目标 `AccountId`，不得跨 Station 解释该标量。接收端 MUST 拒绝 envelope 目标与当前登录完整账号或设备不一致的消息。
 
-发送方 MUST 在第一次构造逻辑消息时分配 `device_message_id`，应用重试、HTTP batch 重试和服务端重投都 MUST 沿用该值；重新分配 ID 表示新的逻辑消息，接收端 MUST 独立处理。服务端 MUST 以完整 closed sender identity 与 `device_message_id` 维护至少到该消息 ACK 取消后短 grace period 的幂等记录：human device 使用 `(sender_account_id,sender_device_id,device_message_id)`，Agent 使用 `(sender_agent_id,device_message_id)`，Station service 使用 `(sender_id,device_message_id)`。相同 canonical target intent 重试返回既有入队结果且不得新增队列项；同 key 但 `kind`、recipient、`expires_at` 或 `content` 不同，MUST 以 `duplicate_conflict`（reason `device_message_id_conflict`）拒绝整个发送请求且不得入队任一冲突版本。canonical target intent 包含 `device_message_id`、`kind`、当前且仅当前 sender 分支的全部字段、`recipient_account_id`、`recipient_device_id`、`expires_at` 与 `content`；不含服务端物化的 `sent_at`、`unsigned` 或 HTTP `Idempotency-Key`。
+发送方 MUST 在第一次构造逻辑消息时分配 `device_message_id`，应用重试、HTTP batch 重试和服务端重投都 MUST 沿用该值；重新分配 ID 表示新的逻辑消息，接收端 MUST 独立处理。服务端 MUST 以完整 closed sender identity 与 `device_message_id` 维护至少到该消息 ACK 取消后短 grace period 的幂等记录：human device 使用 `(sender_account_id,sender_device_id,device_message_id)`，Agent 使用 `(sender_agent_id,device_message_id)`，Station service 使用 `(sender_id,device_message_id)`。相同 canonical target intent 重试返回既有入队结果且不得新增队列项；该判定先于 `expires_at` 检查，因此 `expires_at` 之后的 exact retry 仍返回原结果；同 key 但 `kind`、recipient、`expires_at` 或 `content` 不同，MUST 以 `duplicate_conflict`（reason `device_message_id_conflict`）拒绝整个发送请求且不得入队任一冲突版本。canonical target intent 包含 `device_message_id`、`kind`、当前且仅当前 sender 分支的全部字段、`recipient_account_id`、`recipient_device_id`、`expires_at` 与 `content`；不含服务端物化的 `sent_at`、`unsigned` 或 HTTP `Idempotency-Key`。
 
 `sender_id` 只表示 Station 对 holder actor-private CAS typed current result 已接受 revision 的内部队列物化者，不把 service 冒充成 holder，也不授予任意 service 发送普通 to-device kind 的能力。该分支不走 holder device revocation gate，不排除所谓 origin device，而是 fanout 到 holder 的全部 active devices；service identity 由当前 authenticated Station transport / service resolution 绑定，MUST NOT 作为可跨服务转交的 bearer delegation。`ak.self.device_messages.command.send.v1` 是规范客户端 surface，MUST 拒绝任何试图提交或诱导物化 service sender 的请求；只有 Station 内部 actor-private materializer 可以产生该分支。
 
-To-device 消息不是长期 Event history。发送方 MUST 设置 `expires_at`；服务端 MUST 在新入队前拒绝缺失 `expires_at`、已经过期、早于 `sent_at` 或超过当前 service / Realm / profile TTL 上限的消息。默认最大入队 TTL 为 24 小时；高安全 profile SHOULD 使用更短值。`expires_at` 限制新入队与接收端业务新鲜度，不是队列删除条件：未 ACK 的 DeviceMessage MUST 持久保留，`GET /_arkret/self/device_messages` MUST 继续返回，直到该 endpoint 的累计 ACK 取消它。接收端在处理密文或业务动作前独立判断过期；队列不得因过期或容量压力删除未确认项。容量满时按 [`client-sync.md` §10.1](../sync/client-sync.md) 与同队列 Welcome 的合计容量原子拒绝新入队且零部分写入。
+To-device 消息不是长期 Event history。发送方 MUST 设置 `expires_at`；服务端 MUST 在新入队前拒绝缺失 `expires_at`、已经过期、早于 `sent_at` 或超过当前 service / Realm / profile TTL 上限的消息：未命中 exact 幂等记录的任一目标出现上述情形，整请求即以顶层 `param_invalid` 失败，零入队。默认最大入队 TTL 为 24 小时；高安全 profile SHOULD 使用更短值。`expires_at` 限制新入队与接收端业务新鲜度，不是队列删除条件：未 ACK 的 DeviceMessage MUST 持久保留，`GET /_arkret/self/device_messages` MUST 继续返回，直到该 endpoint 的累计 ACK 取消它。接收端在处理密文或业务动作前独立判断过期；队列不得因过期或容量压力删除未确认项。容量满时按 [`client-sync.md` §10.1](../sync/client-sync.md) 与同队列 Welcome 的合计容量原子拒绝新入队且零部分写入。
 
 发送接口：
 
@@ -632,14 +632,14 @@ Content-Type: application/json
 | 字段 | 类型 | 必填 | 说明与约束 |
 | --- | --- | --- | --- |
 | `delivered` | `object` | required | 已入队或已投递设备的 typed map；没有结果时为 `{}`。 |
-| `unknown_devices` | `object` | required | 无法识别或不可投递设备的 typed map；没有结果时为 `{}`。 |
+| `unknown_devices` | `object` | required | 收件方不可投递且不可枚举设备的 typed map；没有结果时为 `{}`。 |
 
 **Partial-success / 全局失败语义（normative）**：
 
-- **整体拒绝**（请求级失败：认证 / 授权失败、`Idempotency-Key` 冲突、所有目标 envelope 缺 `expires_at` / 已过期 / 超 TTL 上限、body 非 canonical）MUST 走 HTTP 错误响应（4xx，按 [`../sync/api-conventions.md`](../sync/api-conventions.md) Problem Details）；此时不入队任何消息。
+- **整体拒绝**（请求级失败：认证 / 授权失败、`Idempotency-Key` 冲突、任一非 exact retry 目标的 `expires_at` 不合法（`param_invalid`）、body 非 canonical）MUST 走 HTTP 错误响应（4xx，按 [`../sync/api-conventions.md`](../sync/api-conventions.md) Problem Details）；此时不入队任何消息。
 - **部分成功**（请求被接受、至少一个目标被处理，但部分设备落入 `unknown_devices`）：逐设备结果只由必填的 `delivered` / `unknown_devices` typed map 表达，不附加通用布尔判别。
 - **覆盖关系**：`delivered` 与 `unknown_devices` 的设备集合 MUST 互不相交，且其并集 MUST 等于请求 `messages` 中的全部 `(principal_id, device_id)` 目标全集（每个目标恰好出现在二者之一）。consumer 据此可断言无目标被静默丢弃。
-- 单设备因 TTL / `expires_at` 等可投递性原因不可入队时，该设备 MUST 计入 `unknown_devices`（携带可投递性失败语义），不使整请求失败。
+- `unknown_devices` 只表示收件方不可投递：设备不存在、不可见、已撤销、已 fence 或非本地时，row 只含 `device_message_id` 与 `status`，各原因 MUST 不可区分。`expires_at` 是发送方请求字段，其失败只走整体拒绝，MUST NOT 计入 `unknown_devices`。固定向量为 `ak.vector.sync.device_message_send_admission.v1`。
 
 请求示例（非完整 schema）。`messages.{principal_id}.{device_id}` 的 `{device_id}` 是**收件设备**地址；发送设备身份由认证会话和最终 envelope 的 `sender_device_id` 绑定：
 
@@ -1235,7 +1235,7 @@ checkpoint 的失效遵守既有 lifecycle 与 generation 规则，不另设独�
 - authorize generation 被 fence，或设备 key rotation 后 checkpoint 不再绑定 exact key：evidence MUST 变为 `stale`；
 - 没有可验证 checkpoint，或 PCR evidence 出现 gap / 冲突：evidence 保持 `unresolved`，MUST NOT TOFU。
 
-account `device_summary` 的 `verification_source` MUST 在 evidence=`verified` 时出现，在 evidence=`unresolved` 时缺省；曾 verified 后转 `stale` 的 row 保留原 `verification_source` 作为 provenance，但 MUST NOT 据此继续 live authorization。该字段是 provenance 投影，不是第二个真相源：checkpoint 本身仍由 accepted PCR evidence（§5.5）与上述条件决定。
+account `device_summary` 的 `verification_source` MUST 在 evidence=`verified` 时出现，在 evidence=`unresolved` 时缺省；曾 verified 后转 `stale` 的 row 保留原 `verification_source` 作为 provenance，但 MUST NOT 据此继续 live authorization。该字段是 provenance 投影，不是第二个真相源：checkpoint 本身仍由 accepted PCR evidence（§5.5）与上述条件决定。`verified` 的 provenance 只由 `verification_source` 与 `authorized_event_ref` 表达；`device_summary` 不携带 signer evidence ref，可移植签名者证据只经 §8.2 的 `account_device_signer_evidence` 交付，高风险 Control 仍按 §8.2.2 fail closed。
 
 `stale` / `unresolved` 的历史设备、受控导入设备与 key rotation 后的设备统一重新走 §2.1 的 account-bound pairing / re-verification ceremony 取得新 checkpoint。v1 不提供第二套 device-level 验证协议，也不定义独立的“验证设备”页面或 verification 专用二维码；§2.1.1 的 pairing 二维码是唯一 QR 载体。
 

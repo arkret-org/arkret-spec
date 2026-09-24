@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 8917,
+    "total_properties": 8914,
     "total_schema_documents": 165,
     "by_presence_class": {
-      "optional": 2145,
+      "optional": 2144,
       "optional_defaulted": 47,
-      "required": 6256,
+      "required": 6254,
       "required_nullable": 302,
       "tristate": 167
     },
@@ -1861,7 +1861,6 @@
         "/$defs/device_summary/properties/last_seen_at": "optional",
         "/$defs/device_summary/properties/revocation_states": "optional",
         "/$defs/device_summary/properties/revoked_at": "optional",
-        "/$defs/device_summary/properties/signer_resolution_evidence_ref": "optional",
         "/$defs/device_summary/properties/status": "required",
         "/$defs/device_summary/properties/verification_source": "optional",
         "/$defs/device_summary/properties/verification_state": "required",
@@ -1978,7 +1977,6 @@
         "/$defs/account_status_record/properties/previous_account_status_record_id",
         "/$defs/device_summary/properties/authorized_event_ref",
         "/$defs/device_summary/properties/revocation_states",
-        "/$defs/device_summary/properties/signer_resolution_evidence_ref",
         "/$defs/device_summary/properties/verification_source"
       ]
     },
@@ -5661,7 +5659,6 @@
         "/$defs/agent_action_approve_payload/properties/agent_id": "required",
         "/$defs/agent_action_approve_payload/properties/approval_id": "required",
         "/$defs/agent_action_approve_payload/properties/approval_nonce": "required",
-        "/$defs/agent_action_approve_payload/properties/approved_at": "required",
         "/$defs/agent_action_approve_payload/properties/approved_event_id": "required",
         "/$defs/agent_action_approve_payload/properties/draft_content_digest": "optional",
         "/$defs/agent_action_approve_payload/properties/draft_id": "optional",
@@ -10536,7 +10533,6 @@
         "/$defs/DeviceMessageTarget/properties/expires_at": "required",
         "/$defs/DeviceMessageTarget/properties/kind": "required",
         "/$defs/DeviceMessageUnknownRow/properties/device_message_id": "required",
-        "/$defs/DeviceMessageUnknownRow/properties/reason_code": "required",
         "/$defs/DeviceMessageUnknownRow/properties/status": "required",
         "/$defs/DeviceMessagesAckOutcome/properties/pruned_count": "required",
         "/$defs/DeviceMessagesAckRequestBody/properties/ack_token": "required",

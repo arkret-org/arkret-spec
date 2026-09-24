@@ -1,12 +1,12 @@
 {
-  "version": 13,
+  "version": 14,
   "source_of_truth": false,
   "narrative_source": "spec/v1/zh/models/common-fields.md#r6-证据类名词分工",
   "scope": [
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 344,
+  "audited_occurrence_count": 343,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -55,13 +55,6 @@
         "commitment"
       ],
       "reason": "Carries the spec-defined client-authored registration evidence draft before Account Authority acceptance."
-    },
-    {
-      "file": "account-operations.schema.json",
-      "key": "signer_resolution_evidence_ref",
-      "occurrences": 1,
-      "disposition": "qualifier",
-      "reason": "Content-addresses the immutable account_device_control signer-evidence root materialized for the confirmed device authorization."
     },
     {
       "file": "account-operations.schema.json",

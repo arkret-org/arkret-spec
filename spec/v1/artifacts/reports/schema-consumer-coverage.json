@@ -1051,8 +1051,6 @@
       "vector_coverage": {
         "disposition": "composed_schema_owned",
         "owners": [
-          "ak.schema.account_operations.v1",
-          "ak.schema.account_status_record.v1",
           "ak.schema.agent_operations.v1",
           "ak.schema.agent_pairing_bootstrap.v1",
           "ak.schema.applet_edge_operations.v1",

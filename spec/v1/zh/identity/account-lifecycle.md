@@ -477,7 +477,7 @@ Realm 内 membership 不自动变成 ban；是否移除由 Realm policy 决定�
 | **Applet delegation** | 撤销所有 `ak.applet.registration` 持有的 delegated device；applet 服务后续调用 MUST `delegation_revoked`。 | reducer 状态转换 |
 | **KeyPackage** | 由认证 `AccountId` 解析本地 `account_pk`，按该本地外键逐行 read/CAS 到终态：`published+unused → revoked`，reason=`principal_deactivated`；`claimed+unconsumed → revoked`并保留原 claim ID；`consumed`保持 immutable。KeyPackage wire object 不携 owner ID。CAS stale 必须重读并继续，直到写入目标终态或确认已处同一终态；stale conflict 不得计作完成。任何 terminal 不得复活或二次 claim。 | reducer + KeyPackage store 失效 |
 | **Push route** | 撤销 exact `AccountId` 下的全部 `ak.device.push_route`；push gateway MUST 停止向这些注册 endpoint 投递。 | reducer + push gateway 缓存失效 |
-| **To-device queue** | 服务端 to-device 队列 drop 所有目标 `AccountId == deactivated_account_id` 的 pending message；后续投递 MUST `recipient_unavailable`。 | server-side queue 状态 |
+| **To-device queue** | 服务端 to-device 队列 drop 所有目标 `AccountId == deactivated_account_id` 的 pending message；后续发送 MUST 把这些目标计入 `unknown_devices`，与其它不可投递设备不可区分。 | server-side queue 状态 |
 | **Identity link cache** | 客户端与服务端可见缓存 MUST eager invalidate 所有 `(*, pairwise_did → deactivated_principal)` 映射；不得等待 7d TTL 或 MLS epoch 推进。 | `ak.identity_link` cache invalidation |
 | **Capability cache** | 所有 cached `ak.capability.grant` decision 以该完整 `AccountId` / account ActorId 作为 subject 或 issuer 的 MUST eager invalidate；下次 capability check 走完整判定。 | cache invalidation |
 

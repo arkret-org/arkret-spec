@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-19.1",
-  "generated_at": "2026-09-19T19:00:49+08:00",
+  "version": "2026-09-24.1",
+  "generated_at": "2026-09-24T23:25:52+08:00",
   "source_of_truth": true,
   "description": "Canonical fixed MLS extension contract for Arkret v1 groups.",
   "private_use_range": {
@@ -30,8 +30,8 @@
       "messages": [
         "GC"
       ],
-      "carries": "Closed deterministic-CBOR map {effective_scope, base_group_state_ref, previous_epoch, next_epoch, key_access_revision}.",
-      "wire_encoding": "RFC 8949 deterministic CBOR with definite lengths and the five closed fields listed in carries",
+      "carries": "Closed deterministic-CBOR map of five shared members {effective_scope, base_group_state_ref, previous_epoch, next_epoch, key_access_revision}; the Sidecar scope additionally requires participant_authority_digest and authority_stream_head, which every other scope MUST omit.",
+      "wire_encoding": "RFC 8949 deterministic CBOR with definite lengths; key order equals the schema x-arkret-deterministic-cbor.map_key_order of all seven registered members",
       "binding_schema_ref": "schemas/event-payload.schema.json#/$defs/mls_governance_binding",
       "proposal_carrier_schema_ref": "schemas/event-payload.schema.json#/$defs/mls_genesis_binding_proposal_carrier",
       "key_access_revision_contract": "Monotonic unsigned 64-bit integer counter; it is never encoded or compared as a digest.",

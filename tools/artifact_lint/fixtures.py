@@ -5558,6 +5558,10 @@ BINDING_MEMBERS = (
     "next_epoch",
     "key_access_revision",
 )
+SIDECAR_BINDING_MEMBERS = (
+    "participant_authority_digest",
+    "authority_stream_head",
+)
 MLS_BINDING_MAX_INPUT_BYTES = 16384
 MLS_BINDING_MAX_NESTING_DEPTH = 8
 MLS_BINDING_MAX_COLLECTION_ITEMS = 64
@@ -5574,7 +5578,42 @@ def _cbor_text(value: str) -> bytes:
 def _deterministic_member_order() -> list[str]:
     """RFC 8949 section 4.2.1 orders map keys by their encoded bytes."""
 
-    return [name for _, name in sorted((_cbor_text(name), name) for name in BINDING_MEMBERS)]
+    members = BINDING_MEMBERS + SIDECAR_BINDING_MEMBERS
+    return [name for _, name in sorted((_cbor_text(name), name) for name in members)]
+
+
+def _binding_member_violation(value: Any) -> str | None:
+    """Scope-bound member set of a decoded binding.
+
+    Five members are shared by every scope; the two Sidecar members are
+    required for the Sidecar scope and forbidden for every other scope, and
+    authority_stream_head is strictly ascending by UTF-8 bytes.
+    """
+
+    if not isinstance(value, dict):
+        return "unsupported_major_type"
+    members = set(value)
+    if members - set(BINDING_MEMBERS) - set(SIDECAR_BINDING_MEMBERS):
+        return "unknown_member"
+    if set(BINDING_MEMBERS) - members:
+        return "missing_member"
+    scope = value.get("effective_scope")
+    is_sidecar = isinstance(scope, dict) and scope.get("kind") == "sidecar"
+    present = members & set(SIDECAR_BINDING_MEMBERS)
+    if is_sidecar and present != set(SIDECAR_BINDING_MEMBERS):
+        return "sidecar_member_missing"
+    if not is_sidecar and present:
+        return "non_sidecar_carries_sidecar_member"
+    head = value.get("authority_stream_head")
+    if is_sidecar:
+        if not isinstance(head, list) or not head or not all(isinstance(item, str) for item in head):
+            return "sidecar_member_missing"
+        encoded = [item.encode("utf-8") for item in head]
+        if len(set(encoded)) != len(encoded):
+            return "authority_stream_head_duplicate"
+        if encoded != sorted(encoded):
+            return "authority_stream_head_unsorted"
+    return None
 
 
 class _NonDeterministicCbor(Exception):
@@ -5638,6 +5677,11 @@ class _StrictCborReader:
             chunk = self.raw[self.at : self.at + length]
             self.at += length
             return chunk.decode("utf-8")
+        if major == 4:
+            count = self._argument(head)
+            if count > MLS_BINDING_MAX_COLLECTION_ITEMS:
+                raise _NonDeterministicCbor("resource_limit_exceeded")
+            return [self.item(depth + 1) for _ in range(count)]
         if major == 5:
             count = self._argument(head)
             if count > MLS_BINDING_MAX_COLLECTION_ITEMS:
@@ -5678,11 +5722,13 @@ def _decode_binding(hex_text: str) -> tuple[Any, str | None]:
         return None, exc.kind
     if reader.at != len(raw):
         return None, "trailing_bytes"
+    if not isinstance(value, dict):
+        return None, "unsupported_major_type"
     return value, None
 
 
 def check_mls_governance_binding_closure_vector(lint: Lint) -> None:
-    """Close the one five-member MLS binding across bytes, schema and carriers."""
+    """Close the one scope-bound MLS binding across bytes, schema and carriers."""
 
     path = ARTIFACTS / "fixtures" / "mls-governance-binding-closure-fixture.json"
     data = load_json(lint, path)
@@ -5749,9 +5795,20 @@ def check_mls_governance_binding_closure_vector(lint: Lint) -> None:
             lint.fail(path, f"accepted[{index}] is not deterministic: {failure}")
         elif decoded != binding:
             lint.fail(path, f"accepted[{index}] does not decode to its stated binding")
-        if not isinstance(binding, dict) or set(binding) != set(BINDING_MEMBERS):
-            lint.fail(path, f"accepted[{index}] is not the closed five-member binding")
+        if not isinstance(binding, dict) or _binding_member_violation(binding) is not None:
+            lint.fail(
+                path,
+                f"accepted[{index}] is not the five shared members plus exactly the "
+                f"Sidecar-only members its scope requires: {_binding_member_violation(binding)}",
+            )
             continue
+        check_json_instance_against_schema(
+            lint,
+            path,
+            f"accepted[{index}].binding",
+            "schemas/event-payload.schema.json#/$defs/mls_governance_binding",
+            binding,
+        )
         scope = binding.get("effective_scope")
         if isinstance(scope, dict) and isinstance(scope.get("kind"), str):
             seen_scope_kinds.add(scope["kind"])
@@ -5767,7 +5824,16 @@ def check_mls_governance_binding_closure_vector(lint: Lint) -> None:
         lint.fail(path, "the binding case must carry rejection samples")
         return
 
-    member_set_violations = {"unknown_member", "missing_member"}
+    member_set_violations = {
+        "unknown_member",
+        "missing_member",
+        "sidecar_member_missing",
+        "non_sidecar_carries_sidecar_member",
+        "authority_stream_head_unsorted",
+        "authority_stream_head_duplicate",
+    }
+    # authority_stream_head order is the one member-set rule JSON Schema cannot express.
+    schema_expressible_violations = member_set_violations - {"authority_stream_head_unsorted"}
     seen: set[str] = set()
     for index, sample in enumerate(samples):
         if not isinstance(sample, dict):
@@ -5792,10 +5858,23 @@ def check_mls_governance_binding_closure_vector(lint: Lint) -> None:
                     f"{label} is meant to be a well-formed encoding of the wrong "
                     f"member set, but it does not decode: {failure}",
                 )
-            elif not isinstance(decoded, dict):
-                lint.fail(path, f"{label} must decode to a map")
-            elif set(decoded) == set(BINDING_MEMBERS):
-                lint.fail(path, f"{label} decodes to the closed five members")
+            elif _binding_member_violation(decoded) != name:
+                lint.fail(
+                    path,
+                    f"{label} claims {name} but the member-set check reports "
+                    f"{_binding_member_violation(decoded) or 'a valid binding'}",
+                )
+            elif not isinstance(expected, dict) or expected.get("reason") != "schema_violation":
+                lint.fail(path, f"{label} must be rejected as schema_violation")
+            elif name in schema_expressible_violations:
+                check_json_instance_against_schema(
+                    lint,
+                    path,
+                    label,
+                    "schemas/event-payload.schema.json#/$defs/mls_governance_binding",
+                    decoded,
+                    expect_valid=False,
+                )
         elif failure != name:
             lint.fail(
                 path,
@@ -5806,6 +5885,10 @@ def check_mls_governance_binding_closure_vector(lint: Lint) -> None:
     for required in (
         "unknown_member",
         "missing_member",
+        "sidecar_member_missing",
+        "non_sidecar_carries_sidecar_member",
+        "authority_stream_head_unsorted",
+        "authority_stream_head_duplicate",
         "indefinite_length_map",
         "non_minimal_integer",
         "duplicate_map_key",
@@ -5882,10 +5965,7 @@ def check_mls_governance_binding_closure_vector(lint: Lint) -> None:
         if binding_schema.get("required") != list(BINDING_MEMBERS) or binding_schema.get("additionalProperties") is not False:
             lint.fail(schema_path, "mls_governance_binding must require its five shared members")
         cbor = binding_schema.get("x-arkret-deterministic-cbor")
-        sidecar_members = ("participant_authority_digest", "authority_stream_head")
-        all_members = BINDING_MEMBERS + sidecar_members
-        complete_order = [name for _, name in sorted((_cbor_text(name), name) for name in all_members)]
-        if not isinstance(cbor, dict) or cbor.get("map_key_order") != complete_order:
+        if not isinstance(cbor, dict) or cbor.get("map_key_order") != expected_order:
             lint.fail(schema_path, "mls_governance_binding must publish the exact deterministic-CBOR key order")
         elif {key: cbor.get(key) for key in expected_limits} != expected_limits:
             lint.fail(schema_path, "mls_governance_binding decoder limits differ from the closure fixture")
@@ -5893,6 +5973,31 @@ def check_mls_governance_binding_closure_vector(lint: Lint) -> None:
             shape = binding_schema.get("properties", {}).get(field, {})
             if shape.get("type") != "integer" or shape.get("minimum") != 0 or shape.get("maximum") != MLS_BINDING_UINT64_MAX:
                 lint.fail(schema_path, f"mls_governance_binding.{field} must be uint64")
+        head_shape = binding_schema.get("properties", {}).get("authority_stream_head", {})
+        if head_shape.get("maxItems") != MLS_BINDING_MAX_COLLECTION_ITEMS or head_shape.get("uniqueItems") is not True:
+            lint.fail(
+                schema_path,
+                "mls_governance_binding.authority_stream_head must be unique with maxItems equal to "
+                "the decoder maximum_collection_items",
+            )
+        sidecar_rule = next(
+            (
+                rule for rule in binding_schema.get("allOf", [])
+                if isinstance(rule, dict)
+                and rule.get("then", {}).get("required") == list(SIDECAR_BINDING_MEMBERS)
+            ),
+            None,
+        )
+        if sidecar_rule is None or sidecar_rule.get("if", {}).get("properties", {}).get(
+            "effective_scope", {}
+        ).get("properties", {}).get("kind", {}).get("const") != "sidecar" or sidecar_rule.get(
+            "else"
+        ) != {"not": {"anyOf": [{"required": [member]} for member in SIDECAR_BINDING_MEMBERS]}}:
+            lint.fail(
+                schema_path,
+                "mls_governance_binding must require both Sidecar members for the sidecar scope "
+                "and forbid them for every other scope",
+            )
 
     proposal_schema = definitions.get("mls_genesis_binding_proposal_carrier")
     required_carrier = ["event_kind", "proposal_kind", "sender_actor_id", "target_scope", "proposed_group_genesis_binding"]
