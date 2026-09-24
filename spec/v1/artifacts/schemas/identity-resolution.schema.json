@@ -463,7 +463,7 @@
         "ak.identity.resolution.update",
         "ak.realm.create"
       ],
-      "description": "Account-internal resolution audit and recovery evidence for one account selected by account_id. It is served only by the authorized audit operation. PCR genesis, realm and RealmCommit material support account-local audit and recovery; they MUST NOT be compared as external identity, MUST NOT be required to validate an ordinary federated Event carrying its portable producer proof and signer evidence, and MUST NOT be republished on any unauthenticated surface.",
+      "description": "Account-internal resolution audit and recovery evidence for one account selected by account_id. It is served only by the authorized audit operation. PCR genesis, realm and RealmCommit material support account-local audit and recovery; they MUST NOT be compared as external identity, MUST NOT be required to validate an ordinary federated Event, which is verified from its producer proof and the RealmCommit that admitted it, and MUST NOT be republished on any unauthenticated surface.",
       "required": [
         "account_id",
         "principal_control_realm_id",

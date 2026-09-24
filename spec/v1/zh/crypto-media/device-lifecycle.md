@@ -1127,8 +1127,10 @@ peer claim MUST 同时满足两层授权，任一层缺失或失效都 MUST fail
   branch 必须且只能携带恰一个 `target_device_ids`；Agent branch 必须且只能携带
   `target_agent_id + target_agent_verification_method + target_agent_key_authorize_event_id`，禁止
   `target_account_id` 与 `target_device_ids`。owner authority 必须从当前分支唯一 identity carrier 解析 target actor，并验证该 exact ref 属于
-  对应 target 与 signer，selector、claim record、current portable signer evidence 及 KeyPackage signature
-  逐字一致，状态为 current
+  对应 target 与 signer：按 §8.2.2 的同站规则，在本次领取事务的同一耐久 cut 读取本地 PCR 的
+  `device_authorization`／`device_generation`（Agent 分支读取本地 Agent current 授权），核对 KeyPackage 的
+  device 或 Agent、签名 key、authorize Event 与 current generation／状态，并与 selector、claim record 及
+  KeyPackage signature 逐字一致，状态为 current
   `published`、未消费、未撤销且 `last_resort=false`；不得忽略 exact ref 后按 device、capability 或库存顺序
   另选。成功 outcome 必须恰有一条 claim 且其 `keypackage_ref` 逐字等于 `target_keypackage_ref`；任一不匹配
   以不透明 `claim_failed` 零写入；
@@ -1147,7 +1149,8 @@ record；否则 single-use pool 耗尽即失败。
 2. 一般 profile 选择仍为 `published` 且通过 freshness / capability gate 的 KeyPackage；
    携带 `target_keypackage_ref` 的同组重加入请求只锁定该 exact KeyPackage，不得执行候选选择；
 3. 对 single-use KeyPackage 执行 CAS `published → claimed`；
-4. 在同一 current authority snapshot 上生成并复核 target portable evidence，写入 claim record、把
+4. 在同一 current authority snapshot 上按本地 PCR（Agent 为本地 Agent current 授权）复核 target 的设备或 Agent
+   授权、签名 key 与 current generation／状态，写入 claim record、把
    ledger 从 `pending` 变为终态，并写入已序列化的成功 outcome bytes。
 
 实现 MAY 在最终事务前先提交只含 `(Source-Service-ID, claim_request_id, request_digest, state=pending)` 的唯一 reservation，以串行化并发 duplicate；该 reservation 不得选择、锁定或泄露 KeyPackage。上述 1–4 的**最终化**必须在同一事务完成，因而不得出现 KeyPackage 已 `claimed` 但 ledger 无 outcome、或 ledger 已成功但 CAS 未发生的可观察状态。crash 后 recovery worker 只能按原 digest 恢复 / 最终化同一 reservation，不能改用新的请求身份。

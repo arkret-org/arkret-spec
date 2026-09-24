@@ -297,8 +297,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json",
-      "sha256": "f9967b13bf69f0657789d1935ec6edfdcb1539573bc1cdd65a62d80aa10a8db8",
-      "version": "2026-09-25.1"
+      "sha256": "fc5171596fcbe4f2dbad60f68cbb1bacb6d26f994905d93985d27ee529a5e409",
+      "version": "2026-09-25.2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/keypackage-write-transcript-fixture.json",

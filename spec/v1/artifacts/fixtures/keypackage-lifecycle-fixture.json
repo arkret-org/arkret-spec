@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.e2ee_client.v1",
-  "version": "2026-09-25.1",
+  "version": "2026-09-25.2",
   "suite": "keypackage_lifecycle",
   "runner": {
     "kind": "named_suite",
@@ -307,7 +307,7 @@
         },
         {
           "id": "requester_verifies_before_installing_or_authoring_a_welcome",
-          "requirement": "The requester checks the authorization Event embedded signer evidence, the claim receipt, the KeyPackage signature and every selector before installing a KeyPackage or authoring a Welcome, and any single mismatch blocks both.",
+          "requirement": "The requester checks the device-branch signer through the peer directory attestation (or the Agent-branch signer through its Agent signer evidence), the claim receipt, the KeyPackage signature and every selector before installing a KeyPackage or authoring a Welcome, and any single mismatch blocks both.",
           "evidence": [
             "/cases/11"
           ]
@@ -673,10 +673,10 @@
       "assertions": [
         "claim ledger uniqueness is scoped by source_id and claim_request_id",
         "claim_envelope signing input binds claim_receipt.claim_request_id as claim_request_id without duplicating it in the envelope wire",
-        "claim CAS, target portable evidence and the serialized success outcome commit at one linearization boundary",
+        "claim CAS, the target authorization check against local PCR (or local Agent current authorization) and the serialized success outcome commit at one linearization boundary",
         "an uncertain caller queries the original request instead of issuing a fresh claim",
         "same request id with another canonical digest cannot mutate KeyPackage state",
-        "exact replay and query return byte-identical target evidence rather than regenerating it against a later authority snapshot",
+        "exact replay and query return the byte-identical stored claim outcome rather than re-checking the target against a later authority snapshot",
         "a genuinely new claim attempt uses a newly generated claim_request_id"
       ]
     },

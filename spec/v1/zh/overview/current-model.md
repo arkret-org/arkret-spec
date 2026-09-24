@@ -132,7 +132,7 @@ Arkret v1 的统一读法是：
 
 成员资格显示必须来自已验证的确认状态；“可发送”还要求接收站当前已知授权、archive/freeze/terminal 等写入门禁和适用 MLS 状态就绪。缺少最近消息、完整成员列表、头像或旧历史不阻塞第一条消息。
 
-SDK 已持有可携带授权、历史 signer evidence 与 authoring checkpoint 时，直接从 typed Message intent 构造并签名普通 Event，经 own Station 排队／转发到目标 stream 的 current governance Station。原账号 Station 在完成耐久转发后可以离线，但治理 Station 必须在接纳事务内按 current committed state 验证并为消息签发 RealmCommit；非 authority 接收站只能返回 queued／forwarding，不能先行 accepted、写共享 current 或 fanout。聊天不要求 producer 预先取得一个新的授权 checkpoint，也不因无关 stream 前进而重签；每条 accepted 消息仍推进自己的 authority stream。撤销之前已 committed 的历史事实不追溯失效，撤销之后的新 live admission 由治理 Station 阻止。
+SDK 已持有本设备授权（Agent 为其 Agent signer evidence）与 authoring checkpoint 时，直接从 typed Message intent 构造并签名普通 Event，经 own Station 排队／转发到目标 stream 的 current governance Station。原账号 Station 在完成耐久转发后可以离线，但治理 Station 必须在接纳事务内按 current committed state 验证并为消息签发 RealmCommit；非 authority 接收站只能返回 queued／forwarding，不能先行 accepted、写共享 current 或 fanout。聊天不要求 producer 预先取得一个新的授权 checkpoint，也不因无关 stream 前进而重签；每条 accepted 消息仍推进自己的 authority stream。撤销之前已 committed 的历史事实不追溯失效，撤销之后的新 live admission 由治理 Station 阻止。
 
 可选的 `ak.self.messages.command.prepare.v1` 帮助缺少 authoring 上下文的客户端准备 unsigned Event：本地加密 → prepare → SDK 核对/签名 → submit。它增加一次准备请求，不构成所有普通消息必经的网络路径。首次治理同步、MLS 入组及附件上传另计；回复与 mention 沿 Message payload 表达，不暗中产生其它 Relation Event。
 

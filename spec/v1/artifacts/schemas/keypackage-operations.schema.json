@@ -943,7 +943,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Destination-service-signed durable receipt. source_id and request are covered by the receipt signature; request_digest additionally binds the complete transport command, including participant authorization and portable signer evidence."
+      "description": "Destination-service-signed durable receipt. source_id and request are covered by the receipt signature; request_digest additionally binds the complete transport command, including participant authorization."
     },
     "keypackage_claim_terminal_receipt": {
       "type": "object",

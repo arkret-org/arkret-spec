@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-25.1",
-  "generated_at": "2026-09-25T00:44:00+08:00",
+  "version": "2026-09-25.2",
+  "generated_at": "2026-09-25T01:05:00+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -269,11 +269,11 @@
     },
     {
       "operation_id": "ak.peer.keys.keypackages.command.claim.v1",
-      "sha256": "sha256:a4b17d16bee6c0bfeb58067d80661d8d5f07cd4d3a86c0bcedc1d0a0358c0f9c"
+      "sha256": "sha256:c7e2c72628d91f33169254ef22d08e3ea148b0efcc3abdb4b16c64bf0296f62c"
     },
     {
       "operation_id": "ak.peer.keys.keypackages.read.claim.v1",
-      "sha256": "sha256:34385f421e99baac4c1ad2ca6b03dc38902eb23f5a80fe500be8dc56bf1635e6"
+      "sha256": "sha256:95de8058bf4ecd9c14982225fd6730fe865ca1f8a86e34575533d1132c51b97c"
     },
     {
       "operation_id": "ak.peer.keys.read.lookup.v1",
@@ -637,7 +637,7 @@
     },
     {
       "operation_id": "ak.self.identity.read.resolution_audit.v1",
-      "sha256": "sha256:cc10a2ced5279bdf0d496383627d81b2faf407f311526519e8874b3907083ab5"
+      "sha256": "sha256:c156c2d6e058ff888c51a877b8c83517b5232447e0d36d3c9b7d002dffe13232"
     },
     {
       "operation_id": "ak.self.invite_locator.command.issue.v1",
@@ -693,7 +693,7 @@
     },
     {
       "operation_id": "ak.self.keys.keypackages.command.claim.v1",
-      "sha256": "sha256:2186a00234f4f9f397bbdf9d8e0ee0b45d5a74c2e831102019c7d6c8e8e955ae"
+      "sha256": "sha256:78828936679d36a54db55dfcb41d2fb464bc59069986fc8b9618e1d698a4815a"
     },
     {
       "operation_id": "ak.self.keys.keypackages.command.consume.v1",

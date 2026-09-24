@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-24.2",
+  "version": "2026-09-25.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-24T18:31:29+08:00",
+  "generated_at": "2026-09-25T01:05:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -1644,7 +1644,7 @@
       "http": "POST /_arkret/peer/keys/keypackages/claim",
       "grpc": "PeerKeys/KeyPackagesClaim",
       "mq": "peer.keys.keypackages.command.claim",
-      "notes": "Atomic cross-Station KeyPackage claim. The destination Station is the sole atomic claim-ledger authority for its KeyPackage inventory. The authenticated source Station first validates the participant request against its exact local account/device/generation durable state; revocation_pending fails before any remote call or inventory disclosure and is exposed only as the existing opaque claim_failed result. Request and response carry no PCR/control-history or separate signer-evidence sidecar. Every claim binds the matching accepted authorization Event id, whose unique producer proof and signer evidence must validate when independently replayed, plus the signed destination claim receipt, exact selectors and KeyPackage signature. Idempotency is scoped by (Source-Service-ID, claim_request_id) and the canonical request digest.",
+      "notes": "Atomic cross-Station KeyPackage claim. The destination Station is the sole atomic claim-ledger authority for its KeyPackage inventory. The authenticated source Station first validates the participant request against its exact local account/device/generation durable state; revocation_pending fails before any remote call or inventory disclosure and is exposed only as the existing opaque claim_failed result. Request and response carry no PCR/control-history or separate signer-evidence sidecar. Every claim binds the matching accepted authorization Event id plus the signed destination claim receipt, exact selectors and KeyPackage signature; the destination checks the target against its local PCR (or local Agent current authorization) at the claim cut, and the requester verifies a device-branch signer through the peer directory attestation (purpose mls_group_admission) whose device_authorize_event_id and signing key match the claim record and KeyPackage signature, or an Agent-branch signer through its Agent signer evidence. Idempotency is scoped by (Source-Service-ID, claim_request_id) and the canonical request digest.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "idempotency_key",
