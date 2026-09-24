@@ -221,8 +221,10 @@ selector 的身份字段来自已接纳 Event 的 typed payload，不得由调�
 必须先扩展 registry 与 schema；未知 selector 必须拒绝，不能退化为任意 JSON。
 
 `revision` 是 closed `{commit_id, stream_position}`。`commit_id` MUST 指向最后改变该结果的 RealmCommit，
-`stream_position` MUST 等于该 commit 在所属 stream 的位置。二者共同提供可验证的当前版本；时间戳、到达顺序与
-EventId 均不得替代 revision。
+`stream_position` MUST 等于该 commit 在所属 stream 的位置。每份 closed typed current result 还 MUST 携带
+`source_stream_ref`，逐字等于该 covering Commit 的 `stream_ref`；此成员是来源坐标的必填部分，不能由 selector、
+值或相同数字位置推测。`source_stream_ref` 不属于二元 `CurrentRevision`，既有 `expected_revision` CAS 仍逐字段比较
+`{commit_id, stream_position}`。时间戳、到达顺序与 EventId 均不得替代 revision。
 
 领域写操作需要并发保护时，payload 使用该领域定义的 `expected_revision`。Station 只在它与当前 typed revision
 逐字段相等时接纳；不相等返回 `failed_precondition` 并提供调用者有权读取的 current result。首次创建可使用该领域

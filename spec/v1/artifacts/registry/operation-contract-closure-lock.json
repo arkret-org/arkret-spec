@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-24.11",
-  "generated_at": "2026-09-24T10:09:21+08:00",
+  "version": "2026-09-24.13",
+  "generated_at": "2026-09-24T10:34:25+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -285,7 +285,7 @@
     },
     {
       "operation_id": "ak.peer.realm_authority.command.handoff.v1",
-      "sha256": "sha256:9af6937d989f7dfefe6e229f163e6503ce5973d48f55a43378048ad5aca27e6e"
+      "sha256": "sha256:4d16e1d678137dc059957928b8924ab4c9169882f29dc1fd7376671aaa5ae846"
     },
     {
       "operation_id": "ak.peer.realm_join.read.application_status.v1",
@@ -293,7 +293,7 @@
     },
     {
       "operation_id": "ak.peer.realm_join.read.bootstrap.v1",
-      "sha256": "sha256:2b04cbd53dfc8061f09147957c4d6420aeb1dff595262b40146592d9b4b8d687"
+      "sha256": "sha256:427ecabff1bcefa5f620aa5773a89d451376d99d567d3b8f8f879be92596fa14"
     },
     {
       "operation_id": "ak.peer.realm_join.read.preview.v1",
@@ -393,7 +393,7 @@
     },
     {
       "operation_id": "ak.self.account.stream.subscribe.v1",
-      "sha256": "sha256:eab86967141413bc1caf9b4de65a15a9ff1c129976c183712e96c8e9d70c86d9"
+      "sha256": "sha256:ec578983571a49e5dc9304f32b13f3a5f28799d3e31bf27cba4ca6b6dfd53bab"
     },
     {
       "operation_id": "ak.self.account_data.read.list.v1",
@@ -609,7 +609,7 @@
     },
     {
       "operation_id": "ak.self.current_results.read.exact.v1",
-      "sha256": "sha256:f8ebd5085ef1be87d7505093a8eaa48d56d5968c9847663bafc6ba355c6a6cb9"
+      "sha256": "sha256:e7f9dac715a53ec2e17b7112a87f22806f1a3e08dd1a39b02b908912cef13c13"
     },
     {
       "operation_id": "ak.self.device_messages.command.ack.v1",
@@ -785,11 +785,11 @@
     },
     {
       "operation_id": "ak.self.realm_state_snapshot.read.by_ref.v1",
-      "sha256": "sha256:2f06183d3109948e13aef43c9149cc76f9fe0951633511160a74c3674da6d2e5"
+      "sha256": "sha256:d9fc46d4d3d3b0ed952cf025d5da532ba72ee2a43e2e5e58c817b913c7999458"
     },
     {
       "operation_id": "ak.self.realm_state_snapshot.read.manifest_head.v1",
-      "sha256": "sha256:9d6d0d2f84a339be36c3eccdb8dc638b1f02ea9cfb01b5b53b3b40d94e97e80d"
+      "sha256": "sha256:d190f4c79e1117cddacffbf507f104bca44ea55a48c84ed04f79310a2c6e49db"
     },
     {
       "operation_id": "ak.self.security_transaction.command.continue.v1",
@@ -825,7 +825,7 @@
     },
     {
       "operation_id": "ak.self.strand.watch.read.current.v1",
-      "sha256": "sha256:d9227165820cfc6e17d27bb52c1bf00aaf1da56c6fcb2ee88b5b9e20eb35c707"
+      "sha256": "sha256:3a529f91897f54d76e2cc032bb30f75c3bb693c50ab5bf6cf53ab980344307b7"
     },
     {
       "operation_id": "ak.self.third_party_invite.read.acceptance_attestation.v1",

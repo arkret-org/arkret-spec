@@ -250,6 +250,7 @@
       "type": "object",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -270,6 +271,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -283,6 +285,7 @@
       "type": "object",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -303,6 +306,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -348,6 +352,7 @@
       "type": "object",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -372,6 +377,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -385,6 +391,7 @@
       "type": "object",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -405,6 +412,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -418,6 +426,7 @@
       "type": "object",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -438,6 +447,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -471,6 +481,7 @@
       "type": "object",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -495,6 +506,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -508,6 +520,7 @@
       "type": "object",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -528,6 +541,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -541,6 +555,7 @@
       "type": "object",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -565,6 +580,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -610,6 +626,7 @@
       "type": "object",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -634,6 +651,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -657,6 +675,7 @@
       "type": "object",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -677,6 +696,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -722,6 +742,7 @@
       "type": "object",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -742,6 +763,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -755,6 +777,7 @@
       "type": "object",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -779,6 +802,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -829,6 +853,7 @@
       "description": "Registered projection of one canonical Direct Conversation participant endorsements (contact-and-direct-conversation.md section 8.3). It is NOT a uniqueness device: at most one Realm exists per pair because only the founder derived from the pair root Contact round may author the founding unit (section 5.4 admission), and pair_key is that verified founding unit semantic coordinate rather than a global slot any Realm may claim. The result lives inside the Direct Conversation own Realm, which is why neither realm_id nor main_strand_id is a selector member (conformance/encoding.md section 4): admission already verifies both against the Realm settled coordinates, and repeating them here would be a second copy of the scope the result is already in.",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -849,6 +874,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -906,6 +932,7 @@
       "description": "Singleton authority-root typed current result. The selector carries no component beyond its kind, so (realm_id, selector) is the Realm's lifetime-stable authority root identity.",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -922,6 +949,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -935,6 +963,7 @@
       "type": "object",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -951,6 +980,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -964,6 +994,7 @@
       "type": "object",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -981,6 +1012,7 @@
           "additionalProperties": false,
           "description": "Per-Realm singleton. encoding.md section 9.5.1 forbids restating the envelope realm_id in a subject, so the subject carries nothing beyond its kind."
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -995,6 +1027,7 @@
       "type": "object",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -1015,6 +1048,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -1049,6 +1083,7 @@
       "type": "object",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -1070,6 +1105,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -1083,6 +1119,7 @@
       "type": "object",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -1104,6 +1141,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -1152,6 +1190,7 @@
       "type": "object",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -1172,6 +1211,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -1254,6 +1294,7 @@
       "description": "Registered reducer projection of one Agent signing key. It is the single state source a portable state witness may quote; a service-private key table is not an alternative.",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -1279,6 +1320,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -1293,6 +1335,7 @@
       "description": "Registered Agent lifecycle projection. The first active value has exactly one provenance: the delegated PCR genesis ak.realm.create conditional write of zh/models/realm-and-space.md section 2.5.1.",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -1313,6 +1356,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -1351,6 +1395,7 @@
       "description": "Singleton create-locked identity/security core. Written once by the registered ak.realm.create result write (zh/models/realm-and-space.md section 2.5.1); the value is the closed ak.schema.realm_genesis.v1 object.",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -1367,6 +1412,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -1381,6 +1427,7 @@
       "description": "Singleton Realm history-access FSM current state (zh/models/realm-and-space.md section 2.5.1). Initialized by the conditional ak.realm.create write and moved only by ak.realm.history_access.",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -1397,6 +1444,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -1411,6 +1459,7 @@
       "description": "Singleton Realm identity-resolution projection. The PCR reducer initialises it from the genesis object's initial_resolution on the conditional ak.realm.create write and ak.identity.resolution.update is its only post-genesis writer (zh/identity/identity-did.md section 4.2). The stored value is the five-member resolution_projection, not the three-member commitment the owner signs: resolution_event_ref and updated_at are reducer-derived from the carrying envelope and are read back off this result by section 5.",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -1427,6 +1476,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -1441,6 +1491,7 @@
       "description": "One accountability endorsement (family identity_accountability). zh/models/actor.md section 3.3.1: there is one record with two writers, and its identity is (Realm, issuer principal, subject principal, normalized exact scope set) -- the Realm component is the scope this result lives in, so it is not a selector member. A grant that changes a provision endorsement MUST be written into the original controller PCR; the same tuple in another Realm is a different record and cannot revoke this one.",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -1470,6 +1521,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -1484,6 +1536,7 @@
       "description": "Registered projection of one Capability Grant. The subject GrantId is derived by retyping the accepted ak.capability.grant Event id; the value is the complete projected grant, including reducer-inserted id and the registered derived members authority_depth / authority_root_refs (zh/authz/capabilities.md section 10).",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -1504,6 +1557,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -1543,6 +1597,7 @@
       "description": "Commit-ordered projection of the ak.call.state state_transition axis (crypto-media/call-state.md section 4.1).",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -1563,6 +1618,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -1577,6 +1633,7 @@
       "description": "Commit-ordered projection of the ak.call.state focus axis. The first committed session_focus is binding (MEDIA-2); later writes MUST restate it verbatim.",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -1597,6 +1654,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -1611,6 +1669,7 @@
       "description": "Capture permission state typed current result of one recording segment (family call_recording_state), keyed by the (call_id, recording_id) segment key so several captures in one call never collide.",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -1635,6 +1694,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -1649,6 +1709,7 @@
       "description": "Published artifact typed current result of one recording segment (family call_recording_artifact): the ready/failed details published from stopped, referencing the exact confirmed stop Event. It grants no capture, key or read authority.",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -1673,6 +1734,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -1687,6 +1749,7 @@
       "description": "Capture permission state typed current result of one transcript segment (family call_transcript_state), keyed by the (call_id, recording_id) segment key.",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -1711,6 +1774,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -1725,6 +1789,7 @@
       "description": "Published artifact typed current result of one transcript segment (family call_transcript_artifact): the ready/failed details published from stopped, referencing the exact confirmed stop Event.",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -1749,6 +1814,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -1763,6 +1829,7 @@
       "description": "Commit-ordered projection of the ak.call.state moderation_delta axis (crypto-media/call-state.md section 4.1).",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -1783,6 +1850,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -1797,6 +1865,7 @@
       "description": "Commit-ordered projection of the ak.call.state roster_delta axis. The current value is the last accepted write on the stream; per-participant durable identity is (call_id, actor_id, device_id).",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -1817,6 +1886,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -1831,6 +1901,7 @@
       "description": "Commit-ordered projection of the ak.call.state mute_override axis (crypto-media/call-state.md section 4.1).",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -1851,6 +1922,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -1865,6 +1937,7 @@
       "description": "Write-once durable end-of-call summary (crypto-media/call-state.md section 7), written by ak.call.summary after the call reaches a terminal state.",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -1885,6 +1958,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -1923,6 +1997,7 @@
       "description": "Per-Realm declaration of the Realm-scoped Morph kind tightening (models/governance-objects.md section 4). Singleton: the Realm is given by the Event envelope, which conformance/encoding.md section 9.5.1 forbids repeating in the subject.",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -1939,6 +2014,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -1953,6 +2029,7 @@
       "description": "One directed Realm-to-Realm link. models/realm-links.md section 5 makes the subject the (target_realm_id, link_kind) tuple with the source Realm given by Event scope, and the current value the last accepted write.",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -1977,6 +2054,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -1991,6 +2069,7 @@
       "description": "The Realm default_join_rule enum. models/realm-and-space.md section 2.3 makes ak.realm.join_rule its sole canonical carrier.",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -2007,6 +2086,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -2021,6 +2101,7 @@
       "description": "The Realm default_discoverability envelope (models/realm-and-space.md section 2.3).",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -2037,6 +2118,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -2051,6 +2133,7 @@
       "description": "The Realm-local alias declaration or its tombstone. The tombstone branch is retained rather than collapsed to null so durable withdrawal remains distinguishable from never-declared; Directory does not resolve aliases.",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -2067,6 +2150,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -2081,6 +2165,7 @@
       "description": "The Realm policy components that have no facet Event kind of their own. models/realm-and-space.md section 2.3 restates the whole bundle on every policy_revision.",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -2097,6 +2182,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -2111,6 +2197,7 @@
       "description": "The Realm asset metadata and download policy (crypto-media/media-and-blob.md section 6). It is deliberately not a policy_bundle component and is excluded from key_access_revision.",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -2127,6 +2214,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -2141,6 +2229,7 @@
       "description": "The declared set of services that may see plaintext in this Realm (models/realm-and-space.md section 2.3).",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -2157,6 +2246,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -2171,6 +2261,7 @@
       "description": "The single settled media service binding of the Realm. crypto-media/media-service-binding.md section 4 calls it a single-valued commit-ordered projection; section 2.1 pins the closed field set.",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -2187,6 +2278,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -2201,6 +2293,7 @@
       "description": "The Realm read receipt disclosure requirement (discovery/read-receipts.md section 2.5). Strand-level separation goes through a Circle, not through a second subject on this family.",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -2217,6 +2310,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -2231,6 +2325,7 @@
       "description": "One MIMI room binding (extensions/mimi-interop.md section 3). The subject is the MIMI room URI, not an Arkret id: the family records how one external room is bound, and the same Realm or Strand may be bound into more than one room. The binding is a projection into MIMI and is never canonical truth about the Arkret side.",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -2251,6 +2346,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -2265,6 +2361,7 @@
       "description": "The receiving-service proof that one encrypted target Event was received (governance/content-moderation.md section 6). The subject is the proven Event id. A proof exists independently of any later report, so nothing about a report is part of the subject or the value.",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -2285,6 +2382,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -2299,6 +2397,7 @@
       "description": "The accepted moderation report itself (governance/content-moderation.md section 3.3). The subject is the report Event's own EventId, which is the same value ak.moderation.decision carries in payload.target_ref for decision=dismiss. The value is the complete report payload. The queue item is a read-side View over this family and the dismiss records in moderation_state, not a second stored state.",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -2319,6 +2418,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -2333,6 +2433,7 @@
       "description": "The Realm preview / peek policy (models/realm-and-space.md section 2.3). It is the projected source of the query field preview_policy_id and is a per-Realm singleton like every sibling facet in that sentence. The value is payload.value only: payload.reason is audit provenance carried by the Event, not projected state.",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -2349,6 +2450,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -2363,6 +2465,7 @@
       "description": "The terminal tombstone of the Realm, with its required successor_realm_id (models/realm-and-space.md section 2.6). Commit-ordered and written at most once.",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -2379,6 +2482,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -2393,6 +2497,7 @@
       "description": "The terminal destroy of the Realm, which MUST NOT carry a successor (models/realm-and-space.md section 2.6). Commit-ordered and written at most once.",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -2409,6 +2514,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -2436,6 +2542,7 @@
       "description": "The authoritative default_strand_id pointer of the Realm (models/strand-and-message.md section 1). The current value is the last accepted write on the stream.",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -2452,6 +2559,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -2466,6 +2574,7 @@
       "description": "The position of one Strand on one Board. models/realm-and-space.md section 3.6 pins the subject to the reversible typed_pair of board_space_id and strand_id and forbids a hash subject, so both typed-ID components MUST be validated on parse.",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -2490,6 +2599,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -2520,6 +2630,7 @@
       "description": "Registered projection of one Invite's process state. The subject InviteId is the create Event id retyped (zh/models/common-fields.md section 6.0), so a directed ak.invite.create and a third-party ak.invite.third_party each open exactly one of these and every later Event names it through payload.invite_id.",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -2540,6 +2651,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -2575,6 +2687,7 @@
       "description": "The one live directed Invite slot of one invitee account inside one Realm. zh/models/governance-objects.md section 5.3 makes it the single source of truth for directed-invite liveness deduplication, keyed by the invitee AccountId alone: the Realm is already given by the Event envelope, so carrying realm_id in the subject is forbidden by zh/conformance/encoding.md section 4.",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -2595,6 +2708,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -2622,6 +2736,7 @@
       "description": "Registered create-locked projection of one directed Invite's invitee. The subject InviteId is the create Event id retyped, the same subject invite_lifecycle uses, so a later Event that names payload.invite_id reaches both the state register and this binding without carrying either of them on the wire.",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -2642,6 +2757,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -2699,6 +2815,7 @@
       "type": "object",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -2720,6 +2837,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -2755,6 +2873,7 @@
       "description": "The structural parent of one Space. models/realm-and-space.md section 3.5 is authoritative: the subject is the SpaceId alone, the projection is an ordinary current value, and the current value is the last accepted write on the stream, ordered only by stream_position. The Space metadata projection deliberately excludes parent_space_id, so this family and not the object is the truth source models/relation.md and sync/views.md read the derived contains edge from. A directed cycle among current parents makes every edge in it domain-unresolved; it MUST NOT reselect a register value, fake a root, or produce a live contains.",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -2775,6 +2894,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -2800,6 +2920,7 @@
       "description": "The child placement policy of one Space, keyed by SpaceId. models/circle.md section 7.1 is authoritative for the enum and for the four reducer obligations it creates on ak.strand.create, ak.strand.move, ak.space.parent and structural contains writes; section 6.3 is authoritative for why it is not interchangeable with Space.scope_circle_id. It is a family rather than a create-locked object member because space_patch_payload carries a dedicated top-level child_scope_policy command whose own description makes it select security execution, while the generic metadata patch is forbidden from reaching the path at all.",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -2820,6 +2941,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -2861,6 +2983,7 @@
       "description": "One Agent provisioning fact (family agent_provisioning), the first of the four typed results one accepted ak.agent.provision writes atomically. zh/identity/key-management.md section 3.6.3 is authoritative. The subject is the Agent DID alone and deliberately not the Agent's full account ActorId: zh/models/actor.md derives that ActorId from payload.agent_id plus this Event's exact controller account and Station and only reconciles it against genesis.actor_id after genesis, so an ActorId subject would be unconstructible at the moment this write happens. The reason zh/identity/key-management.md section 3.6 forbids a bare DidCoreId for the LIFECYCLE subject -- one principal on two Stations is two accounts -- is already discharged here: this result lives in the controller PCR, and the same-Station rule of section 3.6.3 pins the Agent PCR to that same Station. It is a commit-ordered projection, and a second ak.agent.provision declaring an agent_id an accepted provision already carries MUST be rejected with zero writes (agent_provisioning_already_declared): the immutable requested_scope ceiling of section 3.6.1 can only be changed by provisioning a new Agent principal, so re-declaring one agent_id is the widening that section forbids.",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -2881,6 +3004,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -2908,6 +3032,7 @@
       "description": "One Agent PCR realm-id declaration (family agent_pcr_genesis_declaration), the fourth of the four typed results one accepted ak.agent.provision writes atomically. zh/identity/key-management.md section 3.6.3 is authoritative: the subject is the forward-declared principal_control_realm_id, the projection is commit-ordered, and a second provision declaring a realm id an accepted provision already claims MUST be rejected with zero writes (agent_pcr_genesis_declaration_conflict). This result covers one controller PCR only; duplicate declarations across controllers are caught by the Station's local uniqueness index, and the two layers together are what makes \"at most one provision declaration per realm id\" hold. The Agent PCR genesis carries no ref back to its provision, so the reverse look-up against this family IS the whole binding: no row MUST fail closed with agent_pcr_genesis_declaration_missing and zero writes, materializing neither the Realm nor the agent_status transition.",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -2928,6 +3053,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -2973,6 +3099,7 @@
       "description": "One controller-scoped Agent selector binding (family agent_selector_claim). zh/models/actor.md section 3.3 is authoritative and makes this the one family with two registered writers that MUST produce the same semantic target: the standalone ak.agent.selector_claim, which verifies its own inner ak.agent_selector_claim_proof.v1, and the selector projection of ak.agent.provision, which has no inner proof and MUST NOT be dressed up as one. The subject is principal-scoped -- (controller principal, agent_slug), never with a Station -- while the target is account-scoped; neither is derived from the other. It is a commit-ordered projection: competing bind/unbind commands check the relevant revision in confirmed order and at most one succeeds, and a stale command is re-read and re-signed rather than joined as a second security head.",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -2997,6 +3124,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -3065,6 +3193,7 @@
       "description": "Registered projection of one holder-private Consent record inside the holder's Principal Control Realm. The subject is the producer-assigned stable consent_id (zh/identity/consent-model.md section 2); peers can never read it (section 8).",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -3085,6 +3214,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -3139,6 +3269,7 @@
       "type": "object",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -3160,6 +3291,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -3214,6 +3346,7 @@
       "type": "object",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -3235,6 +3368,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -3251,6 +3385,7 @@
       "type": "object",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -3272,6 +3407,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -3288,6 +3424,7 @@
       "type": "object",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -3309,6 +3446,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -3337,6 +3475,7 @@
       "type": "object",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -3359,6 +3498,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -3375,6 +3515,7 @@
       "type": "object",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -3396,6 +3537,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -3412,6 +3554,7 @@
       "type": "object",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -3488,6 +3631,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -3577,6 +3721,7 @@
       "description": "Current authorization of one device inside its principal control Realm (family device_authorization). The selector is the device_id alone: the PCR already fixes the account, so an account_id selector component would be a second truth. zh/crypto-media/device-lifecycle.md section 5.5.1 is authoritative.",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -3597,6 +3742,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -3625,6 +3771,7 @@
       "description": "Singleton PCR-local device generation fence (family device_generation). The selector carries no component beyond its kind: one principal control Realm has exactly one generation. Both writers are registered Event kinds, which is why this family has no genesis-only initializer -- the registration_anchor branch of ak.device.authorize IS the pcr_genesis_unit's second member.",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -3641,6 +3788,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -3689,6 +3837,7 @@
       "description": "Accepted revocation proposals against one device (family device_revocation_proposals), keyed by device_id inside its principal control Realm. ak.schema.device_revocation_state.v1 in device-revocation-state.schema.json is the READ-SIDE fold of this set, not its write shape: its target_device_authorize_event_id and target_device_generation_ref come from joining the device_authorization result of the same device_id, accepted_at / acceptance_seq from the accepting transaction, and committed_at / denied_actions from the covering command result. That is why a producer never self-reports a derived pending selector.",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -3709,6 +3858,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -3723,6 +3873,7 @@
       "description": "Registered projection of one Circle object (zh/models/circle.md). ak.circle.create writes the whole object and the dedicated ak.circle.archive / restore / tombstone kinds move its state member through the mapping zh/models/common-fields.md section 5.2 fixes. The subject carries the object id because only the create Event derives it from its own event_id; every later write names it in the payload.",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -3744,6 +3895,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -3758,6 +3910,7 @@
       "description": "Registered projection of one Morph object (zh/models/morph.md). ak.morph.create writes the whole object and the dedicated ak.morph.archive / restore / tombstone kinds move its state member through the mapping zh/models/common-fields.md section 5.2 fixes. The subject carries the object id because only the create Event derives it from its own event_id; every later write names it in the payload.",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -3779,6 +3932,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -3793,6 +3947,7 @@
       "description": "The single Relation current value for one registered primary conflict domain (zh/models/relation.md section 6). Realm comes from the accepted Event envelope. The value retains its event-derived RelationId and immutable domain identity; create/update/tombstone all address this same subject and use exact revision CAS.",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -3813,6 +3968,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -3827,6 +3983,7 @@
       "description": "Registered projection of one Space object (zh/models/realm-and-space.md). ak.space.create writes the whole object and the dedicated ak.space.archive / restore / tombstone kinds move its state member through the mapping zh/models/common-fields.md section 5.2 fixes. The subject carries the object id because only the create Event derives it from its own event_id; every later write names it in the payload.",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -3848,6 +4005,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -3876,6 +4034,7 @@
       "description": "Per-Realm singleton gate written by the reversible pair in the zh/models/realm-and-space.md section 2.6.0 table. Commit-ordered; the two kinds write the same family with opposite constants, and neither lifts a terminal, a redaction, another gate or a capability limit.",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -3892,6 +4051,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -3920,6 +4080,7 @@
       "description": "Per-Realm singleton gate written by the reversible pair in the zh/models/realm-and-space.md section 2.6.0 table. Commit-ordered; the two kinds write the same family with opposite constants, and neither lifts a terminal, a redaction, another gate or a capability limit.",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -3936,6 +4097,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -3950,6 +4112,7 @@
       "description": "Registered projection of one global Actor Profile (zh/discovery/profiles-presence.md section 2.3). ak.profile.create and ak.profile.update write ONE family: section 2.3 is normative that the two kinds share a typed current result, and it used to name it profile_create:<target_actor_profile_id> -- a create-only spelling for a value the update kind also writes, and a third spelling beside the registry's and the owning report's. The one registered name is actor_profile. create derives the subject from its own event_id; update names it in payload.target_ref.",
       "required": [
         "selector",
+        "source_stream_ref",
         "revision",
         "value"
       ],
@@ -3971,6 +4134,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": {
           "$ref": "#/$defs/revision"
         },
@@ -3991,7 +4155,7 @@
     },
     "circle_member_state_result": {
       "type": "object",
-      "required": ["selector", "revision", "value"],
+      "required": ["selector", "source_stream_ref", "revision", "value"],
       "properties": {
         "selector": {
           "type": "object",
@@ -4003,6 +4167,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": { "$ref": "#/$defs/revision" },
         "value": { "$ref": "#/$defs/circle_member_state_value" }
       },
@@ -4010,7 +4175,7 @@
     },
     "realm_search_policy_result": {
       "type": "object",
-      "required": ["selector", "revision", "value"],
+      "required": ["selector", "source_stream_ref", "revision", "value"],
       "properties": {
         "selector": {
           "type": "object",
@@ -4018,6 +4183,7 @@
           "properties": { "kind": { "const": "realm_search_policy" } },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": { "$ref": "#/$defs/revision" },
         "value": { "$ref": "./event-payload.schema.json#/$defs/realm_search_policy_payload" }
       },
@@ -4025,7 +4191,7 @@
     },
     "rsvp_result": {
       "type": "object",
-      "required": ["selector", "revision", "value"],
+      "required": ["selector", "source_stream_ref", "revision", "value"],
       "properties": {
         "selector": {
           "type": "object",
@@ -4038,6 +4204,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": { "$ref": "#/$defs/revision" },
         "value": { "$ref": "./event-payload.schema.json#/$defs/rsvp_entry" }
       },
@@ -4045,7 +4212,7 @@
     },
     "schema_definition_result": {
       "type": "object",
-      "required": ["selector", "revision", "value"],
+      "required": ["selector", "source_stream_ref", "revision", "value"],
       "properties": {
         "selector": {
           "type": "object",
@@ -4056,6 +4223,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": { "$ref": "#/$defs/revision" },
         "value": { "$ref": "./event-payload.schema.json#/$defs/schema_define_state_payload/properties/value" }
       },
@@ -4063,7 +4231,7 @@
     },
     "sidecar_context_result": {
       "type": "object",
-      "required": ["selector", "revision", "value"],
+      "required": ["selector", "source_stream_ref", "revision", "value"],
       "properties": {
         "selector": {
           "type": "object",
@@ -4075,6 +4243,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": { "$ref": "#/$defs/revision" },
         "value": { "$ref": "./event-payload.schema.json#/$defs/sidecar_context_attach_payload" }
       },
@@ -4082,7 +4251,7 @@
     },
     "sidecar_result": {
       "type": "object",
-      "required": ["selector", "revision", "value"],
+      "required": ["selector", "source_stream_ref", "revision", "value"],
       "properties": {
         "selector": {
           "type": "object",
@@ -4093,6 +4262,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": { "$ref": "#/$defs/revision" },
         "value": { "$ref": "./agent-sidecar.schema.json" }
       },
@@ -4100,7 +4270,7 @@
     },
     "sovereign_did_policy_result": {
       "type": "object",
-      "required": ["selector", "revision", "value"],
+      "required": ["selector", "source_stream_ref", "revision", "value"],
       "properties": {
         "selector": {
           "type": "object",
@@ -4111,6 +4281,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": { "$ref": "#/$defs/revision" },
         "value": { "$ref": "./event-payload.schema.json#/$defs/sovereign_did_policy_state_payload/properties/value" }
       },
@@ -4132,7 +4303,7 @@
     },
     "strand_watch_result": {
       "type": "object",
-      "required": ["selector", "revision", "value"],
+      "required": ["selector", "source_stream_ref", "revision", "value"],
       "properties": {
         "selector": {
           "type": "object",
@@ -4144,6 +4315,7 @@
           },
           "additionalProperties": false
         },
+        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": { "$ref": "#/$defs/revision" },
         "value": { "$ref": "#/$defs/strand_watch_value" }
       },

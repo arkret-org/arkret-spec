@@ -150,7 +150,9 @@ Timeline 是 committed Event 的展示序列；current 是 own Station返回的 
 
 ### 5.1 服务器当前结果
 
-Typed current result至少绑定 selector、value/status、领域 revision，以及来源 `{commit_id, stream_ref, stream_position}`。客户端核对 request/account/Realm/selector 后安装结果，不执行 authority-commit projection/typed current result reducer。
+Typed current result至少绑定 selector、value/status、领域二元 revision，以及必填的 `source_stream_ref`；来源坐标为
+`{revision.commit_id, source_stream_ref, revision.stream_position}`，三者必须指向最后改变该结果的同一 accepted
+RealmCommit。客户端核对 request/account/Realm/selector 与来源范围后安装结果，不执行 authority-commit projection/typed current result reducer。
 
 该 source coordinate 只绑定写出 current entry 的 source Event，不绑定 entry value 中任意嵌套 Event。历史
 signer-key selector 的 `committed_event_ref` 只能从已验证 `realm_sync_entry.commits[]` 的

@@ -73,6 +73,13 @@ Account-private preference 冲突由其自身 CAS 合同处理，不得借用 Re
 
 Bootstrap 向量验证 nonce-bound current authority bundle、typed snapshot 和获准 stream tails，不从邀请人 Station 或 genesis Station 拉取全历史。
 
+Snapshot/current row 向量 MUST 包括同 Realm 两条可见 stream 具有相同数字 position 的情形：每个 closed typed
+result 都携必填 `source_stream_ref`，逐字等于 `revision.commit_id` 所指 covering Commit 的 stream；按该 stream
+核对 head、floor 与可读 Commit 的 exact ID/position。缺 `source_stream_ref`、指向隐藏/外 Realm stream、
+指向另一条同 position stream、revision 超过其 head、同一完整 selector 重复、floor 集合不匹配，均 MUST
+整份拒绝且零新增 row/tail/cursor。合法 floor 前 row 由 exact 签名 snapshot 承诺，floor 后可读 row
+须与 covering Commit 逐字匹配；`CurrentRevision` 与 `expected_revision` 仍是二元 CAS。
+
 ### 5.15 PCR device_status 同 cut 终局与冲突证据
 
 `ak.vector.security_transaction.resilience.v1` 的 SecurityRotation revoke 分支与 `device-lifecycle.md` §5.5.3 的设备折叠 MUST 联合验证：proposal Event/Commit 与 `revoke_proposal` 同事务写入，终局前为 pending；`accepted` 与 revoke accepted step 原子可见，`rejected` 与 aborted/expired 原子可见，已接纳 proposal 的终止不留下永久 pending；Event/Commit 已 accepted 但 command result rejected 时只清该 dot 的 pending，另一 transaction 的 pending/accepted dot 不变。不同结果、不同覆盖 Commit、缺 Event/Commit、结果先于 proposal、同 cut marker 落后或事务结果不可读都 fail closed；rollback 零 Event/Commit/proposal/terminal，精确重放不增写。

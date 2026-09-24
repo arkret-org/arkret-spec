@@ -38,8 +38,9 @@ authority bundle 或普通 join snapshot 获得隐藏 stream 列表。
 其 selector、revision 和 value 由各 family 的 schema 决定，不额外包一层通用 row/chunk。当前治理 Station
 必须从同一 durable cut 读取全部可向该请求者披露的 rows、`visible_stream_heads[]` 和 stream floors，
 不得把无权 Circle/Sidecar 的 row、head 或 floor 混入；同一完整 typed subject 不得出现两个 current row。
-接收方须验证 row 的来源范围可见、revision 的位置不晚于同 stream 的可见 head；可读取到
-revision 所指 Commit 时还须逐字核对 commit id/position。落在获授权 history floor 之前的
+接收方须以每条 row 必填的 `source_stream_ref` 定位可见 head 与 floor，验证其 Realm/stream 属于本次可见范围、
+revision 的位置不晚于**该 stream** 的可见 head；不得从 selector 或同值 position 猜来源。可读取到
+revision 所指 Commit 时还须逐字核对其 stream、commit id 与 position。落在获授权 history floor 之前的
 row 由当前治理 Station 的这份签名 snapshot 承诺，不能要求受限接收者下载不可见前史来补证；
 范围或坐标不一致时整份丢弃。
 从 snapshot 边界之后的逐 stream tail 继续运行同一 typed reducer，不得用 generic patch、

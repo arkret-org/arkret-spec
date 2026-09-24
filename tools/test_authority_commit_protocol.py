@@ -16,6 +16,28 @@ def read(relative: str):
 
 
 class AuthorityCommitProtocolTest(unittest.TestCase):
+    def test_every_typed_current_result_binds_exact_source_stream(self):
+        schema = read("schemas/typed-current-result.schema.json")
+        branches = {
+            name: definition
+            for name, definition in schema["$defs"].items()
+            if "selector" in definition.get("required", [])
+            and "revision" in definition.get("required", [])
+        }
+        self.assertGreaterEqual(len(branches), 80)
+        for name, branch in branches.items():
+            with self.subTest(name=name):
+                self.assertIn("source_stream_ref", branch["required"])
+                self.assertEqual(
+                    branch["properties"]["source_stream_ref"],
+                    {"$ref": "./realm-commit.schema.json#/$defs/stream_ref"},
+                )
+                self.assertFalse(branch.get("additionalProperties", True))
+        self.assertEqual(
+            schema["$defs"]["revision"]["required"],
+            ["commit_id", "stream_position"],
+        )
+
     def test_current_v1_has_no_removed_state_machine_vocabulary(self):
         roots = [ROOT / "spec/v1/zh", ARTIFACTS]
         forbidden = {
