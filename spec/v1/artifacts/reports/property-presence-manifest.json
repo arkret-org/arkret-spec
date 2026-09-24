@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 8947,
-    "total_schema_documents": 164,
+    "total_properties": 8949,
+    "total_schema_documents": 165,
     "by_presence_class": {
       "optional": 2152,
       "optional_defaulted": 47,
-      "required": 6279,
+      "required": 6281,
       "required_nullable": 302,
       "tristate": 167
     },
@@ -1637,6 +1637,15 @@
         "/$defs/account_data_replace_request_body/properties/set_event/allOf/1/properties/event": "required",
         "/$defs/account_data_replace_request_body/properties/set_event/allOf/1/properties/event/properties/kind": "required",
         "/$defs/account_data_replace_request_body/properties/set_event/allOf/1/properties/event/properties/payload": "required"
+      }
+    },
+    "account-device-signer-evidence.schema.json": {
+      "schema_ids": [
+        "ak.schema.account_device_signer_evidence.v1"
+      ],
+      "properties": {
+        "/properties/device_projection_attestation": "required",
+        "/properties/service_resolution": "required"
       }
     },
     "account-operations.schema.json": {

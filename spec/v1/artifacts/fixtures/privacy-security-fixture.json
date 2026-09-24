@@ -5,7 +5,7 @@
   },
   "suite": "privacy_security",
   "profile": "ak.vector_group.privacy_security.v1",
-  "version": "2026-09-22.2",
+  "version": "2026-09-24.1",
   "covers_vectors": [
     "ak.vector.directory.public_realm_search.v1",
     "ak.vector.directory.ttl_expiry_removal.v1",
@@ -16,7 +16,8 @@
     "ak.vector.identity.authority_local_skeleton_collision.v1",
     "ak.vector.actor.accountability_grant_required.v1",
     "ak.vector.device.peer_directory_lookup_blinding.v1",
-    "ak.vector.device.directory_unavailable_not_empty.v1"
+    "ak.vector.device.directory_unavailable_not_empty.v1",
+    "ak.vector.device.account_device_signer_evidence.v1"
   ],
   "security_evidence": [
     {
@@ -562,6 +563,32 @@
         ],
         "transport_authentication_failure_precedes_any_target_read": true
       }
+    },
+    {
+      "vector_id": "ak.vector.device.account_device_signer_evidence.v1",
+      "name": "account_device_evidence_exact_closure",
+      "evidence_schema": "account-device-signer-evidence.schema.json",
+      "root_members": [
+        "device_projection_attestation",
+        "service_resolution"
+      ],
+      "content_address_rule": "signer evidence ref equals lowercase SHA-256 of RFC 8785 JCS complete root, with registered signer-evidence prefix",
+      "positive": [
+        "exact current accepted device authorization and generation are read at one durable cut with the authorization Event and covering RealmCommit",
+        "the origin persists the complete root and its content ref before returning a peer or self row",
+        "the Service resolution method-native history verifies the attestation assertion method at attested_at",
+        "the ordinary historical Event producer binds exact AccountId, device, method, authorization instance, generation and authorization_window"
+      ],
+      "negative": [
+        "attestation signed by a Service other than account_id.station_id",
+        "Service history omits or supersedes the asserted method at attested_at",
+        "outer account or device differs from the signed attestation",
+        "attested_at outside original authorization_window",
+        "signer_evidence_ref hashes only the attestation or the pruned self projection",
+        "authorization Event lacks an accepted covering RealmCommit",
+        "ordinary account_device evidence offered for high-risk account_device_control"
+      ],
+      "expected": "no usable row or Control authorization for any negative case; no synthetic evidence ref"
     },
     {
       "vector_id": "ak.vector.device.directory_unavailable_not_empty.v1",

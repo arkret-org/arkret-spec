@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-24.1",
+  "version": "2026-09-24.2",
   "source_of_truth": false,
-  "generated_at": "2026-09-24T10:25:14+08:00",
+  "generated_at": "2026-09-24T11:53:30+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -410,6 +410,17 @@
       "file": "schemas/approval-signature.schema.json",
       "status": "active",
       "description": "The single approval evidence type of v1: one approver's detached signature over the closed approval input, carried beside the target in the submission container and never inside an Event."
+    },
+    {
+      "schema_id": "ak.schema.account_device_signer_evidence.v1",
+      "file": "schemas/account-device-signer-evidence.schema.json",
+      "status": "active",
+      "description": "Closed content-addressed ordinary account-device signer evidence retaining the exact origin attestation and full method-native Service resolution.",
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "schemas/account-device-signer-evidence.schema.json",
+        "normative_ref": "zh/crypto-media/device-lifecycle.md#82-设备验签公钥目录normative"
+      }
     },
     {
       "schema_id": "ak.schema.authenticated_signer_resolution_evidence.v1",
