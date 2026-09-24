@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-24.4",
+  "version": "2026-09-24.5",
   "source_of_truth": true,
-  "generated_at": "2026-09-24T23:25:52+08:00",
+  "generated_at": "2026-09-24T23:33:10+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -226,7 +226,7 @@
       "applies_to_fixtures": [
         "protocol-edge-cases-fixture.json"
       ],
-      "description": "ak.agent.action_approve expires_at is judged only against the signed committed_at of the covering RealmCommit, inclusive with zero tolerance: equality accepts, one millisecond later rejects with zero writes, an approved Event published after expiry fails its publication gate as if unconfirmed, envelope created_at and Station-local time are never compared, and exact retry returns the original Commit without re-judging.",
+      "description": "ak.agent.action_approve expires_at is judged only against the signed committed_at of the covering RealmCommit, inclusive with zero tolerance: equality accepts; a confirmation one millisecond late fails with generic failed_precondition, no nonce and zero writes; an approved Event published after expiry fails with claim_required reason approval_required and zero writes; envelope created_at and Station-local time are never compared, and exact retry returns the original Commit without re-judging.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
         "spec/v1/zh/authz/constraint-schema.md"

@@ -1,6 +1,6 @@
 {
   "profile": "ak.vector_group.protocol_edge_cases.v1",
-  "version": "2026-09-24.1",
+  "version": "2026-09-24.2",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.protocol.edge_cases.v1"
@@ -1145,6 +1145,8 @@
           "covering_committed_at": "2026-09-24T10:00:00.001Z",
           "expected": {
             "decision": "reject",
+            "error_code": "failed_precondition",
+            "reason_code": null,
             "nonce_allocated": false,
             "durable_writes": 0
           }
@@ -1176,6 +1178,8 @@
           "expected": {
             "decision": "reject",
             "rejected_as": "no_valid_confirmation",
+            "error_code": "claim_required",
+            "reason_code": "approval_required",
             "durable_writes": 0
           }
         },
@@ -1194,7 +1198,7 @@
       "assertions": [
         "the only judging clock is the signed committed_at of the RealmCommit covering each Event; the comparison is inclusive with zero tolerance",
         "envelope created_at and Station-local current time are never compared with expires_at",
-        "a late confirmation or a late approved Event is rejected with zero durable writes; the late approved Event fails as if no valid confirmation existed, through the existing publication-gate failure surface",
+        "a late confirmation fails with top-level failed_precondition without a dedicated reason, allocates no nonce and writes nothing; a late approved Event is treated as lacking a valid confirmation and fails with claim_required reason approval_required and zero writes, so re-confirming and retrying is the defined path",
         "historical replay compares the signed committed_at and yields the same decision; exact retry returns the original Commit without re-judging expiry"
       ]
     },

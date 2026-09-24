@@ -667,8 +667,9 @@ MUST NOT 互用 nonce，也 MUST NOT 把一方的满足自动换算成另一方�
   governance approval 要求；两者都命中时 MUST 都被满足，且 MUST 能**分别**拒绝。
 - `ak.agent.action_approve` 的有效期只由 payload `expires_at` 表达；payload 不含 `approved_at`，确认时间即
   envelope `created_at`，仅作展示。唯一判定时钟是覆盖相关 Event 的 RealmCommit `committed_at`，零容差、含等号：
-  确认 Event 的 covering `committed_at` MUST `<= expires_at`，否则零写入拒绝且不分配 nonce；被批准 Event 的
-  covering `committed_at` 也 MUST `<= expires_at`，否则视同缺少有效确认，按该发布 gate 的既有拒绝面零写入拒绝。
+  确认 Event 的 covering `committed_at` MUST `<= expires_at`，否则以顶层 `failed_precondition`（不带专用 reason）
+  零写入拒绝且不分配 nonce；被批准 Event 的 covering `committed_at` 也 MUST `<= expires_at`，否则视同缺少有效确认，
+  以 `claim_required` reason=`approval_required` 零写入拒绝，重新取得确认后重试。
   判定 MUST NOT 比较 `created_at` 与 `expires_at`，MUST NOT 读取 Station 当前时间，不登记时间容差场景；
   replay 只比较已签 `committed_at`，exact retry 返回原 Commit，不改判。固定向量为
   `ak.vector.agent.action_approve_expiry.v1`。

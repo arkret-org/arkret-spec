@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-24.1",
+  "version": "2026-09-24.2",
   "source_of_truth": false,
-  "generated_at": "2026-09-24T23:25:52+08:00",
+  "generated_at": "2026-09-24T23:33:10+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -702,7 +702,7 @@
             }
           },
           "value_schema_ref": "schemas/event-payload.schema.json#/$defs/agent_action_approve_payload",
-          "notes": "authz/constraint-schema.md section 9.2.6. approval_id selects the immutable confirmation record. Before this write the reducer verifies controller authority, exact agent/draft/request and approved_event_id binding, covering RealmCommit committed_at <= payload.expires_at (inclusive, zero tolerance; envelope created_at and Station-local time are never compared), and uniqueness of (envelope.actor_id, payload.approval_nonce). The approved Event's own publication gate applies the same inclusive comparison to its covering committed_at and rejects a late Event through that gate's existing failure surface with zero writes. Exact replay returns the original Commit and outcome without re-judging expiry; nonce reuse for different bytes fails with approval_nonce_reused and writes nothing."
+          "notes": "authz/constraint-schema.md section 9.2.6. approval_id selects the immutable confirmation record. Before this write the reducer verifies controller authority, exact agent/draft/request and approved_event_id binding, covering RealmCommit committed_at <= payload.expires_at (inclusive, zero tolerance; envelope created_at and Station-local time are never compared; a late confirmation fails with generic failed_precondition without a dedicated reason and allocates no nonce), and uniqueness of (envelope.actor_id, payload.approval_nonce). The approved Event's own publication gate applies the same inclusive comparison to its covering committed_at; a late Event is treated as lacking a valid confirmation and fails with claim_required reason approval_required and zero writes. Exact replay returns the original Commit and outcome without re-judging expiry; nonce reuse for different bytes fails with approval_nonce_reused and writes nothing."
         }
       ]
     },
