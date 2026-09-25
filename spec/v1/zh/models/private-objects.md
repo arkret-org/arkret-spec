@@ -3,7 +3,7 @@ title: Private & Derived Objects
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-20
+updated: 2026-09-25
 ---
 
 ## 0. 规范语言
@@ -49,10 +49,10 @@ Schema id: `ak.schema.read_cursor.v1`
 - 跨设备下发的 `ak.read_cursor.update` device message 的 content 是 `ak.schema.read_cursor_update.v1`（[`device-message.schema.json#/$defs/read_cursor_update_content`](../../artifacts/schemas/device-message.schema.json)）：它是当前胜出 advance 的**派生投影**，携带派生的 `updated_at`，MUST NOT 声明自己是 `ak.schema.read_cursor.v1`。
 - Read marker MUST NOT 作为持久化共享对象写入 Event 链；它属于 ephemeral / actor-private 范畴（详见 [strand-and-message.md §9.6](./strand-and-message.md)）。
 - 多设备更新同一 `(actor_id, realm_id, read_scope)` 时，接收方 MUST 按
-  [`../discovery/read-receipts.md` §6.5](../discovery/read-receipts.md) 的因果优先规则
-  收敛：因果支配者胜出；仅当 position 明确因果不可比时才取 HLC 较大者，HLC 全等
-  才按 `device_id` 作 actor 域内确定性 tiebreaker；因果闭包不足时结果保持
-  provisional，不得持久化猜测的 winner。
+  [`../discovery/read-receipts.md` §6.5](../discovery/read-receipts.md) 的支配优先规则
+  收敛：同一 commit stream 上 `stream_position` 更大者胜出；仅当两者互不支配时才取 HLC 较大者，HLC 全等
+  才按 `device_id` 作 actor 域内确定性 tiebreaker；不持有 position 已提交坐标时零写入拒绝，
+  不得持久化猜测的 winner。
 - Strand 时间线与父 Realm 在 read receipt policy 上需要分离时，整个 Strand 通过 `Strand.scope_circle_id` 落在一个 [Circle](./circle.md)（参见 [strand-and-message.md §5](./strand-and-message.md)）；effective policy 由 Circle 自身策略与父 Realm `ak.realm.read_receipt_policy` 取更严格者。Track 级别 override 不在 v1 范围内。
 
 ## 3. Notification

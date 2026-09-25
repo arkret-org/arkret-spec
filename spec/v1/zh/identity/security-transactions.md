@@ -3,7 +3,7 @@ title: 安全事务资源
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-24
+updated: 2026-09-25
 ---
 
 # 安全事务资源
@@ -234,8 +234,13 @@ terminal result，不能重新上传或重新 erase。
 2. 唯一new series及其`ak.key_backup.active_series` Event已accepted且仍是authoritative；
 3. target恰等于prepared plan的old backups，任何active、未计划、缺digest或额外backup均拒绝；
 4. transaction 未过期、Account 仍 active、`authorizing_device_id` 仍是该 Account 的 current non-revoked device，且
-   `authority_commit_id` 仍是 current authoritative basis。任一检查失败都必须在擦除前停线；不得用 create 时的普通
+   请求所冻结 basis 确认的 `secret_storage` pointer（new series 与 `series_pointer_version`）仍逐字是当前 authoritative
+   pointer、current `current_device_generation_ref` 未变。任一检查失败都必须在擦除前停线；不得用 create 时的普通
    session 快照绕过执行时 current/revocation 检查。
+
+请求中的 `authority_commit_id` 是首次判定所在 cut 的 provenance，随请求字节冻结，**不**要求等于续跑时的 PCR head：
+按 [`key-management.md` §7.6](./key-management.md) 的陈旧判据，同一 PCR stream 上此后出现的无关 Commit 不使已冻结
+的 old-backup 清单陈旧，worker 续跑 MUST 复用首次请求字节；只有 pointer 或 generation 改变才在擦除前停线。
 
 worker 的内部 durable 执行结果按 backup kind 保存 `series_records[]`。storage partial failure只能把尚未擦除项标为
 `pending`或`failed_retryable`；已经擦除项必须单调保持`erased`，重启或精确重试不得复活、改写

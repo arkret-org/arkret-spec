@@ -33,7 +33,6 @@ class RecoverySessionStateContractTest(unittest.TestCase):
         required = set(self.state["required"])
         snapshot_fields = {
             "current_device_generation_ref",
-            "device_generation_status",
             "realm_stream_head",
         }
         self.assertLessEqual(snapshot_fields, required)

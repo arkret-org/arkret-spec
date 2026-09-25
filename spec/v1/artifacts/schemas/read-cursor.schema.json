@@ -199,7 +199,7 @@
     "device_id": {
       "type": "string",
       "pattern": "^ak:device:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-      "description": "Originating device. Required for multi-device convergence: when two devices race on the same (actor_id, realm_id, read_scope) the receiver first picks the causally dominating position; only for causally concurrent positions does it pick the greater HLC, and device_id provides a deterministic actor_id-scoped tiebreaker when those HLCs are equal. device_id MUST NOT be used to select a position that another position causally dominates."
+      "description": "Originating device. Required for multi-device convergence: when two devices race on the same (actor_id, realm_id, read_scope) the receiver first picks the later position when both position Events are committed on the same CommitStreamRef; only when neither dominates (different streams or the same Event) does it pick the greater HLC, and device_id provides a deterministic actor_id-scoped tiebreaker when those HLCs are equal. device_id MUST NOT be used to select a position that another position dominates."
     },
     "realm_id": {
       "$ref": "./common-ids.schema.json#/$defs/realm_id"

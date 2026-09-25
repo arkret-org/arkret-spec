@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20.2",
+  "version": "2026-09-25.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T01:08:57+08:00",
+  "generated_at": "2026-09-25T14:50:00+08:00",
   "description": "Canonical registry of standard Account Data key patterns. Every row explicitly declares its closed writer authorities, holder self-surface operations, cross-device merge primitive, and delete semantics; see spec/v1/zh/models/account-data.md section 5.",
   "registry_rules": [
     "writer_authorities is a non-empty unique array over the closed v1 set holder_event | station_cas. holder_event requires non-empty write_event_kinds; station_cas requires plaintext_account_data plus plaintext_schema and does not mint an Event.",
@@ -563,7 +563,7 @@
       "write_event_kinds": [],
       "deletion_mode": "physical_delete",
       "encrypted_at_rest": false,
-      "description": "Actor-private holder-side carrier for delivered directed-invite credentials on the notify branch (invite-addressing.md section 7). Written by the recipient Station through the delivery path, so the value is plaintext JSON (ak.schema.invite_delivery.v1), not a client-encrypted envelope; invite_token is a server-issued private locator that MUST NOT enter the Invite object or Realm history. Bounded CAS register: at most 200 entries, expired entries purged first, then oldest evicted; accepted writes fan out as ak.account_data.update actor-private device updates.",
+      "description": "Actor-private holder-side carrier for delivered directed invites on the notify branch (invite-addressing.md section 7). Written by the recipient Station through the delivery path, so the value is plaintext JSON (ak.schema.invite_delivery.v1), not a client-encrypted envelope; it carries invite references and untrusted locator hints, no bearer credential, and its routing material MUST NOT enter the Invite object or Realm history. Bounded CAS register: at most 200 entries, expired entries purged first, then oldest evicted; accepted writes fan out as ak.account_data.update actor-private device updates.",
       "source_refs": [
         "spec/v1/zh/sync/invite-addressing.md",
         "spec/v1/zh/sync/client-sync.md"

@@ -3,7 +3,7 @@ title: Actor-private Event 持久效果合同
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-20
+updated: 2026-09-25
 ---
 
 ## 0. 规范语言
@@ -161,9 +161,11 @@ encryption key、capabilities 与 expiry。任何 route queue / gateway 可见�
 
 ### 3.4 Read cursor
 
-`ak.read_cursor.advance` 不使用 revision CAS。服务先比较 position 的 causal dominance；只有已证明
-因果不可比才比较 HLC，只有并发且 HLC 相等才以 `device_id` 字典序决胜。缺少 causal closure 时候选
-保持 provisional，不能改变 durable winner。winner 保存原 payload、winning Event identity 与其
+`ak.read_cursor.advance` 不使用 revision CAS。服务先比较 position 的支配关系：两个 position Event 提交在
+同一 `CommitStreamRef` 上时 `stream_position` 大者支配；不同 stream 或同一 Event 互不支配，才比较 HLC，HLC
+相等才以 `device_id` 字典序决胜（[`../discovery/read-receipts.md` §6.5](../discovery/read-receipts.md)）。
+Station 不持有 position 的已提交坐标时以 universal `temporarily_unavailable` 零写入拒绝，不能改变 durable
+winner。winner 保存原 payload、winning Event identity 与其
 envelope `created_at`；后者只投影为 read-marker / device-message 的 `updated_at`，不得写回
 `ak.schema.read_cursor.v1` payload。
 

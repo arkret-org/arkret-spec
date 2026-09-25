@@ -3,7 +3,7 @@ title: 实现就绪与发布门槛
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-20
+updated: 2026-09-25
 ---
 
 ## 0. 规范语言
@@ -31,9 +31,9 @@ candidate v1 目标基线下，机器 registry 的当前覆盖范围由下表索
 | Registry | 计数（CI 校验，与 registry 精确一致） | Canonical 文件 |
 | --- | --- | --- |
 | Event kind（active） | 144 | `artifacts/registry/event-kind-registry.json` |
-| Schema | 226 | `artifacts/registry/schema-registry.json` |
+| Schema | 220 | `artifacts/registry/schema-registry.json` |
 | Typed ID kind | 48 | `artifacts/registry/id-kind-registry.json` |
-| Service operation | 205 | `artifacts/registry/operation-registry.json` |
+| Service operation | 203 | `artifacts/registry/operation-registry.json` |
 | Claimable conformance profile | 59 | `artifacts/profiles/conformance-profiles.json` |
 | Profile id references | 78 | `artifacts/profiles/conformance-profiles.json` |
 

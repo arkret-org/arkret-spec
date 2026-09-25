@@ -280,10 +280,6 @@
       "new": "ak.peer.realm_authority.command.handoff.v1"
     },
     {
-      "old": "ak.peer.realm_join.read.application_status",
-      "new": "ak.peer.realm_join.read.application_status.v1"
-    },
-    {
       "old": "ak.peer.realm_join.read.bootstrap",
       "new": "ak.peer.realm_join.read.bootstrap.v1"
     },
@@ -742,10 +738,6 @@
     {
       "old": "ak.self.realm_join.command.prepare",
       "new": "ak.self.realm_join.command.prepare.v1"
-    },
-    {
-      "old": "ak.self.realm_join.read.application_status",
-      "new": "ak.self.realm_join.read.application_status.v1"
     },
     {
       "old": "ak.self.realm_join.read.preview",

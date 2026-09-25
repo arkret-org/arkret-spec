@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-25.1",
+  "version": "2026-09-25.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-25T00:44:00+08:00",
+  "generated_at": "2026-09-25T14:50:00+08:00",
   "description": "Closed inventory of current spec/v1/zh headings that explicitly carry the （normative） marker. Any addition, removal, rename, or move is reviewed as a protocol change and refreshes this source-of-truth inventory.",
   "titles": [
     {
@@ -1121,8 +1121,8 @@
     },
     {
       "page": "sync/invite-addressing.md",
-      "heading": "7.1 定向邀请的加入前预览（normative）",
-      "fragment": "71-定向邀请的加入前预览normative"
+      "heading": "7.1 加入前预览（normative）",
+      "fragment": "71-加入前预览normative"
     },
     {
       "page": "sync/operations-sync.md",

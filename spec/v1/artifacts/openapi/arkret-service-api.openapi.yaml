@@ -826,10 +826,6 @@ components:
       $ref: ../schemas/realm-join-intake.schema.json#/$defs/peer_bootstrap_outcome
     RealmJoinBootstrapRequestBody:
       $ref: ../schemas/realm-join-intake.schema.json#/$defs/peer_bootstrap_request_body
-    RealmJoinPeerApplicationStatusOutcome:
-      $ref: ../schemas/realm-join-intake.schema.json#/$defs/peer_application_status_outcome
-    RealmJoinPeerApplicationStatusRequestBody:
-      $ref: ../schemas/realm-join-intake.schema.json#/$defs/peer_application_status_request_body
     RealmJoinPeerPreviewOutcome:
       $ref: ../schemas/realm-join-intake.schema.json#/$defs/peer_preview_outcome
     RealmJoinPeerPreviewRequestBody:
@@ -838,10 +834,6 @@ components:
       $ref: ../schemas/realm-join-intake.schema.json#/$defs/self_prepare_outcome
     RealmJoinPrepareRequestBody:
       $ref: ../schemas/realm-join-intake.schema.json#/$defs/self_prepare_request_body
-    RealmJoinSelfApplicationStatusOutcome:
-      $ref: ../schemas/realm-join-intake.schema.json#/$defs/self_application_status_outcome
-    RealmJoinSelfApplicationStatusRequestBody:
-      $ref: ../schemas/realm-join-intake.schema.json#/$defs/self_application_status_request_body
     RealmJoinSelfPreviewOutcome:
       $ref: ../schemas/realm-join-intake.schema.json#/$defs/self_preview_outcome
     RealmJoinSelfPreviewRequestBody:
@@ -2546,7 +2538,7 @@ paths:
         sourceTrustDomain: []
         destinationTrustDomain: []
         contentDigest: []
-      summary: Disclose the policy-permitted pre-join preview of one directed invite.
+      summary: Disclose the policy-permitted pre-join preview from the current governance Station.
       requestBody:
         required: true
         content:
@@ -2555,7 +2547,7 @@ paths:
               $ref: '#/components/schemas/RealmJoinPeerPreviewRequestBody'
       responses:
         '200':
-          description: Preview members the effective preview policy permits for that exact invitee and invite.
+          description: Preview members the effective preview policy permits for the requester's audience; no authority bundle.
           content:
             application/json:
               schema:
@@ -2592,38 +2584,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RealmJoinBootstrapOutcome'
-  /_arkret/peer/realm-joins/application-status:
-    post:
-      operationId: ak.peer.realm_join.read.application_status
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.peer.realm_join.read.application_status.v1
-      security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-        sourceTrustDomain: []
-        destinationTrustDomain: []
-        contentDigest: []
-      summary: Report the restricted outcome of one forwarded join application.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RealmJoinPeerApplicationStatusRequestBody'
-      responses:
-        '200':
-          description: Receiving-Realm state of exactly that application, with the durable proposal observation when one exists.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RealmJoinPeerApplicationStatusOutcome'
   /_arkret/peer/signal:
     post:
       operationId: ak.peer.signal.command.relay
@@ -5024,40 +4984,11 @@ paths:
               $ref: '#/components/schemas/RealmJoinSelfPreviewRequestBody'
       responses:
         '200':
-          description: Preview bound to the exact account, Realm, request and disclosure source.
+          description: The authority bundle this Station verified with its own nonce and the disclosed preview.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/RealmJoinSelfPreviewOutcome'
-  /_arkret/self/realm-joins/application-status:
-    post:
-      operationId: ak.self.realm_join.read.application_status
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.self.realm_join.read.application_status.v1
-      security:
-      - sessionGrantAuth: []
-        dpopProof: []
-      summary: Read own-Station validated progress of one join application before membership.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RealmJoinSelfApplicationStatusRequestBody'
-      responses:
-        '200':
-          description: Origin forwarding fact, receiving-Realm state and the accepted covering RealmCommit reference for that
-            application.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RealmJoinSelfApplicationStatusOutcome'
   /_arkret/self/signer-keys/query:
     post:
       operationId: ak.self.signer_keys.read.resolve

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-25.1",
+  "version": "2026-09-25.2",
   "source_of_truth": false,
-  "generated_at": "2026-09-25T00:44:00+08:00",
+  "generated_at": "2026-09-25T14:50:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -648,30 +648,6 @@
       "description": "Authority-commit-owned durable state for ak.device.revoke security transactions: exact authority/device/generation binding, universal revocation_pending gates, terminal command-result release, fault retention and consecutive same-stream RealmCommit finality."
     },
     {
-      "schema_id": "ak.schema.pcr_device_conflict_index_cut.v1",
-      "file": "schemas/device-revocation-state.schema.json",
-      "fragment": "#/$defs/pcr_device_conflict_index_cut",
-      "status": "active",
-      "description": "Station-local complete index marker for locally ingested verified PCR forks at one accepted head and conflict revision.",
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "PCR governance Station durable device-conflict index cut: schemas/device-revocation-state.schema.json#/$defs/pcr_device_conflict_index_cut",
-        "normative_ref": "zh/crypto-media/device-lifecycle.md#553-device_status-是读侧折叠不是存储轴normative"
-      }
-    },
-    {
-      "schema_id": "ak.schema.verified_pcr_fork_record.v1",
-      "file": "schemas/device-revocation-state.schema.json",
-      "fragment": "#/$defs/verified_pcr_fork_record",
-      "status": "active",
-      "description": "Station-local verified pair of existing signed PCR RealmCommit and Event objects at one predecessor and position.",
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "PCR governance Station durable verified fork ledger: schemas/device-revocation-state.schema.json#/$defs/verified_pcr_fork_record",
-        "normative_ref": "zh/crypto-media/device-lifecycle.md#553-device_status-是读侧折叠不是存储轴normative"
-      }
-    },
-    {
       "schema_id": "ak.schema.did_binding_contracts.v1",
       "file": "schemas/did-binding-contracts.schema.json",
       "status": "active",
@@ -1307,20 +1283,6 @@
       "description": "Closed, untrusted authority-bundle locator returned by Realm discovery, invite delivery, and join intake. Realm scope and freshness belong to the enclosing carrier and nonce-bound current assertion; the locator neither selects nor proves the current governance Station, is not an identity selector or authorization grant, and cannot change an AccountId."
     },
     {
-      "schema_id": "ak.schema.realm_join_peer_application_status_outcome.v1",
-      "file": "schemas/realm-join-intake.schema.json",
-      "fragment": "#/$defs/peer_application_status_outcome",
-      "status": "active",
-      "description": "Restricted receiving-Realm outcome of one join application, carrying the durable proposal observation for that exact proposal and nothing else."
-    },
-    {
-      "schema_id": "ak.schema.realm_join_peer_application_status_request.v1",
-      "file": "schemas/realm-join-intake.schema.json",
-      "fragment": "#/$defs/peer_application_status_request_body",
-      "status": "active",
-      "description": "Authenticated service-to-service read of the restricted outcome of exactly one forwarded join application."
-    },
-    {
       "schema_id": "ak.schema.realm_join_peer_preview_outcome.v1",
       "file": "schemas/realm-join-intake.schema.json",
       "fragment": "#/$defs/peer_preview_outcome",
@@ -1347,20 +1309,6 @@
       "fragment": "#/$defs/self_prepare_request_body",
       "status": "active",
       "description": "Authenticated account request to prepare exactly one join, knock or invite acceptance through the account's own Station."
-    },
-    {
-      "schema_id": "ak.schema.realm_join_self_application_status_outcome.v1",
-      "file": "schemas/realm-join-intake.schema.json",
-      "fragment": "#/$defs/self_application_status_outcome",
-      "status": "active",
-      "description": "Own-Station validated join application progress: origin forwarding fact, receiving-Realm state and the accepted covering RealmCommit reference, with no Ack, authority set or RealmCommit bytes."
-    },
-    {
-      "schema_id": "ak.schema.realm_join_self_application_status_request.v1",
-      "file": "schemas/realm-join-intake.schema.json",
-      "fragment": "#/$defs/self_application_status_request_body",
-      "status": "active",
-      "description": "Authenticated account read of one own join application before membership exists."
     },
     {
       "schema_id": "ak.schema.realm_join_self_preview_outcome.v1",

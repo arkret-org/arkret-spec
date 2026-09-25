@@ -3754,7 +3754,7 @@
     },
     "device_generation_value": {
       "type": "object",
-      "description": "Closed value of the device_generation typed current result: one member, fixed by zh/crypto-media/device-lifecycle.md section 5.5.4. device_generation_status is NOT a member -- its conflicted value is the same kind of verified-conflict fold as the device-level conflicted of section 5.5.3 and has no Event producer, so the device_generation_state object on the keys/query surface is the pair (this member, the folded status) rather than a two-member stored value.",
+      "description": "Closed value of the device_generation typed current result: one member, fixed by zh/crypto-media/device-lifecycle.md section 5.5.4. The keys/query device_generation_state object presents only this member; there is no generation-level status.",
       "required": [
         "current_device_generation_ref"
       ],

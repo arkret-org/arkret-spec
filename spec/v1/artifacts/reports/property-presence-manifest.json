@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 8913,
+    "total_properties": 8892,
     "total_schema_documents": 165,
     "by_presence_class": {
-      "optional": 2143,
+      "optional": 2139,
       "optional_defaulted": 47,
-      "required": 6254,
+      "required": 6237,
       "required_nullable": 302,
       "tristate": 167
     },
@@ -4683,9 +4683,7 @@
     },
     "device-revocation-state.schema.json": {
       "schema_ids": [
-        "ak.schema.device_revocation_state.v1",
-        "ak.schema.pcr_device_conflict_index_cut.v1 -> #/$defs/pcr_device_conflict_index_cut",
-        "ak.schema.verified_pcr_fork_record.v1 -> #/$defs/verified_pcr_fork_record"
+        "ak.schema.device_revocation_state.v1"
       ],
       "properties": {
         "/$defs/common_record/properties/acceptance_seq": "required",
@@ -4700,14 +4698,7 @@
         "/$defs/device_revocation_pending_state/allOf/1/properties/status": "required",
         "/$defs/device_revocation_rejected_state/allOf/1/properties/status": "required",
         "/$defs/device_revoked_state/allOf/1/properties/committed_at": "required",
-        "/$defs/device_revoked_state/allOf/1/properties/status": "required",
-        "/$defs/pcr_device_conflict_index_cut/properties/conflict_revision": "required",
-        "/$defs/pcr_device_conflict_index_cut/properties/pcr_head_commit_id": "required",
-        "/$defs/verified_pcr_fork_record/properties/first_commit": "required",
-        "/$defs/verified_pcr_fork_record/properties/first_event": "required",
-        "/$defs/verified_pcr_fork_record/properties/second_commit": "required",
-        "/$defs/verified_pcr_fork_record/properties/second_event": "required",
-        "/$defs/verified_pcr_fork_record/properties/verified_at": "required"
+        "/$defs/device_revoked_state/allOf/1/properties/status": "required"
       }
     },
     "did-binding-contracts.schema.json": {
@@ -7388,7 +7379,6 @@
         "/$defs/delivery_entry/properties/authority_locator_hints": "required",
         "/$defs/delivery_entry/properties/expires_at": "required",
         "/$defs/delivery_entry/properties/invite_id": "required",
-        "/$defs/delivery_entry/properties/invite_token": "required",
         "/$defs/delivery_entry/properties/inviter_account_id": "required",
         "/$defs/delivery_entry/properties/realm_id": "required",
         "/$defs/delivery_entry/properties/received_at": "required",
@@ -8013,7 +8003,6 @@
         "/$defs/backup_series_erase_confirmation/properties/transaction_id": "required",
         "/$defs/backup_series_erase_confirmation/properties/transaction_request_digest": "required",
         "/$defs/device_generation_state/properties/current_device_generation_ref": "required",
-        "/$defs/device_generation_state/properties/device_generation_status": "required",
         "/$defs/device_projection_attestation/properties/attestation": "required",
         "/$defs/device_projection_attestation/properties/proof": "required",
         "/$defs/device_projection_attestation_core/properties/account_id": "required",
@@ -9387,34 +9376,21 @@
     },
     "realm-join-intake.schema.json": {
       "schema_ids": [
-        "ak.schema.realm_join_peer_application_status_outcome.v1 -> #/$defs/peer_application_status_outcome",
-        "ak.schema.realm_join_peer_application_status_request.v1 -> #/$defs/peer_application_status_request_body",
         "ak.schema.realm_join_bootstrap_outcome.v1 -> #/$defs/peer_bootstrap_outcome",
         "ak.schema.realm_join_bootstrap_request.v1 -> #/$defs/peer_bootstrap_request_body",
         "ak.schema.realm_join_peer_preview_outcome.v1 -> #/$defs/peer_preview_outcome",
         "ak.schema.realm_join_peer_preview_request.v1 -> #/$defs/peer_preview_request_body",
-        "ak.schema.realm_join_self_application_status_outcome.v1 -> #/$defs/self_application_status_outcome",
-        "ak.schema.realm_join_self_application_status_request.v1 -> #/$defs/self_application_status_request_body",
         "ak.schema.realm_join_prepare_outcome.v1 -> #/$defs/self_prepare_outcome",
         "ak.schema.realm_join_prepare_request.v1 -> #/$defs/self_prepare_request_body",
         "ak.schema.realm_join_self_preview_outcome.v1 -> #/$defs/self_preview_outcome",
         "ak.schema.realm_join_self_preview_request.v1 -> #/$defs/self_preview_request_body"
       ],
       "properties": {
-        "/$defs/application_status_outcome/properties/commit": "optional",
-        "/$defs/application_status_outcome/properties/reason_code": "optional",
-        "/$defs/application_status_outcome/properties/request_id": "required",
-        "/$defs/application_status_outcome/properties/status": "required",
-        "/$defs/application_status_request/properties/application_event_id": "required",
-        "/$defs/application_status_request/properties/realm_id": "required",
-        "/$defs/application_status_request/properties/request_id": "required",
         "/$defs/join_intent/oneOf/0/properties/invite_id": "required",
-        "/$defs/join_intent/oneOf/0/properties/invite_token": "required",
         "/$defs/join_intent/oneOf/0/properties/kind": "required",
         "/$defs/join_intent/oneOf/1/properties/kind": "required",
         "/$defs/join_target/properties/authority_locator_hints": "required",
         "/$defs/join_target/properties/invite_id": "optional",
-        "/$defs/join_target/properties/invite_token": "optional",
         "/$defs/join_target/properties/realm_id": "required",
         "/$defs/peer_bootstrap_outcome/properties/authority_bundle": "required",
         "/$defs/peer_bootstrap_outcome/properties/request_id": "required",
@@ -9424,11 +9400,9 @@
         "/$defs/peer_bootstrap_request_body/properties/membership_commit_id": "required",
         "/$defs/peer_bootstrap_request_body/properties/realm_id": "required",
         "/$defs/peer_bootstrap_request_body/properties/request_id": "required",
-        "/$defs/peer_preview_outcome/properties/authority_bundle": "required",
         "/$defs/peer_preview_outcome/properties/preview": "required",
         "/$defs/peer_preview_outcome/properties/request_id": "required",
         "/$defs/peer_preview_request_body/properties/invite_id": "optional",
-        "/$defs/peer_preview_request_body/properties/invite_token": "optional",
         "/$defs/peer_preview_request_body/properties/realm_id": "required",
         "/$defs/peer_preview_request_body/properties/request_id": "required",
         "/$defs/peer_preview_request_body/properties/requester_account_id": "required",
@@ -9856,7 +9830,6 @@
         "/$defs/recovery_session_state/properties/challenge": "required",
         "/$defs/recovery_session_state/properties/created_at": "required",
         "/$defs/recovery_session_state/properties/current_device_generation_ref": "required",
-        "/$defs/recovery_session_state/properties/device_generation_status": "required",
         "/$defs/recovery_session_state/properties/expires_at": "required",
         "/$defs/recovery_session_state/properties/identity_model": "required",
         "/$defs/recovery_session_state/properties/policy_id": "required",

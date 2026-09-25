@@ -41,22 +41,22 @@
     "unresolved": "no direct vector or reviewed higher-level coverage owner has been identified; this is a release blocker."
   },
   "summary": {
-    "total_schemas": 226,
+    "total_schemas": 220,
     "by_consumer": {
-      "declared_wire": 59,
+      "declared_wire": 57,
       "event_kind": 8,
-      "inbound": 50,
-      "outbound": 61,
+      "inbound": 48,
+      "outbound": 59,
       "prose": 103,
       "prose_only": 2,
-      "schema_reference": 163,
-      "startup_compile": 226,
+      "schema_reference": 159,
+      "startup_compile": 220,
       "vectors": 111
     },
     "without_wire_consumer": 1,
     "explicit_prose_only": 2,
     "unresolved_consumer_coverage": 0,
-    "without_vector_coverage": 115,
+    "without_vector_coverage": 109,
     "unresolved_vector_disposition": 0
   },
   "without_wire_consumer": [
@@ -141,7 +141,6 @@
     "ak.schema.mls_welcome_delivery.v1",
     "ak.schema.object_addressing.v1",
     "ak.schema.patch.v1",
-    "ak.schema.pcr_device_conflict_index_cut.v1",
     "ak.schema.presence_preference.v1",
     "ak.schema.presence_visibility.v1",
     "ak.schema.principal_locator.v1",
@@ -155,14 +154,10 @@
     "ak.schema.realm_join_bootstrap_outcome.v1",
     "ak.schema.realm_join_bootstrap_request.v1",
     "ak.schema.realm_join_candidate.v1",
-    "ak.schema.realm_join_peer_application_status_outcome.v1",
-    "ak.schema.realm_join_peer_application_status_request.v1",
     "ak.schema.realm_join_peer_preview_outcome.v1",
     "ak.schema.realm_join_peer_preview_request.v1",
     "ak.schema.realm_join_prepare_outcome.v1",
     "ak.schema.realm_join_prepare_request.v1",
-    "ak.schema.realm_join_self_application_status_outcome.v1",
-    "ak.schema.realm_join_self_application_status_request.v1",
     "ak.schema.realm_join_self_preview_outcome.v1",
     "ak.schema.realm_join_self_preview_request.v1",
     "ak.schema.realm_link_operations.v1",
@@ -181,8 +176,7 @@
     "ak.schema.signal_presence.v1",
     "ak.schema.signal_typing.v1",
     "ak.schema.string_profiles.v1",
-    "ak.schema.time.v1",
-    "ak.schema.verified_pcr_fork_record.v1"
+    "ak.schema.time.v1"
   ],
   "unresolved_vector_disposition": [],
   "schemas": [
@@ -1422,7 +1416,6 @@
           "ak.schema.moderation_queue_item.v1",
           "ak.schema.morph.v1",
           "ak.schema.notification.v1",
-          "ak.schema.pcr_device_conflict_index_cut.v1",
           "ak.schema.policy.v1",
           "ak.schema.principal_locator.v1",
           "ak.schema.principal_operations.v1",
@@ -1440,14 +1433,10 @@
           "ak.schema.realm_join_bootstrap_outcome.v1",
           "ak.schema.realm_join_bootstrap_request.v1",
           "ak.schema.realm_join_candidate.v1",
-          "ak.schema.realm_join_peer_application_status_outcome.v1",
-          "ak.schema.realm_join_peer_application_status_request.v1",
           "ak.schema.realm_join_peer_preview_outcome.v1",
           "ak.schema.realm_join_peer_preview_request.v1",
           "ak.schema.realm_join_prepare_outcome.v1",
           "ak.schema.realm_join_prepare_request.v1",
-          "ak.schema.realm_join_self_application_status_outcome.v1",
-          "ak.schema.realm_join_self_application_status_request.v1",
           "ak.schema.realm_join_self_preview_outcome.v1",
           "ak.schema.realm_join_self_preview_request.v1",
           "ak.schema.realm_link_operations.v1",
@@ -1480,7 +1469,6 @@
           "ak.schema.signer_key_query_request.v1",
           "ak.schema.space.v1",
           "ak.schema.strand.v1",
-          "ak.schema.verified_pcr_fork_record.v1",
           "ak.schema.view.v1",
           "ak.schema.websocket_authenticate_frame.v1",
           "ak.schema.websocket_challenge_frame.v1",
@@ -2922,26 +2910,6 @@
       }
     },
     {
-      "schema_id": "ak.schema.pcr_device_conflict_index_cut.v1",
-      "file": "schemas/device-revocation-state.schema.json",
-      "consumers": {
-        "declared_wire": "standalone_schema_alias",
-        "startup_compile": "exact"
-      },
-      "wire_covered": true,
-      "vector_coverage": {
-        "disposition": "runtime_dispatch_owned",
-        "owner": "standalone_schema_alias",
-        "rationale": "This schema is selected inside a registered dynamic/runtime dispatch surface. Coverage belongs to that enclosing dispatch vector because the object is never admitted independently."
-      },
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "PCR governance Station durable device-conflict index cut: schemas/device-revocation-state.schema.json#/$defs/pcr_device_conflict_index_cut",
-        "normative_ref": "zh/crypto-media/device-lifecycle.md#553-device_status-是读侧折叠不是存储轴normative"
-      },
-      "fragment": "#/$defs/pcr_device_conflict_index_cut"
-    },
-    {
       "schema_id": "ak.schema.personal_productivity.v1",
       "file": "schemas/personal-productivity.schema.json",
       "consumers": {
@@ -3361,55 +3329,15 @@
           "ak.schema.invite_delivery_request.v1",
           "ak.schema.realm_join_bootstrap_outcome.v1",
           "ak.schema.realm_join_bootstrap_request.v1",
-          "ak.schema.realm_join_peer_application_status_outcome.v1",
-          "ak.schema.realm_join_peer_application_status_request.v1",
           "ak.schema.realm_join_peer_preview_outcome.v1",
           "ak.schema.realm_join_peer_preview_request.v1",
           "ak.schema.realm_join_prepare_outcome.v1",
           "ak.schema.realm_join_prepare_request.v1",
-          "ak.schema.realm_join_self_application_status_outcome.v1",
-          "ak.schema.realm_join_self_application_status_request.v1",
           "ak.schema.realm_join_self_preview_outcome.v1",
           "ak.schema.realm_join_self_preview_request.v1"
         ],
         "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
       }
-    },
-    {
-      "schema_id": "ak.schema.realm_join_peer_application_status_outcome.v1",
-      "file": "schemas/realm-join-intake.schema.json",
-      "consumers": {
-        "outbound": "exact",
-        "schema_reference": "exact",
-        "startup_compile": "exact"
-      },
-      "wire_covered": true,
-      "vector_coverage": {
-        "disposition": "operation_e2e_owned",
-        "owners": [
-          "ak.peer.realm_join.read.application_status.v1"
-        ],
-        "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
-      },
-      "fragment": "#/$defs/peer_application_status_outcome"
-    },
-    {
-      "schema_id": "ak.schema.realm_join_peer_application_status_request.v1",
-      "file": "schemas/realm-join-intake.schema.json",
-      "consumers": {
-        "inbound": "exact",
-        "schema_reference": "exact",
-        "startup_compile": "exact"
-      },
-      "wire_covered": true,
-      "vector_coverage": {
-        "disposition": "operation_e2e_owned",
-        "owners": [
-          "ak.peer.realm_join.read.application_status.v1"
-        ],
-        "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
-      },
-      "fragment": "#/$defs/peer_application_status_request_body"
     },
     {
       "schema_id": "ak.schema.realm_join_peer_preview_outcome.v1",
@@ -3482,42 +3410,6 @@
         "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
       },
       "fragment": "#/$defs/self_prepare_request_body"
-    },
-    {
-      "schema_id": "ak.schema.realm_join_self_application_status_outcome.v1",
-      "file": "schemas/realm-join-intake.schema.json",
-      "consumers": {
-        "outbound": "exact",
-        "schema_reference": "exact",
-        "startup_compile": "exact"
-      },
-      "wire_covered": true,
-      "vector_coverage": {
-        "disposition": "operation_e2e_owned",
-        "owners": [
-          "ak.self.realm_join.read.application_status.v1"
-        ],
-        "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
-      },
-      "fragment": "#/$defs/self_application_status_outcome"
-    },
-    {
-      "schema_id": "ak.schema.realm_join_self_application_status_request.v1",
-      "file": "schemas/realm-join-intake.schema.json",
-      "consumers": {
-        "inbound": "exact",
-        "schema_reference": "exact",
-        "startup_compile": "exact"
-      },
-      "wire_covered": true,
-      "vector_coverage": {
-        "disposition": "operation_e2e_owned",
-        "owners": [
-          "ak.self.realm_join.read.application_status.v1"
-        ],
-        "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
-      },
-      "fragment": "#/$defs/self_application_status_request_body"
     },
     {
       "schema_id": "ak.schema.realm_join_self_preview_outcome.v1",
@@ -4324,7 +4216,6 @@
           "ak.schema.moderation_queue_item.v1",
           "ak.schema.morph.v1",
           "ak.schema.notification.v1",
-          "ak.schema.pcr_device_conflict_index_cut.v1",
           "ak.schema.personal_productivity.v1",
           "ak.schema.policy.v1",
           "ak.schema.presence_preference.v1",
@@ -4362,7 +4253,6 @@
           "ak.schema.signer_key_query_request.v1",
           "ak.schema.space.v1",
           "ak.schema.strand.v1",
-          "ak.schema.verified_pcr_fork_record.v1",
           "ak.schema.view.v1",
           "ak.schema.websocket_authenticate_frame.v1",
           "ak.schema.websocket_challenge_frame.v1",
@@ -4402,26 +4292,6 @@
         "selector": "schemas/service-describe.schema.json#/$defs/transport_binding",
         "normative_ref": "zh/sync/transport-bindings.md#7-binding-discovery"
       }
-    },
-    {
-      "schema_id": "ak.schema.verified_pcr_fork_record.v1",
-      "file": "schemas/device-revocation-state.schema.json",
-      "consumers": {
-        "declared_wire": "standalone_schema_alias",
-        "startup_compile": "exact"
-      },
-      "wire_covered": true,
-      "vector_coverage": {
-        "disposition": "runtime_dispatch_owned",
-        "owner": "standalone_schema_alias",
-        "rationale": "This schema is selected inside a registered dynamic/runtime dispatch surface. Coverage belongs to that enclosing dispatch vector because the object is never admitted independently."
-      },
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "PCR governance Station durable verified fork ledger: schemas/device-revocation-state.schema.json#/$defs/verified_pcr_fork_record",
-        "normative_ref": "zh/crypto-media/device-lifecycle.md#553-device_status-是读侧折叠不是存储轴normative"
-      },
-      "fragment": "#/$defs/verified_pcr_fork_record"
     },
     {
       "schema_id": "ak.schema.view.v1",

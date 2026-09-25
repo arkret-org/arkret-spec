@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-09-25.1",
+  "version": "2026-09-25.2",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-09-25T00:44:00+08:00",
+  "generated_at": "2026-09-25T14:50:00+08:00",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3. snapshot_capacity_exceeded applies to every event_log admission branch in the operation registry, including peer authority_forward; committed_replication and other non-admission branches do not produce it.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, signature_invalid, capability_denied, schema_violation, json_invalid, query_invalid, param_missing, param_invalid, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind, unsupported_protocol_version, operation_selector_required, unsupported_operation_version. These are the universal failure surface and are NOT repeated in each operation entry. unsupported_protocol_version applies only when the binding implements Arkret-Protocol-Version header or equivalent media-type negotiation; ServiceDescribe consumers also use the same stable code locally before capability intersection. operation_selector_required and unsupported_operation_version are binding-level pre-dispatch failures evaluated before body parsing for every canonical operation.",
@@ -762,16 +762,6 @@
       "codes": []
     },
     {
-      "operation_id": "ak.peer.realm_join.read.application_status.v1",
-      "http_alias": "POST /_arkret/peer/realm-joins/application-status",
-      "operation_specific": [
-        "not_found",
-        "payload_too_large"
-      ],
-      "description": "Unknown Realm, unknown Event, an application forwarded by another source and an applicant whose Station is not the authenticated source all share one non-enumerating 404 not_found under the same fixed timing bucket. Request canonical bytes above 64 KiB are 413 payload_too_large; count-only schema violations remain universal 422 schema_violation.",
-      "codes": []
-    },
-    {
       "operation_id": "ak.peer.realm_join.read.bootstrap.v1",
       "http_alias": "POST /_arkret/peer/realm-joins/bootstrap",
       "operation_specific": [
@@ -1049,9 +1039,10 @@
       "operation_id": "ak.self.account_data.resource.delete.v1",
       "http_alias": "DELETE /_arkret/self/account_data/{account_data_key}",
       "operation_specific": [
-        "cas_conflict"
+        "cas_conflict",
+        "duplicate_conflict"
       ],
-      "description": "cas_conflict when expected_server_revision does not equal the accepted per-key revision; the tombstone is not stored and error.details use account_data_cas_conflict_details.",
+      "description": "cas_conflict when expected_server_revision does not equal the accepted per-key revision; the tombstone is not stored and error.details use account_data_cas_conflict_details. duplicate_conflict when the same Event identity arrives with different canonical Event bytes; zero writes.",
       "codes": []
     },
     {
@@ -1067,9 +1058,10 @@
       "operation_id": "ak.self.account_data.resource.replace.v1",
       "http_alias": "PUT /_arkret/self/account_data/{account_data_key}",
       "operation_specific": [
-        "cas_conflict"
+        "cas_conflict",
+        "duplicate_conflict"
       ],
-      "description": "cas_conflict when expected_server_revision does not equal the accepted per-key revision; error.details use account_data_cas_conflict_details so the client can merge and re-issue exactly one write.",
+      "description": "cas_conflict when expected_server_revision does not equal the accepted per-key revision; error.details use account_data_cas_conflict_details so the client can merge and re-issue exactly one write. duplicate_conflict when the same Event identity arrives with different canonical Event bytes; zero writes.",
       "codes": []
     },
     {
@@ -1893,8 +1885,10 @@
     {
       "operation_id": "ak.self.read_cursor.command.advance.v1",
       "http_alias": "POST /_arkret/self/read-cursors",
-      "operation_specific": [],
-      "description": "No operation-specific error codes beyond the universal failure surface.",
+      "operation_specific": [
+        "duplicate_conflict"
+      ],
+      "description": "duplicate_conflict when the same Event identity arrives with different canonical Event bytes; zero writes. A position Event whose committed coordinate this Station does not hold uses the universal temporarily_unavailable, and one outside the Realm or the owner's readable interval uses param_invalid.",
       "codes": []
     },
     {
@@ -1938,16 +1932,6 @@
         "payload_too_large"
       ],
       "description": "An account or Station that does not match the authenticated session, an unknown or hidden Realm, an invalid, expired or revoked invite credential and a join policy that does not admit the declared intent share one non-enumerating 404 not_found. An intent outside the registered invite_accept, member_join and knock branches is 501 unsupported_feature. A basis, digest suite or encryption profile that cannot currently be obtained and verified is 503 revision_unavailable and never a defaulted value. A pre-state that no longer holds under the current accepted basis is 409 failed_precondition and requires a fresh preparation, never a rewrite of already signed material. Request canonical bytes above 64 KiB are 413 payload_too_large. A required authority-stream head or admission basis that cannot be derived is 503 revision_unavailable and never a defaulted position=0.",
-      "codes": []
-    },
-    {
-      "operation_id": "ak.self.realm_join.read.application_status.v1",
-      "http_alias": "POST /_arkret/self/realm-joins/application-status",
-      "operation_specific": [
-        "not_found",
-        "payload_too_large"
-      ],
-      "description": "An account or Station that does not match the authenticated session, an unknown Event and another account's application share one non-enumerating 404 not_found. Request canonical bytes above 64 KiB are 413 payload_too_large.",
       "codes": []
     },
     {

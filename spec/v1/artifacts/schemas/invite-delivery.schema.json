@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/invite-delivery.schema.json",
   "title": "Arkret Invite Delivery",
-  "description": "Actor-private plaintext account-data typed current result value containing directed-invite credentials and untrusted authority-bundle locator hints. It is not part of Realm history.",
+  "description": "Actor-private plaintext account-data typed current result value containing delivered directed-invite references and untrusted authority-bundle locator hints. It is not part of Realm history and carries no bearer credential.",
   "type": "object",
   "required": [
     "schema",
@@ -23,7 +23,7 @@
       "items": {
         "$ref": "#/$defs/delivery_entry"
       },
-      "description": "Bounded register of delivered invite credentials, oldest first. At most one entry per invite_id; a redelivery of the same invite_id replaces the previous entry. Entries whose expires_at has passed are purged on the next write; overflow beyond 200 evicts the oldest entries."
+      "description": "Bounded register of delivered directed invites, oldest first. At most one entry per invite_id; a redelivery of the same invite_id replaces the previous entry. Entries whose expires_at has passed are purged on the next write; overflow beyond 200 evicts the oldest entries."
     }
   },
   "$defs": {
@@ -33,7 +33,6 @@
         "invite_id",
         "realm_id",
         "inviter_account_id",
-        "invite_token",
         "authority_locator_hints",
         "received_at",
         "expires_at"
@@ -51,12 +50,6 @@
           "$ref": "./common-ids.schema.json#/$defs/account_id",
           "description": "Complete AccountId of the inviter, copied from the accepted invite Event and verified by the delivery chain."
         },
-        "invite_token": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 512,
-          "description": "Opaque server-issued private invite locator token used by the invitee's accept path. Clients MUST treat it as an opaque string and MUST NOT persist it anywhere outside this typed current result or equivalent holder-private state."
-        },
         "authority_locator_hints": {
           "type": "array",
           "minItems": 1,
@@ -65,7 +58,7 @@
           "items": {
             "$ref": "./realm-join-candidate.schema.json"
           },
-          "description": "One to eight untrusted locator cores, strictly sorted by service_id UTF-8 bytes. service_id is the semantic identity key; duplicate or conflicting representations of one service_id invalidate the entire array. The invitee must fetch and verify a nonce-bound RealmAuthorityBundle before any preview, join submission, or bootstrap request."
+          "description": "One to eight untrusted locator cores, strictly sorted by service_id UTF-8 bytes. service_id is the semantic identity key; duplicate or conflicting representations of one service_id invalidate the entire array. The invitee's own Station must fetch and verify a nonce-bound RealmAuthorityBundle before any preview, join preparation, or bootstrap request."
         },
         "received_at": {
           "$ref": "./time.schema.json#/$defs/timestamp",
@@ -73,7 +66,7 @@
         },
         "expires_at": {
           "$ref": "./time.schema.json#/$defs/timestamp",
-          "description": "Expiry of the underlying invite credential; an entry with expires_at <= now is stale and MUST NOT be used to accept the invite."
+          "description": "Expiry copied from the accepted invite; an entry with expires_at <= now is stale and MUST NOT be used to accept the invite."
         }
       },
       "additionalProperties": false

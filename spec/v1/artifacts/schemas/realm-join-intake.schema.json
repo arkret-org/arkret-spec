@@ -27,18 +27,6 @@
     },
     {
       "$ref": "#/$defs/peer_bootstrap_outcome"
-    },
-    {
-      "$ref": "#/$defs/self_application_status_request_body"
-    },
-    {
-      "$ref": "#/$defs/self_application_status_outcome"
-    },
-    {
-      "$ref": "#/$defs/peer_application_status_request_body"
-    },
-    {
-      "$ref": "#/$defs/peer_application_status_outcome"
     }
   ],
   "$defs": {
@@ -49,11 +37,6 @@
     "invite_id": {
       "type": "string",
       "pattern": "^ak:invite:[A-Za-z0-9_-]{44}$"
-    },
-    "invite_token": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 512
     },
     "join_target": {
       "type": "object",
@@ -67,9 +50,6 @@
         },
         "invite_id": {
           "$ref": "#/$defs/invite_id"
-        },
-        "invite_token": {
-          "$ref": "#/$defs/invite_token"
         },
         "authority_locator_hints": {
           "type": "array",
@@ -90,8 +70,7 @@
           "type": "object",
           "required": [
             "kind",
-            "invite_id",
-            "invite_token"
+            "invite_id"
           ],
           "properties": {
             "kind": {
@@ -99,9 +78,6 @@
             },
             "invite_id": {
               "$ref": "#/$defs/invite_id"
-            },
-            "invite_token": {
-              "$ref": "#/$defs/invite_token"
             }
           },
           "additionalProperties": false
@@ -187,7 +163,8 @@
           "$ref": "#/$defs/public_preview"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "description": "Pre-join disclosure relayed by the caller's own Station. authority_bundle is the RealmAuthorityBundle that Station fetched with its own nonce and verified before asking the current governance Station for the preview; the preview is not membership, a join commitment or verified governance state."
     },
     "peer_preview_request_body": {
       "type": "object",
@@ -208,9 +185,6 @@
         },
         "invite_id": {
           "$ref": "#/$defs/invite_id"
-        },
-        "invite_token": {
-          "$ref": "#/$defs/invite_token"
         }
       },
       "additionalProperties": false
@@ -219,21 +193,18 @@
       "type": "object",
       "required": [
         "request_id",
-        "authority_bundle",
         "preview"
       ],
       "properties": {
         "request_id": {
           "$ref": "#/$defs/request_id"
         },
-        "authority_bundle": {
-          "$ref": "./realm-authority-bundle.schema.json"
-        },
         "preview": {
           "$ref": "#/$defs/public_preview"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "description": "Disclosure answered by the verified current governance Station. It carries no authority bundle: the caller Station has already verified this Station through its own nonce-bound RealmAuthorityBundle and authenticates it as Destination-Service-ID."
     },
     "self_prepare_request_body": {
       "type": "object",
@@ -275,65 +246,6 @@
       },
       "additionalProperties": false,
       "description": "Current context for authoring a producer-signed join Event. It does not reserve a position or authorize admission."
-    },
-    "application_status_request": {
-      "type": "object",
-      "required": [
-        "request_id",
-        "realm_id",
-        "application_event_id"
-      ],
-      "properties": {
-        "request_id": {
-          "$ref": "#/$defs/request_id"
-        },
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "application_event_id": {
-          "$ref": "./common-ids.schema.json#/$defs/event_id"
-        }
-      },
-      "additionalProperties": false
-    },
-    "application_status_outcome": {
-      "type": "object",
-      "required": [
-        "request_id",
-        "status"
-      ],
-      "properties": {
-        "request_id": {
-          "$ref": "#/$defs/request_id"
-        },
-        "status": {
-          "enum": [
-            "pending",
-            "committed",
-            "rejected"
-          ]
-        },
-        "commit": {
-          "$ref": "./realm-commit.schema.json"
-        },
-        "reason_code": {
-          "type": "string",
-          "minLength": 1
-        }
-      },
-      "additionalProperties": false
-    },
-    "self_application_status_request_body": {
-      "$ref": "#/$defs/application_status_request"
-    },
-    "peer_application_status_request_body": {
-      "$ref": "#/$defs/application_status_request"
-    },
-    "self_application_status_outcome": {
-      "$ref": "#/$defs/application_status_outcome"
-    },
-    "peer_application_status_outcome": {
-      "$ref": "#/$defs/application_status_outcome"
     },
     "peer_bootstrap_request_body": {
       "type": "object",

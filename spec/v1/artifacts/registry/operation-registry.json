@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-25.1",
+  "version": "2026-09-25.2",
   "source_of_truth": false,
-  "generated_at": "2026-09-25T01:05:00+08:00",
+  "generated_at": "2026-09-25T14:50:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -149,12 +149,10 @@
     {
       "surface": "realm_join_intake",
       "operations": [
-        "ak.peer.realm_join.read.application_status.v1",
         "ak.peer.realm_join.read.bootstrap.v1",
         "ak.peer.realm_join.read.preview.v1",
         "ak.self.messages.command.prepare.v1",
         "ak.self.realm_join.command.prepare.v1",
-        "ak.self.realm_join.read.application_status.v1",
         "ak.self.realm_join.read.preview.v1"
       ],
       "surface_class": "core"
@@ -1725,18 +1723,6 @@
       }
     },
     {
-      "operation_id": "ak.peer.realm_join.read.application_status.v1",
-      "http": "POST /_arkret/peer/realm-joins/application-status",
-      "grpc": "PeerRealmJoin/ApplicationStatus",
-      "mq": "peer.realm_join.query.application_status",
-      "notes": "Restricted outcome of exactly one forwarded join application, read by the applicant's own Station before that account is a member. The holder Station verifies service-to-service authentication, that applicant_account_id.station_id equals the Source-Service-ID, that it is the Destination-Service-ID, and that event_id is the exact Event this source forwarded for this applicant. received carries no decision; the other five states carry the durable event_commit_submission_decision_read_outcome for the same proposal and their proposal_state MUST agree. Unknown Realm, unknown Event, wrong source and an application belonging to another account share one non-enumerating not_found. The read discloses nothing beyond this application and never becomes a general governance, roster or proposal listing surface.",
-      "body_class": "non_streaming_json",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/realm-join-intake.schema.json#/$defs/peer_application_status_request_body",
-      "response_schema_ref": "schemas/realm-join-intake.schema.json#/$defs/peer_application_status_outcome",
-      "max_canonical_body_bytes": 65536
-    },
-    {
       "operation_id": "ak.peer.realm_join.read.bootstrap.v1",
       "http": "POST /_arkret/peer/realm-joins/bootstrap",
       "grpc": "PeerRealmJoin/Bootstrap",
@@ -1754,7 +1740,7 @@
       "http": "POST /_arkret/peer/realm-joins/preview",
       "grpc": "PeerRealmJoin/Preview",
       "mq": "peer.realm_join.query.preview",
-      "notes": "Pre-join preview of one directed invite, read by the invitee's own Station from the exact inviter Station named by inviter_account_id.station_id. The caller uses service-to-service authentication and never forwards the invitee's local bearer or session credential; requester_account_id.station_id MUST equal the authenticated Source-Service-ID and the holder MUST be the Destination-Service-ID. The holder resolves the exact invite in its accepted state, checks the invite binds that complete invitee AccountId, is unexpired and unrevoked, and discloses only what the effective ak.realm.preview_policy permits for the invited audience. join_candidates, source_refs, stale and divergent are Directory-result provenance and MUST be omitted. A valid invite whose policy discloses nothing returns the minimal bound preview; unknown Realm, unknown or mismatched invite, wrong source, revoked or expired credential and an absent preview policy share one non-enumerating not_found under a fixed timing bucket. The outcome is not membership and never carries the invite token back.",
+      "notes": "Pre-join preview answered only by the current governance Station of realm_id. The caller is the requester's own Station using service-to-service authentication and never forwards the requester's local bearer or session credential; requester_account_id.station_id MUST equal the authenticated Source-Service-ID and the holder MUST be the Destination-Service-ID. With invite_id the holder requires that invite in its accepted current state to be live and bound to the complete requester_account_id; without invite_id it evaluates the non-invited audience. It discloses only what the effective ak.realm.preview_policy permits for that audience. A valid target whose policy discloses nothing returns the minimal public_preview; unknown Realm, a holder that is not the current governance Station, an unknown, mismatched or terminal invite, a wrong source and an absent preview policy share one non-enumerating not_found under a fixed timing bucket. The outcome carries no authority bundle, is not membership and discloses no history, roster or policy text.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/realm-join-intake.schema.json#/$defs/peer_preview_request_body",
@@ -3571,7 +3557,7 @@
       "http": "POST /_arkret/self/read-cursors",
       "grpc": "SelfReadCursor/Advance",
       "mq": "self.read_cursor.command.advance",
-      "notes": "Accepts exactly one caller-signed ak.read_cursor.advance actor-private Event. The Event payload is the complete ak.schema.read_cursor.v1 cursor; envelope.actor_id and payload.actor_id MUST equal the authenticated holder, payload.device_id MUST equal the authenticated session device, and envelope.realm_id MUST equal payload.realm_id. The service validates and forwards the exact Event bytes and MUST NOT rebuild the payload or co-sign. The cursor object carries neither an id nor an updated_at — a cursor is never updated in place, its identity is the (actor_id, realm_id, read_scope) tuple and there is no read_cursor typed ID kind — so the update time of an advance is the Event envelope created_at, and the read_marker_outcome updated_at is that derived envelope time of the winning advance. Sibling devices observe the winner as the ak.read_cursor.update device message whose content is ak.schema.read_cursor_update.v1. Multi-device convergence is causal-first per zh/discovery/read-receipts.md section 6.5: a position that causally dominates the other wins regardless of HLC; HLC max applies only to causally concurrent positions, and device_id lexicographic order only breaks equal HLCs. The cursor is never published into shared Realm history.",
+      "notes": "Accepts exactly one caller-signed ak.read_cursor.advance actor-private Event. The Event payload is the complete ak.schema.read_cursor.v1 cursor; envelope.actor_id and payload.actor_id MUST equal the authenticated holder, payload.device_id MUST equal the authenticated session device, and envelope.realm_id MUST equal payload.realm_id. The service validates and forwards the exact Event bytes and MUST NOT rebuild the payload or co-sign. The cursor object carries neither an id nor an updated_at — a cursor is never updated in place, its identity is the (actor_id, realm_id, read_scope) tuple and there is no read_cursor typed ID kind — so the update time of an advance is the Event envelope created_at, and the read_marker_outcome updated_at is that derived envelope time of the winning advance. Sibling devices observe the winner as the ak.read_cursor.update device message whose content is ak.schema.read_cursor_update.v1. Multi-device convergence follows zh/discovery/read-receipts.md section 6.5: a position committed on the same CommitStreamRef with the larger stream_position wins regardless of HLC; HLC max applies only when neither position dominates (different streams or the same Event), and device_id lexicographic order only breaks equal HLCs. A position Event whose committed coordinate this Station does not hold is refused with temporarily_unavailable and zero writes; the position need not belong to the read_scope container. The cursor is never published into shared Realm history.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "idempotency_mechanism": "protocol_sequence",
@@ -3643,23 +3629,11 @@
       }
     },
     {
-      "operation_id": "ak.self.realm_join.read.application_status.v1",
-      "http": "POST /_arkret/self/realm-joins/application-status",
-      "grpc": "SelfRealmJoin/ApplicationStatus",
-      "mq": "self.realm_join.query.application_status",
-      "notes": "Own-Station validated progress of one join application authored by this account before membership exists. account_id MUST equal the complete account of the authenticated session and its Station MUST be the service handling the request. origin_state reports this Station's own durable forwarding fact and is never Realm acceptance; realm_state appears only after a bounded candidate answered, and accepted_commit_id appears only when this Station has itself verified and accepted the covering RealmCommit. The outcome carries no Ack, authority set, authority signature or RealmCommit bytes: after committed the account is a member and continues through the ordinary member federation and sync surfaces. Unknown Event, another account's application and a non-matching session share one non-enumerating not_found.",
-      "body_class": "non_streaming_json",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/realm-join-intake.schema.json#/$defs/self_application_status_request_body",
-      "response_schema_ref": "schemas/realm-join-intake.schema.json#/$defs/self_application_status_outcome",
-      "max_canonical_body_bytes": 65536
-    },
-    {
       "operation_id": "ak.self.realm_join.read.preview.v1",
       "http": "POST /_arkret/self/realm-joins/preview",
       "grpc": "SelfRealmJoin/Preview",
       "mq": "self.realm_join.query.preview",
-      "notes": "Own-Station validated pre-join Realm preview. account_id MUST equal the complete account of the authenticated session and its Station MUST be the service handling the request. The invite target is resolved only against inviter_account_id.station_id, taking the equivalent local path when that Station is this service; every other target is resolved through the Directory discovery input surface and independently validated before it becomes a result. The client never calls the source, never selects a forwarding candidate and never goes back to a truth source: join_candidates, source_refs, stale and divergent are omitted. request_digest binds the exact chosen target, and source names where the disclosure came from. An unreachable source is a retryable upstream failure and MUST NOT be replaced by another service identity or another Realm member Station.",
+      "notes": "Own-Station validated pre-join Realm preview. The caller's own Station takes target.authority_locator_hints (copied from an ak.account.invite_delivery entry or a Directory discovery projection), fetches the RealmAuthorityBundle with its own nonce through ak.open.realm_authority.read.bundle.v1, verifies Realm genesis, the continuous handoff chain and the unexpired nonce-bound current_assertion, and then reads the preview only from that verified current governance Station through ak.peer.realm_join.read.preview.v1, taking the equivalent local path when it is that Station. The inviter Station and Directory are locator hints and never a preview source. The outcome returns the bundle this Station verified and the disclosed public_preview; the client never calls the source or selects a candidate, and the preview is not membership, a join commitment or verified governance state. An unreachable governance Station is a retryable upstream failure and MUST NOT be replaced by another service identity or member Station.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/realm-join-intake.schema.json#/$defs/self_preview_request_body",
@@ -4784,10 +4758,6 @@
           "binding_kind": "http_json"
         },
         {
-          "operation_id": "ak.peer.realm_join.read.application_status.v1",
-          "binding_kind": "http_json"
-        },
-        {
           "operation_id": "ak.peer.realm_join.read.bootstrap.v1",
           "binding_kind": "http_json"
         },
@@ -5109,10 +5079,6 @@
         },
         {
           "operation_id": "ak.self.realm_join.command.prepare.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "operation_id": "ak.self.realm_join.read.application_status.v1",
           "binding_kind": "http_json"
         },
         {

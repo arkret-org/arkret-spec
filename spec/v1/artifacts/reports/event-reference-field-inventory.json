@@ -7,7 +7,7 @@
   "generated_by": "tools/gen_event_reference_inventory.py",
   "description": "Complete schema-property inventory for Event ID/ref/digest fields. EventId is itself the complete suite-tagged cryptographic identity; no companion-digest wrapper or truncated identity class exists. External protocol event identifiers are classified separately and never enter the Arkret EventId value space.",
   "counts": {
-    "complete_event_id": 157,
+    "complete_event_id": 156,
     "digest_copy_or_commitment": 8,
     "external_event_namespace": 1
   },
@@ -844,12 +844,6 @@
       "schema": "realm-authority-handoff.schema.json",
       "json_pointer": "/properties/change_event_ref",
       "field": "change_event_ref",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "realm-join-intake.schema.json",
-      "json_pointer": "/$defs/application_status_request/properties/application_event_id",
-      "field": "application_event_id",
       "classification": "complete_event_id"
     },
     {

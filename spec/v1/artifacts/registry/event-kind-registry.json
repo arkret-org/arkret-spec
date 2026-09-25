@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-24.2",
+  "version": "2026-09-25.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-24T23:33:10+08:00",
+  "generated_at": "2026-09-25T14:50:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -2701,7 +2701,7 @@
             }
           },
           "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/device_generation_value",
-          "notes": "The only advance of the PCR-local generation. Admission MUST require payload.previous_device_generation to equal the current value and new_device_generation to be its immediate successor, which is the CAS that makes this self-reported pre-state coordinate safe -- the same shape crypto-media/device-lifecycle.md 5.5.2 uses to justify putting authorized_generation_ref on the ak.device.authorize wire. device_generation_status is not projected: its conflicted value is a verified-conflict fold with no Event producer (5.5.4), so the keys/query device_generation_state object is the pair (this member, the folded status)."
+          "notes": "The only advance of the PCR-local generation. Admission MUST require payload.previous_device_generation to equal the current value and new_device_generation to be its immediate successor, which is the CAS that makes this self-reported pre-state coordinate safe -- the same shape crypto-media/device-lifecycle.md 5.5.2 uses to justify putting authorized_generation_ref on the ak.device.authorize wire. The keys/query device_generation_state object presents only current_device_generation_ref; there is no generation-level status (5.5.4)."
         }
       ],
       "id_source": "not_an_object_id",
@@ -8490,7 +8490,7 @@
           {
             "target": "cursor",
             "source": "payload position, HLC and device_id",
-            "rule": "causal dominance first, HLC only for concurrency, device_id only for equal concurrent HLC"
+            "rule": "stream-position dominance on the same CommitStreamRef first, HLC only when neither position dominates, device_id only for equal HLC"
           },
           {
             "target": "derived_updated_at",
@@ -8500,9 +8500,9 @@
         ],
         "concurrency": {
           "kind": "causal_then_hlc_then_device",
-          "precondition": "the service has sufficient causal closure to decide dominance or proven incomparability",
+          "precondition": "the owner's Station holds the exact committed coordinate (CommitStreamRef, stream_position) of both position Events",
           "accepted_write": "store the deterministic winner; a losing candidate is an accepted no-op",
-          "conflict": "unknown causal relation remains provisional and MUST NOT change the durable winner"
+          "conflict": "a position Event whose committed coordinate the Station does not hold is refused with the universal temporarily_unavailable and MUST NOT change the durable winner"
         },
         "exact_retry": {
           "identity": "canonical Event bytes and their verified Event.event_id",
@@ -8512,8 +8512,8 @@
         "rejection": {
           "conditions": [
             "payload actor differs from the verified envelope actor",
-            "realm, scope, position or visibility validation fails",
-            "the service cannot safely classify the candidate as accepted winner or accepted loser"
+            "the position Event is committed outside payload.realm_id or outside the owner's readable interval, or realm or scope validation fails (param_invalid)",
+            "the owner's Station does not hold the committed coordinate of the position Event (temporarily_unavailable)"
           ],
           "side_effects": "zero"
         },

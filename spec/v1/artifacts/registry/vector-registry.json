@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-25.3",
+  "version": "2026-09-25.4",
   "source_of_truth": true,
-  "generated_at": "2026-09-25T04:20:00+08:00",
+  "generated_at": "2026-09-25T14:50:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -3774,7 +3774,7 @@
       "applies_to_profiles": [
         "ak.profile.full_client.v1"
       ],
-      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: Multi-device read cursor merge is causal-first: a causally dominating position wins even when its HLC is lower, HLC max decides only causally concurrent positions, device_id breaks equal HLCs, and an undecidable causal closure stays provisional. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: a position with the larger stream_position on the same CommitStreamRef dominates even when its HLC is lower; positions on different streams or on the same Event do not dominate each other and HLC max decides; device_id breaks equal HLCs; a position whose committed coordinate the Station does not hold is refused with temporarily_unavailable and zero writes. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/discovery/read-receipts.md"
       ]
@@ -4664,7 +4664,7 @@
       "applies_to_fixtures": [
         "signal-federation-fixture.json"
       ],
-      "description": "Signal source and recipient authenticate current exact-account device authority independently of the Realm/scope seal_ref; destination authenticates peer source/body, sender routing and outer proof transcript/digest, scope/membership/action/TTL/MLS basis without a remote device directory or producer signature check. Cover source/recipient rejection of revoked/fenced/conflicted authority even before leaf Remove, wrong Station or key/authorization leaf binding, missing/stale recipient trust, source outbound freshness, and well-formed forged producer signatures relayed by a malicious source but rejected by the recipient. Destination with no remote directory still relays eligible items; wrong source projection and malformed transcript/digest fail closed with the proper opaque item versus request error boundary. No synthetic device identity is allowed for Agent endpoints.",
+      "description": "Signal source and recipient authenticate current exact-account device authority independently of the Realm/scope seal_ref; destination authenticates peer source/body, sender routing and outer proof transcript/digest, scope/membership/action/TTL/MLS basis without a remote device directory or producer signature check. Cover source/recipient rejection of revoked/fenced authority even before leaf Remove, wrong Station or key/authorization leaf binding, missing/stale recipient trust, source outbound freshness, and well-formed forged producer signatures relayed by a malicious source but rejected by the recipient. Destination with no remote directory still relays eligible items; wrong source projection and malformed transcript/digest fail closed with the proper opaque item versus request error boundary. No synthetic device identity is allowed for Agent endpoints.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/signal-federation-fixture.json",
         "spec/v1/zh/sync/signal.md"

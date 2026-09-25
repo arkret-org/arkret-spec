@@ -162,8 +162,7 @@
             "revocation_pending",
             "revoked",
             "expired",
-            "generation_fenced",
-            "conflicted"
+            "generation_fenced"
           ],
           "description": "Lifecycle projection only, matching device-lifecycle.md section 14.1. revocation_pending is authority-derived from a durable accepted ak.device.revoke security transaction; trust/evidence quality is reported separately in verification_state."
         },
@@ -302,8 +301,7 @@
                 "enum": [
                   "active",
                   "expired",
-                  "generation_fenced",
-                  "conflicted"
+                  "generation_fenced"
                 ]
               }
             },

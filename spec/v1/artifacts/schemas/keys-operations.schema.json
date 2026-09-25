@@ -149,20 +149,12 @@
       "type": "object",
       "description": "Reducer-managed identity-root generation fence for the principal device directory.",
       "required": [
-        "current_device_generation_ref",
-        "device_generation_status"
+        "current_device_generation_ref"
       ],
       "properties": {
         "current_device_generation_ref": {
           "$ref": "./recovery-session.schema.json#/$defs/pcr_generation_ref",
           "description": "PCR-local monotonic generation; it is not and MUST NOT be derived from a DID versionId."
-        },
-        "device_generation_status": {
-          "type": "string",
-          "enum": [
-            "active",
-            "conflicted"
-          ]
         }
       },
       "additionalProperties": false
@@ -225,7 +217,7 @@
         },
         "device_status": {
           "const": "active",
-          "description": "This surface attests usable devices only. A revoked, fenced or conflicted device is omitted from device_keys or reported through the non-enumerating failures shape, so the attested status is constant rather than a disclosure channel."
+          "description": "This surface attests usable devices only. A revoked or fenced device is omitted from device_keys or reported through the non-enumerating failures shape, so the attested status is constant rather than a disclosure channel."
         },
         "attested_at": {
           "$ref": "#/$defs/timestamp",
@@ -307,7 +299,7 @@
         },
         "device_status": {
           "const": "active",
-          "description": "This surface projects usable devices only. A revoked, fenced or conflicted device is omitted from device_keys or reported through the non-enumerating failures shape, so the projected status is constant rather than a disclosure channel."
+          "description": "This surface projects usable devices only. A revoked or fenced device is omitted from device_keys or reported through the non-enumerating failures shape, so the projected status is constant rather than a disclosure channel."
         },
         "attested_at": {
           "$ref": "#/$defs/timestamp",
@@ -346,7 +338,7 @@
     },
     "query_device_record": {
       "type": "object",
-      "description": "Per-(account_id, device_id) entry in keys_query_outcome, the client-facing self surface. account_id and device_id are the device_keys entry and map keys, not row fields. The row is the restricted typed result the client's own authenticated Station produces after it verified the origin Station's device_projection_attestation, so it carries the verified projection plus the prekey material and the signer_evidence_ref the client actually uses, and never the origin proof or its verification wrapper. A device whose generation is fenced or conflicted, or which is revoked, is not degraded into a partial row -- it is omitted from device_keys or reported through the non-enumerating failures shape, so an incomplete row can never be mistaken for a usable one.",
+      "description": "Per-(account_id, device_id) entry in keys_query_outcome, the client-facing self surface. account_id and device_id are the device_keys entry and map keys, not row fields. The row is the restricted typed result the client's own authenticated Station produces after it verified the origin Station's device_projection_attestation, so it carries the verified projection plus the prekey material and the signer_evidence_ref the client actually uses, and never the origin proof or its verification wrapper. A device whose generation is fenced, or which is revoked, is not degraded into a partial row -- it is omitted from device_keys or reported through the non-enumerating failures shape, so an incomplete row can never be mistaken for a usable one.",
       "required": [
         "signer_evidence_ref",
         "algorithms",
@@ -406,7 +398,7 @@
     },
     "peer_query_device_record": {
       "type": "object",
-      "description": "Per-(account_id, device_id) entry in peer_keys_query_outcome, the Station-to-Station surface. account_id and device_id are the device_keys entry and map keys, not row fields. Every returned row is complete and attested: the origin Station signs the exact projection, so the requesting Station can verify the row without ever seeing PCR material. This is deliberately a different type from the client-facing query_device_record: the signed attestation is the object the requesting Station verifies, and a Station MUST NOT turn an unverified peer row into a client result by dropping its proof. A device whose generation is fenced or conflicted, or which is revoked, is not degraded into a partial row -- it is omitted from device_keys or reported through the non-enumerating failures shape, so an incomplete row can never be mistaken for a usable one.",
+      "description": "Per-(account_id, device_id) entry in peer_keys_query_outcome, the Station-to-Station surface. account_id and device_id are the device_keys entry and map keys, not row fields. Every returned row is complete and attested: the origin Station signs the exact projection, so the requesting Station can verify the row without ever seeing PCR material. This is deliberately a different type from the client-facing query_device_record: the signed attestation is the object the requesting Station verifies, and a Station MUST NOT turn an unverified peer row into a client result by dropping its proof. A device whose generation is fenced, or which is revoked, is not degraded into a partial row -- it is omitted from device_keys or reported through the non-enumerating failures shape, so an incomplete row can never be mistaken for a usable one.",
       "required": [
         "signer_evidence_ref",
         "algorithms",
@@ -796,7 +788,7 @@
         },
         "device_generations": {
           "$ref": "#/$defs/account_device_generation_entries",
-          "description": "Current identity-root generation fence by exact AccountId. Fenced/conflicted accounts or mismatched device generations expose no usable signing/HPKE/prekey material."
+          "description": "Current identity-root generation fence by exact AccountId. Fenced accounts or mismatched device generations expose no usable signing/HPKE/prekey material."
         }
       },
       "additionalProperties": false

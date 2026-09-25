@@ -472,8 +472,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/security-transaction-resilience-fixture.json",
-      "sha256": "1e1dfb852cde06b8b1c6244aa7b2c920446cde7bec481d63cac35e4fb7116a3a",
-      "version": "2026-09-24.4"
+      "sha256": "7bbc346e84c814dd177bed9eb1406afd2fadbb1214332f553a4b89fca8d3fffa",
+      "version": "2026-09-25.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/service-protocol-version-bootstrap-fixture.json",
@@ -487,8 +487,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/signal-federation-fixture.json",
-      "sha256": "70114890e6fa6c2e0b648857a2deb94e52228efd6095998fed504fe2d2835eeb",
-      "version": "2026-09-02"
+      "sha256": "70311999d69ae27f5b2db3e92eab279edbe8cbdc4ef6cc24b18a900707673529",
+      "version": "2026-09-25"
     },
     {
       "path": "spec/v1/artifacts/fixtures/signal-message-stream-fixture.json",

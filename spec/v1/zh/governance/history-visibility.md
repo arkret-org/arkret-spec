@@ -3,7 +3,7 @@ title: History Visibility and Bootstrap
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-16
+updated: 2026-09-25
 see_also:
   - ../conformance/normative-language.md
   - ../sync/authority-commit-log.md
@@ -38,7 +38,7 @@ stream 的 snapshot section、head 和连续 tail。协议不存在 Realm 全局
 [`realm.schema.json`](../../artifacts/schemas/realm.schema.json)、[`circle.schema.json`](../../artifacts/schemas/circle.schema.json)
 和 `event-payload.schema.json#/$defs/history_access_value` 逐字一致：
 
-- `since_join`：只从该 actor 有效 join Commit 之后的位置开始；
+- `since_join`：只从该 actor 当前有效 join Commit 的位置（含该 Commit）开始；
 - `all_history_for_current_members`：可在权限允许时分页拉取该 stream 的早期 Commit。
 
 不存在第三个取值。"只返回建立当前状态所需的 typed snapshot"不是一个 `history_access` 值，而是 retention /
@@ -53,6 +53,19 @@ floor 不只是"更早的数据取不到"，它是该 caller 允许区间的下�
 `retention_pruned`），窗口侧的对应形式是 `window_start_basis.anchor_kind=before_readable_floor`。
 `since_join` 的成员因此**不必**拿到 position 0 才能验证其获准前缀完整；floor 处的 Commit 是唯一允许
 携带该 caller 无法解析的 `previous_commit_ref` 的可读行。
+
+`since_join` 的 floor 唯一确定如下，scan、Snapshot `retention_and_history_floor`、窗口 basis 锚点与客户端校验
+MUST 使用同一数值：
+
+1. 一般成员：`oldest_position` 是该 actor **当前有效** join Commit 自身的 position，`floor_reason=membership_join`，
+   `floor_commit_id` 是该 join Commit。join Commit 本身可读，caller 由此验证自己的 membership。
+2. 该 actor 的有效 join Commit 与该 stream 的 position 0 由同一个已登记原子接纳单元接纳（普通 Realm bootstrap
+   的创建者、Direct Conversation founding 的成员）时，floor 是 position 0，`floor_reason=stream_start`，
+   `floor_commit_id` 是 position 0 的 Commit；原子单元内先于 join 的 Commit 与 join 同属一次接纳，不构成加入前历史。
+3. 离开后重新加入的成员只以当前有效 join Commit 为 floor；此前在册期间的区间在 `since_join` 下不可读。
+   `readable_floor` 是单一下界，协议不表达多段可读区间。
+
+retention 或更严的 policy 使下界更高时，按 §6 取更严者并使用对应 `floor_reason`。
 
 分页与扫描的所有边界都按允许区间解释：floor 以下取不到不构成 gap，也不得据此推断隐藏活动、成员或存在性；
 `truncated` 只表示该方向还有该 caller 获准读取的 Commit，空结果不表示物理流不存在。

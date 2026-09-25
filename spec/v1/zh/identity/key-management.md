@@ -3,7 +3,7 @@ title: Key Management
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-20
+updated: 2026-09-25
 ---
 
 ## 0. 规范语言
@@ -920,7 +920,7 @@ MLS authoring state 只能由本机已验证 state 延续，或由当前成员�
 
 ### 7.2 Backup Envelope
 
-`ak.schema.key_backup.v1` 是 encrypted, signed, append-only series envelope。上传设备必须用当前 accepted device key 签署完整 metadata 与 ciphertext digest，并携带 `device_authorize_event_id`。`source_commit_ref` 整体可选；出现时 MUST 同时携带 `realm_commit_id` 与 `device_generation_ref`，MUST NOT 携带其它成员。`device_generation_ref` 是最小值为 1 的 PCR-local monotonic integer，绝不是 DID `versionId` 或其字符串编码。两个成员 MUST 指向创建时可验证的 PCR checkpoint：`realm_commit_id` MUST 解析为该 PCR control stream 上一条 accepted RealmCommit，`device_generation_ref` MUST 等于该 checkpoint 处 accepted 的 `current_device_generation_ref`。Receiver 从 PCR authorization chain 解析签名 key，拒绝 revoked/fenced/conflicted device、错误 authorize ref、stale checkpoint、破损 supersedes chain 或 digest mismatch。
+`ak.schema.key_backup.v1` 是 encrypted, signed, append-only series envelope。上传设备必须用当前 accepted device key 签署完整 metadata 与 ciphertext digest，并携带 `device_authorize_event_id`。`source_commit_ref` 整体可选；出现时 MUST 同时携带 `realm_commit_id` 与 `device_generation_ref`，MUST NOT 携带其它成员。`device_generation_ref` 是最小值为 1 的 PCR-local monotonic integer，绝不是 DID `versionId` 或其字符串编码。两个成员 MUST 指向创建时可验证的 PCR checkpoint：`realm_commit_id` MUST 解析为该 PCR control stream 上一条 accepted RealmCommit，`device_generation_ref` MUST 等于该 checkpoint 处 accepted 的 `current_device_generation_ref`。Receiver 从 PCR authorization chain 解析签名 key，拒绝 revoked/fenced device、错误 authorize ref、stale checkpoint、破损 supersedes chain 或 digest mismatch。
 
 envelope genesis／successor 的唯一公开来源锚类型 MUST 等价于 `KeyBackupSourceCommitRef{realm_commit_id: RealmCommitId, device_generation_ref: u64}`；builder 只接受该 typed value 或整体缺省，不得接受 `source_ref`、内嵌／完整 `CommittedEventRef`、字符串 generation、Seal、frontier digest 或调用方自定义对象。字段出现时 MUST 在签名之前以 `source_commit_ref` 原名进入 envelope，随后由 `RFC8785_JCS(envelope 删除 auth_data.signature)` 认证；验签后改名、兼容别名或双读均被禁止。successor 仍 MUST 独立从直接 predecessor 生成并校验 `series_seq + supersedes_id + supersedes_digest`；来源锚不能替代、推导或合并这组 predecessor/CAS 字段。
 
@@ -1259,7 +1259,7 @@ AccountId，MUST 遵守 [`common-fields.md` §4.2](../models/common-fields.md#42
 MUST NOT 将其解释为另一账号的权限继承或跨 Station 迁移。原 Station 永久停止服务不提供跨 Station
 re-anchor 出口。
 
-Recovery policy 的所有发布、轮换和撤销均进入 PCR control stream。签名设备必须满足 `device_generation_status="active"`、`authorized_generation_ref == current_device_generation_ref` 与未撤销状态；quorum 更新还必须满足旧 policy 的门限和 ratchet：
+Recovery policy 的所有发布、轮换和撤销均进入 PCR control stream。签名设备必须满足 `authorized_generation_ref == current_device_generation_ref` 与未撤销状态；quorum 更新还必须满足旧 policy 的门限和 ratchet：
 
 Policy 签名输入固定为 `UTF8("ak.identity.recovery_policy.signature.v1\n") || RFC8785_JCS(policy 的全部实际存在顶层成员，排除 auth_data)`。schema 允许的 optional 成员出现时自动进入投影，缺席时省略；只有 schema 明确允许 `null` 的位置才能保留 `null`。wire 上不携字段名清单，receiver 不得按调用方自报清单缩小投影。
 

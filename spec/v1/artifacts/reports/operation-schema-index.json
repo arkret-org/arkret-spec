@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-25.2",
+  "version": "2026-09-25.3",
   "source_of_truth": false,
-  "generated_at": "2026-09-25T01:05:00+08:00",
+  "generated_at": "2026-09-25T14:50:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -3078,40 +3078,6 @@
       }
     },
     {
-      "operation_id": "ak.peer.realm_join.read.application_status.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/realm-join-intake.schema.json#/$defs/application_status_request",
-        "schema_kind": "object",
-        "required": [
-          "request_id",
-          "realm_id",
-          "application_event_id"
-        ],
-        "properties": [
-          "request_id",
-          "realm_id",
-          "application_event_id"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/realm-join-intake.schema.json#/$defs/application_status_outcome",
-        "schema_kind": "object",
-        "required": [
-          "request_id",
-          "status"
-        ],
-        "properties": [
-          "request_id",
-          "status",
-          "commit",
-          "reason_code"
-        ],
-        "closed": true
-      }
-    },
-    {
       "operation_id": "ak.peer.realm_join.read.bootstrap.v1",
       "success_shape_kind": "typed_response",
       "request": {
@@ -3164,8 +3130,7 @@
           "request_id",
           "realm_id",
           "requester_account_id",
-          "invite_id",
-          "invite_token"
+          "invite_id"
         ],
         "closed": true
       },
@@ -3174,12 +3139,10 @@
         "schema_kind": "object",
         "required": [
           "request_id",
-          "authority_bundle",
           "preview"
         ],
         "properties": [
           "request_id",
-          "authority_bundle",
           "preview"
         ],
         "closed": true
@@ -3600,7 +3563,6 @@
           "policy_version",
           "identity_model",
           "current_device_generation_ref",
-          "device_generation_status",
           "realm_stream_head",
           "publication_authority_context",
           "publication_authority_context_digest",
@@ -3624,7 +3586,6 @@
           "policy_version",
           "identity_model",
           "current_device_generation_ref",
-          "device_generation_status",
           "realm_stream_head",
           "publication_authority_context",
           "publication_authority_context_digest",
@@ -3687,7 +3648,6 @@
           "policy_version",
           "identity_model",
           "current_device_generation_ref",
-          "device_generation_status",
           "realm_stream_head",
           "publication_authority_context",
           "publication_authority_context_digest",
@@ -3711,7 +3671,6 @@
           "policy_version",
           "identity_model",
           "current_device_generation_ref",
-          "device_generation_status",
           "realm_stream_head",
           "publication_authority_context",
           "publication_authority_context_digest",
@@ -7835,40 +7794,6 @@
           "request_id",
           "authority_bundle",
           "realm_stream_head"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.self.realm_join.read.application_status.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/realm-join-intake.schema.json#/$defs/application_status_request",
-        "schema_kind": "object",
-        "required": [
-          "request_id",
-          "realm_id",
-          "application_event_id"
-        ],
-        "properties": [
-          "request_id",
-          "realm_id",
-          "application_event_id"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/realm-join-intake.schema.json#/$defs/application_status_outcome",
-        "schema_kind": "object",
-        "required": [
-          "request_id",
-          "status"
-        ],
-        "properties": [
-          "request_id",
-          "status",
-          "commit",
-          "reason_code"
         ],
         "closed": true
       }

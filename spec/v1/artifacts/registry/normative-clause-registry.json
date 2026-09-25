@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-25.3",
+  "version": "2026-09-25.4",
   "source_of_truth": true,
-  "generated_at": "2026-09-25T01:02:00+08:00",
+  "generated_at": "2026-09-25T14:50:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -90,7 +90,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#7-时间",
-      "section_digest": "sha256:eaf57f8cf3d74fb6b723ad596cea48778c1acd721ba513cd78518b6431ae0ba7",
+      "section_digest": "sha256:bfa927a5e2cc3f569e523fc76fb7423c6b063aa4407bd7fb3e40a14841f17708",
       "requirement": "HLC well-formedness, logical-counter overflow handling and the causal-first usage boundary: HLC breaks ties between causally incomparable items only and MUST NOT select a winner in shared protocol state.",
       "testability_grade": "vector",
       "evidence_refs": [

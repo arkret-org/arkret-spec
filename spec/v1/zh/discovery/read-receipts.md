@@ -3,7 +3,7 @@ title: "Read Receipts & Markers"
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-30
+updated: 2026-09-25
 ---
 
 ## 0. 规范语言
@@ -155,9 +155,9 @@ Read cursor schema：`ak.schema.read_cursor.v1`。Read Cursor 是 actor-private 
 ```
 - 该状态被加密存储在用户的 account data 中或单独 actor-private stream 中。
 - 用户的其他设备通过同步 account data 的变更，获取最新的游标位置，从而清除本地未读红点。
-- 多设备 read cursor MUST 按 §6.5 的因果优先三段式收敛：因果支配者胜出；
-  仅当 position 明确因果不可比时才取 HLC 较大者，HLC 全等才按 `device_id`
-  字典序作 actor-internal tiebreaker。因果闭包不足时不得直接用 HLC 决出
+- 多设备 read cursor MUST 按 §6.5 的三段式收敛：同一 commit stream 上 position 更大者胜出；
+  仅当两者互不支配时才取 HLC 较大者，HLC 全等才按 `device_id`
+  字典序作 actor-internal tiebreaker。Station 不持有 position 的已提交坐标时不得直接用 HLC 决出
   持久 winner。
 
 ### 3.3 写入合并
@@ -305,11 +305,13 @@ state=unread, cursor=<cursor>, limit=<int>
 
 多设备 read cursor 合并规则（按下列优先级,normative）：
 
-1. **因果优先**：同一 read_scope 取 causally latest read cursor——若 cursor A 的 position 因果上晚于（dominates）cursor B，则取 A，**与 HLC / device_id 无关**。合并结果 MUST NOT 回退到任何被它因果支配的更早 cursor 之前（即不得造成未读计数反弹，与 §6.6 流程第 5 条一致）。
-2. **并发才比 HLC**：仅当两 cursor 的 position **因果不可比（并发）**时，才取 HLC 最大者。
-3. **HLC 相等才用 device_id**：仅当并发且 HLC 全等时，才按 device id 字典序作确定性 tie-break。该 tie-break 只在两 position 因果等价（互不支配）时用于选出确定性 winner,MUST NOT 用来选中一个被另一方因果支配的更早 position。
+1. **支配优先**：position Event 在单权威模型下的唯一顺序是其已提交坐标 `(CommitStreamRef, stream_position)`（[`../sync/authority-commit-log.md` §3](../sync/authority-commit-log.md)）。cursor A 支配 cursor B，当且仅当两者的 position Event 提交在**同一** `CommitStreamRef` 上且 A 的 `stream_position` 更大；此时取 A，**与 HLC / device_id 无关**。合并结果 MUST NOT 回退到任何被它支配的更早 cursor 之前（即不得造成未读计数反弹，与 §6.6 流程第 5 条一致）。
+2. **互不支配才比 HLC**：两个 position 提交在不同 stream（Realm／Circle／Sidecar 之间不存在总序），或指向同一 Event 时，二者互不支配，取 HLC 最大者。
+3. **HLC 相等才用 device_id**：仅当互不支配且 HLC 全等时，才按 device id 字典序作确定性 tie-break；MUST NOT 用它选中一个被另一方支配的更早 position。
 
-该三段式规则是唯一算法：schema description、operation notes 与 transport binding 表 MUST NOT 把它压缩成无条件 "HLC max"。可执行覆盖见 [`../conformance/conformance-vectors.md` §5.9](../conformance/conformance-vectors.md) 的 `ak.vector.read_cursor.multi_device_merge.v1`。若接收方尚未补齐足以判断两个 position 互不可达的 causal closure，MUST 按 [`../conformance/encoding.md` §7.3](../conformance/encoding.md) 把结果视为 provisional，MUST NOT 直接用 HLC 选出 winner 并写入持久 projection。
+该三段式规则是唯一算法：schema description、operation notes 与 transport binding 表 MUST NOT 把它压缩成无条件 "HLC max"。可执行覆盖见 [`../conformance/conformance-vectors.md` §5.9](../conformance/conformance-vectors.md) 的 `ak.vector.read_cursor.multi_device_merge.v1`。
+
+position 的准入只看已提交坐标，不看 `read_scope` 容器：position Event MUST 是提交在 `realm_id` 内、且位于 owner 在该 stream 可读区间（[`../governance/history-visibility.md` §3.1](../governance/history-visibility.md)）内的 Event，否则以 `param_invalid` 零写入拒绝；协议不要求 position 属于 `read_scope.container_ref` 所指容器，容器归属只影响 owner 自己的未读派生。owner 的 Station 尚未持有该 Event 的已提交坐标时无法判定支配关系，MUST 以 universal `temporarily_unavailable` 零写入拒绝，MUST NOT 用 HLC 选出 winner 或写入 provisional 值；客户端以相同 Event bytes 重试。
 
 通知状态 SHOULD 由 read cursor 与 notification rule 共同推导而来。
 

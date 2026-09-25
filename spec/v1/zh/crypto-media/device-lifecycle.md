@@ -3,7 +3,7 @@ title: Device Lifecycle
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-20
+updated: 2026-09-25
 ---
 
 ## 0. 规范语言
@@ -391,7 +391,7 @@ Applet-managed Bot / Ghost principal 在结构上不可能有 founding device：
 
 首设备存在后，新设备必须走 §2 pairing。新设备提供自己的 device/HPKE keys 和 §5.2.2 的 possession attestation；批准方必须是 PCR 当前 generation 中 active、未撤销的 accepted device，并对完整 authorize payload 签名。结果 `authorization_binding_kind="accepted_device"`，`authorized_by` 是**批准设备自己的 `device_id`**（完整 `ak:device:<uuid>`），不是该设备所属 principal 的 DID；authorization evidence 必须能定位批准设备的 accepted authorize Event 与 generation。
 
-服务端可以中继 challenge 和 Event，但不得生成、替换或签署新设备 key material。旧 generation、已撤销或具有独立已验证冲突证据的 device 的批准一律 fail closed；仅存在同一旧 generation 的另一个 pending/rejected recovery unit 不构成设备冲突，也不得撤销已 committed generation。该边界由 `ak.vector.identity.device_reanchor.v1` 验证。企业额外审批只能作为显式启用的 PCR policy 叠加，不能成为个人账号首次建 PCR 的默认第二方。
+服务端可以中继 challenge 和 Event，但不得生成、替换或签署新设备 key material。旧 generation 或已撤销 device 的批准一律 fail closed；同一旧 generation 的另一个 pending/rejected recovery unit 不改变设备 lifecycle，也不得撤销已 committed generation。该边界由 `ak.vector.identity.device_reanchor.v1` 验证。企业额外审批只能作为显式启用的 PCR policy 叠加，不能成为个人账号首次建 PCR 的默认第二方。
 
 #### 5.4.1 目标设备装配前的强制校验（normative）
 
@@ -471,18 +471,17 @@ Arkret v1 没有让远端 verifier 证明 source 已完整披露 PCR 历史的�
 
 #### 5.5.3 `device_status` 是读侧折叠，不是存储轴（normative）
 
-§14.1 的 lifecycle 六值是**读侧折叠**，不是任何 typed current result 的存储成员，也没有对应的 `transition` 投影。
+§14.1 的 lifecycle 五值是**读侧折叠**，不是任何 typed current result 的存储成员，也没有对应的 `transition` 投影。
 
-裁决理由：`revocation_pending → revoked` 与 `revocation_pending → 清除` 两条边由覆盖该 revoke Event 的 accepted RealmCommit 的 committed command result 决定（§2.2），`generation_fenced` 与 `expired` 是与当前 generation、当前时刻的比较，`conflicted` 是对该设备自身已验证冲突证据的判断。把这六值写成存储轴，就得为一台**只有入边**的状态机登记载体——那等于把「pending 永不收敛」写进协议。
+裁决理由：`revocation_pending → revoked` 与 `revocation_pending → 清除` 两条边由覆盖该 revoke Event 的 accepted RealmCommit 的 committed command result 决定（§2.2），`generation_fenced` 与 `expired` 是与当前 generation、当前时刻的比较。把这五值写成存储轴，就得为一台**只有入边**的状态机登记载体——那等于把「pending 永不收敛」写进协议。
 
-折叠输入恰为四项：该 `device_id` 的 `device_authorization` result（§5.5.1）、该 `device_id` 的 `device_revocation_proposals` keyed set（下文）、该 PCR 的 `device_generation` result（§5.5.4），以及该设备自身的已验证冲突证据。判定按下列**固定优先序**取第一个成立者，两个实现因此对同一输入得同一值：
+折叠输入恰为三项：该 `device_id` 的 `device_authorization` result（§5.5.1）、该 `device_id` 的 `device_revocation_proposals` keyed set（下文）与该 PCR 的 `device_generation` result（§5.5.4）。判定按下列**固定优先序**取第一个成立者，两个实现因此对同一输入得同一值：
 
 1. `revoked`——存在至少一个该设备的 revocation proposal，其覆盖 RealmCommit 的 committed command result 为终局接受。
-2. `conflicted`——存在该设备自身的已验证冲突证据。**MUST NOT** 从 pending/rejected re-anchor 候选数目派生（§14.1）。
-3. `generation_fenced`——`authorized_generation_ref != current_device_generation_ref`。
-4. `revocation_pending`——存在至少一个该设备的 revocation proposal，其覆盖 RealmCommit 尚未给出终局 command result。
-5. `expired`——`expires_at` 非空且 `now >= expires_at`。
-6. `active`——以上皆不成立，且 `now >= not_before`。`now < not_before` 的设备尚未生效，按 §8.2 的非枚举失败形态省略 row，**MUST NOT** 报成 `active`。
+2. `generation_fenced`——`authorized_generation_ref != current_device_generation_ref`。
+3. `revocation_pending`——存在至少一个该设备的 revocation proposal，其覆盖 RealmCommit 尚未给出终局 command result。
+4. `expired`——`expires_at` 非空且 `now >= expires_at`。
+5. `active`——以上皆不成立，且 `now >= not_before`。`now < not_before` 的设备尚未生效，按 §8.2 的非枚举失败形态省略 row，**MUST NOT** 报成 `active`。
 
 `verified | unresolved | stale` 同样是折叠（判定输入见 §5.5 的 evidence 规则），与 lifecycle 相互独立。§14.1 「两维 **MUST** 分开投影」中的「投影」在此指**分别折叠、分别呈现**，**MUST NOT** 被读成「分别存储」；该句禁止的行为不变：不得用 verification 值代替 lifecycle，也不得因 evidence unresolved 省略 lifecycle。
 
@@ -494,9 +493,9 @@ Arkret v1 没有让远端 verifier 证明 source 已完整披露 PCR 历史的�
 
 **覆盖结果的封闭来源。** `SecurityRotationTransaction.revoke_proposal` 与 `revoke_command_outcome`（[`security-transaction.schema.json`](../../artifacts/schemas/security-transaction.schema.json)）是该事务内唯一的 Station-local durable proposal binding 与 command terminal。前者必须和 Event/Commit 接纳同事务写入；后者逐字绑定同一个 `prepared_plan.revoke_unit` 中唯一 `ak.device.revoke` 的 `proposal_event_id`、接纳该 Event 的 `covering_commit_id`、`result=accepted|rejected` 和 `decided_at`。此处 RealmCommit 的 accepted 只证明 proposal Event 已进入 PCR stream；`rejected` 是随后对**命令效果**的终局否决，不能撤销 Event/Commit、删除 proposal 或倒写 stream。必须先验证 Event ID 与完整签名 Event、Commit `event_ref`、PCR stream/position、当前治理 authority、transaction account 与计划的逐字连接，且两字段中的 ID 逐字相同，才可把该结果用于折叠。结果只能由该账号治理 Station 的 durable SecurityRotation worker 在原事务资源上写一次；同一事务、proposal、Commit 的同 bytes 重放读取第一次结果，另一结果或另一覆盖 Commit 必须冲突。`accepted` 必须与 revoke accepted step 一起原子持久化；`rejected` 必须与事务 `aborted` 或 `expired` terminal 一起原子持久化，不能存在 accepted step 或后继副作用。已有 `revoke_proposal` 的事务进入 aborted/expired 必须同时写 rejected result；尚无 proposal 的失败／超时可直接终止，不能伪造 rejected。完整事务资源及结果 ledger 在同一数据库快照可读、`revoke_proposal` 已存在而结果尚无且事务仍活动，才表示该 proposal 待决；事务/ledger 缺失或不完整不等于 pending，更不能据此判 active。SecurityRotation completed 必须有 `accepted` 结果。拒绝发生在 Event/Commit 接纳后；若 admission 在这之前失败，则没有 proposal，也没有本记录。
 
-**冲突证据的封闭来源。** `device-revocation-state.schema.json#/$defs/verified_pcr_fork_record` 只保存从既有签名对象验证过的两支 `(RealmCommit, Event)`。两支必须属于同一 PCR Realm stream、同一 position 与 `previous_commit_ref`，`commit_id` 不同，分别有 `event_ref == event.event_id`，签名和 canonical ID 均有效，并按 `commit_id` 升序保存。验证每支签署者在共同 predecessor cut 上的治理权限及其完整 Event producer proof；只要一支权限、签名、Event 闭包或 predecessor 无法验证，整份证据拒绝。该 fork 的设备归属只由**至少一支完整 Event** 的规范化 payload 派生：`ak.device.authorize`／`ak.device.revoke` 指向其 exact `device_id`，`ak.device.reanchor` 影响共同 predecessor cut 下授权于被替换 generation 的设备。若两支命中不同设备，分别索引每个命中的设备；未命中的设备不得被标为 conflicted。`device_generation_status=conflicted` 仅在至少一支是已验证的 `ak.device.reanchor` 时成立。pending/rejected recovery 候选、两条不同 position 的普通 Commit、未验签 Event 或 DID route 分叉都不是此证据。重复的规范化 Commit ID 对只保留一个索引元素，伪造或不完整输入零写入；已验证证据不可被后续 winning branch 或重启抹除，只可在其 PCR lineage 生命周期内持续影响归属设备。
+**PCR fork 不是设备状态输入（normative）。** v1 PCR 的唯一 Commit 签署者是该账号的当前治理 Station，协议不登记任何摄入 fork 证据的操作，也不把 fork 折叠成设备或 generation 状态；lifecycle 不存在 `conflicted` 值。同一 PCR stream 同一 `(governance_generation, stream_position)` 上出现两个签名有效的不同 Commit 时，按 [`../sync/authority-commit-log.md` §3](../sync/authority-commit-log.md) 视为治理方 equivocation：消费方冻结该 stream，不自动选 winner，治理密钥泄露经既有 authority handoff／恢复流程处置。pending/rejected recovery 候选与 DID route 分叉同样不改变设备 lifecycle。
 
-**同 cut 完整性。** 治理 Station 为每个 PCR 持久 `pcr_device_conflict_index_cut`，记录已接纳 PCR head 与本地证据 ledger 的单调 revision。PCR genesis 在同事务建立 revision 0 的空索引 marker；每笔已接纳 PCR Commit 必须在同事务完成其 device current、proposal 与已摄入 fork 的索引并推进 marker 到新 head；独立摄入经验证的 fork 必须在同事务写 immutable evidence、增进 revision 并更新 marker。重启时从 durable 已摄入 evidence 对及 accepted PCR Commit 重建索引并核对 marker，核对前不得报告 active。一次读使用同一数据库 snapshot，要求 auth、generation、proposal、每条 proposal 的完整事务结果、verified evidence 索引及 marker 全部对应同一 head/revision；任何缺口或并发 CAS 失败均 fail closed。空证据集只证明**该 Station 截至该本地 cut 已摄入且验真的集合为空**，不证明世界上不存在未披露 fork；后来摄入的有效证据在新 revision 立即使受影响设备 conflicted。不得把旧空表、未同步缓存、单独的时间戳或未覆盖当前 head 的 marker 当作 active 证据。
+**同 cut 完整性。** 一次读使用同一数据库 snapshot，要求 auth、generation、proposal 与每条 proposal 的完整事务结果全部对应同一已接纳 PCR head；任何缺口或并发 CAS 失败均 fail closed。不得把未同步缓存、单独的时间戳或未覆盖当前 head 的读取当作 active 证据。
 
 #### 5.5.4 Generation result 与 genesis 同批登记（normative）
 
@@ -507,7 +506,7 @@ PCR-local generation 是一个 Realm 级单值 typed current result，family 名
 - `ak.device.authorize` 且 `authorization_binding_kind == "registration_anchor"`：置为 `1`。该 Event 是 `pcr_genesis_unit` 的两条成员之一（有序 `[ak.realm.create, ak.device.authorize]`，见 [`../identity/key-management.md`](../identity/key-management.md)），因此「generation 的初始值由 genesis unit 而非任何已登记 Event 写入」**不成立**：写它的正是这条已登记 Event，unit 只是它被原子接纳的方式。登记这一支不会产生「初始值没有写入方」的 family。
 - `ak.device.reanchor`：置为 `payload.new_device_generation`。接纳方 **MUST** 同时要求 `payload.previous_device_generation` 等于当前值，且 `new_device_generation` 是其直接后继。
 
-`device_generation_status`（`active | conflicted`，见 [`keys-operations.schema.json`](../../artifacts/schemas/keys-operations.schema.json)）**不是**该 result 的成员：它的 `conflicted` 与 §5.5.3 的设备级 `conflicted` 同类，是对已验证冲突证据的读侧折叠，没有 Event 生产者。`keys/query` 响应里的 `device_generation_state` 因此是 `(current_device_generation_ref, 折叠出的 status)` 的成对呈现，不是一份两成员的存储值。
+`keys/query` 响应里的 `device_generation_state`（[`keys-operations.schema.json`](../../artifacts/schemas/keys-operations.schema.json)）只呈现该 result 的 `current_device_generation_ref`；协议没有 generation 级状态成员。
 
 generation ref **MUST NOT** 等于或派生自 DID `versionId`；该既有规则不变。
 
@@ -790,7 +789,7 @@ origin Station MUST 在签发时从同一耐久读取 cut 的 PCR typed `device_
 3. `authorized_generation_ref` 等于同一响应 `device_generations` 中 exact 同一 AccountId 的 `generation_state` 内的 `current_device_generation_ref`，且 `device_generation_status = active`；
 4. `device_status = active`。
 
-任一条不成立时 MUST NOT 把该 row 用于 E2EE / Signal 验签或 KeyPackage claim。反枚举失败形态不变：requester 与目标 AccountId 之间没有当前有效授权关系时，MUST 省略该 `(account_id, device_id)` 记录或写入非枚举性 `failures`；revoked、fenced 或 conflicted 的设备同样按此处理，MUST NOT 降级成一条缺字段的 row。
+任一条不成立时 MUST NOT 把该 row 用于 E2EE / Signal 验签或 KeyPackage claim。反枚举失败形态不变：requester 与目标 AccountId 之间没有当前有效授权关系时，MUST 省略该 `(account_id, device_id)` 记录或写入非枚举性 `failures`；revoked 或 fenced 的设备同样按此处理，MUST NOT 降级成一条缺字段的 row。
 
 `keys/query` 的 `failures[].reason_code` 是封闭两值词表，不得扩展、细分或按内部原因分裂：目标不存在、不可见、无当前授权关系、被撤销、被 fence 或被 policy 拒绝一律使用 `device_result_unavailable`；只有「本次未能取得或验证该 `(account_id, device_id)` 的当前已签投影」使用 `device_directory_unavailable`，它 MUST 只表达调用方自己 Station 的取材结果，MUST NOT 因目标状态而出现，也 MUST NOT 携带 origin 的内部原因。后者 MAY 携 `retry_after_ms`。取材失败 MUST NOT 被渲染成省略的 row、空 `device_keys` 或空设备列表——那会让调用方把「暂时取不到」误读成「对方没有设备」。
 
@@ -1400,7 +1399,7 @@ history/pre-rotation 验证仍须完成；即使它验证成功，两条 Event �
 
 ### 14.1 Device lifecycle 与 trust 正交状态
 
-设备 lifecycle 为 `active | revocation_pending | revoked | expired | generation_fenced | conflicted`；其中 `conflicted` 只报告设备本身的已验证冲突，不得从 pending/rejected re-anchor 候选数目派生，generation 的推进唯一遵循完整 unit 的 RealmCommit committed 结果；承载两条 recovery Event 的两笔连续 RealmCommit 只能由当前治理 Station 在 RecoveryTransaction 的 `commit_recovery_unit` 原子提交中签发，terminal completed 而缺少任一 RealmCommit、或任一 RealmCommit 已提交而 transaction 未 completed 都不是可观察状态。验证状态为 `verified | unresolved | stale`。**两维都是读侧折叠而非存储轴**：lifecycle 六值的封闭折叠输入与固定优先序见 §5.5.3，设备授权事实与 generation 的存储形态见 §5.5.1 / §5.5.4。两维 MUST 分开投影——此处「投影」指分别折叠、分别呈现，MUST NOT 读成分别存储——account `device_summary` 不得用 verification 值代替 lifecycle status，也不得因 evidence unresolved 省略 lifecycle。新 live 业务授权要求 lifecycle=`active`、evidence=`verified`、authorize generation 等于治理 Station 在接纳事务中验证的 current generation，并遵守本节已知撤销与 revocation-pending gate。设备 authorize/re-anchor 的权威来源必须是已确认 PCR 安全状态；普通目标 Event 不要求 producer 先取得额外的新 RealmCommit basis，也不要求 origin Station 在线，但它自身必须由目标 stream 的 current governance Station 在解析授权实例、依赖与关闭集合后签发 covering RealmCommit，才成为 accepted。安全目标继续按其 state-changing Event/unit 的附加事务规则生效。历史资格按 event-auth-state-resolution 的精确授权实例与 committed 关闭边界判断，不以当前查询 TTL 追溯抹除合法历史。任何实际必要的单一条件失败都不能由账号 session、DPoP 或 transport service signature 补足。
+设备 lifecycle 为 `active | revocation_pending | revoked | expired | generation_fenced`；pending/rejected re-anchor 候选数目不改变 lifecycle，generation 的推进唯一遵循完整 unit 的 RealmCommit committed 结果；承载两条 recovery Event 的两笔连续 RealmCommit 只能由当前治理 Station 在 RecoveryTransaction 的 `commit_recovery_unit` 原子提交中签发，terminal completed 而缺少任一 RealmCommit、或任一 RealmCommit 已提交而 transaction 未 completed 都不是可观察状态。验证状态为 `verified | unresolved | stale`。**两维都是读侧折叠而非存储轴**：lifecycle 五值的封闭折叠输入与固定优先序见 §5.5.3，设备授权事实与 generation 的存储形态见 §5.5.1 / §5.5.4。两维 MUST 分开投影——此处「投影」指分别折叠、分别呈现，MUST NOT 读成分别存储——account `device_summary` 不得用 verification 值代替 lifecycle status，也不得因 evidence unresolved 省略 lifecycle。新 live 业务授权要求 lifecycle=`active`、evidence=`verified`、authorize generation 等于治理 Station 在接纳事务中验证的 current generation，并遵守本节已知撤销与 revocation-pending gate。设备 authorize/re-anchor 的权威来源必须是已确认 PCR 安全状态；普通目标 Event 不要求 producer 先取得额外的新 RealmCommit basis，也不要求 origin Station 在线，但它自身必须由目标 stream 的 current governance Station 在解析授权实例、依赖与关闭集合后签发 covering RealmCommit，才成为 accepted。安全目标继续按其 state-changing Event/unit 的附加事务规则生效。历史资格按 event-auth-state-resolution 的精确授权实例与 committed 关闭边界判断，不以当前查询 TTL 追溯抹除合法历史。任何实际必要的单一条件失败都不能由账号 session、DPoP 或 transport service signature 补足。
 
 ### 14.2 Recovery UI requirements
 

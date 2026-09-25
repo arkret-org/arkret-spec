@@ -3,7 +3,7 @@ title: Conformance Vectors
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-20
+updated: 2026-09-25
 see_also:
   - normative-language.md
   - ../sync/authority-commit-log.md
@@ -80,11 +80,11 @@ result 都携必填 `source_stream_ref`，逐字等于 `revision.commit_id` 所�
 整份拒绝且零新增 row/tail/cursor。合法 floor 前 row 由 exact 签名 snapshot 承诺，floor 后可读 row
 须与 covering Commit 逐字匹配；`CurrentRevision` 与 `expected_revision` 仍是二元 CAS。
 
-### 5.15 PCR device_status 同 cut 终局与冲突证据
+### 5.15 PCR device_status 同 cut 终局
 
-`ak.vector.security_transaction.resilience.v1` 的 SecurityRotation revoke 分支与 `device-lifecycle.md` §5.5.3 的设备折叠 MUST 联合验证：proposal Event/Commit 与 `revoke_proposal` 同事务写入，终局前为 pending；`accepted` 与 revoke accepted step 原子可见，`rejected` 与 aborted/expired 原子可见，已接纳 proposal 的终止不留下永久 pending；Event/Commit 已 accepted 但 command result rejected 时只清该 dot 的 pending，另一 transaction 的 pending/accepted dot 不变。不同结果、不同覆盖 Commit、缺 Event/Commit、结果先于 proposal、同 cut marker 落后或事务结果不可读都 fail closed；rollback 零 Event/Commit/proposal/terminal，精确重放不增写。
+`ak.vector.security_transaction.resilience.v1` 的 SecurityRotation revoke 分支与 `device-lifecycle.md` §5.5.3 的设备折叠 MUST 联合验证：proposal Event/Commit 与 `revoke_proposal` 同事务写入，终局前为 pending；`accepted` 与 revoke accepted step 原子可见，`rejected` 与 aborted/expired 原子可见，已接纳 proposal 的终止不留下永久 pending；Event/Commit 已 accepted 但 command result rejected 时只清该 dot 的 pending，另一 transaction 的 pending/accepted dot 不变。不同结果、不同覆盖 Commit、缺 Event/Commit、结果先于 proposal、读取未覆盖同一 PCR head 或事务结果不可读都 fail closed；rollback 零 Event/Commit/proposal/terminal，精确重放不增写。
 
-冲突向量 MUST 包括相同 PCR predecessor/position 的两份不同 authority-signed RealmCommit 与各自完整 Event：只将规范化 Event 影响的 exact device 标 conflicted，reanchor 同时令 generation status conflicted；伪签名、错 predecessor/position、错 Event ref、普通顺序 Commit、重复同一 fork 对及 pending/rejected recovery 候选不形成新证据。PCR genesis 空 marker、Commit 推进、独立证据摄入的 revision、同一 snapshot reader、并发 CAS、重启重建及后来披露 fork 后的 active→conflicted MUST 有可执行正反例；空 marker 的断言范围仅是本地已摄入集合。`security-transaction-resilience-fixture.json` 固定 closed proposal/result/index marker 的形状正反例；行为仍须由 runner 验证，shape fixture 不代替签名与事务验证。
+`security-transaction-resilience-fixture.json` 固定 closed proposal/result 的形状正反例；行为仍须由 runner 验证，shape fixture 不代替签名与事务验证。v1 不存在 PCR fork 证据摄入或 `conflicted` 折叠（`device-lifecycle.md` §5.5.3）。
 
 ### 10.12.1 Push envelope
 
@@ -524,9 +524,9 @@ patch path 中的 TrackName 必须先与 active registry 集合比较，未登�
 redaction 之后 reaction 不复活；跨 MLS epoch 的 reaction 仍绑定目标 Event 与 scope；
 capability revoke 之后该 actor 的新 reaction fail closed，既有 reaction 保留为历史事实。
 
-`ak.vector.read_cursor.multi_device_merge.v1` MUST 证明：多设备阅读游标合并以因果优先——
-因果上占优的位置即使 HLC 更小也胜出；HLC 取最大值只用于裁决因果并发的位置；HLC 相等时由 `device_id` 打破平局；
-因果闭包无法判定时保持 provisional。
+`ak.vector.read_cursor.multi_device_merge.v1` MUST 证明：多设备阅读游标合并以同一 `CommitStreamRef` 上的
+`stream_position` 支配优先——占优的位置即使 HLC 更小也胜出；不同 stream 或同一 Event 的两个位置互不支配，才取 HLC
+最大值；HLC 相等时由 `device_id` 打破平局；Station 不持有 position 已提交坐标时以 `temporarily_unavailable` 零写入拒绝。
 
 ### 3.14 SDK 与 to-device
 

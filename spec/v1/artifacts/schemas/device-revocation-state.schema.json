@@ -9,29 +9,6 @@
     }
   ],
   "$defs": {
-    "verified_pcr_fork_record": {
-      "type": "object",
-      "description": "Station-local immutable verified evidence. Both signed Commit/Event pairs share one PCR predecessor and position; the affected device is derived from at least one branch, never asserted by this record. The ordered pair is canonical by commit_id.",
-      "required": ["first_commit", "first_event", "second_commit", "second_event", "verified_at"],
-      "properties": {
-        "first_commit": {"$ref": "./realm-commit.schema.json"},
-        "first_event": {"$ref": "./event-envelope.schema.json"},
-        "second_commit": {"$ref": "./realm-commit.schema.json"},
-        "second_event": {"$ref": "./event-envelope.schema.json"},
-        "verified_at": {"$ref": "./time.schema.json#/$defs/timestamp"}
-      },
-      "additionalProperties": false
-    },
-    "pcr_device_conflict_index_cut": {
-      "type": "object",
-      "description": "Station-local completeness marker for all locally ingested verified PCR forks at this accepted head and evidence ledger revision. It makes no claim about undisclosed forks.",
-      "required": ["pcr_head_commit_id", "conflict_revision"],
-      "properties": {
-        "pcr_head_commit_id": {"$ref": "./common-ids.schema.json#/$defs/realm_commit_id"},
-        "conflict_revision": {"type": "integer", "minimum": 0}
-      },
-      "additionalProperties": false
-    },
     "device_revocation_record": {
       "oneOf": [
         {

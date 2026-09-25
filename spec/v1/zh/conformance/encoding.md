@@ -3,7 +3,7 @@ title: Encoding, IDs, Hashes, and Signatures
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-20
+updated: 2026-09-25
 sidebar:
   label: Encoding & IDs
 ---
@@ -253,7 +253,7 @@ MUST NOT 为逃避溢出伪造更大的 wall clock skew。消费者观察到同�
 无法建立因果闭包或安全决定 winner 时 MUST 保留 provisional／冲突副本并在补齐材料后重算。HLC MUST NOT 进入
 授权决策、admission、finality，MUST NOT 决定共享协议状态的 winner，也 MUST NOT 替代同一 stream 的
 `stream_position`。encrypted account data 服务端不参与明文 tie-break，只比较 `expected_server_revision`；CAS
-冲突后由获准解密的客户端按领域规则合并并重新写入。read cursor 则先比较 causal dominance，只在并发时比较 HLC，
+冲突后由获准解密的客户端按领域规则合并并重新写入。read cursor 则先比较同一 stream 上的 `stream_position` 支配，只在互不支配时比较 HLC，
 全等时再以 `device_id` 决胜；read receipt 与 Sidecar `source_hlc` 不得反向改变治理历史。
 
 ### 7.2 绝对时刻

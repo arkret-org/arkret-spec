@@ -3,7 +3,7 @@ title: Invite Addressing and Principal Locator
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-20
+updated: 2026-09-25
 see_also:
   - service-http-binding.md
   - third-party-invites.md
@@ -361,7 +361,7 @@ request body 为 `ak.schema.invite_delivery_request.v1`。接收方 Station MUST
 8. 计算 effective receive policy:先取 subject 私有 `invite_receive_policy`，再与 §5.2 `receive_policy_constraints` 及适用组织 / Realm 约束求交集。随后查 `denied_actor_ids`（与已验 invite Event 的完整 inviter ActorId 精确匹配；命中即 `drop` 且强制 opaque）与 `denied_source_ids`；再按 effective `holder_allowed_introduction_kinds`、`handle_claim_behavior`、`explicit_address_behavior`、`unknown_invites` 决定 drop / quarantine / notify。若 subject `invite_receive_policy.consent_profile = require_explicit_consent` 且第 7 步分类结果不是已验证 `consent_grant`，MUST 在此静默 `drop` 并强制 opaque——不 quarantine、不执行 quota 判定、不写任何 holder-private typed current result（[`../identity/consent-model.md` §6.1](../identity/consent-model.md) step 2）。判定为 quarantine 时，MUST 在写 quarantine typed current result 之前于 admission chokepoint 执行 [`../identity/consent-model.md` §6.1.1](../identity/consent-model.md) 的 per-holder 新来源 quota 判定（effective 值来自本节 subject `new_source_quota` 与 §5.2 部署 `new_source_quota` 的交集）；超限即静默丢弃，不写 ledger、不写 typed current result，且与本节其它不可区分情形返回同一 opaque outcome。
 9. 返回 receive outcome:按 §5.1 分级披露。发现信任档、低信任档或 `denied_actor_ids` 命中时默认返回 generic `status`(opaque),MUST NOT 通过响应泄露 subject 是否存在或策略如何处理；高信任档且 `disclosure.high_trust=outcome` 时 MAY 在 `disclosed_outcome` 回送真实结果(`delivered | blocked` 两值)。仅当 subject 与部署约束都允许 `disclosure.discovery_trust=outcome` 时，`handle_claim` MAY 回送真实结果。**invite 进入 holder quarantine inbox 时，无论信任档与 `disclosure` 取值，一律返回 `status="deferred"` 且 MUST NOT 携带 `disclosed_outcome`**，并与“限速静默丢弃 / 超时丢弃 / holder 不存在 / holder policy deny”落在同一响应与 timing 等价类（[`../identity/consent-model.md` §6.1.1](../identity/consent-model.md)）；`require_explicit_consent` profile 下的静默 drop 是该等价类的「holder policy deny」成员，同样只返回 `status="deferred"` 且无 `disclosed_outcome`。
 
-notify 分支的 holder-private 投递承载是 account-data 私有 typed current result，key 为 `ak.account.invite_delivery`（登记于 [`account-data-key-registry.json`](../../artifacts/registry/account-data-key-registry.json)）。typed current result value 是**明文** JSON，MUST 符合 `ak.schema.invite_delivery.v1`（[`invite-delivery.schema.json`](../../artifacts/schemas/invite-delivery.schema.json)），不是 `ak.schema.account_data_encrypted_value.v1` envelope：该 typed current result 由接收方 Station 在投递路径写入，服务端无法产出 holder 客户端加密的 envelope；`invite_token` 本就是服务端基础设施签发并持有的私有 locator，明文存储不改变其信任边界。value 外层为 `schema` / `updated_at` / `delivery_entries[]`，每个 entry 携带 `invite_id` / `realm_id` / `inviter_account_id` / `invite_token` / `authority_locator_hints` / `received_at` / `expires_at`；`inviter_account_id` 必须逐字复制已接受 Invite Event 的完整账号，不能只存 principal 后猜 Station。`authority_locator_hints` 直接引用 `ak.schema.realm_join_candidate.v1`，必须有 1..8 项、按 `service_id` UTF-8 bytes 严格升序且以该 id 语义唯一；locator 不复制 `realm_id` 或时间，scope 与有效期只取 enclosing delivery entry。invite 未过期或 endpoint 可达都不能替代 nonce-bound current assertion。
+notify 分支的 holder-private 投递承载是 account-data 私有 typed current result，key 为 `ak.account.invite_delivery`（登记于 [`account-data-key-registry.json`](../../artifacts/registry/account-data-key-registry.json)）。typed current result value 是**明文** JSON，MUST 符合 `ak.schema.invite_delivery.v1`（[`invite-delivery.schema.json`](../../artifacts/schemas/invite-delivery.schema.json)），不是 `ak.schema.account_data_encrypted_value.v1` envelope：该 typed current result 由接收方 Station 在投递路径写入，服务端无法产出 holder 客户端加密的 envelope；entry 不携带任何 bearer 凭据，明文存储不改变信任边界。value 外层为 `schema` / `updated_at` / `delivery_entries[]`，每个 entry 携带 `invite_id` / `realm_id` / `inviter_account_id` / `authority_locator_hints` / `received_at` / `expires_at`；`inviter_account_id` 必须逐字复制已接受 Invite Event 的完整账号，不能只存 principal 后猜 Station。`authority_locator_hints` 直接引用 `ak.schema.realm_join_candidate.v1`，必须有 1..8 项、按 `service_id` UTF-8 bytes 严格升序且以该 id 语义唯一；locator 不复制 `realm_id` 或时间，scope 与有效期只取 enclosing delivery entry。invite 未过期或 endpoint 可达都不能替代 nonce-bound current assertion。
 
 写入语义是封闭的：
 
@@ -369,51 +369,53 @@ notify 分支的 holder-private 投递承载是 account-data 私有 typed curren
 - 每次写入 MUST 先清除 `expires_at <= now` 的过期 entry，再按 `invite_id` 去重（同一 `invite_id` 的重复投递替换旧 entry，不重复占位），随后 append 新 entry；结果超过 200 条上限时 MUST 从 `received_at` 最旧的 entry 开始逐出，直至不超过 200 条。
 - entry 的 `expires_at` MUST 取自 invite Event payload 的 `expires_at`；payload 未携带时服务端 MUST 以该 Event 的 `created_at` 加 7 天兜底。`expires_at <= now` 的 entry 是 stale 的：客户端 MUST NOT 用它执行 accept，并 MUST 在读取时按 `expires_at` 过滤。
 - 写入被 CAS 接受时，服务端 MUST 在同一事务推进 account subscribe 的 Station-CAS 投影位置，使 holder 的全部 active devices 可通过顶层 `account_data.station_cas` 的 cursor-covered upsert 取得 accepted revision/value；删除使用显式 remove。服务端 MAY 另以 `ak.account_data.update` actor-private device update 做低延迟唤醒，该 envelope 使用 `DeviceMessageSender::Service { sender_id }` 分支：`recipient_account_id == holder`，`sender_id` 等于 `recipient_account_id.station_id` 与当前接收 Station 的 service identity；该分支不携 `sender_account_id`，不伪造 origin device，不走 holder device revocation gate，也不排除任一 active holder device。to-device 不是权威投影；离线或错过它的设备从 account subscribe baseline/catch-up 恢复，list/get 只作诊断与定点恢复。CAS 冲突或其它未接受写入不得推进投影或 fanout。
-- private delivery material（含 `invite_token`）MUST NOT 物化到 Invite 对象或任何 Realm state（[`../models/governance-objects.md` §5.3](../models/governance-objects.md)）；该 typed current result 是 directed invite token 送达被邀请方设备的唯一规范私有承载。
+- private delivery material MUST NOT 物化到 Invite 对象或任何 Realm state（[`../models/governance-objects.md` §5.3](../models/governance-objects.md)）；该 typed current result 是定向邀请送达被邀请方设备的唯一规范私有承载。定向邀请没有 bearer token：预览与接受的授权只来自治理 Station 已接受 Invite 对 exact invitee AccountId 的绑定——预览由被邀请方 Station 的服务间认证绑定该账号，接受由被邀请账号 producer 签名的 join Event 证明。
 
-### 7.1 定向邀请的加入前预览（normative）
+### 7.1 加入前预览（normative）
 
-被邀请方在接受前查看 Realm 的**唯一来源**是已验证邀请中的完整 `inviter_account_id.station_id`。被邀请者自己的
-Station、另一成员 Station、Realm governance Station、独立 Directory 与实际投递使用的 `Source-Service-ID` MUST NOT 替代该身份；
-同一 principal 在不同 Station 上的账号不可互换。Station 固定的是 service 身份而不是永不变化的 URL：端点发现、
-方法证据与新鲜度复用现有 `AuthenticatedServiceResolution`，同一 service 合法更新端点不改变来源，失联 MUST NOT
-通过替换服务身份兜底。
+加入前预览与加入准备使用同一个权威来源：Realm 的 **current governance Station**。邀请方 Station、被邀请者自己的
+Station、其它成员 Station、独立 Directory 与实际投递使用的 `Source-Service-ID` 只能提供 `authority_locator_hints`，
+MUST NOT 成为预览来源；locator 与定位规则见 [`../governance/join-policy.md` §6](../governance/join-policy.md) 与
+[`authority-commit-log.md` §7](./authority-commit-log.md)。
 
 调用方式固定为**自己的 Station 代理并验证**：
 
 - 客户端只调用 `ak.self.realm_join.read.preview.v1`（`POST /_arkret/self/realm-joins/preview`）。请求体是 closed
-  `realm-join-intake.schema.json#/$defs/self_preview_request_body`，字段依次为 `request_id`、`account_id`、`target`。
-  `account_id` MUST 逐字等于已认证会话的完整账号，其 Station MUST 是本服务。
-- `target.selector = "invite"` 时，字段逐字取自 §7 的 `ak.account.invite_delivery` entry（`realm_id`、`invite_id`、
-  `inviter_account_id`、`invite_token`），Station MUST 只向该 `inviter_account_id.station_id` 取预览。
-  该 Station 就是本服务时，MUST 走等价的本地路径，MUST NOT 合成 federation trust header 或自签 S2S 材料。
-  其余 selector 走 Directory 发现输入面，由本 Station 独立验证后才成为结果。
-- 远端分支使用 `ak.peer.realm_join.read.preview.v1`（`POST /_arkret/peer/realm-joins/preview`）。请求体只携
-  `request_id`、`realm_id`、`requester_account_id`、`invite_id`、`invite_token`。调用方 MUST 使用 §3.2 的服务间认证
-  并绑定 Source/Destination service DID、trust domain 与 Content-Digest，且 `Destination-Service-ID` 等于
-  `inviter_account_id.station_id`、`requester_account_id.station_id` 等于 `Source-Service-ID`。
-  **MUST NOT 透传被邀请者的本地 bearer / session 凭据**，也 MUST NOT 用它换取任意来源的读取。
+  `realm-join-intake.schema.json#/$defs/self_preview_request_body`：`request_id` 与 `target`。邀请目标的
+  `target.realm_id`、`target.invite_id` 与 `target.authority_locator_hints` 逐字取自 §7 的
+  `ak.account.invite_delivery` entry；非邀请目标只携 `realm_id` 与取自 Directory discovery projection 的 hints。
+- 自己的 Station 以 `target.realm_id` 为唯一 Realm scope，用自己生成的 nonce 经
+  `ak.open.realm_authority.read.bundle.v1` 取得 RealmAuthorityBundle，验证 genesis、连续 handoff chain 与未过期的
+  nonce-bound `current_assertion`，由此确定 current governance Station。该 Station 就是本服务时 MUST 走等价的本地
+  路径，MUST NOT 合成 federation trust header 或自签 S2S 材料；否则调用
+  `ak.peer.realm_join.read.preview.v1`（`POST /_arkret/peer/realm-joins/preview`），请求体只携 `request_id`、
+  `realm_id`、`requester_account_id` 与可选 `invite_id`。调用方 MUST 使用 §3.2 的服务间认证并绑定
+  Source/Destination service DID、trust domain 与 Content-Digest，`Destination-Service-ID` 等于已验证的 current
+  governance Station，`requester_account_id` 是已认证会话的完整账号且其 `station_id` 等于 `Source-Service-ID`。
+  **MUST NOT 透传被请求者的本地 bearer / session 凭据**。
 
-持有方 Station MUST：
+current governance Station MUST：
 
-1. 在自身**已接受状态**中定位 exact `invite_id`，核对 `invite_token`、邀请逐字绑定 `requester_account_id` 的完整
-   AccountId、未过期且未撤销；
-2. 求值 effective `ak.realm.preview_policy` 的 `audiences` 是否覆盖该 invited audience，并只按其 `fields` 披露；
-3. 返回 closed `peer_preview_outcome`，逐字回显 `request_id`、`realm_id`、`requester_account_id`、`invite_id`，
-   并给出 `preview`、`observed_at`、`expires_at`。响应 MUST NOT 回显 `invite_token`，MUST NOT 携带
+1. 确认自己是 `realm_id` 的 current governance Station；携 `invite_id` 时在自身**已接受状态**中定位该 invite，
+   要求其处于 live 状态并逐字绑定 `requester_account_id` 的完整 AccountId；
+2. 求值 effective `ak.realm.preview_policy` 对该 audience（受邀者或非受邀者）的披露范围，并只按其 `fields` 披露；
+3. 返回 closed `peer_preview_outcome`（`request_id`、`preview`）。响应 MUST NOT 携带 authority bundle、
    `join_candidates`、`source_refs`、`stale` 或 `divergent`，也 MUST NOT 携带正文历史、成员列表、policy 原文、
    隐藏 edge 或 E2EE 明文。
 
-策略允许但没有可披露内容时，MUST 返回只含必填成员的最小 `preview`，MUST NOT 因此扩张读取。未知 Realm、未知或
-不匹配的邀请、非该被邀请者的 Station、已撤销／过期凭据以及 Realm 未声明有效 preview policy，MUST 共用一个与
-不存在不可区分的失败，并按 §3.2 同口径固定 timing bucket。来源不可达是可重试的上游失败，MUST NOT 换源。
+策略允许但没有可披露内容时，MUST 返回只含必填成员的最小 `preview`，MUST NOT 因此扩张读取。未知 Realm、
+非 current governance Station、未知／不匹配／已终态的邀请、错误来源以及 Realm 未声明有效 preview policy，MUST
+共用一个与不存在不可区分的失败，并按 §3.2 同口径固定 timing bucket。current governance Station 不可达是可重试的
+上游失败，MUST NOT 换源。
 
-自己的 Station 返回 closed `self_preview_outcome`：逐字回显 `request_id`、`account_id`，给出解析后的 canonical
-`realm_id`、绑定本次 target 的 `request_digest`、披露来源 `source`（`inviter_station` / `local` / `directory`）、
-`preview`、`observed_at` 与 `expires_at`。客户端 MUST 只核对目标、用途、请求与来源绑定后展示；MUST NOT 直连
-来源 Station、MUST NOT 选择转发候选，也 MUST NOT 把预览当作 membership、加入承诺或已验证的 Realm 治理。
-预览成功不产生任何加入副作用；正式加入仍走 [`federation.md` §5.3](./federation.md) 与加入准备合同。
-邀请本身不保证存在名称或头像；`title` / `avatar_blob_ref` / `summary` 等只是策略许可后的展示信息。
+自己的 Station 返回 closed `self_preview_outcome`：逐字回显 `request_id`，给出本 Station 以自己 nonce 验证过的
+`authority_bundle` 与 governance Station 披露的 `preview`。客户端 MUST 核对 `authority_bundle.realm_id` 与
+`preview.realm_id` 都等于请求的 `target.realm_id` 后才展示；MUST NOT 直连来源 Station、MUST NOT 选择转发候选，
+也 MUST NOT 把预览当作 membership 或加入承诺。预览成功不产生任何加入副作用；正式加入走
+`ak.self.realm_join.command.prepare.v1` 与 [`federation.md` §5.3](./federation.md)，加入 Event 经 self Event submit
+按 [`authority-commit-log.md` §4](./authority-commit-log.md) 同步取得治理结果；结果不确定时以相同 Event bytes 精确重试，
+协议不另设加入申请状态读取面。
+邀请本身不保证存在名称或头像；`display_name` 等只是策略许可后的展示信息。
 
 ## 8. Describe Capabilities
 

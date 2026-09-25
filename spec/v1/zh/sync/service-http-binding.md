@@ -3,7 +3,7 @@ title: Service HTTP Binding
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-20
+updated: 2026-09-25
 see_also:
   - authority-commit-log.md
   - service-api-schema.mdx
@@ -588,7 +588,6 @@ RFC 9449 DPoP proof 只有 `iat`，没有 `expires` parameter，因此它 **MUST
 | `ak.peer.keys.read.lookup.v1` | `POST /_arkret/peer/keys/query` | - | - | request_schema_ref=schemas/keys-operations.schema.json#/$defs/peer_keys_query_request_body; response_schema_ref=schemas/keys-operations.schema.json#/$defs/peer_keys_query_outcome |
 | `ak.peer.mls.read.group_state_material.v1` | `POST /_arkret/peer/mls/group-state-material` | - | - | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialRequestBody; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialOutcome |
 | `ak.peer.realm_authority.command.handoff.v1` | `POST /_arkret/peer/realm-authority/handoff` | - | - | request_schema_ref=schemas/authority-commit-operations.schema.json#/$defs/handoff_request; response_schema_ref=schemas/realm-authority-handoff.schema.json |
-| `ak.peer.realm_join.read.application_status.v1` | `POST /_arkret/peer/realm-joins/application-status` | - | - | request_schema_ref=schemas/realm-join-intake.schema.json#/$defs/peer_application_status_request_body; response_schema_ref=schemas/realm-join-intake.schema.json#/$defs/peer_application_status_outcome |
 | `ak.peer.realm_join.read.bootstrap.v1` | `POST /_arkret/peer/realm-joins/bootstrap` | - | - | request_schema_ref=schemas/realm-join-intake.schema.json#/$defs/peer_bootstrap_request_body; response_schema_ref=schemas/realm-join-intake.schema.json#/$defs/peer_bootstrap_outcome |
 | `ak.peer.realm_join.read.preview.v1` | `POST /_arkret/peer/realm-joins/preview` | - | - | request_schema_ref=schemas/realm-join-intake.schema.json#/$defs/peer_preview_request_body; response_schema_ref=schemas/realm-join-intake.schema.json#/$defs/peer_preview_outcome |
 | `ak.peer.signal.command.relay.v1` | `POST /_arkret/peer/signal` | - | - | request_schema_ref=schemas/signal-relay.schema.json |
@@ -707,12 +706,11 @@ RFC 9449 DPoP proof 只有 `iat`，没有 `expires` parameter，因此它 **MUST
 | `ak.self.realm.read.streams.v1` | `GET /_arkret/self/realms/{realm_id}/streams` | - | - | response_schema_ref=schemas/realm-read-operations.schema.json#/$defs/realm_stream_list |
 | `ak.self.realm.resource.get.v1` | `GET /_arkret/self/realms/{realm_id}` | - | - | response_schema_ref=schemas/realm-read-operations.schema.json#/$defs/realm_lifecycle_view |
 | `ak.self.realm_join.command.prepare.v1` | `POST /_arkret/self/realm-joins/prepare` | - | - | request_schema_ref=schemas/realm-join-intake.schema.json#/$defs/self_prepare_request_body; response_schema_ref=schemas/realm-join-intake.schema.json#/$defs/self_prepare_outcome |
-| `ak.self.realm_join.read.application_status.v1` | `POST /_arkret/self/realm-joins/application-status` | - | - | request_schema_ref=schemas/realm-join-intake.schema.json#/$defs/self_application_status_request_body; response_schema_ref=schemas/realm-join-intake.schema.json#/$defs/self_application_status_outcome |
 | `ak.self.realm_join.read.preview.v1` | `POST /_arkret/self/realm-joins/preview` | - | - | request_schema_ref=schemas/realm-join-intake.schema.json#/$defs/self_preview_request_body; response_schema_ref=schemas/realm-join-intake.schema.json#/$defs/self_preview_outcome |
 | `ak.self.realm_link.read.list.v1` | `GET /_arkret/self/realms/{realm_id}/links` | - | - | response_schema_ref=schemas/realm-link-operations.schema.json#/$defs/realm_link_list |
 | `ak.self.realm_organization.read.list.v1` | `GET /_arkret/self/realms/{realm_id}/organizations` | - | - | response_schema_ref=schemas/realm-organization-operations.schema.json#/$defs/realm_organization_relationship_list |
+| `ak.self.realm_state_snapshot.read.by_ref.v1` | `GET /_arkret/self/realm-state-snapshot/{snapshot_id}` | - | - | response_schema_ref=schemas/realm-state-snapshot.schema.json |
 | `ak.self.realm_state_snapshot.read.manifest_head.v1` | `GET /_arkret/self/realm-state-snapshot/head` | - | - | response_schema_ref=schemas/realm-state-snapshot.schema.json |
-| `ak.self.realm_state_snapshot.read.by_ref.v1` | `GET /_arkret/self/realm-state-snapshot/{snapshot_id}` | - | - | response_schema_ref=schemas/realm-state-snapshot.schema.json; required query `realm_id` |
 | `ak.self.security_transaction.command.continue.v1` | `POST /_arkret/self/security-transactions/{transaction_id}/continue` | - | - | request_schema_ref=schemas/security-transaction.schema.json#/$defs/continue_request; response_schema_ref=schemas/security-transaction.schema.json |
 | `ak.self.security_transaction.command.create.v1` | `POST /_arkret/self/security-transactions` | - | - | request_schema_ref=schemas/security-transaction.schema.json#/$defs/create_request; response_schema_ref=schemas/security-transaction.schema.json |
 | `ak.self.security_transaction.resource.get.v1` | `GET /_arkret/self/security-transactions/{transaction_id}` | - | - | response_schema_ref=schemas/security-transaction.schema.json |

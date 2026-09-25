@@ -3,7 +3,7 @@ title: Signal Extension
 status: candidate
 normative: true
 stability: v1
-updated: 2026-08-31
+updated: 2026-09-25
 ---
 
 # Signal Extension
@@ -215,8 +215,8 @@ wrong Station、无权、不可见、撤销、冲突、过期或 membership endi
 不得借状态码、failure reason、长度或明显时序差异形成枚举 oracle。
 
 recipient MUST 要求 directory 的 exact device key 与 current authorization Event 同时匹配
-active leaf 的 accepted transition binding。已知 revoked、expired、revocation-pending、fenced、
-conflicted 或非 current generation 的设备，即使 leaf 尚未 Remove，也 MUST 被 source 与 recipient
+active leaf 的 accepted transition binding。已知 revoked、expired、revocation-pending、fenced
+或非 current generation 的设备，即使 leaf 尚未 Remove，也 MUST 被 source 与 recipient
 拒绝。TTL 不延长授权有效期；同 epoch secret 的其他持有者可以派生公开 sender domain 的 key，
 因此 AEAD 成功、leaf 存在、source service 签名均不能代替 producer signature 和设备信任。
 
@@ -230,7 +230,7 @@ MUST 以 `signal_plaintext_forbidden` fail closed。
 conformance（`ak.vector.signal.device_authorization_domain.v1`）至少覆盖：
 
 1. 设备在 current directory 为 active、授权晚于 `commit_ref`：source 与 recipient self 投递的设备授权检查通过，仍须独立通过 MLS 与 scope 检查；
-2. 设备在 `commit_ref` 时曾 active、当前已 revoked / fenced / conflicted：source/recipient 拒绝，包括 leaf 尚未 Remove；
+2. 设备在 `commit_ref` 时曾 active、当前已 revoked / fenced：source/recipient 拒绝，包括 leaf 尚未 Remove；
 3. fragment 看似为 device id，但 `verification_method` 的 bare DID 经 adapter 投影不等于
    `sender_actor_id` 的 signing principal 分量，或 fragment 不等于 `sender_device_id`，或
    current directory 信任锚属于同 principal 的另一 Station：source/recipient 拒绝；

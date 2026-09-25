@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-24.2",
-  "generated_at": "2026-09-24T07:50:30+08:00",
+  "version": "2026-09-25.1",
+  "generated_at": "2026-09-25T14:50:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -737,7 +737,7 @@
       "code": "duplicate_conflict",
       "http_status": 409,
       "scope": "both",
-      "description": "The same idempotency key or non-Event stable identifier was reused with different canonical content. Event Envelope carried-ID mismatches use event_id_digest_mismatch; confirmed full-hash collision evidence uses witness_disagreement.",
+      "description": "The same idempotency key, non-Event stable identifier or Event identity was reused with different canonical content or canonical Event bytes. An Event Envelope whose carried event_id does not match its own digest uses event_id_digest_mismatch; confirmed full-hash collision evidence uses witness_disagreement.",
       "type_uri": "https://arkret.org/problems/duplicate_conflict",
       "title": "Duplicate conflict",
       "status": "active"

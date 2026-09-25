@@ -172,7 +172,6 @@ grpc:
       Query: ak.peer.keys.read.lookup.v1
     PeerRealmJoin:
       Bootstrap: ak.peer.realm_join.read.bootstrap.v1
-      ApplicationStatus: ak.peer.realm_join.read.application_status.v1
       Preview: ak.peer.realm_join.read.preview.v1
     PeerSignal:
       Relay: ak.peer.signal.command.relay.v1
@@ -223,7 +222,6 @@ grpc:
     SelfMessages:
       Prepare: ak.self.messages.command.prepare.v1
     SelfRealmJoin:
-      ApplicationStatus: ak.self.realm_join.read.application_status.v1
       Preview: ak.self.realm_join.read.preview.v1
       Prepare: ak.self.realm_join.command.prepare.v1
     SelfSignerKeys:
@@ -345,7 +343,6 @@ mq:
     peer.keys.keypackages.query.claim: ak.peer.keys.keypackages.read.claim.v1
     peer.keys.query.lookup: ak.peer.keys.read.lookup.v1
     peer.realm_join.query.bootstrap: ak.peer.realm_join.read.bootstrap.v1
-    peer.realm_join.query.application_status: ak.peer.realm_join.read.application_status.v1
     peer.realm_join.query.preview: ak.peer.realm_join.read.preview.v1
     peer.signal.command.relay: ak.peer.signal.command.relay.v1
     self.signal.command.send: ak.self.signal.command.send.v1
@@ -378,7 +375,6 @@ mq:
     self.contact.query.list: ak.self.contact.read.list.v1
     self.contact.command.tombstone: ak.self.contact.command.tombstone.v1
     self.contact.command.scope_update: ak.self.contact.command.scope_update.v1
-    self.realm_join.query.application_status: ak.self.realm_join.read.application_status.v1
     self.realm_join.query.preview: ak.self.realm_join.read.preview.v1
     self.messages.command.prepare: ak.self.messages.command.prepare.v1
     self.realm_join.command.prepare: ak.self.realm_join.command.prepare.v1
