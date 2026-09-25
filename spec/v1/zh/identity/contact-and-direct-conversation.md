@@ -631,7 +631,7 @@ controller-Agent founding material 的 `controller_binding_digest` MUST 为 acce
 四条 Event 的 ID 都是各自 canonical Event preimage 的完整 digest（[`../conformance/encoding.md` §4.0](../conformance/encoding.md)），`realm_id` 与 `main_strand_id` 又分别是第一条与第四条 Event ID 的重类型（[`../models/realm-and-space.md` §2.5.0](../models/realm-and-space.md)、[`../models/common-fields.md` §6.0](../models/common-fields.md)）。因此在 canonical preimage 完成之前**没有任何主体能"分配"这两个 ID**：服务端预分配、reserved/materializing draft、coordinator 选举与 caller 自选 ID 全部 **MUST NOT** 出现在本流程。founding **MUST** 采用 caller-authored first-valid unit：
 
 1. founder caller author `ak.realm.create`（envelope 省略 `realm_id`、`scope_ref` 为 `{"kind":"realm_genesis"}`，payload 省略 object id），完成 canonical preimage 后派生其 Event ID，并重类型得到 `realm_id`；
-2. 以该 `realm_id` author founder 自己的 `ak.member.state{join}`，携 member typed current result 的 `expected_revision null` genesis precondition；
+2. 以该 `realm_id` author founder 自己的 `ak.member.state{join}`（§6.1 的 bootstrap no-basis shape，不携 `expected_revision`；founder 行在新 Realm 上天然不存在）；
 3. author 另一 participant 的 `ak.member.state{join}`；controller/Agent 分支显式携带绑定第 2 条的 `agent_controller_binding`；
 4. author `ak.strand.create`（payload 不携 `strand_id`），由其 Event ID 重类型得到 `main_strand_id`；
 5. 四条全部由 founder 签名，按该 wire 顺序构成 exact ordered unit 一次提交；不存在 server-created draft、reserved Event ID 或第二次 authoring 机会；
@@ -683,6 +683,13 @@ endpoint、复用普通 batch 分支或让服务端代签 producer Event；
 - 客户端已派生 ID、unit 已提交、四 Event／Commit 已落库、outbox 已入队与响应丢失这些崩溃点，重放同一 signed bytes **MUST** 收敛到同一四个 Commit、同一坐标与同一 outbox 条目，**MUST NOT** 产生第二组 Event、第二套 finality 或第二个 slot。
 
 相同 pair/founder 下两组均通过验证、但 Event ID 不同的四-Commit unit 本身就是 §5.7 equivocation／冲突证据；不需要第二张 receipt。
+
+**founding 拒绝的载体（normative）**：self 与 §5.6 peer 两条路径使用同一组载体，均整组零写入：unit 结构或
+固定 baseline 不符为 `failed_precondition` + `direct_conversation_founding_unit_invalid`；slot 已被另一组 unit 关闭为
+`conflict` + `direct_conversation_slot_already_committed`；提交者不是 §5.2 派生的 founder 为 universal
+`capability_denied`；Contact round 已非 current、authoring material 陈旧，或 controller-Agent 分支读不到 accepted
+`ak.agent.provision` 与 current controller binding，为不带 `reason_code` 的 `failed_precondition`。后两类不另立
+reason，避免把 Contact 状态经 reason 暴露给非参与者；§5.6 的 dependency 不足仍是 top-level `dependency_missing`。
 
 ### 5.6 联邦例外
 
@@ -747,7 +754,7 @@ founder **MUST** 一次提交恰好四条 Event：
 
 ```text
 1. ak.realm.create        携 §5.4 的 critical ref；不承载 membership 边
-2. ak.member.state{join}  subject 为 founder 自身；genesis write，expected_revision null
+2. ak.member.state{join}  subject 为 founder 自身；bootstrap no-basis shape
 3. ak.member.state{join}  subject 为另一 participant 的显式 canonical membership
 4. ak.strand.create       main Strand，scope_circle_id=null，primary discussion track
 ```
@@ -776,8 +783,9 @@ controller/Agent 分支的第 3 条 Agent join **MUST** 显式携带 `agent_cont
 
 本 profile **MUST NOT** 让 producer 选择"是否追加 policy Event"。`direct_conversation_genesis` contract **MUST** 从 create 与 round 机械投影下列 baseline：
 
-- `join_rule=closed`，不可公开发现或枚举；
-- initial current `history_access=since_join`；
+- genesis 的 `initial_join_rule=closed`、`initial_discoverability=invite_only`、`initial_history_access=since_join` 是
+  三项 create-locked 常量：producer 不选择，任一取其它值 **MUST** 以 `direct_conversation_founding_unit_invalid`
+  整组零写入拒绝（该 Realm 因而不可公开发现或枚举）；
 - founding unit 后必须提交该 scope 唯一的 `ak.mls.genesis`，其 accepted RealmCommit 将 scope 不可逆激活为 standard RFC 9420；
 - exact-two active participants 是独立 membership/profile 约束。
 
@@ -917,7 +925,9 @@ effect **MUST** 全部保持零写入。拒绝不是已提交 exact replay；后
   `ak.realm.tombstone`，失败为 `direct_conversation_terminal_forbidden`；archive、freeze、restore 与 unfreeze
   不命中该规则，继续普通 authority；
 - `exact_two_projection` 在 action authority 之前验证 binding 与 authoritative membership 都解析为相同的两个
-  distinct principal；新写失败为 `direct_conversation_member_count_invalid`。resolver 对已经存在的 Realm 只读返回
+  distinct principal。membership 的 participant 集是该 Realm 全部 member typed current 行（`join` 或 `leave`）的
+  distinct principal：participant 离开不会使集合缩为一人，因此 §8.2 的主体 self-rejoin（`ak.member.rejoin.own`）
+  通过本 gate、交由 participant evaluator 判定，pair 外 principal 出现即不符；新写失败为 `direct_conversation_member_count_invalid`。resolver 对已经存在的 Realm 只读返回
   `state="suspended"` 与结构化表登记的 exact-two blocker，不得伪造一次写拒绝，也不得产生 durable write；
 - `third_party_member_guard` 比较 invite/join candidate 与 immutable pair，pair 外候选失败为
   `direct_conversation_third_party_member_forbidden`；
@@ -925,7 +935,12 @@ effect **MUST** 全部保持零写入。拒绝不是已提交 exact replay；后
   peer join 不是 invite，不进入该 stage；
 - `root_phase_mask` 在 owner aggregation 之前拒绝技术 authority-root 对当前 exact founding/materialization mask 之外的
   operational、grant、member-governance、policy 或 terminal family 动作，失败为
-  `direct_conversation_root_mask_violation`；
+  `direct_conversation_root_mask_violation`。「依赖技术 authority-root」的判定式是：Event actor 是该 Realm
+  authority-root typed current 的当前 controller，且该 Event 不在 participant allowlist 内（或是作用于另一成员的
+  `ak.member.state` 边）、不是 `ak.direct_conversation.bound`，且其 kind 有登记的 capability action。mask 是 closed
+  集合：founding 阶段只有 §6.1 的四 Event unit，materialization 阶段只有该 scope 唯一的 `ak.mls.genesis` 与加入
+  另一 participant 的同组 Add／Welcome `ak.mls.commit`；`found` 之后 mask 为空。机读形态见结构化表该规则的
+  `root_reliance` 与 `masked_actions`；
 - `ak.authority.direct_conversation_participant.v1` 的 closed evaluator 对 allowlisted action 求值所有 activation checks。
   任一 binding、participant、membership、Realm/Strand/MLS、Contact、device、Agent、resource 或 lifecycle 输入失败，
   都只返回 `direct_conversation_participant_authority_denied`；不得暴露失败项，也不得回退到 consent、

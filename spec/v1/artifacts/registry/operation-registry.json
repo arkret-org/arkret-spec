@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-25.3",
+  "version": "2026-09-26.3",
   "source_of_truth": false,
-  "generated_at": "2026-09-25T16:25:00+08:00",
+  "generated_at": "2026-09-26T05:39:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -3948,7 +3948,7 @@
         "event_kinds": [
           "*"
         ],
-        "predicate": "A new write targets an established Direct Conversation whose immutable binding or authoritative membership projection does not resolve to exactly two distinct principal participants.",
+        "predicate": "A new write targets an established Direct Conversation whose immutable binding or authoritative membership projection does not resolve to exactly two distinct principal participants. The membership participant set is the distinct principals of every member typed current row of the Realm, join or leave, so a participant who left still counts and that participant's own ak.member.rejoin.own passes this gate for the participant evaluator; any principal outside the pair fails it.",
         "positive_case": "exact_two_distinct_accepts_gate",
         "negative_cases": [
           "zero_participants_rejects",
@@ -4006,7 +4006,20 @@
         "event_kinds": [
           "*"
         ],
-        "predicate": "The effective actor relies on the technical authority-root and the requested action is outside the exact currently active founding or materialization mask, including operational, grant, member-governance, policy, or terminal families.",
+        "predicate": "A root-reliant Event (root_reliance) requests an action outside the closed mask of the Realm's current phase (masked_actions): the founding phase admits only the exact four-Event founding unit, the materialization phase only the scope's unique ak.mls.genesis and the ak.mls.commit that Adds the other participant with its Welcome, and found admits none. Operational, grant, member-governance, policy and terminal families therefore always fail.",
+        "root_reliance": "The Event actor is the current controller of the Realm authority-root typed current, the Event kind has a registered capability action, and the Event is neither ak.direct_conversation.bound nor inside the participant allowlist (an ak.member.state edge targeting another member is outside it).",
+        "masked_actions": {
+          "founding": [
+            "ak.realm.create",
+            "ak.member.state",
+            "ak.strand.create"
+          ],
+          "materialization": [
+            "ak.mls.genesis",
+            "ak.mls.commit"
+          ],
+          "found": []
+        },
         "positive_case": "bootstrap_masked_founding_action_accepts",
         "negative_cases": [
           "root_operational_action_rejects",
