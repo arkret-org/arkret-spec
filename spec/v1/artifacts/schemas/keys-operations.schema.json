@@ -768,7 +768,6 @@
       "type": "object",
       "x-arkret-pcr-outward-event-kinds": [
         "ak.device.authorize",
-        "ak.device.list_update",
         "ak.device.reanchor",
         "ak.device.revoke"
       ],

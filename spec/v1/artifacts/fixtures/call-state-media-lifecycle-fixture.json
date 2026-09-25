@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.media_service_binding.v1",
-  "version": "2026-06-19",
+  "version": "2026-09-25",
   "suite": "call_state_media_lifecycle",
   "runner": {
     "kind": "named_suite",
@@ -60,8 +60,7 @@
       "runner": "cotest::conformance::call_state_media_lifecycle::run_p2p_to_sfu_upgrade_vector",
       "assertions": [
         "three active participants force p2p calls to sfu mode",
-        "sfu mode does not auto-downgrade when participants drop to two",
-        "ak.call.summary is accepted only for terminal call states"
+        "sfu mode does not auto-downgrade when participants drop to two"
       ]
     }
   ]

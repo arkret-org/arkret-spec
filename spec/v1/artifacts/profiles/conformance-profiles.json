@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-25.2",
-  "generated_at": "2026-09-25T01:05:00+08:00",
+  "version": "2026-09-25.3",
+  "generated_at": "2026-09-25T19:50:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -1960,7 +1960,6 @@
         "ak.reaction.remove",
         "ak.read_cursor.advance",
         "ak.call.state",
-        "ak.call.summary",
         "ak.direct_conversation.bound",
         "ak.mls.genesis",
         "ak.mls.commit"
@@ -2161,7 +2160,6 @@
         "ak.device.authorize",
         "ak.device.reanchor",
         "ak.device.revoke",
-        "ak.device.list_update",
         "ak.policy.set",
         "ak.consent.grant",
         "ak.consent.revoke"
@@ -2214,7 +2212,6 @@
           "ak.device.authorize",
           "ak.device.reanchor",
           "ak.device.revoke",
-          "ak.device.list_update",
           "ak.policy.set",
           "ak.mls.genesis",
           "ak.mls.commit",
@@ -2235,8 +2232,7 @@
           "ak.self.agent.pause",
           "ak.self.agent.resume",
           "ak.self.agent.deactivate",
-          "ak.identity.accountability_grant",
-          "ak.agent.selector_claim"
+          "ak.identity.accountability_grant"
         ],
         "reject_categories": [
           "strand",
@@ -2262,8 +2258,7 @@
         ],
         "controller_pcr_event_kinds": [
           "ak.agent.provision",
-          "ak.identity.accountability_grant",
-          "ak.agent.selector_claim"
+          "ak.identity.accountability_grant"
         ],
         "non_event_account_artifacts": [
           "agent_pairing_request",
@@ -2481,8 +2476,7 @@
         "ak.strand.update",
         "ak.strand.move",
         "ak.strand.reorder",
-        "ak.relation.create",
-        "ak.container.rebalance"
+        "ak.relation.create"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [
@@ -2816,7 +2810,6 @@
         "ak.profile.full_client.v1"
       ],
       "required_event_kinds": [
-        "ak.organization.discovery",
         "ak.organization.moderation_policy",
         "ak.policy.set"
       ],
@@ -4105,7 +4098,6 @@
       "required_event_kinds": [
         "ak.profile.create",
         "ak.agent.provision",
-        "ak.agent.selector_claim",
         "ak.agent.key.authorize",
         "ak.agent.key.revoke",
         "ak.self.agent.pause",
@@ -4123,7 +4115,6 @@
       "required_schemas": [
         "ak.schema.actor_profile.v1",
         "ak.schema.agent_provision.v1",
-        "ak.schema.agent_selector_claim.v1",
         "ak.schema.capability.v1",
         "ak.schema.key_backup.v1",
         "ak.schema.key_backup_plaintext.v1",
@@ -4597,10 +4588,8 @@
         "ak.profile.identity_registry.v1"
       ],
       "required_event_kinds": [
-        "ak.sovereign.did_policy",
         "ak.capability.grant",
         "ak.capability.revoke",
-        "ak.realm.policy",
         "ak.realm.policy_bundle"
       ],
       "rejected_event_kinds": [],
@@ -4687,10 +4676,8 @@
         "ak.profile.sovereign_deployment.v1"
       ],
       "required_event_kinds": [
-        "ak.sovereign.did_policy",
         "ak.realm.create",
         "ak.realm.profile",
-        "ak.realm.policy",
         "ak.realm.policy_bundle",
         "ak.realm.join_rule",
         "ak.realm.history_access",
@@ -4976,10 +4963,7 @@
       "inherits": [
         "ak.profile.full_client.v1"
       ],
-      "required_event_kinds": [
-        "ak.sovereign.did_policy",
-        "ak.realm.policy"
-      ],
+      "required_event_kinds": [],
       "rejected_event_kinds": [],
       "required_schemas": [
         "ak.schema.policy.v1",
@@ -5154,7 +5138,6 @@
         "ak.profile.identity_registry.v1"
       ],
       "required_event_kinds": [
-        "ak.organization.discovery",
         "ak.organization.moderation_policy",
         "ak.policy.set"
       ],
@@ -5325,10 +5308,8 @@
         "ak.profile.high_security_organization.v1"
       ],
       "required_event_kinds": [
-        "ak.sovereign.did_policy",
         "ak.capability.grant",
-        "ak.capability.revoke",
-        "ak.realm.policy"
+        "ak.capability.revoke"
       ],
       "rejected_event_kinds": [],
       "required_schemas": [

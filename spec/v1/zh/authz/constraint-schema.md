@@ -322,7 +322,7 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
   "wip_limit_override": false
 }
 ```
-`scope_limitation` 约束中的 `allowed_from_container_refs` / `allowed_to_container_refs` MUST 在授权判定中早于 operation 生效。这里的 container 是结构容器概念，不是新的对象类型或 ID 前缀；v1 标准容器由 Space 承担（例如 Board / List / 泳道）。目标 List 禁止写入、WIP 超限且无 override、或 `relation_kind` 不在 allow list 时，`ak.strand.move` / `ak.container.move_item` 不得直接生效。
+`scope_limitation` 约束中的 `allowed_from_container_refs` / `allowed_to_container_refs` MUST 在授权判定中早于 operation 生效。这里的 container 是结构容器概念，不是新的对象类型或 ID 前缀；v1 标准容器由 Space 承担（例如 Board / List / 泳道）。目标 List 禁止写入、WIP 超限且无 override、或 `relation_kind` 不在 allow list 时，`ak.strand.move` 不得直接生效。
 
 `allowed_space_ids` / `denied_space_ids` MUST 使用 `ak:space:` ID；`allowed_from_container_refs` / `allowed_to_container_refs` 表达可移出 / 可移入的结构容器，也 MUST 使用 `ak:space:`（或 profile 明确声明的 `ak:strand:` / `ak:morph:` 容器对象）。Realm-wide 范围收窄应写在 resource selector 的 `realm:` 维度，不得把 `ak:realm:` 塞进 Space 或 container 字段。
 

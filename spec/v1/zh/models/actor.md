@@ -67,7 +67,7 @@ Schema id: `ak.schema.actor_profile.v1`
 | `actor_kind` | yes | `enum(user, organization, team, agent, bot, service, integration)` | 不含 `device`：设备非 actor 主体，见 §2 与 device-lifecycle §4。仅用于 Profile 展示、发现与 compose-time 分类；不得作为 Event 授权、签名归属或审计问责的权威来源。 | Actor Profile 分类。 |
 | `display_name` | yes | `string` | 1..128 chars。 | 展示名。 |
 | `handle` | no | `string` | 必须通过 handle 双向验证后展示为 verified。 | 可读 handle。 |
-| `agent_slug` | no | `string` | 仅 Agent 可用；pattern 以 `actor-profile.schema.json` 为准。若出现，MUST 可由当前有效 `ak.schema.agent_selector_claim.v1` 对已知完整 AccountId 校验；冲突时该 label 不得显示为 verified。 | controller-scoped picker label 投影 hint；不是 handle、权限主体或目录发现键。 |
+| `agent_slug` | no | `string` | 仅 Agent 可用；pattern 以 `actor-profile.schema.json` 为准。若出现，MUST 可由当前 `agent_selector_claim` typed current 对已知完整 AccountId 校验；冲突时该 label 不得显示为 verified。 | controller-scoped picker label 投影 hint；不是 handle、权限主体或目录发现键。 |
 | `avatar_blob_ref` | no | `id:blob` |  | 头像。 |
 | `status` | no | `enum(active, soft_logged_out, locked, suspended, deactivated, erasure_pending)` | 账户生命周期 status 的 public projection，不复用 [`common-fields.md` §5](./common-fields.md) 的对象通用 state；具体语义、转移与允许的写入主体见 [`../identity/account-lifecycle.md` §3](../identity/account-lifecycle.md)。 | 状态。 |
 | `accountable_principal_ids` | no | `array<did>` | Agent、Bot 与托管 integration SHOULD 设置；每个 DID 必须由对应 `ak.identity.accountability_grant` 背书，详见 §3.3.1。 | 责任主体。 |
@@ -93,38 +93,29 @@ Schema id: `ak.schema.actor_profile.v1`
 - **显式 cascade（normative）**：controller terminal transition 的实际签名者必须为 terminal pre-state 中的全部 active controlled Agent 提交 `membership_cause="controller_membership_ended"` 的 leave Events；每条 Agent Event 的 `actor_id` 是 Agent，`executed_by` 是 terminal transition 的实际 initiator，并以 `agent_controller_binding.controller_terminal_event_ref` 绑定该 terminal Event。receiver 从 terminal pre-state 机械得到按 `agent_id` 排序的 exact set，禁止缺失、多余、重复、换 Realm、换 controller pair/generation、换 signer 或非 leave Event。
 - self leave 使用 `unit_kind="agent_membership_cascade"`、`cascade_mode="atomic_self_leave"` 的完整原子 batch；任一 Event 或 exact-set 检查失败时 controller 与全部 Agent transition 一起回滚。第三方紧急 ban/remove 使用 `cascade_mode="emergency_terminal"` 先原子接受 terminal Event并建立 durable exact-set cleanup intent，权限立即失效；随后同一 initiator 用 `cascade_mode="emergency_cleanup"` 提交完整集合，全部验证后一次性落地 Agent transitions。同 intent exact replay 幂等，异内容拒绝。durable/wire record 不保存 pending/completed/overdue status；`completed_at` 与完整 `agent_transition_event_ids` 共同存在即 completed，否则 incomplete，incomplete record 在 `cleanup_due_at <= observation_time` 时才是 computed overdue view。超时只告警，不恢复权限，也不得由服务端代签。outcome 必须区分 `terminal_applied_cleanup_pending` 与 `cleanup_completed`。
 - `membership_cause` 是 closed lifecycle cause，仅作审计分类，不授予 authority；安全 provenance 来自 terminal Event、exact controller binding、实际 signer、pre-state exact set 与原子提交。自由文本 `reason` 最长 256 个 Unicode scalar values，不得作为 cascade 成立的证据。
-- `agent_slug` 是 Agent 的 **controller-scoped picker label**，仅在客户端已从授权来源取得目标完整 `subject_account_id` 后用于展示和逐字节绑定校验。当前有效 `ak.schema.agent_selector_claim.v1` 可证明该 label 绑定该已知目标；DID path、Actor Profile 字面值、roster 中的裸 slug 均不能反向构造 AccountId。v1 不支持把 controller handle 与 slug 组合成自由文本 `@<controller-handle>/<agent_slug>` 自动寻址；跨 Station 没有完整候选集/absence proof，单一 Station 的 current 行不能证明 principal 级唯一。`agent_slug` MUST NOT 进入 grant subject、actor attribution、membership key、delivery decision、公开 Directory search/list key 或 audit attribution。多个当前可见 claim 冲突时该 label 不得显示为 verified，且不得据此改选目标；实现 MAY 拒绝造成冲突的 `ak.profile.create` / `ak.profile.update` 或 selector claim。slug 变化不改写历史 mention 的已持久化 `subject_account_id`。
+- `agent_slug` 是 Agent 的 **controller-scoped picker label**，仅在客户端已从授权来源取得目标完整 `subject_account_id` 后用于展示和逐字节绑定校验。当前 `agent_selector_claim` typed current 可证明该 label 绑定该已知目标；DID path、Actor Profile 字面值、roster 中的裸 slug 均不能反向构造 AccountId。v1 不支持把 controller handle 与 slug 组合成自由文本 `@<controller-handle>/<agent_slug>` 自动寻址；跨 Station 没有完整候选集/absence proof，单一 Station 的 current 行不能证明 principal 级唯一。`agent_slug` MUST NOT 进入 grant subject、actor attribution、membership key、delivery decision、公开 Directory search/list key 或 audit attribution。多个当前可见 selector 值冲突时该 label 不得显示为 verified，且不得据此改选目标；实现 MAY 拒绝造成冲突的 `ak.profile.create` / `ak.profile.update` 或 `ak.agent.provision`。slug 变化不改写历史 mention 的已持久化 `subject_account_id`。
 
-- **两类 registered writer 必须产出同一个语义目标（normative）**：`agent_selector_claim`
-  这个 typed current result family 有两个写入方——独立的 `ak.agent.selector_claim` 与 `ak.agent.provision` 的 selector 投影。
-  typed current result namespace 两侧都保持 principal 级 `(controller principal, agent_slug)`，**不加 Station**；
-  被选中的目标两侧都必须是同一个完整 AccountId。
-  - 独立 claim 验它自己的 `ak.agent_selector_claim_proof.v1`：`subject_account_id` 是 binding field，
-    换 Station 而复用原 proof MUST 验签失败。
+- **唯一写入方（normative）**：`agent_selector_claim` 这个 typed current result family 只由 `ak.agent.provision`
+  的 selector 投影写入；协议不定义独立的 selector claim Event，也不定义可携带的签名 selector claim。
+  namespace 是 principal 级 `(controller principal, agent_slug)`，**不加 Station**；被选中的目标是一个完整 AccountId。
   - provision 投影**没有**内层 selector proof，也 MUST NOT 为此新增一套签名或再复制一遍 agent principal。
     它的目标只能从已签名的 `payload.agent_id`、该 provision Event 的 exact controller account / Station
     与既有同 Station admission 规则派生，并在 Agent genesis / binding 完成后与
     `genesis.actor_id.account_id` 精确核对。**这不是取调用方当次的 Station。**
     provision 未完成（Agent PCR genesis 未 accepted）之前，该 Agent MUST NOT 被当作 active 可解析目标。
-  - 无内层 proof 的投影 MUST NOT 被伪造成独立签名 claim。要求返回 `selector_claim.proofs` 的 portable
-    响应，必须拿到真实 controller 签名的 claim；拿不到就不能广告 / 返回该成功面，
-    服务端 MUST NOT 补签，也 MUST NOT 公开 private provision 材料来填满 DTO。
+  - 服务端 MUST NOT 补签任何 selector claim，也 MUST NOT 公开 private provision 材料来填满任何响应。
+  - 同一 controller 以同一 slug 再次 provision 时，新值整体置换旧绑定。Agent deactivate / revoke 不删除该行，
+    由下方「已知目标 label 校验」的 lifecycle 检查使 label 不可验证。
 
-- **Selector bind/unbind（normative）**：`ak.agent.selector_claim` 与 provision 写同一个 `commit-ordered projection` 安全 typed current result。controller principal 与 slug 派生唯一 subject（namespace 不含 Station）；`subject_account_id` 为完整账号时 bind，显式 null 时 unbind。source_refs 必须恰含已签 expected_revision 中该 typed current result 当前 revision 的 exact bind/provision 来源；首次未写入时为空，不得附加旧 revision 或其它 namespace 来源，内层 proof 与 envelope actor 均按 controller 的历史授权验证。命令在 Realm 确认序列检查相关 revision；竞争 bind/unbind 至多一个成功，旧命令必须重读并重新签署，不能安装多个安全 heads。
-
-- **canonical value 与 AccountId 的来源（normative）**：该 family 的 canonical 业务值固定为
-  `{subject_account_id, visibility, audience?, expires_at?}`，两个写入方 MUST 产出同一形状。
-  `subject_account_id` 可空，显式 null 即 unbind；`audience` 缺席表示 public 情形，
-  `expires_at` 缺席表示不设时间过期，二者 MUST NOT 写 JSON `null`。
+- **canonical value（normative）**：该 family 的 canonical 业务值固定为
+  `{subject_account_id, visibility, audience?}`。`subject_account_id` 恒为完整 AccountId；
+  `audience` 缺席表示 public 情形，MUST NOT 写 JSON `null`。
   值里**没有** `claim_scope`——开放对象不能承载 MUST 级授权判定所依赖的状态而仍让所有 verifier
-  判定一致，该成员已从 `ak.schema.agent_selector_claim.v1` 移除，理由与
-  [`../identity/identity-handles.md` §3.2](../identity/identity-handles.md) 对 `HandleClaimCore`
-  的既有裁决同一条；disclosure 边界只有 `visibility` 与 `audience`，`intent` 是请求参数而不是
-  claim 成员。`issuer_id`、`vouching_id`、`source_refs`、`created_at`、`verified_at` 与 `proofs`
-  同样不进入值：来源身份已由 head Event 及其接纳证明承载，`vouching_id` 在解析里没有读者，
-  而要求 portable `selector_claim.proofs` 的响应必须出示真实 controller 签名的 claim，
-  不得以本投影顶替。值也不重复自己的 subject——与 `identity_accountability` 不同，
-  本 family 没有「把值当便携记录逐字段读」的读者。
+  判定一致，理由与 [`../identity/identity-handles.md` §3.2](../identity/identity-handles.md) 对 `HandleClaimCore`
+  的既有裁决同一条；disclosure 边界只有 `visibility` 与 `audience`，`intent` 是请求参数而不是值成员。
+  `issuer_id`、`vouching_id`、`source_refs`、`created_at`、`verified_at`、`expires_at` 与 `proofs`
+  同样不进入值：来源身份已由 head Event 及其接纳证明承载，provision 绑定不按时钟过期。
+  值也不重复自己的 subject——与 `identity_accountability` 不同，本 family 没有「把值当便携记录逐字段读」的读者。
 - **provision 侧 AccountId 的唯一登记派生（normative）**：provision 的 selector 投影里，
   `subject_account_id` 由已登记派生 `agent_account_id_from_provision` 产出：
   principal 分量取已签名的 `payload.agent_id`，station 分量取**本 Event 自己的**
@@ -135,7 +126,7 @@ Schema id: `ak.schema.actor_profile.v1`
   [`strand-and-message.md` §9.4.1](./strand-and-message.md) 那串客户端禁令的服务端对偶：
   不取本机 authoring Station、不取 controller handle 的 Station、不取 DID 默认 Station、
   不取当前解析 facade 的 Station——改为这一条唯一规则。
-- **已知目标 label 校验（normative）**：先从获授权的 roster/picker 得到完整 Agent `subject_account_id`，再 MAY 读取当前可见且已确认的 selector 值并要求目标逐字节相等，同时检查 Agent lifecycle、accountability、visibility 与 expiry。null、过期、冲突或缺确认材料只使 label 不可验证，不得把它们变成另一个目标；已知完整 AccountId 的普通 mention 仍按其独立成员/可读权与 Agent gate 判定。selector 不替代成员、grant 或审计责任身份。provision 不伪造内层 claim proof，portable claim 需要真实 controller 签名。
+- **已知目标 label 校验（normative）**：先从获授权的 roster/picker 得到完整 Agent `subject_account_id`，再 MAY 读取当前可见且已确认的 selector 值并要求目标逐字节相等，同时检查 Agent lifecycle、accountability 与 visibility。冲突或缺确认材料只使 label 不可验证，不得把它们变成另一个目标；已知完整 AccountId 的普通 mention 仍按其独立成员/可读权与 Agent gate 判定。selector 不替代成员、grant 或审计责任身份。
 
 - Event Envelope 不携带主体分类 stamp。审计 / 取证 / offline reader 必须分别保留签名覆盖的 `actor_id` 与可选 `executed_by`，并解析准入时点的 provisioning / registration / installation / accountability / identity 证据；Actor Profile `actor_kind` 只能作为展示分类，不能决定问责主体、executor 或权限。
 

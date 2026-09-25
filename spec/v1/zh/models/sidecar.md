@@ -226,7 +226,7 @@ key、旧 session 或本地缓存不能继续授权新写。
 
 ## 7. 生命周期
 
-Sidecar state 是 accepted controller/Realm/ownership/realm_policy revision 的纯函数，不存在 actor-authored
+Sidecar state 是 accepted controller/Realm/ownership/Realm policy facet revision 的纯函数，不存在 actor-authored
 Sidecar archive/restore/member Event：
 
 | 源 | 目标 | 条件 |

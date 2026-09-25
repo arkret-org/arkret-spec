@@ -587,7 +587,7 @@ MLS KeyPackage 携带 MLS leaf/init 等群组加入材料，但 Arkret 不为它
 
 设备、recovery 和 KeyPackage 有效性属于 principal 级状态，不属于任意 Collaboration Realm。Arkret v1 使用 **Principal Control Event Stream** 承载这些 durable identity state（其归属的 Realm 即 [Principal Control Realm](../models/realm-and-space.md#28-realm-角色分类normative)，与 Collaboration Realm 在 `models/realm-and-space.md` §2.8 中正式分类）。SessionGrant 是 Account Authority 的 issuer-ledger credential，其签发与 lifecycle 不写入 Principal Control Event Stream，见 §6。
 
-当 `ak.device.authorize`、`ak.device.revoke` 或 `ak.device.list_update` 以 `ak.schema.event.v1` Event Envelope 传播时：
+当 `ak.device.authorize` 或 `ak.device.revoke` 以 `ak.schema.event.v1` Event Envelope 传播时：
 
 - `realm_id` MUST 是该 principal 的专用 `principal_control_realm_id`，不得使用任意 Collaboration Realm 的 `realm_id`。
 - `actor_id` MUST 是签发该控制事件的 principal、已授权 device 或受信 recovery service。
@@ -691,7 +691,7 @@ Genesis/re-anchor accepted 只建立可认证设备，不等于 recovery ready�
 
 **客户端续接边界（normative）**：注册返回有效 Standard grant 且 current-principal 已核对完整 Account、Station、holder/device 与唯一 PCR 后，客户端 MAY 建立该已接纳账号的本地存储上下文。需要缓存 checkpoint 或 recovery evidence 的客户端 MUST 在对应写入前建立该上下文并耐久保存续接 checkpoint；不得要求先完成 recovery 才能建立其自身所需的账号存储。存储上下文存在不构成 recovery ready、普通 E2EE 授权或 setup complete；客户端 MUST 保留未完成 gate 和 exact replay 状态，完成后才发布相应产品就绪状态。协议不规定客户端内部类型名或要求新增临时账号／SessionGrant。
 
-gate 的作用范围是：**发起任何 post-bootstrap E2EE Realm 创建/加入前 MUST 完成**（与 §7.11 一致）；gate 未完成时允许读取与非 E2EE 的本地/账号级操作。gate 期间允许的封闭写入集合恰为：该 PCR 的首个 RealmCommit、genesis recovery policy、使该 policy 生效所必需且不包含其它控制写入的设备签名 successor RealmCommit、以及 genesis unit 自身产生的 device projection 更新（`ak.device.list_update`）；其余 Realm 写入 MUST fail closed。policy Event 接纳不等于 policy 已生效；完成 gate 必须观察到已生效的该 policy，不能仅凭接纳回执解除 gate。
+gate 的作用范围是：**发起任何 post-bootstrap E2EE Realm 创建/加入前 MUST 完成**（与 §7.11 一致）；gate 未完成时允许读取与非 E2EE 的本地/账号级操作。gate 期间允许的封闭写入集合恰为：该 PCR 的首个 RealmCommit、genesis recovery policy、使该 policy 生效所必需且不包含其它控制写入的设备签名 successor RealmCommit；genesis unit 自身写入的 device typed current 属于该 unit，不是另一笔写入；其余 Realm 写入 MUST fail closed。policy Event 接纳不等于 policy 已生效；完成 gate 必须观察到已生效的该 policy，不能仅凭接纳回执解除 gate。
 
 ### 5.1 新设备加入（首台设备已存在）
 
@@ -702,7 +702,7 @@ gate 的作用范围是：**发起任何 post-bootstrap E2EE Realm 创建/加入
 3. 已授权设备扫描或打开带外 pairing payload 调用匿名 body-only resolve，或只输入 8 位短码调用认证的 `ak.gate.account.read.claim_device_pairing_code.v1`，两条入口按 [`device-lifecycle.md` §2.1.1](../crypto-media/device-lifecycle.md) 解析到同一份请求与 byte-equivalent 的唯一 `device_pairing_target_proof`，独立重算并验签后显示 requesting-device metadata、完整 pairing code 与所属账号；key fingerprint、`device_id` 与 `gate_audience` 继续参与机器校验但 MAY 收进高级信息。用户必须确认这是自己正在添加的设备；经输入短码进入时，输入动作本身已完成短码比对。新设备在本步骤不得发送任何 to-device 消息；已授权设备的选择由带外交付动作完成，不存在 fresh-device sibling target discovery。
 4. push 或 to-device 通知不是本 bootstrap 的一部分，也不得承载 token、pairing code、target proof 或 sibling device 列表。部署若在已认证账号边界内提供额外的脱敏唤醒，只能作为可选 UI 提示，不能替代步骤 3 的带外交付、验签和人工确认，也不能给予新设备任何账号能力。
 5. 用户在已授权设备上逐位核对 pairing code 并批准后，该设备先验签 `device_pairing_target_proof`、从中取出 `hpke_key` 与 `algorithms`（MUST NOT 从服务端响应或 UI 输入取），据此对完整 `ak.device.authorize` payload 签署 Event Initial Submission，再调用 `POST /_arkret/gate/account/device-pair`，提交 transcript 绑定的 `pairing_code`、`new_device_pubkey`、payload 内 exact `hpke_key`、exact `device_signature`、完整 `authorize_event` 与当前设备 fresh proof；challenge digest 的重建规则见 [`device-lifecycle.md` §2.1.2](../crypto-media/device-lifecycle.md)，target `device_signature` 的 `accepted_device` possession domain 与签名对象见 [`device-lifecycle.md` §5.2](../crypto-media/device-lifecycle.md) §5.2.2。服务端必须按普通 Event admission 接受该 exact submission，不得自行 mint Event 或直接写 device projection。`/_arkret/self/devices/pairing-requests*` 不是 v1 core approval surface。 <!-- lint-ignore: CW001 - forbidden historical path named only as a negative example. -->
-6. Events API / identity registry durable 接受并传播 `ak.device.authorize` 与 `ak.device.list_update`；gate 返回 `authorized_event_ref` 或等价引用。新设备可通过 [`device-lifecycle.md` §2.1.1](../crypto-media/device-lifecycle.md) 的匿名 status、重新签发/升级后的 session grant、或后续 account subscribe/device list baseline 观察结果，但 MUST 以 durable device list 为准；只有观察到该 exact authorize Event 已进入 current durable device list 后，才可开始同步 Event history、Realm membership，发布自己的 KeyPackage 并接收必要的 MLS Welcome；账户级 material 按 §12 加密备份恢复，不发送 `ak.secret.request`。
+6. Events API / identity registry durable 接受并传播 `ak.device.authorize`；gate 返回 `authorized_event_ref` 或等价引用。新设备可通过 [`device-lifecycle.md` §2.1.1](../crypto-media/device-lifecycle.md) 的匿名 status、重新签发/升级后的 session grant、或后续 account subscribe/device list baseline 观察结果，但 MUST 以 durable device list 为准；只有观察到该 exact authorize Event 已进入 current durable device list 后，才可开始同步 Event history、Realm membership，发布自己的 KeyPackage 并接收必要的 MLS Welcome；账户级 material 按 §12 加密备份恢复，不发送 `ak.secret.request`。
 
 如果用户没有任何可用的已授权设备，UI SHOULD 明确优先提示"在已有设备确认"；确认不可用后，才进入恢复密钥 / social recovery 路径。新设备仅凭登录 session grant MUST NOT 获得 MLS private state 或既有密文的解密材料。
 

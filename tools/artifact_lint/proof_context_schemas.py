@@ -1738,8 +1738,7 @@ _RESULT_PROJECTION_KINDS = frozenset(
 _RESULT_KEYED_SET_KINDS = frozenset({"keyed_set_add", "keyed_set_remove_observed", "keyed_set_remove_dots"})
 
 # The exact Agent supersedes remove of foundation.py lines 1186-1193 is the only
-# per-item removal. A second exact expansion below is the bounded, all-or-nothing
-# container rebalance; anything else would be an open-ended loop over arbitrary
+# per-item expansion; anything else would be an open-ended loop over arbitrary
 # families.
 _AGENT_SUPERSEDES_FOR_EACH = {"field": "payload.supersedes", "max_items": 256}
 _AGENT_SUPERSEDES_SELECTOR = {
@@ -1749,30 +1748,6 @@ _AGENT_SUPERSEDES_SELECTOR = {
 _AGENT_SUPERSEDES_PROJECTION = {
     "kind": "keyed_set_remove_dots",
     "dots": {"agent_authorization_dot": {"field": "item.authorized_event_ref"}},
-}
-
-# encoding.md section 9.1 registers one other bounded expansion: a rebalance
-# atomically writes exactly one container_position row for every member of the
-# closed positions[] array.  Keep the spelling exact here; a general for_each
-# would reopen arbitrary loops and partial-write ambiguity.
-_CONTAINER_REBALANCE_FOR_EACH = {"field": "payload.positions", "max_items": 10000}
-_CONTAINER_REBALANCE_SELECTOR = {
-    "kind": "composite",
-    "components": [
-        {"kind": "canonical_json", "field": "item.item_ref"},
-        "payload.relation_kind",
-    ],
-}
-_CONTAINER_REBALANCE_PROJECTION = {
-    "kind": "set",
-    "value_projection": {
-        "kind": "object",
-        "members": [
-            {"name": "container_ref", "field": "payload.container_ref"},
-            {"name": "relation_kind", "field": "payload.relation_kind"},
-            {"name": "rank", "field": "item.rank"},
-        ],
-    },
 }
 
 # An `allowed_paths` entry names one top-level member of the family value, which
@@ -3185,30 +3160,16 @@ def check_result_write_contracts(lint: Lint) -> None:
                     or write.get("result_selector") != _AGENT_SUPERSEDES_SELECTOR
                     or write.get("result_projection") != _AGENT_SUPERSEDES_PROJECTION
                 ) is False
-                container_rebalance = (
-                    kind == "ak.container.rebalance"
-                    and index == 0
-                    and write["for_each"] == _CONTAINER_REBALANCE_FOR_EACH
-                    and write.get("result_selector") == _CONTAINER_REBALANCE_SELECTOR
-                    and write.get("result_projection") == _CONTAINER_REBALANCE_PROJECTION
-                )
-                if not agent_supersedes and not container_rebalance:
+                if not agent_supersedes:
                     lint.fail(
                         EVENT_KIND_REGISTRY,
-                        f"{where}.for_each is restricted to the exact Agent supersedes remove or "
-                        "the exact bounded container rebalance of conformance/encoding.md section "
-                        "9.4; arbitrary per-item loops have no atomicity or field-source contract",
+                        f"{where}.for_each is restricted to the exact Agent supersedes remove; "
+                        "arbitrary per-item loops have no atomicity or field-source contract",
                     )
             elif kind == "ak.agent.key.authorize" and index == 0:
                 lint.fail(
                     EVENT_KIND_REGISTRY,
                     f"{where} must enumerate the bounded exact supersedes set before the add",
-                )
-            elif kind == "ak.container.rebalance" and index == 0:
-                lint.fail(
-                    EVENT_KIND_REGISTRY,
-                    f"{where} must enumerate the bounded positions[] set before the atomic "
-                    "container_position writes",
                 )
             family = write.get("result_family")
             if not isinstance(family, str) or not RESULT_FAMILY_RE.fullmatch(family):

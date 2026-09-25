@@ -419,11 +419,6 @@ def lint_subject_field_path(lint: Lint, path: Path, ref: str, value: object) -> 
             and "ak.agent.key.authorize" in ref
             and ("cell_writes[0]" in ref or "result_writes[0]" in ref)
         )
-        or (
-            value in {"item.item_ref", "item.rank"}
-            and "ak.container.rebalance" in ref
-            and "result_writes[0]" in ref
-        )
     ):
         return
     if value.startswith("envelope."):

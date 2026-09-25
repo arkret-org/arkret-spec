@@ -154,9 +154,9 @@ stage 请求携带 proof / gate 缺 staged request / stage 泄露 principal 或 
 
 #### 2.1.4 Gate 落地与目标设备的结果观察（normative）
 
-用户确认后的授权落地 MUST 发生在 `/_arkret/gate/account/*` 认证面，使用 `ak.gate.account.command.pair_device.v1`。批准设备提交 staged `device_pairing_request_id`、`pairing_code`、`new_device_pubkey`、自己 author 的完整 `ak.device.authorize`，以及自身 fresh device proof；从已验签 `device_pairing_target_proof` 取得的 `hpke_key` 与 `device_signature` 只写入该 authorize Event payload，不在 commit 顶层重复。gate MUST 首次接纳时从仍为 `ready_for_claim` 的 staged record 按 §2.1.2 独立重算 challenge digest，再按 §5.2.2 用该 digest、该记录的签名 `account_id` 与提交 payload 重建 accepted_device possession 对象并验签 payload 内 `device_signature`，MUST NOT 接受无 staged request 的替代 transcript，也不得只做逐字段相等比较。gate 返回的 `authorized_event_ref` 只是 durable `ak.device.authorize` / `ak.device.list_update` 已被接受的引用或等价结果。新设备只通过 §2.1.1 status、后续 full `ak.self.account.stream.subscribe.v1` device list baseline，或重新通过 `ak.gate.account.command.issue_session_grant.v1` 取得 Standard grant 来观察授权结果；它 MUST 验证 durable device list，并在本地装配前完成 §5.4.1 的强制校验。
+用户确认后的授权落地 MUST 发生在 `/_arkret/gate/account/*` 认证面，使用 `ak.gate.account.command.pair_device.v1`。批准设备提交 staged `device_pairing_request_id`、`pairing_code`、`new_device_pubkey`、自己 author 的完整 `ak.device.authorize`，以及自身 fresh device proof；从已验签 `device_pairing_target_proof` 取得的 `hpke_key` 与 `device_signature` 只写入该 authorize Event payload，不在 commit 顶层重复。gate MUST 首次接纳时从仍为 `ready_for_claim` 的 staged record 按 §2.1.2 独立重算 challenge digest，再按 §5.2.2 用该 digest、该记录的签名 `account_id` 与提交 payload 重建 accepted_device possession 对象并验签 payload 内 `device_signature`，MUST NOT 接受无 staged request 的替代 transcript，也不得只做逐字段相等比较。gate 返回的 `authorized_event_ref` 只是 durable `ak.device.authorize` 已被接受的引用或等价结果。新设备只通过 §2.1.1 status、后续 full `ak.self.account.stream.subscribe.v1` device list baseline，或重新通过 `ak.gate.account.command.issue_session_grant.v1` 取得 Standard grant 来观察授权结果；它 MUST 验证 durable device list，并在本地装配前完成 §5.4.1 的强制校验。
 
-已授权设备在该 gate 接纳后 MAY 发布 `ak.device.list_update`。新设备的 MLS 建立只通过 §10.2 的独立 `MlsWelcomeDelivery`；账户级 secret-storage material 只通过 §12 的端到端加密备份恢复，identity root / device private key 永不共享。
+新设备的 MLS 建立只通过 §10.2 的独立 `MlsWelcomeDelivery`；账户级 secret-storage material 只通过 §12 的端到端加密备份恢复，identity root / device private key 永不共享。
 
 **pairing-originated verified checkpoint（normative）**：一次经本节落地成功的 accepted-device pairing 同时产生两个**正交**结果：lifecycle 上新设备取得 accepted `ak.device.authorize` 并成为 `active`；trust 上产生一条 `verification_source=pairing_code` 的 §10.1 verification checkpoint。它不是「验证成功自动变成授权」，而是同一次用户在环的配对 ceremony 同时提交了授权结果与信任证据。该 checkpoint 的建立条件是 §10.1 的五项合取，其中带外确认由 §2.1.1 第 4 条的扫码 / 链接显式确认或第 5 条的输入短码满足，账号绑定由 §5.2.2 的签名 `account_id` 满足。accepted `ak.device.authorize` 与该 checkpoint MUST 在同一原子提交可见，或可从同一 accepted authorization 与已签 transcript 确定性重建；两者 MUST NOT 分叉。授权与信任此后仍是两个维度，各自按自己的规则撤销、过期与 fence。
 
@@ -552,24 +552,10 @@ create / rotate / revoke、stale sibling、exact replay 与隐私 GC 的可执�
 
 ## 6. Device List Sync
 
-任何设备新增、撤销、签名更新或算法更新，MUST 产生 `ak.device.list_update` event。该 event 是 principal control stream 中的 actor-private durable identity state；若使用 Event Envelope，顶层 `realm_id` MUST 是目标 principal 的 `principal_control_realm_id`。它不进入任一共享 Realm 控制面 RealmCommit coverage；共享 Realm 只能通过 MLS Welcome / Remove、device trust proof 或 explicit membership / KeyPackage event 感知其结果：
+设备新增、撤销、签名或算法更新只由该 principal 的 Principal Control Realm 上已提交的 `ak.device.authorize`、`ak.device.revoke` 与 `ak.device.reanchor` 表达；权威设备列表是这些 Event 写入的 `device_authorization` 与 `device_generation` typed current，协议不定义第二个"设备列表更新"Event。它们不进入任一共享 Realm 控制面 RealmCommit coverage；共享 Realm 只能通过 MLS Welcome / Remove、device trust proof 或 explicit membership / KeyPackage event 感知其结果。
 
-Account Subscribe 的聚合提示 `delta.device_lists` 与本 event payload 不是同一 DTO：前者固定为 `{changed: principal_did[], left: principal_did[]}`，只指出哪些 principal 的权威设备列表需要刷新或清除；后者才携带该 principal 的具体 device 变化。实现 MUST NOT 把 `device_id` 写入 `delta.device_lists.changed/left`，也不得把聚合提示当作完整设备清单。
+Account Subscribe 的聚合提示 `delta.device_lists` 固定为 `{changed: principal_did[], left: principal_did[]}`，只指出哪些 principal 的权威设备列表需要刷新或清除；具体设备行只从上述 typed current（本账号经 account subscribe device list baseline，跨账号经 `ak.self.keys.read.lookup.v1`）读取。实现 MUST NOT 把 `device_id` 写入 `delta.device_lists.changed/left`，也不得把聚合提示当作完整设备清单。
 
-```json fragment
-{
-  "kind": "ak.device.list_update",
-  "payload": {
-    "changed_ids": [
-      "ak:device:01964137-0000-7000-8000-000000000000"
-    ],
-    "left_ids": [
-      "ak:device:01964138-0000-7000-8000-000000000000"
-    ],
-    "stream_id": "devstream_42"
-  }
-}
-```
 客户端 sync MUST 暴露 device list delta。E2EE 客户端在向 principal 发送新加密内容前，MUST 查询或同步其最新 device list。
 
 ## 7. To-Device Messages

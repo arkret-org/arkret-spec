@@ -464,7 +464,6 @@ Arkret v1 把 Realm-level policy 映射为 state-changing Event 的 registered t
 
 | Arkret result_family | Arkret Event kind | MIMI policy component（draft-ietf-mimi-room-policy） |
 | --- | --- | --- |
-| `realm_policy` | `ak.realm.policy` | （Arkret 专属；映射时合并入 `operational`） |
 | `realm_join_rule` | `ak.realm.join_rule` | `participation` 中 `join_policy` 子字段（粗粒度入口枚举） |
 | `realm_history_access` | `ak.realm.history_access` | MIMI 若能表达等价的 current-member history range 则映射；否则 fail closed，不臆造旧五档 visibility |
 | `realm_discovery` | `ak.realm.discovery` | `participation` 中 `discoverability` 子字段 |
@@ -494,7 +493,7 @@ Arkret v1 把 Realm-level policy 映射为 state-changing Event 的 registered t
 > | `roles` | `ak.capability.grant` / `ak.capability.revoke`（capability 是 allow 的唯一来源，不是 policy 子字段） |
 > | `preauth` | `ak.realm.policy_bundle` payload 的 `preauth` 组件（[`../identity/consent-model.md` §6.1](../identity/consent-model.md)） |
 > | `bot` | `ak.realm.policy_bundle` payload 的 `agent_participation` 组件（[`../models/realm-and-space.md` §2.2](../models/realm-and-space.md)） |
-> | `operational` | `ak.realm.policy` facet event（`realm_policy`，见 §9.1 首行） |
+> | `operational` | 无 Arkret 承载；按 §9.2 unknown handling 处理 |
 >
 > MIMI room policy 投影 MUST 落在有效 Realm 的 `ak.realm.policy_bundle` typed current result；不存在 track-scoped policy projection——track 不携带独立 access。当 MIMI room 映射的 Strand 通过 `scope_circle_id` 落在 Realm 内的 [Circle](../models/circle.md) 时，Circle-local policy 通过 Circle 自身 accepted policy 投影表达，与父 Realm policy 取更严格者。
 

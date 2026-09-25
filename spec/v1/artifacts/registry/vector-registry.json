@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-25.5",
+  "version": "2026-09-25.6",
   "source_of_truth": true,
-  "generated_at": "2026-09-25T16:25:00+08:00",
+  "generated_at": "2026-09-25T19:50:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1032,7 +1032,7 @@
       "applies_to_fixtures": [
         "call-state-media-lifecycle-fixture.json"
       ],
-      "description": "P2P calls converge to SFU when participants exceed two, reusing the oldest_membership no-vote session_focus election; mode does not auto-downgrade, and ak.call.summary is gated on a terminal call state (call_summary_invalid otherwise).",
+      "description": "P2P calls converge to SFU when participants exceed two, reusing the oldest_membership no-vote session_focus election; mode does not auto-downgrade.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/call-state-media-lifecycle-fixture.json"
       ]

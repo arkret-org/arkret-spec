@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-25.1",
-  "generated_at": "2026-09-25T14:50:00+08:00",
+  "version": "2026-09-25.2",
+  "generated_at": "2026-09-25T19:50:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -1135,7 +1135,7 @@
       "code": "policy_unavailable",
       "http_status": 503,
       "scope": "endpoint",
-      "description": "The policy service, realm_policy revision, or policy proof required for this operation is temporarily unavailable.",
+      "description": "The policy service, Realm policy facet revision, or policy proof required for this operation is temporarily unavailable.",
       "type_uri": "https://arkret.org/problems/policy_unavailable",
       "title": "Policy unavailable",
       "status": "active"
@@ -3273,14 +3273,6 @@
       "status": "active"
     },
     {
-      "code": "call_summary_invalid",
-      "applies_to": [
-        "event_envelope"
-      ],
-      "description": "A `ak.call.summary` event was rejected because its `final_state` is not a terminal call state, the referenced `call_id` has no terminal `ak.call.state` head, or a divergent summary already exists for the call (the summary typed current result is write-once). Reducer MUST `failed_precondition`. See zh/crypto-media/call-state.md §7.",
-      "status": "active"
-    },
-    {
       "code": "cbor_bounds_invalid",
       "applies_to": [
         "encoding",
@@ -4773,7 +4765,7 @@
         "event_envelope",
         "state_resolution"
       ],
-      "description": "A ak.realm.policy_bundle update skipped one or more monotonic policy_revision values. Reducer MUST reject instead of accepting a discontinuous realm_policy revision.",
+      "description": "A ak.realm.policy_bundle update skipped one or more monotonic policy_revision values. Reducer MUST reject instead of accepting a discontinuous realm_policy_bundle revision.",
       "status": "active"
     },
     {

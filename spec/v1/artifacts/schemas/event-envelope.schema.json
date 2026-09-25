@@ -269,25 +269,6 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "ak.actor.discovery"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/actor_discovery_state_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
             "const": "ak.agent.action_approve"
           }
         },
@@ -413,25 +394,6 @@
         "properties": {
           "payload": {
             "$ref": "./agent-provision.schema.json"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.agent.selector_claim"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./agent-selector-claim.schema.json"
           }
         }
       }
@@ -622,25 +584,6 @@
         "properties": {
           "payload": {
             "$ref": "./event-payload.schema.json#/$defs/call_state_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.call.summary"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/call_summary_payload"
           }
         }
       }
@@ -972,44 +915,6 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "ak.container.move_item"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/container_move_item_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.container.rebalance"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/container_rebalance_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
             "const": "ak.device.authorize"
           }
         },
@@ -1021,25 +926,6 @@
         "properties": {
           "payload": {
             "$ref": "./event-payload.schema.json#/$defs/device_authorize_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.device.list_update"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/device_list_update_payload"
           }
         }
       }
@@ -1116,25 +1002,6 @@
         "properties": {
           "payload": {
             "$ref": "./event-payload.schema.json#/$defs/direct_conversation_bound_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.handle.discovery"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/handle_discovery_state_payload"
           }
         }
       }
@@ -1610,25 +1477,6 @@
         "properties": {
           "payload": {
             "$ref": "./event-payload.schema.json#/$defs/morph_update_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.organization.discovery"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/organization_discovery_state_payload"
           }
         }
       }
@@ -2169,25 +2017,6 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "ak.realm.policy"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/realm_policy_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
             "const": "ak.realm.policy_bundle"
           }
         },
@@ -2598,25 +2427,6 @@
         "properties": {
           "payload": {
             "$ref": "./event-payload.schema.json#/$defs/sidecar_create_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "const": "ak.sovereign.did_policy"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/sovereign_did_policy_state_payload"
           }
         }
       }
@@ -6040,12 +5850,10 @@
           "properties": {
             "kind": {
               "enum": [
-                "ak.actor.discovery",
                 "ak.agent.action_approve",
                 "ak.agent.key.authorize",
                 "ak.agent.key.revoke",
                 "ak.agent.provision",
-                "ak.agent.selector_claim",
                 "ak.agent.sidecar.exchange.control",
                 "ak.applet.bridge_error",
                 "ak.applet.discovery",
@@ -6056,7 +5864,6 @@
                 "ak.call.create",
                 "ak.call.recording.start",
                 "ak.call.state",
-                "ak.call.summary",
                 "ak.capability.grant",
                 "ak.capability.relinquish",
                 "ak.capability.revoke",
@@ -6074,14 +5881,10 @@
                 "ak.contact.requested",
                 "ak.contact.scope.update",
                 "ak.contact.tombstone",
-                "ak.container.move_item",
-                "ak.container.rebalance",
                 "ak.device.authorize",
-                "ak.device.list_update",
                 "ak.device.reanchor",
                 "ak.device.revoke",
                 "ak.direct_conversation.bound",
-                "ak.handle.discovery",
                 "ak.identity.accountability_grant",
                 "ak.identity.resolution.update",
                 "ak.invite.accept",
@@ -6107,7 +5910,6 @@
                 "ak.morph.restore",
                 "ak.morph.stage.set",
                 "ak.morph.update",
-                "ak.organization.discovery",
                 "ak.organization.moderation_policy",
                 "ak.pin.add",
                 "ak.pin.remove",
@@ -6135,7 +5937,6 @@
                 "ak.realm.organization",
                 "ak.realm.owner.transfer",
                 "ak.realm.plaintext_visible_services",
-                "ak.realm.policy",
                 "ak.realm.policy_bundle",
                 "ak.realm.preview_policy",
                 "ak.realm.profile",
@@ -6158,7 +5959,6 @@
                 "ak.self.moderation.report",
                 "ak.sidecar.context.attach",
                 "ak.sidecar.create",
-                "ak.sovereign.did_policy",
                 "ak.space.archive",
                 "ak.space.create",
                 "ak.space.parent",
@@ -6192,7 +5992,6 @@
         "kind": {
           "enum": [
             "ak.account_data.set",
-            "ak.actor.discovery",
             "ak.agent.action_approve",
             "ak.agent.action_reject",
             "ak.agent.action_request",
@@ -6200,7 +5999,6 @@
             "ak.agent.key.authorize",
             "ak.agent.key.revoke",
             "ak.agent.provision",
-            "ak.agent.selector_claim",
             "ak.agent.sidecar.exchange.control",
             "ak.applet.bridge_error",
             "ak.applet.discovery",
@@ -6211,7 +6009,6 @@
             "ak.call.create",
             "ak.call.recording.start",
             "ak.call.state",
-            "ak.call.summary",
             "ak.capability.grant",
             "ak.capability.relinquish",
             "ak.capability.revoke",
@@ -6229,15 +6026,11 @@
             "ak.contact.requested",
             "ak.contact.scope.update",
             "ak.contact.tombstone",
-            "ak.container.move_item",
-            "ak.container.rebalance",
             "ak.device.authorize",
-            "ak.device.list_update",
             "ak.device.push_route",
             "ak.device.reanchor",
             "ak.device.revoke",
             "ak.direct_conversation.bound",
-            "ak.handle.discovery",
             "ak.identity.accountability_grant",
             "ak.identity.resolution.update",
             "ak.invite.accept",
@@ -6263,7 +6056,6 @@
             "ak.morph.restore",
             "ak.morph.stage.set",
             "ak.morph.update",
-            "ak.organization.discovery",
             "ak.organization.moderation_policy",
             "ak.pin.add",
             "ak.pin.remove",
@@ -6292,7 +6084,6 @@
             "ak.realm.organization",
             "ak.realm.owner.transfer",
             "ak.realm.plaintext_visible_services",
-            "ak.realm.policy",
             "ak.realm.policy_bundle",
             "ak.realm.preview_policy",
             "ak.realm.profile",
@@ -6315,7 +6106,6 @@
             "ak.self.moderation.report",
             "ak.sidecar.context.attach",
             "ak.sidecar.create",
-            "ak.sovereign.did_policy",
             "ak.space.archive",
             "ak.space.create",
             "ak.space.parent",

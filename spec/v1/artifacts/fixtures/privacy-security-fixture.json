@@ -5,7 +5,7 @@
   },
   "suite": "privacy_security",
   "profile": "ak.vector_group.privacy_security.v1",
-  "version": "2026-09-25.1",
+  "version": "2026-09-25.2",
   "covers_vectors": [
     "ak.vector.directory.public_realm_search.v1",
     "ak.vector.directory.ttl_expiry_removal.v1",
@@ -51,9 +51,7 @@
         "write_operations_are_unregistered": true,
         "query_results_are_not_authorization_evidence": true,
         "unsupported_non_realm_discovery_event_kinds": [
-          "ak.actor.discovery",
-          "ak.applet.discovery",
-          "ak.handle.discovery"
+          "ak.applet.discovery"
         ],
         "forbidden_resource_families": [
           "organization",

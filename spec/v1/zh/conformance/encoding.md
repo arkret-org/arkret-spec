@@ -342,7 +342,7 @@ rank_between(left, right):
 ```
 
 `rank_between("", "0")` MUST 返回 `rank_exhausted`：start sentinel 与最小 rank `"0"` 之间不存在合法 rank。
-遇到 `rank_exhausted` 时 MUST 触发或请求 `ak.container.rebalance`，MUST NOT 生成非法 rank。
+遇到 `rank_exhausted` 时 MUST NOT 生成非法 rank；写入方须先用该容器已登记的单项排序 Event（如 `ak.strand.reorder`、`ak.pin.reorder`）为相邻条目重新分配 rank，再重试插入。
 
 - **同 rank 的展示 tie-break（normative）**：同一容器内 rank 完全相同的条目 MUST 按**该条目所标识对象的
   typed id** 的 canonical bytewise 升序继续排序。每个承载 rank 的 payload 由其自身合同指明这个 typed id，
@@ -353,8 +353,6 @@ rank_between(left, right):
   | `ak.pin.add` / `ak.pin.reorder` | 被 pin 的目标对象 | `payload.target_ref` |
   | `ak.relation.create` | 物化后的 Relation | Relation 的 `id`（由 create Event 的 `event_id` 重类型派生） |
   | `ak.strand.move` / `ak.strand.reorder` | 被移动的 Strand | `payload.strand_id` |
-  | `ak.container.move_item` | 被移动的 item | `payload.item_ref` |
-  | `ak.container.rebalance` | `positions[]` 的每个 item | `positions[].item_ref` |
 
   该 tie-break **只用于展示序**，MUST NOT 进入 canonical state，也 MUST NOT 参与授权判断。相同 rank 不构成
   互斥冲突，也不需要人工修复。新增承载 rank 的 payload 时 MUST 同批在上表登记它的 tie-break typed id，
@@ -364,13 +362,7 @@ rank_between(left, right):
   编码空间时 SHOULD 在所选 rank 尾部追加一段短随机 jitter 尾缀（合法 base62 字符，且不破坏
   `left < rank < right` 与 1..128 长度上限）。jitter 是最终 rank 字符串的一部分，MUST 进入 canonical payload
   bytes 与 event digest，但它不是独立字段，也不改变字典序比较规则。jitter 只降低碰撞概率，不替代 `object_id`
-  tie-break；编码空间耗尽时 MUST 走 `ak.container.rebalance`，MUST NOT 用 jitter 绕过 128 字符上限。
-- **Rebalance 赋值（normative）**：`ak.container.rebalance` 的 assignment MUST 基于权限裁剪前的 canonical
-  ordered set。先按已确定的稳定顺序排列全部 active edge，再选最小宽度 `w` 使 `62^w >= 2 * (item_count + 1)`；
-  第 `i` 个对象（1-based）的 rank number 为 `floor(i * 62^w / (item_count + 1))`，以固定宽度 base62 编码并用
-  字符集首字符左填充。所需 `w > 128` 时 MUST 拒绝该 rebalance。assignment MUST 覆盖容器内全部 active edge，
-  MUST NOT 新增、删除或跨容器移动 edge；`expected_order_digest` 不匹配时 MUST 拒绝整个 operation，
-  MUST NOT 部分应用。
+  tie-break；编码空间耗尽时 MUST 按上文 `rank_exhausted` 规则处理，MUST NOT 用 jitter 绕过 128 字符上限。
 - **CAS 字段**：`expected_rank`、`expected_position.rank` 等前置条件与当前 rank 做**逐字节相等**比较；它们是
   可选的显式 compare-and-set，缺席即不做并发保护，实现 MUST NOT 把缺席补成隐式 CAS。
 

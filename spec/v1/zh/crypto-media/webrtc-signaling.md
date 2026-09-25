@@ -34,7 +34,7 @@ Arkret 支持音频通话、视频通话、屏幕共享和多人会议。实时�
 
 Offer、Answer、ICE candidate、renegotiation、speaking update 等高频信令 SHOULD 通过 Station sync surface 的 Signal Extension 或等价 streaming transport 发送。
 
-通话摘要、会议实体、录制 artifact、会议权限变化 MAY 作为 Durable Event 写入 Realm Event history。
+会议实体、录制 artifact、会议权限变化 MAY 作为 Durable Event 写入 Realm Event history。
 
 ### 2.2 信令必须认证和加密
 
@@ -540,7 +540,6 @@ Push payload MUST NOT 包含 SDP、ICE candidate、TURN credential、principal D
 | `recording_consent_required` | 进入录制 / 转写捕获态但缺少客户端二次确认(见 [`call-state.md` §5.2](./call-state.md))。 |
 | `call_moderation_unauthorised` | 主持动作(kick / ban / end-for-all / force-mute)由不具 `ak.call.moderate` 的 actor 发起(见 §3a)。 |
 | `call_participant_removed` | 被 kick / ban 的参与者尝试重新建立 media leg 或重新兑换 join token(见 §3a)。 |
-| `call_summary_invalid` | `ak.call.summary` 的 `final_state` 非终态、无终态 `ak.call.state` head，或与已存在摘要分叉(见 [`call-state.md` §7](./call-state.md))。 |
 | `session_focus_already_committed` | 已提交的 call `session_focus` 不可在同一生命周期内改写。 |
 | `call_state_terminal` | `ak.call.state` 不能从 `ended` / `missed` / `failed` / `cancelled` 终态转出。 |
 

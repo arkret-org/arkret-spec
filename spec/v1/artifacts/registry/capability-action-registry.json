@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-24.2",
+  "version": "2026-09-25.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-24T18:31:29+08:00",
+  "generated_at": "2026-09-25T19:50:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -123,17 +123,6 @@
         "ak.agent.key.revoke"
       ],
       "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.agent.selector_claim",
-      "category": "management",
-      "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.agent.selector_claim"
-      ],
-      "profile": "ak.profile.agent_provisioning.v1",
       "event_mapping_kind": "same_name"
     },
     {
@@ -260,8 +249,7 @@
       "required_constraints": [],
       "target_event_kinds": [
         "ak.call.create",
-        "ak.call.state",
-        "ak.call.summary"
+        "ak.call.state"
       ],
       "profile": null,
       "event_mapping_kind": "scope_suffix_variant"
@@ -440,28 +428,6 @@
       "profile": null,
       "notes": "Invite / remove others. Held by Circle admin. payload.member_id != envelope.actor_id using the complete ActorId.",
       "event_mapping_kind": "scope_suffix_variant"
-    },
-    {
-      "action": "ak.container.move_item",
-      "category": "strand",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.container.move_item"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
-    },
-    {
-      "action": "ak.container.rebalance",
-      "category": "strand",
-      "risk_tier": "medium",
-      "required_constraints": [],
-      "target_event_kinds": [
-        "ak.container.rebalance"
-      ],
-      "profile": null,
-      "event_mapping_kind": "same_name"
     },
     {
       "action": "ak.event.read",
@@ -963,7 +929,6 @@
       "target_event_kinds": [
         "ak.policy.set",
         "ak.policy.action",
-        "ak.realm.policy",
         "ak.realm.policy_bundle",
         "ak.realm.asset_privacy_policy",
         "ak.realm.read_receipt_policy",
@@ -1037,7 +1002,6 @@
         "ak.realm.organization",
         "ak.realm.link",
         "ak.realm.alias",
-        "ak.realm.policy",
         "ak.realm.join_rule",
         "ak.realm.history_access",
         "ak.realm.discovery",
@@ -1169,7 +1133,6 @@
         "ak.call.create",
         "ak.call.recording.start",
         "ak.call.state",
-        "ak.call.summary",
         "ak.capability.grant",
         "ak.capability.revoke",
         "ak.circle.archive",
@@ -1179,8 +1142,6 @@
         "ak.circle.restore",
         "ak.circle.tombstone",
         "ak.circle.update",
-        "ak.container.move_item",
-        "ak.container.rebalance",
         "ak.invite.cancel",
         "ak.invite.claim",
         "ak.invite.create",
@@ -1216,7 +1177,6 @@
         "ak.realm.media_service",
         "ak.realm.organization",
         "ak.realm.plaintext_visible_services",
-        "ak.realm.policy",
         "ak.realm.policy_bundle",
         "ak.realm.preview_policy",
         "ak.realm.profile",
@@ -1271,8 +1231,6 @@
         "ak.circle.member.add",
         "ak.circle.member.add.others",
         "ak.circle.member.manage",
-        "ak.container.move_item",
-        "ak.container.rebalance",
         "ak.event.read",
         "ak.invite.cancel",
         "ak.invite.claim",

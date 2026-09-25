@@ -1,6 +1,6 @@
 {
   "suite": "event_kind_payload_coverage_fixture",
-  "version": "2026-09-20",
+  "version": "2026-09-25",
   "runner": {
     "kind": "registry_coverage",
     "inputs": [
@@ -11,7 +11,6 @@
       "schemas/invite-receive-policy.schema.json",
       "schemas/accountability-grant.schema.json",
       "schemas/agent-provision.schema.json",
-      "schemas/agent-selector-claim.schema.json",
       "schemas/moderation-evidence.schema.json",
       "schemas/read-cursor.schema.json"
     ]
@@ -136,28 +135,6 @@
           "schema_refs": [
             "ak.schema.message.v1"
           ]
-        }
-      }
-    },
-    {
-      "name": "realm_policy_accepts_only_independent_policy_reference",
-      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_policy_payload",
-      "expect_valid": true,
-      "instance": {
-        "value": {
-          "policy_id": "ak:policy:01991e10-0000-7000-8000-000000000000"
-        }
-      }
-    },
-    {
-      "name": "realm_policy_rejects_inline_policy_body",
-      "schema_ref": "schemas/event-payload.schema.json#/$defs/realm_policy_payload",
-      "expect_valid": false,
-      "first_expected_error": "contains:rules",
-      "instance": {
-        "value": {
-          "policy_id": "ak:policy:01991e10-0000-7000-8000-000000000000",
-          "rules": []
         }
       }
     },

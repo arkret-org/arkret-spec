@@ -293,44 +293,6 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
    - **迁移期间不得丢媒体**:在所有参与者完成 `focus_join` **之前**,原 leg MUST NOT 被拆除(§6 第 3 条);若实现因故已提前拆除且 SFU 未建成,MUST 视为升级失败并按上面第一条处置(重试 focus 或转 `failed`),MUST NOT 静默丢弃通话状态。
    - `session_focus` 一旦 committed 即 write-once:升级失败重试只能在 `session_focus` 尚未 committed 时切换候选 focus;已 committed 后 focus 不可达只能转 `failed` 并由用户新建通话(§6 第 4 条回退 P2P 需新 call 同理)。
 
-## 7. 通话摘要（normative）
+## 7. 通话记录（normative）
 
-通话到达终态(`state ∈ { ended, missed, failed, cancelled }`)后,SHOULD 写入一条 durable `ak.call.summary` event,作为无需重放 ephemeral 信令即可呈现的持久通话记录:
-
-```json fragment
-{
-  "kind": "ak.call.summary",
-  "realm_id": "ak:realm:...",
-  "payload": {
-    "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
-    "final_state": "ended",
-    "mode": "sfu",
-    "started_at": "2026-04-26T00:00:00Z",
-    "ended_at": "2026-04-26T00:42:00Z",
-    "duration_ms": 2520000,
-    "peak_participant_count": 7,
-    "distinct_participant_count": 9,
-    "recording_state": "ready",
-    "transcript_state": "ready"
-  }
-}
-```
-- `ak.call.summary` 写入 `call_summary`，`result_selector = payload.call_id`，采用 `execution=data`、`domain reducer=current-value projection`。它不要求额外的安全 checkpoint 或 MLS revision 前进，但自身仍须取得所在 stream 的 covering RealmCommit 后才写入 current；并发摘要保留全部历史身份并按 commit 顺序与固定 rank 投影单值，有权后继引用 current source。摘要不授予通话、捕获或密钥访问权限。
-- `final_state` MUST 是某终态，且该 `call_id` 的 `call_state:<call_id>` MUST 已存在终态 head;否则 reducer MUST `failed_precondition` `reason_code="call_summary_invalid"`。该前置只看 `state` 轴 typed current result——某段捕获结果尚未收敛或捕获未终结 MUST NOT 阻止 summary 写入。
-- `recording_state` / `transcript_state` 是终态时刻从各捕获段 typed current result（`call_recording_artifact` / `call_transcript_artifact`）镜像的**投影字段**；缺省表示未录制 / 未转写。通话可有多段捕获，因此这两个字段只是给 UI 的摘要投影，MUST NOT 被用作授权判据或任何状态派生输入——需要逐段真相时 MUST 读对应段的 capture typed current result。多段并存时该字段是 producer 签署的摘要声明；接收站不得自行选择不同段重写持久值。显示逐段状态时读取相同资格上下文内的完整结果集合。
-
-**字段必填 / nullable 语义（normative）**:`ak.call.summary` payload 字段约束如下，reducer / consumer MUST 按此校验，不一致 `schema_violation`:
-
-| 字段 | 必填 | nullable | 说明 |
-| --- | --- | --- | --- |
-| `call_id` | 是 | 否 | 引用对应 `ak.call.state` 的 call。 |
-| `final_state` | 是 | 否 | MUST ∈ 终态集合且与现存终态 head 一致(见上)。 |
-| `mode` | 是 | 否 | 通话最终 `mode`。 |
-| `started_at` | 否 | 是 | 通话从未进入 `active`(如 `final_state ∈ { missed, cancelled }`)时 MUST 为 `null`;曾 `active` 时 SHOULD 填实际开始时刻。 |
-| `ended_at` | 否 | 是 | `final_state="ended"` 时 SHOULD 填结束时刻;`missed` / `cancelled` / `failed` 等非正常结束态 MUST 为 `null`(无明确"结束"时刻)。 |
-| `duration_ms` | 否 | 是 | 仅当 `started_at` 与 `ended_at` 均非 `null` 时 MUST 等于二者之差；否则 MUST 为 `null`。 |
-| `peak_participant_count` | 否 | 否 | 整数，缺省 `0`；上限同 §4.1 effective roster（≤ 1000）。 |
-| `distinct_participant_count` | 否 | 否 | 整数，缺省 `0`，MUST ≥ `peak_participant_count`。 |
-| `recording_state` | 否 | 否 | 缺省=未录制(见上)。 |
-| `transcript_state` | 否 | 否 | 缺省=未转写(见上)。 |
-- 写入 `ak.call.summary` 需要 `ak.call.join`(参见 [`../../artifacts/registry/capability-action-registry.json`](../../artifacts/registry/capability-action-registry.json));它不替代 `ak.call.state` 终态，而是其上的 durable 摘要投影。
+协议不定义独立的通话摘要 Event。通话到达终态后的持久记录由 `call_state` 终态 head（`state`、`mode` 等）与各捕获段 typed current result（`call_recording_artifact` / `call_transcript_artifact`）共同给出；客户端从这些 typed current 渲染通话记录，无需重放 ephemeral 信令。逐段捕获状态只读对应段的 capture typed current，不存在把多段折叠成单值的持久字段。

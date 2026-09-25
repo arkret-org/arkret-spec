@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-21.3",
-  "generated_at": "2026-09-21T07:06:54+08:00",
+  "version": "2026-09-25.1",
+  "generated_at": "2026-09-25T19:50:00+08:00",
   "source_of_truth": true,
   "description": "Explicit v1 backlog for active Event kinds with no directly searchable fixture/vector evidence. Absence from this registry is not itself proof of semantic coverage; the check uses the documented conservative token heuristic and this registry prevents uncovered kinds from remaining invisible.",
   "coverage_heuristic": {
@@ -31,11 +31,6 @@
       "event_kind": "ak.circle.history_access",
       "priority": "high",
       "rationale": "Circle history-access transition lacks a directly searchable vector."
-    },
-    {
-      "event_kind": "ak.container.move_item",
-      "priority": "normal",
-      "rationale": "Container item movement lacks a directly searchable vector."
     },
     {
       "event_kind": "ak.member.identity.update",

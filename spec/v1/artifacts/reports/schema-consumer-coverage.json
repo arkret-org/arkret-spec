@@ -41,22 +41,22 @@
     "unresolved": "no direct vector or reviewed higher-level coverage owner has been identified; this is a release blocker."
   },
   "summary": {
-    "total_schemas": 221,
+    "total_schemas": 219,
     "by_consumer": {
-      "declared_wire": 58,
+      "declared_wire": 57,
       "event_kind": 8,
       "inbound": 48,
       "outbound": 59,
-      "prose": 103,
+      "prose": 102,
       "prose_only": 2,
-      "schema_reference": 159,
-      "startup_compile": 221,
-      "vectors": 111
+      "schema_reference": 158,
+      "startup_compile": 219,
+      "vectors": 110
     },
     "without_wire_consumer": 1,
     "explicit_prose_only": 2,
     "unresolved_consumer_coverage": 0,
-    "without_vector_coverage": 110,
+    "without_vector_coverage": 109,
     "unresolved_vector_disposition": 0
   },
   "without_wire_consumer": [
@@ -167,7 +167,6 @@
     "ak.schema.realm_read_operations.v1",
     "ak.schema.realm_stream_list.v1",
     "ak.schema.registration_did_evidence.v1",
-    "ak.schema.resource_discovery_state.v1",
     "ak.schema.resource_selector.v1",
     "ak.schema.result_projection.v1",
     "ak.schema.sdk_conformance_claim.v1",
@@ -521,8 +520,7 @@
       "vector_coverage": {
         "disposition": "composed_schema_owned",
         "owners": [
-          "ak.schema.event_payload.v1",
-          "ak.schema.resource_discovery_state.v1"
+          "ak.schema.event_payload.v1"
         ],
         "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
       }
@@ -607,21 +605,6 @@
       "vector_coverage": {
         "disposition": "direct",
         "evidence": "fixture"
-      }
-    },
-    {
-      "schema_id": "ak.schema.agent_selector_claim.v1",
-      "file": "schemas/agent-selector-claim.schema.json",
-      "consumers": {
-        "prose": "normative_text",
-        "schema_reference": "exact",
-        "startup_compile": "exact",
-        "vectors": "required_schema"
-      },
-      "wire_covered": true,
-      "vector_coverage": {
-        "disposition": "direct",
-        "evidence": "required_schema"
       }
     },
     {
@@ -955,8 +938,7 @@
       "vector_coverage": {
         "disposition": "composed_schema_owned",
         "owners": [
-          "ak.schema.event_payload.v1",
-          "ak.schema.resource_discovery_state.v1"
+          "ak.schema.event_payload.v1"
         ],
         "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
       },
@@ -997,8 +979,7 @@
           "ak.schema.applet_install_authoring_request_basis.v1",
           "ak.schema.applet_managed_actor_authoring_bundle.v1",
           "ak.schema.applet_managed_actor_authoring_request.v1",
-          "ak.schema.event_payload.v1",
-          "ak.schema.resource_discovery_state.v1"
+          "ak.schema.event_payload.v1"
         ],
         "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
       }
@@ -1341,7 +1322,6 @@
           "ak.schema.agent_pairing_bootstrap.v1",
           "ak.schema.agent_provision.v1",
           "ak.schema.agent_requested_scope_disclosure.v1",
-          "ak.schema.agent_selector_claim.v1",
           "ak.schema.agent_sidecar.v1",
           "ak.schema.agent_sidecar_event_exchange_binding.v1",
           "ak.schema.agent_sidecar_exchange_control.v1",
@@ -1473,7 +1453,6 @@
           "ak.schema.recovery_terminal_commit.v1",
           "ak.schema.registration_did_evidence.v1",
           "ak.schema.relation.v1",
-          "ak.schema.resource_discovery_state.v1",
           "ak.schema.resource_selector.v1",
           "ak.schema.result_projection.v1",
           "ak.schema.sdk_conformance_claim.v1",
@@ -1588,8 +1567,7 @@
       "vector_coverage": {
         "disposition": "composed_schema_owned",
         "owners": [
-          "ak.schema.event_payload.v1",
-          "ak.schema.resource_discovery_state.v1"
+          "ak.schema.event_payload.v1"
         ],
         "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
       },
@@ -2595,8 +2573,7 @@
       "vector_coverage": {
         "disposition": "composed_schema_owned",
         "owners": [
-          "ak.schema.event_payload.v1",
-          "ak.schema.resource_discovery_state.v1"
+          "ak.schema.event_payload.v1"
         ],
         "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
       }
@@ -2924,8 +2901,7 @@
         "owners": [
           "ak.schema.account_operations.v1",
           "ak.schema.account_status_record.v1",
-          "ak.schema.event_payload.v1",
-          "ak.schema.resource_discovery_state.v1"
+          "ak.schema.event_payload.v1"
         ],
         "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
       }
@@ -3514,7 +3490,6 @@
         "disposition": "composed_schema_owned",
         "owners": [
           "ak.schema.event_payload.v1",
-          "ak.schema.resource_discovery_state.v1",
           "ak.schema.result_projection.v1"
         ],
         "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
@@ -3686,26 +3661,6 @@
       }
     },
     {
-      "schema_id": "ak.schema.resource_discovery_state.v1",
-      "file": "schemas/event-payload.schema.json",
-      "consumers": {
-        "declared_wire": "standalone_schema_alias",
-        "startup_compile": "exact"
-      },
-      "wire_covered": true,
-      "vector_coverage": {
-        "disposition": "runtime_dispatch_owned",
-        "owner": "standalone_schema_alias",
-        "rationale": "This schema is selected inside a registered dynamic/runtime dispatch surface. Coverage belongs to that enclosing dispatch vector because the object is never admitted independently."
-      },
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "generic SDK consumer projection over the three exact resource discovery-state Event payloads",
-        "normative_ref": "zh/discovery/discovery-directory.md#2-可索引条件normative"
-      },
-      "fragment": "#/$defs/resource_discovery_state"
-    },
-    {
       "schema_id": "ak.schema.resource_selector.v1",
       "file": "schemas/resource-selector.schema.json",
       "consumers": {
@@ -3746,7 +3701,6 @@
           "ak.schema.event_payload.v1",
           "ak.schema.exact_current_results_read.v1",
           "ak.schema.realm_state_snapshot.v1",
-          "ak.schema.resource_discovery_state.v1",
           "ak.schema.service_operation_dtos.v1"
         ],
         "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
@@ -4090,7 +4044,6 @@
           "ak.schema.agent_operations.v1",
           "ak.schema.agent_pairing_bootstrap.v1",
           "ak.schema.agent_provision.v1",
-          "ak.schema.agent_selector_claim.v1",
           "ak.schema.applet_edge_operations.v1",
           "ak.schema.applet_ghost_authoring_request_basis.v1",
           "ak.schema.applet_ghost_operations.v1",
@@ -4126,7 +4079,6 @@
           "ak.schema.realm_link_operations.v1",
           "ak.schema.realm_organization_operations.v1",
           "ak.schema.realm_profile.v1",
-          "ak.schema.resource_discovery_state.v1",
           "ak.schema.result_projection.v1",
           "ak.schema.service_operation_dtos.v1",
           "ak.schema.space.v1",
@@ -4160,7 +4112,6 @@
           "ak.schema.agent_pairing_bootstrap.v1",
           "ak.schema.agent_provision.v1",
           "ak.schema.agent_requested_scope_disclosure.v1",
-          "ak.schema.agent_selector_claim.v1",
           "ak.schema.agent_sidecar.v1",
           "ak.schema.applet_ghost_authoring_request_basis.v1",
           "ak.schema.applet_install_authoring.v1",
@@ -4260,7 +4211,6 @@
           "ak.schema.recovery_terminal_commit.v1",
           "ak.schema.registration_did_evidence.v1",
           "ak.schema.relation.v1",
-          "ak.schema.resource_discovery_state.v1",
           "ak.schema.result_projection.v1",
           "ak.schema.sdk_conformance_claim.v1",
           "ak.schema.security_rotation_local_commit.v1",

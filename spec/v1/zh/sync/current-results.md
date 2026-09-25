@@ -41,8 +41,6 @@ Realm、每个 Circle、每个 Sidecar 分别拥有独立 commit stream。当前
 每条结果是一个 closed typed object，包含领域 `selector`、`revision` 与完整领域值。v1 登记的 selector kind 为：
 
 - `realm_profile`：当前 Realm profile；
-- `realm_policy`：当前 Realm policy，值是 `ak.realm.policy` 选定的封闭引用 `{policy_id}`，
-  **不是** Policy 文档本体（见 [`../conformance/schema-registry.md`](../conformance/schema-registry.md)）；
 - 以下十五个是 **per-Realm 单例 Realm facet**，subject 为 JSON null
   （[`../conformance/encoding.md` §9.5.1](../conformance/encoding.md) 禁止把 envelope 的
   `realm_id` 再写进 subject），各由同名 facet Event kind 单独承载：
@@ -84,12 +82,10 @@ Realm、每个 Circle、每个 Sidecar 分别拥有独立 commit stream。当前
   从不合并；值是 `keyed-set projection` 的 dot 集合，两个 kind **都只能 `keyed_set_add`**——
   同一对象上可以并存多条 redaction，协议不为它们定义任何排序或择一规则，
   因此这里既没有"最后一条生效"也没有单值 `redaction_ref`；`ak:event:` 目标只裁剪该 Event 自身；
-- `organization_discovery`：以 `payload.organization_id` 选择一个 Organization 的 discovery 设置；
-- `actor_discovery`、`applet_discovery`、`handle_discovery`：分别以完整 ActorId、AppletId 与
-  canonical handle 选择该资源的 discovery 设置；三者与 `organization_discovery` 一样整体置换
-  封闭 value，Directory 仍须独立验证 `resource_kind` 与 `directory_ids[]`；
-- `organization_moderation_policy`：以 `payload.organization_id` 选择一个 Organization 的 moderation 策略；
-  与上一条是两个独立 family——同一 subject 上的两类值由两个 Event kind 各自整体置换，互不覆盖；
+- `applet_discovery`：以 AppletId 选择该 Applet 的 discovery 设置，整体置换封闭 value，
+  Directory 仍须独立验证 `resource_kind` 与 `directory_ids[]`；
+- `organization_moderation_policy`：以 `payload.organization_id` 选择一个 Organization 的 moderation 策略，
+  整体置换；
 - `policy`：以 `payload.policy_id` 选择一份 Policy 文档整体，由 `ak.policy.set` 单一写者整体置换
   （见 [`../models/governance-objects.md` §3.2](../models/governance-objects.md)）；
   `rules[]` 是该值的必填非空成员，优先级与 `default_effect` 求值全在这份文档内进行，
@@ -129,9 +125,6 @@ membership 为 `join` 才满足 gate（[`../governance/join-policy.md` §4](../g
   `exchange_id`、`basis_event_ids` 与 `action` 折叠 coordinator / terminal 状态；
 - `applet_registration`：以 `applet_id` 选择 accepted 完整 registration snapshot；package proof、
   `registration_epoch`、namespace 与 installer authority 全部在置换前验证；
-- `container_position`：以 `(item_ref, relation_kind)` 选择一个容器条目位置，值为
-  `{container_ref, relation_kind, rank}`。move 置换一项；rebalance 在完整 order digest 与覆盖检查通过后，
-  将 `positions[]` 原子展开为每项一写，任何一项失败不得留下部分结果；
 - `key_backup_active_series`：以 `(ActorId, backup_kind)` 选择当前 active series record；首次版本只能为 1，
   后续只能为当前 `series_pointer_version + 1`，回退、跳号或同版本分叉均零写入拒绝；
 - `member_identity_updates`：在 Realm 内以 `(member_id, segment)` 选择 append-only update assertion set；
@@ -150,7 +143,6 @@ membership 为 `join` 才满足 gate（[`../governance/join-policy.md` §4](../g
 - `sidecar`：以 Event-derived `sidecar_id` 选择 native Sidecar 物化值；create 同时占用
   `(realm_id, controller_account_id)` singleton，禁止第二个 live Sidecar；
 - `sidecar_context`：以 `(sidecar_id, canonical source_context_ref)` 选择版本化 UI context attach；
-- `sovereign_did_policy`：以 `trust_domain` 选择 closed DID method/root policy；
 - `strand_watch`：以 `(strand_id, watcher_actor_id)` 选择 watch current value；值是
   `null` 或 `{level, level_public?}`，`expected_value` 只作 whole-value CAS，不进入结果；
 - `strand`：以 `strand_id` 选择 Strand；
@@ -188,7 +180,7 @@ membership 为 `join` 才满足 gate（[`../governance/join-policy.md` §4](../g
 - `agent_key`：以 `(agent_id, agent_key_id)` 选择一把 Agent 签名 key 的 registered authorization 投影；
 - `agent_status`：以 `agent_id` 选择该 Agent 的 lifecycle 值；
 - `agent_provisioning`：以 `agent_id` 选择一条 Agent provisioning 事实，值为四个 create-locked 成员 `{controller_principal_id, principal_control_realm_id, controller_authorization_ref, requested_scope_digest}`；它是 `commit-ordered projection`，由 `ak.agent.provision` 的四个原子投影之一写入，subject 是 Agent DID 而**不是**完整 account ActorId（见 [`../identity/key-management.md` §3.6.3](../identity/key-management.md)）；
-- `agent_selector_claim`：以 `(controller principal, agent_slug)`（**不含** Station）选择一条 controller-scoped Agent selector 绑定，值为 `{subject_account_id, visibility, audience?, expires_at?}`；`subject_account_id` 显式 null 即 unbind；它是 `commit-ordered projection`，有两个写入方（独立的 `ak.agent.selector_claim` 与 `ak.agent.provision` 的 selector 投影，后者的 AccountId 由已登记派生 `agent_account_id_from_provision` 产出），见 [`../models/actor.md` §3.3](../models/actor.md)；
+- `agent_selector_claim`：以 `(controller principal, agent_slug)`（**不含** Station）选择一条 controller-scoped Agent selector 绑定，值为 `{subject_account_id, visibility, audience?}`；唯一写入方是 `ak.agent.provision` 的 selector 投影，AccountId 由已登记派生 `agent_account_id_from_provision` 产出，同 slug 的后续 provision 整体置换该绑定，见 [`../models/actor.md` §3.3](../models/actor.md)；
 - `agent_pcr_genesis_declaration`：以 `principal_control_realm_id` 选择该 realm id 的前向声明，值为单成员索引 `{agent_id}`；Agent PCR genesis 不携带指回 provision 的 ref，因此对本家族的反查**就是**那条绑定，无行即 fail closed 且零写入（同上 §3.6.3）；
 - `realm_genesis`：singleton，create-locked identity/security core（`ak.schema.realm_genesis.v1`），由 `ak.realm.create` 的 registered write 一次写入；
 - `realm_history_access`：singleton，Realm history-access FSM 当前值（`since_join` / `all_history_for_current_members`）；
@@ -212,7 +204,6 @@ membership 为 `join` 才满足 gate（[`../governance/join-policy.md` §4](../g
 - `call_state` / `call_focus` / `call_moderation` / `call_roster` / `call_mute_override`：以 `call_id` 选择 `ak.call.state` 对应轴的 commit-ordered 投影（见 [`call-state.md` §4.1](../crypto-media/call-state.md)）；
 - `call_recording_state` / `call_transcript_state`：以 `(call_id, recording_id)` 段键选择该段捕获的许可状态；
 - `call_recording_artifact` / `call_transcript_artifact`：以 `(call_id, recording_id)` 段键选择该段捕获的 ready/failed 结果；
-- `call_summary`：以 `call_id` 选择 write-once 的终态通话摘要。
 - `device_authorization`：以 `device_id` 选择该设备在本 principal control Realm 内的当前授权事实，整体置换写入；封闭 value 与被排除的成员（`device_status` / `attested_at` / `authorization_window`）见 [`../crypto-media/device-lifecycle.md` §5.5.1](../crypto-media/device-lifecycle.md)；
 - `device_generation`：单值 selector（除 kind 外无成分，一个 PCR 一份），值只有 `current_device_generation_ref`；写入方是 `registration_anchor` 分支的 `ak.device.authorize`（置 `1`）与 `ak.device.reanchor`（置 `new_device_generation`），见 [`../crypto-media/device-lifecycle.md` §5.5.4](../crypto-media/device-lifecycle.md)；
 - `device_revocation_proposals`：以 `device_id` 选择针对该设备的已接纳撤销提案 keyed set，元素不可变、永不删除；`revocation_pending` / `rejected` / `revoked` 是每个元素与其覆盖 command result 的读侧折叠，不是存储轴，见 [`../crypto-media/device-lifecycle.md` §5.5.3](../crypto-media/device-lifecycle.md)。

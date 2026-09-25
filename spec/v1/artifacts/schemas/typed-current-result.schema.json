@@ -11,9 +11,6 @@
       "$ref": "#/$defs/realm_profile_result"
     },
     {
-      "$ref": "#/$defs/realm_policy_result"
-    },
-    {
       "$ref": "#/$defs/member_state_result"
     },
     {
@@ -72,9 +69,6 @@
     },
     {
       "$ref": "#/$defs/call_mute_override_result"
-    },
-    {
-      "$ref": "#/$defs/call_summary_result"
     },
     {
       "$ref": "#/$defs/realm_schema_result"
@@ -164,9 +158,6 @@
       "$ref": "#/$defs/object_redaction_result"
     },
     {
-      "$ref": "#/$defs/organization_discovery_result"
-    },
-    {
       "$ref": "#/$defs/organization_moderation_policy_result"
     },
     {
@@ -185,9 +176,6 @@
       "$ref": "#/$defs/device_revocation_proposals_result"
     },
     {
-      "$ref": "#/$defs/actor_discovery_result"
-    },
-    {
       "$ref": "#/$defs/agent_action_approval_result"
     },
     {
@@ -198,12 +186,6 @@
     },
     {
       "$ref": "#/$defs/applet_registration_result"
-    },
-    {
-      "$ref": "#/$defs/container_position_result"
-    },
-    {
-      "$ref": "#/$defs/handle_discovery_result"
     },
     {
       "$ref": "#/$defs/key_backup_active_series_result"
@@ -239,48 +221,10 @@
       "$ref": "#/$defs/sidecar_result"
     },
     {
-      "$ref": "#/$defs/sovereign_did_policy_result"
-    },
-    {
       "$ref": "#/$defs/strand_watch_result"
     }
   ],
   "$defs": {
-    "actor_discovery_result": {
-      "type": "object",
-      "required": [
-        "selector",
-        "source_stream_ref",
-        "revision",
-        "value"
-      ],
-      "properties": {
-        "selector": {
-          "type": "object",
-          "required": [
-            "kind",
-            "actor_id"
-          ],
-          "properties": {
-            "kind": {
-              "const": "actor_discovery"
-            },
-            "actor_id": {
-              "$ref": "./common-ids.schema.json#/$defs/actor_id"
-            }
-          },
-          "additionalProperties": false
-        },
-        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
-        "revision": {
-          "$ref": "#/$defs/revision"
-        },
-        "value": {
-          "$ref": "./event-payload.schema.json#/$defs/actor_discovery_state_payload/properties/value"
-        }
-      },
-      "additionalProperties": false
-    },
     "agent_action_approval_result": {
       "type": "object",
       "required": [
@@ -453,100 +397,6 @@
         },
         "value": {
           "$ref": "./event-payload.schema.json#/$defs/applet_registration_payload"
-        }
-      },
-      "additionalProperties": false
-    },
-    "container_position_value": {
-      "type": "object",
-      "required": [
-        "container_ref",
-        "relation_kind",
-        "rank"
-      ],
-      "properties": {
-        "container_ref": {
-          "$ref": "./event-payload.schema.json#/$defs/object_ref"
-        },
-        "relation_kind": {
-          "$ref": "./event-payload.schema.json#/$defs/container_move_item_payload/properties/relation_kind"
-        },
-        "rank": {
-          "$ref": "./event-payload.schema.json#/$defs/rank"
-        }
-      },
-      "additionalProperties": false
-    },
-    "container_position_result": {
-      "type": "object",
-      "required": [
-        "selector",
-        "source_stream_ref",
-        "revision",
-        "value"
-      ],
-      "properties": {
-        "selector": {
-          "type": "object",
-          "required": [
-            "kind",
-            "item_ref",
-            "relation_kind"
-          ],
-          "properties": {
-            "kind": {
-              "const": "container_position"
-            },
-            "item_ref": {
-              "$ref": "./event-payload.schema.json#/$defs/object_ref"
-            },
-            "relation_kind": {
-              "$ref": "./event-payload.schema.json#/$defs/container_move_item_payload/properties/relation_kind"
-            }
-          },
-          "additionalProperties": false
-        },
-        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
-        "revision": {
-          "$ref": "#/$defs/revision"
-        },
-        "value": {
-          "$ref": "#/$defs/container_position_value"
-        }
-      },
-      "additionalProperties": false
-    },
-    "handle_discovery_result": {
-      "type": "object",
-      "required": [
-        "selector",
-        "source_stream_ref",
-        "revision",
-        "value"
-      ],
-      "properties": {
-        "selector": {
-          "type": "object",
-          "required": [
-            "kind",
-            "handle"
-          ],
-          "properties": {
-            "kind": {
-              "const": "handle_discovery"
-            },
-            "handle": {
-              "$ref": "./event-payload.schema.json#/$defs/handle_discovery_state_payload/properties/resource_id"
-            }
-          },
-          "additionalProperties": false
-        },
-        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
-        "revision": {
-          "$ref": "#/$defs/revision"
-        },
-        "value": {
-          "$ref": "./event-payload.schema.json#/$defs/handle_discovery_state_payload/properties/value"
         }
       },
       "additionalProperties": false
@@ -989,39 +839,6 @@
         }
       },
       "additionalProperties": false
-    },
-    "realm_policy_result": {
-      "type": "object",
-      "required": [
-        "selector",
-        "source_stream_ref",
-        "revision",
-        "value"
-      ],
-      "properties": {
-        "selector": {
-          "type": "object",
-          "required": [
-            "kind"
-          ],
-          "properties": {
-            "kind": {
-              "const": "realm_policy"
-            }
-          },
-          "additionalProperties": false,
-          "description": "Per-Realm singleton. encoding.md section 9.5.1 forbids restating the envelope realm_id in a subject, so the subject carries nothing beyond its kind."
-        },
-        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
-        "revision": {
-          "$ref": "#/$defs/revision"
-        },
-        "value": {
-          "$ref": "./event-payload.schema.json#/$defs/realm_policy_payload/properties/value"
-        }
-      },
-      "additionalProperties": false,
-      "description": "Registered projection of the Realm policy reference. conformance/schema-registry.md fixes ak.realm.policy as a closed reference to one independently defined Policy object (payload.value.policy_id), so the family carries that reference and not the Policy document body: no projection kind can dereference a policy_id, and inline Realm facets live in ak.realm.policy_bundle or their dedicated facet Event kinds."
     },
     "member_state_result": {
       "type": "object",
@@ -1928,42 +1745,6 @@
         },
         "value": {
           "$ref": "./event-payload.schema.json#/$defs/call_state_payload/properties/mute_override"
-        }
-      },
-      "additionalProperties": false
-    },
-    "call_summary_result": {
-      "type": "object",
-      "description": "Write-once durable end-of-call summary (crypto-media/call-state.md section 7), written by ak.call.summary after the call reaches a terminal state.",
-      "required": [
-        "selector",
-        "source_stream_ref",
-        "revision",
-        "value"
-      ],
-      "properties": {
-        "selector": {
-          "type": "object",
-          "required": [
-            "kind",
-            "call_id"
-          ],
-          "properties": {
-            "kind": {
-              "const": "call_summary"
-            },
-            "call_id": {
-              "$ref": "#/$defs/call_id_component"
-            }
-          },
-          "additionalProperties": false
-        },
-        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
-        "revision": {
-          "$ref": "#/$defs/revision"
-        },
-        "value": {
-          "$ref": "./event-payload.schema.json#/$defs/call_summary_payload"
         }
       },
       "additionalProperties": false
@@ -3065,38 +2846,28 @@
     },
     "agent_selector_claim_value": {
       "type": "object",
-      "description": "The registered value shape of agent_selector_claim, shared by both of its writers -- the standalone ak.agent.selector_claim and the selector projection of ak.agent.provision. zh/models/actor.md section 3.3 is authoritative. These are exactly the members selector RESOLUTION reads: the target, and the disclosure boundary zh/models/strand-and-message.md and zh/discovery/discovery-directory.md gate a disclosure on. It deliberately does not repeat its own subject: the controller principal and the slug are the selector, and unlike identity_accountability this family has no portable-record reader that consumes the value apart from its selector -- actor.md sends portable selector responses to the real controller-signed claim and forbids a projection standing in for one. issuer_id, vouching_id, source_refs, created_at, verified_at and proofs are therefore absent: the head Event and its acceptance proof already answer where the row came from, and vouching_id has no reader in resolution. There is no claim_scope, open or closed.",
+      "description": "The registered value shape of agent_selector_claim, written only by the selector projection of ak.agent.provision. zh/models/actor.md section 3.3 is authoritative. These are exactly the members label verification reads: the target, and the disclosure boundary. It deliberately does not repeat its own subject: the controller principal and the slug are the selector. issuer_id, vouching_id, source_refs, created_at, verified_at, expires_at and proofs are absent: the head Event and its acceptance proof already answer where the row came from, and a provision binding does not expire on a clock. There is no claim_scope, open or closed, and no portable signed-claim form of this value.",
       "required": [
         "subject_account_id",
         "visibility"
       ],
       "properties": {
         "subject_account_id": {
-          "description": "The bound target, or explicit null for a signed unbind. A bind target is always the Agent's COMPLETE AccountId; a bare principal is never admitted, because one principal on two Stations is two accounts and resolution MUST fail closed on that ambiguity rather than deduplicate by principal. null short-circuits resolution: a null or expired row returns no success and MUST NOT reveal the superseded bind it replaced.",
-          "oneOf": [
-            {
-              "$ref": "./common-ids.schema.json#/$defs/account_id"
-            },
-            {
-              "type": "null"
-            }
-          ]
+          "description": "The bound target: always the Agent's COMPLETE AccountId, derived by agent_account_id_from_provision. A bare principal is never admitted, because one principal on two Stations is two accounts and resolution MUST fail closed on that ambiguity rather than deduplicate by principal.",
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
         },
         "visibility": {
-          "$ref": "./agent-selector-claim.schema.json#/properties/visibility"
+          "$ref": "./agent-provision.schema.json#/properties/selector_visibility"
         },
         "audience": {
-          "$ref": "./agent-selector-claim.schema.json#/properties/audience"
-        },
-        "expires_at": {
-          "$ref": "./time.schema.json#/$defs/timestamp"
+          "$ref": "./agent-provision.schema.json#/properties/selector_audience"
         }
       },
       "additionalProperties": false
     },
     "agent_selector_claim_result": {
       "type": "object",
-      "description": "One controller-scoped Agent selector binding (family agent_selector_claim). zh/models/actor.md section 3.3 is authoritative and makes this the one family with two registered writers that MUST produce the same semantic target: the standalone ak.agent.selector_claim, which verifies its own inner ak.agent_selector_claim_proof.v1, and the selector projection of ak.agent.provision, which has no inner proof and MUST NOT be dressed up as one. The subject is principal-scoped -- (controller principal, agent_slug), never with a Station -- while the target is account-scoped; neither is derived from the other. It is a commit-ordered projection: competing bind/unbind commands check the relevant revision in confirmed order and at most one succeeds, and a stale command is re-read and re-signed rather than joined as a second security head.",
+      "description": "One controller-scoped Agent selector binding (family agent_selector_claim). zh/models/actor.md section 3.3 is authoritative: the only writer is the selector projection of ak.agent.provision, which has no inner proof, and a later provision of the same slug replaces the binding. The subject is principal-scoped -- (controller principal, agent_slug), never with a Station -- while the target is account-scoped; neither is derived from the other.",
       "required": [
         "selector",
         "source_stream_ref",
@@ -3378,45 +3149,6 @@
       },
       "additionalProperties": false
     },
-    "organization_discovery_value": {
-      "$ref": "./event-payload.schema.json#/$defs/organization_discovery_state_payload/properties/value"
-    },
-    "organization_discovery_result": {
-      "type": "object",
-      "required": [
-        "selector",
-        "source_stream_ref",
-        "revision",
-        "value"
-      ],
-      "description": "Registered Realm-local projection of one Organization declaration. Each accepted declaration replaces the whole closed value and grants no public Directory organization-resolution surface.",
-      "properties": {
-        "selector": {
-          "type": "object",
-          "required": [
-            "kind",
-            "organization_id"
-          ],
-          "properties": {
-            "kind": {
-              "const": "organization_discovery"
-            },
-            "organization_id": {
-              "$ref": "./event-payload.schema.json#/$defs/did_core_id"
-            }
-          },
-          "additionalProperties": false
-        },
-        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
-        "revision": {
-          "$ref": "#/$defs/revision"
-        },
-        "value": {
-          "$ref": "#/$defs/organization_discovery_value"
-        }
-      },
-      "additionalProperties": false
-    },
     "organization_moderation_policy_value": {
       "$ref": "./event-payload.schema.json#/$defs/organization_moderation_policy_state_payload/properties/value"
     },
@@ -3428,7 +3160,7 @@
         "revision",
         "value"
       ],
-      "description": "Registered projection of one Organization's moderation policy document. It is the sibling of organization_discovery on the same did_core_id subject and is registered beside it so the Organization surface never carries one registered family and one unregistered one.",
+      "description": "Registered projection of one Organization's moderation policy document, selected by the Organization did_core_id.",
       "properties": {
         "selector": {
           "type": "object",
@@ -4265,25 +3997,6 @@
         "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": { "$ref": "#/$defs/revision" },
         "value": { "$ref": "./agent-sidecar.schema.json" }
-      },
-      "additionalProperties": false
-    },
-    "sovereign_did_policy_result": {
-      "type": "object",
-      "required": ["selector", "source_stream_ref", "revision", "value"],
-      "properties": {
-        "selector": {
-          "type": "object",
-          "required": ["kind", "trust_domain"],
-          "properties": {
-            "kind": { "const": "sovereign_did_policy" },
-            "trust_domain": { "$ref": "./event-payload.schema.json#/$defs/sovereign_did_policy_state_payload/properties/trust_domain" }
-          },
-          "additionalProperties": false
-        },
-        "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
-        "revision": { "$ref": "#/$defs/revision" },
-        "value": { "$ref": "./event-payload.schema.json#/$defs/sovereign_did_policy_state_payload/properties/value" }
       },
       "additionalProperties": false
     },

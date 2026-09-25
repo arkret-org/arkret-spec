@@ -37,8 +37,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-participation-fixture.json",
-      "sha256": "284eedd8ced7616ba81cef132aa7649ceeb693213f9d50625b7749a2dcbf5257",
-      "version": "2026-09-21"
+      "sha256": "cf9ad39acc32fad6149ce51893afee004df20f48b022feeb1a422eda12464c20",
+      "version": "2026-09-25"
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-vectors-fixture.json",
@@ -107,8 +107,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/call-state-media-lifecycle-fixture.json",
-      "sha256": "fa4908747c15bc7b2789c59c352f29c57c700de704bc0a378a9fa0556a58e239",
-      "version": "2026-06-19"
+      "sha256": "f8ec6151a5531da3f4bfb904514655555c22e35cb45db6767d1868d14ab79ac8",
+      "version": "2026-09-25"
     },
     {
       "path": "spec/v1/artifacts/fixtures/canonical-json-digest-kat-fixture.json",
@@ -207,8 +207,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/event-kind-payload-coverage-fixture.json",
-      "sha256": "e3e8a70f985dc6758c6bd4dd5a7c91b45ffaa505d9c6e981fb8cc38090da3ad4",
-      "version": "2026-09-20"
+      "sha256": "422c4691e75f7e1c697131821a6f731784cc26328e83564a462336071715c898",
+      "version": "2026-09-25"
     },
     {
       "path": "spec/v1/artifacts/fixtures/event-payload-value-closure-fixture.json",
@@ -372,8 +372,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
-      "sha256": "ae471706da37f8fd2f7c5bbc61ceef8c895be64254f3d2b5428d118ee4cfedb5",
-      "version": "2026-09-25.1"
+      "sha256": "af040b541337b9e0ed475006195e68bccd69ad047e9ebb59d4de3f0b5246bf8f",
+      "version": "2026-09-25.2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/private-view-inbox-account-data-fixture.json",

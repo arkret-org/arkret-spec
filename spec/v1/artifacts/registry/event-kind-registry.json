@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-25.2",
+  "version": "2026-09-25.3",
   "source_of_truth": false,
-  "generated_at": "2026-09-25T16:25:00+08:00",
+  "generated_at": "2026-09-25T19:50:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -388,7 +388,7 @@
     "Event carries no chain predecessor or authority-commit proof. Only RealmCommit carries previous_commit_ref, and only within the same stream.",
     "Reducers derive typed current results by replaying committed Events in stream position order. Account-private material is outside shared authority-commit streams.",
     "wire_scope=durable_event does NOT imply reducer_input=true. A durable Event is one whose exact bytes a RealmCommit can cover; reducer_input=true additionally asserts that replaying this Realm's committed Events suffices to derive the typed current results the kind writes. A kind whose real durable effect is holder-Station private service state -- keyed on material that never enters the Event stream, or on a counterpart mirror that zh/identity/contact-and-direct-conversation.md section 3 forbids from advancing a reducer -- MUST carry reducer_input=false and MUST name the canonical service_contracts row that spells out its branches, durable effect, unique key, prior-state CAS, exact retry and zero-side-effect rejection. Withdrawing Realm typed-result dispatch never withdraws the kind's admission, signature, commit evidence or private transactional effect: the five ak.contact.* kinds are the worked example (ak.contact.admission.v1). Setting reducer_input=false without registering where the effect actually lands is the defect this rule exists to prevent.",
-    "result_writes[] is the machine contract for which typed current results one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row: a declared value_projection member MUST be declared by that row's value_schema_ref, and a whole-value set MUST write every member that schema requires. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 126 of the 131 reducer_input kinds declare it; the remaining 5 have an explicit durable-fact or authority-commit effect classification and intentionally no typed-current-result row. The declaring kinds are deliberately not enumerated here: event_kinds[] already is that list, and tools/artifact_lint:result_write_coverage_note recomputes both counts from the rows. Normative prose MUST NOT cite result_writes[] for a kind that does not declare it. The converse obligation binds a declaring kind: its rows MUST enumerate EVERY typed current result its accepted admission writes on the shared face; atomic multi-family writes land all rows in one batch or none.",
+    "result_writes[] is the machine contract for which typed current results one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row: a declared value_projection member MUST be declared by that row's value_schema_ref, and a whole-value set MUST write every member that schema requires. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 117 of the 121 reducer_input kinds declare it; the remaining 4 have an explicit durable-fact or authority-commit effect classification and intentionally no typed-current-result row. The declaring kinds are deliberately not enumerated here: event_kinds[] already is that list, and tools/artifact_lint:result_write_coverage_note recomputes both counts from the rows. Normative prose MUST NOT cite result_writes[] for a kind that does not declare it. The converse obligation binds a declaring kind: its rows MUST enumerate EVERY typed current result its accepted admission writes on the shared face; atomic multi-family writes land all rows in one batch or none.",
     "Every active persistent kind (durable_event or actor_private_event) MUST carry one closed result_effect_ownership object. A typed_result_writer owns non-empty result_writes[] and no second owner; a private_service_effect names an active service_contracts row whose branches cover that exact actor-private Event kind; a durable_fact_no_current_projection names its normative definition and carries no typed-current-result write; an authority_commit_effect names the structured authority-commit service contract and MUST NOT introduce a second governance counter; an owned_gap is temporary only while it names a live owner_report and exact closure condition. Unknown classifications, unresolved definitions, orphan service branches, shared/private mixing, malformed authority contracts or any classification that contradicts reducer_input/result_writes[] fail tools/artifact_lint:result_effect_ownership.",
     "transition_contracts declares the lifecycle axis of a typed current result family: its closed state set, its entry idiom (exactly one of initial_state / initial_states / template), its terminal states and its allowed (from, to) edges. tools/artifact_lint:fsm_reachability reads it together with every transition result_projection and requires that each declared state be reachable from the entry set, that each allowed edge have a write that can perform it, that no const edge leave the table and that no terminal state carry an outgoing edge. A family that declares a machine MUST NOT be written by any non-transition projection: a set installs a state without passing the table, which would make allowed_transitions documentation rather than a rule. Between the authority-commit clean break and 2026-09-18 this block did not exist while the gate still read it under the removed cell_* names, so check reported success over four normative paragraphs (zh/models/circle.md, zh/models/morph.md, zh/models/realm-and-space.md, zh/models/strand-and-message.md) that name transition_contracts as the source of truth for object lifecycle transitions; an absent or empty block is now a failure. Those four object families are themselves still unregistered, so their archive / restore lifecycle has no machine contract yet -- that is a coverage gap, not a licence to read the prose as satisfied."
   ],
@@ -622,43 +622,6 @@
         "kind": "private_service_effect",
         "service_contract_id": "ak.actor_private.effects.v1"
       }
-    },
-    {
-      "event_kind": "ak.actor.discovery",
-      "category": "actor",
-      "status": "active",
-      "verb_form": "not_applicable",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "admission": "self_authored_proof",
-      "payload": "Actor discoverability state",
-      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/actor_discovery_state_payload",
-      "id_source": "not_an_object_id",
-      "result_effect_ownership": {
-        "kind": "typed_result_writer"
-      },
-      "result_writes": [
-        {
-          "result_family": "actor_discovery",
-          "result_selector": {
-            "kind": "composite",
-            "components": [
-              {
-                "kind": "canonical_json",
-                "field": "payload.resource_id"
-              }
-            ]
-          },
-          "result_projection": {
-            "kind": "set",
-            "value": {
-              "field": "payload"
-            }
-          },
-          "value_schema_ref": "schemas/event-payload.schema.json#/$defs/actor_discovery_state_payload/properties/value",
-          "notes": "The complete ActorId selects one declaration and the closed value is replaced atomically. This typed-current projection is Realm-local metadata and grants no public Directory admission or resolution surface."
-        }
-      ]
     },
     {
       "event_kind": "ak.agent.action_approve",
@@ -982,7 +945,7 @@
             }
           },
           "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/agent_selector_claim_value",
-          "notes": "One of the FOUR typed current results one accepted ak.agent.provision writes in a single reducer transaction; identity/key-management.md section 3.6.3 forbids exposing a partially completed state, so any required write failing rolls the whole set back. The second registered writer of the family ak.agent.selector_claim also writes; models/actor.md section 3.3 requires both to produce the same semantic target under the same principal-scoped subject with no Station component. This writer has NO inner selector proof and MUST NOT be dressed up as a signed claim: a portable response that has to return selector_claim.proofs needs the real controller-signed claim, and a service MUST NOT counter-sign or expose private provision material to fill the DTO. subject_account_id comes from the registered derivation agent_account_id_from_provision -- principal from the signed payload.agent_id, station from this Event's own envelope.actor_id -- because select picks one field path and nothing in this grammar joins a payload principal to an envelope station; the value is still fully determinate on the wire. audience is projected only when the payload carries selector_audience, which its own schema makes conditional on selector_visibility being restricted. No expires_at member: a provision selector binding does not expire on a clock, and absence is that state. Until the Agent PCR genesis is accepted the Agent MUST NOT be treated as an active resolvable target, which is a resolution-side gate and not a reason to withhold this write."
+          "notes": "One of the FOUR typed current results one accepted ak.agent.provision writes in a single reducer transaction; identity/key-management.md section 3.6.3 forbids exposing a partially completed state, so any required write failing rolls the whole set back. This is the only registered writer of the family; there is no standalone selector-claim Event kind: models/actor.md section 3.3 keeps the principal-scoped subject (controller principal, agent_slug) with no Station component, and a later provision of the same slug replaces the binding. There is no inner selector proof and no portable signed-claim surface; a service MUST NOT mint one. subject_account_id comes from the registered derivation agent_account_id_from_provision -- principal from the signed payload.agent_id, station from this Event's own envelope.actor_id -- because select picks one field path and nothing in this grammar joins a payload principal to an envelope station; the value is still fully determinate on the wire. audience is projected only when the payload carries selector_audience, which its own schema makes conditional on selector_visibility being restricted. A provision selector binding does not expire on a clock. Until the Agent PCR genesis is accepted the Agent MUST NOT be treated as an active resolvable target, which is a resolution-side gate and not a reason to withhold this write."
         },
         {
           "result_family": "agent_pcr_genesis_declaration",
@@ -1009,59 +972,6 @@
         }
       ],
       "id_source": "reference",
-      "result_effect_ownership": {
-        "kind": "typed_result_writer"
-      }
-    },
-    {
-      "event_kind": "ak.agent.selector_claim",
-      "category": "agent",
-      "status": "active",
-      "verb_form": "not_applicable",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "admission": "self_authored_proof",
-      "payload": "Controller-signed bind or explicit null-target unbind for one controller/agent_slug commit-ordered projection typed current result in the controller PCR. A bound target is a complete AccountId. Unbind source_refs identify the exact confirmed bind/provision predecessor. Competing commands check relevant revisions in confirmed order; stale commands are rejected, never joined as ambiguous security heads.",
-      "payload_schema_ref": "schemas/agent-selector-claim.schema.json",
-      "result_writes": [
-        {
-          "result_family": "agent_selector_claim",
-          "result_selector": {
-            "kind": "composite",
-            "components": [
-              "payload.controller_subject_id",
-              "payload.agent_slug"
-            ]
-          },
-          "result_projection": {
-            "kind": "set",
-            "value_projection": {
-              "kind": "object",
-              "members": [
-                {
-                  "name": "subject_account_id",
-                  "field": "payload.subject_account_id"
-                },
-                {
-                  "name": "visibility",
-                  "field": "payload.visibility"
-                },
-                {
-                  "name": "audience",
-                  "field": "payload.audience"
-                },
-                {
-                  "name": "expires_at",
-                  "field": "payload.expires_at"
-                }
-              ]
-            }
-          },
-          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/agent_selector_claim_value",
-          "notes": "The standalone writer of the family's two. models/actor.md section 3.3 fixes the subject as (controller principal, agent_slug) with NO Station component, and the target as a complete AccountId; the two are different responsibilities and neither is derived from the other. The value carries only what resolution reads -- target plus disclosure boundary. issuer_id, vouching_id, source_refs, created_at, verified_at and proofs are deliberately not projected: the head Event and its acceptance proof already carry provenance, and a portable selector response must present the real controller-signed claim rather than this row. There is no claim_scope member to project; the open one this schema used to carry was withdrawn because identity/identity-handles.md already forbids an open claim_scope on the sibling HandleClaimCore, and two normative readers were citing it inside a MUST. subject_account_id is a plain field copy here and MUST stay one: it is a binding field of this payload's own inner proof, so reusing a claim across Stations fails verification, and the projection MUST NOT rebuild it from the bare principal. audience and expires_at are projected only when the payload carries them -- an absent audience is the public case and an absent expires_at means non-expiring, and JSON null would be a third state the value schema does not have. The unbind spelling is an explicit null subject_account_id, not an omitted member and not a row removal: resolution has to be able to read \"bound to nothing\" without being able to read the superseded bind."
-        }
-      ],
-      "id_source": "not_an_object_id",
       "result_effect_ownership": {
         "kind": "typed_result_writer"
       }
@@ -1572,39 +1482,6 @@
               "field": "payload.mute_override"
             }
           }
-        }
-      ],
-      "id_source": "reference",
-      "result_effect_ownership": {
-        "kind": "typed_result_writer"
-      }
-    },
-    {
-      "event_kind": "ak.call.summary",
-      "category": "call",
-      "status": "active",
-      "verb_form": "not_applicable",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "payload": "Durable end-of-call summary",
-      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/call_summary_payload",
-      "result_writes": [
-        {
-          "result_family": "call_summary",
-          "result_selector": {
-            "kind": "composite",
-            "components": [
-              "payload.call_id"
-            ]
-          },
-          "result_projection": {
-            "kind": "set",
-            "value": {
-              "field": "payload"
-            }
-          },
-          "value_schema_ref": "schemas/event-payload.schema.json#/$defs/call_summary_payload",
-          "notes": "Write-once after the call reaches a terminal state (crypto-media/call-state.md section 7); a second summary for the same call_id is rejected."
         }
       ],
       "id_source": "reference",
@@ -2407,109 +2284,6 @@
       }
     },
     {
-      "event_kind": "ak.container.move_item",
-      "category": "relation",
-      "status": "active",
-      "verb_form": "base",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "payload": "Profile-declared container item move",
-      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/container_move_item_payload",
-      "id_source": "not_an_object_id",
-      "result_effect_ownership": {
-        "kind": "typed_result_writer"
-      },
-      "result_writes": [
-        {
-          "result_family": "container_position",
-          "result_selector": {
-            "kind": "composite",
-            "components": [
-              "payload.item_ref",
-              "payload.relation_kind"
-            ]
-          },
-          "result_projection": {
-            "kind": "set",
-            "value_projection": {
-              "kind": "object",
-              "members": [
-                {
-                  "name": "container_ref",
-                  "field": "payload.container_ref"
-                },
-                {
-                  "name": "relation_kind",
-                  "field": "payload.relation_kind"
-                },
-                {
-                  "name": "rank",
-                  "field": "payload.rank"
-                }
-              ]
-            }
-          },
-          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/container_position_value",
-          "notes": "conformance/encoding.md sections 9.1 and 9.5. One position is selected by the exact scalar item_ref and relation kind; container_ref may change without changing identity. from_container_ref and expected_position_digest are compare-and-set guards. Scope, authorization, container compatibility and rank grammar are checked before replacement."
-        }
-      ]
-    },
-    {
-      "event_kind": "ak.container.rebalance",
-      "category": "relation",
-      "status": "active",
-      "verb_form": "base",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "payload": "Profile-declared container rank rebalance",
-      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/container_rebalance_payload",
-      "id_source": "not_an_object_id",
-      "result_effect_ownership": {
-        "kind": "typed_result_writer"
-      },
-      "result_writes": [
-        {
-          "result_family": "container_position",
-          "result_selector": {
-            "kind": "composite",
-            "components": [
-              {
-                "kind": "canonical_json",
-                "field": "item.item_ref"
-              },
-              "payload.relation_kind"
-            ]
-          },
-          "result_projection": {
-            "kind": "set",
-            "value_projection": {
-              "kind": "object",
-              "members": [
-                {
-                  "name": "container_ref",
-                  "field": "payload.container_ref"
-                },
-                {
-                  "name": "relation_kind",
-                  "field": "payload.relation_kind"
-                },
-                {
-                  "name": "rank",
-                  "field": "item.rank"
-                }
-              ]
-            }
-          },
-          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/container_position_value",
-          "notes": "conformance/encoding.md section 9.1. The bounded positions array expands to one atomic write per item. expected_order_digest is checked against the complete unclipped canonical order; positions must cover every active edge exactly once and match the deterministic assignment. Any invalid item or rank rejects the whole Event with zero partial writes.",
-          "for_each": {
-            "field": "payload.positions",
-            "max_items": 10000
-          }
-        }
-      ]
-    },
-    {
       "event_kind": "ak.device.authorize",
       "category": "device",
       "status": "active",
@@ -2626,22 +2400,6 @@
       "id_source": "not_an_object_id",
       "result_effect_ownership": {
         "kind": "typed_result_writer"
-      }
-    },
-    {
-      "event_kind": "ak.device.list_update",
-      "category": "device",
-      "status": "active",
-      "verb_form": "base",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "admission": "self_authored_proof",
-      "payload": "Device list update",
-      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/device_list_update_payload",
-      "id_source": "not_an_object_id",
-      "result_effect_ownership": {
-        "kind": "durable_fact_no_current_projection",
-        "defined_in": "zh/identity/key-management.md"
       }
     },
     {
@@ -2768,38 +2526,6 @@
       "result_effect_ownership": {
         "kind": "typed_result_writer"
       }
-    },
-    {
-      "event_kind": "ak.handle.discovery",
-      "category": "handle",
-      "status": "active",
-      "verb_form": "not_applicable",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "admission": "self_authored_proof",
-      "payload": "Handle discoverability state",
-      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/handle_discovery_state_payload",
-      "id_source": "not_an_object_id",
-      "result_effect_ownership": {
-        "kind": "typed_result_writer"
-      },
-      "result_writes": [
-        {
-          "result_family": "handle_discovery",
-          "result_selector": {
-            "kind": "string",
-            "field": "payload.resource_id"
-          },
-          "result_projection": {
-            "kind": "set",
-            "value": {
-              "field": "payload"
-            }
-          },
-          "value_schema_ref": "schemas/event-payload.schema.json#/$defs/handle_discovery_state_payload/properties/value",
-          "notes": "The canonical handle selects one Realm-local declaration and the accepted closed value replaces the prior value. It is not a public Directory handle-resolution surface."
-        }
-      ]
     },
     {
       "event_kind": "ak.identity.accountability_grant",
@@ -4317,38 +4043,6 @@
       }
     },
     {
-      "event_kind": "ak.organization.discovery",
-      "category": "organization",
-      "status": "active",
-      "verb_form": "not_applicable",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "admission": "self_authored_proof",
-      "payload": "Organization discoverability state",
-      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/organization_discovery_state_payload",
-      "id_source": "not_an_object_id",
-      "result_writes": [
-        {
-          "result_family": "organization_discovery",
-          "result_selector": {
-            "kind": "did",
-            "field": "payload.organization_id"
-          },
-          "result_projection": {
-            "kind": "set",
-            "value": {
-              "field": "payload.value"
-            }
-          },
-          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/organization_discovery_value",
-          "notes": "ak.organization.discovery is a Realm-local typed-current declaration. Each accepted declaration replaces the whole closed value under the declaring organization_id and grants no public Directory organization-resolution surface."
-        }
-      ],
-      "result_effect_ownership": {
-        "kind": "typed_result_writer"
-      }
-    },
-    {
       "event_kind": "ak.organization.moderation_policy",
       "category": "organization",
       "status": "active",
@@ -4373,7 +4067,7 @@
             }
           },
           "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/organization_moderation_policy_value",
-          "notes": "Sibling of organization_discovery on the same did_core_id subject. The payload's value is a single closed moderation policy document, so the projection is a whole-value set. Production admission is fail closed until the Organization DID's authenticated unique policy authority Realm binding and cross-Realm source Commit read carrier exist; no arrival-order winner is permitted. See governance/content-moderation.md section 7."
+          "notes": "The subject is the Organization did_core_id. The payload's value is a single closed moderation policy document, so the projection is a whole-value set. Production admission is fail closed until the Organization DID's authenticated unique policy authority Realm binding and cross-Realm source Commit read carrier exist; no arrival-order winner is permitted. See governance/content-moderation.md section 7."
         }
       ],
       "result_effect_ownership": {
@@ -5532,34 +5226,6 @@
       }
     },
     {
-      "event_kind": "ak.realm.policy",
-      "category": "realm",
-      "status": "active",
-      "verb_form": "not_applicable",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "payload": "Realm access policy reference (policy_id); inline policy components remain in ak.realm.policy_bundle or dedicated facet kinds",
-      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_policy_payload",
-      "result_writes": [
-        {
-          "result_family": "realm_policy",
-          "result_selector": null,
-          "result_projection": {
-            "kind": "set",
-            "value": {
-              "field": "payload.value"
-            }
-          },
-          "value_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_policy_payload/properties/value",
-          "notes": "conformance/schema-registry.md fixes this kind as a closed reference to one independently defined Policy object (payload.value.policy_id), and sync/current-results.md section 2 registers realm_policy as the current Realm policy, a per-Realm singleton whose subject may not restate the envelope realm_id. The projected value is therefore the closed {policy_id} reference and not the Policy document: no registered projection kind can dereference an id, so a family holding the document body could never be written. The optional state and reason members are admission-level lifecycle fields, not part of the projected value. The Policy document itself is carried by the still-uncovered ak.policy.set family, whose payload governance-objects.md closes to {policy_id, value}."
-        }
-      ],
-      "id_source": "not_an_object_id",
-      "result_effect_ownership": {
-        "kind": "typed_result_writer"
-      }
-    },
-    {
       "event_kind": "ak.realm.policy_bundle",
       "category": "realm",
       "status": "active",
@@ -6480,40 +6146,6 @@
           },
           "value_schema_ref": "schemas/agent-sidecar.schema.json",
           "notes": "zh/models/sidecar.md sections 2 and 3.1. The payload is intentionally empty: Sidecar id is this Event id retyped, Realm and time come from the accepted envelope, controller_account_id is the account branch of the accountable actor, and state starts active. Admission atomically reserves the unique (realm_id, controller_account_id) singleton; exact replay returns the same value, while a different create for an occupied singleton rejects without a second Sidecar or MLS scope."
-        }
-      ],
-      "result_effect_ownership": {
-        "kind": "typed_result_writer"
-      }
-    },
-    {
-      "event_kind": "ak.sovereign.did_policy",
-      "category": "sovereign",
-      "status": "active",
-      "verb_form": "not_applicable",
-      "wire_scope": "durable_event",
-      "reducer_input": true,
-      "admission": "self_authored_proof",
-      "payload": "Sovereign DID resolver policy state",
-      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/sovereign_did_policy_state_payload",
-      "id_source": "not_an_object_id",
-      "result_writes": [
-        {
-          "result_family": "sovereign_did_policy",
-          "result_selector": {
-            "kind": "composite",
-            "components": [
-              "payload.trust_domain"
-            ]
-          },
-          "result_projection": {
-            "kind": "set",
-            "value": {
-              "field": "payload.value"
-            }
-          },
-          "value_schema_ref": "schemas/event-payload.schema.json#/$defs/sovereign_did_policy_state_payload/properties/value",
-          "notes": "identity/identity-did.md section 3.6. The deployment-scoped trust_domain is the replay-boundary subject; the closed DID method policy is its whole current value. The reducer validates method syntax, non-empty allowlists, trusted root identities and self-authored authority before replacing it. A policy for another trust domain or an invalid method/root combination is rejected with no partial resolver-policy change."
         }
       ],
       "result_effect_ownership": {

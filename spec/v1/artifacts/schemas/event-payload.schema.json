@@ -2200,84 +2200,6 @@
       },
       "additionalProperties": false
     },
-    "call_summary_payload": {
-      "type": "object",
-      "description": "Typed payload for ak.call.summary (durable end-of-call summary). Written once after a call reaches a terminal `state`; carries duration, peak participant count, and capture status so clients can render a durable call record without replaying ephemeral signaling. See crypto-media/call-state.md §7. started_at/ended_at/duration_ms are nullable: non-active terminal states (missed/cancelled/failed) MUST set them null per call-state.md §7.",
-      "required": [
-        "call_id",
-        "final_state",
-        "mode"
-      ],
-      "properties": {
-        "call_id": {
-          "type": "string",
-          "pattern": "^ak:call:[A-Za-z0-9_-]{44}$"
-        },
-        "final_state": {
-          "type": "string",
-          "enum": [
-            "ended",
-            "missed",
-            "failed",
-            "cancelled"
-          ],
-          "description": "The terminal call lifecycle state this summary closes over. MUST be one of the call_state_payload terminal states."
-        },
-        "mode": {
-          "type": "string",
-          "enum": [
-            "p2p",
-            "mesh",
-            "sfu",
-            "mcu"
-          ]
-        },
-        "started_at": {
-          "$ref": "#/$defs/nullable_timestamp"
-        },
-        "ended_at": {
-          "$ref": "#/$defs/nullable_timestamp"
-        },
-        "duration_ms": {
-          "type": [
-            "integer",
-            "null"
-          ],
-          "minimum": 0
-        },
-        "peak_participant_count": {
-          "type": "integer",
-          "minimum": 0,
-          "description": "Highest concurrent participant count observed during the call."
-        },
-        "distinct_participant_count": {
-          "type": "integer",
-          "minimum": 0,
-          "description": "Number of distinct (actor_id, device_id) participants that joined at any point."
-        },
-        "recording_state": {
-          "type": "string",
-          "enum": [
-            "recording",
-            "stopped",
-            "ready",
-            "failed"
-          ],
-          "description": "Final recording_state at call end, mirrored from ak.call.state for the durable record. Absent = the call was not recorded."
-        },
-        "transcript_state": {
-          "type": "string",
-          "enum": [
-            "transcribing",
-            "stopped",
-            "ready",
-            "failed"
-          ],
-          "description": "Final transcript_state at call end, mirrored from ak.call.state. Absent = the call was not transcribed."
-        }
-      },
-      "additionalProperties": false
-    },
     "capability_grant_payload": {
       "type": "object",
       "required": [
@@ -2683,80 +2605,6 @@
         },
         "reason": {
           "type": "string"
-        }
-      },
-      "additionalProperties": false
-    },
-    "container_move_item_payload": {
-      "type": "object",
-      "required": [
-        "item_ref",
-        "container_ref",
-        "relation_kind",
-        "rank"
-      ],
-      "properties": {
-        "item_ref": {
-          "$ref": "#/$defs/object_ref"
-        },
-        "from_container_ref": {
-          "$ref": "#/$defs/object_ref"
-        },
-        "container_ref": {
-          "$ref": "#/$defs/object_ref"
-        },
-        "relation_kind": {
-          "type": "string",
-          "pattern": "^[a-z][a-z0-9_]{0,63}$"
-        },
-        "rank": {
-          "$ref": "#/$defs/rank"
-        },
-        "expected_position_digest": {
-          "$ref": "#/$defs/digest"
-        }
-      },
-      "additionalProperties": false
-    },
-    "container_rebalance_payload": {
-      "type": "object",
-      "required": [
-        "container_ref",
-        "relation_kind",
-        "positions",
-        "expected_order_digest"
-      ],
-      "properties": {
-        "container_ref": {
-          "$ref": "#/$defs/object_ref"
-        },
-        "relation_kind": {
-          "type": "string",
-          "pattern": "^[a-z][a-z0-9_]{0,63}$"
-        },
-        "positions": {
-          "type": "array",
-          "minItems": 1,
-          "maxItems": 10000,
-          "items": {
-            "type": "object",
-            "required": [
-              "item_ref",
-              "rank"
-            ],
-            "properties": {
-              "item_ref": {
-                "$ref": "#/$defs/object_ref"
-              },
-              "rank": {
-                "$ref": "#/$defs/rank"
-              }
-            },
-            "additionalProperties": false
-          }
-        },
-        "expected_order_digest": {
-          "$ref": "#/$defs/digest"
         }
       },
       "additionalProperties": false
@@ -3234,62 +3082,6 @@
     },
     "device_id": {
       "$ref": "./account-operations.schema.json#/$defs/device_id"
-    },
-    "device_list_update_payload": {
-      "type": "object",
-      "description": "Closed device-list update whose exact AccountId subject is derived exclusively from the Event envelope actor_id; the payload MUST NOT mirror a principal_id.",
-      "anyOf": [
-        {
-          "required": [
-            "changed_ids"
-          ]
-        },
-        {
-          "required": [
-            "left_ids"
-          ]
-        },
-        {
-          "required": [
-            "device_list_digest"
-          ]
-        }
-      ],
-      "properties": {
-        "changed_ids": {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "$ref": "#/$defs/device_id"
-          },
-          "uniqueItems": true
-        },
-        "left_ids": {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "$ref": "#/$defs/device_id"
-          },
-          "uniqueItems": true
-        },
-        "device_list_digest": {
-          "$ref": "#/$defs/digest"
-        },
-        "stream_id": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/non_empty_string"
-            },
-            {
-              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-            }
-          ]
-        },
-        "updated_at": {
-          "$ref": "#/$defs/timestamp"
-        }
-      },
-      "additionalProperties": false
     },
     "device_or_principal_ref": {
       "oneOf": [
@@ -6041,52 +5833,6 @@
       "type": "string",
       "pattern": "^((?:ak:realm:[A-Za-z0-9_-]{44}|ak:(circle|space|actor_profile|strand|message|morph|relation|view|event|grant|invite|call|report):[A-Za-z0-9_-]{44}|ak:(policy|blob):[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})|ak:blob:(sha256|blake3):[0-9a-f]{64}|did:[^\\s]+|(sha256|blake3):[0-9a-f]{64})$"
     },
-    "organization_discovery_state_payload": {
-      "type": "object",
-      "description": "State payload for an Organization discovery declaration. organization_id is a did_core_id and is the stable subject of the organization_discovery typed current result.",
-      "required": [
-        "organization_id",
-        "value"
-      ],
-      "properties": {
-        "organization_id": {
-          "$ref": "#/$defs/did_core_id"
-        },
-        "value": {
-          "type": "object",
-          "required": [
-            "discoverability",
-            "directory_ids"
-          ],
-          "properties": {
-            "discoverability": {
-              "type": "string",
-              "enum": [
-                "public",
-                "listed",
-                "restricted",
-                "unlisted",
-                "invite_only",
-                "secret"
-              ]
-            },
-            "profile_visibility": {
-              "$ref": "#/$defs/discovery_profile_visibility"
-            },
-            "directory_ids": {
-              "type": "array",
-              "maxItems": 64,
-              "uniqueItems": true,
-              "items": {
-                "$ref": "#/$defs/did_core_id"
-              }
-            }
-          },
-          "additionalProperties": false
-        }
-      },
-      "additionalProperties": false
-    },
     "organization_moderation_policy_state_payload": {
       "type": "object",
       "description": "Closed Organization moderation-policy state. organization_id is the Organization did_core_id and the sole registered typed current result subject; value carries the sole v1 Organization moderation-policy family.",
@@ -7372,7 +7118,7 @@
     },
     "realm_policy_bundle_payload": {
       "type": "object",
-      "$comment": "Payload for ak.realm.policy_bundle — the payload IS this flat closed object (not a state wrapper); event-envelope.schema.json dispatches the kind directly to this def. The closed property set is the complete set of Realm policy facets that have no independent Event kind. Facets that DO have their own kind and typed current result (ak.realm.join_rule, ak.realm.history_access, ak.realm.read_receipt_policy, ak.realm.asset_privacy_policy, ak.realm.media_service, ak.realm.plaintext_visible_services, ...) MUST NOT be echoed here. ak.realm.policy is not a third inline carrier: it only selects an independently defined Policy object by policy_id.",
+      "$comment": "Payload for ak.realm.policy_bundle — the payload IS this flat closed object (not a state wrapper); event-envelope.schema.json dispatches the kind directly to this def. The closed property set is the complete set of Realm policy facets that have no independent Event kind. Facets that DO have their own kind and typed current result (ak.realm.join_rule, ak.realm.history_access, ak.realm.read_receipt_policy, ak.realm.asset_privacy_policy, ak.realm.media_service, ak.realm.plaintext_visible_services, ...) MUST NOT be echoed here. Policy documents are carried only by ak.policy.set.",
       "description": "Enabled Realm policy component set, written wholesale into the realm_policy_bundle commit-ordered projection typed current result: every revision restates the complete enabled component set and the Realm object's derived policy fields re-derive from the latest accepted bundle. policy_revision starts at 1 and every later authoritative reducer admission MUST equal previous.policy_revision + 1: rollback uses top-level policy_revision_rollback; a forward gap uses failed_precondition with reason_code policy_revision_gap and produces zero typed-current-result writes. policy_revision MUST cover policy_revision (see contract-registry event-kind row and models/realm-and-space.md section 2.3).",
       "required": [
         "policy_revision"
@@ -7758,33 +7504,6 @@
       },
       "additionalProperties": false
     },
-    "actor_discovery_state_payload": {
-      "type": "object",
-      "required": [
-        "resource_id",
-        "value"
-      ],
-      "properties": {
-        "resource_id": {
-          "$ref": "./common-ids.schema.json#/$defs/actor_id"
-        },
-        "value": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/resource_discovery_state_value"
-            },
-            {
-              "properties": {
-                "resource_kind": {
-                  "const": "actor"
-                }
-              }
-            }
-          ]
-        }
-      },
-      "additionalProperties": false
-    },
     "applet_discovery_state_payload": {
       "type": "object",
       "required": [
@@ -7804,40 +7523,6 @@
               "properties": {
                 "resource_kind": {
                   "const": "applet"
-                }
-              }
-            }
-          ]
-        }
-      },
-      "additionalProperties": false
-    },
-    "handle_discovery_state_payload": {
-      "type": "object",
-      "required": [
-        "resource_id",
-        "value"
-      ],
-      "properties": {
-        "resource_id": {
-          "allOf": [
-            {
-              "$ref": "string-profiles.schema.json#/$defs/canonical_handle"
-            },
-            {
-              "pattern": "^(?!ak:)"
-            }
-          ]
-        },
-        "value": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/resource_discovery_state_value"
-            },
-            {
-              "properties": {
-                "resource_kind": {
-                  "const": "handle"
                 }
               }
             }
@@ -8103,73 +7788,6 @@
           "minProperties": 1
         }
       ]
-    },
-    "sovereign_did_policy_state_payload": {
-      "type": "object",
-      "description": "Sovereign DID policy state payload. trust_domain is the deployment-scoped replay-boundary subject.",
-      "required": [
-        "trust_domain",
-        "value"
-      ],
-      "properties": {
-        "trust_domain": {
-          "type": "string",
-          "pattern": "^ak:trust_domain:[a-z0-9][a-z0-9._\\-:]{0,127}$"
-        },
-        "value": {
-          "type": "object",
-          "required": [
-            "default_principal_method",
-            "allowed_methods",
-            "trust_root_ids",
-            "public_resolver_allowed",
-            "method_policy"
-          ],
-          "properties": {
-            "default_principal_method": {
-              "type": "string",
-              "pattern": "^did:[a-z0-9]+$"
-            },
-            "allowed_methods": {
-              "type": "array",
-              "minItems": 1,
-              "uniqueItems": true,
-              "items": {
-                "type": "string",
-                "pattern": "^did:[a-z0-9]+$"
-              }
-            },
-            "trust_root_ids": {
-              "type": "array",
-              "description": "Stable did_core_id allowlist. A root is compared against project(candidate did); it is not itself resolvable and does not carry a verification method or endpoint. Verification still requires approved did/key binding/method evidence and fails closed when that evidence is unavailable.",
-              "minItems": 1,
-              "uniqueItems": true,
-              "items": {
-                "$ref": "#/$defs/did_core_id"
-              }
-            },
-            "public_resolver_allowed": {
-              "type": "boolean"
-            },
-            "method_policy": {
-              "type": "object",
-              "propertyNames": {
-                "pattern": "^did:[a-z0-9]+$"
-              },
-              "additionalProperties": {
-                "type": "string",
-                "enum": [
-                  "allowlist",
-                  "external_collaborator_only",
-                  "ephemeral_only"
-                ]
-              }
-            }
-          },
-          "additionalProperties": false
-        }
-      },
-      "additionalProperties": false
     },
     "space_create_payload": {
       "type": "object",
@@ -8508,29 +8126,6 @@
         "cascade_group": {
           "$ref": "#/$defs/non_empty_string",
           "description": "Backend cluster this focus belongs to, for user-visible disclosure that a cross-region conference is cascaded inside the backend. The protocol does not standardize SFU-to-SFU cascading."
-        }
-      },
-      "additionalProperties": false
-    },
-    "realm_policy_payload": {
-      "type": "object",
-      "description": "Closed payload for ak.realm.policy. It selects one independently defined Policy object by id; inline Realm facets remain exclusively in ak.realm.policy_bundle or their dedicated facet Event kinds.",
-      "required": [
-        "value"
-      ],
-      "properties": {
-        "value": {
-          "type": "object",
-          "required": [
-            "policy_id"
-          ],
-          "properties": {
-            "policy_id": {
-              "type": "string",
-              "pattern": "^ak:policy:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-            }
-          },
-          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -9207,20 +8802,6 @@
         }
       },
       "additionalProperties": false
-    },
-    "resource_discovery_state": {
-      "description": "Union used by generic SDK consumers; Event kinds bind one exact closed branch.",
-      "anyOf": [
-        {
-          "$ref": "#/$defs/actor_discovery_state_payload"
-        },
-        {
-          "$ref": "#/$defs/applet_discovery_state_payload"
-        },
-        {
-          "$ref": "#/$defs/handle_discovery_state_payload"
-        }
-      ]
     },
     "device_authorize_applet_managed_possession_transcript": {
       "description": "Candidate-device possession transcript of the applet_managed_delegation branch. The signing input is UTF8(\"ak.device_authorize_applet_managed_possession_proof.v1\\n\") || canonical_json(this object); the signature it produces is the payload's device_signature, which is why device_signature is not a member here. It adds applet_id, the exact Applet install whose accepted managed-actor provision created this principal and therefore the device's revocation fence, and it narrows expires_at and scopes to non-null because the payload requires both on this branch. recovery_session_id is the normalized null.",

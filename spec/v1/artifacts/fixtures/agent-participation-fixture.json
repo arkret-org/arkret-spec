@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.agent_participation_policy.v1",
-  "version": "2026-09-21",
+  "version": "2026-09-25",
   "suite": "agent_participation",
   "runner": {
     "kind": "named_suite",
@@ -47,14 +47,14 @@
           "station_id": "ak:did_core:web:acme.example"
         },
         "visibility": "restricted",
-        "note": "The namespace is (controller_subject_id, agent_slug) and stays principal-scoped; the signed target is one AccountId. subject_account_id is a binding field of ak.agent_selector_claim_proof.v1, so changing the Station invalidates this proof."
+        "note": "The agent_selector_claim typed current value written by the accepted ak.agent.provision. The selector (controller_subject_id, agent_slug) stays principal-scoped; the bound target is one complete AccountId derived from that provision, never rebuilt from the bare principal."
       },
       "selector_claim_disclosure": {
         "intent": "known_account_picker_label",
         "visibility": "restricted",
         "audience_authorized": true,
         "target_matches_known_account": true,
-        "note": "The current signed claim may verify a label only after a separate authorized source supplied the exact full Agent AccountId; the claim is not a lookup response."
+        "note": "The current selector value may verify a label only after a separate authorized source supplied the exact full Agent AccountId; it is not a lookup response."
       },
       "changed_agent_slug": "digest",
       "changed_agent_subject": "ak:did_core:webvh:z6mkfixtureagentsacmeexamplealicedigest",
@@ -83,29 +83,26 @@
         },
         "same_principal_other_station_matches": false,
         "mention_target_source": "known_authorized_agent_account_id",
-        "retargeted_station_reusing_proof": "reject",
         "claim_not_equal_to_known_account": "reject_label",
         "two_current_claims_same_principal_two_stations": "unverified_label_no_target_selection",
         "expected_actor_id_service_variant": "reject",
         "expected_actor_id_cannot_break_ambiguity": "reject",
         "local_authorized_cache_without_directory": "may_supply_known_account_not_global_absence_proof",
         "authorized_target_not_in_current_roster": "known_account_mention_subject_to_existing_membership_gate",
-        "provision_incomplete_pending_pcr_genesis": "reject",
-        "server_minted_selector_claim_proof": "reject"
+        "provision_incomplete_pending_pcr_genesis": "reject"
       },
       "assertions": [
         "the persisted mention subject_account_id is copied verbatim from the already-authorized exact full Agent AccountId; a selector claim can only verify a label and can never select the target",
         "the agent Station is derived from the accepted provision reconciled with the Agent PCR genesis actor account, not from a fixture constant",
-        "the selector namespace stays principal-scoped while the signed target is account-scoped; neither is derived from the other",
+        "the selector namespace stays principal-scoped while the bound target is account-scoped; neither is derived from the other",
         "controller and slug snapshots are audit metadata only; the unsupported free-text composite token remains plain text without mention metadata or directed notification",
         "slug changes do not rewrite historical mention targets",
         "ambiguous or unavailable selector claims do not verify a label or retarget a known-account mention, and two current claims pointing at the same principal on two Stations are never deduplicated",
         "a member account with the same principal on another Station does not match the mention: comparison covers principal_id and station_id, so it produces no mention notification and no authorization or MemberIdentity join hit",
-        "changing subject_account_id.station_id invalidates the selector claim proof, because it is a binding field of ak.agent_selector_claim_proof.v1",
-        "a visible signed claim whose subject_account_id differs from the known picker target is rejected for label verification; no Directory selector lookup operation exists",
+        "a visible selector value whose subject_account_id differs from the known picker target is rejected for label verification; no Directory selector lookup operation exists",
         "expected_actor_id is a consistency assertion: a service Actor never matches and it cannot select a winner out of an ambiguous label",
         "a local authorized source may supply the known full AccountId but cannot establish cross-Station selector uniqueness; this ruling adds no read, notification or participation right to a non-member",
-        "an Agent whose provision has not completed cannot receive a verified label, and a server must not mint selector_claim.proofs or expose private provision material to fill a fabricated lookup response"
+        "an Agent whose provision has not completed cannot receive a verified label, and a server must not expose private provision material to fill a fabricated lookup response"
       ]
     },
     {

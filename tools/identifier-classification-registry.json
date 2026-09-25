@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 28,
+  "version": 29,
   "kind": "identifier_classification_registry",
   "source_of_truth": false,
   "generated_from": [
@@ -26,8 +26,8 @@
     "unregistered_object_identifier"
   ],
   "type_derived_summary": {
-    "typed_object_id": 896,
-    "responsibility_identity_material": 538,
+    "typed_object_id": 891,
+    "responsibility_identity_material": 527,
     "registry_catalog_symbol": 15
   },
   "pending_rename_convergence": [],
@@ -595,14 +595,6 @@
       "reason": "Caller/service request correlation token scoped to its operation and not an Arkret object identity."
     },
     {
-      "name": "resource_id",
-      "terminal_signature": "[[\"format\", \"arkret-canonical-handle\"], [\"pattern\", \"^(?!ak:)\"], [\"pattern\", \"^(?!ak:)[^\\\\s:@/#?\\\\\\\\]+:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\\\\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$\"]]",
-      "category": "external_system_identifier",
-      "occurrences": 1,
-      "example_path": "event-payload.schema.json#/$defs/handle_discovery_state_payload/properties/resource_id",
-      "reason": "Canonical Handle coordinate in the external domain-owned handle namespace; the enclosing Realm-local projection binds it without turning it into a typed object ID."
-    },
-    {
       "name": "revokes_statement_id",
       "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"], [\"type\", \"\\\"string\\\"\"]]",
       "category": "unregistered_object_identifier",
@@ -651,14 +643,6 @@
       "example_path": "event-payload.schema.json#/$defs/realm_organization_payload/properties/statement_id",
       "reason": "Names a durable Arkret object whose kind is not registered in id-kind-registry.json; convergence is to register the kind or retype the field.",
       "pending_convergence": true
-    },
-    {
-      "name": "stream_id",
-      "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"], [\"type\", \"\\\"string\\\"\"]]",
-      "category": "opaque_correlation",
-      "occurrences": 1,
-      "example_path": "event-payload.schema.json#/$defs/device_list_update_payload/properties/stream_id",
-      "reason": "Bounded opaque handle used to select a stored record; the record, not the handle, carries authority."
     },
     {
       "name": "supersedes_registration_id",

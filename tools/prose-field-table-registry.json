@@ -1,17 +1,9 @@
 {
-  "version": 4,
+  "version": 5,
   "source_of_truth": false,
   "narrative_source": "spec/v1/zh",
   "$comment": "Bindings between a normative prose field table and the schema object it documents. check_prose_field_tables requires the table rows and the schema properties to carry the same names in the same order, and requires every field name mentioned in the object own descriptions to be either declared by that object or listed in external_field_mentions.",
   "bindings": [
-    {
-      "document": "spec/v1/zh/crypto-media/call-state.md",
-      "schema_ref": "event-payload.schema.json#/$defs/call_summary_payload",
-      "external_field_mentions": [
-        "actor_id",
-        "device_id"
-      ]
-    },
     {
       "document": "spec/v1/zh/crypto-media/device-lifecycle.md",
       "schema_ref": "keypackage-operations.schema.json#/$defs/keypackages_claim_outcome",

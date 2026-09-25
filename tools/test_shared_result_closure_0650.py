@@ -15,15 +15,11 @@ from tools.artifact_lint import result_effect_ownership as owner_gate
 
 
 TARGETS = {
-    "ak.actor.discovery": "actor_discovery",
     "ak.agent.action_approve": "agent_action_approval",
     "ak.agent.sidecar.exchange.control": "agent_sidecar_exchange_controls",
     "ak.applet.discovery": "applet_discovery",
     "ak.applet.registration": "applet_registration",
     "ak.call.create": "call_state",
-    "ak.container.move_item": "container_position",
-    "ak.container.rebalance": "container_position",
-    "ak.handle.discovery": "handle_discovery",
     "ak.key_backup.active_series": "key_backup_active_series",
     "ak.member.identity.update": "member_identity_updates",
     "ak.message.create": "message_revision",
@@ -97,24 +93,6 @@ class SharedResultClosure0650Test(unittest.TestCase):
                 errors = self._owner_errors(lambda d, k=kind: row_of(d, k).pop("result_writes"))
                 new = set(errors) - baseline
                 self.assertTrue(any("non-empty result_writes" in error for error in new), new)
-
-    def test_container_rebalance_for_each_is_exact(self) -> None:
-        baseline = set(self._write_errors())
-
-        def mutate(document: dict) -> None:
-            row_of(document, "ak.container.rebalance")["result_writes"][0]["for_each"]["max_items"] = 9999
-
-        new = set(self._write_errors(mutate)) - baseline
-        self.assertTrue(any("exact bounded container rebalance" in error for error in new), new)
-
-    def test_container_rebalance_cannot_drop_bounded_expansion(self) -> None:
-        baseline = set(self._write_errors())
-
-        def mutate(document: dict) -> None:
-            row_of(document, "ak.container.rebalance")["result_writes"][0].pop("for_each")
-
-        new = set(self._write_errors(mutate)) - baseline
-        self.assertTrue(any("must enumerate the bounded positions" in error for error in new), new)
 
     def test_sidecar_selector_never_exposes_plaintext_exchange_identity(self) -> None:
         contract = owner_gate.load_json(owner_gate.Lint(), owner_gate.CONTRACT_REGISTRY)

@@ -151,49 +151,20 @@ Sovereign client(在 `ak.profile.sovereign_deployment.v1` 语境下)逐条强制
 
 Sovereign 部署 MUST 在内部使用既有 DID 方法。组织与服务主体 SHOULD 使用私有或 allowlist 范围内的 `did:webvh` / `did:web`；仅当 policy 明确允许时，MAY 为外部协作方接受 `did:plc`。
 
-部署 MUST 定义 DID resolver policy：
+部署 MUST 按 [`../identity/identity-did.md` §4.1](../identity/identity-did.md) 定义 resolver policy。它是 Station 与客户端的**本地部署配置**，不是 Event、不进入任何 Realm history，也不由调用方经任何 operation 提交（同文 §7）。sovereign 部署在 §4.1 之上还 MUST 声明：一组 trust root（稳定 `did_core_id` allowlist）、是否允许公共 resolver，以及只允许 ephemeral 用途的 method（默认 `did:key`）。
 
-```json fragment
-{
-  "kind": "ak.sovereign.did_policy",
-  "payload": {
-    "trust_domain": "ak:trust_domain:did.webvh.defense.example",
-    "value": {
-      "default_principal_method": "did:webvh",
-      "allowed_methods": [
-        "did:webvh",
-        "did:web",
-        "did:plc",
-        "did:key"
-      ],
-      "trust_roots": [
-        "ak:did_core:webvh:zE2ucm2oH9PCib4kBzLEAkFqa",
-        "ak:did_core:webvh:z2TiX7ug9JmCNeioq6D2V4VjK",
-        "ak:did_core:webvh:z8rCaf8NFL1av8pHxRpz8APYa"
-      ],
-      "public_resolver_allowed": false,
-      "method_policy": {
-        "did:webvh": "allowlist",
-        "did:web": "allowlist",
-        "did:plc": "external_collaborator_only",
-        "did:key": "ephemeral_only"
-      }
-    }
-  }
-}
-```
 规则：
 
-- `trust_roots[]` 是稳定 `did_core_id` allowlist，不是 resolver locator、bare DID 或 verification-method DID URL。对候选 bare `did` 做准入时，verifier MUST 先按已登记 method adapter 计算 `project(did)`，再与 root 逐字节比较；`did:webvh` root 因此只保留 SCID，MUST NOT 拼接 hosting domain/path。
-- 命中 `trust_roots[]` 只回答“这个稳定身份是否可作为信任根”，不提供公钥或解析地址，也不证明控制权。密码学验证仍 MUST 消费候选 `did` / verification-method DID URL 以及受批准 resolver、witness/watcher、离线 bundle或已接受 binding 提供的 method evidence，并验证 `project(did) == matched trust_root`。调用点若只有 `did_core_id`、没有可验证的 `did` / key binding / method evidence，MUST fail closed，不得从 Core ID 反向拼造 DID。
+- trust root 是稳定 `did_core_id` allowlist，不是 resolver locator、bare DID 或 verification-method DID URL。对候选 bare `did` 做准入时，verifier MUST 先按已登记 method adapter 计算 `project(did)`，再与 root 逐字节比较；`did:webvh` root 因此只保留 SCID，MUST NOT 拼接 hosting domain/path。
+- 命中 trust root 只回答“这个稳定身份是否可作为信任根”，不提供公钥或解析地址，也不证明控制权。密码学验证仍 MUST 消费候选 `did` / verification-method DID URL 以及受批准 resolver、witness/watcher、离线 bundle或已接受 binding 提供的 method evidence，并验证 `project(did) == matched trust_root`。调用点若只有 `did_core_id`、没有可验证的 `did` / key binding / method evidence，MUST fail closed，不得从 Core ID 反向拼造 DID。
 - 除非 policy 明确允许该 method 与 trust root，否则客户端 MUST NOT 通过公共 resolver 端点解析内部主体。
 - 内部 DID Document 与 method 历史 MUST 从受批准的 resolver / witness / watcher / 离线 bundle 获取。
 - 仅当 policy 允许且权限链已验证时，MAY 为外部协作方接受公共 DID 方法。
-- 当 `public_resolver_allowed:false` 时，`did:plc` 等本质依赖公共 directory 的方法 MUST NOT 直接查询公共 PLC directory；其 DID Document 与操作历史 MUST 经受批准的 PLC mirror、审计日志 source 或离线 bundle 解析（与上条内部主体同一约束）。无可用受批准来源时 MUST fail closed，不得回退到公共 resolver。
+- policy 不允许公共 resolver 时，`did:plc` 等本质依赖公共 directory 的方法 MUST NOT 直接查询公共 PLC directory；其 DID Document 与操作历史 MUST 经受批准的 PLC mirror、审计日志 source 或离线 bundle 解析（与上条内部主体同一约束）。无可用受批准来源时 MUST fail closed，不得回退到公共 resolver。
 - 涉及关联风险的外部协作 SHOULD 使用 pairwise DID。
 - 指向公共 Station sync surface / Directory 的 经 method 验证的 DID 服务入口 或 bootstrap hint 在未 allowlist 时 MUST 被忽略；DID Document service endpoint 也不得绕过该规则。
 
-**`did:key` 的 `ephemeral_only` enforcement 语义（normative）**：`method_policy` 把某 method（默认 `did:key`）设为 `ephemeral_only` 时，该取值是可测试约束而非口号。落入 `ephemeral_only` 的 DID **MUST NOT** 被用作：
+**`did:key` 的 `ephemeral_only` enforcement 语义（normative）**：resolver policy 把某 method（默认 `did:key`）限定为 `ephemeral_only`（只允许 ephemeral 用途）时，该限定是可测试约束而非口号。落入 `ephemeral_only` 的 DID **MUST NOT** 被用作：
 
 - principal-level `ak.capability.grant` 的 grant subject；
 - 跨 epoch 的 membership key（即作为 `ak.member.state` 的长期 `actor_id` 跨越 MLS epoch rotation 或 RealmCommit epoch 持续有效）；
@@ -201,7 +172,7 @@ Sovereign 部署 MUST 在内部使用既有 DID 方法。组织与服务主体 S
 
 `ephemeral_only` DID **只能**作为 per-session / per-device 的 ephemeral binding 出现（一次会话或一台设备生命周期内的临时凭据 / 临时签名 key），其有效期不得跨越所绑定 session / device 的生命周期。reducer 收到以 `ephemeral_only` DID 为 principal-level grant subject 或跨 epoch membership key 的写入时 MUST fail closed。
 
-这与 [`client-sync.md` §8.1](./client-sync.md) 中"高隐私 Realm MAY 用 Realm-scoped pairwise `did:key` 作 `actor_id`"协调：作为**长期 membership key 的 pairwise DID** 不属于 `ephemeral_only`，MUST 由 `did:webvh` 派生（可持久解析、可轮换、可撤销），或在 `method_policy` 中对该用途**显式豁免**（例如把承载长期 pairwise membership 的 method 标为 `allowlist` 而非 `ephemeral_only`）。纯 per-session 或按单一 device scope 派生的临时 pairwise **principal DID** 不需要该豁免；这不会使设备自身成为 DID 主体。
+这与 [`client-sync.md` §8.1](./client-sync.md) 中"高隐私 Realm MAY 用 Realm-scoped pairwise `did:key` 作 `actor_id`"协调：作为**长期 membership key 的 pairwise DID** 不属于 `ephemeral_only`，MUST 由 `did:webvh` 派生（可持久解析、可轮换、可撤销），或由 resolver policy 对该用途**显式豁免**（不把承载长期 pairwise membership 的 method 限定为 `ephemeral_only`）。纯 per-session 或按单一 device scope 派生的临时 pairwise **principal DID** 不需要该豁免；这不会使设备自身成为 DID 主体。
 
 ### 3.2 五个正交边界
 

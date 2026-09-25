@@ -716,11 +716,11 @@ Markdown 链接。客户端 reducer 可从 Message content AST 派生 mention �
 目标 Realm policy 授权。
 
 
-Agent 不要求拥有公开 handle。v1 仅允许已授权 picker 从已知完整 Agent `subject_account_id` 构造普通结构化 mention；picker MAY 展示经当前 `ak.schema.agent_selector_claim.v1` 与该 AccountId 逐字节校验的 controller-scoped `agent_slug` label。claim 的 `visibility` / `audience` 必须允许该 requester 与当前 Realm 的 `intent="mention"`，并检查 Agent active lifecycle、Agent Profile 分类和已验证 accountability；没有通过校验的 label 不显示为 verified，也不能参与目标选择。已知 AccountId 仍需独立满足 Message effective scope 的成员、历史可读性及 Agent gate；label 不授予这些权限。
+Agent 不要求拥有公开 handle。v1 仅允许已授权 picker 从已知完整 Agent `subject_account_id` 构造普通结构化 mention；picker MAY 展示经当前 `agent_selector_claim` typed current 与该 AccountId 逐字节校验的 controller-scoped `agent_slug` label。该值的 `visibility` / `audience` 必须允许该 requester 与当前 Realm 的 `intent="mention"`，并检查 Agent active lifecycle、Agent Profile 分类和已验证 accountability；没有通过校验的 label 不显示为 verified，也不能参与目标选择。已知 AccountId 仍需独立满足 Message effective scope 的成员、历史可读性及 Agent gate；label 不授予这些权限。
 
 自由文本 `@<controller-handle>/<agent_slug>` 在 v1 **不是** Agent mention 输入别名。客户端 MUST NOT 用 controller handle、slug、roster/Profile hint、某一 Station 的 selector current 行或本地 Event/cache 猜出完整 Agent AccountId，也不得恢复旧 transport convenience／未登记 Directory resolve。原因是 selector namespace 只有 `(controller principal, agent_slug)`，而同 principal 在不同 Station 的 Account/PCR 独立；现行协议没有跨 Station 完整 current 候选集与 absence proof，单站读数不能证明全局唯一。未解析 token MAY 保留为普通文本，但 MUST NOT 生成 mention 节点、Agent selector metadata 或定向通知。已知目标 picker 成功后，mention 节点的 `subject_account_id` MUST 逐字节来自该获授权完整 AccountId，不得从裸 principal、controller handle Station、DID 默认 Station 或当前 authoring Station 重建。服务端 / reducer / dispatcher 对已提交事件仍只信任 `subject_account_id` 与已验证 agent/accountability/provisioning 状态，不信任 `mention_text_original`。
 
-任何跨 roster / Directory / bridge 的已知 Agent label 披露仍须反枚举：只有请求者已与目标共享可见 scope，或当前 selector claim `visibility="public"`／`audience` 明确授权该 requester 与 `intent="mention"`，才可展示 slug/claim。未授权、claim 不存在、controller 不可见、过期、撤销或冲突一律不泄露该 label，不得用错误形态探测 Agent 是否存在。本规则不注册一个以 slug 为检索键的公开目录或跨 Station resolver。
+任何跨 roster / Directory / bridge 的已知 Agent label 披露仍须反枚举：只有请求者已与目标共享可见 scope，或当前 selector 值 `visibility="public"`／`audience` 明确授权该 requester 与 `intent="mention"`，才可展示 slug。未授权、绑定不存在、controller 不可见、Agent 已停用或撤销、或冲突一律不泄露该 label，不得用错误形态探测 Agent 是否存在。本规则不注册一个以 slug 为检索键的公开目录或跨 Station resolver。
 
 结构化 mention 节点唯一的 wire 承载位置是所属 Content Block 的 `mentions[]` 数组（schema `$defs.mention_node`，见 [content-types.md](./content-types.md)）。节点形态（与 [`identity/identity-handles.md` §3.8.1](../identity/identity-handles.md) normative shape 对齐）：
 

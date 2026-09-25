@@ -124,7 +124,7 @@
     },
     "agent_slug": {
       "$ref": "string-profiles.schema.json#/$defs/agent_slug",
-      "description": "Required controller-scoped Agent label slug. Used only to verify or display an already-known authorized full Agent AccountId; not a free-text mention address, global handle, or authorization subject. Provisioning services MUST issue or update a ak.schema.agent_selector_claim.v1."
+      "description": "Required controller-scoped Agent label slug. Used only to verify or display an already-known authorized full Agent AccountId; not a free-text mention address, global handle, or authorization subject. The accepted ak.agent.provision is the only writer of the agent_selector_claim typed current result that binds this label."
     },
     "base64url": {
       "type": "string",

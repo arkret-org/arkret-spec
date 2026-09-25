@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-23.1",
+  "version": "2026-09-25.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-23T22:32:19+08:00",
+  "generated_at": "2026-09-25T19:50:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Closed typed current-result families derived from authority-committed Events. Selectors are domain types, never alternate typed current result IDs. Each row also records its CONSUMPTION: consumption.class is one of the consumption_classes below, consumption.consumed_by names the zh prose sections that read the current value, and consumption.note says what is read and to decide what. check_every_result_family_has_a_writer closes the writer direction; this ledger is the reader direction, which had no gate and no record. consumed_by is non-empty for every class except record_only, and a record_only row's note MUST name the section that states the family's purpose so the classification is checkable rather than an absence of evidence. Citations resolve through check_artifact_prose_section_refs.",
@@ -32,17 +32,6 @@
           "discovery/discovery-directory.md §3.2"
         ],
         "note": "Directory results and exact resolve draw the Realm metadata they may disclose from this projection; the preview policy bounds which of its fields are released."
-      }
-    },
-    {
-      "result_kind": "realm_policy",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_policy_result",
-      "consumption": {
-        "class": "admission_input",
-        "consumed_by": [
-          "governance/join-policy.md §2"
-        ],
-        "note": "Entry-rule evaluation resolves the Realm's current policy reference before deciding whether a join is admissible."
       }
     },
     {
@@ -265,15 +254,6 @@
           "crypto-media/call-state.md §4.1"
         ],
         "note": "A moderator's forced mute drives server-side media permissions through this durable projection rather than through ephemeral signaling."
-      }
-    },
-    {
-      "result_kind": "call_summary",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_summary_result",
-      "consumption": {
-        "class": "record_only",
-        "consumed_by": [],
-        "note": "crypto-media/call-state.md §7 states its purpose: a durable record of a finished call that a client can read without replaying ephemeral signaling. No v1 rule is conditioned on it -- the reducer checks the summary against call_state, never the other way round."
       }
     },
     {
@@ -609,17 +589,6 @@
       }
     },
     {
-      "result_kind": "organization_discovery",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/organization_discovery_result",
-      "consumption": {
-        "class": "delivery_input",
-        "consumed_by": [
-          "discovery/discovery-directory.md §4"
-        ],
-        "note": "The directory only indexes an Organization that has self-declared discoverability here."
-      }
-    },
-    {
       "result_kind": "organization_moderation_policy",
       "schema_ref": "schemas/typed-current-result.schema.json#/$defs/organization_moderation_policy_result",
       "consumption": {
@@ -794,17 +763,6 @@
       }
     },
     {
-      "result_kind": "actor_discovery",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/actor_discovery_result",
-      "consumption": {
-        "class": "delivery_input",
-        "consumed_by": [
-          "discovery/discovery-directory.md §4"
-        ],
-        "note": "Directory indexing reads the Actor self-declared discovery value."
-      }
-    },
-    {
       "result_kind": "agent_action_approval",
       "schema_ref": "schemas/typed-current-result.schema.json#/$defs/agent_action_approval_result",
       "consumption": {
@@ -846,28 +804,6 @@
           "extensions/applet-schema.md §1"
         ],
         "note": "Profile, namespace, webhook and requested-scope decisions read the accepted registration snapshot."
-      }
-    },
-    {
-      "result_kind": "container_position",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/container_position_result",
-      "consumption": {
-        "class": "admission_input",
-        "consumed_by": [
-          "conformance/encoding.md §9.1"
-        ],
-        "note": "Position-change CAS and rebalance completeness are evaluated against current per-item positions."
-      }
-    },
-    {
-      "result_kind": "handle_discovery",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/handle_discovery_result",
-      "consumption": {
-        "class": "delivery_input",
-        "consumed_by": [
-          "discovery/discovery-directory.md §4"
-        ],
-        "note": "Directory indexing reads the canonical handle discovery declaration."
       }
     },
     {
@@ -989,17 +925,6 @@
           "models/sidecar.md §§2-5"
         ],
         "note": "Sidecar-scoped admission reads existence, controller, Realm and lifecycle state before accepting private-stream Events."
-      }
-    },
-    {
-      "result_kind": "sovereign_did_policy",
-      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/sovereign_did_policy_result",
-      "consumption": {
-        "class": "admission_input",
-        "consumed_by": [
-          "identity/identity-did.md §3.6"
-        ],
-        "note": "DID resolution and proof admission read the trust-domain method allowlist and root policy."
       }
     },
     {

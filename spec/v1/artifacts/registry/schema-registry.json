@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-25.3",
+  "version": "2026-09-25.4",
   "source_of_truth": false,
-  "generated_at": "2026-09-25T16:25:00+08:00",
+  "generated_at": "2026-09-25T19:50:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -242,12 +242,6 @@
       "file": "schemas/agent-requested-scope-disclosure.schema.json",
       "status": "active",
       "description": "Controller-signed, verifier-bound private disclosure of an Agent's immutable requested_scope; the public Agent DID carries only its commitment digest."
-    },
-    {
-      "schema_id": "ak.schema.agent_selector_claim.v1",
-      "file": "schemas/agent-selector-claim.schema.json",
-      "status": "active",
-      "description": "Signed controller-scoped Agent label claim for verification of an already-known full Agent AccountId; not a free-text mention resolver."
     },
     {
       "schema_id": "ak.schema.agent_sidecar.v1",
@@ -1410,18 +1404,6 @@
     {
       "schema_id": "ak.schema.relation.v1",
       "file": "schemas/relation.schema.json"
-    },
-    {
-      "schema_id": "ak.schema.resource_discovery_state.v1",
-      "file": "schemas/event-payload.schema.json",
-      "fragment": "#/$defs/resource_discovery_state",
-      "status": "active",
-      "description": "Closed SDK-facing union at schemas/event-payload.schema.json#/$defs/resource_discovery_state over the exact Actor, Applet, and Handle discovery-state Event payloads.",
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "generic SDK consumer projection over the three exact resource discovery-state Event payloads",
-        "normative_ref": "zh/discovery/discovery-directory.md#2-可索引条件normative"
-      }
     },
     {
       "schema_id": "ak.schema.resource_selector.v1",

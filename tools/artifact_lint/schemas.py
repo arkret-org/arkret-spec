@@ -2396,11 +2396,6 @@ def check_composite_subject_terminal_types(
                     source = component.get("field")
                     if source == "envelope.actor_id":
                         continue
-                    if source == "item.item_ref" and kind == "ak.container.rebalance":
-                        # The exact bounded for_each contract is closed by
-                        # proof_context_schemas. Its item schema is
-                        # positions[].items.item_ref, a closed object_ref.
-                        continue
                     if not isinstance(source, str) or not source.startswith("payload."):
                         lint.fail(
                             event_registry_path,

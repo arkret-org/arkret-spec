@@ -109,7 +109,6 @@ vector MUST 使用同一 active 集合；owner 的 `schema_ref` / `profile_id` �
 | `ak.schema.realm.v1` | Realm |
 | `ak.schema.space.v1` | Space |
 | `ak.schema.actor_profile.v1` | Actor Profile |
-| `ak.schema.agent_selector_claim.v1` | Controller-scoped Agent selector claim |
 | `ak.schema.circle.v1` | Circle (intra-Realm scoped event/message boundary; see [`../models/circle.md`](../models/circle.md)) |
 | `ak.schema.agent_sidecar.v1` | Agent Sidecar (controller-owned private AI workspace; see [`../models/sidecar.md`](../models/sidecar.md)) |
 | `ak.schema.agent_sidecar_view_state.v1` | Controller-private encrypted per-context Sidecar display/view state (see [`../models/sidecar.md` §7](../models/sidecar.md)) |
@@ -192,7 +191,6 @@ Signal plaintext payload kind（`ak.presence` / `ak.typing` / `ak.receipt.read` 
 | `ak.realm.history_access` | History visibility state |
 | `ak.realm.discovery` | Discoverability state |
 | `ak.realm.preview_policy` | Preview / peek policy state |
-| `ak.realm.policy` | Closed reference to one independently defined Policy object (`payload.value.policy_id`); inline Realm facets use `ak.realm.policy_bundle` or their dedicated Event kinds |
 | `ak.realm.read_receipt_policy` | Realm read receipt disclosure policy state |
 | `ak.realm.tombstone` | Terminal Realm tombstone or replacement marker |
 | `ak.realm.archive` | Reversible archive state |
@@ -222,8 +220,6 @@ Signal plaintext payload kind（`ak.presence` / `ak.typing` / `ak.receipt.read` 
 | `ak.morph.update` | Morph patch |
 | `ak.morph.archive` | Morph archive |
 | `ak.morph.restore` | Morph restore |
-| `ak.container.move_item` | Profile-declared container item move |
-| `ak.container.rebalance` | Profile-declared container rank rebalance |
 | `ak.message.create` | Message create |
 | `ak.message.revise` | Message edit patch |
 | `ak.message.redact` | Message-scoped redaction |
@@ -248,7 +244,6 @@ Signal plaintext payload kind（`ak.presence` / `ak.typing` / `ak.receipt.read` 
 | `ak.session.grant` | Session grant |
 | `ak.device.authorize` | Device authorization |
 | `ak.device.revoke` | Device revocation |
-| `ak.device.list_update` | Device list update |
 
 ### 4.4 加密、协作与扩展
 

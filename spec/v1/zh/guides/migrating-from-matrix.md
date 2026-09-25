@@ -162,7 +162,7 @@ Matrix to-device 验证（SAS / QR）成功后，客户端实现常常顺势把�
 | 操作 | Arkret 允许产出 | Arkret 不自动产出 |
 | --- | --- | --- |
 | 登录因子验证（密码 / passkey / OIDC / SSO） | 短期 `ak.session.grant`、触发 recovery、请求已授权设备授权 | 长期 device、`ak.device.authorize`、E2EE 历史密钥访问 |
-| 设备授权 | `ak.device.authorize`、DID key-log operation、`ak.device.list_update`、MLS Welcome 资格 | 仅凭密码 / SSO 通过即视作设备授权 |
+| 设备授权 | `ak.device.authorize`、DID key-log operation、MLS Welcome 资格 | 仅凭密码 / SSO 通过即视作设备授权 |
 | 设备信任确认（pairing 短码 / pairing 二维码 / 配对链接） | §10.1 的 verification checkpoint 与一次性 pairing transcript | 长期 device grant、Realm capability、登录态 |
 
 Arkret v1 没有 `m.key.verification` 对应的 to-device 消息族、SAS 算法协商或独立的 verification 二维码。同一 principal 的新设备只走一次 pairing ceremony：新设备同时展示 8 位短码、pairing 二维码与配对链接，已授权设备扫码、输码或粘贴链接后核对短码并批准，绑定规则见 [`crypto-media/device-lifecycle.md`](../crypto-media/device-lifecycle.md) §2.1.1 / §2.1.2：
@@ -248,7 +248,7 @@ Matrix event envelope 顶层有 `state_key` 字段，state event 用 `(type, sta
 
 ### 6.2 没有 `ak.realm.policy.set` 这种聚合 kind
 
-Matrix 把所有 room 配置塞进 `m.room.*` 一组同 type、不同 state_key 的事件（power_levels、join_rules、history_access 等共享同一 prefix）。Arkret v1 把每个配置 facet 拆成独立 kind：`ak.realm.policy`、`ak.realm.join_rule`、`ak.realm.history_access`、`ak.realm.discovery`、`ak.realm.media_service`、`ak.realm.archive`、`ak.realm.tombstone` 等；完整 active kind 集合以 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 为权威源。
+Matrix 把所有 room 配置塞进 `m.room.*` 一组同 type、不同 state_key 的事件（power_levels、join_rules、history_access 等共享同一 prefix）。Arkret v1 把每个配置 facet 拆成独立 kind：`ak.realm.policy_bundle`、`ak.realm.join_rule`、`ak.realm.history_access`、`ak.realm.discovery`、`ak.realm.media_service`、`ak.realm.archive`、`ak.realm.tombstone` 等；完整 active kind 集合以 [`event-kind-registry.json`](../../artifacts/registry/event-kind-registry.json) 为权威源。
 
 **理由**：聚合 kind 没有真实共享：每个 facet 有不同的 capability tier、auth refs、payload schema、reducer 行为。把它们绑成一个 kind 只是 Matrix wire 字段限制的产物，不反映任何模型上的共性。Arkret 的 per-facet kind 让 schema 路由更直、capability 矩阵更清楚、未来 facet 演进可独立版本化。
 
