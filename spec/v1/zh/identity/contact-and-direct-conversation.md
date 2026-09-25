@@ -220,7 +220,13 @@ outgoing_slot_absence_transcript = {
 normal request receipt 和 pair 按本节公式重算。`slot_predecessor` 字段永远存在：genesis slot 使用 JSON `null`，
 否则使用刚被 CAS 消费的 exact predecessor digest，禁止省略、空字符串或零摘要。`cas_sequence` 从 1 开始；
 `cas_revision` 非空、无重复并按 EventId unsigned UTF-8 bytes 严格升序，且精确表示该 CAS 观察点，不得替换为数据库
-行号、map iteration、当前全局 checkpoint 或后来的 checkpoint。`observed_at` 必须逐字等于 receipt 的 `accepted_at`；
+行号、map iteration、当前全局 checkpoint 或后来的 checkpoint。**成员集（normative）**：每个 `(owner, peer)` request
+slot 在接纳其每次 CAS 的同一事务中耐久保存该 slot 的 accepted Contact Event 前缀，即历次 CAS 接纳的 EventId：owner
+自己的 `ak.contact.request`、owner 以 normal response 消费的对端 request，以及该 response 自身；reject、scope 更新与
+tombstone 不改变 slot。`cas_revision` 恰为本次 CAS 前的 slot 前缀 ∪ {被消费的 `request_event_ref`}，responder 的
+Station 在接纳事务内从锁定的 slot 行重算并逐字比较，不符以 `contact_lineage_conflict` 零写入拒绝；该 response 被接纳后
+slot 前缀变为 `cas_revision` ∪ {response EventId}。receipt 只携 `outgoing_slot_absence_digest`，其它验证方只验签，不
+重算成员集。前缀随 slot 累积，recontact 后含前几轮已接纳的 Event，不是本 round 的 request 集合。`observed_at` 必须逐字等于 receipt 的 `accepted_at`；
 `outgoing_request_state` 唯一合法值是字符串 `"absent"`，不存在 null、false、空对象或省略编码。字段名、字段集合和
 JCS bytes 必须精确匹配；旧 checkpoint、pair/round 对调、任何字段遗漏或非 canonical JSON 都必须拒绝。上述正反
 known-answer vectors 与 round vectors 同在 `contact-round-kat.json`。
@@ -255,8 +261,13 @@ checkpoint，从而丢失「各自独立观察到自己的 slot 未被消费」�
 `request_receipt_digests` 恰含两项，排序键与 `contact_round` 的 `requests` 相同：按各自
 `request_event_ref` 的 UTF-8 bytes 无符号严格升序，**不是**按摘要本身排序。
 `observed_commit_event_ids` 非空、无重复，并按 EventId UTF-8 bytes 无符号严格升序；它精确表示该 Station 在
-判定并发时观察到的 commit 前缀，不得替换为数据库行号、map iteration 顺序或事后的 checkpoint。
-`complete_through` 是被本次 CAS 接纳的本地 slot 序号。`slot_state` 唯一合法值是字符串
+判定并发时观察到的 commit 前缀，不得替换为数据库行号、map iteration 顺序或事后的 checkpoint。其成员集恰为签发方
+本方 request slot 的 accepted Contact Event 前缀（与上文 `cas_revision` 同一定义，已含本方 request）∪ {对端
+`request_event_ref`}。
+`complete_through` 是被本次 CAS 接纳的本地 slot 序号，即本方 slot 当前 accepted 序号，且 MUST 等于本方 request 的
+`slot_version`（本方 request 尚未被任何 CAS 消费，否则不得签发 attestation）。接收方（对端 Station 与 Direct
+Conversation founding 验证方）只校验排序、无重复、同时含两条 `request_event_ref` 与 `complete_through ≥ 1`；它看不到
+签发方的 slot 行，MUST NOT 要求该数组恰为或只含两条 request ref。`slot_state` 唯一合法值是字符串
 `"pending_unconsumed"`，不存在 null、false、空对象或省略编码。字段名、字段集合与 JCS bytes 必须精确匹配。
 包含 domain、LF prefix、canonical transcript、完整摘要输入与输出的逐字节向量见
 [`canonical-json-digest-kat-fixture.json`](../../artifacts/fixtures/canonical-json-digest-kat-fixture.json)。
