@@ -80,7 +80,8 @@ Realm、每个 Circle、每个 Sidecar 分别拥有独立 commit stream。当前
   （`ak.redaction`）选择该对象上的 redaction 断言集合
   （见 [`../models/event-and-patch.md` §4.2.4](../models/event-and-patch.md)）；两种拼法各自成 subject，
   从不合并；值是 `keyed-set projection` 的 dot 集合，两个 kind **都只能 `keyed_set_add`**——
-  同一对象上可以并存多条 redaction，协议不为它们定义任何排序或择一规则，
+  同一对象上可以并存多条 redaction，协议不为它们定义任何排序或择一规则（`ak.message.redact` 的 Message
+  主体是例外：撤回是 Message 终态，至多一个 dot，见 [`../models/strand-and-message.md` §9.5.1](../models/strand-and-message.md)），
   因此这里既没有"最后一条生效"也没有单值 `redaction_ref`；`ak:event:` 目标只裁剪该 Event 自身；
 - `applet_discovery`：以 AppletId 选择该 Applet 的 discovery 设置，整体置换封闭 value，
   Directory 仍须独立验证 `resource_kind` 与 `directory_ids[]`；
@@ -220,6 +221,14 @@ selector 的身份字段来自已接纳 Event 的 typed payload，不得由调�
 领域写操作需要并发保护时，payload 使用该领域定义的 `expected_revision`。Station 只在它与当前 typed revision
 逐字段相等时接纳；不相等返回 `failed_precondition` 并提供调用者有权读取的 current result。首次创建可使用该领域
 schema 明确允许的 `null`，不得使用字符串哨兵或通用条件表达式。
+
+**`expected_state_digest` 的摘要输入（normative）**：以 `expected_state_digest` 声明前态的 kind（`actor_profile`、
+Realm authority root、View、Morph、Circle、Space、Strand、Relation 等单值 family）一律使用同一算法：
+`expected_state_digest = "sha256:" || lowercase_hex(SHA-256(RFC8785_JCS(v)))`，其中 `v` 是接纳事务冻结的该
+typed current result 的**完整当前 value**，逐字等于其 `value_schema_ref` 下的物化值（含 reducer 派生成员，
+不含 `revision`、`source_stream_ref` 或 selector），摘要输入**不加** domain 前缀。不相等时以不带 `reason_code`
+的 `failed_precondition` 零写入拒绝，除非该 kind 的正文另行登记了专用 reason。keyed-set family
+（`actor_profile_realm_override`、`member_identity_updates`）的前态是读侧 fold，不在本条范围内。
 
 ### 2.1 生命周期轴与转换合同
 

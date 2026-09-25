@@ -136,7 +136,7 @@ Schema id: `ak.schema.actor_profile.v1`
 
 因此 reducer **MUST** 校验:
 
-1. 写入 / 更新 `Actor Profile.accountable_principal_ids[]` 的 Event 提交时，reducer MUST 对数组中**每个** DID 检查是否存在已 committed 的问责记录，其 `issuer_id = <该 DID>`、`subject_id = profile.principal_id`、`grant_status = "active"`、`not_before <= now`，且若声明了 `expires_at` 则 `now <= expires_at`。**该记录有两个已登记来源，MUST 同时接受**（见下面的「问责记录只有一条，来源有两个」）：独立的 `ak.identity.accountability_grant`，以及 `ak.agent.provision` 的原子问责投影。MUST NOT 只搜索通用 kind。grant proof 使用 accepted auth-state / issuer key binding 验证；只有首次接受新 issuer / key、binding invalidation 或显式 freshness 触发时才解析 DID，不得在每次 profile replay 时在线解析。
+1. 写入 / 更新 `Actor Profile.accountable_principal_ids[]` 的 Event 提交时，reducer MUST 对数组中**每个** DID 检查是否存在已 committed 的问责记录，其 `issuer_id = <该 DID>`、`subject_id = profile.principal_id`、`grant_status = "active"`、`not_before <= now`，且若声明了 `expires_at` 则 `now <= expires_at`。**该记录有两个已登记来源，MUST 同时接受**（见下面的「问责记录只有一条，来源有两个」）：独立的 `ak.identity.accountability_grant`，以及 `ak.agent.provision` 的原子问责投影。MUST NOT 只搜索通用 kind。判定时刻 `now` 是接纳该 profile Event 的 RealmCommit 的 `committed_at`（治理 Station 在分配该 Commit 的同一接纳事务内读取问责记录，并锁住所依赖的记录行，使并发撤销排在该 Commit 之前或之后）；Event 的 `created_at` 不参与该判定，因此预签的 profile Event 不能在问责撤销后借旧时间被接纳。问责记录只在 **issuer 的 Principal Control Realm** 中查找（两个来源都只写入那里，见下文）；issuer 的 PCR 不由接纳该 profile 的同一治理 Station 治理时，该 Station 读不到记录，结果即 `accountability_grant_missing`。同一 `(issuer, subject)` 的多个 exact-set 记录中任一满足条件即可。
 2. 任一 DID 条目不存在对应 active grant 时，reducer MUST 以 `failed_precondition`
    reason=`accountability_grant_missing` 拒绝整个 `ak.profile.create` / `ak.profile.update`
    Event，且不得写入或裁剪后写入 Actor Profile typed current result。该判定只依赖签名 payload 与冻结的
@@ -161,8 +161,10 @@ provision 原子投影问责事实，**后续独立变更仍使用通用 account
   输出固定为 `"sha256:" + lowercase_hex(SHA256(input))`。domain 不是 transcript 成员，构造方与验证方
   MUST NOT 直接摘要裸数组、保留来线数组顺序，或把输出改写为 Base64URL。逐字节向量见
   [`canonical-json-digest-kat-fixture.json`](../../artifacts/fixtures/canonical-json-digest-kat-fixture.json)。
-- **修改 provision 问责的通用 grant MUST 写入原 controller PCR 的同一个 typed current result。**
-  写入其它 Realm 是另一条记录，**不能**撤销原记录。完整 AccountId 的授权、Station 绑定与
+- **记录只存在于 issuer 的 PCR。** `ak.identity.accountability_grant` 的 `envelope.realm_id` MUST 是 issuer 的
+  Principal Control Realm，`envelope.actor_id` MUST 是 issuer 本人（`admission=self_authored_proof`）；
+  provision 的原子投影写入 controller（即 issuer）的 PCR。因此修改 provision 问责的通用 grant 落在原 controller
+  PCR 的同一个 typed current result。完整 AccountId 的授权、Station 绑定与
   issuer 签名检查仍各自独立执行；MUST NOT 用 principal 相同推导 Account 等价。
 - **canonical 业务值**固定为
   `{issuer_id, subject_id, accountability_scope（归一化排序数组）, not_before, expires_at?, grant_status}`。
@@ -178,7 +180,11 @@ provision 原子投影问责事实，**后续独立变更仍使用通用 account
   及其 accepted 证明承载；把 `event_id` 放进值会让语义完全相同的两个背书因来源不同变成异值，
   而无需把来源身份复制进业务值。读取与快照 MUST 保留 head 到源 Event 的
   可验证关联，MUST NOT 丢掉证据或任选一个来源。
-- 通用 grant 仍验证内层 issuer proof 与 Event proof；provision 只验证其已登记的 controller Event proof，
+- 通用 grant 仍验证内层 issuer proof 与 Event proof。内层 `proof` 的 verification method MUST 与该 Event 的
+  producer proof 是同一个 `<issuer DID>#ak:device:<device_id>` 设备方法，且该设备在接纳事务读取的 issuer PCR
+  同一 cut 上为 `active`；即 issuer 的「active authentication key」就是签发该 Event 的当前设备 key，按 Event
+  producer proof 的同一路径验证，不在线解析 DID，DID Document 的其它 authentication 方法不是 v1 问责 proof key。
+  provision 只验证其已登记的 controller Event proof，
   MUST NOT 伪造 detached accountability proof，也 MUST NOT 把 provision 冒充独立 grant Event。
 
 统一形状只消除**结构性伪差异**。不同 `not_before`、`expires_at` 或 `grant_status`
@@ -194,7 +200,7 @@ provision 原子投影问责事实，**后续独立变更仍使用通用 account
 | `not_before` | timestamp | 担保起始时间 |
 | `expires_at` | timestamp（可选） | 担保到期；过期后视作 unverified。缺省表示不设时间过期，由 `grant_status` 撤销与 controller lifecycle 级联治理;Agent 的 controller 自担保 SHOULD 缺省不声明 `expires_at`,避免静默失效悬崖（见 [`../identity/key-management.md` §3.6.1](../identity/key-management.md)） |
 | `grant_status` | enum(active, revoked) | issuer 主动 revoke 改为 `revoked` |
-| `proof` | object | 由 `issuer` 的 active authentication key 签发 |
+| `proof` | object | 由 `issuer` 在其 PCR 同 cut `active` 的设备 key 签发，与 Event producer proof 同一 verification method |
 
 完整机读形态由 [`accountability-grant.schema.json`](../../artifacts/schemas/accountability-grant.schema.json) 权威定义；payload 的 `schema` MUST 为 `ak.schema.accountability_grant.v1`。`proof.payload_digest` MUST 覆盖 `utf8("ak.accountability-grant-v1\n") || canonical_json(payload with proof omitted)`，且 verification method controller MUST 等于 `issuer`。
 

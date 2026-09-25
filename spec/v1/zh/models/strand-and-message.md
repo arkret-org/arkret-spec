@@ -861,6 +861,10 @@ canonical event log 不因此改变：全部历史 revision 仍保留在 revisio
 
 > 与撤回的交互：若 revision 与 redaction 同时存在，先按本节取 canonical revision，再按 §9.5 表「Message 撤回」行（redaction 优先）裁决可见性。
 
+**revise 不做编辑者间 CAS（normative）**：`message_revise_payload` 没有 `expected_revision`，这是有意语义：同一 chain 的并发编辑由治理 Station 串行为同一 stream 上的连续 position，position 较大的一条成为 canonical revision（本节第 1 条），较早的一条保留在 revision chain 中而不被拒绝。需要「基于过期前态的编辑必须失败」的产品语义不属于 v1 Message。
+
+**撤回是 Message 的终态（normative）**：`ak.message.redact` 被接纳后，该 Message 的 `ak:message:` 拼写 `object_redaction` 恰有一个 dot，`state=redacted` 且 `redaction_ref` 指向该 Event。此后以同一 `message_id` 为目标的 `ak.message.revise` 与第二条 `ak.message.redact` MUST 以不带 `reason_code` 的 `failed_precondition` 零写入拒绝（与 [`common-fields.md` §5.2](./common-fields.md) 对终态对象 lifecycle 写入的拒绝同一惯用法）；因此 Message 主体上的 `object_redaction` 至多一个 dot。其它对象经 `ak.redaction` 写入的多 dot 语义不受影响。
+
 ### 9.6 Ephemeral 信号
 
 以下高频交互状态 MUST NOT 作为持久化共享对象写入 Event 链：

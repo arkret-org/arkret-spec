@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-25.2",
-  "generated_at": "2026-09-25T19:50:00+08:00",
+  "version": "2026-09-26.1",
+  "generated_at": "2026-09-26T03:40:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -4389,16 +4389,6 @@
       ],
       "description": "A ak.member.identity.update declared a segment value outside the v1 core enum (member_identity). Receivers MUST reject unknown segment values until a schema / profile revision extends the enum. See zh/sync/client-sync.md §8.1.",
       "status": "active"
-    },
-    {
-      "code": "message_already_terminal",
-      "applies_to": [
-        "event_envelope",
-        "auth_decision"
-      ],
-      "description": "`ak.message.redact` / `ak.message.revise` / equivalent Message write rejected because the target Message is already in a terminal state (`redacted` or `deleted`). In particular, `ak.message.revise` targeting a terminal Message MUST be rejected with this reason_code.",
-      "status": "reserved",
-      "activation_condition": "Promote message_already_terminal to active only in the same release that adds a canonical machine producer path under spec/v1/artifacts outside reports and this registry."
     },
     {
       "code": "mimi_draft_unsupported",

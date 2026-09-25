@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-25.1",
+  "version": "2026-09-26.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-25T19:50:00+08:00",
+  "generated_at": "2026-09-26T03:40:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -49,7 +49,7 @@
     "Receivers MUST default to risk_tier=high when an action submitted in a grant or evaluated in policy is not present in this registry; this is the freshness fail-closed default required by capabilities.md §18.",
     "required_constraints lists typed-constraint shorthand names that the capability evaluator MUST enforce for the action regardless of the grant author's declarations; absence in this list does NOT disable other declared constraints.",
     "required_evaluator_checks lists non-grant-field invariants (for example actor_eq_target_author or audit_pair_required) that admission control MUST enforce from Event context, reducer state, or paired audit evidence. These are not grant-constraint schema fields.",
-    "target_event_kinds links the action to one or more ak.* event_kinds in event_kind_registry. Empty array means the action authorizes a read / projection / signaling path that does not produce a durable reducer-input event. Reducer admission for a listed event_kind MUST verify the actor holds at least one matching action grant.",
+    "target_event_kinds links the action to one or more ak.* event_kinds in event_kind_registry. Empty array means the action authorizes a read / projection / signaling path that does not produce a durable reducer-input event. Reducer admission for a listed event_kind MUST verify the actor holds at least one matching action grant, except for a root_control_only or subject_only action, whose authority is the registered root-control or subject binding, and except for the subject-bound branches the owning section registers for that event kind (the invitee decline and the joined inviter self-cancel of ak.invite.cancel, zh/models/governance-objects.md section 5.3).",
     "profile is null for v1 core actions, or a ak.profile.*.v<n> id when the action is only meaningful inside that profile. Receivers without the named profile MUST treat the action as unknown (risk_tier=high default).",
     "Every action MUST declare event_mapping_kind. action == single target_event_kind uses same_name; empty target_event_kinds uses non_event_surface; any other mapping MUST use one of the allowed deviation categories.",
     "grant_authority_actions lists the action ids an issuer holding this action MAY sign a grant for (capabilities.md section 3.2 issuer upper bound). It is a separate namespace from target_event_kinds, which only expresses direct Event admission: several actions can map to one event kind, so an event-kind subset MUST NOT be used to satisfy an action-level grant authority question.",
@@ -447,6 +447,8 @@
         "ak.invite.accept"
       ],
       "profile": null,
+      "subject_only": true,
+      "notes": "Subject-only self-service acceptance. The only authority is that the actor is the invitee of the target Invite (the stored invite_directed_invitee for a directed Invite, the claimed subject for a third-party Invite); an invitee is usually not yet a member and holds no grant, so admission never evaluates a capability and the action is excluded from every derived authority set (zh/models/governance-objects.md section 5.3).",
       "event_mapping_kind": "same_name"
     },
     {
@@ -458,6 +460,7 @@
         "ak.invite.cancel"
       ],
       "profile": null,
+      "notes": "Grants only the third-party cancellation branch of ak.invite.cancel (target_state=revoked by an actor that is not the inviter). The invitee declining (target_state=rejected) and the still-joined inviter cancelling its own Invite are authorized by the Invite's accepted binding alone and never evaluate this grant (zh/models/governance-objects.md section 5.3).",
       "event_mapping_kind": "same_name"
     },
     {

@@ -43,6 +43,19 @@ revision 的位置不晚于**该 stream** 的可见 head；不得从 selector �
 revision 所指 Commit 时还须逐字核对其 stream、commit id 与 position。落在获授权 history floor 之前的
 row 由当前治理 Station 的这份签名 snapshot 承诺，不能要求受限接收者下载不可见前史来补证；
 范围或坐标不一致时整份丢弃。
+
+**内容型与状态型 family 的披露（normative）**：「可向该请求者披露」按 family 性质分两类。
+`message_revision` 是 v1 唯一的内容型 family：它的 value 就是承载 Event 的 create／revise payload，即历史内容。
+它的 row 只在同时满足下列两条时进入 snapshot：(1) row 的 covering Commit（`revision` 所指）位于请求者在
+`source_stream_ref` 上的可读区间内，即不早于该 stream 的 caller readable floor（`since_join` 成员为其当前有效
+join Commit，见 [`../governance/history-visibility.md` §3.1](../governance/history-visibility.md)）——不满足时
+请求者本来也不能经 scan 读到承载该 value 的 Event；(2) 该 Message 没有 `ak:message:` 拼写的 `object_redaction`
+row——已撤回 Message 只下发其 `object_redaction` row，原 payload 不得经 snapshot 恢复
+（[`../models/strand-and-message.md` §9.5.1](../models/strand-and-message.md)）。其余 family 都是状态型，按
+membership 与 scope 可见性披露，不受 history floor 限制：Realm 共享状态向全部 joined 成员可见，floor 只约束
+内容历史。按 `snapshot_ref` 重取已签发 snapshot 时同样按请求者当前可读区间与当前撤回状态重验，已含不再可披露
+`message_revision` row 的 snapshot 对该请求者不可用。接收方 MUST 接受「只有 `object_redaction`、没有
+`message_revision` row」的 Message，也 MUST NOT 把 floor 以下 Message row 的缺席当作缺口。
 从 snapshot 边界之后的逐 stream tail 继续运行同一 typed reducer，不得用 generic patch、
 typed current result merge 或 wall-clock last-write-wins 修补差异。`current_state_entries: []` 仅在该 cut
 确实没有可披露 current row 时合法；它不是要求另取 chunk 的占位符，也不能证明隐藏 row 不存在。

@@ -49,11 +49,11 @@ recent tail；全历史是后续按需分页，不是 join 的前置条件。
 
 floor 不只是"更早的数据取不到"，它是该 caller 允许区间的下端，必须能被绑定到已接受的链上验证：
 `ak.self.committed_event.read.scan.v1` 的 `stream_scan_outcome.readable_floor` 给出 `oldest_position`、该位置的
-`floor_commit_id` 与 `floor_reason`（`stream_start` / `membership_join` / `history_access_policy`），窗口侧的对应形式是 `window_start_basis.anchor_kind=before_readable_floor`。
+`floor_commit_id` 与 `floor_reason`（`stream_start` / `membership_join` / `history_access_policy`）。窗口侧没有 floor 之前的状态锚点：起点恰为 floor（> 0）的逐流窗口不携带 `window_start_basis`、按 [`../sync/client-sync.md` §5.2](../sync/client-sync.md) 为 `preview_only=true`，起点在 floor 之后的窗口以已向该 caller 签发、head 不早于 floor 的 snapshot 作 committed-prefix basis。
 `since_join` 的成员因此**不必**拿到 position 0 才能验证其获准前缀完整；floor 处的 Commit 是唯一允许
 携带该 caller 无法解析的 `previous_commit_ref` 的可读行。
 
-`since_join` 的 floor 唯一确定如下，scan、Snapshot `retention_and_history_floor`、窗口 basis 锚点与客户端校验
+`since_join` 的 floor 唯一确定如下，scan、Snapshot `retention_and_history_floor`、窗口 `limited` 判定与客户端校验
 MUST 使用同一数值：
 
 1. 一般成员：`oldest_position` 是该 actor **当前有效** join Commit 自身的 position，`floor_reason=membership_join`，

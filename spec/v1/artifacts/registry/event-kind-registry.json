@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-25.3",
+  "version": "2026-09-26.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-25T19:50:00+08:00",
+  "generated_at": "2026-09-26T03:40:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -2760,7 +2760,7 @@
       "verb_form": "base",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Invite cancel. Directed invites only: the Event terminates the invite (rejected or revoked) and atomically releases the invite_live_target slot keyed by canonical_json(payload.invitee_account_id). payload.previous_state names the non-terminal state it moves out of. Both registered pre_state_requirements rows read the stored invite_directed_invitee record: an Invite with no stored invitee is a third-party or token invite and MUST be rejected with invite_kind_requires_revoke, and a stored invitee that is not byte-equal to the payload's is rejected with invite_directed_invitee_mismatch.",
+      "payload": "Invite cancel. Directed invites only: the Event terminates the invite (rejected or revoked) and atomically releases the invite_live_target slot keyed by canonical_json(payload.invitee_account_id). payload.previous_state names the non-terminal state it moves out of; a non-terminal frozen pre-state that differs from it is a bare failed_precondition with no reason_code. The invitee declining and the still-joined inviter cancelling are authorized by the Invite binding alone; only a third actor needs an ak.invite.cancel grant. Both registered pre_state_requirements rows read the stored invite_directed_invitee record: an Invite with no stored invitee is a third-party or token invite and MUST be rejected with invite_kind_requires_revoke, and a stored invitee that is not byte-equal to the payload's is rejected with invite_directed_invitee_mismatch.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/invite_cancel_payload",
       "id_source": "reference",
       "result_writes": [

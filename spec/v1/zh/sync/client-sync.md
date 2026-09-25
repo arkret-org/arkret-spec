@@ -166,7 +166,7 @@ arrival order 或缓存拼坐标。redacted／reference-locked row 不提供可�
 
 窗口上下文分为两类，不可互相冒充：`realm_sync_entry.state_at_window_start` 是 **Realm 级显示预览**（actor 显示行与 Realm metadata），`streams[].window_start_basis` 是**逐流的可验证重建材料**。显示预览 MUST NOT 被当作安全快照，它的存在 MUST NOT 清除任何一条流的 `preview_only`——一个 Realm 显示对象存在，不能把该 bucket 全部 Circle / Sidecar 的窗口都标成可重建。
 
-`window_start_basis` 只用于起点 position > 0 的窗口，绑定 exact Realm、exact `stream_ref`、状态所在的 exact 边界（`anchor_kind` + `anchor_position` + `anchor_commit_ref`）、承载该逐流 slice 的 authority-signed `realm-state-snapshot`（`snapshot_ref`）与其 `governance_generation`，以及重建该前缀所依赖的跨流授权依赖的 exact accepted references（`accepted_dependency_refs`，closed 四坐标 `committed_event_ref`）。列出这些引用不引入跨流总序，也不比较跨流位置。起点为 position 0 时无 basis，客户端从该流的 genesis Commit 开始验证连续链，该窗口不因无 basis 而成为 preview。窗口起点落在 caller 可读 floor 上且 floor > 0 时用 `anchor_kind=before_readable_floor`，受限成员**不必**拿到 position 0。
+`window_start_basis` 只用于起点 position > 0 的窗口，绑定 exact Realm、exact `stream_ref`、状态所在的 exact committed prefix（`anchor_position` + `anchor_commit_ref`：状态在该流直到并含该 Commit 的全部 Commit 之后成立）、承载该逐流 slice 的 authority-signed `realm-state-snapshot`（`snapshot_ref`）与其 `governance_generation`，以及重建该前缀所依赖的跨流授权依赖的 exact accepted references（`accepted_dependency_refs`，closed 四坐标 `committed_event_ref`）。列出这些引用不引入跨流总序，也不比较跨流位置。起点为 position 0 时无 basis，客户端从该流的 genesis Commit 开始验证连续链，该窗口不因无 basis 而成为 preview。窗口起点恰为 caller 可读 floor 且 floor > 0 时，caller 可读区间内不存在 floor 之前的 Commit，也就没有可向其签发的前缀状态，该流 MUST `preview_only=true`、不携带 basis；floor Commit 本身由 scan `readable_floor` 验证，受限成员**不必**拿到 position 0。起点在 floor 之后的窗口照常以 head 不早于 floor、已向该 caller 签发的 snapshot 作 basis。
 
 非 preview 窗口引用的 exact `snapshot_ref` 必须能由 [`ak.self.realm_state_snapshot.read.by_ref.v1`](./service-http-binding.md) 向同一认证账号取回原完整签名对象；当前 `/head` 即使来自同一 Realm 也不得替代旧 ref。own Station 必须从签发承载窗口的 Account stream cursor 起，至少保留该原对象至该 cursor 的 `expires_at`；该边界由 cursor 的 `issued_at`／`expires_at` 合同确定，实际 TTL 不得超过 stream cursor 的 7 天上限，不得误用 barrier cursor 的 1 小时上限。cursor wire 对客户端仍是不透明的，客户端无需解析其过期时刻。Station 若不能在该实际有效期内保留并向该账号披露原对象，必须对该逐流窗口改报 `preview_only=true`，且不得继续给出名义可验的 basis。客户端持久处理该帧之前必须取回并验证所需 basis，逐字核对请求 ref、Realm、snapshot 与 basis 的同一历史任期，并用 fresh current nonce-bound authority bundle 的历史链验证该任期当时的签名 Station；再按 [`realm-state-snapshot-schema.md` §4](../conformance/realm-state-snapshot-schema.md) 验证 current rows、heads、floors 和每流 tail。`readable_floor` 仅说明可读下界，不能补造 snapshot slice。
 
@@ -311,7 +311,7 @@ cursor 必须绑定 issuer、account/device、purpose、query-scope digest、exp
 
 #### 12.3.3 历史完整性边界（两分支共用）
 
-客户端验证每条可见 stream 的 Commit连续性、snapshot head和tail衔接。Retention/history floor之前的数据不可得不构成 gap；floor之后无法解释的 position跳跃必须停止该 stream并重取 snapshot/bundle。受限历史的下边界必须可验证而不是只能推断：`ak.self.committed_event.read.scan.v1` 的 `stream_scan_outcome.readable_floor` 给出 `oldest_position` 与该位置的 `floor_commit_id`，`window_start_basis.anchor_kind=before_readable_floor` 给出同一边界在窗口侧的 anchor，两者都把允许区间的下端绑定到已接受的链上，且都不要求 caller 持有 position 0。该 anchor 只证明获准前缀从哪里开始，不证明 Station 没有更早历史或更新的更新。
+客户端验证每条可见 stream 的 Commit连续性、snapshot head和tail衔接。Retention/history floor之前的数据不可得不构成 gap；floor之后无法解释的 position跳跃必须停止该 stream并重取 snapshot/bundle。受限历史的下边界必须可验证而不是只能推断：`ak.self.committed_event.read.scan.v1` 的 `stream_scan_outcome.readable_floor` 给出 `oldest_position` 与该位置的 `floor_commit_id`，它把允许区间的下端绑定到已接受的链上，且不要求 caller 持有 position 0；Snapshot `retention_and_history_floor` 携带同一数值。该 floor 只证明获准前缀从哪里开始，不证明 Station 没有更早历史或更新的更新。
 
 ## 13. Initial Sync
 

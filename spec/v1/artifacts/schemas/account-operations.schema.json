@@ -1637,7 +1637,7 @@
                       "properties": {
                         "object": {
                           "propertyNames": {
-                            "pattern": "^(schema|realm_id|principal_id|actor_kind|display_name|avatar_blob_ref|profile_fields|created_at)$"
+                            "pattern": "^(principal_id|actor_kind|display_name|avatar_blob_ref|profile_fields)$"
                           }
                         }
                       },

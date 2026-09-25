@@ -3700,7 +3700,7 @@
         "reason_code": {
           "type": "string",
           "pattern": "^[a-z][a-z0-9_]{0,63}$",
-          "description": "Stable machine-readable diagnostic for the terminal transition this Event carries. Required by zh/models/governance-objects.md section 5 for every non-pending state write. Values that cross service or federation boundaries MUST be registered in error-code-registry.json reason_codes; reason stays free text for humans."
+          "description": "Optional supplementary diagnostic for the transition this Event carries. The cause is already fixed by the Event kind and target_state (zh/models/governance-objects.md section 5.3), so admission never decides legality from it. Values that cross service or federation boundaries MUST be registered in error-code-registry.json reason_codes; reason stays free text for humans."
         },
         "reason": {
           "type": "string"
@@ -3750,7 +3750,7 @@
         "reason_code": {
           "type": "string",
           "pattern": "^[a-z][a-z0-9_]{0,63}$",
-          "description": "Stable machine-readable diagnostic for the terminal transition this Event carries. Required by zh/models/governance-objects.md section 5 for every non-pending state write. Values that cross service or federation boundaries MUST be registered in error-code-registry.json reason_codes; reason stays free text for humans."
+          "description": "Optional supplementary diagnostic for the transition this Event carries. The cause is already fixed by the Event kind and target_state (zh/models/governance-objects.md section 5.3), so admission never decides legality from it. Values that cross service or federation boundaries MUST be registered in error-code-registry.json reason_codes; reason stays free text for humans."
         },
         "reason": {
           "type": "string"

@@ -801,29 +801,22 @@
         },
         "window_start_basis": {
           "type": "object",
-          "description": "Verifiable material only for THIS stream window starting after position 0. It names the exact boundary and an authority-signed realm-state-snapshot slice; the server must retain the exact snapshot throughout the actual lifetime of the Account stream cursor carrying the window (issued_at through expires_at, at most 7 days), while current disclosure authorization still applies. The client fetches and verifies the basis before persisting the Account frame. Without sufficient basis, this stream is preview_only regardless of limited. A position-0 window has no basis and starts verification at genesis. No cross-stream order or typed-current client reconstruction is implied.",
+          "description": "Verifiable material only for THIS stream window starting after position 0. It names the exact committed prefix the state is valid after (all Commits of THIS stream through anchor_position) and an authority-signed realm-state-snapshot slice whose head on THIS stream is that Commit; the server must retain the exact snapshot throughout the actual lifetime of the Account stream cursor carrying the window (issued_at through expires_at, at most 7 days), while current disclosure authorization still applies. The client fetches and verifies the basis before persisting the Account frame. Without sufficient basis, this stream is preview_only regardless of limited. A position-0 window has no basis and starts verification at genesis. No cross-stream order or typed-current client reconstruction is implied.",
           "required": [
-            "anchor_kind",
+            "anchor_position",
+            "anchor_commit_ref",
             "snapshot_ref",
             "governance_generation"
           ],
           "properties": {
-            "anchor_kind": {
-              "type": "string",
-              "description": "Boundary the state is valid at: after_committed_prefix is after all Commits through anchor_position; before_readable_floor is immediately before the caller readable floor Commit named by anchor_commit_ref. A position-0 window has no basis or anchor_kind.",
-              "enum": [
-                "after_committed_prefix",
-                "before_readable_floor"
-              ]
-            },
             "anchor_position": {
               "type": "integer",
               "minimum": 0,
-              "description": "stream_position of anchor_commit_ref on THIS stream. Required for both anchor kinds. Positions are never compared across streams."
+              "description": "stream_position of anchor_commit_ref on THIS stream; the basis state is valid after every Commit of THIS stream through this position. A window that starts at the caller readable floor Commit (floor > 0) has no Commit of the caller readable range before it and therefore carries no basis: that stream is preview_only. Positions are never compared across streams."
             },
             "anchor_commit_ref": {
               "$ref": "./common-ids.schema.json#/$defs/realm_commit_id",
-              "description": "commit_id of the Commit at anchor_position. Required for both anchor kinds."
+              "description": "commit_id of the Commit at anchor_position."
             },
             "snapshot_ref": {
               "$ref": "./common-ids.schema.json#/$defs/realm_snapshot_id",
@@ -844,30 +837,7 @@
               "description": "Exact accepted cross-stream authorization dependencies the anchor's prefix relied on, each a closed four-coordinate committed_event_ref. They are explicit references, not an ordering: listing them introduces no cross-stream total order and no comparison of positions across streams. Omitted or empty means the prefix depended on no accepted reference outside this stream."
             }
           },
-          "additionalProperties": false,
-          "allOf": [
-            {
-              "if": {
-                "required": [
-                  "anchor_kind"
-                ],
-                "properties": {
-                  "anchor_kind": {
-                    "enum": [
-                      "after_committed_prefix",
-                      "before_readable_floor"
-                    ]
-                  }
-                }
-              },
-              "then": {
-                "required": [
-                  "anchor_position",
-                  "anchor_commit_ref"
-                ]
-              }
-            }
-          ]
+          "additionalProperties": false
         },
         "e2ee_epoch": {
           "oneOf": [

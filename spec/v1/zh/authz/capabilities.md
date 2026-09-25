@@ -447,7 +447,7 @@ Audit action 只授权对已可见材料的特权读取留痕（`ak.audit.access
 - `ak.read_cursor.advance`（capability action; 对应 event kind 同名 `ak.read_cursor.advance`）
 - `ak.notification.read`
 - `ak.notification.ack`
-- `ak.invite.accept`
+- `ak.invite.accept`（`subject_only`：唯一授权来源是 actor 为该 invite 的被邀请者，见 §13）
 
 ## 6. Constraints
 
@@ -810,10 +810,10 @@ conformance：[`capability-fixture.json`](../sync/authority-commit-log.md) **MUS
 
 ## 13. Invite、通知与已读状态
 
-invite / notification / read-cursor 等用户可见操作 MUST 由对应 capability action 授权（见下列）；实现 MUST NOT 通过权限模型之外的私有通道授予这些操作。
+invite / notification / read-cursor 等用户可见操作 MUST 由对应 capability action 或下列登记的 invite subject 绑定授权；实现 MUST NOT 通过权限模型之外的私有通道授予这些操作。
 
-- 创建 / 取消普通定向 invite 需要 `ak.invite.create` / `ak.invite.cancel`；第三方/token invite 撤销需要 `ak.invite.revoke`
-- 接受发给自己的 invite 需要 `ak.invite.accept`
+- 创建普通定向 invite 需要 `ak.invite.create`；由邀请人以外的 actor 取消普通定向 invite 需要 `ak.invite.cancel`；第三方/token invite 撤销与其余终态推进需要 `ak.invite.revoke`
+- 被邀请者接受（`ak.invite.accept`）或拒绝（`ak.invite.cancel`，`target_state=rejected`）发给自己的 invite、邀请人取消自己仍在成员期内发出的 invite，唯一授权来源是 invite 自身的已接纳绑定，不经 grant 求值；`ak.invite.accept` 因此登记为 `subject_only`，不可授予。逐分支判定见 [`../models/governance-objects.md` §5.3](../models/governance-objects.md)
 - 写入自己的 `read_cursor` 需要 `ak.read_cursor.advance`（事件 kind 同名）
 - 读取 notification 需要 `ak.notification.read`
 - `ak.notification.ack` 只应影响自己的派生 inbox 状态
