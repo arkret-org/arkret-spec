@@ -1,0 +1,899 @@
+{
+  "suite": "actor_private_events_submit",
+  "fixture_kind": "semantic",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.actor_private_events.submit.v1"
+  },
+  "version": "2026-09-26.1",
+  "profile": "ak.profile.station.v1",
+  "covers_vectors": [
+    "ak.vector.actor_private_events.submit.v1"
+  ],
+  "machine_contracts": [
+    "registry/contract-registry.json",
+    "registry/operations-error-mapping.json",
+    "schemas/service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitRequestBody",
+    "schemas/service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitOutcome"
+  ],
+  "description": "Executable evidence for ak.vector.actor_private_events.submit.v1 (zh/models/actor-private-effects.md section 2.1, decisions 0110 and 0114). Every case starts from an empty Station and runs its variants in order. A variant authors one Event of event_kind whose payload is the named schema_validation_cases instance with payload_mutations applied, signs it as signer (an Account on world.local_station_id unless signer_station says otherwise) and submits it on operation_id; a retry variant resubmits an earlier variant's Event, either as identical canonical bytes or re-signed over the same content so that event_id is unchanged and the bytes differ. private_writes counts committed private transactions (value projection plus exact-retry ledger row); realm_commits counts RealmCommits produced. A rejected variant MUST leave every private register and ledger exactly as before, and a replay MUST return the outcome recorded for outcome_of.",
+  "world": {
+    "local_station_id": "ak:did_core:web:station.example",
+    "foreign_station_id": "ak:did_core:web:other-station.example",
+    "station_protocol_time": "2026-09-26T01:00:00.000Z",
+    "event_scope_realm_id": "ak:realm:AcQajqaKFvyDoMpqpSlBvMh0d4gheZsVPhbHaTlqXtkV",
+    "signers": {
+      "device_owner": {
+        "principal_id": "ak:did_core:web:owner.example"
+      },
+      "controller": {
+        "principal_id": "ak:did_core:web:controller.example"
+      },
+      "agent": {
+        "principal_id": "ak:did_core:web:agent.example",
+        "active_controller": "controller"
+      }
+    },
+    "controller_accepted_devices": [
+      "ak:device:01964137-0000-7000-8000-000000000001"
+    ]
+  },
+  "decision_points": [
+    {
+      "id": "submit_surface",
+      "requirement": "The four kinds are admitted only through ak.self.actor_private_events.command.submit.v1; the outcome is closed per event_kind and no RealmCommit is produced.",
+      "accept": [
+        "/cases/0/variants/0",
+        "/cases/1/variants/0",
+        "/cases/1/variants/6",
+        "/cases/2/variants/0"
+      ],
+      "reject": [
+        "/cases/5/variants/0"
+      ]
+    },
+    {
+      "id": "exact_retry_first_outcome",
+      "requirement": "The same canonical Event bytes return the first stored outcome without a second write, even after a later write moved the register.",
+      "accept": [
+        "/cases/0/variants/1",
+        "/cases/0/variants/6",
+        "/cases/1/variants/1",
+        "/cases/1/variants/7",
+        "/cases/2/variants/1"
+      ],
+      "reject": [
+        "/cases/0/variants/2"
+      ]
+    },
+    {
+      "id": "duplicate_conflict_zero_writes",
+      "requirement": "The same event_id with different bytes, or a create-once key held by other bytes, is duplicate_conflict with zero writes.",
+      "accept": [
+        "/cases/1/variants/0",
+        "/cases/2/variants/0"
+      ],
+      "reject": [
+        "/cases/0/variants/2",
+        "/cases/1/variants/2",
+        "/cases/1/variants/3",
+        "/cases/1/variants/9",
+        "/cases/2/variants/2",
+        "/cases/2/variants/3"
+      ]
+    },
+    {
+      "id": "push_route_cas",
+      "requirement": "A push_route expected_server_revision that is not the current route revision is cas_conflict with zero writes; a matching one advances the revision by one.",
+      "accept": [
+        "/cases/0/variants/0",
+        "/cases/0/variants/5"
+      ],
+      "reject": [
+        "/cases/0/variants/3",
+        "/cases/0/variants/4"
+      ]
+    },
+    {
+      "id": "owner_station",
+      "requirement": "An owner AccountId selected by storage_owner.account_id_source that belongs to another Station is param_invalid with zero writes.",
+      "accept": [
+        "/cases/3/variants/4"
+      ],
+      "reject": [
+        "/cases/3/variants/0",
+        "/cases/3/variants/1",
+        "/cases/3/variants/2",
+        "/cases/3/variants/3"
+      ]
+    },
+    {
+      "id": "shared_submit_refusal",
+      "requirement": "ak.self.events.command.submit.v1 refuses every actor-private kind with unsupported_event_kind and writes nothing, so the actor-private surface still starts from an empty register.",
+      "accept": [
+        "/cases/4/variants/4"
+      ],
+      "reject": [
+        "/cases/4/variants/0",
+        "/cases/4/variants/1",
+        "/cases/4/variants/2",
+        "/cases/4/variants/3"
+      ]
+    },
+    {
+      "id": "rejection_target",
+      "requirement": "ak.agent.action_reject names only a required request_id; the request must exist, belong to the same controller/agent pair and still be requested, otherwise failed_precondition with zero writes.",
+      "accept": [
+        "/cases/1/variants/6"
+      ],
+      "reject": [
+        "/cases/1/variants/5",
+        "/cases/1/variants/8",
+        "/cases/5/variants/1",
+        "/cases/5/variants/2"
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "name": "push_route_revision_cas_and_exact_retry",
+      "given": "an empty Station-private push route register for (owner AccountId, device_id, apns_main)",
+      "variants": [
+        {
+          "name": "push_route_create",
+          "operation_id": "ak.self.actor_private_events.command.submit.v1",
+          "event_kind": "ak.device.push_route",
+          "signer": "device_owner",
+          "payload_from": "push_route_active_payload_valid",
+          "expected": {
+            "decision": "accept",
+            "outcome": {
+              "event_kind": "ak.device.push_route",
+              "revision": 1
+            },
+            "private_writes": 1,
+            "realm_commits": 0
+          }
+        },
+        {
+          "name": "push_route_create_exact_retry",
+          "retry_of": "push_route_create",
+          "retry_bytes": "identical",
+          "expected": {
+            "decision": "replay",
+            "outcome_of": "push_route_create",
+            "private_writes": 0,
+            "realm_commits": 0
+          }
+        },
+        {
+          "name": "push_route_create_same_event_id_different_bytes",
+          "retry_of": "push_route_create",
+          "retry_bytes": "same_event_id_new_producer_proof",
+          "expected": {
+            "decision": "reject",
+            "rejected_as": "duplicate_conflict",
+            "private_writes": 0,
+            "realm_commits": 0
+          }
+        },
+        {
+          "name": "push_route_stale_revision",
+          "operation_id": "ak.self.actor_private_events.command.submit.v1",
+          "event_kind": "ak.device.push_route",
+          "signer": "device_owner",
+          "payload_from": "push_route_revoked_payload_valid",
+          "payload_mutations": [
+            {
+              "op": "replace",
+              "path": "/expected_server_revision",
+              "value": 0
+            }
+          ],
+          "expected": {
+            "decision": "reject",
+            "rejected_as": "cas_conflict",
+            "private_writes": 0,
+            "realm_commits": 0
+          }
+        },
+        {
+          "name": "push_route_skipped_revision",
+          "operation_id": "ak.self.actor_private_events.command.submit.v1",
+          "event_kind": "ak.device.push_route",
+          "signer": "device_owner",
+          "payload_from": "push_route_revoked_payload_valid",
+          "payload_mutations": [
+            {
+              "op": "replace",
+              "path": "/expected_server_revision",
+              "value": 5
+            }
+          ],
+          "expected": {
+            "decision": "reject",
+            "rejected_as": "cas_conflict",
+            "private_writes": 0,
+            "realm_commits": 0
+          }
+        },
+        {
+          "name": "push_route_revoke_at_current_revision",
+          "operation_id": "ak.self.actor_private_events.command.submit.v1",
+          "event_kind": "ak.device.push_route",
+          "signer": "device_owner",
+          "payload_from": "push_route_revoked_payload_valid",
+          "expected": {
+            "decision": "accept",
+            "outcome": {
+              "event_kind": "ak.device.push_route",
+              "revision": 2
+            },
+            "private_writes": 1,
+            "realm_commits": 0
+          }
+        },
+        {
+          "name": "push_route_create_exact_retry_after_successor",
+          "retry_of": "push_route_create",
+          "retry_bytes": "identical",
+          "expected": {
+            "decision": "replay",
+            "outcome_of": "push_route_create",
+            "private_writes": 0,
+            "realm_commits": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "agent_action_request_and_rejection",
+      "given": "the Agent is active and its current accepted controller is the controller AccountId on this Station",
+      "variants": [
+        {
+          "name": "action_request_create",
+          "operation_id": "ak.self.actor_private_events.command.submit.v1",
+          "event_kind": "ak.agent.action_request",
+          "signer": "agent",
+          "payload_from": "action_request_payload_valid",
+          "expected": {
+            "decision": "accept",
+            "outcome": {
+              "event_kind": "ak.agent.action_request"
+            },
+            "private_writes": 1,
+            "realm_commits": 0
+          }
+        },
+        {
+          "name": "action_request_exact_retry",
+          "retry_of": "action_request_create",
+          "retry_bytes": "identical",
+          "expected": {
+            "decision": "replay",
+            "outcome_of": "action_request_create",
+            "private_writes": 0,
+            "realm_commits": 0
+          }
+        },
+        {
+          "name": "action_request_same_event_id_different_bytes",
+          "retry_of": "action_request_create",
+          "retry_bytes": "same_event_id_new_producer_proof",
+          "expected": {
+            "decision": "reject",
+            "rejected_as": "duplicate_conflict",
+            "private_writes": 0,
+            "realm_commits": 0
+          }
+        },
+        {
+          "name": "action_request_key_occupied_by_other_bytes",
+          "operation_id": "ak.self.actor_private_events.command.submit.v1",
+          "event_kind": "ak.agent.action_request",
+          "signer": "agent",
+          "payload_from": "action_request_payload_valid",
+          "payload_mutations": [
+            {
+              "op": "replace",
+              "path": "/proposed_action",
+              "value": "ak.message.edit"
+            }
+          ],
+          "expected": {
+            "decision": "reject",
+            "rejected_as": "duplicate_conflict",
+            "private_writes": 0,
+            "realm_commits": 0
+          }
+        },
+        {
+          "name": "action_request_expired_at_admission",
+          "operation_id": "ak.self.actor_private_events.command.submit.v1",
+          "event_kind": "ak.agent.action_request",
+          "signer": "agent",
+          "payload_from": "action_request_payload_valid",
+          "payload_mutations": [
+            {
+              "op": "replace",
+              "path": "/request_id",
+              "value": "request-002"
+            },
+            {
+              "op": "replace",
+              "path": "/created_at",
+              "value": "2026-09-26T00:10:00.000Z"
+            },
+            {
+              "op": "replace",
+              "path": "/expires_at",
+              "value": "2026-09-26T00:30:00.000Z"
+            }
+          ],
+          "expected": {
+            "decision": "reject",
+            "rejected_as": "failed_precondition",
+            "private_writes": 0,
+            "realm_commits": 0
+          }
+        },
+        {
+          "name": "action_reject_missing_target",
+          "operation_id": "ak.self.actor_private_events.command.submit.v1",
+          "event_kind": "ak.agent.action_reject",
+          "signer": "controller",
+          "payload_from": "action_reject_payload_valid",
+          "payload_mutations": [
+            {
+              "op": "replace",
+              "path": "/request_id",
+              "value": "request-404"
+            }
+          ],
+          "expected": {
+            "decision": "reject",
+            "rejected_as": "failed_precondition",
+            "private_writes": 0,
+            "realm_commits": 0
+          }
+        },
+        {
+          "name": "action_reject_requested_target",
+          "operation_id": "ak.self.actor_private_events.command.submit.v1",
+          "event_kind": "ak.agent.action_reject",
+          "signer": "controller",
+          "payload_from": "action_reject_payload_valid",
+          "expected": {
+            "decision": "accept",
+            "outcome": {
+              "event_kind": "ak.agent.action_reject"
+            },
+            "private_writes": 1,
+            "realm_commits": 0
+          }
+        },
+        {
+          "name": "action_reject_exact_retry",
+          "retry_of": "action_reject_requested_target",
+          "retry_bytes": "identical",
+          "expected": {
+            "decision": "replay",
+            "outcome_of": "action_reject_requested_target",
+            "private_writes": 0,
+            "realm_commits": 0
+          }
+        },
+        {
+          "name": "action_reject_terminal_target",
+          "operation_id": "ak.self.actor_private_events.command.submit.v1",
+          "event_kind": "ak.agent.action_reject",
+          "signer": "controller",
+          "payload_from": "action_reject_payload_valid",
+          "payload_mutations": [
+            {
+              "op": "replace",
+              "path": "/rejection_id",
+              "value": "rejection-002"
+            }
+          ],
+          "expected": {
+            "decision": "reject",
+            "rejected_as": "failed_precondition",
+            "private_writes": 0,
+            "realm_commits": 0
+          }
+        },
+        {
+          "name": "action_reject_rejection_id_reused_by_other_bytes",
+          "operation_id": "ak.self.actor_private_events.command.submit.v1",
+          "event_kind": "ak.agent.action_reject",
+          "signer": "controller",
+          "payload_from": "action_reject_payload_valid",
+          "payload_mutations": [
+            {
+              "op": "replace",
+              "path": "/rejected_at",
+              "value": "2026-09-26T00:59:00.000Z"
+            }
+          ],
+          "expected": {
+            "decision": "reject",
+            "rejected_as": "duplicate_conflict",
+            "private_writes": 0,
+            "realm_commits": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "agent_draft_proposal",
+      "given": "the Agent is active, its controller is on this Station and the handoff recipient is a current accepted controller device",
+      "variants": [
+        {
+          "name": "draft_propose_create",
+          "operation_id": "ak.self.actor_private_events.command.submit.v1",
+          "event_kind": "ak.agent.draft.propose",
+          "signer": "agent",
+          "payload_from": "draft_propose_payload_valid",
+          "expected": {
+            "decision": "accept",
+            "outcome": {
+              "event_kind": "ak.agent.draft.propose"
+            },
+            "private_writes": 1,
+            "realm_commits": 0
+          }
+        },
+        {
+          "name": "draft_propose_exact_retry",
+          "retry_of": "draft_propose_create",
+          "retry_bytes": "identical",
+          "expected": {
+            "decision": "replay",
+            "outcome_of": "draft_propose_create",
+            "private_writes": 0,
+            "realm_commits": 0
+          }
+        },
+        {
+          "name": "draft_propose_same_event_id_different_bytes",
+          "retry_of": "draft_propose_create",
+          "retry_bytes": "same_event_id_new_producer_proof",
+          "expected": {
+            "decision": "reject",
+            "rejected_as": "duplicate_conflict",
+            "private_writes": 0,
+            "realm_commits": 0
+          }
+        },
+        {
+          "name": "draft_propose_key_occupied_by_other_bytes",
+          "operation_id": "ak.self.actor_private_events.command.submit.v1",
+          "event_kind": "ak.agent.draft.propose",
+          "signer": "agent",
+          "payload_from": "draft_propose_payload_valid",
+          "payload_mutations": [
+            {
+              "op": "replace",
+              "path": "/content_digest",
+              "value": "sha256:5555555555555555555555555555555555555555555555555555555555555555"
+            }
+          ],
+          "expected": {
+            "decision": "reject",
+            "rejected_as": "duplicate_conflict",
+            "private_writes": 0,
+            "realm_commits": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "owner_account_station_binding",
+      "given": "the owner AccountId is selected by each kind's storage_owner.account_id_source and must belong to this Station",
+      "variants": [
+        {
+          "name": "push_route_owner_on_other_station",
+          "operation_id": "ak.self.actor_private_events.command.submit.v1",
+          "event_kind": "ak.device.push_route",
+          "signer": "device_owner",
+          "payload_from": "push_route_active_payload_valid",
+          "payload_mutations": [
+            {
+              "op": "replace",
+              "path": "/account_id/station_id",
+              "value": "ak:did_core:web:other-station.example"
+            }
+          ],
+          "expected": {
+            "decision": "reject",
+            "rejected_as": "param_invalid",
+            "private_writes": 0,
+            "realm_commits": 0
+          }
+        },
+        {
+          "name": "action_request_controller_on_other_station",
+          "operation_id": "ak.self.actor_private_events.command.submit.v1",
+          "event_kind": "ak.agent.action_request",
+          "signer": "agent",
+          "payload_from": "action_request_payload_valid",
+          "payload_mutations": [
+            {
+              "op": "replace",
+              "path": "/controller_account_id/station_id",
+              "value": "ak:did_core:web:other-station.example"
+            }
+          ],
+          "expected": {
+            "decision": "reject",
+            "rejected_as": "param_invalid",
+            "private_writes": 0,
+            "realm_commits": 0
+          }
+        },
+        {
+          "name": "draft_propose_controller_on_other_station",
+          "operation_id": "ak.self.actor_private_events.command.submit.v1",
+          "event_kind": "ak.agent.draft.propose",
+          "signer": "agent",
+          "payload_from": "draft_propose_payload_valid",
+          "payload_mutations": [
+            {
+              "op": "replace",
+              "path": "/controller_account_id/station_id",
+              "value": "ak:did_core:web:other-station.example"
+            }
+          ],
+          "expected": {
+            "decision": "reject",
+            "rejected_as": "param_invalid",
+            "private_writes": 0,
+            "realm_commits": 0
+          }
+        },
+        {
+          "name": "action_reject_signer_on_other_station",
+          "operation_id": "ak.self.actor_private_events.command.submit.v1",
+          "event_kind": "ak.agent.action_reject",
+          "signer": "controller",
+          "payload_from": "action_reject_payload_valid",
+          "signer_station": "ak:did_core:web:other-station.example",
+          "expected": {
+            "decision": "reject",
+            "rejected_as": "param_invalid",
+            "private_writes": 0,
+            "realm_commits": 0
+          }
+        },
+        {
+          "name": "push_route_owner_on_this_station",
+          "operation_id": "ak.self.actor_private_events.command.submit.v1",
+          "event_kind": "ak.device.push_route",
+          "signer": "device_owner",
+          "payload_from": "push_route_active_payload_valid",
+          "expected": {
+            "decision": "accept",
+            "outcome": {
+              "event_kind": "ak.device.push_route",
+              "revision": 1
+            },
+            "private_writes": 1,
+            "realm_commits": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "shared_submit_refuses_actor_private_kinds",
+      "given": "the shared self Event submit admits only shared durable Events and every Event below is otherwise admissible",
+      "variants": [
+        {
+          "name": "push_route_on_shared_submit",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "event_kind": "ak.device.push_route",
+          "signer": "device_owner",
+          "payload_from": "push_route_active_payload_valid",
+          "expected": {
+            "decision": "reject",
+            "rejected_as": "unsupported_event_kind",
+            "private_writes": 0,
+            "realm_commits": 0
+          }
+        },
+        {
+          "name": "action_request_on_shared_submit",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "event_kind": "ak.agent.action_request",
+          "signer": "agent",
+          "payload_from": "action_request_payload_valid",
+          "expected": {
+            "decision": "reject",
+            "rejected_as": "unsupported_event_kind",
+            "private_writes": 0,
+            "realm_commits": 0
+          }
+        },
+        {
+          "name": "action_reject_on_shared_submit",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "event_kind": "ak.agent.action_reject",
+          "signer": "controller",
+          "payload_from": "action_reject_payload_valid",
+          "expected": {
+            "decision": "reject",
+            "rejected_as": "unsupported_event_kind",
+            "private_writes": 0,
+            "realm_commits": 0
+          }
+        },
+        {
+          "name": "draft_propose_on_shared_submit",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "event_kind": "ak.agent.draft.propose",
+          "signer": "agent",
+          "payload_from": "draft_propose_payload_valid",
+          "expected": {
+            "decision": "reject",
+            "rejected_as": "unsupported_event_kind",
+            "private_writes": 0,
+            "realm_commits": 0
+          }
+        },
+        {
+          "name": "push_route_after_shared_refusal",
+          "operation_id": "ak.self.actor_private_events.command.submit.v1",
+          "event_kind": "ak.device.push_route",
+          "signer": "device_owner",
+          "payload_from": "push_route_active_payload_valid",
+          "expected": {
+            "decision": "accept",
+            "outcome": {
+              "event_kind": "ak.device.push_route",
+              "revision": 1
+            },
+            "private_writes": 1,
+            "realm_commits": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "closed_request_and_payload_shapes",
+      "given": "the request admits exactly the four kinds and each payload is its closed schema",
+      "variants": [
+        {
+          "name": "account_data_set_on_actor_private_submit",
+          "operation_id": "ak.self.actor_private_events.command.submit.v1",
+          "event_kind": "ak.account_data.set",
+          "signer": "device_owner",
+          "payload_from": "account_data_set_payload_valid",
+          "expected": {
+            "decision": "reject",
+            "rejected_as": "schema_violation",
+            "private_writes": 0,
+            "realm_commits": 0
+          }
+        },
+        {
+          "name": "action_reject_without_request_id",
+          "operation_id": "ak.self.actor_private_events.command.submit.v1",
+          "event_kind": "ak.agent.action_reject",
+          "signer": "controller",
+          "payload_from": "action_reject_payload_valid",
+          "payload_mutations": [
+            {
+              "op": "remove",
+              "path": "/request_id"
+            }
+          ],
+          "expected": {
+            "decision": "reject",
+            "rejected_as": "schema_violation",
+            "private_writes": 0,
+            "realm_commits": 0
+          }
+        },
+        {
+          "name": "action_reject_naming_a_draft",
+          "operation_id": "ak.self.actor_private_events.command.submit.v1",
+          "event_kind": "ak.agent.action_reject",
+          "signer": "controller",
+          "payload_from": "action_reject_payload_valid",
+          "payload_mutations": [
+            {
+              "op": "remove",
+              "path": "/request_id"
+            },
+            {
+              "op": "add",
+              "path": "/draft_id",
+              "value": "draft-001"
+            }
+          ],
+          "expected": {
+            "decision": "reject",
+            "rejected_as": "schema_violation",
+            "private_writes": 0,
+            "realm_commits": 0
+          }
+        },
+        {
+          "name": "action_request_without_draft_link",
+          "operation_id": "ak.self.actor_private_events.command.submit.v1",
+          "event_kind": "ak.agent.action_request",
+          "signer": "agent",
+          "payload_from": "action_request_payload_valid",
+          "expected": {
+            "decision": "accept",
+            "outcome": {
+              "event_kind": "ak.agent.action_request"
+            },
+            "private_writes": 1,
+            "realm_commits": 0
+          }
+        }
+      ]
+    }
+  ],
+  "schema_validation_cases": [
+    {
+      "name": "push_route_active_payload_valid",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/device_push_route_payload",
+      "expect_valid": true,
+      "instance": {
+        "account_id": {
+          "principal_id": "ak:did_core:web:owner.example",
+          "station_id": "ak:did_core:web:station.example"
+        },
+        "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
+        "push_route": "apns_main",
+        "expected_server_revision": 0,
+        "push_target_id": "ak:pseudonym:push:kosc9iQ4gVct1OB-b6X364WIFIsJFVbVzn7BMBs1sm8",
+        "push_gateway_id": "ak:did_core:webvh:z6mkpushgatewayservice",
+        "encryption_key": "hpke-public-key",
+        "capabilities": [
+          "blind_wakeup"
+        ]
+      }
+    },
+    {
+      "name": "push_route_revoked_payload_valid",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/device_push_route_payload",
+      "expect_valid": true,
+      "instance": {
+        "account_id": {
+          "principal_id": "ak:did_core:web:owner.example",
+          "station_id": "ak:did_core:web:station.example"
+        },
+        "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
+        "push_route": "apns_main",
+        "revoked": true,
+        "expected_server_revision": 1
+      }
+    },
+    {
+      "name": "action_request_payload_valid",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/agent_action_request_payload",
+      "expect_valid": true,
+      "instance": {
+        "request_id": "request-001",
+        "agent_id": "ak:did_core:web:agent.example",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:web:controller.example",
+          "station_id": "ak:did_core:web:station.example"
+        },
+        "proposed_action": "ak.message.create",
+        "target": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AcQajqaKFvyDoMpqpSlBvMh0d4gheZsVPhbHaTlqXtkV"
+        },
+        "request_canonical_digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+        "expires_at": "2026-09-26T02:00:00.000Z",
+        "created_at": "2026-09-26T00:55:00.000Z"
+      }
+    },
+    {
+      "name": "action_reject_payload_valid",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/agent_action_reject_payload",
+      "expect_valid": true,
+      "instance": {
+        "rejection_id": "rejection-001",
+        "request_id": "request-001",
+        "agent_id": "ak:did_core:web:agent.example",
+        "rejected_at": "2026-09-26T00:58:00.000Z"
+      }
+    },
+    {
+      "name": "action_reject_without_request_id_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/agent_action_reject_payload",
+      "expect_valid": false,
+      "instance_from": "action_reject_payload_valid",
+      "mutations": [
+        {
+          "op": "remove",
+          "path": "/request_id"
+        }
+      ],
+      "first_expected_error": "contains:'request_id' is a required property"
+    },
+    {
+      "name": "action_reject_draft_target_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/agent_action_reject_payload",
+      "expect_valid": false,
+      "instance_from": "action_reject_payload_valid",
+      "mutations": [
+        {
+          "op": "add",
+          "path": "/draft_id",
+          "value": "draft-001"
+        }
+      ],
+      "first_expected_error": "contains:'draft_id' was unexpected"
+    },
+    {
+      "name": "draft_propose_payload_valid",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/agent_draft_propose_payload",
+      "expect_valid": true,
+      "instance": {
+        "draft_id": "draft-001",
+        "agent_id": "ak:did_core:web:agent.example",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:web:controller.example",
+          "station_id": "ak:did_core:web:station.example"
+        },
+        "proposed_action": "ak.message.create",
+        "target": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AcQajqaKFvyDoMpqpSlBvMh0d4gheZsVPhbHaTlqXtkV"
+        },
+        "content_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "content_handoff": {
+          "scheme": "ak.hpke_x25519_aead_chacha20poly1305.v1",
+          "recipients": [
+            {
+              "recipient_device_id": "ak:device:01964137-0000-7000-8000-000000000001",
+              "recipient_hpke_key_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+              "enc": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "ciphertext": "AAAAAAAAAAAAAAAAAAAAAA",
+              "ciphertext_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+            }
+          ]
+        },
+        "expires_at": "2026-09-26T02:00:00.000Z",
+        "created_at": "2026-09-26T00:55:00.000Z"
+      }
+    },
+    {
+      "name": "account_data_set_payload_valid",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/account_data_set_payload",
+      "expect_valid": true,
+      "instance": {
+        "key": "ak.preferences.v1",
+        "expected_server_revision": 0,
+        "body": "ciphertext:value"
+      }
+    },
+    {
+      "name": "push_route_outcome_valid",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitOutcome",
+      "expect_valid": true,
+      "instance": {
+        "event_kind": "ak.device.push_route",
+        "accepted_event_id": "ak:event:AXrw54_r8iPVFSBGJhTZduzx5vRg62wu8bdDrUhCm9hR",
+        "revision": 1
+      }
+    },
+    {
+      "name": "agent_outcome_carrying_realm_commit_rejected",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitOutcome",
+      "expect_valid": false,
+      "instance": {
+        "event_kind": "ak.agent.action_request",
+        "accepted_event_id": "ak:event:AXrw54_r8iPVFSBGJhTZduzx5vRg62wu8bdDrUhCm9hR",
+        "commit_id": "ak:event:AXrw54_r8iPVFSBGJhTZduzx5vRg62wu8bdDrUhCm9hR"
+      },
+      "first_expected_error": "contains:is not valid under any of the given schemas"
+    }
+  ]
+}

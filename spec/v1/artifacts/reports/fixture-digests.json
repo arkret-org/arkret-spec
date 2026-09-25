@@ -16,6 +16,11 @@
       "version": "2026-09-19.1"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/actor-private-events-submit-fixture.json",
+      "sha256": "95d74dac01f3c19ed7ede8e8ae727f3cf3cdb32d9fa603b87c56c4e6979e4016",
+      "version": "2026-09-26.1"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/aead-nonce-replay-fixture.json",
       "sha256": "7d280b33cb0514f7efc372eced1a0f41ab8b160b768dd0d85620e0ba07eb8a51",
       "version": "2026-09-21.1"
