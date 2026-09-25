@@ -104,10 +104,6 @@ def check_account_data_revision_name(lint: Lint) -> None:
         if len(revision_guards) != 2:
             _fail(lint, EVENT_SCHEMA, "both agent-draft source branches must pin expected_server_revision=0")
 
-    blocklist = event_schema.get("$defs", {}).get("account_blocklist_payload", {})
-    if "expected_server_revision" not in " ".join(_all_strings(blocklist)):
-        _fail(lint, EVENT_SCHEMA, "blocklist shared-counter cross-reference uses the wrong field name")
-
     operation_schema_text = " ".join(_all_strings(operations_schema))
     if "expected_server_revision" not in operation_schema_text:
         _fail(lint, OPERATIONS_SCHEMA, "operation DTO descriptions omit expected_server_revision")

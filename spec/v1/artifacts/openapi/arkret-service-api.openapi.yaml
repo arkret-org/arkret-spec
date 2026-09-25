@@ -374,6 +374,10 @@ components:
       $ref: ../schemas/account-operations.schema.json#/$defs/account_update_profile_request_body
     AccountView:
       $ref: ../schemas/account-operations.schema.json#/$defs/account_view
+    ActorPrivateEventSubmitOutcome:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitOutcome
+    ActorPrivateEventSubmitRequestBody:
+      $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitRequestBody
     AgentDeactivateRequestBody:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_deactivate_request_body
     AgentHumanApprovalProblem:
@@ -7701,6 +7705,34 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ReadMarkerOutcome'
+  /_arkret/self/actor-private-events:
+    post:
+      operationId: ak.self.actor_private_events.command.submit
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.self.actor_private_events.command.submit.v1
+      security:
+      - sessionGrantAuth: []
+        dpopProof: []
+      summary: Submit one caller-signed actor-private Event without a dedicated operation.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActorPrivateEventSubmitRequestBody'
+      responses:
+        '200':
+          description: The accepted private write, or the first stored outcome on an exact retry. No RealmCommit is produced.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActorPrivateEventSubmitOutcome'
   /_arkret/self/rtc/ice-config:
     servers:
     - url: https://{host}

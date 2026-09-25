@@ -132,7 +132,8 @@ Blob 和其它 binary operation 使用各自登记的 streaming/binary body cont
 closed transport-only evidence 与 single-use CAS 的原子分支。Account Station 必须先耐久保存 exact
 producer-signed bytes，再解析 current authority bundle 并转发；没有验证到 authority-signed
 `RealmCommit` 时不得返回 `committed` 或对其它成员 fanout。这里没有 schema 外的 `queued`／`forwarding`
-success body。
+success body。`wire_scope=actor_private_event` 的 kind 不经本 operation 接纳：MUST 以 `unsupported_event_kind` 零写入拒绝，
+它们只走 [`../models/actor-private-effects.md` §2.1](../models/actor-private-effects.md#21-提交面normative) 登记的专用提交 operation。
 
 `ordinary_realm_bootstrap` 以 UUIDv7 `idempotency_key` 与完整 caller-signed
 `EventAdmissionSubmission[]` 提交；每条 Event 单独取得连续 RealmCommit，成功与
@@ -618,6 +619,7 @@ RFC 9449 DPoP proof 只有 `iat`，没有 `expires` parameter，因此它 **MUST
 | `ak.self.account_data.resource.delete.v1` | `DELETE /_arkret/self/account_data/{account_data_key}` | - | - | request_schema_ref=schemas/account-data-operations.schema.json#/$defs/account_data_delete_request_body; response_schema_ref=schemas/account-data-operations.schema.json#/$defs/account_data_delete_outcome |
 | `ak.self.account_data.resource.get.v1` | `GET /_arkret/self/account_data/{account_data_key}` | - | - | response_schema_ref=schemas/account-data-operations.schema.json#/$defs/account_data_entry |
 | `ak.self.account_data.resource.replace.v1` | `PUT /_arkret/self/account_data/{account_data_key}` | - | - | request_schema_ref=schemas/account-data-operations.schema.json#/$defs/account_data_replace_request_body; response_schema_ref=schemas/account-data-operations.schema.json#/$defs/account_data_entry |
+| `ak.self.actor_private_events.command.submit.v1` | `POST /_arkret/self/actor-private-events` | - | - | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitRequestBody; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitOutcome |
 | `ak.self.actor_profile.read.resolve.v1` | `POST /_arkret/self/actor-profiles/query` | - | - | request_schema_ref=schemas/actor-profile-operations.schema.json#/$defs/resolve_request; response_schema_ref=schemas/actor-profile-operations.schema.json#/$defs/resolve_outcome |
 | `ak.self.agent.command.deactivate.v1` | `POST /_arkret/self/agents/{agent_id}/deactivate` | - | - | request_schema_ref=schemas/agent-operations.schema.json#/$defs/agent_deactivate_request_body; response_schema_ref=schemas/agent-operations.schema.json#/$defs/agent_lifecycle_state |
 | `ak.self.agent.command.pause.v1` | `POST /_arkret/self/agents/{agent_id}/pause` | - | - | request_schema_ref=schemas/agent-operations.schema.json#/$defs/agent_pause_request_body; response_schema_ref=schemas/agent-operations.schema.json#/$defs/agent_lifecycle_state |

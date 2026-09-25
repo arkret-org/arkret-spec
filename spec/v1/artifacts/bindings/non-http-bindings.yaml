@@ -135,6 +135,8 @@ grpc:
     SelfReadCursor:
       Advance: ak.self.read_cursor.command.advance.v1
       List: ak.self.read_cursor.read.list.v1
+    SelfActorPrivateEvents:
+      Submit: ak.self.actor_private_events.command.submit.v1
     SelfInviteReceivePolicy:
       Get: ak.self.invite_receive_policy.resource.get.v1
       Replace: ak.self.invite_receive_policy.resource.replace.v1
@@ -407,6 +409,7 @@ mq:
     self.account_data.resource.delete: ak.self.account_data.resource.delete.v1
     self.read_cursor.command.advance: ak.self.read_cursor.command.advance.v1
     self.read_cursor.query.list: ak.self.read_cursor.read.list.v1
+    self.actor_private_events.command.submit: ak.self.actor_private_events.command.submit.v1
     self.keys.keypackages.upload.create: ak.self.keys.keypackages.upload.create.v1
     self.keys.keypackages.command.claim: ak.self.keys.keypackages.command.claim.v1
     self.keys.keypackages.command.consume: ak.self.keys.keypackages.command.consume.v1

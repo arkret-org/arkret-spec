@@ -289,7 +289,7 @@ Franking 信任链：
 ### 4.1 屏蔽是 Actor-Private 状态
 
 用户可以屏蔽任意精确发送者 ActorId，屏蔽列表存储在本地或用户的私有 account data 中。
-`ak.account.blocklist` 的**唯一权威结构定义与受检示例**在
+account-data key `ak.account.blocklist` 的**唯一权威结构定义与受检示例**在
 [`../discovery/client-preferences.md` §3.5](../discovery/client-preferences.md)；本节不复制 payload，避免
 重复 holder 坐标、裸 DID 或 target union 再次形成第二套结构。
 

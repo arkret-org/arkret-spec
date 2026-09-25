@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-25.1",
+  "version": "2026-09-25.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-25T14:50:00+08:00",
+  "generated_at": "2026-09-25T16:25:00+08:00",
   "description": "Canonical registry of standard Account Data key patterns. Every row explicitly declares its closed writer authorities, holder self-surface operations, cross-device merge primitive, and delete semantics; see spec/v1/zh/models/account-data.md section 5.",
   "registry_rules": [
     "writer_authorities is a non-empty unique array over the closed v1 set holder_event | station_cas. holder_event requires non-empty write_event_kinds; station_cas requires plaintext_account_data plus plaintext_schema and does not mint an Event.",
@@ -169,6 +169,7 @@
       "status": "active",
       "scope": "principal_private_policy",
       "storage": "encrypted_account_data",
+      "encrypted_value_schema": "schemas/account-blocklist.schema.json",
       "writer_authorities": [
         "holder_event"
       ],
@@ -177,11 +178,10 @@
         "delete"
       ],
       "write_event_kinds": [
-        "ak.account_data.set",
-        "ak.account.blocklist"
+        "ak.account_data.set"
       ],
       "deletion_mode": "physical_delete",
-      "description": "Holder-private personal blocklist. It affects only the holder's local projection, notifications, contact handling, and trusted holder-side filtering.",
+      "description": "Holder-private personal blocklist, written only as an encrypted ak.account_data.set value under the server-revision CAS. It affects only the holder's local projection, notifications, contact handling, and trusted holder-side filtering.",
       "source_refs": [
         "spec/v1/zh/discovery/client-preferences.md",
         "spec/v1/zh/governance/content-moderation.md"

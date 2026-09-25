@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-25.3",
+  "version": "2026-09-25.4",
   "source_of_truth": false,
-  "generated_at": "2026-09-25T14:50:00+08:00",
+  "generated_at": "2026-09-25T16:25:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,10 +18,10 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 203,
+    "total_operations": 204,
     "by_completeness_class": {
       "binary_or_redirect": 2,
-      "typed_schema": 201
+      "typed_schema": 202
     },
     "by_surface_class_and_completeness_class": {
       "core": {
@@ -32,7 +32,7 @@
       },
       "extension": {
         "binary_or_redirect": 2,
-        "typed_schema": 119
+        "typed_schema": 120
       },
       "interop_bridge": {
         "typed_schema": 21
@@ -1392,6 +1392,20 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/AccountDataReplaceRequestBody",
         "response": "#/components/schemas/AccountDataRow"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.self.actor_private_events.command.submit.v1",
+      "surface_class": "extension",
+      "http": "POST /_arkret/self/actor-private-events",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitRequestBody",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitOutcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/ActorPrivateEventSubmitRequestBody",
+        "response": "#/components/schemas/ActorPrivateEventSubmitOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

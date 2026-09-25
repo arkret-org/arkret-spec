@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-25.1",
+  "version": "2026-09-25.2",
   "source_of_truth": false,
-  "generated_at": "2026-09-25T14:50:00+08:00",
+  "generated_at": "2026-09-25T16:25:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -608,21 +608,6 @@
     }
   },
   "event_kinds": [
-    {
-      "event_kind": "ak.account.blocklist",
-      "category": "account",
-      "status": "active",
-      "verb_form": "not_applicable",
-      "wire_scope": "actor_private_event",
-      "reducer_input": false,
-      "payload": "Actor-private blocklist state",
-      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/account_blocklist_payload",
-      "id_source": "not_an_object_id",
-      "result_effect_ownership": {
-        "kind": "private_service_effect",
-        "service_contract_id": "ak.actor_private.effects.v1"
-      }
-    },
     {
       "event_kind": "ak.account_data.set",
       "category": "account",
@@ -7906,11 +7891,6 @@
     "normative_source": "zh/models/actor-private-effects.md",
     "service_contract_id": "ak.actor_private.effects.v1",
     "merge_definitions": {
-      "whole_value_version_cas": {
-        "comparison": "incoming payload.version equals current version + 1; the first accepted version is 1",
-        "accepted_result": "replace the complete value and store payload.version as the high-water mark",
-        "conflict_result": "cas_conflict with zero durable or externally visible side effects"
-      },
       "server_revision_cas": {
         "comparison": "payload.expected_server_revision equals the current per-key revision; 0 denotes never written",
         "accepted_result": "replace the complete value and store revision = expected_server_revision + 1",
@@ -7938,10 +7918,6 @@
       }
     },
     "result_families": {
-      "ak.private.account.blocklist.v1": {
-        "merge": "whole_value_version_cas",
-        "tombstone": "empty_entries_whole_value"
-      },
       "ak.private.account_data.v1": {
         "merge": "server_revision_cas",
         "tombstone": "versioned_tombstone"
@@ -7968,71 +7944,6 @@
       }
     },
     "event_writes": {
-      "ak.account.blocklist": {
-        "result_family": "ak.private.account.blocklist.v1",
-        "durable_effect": "Replace the holder's complete personal blocklist and its shared account-data revision high-water.",
-        "storage_owner": {
-          "kind": "account_station_private_store",
-          "account_id_source": "envelope.actor_id",
-          "station_id_source": "selected_account_id.station_id"
-        },
-        "unique_key": {
-          "components": [
-            "canonical_json(envelope.actor_id.account_id)",
-            "literal:ak.account.blocklist"
-          ]
-        },
-        "value_projection": {
-          "kind": "whole_value",
-          "schema_ref": "schemas/event-payload.schema.json#/$defs/account_blocklist_payload",
-          "members": [
-            {
-              "target": "value",
-              "source": "payload"
-            },
-            {
-              "target": "revision",
-              "source": "payload.version"
-            },
-            {
-              "target": "accepted_event_id",
-              "source": "Event.event_id"
-            }
-          ]
-        },
-        "field_maintenance": [
-          {
-            "target": "entries",
-            "source": "payload.entries",
-            "rule": "complete replacement; omission removes an old entry and an empty array clears the list"
-          },
-          {
-            "target": "revision",
-            "source": "payload.version",
-            "rule": "share the exact counter used by ak.account_data.set for key ak.account.blocklist"
-          }
-        ],
-        "concurrency": {
-          "kind": "whole_value_version_cas",
-          "precondition": "payload.version is 1 when absent, otherwise current revision + 1",
-          "accepted_write": "atomically replace value, revision, Event identity and sync projection",
-          "conflict": "skip, rollback or sibling version returns cas_conflict"
-        },
-        "exact_retry": {
-          "identity": "canonical Event bytes and their verified Event.event_id",
-          "same_bytes": "return the first accepted outcome and current revision without another write or fanout",
-          "different_bytes": "an occupied Event identity or revision with different bytes returns duplicate_conflict or cas_conflict"
-        },
-        "rejection": {
-          "conditions": [
-            "owner is not the verified envelope account",
-            "schema or blocklist uniqueness rules fail",
-            "version precondition fails"
-          ],
-          "side_effects": "zero"
-        },
-        "shared_realm_effect": "none"
-      },
       "ak.account_data.set": {
         "result_family": "ak.private.account_data.v1",
         "durable_effect": "Replace one holder-private account-data register value or its versioned tombstone.",

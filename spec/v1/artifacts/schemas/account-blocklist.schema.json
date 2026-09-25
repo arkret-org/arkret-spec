@@ -1,0 +1,230 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/account-blocklist.schema.json",
+  "title": "Arkret Account Blocklist Account Data",
+  "type": "object",
+  "description": "Decrypted plaintext value of the holder-private ak.account.blocklist account-data key. It is written only through ak.account_data.set as an encrypted value; the whole-value replacement uses that write's expected_server_revision CAS and the value carries no revision of its own. Omitting an entry in the next value removes it, and entries=[] clears the list. It never enters shared Realm state or federation payloads.",
+  "required": [
+    "entries"
+  ],
+  "properties": {
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "target",
+          "mode",
+          "applies_to",
+          "created_at"
+        ],
+        "properties": {
+          "entry_id": {
+            "type": "string",
+            "pattern": "^ak:block:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+            "description": "Blocklist entry identity. This is the registered ak:block:<uuidv7> typed id of id-kind-registry.json, not a document-local symbol: the wire form owns the ak: namespace, so common-fields.md 2.1 classifies it as typed_object_id and the terminal MUST pin that form."
+          },
+          "target": {
+            "type": "object",
+            "required": [
+              "kind"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "actor",
+                  "device",
+                  "handle",
+                  "domain",
+                  "applet",
+                  "keyword"
+                ]
+              },
+              "actor_id": {
+                "$ref": "./common-ids.schema.json#/$defs/actor_id"
+              },
+              "object_ref": {
+                "oneOf": [
+                  {
+                    "$ref": "./common-ids.schema.json#/$defs/device_id"
+                  },
+                  {
+                    "$ref": "./event-envelope.schema.json#/$defs/applet_id"
+                  }
+                ]
+              },
+              "value": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 512
+              }
+            },
+            "anyOf": [
+              {
+                "properties": {
+                  "kind": {
+                    "const": "actor"
+                  }
+                },
+                "required": [
+                  "kind",
+                  "actor_id"
+                ],
+                "not": {
+                  "anyOf": [
+                    {
+                      "required": [
+                        "object_ref"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "value"
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                "properties": {
+                  "kind": {
+                    "const": "device"
+                  },
+                  "object_ref": {
+                    "$ref": "./common-ids.schema.json#/$defs/device_id"
+                  },
+                  "value": {
+                    "$ref": "./common-ids.schema.json#/$defs/did_url"
+                  }
+                },
+                "required": [
+                  "kind"
+                ],
+                "oneOf": [
+                  {
+                    "required": [
+                      "object_ref"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "value"
+                    ]
+                  }
+                ],
+                "not": {
+                  "required": [
+                    "actor_id"
+                  ]
+                }
+              },
+              {
+                "properties": {
+                  "kind": {
+                    "const": "applet"
+                  },
+                  "object_ref": {
+                    "$ref": "./event-envelope.schema.json#/$defs/applet_id"
+                  }
+                },
+                "required": [
+                  "kind",
+                  "object_ref"
+                ],
+                "not": {
+                  "anyOf": [
+                    {
+                      "required": [
+                        "actor_id"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "value"
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "handle",
+                      "domain",
+                      "keyword"
+                    ]
+                  }
+                },
+                "required": [
+                  "kind",
+                  "value"
+                ],
+                "not": {
+                  "anyOf": [
+                    {
+                      "required": [
+                        "actor_id"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "object_ref"
+                      ]
+                    }
+                  ]
+                }
+              }
+            ],
+            "additionalProperties": false
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "block",
+              "mute",
+              "hide"
+            ],
+            "description": "block denies a new holder-facing interaction on the selected surfaces and filters shared durable content only after canonical receive/store; mute keeps content visible but suppresses attention surfaces; hide keeps canonical content but omits it from default holder rendering/search. None of the modes revokes a Realm capability or rewrites shared history."
+          },
+          "applies_to": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "enum": [
+                "messages",
+                "mentions",
+                "dm",
+                "calls",
+                "contacts",
+                "applets",
+                "presence",
+                "notifications",
+                "directory"
+              ]
+            },
+            "uniqueItems": true
+          },
+          "reason_code": {
+            "$ref": "./event-payload.schema.json#/$defs/non_empty_string"
+          },
+          "expires_at": {
+            "$ref": "./event-payload.schema.json#/$defs/nullable_timestamp"
+          },
+          "created_at": {
+            "$ref": "./event-payload.schema.json#/$defs/timestamp"
+          }
+        },
+        "additionalProperties": false
+      },
+      "maxItems": 4096,
+      "uniqueItems": true
+    },
+    "updated_at": {
+      "$ref": "./event-payload.schema.json#/$defs/timestamp"
+    }
+  },
+  "additionalProperties": false
+}

@@ -2,8 +2,8 @@
   "files": [
     {
       "path": "spec/v1/artifacts/fixtures/account-blocklist-projection-fixture.json",
-      "sha256": "e0bd8d02221b5c2c65cfc86409aa18a53fc8cefa83121012f72fd84701baed9d",
-      "version": "2026-09-18.1"
+      "sha256": "24b517ddac778599732c3e2b105bc30c509151c8db7fea10bf10fe26d0c18254",
+      "version": "2026-09-25.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/account-data-cas-convergence-fixture.json",
@@ -452,8 +452,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "7d18d66f4cdce5622184345021fbd1c7859240102de9109c5f8db977db881ab8",
-      "version": "2026-09-24.1"
+      "sha256": "5aae004b4874ef04e3ed07f65a0a9e68d8f9ef981de888d9aabe47e02467ff7c",
+      "version": "2026-09-25.2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",

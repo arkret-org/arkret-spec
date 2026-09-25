@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-25.3",
+  "version": "2026-09-25.4",
   "source_of_truth": false,
-  "generated_at": "2026-09-25T14:50:00+08:00",
+  "generated_at": "2026-09-25T16:25:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -4122,6 +4122,65 @@
           "updated_at"
         ],
         "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.actor_private_events.command.submit.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitRequestBody",
+        "schema_kind": "object",
+        "required": [
+          "event"
+        ],
+        "properties": [
+          "event"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitOutcome",
+        "schema_kind": "oneOf",
+        "required": [
+          "event_kind",
+          "accepted_event_id"
+        ],
+        "properties": [
+          "event_kind",
+          "accepted_event_id",
+          "revision"
+        ],
+        "closed": true,
+        "variants": [
+          {
+            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitOutcome",
+            "schema_kind": "object",
+            "required": [
+              "event_kind",
+              "accepted_event_id",
+              "revision"
+            ],
+            "properties": [
+              "event_kind",
+              "accepted_event_id",
+              "revision"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitOutcome",
+            "schema_kind": "object",
+            "required": [
+              "event_kind",
+              "accepted_event_id"
+            ],
+            "properties": [
+              "event_kind",
+              "accepted_event_id"
+            ],
+            "closed": true
+          }
+        ]
       }
     },
     {

@@ -54,7 +54,6 @@ _ACTOR_PRIVATE_EFFECT_KEYS = frozenset(
 )
 _AGENT_DRAFT_PENDING_EFFECT_KEYS = _ACTOR_PRIVATE_EFFECT_KEYS | {"pending_intent_lifecycle"}
 _ACTOR_PRIVATE_OWNER_SOURCES = {
-    "ak.account.blocklist": "envelope.actor_id",
     "ak.account_data.set": "envelope.actor_id",
     "ak.agent.action_reject": "envelope.actor_id",
     "ak.agent.action_request": "payload.controller_account_id",

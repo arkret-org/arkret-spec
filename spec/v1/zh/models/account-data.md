@@ -12,7 +12,7 @@ updated: 2026-09-20
 
 ## 1. 范围与存储模型
 
-七个 actor-private Event 的统一 owner、唯一键、value projection、CAS/merge、exact retry 与拒绝事务
+六个 actor-private Event 的统一 owner、唯一键、value projection、CAS/merge、exact retry 与拒绝事务
 合同见 [`actor-private-effects.md`](./actor-private-effects.md)；本章定义其中 Account Data 的领域规则。
 
 本文是 principal/actor-private Account Data 的存储、寻址、加密与 key 派生单一真相源。标准 data type 与产品语义仍由消费方文档定义，并登记在 [`account-data-key-registry.json`](../../artifacts/registry/account-data-key-registry.json)。

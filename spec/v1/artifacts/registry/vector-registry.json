@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-25.4",
+  "version": "2026-09-25.5",
   "source_of_truth": true,
-  "generated_at": "2026-09-25T14:50:00+08:00",
+  "generated_at": "2026-09-25T16:25:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -28,6 +28,18 @@
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/zh/discovery/client-preferences.md",
         "spec/v1/artifacts/fixtures/account-blocklist-projection-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.actor_private_events.submit.v1",
+      "status": "reserved",
+      "domain": "actor_private_events",
+      "applies_to_profiles": [
+        "ak.profile.station.v1"
+      ],
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: ak.device.push_route, ak.agent.action_request, ak.agent.action_reject and ak.agent.draft.propose are admitted only through ak.self.actor_private_events.command.submit.v1 and produce no RealmCommit; an exact retry returns the first stored outcome; the same event_id with different bytes is duplicate_conflict, a push_route revision mismatch is cas_conflict and an owner on another Station is param_invalid, all with zero writes; ak.self.events.command.submit.v1 refuses every actor-private kind with unsupported_event_kind. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
+      "source_refs": [
+        "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
     {

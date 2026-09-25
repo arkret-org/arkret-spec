@@ -8,6 +8,12 @@
       "$ref": "#/$defs/AcceptedDevicePossessionProof"
     },
     {
+      "$ref": "#/$defs/ActorPrivateEventSubmitOutcome"
+    },
+    {
+      "$ref": "#/$defs/ActorPrivateEventSubmitRequestBody"
+    },
+    {
       "$ref": "#/$defs/AccountCursorRevokeOutcome"
     },
     {
@@ -1116,6 +1122,78 @@
         }
       },
       "additionalProperties": false
+    },
+    "ActorPrivateEventSubmitRequestBody": {
+      "type": "object",
+      "description": "Request of ak.self.actor_private_events.command.submit.v1: exactly one caller-signed actor-private Event of a kind that has no dedicated submit operation. The service validates the exact Event bytes and MUST NOT rebuild the payload or co-sign. No approval sidecar exists because no approval layer applies to these kinds. zh/models/actor-private-effects.md section 2.1.",
+      "required": [
+        "event"
+      ],
+      "properties": {
+        "event": {
+          "$ref": "./event-envelope.schema.json",
+          "properties": {
+            "kind": {
+              "enum": [
+                "ak.agent.action_reject",
+                "ak.agent.action_request",
+                "ak.agent.draft.propose",
+                "ak.device.push_route"
+              ]
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "ActorPrivateEventSubmitOutcome": {
+      "description": "Closed outcome of ak.self.actor_private_events.command.submit.v1, discriminated by event_kind. accepted_event_id is the event_id of the accepted Event, and an exact retry returns the first stored outcome. Only ak.device.push_route carries the accepted per-route revision its next write must name as expected_server_revision. No RealmCommit exists for these writes.",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "event_kind",
+            "accepted_event_id",
+            "revision"
+          ],
+          "properties": {
+            "event_kind": {
+              "const": "ak.device.push_route"
+            },
+            "accepted_event_id": {
+              "$ref": "#/$defs/EventId"
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "event_kind",
+            "accepted_event_id"
+          ],
+          "properties": {
+            "event_kind": {
+              "enum": [
+                "ak.agent.action_reject",
+                "ak.agent.action_request",
+                "ak.agent.draft.propose"
+              ]
+            },
+            "accepted_event_id": {
+              "$ref": "#/$defs/EventId"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
     },
     "EventAdmissionSubmission": {
       "type": "object",

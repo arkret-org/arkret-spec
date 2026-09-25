@@ -137,14 +137,15 @@ Actor-private View 使用 `ak.views.private.<view_id>`；加密 value MUST valid
 
 用户可以在私有 account data 中保存个人 blocklist。该数据只影响用户自己的客户端、本地搜索/投影、通知规则和联系请求处理，不改变 Realm 的共享事实。
 
-其持久 owner、唯一键、投影字段、共享 revision CAS、exact retry 与零副作用拒绝的 canonical 合同见
-[`../models/actor-private-effects.md` §3.1](../models/actor-private-effects.md#31-blocklist-与通用-account-data)。
+blocklist 没有独立 Event kind：它是 account-data key `ak.account.blocklist` 的加密值，只经 `ak.account_data.set`
+（`ak.self.account_data.resource.replace.v1`／`.delete.v1`）以 server-revision CAS 整值写入，owner、唯一键、exact retry
+与零副作用拒绝见 [`../models/actor-private-effects.md` §3.1](../models/actor-private-effects.md#31-account-data含个人-blocklist)。
+下列明文是 holder 设备解密后的值。
 
 **Key:** `ak.account.blocklist`
 
-```json schema=schemas/event-payload.schema.json#/$defs/account_blocklist_payload
+```json schema=schemas/account-blocklist.schema.json
 {
-  "version": 1,
   "entries": [
     {
       "entry_id": "ak:block:019640b3-cc00-7000-8000-000000000000",
@@ -189,8 +190,8 @@ Actor-private View 使用 `ak.views.private.<view_id>`；加密 value MUST valid
 
 规则：
 
-- blocklist holder 只取自已验 Event envelope 的完整 account `actor_id`，payload 不复制 holder 坐标。`version` 是该 exact AccountId blocklist 的单调 CAS revision；第一版为 `1`，后续写入必须精确为当前值 `+ 1`，跳号、回滚或并发旧版本均 `cas_conflict`。`ak.account.blocklist` 与同一 account author 的 `ak.account_data.set{key="ak.account.blocklist"}` 共享同一个 revision counter，不能形成两条独立 winner 链；同 principal core 异 Station 的账号绝不共享 counter 或规则。
-- 每个 payload 是**全量替换**，不是 entry patch：加入屏蔽对象是在下一 revision 中加入新 `entry_id`；修改同一规则时保留 `entry_id`；移除屏蔽对象是在下一 revision 中省略对应 entry；`entries=[]` 清空全部规则。服务端或客户端不得把“移除”解释为删除共享消息、撤销 capability 或通知被屏蔽方。`expires_at` 到期只令该 entry 在 holder projection 中失效；同步写者 SHOULD 在下一 revision 中清除它，receiver 不得用本地计时器改写 durable payload。
+- blocklist holder 只取自承载该值的已验 `ak.account_data.set` Event envelope 的完整 account `actor_id`，值不复制 holder 坐标。唯一 revision 是该 key 的 account-data `expected_server_revision` CAS：写入必须携带当前 revision（首次为 `0`），旧 revision 或并发写入均 `cas_conflict`，明文不另带版本号；同 principal core 异 Station 的账号绝不共享 counter 或规则。
+- 每次写入是**全量替换**，不是 entry patch：加入屏蔽对象是在下一 revision 中加入新 `entry_id`；修改同一规则时保留 `entry_id`；移除屏蔽对象是在下一 revision 中省略对应 entry；`entries=[]` 清空全部规则。服务端或客户端不得把“移除”解释为删除共享消息、撤销 capability 或通知被屏蔽方。`expires_at` 到期只令该 entry 在 holder projection 中失效；同步写者 SHOULD 在下一 revision 中清除它，receiver 不得用本地计时器改写 durable payload。
 - `target` 是闭合 discriminated union：`actor` 必须且只能携带完整 `actor_id`；`applet` 必须且只能携带 canonical `ak:applet:` `object_ref`；`handle | domain | keyword` 必须且只能携带 `value`；`device` 携带 canonical `ak:device:` `object_ref`，或在无法取得 device id 时携带 verification-method DID URL `value`。仅有裸 display name、W3C DID 或 `did_core_id` 不得成为 actor target；device 与 applet 的 typed-id 前缀必须由 schema 校验，不能把其它 `object_ref` 塞入对应分支。
 - `actor` target 只按被过滤 Event / request 已验证的完整发送者 `actor_id` 逐字匹配：Station 承载的 user、organization、team、Agent、Bot 或 integration 账号均使用 `ActorId.account{account_id:{principal_id,station_id}}`，service 以自身身份实际作为发送者时使用 `ActorId.service{service_id}`。不得按 `actor_kind`、Organization DID / claim、`ak.realm.organization`、托管 Station、转发 service 或其它 affiliation 把一条 actor rule 扩张到关联主体；service 仅作为 transport / relay 时也不得命中。
 - v1 不定义 `organization` 或 `realm` blocklist target。Organization 官方账号发出的内容按其 exact account ActorId 过滤；service 自身发出的内容按其 service ActorId 过滤。整个 Realm 的通知或默认视图偏好属于独立 per-Realm 客户端偏好；退出、拒绝新写入或撤销共享权限必须使用 membership / Contact / capability 的既有协议路径，不得由个人 blocklist 合成。
@@ -201,7 +202,7 @@ Actor-private View 使用 `ak.views.private.<view_id>`；加密 value MUST valid
 - 客户端 MAY 在共享 Realm 视图中隐藏或折叠被屏蔽内容。
 - 客户端 MUST NOT 把 blocklist 发布到公共 Realm 状态或目录服务。
 - 对被屏蔽方的可观察行为 MUST 与普通不可达 / 不可枚举场景一致：客户端和受托服务不得返回 `blocked_by_user`、不得发送 read receipt / typing / presence 的差异信号、不得因为 block 命中改变公开错误码、延迟模式或 directory 结果形态。需要本地诊断时只能在 holder 自己的加密 account data 或本地日志中记录。
-- `ak.account.blocklist` 是 actor-private/account-private durable typed current result：它可以在 holder 的设备间同步，但不进入共享 Realm RealmCommit coverage、membership state、Directory ingest 或 federation payload。
+- `ak.account.blocklist` 是 account-private durable account-data 值：它可以在 holder 的设备间同步，但不进入共享 Realm RealmCommit coverage、membership state、Directory ingest 或 federation payload。
 - 若服务端代表用户执行 blocklist 过滤（例如通知、DM invite、call invite 或 directory preview），该服务 MUST 被 holder 显式授权读取对应 blocklist 明文，或声明自身进入 `plaintext_visible_services.data_classes=["blocklist"]` / 等价 holder-private confidential service；否则只能转发给客户端本地过滤。服务端执行模式不得让发送方、被查询方或 federation peer 区分"被屏蔽"与"无权限 / 不存在 / 用户离线"。
 - `handle` target 只与发送者已验证 handle claim 中的 canonical `handle`逐字比较；`domain` target 只与该已验证 handle claim 的 domain 分量，或按 [`../identity/did-usage-and-verification.md`](../identity/did-usage-and-verification.md) 已验证的 DID 域名绑定比较。display name、未验证 handle / DID 字符串或裸字符串后缀均不得命中这两类 target；`keyword` 才是纯内容字符串过滤。三者命中都只在 holder-private projection 生效，不证明也不得推断任何 actor、service、Organization 或 Realm 的控制关系。
 

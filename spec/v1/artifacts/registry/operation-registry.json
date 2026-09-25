@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-25.2",
+  "version": "2026-09-25.3",
   "source_of_truth": false,
-  "generated_at": "2026-09-25T14:50:00+08:00",
+  "generated_at": "2026-09-25T16:25:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -240,6 +240,13 @@
       "operations": [
         "ak.self.read_cursor.command.advance.v1",
         "ak.self.read_cursor.read.list.v1"
+      ],
+      "surface_class": "extension"
+    },
+    {
+      "surface": "actor_private_events",
+      "operations": [
+        "ak.self.actor_private_events.command.submit.v1"
       ],
       "surface_class": "extension"
     },
@@ -2192,6 +2199,57 @@
       }
     },
     {
+      "operation_id": "ak.self.actor_private_events.command.submit.v1",
+      "http": "POST /_arkret/self/actor-private-events",
+      "grpc": "SelfActorPrivateEvents/Submit",
+      "mq": "self.actor_private_events.command.submit",
+      "notes": "Accepts exactly one caller-signed actor-private Event whose kind is ak.device.push_route, ak.agent.action_request, ak.agent.action_reject or ak.agent.draft.propose; ak.account_data.set and ak.read_cursor.advance keep their dedicated operations. The authenticated caller MUST be the Event's actual signing actor, and the AccountId selected by the kind's storage_owner.account_id_source MUST belong to this Station, otherwise param_invalid with zero writes. The service validates the exact Event bytes, never rebuilds the payload or co-signs, and in one private transaction evaluates the kind's registered concurrency, writes its value projection and records the exact-retry ledger row (zh/models/actor-private-effects.md section 2). The write produces no RealmCommit and enters no commit stream. The outcome is discriminated by event_kind; ak.device.push_route also returns the accepted revision. An exact retry of the same canonical Event bytes returns the first stored outcome; the same event_id with different bytes is duplicate_conflict, a push_route revision mismatch is cas_conflict, and a missing, terminal, expired or otherwise unwritable target is failed_precondition, all with zero writes.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "typed_response",
+      "idempotency_mechanism": "canonical_hash",
+      "canonical_hash_input": "full_body",
+      "retry_safe": true,
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitRequestBody",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitOutcome",
+      "durable_effect": {
+        "kind": "branched",
+        "discriminator": {
+          "request_path": "/event/kind",
+          "description": "The kind of the submitted actor-private Event; each branch writes only that kind's registered private effect."
+        },
+        "effect_branches": [
+          {
+            "equals": "ak.agent.action_reject",
+            "effect": {
+              "kind": "actor_private_event",
+              "event_kind": "ak.agent.action_reject"
+            }
+          },
+          {
+            "equals": "ak.agent.action_request",
+            "effect": {
+              "kind": "actor_private_event",
+              "event_kind": "ak.agent.action_request"
+            }
+          },
+          {
+            "equals": "ak.agent.draft.propose",
+            "effect": {
+              "kind": "actor_private_event",
+              "event_kind": "ak.agent.draft.propose"
+            }
+          },
+          {
+            "otherwise": true,
+            "effect": {
+              "kind": "actor_private_event",
+              "event_kind": "ak.device.push_route"
+            }
+          }
+        ]
+      }
+    },
+    {
       "operation_id": "ak.self.actor_profile.read.resolve.v1",
       "http": "POST /_arkret/self/actor-profiles/query",
       "grpc": "SelfActorProfile/Resolve",
@@ -3050,7 +3108,7 @@
       "http": "POST /_arkret/self/events",
       "grpc": "SelfEvents/Submit",
       "mq": "self.events.command.submit",
-      "notes": "Submit an exact producer-signed Event, MLS Commit, ordinary Realm bootstrap unit, Direct Conversation founding unit, or membership compensation unit to the current governance Station. Ordinary bootstrap uses the registered ordered slots in one Realm stream and one all-or-nothing storage transaction; success and exact replay return the same consecutive source RealmCommits without a batch-level receipt. Direct Conversation founding is its own ordered four-Event all-or-nothing unit with a separate founding-slot fence; success and exact replay return the same four consecutive source RealmCommits, whose fourth committed_at is the sole acceptance time. No founding receipt exists. Compensation carries closed transport-only evidence and a single-use CAS. canonical_hash/full_body remains the operation replay identity for every branch; no arbitrary atomic Event batch is admitted.",
+      "notes": "Submit an exact producer-signed Event, MLS Commit, ordinary Realm bootstrap unit, Direct Conversation founding unit, or membership compensation unit to the current governance Station. Ordinary bootstrap uses the registered ordered slots in one Realm stream and one all-or-nothing storage transaction; success and exact replay return the same consecutive source RealmCommits without a batch-level receipt. Direct Conversation founding is its own ordered four-Event all-or-nothing unit with a separate founding-slot fence; success and exact replay return the same four consecutive source RealmCommits, whose fourth committed_at is the sole acceptance time. No founding receipt exists. Compensation carries closed transport-only evidence and a single-use CAS. canonical_hash/full_body remains the operation replay identity for every branch; no arbitrary atomic Event batch is admitted. An Event whose kind has wire_scope actor_private_event is refused with unsupported_event_kind and zero writes; it is submitted only through its dedicated actor-private operation.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/self_submit_request",
@@ -5313,6 +5371,19 @@
       "members": [
         {
           "operation_id": "ak.peer.realm_authority.command.handoff.v1",
+          "binding_kind": "http_json"
+        }
+      ]
+    },
+    {
+      "operation_bundle_id": "ak.operation_bundle.station.actor_private_events.v1",
+      "service_kind": "station",
+      "deployment_evidence": [
+        "normative:zh/models/actor-private-effects.md#21-提交面normative"
+      ],
+      "members": [
+        {
+          "operation_id": "ak.self.actor_private_events.command.submit.v1",
           "binding_kind": "http_json"
         }
       ]

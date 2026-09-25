@@ -13,9 +13,8 @@ updated: 2026-09-25
 
 ## 1. 范围与 canonical 真源
 
-本章闭合七个 `wire_scope=actor_private_event` Event 的持久效果：
+本章闭合六个 `wire_scope=actor_private_event` Event 的持久效果：
 
-- `ak.account.blocklist`
 - `ak.account_data.set`
 - `ak.agent.action_reject`
 - `ak.agent.action_request`
@@ -31,7 +30,7 @@ updated: 2026-09-25
 `exact_retry`、`rejection` 与 `shared_realm_effect` 是实现必须直接消费的规范字段。正文不得以
 另一组 selector、owner 或 merge 规则覆盖它们。
 
-七种效果都由所选完整 `AccountId` 的 `station_id` 承载在 account-private store。选择
+六种效果都由所选完整 `AccountId` 的 `station_id` 承载在 account-private store。选择
 `AccountId` 的字段来源因 Event 而异，必须读取各 branch 的 `storage_owner.account_id_source`，不得
 把当前接收 Station、裸 principal DID、Realm governance Station 或调用端 origin 当作 owner。
 成功写入可以向该账号的已授权设备同步，但 **MUST NOT** 写 Realm typed current result、推进 Realm
@@ -48,15 +47,37 @@ reducer checkpoint、进入 federation payload，或以 RealmCommit 作为其私
 调用 push gateway 或重算 badge。同一 Event identity 不同 bytes 必须 `duplicate_conflict`；占用同一
 CAS revision / create-once key 的不同 Event 按 branch 的 `concurrency.conflict` 拒绝。
 
+### 2.1 提交面（normative）
+
+每个 actor-private Event 恰有一个提交 operation，均以 caller 签名的 exact Event bytes 提交，服务 MUST NOT 重建
+payload 或以服务身份代签：
+
+| Event | 提交 operation |
+| --- | --- |
+| `ak.account_data.set` | `ak.self.account_data.resource.replace.v1`／`.delete.v1` |
+| `ak.read_cursor.advance` | `ak.self.read_cursor.command.advance.v1` |
+| `ak.device.push_route`、`ak.agent.action_request`、`ak.agent.action_reject`、`ak.agent.draft.propose` | `ak.self.actor_private_events.command.submit.v1` |
+
+`ak.self.actor_private_events.command.submit.v1`（`POST /_arkret/self/actor-private-events`）的请求是 closed
+`service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitRequestBody`，只携一个 `event`，其 `kind` 必须是
+上表第三行四个 kind 之一。服务 MUST 按本章 §2 顺序验证：已认证 caller 就是 Event 的实际签名 actor；按该 kind 的
+`storage_owner.account_id_source` 选出的 AccountId 其 `station_id` MUST 等于本服务，否则 `param_invalid` 零写入；
+随后在一个私有事务内求值 `concurrency`、写入 `value_projection` 与 exact-retry ledger。响应是 closed
+`ActorPrivateEventSubmitOutcome`：`ak.device.push_route` 返回 `{event_kind, accepted_event_id, revision}`，其余三个
+kind 返回 `{event_kind, accepted_event_id}`；exact retry 返回首次保存的同一 outcome。该 operation 不产生 RealmCommit、
+不进入任何 commit stream，也不返回 RealmCommit。
+
+`ak.self.events.command.submit.v1` 与 peer Event ingress 只接纳 shared durable Event：收到任一 `wire_scope=actor_private_event`
+的 kind MUST 以 `unsupported_event_kind` 零写入拒绝，不得把它写入 RealmCommit coverage。
+
 所有 `rejection.conditions` 都是写前条件。任一条件失败时 `side_effects="zero"`：不得写值、revision
 high-water、tombstone、workflow state、幂等 outcome、queue/gateway effect、device fanout 或 shared
 Realm 状态。只有 exact retry 命中已经存在的相同 outcome 时可以读取并返回它；这不是新副作用。
 
-## 3. 七个 branch 的闭合语义
+## 3. 六个 branch 的闭合语义
 
 | Event | owner AccountId 来源 | 唯一键摘要 | 并发 / merge |
 | --- | --- | --- | --- |
-| `ak.account.blocklist` | `envelope.actor_id.account_id` | `(AccountId, "ak.account.blocklist")` | 全量 `version` successor CAS |
 | `ak.account_data.set` | `envelope.actor_id.account_id` | `(AccountId, payload.key)` | `expected_server_revision` CAS |
 | `ak.agent.draft.propose` | `payload.controller_account_id` | `(controller AccountId, agent_id, draft_id)` | pending-intent create-once；holder CAS 原子消费 |
 | `ak.agent.action_request` | `payload.controller_account_id` | `(controller AccountId, agent_id, request_id)` | canonical Event digest create-once |
@@ -64,11 +85,11 @@ Realm 状态。只有 exact retry 命中已经存在的相同 outcome 时可以�
 | `ak.device.push_route` | `payload.account_id` | `(AccountId, device_id, push_route)` | `expected_server_revision` CAS |
 | `ak.read_cursor.advance` | `payload.actor_id.account_id` | `(AccountId, realm_id, canonical read_scope)` | causal → concurrent HLC → equal-HLC device id |
 
-### 3.1 Blocklist 与通用 Account Data
+### 3.1 Account Data（含个人 blocklist）
 
-`ak.account.blocklist` 是完整列表替换；第一版 `version=1`，后续必须恰为当前版本加一。它与同一
-AccountId 下 `ak.account_data.set{key="ak.account.blocklist"}` 共享一个 revision high-water，不能产生
-两条 winner 链。`entries=[]` 是有效的空列表，不是删除共享事实。
+个人 blocklist 不是独立 Event kind：它只是 account-data key `ak.account.blocklist` 的加密值，唯一写入方是
+`ak.account_data.set`，按下文 server-revision CAS 整值替换；明文形状见
+[`../discovery/client-preferences.md` §3.5](../discovery/client-preferences.md)。`entries=[]` 是有效的空列表，不是删除共享事实。
 
 `ak.account_data.set` 在 `body`、`encrypted_payload`、`tombstone` 中恰选一支；接受后 revision 等于
 `expected_server_revision + 1`。`updated_at` 投影取 payload 中已签名的值，省略时取已签名 Event
@@ -95,8 +116,8 @@ Station MUST 校验 recipient device 去重、属于 exact controller AccountId�
 `recipient_hpke_key_digest` 等于该 device 当前 HPKE key 的 digest；它只能保存和交付 ciphertext，MUST NOT
 取得 holder account secret、解密 content、生成 account-data ciphertext 或代 controller 重加密。
 
-proposal 接受时，服务在同一 private transaction 保存 canonical Event、authority commit、exact-retry outcome
-与 `state=available` pending intent。controller 的 active devices 只能通过 account subscribe 顶层独立
+proposal 接受时，服务在同一 private transaction 保存 canonical Event、exact-retry ledger 行（含首次 outcome）
+与 `state=available` pending intent；该事务不产生 RealmCommit。controller 的 active devices 只能通过 account subscribe 顶层独立
 `agent_draft_pending_intents` controller-private projection（五项 global baseline 之一 + cursor-covered
 catch-up）读取该记录；该 carrier 不得复用 `account_data.events`、`account_data.station_cas`、notification、
 to-device 或 storage-private API。每一 baseline page／delta 都必须重验 exact controller AccountId 的 active

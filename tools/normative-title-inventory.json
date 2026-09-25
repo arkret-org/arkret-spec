@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-25.3",
+  "version": "2026-09-25.4",
   "source_of_truth": true,
-  "generated_at": "2026-09-25T16:15:00+08:00",
+  "generated_at": "2026-09-25T16:25:00+08:00",
   "description": "Closed inventory of current spec/v1/zh headings that explicitly carry the （normative） marker. Any addition, removal, rename, or move is reviewed as a protocol change and refreshes this source-of-truth inventory.",
   "titles": [
     {
@@ -848,6 +848,11 @@
       "page": "models/account-data.md",
       "heading": "5.5 Station-CAS 同步投影（normative）",
       "fragment": "55-station-cas-同步投影normative"
+    },
+    {
+      "page": "models/actor-private-effects.md",
+      "heading": "2.1 提交面（normative）",
+      "fragment": "21-提交面normative"
     },
     {
       "page": "models/actor.md",

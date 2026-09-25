@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-09-25.2",
+  "version": "2026-09-25.3",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-09-25T14:50:00+08:00",
+  "generated_at": "2026-09-25T16:25:00+08:00",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3. snapshot_capacity_exceeded applies to every event_log admission branch in the operation registry, including peer authority_forward; committed_replication and other non-admission branches do not produce it.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, signature_invalid, capability_denied, schema_violation, json_invalid, query_invalid, param_missing, param_invalid, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind, unsupported_protocol_version, operation_selector_required, unsupported_operation_version. These are the universal failure surface and are NOT repeated in each operation entry. unsupported_protocol_version applies only when the binding implements Arkret-Protocol-Version header or equivalent media-type negotiation; ServiceDescribe consumers also use the same stable code locally before capability intersection. operation_selector_required and unsupported_operation_version are binding-level pre-dispatch failures evaluated before body parsing for every canonical operation.",
@@ -1062,6 +1062,17 @@
         "duplicate_conflict"
       ],
       "description": "cas_conflict when expected_server_revision does not equal the accepted per-key revision; error.details use account_data_cas_conflict_details so the client can merge and re-issue exactly one write. duplicate_conflict when the same Event identity arrives with different canonical Event bytes; zero writes.",
+      "codes": []
+    },
+    {
+      "operation_id": "ak.self.actor_private_events.command.submit.v1",
+      "http_alias": "POST /_arkret/self/actor-private-events",
+      "operation_specific": [
+        "duplicate_conflict",
+        "cas_conflict",
+        "failed_precondition"
+      ],
+      "description": "duplicate_conflict when the same Event identity or occupied create-once key arrives with different canonical Event bytes; cas_conflict when an ak.device.push_route expected_server_revision does not equal the accepted revision; failed_precondition when an ak.agent.action_reject target is missing, terminal or not rejectable, or an agent proposal or request is expired. All with zero writes. Wrong owner Station is param_invalid and binding, capability or policy refusal is capability_denied (universal).",
       "codes": []
     },
     {

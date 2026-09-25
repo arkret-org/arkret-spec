@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 8892,
-    "total_schema_documents": 165,
+    "total_properties": 8895,
+    "total_schema_documents": 166,
     "by_presence_class": {
-      "optional": 2139,
+      "optional": 2137,
       "optional_defaulted": 47,
-      "required": 6237,
+      "required": 6242,
       "required_nullable": 302,
       "tristate": 167
     },
@@ -38,6 +38,7 @@
     "absent_null_equivalent": "v1 default normalization; SDK uses an optional value and canonical output omits None."
   },
   "tristate_properties": [
+    "account-blocklist.schema.json/properties/entries/items/properties/expires_at",
     "account-operations.schema.json/$defs/account_profile_event_submission/allOf/1/properties/event/properties/preconditions",
     "account-operations.schema.json/$defs/account_profile_event_submission/allOf/2/oneOf/0/properties/event",
     "account-operations.schema.json/$defs/account_profile_event_submission/allOf/2/oneOf/0/properties/event/properties/payload",
@@ -84,7 +85,6 @@
     "dnd-schedule.schema.json/$defs/schedule/allOf/0/then/properties/periods",
     "erasure-receipt.schema.json/properties/legal_hold_ref",
     "erasure-verification-stub.schema.json/properties/legal_hold_ref",
-    "event-payload.schema.json/$defs/account_blocklist_payload/properties/entries/items/properties/expires_at",
     "event-payload.schema.json/$defs/account_data_set_payload/properties/body",
     "event-payload.schema.json/$defs/call_summary_payload/properties/duration_ms",
     "event-payload.schema.json/$defs/call_summary_payload/properties/ended_at",
@@ -207,6 +207,16 @@
     "view.schema.json/$defs/query/properties/relation"
   ],
   "tristate_audit_targets": [
+    {
+      "schema_file": "account-blocklist.schema.json",
+      "shape": "#",
+      "instance_path": "/entries/*/expires_at",
+      "occurrences": [
+        "/properties/entries/items/properties/expires_at"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
     {
       "schema_file": "account-operations.schema.json",
       "shape": "/$defs/account_profile_event_submission",
@@ -564,16 +574,6 @@
       "instance_path": "/legal_hold_ref",
       "occurrences": [
         "/properties/legal_hold_ref"
-      ],
-      "sdk_disposition": "absent_null_equivalent",
-      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
-    },
-    {
-      "schema_file": "event-payload.schema.json",
-      "shape": "/$defs/account_blocklist_payload",
-      "instance_path": "/entries/*/expires_at",
-      "occurrences": [
-        "/$defs/account_blocklist_payload/properties/entries/items/properties/expires_at"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -1582,6 +1582,40 @@
     }
   ],
   "documents": {
+    "account-blocklist.schema.json": {
+      "schema_ids": [
+        "ak.schema.account_blocklist.v1"
+      ],
+      "properties": {
+        "/properties/entries": "required",
+        "/properties/entries/items/properties/applies_to": "required",
+        "/properties/entries/items/properties/created_at": "required",
+        "/properties/entries/items/properties/entry_id": "optional",
+        "/properties/entries/items/properties/expires_at": "tristate",
+        "/properties/entries/items/properties/mode": "required",
+        "/properties/entries/items/properties/reason_code": "optional",
+        "/properties/entries/items/properties/target": "required",
+        "/properties/entries/items/properties/target/anyOf/0/properties/kind": "required",
+        "/properties/entries/items/properties/target/anyOf/1/properties/kind": "required",
+        "/properties/entries/items/properties/target/anyOf/1/properties/object_ref": "optional",
+        "/properties/entries/items/properties/target/anyOf/1/properties/value": "optional",
+        "/properties/entries/items/properties/target/anyOf/2/properties/kind": "required",
+        "/properties/entries/items/properties/target/anyOf/2/properties/object_ref": "required",
+        "/properties/entries/items/properties/target/anyOf/3/properties/kind": "required",
+        "/properties/entries/items/properties/target/properties/actor_id": "optional",
+        "/properties/entries/items/properties/target/properties/kind": "required",
+        "/properties/entries/items/properties/target/properties/object_ref": "optional",
+        "/properties/entries/items/properties/target/properties/value": "optional",
+        "/properties/updated_at": "optional"
+      },
+      "conditionally_required": [
+        "/properties/entries/items/properties/target/anyOf/1/properties/object_ref",
+        "/properties/entries/items/properties/target/anyOf/1/properties/value",
+        "/properties/entries/items/properties/target/properties/actor_id",
+        "/properties/entries/items/properties/target/properties/object_ref",
+        "/properties/entries/items/properties/target/properties/value"
+      ]
+    },
     "account-current-result.schema.json": {
       "schema_ids": [
         "ak.schema.account_current_result.v1"
@@ -5395,8 +5429,6 @@
         "/allOf/149/then/properties/payload": "optional",
         "/allOf/15/if/properties/kind": "required",
         "/allOf/15/then/properties/payload": "optional",
-        "/allOf/150/if/properties/kind": "required",
-        "/allOf/150/then/properties/payload": "optional",
         "/allOf/16/if/properties/kind": "required",
         "/allOf/16/then/properties/payload": "optional",
         "/allOf/17/if/properties/kind": "required",
@@ -5608,28 +5640,6 @@
         "ak.schema.resource_discovery_state.v1 -> #/$defs/resource_discovery_state"
       ],
       "properties": {
-        "/$defs/account_blocklist_payload/properties/entries": "required",
-        "/$defs/account_blocklist_payload/properties/entries/items/properties/applies_to": "required",
-        "/$defs/account_blocklist_payload/properties/entries/items/properties/created_at": "required",
-        "/$defs/account_blocklist_payload/properties/entries/items/properties/entry_id": "optional",
-        "/$defs/account_blocklist_payload/properties/entries/items/properties/expires_at": "tristate",
-        "/$defs/account_blocklist_payload/properties/entries/items/properties/mode": "required",
-        "/$defs/account_blocklist_payload/properties/entries/items/properties/reason_code": "optional",
-        "/$defs/account_blocklist_payload/properties/entries/items/properties/target": "required",
-        "/$defs/account_blocklist_payload/properties/entries/items/properties/target/anyOf/0/properties/kind": "required",
-        "/$defs/account_blocklist_payload/properties/entries/items/properties/target/anyOf/1/properties/kind": "required",
-        "/$defs/account_blocklist_payload/properties/entries/items/properties/target/anyOf/1/properties/object_ref": "optional",
-        "/$defs/account_blocklist_payload/properties/entries/items/properties/target/anyOf/1/properties/value": "optional",
-        "/$defs/account_blocklist_payload/properties/entries/items/properties/target/anyOf/2/properties/kind": "required",
-        "/$defs/account_blocklist_payload/properties/entries/items/properties/target/anyOf/2/properties/object_ref": "required",
-        "/$defs/account_blocklist_payload/properties/entries/items/properties/target/anyOf/3/properties/kind": "required",
-        "/$defs/account_blocklist_payload/properties/entries/items/properties/target/properties/actor_id": "optional",
-        "/$defs/account_blocklist_payload/properties/entries/items/properties/target/properties/kind": "required",
-        "/$defs/account_blocklist_payload/properties/entries/items/properties/target/properties/object_ref": "optional",
-        "/$defs/account_blocklist_payload/properties/entries/items/properties/target/properties/value": "optional",
-        "/$defs/account_blocklist_payload/properties/kind": "optional",
-        "/$defs/account_blocklist_payload/properties/updated_at": "optional",
-        "/$defs/account_blocklist_payload/properties/version": "required",
         "/$defs/account_data_set_payload/allOf/0/if/properties/expected_server_revision": "required",
         "/$defs/account_data_set_payload/allOf/0/if/properties/key": "required_nullable",
         "/$defs/account_data_set_payload/allOf/1/then/properties/expected_server_revision": "optional",
@@ -6712,11 +6722,6 @@
         "/$defs/view_update_payload/properties/view_id": "required"
       },
       "conditionally_required": [
-        "/$defs/account_blocklist_payload/properties/entries/items/properties/target/anyOf/1/properties/object_ref",
-        "/$defs/account_blocklist_payload/properties/entries/items/properties/target/anyOf/1/properties/value",
-        "/$defs/account_blocklist_payload/properties/entries/items/properties/target/properties/actor_id",
-        "/$defs/account_blocklist_payload/properties/entries/items/properties/target/properties/object_ref",
-        "/$defs/account_blocklist_payload/properties/entries/items/properties/target/properties/value",
         "/$defs/account_data_set_payload/properties/body",
         "/$defs/account_data_set_payload/properties/encrypted_payload",
         "/$defs/account_data_set_payload/properties/source_pending_event_id",
@@ -10396,6 +10401,13 @@
         "/$defs/AccountCursorRevokeRequestBody/properties/reason_code": "required",
         "/$defs/AccountCursorRevokeRequestBody/properties/revoke_scope": "optional_defaulted",
         "/$defs/AccountLogoutOutcome/properties/revoked": "required",
+        "/$defs/ActorPrivateEventSubmitOutcome/oneOf/0/properties/accepted_event_id": "required",
+        "/$defs/ActorPrivateEventSubmitOutcome/oneOf/0/properties/event_kind": "required",
+        "/$defs/ActorPrivateEventSubmitOutcome/oneOf/0/properties/revision": "required",
+        "/$defs/ActorPrivateEventSubmitOutcome/oneOf/1/properties/accepted_event_id": "required",
+        "/$defs/ActorPrivateEventSubmitOutcome/oneOf/1/properties/event_kind": "required",
+        "/$defs/ActorPrivateEventSubmitRequestBody/properties/event": "required",
+        "/$defs/ActorPrivateEventSubmitRequestBody/properties/event/properties/kind": "required",
         "/$defs/AgentSessionGrantRefreshRequest/properties/agent_key_authorization_ref": "required",
         "/$defs/AgentSessionGrantRefreshRequest/properties/agent_session_refresh_proof": "required",
         "/$defs/AgentSessionGrantRefreshRequest/properties/audience_id": "optional",

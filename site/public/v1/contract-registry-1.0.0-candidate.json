@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-25.3",
+  "version": "2026-09-25.4",
   "source_of_truth": true,
-  "generated_at": "2026-09-25T14:50:00+08:00",
+  "generated_at": "2026-09-25T16:25:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -991,21 +991,6 @@
       }
     },
     "event_kinds": [
-      {
-        "event_kind": "ak.account.blocklist",
-        "category": "account",
-        "status": "active",
-        "verb_form": "not_applicable",
-        "wire_scope": "actor_private_event",
-        "reducer_input": false,
-        "payload": "Actor-private blocklist state",
-        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/account_blocklist_payload",
-        "id_source": "not_an_object_id",
-        "result_effect_ownership": {
-          "kind": "private_service_effect",
-          "service_contract_id": "ak.actor_private.effects.v1"
-        }
-      },
       {
         "event_kind": "ak.account_data.set",
         "category": "account",
@@ -8289,11 +8274,6 @@
       "normative_source": "zh/models/actor-private-effects.md",
       "service_contract_id": "ak.actor_private.effects.v1",
       "merge_definitions": {
-        "whole_value_version_cas": {
-          "comparison": "incoming payload.version equals current version + 1; the first accepted version is 1",
-          "accepted_result": "replace the complete value and store payload.version as the high-water mark",
-          "conflict_result": "cas_conflict with zero durable or externally visible side effects"
-        },
         "server_revision_cas": {
           "comparison": "payload.expected_server_revision equals the current per-key revision; 0 denotes never written",
           "accepted_result": "replace the complete value and store revision = expected_server_revision + 1",
@@ -8321,10 +8301,6 @@
         }
       },
       "result_families": {
-        "ak.private.account.blocklist.v1": {
-          "merge": "whole_value_version_cas",
-          "tombstone": "empty_entries_whole_value"
-        },
         "ak.private.account_data.v1": {
           "merge": "server_revision_cas",
           "tombstone": "versioned_tombstone"
@@ -8351,71 +8327,6 @@
         }
       },
       "event_writes": {
-        "ak.account.blocklist": {
-          "result_family": "ak.private.account.blocklist.v1",
-          "durable_effect": "Replace the holder's complete personal blocklist and its shared account-data revision high-water.",
-          "storage_owner": {
-            "kind": "account_station_private_store",
-            "account_id_source": "envelope.actor_id",
-            "station_id_source": "selected_account_id.station_id"
-          },
-          "unique_key": {
-            "components": [
-              "canonical_json(envelope.actor_id.account_id)",
-              "literal:ak.account.blocklist"
-            ]
-          },
-          "value_projection": {
-            "kind": "whole_value",
-            "schema_ref": "schemas/event-payload.schema.json#/$defs/account_blocklist_payload",
-            "members": [
-              {
-                "target": "value",
-                "source": "payload"
-              },
-              {
-                "target": "revision",
-                "source": "payload.version"
-              },
-              {
-                "target": "accepted_event_id",
-                "source": "Event.event_id"
-              }
-            ]
-          },
-          "field_maintenance": [
-            {
-              "target": "entries",
-              "source": "payload.entries",
-              "rule": "complete replacement; omission removes an old entry and an empty array clears the list"
-            },
-            {
-              "target": "revision",
-              "source": "payload.version",
-              "rule": "share the exact counter used by ak.account_data.set for key ak.account.blocklist"
-            }
-          ],
-          "concurrency": {
-            "kind": "whole_value_version_cas",
-            "precondition": "payload.version is 1 when absent, otherwise current revision + 1",
-            "accepted_write": "atomically replace value, revision, Event identity and sync projection",
-            "conflict": "skip, rollback or sibling version returns cas_conflict"
-          },
-          "exact_retry": {
-            "identity": "canonical Event bytes and their verified Event.event_id",
-            "same_bytes": "return the first accepted outcome and current revision without another write or fanout",
-            "different_bytes": "an occupied Event identity or revision with different bytes returns duplicate_conflict or cas_conflict"
-          },
-          "rejection": {
-            "conditions": [
-              "owner is not the verified envelope account",
-              "schema or blocklist uniqueness rules fail",
-              "version precondition fails"
-            ],
-            "side_effects": "zero"
-          },
-          "shared_realm_effect": "none"
-        },
         "ak.account_data.set": {
           "result_family": "ak.private.account_data.v1",
           "durable_effect": "Replace one holder-private account-data register value or its versioned tombstone.",
@@ -8904,8 +8815,8 @@
         }
       }
     },
-    "version": "2026-09-25.1",
-    "generated_at": "2026-09-25T14:50:00+08:00",
+    "version": "2026-09-25.2",
+    "generated_at": "2026-09-25T16:25:00+08:00",
     "bootstrap_event_kinds": [
       "ak.device.authorize",
       "ak.device.reanchor",
@@ -8974,10 +8885,6 @@
       "defined_in": "zh/models/actor-private-effects.md",
       "description": "Canonical owner directory for actor-private durable Event effects. Each closed branch points to one structured actor_private_contracts.event_writes record; no branch writes a shared Realm typed current result.",
       "branches": [
-        {
-          "event_kind": "ak.account.blocklist",
-          "effect_contract_ref": "#/event_kind_registry/actor_private_contracts/event_writes/ak.account.blocklist"
-        },
         {
           "event_kind": "ak.account_data.set",
           "effect_contract_ref": "#/event_kind_registry/actor_private_contracts/event_writes/ak.account_data.set"
@@ -9092,6 +8999,17 @@
       "This registry lists WIRE schemas: objects that are signed, transmitted, or referenced by id through payload.schema or a DTO $ref. The VALUE shape of a typed current result is out of scope and MUST NOT get an ak.schema.* id of its own: it is a reducer output whose only registered read path is the value_schema_ref JSON Pointer on that family's result_writes[] rows, and an id would make one value look like a wire schema and invite binding by id instead of by the write contract. A whole-document id over typed-current-result.schema.json is fine -- ak.schema.result_projection.v1 is exactly that -- but a row whose fragment points at one value $defs member is not registrable, and the lint rejects one. The realm_authority_root_value row was the sole such row and was withdrawn; its writers always referenced the pointer, so nothing but the id was lost. See zh/sync/current-results.md section 1 and zh/conformance/schema-registry.md section 1.1."
     ],
     "schemas": [
+      {
+        "schema_id": "ak.schema.account_blocklist.v1",
+        "file": "schemas/account-blocklist.schema.json",
+        "status": "active",
+        "description": "Closed decrypted plaintext shape of the holder-private ak.account.blocklist account-data value.",
+        "consumer_binding": {
+          "kind": "account_data_plaintext",
+          "selector": "ak.account.blocklist",
+          "normative_ref": "zh/discovery/client-preferences.md#35-个人屏蔽与过滤-personal-blocklist"
+        }
+      },
       {
         "schema_id": "ak.schema.account_current_result.v1",
         "file": "schemas/account-current-result.schema.json",
@@ -10812,8 +10730,8 @@
         "description": "Server authentication-success frame carrying effective connection and channel limits."
       }
     ],
-    "version": "2026-09-25.2",
-    "generated_at": "2026-09-25T14:50:00+08:00",
+    "version": "2026-09-25.3",
+    "generated_at": "2026-09-25T16:25:00+08:00",
     "metadata_authority": "contract_registry_section"
   },
   "id_kind_registry": {
@@ -12498,6 +12416,13 @@
         "operations": [
           "ak.self.read_cursor.command.advance.v1",
           "ak.self.read_cursor.read.list.v1"
+        ],
+        "surface_class": "extension"
+      },
+      {
+        "surface": "actor_private_events",
+        "operations": [
+          "ak.self.actor_private_events.command.submit.v1"
         ],
         "surface_class": "extension"
       },
@@ -14450,6 +14375,57 @@
         }
       },
       {
+        "operation_id": "ak.self.actor_private_events.command.submit.v1",
+        "http": "POST /_arkret/self/actor-private-events",
+        "grpc": "SelfActorPrivateEvents/Submit",
+        "mq": "self.actor_private_events.command.submit",
+        "notes": "Accepts exactly one caller-signed actor-private Event whose kind is ak.device.push_route, ak.agent.action_request, ak.agent.action_reject or ak.agent.draft.propose; ak.account_data.set and ak.read_cursor.advance keep their dedicated operations. The authenticated caller MUST be the Event's actual signing actor, and the AccountId selected by the kind's storage_owner.account_id_source MUST belong to this Station, otherwise param_invalid with zero writes. The service validates the exact Event bytes, never rebuilds the payload or co-signs, and in one private transaction evaluates the kind's registered concurrency, writes its value projection and records the exact-retry ledger row (zh/models/actor-private-effects.md section 2). The write produces no RealmCommit and enters no commit stream. The outcome is discriminated by event_kind; ak.device.push_route also returns the accepted revision. An exact retry of the same canonical Event bytes returns the first stored outcome; the same event_id with different bytes is duplicate_conflict, a push_route revision mismatch is cas_conflict, and a missing, terminal, expired or otherwise unwritable target is failed_precondition, all with zero writes.",
+        "body_class": "non_streaming_json",
+        "success_shape_kind": "typed_response",
+        "idempotency_mechanism": "canonical_hash",
+        "canonical_hash_input": "full_body",
+        "retry_safe": true,
+        "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitRequestBody",
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitOutcome",
+        "durable_effect": {
+          "kind": "branched",
+          "discriminator": {
+            "request_path": "/event/kind",
+            "description": "The kind of the submitted actor-private Event; each branch writes only that kind's registered private effect."
+          },
+          "effect_branches": [
+            {
+              "equals": "ak.agent.action_reject",
+              "effect": {
+                "kind": "actor_private_event",
+                "event_kind": "ak.agent.action_reject"
+              }
+            },
+            {
+              "equals": "ak.agent.action_request",
+              "effect": {
+                "kind": "actor_private_event",
+                "event_kind": "ak.agent.action_request"
+              }
+            },
+            {
+              "equals": "ak.agent.draft.propose",
+              "effect": {
+                "kind": "actor_private_event",
+                "event_kind": "ak.agent.draft.propose"
+              }
+            },
+            {
+              "otherwise": true,
+              "effect": {
+                "kind": "actor_private_event",
+                "event_kind": "ak.device.push_route"
+              }
+            }
+          ]
+        }
+      },
+      {
         "operation_id": "ak.self.actor_profile.read.resolve.v1",
         "http": "POST /_arkret/self/actor-profiles/query",
         "grpc": "SelfActorProfile/Resolve",
@@ -15308,7 +15284,7 @@
         "http": "POST /_arkret/self/events",
         "grpc": "SelfEvents/Submit",
         "mq": "self.events.command.submit",
-        "notes": "Submit an exact producer-signed Event, MLS Commit, ordinary Realm bootstrap unit, Direct Conversation founding unit, or membership compensation unit to the current governance Station. Ordinary bootstrap uses the registered ordered slots in one Realm stream and one all-or-nothing storage transaction; success and exact replay return the same consecutive source RealmCommits without a batch-level receipt. Direct Conversation founding is its own ordered four-Event all-or-nothing unit with a separate founding-slot fence; success and exact replay return the same four consecutive source RealmCommits, whose fourth committed_at is the sole acceptance time. No founding receipt exists. Compensation carries closed transport-only evidence and a single-use CAS. canonical_hash/full_body remains the operation replay identity for every branch; no arbitrary atomic Event batch is admitted.",
+        "notes": "Submit an exact producer-signed Event, MLS Commit, ordinary Realm bootstrap unit, Direct Conversation founding unit, or membership compensation unit to the current governance Station. Ordinary bootstrap uses the registered ordered slots in one Realm stream and one all-or-nothing storage transaction; success and exact replay return the same consecutive source RealmCommits without a batch-level receipt. Direct Conversation founding is its own ordered four-Event all-or-nothing unit with a separate founding-slot fence; success and exact replay return the same four consecutive source RealmCommits, whose fourth committed_at is the sole acceptance time. No founding receipt exists. Compensation carries closed transport-only evidence and a single-use CAS. canonical_hash/full_body remains the operation replay identity for every branch; no arbitrary atomic Event batch is admitted. An Event whose kind has wire_scope actor_private_event is refused with unsupported_event_kind and zero writes; it is submitted only through its dedicated actor-private operation.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "schema_resource",
         "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/self_submit_request",
@@ -16310,8 +16286,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-25.2",
-    "generated_at": "2026-09-25T14:50:00+08:00",
+    "version": "2026-09-25.3",
+    "generated_at": "2026-09-25T16:25:00+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",
@@ -17573,6 +17549,19 @@
         "members": [
           {
             "operation_id": "ak.peer.realm_authority.command.handoff.v1",
+            "binding_kind": "http_json"
+          }
+        ]
+      },
+      {
+        "operation_bundle_id": "ak.operation_bundle.station.actor_private_events.v1",
+        "service_kind": "station",
+        "deployment_evidence": [
+          "normative:zh/models/actor-private-effects.md#21-提交面normative"
+        ],
+        "members": [
+          {
+            "operation_id": "ak.self.actor_private_events.command.submit.v1",
             "binding_kind": "http_json"
           }
         ]

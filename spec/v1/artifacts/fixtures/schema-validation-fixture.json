@@ -1,7 +1,7 @@
 {
   "suite": "schema_validation",
   "profile": "ak.vector_group.privacy_security.v1",
-  "version": "2026-09-24.1",
+  "version": "2026-09-25.2",
   "description": "Minimal positive and negative schema-validation cases for core wire objects. tools/artifact_lint validates schema_validation_cases[] against schema_ref.",
   "runner": {
     "kind": "json_schema_validation_cases",
@@ -192,6 +192,56 @@
           }
         }
       }
+    },
+    {
+      "name": "actor_private_submit_push_route_outcome_valid",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitOutcome",
+      "expect_valid": true,
+      "instance": {
+        "event_kind": "ak.device.push_route",
+        "accepted_event_id": "ak:event:AXrw54_r8iPVFSBGJhTZduzx5vRg62wu8bdDrUhCm9hR",
+        "revision": 3
+      }
+    },
+    {
+      "name": "actor_private_submit_push_route_outcome_requires_revision",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitOutcome",
+      "expect_valid": false,
+      "instance": {
+        "event_kind": "ak.device.push_route",
+        "accepted_event_id": "ak:event:AXrw54_r8iPVFSBGJhTZduzx5vRg62wu8bdDrUhCm9hR"
+      },
+      "first_expected_error": "contains:is not valid under any of the given schemas"
+    },
+    {
+      "name": "actor_private_submit_agent_outcome_valid",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitOutcome",
+      "expect_valid": true,
+      "instance": {
+        "event_kind": "ak.agent.draft.propose",
+        "accepted_event_id": "ak:event:AXrw54_r8iPVFSBGJhTZduzx5vRg62wu8bdDrUhCm9hR"
+      }
+    },
+    {
+      "name": "actor_private_submit_agent_outcome_rejects_revision",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitOutcome",
+      "expect_valid": false,
+      "instance": {
+        "event_kind": "ak.agent.action_request",
+        "accepted_event_id": "ak:event:AXrw54_r8iPVFSBGJhTZduzx5vRg62wu8bdDrUhCm9hR",
+        "revision": 1
+      },
+      "first_expected_error": "contains:is not valid under any of the given schemas"
+    },
+    {
+      "name": "actor_private_submit_outcome_rejects_dedicated_kind",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ActorPrivateEventSubmitOutcome",
+      "expect_valid": false,
+      "instance": {
+        "event_kind": "ak.read_cursor.advance",
+        "accepted_event_id": "ak:event:AXrw54_r8iPVFSBGJhTZduzx5vRg62wu8bdDrUhCm9hR"
+      },
+      "first_expected_error": "contains:is not valid under any of the given schemas"
     }
   ]
 }

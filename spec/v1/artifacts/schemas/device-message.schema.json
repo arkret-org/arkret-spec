@@ -219,7 +219,6 @@
       "type": "string",
       "enum": [
         "ak.account_data.update",
-        "ak.account.blocklist.update",
         "ak.read_cursor.update"
       ]
     },

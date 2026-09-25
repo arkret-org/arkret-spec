@@ -400,6 +400,10 @@
       "new": "ak.self.account.stream.subscribe.v1"
     },
     {
+      "old": "ak.self.actor_private_events.command.submit",
+      "new": "ak.self.actor_private_events.command.submit.v1"
+    },
+    {
       "old": "ak.self.actor_profile.read.resolve",
       "new": "ak.self.actor_profile.read.resolve.v1"
     },

@@ -41,22 +41,22 @@
     "unresolved": "no direct vector or reviewed higher-level coverage owner has been identified; this is a release blocker."
   },
   "summary": {
-    "total_schemas": 220,
+    "total_schemas": 221,
     "by_consumer": {
-      "declared_wire": 57,
+      "declared_wire": 58,
       "event_kind": 8,
       "inbound": 48,
       "outbound": 59,
       "prose": 103,
       "prose_only": 2,
       "schema_reference": 159,
-      "startup_compile": 220,
+      "startup_compile": 221,
       "vectors": 111
     },
     "without_wire_consumer": 1,
     "explicit_prose_only": 2,
     "unresolved_consumer_coverage": 0,
-    "without_vector_coverage": 109,
+    "without_vector_coverage": 110,
     "unresolved_vector_disposition": 0
   },
   "without_wire_consumer": [
@@ -68,6 +68,7 @@
   ],
   "unresolved_consumer_coverage": [],
   "without_vector_coverage": [
+    "ak.schema.account_blocklist.v1",
     "ak.schema.account_current_result.v1",
     "ak.schema.account_data_encrypted_value.v1",
     "ak.schema.account_data_operations.v1",
@@ -180,6 +181,25 @@
   ],
   "unresolved_vector_disposition": [],
   "schemas": [
+    {
+      "schema_id": "ak.schema.account_blocklist.v1",
+      "file": "schemas/account-blocklist.schema.json",
+      "consumers": {
+        "declared_wire": "account_data_plaintext",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "runtime_dispatch_owned",
+        "owner": "account_data_plaintext",
+        "rationale": "This schema is selected inside a registered dynamic/runtime dispatch surface. Coverage belongs to that enclosing dispatch vector because the object is never admitted independently."
+      },
+      "consumer_binding": {
+        "kind": "account_data_plaintext",
+        "selector": "ak.account.blocklist",
+        "normative_ref": "zh/discovery/client-preferences.md#35-个人屏蔽与过滤-personal-blocklist"
+      }
+    },
     {
       "schema_id": "ak.schema.account_current_result.v1",
       "file": "schemas/account-current-result.schema.json",
@@ -1301,6 +1321,7 @@
       "vector_coverage": {
         "disposition": "composed_schema_owned",
         "owners": [
+          "ak.schema.account_blocklist.v1",
           "ak.schema.account_current_result.v1",
           "ak.schema.account_data_encrypted_value.v1",
           "ak.schema.account_operations.v1",

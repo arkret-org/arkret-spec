@@ -1,5 +1,5 @@
 {
-  "version": "2026-09-23",
+  "version": "2026-09-25",
   "source_of_truth": false,
   "normative_rule": "NC-IDROLE-001",
   "forbidden_arkret_owned_fields": [
@@ -710,8 +710,8 @@
       "reason": "Sidecar signed MLS binding must byte-match the existing AgentSidecarView authority_stream_head field and its semantic authority-cut value; the EventId array is not a newly named generic ID collection."
     },
     {
-      "file": "event-payload.schema.json",
-      "pointer": "/$defs/account_blocklist_payload/properties/entries/items/properties/target/anyOf/1/properties/value",
+      "file": "account-blocklist.schema.json",
+      "pointer": "/properties/entries/items/properties/target/anyOf/1/properties/value",
       "terminal_categories": [
         "did_url"
       ],

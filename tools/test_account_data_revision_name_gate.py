@@ -88,13 +88,6 @@ class AccountDataRevisionNameGateTest(unittest.TestCase):
 
         self.assert_red(mutate, "both agent-draft source branches")
 
-    def test_blocklist_cross_reference_is_guarded(self) -> None:
-        def mutate(documents: dict) -> None:
-            version = documents[gate.EVENT_SCHEMA.resolve()]["$defs"]["account_blocklist_payload"]["properties"]["version"]
-            version["description"] = version["description"].replace("expected_server_revision", "expected_revision")
-
-        self.assert_red(mutate, "blocklist shared-counter")
-
     def test_operation_schema_description_is_guarded(self) -> None:
         def mutate(documents: dict) -> None:
             schema = documents[gate.OPERATIONS_SCHEMA.resolve()]

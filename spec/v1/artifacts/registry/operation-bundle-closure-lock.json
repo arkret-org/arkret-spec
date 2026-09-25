@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-25.1",
-  "generated_at": "2026-09-25T14:50:00+08:00",
+  "version": "2026-09-25.2",
+  "generated_at": "2026-09-25T14:50:01+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json"
@@ -84,6 +84,10 @@
     {
       "operation_bundle_id": "ak.operation_bundle.station.account_gate_pairing.v1",
       "sha256": "sha256:2c74aee96ed345dfe9df32ffa69933969b28f149797dd7ec7958c883478dd741"
+    },
+    {
+      "operation_bundle_id": "ak.operation_bundle.station.actor_private_events.v1",
+      "sha256": "sha256:2cf9ea12f0395c6538ca98704c3c474921b31bcf3bbee913a4ae3be89a2e1f50"
     },
     {
       "operation_bundle_id": "ak.operation_bundle.station.agent_pairing_handoff.v1",

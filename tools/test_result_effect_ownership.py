@@ -187,7 +187,7 @@ class ResultEffectOwnershipTest(unittest.TestCase):
 
     def test_actor_private_kind_cannot_omit_ownership(self) -> None:
         def mutate(document: dict) -> None:
-            event_row(document, "ak.account.blocklist").pop("result_effect_ownership")
+            event_row(document, "ak.device.push_route").pop("result_effect_ownership")
 
         errors = self._new_errors(mutate)
         self.assertTrue(any("must be a closed object" in error for error in errors), errors)
@@ -195,7 +195,7 @@ class ResultEffectOwnershipTest(unittest.TestCase):
     def test_actor_private_effect_rejects_wrong_storage_owner(self) -> None:
         def mutate(document: dict) -> None:
             document["event_kind_registry"]["actor_private_contracts"]["event_writes"][
-                "ak.account.blocklist"
+                "ak.device.push_route"
             ]["storage_owner"]["account_id_source"] = "payload.controller_account_id"
 
         errors = self._new_errors(mutate)
@@ -204,7 +204,7 @@ class ResultEffectOwnershipTest(unittest.TestCase):
     def test_actor_private_effect_cannot_drop_structured_maintenance(self) -> None:
         def mutate(document: dict) -> None:
             document["event_kind_registry"]["actor_private_contracts"]["event_writes"][
-                "ak.account.blocklist"
+                "ak.device.push_route"
             ].pop("field_maintenance")
 
         errors = self._new_errors(mutate)
@@ -220,7 +220,7 @@ class ResultEffectOwnershipTest(unittest.TestCase):
             service["branches"] = [
                 branch
                 for branch in service["branches"]
-                if branch["event_kind"] != "ak.account.blocklist"
+                if branch["event_kind"] != "ak.device.push_route"
             ]
 
         errors = self._new_errors(mutate)
@@ -245,11 +245,11 @@ class ResultEffectOwnershipTest(unittest.TestCase):
 
     def test_actor_private_effect_branch_cannot_be_orphaned(self) -> None:
         def mutate(document: dict) -> None:
-            event_row(document, "ak.account.blocklist")["result_effect_ownership"] = {
+            event_row(document, "ak.device.push_route")["result_effect_ownership"] = {
                 "kind": "owned_gap",
                 "owner_report": "arkret-work/tasks/spec-open/2026-09-19-1645-actor-private-events-lack-effect-owner-contracts.md",
                 "closure_condition": (
-                    "Register the complete actor-private durable effect contract for ak.account.blocklist, "
+                    "Register the complete actor-private durable effect contract for ak.device.push_route, "
                     "including its storage owner, unique key, CAS, retry, zero-side-effect rejection and "
                     "maintenance sources; then classify it as private_service_effect."
                 ),
@@ -260,7 +260,7 @@ class ResultEffectOwnershipTest(unittest.TestCase):
 
     def test_actor_private_effect_cannot_mix_shared_scope(self) -> None:
         def mutate(document: dict) -> None:
-            event_row(document, "ak.account.blocklist")["wire_scope"] = "durable_event"
+            event_row(document, "ak.device.push_route")["wire_scope"] = "durable_event"
 
         errors = self._new_errors(mutate)
         self.assertTrue(any("mixes a shared durable Event" in error for error in errors), errors)
@@ -268,7 +268,7 @@ class ResultEffectOwnershipTest(unittest.TestCase):
     def test_actor_private_effect_rejects_unknown_merge_kind(self) -> None:
         def mutate(document: dict) -> None:
             document["event_kind_registry"]["actor_private_contracts"]["event_writes"][
-                "ak.account.blocklist"
+                "ak.device.push_route"
             ]["concurrency"]["kind"] = "mystery_merge"
 
         errors = self._new_errors(mutate)

@@ -250,25 +250,6 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "ak.account.blocklist"
-          }
-        },
-        "required": [
-          "kind"
-        ]
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/account_blocklist_payload"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "kind": {
             "const": "ak.account_data.set"
           }
         },
@@ -6210,7 +6191,6 @@
       "properties": {
         "kind": {
           "enum": [
-            "ak.account.blocklist",
             "ak.account_data.set",
             "ak.actor.discovery",
             "ak.agent.action_approve",
