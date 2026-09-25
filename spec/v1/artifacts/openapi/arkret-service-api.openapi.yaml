@@ -663,6 +663,8 @@ components:
       $ref: ../schemas/invite-receive-policy.schema.json
     KeyPackagesClaimOutcome:
       $ref: ../schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_outcome
+    KeyPackagesClaimQueryRequestBody:
+      $ref: ../schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_query_request_body
     KeyPackagesClaimRequestBody:
       $ref: ../schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_request_body
     KeyPackagesConsumeOutcome:
@@ -2838,9 +2840,9 @@ paths:
 
             re-target the established focus rather than retrying; or
 
-            `mls_governance_binding_stale` — current MLS epoch key_access_revision
+            `mls_governance_binding_stale` — the current MLS group has not yet
 
-            does not cover the `ak.realm.media_service` typed current result; or
+            covered its current key_access_revision; or
 
             `media_plaintext_service_not_authorised` for SFUs negotiating
 
@@ -5209,6 +5211,45 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/KeyPackagesRevokeRequestBody'
+  /_arkret/self/keys/keypackages/claims/query:
+    post:
+      operationId: ak.self.keys.keypackages.read.claim
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.self.keys.keypackages.read.claim.v1
+      security:
+      - sessionGrantAuth: []
+        dpopProof: []
+      summary: Read one claim of the caller's own KeyPackage before decrypting its Welcome.
+      description: 'Owner-only read of the claim ledger at the caller''s own Account Station.
+
+        The authenticated endpoint MUST be the exact endpoint of the claim record.
+
+        The response is the byte-identical original claim outcome with the
+
+        destination-signed claim_receipt; unknown, foreign, superseded-Agent and
+
+        retention-expired claims are one keypackage_unknown.
+
+        '
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KeyPackagesClaimQueryRequestBody'
+      responses:
+        '200':
+          description: Original signed claim outcome containing the requested claim.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KeyPackagesClaimOutcome'
   /_arkret/self/keys/backups/{backup_id}:
     put:
       operationId: ak.self.keys.backups.resource.replace

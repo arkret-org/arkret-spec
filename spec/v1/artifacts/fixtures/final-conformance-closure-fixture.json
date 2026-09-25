@@ -1,6 +1,6 @@
 {
   "profile": "ak.vector_group.privacy_security.v1",
-  "version": "2026-09-19.2",
+  "version": "2026-09-26.1",
   "suite": "final_conformance_closure",
   "runner": {
     "kind": "named_suite",
@@ -24,11 +24,13 @@
       "decision_points": [
         {
           "id": "key_access_revision_governs_key_access_only",
-          "requirement": "An unrelated governance change such as message metadata or a capability grant leaves the key-access revision untouched, while a change to the material deciding future epoch key access advances it and pauses sending until a covering Commit exists.",
+          "requirement": "An unrelated governance change such as message metadata or a capability grant leaves the key-access revision untouched; only a membership change on the scope's own stream advances it and pauses sending until a covering Commit exists; a device or Agent key revocation leaves it untouched while the governance Station send gate refuses the revoked endpoint's own send at the same cut and other members keep sending.",
           "evidence": [
             "/cases/3",
             "/cases/3/cases/1/expected",
-            "/cases/3/cases/2/expected"
+            "/cases/3/cases/2/expected",
+            "/cases/3/cases/3/expected",
+            "/cases/3/cases/4/expected"
           ]
         },
         {
@@ -399,7 +401,8 @@
         "commit_binds_rederived_key_access_revision",
         "unrelated_governance_does_not_change_key_access_revision",
         "ordinary_event_has_no_commit_ref_and_key_access_revision_is_independent",
-        "active_leaf_revoke_pauses_sending_until_new_commit"
+        "membership_change_pauses_sending_until_new_commit",
+        "endpoint_revoke_refuses_only_the_revoked_sender_without_advancing_the_revision"
       ],
       "cases": [
         {
@@ -423,15 +426,41 @@
           }
         },
         {
-          "name": "active_leaf_revoke_pauses_sending",
+          "name": "membership_change_pauses_sending",
+          "changed_results": [
+            "member_key_access"
+          ],
+          "expected": {
+            "decision": "reject",
+            "reason": "epoch_update_required",
+            "key_access_revision_changed": true,
+            "self_heal_commit_required": true
+          }
+        },
+        {
+          "name": "device_revoke_refuses_only_the_revoked_sender",
+          "changed_results": [
+            "device_key"
+          ],
+          "expected": {
+            "key_access_revision_changed": false,
+            "other_member_send_decision": "accept",
+            "revoked_endpoint_send_decision": "reject",
+            "revoked_endpoint_send_code": "device_revoked",
+            "self_heal_commit_required": false
+          }
+        },
+        {
+          "name": "agent_key_revoke_refuses_only_the_revoked_sender",
           "changed_results": [
             "agent_key"
           ],
           "expected": {
-            "decision": "reject",
-            "reason": "mls_governance_binding_stale",
-            "key_access_revision_changed": true,
-            "self_heal_commit_required": true
+            "key_access_revision_changed": false,
+            "other_member_send_decision": "accept",
+            "revoked_endpoint_send_decision": "reject",
+            "revoked_endpoint_send_code": "capability_denied",
+            "self_heal_commit_required": false
           }
         }
       ]

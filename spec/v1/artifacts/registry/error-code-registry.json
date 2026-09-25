@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-26.3",
-  "generated_at": "2026-09-26T05:39:00+08:00",
+  "version": "2026-09-26.4",
+  "generated_at": "2026-09-26T06:40:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -3745,7 +3745,7 @@
         "service_call",
         "state_resolution"
       ],
-      "description": "Membership, policy, or governance checkpoint changed and the current MLS epoch does not yet have a winning ak.mls.commit whose governance_binding covers that checkpoint. Clients MUST pause new application messages for the scope until the effective epoch catches up. See zh/crypto-media/encryption-and-audit.md §2.4.1.",
+      "description": "A membership change on the scope's own stream advanced key_access_revision and the current MLS epoch does not yet have a winning ak.mls.commit whose governance_binding covers that revision. Clients MUST pause new application messages for the scope until the effective epoch catches up. Endpoint authorization and policy changes never produce this reason. See zh/crypto-media/encryption-and-audit.md §2.4.1.",
       "status": "active"
     },
     {
@@ -4528,7 +4528,7 @@
         "state_resolution",
         "auth_decision"
       ],
-      "description": "Current MLS epoch's key_access_revision does not cover key-access policy components the client wants to act on (for example media_service_decrypts and plaintext_visible_services for a decrypting media service). Receivers MUST refuse to act until a fresh Commit covers the rederived checkpoint. See zh/crypto-media/media-service-binding.md §8.2 and zh/crypto-media/encryption-and-audit.md §2.5.",
+      "description": "A decrypting media service join or token request found that the current MLS group has not yet covered its current key_access_revision (a membership change is still awaiting its winning ak.mls.commit). Media policy fields such as media_service_decrypts and plaintext_visible_services are authorized from the current accepted policy projection and never advance key_access_revision. Receivers MUST refuse to act until a Commit covers the current revision. See zh/crypto-media/media-service-binding.md §8.2 and zh/crypto-media/encryption-and-audit.md §2.4.1.",
       "status": "active"
     },
     {

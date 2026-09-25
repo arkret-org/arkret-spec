@@ -214,12 +214,12 @@ def check_peer_event_submit_semantic_union(lint: Lint) -> None:
         if constants != ["authority_forward", "authority_forward", "committed_replication", "registered_atomic_unit"]:
             _fail(lint, SCHEMA, "peer_submit_request alternatives drift from the registered branch partition")
         allowed_fields = (
-            {"branch", "event_submission", "producer_device_evidence"},
+            {"branch", "event_submission", "mls_genesis_material", "producer_device_evidence"},
             {"branch", "mls_submission", "producer_device_evidence"},
             {"branch", "replications"},
             {"branch", "unit"},
         )
-        all_branch_fields = {"event_submission", "mls_submission", "producer_device_evidence", "replications", "unit"}
+        all_branch_fields = {"event_submission", "mls_genesis_material", "mls_submission", "producer_device_evidence", "replications", "unit"}
         for index, (item, allowed) in enumerate(zip(branches, allowed_fields, strict=True)):
             forbidden = {
                 next(iter(_required(candidate)))
@@ -230,8 +230,21 @@ def check_peer_event_submit_semantic_union(lint: Lint) -> None:
                 _fail(lint, SCHEMA, f"peer_submit_request alternative {index} must reject every cross-branch field")
 
     peer_properties = peer.get("properties", {})
-    if set(peer_properties) != {"branch", "event_submission", "mls_submission", "producer_device_evidence", "replications", "unit"}:
+    if set(peer_properties) != {"branch", "event_submission", "mls_genesis_material", "mls_submission", "producer_device_evidence", "replications", "unit"}:
         _fail(lint, SCHEMA, "peer_submit_request properties must be the exact branch field set")
+    if _ref_name(peer_properties.get("mls_genesis_material")) != "#/$defs/mls_genesis_material":
+        _fail(lint, SCHEMA, "authority_forward mls_genesis_material must use the closed mls_genesis_material definition")
+    genesis_material = defs.get("mls_genesis_material", {})
+    if genesis_material.get("additionalProperties") is not False or _required(genesis_material) != {"group_info_bytes_b64", "ratchet_tree_bytes_b64"} or set(genesis_material.get("properties", {})) != {"group_info_bytes_b64", "ratchet_tree_bytes_b64"}:
+        _fail(lint, SCHEMA, "mls_genesis_material must be exactly the two raw Blob byte members with no ref or digest echo")
+    if isinstance(branches, list) and branches:
+        genesis_rule = branches[0]
+        kind_const = (
+            genesis_rule.get("if", {}).get("properties", {}).get("event_submission", {}).get("properties", {})
+            .get("event", {}).get("properties", {}).get("kind", {}).get("const")
+        )
+        if kind_const != "ak.mls.genesis" or _required(genesis_rule.get("then", {})) != {"mls_genesis_material"} or _required(genesis_rule.get("else", {}).get("not", {})) != {"mls_genesis_material"}:
+            _fail(lint, SCHEMA, "the Event kind alone must decide mls_genesis_material: required for ak.mls.genesis, forbidden otherwise")
     if _ref_name(peer_properties.get("producer_device_evidence")) != "./account-device-signer-evidence.schema.json":
         _fail(lint, SCHEMA, "authority_forward producer_device_evidence must directly reuse account-device-signer-evidence")
     if isinstance(branches, list):
@@ -252,8 +265,22 @@ def check_peer_event_submit_semantic_union(lint: Lint) -> None:
     committed = defs["committed_event_submission"]
     if _required(committed) != {"event_submission", "source_commit"} or committed.get("additionalProperties") is not False:
         _fail(lint, SCHEMA, "committed_event_submission must be closed EventAdmissionSubmission + source_commit")
-    if set(committed.get("properties", {})) != {"event_submission", "source_commit"}:
-        _fail(lint, SCHEMA, "committed_event_submission properties must contain no optional echoes or hints")
+    if set(committed.get("properties", {})) != {"event_submission", "source_commit", "welcomes"}:
+        _fail(lint, SCHEMA, "committed_event_submission properties must be the Event pair plus the MLS Commit welcomes carrier, with no echoes or hints")
+    welcomes = committed.get("properties", {}).get("welcomes", {})
+    if welcomes.get("minItems") != 1 or _ref_name(welcomes.get("items")) != "./mls-welcome-delivery.schema.json":
+        _fail(lint, SCHEMA, "committed_event_submission.welcomes must be a non-empty array of exact MlsWelcomeDelivery objects")
+    welcome_kind = next(
+        (
+            rule.get("then", {}).get("properties", {}).get("event_submission", {}).get("properties", {})
+            .get("event", {}).get("properties", {}).get("kind", {}).get("const")
+            for rule in committed.get("allOf", [])
+            if isinstance(rule, dict) and _required(rule.get("if", {})) == {"welcomes"}
+        ),
+        None,
+    )
+    if welcome_kind != "ak.mls.commit":
+        _fail(lint, SCHEMA, "committed_event_submission.welcomes must be allowed only for an ak.mls.commit source Event")
     if _ref_name(committed.get("properties", {}).get("event_submission")) != "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission":
         _fail(lint, SCHEMA, "committed_event_submission.event_submission must use the canonical admission submission")
 

@@ -15,19 +15,19 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 8764,
+    "total_properties": 8775,
     "total_schema_documents": 165,
     "by_presence_class": {
-      "optional": 2102,
+      "optional": 2104,
       "optional_defaulted": 47,
-      "required": 6152,
-      "required_nullable": 299,
-      "tristate": 164
+      "required": 6157,
+      "required_nullable": 302,
+      "tristate": 165
     },
-    "tristate_occurrences": 164,
-    "tristate_audit_targets": 131,
+    "tristate_occurrences": 165,
+    "tristate_audit_targets": 132,
     "tristate_sdk_dispositions": {
-      "absent_null_equivalent": 121,
+      "absent_null_equivalent": 122,
       "condition_guarded": 9,
       "distinct": 1
     }
@@ -57,6 +57,7 @@
     "applet-install-plan.schema.json/$defs/widget_effect/properties/policy_event_ref",
     "applet-registration-epoch-evidence.schema.json/allOf/0/oneOf/0/properties/method_version_evidence",
     "applet-registration-epoch-evidence.schema.json/allOf/0/oneOf/1/properties/method_version_evidence",
+    "authority-commit-operations.schema.json/$defs/committed_event_submission/allOf/0/then/properties/event_submission",
     "authority-commit-operations.schema.json/$defs/direct_conversation_member_join_submission/allOf/1/properties/event",
     "authority-commit-operations.schema.json/$defs/direct_conversation_realm_create_submission/allOf/1/properties/event",
     "authority-commit-operations.schema.json/$defs/direct_conversation_strand_create_submission/allOf/1/properties/event",
@@ -336,6 +337,16 @@
       "occurrences": [
         "/allOf/0/oneOf/0/properties/method_version_evidence",
         "/allOf/0/oneOf/1/properties/method_version_evidence"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "authority-commit-operations.schema.json",
+      "shape": "/$defs/committed_event_submission",
+      "instance_path": "/event_submission",
+      "occurrences": [
+        "/$defs/committed_event_submission/allOf/0/then/properties/event_submission"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -3415,8 +3426,12 @@
         "/$defs/committed_event_ref/properties/event_id": "required",
         "/$defs/committed_event_ref/properties/stream_position": "required",
         "/$defs/committed_event_ref/properties/stream_ref": "required",
+        "/$defs/committed_event_submission/allOf/0/then/properties/event_submission": "tristate",
+        "/$defs/committed_event_submission/allOf/0/then/properties/event_submission/properties/event": "required_nullable",
+        "/$defs/committed_event_submission/allOf/0/then/properties/event_submission/properties/event/properties/kind": "required",
         "/$defs/committed_event_submission/properties/event_submission": "required",
         "/$defs/committed_event_submission/properties/source_commit": "required",
+        "/$defs/committed_event_submission/properties/welcomes": "optional",
         "/$defs/direct_conversation_founding_acceptance_outcome/properties/commits": "required",
         "/$defs/direct_conversation_founding_acceptance_outcome/properties/status": "required",
         "/$defs/direct_conversation_founding_acceptance_outcome/properties/unit_kind": "required",
@@ -3484,6 +3499,8 @@
         "/$defs/membership_compensation_unit_submission/properties/event_submission": "required",
         "/$defs/membership_compensation_unit_submission/properties/membership_compensation_evidence": "required",
         "/$defs/membership_compensation_unit_submission/properties/unit_kind": "required",
+        "/$defs/mls_genesis_material/properties/group_info_bytes_b64": "required",
+        "/$defs/mls_genesis_material/properties/ratchet_tree_bytes_b64": "required",
         "/$defs/ordinary_realm_bootstrap_acceptance_outcome/properties/commits": "required",
         "/$defs/ordinary_realm_bootstrap_acceptance_outcome/properties/status": "required",
         "/$defs/ordinary_realm_bootstrap_acceptance_outcome/properties/unit_kind": "required",
@@ -3517,12 +3534,16 @@
         "/$defs/peer_committed_replication_outcome_record/oneOf/1/properties/status": "required",
         "/$defs/peer_registered_atomic_unit_outcome/properties/branch": "required",
         "/$defs/peer_registered_atomic_unit_outcome/properties/outcome": "required",
+        "/$defs/peer_submit_request/oneOf/0/if/properties/event_submission": "required_nullable",
+        "/$defs/peer_submit_request/oneOf/0/if/properties/event_submission/properties/event": "required_nullable",
+        "/$defs/peer_submit_request/oneOf/0/if/properties/event_submission/properties/event/properties/kind": "required",
         "/$defs/peer_submit_request/oneOf/0/properties/branch": "required",
         "/$defs/peer_submit_request/oneOf/1/properties/branch": "required",
         "/$defs/peer_submit_request/oneOf/2/properties/branch": "required",
         "/$defs/peer_submit_request/oneOf/3/properties/branch": "required",
         "/$defs/peer_submit_request/properties/branch": "required",
         "/$defs/peer_submit_request/properties/event_submission": "optional",
+        "/$defs/peer_submit_request/properties/mls_genesis_material": "optional",
         "/$defs/peer_submit_request/properties/mls_submission": "optional",
         "/$defs/peer_submit_request/properties/producer_device_evidence": "optional",
         "/$defs/peer_submit_request/properties/replications": "optional",
@@ -3549,6 +3570,7 @@
       },
       "conditionally_required": [
         "/$defs/peer_submit_request/properties/event_submission",
+        "/$defs/peer_submit_request/properties/mls_genesis_material",
         "/$defs/peer_submit_request/properties/mls_submission",
         "/$defs/peer_submit_request/properties/replications",
         "/$defs/peer_submit_request/properties/unit",
@@ -7667,6 +7689,7 @@
         "/$defs/keypackages_claim_outcome/properties/claim_receipt": "required",
         "/$defs/keypackages_claim_outcome/properties/claim_request_id": "required",
         "/$defs/keypackages_claim_outcome/properties/claims": "required",
+        "/$defs/keypackages_claim_query_request_body/properties/claim_id": "required",
         "/$defs/keypackages_claim_request_body/allOf/0/if/properties/claim_purpose": "required",
         "/$defs/keypackages_claim_request_body/allOf/0/then/properties/last_resort_allowed": "optional",
         "/$defs/keypackages_claim_request_body/allOf/2/then/properties/last_resort_allowed": "optional",

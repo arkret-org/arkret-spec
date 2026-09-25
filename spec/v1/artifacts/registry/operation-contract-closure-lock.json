@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-26.5",
-  "generated_at": "2026-09-26T05:39:00+08:00",
+  "version": "2026-09-26.6",
+  "generated_at": "2026-09-26T06:40:00+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -261,7 +261,7 @@
     },
     {
       "operation_id": "ak.peer.events.command.submit.v1",
-      "sha256": "sha256:937cd2a779778dfda851ada9b44897d4d5b55bb21781e0295cb4e77c920cb067"
+      "sha256": "sha256:572e4b81f955c170abc674960486c276702c751c453e220e794ecd6c9d095be2"
     },
     {
       "operation_id": "ak.peer.invites.command.submit.v1",
@@ -517,7 +517,7 @@
     },
     {
       "operation_id": "ak.self.call.media.exchange.issue_token.v1",
-      "sha256": "sha256:68b27ffbe9ab4d5c0a09cb68951ff446eaf4e8b79824aae3b49005e61dfed013"
+      "sha256": "sha256:dec4609e3725e5c872e3c650d688fbf9f4f060eeb2e3ddea925fae0b5c827afa"
     },
     {
       "operation_id": "ak.self.circle.command.create.v1",
@@ -702,6 +702,10 @@
     {
       "operation_id": "ak.self.keys.keypackages.command.revoke.v1",
       "sha256": "sha256:ef35245a6e5c10366dfb6080e6819fbe8d95bbf43aa6a390013c03509cf563b6"
+    },
+    {
+      "operation_id": "ak.self.keys.keypackages.read.claim.v1",
+      "sha256": "sha256:2e323cd5f30d734ec434cc47ec0da8d56625c80f71cd5bf7e0d6a5b617ee0a28"
     },
     {
       "operation_id": "ak.self.keys.keypackages.upload.create.v1",

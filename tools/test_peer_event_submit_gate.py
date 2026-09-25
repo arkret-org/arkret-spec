@@ -146,7 +146,27 @@ class PeerEventSubmitGateTest(unittest.TestCase):
                 "type": "string"
             }
 
-        self.assert_red(mutate, "no optional echoes or hints")
+        self.assert_red(mutate, "no echoes or hints")
+
+    def test_replication_welcomes_are_only_for_mls_commit(self) -> None:
+        def mutate(documents: dict) -> None:
+            rule = self.defs(documents)["committed_event_submission"]["allOf"][0]
+            rule["then"]["properties"]["event_submission"]["properties"]["event"]["properties"]["kind"]["const"] = "ak.mls.genesis"
+
+        self.assert_red(mutate, "only for an ak.mls.commit source Event")
+
+    def test_genesis_material_presence_is_decided_by_event_kind(self) -> None:
+        def mutate(documents: dict) -> None:
+            branch = self.defs(documents)["peer_submit_request"]["oneOf"][0]
+            del branch["else"]
+
+        self.assert_red(mutate, "the Event kind alone must decide mls_genesis_material")
+
+    def test_genesis_material_rejects_ref_echo(self) -> None:
+        def mutate(documents: dict) -> None:
+            self.defs(documents)["mls_genesis_material"]["properties"]["group_info_ref"] = {"type": "string"}
+
+        self.assert_red(mutate, "no ref or digest echo")
 
     def test_replication_outcome_record_rejects_optional_echo(self) -> None:
         def mutate(documents: dict) -> None:

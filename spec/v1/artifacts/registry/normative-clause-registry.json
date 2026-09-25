@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-26.1",
+  "version": "2026-09-26.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-26T06:11:00+08:00",
+  "generated_at": "2026-09-26T06:40:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -265,8 +265,8 @@
       "status": "active",
       "category": "distributed_write",
       "source_anchor": "spec/v1/zh/sync/client-sync.md#10-to-device-delivery",
-      "section_digest": "sha256:a99c5f392a83b6e89bf9123e5320cb4929522ac0a3a70cf28162068946a79436",
-      "requirement": "Recipient-private delivery preserves exact DeviceMessageEnvelope and MlsWelcomeDelivery branches in one ordered queue: each kind uses its closed durable deduplication key, unacknowledged items survive content expiry and capacity pressure, full capacity rejects new admission atomically, and queue removal happens only after explicit cumulative ACK of durably processed items by the same authenticated endpoint.",
+      "section_digest": "sha256:2efab62b664098f9cddcaad52804c4387d4ae43258cd715d3b9bbc633433e252",
+      "requirement": "Recipient-private delivery preserves exact DeviceMessageEnvelope and MlsWelcomeDelivery branches in one ordered queue: each kind uses its closed durable deduplication key, unacknowledged items survive content expiry and capacity pressure, full capacity rejects new first admission atomically while a Welcome a member Station stores through committed replication counts toward capacity without being refused, and queue removal happens only after explicit cumulative ACK of durably processed items by the same authenticated endpoint.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.sync.delivery_ack.v1"
@@ -413,7 +413,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#512-创建-transaction",
-      "section_digest": "sha256:ce10ef6e33d629dd97fc023b699be784677d514cf524dd68db603f38e19ec4b1",
+      "section_digest": "sha256:2b0de9d60101823f00f5e9de909ae202cec075ce602d33b0a28d638c9f67218b",
       "requirement": "A creator client keeps exactly one client-local durable transaction per (owner_actor_id, effective_scope, operation=mls_genesis) for a realm or circle scope, never for a sidecar scope, and advances it only along the registered arrows genesis_intent_persisted -> realm_accepted -> governance_result_pinned -> epoch0_state_persisted -> genesis_queued -> genesis_accepted -> artifacts_converged -> ready. The selector is persisted before the first Realm-create side effect, before any 0->0 query and before any selector-dependent randomness; while the record is still at genesis_intent_persisted the whole closed creation intent MAY be replaced in one atomic durable commit and it is immutable from realm_accepted on; the signed Genesis bytes and the outbound queue item are established atomically; ready and the send-gate index are published atomically. Only an exact accepted Event proves completion, the record never reaches a wire, projection, Account Data key, sync or federation surface, and it never authorizes a peer to trust another party's local state.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -437,8 +437,8 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#22-commit-与-welcome",
-      "section_digest": "sha256:2019ed1c124d8bb4e3dcc97e6f722c6c8a2f86c877f93b4e642d197829c86c64",
-      "requirement": "A Commit and all of its Welcome deliveries land in one database transaction: the governance Station verifies the Commit Event, current membership/policy, base group revision and the RFC 9420 public transition, verifies every delivery binding, appends the RealmCommit and enqueues each Welcome durably. Any missing, duplicate, over-limit or mis-bound delivery makes the transaction write nothing, and Commit accepted is returned only after the transaction is durable.",
+      "section_digest": "sha256:5180699e41bac0ddf65dba03fcf1378740405934ecba573ddca99cdb0a67ac49",
+      "requirement": "A Commit and all of its Welcome deliveries land in one database transaction: the governance Station verifies the Commit Event, current membership/policy, base group revision and the RFC 9420 public transition, verifies every delivery binding (the claim only for recipients it hosts), appends the RealmCommit, enqueues each hosted recipient's Welcome durably and writes each cross-Station recipient's Welcome into that routing service's committed-replication outbox intent. Any missing, duplicate, over-limit or mis-bound delivery makes the transaction write nothing, and Commit accepted is returned only after the transaction is durable. The member Station re-verifies a replicated Welcome's claim against its own ledger and queues it in the same replica transaction as the Commit replica; a Welcome failing that check is never queued and never blocks the Commit replica.",
       "testability_grade": "audit",
       "test_plan": "Audited against the Commit/Welcome transaction contract: a conformance run submits an MlsCommitSubmission whose welcomes[] contains one mis-bound delivery and asserts the Station returns no acceptance and leaves the RealmCommit log, the public group result and every recipient queue unchanged. No vector exists because the obligation is on server transaction atomicity rather than on a byte-level artifact."
     },
@@ -480,7 +480,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#261-welcome-producer-proof",
-      "section_digest": "sha256:8d5e618f29fde83f580a0fab5771bcd6b3d02258ba2f974ee265e01c6d1794db",
+      "section_digest": "sha256:285a1192ce0642ffef50ade35039059fc8f0762f526c2a5b4ec5da1bf9194a5e",
       "requirement": "The Welcome producer proof removes only producer_proof from the closed delivery, recomputes its RFC 8785 JCS SHA-256 digest, signs the registered context-plus-LF and five-member envelope with Ed25519, and is authorized only by the exact winning Commit Event producer method.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -514,8 +514,8 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/device-lifecycle.md#924-welcomeconsume-与已接受的-founding-unit",
-      "section_digest": "sha256:c63d80213ceba6577f7b944afd312575511a45545510646847e439b201f97b05",
-      "requirement": "Before decrypting a producer-signed MlsWelcomeDelivery, the recipient resolves its typed keypackage_claim_ref to the exact durable claim ledger entry, recomputes the KeyPackage digest and signed LeafNode capabilities, verifies current endpoint authorization and the accepted winning Add Commit on the same Genesis lineage, and compares requester, recipient, KeyPackage, group and epoch bindings. A Welcome Event payload, duplicate claim_ref digest, claim_envelope or embedded claim_receipt MUST NOT be accepted. The original claim is consumed only after new group state is durably stored.",
+      "section_digest": "sha256:c81f4bc48934e05947913f661c5e2e1ab6f6277bb822582a02636c846baf7b74",
+      "requirement": "Before decrypting a producer-signed MlsWelcomeDelivery, the recipient resolves its typed keypackage_claim_ref to the exact durable claim outcome through ak.self.keys.keypackages.read.claim.v1 at its own Account Station, verifies the destination receipt, recomputes the KeyPackage digest and signed LeafNode capabilities, verifies current endpoint authorization and the accepted winning Add Commit on the same Genesis lineage, and compares requester, recipient, KeyPackage, group and epoch bindings. A Welcome Event payload, duplicate claim_ref digest, claim_envelope or embedded claim_receipt MUST NOT be accepted. The original claim is consumed only after new group state is durably stored.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.mls.welcome_keypackage_hash.v1"

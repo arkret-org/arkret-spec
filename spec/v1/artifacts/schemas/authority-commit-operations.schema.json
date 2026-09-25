@@ -116,7 +116,7 @@
     },
     "peer_submit_request": {
       "type": "object",
-      "description": "The only peer Event ingress. branch is a semantic discriminator, not a routing hint: authority_forward performs first admission at the current governance Station; committed_replication stores source-committed replicas; registered_atomic_unit performs one registered all-or-nothing materialization. Bodies cannot be reinterpreted across branches. producer_device_evidence is allowed only on authority_forward and its presence is decided by the Event, not by the forwarder: it MUST be present when the actual signer (executed_by when present, otherwise actor_id; the Commit Event for mls_submission) is an Account whose proof verification_method fragment is an ak:device: id, and MUST be absent otherwise. The schema cannot express that Event-dependent rule, so the governance Station enforces it after producer resolution and rejects a missing or surplus member with schema_violation and zero writes (zh/crypto-media/device-lifecycle.md section 8.2.2).",
+      "description": "The only peer Event ingress. branch is a semantic discriminator, not a routing hint: authority_forward performs first admission at the current governance Station; committed_replication stores source-committed replicas; registered_atomic_unit performs one registered all-or-nothing materialization. Bodies cannot be reinterpreted across branches. producer_device_evidence is allowed only on authority_forward and its presence is decided by the Event, not by the forwarder: it MUST be present when the actual signer (executed_by when present, otherwise actor_id; the Commit Event for mls_submission) is an Account whose proof verification_method fragment is an ak:device: id, and MUST be absent otherwise. The schema cannot express that Event-dependent rule, so the governance Station enforces it after producer resolution and rejects a missing or surplus member with schema_violation and zero writes (zh/crypto-media/device-lifecycle.md section 8.2.2). mls_genesis_material is likewise allowed only on the authority_forward event branch, and there the Event kind alone decides it: required for ak.mls.genesis, forbidden otherwise.",
       "required": [
         "branch"
       ],
@@ -130,6 +130,10 @@
         },
         "event_submission": {
           "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
+        },
+        "mls_genesis_material": {
+          "$ref": "#/$defs/mls_genesis_material",
+          "description": "authority_forward event branch only. Required when event_submission.event.kind is ak.mls.genesis and forbidden for every other kind: the raw GroupInfo and ratchet_tree bytes of the two content-addressed Blobs the Genesis references, read by the forwarding Station (the creator's Account Station) from its own Blob store. The governance Station hashes each under its ref's embedded suite, compares with the Genesis payload refs, rejects a mismatch with digest_mismatch and zero writes, and stores both as public Blobs inside the acceptance transaction (zh/crypto-media/encryption-and-audit.md section 5.1.2)."
         },
         "mls_submission": {
           "$ref": "./mls-commit-submission.schema.json"
@@ -179,6 +183,42 @@
                 ]
               }
             ]
+          },
+          "if": {
+            "properties": {
+              "event_submission": {
+                "properties": {
+                  "event": {
+                    "properties": {
+                      "kind": {
+                        "const": "ak.mls.genesis"
+                      }
+                    },
+                    "required": [
+                      "kind"
+                    ]
+                  }
+                },
+                "required": [
+                  "event"
+                ]
+              }
+            },
+            "required": [
+              "event_submission"
+            ]
+          },
+          "then": {
+            "required": [
+              "mls_genesis_material"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "mls_genesis_material"
+              ]
+            }
           }
         },
         {
@@ -206,6 +246,11 @@
               {
                 "required": [
                   "unit"
+                ]
+              },
+              {
+                "required": [
+                  "mls_genesis_material"
                 ]
               }
             ]
@@ -242,6 +287,11 @@
                 "required": [
                   "producer_device_evidence"
                 ]
+              },
+              {
+                "required": [
+                  "mls_genesis_material"
+                ]
               }
             ]
           }
@@ -276,6 +326,11 @@
               {
                 "required": [
                   "producer_device_evidence"
+                ]
+              },
+              {
+                "required": [
+                  "mls_genesis_material"
                 ]
               }
             ]
@@ -316,7 +371,7 @@
     },
     "committed_event_submission": {
       "type": "object",
-      "description": "One full producer admission submission paired with the source-signed RealmCommit that accepted it. event_submission.event.event_id MUST equal source_commit.event_ref; realm and stream coordinates, governance generation, current source authority signature and previous_commit_ref continuity MUST verify exactly. This shape accepts only the full producer Event, never a withheld or projection-only read view.",
+      "description": "One full producer admission submission paired with the source-signed RealmCommit that accepted it. event_submission.event.event_id MUST equal source_commit.event_ref; realm and stream coordinates, governance generation, current source authority signature and previous_commit_ref continuity MUST verify exactly. This shape accepts only the full producer Event, never a withheld or projection-only read view. welcomes is allowed only when the source Event is ak.mls.commit and carries exactly the MlsWelcomeDelivery objects of that Commit whose recipients the destination Station hosts, in submission order; the destination re-verifies each claim against its own claim ledger and queues the passing Welcomes in the same replica transaction as the Commit (zh/crypto-media/encryption-and-audit.md section 2.2).",
       "required": [
         "event_submission",
         "source_commit"
@@ -327,6 +382,68 @@
         },
         "source_commit": {
           "$ref": "./realm-commit.schema.json"
+        },
+        "welcomes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./mls-welcome-delivery.schema.json"
+          },
+          "description": "Exact producer-signed Welcome deliveries of this ak.mls.commit for recipients hosted by the destination Station, written into this outbox intent by the governance Station inside the Commit acceptance transaction. Absent for every other Event kind and when the destination hosts no recipient of the Commit."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "welcomes"
+            ]
+          },
+          "then": {
+            "properties": {
+              "event_submission": {
+                "properties": {
+                  "event": {
+                    "properties": {
+                      "kind": {
+                        "const": "ak.mls.commit"
+                      }
+                    },
+                    "required": [
+                      "kind"
+                    ]
+                  }
+                },
+                "required": [
+                  "event"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "mls_genesis_material": {
+      "type": "object",
+      "description": "Raw epoch-0 public material of one forwarded ak.mls.genesis: the exact bytes of the GroupInfo and ratchet_tree Blobs named by the Genesis payload group_info_ref and ratchet_tree_ref, as unpadded base64url. It carries no ref or digest echo; the refs in the signed Genesis are the only digest carrier. The decoded bytes together MUST NOT exceed 8388608 bytes, the ak.peer.mls.read.group_state_material.v1 response bound; a larger body is too_large.",
+      "required": [
+        "group_info_bytes_b64",
+        "ratchet_tree_bytes_b64"
+      ],
+      "properties": {
+        "group_info_bytes_b64": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 5592406,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "ratchet_tree_bytes_b64": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 5592406,
+          "pattern": "^[A-Za-z0-9_-]+$"
         }
       },
       "additionalProperties": false

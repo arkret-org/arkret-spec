@@ -276,10 +276,10 @@ Receiver 不识别 selector kind 或 value branch 时 fail closed。扩展领域
 
 Matrix 的 E2EE（Olm/Megolm）和 room state 是两条并行轨。Arkret v1 引入 **MLS Governance Binding**（固定 GroupContext extension，定义见 `crypto-media/encryption-and-audit.md §2.5`），把 MLS epoch 强绑定到 governance state，由两层 wire-level artifact 协同工作：
 
-- **Commit 侧** —— 每个 `ak.mls.commit` 携带 `governance_binding`（GroupContext extension `mls_governance_binding`），把唯一的单调无符号整数 `key_access_revision` 同时绑定到 Event payload 与 MLS GroupContext；只有会改变未来 epoch 密钥访问资格的 closed state 才令该 revision 加一。
+- **Commit 侧** —— 每个 `ak.mls.commit` 携带 `governance_binding`（GroupContext extension `mls_governance_binding`），把唯一的单调无符号整数 `key_access_revision` 同时绑定到 Event payload 与 MLS GroupContext；只有该 scope stream 上改变 current joined 成员集合的 membership Event 才令该 revision 加一。
 - **deterministic projection 侧** —— MLS Commit 是 state-changing Event，写入 `mls_epoch_result`、`key_schedule_result` 与 active key-access-revision projection。E2EE message Event 的普通授权判定只发生在 Event admission；MLS gate 独立检查消息 group/epoch 对应的 digest 是否仍等于当前 key-access checkpoint。
 
-**理由**：member/leaf remove、device revoke 和 key-access policy 收紧被新 MLS epoch 覆盖后才限制新消息密钥；普通 capability、metadata 或 moderation 变化没有改变谁持有 epoch key，不应机械阻塞发送。active projection 使 Commit 所覆盖的精确 digest 可确定性查询，governance / recovery Event 不依赖它，因此 MLS 卡住不会阻止冲突修复。
+**理由**：membership 变化被新 MLS epoch 覆盖后才限制新消息密钥；device revoke 不推进 revision，被撤销设备自身的发送由治理 Station send gate 同 cut 拒绝，其 leaf 由账号拥有者以 Remove Commit 移除；普通 capability、metadata、policy 或 moderation 变化不改变 MLS leaf 集合，不应机械阻塞发送。active projection 使 Commit 所覆盖的精确 digest 可确定性查询，governance / recovery Event 不依赖它，因此 MLS 卡住不会阻止冲突修复。
 
 ### 6.6 Holder-Private Consent
 

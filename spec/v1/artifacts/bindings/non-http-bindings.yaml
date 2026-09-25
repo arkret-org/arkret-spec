@@ -214,6 +214,7 @@ grpc:
       BackupsList: ak.self.keys.backups.read.list.v1
       BackupsReplace: ak.self.keys.backups.resource.replace.v1
       KeyPackagesClaim: ak.self.keys.keypackages.command.claim.v1
+      KeyPackagesClaimQuery: ak.self.keys.keypackages.read.claim.v1
       KeyPackagesConsume: ak.self.keys.keypackages.command.consume.v1
       KeyPackagesRevoke: ak.self.keys.keypackages.command.revoke.v1
       KeyPackagesUpload: ak.self.keys.keypackages.upload.create.v1
@@ -414,6 +415,7 @@ mq:
     self.keys.keypackages.command.claim: ak.self.keys.keypackages.command.claim.v1
     self.keys.keypackages.command.consume: ak.self.keys.keypackages.command.consume.v1
     self.keys.keypackages.command.revoke: ak.self.keys.keypackages.command.revoke.v1
+    self.keys.keypackages.query.claim: ak.self.keys.keypackages.read.claim.v1
     self.keys.backups.resource.replace: ak.self.keys.backups.resource.replace.v1
     self.keys.backups.query.list: ak.self.keys.backups.read.list.v1
     self.keys.backups.command.issue_unlock_challenge: ak.self.keys.backups.command.issue_unlock_challenge.v1

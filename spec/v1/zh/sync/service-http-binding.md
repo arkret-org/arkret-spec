@@ -159,9 +159,13 @@ HTTP operation 的通用 batch 分支。以后若登记独立 Event 的便捷 ba
   Event 决定：实际签名方是 Account 且 proof fragment 为 `ak:device:` 时必带，其它情况禁带，MLS 以 Commit Event
   的 producer 为准；缺失或多余为 `schema_violation`。forwarding Station 每次转发尝试前现签并先持久化，治理
   Station 按 [`../crypto-media/device-lifecycle.md` §8.2.2](../crypto-media/device-lifecycle.md) 验证后才接纳；
-  其它两支不得携带它。
+  其它两支不得携带它。`event_submission` 的 Event 是 `ak.mls.genesis` 时必带、其它 kind 禁带
+  `mls_genesis_material`（Genesis 所引两个 Blob 的原始字节），治理 Station 核对内容寻址后在接纳事务内保存
+  （[`../crypto-media/encryption-and-audit.md` §5.1.2](../crypto-media/encryption-and-audit.md)）。
 - `committed_replication`：携 `replications[1..100]`；每项直接是
-  `{event_submission: EventAdmissionSubmission, source_commit: RealmCommit}`。`processing`、`committed_event`
+  `{event_submission: EventAdmissionSubmission, source_commit: RealmCommit}`，source Event 为 `ak.mls.commit` 时可另携
+  目标 service 托管的 recipient 的 `welcomes[]`（其它 kind 禁带），接收方在同一 replica 事务按本地 claim ledger 复核并入队
+  （[`../crypto-media/encryption-and-audit.md` §2.2](../crypto-media/encryption-and-audit.md)）。`processing`、`committed_event`
   wrapper、`recipient_witnesses` 与 destination echo 均不存在。接收方逐项验证 event/commit/ref、source
   authority generation、同 stream 连续性；producer proof 只按 [`federation.md` §3](./federation.md) 的
   “非治理接收方以治理签名为准”核对自身一致与治理签名，不独立解析外站 human 设备 key；并只从自己已验证的 committed membership history／typed current
@@ -340,8 +344,8 @@ MLS Genesis 与 Commit 仍是 producer-signed Event，由 current governance Sta
 `mls-commit-submission.schema.json`，将 exact Commit Event 和所有 producer-signed Welcome delivery 作为一个原子请求；
 任一 delivery 缺失、超限、claim 不匹配或 proof 无效时整体零写入。
 
-Commit 成功后立即成为 winning epoch，Welcome 由治理 Station 的 recipient queue 耐久重试；不等待接收者
-ACK 才提交。Station 只验证 RFC 9420 公开 transition、roster、sender 和 `key_access_revision`，
+Commit 成功后立即成为 winning epoch，本站 recipient 的 Welcome 由治理 Station 的 recipient queue 耐久重试，跨站
+recipient 的 Welcome 随 Commit 的 committed-replication item 投到其 Account Station；不等待接收者 ACK 才提交。Station 只验证 RFC 9420 公开 transition、roster、sender 和 `key_access_revision`，
 不持有 MLS private group state。
 
 ### 5.1 MLS 运输
@@ -693,6 +697,7 @@ RFC 9449 DPoP proof 只有 `iat`，没有 `expires` parameter，因此它 **MUST
 | `ak.self.keys.keypackages.command.claim.v1` | `POST /_arkret/self/keys/keypackages/claim` | - | - | request_schema_ref=schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_request_body; response_schema_ref=schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_outcome |
 | `ak.self.keys.keypackages.command.consume.v1` | `POST /_arkret/self/keys/keypackages/consume` | - | - | request_schema_ref=schemas/keypackage-operations.schema.json#/$defs/keypackages_consume_request_body; response_schema_ref=schemas/keypackage-operations.schema.json#/$defs/keypackages_consume_outcome |
 | `ak.self.keys.keypackages.command.revoke.v1` | `POST /_arkret/self/keys/keypackages/revoke` | - | - | request_schema_ref=schemas/keypackage-operations.schema.json#/$defs/keypackages_revoke_request_body; response_schema_ref=schemas/keypackage-operations.schema.json#/$defs/keypackages_revoke_outcome |
+| `ak.self.keys.keypackages.read.claim.v1` | `POST /_arkret/self/keys/keypackages/claims/query` | - | - | request_schema_ref=schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_query_request_body; response_schema_ref=schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_outcome |
 | `ak.self.keys.keypackages.upload.create.v1` | `POST /_arkret/self/keys/keypackages/upload` | - | - | request_schema_ref=schemas/keypackage-operations.schema.json#/$defs/keypackages_upload_request_body; response_schema_ref=schemas/keypackage-operations.schema.json#/$defs/keypackages_upload_outcome |
 | `ak.self.keys.read.lookup.v1` | `POST /_arkret/self/keys/query` | - | - | request_schema_ref=schemas/keys-operations.schema.json#/$defs/keys_query_request_body; response_schema_ref=schemas/keys-operations.schema.json#/$defs/keys_query_outcome |
 | `ak.self.keys.upload.create.v1` | `POST /_arkret/self/keys/upload` | - | - | request_schema_ref=schemas/keys-operations.schema.json#/$defs/keys_upload_request_body; response_schema_ref=schemas/keys-operations.schema.json#/$defs/keys_upload_outcome |

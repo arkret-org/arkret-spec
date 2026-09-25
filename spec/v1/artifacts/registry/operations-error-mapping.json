@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-09-25.3",
+  "version": "2026-09-26.1",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-09-25T16:25:00+08:00",
+  "generated_at": "2026-09-26T06:40:00+08:00",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3. snapshot_capacity_exceeded applies to every event_log admission branch in the operation registry, including peer authority_forward; committed_replication and other non-admission branches do not produce it.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, signature_invalid, capability_denied, schema_violation, json_invalid, query_invalid, param_missing, param_invalid, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind, unsupported_protocol_version, operation_selector_required, unsupported_operation_version. These are the universal failure surface and are NOT repeated in each operation entry. unsupported_protocol_version applies only when the binding implements Arkret-Protocol-Version header or equivalent media-type negotiation; ServiceDescribe consumers also use the same stable code locally before capability intersection. operation_selector_required and unsupported_operation_version are binding-level pre-dispatch failures evaluated before body parsing for every canonical operation.",
@@ -689,9 +689,10 @@
         "device_unauthorized",
         "device_revoked",
         "device_revocation_pending",
-        "device_generation_fenced"
+        "device_generation_fenced",
+        "digest_mismatch"
       ],
-      "description": "Closed peer authority-forward, committed-replication and registered-atomic-unit ingress. Forward admission is evaluated by the current governance Station. Replication rejects unverifiable source Event/Commit coordinates, authority generation, chain, witness or visibility without re-signing or fanout. Direct Conversation founding and membership compensation are all-or-nothing; dependency_missing carries the registered closed details shape and no per-item partial is returned. A cross-Station human device producer is resolved only from authority_forward producer_device_evidence: a missing, surplus or malformed member is schema_violation, signature/key/Service-history or source-Station mismatch is signature_invalid, unauthorized device, out-of-window authorization or expired evidence is device_unauthorized, and revoked, revocation-pending and fenced devices use device_revoked, device_revocation_pending and device_generation_fenced.",
+      "description": "Closed peer authority-forward, committed-replication and registered-atomic-unit ingress. Forward admission is evaluated by the current governance Station. Replication rejects unverifiable source Event/Commit coordinates, authority generation, chain, witness or visibility without re-signing or fanout. Direct Conversation founding and membership compensation are all-or-nothing; dependency_missing carries the registered closed details shape and no per-item partial is returned. A cross-Station human device producer is resolved only from authority_forward producer_device_evidence: a missing, surplus or malformed member is schema_violation, signature/key/Service-history or source-Station mismatch is signature_invalid, unauthorized device, out-of-window authorization or expired evidence is device_unauthorized, and revoked, revocation-pending and fenced devices use device_revoked, device_revocation_pending and device_generation_fenced. A forwarded ak.mls.genesis whose mls_genesis_material bytes do not hash to the Genesis group_info_ref or ratchet_tree_ref is digest_mismatch with zero writes; a missing or surplus mls_genesis_material is schema_violation. A carried Welcome that fails the destination's claim-ledger re-verification is not queued and does not reject the replicated Commit.",
       "codes": []
     },
     {
@@ -1804,6 +1805,15 @@
         "keypackage_already_consumed",
         "keypackage_unknown"
       ],
+      "codes": []
+    },
+    {
+      "operation_id": "ak.self.keys.keypackages.read.claim.v1",
+      "http_alias": "POST /_arkret/self/keys/keypackages/claims/query",
+      "operation_specific": [
+        "keypackage_unknown"
+      ],
+      "description": "Owner-only read of one claim outcome. An unknown claim_id, a claim of another endpoint, a claim whose Agent authorization was replaced, and a claim past the ledger retention window are one keypackage_unknown without distinguishing the cause.",
       "codes": []
     },
     {

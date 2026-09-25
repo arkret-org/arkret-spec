@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-26.3",
+  "version": "2026-09-26.4",
   "source_of_truth": false,
-  "generated_at": "2026-09-26T05:39:00+08:00",
+  "generated_at": "2026-09-26T06:40:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -301,6 +301,7 @@
         "ak.self.keys.keypackages.command.claim.v1",
         "ak.self.keys.keypackages.command.consume.v1",
         "ak.self.keys.keypackages.command.revoke.v1",
+        "ak.self.keys.keypackages.read.claim.v1",
         "ak.self.keys.backups.resource.replace.v1",
         "ak.self.keys.backups.read.list.v1",
         "ak.self.keys.backups.command.unlock.v1",
@@ -1572,7 +1573,7 @@
       "http": "POST /_arkret/peer/events",
       "grpc": "PeerEvents/Submit",
       "mq": "peer.events.command.submit",
-      "notes": "The sole peer Event ingress is a closed semantic union. authority_forward sends one exact producer Event or MLS Commit to the verified current governance Station, which alone may sign a new RealmCommit. committed_replication carries replications[1..100] whose rows are exactly {event_submission, source_commit}; processing, committed_event wrappers, sender membership witnesses, destination echoes and response coordinate echoes are absent. The receiver derives authorization from verified committed history and stores exact source facts without first admission, re-signing, or second fanout. registered_atomic_unit carries only registered all-or-nothing source-committed units (Direct Conversation founding or membership compensation), never per-item partial materialization. canonical_hash/full_body binds the complete selected branch and exact replay returns the original branch outcome.",
+      "notes": "The sole peer Event ingress is a closed semantic union. authority_forward sends one exact producer Event or MLS Commit to the verified current governance Station, which alone may sign a new RealmCommit; an ak.mls.genesis Event additionally carries mls_genesis_material, the raw bytes of the two content-addressed Blobs it references, which the governance Station hashes against the refs and stores in the acceptance transaction, and every other kind omits it. committed_replication carries replications[1..100] whose rows are exactly {event_submission, source_commit} plus, only for an ak.mls.commit source Event, the welcomes[] of recipients hosted by the destination, which the destination re-verifies against its own claim ledger and queues in the same replica transaction; processing, committed_event wrappers, sender membership witnesses, destination echoes and response coordinate echoes are absent. The receiver derives authorization from verified committed history and stores exact source facts without first admission, re-signing, or second fanout. registered_atomic_unit carries only registered all-or-nothing source-committed units (Direct Conversation founding or membership compensation), never per-item partial materialization. canonical_hash/full_body binds the complete selected branch and exact replay returns the original branch outcome.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
@@ -3469,6 +3470,18 @@
         "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
       },
       "notes": ""
+    },
+    {
+      "operation_id": "ak.self.keys.keypackages.read.claim.v1",
+      "http": "POST /_arkret/self/keys/keypackages/claims/query",
+      "grpc": "SelfKeys/KeyPackagesClaimQuery",
+      "mq": "self.keys.keypackages.query.claim",
+      "notes": "Read-only recipient-side resolution of one keypackage_claim_ref before a Welcome is decrypted. The caller's authenticated endpoint must be the exact endpoint of the claim record (human device: complete AccountId and device_id; Agent: agent_id with its current verification method and ak.agent.key.authorize Event). The response is the byte-identical keypackages_claim_outcome serialized when the claim request was first admitted (claim_request_id, every claims[] row and the destination-signed claim_receipt), never re-signed or trimmed, so the recipient recomputes claims_digest and verifies the receipt against its own Station. Unknown, foreign, superseded-Agent and retention-expired claims are one keypackage_unknown. It changes no claim or KeyPackage state.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_query_request_body",
+      "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_outcome",
+      "outward_disclosure_policy_id": "ak.outward_disclosure.owner_diagnostic.v1"
     },
     {
       "operation_id": "ak.self.keys.keypackages.upload.create.v1",
@@ -5397,6 +5410,19 @@
       "members": [
         {
           "operation_id": "ak.self.actor_private_events.command.submit.v1",
+          "binding_kind": "http_json"
+        }
+      ]
+    },
+    {
+      "operation_bundle_id": "ak.operation_bundle.station.keypackage_claim_read.v1",
+      "service_kind": "station",
+      "deployment_evidence": [
+        "normative:zh/crypto-media/device-lifecycle.md#9-mls-keypackage-claim-api"
+      ],
+      "members": [
+        {
+          "operation_id": "ak.self.keys.keypackages.read.claim.v1",
           "binding_kind": "http_json"
         }
       ]

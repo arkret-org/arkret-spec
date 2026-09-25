@@ -67,13 +67,33 @@ recipient actor 与 endpoint、`keypackage_claim_ref`、canonical ciphertext 和
 治理 Station MUST 在同一数据库事务中：
 
 1. 验证 Commit Event、current membership/policy、base group revision 与 RFC 9420 public transition；
-2. 验证每条 delivery 的 recipient、claim、Commit、scope、epoch、ciphertext 与 producer proof；
+2. 验证每条 delivery 的 recipient、Commit、scope、epoch、ciphertext 与 producer proof；recipient 由本 Station 托管时
+   另按本地 claim ledger 验证 claim；
 3. append Commit 的 RealmCommit并更新 public group result；
-4. 为每个 recipient durable enqueue Welcome并建立 replication outbox。
+4. 为本 Station 托管的 recipient durable enqueue Welcome，并建立 replication outbox；跨站 recipient 的 Welcome
+   写入指向其 routing service 的那条 outbox intent（见下文「跨站 recipient」）。
 
 任一 delivery 缺失、重复冲突、超限或绑定错误时事务零写入。事务 durable 后才可返回 Commit accepted；
 此时 sender 立即安装 staged post-state，不等待 recipient ACK。Station 按 `welcome_id` 重试投递，recipient durable
 保存并完整验证 Welcome 后幂等 ACK。response 丢失时 caller 只能重放 byte-identical submission或按 Commit EventId 查询。
+
+**跨站 recipient（normative）**：治理 Station 对每条 delivery 以 `recipient_actor_id` 按
+[`../models/common-fields.md` §4.2](../models/common-fields.md) 的封闭规则投影 routing service。投影为其它 Station 的
+recipient 是 current joined 成员，其 routing service 必然属于该 Commit 的 committed-replication 目标集
+（[`../sync/federation.md` §4.1.1](../sync/federation.md)）；治理 Station 没有该 recipient 的 claim ledger（claim
+destination 是 recipient 的 Account Station），因此在接纳事务内只验证第 2 项中除 claim 以外的全部绑定，并把该
+delivery 原样写入指向该 routing service 的 outbox intent。该 intent 的 `committed_replication` item 除 source
+Event 与 `RealmCommit` 外携 `welcomes[]`：恰为该 service 托管的 recipient 的全部 delivery，按 submission 中的顺序；
+目标集中没有该 service 时整个 submission 以不带 reason 的 `failed_precondition` 零写入。成员 Station 是这些 claim 的
+destination，它在保存该 item 的同一 replica 事务内，按
+[`device-lifecycle.md` §9.2.3](./device-lifecycle.md) 对治理 Station 规定的同一组绑定以本地 ledger 复核每条 delivery 的
+claim 与 destination receipt，并把通过复核的 Welcome 写入各自 recipient endpoint 的本地 queue；Commit replica 与这些
+Welcome 同时 durable，不存在只见 Commit、有效 Welcome 仍待另行投递的窗口。复核失败的 delivery 永不入队、只进受限
+audit；它不阻止 Commit replica 保存，因为该 Commit 已被治理 Station 接纳，拒绝它只会让成员站对整条 stream 失去副本。
+Commit replica 已由 `ak.peer.committed_event.read.scan.v1` 或先前尝试保存时，同一 item 的重放仍在一个事务内补写
+尚未入队的 Welcome 并返回 `duplicate`。复制写入的 Welcome 与本地 Welcome 同队列、同 ACK-only 删除规则；它计入该
+endpoint 的容量但不因容量被拒绝：[`../sync/client-sync.md` §10.1](../sync/client-sync.md) 的容量前置限制属于首次接纳
+边界，而跨站 Welcome 的数量已由成员站自己的 claim 发放（单次使用、限速）约束。
 
 #### 2.2.1 MLS Group Admin 推导
 
@@ -154,9 +174,16 @@ encrypted Event 与 recipient delivery 可以晚于对应 Commit 被客户端观
 
 #### 2.4.1 Membership 与 Epoch 不一致窗口
 
-治理 Station为每个 MLS scope维护单调无符号 64 位整数 `key_access_revision`，初始值为 `0`。current membership、leaf endpoint authorization、
-决定未来 epoch key取得者的 policy 或 scope terminal 状态改变时 revision严格加一；该字段是计数器，不是摘要，也没有字符串形式或兼容别名。revision 未被 current Commit覆盖时，
-scope 是 `epoch_update_required`，Station MUST 拒绝新的 encrypted application Event 与 Add submission。
+治理 Station为每个 MLS scope维护单调无符号 64 位整数 `key_access_revision`，初始值为 `0`。**唯一写者**是该 scope
+自己 stream 上改变 current joined 成员集合的 membership Event（Realm scope 即 Realm stream 上的 `ak.member.state` 与
+`ak.invite.accept`）：它被接纳的同一事务把该 scope 的 revision 严格加一，revision 记为该 membership Commit。该字段是计数器，
+不是摘要，也没有字符串形式或兼容别名。endpoint authorization（`ak.device.authorize`／`ak.device.revoke`、Agent key
+授权与撤销）发生在成员自己的 PCR／Agent stream，policy 变化不改变 MLS leaf 集合，二者都不推进 revision；已撤销 endpoint
+自身的发送由 §2.5.2 的 send gate 同 cut 拒绝，其 leaf 由账号拥有者其它 endpoint 以普通 Remove Commit 移除。revision
+未被 current Commit覆盖时，scope 是 `epoch_update_required`，Station MUST 拒绝新的 encrypted application Event 与 Add submission。
+
+**残余窗口（informative）**：endpoint 撤销到 Remove Commit 接纳之间，其它成员仍可在旧 epoch 发送；被撤销 endpoint
+若另行取得这些密文，仍能解密。它的 recipient queue 读取与 ACK 在撤销时即被阻断，自身发送被 send gate 拒绝。
 
 不存在 advisory 降级窗口。remove先 commit时旧 epoch新消息立即失败；消息先 commit时它是 remove前合法历史。
 
@@ -239,12 +266,21 @@ submit 均 MUST 返回通用 `failed_precondition`（无专用 reason），且�
 `temporarily_unavailable`；仅在未产生 Commit 时允许 byte-identical exact retry。已有 current group 时，
 Station MUST 判定 membership／policy／key-access checkpoint 是否已被 winning Commit 覆盖；尚未覆盖时返回
 `failed_precondition` + `epoch_update_required`，客户端 MUST 暂停新的 encrypted application Event，等待或由获权客户端
-促成 repair Commit，不得对尚不存在的目标 epoch 盲目重新加密。若 current scope 已被 winning Commit 覆盖，
+促成 repair Commit，不得对尚不存在的目标 epoch 盲目重新加密。
+
+**发送 endpoint 同 cut 授权（normative）**：实际签名方由本治理 Station 托管时，send gate MUST 在读取 current
+`mls_group` result 的同一耐久 cut 判定该发送 endpoint（即其 MLS 发送 leaf 所属 endpoint）的 current authorization，
+不等待 Remove Commit：human 设备按 [`device-lifecycle.md` §8.2.2](./device-lifecycle.md) 同站规则读取本地 PCR，
+已撤销、撤销待定、generation 被 fence 或未授权时分别以 `device_revoked`、`device_revocation_pending`、
+`device_generation_fenced`、`device_unauthorized` 零写入拒绝；Agent runtime 读取本地 current `agent_key`，其
+`ak.agent.key.authorize` 已撤销、被替换或过期时以 `capability_denied` 零写入拒绝。跨站实际签名方的撤销由其 account
+Station 在转发前按 §8.2.2 判定。该判定先于 `epoch_update_required` 与 `epoch_mismatch`，不推进 `key_access_revision`。若 current scope 已被 winning Commit 覆盖，
 但本次发送冻结的 `epoch`、`group_state_ref` 或 `key_access_revision` 与 current `mls_group` result 不符，
 MUST 返回顶层 `epoch_mismatch`（HTTP 409）。客户端 MUST 获取并验证 current public group result 与连续 MLS
 transition，在取得对应本地 private state 后重新加密，构造新的 prepare／submit 请求；不得把旧 ciphertext 改绑到新
-epoch，也不得在原请求的 exact retry 中重新加密。`mls_governance_binding_stale` 只用于 current epoch 对具体
-key-access 消费的覆盖不足，不表示本次请求引用了被取代的 epoch。上述 current send gate 不适用于已接受历史
+epoch，也不得在原请求的 exact retry 中重新加密。`mls_governance_binding_stale` 只用于解密媒体服务的 join／token
+在 current group 尚未覆盖 current `key_access_revision` 时（[`media-service-binding.md` §8.2](./media-service-binding.md)），
+不表示本次请求引用了被取代的 epoch。上述 current send gate 不适用于已接受历史
 Event 的重放或 peer committed replication；这些材料依其 accepted historical binding 验证。
 任一 active、获权客户端可以从 current public state 和 desired roster 构造 repair Commit；同一 base 上只有第一个
 合法 Commit 成功 CAS。
@@ -278,7 +314,9 @@ Welcome delivery 重建 projection、digest、prefix 与完整签名输入，不
 `verification_method` 等于该 producer proof 已验证的方法；治理 Station、recipient 或 claim service key 均不能替代。
 
 producer proof覆盖 delivery中除 proof 自身外的完整 canonical object，并绑定 exact Commit EventId、recipient endpoint、
-claim ref与ciphertext digest。Station在 Commit transaction中验签；recipient在解密前再次验签和核对。
+claim ref与ciphertext digest。Station在 Commit transaction中验签；recipient在解密前再次验签和核对，并以
+`ak.self.keys.keypackages.read.claim.v1` 从自己 Account Station 读取 `keypackage_claim_ref` 所指的 exact claim outcome
+独立验证 claim 与 receipt（[`device-lifecycle.md` §9](./device-lifecycle.md)）。
 
 #### 2.6.2 KeyPackage 使用边界
 
@@ -307,7 +345,8 @@ v1 只有 standard RFC 9420 application encryption。每个 application cipherte
 ### 2.10 Agent Event 双绑定
 
 Agent发送 encrypted Event时，同时验证 Agent current runtime authorization与其 MLS leaf credential。两项必须指向同一
-Agent actor与current method；任一撤销都会推进相关 scope的 `key_access_revision` 并阻塞旧 epoch新写入。
+Agent actor与current method；authorization 撤销不推进 `key_access_revision`（§2.4.1），由 §2.5.2 的发送 endpoint 同 cut
+授权拒绝该 Agent 的新写入。
 
 ## 3. Station 明文边界
 
@@ -358,6 +397,17 @@ Genesis 经 `ak.self.events.command.submit.v1` 的普通 Event 分支单独提�
 不携 Welcome；其它初始 endpoint 由随后第一条带 Welcome 的 `ak.mls.commit` 加入。Station 提交前验证 creator
 current authority 与「roster 恰为创建者」。
 
+**跨站 Genesis 的 public material（normative）**：Genesis 引用的 GroupInfo 与 ratchet tree 是 creator 经
+`ak.self.blob.*` 上传到自己 Account Station 的内容寻址 Blob。creator 的 Account Station 不是治理 Station 时，它在接纳
+self submit 进入转发队列前从本地 Blob 存储取两份原始字节并按 `group_info_ref`／`ratchet_tree_ref` 各自的 digest suite
+核对，缺失或不符以不带 reason 的 `failed_precondition` 拒绝；随后 `ak.peer.events.command.submit.v1` 的
+`authority_forward` 在 `event_submission` 旁携 `mls_genesis_material`（两份 unpadded base64url 原始字节）。该成员只对
+`ak.mls.genesis` 必带、对其它 kind 禁带，schema 以 Event kind 直接表达；同站 Genesis 读取本地 Blob，不经过该载体。
+治理 Station 在任何写入前解码两份字节，按 ref 内嵌 suite 重算 digest，与 Genesis payload 的 ref 逐字比较，不符以
+`digest_mismatch` 零写入；两份原始字节合计超过 8388608 bytes（与 `ak.peer.mls.read.group_state_material.v1` 的响应上限
+相同）为 `too_large`。随后按 §5.1.1 验证 RFC 9420 public state，并在接纳事务内把两份字节作为 public Blob 保存，供其后
+`ak.peer.mls.read.group_state_material.v1` 原样提供。exact 重复的 Genesis 返回原 outcome。
+
 **MLS 准入的其它拒绝（normative）**：Genesis roster 不是恰好创建者一个 leaf、Commit 的 Welcome 与其新增 leaf 不
 一一对应、`keypackage_claim_ref` 所指 claim 已不再 live、Welcome recipient 不是该 scope 的 current joined 成员等
 既有前置条件不成立时，治理 Station 以不带 `reason_code` 的 `failed_precondition` 零写入拒绝；只有 §2.5.1 的
@@ -405,8 +455,9 @@ attempt generation。
 
 ### 5.2 意图与生效
 
-成员、设备或policy变化先推进 `key_access_revision`，随后客户端提交覆盖该revision的Commit。revision推进立即阻塞旧
-epoch新密文，不等待Commit产生。
+成员变化先推进 `key_access_revision`，随后客户端提交覆盖该revision的Commit。revision推进立即阻塞旧
+epoch新密文，不等待Commit产生。设备与Agent key撤销不推进revision：被撤销 endpoint 的发送由 §2.5.2 同 cut 拒绝，其 leaf
+由账号拥有者其它 endpoint 以 Remove Commit 移除。
 
 #### 5.2.1 Commit producer
 
@@ -441,7 +492,8 @@ authority transaction。
 
 - Realm、每个 Circle分别决定是否通过 Genesis不可逆激活MLS；
 - shared MLS Event只有 `ak.mls.genesis` 与 `ak.mls.commit`；
-- Welcome与Commit同一authority transaction durable enqueue；
+- Welcome与Commit同一authority transaction durable enqueue；跨站 recipient 的 Welcome 随同一 Commit 的
+  committed-replication item 在成员站同一 replica 事务入队；
 - KeyPackage只在专用ledger；
 - fixed GroupContext binding只含scope、base、epoch transition与key-access revision；
 - 新member/endpoint只从Add/Welcome epoch获得密文能力；
@@ -450,5 +502,5 @@ authority transaction。
 ## 持久恢复的完成条件（normative）
 
 sender只有在exact submission已由current governance Station确认为accepted/duplicate并耐久保存post-Commit private state后，
-才把本地transition标为完成。recipient只有在Welcome、producer proof、claim binding、Commit lineage与完整RFC 9420处理均
-成功且private state耐久保存后才ACK。任何崩溃恢复都重放相同ID和bytes，不生成平行transition。
+才把本地transition标为完成。recipient只有在Welcome、producer proof、经 `ak.self.keys.keypackages.read.claim.v1` 读取并验证的
+claim binding、Commit lineage与完整RFC 9420处理均成功且private state耐久保存后才ACK。任何崩溃恢复都重放相同ID和bytes，不生成平行transition。

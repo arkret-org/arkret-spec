@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-26.3",
+  "version": "2026-09-26.4",
   "source_of_truth": false,
-  "generated_at": "2026-09-26T05:39:00+08:00",
+  "generated_at": "2026-09-26T06:40:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -7391,6 +7391,36 @@
         "properties": [
           "revoked",
           "failures"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.keys.keypackages.read.claim.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_query_request_body",
+        "schema_kind": "object",
+        "required": [
+          "claim_id"
+        ],
+        "properties": [
+          "claim_id"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_outcome",
+        "schema_kind": "object",
+        "required": [
+          "claim_request_id",
+          "claims",
+          "claim_receipt"
+        ],
+        "properties": [
+          "claim_request_id",
+          "claims",
+          "claim_receipt"
         ],
         "closed": true
       }

@@ -88,7 +88,7 @@ sidebar:
 
 - `ak.realm.media_service` state Event（含 `service_id`、`ice_config_endpoint` 与全部 `foci[].token_endpoint`）MUST 通过普通 Event proof、authority-commit admission 与 accepted RealmCommit state 物化；客户端不得接受未进入当前 accepted policy projection 的本地/OOB endpoint。
 - 普通已登录客户端在把这些字段锚定为 credential issuer DID 前，MUST 通过 [`../sync/server-trusted-results.md` §5.9](../sync/server-trusted-results.md) 的 `ak.self.media_service_binding.read.resolve.v1` 取得自己 Station 在其 exact accepted basis 下给出的已验证 `route` 与 `signing_keys`，并把 `route.service_id` 与本地已安装的该 typed current result 当前值逐字比较，再核对 `ice_config_endpoint` 与每个 `foci[].token_endpoint` 的 origin 落在 `route.base_url` 之内；不相等、缺失、stale 或结果窗口已过期时 fail closed（`media_service_binding_uncovered`）。客户端 MUST NOT 自行解析该 service DID 的 method history、witness 记录或 describe，也 MUST NOT 把任意候选 origin 的自报当作 route。服务器、联邦接收方与独立审计者按各自角色继续执行 DID 权威验证。普通 endpoint 变更不改变 MLS key 持有人，因此不得仅为它强制 rekey。
-- 只有 `media_service_decrypts` 或 `plaintext_visible_services` 的 accepted effect 改变媒体明文/密钥接收者时，才按 [`encryption-and-audit.md` §2.5](./encryption-and-audit.md) 进入 `key_access_revision` 并等待新 Commit。
+- `media_service_decrypts` 或 `plaintext_visible_services` 的 accepted effect 改变媒体明文接收者，但不改变 MLS leaf 集合，因此不推进 `key_access_revision`（[`encryption-and-audit.md` §2.4.1](./encryption-and-audit.md) 只由 membership 推进）。解密媒体的 SFU／MCU 只经 §8.1 取得绑定 call、focus 与 participant 的 frame key，是否向它发布只按当前 accepted policy projection 与 §8.2 三层校验判定。
 
 ## 3. Token Exchange (normative)
 
@@ -179,7 +179,7 @@ Content-Type: application/json
 - Realm policy 允许该 `focus_id`（即 focus 出现在当前 `ak.realm.media_service.foci[]` 中）。
 - 如果 `call_focus` 已存在 `session_focus`，请求的 `focus_id` 必须与其完全一致；不一致 MUST 返回 `focus_mismatch`。
 - call state 允许新 participant；且按分层 predicate 校验该 `(actor_id, device_id)`：actor 在 `realm_id` 的 Realm membership 为 `join`（若 scoped 到 Circle 则同时为该 Circle 活跃成员）、account status 不为 `suspended` / `deactivated` / `erasure_pending`、`device_id` 的 device grant 未 revoked。
-- `ak.realm.media_service` 与 token request 使用同一 current accepted policy projection；stale endpoint 返回 `media_service_binding_uncovered`。若服务将解密媒体，另要求 active MLS `key_access_revision` 覆盖当前 key-access policy；不一致返回 `mls_governance_binding_stale`。
+- `ak.realm.media_service` 与 token request 使用同一 current accepted policy projection；stale endpoint 返回 `media_service_binding_uncovered`。若服务将解密媒体，另要求 current MLS group 已覆盖其 current `key_access_revision`（不处于 `epoch_update_required`）；未覆盖返回 `mls_governance_binding_stale`。
 - 如果 backend 将解密媒体（`media_service_decrypts=true`），完整执行 §8.2 的三层校验。
 
 ### 3.1 签名 domain label 分离（normative）
@@ -302,8 +302,8 @@ Conformance vectors for the full media binding framework：
 
 1. **进入 `ak.realm.policy_bundle`**：`media_service_decrypts=true` MUST 由一条 `ak.realm.policy_bundle` 显式写入，受 capability `ak.policy.manage` 控制；当前 accepted bundle 未包含该开关时 MUST 视为未开启。
 2. **进入 `plaintext_visible_services`**：解密媒体的 SFU / MCU service DID MUST 在 Realm policy 的 `plaintext_visible_services[]`（或等价 media plaintext service policy）中显式列出，且该条目的机器可判定 `data_classes[]` MUST 包含 `media_plaintext`。自由文本 `purposes` 只作解释，MUST NOT 单独授权明文。仅出现在 `media_services[]`、仅在 `purposes` 中声称媒体处理用途，或未获 `media_plaintext` data class 的服务 MUST 被视为禁止解密媒体的 SFU；其试图协商解密角色时 MUST 返回 `media_plaintext_service_not_authorised`。
-3. **MLS key-access revision 覆盖**：成员在 join 前 MUST 核对自己 Station 从当前 accepted policy 求出的 key-access checkpoint 与实际 MLS GroupContext 的绑定，确认它覆盖前两条规则产生的实际 key-access value；policy typed current result 自动进入该闭合 checkpoint 的注册规则保留；不一致时 MUST 触发 `mls_governance_binding_stale` 并拒绝媒体协商（不能依赖 SFU 单方面声明）。
-4. **Downgrade 攻击拒绝**：从 `media_service_decrypts=false` 切换到 `true`（或反向）MUST 走 `ak.realm.policy_bundle` 正常路径并伴随客户端 UI 显著二次确认；UI 未展示警示或用户未完成二次确认时 MUST 在发放 join token / media key 前拒绝（`media_plaintext_warning_required`）。不允许 SFU 直接以 OOB 控制信号宣告自己已"获得解密权"。由于该事实改变谁可取得媒体密钥，它必须改变 media scope 的 `key_access_revision`；新 Commit accepted 前客户端沿用旧视图并禁止按 OOB 字段提前授权。
-**Conformance negative vector** `ak.vector.webrtc.media_plaintext_downgrade.v1` 必须覆盖：(a) 当前 `key_access_revision` 未授权 `media_service_decrypts` ⇒ 拒绝加入；(b) SFU 未列入 `plaintext_visible_services` 而协商解密 ⇒ 拒绝媒体；(c) UI 未显示警示 ⇒ 拒绝加入。
+3. **MLS current 覆盖**：成员在 join 前 MUST 核对自己 Station 返回的 current MLS group 已覆盖其 current `key_access_revision`，且 frame key 只从该 current epoch 派生；前两条规则的授权只取自当前 accepted policy projection，不进入 `key_access_revision`。group 尚未覆盖时 MUST 触发 `mls_governance_binding_stale` 并拒绝媒体协商（不能依赖 SFU 单方面声明）。
+4. **Downgrade 攻击拒绝**：从 `media_service_decrypts=false` 切换到 `true`（或反向）MUST 走 `ak.realm.policy_bundle` 正常路径并伴随客户端 UI 显著二次确认；UI 未展示警示或用户未完成二次确认时 MUST 在发放 join token / media key 前拒绝（`media_plaintext_warning_required`）。不允许 SFU 直接以 OOB 控制信号宣告自己已"获得解密权"。该切换不推进 `key_access_revision`：SFU 不是 MLS leaf，只取得按 §8.1 绑定 call／focus／participant 的 frame key；切换 accepted 前客户端沿用旧 policy 视图并禁止按 OOB 字段提前授权。
+**Conformance negative vector** `ak.vector.webrtc.media_plaintext_downgrade.v1` 必须覆盖：(a) 当前 accepted policy 未授权 `media_service_decrypts` ⇒ 拒绝加入；(b) SFU 未列入 `plaintext_visible_services` 而协商解密 ⇒ 拒绝媒体；(c) UI 未显示警示 ⇒ 拒绝加入。
 
-实际效果：SFU / MCU 不能在 MLS transcript 之外单独变更为可解密媒体的一方。任何看起来“切换成功”但未被当前 `key_access_revision` 授权的状态都是 attack，必须 fail closed。
+实际效果：SFU / MCU 不能在 MLS transcript 之外单独变更为可解密媒体的一方。任何看起来“切换成功”但未被当前 accepted policy 授权的状态都是 attack，必须 fail closed。

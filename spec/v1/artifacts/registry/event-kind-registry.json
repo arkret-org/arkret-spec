@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-26.3",
+  "version": "2026-09-26.4",
   "source_of_truth": false,
-  "generated_at": "2026-09-26T05:39:00+08:00",
+  "generated_at": "2026-09-26T06:40:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -3516,7 +3516,7 @@
             }
           },
           "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/mls_group_value",
-          "notes": "crypto-media/encryption-and-audit.md sections 2.4.1 and 5.2 split the two revisions between two writers: current_key_access_revision is advanced by membership, leaf endpoint authorization, policy or scope terminal changes, never by an MLS Event, and a Commit only advances the covered side to the revision it declares it covers. The projection is therefore a merge and not a set: mls_commit_payload carries no ratchet tree ref and no genesis ref, so a whole-value write would drop two required members of MlsGroupCurrent."
+          "notes": "crypto-media/encryption-and-audit.md sections 2.4.1 and 5.2 split the two revisions between two writers: current_key_access_revision is advanced only by a membership Event on the scope's own stream that changes the current joined set (ak.member.state or ak.invite.accept for a Realm scope), never by endpoint authorization, policy or an MLS Event, and a Commit only advances the covered side to the revision it declares it covers. The projection is therefore a merge and not a set: mls_commit_payload carries no ratchet tree ref and no genesis ref, so a whole-value write would drop two required members of MlsGroupCurrent."
         }
       ],
       "id_source": "not_an_object_id",

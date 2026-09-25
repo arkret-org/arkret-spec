@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-26.3",
+  "version": "2026-09-26.4",
   "source_of_truth": false,
-  "generated_at": "2026-09-26T05:39:00+08:00",
+  "generated_at": "2026-09-26T06:40:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,10 +18,10 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 204,
+    "total_operations": 205,
     "by_completeness_class": {
       "binary_or_redirect": 2,
-      "typed_schema": 202
+      "typed_schema": 203
     },
     "by_surface_class_and_completeness_class": {
       "core": {
@@ -32,7 +32,7 @@
       },
       "extension": {
         "binary_or_redirect": 2,
-        "typed_schema": 120
+        "typed_schema": 121
       },
       "interop_bridge": {
         "typed_schema": 21
@@ -2401,6 +2401,20 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/KeyPackagesRevokeRequestBody",
         "response": "#/components/schemas/KeyPackagesRevokeOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.self.keys.keypackages.read.claim.v1",
+      "surface_class": "extension",
+      "http": "POST /_arkret/self/keys/keypackages/claims/query",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_query_request_body",
+      "response_schema_ref": "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/KeyPackagesClaimQueryRequestBody",
+        "response": "#/components/schemas/KeyPackagesClaimOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

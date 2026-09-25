@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-25.4",
+  "version": "2026-09-26.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-25T19:50:00+08:00",
+  "generated_at": "2026-09-26T06:40:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -952,7 +952,7 @@
       "schema_id": "ak.schema.keypackage_operations.v1",
       "file": "schemas/keypackage-operations.schema.json",
       "status": "active",
-      "description": "Closed request/response DTO bundle for self KeyPackage upload/claim/consume/revoke and atomic peer claim/outcome-query operations."
+      "description": "Closed request/response DTO bundle for self KeyPackage upload/claim/consume/revoke/claim-query and atomic peer claim/outcome-query operations."
     },
     {
       "schema_id": "ak.schema.keys_operations.v1",

@@ -2458,6 +2458,7 @@
           "ak.self.keys.keypackages.command.claim.v1",
           "ak.self.keys.keypackages.command.consume.v1",
           "ak.self.keys.keypackages.command.revoke.v1",
+          "ak.self.keys.keypackages.read.claim.v1",
           "ak.self.keys.keypackages.upload.create.v1"
         ],
         "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
@@ -2753,6 +2754,7 @@
         "disposition": "composed_schema_owned",
         "owners": [
           "ak.schema.account_subscribe_frame.v1",
+          "ak.schema.authority_commit_operations.v1",
           "ak.schema.keypackage_operations.v1",
           "ak.schema.mls_commit_submission.v1"
         ],

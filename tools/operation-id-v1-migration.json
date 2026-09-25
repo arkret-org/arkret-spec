@@ -696,6 +696,10 @@
       "new": "ak.self.keys.keypackages.command.revoke.v1"
     },
     {
+      "old": "ak.self.keys.keypackages.read.claim",
+      "new": "ak.self.keys.keypackages.read.claim.v1"
+    },
+    {
       "old": "ak.self.keys.keypackages.upload.create",
       "new": "ak.self.keys.keypackages.upload.create.v1"
     },

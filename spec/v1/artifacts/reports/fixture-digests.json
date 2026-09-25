@@ -247,8 +247,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/final-conformance-closure-fixture.json",
-      "sha256": "1d624f6a9a6b1c07a595cad185cc0b4944229f1fc8df2baa4af78beba125f0fe",
-      "version": "2026-09-19.2"
+      "sha256": "ffcc0f636c7490ba12c11b833caf2fd260014febbc0c2bb63efeb431d84c669c",
+      "version": "2026-09-26.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/franking-proof-transcript-fixture.json",
@@ -462,8 +462,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/schema-validation-fixture.json",
-      "sha256": "5aae004b4874ef04e3ed07f65a0a9e68d8f9ef981de888d9aabe47e02467ff7c",
-      "version": "2026-09-25.2"
+      "sha256": "f311850003ebd1902549952e4bc236c7cfbb7455d67cbae1d3f2783002827dc8",
+      "version": "2026-09-26.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",

@@ -37,6 +37,16 @@ Welcome 使用 `(recipient_actor_id, recipient_endpoint, welcome_id)` 耐久去�
 DeviceMessage 或 MLS Commit+Welcome 并保持原队列与请求幂等 ledger 零变更，以及 ACK 后
 跨两分支累计取消；`lost` 只能由持久证据证明历史缺口或故障。
 
+`ak.vector.mls.cross_station_welcome_replication.v1` MUST 证明：跨站 recipient 的 Welcome 由治理 Station 在 Commit
+接纳事务内写入指向其 routing service 的 outbox intent，随该 `ak.mls.commit` 的 committed-replication item 以
+`welcomes[]` 送达；成员站以本地 claim ledger 复核并与 Commit replica 同一事务入队，复核失败的 Welcome 不入队也不阻止
+Commit replica，经 scan 已保存 Commit 后的重放补写 Welcome 并返回 `duplicate`，复制 Welcome 计入但不因容量被拒绝。
+`ak.vector.keypackage.recipient_claim_read.v1` MUST 证明：`ak.self.keys.keypackages.read.claim.v1` 只向 claim record
+的 exact endpoint 返回逐字节相同的原 claim outcome，其它情形统一 `keypackage_unknown`，接收端读取并验证 receipt 后才
+解密。`ak.vector.federation.authority_forward_genesis_material.v1` MUST 证明：跨站 Genesis 经 `authority_forward` 携
+`mls_genesis_material` 被接纳并保存为 public Blob，缺失／多余为 `schema_violation`、摘要不符为 `digest_mismatch`、
+超限为 `too_large`，均零写入。三者现为 reserved，运行时实现后以可执行 fixture 激活。
+
 ## 2. 领域向量
 
 Typed reducer、身份、能力、媒体与扩展领域的向量必须使用本规范定义的 Event/RealmCommit 边界，并由 vector registry 登记。

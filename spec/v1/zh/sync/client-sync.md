@@ -265,7 +265,9 @@ endpoint 绑定校验并执行累计删除。human device token 绑定完整 `(a
 队列 ACK。配置的 endpoint 队列容量是**入队前置限制**：满额时服务端 MUST 在同一原子写入
 边界拒绝新的投递，既不淘汰旧项，也不消费该请求的幂等 identity；DeviceMessage send 使用
 通用 `quota_exceeded`，且同一批次零部分入队；MLS Commit 携 Welcome 时，容量拒绝必须使
-Commit、公开 MLS state 与所有 Welcome 一起零写入。队列容量按同一 exact endpoint 下两种
+Commit、公开 MLS state 与所有 Welcome 一起零写入。成员站经 committed replication 写入的跨站 Welcome
+（[`../crypto-media/encryption-and-audit.md` §2.2](../crypto-media/encryption-and-audit.md)）计入容量但不因容量被拒绝，
+因为它所属的 Commit 已被治理 Station 接纳，其数量由成员站自己的 claim 发放约束。队列容量按同一 exact endpoint 下两种
 未确认分支合计，已 ACK 项不占容量。`lost` 仅可表示有持久证据的历史缺口或故障，不得把
 正常 TTL／容量淘汰当作它的生产来源；`lost` 为真时客户端 MUST 重建 MLS／密钥就绪状态。
 
@@ -345,11 +347,11 @@ MLS Genesis 在某 scope首次 authority commit 后不可逆激活；此前内�
 
 ## 15. E2EE and MLS Sync Performance
 
-`ak.mls.commit` 与所有新增 recipient 的 `MlsWelcomeDelivery` 在 authority submission 中原子持久化。Commit accepted 后发送方立即安装 staged post-state，不等待 Welcome ACK。Welcome 重试按 `welcome_id` 幂等。
+`ak.mls.commit` 与所有新增 recipient 的 `MlsWelcomeDelivery` 在 authority submission 中原子持久化；跨站 recipient 的 Welcome 随该 Commit 的 committed-replication item 在其 Account Station 同一 replica 事务入队。Commit accepted 后发送方立即安装 staged post-state，不等待 Welcome ACK。Welcome 重试按 `welcome_id` 幂等。接收端解密前以 `ak.self.keys.keypackages.read.claim.v1` 读取并验证 `keypackage_claim_ref` 所指 claim。
 
 旧 Seal closure 形式的 MLS accepted-artifact 与 Welcome-ref 独立读取端点不属于 v1，服务 MUST NOT 将其作为 Commit 接纳证明或 recipient delivery 的第二读取源。Commit 的公开接纳事实由已登记的 committed Event／RealmCommit 读取面取得；`MlsWelcomeDelivery` 仍必须留在同一事务写入的 recipient-private queue，作为 §10 的 `delivery_kind="mls_welcome"` 原样交付：human device 经 account delta 或同队列补拉，Agent runtime 经自身 endpoint 的同队列补拉，均在 durable processing 后显式 ACK。移除旧端点不得删除 Welcome ciphertext、重试队列、outbox 或扩大其它客户端的可读范围。
 
-每个 MLS scope维护单调 `key_access_revision`。Encrypted application Event只有在 epoch、group state ref、covered revision都等于 current public state时才能 commit；membership/device authorization变化推进 revision并阻塞 stale epoch新消息。
+每个 MLS scope维护单调 `key_access_revision`。Encrypted application Event只有在 epoch、group state ref、covered revision都等于 current public state时才能 commit；只有 membership 变化推进 revision并阻塞 stale epoch新消息，已撤销设备或 Agent runtime 自身的发送由 send gate 同 cut 拒绝。
 
 ### 15.1 `decryption_pending` timeout and recovery
 

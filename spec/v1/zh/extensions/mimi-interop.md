@@ -208,7 +208,7 @@ mimi://mimi.example.com/rooms/01JSMIMI
   - `follower`:本地 facade 作为 follower provider 参与远端 hub 拥有的 room,接收 fanout 并向 hub 提交本地 writes;
   - `observer`:本地 facade 只读投影该 room（监听 fanout / groupInfo 用于本地呈现或审计），MUST NOT 代表本地参与方向 MIMI room 提交 writes 或承担 hub fanout 职责。
 - `ak.mimi.room_binding` 的创建、更新和撤销 MUST require `ak.policy.manage`、`ak.realm.admin` 或等价 interop capability。
-- E2EE MIMI room MUST 绑定 `mls_group_id`，并按 [`../crypto-media/encryption-and-audit.md` §2.5](../crypto-media/encryption-and-audit.md) 校验当前 epoch 的 `key_access_revision`；membership、实际 leaf key 与 key-access policy 进入 checkpoint，普通 capability 仍由 Event admission 独立校验。
+- E2EE MIMI room MUST 绑定 `mls_group_id`，并按 [`../crypto-media/encryption-and-audit.md` §2.5](../crypto-media/encryption-and-audit.md) 校验当前 epoch 的 `key_access_revision`；只有 current membership 推进该 revision（§2.4.1），实际 leaf key 的撤销由治理 Station send gate 同 cut 拒绝，普通 capability 仍由 Event admission 独立校验。
 - MIMI facade 在无法解析或验证 Arkret MLS Governance Binding 时 MUST fail closed：入站 MIMI room state、groupInfo、key material 或 message 不得直接投影到 Arkret Realm，而是进入 quarantine，reason=`mimi_governance_binding_missing` 或更具体的 binding mismatch 错误。
 - 撤销 binding 后，facade MUST 停止接受新的 MIMI writes，只允许 backfill、tombstone、report、legal hold 或 migration proof 等维护操作。`status` 的完整生命周期状态机（初始状态、合法迁移、终态、非法迁移拒绝、`migrating` 窗口与并发收敛）见 §4.2。
 

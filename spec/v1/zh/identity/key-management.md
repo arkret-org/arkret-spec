@@ -732,7 +732,7 @@ gate 的作用范围是：**发起任何 post-bootstrap E2EE Realm 创建/加入
 
 - Events API MUST 拒绝该设备的新签名写入
 - authz MUST 视相关 session grant 失效
-- 加密 Realm SHOULD 通过 MLS Remove 推进 epoch；Commit 的 `governance_binding.key_access_revision` MUST 从已经包含该 `ak.device.revoke` 或已导入该撤销的 Realm leaf-remove Event 的 accepted state 重算，且该撤销 MUST 已被 principal control stream 的 accepted RealmCommit 覆盖
+- 加密 Realm SHOULD 由账号拥有者其它设备以 MLS Remove 移除该设备的 leaf 并推进 epoch；设备撤销本身不推进 `key_access_revision`（只有 membership 变化推进，见 [`../crypto-media/encryption-and-audit.md` §2.4.1](../crypto-media/encryption-and-audit.md)），该设备的新加密写入由治理 Station send gate 同 cut 以 `device_revoked` 拒绝
 - 客户端和受托 projection executor SHOULD 标记已撤销设备产生的未确认 Operation 为高风险
 
 ## 6. Session Grant

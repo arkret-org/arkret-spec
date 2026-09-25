@@ -17,6 +17,9 @@
       "$ref": "#/$defs/keypackages_claim_outcome"
     },
     {
+      "$ref": "#/$defs/keypackages_claim_query_request_body"
+    },
+    {
       "$ref": "#/$defs/peer_keypackages_claim_query_request_body"
     },
     {
@@ -1049,6 +1052,20 @@
       },
       "additionalProperties": false,
       "description": "Privacy-preserving peer success response. It intentionally omits inventory counts and per-device failure information."
+    },
+    "keypackages_claim_query_request_body": {
+      "type": "object",
+      "required": [
+        "claim_id"
+      ],
+      "properties": {
+        "claim_id": {
+          "$ref": "./mls-welcome-delivery.schema.json#/properties/keypackage_claim_ref",
+          "description": "KeypackageClaimId of the claim to read, byte-identical to the Welcome keypackage_claim_ref. The caller's authenticated endpoint MUST be the claim record's exact endpoint."
+        }
+      },
+      "additionalProperties": false,
+      "description": "Self read of one claim of the caller's own KeyPackage (ak.self.keys.keypackages.read.claim.v1). The response is the byte-identical keypackages_claim_outcome first serialized for the claim request that allocated claim_id."
     },
     "peer_keypackages_claim_query_request_body": {
       "type": "object",

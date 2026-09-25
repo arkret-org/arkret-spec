@@ -97,6 +97,9 @@ Authority 离线时可继续读已缓存字节，但整个 Realm 不能生成新
 ### 4.1 Event forwarding
 
 Event forwarding 始终保留 exact producer bytes，并只将 current authority 的 Commit 视为 accepted。
+转发 `ak.mls.genesis` 时，`authority_forward` 另携 `mls_genesis_material`：Genesis 所引 GroupInfo 与 ratchet tree 两个
+Blob 的原始字节，由治理 Station 核对内容寻址后在接纳事务内保存；其它 kind 禁带（规则见
+[`../crypto-media/encryption-and-audit.md` §5.1.2](../crypto-media/encryption-and-audit.md)）。
 
 **跨站 human 设备 producer（normative）**：transport 认证不证明 producer 设备授权，治理 Station 也没有 producer
 account Station 的 PCR。因此 producer 是 human Account 设备且其 `account_id.station_id` 不是治理 Station 时，
@@ -127,9 +130,12 @@ Service 历史在 `attested_at` 的 assertion method 与签名、attestation `ex
 
 同一 service DID 的 endpoint/record 更新只刷新 transport route，MUST NOT 改变冻结 basis、target identity 或原幂等键。AccountId 的 Station 分量变化意味着另一完整 ActorId，不是旧 intent 的 route 更新；之后同一 principal 以新 AccountId、其它 ActorId 或新 membership Event 重新加入，只能影响新 intent，MUST NOT 复活或重定向旧 intent。多个 frozen members 共享同一 service 时，一个成员退出不影响其它仍完整有效的 basis。
 
-durable outbox 必须使用 `ak.peer.events.command.submit.v1` 的 `committed_replication` 分支。每项只携完整 source
-`EventAdmissionSubmission` 与 source-signed `RealmCommit`；`fanout_authorization_basis` 是发送方投递义务状态，
-**不得进入 peer body**。接收方只从 authenticated source/destination、source Event／Commit、已验证 committed
+durable outbox 必须使用 `ak.peer.events.command.submit.v1` 的 `committed_replication` 分支。每项携完整 source
+`EventAdmissionSubmission` 与 source-signed `RealmCommit`；source Event 是 `ak.mls.commit` 且目标 service 托管该
+Commit 的 Welcome recipient 时，另携这些 recipient 的全部 exact `MlsWelcomeDelivery`（`welcomes[]`，由治理 Station 在
+接纳事务内写入该 intent；其它 kind 禁带），成员站在同一 replica 事务内按本地 claim ledger 复核并入队
+（[`../crypto-media/encryption-and-audit.md` §2.2](../crypto-media/encryption-and-audit.md)）。`fanout_authorization_basis`
+是发送方投递义务状态，**不得进入 peer body**。接收方只从 authenticated source/destination、source Event／Commit、已验证 committed
 membership history 与 typed current projection重新验证 commit/event/ref、source authority generation、连续性、
 本机托管成员资格与 history/reference/plaintext visibility；sender claim 不能成为授权事实。所需 membership、
 authority chain、predecessor 或 history floor 缺失时 MUST `dependency_missing` 并零写该项。
