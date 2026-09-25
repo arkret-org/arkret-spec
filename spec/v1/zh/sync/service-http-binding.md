@@ -259,7 +259,7 @@ position 连续性按 ±1 检查，`readable_floor.oldest_position` 以下的缺
 该面**不使用 cursor**：单条 stream 内 `stream_position` 是严格 +1 全序，位置本身就是续传凭据，
 续页由客户端取本批的最大 / 最小 `stream_position` 得到。响应不返回 `prev_cursor` / `next_cursor` /
 `has_more`，服务端也不得在此接受 `ak:cursor:` 值（[`api-conventions.md` §7.2](./api-conventions.md)）。
-目标 Realm policy 对该 caller 拒绝 Event disclosure 时，`CommittedEventView` 使用 closed withheld 分支
+目标 Realm policy 对该 caller 拒绝 Event disclosure，或该 Event 已按 retention 到期时，`CommittedEventView` 使用 closed withheld 分支
 `{commit,event_disclosure:{status:"withheld"}}`；允许披露时使用 full 分支 `{commit,event}`，且
 `event.event_id` MUST 等于 `commit.event_ref`。不等则 caller MUST 拒绝该项，MUST NOT 二者取一或试图调和。
 验证 Commit 不是 Event disclosure 判定；实现 MUST NOT 因为 caller 能验证 Commit 就交出完整 canonical

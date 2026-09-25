@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-25.2",
+  "version": "2026-09-25.3",
   "source_of_truth": true,
-  "generated_at": "2026-09-25T14:50:00+08:00",
+  "generated_at": "2026-09-25T16:15:00+08:00",
   "description": "Closed inventory of current spec/v1/zh headings that explicitly carry the （normative） marker. Any addition, removal, rename, or move is reviewed as a protocol change and refreshes this source-of-truth inventory.",
   "titles": [
     {
@@ -588,6 +588,11 @@
       "page": "governance/history-visibility.md",
       "heading": "3.1 floor 必须可验证（normative）",
       "fragment": "31-floor-必须可验证normative"
+    },
+    {
+      "page": "governance/history-visibility.md",
+      "heading": "3.2 retention 不裁剪 Commit 链（normative）",
+      "fragment": "32-retention-不裁剪-commit-链normative"
     },
     {
       "page": "identity/account-lifecycle.md",

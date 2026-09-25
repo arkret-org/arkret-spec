@@ -3,7 +3,7 @@ title: Operations And Sync
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-16
+updated: 2026-09-25
 see_also:
   - authority-commit-log.md
   - service-http-binding.md
@@ -66,7 +66,7 @@ RealmCommit是唯一accepted receipt；transport/queue receipt只能说明已收
 
 ### 6.2 历史完整性边界（normative）
 
-同一获准stream的position必须连续且predecessor唯一。History/retention floor之前的裁剪不是gap；之后无法解释的跳跃必须停止该stream并重取snapshot/authority bundle。
+同一获准stream的position必须连续且predecessor唯一。readable floor之下的不可读位置不是gap（v1 不裁剪 Commit 链，retention 到期只走 withheld 分支）；之后无法解释的跳跃必须停止该stream并重取snapshot/authority bundle。
 
 ## 7. 同步面
 

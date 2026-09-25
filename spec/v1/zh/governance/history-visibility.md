@@ -49,8 +49,7 @@ recent tail；全历史是后续按需分页，不是 join 的前置条件。
 
 floor 不只是"更早的数据取不到"，它是该 caller 允许区间的下端，必须能被绑定到已接受的链上验证：
 `ak.self.committed_event.read.scan.v1` 的 `stream_scan_outcome.readable_floor` 给出 `oldest_position`、该位置的
-`floor_commit_id` 与 `floor_reason`（`stream_start` / `membership_join` / `history_access_policy` /
-`retention_pruned`），窗口侧的对应形式是 `window_start_basis.anchor_kind=before_readable_floor`。
+`floor_commit_id` 与 `floor_reason`（`stream_start` / `membership_join` / `history_access_policy`），窗口侧的对应形式是 `window_start_basis.anchor_kind=before_readable_floor`。
 `since_join` 的成员因此**不必**拿到 position 0 才能验证其获准前缀完整；floor 处的 Commit 是唯一允许
 携带该 caller 无法解析的 `previous_commit_ref` 的可读行。
 
@@ -65,13 +64,22 @@ MUST 使用同一数值：
 3. 离开后重新加入的成员只以当前有效 join Commit 为 floor；此前在册期间的区间在 `since_join` 下不可读。
    `readable_floor` 是单一下界，协议不表达多段可读区间。
 
-retention 或更严的 policy 使下界更高时，按 §6 取更严者并使用对应 `floor_reason`。
+更严的 history policy 使下界更高时取更严者并使用 `history_access_policy`。
 
 分页与扫描的所有边界都按允许区间解释：floor 以下取不到不构成 gap，也不得据此推断隐藏活动、成员或存在性；
 `truncated` 只表示该方向还有该 caller 获准读取的 Commit，空结果不表示物理流不存在。
 只有该 caller 在该流一条 Commit 都不获准读取时才省略 `readable_floor`。
 
 v1 的历史可读区间只能由 current governance Station 对已接受 RealmCommit 链、current membership 与 history-access policy 求得，并通过本节已登记的 stream discovery／snapshot／scan 结果呈现。旧 Seal／CellRef closure 形式的独立 history-authority HTTP oracle 不属于 v1：服务 MUST NOT 暴露它作为另一条历史权限或可枚举查询路径，客户端 MUST NOT 将其旧结果当作 `readable_floor`、Commit provenance 或 MLS 历史密钥的替代证明。此限制不移除现行获准 stream 发现、scan/floor、历史策略与 §4 的 MLS 密钥边界。
+
+### 3.2 retention 不裁剪 Commit 链（normative）
+
+v1 治理 Station MUST NOT 物理删除已接受的 RealmCommit，也不产生由 retention 决定的 floor。retention 到期只作用于
+Event 披露与 Station 对该 Event canonical bytes 的保留：到期位置在 scan、单项读取与窗口中仍返回同一 Commit 槽位，
+使用 `CommittedEventView` 的 withheld 分支（[`../sync/service-http-binding.md`](../sync/service-http-binding.md)），
+链保持连续，floor 不因 retention 移动。Realm genesis Event 与 `ak.realm.governance_station.change` Event 是
+authority bundle 的必需成员，MUST NOT 因 retention 删除；handoff 导入完整 Commit 链。Snapshot
+`retention_and_history_floor` 只承载 history／join floor。
 
 ## 4. MLS 历史
 

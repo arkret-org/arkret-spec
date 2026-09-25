@@ -1433,12 +1433,11 @@
         },
         "floor_reason": {
           "type": "string",
-          "description": "Why the range starts here. stream_start means the floor is the physical start of the stream and oldest_position is 0; the other three are trimmed ranges and MUST NOT be reported as stream_start.",
+          "description": "Why the range starts here. stream_start means the floor is the physical start of the stream and oldest_position is 0; the other two are trimmed ranges and MUST NOT be reported as stream_start. Retention never moves a floor: v1 never deletes an accepted RealmCommit and expired Events are returned through the withheld CommittedEventView branch.",
           "enum": [
             "stream_start",
             "membership_join",
-            "history_access_policy",
-            "retention_pruned"
+            "history_access_policy"
           ]
         }
       },

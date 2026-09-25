@@ -231,9 +231,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-09-25.6",
-      "generated_at": "2026-09-25T14:50:01+08:00",
-      "content_digest": "sha256:c4488c034dffb86a36470ce165d98deee8698b77930ec1799bbd7ca9e321657b"
+      "version": "2026-09-25.7",
+      "generated_at": "2026-09-25T14:50:02+08:00",
+      "content_digest": "sha256:e9c815829768e143d478fc35c525f4b53e12725aedbfc2db1dbefeb3e5b56f59"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
@@ -471,9 +471,9 @@
     },
     {
       "path": "tools/normative-title-inventory.json",
-      "version": "2026-09-25.2",
-      "generated_at": "2026-09-25T14:50:00+08:00",
-      "content_digest": "sha256:0ab18145729a98fcebd2862a14493a2a6be55e7258462ba38fa992689581a6c6"
+      "version": "2026-09-25.3",
+      "generated_at": "2026-09-25T16:15:00+08:00",
+      "content_digest": "sha256:a7d6a6b7a77c9250d0cb342864e29dc0a1719609f45d20d1eb483340c362e092"
     },
     {
       "path": "tools/patch-base-producer-baseline.json",

@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-25.6",
-  "generated_at": "2026-09-25T14:50:01+08:00",
+  "version": "2026-09-25.7",
+  "generated_at": "2026-09-25T14:50:02+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -245,7 +245,7 @@
     },
     {
       "operation_id": "ak.peer.committed_event.read.scan.v1",
-      "sha256": "sha256:d99b4fb379c43573ce4ce69c28337cab1e556eae4c65356b2d4e7b4c36597327"
+      "sha256": "sha256:18538169e8fea4683f43740653cb15700031c389c83ad03e643f783d582cf45c"
     },
     {
       "operation_id": "ak.peer.contacts.command.submit.v1",
@@ -541,7 +541,7 @@
     },
     {
       "operation_id": "ak.self.committed_event.read.scan.v1",
-      "sha256": "sha256:99894b7c57bbf117dffc35cd5c86da4164fab540147653210b0941813454168c"
+      "sha256": "sha256:32b9acf6c7366ea6daf5d0f4ecfa7885cae5ae13a8c07622a148843c36c0140a"
     },
     {
       "operation_id": "ak.self.committed_event.resource.get.v1",
@@ -749,7 +749,7 @@
     },
     {
       "operation_id": "ak.self.realm.read.streams.v1",
-      "sha256": "sha256:01f3961eb12286dbe801de1377116535e65049a0b1210aa539365e986f36bb90"
+      "sha256": "sha256:17fc6d60d87988cdf21e5f2e09a8a93d791d3b4799fb07ddcc113971b25e76b1"
     },
     {
       "operation_id": "ak.self.realm.resource.get.v1",
