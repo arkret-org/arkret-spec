@@ -7474,9 +7474,7 @@
         "resource_kind": {
           "type": "string",
           "enum": [
-            "actor",
-            "applet",
-            "handle"
+            "applet"
           ]
         },
         "discoverability": {
