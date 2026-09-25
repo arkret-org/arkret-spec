@@ -117,6 +117,8 @@ Service 历史在 `attested_at` 的 assertion method 与签名、attestation `ex
 
 对 Realm 共享 Event，发送方 MUST 从同一 accepted Realm view 取所有未撤销的 effective joined member ActorId，按 [`../models/common-fields.md`](../models/common-fields.md) §4.2 的封闭规则投影 routing service，排除本机并按 service `did_core_id` 去重。多个成员由同一 remote service 托管时只创建一份 Event transaction。bot、service、archive 或 search projection 若要持有 Realm Event，必须成为显式 joined ActorId，并受 membership、capability、E2EE 与 canonical payload／plaintext visibility 约束；已知 peer、allowlist、mirror、resolver 或部署拓扑都不自动取得内容。只有至少一个本机托管成员被授权取得该 Event 的**完整 canonical bytes** 时，其 remote Station 才进入 committed-replication target set。无权取得完整 Event 的成员不建立 canonical replica；授权读取面可返回 `CommittedEventView` 的 withheld 分支，但它不得进入 canonical Event store 或 reducer。E2EE ciphertext 的 canonical 持有权不自动授予 Station plaintext key 或本地 caller 明文读取权。
 
+**终止托管成员资格的 membership Event（normative）**：使某成员由 effective joined 变为非 joined 的 membership Event（本人或管理员提交的 `ak.member.state{leave|ban}`）被接纳后，该成员在同一 accepted Realm view 里已不是 joined，上文目标集不会包含只因它而持有本 stream 的 Station。发送方 MUST 为该 Event 额外创建一份指向该成员**事件前** routing service（排除本机、按 service 去重）的 intent，其 basis 是 `(realm_id, member_id, 事件前的 effective membership_event_ref)`；发送前的重验改为：该成员当前 effective membership Event 逐字就是本 Event、`route(member_id)` 等于冻结 target，其余 basis 规则不变。接收方按事件前状态重验本机托管成员资格（该 `member_id` 在本地为 joined），并要求它是持有 head 的直接后继；保存后以 reducer 推进 membership 与账号摘要。此后该成员不再构成持有依据，本 Station 若再无其它 joined 托管成员，即不再是该 stream 后继 Commit 的目标。
+
 面向单个成员的 to-device、push、KeyPackage、邀请或其它 direct rail 只使用该成员 ActorId 投影出的 exact routing service，MUST NOT 扩张为 Realm fanout。发送方对目标集合中的每个 distinct service MUST 创建独立、持久的 outbox intent；本地 Event 的 accepted 状态、按 service DID 去重后的完整目标集合与全部 outbox intents MUST 在同一 durable transaction 中提交。任一写入失败时整个事务回滚。
 
 目标暂时缺少 verified route **不得**拒绝已经通过 admission 的本地 Event，也不得返回 `service_unavailable` 来撤销本地 acceptance。该目标必须以 `pending_route` 状态原子写入；已有 verified route 但尚未收到 peer 成功响应的目标写为 `pending_delivery`。两种 pending 状态都必须跨重启恢复、按同一 idempotency key 重试，并在超过部署运维阈值后告警；只要冻结的接收 authority 仍有效，就不得因 TTL、尝试次数、dead-letter 上限、cache eviction 或进程重启静默终止义务。
@@ -130,9 +132,28 @@ durable outbox 必须使用 `ak.peer.events.command.submit.v1` 的 `committed_re
 **不得进入 peer body**。接收方只从 authenticated source/destination、source Event／Commit、已验证 committed
 membership history 与 typed current projection重新验证 commit/event/ref、source authority generation、连续性、
 本机托管成员资格与 history/reference/plaintext visibility；sender claim 不能成为授权事实。所需 membership、
-authority chain、predecessor 或 history floor 缺失时 MUST `dependency_missing` 并零写该项。唯一 bootstrap 例外是
-本项本身就是本机托管成员的有效 join Event：接收方可在验证 source Commit 与前缀后做无副作用 reducer 预演，
-并将 Event、Commit 与派生 membership 原子持久化；需要多 Event 的 bootstrap 仍使用 registered atomic unit。
+authority chain、predecessor 或 history floor 缺失时 MUST `dependency_missing` 并零写该项。
+
+**成员站 bootstrap（normative）**：唯一例外是本项本身就是本机托管成员自己的有效 join（`ak.member.state{join}`，
+或定向 invite 的 `ak.invite.accept`）且本 Station 尚未持有该 stream。接收方只验证 source Commit 签名、authority
+generation 与 Event 绑定，原子保存 Event、Commit 与派生 membership，并把该 stream 标为**待锚定**：待锚定期间
+本地对该 stream 的读取 MUST `temporarily_unavailable`，后续 replica 的可见性重验 MUST `dependency_missing`。
+接收方随即以该 join 的 Commit 调用 `ak.peer.realm_join.read.bootstrap.v1`，按已验证 authority chain 验证返回
+snapshot 的签名与 generation、`retention_and_history_floor` 在本 stream 上等于该 join 位置、本 stream 的
+visible head 不低于该 join 位置——这就是「前缀」证据；然后把 snapshot 的 `current_state_entries` 原子装入本地
+typed current（锚定在 snapshot head），以 `ak.peer.committed_event.read.scan.v1` 补齐 join 之后直至 advertised
+head 的 Commit（snapshot head 及之前的行只作连续性与 canonical 持有，不再推进 current），之后每条 replica 以同一组
+typed reducer 推进本地 current，并据此完成本节的接收方重验。本地 current 是投影，不产生新的 accepted 判决。
+需要多 Event 的 bootstrap 仍使用 registered atomic unit。
+
+**Withheld 链节点（normative）**：同一 stream 上本机托管成员无权取得完整 bytes 的位置不会进入本 Station 的
+目标集，其后继的 `previous_commit_ref` 因而指向本地未持有的位置。接收方对该项仍 MUST `dependency_missing` 零写入，
+并 MUST 以 `ak.peer.committed_event.read.scan.v1` 拉取缺口：scan 对这些位置返回的 withheld 行（经已验证 authority
+chain 验签、带 `event_ref` 的 `RealmCommit`，不带 Event bytes）作为**仅用于连续性的链节点**保存——它推进持有
+head 并参与 `previous_commit_ref` 核对，但 MUST NOT 进入 canonical Event store、reducer、dedupe 或
+`proof.event_digest` 重算，本地读取面对它同样只返回 withheld 分支。发送方对 `dependency_missing` 按原幂等键
+正常重试，缺口补齐后同一 Commit 即可 `stored`；committed replication 本身仍不携带 withheld 项
+（[`../models/relation.md` §4.5](../models/relation.md)）。
 接收方只保存 exact source bytes，**不得**重做首次 admission、重签 `RealmCommit` 或创建第二轮 fanout。
 
 同一 request 的 `replications[]` 内 source coordinates 必须唯一；同一 stream 的项按 `stream_position` 严格升序，
