@@ -81,9 +81,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
-      "version": "2026-09-26.1",
-      "generated_at": "2026-09-26T03:40:00+08:00",
-      "content_digest": "sha256:5d4cd95a0abd22b03bfc3b47a516102303cba066e57354bf84032b9eea91e057"
+      "version": "2026-09-26.2",
+      "generated_at": "2026-09-26T03:45:00+08:00",
+      "content_digest": "sha256:0d2bdf4d75a5fa56612e5efc2c5b930a2423456cecdf9478b7ad27fd14aa47c3"
     },
     {
       "path": "spec/v1/artifacts/registry/current-result-registry.json",
@@ -135,9 +135,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/event-kind-registry.json",
-      "version": "2026-09-26.1",
-      "generated_at": "2026-09-26T03:40:00+08:00",
-      "content_digest": "sha256:65dfd15782a36d9b9bd821fc61e4af7dc8d0235bc63153b526656d69d628667d"
+      "version": "2026-09-26.2",
+      "generated_at": "2026-09-26T03:45:00+08:00",
+      "content_digest": "sha256:5beac5d950b0af588b0582803d0834cb4b177b212f0ff9fefb06c9e230f375ca"
     },
     {
       "path": "spec/v1/artifacts/registry/event-kind-vector-gap-registry.json",
@@ -231,9 +231,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-09-26.1",
-      "generated_at": "2026-09-26T03:40:00+08:00",
-      "content_digest": "sha256:b615c1678efdaa8e977b83d0deda360a4605cb142c8297fc889d0faa17c7e390"
+      "version": "2026-09-26.2",
+      "generated_at": "2026-09-26T03:45:00+08:00",
+      "content_digest": "sha256:8b1dbe644fdba3dd93d3aee1d0dbcf6fe304cf4e850da0b38d1b4ac586a618eb"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
@@ -441,9 +441,9 @@
     },
     {
       "path": "tools/identifier-classification-registry.json",
-      "version": 29,
+      "version": 30,
       "generated_at": null,
-      "content_digest": "sha256:1ba4da49175f2274d551e99f21b7882be3cdbeecb9aba58ef8093e82000b5e36"
+      "content_digest": "sha256:a1cbe224a90e50951d0afe9ba84429541d6a798655af0f3fcfd8229978fe6ff4"
     },
     {
       "path": "tools/identifier-role-suffix-registry.json",

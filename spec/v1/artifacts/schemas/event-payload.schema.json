@@ -244,9 +244,10 @@
     },
     "agent_action_reject_payload": {
       "type": "object",
-      "description": "Payload for ak.agent.action_reject. Controller rejection terminates a draft/action request without shared Realm side effects.",
+      "description": "Payload for ak.agent.action_reject. Controller rejection terminates one actor-private action request, named by request_id, without shared Realm side effects. A draft is not a rejection target: its workflow_state is controller-encrypted Account Data (zh/models/actor-private-effects.md section 3.2).",
       "required": [
         "rejection_id",
+        "request_id",
         "agent_id",
         "rejected_at"
       ],
@@ -262,16 +263,6 @@
           ]
         },
         "request_id": {
-          "allOf": [
-            {
-              "$ref": "#/$defs/non_empty_string"
-            },
-            {
-              "$ref": "string-profiles.schema.json#/$defs/non_typed_identifier_floor"
-            }
-          ]
-        },
-        "draft_id": {
           "allOf": [
             {
               "$ref": "#/$defs/non_empty_string"

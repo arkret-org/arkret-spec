@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-26.1",
+  "version": "2026-09-26.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-26T03:40:00+08:00",
+  "generated_at": "2026-09-26T03:45:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -1044,7 +1044,7 @@
         "verb_form": "base",
         "wire_scope": "actor_private_event",
         "reducer_input": false,
-        "payload": "Controller rejection of a draft / action request. Draft transitions to rejected; agent runtime MUST NOT continue publish attempts.",
+        "payload": "Controller rejection of one actor-private action request, named by request_id. The request transitions to rejected; the agent runtime MUST NOT continue publish attempts for it. Drafts are not rejection targets: their workflow_state is controller-encrypted Account Data.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/agent_action_reject_payload",
         "id_source": "not_an_object_id",
         "result_effect_ownership": {
@@ -1059,7 +1059,7 @@
         "verb_form": "not_applicable",
         "wire_scope": "actor_private_event",
         "reducer_input": false,
-        "payload": "Agent-initiated action request. Carries proposed_action, target descriptor, and content digest. Awaits controller approval before generating shared event.",
+        "payload": "Agent-initiated action request. Carries proposed_action, target descriptor and request_canonical_digest, the digest of the complete pre-authored Event awaiting controller approval before it is submitted.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/agent_action_request_payload",
         "id_source": "not_an_object_id",
         "result_effect_ownership": {
@@ -8131,7 +8131,7 @@
           "concurrency": {
             "kind": "pending_intent_create_consume",
             "precondition": "the controller/agent/draft key is absent or holds this exact canonical Event digest",
-            "accepted_write": "store the structured available pending intent in the same transaction as canonical Event and authority commit; a later exact holder CAS consumes it as defined below",
+            "accepted_write": "store the structured available pending intent in the same private transaction as the canonical Event and its exact-retry ledger row; that transaction produces no RealmCommit; a later exact holder CAS consumes it as defined below",
             "conflict": "a different proposal at the occupied key returns duplicate_conflict; any failed consume leaves the available intent and account-data register unchanged"
           },
           "exact_retry": {
@@ -8174,7 +8174,7 @@
               "atomic_effect": "create account-data revision 1 and transition available -> consumed recording the consuming Event id, key, revision and consumed_at; no second counter"
             },
             "failure_recovery": {
-              "before_commit": "any validation, CAS, authority-commit or storage failure rolls back Event/account-data/pending transition together and leaves the intent available",
+              "before_commit": "any validation, CAS, exact-retry ledger or storage failure rolls back Event/account-data/pending transition together and leaves the intent available",
               "uncertain_outcome": "retry the byte-identical signed ak.account_data.set Event; exact retry returns the stored revision-1 and consumed outcome",
               "conflicting_retry": "same Event id with different bytes or another consumer returns duplicate_conflict/cas_conflict with zero writes"
             }
@@ -8218,7 +8218,7 @@
             {
               "target": "request_canonical_digest",
               "source": "payload.request_canonical_digest",
-              "rule": "verify against the canonical proposed action and target before storage"
+              "rule": "store verbatim; its original input is the complete pre-authored Event including its producer proof (zh/authz/constraint-schema.md section 9.2.3 event branch). The Station holds no such Event and never recomputes it; the controller verifies it against the exact Event it later approves"
             },
             {
               "target": "draft_link",
@@ -8240,7 +8240,7 @@
           "rejection": {
             "conditions": [
               "controller/agent binding or authority fails",
-              "schema, expiry, target or canonical digest fails",
+              "schema, expiry or target fails",
               "request key is occupied by different bytes"
             ],
             "side_effects": "zero"
@@ -8249,7 +8249,7 @@
         },
         "ak.agent.action_reject": {
           "result_family": "ak.private.agent.rejection.v1",
-          "durable_effect": "Atomically store one controller rejection and terminate exactly one named draft or action request.",
+          "durable_effect": "Atomically store one controller rejection and terminate exactly one named action request. A draft is never a Station-side rejection target: an available pending intent only lets the controller holder consume it and otherwise expires, and a consumed draft's workflow_state lives in controller-encrypted Account Data that only the controller rewrites.",
           "storage_owner": {
             "kind": "account_station_private_store",
             "account_id_source": "envelope.actor_id",
@@ -8272,7 +8272,7 @@
               },
               {
                 "target": "target_selector",
-                "source": "exactly_one(payload.request_id,payload.draft_id)"
+                "source": "payload.request_id"
               },
               {
                 "target": "target_workflow_state",
@@ -8283,8 +8283,8 @@
           "field_maintenance": [
             {
               "target": "target_selector",
-              "source": "exactly_one(payload.request_id,payload.draft_id)",
-              "rule": "resolve under the same controller and agent; neither or both is invalid"
+              "source": "payload.request_id",
+              "rule": "resolve under the same controller and agent"
             },
             {
               "target": "target_workflow_state",
@@ -8294,7 +8294,7 @@
           ],
           "concurrency": {
             "kind": "target_state_cas",
-            "precondition": "rejection id is unused and the one selected target is present, non-terminal and owned by this controller/agent pair",
+            "precondition": "rejection id is unused and the named action request is present, non-terminal and owned by this controller/agent pair",
             "accepted_write": "store rejection and target rejected state in one private transaction",
             "conflict": "missing, mismatched or terminal target returns failed_precondition; reused id with different bytes returns duplicate_conflict"
           },
@@ -8306,7 +8306,7 @@
           "rejection": {
             "conditions": [
               "signer is not the target controller",
-              "exactly-one target selector or controller/agent binding fails",
+              "request target or controller/agent binding fails",
               "target is missing, terminal or otherwise not rejectable"
             ],
             "side_effects": "zero"
@@ -8447,8 +8447,8 @@
         }
       }
     },
-    "version": "2026-09-26.1",
-    "generated_at": "2026-09-26T03:40:00+08:00",
+    "version": "2026-09-26.2",
+    "generated_at": "2026-09-26T03:45:00+08:00",
     "bootstrap_event_kinds": [
       "ak.device.authorize",
       "ak.device.reanchor",

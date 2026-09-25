@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 8765,
+    "total_properties": 8764,
     "total_schema_documents": 165,
     "by_presence_class": {
-      "optional": 2104,
+      "optional": 2102,
       "optional_defaulted": 47,
-      "required": 6151,
+      "required": 6152,
       "required_nullable": 299,
       "tristate": 164
     },
@@ -5583,11 +5583,10 @@
         "/$defs/agent_action_approve_payload/properties/request_id": "optional",
         "/$defs/agent_action_approve_payload/properties/target": "required",
         "/$defs/agent_action_reject_payload/properties/agent_id": "required",
-        "/$defs/agent_action_reject_payload/properties/draft_id": "optional",
         "/$defs/agent_action_reject_payload/properties/reason": "optional",
         "/$defs/agent_action_reject_payload/properties/rejected_at": "required",
         "/$defs/agent_action_reject_payload/properties/rejection_id": "required",
-        "/$defs/agent_action_reject_payload/properties/request_id": "optional",
+        "/$defs/agent_action_reject_payload/properties/request_id": "required",
         "/$defs/agent_action_request_payload/properties/agent_id": "required",
         "/$defs/agent_action_request_payload/properties/controller_account_id": "required",
         "/$defs/agent_action_request_payload/properties/created_at": "required",

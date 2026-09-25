@@ -100,8 +100,13 @@ high-water。
 
 `ak.agent.draft.propose` 与 `ak.agent.action_request` 是两个不同身份空间。前者由 `draft_id` 定址；后者
 始终由 `request_id` 定址，`draft_id` 仅是可选关联，省略它仍是合法 request，也不得改用它作为唯一键。
-二者只有在 controller/agent binding、capability、policy、accountability、risk、expiry 与 digest
-校验全部通过后才可 materialize 到 controller-private store。`ak.agent.draft.propose` 的 materialization
+二者只有在 controller/agent binding、capability、policy、accountability、risk 与 expiry
+校验全部通过后才可 materialize 到 controller-private store。`ak.agent.action_request` 的
+`request_canonical_digest` 的 original input 是等待批准的**完整预写 Event**（含其 producer proof），与
+[`../authz/constraint-schema.md` §9.2.3](../authz/constraint-schema.md) 的 `event` 支相同：
+`sha256:` + SHA-256(JCS(该 Event))。Station 不持有该 Event，只按 `digest` 形状校验并逐字保存，
+MUST NOT 重算或据此拒绝；controller 在以 `ak.agent.action_approve` 批准 exact `approved_event_id` 之前，
+MUST 用它批准的那份 Event 重算并逐字比对。`ak.agent.draft.propose` 的 materialization
 严格是 `ak.schema.agent_draft_pending_intent.v1` 的 **Station-private pending intent**，不是
 `ak.agent.draft.v1:<agent_id_sha256_b64u43>:<draft_id_sha256_b64u43>` encrypted account data，也不得作为
 后者的 current value 返回。
@@ -168,10 +173,12 @@ created/expiry 与对应 consumption／expired metadata。终态 metadata 与 ex
 proposal 或旧 available delta 复活同一 key。独立 channel 的 frozen baseline、offset、completion、position 与
 权限规则见 [`../sync/client-sync.md` §3.3](../sync/client-sync.md)。
 
-`ak.agent.action_reject` 的 payload 必须在 `request_id` 与 `draft_id` 中**恰好携带一个**；两者都无或
-两者都有都必须拒绝。目标必须属于同一 controller/agent 对、存在且仍是可拒绝的非终态。服务必须在
-同一事务写 rejection record 并把该唯一目标转为 `rejected`；该终态清除 publish eligibility 且不得
-复活。拒绝 Event 自身不会撤回、删除或伪造任何 shared Realm Event。
+`ak.agent.action_reject` 只以必填的 `request_id` 为目标：该 request 必须属于同一 controller/agent 对、存在且
+仍是 `requested`。服务必须在同一事务写 rejection record 并把该 request 转为 `rejected`；该终态清除 publish
+eligibility 且不得复活。draft 不是 Station 侧的拒绝目标：`available` pending intent 只允许 controller holder
+消费，未被消费即按 `expires_at` 单向转为 `expired`；已消费 draft 的 `workflow_state`（含 `rejected`）位于
+controller 加密的 Account Data 中，只由 controller 以 `ak.account_data.set` 改写，Station 不可读也不可写。
+拒绝 Event 自身不会撤回、删除或伪造任何 shared Realm Event。
 
 ### 3.3 Push route
 
