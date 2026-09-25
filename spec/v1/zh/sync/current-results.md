@@ -118,7 +118,7 @@ membership 为 `join` 才满足 gate（[`../governance/join-policy.md` §4](../g
 - `actor_profile_realm_override`：在目标 Realm 内以 `actor_profile_id` 选择一份显示字段覆写；
   `target_realm_id` 必须等于 envelope Realm，因而不重复进入 selector。value 是 exact patch Event 的
   dot-tagged assertion set；读侧按 accepted commit 顺序折叠同一组六个展示路径，并以
-  `expected_state_digest` 对折叠后的当前覆写作 CAS；
+  `expected_state_digest` 对折叠后的当前覆写作 CAS（摘要输入见本节下文）；
 - `agent_action_approval`：以 `approval_id` 选择一条 controller 对 exact 预写 Event 的不可变确认；
   `(controller ActorId, approval_nonce)` 是一次性分配，exact replay 返回原结果，换字节复用 nonce 必须零写入拒绝；
 - `agent_sidecar_exchange_controls`：以 `(sidecar_id, source_context_ref)` 选择 encrypted control
@@ -130,7 +130,7 @@ membership 为 `join` 才满足 gate（[`../governance/join-policy.md` §4](../g
   后续只能为当前 `series_pointer_version + 1`，回退、跳号或同版本分叉均零写入拒绝；
 - `member_identity_updates`：在 Realm 内以 `(member_id, segment)` 选择 append-only update assertion set；
   `replaces[]` 是读侧 effective-set fold，坏 replacement edge 不得删除被引用 Event；可选
-  `expected_state_digest` 对该 fold 的前态作 CAS；
+  `expected_state_digest` 对该 fold 的前态作 CAS（摘要输入见本节下文）；
 - `message_revision`：以 MessageId 选择 create / revise chain 的当前 accepted carrier；create 的 id
   由 EventId 重类型，revise 明示同一 `message_id`。物化 Message 联合读取 creation history、当前 carrier
   与独立的 `object_redaction`，不得把 redaction 伪装成 revision payload；
@@ -227,8 +227,17 @@ Realm authority root、View、Morph、Circle、Space、Strand、Relation 等单�
 `expected_state_digest = "sha256:" || lowercase_hex(SHA-256(RFC8785_JCS(v)))`，其中 `v` 是接纳事务冻结的该
 typed current result 的**完整当前 value**，逐字等于其 `value_schema_ref` 下的物化值（含 reducer 派生成员，
 不含 `revision`、`source_stream_ref` 或 selector），摘要输入**不加** domain 前缀。不相等时以不带 `reason_code`
-的 `failed_precondition` 零写入拒绝，除非该 kind 的正文另行登记了专用 reason。keyed-set family
-（`actor_profile_realm_override`、`member_identity_updates`）的前态是读侧 fold，不在本条范围内。
+的 `failed_precondition` 零写入拒绝，除非该 kind 的正文另行登记了专用 reason。keyed-set family 的前态是读侧
+fold，`v` 取 **fold 的结果值**，算法不变：
+
+- `actor_profile_realm_override`：`v` 是按 accepted commit 顺序把 assertion set 中每条 `patch` 依次应用到空对象
+  `{}` 上得到的展示对象，只含实际被设置的路径（`$op=unset` 删除该路径，嵌套路径形成嵌套对象）；尚无任何
+  assertion 时 `v = {}`。
+- `member_identity_updates`：`v` 是该 `(member_id, segment)` 的 effective set（按 `replaces[]` 有效替换边折叠后仍
+  未被替换的 update）中每条 update 的**逐字签名 payload 对象**组成的数组，按承载 Event 的 `event_id` 字符串
+  升序排列；effective set 为空时 `v = []`。失配 reason 为已登记的 `member_identity_state_mismatch`。
+
+逐字节 known answer 见 [`expected-state-digest-kat-fixture.json`](../../artifacts/fixtures/expected-state-digest-kat-fixture.json)。
 
 ### 2.1 生命周期轴与转换合同
 

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-26.1",
+  "version": "2026-09-26.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-26T04:00:00+08:00",
+  "generated_at": "2026-09-26T04:40:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1484,6 +1484,18 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/keypackage-write-transcript-fixture.json",
         "spec/v1/zh/crypto-media/device-lifecycle.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.current_results.expected_state_digest.v1",
+      "status": "active",
+      "domain": "current_results",
+      "applies_to_fixtures": [
+        "expected-state-digest-kat-fixture.json"
+      ],
+      "description": "One expected_state_digest algorithm for every family: sha256 over RFC 8785 JCS of v with no domain prefix, where v is the complete frozen value of a single-value family, the display object obtained by folding every actor_profile_realm_override assertion patch onto {} in accepted commit order ({} when none), or the array of exact signed payloads of the member_identity_updates effective set ordered by event_id ascending ([] when empty). A verifier recomputes the fold, the JCS bytes and the digest of every case.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/expected-state-digest-kat-fixture.json"
       ]
     },
     {

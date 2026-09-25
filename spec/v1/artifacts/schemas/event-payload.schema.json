@@ -4486,7 +4486,7 @@
         },
         "expected_state_digest": {
           "$ref": "#/$defs/digest",
-          "description": "Optional optimistic concurrency guard for the current effective set of this (realm_id, member_id, segment). When present, it MUST equal the writer-observed effective-set digest before applying this event: sha256 over RFC 8785 JCS canonical JSON {realm_id, member_id, segment, effective_events:[{event_id, segment, payload_digest}]}, with effective_events sorted by (segment,event_id). It is distinct from the locally derived identity_payload carrier digest and from a roster member_display_state_digest."
+          "description": "Optional optimistic concurrency guard for the current effective set of this (realm_id, member_id, segment). When present, it MUST equal sha256 over RFC 8785 JCS of the array of the exact signed payload objects of every update in that effective set, ordered by carrying event_id ascending (the empty set is []), before applying this event (zh/sync/current-results.md section 2); a mismatch is member_identity_state_mismatch with zero writes. It is distinct from the locally derived identity_payload carrier digest and from a roster member_display_state_digest."
         }
       },
       "additionalProperties": false
@@ -6648,7 +6648,8 @@
           ]
         },
         "expected_state_digest": {
-          "$ref": "#/$defs/digest"
+          "$ref": "#/$defs/digest",
+          "description": "Optional guard over the folded current override: sha256 over RFC 8785 JCS of the display object obtained by applying every accepted assertion patch of this target in accepted commit order to {} ({} when there is none), zh/sync/current-results.md section 2. A mismatch rejects with zero writes."
         }
       },
       "additionalProperties": false

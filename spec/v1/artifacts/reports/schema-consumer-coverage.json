@@ -51,12 +51,12 @@
       "prose_only": 2,
       "schema_reference": 158,
       "startup_compile": 219,
-      "vectors": 110
+      "vectors": 111
     },
     "without_wire_consumer": 1,
     "explicit_prose_only": 2,
     "unresolved_consumer_coverage": 0,
-    "without_vector_coverage": 109,
+    "without_vector_coverage": 108,
     "unresolved_vector_disposition": 0
   },
   "without_wire_consumer": [
@@ -131,7 +131,6 @@
     "ak.schema.media_operations.v1",
     "ak.schema.media_service_binding_outcome.v1",
     "ak.schema.media_service_binding_request.v1",
-    "ak.schema.member_identity.v1",
     "ak.schema.message_authoring_content.v1",
     "ak.schema.message_authoring_intent.v1",
     "ak.schema.message_encryption_context.v1",
@@ -2567,15 +2566,13 @@
       "consumers": {
         "prose": "normative_text",
         "schema_reference": "exact",
-        "startup_compile": "exact"
+        "startup_compile": "exact",
+        "vectors": "fixture"
       },
       "wire_covered": true,
       "vector_coverage": {
-        "disposition": "composed_schema_owned",
-        "owners": [
-          "ak.schema.event_payload.v1"
-        ],
-        "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
+        "disposition": "direct",
+        "evidence": "fixture"
       }
     },
     {

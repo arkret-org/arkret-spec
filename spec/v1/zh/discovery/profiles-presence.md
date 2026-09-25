@@ -167,7 +167,7 @@ Profile 后续变更通过 `ak.profile.update` Event / compatible Event 提交�
 `payload.target_ref`；value 是 canonical Event dot 标记的完整 override payload assertion set。读取方按
 accepted commit 顺序折叠 patch，所得当前值仅含 `display_name`、`handle`、`agent_slug`、`avatar_blob_ref`、
 `accountable_principal_ids`、`profile_fields` 六条展示路径。集合从空集开始，首条 patch 不依赖隐式空对象；
-`expected_state_digest`（若存在）绑定折叠后的前态，失配必须零写入拒绝。
+`expected_state_digest`（若存在）绑定折叠后的前态：摘要输入是把全部 assertion 按 accepted commit 顺序应用到 `{}` 后得到的展示对象（尚无 assertion 时为 `{}`），算法见 [`../sync/current-results.md` §2](../sync/current-results.md)；失配必须零写入拒绝。
 
 ```json fragment
 {

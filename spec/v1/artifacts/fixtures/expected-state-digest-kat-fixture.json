@@ -1,0 +1,345 @@
+{
+  "profile": "ak.vector.current_results.expected_state_digest.v1",
+  "version": "2026-09-26.2",
+  "runner": {
+    "kind": "known_answer_tests"
+  },
+  "suite": "expected_state_digest_known_answers",
+  "covers_vectors": [
+    "ak.vector.current_results.expected_state_digest.v1"
+  ],
+  "description": "Byte-exact known answers for the one expected_state_digest algorithm of zh/sync/current-results.md section 2 (decisions 0113 and 0115): \"sha256:\" || lowercase_hex(SHA-256(RFC8785_JCS(v))) with no domain prefix. v is the complete frozen value of a single-value family, or the read-side fold result of a keyed-set family. A verifier MUST recompute the fold from inputs, then the JCS bytes and the digest; comparing the published values without executing the fold is non-conformant.",
+  "algorithm": {
+    "digest": "sha256",
+    "encoding": "sha256:<lowercase hex>",
+    "canonicalization": "RFC8785_JCS",
+    "domain_prefix": null
+  },
+  "cases": [
+    {
+      "name": "single_value_family_complete_value",
+      "result_family": "realm_authority_root",
+      "inputs": {
+        "frozen_value": {
+          "controller_actor_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+            }
+          },
+          "controller_epoch": 0,
+          "authority_generation": 0
+        }
+      },
+      "digest_input_value": {
+        "controller_actor_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+          }
+        },
+        "controller_epoch": 0,
+        "authority_generation": 0
+      },
+      "canonical_utf8": "{\"authority_generation\":0,\"controller_actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturealice\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationa\"},\"kind\":\"account\"},\"controller_epoch\":0}",
+      "expected_digest": "sha256:20732cac29148913b4f7f707b0e9b209f31b7eba412f6cdbbd1eb4db2d7eb1dc",
+      "why": "A single-value family digests its complete frozen typed current value."
+    },
+    {
+      "name": "realm_override_without_assertions",
+      "result_family": "actor_profile_realm_override",
+      "inputs": {
+        "assertions_in_commit_order": []
+      },
+      "digest_input_value": {},
+      "canonical_utf8": "{}",
+      "expected_digest": "sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "why": "No accepted assertion folds to the empty display object {}."
+    },
+    {
+      "name": "realm_override_folded_patches",
+      "result_family": "actor_profile_realm_override",
+      "inputs": {
+        "assertions_in_commit_order": [
+          {
+            "patch": {
+              "display_name": "Alice (Work)",
+              "avatar_blob_ref": "ak:blob:sha256:abababababababababababababababababababababababababababababababab"
+            }
+          },
+          {
+            "patch": {
+              "avatar_blob_ref": {
+                "$op": "unset"
+              },
+              "profile_fields.team": "Protocol"
+            }
+          }
+        ]
+      },
+      "digest_input_value": {
+        "display_name": "Alice (Work)",
+        "profile_fields": {
+          "team": "Protocol"
+        }
+      },
+      "canonical_utf8": "{\"display_name\":\"Alice (Work)\",\"profile_fields\":{\"team\":\"Protocol\"}}",
+      "expected_digest": "sha256:c851c0b777978bc3f346808282fe6a626e087ab6fda610c502b6c024b92568da",
+      "why": "Patches apply to {} in accepted commit order; $op=unset removes a path and a dotted path builds a nested object, so only set paths remain."
+    },
+    {
+      "name": "member_identity_empty_effective_set",
+      "result_family": "member_identity_updates",
+      "inputs": {
+        "updates": []
+      },
+      "digest_input_value": [],
+      "canonical_utf8": "[]",
+      "expected_digest": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "why": "An empty effective set digests the empty array []."
+    },
+    {
+      "name": "member_identity_effective_set_after_replacement",
+      "result_family": "member_identity_updates",
+      "inputs": {
+        "updates": [
+          {
+            "event_id": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+            "payload": {
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "member_id": {
+                "kind": "account",
+                "account_id": {
+                  "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+                  "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+                }
+              },
+              "segment": "member_identity",
+              "identity_payload": {
+                "member_identity": {
+                  "schema": "ak.schema.member_identity.v1",
+                  "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+                  "actor_id": {
+                    "kind": "account",
+                    "account_id": {
+                      "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+                      "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+                    }
+                  },
+                  "subject_actor_id": {
+                    "kind": "account",
+                    "account_id": {
+                      "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+                      "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+                    }
+                  },
+                  "display_profile": {
+                    "display_name": "Alice"
+                  },
+                  "asserted_at": "2026-09-26T00:00:00.000Z",
+                  "proof": {
+                    "verification_method": "did:webvh:z6mkfixturealice:alice.example#device-fixture",
+                    "signature_algorithm": "Ed25519",
+                    "payload_digest": "sha256:3bc51062973c458d5a6f2d8d64a023246354ad7e064b1e4e009ec8a0699a3043",
+                    "signature": "AAAA"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "event_id": "ak:event:AWi7O9JH8Ib3wHJrt01Tl7Gf67pixYPhAmufRLOXFoBA",
+            "payload": {
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "member_id": {
+                "kind": "account",
+                "account_id": {
+                  "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+                  "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+                }
+              },
+              "segment": "member_identity",
+              "identity_payload": {
+                "member_identity": {
+                  "schema": "ak.schema.member_identity.v1",
+                  "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+                  "actor_id": {
+                    "kind": "account",
+                    "account_id": {
+                      "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+                      "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+                    }
+                  },
+                  "subject_actor_id": {
+                    "kind": "account",
+                    "account_id": {
+                      "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+                      "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+                    }
+                  },
+                  "display_profile": {
+                    "display_name": "Alice A."
+                  },
+                  "asserted_at": "2026-09-26T00:01:00.000Z",
+                  "proof": {
+                    "verification_method": "did:webvh:z6mkfixturealice:alice.example#device-fixture",
+                    "signature_algorithm": "Ed25519",
+                    "payload_digest": "sha256:325ffd928886955c6f55fe6d1720edf81cc8b11af82630e2bac7dc4df903d7a6",
+                    "signature": "AAAA"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "event_id": "ak:event:AStzRbTyzV3dxZ-bRTw9DFFytUKDb7X7cWkyPvIgWfVX",
+            "payload": {
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "member_id": {
+                "kind": "account",
+                "account_id": {
+                  "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+                  "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+                }
+              },
+              "segment": "member_identity",
+              "replaces": [
+                {
+                  "event_id": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+                  "payload_digest": "sha256:5c4272e0c81cc0fdfc3e58dfae0af4d8000fb65e3a0a4ef3bb5afd3e9c22e2cf"
+                }
+              ],
+              "identity_payload": {
+                "member_identity": {
+                  "schema": "ak.schema.member_identity.v1",
+                  "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+                  "actor_id": {
+                    "kind": "account",
+                    "account_id": {
+                      "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+                      "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+                    }
+                  },
+                  "subject_actor_id": {
+                    "kind": "account",
+                    "account_id": {
+                      "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+                      "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+                    }
+                  },
+                  "display_profile": {
+                    "display_name": "Alice (Work)"
+                  },
+                  "asserted_at": "2026-09-26T00:02:00.000Z",
+                  "proof": {
+                    "verification_method": "did:webvh:z6mkfixturealice:alice.example#device-fixture",
+                    "signature_algorithm": "Ed25519",
+                    "payload_digest": "sha256:ca2586f9137851acc85d1aa36e34ae91b93f45a5ad63593ca0bc2adc2d2c15ab",
+                    "signature": "AAAA"
+                  }
+                }
+              },
+              "expected_state_digest": "sha256:d303e0138d86860c08f8c544307a930a715ed776c85e39ac5adff9f49436aba6"
+            }
+          }
+        ]
+      },
+      "digest_input_value": [
+        {
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "member_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+            }
+          },
+          "segment": "member_identity",
+          "replaces": [
+            {
+              "event_id": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+              "payload_digest": "sha256:5c4272e0c81cc0fdfc3e58dfae0af4d8000fb65e3a0a4ef3bb5afd3e9c22e2cf"
+            }
+          ],
+          "identity_payload": {
+            "member_identity": {
+              "schema": "ak.schema.member_identity.v1",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "actor_id": {
+                "kind": "account",
+                "account_id": {
+                  "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+                  "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+                }
+              },
+              "subject_actor_id": {
+                "kind": "account",
+                "account_id": {
+                  "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+                  "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+                }
+              },
+              "display_profile": {
+                "display_name": "Alice (Work)"
+              },
+              "asserted_at": "2026-09-26T00:02:00.000Z",
+              "proof": {
+                "verification_method": "did:webvh:z6mkfixturealice:alice.example#device-fixture",
+                "signature_algorithm": "Ed25519",
+                "payload_digest": "sha256:ca2586f9137851acc85d1aa36e34ae91b93f45a5ad63593ca0bc2adc2d2c15ab",
+                "signature": "AAAA"
+              }
+            }
+          },
+          "expected_state_digest": "sha256:d303e0138d86860c08f8c544307a930a715ed776c85e39ac5adff9f49436aba6"
+        },
+        {
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "member_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+            }
+          },
+          "segment": "member_identity",
+          "identity_payload": {
+            "member_identity": {
+              "schema": "ak.schema.member_identity.v1",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "actor_id": {
+                "kind": "account",
+                "account_id": {
+                  "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+                  "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+                }
+              },
+              "subject_actor_id": {
+                "kind": "account",
+                "account_id": {
+                  "principal_id": "ak:did_core:webvh:z6mkfixturealice",
+                  "station_id": "ak:did_core:webvh:z6mkfixturestationa"
+                }
+              },
+              "display_profile": {
+                "display_name": "Alice A."
+              },
+              "asserted_at": "2026-09-26T00:01:00.000Z",
+              "proof": {
+                "verification_method": "did:webvh:z6mkfixturealice:alice.example#device-fixture",
+                "signature_algorithm": "Ed25519",
+                "payload_digest": "sha256:325ffd928886955c6f55fe6d1720edf81cc8b11af82630e2bac7dc4df903d7a6",
+                "signature": "AAAA"
+              }
+            }
+          }
+        }
+      ],
+      "canonical_utf8": "[{\"expected_state_digest\":\"sha256:d303e0138d86860c08f8c544307a930a715ed776c85e39ac5adff9f49436aba6\",\"identity_payload\":{\"member_identity\":{\"actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturealice\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationa\"},\"kind\":\"account\"},\"asserted_at\":\"2026-09-26T00:02:00.000Z\",\"display_profile\":{\"display_name\":\"Alice (Work)\"},\"proof\":{\"payload_digest\":\"sha256:ca2586f9137851acc85d1aa36e34ae91b93f45a5ad63593ca0bc2adc2d2c15ab\",\"signature\":\"AAAA\",\"signature_algorithm\":\"Ed25519\",\"verification_method\":\"did:webvh:z6mkfixturealice:alice.example#device-fixture\"},\"realm_id\":\"ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5\",\"schema\":\"ak.schema.member_identity.v1\",\"subject_actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturealice\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationa\"},\"kind\":\"account\"}}},\"member_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturealice\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationa\"},\"kind\":\"account\"},\"realm_id\":\"ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5\",\"replaces\":[{\"event_id\":\"ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD\",\"payload_digest\":\"sha256:5c4272e0c81cc0fdfc3e58dfae0af4d8000fb65e3a0a4ef3bb5afd3e9c22e2cf\"}],\"segment\":\"member_identity\"},{\"identity_payload\":{\"member_identity\":{\"actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturealice\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationa\"},\"kind\":\"account\"},\"asserted_at\":\"2026-09-26T00:01:00.000Z\",\"display_profile\":{\"display_name\":\"Alice A.\"},\"proof\":{\"payload_digest\":\"sha256:325ffd928886955c6f55fe6d1720edf81cc8b11af82630e2bac7dc4df903d7a6\",\"signature\":\"AAAA\",\"signature_algorithm\":\"Ed25519\",\"verification_method\":\"did:webvh:z6mkfixturealice:alice.example#device-fixture\"},\"realm_id\":\"ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5\",\"schema\":\"ak.schema.member_identity.v1\",\"subject_actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturealice\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationa\"},\"kind\":\"account\"}}},\"member_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturealice\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationa\"},\"kind\":\"account\"},\"realm_id\":\"ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5\",\"segment\":\"member_identity\"}]",
+      "expected_digest": "sha256:1dbdc6561c99d09eb0643d599f23c5fe9fb93d5129c38dbf566af66343417079",
+      "why": "The third update validly replaces the first (its replaces edge carries the first identity_payload carrier digest), so the effective set is the second and third exact signed payloads ordered by event_id ascending. The third payload's own expected_state_digest is the digest of the effective set it was written against, the first and second payloads."
+    }
+  ]
+}

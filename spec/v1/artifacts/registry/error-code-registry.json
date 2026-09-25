@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-26.1",
-  "generated_at": "2026-09-26T03:40:00+08:00",
+  "version": "2026-09-26.2",
+  "generated_at": "2026-09-26T04:39:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -4378,7 +4378,7 @@
         "event_envelope",
         "state_resolution"
       ],
-      "description": "The optional expected_state_digest optimistic-concurrency guard on ak.member.identity.update does not equal the current effective-set digest for the same (realm_id, member_id, segment). The server / reducer MUST reject or quarantine the event instead of applying it as a valid replacement. See zh/sync/client-sync.md §8.1.",
+      "description": "The optional expected_state_digest optimistic-concurrency guard on ak.member.identity.update does not equal the digest of the current effective set for the same (realm_id, member_id, segment): sha256 over RFC 8785 JCS of the exact signed payload objects of the effective updates ordered by event_id ascending, [] when empty (zh/sync/current-results.md section 2). The Station MUST reject the Event with failed_precondition and zero writes instead of applying it as a valid replacement.",
       "status": "active"
     },
     {
