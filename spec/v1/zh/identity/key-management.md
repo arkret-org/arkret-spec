@@ -1248,7 +1248,7 @@ v1 的备份枚举数量有限，但 envelope 结构需要支持未来 PQ / hybr
 
 ## 8. Recovery Policy
 
-Recovery policy 是 PCR control state。Genesis policy 只能由 founding accepted device 签发；后续 policy 更新由 current generation accepted device 或满足旧 policy 的 quorum 签发，并必须受 version ratchet、accepted RealmCommit 与 generation fence 约束。DID Document 中任意 verification method、账号登录或服务端 transport identity都不能单独授权 policy 更新。
+Recovery policy 是 PCR control state。Genesis policy 只能由 founding accepted device 签发；后续 policy 的发布、轮换与撤销只由 current generation accepted device 签发，并必须受 version ratchet、accepted RealmCommit 与 generation fence 约束；v1 不定义以旧 policy 的 `device_quorum` 多签授权 policy 更新的路径。DID Document 中任意 verification method、账号登录或服务端 transport identity都不能单独授权 policy 更新。
 
 ### 8.1 Policy 生命周期
 
@@ -1259,7 +1259,7 @@ AccountId，MUST 遵守 [`common-fields.md` §4.2](../models/common-fields.md#42
 MUST NOT 将其解释为另一账号的权限继承或跨 Station 迁移。原 Station 永久停止服务不提供跨 Station
 re-anchor 出口。
 
-Recovery policy 的所有发布、轮换和撤销均进入 PCR control stream。签名设备必须满足 `authorized_generation_ref == current_device_generation_ref` 与未撤销状态；quorum 更新还必须满足旧 policy 的门限和 ratchet：
+Recovery policy 的所有发布、轮换和撤销均进入 PCR control stream。签名设备必须满足 `authorized_generation_ref == current_device_generation_ref` 与未撤销状态；`auth_data` 只承载该设备的单一签名。
 
 Policy 签名输入固定为 `UTF8("ak.identity.recovery_policy.signature.v1\n") || RFC8785_JCS(policy 的全部实际存在顶层成员，排除 auth_data)`。schema 允许的 optional 成员出现时自动进入投影，缺席时省略；只有 schema 明确允许 `null` 的位置才能保留 `null`。wire 上不携字段名清单，receiver 不得按调用方自报清单缩小投影。
 
