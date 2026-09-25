@@ -353,8 +353,16 @@ leaf index 不承载权限含义（§2.2.1）。
 
 #### 5.1.2 创建 transaction
 
-Genesis 与需要加入的初始 endpoint deliveries 使用同一 `MlsCommitSubmission` transaction 语义；没有 recipient 时
-`welcomes=[]`。Station 提交前验证 creator current authority 与初始 roster。
+Genesis 经 `ak.self.events.command.submit.v1` 的普通 Event 分支单独提交，不使用 `MlsCommitSubmission`（其
+`commit_event.kind` 固定为 `ak.mls.commit`）：epoch 0 的 RFC 9420 group 恰有创建者本人一个 leaf，因而 Genesis
+不携 Welcome；其它初始 endpoint 由随后第一条带 Welcome 的 `ak.mls.commit` 加入。Station 提交前验证 creator
+current authority 与「roster 恰为创建者」。
+
+**MLS 准入的其它拒绝（normative）**：Genesis roster 不是恰好创建者一个 leaf、Commit 的 Welcome 与其新增 leaf 不
+一一对应、`keypackage_claim_ref` 所指 claim 已不再 live、Welcome recipient 不是该 scope 的 current joined 成员等
+既有前置条件不成立时，治理 Station 以不带 `reason_code` 的 `failed_precondition` 零写入拒绝；只有 §2.5.1 的
+`governance_binding_mismatch` 与重复 Genesis 的 `mls_activation_irreversible` 使用专用 reason，本规范不为上列情形
+另立 reason。
 
 **客户端本地 durable transaction（normative）**：创建方在本地为一个待加密的 effective scope 维护**恰好一条**
 durable 记录，其逻辑键是 `(owner_actor_id, effective_scope, operation)`，`operation` 固定为 `mls_genesis`。
