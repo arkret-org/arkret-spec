@@ -5,7 +5,7 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.invite.claim_security.v1"
   },
-  "version": "2026-09-18.1",
+  "version": "2026-09-26.1",
   "profile": "ak.profile.station.v1",
   "covers_vectors": [
     "ak.vector.invite.claim_reducer_state_machine.v1",
@@ -15,7 +15,7 @@
   "machine_contracts": [
     "registry/error-code-registry.json"
   ],
-  "description": "Executable evidence for the invite admission obligations: the claim reducer's proof, commitment, allowlist, nonce, proposal and expiry checks; the per-endpoint failure indistinguishability of the claim and locator surfaces; and the out-of-band code entropy, validity and claim-count floors.",
+  "description": "Executable evidence for the invite admission obligations: accepted create/claim Event material, pure lifecycle and policy at one authority cut; the claim reducer's proof, commitment, allowlist, nonce, proposal and expiry checks; the per-endpoint failure indistinguishability of the claim and locator surfaces; and the out-of-band code entropy, validity and claim-count floors.",
   "security_evidence": [
     {
       "vector_id": "ak.vector.invite.claim_reducer_state_machine.v1",
@@ -31,37 +31,51 @@
         },
         {
           "id": "token_commitment_match",
-          "requirement": "The presented token must open the invite's recorded token_commitment.",
+          "requirement": "The presented token must open the token_commitment frozen in the unique accepted create Event/Commit at the claim authority cut.",
           "evidence": [
             "/cases/2"
           ]
         },
         {
           "id": "verification_id_allowlist_recheck",
-          "requirement": "The verification_id allowlist is re-checked at admission against current state.",
+          "requirement": "The verification_id allowlist is re-checked at admission against policy at the same accepted authority cut as the create Event/Commit and pending lifecycle.",
           "evidence": [
             "/cases/3"
           ]
         },
         {
           "id": "claim_nonce_replay",
-          "requirement": "A consumed claim_nonce cannot be reused.",
+          "requirement": "An accepted claim_nonce and token_commitment cannot be reused; the durable index is rebuildable from accepted claim Events.",
           "evidence": [
             "/cases/4"
           ]
         },
         {
           "id": "pending_to_claimed_proposal",
-          "requirement": "pending becomes claimed only through the membership proposal conversion, as one admitted unit.",
+          "requirement": "The exact claim Event/Commit, pending -> claimed lifecycle transition, accepted-claim index and subject-bound membership proposal are one admitted authority unit; later accept resolves that claim Event subject.",
           "evidence": [
             "/cases/5"
           ]
         },
         {
-          "id": "expiry_cleanup_before_admission",
-          "requirement": "Expiry is evaluated before admission and an expired invite cannot be revived.",
+          "id": "expired_claim_zero_shared_write",
+          "requirement": "Expiry is evaluated from the signed claim created_at and accepted create Event expires_at; a rejected claim writes nothing shared and expiry lifecycle requires a separate accepted revoke Event.",
           "evidence": [
             "/cases/6"
+          ]
+        },
+        {
+          "id": "accepted_cut_dependency_closed",
+          "requirement": "A missing create Event/Commit, lifecycle or effective Realm policy at the exact claim authority cut cannot be filled from an obsolete row, caller fields or receiver-current projection.",
+          "evidence": [
+            "/cases/14"
+          ]
+        },
+        {
+          "id": "accept_subject_from_exact_claim",
+          "requirement": "A third-party accept resolves the unique accepted claim Event exact ref and verifies its subject_account_id before member join.",
+          "evidence": [
+            "/cases/15"
           ]
         }
       ]
@@ -158,7 +172,7 @@
       "observed": "the commitment comparison and the reducer decision",
       "assertions": [
         "the commitment is matched before any state transition",
-        "the stored commitment is not replaced by the presented token",
+        "the accepted create Event commitment is not replaced by the presented token",
         "the invite is not consumed by the failed attempt"
       ]
     },
@@ -170,7 +184,7 @@
       "reason": "capability_denied",
       "observed": "whether the reducer re-read the allowlist or trusted the creation-time decision",
       "assertions": [
-        "the allowlist is re-checked at admission against current state",
+        "the allowlist is re-checked at the same accepted authority cut as create Event and lifecycle",
         "a creation-time allow is not carried forward",
         "no membership proposal is produced"
       ]
@@ -180,10 +194,10 @@
       "given": "a claim_nonce that was already consumed by an accepted claim",
       "action": "resubmit a claim carrying the same nonce",
       "decision": "reject",
-      "reason": "key_replay",
-      "observed": "the nonce ledger and the reducer decision",
+      "reason": "duplicate_conflict",
+      "observed": "the accepted claim Event and rebuildable unique index in the authority transaction",
       "assertions": [
-        "the nonce is single-use and the second use is refused",
+        "the accepted nonce is single-use and the second use is refused with no shared projected write",
         "the first accepted claim is not disturbed by the replay",
         "the refusal happens before any membership proposal is produced"
       ]
@@ -195,21 +209,21 @@
       "decision": "accept",
       "observed": "the invite state transition and the produced proposal",
       "assertions": [
-        "the invite moves from pending to claimed only as the result of a membership proposal conversion",
-        "the transition and the proposal are one admitted unit, never two independently observable steps",
+        "the exact claim Event/Commit, lifecycle transition, index and subject-bound proposal are accepted atomically",
+        "claim material is derived from the exact accepted claim Event, never from a lifecycle value field",
         "re-submitting the same claim does not produce a second proposal"
       ]
     },
     {
-      "name": "expiry_cleanup_runs_before_admission",
+      "name": "expired_claim_has_no_shared_write",
       "given": "an invite whose expires_at has passed",
       "action": "submit a claim that would otherwise be valid",
       "decision": "reject",
       "reason": "expired_invite_token",
-      "observed": "the reducer decision and the invite's terminal state",
+      "observed": "the reducer decision and unchanged shared invite lifecycle",
       "assertions": [
-        "expiry is evaluated before admission rather than by a later sweep",
-        "the expired invite cannot be revived by a valid claim",
+        "expiry compares signed claim created_at with accepted create Event expires_at before admission",
+        "the rejected claim writes no lifecycle or membership proposal; only an independent accepted revoke Event can advance pending to expired",
         "expired_invite_token stays an internal reason; the external response is the shared failure shape"
       ]
     },
@@ -300,6 +314,32 @@
         "the negative cases above do not close the legitimate path",
         "the code produces exactly one pending invite",
         "the entropy floor is a floor, not a fixed length"
+      ]
+    },
+    {
+      "name": "missing_accepted_create_or_policy_dependency_fails_closed",
+      "given": "a claim with valid-looking caller material but an unavailable accepted create Event/Commit or Realm policy at the exact authority cut",
+      "action": "submit the claim",
+      "decision": "reject",
+      "reason": "revision_unavailable",
+      "observed": "dependency resolution and shared projected writes",
+      "assertions": [
+        "obsolete realm_invites rows and receiver-current projections do not supply missing accepted-cut evidence",
+        "the claim remains pending or fails closed until all dependencies resolve at one authority cut",
+        "no lifecycle or membership proposal is written"
+      ]
+    },
+    {
+      "name": "third_party_accept_uses_exact_accepted_claim_subject",
+      "given": "a claimed third-party invite with an accepted claim Event for subject A and an accept Event authored by subject B",
+      "action": "submit the accept Event",
+      "decision": "reject",
+      "reason": "failed_precondition",
+      "observed": "the accepted claim Event exact ref and member projection",
+      "assertions": [
+        "the reducer resolves the unique accepted claim Event/Commit rather than trusting the claimed lifecycle string",
+        "the accept author matches the accepted claim subject_account_id before join",
+        "no member join or invite transition is written on mismatch"
       ]
     }
   ]

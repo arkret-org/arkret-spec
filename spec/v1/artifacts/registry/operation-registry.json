@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-26.4",
+  "version": "2026-09-26.5",
   "source_of_truth": false,
-  "generated_at": "2026-09-26T06:40:00+08:00",
+  "generated_at": "2026-09-26T17:49:23+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -3879,7 +3879,7 @@
       "http": "POST /_arkret/self/third-party-invites/acceptance-attestation",
       "grpc": "SelfThirdPartyInvite/AcceptanceAttestation",
       "mq": "self.third_party_invite.query.acceptance_attestation",
-      "notes": "Purpose-scoped acceptance attestation the authenticated inviter obtains from its own Station for one exact ak.invite.third_party it authored (third-party-invites.md section 7.4). The Station evaluates its current accepted basis, confirms the caller authored the invite, that the invite typed current result is pending, and that verification_id matches the typed current result and the current allowlist, then signs an attestation binding station_id, verification_id, audience, realm_id, invite_id, inviter_account_id, provisioning_id, the exact public material, invite_expires_at, invite_state, accepted_commit_id, observed_at and its own expires_at. The caller supplies no governance material and receives no governance closure, RealmCommit ancestry or membership listing; the attestation authorizes nothing except activation of the named provisioning record. Not visible, not authored by the caller and not pending all return the uniform section 6 not_found; a basis the Station cannot currently confirm returns revision_unavailable.",
+      "notes": "Purpose-scoped acceptance attestation the authenticated inviter obtains from its own Station for one exact accepted ak.invite.third_party create Event/Commit it authored (third-party-invites.md section 7.4). At one current accepted authority cut, the Station confirms the create author, pure invite_lifecycle pending and verification_id from that create Event against the effective Realm allowlist, then signs an attestation binding station_id, verification_id, audience, realm_id, invite_id, inviter_account_id, provisioning_id, the exact public material, invite_expires_at, invite_state, accepted_commit_id, observed_at and its own expires_at. The caller supplies no governance material and receives no governance closure, RealmCommit ancestry or membership listing; the attestation authorizes nothing except activation of the named provisioning record. Not visible, not authored by the caller and not pending all return the uniform section 6 not_found; a basis the Station cannot currently confirm returns revision_unavailable.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_acceptance_attestation_request_body",

@@ -32,8 +32,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-membership-cascade-fixture.json",
-      "sha256": "4436e92d990a2387af740b085f24e1a59f052ec1d431a80e155d2379cefd80cc",
-      "version": "2026-08-15"
+      "sha256": "c492b4276efb8e6e68d50d4c7509cf4693a4707b9cab4832caf6fd5d2d3ab7a3",
+      "version": "2026-09-26"
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-mls-keypackage-authorization-fixture.json",
@@ -287,8 +287,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/invite-claim-security-fixture.json",
-      "sha256": "1dafee251dd6be58b84cb562bed7722e7c453af2fb8e77ec662134347f28a19b",
-      "version": "2026-09-18.1"
+      "sha256": "31996e1ae76829800d065abf8aeb924072e1b0fc4027fc0f076dd05035d36b6e",
+      "version": "2026-09-26.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/invite-new-source-quota-fixture.json",

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-26.4",
+  "version": "2026-09-26.5",
   "source_of_truth": true,
-  "generated_at": "2026-09-26T10:20:00+08:00",
+  "generated_at": "2026-09-26T17:49:23+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -175,7 +175,7 @@
       "applies_to_fixtures": [
         "agent-membership-cascade-fixture.json"
       ],
-      "description": "Agent effective membership is bound to the exact controller authority pair and join Event generation; self leave is one complete atomic cascade, while third-party terminal removal freezes a durable exact-set cleanup intent without delaying immediate authority loss or synthesizing Agent Events.",
+      "description": "Agent effective membership is bound to the exact controller authority pair and join Event generation. The typed cascade model checks exact-set and cleanup-state semantics, but v1 has no registered self-submit ingress; attempts fail closed, and controller-generation loss invalidates effective Agent membership immediately without synthesized Agent Events.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/agent-membership-cascade-fixture.json"
       ]
@@ -2916,7 +2916,7 @@
       "applies_to_profiles": [
         "ak.profile.station.v1"
       ],
-      "description": "Realm reducer authority for ak.invite.claim: binding_proof and subject_proof signature transcripts, token_commitment match, verification_id allowlist re-check, claim_nonce replay rejection, pending -> claimed membership-proposal conversion, and expiry cleanup are enforced before acceptance.",
+      "description": "Realm reducer authority for ak.invite.claim: the unique accepted create Event/Commit, pure invite_lifecycle and effective Realm policy are checked at one authority cut; proof transcripts, token commitment and accepted-claim nonce uniqueness are verified before an atomic pending -> claimed transition and subject-bound membership proposal. A rejected claim has no shared projected writes; expiry needs an independent accepted revoke Event.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/zh/sync/third-party-invites.md",

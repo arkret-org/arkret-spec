@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-26.9",
-  "generated_at": "2026-09-26T06:40:03+08:00",
+  "version": "2026-09-26.10",
+  "generated_at": "2026-09-26T06:40:04+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -825,7 +825,7 @@
     },
     {
       "operation_id": "ak.self.third_party_invite.read.acceptance_attestation.v1",
-      "sha256": "sha256:7584bc6a5ec9f13a42b58de80816f9954ef014a0ea188ae9a9213b1f036978cd"
+      "sha256": "sha256:207a0dd2b229109ab796dff0aeb6614d03d1a4182cf461f5204781af29c3e1fc"
     },
     {
       "operation_id": "ak.server.read.describe.v1",

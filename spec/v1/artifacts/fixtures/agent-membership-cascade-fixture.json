@@ -1,20 +1,19 @@
 {
   "suite": "agent_membership_cascade",
   "fixture_kind": "schema_and_semantic",
+  "admission_status": "typed_model_only_no_v1_ingress",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.agent.membership_cascade.v1"
   },
-  "version": "2026-08-15",
+  "version": "2026-09-26",
   "covers_vectors": [
     "ak.vector.agent.membership_cascade.v1"
   ],
   "spec_anchor": "spec/v1/zh/models/actor.md#33-principal_id-与-actor_kind-的语义",
   "machine_contracts": [
     "schemas/agent-membership-cascade.schema.json",
-    "schemas/event-payload.schema.json#/$defs/membership_payload",
-    "schemas/service-operation-dtos.schema.json#/$defs/AgentMembershipCascadeSubmission",
-    "registry/operation-registry.json"
+    "schemas/event-payload.schema.json#/$defs/membership_payload"
   ],
   "schema_validation_cases": [
     {

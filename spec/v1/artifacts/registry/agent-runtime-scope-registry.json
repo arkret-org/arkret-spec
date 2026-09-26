@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-09-20",
+  "version": "2026-09-26",
   "kind": "agent_runtime_scope_registry",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T16:42:00+08:00",
+  "generated_at": "2026-09-26T17:49:23+08:00",
   "description": "Canonical closed Agent runtime operation sets shared by immutable provision scope, accepted key authorization and requested session scope.",
   "layers": [
     {
@@ -41,8 +41,7 @@
       "selection_rule": "any_activation_operation_present_in_immutable_provision_actions",
       "activation_operations": [
         "ak.self.keys.keypackages.upload.create.v1",
-        "ak.self.keys.keypackages.command.consume.v1",
-        "ak.self.keys.keypackages.command.revoke.v1"
+        "ak.self.keys.keypackages.command.consume.v1"
       ],
       "mandatory_operations": [
         "ak.self.keys.keypackages.upload.create.v1"

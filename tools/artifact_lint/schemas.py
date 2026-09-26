@@ -1055,7 +1055,6 @@ def check_agent_runtime_scope_registry(lint: Lint, known: dict[str, set[str]]) -
         "e2ee": {
             "ak.self.keys.keypackages.upload.create.v1",
             "ak.self.keys.keypackages.command.consume.v1",
-            "ak.self.keys.keypackages.command.revoke.v1",
         },
     }
     interactive = set((capability_sets.get("interactive_chat") or {}).get("mandatory_operations") or [])

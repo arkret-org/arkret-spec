@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-26.4",
+  "version": "2026-09-26.5",
   "source_of_truth": true,
-  "generated_at": "2026-09-26T06:40:00+08:00",
+  "generated_at": "2026-09-26T17:49:23+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -3041,7 +3041,7 @@
         "verb_form": "base",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Invite accept. payload.previous_state names the non-terminal invite_lifecycle state this Event moves out of, which is pending for a directed invite and either pending or claimed for a third-party one. payload.invitee_account_id is present exactly when the target Invite stores an invite_directed_invitee record, that is for a directed invite and never for a third-party invite; it exists so the invite_live_target slot subject is derivable from the signed Event, and the registered pre_state_requirements row holds it against the stored record in both directions.",
+        "payload": "Invite accept. payload.previous_state names the non-terminal invite_lifecycle state this Event moves out of, which is pending for a directed invite and claimed for a third-party one. payload.invitee_account_id is present exactly when the target Invite stores an invite_directed_invitee record, that is for a directed invite and never for a third-party invite; it exists so the invite_live_target slot subject is derivable from the signed Event, and the registered pre_state_requirements row holds it against the stored record in both directions. For a claimed third-party invite, the reducer resolves the unique accepted ak.invite.claim Event exact ref and Commit at the same authority cut and requires its subject_account_id to match the accept author before member join; the claimed lifecycle value alone does not prove the subject.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/invite_accept_payload",
         "id_source": "reference",
         "result_writes": [
@@ -3230,14 +3230,14 @@
         "verb_form": "base",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Third-party invite claim",
+        "payload": "Third-party invite claim. The reducer reads the unique accepted ak.invite.third_party create Event/Commit, pure invite_lifecycle and current Realm policy at one accepted authority cut. On acceptance, claim subject, nonce, commitment, verification and time material are derived from this exact accepted claim Event/Commit; a rebuildable index is not a second truth source.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/invite_claim_payload",
         "reducer_authority": "realm",
         "reducer_effects": [
-          "match pending ak.invite.third_party by invite_id and token_commitment",
-          "re-check verification_id against current effective Realm allowlist",
-          "deduplicate (invite_id, claim_nonce) and token_commitment before accepting",
-          "transition invite typed current result pending -> claimed and materialize subject-bound membership proposal",
+          "match the unique accepted ak.invite.third_party create Event/Commit by invite_id and token_commitment with pending invite_lifecycle at the same authority cut",
+          "re-check verification_id against the effective Realm policy at that same accepted authority cut",
+          "atomically deduplicate (invite_id, claim_nonce) and token_commitment against accepted claim Events using a rebuildable durable index before accepting",
+          "accept the exact claim Event/Commit, transition pure invite_lifecycle pending -> claimed and materialize a subject-bound membership proposal in one authority transaction; subsequent accept resolves this exact accepted claim and verifies its subject_account_id",
           "reject with expired_invite_token when expires_at <= claim Event.created_at without shared-state writes; expiration requires a separate authorized ak.invite.revoke Event"
         ],
         "conformance_vectors": [
@@ -3522,7 +3522,7 @@
         "verb_form": "not_applicable",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Third-party identifier pending invite. Genesis payload omits invite/invite_id; the Invite ID is derived from this Event. It opens the invite_lifecycle register at pending and writes nothing else: a third-party invite has no exact invitee account, so it writes no invite_directed_invitee record and never touches an invite_live_target slot.",
+        "payload": "Third-party identifier pending invite. Genesis payload omits invite/invite_id; the Invite ID is derived from this Event. It opens the pure invite_lifecycle register at pending and writes nothing else: a third-party invite has no exact invitee account, so it writes no invite_directed_invitee record and never touches an invite_live_target slot. Frozen public invite material is read from this exact accepted create Event/Commit at the same authority cut as lifecycle and Realm policy; it is not stored in invite_lifecycle.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/invite_third_party_create_payload",
         "id_source": "event_derived",
         "id_kind": "invite",
@@ -3636,7 +3636,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "admission": "capability_gated",
-        "payload": "Realm membership state. Agent join/cleanup Events carry an exact agent_controller_binding. Effective Agent membership additionally AND-gates the controller authority pair and bound join Event generation, lifecycle and provision/accountability validity. Controller terminal transitions never synthesize this Event: self leave uses the registered atomic agent_membership_cascade unit; third-party emergency removal freezes a durable exact-set cleanup intent and the original initiator later signs the complete Agent leave set. A parent_membership join must revalidate co-governance, active join_gate_from links and source authoritative current member_state rows in the accepting transaction.",
+        "payload": "Realm membership state. Agent join/cleanup Events carry an exact agent_controller_binding. Effective Agent membership additionally AND-gates the controller authority pair and bound join Event generation, lifecycle and provision/accountability validity. Controller terminal transitions never synthesize this Event. The typed agent_membership_cascade exact-set model has no registered self-submit closed-union ingress in v1; such submissions fail closed, while loss of the exact controller join generation immediately invalidates effective Agent membership. A parent_membership join must revalidate co-governance, active join_gate_from links and source authoritative current member_state rows in the accepting transaction.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/membership_payload",
         "result_writes": [
           {
@@ -8447,8 +8447,8 @@
         }
       }
     },
-    "version": "2026-09-26.4",
-    "generated_at": "2026-09-26T06:40:00+08:00",
+    "version": "2026-09-26.5",
+    "generated_at": "2026-09-26T17:49:23+08:00",
     "bootstrap_event_kinds": [
       "ak.device.authorize",
       "ak.device.reanchor",
@@ -15669,7 +15669,7 @@
         "http": "POST /_arkret/self/third-party-invites/acceptance-attestation",
         "grpc": "SelfThirdPartyInvite/AcceptanceAttestation",
         "mq": "self.third_party_invite.query.acceptance_attestation",
-        "notes": "Purpose-scoped acceptance attestation the authenticated inviter obtains from its own Station for one exact ak.invite.third_party it authored (third-party-invites.md section 7.4). The Station evaluates its current accepted basis, confirms the caller authored the invite, that the invite typed current result is pending, and that verification_id matches the typed current result and the current allowlist, then signs an attestation binding station_id, verification_id, audience, realm_id, invite_id, inviter_account_id, provisioning_id, the exact public material, invite_expires_at, invite_state, accepted_commit_id, observed_at and its own expires_at. The caller supplies no governance material and receives no governance closure, RealmCommit ancestry or membership listing; the attestation authorizes nothing except activation of the named provisioning record. Not visible, not authored by the caller and not pending all return the uniform section 6 not_found; a basis the Station cannot currently confirm returns revision_unavailable.",
+        "notes": "Purpose-scoped acceptance attestation the authenticated inviter obtains from its own Station for one exact accepted ak.invite.third_party create Event/Commit it authored (third-party-invites.md section 7.4). At one current accepted authority cut, the Station confirms the create author, pure invite_lifecycle pending and verification_id from that create Event against the effective Realm allowlist, then signs an attestation binding station_id, verification_id, audience, realm_id, invite_id, inviter_account_id, provisioning_id, the exact public material, invite_expires_at, invite_state, accepted_commit_id, observed_at and its own expires_at. The caller supplies no governance material and receives no governance closure, RealmCommit ancestry or membership listing; the attestation authorizes nothing except activation of the named provisioning record. Not visible, not authored by the caller and not pending all return the uniform section 6 not_found; a basis the Station cannot currently confirm returns revision_unavailable.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/invite.schema.json#/$defs/third_party_invite_acceptance_attestation_request_body",
@@ -15926,8 +15926,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-26.4",
-    "generated_at": "2026-09-26T06:40:00+08:00",
+    "version": "2026-09-26.5",
+    "generated_at": "2026-09-26T17:49:23+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",

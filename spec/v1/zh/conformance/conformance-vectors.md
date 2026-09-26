@@ -489,9 +489,12 @@ EventId／commit_id／stream_ref／stream_position／Realm 错配、current proj
 
 ### 3.11 邀请
 
-`ak.vector.invite.claim_reducer_state_machine.v1` MUST 证明：`ak.invite.claim` 的 Realm reducer 权限——
-`binding_proof` 与 `subject_proof` 的签名 transcript、`token_commitment` 匹配、`verification_id` allowlist 复查、
-`claim_nonce` 重放拒绝、pending 到 claimed 的成员提案转换，以及过期清理，都在接纳之前执行。
+`ak.vector.invite.claim_reducer_state_machine.v1` MUST 证明：`ak.invite.claim` 的 Realm reducer 在同一 accepted authority cut
+核对唯一 accepted create Event/Commit、纯状态 `invite_lifecycle` 与有效 Realm policy；`binding_proof` 与 `subject_proof`
+的签名 transcript、create Event 的 `token_commitment` 匹配、`verification_id` allowlist 复查、accepted claim 的
+`claim_nonce` 与 commitment 唯一性，均在接纳前检查。接纳时 exact claim Event/Commit、`pending -> claimed`、可重建
+派生索引与 subject-bound membership proposal 原子成立；后续 accept 以该 claim Event 的 exact ref 和 subject 校验。
+被拒 claim 零共享 projected write，过期终态只能由独立 accepted `ak.invite.revoke` 推进。
 
 `ak.vector.invite.consumed_token_resubject_rejected.v1` MUST 证明：已被原子消费并签发了绑定某 subject 的
 `binding_proof` 的第三方邀请 token，不能被再次签发给不同 subject——验证服务 MUST 拒绝第二次签发，
