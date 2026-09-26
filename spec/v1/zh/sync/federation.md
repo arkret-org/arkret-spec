@@ -141,8 +141,9 @@ membership history 与 typed current projection重新验证 commit/event/ref、s
 authority chain、predecessor 或 history floor 缺失时 MUST `dependency_missing` 并零写该项。
 
 **成员站 bootstrap（normative）**：唯一例外是本项本身就是本机托管成员自己的有效 join（`ak.member.state{join}`，
-或定向 invite 的 `ak.invite.accept`）且本 Station 尚未持有该 stream。接收方只验证 source Commit 签名、authority
-generation 与 Event 绑定，原子保存 Event、Commit 与派生 membership，并把该 stream 标为**待锚定**：待锚定期间
+或定向 invite 的 `ak.invite.accept`），且事件前本 Station 在该 stream 上没有 joined 托管成员：本 Station 尚未持有该
+stream，或持有的 stream 止于其最后一名托管成员的终止 Commit（上文「终止托管成员资格的 membership Event」）。接收方只验证
+source Commit 签名、authority generation 与 Event 绑定（不要求前驱连续，也不按事件前状态重验本机托管成员资格），原子保存 Event、Commit 与派生 membership，并把该 stream 标为**待锚定**：待锚定期间
 本地对该 stream 的读取 MUST `temporarily_unavailable`，后续 replica 的可见性重验 MUST `dependency_missing`。
 接收方随即以该 join 的 Commit 调用 `ak.peer.realm_join.read.bootstrap.v1`，按已验证 authority chain 验证返回
 snapshot 的签名与 generation、`retention_and_history_floor` 在本 stream 上等于该 join 位置、本 stream 的
@@ -150,6 +151,9 @@ visible head 不低于该 join 位置——这就是「前缀」证据；然后�
 typed current（锚定在 snapshot head），以 `ak.peer.committed_event.read.scan.v1` 补齐 join 之后直至 advertised
 head 的 Commit（snapshot head 及之前的行只作连续性与 canonical 持有，不再推进 current），之后每条 replica 以同一组
 typed reducer 推进本地 current，并据此完成本节的接收方重验。本地 current 是投影，不产生新的 accepted 判决。
+已持有该 stream 时（托管成员全部离开后再加入），装入 snapshot typed current 即整体替换旧 current；此前持有的行保持
+原样，只作 canonical 持有，不推进 current，也不构成复制权。连续性从该 join 重新起算：终止 Commit 与该 join 之间的
+位置与首次开流时 join 之前的位置相同，本 Station 对其没有复制权，不补齐，也不按下文「Withheld 链节点」拉取。
 需要多 Event 的 bootstrap 仍使用 registered atomic unit。
 
 **Withheld 链节点（normative）**：同一 stream 上本机托管成员无权取得完整 bytes 的位置不会进入本 Station 的

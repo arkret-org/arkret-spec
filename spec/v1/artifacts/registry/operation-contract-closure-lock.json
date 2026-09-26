@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-26.7",
-  "generated_at": "2026-09-26T06:40:01+08:00",
+  "version": "2026-09-26.8",
+  "generated_at": "2026-09-26T06:40:02+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -289,7 +289,7 @@
     },
     {
       "operation_id": "ak.peer.realm_join.read.bootstrap.v1",
-      "sha256": "sha256:81bb166f9bb07318a3c4921e6195da0584859a8280db42c0911853f90a393cac"
+      "sha256": "sha256:d93be2e061bafe26d62975b4af3fe6d7e50df4082600d4a9130b382cdc382a05"
     },
     {
       "operation_id": "ak.peer.realm_join.read.preview.v1",

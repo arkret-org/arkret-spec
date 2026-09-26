@@ -267,7 +267,7 @@
         },
         "membership_commit_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_commit_id",
-          "description": "RealmCommit of the member's own join that opened the caller's held stream: ak.member.state{join}, or ak.invite.accept for a directed Invite (zh/sync/federation.md section 4.1.1)."
+          "description": "RealmCommit of the member's own join that opened the caller's held stream, or re-anchored it after the caller had no joined hosted member left: ak.member.state{join}, or ak.invite.accept for a directed Invite (zh/sync/federation.md section 4.1.1)."
         }
       },
       "additionalProperties": false
