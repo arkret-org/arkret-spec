@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-26.3",
+  "version": "2026-09-26.4",
   "source_of_truth": true,
-  "generated_at": "2026-09-26T06:40:00+08:00",
+  "generated_at": "2026-09-26T10:20:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -3524,38 +3524,40 @@
     },
     {
       "vector_id": "ak.vector.mls.cross_station_welcome_replication.v1",
-      "status": "reserved",
+      "status": "active",
       "domain": "mls",
-      "applies_to_profiles": [
-        "ak.profile.e2ee_client.v1"
+      "applies_to_fixtures": [
+        "mls-cross-station-welcome-replication-fixture.json"
       ],
-      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: The governance Station verifies every non-claim binding of a Welcome whose recipient another Station hosts, writes it into the committed-replication outbox intent for that routing service inside the Commit acceptance transaction, and rejects the whole submission with failed_precondition when that service is not a replication target. The replicated ak.mls.commit item carries exactly the destination's recipients' welcomes[]; welcomes on any other Event kind are schema_violation. The destination re-verifies each claim and destination receipt against its own ledger and queues the passing Welcomes in the same replica transaction as the Commit; a failing Welcome is never queued and never blocks the Commit replica; a replay after the Commit was stored through scan queues the missing Welcomes and returns duplicate; replicated Welcomes count toward but are never refused by endpoint capacity, and are deleted only by ACK. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
+      "description": "The governance Station verifies every non-claim binding of a Welcome whose recipient another Station hosts and, inside the Commit acceptance transaction, writes it into the committed-replication intent of that recipient's routing service: the ak.mls.commit item carries exactly that service's recipients' welcomes[] in submission order and no welcomes member when the service hosts none, a hosted recipient's Welcome is queued locally, and a Welcome for a service outside the target set refuses the whole submission with a bare failed_precondition and zero writes. welcomes on any other Event kind, or empty, is schema_violation. The destination re-verifies each claim against its own ledger and queues the passing Welcomes with their claim bindings in the same replica transaction as the Commit; a failing Welcome is never queued and never blocks the replica; a replay after the Commit was stored through scan queues the missing Welcomes and returns duplicate, and a further replay queues nothing; replicated Welcomes count toward but are never refused by endpoint capacity, unlike a first admission at capacity (quota_exceeded), and leave the queue only through ACK.",
       "source_refs": [
+        "spec/v1/artifacts/fixtures/mls-cross-station-welcome-replication-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
     {
       "vector_id": "ak.vector.keypackage.recipient_claim_read.v1",
-      "status": "reserved",
+      "status": "active",
       "domain": "keypackage",
-      "applies_to_profiles": [
-        "ak.profile.e2ee_client.v1",
-        "ak.profile.agent_runtime.v1"
+      "applies_to_fixtures": [
+        "keypackage-recipient-claim-read-fixture.json"
       ],
-      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: ak.self.keys.keypackages.read.claim.v1 returns to the claim record's exact human-device or current Agent endpoint the byte-identical original keypackages_claim_outcome; unknown, foreign-endpoint, superseded-Agent and retention-expired claim ids are one keypackage_unknown; the read changes no claim or KeyPackage state; the recipient recomputes claims_digest, verifies the destination receipt and binds claim, Welcome, winning Add Commit and current endpoint authority before decrypting, and a failed read never lets the Welcome be decrypted. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
+      "description": "ak.self.keys.keypackages.read.claim.v1 returns to the claim record's exact human-device endpoint, or its Agent endpoint under the current key authorization, the byte-identical original keypackages_claim_outcome; the requester, another device of the same Account, an unknown claim id, a superseded Agent authorization and a claim past its query retention are one keypackage_unknown; no read changes claim or KeyPackage state; the recipient reads the claim from its own Account Station, recomputes claims_digest, verifies the destination receipt under that Station's service key and binds claim, Welcome, winning Add Commit and current endpoint authorization before decrypting, and any failure, including a failed read, leaves the Welcome undecrypted.",
       "source_refs": [
+        "spec/v1/artifacts/fixtures/keypackage-recipient-claim-read-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },
     {
       "vector_id": "ak.vector.federation.authority_forward_genesis_material.v1",
-      "status": "reserved",
+      "status": "active",
       "domain": "federation",
-      "applies_to_profiles": [
-        "ak.profile.e2ee_client.v1"
+      "applies_to_fixtures": [
+        "federation-authority-forward-genesis-material-fixture.json"
       ],
-      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: A cross-Station ak.mls.genesis is forwarded with mls_genesis_material holding the raw GroupInfo and ratchet_tree Blob bytes; the governance Station accepts it only when both hash to the Genesis refs under their embedded suites and the RFC 9420 public state verifies, stores both as public Blobs in the acceptance transaction and later serves them through ak.peer.mls.read.group_state_material.v1. A Genesis without the member or any other kind with it is schema_violation, a digest mismatch is digest_mismatch, over 8388608 decoded bytes is too_large, all with zero writes; the forwarding Station refuses a Genesis whose Blobs it does not hold with failed_precondition; an exact replay returns the original outcome. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
+      "description": "A cross-Station ak.mls.genesis is forwarded with mls_genesis_material holding the raw GroupInfo and ratchet_tree Blob bytes; the governance Station accepts it only when both hash to the Genesis refs under their embedded suites and the RFC 9420 epoch-0 public state verifies, stores both as public Blobs in the acceptance transaction and later serves them unchanged through ak.peer.mls.read.group_state_material.v1. A Genesis without the member or any other kind with it, a member longer than 5592406 characters or not canonical unpadded base64url, and addressed bytes that are no epoch-0 public state are schema_violation, and a digest mismatch is digest_mismatch, all with zero writes; two members at the bound decode to exactly the 8388608-byte response bound, so no aggregate refusal exists. The forwarding Station refuses a Genesis whose Blobs it does not hold or that do not address their refs with a bare failed_precondition and forwards nothing; an exact replay returns the original Commit.",
       "source_refs": [
+        "spec/v1/artifacts/fixtures/federation-authority-forward-genesis-material-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     },

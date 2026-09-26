@@ -427,7 +427,7 @@
     },
     "mls_genesis_material": {
       "type": "object",
-      "description": "Raw epoch-0 public material of one forwarded ak.mls.genesis: the exact bytes of the GroupInfo and ratchet_tree Blobs named by the Genesis payload group_info_ref and ratchet_tree_ref, as unpadded base64url. It carries no ref or digest echo; the refs in the signed Genesis are the only digest carrier. The decoded bytes together MUST NOT exceed 8388608 bytes, the ak.peer.mls.read.group_state_material.v1 response bound; a larger body is too_large.",
+      "description": "Raw epoch-0 public material of one forwarded ak.mls.genesis: the exact bytes of the GroupInfo and ratchet_tree Blobs named by the Genesis payload group_info_ref and ratchet_tree_ref, as unpadded base64url. It carries no ref or digest echo; the refs in the signed Genesis are the only digest carrier. Each member is at most 5592406 characters, so each decodes to at most 4194304 bytes and the two together never exceed 8388608 bytes, the ak.peer.mls.read.group_state_material.v1 response bound; a longer member is schema_violation and there is no separate aggregate bound.",
       "required": [
         "group_info_bytes_b64",
         "ratchet_tree_bytes_b64"

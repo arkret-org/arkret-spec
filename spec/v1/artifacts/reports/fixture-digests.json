@@ -236,6 +236,11 @@
       "version": "2026-09-19"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/federation-authority-forward-genesis-material-fixture.json",
+      "sha256": "7e331255ea278f08ed224c2e7b159cc04d71e5c5d847dd982747b9a760598868",
+      "version": "2026-09-26.1"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/federation-idempotency-key-revoke-fixture.json",
       "sha256": "32928ec6540b4c8a44c5dd46e355057f95a6981e82b2105987c7eefb1c7e073e",
       "version": "2026-09-18.1"
@@ -311,6 +316,11 @@
       "version": "2026-09-26.1"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/keypackage-recipient-claim-read-fixture.json",
+      "sha256": "fcf542c1412dade52ce399a7219726350a1ea738a767128d5a3774019b38f431",
+      "version": "2026-09-26.1"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/keypackage-write-transcript-fixture.json",
       "sha256": "3bf54a0e823f1b81ac9996e2a43ce1d119c41c1ad7c531c1806370fb7fc9bcdc",
       "version": "2026-09-23.1"
@@ -339,6 +349,11 @@
       "path": "spec/v1/artifacts/fixtures/mls-creator-bootstrap-recovery-fixture.json",
       "sha256": "2db1bea3670197593b7e7f16d7e4144fbf6a848d3b7f16bc03985a3c18dc36d3",
       "version": "2026-09-15"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/mls-cross-station-welcome-replication-fixture.json",
+      "sha256": "128c9b458b828cc9d819adc16a5e641968dc2c291870fdc06b6757f6bee8f0a2",
+      "version": "2026-09-26.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-governance-binding-closure-fixture.json",

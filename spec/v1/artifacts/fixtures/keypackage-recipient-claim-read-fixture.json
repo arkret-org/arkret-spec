@@ -1,0 +1,339 @@
+{
+  "suite": "keypackage_recipient_claim_read",
+  "fixture_kind": "semantic",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.keypackage.recipient_claim_read.v1"
+  },
+  "version": "2026-09-26.1",
+  "profile": "ak.profile.e2ee_client.v1",
+  "covers_vectors": [
+    "ak.vector.keypackage.recipient_claim_read.v1"
+  ],
+  "machine_contracts": [
+    "registry/contract-registry.json",
+    "registry/operations-error-mapping.json",
+    "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_query_request_body",
+    "schemas/keypackage-operations.schema.json#/$defs/keypackages_claim_outcome",
+    "schemas/mls-welcome-delivery.schema.json"
+  ],
+  "description": "Executable evidence for ak.vector.keypackage.recipient_claim_read.v1 (zh/crypto-media/device-lifecycle.md section 9 claims/query and section 9.2.4, zh/crypto-media/encryption-and-audit.md section 2.6.1, decision 0119). The Station is the claim destination; alice, on the same Station, claimed bob_claim for bob_device and agent_claim for the Agent's current runtime key, and the Station stored each claim request's outcome, with a claim_receipt signed by its own service key, before answering alice. A read variant has reader call ak.self.keys.keypackages.read.claim.v1 for claim at clock (inside retention unless after_retention) and compares the answer with the stored bytes; state_writes counts writes the read made and claim_state and keypackage_state are read afterwards. A receive variant has bob_device read bob_claim and run the recipient checks in order: the read itself, the claims_digest recomputation, the receipt signature under the Station's service key, then the binding of claim, Welcome, winning Add Commit and current endpoint authorization; refused_by names the first check that refuses, and only an accepted variant may join the group from the Welcome.",
+  "world": {
+    "station_id": "ak:did_core:web:member-y.example",
+    "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+    "readers": {
+      "alice_device": {
+        "account": "alice",
+        "device_id": "ak:device:0199d100-0000-7000-8000-000000000001",
+        "role": "requester of both claims"
+      },
+      "bob_device": {
+        "account": "bob",
+        "device_id": "ak:device:0199d100-0000-7000-8000-000000000002",
+        "role": "claimed human-device endpoint"
+      },
+      "bob_other_device": {
+        "account": "bob",
+        "device_id": "ak:device:0199d100-0000-7000-8000-000000000003",
+        "role": "another current device of the claimed Account"
+      },
+      "agent_current": {
+        "agent": "agent",
+        "authorization": "current",
+        "role": "claimed Agent runtime endpoint"
+      },
+      "agent_replaced": {
+        "agent": "agent",
+        "authorization": "replacement",
+        "role": "the same Agent after a later ak.agent.key.authorize replaced the claimed one"
+      }
+    },
+    "claims": {
+      "bob_claim": {
+        "claim_id": "ak:keypackage_claim:0199d100-0000-7000-8000-000000000101",
+        "endpoint": "bob_device"
+      },
+      "agent_claim": {
+        "claim_id": "ak:keypackage_claim:0199d100-0000-7000-8000-000000000102",
+        "endpoint": "agent_current"
+      },
+      "unknown_claim": {
+        "claim_id": "ak:keypackage_claim:0199d100-0000-7000-8000-000000000199",
+        "endpoint": null
+      }
+    },
+    "claimed_at": "2026-09-26T01:00:00.000Z",
+    "claim_expires_at": "2026-09-26T01:05:00.000Z",
+    "query_retention_ends_at": "2026-09-27T01:05:00.000Z",
+    "clocks": {
+      "inside_retention": "2026-09-26T01:10:00.000Z",
+      "after_retention": "2026-09-27T01:05:00.000Z"
+    }
+  },
+  "decision_points": [
+    {
+      "id": "exact_endpoint_original_bytes",
+      "requirement": "The claim record's exact human-device endpoint, or its Agent endpoint under the current key authorization, reads the byte-identical keypackages_claim_outcome first serialized for the claim request.",
+      "accept": [
+        "/cases/0/variants/0",
+        "/cases/0/variants/1",
+        "/cases/0/variants/2",
+        "/cases/1/variants/5"
+      ],
+      "reject": [
+        "/cases/1/variants/0",
+        "/cases/1/variants/1",
+        "/cases/1/variants/3"
+      ]
+    },
+    {
+      "id": "uniform_keypackage_unknown",
+      "requirement": "An unknown claim id, another endpoint's claim (requester or another device of the same Account), a superseded Agent authorization and a claim past its query retention are all one keypackage_unknown.",
+      "accept": [
+        "/cases/0/variants/0"
+      ],
+      "reject": [
+        "/cases/1/variants/0",
+        "/cases/1/variants/1",
+        "/cases/1/variants/2",
+        "/cases/1/variants/3",
+        "/cases/1/variants/4"
+      ]
+    },
+    {
+      "id": "read_only",
+      "requirement": "No read, answered or refused, changes the claim or KeyPackage state or writes anything.",
+      "accept": [
+        "/cases/0/variants/0",
+        "/cases/0/variants/1"
+      ],
+      "reject": [
+        "/cases/1/variants/0",
+        "/cases/1/variants/4"
+      ]
+    },
+    {
+      "id": "recipient_binds_before_decrypt",
+      "requirement": "Before decrypting a Welcome the recipient reads the claim from its own Account Station, recomputes claims_digest, verifies the destination receipt under that Station's service key and binds claim, Welcome, the winning Add Commit and its current endpoint authorization; any failure, including a failed read, leaves the Welcome undecrypted.",
+      "accept": [
+        "/cases/2/variants/0"
+      ],
+      "reject": [
+        "/cases/2/variants/1",
+        "/cases/2/variants/2",
+        "/cases/2/variants/3",
+        "/cases/2/variants/4",
+        "/cases/2/variants/5"
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "name": "the_claimed_endpoint_reads_the_original_outcome",
+      "given": "alice claimed one of bob_device's KeyPackages and one of the Agent's KeyPackages on this Station; both claims are live and inside their query retention",
+      "variants": [
+        {
+          "name": "device_reads_its_claim",
+          "operation_id": "ak.self.keys.keypackages.read.claim.v1",
+          "reader": "bob_device",
+          "claim": "bob_claim",
+          "expected": {
+            "decision": "accept",
+            "outcome": "original_bytes",
+            "state_writes": 0,
+            "claim_state": "claimed",
+            "keypackage_state": "claimed"
+          }
+        },
+        {
+          "name": "device_reads_its_claim_again",
+          "operation_id": "ak.self.keys.keypackages.read.claim.v1",
+          "reader": "bob_device",
+          "claim": "bob_claim",
+          "expected": {
+            "decision": "accept",
+            "outcome": "original_bytes",
+            "state_writes": 0,
+            "claim_state": "claimed",
+            "keypackage_state": "claimed"
+          }
+        },
+        {
+          "name": "agent_reads_under_its_current_authorization",
+          "operation_id": "ak.self.keys.keypackages.read.claim.v1",
+          "reader": "agent_current",
+          "claim": "agent_claim",
+          "expected": {
+            "decision": "accept",
+            "outcome": "original_bytes",
+            "state_writes": 0,
+            "claim_state": "claimed",
+            "keypackage_state": "claimed"
+          }
+        }
+      ]
+    },
+    {
+      "name": "every_other_reader_is_keypackage_unknown",
+      "given": "the same two claims; every reader below holds an authenticated session on this Station",
+      "variants": [
+        {
+          "name": "requester_reads_the_claim",
+          "operation_id": "ak.self.keys.keypackages.read.claim.v1",
+          "reader": "alice_device",
+          "claim": "bob_claim",
+          "expected": {
+            "decision": "reject",
+            "error_code": "keypackage_unknown",
+            "state_writes": 0,
+            "claim_state": "claimed",
+            "keypackage_state": "claimed"
+          }
+        },
+        {
+          "name": "other_device_of_the_claimed_account",
+          "operation_id": "ak.self.keys.keypackages.read.claim.v1",
+          "reader": "bob_other_device",
+          "claim": "bob_claim",
+          "expected": {
+            "decision": "reject",
+            "error_code": "keypackage_unknown",
+            "state_writes": 0,
+            "claim_state": "claimed",
+            "keypackage_state": "claimed"
+          }
+        },
+        {
+          "name": "unknown_claim_id",
+          "operation_id": "ak.self.keys.keypackages.read.claim.v1",
+          "reader": "bob_device",
+          "claim": "unknown_claim",
+          "expected": {
+            "decision": "reject",
+            "error_code": "keypackage_unknown",
+            "state_writes": 0,
+            "claim_state": "claimed",
+            "keypackage_state": "claimed"
+          }
+        },
+        {
+          "name": "agent_after_its_authorization_was_replaced",
+          "operation_id": "ak.self.keys.keypackages.read.claim.v1",
+          "reader": "agent_replaced",
+          "claim": "agent_claim",
+          "expected": {
+            "decision": "reject",
+            "error_code": "keypackage_unknown",
+            "state_writes": 0,
+            "claim_state": "claimed",
+            "keypackage_state": "claimed"
+          }
+        },
+        {
+          "name": "claim_past_its_query_retention",
+          "operation_id": "ak.self.keys.keypackages.read.claim.v1",
+          "reader": "bob_device",
+          "claim": "bob_claim",
+          "clock": "after_retention",
+          "expected": {
+            "decision": "reject",
+            "error_code": "keypackage_unknown",
+            "state_writes": 0,
+            "claim_state": "claimed",
+            "keypackage_state": "claimed"
+          }
+        },
+        {
+          "name": "claimed_device_after_the_refusals",
+          "operation_id": "ak.self.keys.keypackages.read.claim.v1",
+          "reader": "bob_device",
+          "claim": "bob_claim",
+          "expected": {
+            "decision": "accept",
+            "outcome": "original_bytes",
+            "state_writes": 0,
+            "claim_state": "claimed",
+            "keypackage_state": "claimed"
+          }
+        }
+      ]
+    },
+    {
+      "name": "the_recipient_binds_the_claim_before_decrypting",
+      "given": "alice's accepted ak.mls.commit adds the KeyPackage of bob_claim with an inline Add; bob_device holds its producer-signed Welcome and its current device authorization is the one the claim record names",
+      "variants": [
+        {
+          "name": "exact_claim_receipt_welcome_and_add_commit",
+          "operation": "receive_welcome",
+          "reader": "bob_device",
+          "claim": "bob_claim",
+          "expected": {
+            "decision": "accept",
+            "decrypted": true,
+            "joined_epoch": 1
+          }
+        },
+        {
+          "name": "claim_read_refused",
+          "operation": "receive_welcome",
+          "reader": "bob_device",
+          "claim": "bob_claim",
+          "clock": "after_retention",
+          "expected": {
+            "decision": "reject",
+            "decrypted": false,
+            "refused_by": "claim_read"
+          }
+        },
+        {
+          "name": "claim_record_altered_after_the_receipt",
+          "operation": "receive_welcome",
+          "reader": "bob_device",
+          "claim": "bob_claim",
+          "tamper": "claim_capabilities",
+          "expected": {
+            "decision": "reject",
+            "decrypted": false,
+            "refused_by": "claims_digest"
+          }
+        },
+        {
+          "name": "receipt_signed_by_another_key",
+          "operation": "receive_welcome",
+          "reader": "bob_device",
+          "claim": "bob_claim",
+          "tamper": "receipt_signature",
+          "expected": {
+            "decision": "reject",
+            "decrypted": false,
+            "refused_by": "claim_receipt_signature"
+          }
+        },
+        {
+          "name": "claimed_keypackage_not_added_by_the_commit",
+          "operation": "receive_welcome",
+          "reader": "bob_device",
+          "claim": "bob_claim",
+          "commit_adds": "bob_other_keypackage",
+          "expected": {
+            "decision": "reject",
+            "decrypted": false,
+            "refused_by": "welcome_claim_binding"
+          }
+        },
+        {
+          "name": "endpoint_authorization_replaced",
+          "operation": "receive_welcome",
+          "reader": "bob_device",
+          "claim": "bob_claim",
+          "endpoint_authorization": "replaced",
+          "expected": {
+            "decision": "reject",
+            "decrypted": false,
+            "refused_by": "welcome_claim_binding"
+          }
+        }
+      ]
+    }
+  ]
+}

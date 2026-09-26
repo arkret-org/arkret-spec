@@ -1,0 +1,442 @@
+{
+  "suite": "federation_authority_forward_genesis_material",
+  "fixture_kind": "semantic",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.federation.authority_forward_genesis_material.v1"
+  },
+  "version": "2026-09-26.1",
+  "profile": "ak.profile.e2ee_client.v1",
+  "covers_vectors": [
+    "ak.vector.federation.authority_forward_genesis_material.v1"
+  ],
+  "machine_contracts": [
+    "registry/contract-registry.json",
+    "registry/operations-error-mapping.json",
+    "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
+    "schemas/authority-commit-operations.schema.json#/$defs/mls_genesis_material",
+    "schemas/service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialRequestBody",
+    "schemas/service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialOutcome"
+  ],
+  "description": "Executable evidence for ak.vector.federation.authority_forward_genesis_material.v1 (zh/crypto-media/encryption-and-audit.md sections 5.1.1 and 5.1.2, zh/sync/federation.md section 4.1, decisions 0119 and 0123). The creator is a human device Account on the forwarding Station and a joined member of a Realm the governance Station governs, granted ak.mls.genesis. Unless a variant says otherwise the creator's epoch-0 group holds only its own leaf under the 0 -> 0 governance binding, both refs are sha256 content addresses of its exported GroupInfo and ratchet_tree, the forwarding Station holds both Blobs and forwards the Genesis through ak.peer.events.command.submit.v1 authority_forward with fresh producer_device_evidence and mls_genesis_material holding the exact bytes. carried, carried_mutation and carried_decoded_bytes replace what the forward carries; forwarded tells whether a request left the forwarding Station, realm_commits counts accepted Genesis Commits and public_blobs the Blobs the governance Station stores. Every case starts from fresh Stations and later variants continue from the state earlier ones left; a refused variant MUST leave both Stations exactly as before.",
+  "world": {
+    "forwarding_station": "the creator's Account Station, a member Station of the Realm",
+    "governance_station": "the Realm's current governance Station",
+    "cipher_suite": "MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519",
+    "member_max_encoded_chars": 5592406,
+    "member_max_decoded_bytes": 4194304,
+    "group_state_material_response_bound": 8388608
+  },
+  "decision_points": [
+    {
+      "id": "admit_store_and_serve",
+      "requirement": "A cross-Station ak.mls.genesis forwarded with mls_genesis_material whose bytes address the Genesis refs and verify as the RFC 9420 epoch-0 public state is committed; both Blobs are stored as public Blobs in the acceptance transaction and ak.peer.mls.read.group_state_material.v1 later returns them unchanged.",
+      "accept": [
+        "/cases/0/variants/0",
+        "/cases/0/variants/1",
+        "/cases/5/variants/1"
+      ],
+      "reject": [
+        "/cases/5/variants/0"
+      ]
+    },
+    {
+      "id": "material_presence",
+      "requirement": "An ak.mls.genesis forward without mls_genesis_material, or any other Event kind with it, is schema_violation with zero writes.",
+      "accept": [
+        "/cases/2/variants/2"
+      ],
+      "reject": [
+        "/cases/2/variants/0",
+        "/cases/2/variants/1"
+      ]
+    },
+    {
+      "id": "content_addresses",
+      "requirement": "Carried bytes that do not hash to their Genesis ref under the ref's embedded suite are digest_mismatch with zero writes.",
+      "accept": [
+        "/cases/3/variants/2"
+      ],
+      "reject": [
+        "/cases/3/variants/0",
+        "/cases/3/variants/1"
+      ]
+    },
+    {
+      "id": "member_bound",
+      "requirement": "Each member is at most 5592406 canonical unpadded base64url characters; a longer or non-canonical member is schema_violation with zero writes, and two members at the bound decode to exactly the 8388608-byte response bound, so there is no separate aggregate refusal.",
+      "accept": [
+        "/cases/4/variants/0"
+      ],
+      "reject": [
+        "/cases/4/variants/1",
+        "/cases/4/variants/2",
+        "/cases/4/variants/3"
+      ]
+    },
+    {
+      "id": "forwarding_station_holds_blobs",
+      "requirement": "The forwarding Station reads both Blobs from its own store and checks their content addresses before forwarding; a missing or non-addressing Blob is a bare failed_precondition and nothing is forwarded.",
+      "accept": [
+        "/cases/1/variants/4"
+      ],
+      "reject": [
+        "/cases/1/variants/0",
+        "/cases/1/variants/2",
+        "/cases/1/variants/3"
+      ]
+    },
+    {
+      "id": "exact_replay",
+      "requirement": "The byte-identical Genesis submitted again returns the original Commit and writes nothing; a refusal records no outcome, so the same bytes resubmitted unchanged are refused again.",
+      "accept": [
+        "/cases/0/variants/2"
+      ],
+      "reject": [
+        "/cases/1/variants/1"
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "name": "forwarded_genesis_is_admitted_stored_and_served",
+      "given": "the creator's Account Station holds both Genesis Blobs it uploaded through ak.self.blob.*",
+      "variants": [
+        {
+          "name": "forward_with_both_blobs_held",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "event_kind": "ak.mls.genesis",
+          "forwarding_station_holds": [
+            "group_info",
+            "ratchet_tree"
+          ],
+          "expected": {
+            "decision": "accept",
+            "status": "committed",
+            "forwarded": true,
+            "realm_commits": 1,
+            "public_blobs": 2
+          }
+        },
+        {
+          "name": "group_state_material_serves_the_carried_bytes",
+          "operation_id": "ak.peer.mls.read.group_state_material.v1",
+          "requester": "forwarding_station",
+          "expected": {
+            "decision": "accept",
+            "served": "carried_bytes",
+            "realm_commits": 1,
+            "public_blobs": 2
+          }
+        },
+        {
+          "name": "exact_replay_returns_the_original_commit",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "event_kind": "ak.mls.genesis",
+          "retry_of": "forward_with_both_blobs_held",
+          "expected": {
+            "decision": "replay",
+            "status": "duplicate",
+            "outcome_of": "forward_with_both_blobs_held",
+            "realm_commits": 1,
+            "public_blobs": 2
+          }
+        }
+      ]
+    },
+    {
+      "name": "the_forwarding_station_must_hold_both_blobs",
+      "given": "the creator authored the same Genesis; the Blobs its Account Station holds vary per variant",
+      "variants": [
+        {
+          "name": "neither_blob_held",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "event_kind": "ak.mls.genesis",
+          "forwarding_station_holds": [],
+          "expected": {
+            "decision": "reject",
+            "error_code": "failed_precondition",
+            "reason_code": null,
+            "rejected_by": "forwarding_station",
+            "forwarded": false,
+            "realm_commits": 0,
+            "public_blobs": 0
+          }
+        },
+        {
+          "name": "refused_genesis_resubmitted_unchanged",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "event_kind": "ak.mls.genesis",
+          "retry_of": "neither_blob_held",
+          "forwarding_station_holds": [],
+          "expected": {
+            "decision": "reject",
+            "error_code": "failed_precondition",
+            "reason_code": null,
+            "rejected_by": "forwarding_station",
+            "forwarded": false,
+            "realm_commits": 0,
+            "public_blobs": 0
+          }
+        },
+        {
+          "name": "ratchet_tree_not_held",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "event_kind": "ak.mls.genesis",
+          "forwarding_station_holds": [
+            "group_info"
+          ],
+          "expected": {
+            "decision": "reject",
+            "error_code": "failed_precondition",
+            "reason_code": null,
+            "rejected_by": "forwarding_station",
+            "forwarded": false,
+            "realm_commits": 0,
+            "public_blobs": 0
+          }
+        },
+        {
+          "name": "held_bytes_do_not_address_the_ref",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "event_kind": "ak.mls.genesis",
+          "forwarding_station_holds": [
+            "group_info",
+            "ratchet_tree"
+          ],
+          "held_object_mutation": "ratchet_tree_last_byte_flipped",
+          "expected": {
+            "decision": "reject",
+            "error_code": "failed_precondition",
+            "reason_code": null,
+            "rejected_by": "forwarding_station",
+            "forwarded": false,
+            "realm_commits": 0,
+            "public_blobs": 0
+          }
+        },
+        {
+          "name": "both_blobs_held",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "event_kind": "ak.mls.genesis",
+          "forwarding_station_holds": [
+            "group_info",
+            "ratchet_tree"
+          ],
+          "expected": {
+            "decision": "accept",
+            "status": "committed",
+            "forwarded": true,
+            "realm_commits": 1,
+            "public_blobs": 2
+          }
+        }
+      ]
+    },
+    {
+      "name": "material_presence_follows_the_event_kind",
+      "given": "the governance Station receives an authority_forward whose Event and mls_genesis_material vary per variant; every forward carries fresh producer_device_evidence",
+      "variants": [
+        {
+          "name": "genesis_without_material",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "event_kind": "ak.mls.genesis",
+          "carried": "none",
+          "expected": {
+            "decision": "reject",
+            "error_code": "schema_violation",
+            "reason_code": null,
+            "rejected_by": "governance_station",
+            "forwarded": true,
+            "realm_commits": 0,
+            "public_blobs": 0
+          }
+        },
+        {
+          "name": "non_genesis_with_material",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "event_kind": "ak.message.create",
+          "carried": "genesis_material",
+          "expected": {
+            "decision": "reject",
+            "error_code": "schema_violation",
+            "reason_code": null,
+            "rejected_by": "governance_station",
+            "forwarded": true,
+            "realm_commits": 0,
+            "public_blobs": 0
+          }
+        },
+        {
+          "name": "genesis_with_its_material",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "event_kind": "ak.mls.genesis",
+          "carried": "genesis_material",
+          "expected": {
+            "decision": "accept",
+            "status": "committed",
+            "forwarded": true,
+            "realm_commits": 1,
+            "public_blobs": 2
+          }
+        }
+      ]
+    },
+    {
+      "name": "carried_bytes_address_the_genesis_refs",
+      "given": "the governance Station receives a Genesis forward whose carried bytes vary per variant",
+      "variants": [
+        {
+          "name": "members_swapped",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "event_kind": "ak.mls.genesis",
+          "carried_mutation": "swap_members",
+          "expected": {
+            "decision": "reject",
+            "error_code": "digest_mismatch",
+            "reason_code": null,
+            "rejected_by": "governance_station",
+            "forwarded": true,
+            "realm_commits": 0,
+            "public_blobs": 0
+          }
+        },
+        {
+          "name": "ratchet_tree_byte_flipped",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "event_kind": "ak.mls.genesis",
+          "carried_mutation": "ratchet_tree_last_byte_flipped",
+          "expected": {
+            "decision": "reject",
+            "error_code": "digest_mismatch",
+            "reason_code": null,
+            "rejected_by": "governance_station",
+            "forwarded": true,
+            "realm_commits": 0,
+            "public_blobs": 0
+          }
+        },
+        {
+          "name": "refs_under_the_blake3_suite",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "event_kind": "ak.mls.genesis",
+          "blob_ref_suite": "blake3",
+          "expected": {
+            "decision": "accept",
+            "status": "committed",
+            "forwarded": true,
+            "realm_commits": 1,
+            "public_blobs": 2
+          }
+        }
+      ]
+    },
+    {
+      "name": "member_length_bounds_the_carrier",
+      "given": "each member is at most 5592406 unpadded base64url characters, 4194304 decoded bytes, so a full pair decodes to exactly the 8388608-byte ak.peer.mls.read.group_state_material.v1 response bound and no aggregate bound applies",
+      "variants": [
+        {
+          "name": "both_members_at_the_bound",
+          "operation": "material_shape",
+          "decoded_bytes": {
+            "group_info": 4194304,
+            "ratchet_tree": 4194304
+          },
+          "expected": {
+            "decision": "accept",
+            "encoded_chars": {
+              "group_info": 5592406,
+              "ratchet_tree": 5592406
+            },
+            "decoded_total": 8388608
+          }
+        },
+        {
+          "name": "group_info_one_byte_over",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "event_kind": "ak.mls.genesis",
+          "carried_decoded_bytes": {
+            "group_info": 4194305,
+            "ratchet_tree": 4194304
+          },
+          "expected": {
+            "decision": "reject",
+            "error_code": "schema_violation",
+            "reason_code": null,
+            "rejected_by": "governance_station",
+            "forwarded": true,
+            "realm_commits": 0,
+            "public_blobs": 0
+          }
+        },
+        {
+          "name": "ratchet_tree_one_byte_over",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "event_kind": "ak.mls.genesis",
+          "carried_decoded_bytes": {
+            "group_info": 4194304,
+            "ratchet_tree": 4194305
+          },
+          "expected": {
+            "decision": "reject",
+            "error_code": "schema_violation",
+            "reason_code": null,
+            "rejected_by": "governance_station",
+            "forwarded": true,
+            "realm_commits": 0,
+            "public_blobs": 0
+          }
+        },
+        {
+          "name": "padded_member",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "event_kind": "ak.mls.genesis",
+          "carried_mutation": "pad_group_info",
+          "expected": {
+            "decision": "reject",
+            "error_code": "schema_violation",
+            "reason_code": null,
+            "rejected_by": "governance_station",
+            "forwarded": true,
+            "realm_commits": 0,
+            "public_blobs": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "addressed_bytes_must_be_the_epoch_zero_public_state",
+      "given": "the refs address the carried bytes exactly",
+      "variants": [
+        {
+          "name": "addressed_bytes_are_not_a_group_info",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "event_kind": "ak.mls.genesis",
+          "group_state": "opaque_bytes",
+          "expected": {
+            "decision": "reject",
+            "error_code": "schema_violation",
+            "reason_code": null,
+            "rejected_by": "governance_station",
+            "forwarded": true,
+            "realm_commits": 0,
+            "public_blobs": 0
+          }
+        },
+        {
+          "name": "addressed_epoch_zero_state",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "event_kind": "ak.mls.genesis",
+          "group_state": "creator_epoch_zero",
+          "expected": {
+            "decision": "accept",
+            "status": "committed",
+            "forwarded": true,
+            "realm_commits": 1,
+            "public_blobs": 2
+          }
+        }
+      ]
+    }
+  ]
+}

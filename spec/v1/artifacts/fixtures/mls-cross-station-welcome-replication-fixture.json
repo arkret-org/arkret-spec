@@ -1,0 +1,1094 @@
+{
+  "suite": "mls_cross_station_welcome_replication",
+  "fixture_kind": "semantic",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.mls.cross_station_welcome_replication.v1"
+  },
+  "version": "2026-09-26.1",
+  "profile": "ak.profile.e2ee_client.v1",
+  "covers_vectors": [
+    "ak.vector.mls.cross_station_welcome_replication.v1"
+  ],
+  "machine_contracts": [
+    "registry/contract-registry.json",
+    "registry/operations-error-mapping.json",
+    "schemas/authority-commit-operations.schema.json#/$defs/committed_event_submission",
+    "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
+    "schemas/mls-welcome-delivery.schema.json"
+  ],
+  "description": "Executable evidence for ak.vector.mls.cross_station_welcome_replication.v1 (zh/crypto-media/encryption-and-audit.md section 2.2, zh/crypto-media/device-lifecycle.md section 9.2.3, zh/sync/client-sync.md section 10.1, decisions 0119 and 0121). Every governance variant starts from a fresh governance Station. A governance variant has committer author and sign one ak.mls.commit whose inline Adds are exactly the adds endpoints and one producer-signed MlsWelcomeDelivery per added endpoint, sorted by welcome_id; its outcome lists the Welcomes queued on the governance Station, the claims bound there and, per remote committed-replication target, the Welcomes carried by that target's intent (null when the intent carries no welcomes member). A replica variant delivers to Station Y one committed_replication item of item_event_kind carrying the listed Welcomes of that Commit. A Station Y variant that names claims starts from a fresh Station Y whose ledger holds each named claim in the given state (live, absent, expired, consumed, bound_to_other_welcome or other_endpoint); a Station Y variant without claims continues from the state the earlier variants of its case left. queue_capacity and preloaded_deliveries give each endpoint the variant delivers to its queue bound and the unacknowledged deliveries it already holds. queue and claim_bindings list the recipients whose Welcome is queued and whose claim is bound after the variant; outstanding counts unacknowledged deliveries per endpoint. A refused submission or request MUST leave every Station exactly as before.",
+  "world": {
+    "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+    "stations": {
+      "governance": "ak:did_core:web:governance-x.example",
+      "member_y": "ak:did_core:web:member-y.example",
+      "member_z": "ak:did_core:web:member-z.example",
+      "member_v": "ak:did_core:web:member-v.example",
+      "outsider_w": "ak:did_core:web:outsider-w.example"
+    },
+    "members": [
+      {
+        "name": "alice",
+        "account_id": {
+          "principal_id": "ak:did_core:web:alice.example",
+          "station_id": "ak:did_core:web:governance-x.example"
+        },
+        "station": "governance",
+        "joined": true,
+        "device_id": "ak:device:0199d000-0000-7000-8000-000000000001"
+      },
+      {
+        "name": "erin",
+        "account_id": {
+          "principal_id": "ak:did_core:web:erin.example",
+          "station_id": "ak:did_core:web:governance-x.example"
+        },
+        "station": "governance",
+        "joined": true,
+        "device_id": "ak:device:0199d000-0000-7000-8000-000000000002",
+        "claim_id": "ak:keypackage_claim:0199d000-0000-7000-8000-000000000102",
+        "welcome_id": "ak:mls_welcome_delivery:0199d000-0000-7000-8000-000000000201"
+      },
+      {
+        "name": "bob",
+        "account_id": {
+          "principal_id": "ak:did_core:web:bob.example",
+          "station_id": "ak:did_core:web:member-y.example"
+        },
+        "station": "member_y",
+        "joined": true,
+        "device_id": "ak:device:0199d000-0000-7000-8000-000000000003",
+        "claim_id": "ak:keypackage_claim:0199d000-0000-7000-8000-000000000103",
+        "welcome_id": "ak:mls_welcome_delivery:0199d000-0000-7000-8000-000000000202"
+      },
+      {
+        "name": "dave",
+        "account_id": {
+          "principal_id": "ak:did_core:web:dave.example",
+          "station_id": "ak:did_core:web:member-z.example"
+        },
+        "station": "member_z",
+        "joined": true,
+        "device_id": "ak:device:0199d000-0000-7000-8000-000000000004",
+        "claim_id": "ak:keypackage_claim:0199d000-0000-7000-8000-000000000104",
+        "welcome_id": "ak:mls_welcome_delivery:0199d000-0000-7000-8000-000000000203"
+      },
+      {
+        "name": "carol",
+        "account_id": {
+          "principal_id": "ak:did_core:web:carol.example",
+          "station_id": "ak:did_core:web:member-y.example"
+        },
+        "station": "member_y",
+        "joined": true,
+        "device_id": "ak:device:0199d000-0000-7000-8000-000000000005",
+        "claim_id": "ak:keypackage_claim:0199d000-0000-7000-8000-000000000105",
+        "welcome_id": "ak:mls_welcome_delivery:0199d000-0000-7000-8000-000000000204"
+      },
+      {
+        "name": "grace",
+        "account_id": {
+          "principal_id": "ak:did_core:web:grace.example",
+          "station_id": "ak:did_core:web:member-v.example"
+        },
+        "station": "member_v",
+        "joined": true,
+        "device_id": "ak:device:0199d000-0000-7000-8000-000000000006"
+      },
+      {
+        "name": "frank",
+        "account_id": {
+          "principal_id": "ak:did_core:web:frank.example",
+          "station_id": "ak:did_core:web:outsider-w.example"
+        },
+        "station": "outsider_w",
+        "joined": false,
+        "device_id": "ak:device:0199d000-0000-7000-8000-000000000007",
+        "claim_id": "ak:keypackage_claim:0199d000-0000-7000-8000-000000000107",
+        "welcome_id": "ak:mls_welcome_delivery:0199d000-0000-7000-8000-000000000205"
+      }
+    ],
+    "queue_capacity_default": 1000
+  },
+  "decision_points": [
+    {
+      "id": "remote_welcome_intent",
+      "requirement": "Inside the Commit acceptance transaction the governance Station queues a hosted recipient's Welcome locally and writes every other Welcome into the committed-replication intent of that recipient's routing service: exactly that service's recipients, in submission order, and no welcomes member for a target that hosts none.",
+      "accept": [
+        "/cases/0/variants/0",
+        "/cases/0/variants/1",
+        "/cases/1/variants/1"
+      ],
+      "reject": [
+        "/cases/1/variants/0"
+      ]
+    },
+    {
+      "id": "target_set_closure",
+      "requirement": "A Welcome whose recipient's routing service is not a committed-replication target of the Commit refuses the whole submission with a bare failed_precondition and zero writes.",
+      "accept": [
+        "/cases/1/variants/1"
+      ],
+      "reject": [
+        "/cases/1/variants/0"
+      ]
+    },
+    {
+      "id": "welcomes_only_on_mls_commit",
+      "requirement": "welcomes is allowed only on an ak.mls.commit item and is never empty; any other item carrying it is schema_violation and nothing is stored.",
+      "accept": [
+        "/cases/2/variants/0"
+      ],
+      "reject": [
+        "/cases/2/variants/1",
+        "/cases/2/variants/2"
+      ]
+    },
+    {
+      "id": "destination_reverification",
+      "requirement": "The destination re-verifies each Welcome's claim against its own ledger and queues each passing Welcome, with its claim binding, in the same replica transaction as the Commit; a Welcome whose claim is absent, expired, consumed, bound to another Welcome or names another endpoint is never queued, and the Commit replica is stored all the same.",
+      "accept": [
+        "/cases/3/variants/0/expected/welcome_decisions/bob",
+        "/cases/3/variants/0/expected/welcome_decisions/carol"
+      ],
+      "reject": [
+        "/cases/3/variants/1/expected/welcome_decisions/carol",
+        "/cases/3/variants/2/expected/welcome_decisions/carol",
+        "/cases/3/variants/3/expected/welcome_decisions/carol",
+        "/cases/3/variants/4/expected/welcome_decisions/carol",
+        "/cases/3/variants/5/expected/welcome_decisions/carol",
+        "/cases/3/variants/6/expected/welcome_decisions/bob"
+      ]
+    },
+    {
+      "id": "scan_replay_fills_welcomes",
+      "requirement": "A replay of an item whose Commit is already held through scan or an earlier attempt returns duplicate and queues, in one transaction, each Welcome not queued yet that passes re-verification; a Welcome that fails stays unqueued and a further replay queues nothing.",
+      "accept": [
+        "/cases/4/variants/1/expected/welcome_decisions/bob",
+        "/cases/4/variants/2"
+      ],
+      "reject": [
+        "/cases/4/variants/1/expected/welcome_decisions/carol"
+      ]
+    },
+    {
+      "id": "capacity_and_ack_only",
+      "requirement": "A replicated Welcome counts toward its endpoint queue capacity but is never refused by it, unlike a first admission at capacity, and leaves the queue only through ACK.",
+      "accept": [
+        "/cases/5/variants/1",
+        "/cases/5/variants/2"
+      ],
+      "reject": [
+        "/cases/5/variants/0"
+      ]
+    }
+  ],
+  "schema_validation_cases": [
+    {
+      "name": "mls_commit_item_with_welcomes_valid",
+      "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/committed_event_submission",
+      "expect_valid": true,
+      "instance": {
+        "event_submission": {
+          "event": {
+            "actor_id": {
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixture",
+                "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+              },
+              "kind": "account"
+            },
+            "created_at": "2026-08-06T00:00:00.000Z",
+            "kind": "ak.mls.commit",
+            "payload": {
+              "base_group_state_ref": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB",
+              "previous_epoch": 0,
+              "next_epoch": 1,
+              "covers_key_access_revision": 0,
+              "commit_bytes_b64": "Y29tbWl0",
+              "governance_binding": {
+                "effective_scope": {
+                  "kind": "realm",
+                  "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+                },
+                "base_group_state_ref": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB",
+                "previous_epoch": 0,
+                "next_epoch": 1,
+                "key_access_revision": 0
+              }
+            },
+            "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+            "scope_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+            },
+            "event_id": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+            "producer_proof": {
+              "kind": "detached_jws",
+              "verification_method": "did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture",
+              "event_digest": "sha256:2a3acc2e655f0dc628e89e2979572587caa102a7838b185edbdd500684f56441",
+              "created_at": "2026-08-06T00:00:00.000Z",
+              "domain": "arkret-event-v1",
+              "jws": "eyJhbGciOiJFZDI1NTE5In0..meAfJMyDc1Suu1mO-tGk4TUvmBclTaDy8gkd7wXVrkPJnjGEZcwsHC5LX1oUAS05EAqRnFqKlxg3mqpnmUZHDQ"
+            }
+          }
+        },
+        "source_commit": {
+          "commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+          },
+          "stream_position": 0,
+          "previous_commit_ref": null,
+          "event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+          "governance_generation": 0,
+          "authority_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+          "committed_at": "2026-09-20T00:00:00.000Z",
+          "signature": {
+            "context": "ak.realm_commit_signature.v1",
+            "signature_algorithm": "Ed25519",
+            "verification_method": "did:web:station.example#authority",
+            "signed_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+            "created_at": "2026-09-20T00:00:00.000Z",
+            "sig": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+          }
+        },
+        "welcomes": [
+          {
+            "welcome_id": "ak:mls_welcome_delivery:0199aaaa-aaaa-7aaa-8aaa-aaaaaaaaaaaa",
+            "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+            "effective_scope": {
+              "kind": "realm",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+            },
+            "commit_event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+            "recipient_actor_id": {
+              "kind": "service",
+              "service_id": "ak:did_core:webvh:z6mkfixturestationb"
+            },
+            "recipient_endpoint": {
+              "kind": "device",
+              "device_id": "ak:device:0199bbbb-bbbb-7bbb-8bbb-bbbbbbbbbbbb"
+            },
+            "keypackage_claim_ref": "ak:keypackage_claim:0199cccc-cccc-7ccc-8ccc-cccccccccccc",
+            "ciphertext_b64": "AQIDBA",
+            "producer_proof": {
+              "context": "ak.mls_welcome_delivery_signature.v1",
+              "signature_algorithm": "Ed25519",
+              "verification_method": "did:webvh:z6mkfixturealice:alice.example#device-fixture",
+              "signed_digest": "sha256:f51a607977aa5ba077764b06209d77c0231822b23a59be07cdb44f11f6582a29",
+              "created_at": "2026-09-20T00:00:00.000Z",
+              "sig": "R_RF4nAmz0yEIvqPt7BLemCd4npd36B5p5wyhSB8gXy2AL2AHTZHypwUsIsbqL5mZ3uesmfoOdcO8vbShWzNDw"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "item_without_welcomes_valid",
+      "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/committed_event_submission",
+      "expect_valid": true,
+      "instance": {
+        "event_submission": {
+          "event": {
+            "actor_id": {
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixture",
+                "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+              },
+              "kind": "account"
+            },
+            "created_at": "2026-08-06T00:00:00.000Z",
+            "kind": "ak.strand.create",
+            "payload": {
+              "object": {
+                "created_at": "2026-08-06T00:00:00.000Z",
+                "created_by": {
+                  "account_id": {
+                    "principal_id": "ak:did_core:webvh:z6mkfixture",
+                    "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+                  },
+                  "kind": "account"
+                },
+                "realm_id": "ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J",
+                "schema": "ak.schema.strand.v1",
+                "tracks": {
+                  "discussion": {
+                    "enabled": true
+                  }
+                }
+              }
+            },
+            "realm_id": "ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J",
+            "scope_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J"
+            },
+            "event_id": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB",
+            "producer_proof": {
+              "kind": "detached_jws",
+              "verification_method": "did:webvh:z6mkfixture:alice.example#ed25519-2026-05-fixture",
+              "event_digest": "sha256:2a3acc2e655f0dc628e89e2979572587caa102a7838b185edbdd500684f56441",
+              "created_at": "2026-08-06T00:00:00.000Z",
+              "domain": "arkret-event-v1",
+              "jws": "eyJhbGciOiJFZDI1NTE5In0..meAfJMyDc1Suu1mO-tGk4TUvmBclTaDy8gkd7wXVrkPJnjGEZcwsHC5LX1oUAS05EAqRnFqKlxg3mqpnmUZHDQ"
+            }
+          },
+          "approval_signatures": [
+            {
+              "input": {
+                "approval_context": {
+                  "context_kind": "grant",
+                  "grant_id": "ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf"
+                },
+                "approval_target": {
+                  "target_kind": "event",
+                  "event_id": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB"
+                },
+                "request_canonical_digest": "sha256:735a9009ddeab92723c69b8ae4fd932f31abd63ab986f1d2130b05fe8ad31d86",
+                "operation": "ak.self.events.command.submit.v1",
+                "action": "ak.strand.create",
+                "realm_id": "ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J",
+                "initiating_actor_id": {
+                  "account_id": {
+                    "principal_id": "ak:did_core:webvh:z6mkfixture",
+                    "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+                  },
+                  "kind": "account"
+                },
+                "approver_did": "did:webvh:z6mkfixturemanager:manager.example",
+                "approved_at": "2026-08-06T00:10:00.000Z",
+                "nonce": "KFSPGziJGaKwvm8hXg-krC8iZqunf7EmJ7GIo_j-3G8"
+              },
+              "proof": {
+                "kind": "detached_jws",
+                "verification_method": "did:webvh:z6mkfixturemanager:manager.example#ed25519-2026-09-fixture",
+                "jws": "eyJhbGciOiJFZDI1NTE5In0..qkUCnD06N-31J08YMfbm9iyH58OEjhdB_OAGZ1kVwChqR1NBCDokm-yWiSpz-OfjeQu2-nrdsLxvSW7DXkRYBg"
+              }
+            },
+            {
+              "input": {
+                "approval_context": {
+                  "context_kind": "realm_governance"
+                },
+                "approval_target": {
+                  "target_kind": "event",
+                  "event_id": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB"
+                },
+                "request_canonical_digest": "sha256:735a9009ddeab92723c69b8ae4fd932f31abd63ab986f1d2130b05fe8ad31d86",
+                "operation": "ak.self.events.command.submit.v1",
+                "action": "ak.strand.create",
+                "realm_id": "ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J",
+                "initiating_actor_id": {
+                  "account_id": {
+                    "principal_id": "ak:did_core:webvh:z6mkfixture",
+                    "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+                  },
+                  "kind": "account"
+                },
+                "approver_did": "did:webvh:z6mkfixturemanager:manager.example",
+                "approved_at": "2026-08-06T00:11:00.000Z",
+                "nonce": "Tw6aIuuTPt9Qj96WMHi0IIcwdaBvs8nMLfHbQvV4KXU"
+              },
+              "proof": {
+                "kind": "detached_jws",
+                "verification_method": "did:webvh:z6mkfixturemanager:manager.example#ed25519-2026-09-fixture",
+                "jws": "eyJhbGciOiJFZDI1NTE5In0..q17MYLnRPtdcIh4H4I4eOGTiMKl2awUgItCaMoa-q_Fjcep86Tx2jnY02_ufRdb8VTZ-pYdFkDOp_UjsImvCCA"
+              }
+            }
+          ]
+        },
+        "source_commit": {
+          "commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
+          "realm_id": "ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J",
+          "stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:ATh7OWLLpUdTVYsKdp6rkClScUpjYJlF1Y3byjeyHS8J"
+          },
+          "stream_position": 0,
+          "previous_commit_ref": null,
+          "event_ref": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB",
+          "governance_generation": 0,
+          "authority_ref": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB",
+          "committed_at": "2026-09-20T00:00:00.000Z",
+          "signature": {
+            "context": "ak.realm_commit_signature.v1",
+            "signature_algorithm": "Ed25519",
+            "verification_method": "did:web:station.example#authority",
+            "signed_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+            "created_at": "2026-09-20T00:00:00.000Z",
+            "sig": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+          }
+        }
+      }
+    },
+    {
+      "name": "non_commit_item_with_welcomes_rejected",
+      "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/committed_event_submission",
+      "expect_valid": false,
+      "instance_from": "item_without_welcomes_valid",
+      "mutations": [
+        {
+          "op": "add",
+          "path": "/welcomes",
+          "value": [
+            {
+              "welcome_id": "ak:mls_welcome_delivery:0199aaaa-aaaa-7aaa-8aaa-aaaaaaaaaaaa",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "effective_scope": {
+                "kind": "realm",
+                "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+              },
+              "commit_event_ref": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD",
+              "recipient_actor_id": {
+                "kind": "service",
+                "service_id": "ak:did_core:webvh:z6mkfixturestationb"
+              },
+              "recipient_endpoint": {
+                "kind": "device",
+                "device_id": "ak:device:0199bbbb-bbbb-7bbb-8bbb-bbbbbbbbbbbb"
+              },
+              "keypackage_claim_ref": "ak:keypackage_claim:0199cccc-cccc-7ccc-8ccc-cccccccccccc",
+              "ciphertext_b64": "AQIDBA",
+              "producer_proof": {
+                "context": "ak.mls_welcome_delivery_signature.v1",
+                "signature_algorithm": "Ed25519",
+                "verification_method": "did:webvh:z6mkfixturealice:alice.example#device-fixture",
+                "signed_digest": "sha256:f51a607977aa5ba077764b06209d77c0231822b23a59be07cdb44f11f6582a29",
+                "created_at": "2026-09-20T00:00:00.000Z",
+                "sig": "R_RF4nAmz0yEIvqPt7BLemCd4npd36B5p5wyhSB8gXy2AL2AHTZHypwUsIsbqL5mZ3uesmfoOdcO8vbShWzNDw"
+              }
+            }
+          ]
+        }
+      ],
+      "first_expected_error": "contains:'ak.mls.commit' was expected"
+    },
+    {
+      "name": "mls_commit_item_with_empty_welcomes_rejected",
+      "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/committed_event_submission",
+      "expect_valid": false,
+      "instance_from": "mls_commit_item_with_welcomes_valid",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/welcomes",
+          "value": []
+        }
+      ],
+      "first_expected_error": "contains:should be non-empty"
+    }
+  ],
+  "cases": [
+    {
+      "name": "governance_routes_remote_welcomes_into_their_intents",
+      "given": "alice, erin (Station X), bob and carol (Station Y), dave (Station Z) and grace (Station V) are current joined members; frank on Station W is not; every added endpoint holds one live claim at its own Account Station",
+      "variants": [
+        {
+          "name": "add_local_and_remote_recipients",
+          "station": "governance",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "submission": "mls_commit",
+          "committer": "alice",
+          "adds": [
+            "erin",
+            "bob",
+            "dave",
+            "carol"
+          ],
+          "expected": {
+            "decision": "accept",
+            "status": "committed",
+            "realm_commits": 1,
+            "local_queue": [
+              "erin"
+            ],
+            "claim_bindings": [
+              "erin"
+            ],
+            "replication_intents": {
+              "member_v": null,
+              "member_y": [
+                "bob",
+                "carol"
+              ],
+              "member_z": [
+                "dave"
+              ]
+            }
+          }
+        },
+        {
+          "name": "add_remote_recipients_only",
+          "station": "governance",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "submission": "mls_commit",
+          "committer": "alice",
+          "adds": [
+            "bob",
+            "carol"
+          ],
+          "expected": {
+            "decision": "accept",
+            "status": "committed",
+            "realm_commits": 1,
+            "local_queue": [],
+            "claim_bindings": [],
+            "replication_intents": {
+              "member_v": null,
+              "member_y": [
+                "bob",
+                "carol"
+              ],
+              "member_z": null
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "recipient_station_outside_the_target_set",
+      "given": "the same Realm; Station W hosts no joined member, so it is no committed-replication target of the Commit",
+      "variants": [
+        {
+          "name": "welcome_for_a_station_that_is_no_target",
+          "station": "governance",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "submission": "mls_commit",
+          "committer": "alice",
+          "adds": [
+            "bob",
+            "frank"
+          ],
+          "expected": {
+            "decision": "reject",
+            "error_code": "failed_precondition",
+            "reason_code": null,
+            "realm_commits": 0,
+            "local_queue": [],
+            "claim_bindings": [],
+            "replication_intents": {}
+          }
+        },
+        {
+          "name": "same_commit_without_that_recipient",
+          "station": "governance",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "submission": "mls_commit",
+          "committer": "alice",
+          "adds": [
+            "bob"
+          ],
+          "expected": {
+            "decision": "accept",
+            "status": "committed",
+            "realm_commits": 1,
+            "local_queue": [],
+            "claim_bindings": [],
+            "replication_intents": {
+              "member_v": null,
+              "member_y": [
+                "bob"
+              ],
+              "member_z": null
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "welcomes_ride_only_an_mls_commit_item",
+      "given": "Station Y receives one committed_replication item from Station X; bob's and carol's claims are live in Y's ledger",
+      "variants": [
+        {
+          "name": "mls_commit_item_with_its_welcomes",
+          "station": "member_y",
+          "operation_id": "ak.peer.events.command.submit.v1",
+          "branch": "committed_replication",
+          "item_event_kind": "ak.mls.commit",
+          "welcomes": [
+            "bob",
+            "carol"
+          ],
+          "claims": {
+            "bob": "live",
+            "carol": "live"
+          },
+          "expected": {
+            "decision": "accept",
+            "replication_outcome": "stored",
+            "replicas": 1,
+            "queue": [
+              "bob",
+              "carol"
+            ],
+            "claim_bindings": [
+              "bob",
+              "carol"
+            ],
+            "queued_now": 2,
+            "welcome_decisions": {
+              "bob": {
+                "decision": "accept"
+              },
+              "carol": {
+                "decision": "accept"
+              }
+            }
+          }
+        },
+        {
+          "name": "member_state_item_with_welcomes",
+          "station": "member_y",
+          "operation_id": "ak.peer.events.command.submit.v1",
+          "branch": "committed_replication",
+          "item_event_kind": "ak.member.state",
+          "welcomes": [
+            "bob"
+          ],
+          "claims": {
+            "bob": "live",
+            "carol": "live"
+          },
+          "expected": {
+            "decision": "reject",
+            "error_code": "schema_violation",
+            "replicas": 0,
+            "queue": [],
+            "claim_bindings": []
+          }
+        },
+        {
+          "name": "mls_commit_item_with_empty_welcomes",
+          "station": "member_y",
+          "operation_id": "ak.peer.events.command.submit.v1",
+          "branch": "committed_replication",
+          "item_event_kind": "ak.mls.commit",
+          "welcomes": [],
+          "claims": {
+            "bob": "live",
+            "carol": "live"
+          },
+          "expected": {
+            "decision": "reject",
+            "error_code": "schema_violation",
+            "replicas": 0,
+            "queue": [],
+            "claim_bindings": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "destination_reverifies_each_claim_in_the_replica_transaction",
+      "given": "each variant starts from a Station Y that holds no replica of the Commit; bob and carol are joined; the item carries bob's and carol's Welcomes",
+      "variants": [
+        {
+          "name": "both_claims_live",
+          "station": "member_y",
+          "operation_id": "ak.peer.events.command.submit.v1",
+          "branch": "committed_replication",
+          "item_event_kind": "ak.mls.commit",
+          "welcomes": [
+            "bob",
+            "carol"
+          ],
+          "claims": {
+            "bob": "live",
+            "carol": "live"
+          },
+          "expected": {
+            "decision": "accept",
+            "replication_outcome": "stored",
+            "replicas": 1,
+            "queue": [
+              "bob",
+              "carol"
+            ],
+            "claim_bindings": [
+              "bob",
+              "carol"
+            ],
+            "queued_now": 2,
+            "welcome_decisions": {
+              "bob": {
+                "decision": "accept"
+              },
+              "carol": {
+                "decision": "accept"
+              }
+            }
+          }
+        },
+        {
+          "name": "claim_absent_from_the_destination_ledger",
+          "station": "member_y",
+          "operation_id": "ak.peer.events.command.submit.v1",
+          "branch": "committed_replication",
+          "item_event_kind": "ak.mls.commit",
+          "welcomes": [
+            "bob",
+            "carol"
+          ],
+          "claims": {
+            "bob": "live",
+            "carol": "absent"
+          },
+          "expected": {
+            "decision": "accept",
+            "replication_outcome": "stored",
+            "replicas": 1,
+            "queue": [
+              "bob"
+            ],
+            "claim_bindings": [
+              "bob"
+            ],
+            "queued_now": 1,
+            "welcome_decisions": {
+              "bob": {
+                "decision": "accept"
+              },
+              "carol": {
+                "decision": "reject"
+              }
+            }
+          }
+        },
+        {
+          "name": "claim_expired",
+          "station": "member_y",
+          "operation_id": "ak.peer.events.command.submit.v1",
+          "branch": "committed_replication",
+          "item_event_kind": "ak.mls.commit",
+          "welcomes": [
+            "bob",
+            "carol"
+          ],
+          "claims": {
+            "bob": "live",
+            "carol": "expired"
+          },
+          "expected": {
+            "decision": "accept",
+            "replication_outcome": "stored",
+            "replicas": 1,
+            "queue": [
+              "bob"
+            ],
+            "claim_bindings": [
+              "bob"
+            ],
+            "queued_now": 1,
+            "welcome_decisions": {
+              "bob": {
+                "decision": "accept"
+              },
+              "carol": {
+                "decision": "reject"
+              }
+            }
+          }
+        },
+        {
+          "name": "claim_already_consumed",
+          "station": "member_y",
+          "operation_id": "ak.peer.events.command.submit.v1",
+          "branch": "committed_replication",
+          "item_event_kind": "ak.mls.commit",
+          "welcomes": [
+            "bob",
+            "carol"
+          ],
+          "claims": {
+            "bob": "live",
+            "carol": "consumed"
+          },
+          "expected": {
+            "decision": "accept",
+            "replication_outcome": "stored",
+            "replicas": 1,
+            "queue": [
+              "bob"
+            ],
+            "claim_bindings": [
+              "bob"
+            ],
+            "queued_now": 1,
+            "welcome_decisions": {
+              "bob": {
+                "decision": "accept"
+              },
+              "carol": {
+                "decision": "reject"
+              }
+            }
+          }
+        },
+        {
+          "name": "claim_bound_to_another_welcome",
+          "station": "member_y",
+          "operation_id": "ak.peer.events.command.submit.v1",
+          "branch": "committed_replication",
+          "item_event_kind": "ak.mls.commit",
+          "welcomes": [
+            "bob",
+            "carol"
+          ],
+          "claims": {
+            "bob": "live",
+            "carol": "bound_to_other_welcome"
+          },
+          "expected": {
+            "decision": "accept",
+            "replication_outcome": "stored",
+            "replicas": 1,
+            "queue": [
+              "bob"
+            ],
+            "claim_bindings": [
+              "bob"
+            ],
+            "queued_now": 1,
+            "welcome_decisions": {
+              "bob": {
+                "decision": "accept"
+              },
+              "carol": {
+                "decision": "reject"
+              }
+            }
+          }
+        },
+        {
+          "name": "claim_names_another_endpoint",
+          "station": "member_y",
+          "operation_id": "ak.peer.events.command.submit.v1",
+          "branch": "committed_replication",
+          "item_event_kind": "ak.mls.commit",
+          "welcomes": [
+            "bob",
+            "carol"
+          ],
+          "claims": {
+            "bob": "live",
+            "carol": "other_endpoint"
+          },
+          "expected": {
+            "decision": "accept",
+            "replication_outcome": "stored",
+            "replicas": 1,
+            "queue": [
+              "bob"
+            ],
+            "claim_bindings": [
+              "bob"
+            ],
+            "queued_now": 1,
+            "welcome_decisions": {
+              "bob": {
+                "decision": "accept"
+              },
+              "carol": {
+                "decision": "reject"
+              }
+            }
+          }
+        },
+        {
+          "name": "no_welcome_passes",
+          "station": "member_y",
+          "operation_id": "ak.peer.events.command.submit.v1",
+          "branch": "committed_replication",
+          "item_event_kind": "ak.mls.commit",
+          "welcomes": [
+            "bob",
+            "carol"
+          ],
+          "claims": {
+            "bob": "expired",
+            "carol": "absent"
+          },
+          "expected": {
+            "decision": "accept",
+            "replication_outcome": "stored",
+            "replicas": 1,
+            "queue": [],
+            "claim_bindings": [],
+            "queued_now": 0,
+            "welcome_decisions": {
+              "bob": {
+                "decision": "reject"
+              },
+              "carol": {
+                "decision": "reject"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "replay_after_scan_queues_the_missing_welcomes",
+      "given": "Station Y first stores the exact Commit through ak.peer.committed_event.read.scan.v1, which carries no Welcome; bob's claim is live and carol's has expired",
+      "variants": [
+        {
+          "name": "commit_held_through_scan",
+          "station": "member_y",
+          "operation_id": "ak.peer.committed_event.read.scan.v1",
+          "claims": {
+            "bob": "live",
+            "carol": "expired"
+          },
+          "expected": {
+            "decision": "accept",
+            "replicas": 1,
+            "queue": [],
+            "claim_bindings": []
+          }
+        },
+        {
+          "name": "item_replay_queues_the_welcomes",
+          "station": "member_y",
+          "operation_id": "ak.peer.events.command.submit.v1",
+          "branch": "committed_replication",
+          "item_event_kind": "ak.mls.commit",
+          "welcomes": [
+            "bob",
+            "carol"
+          ],
+          "expected": {
+            "decision": "accept",
+            "replication_outcome": "duplicate",
+            "replicas": 1,
+            "queue": [
+              "bob"
+            ],
+            "claim_bindings": [
+              "bob"
+            ],
+            "queued_now": 1,
+            "welcome_decisions": {
+              "bob": {
+                "decision": "accept"
+              },
+              "carol": {
+                "decision": "reject"
+              }
+            }
+          }
+        },
+        {
+          "name": "second_replay_queues_nothing",
+          "station": "member_y",
+          "operation_id": "ak.peer.events.command.submit.v1",
+          "branch": "committed_replication",
+          "item_event_kind": "ak.mls.commit",
+          "welcomes": [
+            "bob",
+            "carol"
+          ],
+          "expected": {
+            "decision": "accept",
+            "replication_outcome": "duplicate",
+            "replicas": 1,
+            "queue": [
+              "bob"
+            ],
+            "claim_bindings": [
+              "bob"
+            ],
+            "queued_now": 0,
+            "welcome_decisions": {
+              "bob": {
+                "decision": "accept"
+              },
+              "carol": {
+                "decision": "reject"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "replicated_welcomes_count_toward_but_are_not_refused_by_capacity",
+      "given": "the endpoint queue capacity is 2 and each recipient endpoint already holds 2 unacknowledged deliveries",
+      "variants": [
+        {
+          "name": "local_first_admission_at_capacity",
+          "station": "governance",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "submission": "mls_commit",
+          "committer": "alice",
+          "adds": [
+            "erin"
+          ],
+          "queue_capacity": 2,
+          "preloaded_deliveries": 2,
+          "expected": {
+            "decision": "reject",
+            "error_code": "quota_exceeded",
+            "reason_code": null,
+            "realm_commits": 0,
+            "local_queue": [],
+            "claim_bindings": [],
+            "replication_intents": {}
+          }
+        },
+        {
+          "name": "replicated_welcome_at_capacity",
+          "station": "member_y",
+          "operation_id": "ak.peer.events.command.submit.v1",
+          "branch": "committed_replication",
+          "item_event_kind": "ak.mls.commit",
+          "welcomes": [
+            "bob"
+          ],
+          "claims": {
+            "bob": "live",
+            "carol": "live"
+          },
+          "queue_capacity": 2,
+          "preloaded_deliveries": 2,
+          "expected": {
+            "decision": "accept",
+            "replication_outcome": "stored",
+            "replicas": 1,
+            "queue": [
+              "bob"
+            ],
+            "claim_bindings": [
+              "bob"
+            ],
+            "queued_now": 1,
+            "welcome_decisions": {
+              "bob": {
+                "decision": "accept"
+              }
+            },
+            "outstanding": {
+              "bob": 3
+            }
+          }
+        },
+        {
+          "name": "only_ack_removes_the_replicated_welcome",
+          "station": "member_y",
+          "operation_id": "ak.self.device_messages.command.ack.v1",
+          "ack_through": "bob",
+          "expected": {
+            "decision": "accept",
+            "queue": [],
+            "outstanding": {
+              "bob": 0
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

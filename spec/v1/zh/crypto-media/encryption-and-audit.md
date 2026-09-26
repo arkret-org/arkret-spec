@@ -403,9 +403,11 @@ self submit 进入转发队列前从本地 Blob 存储取两份原始字节并�
 核对，缺失或不符以不带 reason 的 `failed_precondition` 拒绝；随后 `ak.peer.events.command.submit.v1` 的
 `authority_forward` 在 `event_submission` 旁携 `mls_genesis_material`（两份 unpadded base64url 原始字节）。该成员只对
 `ak.mls.genesis` 必带、对其它 kind 禁带，schema 以 Event kind 直接表达；同站 Genesis 读取本地 Blob，不经过该载体。
-治理 Station 在任何写入前解码两份字节，按 ref 内嵌 suite 重算 digest，与 Genesis payload 的 ref 逐字比较，不符以
-`digest_mismatch` 零写入；两份原始字节合计超过 8388608 bytes（与 `ak.peer.mls.read.group_state_material.v1` 的响应上限
-相同）为 `too_large`。随后按 §5.1.1 验证 RFC 9420 public state，并在接纳事务内把两份字节作为 public Blob 保存，供其后
+两个成员各自至多 5592406 个 unpadded base64url 字符，即解码后每份至多 4194304 bytes，两份合计因而不会超过
+`ak.peer.mls.read.group_state_material.v1` 的 8388608 bytes 响应上限；任一成员超长或不是 canonical unpadded base64url 均为
+`schema_violation`，本载体没有另外的合计上限检查。治理 Station 在任何写入前解码两份字节，按 ref 内嵌 suite 重算 digest，
+与 Genesis payload 的 ref 逐字比较，不符以 `digest_mismatch` 零写入。随后按 §5.1.1 验证 RFC 9420 public state，并在接纳
+事务内把两份字节作为 public Blob 保存，供其后
 `ak.peer.mls.read.group_state_material.v1` 原样提供。exact 重复的 Genesis 返回原 outcome。
 
 **MLS 准入的其它拒绝（normative）**：Genesis roster 不是恰好创建者一个 leaf、Commit 的 Welcome 与其新增 leaf 不
