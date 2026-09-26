@@ -81,9 +81,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
-      "version": "2026-09-26.7",
-      "generated_at": "2026-09-26T18:05:20+08:00",
-      "content_digest": "sha256:910cb5ee0302dcf2d479ac69cb030325bf9ff1944fb31e397552629003033749"
+      "version": "2026-09-27.0",
+      "generated_at": "2026-09-27T03:50:31+08:00",
+      "content_digest": "sha256:4502afcf9ff249167314120bed6f17c841a7f20a591d9d14439c00bb6d0b5fa0"
     },
     {
       "path": "spec/v1/artifacts/registry/current-result-registry.json",
@@ -231,21 +231,21 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-09-26.10",
-      "generated_at": "2026-09-26T06:40:04+08:00",
-      "content_digest": "sha256:a40a8b517a918fc07a3886e49101448def0028dc782b9afa13bef0c876792561"
+      "version": "2026-09-27.0",
+      "generated_at": "2026-09-27T03:50:31+08:00",
+      "content_digest": "sha256:4849c5f99899afc8d36184b7dd9823791f01d7267e9430c2256dbf7bc10cffef"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
-      "version": "2026-09-26.5",
-      "generated_at": "2026-09-26T17:49:23+08:00",
-      "content_digest": "sha256:efa7e48e9bd162399ce9cdc62d02e4a53b3b024d2fded8818de93e10b99bbb65"
+      "version": "2026-09-27.0",
+      "generated_at": "2026-09-27T03:50:31+08:00",
+      "content_digest": "sha256:fb7e249cf61c8572ab63cdae47c6ee5ed7dc3b66390a91e9634bce579e0241a5"
     },
     {
       "path": "spec/v1/artifacts/registry/operations-error-mapping.json",
-      "version": "2026-09-26.2",
-      "generated_at": "2026-09-26T08:00:00+08:00",
-      "content_digest": "sha256:80d3674e44a9df5a7a7983cb38bd1bc5f690076415fb8c46bb99f1117713b7ba"
+      "version": "2026-09-27.0",
+      "generated_at": "2026-09-27T03:50:31+08:00",
+      "content_digest": "sha256:11cb5b55d44256f6d91cddfaed344a77ecb21f7a02b585f3d1868008c5c40808"
     },
     {
       "path": "spec/v1/artifacts/registry/outward-disclosure-policy-registry.json",

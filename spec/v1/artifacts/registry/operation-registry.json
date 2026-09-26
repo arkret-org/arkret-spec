@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-26.5",
+  "version": "2026-09-27.0",
   "source_of_truth": false,
-  "generated_at": "2026-09-26T17:49:23+08:00",
+  "generated_at": "2026-09-27T03:50:31+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -2892,7 +2892,7 @@
       "http": "GET /_arkret/self/consent/result",
       "grpc": "SelfConsent/Get",
       "mq": "self.consent.resource.get",
-      "notes": "Reads one holder-private consent typed current result selected by the required peer query parameter. The authenticated actor determines the holder coordinate; peers never receive this DTO.",
+      "notes": "Reads one holder-private consent typed current result only when the authenticated holder has exactly one exact peer match after optional consent_scope filtering. Zero matches use the existing resource-absent response; multiple matches fail with failed_precondition. Peers never receive this DTO; callers needing a specific consent_id use the holder-private list.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_view"

@@ -33,6 +33,8 @@ current revision 不是 value 的成员：typed current result 的 `revision` �
 
 holder-private `ConsentView.state` 逐字映射这一 current 状态，`ConsentList.consents[]` 只列有稳定 `consent_id` 与 exact current revision 的记录；不存在的 Consent 不以伪 `no_consent` row 表示。请求待处理不是 Consent current 状态，也不得从无记录或时间戳猜成 `pending`。如产品需要待处理列表，必须另行注册具备来源与生命周期的 holder-private request carrier。
 
+`ak.self.consent.resource.get.v1` 是对 holder-private current 的条件性单值读取：在认证 holder 的全部 Consent 中，先按必填的完整 `peer` 精确匹配，再按可选的 `consent_scope` 精确过滤；只有匹配集恰有一条时才返回该条 `ConsentView`。匹配集为空时按现有资源不存在响应处理，超过一条时 MUST 以 `failed_precondition` 失败关闭，不得按时间、状态、`consent_id` 排序或其它隐含规则任选一条。`consent_scope` 即使给出也不保证唯一；需要定位指定 `consent_id` 或展示多条记录的客户端 MUST 使用 holder-private list 并按返回的稳定 ID 自行选择。此读取不合并、不覆盖、也不改变任何 Consent current。
+
 ## 3. Event
 
 ### 3.1 `ak.consent.grant`

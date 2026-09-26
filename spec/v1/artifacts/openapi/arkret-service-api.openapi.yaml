@@ -7462,7 +7462,8 @@ paths:
       security:
       - sessionGrantAuth: []
         dpopProof: []
-      summary: Read one holder-private consent result.
+      summary: Read one holder-private consent result when the query has exactly one match.
+      description: Exact peer and optional consent_scope filtering applies only within the authenticated holder's current results. Multiple matches fail with failed_precondition; callers needing a specific consent_id use the holder-private list.
       parameters:
       - name: Arkret-Operation
         in: header
