@@ -63,9 +63,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/capability-action-registry.json",
-      "version": "2026-09-26.1",
-      "generated_at": "2026-09-26T03:40:00+08:00",
-      "content_digest": "sha256:557a3f4496e7a822bb8178c95079caf0867d3462ffe40823de4d0d6caa513300"
+      "version": "2026-09-26.2",
+      "generated_at": "2026-09-26T18:03:40+08:00",
+      "content_digest": "sha256:82c4c9b4c2a72d8bb35c78159193c0af95e830995f148c8a6fe462ca73b57fe2"
     },
     {
       "path": "spec/v1/artifacts/registry/classification-field-registry.json",
@@ -81,9 +81,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
-      "version": "2026-09-26.5",
-      "generated_at": "2026-09-26T17:49:23+08:00",
-      "content_digest": "sha256:6a8c8cfa530bf1be23c7c746dbd5c830376e1c7702c63b31bed8e2a5de0be3dc"
+      "version": "2026-09-26.7",
+      "generated_at": "2026-09-26T18:05:20+08:00",
+      "content_digest": "sha256:910cb5ee0302dcf2d479ac69cb030325bf9ff1944fb31e397552629003033749"
     },
     {
       "path": "spec/v1/artifacts/registry/current-result-registry.json",

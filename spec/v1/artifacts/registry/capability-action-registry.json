@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-26.1",
+  "version": "2026-09-26.2",
   "source_of_truth": false,
-  "generated_at": "2026-09-26T03:40:00+08:00",
+  "generated_at": "2026-09-26T18:03:40+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -589,6 +589,7 @@
       "category": "discussion",
       "risk_tier": "high",
       "required_constraints": [
+        "expires_at",
         "max_operations",
         "period",
         "constraint_scope"

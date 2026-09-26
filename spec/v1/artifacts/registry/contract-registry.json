@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-26.5",
+  "version": "2026-09-26.7",
   "source_of_truth": true,
-  "generated_at": "2026-09-26T17:49:23+08:00",
+  "generated_at": "2026-09-26T18:05:20+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -17808,6 +17808,7 @@
         "category": "discussion",
         "risk_tier": "high",
         "required_constraints": [
+          "expires_at",
           "max_operations",
           "period",
           "constraint_scope"
@@ -19221,8 +19222,8 @@
       "scope_suffix_variant": "Action adds actor/scope/role qualifiers while reducer admission targets a shared event kind.",
       "operation_verb": "Action token names an operation/command verb that does not match its target event kind name(s); reducer admission resolves the resulting event kind(s) via target_event_kinds. Literal action matching per the actions[] rule applies; carries no aggregate-admin family semantics."
     },
-    "version": "2026-09-26.1",
-    "generated_at": "2026-09-26T03:40:00+08:00",
+    "version": "2026-09-26.2",
+    "generated_at": "2026-09-26T18:03:40+08:00",
     "metadata_authority": "contract_registry_section"
   },
   "calendar_timezone_registry": {
