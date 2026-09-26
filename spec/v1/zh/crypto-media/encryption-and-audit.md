@@ -70,7 +70,7 @@ recipient actor 与 endpoint、`keypackage_claim_ref`、canonical ciphertext 和
 2. 验证每条 delivery 的 recipient、Commit、scope、epoch、ciphertext 与 producer proof；recipient 由本 Station 托管时
    另按本地 claim ledger 验证 claim；
 3. append Commit 的 RealmCommit并更新 public group result；
-4. 为本 Station 托管的 recipient durable enqueue Welcome，并建立 replication outbox；跨站 recipient 的 Welcome
+4. 为本 Station 托管的 recipient durable enqueue Welcome 并在其 claim ledger 记录写入 Welcome 绑定（[`device-lifecycle.md` §9.2.3](./device-lifecycle.md)），建立 replication outbox；跨站 recipient 的 Welcome
    写入指向其 routing service 的那条 outbox intent（见下文「跨站 recipient」）。
 
 任一 delivery 缺失、重复冲突、超限或绑定错误时事务零写入。事务 durable 后才可返回 Commit accepted；
@@ -87,7 +87,7 @@ Event 与 `RealmCommit` 外携 `welcomes[]`：恰为该 service 托管的 recipi
 目标集中没有该 service 时整个 submission 以不带 reason 的 `failed_precondition` 零写入。成员 Station 是这些 claim 的
 destination，它在保存该 item 的同一 replica 事务内，按
 [`device-lifecycle.md` §9.2.3](./device-lifecycle.md) 对治理 Station 规定的同一组绑定以本地 ledger 复核每条 delivery 的
-claim 与 destination receipt，并把通过复核的 Welcome 写入各自 recipient endpoint 的本地 queue；Commit replica 与这些
+claim 与 destination receipt，并把通过复核的 Welcome 写入各自 recipient endpoint 的本地 queue、在本地 claim ledger 记录写入同一 Welcome 绑定；Commit replica 与这些
 Welcome 同时 durable，不存在只见 Commit、有效 Welcome 仍待另行投递的窗口。复核失败的 delivery 永不入队、只进受限
 audit；它不阻止 Commit replica 保存，因为该 Commit 已被治理 Station 接纳，拒绝它只会让成员站对整条 stream 失去副本。
 Commit replica 已由 `ak.peer.committed_event.read.scan.v1` 或先前尝试保存时，同一 item 的重放仍在一个事务内补写

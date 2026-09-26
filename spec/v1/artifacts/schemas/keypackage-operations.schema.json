@@ -1377,7 +1377,8 @@
           "description": "Exact MlsWelcomeDelivery referenced by this durable receipt. The delivery is not an Event and has no independent RealmCommit."
         },
         "welcome_digest": {
-          "$ref": "#/$defs/digest"
+          "$ref": "#/$defs/digest",
+          "description": "sha256:-prefixed lowercase hex SHA-256 of the RFC 8785 JCS bytes of the complete MlsWelcomeDelivery named by welcome_ref, producer_proof included. The consuming Station compares it with the Welcome binding it wrote on the claim ledger when it enqueued that delivery."
         },
         "durable_at": {
           "$ref": "#/$defs/timestamp"

@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.e2ee_client.v1",
-  "version": "2026-09-25.2",
+  "version": "2026-09-26.1",
   "suite": "keypackage_lifecycle",
   "runner": {
     "kind": "named_suite",
@@ -737,8 +737,7 @@
       "expected": {
         "published_to_claimed_cas_count": 1,
         "replay_response": "byte_identical_original_outcome",
-        "conflicting_digest_external_error": "claim_failed",
-        "conflicting_digest_audit_reason": "duplicate_conflict",
+        "conflicting_digest_error": "duplicate_conflict",
         "inventory_lookup_before_conflict": false,
         "second_keypackage_claimed": false
       },
@@ -749,7 +748,7 @@
         "participant authorization is independent of sender-constrained service transport authentication and target policy",
         "claim CAS, claim_request_id ledger and serialized outcome commit at one linearization boundary",
         "same identity and digest replay returns the original outcome without selecting another package",
-        "conflicting identity reuse fails before target inventory lookup"
+        "conflicting identity reuse fails with duplicate_conflict before target inventory lookup, as on the peer claim"
       ]
     },
     {

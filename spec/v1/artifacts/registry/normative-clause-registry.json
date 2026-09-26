@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-26.3",
+  "version": "2026-09-26.4",
   "source_of_truth": true,
-  "generated_at": "2026-09-26T06:58:00+08:00",
+  "generated_at": "2026-09-26T08:00:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -437,8 +437,8 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#22-commit-与-welcome",
-      "section_digest": "sha256:5180699e41bac0ddf65dba03fcf1378740405934ecba573ddca99cdb0a67ac49",
-      "requirement": "A Commit and all of its Welcome deliveries land in one database transaction: the governance Station verifies the Commit Event, current membership/policy, base group revision and the RFC 9420 public transition, verifies every delivery binding (the claim only for recipients it hosts), appends the RealmCommit, enqueues each hosted recipient's Welcome durably and writes each cross-Station recipient's Welcome into that routing service's committed-replication outbox intent. Any missing, duplicate, over-limit or mis-bound delivery makes the transaction write nothing, and Commit accepted is returned only after the transaction is durable. The member Station re-verifies a replicated Welcome's claim against its own ledger and queues it in the same replica transaction as the Commit replica; a Welcome failing that check is never queued and never blocks the Commit replica.",
+      "section_digest": "sha256:3e6601faa34cc3d3edc32e1f91c048c741bd5343a8cfa1e694dd2739c0980e68",
+      "requirement": "A Commit and all of its Welcome deliveries land in one database transaction: the governance Station verifies the Commit Event, current membership/policy, base group revision and the RFC 9420 public transition, verifies every delivery binding (the claim only for recipients it hosts), appends the RealmCommit, enqueues each hosted recipient's Welcome durably together with that claim's Welcome binding on the claim ledger and writes each cross-Station recipient's Welcome into that routing service's committed-replication outbox intent. Any missing, duplicate, over-limit or mis-bound delivery makes the transaction write nothing, and Commit accepted is returned only after the transaction is durable. The member Station re-verifies a replicated Welcome's claim against its own ledger and queues it, with the same claim-ledger Welcome binding, in the same replica transaction as the Commit replica; a Welcome failing that check is never queued and never blocks the Commit replica.",
       "testability_grade": "audit",
       "test_plan": "Audited against the Commit/Welcome transaction contract: a conformance run submits an MlsCommitSubmission whose welcomes[] contains one mis-bound delivery and asserts the Station returns no acceptance and leaves the RealmCommit log, the public group result and every recipient queue unchanged. No vector exists because the obligation is on server transaction atomicity rather than on a byte-level artifact."
     },
