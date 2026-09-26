@@ -494,7 +494,7 @@ cursor 内部包含一个 `purpose` 字段（客户端不解析；仅供 issuing
 | `purpose` | 用途 | 出现位置 |
 | --- | --- | --- |
 | `stream` | 增量同步 / 列表分页的位置承诺。回传方向取决于出现位置（见右列），并非任意位置都支持全部四向。 | **account 聚合流**：`/_arkret/self/account/subscribe` frame 的 `cursor` **仅**作为重连 `after=` 参数回传，是单向 catch-up 起点，**不支持** `before` / `prev_cursor`（account stream 不可反向，见本文 §7.0 与 [`client-sync.md` §2](./client-sync.md)）。**列表分页**：列表接口的请求 cursor 与响应 `prev_cursor` / `next_cursor`——只有这些位置支持 `before` / `prev_cursor` 反向延续。单 stream 扫描不在此列（§7.2）。 |
-| `barrier` | 读己之所写（RYW）：要求 reader 在 checkpoint 覆盖某个具体 event 之前不返回结果。 | 写接口响应中的 `cursor` 字段、`X-Arkret-Wait-For` header。 |
+| `barrier` | 读己之所写（RYW）：要求 reader 在 checkpoint 覆盖某个具体 event 之前不返回结果。 | 对应 closed response schema 已登记的写接口 `cursor` 字段、读接口 `X-Arkret-Wait-For` header。 |
 
 ### 7.0 `prev_cursor` / `next_cursor` 含义（绝对方向）
 
@@ -507,7 +507,7 @@ cursor 内部包含一个 `purpose` 字段（客户端不解析；仅供 issuing
 
 绝对方向与请求时所用的参数（`before` / `after` / `order`）和 selector 无关；服务端 MUST 始终按上述含义填充。客户端因此**不**需要记录"上一次请求的 direction"才能正确解释响应 cursor。
 
-HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` 的 cursor 只可出现在 stream / pagination context（例如 `/_arkret/self/account/subscribe` 的 `after=`、列表接口的分页参数、响应 `prev_cursor` / `next_cursor`）；`purpose=barrier` 的 cursor 只可出现在本文 §8 定义的 RYW barrier context（写接口响应中的 barrier `cursor` 字段、`X-Arkret-Wait-For` header 或等价投影）。任一 context 收到不匹配的 `purpose` 时，服务端 MUST 返回 `param_invalid`。
+HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` 的 cursor 只可出现在 stream / pagination context（例如 `/_arkret/self/account/subscribe` 的 `after=`、列表接口的分页参数、响应 `prev_cursor` / `next_cursor`）；`purpose=barrier` 的 cursor 只可出现在本文 §8 定义的 RYW barrier context（对应 closed response schema 已登记的写接口 barrier `cursor` 字段、读接口 `X-Arkret-Wait-For` header 或等价投影）。任一 context 收到不匹配的 `purpose` 时，服务端 MUST 返回 `param_invalid`。
 
 规则：
 
@@ -579,16 +579,7 @@ scan 若只收 opaque cursor，规范自己的 bootstrap 起不了步。federati
 
 ## 8. 读己之所写
 
-写接口成功后 SHOULD 在响应中返回一个 barrier cursor：
-
-```json fragment
-{
-  "status": "accepted",
-  "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
-  "cursor": "ak:cursor:..."
-}
-```
-该 cursor 的 server-side handle 绑定到刚提交事件：`purpose=barrier`，`target.event_id` 与 `target.event_digest` 由 issuing server 通过 handle 解析；`target` 不出现在 cursor wire body 中。后续读接口 SHOULD 接受：
+仅当某写 operation 的正式 closed response schema 登记了 barrier `cursor` 字段时，成功响应才 SHOULD 返回该字段。通用写接口不得据本节增加未登记字段；尤其 `ak.self.events.command.submit.v1` 的 closed `submit_outcome` 成功分支只允许 `status` 与 `commit`，MUST NOT 返回 `cursor`。若返回了已登记的 barrier cursor，其 server-side handle 绑定到刚提交事件：`purpose=barrier`，`target.event_id` 与 `target.event_digest` 由 issuing server 通过 handle 解析；`target` 不出现在 cursor wire body 中。持有合法 barrier cursor 的后续读接口 SHOULD 接受：
 
 ```text
 X-Arkret-Wait-For: <cursor>
