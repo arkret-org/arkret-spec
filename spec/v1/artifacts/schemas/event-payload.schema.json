@@ -1522,11 +1522,17 @@
       ],
       "properties": {
         "initial_state": {
+          "description": "A known lifecycle discriminator. Admission permits scheduled/ringing/connecting only; active or terminal genesis is failed_precondition with call_state_transition_invalid rather than a structural schema violation.",
           "type": "string",
           "enum": [
             "scheduled",
             "ringing",
-            "connecting"
+            "connecting",
+            "active",
+            "ended",
+            "missed",
+            "failed",
+            "cancelled"
           ]
         }
       },

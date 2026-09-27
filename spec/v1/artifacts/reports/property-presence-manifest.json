@@ -15,13 +15,13 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 8774,
+    "total_properties": 8779,
     "total_schema_documents": 165,
     "by_presence_class": {
-      "optional": 2099,
+      "optional": 2101,
       "optional_defaulted": 47,
-      "required": 6161,
-      "required_nullable": 302,
+      "required": 6162,
+      "required_nullable": 304,
       "tristate": 165
     },
     "tristate_occurrences": 165,
@@ -11224,6 +11224,11 @@
         "/$defs/call_state_result/properties/selector/properties/kind": "required",
         "/$defs/call_state_result/properties/source_stream_ref": "required",
         "/$defs/call_state_result/properties/value": "required",
+        "/$defs/call_state_result/properties/value/allOf/0/if/properties/from": "required_nullable",
+        "/$defs/call_state_result/properties/value/allOf/0/then/properties/to": "optional",
+        "/$defs/call_state_result/properties/value/properties/failure_reason_code": "optional",
+        "/$defs/call_state_result/properties/value/properties/from": "required_nullable",
+        "/$defs/call_state_result/properties/value/properties/to": "required",
         "/$defs/call_transcript_artifact_result/properties/revision": "required",
         "/$defs/call_transcript_artifact_result/properties/selector": "required",
         "/$defs/call_transcript_artifact_result/properties/selector/properties/call_id": "required",
@@ -11687,6 +11692,7 @@
         "/$defs/view_result/properties/value": "required"
       },
       "conditionally_required": [
+        "/$defs/call_state_result/properties/value/properties/failure_reason_code",
         "/$defs/policy_action_result/properties/selector/properties/action",
         "/$defs/policy_action_result/properties/selector/properties/action_id",
         "/$defs/policy_action_result/properties/selector/properties/policy_id"

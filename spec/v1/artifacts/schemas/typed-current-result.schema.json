@@ -1443,7 +1443,30 @@
           "$ref": "#/$defs/revision"
         },
         "value": {
-          "$ref": "./event-payload.schema.json#/$defs/call_state_payload/properties/state_transition"
+          "description": "Creation initializes from=null with an allowed initial state; later accepted lifecycle deltas have a non-null predecessor.",
+          "type": "object",
+          "required": ["from", "to"],
+          "properties": {
+            "from": {
+              "anyOf": [
+                { "type": "null" },
+                { "$ref": "./event-payload.schema.json#/$defs/call_state_payload/properties/state_transition/properties/from" }
+              ]
+            },
+            "to": { "$ref": "./event-payload.schema.json#/$defs/call_state_payload/properties/state_transition/properties/to" },
+            "failure_reason_code": { "$ref": "./event-payload.schema.json#/$defs/call_state_payload/properties/state_transition/properties/failure_reason_code" }
+          },
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "if": { "properties": { "from": { "type": "null" } }, "required": ["from"] },
+              "then": {
+                "properties": { "to": { "enum": ["scheduled", "ringing", "connecting"] } },
+                "not": { "required": ["failure_reason_code"] }
+              },
+              "else": { "$ref": "./event-payload.schema.json#/$defs/call_state_payload/properties/state_transition" }
+            }
+          ]
         }
       },
       "additionalProperties": false
