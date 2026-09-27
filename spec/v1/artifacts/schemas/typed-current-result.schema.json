@@ -206,6 +206,9 @@
       "$ref": "#/$defs/circle_member_state_result"
     },
     {
+      "$ref": "#/$defs/circle_result"
+    },
+    {
       "$ref": "#/$defs/realm_search_policy_result"
     },
     {

@@ -5,7 +5,7 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.account.blocklist_projection.v1"
   },
-  "version": "2026-09-25.1",
+  "version": "2026-09-27.0",
   "profile": "ak.profile.full_client.v1",
   "covers_vectors": [
     "ak.vector.account.blocklist_projection.v1"
@@ -94,7 +94,7 @@
       "given": "a client authors an Event of the unregistered kind ak.account.blocklist",
       "action": "submit it on the self Event submit or the actor-private Event submit surface",
       "decision": "reject",
-      "reason": "unsupported_event_kind",
+      "reason": "schema_violation",
       "observed": "both submission outcomes and the account-data value",
       "assertions": [
         "the unregistered kind is refused on every ingress with zero writes",

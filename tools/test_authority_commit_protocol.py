@@ -16,6 +16,12 @@ def read(relative: str):
 
 
 class AuthorityCommitProtocolTest(unittest.TestCase):
+    def test_registered_circle_current_families_are_reachable(self):
+        schema = read("schemas/typed-current-result.schema.json")
+        reachable = {branch.get("$ref") for branch in schema["oneOf"]}
+        for name in ("circle_result", "circle_member_state_result"):
+            self.assertIn(f"#/$defs/{name}", reachable)
+
     def test_every_typed_current_result_binds_exact_source_stream(self):
         schema = read("schemas/typed-current-result.schema.json")
         branches = {
