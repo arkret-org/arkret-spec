@@ -267,7 +267,7 @@
         },
         "membership_commit_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_commit_id",
-          "description": "RealmCommit of the member's own join that opened the caller's held stream, or re-anchored it after the caller had no joined hosted member left: ak.member.state{join}, or ak.invite.accept for a directed Invite (zh/sync/federation.md section 4.1.1)."
+          "description": "RealmCommit of the member's own join that opened the caller's held stream, or re-anchored it after the caller had no joined hosted member left: ak.member.state{join} or ak.invite.accept for a directed Invite on the Realm stream, or ak.circle.member.state{join} on the Circle stream. Circle bootstrap requires current parent-Realm membership; a parent-Realm join Commit cannot replace the Circle join Commit (zh/sync/federation.md section 4.1.1)."
         }
       },
       "additionalProperties": false
@@ -300,7 +300,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "The verified current authority returns a snapshot whose retention_and_history_floor is the membership Commit position and every stream head visible after it. The caller verifies that prefix evidence, installs the snapshot current_state_entries as its typed current anchored at the snapshot head, then scans every permitted stream from the join to the advertised head (zh/sync/federation.md section 4.1.1)."
+      "description": "The verified current authority returns a snapshot whose retention_and_history_floor for the membership Commit's exact stream is that join position, with a visible head at or above it. Other authorized streams retain their own history floors. The caller verifies that prefix evidence, installs the disclosed snapshot current_state_entries as its typed current anchored at their stream heads, then scans each permitted stream from its own floor to its advertised head (zh/sync/federation.md section 4.1.1)."
     }
   }
 }

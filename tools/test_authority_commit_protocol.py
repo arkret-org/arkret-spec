@@ -16,6 +16,22 @@ def read(relative: str):
 
 
 class AuthorityCommitProtocolTest(unittest.TestCase):
+    def test_member_bootstrap_keeps_exact_stream_join_carrier(self):
+        definitions = read("schemas/realm-join-intake.schema.json")["$defs"]
+        request = definitions["peer_bootstrap_request_body"]
+        self.assertEqual(request["required"], [
+            "request_id", "realm_id", "member_account_id", "membership_commit_id",
+        ])
+        self.assertFalse(request["additionalProperties"])
+        commit = request["properties"]["membership_commit_id"]
+        self.assertEqual(commit["$ref"], "./common-ids.schema.json#/$defs/realm_commit_id")
+        self.assertIn("ak.circle.member.state{join}", commit["description"])
+        self.assertIn("cannot replace", commit["description"])
+        self.assertIn("own history floors", definitions["peer_bootstrap_outcome"]["description"])
+        prose = (ROOT / "spec/v1/zh/sync/federation.md").read_text(encoding="utf-8")
+        self.assertIn("Circle stream 的 `ak.circle.member.state{join}`", prose)
+        self.assertIn("不能以父 Realm join 替代", prose)
+
     def test_registered_circle_current_families_are_reachable(self):
         schema = read("schemas/typed-current-result.schema.json")
         reachable = {branch.get("$ref") for branch in schema["oneOf"]}
