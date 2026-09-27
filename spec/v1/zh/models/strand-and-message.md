@@ -593,7 +593,7 @@ Message 创建是 append-only。编辑通过 revision chain；撤回通过 redac
 MUST 重发相同 digest-preimage canonical Event；相同 `event_id` 的不同 digest-preimage canonical
 bytes 是完整 hash collision evidence，按整组 quarantine 处理；新 `event_id` 则创建新的 Message。
 
-未加密消息的 `content` MUST 是 `content-types.md` 定义的 Content Block。Event wire 上，`ak.message.create` / `ak.message.revise` 的正文位于 Event Envelope 的 `payload.content`，E2EE 对偶位于 `payload.encrypted_content`；物化 Message 对象的字段名分别是顶层 `content` / `encrypted_content`。`strand_id` 等字段只表达归属或目标（Message 主键是顶层 `id`，不是 `message_id`）；物化 Message 对象的回复关系不走标量字段，由 `replies_to` 关系表达（`ak.message.create` payload 可携带 `reply_to` 创建便利，reducer 据此记录回复指向并投影为 `replies_to` 关系，不要求单独的 canonical `ak.relation` 事件）。Message 的用户可读扩展 metadata 使用 `metadata` / `encrypted_metadata`。
+未加密消息的 `content` MUST 是 `content-types.md` 定义的 Content Block。Event wire 上，`ak.message.create` / `ak.message.revise` 的正文位于 Event Envelope 的 `payload.content`，E2EE 对偶位于 `payload.encrypted_content`；物化 Message 对象的字段名分别是顶层 `content` / `encrypted_content`。`strand_id` 等字段只表达归属或目标（Message 主键是顶层 `id`，不是 `message_id`）；物化 Message 对象的回复关系不走标量字段，由 `replies_to` 关系表达（`ak.message.create` payload 可携带 `reply_to_id` 创建便利，reducer 据此记录回复指向并投影为 `replies_to` 关系，不要求单独的 canonical `ak.relation` 事件）。Message 的用户可读扩展 metadata 使用 `metadata` / `encrypted_metadata`。
 
 Message MAY reply to another Message, mention Actor or object, reference Strand / Morph / Realm, or be redacted.
 

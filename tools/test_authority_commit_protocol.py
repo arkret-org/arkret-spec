@@ -16,6 +16,16 @@ def read(relative: str):
 
 
 class AuthorityCommitProtocolTest(unittest.TestCase):
+    def test_reply_creation_convenience_uses_closed_payload_field(self):
+        payload = read("schemas/event-payload.schema.json")["$defs"]["message_create_payload"]
+        self.assertIn("reply_to_id", payload["properties"])
+        for alias in ("reply_to", "in_reply_to"):
+            self.assertNotIn(alias, payload["properties"])
+        for relative in ("strand-and-message.md", "content-types.md"):
+            prose = (ROOT / "spec/v1/zh/models" / relative).read_text(encoding="utf-8")
+            self.assertIn("payload 可携带 `reply_to_id`", prose)
+            self.assertNotIn("payload 可携带 `reply_to`", prose)
+
     def test_poll_registry_uses_partition_stream_positions(self):
         registry = read("registry/event-kind-registry.json")
         events = registry["event_kinds"]
