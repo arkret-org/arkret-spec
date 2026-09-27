@@ -3,7 +3,7 @@ title: Applet Integration
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-13
+updated: 2026-09-28
 ---
 
 > **状态：extension profile（非 v1 core 互操作必需）**。Applet registry、审核 SLA 与 capability
@@ -312,9 +312,11 @@ registration/grant，任一失败整个单元不可见。membership、E2EE 与 w
 Commit MUST 执行：
 
 - 在同一 durable transaction 中持久化完整 install execution record、formal fixed set、projection、Applet record 与幂等结果。
-- 从四条 creation Event 的 producer proof 与 registration epoch material 独立重建并验证 exact Applet
-  `Service` signer evidence root；该 root 必须已由 Applet service 在 author 阶段用于四条 proof。首次成功事务
-  同时耐久保存该 root，不能接受 verification-method hash、裸 key digest 或 caller 自报 verified 代替。
+- 从四条 creation Event 的 producer proof 与 registration epoch material 独立解析并验证同一 exact Applet
+  `Service` verification method、public key 与 service binding。closed producer proof 不携带 signer evidence
+  或尚未产生的 RealmCommit 引用。全部事实接受后，Station MUST 在同一事务中以目标 Collaboration Realm
+  的实际 accepted Realm stream head 及本次 accepted 时间物化完整 `Service` signer evidence root，
+  同时耐久保存该 root；不能接受 verification-method hash、裸 key digest 或 caller 自报 verified 代替。
 - 对同一 `Idempotency-Key` + 同一 body canonical hash 重试返回同一结果和同一批 accepted event refs；同一 key + 不同 body MUST 返回 `duplicate_conflict`。
 - 服务端在事务开始前验证 caller 提交的每条 Event canonical bytes、event id、proof、checkpoint、依赖与 fixed-set 交叉绑定；事务内任一 CAS 或持久化失败必须回滚全部 Event 与 record。重试只读取同事务保存的 exact outcome，不得生成替代 id、重建 Event 或恢复逐步提交。
 - 重新计算 plan；不得盲信客户端传回的 `InstallPlan`。
@@ -694,7 +696,9 @@ transaction push 的逐次签名是传输层来源认证，**不替代** §8 每
 
 安装 Station MUST 在原 install/Ghost closed unit 实际 committed 且全部效果完成安装后，从同一 accepted
 resolution projection 物化 managed Actor `Principal` root，并冻结签署该 projection attestation 的 Station
-`Service` leaf；先前验证的 Applet `Service` root、Principal root、attester leaf、完整结果、原请求及 Applet
+`Service` leaf。三个 leaf 的 `authority_commit_id` MUST 逐字等于本上下文 `realm_stream_head.commit_id`，
+`resolved_at` MUST 为该完成提交实际冻结的 accepted 时间，不得由 author 阶段猜测未来 Commit。
+同一完成提交物化的 Applet `Service` root、Principal root、attester leaf、完整结果、原请求及 Applet
 交付 outbox 意图 MUST 属于同一可恢复的原子提交。任一 root/ref/closure 冲突使该完成提交整体回滚且不产生
 accepted authoring result。若协议实现将 RealmCommit 确认和派生效果安装分阶段，完成阶段也 MUST 先核确切已确认原
 unit，再原子保存效果、evidence、结果与 outbox，不能以已有一条 timeline row 认定整个单元完成。
