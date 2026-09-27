@@ -671,7 +671,7 @@ canonical wire 编码，不适用 `tuple/composite` 的 SHA-256 subject；produc
 publisher 与 selector validator MUST 从同一 registry row 得到完全相同的 typed current result id。解析时必须同时
 验证 Board 与 Strand 两个 typed-ID 分量，不能只截取末尾 Strand，也不能接受 hash subject。
 
-`ak.strand.move` / `ak.strand.reorder` 的执行类别为普通数据。`expected_position` 是**可选的显式 compare-and-set 前置**：存在时 MUST 与该 position typed current result 的当前值逐字节相等，不等即 `failed_precondition` 且零写入；缺席时该次移动不做并发保护，MUST NOT 被实现补成隐式 CAS。该 position typed current result 的当前值就是**该 stream 上最后一个被接受的位置写入**，次序只由治理 Station 给出的 `stream_position` 决定；实现 MUST NOT 依据任何客户端可见的深度、HLC、`created_at` 或到达顺序另选 winner。多个并发位置写因此被 Station 串行化为该 stream 上的一串位置，不产生需要人工合并的第二个 UI “冲突列”；被 CAS 拒绝的写没有任何业务效果，客户端重读当前值后重新签发再试。WIP 容量在同一当前值上计算，不得按到达顺序撤销某一已接受的合法写来伪装硬容量保证。
+`ak.strand.move` / `ak.strand.reorder` 的执行类别为普通数据。`expected_position` 是**可选的显式 compare-and-set 前置**：存在时 MUST 将完整 `{list_space_id, rank}` 前像与该 position typed current result 的当前已定位值按 canonical JSON 字节比较；字段缺失、`space_id`／`relation_id` 或其它额外成员均为 `schema_violation`。reorder 使用同一完整前像，不能只比较 rank。当前值为 null 时不存在可匹配的 object 前像，首次放置省略该成员。不等即 `failed_precondition` 且零写入；缺席时该次移动不做并发保护，MUST NOT 被实现补成隐式 CAS。该 position typed current result 的当前值就是**该 stream 上最后一个被接受的位置写入**，次序只由治理 Station 给出的 `stream_position` 决定；实现 MUST NOT 依据任何客户端可见的深度、HLC、`created_at` 或到达顺序另选 winner。多个并发位置写因此被 Station 串行化为该 stream 上的一串位置，不产生需要人工合并的第二个 UI “冲突列”；被 CAS 拒绝的写没有任何业务效果，客户端重读当前值后重新签发再试。WIP 容量在同一当前值上计算，不得按到达顺序撤销某一已接受的合法写来伪装硬容量保证。
 
 `ak.strand.move` payload 是 closed object（未知字段 MUST `schema_violation`）：
 
@@ -682,7 +682,7 @@ publisher 与 selector validator MUST 从同一 registry row 得到完全相同�
 | `from_space_id` | no | `id:space`（List） | 源 List；省略时 reducer 从该 position typed current result 的当前值推导。 |
 | `target_space_id` | yes | `id:space`（List） | 移动后的目标 List；payload 不得另带 `list_space_id`。 |
 | `rank` | yes | `string` | 目标 List 内 canonical rank。 |
-| `expected_position` | no | `object{space_id?: id:space, rank?: string, relation_id?: id:relation}` | 可选 CAS 诊断前像；字段集封闭。 |
+| `expected_position` | no | `object{list_space_id: id:space, rank: string}` | 可选 CAS 完整前像；两个成员均必填，与当前已定位值形状相同，字段集封闭。 |
 
 Strand / Morph / Space 的 create payload 均不定义 `initial_relations`。Strand 创建后若要首次放置到 Board/List，producer MUST 在 create receipt 确认 event-derived `strand_id` 后单独提交 `ak.strand.move`；首次 Event 的 position typed current result 前像是不存在 / `null`，payload 省略 `from_space_id` 与 `expected_position`，并与后续 Event 使用相同的独立授权、可选 CAS 前置与 WIP 后像判定。create 成功而 Event 失败时，已创建的未定位 Strand 仍是合法状态；修正后只重试 Event，不得重建或撤销 Strand。派生 `contains` 仍只由当前 position typed current result 投影，不得合成 canonical Relation Event。
 

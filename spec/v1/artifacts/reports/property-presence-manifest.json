@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 8775,
+    "total_properties": 8774,
     "total_schema_documents": 165,
     "by_presence_class": {
-      "optional": 2104,
+      "optional": 2099,
       "optional_defaulted": 47,
-      "required": 6157,
+      "required": 6161,
       "required_nullable": 302,
       "tristate": 165
     },
@@ -6577,9 +6577,8 @@
         "/$defs/strand_create_payload/properties/object": "required",
         "/$defs/strand_move_payload/properties/board_space_id": "required",
         "/$defs/strand_move_payload/properties/expected_position": "optional",
-        "/$defs/strand_move_payload/properties/expected_position/properties/rank": "optional",
-        "/$defs/strand_move_payload/properties/expected_position/properties/relation_id": "optional",
-        "/$defs/strand_move_payload/properties/expected_position/properties/space_id": "optional",
+        "/$defs/strand_move_payload/properties/expected_position/properties/list_space_id": "required",
+        "/$defs/strand_move_payload/properties/expected_position/properties/rank": "required",
         "/$defs/strand_move_payload/properties/from_space_id": "optional",
         "/$defs/strand_move_payload/properties/rank": "required",
         "/$defs/strand_move_payload/properties/strand_id": "required",
@@ -6589,8 +6588,8 @@
         "/$defs/strand_patch_payload/properties/target_ref": "required",
         "/$defs/strand_reorder_payload/properties/board_space_id": "required",
         "/$defs/strand_reorder_payload/properties/expected_position": "optional",
-        "/$defs/strand_reorder_payload/properties/expected_position/properties/rank": "optional",
-        "/$defs/strand_reorder_payload/properties/expected_position/properties/relation_id": "optional",
+        "/$defs/strand_reorder_payload/properties/expected_position/properties/list_space_id": "required",
+        "/$defs/strand_reorder_payload/properties/expected_position/properties/rank": "required",
         "/$defs/strand_reorder_payload/properties/rank": "required",
         "/$defs/strand_reorder_payload/properties/space_id": "required",
         "/$defs/strand_reorder_payload/properties/strand_id": "required",

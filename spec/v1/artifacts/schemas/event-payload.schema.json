@@ -66,8 +66,8 @@
           },
           "then": {
             "properties": {
-            "key": {
-              "$ref": "./agent-draft-private.schema.json#/$defs/agent_draft_account_data_key"
+              "key": {
+                "$ref": "./agent-draft-private.schema.json#/$defs/agent_draft_account_data_key"
               },
               "expected_server_revision": {
                 "const": 0
@@ -5393,19 +5393,34 @@
                     "const": "sidecar"
                   }
                 },
-                "required": ["kind"]
+                "required": [
+                  "kind"
+                ]
               }
             },
-            "required": ["effective_scope"]
+            "required": [
+              "effective_scope"
+            ]
           },
           "then": {
-            "required": ["participant_authority_digest", "authority_stream_head"]
+            "required": [
+              "participant_authority_digest",
+              "authority_stream_head"
+            ]
           },
           "else": {
             "not": {
               "anyOf": [
-                {"required": ["participant_authority_digest"]},
-                {"required": ["authority_stream_head"]}
+                {
+                  "required": [
+                    "participant_authority_digest"
+                  ]
+                },
+                {
+                  "required": [
+                    "authority_stream_head"
+                  ]
+                }
               ]
             }
           }
@@ -5672,8 +5687,16 @@
             {
               "not": {
                 "anyOf": [
-                  { "required": ["stage"] },
-                  { "required": ["stage_changed_at"] }
+                  {
+                    "required": [
+                      "stage"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "stage_changed_at"
+                    ]
+                  }
                 ]
               }
             }
@@ -8438,8 +8461,16 @@
             {
               "not": {
                 "anyOf": [
-                  { "required": ["stage"] },
-                  { "required": ["stage_changed_at"] }
+                  {
+                    "required": [
+                      "stage"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "stage_changed_at"
+                    ]
+                  }
                 ]
               }
             }
@@ -8480,15 +8511,17 @@
         },
         "expected_position": {
           "type": "object",
+          "description": "Optional exact whole-value compare-and-set preimage of strand_position. It must equal the placed current value in canonical JSON bytes; omission does not add a CAS. The unplaced first move omits this member.",
+          "required": [
+            "list_space_id",
+            "rank"
+          ],
           "properties": {
-            "space_id": {
+            "list_space_id": {
               "$ref": "#/$defs/list_space_id"
             },
             "rank": {
               "$ref": "#/$defs/rank"
-            },
-            "relation_id": {
-              "$ref": "#/$defs/relation_id"
             }
           },
           "additionalProperties": false
@@ -8540,12 +8573,17 @@
         },
         "expected_position": {
           "type": "object",
+          "description": "Optional exact whole-value compare-and-set preimage of strand_position. It must equal the placed current value in canonical JSON bytes; omission does not add a CAS. The unplaced first move omits this member.",
+          "required": [
+            "list_space_id",
+            "rank"
+          ],
           "properties": {
+            "list_space_id": {
+              "$ref": "#/$defs/list_space_id"
+            },
             "rank": {
               "$ref": "#/$defs/rank"
-            },
-            "relation_id": {
-              "$ref": "#/$defs/relation_id"
             }
           },
           "additionalProperties": false
