@@ -12,13 +12,13 @@ class ReleaseToolManifestTest(unittest.TestCase):
     def test_live_manifest_is_closed_and_every_owner_exists(self) -> None:
         body = load_manifest()
 
-        self.assertEqual(body["version"], "2026-09-24.2")
+        self.assertEqual(body["version"], "2026-09-27.1")
         self.assertEqual(body["pipelines"]["release_default"], ["artifact_pipeline", "crossref"])
         self.assertEqual(
             body["pipelines"]["release_strict"],
             ["artifact_pipeline", "crossref", "strict_spec_lint"],
         )
-        self.assertEqual(len(body["pipelines"]["artifact_check"]), 29)
+        self.assertEqual(len(body["pipelines"]["artifact_check"]), 30)
 
     def test_missing_owner_script_is_rejected(self) -> None:
         body = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))

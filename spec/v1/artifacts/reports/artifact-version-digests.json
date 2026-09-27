@@ -393,9 +393,9 @@
     },
     {
       "path": "tools/artifact-version-governance.json",
-      "version": "2026-09-21.1",
-      "generated_at": "2026-09-21T02:54:53+08:00",
-      "content_digest": "sha256:1bbe8324c1316e44146027c0d9dbbf9f5b9b23d5e6f40859f62dcfcb98c1b001"
+      "version": "2026-09-27.1",
+      "generated_at": "2026-09-27T14:50:00+08:00",
+      "content_digest": "sha256:beb734110803a0b316a9cd9ff5b5860b29da0d40d9f014c746925409435f4cef"
     },
     {
       "path": "tools/asserted-result-family-exemptions.json",
@@ -476,6 +476,12 @@
       "content_digest": "sha256:e790f3b5f8dd96cc9671c08b95472dd2a7cf73ee0f121a85d37d4ed16d382497"
     },
     {
+      "path": "tools/operation-note-field-exemptions.json",
+      "version": 1,
+      "generated_at": "2026-09-27T14:50:00+08:00",
+      "content_digest": "sha256:ff513f53b4daa4b12960e2ed561c7ed1e6a411aa367b6aed4f4ceda86135a38d"
+    },
+    {
       "path": "tools/patch-base-producer-baseline.json",
       "version": 1,
       "generated_at": null,
@@ -513,9 +519,9 @@
     },
     {
       "path": "tools/release-tool-manifest.json",
-      "version": "2026-09-24.2",
-      "generated_at": "2026-09-24T21:30:00+08:00",
-      "content_digest": "sha256:8459ca0c4c3ce9b660663a753d416492c8668e19a68744fc6aa0b1ac99703ace"
+      "version": "2026-09-27.1",
+      "generated_at": "2026-09-27T14:50:00+08:00",
+      "content_digest": "sha256:1a39ff59602cbda9f33529788595525830d1ebe046dfca94978ab49b72e748de"
     },
     {
       "path": "tools/resolution-commitment-pointer-registry.json",

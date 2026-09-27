@@ -61,6 +61,9 @@ LINT_MODULE = "tools.artifact_lint"
 PROSE_LINT_SCRIPT = Path(__file__).with_name("lint_spec.py")
 FIXTURE_DIGEST_SCRIPT = Path(__file__).with_name("check_fixture_digests.py")
 SESSION_GRANT_KAT_SCRIPT = Path(__file__).with_name("check_session_grant_kat.py")
+SDK_CONFORMANCE_CLAIM_SCRIPT = Path(__file__).with_name(
+    "regenerate_sdk_conformance_claim.py"
+)
 CONTACT_ROUND_KAT_SCRIPT = Path(__file__).with_name("check_contact_round_kat.py")
 HANDLE_CLAIM_KAT_SCRIPT = Path(__file__).with_name("check_handle_claim_kat.py")
 CONTENT_BOUND_EVENT_ID_SCRIPT = Path(__file__).with_name(
@@ -1186,6 +1189,13 @@ def run_session_grant_kat_check() -> int:
     return result.returncode
 
 
+def run_sdk_conformance_claim_check() -> int:
+    result = subprocess.run(
+        [sys.executable, str(SDK_CONFORMANCE_CLAIM_SCRIPT), "--check"], cwd=ROOT
+    )
+    return result.returncode
+
+
 def run_contact_round_kat_check() -> int:
     result = subprocess.run([sys.executable, str(CONTACT_ROUND_KAT_SCRIPT)], cwd=ROOT)
     return result.returncode
@@ -1424,6 +1434,7 @@ def cmd_check(_: argparse.Namespace) -> int:
         "fixture_digests": run_fixture_digest_check,
         "vector_registry_traceability": run_vector_registry_traceability_check,
         "session_grant_kat": run_session_grant_kat_check,
+        "sdk_conformance_claim": run_sdk_conformance_claim_check,
         "contact_round_kat": run_contact_round_kat_check,
         "handle_claim_kat": run_handle_claim_kat_check,
         "content_bound_event_id_kat": run_content_bound_event_id_check,

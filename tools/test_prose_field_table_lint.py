@@ -20,6 +20,7 @@ from tools.artifact_lint.prose_field_tables import (
     _described_names,
     field_tables,
     locate_tables,
+    operation_note_field_drift,
 )
 
 
@@ -78,6 +79,58 @@ class ProseFieldTableLintTest(unittest.TestCase):
         self.assertEqual(
             _described_names(node), {"subject_account_id", "subject_id"}
         )
+
+    def test_operation_notes_reject_member_from_an_unrelated_schema(self) -> None:
+        documents = {
+            "operation.schema.json": {
+                "$defs": {
+                    "request": {"type": "object", "properties": {"request_id": {}}},
+                    "response": {"type": "object", "properties": {"status": {}}},
+                }
+            },
+            "other.schema.json": {
+                "type": "object",
+                "properties": {"retired_member": {}},
+            },
+        }
+        operation = {
+            "operation_id": "ak.test.command.run.v1",
+            "request_schema_ref": "schemas/operation.schema.json#/$defs/request",
+            "response_schema_ref": "schemas/operation.schema.json#/$defs/response",
+            "notes": "The request_id is stable and retired_member is returned.",
+        }
+        errors = operation_note_field_drift(
+            [operation], documents, {"operations": {}}
+        )
+        self.assertEqual(len(errors), 1)
+        self.assertIn("retired_member", errors[0])
+
+    def test_operation_note_cross_object_exemption_is_exact(self) -> None:
+        documents = {
+            "operation.schema.json": {
+                "type": "object",
+                "properties": {"request_id": {}},
+            },
+            "other.schema.json": {
+                "type": "object",
+                "properties": {"audit_record_id": {}},
+            },
+        }
+        operation = {
+            "operation_id": "ak.test.command.run.v1",
+            "request_schema_ref": "schemas/operation.schema.json#",
+            "notes": "The audit_record_id names a separately retained audit object.",
+        }
+        exemptions = {
+            "operations": {"ak.test.command.run.v1": ["audit_record_id"]}
+        }
+        self.assertEqual(
+            operation_note_field_drift([operation], documents, exemptions), []
+        )
+        operation["notes"] = "No external field is named."
+        errors = operation_note_field_drift([operation], documents, exemptions)
+        self.assertEqual(len(errors), 1)
+        self.assertIn("make no such cross-object mention", errors[0])
 
 
 if __name__ == "__main__":

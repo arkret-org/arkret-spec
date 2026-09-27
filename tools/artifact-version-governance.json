@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-21.1",
+  "version": "2026-09-27.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-21T02:54:53+08:00",
+  "generated_at": "2026-09-27T14:50:00+08:00",
   "description": "Closed machine inventory of tools-side governance ledgers whose release metadata is governed with registry/profile artifacts. Discovery only detects inventory drift; this list is the explicit authority for which tools artifacts and governing scripts participate.",
   "governed_tool_artifacts": [
     "tools/artifact-anchor-fragment-exemptions.json",
@@ -21,6 +21,7 @@
     "tools/naming-debt-baseline.json",
     "tools/naming-rule-coverage-matrix.json",
     "tools/normative-title-inventory.json",
+    "tools/operation-note-field-exemptions.json",
     "tools/patch-base-producer-baseline.json",
     "tools/proof-context-anchor-exemptions.json",
     "tools/prose-field-table-registry.json",

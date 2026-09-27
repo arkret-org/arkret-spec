@@ -25,8 +25,11 @@ the prose table has to mirror.
 from __future__ import annotations
 
 from .core import ARTIFACTS, Any, Lint, Path, SPEC_ROOT, TOOLS_ROOT, load_json, re
+from .schema_members import explicit_properties, locate
 
 REGISTRY_PATH = TOOLS_ROOT / "prose-field-table-registry.json"
+OPERATION_NOTE_EXEMPTIONS_PATH = TOOLS_ROOT / "operation-note-field-exemptions.json"
+OPERATION_REGISTRY_PATH = ARTIFACTS / "registry" / "operation-registry.json"
 
 SCHEMAS = ARTIFACTS / "schemas"
 
@@ -154,6 +157,75 @@ def _property_vocabulary(documents: dict[str, Any]) -> set[str]:
     return vocabulary
 
 
+def operation_note_field_drift(
+    operations: list[Any],
+    documents: dict[str, Any],
+    exemptions: dict[str, Any],
+) -> list[str]:
+    """Return closed-schema drift found in operation ``notes``.
+
+    A field token that exists somewhere in the schema vocabulary must either
+    belong to this operation's request/response schema closure or be declared
+    as an intentional cross-object mention. Requiring the exemption inventory
+    to match exactly makes stale exemptions fail as well.
+    """
+    vocabulary = _property_vocabulary(documents)
+    operation_exemptions = exemptions.get("operations")
+    if not isinstance(operation_exemptions, dict):
+        return ["operation note field exemptions must declare an operations object"]
+
+    errors: list[str] = []
+    seen: set[str] = set()
+    for operation in operations:
+        if not isinstance(operation, dict) or not isinstance(operation.get("operation_id"), str):
+            continue
+        operation_id = operation["operation_id"]
+        seen.add(operation_id)
+        notes = operation.get("notes")
+        if not isinstance(notes, str):
+            notes = ""
+        mentioned = set(FIELD_TOKEN.findall(notes)) & vocabulary
+        declared: set[str] = set()
+        for key in ("request_schema_ref", "response_schema_ref"):
+            schema_ref = operation.get(key)
+            if not isinstance(schema_ref, str):
+                continue
+            file_name, _fragment, node = locate(documents, schema_ref)
+            pending = [(file_name, node)]
+            visited: set[tuple[str, int]] = set()
+            while pending:
+                owner_file, current = pending.pop()
+                marker = (owner_file, id(current))
+                if marker in visited or not isinstance(current, dict):
+                    continue
+                visited.add(marker)
+                properties = explicit_properties(documents, owner_file, current)
+                declared.update(properties)
+                pending.extend(properties.values())
+                items = current.get("items")
+                if isinstance(items, dict):
+                    pending.append((owner_file, items))
+        external = mentioned - declared
+        allowed = operation_exemptions.get(operation_id, [])
+        if not isinstance(allowed, list) or any(not isinstance(name, str) for name in allowed):
+            errors.append(f"{operation_id} exemptions must be a string array")
+            continue
+        if allowed != sorted(set(allowed)):
+            errors.append(f"{operation_id} exemptions must be sorted and unique")
+            continue
+        for name in sorted(external - set(allowed)):
+            errors.append(
+                f"{operation_id} notes name `{name}`, which its request/response schemas do not declare"
+            )
+        for name in sorted(set(allowed) - external):
+            errors.append(
+                f"{operation_id} exempts `{name}`, but the notes make no such cross-object mention"
+            )
+    for operation_id in sorted(set(operation_exemptions) - seen):
+        errors.append(f"operation note exemptions name unknown operation {operation_id}")
+    return errors
+
+
 def check_prose_field_tables(lint: Lint) -> None:
     registry = load_json(lint, REGISTRY_PATH)
     if not isinstance(registry, dict):
@@ -167,6 +239,31 @@ def check_prose_field_tables(lint: Lint) -> None:
         path.name: load_json(lint, path) for path in sorted(SCHEMAS.glob("*.schema.json"))
     }
     vocabulary = _property_vocabulary(documents)
+
+    operation_registry = load_json(lint, OPERATION_REGISTRY_PATH)
+    exemptions = load_json(lint, OPERATION_NOTE_EXEMPTIONS_PATH)
+    operations = operation_registry.get("operations") if isinstance(operation_registry, dict) else None
+    if not isinstance(operations, list):
+        lint.fail(OPERATION_REGISTRY_PATH, "operation registry must declare an operations array")
+    elif isinstance(exemptions, dict):
+        if set(exemptions) != {
+            "version",
+            "source_of_truth",
+            "generated_at",
+            "description",
+            "operations",
+        }:
+            lint.fail(
+                OPERATION_NOTE_EXEMPTIONS_PATH,
+                "operation note field exemptions have an open or incomplete shape",
+            )
+        if exemptions.get("version") != 1 or exemptions.get("source_of_truth") is not False:
+            lint.fail(
+                OPERATION_NOTE_EXEMPTIONS_PATH,
+                "operation note field exemptions must be version 1 and a non-authoritative lint inventory",
+            )
+        for error in operation_note_field_drift(operations, documents, exemptions):
+            lint.fail(OPERATION_NOTE_EXEMPTIONS_PATH, error)
 
     seen: set[tuple[str, str]] = set()
     resolved: list[tuple[dict[str, Any], str, str, list[str]]] = []
