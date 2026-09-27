@@ -16,6 +16,15 @@ def read(relative: str):
 
 
 class AuthorityCommitProtocolTest(unittest.TestCase):
+    def test_poll_registry_uses_partition_stream_positions(self):
+        registry = read("registry/event-kind-registry.json")
+        events = registry["event_kinds"]
+        event = next(row for row in events if row["event_kind"] == "ak.message.create")
+        effects = " ".join(event["reducer_effects"])
+        self.assertIn("greatest stream_position", effects)
+        self.assertIn("retain every accepted response", effects)
+        self.assertNotIn("causal dominance", effects)
+
     def test_member_bootstrap_keeps_exact_stream_join_carrier(self):
         definitions = read("schemas/realm-join-intake.schema.json")["$defs"]
         request = definitions["peer_bootstrap_request_body"]

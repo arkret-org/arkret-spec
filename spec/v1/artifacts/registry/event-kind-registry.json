@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-26.5",
+  "version": "2026-09-28.0",
   "source_of_truth": false,
-  "generated_at": "2026-09-26T17:49:23+08:00",
+  "generated_at": "2026-09-28T00:03:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -3316,7 +3316,7 @@
       "reducer_effects": [
         "for ak.content.poll, materialize the accepted Message as the sole poll definition in its exact Realm and Circle scope",
         "for ak.content.poll.response, reject missing/cross-scope poll refs, unknown answers and over-selection without filtering or truncation",
-        "retain one response per actor by causal dominance, then canonical Event-digest ordering for concurrent responses"
+        "retain every accepted response with its identity, selections, stream_position and poll_response_heads; derive one current vote per actor from the greatest stream_position in its exact poll partition, never from Event digest or arrival time"
       ],
       "conformance_vectors": [
         "ak.vector.message.poll_reducer.v1"
