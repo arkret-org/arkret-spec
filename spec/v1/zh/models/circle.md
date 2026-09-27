@@ -295,7 +295,7 @@ Circle 不定义 `ak.circle.freeze` 或 `ak.circle.destroy`；父 Realm 的 `fre
 
 | 场景 | Realm-level / 未 scope 对象 | scope_circle_id 指向该 Circle 的对象 |
 | --- | --- | --- |
-| 父 Realm tombstone / destroy | 按 Realm lifecycle 停止 | Circle 的 canonical lifecycle typed current result 保持原值，但 effective lifecycle 由父 Realm terminal Event 派生为 `realm_terminal`；不得合成 `ak.circle.tombstone` 或未登记的 Circle typed current result write。Circle 与其对象停止，后续写入统一拒绝 `realm_terminal_state`；tombstone 到 successor Realm 时不会自动迁移 Circle membership / MLS key / history grant |
+| 父 Realm tombstone | 按 Realm lifecycle 停止 | Circle 的 canonical lifecycle typed current result 保持原值，但 effective lifecycle 由父 Realm terminal Event 派生为 `realm_terminal`；不得合成 `ak.circle.tombstone` 或未登记的 Circle typed current result write。Circle 与其对象停止，后续写入统一拒绝 active `failed_precondition`；tombstone 到 successor Realm 时不会自动迁移 Circle membership / MLS key / history grant |
 | 父 Realm freeze | 所有非豁免新写入按 Realm §2.6.0 拒绝 `realm_frozen` | Circle-scoped 新写入同样按 `realm_frozen` 拒绝；Circle 本身不定义独立 freeze，也不得用 Circle capability 绕过父 Realm freeze |
 | 父 Realm archive | 按 Realm 默认隐藏 / 只读投影，可由 Realm restore 恢复 | Circle 与其对象遵循父 Realm archive 的默认隐藏 / 只读投影；不额外 tombstone、不改 membership / MLS eligibility，Realm restore 后恢复到 Circle 自身 lifecycle 决定的状态 |
 | Circle archive | 不受影响 | receiver 获知 archive 关闭后，新写入 MUST fail closed（`failed_precondition`, `reason=circle_not_active`），**含新建以该 archived Circle 为 `scope_circle_id` 的对象**；此前暂时接纳的 Event 按关闭集合重算历史资格。既有对象保持历史可读/可审计投影，但不得继续追加 Message / Morph / structural Relation / position update，直到 `ak.circle.restore` 使 Circle 恢复 active |
@@ -307,8 +307,8 @@ Circle 不定义 `ak.circle.freeze` 或 `ak.circle.destroy`；父 Realm 的 `fre
 每个对象有唯一 scope,lifecycle 只需在该 scope 与父 Realm 两层间做判定，不存在跨双 scope 的组合表。
 
 父 Realm terminal gate 的判定优先于 Circle 自身 lifecycle gate。因此父 Realm已
-tombstone / destroy 时，即使 Circle canonical state 仍为 `active`，receiver 也 MUST 返回
-`realm_terminal_state`，而不是 `circle_not_active`；该优先级保证所有
+tombstone 时，即使 Circle canonical state 仍为 `active`，receiver 也 MUST 返回
+`failed_precondition`，不得输出 reserved `realm_terminal_state` reason 或 `circle_not_active`；该优先级保证所有
 实现对同一父 Realm terminal basis 产生相同错误形态。
 
 **`ak.circle.restore`（archived → active）后置条件（normative）**：archived 是可逆中间态，restore 的 membership / MLS 后置条件如下：

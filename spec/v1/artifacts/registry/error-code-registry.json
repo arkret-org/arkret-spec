@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-26.4",
-  "generated_at": "2026-09-26T06:40:00+08:00",
+  "version": "2026-09-28.2",
+  "generated_at": "2026-09-28T06:41:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -407,7 +407,7 @@
       "code": "realm_frozen",
       "http_status": 403,
       "scope": "both",
-      "description": "The target Realm is reversibly frozen or archived and the attempted write is outside the closed exemption set in zh/models/realm-and-space.md §2.6.0. Terminal tombstone/destroy states use realm_terminal_state.",
+      "description": "The target Realm is reversibly frozen or archived and the attempted write is outside the closed exemption set in zh/models/realm-and-space.md §2.6.0. A tombstoned Realm rejects ordinary writes with active failed_precondition; realm_terminal_state remains a reserved reason.",
       "type_uri": "https://arkret.org/problems/realm_frozen",
       "title": "Realm frozen",
       "status": "active"
@@ -1613,7 +1613,7 @@
       "code": "historical_only",
       "http_status": 200,
       "scope": "endpoint",
-      "description": "Idempotency cache replay is served only as a historical diagnostic after key or binding state changed; receivers MUST NOT perform new reducer side effects.",
+      "description": "Historical-only diagnostic for endpoints that explicitly register this outcome; it does not bypass current authentication and is not emitted by the closed peer event submit path after origin service-key revocation.",
       "type_uri": "https://arkret.org/problems/historical_only",
       "title": "Historical only",
       "status": "active"
@@ -4038,22 +4038,6 @@
       "status": "active"
     },
     {
-      "code": "identity_link_no_longer_visible",
-      "applies_to": [
-        "identity_resolution"
-      ],
-      "description": "An identity-link resolution was invalidated because the linked identity is no longer visible to the requester after a membership transition or capability revoke; directory / sync / invite caches MUST drop the stale link. See zh/conformance/conformance-vectors.md §3.5 (ak.vector.identity_link.eager_invalidation.v1).",
-      "status": "active"
-    },
-    {
-      "code": "identity_link_policy_tightened",
-      "applies_to": [
-        "identity_resolution"
-      ],
-      "description": "An identity-link resolution was invalidated because the governing visibility / link policy was tightened after the link was cached. See zh/conformance/conformance-vectors.md §3.5 (ak.vector.identity_link.policy_tightening_invalidation.v1).",
-      "status": "active"
-    },
-    {
       "code": "identity_method_evidence_invalid",
       "applies_to": [
         "identity_resolution",
@@ -5154,7 +5138,7 @@
         "state_resolution",
         "auth_decision"
       ],
-      "description": "Realm has accepted ak.realm.tombstone or ak.realm.destroy and cannot accept new ordinary writes. Only audit-class events (ak.audit.*, ak.audit.erasure_receipt) are still acceptable. Receivers MUST reject ak.self.events.command.submit.v1 for any other kind targeting this Realm. See zh/models/realm-and-space.md §2.6.",
+      "description": "Reserved diagnostic for a terminal Realm. v1 tombstone admission rejects later ordinary writes with active failed_precondition without this reason; ak.realm.destroy production admission is unavailable. See zh/models/realm-and-space.md §2.6.",
       "status": "reserved",
       "activation_condition": "Promote realm_terminal_state to active only in the same release that adds a canonical machine producer path under spec/v1/artifacts outside reports and this registry."
     },
@@ -5553,8 +5537,9 @@
         "federation_transaction",
         "auth_decision"
       ],
-      "description": "Federation idempotency replay outcome: a cached federated request was re-evaluated and the origin service's signing key is now revoked, so the cache hit is treated as historical_only and MUST NOT bypass current key-state verification. See zh/conformance/conformance-vectors.md §3.9 (ak.vector.federation.idempotency_after_key_revoke.v1).",
-      "status": "active"
+      "description": "Diagnostic key-state fact. On closed peer event submit, a revoked origin service signing key fails current transport authentication as signature_invalid before any idempotency lookup; this reason is not a replay-success response. See zh/conformance/conformance-vectors.md §3.9.",
+      "status": "reserved",
+      "activation_condition": "Activate only with a registered current-authenticated producer path; closed peer submit uses signature_invalid for revoked service keys."
     },
     {
       "code": "service_not_plaintext_visible",

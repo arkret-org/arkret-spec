@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-28.1",
+  "version": "2026-09-28.3",
   "source_of_truth": true,
-  "generated_at": "2026-09-28T05:08:00+08:00",
+  "generated_at": "2026-09-28T06:57:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -5287,7 +5287,7 @@
         "verb_form": "base",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Realm destroy lifecycle facet (terminal decommission marker)",
+        "payload": "Realm destroy lifecycle facet (terminal decommission marker); v1 production admission is closed pending an independent destructive-confirmation carrier",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_destroy_payload",
         "result_writes": [
           {
@@ -8447,8 +8447,8 @@
         }
       }
     },
-    "version": "2026-09-28.1",
-    "generated_at": "2026-09-28T05:08:00+08:00",
+    "version": "2026-09-28.2",
+    "generated_at": "2026-09-28T06:37:00+08:00",
     "bootstrap_event_kinds": [
       "ak.device.authorize",
       "ak.device.reanchor",
@@ -13319,7 +13319,7 @@
         "http": "POST /_arkret/peer/contacts",
         "grpc": "PeerContacts/Submit",
         "mq": "peer.contacts.command.submit",
-        "notes": "Unique closed XOR delivery carrier for original holder-signed Contact request, normal response, reject, scope replacement, tombstone, or bilateral continuity-checkpoint control. Authorizing source receipts, directional proofs and the receipted outbox exist only after the exact source command unit is RealmCommit-committed and its effects atomically installed. The receiver verifies the independently derived source Station's historical service attestation and original holder producer separately; no private PCR bootstrap or generic authority-commit proof disclosure is added, and source_checkpoint is not a RealmCommit. The continuity branch carries a one-sided proposal; the receiver recomputes the exact core, verifies the proposer signature, appends only its own participant service-authority signature, durably commits the complete checkpoint and returns it with a signed control receipt. Exact replay returns the same bytes; same-sequence different-digest forks fail closed. It never carries Direct Conversation binding or Realm Events. The original source-signed Event receipt or lineage includes the exact producer_signer method and Ed25519 raw32 key. This permits the first Contact carrier without an existing relationship or private PCR disclosure; it is an exact-Event producer projection, not reusable Control or device authority. The source-signed producer projection uses a closed delegated branch with delegated_actor_did exactly for legal Agent controller-device Events containing executed_by; human and Agent-runtime branches forbid it. This complete Agent public DID locator is frozen from verified native identity, rechecked against the exact Actor/controller/Station, and grants no authority.",
+        "notes": "Unique closed XOR delivery carrier for original holder-signed Contact request, normal response, reject, scope replacement, tombstone, or bilateral continuity-checkpoint control. Authorizing source receipts, directional proofs and the receipted outbox exist only after the exact source command unit is RealmCommit-committed and its effects atomically installed. The receiver verifies the independently derived source Station's historical service attestation and original holder producer separately; no private PCR bootstrap or generic authority-commit proof disclosure is added, and source_checkpoint is not a RealmCommit. The continuity branch carries a one-sided proposal; the receiver recomputes the exact core, verifies the proposer signature, appends only its own participant service-authority signature, durably commits the complete checkpoint and returns it with a signed control receipt. Exact replay returns the same bytes; same-sequence different-digest forks fail closed. It never carries Direct Conversation binding or Realm Events. The original source-signed Event receipt or lineage includes the exact producer_signer method and Ed25519 raw32 key. This permits the first Contact carrier without an existing relationship or private PCR disclosure; it is an exact-Event producer projection, not reusable Control or device authority. The delegated producer projection is structurally defined but v1 Contact commands MUST reject controller-device Agent holder submissions until an exact holder selector is registered; human and Agent-runtime branches forbid it. This complete Agent public DID locator is frozen from verified native identity, rechecked against the exact Actor/controller/Station, and grants no authority.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "schema_resource",
         "idempotency_mechanism": "idempotency_key",
@@ -15926,8 +15926,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-27.0",
-    "generated_at": "2026-09-27T03:50:31+08:00",
+    "version": "2026-09-28.1",
+    "generated_at": "2026-09-28T06:37:00+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",
@@ -18288,7 +18288,7 @@
         ],
         "profile": null,
         "root_control_only": true,
-        "notes": "Terminal Realm lifecycle. Authored only by the current controller of the Realm authority-root typed current result with an independent destructive confirmation; it MUST NOT be granted to anyone, so it is excluded from every derived owner authority set.",
+        "notes": "Terminal Realm lifecycle; v1 production admission MUST reject with failed_precondition and zero writes because the independent destructive-confirmation carrier is undefined. It MUST NOT be granted to anyone.",
         "event_mapping_kind": "same_name"
       },
       {
@@ -19222,8 +19222,8 @@
       "scope_suffix_variant": "Action adds actor/scope/role qualifiers while reducer admission targets a shared event kind.",
       "operation_verb": "Action token names an operation/command verb that does not match its target event kind name(s); reducer admission resolves the resulting event kind(s) via target_event_kinds. Literal action matching per the actions[] rule applies; carries no aggregate-admin family semantics."
     },
-    "version": "2026-09-26.2",
-    "generated_at": "2026-09-26T18:03:40+08:00",
+    "version": "2026-09-28.1",
+    "generated_at": "2026-09-28T06:37:00+08:00",
     "metadata_authority": "contract_registry_section"
   },
   "calendar_timezone_registry": {
@@ -19570,6 +19570,13 @@
       "evidence_class": "accepted_at_history",
       "freshness_profile_id": null,
       "purpose": "Resolve the exact accepted-at historical DID Document version and read normalized metadata.primary_handle for deterministic primary-handle selection."
+    },
+    {
+      "site_kind": "verifier_action",
+      "site_id": "ak.verifier.invite.claim_subject_at_commit.v1",
+      "evidence_class": "accepted_at_history",
+      "freshness_profile_id": null,
+      "purpose": "Verify the invite claim subject_proof method against the authenticated historical DID Document at the covering RealmCommit authority cut, matching its projected DID core to subject_account_id; reject when that historical document and method evidence cannot be established."
     }
   ],
   "did_method_adapter_registry": {

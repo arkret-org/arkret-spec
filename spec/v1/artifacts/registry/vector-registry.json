@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-28.0",
+  "version": "2026-09-28.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-28T03:58:49+08:00",
+  "generated_at": "2026-09-28T06:41:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -2452,10 +2452,9 @@
       "applies_to_profiles": [
         "ak.profile.federation_minimal.v1"
       ],
-      "description": "Replaying an accepted peer batch after the origin service key is revoked returns historical_only instead of a new authorized write, returns capability_denied once Realm policy removed the origin binding, and forces a full re-authorization whenever origin_key_state_digest or the authorization basis differs from the cached entry.",
+      "description": "A replay signed with a revoked origin service key fails current peer transport authentication with signature_invalid before idempotency lookup. An active key with a removed origin binding gets capability_denied. A changed authorization basis under current transport authentication requires fresh authorization; only unchanged basis may replay an exact stored outcome without a second write.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/artifacts/registry/error-code-registry.json",
         "spec/v1/artifacts/fixtures/federation-idempotency-key-revoke-fixture.json"
       ]
     },
@@ -2867,34 +2866,6 @@
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/zh/identity/did-usage-and-verification.md",
         "spec/v1/artifacts/fixtures/test-material-rejection-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.identity_link.eager_invalidation.v1",
-      "status": "active",
-      "domain": "identity_link",
-      "applies_to_profiles": [
-        "ak.profile.identity_registry.v1"
-      ],
-      "description": "A ban, leave or remove membership transition, or a capability revoke that drops the link below its visibility gate, immediately invalidates the directory, sync cache, invite cache and local profile projection; later lookups never return the stale link and existing sessions and device claims fail or degrade to minimal disclosure at the next authorization check.",
-      "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/artifacts/registry/error-code-registry.json",
-        "spec/v1/artifacts/fixtures/identity-link-invalidation-fixture.json"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.identity_link.policy_tightening_invalidation.v1",
-      "status": "active",
-      "domain": "identity_link",
-      "applies_to_profiles": [
-        "ak.profile.identity_registry.v1"
-      ],
-      "description": "Tightening disclosure policy, historical visibility, linked Realm visibility or Circle effective-scope visibility invalidates every affected cache against the current policy, and a link that no longer passes that gate is withheld rather than returned.",
-      "source_refs": [
-        "spec/v1/zh/conformance/conformance-vectors.md",
-        "spec/v1/artifacts/registry/error-code-registry.json",
-        "spec/v1/artifacts/fixtures/identity-link-invalidation-fixture.json"
       ]
     },
     {
@@ -3331,7 +3302,7 @@
       "applies_to_profiles": [
         "ak.profile.chat_mvp.v1"
       ],
-      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: Accepted Message Events are the sole Poll truth source. A partition (Realm or Circle scope, poll, full ActorId) lies inside exactly one authority stream, so that actor’s accepted responses are totally ordered by RealmCommit stream_position and the current vote is the greatest position, taken whole. payload.poll_response_heads[] is the producer’s cleartext revote declaration and never a winner criterion: an entry naming another poll, actor or scope rejects the response with zero writes. Arrival permutations, a stream prefix with gaps, invalidation and commutative/associative/idempotent replica union must converge in current vote, selections and tally. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
+      "description": "Reserved: no conformance fixture carries this vector yet. Only accepted plaintext Message ContentBlocks are formal v1 Poll inputs; encrypted messages with poll_response_heads reject with zero writes and decrypted poll-shaped content is not tallied. A Realm/Circle, poll and full ActorId partition lies inside one authority stream, so the greatest RealmCommit position selects the whole current vote. Wrong poll/actor/scope heads reject with zero writes; arrival permutations, prefix gaps, invalidation and replica union converge. Activation requires an executable fixture covering these points.",
       "source_refs": [
         "spec/v1/zh/models/content-types.md"
       ]
@@ -3808,15 +3779,16 @@
       ]
     },
     {
-      "vector_id": "ak.vector.reaction.remove_wins_join.v1",
-      "status": "reserved",
+      "vector_id": "ak.vector.reaction.authority_order_join.v1",
+      "status": "active",
       "domain": "reaction",
-      "applies_to_profiles": [
-        "ak.profile.chat_mvp.v1"
+      "applies_to_fixtures": [
+        "reaction-authority-order-fixture.json"
       ],
-      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: Concurrent reaction add and remove converge on remove, a reaction never revives after redaction, a reaction across MLS epochs stays bound to its target Event and scope, and after a capability revoke new reactions from that actor fail closed while existing ones remain as historical facts. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
+      "description": "Reaction assertions on one actor, target, key and effective scope share an authority stream. The greatest verified Commit position determines membership: add shows and remove hides. Conflicting Events at one position and cross-scope assertions fail closed; redaction hides the summary and capability revoke blocks subsequent writes without altering history.",
       "source_refs": [
-        "spec/v1/zh/models/strand-and-message.md"
+        "spec/v1/zh/models/strand-and-message.md",
+        "spec/v1/artifacts/fixtures/reaction-authority-order-fixture.json"
       ]
     },
     {

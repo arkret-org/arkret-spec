@@ -260,14 +260,7 @@ MUST 逐字保留：重试 MUST NOT 剥除授权引用、MUST NOT 把陈旧 CAS 
 下一次 invite 提交 MUST 前置条件失败并重判 capability gate，`any` 范围的撤销 MUST 失效全部 scope cache，
 PSI 索引在下一轮轮转中排除该 peer。
 
-`ak.vector.identity_link.eager_invalidation.v1` MUST 证明：principal 在 Realm 中的 active identity link，
-在该 Realm 接受 ban、leave、remove 任一 membership 迁移，或 capability revoke 使该 link 不再满足
-可见性门限后，directory、sync cache、invite cache 与本地 profile 投影 MUST 立即失效；后续 lookup 不得返回旧 link；
-既有 session 与 device claim MUST 在下一次授权检查时失败或降级到最小披露状态。
-
-`ak.vector.identity_link.policy_tightening_invalidation.v1` MUST 证明：披露策略、历史可见性、
-linked Realm 可见性或 Circle effective-scope 可见性中任一项被收紧后，所有受影响 cache MUST 按当前策略失效；
-未重新通过当前策略门限的旧 link MUST NOT 返回，接口只能给出当前允许的最小身份信息。
+v1 不登记通用 identity-link 当前查询或披露操作，因此原四层 directory／sync／invite／本地 profile 的当前 lookup 与统一失效向量不适用。客户端为验证已接受历史 MLS 消息而保存的 IdentityLink 仍按消息对应的历史 Event、Commit、MLS epoch 与 leaf 验签；成员离开、ban 或 policy 收紧不追溯清除该历史认证证据。任何已登记操作若在当前 cut 披露身份，仍须按该操作自己的 current authorization、membership 和 visibility gate 重验，不能把历史 IdentityLink 当作当前披露许可。
 
 ### 3.6 Contact 与 Direct Conversation
 
@@ -400,12 +393,7 @@ tombstone 后携其 revision 可创建新 event-derived RelationId。`relation_k
 
 ### 3.9 Federation 与 MIMI
 
-`ak.vector.federation.idempotency_after_key_revoke.v1` MUST 证明：origin service 以 active service key 提交的
-peer 批次被接纳后，若该 key 随后被撤销、destination 已接纳的授权前缀前进，则攻击者重放完全相同的 body、
-签名与 `Idempotency-Key` 时：仅命中历史幂等缓存的 MUST 返回 `historical_only` 而不重新接受为当前授权写入；
-origin service binding 已被 Realm policy 移除的 MUST 返回 `capability_denied`；
-`origin_key_state_digest` 或授权依据与缓存条目不一致时，receiver MUST 重新执行完整授权判定，
-不得只凭 `Idempotency-Key` 放行。
+`ak.vector.federation.idempotency_after_key_revoke.v1` MUST 证明：已接纳的 closed peer submit 请求在 origin service key 撤销后，以相同 body、签名和 `Idempotency-Key` 重放仍由当前 transport gate 返回 `signature_invalid` 且零新写入，不因历史缓存命中返回成功。key 仍有效但 Realm origin binding 已移除时返回 `capability_denied`；key-state 或授权 basis 变化必须重跑授权。只有当前认证和授权均通过且 basis 不变，才可逐项重放原结果而不重复写入。
 
 `ak.vector.mimi.provider_directory_signature.v1` MUST 证明：provider directory 携带完整的必需安全核心与能力声明，
 其 detached JWS 在 exact canonical unsigned 投影上验证通过；缺必需能力或能力数组为空、被篡改的 endpoint、
@@ -537,12 +525,10 @@ patch path 中的 TrackName 必须先与 active registry 集合比较，未登�
 
 ### 3.13 内容与消息
 
-`ak.vector.message.poll_reducer.v1` MUST 证明：已接纳的 Message Event 是 Poll 的唯一真值来源；
-完整 ActorId 与 Realm、Circle 分区保留因果响应集合；封闭的因果头按未签名 UTF-8 摘要顺序选出唯一完整投票；
-到达排列、迟到依赖、环、作废，以及可交换、可结合、幂等的副本并集，在头集合、胜者、选择项与计票上必须收敛。
+`ak.vector.message.poll_reducer.v1` MUST 证明：只有已接纳的明文 Message ContentBlock 可成为 v1 正式 Poll 输入；加密消息带 `poll_response_heads[]` 零写入拒绝，解密后的 poll 形状不参与正式计票。完整 ActorId 与 Realm、Circle 分区保留全部 response；同一 authority stream 中最大 Commit position 选出唯一当前票。错指 poll、actor 或 scope 的明文 heads 零写入拒绝；到达排列、迟到 position、前缀缺口、作废以及可交换、可结合、幂等的副本并集，在当前票、选择项与计票上必须收敛。
 
-`ak.vector.reaction.remove_wins_join.v1` MUST 证明：reaction 的 add 与 remove 并发合并以 remove 取胜；
-redaction 之后 reaction 不复活；跨 MLS epoch 的 reaction 仍绑定目标 Event 与 scope；
+`ak.vector.reaction.authority_order_join.v1` MUST 证明：同一 actor、target、key、scope 的 add/remove 按同一 authority stream 的 Commit position 取最后一条断言，同时到达的候选不产生因果推断；同位置不同 Event fail closed；
+redaction 之后 reaction 默认视图不复活；跨 MLS epoch 的 reaction 仍绑定目标 Event 与 scope；
 capability revoke 之后该 actor 的新 reaction fail closed，既有 reaction 保留为历史事实。
 
 `ak.vector.read_cursor.multi_device_merge.v1` MUST 证明：多设备阅读游标合并以同一 `CommitStreamRef` 上的

@@ -5,7 +5,7 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.federation.idempotency_after_key_revoke.v1"
   },
-  "version": "2026-09-18.1",
+  "version": "2026-09-28.1",
   "profile": "ak.profile.federation_minimal.v1",
   "covers_vectors": [
     "ak.vector.federation.idempotency_after_key_revoke.v1"
@@ -13,29 +13,29 @@
   "machine_contracts": [
     "registry/error-code-registry.json"
   ],
-  "description": "Executable evidence that a federation idempotency cache hit is never a current authorization: a replay after origin key revocation is historical_only, a removed origin binding denies it, and any change of origin_key_state_digest or authorization basis forces a full re-authorization.",
+  "description": "Executable evidence that a federation idempotency cache hit is never a current authorization: a replay after origin key revocation fails current transport authentication, while removal of an origin binding under an active key denies it, and any change of origin_key_state_digest or authorization basis forces a full re-authorization.",
   "security_evidence": [
     {
       "vector_id": "ak.vector.federation.idempotency_after_key_revoke.v1",
       "clause_id": "AK-NC-074",
       "decision_points": [
         {
-          "id": "historical_only_replay",
-          "requirement": "A replay that only hits the historical idempotency cache returns historical_only and is not re-accepted as a current authorized write.",
+          "id": "revoked_key_fails_current_transport",
+          "requirement": "A replay signed by a revoked service key returns signature_invalid before idempotency cache access and cannot create a new write.",
           "evidence": [
             "/cases/0"
           ]
         },
         {
           "id": "removed_binding_denies",
-          "requirement": "Once Realm policy removed the origin service binding the replay is denied with capability_denied.",
+          "requirement": "With a currently valid service key, removal of the Realm origin binding denies replay with capability_denied.",
           "evidence": [
             "/cases/1"
           ]
         },
         {
           "id": "basis_change_forces_reauthorization",
-          "requirement": "A different origin_key_state_digest or authorization basis forces the receiver to re-run the full authorization decision.",
+          "requirement": "After current transport authentication succeeds, a changed authorization basis forces the receiver to re-run the full authorization decision; a revoked key fails at transport first.",
           "evidence": [
             "/cases/2",
             "/cases/3"
@@ -60,40 +60,40 @@
   ],
   "cases": [
     {
-      "name": "replay_after_key_revoke_is_historical_only",
-      "given": "a peer batch was accepted under an active origin service key and the destination cached the idempotent outcome",
+      "name": "replay_after_key_revoke_fails_current_auth",
+      "given": "a closed peer submit request was accepted under an active origin service key and the destination cached the idempotent outcome",
       "action": "the origin key is revoked, the destination's accepted authorization prefix advances, and an attacker replays the byte-identical body, signature and Idempotency-Key",
       "decision": "reject",
-      "reason": "historical_only",
+      "reason": "signature_invalid",
       "observed": "the replay outcome and whether any new authorized write occurred",
       "assertions": [
-        "the cache hit is served as a historical diagnostic and is not re-accepted as a current authorized write",
+        "current transport authentication rejects the revoked signature before any idempotency cache lookup",
         "no new Event is admitted and no RealmCommit is issued for the replay",
         "byte-identical replay material does not by itself carry current authorization"
       ]
     },
     {
       "name": "removed_origin_binding_denies_the_replay",
-      "given": "Realm policy has removed the origin service binding since the batch was accepted",
+      "given": "the origin key remains current but Realm policy has removed the origin service binding since the closed request was accepted",
       "action": "replay the same request",
       "decision": "reject",
       "reason": "capability_denied",
       "observed": "the authorization decision for the replay",
       "assertions": [
         "the removal of the binding is decisive even though the cached entry still matches",
-        "capability_denied is returned rather than the historical outcome",
+        "capability_denied is returned before any cached outcome is served",
         "the earlier accepted write is not retracted by the denial"
       ]
     },
     {
-      "name": "a_changed_key_state_digest_forces_full_reauthorization",
-      "given": "the cached entry recorded one origin_key_state_digest",
-      "action": "replay with a different origin_key_state_digest",
+      "name": "a_changed_authorization_basis_forces_full_reauthorization",
+      "given": "the cached entry recorded one origin key-state and authorization basis, and the replay uses a currently valid service key",
+      "action": "replay after the authorization basis changes",
       "decision": "reject",
-      "reason": "service_key_revoked",
+      "reason": "capability_denied",
       "observed": "whether the receiver re-ran the authorization decision or short-circuited on the cache",
       "assertions": [
-        "the receiver MUST re-run the full authorization decision whenever the digest or the authorization basis differs from the cached entry",
+        "the receiver MUST re-run the full authorization decision when the basis differs after current transport authentication",
         "the cached entry is not evidence about current key state",
         "the re-run, not the cache, decides the outcome"
       ]
@@ -103,7 +103,7 @@
       "given": "a valid Idempotency-Key matching a cached accepted entry",
       "action": "replay with that key after the origin key was revoked",
       "decision": "reject",
-      "reason": "service_key_revoked",
+      "reason": "signature_invalid",
       "observed": "the admission path taken for the replay",
       "assertions": [
         "the key is a deduplication token, never an authorization token",

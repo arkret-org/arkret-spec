@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-28.0",
+  "version": "2026-09-28.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-28T03:58:49+08:00",
+  "generated_at": "2026-09-28T06:37:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -404,9 +404,9 @@
       "category": "authorization",
       "source_anchor": "spec/v1/zh/identity/contact-and-direct-conversation.md#2-contact-写链回执与-contact-round",
       "section_digest": "sha256:886a9ab2dd7fd7513bf5fec6930e8507d59d7d3f840d981d23bb957893f07650",
-      "requirement": "Every Contact Event carrier authenticates the exact historical producer method and Ed25519 key through the original confirmed source receipt or lineage, then verifies the original holder signature. The first carrier needs no prior relationship or private PCR disclosure. The projection is bound to one Event and cannot authorize another Event or generic Control action. Source acceptance time is fixed at the real slot confirmation, with immutable retries and the matching historical source key. The closed delegated producer branch carries delegated_actor_did exactly for legal Agent controller-device Events with executed_by; human/runtime forbid it. The source freezes a verified complete Agent public locator and the receiver independently verifies its native identity, exact Actor/controller/Station and create-locked binding. This locator grants no authority.",
+      "requirement": "Every Contact Event carrier authenticates the exact historical producer method and Ed25519 key through the original confirmed source receipt or lineage, then verifies the original holder signature. The first carrier needs no prior relationship or private PCR disclosure. The projection is bound to one Event and cannot authorize another Event or generic Control action. Source acceptance time is fixed at the real slot confirmation, with immutable retries and the matching historical source key. The structurally defined delegated producer branch remains unavailable to v1 Contact commands; human/runtime forbid it. The source freezes a verified complete Agent public locator and the receiver independently verifies its native identity, exact Actor/controller/Station and create-locked binding. This locator grants no authority.",
       "testability_grade": "audit",
-      "test_plan": "Run check_contact_round_kat.py for source-signed producer descriptors, complete receipt digests, derived normal/glare rounds, absence commitments and key/method mutation rejection. Run SDK Contact carrier cases for the original producer proof, full Account/Agent/controller/source binding and exclusion of generic Control reuse. Run Soland PostgreSQL completion, slot timestamp and historical-key recovery tests plus Inkson exact-request restart tests. The reference vectors alone do not establish a live first-contact exchange or ordinary messaging through a disconnected origin; those require the existing cross-project owner acceptance. Include the three direct/delegated producer contexts and all five carrier conditional schemas, missing/extra/null/core-only/wrong-Agent locators and altered source-signed locator bytes. Production acceptance must include a first stranger controller-device Agent Contact with no cached Agent locator and no private PCR disclosure."
+      "test_plan": "Run check_contact_round_kat.py for source-signed producer descriptors, complete receipt digests, derived normal/glare rounds, absence commitments and key/method mutation rejection. Run SDK Contact carrier cases for the original producer proof, full Account/Agent/controller/source binding and exclusion of generic Control reuse. Run Soland PostgreSQL completion, slot timestamp and historical-key recovery tests plus Inkson exact-request restart tests. The reference vectors alone do not establish a live first-contact exchange or ordinary messaging through a disconnected origin; those require the existing cross-project owner acceptance. Include the three direct/delegated producer contexts and all five carrier conditional schemas, missing/extra/null/core-only/wrong-Agent locators and altered source-signed locator bytes. V1 production acceptance must reject controller-device Agent Contact commands before reservation or Event admission, while ordinary human and Agent-runtime Contact paths remain available."
     },
     {
       "clause_id": "AK-NC-056",
@@ -590,7 +590,7 @@
       "status": "active",
       "category": "privacy",
       "source_anchor": "spec/v1/zh/conformance/conformance-vectors.md#35-consent-与-identity-link",
-      "section_digest": "sha256:65247f70ebdc37781b364d3f1e6fd9e5e86e9769e7ee2f724f21342eb713c1b5",
+      "section_digest": "sha256:2c1b098e4509210f98b7868ed4753942c1c7bfca6ae51f5c917bda78797a3423",
       "requirement": "Revoking consent immediately invalidates the cached private contact discovery result, the invite capability gate and every scope cache, and the next PSI rotation excludes the peer.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -602,35 +602,11 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/conformance/conformance-vectors.md#39-federation-与-mimi",
-      "section_digest": "sha256:2f9225980903a70b8887ca920d6865ea341824d63c03b048fbabc74f478a6425",
-      "requirement": "A federation idempotency cache hit is never current authorization: after an origin key revocation the replay is historical_only, a removed origin binding denies it, and any change of origin_key_state_digest or authorization basis forces a full re-authorization.",
+      "section_digest": "sha256:2e479791acd5f1d2c0c57b040ab4c6339e3f1cd9f27ec1234d5c434a01553665",
+      "requirement": "Current peer service authentication precedes idempotency lookup: a revoked origin key yields signature_invalid with zero writes, an active key with a removed origin binding yields capability_denied, and any changed authorization basis requires fresh authorization before an exact cached outcome may replay.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.federation.idempotency_after_key_revoke.v1"
-      ]
-    },
-    {
-      "clause_id": "AK-NC-075",
-      "status": "active",
-      "category": "privacy",
-      "source_anchor": "spec/v1/zh/conformance/conformance-vectors.md#35-consent-与-identity-link",
-      "section_digest": "sha256:65247f70ebdc37781b364d3f1e6fd9e5e86e9769e7ee2f724f21342eb713c1b5",
-      "requirement": "A ban, leave or remove membership transition, or a capability revoke that drops a link below its visibility gate, immediately invalidates the directory, sync, invite and local profile projections, and existing sessions and device claims fail or degrade to minimal disclosure at the next authorization check.",
-      "testability_grade": "vector",
-      "evidence_refs": [
-        "ak.vector.identity_link.eager_invalidation.v1"
-      ]
-    },
-    {
-      "clause_id": "AK-NC-076",
-      "status": "active",
-      "category": "privacy",
-      "source_anchor": "spec/v1/zh/conformance/conformance-vectors.md#35-consent-与-identity-link",
-      "section_digest": "sha256:65247f70ebdc37781b364d3f1e6fd9e5e86e9769e7ee2f724f21342eb713c1b5",
-      "requirement": "Tightening disclosure policy, historical visibility, linked-Realm visibility or Circle effective-scope visibility invalidates every affected cache against the current policy, and a link that no longer passes that gate is withheld rather than returned.",
-      "testability_grade": "vector",
-      "evidence_refs": [
-        "ak.vector.identity_link.policy_tightening_invalidation.v1"
       ]
     },
     {

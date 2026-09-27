@@ -242,8 +242,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/federation-idempotency-key-revoke-fixture.json",
-      "sha256": "32928ec6540b4c8a44c5dd46e355057f95a6981e82b2105987c7eefb1c7e073e",
-      "version": "2026-09-18.1"
+      "sha256": "60c6800bc56d11ac10af9c3910fe69230aaebc4d58ba163a116ed1a5867ef895",
+      "version": "2026-09-28.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/file-transfer-stream-aead-fixture.json",
@@ -271,11 +271,6 @@
       "version": "2026-07-03"
     },
     {
-      "path": "spec/v1/artifacts/fixtures/identity-link-invalidation-fixture.json",
-      "sha256": "e86edb54645955abe151730a6dfe1816aa168bd74f8edfa0756a508b7cd3ebad",
-      "version": "2026-09-19.1"
-    },
-    {
       "path": "spec/v1/artifacts/fixtures/identity-recovery-kdf-fixture.json",
       "sha256": "e6117c6833f8a84c6ec8ecafc8a2df4a9f94812f26753b93d012730532673fe7",
       "version": "2026-07-15"
@@ -287,8 +282,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/invite-claim-security-fixture.json",
-      "sha256": "31996e1ae76829800d065abf8aeb924072e1b0fc4027fc0f076dd05035d36b6e",
-      "version": "2026-09-26.1"
+      "sha256": "703d60bbec4a3f797292414e25b330604ba607b72c56c7939af4036f4c92edea",
+      "version": "2026-09-28.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/invite-new-source-quota-fixture.json",
@@ -434,6 +429,11 @@
       "path": "spec/v1/artifacts/fixtures/push-rule-core-fixture.json",
       "sha256": "7508c7641c9e714daf3b06b92ef02d1b516467c9698bf7435c8310f29f9584fe",
       "version": "2026-09-19.1"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/reaction-authority-order-fixture.json",
+      "sha256": "d7210e1b53fe94a34b8a3c96817071c1ca366630bb7eed16b54c02f0aaf12447",
+      "version": "2026-09-28.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/realm-join-candidate-locator-fixture.json",

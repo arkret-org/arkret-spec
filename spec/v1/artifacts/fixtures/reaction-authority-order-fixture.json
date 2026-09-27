@@ -1,0 +1,87 @@
+{
+  "suite": "reaction_authority_order",
+  "fixture_kind": "semantic",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.reaction.authority_order.v1"
+  },
+  "version": "2026-09-28.1",
+  "profile": "ak.profile.chat_mvp.v1",
+  "covers_vectors": [
+    "ak.vector.reaction.authority_order_join.v1"
+  ],
+  "machine_contracts": [
+    "registry/event-kind-registry.json",
+    "registry/typed-current-result-registry.json"
+  ],
+  "description": "Reaction default view folds accepted add and remove assertions by verified Commit position on one authority stream, retaining every assertion for audit.",
+  "cases": [
+    {
+      "name": "later_remove_hides_add",
+      "given": "one actor's add at position 10 and remove at position 11 address the same target, key and scope",
+      "action": "merge the two verified assertion dots in either delivery order and replay duplicates",
+      "decision": "accept",
+      "observed": "the default members and audit assertions",
+      "assertions": [
+        "the actor is absent from members regardless of delivery order",
+        "both Event dots remain available for audit and duplicates do not change count"
+      ]
+    },
+    {
+      "name": "later_add_restores_member",
+      "given": "the same actor and partition has remove at position 11 and add at position 12",
+      "action": "merge the accepted assertions in reverse delivery order",
+      "decision": "accept",
+      "observed": "the default members",
+      "assertions": [
+        "the actor occurs exactly once because the greatest position is add"
+      ]
+    },
+    {
+      "name": "same_position_conflict_fails_closed",
+      "given": "different add and remove Events claim the same stream position for one partition",
+      "action": "verify both covering Commits",
+      "decision": "reject",
+      "reason": "conflict",
+      "observed": "the projection and accepted stream prefix",
+      "assertions": [
+        "no Event ID or arrival order tie breaker selects a winner"
+      ]
+    },
+    {
+      "name": "cross_scope_rejected",
+      "given": "a reaction target belongs to another effective Circle scope",
+      "action": "submit the reaction",
+      "decision": "reject",
+      "reason": "failed_precondition",
+      "observed": "Event and projection writes",
+      "assertions": [
+        "the submission produces zero accepted writes"
+      ]
+    },
+    {
+      "name": "redaction_and_revoke_preserve_history",
+      "given": "an accepted reaction is followed by target redaction and capability revoke",
+      "action": "submit a new reaction after revoke and rebuild the default view",
+      "decision": "reject",
+      "reason": "capability_denied",
+      "observed": "summary and historical assertions",
+      "assertions": [
+        "the redacted target exposes no reaction summary",
+        "the earlier accepted assertion remains historical",
+        "the new reaction produces zero writes"
+      ]
+    },
+    {
+      "name": "epoch_rotation_keeps_scope",
+      "given": "the same emoji is expressed across two MLS epochs with different routing tags",
+      "action": "fold verified assertions for the same target and effective scope",
+      "decision": "accept",
+      "observed": "per-tag membership",
+      "assertions": [
+        "different epoch routing tags are not silently deduplicated",
+        "neither tag changes the target Event or scope binding"
+      ]
+    }
+  ]
+}

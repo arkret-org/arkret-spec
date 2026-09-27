@@ -399,6 +399,8 @@ Realm 有两个终态 event，语义不同：
 
 `ak.realm.tombstone` 写入 `realm_tombstone`，`ak.realm.destroy` 写入 `realm_destroy`；二者均为 commit-ordered projection，各自不可重复写入。capability：`ak.realm.tombstone` / `ak.realm.destroy`（action 定义见 [`../authz/capabilities.md` §5.1](../authz/capabilities.md)，high-risk 约束见 [`capabilities.md` §8](../authz/capabilities.md)）。
 
+**v1 准入限制（normative）**：`ak.realm.destroy` 所需的独立破坏性确认没有已登记、可同事务验证的提交载体，治理 Station MUST 对该 kind 的生产提交返回 `failed_precondition` 且零 Event、Commit、projection 写入；controller 签名、普通 `approval_signatures[]` 或 UI 再确认均不能代替。注册的 destroy schema、action 与结果形态只描述结构，不开放 v1 准入。`ak.realm.tombstone` 有 successor 时照常可用；archive/restore/freeze/unfreeze 不受此限制。
+
 #### 2.6.0 Realm archive/restore 与 freeze/unfreeze
 
 Realm 的 lifecycle 由 archive、tombstone、destroy 等已登记事实组合；freeze 是独立普通写入 gate。四个可逆操作都沿用原 commit-ordered projection：
@@ -418,20 +420,20 @@ payload 只接受已登记的可选 reason，不接受 archived/frozen boolean�
 
 #### 2.6.0.1 产品态"解散 Realm"映射（normative）
 
-产品层若给 Realm owner / admin 提供"不转让、直接解散 / 关闭这个 Realm"的选择，wire 层 MUST 映射为 `ak.realm.destroy`，而不是 `ak.realm.tombstone`：
+v1 产品层 MUST NOT 提供不可逆的“无 successor 永久解散”提交入口；不得将它伪装成 `ak.realm.tombstone` 或可逆 freeze。以下区分定义已登记 lifecycle 的语义：
 
 - `ak.realm.tombstone` 只用于**有 successor Realm 的迁移 / 接续**。它 MUST 携带 `successor_realm_id`，表示旧 Realm 不再活跃但由 successor 接续历史可达性。没有 successor 时，客户端 / server MUST NOT 用 tombstone 表达"解散"。
-- `ak.realm.destroy` 用于**无 successor 的永久关闭**。accepted 后 Realm 仍可作为终态记录、审计对象和按 retention / history visibility 可读取的历史存在，但普通成员写入、消息发送、Circle / Strand / Relation 新写入等 MUST fail closed（`realm_terminal_state`）。这正是"Realm 还在，但所有成员不能继续发言 / 协作"的不可逆产品语义。
+- `ak.realm.destroy` 描述**无 successor 的永久关闭**，但 v1 生产准入按本节限制关闭；不得通过该 schema/action 的 active 注册推断可提交。
 - `ak.realm.freeze` 用于**可逆只读冻结**（incident hold、管理员临时锁场、等待治理决策等）。如果产品文案承诺"解散 / 永久关闭"，不得只写 `freeze=true`；如果产品文案承诺"临时只读 / 可恢复"，不得写 `destroy`。
 - `ak.realm.archive` 用于软隐藏 / 默认列表移出，不是 ownership transfer、迁移或解散的替代品。
 
-实现的 UI 可以把上述 wire event 命名为"解散 Realm"、"关闭 Realm"或"冻结 Realm"，但审计、capability、federation 与 reducer MUST 以本节的 event 语义为准。ownership transfer 是成员 / capability 治理动作，不改变 Realm lifecycle；当 owner/admin 不愿 transfer 时，应在 `freeze`（可逆只读）与 `destroy`（无 successor 永久关闭）之间选择，而不是滥用 `tombstone`。
+实现的 UI 可以把可逆 `freeze` 命名为“冻结 Realm”，但 MUST 明示可恢复；不得将它宣传为永久解散。ownership transfer 是成员 / capability 治理动作，不改变 Realm lifecycle；没有 successor 时 v1 只能选择可逆 freeze/archive 或保留原状，不能滥用 `tombstone`。
 
 #### 2.6.1 `ak.realm.tombstone` / `ak.realm.destroy` 终态规则（normative）
 
 任一终态 Event accepted 进入 checkpoint 之后：
 
-1. **拒绝后续普通写入**：reducer MUST reject 所有非 `ak.audit.*` / 非 `ak.audit.erasure_receipt` event；后续 `ak.self.events.command.submit.v1` 返回 `realm_terminal_state`（错误码归类于 `realm_lifecycle` 错误域，避免与 `ak.realm.lifecycle.*` capability action 命名混用）。
+1. **拒绝后续普通写入**：reducer MUST reject 所有非 `ak.audit.*` / 非 `ak.audit.erasure_receipt` event；v1 后续 `ak.self.events.command.submit.v1` 返回 active `failed_precondition`，不得输出仍为 reserved 的 `realm_terminal_state` code 或 reason。projection 可显示同名终态标签。
 2. **Snapshot / Backfill / GC**：
    - Snapshot service MAY 发布最后一份 final snapshot（`ak.realm_state_snapshot.*` event）；之后 snapshot 不再更新。
    - Backfill MAY 继续提供历史 event 给已授权 reader，受 history visibility policy 控制；新读权 MUST NOT 再被授予。
@@ -440,7 +442,7 @@ payload 只接受已登记的可选 reason，不接受 archived/frozen boolean�
 4. **Erasure Receipt 与 Legal Hold**：destroy 不自动触发 erasure。若部署进入 erasure 阶段，发布 `ak.audit.erasure_receipt`（schema `ak.schema.erasure_receipt.v1`），可能 `outcome=blocked_by_legal_hold`。Legal hold 优先于 destroy 的 GC 路径。
 5. **Federation Fanout**：终态 Event MUST 沿 federation 推送到所有曾持有该 Realm 状态的 peer Station；peer 获知有效确认后 MUST 立即持久化 live fence，标记 `realm_terminal_state` 和相同 `terminal_kind`；仍可接收历史证明与 backfill，按授权关闭规则判定历史资格，禁止借历史导入触发新 live 效果。
 6. **Child Space / Strand cascade**：终态 accepted 后，home Realm 内所有 non-terminal Space、Strand placement 与 structural `contains` projection MUST NOT 作为 live navigation surface 暴露。实现 MUST 在同一事务或后续 bounded cleanup job 中把这些对象标记为只读 locked projection（destroy 可用 `realm_destroyed_orphan`，tombstone 可用 `realm_tombstoned_orphan`）或自动 tombstone/archive；不得继续允许 `ak.strand.move`、`ak.space.parent`、`ak.space.update` 等普通写入复活它们。跨 Realm parent 禁止；普通外部引用不得进入 canonical placement 或 Space 删除依赖集合。
-7. **Circle scope cascade**：父 Realm tombstone 或 destroy 后，其内所有 [Circle](./circle.md) 的 **effective lifecycle** 立即进入 `realm_terminal`，但 Circle canonical lifecycle typed current result 不被隐式改写，也不合成 `ak.circle.tombstone`。该派生状态以父 Realm terminal Event 及其 RealmCommit 为唯一依据，优先于 Circle 自身 `active` / `archived` projection。任何指向这些 Circle 的写入 MUST fail closed（`failed_precondition`, `reason_code=realm_terminal_state`）；projection MAY 显示 `scope_unavailable`，但 `scope_circle_id` 不会被自动 rewrite。详见 [`circle.md` §9.2](./circle.md)。
+7. **Circle scope cascade**：父 Realm tombstone 后，其内所有 [Circle](./circle.md) 的 **effective lifecycle** 立即进入 `realm_terminal`，但 Circle canonical lifecycle typed current result 不被隐式改写，也不合成 `ak.circle.tombstone`。该派生状态以父 Realm terminal Event 及其 RealmCommit 为唯一依据，优先于 Circle 自身 `active` / `archived` projection。任何指向这些 Circle 的写入 MUST fail closed（`failed_precondition`，不输出 reserved `realm_terminal_state` reason）；projection MAY 显示 `scope_unavailable`，但 `scope_circle_id` 不会被自动 rewrite。详见 [`circle.md` §9.2](./circle.md)。
 
 #### 2.6.2 跨 Station Erasure Receipt Fanout（normative）
 

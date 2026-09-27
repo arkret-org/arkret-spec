@@ -576,6 +576,7 @@ Capability 必须支持“有直接身份但需要责任主体/监护主体/控�
 
 风险分层硬约束：
 
+- **v1 签发限制（normative）**：`ak.capability.grant` 的 subject 是 Agent 或 service principal 且 `actions[]` 任一 action 为 registry `risk_tier=high` 时，治理 Station MUST 在任何 grant 写入前以 `failed_precondition` 拒绝整条 grant。当前 `approval_signatures[]` 的两种 context 均未定义这种签发的独立 responsible／guardian／controller 审批资格与 root 直接签发路径；issuer 的 Event 签名、root 身份、普通 `policy_action` 配置或任意 approver 签名均不能替代。此限制不影响 human grant 或 Agent／service 的 low／medium-risk grant；不得把 high-risk action 混入低风险 grant 绕过。下述有限期、selector 与证据约束仍定义此类 grant 的必要条件，但在 v1 不构成开放准入的充分条件。
 - Agent / service principal 持有 `risk_tier=high` action 的 grant MUST 有有限 `expires_at`、resource selector narrowing、authorization evidence ref 与 audit evidence；reducer 在接纳该 grant 的同一 authority cut 校验，缺失时以现有 `failed_precondition` 失败关闭。其他主体的 grant 不因 action 的 `risk_tier=high` 自动获得这些额外约束；action registry `required_constraints`、具体 operation 或 profile 明列的约束仍对所有主体适用，行使时也 MUST 重验 current grant 及其有效期。
 - 对需要更高保证的 high-risk action，profile MAY 要求显式 approval workflow、默认不可转授（无 `authority_control` 约束，等价 `max_authority_depth=0`）、更短 child grant TTL、不可扩大 scope 和 approver DID 记录；该要求 MUST NOT 通过 registry 未定义的第四级风险字符串表达。
 - Agent / service principal 的 grant 无论 action 风险级别如何，默认 MUST 有 resource selector；缺失时 reducer MUST `failed_precondition`。

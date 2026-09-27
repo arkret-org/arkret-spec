@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-26.2",
+  "version": "2026-09-28.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-26T18:03:40+08:00",
+  "generated_at": "2026-09-28T06:37:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -1069,7 +1069,7 @@
       ],
       "profile": null,
       "root_control_only": true,
-      "notes": "Terminal Realm lifecycle. Authored only by the current controller of the Realm authority-root typed current result with an independent destructive confirmation; it MUST NOT be granted to anyone, so it is excluded from every derived owner authority set.",
+      "notes": "Terminal Realm lifecycle; v1 production admission MUST reject with failed_precondition and zero writes because the independent destructive-confirmation carrier is undefined. It MUST NOT be granted to anyone.",
       "event_mapping_kind": "same_name"
     },
     {

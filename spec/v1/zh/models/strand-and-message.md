@@ -845,7 +845,7 @@ Message timeline 的同步与 reducer 行为：
 | Message 编辑 | 同一 revision chain 的全部 revise 落在同一条 authority stream，canonical revision 由下文 §9.5.1 的 `stream_position` 最大者唯一决定；历史 revision 全部保留在普通 branch 读取面。 |
 | Message 撤回 | 若 revision 与 redaction 同时存在，默认视图 redaction 优先；审计视图保留完整历史。 |
 | 撤回先到、原消息后到 | 接收方 MUST 保留 dangling redaction，待原消息到达后再应用；保留键为 `ak.message.redact` 的 `payload.message_id`。 |
-| Reaction | Reaction-specific remove-wins set 收敛；同一 actor 对同一 emoji 的 add/remove 由 §9.8.3 定义。 |
+| Reaction | 同一 authority stream 按 Commit position 取最后一条 add/remove 断言；同一 actor 对同一 emoji 的折叠由 §9.8.3 定义。 |
 
 历史可见性枚举与 canonical 语义见 [`../governance/history-visibility.md`](../governance/history-visibility.md)。
 
@@ -891,7 +891,7 @@ canonical event log 不因此改变：全部历史 revision 仍保留在 revisio
 
 ### 9.8 表情回复（Reaction）
 
-Reaction 是附着在 discussion timeline 对象上的轻量表态。它**不是** Message：不进入 revision chain、不单独承载 Content Block、不产生独立顶层对象，也没有 `state=redacted` 终态。它通过 `ak.reaction.add` / `ak.reaction.remove` 两个 durable event 维护一个 per-target 的 authority-ordered keyed set。本节是 Reaction 的权威模型定义；E2EE 可见性见 [`../crypto-media/encryption-and-audit.md` §2.8](../crypto-media/encryption-and-audit.md)，reducer 向量见 [`artifacts/fixtures/reaction-fixture.json`](../sync/authority-commit-log.md)。
+Reaction 是附着在 discussion timeline 对象上的轻量表态。它**不是** Message：不进入 revision chain、不单独承载 Content Block、不产生独立顶层对象，也没有 `state=redacted` 终态。它通过 `ak.reaction.add` / `ak.reaction.remove` 两个 durable event 维护一个 per-target 的 authority-ordered keyed set。本节是 Reaction 的权威模型定义；E2EE 可见性见 [`../crypto-media/encryption-and-audit.md` §2.8](../crypto-media/encryption-and-audit.md)，reducer 向量见 [`reaction-authority-order-fixture.json`](../../artifacts/fixtures/reaction-authority-order-fixture.json)。
 
 #### 9.8.1 事件与 payload
 
@@ -920,11 +920,11 @@ v1 core 的 Reaction `target_ref` MUST 指向与该 reaction 同一 effective sc
 
 跨 security scope 表态不允许：`target_ref` 必须落在 reaction Event 自身签名 `scope_ref` 内，否则以 active `failed_precondition` 拒绝且零写入。未激活的 `reaction_target_unsupported` 与 `reaction_scope_mismatch` 不得发射。
 
-#### 9.8.3 Reaction-specific remove-wins set 收敛（authoritative）
+#### 9.8.3 Reaction 的 authority-order 收敛（authoritative）
 
 成员身份键为 `(actor_id, target_ref, key)`；本节为权威定义，[§9.5](#95-冲突与收敛规则) 表中的一行是其摘要：
 
-`ak.vector.reaction.remove_wins_join.v1` 与 `reaction-fixture.json` 固化本节 add/remove、并发、redaction、epoch 与 capability-revoke 行为。
+`ak.vector.reaction.authority_order_join.v1` 与 `reaction-authority-order-fixture.json` 固化本节 add/remove、同位置冲突、redaction、epoch 与 capability-revoke 行为。
 
 **本节与 typed current result projection 的分层（normative）**：`message_reactions` 的
 `domain reducer` 是 `keyed-set projection`——该取值属于
@@ -932,27 +932,19 @@ v1 core 的 Reaction `target_ref` MUST 指向与该 reaction 同一 effective sc
 [`event-and-patch.md` §2.4.2](./event-and-patch.md) 的 canonical Event dot
 `<event_id>:<write_index>`；join 由 [`common-fields.md` §2](./common-fields.md) 定义。其元素是 **reaction 断言**——`ak.reaction.add` 与 `ak.reaction.remove` 各精确投影
 一个 `{"kind":"keyed_set_add","tag":{"dot":true},"value":{"field":"payload"}}`，即 remove 同样
-是**往集合里加一条断言**，而不是 explicit revocation。这不是绕路，而是本节要求的唯一可表达形态：
-本节明文要求审计视图保留并发 (add, remove) 的双方，若 remove 走 explicit revocation，被移除的
-add dot 就不复存在，审计视图无从重建；本节又要求 remove 连**与之并发**的 add 一并 tombstone，
-而 explicit revocation 的判据是冻结前态，并发 add 根本不在其中。
+是**往集合里加一条断言**，而不是 explicit revocation。完整断言集用于审计与从同一有效性基线重算；不能删除先前 add dot 来表示当前已移除。
 
 断言的 `actor_id` 与极性（add 还是 remove）**不是元素字段**：二者从元素 dot 所指的 Event 的
 签名 envelope（`actor_id` 与 `kind`）读出。投影不拼装对象是因为
 [`event-and-patch.md` §2.4.2](./event-and-patch.md) 禁止在 projection 内拼装、改名或裁剪字段，
 而这两个事实已由签名 envelope 承载，无需复制进元素值。
 
-因此下文"不改变该 join 本身"的准确含义是：**remove-wins 收敛规则不是 keyed-set projection 的
-join**，而是该 keyed-set projection 之上的**默认视图投影**。typed current result 的 join 仍是 keyed-set projection 的 dot 集合并，
-仍然可交换、可结合、幂等。领域投影直接从完整 dot 集计算 remove-wins 视图；实现 MUST NOT 据此把该 typed current result 实现成第六种 state model。
+typed current result 的 join 仍是 keyed-set projection 的 dot 集合并，满足交换律、结合律与幂等律；领域默认视图从完整 dot 集按已验证的 covering Commit position 折叠，不能把这个视图误作新的 typed current state model。
 
-默认视图的成员判定式：actor `A` 属于 `(target_ref, key)` 的 `members[]`，当且仅当集合中存在
-一条 `A` 在该 `(target_ref, key)` 上的 add 断言 `α`，使得对 `A` 在该 `(target_ref, key)` 上的
-**每一条** remove 断言 `ρ`，`α` 都严格因果晚于 `ρ`。去重与 `count` 由该判定式自然得出——
-`members[]` 是 actor 集合，同一 actor 的多条存活 add 只贡献一个成员条目。
+默认视图的成员判定式：对 `(完整 actor_id, target_ref, key, effective scope)` 只取已接受断言中覆盖 Commit `stream_position` 最大的一条；其 kind 为 `ak.reaction.add` 时该 actor 属于 `members[]`，为 `ak.reaction.remove` 时不属于。该键内所有断言 MUST 在同一 authority stream；相同 position 若对应不同 Event 或不同断言，属于 Commit 冲突，MUST fail closed，不能按 Event ID、到达顺序或墙钟破平。消费方缺失 stream 前缀时结果为 provisional，不得宣布收敛。producer 是否观察过先前断言不是当前 wire 可验证事实，不参与判定。
 
 - **去重**：同一 actor 对同一 `(target_ref, key)` 的多次 `add` 收敛为一个成员条目（`count` 不重复累加）；per-event 审计日志保留全部 add event。
-- **add / remove**：`ak.reaction.remove` 对该 actor、同 `(target_ref, key)`、且**不严格因果晚于**该 remove 的所有 add（即因果过去 ∪ 与该 remove 并发）打 tombstone；只有**严格因果晚于**该 remove 的 re-add 才存活。因此并发（无因果序）的 (add, remove) 在默认视图 MUST 按 remove 收敛；审计视图保留双方。本规则是 reaction 专用的 remove-wins set，是 §9.8.3 给出的 dot 集合并 join 之上的默认视图投影，不改变该 join 本身。
+- **add / remove**：提交顺序决定默认视图：较晚 accepted remove 隐藏先前 add；较晚 accepted add 重新显示该 actor；同时提交到治理 Station 的候选仍由先后签发的不同 Commit position 确定结果。审计视图保留全部断言，重复输入不重复计数。
 - **dangling**：`target_ref` 尚未观测到时，reducer MUST 把该 reaction 挂起（pending，`reason="dependency_missing"`），目标 Message 物化后再落 reaction set 条目。
 - **target redacted**：目标 Message 被 redact 后，默认视图 summary MUST NOT 暴露 reaction 成员；审计视图保留 reaction event 于 redaction stub 之下（与 [§9.5](#95-冲突与收敛规则) 撤回语义一致）。
 - **E2EE epoch**：routing tag 绑定当前 MLS epoch；同一真实 emoji 在不同 epoch 派生不同 tag，因此跨 epoch 不去重（见 §2.9 与 fixture `e2ee_epoch_rotation_breaks_dedup`）。
@@ -989,7 +981,7 @@ Reaction 不是 mention。`ak.reaction.add` / `ak.reaction.remove` 仅对 effect
 - Stage 事件 payload：`artifacts/schemas/event-payload.schema.json#/$defs/strand_stage_set_payload`。
 - Stage 事件 / capability 注册：`artifacts/registry/event-kind-registry.json`、`artifacts/registry/capability-action-registry.json`。
 - Stage 字段 forbidden-wire 规则：`artifacts/registry/forbidden-wire-fields.json`。
-- Reaction payload / 收敛向量：`artifacts/schemas/event-payload.schema.json#/$defs/reaction_payload`、`artifacts/fixtures/reaction-fixture.json`；E2EE 可见性见 [`../crypto-media/encryption-and-audit.md` §2.8](../crypto-media/encryption-and-audit.md)。
+- Reaction payload / 收敛向量：`artifacts/schemas/event-payload.schema.json#/$defs/reaction_payload`、`artifacts/fixtures/reaction-authority-order-fixture.json`；E2EE 可见性见 [`../crypto-media/encryption-and-audit.md` §2.8](../crypto-media/encryption-and-audit.md)。
 - 编辑窗口 / 撤回窗口约束：[`../authz/constraint-schema.md` §14.2](../authz/constraint-schema.md)（`message_edit_window` / `message_redact_window` / `redact_after_window_allowed`）。
 
 

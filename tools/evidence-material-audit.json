@@ -1,5 +1,5 @@
 {
-  "version": 18,
+  "version": 20,
   "source_of_truth": false,
   "narrative_source": "spec/v1/zh/models/common-fields.md#r6-证据类名词分工",
   "scope": [
@@ -371,7 +371,7 @@
     {
       "file": "contract-registry.json",
       "key": "evidence_class",
-      "occurrences": 14,
+      "occurrences": 15,
       "disposition": "registry_contract",
       "reason": "Closed DID-authority evidence classification on exact operation and Event call sites; it carries no evidence instance."
     },
@@ -470,7 +470,7 @@
     {
       "file": "did-freshness-profile-registry.json",
       "key": "evidence_class",
-      "occurrences": 20,
+      "occurrences": 21,
       "disposition": "registry_contract",
       "reason": "Bidirectional call-site metadata distinguishing registration, historical, current, successor, recovery and governance checks."
     },
@@ -826,7 +826,7 @@
     {
       "file": "normative-clause-registry.json",
       "key": "evidence_refs",
-      "occurrences": 36,
+      "occurrences": 34,
       "disposition": "registry_contract",
       "reason": "Names the conformance vectors that prove a normative clause; it is a coverage pointer, not a wire material instance."
     },

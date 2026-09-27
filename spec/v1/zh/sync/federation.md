@@ -82,6 +82,8 @@ Directory 首次 ingest 所需的依赖 MUST 以同一条获准 stream 中的 ex
 
 服务签名先于任何内层对象处理，但不替代 Event/Commit proof。
 
+**撤销后的幂等重放（normative）**：`ak.peer.events.command.submit.v1` 的 closed 三分支请求均先验当前 RFC 9421 peer service 签名与当前 service DID key。签名方法已撤销、无法解析或签名失效时返回 `signature_invalid`，不得查看幂等缓存后返回 `stored`、`duplicate` 或 `historical_only`；已接纳的旧 Event/Commit 不被撤回。当前签名有效但 Realm 的 origin service binding 已移除时返回 `capability_denied`。只有当前 transport 认证、schema 与本轮授权均通过，且 exact body、签名、幂等键及内部 key-state／授权 basis 与已存条目一致时，才可重放原逐项结果而不产生新写入；basis 变化必须重跑授权。幂等键和历史缓存均不是当前认证或历史读取许可。v1 peer submit 不提供撤销密钥的历史诊断成功分支。
+
 ### 3.4 Peer policy
 
 Peer allow/deny 只控制转发与复制入口，不能授予 governance authority。

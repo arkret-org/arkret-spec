@@ -4715,6 +4715,16 @@
           ]
         },
         {
+          "if": {
+            "required": ["encrypted_content"]
+          },
+          "then": {
+            "not": {
+              "required": ["poll_response_heads"]
+            }
+          }
+        },
+        {
           "$comment": "ak.message.create payload MUST NOT carry revision_root. Reducer initializes revision_root := id on create; only ak.message.revise events may set it. See zh/models/strand-and-message.md §9 and forbidden-wire-fields.json `revision_root/message_create_payload`.",
           "not": {
             "required": [

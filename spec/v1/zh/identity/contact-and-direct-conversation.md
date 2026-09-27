@@ -29,8 +29,8 @@ Contact 与 holder-private 备注、Realm 内 `ak.relation.*`、非 Contact Cons
 Contact wire 中的 `peer` **MUST** 是 closed discriminated XOR：human、Agent 与其它已登记
 principal kind 分支分别携带该分支的完整 stable subject/binding 字段；裸 `peer_id`、未知 kind、分支字段混用
 或仅靠显示 handle 推断主体均 **MUST** fail closed。Contact Event 的 signer **MUST** 是 holder-authorized
-long-term signer，且只能是 active human device、active Agent runtime，或 controller 依据 accepted narrow
-delegation 代表其 owned Agent 签名。session DPoP key、Station key 与 relay key 不得签 Contact Event。
+long-term signer；v1 Contact command 只接受与 authenticated holder 相同的 active human device 或 active Agent runtime。
+controller 代 owned Agent 签 Contact Event 的 delegated producer 形态虽有结构定义，但五个 prepare command 无 exact Agent holder 选择载体，v1 MUST fail closed 且零写入；不得从 controller 拥有的 Agent 集合猜测 holder，也不得绕过 reservation 直接提交 Event。session DPoP key、Station key 与 relay key 不得签 Contact Event。
 
 每个 issuer 独立维护 `(contact_round_id, issuer_id, peer)` lineage。不存在跨双方共享 pair CAS、两阶段互签
 assignment 或服务端代签。request 发生在 receipt/round 之前，只签完整 peer XOR、directional full-set scope与

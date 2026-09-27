@@ -5,7 +5,7 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.invite.claim_security.v1"
   },
-  "version": "2026-09-26.1",
+  "version": "2026-09-28.1",
   "profile": "ak.profile.station.v1",
   "covers_vectors": [
     "ak.vector.invite.claim_reducer_state_machine.v1",
@@ -27,6 +27,13 @@
           "evidence": [
             "/cases/0",
             "/cases/1"
+          ]
+        },
+        {
+          "id": "subject_pcr_method_unavailable",
+          "requirement": "v1 subject_proof accepts an authorized historical DID document method and rejects a PCR device method even if it is currently authorized.",
+          "evidence": [
+            "/cases/16"
           ]
         },
         {
@@ -340,6 +347,19 @@
         "the reducer resolves the unique accepted claim Event/Commit rather than trusting the claimed lifecycle string",
         "the accept author matches the accepted claim subject_account_id before join",
         "no member join or invite transition is written on mismatch"
+      ]
+    },
+    {
+      "name": "subject_pcr_device_method_is_unavailable_in_v1",
+      "given": "the subject signature is valid under a currently authorized PCR #ak:device method but no historical subject-device authority is bound to the claim cut",
+      "action": "submit the InviteClaim",
+      "decision": "reject",
+      "reason": "claim_invalid",
+      "observed": "accepted Event, Commit and invite lifecycle",
+      "assertions": [
+        "the method is rejected before any shared write",
+        "the producer proof does not authorize another subject's PCR device",
+        "a historically valid DID document method remains eligible"
       ]
     }
   ]

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-28.1",
+  "version": "2026-09-28.2",
   "source_of_truth": false,
-  "generated_at": "2026-09-28T05:08:00+08:00",
+  "generated_at": "2026-09-28T06:37:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -4904,7 +4904,7 @@
       "verb_form": "base",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Realm destroy lifecycle facet (terminal decommission marker)",
+      "payload": "Realm destroy lifecycle facet (terminal decommission marker); v1 production admission is closed pending an independent destructive-confirmation carrier",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_destroy_payload",
       "result_writes": [
         {

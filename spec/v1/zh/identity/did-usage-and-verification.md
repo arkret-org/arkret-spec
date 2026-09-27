@@ -134,7 +134,7 @@ DID freshness 是正交维度；高风险只要求其**实际授权根**新鲜�
 | 证据类别 | 封闭触发场景 | 必须验证的内容 | freshness |
 | --- | --- | --- | --- |
 | `registration_control` | human principal 注册、把已发布 DID 首次绑定到新建 PCR | 注册时 current `did` control proof、adapter 投影、bootstrap trust、method head/version、control-key digest、PCR genesis receipt | 注册 challenge 窗口内同步验证；accepted 后冻结为历史证据。 |
-| `accepted_at_history` | 首次重放 PCR genesis、历史 device/Agent/service authorization 或历史 receipt，且本地没有其 pinned evidence | 证据所钉 accepted-at position 的 DID/core 投影、key、method evidence 与 receipt/RealmCommit lineage | 以被钉时点为准；不得要求 current head 或 current controller。 |
+| `accepted_at_history` | 首次重放 PCR genesis、历史 device/Agent/service authorization 或历史 receipt，且本地没有其 pinned evidence；或按覆盖 `ak.invite.claim` 的 RealmCommit authority cut 验证 subject DID 文档方法 | 证据所钉 accepted-at position 的 DID/core 投影、key、method evidence 与 receipt/RealmCommit lineage | 以被钉时点为准；不得要求 current head 或 current controller。 |
 | `pcr_authority` | 已登记 carrier 直接验证 PCR accepted authority，而不读取 current DID | PCR genesis / RealmCommit / accepted authorization lineage 与其 pinned signer evidence | 以 carrier 固定的 exact RealmCommit basis 为准；不创建 current-DID refresh。 |
 | `current_external_claim` | 当前外部身份 badge/claim、当前 DID delegation/controller 声明 | 最新 method state、current controller/delegation、deactivation 与调用点 policy | 调用点登记的 current profile。失败只使该 claim stale/unavailable。 |
 | `method_successor` | `ak.identity.resolution.update`、webvh relocation、DID rotation/deactivation publication | 从 PCR accepted resolution head 到候选 head 的 method-native successor、same-core projection、current PCR author 与 CAS | 同步刷新或 fail closed；PCR author 与 method successor 缺一不可。 |
