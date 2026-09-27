@@ -2,8 +2,8 @@
   "files": [
     {
       "path": "spec/v1/artifacts/fixtures/account-blocklist-projection-fixture.json",
-      "sha256": "f492cf4888fe1d001e57ce3d4a5c25a5e20445b680ab60ec7e56de96da376a92",
-      "version": "2026-09-27.0"
+      "sha256": "91089ca56f6d85dbd5422764f5c3fbbbc99c3906fc87bb69b27d525dda8fcf0d",
+      "version": "2026-09-28.0"
     },
     {
       "path": "spec/v1/artifacts/fixtures/account-data-cas-convergence-fixture.json",

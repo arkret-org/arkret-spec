@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-26.5",
+  "version": "2026-09-28.0",
   "source_of_truth": true,
-  "generated_at": "2026-09-26T17:49:23+08:00",
+  "generated_at": "2026-09-28T03:58:49+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -23,7 +23,7 @@
       "applies_to_profiles": [
         "ak.profile.full_client.v1"
       ],
-      "description": "Personal blocklist whole-value CAS updates, target closure, shared-history receive-before-filter behavior, unblock projection rebuild and non-enumerable holder-side filtering.",
+      "description": "Personal blocklist whole-value CAS updates, target closure, shared-history and holder-private request receive-before-filter behavior, unblock projection rebuild and non-enumerable holder-side filtering; no v1 service plaintext disclosure.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/zh/discovery/client-preferences.md",

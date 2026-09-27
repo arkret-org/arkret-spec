@@ -23,7 +23,7 @@ updated: 2026-07-02
 
 ### 2.1 推送由 Station sync surface 或受托通知服务触发
 
-客户端在离线前向 Station sync surface 注册推送设备信息。此后由 Station sync surface 或 Realm policy 明确授权的通知服务按服务端内置的 membership、watch/mute、blocklist、route 与 `wakeup_default` gate 产生 blind / batch wakeup；设备被唤醒并解密后，在客户端执行用户的完整 push-rule chain，再决定是否进入用户可感知的通知 surface。
+客户端在离线前向 Station sync surface 注册推送设备信息。此后由 Station sync surface 或 Realm policy 明确授权的通知服务按服务端可见的 membership、watch/mute、route 与 `wakeup_default` gate 产生 blind / batch wakeup；服务端看不到个人 blocklist。设备被唤醒并解密后，在客户端执行个人 blocklist 与完整 push-rule chain，再决定是否进入用户可感知的通知 surface。
 
 ### 2.2 推送内容脱敏 (Blind Wakeup)
 
@@ -337,7 +337,7 @@ Dispatcher 在把 audience mention 转换为 notification / push 前 MUST 先完
 - sender 同时持有普通消息写入授权和 `ak.message.mention.broadcast` 授权；
 - effective Realm / Circle policy 允许该 `audience`，并声明有限 `max_recipients` 与 quota；
 - 展开后的 receiver 通过 Message effective scope、history visibility、Circle membership 和 target policy；
-- receiver 的 `level=muted`、个人 blocklist、DND 或更高优先级 `dont_notify` rule 没有抑制该通知。
+- receiver 的服务端可见 `level=muted` gate 没有抑制该 wakeup；个人 blocklist、DND 与更高优先级 `dont_notify` rule 由持钥 receiver 客户端在展示前检查，不作为服务端拒发 blind wakeup 的依据。
 
 `@here` 在 v1 中映射为 `audience="strand_engaged"`，即当前 Strand discussion 的历史参与者与当前有效 watchers 的并集；它不使用 presence / online 状态。`strand_watchers` 和 `strand_engaged` 的 watch 命中原因只在 receiver-side dispatcher 内部可见，MUST NOT 反向暴露给 sender 或普通 Realm 成员。
 

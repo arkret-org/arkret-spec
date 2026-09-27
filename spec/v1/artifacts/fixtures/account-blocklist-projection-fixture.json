@@ -5,7 +5,7 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.account.blocklist_projection.v1"
   },
-  "version": "2026-09-27.0",
+  "version": "2026-09-28.0",
   "profile": "ak.profile.full_client.v1",
   "covers_vectors": [
     "ak.vector.account.blocklist_projection.v1"
@@ -38,7 +38,7 @@
         },
         {
           "id": "receive_before_filter",
-          "requirement": "Shared history is received and retained first and filtered holder-side afterwards; the sender observes nothing.",
+          "requirement": "Shared history and holder-private requests are received under their existing authority and filtered only by a holder device afterwards; the sender observes nothing.",
           "evidence": [
             "/cases/4",
             "/cases/6"
@@ -53,7 +53,7 @@
         },
         {
           "id": "non_enumerable_outcome",
-          "requirement": "No surface lets the sender, the queried party or a federation peer distinguish blocked from unauthorized, absent or offline, including from a device whose blocklist freshness is unknown.",
+          "requirement": "No surface lets the sender, the queried party or a federation peer distinguish holder-side filtering from unauthorized, absent or offline, including from a device whose blocklist freshness is unknown.",
           "evidence": [
             "/cases/6",
             "/cases/7"
@@ -141,15 +141,15 @@
       ]
     },
     {
-      "name": "server_side_filtering_stays_indistinguishable",
-      "given": "the holder has explicitly authorized a service to read the blocklist data class",
-      "action": "a blocked sender submits a contact request, a first DM invite and a call invite",
+      "name": "holder_side_request_filtering_stays_indistinguishable",
+      "given": "the holder has a current encrypted blocklist and services have no plaintext blocklist grant or key",
+      "action": "a blocked sender submits a contact request, a first DM invite and a call invite through the registered paths",
       "decision": "accept",
-      "observed": "the sender-visible response shape, reason code and timing on each surface",
+      "observed": "the forwarded encrypted material, holder-side filtering and sender-visible response shape, reason code, timing and delivery receipt on each surface",
       "assertions": [
-        "the filtered outcome MUST NOT let the sender, the queried party or a federation peer separate blocked from unauthorized, absent or offline",
-        "a service without that explicit authorization forwards the encrypted material unchanged for client-side filtering instead of dropping it",
-        "no blocked_by_user reason reaches the sender on either path"
+        "services use only the existing request authority and forward encrypted material without inspecting or dropping it on account of the personal blocklist",
+        "the holder device opens its blocklist and filters the request locally on each of the three surfaces",
+        "the sender, the queried party and a federation peer cannot separate filtered from unauthorized, absent or offline by response, timing or delivery receipt; no blocked_by_user reason is exposed"
       ]
     },
     {

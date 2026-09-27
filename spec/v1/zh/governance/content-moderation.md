@@ -326,11 +326,11 @@ v1 不定义 `organization` 或 `realm` personal-blocklist target。
 
 ### 4.4 隐私要求
 
-个人 blocklist 是 holder-private account data。实现 MUST NOT 默认上传明文 blocklist 到公共 Station sync surface、Realm、Directory 或被屏蔽方可见的位置。
+个人 blocklist 是 holder-private account data。v1 实现 MUST NOT 把明文 blocklist 上传给 Station、通知服务、Realm、Directory、federation peer 或被屏蔽方。
 
-跨设备同步 MUST 使用加密 account data。普通 Station / federation peer 只能看到不透明密文；仅有被
-holder 显式授权读取 blocklist 明文的 confidential service 才能代表 holder 执行过滤，且不得向发送方
-或 peer 暴露命中结果。
+跨设备同步 MUST 使用加密 account data。Station / federation peer 只能看到不透明密文；v1 没有
+向 confidential service 交付个人 blocklist 明文及读取授权的正式操作。只有持钥 holder 客户端执行
+个人过滤，且不得向发送方或 peer 暴露命中结果。
 
 ## 5. Realm 审核工具
 

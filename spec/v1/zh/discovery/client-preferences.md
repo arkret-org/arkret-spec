@@ -32,11 +32,11 @@ Account Data 的存储、namespace key、`derive_account_data_key`、value encry
 ```
 ### 2.1 服务端 policy projection 能力协商（normative）
 
-account data 默认是 holder-private 加密数据，Station sync surface 只存不透明密文（[`../models/account-data.md` §1](../models/account-data.md)）。presence / typing 的精确 kind、target 与 visibility policy 不交给服务端读取；发送端按 [`profiles-presence.md` §3.4](./profiles-presence.md) 选择可安全加密的 scope。服务端仅可读取其它明确声明、确有服务端执行需要的最小 policy projection（例如单独授权的 blocklist data class）。"account data 加密"与"服务端执行 policy"之间的边界必须显式协商：
+account data 默认是 holder-private 加密数据，Station sync surface 只存不透明密文（[`../models/account-data.md` §1](../models/account-data.md)）。presence / typing 的精确 kind、target 与 visibility policy 不交给服务端读取；发送端按 [`profiles-presence.md` §3.4](./profiles-presence.md) 选择可安全加密的 scope。服务端只能执行已有正式载体明确披露的 policy projection；个人 blocklist 在 v1 没有这种载体：
 
 - 服务端 MUST 在 `ak.server.read.describe.v1`（`ServiceDescribe`）中声明它能否读取每个最小 policy projection（例如通过 `plaintext_visible_services.data_classes` 或等价 `policy_projection_readable[]` 声明）。`presence_visibility` 不得声明为服务端可读；未声明的其它 data class 视为不能读取。
 - Presence / typing 的 policy gate **固定在发送客户端**：客户端只向符合本端 membership、contact 与 visibility 判断的整个加密 scope 发送；无法安全选择 scope 时 MUST 抑制发送。Station sync surface 只按外层已签名 `scope_ref` 做成员级 fanout，不读取或推断 `ak.presence.visibility`，也不得因无法读取该 key 而把整个 opaque Signal rail 判为不可转发。
-- 单独声明且 holder 明确授权的其它最小 projection（例如 blocklist data class）可由服务端执行；其过滤结果 MUST NOT 让发送方、被查询方或 federation peer 区分"被屏蔽"与"无权限 / 不存在 / 离线"（§3.5）。
+- 个人 blocklist 只在持钥 holder 设备上解密和过滤；服务端不得从其它 plaintext data class、Realm 治理声明或服务自述推断 blocklist 明文读取权（§3.5）。
 
 ## 3. 标准账户数据类型
 
@@ -203,14 +203,14 @@ blocklist 没有独立 Event kind：它是 account-data key `ak.account.blocklis
 - 客户端 MUST NOT 把 blocklist 发布到公共 Realm 状态或目录服务。
 - 对被屏蔽方的可观察行为 MUST 与普通不可达 / 不可枚举场景一致：客户端和受托服务不得返回 `blocked_by_user`、不得发送 read receipt / typing / presence 的差异信号、不得因为 block 命中改变公开错误码、延迟模式或 directory 结果形态。需要本地诊断时只能在 holder 自己的加密 account data 或本地日志中记录。
 - `ak.account.blocklist` 是 account-private durable account-data 值：它可以在 holder 的设备间同步，但不进入共享 Realm RealmCommit coverage、membership state、Directory ingest 或 federation payload。
-- 若服务端代表用户执行 blocklist 过滤（例如通知、DM invite、call invite 或 directory preview），该服务 MUST 被 holder 显式授权读取对应 blocklist 明文，或声明自身进入 `plaintext_visible_services.data_classes=["blocklist"]` / 等价 holder-private confidential service；否则只能转发给客户端本地过滤。服务端执行模式不得让发送方、被查询方或 federation peer 区分"被屏蔽"与"无权限 / 不存在 / 用户离线"。
+- v1 没有 holder-private blocklist 明文授权或密钥交付操作。Station、通知服务、Directory 与 federation peer MUST NOT 解密、接收明文或代 holder 根据个人 blocklist 作准入、投递或查询判定；`plaintext_visible_services` 是 Realm 治理对象，不能授予该 account-private key 的读取权。它们按其它已有权限正常转发；持钥 holder 客户端在本地过滤。外部不得据此区分"被屏蔽"与"无权限 / 不存在 / 用户离线"。
 - `handle` target 只与发送者已验证 handle claim 中的 canonical `handle`逐字比较；`domain` target 只与该已验证 handle claim 的 domain 分量，或按 [`../identity/did-usage-and-verification.md`](../identity/did-usage-and-verification.md) 已验证的 DID 域名绑定比较。display name、未验证 handle / DID 字符串或裸字符串后缀均不得命中这两类 target；`keyword` 才是纯内容字符串过滤。三者命中都只在 holder-private projection 生效，不证明也不得推断任何 actor、service、Organization 或 Realm 的控制关系。
 
 #### 3.5.1 收取与过滤边界（normative）
 
 - **共享 Realm 消息**：必须先按正常 federation / sync 路径收取、验签、准入、存储并推进 canonical Event / RealmCommit 状态，因为同一 Event 对其他成员、引用链和 state root 仍然有效；随后才在 holder-private projection 应用 `block` / `hide`。不得在网络层丢弃该 Operation，也不得从共享 history、RealmCommit coverage 或其它成员视图删除它。被过滤内容不生成 holder notification、mention attention、自动 read receipt，且不得触发 typing / presence 等可让发送方推断 block 命中的差异信号。
 - **现有 Direct Conversation**：个人 blocklist 自身只是私有过滤器，不撤销 membership、Contact authority 或 participant authority。若产品的“拉黑用户”承诺阻止后续 DM 写入，客户端 MUST 把 blocklist 更新与 `ak.self.contact.command.tombstone.v1{block_peer=true}` 作为同一持久化 saga 执行并重试至闭合；Contact tombstone使稳定 conversation 投影为 `suspended` 并禁止新 application message，Consent revoke不得作为替代或附加门槛。只写 blocklist 时，对端仍可能成功提交 shared DM Event，本端必须同步后私下过滤。
-- **新的 holder-private 请求**：contact request、首次 DM invite、call invite 或 applet-mediated request 在受托服务有权读取 blocklist 时可于 holder surface 前 drop；否则服务必须以不可区分形态转发加密材料，由客户端本地过滤。两种模式都不得向发送方返回 `blocked_by_user`，也不得产生可区分的错误、时延或 delivery receipt。
+- **新的 holder-private 请求**：contact request、首次 DM invite、call invite 或 applet-mediated request 按各自既有权限正常转发给 holder，由持钥客户端在本地过滤；服务端不得因个人 blocklist 在 holder surface 前 drop。客户端不得向发送方返回 `blocked_by_user`，也不得产生可区分的错误、时延或 delivery receipt。
 - **解除屏蔽**：下一 revision 移除 entry 后，未来 projection 立即停止过滤。此前已经正常收取并按 retention 保留的共享 Realm / DM 历史会重新出现在 holder view；若产品希望解除后仍不显示旧内容，必须另存 holder-private hide/tombstone 或执行已有 erasure 流程，不能把 blocklist removal 偷换成历史删除。Block 期间被 Contact tombstone真正拒绝、从未 accepted 的新请求或消息不会因解除屏蔽而补写。
 - **离线与多设备**：设备只能依据其已同步到的最高 accepted blocklist revision 过滤。尚未取得新 revision 的设备必须把 blocklist freshness 视为 unknown，禁止发送 read receipt / presence 等可能泄漏差异的信号，待 actor-private account-data catch-up 后重算 holder projection。
 

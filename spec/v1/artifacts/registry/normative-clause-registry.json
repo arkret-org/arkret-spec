@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-26.6",
+  "version": "2026-09-28.0",
   "source_of_truth": true,
-  "generated_at": "2026-09-26T17:49:23+08:00",
+  "generated_at": "2026-09-28T03:58:49+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -578,8 +578,8 @@
       "status": "active",
       "category": "privacy",
       "source_anchor": "spec/v1/zh/conformance/conformance-vectors.md#31-account-与偏好",
-      "section_digest": "sha256:3c64f8c9b3a153da7ac34ea13a2a849c86412f843c13eaf57bff1aef5e1a3cd6",
-      "requirement": "The personal blocklist is a holder-private whole-value CAS result on one revision counter with a closed target set; shared history is received before it is filtered, unblocking rebuilds the projection from retained material, and no surface lets an outside party tell blocked apart from unauthorized, absent or offline.",
+      "section_digest": "sha256:6dc4a24541049926ee83fe35e571f10aeca3dfd9944f5b55081b71c53175ab82",
+      "requirement": "The personal blocklist is a holder-private whole-value CAS result on one revision counter with a closed target set; shared history and holder-private requests are received before client-side filtering, unblocking rebuilds the projection from retained material, and no surface lets an outside party tell blocked apart from unauthorized, absent or offline.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.account.blocklist_projection.v1"
