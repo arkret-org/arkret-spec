@@ -596,8 +596,8 @@ Arkret Station 向 Applet 推送 Event/Signal 批次，或按 §7.3.2 交付已�
 
 - `Idempotency-Key` MUST 作为逐次 transaction push 的 nonce / idempotency key 使用，并进入 HTTP Message Signature transcript（见 §7.3.1）。
 - 幂等 identity MUST 至少绑定 `(operation_id, direction, Source-Service-ID, Destination-Service-ID, Idempotency-Key)`；接收方的幂等记录 MUST 同时保存 canonical body digest / `Content-Digest` 与本次验签得到的 `delivery_authentication_record`。
-- 相同幂等 identity、相同 canonical body digest 且相同 `delivery_authentication_record` 的重复投递 MUST 返回原 outcome 或等价成功，不得再次执行外部副作用。
-- 相同幂等 identity 但 canonical body digest、source / destination service DID 或 `delivery_authentication_record` 任一不一致时 MUST fail closed；若认证先通过则返回 `duplicate_conflict`，若签名 / source 绑定先失败则返回 §7.3.1 的认证失败 reason。
+- 相同幂等 identity、相同 canonical body digest 且相同 `delivery_authentication_record_digest` 的重复投递 MUST 返回原 outcome 或等价成功，不得再次执行外部副作用。
+- 相同幂等 identity 但 canonical body digest、source / destination service DID 或 `delivery_authentication_record_digest` 任一不一致时 MUST fail closed；若认证先通过则返回 `duplicate_conflict`，若签名 / source 绑定先失败则返回 §7.3.1 的认证失败 reason。
 - 单事件级别仍以 `event_id` 去重；重复 `event_id` 且内容一致 MUST `accepted`，内容不一致 MUST 拒绝。
 - 接收方入站处理队列饱和（backpressure）时，transaction 响应 MUST 对无法入列的 event 逐条返回 `rejected[].reason_code="queue_full"` 并携带 `retry_after_ms`；该拒绝不消费幂等 identity，推送方 MAY 在 `retry_after_ms` 之后以同一幂等 identity 重投被拒 event，接收方 MUST 按普通幂等规则重新受理。
 - 幂等记录的保留窗口遵循 [`api-conventions.md` §6.1](../sync/api-conventions.md)：自记录创建起至少 24 小时，且不短于 [`../sync/service-http-binding.md` §8.3](../sync/service-http-binding.md) 共享窗口的签名寿命上限加最大允许时钟偏移；本节不定义更短窗口。
@@ -651,16 +651,19 @@ RFC 9421 derived components 与 header：
 - `idempotency_key` 是 header `Idempotency-Key` 的 exact value；`content_digest` 是通过 §2.5.1 profile 校验后的 canonical `Content-Digest` structured-field value，绑定 exact canonical body bytes。
 - `covered_components` 按 receiver 实际验证的 `Signature-Input` 顺序保存 canonical lowercase component identifier，必须包含本节 required set；`created` / `expires` 是同一 signature parameters 中的整数 UNIX seconds。
 
-记录使用 RFC 8785/JCS；不得增加 implementation-private 成员参与协议比较。其 digest 固定为：
+记录使用 RFC 8785/JCS；不得增加 implementation-private 成员参与协议比较。每次投递 MUST 先独立验证完整 RFC 9421 transcript、当前 key / registration / active install 与时效窗口。`created` / `expires` 保存在本次认证记录中供 freshness 验证与 audit，**仅这两个成员**不参与稳定幂等绑定；发送方以新的有效签名时间重试同一 body，不得因此成为另一项外部副作用。其 digest 固定为：
 
 ```text
+stable_delivery_authentication_binding =
+  delivery_authentication_record with only created and expires removed
+
 delivery_authentication_record_digest =
   "sha256:" + lowerhex(SHA256(
     UTF8("ak.applet.delivery_authentication_record.v1\n") ||
-    RFC8785_JCS(delivery_authentication_record)))
+    RFC8785_JCS(stable_delivery_authentication_binding)))
 ```
 
-receiver MUST 从本地派生记录重算 digest，不得信任 caller 或 cache 输入的预算值。domain label 不是 `delivery_authentication_record` 的成员，实现 **MUST NOT** 把它以 `domain`、`profile` 或任何其他键插入记录后改算 `SHA256(JCS(record))`；该标签只以上式的 UTF-8 前缀形态参与摘要。记录的字段集封闭为本节列出的成员，**MUST NOT** 追加 `Signature` bytes、原始 `Signature-Input` 字符串、webhook 认证配置或请求摘要等本节未列出的成员。幂等 / replay equality 是重算后的 digest 相等；实现私有 audit metadata 可以与记录并列保存，但不得改变该 equality。实现不得只用裸 `Idempotency-Key` 或 body 内 `source_id` 决定重复投递，也不得在 service DID key rotate、registration epoch 改变或 active install 撤销后把旧记录当成新授权。
+receiver MUST 从本地派生记录重算 digest，不得信任 caller 或 cache 输入的预算值。domain label 不是 `delivery_authentication_record` 的成员，实现 **MUST NOT** 把它以 `domain`、`profile` 或任何其他键插入记录后改算 `SHA256(JCS(record))`；该标签只以上式的 UTF-8 前缀形态参与摘要。记录的字段集封闭为本节列出的成员，**MUST NOT** 追加 `Signature` bytes、原始 `Signature-Input` 字符串、webhook 认证配置或请求摘要等本节未列出的成员。幂等 / replay equality 是上述稳定投影重算后的 digest 相等，MUST NOT 再比较完整记录中的 `created` / `expires`。完整记录与两个时间成员仍必须保存；接收方可以另存逐次 audit，但不得刷新原 outcome、重做副作用或用旧窗口代替本次 freshness 验证；实现私有 audit metadata 可以与记录并列保存，但不得改变该 equality。实现不得只用裸 `Idempotency-Key` 或 body 内 `source_id` 决定重复投递，也不得在 service DID key rotate、registration epoch 改变或 active install 撤销后把旧记录当成新授权。
 
 `source_id` 只认证来源服务，不认证每条 durable Event 的业务 actor。arkret edge 把 Applet transaction 落为 Arkret Event 时，仍 MUST 对每条 Event 独立验证 `actor_id`、`applet_id`、`authorization_ref`、`external_ref` / provenance、`producer_proof` 与 registration `namespaces.actors` / capability grant；ghost actor、bot actor 或 delegated native actor 与 source service 不一致时 MUST fail closed（`applet_namespace_mismatch` / `capability_denied` / `applet_registration_unauthorized`，按失败层级选择）。
 
@@ -675,7 +678,7 @@ code 与 `type` URI，接收方 MUST 直接返回该 code，MUST NOT 返回通�
 - 签名验证失败、`Content-Digest` header profile 不符合 [`../sync/service-http-binding.md` §8.2](../sync/service-http-binding.md)、digest 不覆盖 exact HTTP content bytes、wire 本身不是 canonical JSON，或 `source_id` 与 header / transcript 不一致：`http_signature_invalid`（401，`type=https://arkret.org/problems/http_signature_invalid`）。
 - `created` / `expires` 超出时效窗口（含 replay cache evict 后的窗口外重放）：`signature_window_invalid`（401，`type=https://arkret.org/problems/signature_window_invalid`）。
 - inbound 方向 `Source-Service-ID` 无 active effective install 或与 registration service DID 不一致：fail closed，code=`applet_registration_unauthorized`（403，与 §4 / §4b 同门槛）。
-- 幂等 identity 已存在但 canonical body digest 或 `delivery_authentication_record` 不一致：认证成功后 MUST 返回 `duplicate_conflict`；认证未通过时 MUST 优先返回上述对应的认证失败 code，避免泄露历史 transaction 状态。
+- 幂等 identity 已存在但 canonical body digest 或稳定 `delivery_authentication_record_digest` 不一致：认证成功后 MUST 返回 `duplicate_conflict`；认证未通过时 MUST 优先返回上述对应的认证失败 code，避免泄露历史 transaction 状态。
 
 transaction push 的逐次签名是传输层来源认证，**不替代** §8 每条 Applet-originated 写入 Event 的 envelope event signature（`producer_proof`）与 capability grant 校验：arkret 把外部 transaction 落为 durable Arkret Event 时，仍 MUST 按 §8 / §11 校验每条 Event 的 `actor_id` / `applet_id` / `authorization_ref` / `producer_proof`。
 
