@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-28.0",
+  "version": "2026-09-28.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-28T00:03:00+08:00",
+  "generated_at": "2026-09-28T05:08:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -1211,7 +1211,7 @@
               ]
             }
           },
-          "value_schema_ref": "schemas/event-payload.schema.json#/$defs/call_state_payload/properties/state_transition",
+          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_state_result/properties/value",
           "notes": "crypto-media/call-state.md section 4.2. The event-derived selector retypes this Event id as CallId. Creation installs {from:null,to:payload.initial_state}; the schema restricts the target to scheduled, ringing or connecting. Conflicting reuse fails before the write."
         }
       ]

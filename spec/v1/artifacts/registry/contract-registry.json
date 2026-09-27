@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-28.0",
+  "version": "2026-09-28.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-28T00:03:00+08:00",
+  "generated_at": "2026-09-28T05:08:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -1594,7 +1594,7 @@
                 ]
               }
             },
-            "value_schema_ref": "schemas/event-payload.schema.json#/$defs/call_state_payload/properties/state_transition",
+            "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_state_result/properties/value",
             "notes": "crypto-media/call-state.md section 4.2. The event-derived selector retypes this Event id as CallId. Creation installs {from:null,to:payload.initial_state}; the schema restricts the target to scheduled, ringing or connecting. Conflicting reuse fails before the write."
           }
         ]
@@ -8447,8 +8447,8 @@
         }
       }
     },
-    "version": "2026-09-28.0",
-    "generated_at": "2026-09-28T00:03:00+08:00",
+    "version": "2026-09-28.1",
+    "generated_at": "2026-09-28T05:08:00+08:00",
     "bootstrap_event_kinds": [
       "ak.device.authorize",
       "ak.device.reanchor",

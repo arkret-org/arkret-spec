@@ -49,6 +49,28 @@ class CallCurrentGenesisSchemaTest(unittest.TestCase):
         self.current.validate({"from": "connecting", "to": "active"})
         self.assertFalse(self.delta.is_valid({"from": None, "to": "ringing"}))
 
+    def test_creation_writer_registry_points_at_the_genesis_aware_current(self):
+        artifacts = SCHEMAS.parent
+        for name in ["contract-registry.json", "event-kind-registry.json"]:
+            registry = json.loads((artifacts / "registry" / name).read_text(encoding="utf-8"))
+            def find_create(value):
+                if isinstance(value, dict):
+                    if value.get("event_kind") == "ak.call.create":
+                        return value
+                    for child in value.values():
+                        found = find_create(child)
+                        if found is not None:
+                            return found
+                elif isinstance(value, list):
+                    for child in value:
+                        found = find_create(child)
+                        if found is not None:
+                            return found
+                return None
+            writer = find_create(registry)["result_writes"][0]
+            self.assertEqual(writer["value_schema_ref"],
+                             "schemas/typed-current-result.schema.json#/$defs/call_state_result/properties/value")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -81,9 +81,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
-      "version": "2026-09-28.0",
-      "generated_at": "2026-09-28T00:03:00+08:00",
-      "content_digest": "sha256:22e8807c855c2db3639a9f5faf14a8fdf5398db281c55913db8fe86f0bd5eb3b"
+      "version": "2026-09-28.1",
+      "generated_at": "2026-09-28T05:08:00+08:00",
+      "content_digest": "sha256:986aebbd2d17a24633d3f37982d5564649ef09fa78ef891dc7a44011039363f3"
     },
     {
       "path": "spec/v1/artifacts/registry/current-result-registry.json",
@@ -135,9 +135,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/event-kind-registry.json",
-      "version": "2026-09-28.0",
-      "generated_at": "2026-09-28T00:03:00+08:00",
-      "content_digest": "sha256:adb0158dfd6835cda9cb2522e6d68e5d9120ec9e41c1f0a31201459aa055a178"
+      "version": "2026-09-28.1",
+      "generated_at": "2026-09-28T05:08:00+08:00",
+      "content_digest": "sha256:9dc65d8e25aa6e646d5c624e70b101d1fc662683a8c3ed7889a0f77cef8aa44b"
     },
     {
       "path": "spec/v1/artifacts/registry/event-kind-vector-gap-registry.json",
