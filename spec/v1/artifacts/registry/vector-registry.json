@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-28.6",
+  "version": "2026-09-28.7",
   "source_of_truth": true,
-  "generated_at": "2026-09-28T09:48:02+08:00",
+  "generated_at": "2026-09-28T11:21:11+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -3686,7 +3686,7 @@
       "applies_to_fixtures": [
         "peer-event-submit-semantic-union-fixture.json"
       ],
-      "description": "The sole peer Event ingress has exactly three mutually exclusive semantic branches: authority_forward performs first admission only at current governance; committed_replication verifies bounded full source Event/RealmCommit rows and stores exact replicas without re-signing or second fanout; registered_atomic_unit materializes Direct Conversation founding or membership compensation all-or-nothing. Full-body canonical-hash exact replay is branch-stable.",
+      "description": "The sole peer Event ingress has exactly three mutually exclusive semantic branches: authority_forward performs first admission with approval evidence only at current governance; committed_replication verifies bounded exact source Event/RealmCommit rows with private approval_signatures omitted and stores replicas without re-signing or second fanout; registered_atomic_unit materializes Direct Conversation founding or membership compensation all-or-nothing. Full-body canonical-hash exact replay is branch-stable.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/peer-event-submit-semantic-union-fixture.json"
       ]

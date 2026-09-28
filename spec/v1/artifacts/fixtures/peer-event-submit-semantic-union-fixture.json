@@ -1,6 +1,6 @@
 {
   "profile": "ak.vector.peer.event_submit.semantic_union.v1",
-  "version": "2026-09-25.2",
+  "version": "2026-09-28.1",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.peer.event_submit.semantic_union.v1"
@@ -50,6 +50,7 @@
         "wrong_authority_generation",
         "broken_previous_commit_chain",
         "redacted_or_locked_event",
+        "approval_signatures_on_committed_replication",
         "wire_recipient_witness_rejected",
         "wire_processing_rejected",
         "no_eligible_local_member",
@@ -72,6 +73,7 @@
         "wrong_authority_generation": "rejected_zero_replica_write",
         "broken_previous_commit_chain": "rejected_zero_replica_write",
         "redacted_or_locked_event": "rejected_zero_replica_write",
+        "approval_signatures_on_committed_replication": "schema_rejected_zero_replica_write",
         "wire_recipient_witness_rejected": "schema_rejected_zero_replica_write",
         "wire_processing_rejected": "schema_rejected_zero_replica_write",
         "no_eligible_local_member": "rejected_zero_replica_write",

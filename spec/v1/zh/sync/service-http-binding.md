@@ -163,7 +163,11 @@ HTTP operation 的通用 batch 分支。以后若登记独立 Event 的便捷 ba
   `mls_genesis_material`（Genesis 所引两个 Blob 的原始字节），治理 Station 核对内容寻址后在接纳事务内保存
   （[`../crypto-media/encryption-and-audit.md` §5.1.2](../crypto-media/encryption-and-audit.md)）。
 - `committed_replication`：携 `replications[1..100]`；每项直接是
-  `{event_submission: EventAdmissionSubmission, source_commit: RealmCommit}`，source Event 为 `ak.mls.commit` 时可另携
+  `{event_submission: EventAdmissionSubmission, source_commit: RealmCommit}`，其中 `event_submission` 只能是
+  `{event: 完整 source Event}`；`approval_signatures` MUST 省略，带该成员的 item 为 `schema_violation` 且零写入。
+  `authority_forward` 首次准入仍将原提交中的审批证据送达治理 Station；治理 Station 在本地事务保留私密审计，
+  复制接收方只依 Event／source Commit 与本机可验证的当前事实判定复制资格，不重审首次审批。
+  source Event 为 `ak.mls.commit` 时可另携
   目标 service 托管的 recipient 的 `welcomes[]`（其它 kind 禁带），接收方在同一 replica 事务按本地 claim ledger 复核并入队
   （[`../crypto-media/encryption-and-audit.md` §2.2](../crypto-media/encryption-and-audit.md)）。`processing`、`committed_event`
   wrapper、`recipient_witnesses` 与 destination echo 均不存在。接收方逐项验证 event/commit/ref、source

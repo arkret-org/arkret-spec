@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-28.3",
+  "version": "2026-09-28.4",
   "source_of_truth": true,
-  "generated_at": "2026-09-28T07:55:00+08:00",
+  "generated_at": "2026-09-28T11:21:12+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -155,7 +155,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/sync/api-conventions.md#6-幂等",
-      "section_digest": "sha256:1860ceac23c9b5c24ff138f905c320ee4d0e48d03f2f4e223840c631bc154d6e",
+      "section_digest": "sha256:5eac10b9540a971cad5ef19007f49bd686d3e66097e935a430359a32683055d5",
       "requirement": "Every write operation declares a machine-readable idempotency mechanism and retry safety; clients MUST NOT be left to guess the recovery path of an uncertain outcome.",
       "testability_grade": "vector",
       "evidence_refs": [

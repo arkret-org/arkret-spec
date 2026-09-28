@@ -99,6 +99,9 @@ Authority 离线时可继续读已缓存字节，但整个 Realm 不能生成新
 ### 4.1 Event forwarding
 
 Event forwarding 始终保留 exact producer bytes，并只将 current authority 的 Commit 视为 accepted。
+`authority_forward` 是首次准入到治理 Station 的路径：若原 `EventAdmissionSubmission` 带
+`approval_signatures[]`，转发时 MUST 保留该证据供治理 Station 验证；成员站的
+`committed_replication` 则遵守 §4.1.1 的私密证据剥离规则。
 转发 `ak.mls.genesis` 时，`authority_forward` 另携 `mls_genesis_material`：Genesis 所引 GroupInfo 与 ratchet tree 两个
 Blob 的原始字节，由治理 Station 核对内容寻址后在接纳事务内保存；其它 kind 禁带（规则见
 [`../crypto-media/encryption-and-audit.md` §5.1.2](../crypto-media/encryption-and-audit.md)）。
@@ -132,8 +135,13 @@ Service 历史在 `attested_at` 的 assertion method 与签名、attestation `ex
 
 同一 service DID 的 endpoint/record 更新只刷新 transport route，MUST NOT 改变冻结 basis、target identity 或原幂等键。AccountId 的 Station 分量变化意味着另一完整 ActorId，不是旧 intent 的 route 更新；之后同一 principal 以新 AccountId、其它 ActorId 或新 membership Event 重新加入，只能影响新 intent，MUST NOT 复活或重定向旧 intent。多个 frozen members 共享同一 service 时，一个成员退出不影响其它仍完整有效的 basis。
 
-durable outbox 必须使用 `ak.peer.events.command.submit.v1` 的 `committed_replication` 分支。每项携完整 source
-`EventAdmissionSubmission` 与 source-signed `RealmCommit`；source Event 是 `ak.mls.commit` 且目标 service 托管该
+durable outbox 必须使用 `ak.peer.events.command.submit.v1` 的 `committed_replication` 分支。每项沿用
+`EventAdmissionSubmission` 与 source-signed `RealmCommit` 结构，但前者只能是 `{event}`；该 Event
+MUST 是完整、逐字不变的 source canonical Event。
+`approval_signatures` MUST 省略，即使首次准入的 source submission
+带有该字段也一样。治理 Station 在本地 accepted-at 私密审计中保留原提交及审批证据；
+复制目标不得取得审批证据，也不得以缺少它为由重做首次准入或拒绝已验证的 Event／Commit。
+source Event 是 `ak.mls.commit` 且目标 service 托管该
 Commit 的 Welcome recipient 时，另携这些 recipient 的全部 exact `MlsWelcomeDelivery`（`welcomes[]`，由治理 Station 在
 接纳事务内写入该 intent；其它 kind 禁带），成员站在同一 replica 事务内按本地 claim ledger 复核并入队
 （[`../crypto-media/encryption-and-audit.md` §2.2](../crypto-media/encryption-and-audit.md)）。`fanout_authorization_basis`
