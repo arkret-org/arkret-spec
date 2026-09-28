@@ -106,14 +106,15 @@
     },
     "roster_add_record": {
       "type": "object",
-      "required": ["kind", "commit_event_ref", "consumed_proposal_ordinal", "sender_actor_id", "proposal_wire_b64u", "attestation"],
+      "required": ["kind", "commit_event_ref", "consumed_proposal_ordinal", "sender_actor_id", "proposal_wire_b64u", "attestation", "attestor_resolution"],
       "properties": {
         "kind": {"const": "add"},
         "commit_event_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
         "consumed_proposal_ordinal": {"type": "integer", "minimum": 0, "description": "Zero-based index of this inline Add in the accepted Commit PublicMessage's ProposalOrRef vector, counting every consumed Proposal kind."},
         "sender_actor_id": {"$ref": "./common-ids.schema.json#/$defs/actor_id"},
         "proposal_wire_b64u": {"type": "string", "minLength": 1, "pattern": "^[A-Za-z0-9_-]+$", "description": "Canonical unpadded base64url of the exact TLS-serialized RFC 9420 Proposal body at consumed_proposal_ordinal in the accepted, signed Commit PublicMessage. It is never an independent Proposal handshake input or a synthetic ProposalRef."},
-        "attestation": {"$ref": "#/$defs/mls_add_authority_attestation"}
+        "attestation": {"$ref": "#/$defs/mls_add_authority_attestation"},
+        "attestor_resolution": {"$ref": "./identity-resolution.schema.json#/$defs/authenticated_service_resolution", "description": "Complete method-native Station history verified and durably frozen with this exact Add attestation. Its service_id must equal attestation.attestor_station_id and its historical assertion methods must verify both the original claim receipt and the Add attestation. This evidence is not a current delivery route."}
       },
       "additionalProperties": false
     },
@@ -146,6 +147,7 @@
     },
     "roster_read_outcome": {
       "type": "object",
+      "description": "One governance-signed page containing the longest continuous prefix of 1..8 complete records that fits the 2 MiB canonical JSON response limit. Pages are cut-bound, and next_cursor identifies the next record offset; no caller-selected page size or partial record is permitted.",
       "required": ["manifest", "page_index", "records"],
       "properties": {
         "manifest": {"$ref": "#/$defs/roster_manifest"},

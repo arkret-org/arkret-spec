@@ -180,12 +180,29 @@ claim batch 里未加入该 group 的其它 KeyPackage。证明签名输入分�
 `claims_digest` 并验证原 receipt，再重算该记录 digest。重复或缺失 `claim_id`、receipt 与 outcome
 非同一份首次接纳结果，均不得安装 attestation。
 
+治理 Station 首次安装 Add attestation 时 MUST 使用已验证的 recipient Station same-core 服务路由取得完整
+`AuthenticatedServiceResolution`，按原 claim `claimed_at` 与 attestation `attested_at` 分别验证历史
+`assertionMethod`、Station 身份与两份签名，并把该完整 method-native resolution closure 与 exact Add
+attestation 在同一持久事务冻结。`roster_add_record.attestor_resolution` 是这份已验原件；
+`service_id` MUST 等于 `attestation.attestor_station_id`，`service_kind` MUST 为 `station`。
+首次取证不得从裸 `attestor_station_id` 或签名 `kid` 的 DID 托管域猜测 Station URL；`kid` 只选历史
+verification method，不授予当前服务路由。已冻结 resolution 是历史验签材料，MUST NOT 被客户端当作
+当前业务投递 endpoint。治理 Station 对每条 Add 在受权 roster read 中原样返回该 closure，并与 Add
+attestation 保留至同一历史 cut 不再可读；重放同一 attestation 不得替换旧 closure，缺失、损坏、
+历史方法或任一原签名无效时整份 roster `revision_unavailable`。
+
 `ak.self.mls.read.roster_authority.v1` 经成员的 Account Station 用
 `ak.peer.mls.read.roster_authority.v1` 向治理 Station 取得同一 accepted group／epoch cut 的完整历史
 provenance。两端均须在读取时 current 与目标 accepted cut 对完整 ActorId、effective scope、membership、
 history 与 policy 做授权；曾经是成员但已离组者不得仅凭历史身份读取。任何本应位于该 cut 的 Add 证明
 缺失、签名无效、冲突或超过保留范围，已授权请求整份结果统一 `revision_unavailable`，
 不返回部分 roster、缺项数或可枚举的原因；无权或不可见目标统一 `not_found`。
+每条历史 Add 的完整 attestor resolution 仅随这条受权记录披露，不提供按 Station ID 独立枚举的读面；
+虽然 service resolution 本身可公开取得，该记录揭示某个 scope 的历史 attestor 拓扑，故必须服从上述
+相同的 current／target cut、scope、history、policy 与 retention 门。客户端 MUST 对每条 closure
+独立验证完整 method-native 历史、`service_id`／`service_kind`，并在原 `claimed_at` 与
+`attested_at` 验原 receipt 与 attestation 的历史 `assertionMethod` 和签名；不允许用 manifest
+签名代替 recipient 的两份历史签名，也不允许用当前 DID Document 代替原历史 key。
 结果由治理 Station 对 exact scope／group／Genesis／target Commit／epoch、Genesis payload 中不变的
 `group_info_ref` 与 `ratchet_tree_ref`、完整记录总数与全量 JCS digest
 作 domain-separated 签名；分页只传输同一冻结集合，客户端须收齐、验签并重算 digest，拒绝重复、跳页或
@@ -194,11 +211,20 @@ Welcome、调用方输入或缺证据的历史投影反推；治理 Station 在�
 整份 roster 为 `revision_unavailable`。epoch 0 的 `target_commit_event_ref` 与 `authority_head_commit_event_ref` 均填写该 Genesis
 Event ref；其它 epoch 的目标 ref 必须是产生目标 epoch 的 accepted Commit Event，head ref 是签发时
 同一 group 的最新 accepted Commit Event。冻结集合先放唯一 Genesis 记录，再按 accepted Commit 的
-stream position 递增、同一 Commit 中 consumed Proposal 的 wire 顺序放每条历史 Add 记录；每页从
-该数组按连续的至多 8 条记录切分，除最后一页外恰有 8 条，`page_count=ceil(total_records/8)`。
+stream position 递增、同一 Commit 中 consumed Proposal 的 wire 顺序放每条历史 Add 记录。治理
+Station 在签 manifest 前按完整 canonical JSON 响应的 2 MiB 上限确定页边界：每页取从下一个
+未返回记录开始、在该上限内可容纳的最长连续前缀，记录数为 1..8；不得截断单条或跳项。
+`page_count` 是按该确定性边界得到的页数，不由 `ceil(total_records/8)` 推算。计算页边界时须计入
+最终签名 manifest、`page_index` 与 `next_cursor` 的编码大小；签名后若最终页超限，必须重算并
+重新签名，不能发送超限响应。
 `records_digest` 必须是 `sha256:` 加上 `SHA-256(JCS(上述完整有序 roster_record 数组))` 的小写
-十六进制。opaque `cursor` 只标识该已签 manifest 的下一页和调用方；治理 Station 须重新检查读取权限，
+十六进制。opaque `cursor` 只标识该已签 manifest 的下一页、下一条记录位置和调用方；治理 Station 须重新检查读取权限，
 并在当前 head 与 manifest 的 `authority_head_commit_event_ref` 不同时拒绝续页，不得混合两个版本。
+`attestor_resolution` 是 `roster_add_record` 的必填成员，因而与 exact Proposal、attestation
+一起计入上述全数组 digest，由治理 manifest 签名绑定。请求没有调用方选择的 page size；服务端
+必须按最终 2 MiB 响应上限自动选择完整记录前缀。若一条完整记录连同必需的签名 manifest 与
+分页 envelope 仍超限，已授权请求 MUST 整份 `revision_unavailable`，不得裁剪 closure、返回部分
+roster、跳项或让客户端改用从 `kid` 推导的 URL 取证。
 每条 Add record 的 `consumed_proposal_ordinal` 是该 accepted Commit `proposals[]` 中从零开始、
 计入所有 Proposal kind 的原位置；`sender_actor_id` 是上述已验 Member sender 的完整 ActorId；
 `proposal_wire_b64u` 是该位置**内联** RFC 9420 `Proposal` body 的精确 TLS bytes 的无填充
@@ -218,7 +244,7 @@ Station 的签名 manifest 是这些 body／ordinal／sender 与已接纳 Commit
 及原 claim receipt 的可验证绑定，**不携 leaf index**。客户端只从经 digest 校验的 RFC GroupInfo／tree
 取得 occupied index，再按 leaf key 与 provenance 一一匹配；Remove+Add 即使全部身份／key／位置相同
 也必须用不同创建 Commit 识别。不得返回 private tree、MLS secret 或服务端推断的 leaf DTO。
-治理 Station 须将已安装的最小签名历史证明保留到该 group 的 accepted history 不再可读取；recipient
+治理 Station 须将已安装的签名历史证明及其完整 attestor resolution 保留到该 group 的 accepted history 不再可读取；recipient
 Station 的原 claim outcome 仍可按 §9 的既有短期规则清理，但其签名 attestation／outbox 须至少保留至
 治理 Station 确认持久安装。具体 closed wire、签名和页完整性由
 `mls-roster-authority.schema.json` 定义；缺证据时 Welcome 安装保持 `decryption_pending`。

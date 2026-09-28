@@ -5,7 +5,7 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.mls.roster_authority.v1"
   },
-  "version": "2026-09-29.7",
+  "version": "2026-09-29.8",
   "profile": "ak.profile.e2ee_client.v1",
   "covers_vectors": [
     "ak.vector.mls.roster_authority.v1"
@@ -179,6 +179,56 @@
       ]
     },
     {
+      "given": "An authenticated recipient Station route supplies a complete method-native resolution at peer attest_add ingress; governance verifies the original claim receipt at claimed_at and Add attestation at attested_at, then freezes that exact resolution with the Add. A current and target-cut authorized member reads the signed roster after the recipient's route has changed or become unreachable",
+      "expected": {
+        "decision": "the Add record carries the immutable attestor_resolution with matching station service_id and service_kind; the signed full-record digest covers it, and the member verifies both historical assertion methods and signatures offline without deriving a URL from kid"
+      },
+      "name": "frozen_attestor_resolution_authorized_positive",
+      "covers_decision_points": [
+        "AK-SDK-009/welcome_roster_requires_complete_historical_leaf_authority"
+      ]
+    },
+    {
+      "given": "An otherwise accepted Add has no frozen attestor_resolution, a truncated method history, a closure for another service_id or service_kind, or a resolution whose historical assertion method fails either the original claim receipt or Add attestation",
+      "expected": {
+        "decision": "the authorized complete roster is revision_unavailable and the client installs no leaf; replay cannot replace the frozen closure with a later current document"
+      },
+      "name": "attestor_resolution_missing_or_wrong_reject",
+      "covers_decision_points": [
+        "AK-SDK-009/welcome_roster_requires_complete_historical_leaf_authority"
+      ]
+    },
+    {
+      "given": "A former member or hidden-scope caller requests a roster that would reveal another Station's historical resolution closure",
+      "expected": {
+        "decision": "self and peer reads return indistinguishable not_found without a standalone Station lookup, Add count, closure or proof-availability signal"
+      },
+      "name": "attestor_resolution_obeys_roster_privacy_gate",
+      "covers_decision_points": [
+        "AK-SDK-009/welcome_roster_requires_complete_historical_leaf_authority"
+      ]
+    },
+    {
+      "given": "Several consecutive Add records carry complete WebVH histories that make eight records exceed the 2 MiB canonical response ceiling, while each full record plus signed envelope fits alone",
+      "expected": {
+        "decision": "governance deterministically emits the largest contiguous 1..8-record prefix that fits each page, signs one complete-array digest and resulting page_count, and advances an opaque cursor to the exact next record without truncation, duplication or gap"
+      },
+      "name": "attestor_resolution_byte_bounded_pages_positive",
+      "covers_decision_points": [
+        "AK-SDK-009/welcome_roster_requires_complete_historical_leaf_authority"
+      ]
+    },
+    {
+      "given": "A single complete Add record with its retained attestor resolution cannot fit with the required signed manifest and cursor within the 2 MiB canonical response ceiling, or a continuation cursor skips a record or names an old authority head",
+      "expected": {
+        "decision": "authorized read is wholly revision_unavailable; no partial closure, shortened record, alternate URL bootstrap or mixed-cut page is returned"
+      },
+      "name": "attestor_resolution_oversize_or_gap_reject",
+      "covers_decision_points": [
+        "AK-SDK-009/welcome_roster_requires_complete_historical_leaf_authority"
+      ]
+    },
+    {
       "given": "An accepted signed Commit PublicMessage contains inline PSK then two inline Adds; governance freezes each TLS Proposal body and its Member sender at wire ordinals 0, 1 and 2 in the same Event/RealmCommit transaction",
       "expected": {
         "decision": "roster Add records use consumed_proposal_ordinal 1 and 2, not renumbered Add-only positions; proposal_wire_b64u decodes to each exact inline TLS Proposal body, sender_actor_id equals the verified Commit sender ActorId, and each Add KeyPackage ActorId/leaf key matches the recipient attestation and verified post-Commit tree"
@@ -249,9 +299,9 @@
       ]
     },
     {
-      "given": "epoch 0 roster read names Genesis as both target and authority head; later cuts enumerate Genesis then every historical Add by accepted Commit stream position and consumed Proposal wire order, eight records per nonfinal page",
+      "given": "epoch 0 roster read names Genesis as both target and authority head; later cuts enumerate Genesis then every historical Add by accepted Commit stream position and consumed Proposal wire order, with the longest complete 1..8-record prefix fitting the 2 MiB ceiling on each page",
       "expected": {
-        "decision": "manifest page_count and SHA-256 JCS digest match the complete ordered array; page reassembly is deterministic"
+        "decision": "manifest page_count and SHA-256 JCS digest match the complete ordered array; byte-bounded page reassembly is deterministic without assuming eight records on each nonfinal page"
       },
       "name": "genesis_cut_and_deterministic_pages",
       "covers_decision_points": [

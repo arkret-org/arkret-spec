@@ -382,8 +382,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-roster-authority-fixture.json",
-      "sha256": "42b98851f40e1cda926e7c40bcdb6a826b41c77d55ecba5736d968ff642130ee",
-      "version": "2026-09-29.7"
+      "sha256": "1678f7fb51a843fcae91647372d97544a385ff16cfa0f2b498e4af16688d8da4",
+      "version": "2026-09-29.8"
     },
     {
       "path": "spec/v1/artifacts/fixtures/operation-registry-coverage-fixture.json",
