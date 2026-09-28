@@ -376,6 +376,26 @@
       ]
     },
     {
+      "schema_path": "account-operations.schema.json#/$defs/applet_delegated_session_inventory_outcome/properties/service_id",
+      "property_name": "service_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "account-operations.schema.json#/$defs/applet_delegated_session_inventory_request_body/properties/service_id",
+      "property_name": "service_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
       "schema_path": "account-operations.schema.json#/$defs/did_binding_challenge_outcome/properties/audience_id",
       "property_name": "audience_id",
       "semantic_category": "responsibility_identity_material",

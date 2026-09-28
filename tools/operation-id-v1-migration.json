@@ -124,6 +124,10 @@
       "new": "ak.gate.account.exchange.create_handoff.v1"
     },
     {
+      "old": "ak.gate.account.read.applet_delegated_session_inventory",
+      "new": "ak.gate.account.read.applet_delegated_session_inventory.v1"
+    },
+    {
       "old": "ak.gate.account.read.claim_device_pairing_code",
       "new": "ak.gate.account.read.claim_device_pairing_code.v1"
     },

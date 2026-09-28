@@ -297,6 +297,7 @@
           "ak.gate.account.command.request_erasure.v1",
           "ak.gate.account.command.revoke_session.v1",
           "ak.gate.account.exchange.create_handoff.v1",
+          "ak.gate.account.read.applet_delegated_session_inventory.v1",
           "ak.gate.account.read.onboarding.v1",
           "ak.peer.account_status.command.submit.v1",
           "ak.peer.account_status.read.resolve.v1",

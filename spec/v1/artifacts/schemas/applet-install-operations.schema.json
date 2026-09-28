@@ -466,8 +466,26 @@
           "items": {
             "$ref": "#/$defs/typed_ref"
           }
+        },
+        "delegated_session_snapshot_digest": {
+          "$ref": "#/$defs/digest"
         }
       },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "revoke_mode": {"enum": ["revoke_all", "revoke_delegated_sessions"]}
+            },
+            "required": ["revoke_mode"]
+          },
+          "then": {"required": ["delegated_session_snapshot_digest"]},
+          "else": {
+            "not": {"required": ["delegated_session_snapshot_digest"]},
+            "properties": {"delegated_session_refs": {"maxItems": 0}}
+          }
+        }
+      ],
       "additionalProperties": false
     },
     "applet_capability_revoke_intent": {

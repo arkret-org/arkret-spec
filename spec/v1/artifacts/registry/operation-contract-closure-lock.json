@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-28.6",
-  "generated_at": "2026-09-28T09:48:02+08:00",
+  "version": "2026-09-28.8",
+  "generated_at": "2026-09-28T15:08:00+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -125,11 +125,15 @@
     },
     {
       "operation_id": "ak.gate.account.command.revoke_session.v1",
-      "sha256": "sha256:7e9dc9c664ab68b82572b3431593cd3fed136e86f785c577ba1c409070eb027e"
+      "sha256": "sha256:22a21b847c057c420f0f269fd5759ee993019d5ab4e803d816ecaaf952a75b4e"
     },
     {
       "operation_id": "ak.gate.account.exchange.create_handoff.v1",
       "sha256": "sha256:5dbbaf54e6bac523bbaf58920269777727529c381074908fd8166656d2e9a263"
+    },
+    {
+      "operation_id": "ak.gate.account.read.applet_delegated_session_inventory.v1",
+      "sha256": "sha256:9d84c0cc7c0f38d63c371d775b54d2cd67ec2f1a576206cbfe0be287fc2d964e"
     },
     {
       "operation_id": "ak.gate.account.read.claim_device_pairing_code.v1",
@@ -485,7 +489,7 @@
     },
     {
       "operation_id": "ak.self.applet.revoke.command.preview.v1",
-      "sha256": "sha256:dd97b6d05e915b620be1f703a0c1771aea7ed77695e7a0efba84a3ce6d20aa8b"
+      "sha256": "sha256:674958562989258013db4d00263cf83b1927a9c945a5132f7c7d461ae25c4970"
     },
     {
       "operation_id": "ak.self.authz.grants.read.effective.v1",

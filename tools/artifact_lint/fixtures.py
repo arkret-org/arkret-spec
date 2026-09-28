@@ -2363,6 +2363,33 @@ def check_applet_revoke_saga_contract(lint: Lint) -> None:
     else:
         if kat.get("schema_ref") != plan_ref:
             lint.fail(fixture_path, f"preview_plan_digest_kat.schema_ref must be {plan_ref}")
+        inventory_kat = kat.get("delegated_session_inventory_kat")
+        inventory_ref = "schemas/account-operations.schema.json#/$defs/applet_delegated_session_inventory_outcome"
+        if not isinstance(inventory_kat, dict) or not isinstance(inventory_kat.get("outcome"), dict):
+            lint.fail(fixture_path, "preview_plan_digest_kat must carry a complete issuer inventory witness")
+        else:
+            inventory = inventory_kat["outcome"]
+            check_json_instance_against_schema(
+                lint, fixture_path, "delegated_session_inventory_kat.outcome", inventory_ref, inventory
+            )
+            selector_keys = (
+                "applet_id", "effective_scope", "registration_epoch", "service_id", "capability_grant_refs"
+            )
+            if inventory_kat.get("request") != {key: inventory.get(key) for key in selector_keys}:
+                lint.fail(fixture_path, "inventory response selector must echo the exact request")
+            inventory_payload = {key: value for key, value in inventory.items() if key != "snapshot_digest"}
+            witness = "sha256:" + hashlib.sha256(
+                b"ak.applet_delegated_session_inventory.v1\n" + canonical_json(inventory_payload).encode("utf-8")
+            ).hexdigest()
+            if inventory.get("snapshot_digest") != witness:
+                lint.fail(fixture_path, "inventory witness must bind selector, revision and full active set")
+            aba = dict(inventory_payload)
+            aba["inventory_revision"] += 2
+            aba_witness = "sha256:" + hashlib.sha256(
+                b"ak.applet_delegated_session_inventory.v1\n" + canonical_json(aba).encode("utf-8")
+            ).hexdigest()
+            if aba_witness == witness:
+                lint.fail(fixture_path, "inventory revision must reject A-B-A replay")
         revoke_plan = kat.get("revoke_plan")
         if not isinstance(revoke_plan, dict):
             lint.fail(fixture_path, "preview_plan_digest_kat.revoke_plan must be an object")

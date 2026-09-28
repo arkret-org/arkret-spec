@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-28.5",
+  "version": "2026-09-28.6",
   "source_of_truth": false,
-  "generated_at": "2026-09-28T09:48:00+08:00",
+  "generated_at": "2026-09-28T15:08:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -1169,6 +1169,8 @@
           "registration_epoch",
           "service_id",
           "capability_grant_refs",
+          "expected_inventory_digest",
+          "authorizing_session_grant_id",
           "proof"
         ],
         "closed": true
@@ -1223,6 +1225,54 @@
           "expires_at",
           "allowed_operations",
           "binding"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.gate.account.read.applet_delegated_session_inventory.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/account-operations.schema.json#/$defs/applet_delegated_session_inventory_request_body",
+        "schema_kind": "object",
+        "required": [
+          "applet_id",
+          "effective_scope",
+          "registration_epoch",
+          "service_id",
+          "capability_grant_refs"
+        ],
+        "properties": [
+          "applet_id",
+          "effective_scope",
+          "registration_epoch",
+          "service_id",
+          "capability_grant_refs"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/account-operations.schema.json#/$defs/applet_delegated_session_inventory_outcome",
+        "schema_kind": "object",
+        "required": [
+          "applet_id",
+          "effective_scope",
+          "registration_epoch",
+          "service_id",
+          "capability_grant_refs",
+          "inventory_revision",
+          "active_session_grant_ids",
+          "snapshot_digest"
+        ],
+        "properties": [
+          "applet_id",
+          "effective_scope",
+          "registration_epoch",
+          "service_id",
+          "capability_grant_refs",
+          "inventory_revision",
+          "active_session_grant_ids",
+          "snapshot_digest"
         ],
         "closed": true
       }

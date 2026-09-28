@@ -59,6 +59,12 @@
       "$ref": "#/$defs/session_revoke_outcome"
     },
     {
+      "$ref": "#/$defs/applet_delegated_session_inventory_request_body"
+    },
+    {
+      "$ref": "#/$defs/applet_delegated_session_inventory_outcome"
+    },
+    {
       "$ref": "#/$defs/account_request_erasure_request_body"
     },
     {
@@ -2039,6 +2045,33 @@
       },
       "additionalProperties": false
     },
+    "applet_delegated_session_inventory_request_body": {
+      "type": "object",
+      "required": ["applet_id", "effective_scope", "registration_epoch", "service_id", "capability_grant_refs"],
+      "properties": {
+        "applet_id": {"$ref": "#/$defs/applet_id"},
+        "effective_scope": {"$ref": "../schemas/applet-install-plan.schema.json#/$defs/effective_scope"},
+        "registration_epoch": {"$ref": "#/$defs/digest"},
+        "service_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
+        "capability_grant_refs": {"type": "array", "items": {"$ref": "#/$defs/typed_ref"}, "uniqueItems": true}
+      },
+      "additionalProperties": false
+    },
+    "applet_delegated_session_inventory_outcome": {
+      "type": "object",
+      "required": ["applet_id", "effective_scope", "registration_epoch", "service_id", "capability_grant_refs", "inventory_revision", "active_session_grant_ids", "snapshot_digest"],
+      "properties": {
+        "applet_id": {"$ref": "#/$defs/applet_id"},
+        "effective_scope": {"$ref": "../schemas/applet-install-plan.schema.json#/$defs/effective_scope"},
+        "registration_epoch": {"$ref": "#/$defs/digest"},
+        "service_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
+        "capability_grant_refs": {"type": "array", "items": {"$ref": "#/$defs/typed_ref"}, "uniqueItems": true},
+        "inventory_revision": {"type": "integer", "minimum": 0, "maximum": 18446744073709551615},
+        "active_session_grant_ids": {"type": "array", "maxItems": 256, "items": {"$ref": "#/$defs/session_grant_id"}, "uniqueItems": true},
+        "snapshot_digest": {"$ref": "#/$defs/sha256_digest"}
+      },
+      "additionalProperties": false
+    },
     "session_revoke_request_body": {
       "type": "object",
       "properties": {
@@ -2070,6 +2103,12 @@
           },
           "uniqueItems": true
         },
+        "expected_inventory_digest": {
+          "$ref": "#/$defs/sha256_digest"
+        },
+        "authorizing_session_grant_id": {
+          "$ref": "#/$defs/session_grant_id"
+        },
         "proof": {
           "$ref": "#/$defs/account_lifecycle_proof"
         }
@@ -2077,7 +2116,12 @@
       "dependentRequired": {
         "applet_id": [
           "effective_scope",
-          "registration_epoch"
+          "registration_epoch",
+          "service_id",
+          "capability_grant_refs",
+          "expected_inventory_digest",
+          "authorizing_session_grant_id",
+          "proof"
         ],
         "effective_scope": [
           "applet_id",
@@ -2086,6 +2130,21 @@
         "registration_epoch": [
           "applet_id",
           "effective_scope"
+        ],
+        "expected_inventory_digest": [
+          "applet_id",
+          "effective_scope",
+          "registration_epoch",
+          "service_id",
+          "capability_grant_refs"
+        ],
+        "authorizing_session_grant_id": [
+          "applet_id",
+          "effective_scope",
+          "registration_epoch",
+          "service_id",
+          "capability_grant_refs",
+          "expected_inventory_digest"
         ],
         "service_id": [
           "applet_id",

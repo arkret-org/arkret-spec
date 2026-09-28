@@ -341,6 +341,23 @@ plan 的成员，因此进入 JCS bytes 与 `revoke_plan_digest`；caller MUST �
 projection 不完整时 MUST fail closed 并要求先重建 projection，不得按 namespace pattern、旧 request 或
 本地默认值猜测 grant/member/token/session。
 
+`revoke_all` 与 `revoke_delegated_sessions` 的 delegated-session 枚举权威只能是 Account Authority 的
+`ak.gate.account.read.applet_delegated_session_inventory.v1`。Station 从 current effective install 构造完整
+`(applet_id,effective_scope,registration_epoch,service_id,capability_grant_refs)` selector；请求不能由 caller
+自行选择或删减 grant refs。该只读操作在 issuer ledger 的单一线性化点返回同一 selector 的完整、按 ID
+升序且无重复的 `active_session_grant_ids[]`、每 selector 单调递增的 `inventory_revision` 与
+`snapshot_digest`；超过 256 项、ledger 不可读或不能证明完整时 MUST 显式失败，不得分页截断或默认空集。
+`snapshot_digest` 是 `sha256:` 加 SHA-256(`ak.applet_delegated_session_inventory.v1\n` 的 ASCII bytes ||
+RFC 8785 JCS(完整 response 去掉 `snapshot_digest`)) 的小写十六进制。revision 必须随该 selector 的
+issue、refresh、revoke 及 fence 变动持久递增，不能从当前 active ID 集推导；即使集合经过 A→B→A，
+旧 witness 也不能复活。Station MUST 校验响应回显的五字段、排序、唯一性、摘要和完整性语义，
+将 ID 逐项写入 `delegated_session_refs[]`，将 witness 写入必填的
+`delegated_session_snapshot_digest`；**空集同样需要该 witness**。其它 revoke mode 不得携该 witness，
+`delegated_session_refs[]` 必须为空。此 gate 读操作跨独立 Station／Account Authority service identity，
+只接受受信的同部署 Station service 身份和 [`service-http-binding.md` §8.1](../sync/service-http-binding.md)
+的 RFC 9421 `service_to_service` 签名，不向普通用户或 Applet 开放。同一 TCB 内可直接调用相同 issuer
+逻辑，但不得另造公开 RPC 或把私有管理接口当此操作。
+
 Commit MUST 携 `revoke_plan_digest`、与每个 grant intent 一一对应的 caller-signed
 `capability_revoke_events: EventAdmissionSubmission[]`，以及与 membership intent 一一对应的 caller-signed
 `membership_state_events: EventAdmissionSubmission[]`。服务端必须在首个副作用前重算 plan，并逐字节验证
@@ -369,13 +386,37 @@ widget token、delegated session 与 local fence 等本地 step 始终携非 Eve
 resource 的闭合 union，submitted/rejected identity 不得进入。部分成功返回 `in_progress|partially_completed` 与精确 steps/rejected refs；已
 accepted Event 不回滚、不重签，只继续缺失步骤。
 
+涉及 delegated session 的 Commit 在写入 ledger 之前 MUST 重新读取完整 issuer inventory；其
+`delegated_session_snapshot_digest` 或 ID 集与 preview plan 不同，必须返回 stale-plan 错误、零新领域副作用，
+要求 caller 重新 preview、确认并签名。已持久化的 exact request 重试只恢复原 ledger，不能以当前
+inventory 改写原计划。为避免有限寿命的 `AccountLifecycleProof` 在跨服务等待时耗尽，delegated-session
+撤销必须是该 saga 的首个领域副作用：Station 将原 plan witness 作为
+`ak.gate.account.command.revoke_session.v1` Applet selector 的 `expected_inventory_digest`，Account Authority
+在一个 issuer 事务中比较 exact selector 与当前 revision/ID 集 witness、撤销所列全部 active grant、
+记录 exact replay outcome，并对该 `(applet_id,effective_scope,registration_epoch)` 立持久 fence，
+后续 issue/refresh 不得复活该 install 的 session。CAS 不匹配时子操作零副作用，不得继续 Event 步骤。
+已接纳的子操作即使响应丢失或 proof 后来过期，也可按原 identity 与 bytes 重放原结果；issuer 在同一锁内
+先查 durable exact outcome，再判断未接纳请求的 proof 时效。若 issuer 明确返回“该 exact 子操作从未接纳、
+零 effect 且 proof 已过期”，Station 才能终止没有其它领域 effect 的 ledger，由 caller 以新 preview/proof/
+Idempotency-Key 重启。ledger 中 `pending` 不能证明 AA 未接纳；AA 不可达或返回 indeterminate 时必须保持
+pending、继续原 identity 重试，不得换 key 或豁免 proof。该步骤已接纳后，后续 Event step 的不明结果仅
+重放原 signed bytes。
+
 从第一条相关 `ak.capability.revoke` 或 `ak.member.state` 被 accepted 起，目标 `effective_scope` 内未来 Applet
 writes MUST 立即 fail closed，code=`applet_revoked` 或更细 reason，不能等待 saga 全部完成；其它 scope 只有在
 其自身 effective install 仍 active 时才继续授权。最后一个 active effective install 被 fence 后，Applet service、
 Bot 与全部 Ghost 才形成全局 `applet_revoked` fence。涉及 delegated session
 revoke 时，请求还 MUST 携 `proof: AccountLifecycleProof`；Station MUST 用 active install 重建
 `ak.gate.account.command.revoke_session.v1` applet selector（`applet_id`、`effective_scope`、
-`registration_epoch`、`service_id`、`capability_grant_refs`）并转发给 Account Authority。
+`registration_epoch`、`service_id`、`capability_grant_refs`、`expected_inventory_digest`、
+`authorizing_session_grant_id`）并转发给
+Account Authority。`expected_inventory_digest` 必须等于原 plan 的
+`delegated_session_snapshot_digest`。`authorizing_session_grant_id` 只能来自 Station 对原 admin 请求完成
+Account Authority exact-token introspection 与 DPoP 后的 active grant，不能从 body 自选或使用开发环境
+bearer。Station 对转发请求使用上述 RFC 9421 服务签名；Account Authority 必须从自身 issuer ledger 独立查
+active grant，取得 actor、device 与 audience，核对已接受的当前 DID/device binding，并据此验证原
+`AccountLifecycleProof` 对 exact selector（含 inventory witness）的签名。只信 Station 声称的 admin 或
+复用未经校验的 proof 均不合规。普通 DPoP revoke selector 不得携这两个 Applet 专用字段。
 
 ## 5. Namespace
 

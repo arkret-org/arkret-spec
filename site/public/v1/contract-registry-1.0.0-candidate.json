@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-28.5",
+  "version": "2026-09-28.6",
   "source_of_truth": true,
-  "generated_at": "2026-09-28T09:48:00+08:00",
+  "generated_at": "2026-09-28T15:08:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -12233,7 +12233,8 @@
           "ak.gate.account.command.issue_recovery_completion_grant.v1",
           "ak.gate.account.command.logout.v1",
           "ak.gate.account.command.request_erasure.v1",
-          "ak.gate.account.command.revoke_session.v1"
+          "ak.gate.account.command.revoke_session.v1",
+          "ak.gate.account.read.applet_delegated_session_inventory.v1"
         ],
         "surface_class": "deployment_local"
       },
@@ -12802,7 +12803,7 @@
         "http": "POST /_arkret/gate/account/session-grants/revoke",
         "grpc": "GateAccount/SessionRevoke",
         "mq": "gate.account.command.revoke_session",
-        "notes": "Durable issuer-ledger session revocation. The stable request identity binds issuer, operation kind, authenticated principal/session, canonical target selector and canonical request digest. One issuer transaction records the exact outcome and idempotently transitions matching active records to revoked. Same identity and canonical intent replays the byte-identical recorded outcome after current caller authorization is revalidated; the same identity with different intent is duplicate_conflict with zero additional state changes. Introspection is not a substitute for resolving an uncertain mutation outcome.",
+        "notes": "Durable issuer-ledger session revocation. The stable request identity binds issuer, operation kind, authenticated principal/session, canonical target selector and canonical request digest. One issuer transaction records the exact outcome and idempotently transitions matching active records to revoked. The Station-signed Applet selector requires exact five-field install identity, expected_inventory_digest from the complete issuer inventory, and authorizing_session_grant_id obtained from exact-token introspection plus DPoP. Account Authority independently looks up that active grant to obtain actor/device/audience, validates current accepted DID/device binding and the AccountLifecycleProof, then compares revision and active IDs in the same transaction, revokes the complete matched set, and durably fences that install epoch against future issue/refresh. A stale witness has zero effects. Same accepted identity and canonical intent replays the byte-identical recorded outcome even after proof expiry; the same identity with different intent is duplicate_conflict with zero additional state changes. Introspection is not a substitute for resolving an uncertain mutation outcome.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "protocol_sequence",
@@ -12837,6 +12838,16 @@
           "kind": "none",
           "rationale": "persists_only_service_local_dpop_handoff_lease_fence_and_account_binding_state_no_event_is_authored"
         }
+      },
+      {
+        "operation_id": "ak.gate.account.read.applet_delegated_session_inventory.v1",
+        "http_only_variant": true,
+        "http": "POST /_arkret/gate/account/session-grants/applet-inventory",
+        "notes": "Account Authority-only complete active delegated-session inventory for one exact Applet install selector. Only an accepted same-deployment Station service identity may invoke it using the service_to_service RFC 9421 HTTP signature profile; it is not a user or Applet read. The issuer reads the full exact set from its ledger at one linearization point, rejects unavailable or more than 256 results, and returns sorted unique grant IDs, a monotonic per-selector inventory_revision, and a domain-separated snapshot_digest binding the complete response. An empty list is authoritative only with a valid matching witness. The public gate operation crosses distinct service identities; an in-process same-TCB call need not traverse HTTP and is not a separate protocol operation.",
+        "body_class": "non_streaming_json",
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/account-operations.schema.json#/$defs/applet_delegated_session_inventory_request_body",
+        "response_schema_ref": "schemas/account-operations.schema.json#/$defs/applet_delegated_session_inventory_outcome"
       },
       {
         "operation_id": "ak.gate.account.read.claim_device_pairing_code.v1",
@@ -15927,8 +15938,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-28.2",
-    "generated_at": "2026-09-28T09:48:00+08:00",
+    "version": "2026-09-28.3",
+    "generated_at": "2026-09-28T15:08:00+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",
@@ -16568,6 +16579,10 @@
           },
           {
             "operation_id": "ak.gate.account.command.revoke_session.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.gate.account.read.applet_delegated_session_inventory.v1",
             "binding_kind": "http_json"
           },
           {
