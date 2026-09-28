@@ -356,7 +356,11 @@ issue、refresh、revoke 及 fence 变动持久递增，不能从当前 active I
 `delegated_session_refs[]` 必须为空。此 gate 读操作跨独立 Station／Account Authority service identity，
 只接受受信的同部署 Station service 身份和 [`service-http-binding.md` §8.1](../sync/service-http-binding.md)
 的 RFC 9421 `service_to_service` 签名，不向普通用户或 Applet 开放。同一 TCB 内可直接调用相同 issuer
-逻辑，但不得另造公开 RPC 或把私有管理接口当此操作。
+逻辑，但不得另造公开 RPC 或把私有管理接口当此操作。Station 首次 preview／Commit 的
+`Destination-Service-ID` MUST 来自已由 Account Authority exact-token introspection 与 DPoP 验证的
+管理员 SessionGrant `issuer_id`，不得从 URL 或 Applet registration 猜测；已持久化 saga 的 exact replay
+MUST 使用首次 ledger 冻结的该身份。目标 URL 与 DID service endpoint／该身份不匹配时按 RFC 9421
+认证边界失败关闭。
 
 Commit MUST 携 `revoke_plan_digest`、与每个 grant intent 一一对应的 caller-signed
 `capability_revoke_events: EventAdmissionSubmission[]`，以及与 membership intent 一一对应的 caller-signed
