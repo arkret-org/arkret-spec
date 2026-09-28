@@ -180,9 +180,12 @@ provenance。两端均须在读取时 current 与目标 accepted cut 对完整 A
 history 与 policy 做授权；曾经是成员但已离组者不得仅凭历史身份读取。任何本应位于该 cut 的 Add 证明
 缺失、签名无效、冲突或超过保留范围，已授权请求整份结果统一 `revision_unavailable`，
 不返回部分 roster、缺项数或可枚举的原因；无权或不可见目标统一 `not_found`。
-结果由治理 Station 对 exact scope／group／Genesis／target Commit／epoch、完整记录总数与全量 JCS digest
+结果由治理 Station 对 exact scope／group／Genesis／target Commit／epoch、Genesis payload 中不变的
+`group_info_ref` 与 `ratchet_tree_ref`、完整记录总数与全量 JCS digest
 作 domain-separated 签名；分页只传输同一冻结集合，客户端须收齐、验签并重算 digest，拒绝重复、跳页或
-不同 cut。epoch 0 的 `target_commit_event_ref` 与 `authority_head_commit_event_ref` 均填写该 Genesis
+不同 cut。两条 Blob ref 必须从 exact accepted Genesis payload 取出，不得从当前 epoch 的 public tree、
+Welcome、调用方输入或缺证据的历史投影反推；治理 Station 在签名每页 manifest 前核对，缺原始依据时
+整份 roster 为 `revision_unavailable`。epoch 0 的 `target_commit_event_ref` 与 `authority_head_commit_event_ref` 均填写该 Genesis
 Event ref；其它 epoch 的目标 ref 必须是产生目标 epoch 的 accepted Commit Event，head ref 是签发时
 同一 group 的最新 accepted Commit Event。冻结集合先放唯一 Genesis 记录，再按 accepted Commit 的
 stream position 递增、同一 Commit 中 consumed Proposal 的 wire 顺序放每条历史 Add 记录；每页从
@@ -218,6 +221,10 @@ Station 的原 claim outcome 仍可按 §9 的既有短期规则清理，但其�
 取得同一 accepted Genesis 所承诺 RFC GroupInfo 与 ratchet tree 原字节的唯一成员端操作；它不授予设备
 `ak.peer.mls.read.group_state_material.v1` 的服务身份。self 请求必带完整 `caller_actor_id`、Realm、
 effective scope、group、epoch 0、Genesis Event ref、两条 content-addressed Blob ref 与可选响应字节上限。
+后来加入的成员先取得并验证同一 target cut 的完整 signed roster manifest，再从其中已签名且与 exact
+accepted Genesis 核对的 `group_info_ref`、`ratchet_tree_ref` 构造物料请求；这些 ref 不是设备自报的
+授权依据。若 manifest 缺失、签名或 selector 不符，设备保持 `decryption_pending`，不得猜 ref、越过
+`since_join` 读取 Genesis Event，也不得把当前 epoch 的 `public_tree_ref` 当作 Genesis tree。
 请求另必带目标 accepted Commit Event ref 与 epoch，指明此次取证的加入／读取 cut；它们不改变物料始终
 属于 epoch 0 Genesis 的事实。Account Station 必须核对 caller 为本次已认证 session 的 exact ActorId，
 并在请求时 current 与该目标 cut 分别验证 joined membership、scope 可见性、history 与 policy；无权、已离组、

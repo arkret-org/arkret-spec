@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 8888,
+    "total_properties": 8890,
     "total_schema_documents": 166,
     "by_presence_class": {
       "optional": 2110,
       "optional_defaulted": 47,
-      "required": 6260,
+      "required": 6262,
       "required_nullable": 305,
       "tristate": 166
     },
@@ -8500,9 +8500,11 @@
         "/$defs/roster_manifest/properties/effective_scope": "required",
         "/$defs/roster_manifest/properties/genesis_event_ref": "required",
         "/$defs/roster_manifest/properties/governance_station_id": "required",
+        "/$defs/roster_manifest/properties/group_info_ref": "required",
         "/$defs/roster_manifest/properties/issued_at": "required",
         "/$defs/roster_manifest/properties/mls_group_id": "required",
         "/$defs/roster_manifest/properties/page_count": "required",
+        "/$defs/roster_manifest/properties/ratchet_tree_ref": "required",
         "/$defs/roster_manifest/properties/realm_id": "required",
         "/$defs/roster_manifest/properties/records_digest": "required",
         "/$defs/roster_manifest/properties/signature": "required",

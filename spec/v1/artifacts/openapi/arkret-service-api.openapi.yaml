@@ -2156,6 +2156,7 @@ paths:
         destinationTrustDomain: []
         contentDigest: []
       summary: Read a signed page of complete MLS roster authority for an authorized member.
+      description: The governance-signed manifest repeats on every page and binds both immutable public Blob refs from the exact accepted Genesis. A later-joined member verifies this manifest before constructing the separate public material request.
       requestBody:
         required: true
         content:
@@ -5160,6 +5161,7 @@ paths:
       - sessionGrantAuth: []
         dpopProof: []
       summary: Read an authorized signed MLS roster authority page from the current governance Station.
+      description: The joined member verifies the complete signed manifest before using its Genesis GroupInfo and ratchet-tree Blob refs as exact selectors for the separate member public material read.
       requestBody:
         required: true
         content:

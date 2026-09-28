@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-24.1",
+  "version": "2026-09-29.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-24T18:30:33+08:00",
+  "generated_at": "2026-09-29T03:11:42+08:00",
   "description": "Closed per-field exemption registry for zh/conformance/encoding.md 4.0.1. A closed object that carries a complete content-addressed typed ref (an id_kind_registry special form marked content_addressed, with a pattern that is exactly that one form) already carries the suite and every digest octet of the referenced bytes, so any sibling digest property in that object is a forbidden wire mirror unless this registry states the distinct preimage it commits to. Rows are keyed by (schema file, json path of the properties object, digest field). content_addressed_refs must equal the current set of in-scope content-addressed ref properties in that object so a later ref addition forces a fresh ruling. Every row is a ruling: there is no undecided kind.",
   "registry_rules": {
     "exemption_id_pattern": "^ak\\.exemption\\.sibling_digest\\.[a-z0-9_]+\\.v[0-9]+$",
@@ -77,6 +77,22 @@
       },
       "preimage": "Digest of the bytes owned by this Blob metadata resource; thumbnail_blob_ref addresses separately derived thumbnail bytes",
       "spec_anchor": "spec/v1/zh/crypto-media/media-and-blob.md"
+    },
+    {
+      "exemption_id": "ak.exemption.sibling_digest.mls_roster_authority_manifest_records_digest.v1",
+      "status": "active",
+      "kind": "distinct_preimage",
+      "subject": {
+        "schema_file": "schemas/mls-roster-authority.schema.json",
+        "json_path": "$.$defs.roster_manifest.properties",
+        "digest_field": "records_digest",
+        "content_addressed_refs": [
+          "group_info_ref",
+          "ratchet_tree_ref"
+        ]
+      },
+      "preimage": "SHA-256 of RFC 8785 JCS over the complete ordered roster_record array independent of page boundaries; group_info_ref and ratchet_tree_ref each address a distinct raw RFC 9420 public material byte string from the accepted Genesis",
+      "spec_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md"
     },
     {
       "exemption_id": "ak.exemption.sibling_digest.realm_authority_handoff_final_stream_heads_digest.v1",

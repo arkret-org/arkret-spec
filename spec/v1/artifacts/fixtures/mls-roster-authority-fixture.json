@@ -5,7 +5,7 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.mls.roster_authority.v1"
   },
-  "version": "2026-09-29.6",
+  "version": "2026-09-29.7",
   "profile": "ak.profile.e2ee_client.v1",
   "covers_vectors": [
     "ak.vector.mls.roster_authority.v1"
@@ -74,6 +74,26 @@
         "decision": "accept only with matching accepted Genesis selectors, both content-addressed raw-byte digests and RFC public tree; no peer credential is exposed to the device"
       },
       "name": "cross_station_member_public_material_read",
+      "covers_decision_points": [
+        "AK-SDK-009/welcome_roster_requires_complete_historical_leaf_authority"
+      ]
+    },
+    {
+      "given": "A since_join member cannot read the prejoin Genesis Event but receives the complete governance-signed roster manifest for its authorized target cut; that manifest carries group_info_ref and ratchet_tree_ref copied from the exact accepted Genesis",
+      "expected": {
+        "decision": "verify the manifest signature and exact scope/group/Genesis/target selectors first, then use its two signed immutable Blob refs in the member material request and verify both returned byte digests and RFC public state"
+      },
+      "name": "prejoin_member_uses_signed_roster_genesis_refs",
+      "covers_decision_points": [
+        "AK-SDK-009/welcome_roster_requires_complete_historical_leaf_authority"
+      ]
+    },
+    {
+      "given": "A roster manifest omits either Genesis Blob ref or names a ref different from the exact accepted Genesis, or the member substitutes the current epoch public_tree_ref for the Genesis tree",
+      "expected": {
+        "decision": "reject the entire roster or material read before installing a leaf binding; authorized missing Genesis evidence is revision_unavailable and the client stays decryption_pending"
+      },
+      "name": "roster_genesis_ref_missing_or_mismatch_reject",
       "covers_decision_points": [
         "AK-SDK-009/welcome_roster_requires_complete_historical_leaf_authority"
       ]

@@ -122,14 +122,16 @@
     },
     "roster_manifest": {
       "type": "object",
-      "description": "Governance Station signature covers every member except signature. records_digest is SHA-256 over RFC 8785 JCS of the complete ordered roster_record array, independent of page boundaries.",
-      "required": ["governance_station_id", "realm_id", "effective_scope", "mls_group_id", "genesis_event_ref", "target_commit_event_ref", "target_epoch", "authority_head_commit_event_ref", "caller_actor_id", "total_records", "page_count", "records_digest", "issued_at", "signature"],
+      "description": "Governance Station signature covers every member except signature, including both immutable Blob refs copied from the exact accepted Genesis. A later-joined member verifies this manifest before using those refs in the member public material request. records_digest is SHA-256 over RFC 8785 JCS of the complete ordered roster_record array, independent of page boundaries.",
+      "required": ["governance_station_id", "realm_id", "effective_scope", "mls_group_id", "genesis_event_ref", "group_info_ref", "ratchet_tree_ref", "target_commit_event_ref", "target_epoch", "authority_head_commit_event_ref", "caller_actor_id", "total_records", "page_count", "records_digest", "issued_at", "signature"],
       "properties": {
         "governance_station_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
         "realm_id": {"$ref": "./common-ids.schema.json#/$defs/realm_id"},
         "effective_scope": {"$ref": "./event-payload.schema.json#/$defs/effective_scope"},
         "mls_group_id": {"$ref": "./common-ids.schema.json#/$defs/mls_group_id"},
         "genesis_event_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
+        "group_info_ref": {"$ref": "./common-ids.schema.json#/$defs/blob_ref"},
+        "ratchet_tree_ref": {"$ref": "./common-ids.schema.json#/$defs/blob_ref"},
         "target_commit_event_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
         "target_epoch": {"type": "integer", "minimum": 0},
         "authority_head_commit_event_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
