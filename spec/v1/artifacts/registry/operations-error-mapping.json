@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-09-28.2",
+  "version": "2026-09-29.1",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-09-28T15:21:00+08:00",
+  "generated_at": "2026-09-29T00:06:00+08:00",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3. snapshot_capacity_exceeded applies to every event_log admission branch in the operation registry, including peer authority_forward; committed_replication and other non-admission branches do not produce it.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, signature_invalid, capability_denied, schema_violation, json_invalid, query_invalid, param_missing, param_invalid, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind, unsupported_protocol_version, operation_selector_required, unsupported_operation_version. These are the universal failure surface and are NOT repeated in each operation entry. unsupported_protocol_version applies only when the binding implements Arkret-Protocol-Version header or equivalent media-type negotiation; ServiceDescribe consumers also use the same stable code locally before capability intersection. operation_selector_required and unsupported_operation_version are binding-level pre-dispatch failures evaluated before body parsing for every canonical operation.",
@@ -750,6 +750,13 @@
       "codes": []
     },
     {
+      "operation_id": "ak.peer.mls.command.attest_add.v1",
+      "http_alias": "POST /_arkret/peer/mls/add-authority-attestations",
+      "operation_specific": ["conflict", "revision_unavailable", "signature_invalid"],
+      "description": "Exact duplicate attestation replays its stored outcome; conflicting provenance, claim evidence or signer is rejected with zero historical-proof writes. A missing accepted dependency is revision_unavailable.",
+      "codes": []
+    },
+    {
       "operation_id": "ak.peer.mls.read.group_state_material.v1",
       "http_alias": "POST /_arkret/peer/mls/group-state-material",
       "operation_specific": [
@@ -759,6 +766,13 @@
         "limit_exceeded"
       ],
       "description": "dependency_missing covers an accepted genesis whose referenced object bytes are not currently available; digest_mismatch and state_mismatch reject ref/raw-byte or RFC 9420 GroupInfo/tree inconsistency; the operation never returns partial material.",
+      "codes": []
+    },
+    {
+      "operation_id": "ak.peer.mls.read.roster_authority.v1",
+      "http_alias": "POST /_arkret/peer/mls/roster-authority/query",
+      "operation_specific": ["revision_unavailable", "cursor_invalid"],
+      "description": "Unknown and unauthorized selectors share the universal not_found; incomplete or inconsistent history is uniformly revision_unavailable after authorization. A cursor from another caller, head or cut is invalid.",
       "codes": []
     },
     {
@@ -1929,6 +1943,13 @@
       "http_alias": "GET /_arkret/self/read-cursors",
       "operation_specific": [],
       "description": "No operation-specific error codes beyond the universal failure surface.",
+      "codes": []
+    },
+    {
+      "operation_id": "ak.self.mls.read.roster_authority.v1",
+      "http_alias": "POST /_arkret/self/mls/roster-authority/query",
+      "operation_specific": ["revision_unavailable", "cursor_invalid"],
+      "description": "The exact authenticated Actor must be current and target-cut authorized. Unknown and unauthorized selectors share the universal not_found; incomplete signed history is uniformly revision_unavailable.",
       "codes": []
     },
     {

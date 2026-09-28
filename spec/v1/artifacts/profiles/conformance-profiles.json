@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-25.3",
-  "generated_at": "2026-09-25T19:50:00+08:00",
+  "version": "2026-09-29.1",
+  "generated_at": "2026-09-29T00:06:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -442,6 +442,7 @@
         "vector_evidence": {
           "vectors": [
             "ak.vector.mls.governance_epoch_binding.v1",
+            "ak.vector.mls.roster_authority.v1",
             "ak.vector.agent.mls_keypackage_authorization.v1",
             "ak.vector.encoding.encrypted_envelope_digest.v1"
           ],
@@ -506,6 +507,19 @@
                   "fixture_ref": "fixtures/agent-mls-keypackage-authorization-fixture.json",
                   "case_id": "invalid_leaf_signature_is_rejected"
                 }
+              ]
+            },
+            {
+              "id": "welcome_roster_requires_complete_historical_leaf_authority",
+              "requirement": "Genesis leaf ownership is producer-signed; every surviving Add has recipient-Station signed historical provenance; a current and target-cut authorized member receives only a complete governance-signed roster before local RFC-tree leaf-index binding.",
+              "vectors": ["ak.vector.mls.roster_authority.v1"],
+              "required_case_refs": [
+                {"fixture_ref": "fixtures/mls-roster-authority-fixture.json", "case_id": "genesis_explicit_distinct_key_accept"},
+                {"fixture_ref": "fixtures/mls-roster-authority-fixture.json", "case_id": "remote_add_before_attestation_unavailable"},
+                {"fixture_ref": "fixtures/mls-roster-authority-fixture.json", "case_id": "forged_or_mismatched_attestation_reject"},
+                {"fixture_ref": "fixtures/mls-roster-authority-fixture.json", "case_id": "same_tuple_remove_add_keeps_new_provenance"},
+                {"fixture_ref": "fixtures/mls-roster-authority-fixture.json", "case_id": "former_member_and_hidden_scope_not_found"},
+                {"fixture_ref": "fixtures/mls-roster-authority-fixture.json", "case_id": "page_digest_or_cut_change_reject"}
               ]
             },
             {

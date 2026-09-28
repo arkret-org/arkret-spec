@@ -5156,6 +5156,66 @@
       ]
     },
     {
+      "schema_path": "mls-roster-authority.schema.json#/$defs/mls_add_authority_attestation/properties/actor_id",
+      "property_name": "actor_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "actor_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:actor_id"
+      ]
+    },
+    {
+      "schema_path": "mls-roster-authority.schema.json#/$defs/mls_add_authority_attestation/properties/attestor_station_id",
+      "property_name": "attestor_station_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "mls-roster-authority.schema.json#/$defs/roster_genesis_record/properties/actor_id",
+      "property_name": "actor_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "actor_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:actor_id"
+      ]
+    },
+    {
+      "schema_path": "mls-roster-authority.schema.json#/$defs/roster_manifest/properties/caller_actor_id",
+      "property_name": "caller_actor_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "actor_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:actor_id"
+      ]
+    },
+    {
+      "schema_path": "mls-roster-authority.schema.json#/$defs/roster_manifest/properties/governance_station_id",
+      "property_name": "governance_station_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "mls-roster-authority.schema.json#/$defs/roster_read_request/properties/caller_actor_id",
+      "property_name": "caller_actor_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "actor_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:actor_id"
+      ]
+    },
+    {
       "schema_path": "mls-welcome-delivery.schema.json#/properties/recipient_actor_id",
       "property_name": "recipient_actor_id",
       "semantic_category": "responsibility_identity_material",

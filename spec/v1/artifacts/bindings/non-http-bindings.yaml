@@ -121,6 +121,8 @@ grpc:
       Get: ak.self.realm.resource.get.v1
       Export: ak.self.realm.read.export.v1
       Streams: ak.self.realm.read.streams.v1
+    SelfMls:
+      RosterAuthority: ak.self.mls.read.roster_authority.v1
     SelfConsent:
       List: ak.self.consent.read.list.v1
       Get: ak.self.consent.resource.get.v1
@@ -164,6 +166,8 @@ grpc:
       Submit: ak.peer.erasure_receipt.command.submit.v1
     PeerMls:
       GroupStateMaterial: ak.peer.mls.read.group_state_material.v1
+      AttestAdd: ak.peer.mls.command.attest_add.v1
+      RosterAuthority: ak.peer.mls.read.roster_authority.v1
     PeerInvites:
       Submit: ak.peer.invites.command.submit.v1
     PeerContacts:
@@ -340,6 +344,8 @@ mq:
     peer.streams.read.scan: ak.peer.committed_event.read.scan.v1
     peer.account_status.query.resolve: ak.peer.account_status.read.resolve.v1
     peer.mls.query.group_state_material: ak.peer.mls.read.group_state_material.v1
+    peer.mls.command.attest_add: ak.peer.mls.command.attest_add.v1
+    peer.mls.query.roster_authority: ak.peer.mls.read.roster_authority.v1
     peer.invites.command.submit: ak.peer.invites.command.submit.v1
     peer.contacts.command.submit: ak.peer.contacts.command.submit.v1
     peer.keys.keypackages.command.claim: ak.peer.keys.keypackages.command.claim.v1
@@ -398,6 +404,7 @@ mq:
     self.realm_organization.query.list: ak.self.realm_organization.read.list.v1
     self.realm.resource.get: ak.self.realm.resource.get.v1
     self.realm.query.export: ak.self.realm.read.export.v1
+    self.mls.query.roster_authority: ak.self.mls.read.roster_authority.v1
     self.realm.query.streams: ak.self.realm.read.streams.v1
     self.consent.query.list: ak.self.consent.read.list.v1
     self.consent.resource.get: ak.self.consent.resource.get.v1

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-28.6",
+  "version": "2026-09-28.7",
   "source_of_truth": false,
-  "generated_at": "2026-09-28T15:08:00+08:00",
+  "generated_at": "2026-09-28T23:54:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,10 +18,10 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 206,
+    "total_operations": 209,
     "by_completeness_class": {
       "binary_or_redirect": 2,
-      "typed_schema": 204
+      "typed_schema": 207
     },
     "by_surface_class_and_completeness_class": {
       "core": {
@@ -32,7 +32,7 @@
       },
       "extension": {
         "binary_or_redirect": 2,
-        "typed_schema": 121
+        "typed_schema": 124
       },
       "interop_bridge": {
         "typed_schema": 21
@@ -979,6 +979,20 @@
       "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
+      "operation_id": "ak.peer.mls.command.attest_add.v1",
+      "surface_class": "extension",
+      "http": "POST /_arkret/peer/mls/add-authority-attestations",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/attest_add_request",
+      "response_schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/attest_add_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/MlsAddAuthorityAttestRequestBody",
+        "response": "#/components/schemas/MlsAddAuthorityAttestOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
       "operation_id": "ak.peer.mls.read.group_state_material.v1",
       "surface_class": "extension",
       "http": "POST /_arkret/peer/mls/group-state-material",
@@ -988,6 +1002,20 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/MlsGroupStateMaterialRequestBody",
         "response": "#/components/schemas/MlsGroupStateMaterialOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.peer.mls.read.roster_authority.v1",
+      "surface_class": "extension",
+      "http": "POST /_arkret/peer/mls/roster-authority/query",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/roster_read_request",
+      "response_schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/roster_read_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/MlsRosterAuthorityReadRequestBody",
+        "response": "#/components/schemas/MlsRosterAuthorityReadOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2513,6 +2541,20 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/MessagePrepareRequestBody",
         "response": "#/components/schemas/MessagePrepareOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.self.mls.read.roster_authority.v1",
+      "surface_class": "extension",
+      "http": "POST /_arkret/self/mls/roster-authority/query",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/roster_read_request",
+      "response_schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/roster_read_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/MlsRosterAuthorityReadRequestBody",
+        "response": "#/components/schemas/MlsRosterAuthorityReadOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

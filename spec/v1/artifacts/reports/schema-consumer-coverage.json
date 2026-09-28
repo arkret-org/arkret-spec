@@ -41,22 +41,22 @@
     "unresolved": "no direct vector or reviewed higher-level coverage owner has been identified; this is a release blocker."
   },
   "summary": {
-    "total_schemas": 219,
+    "total_schemas": 220,
     "by_consumer": {
       "declared_wire": 57,
       "event_kind": 8,
-      "inbound": 48,
-      "outbound": 59,
+      "inbound": 49,
+      "outbound": 60,
       "prose": 102,
       "prose_only": 2,
       "schema_reference": 158,
-      "startup_compile": 219,
+      "startup_compile": 220,
       "vectors": 111
     },
     "without_wire_consumer": 1,
     "explicit_prose_only": 2,
     "unresolved_consumer_coverage": 0,
-    "without_vector_coverage": 108,
+    "without_vector_coverage": 109,
     "unresolved_vector_disposition": 0
   },
   "without_wire_consumer": [
@@ -138,6 +138,7 @@
     "ak.schema.message_prepare_request.v1",
     "ak.schema.mimi_operations.v1",
     "ak.schema.mls_commit_submission.v1",
+    "ak.schema.mls_roster_authority.v1",
     "ak.schema.mls_welcome_delivery.v1",
     "ak.schema.object_addressing.v1",
     "ak.schema.patch.v1",
@@ -1412,6 +1413,7 @@
           "ak.schema.message_prepare_request.v1",
           "ak.schema.mimi_interop.v1",
           "ak.schema.mimi_operations.v1",
+          "ak.schema.mls_roster_authority.v1",
           "ak.schema.mls_welcome_delivery.v1",
           "ak.schema.moderation_evidence.v1",
           "ak.schema.moderation_queue_item.v1",
@@ -2744,6 +2746,25 @@
       }
     },
     {
+      "schema_id": "ak.schema.mls_roster_authority.v1",
+      "file": "schemas/mls-roster-authority.schema.json",
+      "consumers": {
+        "inbound": "fragment",
+        "outbound": "fragment",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "operation_e2e_owned",
+        "owners": [
+          "ak.peer.mls.command.attest_add.v1",
+          "ak.peer.mls.read.roster_authority.v1",
+          "ak.self.mls.read.roster_authority.v1"
+        ],
+        "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
+      }
+    },
+    {
       "schema_id": "ak.schema.mls_welcome_delivery.v1",
       "file": "schemas/mls-welcome-delivery.schema.json",
       "consumers": {
@@ -2756,8 +2777,10 @@
         "owners": [
           "ak.schema.account_subscribe_frame.v1",
           "ak.schema.authority_commit_operations.v1",
+          "ak.schema.event_payload.v1",
           "ak.schema.keypackage_operations.v1",
-          "ak.schema.mls_commit_submission.v1"
+          "ak.schema.mls_commit_submission.v1",
+          "ak.schema.mls_roster_authority.v1"
         ],
         "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
       }

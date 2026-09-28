@@ -1,0 +1,173 @@
+{
+  "suite": "mls_roster_authority",
+  "fixture_kind": "semantic",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.mls.roster_authority.v1"
+  },
+  "version": "2026-09-29.3",
+  "profile": "ak.profile.e2ee_client.v1",
+  "covers_vectors": [
+    "ak.vector.mls.roster_authority.v1"
+  ],
+  "machine_contracts": [
+    "schemas/event-payload.schema.json#/$defs/mls_genesis_creator_leaf_authority",
+    "schemas/mls-roster-authority.schema.json",
+    "registry/contract-registry.json"
+  ],
+  "description": "Semantic acceptance and rejection cases for a Genesis producer-signed creator leaf binding, recipient-Station-signed historical Add attestations, governance-Station-signed complete roster manifest and RFC-tree-only leaf index recovery. No placeholder signature is presented as a cryptographic KAT; the named runner must construct and verify real accepted signatures and MLS public material.",
+  "schema_validation_cases": [
+    {
+      "name": "creator_leaf_authority_closed_positive",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/mls_genesis_creator_leaf_authority",
+      "expect_valid": true,
+      "semantic_outcome": "accept",
+      "instance": {
+        "leaf_signature_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        "endpoint": {
+          "kind": "device",
+          "device_id": "ak:device:019a0000-0000-7000-8000-000000000001"
+        },
+        "authorization_event_ref": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape"
+      }
+    },
+    {
+      "name": "creator_leaf_authority_unknown_member_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/mls_genesis_creator_leaf_authority",
+      "expect_valid": false,
+      "semantic_outcome": "reject",
+      "instance": {
+        "leaf_signature_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        "endpoint": {
+          "kind": "device",
+          "device_id": "ak:device:019a0000-0000-7000-8000-000000000001"
+        },
+        "authorization_event_ref": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
+        "leaf_index": 0
+      },
+      "first_expected_error": "contains:leaf_index"
+    }
+  ],
+  "cases": [
+    {
+      "given": "Genesis producer key and MLS leaf signature key differ, but signed creator_leaf_authority binds the exact public-tree leaf, endpoint and accepted historical authorization",
+      "expected": {
+        "decision": "accept; no equality with Event producer key is inferred or required"
+      },
+      "name": "genesis_explicit_distinct_key_accept",
+      "covers_decision_points": [
+        "AK-SDK-009/welcome_roster_requires_complete_historical_leaf_authority"
+      ]
+    },
+    {
+      "given": "Genesis payload lacks creator_leaf_authority",
+      "expected": {
+        "decision": "schema_violation; zero Event, Commit and group-state writes"
+      },
+      "name": "genesis_missing_binding_reject",
+      "covers_decision_points": [
+        "AK-SDK-009/welcome_roster_requires_complete_historical_leaf_authority"
+      ]
+    },
+    {
+      "given": "Signed creator binding names a different leaf key, endpoint or historical authorization than the verified public tree and producer authority",
+      "expected": {
+        "decision": "failed_precondition; zero writes"
+      },
+      "name": "genesis_wrong_key_or_authorization_reject",
+      "covers_decision_points": [
+        "AK-SDK-009/welcome_roster_requires_complete_historical_leaf_authority"
+      ]
+    },
+    {
+      "given": "winning Add Commit and Welcome are accepted, but recipient replica has not delivered its signed authority attestation",
+      "expected": {
+        "decision": "Commit remains accepted; authorized roster read returns only revision_unavailable with no partial records"
+      },
+      "name": "remote_add_before_attestation_unavailable",
+      "covers_decision_points": [
+        "AK-SDK-009/welcome_roster_requires_complete_historical_leaf_authority"
+      ]
+    },
+    {
+      "given": "recipient Station has atomically persisted a signed exact-Commit/Welcome/claim attestation and outbox after existing replica verification; governance verifies full claim outcome and frozen Proposal provenance",
+      "expected": {
+        "decision": "first peer attest returns installed; exact replay returns duplicate with identical digest; complete authorized roster read succeeds"
+      },
+      "name": "verified_attestation_installs_and_replays",
+      "covers_decision_points": [
+        "AK-SDK-009/welcome_roster_requires_complete_historical_leaf_authority"
+      ]
+    },
+    {
+      "given": "wrong Station signer, claim receipt digest, actor, endpoint, leaf key, Commit, Welcome, scope or epoch",
+      "expected": {
+        "decision": "peer attest rejects with zero proof writes; roster read remains revision_unavailable"
+      },
+      "name": "forged_or_mismatched_attestation_reject",
+      "covers_decision_points": [
+        "AK-SDK-009/welcome_roster_requires_complete_historical_leaf_authority"
+      ]
+    },
+    {
+      "given": "Remove and later Add restore identical ActorId, credential, signature key and RFC leaf position",
+      "expected": {
+        "decision": "roster record uses the later creating Commit/Proposal and signed Add attestation; removed provenance is not reused"
+      },
+      "name": "same_tuple_remove_add_keeps_new_provenance",
+      "covers_decision_points": [
+        "AK-SDK-009/welcome_roster_requires_complete_historical_leaf_authority"
+      ]
+    },
+    {
+      "given": "caller was a member at target cut but is no longer current joined, or cannot read target scope/history",
+      "expected": {
+        "decision": "self and peer roster read expose no records, counts or proof availability; same not_found as unknown selector"
+      },
+      "name": "former_member_and_hidden_scope_not_found",
+      "covers_decision_points": [
+        "AK-SDK-009/welcome_roster_requires_complete_historical_leaf_authority"
+      ]
+    },
+    {
+      "given": "page omitted, repeated, reordered or from another authority head/caller/target cut, or complete JCS digest differs",
+      "expected": {
+        "decision": "client rejects entire roster, installs no leaf bindings; governance fails cursor on a changed current head"
+      },
+      "name": "page_digest_or_cut_change_reject",
+      "covers_decision_points": [
+        "AK-SDK-009/welcome_roster_requires_complete_historical_leaf_authority"
+      ]
+    },
+    {
+      "given": "epoch 0 roster read names Genesis as both target and authority head; later cuts enumerate Genesis then every historical Add by accepted Commit stream position and consumed Proposal wire order, eight records per nonfinal page",
+      "expected": {
+        "decision": "manifest page_count and SHA-256 JCS digest match the complete ordered array; page reassembly is deterministic"
+      },
+      "name": "genesis_cut_and_deterministic_pages",
+      "covers_decision_points": [
+        "AK-SDK-009/welcome_roster_requires_complete_historical_leaf_authority"
+      ]
+    },
+    {
+      "given": "claim_outcome contains duplicate claim_id, or signed claims_digest matches but selected record does not hash to attestation.claim_record_digest",
+      "expected": {
+        "decision": "peer attest rejects with zero proof writes; roster read remains revision_unavailable"
+      },
+      "name": "claim_record_digest_and_uniqueness_reject",
+      "covers_decision_points": [
+        "AK-SDK-009/welcome_roster_requires_complete_historical_leaf_authority"
+      ]
+    },
+    {
+      "given": "provider returns leaf_index, private tree, MLS secret or an unclaimed batch KeyPackage in a roster page",
+      "expected": {
+        "decision": "closed schema rejects; client derives occupied leaf indices only from digest-verified RFC GroupInfo/tree"
+      },
+      "name": "no_inferred_leaf_index_or_private_material",
+      "covers_decision_points": [
+        "AK-SDK-009/welcome_roster_requires_complete_historical_leaf_authority"
+      ]
+    }
+  ]
+}

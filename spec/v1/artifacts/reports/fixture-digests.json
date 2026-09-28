@@ -381,6 +381,11 @@
       "version": "2026-07-13"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/mls-roster-authority-fixture.json",
+      "sha256": "468d54ed1e5d317b5b4b56e0839c7c2b9d3c583798675e6e5a2c2720aac978fc",
+      "version": "2026-09-29.3"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/operation-registry-coverage-fixture.json",
       "sha256": "2344c4befe476fb0fbfbc064607ba2e6de14aaf3e6b83decf8b75687e3361ad4",
       "version": "2026-07-30"
@@ -492,8 +497,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-conformance-claim-fixture.json",
-      "sha256": "8bb5ddfe15c9ba54f22c7d40d28af5b0119372d032f8f0e113609a9c5427faf8",
-      "version": "2026-09-20.3"
+      "sha256": "ef94c4938ab2e6267bfbf8726d21c5e35f41d5474806baccace2d69fdda88046",
+      "version": "2026-09-29.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/sdk-event-type-axes-fixture.json",

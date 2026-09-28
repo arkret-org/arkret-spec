@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-26.1",
+  "version": "2026-09-28.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-26T06:40:00+08:00",
+  "generated_at": "2026-09-28T23:54:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -1049,6 +1049,12 @@
       "file": "schemas/mls-commit-submission.schema.json",
       "status": "active",
       "description": "Atomic MLS Commit and Welcome submission."
+    },
+    {
+      "schema_id": "ak.schema.mls_roster_authority.v1",
+      "file": "schemas/mls-roster-authority.schema.json",
+      "status": "active",
+      "description": "Signed historical MLS leaf provenance attestation and member-authorized complete roster read."
     },
     {
       "schema_id": "ak.schema.mls_welcome_delivery.v1",

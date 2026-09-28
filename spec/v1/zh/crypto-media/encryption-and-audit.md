@@ -136,6 +136,56 @@ v1 没有任何例外：不存在只用 `(realm_id, principal_id)` 匹配 leaf �
    [`../models/sidecar.md`](../models/sidecar.md) §6 保持自己独立的 MLS 绑定与握手契约。
    实现 MUST NOT 把本节的 wire 形态、provenance 持久化义务或验证角色默认套到 sidecar scope 上。
 
+**Welcome 后的完整 leaf authority 取证（normative）**：接收方不得用 RFC `BasicCredential.identity`、leaf
+位置或自己的 KeyPackage claim 推断其它已占用 leaf 的 endpoint 授权。治理 Station 在原 accepted Commit
+事务冻结每条 Add 的 consumed Proposal、目标 ActorId、leaf signature key 与 Commit 坐标；这不改变跨站
+recipient claim 由其 Account Station 在 committed-replication 事务核验的既有准入分工。该 recipient Station
+只有在按 [`device-lifecycle.md` §9.2.3](./device-lifecycle.md) 核验 exact claim、destination-signed receipt、
+当时 endpoint authorization、winning Commit 与 Welcome 绑定后，才能从同一 replica cut 耐久生成并签署
+`mls_add_authority_attestation`，连同可幂等重发的 outbox 原子保存。它通过
+`ak.peer.mls.command.attest_add.v1` 向治理 Station 提交；治理 Station 核对签名 Station 恰为该 Welcome
+recipient ActorId 的 Account Station、exact accepted Commit／Welcome、已冻结的 Proposal provenance、
+leaf key／ActorId／endpoint 与原 claim receipt 的 digest，才将这条历史 Add 证明耐久安装。治理 Station
+不得因 attestation 尚未到达而回退或改写已接纳 Commit，也不得凭超时后的 claim ledger、当前设备投影或
+caller 自报字段补造证明。same-Station recipient 在原 claim／Commit 同事务生成同形证明，不需要向自己发 peer 请求。
+peer attestation 请求的完整 `claim_outcome` 仅供治理 Station 核验原 destination-signed
+`claims_digest`、目标 `claim_record_digest` 与 attestation 字段；它不进入 roster read，也不得泄露同一
+claim batch 里未加入该 group 的其它 KeyPackage。证明签名输入分别是
+`UTF8("ak.mls_add_authority_attestation.v1\n") + JCS(attestation 去掉 signature)` 和
+`UTF8("ak.mls_roster_authority_manifest.v1\n") + JCS(manifest 去掉 signature)`，签名 key、算法、
+历史方法解析与其它 Station receipt 一致，未定义第二种签名编码。请求中的 attestation 与 claim outcome
+必须核对 exact claim id、receipt 与从 KeyPackage bytes 重算的 leaf signature key；只信任
+`claim_record_digest` 或 receiver 自报的 leaf key 不足以安装证明。
+`claim_record_digest` 必须是 `sha256:` 加上 `SHA-256(JCS(exact keypackage_claim_record))` 的小写十六进制；
+治理 Station 从传入 `claim_outcome.claims[]` 按唯一 `claim_id` 选记录，先按既有规则重算全数组
+`claims_digest` 并验证原 receipt，再重算该记录 digest。重复或缺失 `claim_id`、receipt 与 outcome
+非同一份首次接纳结果，均不得安装 attestation。
+
+`ak.self.mls.read.roster_authority.v1` 经成员的 Account Station 用
+`ak.peer.mls.read.roster_authority.v1` 向治理 Station 取得同一 accepted group／epoch cut 的完整历史
+provenance。两端均须在读取时 current 与目标 accepted cut 对完整 ActorId、effective scope、membership、
+history 与 policy 做授权；曾经是成员但已离组者不得仅凭历史身份读取。任何本应位于该 cut 的 Add 证明
+缺失、签名无效、冲突或超过保留范围，已授权请求整份结果统一 `revision_unavailable`，
+不返回部分 roster、缺项数或可枚举的原因；无权或不可见目标统一 `not_found`。
+结果由治理 Station 对 exact scope／group／Genesis／target Commit／epoch、完整记录总数与全量 JCS digest
+作 domain-separated 签名；分页只传输同一冻结集合，客户端须收齐、验签并重算 digest，拒绝重复、跳页或
+不同 cut。epoch 0 的 `target_commit_event_ref` 与 `authority_head_commit_event_ref` 均填写该 Genesis
+Event ref；其它 epoch 的目标 ref 必须是产生目标 epoch 的 accepted Commit Event，head ref 是签发时
+同一 group 的最新 accepted Commit Event。冻结集合先放唯一 Genesis 记录，再按 accepted Commit 的
+stream position 递增、同一 Commit 中 consumed Proposal 的 wire 顺序放每条历史 Add 记录；每页从
+该数组按连续的至多 8 条记录切分，除最后一页外恰有 8 条，`page_count=ceil(total_records/8)`。
+`records_digest` 必须是 `sha256:` 加上 `SHA-256(JCS(上述完整有序 roster_record 数组))` 的小写
+十六进制。opaque `cursor` 只标识该已签 manifest 的下一页和调用方；治理 Station 须重新检查读取权限，
+并在当前 head 与 manifest 的 `authority_head_commit_event_ref` 不同时拒绝续页，不得混合两个版本。
+每条记录只携历史 provenance、完整 ActorId、endpoint／authorize Event ref、leaf signature key
+及原 claim receipt 的可验证绑定，**不携 leaf index**。客户端只从经 digest 校验的 RFC GroupInfo／tree
+取得 occupied index，再按 leaf key 与 provenance 一一匹配；Remove+Add 即使全部身份／key／位置相同
+也必须用不同创建 Commit 识别。不得返回 private tree、MLS secret 或服务端推断的 leaf DTO。
+治理 Station 须将已安装的最小签名历史证明保留到该 group 的 accepted history 不再可读取；recipient
+Station 的原 claim outcome 仍可按 §9 的既有短期规则清理，但其签名 attestation／outbox 须至少保留至
+治理 Station 确认持久安装。具体 closed wire、签名和页完整性由
+`mls-roster-authority.schema.json` 定义；缺证据时 Welcome 安装保持 `decryption_pending`。
+
 ### 2.3 应用载荷加密
 
 effective scope 在没有 accepted `ak.mls.genesis` 时只允许该 Event kind 的明文 payload；Genesis accepted 后 MLS
@@ -396,6 +446,15 @@ Genesis 经 `ak.self.events.command.submit.v1` 的普通 Event 分支单独提�
 `commit_event.kind` 固定为 `ak.mls.commit`）：epoch 0 的 RFC 9420 group 恰有创建者本人一个 leaf，因而 Genesis
 不携 Welcome；其它初始 endpoint 由随后第一条带 Welcome 的 `ak.mls.commit` 加入。Station 提交前验证 creator
 current authority 与「roster 恰为创建者」。
+
+Genesis 的签名 payload 必带 `creator_leaf_authority`：声明 epoch-0 唯一 leaf 的 Ed25519 signature key、
+创建者 exact endpoint 与该 endpoint 在 Genesis accepted cut 的授权 Event ref。它由 Genesis 的
+`producer_proof` 连同其余 payload 一起签署，表达 producer 对该 MLS leaf key 的显式归属绑定；
+**不要求** MLS leaf key 与 Event producer signing key 相等。治理 Station 必须核对 producer 自身的
+历史签名／endpoint 授权、声明的 endpoint／授权 ref、唯一 public tree leaf 的完整 ActorId 与
+signature key，并验证该 leaf 的 RFC 自签名；任一不符以 `failed_precondition` 零写入拒绝。
+后来的成员须按 exact accepted Genesis Event／Commit 和历史签名 key 独立重验该绑定；
+缺 `creator_leaf_authority` 的旧 Genesis 不得被静默推断或由 current keys lookup 补齐。
 
 **跨站 Genesis 的 public material（normative）**：Genesis 引用的 GroupInfo 与 ratchet tree 是 creator 经
 `ak.self.blob.*` 上传到自己 Account Station 的内容寻址 Blob。creator 的 Account Station 不是治理 Station 时，它在接纳

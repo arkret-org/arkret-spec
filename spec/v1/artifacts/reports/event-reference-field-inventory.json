@@ -7,7 +7,7 @@
   "generated_by": "tools/gen_event_reference_inventory.py",
   "description": "Complete schema-property inventory for Event ID/ref/digest fields. EventId is itself the complete suite-tagged cryptographic identity; no companion-digest wrapper or truncated identity class exists. External protocol event identifiers are classified separately and never enter the Arkret EventId value space.",
   "counts": {
-    "complete_event_id": 158,
+    "complete_event_id": 170,
     "digest_copy_or_commitment": 8,
     "external_event_namespace": 1
   },
@@ -626,6 +626,12 @@
     },
     {
       "schema": "event-payload.schema.json",
+      "json_pointer": "/$defs/mls_genesis_creator_leaf_authority/properties/authorization_event_ref",
+      "field": "authorization_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "event-payload.schema.json",
       "json_pointer": "/$defs/poll_response_head/properties/poll_event_ref",
       "field": "poll_event_ref",
       "classification": "complete_event_id"
@@ -766,6 +772,72 @@
       "schema": "mimi-interop.schema.json",
       "json_pointer": "/$defs/content_mapping_receipt/properties/arkret_event_id",
       "field": "arkret_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "mls-roster-authority.schema.json",
+      "json_pointer": "/$defs/mls_add_authority_attestation/properties/authorization_event_ref",
+      "field": "authorization_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "mls-roster-authority.schema.json",
+      "json_pointer": "/$defs/mls_add_authority_attestation/properties/commit_event_ref",
+      "field": "commit_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "mls-roster-authority.schema.json",
+      "json_pointer": "/$defs/mls_add_authority_attestation/properties/genesis_event_ref",
+      "field": "genesis_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "mls-roster-authority.schema.json",
+      "json_pointer": "/$defs/roster_add_record/properties/commit_event_ref",
+      "field": "commit_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "mls-roster-authority.schema.json",
+      "json_pointer": "/$defs/roster_genesis_record/properties/authorization_event_ref",
+      "field": "authorization_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "mls-roster-authority.schema.json",
+      "json_pointer": "/$defs/roster_genesis_record/properties/genesis_event_ref",
+      "field": "genesis_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "mls-roster-authority.schema.json",
+      "json_pointer": "/$defs/roster_manifest/properties/authority_head_commit_event_ref",
+      "field": "authority_head_commit_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "mls-roster-authority.schema.json",
+      "json_pointer": "/$defs/roster_manifest/properties/genesis_event_ref",
+      "field": "genesis_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "mls-roster-authority.schema.json",
+      "json_pointer": "/$defs/roster_manifest/properties/target_commit_event_ref",
+      "field": "target_commit_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "mls-roster-authority.schema.json",
+      "json_pointer": "/$defs/roster_read_request/properties/genesis_event_ref",
+      "field": "genesis_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "mls-roster-authority.schema.json",
+      "json_pointer": "/$defs/roster_read_request/properties/target_commit_event_ref",
+      "field": "target_commit_event_ref",
       "classification": "complete_event_id"
     },
     {

@@ -759,10 +759,18 @@ components:
       $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_update_consent_outcome
     MimiUpdateConsentRequestBody:
       $ref: ../schemas/mimi-operations.schema.json#/$defs/mimi_update_consent_request_body
+    MlsAddAuthorityAttestOutcome:
+      $ref: ../schemas/mls-roster-authority.schema.json#/$defs/attest_add_outcome
+    MlsAddAuthorityAttestRequestBody:
+      $ref: ../schemas/mls-roster-authority.schema.json#/$defs/attest_add_request
     MlsGroupStateMaterialOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialOutcome
     MlsGroupStateMaterialRequestBody:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialRequestBody
+    MlsRosterAuthorityReadOutcome:
+      $ref: ../schemas/mls-roster-authority.schema.json#/$defs/roster_read_outcome
+    MlsRosterAuthorityReadRequestBody:
+      $ref: ../schemas/mls-roster-authority.schema.json#/$defs/roster_read_request
     ModerationReportOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ModerationReportOutcome
     OrganizationRegistrationChallenge:
@@ -2085,6 +2093,82 @@ paths:
                 $ref: '#/components/schemas/AccountStatusPublicationOutcome'
         '409':
           description: Idempotency-Key conflict or invalid account-status transition.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /_arkret/peer/mls/add-authority-attestations:
+    post:
+      operationId: ak.peer.mls.command.attest_add
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.peer.mls.command.attest_add.v1
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+        contentDigest: []
+      summary: Install a recipient Station's signed historical MLS Add authority.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MlsAddAuthorityAttestRequestBody'
+      responses:
+        '200':
+          description: Exact attestation installed or replayed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MlsAddAuthorityAttestOutcome'
+        '409':
+          description: The attestation conflicts with accepted provenance or an installed proof.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /_arkret/peer/mls/roster-authority/query:
+    post:
+      operationId: ak.peer.mls.read.roster_authority
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.peer.mls.read.roster_authority.v1
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+        contentDigest: []
+      summary: Read a signed page of complete MLS roster authority for an authorized member.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MlsRosterAuthorityReadRequestBody'
+      responses:
+        '200':
+          description: One page bound to a signed complete roster manifest.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MlsRosterAuthorityReadOutcome'
+        '409':
+          description: Authorized history or complete attestation is unavailable.
           content:
             application/problem+json:
               schema:
@@ -5001,6 +5085,40 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RealmJoinSelfPreviewOutcome'
+  /_arkret/self/mls/roster-authority/query:
+    post:
+      operationId: ak.self.mls.read.roster_authority
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.self.mls.read.roster_authority.v1
+      security:
+      - sessionGrantAuth: []
+        dpopProof: []
+      summary: Read an authorized signed MLS roster authority page from the current governance Station.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MlsRosterAuthorityReadRequestBody'
+      responses:
+        '200':
+          description: One page bound to the exact governance-signed complete roster manifest.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MlsRosterAuthorityReadOutcome'
+        '409':
+          description: Authorized history or complete attestation is unavailable.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
   /_arkret/self/signer-keys/query:
     post:
       operationId: ak.self.signer_keys.read.resolve

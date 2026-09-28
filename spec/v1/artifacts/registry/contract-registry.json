@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-28.6",
+  "version": "2026-09-28.7",
   "source_of_truth": true,
-  "generated_at": "2026-09-28T15:08:00+08:00",
+  "generated_at": "2026-09-28T23:54:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -9670,6 +9670,12 @@
         "description": "Atomic MLS Commit and Welcome submission."
       },
       {
+        "schema_id": "ak.schema.mls_roster_authority.v1",
+        "file": "schemas/mls-roster-authority.schema.json",
+        "status": "active",
+        "description": "Signed historical MLS leaf provenance attestation and member-authorized complete roster read."
+      },
+      {
         "schema_id": "ak.schema.mls_welcome_delivery.v1",
         "file": "schemas/mls-welcome-delivery.schema.json",
         "status": "active",
@@ -10345,8 +10351,8 @@
         "description": "Server authentication-success frame carrying effective connection and channel limits."
       }
     ],
-    "version": "2026-09-26.1",
-    "generated_at": "2026-09-26T06:40:00+08:00",
+    "version": "2026-09-28.1",
+    "generated_at": "2026-09-28T23:54:00+08:00",
     "metadata_authority": "contract_registry_section"
   },
   "id_kind_registry": {
@@ -11457,7 +11463,9 @@
         ],
         "machine_projections": [],
         "operations": [
-          "ak.peer.keys.read.lookup.v1"
+          "ak.peer.keys.read.lookup.v1",
+          "ak.peer.mls.command.attest_add.v1",
+          "ak.peer.mls.read.roster_authority.v1"
         ],
         "vectors": [],
         "error_codes": [
@@ -11927,6 +11935,8 @@
           "ak.peer.erasure_receipt.command.submit.v1",
           "ak.peer.erasure_receipt.resource.get.v1",
           "ak.peer.mls.read.group_state_material.v1",
+          "ak.peer.mls.command.attest_add.v1",
+          "ak.peer.mls.read.roster_authority.v1",
           "ak.peer.committed_event.read.scan.v1",
           "ak.peer.invites.command.submit.v1",
           "ak.peer.contacts.command.submit.v1",
@@ -12001,7 +12011,8 @@
         "surface": "realm_read",
         "operations": [
           "ak.self.realm.resource.get.v1",
-          "ak.self.realm.read.export.v1"
+          "ak.self.realm.read.export.v1",
+          "ak.self.mls.read.roster_authority.v1"
         ],
         "surface_class": "extension"
       },
@@ -13504,6 +13515,37 @@
         }
       },
       {
+        "operation_id": "ak.peer.mls.command.attest_add.v1",
+        "http": "POST /_arkret/peer/mls/add-authority-attestations",
+        "grpc": "PeerMls/AttestAdd",
+        "mq": "peer.mls.command.attest_add",
+        "notes": "Recipient Account Station submits its durable signed exact-Commit Add authority attestation after existing committed-replication claim verification. Governance Station installs it only against frozen accepted Proposal provenance; identical replay returns duplicate, conflicting bytes fail closed. This is not Commit admission and creates no Event.",
+        "body_class": "non_streaming_json",
+        "success_shape_kind": "typed_response",
+        "idempotency_mechanism": "canonical_hash",
+        "canonical_hash_input": "full_body",
+        "retry_safe": true,
+        "uncertain_outcome": {
+          "strategy": "replay_same_operation",
+          "operation_id": "ak.peer.mls.command.attest_add.v1",
+          "requires_same_request_identity_and_canonical_intent": true
+        },
+        "request_schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/attest_add_request",
+        "response_schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/attest_add_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "service_local_verified_historical_mls_provenance_only"
+        },
+        "auth_requirements": {
+          "service_signature": {
+            "signature_scenario_id": "ak.http_signature.scenario.service_to_service.v1",
+            "standard": "RFC 9421 HTTP Message Signature",
+            "bearer_only_allowed": false,
+            "contract": "Covered components, signature parameters and the freshness window come from http_signature_contract_registry. This operation MUST NOT restate them."
+          }
+        }
+      },
+      {
         "operation_id": "ak.peer.mls.read.group_state_material.v1",
         "http": "POST /_arkret/peer/mls/group-state-material",
         "grpc": "PeerMls/GroupStateMaterial",
@@ -13513,6 +13555,25 @@
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialRequestBody",
         "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialOutcome"
+      },
+      {
+        "operation_id": "ak.peer.mls.read.roster_authority.v1",
+        "http": "POST /_arkret/peer/mls/roster-authority/query",
+        "grpc": "PeerMls/RosterAuthority",
+        "mq": "peer.mls.query.roster_authority",
+        "notes": "Current governance Station returns one signed page of a complete historical MLS roster only to the caller Actor's authenticated Account Station, after both current-head and target-cut member/history gates. Missing Add attestation or changing cut is uniformly unavailable, never a partial list. The peer service signature is mandatory and each page repeats the same signed manifest.",
+        "body_class": "non_streaming_json",
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/roster_read_request",
+        "response_schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/roster_read_outcome",
+        "auth_requirements": {
+          "service_signature": {
+            "signature_scenario_id": "ak.http_signature.scenario.service_to_service.v1",
+            "standard": "RFC 9421 HTTP Message Signature",
+            "bearer_only_allowed": false,
+            "contract": "Covered components, signature parameters and the freshness window come from http_signature_contract_registry. This operation MUST NOT restate them."
+          }
+        }
       },
       {
         "operation_id": "ak.peer.realm_authority.command.handoff.v1",
@@ -15453,6 +15514,17 @@
         "response_schema_ref": "schemas/read-cursor-operations.schema.json#/$defs/read_cursor_list"
       },
       {
+        "operation_id": "ak.self.mls.read.roster_authority.v1",
+        "http": "POST /_arkret/self/mls/roster-authority/query",
+        "grpc": "SelfMls/RosterAuthority",
+        "mq": "self.mls.query.roster_authority",
+        "notes": "Authenticated member's Account Station verifies caller_actor_id equals its exact session Actor, current-head and target-cut group/history authority, then proxies the signed frozen roster page from current governance Station. It never constructs leaf indices or bypasses missing provenance; a former member cannot read by citing an old cut.",
+        "body_class": "non_streaming_json",
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/roster_read_request",
+        "response_schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/roster_read_outcome"
+      },
+      {
         "operation_id": "ak.self.realm.read.export.v1",
         "http": "GET /_arkret/self/realms/{realm_id}/export",
         "grpc": "SelfRealm/Export",
@@ -15938,8 +16010,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-28.3",
-    "generated_at": "2026-09-28T15:08:00+08:00",
+    "version": "2026-09-28.4",
+    "generated_at": "2026-09-28T23:54:00+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",
@@ -16646,7 +16718,15 @@
             "binding_kind": "http_json"
           },
           {
+            "operation_id": "ak.peer.mls.command.attest_add.v1",
+            "binding_kind": "http_json"
+          },
+          {
             "operation_id": "ak.peer.mls.read.group_state_material.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.peer.mls.read.roster_authority.v1",
             "binding_kind": "http_json"
           },
           {
@@ -16935,6 +17015,10 @@
           },
           {
             "operation_id": "ak.self.messages.command.prepare.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.self.mls.read.roster_authority.v1",
             "binding_kind": "http_json"
           },
           {

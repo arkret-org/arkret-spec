@@ -276,8 +276,16 @@
       "new": "ak.peer.keys.read.lookup.v1"
     },
     {
+      "old": "ak.peer.mls.command.attest_add",
+      "new": "ak.peer.mls.command.attest_add.v1"
+    },
+    {
       "old": "ak.peer.mls.read.group_state_material",
       "new": "ak.peer.mls.read.group_state_material.v1"
+    },
+    {
+      "old": "ak.peer.mls.read.roster_authority",
+      "new": "ak.peer.mls.read.roster_authority.v1"
     },
     {
       "old": "ak.peer.realm_authority.command.handoff",
@@ -726,6 +734,10 @@
     {
       "old": "ak.self.messages.command.prepare",
       "new": "ak.self.messages.command.prepare.v1"
+    },
+    {
+      "old": "ak.self.mls.read.roster_authority",
+      "new": "ak.self.mls.read.roster_authority.v1"
     },
     {
       "old": "ak.self.moderation.command.report",

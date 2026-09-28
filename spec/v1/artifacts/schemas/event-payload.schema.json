@@ -5276,12 +5276,36 @@
       },
       "additionalProperties": false
     },
+    "mls_genesis_creator_leaf_authority": {
+      "type": "object",
+      "description": "The Genesis producer's signed binding of the only epoch-0 leaf signature key to its exact endpoint and accepted historical authorization. No leaf index is asserted; it is derived solely from verified RFC public tree bytes.",
+      "required": [
+        "leaf_signature_key_b64u",
+        "endpoint",
+        "authorization_event_ref"
+      ],
+      "properties": {
+        "leaf_signature_key_b64u": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{43}$"
+        },
+        "endpoint": {
+          "$ref": "./mls-welcome-delivery.schema.json#/properties/recipient_endpoint"
+        },
+        "authorization_event_ref": {
+          "$ref": "#/$defs/event_ref",
+          "x-arkret-preimage-commitment": "fixed_event"
+        }
+      },
+      "additionalProperties": false
+    },
     "mls_genesis_payload": {
       "type": "object",
       "required": [
         "cipher_suite",
         "group_info_ref",
         "ratchet_tree_ref",
+        "creator_leaf_authority",
         "governance_binding",
         "created_at"
       ],
@@ -5298,6 +5322,9 @@
           "type": "string",
           "pattern": "^ak:blob:(?:sha256|blake3):[0-9a-f]{64}$",
           "description": "Content-addressed Blob ref. Its embedded suite prefix selects the Blob digest independently of the fixed SHA-256 Event/RealmCommit identity suite."
+        },
+        "creator_leaf_authority": {
+          "$ref": "#/$defs/mls_genesis_creator_leaf_authority"
         },
         "governance_binding": {
           "$ref": "#/$defs/mls_governance_binding"

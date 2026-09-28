@@ -1,0 +1,136 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/mls-roster-authority.schema.json",
+  "title": "Arkret MLS roster authority evidence",
+  "description": "Station-signed historical Add authority and complete member-authorized roster read. Leaf indices and MLS secrets are never carried.",
+  "$defs": {
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "signature_key": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{43}$"
+    },
+    "mls_add_authority_attestation": {
+      "type": "object",
+      "description": "Signed by the exact recipient Account Station after the accepted Commit and Welcome have been verified in its replica transaction. The original claim outcome may then expire; this immutable attestation remains replayable until governance installation is acknowledged.",
+      "required": ["attestor_station_id", "realm_id", "effective_scope", "mls_group_id", "genesis_event_ref", "commit_event_ref", "commit_stream_position", "epoch", "welcome_id", "claim_id", "actor_id", "endpoint", "authorization_event_ref", "leaf_signature_key_b64u", "claim_record_digest", "claim_receipt", "attested_at", "signature"],
+      "properties": {
+        "attestor_station_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
+        "realm_id": {"$ref": "./common-ids.schema.json#/$defs/realm_id"},
+        "effective_scope": {"$ref": "./event-payload.schema.json#/$defs/effective_scope"},
+        "mls_group_id": {"$ref": "./common-ids.schema.json#/$defs/mls_group_id"},
+        "genesis_event_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
+        "commit_event_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
+        "commit_stream_position": {"type": "integer", "minimum": 1},
+        "epoch": {"type": "integer", "minimum": 1},
+        "welcome_id": {"$ref": "./common-ids.schema.json#/$defs/mls_welcome_delivery_id"},
+        "claim_id": {"$ref": "./mls-welcome-delivery.schema.json#/properties/keypackage_claim_ref"},
+        "actor_id": {"$ref": "./common-ids.schema.json#/$defs/actor_id"},
+        "endpoint": {"$ref": "./mls-welcome-delivery.schema.json#/properties/recipient_endpoint"},
+        "authorization_event_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
+        "leaf_signature_key_b64u": {"$ref": "#/$defs/signature_key"},
+        "claim_record_digest": {"$ref": "#/$defs/digest"},
+        "claim_receipt": {"$ref": "./keypackage-operations.schema.json#/$defs/peer_keypackage_claim_receipt"},
+        "attested_at": {"$ref": "./event-payload.schema.json#/$defs/timestamp"},
+        "signature": {"$ref": "./keypackage-operations.schema.json#/$defs/signature"}
+      },
+      "additionalProperties": false
+    },
+    "attest_add_request": {
+      "type": "object",
+      "description": "Transport-only full claim outcome lets governance verify the destination receipt's claims_digest before retaining only the signed minimal attestation. It is never returned by roster read.",
+      "required": ["attestation", "claim_outcome"],
+      "properties": {
+        "attestation": {"$ref": "#/$defs/mls_add_authority_attestation"},
+        "claim_outcome": {"$ref": "./keypackage-operations.schema.json#/$defs/keypackages_claim_outcome"}
+      },
+      "additionalProperties": false
+    },
+    "attest_add_outcome": {
+      "type": "object",
+      "required": ["status", "attestation_digest"],
+      "properties": {
+        "status": {"enum": ["installed", "duplicate"]},
+        "attestation_digest": {"$ref": "#/$defs/digest"}
+      },
+      "additionalProperties": false
+    },
+    "roster_read_request": {
+      "type": "object",
+      "required": ["realm_id", "effective_scope", "mls_group_id", "genesis_event_ref", "target_commit_event_ref", "target_epoch", "caller_actor_id"],
+      "properties": {
+        "realm_id": {"$ref": "./common-ids.schema.json#/$defs/realm_id"},
+        "effective_scope": {"$ref": "./event-payload.schema.json#/$defs/effective_scope"},
+        "mls_group_id": {"$ref": "./common-ids.schema.json#/$defs/mls_group_id"},
+        "genesis_event_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
+        "target_commit_event_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
+        "target_epoch": {"type": "integer", "minimum": 0},
+        "caller_actor_id": {"$ref": "./common-ids.schema.json#/$defs/actor_id"},
+        "cursor": {"type": "string", "minLength": 1, "maxLength": 1024}
+      },
+      "additionalProperties": false
+    },
+    "roster_genesis_record": {
+      "type": "object",
+      "required": ["kind", "genesis_event_ref", "actor_id", "leaf_signature_key_b64u", "endpoint", "authorization_event_ref"],
+      "properties": {
+        "kind": {"const": "genesis"},
+        "genesis_event_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
+        "actor_id": {"$ref": "./common-ids.schema.json#/$defs/actor_id"},
+        "leaf_signature_key_b64u": {"$ref": "#/$defs/signature_key"},
+        "endpoint": {"$ref": "./mls-welcome-delivery.schema.json#/properties/recipient_endpoint"},
+        "authorization_event_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"}
+      },
+      "additionalProperties": false
+    },
+    "roster_add_record": {
+      "type": "object",
+      "required": ["kind", "commit_event_ref", "proposal_wire_b64u", "attestation"],
+      "properties": {
+        "kind": {"const": "add"},
+        "commit_event_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
+        "proposal_wire_b64u": {"type": "string", "minLength": 1, "pattern": "^[A-Za-z0-9_-]+$"},
+        "attestation": {"$ref": "#/$defs/mls_add_authority_attestation"}
+      },
+      "additionalProperties": false
+    },
+    "roster_record": {
+      "oneOf": [{"$ref": "#/$defs/roster_genesis_record"}, {"$ref": "#/$defs/roster_add_record"}]
+    },
+    "roster_manifest": {
+      "type": "object",
+      "description": "Governance Station signature covers every member except signature. records_digest is SHA-256 over RFC 8785 JCS of the complete ordered roster_record array, independent of page boundaries.",
+      "required": ["governance_station_id", "realm_id", "effective_scope", "mls_group_id", "genesis_event_ref", "target_commit_event_ref", "target_epoch", "authority_head_commit_event_ref", "caller_actor_id", "total_records", "page_count", "records_digest", "issued_at", "signature"],
+      "properties": {
+        "governance_station_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
+        "realm_id": {"$ref": "./common-ids.schema.json#/$defs/realm_id"},
+        "effective_scope": {"$ref": "./event-payload.schema.json#/$defs/effective_scope"},
+        "mls_group_id": {"$ref": "./common-ids.schema.json#/$defs/mls_group_id"},
+        "genesis_event_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
+        "target_commit_event_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
+        "target_epoch": {"type": "integer", "minimum": 0},
+        "authority_head_commit_event_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
+        "caller_actor_id": {"$ref": "./common-ids.schema.json#/$defs/actor_id"},
+        "total_records": {"type": "integer", "minimum": 1},
+        "page_count": {"type": "integer", "minimum": 1},
+        "records_digest": {"$ref": "#/$defs/digest"},
+        "issued_at": {"$ref": "./event-payload.schema.json#/$defs/timestamp"},
+        "signature": {"$ref": "./keypackage-operations.schema.json#/$defs/signature"}
+      },
+      "additionalProperties": false
+    },
+    "roster_read_outcome": {
+      "type": "object",
+      "required": ["manifest", "page_index", "records"],
+      "properties": {
+        "manifest": {"$ref": "#/$defs/roster_manifest"},
+        "page_index": {"type": "integer", "minimum": 0},
+        "records": {"type": "array", "minItems": 1, "maxItems": 8, "items": {"$ref": "#/$defs/roster_record"}},
+        "next_cursor": {"type": "string", "minLength": 1, "maxLength": 1024}
+      },
+      "additionalProperties": false
+    }
+  }
+}

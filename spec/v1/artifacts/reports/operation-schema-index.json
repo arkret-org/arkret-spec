@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-28.6",
+  "version": "2026-09-28.7",
   "source_of_truth": false,
-  "generated_at": "2026-09-28T15:08:00+08:00",
+  "generated_at": "2026-09-28T23:54:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -3019,6 +3019,36 @@
       }
     },
     {
+      "operation_id": "ak.peer.mls.command.attest_add.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/attest_add_request",
+        "schema_kind": "object",
+        "required": [
+          "attestation",
+          "claim_outcome"
+        ],
+        "properties": [
+          "attestation",
+          "claim_outcome"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/attest_add_outcome",
+        "schema_kind": "object",
+        "required": [
+          "status",
+          "attestation_digest"
+        ],
+        "properties": [
+          "status",
+          "attestation_digest"
+        ],
+        "closed": true
+      }
+    },
+    {
       "operation_id": "ak.peer.mls.read.group_state_material.v1",
       "success_shape_kind": "typed_response",
       "request": {
@@ -3069,6 +3099,50 @@
           "group_info_bytes_b64",
           "ratchet_tree_ref",
           "ratchet_tree_bytes_b64"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.peer.mls.read.roster_authority.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/roster_read_request",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "effective_scope",
+          "mls_group_id",
+          "genesis_event_ref",
+          "target_commit_event_ref",
+          "target_epoch",
+          "caller_actor_id"
+        ],
+        "properties": [
+          "realm_id",
+          "effective_scope",
+          "mls_group_id",
+          "genesis_event_ref",
+          "target_commit_event_ref",
+          "target_epoch",
+          "caller_actor_id",
+          "cursor"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/roster_read_outcome",
+        "schema_kind": "object",
+        "required": [
+          "manifest",
+          "page_index",
+          "records"
+        ],
+        "properties": [
+          "manifest",
+          "page_index",
+          "records",
+          "next_cursor"
         ],
         "closed": true
       }
@@ -7889,6 +7963,50 @@
         ],
         "properties": [
           "markers"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.mls.read.roster_authority.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/roster_read_request",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "effective_scope",
+          "mls_group_id",
+          "genesis_event_ref",
+          "target_commit_event_ref",
+          "target_epoch",
+          "caller_actor_id"
+        ],
+        "properties": [
+          "realm_id",
+          "effective_scope",
+          "mls_group_id",
+          "genesis_event_ref",
+          "target_commit_event_ref",
+          "target_epoch",
+          "caller_actor_id",
+          "cursor"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/roster_read_outcome",
+        "schema_kind": "object",
+        "required": [
+          "manifest",
+          "page_index",
+          "records"
+        ],
+        "properties": [
+          "manifest",
+          "page_index",
+          "records",
+          "next_cursor"
         ],
         "closed": true
       }
