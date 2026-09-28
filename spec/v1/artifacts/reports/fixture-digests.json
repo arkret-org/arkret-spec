@@ -562,8 +562,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/visibility-policy-fixture.json",
-      "sha256": "8fdc189cec61982692771d277b8cfb03bcf1c3704878e69e72aba33a2640b31a",
-      "version": "2026-09-19.1"
+      "sha256": "7f6919ea250f0499545c2d3fb89e0c68d95d67bf8166a0338df1aeb79ffce6c8",
+      "version": "2026-09-28.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/webrtc-media-plaintext-fixture.json",

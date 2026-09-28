@@ -257,10 +257,15 @@ def check_prose_field_tables(lint: Lint) -> None:
                 OPERATION_NOTE_EXEMPTIONS_PATH,
                 "operation note field exemptions have an open or incomplete shape",
             )
-        if exemptions.get("version") != 1 or exemptions.get("source_of_truth") is not False:
+        if (
+            not isinstance(exemptions.get("version"), int)
+            or isinstance(exemptions.get("version"), bool)
+            or exemptions["version"] < 1
+            or exemptions.get("source_of_truth") is not False
+        ):
             lint.fail(
                 OPERATION_NOTE_EXEMPTIONS_PATH,
-                "operation note field exemptions must be version 1 and a non-authoritative lint inventory",
+                "operation note field exemptions must have a positive integer version and be a non-authoritative lint inventory",
             )
         for error in operation_note_field_drift(operations, documents, exemptions):
             lint.fail(OPERATION_NOTE_EXEMPTIONS_PATH, error)

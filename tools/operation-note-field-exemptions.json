@@ -1,7 +1,7 @@
 {
-  "version": 1,
+  "version": 2,
   "source_of_truth": false,
-  "generated_at": "2026-09-27T14:50:00+08:00",
+  "generated_at": "2026-09-28T09:48:03+08:00",
   "description": "Closed inventory of schema field names intentionally mentioned by operation notes although they are not members of that operation's request or response schema closure. The lint requires every entry to remain exercised and rejects every unregistered cross-object mention.",
   "operations": {
     "ak.gate.account.command.finalize_device_pairing.v1": ["account_handoff_grant", "new_device_pubkey"],
@@ -46,7 +46,6 @@
     "ak.self.keys.keypackages.read.claim.v1": ["keypackage_claim_ref"],
     "ak.self.realm_organization.read.list.v1": ["owning_organization_ids"],
     "ak.self.realm_state_snapshot.read.by_ref.v1": ["preview_only"],
-    "ak.self.read_cursor.command.advance.v1": ["stream_position"],
     "ak.self.third_party_invite.read.acceptance_attestation.v1": ["accepted_commit_id"]
   }
 }

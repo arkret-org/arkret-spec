@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-28.4",
+  "version": "2026-09-28.5",
   "source_of_truth": false,
-  "generated_at": "2026-09-28T07:31:00+08:00",
+  "generated_at": "2026-09-28T09:48:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -1849,9 +1849,9 @@
       "http": "GET /_arkret/self/circles/{circle_id}",
       "success_shape_kind": "typed_response",
       "request_schema_ref": null,
-      "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view",
+      "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_read_view",
       "openapi_component_refs": {
-        "response": "#/components/schemas/CircleView"
+        "response": "#/components/schemas/CircleReadView"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."

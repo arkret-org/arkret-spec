@@ -3693,6 +3693,7 @@
           "ak.schema.agent_authority_state_attestation.v1",
           "ak.schema.agent_authority_state_evidence.v1",
           "ak.schema.applet_install_operations.v1",
+          "ak.schema.approval_signature.v1",
           "ak.schema.consent_operations.v1",
           "ak.schema.controller_account_gate_attestation.v1",
           "ak.schema.controller_account_gate_attestation_issue_outcome.v1",

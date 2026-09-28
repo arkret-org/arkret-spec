@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-28.5",
+  "version": "2026-09-28.6",
   "source_of_truth": true,
-  "generated_at": "2026-09-28T07:55:00+08:00",
+  "generated_at": "2026-09-28T09:48:02+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1317,7 +1317,7 @@
       "applies_to_fixtures": [
         "visibility-policy-fixture.json"
       ],
-      "description": "Under directory_visibility=members a Realm member outside the Circle receives exactly the locked stub an absent Circle returns - the same fixed key set and timing bucket - while a Circle member sees full metadata without changing the non-member shape.",
+      "description": "Under directory_visibility=members a Realm member outside the Circle receives the same not_found error envelope and processing category as an absent Circle, and both are omitted from list, while a Circle member sees full metadata.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/visibility-policy-fixture.json",
         "spec/v1/zh/models/circle.md"
@@ -1330,7 +1330,7 @@
       "applies_to_fixtures": [
         "visibility-policy-fixture.json"
       ],
-      "description": "directory_visibility=realm_members exposes only the Realm-member preview field set and gives non-Realm callers the same locked stub/timing bucket as members-only circles.",
+      "description": "directory_visibility=realm_members exposes only the closed active-Circle preview field set to current parent-Realm members and gives non-Realm callers the same not_found envelope/processing category as absent or members-only circles.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/visibility-policy-fixture.json",
         "spec/v1/zh/models/circle.md"

@@ -490,6 +490,8 @@ components:
       $ref: ../schemas/circle-operations.schema.json#/$defs/circle_member_request_body
     CircleMembershipOutcome:
       $ref: ../schemas/circle-operations.schema.json#/$defs/circle_membership_outcome
+    CircleReadView:
+      $ref: ../schemas/circle-operations.schema.json#/$defs/circle_read_view
     CircleScopeRotateOutcome:
       $ref: ../schemas/circle-operations.schema.json#/$defs/circle_scope_rotate_outcome
     CircleView:
@@ -3492,11 +3494,11 @@ paths:
           type: string
       responses:
         '200':
-          description: Circle projection.
+          description: Full Circle view or directory-only preview.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CircleView'
+                $ref: '#/components/schemas/CircleReadView'
   /_arkret/self/circles/{circle_id}/members:
     post:
       operationId: ak.self.circle.member.command.add

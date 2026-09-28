@@ -57,8 +57,8 @@ closed union 见 [`history-visibility.md`](../governance/history-visibility.md) 
 
 self-surface 的 `circle_view`（[`circle-operations.schema.json#/$defs/circle_view`](../../artifacts/schemas/circle-operations.schema.json)）
 不携 `member_count`：成员数由同载体 required 的 `member_ids.length` 派生，能拿到 `circle_view` 的 caller 自行计数；
-隐私阈由 `circle_view` 本身的可见性承担。directory-only preview 不携 `member_ids`，只能按
-[`discovery-directory.md` §3](../discovery/discovery-directory.md) 的 bucket 合同携 `member_count_bucket`。
+隐私阈由 `circle_view` 本身的可见性承担。`circle_preview` 不携 `member_ids`，只携本节 §9.3 定义的
+`member_count_bucket`；这个 Circle bucket 与公开 Realm Directory 没有共同字段或推断关系。
 
 ## 4. `display` 字段(标准化视觉身份)
 
@@ -322,8 +322,10 @@ tombstone 时，即使 Circle canonical state 仍为 `active`，receiver 也 MUS
 > **Scope 投递不变量**:对任意事件 `E` 满足 `E.effective_scope.kind="circle"` 且 `E.effective_scope.circle_id=C`,Station sync surface MUST NOT 向在 `E` 的 committed Circle-stream position 处不属于 `C.members` 的 actor 投递 `E` 的 envelope 或 payload。订阅 Realm R 等价于订阅 (R 的 Realm-level events) ∪ (∀C ∈ R.circles, 若 actor ∈ C.members 则 C 的 scoped events，否则 ∅)。
 
 特例:
-- `ak.circle.create` 的 authorization shell 是 Realm-level event，但 projection MUST 按 `directory_visibility` 裁剪。`directory_visibility=members` 时，非成员不得看到 Circle title、display、`member_ids`、created_by 或可区分存在性的错误；最多只能看到不可枚举的 opaque commitment。非成员 Circle stub 的 shape MUST 固定为 `{ "visibility": "locked", "opaque_commitment": "<digest-or-fixed-placeholder>" }` 或等价字段集合；`opaque_commitment` MUST 是固定长度、不可逆、不可按 Circle title / short_name / member set 枚举的 digest，且不可见与不存在 Circle 的 list / get / search 响应 MUST 使用同一错误 envelope、同一字段集合和同一 timing bucket。普通 Circle 的该隐私要求由 `ak.vector.circle.directory_visibility_members_indistinguishable.v1` 覆盖；原生 Sidecar 的独立存在性隐私由 `ak.vector.sidecar.existence_privacy.v1` 覆盖。
-- `directory_visibility=realm_members` 时，属于父 Realm 但不属于该 Circle 的 caller 只能看到固定预览白名单：`circle_id`、`realm_id`、`visibility="realm_members"`、`display.color_token`、`display.symbol`、`member_count_bucket`、`join_rule` 与 `opaque_commitment`。不得向非 Circle 成员暴露 title、summary、`member_ids`、成员 DID、created_by、join history 或 Circle 私有事件引用。非 Realm 成员与未授权 caller 必须收到与 `directory_visibility=members` 相同的 locked stub / not_found envelope 和 timing bucket。该要求由 `ak.vector.circle.directory_visibility_realm_members_indistinguishable.v1` 覆盖。
+- `ak.circle.create` 的 authorization shell 是 Realm-level event，但 projection MUST 按 `directory_visibility` 裁剪。`GET /_arkret/self/circles/{circle_id}` 的成功载体是闭合 `circle_read_view=oneOf(circle_view,circle_preview)`；list 的唯一数组键是 `circles`，元素使用同一 union。只有同一 accepted cut 下同时属于父 Realm 与 Circle 的 caller 才得到完整 `circle_view`。`directory_visibility=members` 时，其他 caller 的 GET 与不存在 Circle 一律返回现有 `not_found` 错误 envelope，list 不列该项；不发可枚举的成功 locked stub。原生 Sidecar 的独立存在性隐私仍由 `ak.vector.sidecar.existence_privacy.v1` 覆盖。
+- `directory_visibility=realm_members` 且 Circle `state=active` 时，属于父 Realm 但不属于该 Circle 的 caller 只得到闭合 `circle_preview`：`circle_id`、`realm_id`、`visibility="realm_members"`、`display={color_token,symbol}`、`member_count_bucket`、`join_rule`、`opaque_commitment`，不得携带 title、summary、short_name、`member_ids`、成员 DID、created_by、join history 或私有 Event 引用。非父 Realm 成员、未授权 caller、不可见/不存在对象的 GET 同一 `not_found` 错误代码和字段集合；list 均省略。`archived`/`tombstoned` 的非成员预览也省略。当前 v1 未登记 Circle search operation。
+- `member_count_bucket` 按同一读事务中**有效父 Realm joined ∩ 有效 Circle joined** 的人数计算（只计 `effective_at <=` 本次读 cut 的有效成员），固定区间为 `0`、`1`、`2-3`、`4-7`、`8-15`、`16-31`、`32-63`、`64-127`、`128+`；不输出原始人数。`opaque_commitment` 是 64 位小写十六进制 SHA-256，输入字节精确为 UTF-8 `ak.circle.preview.v1`、单字节 `0x00`、wire `realm_id` UTF-8、单字节 `0x00`、wire `circle_id` UTF-8。它只承诺预览中已公开且不可由标题、短名或成员枚举的高熵 ID，跨 caller/读次稳定；不得用它证明私有 Circle Event 内容。
+- 不可见与不存在的 GET 必须使用同一代码、字段集合与 `circle_locked_v1` 处理类别；实现不得依据存在性设置不同延时、重试或缓存响应类别。此处理类别不是固定毫秒值或密码学恒时承诺；验收比对完整错误 envelope 与路径处理类别，并对显著可区分的延时分支作负向检查。list 对这两者均省略且不得输出计数或占位。普通 Circle 的这两项要求分别由 `ak.vector.circle.directory_visibility_members_indistinguishable.v1` 和 `ak.vector.circle.directory_visibility_realm_members_indistinguishable.v1` 覆盖。
 - `ak.circle.member.state` 仅投递给该 Circle 的成员 + 完成 `ak.circle.audit` / `ak.audit.accessed` 配对的 audit reader。
 
 ## 10. 加密 / RealmCommit 集成

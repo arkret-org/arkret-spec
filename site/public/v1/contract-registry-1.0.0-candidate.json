@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-28.4",
+  "version": "2026-09-28.5",
   "source_of_truth": true,
-  "generated_at": "2026-09-28T07:31:00+08:00",
+  "generated_at": "2026-09-28T09:48:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -14586,7 +14586,7 @@
         "http": "GET /_arkret/self/circles",
         "grpc": "SelfCircle/List",
         "mq": "self.circle.query.list",
-        "notes": "Lists Circles the caller may see within one parent Realm (required realm_id query). Directory visibility is enforced per Circle; non-members of a 'members'-visibility Circle MUST NOT see it.",
+        "notes": "Lists Circles the caller may see within one parent Realm (required realm_id query). The circles array contains full CircleView for Circle members and the fixed CirclePreview for parent-Realm members when directory_visibility=realm_members; invisible Circles are omitted.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_list"
@@ -14596,10 +14596,10 @@
         "http": "GET /_arkret/self/circles/{circle_id}",
         "grpc": "SelfCircle/Get",
         "mq": "self.circle.resource.get",
-        "notes": "Reads one Circle projection. Returns not_found when the Circle is invisible to the caller rather than disclosing existence.",
+        "notes": "Reads a full CircleView for joined Circle members, or fixed CirclePreview for joined parent-Realm non-members when directory_visibility=realm_members and state=active. Invisible and absent Circles have the same not_found envelope.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
-        "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view"
+        "response_schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_read_view"
       },
       {
         "operation_id": "ak.self.consent.command.grant.v1",
@@ -15927,8 +15927,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-28.1",
-    "generated_at": "2026-09-28T06:37:00+08:00",
+    "version": "2026-09-28.2",
+    "generated_at": "2026-09-28T09:48:00+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",

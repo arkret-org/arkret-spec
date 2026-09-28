@@ -11,6 +11,9 @@
       "$ref": "#/$defs/circle_view"
     },
     {
+      "$ref": "#/$defs/circle_preview"
+    },
+    {
       "$ref": "#/$defs/circle_list"
     },
     {
@@ -137,6 +140,35 @@
       },
       "additionalProperties": false
     },
+    "circle_preview": {
+      "type": "object",
+      "description": "Fixed directory-only response to a joined parent-Realm member who is not a Circle member. It never carries a private Circle field or Event reference.",
+      "required": ["circle_id", "realm_id", "visibility", "display", "member_count_bucket", "join_rule", "opaque_commitment"],
+      "properties": {
+        "circle_id": {"$ref": "./common-ids.schema.json#/$defs/circle_id"},
+        "realm_id": {"$ref": "./common-ids.schema.json#/$defs/realm_id"},
+        "visibility": {"const": "realm_members"},
+        "display": {
+          "type": "object",
+          "required": ["color_token", "symbol"],
+          "properties": {
+            "color_token": {"$ref": "./circle.schema.json#/$defs/display/properties/color_token"},
+            "symbol": {"$ref": "./circle.schema.json#/$defs/display/properties/symbol"}
+          },
+          "additionalProperties": false
+        },
+        "member_count_bucket": {"type": "string", "enum": ["0", "1", "2-3", "4-7", "8-15", "16-31", "32-63", "64-127", "128+"]},
+        "join_rule": {"type": "string", "enum": ["invite", "knock", "public"]},
+        "opaque_commitment": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      },
+      "additionalProperties": false
+    },
+    "circle_read_view": {
+      "oneOf": [
+        {"$ref": "#/$defs/circle_view"},
+        {"$ref": "#/$defs/circle_preview"}
+      ]
+    },
     "circle_create_request_body": {
       "type": "object",
       "description": "Carries the caller-signed ak.circle.create Event and nothing else. The Circle id is retype(create_event.event.event_id), so the service cannot name the Circle and MUST NOT synthesize the Event: every actor-supplied field lives in create_event.event.payload.object, and the parent Realm is create_event.event.realm_id. See spec/v1/zh/models/circle.md and spec/v1/zh/sync/service-http-binding.md.",
@@ -186,7 +218,7 @@
         "circles": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/circle_view"
+            "$ref": "#/$defs/circle_read_view"
           }
         }
       },

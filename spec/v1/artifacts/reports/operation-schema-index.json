@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-28.4",
+  "version": "2026-09-28.5",
   "source_of_truth": false,
-  "generated_at": "2026-09-28T07:31:00+08:00",
+  "generated_at": "2026-09-28T09:48:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -5347,20 +5347,13 @@
       "operation_id": "ak.self.circle.resource.get.v1",
       "success_shape_kind": "typed_response",
       "response": {
-        "schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view",
-        "schema_kind": "object",
+        "schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_read_view",
+        "schema_kind": "oneOf",
         "required": [
           "circle_id",
           "realm_id",
-          "title",
           "display",
-          "directory_visibility",
-          "join_rule",
-          "history_access",
-          "state",
-          "member_ids",
-          "created_by",
-          "created_at"
+          "join_rule"
         ],
         "properties": [
           "circle_id",
@@ -5379,9 +5372,74 @@
           "created_by",
           "created_at",
           "updated_by",
-          "updated_at"
+          "updated_at",
+          "visibility",
+          "member_count_bucket",
+          "opaque_commitment"
         ],
-        "closed": true
+        "closed": true,
+        "variants": [
+          {
+            "schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_view",
+            "schema_kind": "object",
+            "required": [
+              "circle_id",
+              "realm_id",
+              "title",
+              "display",
+              "directory_visibility",
+              "join_rule",
+              "history_access",
+              "state",
+              "member_ids",
+              "created_by",
+              "created_at"
+            ],
+            "properties": [
+              "circle_id",
+              "realm_id",
+              "profile_ref",
+              "title",
+              "summary",
+              "display",
+              "directory_visibility",
+              "join_rule",
+              "history_access",
+              "mls_group_id",
+              "state",
+              "viewer_membership",
+              "member_ids",
+              "created_by",
+              "created_at",
+              "updated_by",
+              "updated_at"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/circle-operations.schema.json#/$defs/circle_preview",
+            "schema_kind": "object",
+            "required": [
+              "circle_id",
+              "realm_id",
+              "visibility",
+              "display",
+              "member_count_bucket",
+              "join_rule",
+              "opaque_commitment"
+            ],
+            "properties": [
+              "circle_id",
+              "realm_id",
+              "visibility",
+              "display",
+              "member_count_bucket",
+              "join_rule",
+              "opaque_commitment"
+            ],
+            "closed": true
+          }
+        ]
       }
     },
     {

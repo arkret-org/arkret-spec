@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.circle_conformance.v1",
-  "version": "2026-09-19.1",
+  "version": "2026-09-28.1",
   "suite": "visibility_policy",
   "runner": {
     "kind": "named_suite",
@@ -190,13 +190,11 @@
       "directory_visibility": "members",
       "viewer": "realm_member_not_circle_member",
       "expected": {
-        "non_member_projection": "locked_stub",
-        "absent_projection": "locked_stub",
+        "non_member_projection": "not_found",
+        "absent_projection": "not_found",
         "timing_bucket": "circle_locked_v1",
-        "locked_stub_keys": [
-          "opaque_commitment",
-          "visibility"
-        ],
+        "error_code": "not_found",
+        "list_behavior": "omit",
         "forbidden_fields": [
           "title",
           "display",
@@ -211,8 +209,8 @@
         "circle_member_projection": "full_metadata"
       },
       "assertions": [
-        "a Realm member outside the Circle receives the same locked stub as an absent Circle",
-        "locked stubs have a fixed field set and timing bucket",
+        "a Realm member outside the Circle receives the same not_found error envelope as an absent Circle",
+        "invisible and absent Circle GETs share the same error field set and processing category; list omits both",
         "the Circle member control can see metadata without changing the non-member shape"
       ]
     },
@@ -224,9 +222,13 @@
       "viewer": "realm_member_not_circle_member",
       "expected": {
         "realm_member_projection": "realm_member_preview",
-        "non_realm_projection": "locked_stub",
-        "absent_projection": "locked_stub",
+        "non_realm_projection": "not_found",
+        "absent_projection": "not_found",
         "timing_bucket": "circle_locked_v1",
+        "error_code": "not_found",
+        "list_behavior": "omit",
+        "preview_member_count_buckets": ["0", "1", "2-3", "4-7", "8-15", "16-31", "32-63", "64-127", "128+"],
+        "opaque_commitment_encoding": "sha256_lower_hex_realm_and_circle_ids",
         "preview_keys": [
           "circle_id",
           "display",
@@ -250,7 +252,7 @@
       },
       "assertions": [
         "Realm members outside the Circle see only the fixed preview whitelist",
-        "non-Realm callers receive the same locked stub as members-only Circles",
+        "non-Realm callers receive the same not_found envelope as absent and members-only Circles",
         "raw member counts, titles, creator ids, members and private event refs are not projected"
       ]
     },
