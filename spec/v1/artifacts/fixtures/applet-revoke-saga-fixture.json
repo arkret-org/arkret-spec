@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.applet_service.v1",
-  "version": "2026-09-28.1",
+  "version": "2026-09-28.2",
   "suite": "applet_revoke_saga",
   "runner": {
     "kind": "named_suite",
@@ -322,5 +322,37 @@
       "expected_new_domain_effect_count": 0,
       "required_recovery": "repreview_reconfirm_resign"
     }
-  ]
+  ],
+  "session_grant_revoke_device_gate_kat": {
+    "action_class": "session_grant_revoke",
+    "intent_digest_source": "verified_account_lifecycle_proof.request_canonical_digest",
+    "expected_binding_source": "issuer_signed_authorizing_session_grant.device_binding",
+    "accepted_device_possession_proof": "forbidden",
+    "cases": [
+      {
+        "name": "exact_current_active",
+        "result": "allow"
+      },
+      {
+        "name": "revocation_pending",
+        "result": "device_revocation_pending"
+      },
+      {
+        "name": "revoked",
+        "result": "device_revoked"
+      },
+      {
+        "name": "generation_mismatch",
+        "result": "device_generation_fenced"
+      },
+      {
+        "name": "expected_binding_missing",
+        "result": "device_unauthorized"
+      },
+      {
+        "name": "different_intent_digest",
+        "result": "proof_invalid"
+      }
+    ]
+  }
 }

@@ -2357,6 +2357,26 @@ def check_applet_revoke_saga_contract(lint: Lint) -> None:
         lint.fail(schema_path, "applet_revoke_preview_outcome must require the canonical revoke_plan")
 
     kat = fixture.get("preview_plan_digest_kat")
+    device_gate = fixture.get("session_grant_revoke_device_gate_kat")
+    expected_gate_cases = {
+        "exact_current_active": "allow",
+        "revocation_pending": "device_revocation_pending",
+        "revoked": "device_revoked",
+        "generation_mismatch": "device_generation_fenced",
+        "expected_binding_missing": "device_unauthorized",
+        "different_intent_digest": "proof_invalid",
+    }
+    if not isinstance(device_gate, dict) or (
+        device_gate.get("action_class") != "session_grant_revoke"
+        or device_gate.get("intent_digest_source")
+        != "verified_account_lifecycle_proof.request_canonical_digest"
+        or device_gate.get("expected_binding_source")
+        != "issuer_signed_authorizing_session_grant.device_binding"
+        or device_gate.get("accepted_device_possession_proof") != "forbidden"
+        or {row.get("name"): row.get("result") for row in device_gate.get("cases", [])}
+        != expected_gate_cases
+    ):
+        lint.fail(fixture_path, "session_grant_revoke device gate must bind proof intent and exact current device")
     plan_ref = "schemas/applet-install-operations.schema.json#/$defs/applet_revoke_plan"
     if not isinstance(kat, dict):
         lint.fail(fixture_path, "preview_plan_digest_kat must pin the caller-side revoke_plan_digest recomputation")

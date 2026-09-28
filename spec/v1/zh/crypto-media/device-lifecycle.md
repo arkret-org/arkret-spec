@@ -489,6 +489,16 @@ Arkret v1 没有让远端 verifier 证明 source 已完整披露 PCR 历史的�
 
 `ak.schema.device_revocation_state.v1`（[`device-revocation-state.schema.json`](../../artifacts/schemas/device-revocation-state.schema.json)）的三支 `oneOf` 是该折叠的**结果形态**，不是 Event 的写入形状：其中 `target_device_authorize_event_id` 与 `target_device_generation_ref` 由元素与同 `device_id` 的 `device_authorization` result 连接得到，`accepted_at` / `acceptance_seq` 由接纳该元素的事务给出，`committed_at` 与 `denied_actions` 由覆盖 command result 给出。producer 因此确实不自报任何 derived pending selector。
 
+Applet delegated-session revoke 的账户管理员控制核验使用独立的私有 current-device admission action
+`session_grant_revoke`；它属于 `denied_actions` 的闭合集合，不能借用 `session_grant_issue_or_refresh`
+或 `event_write` 得到 allow。Account Authority 先独立验证管理员的 `AccountLifecycleProof` 对 exact
+Applet revoke selector（包含 inventory witness）的 `session_revoke_request_digest`，再把已验证
+`request_canonical_digest` 作为该 gate 的 `intent_digest`。请求还须携 issuer 签署的 grant
+`device_binding` 中的 exact expected `ak.device.authorize` Event ID 与 device generation；origin Station
+在同一 current-device linearization 中检查该 binding、pending/revoked 状态与 generation，不能从 caller
+自报字段或过期缓存推导 allow。此 action 不携 `AcceptedDevicePossessionProof`，该 proof 仅供其原本的
+returning session issue / human refresh 使用；管理员撤销由前述独立 lifecycle proof 授权。
+
 「多个 transaction 独立计数，reject 一条不清另一条」（[`../security/server-threat-model.md`](../security/server-threat-model.md)）在该形状上是**结构性**成立的：每条 proposal 是一个独立元素，每个元素只折叠自己的覆盖 command result，一条被 reject 不改变另一条的折叠输入。
 
 **覆盖结果的封闭来源。** `SecurityRotationTransaction.revoke_proposal` 与 `revoke_command_outcome`（[`security-transaction.schema.json`](../../artifacts/schemas/security-transaction.schema.json)）是该事务内唯一的 Station-local durable proposal binding 与 command terminal。前者必须和 Event/Commit 接纳同事务写入；后者逐字绑定同一个 `prepared_plan.revoke_unit` 中唯一 `ak.device.revoke` 的 `proposal_event_id`、接纳该 Event 的 `covering_commit_id`、`result=accepted|rejected` 和 `decided_at`。此处 RealmCommit 的 accepted 只证明 proposal Event 已进入 PCR stream；`rejected` 是随后对**命令效果**的终局否决，不能撤销 Event/Commit、删除 proposal 或倒写 stream。必须先验证 Event ID 与完整签名 Event、Commit `event_ref`、PCR stream/position、当前治理 authority、transaction account 与计划的逐字连接，且两字段中的 ID 逐字相同，才可把该结果用于折叠。结果只能由该账号治理 Station 的 durable SecurityRotation worker 在原事务资源上写一次；同一事务、proposal、Commit 的同 bytes 重放读取第一次结果，另一结果或另一覆盖 Commit 必须冲突。`accepted` 必须与 revoke accepted step 一起原子持久化；`rejected` 必须与事务 `aborted` 或 `expired` terminal 一起原子持久化，不能存在 accepted step 或后继副作用。已有 `revoke_proposal` 的事务进入 aborted/expired 必须同时写 rejected result；尚无 proposal 的失败／超时可直接终止，不能伪造 rejected。完整事务资源及结果 ledger 在同一数据库快照可读、`revoke_proposal` 已存在而结果尚无且事务仍活动，才表示该 proposal 待决；事务/ledger 缺失或不完整不等于 pending，更不能据此判 active。SecurityRotation completed 必须有 `accepted` 结果。拒绝发生在 Event/Commit 接纳后；若 admission 在这之前失败，则没有 proposal，也没有本记录。

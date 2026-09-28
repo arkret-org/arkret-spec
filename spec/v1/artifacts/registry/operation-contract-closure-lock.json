@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-28.8",
-  "generated_at": "2026-09-28T15:08:00+08:00",
+  "version": "2026-09-28.9",
+  "generated_at": "2026-09-28T15:08:01+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -117,7 +117,7 @@
     },
     {
       "operation_id": "ak.gate.account.command.register.v1",
-      "sha256": "sha256:4390fd6917edf725e65adf5f18dd2c78de22645b350feaef7da7abe827e6c5d1"
+      "sha256": "sha256:f35875d4c1a0fdd7a0b98061e3c63a5f84af8b476a667a1aa1fb82d566c57bd2"
     },
     {
       "operation_id": "ak.gate.account.command.request_erasure.v1",
@@ -125,7 +125,7 @@
     },
     {
       "operation_id": "ak.gate.account.command.revoke_session.v1",
-      "sha256": "sha256:22a21b847c057c420f0f269fd5759ee993019d5ab4e803d816ecaaf952a75b4e"
+      "sha256": "sha256:350f730e5b748aeb0f185702e2b12c53f78c7eefcded593b1a4db2aded3959f5"
     },
     {
       "operation_id": "ak.gate.account.exchange.create_handoff.v1",
@@ -389,7 +389,7 @@
     },
     {
       "operation_id": "ak.self.account.read.viewer.v1",
-      "sha256": "sha256:e3f6438d9ce0407ed257f303ad410b80a4f1f6bb8090ab835fb00a1ed5a1f907"
+      "sha256": "sha256:a63e185b564c759a01b6f575e6de3dc951073b7d3e2c05c42842273b1fabcbe4"
     },
     {
       "operation_id": "ak.self.account.stream.subscribe.v1",

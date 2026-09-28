@@ -394,7 +394,9 @@ inventory 改写原计划。为避免有限寿命的 `AccountLifecycleProof` 在
 `ak.gate.account.command.revoke_session.v1` Applet selector 的 `expected_inventory_digest`，Account Authority
 在一个 issuer 事务中比较 exact selector 与当前 revision/ID 集 witness、撤销所列全部 active grant、
 记录 exact replay outcome，并对该 `(applet_id,effective_scope,registration_epoch)` 立持久 fence，
-后续 issue/refresh 不得复活该 install 的 session。CAS 不匹配时子操作零副作用，不得继续 Event 步骤。
+后续 issue/refresh 不得复活该 install 的 session。CAS 不匹配时 Account Authority MUST 返回
+HTTP 409 `failed_precondition`、`reason_code=applet_delegated_session_inventory_changed`，子操作零副作用，
+Station 不得继续 Event 步骤。
 已接纳的子操作即使响应丢失或 proof 后来过期，也可按原 identity 与 bytes 重放原结果；issuer 在同一锁内
 先查 durable exact outcome，再判断未接纳请求的 proof 时效。若 issuer 明确返回“该 exact 子操作从未接纳、
 零 effect 且 proof 已过期”，Station 才能终止没有其它领域 effect 的 ledger，由 caller 以新 preview/proof/
@@ -416,7 +418,13 @@ Account Authority exact-token introspection 与 DPoP 后的 active grant，不�
 bearer。Station 对转发请求使用上述 RFC 9421 服务签名；Account Authority 必须从自身 issuer ledger 独立查
 active grant，取得 actor、device 与 audience，核对已接受的当前 DID/device binding，并据此验证原
 `AccountLifecycleProof` 对 exact selector（含 inventory witness）的签名。只信 Station 声称的 admin 或
-复用未经校验的 proof 均不合规。普通 DPoP revoke selector 不得携这两个 Applet 专用字段。
+复用未经校验的 proof 均不合规。AA 在验证签名后，以已验证的
+`proof.request_canonical_digest` 作为 `session_grant_revoke` 私有 current-device gate 的 `intent_digest`，
+将 issuer grant 已签的 `device_binding` 作为 expected authorize Event/generation；origin Station 必须在
+同一 current-device linearization 中判定 active、非 revocation-pending、该 expected binding 仍 current，
+AA 逐字比较 gate 返回 binding。该 gate action 不要求、也不得伪造 session-grant issue/refresh 专用的
+`AcceptedDevicePossessionProof`；原 `AccountLifecycleProof` 独立验证。普通 DPoP revoke selector 不得携
+这两个 Applet 专用字段。
 
 ## 5. Namespace
 

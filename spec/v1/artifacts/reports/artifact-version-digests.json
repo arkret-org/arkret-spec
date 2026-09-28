@@ -129,9 +129,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/error-code-registry.json",
-      "version": "2026-09-28.4",
-      "generated_at": "2026-09-28T07:56:00+08:00",
-      "content_digest": "sha256:20428fe1ede17fcf0140b37c404170866c2957504519b2909d1cf1c29ff55a7d"
+      "version": "2026-09-28.5",
+      "generated_at": "2026-09-28T15:21:00+08:00",
+      "content_digest": "sha256:0c9fd894ee93e2acdd255a0fea9088d5fcea4043f13508aca6372988a3092675"
     },
     {
       "path": "spec/v1/artifacts/registry/event-kind-registry.json",
@@ -231,9 +231,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-09-28.8",
-      "generated_at": "2026-09-28T15:08:00+08:00",
-      "content_digest": "sha256:0995ae9294ebe102ca1018d38b2923a1aa514e0e5a88cfb7db305619c46a9aeb"
+      "version": "2026-09-28.9",
+      "generated_at": "2026-09-28T15:08:01+08:00",
+      "content_digest": "sha256:4fa14b054a72cefc068a27585a98e4ab7382783e0b4621195cded998461e2af1"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
@@ -243,9 +243,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operations-error-mapping.json",
-      "version": "2026-09-28.1",
-      "generated_at": "2026-09-28T15:08:00+08:00",
-      "content_digest": "sha256:3069a4dacfefef48125fd1186fc34b8c7f497adec5895242dc8a5d64009c0eb8"
+      "version": "2026-09-28.2",
+      "generated_at": "2026-09-28T15:21:00+08:00",
+      "content_digest": "sha256:a7ccd7530de38ed3c778f8422ba27d9dab6305a360bd7e920d49ea0d2028d487"
     },
     {
       "path": "spec/v1/artifacts/registry/outward-disclosure-policy-registry.json",
@@ -369,9 +369,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/vector-registry.json",
-      "version": "2026-09-28.8",
-      "generated_at": "2026-09-28T15:08:00+08:00",
-      "content_digest": "sha256:acd6c41b341db2119ee3cfa00265e1b02faa0ae62d45da2d7c10e4d41d4d536c"
+      "version": "2026-09-28.9",
+      "generated_at": "2026-09-28T15:25:00+08:00",
+      "content_digest": "sha256:9663d95dfbfb92a6e4a0141cb2c3844e4d2c020e86612455519934d514f35ae7"
     },
     {
       "path": "tools/artifact-anchor-fragment-exemptions.json",

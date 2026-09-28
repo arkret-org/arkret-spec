@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-28.4",
-  "generated_at": "2026-09-28T07:56:00+08:00",
+  "version": "2026-09-28.5",
+  "generated_at": "2026-09-28T15:21:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -3025,6 +3025,14 @@
         "service_call"
       ],
       "description": "The immutable provision ceiling and accepted Agent key authorization both contain every operation required by the selected runtime capability, but the requested or current session scope omits one or more. The operation fails with failed_precondition and recovery is a new session constrained by both upper ceilings. See zh/identity/key-management.md §3.6.1 and agent-runtime-scope-registry.json.",
+      "status": "active"
+    },
+    {
+      "code": "applet_delegated_session_inventory_changed",
+      "applies_to": [
+        "service_call"
+      ],
+      "description": "The Account Authority atomically compared the Applet revoke selector's expected_inventory_digest with its complete current issuer-ledger inventory and found a different revision or active SessionGrant set. ak.gate.account.command.revoke_session.v1 returns HTTP 409 failed_precondition with this reason_code and zero new issuer effects; the Station must not continue Event steps or treat a pending saga ledger as proof of non-acceptance. See zh/extensions/applet-integration.md §4b.",
       "status": "active"
     },
     {
