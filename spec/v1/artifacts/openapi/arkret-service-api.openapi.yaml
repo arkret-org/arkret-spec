@@ -2169,8 +2169,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MlsRosterAuthorityReadOutcome'
-        '409':
-          description: Authorized history or complete attestation is unavailable.
+        '400':
+          description: The roster pagination cursor is invalid (cursor_invalid).
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '503':
+          description: Authorized history or complete attestation is unavailable (revision_unavailable).
           content:
             application/problem+json:
               schema:
@@ -2227,13 +2233,25 @@ paths:
               schema:
                 $ref: '#/components/schemas/MlsGroupStateMaterialOutcome'
         '409':
-          description: Event/object material is unavailable, inconsistent, or not accepted.
+          description: An exact dependency or accepted state conflicts with the request.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '503':
+          description: Authorized historical material is unavailable (revision_unavailable).
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '413':
+          description: The complete response exceeds the caller or protocol byte bound (limit_exceeded).
           content:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
         '422':
-          description: The complete response exceeds the caller or protocol byte bound.
+          description: The public material digest does not match its content address (digest_mismatch).
           content:
             application/problem+json:
               schema:
@@ -5119,8 +5137,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MlsGroupStateMaterialOutcome'
-        '409':
-          description: Authorized historical public material is unavailable or inconsistent.
+        '503':
+          description: Authorized historical public material is unavailable or inconsistent (revision_unavailable).
           content:
             application/problem+json:
               schema:
@@ -5153,8 +5171,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MlsRosterAuthorityReadOutcome'
-        '409':
-          description: Authorized history or complete attestation is unavailable.
+        '503':
+          description: Authorized history or complete attestation is unavailable (revision_unavailable).
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '400':
+          description: The roster pagination cursor is invalid (cursor_invalid).
           content:
             application/problem+json:
               schema:
