@@ -576,7 +576,7 @@ MUST NOT 被实现成「先对 JSON 求 SHA-256、再签那个摘要」的第二
 `operation` MUST 是承载该 Event 的已登记提交 operation。`list_space_id` MUST 等于已签
 Event payload 的 `target_space_id`，`list_policy_revision` MUST 等于同一 authority cut 的目标
 List metadata current revision；任一不等均不得计票。该支不能满足 grant 或 Realm governance 层，
-其它两支也不能替代 List WIP 票。approver DID MUST 不等于发起 ActorId 的 principal DID，
+其它两支也不能替代 List WIP 票。`approver_did` 投影出的 DID core id MUST 不等于发起 ActorId 的 signing principal id，
 并在同一 cut 对目标 List 持有有效的 `ak.space.update` capability；List policy 自身不授予审批权。
 不同合格 `approver_did` 中至少一人签署才满足固定 quorum=1。签名有效期由已签 exact Event、
 当前 List revision、§9.2.4 的 `approved_at` future guard、`approved_at` 时点未撤销的 DID method 和本次准入的
