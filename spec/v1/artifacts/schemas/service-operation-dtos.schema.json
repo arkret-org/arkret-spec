@@ -1197,7 +1197,7 @@
     },
     "EventAdmissionSubmission": {
       "type": "object",
-      "description": "One exact producer-signed Event submitted to the current governance Station, plus the approval signatures that the two approval layers require for the Event action or for this registered submit operation. There are no RealmCommit, typed current result, offline-lease or proof-bundle sidecars. approval_signatures is the only sidecar and it is deliberately outside event: the Event bytes and event_id are finished before any approval is signed, so attaching them never changes the Event (zh/authz/constraint-schema.md section 9.2.5).",
+      "description": "One exact producer-signed Event submitted to the current governance Station, plus the approval signatures required by a grant, Realm governance or List WIP policy for the Event action or for this registered submit operation. There are no RealmCommit, typed current result, offline-lease or proof-bundle sidecars. approval_signatures is the only sidecar and it is deliberately outside event: the Event bytes and event_id are finished before any approval is signed, so attaching them never changes the Event (zh/authz/constraint-schema.md section 9.2.5).",
       "required": [
         "event"
       ],

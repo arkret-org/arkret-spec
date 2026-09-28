@@ -555,12 +555,13 @@ MUST NOT 被实现成「先对 JSON 求 SHA-256、再签那个摘要」的第二
 
 #### 9.2.2 `approval_context`：该审批要求来自哪一层（normative）
 
-`approval_context` 是 closed XOR，两支在 schema 层可判定：
+`approval_context` 是 closed XOR，三支在 schema 层可判定：
 
 | 支 | 形状 | 含义 |
 | --- | --- | --- |
 | `grant` | `{"context_kind":"grant","grant_id": GrantId}` | §9.1 挂在**一份具体 grant** 上的审批要求。`grant_id` MUST 是本次操作的某个**满足的依赖 grant**。 |
 | `realm_governance` | `{"context_kind":"realm_governance"}` | [`../models/governance-objects.md` §3.5](../models/governance-objects.md) 登记在 `(action token, scope)` 上的 Realm 治理面审批要求。 |
+| `list_wip` | `{"context_kind":"list_wip","list_space_id": SpaceId,"list_policy_revision": CurrentRevision}` | [`../models/space-hierarchy.md` §6](../models/space-hierarchy.md) 的精确目标 List 在超限且 `wip_limit_enforcement=require_review` 时独立施加的一票审批要求；revision 是该 List metadata typed current 的完整 `{commit_id,stream_position}`。 |
 
 `realm_governance` 支 MUST NOT 携带 `policy_id` / `action_id` 一类治理配置标识：
 本 Realm 对该动作的审批要求由 `realm_id` + `action` + `approval_target` 已经完整确定，
@@ -570,6 +571,16 @@ MUST NOT 被实现成「先对 JSON 求 SHA-256、再签那个摘要」的第二
 而伪造一个 `grant_id`。反向也成立：一份 `realm_governance` 证据 MUST NOT 被当成对某份特定 grant
 的批准。一份 `grant` 支证据若**同时**满足两层各自现行的资格条件，MAY 分别计入两层；
 两层的合并方式仍按 §9.3，各自 quorum 独立判定，MUST NOT 把票数合并成一个阈值。
+
+`list_wip` 支仅能用于 `ak.strand.move` 的 Event target：`action` MUST 为 `ak.strand.move`，
+`operation` MUST 是承载该 Event 的已登记提交 operation。`list_space_id` MUST 等于已签
+Event payload 的 `target_space_id`，`list_policy_revision` MUST 等于同一 authority cut 的目标
+List metadata current revision；任一不等均不得计票。该支不能满足 grant 或 Realm governance 层，
+其它两支也不能替代 List WIP 票。approver DID MUST 不等于发起 ActorId 的 principal DID，
+并在同一 cut 对目标 List 持有有效的 `ak.space.update` capability；List policy 自身不授予审批权。
+不同合格 `approver_did` 中至少一人签署才满足固定 quorum=1。签名有效期由已签 exact Event、
+当前 List revision、§9.2.4 的 `approved_at` future guard、`approved_at` 时点未撤销的 DID method 和本次准入的
+capability 资格共同界定；本层不增一个独立 TTL。已接纳记录仍按 §9.2.5 的 accepted-at basis 验证。
 
 `nonce` 的命名空间是 `(approval_context, approver_did)`：它 MUST NOT 与
 `ak.agent.action_approve` 的 confirmation nonce（§9.2.6）、任何 challenge 或其它签名证据共享。

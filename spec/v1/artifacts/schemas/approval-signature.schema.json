@@ -137,7 +137,7 @@
       "additionalProperties": false
     },
     "approval_context": {
-      "description": "Which layer raised the approval requirement this signature answers. The two branches are decidable from the schema alone. The governance branch exists because the governance layer can also cover actions that are not admitted against one single grant: an implementation MUST NOT fabricate a grant_id to satisfy the schema, and a governance-context signature MUST NOT be read as approval of one particular grant. The two layers are intersected, each quorum is judged independently and vote counts are never merged (zh/models/governance-objects.md section 3.5).",
+      "description": "Which independent requirement this signature answers. Grant, Realm governance and List WIP votes use the same signed input, proof, carrier and nonce rules; their quorums remain independent. A List WIP signature binds the exact List metadata current revision and cannot be counted as a grant or Realm governance vote (zh/models/space-hierarchy.md section 6; zh/authz/constraint-schema.md section 9.2).",
       "oneOf": [
         {
           "type": "object",
@@ -168,6 +168,27 @@
           },
           "additionalProperties": false,
           "$comment": "The Realm governance approval requirement registered on an (action token, scope) pair. It deliberately carries no policy or action configuration identifier: realm_id, action and approval_target already determine the requirement, and a private governance identifier MUST NOT ride along in evidence that may leave the Station."
+        },
+        {
+          "type": "object",
+          "required": [
+            "context_kind",
+            "list_space_id",
+            "list_policy_revision"
+          ],
+          "properties": {
+            "context_kind": {
+              "const": "list_wip"
+            },
+            "list_space_id": {
+              "$ref": "./event-payload.schema.json#/$defs/space_id"
+            },
+            "list_policy_revision": {
+              "$ref": "./typed-current-result.schema.json#/$defs/revision"
+            }
+          },
+          "additionalProperties": false,
+          "$comment": "An independent one-vote requirement of the exact target List's wip_limit_enforcement=require_review. The revision is that List's metadata current revision at the authority cut, not a client CAS operand or a new Event payload field."
         }
       ]
     },
