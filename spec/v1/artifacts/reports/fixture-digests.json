@@ -357,8 +357,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-cross-station-welcome-replication-fixture.json",
-      "sha256": "ebdf21ff327efec4124da58fc27a25a0a914f1cf3f6311912a3ac166413dfb48",
-      "version": "2026-09-29.1"
+      "sha256": "7ca5b40f59a071a78afc90ae24456ffb61746afc360fc08167fbfa997b21528d",
+      "version": "2026-09-29.2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-governance-binding-closure-fixture.json",

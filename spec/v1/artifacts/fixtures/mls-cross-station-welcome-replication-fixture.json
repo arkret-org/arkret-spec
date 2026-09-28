@@ -5,7 +5,7 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.mls.cross_station_welcome_replication.v1"
   },
-  "version": "2026-09-29.1",
+  "version": "2026-09-29.2",
   "profile": "ak.profile.e2ee_client.v1",
   "covers_vectors": [
     "ak.vector.mls.cross_station_welcome_replication.v1"
@@ -116,71 +116,71 @@
       "id": "remote_welcome_intent",
       "requirement": "Inside the Commit acceptance transaction the governance Station queues a hosted recipient's Welcome locally and writes every other Welcome into the committed-replication intent of that recipient's routing service: exactly that service's recipients, in submission order, and no welcomes member for a target that hosts none.",
       "accept": [
-        "/cases/0/variants/0",
-        "/cases/0/variants/1",
-        "/cases/1/variants/1"
+        "/cases/1/variants/0",
+        "/cases/1/variants/1",
+        "/cases/2/variants/1"
       ],
       "reject": [
-        "/cases/1/variants/0"
+        "/cases/2/variants/0"
       ]
     },
     {
       "id": "target_set_closure",
       "requirement": "A Welcome whose recipient's routing service is not a committed-replication target of the Commit refuses the whole submission with a bare failed_precondition and zero writes.",
       "accept": [
-        "/cases/1/variants/1"
+        "/cases/2/variants/1"
       ],
       "reject": [
-        "/cases/1/variants/0"
+        "/cases/2/variants/0"
       ]
     },
     {
       "id": "welcomes_only_on_mls_commit",
       "requirement": "welcomes is allowed only on an ak.mls.commit item and is never empty; any other item carrying it is schema_violation and nothing is stored.",
       "accept": [
-        "/cases/2/variants/0"
+        "/cases/3/variants/0"
       ],
       "reject": [
-        "/cases/2/variants/1",
-        "/cases/2/variants/2"
+        "/cases/3/variants/1",
+        "/cases/3/variants/2"
       ]
     },
     {
       "id": "destination_reverification",
       "requirement": "The destination re-verifies each Welcome's claim against its own ledger and queues each passing Welcome, with its claim binding, in the same replica transaction as the Commit; a Welcome whose claim is absent, expired, consumed, bound to another Welcome or names another endpoint is never queued, and the Commit replica is stored all the same.",
       "accept": [
-        "/cases/3/variants/0/expected/welcome_decisions/bob",
-        "/cases/3/variants/0/expected/welcome_decisions/carol"
+        "/cases/4/variants/0/expected/welcome_decisions/bob",
+        "/cases/4/variants/0/expected/welcome_decisions/carol"
       ],
       "reject": [
-        "/cases/3/variants/1/expected/welcome_decisions/carol",
-        "/cases/3/variants/2/expected/welcome_decisions/carol",
-        "/cases/3/variants/3/expected/welcome_decisions/carol",
-        "/cases/3/variants/4/expected/welcome_decisions/carol",
-        "/cases/3/variants/5/expected/welcome_decisions/carol",
-        "/cases/3/variants/6/expected/welcome_decisions/bob"
+        "/cases/4/variants/1/expected/welcome_decisions/carol",
+        "/cases/4/variants/2/expected/welcome_decisions/carol",
+        "/cases/4/variants/3/expected/welcome_decisions/carol",
+        "/cases/4/variants/4/expected/welcome_decisions/carol",
+        "/cases/4/variants/5/expected/welcome_decisions/carol",
+        "/cases/4/variants/6/expected/welcome_decisions/bob"
       ]
     },
     {
       "id": "scan_replay_fills_welcomes",
       "requirement": "A replay of an item whose Commit is already held through scan or an earlier attempt returns duplicate and queues, in one transaction, each Welcome not queued yet that passes re-verification; a Welcome that fails stays unqueued and a further replay queues nothing.",
       "accept": [
-        "/cases/4/variants/1/expected/welcome_decisions/bob",
-        "/cases/4/variants/2"
+        "/cases/5/variants/1/expected/welcome_decisions/bob",
+        "/cases/5/variants/2"
       ],
       "reject": [
-        "/cases/4/variants/1/expected/welcome_decisions/carol"
+        "/cases/5/variants/1/expected/welcome_decisions/carol"
       ]
     },
     {
       "id": "capacity_and_ack_only",
       "requirement": "A replicated Welcome counts toward its endpoint queue capacity but is never refused by it, unlike a first admission at capacity, and leaves the queue only through ACK.",
       "accept": [
-        "/cases/5/variants/1",
-        "/cases/5/variants/2"
+        "/cases/6/variants/1",
+        "/cases/6/variants/2"
       ],
       "reject": [
-        "/cases/5/variants/0"
+        "/cases/6/variants/0"
       ]
     }
   ],
