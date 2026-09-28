@@ -6446,6 +6446,16 @@
       ]
     },
     {
+      "schema_path": "service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialRequestBody/properties/caller_actor_id",
+      "property_name": "caller_actor_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "actor_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:actor_id"
+      ]
+    },
+    {
       "schema_path": "service-operation-dtos.schema.json#/$defs/ModerationReportOutcome/properties/routed_to_ids",
       "property_name": "routed_to_ids",
       "semantic_category": "responsibility_identity_material",

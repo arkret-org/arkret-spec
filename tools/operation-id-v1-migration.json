@@ -736,6 +736,10 @@
       "new": "ak.self.messages.command.prepare.v1"
     },
     {
+      "old": "ak.self.mls.read.group_state_material",
+      "new": "ak.self.mls.read.group_state_material.v1"
+    },
+    {
       "old": "ak.self.mls.read.roster_authority",
       "new": "ak.self.mls.read.roster_authority.v1"
     },

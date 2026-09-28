@@ -186,6 +186,23 @@ Station 的原 claim outcome 仍可按 §9 的既有短期规则清理，但其�
 治理 Station 确认持久安装。具体 closed wire、签名和页完整性由
 `mls-roster-authority.schema.json` 定义；缺证据时 Welcome 安装保持 `decryption_pending`。
 
+**成员读取 Genesis public material（normative）**：`ak.self.mls.read.group_state_material.v1` 是成员设备
+取得同一 accepted Genesis 所承诺 RFC GroupInfo 与 ratchet tree 原字节的唯一成员端操作；它不授予设备
+`ak.peer.mls.read.group_state_material.v1` 的服务身份。self 请求必带完整 `caller_actor_id`、Realm、
+effective scope、group、epoch 0、Genesis Event ref、两条 content-addressed Blob ref 与可选响应字节上限。
+请求另必带目标 accepted Commit Event ref 与 epoch，指明此次取证的加入／读取 cut；它们不改变物料始终
+属于 epoch 0 Genesis 的事实。Account Station 必须核对 caller 为本次已认证 session 的 exact ActorId，
+并在请求时 current 与该目标 cut 分别验证 joined membership、scope 可见性、history 与 policy；无权、已离组、
+隐去的 scope 或未知 selector 统一 `not_found`。它以已认证 Station 身份向治理 Station 转发同一请求，
+不得把本地通用 Blob get 或用户自报 ref 当作授权依据。peer 请求带 `caller_actor_id` 时，治理 Station
+也须在当前及目标 cut 独立核验该 ActorId 的同样读取资格，并同时保持原有调用 Station 的复制权校验；
+peer 请求不带 caller 仅供原有服务复制用途，不可替代 self 成员读取。治理 Station 先从 exact accepted
+Genesis 核对所有 selector，再对两份公开原字节分别按 ref 内嵌 digest suite 校验 content address、
+对照 RFC GroupInfo/tree 一致性，然后整份返回；Account Station 只转发，设备还须重复 exact selector、
+原字节 digest 与 RFC public tree 校验，leaf index 只从验证后的 occupied leaf 导出。任一原字节缺失、
+不一致或超出请求上限时整份失败，不得返回部分材料、私有树、MLS secret 或服务端推断的 leaf DTO；
+授权已通过但历史材料不可得统一 `revision_unavailable`，续读不得静默改用当前设备投影。
+
 ### 2.3 应用载荷加密
 
 effective scope 在没有 accepted `ak.mls.genesis` 时只允许该 Event kind 的明文 payload；Genesis accepted 后 MLS

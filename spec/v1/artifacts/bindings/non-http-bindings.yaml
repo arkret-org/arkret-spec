@@ -122,6 +122,7 @@ grpc:
       Export: ak.self.realm.read.export.v1
       Streams: ak.self.realm.read.streams.v1
     SelfMls:
+      GroupStateMaterial: ak.self.mls.read.group_state_material.v1
       RosterAuthority: ak.self.mls.read.roster_authority.v1
     SelfConsent:
       List: ak.self.consent.read.list.v1
@@ -404,6 +405,7 @@ mq:
     self.realm_organization.query.list: ak.self.realm_organization.read.list.v1
     self.realm.resource.get: ak.self.realm.resource.get.v1
     self.realm.query.export: ak.self.realm.read.export.v1
+    self.mls.query.group_state_material: ak.self.mls.read.group_state_material.v1
     self.mls.query.roster_authority: ak.self.mls.read.roster_authority.v1
     self.realm.query.streams: ak.self.realm.read.streams.v1
     self.consent.query.list: ak.self.consent.read.list.v1

@@ -12,6 +12,25 @@
       "type": "string",
       "pattern": "^[A-Za-z0-9_-]{43}$"
     },
+    "member_group_state_material_read_request": {
+      "type": "object",
+      "description": "Authenticated member read of accepted Genesis public RFC material at an exact target membership/history cut. The Account Station binds caller_actor_id to the session and forwards all selectors unchanged to governance.",
+      "required": ["realm_id", "effective_scope", "mls_group_id", "epoch", "group_state_event_id", "caller_actor_id", "target_commit_event_ref", "target_epoch", "group_info_ref", "ratchet_tree_ref"],
+      "properties": {
+        "realm_id": {"$ref": "./service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialRequestBody/properties/realm_id"},
+        "effective_scope": {"$ref": "./service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialRequestBody/properties/effective_scope"},
+        "mls_group_id": {"$ref": "./service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialRequestBody/properties/mls_group_id"},
+        "epoch": {"$ref": "./service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialRequestBody/properties/epoch"},
+        "group_state_event_id": {"$ref": "./service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialRequestBody/properties/group_state_event_id"},
+        "caller_actor_id": {"$ref": "./service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialRequestBody/properties/caller_actor_id"},
+        "target_commit_event_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
+        "target_epoch": {"$ref": "./service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialRequestBody/properties/target_epoch"},
+        "group_info_ref": {"$ref": "./common-ids.schema.json#/$defs/blob_ref"},
+        "ratchet_tree_ref": {"$ref": "./common-ids.schema.json#/$defs/blob_ref"},
+        "max_response_bytes": {"$ref": "./service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialRequestBody/properties/max_response_bytes"}
+      },
+      "additionalProperties": false
+    },
     "mls_add_authority_attestation": {
       "type": "object",
       "description": "Signed by the exact recipient Account Station after the accepted Commit and Welcome have been verified in its replica transaction. The original claim outcome may then expire; this immutable attestation remains replayable until governance installation is acknowledged.",

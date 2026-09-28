@@ -5,13 +5,14 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.mls.roster_authority.v1"
   },
-  "version": "2026-09-29.3",
+  "version": "2026-09-29.4",
   "profile": "ak.profile.e2ee_client.v1",
   "covers_vectors": [
     "ak.vector.mls.roster_authority.v1"
   ],
   "machine_contracts": [
     "schemas/event-payload.schema.json#/$defs/mls_genesis_creator_leaf_authority",
+    "schemas/mls-roster-authority.schema.json#/$defs/member_group_state_material_read_request",
     "schemas/mls-roster-authority.schema.json",
     "registry/contract-registry.json"
   ],
@@ -46,9 +47,47 @@
         "leaf_index": 0
       },
       "first_expected_error": "contains:leaf_index"
+    },
+    {
+      "name": "member_public_material_read_closed_positive",
+      "schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/member_group_state_material_read_request",
+      "expect_valid": true,
+      "semantic_outcome": "accept",
+      "instance": {
+        "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+        "effective_scope": {"kind": "realm", "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"},
+        "mls_group_id": "QjKOSorlqs3IquY7OikTUTy_Z0mMiL0X2mK4jAOT4R4",
+        "epoch": 0,
+        "group_state_event_id": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
+        "caller_actor_id": {"kind": "account", "account_id": {"principal_id": "ak:did_core:web:bob.example", "station_id": "ak:did_core:web:bob-station.example"}},
+        "target_commit_event_ref": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
+        "target_epoch": 0,
+        "group_info_ref": "ak:blob:sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "ratchet_tree_ref": "ak:blob:sha256:2222222222222222222222222222222222222222222222222222222222222222"
+      }
     }
   ],
   "cases": [
+    {
+      "given": "Cross-Station joined Bob requests accepted Genesis GroupInfo/tree through self member material read; his Account Station checks session Actor and current/target membership and governance repeats the dual-cut check on the forwarded exact caller",
+      "expected": {
+        "decision": "accept only with matching accepted Genesis selectors, both content-addressed raw-byte digests and RFC public tree; no peer credential is exposed to the device"
+      },
+      "name": "cross_station_member_public_material_read",
+      "covers_decision_points": [
+        "AK-SDK-009/welcome_roster_requires_complete_historical_leaf_authority"
+      ]
+    },
+    {
+      "given": "The member has left currently, lacked target-cut history, changes caller_actor_id or target Commit, requests a hidden Circle, or points to unavailable or inconsistent Genesis Blob bytes",
+      "expected": {
+        "decision": "unauthorized and unknown return indistinguishable not_found; authorized material failure returns revision_unavailable; no partial bytes, private tree, secret or inferred leaf index"
+      },
+      "name": "member_public_material_fail_closed",
+      "covers_decision_points": [
+        "AK-SDK-009/welcome_roster_requires_complete_historical_leaf_authority"
+      ]
+    },
     {
       "given": "Genesis producer key and MLS leaf signature key differ, but signed creator_leaf_authority binds the exact public-tree leaf, endpoint and accepted historical authorization",
       "expected": {

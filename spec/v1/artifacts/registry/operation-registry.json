@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-28.4",
+  "version": "2026-09-29.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-28T23:54:00+08:00",
+  "generated_at": "2026-09-29T01:31:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -213,6 +213,7 @@
       "operations": [
         "ak.self.realm.resource.get.v1",
         "ak.self.realm.read.export.v1",
+        "ak.self.mls.read.group_state_material.v1",
         "ak.self.mls.read.roster_authority.v1"
       ],
       "surface_class": "extension"
@@ -1751,7 +1752,7 @@
       "http": "POST /_arkret/peer/mls/group-state-material",
       "grpc": "PeerMls/GroupStateMaterial",
       "mq": "peer.mls.query.group_state_material",
-      "notes": "Read-only service-authenticated retrieval of the exact RFC 9420 GroupInfo and ratchet_tree extension bytes committed by one accepted ak.mls.genesis Event. The provider resolves the Event, verifies every echoed scope/group/epoch/ref/digest selector, hashes raw bytes against both explicit digests and content-addressed refs, and validates GroupInfo/tree consistency before returning an all-or-nothing response. It never returns private tree material, secrets, inferred leaf DTOs or proof-bundle leaves; consumers derive leaf_index only from occupied leaves in the verified RFC tree.",
+      "notes": "Read-only service-authenticated retrieval of the exact RFC 9420 GroupInfo and ratchet_tree extension bytes committed by one accepted ak.mls.genesis Event. A self member forwarding request also binds caller_actor_id and target Commit/epoch; governance checks that exact Actor's current and target-cut membership/history in addition to the calling Station's replication right. Without caller_actor_id this remains Station replication-only. The provider resolves the Event, verifies every selector, hashes raw bytes against content-addressed refs, and validates GroupInfo/tree consistency before an all-or-nothing response. It never returns private tree material, secrets, inferred leaf DTOs or proof-bundle leaves; consumers derive leaf_index only from occupied leaves in the verified RFC tree.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialRequestBody",
@@ -3715,6 +3716,17 @@
       "response_schema_ref": "schemas/read-cursor-operations.schema.json#/$defs/read_cursor_list"
     },
     {
+      "operation_id": "ak.self.mls.read.group_state_material.v1",
+      "http": "POST /_arkret/self/mls/group-state-material/query",
+      "grpc": "SelfMls/GroupStateMaterial",
+      "mq": "self.mls.query.group_state_material",
+      "notes": "Authenticated member's Account Station binds caller_actor_id to the exact session Actor, checks current and target-cut scope/membership/history/policy, and forwards the same selectors to governance over the existing peer material read. Governance independently checks the named Actor's current and target-cut authority in addition to the caller Station's replication right; response contains only digest-verified Genesis GroupInfo and ratchet-tree public bytes, never a leaf index, private tree or secret. Unknown and unauthorized selectors are indistinguishable.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/member_group_state_material_read_request",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialOutcome"
+    },
+    {
       "operation_id": "ak.self.mls.read.roster_authority.v1",
       "http": "POST /_arkret/self/mls/roster-authority/query",
       "grpc": "SelfMls/RosterAuthority",
@@ -5214,6 +5226,10 @@
         },
         {
           "operation_id": "ak.self.messages.command.prepare.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "operation_id": "ak.self.mls.read.group_state_material.v1",
           "binding_kind": "http_json"
         },
         {

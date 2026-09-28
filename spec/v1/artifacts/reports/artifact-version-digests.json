@@ -81,9 +81,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
-      "version": "2026-09-28.7",
-      "generated_at": "2026-09-28T23:54:00+08:00",
-      "content_digest": "sha256:7644e3f793175fe1ea3855d76a4086ea859806b5ff0b90f7877e44c7790ee3d4"
+      "version": "2026-09-29.2",
+      "generated_at": "2026-09-29T01:33:00+08:00",
+      "content_digest": "sha256:2f665af13212800248454da56e2452cb60ddbe3ff049688b2a203a46ea56011a"
     },
     {
       "path": "spec/v1/artifacts/registry/current-result-registry.json",
@@ -213,15 +213,15 @@
     },
     {
       "path": "spec/v1/artifacts/registry/normative-clause-registry.json",
-      "version": "2026-09-29.2",
-      "generated_at": "2026-09-29T00:23:00+08:00",
-      "content_digest": "sha256:f05f8a31c1577269a6867f701c0c8733c538df605a7a9cbebbe23bb51f46532c"
+      "version": "2026-09-29.3",
+      "generated_at": "2026-09-29T01:31:00+08:00",
+      "content_digest": "sha256:dc06b6df37bfb2477e206817dc6d70bc663afe885d030a13ebd2be0594861bc9"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-bundle-closure-lock.json",
-      "version": "2026-09-28.2",
-      "generated_at": "2026-09-28T23:54:00+08:00",
-      "content_digest": "sha256:5cc45a112276b9304b43091f344895fd44b40551072a8a97bd966f6a07639521"
+      "version": "2026-09-29.1",
+      "generated_at": "2026-09-29T01:29:00+08:00",
+      "content_digest": "sha256:f155630892765a39e780324d61fd9fe4661272f7cc525c5d9c2fcf44e835a096"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-clause-registry.json",
@@ -231,21 +231,21 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-09-28.10",
-      "generated_at": "2026-09-28T23:54:00+08:00",
-      "content_digest": "sha256:b24e2abb99bcf7fa13fcc0980fc837f43d3069083ef473997d9c70a3c4a60ad9"
+      "version": "2026-09-29.3",
+      "generated_at": "2026-09-29T01:33:00+08:00",
+      "content_digest": "sha256:98b9cf35bda0a2d861dca6c84144646ff1ae47d6a3c006a754adbd127c574993"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
-      "version": "2026-09-28.4",
-      "generated_at": "2026-09-28T23:54:00+08:00",
-      "content_digest": "sha256:4f935ace470530f03df0ebe8761eb832f7730e669f4c90986cf6879422293342"
+      "version": "2026-09-29.1",
+      "generated_at": "2026-09-29T01:31:00+08:00",
+      "content_digest": "sha256:aab907dc31cded3b9a540526b9b3ce36cfb88d8aabaf830f9fb728e8f3700947"
     },
     {
       "path": "spec/v1/artifacts/registry/operations-error-mapping.json",
-      "version": "2026-09-29.1",
-      "generated_at": "2026-09-29T00:06:00+08:00",
-      "content_digest": "sha256:b0ce33e4437a4b3c2ffbb0310d3bff4d3538a74a5bfa1a2ad079f80af1cc5172"
+      "version": "2026-09-29.3",
+      "generated_at": "2026-09-29T01:37:00+08:00",
+      "content_digest": "sha256:53edf0b1902a769178ebbee904de3c568e6031479eb25cb9ec06fc0ea436c50b"
     },
     {
       "path": "spec/v1/artifacts/registry/outward-disclosure-policy-registry.json",
@@ -369,9 +369,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/vector-registry.json",
-      "version": "2026-09-29.1",
-      "generated_at": "2026-09-29T00:06:00+08:00",
-      "content_digest": "sha256:268dce3dfeb8826744e93edfccc7410a0414c406531b1bca5d83be4d624deb55"
+      "version": "2026-09-29.2",
+      "generated_at": "2026-09-29T01:29:00+08:00",
+      "content_digest": "sha256:5293d23d9c04bbbbdb025e9a3ae0d826f500924a136053c930bea7249ea58c8a"
     },
     {
       "path": "tools/artifact-anchor-fragment-exemptions.json",
@@ -441,9 +441,9 @@
     },
     {
       "path": "tools/identifier-classification-registry.json",
-      "version": 36,
+      "version": 37,
       "generated_at": null,
-      "content_digest": "sha256:06749f7ac0fb0e3f365d06c243478b3e797801130306d55ce8dd2d5575282e1c"
+      "content_digest": "sha256:248925952d2c2df0aeda0f351dd28e02194193625f7bae7b013a58646f2d1f15"
     },
     {
       "path": "tools/identifier-role-suffix-registry.json",

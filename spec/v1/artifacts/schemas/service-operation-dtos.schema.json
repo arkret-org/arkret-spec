@@ -1529,7 +1529,7 @@
     },
     "MlsGroupStateMaterialRequestBody": {
       "type": "object",
-      "description": "Read-only service request for the exact public MLS epoch-0 GroupInfo and ratchet_tree bytes committed by one accepted ak.mls.genesis Event. Every selector is copied from that Event; the receiver MUST resolve the Event and compare every field before returning bytes.",
+      "description": "Read-only service request for the exact public MLS epoch-0 GroupInfo and ratchet_tree bytes committed by one accepted ak.mls.genesis Event. Every Genesis selector is copied from that Event. When caller_actor_id is present, target_commit_event_ref and target_epoch are also mandatory and the governance Station checks current and target-cut member/history authority; without caller_actor_id this remains the original Station replication-only read.",
       "required": [
         "realm_id",
         "effective_scope",
@@ -1555,6 +1555,16 @@
         "group_state_event_id": {
           "$ref": "#/$defs/EventId"
         },
+        "caller_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
+        },
+        "target_commit_event_ref": {
+          "$ref": "#/$defs/EventId"
+        },
+        "target_epoch": {
+          "type": "integer",
+          "minimum": 0
+        },
         "group_info_ref": {
           "type": "string",
           "pattern": "^ak:blob:(?:sha256|blake3):[0-9a-f]{64}$",
@@ -1571,6 +1581,11 @@
           "maximum": 8388608,
           "default": 8388608
         }
+      },
+      "dependentRequired": {
+        "caller_actor_id": ["target_commit_event_ref", "target_epoch"],
+        "target_commit_event_ref": ["caller_actor_id", "target_epoch"],
+        "target_epoch": ["caller_actor_id", "target_commit_event_ref"]
       },
       "additionalProperties": false
     },

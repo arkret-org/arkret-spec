@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-28.7",
+  "version": "2026-09-29.2",
   "source_of_truth": false,
-  "generated_at": "2026-09-28T23:54:00+08:00",
+  "generated_at": "2026-09-29T01:33:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,10 +18,10 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 209,
+    "total_operations": 210,
     "by_completeness_class": {
       "binary_or_redirect": 2,
-      "typed_schema": 207
+      "typed_schema": 208
     },
     "by_surface_class_and_completeness_class": {
       "core": {
@@ -32,7 +32,7 @@
       },
       "extension": {
         "binary_or_redirect": 2,
-        "typed_schema": 124
+        "typed_schema": 125
       },
       "interop_bridge": {
         "typed_schema": 21
@@ -2541,6 +2541,20 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/MessagePrepareRequestBody",
         "response": "#/components/schemas/MessagePrepareOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.self.mls.read.group_state_material.v1",
+      "surface_class": "extension",
+      "http": "POST /_arkret/self/mls/group-state-material/query",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/member_group_state_material_read_request",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialOutcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/MlsMemberGroupStateMaterialReadRequestBody",
+        "response": "#/components/schemas/MlsGroupStateMaterialOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

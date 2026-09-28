@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-28.7",
+  "version": "2026-09-29.2",
   "source_of_truth": false,
-  "generated_at": "2026-09-28T23:54:00+08:00",
+  "generated_at": "2026-09-29T01:33:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -3069,6 +3069,9 @@
           "mls_group_id",
           "epoch",
           "group_state_event_id",
+          "caller_actor_id",
+          "target_commit_event_ref",
+          "target_epoch",
           "group_info_ref",
           "ratchet_tree_ref",
           "max_response_bytes"
@@ -7963,6 +7966,67 @@
         ],
         "properties": [
           "markers"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.mls.read.group_state_material.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/member_group_state_material_read_request",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "effective_scope",
+          "mls_group_id",
+          "epoch",
+          "group_state_event_id",
+          "caller_actor_id",
+          "target_commit_event_ref",
+          "target_epoch",
+          "group_info_ref",
+          "ratchet_tree_ref"
+        ],
+        "properties": [
+          "realm_id",
+          "effective_scope",
+          "mls_group_id",
+          "epoch",
+          "group_state_event_id",
+          "caller_actor_id",
+          "target_commit_event_ref",
+          "target_epoch",
+          "group_info_ref",
+          "ratchet_tree_ref",
+          "max_response_bytes"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialOutcome",
+        "schema_kind": "object",
+        "required": [
+          "realm_id",
+          "effective_scope",
+          "mls_group_id",
+          "epoch",
+          "group_state_event_id",
+          "group_info_ref",
+          "group_info_bytes_b64",
+          "ratchet_tree_ref",
+          "ratchet_tree_bytes_b64"
+        ],
+        "properties": [
+          "realm_id",
+          "effective_scope",
+          "mls_group_id",
+          "epoch",
+          "group_state_event_id",
+          "group_info_ref",
+          "group_info_bytes_b64",
+          "ratchet_tree_ref",
+          "ratchet_tree_bytes_b64"
         ],
         "closed": true
       }

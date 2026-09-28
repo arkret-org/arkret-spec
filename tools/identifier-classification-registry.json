@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 36,
+  "version": 37,
   "kind": "identifier_classification_registry",
   "source_of_truth": false,
   "generated_from": [
@@ -26,8 +26,8 @@
     "unregistered_object_identifier"
   ],
   "type_derived_summary": {
-    "typed_object_id": 903,
-    "responsibility_identity_material": 535,
+    "typed_object_id": 905,
+    "responsibility_identity_material": 537,
     "registry_catalog_symbol": 15
   },
   "pending_rename_convergence": [],
@@ -428,7 +428,7 @@
       "name": "mls_group_id",
       "terminal_signature": "[[\"pattern\", \"^[A-Za-z0-9_-]{43}$\"]]",
       "category": "external_system_identifier",
-      "occurrences": 20,
+      "occurrences": 21,
       "example_path": "circle-operations.schema.json#/$defs/circle_view/properties/mls_group_id",
       "reason": "RFC 9420 MLS group_id, derived from the effective scope by the fixed v1 digest and never an Arkret typed ID. Every occurrence now refs the one terminal in common-ids.schema.json, so the three earlier signatures collapsed into this one."
     },

@@ -2759,6 +2759,7 @@
         "owners": [
           "ak.peer.mls.command.attest_add.v1",
           "ak.peer.mls.read.roster_authority.v1",
+          "ak.self.mls.read.group_state_material.v1",
           "ak.self.mls.read.roster_authority.v1"
         ],
         "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."

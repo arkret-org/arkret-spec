@@ -767,6 +767,8 @@ components:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialOutcome
     MlsGroupStateMaterialRequestBody:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialRequestBody
+    MlsMemberGroupStateMaterialReadRequestBody:
+      $ref: ../schemas/mls-roster-authority.schema.json#/$defs/member_group_state_material_read_request
     MlsRosterAuthorityReadOutcome:
       $ref: ../schemas/mls-roster-authority.schema.json#/$defs/roster_read_outcome
     MlsRosterAuthorityReadRequestBody:
@@ -2204,7 +2206,11 @@ paths:
 
         GroupInfo/tree consistency. The response is all-or-nothing and never
 
-        contains private tree material, MLS secrets or inferred leaf DTOs.
+        contains private tree material, MLS secrets or inferred leaf DTOs. A forwarded
+        self member read includes caller_actor_id and target Commit/epoch; governance
+        independently verifies current and target-cut member/history authority in
+        addition to the calling Station replication right. An absent caller_actor_id
+        is only the original Station replication read.
 
         '
       requestBody:
@@ -5085,6 +5091,40 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RealmJoinSelfPreviewOutcome'
+  /_arkret/self/mls/group-state-material/query:
+    post:
+      operationId: ak.self.mls.read.group_state_material
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.self.mls.read.group_state_material.v1
+      security:
+      - sessionGrantAuth: []
+        dpopProof: []
+      summary: Read exact accepted Genesis public MLS material through the member's Account Station.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MlsMemberGroupStateMaterialReadRequestBody'
+      responses:
+        '200':
+          description: Exact content-addressed RFC GroupInfo and ratchet-tree public bytes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MlsGroupStateMaterialOutcome'
+        '409':
+          description: Authorized historical public material is unavailable or inconsistent.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
   /_arkret/self/mls/roster-authority/query:
     post:
       operationId: ak.self.mls.read.roster_authority
