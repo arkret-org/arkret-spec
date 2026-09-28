@@ -223,8 +223,11 @@ effective scope、group、epoch 0、Genesis Event ref、两条 content-addressed
 并在请求时 current 与该目标 cut 分别验证 joined membership、scope 可见性、history 与 policy；无权、已离组、
 隐去的 scope 或未知 selector 统一 `not_found`。它以已认证 Station 身份向治理 Station 转发同一请求，
 不得把本地通用 Blob get 或用户自报 ref 当作授权依据。peer 请求带 `caller_actor_id` 时，治理 Station
-也须在当前及目标 cut 独立核验该 ActorId 的同样读取资格，并同时保持原有调用 Station 的复制权校验；
-peer 请求不带 caller 仅供原有服务复制用途，不可替代 self 成员读取。治理 Station 先从 exact accepted
+也须在当前及目标 cut 独立核验该 ActorId 的同样读取资格。此携带 caller 的请求中，调用 Station 的
+复制权必须相对于目标 accepted Commit cut 核验，不能以 epoch 0 Genesis 的 Commit 位置拒绝此后才
+加入的成员 Account Station；调用者在当前及目标 cut 的资格仍须同时成立。peer 请求不带 caller 仅供
+原有服务复制用途，调用 Station 的复制权仍按 Genesis 的 Commit 位置核验，不可替代 self 成员读取。
+治理 Station 先从 exact accepted
 Genesis 核对所有 selector，再对两份公开原字节分别按 ref 内嵌 digest suite 校验 content address、
 对照 RFC GroupInfo/tree 一致性，然后整份返回；Account Station 只转发，设备还须重复 exact selector、
 原字节 digest 与 RFC public tree 校验，leaf index 只从验证后的 occupied leaf 导出。任一原字节缺失、

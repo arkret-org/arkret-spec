@@ -5,7 +5,7 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.mls.roster_authority.v1"
   },
-  "version": "2026-09-29.5",
+  "version": "2026-09-29.6",
   "profile": "ak.profile.e2ee_client.v1",
   "covers_vectors": [
     "ak.vector.mls.roster_authority.v1"
@@ -74,6 +74,26 @@
         "decision": "accept only with matching accepted Genesis selectors, both content-addressed raw-byte digests and RFC public tree; no peer credential is exposed to the device"
       },
       "name": "cross_station_member_public_material_read",
+      "covers_decision_points": [
+        "AK-SDK-009/welcome_roster_requires_complete_historical_leaf_authority"
+      ]
+    },
+    {
+      "given": "Bob's Account Station joined after epoch-0 Genesis but has source Station replication right at the named target accepted Commit cut; Bob is joined and history-authorized both currently and at that target cut, and the peer request carries his exact caller_actor_id",
+      "expected": {
+        "decision": "serve the verified Genesis public bytes after checking Station replication at the target Commit cut; do not reject solely because the Station had no replication right at the Genesis Commit position"
+      },
+      "name": "later_joined_station_member_material_target_cut_accept",
+      "covers_decision_points": [
+        "AK-SDK-009/welcome_roster_requires_complete_historical_leaf_authority"
+      ]
+    },
+    {
+      "given": "The same later-joined source Station requests Genesis material through the peer operation without caller_actor_id, and lacked replication right at the Genesis Commit position",
+      "expected": {
+        "decision": "reject the original Station replication-only read at the Genesis Commit position; a target cut without an authenticated caller cannot grant that read"
+      },
+      "name": "later_joined_station_replication_genesis_read_reject",
       "covers_decision_points": [
         "AK-SDK-009/welcome_roster_requires_complete_historical_leaf_authority"
       ]

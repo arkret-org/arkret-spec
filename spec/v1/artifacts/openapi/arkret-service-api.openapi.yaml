@@ -2214,9 +2214,11 @@ paths:
 
         contains private tree material, MLS secrets or inferred leaf DTOs. A forwarded
         self member read includes caller_actor_id and target Commit/epoch; governance
-        independently verifies current and target-cut member/history authority in
-        addition to the calling Station replication right. An absent caller_actor_id
-        is only the original Station replication read.
+        independently verifies current and target-cut member/history authority and
+        the calling Station replication right at the target accepted Commit cut.
+        It does not gate a later-joined member Station at the Genesis Commit position.
+        An absent caller_actor_id is only the original Station replication read;
+        source Station replication right is checked at the Genesis Commit position.
 
         '
       requestBody:

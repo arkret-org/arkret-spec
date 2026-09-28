@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-29.5",
-  "generated_at": "2026-09-29T01:57:00+08:00",
+  "version": "2026-09-29.7",
+  "generated_at": "2026-09-29T02:50:33+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -289,7 +289,7 @@
     },
     {
       "operation_id": "ak.peer.mls.read.group_state_material.v1",
-      "sha256": "sha256:d24d39f292091fe0eac7c3f6dcceeda89e0b2e23ca360c09ed13e8f6978120ef"
+      "sha256": "sha256:03fc809502705a8b1fb505f30214ab62c43d67e6376880326d72b018dd089cc8"
     },
     {
       "operation_id": "ak.peer.mls.read.roster_authority.v1",
@@ -745,7 +745,7 @@
     },
     {
       "operation_id": "ak.self.mls.read.group_state_material.v1",
-      "sha256": "sha256:a8eabf7d795e73839b4342cdb91573ecb1395473fb59b9b36f942c4856a9ff52"
+      "sha256": "sha256:0f5b5b2ac8143abf8768d61e79aed4ded38435482000144fe77d4fbdd296e7f1"
     },
     {
       "operation_id": "ak.self.mls.read.roster_authority.v1",

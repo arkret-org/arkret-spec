@@ -1529,7 +1529,7 @@
     },
     "MlsGroupStateMaterialRequestBody": {
       "type": "object",
-      "description": "Read-only service request for the exact public MLS epoch-0 GroupInfo and ratchet_tree bytes committed by one accepted ak.mls.genesis Event. Every Genesis selector is copied from that Event. When caller_actor_id is present, target_commit_event_ref and target_epoch are also mandatory and the governance Station checks current and target-cut member/history authority; without caller_actor_id this remains the original Station replication-only read.",
+      "description": "Read-only service request for the exact public MLS epoch-0 GroupInfo and ratchet_tree bytes committed by one accepted ak.mls.genesis Event. Every Genesis selector is copied from that Event. When caller_actor_id is present, target_commit_event_ref and target_epoch are mandatory; governance checks current and target-cut member/history authority and source Station replication right at the target accepted Commit cut. Without caller_actor_id this remains the original Station replication-only read, with source Station replication right checked at the Genesis Commit position.",
       "required": [
         "realm_id",
         "effective_scope",
