@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-28.2",
-  "generated_at": "2026-09-28T06:41:00+08:00",
+  "version": "2026-09-28.4",
+  "generated_at": "2026-09-28T07:56:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -1486,7 +1486,7 @@
       "code": "failed_precondition",
       "http_status": 409,
       "scope": "both",
-      "description": "Reducer state-machine precondition failed. Carried with a reason_code in the {strand,space,morph}_not_active / _not_archived family or the {strand,space,morph,message,relation}_already_terminal family, or with object-specific reasons like space_parent_cycle. See zh/models/common-fields.md §5.1.",
+      "description": "Reducer state-machine or typed CAS precondition failed. A stale typed revision writes nothing and does not carry a generic current/current_result Problem extension; authorized current is obtained only through a separately registered read. Other failures may carry a registered reason_code in the {strand,space,morph}_not_active / _not_archived or {strand,space,morph,message,relation}_already_terminal families, or an object-specific reason such as space_parent_cycle. See zh/models/common-fields.md §5.1 and zh/sync/current-results.md §2.",
       "type_uri": "https://arkret.org/problems/failed_precondition",
       "title": "Failed precondition",
       "status": "active"
@@ -3245,7 +3245,7 @@
         "service_call",
         "event_envelope"
       ],
-      "description": "A moderator action (kick / ban / force-mute / end-for-all, via `ak.call.signal{moderation}` or a `ak.call.state` moderation field) was attempted by an actor lacking `ak.call.moderate`. Reducer / receiver MUST reject. See zh/crypto-media/webrtc-signaling.md §3a (kick / ban / end-for-all) and §6.1 (force-mute via `mute_state{by=moderator}`).",
+      "description": "A v1 moderator action (kick / ban / end-for-all, via `ak.call.signal{moderation}` or a `ak.call.state` moderation field) was attempted by an actor lacking `ak.call.moderate`. Reducer / receiver MUST reject. Moderator force-mute is deferred in v1: a mute_state{by=moderator} is unsupported_feature and an ak.call.state mute_override is schema_violation before this authorization check.",
       "status": "active"
     },
     {

@@ -5,7 +5,7 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.account.blocklist_projection.v1"
   },
-  "version": "2026-09-28.0",
+  "version": "2026-09-28.2",
   "profile": "ak.profile.full_client.v1",
   "covers_vectors": [
     "ak.vector.account.blocklist_projection.v1"
@@ -14,7 +14,7 @@
     "registry/error-code-registry.json",
     "registry/account-data-key-registry.json"
   ],
-  "description": "Executable evidence for the personal blocklist obligations: whole-value account-data CAS on the key's server revision, the closed target set, receive-before-filter on shared history, projection rebuild after unblocking, and the non-enumerability of the filtered outcome.",
+  "description": "Executable evidence for personal blocklist whole-value CAS, target closure, receive-before-filter, unblock projection rebuild and block-independent server submission. Holder-side automatic receipt differences are allowed and must be observed as a privacy limitation.",
   "security_evidence": [
     {
       "vector_id": "ak.vector.account.blocklist_projection.v1",
@@ -53,7 +53,7 @@
         },
         {
           "id": "non_enumerable_outcome",
-          "requirement": "No surface lets the sender, the queried party or a federation peer distinguish holder-side filtering from unauthorized, absent or offline, including from a device whose blocklist freshness is unknown.",
+          "requirement": "With the same sender, Realm, operation and authority, the server and federation submission path has no blocklist read or block-dependent branch, sender-visible submission response is independent of holder-side filtering, and live transport timings are recorded as regression evidence rather than judged by an invented threshold. Holder-side automatic receipt behavior may differ and is reported as a privacy limitation.",
           "evidence": [
             "/cases/6",
             "/cases/7"
@@ -124,7 +124,10 @@
       "assertions": [
         "the Event is received and retained: a personal blocklist does not change the Realm's shared facts",
         "the holder projection filters it after receipt",
-        "the peer's submission succeeds and receives no blocked_by_user signal, no distinguishable error, no latency difference and no delivery receipt difference"
+        "with the same sender, Realm, operation, authority and policy, the peer's submission reaches the same accepted path and response status, Problem type or reason, and shape regardless of the holder-private blocklist",
+        "service and federation code paths cannot read or decrypt the blocklist and have no block-dependent queue, branch or deliberate delay before the sender response; a reproducible such branch fails",
+        "record real automatic receipt egress for blocked and unblocked projections; the blocked projection may suppress a receipt that the visible projection automatically sends, and this difference is not a server submission failure or proof of end-to-end non-enumerability",
+        "the runner records transport start-to-full-response durations, environment and raw paired observations, but neither a single unequal duration nor a constant fabricated timing value decides non-enumerability"
       ]
     },
     {
@@ -145,11 +148,12 @@
       "given": "the holder has a current encrypted blocklist and services have no plaintext blocklist grant or key",
       "action": "a blocked sender submits a contact request, a first DM invite and a call invite through the registered paths",
       "decision": "accept",
-      "observed": "the forwarded encrypted material, holder-side filtering and sender-visible response shape, reason code, timing and delivery receipt on each surface",
+      "observed": "the forwarded encrypted material, holder-side filtering, sender-visible server response shape, reason code and transport timing on each surface, plus any later holder-side signal difference",
       "assertions": [
         "services use only the existing request authority and forward encrypted material without inspecting or dropping it on account of the personal blocklist",
         "the holder device opens its blocklist and filters the request locally on each of the three surfaces",
-        "the sender, the queried party and a federation peer cannot separate filtered from unauthorized, absent or offline by response, timing or delivery receipt; no blocked_by_user reason is exposed"
+        "the sender, the queried party and a federation peer receive no blocked_by_user reason or block-dependent server submission response; service and federation paths cannot inspect holder-private rules, while later holder-side signals may differ",
+        "paired real transport observations use the same sender eligibility, request path and environment and are retained for regression investigation, without an arbitrary millisecond pass threshold"
       ]
     },
     {

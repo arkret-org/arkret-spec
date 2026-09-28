@@ -6630,7 +6630,6 @@
         "/$defs/call_state_payload/properties/focus",
         "/$defs/call_state_payload/properties/moderation_delta",
         "/$defs/call_state_payload/properties/moderation_delta/oneOf/0/properties/removal/properties/device_id",
-        "/$defs/call_state_payload/properties/mute_override",
         "/$defs/call_state_payload/properties/mute_override/properties/audio_muted",
         "/$defs/call_state_payload/properties/mute_override/properties/video_muted",
         "/$defs/call_state_payload/properties/recording_transition",

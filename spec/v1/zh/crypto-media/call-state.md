@@ -145,11 +145,11 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
 | `transcript_transition.result` | `call_transcript_artifact` | stream-ordered reducer | `{status,details,expected_revision}` |
 | `moderation_delta` | `call_moderation` | `commit-ordered projection` | set |
 | `roster_delta` | `call_roster` | `commit-ordered projection` | set |
-| `mute_override` | `call_mute_override` | `commit-ordered projection` | register |
+| `mute_override`（v1 禁用） | `call_mute_override`（保留形状，无可接纳写入） | 不执行 | 单 leg register，不可当多 leg 集合 |
 
 所有状态与结果按所属 stream 的 RealmCommit 顺序确认。会覆盖现有结果的 Event 必须携带该领域 current result 的 `expected_revision`；竞争写至多一笔成功。result 不授予采集、密钥或读取权限。
 
-**未变更的轴 MUST NOT 产生 projected write（normative）**：`payload.call_id` 之外的每个 delta 字段都是可选的，单条 `ak.call.state` MUST 只携带本次实际变更的轴，并且至少携带一个 delta（schema `anyOf`）。上表每条 `result_writes[]` 都是**条件性**目标；字段存在则对应 write 必需，字段缺席则对应 write MUST NOT 产生。`recording_transition.result` / `transcript_transition.result` 各自额外产生 result typed current result write。完整 op 由 registry `result_projection` 派生，producer 不得自选 `from` / `to` / `tag` / `value`。
+**未变更的轴 MUST NOT 产生 projected write（normative）**：`payload.call_id` 之外的每个准入 delta 字段都是可选的，单条 `ak.call.state` MUST 只携带本次实际变更的轴，并且至少携带一个准入 delta（schema `anyOf`）。上表准入轴的每条 `result_writes[]` 都是**条件性**目标；字段存在则对应 write 必需，字段缺席则对应 write MUST NOT 产生。`mute_override` 在 schema 阶段拒绝，不能触发保留的 result-write 行。`recording_transition.result` / `transcript_transition.result` 各自额外产生 result typed current result write。完整 op 由 registry `result_projection` 派生，producer 不得自选 `from` / `to` / `tag` / `value`。
 
 **捕获态按段切分**：录制 / 转写 typed current result 的 subject 是 `(call_id, recording_id)` composite，因此同一通话的多段捕获天然落在不同 typed current result，互不冲突。段键选用 `payload.recording_id` 而不是 start Event 的 `event_id`：`envelope.event_id` 只在 create-once 对象的 `id:<种类>` 派生形态下可用（[`../conformance/encoding.md` §9.5.1](../conformance/encoding.md)），而录制段不是这样的对象——一次通话里有多段捕获，start Event 不是任何一段的身份来源；而 `recording_id` 已经是 `ak.call.recording.start` 的 required 字段、已按 §5 要求在同一通话内逐段唯一、且已是录制 / 转写 key exporter Context 的 member，因此是两侧都能派生的同一个键。`ak.call.recording.start` 按 `payload.capture_kind` 写入 `call_recording_state` 或 `call_transcript_state`，subject 为 `[payload.call_id, payload.recording_id]`；后续 `ak.call.state` 用 `recording_transition.recording_id` / `transcript_transition.recording_id` 指向同一段，其值 MUST 与该段 start event 的 `recording_id` 逐字节相同。`capture_kind` 是 required 字段，MUST NOT 由 missing-field default 推断——它决定目标 typed current result family。
 
@@ -173,10 +173,10 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
   当 `focus.mode ∈ {sfu, mcu}` 或已 committed `session_focus` 时，上述两个字段反而都 MUST
   出现并按本节四项校验。模式分支由包含 roster delta 的同一 accepted call-state basis
   决定，producer 不得自行声明第三个判据。
-- `mute_override`：每个 call leg 独立写入 `call_mute_override` 安全状态 typed current result。`status=active` 时必须携带 `audio_muted/video_muted`；`status=cleared` 时二者必须省略。不同 leg 并发互不冲突，同一 leg 并发改写 fail closed。写入者 MUST 持有 `ak.call.moderate`。
+- `mute_override`：v1 暂不开放主持人强制静音。`ak.call.state` 只要携带此字段（即使同时携带其它合法 delta）就 MUST 以 `schema_violation` 拒绝，零 Event／Commit／typed current result 写入；旧 call-only `call_mute_override` selector 与单 leg value 不得被解释为多 leg 集合。该保留形状不授权生产端写入。普通通话、自主 `mute_state{by=self}`、kick／ban／end-for-all 仍按各自合同接纳。
 - `moderation_delta.op=remove_participant`：以 `(call_id, actor_id, device_id?)` 作为稳定领域目标；`kick` MUST 含 `device_id`，`ban` MUST 省略它。`moderation_delta.op=restore_participant` 必须携带 moderation `expected_revision`，且只能恢复 actor 一致的 active ban，不能恢复 kick。
 
-高频 speaking、自主 mute/video 状态 SHOULD 走 encrypted Signal Extension；主持人强制静音 MUST 通过 durable `mute_override` 驱动服务端媒体权限。
+高频 speaking、自主 mute/video 状态 SHOULD 走 encrypted Signal Extension；主持人强制静音在 v1 失败关闭，不能用仅作用于客户端的信令冒充服务端媒体权限。
 
 ### 4.2 `state` 状态机（normative）
 

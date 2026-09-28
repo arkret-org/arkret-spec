@@ -202,7 +202,7 @@ membership 为 `join` 才满足 gate（[`../governance/join-policy.md` §4](../g
   direct invite 槽位，值为 `{create_event_id}` 或 `null`（空槽）；**subject 不含 `realm_id`**；
 - `invite_directed_invitee`：以 `invite_id` 选择该 Invite 的 create-locked 定向目标 `{invitee_account_id}`；
   它是 `invite_live_target` 的反向索引，三方（3PID）Invite 不写这条，故其前态为**缺失**而不是 `null`；
-- `call_state` / `call_focus` / `call_moderation` / `call_roster` / `call_mute_override`：以 `call_id` 选择 `ak.call.state` 对应轴的 commit-ordered 投影（见 [`call-state.md` §4.1](../crypto-media/call-state.md)）；
+- `call_state` / `call_focus` / `call_moderation` / `call_roster`：以 `call_id` 选择 `ak.call.state` 对应轴的 commit-ordered 投影（见 [`call-state.md` §4.1](../crypto-media/call-state.md)）；`call_mute_override` 保留 call-only 形状但 v1 无可接纳写入，不构成媒体授权；
 - `call_recording_state` / `call_transcript_state`：以 `(call_id, recording_id)` 段键选择该段捕获的许可状态；
 - `call_recording_artifact` / `call_transcript_artifact`：以 `(call_id, recording_id)` 段键选择该段捕获的 ready/failed 结果；
 - `device_authorization`：以 `device_id` 选择该设备在本 principal control Realm 内的当前授权事实，整体置换写入；封闭 value 与被排除的成员（`device_status` / `attested_at` / `authorization_window`）见 [`../crypto-media/device-lifecycle.md` §5.5.1](../crypto-media/device-lifecycle.md)；
@@ -219,8 +219,13 @@ selector 的身份字段来自已接纳 Event 的 typed payload，不得由调�
 `{commit_id, stream_position}`。时间戳、到达顺序与 EventId 均不得替代 revision。
 
 领域写操作需要并发保护时，payload 使用该领域定义的 `expected_revision`。Station 只在它与当前 typed revision
-逐字段相等时接纳；不相等返回 `failed_precondition` 并提供调用者有权读取的 current result。首次创建可使用该领域
-schema 明确允许的 `null`，不得使用字符串哨兵或通用条件表达式。
+逐字段相等时接纳；不相等返回 `failed_precondition` 且零写入。v1 的 Problem 响应不携带通用 typed current result：
+`detail`、`reason_detail`、未登记的 `current`／`current_result` 或任意扩展 bag 均不得冒充机器可读前态。
+调用者需要重写时，只能通过该 selector **已有且获授权**的 current 读取操作或 §3 的可见当前结果重新取得前态，
+核对 Realm、完整 selector、governance generation、stream head 与 revision，并重新确认后签发新 Event；
+没有已登记读取路径、读取未授权或结果缺席时必须停止，不能从错误字符串、旧缓存或 snapshot 缺项猜测 current，
+也不能自动用旧签名重试。重新读取是独立操作，不属于失败响应或同一接纳事务的返回值；提交时仍须重新检查 CAS。
+首次创建可使用该领域 schema 明确允许的 `null`，不得使用字符串哨兵或通用条件表达式。
 
 **`expected_state_digest` 的摘要输入（normative）**：以 `expected_state_digest` 声明前态的 kind（`actor_profile`、
 Realm authority root、View、Morph、Circle、Space、Strand、Relation 等单值 family）一律使用同一算法：

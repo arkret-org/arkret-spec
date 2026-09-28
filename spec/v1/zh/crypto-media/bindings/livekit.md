@@ -71,7 +71,7 @@ LiveKit 通过 [SFrame](https://www.rfc-editor.org/rfc/rfc9605.html) 实现 fram
 | `video: true` | `video.canPublishSources` 含 `camera` |
 | `screen: true` + `ak.call.screen_share` | `video.canPublishSources` 含 `screen_share` |
 | `ak.call.record` | recording 走 §6 不签 LiveKit recorder claim |
-| `ak.call.moderate` | issuer MAY 派生 `video.roomAdmin=true`，但生效仅限 LiveKit-level moderation（mute remote、disconnect），不替代 Arkret `ak.call.signal` moderation |
+| `ak.call.moderate` | v1 不向参与者签发 `video.roomAdmin=true`：该后端权限含 remote mute，不能与已暂缓的强制静音分开授权。kick／ban 的 backend disconnect 由 Arkret 服务在 durable moderation 接纳后执行，不借参与者的 roomAdmin claim。 |
 
 ## 6. Recording
 

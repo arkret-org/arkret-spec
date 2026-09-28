@@ -201,20 +201,32 @@ blocklist 没有独立 Event kind：它是 account-data key `ak.account.blocklis
 - 客户端 SHOULD 抑制来自被屏蔽对象的通知、联系人请求、通话邀请与 DM 请求。
 - 客户端 MAY 在共享 Realm 视图中隐藏或折叠被屏蔽内容。
 - 客户端 MUST NOT 把 blocklist 发布到公共 Realm 状态或目录服务。
-- 对被屏蔽方的可观察行为 MUST 与普通不可达 / 不可枚举场景一致：客户端和受托服务不得返回 `blocked_by_user`、不得发送 read receipt / typing / presence 的差异信号、不得因为 block 命中改变公开错误码、延迟模式或 directory 结果形态。需要本地诊断时只能在 holder 自己的加密 account data 或本地日志中记录。
+- 客户端和受托服务不得返回 `blocked_by_user`，服务端不得因为个人 blocklist 命中改变公开错误码、响应形状、排队、延迟模式或 directory 结果。持钥客户端过滤后可不发送本来会为可见消息发送的自动 read receipt，也可不产生 typing / presence；这些信号的有无可能使对方推测过滤状态。v1 不保证从客户端行为推断不出拉黑。需要本地诊断时只能在 holder 自己的加密 account data 或本地日志中记录。
 - `ak.account.blocklist` 是 account-private durable account-data 值：它可以在 holder 的设备间同步，但不进入共享 Realm RealmCommit coverage、membership state、Directory ingest 或 federation payload。
-- v1 没有 holder-private blocklist 明文授权或密钥交付操作。Station、通知服务、Directory 与 federation peer MUST NOT 解密、接收明文或代 holder 根据个人 blocklist 作准入、投递或查询判定；`plaintext_visible_services` 是 Realm 治理对象，不能授予该 account-private key 的读取权。它们按其它已有权限正常转发；持钥 holder 客户端在本地过滤。外部不得据此区分"被屏蔽"与"无权限 / 不存在 / 用户离线"。
+- v1 没有 holder-private blocklist 明文授权或密钥交付操作。Station、通知服务、Directory 与 federation peer MUST NOT 解密、接收明文或代 holder 根据个人 blocklist 作准入、投递或查询判定；`plaintext_visible_services` 是 Realm 治理对象，不能授予该 account-private key 的读取权。它们按其它已有权限正常转发；持钥 holder 客户端在本地过滤。服务端的提交结果不披露 block 命中；客户端后续信号不受此保证。
 - `handle` target 只与发送者已验证 handle claim 中的 canonical `handle`逐字比较；`domain` target 只与该已验证 handle claim 的 domain 分量，或按 [`../identity/did-usage-and-verification.md`](../identity/did-usage-and-verification.md) 已验证的 DID 域名绑定比较。display name、未验证 handle / DID 字符串或裸字符串后缀均不得命中这两类 target；`keyword` 才是纯内容字符串过滤。三者命中都只在 holder-private projection 生效，不证明也不得推断任何 actor、service、Organization 或 Realm 的控制关系。
 
 #### 3.5.1 收取与过滤边界（normative）
 
-- **共享 Realm 消息**：必须先按正常 federation / sync 路径收取、验签、准入、存储并推进 canonical Event / RealmCommit 状态，因为同一 Event 对其他成员、引用链和 state root 仍然有效；随后才在 holder-private projection 应用 `block` / `hide`。不得在网络层丢弃该 Operation，也不得从共享 history、RealmCommit coverage 或其它成员视图删除它。被过滤内容不生成 holder notification、mention attention、自动 read receipt，且不得触发 typing / presence 等可让发送方推断 block 命中的差异信号。
+- **共享 Realm 消息**：必须先按正常 federation / sync 路径收取、验签、准入、存储并推进 canonical Event / RealmCommit 状态，因为同一 Event 对其他成员、引用链和 state root 仍然有效；随后才在 holder-private projection 应用 `block` / `hide`。不得在网络层丢弃该 Operation，也不得从共享 history、RealmCommit coverage 或其它成员视图删除它。被过滤内容不生成 holder notification、mention attention 或自动 read receipt；可见内容仍按有效 read-receipt policy 产生自动回执。发送方可能观察到这一差异。
 - **现有 Direct Conversation**：个人 blocklist 自身只是私有过滤器，不撤销 membership、Contact authority 或 participant authority。若产品的“拉黑用户”承诺阻止后续 DM 写入，客户端 MUST 把 blocklist 更新与 `ak.self.contact.command.tombstone.v1{block_peer=true}` 作为同一持久化 saga 执行并重试至闭合；Contact tombstone使稳定 conversation 投影为 `suspended` 并禁止新 application message，Consent revoke不得作为替代或附加门槛。只写 blocklist 时，对端仍可能成功提交 shared DM Event，本端必须同步后私下过滤。
-- **新的 holder-private 请求**：contact request、首次 DM invite、call invite 或 applet-mediated request 按各自既有权限正常转发给 holder，由持钥客户端在本地过滤；服务端不得因个人 blocklist 在 holder surface 前 drop。客户端不得向发送方返回 `blocked_by_user`，也不得产生可区分的错误、时延或 delivery receipt。
+- **新的 holder-private 请求**：contact request、首次 DM invite、call invite 或 applet-mediated request 按各自既有权限正常转发给 holder，由持钥客户端在本地过滤；服务端不得因个人 blocklist 在 holder surface 前 drop。服务端不得向发送方返回 `blocked_by_user` 或因 block 命中改变提交响应、投递结果；holder 的后续应答或信号可能不同，不作为服务端不可枚举的保证。
 - **解除屏蔽**：下一 revision 移除 entry 后，未来 projection 立即停止过滤。此前已经正常收取并按 retention 保留的共享 Realm / DM 历史会重新出现在 holder view；若产品希望解除后仍不显示旧内容，必须另存 holder-private hide/tombstone 或执行已有 erasure 流程，不能把 blocklist removal 偷换成历史删除。Block 期间被 Contact tombstone真正拒绝、从未 accepted 的新请求或消息不会因解除屏蔽而补写。
 - **离线与多设备**：设备只能依据其已同步到的最高 accepted blocklist revision 过滤。尚未取得新 revision 的设备必须把 blocklist freshness 视为 unknown，禁止发送 read receipt / presence 等可能泄漏差异的信号，待 actor-private account-data catch-up 后重算 holder projection。
 
-上述 CAS、receive-before-filter、解除后 projection rebuild、DM Contact authority与Consent完全隔离及不可枚举行为由 conformance vector `ak.vector.account.blocklist_projection.v1` 闭合。
+上述 CAS、receive-before-filter、解除后 projection rebuild、DM Contact authority 与 Consent 完全隔离及服务端提交路径不披露 block 命中，由 conformance vector `ak.vector.account.blocklist_projection.v1` 闭合。
+
+**服务端提交时序的 v1 验收边界（normative）**：对照使用同一发送者、Realm、操作与授权，
+只改变 holder 私有 blocklist 是否命中；比较从提交请求发出到完整响应收到的同一 transport 区间，
+并分别记录真实自动 receipt 的出站行为。合格的必要结构证据是共享 Event 在服务端与 federation 的准入、
+Commit、响应及投递路径均不读取／解密 blocklist，也不按命中与否分支、排队或人为延迟；过滤只在
+holder 接收并验证后发生。发送者可见的提交 status、Problem type／reason、响应形状不得由 blocklist
+命中改变；任何可复现的服务端命中依赖分支或不同提交结果即失败。自动 receipt 因本地过滤而有差异
+是 v1 允许的观察，测试须记录这一限制，不得将其计为服务端失败或宣称端到端不可推断。
+真实 transport 对照须记录环境、样本与原始耗时，作为发现回归的辅助证据；网络抖动下两次耗时不等
+不单独判失败，有限样本也不能证明任意网络中的绝对等时。v1 不规定毫秒阈值、固定 timing bucket 或
+统计显著性通关线；测试不得以常量伪造耗时或把单次观测当成无侧信道证明。用户主动阅读或手动发送
+receipt 是独立行为，不能拿不同用户行为的结果归因于 blocklist。
 
 ### 3.6 联系人备注 (Contact Remarks)
 

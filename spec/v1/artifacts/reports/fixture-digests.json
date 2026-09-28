@@ -2,8 +2,8 @@
   "files": [
     {
       "path": "spec/v1/artifacts/fixtures/account-blocklist-projection-fixture.json",
-      "sha256": "91089ca56f6d85dbd5422764f5c3fbbbc99c3906fc87bb69b27d525dda8fcf0d",
-      "version": "2026-09-28.0"
+      "sha256": "400ff37401a5e3d798aa373251ae8c7e39070ff2b0ac350fab69c9f9ad978992",
+      "version": "2026-09-28.2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/account-data-cas-convergence-fixture.json",
@@ -106,6 +106,11 @@
       "version": "2026-09-20"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/call-force-mute-v1-boundary-fixture.json",
+      "sha256": "7fbd0b95398877976aafc488fde4295ad6ec4f89774b2e1744dfc3a2b42edc8c",
+      "version": "2026-09-28.2"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/call-state-core-fixture.json",
       "sha256": "98b40e6546de9ccc46e144e222b87f061c65729610ea52f3b316c647df04cdb5",
       "version": "2026-09-21.1"
@@ -159,6 +164,11 @@
       "path": "spec/v1/artifacts/fixtures/crypto-signature-fixture.json",
       "sha256": "24cd7ca05d4df3012ac491a24196bf07e9ede24cd6692069d6db968260c5a093",
       "version": "2026-09-25.1"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/current-cas-failure-read-boundary-fixture.json",
+      "sha256": "fed854a1e911e8303e32ee58beff3b17d5496a807d7c02fcf4b987478a465a59",
+      "version": "2026-09-28.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/cursor-negative-fixture.json",

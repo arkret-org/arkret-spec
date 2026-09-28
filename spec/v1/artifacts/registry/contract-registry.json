@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-28.3",
+  "version": "2026-09-28.4",
   "source_of_truth": true,
-  "generated_at": "2026-09-28T06:57:00+08:00",
+  "generated_at": "2026-09-28T07:31:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -1674,7 +1674,7 @@
         "verb_form": "not_applicable",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Call state",
+        "payload": "Call state. The v1 call_state_payload schema rejects mute_override even when another delta is present; no call_mute_override result write can be admitted. Ordinary call state, roster, moderation, focus and capture axes remain available.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/call_state_payload",
         "result_writes": [
           {
@@ -1864,7 +1864,8 @@
               "value": {
                 "field": "payload.mute_override"
               }
-            }
+            },
+            "notes": "Reserved conditional projection only. v1 schema forbids payload.mute_override, so this row is unreachable and grants no producer a per-leg or call-only mute write."
           }
         ],
         "id_source": "reference",
@@ -8447,8 +8448,8 @@
         }
       }
     },
-    "version": "2026-09-28.2",
-    "generated_at": "2026-09-28T06:37:00+08:00",
+    "version": "2026-09-28.3",
+    "generated_at": "2026-09-28T07:31:00+08:00",
     "bootstrap_event_kinds": [
       "ak.device.authorize",
       "ak.device.reanchor",
@@ -20294,11 +20295,9 @@
         "result_kind": "call_mute_override",
         "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_mute_override_result",
         "consumption": {
-          "class": "delivery_input",
-          "consumed_by": [
-            "crypto-media/call-state.md §4.1"
-          ],
-          "note": "A moderator's forced mute drives server-side media permissions through this durable projection rather than through ephemeral signaling."
+          "class": "record_only",
+          "consumed_by": [],
+          "note": "crypto-media/call-state.md §4.1 retains this shape only for contract bookkeeping; v1 rejects every mute_override write and no token issuer or SFU may consume it as media authority."
         }
       },
       {
@@ -20984,8 +20983,8 @@
         }
       }
     ],
-    "version": "2026-09-25.1",
-    "generated_at": "2026-09-25T19:50:00+08:00",
+    "version": "2026-09-28.1",
+    "generated_at": "2026-09-28T07:31:00+08:00",
     "metadata_authority": "contract_registry_section"
   }
 }

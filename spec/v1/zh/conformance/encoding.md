@@ -414,9 +414,9 @@ accepted RealmCommit 与权限门仍是唯一 authority。
 | `agent_key` | `derive_agent_key_current_key` | `(agent_id: DidCoreId, key_id: AgentKeyId)` |
 | `key_backup_active_series` | `derive_key_backup_active_series_current_key` | `(actor_id: ActorId, backup_kind: BackupKind)` |
 
-未登记 family 不得推断或生成兼容 API。特别地，active `call_mute_override` selector 只有
-`[payload.call_id]`；旧实现的 per-leg `[call_id, actor_id, device_id]` 键不对应该 active family，必须继续
-fail closed 并随 clean-break 删除或按正式 current ingress 重建，不得借本节生成第五个兼容 derivation。
+未登记 family 不得推断或生成兼容 API。特别地，`call_mute_override` 保留的 selector 只有
+`[payload.call_id]`，不能承载多 leg；v1 拒绝包含 `mute_override` 的写入。旧实现的 per-leg
+`[call_id, actor_id, device_id]` 键不对应该 family，必须继续 fail closed，不得借本节生成第五个兼容 derivation。
 
 ## 10. 大小与拒绝
 

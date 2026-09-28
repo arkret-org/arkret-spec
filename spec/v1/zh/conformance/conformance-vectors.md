@@ -141,7 +141,7 @@ fixture 存在、suite id 已登记或向量 active 都不等于参考实现已�
 ### 3.1 Account 与偏好
 
 `ak.vector.account.blocklist_projection.v1` MUST 证明：个人 blocklist 是 holder-private account-data 值，只经 `ak.account_data.set` 以 `expected_server_revision` 整值 CAS 更新；
-target 闭包完整；共享历史先接收后按 holder 侧投影过滤；新的 holder-private 请求由服务端按既有权限转发、仅在持钥客户端过滤；解除屏蔽后投影可从既有材料重建；过滤结果不可被外部枚举。
+target 闭包完整；共享历史先接收后按 holder 侧投影过滤；新的 holder-private 请求由服务端按既有权限转发、仅在持钥客户端过滤；解除屏蔽后投影可从既有材料重建；服务端提交响应不随 block 命中变化。持钥客户端的自动回执可能因过滤而不同，向发送方明确暴露这一隐私限制。
 
 `ak.vector.actor_private_events.submit.v1` MUST 证明：`ak.device.push_route`、`ak.agent.action_request`、
 `ak.agent.action_reject`、`ak.agent.draft.propose` 只经 `ak.self.actor_private_events.command.submit.v1` 接纳，不产生 RealmCommit；

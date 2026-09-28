@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-28.2",
+  "version": "2026-09-28.3",
   "source_of_truth": false,
-  "generated_at": "2026-09-28T06:37:00+08:00",
+  "generated_at": "2026-09-28T07:31:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -1291,7 +1291,7 @@
       "verb_form": "not_applicable",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Call state",
+      "payload": "Call state. The v1 call_state_payload schema rejects mute_override even when another delta is present; no call_mute_override result write can be admitted. Ordinary call state, roster, moderation, focus and capture axes remain available.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/call_state_payload",
       "result_writes": [
         {
@@ -1481,7 +1481,8 @@
             "value": {
               "field": "payload.mute_override"
             }
-          }
+          },
+          "notes": "Reserved conditional projection only. v1 schema forbids payload.mute_override, so this row is unreachable and grants no producer a per-leg or call-only mute write."
         }
       ],
       "id_source": "reference",

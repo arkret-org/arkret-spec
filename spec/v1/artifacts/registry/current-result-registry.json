@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-25.1",
+  "version": "2026-09-28.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-25T19:50:00+08:00",
+  "generated_at": "2026-09-28T07:31:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Closed typed current-result families derived from authority-committed Events. Selectors are domain types, never alternate typed current result IDs. Each row also records its CONSUMPTION: consumption.class is one of the consumption_classes below, consumption.consumed_by names the zh prose sections that read the current value, and consumption.note says what is read and to decide what. check_every_result_family_has_a_writer closes the writer direction; this ledger is the reader direction, which had no gate and no record. consumed_by is non-empty for every class except record_only, and a record_only row's note MUST name the section that states the family's purpose so the classification is checkable rather than an absence of evidence. Citations resolve through check_artifact_prose_section_refs.",
@@ -249,11 +249,9 @@
       "result_kind": "call_mute_override",
       "schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_mute_override_result",
       "consumption": {
-        "class": "delivery_input",
-        "consumed_by": [
-          "crypto-media/call-state.md §4.1"
-        ],
-        "note": "A moderator's forced mute drives server-side media permissions through this durable projection rather than through ephemeral signaling."
+        "class": "record_only",
+        "consumed_by": [],
+        "note": "crypto-media/call-state.md §4.1 retains this shape only for contract bookkeeping; v1 rejects every mute_override write and no token issuer or SFU may consume it as media authority."
       }
     },
     {

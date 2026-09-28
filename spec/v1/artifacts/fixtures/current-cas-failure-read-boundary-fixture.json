@@ -1,0 +1,56 @@
+{
+  "suite": "current_cas_failure_read_boundary",
+  "fixture_kind": "semantic",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.current.cas_failure_read_boundary.v1"
+  },
+  "version": "2026-09-28.1",
+  "profile": "ak.profile.core_event_store.v1",
+  "covers_vectors": [
+    "ak.vector.current.cas_failure_read_boundary.v1"
+  ],
+  "machine_contracts": [
+    "registry/error-code-registry.json",
+    "schemas/http-problem-details.schema.json",
+    "registry/operation-registry.json"
+  ],
+  "description": "A stale typed CAS has zero writes and a registered failed_precondition Problem, while any authorized current read is a distinct operation and never an unregistered error extension.",
+  "cases": [
+    {
+      "name": "stale_cas_has_no_inline_current",
+      "given": "an authorized Event claims an expected_revision older than the frozen selector revision",
+      "action": "submit the Event to the current governing Station",
+      "decision": "reject",
+      "reason": "failed_precondition",
+      "observed": "Problem response and durable Event, Commit and typed current state",
+      "assertions": [
+        "there are zero durable writes",
+        "the response does not invent current, current_result or a generic details bag as machine-readable current"
+      ]
+    },
+    {
+      "name": "authorized_reauthoring_uses_an_independent_read",
+      "given": "the failed selector has a registered current read path authorized for this caller",
+      "action": "perform that separate read, verify Realm, complete selector, generation, head and revision, then obtain fresh user confirmation",
+      "decision": "accept",
+      "observed": "new signed intent and its own CAS outcome",
+      "assertions": [
+        "the read is not described as data returned in the failed submit response",
+        "the new submission still checks the then-current revision"
+      ]
+    },
+    {
+      "name": "unreadable_selector_cannot_be_guessed",
+      "given": "the current selector is invisible or no registered read path exists",
+      "action": "handle a failed_precondition response",
+      "decision": "reject",
+      "reason": "failed_precondition",
+      "observed": "caller-visible data and retry attempts",
+      "assertions": [
+        "no current value or hidden selector is disclosed",
+        "the client does not infer current from an omitted snapshot entry, error text or stale cache and does not automatically replay the old signature"
+      ]
+    }
+  ]
+}

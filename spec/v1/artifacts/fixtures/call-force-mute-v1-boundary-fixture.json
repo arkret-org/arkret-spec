@@ -1,0 +1,65 @@
+{
+  "suite": "call_force_mute_v1_boundary",
+  "fixture_kind": "semantic",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.call.force_mute_v1_boundary.v1"
+  },
+  "version": "2026-09-28.2",
+  "profile": "ak.profile.webrtc_media.v1",
+  "covers_vectors": [
+    "ak.vector.call.force_mute_v1_boundary.v1"
+  ],
+  "machine_contracts": [
+    "schemas/event-payload.schema.json",
+    "registry/current-result-registry.json"
+  ],
+  "description": "v1 closes the unrepresentable per-leg moderator mute branch while preserving ordinary call and self-mute paths.",
+  "cases": [
+    {
+      "name": "mute_override_alone_is_rejected",
+      "given": "a signed ak.call.state Event contains only call_id and mute_override",
+      "action": "validate the kind-bound payload and submit it",
+      "decision": "reject",
+      "reason": "schema_violation",
+      "observed": "Event, Commit and typed current writes",
+      "assertions": [
+        "no Event or Commit is accepted and no call_mute_override result is written"
+      ]
+    },
+    {
+      "name": "mute_override_cannot_hide_in_another_delta",
+      "given": "a signed ak.call.state Event carries a valid roster_delta and mute_override together",
+      "action": "validate and submit the complete Event",
+      "decision": "reject",
+      "reason": "schema_violation",
+      "observed": "all conditional result writes",
+      "assertions": [
+        "the whole Event is rejected with zero roster and mute writes"
+      ]
+    },
+    {
+      "name": "moderator_mute_signal_does_not_control_media",
+      "given": "an encrypted ak.call.signal mute_state frame decrypts to by=moderator and names a target leg",
+      "action": "deliver it to an authorized receiving endpoint and request media permission",
+      "decision": "reject",
+      "reason": "unsupported_feature",
+      "observed": "client handling and token issuer or SFU permission",
+      "assertions": [
+        "the frame cannot create a mute override or authorize a forced-mute permission",
+        "an old per-leg cache or call-only result cannot be treated as an unmute decision"
+      ]
+    },
+    {
+      "name": "self_mute_and_other_moderation_remain_open",
+      "given": "an otherwise valid by=self mute_state and separately authorized kick, ban and end-for-all operations",
+      "action": "apply their existing independent admission rules",
+      "decision": "accept",
+      "observed": "self media UX and the registered call moderation or state paths",
+      "assertions": [
+        "self mute creates no call_mute_override result",
+        "disabling force mute does not disable the other registered call paths"
+      ]
+    }
+  ]
+}

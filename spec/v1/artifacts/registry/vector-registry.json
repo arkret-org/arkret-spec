@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-28.2",
+  "version": "2026-09-28.5",
   "source_of_truth": true,
-  "generated_at": "2026-09-28T06:41:00+08:00",
+  "generated_at": "2026-09-28T07:55:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -23,7 +23,7 @@
       "applies_to_profiles": [
         "ak.profile.full_client.v1"
       ],
-      "description": "Personal blocklist whole-value CAS updates, target closure, shared-history and holder-private request receive-before-filter behavior, unblock projection rebuild and non-enumerable holder-side filtering; no v1 service plaintext disclosure.",
+      "description": "Personal blocklist whole-value CAS updates, target closure, receive-before-filter and unblock projection rebuild. The server submission path cannot depend on the blocklist and uses paired real transport records without an invented numeric threshold; holder-side automatic receipt differences are allowed and recorded as a privacy limitation. No v1 service plaintext disclosure.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/zh/discovery/client-preferences.md",
@@ -4931,6 +4931,30 @@
       "source_refs": [
         "spec/v1/zh/models/views.md",
         "spec/v1/artifacts/fixtures/view-write-contract-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.call.force_mute_v1_boundary.v1",
+      "status": "active",
+      "domain": "call",
+      "applies_to_fixtures": [
+        "call-force-mute-v1-boundary-fixture.json"
+      ],
+      "description": "v1 refuses every ak.call.state mute_override payload, including a mixed delta, and moderator mute_state signaling; other call state, self mute and kick, ban or end-for-all remain available.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/call-force-mute-v1-boundary-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.current.cas_failure_read_boundary.v1",
+      "status": "active",
+      "domain": "current",
+      "applies_to_fixtures": [
+        "current-cas-failure-read-boundary-fixture.json"
+      ],
+      "description": "A stale typed current CAS returns failed_precondition with zero writes and no invented inline current extension; reauthoring requires a separate registered authorized read and renewed confirmation, or stops when none exists.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/current-cas-failure-read-boundary-fixture.json"
       ]
     },
     {

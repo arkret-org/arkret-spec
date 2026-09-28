@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-28.1",
+  "version": "2026-09-28.3",
   "source_of_truth": true,
-  "generated_at": "2026-09-28T06:37:00+08:00",
+  "generated_at": "2026-09-28T07:55:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -237,15 +237,16 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/crypto-media/call-state.md#4-会议状态事件",
-      "section_digest": "sha256:a10aa107c50e7825f27dcac591be26ff26309a9506891f48cc9cbf3b5a8be012",
-      "requirement": "Call state transitions follow the registered matrix, terminal states are absorbing, exact Event replay is a no-op, and competing commands against one revision produce one confirmed successor plus durable stale rejection outcomes. Compact media bindings carry only expires_at/issuer_kid/sig; rebuild the signed seven-tuple from the exact enclosing Event/Call and roster entry, require its frozen focus to match the accepted selection on write, and never reinterpret old signatures using a later focus.",
+      "section_digest": "sha256:50f1bfbdc3dcbbc9d28fefd226ef8ccfa4fad320cf1afa33b37c7f03c4725982",
+      "requirement": "Call state transitions follow the registered matrix, terminal states are absorbing, exact Event replay is a no-op, and competing commands against one revision produce one confirmed successor plus durable stale rejection outcomes. Compact media bindings carry only expires_at/issuer_kid/sig; rebuild the signed seven-tuple from the exact enclosing Event/Call and roster entry, require its frozen focus to match the accepted selection on write, and never reinterpret old signatures using a later focus. v1 rejects every mute_override write, including a mixed delta, because the retained call-only selector cannot represent independent legs; ordinary call and self-mute paths remain available.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.call_state.transition_matrix.v1",
         "ak.vector.call_state.terminal_absorbing.v1",
         "ak.vector.call_state.replay_same_state_noop.v1",
         "ak.vector.call_state.ordered_competing_transitions.v1",
-        "ak.vector.call_state.participant_binding_invalid.v1"
+        "ak.vector.call_state.participant_binding_invalid.v1",
+        "ak.vector.call.force_mute_v1_boundary.v1"
       ]
     },
     {
@@ -578,8 +579,8 @@
       "status": "active",
       "category": "privacy",
       "source_anchor": "spec/v1/zh/conformance/conformance-vectors.md#31-account-与偏好",
-      "section_digest": "sha256:6dc4a24541049926ee83fe35e571f10aeca3dfd9944f5b55081b71c53175ab82",
-      "requirement": "The personal blocklist is a holder-private whole-value CAS result on one revision counter with a closed target set; shared history and holder-private requests are received before client-side filtering, unblocking rebuilds the projection from retained material, and no surface lets an outside party tell blocked apart from unauthorized, absent or offline.",
+      "section_digest": "sha256:ece0b53196c248fe19977348b386c6612f1c3b6b8a1ee5640b8df82a9a94e532",
+      "requirement": "The personal blocklist is a holder-private whole-value CAS result on one revision counter with a closed target set; shared history and holder-private requests are received before client-side filtering, unblocking rebuilds the projection from retained material, and server submission responses do not reveal blocklist hits. Holder-side automatic receipt differences may reveal filtering and are outside that server guarantee.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.account.blocklist_projection.v1"

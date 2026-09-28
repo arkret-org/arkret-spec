@@ -1741,7 +1741,7 @@
     },
     "call_mute_override_result": {
       "type": "object",
-      "description": "Commit-ordered projection of the ak.call.state mute_override axis (crypto-media/call-state.md section 4.1).",
+      "description": "Reserved call-only shape for the ak.call.state mute_override axis. v1 rejects every mute_override write; this single-leg value cannot establish per-leg media authority (crypto-media/call-state.md section 4.1).",
       "required": [
         "selector",
         "source_stream_ref",

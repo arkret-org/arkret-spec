@@ -71,11 +71,11 @@ WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
 - `signal_kind=invite` 还 MUST 通过 [`identity/consent-model.md` §6.2](../identity/consent-model.md) 的 `voice_call` / `video_call` consent gate；服务端投递、目标客户端响铃 UI 与 media token 签发都不得仅信任发起方 preflight。
 - 外部 guest 加入必须通过 invite 或 meeting-specific guest grant。
 
-### 3a. 主持 / 审核（kick / ban / end-for-all / force-mute，normative）
+### 3a. 主持 / 审核（kick / ban / end-for-all，normative）
 
 主持操作统一由 `ak.call.moderate` capability 授权(§3)。无该 capability 的 actor 发出任一主持信令 / 写任一主持字段，接收方与 reducer MUST 拒绝，错误码 `call_moderation_unauthorised`。
 
-主持动作通过 `ak.call.signal{signal_kind=moderation}` 或 §6.1 的 `mute_state{by=moderator}` 表达瞬时控制，并在 durable `ak.call.state` 留痕：kick / ban 写入 `moderation_delta`，end-for-all 写入 `state_transition.to="ended"`，force-mute 写入目标 leg 的 `mute_override`。`moderation` payload `data` 形态:
+v1 的主持动作只有 kick／ban／end-for-all：通过 `ak.call.signal{signal_kind=moderation}` 表达瞬时控制，并在 durable `ak.call.state` 留痕，前两者写入 `moderation_delta`，后者写入 `state_transition.to="ended"`。主持人强制静音暂缓；§6.1 的 `mute_state{by=moderator}` 即使可从加密信令解出，也 MUST 以 `unsupported_feature` 拒绝，不得改变本地或服务端媒体权限。`moderation` payload `data` 形态:
 
 ```json fragment
 {
@@ -92,12 +92,12 @@ WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
   }
 }
 ```
-- `action` MUST 为 `kick` / `ban` / `end_for_all` 之一。强制静音走 §6.1 的 `mute_state{by=moderator}`，不复用本信令，但同样 MUST 由 `ak.call.moderate` 授权并落目标 leg 的 `mute_override`。
+- `action` MUST 为 `kick` / `ban` / `end_for_all` 之一；不得把强制静音编码成第四种 `moderation` action。
 - `kick`:移除某 `(target_actor_id, target_device_id)` 的当前 call leg。被点名设备收到后 MUST 立即拆除媒体并退出；SFU 部署中 backend 同时按 token issuer 通知断开该 `participant_id`。kick 不阻止该 actor 重新发起 join。
 - `ban`:移除某 `target_actor_id`(其全部设备)并在本通话生命周期内禁止其重新加入。被 ban 的 actor 重新兑换 join token 时，token issuer MUST 拒绝 `call_participant_removed`。
 - `end_for_all`:对全体结束通话。它由 `ak.call.moderate` 授权(v1 不注册独立的 `call.end_for_all`)，并 MUST 紧随一条携带 `ak.call.state.state_transition.to="ended"` 的 durable event；收到的客户端 MUST 全部挂断。
 - kick / ban MUST 以 `ak.call.state.moderation_delta.op="remove_participant"` 留痕(其 `removal` 为 `{ actor_id, device_id?, action, removed_by, removed_at }`;`ban` 省略 `device_id` 表示按 actor 维度)。token issuer 与 SFU 在签发 / 接纳 participant 前 MUST 校验目标不在 `call_moderation` effective authority-ordered keyed set 的 ban 集合内，违反 `call_participant_removed`。
-- force-mute MUST 以 `ak.call.state.mute_override` 写入 `(call_id, actor_id, device_id)` 的当前覆盖值；token issuer 与 SFU 在签发 / 刷新 / 接纳 participant send permission 前 MUST 应用该值，禁止被静音 track 继续上行。客户端本地强制静音只是 UX 镜像，MUST NOT 是唯一 enforcement。
+- v1 不签发强制静音权限，也不从旧 per-leg 缓存或保留的 call-only `call_mute_override` 结果推导媒体许可；未知或不一致的历史覆盖值不能被解释为已解除静音，应失败关闭该媒体权限判定。
 - 所有主持信令受 §5 的 `seq` 单调性防回滚；`moderation` 帧 MUST 由具备 `ak.call.moderate` 的 actor 签名。
 
 ## 4. ICE Server Discovery
@@ -408,7 +408,7 @@ Candidate payload:
 }
 ```
 - `audio_muted` / `video_muted` 为 boolean，required。
-- `by` MUST 为 `self` 或 `moderator`。`by=moderator` MUST 由具备 `ak.call.moderate`（§3）的 actor 发出，并 MUST 携带 `target_actor_id` 与 `target_device_id` 指明被静音方；同一主持操作还 MUST 写入 durable `ak.call.state.mute_override`，并由 SFU / token issuer 收紧该 call leg 的 audio/video send permission。被静音客户端收到后 MUST 本地强制静音并向用户显示来源；若客户端拒不配合，服务端媒体权限仍必须阻断其继续推送被静音 track。`by=self` 时 MUST NOT 携带 `target_*` 字段，且不写 `mute_override`。
+- v1 的 `by` MUST 为 `self`。`by=moderator` 及其 `target_actor_id`／`target_device_id` 分支 MUST 以 `unsupported_feature` 拒绝，不得只在客户端执行静音或暗中写旧 per-leg 缓存；`by=self` 不写 `mute_override`，也不得携带 `target_*` 字段。
 
 ```json fragment
 {
@@ -538,7 +538,7 @@ Push payload MUST NOT 包含 SDP、ICE candidate、TURN credential、principal D
 | `recording_denied` | 录制未授权或 policy 禁止。 |
 | `transcription_denied` | 转写未授权或 policy 禁止(见 [`call-state.md` §5.1](./call-state.md))。 |
 | `recording_consent_required` | 进入录制 / 转写捕获态但缺少客户端二次确认(见 [`call-state.md` §5.2](./call-state.md))。 |
-| `call_moderation_unauthorised` | 主持动作(kick / ban / end-for-all / force-mute)由不具 `ak.call.moderate` 的 actor 发起(见 §3a)。 |
+| `call_moderation_unauthorised` | v1 已开放的主持动作(kick / ban / end-for-all)由不具 `ak.call.moderate` 的 actor 发起(见 §3a)。 |
 | `call_participant_removed` | 被 kick / ban 的参与者尝试重新建立 media leg 或重新兑换 join token(见 §3a)。 |
 | `session_focus_already_committed` | 已提交的 call `session_focus` 不可在同一生命周期内改写。 |
 | `call_state_terminal` | `ak.call.state` 不能从 `ended` / `missed` / `failed` / `cancelled` 终态转出。 |

@@ -1540,10 +1540,15 @@
     },
     "call_state_payload": {
       "type": "object",
-      "description": "Typed delta payload for ak.call.state. Every present field maps to one or two explicit registered typed current result effects; omitted axes produce no effect.",
+      "description": "Typed delta payload for ak.call.state. Every admitted field maps to one or two explicit registered typed current result effects; omitted axes produce no effect. The retained mute_override shape is not admitted in v1 because its call-only selector cannot represent independent legs.",
       "required": [
         "call_id"
       ],
+      "not": {
+        "required": [
+          "mute_override"
+        ]
+      },
       "anyOf": [
         {
           "required": [
@@ -1573,11 +1578,6 @@
         {
           "required": [
             "moderation_delta"
-          ]
-        },
-        {
-          "required": [
-            "mute_override"
           ]
         }
       ],
