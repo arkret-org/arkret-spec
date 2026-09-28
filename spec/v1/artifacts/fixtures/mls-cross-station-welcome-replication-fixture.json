@@ -5,7 +5,7 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.mls.cross_station_welcome_replication.v1"
   },
-  "version": "2026-09-28.2",
+  "version": "2026-09-29.1",
   "profile": "ak.profile.e2ee_client.v1",
   "covers_vectors": [
     "ak.vector.mls.cross_station_welcome_replication.v1"
@@ -256,6 +256,7 @@
             "sig": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
           }
         },
+        "genesis_event_ref": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB",
         "welcomes": [
           {
             "welcome_id": "ak:mls_welcome_delivery:0199aaaa-aaaa-7aaa-8aaa-aaaaaaaaaaaa",
@@ -451,6 +452,71 @@
       "first_expected_error": "contains:'ak.mls.commit' was expected"
     },
     {
+      "name": "mls_commit_item_missing_genesis_ref_rejected",
+      "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/committed_event_submission",
+      "expect_valid": false,
+      "instance_from": "mls_commit_item_with_welcomes_valid",
+      "mutations": [
+        {
+          "op": "remove",
+          "path": "/genesis_event_ref"
+        }
+      ],
+      "first_expected_error": "contains:genesis_event_ref"
+    },
+    {
+      "name": "non_commit_item_with_genesis_ref_rejected",
+      "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/committed_event_submission",
+      "expect_valid": false,
+      "instance_from": "item_without_welcomes_valid",
+      "mutations": [
+        {
+          "op": "add",
+          "path": "/genesis_event_ref",
+          "value": "ak:event:ASo6zC5lXw3GKOieKXlXJYfKoQKng4sYXtvdUAaE9WRB"
+        }
+      ],
+      "first_expected_error": "contains:genesis_event_ref"
+    },
+    {
+      "name": "later_epoch_commit_with_immutable_genesis_ref_valid",
+      "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/committed_event_submission",
+      "expect_valid": true,
+      "instance_from": "mls_commit_item_with_welcomes_valid",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/event_submission/event/payload/base_group_state_ref",
+          "value": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD"
+        },
+        {
+          "op": "replace",
+          "path": "/event_submission/event/payload/governance_binding/base_group_state_ref",
+          "value": "ak:event:AQJmSg1s9QyzppFeJL40dN92YVHZeLdBBt3UWHa9XNOD"
+        },
+        {
+          "op": "replace",
+          "path": "/event_submission/event/payload/previous_epoch",
+          "value": 2
+        },
+        {
+          "op": "replace",
+          "path": "/event_submission/event/payload/next_epoch",
+          "value": 3
+        },
+        {
+          "op": "replace",
+          "path": "/event_submission/event/payload/governance_binding/previous_epoch",
+          "value": 2
+        },
+        {
+          "op": "replace",
+          "path": "/event_submission/event/payload/governance_binding/next_epoch",
+          "value": 3
+        }
+      ]
+    },
+    {
       "name": "mls_commit_item_with_empty_welcomes_rejected",
       "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/committed_event_submission",
       "expect_valid": false,
@@ -466,6 +532,53 @@
     }
   ],
   "cases": [
+    {
+      "name": "immutable_genesis_ref_on_later_add_replication",
+      "given": "Station X has accepted one Genesis and two subsequent Commits for the same effective scope and MLS group; the latest Commit adds bob at Station Y, whose since_join replica has no readable Genesis Event or earlier group current; the source-signed peer body is the exact durable outbox row",
+      "variants": [
+        {
+          "name": "later_epoch_signed_ref_installs_attestation",
+          "station": "member_y",
+          "operation_id": "ak.peer.events.command.submit.v1",
+          "branch": "committed_replication",
+          "item_event_kind": "ak.mls.commit",
+          "commit_previous_epoch": 2,
+          "base_group_state_ref": "previous_commit_event",
+          "genesis_event_ref": "accepted_genesis_event",
+          "welcomes": ["bob"],
+          "claims": {"bob": "live"},
+          "expected": {"decision": "accept", "replication_outcome": "stored", "attestation_genesis_event_ref": "accepted_genesis_event", "replicas": 1, "queue": ["bob"], "claim_bindings": ["bob"]}
+        },
+        {
+          "name": "wrong_genesis_ref_conflicts_with_held_group",
+          "station": "member_y",
+          "operation_id": "ak.peer.events.command.submit.v1",
+          "branch": "committed_replication",
+          "item_event_kind": "ak.mls.commit",
+          "commit_previous_epoch": 2,
+          "base_group_state_ref": "previous_commit_event",
+          "genesis_event_ref": "other_group_genesis_event",
+          "held_group_genesis_event_ref": "accepted_genesis_event",
+          "welcomes": ["bob"],
+          "claims": {"bob": "live"},
+          "expected": {"decision": "reject", "replicas": 0, "queue": [], "claim_bindings": [], "attestations": 0}
+        },
+        {
+          "name": "replay_changes_genesis_ref",
+          "station": "member_y",
+          "operation_id": "ak.peer.events.command.submit.v1",
+          "branch": "committed_replication",
+          "item_event_kind": "ak.mls.commit",
+          "commit_previous_epoch": 2,
+          "base_group_state_ref": "previous_commit_event",
+          "genesis_event_ref": "other_group_genesis_event",
+          "previously_stored_genesis_event_ref": "accepted_genesis_event",
+          "welcomes": ["bob"],
+          "claims": {"bob": "live"},
+          "expected": {"decision": "reject", "replicas": 0, "queue": [], "claim_bindings": [], "attestations": 0}
+        }
+      ]
+    },
     {
       "name": "governance_routes_remote_welcomes_into_their_intents",
       "given": "alice, erin (Station X), bob and carol (Station Y), dave (Station Z) and grace (Station V) are current joined members; frank on Station W is not; every added endpoint holds one live claim at its own Account Station",

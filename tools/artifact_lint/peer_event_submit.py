@@ -265,8 +265,20 @@ def check_peer_event_submit_semantic_union(lint: Lint) -> None:
     committed = defs["committed_event_submission"]
     if _required(committed) != {"event_submission", "source_commit"} or committed.get("additionalProperties") is not False:
         _fail(lint, SCHEMA, "committed_event_submission must be closed EventAdmissionSubmission + source_commit")
-    if set(committed.get("properties", {})) != {"event_submission", "source_commit", "welcomes"}:
-        _fail(lint, SCHEMA, "committed_event_submission properties must be the Event pair plus the MLS Commit welcomes carrier, with no echoes or hints")
+    if set(committed.get("properties", {})) != {"event_submission", "source_commit", "genesis_event_ref", "welcomes"}:
+        _fail(lint, SCHEMA, "committed_event_submission properties must be the Event pair plus the MLS Commit Genesis ref and welcomes carriers, with no echoes or hints")
+    if _ref_name(committed.get("properties", {}).get("genesis_event_ref")) != "./common-ids.schema.json#/$defs/event_id":
+        _fail(lint, SCHEMA, "committed_event_submission.genesis_event_ref must be a canonical EventId")
+    genesis_rules = [
+        rule for rule in committed.get("allOf", [])
+        if isinstance(rule, dict) and _required(rule.get("then", {})) == {"genesis_event_ref"}
+    ]
+    if len(genesis_rules) != 1 or _required(genesis_rules[0].get("else", {}).get("not", {})) != {"genesis_event_ref"}:
+        _fail(lint, SCHEMA, "only an MLS Commit may carry required immutable genesis_event_ref")
+    else:
+        kind = genesis_rules[0].get("if", {}).get("properties", {}).get("event_submission", {}).get("properties", {}).get("event", {}).get("properties", {}).get("kind", {}).get("const")
+        if kind != "ak.mls.commit":
+            _fail(lint, SCHEMA, "genesis_event_ref presence must be decided by ak.mls.commit Event kind")
     welcomes = committed.get("properties", {}).get("welcomes", {})
     if welcomes.get("minItems") != 1 or _ref_name(welcomes.get("items")) != "./mls-welcome-delivery.schema.json":
         _fail(lint, SCHEMA, "committed_event_submission.welcomes must be a non-empty array of exact MlsWelcomeDelivery objects")

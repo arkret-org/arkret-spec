@@ -39,7 +39,8 @@ DeviceMessage 或 MLS Commit+Welcome 并保持原队列与请求幂等 ledger �
 
 `ak.vector.mls.cross_station_welcome_replication.v1` MUST 证明：跨站 recipient 的 Welcome 由治理 Station 在 Commit
 接纳事务内写入指向其 routing service 的 outbox intent，随该 `ak.mls.commit` 的 committed-replication item 以
-`welcomes[]` 送达；成员站以本地 claim ledger 复核并与 Commit replica 同一事务入队，复核失败的 Welcome 不入队也不阻止
+已认证治理请求签名覆盖的 immutable `genesis_event_ref` 和 `welcomes[]` 送达；后期 epoch 的 base ref 不得代替 Genesis，
+缺失／错配／重放改变 ref 或非 Commit 带 ref 均失败关闭、零写。成员站以本地 claim ledger 复核并与 Commit replica 同一事务入队，复核失败的 Welcome 不入队也不阻止
 Commit replica，经 scan 已保存 Commit 后的重放补写 Welcome 并返回 `duplicate`，复制 Welcome 计入但不因容量被拒绝。
 `ak.vector.keypackage.recipient_claim_read.v1` MUST 证明：`ak.self.keys.keypackages.read.claim.v1` 只向 claim record
 的 exact endpoint 返回逐字节相同的原 claim outcome，其它情形统一 `keypackage_unknown`，接收端读取并验证 receipt 后才

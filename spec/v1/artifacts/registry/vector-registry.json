@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-29.2",
+  "version": "2026-09-29.3",
   "source_of_truth": true,
-  "generated_at": "2026-09-29T01:29:00+08:00",
+  "generated_at": "2026-09-29T04:00:14+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -3508,7 +3508,7 @@
       "applies_to_fixtures": [
         "mls-cross-station-welcome-replication-fixture.json"
       ],
-      "description": "The governance Station verifies every non-claim binding of a Welcome whose recipient another Station hosts and, inside the Commit acceptance transaction, writes it into the committed-replication intent of that recipient's routing service: the ak.mls.commit item carries exactly that service's recipients' welcomes[] in submission order and no welcomes member when the service hosts none, a hosted recipient's Welcome is queued locally, and a Welcome for a service outside the target set refuses the whole submission with a bare failed_precondition and zero writes. welcomes on any other Event kind, or empty, is schema_violation. The destination re-verifies each claim against its own ledger and queues the passing Welcomes with their claim bindings in the same replica transaction as the Commit; a failing Welcome is never queued and never blocks the replica; a replay after the Commit was stored through scan queues the missing Welcomes and returns duplicate, and a further replay queues nothing; replicated Welcomes count toward but are never refused by endpoint capacity, unlike a first admission at capacity (quota_exceeded), and leave the queue only through ACK.",
+      "description": "The governance Station verifies every non-claim binding of a Welcome whose recipient another Station hosts and, inside the Commit acceptance transaction, writes it into the committed-replication intent of that recipient's routing service: every ak.mls.commit item carries immutable genesis_event_ref from the exact accepted group Genesis under the authenticated canonical peer signature, including later epochs whose base ref names another Commit. Other kinds forbid that field. The Commit item carries exactly that service's recipients' welcomes[] in submission order and no welcomes member when the service hosts none, a hosted recipient's Welcome is queued locally, and a Welcome for a service outside the target set refuses the whole submission with a bare failed_precondition and zero writes. Missing, mismatched or replay-mutated Genesis ref refuses the replica and attestation with zero writes; welcomes on any other Event kind, or empty, is schema_violation. The destination re-verifies each claim against its own ledger and queues the passing Welcomes with their claim bindings in the same replica transaction as the Commit; a failing Welcome is never queued and never blocks the replica; a replay after the Commit was stored through scan queues the missing Welcomes and returns duplicate, and a further replay queues nothing; replicated Welcomes count toward but are never refused by endpoint capacity, unlike a first admission at capacity (quota_exceeded), and leave the queue only through ACK.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/mls-cross-station-welcome-replication-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"

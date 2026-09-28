@@ -371,7 +371,7 @@
     },
     "committed_event_submission": {
       "type": "object",
-      "description": "One exact source canonical Event inside an EventAdmissionSubmission containing only event, paired with the source-signed RealmCommit that accepted it. Private approval_signatures are forbidden on committed replication and stay in the governance Station's accepted-at audit. event_submission.event.event_id MUST equal source_commit.event_ref; realm and stream coordinates, governance generation, current source authority signature and previous_commit_ref continuity MUST verify exactly. The receiver does not redo the source admission approval. This shape accepts only the full producer Event, never a withheld or projection-only read view. welcomes is allowed only when the source Event is ak.mls.commit and carries exactly the MlsWelcomeDelivery objects of that Commit whose recipients the destination Station hosts, in submission order; the destination re-verifies each claim against its own claim ledger and queues the passing Welcomes in the same replica transaction as the Commit (zh/crypto-media/encryption-and-audit.md section 2.2).",
+      "description": "One exact source canonical Event inside an EventAdmissionSubmission containing only event, paired with the source-signed RealmCommit that accepted it. Private approval_signatures are forbidden on committed replication and stay in the governance Station's accepted-at audit. event_submission.event.event_id MUST equal source_commit.event_ref; realm and stream coordinates, governance generation, current source authority signature and previous_commit_ref continuity MUST verify exactly. The receiver does not redo the source admission approval. This shape accepts only the full producer Event, never a withheld or projection-only read view. For every ak.mls.commit, genesis_event_ref is required, frozen from the exact accepted group Genesis in the governance acceptance transaction, and covered by the authenticated canonical peer request; it is forbidden for other kinds. The receiver binds it to the exact Commit and immutable group provenance in the same replica transaction and never infers it from base_group_state_ref. welcomes is allowed only when the source Event is ak.mls.commit and carries exactly the MlsWelcomeDelivery objects of that Commit whose recipients the destination Station hosts, in submission order; the destination re-verifies each claim against its own claim ledger and queues the passing Welcomes in the same replica transaction as the Commit (zh/crypto-media/encryption-and-audit.md section 2.2).",
       "required": [
         "event_submission",
         "source_commit"
@@ -383,6 +383,10 @@
         },
         "source_commit": {
           "$ref": "./realm-commit.schema.json"
+        },
+        "genesis_event_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id",
+          "description": "Immutable exact accepted Genesis EventId for the effective scope and MLS group of an ak.mls.commit. Required for every replicated MLS Commit, forbidden otherwise; signed peer-body metadata, not a recipient guess or a replacement for governance-side provenance verification."
         },
         "welcomes": {
           "type": "array",
@@ -407,6 +411,34 @@
             "required": [
               "event_submission"
             ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "event_submission": {
+                "properties": {
+                  "event": {
+                    "properties": {
+                      "kind": {
+                        "const": "ak.mls.commit"
+                      }
+                    },
+                    "required": ["kind"]
+                  }
+                },
+                "required": ["event"]
+              }
+            },
+            "required": ["event_submission"]
+          },
+          "then": {
+            "required": ["genesis_event_ref"]
+          },
+          "else": {
+            "not": {
+              "required": ["genesis_event_ref"]
+            }
           }
         },
         {

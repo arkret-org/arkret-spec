@@ -83,7 +83,9 @@ recipient 是 current joined 成员，其 routing service 必然属于该 Commit
 （[`../sync/federation.md` §4.1.1](../sync/federation.md)）；治理 Station 没有该 recipient 的 claim ledger（claim
 destination 是 recipient 的 Account Station），因此在接纳事务内只验证第 2 项中除 claim 以外的全部绑定，并把该
 delivery 原样写入指向该 routing service 的 outbox intent。该 intent 的 `committed_replication` item 除 source
-Event 与 `RealmCommit` 外携 `welcomes[]`：恰为该 service 托管的 recipient 的全部 delivery，按 submission 中的顺序；
+Event 与 `RealmCommit` 外携必填 `genesis_event_ref` 和 `welcomes[]`：前者是治理 Station 在原 Commit 接纳
+cut 从该 effective scope、`mls_group_id` 的已接受 Genesis provenance 冻结的唯一 Genesis EventId，后者恰为
+该 service 托管的 recipient 的全部 delivery，按 submission 中的顺序；
 目标集中没有该 service 时整个 submission 以不带 reason 的 `failed_precondition` 零写入。成员 Station 是这些 claim 的
 destination，它在保存该 item 的同一 replica 事务内，按
 [`device-lifecycle.md` §9.2.3](./device-lifecycle.md) 对治理 Station 规定的同一组绑定以本地 ledger 复核每条 delivery 的
@@ -154,8 +156,12 @@ Event／RealmCommit／public group current 在同一接纳事务完成；拒绝�
 事务冻结每条 Add 的 consumed Proposal、目标 ActorId、leaf signature key 与 Commit 坐标；这不改变跨站
 recipient claim 由其 Account Station 在 committed-replication 事务核验的既有准入分工。该 recipient Station
 只有在按 [`device-lifecycle.md` §9.2.3](./device-lifecycle.md) 核验 exact claim、destination-signed receipt、
-当时 endpoint authorization、winning Commit 与 Welcome 绑定后，才能从同一 replica cut 耐久生成并签署
-`mls_add_authority_attestation`，连同可幂等重发的 outbox 原子保存。它通过
+当时 endpoint authorization、winning Commit 与 Welcome 绑定，以及已认证治理 peer body 中与该 Commit
+同一 replica cut 保存的 `genesis_event_ref` 后，才能从同一 replica cut 耐久生成并签署
+`mls_add_authority_attestation`，连同可幂等重发的 outbox 原子保存。recipient 不得从当前 tree、group id、
+`base_group_state_ref` 或无权读取的 prejoin Genesis 猜出该 ref；缺失、非唯一、与已持有 immutable group
+provenance 冲突或重放时改变 ref 均零写。same-Station recipient 在原治理接纳事务直接从相同已接受 Genesis
+provenance 冻结该 ref，并与本地 Welcome／claim 原子签署同形证明，不依赖 peer row。它通过
 `ak.peer.mls.command.attest_add.v1` 向治理 Station 提交；治理 Station 核对签名 Station 恰为该 Welcome
 recipient ActorId 的 Account Station、exact accepted Commit／Welcome、已冻结的 Proposal provenance、
 leaf key／ActorId／endpoint 与原 claim receipt 的 digest，才将这条历史 Add 证明耐久安装。治理 Station

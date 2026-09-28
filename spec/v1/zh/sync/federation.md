@@ -141,7 +141,15 @@ MUST 是完整、逐字不变的 source canonical Event。
 `approval_signatures` MUST 省略，即使首次准入的 source submission
 带有该字段也一样。治理 Station 在本地 accepted-at 私密审计中保留原提交及审批证据；
 复制目标不得取得审批证据，也不得以缺少它为由重做首次准入或拒绝已验证的 Event／Commit。
-source Event 是 `ak.mls.commit` 且目标 service 托管该
+source Event 是 `ak.mls.commit` 时，每条 `committed_replication` item 必携 `genesis_event_ref`，由治理
+Station 在原 accepted Commit 同一事务从该 effective scope、`mls_group_id` 的 exact accepted Genesis
+provenance 冻结；其它 kind 禁带。该字段在 canonical peer body 中被已认证治理 Station 的请求签名覆盖，
+outbox 重试只能逐字重发。recipient 在同一 replica transaction 核对来源、Commit 的 scope／group／epoch、
+已持有的 immutable group provenance（若有）与该 ref 一致，保存为该 group 的 immutable ref；缺失、
+错误、与已持有 ref 冲突或重复投递改变 ref 时失败关闭并零写，不能从 Commit 的
+`base_group_state_ref`、当前 tree 或 group id 推断 Genesis。recipient 的签名 Add attestation 只能引用
+这个已验、已保存的 ref；治理 Station 安装时仍须对照自身 exact accepted Genesis，peer 签名不能单独
+替代治理 provenance。source Event 是 `ak.mls.commit` 且目标 service 托管该
 Commit 的 Welcome recipient 时，另携这些 recipient 的全部 exact `MlsWelcomeDelivery`（`welcomes[]`，由治理 Station 在
 接纳事务内写入该 intent；其它 kind 禁带），成员站在同一 replica 事务内按本地 claim ledger 复核并入队
 （[`../crypto-media/encryption-and-audit.md` §2.2](../crypto-media/encryption-and-audit.md)）。`fanout_authorization_basis`

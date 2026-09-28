@@ -15,13 +15,13 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 8890,
+    "total_properties": 8894,
     "total_schema_documents": 166,
     "by_presence_class": {
-      "optional": 2110,
+      "optional": 2111,
       "optional_defaulted": 47,
-      "required": 6262,
-      "required_nullable": 305,
+      "required": 6263,
+      "required_nullable": 307,
       "tristate": 166
     },
     "tristate_occurrences": 166,
@@ -58,7 +58,7 @@
     "applet-install-plan.schema.json/$defs/widget_effect/properties/policy_event_ref",
     "applet-registration-epoch-evidence.schema.json/allOf/0/oneOf/0/properties/method_version_evidence",
     "applet-registration-epoch-evidence.schema.json/allOf/0/oneOf/1/properties/method_version_evidence",
-    "authority-commit-operations.schema.json/$defs/committed_event_submission/allOf/1/then/properties/event_submission",
+    "authority-commit-operations.schema.json/$defs/committed_event_submission/allOf/2/then/properties/event_submission",
     "authority-commit-operations.schema.json/$defs/direct_conversation_member_join_submission/allOf/1/properties/event",
     "authority-commit-operations.schema.json/$defs/direct_conversation_realm_create_submission/allOf/1/properties/event",
     "authority-commit-operations.schema.json/$defs/direct_conversation_strand_create_submission/allOf/1/properties/event",
@@ -357,7 +357,7 @@
       "shape": "/$defs/committed_event_submission",
       "instance_path": "/event_submission",
       "occurrences": [
-        "/$defs/committed_event_submission/allOf/1/then/properties/event_submission"
+        "/$defs/committed_event_submission/allOf/2/then/properties/event_submission"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -3462,10 +3462,14 @@
         "/$defs/committed_event_ref/properties/stream_position": "required",
         "/$defs/committed_event_ref/properties/stream_ref": "required",
         "/$defs/committed_event_submission/allOf/0/not/properties/event_submission": "required_nullable",
-        "/$defs/committed_event_submission/allOf/1/then/properties/event_submission": "tristate",
-        "/$defs/committed_event_submission/allOf/1/then/properties/event_submission/properties/event": "required_nullable",
-        "/$defs/committed_event_submission/allOf/1/then/properties/event_submission/properties/event/properties/kind": "required",
+        "/$defs/committed_event_submission/allOf/1/if/properties/event_submission": "required_nullable",
+        "/$defs/committed_event_submission/allOf/1/if/properties/event_submission/properties/event": "required_nullable",
+        "/$defs/committed_event_submission/allOf/1/if/properties/event_submission/properties/event/properties/kind": "required",
+        "/$defs/committed_event_submission/allOf/2/then/properties/event_submission": "tristate",
+        "/$defs/committed_event_submission/allOf/2/then/properties/event_submission/properties/event": "required_nullable",
+        "/$defs/committed_event_submission/allOf/2/then/properties/event_submission/properties/event/properties/kind": "required",
         "/$defs/committed_event_submission/properties/event_submission": "required",
+        "/$defs/committed_event_submission/properties/genesis_event_ref": "optional",
         "/$defs/committed_event_submission/properties/source_commit": "required",
         "/$defs/committed_event_submission/properties/welcomes": "optional",
         "/$defs/direct_conversation_founding_acceptance_outcome/properties/commits": "required",
@@ -3605,6 +3609,7 @@
         "/$defs/submit_outcome/oneOf/1/properties/status": "required"
       },
       "conditionally_required": [
+        "/$defs/committed_event_submission/properties/genesis_event_ref",
         "/$defs/peer_submit_request/properties/event_submission",
         "/$defs/peer_submit_request/properties/mls_genesis_material",
         "/$defs/peer_submit_request/properties/mls_submission",

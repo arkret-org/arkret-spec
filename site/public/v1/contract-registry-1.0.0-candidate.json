@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-29.5",
+  "version": "2026-09-29.6",
   "source_of_truth": true,
-  "generated_at": "2026-09-29T03:08:38+08:00",
+  "generated_at": "2026-09-29T04:00:14+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -13387,7 +13387,7 @@
         "http": "POST /_arkret/peer/events",
         "grpc": "PeerEvents/Submit",
         "mq": "peer.events.command.submit",
-        "notes": "The sole peer Event ingress is a closed semantic union. authority_forward sends one exact producer Event or MLS Commit to the verified current governance Station, which alone may sign a new RealmCommit; an ak.mls.genesis Event additionally carries mls_genesis_material, the raw bytes of the two content-addressed Blobs it references, which the governance Station hashes against the refs and stores in the acceptance transaction, and every other kind omits it. committed_replication carries replications[1..100] whose rows are exactly {event_submission, source_commit} plus, only for an ak.mls.commit source Event, the welcomes[] of recipients hosted by the destination, which the destination re-verifies against its own claim ledger and queues in the same replica transaction; processing, committed_event wrappers, sender membership witnesses, destination echoes and response coordinate echoes are absent. The receiver derives authorization from verified committed history and stores exact source facts without first admission, re-signing, or second fanout. registered_atomic_unit carries only registered all-or-nothing source-committed units (Direct Conversation founding or membership compensation), never per-item partial materialization. canonical_hash/full_body binds the complete selected branch and exact replay returns the original branch outcome.",
+        "notes": "The sole peer Event ingress is a closed semantic union. authority_forward sends one exact producer Event or MLS Commit to the verified current governance Station, which alone may sign a new RealmCommit; an ak.mls.genesis Event additionally carries mls_genesis_material, the raw bytes of the two content-addressed Blobs it references, which the governance Station hashes against the refs and stores in the acceptance transaction, and every other kind omits it. committed_replication carries replications[1..100] whose rows are {event_submission, source_commit}, plus required immutable genesis_event_ref for every ak.mls.commit and forbidden for every other kind; only a Commit may additionally carry welcomes[] of recipients hosted by the destination. The governance Station freezes the Genesis ref from its accepted group provenance in the Commit acceptance transaction and the authenticated canonical peer request signature covers it. The receiver binds it to the exact Commit and immutable group provenance in the replica transaction, re-verifies Welcomes against its own claim ledger and queues passing Welcomes in that same transaction; it never infers Genesis from a preceding Commit ref or current tree. Processing, committed_event wrappers, sender membership witnesses, destination echoes and response coordinate echoes are absent. The receiver derives authorization from verified committed history and stores exact source facts without first admission, re-signing, or second fanout. registered_atomic_unit carries only registered all-or-nothing source-committed units (Direct Conversation founding or membership compensation), never per-item partial materialization. canonical_hash/full_body binds the complete selected branch and exact replay returns the original branch outcome.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "schema_resource",
         "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
@@ -16022,8 +16022,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-29.3",
-    "generated_at": "2026-09-29T03:08:38+08:00",
+    "version": "2026-09-29.4",
+    "generated_at": "2026-09-29T04:00:14+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",
