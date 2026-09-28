@@ -350,7 +350,9 @@ projection 不完整时 MUST fail closed 并要求先重建 projection，不得�
 `snapshot_digest` 是 `sha256:` 加 SHA-256(`ak.applet_delegated_session_inventory.v1\n` 的 ASCII bytes ||
 RFC 8785 JCS(完整 response 去掉 `snapshot_digest`)) 的小写十六进制。revision 必须随该 selector 的
 issue、refresh、revoke 及 fence 变动持久递增，不能从当前 active ID 集推导；即使集合经过 A→B→A，
-旧 witness 也不能复活。Station MUST 校验响应回显的五字段、排序、唯一性、摘要和完整性语义，
+旧 witness 也不能复活。同一三字段安装 epoch 下若 issuer ledger 另有 active grant 携不同
+`service_id` 或 `capability_grant_refs`，Account Authority MUST 显式失败关闭，不能把它隐藏在
+五字段 selector 之外再声称该安装库存完整。Station MUST 校验响应回显的五字段、排序、唯一性、摘要和完整性语义，
 将 ID 逐项写入 `delegated_session_refs[]`，将 witness 写入必填的
 `delegated_session_snapshot_digest`；**空集同样需要该 witness**。其它 revoke mode 不得携该 witness，
 `delegated_session_refs[]` 必须为空。此 gate 读操作跨独立 Station／Account Authority service identity，
