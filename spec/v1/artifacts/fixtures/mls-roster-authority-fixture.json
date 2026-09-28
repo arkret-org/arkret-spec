@@ -5,7 +5,7 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.mls.roster_authority.v1"
   },
-  "version": "2026-09-29.4",
+  "version": "2026-09-29.5",
   "profile": "ak.profile.e2ee_client.v1",
   "covers_vectors": [
     "ak.vector.mls.roster_authority.v1"
@@ -134,6 +134,36 @@
         "decision": "first peer attest returns installed; exact replay returns duplicate with identical digest; complete authorized roster read succeeds"
       },
       "name": "verified_attestation_installs_and_replays",
+      "covers_decision_points": [
+        "AK-SDK-009/welcome_roster_requires_complete_historical_leaf_authority"
+      ]
+    },
+    {
+      "given": "An accepted signed Commit PublicMessage contains inline PSK then two inline Adds; governance freezes each TLS Proposal body and its Member sender at wire ordinals 0, 1 and 2 in the same Event/RealmCommit transaction",
+      "expected": {
+        "decision": "roster Add records use consumed_proposal_ordinal 1 and 2, not renumbered Add-only positions; proposal_wire_b64u decodes to each exact inline TLS Proposal body, sender_actor_id equals the verified Commit sender ActorId, and each Add KeyPackage ActorId/leaf key matches the recipient attestation and verified post-Commit tree"
+      },
+      "name": "inline_proposal_source_and_full_wire_order",
+      "covers_decision_points": [
+        "AK-SDK-009/welcome_roster_requires_complete_historical_leaf_authority"
+      ]
+    },
+    {
+      "given": "A Commit PublicMessage contains ProposalOrRef::Reference, even if a temporary Proposal store has a matching body or a current leaf tuple happens to match",
+      "expected": {
+        "decision": "unsupported_feature; Event, RealmCommit, public group current and consumed Proposal provenance all remain unwritten"
+      },
+      "name": "referenced_proposal_has_no_v1_source",
+      "covers_decision_points": [
+        "AK-SDK-009/welcome_roster_requires_complete_historical_leaf_authority"
+      ]
+    },
+    {
+      "given": "One roster Add record repeats another Add's consumed_proposal_ordinal, changes the signed Commit's sender_actor_id, supplies a different TLS Proposal body, or uses an Add-only ordinal rather than its position among all Proposal kinds",
+      "expected": {
+        "decision": "the authorized whole roster read is revision_unavailable with no partial page, record count or proof-availability leak; the client also rejects any mismatching signed manifest or Add KeyPackage/attestation binding"
+      },
+      "name": "consumed_proposal_ordinal_sender_or_body_mismatch",
       "covers_decision_points": [
         "AK-SDK-009/welcome_roster_requires_complete_historical_leaf_authority"
       ]

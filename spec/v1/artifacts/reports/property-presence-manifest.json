@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 8886,
+    "total_properties": 8888,
     "total_schema_documents": 166,
     "by_presence_class": {
       "optional": 2110,
       "optional_defaulted": 47,
-      "required": 6258,
+      "required": 6260,
       "required_nullable": 305,
       "tristate": 166
     },
@@ -8485,8 +8485,10 @@
         "/$defs/mls_add_authority_attestation/properties/welcome_id": "required",
         "/$defs/roster_add_record/properties/attestation": "required",
         "/$defs/roster_add_record/properties/commit_event_ref": "required",
+        "/$defs/roster_add_record/properties/consumed_proposal_ordinal": "required",
         "/$defs/roster_add_record/properties/kind": "required",
         "/$defs/roster_add_record/properties/proposal_wire_b64u": "required",
+        "/$defs/roster_add_record/properties/sender_actor_id": "required",
         "/$defs/roster_genesis_record/properties/actor_id": "required",
         "/$defs/roster_genesis_record/properties/authorization_event_ref": "required",
         "/$defs/roster_genesis_record/properties/endpoint": "required",

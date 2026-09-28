@@ -106,11 +106,13 @@
     },
     "roster_add_record": {
       "type": "object",
-      "required": ["kind", "commit_event_ref", "proposal_wire_b64u", "attestation"],
+      "required": ["kind", "commit_event_ref", "consumed_proposal_ordinal", "sender_actor_id", "proposal_wire_b64u", "attestation"],
       "properties": {
         "kind": {"const": "add"},
         "commit_event_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
-        "proposal_wire_b64u": {"type": "string", "minLength": 1, "pattern": "^[A-Za-z0-9_-]+$"},
+        "consumed_proposal_ordinal": {"type": "integer", "minimum": 0, "description": "Zero-based index of this inline Add in the accepted Commit PublicMessage's ProposalOrRef vector, counting every consumed Proposal kind."},
+        "sender_actor_id": {"$ref": "./common-ids.schema.json#/$defs/actor_id"},
+        "proposal_wire_b64u": {"type": "string", "minLength": 1, "pattern": "^[A-Za-z0-9_-]+$", "description": "Canonical unpadded base64url of the exact TLS-serialized RFC 9420 Proposal body at consumed_proposal_ordinal in the accepted, signed Commit PublicMessage. It is never an independent Proposal handshake input or a synthetic ProposalRef."},
         "attestation": {"$ref": "#/$defs/mls_add_authority_attestation"}
       },
       "additionalProperties": false

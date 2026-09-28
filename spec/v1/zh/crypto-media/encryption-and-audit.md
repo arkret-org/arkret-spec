@@ -136,6 +136,19 @@ v1 没有任何例外：不存在只用 `(realm_id, principal_id)` 匹配 leaf �
    [`../models/sidecar.md`](../models/sidecar.md) §6 保持自己独立的 MLS 绑定与握手契约。
    实现 MUST NOT 把本节的 wire 形态、provenance 持久化义务或验证角色默认套到 sidecar scope 上。
 
+**v1 consumed Proposal 的唯一来源（normative）**：共享 Event 只有 `ak.mls.genesis` 与
+`ak.mls.commit`，Proposal 仅内联于后者，见 [`authority-commit-log.md` §9](../sync/authority-commit-log.md)。
+`ak.mls.commit` 的 RFC 9420 `Commit.proposals[]` 中任何 `ProposalOrRef::Reference` 均为
+`unsupported_feature`、整笔零写入；治理 Station 不得从临时 Proposal store、current tree 或 Welcome
+补造它的 signed source。治理 Station 从完整、已验签的 Commit `PublicMessage` 按
+`Commit.proposals[]` 原 wire 次序，从零计数冻结每个内联 Proposal 的 ordinal、精确 TLS `Proposal`
+body bytes、实际 Member sender 的完整 ActorId 及该 Proposal 的目标。内联 Proposal 的 sender
+是该 Commit 的 sender，必须由 accepted base public tree 对照签名 leaf 解析，且等于 signed
+Commit Event 的 `actor_id`；Add 的目标 ActorId 和 leaf signature key 必须由该 Add KeyPackage 与
+已验 post-Commit public tree 唯一对应。Remove+Add 即使目标元组相同，仍以新的 accepted Commit
+Event ref 和 ordinal 构成新 provenance。PSK 无 leaf target，不得为它伪造目标。以上冻结与
+Event／RealmCommit／public group current 在同一接纳事务完成；拒绝时四者均不写入。
+
 **Welcome 后的完整 leaf authority 取证（normative）**：接收方不得用 RFC `BasicCredential.identity`、leaf
 位置或自己的 KeyPackage claim 推断其它已占用 leaf 的 endpoint 授权。治理 Station 在原 accepted Commit
 事务冻结每条 Add 的 consumed Proposal、目标 ActorId、leaf signature key 与 Commit 坐标；这不改变跨站
@@ -177,6 +190,21 @@ stream position 递增、同一 Commit 中 consumed Proposal 的 wire 顺序放�
 `records_digest` 必须是 `sha256:` 加上 `SHA-256(JCS(上述完整有序 roster_record 数组))` 的小写
 十六进制。opaque `cursor` 只标识该已签 manifest 的下一页和调用方；治理 Station 须重新检查读取权限，
 并在当前 head 与 manifest 的 `authority_head_commit_event_ref` 不同时拒绝续页，不得混合两个版本。
+每条 Add record 的 `consumed_proposal_ordinal` 是该 accepted Commit `proposals[]` 中从零开始、
+计入所有 Proposal kind 的原位置；`sender_actor_id` 是上述已验 Member sender 的完整 ActorId；
+`proposal_wire_b64u` 是该位置**内联** RFC 9420 `Proposal` body 的精确 TLS bytes 的无填充
+base64url，不是独立 `MLSMessage`、`PublicMessage` 或合成 ProposalRef。它作为已接纳 signed Commit
+的派生历史证明输出，不是治理 Station 可接纳的裸 Proposal 输入。治理 Station 必须核对 record
+中的 body、ordinal、sender、Commit Event ref 与冻结事实逐字相等，并核对 Add KeyPackage 的完整
+ActorId／leaf signature key 与 recipient attestation 及已验 public tree 一致，才可纳入签名 manifest；
+缺失、重复 ordinal、顺序更改或任何不匹配使已授权的整份 roster read 为 `revision_unavailable`。
+客户端验签 governance manifest 和每个 recipient attestation，重算全量有序记录 digest，并从已验
+`proposal_wire_b64u` 的 Add KeyPackage 对照 attestation 的 ActorId／leaf signature key。治理
+Station 的签名 manifest 是这些 body／ordinal／sender 与已接纳 Commit 关系的历史权威证明；
+它只在上述原事务冻结和签发前逐项核对后才可签署。历史 Commit Event 可能早于该成员的 `since_join`
+可读范围，因此 roster 安装不要求另行获权读取每笔原 Event，也不得绕过 history policy 取得它；
+若成员另有该 accepted Commit Event 原字节，则仍须与 Event 内的 Commit 对应 ordinal 对照。
+客户端不得把一条 body 当作未经签名的独立治理输入，也不得从 current tree 猜取它属于哪个历史 Commit。
 每条记录只携历史 provenance、完整 ActorId、endpoint／authorize Event ref、leaf signature key
 及原 claim receipt 的可验证绑定，**不携 leaf index**。客户端只从经 digest 校验的 RFC GroupInfo／tree
 取得 occupied index，再按 leaf key 与 provenance 一一匹配；Remove+Add 即使全部身份／key／位置相同
