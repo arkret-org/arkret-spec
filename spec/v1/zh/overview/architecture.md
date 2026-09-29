@@ -594,7 +594,7 @@ Arkret 不打算做“两套系统”：
 因此协议**不**定义统一的 agent memory subsystem。Agent 的运行时上下文（prompt、scratchpad、向量索引、缓存等）由各 agent runtime 自行管理，协议不约束其形式。协议只负责两件事：
 
 - **可审计长期沉淀**：agent 需要跨会话保留的结论、决策、研究、代码或报告 SHOULD 写成 agent 签名的 Event，落到 Strand / Message / Morph / Blob，进入 Realm 账本，与人类协作沉淀共用同一份事实层。
-- **受控外部知识访问**：agent 可读取的 Realm、对象或派生摘要 MUST 通过显式的 capability grant 声明 `scope`、`visibility` 与 retention 约束，受 capability 与 Realm policy 约束。
+- **受控外部知识访问**：agent 可读取的 Realm、对象或派生摘要 MUST 通过显式的 capability grant 声明 `scope` 与 `visibility` 约束，受 capability 与 Realm policy 约束。
 
 这里"可审计长期沉淀"用 SHOULD，只约束**是否选择把某条沉淀落账**;它与下文 agent 署名的 MUST 相互独立——"沉淀可选"**不蕴含**"署名可选"。一旦选择以 Event 落账(尤其代表人类写入共享对象),署名规则即无条件适用:
 
