@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-29.3",
-  "generated_at": "2026-09-29T11:32:00+08:00",
+  "version": "2026-09-29.4",
+  "generated_at": "2026-09-29T12:22:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -2884,15 +2884,6 @@
       "status": "active"
     },
     {
-      "code": "agent_grant_constraint_missing",
-      "applies_to": [
-        "event_envelope"
-      ],
-      "description": "A capability grant whose subject is an agent/service principal is missing a typed constraint listed in the action's capability-action-registry required_constraints (for example allowed_strand_ids on ak.agent.sidecar.write). The reducer rejects with failed_precondition.",
-      "status": "reserved",
-      "activation_condition": "Promote agent_grant_constraint_missing to active only in the same release that adds a canonical machine producer path under spec/v1/artifacts outside reports and this registry."
-    },
-    {
       "code": "agent_grant_exceeds_requested_scope",
       "applies_to": [
         "event_envelope",
@@ -2901,15 +2892,6 @@
       ],
       "description": "A Agent Realm grant contains an action or resource not covered by the Agent's immutable provision requested_scope, or attempts to omit or relax a mandatory provision constraint. Grant attach and reducer admission MUST fail closed with failed_precondition; Realm membership, policy, participation, pairing or key authorization cannot restore authority omitted at provision time. See zh/authz/capabilities.md section 9.1 and zh/identity/key-management.md section 3.6.1.",
       "status": "active"
-    },
-    {
-      "code": "agent_grant_expiry_required",
-      "applies_to": [
-        "event_envelope"
-      ],
-      "description": "A capability grant whose subject is an agent/service principal carries an action whose capability-action-registry required_constraints demand expires_at without a finite effective expiry. capabilities.md §8: agent grants at every risk tier may otherwise be non-expiring (revocation-governed); the reducer rejects with failed_precondition.",
-      "status": "reserved",
-      "activation_condition": "Promote agent_grant_expiry_required to active only in the same release that adds a canonical machine producer path under spec/v1/artifacts outside reports and this registry."
     },
     {
       "code": "agent_key_authorization_expired",

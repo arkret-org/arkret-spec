@@ -578,8 +578,8 @@ Capability 必须支持“有直接身份但需要责任主体/监护主体/控�
 
 - 含 `risk_tier=high` action 的 grant 对所有主体适用同一套规则，`risk_tier=high` 本身不按 subject 的主体类型附加约束：action registry `required_constraints`、具体 operation 或 profile 明列的约束对所有主体适用，reducer 在接纳该 grant 的同一 authority cut 校验，缺失时以现有 `failed_precondition` 失败关闭；行使时也 MUST 重验 current grant 及其有效期。
 - 对需要更高保证的 high-risk action，profile MAY 要求显式 approval workflow、默认不可转授（无 `authority_control` 约束，等价 `max_authority_depth=0`）、更短 child grant TTL、不可扩大 scope 和 approver DID 记录；该要求 MUST NOT 通过 registry 未定义的第四级风险字符串表达。
-- Agent / service principal 的 grant 无论 action 风险级别如何，默认 MUST 有 resource selector；缺失时 reducer MUST `failed_precondition`。
-- Agent / service principal 的 grant 的 `expires_at` 要求:registry `required_constraints` 列出 `expires_at` 的 action(如 `ak.agent.sidecar.publish`) MUST 有有限 `expires_at`,缺失时 reducer MUST `failed_precondition`。其余 action **无论风险级别**,agent grant MAY 不设时间过期(longevity-safe:失效控制由撤销链、pause / deactivate kill switch 与 controller lifecycle / membership 级联承担，见 [`../identity/key-management.md` §3.6.1](../identity/key-management.md));agent 的常驻工作面(read / draft / reply_as_agent / organizer)全部落在该层，因此配对完成后的持续在线不依赖任何 grant 定时器。
+- grant 接纳不按 subject 的主体类型（human／Agent／service／Bot／Ghost／integration）分支：resource selector、`expires_at` 与其它约束的要求只来自 action registry `required_constraints`、具体 operation 或 profile 明列的约束，对所有主体相同。治理 Station 接纳 grant 时 MUST NOT 读取 Actor Profile `actor_kind` 或其它主体类型分类来附加或豁免约束。§9.1 的 Agent provision ceiling 子集判定是该 Agent 自身的授权上界，以其 DID 历史中的 `requested_scope_digest` commitment 与 controller 私有披露为证据，不属于主体类型分支。
+- `expires_at` 要求：registry `required_constraints` 列出 `expires_at` 的 action（如 `ak.agent.sidecar.publish`）MUST 有有限 `effective_expires_at`（§6.1），缺失时 reducer MUST `failed_precondition`。其余 action **无论风险级别**，grant MAY 不设时间过期（longevity-safe）：失效控制由撤销链承担；Agent 另由 pause / deactivate kill switch 与 controller lifecycle / membership 级联兜底（见 [`../identity/key-management.md` §3.6.1](../identity/key-management.md)）。agent 的常驻工作面（read / draft / reply_as_agent / organizer）全部落在该层，因此配对完成后的持续在线不依赖任何 grant 定时器。
 
 ### 8.1 高风险操作的审批顺序（normative）
 

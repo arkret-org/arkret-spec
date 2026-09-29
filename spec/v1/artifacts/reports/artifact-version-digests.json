@@ -129,9 +129,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/error-code-registry.json",
-      "version": "2026-09-29.3",
-      "generated_at": "2026-09-29T11:32:00+08:00",
-      "content_digest": "sha256:d25cad1db733b1269e672aef723ab889379baabc856c407b986023e73bdd3ac9"
+      "version": "2026-09-29.4",
+      "generated_at": "2026-09-29T12:22:00+08:00",
+      "content_digest": "sha256:6f9e360bc8a72e6b69a4c5566b3aa63611c1a87c0d12cb29c98ffed9138f9ec0"
     },
     {
       "path": "spec/v1/artifacts/registry/event-kind-registry.json",

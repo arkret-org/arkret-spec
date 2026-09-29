@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.agent_provisioning.v1",
-  "version": "2026-09-29",
+  "version": "2026-09-29.1",
   "suite": "agent_vectors",
   "runner": {
     "kind": "named_suite",
@@ -585,7 +585,7 @@
         "agent grants at every risk tier without temporal constraints are accepted unless the action registry required_constraints list expires_at",
         "session issuance long after provisioning succeeds while the chain is unrevoked",
         "pause fails closed new sessions and invalidates issued sessions within an independent freshness window of at most 60 seconds",
-        "high risk agent grants are admitted under the same grant rules as every other subject, with no agent-only expiry, selector narrowing, or evidence requirement"
+        "agent grants at every risk tier are admitted under the same grant rules as every other subject, with no agent-only resource selector, expiry, or evidence requirement"
       ]
     },
     {
