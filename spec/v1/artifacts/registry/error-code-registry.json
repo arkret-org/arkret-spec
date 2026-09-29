@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-29.1",
-  "generated_at": "2026-09-29T11:05:00+08:00",
+  "version": "2026-09-29.2",
+  "generated_at": "2026-09-29T11:15:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -2907,7 +2907,7 @@
       "applies_to": [
         "event_envelope"
       ],
-      "description": "A capability grant whose subject is an agent/service principal carries a risk_tier=high action (or an action whose registry required_constraints demand expires_at) without a finite effective expiry. capabilities.md §8: low/medium-risk agent grants may be non-expiring (revocation-governed), high-risk agent grants MUST carry a finite expires_at; the reducer rejects with failed_precondition.",
+      "description": "A capability grant whose subject is an agent/service principal carries an action whose capability-action-registry required_constraints demand expires_at without a finite effective expiry. capabilities.md §8: agent grants at every risk tier may otherwise be non-expiring (revocation-governed); the reducer rejects with failed_precondition.",
       "status": "reserved",
       "activation_condition": "Promote agent_grant_expiry_required to active only in the same release that adds a canonical machine producer path under spec/v1/artifacts outside reports and this registry."
     },

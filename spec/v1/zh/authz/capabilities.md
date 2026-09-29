@@ -468,7 +468,7 @@ effective_not_before = max(temporal.not_before[]?)
 effective_expires_at = min(temporal.expires_at[]?)
 ```
 
-缺省的 lower bound 视为无下限；缺省的 upper bound 视为无上限，但 agent / service principal 的高风险 action 与 registry `required_constraints` 明列 `expires_at` 的 action 仍按 §8 风险分层 MUST 有有限 `effective_expires_at`。若归一化后 `effective_not_before >= effective_expires_at`，reducer MUST `failed_precondition`，`reason="grant_validity_window_empty"`。授权日志、缓存 key、issuer-authority 收窄和 grant 有效期判断都 MUST 使用 effective window。
+缺省的 lower bound 视为无下限；缺省的 upper bound 视为无上限，但 registry `required_constraints` 明列 `expires_at` 的 action 仍按 §8 MUST 有有限 `effective_expires_at`。若归一化后 `effective_not_before >= effective_expires_at`，reducer MUST `failed_precondition`，`reason="grant_validity_window_empty"`。授权日志、缓存 key、issuer-authority 收窄和 grant 有效期判断都 MUST 使用 effective window。
 
 | 扁平名称 | Typed `constraint_kind` | `constraint_subkind` | 对应字段 |
 |----------|------------------------|----------|----------|
@@ -576,11 +576,10 @@ Capability 必须支持“有直接身份但需要责任主体/监护主体/控�
 
 风险分层硬约束：
 
-- **v1 签发限制（normative）**：`ak.capability.grant` 的 subject 是 Agent 或 service principal 且 `actions[]` 任一 action 为 registry `risk_tier=high` 时，治理 Station MUST 在任何 grant 写入前以 `failed_precondition` 拒绝整条 grant。当前 `approval_signatures[]` 的两种 context 均未定义这种签发的独立 responsible／guardian／controller 审批资格与 root 直接签发路径；issuer 的 Event 签名、root 身份、普通 `policy_action` 配置或任意 approver 签名均不能替代。此限制不影响 human grant 或 Agent／service 的 low／medium-risk grant；不得把 high-risk action 混入低风险 grant 绕过。下述有限期、selector 与证据约束仍定义此类 grant 的必要条件，但在 v1 不构成开放准入的充分条件。
-- Agent / service principal 持有 `risk_tier=high` action 的 grant MUST 有有限 `expires_at`、resource selector narrowing、authorization evidence ref 与 audit evidence；reducer 在接纳该 grant 的同一 authority cut 校验，缺失时以现有 `failed_precondition` 失败关闭。其他主体的 grant 不因 action 的 `risk_tier=high` 自动获得这些额外约束；action registry `required_constraints`、具体 operation 或 profile 明列的约束仍对所有主体适用，行使时也 MUST 重验 current grant 及其有效期。
+- 含 `risk_tier=high` action 的 grant 对所有主体适用同一套规则，`risk_tier=high` 本身不按 subject 的主体类型附加约束：action registry `required_constraints`、具体 operation 或 profile 明列的约束对所有主体适用，reducer 在接纳该 grant 的同一 authority cut 校验，缺失时以现有 `failed_precondition` 失败关闭；行使时也 MUST 重验 current grant 及其有效期。
 - 对需要更高保证的 high-risk action，profile MAY 要求显式 approval workflow、默认不可转授（无 `authority_control` 约束，等价 `max_authority_depth=0`）、更短 child grant TTL、不可扩大 scope 和 approver DID 记录；该要求 MUST NOT 通过 registry 未定义的第四级风险字符串表达。
 - Agent / service principal 的 grant 无论 action 风险级别如何，默认 MUST 有 resource selector；缺失时 reducer MUST `failed_precondition`。
-- Agent / service principal 的 grant 的 `expires_at` 分层要求:`risk_tier=high` 的 action 按上文风险分层硬约束 MUST 有有限 `expires_at`;registry `required_constraints` 列出 `expires_at` 的 action(如 `ak.agent.sidecar.publish`)同样 MUST,缺失时 reducer MUST `failed_precondition`。**低 / 中风险** action 的 agent grant MAY 不设时间过期(longevity-safe:失效控制由撤销链、pause / deactivate kill switch 与 controller lifecycle / membership 级联承担，见 [`../identity/key-management.md` §3.6.1](../identity/key-management.md));agent 的常驻工作面(read / draft / reply_as_agent / organizer)全部落在该层，因此配对完成后的持续在线不依赖任何 grant 定时器。
+- Agent / service principal 的 grant 的 `expires_at` 要求:registry `required_constraints` 列出 `expires_at` 的 action(如 `ak.agent.sidecar.publish`) MUST 有有限 `expires_at`,缺失时 reducer MUST `failed_precondition`。其余 action **无论风险级别**,agent grant MAY 不设时间过期(longevity-safe:失效控制由撤销链、pause / deactivate kill switch 与 controller lifecycle / membership 级联承担，见 [`../identity/key-management.md` §3.6.1](../identity/key-management.md));agent 的常驻工作面(read / draft / reply_as_agent / organizer)全部落在该层，因此配对完成后的持续在线不依赖任何 grant 定时器。
 
 ### 8.1 高风险操作的审批顺序（normative）
 
@@ -623,7 +622,7 @@ v1 只有 `before_commit` 一种审批模式，顺序固定为三步，MUST NOT 
 - **预设名不进入 canonical wire。** 预设只是 UI / SDK 便捷输入;server 接收与持久化的永远是 `ak.capability.grant` 的 `actions[]`、resource selector、registered constraints 与 effective validity window(§6.1)。任何 grant 校验、审计、issuer-authority 收窄都基于展开后的 canonical 形态,MUST NOT 依赖预设名。
 - **预设是 additive shorthand,不表达 deny / cap / only。** 同时选择多个预设时，结果是各预设 action / grant template 的**并集**;预设**不**移除、上限化或否定任何其他预设授予的权限。若部署需要收窄，收窄只能通过 resource selector 与 constraint 表达，不能通过预设名。
 - **实现 MUST NOT 引入未在下表登记的预设名**(例如 `write_summary` 等任意字符串)而不先在本表登记。
-- **高风险预设 MUST 展开为完整 grant template**——包含 registry 要求的 required constraints 与有限 `expires_at`,而非无约束的 action union。
+- **高风险预设 MUST 展开为完整 grant template**——包含 registry 要求的 required constraints 与显式 resource selector,而非无约束的 action union。
 
 canonical 展开表:
 
@@ -633,7 +632,7 @@ canonical 展开表:
 | `read_content` / `read_history` | `ak.object.read_content` / `ak.object.read_history`(按需分别授予) | 显式 resource selector(MUST) | 同上 | 对象正文 / 历史读取是**独立的 additive 预设**,不折叠进 `read`。实现若需要"读事件+读正文",MUST 分别授予这些 action,而不是扩大 `read` 的展开集合。 |
 | `draft` | `ak.agent.draft.propose`, `ak.agent.action_request` | —(revocation-governed;`expires_at` MAY 由部署 / controller 策略添加) | controller-private control surface | 允许 agent 提出候选草稿 / 动作请求。`ak.agent.draft.propose` 只让 Station 保存带 controller-device HPKE handoff 的 pending intent；controller holder 随后用 account secret 与唯一 `ak.account_data.set` CAS 创建 `ak.agent.draft.v1` encrypted account data（见 [`../models/actor-private-effects.md` §3.2](../models/actor-private-effects.md#32-agent-draftrequest-与-rejection)）。Station 不生成密文。两个 action 均 profile-gated 于 `ak.profile.agent_provisioning.v1`。**MUST NOT** 直接发布到 shared Realm / Strand(不得展开为 `ak.message.create` / `ak.strand.create` 或任何 `wire_scope=durable_event`)。 |
 | `reply_as_agent` | `ak.message.create`, `ak.reaction.add` | 显式 resource selector(MUST) | 显式 Strand / Circle scope | agent 以自身 principal identity 在授权 scope 内发消息 / 加反应。 |
-| `act_on_behalf` | `ak.message.create`(及选定 workflow actions) | controller approval / accountability 证据(MUST,见 §8)+ 有限 `expires_at`(MUST)+ resource selector narrowing + audit evidence ref | 显式 scope,MUST NOT 全 Realm 无约束 | **高风险。** `actor_id` 为 controller、`executed_by` 为 agent 的 accountable-actor 授权(§8)。MUST 携带 controller approval / accountability 约束,MUST NOT 仅做 action union。 |
+| `act_on_behalf` | `ak.message.create`(及选定 workflow actions) | controller approval / accountability 证据(MUST,见 §8)+ resource selector narrowing + audit evidence ref | 显式 scope,MUST NOT 全 Realm 无约束 | **高风险。** `actor_id` 为 controller、`executed_by` 为 agent 的 accountable-actor 授权(§8)。MUST 携带 controller approval / accountability 约束,MUST NOT 仅做 action union。 |
 | `organizer` | `ak.strand.create`, `ak.strand.update`, `ak.relation.create`,受限 `ak.message.create` | `ak.strand.update` MUST 携带 `allowed_write_fields`(registry required);显式 resource selector(MUST) | 显式 Realm / Space scope | **中到高风险。** 结构化编排权限。包含 `ak.strand.update` 时 MUST 通过 `allowed_write_fields` 限定可写字段,MUST NOT 展开为无约束的 strand 全字段写。 |
 
 **服务面 scope 与内容能力分层(normative)。** 本展开表定义的是**内容层 capability grant**(`ak.capability.grant.actions[]`)。要真正调用某服务面 endpoint,调用方 session **MUST** 另行携带对应**服务面 scope**——例如 events 面的 `ak.self.committed_event.read.scan.v1` / `ak.self.committed_event.stream.subscribe.v1`(§5.5 服务动作),由 session 签发时 provision(Agent 见 [`conformance-profiles.md` §18.1](../conformance/conformance-profiles.md))。服务面 scope 与内容能力是**正交两层，按 AND 组合**:持有 `ak.event.read` 内容能力 **MUST NOT** 被解释为授予该服务面(§5.0 `actions[]` 逐字命中、无 subsumption),持有服务面 scope 也不授予内容读；最终可见性再叠加 membership / history visibility(见 [`../models/relation.md` §4.2](../models/relation.md))。对于 Agent runtime,`agent_key_scope.actions[]` MAY 同时列出服务操作 id 与内容 action token；其中内容 action 是 Agent 的全局硬上界而不是 grant，provision / key authorize 不得因其出现而物化内容授权。后续 Realm-scoped grant必须是该 action 上界的子集。Participation selection 是独立的 controller 行为偏好，可以预先选择任意已登记 bit，但不能授予或补回 requested scope、key scope或Realm grant缺失的authority。session 签发时必须分别求交:服务面 scope = requested_scope ∩ agent_key_scope 服务上界 ∩ endpoint/resource policy;内容 payload 可见性 = agent_key_scope 内容 action 上界 ∩ 有效 Realm capability grant ∩ 服务面允许 ∩ membership/history/E2EE 允许。预设展开 **MUST NOT** 把服务面 scope 混入本内容能力表——服务面授权随 session 演进，与本表解耦，二者可各自独立演进。
@@ -697,7 +696,7 @@ wire 上不存在"这是不是一次转授"的语义位——ref 的类型就是
 | 子 grant 字段 | 与覆盖该 action 的 refs 的关系 |
 | --- | --- |
 | `effective_not_before` | MUST ≥ 覆盖该 action 的 refs 中最早的 `effective_not_before` |
-| `effective_expires_at` | MUST ≤ 覆盖该 action 的 refs 中最晚的 `effective_expires_at`；该 action 按 §8 分层必须有限期而所有覆盖它的 ref 都无 finite upper bound 时，见下方"固定 authority commit 防滚动续期" |
+| `effective_expires_at` | MUST ≤ 覆盖该 action 的 refs 中最晚的 `effective_expires_at`；该 action 按 §8 必须有限期而所有覆盖它的 ref 都无 finite upper bound 时，见下方"固定 authority commit 防滚动续期" |
 | `max_authority_depth` | 对已显式允许 regrant 的普通 `authority_control`，MUST ≤ `min(grant_refs.max_authority_depth) - 1`；该 constraint 内未声明 depth 视为**无限**。完全没有普通 `authority_control` 的 grant 不得作为 grant ref；`authority_regrant_allowed=false` 的 terminal-child 规则按 [`constraint-schema.md` §7.4](./constraint-schema.md) 优先。`realm_root` ref 无 grant-local depth。若需要 Realm 级默认上限，MUST 先在 [`realm.schema.json`](../../artifacts/schemas/realm.schema.json) 注册可选字段再引用，不得引用未注册的"root policy 上限"概念 |
 | `actions[]` | MUST ⊆ union(refs 的 actions)（`realm_root` ref 贡献该 root 的 owner ceiling） |
 | `resources[]` | MUST 是 union(refs 的 resources) 的 selector-narrowing 子集（见 [`resource-selector-grammar.md`](./resource-selector-grammar.md)） |
@@ -707,13 +706,13 @@ wire 上不存在"这是不是一次转授"的语义位——ref 的类型就是
 
 签发时的这组校验是 hygiene；**实际授权以求值时的 refs 存活判定为准**（见上文"求值时机"），两者并存不矛盾。
 
-**固定 authority commit 防滚动续期（normative）**：仅靠"child 自带 `expires_at` ≤ `now + max_authority_lifetime_ms`"不足以约束无限期 ref——ref 持有人可以每 `max_authority_lifetime_ms` 自我再签一次，每次让 child 取得新的 `now + 24h`，从而把无 finite upper bound 的 ref 漂白成事实无限期的链。为关闭该面，当某 action 按 §8 分层**必须有限期**、而覆盖它的 refs 均无 finite upper bound 时，该 child 链 MUST 绑定一个**固定 `authority_expiry_commit`**，整条链每一级该 action 的 `effective_expires_at` MUST ≤ 该 authority commit，再签 MUST NOT 刷新它：
+**固定 authority commit 防滚动续期（normative）**：仅靠"child 自带 `expires_at` ≤ `now + max_authority_lifetime_ms`"不足以约束无限期 ref——ref 持有人可以每 `max_authority_lifetime_ms` 自我再签一次，每次让 child 取得新的 `now + 24h`，从而把无 finite upper bound 的 ref 漂白成事实无限期的链。为关闭该面，当某 action 按 §8 **必须有限期**、而覆盖它的 refs 均无 finite upper bound 时，该 child 链 MUST 绑定一个**固定 `authority_expiry_commit`**，整条链每一级该 action 的 `effective_expires_at` MUST ≤ 该 authority commit，再签 MUST NOT 刷新它：
 
 - 覆盖该 action 的 refs 中存在 finite `effective_expires_at` 时，`authority_expiry_commit` 取其中最晚者（与表中收窄规则一致）。
 - 全部无 finite upper bound 时，其第一次作为 issuer authority 使用时 reducer MUST 冻结 `authority_expiry_commit = first_committed_at + max_authority_lifetime_ms`（默认 24 小时），并作为不可变 child-chain 属性记录（`semantic_refs[role="authority_expiry_commit"]` 或 profile 声明的等价字段）。
 - 同一 ref 的后续再签 MUST 复用同一 `authority_expiry_commit`，MUST NOT 用新的 `now` 重算；child 的 `effective_expires_at` 超过该 authority commit 时 reducer MUST 返回 `failed_precondition` reason=`authority_expiry_widening`。
 
-该规则**不引用 event kind**，也不引用"是否经过转手"：触发条件完全来自 §8 的分层与 refs 的窗口。
+该规则**不引用 event kind**，也不引用"是否经过转手"：触发条件完全来自 §8 的有限期要求与 refs 的窗口。
 
 `max_authority_lifetime_ms` 是 Realm authz 参数，wire 承载位置为 [`realm.schema.json`](../../artifacts/schemas/realm.schema.json) 的同名可选字段与 [`realm-and-space.md` §2.3](../models/realm-and-space.md) 字段表。缺省值为 `86400000`（24 小时）。若 grant / policy / deployment profile 声明更短窗口，effective value MUST 取所有适用窗口的最小值；child grant 或下游 profile 不得放宽父 Realm 的 effective value。实现无法读取该参数时 MUST 使用缺省值，不得把无限期 ref 视作可无限滚动续期。
 

@@ -164,7 +164,7 @@ v1 不定义独立的 agent key rotate 事件。Controller-signed `ak.agent.key.
 
 **同 key re-authorization（normative）**：controller MAY 为同一 `(agent_id,key_id)` 签发新的 `ak.agent.key.authorize`。该 typed current result 是 `commit-ordered projection` 安全集合；首次授权写入一个 authorize dot，续期命令按已签 basis 枚举全部活跃 authorize dots，在同一确认事务移除它们并加入一个 replacement dot。执行位置必须校验确切相关 revision；两个基于同一旧 revision 的替换最多一个成功，另一个拒绝后重新取得状态并签署，不合并成并发权限 heads。不得按 HLC、到达时间或最小 digest 选授权。该路径不换 key material、不需要 pairing 仪式，但必须由 controller 或其授权设备签署，runtime 不能用旧 key 自行续期。renew-pairing（§3.6.1）用于 key 丢失、疑似泄露或更换 runtime。
 
-高风险 agent key（能写入、调用外部工具、管理 capability、读取审计材料或代表用户发起 service-call）的 grant MUST 同时有 resource selector、accountable actor、approval/proposal evidence 和 revocation freshness check；`expires_at` 是可选的附加约束，授权失效控制以撤销链与 lifecycle 级联为权威。只声明 API token 或本地环境变量而没有上述事件链的 agent key 不得用于 v1 standard operation。
+agent key 行使的 capability grant 在高风险 action 上与其它主体适用同一套规则（[`../authz/capabilities.md` §8](../authz/capabilities.md)），不附加 Agent 专属的审批、期限或证据约束；Agent grant 仍按该节默认 MUST 有 resource selector，行使时按 revocation freshness 重验。`expires_at` 仅在 action registry `required_constraints` 列出时必需，其余情况下是可选的附加约束，授权失效控制以撤销链与 lifecycle 级联为权威。只声明 API token 或本地环境变量而没有上述事件链的 agent key 不得用于 v1 standard operation。
 
 #### 3.6.1 Agent runtime pairing 与 session(normative)
 

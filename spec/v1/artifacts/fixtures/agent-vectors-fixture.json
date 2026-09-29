@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.agent_provisioning.v1",
-  "version": "2026-09-24",
+  "version": "2026-09-29",
   "suite": "agent_vectors",
   "runner": {
     "kind": "named_suite",
@@ -582,10 +582,10 @@
         "same-key re-authorization atomically removes all observed authorization dots and adds one replacement dot",
         "concurrent same-key re-authorizations fold to the intersection of scope and audience and the earliest finite expiry",
         "accountability grant without expires_at is accepted and verifies accountable_principal_ids",
-        "low and medium risk agent grants without temporal constraints are accepted",
+        "agent grants at every risk tier without temporal constraints are accepted unless the action registry required_constraints list expires_at",
         "session issuance long after provisioning succeeds while the chain is unrevoked",
         "pause fails closed new sessions and invalidates issued sessions within an independent freshness window of at most 60 seconds",
-        "high risk agent grants without expires_at fail with failed_precondition"
+        "high risk agent grants are admitted under the same grant rules as every other subject, with no agent-only expiry, selector narrowing, or evidence requirement"
       ]
     },
     {

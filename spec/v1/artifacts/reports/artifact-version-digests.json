@@ -129,9 +129,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/error-code-registry.json",
-      "version": "2026-09-29.1",
-      "generated_at": "2026-09-29T11:05:00+08:00",
-      "content_digest": "sha256:3c6ab2cda50c87a3a09135ac72c45dda757d56bdd6b5d269f3e3ef796b003397"
+      "version": "2026-09-29.2",
+      "generated_at": "2026-09-29T11:15:00+08:00",
+      "content_digest": "sha256:08694ff626bd7361c1acc0d5ad8927b35c8aad434e9491e672abb5ba93f87abb"
     },
     {
       "path": "spec/v1/artifacts/registry/event-kind-registry.json",
@@ -213,9 +213,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/normative-clause-registry.json",
-      "version": "2026-09-29.10",
-      "generated_at": "2026-09-29T11:05:00+08:00",
-      "content_digest": "sha256:86ba3bfa2298e57ed48d5f335d17bdede38bec87a2ee63cf5a16cba110528e2c"
+      "version": "2026-09-29.11",
+      "generated_at": "2026-09-29T11:15:00+08:00",
+      "content_digest": "sha256:3a4390d22a8a8cafd22fa13b2eee3c1d05cf6f0a81fffb9f84a288b2fa4ada0b"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-bundle-closure-lock.json",
