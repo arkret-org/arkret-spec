@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 8895,
+    "total_properties": 8899,
     "total_schema_documents": 166,
     "by_presence_class": {
-      "optional": 2111,
+      "optional": 2113,
       "optional_defaulted": 47,
-      "required": 6264,
+      "required": 6266,
       "required_nullable": 307,
       "tristate": 166
     },
@@ -5919,11 +5919,13 @@
         "/$defs/circle_history_access_payload/properties/from": "required_nullable",
         "/$defs/circle_history_access_payload/properties/reason": "optional",
         "/$defs/circle_history_access_payload/properties/to": "required",
+        "/$defs/circle_member_state_payload/allOf/0/if/properties/membership": "required",
         "/$defs/circle_member_state_payload/properties/circle_id": "required",
         "/$defs/circle_member_state_payload/properties/effective_at": "optional",
         "/$defs/circle_member_state_payload/properties/expected_membership": "tristate",
         "/$defs/circle_member_state_payload/properties/member_id": "required",
         "/$defs/circle_member_state_payload/properties/membership": "required",
+        "/$defs/circle_member_state_payload/properties/parent_membership_revision": "optional",
         "/$defs/circle_member_state_payload/properties/reason": "optional",
         "/$defs/circle_patch_payload/properties/circle_id": "required",
         "/$defs/circle_patch_payload/properties/expected_state_digest": "optional",
@@ -6693,6 +6695,7 @@
         "/$defs/call_state_payload/properties/state_transition/properties/failure_reason_code",
         "/$defs/call_state_payload/properties/transcript_transition",
         "/$defs/call_state_payload/properties/transcript_transition/properties/result",
+        "/$defs/circle_member_state_payload/properties/parent_membership_revision",
         "/$defs/content_block/properties/parts",
         "/$defs/device_authorize_payload/properties/applet_id",
         "/$defs/device_authorize_payload/properties/expires_at",
@@ -11393,8 +11396,10 @@
         "/$defs/circle_member_state_result/properties/selector/properties/member_actor_id": "required",
         "/$defs/circle_member_state_result/properties/source_stream_ref": "required",
         "/$defs/circle_member_state_result/properties/value": "required",
+        "/$defs/circle_member_state_value/allOf/0/if/properties/membership": "required",
         "/$defs/circle_member_state_value/properties/effective_at": "required",
         "/$defs/circle_member_state_value/properties/membership": "required",
+        "/$defs/circle_member_state_value/properties/parent_membership_revision": "optional",
         "/$defs/circle_result/properties/revision": "required",
         "/$defs/circle_result/properties/selector": "required",
         "/$defs/circle_result/properties/selector/properties/circle_id": "required",
@@ -11830,6 +11835,7 @@
       },
       "conditionally_required": [
         "/$defs/call_state_result/properties/value/properties/failure_reason_code",
+        "/$defs/circle_member_state_value/properties/parent_membership_revision",
         "/$defs/policy_action_result/properties/selector/properties/action",
         "/$defs/policy_action_result/properties/selector/properties/action_id",
         "/$defs/policy_action_result/properties/selector/properties/policy_id"

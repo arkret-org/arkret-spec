@@ -260,7 +260,12 @@ accepted Genesis 核对的 `group_info_ref`、`ratchet_tree_ref` 构造物料请
 请求另必带目标 accepted Commit Event ref 与 epoch，指明此次取证的加入／读取 cut；它们不改变物料始终
 属于 epoch 0 Genesis 的事实。Account Station 必须核对 caller 为本次已认证 session 的 exact ActorId，
 并在请求时 current 与该目标 cut 分别验证 joined membership、scope 可见性、history 与 policy；无权、已离组、
-隐去的 scope 或未知 selector 统一 `not_found`。它以已认证 Station 身份向治理 Station 转发同一请求，
+隐去的 scope 或未知 selector 统一 `not_found`。Circle scope 的 joined membership 在两个 cut 上都指
+[`../models/circle.md` §9.1](../models/circle.md) 的 effective 判定：current 须为 Circle `join` 且其
+`parent_membership_revision` 仍等于父 Realm 同 cut 的 current `member_state` revision；目标 cut 按
+[`../governance/history-visibility.md` §3.1](../governance/history-visibility.md) 的 Circle 历史 cut 连续性求值——不早于当前
+Circle join Commit 的目标 cut 由同一 Circle join 实例连续承载，更早的目标 cut 所属 Circle join 实例绑定的父 join 已非
+current 时同样 `not_found`。父 Realm 与 Circle 的 position 数值不互认，目标 cut 与 Circle join 只在同一 Circle stream 上比较。它以已认证 Station 身份向治理 Station 转发同一请求，
 不得把本地通用 Blob get 或用户自报 ref 当作授权依据。peer 请求带 `caller_actor_id` 时，治理 Station
 也须在当前及目标 cut 独立核验该 ActorId 的同样读取资格。此携带 caller 的请求中，调用 Station 的
 复制权必须相对于目标 accepted Commit cut 核验，不能以 epoch 0 Genesis 的 Commit 位置拒绝此后才
@@ -318,6 +323,17 @@ encrypted Event 与 recipient delivery 可以晚于对应 Commit 被客户端观
 授权与撤销）发生在成员自己的 PCR／Agent stream，policy 变化不改变 MLS leaf 集合，二者都不推进 revision；已撤销 endpoint
 自身的发送由 §2.5.2 的 send gate 同 cut 拒绝，其 leaf 由账号拥有者其它 endpoint 以普通 Remove Commit 移除。revision
 未被 current Commit覆盖时，scope 是 `epoch_update_required`，Station MUST 拒绝新的 encrypted application Event 与 Add submission。
+
+**Circle 父资格失效与唯一写者（normative）**：父 Realm `leave`／`ban`／rejoin 在 Realm stream 提交，不是 Circle stream
+的 membership Event，因此 MUST NOT 推进 Circle scope 的 `key_access_revision`，Circle canonical joined 集合也不变。治理 Station
+在 Circle scope 的每次 send gate、Add submission 与 MLS Commit 接纳中，于读取 current `mls_group` 的同一耐久 cut 求出 current
+public tree 中完整 ActorId 不满足 [`../models/circle.md` §9.1](../models/circle.md) effective Circle membership 的 leaf 集合。
+该集合非空时，scope 同样处于 `epoch_update_required`：新的 encrypted application Event 与 Add submission 以 `failed_precondition`
++ `epoch_update_required` 零写入拒绝，任何 Add 的 target 也必须满足 effective membership；只有 post-Commit tree 不再含这些
+leaf 的 winning Commit（其 `covers_key_access_revision` 仍等于未变的 current revision）才解除该状态。Station 不产生 Remove
+proposal，repair Commit 按 §2.5.2 由任一 active、获权客户端构造。之后该 actor 的显式 Circle `leave` 改变 canonical joined
+集合，仍由它作为唯一写者把 revision 加一，并照常要求 winning Commit 覆盖。两条门互不替代：revision 只记 Circle stream 的
+membership Event，失效 leaf 集合只由同 cut 的 effective 判定求得。
 
 **残余窗口（informative）**：endpoint 撤销到 Remove Commit 接纳之间，其它成员仍可在旧 epoch 发送；被撤销 endpoint
 若另行取得这些密文，仍能解密。它的 recipient queue 读取与 ACK 在撤销时即被阻断，自身发送被 send gate 拒绝。

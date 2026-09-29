@@ -2329,7 +2329,7 @@
     },
     "circle_member_state_payload": {
       "type": "object",
-      "description": "Payload for ak.circle.member.state. Uses the same membership_state enum as ak.member.state (Realm), scoped to a Circle; reducer MUST verify member_id is a `join` member of the parent Realm before any transition to `join`, MUST gate `knock` on Circle join_rule=knock, and MUST reject self-unban/self-unremove paths.",
+      "description": "Payload for ak.circle.member.state. Uses the same membership_state enum as ak.member.state (Realm), scoped to a Circle. A `join` carries the producer-signed parent_membership_revision and every other transition forbids it; admission MUST verify in the accepting cut that the parent Realm member_state current of the same member_id is `join` at exactly that revision, MUST gate `knock` on Circle join_rule=knock, and MUST reject self-unban/self-unremove paths. See zh/models/circle.md §9.1.",
       "required": [
         "circle_id",
         "member_id",
@@ -2344,6 +2344,10 @@
         },
         "membership": {
           "$ref": "#/$defs/membership_state"
+        },
+        "parent_membership_revision": {
+          "$ref": "./typed-current-result.schema.json#/$defs/revision",
+          "description": "Required on membership=join and forbidden on every other transition. It is the exact typed revision of the parent Realm member_state current result for this complete member_id, i.e. the Realm-stream RealmCommit that accepted the Event (ak.member.state or ak.invite.accept) establishing the member's current parent join. Admission rejects the join with failed_precondition reason=circle_member_must_be_realm_member unless that current is `join` at exactly this {commit_id, stream_position} in the same accepting cut. It is signed by the producer, never derived by a reducer, because a replica or snapshot consumer cannot recompute the cross-stream admission basis. Comparison is by the content-addressed commit_id together with the position on the parent Realm stream, never by a position number shared with a Circle stream. Effective Circle membership holds only while the parent current still carries this revision; a later parent leave, ban or rejoin never revives this join (zh/models/circle.md §9.1)."
         },
         "reason": {
           "type": "string"
@@ -2364,7 +2368,33 @@
           "description": "Optional optimistic-concurrency guard, orthogonal to the membership transition guard. The three wire states are distinct: omission applies no CAS and leaves legality to the FSM guard, explicit null asserts the actor currently has no membership record in this Circle, and a concrete value asserts the current membership equals it. A failed assertion MUST be rejected with failed_precondition. See zh/models/circle.md §9.1."
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "membership": {
+                "const": "join"
+              }
+            },
+            "required": [
+              "membership"
+            ]
+          },
+          "then": {
+            "required": [
+              "parent_membership_revision"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "parent_membership_revision"
+              ]
+            }
+          }
+        }
+      ]
     },
     "circle_patch_payload": {
       "type": "object",

@@ -255,7 +255,7 @@
               ]
             }
           ],
-          "description": "Closed ak.circle.member.state Event authored and signed by the authenticated caller. The service MUST submit these exact bytes through authority Event submission and MUST NOT co-sign, rebuild or synthesize the Event. Admission MUST verify that event.actor_id is the authenticated caller and that payload.circle_id names the path Circle. Moving another actor to join requires ak.circle.member.manage narrowed by allowed_circle_ids, and the target MUST already be a joined parent-Realm member; knock requires join_rule=knock. A self-service join is gated on the Circle join_rule instead."
+          "description": "Closed ak.circle.member.state Event authored and signed by the authenticated caller. The service MUST submit these exact bytes through authority Event submission and MUST NOT co-sign, rebuild or synthesize the Event. Admission MUST verify that event.actor_id is the authenticated caller and that payload.circle_id names the path Circle. Moving another actor to join requires ak.circle.member.manage narrowed by allowed_circle_ids. Every join payload carries parent_membership_revision, the exact typed revision of the target's current parent-Realm member_state join, and admission rejects it unless that current is join at exactly that revision (zh/models/circle.md §9.1); knock requires join_rule=knock. A self-service join is gated on the Circle join_rule instead."
         }
       },
       "additionalProperties": false

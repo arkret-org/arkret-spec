@@ -180,9 +180,10 @@ Conformance fixture 见 `artifacts/fixtures/circle-scope-fixture.json`，覆盖 
 Circle 是独立 effective scope。父 Realm 只提供创建/管理授权与 current
 membership intersection；不得提供 history_access、MLS group、epoch、secret、snapshot 或 counter fallback。
 Circle 的加密激活点是本 Circle 自己的 accepted `ak.mls.genesis`，与 Realm-default scope 的激活互相独立且均不可逆。
-已激活 Circle 在父成员失效后进入 `membership_reconcile_required` 并停止 application send，直到本 Circle
-winning Remove Commit 生效。未激活 Circle 立即按 active Circle members ∩ active Realm members 拒绝 read/write，
-不生成 MLS transition。
+已激活 Circle 的 current tree 仍含按 §9.1 已 effective-invalid 的成员 leaf 时（父 Realm 资格失效），按
+[`../crypto-media/encryption-and-audit.md` §2.4.1](../crypto-media/encryption-and-audit.md) 处于 `epoch_update_required`，
+停止新的 application send 与 Add，直到移除这些 leaf 的本 Circle winning Commit 生效；父 Realm Event 不推进本 Circle 的
+`key_access_revision`。未激活 Circle 立即按 §9.1 effective Circle membership 拒绝 read/write，不生成 MLS transition。
 
 ### 7.1 Space child scope policy
 
@@ -263,10 +264,16 @@ Circle 管理类 grant MUST 显式约束到 `allowed_circle_ids` / `circle_id` s
 
 **硬不变量**:
 
-1. `Circle.members ⊆ Realm.members`。reducer 在 `ak.circle.member.state -> join` 时，若 target actor 的父 Realm `ak.member.state` 不是 `join`,MUST `failed_precondition` `reason=circle_member_must_be_realm_member`。
-2. 父 Realm `ak.member.state -> leave/ban` 触发 **reducer-derived** cascade:该 actor 在该 Realm 所有 Circle 的 membership 收敛到 `leave`。对已激活 MLS 的 Circle，还 MUST 触发对应 MLS `remove` proposal；未激活的 plaintext Circle 不产生 MLS proposal。不需要 actor 显式写。
+1. `Circle.members ⊆ Realm.members`，且每个 Circle `join` 绑定一个确切的父 Realm join 实例。`ak.circle.member.state` 的 `membership="join"` payload MUST 携带 producer 签名的 `parent_membership_revision`：同一完整 `member_id` 在父 Realm `member_state` typed current result 的 exact `revision`（`{commit_id, stream_position}`），即接纳建立该 member 当前父 Realm `join` 的 Event（`ak.member.state{join}` 或 `ak.invite.accept`）的那条 Realm stream RealmCommit。其它 transition MUST NOT 携带该字段；缺失或多带均为 `schema_violation`。治理 Station 在接纳事务内于同一 cut 读取父 Realm 该 member 的 current `member_state`：值不是 `join`，或其 `revision` 与 payload 的 `parent_membership_revision` 不逐字段相等时，MUST `failed_precondition` `reason=circle_member_must_be_realm_member` 并零写入。该字段是 producer 签名输入，不是 reducer 派生成员：replica 与 snapshot 消费方无法重算跨 stream 的接纳基线，只能读取签名值。它取自任何父 Realm 成员可读的 typed current，producer 无须读取可能位于自身 readable floor 之下的父 join Event 原文。
+2. **Effective Circle membership（normative）**：actor 在 Circle C 为 effective member，当且仅当在同一 durable cut 上同时满足：(a) C 的 canonical `circle_member_state` current 为 `join`；(b) 父 Realm 该 member 的 current `member_state` 为 `join`，其 `source_stream_ref` 是父 Realm stream，且 `revision` 逐字段等于 (a) 值中的 `parent_membership_revision`；(c) 父 Realm effective membership 的其余条件（例如 Agent 的 controller binding、lifecycle 与 provision/accountability 绑定）成立。所有 Circle 授权、投递、history、MLS material 与 send gate 中的「Circle member」均指此判定。
 
-   **Cascade 安全锚点（normative）**：父 Realm 的 leave/ban 与其全部 Circle 成员资格派生关闭在同一 Realm 安全序列原子生效。每项关闭按 authority-commit §5 的 member_join 坐标精确绑定原成员授权实例、generation、scope、actions 和保留历史 checkpoint；circle_active 与父 Realm lifecycle 坐标独立。current governance Station 在接纳事务中应用已 committed 的关闭并立即阻止受影响的新 live 投递；分区的非 authority Station只能排队／转发，不能按缓存临时接纳。复制方后来补齐 Commit 后统一重算历史可见性，接收先后不是永久保留依据。
+   父 Realm `leave`／`ban` 一经接纳，父 current 的 revision 即改变，该 actor 在该 Realm 全部 Circle 的旧 `join` 从同一 Realm Commit 起同时 effective-invalid；该门不等待任何清理 Event，也不依赖缓存。父 Realm 之后的 rejoin 产生新的 RealmCommit 与新 revision，旧 Circle `join` 永远不因此复活。只有显式写入携带新 `parent_membership_revision` 的新 Circle `join` 才恢复资格；canonical Circle 值仍为旧 `join` 时，因 `join -> join` 非法，恢复先由本人或 Circle 管理者写显式 `leave`，再写新的 `join`。reducer、Station 与数据库 trigger MUST NOT 合成 Circle `leave`，MUST NOT 改写 canonical Circle 行或其 revision；Circle Event 只在 Circle stream 提交，父 Realm Commit 的 position 不得冒充 Circle stream position。已激活 MLS 的 Circle 如何移除失效 leaf 见 §7 与 [`../crypto-media/encryption-and-audit.md` §2.4.1](../crypto-media/encryption-and-audit.md)；未激活 Circle 无 MLS transition。
+
+   **接纳与复制边界（normative）**：current governance Station 在每个 Circle stream 接纳事务中以已 committed 的父 Realm current 求值上式，并立即阻止 effective-invalid actor 的新 live 投递、读取与写入；分区的非 authority Station 只能排队／转发，不能按缓存临时接纳。判定比较的是 Commit 身份：`commit_id` 是完整 RealmCommit body 的内容寻址摘要，已承诺 Event、stream 与 position，它与父 Realm stream 上的 position 一起逐字段比较；Realm stream 与 Circle stream 各自从 0 编号，数值相同的 position 互不相关，MUST NOT 互认，也不得用跨 stream 的 position 大小、墙钟或到达顺序推断父资格。本地 Realm 副本是否已覆盖 `parent_membership_revision` 可以按同一 Realm stream 的 position 判断，这是同流比较。
+
+   **Snapshot、committed replication 与冷启动（normative）**：该判定只依赖同一 durable cut 的两条已有 typed current——父 Realm `member_state` 与含 `parent_membership_revision` 的 `circle_member_state`；不存在也不需要另一份持久派生关闭事实。签名 Snapshot 的 `current_state_entries` 取自同一 cut，消费方直接比较；committed replication 与冷启动 hydrate 装入同一组 typed current 后按同一式子比较，不需要读取父 join Event 原文。replica 的 Realm 副本尚未覆盖该 revision（Circle 先到、Realm 滞后），或本地父 current 已是另一 revision 时，该 actor 判定为 effective-invalid 并失败关闭：本地不据此授权 Circle 读取、投递、MLS material 或写入，直到 Realm 副本推进后重新求值；已 accepted 的 Circle Event 与 canonical 行照常保存，不改写、不丢弃。成员站以 Circle join 开流的 bootstrap 规则见 [`../sync/federation.md` §4.1.1](../sync/federation.md)。历史 cut 的成员连续性见 [`../governance/history-visibility.md` §3.1](../governance/history-visibility.md)。
+
+   对应 conformance vector 是 `ak.vector.circle.parent_membership_revision.v1`。
 
 Circle membership 使用 [`common-fields.md` §4.5](./common-fields.md#45-membership-fsmnormative) 的共享 materialized membership FSM，完整 `member_id: ActorId` 是 typed current result key。申请正文 MUST NOT 进入 member-state Event；部署若需附加私密材料，必须通过独立的加密扩展通道传输。
 
@@ -313,18 +320,18 @@ tombstone 时，即使 Circle canonical state 仍为 `active`，receiver 也 MUS
 
 **`ak.circle.restore`（archived → active）后置条件（normative）**：archived 是可逆中间态，restore 的 membership / MLS 后置条件如下：
 
-- **archive 期间 membership cascade 仍生效**：archived Circle **不冻结** membership。archive 期间父 Realm 发生的 `ak.member.state -> leave/ban` MUST 照常按 §9.1 硬不变量 2 cascade 到该 archived Circle（被踢成员的 Circle membership 收敛到 `leave`）；restore 后该 Circle 的 effective membership = 父 Realm 当前 membership 与 Circle 自身 membership 事件的收敛结果，不存在「archive 期间漏掉的 leave/ban 在 restore 后才补」的窗口。
-- **MLS-backed Circle 的 epoch 与 rotate**：archive 期间 Circle 的 MLS group **不暂停**成员变更语义——cascade 触发的 MLS `remove` proposal MUST 照常产生（与 plaintext Circle 仅做 delivery cascade 相对）。`ak.circle.restore` 本身**不**强制引入额外 MLS rotate：若 archive 期间已按 §10.1 / §10.3 完成了被踢成员的 remove + rotate，则 restore 不重复 rotate；仅当 archive 期间有 pending 未完成的 remove proposal 时，restore 后 MUST 在恢复写入前先完成这些 remove 对应的 rotate，保证 forward secrecy / post-compromise security 不因 archive→restore 出现空洞。
+- **archive 期间父资格失效仍生效**：archived Circle **不冻结** membership。archive 期间父 Realm 被接纳的 `ak.member.state -> leave/ban` MUST 照常按 §9.1 硬不变量 2 使该 actor 在该 archived Circle 的旧 `join` 立即 effective-invalid（canonical 行不被改写）；restore 后该 Circle 的 effective membership 仍按 §9.1 判定式求值，不存在「archive 期间漏掉的 leave/ban 在 restore 后才补」的窗口。
+- **MLS-backed Circle 的 epoch 与 rotate**：archive 期间 Circle 的 MLS group **不暂停**成员变更语义——失效 leaf 使 send gate 按 [`../crypto-media/encryption-and-audit.md` §2.4.1](../crypto-media/encryption-and-audit.md) 进入 `epoch_update_required`，移除它们的 repair Commit 照常可提交（与 plaintext Circle 只做 delivery 裁剪相对）。`ak.circle.restore` 本身**不**强制引入额外 MLS rotate：若 archive 期间已有 winning Commit 移除全部失效 leaf，则 restore 不重复 rotate；否则 restore 后 send gate 仍保持 `epoch_update_required`，恢复加密写入前 MUST 先由该 repair Commit 移除这些 leaf，保证 forward secrecy / post-compromise security 不因 archive→restore 出现空洞。
 - restore 不改变既有对象的 `effective_scope` 与历史 key eligibility；restore 只解除 §9.2 表「Circle archive」行的写入冻结（`circle_not_active`），使新 Message / Morph / structural Relation / position update 可继续追加。
 
 ### 9.3 Sync / 投递不变量
 
-> **Scope 投递不变量**:对任意事件 `E` 满足 `E.effective_scope.kind="circle"` 且 `E.effective_scope.circle_id=C`,Station sync surface MUST NOT 向在 `E` 的 committed Circle-stream position 处不属于 `C.members` 的 actor 投递 `E` 的 envelope 或 payload。订阅 Realm R 等价于订阅 (R 的 Realm-level events) ∪ (∀C ∈ R.circles, 若 actor ∈ C.members 则 C 的 scoped events，否则 ∅)。
+> **Scope 投递不变量**:对任意事件 `E` 满足 `E.effective_scope.kind="circle"` 且 `E.effective_scope.circle_id=C`,Station sync surface MUST NOT 向在 `E` 的 committed Circle-stream position 处不属于 `C.members`（按 §9.1 effective Circle membership 求值）的 actor 投递 `E` 的 envelope 或 payload。订阅 Realm R 等价于订阅 (R 的 Realm-level events) ∪ (∀C ∈ R.circles, 若 actor ∈ C.members 则 C 的 scoped events，否则 ∅)。
 
 特例:
 - `ak.circle.create` 的 authorization shell 是 Realm-level event，但 projection MUST 按 `directory_visibility` 裁剪。`GET /_arkret/self/circles/{circle_id}` 的成功载体是闭合 `circle_read_view=oneOf(circle_view,circle_preview)`；list 的唯一数组键是 `circles`，元素使用同一 union。只有同一 accepted cut 下同时属于父 Realm 与 Circle 的 caller 才得到完整 `circle_view`。`directory_visibility=members` 时，其他 caller 的 GET 与不存在 Circle 一律返回现有 `not_found` 错误 envelope，list 不列该项；不发可枚举的成功 locked stub。原生 Sidecar 的独立存在性隐私仍由 `ak.vector.sidecar.existence_privacy.v1` 覆盖。
 - `directory_visibility=realm_members` 且 Circle `state=active` 时，属于父 Realm 但不属于该 Circle 的 caller 只得到闭合 `circle_preview`：`circle_id`、`realm_id`、`visibility="realm_members"`、`display={color_token,symbol}`、`member_count_bucket`、`join_rule`、`opaque_commitment`，不得携带 title、summary、short_name、`member_ids`、成员 DID、created_by、join history 或私有 Event 引用。非父 Realm 成员、未授权 caller、不可见/不存在对象的 GET 同一 `not_found` 错误代码和字段集合；list 均省略。`archived`/`tombstoned` 的非成员预览也省略。当前 v1 未登记 Circle search operation。
-- `member_count_bucket` 按同一读事务中**有效父 Realm joined ∩ 有效 Circle joined** 的人数计算（只计 `effective_at <=` 本次读 cut 的有效成员），固定区间为 `0`、`1`、`2-3`、`4-7`、`8-15`、`16-31`、`32-63`、`64-127`、`128+`；不输出原始人数。`opaque_commitment` 是 64 位小写十六进制 SHA-256，输入字节精确为 UTF-8 `ak.circle.preview.v1`、单字节 `0x00`、wire `realm_id` UTF-8、单字节 `0x00`、wire `circle_id` UTF-8。它只承诺预览中已公开且不可由标题、短名或成员枚举的高熵 ID，跨 caller/读次稳定；不得用它证明私有 Circle Event 内容。
+- `member_count_bucket` 按同一读事务中 §9.1 **effective Circle membership** 成立的人数计算（只计 `effective_at <=` 本次读 cut 的有效成员），固定区间为 `0`、`1`、`2-3`、`4-7`、`8-15`、`16-31`、`32-63`、`64-127`、`128+`；不输出原始人数。`opaque_commitment` 是 64 位小写十六进制 SHA-256，输入字节精确为 UTF-8 `ak.circle.preview.v1`、单字节 `0x00`、wire `realm_id` UTF-8、单字节 `0x00`、wire `circle_id` UTF-8。它只承诺预览中已公开且不可由标题、短名或成员枚举的高熵 ID，跨 caller/读次稳定；不得用它证明私有 Circle Event 内容。
 - 不可见与不存在的 GET 必须使用同一代码、字段集合与 `circle_locked_v1` 处理类别；实现不得依据存在性设置不同延时、重试或缓存响应类别。此处理类别不是固定毫秒值或密码学恒时承诺；验收比对完整错误 envelope 与路径处理类别，并对显著可区分的延时分支作负向检查。list 对这两者均省略且不得输出计数或占位。普通 Circle 的这两项要求分别由 `ak.vector.circle.directory_visibility_members_indistinguishable.v1` 和 `ak.vector.circle.directory_visibility_realm_members_indistinguishable.v1` 覆盖。
 - `ak.circle.member.state` 仅投递给该 Circle 的成员 + 完成 `ak.circle.audit` / `ak.audit.accessed` 配对的 audit reader。
 

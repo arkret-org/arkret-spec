@@ -137,7 +137,9 @@ membership 为 `join` 才满足 gate（[`../governance/join-policy.md` §4](../g
 - `realm_organization`：在 Realm 内以 `(organization_id, relationship)` 选择最新完整组织关系 statement；
   `statement_id` 只承载审计/替换链，Realm-side 与 Organization-side 两层授权均在置换前验证；
 - `circle_member_state`：以 `(circle_id, member_actor_id)` 选择 Circle 内一个 Actor 的 membership；
-  `expected_membership` 是三态 CAS guard，不进入值；`effective_at` 缺省时取 accepted Event `created_at`；
+  `expected_membership` 是三态 CAS guard，不进入值；`effective_at` 缺省时取 accepted Event `created_at`；`join` 值逐字保存
+  producer 签名的 `parent_membership_revision`，其它值不带；effective Circle membership 由它与父 Realm 同 cut 的
+  `member_state` revision 比较得出（[`../models/circle.md` §9.1](../models/circle.md)），父资格结束不改写该值；
 - `realm_search_policy`：Realm singleton，完整置换搜索 profile、服务 allowlist、数据类别与泄漏等级；
 - `rsvp`：以 `(event_ref, canonical occurrence, responder_actor_id)` 选择一个响应，值为完整 `rsvp_entry`；
 - `schema_definition`：以稳定 JSON Schema `$id` 选择 create-once 定义；exact replay 幂等，异字节复用同 id 拒绝；

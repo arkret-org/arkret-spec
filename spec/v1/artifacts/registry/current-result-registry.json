@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-28.1",
+  "version": "2026-09-29.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-28T07:31:00+08:00",
+  "generated_at": "2026-09-29T11:05:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Closed typed current-result families derived from authority-committed Events. Selectors are domain types, never alternate typed current result IDs. Each row also records its CONSUMPTION: consumption.class is one of the consumption_classes below, consumption.consumed_by names the zh prose sections that read the current value, and consumption.note says what is read and to decide what. check_every_result_family_has_a_writer closes the writer direction; this ledger is the reader direction, which had no gate and no record. consumed_by is non-empty for every class except record_only, and a record_only row's note MUST name the section that states the family's purpose so the classification is checkable rather than an absence of evidence. Citations resolve through check_artifact_prose_section_refs.",
@@ -41,9 +41,10 @@
         "class": "admission_input",
         "consumed_by": [
           "models/realm-and-space.md §2.7",
-          "governance/join-policy.md §4"
+          "governance/join-policy.md §4",
+          "models/circle.md §9.1"
         ],
-        "note": "The Realm membership FSM reads the current member state to decide which membership transitions are accepted; parent_membership also reads source authoritative current membership in the co-governing Station's accepting transaction."
+        "note": "The Realm membership FSM reads the current member state to decide which membership transitions are accepted; parent_membership also reads source authoritative current membership in the co-governing Station's accepting transaction. Circle join admission and effective Circle membership compare its revision with the Circle join's parent_membership_revision."
       }
     },
     {
@@ -865,9 +866,11 @@
       "consumption": {
         "class": "admission_input",
         "consumed_by": [
-          "models/circle.md §9.1"
+          "models/circle.md §9.1",
+          "crypto-media/encryption-and-audit.md §2.4.1",
+          "governance/history-visibility.md §3.1"
         ],
-        "note": "Circle join, knock, leave and ban transitions read the exact per-Circle Actor membership and its CAS basis."
+        "note": "Circle join, knock, leave and ban transitions read the exact per-Circle Actor membership and its CAS basis. Effective Circle membership, the MLS send and Add gate for parent-invalidated leaves, and the Circle readable floor and historical-cut membership read the join value's parent_membership_revision against the parent Realm member_state current in the same cut."
       }
     },
     {

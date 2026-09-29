@@ -64,6 +64,20 @@ MUST 使用同一数值：
 3. 离开后重新加入的成员只以当前有效 join Commit 为 floor；此前在册期间的区间在 `since_join` 下不可读。
    `readable_floor` 是单一下界，协议不表达多段可读区间。
 
+Circle stream 上「当前有效 join」只指 [`../models/circle.md` §9.1](../models/circle.md) effective Circle membership 成立的
+current Circle join：其 `parent_membership_revision` 仍等于父 Realm 同 cut 的 current `member_state` revision。父 Realm
+`leave`／`ban` 之后，或父 rejoin 之后尚未写入携新 revision 的 Circle join 时，旧 Circle join 不构成有效 join，该 actor 在
+该 Circle stream 没有可读 Commit，`readable_floor` 按下文省略；新的 Circle join 被接纳后以它为 floor，不恢复旧区间。
+
+**Circle 历史 cut 的成员连续性（normative）**：要求在某个 Circle stream 的目标 accepted cut 验证 caller joined
+membership 的读取（例如 [`../crypto-media/encryption-and-audit.md` §2.2](../crypto-media/encryption-and-audit.md) 的 Genesis
+public material 读取），先要求请求 cut 的 effective Circle membership 成立，再在同一 Circle stream 上比较目标 Commit 与
+current Circle join Commit：目标不早于该 join 时，该区间由同一 Circle join 实例连续承载，其父 join 实例仍为 current，成员
+连续性成立；目标早于该 join 时，按目标 cut 上生效的 Circle join 实例求值，该实例在目标 cut 不是 `join`，或其
+`parent_membership_revision` 已不等于父 Realm 当前 current revision，MUST 失败关闭。两种情形都仍须通过上文单一
+`readable_floor` 与 history policy；协议不因旧实例当时有效而表达多段可读区间。比较只在同一 Circle stream 内进行，Realm
+stream 与 Circle stream 的 position 数值不互认。
+
 更严的 history policy 使下界更高时取更严者并使用 `history_access_policy`。
 
 分页与扫描的所有边界都按允许区间解释：floor 以下取不到不构成 gap，也不得据此推断隐藏活动、成员或存在性；

@@ -1,0 +1,643 @@
+{
+  "suite": "circle_parent_membership",
+  "fixture_kind": "schema_and_semantic",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.circle.parent_membership.v1"
+  },
+  "version": "2026-09-29",
+  "covers_vectors": [
+    "ak.vector.circle.parent_membership_revision.v1"
+  ],
+  "spec_anchor": "spec/v1/zh/models/circle.md#91-membership-拓扑",
+  "machine_contracts": [
+    "schemas/event-payload.schema.json#/$defs/circle_member_state_payload",
+    "schemas/typed-current-result.schema.json#/$defs/circle_member_state_value",
+    "schemas/typed-current-result.schema.json#/$defs/member_state_result"
+  ],
+  "schema_validation_cases": [
+    {
+      "name": "circle_join_payload_carries_parent_membership_revision",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/circle_member_state_payload",
+      "expect_valid": true,
+      "instance": {
+        "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI",
+        "member_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturecirclemember",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          }
+        },
+        "membership": "join",
+        "parent_membership_revision": {
+          "commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
+          "stream_position": 7
+        },
+        "expected_membership": null
+      }
+    },
+    {
+      "name": "circle_join_payload_without_parent_membership_revision_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/circle_member_state_payload",
+      "expect_valid": false,
+      "instance_from": "circle_join_payload_carries_parent_membership_revision",
+      "mutations": [
+        {
+          "op": "remove",
+          "path": "/parent_membership_revision"
+        }
+      ],
+      "first_expected_error": "contains:parent_membership_revision"
+    },
+    {
+      "name": "circle_join_payload_with_partial_revision_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/circle_member_state_payload",
+      "expect_valid": false,
+      "instance_from": "circle_join_payload_carries_parent_membership_revision",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/parent_membership_revision",
+          "value": {
+            "commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4"
+          }
+        }
+      ],
+      "first_expected_error": "contains:stream_position"
+    },
+    {
+      "name": "circle_leave_payload_without_parent_membership_revision",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/circle_member_state_payload",
+      "expect_valid": true,
+      "instance": {
+        "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI",
+        "member_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturecirclemember",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          }
+        },
+        "membership": "leave",
+        "expected_membership": "join"
+      }
+    },
+    {
+      "name": "circle_leave_payload_carrying_parent_membership_revision_rejected",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/circle_member_state_payload",
+      "expect_valid": false,
+      "instance_from": "circle_leave_payload_without_parent_membership_revision",
+      "mutations": [
+        {
+          "op": "add",
+          "path": "/parent_membership_revision",
+          "value": {
+            "commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
+            "stream_position": 7
+          }
+        }
+      ],
+      "first_expected_error": "contains:parent_membership_revision"
+    },
+    {
+      "name": "circle_member_state_join_current_carries_parent_membership_revision",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/circle_member_state_result",
+      "expect_valid": true,
+      "instance": {
+        "selector": {
+          "kind": "circle_member_state",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI",
+          "member_actor_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixturecirclemember",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            }
+          }
+        },
+        "source_stream_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "revision": {
+          "commit_id": "ak:realm_commit:AV7vv7afIDHnRUHY83MVXptGXTuamEVXCQpGW2DyEFKD",
+          "stream_position": 7
+        },
+        "value": {
+          "membership": "join",
+          "parent_membership_revision": {
+            "commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
+            "stream_position": 7
+          },
+          "effective_at": "2026-09-29T02:00:00.000Z"
+        }
+      }
+    },
+    {
+      "name": "circle_member_state_join_current_without_parent_membership_revision_rejected",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/circle_member_state_result",
+      "expect_valid": false,
+      "instance_from": "circle_member_state_join_current_carries_parent_membership_revision",
+      "mutations": [
+        {
+          "op": "remove",
+          "path": "/value/parent_membership_revision"
+        }
+      ],
+      "first_expected_error": "contains:parent_membership_revision"
+    },
+    {
+      "name": "circle_member_state_leave_current_carrying_parent_membership_revision_rejected",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/circle_member_state_result",
+      "expect_valid": false,
+      "instance_from": "circle_member_state_join_current_carries_parent_membership_revision",
+      "mutations": [
+        {
+          "op": "replace",
+          "path": "/value/membership",
+          "value": "leave"
+        }
+      ],
+      "first_expected_error": "contains:parent_membership_revision"
+    },
+    {
+      "name": "parent_member_state_current_join_row",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/member_state_result",
+      "expect_valid": true,
+      "instance": {
+        "selector": {
+          "kind": "member_state",
+          "actor_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixturecirclemember",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            }
+          }
+        },
+        "source_stream_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+        },
+        "revision": {
+          "commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
+          "stream_position": 7
+        },
+        "value": {
+          "membership": "join"
+        }
+      }
+    }
+  ],
+  "semantic_cases": [
+    {
+      "name": "parent_leave_invalidates_every_circle_join_at_once",
+      "cut": {
+        "parent_member_state": {
+          "membership": "leave",
+          "source_stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+          },
+          "revision": {
+            "commit_id": "ak:realm_commit:AdA0TA9zF1BPiudM7qe4WqKZLjMn0r7--gKAHqstAWDZ",
+            "stream_position": 12
+          }
+        },
+        "circle_member_states": [
+          {
+            "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI",
+            "membership": "join",
+            "parent_membership_revision": {
+              "commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
+              "stream_position": 7
+            }
+          },
+          {
+            "circle_id": "ak:circle:AWwD26ex2jRitAs0OO1COUaLQKJDMq8Yc76L6p1s-xv4",
+            "membership": "join",
+            "parent_membership_revision": {
+              "commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
+              "stream_position": 7
+            }
+          }
+        ]
+      },
+      "expected": {
+        "effective_circle_ids": [],
+        "synthesized_circle_event_count": 0,
+        "rewritten_canonical_circle_row_count": 0
+      },
+      "invariants": [
+        "the parent leave RealmCommit changes the parent current revision",
+        "every Circle join bound to the old revision is effective-invalid from that Realm Commit",
+        "no reducer, Station or trigger writes a Circle leave"
+      ]
+    },
+    {
+      "name": "parent_ban_invalidates_every_circle_join_at_once",
+      "cut": {
+        "parent_member_state": {
+          "membership": "ban",
+          "source_stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+          },
+          "revision": {
+            "commit_id": "ak:realm_commit:AdA0TA9zF1BPiudM7qe4WqKZLjMn0r7--gKAHqstAWDZ",
+            "stream_position": 12
+          }
+        },
+        "circle_member_states": [
+          {
+            "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI",
+            "membership": "join",
+            "parent_membership_revision": {
+              "commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
+              "stream_position": 7
+            }
+          },
+          {
+            "circle_id": "ak:circle:AWwD26ex2jRitAs0OO1COUaLQKJDMq8Yc76L6p1s-xv4",
+            "membership": "join",
+            "parent_membership_revision": {
+              "commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
+              "stream_position": 7
+            }
+          }
+        ]
+      },
+      "expected": {
+        "effective_circle_ids": [],
+        "synthesized_circle_event_count": 0,
+        "rewritten_canonical_circle_row_count": 0
+      },
+      "invariants": [
+        "ban invalidates effective Circle membership exactly like leave"
+      ]
+    },
+    {
+      "name": "parent_rejoin_does_not_revive_old_circle_join",
+      "cut": {
+        "parent_member_state": {
+          "membership": "join",
+          "source_stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+          },
+          "revision": {
+            "commit_id": "ak:realm_commit:AQPhm6Di_JMyu-JM932ww_EvyQU0dIIEO2ykFmYb9nD5",
+            "stream_position": 15
+          }
+        },
+        "circle_member_states": [
+          {
+            "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI",
+            "membership": "join",
+            "parent_membership_revision": {
+              "commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
+              "stream_position": 7
+            }
+          },
+          {
+            "circle_id": "ak:circle:AWwD26ex2jRitAs0OO1COUaLQKJDMq8Yc76L6p1s-xv4",
+            "membership": "join",
+            "parent_membership_revision": {
+              "commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
+              "stream_position": 7
+            }
+          }
+        ]
+      },
+      "expected": {
+        "effective_circle_ids": []
+      },
+      "invariants": [
+        "the rejoin is a new RealmCommit with a new revision",
+        "an old Circle join names the superseded revision and stays effective-invalid"
+      ]
+    },
+    {
+      "name": "explicit_new_circle_join_restores_only_that_circle",
+      "circle_events_in_order": [
+        {
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI",
+          "membership": "leave"
+        },
+        {
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI",
+          "membership": "join",
+          "parent_membership_revision": {
+            "commit_id": "ak:realm_commit:AQPhm6Di_JMyu-JM932ww_EvyQU0dIIEO2ykFmYb9nD5",
+            "stream_position": 15
+          }
+        }
+      ],
+      "cut": {
+        "parent_member_state": {
+          "membership": "join",
+          "source_stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+          },
+          "revision": {
+            "commit_id": "ak:realm_commit:AQPhm6Di_JMyu-JM932ww_EvyQU0dIIEO2ykFmYb9nD5",
+            "stream_position": 15
+          }
+        },
+        "circle_member_states": [
+          {
+            "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI",
+            "membership": "join",
+            "parent_membership_revision": {
+              "commit_id": "ak:realm_commit:AQPhm6Di_JMyu-JM932ww_EvyQU0dIIEO2ykFmYb9nD5",
+              "stream_position": 15
+            }
+          },
+          {
+            "circle_id": "ak:circle:AWwD26ex2jRitAs0OO1COUaLQKJDMq8Yc76L6p1s-xv4",
+            "membership": "join",
+            "parent_membership_revision": {
+              "commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
+              "stream_position": 7
+            }
+          }
+        ]
+      },
+      "expected": {
+        "effective_circle_ids": [
+          "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        ]
+      },
+      "invariants": [
+        "join -> join stays illegal, so the stale canonical join is first left explicitly",
+        "only the Circle that received a new join bound to the current parent revision is restored"
+      ]
+    },
+    {
+      "name": "circle_join_admission_rejects_revision_that_is_not_current_parent_join",
+      "admission_cut_parent_member_state": {
+        "membership": "join",
+        "source_stream_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+        },
+        "revision": {
+          "commit_id": "ak:realm_commit:AQPhm6Di_JMyu-JM932ww_EvyQU0dIIEO2ykFmYb9nD5",
+          "stream_position": 15
+        }
+      },
+      "submitted_payload": {
+        "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI",
+        "member_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturecirclemember",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          }
+        },
+        "membership": "join",
+        "parent_membership_revision": {
+          "commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
+          "stream_position": 7
+        }
+      },
+      "expected": {
+        "result": "failed_precondition",
+        "reason": "circle_member_must_be_realm_member",
+        "write_count": 0
+      }
+    },
+    {
+      "name": "circle_join_admission_rejects_when_parent_current_is_not_join",
+      "admission_cut_parent_member_state": {
+        "membership": "leave",
+        "source_stream_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+        },
+        "revision": {
+          "commit_id": "ak:realm_commit:AdA0TA9zF1BPiudM7qe4WqKZLjMn0r7--gKAHqstAWDZ",
+          "stream_position": 12
+        }
+      },
+      "submitted_payload": {
+        "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI",
+        "member_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixturecirclemember",
+            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+          }
+        },
+        "membership": "join",
+        "parent_membership_revision": {
+          "commit_id": "ak:realm_commit:AdA0TA9zF1BPiudM7qe4WqKZLjMn0r7--gKAHqstAWDZ",
+          "stream_position": 12
+        }
+      },
+      "expected": {
+        "result": "failed_precondition",
+        "reason": "circle_member_must_be_realm_member",
+        "write_count": 0
+      }
+    },
+    {
+      "name": "circle_join_admission_rejects_missing_or_misplaced_revision",
+      "submitted_payloads": [
+        {
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI",
+          "member_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixturecirclemember",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            }
+          },
+          "membership": "join"
+        },
+        {
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI",
+          "member_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixturecirclemember",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            }
+          },
+          "membership": "leave",
+          "parent_membership_revision": {
+            "commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
+            "stream_position": 7
+          }
+        }
+      ],
+      "expected": {
+        "result": "schema_violation",
+        "write_count": 0
+      }
+    },
+    {
+      "name": "lagging_realm_replica_fails_closed",
+      "replica": {
+        "realm_stream_head_position": 4,
+        "parent_member_state": {
+          "membership": "join",
+          "source_stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+          },
+          "revision": {
+            "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq",
+            "stream_position": 3
+          }
+        },
+        "circle_member_states": [
+          {
+            "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI",
+            "membership": "join",
+            "parent_membership_revision": {
+              "commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
+              "stream_position": 7
+            }
+          }
+        ]
+      },
+      "expected": {
+        "effective_circle_ids": [],
+        "circle_join_bootstrap_result": "dependency_missing",
+        "accepted_circle_event_retained": true
+      },
+      "invariants": [
+        "the Circle join arrived before the Realm replica covered Realm-stream position 7",
+        "the replica authorizes no Circle read, delivery, MLS material or write until the Realm replica advances",
+        "only the Realm-stream position is compared with the Realm-stream head"
+      ]
+    },
+    {
+      "name": "equal_position_numbers_on_realm_and_circle_streams_are_not_equivalent",
+      "cut": {
+        "parent_member_state": {
+          "membership": "join",
+          "source_stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+          },
+          "revision": {
+            "commit_id": "ak:realm_commit:AQPhm6Di_JMyu-JM932ww_EvyQU0dIIEO2ykFmYb9nD5",
+            "stream_position": 15
+          }
+        },
+        "circle_member_state_current": {
+          "source_stream_ref": {
+            "kind": "circle",
+            "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+            "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+          },
+          "revision": {
+            "commit_id": "ak:realm_commit:AV7vv7afIDHnRUHY83MVXptGXTuamEVXCQpGW2DyEFKD",
+            "stream_position": 7
+          },
+          "value": {
+            "membership": "join",
+            "parent_membership_revision": {
+              "commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
+              "stream_position": 7
+            }
+          }
+        }
+      },
+      "expected": {
+        "effective_circle_ids": []
+      },
+      "invariants": [
+        "the Circle-stream Commit at position 7 is not the parent Realm join at Realm-stream position 7",
+        "equality needs the content-addressed commit_id and the parent Realm-stream position, never a bare position number"
+      ]
+    },
+    {
+      "name": "parent_invalidated_leaf_blocks_activated_circle_until_remove_commit",
+      "mls": {
+        "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI",
+        "key_access_revision_before_parent_leave": 5,
+        "current_tree_leaf_owners": [
+          {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixturecirclemember",
+              "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+            }
+          }
+        ],
+        "leaf_owner_effective_after_parent_leave": false
+      },
+      "expected": {
+        "key_access_revision_after_parent_leave": 5,
+        "application_send": {
+          "result": "failed_precondition",
+          "reason": "epoch_update_required"
+        },
+        "add_submission": {
+          "result": "failed_precondition",
+          "reason": "epoch_update_required"
+        },
+        "cleared_by": "winning_commit_whose_post_state_tree_excludes_every_invalidated_leaf",
+        "clearing_commit_covers_key_access_revision": 5
+      },
+      "invariants": [
+        "the parent Realm Event is not a Circle-stream membership Event and never advances the Circle key_access_revision",
+        "a later explicit Circle leave still advances it by one",
+        "the Station never produces a Remove proposal"
+      ]
+    },
+    {
+      "name": "history_cut_membership_continuity",
+      "circle_stream_joins": [
+        {
+          "position": 9,
+          "parent_membership_revision": {
+            "commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
+            "stream_position": 7
+          },
+          "current": false
+        },
+        {
+          "position": 20,
+          "parent_membership_revision": {
+            "commit_id": "ak:realm_commit:AQPhm6Di_JMyu-JM932ww_EvyQU0dIIEO2ykFmYb9nD5",
+            "stream_position": 15
+          },
+          "current": true
+        }
+      ],
+      "parent_current_revision": {
+        "commit_id": "ak:realm_commit:AQPhm6Di_JMyu-JM932ww_EvyQU0dIIEO2ykFmYb9nD5",
+        "stream_position": 15
+      },
+      "expected": {
+        "readable_floor_position": 20,
+        "target_cut_results": [
+          {
+            "target_position": 20,
+            "result": "continuous"
+          },
+          {
+            "target_position": 31,
+            "result": "continuous"
+          },
+          {
+            "target_position": 12,
+            "result": "not_found"
+          }
+        ]
+      },
+      "invariants": [
+        "target cuts at or after the current Circle join share one instance whose parent join is current",
+        "an earlier target cut under a Circle join bound to a superseded parent join fails closed",
+        "readable_floor stays a single lower bound"
+      ]
+    }
+  ]
+}

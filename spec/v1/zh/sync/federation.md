@@ -172,7 +172,7 @@ typed reducer 推进本地 current，并据此完成本节的接收方重验。�
 已持有该 stream 时（托管成员全部离开后再加入），装入 snapshot typed current 即整体替换旧 current；此前持有的行保持
 原样，只作 canonical 持有，不推进 current，也不构成复制权。连续性从该 join 重新起算：终止 Commit 与该 join 之间的
 位置与首次开流时 join 之前的位置相同，本 Station 对其没有复制权，不补齐，也不按下文「Withheld 链节点」拉取。
-Circle bootstrap 必须验证该 member 的父 Realm 当前 membership 仍为 joined；`membership_commit_id` 必须指向其自身 Circle join 的 covering Commit，不能以父 Realm join 替代。snapshot 只包含同一 accepted cut 中 caller 有权读取的 stream 与 current；本 Circle stream 的 floor 精确等于该 Circle join 位置，其它可读 stream 继续按各自 history floor 裁剪，不套用 Circle 的 position。
+Circle bootstrap 必须验证该 member 的父 Realm 本地 current `member_state` 为 `join`，且其 `revision` 逐字段等于该 Circle join 的 `parent_membership_revision`（[`../models/circle.md` §9.1](../models/circle.md)）。本地 Realm 副本在同一 Realm stream 上尚未覆盖该 revision（Circle 先到、Realm 滞后），或本地父 current 已是另一 revision（该父 join 已被 leave／ban／rejoin 取代，该 Circle join 已 effective-invalid）时，均不构成本机托管成员的有效 join：MUST `dependency_missing` 零写该项，不开流、不锚定；前者待 Realm 副本推进后由重试成功，后者由发送方发送前的 basis 重验转为 `cancelled_authority_lost`。比较只用 Commit 身份与父 Realm stream 内的 position，不与 Circle stream position 互认；`membership_commit_id` 必须指向其自身 Circle join 的 covering Commit，不能以父 Realm join 替代。snapshot 只包含同一 accepted cut 中 caller 有权读取的 stream 与 current；本 Circle stream 的 floor 精确等于该 Circle join 位置，其它可读 stream 继续按各自 history floor 裁剪，不套用 Circle 的 position。
 需要多 Event 的 bootstrap 仍使用 registered atomic unit。
 
 **Withheld 链节点（normative）**：同一 stream 上本机托管成员无权取得完整 bytes 的位置不会进入本 Station 的

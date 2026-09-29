@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-28.5",
-  "generated_at": "2026-09-28T15:21:00+08:00",
+  "version": "2026-09-29.1",
+  "generated_at": "2026-09-29T11:05:00+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -3348,7 +3348,7 @@
       "applies_to": [
         "state_resolution"
       ],
-      "description": "Sub-reason for failed_precondition on ak.circle.member.state -> join when target actor is not yet a `join` member of the parent Realm. Circle.members âŠ† Realm.members is a hard invariant. See zh/models/circle.md §9.1.",
+      "description": "Sub-reason for failed_precondition on ak.circle.member.state -> join when, in the accepting cut, the target actor's parent Realm member_state current is not `join` or its typed revision differs from the payload's parent_membership_revision. Circle.members ⊆ Realm.members is a hard invariant bound to the exact current parent join. See zh/models/circle.md §9.1.",
       "status": "active"
     },
     {

@@ -3904,12 +3904,21 @@
     },
     "circle_member_state_value": {
       "type": "object",
+      "description": "Canonical Circle membership register of one complete ActorId. A join value carries the producer-signed parent_membership_revision copied from the accepted Event; no other value carries it. Effective Circle membership is this value being join AND the parent Realm member_state current of the same ActorId, in the same durable cut, being join at exactly this revision on the parent Realm stream (zh/models/circle.md §9.1). No reducer, Station or trigger rewrites this value when the parent membership ends.",
       "required": ["membership", "effective_at"],
       "properties": {
         "membership": { "$ref": "./event-payload.schema.json#/$defs/membership_state" },
+        "parent_membership_revision": { "$ref": "#/$defs/revision" },
         "effective_at": { "$ref": "./time.schema.json#/$defs/timestamp" }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": { "properties": { "membership": { "const": "join" } }, "required": ["membership"] },
+          "then": { "required": ["parent_membership_revision"] },
+          "else": { "not": { "required": ["parent_membership_revision"] } }
+        }
+      ]
     },
     "circle_member_state_result": {
       "type": "object",

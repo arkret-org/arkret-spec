@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-29.7",
+  "version": "2026-09-29.8",
   "source_of_truth": true,
-  "generated_at": "2026-09-29T07:19:03+08:00",
+  "generated_at": "2026-09-29T11:05:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -2235,7 +2235,7 @@
         "verb_form": "not_applicable",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Circle materialized membership state. Uses the same membership_state enum as ak.member.state (join/knock/leave/ban), scoped to a Circle. Invite remains a separate pending workflow. Reducer MUST first validate the complete member_id is a parent Realm `join` member, otherwise failed_precondition reason=circle_member_must_be_realm_member. See zh/models/circle.md §9.1.",
+        "payload": "Circle materialized membership state. Uses the same membership_state enum as ak.member.state (join/knock/leave/ban), scoped to a Circle. Invite remains a separate pending workflow. A join carries the producer-signed parent_membership_revision; admission MUST verify in the accepting cut that the complete member_id's parent Realm member_state current is `join` at exactly that revision, otherwise failed_precondition reason=circle_member_must_be_realm_member. Effective Circle membership additionally requires the parent current to still carry that revision; parent leave, ban or rejoin never synthesizes this Event and never revives an old Circle join. See zh/models/circle.md §9.1.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/circle_member_state_payload",
         "id_source": "not_an_object_id",
         "result_writes": [
@@ -2265,6 +2265,11 @@
                     "field": "payload.membership"
                   },
                   {
+                    "name": "parent_membership_revision",
+                    "field": "payload.parent_membership_revision",
+                    "optional": true
+                  },
+                  {
                     "name": "effective_at",
                     "field": "payload.effective_at"
                   }
@@ -2272,7 +2277,7 @@
               }
             },
             "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/circle_member_state_value",
-            "notes": "zh/models/circle.md section 9.1. The subject is the exact Circle plus the complete ActorId. This branch preserves a signed effective_at. expected_membership is a three-state CAS guard and is never stored. Parent-Realm membership, Circle join rule, transition legality and cross-actor authority are checked before the atomic set; rejection writes nothing."
+            "notes": "zh/models/circle.md section 9.1. The subject is the exact Circle plus the complete ActorId. This branch preserves a signed effective_at. expected_membership is a three-state CAS guard and is never stored. parent_membership_revision is present exactly on join and is copied verbatim, never derived, so snapshot and replica consumers compare it with the parent Realm member_state current revision in the same cut. Parent-Realm membership at that exact revision, Circle join rule, transition legality and cross-actor authority are checked before the atomic set; rejection writes nothing."
           },
           {
             "result_family": "circle_member_state",
@@ -2300,6 +2305,11 @@
                     "field": "payload.membership"
                   },
                   {
+                    "name": "parent_membership_revision",
+                    "field": "payload.parent_membership_revision",
+                    "optional": true
+                  },
+                  {
                     "name": "effective_at",
                     "envelope_field": "created_at"
                   }
@@ -2307,7 +2317,7 @@
               }
             },
             "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/circle_member_state_value",
-            "notes": "zh/models/circle.md section 9.1. When effective_at is absent, the accepted Event created_at is the canonical transition time. This branch is complementary to the signed-time branch and shares its exact subject, CAS, FSM, parent-membership and zero-side-effect rejection contract."
+            "notes": "zh/models/circle.md section 9.1. When effective_at is absent, the accepted Event created_at is the canonical transition time. This branch is complementary to the signed-time branch and shares its exact subject, CAS, FSM, parent_membership_revision copy, parent-membership and zero-side-effect rejection contract."
           }
         ],
         "result_effect_ownership": {
@@ -8448,8 +8458,8 @@
         }
       }
     },
-    "version": "2026-09-28.3",
-    "generated_at": "2026-09-28T07:31:00+08:00",
+    "version": "2026-09-29.1",
+    "generated_at": "2026-09-29T11:05:00+08:00",
     "bootstrap_event_kinds": [
       "ak.device.authorize",
       "ak.device.reanchor",
@@ -20202,9 +20212,10 @@
           "class": "admission_input",
           "consumed_by": [
             "models/realm-and-space.md §2.7",
-            "governance/join-policy.md §4"
+            "governance/join-policy.md §4",
+            "models/circle.md §9.1"
           ],
-          "note": "The Realm membership FSM reads the current member state to decide which membership transitions are accepted; parent_membership also reads source authoritative current membership in the co-governing Station's accepting transaction."
+          "note": "The Realm membership FSM reads the current member state to decide which membership transitions are accepted; parent_membership also reads source authoritative current membership in the co-governing Station's accepting transaction. Circle join admission and effective Circle membership compare its revision with the Circle join's parent_membership_revision."
         }
       },
       {
@@ -21026,9 +21037,11 @@
         "consumption": {
           "class": "admission_input",
           "consumed_by": [
-            "models/circle.md §9.1"
+            "models/circle.md §9.1",
+            "crypto-media/encryption-and-audit.md §2.4.1",
+            "governance/history-visibility.md §3.1"
           ],
-          "note": "Circle join, knock, leave and ban transitions read the exact per-Circle Actor membership and its CAS basis."
+          "note": "Circle join, knock, leave and ban transitions read the exact per-Circle Actor membership and its CAS basis. Effective Circle membership, the MLS send and Add gate for parent-invalidated leaves, and the Circle readable floor and historical-cut membership read the join value's parent_membership_revision against the parent Realm member_state current in the same cut."
         }
       },
       {
@@ -21098,8 +21111,8 @@
         }
       }
     ],
-    "version": "2026-09-28.1",
-    "generated_at": "2026-09-28T07:31:00+08:00",
+    "version": "2026-09-29.1",
+    "generated_at": "2026-09-29T11:05:00+08:00",
     "metadata_authority": "contract_registry_section"
   }
 }

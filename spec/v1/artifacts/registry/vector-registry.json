@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-29.3",
+  "version": "2026-09-29.4",
   "source_of_truth": true,
-  "generated_at": "2026-09-29T04:00:14+08:00",
+  "generated_at": "2026-09-29T11:05:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1346,6 +1346,19 @@
       "description": "Circle lifecycle is evaluated in the source-Station serializable admission gate: admission before archive is retained, archive or tombstone before admission blocks, and restore requires a newly signed Event.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/circle-scope-fixture.json",
+        "spec/v1/zh/models/circle.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.circle.parent_membership_revision.v1",
+      "status": "active",
+      "domain": "circle",
+      "applies_to_fixtures": [
+        "circle-parent-membership-fixture.json"
+      ],
+      "description": "Every ak.circle.member.state join carries the producer-signed parent_membership_revision and every other transition forbids it; admission accepts the join only when the parent Realm member_state current is join at exactly that revision, otherwise failed_precondition circle_member_must_be_realm_member with zero writes. Effective Circle membership is the canonical Circle join AND the parent current still carrying that revision in the same cut: a parent leave or ban invalidates every Circle join at once without synthesized Circle Events or rewritten rows, a parent rejoin never revives an old Circle join, and only an explicit new Circle join bound to the new revision restores one Circle. A replica whose Realm stream lags the bound revision fails closed and returns dependency_missing for a Circle-join bootstrap; equal position numbers on the Realm and Circle streams are never equivalent. An activated Circle with a parent-invalidated leaf stays epoch_update_required without advancing key_access_revision until a winning Commit removes the leaf, and historical-cut membership is continuous only at or after the current Circle join.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/circle-parent-membership-fixture.json",
         "spec/v1/zh/models/circle.md"
       ]
     },

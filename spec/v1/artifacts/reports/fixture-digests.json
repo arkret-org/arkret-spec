@@ -131,6 +131,11 @@
       "version": "2026-09-21.4"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/circle-parent-membership-fixture.json",
+      "sha256": "1b50014030348b5ffd51ebe2f27c3ae247d619aae63de38d9004fbbf892fdb5c",
+      "version": "2026-09-29"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/circle-scope-fixture.json",
       "sha256": "de61ff5f8e76e00921bdc3597bedc3a4023c2f702f62a24d4b4768ea00722ebb",
       "version": "2026-09-20.2"
