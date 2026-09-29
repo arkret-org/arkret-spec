@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.applet_service.v1",
-  "version": "2026-09-28.2",
+  "version": "2026-09-29.1",
   "suite": "applet_revoke_saga",
   "runner": {
     "kind": "named_suite",
@@ -35,46 +35,10 @@
         }
       ],
       "membership_removals": [],
-      "widget_token_refs": [],
-      "delegated_session_refs": [],
-      "delegated_session_snapshot_digest": "sha256:c21f8fca9ef4032019a490c0669680cccbe1c7b043cfbb759633629f38c2638f"
+      "widget_token_refs": []
     },
-    "revoke_plan_jcs": "{\"applet_id\":\"ak:applet:019a6aa0-0000-7000-8000-000000000000\",\"capability_revocations\":[{\"event_kind\":\"ak.capability.revoke\",\"expected_revision\":{\"commit_id\":\"ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4\",\"stream_position\":41},\"grant_id\":\"ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf\",\"reason_code\":\"operator_revocation\",\"registration_epoch\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\"}],\"delegated_session_refs\":[],\"delegated_session_snapshot_digest\":\"sha256:c21f8fca9ef4032019a490c0669680cccbe1c7b043cfbb759633629f38c2638f\",\"effective_scope\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw\"},\"membership_removals\":[],\"reason_code\":\"operator_revocation\",\"registration_epoch\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"revoke_mode\":\"revoke_all\",\"widget_token_refs\":[]}",
-    "expected_revoke_plan_digest": "sha256:5397547bd2a933885eb7c33e04f16bc6a9ab8064a79afa9157a800db748dcdcb",
-    "delegated_session_inventory_kat": {
-      "request": {
-        "applet_id": "ak:applet:019a6aa0-0000-7000-8000-000000000000",
-        "effective_scope": {
-          "kind": "realm",
-          "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw"
-        },
-        "registration_epoch": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
-        "service_id": "ak:did_core:webvh:z6mkfixtureappletexample",
-        "capability_grant_refs": [
-          "ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf"
-        ]
-      },
-      "outcome": {
-        "applet_id": "ak:applet:019a6aa0-0000-7000-8000-000000000000",
-        "effective_scope": {
-          "kind": "realm",
-          "realm_id": "ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw"
-        },
-        "registration_epoch": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
-        "service_id": "ak:did_core:webvh:z6mkfixtureappletexample",
-        "capability_grant_refs": [
-          "ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf"
-        ],
-        "inventory_revision": 0,
-        "active_session_grant_ids": [],
-        "snapshot_digest": "sha256:c21f8fca9ef4032019a490c0669680cccbe1c7b043cfbb759633629f38c2638f"
-      },
-      "aba_reject": {
-        "old_revision": 0,
-        "after_add_and_remove_revision": 2,
-        "same_active_session_grant_ids": []
-      }
-    }
+    "revoke_plan_jcs": "{\"applet_id\":\"ak:applet:019a6aa0-0000-7000-8000-000000000000\",\"capability_revocations\":[{\"event_kind\":\"ak.capability.revoke\",\"expected_revision\":{\"commit_id\":\"ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4\",\"stream_position\":41},\"grant_id\":\"ak:grant:AR9qVnHK4a0914zPmH5CRZLTjSSV_8ghJKuGGivDaExf\",\"reason_code\":\"operator_revocation\",\"registration_epoch\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\"}],\"effective_scope\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AQpwDm7ZXVTjUWCnaqcmxxZ49Y8CpzFJ-vLzmvCjBXfw\"},\"membership_removals\":[],\"reason_code\":\"operator_revocation\",\"registration_epoch\":\"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\"revoke_mode\":\"revoke_all\",\"widget_token_refs\":[]}",
+    "expected_revoke_plan_digest": "sha256:9aec14f9475a65107a3c3f4b44de10e3aa602cc9df3727bb7919fd7bba9f2f07"
   },
   "plan": {
     "revoke_plan_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -90,11 +54,6 @@
         "kind": "event",
         "event_kind": "ak.member.state",
         "submission_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
-      },
-      {
-        "step_id": "delegated_session:0",
-        "kind": "external",
-        "effect": "account_authority_delegated_session_revocation"
       },
       {
         "step_id": "widget_token:0",
@@ -203,7 +162,6 @@
         "accepted:capability:0",
         "fence_applet_writes",
         "accepted:membership:0",
-        "accepted:delegated_session:0",
         "accepted:widget_token:0",
         "persist_outcome"
       ],
@@ -220,7 +178,6 @@
       "expected_status": "partially_completed",
       "expected_pending_steps": [
         "membership:0",
-        "delegated_session:0",
         "widget_token:0"
       ]
     },
@@ -238,7 +195,6 @@
         "load_ledger",
         "observe_terminal:capability:0",
         "accepted:membership:0",
-        "accepted:delegated_session:0",
         "accepted:widget_token:0",
         "persist_outcome"
       ],
@@ -270,14 +226,14 @@
       "expected_new_effect_count": 0
     },
     {
-      "name": "external_effect_partial_then_restart",
+      "name": "local_effect_partial_then_restart",
       "request_binding": "key-5/body-a",
       "first_attempt": [
         "persist_ledger",
         "accepted:capability:0",
         "fence_applet_writes",
         "accepted:membership:0",
-        "rejected:delegated_session:0",
+        "rejected:widget_token:0",
         "persist_outcome"
       ],
       "expected_first_status": "partially_completed",
@@ -285,7 +241,6 @@
         "load_ledger",
         "observe_terminal:capability:0",
         "observe_terminal:membership:0",
-        "accepted:delegated_session:0",
         "accepted:widget_token:0",
         "persist_outcome"
       ],
@@ -322,37 +277,5 @@
       "expected_new_domain_effect_count": 0,
       "required_recovery": "repreview_reconfirm_resign"
     }
-  ],
-  "session_grant_revoke_device_gate_kat": {
-    "action_class": "session_grant_revoke",
-    "intent_digest_source": "verified_account_lifecycle_proof.request_canonical_digest",
-    "expected_binding_source": "issuer_signed_authorizing_session_grant.device_binding",
-    "accepted_device_possession_proof": "forbidden",
-    "cases": [
-      {
-        "name": "exact_current_active",
-        "result": "allow"
-      },
-      {
-        "name": "revocation_pending",
-        "result": "device_revocation_pending"
-      },
-      {
-        "name": "revoked",
-        "result": "device_revoked"
-      },
-      {
-        "name": "generation_mismatch",
-        "result": "device_generation_fenced"
-      },
-      {
-        "name": "expected_binding_missing",
-        "result": "device_unauthorized"
-      },
-      {
-        "name": "different_intent_digest",
-        "result": "proof_invalid"
-      }
-    ]
-  }
+  ]
 }

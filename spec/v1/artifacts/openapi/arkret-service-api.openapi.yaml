@@ -430,10 +430,6 @@ components:
       $ref: ../schemas/agent-operations.schema.json#/$defs/agent_view
     AppletActorView:
       $ref: ../schemas/applet-edge-operations.schema.json#/$defs/applet_actor_view
-    AppletDelegatedSessionInventoryOutcome:
-      $ref: ../schemas/account-operations.schema.json#/$defs/applet_delegated_session_inventory_outcome
-    AppletDelegatedSessionInventoryRequestBody:
-      $ref: ../schemas/account-operations.schema.json#/$defs/applet_delegated_session_inventory_request_body
     AppletInstallOutcome:
       $ref: ../schemas/applet-install-operations.schema.json#/$defs/applet_install_outcome
     AppletInstallPreviewOutcome:
@@ -7420,7 +7416,7 @@ paths:
 
         canonical plan enumerates every active grant, managed membership,
 
-        widget token, and delegated session that the commit saga must process.
+        and widget token that the commit saga must process.
 
         '
       security:
@@ -8492,41 +8488,6 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/SessionGrantRequestBody'
-  /_arkret/gate/account/session-grants/applet-inventory:
-    servers:
-    - url: https://{host}
-      variables:
-        host:
-          default: localhost
-    post:
-      operationId: ak.gate.account.read.applet_delegated_session_inventory
-      parameters:
-      - name: Arkret-Operation
-        in: header
-        required: true
-        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
-        schema:
-          type: string
-          const: ak.gate.account.read.applet_delegated_session_inventory.v1
-      security:
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
-      summary: Read the complete active delegated-session inventory of one exact Applet install.
-      description: Only a trusted same-deployment Station service may call this operation. The issuer returns an atomic complete sorted set and a monotonic revision-backed digest; an empty set still requires a witness.
-      responses:
-        '200':
-          description: Complete issuer inventory.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AppletDelegatedSessionInventoryOutcome'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AppletDelegatedSessionInventoryRequestBody'
   /_arkret/gate/account/session-grants/revoke:
     servers:
     - url: https://{host}

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-29.8",
+  "version": "2026-09-29.9",
   "source_of_truth": false,
-  "generated_at": "2026-09-29T11:05:00+08:00",
+  "generated_at": "2026-09-29T11:32:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,17 +18,17 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 210,
+    "total_operations": 209,
     "by_completeness_class": {
       "binary_or_redirect": 2,
-      "typed_schema": 208
+      "typed_schema": 207
     },
     "by_surface_class_and_completeness_class": {
       "core": {
         "typed_schema": 46
       },
       "deployment_local": {
-        "typed_schema": 16
+        "typed_schema": 15
       },
       "extension": {
         "binary_or_redirect": 2,
@@ -447,20 +447,6 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/AccountHandoffRequestBody",
         "response": "#/components/schemas/AccountHandoffOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ak.gate.account.read.applet_delegated_session_inventory.v1",
-      "surface_class": "deployment_local",
-      "http": "POST /_arkret/gate/account/session-grants/applet-inventory",
-      "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/account-operations.schema.json#/$defs/applet_delegated_session_inventory_request_body",
-      "response_schema_ref": "schemas/account-operations.schema.json#/$defs/applet_delegated_session_inventory_outcome",
-      "openapi_component_refs": {
-        "request": "#/components/schemas/AppletDelegatedSessionInventoryRequestBody",
-        "response": "#/components/schemas/AppletDelegatedSessionInventoryOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

@@ -289,8 +289,7 @@
           "enum": [
             "revoke_all",
             "revoke_runtime_only",
-            "revoke_widget_only",
-            "revoke_delegated_sessions"
+            "revoke_widget_only"
           ]
         },
         "capability_revoke_events": {
@@ -364,10 +363,6 @@
             ]
           },
           "description": "Caller-signed membership removals in the plan, or an empty array when the install owns no managed membership."
-        },
-        "proof": {
-          "$ref": "../schemas/account-operations.schema.json#/$defs/account_lifecycle_proof",
-          "description": "Required when revoke_mode includes delegated session revocation in production. The proof signs the canonical ak.gate.account.command.revoke_session.v1 transcript reconstructed from the active applet install selector."
         }
       },
       "additionalProperties": false
@@ -392,8 +387,7 @@
           "enum": [
             "revoke_all",
             "revoke_runtime_only",
-            "revoke_widget_only",
-            "revoke_delegated_sessions"
+            "revoke_widget_only"
           ]
         }
       },
@@ -409,8 +403,7 @@
         "revoke_mode",
         "capability_revocations",
         "membership_removals",
-        "widget_token_refs",
-        "delegated_session_refs"
+        "widget_token_refs"
       ],
       "properties": {
         "applet_id": {
@@ -431,8 +424,7 @@
           "enum": [
             "revoke_all",
             "revoke_runtime_only",
-            "revoke_widget_only",
-            "revoke_delegated_sessions"
+            "revoke_widget_only"
           ]
         },
         "capability_revocations": {
@@ -458,34 +450,8 @@
           "items": {
             "$ref": "#/$defs/typed_ref"
           }
-        },
-        "delegated_session_refs": {
-          "type": "array",
-          "maxItems": 256,
-          "uniqueItems": true,
-          "items": {
-            "$ref": "#/$defs/typed_ref"
-          }
-        },
-        "delegated_session_snapshot_digest": {
-          "$ref": "#/$defs/digest"
         }
       },
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "revoke_mode": {"enum": ["revoke_all", "revoke_delegated_sessions"]}
-            },
-            "required": ["revoke_mode"]
-          },
-          "then": {"required": ["delegated_session_snapshot_digest"]},
-          "else": {
-            "not": {"required": ["delegated_session_snapshot_digest"]},
-            "properties": {"delegated_session_refs": {"maxItems": 0}}
-          }
-        }
-      ],
       "additionalProperties": false
     },
     "applet_capability_revoke_intent": {
@@ -642,7 +608,6 @@
           "type": "string",
           "enum": [
             "widget_token_invalidation",
-            "delegated_session_revocation",
             "local_applet_fence"
           ]
         },
@@ -721,7 +686,7 @@
       "additionalProperties": false
     },
     "applet_revoke_effect_ref": {
-      "description": "CommittedEventRef for a durable revoke Event, or a local typed resource reference for service-local token, session, or fence effects. Bare EventId and RealmCommitId strings are not valid effect references.",
+      "description": "CommittedEventRef for a durable revoke Event, or a local typed resource reference for service-local widget token or fence effects. Bare EventId and RealmCommitId strings are not valid effect references.",
       "oneOf": [
         {
           "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"

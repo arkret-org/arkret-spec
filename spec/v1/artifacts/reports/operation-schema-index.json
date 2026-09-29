@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-29.8",
+  "version": "2026-09-29.9",
   "source_of_truth": false,
-  "generated_at": "2026-09-29T11:05:00+08:00",
+  "generated_at": "2026-09-29T11:32:00+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -796,7 +796,6 @@
           "agent_scope_request",
           "requested_scope_disclosure",
           "dpop_binding_proof",
-          "applet_authority",
           "proof",
           "credential_class"
         ],
@@ -839,7 +838,6 @@
               "agent_scope_request",
               "requested_scope_disclosure",
               "dpop_binding_proof",
-              "applet_authority",
               "proof"
             ],
             "closed": true
@@ -1164,13 +1162,6 @@
           "target_session_grant_id",
           "target_device_id",
           "all_sessions",
-          "applet_id",
-          "effective_scope",
-          "registration_epoch",
-          "service_id",
-          "capability_grant_refs",
-          "expected_inventory_digest",
-          "authorizing_session_grant_id",
           "proof"
         ],
         "closed": true
@@ -1225,54 +1216,6 @@
           "expires_at",
           "allowed_operations",
           "binding"
-        ],
-        "closed": true
-      }
-    },
-    {
-      "operation_id": "ak.gate.account.read.applet_delegated_session_inventory.v1",
-      "success_shape_kind": "typed_response",
-      "request": {
-        "schema_ref": "schemas/account-operations.schema.json#/$defs/applet_delegated_session_inventory_request_body",
-        "schema_kind": "object",
-        "required": [
-          "applet_id",
-          "effective_scope",
-          "registration_epoch",
-          "service_id",
-          "capability_grant_refs"
-        ],
-        "properties": [
-          "applet_id",
-          "effective_scope",
-          "registration_epoch",
-          "service_id",
-          "capability_grant_refs"
-        ],
-        "closed": true
-      },
-      "response": {
-        "schema_ref": "schemas/account-operations.schema.json#/$defs/applet_delegated_session_inventory_outcome",
-        "schema_kind": "object",
-        "required": [
-          "applet_id",
-          "effective_scope",
-          "registration_epoch",
-          "service_id",
-          "capability_grant_refs",
-          "inventory_revision",
-          "active_session_grant_ids",
-          "snapshot_digest"
-        ],
-        "properties": [
-          "applet_id",
-          "effective_scope",
-          "registration_epoch",
-          "service_id",
-          "capability_grant_refs",
-          "inventory_revision",
-          "active_session_grant_ids",
-          "snapshot_digest"
         ],
         "closed": true
       }
@@ -4967,8 +4910,7 @@
           "reason_code",
           "revoke_mode",
           "capability_revoke_events",
-          "membership_state_events",
-          "proof"
+          "membership_state_events"
         ],
         "closed": true
       },

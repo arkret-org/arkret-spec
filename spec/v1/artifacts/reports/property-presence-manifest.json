@@ -15,19 +15,19 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 8899,
+    "total_properties": 8868,
     "total_schema_documents": 166,
     "by_presence_class": {
-      "optional": 2113,
+      "optional": 2101,
       "optional_defaulted": 47,
-      "required": 6266,
+      "required": 6248,
       "required_nullable": 307,
-      "tristate": 166
+      "tristate": 165
     },
-    "tristate_occurrences": 166,
-    "tristate_audit_targets": 133,
+    "tristate_occurrences": 165,
+    "tristate_audit_targets": 132,
     "tristate_sdk_dispositions": {
-      "absent_null_equivalent": 123,
+      "absent_null_equivalent": 122,
       "condition_guarded": 9,
       "distinct": 1
     }
@@ -54,7 +54,6 @@
     "agent-sidecar-exchange-projection.schema.json/allOf/0/then/properties/user_facing_response_event_ids",
     "agent-sidecar-exchange-projection.schema.json/allOf/1/then/properties/user_facing_response_event_ids",
     "agent-sidecar-exchange-projection.schema.json/allOf/3/then/properties/user_facing_response_event_ids",
-    "applet-install-operations.schema.json/$defs/applet_revoke_plan/allOf/0/else/properties/delegated_session_refs",
     "applet-install-plan.schema.json/$defs/widget_effect/properties/policy_event_ref",
     "applet-registration-epoch-evidence.schema.json/allOf/0/oneOf/0/properties/method_version_evidence",
     "applet-registration-epoch-evidence.schema.json/allOf/0/oneOf/1/properties/method_version_evidence",
@@ -317,16 +316,6 @@
         "/allOf/0/then/properties/user_facing_response_event_ids",
         "/allOf/1/then/properties/user_facing_response_event_ids",
         "/allOf/3/then/properties/user_facing_response_event_ids"
-      ],
-      "sdk_disposition": "absent_null_equivalent",
-      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
-    },
-    {
-      "schema_file": "applet-install-operations.schema.json",
-      "shape": "/$defs/applet_revoke_plan",
-      "instance_path": "/delegated_session_refs",
-      "occurrences": [
-        "/$defs/applet_revoke_plan/allOf/0/else/properties/delegated_session_refs"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -1870,19 +1859,6 @@
         "/$defs/account_view/properties/principal_id": "required",
         "/$defs/account_view/properties/profile": "optional",
         "/$defs/account_view/properties/state": "required",
-        "/$defs/applet_delegated_session_inventory_outcome/properties/active_session_grant_ids": "required",
-        "/$defs/applet_delegated_session_inventory_outcome/properties/applet_id": "required",
-        "/$defs/applet_delegated_session_inventory_outcome/properties/capability_grant_refs": "required",
-        "/$defs/applet_delegated_session_inventory_outcome/properties/effective_scope": "required",
-        "/$defs/applet_delegated_session_inventory_outcome/properties/inventory_revision": "required",
-        "/$defs/applet_delegated_session_inventory_outcome/properties/registration_epoch": "required",
-        "/$defs/applet_delegated_session_inventory_outcome/properties/service_id": "required",
-        "/$defs/applet_delegated_session_inventory_outcome/properties/snapshot_digest": "required",
-        "/$defs/applet_delegated_session_inventory_request_body/properties/applet_id": "required",
-        "/$defs/applet_delegated_session_inventory_request_body/properties/capability_grant_refs": "required",
-        "/$defs/applet_delegated_session_inventory_request_body/properties/effective_scope": "required",
-        "/$defs/applet_delegated_session_inventory_request_body/properties/registration_epoch": "required",
-        "/$defs/applet_delegated_session_inventory_request_body/properties/service_id": "required",
         "/$defs/device_summary/allOf/0/if/properties/verification_state": "required",
         "/$defs/device_summary/allOf/1/if/properties/verification_state": "required",
         "/$defs/device_summary/allOf/2/if/properties/status": "required",
@@ -1996,14 +1972,7 @@
         "/$defs/session_revoke_outcome/properties/revoked_count": "required",
         "/$defs/session_revoke_outcome/properties/revoked_session_grant_ids": "optional",
         "/$defs/session_revoke_request_body/properties/all_sessions": "optional",
-        "/$defs/session_revoke_request_body/properties/applet_id": "optional",
-        "/$defs/session_revoke_request_body/properties/authorizing_session_grant_id": "optional",
-        "/$defs/session_revoke_request_body/properties/capability_grant_refs": "optional",
-        "/$defs/session_revoke_request_body/properties/effective_scope": "optional",
-        "/$defs/session_revoke_request_body/properties/expected_inventory_digest": "optional",
         "/$defs/session_revoke_request_body/properties/proof": "optional",
-        "/$defs/session_revoke_request_body/properties/registration_epoch": "optional",
-        "/$defs/session_revoke_request_body/properties/service_id": "optional",
         "/$defs/session_revoke_request_body/properties/target_device_id": "optional",
         "/$defs/session_revoke_request_body/properties/target_session_grant_id": "optional"
       },
@@ -3120,12 +3089,8 @@
         "/$defs/applet_revoke_outcome/properties/revoked_refs": "optional",
         "/$defs/applet_revoke_outcome/properties/status": "required",
         "/$defs/applet_revoke_outcome/properties/steps": "required",
-        "/$defs/applet_revoke_plan/allOf/0/else/properties/delegated_session_refs": "tristate",
-        "/$defs/applet_revoke_plan/allOf/0/if/properties/revoke_mode": "required",
         "/$defs/applet_revoke_plan/properties/applet_id": "required",
         "/$defs/applet_revoke_plan/properties/capability_revocations": "required",
-        "/$defs/applet_revoke_plan/properties/delegated_session_refs": "required",
-        "/$defs/applet_revoke_plan/properties/delegated_session_snapshot_digest": "optional",
         "/$defs/applet_revoke_plan/properties/effective_scope": "required",
         "/$defs/applet_revoke_plan/properties/membership_removals": "required",
         "/$defs/applet_revoke_plan/properties/reason_code": "required",
@@ -3143,7 +3108,6 @@
         "/$defs/applet_revoke_request_body/properties/membership_state_events": "required",
         "/$defs/applet_revoke_request_body/properties/membership_state_events/items/allOf/1/properties/event": "optional",
         "/$defs/applet_revoke_request_body/properties/membership_state_events/items/allOf/1/properties/event/allOf/1/properties/kind": "required",
-        "/$defs/applet_revoke_request_body/properties/proof": "optional",
         "/$defs/applet_revoke_request_body/properties/reason_code": "required",
         "/$defs/applet_revoke_request_body/properties/revoke_mode": "required",
         "/$defs/applet_revoke_request_body/properties/revoke_plan_digest": "required",
@@ -3159,10 +3123,7 @@
         "/$defs/reuse_existing_managed_actor/properties/managed_actor_provision_ref": "required",
         "/$defs/reuse_existing_managed_actor/properties/pcr_genesis_ref": "required",
         "/$defs/reuse_existing_managed_actor/properties/profile_event_ref": "required"
-      },
-      "conditionally_required": [
-        "/$defs/applet_revoke_plan/properties/delegated_session_snapshot_digest"
-      ]
+      }
     },
     "applet-install-plan.schema.json": {
       "schema_ids": [
@@ -10443,7 +10404,6 @@
         "/$defs/AgentSessionGrantRequest/properties/agent_scope_request/properties/realm_ids": "optional",
         "/$defs/AgentSessionGrantRequest/properties/agent_scope_request/properties/strand_ids": "optional",
         "/$defs/AgentSessionGrantRequest/properties/agent_scope_request/properties/track_names": "optional",
-        "/$defs/AgentSessionGrantRequest/properties/applet_authority": "optional",
         "/$defs/AgentSessionGrantRequest/properties/dpop_binding_proof": "required",
         "/$defs/AgentSessionGrantRequest/properties/principal_id": "required",
         "/$defs/AgentSessionGrantRequest/properties/proof": "required",
@@ -10823,11 +10783,6 @@
         "/$defs/ServiceWebvhInceptionParameters/properties/nextKeyHashes": "required",
         "/$defs/ServiceWebvhInceptionParameters/properties/scid": "required",
         "/$defs/ServiceWebvhInceptionParameters/properties/updateKeys": "required",
-        "/$defs/SessionGrantAppletDelegation/properties/applet_id": "required",
-        "/$defs/SessionGrantAppletDelegation/properties/capability_grant_refs": "optional",
-        "/$defs/SessionGrantAppletDelegation/properties/effective_scope": "required",
-        "/$defs/SessionGrantAppletDelegation/properties/registration_epoch": "required",
-        "/$defs/SessionGrantAppletDelegation/properties/service_id": "optional",
         "/$defs/SessionGrantDeviceBinding/properties/authorization_event_id": "required",
         "/$defs/SessionGrantDeviceBinding/properties/device_id": "required",
         "/$defs/SessionGrantDeviceBinding/properties/model_generation_ref": "required",

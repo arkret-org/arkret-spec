@@ -138,8 +138,8 @@ Actor 是不同 actor，生命周期与治理路径完全分离：
 | 创建路径 | controller 先生成、签署并发布不含 PCR binding 的 Agent DID entry 0；`ak.self.agent.command.provision.v1` prepare 只验证其 accepted `initial_resolution` 与 delegation，不生成 DID/私钥或分配 PCR id。controller 把该承诺写入本地冻结的 Agent PCR genesis并取 `retype(event_id)`，再提交唯一 controller-signed `ak.agent.provision` Event，在一个 reducer transaction 原子派生 provision/accountability/selector/realm-id-claim projection；必填 `requested_scope` 只建立 immutable 全局 ceiling，不生成 `ak.capability.grant`。PCR genesis 在另一次提交 accepted 后 outcome 为 `awaiting_did_binding`；controller 以预承诺 key 发布 create-locked entry 1，accepted 后才 `complete` 并暴露 pairing/list/get。Profile、恢复备份与首次 `ak.agent.key.authorize` 继续独立提交 | `ak.applet.registration` + Applet bot/Ghost Actor 注册 |
 | Actor Profile `actor_kind` | `agent` | Bot 为 `bot`；外部账号/集成 Ghost 为 `integration`；外部 Bot Ghost 为 `bot`；不得为 `agent`；仅作分类，安全 provenance 仍由对应 provisioning / registration 证明 |
 | `accountable_principal_ids` | 指向 controller principal，显式 `ak.identity.accountability_grant` | 初始 Profile 指向签署同一 aggregate accountability grant 的外部 service DID；Applet controller 关系由 registration / install 表达 |
-| Runtime credential | 通过 `POST /_arkret/gate/account/agent-key-pair` pairing 得到 `ak.agent.key.authorize` 绑定的 key | Applet 管辖，通常是 Applet service DID + HTTP signature |
-| Session 路径 | `POST /_arkret/gate/account/session-grants` + `proof.proof_kind="agent_key_proof"` | Applet `ak.edge.applet.command.transaction.v1` 与 Applet 的 delegated session |
+| Runtime credential | 通过 `POST /_arkret/gate/account/agent-key-pair` pairing 得到 `ak.agent.key.authorize` 绑定的 key | Applet service DID 的 RFC 9421 逐次投递 HTTP Message Signature（§7.3.1）；需参与 E2EE 的 Bot/Ghost 另用 [`../crypto-media/device-lifecycle.md` §15](../crypto-media/device-lifecycle.md) 的受限 delegated device；widget 另用 §17 为其单独签发的 scoped token |
+| Session 路径 | `POST /_arkret/gate/account/session-grants` + `proof.proof_kind="agent_key_proof"` | 无 SessionGrant 路径：Applet 不持有 `ak.session.grant`，其调用凭据仅为 Applet service DID + RFC 9421 HTTP 签名的 `ak.edge.applet.command.transaction.v1` 与 §17 widget scoped token；每条 Event 在 admission 时按 grant、`applet_authority` constraint 与 current registration epoch 重验。Applet service、Bot 与 Ghost 都不是 Agent，不得使用 `agent_key_proof` 分支 |
 | 撤销 | `ak.self.agent.command.pause.v1` / 单一 `ak.self.agent.command.deactivate.v1` lifecycle Event；terminal parent gate 使 child authority ineffective，cleanup 非前置 | Applet registration 撤销；Ghost Actor 跟随 Applet 生命周期(经 §4b Revoke,`remove_ghost_membership` 需 active ghost projection 完整否则 MUST fail closed) |
 | Realm policy | Realm policy MUST 单独允许 Agent（`ak.profile.agent_provisioning.v1`） | Realm policy MUST 单独允许 Applet base Bot-only（`ak.profile.applet_service.v1`）；Ghost Actor / portal bridge 需额外声明 `ak.profile.applet_bridge.v1` |
 
@@ -330,7 +330,7 @@ Commit MUST 执行：
 Revoke 使用 caller-signed event-log saga。请求中的 `effective_scope` 与 path `applet_id` 共同选择唯一 current
 effective install；该操作只撤销这个 exact install，不得隐式撤销同一 Applet 在其它 scope 的 active install。
 preview MUST 从该 current effective install 精确枚举每个 active
-grant、applet-managed bot/ghost membership、widget scoped token 与 delegated session，返回 canonical
+grant、applet-managed bot/ghost membership 与 widget scoped token，返回 canonical
 `AppletRevokePlan`；preview outcome 不携 `revoke_plan_digest`，caller 自算
 `revoke_plan_digest = SHA-256(RFC 8785 JCS(revoke_plan))` 并填入 commit request。plan 中每个 grant 对应一条
 `ak.capability.revoke` intent。每条 intent MUST 必填 `expected_revision`，并且 Station MUST 从同一个 durable
@@ -339,30 +339,7 @@ grant、applet-managed bot/ghost membership、widget scoped token 与 delegated 
 plan 的成员，因此进入 JCS bytes 与 `revoke_plan_digest`；caller MUST 原样复制到对应 caller-signed
 `CapabilityRevokePayload.expected_revision`。每个需要离开/移除的 managed member 对应一条 `ak.member.state` intent。
 projection 不完整时 MUST fail closed 并要求先重建 projection，不得按 namespace pattern、旧 request 或
-本地默认值猜测 grant/member/token/session。
-
-`revoke_all` 与 `revoke_delegated_sessions` 的 delegated-session 枚举权威只能是 Account Authority 的
-`ak.gate.account.read.applet_delegated_session_inventory.v1`。Station 从 current effective install 构造完整
-`(applet_id,effective_scope,registration_epoch,service_id,capability_grant_refs)` selector；请求不能由 caller
-自行选择或删减 grant refs。该只读操作在 issuer ledger 的单一线性化点返回同一 selector 的完整、按 ID
-升序且无重复的 `active_session_grant_ids[]`、每 selector 单调递增的 `inventory_revision` 与
-`snapshot_digest`；超过 256 项、ledger 不可读或不能证明完整时 MUST 显式失败，不得分页截断或默认空集。
-`snapshot_digest` 是 `sha256:` 加 SHA-256(`ak.applet_delegated_session_inventory.v1\n` 的 ASCII bytes ||
-RFC 8785 JCS(完整 response 去掉 `snapshot_digest`)) 的小写十六进制。revision 必须随该 selector 的
-issue、refresh、revoke 及 fence 变动持久递增，不能从当前 active ID 集推导；即使集合经过 A→B→A，
-旧 witness 也不能复活。同一三字段安装 epoch 下若 issuer ledger 另有 active grant 携不同
-`service_id` 或 `capability_grant_refs`，Account Authority MUST 显式失败关闭，不能把它隐藏在
-五字段 selector 之外再声称该安装库存完整。Station MUST 校验响应回显的五字段、排序、唯一性、摘要和完整性语义，
-将 ID 逐项写入 `delegated_session_refs[]`，将 witness 写入必填的
-`delegated_session_snapshot_digest`；**空集同样需要该 witness**。其它 revoke mode 不得携该 witness，
-`delegated_session_refs[]` 必须为空。此 gate 读操作跨独立 Station／Account Authority service identity，
-只接受受信的同部署 Station service 身份和 [`service-http-binding.md` §8.1](../sync/service-http-binding.md)
-的 RFC 9421 `service_to_service` 签名，不向普通用户或 Applet 开放。同一 TCB 内可直接调用相同 issuer
-逻辑，但不得另造公开 RPC 或把私有管理接口当此操作。Station 首次 preview／Commit 的
-`Destination-Service-ID` MUST 来自已由 Account Authority exact-token introspection 与 DPoP 验证的
-管理员 SessionGrant `issuer_id`，不得从 URL 或 Applet registration 猜测；已持久化 saga 的 exact replay
-MUST 使用首次 ledger 冻结的该身份。目标 URL 与 DID service endpoint／该身份不匹配时按 RFC 9421
-认证边界失败关闭。
+本地默认值猜测 grant/member/token。
 
 Commit MUST 携 `revoke_plan_digest`、与每个 grant intent 一一对应的 caller-signed
 `capability_revoke_events: EventAdmissionSubmission[]`，以及与 membership intent 一一对应的 caller-signed
@@ -380,57 +357,22 @@ MUST 零新增领域副作用；caller MUST 重新 preview、重新取得用户�
 Commit 在首个副作用前 MUST 持久化 saga ledger：绑定
 `(principal_service_id, admin_actor_id, Idempotency-Key, canonical_request_digest,
 revoke_plan_digest, exact_event_submissions, status, steps[])`。每个 step 的状态固定为
-`pending|accepted|duplicate|rejected`，并在继续下一步前持久化。Event admission、Account Authority delegated
-session revoke、widget token 作废与本地 applet fence 可以跨服务执行，不得声称分布式原子；restart MUST
+`pending|accepted|duplicate|rejected`，并在继续下一步前持久化。Event admission、widget token 作废与本地
+applet fence 可以跨服务执行，不得声称分布式原子；restart MUST
 从 ledger 恢复同一 submissions 与尚未完成步骤。只有全部 required replicated Events 已
-accepted/duplicate、widget token 已作废、delegated-session 子操作完成且 local fence durable 后才返回
+accepted/duplicate、widget token 已作废且 local fence durable 后才返回
 `status=complete, ok=true`。Event-backed step 是按状态封闭的 union：`pending`／`rejected` MUST 携原 caller-signed
 bytes 唯一派生的 immutable `submitted_event_id`，且 MUST NOT 携 `CommittedEventRef`；只有
 `accepted`／`duplicate` MUST 携 admission 返回的完整 `committed_event_ref`，且不得退化为裸 EventId。
-widget token、delegated session 与 local fence 等本地 step 始终携非 Event typed resource `effect_ref`；该分支
+widget token 与 local fence 等本地 step 始终携非 Event typed resource `effect_ref`；该分支
 不得承载 EventId／RealmCommitId。`revoked_refs[]` 只列实际完成的 effect，使用 `CommittedEventRef` 或本地 typed
 resource 的闭合 union，submitted/rejected identity 不得进入。部分成功返回 `in_progress|partially_completed` 与精确 steps/rejected refs；已
 accepted Event 不回滚、不重签，只继续缺失步骤。
 
-涉及 delegated session 的 Commit 在写入 ledger 之前 MUST 重新读取完整 issuer inventory；其
-`delegated_session_snapshot_digest` 或 ID 集与 preview plan 不同，必须返回 stale-plan 错误、零新领域副作用，
-要求 caller 重新 preview、确认并签名。已持久化的 exact request 重试只恢复原 ledger，不能以当前
-inventory 改写原计划。为避免有限寿命的 `AccountLifecycleProof` 在跨服务等待时耗尽，delegated-session
-撤销必须是该 saga 的首个领域副作用：Station 将原 plan witness 作为
-`ak.gate.account.command.revoke_session.v1` Applet selector 的 `expected_inventory_digest`，Account Authority
-在一个 issuer 事务中比较 exact selector 与当前 revision/ID 集 witness、撤销所列全部 active grant、
-记录 exact replay outcome，并对该 `(applet_id,effective_scope,registration_epoch)` 立持久 fence，
-后续 issue/refresh 不得复活该 install 的 session。CAS 不匹配时 Account Authority MUST 返回
-HTTP 409 `failed_precondition`、`reason_code=applet_delegated_session_inventory_changed`，子操作零副作用，
-Station 不得继续 Event 步骤。
-已接纳的子操作即使响应丢失或 proof 后来过期，也可按原 identity 与 bytes 重放原结果；issuer 在同一锁内
-先查 durable exact outcome，再判断未接纳请求的 proof 时效。若 issuer 明确返回“该 exact 子操作从未接纳、
-零 effect 且 proof 已过期”，Station 才能终止没有其它领域 effect 的 ledger，由 caller 以新 preview/proof/
-Idempotency-Key 重启。ledger 中 `pending` 不能证明 AA 未接纳；AA 不可达或返回 indeterminate 时必须保持
-pending、继续原 identity 重试，不得换 key 或豁免 proof。该步骤已接纳后，后续 Event step 的不明结果仅
-重放原 signed bytes。
-
 从第一条相关 `ak.capability.revoke` 或 `ak.member.state` 被 accepted 起，目标 `effective_scope` 内未来 Applet
 writes MUST 立即 fail closed，code=`applet_revoked` 或更细 reason，不能等待 saga 全部完成；其它 scope 只有在
 其自身 effective install 仍 active 时才继续授权。最后一个 active effective install 被 fence 后，Applet service、
-Bot 与全部 Ghost 才形成全局 `applet_revoked` fence。涉及 delegated session
-revoke 时，请求还 MUST 携 `proof: AccountLifecycleProof`；Station MUST 用 active install 重建
-`ak.gate.account.command.revoke_session.v1` applet selector（`applet_id`、`effective_scope`、
-`registration_epoch`、`service_id`、`capability_grant_refs`、`expected_inventory_digest`、
-`authorizing_session_grant_id`）并转发给
-Account Authority。`expected_inventory_digest` 必须等于原 plan 的
-`delegated_session_snapshot_digest`。`authorizing_session_grant_id` 只能来自 Station 对原 admin 请求完成
-Account Authority exact-token introspection 与 DPoP 后的 active grant，不能从 body 自选或使用开发环境
-bearer。Station 对转发请求使用上述 RFC 9421 服务签名；Account Authority 必须从自身 issuer ledger 独立查
-active grant，取得 actor、device 与 audience，核对已接受的当前 DID/device binding，并据此验证原
-`AccountLifecycleProof` 对 exact selector（含 inventory witness）的签名。只信 Station 声称的 admin 或
-复用未经校验的 proof 均不合规。AA 在验证签名后，以已验证的
-`proof.request_canonical_digest` 作为 `session_grant_revoke` 私有 current-device gate 的 `intent_digest`，
-将 issuer grant 已签的 `device_binding` 作为 expected authorize Event/generation；origin Station 必须在
-同一 current-device linearization 中判定 active、非 revocation-pending、该 expected binding 仍 current，
-AA 逐字比较 gate 返回 binding。该 gate action 不要求、也不得伪造 session-grant issue/refresh 专用的
-`AcceptedDevicePossessionProof`；原 `AccountLifecycleProof` 独立验证。普通 DPoP revoke selector 不得携
-这两个 Applet 专用字段。
+Bot 与全部 Ghost 才形成全局 `applet_revoked` fence。
 
 ## 5. Namespace
 

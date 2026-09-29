@@ -2903,38 +2903,6 @@
         }
       }
     },
-    "SessionGrantAppletDelegation": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "applet_id",
-        "effective_scope",
-        "registration_epoch"
-      ],
-      "properties": {
-        "applet_id": {
-          "$ref": "./common-ids.schema.json#/$defs/applet_id"
-        },
-        "effective_scope": {
-          "$ref": "../schemas/applet-install-plan.schema.json#/$defs/effective_scope"
-        },
-        "registration_epoch": {
-          "type": "string",
-          "pattern": "^sha256:[0-9a-f]{64}$"
-        },
-        "service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "capability_grant_refs": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "pattern": "^ak:[a-z][a-z0-9_]*:[A-Za-z0-9._:-]+$"
-          },
-          "uniqueItems": true
-        }
-      }
-    },
     "SessionGrantCredentialClass": {
       "type": "string",
       "enum": [
@@ -3715,10 +3683,6 @@
         "dpop_binding_proof": {
           "$ref": "#/$defs/SessionGrantDpopBindingProof",
           "description": "`ak.profile.agent_auth.v1` overlay. DPoP proof JWT for the holder key that the issued session grant will bind to. REQUIRED when `proof.proof_kind=\"agent_key_proof\"`; the Account Authority verifies the proof and materializes the resulting JWK thumbprint into the issued grant's `cnf.jkt` / session_public_key binding."
-        },
-        "applet_authority": {
-          "$ref": "#/$defs/SessionGrantAppletDelegation",
-          "description": "Applet-specific delegated session binding. When present, the session grant, proof digest, persistence row, introspection metadata, and revoke selector are bound to the same applet_id, effective_scope, and registration_epoch."
         },
         "proof": {
           "type": "object",

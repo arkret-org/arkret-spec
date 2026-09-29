@@ -2171,10 +2171,9 @@ def check_applet_revoke_saga_contract(lint: Lint) -> None:
     if len(step_ids) != len(steps) or not {
         "capability:0",
         "membership:0",
-        "delegated_session:0",
         "widget_token:0",
     }.issubset(step_ids):
-        lint.fail(fixture_path, "revoke saga plan must contain unique Event, external, and local steps")
+        lint.fail(fixture_path, "revoke saga plan must contain unique Event and local steps")
 
     step_kat = fixture.get("step_reference_kat")
     step_schema_ref = "schemas/applet-install-operations.schema.json#/$defs/applet_revoke_step"
@@ -2234,7 +2233,7 @@ def check_applet_revoke_saga_contract(lint: Lint) -> None:
         "crash_after_first_acceptance_then_exact_restart",
         "same_key_different_body_conflicts",
         "same_key_different_actor_or_service_conflicts",
-        "external_effect_partial_then_restart",
+        "local_effect_partial_then_restart",
         "plan_or_submission_mismatch_is_pre_effect",
         "stale_preview_revision_requires_repreview",
         "stale_signed_event_cas_has_no_domain_effect",
@@ -2272,7 +2271,6 @@ def check_applet_revoke_saga_contract(lint: Lint) -> None:
     rejected = case_by_name["event_rejected_without_skip"]
     if rejected.get("expected_pending_steps") != [
         "membership:0",
-        "delegated_session:0",
         "widget_token:0",
     ]:
         lint.fail(fixture_path, "a rejected Event must preserve every later step as pending")
@@ -2357,59 +2355,12 @@ def check_applet_revoke_saga_contract(lint: Lint) -> None:
         lint.fail(schema_path, "applet_revoke_preview_outcome must require the canonical revoke_plan")
 
     kat = fixture.get("preview_plan_digest_kat")
-    device_gate = fixture.get("session_grant_revoke_device_gate_kat")
-    expected_gate_cases = {
-        "exact_current_active": "allow",
-        "revocation_pending": "device_revocation_pending",
-        "revoked": "device_revoked",
-        "generation_mismatch": "device_generation_fenced",
-        "expected_binding_missing": "device_unauthorized",
-        "different_intent_digest": "proof_invalid",
-    }
-    if not isinstance(device_gate, dict) or (
-        device_gate.get("action_class") != "session_grant_revoke"
-        or device_gate.get("intent_digest_source")
-        != "verified_account_lifecycle_proof.request_canonical_digest"
-        or device_gate.get("expected_binding_source")
-        != "issuer_signed_authorizing_session_grant.device_binding"
-        or device_gate.get("accepted_device_possession_proof") != "forbidden"
-        or {row.get("name"): row.get("result") for row in device_gate.get("cases", [])}
-        != expected_gate_cases
-    ):
-        lint.fail(fixture_path, "session_grant_revoke device gate must bind proof intent and exact current device")
     plan_ref = "schemas/applet-install-operations.schema.json#/$defs/applet_revoke_plan"
     if not isinstance(kat, dict):
         lint.fail(fixture_path, "preview_plan_digest_kat must pin the caller-side revoke_plan_digest recomputation")
     else:
         if kat.get("schema_ref") != plan_ref:
             lint.fail(fixture_path, f"preview_plan_digest_kat.schema_ref must be {plan_ref}")
-        inventory_kat = kat.get("delegated_session_inventory_kat")
-        inventory_ref = "schemas/account-operations.schema.json#/$defs/applet_delegated_session_inventory_outcome"
-        if not isinstance(inventory_kat, dict) or not isinstance(inventory_kat.get("outcome"), dict):
-            lint.fail(fixture_path, "preview_plan_digest_kat must carry a complete issuer inventory witness")
-        else:
-            inventory = inventory_kat["outcome"]
-            check_json_instance_against_schema(
-                lint, fixture_path, "delegated_session_inventory_kat.outcome", inventory_ref, inventory
-            )
-            selector_keys = (
-                "applet_id", "effective_scope", "registration_epoch", "service_id", "capability_grant_refs"
-            )
-            if inventory_kat.get("request") != {key: inventory.get(key) for key in selector_keys}:
-                lint.fail(fixture_path, "inventory response selector must echo the exact request")
-            inventory_payload = {key: value for key, value in inventory.items() if key != "snapshot_digest"}
-            witness = "sha256:" + hashlib.sha256(
-                b"ak.applet_delegated_session_inventory.v1\n" + canonical_json(inventory_payload).encode("utf-8")
-            ).hexdigest()
-            if inventory.get("snapshot_digest") != witness:
-                lint.fail(fixture_path, "inventory witness must bind selector, revision and full active set")
-            aba = dict(inventory_payload)
-            aba["inventory_revision"] += 2
-            aba_witness = "sha256:" + hashlib.sha256(
-                b"ak.applet_delegated_session_inventory.v1\n" + canonical_json(aba).encode("utf-8")
-            ).hexdigest()
-            if aba_witness == witness:
-                lint.fail(fixture_path, "inventory revision must reject A-B-A replay")
         revoke_plan = kat.get("revoke_plan")
         if not isinstance(revoke_plan, dict):
             lint.fail(fixture_path, "preview_plan_digest_kat.revoke_plan must be an object")

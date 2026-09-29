@@ -472,7 +472,7 @@ Realm 内 membership 不自动变成 ban；是否移除由 Realm policy 决定�
 
 | 域 | Fanout 动作 | 触发什么 event |
 | --- | --- | --- |
-| **Session grant** | 撤销全部 `ak.session.grant`（含 applet delegated session）；后续 session-grant introspection MUST 返回 `inactive`。 | 服务端撤销表 + 可选 `ak.audit.accessed` |
+| **Session grant** | 撤销全部 `ak.session.grant`；后续 session-grant introspection MUST 返回 `inactive`。 | 服务端撤销表 + 可选 `ak.audit.accessed` |
 | **Device grant** | 全部 `ak.device.*` 标 `revoked`；后续 `ak.self.events.command.submit.v1` 用 revoked device 签名 MUST `actor_signature_revoked`。 | reducer 状态转换 |
 | **Applet delegation** | 撤销所有 `ak.applet.registration` 持有的 delegated device；applet 服务后续调用 MUST `delegation_revoked`。 | reducer 状态转换 |
 | **KeyPackage** | 由认证 `AccountId` 解析本地 `account_pk`，按该本地外键逐行 read/CAS 到终态：`published+unused → revoked`，reason=`principal_deactivated`；`claimed+unconsumed → revoked`并保留原 claim ID；`consumed`保持 immutable。KeyPackage wire object 不携 owner ID。CAS stale 必须重读并继续，直到写入目标终态或确认已处同一终态；stale conflict 不得计作完成。任何 terminal 不得复活或二次 claim。 | reducer + KeyPackage store 失效 |
@@ -598,7 +598,6 @@ introspection 或本地会话状态自行判定或近似认证新鲜度：intros
 - 单个 grant-binding session chain
 - 单个 device
 - 全部 session
-- Applet delegated session
 
 撤销 device MUST 产生 device list update。E2EE 客户端 MUST 停止向 revoked device 分享新密钥。
 

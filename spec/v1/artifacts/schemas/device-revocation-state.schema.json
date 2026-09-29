@@ -51,9 +51,6 @@
           "const": "session_grant_issue_or_refresh"
         },
         {
-          "const": "session_grant_revoke"
-        },
-        {
           "const": "device_pairing_code_claim"
         },
         {
@@ -66,8 +63,8 @@
           "const": "event_write"
         }
       ],
-      "minItems": 6,
-      "maxItems": 6,
+      "minItems": 5,
+      "maxItems": 5,
       "uniqueItems": true
     },
     "common_record": {

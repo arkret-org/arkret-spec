@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-29.13",
-  "generated_at": "2026-09-29T11:05:00+08:00",
+  "version": "2026-09-29.14",
+  "generated_at": "2026-09-29T11:05:01+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -97,7 +97,7 @@
     },
     {
       "operation_id": "ak.gate.account.command.issue_session_grant.v1",
-      "sha256": "sha256:7204b9846b3c0a4431777e695e1a649331083e702f7e7148d9e667200b7cb92c"
+      "sha256": "sha256:bcb73c5605d39d493305f31aafffa4a8a64cc8bf03d6b3fd0630b9057bab9fb4"
     },
     {
       "operation_id": "ak.gate.account.command.logout.v1",
@@ -117,7 +117,7 @@
     },
     {
       "operation_id": "ak.gate.account.command.register.v1",
-      "sha256": "sha256:bd8fbeb575e177c481cd37fe9fd157d16ae36950b57a8f8c740531e881c50ff5"
+      "sha256": "sha256:1910448f8b3fc8279c6676daf37ccb3a4bed5a1d005501e4cfd14089d724e994"
     },
     {
       "operation_id": "ak.gate.account.command.request_erasure.v1",
@@ -125,15 +125,11 @@
     },
     {
       "operation_id": "ak.gate.account.command.revoke_session.v1",
-      "sha256": "sha256:350f730e5b748aeb0f185702e2b12c53f78c7eefcded593b1a4db2aded3959f5"
+      "sha256": "sha256:13747f1f6ac4726ca66cfe01a6463417e9c2a51d0b3f19d35081c6051d2c26e4"
     },
     {
       "operation_id": "ak.gate.account.exchange.create_handoff.v1",
       "sha256": "sha256:5dbbaf54e6bac523bbaf58920269777727529c381074908fd8166656d2e9a263"
-    },
-    {
-      "operation_id": "ak.gate.account.read.applet_delegated_session_inventory.v1",
-      "sha256": "sha256:9d84c0cc7c0f38d63c371d775b54d2cd67ec2f1a576206cbfe0be287fc2d964e"
     },
     {
       "operation_id": "ak.gate.account.read.claim_device_pairing_code.v1",
@@ -397,7 +393,7 @@
     },
     {
       "operation_id": "ak.self.account.read.viewer.v1",
-      "sha256": "sha256:a63e185b564c759a01b6f575e6de3dc951073b7d3e2c05c42842273b1fabcbe4"
+      "sha256": "sha256:e3f6438d9ce0407ed257f303ad410b80a4f1f6bb8090ab835fb00a1ed5a1f907"
     },
     {
       "operation_id": "ak.self.account.stream.subscribe.v1",
@@ -481,7 +477,7 @@
     },
     {
       "operation_id": "ak.self.applet.command.revoke.v1",
-      "sha256": "sha256:166e91821abef60fa45afebcbccea1f6062166db7fd98c48033a20b6413488e9"
+      "sha256": "sha256:e70d5f266dbde5ff51ed3f883d8b7c02807448221fb2f1bf9e71f53a0250df0b"
     },
     {
       "operation_id": "ak.self.applet.ghost.command.preview.v1",
@@ -497,7 +493,7 @@
     },
     {
       "operation_id": "ak.self.applet.revoke.command.preview.v1",
-      "sha256": "sha256:674958562989258013db4d00263cf83b1927a9c945a5132f7c7d461ae25c4970"
+      "sha256": "sha256:c9a743904da6c5912cd07e5eefd445d375aa2788977cd5c4c163c175dae87b31"
     },
     {
       "operation_id": "ak.self.authz.grants.read.effective.v1",
