@@ -126,7 +126,8 @@
           "const": "detached_jws"
         },
         "verification_method": {
-          "$ref": "./common-ids.schema.json#/$defs/did_url"
+          "$ref": "./common-ids.schema.json#/$defs/did_url",
+          "description": "Selects the approver key through authenticated history at input.approved_at. For a WebVH principal, identity-did.md section 3.4 also permits the exact native did:key:<multibase>#<multibase> of an effective updateKeys member at that instant; its bare did:key is never the approver identity. No caller-supplied key or synthetic fragment can establish this control relation."
         },
         "jws": {
           "type": "string",

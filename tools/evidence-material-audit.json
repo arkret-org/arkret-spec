@@ -1,12 +1,12 @@
 {
-  "version": 20,
+  "version": 21,
   "source_of_truth": false,
   "narrative_source": "spec/v1/zh/models/common-fields.md#r6-证据类名词分工",
   "scope": [
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 346,
+  "audited_occurrence_count": 348,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -998,6 +998,29 @@
         "receipt"
       ],
       "reason": "Projection of consent_grant_payload.evidence_ref into the consent typed current result; the referenced consent material may be a proof, attestation, or receipt."
+    },
+    {
+      "file": "applet-edge-operations.schema.json",
+      "key": "managed_actor_resolution_update_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation",
+        "transcript"
+      ],
+      "reason": "Combines the signed accepted resolution Event, its continuous RealmCommit history, native method history and authenticated Station signer closure."
+    },
+    {
+      "file": "applet-edge-operations.schema.json",
+      "key": "method_history_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "transcript"
+      ],
+      "reason": "Carries complete method-native history and its authenticated proof for the exact accepted successor resolution."
     }
   ]
 }

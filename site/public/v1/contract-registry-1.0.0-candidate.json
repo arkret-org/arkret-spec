@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-30.2",
+  "version": "2026-09-30.4",
   "source_of_truth": true,
-  "generated_at": "2026-09-30T08:03:04+08:00",
+  "generated_at": "2026-09-30T10:39:07+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -19685,7 +19685,7 @@
       "site_id": "ak.verifier.invite.claim_subject_at_commit.v1",
       "evidence_class": "accepted_at_history",
       "freshness_profile_id": null,
-      "purpose": "Verify the invite claim subject_proof method against the authenticated historical DID Document at the covering RealmCommit authority cut, matching its projected DID core to subject_account_id; reject when that historical document and method evidence cannot be established."
+      "purpose": "Verify the invite subject Account principal against authenticated accepted-at DID history at the covering claim Commit cut, selecting a document-declared method or an exact effective native WebVH updateKeys did:key method under identity-did.md section 3.4. The key DID is not the subject identity; missing historical control evidence fails closed."
     }
   ],
   "did_method_adapter_registry": {
@@ -19699,7 +19699,8 @@
       "A did is a canonical bare DID and therefore contains no path, query or fragment. Each active adapter deterministically emits method_history_head, version_id and service_resolution_event_ref according to its registered rules, including synthetic values for methods without native history.",
       "For a generic Event proof, the verifier extracts the canonical bare did base from proof.verification_method, validates the active adapter and key at the cited accepted-at method history, projects that did, and compares the resulting did_core_id to executed_by when present or actor_id otherwise. registration_anchor and pcr_recovery are the only registered special admissions and never convert current DID control into generic human PCR authority.",
       "A principal resolution update is admitted only in its derived identity-control Realm and only when one exact expected_revision precondition guards ak:result:identity_resolution:null. The guarded whole resolution_projection MUST equal the accepted current typed current result; predecessor event/history coordinates come only from that signed precondition, never from payload mirrors.",
-      "Exactly one active adapter, did:webvh:1.0, carries human_principal_anchor=true and declares registration_anchor_kind=webvh_registration; that value is the sole discriminator of the closed principal-registration-anchor contract. A human principal is registered and given PCR genesis only through that branch. Every other method, including did:key and did:web, carries human_principal_anchor=false and MUST fail closed with unsupported_did_method at schema and role admission, before any method parser, history replay or registry write. Adding another human anchor requires a newly registered portable publication-proof or independent-witness trust model with its own threat model and conformance vectors; it MUST NOT enter through a test fixture, an optional sidecar member or a locally widened allowlist."
+      "Exactly one active adapter, did:webvh:1.0, carries human_principal_anchor=true and declares registration_anchor_kind=webvh_registration; that value is the sole discriminator of the closed principal-registration-anchor contract. A human principal is registered and given PCR genesis only through that branch. Every other method, including did:key and did:web, carries human_principal_anchor=false and MUST fail closed with unsupported_did_method at schema and role admission, before any method parser, history replay or registry write. Adding another human anchor requires a newly registered portable publication-proof or independent-witness trust model with its own threat model and conformance vectors; it MUST NOT enter through a test fixture, an optional sidecar member or a locally widened allowlist.",
+      "Direct principal-control proofs have exactly two existing purposes: approval_signature at its signed approved_at and invite_subject_proof at the covering claim RealmCommit committed_at. For a did:webvh principal, a verifier independently authenticates the subject DID SCID and complete native history at that instant, then accepts only a document-declared method or the exact standard did:key:<multibase>#<multibase> of an effective updateKeys member at that instant. The key DID is never projected as the principal identity. No caller key, synthetic root fragment, PCR device key, future state or current-head fallback proves this historical relation. This exception grants no generic Event or SessionGrant authority."
     ],
     "principal_resolution_contract": {
       "version": "2026-08-30.1",
@@ -19933,8 +19934,8 @@
         ]
       }
     },
-    "version": "2026-09-25.1",
-    "generated_at": "2026-09-25T00:44:00+08:00",
+    "version": "2026-09-30.2",
+    "generated_at": "2026-09-30T10:39:07+08:00",
     "metadata_authority": "contract_registry_section"
   },
   "binding_kind_registry": {

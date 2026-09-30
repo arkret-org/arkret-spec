@@ -3925,7 +3925,7 @@
             "verification_method": {
               "type": "string",
               "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$",
-              "description": "Current verification method of subject_account_id.principal_id; the admission context separately binds the exact station_id."
+              "description": "Subject method selected through authenticated principal DID history at the covering claim Commit time, including the exact effective native WebVH updateKeys did:key method defined by identity-did.md section 3.4. The key DID is not projected as the subject; PCR device methods and current-head fallback are forbidden."
             },
             "signature_algorithm": {
               "type": "string",

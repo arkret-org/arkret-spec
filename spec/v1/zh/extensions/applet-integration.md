@@ -690,14 +690,15 @@ transaction push 的逐次签名是传输层来源认证，**不替代** §8 每
 | 字段 | 精确含义 |
 | --- | --- |
 | `committed_request` | 本次实际提交并确认的原请求。复用既有 install 首次/复用请求或 Ghost provision 请求的封闭类型，不创建第二个 request ID、digest 或 actor anchor 副本。 |
-| `realm_stream_head` | 目标 Collaboration Realm 的 commit stream 在该确认时刻的 head，形态是 [`realm-commit.schema.json#/$defs/stream_head`](../../artifacts/schemas/realm-commit.schema.json)（`{stream_ref, stream_position, commit_id}`）。它是本上下文**唯一**的 authority 位置声明；MUST NOT 从其他 Realm/PCR 的 RealmCommit 引用推断。本上下文不再单独声明 digest suite 或 actor checkpoint：suite 由该 stream 所属 Realm 对象承载（见 [`realm.schema.json`](../../artifacts/schemas/realm.schema.json)），managed Actor 的既有位置由 `committed_request` 的不可变 anchors 唯一确定，接纳方的授权判定记录留在 Station 本地、不是可交付字段。 |
+| `realm_stream_head` | 目标 Collaboration Realm 的 commit stream 在该确认时刻的 head，形态是 [`realm-commit.schema.json#/$defs/stream_head`](../../artifacts/schemas/realm-commit.schema.json)（`{stream_ref, stream_position, commit_id}`）。它是安装/portal Collaboration Realm 的唯一 head 声明，与下述 PCR Commit 独立；MUST NOT 从另一流 position 或 Commit 引用推断。本上下文不再单独声明 digest suite 或 actor checkpoint：suite 由该 stream 所属 Realm 对象承载（见 [`realm.schema.json`](../../artifacts/schemas/realm.schema.json)），managed Actor 的既有位置由 `committed_request` 的不可变 anchors 唯一确定，接纳方的授权判定记录留在 Station 本地、不是可交付字段。 |
+| `principal_control_commit` | 接受本 managed Principal resolution 的实际 PCR Commit，与 portal head 独立；首次必须覆盖原 Bundle PCR genesis，rotation 必须等于 lineage 最后 Commit。 |
 | `applet_service_signer_evidence` | 安装所接受 Applet service producer 的 exact `Service` root，含 `signer_resolution_evidence_ref` 与完整 leaf；ref 必须从 leaf 重算。 |
 | `managed_actor_signer_evidence` | 新 Bot/Ghost current method 的 exact `Principal` root 及其唯一 Station `Service` attester leaf。`signer_resolution_evidence_ref` 必须从完整 canonical `authenticated_signer_evidence` 重算；attester leaf **没有自己的 ref**——signer-resolution evidence 是紧凑六成员对象，不带 attester ref，该 leaf 的绑定由本对象内的位置、与 `authenticated_signer_evidence.authority_commit_id` 相等，以及其 subject 必须是签署该 accepted resolution 的 Station `Service` 三者共同承载（见 [`../identity/key-management.md` §「可复用当前授权」](../identity/key-management.md)）。 |
 
-四个字段全部必需（`required` 与 `properties` 等同）：本节下文把「产生 accepted authoring result」本身条件化在两份 signer evidence 已被验证并与结果、原请求、outbox 意图同事务冻结之上，因此缺任一份的上下文根本不可能被接纳。
+上述五个基础字段全部必需；后续轮换另外携带 optional `resolution_update`（四个 closed 成员见下文），首次与 reuse 不携带该成员：本节下文把「产生 accepted authoring result」本身条件化在两份 signer evidence 已被验证并与结果、原请求、outbox 意图同事务冻结之上，因此缺任一份的上下文根本不可能被接纳。
 
 安装 Station MUST 在原 install/Ghost closed unit 实际 committed 且全部效果完成安装后，从同一 accepted
-resolution projection 物化 managed Actor `Principal` root，并冻结签署该 projection attestation 的 Station
+resolution projection 物化 managed Actor `Principal` root，并冻结签署该实际 PCR RealmCommit 的 Station
 `Service` leaf。三个 leaf 的 `authority_commit_id` MUST 逐字等于本上下文 `realm_stream_head.commit_id`，
 `resolved_at` MUST 为该完成提交实际冻结的 accepted 时间，不得由 author 阶段猜测未来 Commit。
 同一完成提交物化的 Applet `Service` root、Principal root、attester leaf、完整结果、原请求及 Applet
@@ -713,6 +714,14 @@ Realm Event federation。管理员在安装返回后离线不影响重试交付�
 
 `realm_stream_head.stream_ref` 指向的 Realm MUST 等于 install effective_scope 的 Realm 或 Ghost basis 的 `realm_id`；完整 Actor MUST 等于该原 Bundle 或 reuse anchors 的 managed Actor，且其 Account Station 与安装目标相等。Circle install 保留原 Circle scope，MUST NOT 扩为整个 Realm。适用的 grant 从原 committed request 和 runtime 的原授权记录取得，缺材料保持未决；`accountability_grant` 仅表达责任，MUST NOT 当作普通发送 capability。跨授权域引用可以各自使用其 Realm 对象登记的 digest suite。
 
+`principal_control_commit` 是独立 required 的完整 accepted RealmCommit，接受 managed Actor 当前
+resolution 的实际 PCR Event；首次创建时必须覆盖原 Bundle 的 managed PCR genesis，并与其
+realm_id / Event digest / governance Station 精确绑定。managed Principal root 及唯一 Station Service
+attester 的 `authority_commit_id` / `resolved_at` 必须等于该 Commit 的 id / `committed_at`。
+它不是安装/portal Realm 的 `realm_stream_head`，不得比较两流 position 或把 portal Commit 冒充
+PCR authority。install reuse 保留 runtime 已验证的 current PCR closure；若缺轮换前驱材料，先按
+下述 completion 有序恢复，不能仅凭新 scope 的 install 重造 root。
+
 runtime MUST 验证两个完整 evidence object，重算 Applet `Service` root、Station attester `Service` root 与
 managed Actor `Principal` root，逐字核对 actor、service、verification method、实际本地 public key、原
 registration/install/provision anchors 与 effective install fence；随后把确切来源记录、原 committed
@@ -724,11 +733,28 @@ Actor checkpoint，不重新签发或替换 evidence，不覆盖已经冻结的�
 
 完成交付后的普通聊天不要求逐消息查询原 Station或续订 RealmCommit 年龄租约；producer 也不需为无关 stream 前进重新 author。每条新聊天 Event 仍须由目标 stream 的 current governance Station 接纳并签发 RealmCommit。原授权的真实有限期与已 committed 关闭约束新 live 提交；非 authority 接收方只能排队／转发。仅因 authoring preview 的有效期已过，不得否定已经 committed 的原结果或强制重新 author；未提交的新请求仍执行 preview 的原期限。重启必须恢复原件，不得用任意入站消息的授权判定、用户填写的 RealmCommit ID 或重新读取 current DID 的结果冒充本次完成材料。
 
-managed Actor 后续通过普通 `ak.identity.resolution.update` 轮换时，旧 root 继续只验证旧 Event。runtime 在
-新 resolution Event accepted 后使用既有 `ak.open.identity.read.resolution.v1` 取得 exact current public
-resolution，并通过既有 exact `authenticated_signer_resolution_evidence` governance-dependency carrier
-取得/核对签署 projection attestation 的 Station `Service` leaf，构建并原子保存新 `Principal` root 后才用新
-method author 普通 Event；不新增 Applet evidence endpoint。远端 Event verifier 同样只按 proof ref 经既有
+managed Actor 后续通过普通 `ak.identity.resolution.update` 轮换时，旧 root 继续只验证旧 Event。
+唯一交付载体仍是本节 node-to-Applet completion：`authoring_context` 的 optional
+`resolution_update` 选择 closed rotation 分支（[`applet-edge-operations.schema.json#/$defs/managed_actor_resolution_update_evidence`](../../artifacts/schemas/applet-edge-operations.schema.json)），包含
+exact accepted `resolution_event`、从 runtime 已持旧 Principal root Commit 之后到本 Event covering Commit
+为止的连续 `commits`、该新 resolution 的完整 `method_history_evidence`，以及原 target Station 的
+`attester_resolution`。仅向原 install/provision 已授权的 managed runtime 披露其自己的 PCR
+材料；公开 resolution 响应不扩张，也不存在另一条 evidence endpoint 或 governance-dependency 读取面。
+
+Station MUST 在接受 resolution 的同一耐久事务保存新 Principal root、唯一 Station Service attester
+leaf、完整 closure 与 completion outbox。两 leaf 的 `authority_commit_id` / `resolved_at` 分别精确等于
+lineage 最后 Commit 的 id / `committed_at`。Applet Service registration root、原 `committed_request`、
+原四 Event anchors 与 effective scope 保持逐字相同；delivery 幂等身份绑定这个新 resolution Event，
+不同原文不得复用。lineage 每条 Commit 的 stream / predecessor / position / 签名及最后 Event digest 必须
+独立验证；Station 历史 key 由完整 Service native history在各 Commit 时点选择，不能拿 current key补历史。
+
+runtime MUST 在提交轮换前独立耐久保存新私钥及 exact method/native history 准备材料，收到投递时逐字
+匹配实际本地新 public key，并独立验证 native successor、SCID/core 不变、旧 root ancestry、exact原
+Station 与上述全部交叉绑定，才原子保存新 root / closure 并启用新 method。缺新私钥或旧 predecessor
+closure 保持未决，通过相同 outbox 的有序重投恢复，不从响应重造私钥、旧材料或平行身份。新原件与旧
+证据均保留；完全相同重试返回原结果，迟到旧结果不能覆盖更新 root、倒退 checkpoint 或恢复已关闭
+install。普通 Event verifier 按 proof ref 使用已冻结的 exact signer root 与原生历史关系，不能以新
+current DID head 重写旧 Event 的签名事实。轮换 completion 不授予新 grant、扩大 scope 或恢复撤销资格。
 
 同机 host MAY 经内部类型化存储交付相同结果，但 MUST 保持以上来源、原件、原子保存及重复处理规则，不能用一个公开 bool 或裸配置字符串替代它们。
 

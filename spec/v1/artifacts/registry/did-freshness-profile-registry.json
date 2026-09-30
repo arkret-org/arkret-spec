@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-28.1",
-  "generated_at": "2026-09-28T06:57:00+08:00",
+  "version": "2026-09-30.1",
+  "generated_at": "2026-09-30T10:39:07+08:00",
   "source_of_truth": true,
   "description": "Canonical registry of the did-usage-and-verification.md section 5.4 freshness profile ids a DID authority call site may reference. Registration fixes the id and its risk_tier; the numeric windows are declared per deployment and enter profile_policy of the section 5.3 resolver policy snapshot, so no network-wide minute count is implied.",
   "registry_rules": [
@@ -205,7 +205,7 @@
       "site_id": "ak.verifier.invite.claim_subject_at_commit.v1",
       "evidence_class": "accepted_at_history",
       "freshness_profile_id": null,
-      "purpose": "Verify the invite claim subject_proof method against the authenticated historical DID Document at the covering RealmCommit authority cut, matching its projected DID core to subject_account_id; reject when that historical document and method evidence cannot be established."
+      "purpose": "Verify the invite subject Account principal against authenticated accepted-at DID history at the covering claim Commit cut, selecting a document-declared method or an exact effective native WebVH updateKeys did:key method under identity-did.md section 3.4. The key DID is not the subject identity; missing historical control evidence fails closed."
     }
   ],
   "authority_call_sites": []

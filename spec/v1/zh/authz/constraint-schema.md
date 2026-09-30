@@ -511,8 +511,7 @@ v1 的 approval constraint 只有一种模式：`approval_mode="before_commit"`�
     "ak:did_core:webvh:z6mkfixturemanager"
   ],
   "approval_relation": "controller",
-  "timeout": "PT72H",
-  "auto_reject_on_timeout": true
+  "timeout": "PT72H"
 }
 ```
 审批要求的**可表达性**由
@@ -523,6 +522,21 @@ v1 的 approval constraint 只有一种模式：`approval_mode="before_commit"`�
 特别地，`event_mapping_kind=non_event_surface` 在 v1 默认不可挂审批要求；只有 registry 中该 exact action
 存在 `registered_operation_carrier` override 且所指 canonical request carrier 可达时才可例外。
 实现 MUST NOT 从 action 拼写、risk tier、正文说明或自造的 action→operation 映射推断 eligibility。
+
+`approval_threshold` 的封闭值为 `"majority"`、`"unanimous"` 或大于等于 1 的整数；省略时恰为
+`"unanimous"`。整数本身即所需不同 approver 的票数，不存在无参数的 `"quorum"` 或
+`"custom"` 字符串。令 N 为接纳事务同一 authority cut 下按该 grant 的 roster / relation 与既有资格
+规则得到的不同 approver 数，majority 要求 `floor(N/2)+1`，unanimous 要求 N。N 为 0、资格集合
+无法证明或整数超过 N 均不能满足要求，行使时 MUST 零写入返回 `claim_required`
+reason=`approval_required`。同一 approver 的多份签名只计一票；不得以收到的票数作为 majority
+分母，也不得以任意 Realm 成员补足 grant 自己的 eligible roster。
+
+grant 的唯一审批 roster 是 `approval_actor_ids`；它声明的不同 principal 必须分别通过本节已有
+current membership、action/scope capability、时间与签名资格检查。没有显式 roster 不能从
+`approval_relation`、Realm 角色或 membership 推导替代集合。`approval_relation` 仅描述签发者为该
+显式 roster 指定的责任分类，不是另一份授权来源；guardian/controller approval flags 仍要求此
+roster 的有效票，不免除独立 Agent confirmation 等已登记的实际 controller 关系检查。
+无正文与消费者合同的 `approver_ids` 字段不在 v1 closed constraint 中，MUST `schema_violation`。
 
 ### 9.2 Approval signature（normative）
 
@@ -654,7 +668,9 @@ approver 之后换 key 或被撤销 MUST NOT 使已接纳 Event 作废；
 
 1. 先按 closed schema 校验 `input`。形状错误 MUST 报 `schema_violation`，密码学错误 MUST 报
    `signature_invalid`；MUST NOT 把 schema 缺字段一律误报成 `signature_invalid`。
-2. 校验签名由 `approver_did` 在 `approved_at` 时点**未被撤销**的 verification method 签发，
+2. 校验签名由 `approver_did` 在 `approved_at` 时点**未被撤销**的 verification method 签发；
+   历史 WebVH native update key 的精确 did:key method 按 [`identity-did.md` §3.4](../identity/identity-did.md)
+   证明其控制关系，不把 update key 的 did:key 投影当成 approver identity，
    并按 §9.2.1 的 `signing_bytes` 重算。
 3. 按 §9.2.3 重算 `request_canonical_digest` 并逐字节比对；`event` 支还 MUST 校验
    `approval_target.event_id` 等于本次提交 Event 的 `event_id`。
@@ -662,8 +678,12 @@ approver 之后换 key 或被撤销 MUST NOT 使已接纳 Event 作废；
    原 outcome；同 `(approval_context, approver_did, nonce)` 被用于**另一个**目标 MUST 返回
    `failed_precondition` reason=`approval_nonce_reused`。未达 quorum 或验证失败 MUST NOT 提前消费
    nonce——否则正常的补票重试永远失败。并发校验与消费 MUST 在同一事务内完成。
-5. `timeout` 过期后，所有未达 threshold 的 approval signature MUST 被视为失效：MUST NOT 复用旧票，
-   approver MUST 用新 `nonce` 重签。
+5. `timeout` 是每张票从其已签 `approved_at` 起到 covering Commit 的最长年龄；只接受大于零的固定
+   ISO 8601 week/day/hour/minute/second duration，不接受 calendar year/month。缺省不增加本层年龄
+   上限。唯一截止为 `approved_at + timeout`，covering `committed_at <=` 截止才有效，零容差、含等号，
+   Event 与 operation target 相同；不得用 Event.created_at、第一次接收时间或当前墙钟起算。
+   过期票不能计 quorum、消费 nonce或生成成功审计；以 `claim_required` reason=`approval_required`
+   零写入拒绝，approver 必须新 nonce 重签。溢出或无法解释 duration 同样不能放行。
 6. v1 的 `approval_mode` 只有 `before_commit` 一种。
 
 > **理由**: 没有 nonce 与完整 canonical input 绑定时,attacker 可以收集 approver 一次合法批准的签名，把它附加到任意 body hash 相同但语义不同的请求中(canonical hash 碰撞 / 上下文混淆),或把它跨 Realm / 跨 grant 重放。固定 input 集合 + nonce 是 Authority forgery 防线的必要条件。把被签字节写成逐字节公式，是因为两份实现按同一张字段表各自拼字节会得到互不验证的签名，而两边都能声称合规——那不是功能缺失，是安全原语不可互操作。
@@ -700,8 +720,8 @@ MUST NOT 互用 nonce，也 MUST NOT 把一方的满足自动换算成另一方�
 再批准该对象」的路径：审批绑定的目标只能是 §9.2.3 的两支之一。已被移除的提案模式字段与
 绑定名由 [`forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json)
 `hard_reject`，MUST NOT 以任何 `constraint_subkind=approval` 字段、Morph kind 或 evidence 成员
-重新出现。`approval_threshold` / `timeout` / `auto_reject_on_timeout` 等 `before_commit`
-仍在使用的字段保留。
+重新出现。`approval_threshold` / `timeout` 保留；没有独立 proposal 状态的 v1 不定义
+`auto_reject_on_timeout`，该成员不在 closed constraint 中，MUST `schema_violation`。
 
 Agent 自己的私有 draft 能力（`ak.agent.draft.propose` / `ak.agent.action_request` /
 `ak.agent.action_reject`，见 [`../conformance/conformance-profiles.md`](../conformance/conformance-profiles.md)）
@@ -1394,7 +1414,7 @@ Grant envelope 字段、签名规则与必填性以
   "approval_actor_ids": [
     "ak:did_core:webvh:zGd8mMoLD7F4He4Kf8PpXJur1"
   ],
-  "approval_threshold": "quorum",
+  "approval_threshold": 1,
   "timeout": "PT24H"
 }
 ```

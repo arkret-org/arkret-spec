@@ -3676,16 +3676,6 @@
       ]
     },
     {
-      "schema_path": "grant-constraint.schema.json#/properties/approver_ids",
-      "property_name": "approver_ids",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
       "schema_path": "grant-constraint.schema.json#/properties/authority_path_ids",
       "property_name": "authority_path_ids",
       "semantic_category": "responsibility_identity_material",

@@ -7,7 +7,7 @@
     }
   },
   "title": "Arkret Grant Constraint",
-  "$comment": "Property ordering is grouped by constraint family to match capabilities.md §6 (the human-readable family map): discriminator/meta, then temporal, field_access, kind_restriction, scope_limitation, authority_control, quota, claim_based, confidentiality, then the moderation cache-invalidation hint. Canonical JSON re-sorts keys lexicographically so this ordering is presentation-only and does not affect the wire (see C13-07).",
+  "$comment": "Property ordering is grouped by constraint family to match capabilities.md Â§6 (the human-readable family map): discriminator/meta, then temporal, field_access, kind_restriction, scope_limitation, authority_control, quota, claim_based, confidentiality, then the moderation cache-invalidation hint. Canonical JSON re-sorts keys lexicographically so this ordering is presentation-only and does not affect the wire (see C13-07).",
   "type": "object",
   "required": [
     "constraint_kind",
@@ -31,7 +31,7 @@
         "claim_based",
         "confidentiality"
       ],
-      "description": "Constraint family discriminator. v1 collapses what were 15 types into 8 by absorbing narrowly-scoped types into their conceptual parent: edit_window → temporal; container_move → scope_limitation; rate_limiting + resource_limit → quota; approval_workflow + accountability + device_session → claim_based (with constraint_subkind); encryption_requirement + visibility_control → confidentiality (with constraint_subkind). Use the optional 'constraint_subkind' field to indicate the original specialization where evaluation logic differs."
+      "description": "Constraint family discriminator. v1 collapses what were 15 types into 8 by absorbing narrowly-scoped types into their conceptual parent: edit_window â†’ temporal; container_move â†’ scope_limitation; rate_limiting + resource_limit â†’ quota; approval_workflow + accountability + device_session â†’ claim_based (with constraint_subkind); encryption_requirement + visibility_control â†’ confidentiality (with constraint_subkind). Use the optional 'constraint_subkind' field to indicate the original specialization where evaluation logic differs."
     },
     "effect": {
       "type": "string",
@@ -50,11 +50,11 @@
         "realm_state",
         "external"
       ],
-      "description": "Cacheability/dependency hint for the authorization evaluator. stateless = pure function of (constraint, op, now); grant_local = depends on the grant object only; realm_state = depends on the exact Realm authority revision (membership, policy_version, etc.); external = depends on data outside that authority state (claim revocation status, rate-limit counts, async approval). Each constraint_kind has a canonical evaluation_class declared in constraint-schema.md §2.3; implementations MAY tighten (e.g. grant_local → stateless) but MUST NOT loosen (e.g. external as stateless). Auth evaluators SHOULD use this hint to gate fast-path caching."
+      "description": "Cacheability/dependency hint for the authorization evaluator. stateless = pure function of (constraint, op, now); grant_local = depends on the grant object only; realm_state = depends on the exact Realm authority revision (membership, policy_version, etc.); external = depends on data outside that authority state (claim revocation status, rate-limit counts, async approval). Each constraint_kind has a canonical evaluation_class declared in constraint-schema.md Â§2.3; implementations MAY tighten (e.g. grant_local â†’ stateless) but MUST NOT loosen (e.g. external as stateless). Auth evaluators SHOULD use this hint to gate fast-path caching."
     },
     "constraint_subkind": {
       "type": "string",
-      "description": "Optional discriminator within a constraint_kind. Standard values: claim_based.{claim,approval,accountability}; quota.{rate,resource}; confidentiality.{encryption,visibility}; temporal.{window,edit_window,redact_window,session}; authority_control.{applet_authority}. Per constraint-schema.md §2.2, device/session binding is NOT an independent constraint_subkind: it is the claim_based constraint_subkind=claim sub-case expressed via an accepted PCR device issuer. Implementations MAY require constraint_subkind for these families and fail closed on unknown values.",
+      "description": "Optional discriminator within a constraint_kind. Standard values: claim_based.{claim,approval,accountability}; quota.{rate,resource}; confidentiality.{encryption,visibility}; temporal.{window,edit_window,redact_window,session}; authority_control.{applet_authority}. Per constraint-schema.md Â§2.2, device/session binding is NOT an independent constraint_subkind: it is the claim_based constraint_subkind=claim sub-case expressed via an accepted PCR device issuer. Implementations MAY require constraint_subkind for these families and fail closed on unknown values.",
       "enum": [
         "claim",
         "approval",
@@ -88,7 +88,7 @@
     },
     "recurrence": {
       "type": "object",
-      "description": "Recurrence rule for temporal constraints. Used by constraint-schema.md §3.1.",
+      "description": "Recurrence rule for temporal constraints. Used by constraint-schema.md Â§3.1.",
       "properties": {
         "frequency": {
           "type": "string",
@@ -160,7 +160,7 @@
     },
     "condition": {
       "type": "object",
-      "description": "Conditional predicate for field_access and similar constraints. The `kind` value is a registered named condition from constraint-schema.md §4.1; unknown kinds MUST fail closed. Implementations MUST NOT introduce ad hoc string DSL predicates.",
+      "description": "Conditional predicate for field_access and similar constraints. The `kind` value is a registered named condition from constraint-schema.md Â§4.1; unknown kinds MUST fail closed. Implementations MUST NOT introduce ad hoc string DSL predicates.",
       "required": [
         "kind"
       ],
@@ -478,7 +478,7 @@
       "type": "integer",
       "minimum": 0,
       "maximum": 4,
-      "description": "Maximum remaining authority hops. Bounded by the canonical authority-chain depth ceiling (4) defined in zh/conformance/scalability-constraints.md §3 and zh/authz/capabilities.md §10.2; reducers MUST reject grants declaring a larger value at accept time rather than only truncating during DFS."
+      "description": "Maximum remaining authority hops. Bounded by the canonical authority-chain depth ceiling (4) defined in zh/conformance/scalability-constraints.md Â§3 and zh/authz/capabilities.md Â§10.2; reducers MUST reject grants declaring a larger value at accept time rather than only truncating during DFS."
     },
     "authority_path_ids": {
       "type": "array",
@@ -585,29 +585,30 @@
         "guardian",
         "realm_admin",
         "custom"
-      ]
+      ],
+      "description": "Responsibility classification of this grant explicit approval_actor_ids roster. It never creates a second dynamic roster or supplies action/scope capability. Missing explicit roster cannot satisfy approval."
     },
     "timeout": {
       "type": "string",
-      "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$"
-    },
-    "auto_reject_on_timeout": {
-      "type": "boolean"
+      "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$",
+      "description": "Positive fixed ISO 8601 duration (week/day/hour/minute/second, no calendar year/month). Each approval vote is valid only when the target covering committed_at <= that vote input.approved_at + timeout, inclusive and with zero tolerance. The same rule applies to Event and operation targets; receiver clocks and first-seen timestamps never anchor it. Omission adds no grant-local age limit."
     },
     "approval_threshold": {
-      "type": "string",
-      "enum": [
-        "majority",
-        "unanimous",
-        "quorum",
-        "custom"
-      ]
-    },
-    "approver_ids": {
-      "type": "array",
-      "items": {
-        "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-      }
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": [
+            "majority",
+            "unanimous"
+          ]
+        },
+        {
+          "type": "integer",
+          "minimum": 1
+        }
+      ],
+      "default": "unanimous",
+      "description": "Closed executable vote threshold: majority means floor(N/2)+1, unanimous means N, and a positive integer is the exact quorum. N is the distinct eligible approver set at the accepting authority cut. Omission means unanimous. A missing or empty eligible set, or an integer greater than N, cannot satisfy approval. Repeated signatures by one approver count once. Parameterless quorum/custom strings are schema violations."
     },
     "accountability_required": {
       "type": "boolean"
@@ -621,7 +622,7 @@
     "required_claims": {
       "type": "array",
       "maxItems": 32,
-      "description": "Conditional claim requirements. resource-selector-grammar.md §3.3 caps this array at 32 entries as a normative DoS guard; the schema enforces maxItems:32 so condition-selector grants cannot smuggle in unbounded claim objects.",
+      "description": "Conditional claim requirements. resource-selector-grammar.md Â§3.3 caps this array at 32 entries as a normative DoS guard; the schema enforces maxItems:32 so condition-selector grants cannot smuggle in unbounded claim objects.",
       "items": {
         "type": "object",
         "required": [
@@ -723,11 +724,11 @@
     },
     "plaintext_fallback_allowed": {
       "type": "boolean",
-      "description": "confidentiality(constraint_subkind=encryption) static flag: whether the grant permits plaintext in a scope that has no accepted ak.mls.genesis. After activation the flag cannot restore plaintext; the write MUST be rejected with mls_activation_irreversible. See constraint-schema.md §12."
+      "description": "confidentiality(constraint_subkind=encryption) static flag: whether the grant permits plaintext in a scope that has no accepted ak.mls.genesis. After activation the flag cannot restore plaintext; the write MUST be rejected with mls_activation_irreversible. See constraint-schema.md Â§12."
     },
     "audit_trail_required": {
       "type": "boolean",
-      "description": "confidentiality(constraint_subkind=encryption) static flag: whether the grant requires an audit trail (e.g. active Audit Applet Binding). See constraint-schema.md §12."
+      "description": "confidentiality(constraint_subkind=encryption) static flag: whether the grant requires an audit trail (e.g. active Audit Applet Binding). See constraint-schema.md Â§12."
     },
     "key_rotation_period": {
       "type": "string",
@@ -748,12 +749,12 @@
     },
     "depends_on_moderation_state": {
       "type": "boolean",
-      "description": "Cache-invalidation hint: when true, this grant's authorization decisions depend on the moderation_state typed current result (see capabilities.md §18.1) and the grant's cache entry MUST be invalidated when that typed current result changes. Default false: ordinary grants (ak.strand.update / ak.message.create / organization membership grants) do NOT take a cache hit on every moderation decision. v1 capabilities.md §18.1 lists three conditions where MUST be explicitly true (moderator-role grants, condition-selector subjects referencing moderation state, constraints referencing moderation queue / typed current result). Schema-side enforcement of condition (2) is in capability-grant.schema.json via if/then on actions[]; conditions (1) and (3) are reducer-side lint. Cache invalidation hint outside the eight constraint families; it does not participate in allow/deny evaluation and is documented in capabilities.md §6 / constraint-schema.md."
+      "description": "Cache-invalidation hint: when true, this grant's authorization decisions depend on the moderation_state typed current result (see capabilities.md Â§18.1) and the grant's cache entry MUST be invalidated when that typed current result changes. Default false: ordinary grants (ak.strand.update / ak.message.create / organization membership grants) do NOT take a cache hit on every moderation decision. v1 capabilities.md Â§18.1 lists three conditions where MUST be explicitly true (moderator-role grants, condition-selector subjects referencing moderation state, constraints referencing moderation queue / typed current result). Schema-side enforcement of condition (2) is in capability-grant.schema.json via if/then on actions[]; conditions (1) and (3) are reducer-side lint. Cache invalidation hint outside the eight constraint families; it does not participate in allow/deny evaluation and is documented in capabilities.md Â§6 / constraint-schema.md."
     }
   },
   "allOf": [
     {
-      "$comment": "constraint-schema.md §2.2 / §2.3: claim_based, confidentiality and quota families have NO valid no-constraint_subkind form — every row in the §2.3 evaluation_class table carries a constraint_subkind (claim/approval/accountability; encryption/visibility; rate/resource). Without this gate a {\"constraint_kind\":\"claim_based\",\"effect\":\"allow\"} with no constraint_subkind passes schema validation, letting weak implementations cache an external (claim-revocation) constraint on the grant_local fast path (see C05-03 fail-open). temporal is intentionally excluded: a temporal constraint with no constraint_subkind is the valid ordinary time-window form.",
+      "$comment": "constraint-schema.md Â§2.2 / Â§2.3: claim_based, confidentiality and quota families have NO valid no-constraint_subkind form â€” every row in the Â§2.3 evaluation_class table carries a constraint_subkind (claim/approval/accountability; encryption/visibility; rate/resource). Without this gate a {\"constraint_kind\":\"claim_based\",\"effect\":\"allow\"} with no constraint_subkind passes schema validation, letting weak implementations cache an external (claim-revocation) constraint on the grant_local fast path (see C05-03 fail-open). temporal is intentionally excluded: a temporal constraint with no constraint_subkind is the valid ordinary time-window form.",
       "if": {
         "properties": {
           "constraint_kind": {

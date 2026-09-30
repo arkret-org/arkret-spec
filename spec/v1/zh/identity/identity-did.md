@@ -270,6 +270,20 @@ DIF / identity.foundation `did:webvh` method specification（<https://identity.f
 与 §7.2；core v1 文档不再展开。`did:webvh` 当前不是 W3C Recommendation，本规范不应把它表述为 W3C
 artifact。
 
+**直接主体控制证明的历史 key 选择（normative）**：approval signature 与 3PID claim 的 subject proof
+证明原生 principal 的控制关系，不是普通 Event producer/device authorization。对 `did:webvh` principal，
+verifier MUST 从签名所绑定时点的完整已验证 method-native history 取得 effective `updateKeys`，
+允许其中精确 Multikey 对应的标准 `did:key:<multibase>#<multibase>` 作为 proof 的
+`verification_method`。必须先独立验证 subject/approver 的 `did:webvh` SCID、历史链、controller
+proof、pre-rotation 与 witness，再核对该时点 key 集合；单独解析一个 caller 提供的 did:key 不证明
+它控制该 principal。subject/approver 身份仍取已签完整 Account / approver DID，不能改投影为
+update key 的 did:key identity。历史文档直接声明的合格 method 仍可使用。未来 rotation 或 deactivation
+不追溯撤销原已验证时点的签名；在所选时点已失效、key 不在 effective 集合、错误 fragment、未知历史
+或缺少原生证明均失败关闭。该规则不要求 principal DID Document 暴露 root `verificationMethod`，
+不允许合成 `#root` / `#registration-root`，也不赋予该 root 普通 Event、设备或 SessionGrant 权限。
+Invite 使用覆盖 claim 的 Commit 时点，approval 使用已签 `approved_at`；两者继续各自的 transcript、
+完整 scope、独立资格与 nonce 规则。
+
 #### 3.4.1 Witness 的 method-native 输入合同（normative）
 
 §3.4 把 witness 验证定为 v1 core MUST。该 MUST 的输入合同是封闭的，实现之间不得各自解释：

@@ -549,10 +549,11 @@
     },
     "applet_managed_actor_authoring_context": {
       "type": "object",
-      "description": "Current authority context for an Applet-managed Actor. Authorization is checked again when the governance Station commits the authored Event. All four members are required: the same section of extensions/applet-integration.md makes an accepted authoring result conditional on both signer roots having been verified and frozen inside the one recoverable atomic commit, so a context without them could never have been accepted.",
+      "description": "Current authority context for an Applet-managed Actor. Authorization is checked again when the governance Station commits the authored Event. The original request, independent portal head, exact principal control Commit and both signer roots are required: the same section of extensions/applet-integration.md makes an accepted authoring result conditional on both signer roots having been verified and frozen inside the one recoverable atomic commit, so a context without them could never have been accepted. A subsequent identity-resolution completion additionally carries resolution_update, and its new Principal root and Station attester authority_commit_id/resolved_at equal the last supplied lineage Commit id/committed_at. The original Applet Service registration root and original committed_request are retained.",
       "required": [
         "committed_request",
         "realm_stream_head",
+        "principal_control_commit",
         "applet_service_signer_evidence",
         "managed_actor_signer_evidence"
       ],
@@ -563,11 +564,19 @@
         "realm_stream_head": {
           "$ref": "./realm-commit.schema.json#/$defs/stream_head"
         },
+        "principal_control_commit": {
+          "$ref": "./realm-commit.schema.json",
+          "description": "Exact accepted managed PCR Commit covering the managed Principal resolution used by managed_actor_signer_evidence. For first creation it covers the original bundle PCR genesis; it is not realm_stream_head of the install/portal Realm. The Principal root and Station attester bind this Commit id/time. For rotation it equals the last commits item; reuse preserves the runtime already verified current PCR resolution closure."
+        },
         "applet_service_signer_evidence": {
           "$ref": "#/$defs/applet_service_signer_evidence"
         },
         "managed_actor_signer_evidence": {
           "$ref": "#/$defs/managed_actor_principal_signer_evidence"
+        },
+        "resolution_update": {
+          "$ref": "#/$defs/managed_actor_resolution_update_evidence",
+          "description": "Present only for a subsequent accepted managed identity resolution update. Absent for first installation, Ghost provisioning and install reuse. Presence selects the rotation branch; the original committed_request and immutable creation anchors are never rewritten."
         }
       },
       "additionalProperties": false,
@@ -590,6 +599,39 @@
         },
         "authoring_context": {
           "$ref": "#/$defs/applet_managed_actor_authoring_context"
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-max-canonical-bytes": 16777216
+    },
+    "managed_actor_resolution_update_evidence": {
+      "type": "object",
+      "description": "Private accepted rotation closure delivered only to the exact already installed/provisioned managed Actor runtime through the existing node-to-Applet completion operation. The original committed_request remains immutable. The last lineage Commit accepts resolution_event and binds both new signer leaves; lineage begins immediately after the runtime retained previous Principal root Commit and is contiguous in that exact managed PCR stream. No public principal projection or current DID query can replace it.",
+      "required": [
+        "resolution_event",
+        "commits",
+        "method_history_evidence",
+        "attester_resolution"
+      ],
+      "properties": {
+        "resolution_event": {
+          "$ref": "./identity-resolution.schema.json#/$defs/resolution_update_event"
+        },
+        "commits": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "./realm-commit.schema.json"
+          },
+          "description": "Exact consecutive source RealmCommits in wire order, from the retained previous Principal root Commit exclusive through the Commit accepting resolution_event inclusive. Verify each predecessor, position, stream, Event digest binding and historical Station signature; no skipped Commit or cross-stream position comparison."
+        },
+        "method_history_evidence": {
+          "$ref": "./identity-resolution.schema.json#/$defs/method_history_evidence",
+          "description": "Complete independently verifiable method-native history for the exact resolution accepted by resolution_event. The selected native version/head and the new locally prepared method/raw public key must match."
+        },
+        "attester_resolution": {
+          "$ref": "./identity-resolution.schema.json#/$defs/authenticated_service_resolution",
+          "description": "Complete native history of the original target Station Service, sufficient to verify every supplied Commit at its actual committed_at and the exact new Service attester method. Its service_id equals the original target Station; its terminal document never replaces historical key selection."
         }
       },
       "additionalProperties": false,
