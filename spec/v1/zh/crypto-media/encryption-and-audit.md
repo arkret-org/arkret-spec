@@ -597,9 +597,22 @@ genesis_intent_persisted -> realm_accepted -> governance_result_pinned -> epoch0
 [`mls-creator-bootstrap-transaction-registry.json`](../../artifacts/registry/mls-creator-bootstrap-transaction-registry.json)，
 实现 MUST 从该 registry 读取状态、箭头与持久化要求，MUST NOT 从本节散文重新推导。
 
+**钉住的治理证据（normative）**：`governance_result_pinned` 不表示新的 Station proof RPC 或其 outcome。
+客户端使用既有 authority 与授权 current 读取面，独立验证 nonce-bound current authority bundle、完整 authority
+链、exact accepted scope-create Event／covering Commit，以及覆盖精确 effective scope 的完整授权 current cut。
+只有经验证的完整 cut 才能证明该 scope 尚无 accepted Genesis；不完整投影的缺行、HTTP `not_found`、超时或
+不可用结果都不能证明缺席。完整 owner ActorId、不可变 creator device／signer 与该 cut 的创建者和 endpoint
+授权必须一致。Realm 与 Circle 都核对自身的 accepted create 与所属 scope，不能借父 Realm 或其它 Circle 的材料。
+
+这些已验证证据与原 durable intent 中的 canonical local proposal 在一次 durable commit 中钉住；proposal binding
+保持 exact scope、派生 group id、null base 和三个零，不是 Station 签发的证明，不新增 HTTP operation、wire
+request／outcome 或字段。未知、未认证、不完整或不一致证据使状态保持 `realm_accepted`，禁止随机材料、上传、
+签名与入队。钉住前可用原 selector 和新 transport nonce 重读既有证据；钉住后只复用原证据与 binding，不能
+用刷新后的 cut 或 UI 投影静默替换。并发 accepted Genesis winner 进入 `superseded`，仍由原正式准入 CAS 裁定。
+
 原子切点（normative）：
 
-- selector 在 `ak.realm.create` 的**第一次网络副作用之前**、任何 `0 -> 0` 治理查询之前、任何依赖 selector 的
+- selector 在 `ak.realm.create` 的**第一次网络副作用之前**、任何治理证据读取之前、任何依赖 selector 的
   随机材料生成之前落盘；
 - governance binding 在任何依赖它的 MLS / HPKE 随机材料之前钉住；
 - epoch-0 private state、public 原始字节与 exact unsigned Genesis core 作为**同一个恢复单元**提交，且必须早于

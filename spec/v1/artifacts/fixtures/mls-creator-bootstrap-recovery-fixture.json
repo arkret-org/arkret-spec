@@ -5,7 +5,7 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.mls.creator_bootstrap_recovery.v1"
   },
-  "version": "2026-09-15",
+  "version": "2026-10-01",
   "covers_vectors": [
     "ak.vector.mls.creator_bootstrap_recovery.v1"
   ],
@@ -27,7 +27,7 @@
       "expected_state": "absent",
       "expected": "no_attempt_exists",
       "invariants": [
-        "no Realm create was submitted and no governance query was sent",
+        "no Realm create was submitted and no governance evidence was read",
         "no selector-dependent random material was generated",
         "the next run requires an explicit closed creation intent and may not infer the proposed_group_genesis_binding"
       ]
@@ -64,9 +64,9 @@
       "expected": "resume_from_the_replaced_closed_intent",
       "invariants": [
         "the whole closed intent was replaced atomically; no run observes the new proposed_group_genesis_binding beside the old one",
-        "the superseded selector is no longer readable and is never used to rebuild the 0->0 query",
+        "the superseded selector is no longer readable and is never used to rebuild the governance-evidence read",
         "the logical key, the immutable creator device and signer method, the frozen signed Realm-create unit and the create Event id derived from it are unchanged",
-        "the replacement precedes the 0->0 governance query and every selector-dependent random material"
+        "the replacement precedes governance-evidence reads and every selector-dependent random material"
       ]
     },
     {
@@ -86,7 +86,7 @@
       "transition": "genesis_intent_persisted_to_realm_accepted",
       "injection": "post_commit",
       "expected_state": "realm_accepted",
-      "expected": "resume_at_the_zero_to_zero_query",
+      "expected": "verify_existing_authority_and_complete_current_evidence",
       "invariants": [
         "the accepted create Event id, its bytes digest, the digest suite and the authority-root resolution are durable",
         "the exact accepted-Genesis query returned a definite absent before this state was entered",
@@ -98,7 +98,7 @@
       "transition": "realm_accepted_to_governance_result_pinned",
       "injection": "pre_commit",
       "expected_state": "realm_accepted",
-      "expected": "repeat_the_exact_query_with_the_same_selector",
+      "expected": "repeat_existing_evidence_reads_with_the_same_durable_selector",
       "invariants": [
         "no MLS or HPKE random material was generated",
         "the repeated query carries the same proposed_group_genesis_binding"
@@ -109,9 +109,9 @@
       "transition": "realm_accepted_to_governance_result_pinned",
       "injection": "post_commit",
       "expected_state": "governance_result_pinned",
-      "expected": "resume_with_the_pinned_request_and_outcome",
+      "expected": "resume_with_the_pinned_verified_evidence_and_local_binding",
       "invariants": [
-        "the exact canonical request bytes, both bases, the local leaf set, the query digest and the complete validated outcome bytes are durable",
+        "all six required governance evidence fields and the unchanged local binding are durable in one commit",
         "a current projection or a refreshed basis does not replace the pinned pair",
         "exactly one governance_binding is adopted"
       ]
@@ -124,7 +124,7 @@
       "expected": "regenerate_epoch0_from_the_same_pinned_binding",
       "invariants": [
         "nothing was externally observable, so the discarded in-memory material is not a recoverable attempt",
-        "regeneration uses the pinned binding and never a re-queried outcome"
+        "regeneration uses the pinned binding and never a refreshed current cut"
       ]
     },
     {
@@ -232,7 +232,7 @@
   "scenario_cases": [
     {
       "name": "selector_amendment_at_genesis_intent_persisted",
-      "given": "the record is at genesis_intent_persisted with a committed proposed_group_genesis_binding, and the creator regenerates that binding before any 0->0 query",
+      "given": "the record is at genesis_intent_persisted with a committed proposed_group_genesis_binding, and the creator regenerates that binding before any governance-evidence read",
       "action": "commit the replacement intent and run the recoverer after a reload",
       "expected": "resume_from_the_replaced_closed_intent",
       "invariants": [
@@ -253,13 +253,43 @@
       ]
     },
     {
-      "name": "governance_query_response_loss",
-      "given": "the record is at realm_accepted and the 0->0 governance response is dropped",
+      "name": "governance_evidence_response_loss",
+      "given": "the record is at realm_accepted and an existing authority or authorized current read response is dropped",
       "action": "reload the client and run the recoverer",
-      "expected": "repeat_the_exact_query_with_the_same_selector",
+      "expected": "repeat_existing_evidence_reads_with_the_same_durable_selector",
       "invariants": [
-        "no MLS or HPKE random material is generated before an outcome is pinned",
-        "the repeated request is byte-identical apart from its transport framing"
+        "no MLS or HPKE random material is generated before verified evidence and the unchanged local binding are pinned",
+        "the durable selector is unchanged; a fresh transport nonce does not amend the local proposal or open a second intent"
+      ]
+    },
+    {
+      "name": "governance_evidence_unauthenticated",
+      "given": "the record is at realm_accepted and the authority bundle or chain is not independently authenticated",
+      "action": "reload the client and attempt to pin governance evidence",
+      "expected": "remain_at_realm_accepted_without_random_material",
+      "invariants": [
+        "no local proposal is treated as a Station-signed outcome",
+        "no MLS material, upload, signature or queue item is created"
+      ]
+    },
+    {
+      "name": "genesis_absence_unproved",
+      "given": "the record is at realm_accepted and an incomplete current projection omits the MLS group or a read returns not_found",
+      "action": "reload the client and attempt to pin governance evidence",
+      "expected": "remain_at_realm_accepted_without_random_material",
+      "invariants": [
+        "only a verified complete authorized cut covering the exact scope proves Genesis absence",
+        "the missing projection row or HTTP status does not advance the state"
+      ]
+    },
+    {
+      "name": "creator_endpoint_unverified",
+      "given": "the record is at realm_accepted and creator authorization names another Station, device or signer method",
+      "action": "reload the client and attempt to pin governance evidence",
+      "expected": "remain_at_realm_accepted_without_random_material",
+      "invariants": [
+        "the immutable complete owner ActorId, creator device and signer method remain unchanged",
+        "the mismatched endpoint cannot take over the record or create a second intent"
       ]
     },
     {

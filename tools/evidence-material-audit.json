@@ -1,12 +1,12 @@
 {
-  "version": 22,
+  "version": 23,
   "source_of_truth": false,
   "narrative_source": "spec/v1/zh/models/common-fields.md#r6-证据类名词分工",
   "scope": [
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 349,
+  "audited_occurrence_count": 351,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -1032,6 +1032,20 @@
         "transcript"
       ],
       "reason": "Carries the immutable original-admission device projection attestation and complete authenticated origin Station native Service history for offline historical producer signature verification."
+    },
+    {
+      "file": "mls-creator-bootstrap-transaction-registry.json",
+      "key": "evidence_source",
+      "occurrences": 1,
+      "disposition": "registry_contract",
+      "reason": "Defines independently verified existing authority and complete authorized current-read inputs to the client-local durable transaction; it introduces no wire evidence carrier, proof RPC or Station-signed local proposal."
+    },
+    {
+      "file": "mls-creator-bootstrap-transaction-registry.json",
+      "key": "governance_evidence_contract",
+      "occurrences": 1,
+      "disposition": "registry_contract",
+      "reason": "Defines independently verified existing authority and complete authorized current-read inputs to the client-local durable transaction; it introduces no wire evidence carrier, proof RPC or Station-signed local proposal."
     }
   ]
 }

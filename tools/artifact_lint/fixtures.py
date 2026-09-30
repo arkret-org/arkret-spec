@@ -8108,7 +8108,10 @@ MLS_CREATOR_BOOTSTRAP_SCENARIOS = (
     "selector_amendment_at_genesis_intent_persisted",
     "selector_amendment_after_realm_accepted",
     "realm_create_response_loss",
-    "governance_query_response_loss",
+    "governance_evidence_response_loss",
+    "governance_evidence_unauthenticated",
+    "genesis_absence_unproved",
+    "creator_endpoint_unverified",
     "public_blob_partial_upload",
     "sign_before_enqueue",
     "enqueue_commit_then_response_loss",
@@ -8303,6 +8306,25 @@ def check_mls_creator_bootstrap_transaction(lint: Lint) -> None:
     if registry.get("source_of_truth") is not True:
         lint.fail(registry_path, "source_of_truth must be true")
 
+    evidence = registry.get("governance_evidence_contract")
+    evidence_keys = (
+        "evidence_source", "required_durable_fields", "genesis_absence_rule",
+        "creator_authority_rule", "binding_rule", "wire_rule", "unavailable_rule",
+    )
+    if not isinstance(evidence, dict) or tuple(evidence) != evidence_keys:
+        lint.fail(registry_path, "governance_evidence_contract must declare its closed evidence and absence contract")
+        evidence = {}
+    for key in evidence_keys:
+        if key != "required_durable_fields" and not (isinstance(evidence.get(key), str) and evidence[key].strip()):
+            lint.fail(registry_path, f"governance_evidence_contract.{key} must be a non-empty string")
+    if evidence.get("evidence_source") != "existing_verified_authority_and_authorized_current_reads":
+        lint.fail(registry_path, "governance_evidence_contract must use existing verified evidence, not a local or unregistered proof outcome")
+    evidence_fields = evidence.get("required_durable_fields")
+    if not isinstance(evidence_fields, list) or len(evidence_fields) != 6 or not all(isinstance(item, str) and item.strip() for item in evidence_fields):
+        lint.fail(registry_path, "governance_evidence_contract must retain all six required durable evidence fields")
+    elif len(set(evidence_fields)) != 6 or any("proof_base_basis" in item or "proof_target_basis" in item for item in evidence_fields):
+        lint.fail(registry_path, "governance_evidence_contract cannot reuse unregistered proof carriers or duplicate evidence")
+
     states = registry.get("states")
     if not isinstance(states, list) or not states:
         lint.fail(registry_path, "states must be a non-empty list")
@@ -8356,6 +8378,10 @@ def check_mls_creator_bootstrap_transaction(lint: Lint) -> None:
         exits = row["allowed_exits"]
         if not isinstance(exits, list) or len(exits) != len(set(exits)):
             lint.fail(registry_path, f"{state_id}.allowed_exits must be a duplicate-free array")
+
+    pinned = state_rows.get("governance_result_pinned", {})
+    if pinned.get("required_durable_fields") != evidence_fields:
+        lint.fail(registry_path, "governance_result_pinned must retain the exact governance_evidence_contract required fields")
 
     if ordinals != sorted(ordinals) or len(set(ordinals)) != len(ordinals):
         lint.fail(registry_path, "states[].ordinal must be unique and strictly increasing in file order")

@@ -195,9 +195,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/mls-creator-bootstrap-transaction-registry.json",
-      "version": "2026-09-20",
-      "generated_at": "2026-09-20T16:42:00+08:00",
-      "content_digest": "sha256:43ed0be6630d1010dbb8facbd1138ca031746b9f6bfdff34cbe31a24abadb522"
+      "version": "2026-10-01",
+      "generated_at": "2026-10-01T05:00:22+08:00",
+      "content_digest": "sha256:f085ff4bbdd3616c58162687969a00b44190600cec05b278e6892a3e771f0de0"
     },
     {
       "path": "spec/v1/artifacts/registry/mls-extension-registry.json",
@@ -213,9 +213,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/normative-clause-registry.json",
-      "version": "2026-09-29.11",
-      "generated_at": "2026-09-29T11:15:00+08:00",
-      "content_digest": "sha256:3a4390d22a8a8cafd22fa13b2eee3c1d05cf6f0a81fffb9f84a288b2fa4ada0b"
+      "version": "2026-10-01",
+      "generated_at": "2026-10-01T05:00:22+08:00",
+      "content_digest": "sha256:b1b72c221c4664972b3781b91239d45be2cdfed83a042cbc53534a1280cb5a43"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-bundle-closure-lock.json",
@@ -423,9 +423,9 @@
     },
     {
       "path": "tools/evidence-material-audit.json",
-      "version": 22,
+      "version": 23,
       "generated_at": null,
-      "content_digest": "sha256:95aa8d06bc58755885650c65ad0a1d520b83c5e3c574650728d7d5245cae98a0"
+      "content_digest": "sha256:8fd83fbb59286fd6e1495370c53169ab621249aa778663e8f8ab86dbca962816"
     },
     {
       "path": "tools/fixture-schema-instance-binding-registry.json",

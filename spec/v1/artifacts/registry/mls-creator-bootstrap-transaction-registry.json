@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-20",
+  "version": "2026-10-01",
   "source_of_truth": true,
-  "generated_at": "2026-09-20T16:42:00+08:00",
+  "generated_at": "2026-10-01T05:00:22+08:00",
   "description": "Canonical closed state machine for the single client-local durable transaction that carries one encrypted effective scope from the creator's explicit genesis intent to MLS write-ready. It is the machine-readable form of zh/crypto-media/encryption-and-audit.md section 5.1.2 and the only source a conforming client uses to decide what it must persist, in what order, and which single next arrow a recoverer may execute.",
   "registry_rules": [
     "This record is client-local normative durable state protected by the device secret. It is not a wire object, not a Realm Event, not an Account Data key and not a server transaction. It MUST NOT enter the ak.realm.create payload, any current projection or query result, client sync or federation.",
@@ -52,6 +52,22 @@
     "genesis_rule": "base_group_state_ref is null and previous_epoch, next_epoch and key_access_revision are all the unsigned integer 0.",
     "wire_exposure": "none"
   },
+  "governance_evidence_contract": {
+    "evidence_source": "existing_verified_authority_and_authorized_current_reads",
+    "required_durable_fields": [
+      "the exact accepted scope-create Event and covering Commit",
+      "the independently verified nonce-bound current authority bundle and complete authority chain",
+      "the verified complete authorized current cut proving no accepted Genesis for the exact effective scope",
+      "the exact current creator Actor, device and signer authorization evidence",
+      "the canonical closed local proposal carrier bytes and their digest",
+      "the single governance_binding copied unchanged from the durable proposal"
+    ],
+    "genesis_absence_rule": "Only a cryptographically verified complete authorized current cut covering the exact effective scope proves absence. Missing rows in an incomplete projection, HTTP not_found alone, a timeout or an unavailable read do not prove absence. An accepted Genesis winner moves to superseded rather than regenerating material.",
+    "creator_authority_rule": "The complete owner ActorId, creator device and signer method must match the immutable intent and the accepted creator and current endpoint authorization at this cut. A principal-only match or another Station/device cannot take over the record.",
+    "binding_rule": "The canonical local proposal carrier uses the same durable proposed_group_genesis_binding unchanged: exact effective scope and derived group id, null base_group_state_ref, and unsigned previous_epoch, next_epoch and key_access_revision equal to zero.",
+    "wire_rule": "No proof RPC, proof request/outcome carrier, new operation or new wire field is introduced. Existing authority/current evidence remains independently verified; the local proposal is not a Station-signed governance outcome.",
+    "unavailable_rule": "Unknown, unauthenticated, incomplete or inconsistent evidence leaves realm_accepted unchanged and prohibits random generation, blob upload, signing and enqueue."
+  },
   "selector_amendment": {
     "amendable_state": "genesis_intent_persisted",
     "forbidden_from_state": "realm_accepted",
@@ -90,7 +106,7 @@
       "ordinal": 1,
       "kind": "progress",
       "authority_source": "local_creator_selection",
-      "entry_predicate": "The record is committed atomically before the first network side effect of ak.realm.create, before any 0->0 governance query, and before any selector-dependent random material is generated. An already accepted MLS Realm that has no accepted Genesis enters here with this state's postconditions already satisfied and immediately continues to realm_accepted; no entry path may generate random material or query governance before the selector is durable.",
+      "entry_predicate": "The record is committed atomically before the first network side effect of ak.realm.create, before any governance-evidence read, and before any selector-dependent random material is generated. An already accepted MLS Realm that has no accepted Genesis enters here with this state's postconditions already satisfied and immediately continues to realm_accepted; no entry path may generate random material or read governance evidence before the selector is durable.",
       "required_durable_fields": [
         "logical key: owner_actor_id, effective_scope, operation",
         "complete owner_actor_id including its station_id",
@@ -135,15 +151,15 @@
       "state_id": "governance_result_pinned",
       "ordinal": 3,
       "kind": "progress",
-      "authority_source": "own_station_closed_governance_outcome_for_the_exact_zero_to_zero_request",
-      "entry_predicate": "The client validated the closed Station outcome for its exact 0->0 request and confirmed that the outcome's query digest, scope, group, selector, local leaves and basis all match the request it sent.",
+      "authority_source": "independently_verified_accepted_authority_and_complete_current_cut_with_local_closed_proposal",
+      "entry_predicate": "The client independently verifies the current authority chain and nonce-bound bundle, the exact accepted scope-create Event and Commit, the complete authorized current cut proving Genesis absence for this exact scope, and the current creator Actor/device/signer authority. The canonical local proposal retains the exact durable intent scope, derived group id, null base and three zero values. These inputs are pinned together before any dependent randomness; a local proposal alone is never Station evidence.",
       "required_durable_fields": [
-        "the exact canonical request bytes",
-        "proof_base_basis and proof_target_basis",
-        "the local leaf set that entered the query",
-        "the query digest",
-        "the complete validated outcome bytes",
-        "the single governance_binding adopted from that outcome"
+        "the exact accepted scope-create Event and covering Commit",
+        "the independently verified nonce-bound current authority bundle and complete authority chain",
+        "the verified complete authorized current cut proving no accepted Genesis for the exact effective scope",
+        "the exact current creator Actor, device and signer authorization evidence",
+        "the canonical closed local proposal carrier bytes and their digest",
+        "the single governance_binding copied unchanged from the durable proposal"
       ],
       "amendment_rule": "forbidden",
       "allowed_exits": [
@@ -151,7 +167,7 @@
         "superseded",
         "quarantined"
       ],
-      "retry_rule": "The query itself is retryable, but a validated and adopted request and outcome pair MUST NOT be replaced by a current projection or by a refreshed basis.",
+      "retry_rule": "Before the pin commit, repeat existing authority and authorized current reads using the same durable selector and fresh transport nonce. Unknown authority, incomplete coverage or an unavailable Genesis decision keeps realm_accepted and generates no MLS material. Once pinned, reuse the exact evidence and local binding; do not replace them with a refreshed cut or UI projection.",
       "gc_rule": "retain_until_ready",
       "failure_disposition": "quarantined"
     },
@@ -324,7 +340,7 @@
       "transition_id": "absent_to_genesis_intent_persisted",
       "from_state": null,
       "to_state": "genesis_intent_persisted",
-      "commit_boundary": "The selector record is committed atomically before the first network side effect of ak.realm.create, before any 0->0 query and before any selector-dependent random material.",
+      "commit_boundary": "The selector record is committed atomically before the first network side effect of ak.realm.create, before any governance-evidence read and before any selector-dependent random material.",
       "crash_before_commit": "No attempt exists. The next run starts from an explicit selection and MUST NOT infer a selector from a Realm that may already have been created.",
       "crash_after_commit": "The record exists and the recoverer continues from genesis_intent_persisted, reusing the frozen selector and the derived create Event id."
     },
@@ -332,7 +348,7 @@
       "transition_id": "genesis_intent_persisted_to_genesis_intent_persisted",
       "from_state": "genesis_intent_persisted",
       "to_state": "genesis_intent_persisted",
-      "commit_boundary": "The complete closed creation intent, including the regenerated proposed_group_genesis_binding, is replaced in one atomic durable commit under the unchanged logical key. A partial patch of the binding alone is not a legal write, and the commit MUST still precede the first network side effect of the 0->0 governance query and any selector-dependent random material.",
+      "commit_boundary": "The complete closed creation intent, including the regenerated proposed_group_genesis_binding, is replaced in one atomic durable commit under the unchanged logical key. A partial patch of the binding alone is not a legal write, and the commit MUST still precede the first governance-evidence read and any selector-dependent random material.",
       "crash_before_commit": "The previous closed intent is still the only durable one, and the recoverer continues from it. A selector shown in the UI but never committed authorizes nothing.",
       "crash_after_commit": "The replacement is the only durable intent, the superseded selector is unreadable, and the frozen Realm-create unit, its derived create Event id and the immutable record fields are unchanged."
     },
@@ -342,15 +358,15 @@
       "to_state": "realm_accepted",
       "commit_boundary": "The accepted Realm-create result and the definite Genesis-absent result are committed together into the same record.",
       "crash_before_commit": "The recoverer resolves the create Event id already derived from the frozen unit. It MUST NOT submit a second create and MUST NOT read an unknown result as absent.",
-      "crash_after_commit": "The record is at realm_accepted and the recoverer proceeds to the 0->0 query using the frozen selector."
+      "crash_after_commit": "The record is at realm_accepted and the recoverer verifies existing authority and authorized current evidence using the frozen selector."
     },
     {
       "transition_id": "realm_accepted_to_governance_result_pinned",
       "from_state": "realm_accepted",
       "to_state": "governance_result_pinned",
-      "commit_boundary": "The exact request bytes and the complete validated outcome are pinned in one commit.",
-      "crash_before_commit": "The query is repeated with the same selector. A lost response never authorizes generating MLS or HPKE material.",
-      "crash_after_commit": "The pinned request and outcome pair is authoritative and MUST NOT be replaced by a current projection or a refreshed basis."
+      "commit_boundary": "The complete independently verified accepted authority/current/creator evidence and canonical local proposal are pinned together in one commit.",
+      "crash_before_commit": "Existing authority and authorized current reads are repeated with the same durable selector and fresh transport nonce. A lost response never authorizes generating MLS or HPKE material.",
+      "crash_after_commit": "The pinned verified evidence and unchanged local binding are reused and MUST NOT be replaced by a refreshed cut or an unverified projection."
     },
     {
       "transition_id": "governance_result_pinned_to_epoch0_state_persisted",
@@ -400,7 +416,7 @@
     },
     {
       "cut_point_id": "governance_binding_before_dependent_randomness",
-      "rule": "governance_result_pinned MUST precede any MLS or HPKE random material that depends on that binding. The query is retryable, but a validated and adopted request and outcome pair MUST NOT be silently replaced by a current projection or an updated basis."
+      "rule": "governance_result_pinned MUST precede any MLS or HPKE random material that depends on that binding. Evidence reads are retryable before the pin commit, but adopted verified evidence and the local binding MUST NOT be silently replaced by an unverified projection or an updated cut."
     },
     {
       "cut_point_id": "epoch0_recovery_unit_before_any_external_observability",
@@ -436,8 +452,8 @@
     ]
   },
   "retention": {
-    "before_ready": "The selector, the pinned request and outcome, the epoch-0 private state, the signed Event bytes and the queue association MUST NOT be deleted.",
-    "at_ready": "One atomic compaction MAY delete the pre-Genesis proposal, the proof request and outcome copies, staged state and the completed queue item. The accepted private group state, the accepted artifact, the public blobs the protocol still requires to be resolvable, and the minimal terminal receipt MUST be retained; protocol retention of the public blobs MUST NOT be garbage-collected together with local temporary files.",
+    "before_ready": "The selector, the pinned verified evidence and local proposal, the epoch-0 private state, the signed Event bytes and the queue association MUST NOT be deleted.",
+    "at_ready": "One atomic compaction MAY delete the pre-Genesis proposal, the pinned verification evidence copies, staged state and the completed queue item. The accepted private group state, the accepted artifact, the public blobs the protocol still requires to be resolvable, and the minimal terminal receipt MUST be retained; protocol retention of the public blobs MUST NOT be garbage-collected together with local temporary files.",
     "terminal_attempt": "Mismatched secrets of a rejected or superseded attempt, and temporary blobs that no accepted Event references, may be erased only after the terminal diagnostics are durable, the queue is stopped and the accepted state has been confirmed again.",
     "quarantined": "Original recovery material is not erased automatically.",
     "tombstone_rule": "Physical deletion MUST NOT remove the tombstone recording that this logical key already had a terminal attempt."

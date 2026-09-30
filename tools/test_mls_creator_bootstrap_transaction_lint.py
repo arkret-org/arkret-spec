@@ -57,6 +57,25 @@ class MlsCreatorBootstrapTransactionLintTest(unittest.TestCase):
     def test_committed_tree_passes(self) -> None:
         self.assertEqual(self._run(), [])
 
+    def test_pinned_evidence_requires_definite_genesis_absence_contract(self) -> None:
+        errors = self._run(mutate_registry=lambda registry: registry['governance_evidence_contract'].pop('genesis_absence_rule'))
+        self.assertTrue(any('governance_evidence_contract' in error for error in errors), errors)
+
+    def test_pinned_evidence_cannot_drop_creator_authority(self) -> None:
+        def mutate(registry):
+            registry['governance_evidence_contract']['creator_authority_rule'] = ''
+
+        errors = self._run(mutate_registry=mutate)
+        self.assertTrue(any('creator_authority_rule' in error for error in errors), errors)
+
+    def test_pinned_state_cannot_restore_unregistered_proof_carriers(self) -> None:
+        def mutate(registry):
+            state = next(row for row in registry['states'] if row['state_id'] == 'governance_result_pinned')
+            state['required_durable_fields'] = ['proof_base_basis', 'proof_target_basis', 'validated_outcome']
+
+        errors = self._run(mutate_registry=mutate)
+        self.assertTrue(any('governance_result_pinned' in error for error in errors), errors)
+
     def test_arrow_without_a_pre_commit_crash_case_fails(self) -> None:
         def mutate(fixture):
             fixture["crash_cases"] = [
