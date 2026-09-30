@@ -486,7 +486,7 @@ Base URL 来自 registration 的 `base_url`。
 | --- | --- | --- | --- | --- | --- |
 | `ak.edge.applet.read.ping.v1` | edge（节点→Applet） | 无 | 无 | `applet_id: id`; `service_id: did_core_id`; `protocol_version: string` | 可公开，但不得泄露 private namespace。 |
 | `ak.edge.applet.read.describe.v1` | edge（节点→Applet） | 无 | 无 | SDK `ServiceDescribe` | public mode 只返回 canonical discovery capabilities；不得私定义 Applet describe DTO。 |
-| `ak.edge.applet.command.transaction.v1` | edge（双向） | `header.Idempotency-Key: string`; `applet_id: applet_id`; `source_id: did_core_id` | Applet→Station 为 `events: EventEnvelope[]`；Station→Applet 为 `committed_events: {commit, event}[]`；两者互斥，均可与 `signals: SignalEnvelope[]` 同时出现，至少一组非空。另有互斥的 `authoring_context`（仅 Station→Applet，见 §7.3.2） | `status: enum(accepted,partial,rejected)`; `committed_event_refs: CommittedEventRef[]`（accepted/partial 必填，可为空）; `rejected: object[]?`; `retry_after_ms: int?` | 成功不能只返回 status；每个 durable accepted Event 都必须以 Event/Commit/stream/position 四元组定位。signals-only 成功返回空 refs。rejected 分支不得携 `committed_event_refs`。字段集权威来源是 [`applet-edge-operations.schema.json`](../../artifacts/schemas/applet-edge-operations.schema.json) 与 [`applet-schema.md` §7](./applet-schema.md)。接收方 MUST 以 exact `applet_id + source_id` 选择唯一 active registration/current epoch，再验证 full/VM 投影、HTTP signature、Event 与 Commit 签名和绑定、namespace 和 capability；不得按 service id 任取首条 Applet。replay key 是 `(applet_id, source_id, Idempotency-Key)`。 |
+| `ak.edge.applet.command.transaction.v1` | edge（双向） | `header.Idempotency-Key: string`; `applet_id: applet_id`; `source_id: did_core_id` | Applet→Station 为 `events: EventEnvelope[]`；Station→Applet 为 `committed_events: {commit, event, producer_device_evidence?}[]`；两者互斥，均可与 `signals: SignalEnvelope[]` 同时出现，至少一组非空。另有互斥的 `authoring_context`（仅 Station→Applet，见 §7.3.2） | `status: enum(accepted,partial,rejected)`; `committed_event_refs: CommittedEventRef[]`（accepted/partial 必填，可为空）; `rejected: object[]?`; `retry_after_ms: int?` | 成功不能只返回 status；每个 durable accepted Event 都必须以 Event/Commit/stream/position 四元组定位。signals-only 成功返回空 refs。rejected 分支不得携 `committed_event_refs`。字段集权威来源是 [`applet-edge-operations.schema.json`](../../artifacts/schemas/applet-edge-operations.schema.json) 与 [`applet-schema.md` §7](./applet-schema.md)。接收方 MUST 以 exact `applet_id + source_id` 选择唯一 active registration/current epoch，再验证 full/VM 投影、HTTP signature、Event 与 Commit 签名和绑定、namespace 和 capability；不得按 service id 任取首条 Applet。replay key 是 `(applet_id, source_id, Idempotency-Key)`。 |
 | `ak.edge.applet.actor.read.resolve.v1` | edge（节点→Applet） | `path.actor_id: percent-encoded RFC 8785 JCS(ActorId)` | 无 | `exists: boolean`; `actor_id: ActorId?`; `display_name: string?`; `external_ref: object?` | path 解码后必须是 closed ActorId，按完整 Actor 命中 Applet actor namespace；不得只比较 principal。 |
 | `ak.edge.applet.realm.read.resolve.v1` | edge（节点→Applet） | `path.realm_id_or_alias: string` | 无 | `exists: boolean`; `realm_id: id?`; `title: string?`; `external_ref: object?` | 必须命中 portal namespace 或授权查询。 |
 | `ak.edge.applet.read.protocol_metadata.v1` | edge（节点→Applet） | `path.protocol: string` | 无 | `protocol: string`; `display_name: string`; `icon_blob_ref: string?`; `field_definitions: object`; `instances: object[]?`（entry: `instance_id`, `display_name`） | instance list 可要求授权。 |
@@ -758,6 +758,30 @@ current DID head 重写旧 Event 的签名事实。轮换 completion 不授予�
 
 同机 host MAY 经内部类型化存储交付相同结果，但 MUST 保持以上来源、原件、原子保存及重复处理规则，不能用一个公开 bool 或裸配置字符串替代它们。
 
+
+#### 7.3.2.1 managed PCR 轮换的既有入站（normative）
+
+managed runtime MUST 经既有 `ak.edge.applet.command.transaction.v1` Applet→Station `events[]` 发送原生
+`ak.identity.resolution.update`；该请求只含一条该 Event，不混普通 Portal Event 或 Signal。原 Event 的
+`actor_id` 为原安装／provision 接纳的完整 managed AccountId，scope 是其派生身份 PCR 的 Realm scope；
+MUST NOT 携 `applet_id`、`executed_by` 或 Portal `authorization_ref` 来伪装成 Service 代署。RFC 9421
+只认证原 Applet Service 的传输来源，不能代替 Principal 的 producer proof。
+
+接收者仅为原 installing Station。它 MUST 在同一接受事务锁定 exact 原 install／provision、有效
+registration epoch 与该 managed PCR；原 Applet、source Service、完整 managed Account、PCR derive、
+原 creation anchors 任一不匹配或 runtime/install 已关闭均零写拒绝。该狭窄分支不需要也不创建
+SessionGrant，不使用 Portal action/resource grant，不允许更新另一 managed Actor 或 human PCR。
+
+producer 的标准 `did:key:<multibase>#<multibase>` method MUST 逐字属于该 managed PCR current
+resolution 的独立认证 native history 中有效 old updateKeys；key DID 本身不被投影为 Account 身份。
+验证者 MUST 独立核对 old native SCID/core、完整历史与 witness、原 Event JWS、标准 expected_revision
+及其 whole previous resolution projection，并验证 next resolution 的完整 native successor、同 core／
+原 Station 和确切新 method/public key；不能以调用方裸 key、当前网上 DID head 或 Service 签名替代。
+这是 managed `identity_resolution_update` 的专用 native producer admission，不是普通 Event 验签豁免。
+
+接纳仍沿唯一治理 Station 的一个 Event／RealmCommit UoW，原子推进 current resolution、保存新 roots／
+完整闭包及原 runtime 的 completion outbox（§7.3.2）。任何失败或 CAS 冲突均不留下 Event、Commit、
+current、root 或 outbox。exact replay 沿原 Event／请求幂等规则，不能接受不同原件或回退 current。
 
 ### 7.4 Query Actor
 
@@ -1079,6 +1103,24 @@ Applet MUST NOT use masquerading to hide automation. 客户端 MUST 明确展示
 管理员授权 exact install，Applet 构造、签署并可靠重试普通 Event，任意合资格接收站独立验证安装授权、Applet producer 与 scope 并保存原始 Event；安装绑定不产生普通 Event 的排他准入站。
 
 `ak.edge.applet.command.transaction.v1` 按方向验证：Applet→Station 的 `events[]` MUST 是 producer-only caller submissions，由接收 Station 接纳后产生真实 Commit；Station→Applet 的 `committed_events[]` MUST 是完整 accepted `{commit,event}` 对，接收方验证 Event 与 Commit 签名、Event 在 Commit 中的 exact 绑定及可见权限，随后仅从已验收的配对派生 `committed_event_refs[]`。无 Commit 的裸 Event 不得在 Station→Applet 方向得到成功回执或伪造坐标。只有 Signal 被接纳时成功回执的 `committed_event_refs` 是空数组；`partial` 时数组恰好包含已接纳的 durable Event，不能包含被拒项目。HTTP RFC 9421 来源验签逐次执行，不能替代每条 Event 的 producer、grant、epoch 或安装检查。Signal 保留独立规则。
+
+Station→Applet 的每个 `committed_events[]` 项还执行**由原 Event 决定的设备证据 presence**：实际
+producer（有 `executed_by` 时取它，否则取 `actor_id`）为 Account 且原 proof method fragment 是
+`ak:device:` 时，MUST 携 `producer_device_evidence`；其它 producer MUST NOT 携。它直接复用
+[`account-device-signer-evidence.schema.json`](../../artifacts/schemas/account-device-signer-evidence.schema.json)
+的 closed 两成员 sibling：原 origin Station 在原 Event 接纳前冻结并耐久保存的
+`device_projection_attestation` 与完整 `service_resolution`，不携原生 PCR log 或私有解密材料。
+缺失、多余、裁剪或错绑定均 `schema_violation`，原 Event／Commit bytes 与 ID 不改。
+
+receiver MUST 按原 covering `commit.committed_at` 验完整 Service native history 的 exact历史
+assertionMethod、origin Station 与 attestation 原签名，核对完整 AccountId／DeviceId、原授权
+Event／generation、device raw signing key及 authorization_window 对 Event created_at 与 committed_at
+的覆盖，再用该真实 key 验原 producer JWS与内容ID。设备 evidence 的 attested_at 必须不晚于原接受
+cut，其 proof window 在该 cut 有效；不能用 receiver current clock 或后来 current Device status
+改判原接受事实。原 attestation完整保存，所以后来撤销、rotation 或 cache deadline经过不使已接受
+历史失效。当前 install／registration／可见权限 gate 仍独立执行；证据不授予任意 PCR 读取、SessionGrant
+或新 Event 写权。HTTP／RealmCommit 签名、DID Document的普通method与裸publickey均不能代替原设备
+签名证据。站点在原接受事务内或同一原子 completion UoW保存该完整root及原件，不能发送后补写。
 
 普通 Applet Event 必须用原始 producer 签名的 `applet_id`、`authorization_ref` 与 `scope_ref` 解析标准 `applet_installation_authority` dependency，精确匹配 registration、grant、scope 和历史授权实例；registration epoch 从 referenced grant 的 `authority_control.applet_authority` constraint 读取，再核对 accepted registration epoch evidence。这里没有额外的 `authority_refs` wire 字段。任何 receiver 都独立验证；不能以某站补签代替，也不能任取同 service 的另一安装。Circle 安装不扩权至 Realm。
 

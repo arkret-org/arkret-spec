@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-30.4",
+  "version": "2026-09-30.6",
   "source_of_truth": true,
-  "generated_at": "2026-09-30T10:39:07+08:00",
+  "generated_at": "2026-09-30T11:12:40+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -12371,7 +12371,7 @@
           "kind": "none",
           "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
         },
-        "notes": "All directions preserve the unique original producer proof and portable signer authorization. Each receiver verifies exact installation aggregate, scope, grant, epoch and native act-on-behalf authority independently. HTTP source signatures and storage receipts do not authorize Events. The Station-to-Applet authoring_context branch carries the accepted Applet Service signer root plus the managed Actor Principal signer root and its exact Station Service attester leaf; the runtime recomputes and atomically persists all three roots before ordinary authoring. Signals retain their independent proof regime."
+        "notes": "All directions preserve the unique original producer proof and portable signer authorization. Each receiver verifies exact installation aggregate, scope, grant, epoch and native act-on-behalf authority independently. HTTP source signatures and storage receipts do not authorize Events. The Station-to-Applet authoring_context branch carries the accepted Applet Service signer root plus the managed Actor Principal signer root and its exact Station Service attester leaf; the runtime recomputes and atomically persists all three roots before ordinary authoring. Signals retain their independent proof regime. Original managed PCR resolution updates use the exact original-install native-principal admission of applet-integration.md section 7.3.2.1; Applet HTTP identity never substitutes its producer. Each Account ak:device: committed delivery must carry the immutable original-admission AccountDeviceSignerEvidence sibling; all other producers forbid that member. Verify its original attestation, native Service history, authorization window and Event JWS at the original covering committed_at; later current state does not reinterpret accepted history."
       },
       {
         "operation_id": "ak.edge.applet.managed_actor.command.author.v1",
@@ -16019,8 +16019,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-30.1",
-    "generated_at": "2026-09-30T07:56:07+08:00",
+    "version": "2026-09-30.2",
+    "generated_at": "2026-09-30T11:10:00+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",
@@ -19700,7 +19700,8 @@
       "For a generic Event proof, the verifier extracts the canonical bare did base from proof.verification_method, validates the active adapter and key at the cited accepted-at method history, projects that did, and compares the resulting did_core_id to executed_by when present or actor_id otherwise. registration_anchor and pcr_recovery are the only registered special admissions and never convert current DID control into generic human PCR authority.",
       "A principal resolution update is admitted only in its derived identity-control Realm and only when one exact expected_revision precondition guards ak:result:identity_resolution:null. The guarded whole resolution_projection MUST equal the accepted current typed current result; predecessor event/history coordinates come only from that signed precondition, never from payload mirrors.",
       "Exactly one active adapter, did:webvh:1.0, carries human_principal_anchor=true and declares registration_anchor_kind=webvh_registration; that value is the sole discriminator of the closed principal-registration-anchor contract. A human principal is registered and given PCR genesis only through that branch. Every other method, including did:key and did:web, carries human_principal_anchor=false and MUST fail closed with unsupported_did_method at schema and role admission, before any method parser, history replay or registry write. Adding another human anchor requires a newly registered portable publication-proof or independent-witness trust model with its own threat model and conformance vectors; it MUST NOT enter through a test fixture, an optional sidecar member or a locally widened allowlist.",
-      "Direct principal-control proofs have exactly two existing purposes: approval_signature at its signed approved_at and invite_subject_proof at the covering claim RealmCommit committed_at. For a did:webvh principal, a verifier independently authenticates the subject DID SCID and complete native history at that instant, then accepts only a document-declared method or the exact standard did:key:<multibase>#<multibase> of an effective updateKeys member at that instant. The key DID is never projected as the principal identity. No caller key, synthetic root fragment, PCR device key, future state or current-head fallback proves this historical relation. This exception grants no generic Event or SessionGrant authority."
+      "Direct principal-control proofs have exactly two existing purposes: approval_signature at its signed approved_at and invite_subject_proof at the covering claim RealmCommit committed_at. For a did:webvh principal, a verifier independently authenticates the subject DID SCID and complete native history at that instant, then accepts only a document-declared method or the exact standard did:key:<multibase>#<multibase> of an effective updateKeys member at that instant. The key DID is never projected as the principal identity. No caller key, synthetic root fragment, PCR device key, future state or current-head fallback proves this historical relation. This exception grants no generic Event or SessionGrant authority.",
+      "The managed identity_resolution_update producer admitted only by applet-integration.md section 7.3.2.1 is verified against its exact installed managed PCR current native old updateKeys and standard previous-resolution CAS. Its key DID is not the managed Account identity; the original Applet Service authenticates transport only. This admission applies to no human PCR, other managed Actor, generic Event or SessionGrant."
     ],
     "principal_resolution_contract": {
       "version": "2026-08-30.1",
@@ -19934,8 +19935,8 @@
         ]
       }
     },
-    "version": "2026-09-30.2",
-    "generated_at": "2026-09-30T10:39:07+08:00",
+    "version": "2026-09-30.4",
+    "generated_at": "2026-09-30T11:12:40+08:00",
     "metadata_authority": "contract_registry_section"
   },
   "binding_kind_registry": {

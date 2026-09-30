@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-30.2",
+  "version": "2026-09-30.4",
   "source_of_truth": false,
-  "generated_at": "2026-09-30T10:39:07+08:00",
+  "generated_at": "2026-09-30T11:12:40+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -15,7 +15,8 @@
     "For a generic Event proof, the verifier extracts the canonical bare did base from proof.verification_method, validates the active adapter and key at the cited accepted-at method history, projects that did, and compares the resulting did_core_id to executed_by when present or actor_id otherwise. registration_anchor and pcr_recovery are the only registered special admissions and never convert current DID control into generic human PCR authority.",
     "A principal resolution update is admitted only in its derived identity-control Realm and only when one exact expected_revision precondition guards ak:result:identity_resolution:null. The guarded whole resolution_projection MUST equal the accepted current typed current result; predecessor event/history coordinates come only from that signed precondition, never from payload mirrors.",
     "Exactly one active adapter, did:webvh:1.0, carries human_principal_anchor=true and declares registration_anchor_kind=webvh_registration; that value is the sole discriminator of the closed principal-registration-anchor contract. A human principal is registered and given PCR genesis only through that branch. Every other method, including did:key and did:web, carries human_principal_anchor=false and MUST fail closed with unsupported_did_method at schema and role admission, before any method parser, history replay or registry write. Adding another human anchor requires a newly registered portable publication-proof or independent-witness trust model with its own threat model and conformance vectors; it MUST NOT enter through a test fixture, an optional sidecar member or a locally widened allowlist.",
-    "Direct principal-control proofs have exactly two existing purposes: approval_signature at its signed approved_at and invite_subject_proof at the covering claim RealmCommit committed_at. For a did:webvh principal, a verifier independently authenticates the subject DID SCID and complete native history at that instant, then accepts only a document-declared method or the exact standard did:key:<multibase>#<multibase> of an effective updateKeys member at that instant. The key DID is never projected as the principal identity. No caller key, synthetic root fragment, PCR device key, future state or current-head fallback proves this historical relation. This exception grants no generic Event or SessionGrant authority."
+    "Direct principal-control proofs have exactly two existing purposes: approval_signature at its signed approved_at and invite_subject_proof at the covering claim RealmCommit committed_at. For a did:webvh principal, a verifier independently authenticates the subject DID SCID and complete native history at that instant, then accepts only a document-declared method or the exact standard did:key:<multibase>#<multibase> of an effective updateKeys member at that instant. The key DID is never projected as the principal identity. No caller key, synthetic root fragment, PCR device key, future state or current-head fallback proves this historical relation. This exception grants no generic Event or SessionGrant authority.",
+    "The managed identity_resolution_update producer admitted only by applet-integration.md section 7.3.2.1 is verified against its exact installed managed PCR current native old updateKeys and standard previous-resolution CAS. Its key DID is not the managed Account identity; the original Applet Service authenticates transport only. This admission applies to no human PCR, other managed Actor, generic Event or SessionGrant."
   ],
   "principal_resolution_contract": {
     "version": "2026-08-30.1",

@@ -81,9 +81,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
-      "version": "2026-09-30.4",
-      "generated_at": "2026-09-30T10:39:07+08:00",
-      "content_digest": "sha256:e118a174fd43b7ba526cd8fa81bc141155e1df776f7567383b3d4f947c87e580"
+      "version": "2026-09-30.6",
+      "generated_at": "2026-09-30T11:12:40+08:00",
+      "content_digest": "sha256:7237eca56d737b73524e3dee21dced1d8a12214a48c38f212b4f1e49dfa92307"
     },
     {
       "path": "spec/v1/artifacts/registry/current-result-registry.json",
@@ -117,9 +117,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/did-method-adapter-registry.json",
-      "version": "2026-09-30.2",
-      "generated_at": "2026-09-30T10:39:07+08:00",
-      "content_digest": "sha256:fc611126bbe732bb8499622837c0fd90f3b601d5c88de53e62b5dc8cfcb21561"
+      "version": "2026-09-30.4",
+      "generated_at": "2026-09-30T11:12:40+08:00",
+      "content_digest": "sha256:503e8599f132b8de4a54e121ba7679713bf0d4583494d7b76ab545a6ff8f843d"
     },
     {
       "path": "spec/v1/artifacts/registry/digest-suite-registry.json",
@@ -231,15 +231,15 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-09-30.6",
-      "generated_at": "2026-09-30T10:04:05+08:00",
-      "content_digest": "sha256:22455ed224fa3d360cfa93b9ad5372feb6e121b1824c7523239919d7b991c3a3"
+      "version": "2026-09-30.8",
+      "generated_at": "2026-09-30T11:08:07+08:00",
+      "content_digest": "sha256:6f1ea894755bbd166a35fa68136d1798c3a1e1ab956d9884d822a2b95727d875"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
-      "version": "2026-09-30.1",
-      "generated_at": "2026-09-30T07:56:07+08:00",
-      "content_digest": "sha256:a8ea11841a00298c3e5d4a5a571219cd0d829bf5b9a2911631dc25be9cfe8801"
+      "version": "2026-09-30.2",
+      "generated_at": "2026-09-30T11:10:00+08:00",
+      "content_digest": "sha256:24789828874548eb0439937a69f99fadd2fab5b55472a437d42507ebb1dea8f3"
     },
     {
       "path": "spec/v1/artifacts/registry/operations-error-mapping.json",
@@ -423,9 +423,9 @@
     },
     {
       "path": "tools/evidence-material-audit.json",
-      "version": 21,
+      "version": 22,
       "generated_at": null,
-      "content_digest": "sha256:bd2d8457f5744b012f1646651a7b4e30f0d8543e882f2d4944c464136ebf0702"
+      "content_digest": "sha256:95aa8d06bc58755885650c65ad0a1d520b83c5e3c574650728d7d5245cae98a0"
     },
     {
       "path": "tools/fixture-schema-instance-binding-registry.json",
@@ -471,9 +471,9 @@
     },
     {
       "path": "tools/normative-title-inventory.json",
-      "version": "2026-09-25.5",
-      "generated_at": "2026-09-25T19:50:00+08:00",
-      "content_digest": "sha256:e790f3b5f8dd96cc9671c08b95472dd2a7cf73ee0f121a85d37d4ed16d382497"
+      "version": "2026-09-30.1",
+      "generated_at": "2026-09-30T11:12:40+08:00",
+      "content_digest": "sha256:aafe8dc18442f2342ca17196bf9f61b895b2eb861c92b429254e1ab57cb55437"
     },
     {
       "path": "tools/operation-note-field-exemptions.json",

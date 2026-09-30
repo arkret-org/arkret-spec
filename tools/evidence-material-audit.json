@@ -1,12 +1,12 @@
 {
-  "version": 21,
+  "version": 22,
   "source_of_truth": false,
   "narrative_source": "spec/v1/zh/models/common-fields.md#r6-证据类名词分工",
   "scope": [
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 348,
+  "audited_occurrence_count": 349,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -1021,6 +1021,17 @@
         "transcript"
       ],
       "reason": "Carries complete method-native history and its authenticated proof for the exact accepted successor resolution."
+    },
+    {
+      "file": "applet-edge-operations.schema.json",
+      "key": "producer_device_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "attestation",
+        "transcript"
+      ],
+      "reason": "Carries the immutable original-admission device projection attestation and complete authenticated origin Station native Service history for offline historical producer signature verification."
     }
   ]
 }

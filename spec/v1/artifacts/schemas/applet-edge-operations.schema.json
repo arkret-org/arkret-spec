@@ -438,7 +438,8 @@
           "minItems": 1,
           "items": {
             "$ref": "./event-envelope.schema.json"
-          }
+          },
+          "description": "Original producer-only Events. The exact managed IdentityResolutionUpdate admission of applet-integration.md section 7.3.2.1 is transported only by the original active owning Applet to the original installing Station and its own derived managed PCR. The Applet Service authenticates transport, never the native principal producer; no portal grant or SessionGrant authorizes that branch."
         },
         "committed_events": {
           "type": "array",
@@ -483,7 +484,7 @@
     },
     "applet_committed_event": {
       "type": "object",
-      "description": "Exact producer-signed Event paired with its covering signed RealmCommit for Station-to-Applet delivery; withheld markers are forbidden.",
+      "description": "Exact producer-signed Event paired with its covering signed RealmCommit for Station-to-Applet delivery; withheld markers are forbidden. Device-determined producer_device_evidence carries the existing closed two-member account-device sibling; missing/surplus evidence is schema_violation before storing the pair. Later device revocation or evidence cache expiry does not invalidate accepted history.",
       "required": [
         "commit",
         "event"
@@ -494,6 +495,10 @@
         },
         "event": {
           "$ref": "./event-envelope.schema.json#/$defs/shared_event_envelope"
+        },
+        "producer_device_evidence": {
+          "$ref": "./account-device-signer-evidence.schema.json",
+          "description": "Required exactly when the original actual producer is an Account whose proof verification_method fragment is an ak:device: id; forbidden otherwise. The immutable complete origin Station evidence is retained at original admission and its attestation/native Service history and original Event JWS are verified at the covering Commit committed_at, never receiver current time. It conveys no PCR log, current device authority, new read right or SessionGrant."
         }
       },
       "additionalProperties": false

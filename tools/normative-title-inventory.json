@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-25.5",
+  "version": "2026-09-30.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-25T19:50:00+08:00",
+  "generated_at": "2026-09-30T11:12:40+08:00",
   "description": "Closed inventory of current spec/v1/zh headings that explicitly carry the （normative） marker. Any addition, removal, rename, or move is reviewed as a protocol change and refreshes this source-of-truth inventory.",
   "titles": [
     {
@@ -553,6 +553,11 @@
       "page": "extensions/applet-integration.md",
       "heading": "10.1 Portal Strand（normative）",
       "fragment": "101-portal-strandnormative"
+    },
+    {
+      "page": "extensions/applet-integration.md",
+      "heading": "7.3.2.1 managed PCR 轮换的既有入站（normative）",
+      "fragment": "7321-managed-pcr-轮换的既有入站normative"
     },
     {
       "page": "extensions/applet-schema.md",

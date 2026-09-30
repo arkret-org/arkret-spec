@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-30.6",
-  "generated_at": "2026-09-30T10:04:05+08:00",
+  "version": "2026-09-30.8",
+  "generated_at": "2026-09-30T11:08:07+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -17,7 +17,7 @@
     },
     {
       "operation_id": "ak.edge.applet.command.transaction.v1",
-      "sha256": "sha256:60ca3f48750aeed0b4a484109a91aae2fa254a346e077a05ade4f0bca0725489"
+      "sha256": "sha256:87692a3fa13591a6da6d297a10b804a35a305c0fb5a16568ffa1432c27f4d835"
     },
     {
       "operation_id": "ak.edge.applet.managed_actor.command.author.v1",

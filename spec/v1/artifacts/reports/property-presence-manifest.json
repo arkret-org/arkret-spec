@@ -15,10 +15,10 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 8884,
+    "total_properties": 8885,
     "total_schema_documents": 166,
     "by_presence_class": {
-      "optional": 2103,
+      "optional": 2104,
       "optional_defaulted": 48,
       "required": 6260,
       "required_nullable": 309,
@@ -2858,6 +2858,7 @@
         "/$defs/applet_authoring_transaction_request_body/properties/source_id": "required",
         "/$defs/applet_committed_event/properties/commit": "required",
         "/$defs/applet_committed_event/properties/event": "required",
+        "/$defs/applet_committed_event/properties/producer_device_evidence": "optional",
         "/$defs/applet_event_transaction_request_body/properties/applet_id": "required",
         "/$defs/applet_event_transaction_request_body/properties/committed_events": "optional",
         "/$defs/applet_event_transaction_request_body/properties/events": "optional",

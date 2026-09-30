@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-30.1",
+  "version": "2026-09-30.2",
   "source_of_truth": false,
-  "generated_at": "2026-09-30T07:56:07+08:00",
+  "generated_at": "2026-09-30T11:10:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -561,7 +561,7 @@
         "kind": "none",
         "rationale": "service_local_material_identity_log_queue_or_external_effect_only"
       },
-      "notes": "All directions preserve the unique original producer proof and portable signer authorization. Each receiver verifies exact installation aggregate, scope, grant, epoch and native act-on-behalf authority independently. HTTP source signatures and storage receipts do not authorize Events. The Station-to-Applet authoring_context branch carries the accepted Applet Service signer root plus the managed Actor Principal signer root and its exact Station Service attester leaf; the runtime recomputes and atomically persists all three roots before ordinary authoring. Signals retain their independent proof regime."
+      "notes": "All directions preserve the unique original producer proof and portable signer authorization. Each receiver verifies exact installation aggregate, scope, grant, epoch and native act-on-behalf authority independently. HTTP source signatures and storage receipts do not authorize Events. The Station-to-Applet authoring_context branch carries the accepted Applet Service signer root plus the managed Actor Principal signer root and its exact Station Service attester leaf; the runtime recomputes and atomically persists all three roots before ordinary authoring. Signals retain their independent proof regime. Original managed PCR resolution updates use the exact original-install native-principal admission of applet-integration.md section 7.3.2.1; Applet HTTP identity never substitutes its producer. Each Account ak:device: committed delivery must carry the immutable original-admission AccountDeviceSignerEvidence sibling; all other producers forbid that member. Verify its original attestation, native Service history, authorization window and Event JWS at the original covering committed_at; later current state does not reinterpret accepted history."
     },
     {
       "operation_id": "ak.edge.applet.managed_actor.command.author.v1",
