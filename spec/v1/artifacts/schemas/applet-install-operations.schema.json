@@ -500,11 +500,7 @@
           "$ref": "./common-ids.schema.json#/$defs/actor_id"
         },
         "membership": {
-          "type": "string",
-          "enum": [
-            "leave",
-            "remove"
-          ]
+          "const": "leave"
         },
         "reason_code": {
           "$ref": "#/$defs/non_empty_string",

@@ -412,6 +412,8 @@ destination service、signed Event author/target 的 exact participant 交叉一
 
 ## 3. Directional scope、current head 与终态
 
+Contact 行的全局显示名使用 [profiles-presence.md §2.2](../discovery/profiles-presence.md) 的 `ak.self.actor_profile.read.resolve.v1`：授权基础为 requester 与目标在任意共享 Collaboration Realm 的 current effective joined membership，不要求先建立 Direct Conversation。Contact accepted 状态、confirmed_display_name 或 cached label 不授予 PCR 读取权。存在获准共享 Realm 时客户端 MUST 用该 resolve 获取显示投影；`profile_unavailable` 时保留已确认显示名或稳定身份，不得猜测或扫描目标 PCR。
+
 Contact scope 只表达 issuer holder 授予 peer 的方向，唯一字段为 `granted_to_peer_scopes[]`。scope update 的
 唯一 fact 是 `ak.contact.scope.update`，唯一 self operation 是
 `ak.self.contact.command.scope_update.v1{phase=prepare|commit}`。payload closed 绑定完整 peer XOR、round、version、
@@ -759,6 +761,8 @@ exact authority 恢复、四类替代 authority 零写入拒绝，以及新 stab
 
 ## 6. Founding unit 与固定 baseline
 
+§5.4 critical semantic ref 只由本 unit 第一条 `ak.realm.create` 携带，role 按 Contact round / owned Agent provision 分支 exact XOR；第 2–4 条 MUST NOT 再携带这两个 genesis role。四条共同使用已登记分支 proof context，并由 exact atomic unit 的 staged authority-root proof 绑定；同一 context 不表示重复 genesis semantic refs。
+
 ### 6.1 四 Event atomic unit
 
 founder **MUST** 一次提交恰好四条 Event：
@@ -993,7 +997,7 @@ existing 坐标 **MUST NOT** 因 offline、presence、session、KeyPackage 库�
 
 `direct_conversation_founding_unit_submission` 的 closed shape **不携带** `founding_authority_evidence`：founder 与验证方是同一台 current Station，§5.5 的 self admission 在同一事务内以服务端自己 current 的 Contact round（或 Agent provision）证据校验四条 Event；caller 回传的副本既不进入 `founding_unit_digest` 等任何幂等身份，也不可能成为可信输入，因此不存在于 wire 上。Event origin authority 已由四条 Event 的完整 actual-author `ActorId` 及服务端追加的 admission proofs 表达。
 
-但 founder 仍需要领料才能构造该 unit：§6.1 四条 Event 的 §5.4 critical ref、round / continuity 坐标与 §6.2 派生 baseline 都取决于 pair 当前的 Contact round（或 Agent provision）证据。若 resolver 只回一个无 material 的
+但 founder 仍需要领料才能构造该 unit：§6.1 第一条 `ak.realm.create` 的 §5.4 critical ref、四条共同使用的分支 context、round / continuity 坐标与 §6.2 派生 baseline 都取决于 pair 当前的 Contact round（或 Agent provision）证据。若 resolver 只回一个无 material 的
 `creation_required`，则 founder 在协议层无法确定这些输入——这正是
 [`service-http-binding.md`](../sync/service-http-binding.md) §2.2.4 供给闭合律禁止的形态。
 因此：

@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-09-29.4",
+  "version": "2026-09-30.1",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-09-29T11:32:00+08:00",
+  "generated_at": "2026-09-30T07:56:07+08:00",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3. snapshot_capacity_exceeded applies to every event_log admission branch in the operation registry, including peer authority_forward; committed_replication and other non-admission branches do not produce it.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, signature_invalid, capability_denied, schema_violation, json_invalid, query_invalid, param_missing, param_invalid, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind, unsupported_protocol_version, operation_selector_required, unsupported_operation_version. These are the universal failure surface and are NOT repeated in each operation entry. unsupported_protocol_version applies only when the binding implements Arkret-Protocol-Version header or equivalent media-type negotiation; ServiceDescribe consumers also use the same stable code locally before capability intersection. operation_selector_required and unsupported_operation_version are binding-level pre-dispatch failures evaluated before body parsing for every canonical operation.",
@@ -49,7 +49,9 @@
         "duplicate_conflict",
         "applet_registration_unauthorized",
         "applet_namespace_mismatch",
-        "queue_full"
+        "queue_full",
+        "invalid_membership_transition",
+        "applet_revoked"
       ],
       "description": "Transaction push is a service-to-service operation in both directions. Receivers MUST fail closed when the per-delivery RFC 9421 source signature is missing/invalid/outside the replay window, when the idempotency identity is replayed with a different body or receiver-derived delivery_authentication_record_digest, when the source Applet service has no active effective install, or when an Event actor falls outside the registered Applet namespace. See zh/extensions/applet-integration.md §7.3.1.",
       "codes": []
@@ -690,7 +692,8 @@
         "device_revoked",
         "device_revocation_pending",
         "device_generation_fenced",
-        "digest_mismatch"
+        "digest_mismatch",
+        "invalid_membership_transition"
       ],
       "description": "Closed peer authority-forward, committed-replication and registered-atomic-unit ingress. Forward admission is evaluated by the current governance Station. Replication rejects unverifiable source Event/Commit coordinates, authority generation, chain, witness or visibility without re-signing or fanout. Direct Conversation founding and membership compensation are all-or-nothing; dependency_missing carries the registered closed details shape and no per-item partial is returned. A cross-Station human device producer is resolved only from authority_forward producer_device_evidence: a missing, surplus or malformed member is schema_violation, signature/key/Service-history or source-Station mismatch is signature_invalid, unauthorized device, out-of-window authorization or expired evidence is device_unauthorized, and revoked, revocation-pending and fenced devices use device_revoked, device_revocation_pending and device_generation_fenced. A forwarded ak.mls.genesis whose mls_genesis_material bytes do not hash to the Genesis group_info_ref or ratchet_tree_ref is digest_mismatch with zero writes; a missing or surplus mls_genesis_material is schema_violation. A carried Welcome that fails the destination's claim-ledger re-verification is not queued and does not reject the replicated Commit.",
       "codes": []
@@ -744,7 +747,11 @@
     {
       "operation_id": "ak.peer.mls.command.attest_add.v1",
       "http_alias": "POST /_arkret/peer/mls/add-authority-attestations",
-      "operation_specific": ["conflict", "revision_unavailable", "signature_invalid"],
+      "operation_specific": [
+        "conflict",
+        "revision_unavailable",
+        "signature_invalid"
+      ],
       "description": "Exact duplicate attestation replays its stored outcome; conflicting provenance, claim evidence or signer is rejected with zero historical-proof writes. A missing accepted dependency is revision_unavailable.",
       "codes": []
     },
@@ -764,7 +771,10 @@
     {
       "operation_id": "ak.peer.mls.read.roster_authority.v1",
       "http_alias": "POST /_arkret/peer/mls/roster-authority/query",
-      "operation_specific": ["revision_unavailable", "cursor_invalid"],
+      "operation_specific": [
+        "revision_unavailable",
+        "cursor_invalid"
+      ],
       "description": "Unknown and unauthorized selectors share the universal not_found; incomplete or inconsistent history is uniformly revision_unavailable after authorization. A cursor from another caller, head or cut is invalid.",
       "codes": []
     },
@@ -1628,7 +1638,8 @@
         "device_unauthorized",
         "device_revoked",
         "device_revocation_pending",
-        "device_generation_fenced"
+        "device_generation_fenced",
+        "invalid_membership_transition"
       ],
       "description": "Endpoint-specific self authority-commit union. Ordinary and MLS branches keep single-submit semantics; Direct Conversation founding atomically commits exactly four ordered Events into four consecutive RealmCommits and returns no second receipt; membership compensation verifies transport-only evidence and claims its single-use CAS in the same Event transaction. A human device producer is resolved from the local PCR when this Station governs the target; otherwise the account Station refuses to forward an unusable device with device_unauthorized, device_revoked, device_revocation_pending or device_generation_fenced.",
       "codes": []
@@ -1941,14 +1952,19 @@
     {
       "operation_id": "ak.self.mls.read.group_state_material.v1",
       "http_alias": "POST /_arkret/self/mls/group-state-material/query",
-      "operation_specific": ["revision_unavailable"],
+      "operation_specific": [
+        "revision_unavailable"
+      ],
       "description": "The authenticated exact Actor must be current and target-cut authorized. Unknown and unauthorized selectors are not_found; authorized missing or inconsistent public material is uniformly revision_unavailable and never partial.",
       "codes": []
     },
     {
       "operation_id": "ak.self.mls.read.roster_authority.v1",
       "http_alias": "POST /_arkret/self/mls/roster-authority/query",
-      "operation_specific": ["revision_unavailable", "cursor_invalid"],
+      "operation_specific": [
+        "revision_unavailable",
+        "cursor_invalid"
+      ],
       "description": "The exact authenticated Actor must be current and target-cut authorized. Unknown and unauthorized selectors share the universal not_found; incomplete signed history is uniformly revision_unavailable.",
       "codes": []
     },
@@ -1985,7 +2001,7 @@
         "failed_precondition",
         "payload_too_large"
       ],
-      "description": "An account or Station that does not match the authenticated session, an unknown or hidden Realm, an invalid, expired or revoked invite credential and a join policy that does not admit the declared intent share one non-enumerating 404 not_found. An intent outside the registered invite_accept, member_join and knock branches is 501 unsupported_feature. A basis, digest suite or encryption profile that cannot currently be obtained and verified is 503 revision_unavailable and never a defaulted value. A pre-state that no longer holds under the current accepted basis is 409 failed_precondition and requires a fresh preparation, never a rewrite of already signed material. Request canonical bytes above 64 KiB are 413 payload_too_large. A required authority-stream head or admission basis that cannot be derived is 503 revision_unavailable and never a defaulted position=0.",
+      "description": "An account or Station that does not match the authenticated session, an unknown or hidden Realm, an invalid, expired or revoked invite credential and a join policy that does not admit the declared intent share one non-enumerating 404 not_found. An intent outside the registered invite_accept, member_join and knock branches is 501 unsupported_feature. A basis, digest suite or encryption profile that cannot currently be obtained and verified is 503 revision_unavailable and never a defaulted value. A pre-state that no longer holds under the current accepted basis is 409 failed_precondition and requires a fresh preparation, never a rewrite of already signed material. Request canonical bytes above 64 KiB are 413 payload_too_large. A required authority-stream head or admission basis that cannot be derived is 503 revision_unavailable and never a defaulted position=0. For an otherwise disclosable target, no verifiable current governance Station, unreachable candidates, or candidate evidence that cannot establish one consistent verified authority return revision_unavailable (503), with no draft or default basis. Unknown or hidden targets retain opaque not_found behavior.",
       "codes": []
     },
     {

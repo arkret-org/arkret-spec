@@ -44,15 +44,19 @@ Blob service 提供内容寻址存储。Media profile 在 Blob 之上定义 MIME
 | `updated_by` | `ActorId` | optional | 最近更新 Blob metadata 的 Actor 或 service 的完整 Arkret 身份。 |
 | `updated_at` | `datetime` | optional | 最近更新时间。 |
 | `filename` | `string` | optional | 用户提供或服务生成的文件名；不得用于路径拼接。 |
-| `encryption` | `object/null` | required | 加密附件元数据或 `null`。 |
+| `encryption` | `object/null` | required | 最小存储加密分类：plaintext 为 `null`；ciphertext 为 closed `{scheme}`，scheme 只取 `ak.blob.whole_file_aead.v1` / `ak.blob.stream_aead.v1`。不含密钥、group refs、明文 MIME / size 或完整 Content Block descriptor。 |
 
 命名说明：`blob_id=ak:blob:<uuidv7>` 只标识 Blob metadata 资源，`blob_ref=ak:blob:<suite>:<hex>` 只标识并承诺 exact content bytes；两者的 schema 形态互斥，consumer 不得按值猜测一种字段的含义。Blob metadata、Media metadata 和 Content Block descriptor 中的字节数统一使用 `size_bytes`；不得使用裸 `size` 表示字节数（见 [`models/common-fields.md` §3.0.1](../models/common-fields.md#301-size-字段命名)）。Blob metadata 以 `content_digest` 承诺其 metadata id 对应的内容；任何携带 content-addressed `blob_ref` 的 carrier 不得再携同原像 `content_digest` / `ciphertext_digest` 镜像。
 
-上传请求 schema 见 [`blob-operations.schema.json#/$defs/upload_request`](../../artifacts/schemas/blob-operations.schema.json)，响应 schema 见 [`blob-operations.schema.json#/$defs/upload_response`](../../artifacts/schemas/blob-operations.schema.json)。
+上传请求 schema 见 [`blob-operations.schema.json#/$defs/blob_upload_request_body`](../../artifacts/schemas/blob-operations.schema.json)，响应 schema 见 [`blob-operations.schema.json#/$defs/blob_upload_outcome`](../../artifacts/schemas/blob-operations.schema.json)。
 
 上传规则：
 
-- Canonical HTTP upload body MUST be `multipart/form-data` with a required `content` binary part and required `size_bytes` metadata field. The `content` part `Content-Type` is optional; its default value is `application/octet-stream`.
+- `encryption` 缺失不得猜测为明文；非 null 为密文，服务端 MUST 持久化分类且 MUST 拒绝 presign。完整附件 descriptor 只留在获准 Content Block 中，不上传给 Blob storage。密文 transport `media_type` MUST 为 `application/octet-stream`，不得嗅探或公开明文 MIME。
+- `media_type` 表单字段存在时是声明 MIME；content part `Content-Type` 同时存在且不同则以 `schema_violation` 拒绝并零写入。无表单字段时使用 content part 类型；均无则 octet-stream。只有 `encryption=null` 时允许下述内容校正。
+- 上传请求不承载自由 `purpose`；用途权限来自 owning Realm policy 与已验证 source refs，不得以客户端自报 purpose 扩大 scope / privacy / presign 权限。
+
+- Canonical HTTP upload body MUST be `multipart/form-data` with a required `content` binary part and required `size_bytes` metadata field and required `encryption` UTF-8 JSON metadata part (`null` or the closed storage classification above). The `content` part `Content-Type` is optional; its default value is `application/octet-stream`.
 - 客户端 SHOULD 提供准确 `Content-Type`，但服务端 MUST 把上传声明的 MIME 和文件名视为不可信 metadata。
 - 如果服务端发现声明 MIME 与内容明显冲突，MAY 把 `media_type` 降级为 `application/octet-stream`，并记录安全标记。
 - 文件名 MUST 做控制字符、路径分隔符和过长字段清理；不得影响 `blob_ref` 或存储路径。
@@ -90,7 +94,7 @@ TUS 创建请求的 `POST` MUST 携带
 
 **隐私（normative）**
 
-- tus `Upload-Metadata` header MUST NOT 携带私有或 E2EE Blob 的明文文件名、MIME 或任何可枚举本地路径；此类 Blob 的 `Upload-Metadata` SHOULD 省略，至多携带字节数。原始文件名 / MIME 的归属与 [`models/file-transfer.md` §2](../models/file-transfer.md) 的 file-transfer 规则一致。
+- tus `Upload-Metadata` header MUST NOT 携带私有或 E2EE Blob 的明文文件名、MIME 或任何可枚举本地路径；此类 Blob 的 `Upload-Metadata` 除字节数和必填 `encryption` 分类外 SHOULD 省略。创建时 `encryption` metadata 是 Base64 编码的 UTF-8 RFC 8785 JCS（`null` 或上述 closed `{scheme}`），服务端冻结至 finalize，后续 PATCH 不得变更；不得携带完整附件 descriptor、解密材料或明文 MIME / group refs。原始文件名 / MIME 的归属与 [`models/file-transfer.md` §2](../models/file-transfer.md) 的 file-transfer 规则一致。
 - upload URL MUST 按 authenticated 资源处理：每个 tus 请求（`POST`/`PATCH`/`HEAD`/`DELETE`）MUST 独立认证；upload URL MUST NOT 作为可转发 bearer 凭证对待——这与 §5.4 presign 的只读 bearer URL 边界相反：presign 仅授权只读 `get`/`head`，续传是写路径。
 
 **过期与 GC**

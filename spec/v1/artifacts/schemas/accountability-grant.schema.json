@@ -57,7 +57,7 @@
     },
     "proof": {
       "$ref": "./event-envelope.schema.json#/$defs/proof",
-      "description": "Detached proof by issuer over utf8('ak.accountability-grant-v1\\n') || canonical_json(the object with proof omitted). Its verification method MUST be the same <issuer DID>#ak:device:<device_id> method as the carrying Event producer proof, active in the issuer Principal Control Realm at the admission cut (zh/models/actor.md section 3.3.1)."
+      "description": "Detached proof by issuer over utf8('ak.accountability-grant-v1\\n') || canonical_json(the object with proof omitted). Its verification method MUST be the same <issuer DID>#ak:device:<device_id> method as the carrying Event producer proof, active in the issuer Principal Control Realm at the admission cut (zh/models/actor.md section 3.3.1). The sole service-issuer exception is a closed Applet managed-actor creation aggregate in the provision Collaboration Realm: both this detached proof and the Event producer proof use the exact registration-epoch Service method verified against the exact install. Ordinary issuers retain the PCR/device rule; no standalone Service ingress is permitted."
     }
   },
   "additionalProperties": false,

@@ -148,6 +148,29 @@
         }
       ],
       "unevaluatedProperties": false
+    },
+    "storage_encryption": {
+      "description": "Storage-visible encryption classification only; no plaintext MIME, plaintext size, nonce, group or key reference. Private attachment descriptors remain in authenticated Content Blocks.",
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "required": [
+            "scheme"
+          ],
+          "properties": {
+            "scheme": {
+              "enum": [
+                "ak.blob.whole_file_aead.v1",
+                "ak.blob.stream_aead.v1"
+              ]
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
     }
   },
   "title": "Arkret Blob Metadata",
@@ -158,6 +181,7 @@
     "content_digest",
     "size_bytes",
     "media_type",
+    "encryption",
     "created_by",
     "created_at"
   ],
@@ -176,6 +200,25 @@
           "sha256"
         ],
         "$comment": "content hashes use content_digest with an algorithm prefix"
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "encryption"
+        ],
+        "properties": {
+          "encryption": {
+            "type": "object"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "media_type": {
+            "const": "application/octet-stream"
+          }
+        }
       }
     }
   ],
@@ -206,14 +249,7 @@
       "type": "string"
     },
     "encryption": {
-      "oneOf": [
-        {
-          "$ref": "#/$defs/encrypted_attachment"
-        },
-        {
-          "type": "null"
-        }
-      ]
+      "$ref": "#/$defs/storage_encryption"
     },
     "thumbnail_blob_ref": {
       "$ref": "./common-ids.schema.json#/$defs/blob_ref"

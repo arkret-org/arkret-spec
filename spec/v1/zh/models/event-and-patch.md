@@ -67,6 +67,8 @@ SDK 必须在签名和发送前构造 immutable、schema-valid Event；服务不
 
 一条 Event 的 registered writes 按 registry 顺序编号，`write_index` 从 0 起。tagged-set 元素的稳定 tag 是**canonical Event dot** `<event_id>:<write_index>`，MUST NOT 退化为裸 `event_id`：同一条 Event 的多个 write 必须可分辨。
 
+所有 dot-bearing keyed-set 的 canonical 排序 MUST 先按完整 `event_id` wire 字符串的 unsigned UTF-8 bytes 字典序升序，再按整数 `write_index` 升序；index 使用无前导零的十进制，零唯一写作 `0`。不得按完整 dot 字符串排序（同一 Event 的 index `2` 必须排在 `10` 前）。重复 dot 或相同 tag 对应不同 value 均拒绝，不得排序后静默折叠。该规则对 reaction、pin、moderation、redaction 与 device revoke proposal 等所有 family 相同；排序只决定 canonical serialization，不决定 causal winner。
+
 ### 2.6 关系与业务前驱
 
 业务关系使用 typed payload 或封闭 `semantic_refs` role；排序前驱只使用 RealmCommit。

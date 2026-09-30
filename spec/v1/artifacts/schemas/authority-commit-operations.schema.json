@@ -424,20 +424,30 @@
                         "const": "ak.mls.commit"
                       }
                     },
-                    "required": ["kind"]
+                    "required": [
+                      "kind"
+                    ]
                   }
                 },
-                "required": ["event"]
+                "required": [
+                  "event"
+                ]
               }
             },
-            "required": ["event_submission"]
+            "required": [
+              "event_submission"
+            ]
           },
           "then": {
-            "required": ["genesis_event_ref"]
+            "required": [
+              "genesis_event_ref"
+            ]
           },
           "else": {
             "not": {
-              "required": ["genesis_event_ref"]
+              "required": [
+                "genesis_event_ref"
+              ]
             }
           }
         },
@@ -967,6 +977,24 @@
               "properties": {
                 "kind": {
                   "const": "ak.member.state"
+                },
+                "semantic_refs": {
+                  "not": {
+                    "contains": {
+                      "type": "object",
+                      "required": [
+                        "role"
+                      ],
+                      "properties": {
+                        "role": {
+                          "enum": [
+                            "direct_conversation_contact_round",
+                            "direct_conversation_agent_provision"
+                          ]
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -986,6 +1014,24 @@
               "properties": {
                 "kind": {
                   "const": "ak.strand.create"
+                },
+                "semantic_refs": {
+                  "not": {
+                    "contains": {
+                      "type": "object",
+                      "required": [
+                        "role"
+                      ],
+                      "properties": {
+                        "role": {
+                          "enum": [
+                            "direct_conversation_contact_round",
+                            "direct_conversation_agent_provision"
+                          ]
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }

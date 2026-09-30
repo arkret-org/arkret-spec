@@ -58,7 +58,7 @@
         "knock",
         "public"
       ],
-      "description": "How an actor becomes a Circle member. 'public' lets any active parent-Realm member self-join; it does not make the Circle globally discoverable. 'knock' requires the application/approval flow. 'invite' requires Circle admin add or invite."
+      "description": "public permits parent-Realm members to self-join; invite requires an authorized administrator using ak.circle.member.add.others with the required same-unit audit. v1 has no Circle invitation or acceptance workflow. All joins bind the exact current parent membership revision."
     },
     "history_access": {
       "type": "string",

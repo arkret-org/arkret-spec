@@ -238,7 +238,7 @@ Capability actions:
 | --- | --- | --- | --- |
 | `ak.circle.create` | medium | `ak.circle.create` | 创建 Circle。**默认不**在普通成员 bundle 中(防止 Circle 滥用稀释 UX)。 |
 | `ak.circle.manage` | medium | `ak.circle.update`, `ak.circle.archive`, `ak.circle.restore`, `ak.circle.tombstone` | 管理已存在 Circle。 |
-| `ak.circle.member.add` | low | `ak.circle.member.state`(`payload.member_id == envelope.actor_id`，且 transition 合法) | 用户接受邀请、加入 `join_rule=public` 的 Circle 或自助退出；不得自助解除 ban。 |
+| `ak.circle.member.add` | low | `ak.circle.member.state`(`payload.member_id == envelope.actor_id`，且 transition 合法) | 加入 `join_rule=public` 的 Circle 或自助退出；不得自助解除 ban。v1 `join_rule=invite` 由持有 `ak.circle.member.add.others` 的管理员显式加入，不存在 Circle pending invite / accept workflow。 |
 | `ak.circle.member.manage` | medium | `ak.circle.member.state`(`payload.member_id != envelope.actor_id`) | 邀请/移除他人；Circle admin 持有。 |
 | `ak.circle.member.add.others` | high | 同上 + 强制带 `ak.audit.accessed` 配对(与 `ak.strand.watch.set.others` 同模式) | 跨成员代写(罕用)，审计配对。 |
 | `ak.circle.audit` | high | 空(read-only)，配对 `ak.audit.accessed` | 不属于 Circle 的 Realm admin 读取 Circle 元数据 / activity rollup 的审计权。 |

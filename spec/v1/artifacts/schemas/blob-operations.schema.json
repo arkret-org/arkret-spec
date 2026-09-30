@@ -89,7 +89,8 @@
       "type": "object",
       "required": [
         "content",
-        "size_bytes"
+        "size_bytes",
+        "encryption"
       ],
       "properties": {
         "content": {
@@ -108,21 +109,41 @@
           "$ref": "#/$defs/digest"
         },
         "media_type": {
-          "$ref": "#/$defs/media_type"
+          "$ref": "#/$defs/media_type",
+          "description": "The stored-byte MIME declaration. If the content part also declares a different MIME, reject before storage. Ciphertext uses application/octet-stream."
         },
         "filename": {
           "type": "string",
           "minLength": 1,
           "maxLength": 255
         },
-        "purpose": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 64,
-          "pattern": "^[a-z][a-z0-9_]{0,63}$"
+        "encryption": {
+          "$ref": "./blob.schema.json#/$defs/storage_encryption",
+          "description": "Required JSON multipart part, null for plaintext or minimal scheme classification for ciphertext. Persist before publishing the Blob; ciphertext is never eligible for bearer presign."
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "encryption"
+            ],
+            "properties": {
+              "encryption": {
+                "type": "object"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "media_type": {
+                "const": "application/octet-stream"
+              }
+            }
+          }
+        }
+      ]
     },
     "blob_upload_outcome": {
       "type": "object",

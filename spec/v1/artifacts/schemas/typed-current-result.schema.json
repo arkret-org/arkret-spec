@@ -1083,7 +1083,7 @@
     "canonical_event_dot": {
       "type": "string",
       "pattern": "^ak:event:[A-Za-z0-9_-]{44}:(0|[1-9][0-9]{0,2})$",
-      "description": "Stable tag of one registered reducer write: the canonical <event_id>:<write_index> dot of zh/models/event-and-patch.md section 2.4.2. A bare event_id is never a valid tag."
+      "description": "Stable tag of one registered reducer write: the canonical <event_id>:<write_index> dot of zh/models/event-and-patch.md section 2.4.2. A bare event_id is never a valid tag. Canonical dot-set order compares the complete event_id by unsigned UTF-8 bytes, then write_index as an integer (2 before 10). Index encoding has no leading zeros. Duplicate dots and conflicting values for one dot are rejected; sorting is not winner or causal ordering."
     },
     "agent_key_authorization_entry": {
       "type": "object",

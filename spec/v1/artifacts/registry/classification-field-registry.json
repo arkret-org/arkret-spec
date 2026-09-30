@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-20.2",
-  "generated_at": "2026-09-20T16:42:00+08:00",
+  "version": "2026-09-30.1",
+  "generated_at": "2026-09-30T08:00:00+08:00",
   "source_of_truth": true,
   "description": "Machine authority for the kind/type/class/tier naming axes. Entries are exact-context permissions, never basename allowlists.",
   "axis_rules": {
@@ -285,6 +285,24 @@
       "external_standard": "IANA Media Types and HTTP Content-Type",
       "external_field_path": "Content-Type media type",
       "round_trip_requirement": "Preserve the registered media type token without Arkret taxonomy remapping. ak.content.long_text restricts the token set to text/plain and text/markdown and forbids parameters; charset is fixed to UTF-8 by the content kind.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "schema_ref": "schemas/blob.schema.json",
+      "json_pointer": "/allOf/2/then/properties/media_type",
+      "external_standard": "IANA Media Types and HTTP Content-Type",
+      "external_field_path": "Content-Type media type",
+      "round_trip_requirement": "Preserve the registered media type token without Arkret taxonomy remapping.",
+      "dispatch_authority": "external_standard",
+      "arkret_extensions_allowed": false
+    },
+    {
+      "schema_ref": "schemas/blob-operations.schema.json",
+      "json_pointer": "/$defs/blob_upload_request_body/allOf/0/then/properties/media_type",
+      "external_standard": "IANA Media Types and HTTP Content-Type",
+      "external_field_path": "Content-Type media type",
+      "round_trip_requirement": "Preserve the registered media type token without Arkret taxonomy remapping.",
       "dispatch_authority": "external_standard",
       "arkret_extensions_allowed": false
     }

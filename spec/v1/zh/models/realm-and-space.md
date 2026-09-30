@@ -470,7 +470,7 @@ v1 产品层 MUST NOT 提供不可逆的“无 successor 永久解散”提交�
 
 Invite 过期只推进 `invite_lifecycle`，不写共享 member typed current result。base v1 bare `knock` 的过期只影响 operation eligibility，不会由本地计时器自动改写共享 member typed current result；其清理必须由上表列出的 authorized writer 提交显式 `leave`。receiver MUST NOT 根据本地墙钟合成 reducer-derived member event。
 
-共享表未列出的 transition MUST `failed_precondition`，reason=`invalid_membership_transition` 或更具体的 join-policy reason。`ban -> join`、`join -> join`、`leave -> leave` 等均非法；需要重试时 producer 必须基于当前 state 重新提交合法 transition。父 Realm `join -> leave/ban` 的 cascade 对 Circle membership 的影响见 [`circle.md` §9.1](./circle.md)。
+共享表未列出的 transition MUST `failed_precondition`，reason_code=`invalid_membership_transition` 或更具体的 join-policy reason。`ban -> join`、`join -> join`、`leave -> leave` 等均非法；需要重试时 producer 必须基于当前 state 重新提交合法 transition。父 Realm `join -> leave/ban` 的 cascade 对 Circle membership 的影响见 [`circle.md` §9.1](./circle.md)。
 
 `parent_membership` 只是在目标 join 接纳时读取同一 current governing Station 所持有的 source Realm authoritative
 `member_state`，不是持续继承关系。接受后的目标 `member_state` 是独立的 Realm-local current result；后续 source

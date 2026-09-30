@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-29.9",
+  "version": "2026-09-30.2",
   "source_of_truth": false,
-  "generated_at": "2026-09-29T11:32:00+08:00",
+  "generated_at": "2026-09-30T08:03:04+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -5181,7 +5181,8 @@
         "schema_kind": "object",
         "required": [
           "content",
-          "size_bytes"
+          "size_bytes",
+          "encryption"
         ],
         "properties": [
           "content",
@@ -5190,7 +5191,7 @@
           "content_digest",
           "media_type",
           "filename",
-          "purpose"
+          "encryption"
         ],
         "closed": true
       },

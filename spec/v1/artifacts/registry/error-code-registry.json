@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-29.4",
-  "generated_at": "2026-09-29T12:22:00+08:00",
+  "version": "2026-09-30.1",
+  "generated_at": "2026-09-30T07:56:07+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -1665,7 +1665,7 @@
         "service_call",
         "auth_decision"
       ],
-      "description": "A revoked effective Applet install attempted a future write, transaction push side effect, delegated action, widget token use, or E2EE join. Reducers and service-call handlers MUST fail closed after ak.self.applet.command.revoke.v1 / ak.capability.revoke has taken effect. See zh/extensions/applet-integration.md §4b.",
+      "description": "A revoked effective Applet install attempted a future write, transaction push side effect, delegated action, widget token use, or E2EE join. Reducers and service-call handlers MUST fail closed after ak.self.applet.command.revoke.v1 / ak.capability.revoke has taken effect. See zh/extensions/applet-integration.md §4b. Inbound transaction with a matching revoked install returns this code; never-authorized, absent or mismatched installs return applet_registration_unauthorized.",
       "type_uri": "https://arkret.org/problems/applet_revoked",
       "title": "Applet revoked",
       "status": "active"
@@ -4100,9 +4100,8 @@
         "authz",
         "state_resolution"
       ],
-      "description": "A ak.member.state Event requests a membership FSM transition that is not listed as legal for the member's current state. Reducers MUST reject the Event with failed_precondition. See zh/models/realm-and-space.md §2.7.",
-      "status": "reserved",
-      "activation_condition": "Promote invalid_membership_transition to active only in the same release that adds a canonical machine producer path under spec/v1/artifacts outside reports and this registry."
+      "description": "Realm or Circle membership admission rejects an illegal FSM edge with failed_precondition and zero writes; see models/common-fields.md section 4.5.",
+      "status": "active"
     },
     {
       "code": "invalidated_by_rate_limit",

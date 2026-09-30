@@ -4746,11 +4746,15 @@
         },
         {
           "if": {
-            "required": ["encrypted_content"]
+            "required": [
+              "encrypted_content"
+            ]
           },
           "then": {
             "not": {
-              "required": ["poll_response_heads"]
+              "required": [
+                "poll_response_heads"
+              ]
             }
           }
         },
@@ -8614,7 +8618,11 @@
           "$ref": "#/$defs/strand_id"
         },
         "patch": {
-          "$ref": "#/$defs/patch"
+          "$ref": "#/$defs/patch",
+          "propertyNames": {
+            "pattern": "^(?:(?:scope_circle_id|schema_refs|agent_participation|metadata|encrypted_metadata|content|encrypted_content)(?:\\.[a-z][a-z0-9_]{0,63})*|tracks\\.synthesis\\.(?:content|encrypted_content))$"
+          },
+          "description": "Only the two exact Synthesis content paths may reach tracks; replacing tracks, a track entry or configuration is forbidden."
         },
         "expected_state_digest": {
           "$ref": "#/$defs/digest"
@@ -9127,6 +9135,29 @@
           "description": "Required here; non-null only on the pcr_recovery branch and normalized to null on the two branches whose payload forbids the member."
         }
       }
+    },
+    "strand_tracks_update_payload": {
+      "type": "object",
+      "description": "Closed configuration-only payload for ak.strand.tracks.update; content writes use ak.strand.update.",
+      "required": [
+        "target_ref",
+        "patch"
+      ],
+      "properties": {
+        "target_ref": {
+          "$ref": "#/$defs/strand_id"
+        },
+        "patch": {
+          "$ref": "#/$defs/patch",
+          "propertyNames": {
+            "pattern": "^tracks\\.(?:discussion|synthesis)\\.(?:(?:enabled|is_primary|profile)|metadata(?:\\.[a-z][a-z0-9_]{0,63})*)$"
+          }
+        },
+        "expected_state_digest": {
+          "$ref": "#/$defs/digest"
+        }
+      },
+      "additionalProperties": false
     }
   },
   "x-arkret-public-handshake-contract": {

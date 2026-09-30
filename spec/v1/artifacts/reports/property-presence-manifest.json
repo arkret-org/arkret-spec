@@ -15,19 +15,19 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 8868,
+    "total_properties": 8880,
     "total_schema_documents": 166,
     "by_presence_class": {
-      "optional": 2101,
+      "optional": 2105,
       "optional_defaulted": 47,
-      "required": 6248,
-      "required_nullable": 307,
-      "tristate": 165
+      "required": 6255,
+      "required_nullable": 309,
+      "tristate": 164
     },
-    "tristate_occurrences": 165,
-    "tristate_audit_targets": 132,
+    "tristate_occurrences": 164,
+    "tristate_audit_targets": 131,
     "tristate_sdk_dispositions": {
-      "absent_null_equivalent": 122,
+      "absent_null_equivalent": 121,
       "condition_guarded": 9,
       "distinct": 1
     }
@@ -72,7 +72,6 @@
     "authority-commit-operations.schema.json/$defs/ordinary_realm_bootstrap_realm_create_submission/allOf/1/properties/event",
     "authority-commit-operations.schema.json/$defs/stream_scan_request/properties/after_position",
     "authority-commit-operations.schema.json/$defs/stream_scan_request/properties/before_position",
-    "blob.schema.json/properties/encryption",
     "calendar-event.schema.json/$defs/recurrence/allOf/1/then/properties/by_day",
     "calendar-event.schema.json/allOf/0/then/properties/recurrence",
     "calendar-event.schema.json/allOf/1/then/properties/recurrence",
@@ -490,16 +489,6 @@
       ],
       "sdk_disposition": "condition_guarded",
       "rationale": "A conditional branch requires this property. Draft 2020-12 validation rejects missing in that branch; explicit null remains the branch's empty value."
-    },
-    {
-      "schema_file": "blob.schema.json",
-      "shape": "#",
-      "instance_path": "/encryption",
-      "occurrences": [
-        "/properties/encryption"
-      ],
-      "sdk_disposition": "absent_null_equivalent",
-      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
       "schema_file": "calendar-event.schema.json",
@@ -3459,10 +3448,14 @@
         "/$defs/direct_conversation_founding_unit_submission/properties/unit_kind": "required",
         "/$defs/direct_conversation_member_join_submission/allOf/1/properties/event": "tristate",
         "/$defs/direct_conversation_member_join_submission/allOf/1/properties/event/properties/kind": "optional",
+        "/$defs/direct_conversation_member_join_submission/allOf/1/properties/event/properties/semantic_refs": "optional",
+        "/$defs/direct_conversation_member_join_submission/allOf/1/properties/event/properties/semantic_refs/not/contains/properties/role": "required",
         "/$defs/direct_conversation_realm_create_submission/allOf/1/properties/event": "tristate",
         "/$defs/direct_conversation_realm_create_submission/allOf/1/properties/event/properties/kind": "optional",
         "/$defs/direct_conversation_strand_create_submission/allOf/1/properties/event": "tristate",
         "/$defs/direct_conversation_strand_create_submission/allOf/1/properties/event/properties/kind": "optional",
+        "/$defs/direct_conversation_strand_create_submission/allOf/1/properties/event/properties/semantic_refs": "optional",
+        "/$defs/direct_conversation_strand_create_submission/allOf/1/properties/event/properties/semantic_refs/not/contains/properties/role": "required",
         "/$defs/handoff_request/properties/authority_bundle": "required",
         "/$defs/handoff_request/properties/final_stream_heads": "required",
         "/$defs/handoff_request/properties/handoff": "required",
@@ -3618,11 +3611,13 @@
         "/$defs/blob_upload_outcome/properties/media_type": "optional",
         "/$defs/blob_upload_outcome/properties/size_bytes": "required",
         "/$defs/blob_upload_outcome/properties/upload_receipt": "optional",
+        "/$defs/blob_upload_request_body/allOf/0/if/properties/encryption": "required",
+        "/$defs/blob_upload_request_body/allOf/0/then/properties/media_type": "optional",
         "/$defs/blob_upload_request_body/properties/content": "required",
         "/$defs/blob_upload_request_body/properties/content_digest": "optional",
+        "/$defs/blob_upload_request_body/properties/encryption": "required_nullable",
         "/$defs/blob_upload_request_body/properties/filename": "optional",
         "/$defs/blob_upload_request_body/properties/media_type": "optional",
-        "/$defs/blob_upload_request_body/properties/purpose": "optional",
         "/$defs/blob_upload_request_body/properties/realm_id": "optional",
         "/$defs/blob_upload_request_body/properties/size_bytes": "required",
         "/$defs/signature/properties/kid": "required",
@@ -3656,11 +3651,14 @@
         "/$defs/encrypted_attachment/properties/media_type": "required",
         "/$defs/encrypted_attachment/properties/scheme": "optional",
         "/$defs/encrypted_attachment/properties/size_bytes": "required",
+        "/$defs/storage_encryption/oneOf/1/properties/scheme": "required",
+        "/allOf/2/if/properties/encryption": "required",
+        "/allOf/2/then/properties/media_type": "optional",
         "/properties/blob_id": "required",
         "/properties/content_digest": "required",
         "/properties/created_at": "required",
         "/properties/created_by": "required",
-        "/properties/encryption": "tristate",
+        "/properties/encryption": "required_nullable",
         "/properties/filename": "optional",
         "/properties/media_type": "required",
         "/properties/realm_id": "optional",
@@ -6613,6 +6611,9 @@
         "/$defs/strand_stage_set_payload/properties/expected_stage": "optional",
         "/$defs/strand_stage_set_payload/properties/stage": "required",
         "/$defs/strand_stage_set_payload/properties/strand_id": "required",
+        "/$defs/strand_tracks_update_payload/properties/expected_state_digest": "optional",
+        "/$defs/strand_tracks_update_payload/properties/patch": "required",
+        "/$defs/strand_tracks_update_payload/properties/target_ref": "required",
         "/$defs/strand_watch_set_payload/allOf/0/if/properties/level": "required_nullable",
         "/$defs/strand_watch_set_payload/properties/expected_value": "tristate",
         "/$defs/strand_watch_set_payload/properties/expected_value/oneOf/1/properties/level": "required",

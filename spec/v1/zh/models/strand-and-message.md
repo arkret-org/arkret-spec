@@ -278,7 +278,7 @@ resolved primary 只在调用方明确需要选择一个 track 协作面时提�
 ### 4.7 Track 启用 / 禁用
 
 - track 在 map 中存在且 `enabled=true`（或 schema 默认为 true）即表示 active。
-- 关闭 track 通过 `ak.strand.tracks.update` patch `tracks.<name>.enabled: set false`（或从 map 中删除该 key、或写 profile 声明的 archived state），不得留下可写入的 disabled track。
+- 关闭 track 通过 `ak.strand.tracks.update` patch `tracks.<name>.enabled: set false`（或写 profile 声明的 archived state；不得删除 map key 或隐式删除既有 Synthesis 正文），不得留下可写入的 disabled track。
 - 关闭任何当前 primary track 时，MUST 在同一 patch 把 primary 移交给另一个 active track；
   若不存在其它 active track，整个 patch MUST `failed_precondition`
   （`reason_code="primary_track_required"`）。该规则不因 track 名是否为 `synthesis` 而改变。
@@ -286,7 +286,7 @@ resolved primary 只在调用方明确需要选择一个 track 协作面时提�
 
 ### 4.8 Track 写入: `ak.strand.tracks.update`
 
-Track 写入路径只有一个 event kind: **`ak.strand.tracks.update`**(注意名称用复数 `tracks`)，通过 `ak.schema.patch.v1` 表达对 `Strand.tracks` map 的任意原子修改——开/关 track、切换 primary、修改 track profile / metadata 都走同一条 event。
+Track **配置**写入只有 `ak.strand.tracks.update`：开关、primary、profile 与 metadata 走该 kind；Synthesis 的 `content` / `encrypted_content` 仅由 `ak.strand.update` 的两个精确路径写入。配置 patch 不得触及这两个正文成员，也不得通过整值替换 track entry 或 tracks map 绕过该分工；需要同时变更配置与正文时提交对应两条 Event，并按各自权限与 active gate 验证。
 
 **典型 patch 示例**:
 

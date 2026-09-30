@@ -183,7 +183,7 @@ HTTP operation 的通用 batch 分支。以后若登记独立 Event 的便捷 ba
   `direct_conversation_founding_missing_dependency_list` 的有界 typed set。
 
 三支都使用 operation registry 登记的 `canonical_hash/full_body/retry_safe=true`。response 丢失时只能重放
-逐字节相同完整 body，并返回原 branch outcome；同 hash 异 body 为 `duplicate_conflict`。请求必须使用
+逐字节相同完整 body，并返回原 branch outcome（包括逐项顺序与首次 `stored` 状态）；首次 `stored` 的同请求 exact replay MUST NOT 改报 `duplicate`。`duplicate` 仅表示另一个完整请求首次处理该项时已有相同 source Event / Commit。请求结果的耐久保存 MUST 与所表示的写入同事务；同 hash 异 body 为 `duplicate_conflict`。请求必须使用
 service-to-service authentication 绑定 source/destination service identity、operation、body digest 与有界时间窗。
 同一 replication request 内的 source coordinates 必须唯一；同一 stream 的项按 `stream_position` 严格升序，
 不同 stream 的逐项连续性与失败互不回滚。重复 coordinates 或同 stream 乱序在处理任何项前拒绝整个 request。
@@ -357,6 +357,8 @@ recipient 的 Welcome 随 Commit 的 committed-replication item 投到其 Accoun
 MLS private bytes 保持端到端加密；Station 只处理公开 transition 和 recipient-addressed Welcome ciphertext。
 
 ## 6. 错误与缓存
+
+`ak.self.realm_join.command.prepare.v1` 对已获准披露的目标，在无法取得可验证 current governance Station、所有候选不可达，或候选材料不能形成唯一且一致的已验证 current authority 结论时，MUST 返回 `revision_unavailable`（503），不得生成 draft、预留 Event / Commit 或回退到 caller-selected Station。未知或不可见目标、无效 invitation 与不允许该 intent 的 join policy 仍按该 operation 的统一 `not_found`（404）；只有已验证 current pre-state 与 caller intent 不再匹配时才返回 `failed_precondition`（409）。网络或暂态失败不得伪造权威缺席、position 0 或默认 basis。
 
 - `schema_violation`：closed schema、canonical encoding 或 typed ID 失败。
 - 目标不是验证后的 current authority：使用已登记的 authority bundle 验证失败面，不输出未登记的顶层码。

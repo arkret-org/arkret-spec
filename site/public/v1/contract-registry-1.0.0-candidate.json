@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-29.9",
+  "version": "2026-09-30.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-29T11:32:00+08:00",
+  "generated_at": "2026-09-30T08:03:04+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -773,7 +773,8 @@
       "wire_scope=durable_event does NOT imply reducer_input=true. A durable Event is one whose exact bytes a RealmCommit can cover; reducer_input=true additionally asserts that replaying this Realm's committed Events suffices to derive the typed current results the kind writes. A kind whose real durable effect is holder-Station private service state -- keyed on material that never enters the Event stream, or on a counterpart mirror that zh/identity/contact-and-direct-conversation.md section 3 forbids from advancing a reducer -- MUST carry reducer_input=false and MUST name the canonical service_contracts row that spells out its branches, durable effect, unique key, prior-state CAS, exact retry and zero-side-effect rejection. Withdrawing Realm typed-result dispatch never withdraws the kind's admission, signature, commit evidence or private transactional effect: the five ak.contact.* kinds are the worked example (ak.contact.admission.v1). Setting reducer_input=false without registering where the effect actually lands is the defect this rule exists to prevent.",
       "result_writes[] is the machine contract for which typed current results one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row: a declared value_projection member MUST be declared by that row's value_schema_ref, and a whole-value set MUST write every member that schema requires. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 117 of the 121 reducer_input kinds declare it; the remaining 4 have an explicit durable-fact or authority-commit effect classification and intentionally no typed-current-result row. The declaring kinds are deliberately not enumerated here: event_kinds[] already is that list, and tools/artifact_lint:result_write_coverage_note recomputes both counts from the rows. Normative prose MUST NOT cite result_writes[] for a kind that does not declare it. The converse obligation binds a declaring kind: its rows MUST enumerate EVERY typed current result its accepted admission writes on the shared face; atomic multi-family writes land all rows in one batch or none.",
       "Every active persistent kind (durable_event or actor_private_event) MUST carry one closed result_effect_ownership object. A typed_result_writer owns non-empty result_writes[] and no second owner; a private_service_effect names an active service_contracts row whose branches cover that exact actor-private Event kind; a durable_fact_no_current_projection names its normative definition and carries no typed-current-result write; an authority_commit_effect names the structured authority-commit service contract and MUST NOT introduce a second governance counter; an owned_gap is temporary only while it names a live owner_report and exact closure condition. Unknown classifications, unresolved definitions, orphan service branches, shared/private mixing, malformed authority contracts or any classification that contradicts reducer_input/result_writes[] fail tools/artifact_lint:result_effect_ownership.",
-      "transition_contracts declares the lifecycle axis of a typed current result family: its closed state set, its entry idiom (exactly one of initial_state / initial_states / template), its terminal states and its allowed (from, to) edges. tools/artifact_lint:fsm_reachability reads it together with every transition result_projection and requires that each declared state be reachable from the entry set, that each allowed edge have a write that can perform it, that no const edge leave the table and that no terminal state carry an outgoing edge. A family that declares a machine MUST NOT be written by any non-transition projection: a set installs a state without passing the table, which would make allowed_transitions documentation rather than a rule. Between the authority-commit clean break and 2026-09-18 this block did not exist while the gate still read it under the removed cell_* names, so check reported success over four normative paragraphs (zh/models/circle.md, zh/models/morph.md, zh/models/realm-and-space.md, zh/models/strand-and-message.md) that name transition_contracts as the source of truth for object lifecycle transitions; an absent or empty block is now a failure. Those four object families are themselves still unregistered, so their archive / restore lifecycle has no machine contract yet -- that is a coverage gap, not a licence to read the prose as satisfied."
+      "transition_contracts declares the lifecycle axis of a typed current result family: its closed state set, its entry idiom (exactly one of initial_state / initial_states / template), its terminal states and its allowed (from, to) edges. tools/artifact_lint:fsm_reachability reads it together with every transition result_projection and requires that each declared state be reachable from the entry set, that each allowed edge have a write that can perform it, that no const edge leave the table and that no terminal state carry an outgoing edge. A family that declares a machine MUST NOT be written by any non-transition projection: a set installs a state without passing the table, which would make allowed_transitions documentation rather than a rule. Between the authority-commit clean break and 2026-09-18 this block did not exist while the gate still read it under the removed cell_* names, so check reported success over four normative paragraphs (zh/models/circle.md, zh/models/morph.md, zh/models/realm-and-space.md, zh/models/strand-and-message.md) that name transition_contracts as the source of truth for object lifecycle transitions; an absent or empty block is now a failure. Those four object families are themselves still unregistered, so their archive / restore lifecycle has no machine contract yet -- that is a coverage gap, not a licence to read the prose as satisfied.",
+      "Dot-bearing keyed sets serialize by the tuple (complete event_id in unsigned UTF-8 byte order, numeric write_index). write_index is canonical decimal without leading zeros. Duplicate dots or one dot with conflicting values are rejected, never silently folded. This ordering is not authority or causal ordering."
     ],
     "payload_schema_contract": {
       "event_envelope_schema": "schemas/event-envelope.schema.json",
@@ -1477,7 +1478,7 @@
             "admission": "deny"
           }
         ],
-        "payload": "Immutable Applet-managed Bot/Ghost principal creation authority",
+        "payload": "Immutable Applet-managed Bot/Ghost principal creation authority Collaboration Realm membership or a Profile association never grants source Event disclosure or replication of this private identity/control fact. Only the kind-specific source scope and registered authority/profile evidence disclosure contract may release authorized material, without underlying control-stream access.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/applet_managed_actor_provision_payload",
         "id_source": "reference",
         "admission_checks": [
@@ -2235,7 +2236,7 @@
         "verb_form": "not_applicable",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Circle materialized membership state. Uses the same membership_state enum as ak.member.state (join/knock/leave/ban), scoped to a Circle. Invite remains a separate pending workflow. A join carries the producer-signed parent_membership_revision; admission MUST verify in the accepting cut that the complete member_id's parent Realm member_state current is `join` at exactly that revision, otherwise failed_precondition reason=circle_member_must_be_realm_member. Effective Circle membership additionally requires the parent current to still carry that revision; parent leave, ban or rejoin never synthesizes this Event and never revives an old Circle join. See zh/models/circle.md §9.1.",
+        "payload": "Circle materialized membership state. Uses the same membership_state enum as ak.member.state (join/knock/leave/ban), scoped to a Circle. Invite remains a separate pending workflow. A join carries the producer-signed parent_membership_revision; admission MUST verify in the accepting cut that the complete member_id's parent Realm member_state current is `join` at exactly that revision, otherwise failed_precondition reason=circle_member_must_be_realm_member. Effective Circle membership additionally requires the parent current to still carry that revision; parent leave, ban or rejoin never synthesizes this Event and never revives an old Circle join. See zh/models/circle.md §9.1. Every illegal membership FSM edge, including an unregistered same-state transition, is rejected with failed_precondition reason_code=invalid_membership_transition and zero writes. An authorized Circle administrator may perform leave->join with ak.circle.member.add.others and the required same-unit audit, without a Circle invitation workflow; parent join revision, Circle active status, ban and MLS gates remain mandatory.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/circle_member_state_payload",
         "id_source": "not_an_object_id",
         "result_writes": [
@@ -2929,7 +2930,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "admission": "self_authored_proof",
-        "payload": "Issuer-signed endorsement that a subject DID (typically an agent / service / hosted actor) is accountable to the issuer for a declared scope (employment / contracted_service / agent_operator). Every Actor Profile.accountable_principal_ids[] entry requires a matching active record at profile admission; a missing one deterministically rejects the whole profile Event with accountability_grant_missing. See zh/models/actor.md section 3.3.1. expires_at is optional; absent means non-expiring, governed by grant_status revocation and controller lifecycle cascade.",
+        "payload": "Issuer-signed endorsement that a subject DID (typically an agent / service / hosted actor) is accountable to the issuer for a declared scope (employment / contracted_service / agent_operator). Every Actor Profile.accountable_principal_ids[] entry requires a matching active record at profile admission; a missing one deterministically rejects the whole profile Event with accountability_grant_missing. See zh/models/actor.md section 3.3.1. expires_at is optional; absent means non-expiring, governed by grant_status revocation and controller lifecycle cascade. Ordinary issuer grants are admitted only in the issuer PCR with the issuer device method. The sole Service issuer exception is the closed Applet managed-actor creation aggregate: its grant resides in the exact provision Collaboration Realm and both proofs use the exact accepted registration-epoch Service method. No standalone Service grant ingress or cross-Realm search is authorized. Collaboration Realm membership or a Profile association never grants source Event disclosure or replication of this private identity/control fact. Only the kind-specific source scope and registered authority/profile evidence disclosure contract may release authorized material, without underlying control-stream access.",
         "payload_schema_ref": "schemas/accountability-grant.schema.json",
         "result_writes": [
           {
@@ -3647,7 +3648,7 @@
         "wire_scope": "durable_event",
         "reducer_input": true,
         "admission": "capability_gated",
-        "payload": "Realm membership state. Agent join/cleanup Events carry an exact agent_controller_binding. Effective Agent membership additionally AND-gates the controller authority pair and bound join Event generation, lifecycle and provision/accountability validity. Controller terminal transitions never synthesize this Event. The typed agent_membership_cascade exact-set model has no registered self-submit closed-union ingress in v1; such submissions fail closed, while loss of the exact controller join generation immediately invalidates effective Agent membership. A parent_membership join must revalidate co-governance, active join_gate_from links and source authoritative current member_state rows in the accepting transaction.",
+        "payload": "Realm membership state. Agent join/cleanup Events carry an exact agent_controller_binding. Effective Agent membership additionally AND-gates the controller authority pair and bound join Event generation, lifecycle and provision/accountability validity. Controller terminal transitions never synthesize this Event. The typed agent_membership_cascade exact-set model has no registered self-submit closed-union ingress in v1; such submissions fail closed, while loss of the exact controller join generation immediately invalidates effective Agent membership. A parent_membership join must revalidate co-governance, active join_gate_from links and source authoritative current member_state rows in the accepting transaction. Illegal membership FSM edges, including unregistered same-state transitions, are rejected with failed_precondition reason_code=invalid_membership_transition and zero writes.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/membership_payload",
         "result_writes": [
           {
@@ -7439,8 +7440,8 @@
         "verb_form": "base",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Unified Strand tracks patch. payload.patch uses ak.schema.patch.v1 against the Strand.tracks map: keys are track names (e.g. `synthesis`, `discussion`), values are patch ops that may toggle enabled, set is_primary, or modify profile / metadata on a track entry. Atomic across multiple tracks.",
-        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/strand_patch_payload",
+        "payload": "Track configuration patch with full Strand paths tracks.<registered_name>.<configuration_member>. Only enabled, is_primary, profile and metadata paths are admitted. Whole map or entry replacement and all content paths are forbidden; Synthesis content uses ak.strand.update exclusively.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/strand_tracks_update_payload",
         "id_source": "reference",
         "result_writes": [
           {
@@ -7515,7 +7516,8 @@
                 "metadata",
                 "encrypted_metadata",
                 "content",
-                "encrypted_content"
+                "encrypted_content",
+                "tracks"
               ]
             },
             "derived_members": [
@@ -7531,7 +7533,6 @@
             "retained_members": [
               "schema",
               "realm_id",
-              "tracks",
               "state",
               "state_changed_at",
               "stage",
@@ -7540,7 +7541,7 @@
               "created_at"
             ],
             "value_schema_ref": "schemas/strand.schema.json",
-            "notes": "zh/models/strand-and-message.md sections 3.2 and 4. Ordinary Strand content/profile patching cannot reach tracks, lifecycle or stage axes. expected_state_digest freezes the selected causal base; schema/profile coherence, active target and scope checks run before the atomic write, and rejection has zero side effects."
+            "notes": "Ordinary Strand patches may reach only the ordinary fields and the exact tracks.synthesis.content / tracks.synthesis.encrypted_content paths admitted by strand_patch_payload. Ancestor replacements, track configuration, lifecycle and stage axes are forbidden. The Synthesis track must exist and be active both before and after acceptance. expected_state_digest and all scope checks precede the atomic write; every rejection has zero side effects."
           }
         ],
         "result_effect_ownership": {
@@ -8458,8 +8459,8 @@
         }
       }
     },
-    "version": "2026-09-29.1",
-    "generated_at": "2026-09-29T11:05:00+08:00",
+    "version": "2026-09-30.2",
+    "generated_at": "2026-09-30T08:03:04+08:00",
     "bootstrap_event_kinds": [
       "ak.device.authorize",
       "ak.device.reanchor",
@@ -13386,7 +13387,7 @@
         "http": "POST /_arkret/peer/events",
         "grpc": "PeerEvents/Submit",
         "mq": "peer.events.command.submit",
-        "notes": "The sole peer Event ingress is a closed semantic union. authority_forward sends one exact producer Event or MLS Commit to the verified current governance Station, which alone may sign a new RealmCommit; an ak.mls.genesis Event additionally carries mls_genesis_material, the raw bytes of the two content-addressed Blobs it references, which the governance Station hashes against the refs and stores in the acceptance transaction, and every other kind omits it. committed_replication carries replications[1..100] whose rows are {event_submission, source_commit}, plus required immutable genesis_event_ref for every ak.mls.commit and forbidden for every other kind; only a Commit may additionally carry welcomes[] of recipients hosted by the destination. The governance Station freezes the Genesis ref from its accepted group provenance in the Commit acceptance transaction and the authenticated canonical peer request signature covers it. The receiver binds it to the exact Commit and immutable group provenance in the replica transaction, re-verifies Welcomes against its own claim ledger and queues passing Welcomes in that same transaction; it never infers Genesis from a preceding Commit ref or current tree. Processing, committed_event wrappers, sender membership witnesses, destination echoes and response coordinate echoes are absent. The receiver derives authorization from verified committed history and stores exact source facts without first admission, re-signing, or second fanout. registered_atomic_unit carries only registered all-or-nothing source-committed units (Direct Conversation founding or membership compensation), never per-item partial materialization. canonical_hash/full_body binds the complete selected branch and exact replay returns the original branch outcome.",
+        "notes": "The sole peer Event ingress is a closed semantic union. authority_forward sends one exact producer Event or MLS Commit to the verified current governance Station, which alone may sign a new RealmCommit; an ak.mls.genesis Event additionally carries mls_genesis_material, the raw bytes of the two content-addressed Blobs it references, which the governance Station hashes against the refs and stores in the acceptance transaction, and every other kind omits it. committed_replication carries replications[1..100] whose rows are {event_submission, source_commit}, plus required immutable genesis_event_ref for every ak.mls.commit and forbidden for every other kind; only a Commit may additionally carry welcomes[] of recipients hosted by the destination. The governance Station freezes the Genesis ref from its accepted group provenance in the Commit acceptance transaction and the authenticated canonical peer request signature covers it. The receiver binds it to the exact Commit and immutable group provenance in the replica transaction, re-verifies Welcomes against its own claim ledger and queues passing Welcomes in that same transaction; it never infers Genesis from a preceding Commit ref or current tree. Processing, committed_event wrappers, sender membership witnesses, destination echoes and response coordinate echoes are absent. The receiver derives authorization from verified committed history and stores exact source facts without first admission, re-signing, or second fanout. registered_atomic_unit carries only registered all-or-nothing source-committed units (Direct Conversation founding or membership compensation), never per-item partial materialization. canonical_hash/full_body binds the complete selected branch and exact replay returns the original branch outcome. Exact full-request replay preserves the first outcome bytes, item order and stored status. duplicate describes initial processing under a different full request whose exact source Event/Commit already exists; it is not a replacement status for a replayed stored outcome.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "schema_resource",
         "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
@@ -16018,8 +16019,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-29.6",
-    "generated_at": "2026-09-29T11:32:00+08:00",
+    "version": "2026-09-30.1",
+    "generated_at": "2026-09-30T07:56:07+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",

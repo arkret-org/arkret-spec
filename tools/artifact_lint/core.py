@@ -645,7 +645,6 @@ SHARED_PAYLOAD_DISPATCH: set[tuple[str, str]] = {
     ("ak.circle.tombstone", "object_lifecycle_payload"),
     ("ak.strand.archive", "object_lifecycle_payload"),
     ("ak.strand.restore", "object_lifecycle_payload"),
-    ("ak.strand.tracks.update", "strand_patch_payload"),
     ("ak.strand.update", "strand_patch_payload"),
     ("ak.invite.accept", "invite_accept_payload"),
     ("ak.invite.cancel", "invite_cancel_payload"),

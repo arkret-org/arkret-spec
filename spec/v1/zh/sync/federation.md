@@ -82,13 +82,15 @@ Directory 首次 ingest 所需的依赖 MUST 以同一条获准 stream 中的 ex
 
 服务签名先于任何内层对象处理，但不替代 Event/Commit proof。
 
-**撤销后的幂等重放（normative）**：`ak.peer.events.command.submit.v1` 的 closed 三分支请求均先验当前 RFC 9421 peer service 签名与当前 service DID key。签名方法已撤销、无法解析或签名失效时返回 `signature_invalid`，不得查看幂等缓存后返回 `stored`、`duplicate` 或 `historical_only`；已接纳的旧 Event/Commit 不被撤回。当前签名有效但 Realm 的 origin service binding 已移除时返回 `capability_denied`。只有当前 transport 认证、schema 与本轮授权均通过，且 exact body、签名、幂等键及内部 key-state／授权 basis 与已存条目一致时，才可重放原逐项结果而不产生新写入；basis 变化必须重跑授权。幂等键和历史缓存均不是当前认证或历史读取许可。v1 peer submit 不提供撤销密钥的历史诊断成功分支。
+**撤销后的幂等重放（normative）**：`ak.peer.events.command.submit.v1` 的 closed 三分支请求均先验当前 RFC 9421 peer service 签名与当前 service DID key。签名方法已撤销、无法解析、当前 key 不获授权或 cryptographic signature 验证失败时返回 `signature_invalid`；`created` / `expires` 缺失或不满足 [service-http-binding.md §8.3](./service-http-binding.md) 共享时效窗口时返回 `signature_window_invalid`。时效检查同样先于幂等结果查询，不得查看幂等缓存后返回 `stored`、`duplicate` 或 `historical_only`；已接纳的旧 Event/Commit 不被撤回。当前签名有效但 Realm 的 origin service binding 已移除时返回 `capability_denied`。只有当前 transport 认证、schema 与本轮授权均通过，且 exact body、签名、幂等键及内部 key-state／授权 basis 与已存条目一致时，才可重放原逐项结果（首次 `stored` 仍为 `stored`，不改报 `duplicate`）而不产生新写入；basis 变化必须重跑授权。幂等键和历史缓存均不是当前认证或历史读取许可。v1 peer submit 不提供撤销密钥的历史诊断成功分支。
 
 ### 3.4 Peer policy
 
 Peer allow/deny 只控制转发与复制入口，不能授予 governance authority。
 
 ## 4. 完整性与故障
+
+成员可见性不是独立的 kind 白名单：每条 Event MUST 同时满足其已登记 source scope、kind-specific private-material / disclosure 合同以及 membership、scope、history、reference 与 canonical payload / plaintext checks。`ak.identity.accountability_grant` 与 `ak.applet.managed_actor.provision` 按各自 kind 存储合同持有；Realm 成员资格、Profile 关联或 managed actor membership 不自动授予源 Event / 控制 stream 读取或复制权。专用 profile / authority evidence 披露只按其 closed 合同提供材料，不开放底层控制 stream 或扩张 fanout。某 kind 已获准作为共享 Realm Event 披露时，实现不得因未登记的本地 kind 白名单丢弃合法 replication 或 scan row。
 
 消费方可以证明自己获准的某条 stream 从已知 head 到新 head 连续，但不能证明 authority 在接纳前
 没有审查或扣留 Event。同一 `(realm, stream, generation, position)` 出现两个不同且有效的 authority
@@ -131,7 +133,7 @@ Service 历史在 `attested_at` 的 assertion method 与签名、attestation `ex
 
 目标暂时缺少 verified route **不得**拒绝已经通过 admission 的本地 Event，也不得返回 `service_unavailable` 来撤销本地 acceptance。该目标必须以 `pending_route` 状态原子写入；已有 verified route 但尚未收到 peer 成功响应的目标写为 `pending_delivery`。两种 pending 状态都必须跨重启恢复、按同一 idempotency key 重试，并在超过部署运维阈值后告警；只要冻结的接收 authority 仍有效，就不得因 TTL、尝试次数、dead-letter 上限、cache eviction 或进程重启静默终止义务。
 
-每个 intent MUST 在**发送方本地 durable outbox metadata** 冻结 `target_service_id`，以及使它获得投递 authority 的非空 `fanout_authorization_basis` 集。每个 basis 是完整三元组 `(realm_id, member_id: ActorId, membership_event_ref)`，不是其中任意一个字段。每次真正发送前，发送方 MUST 在同一当前 accepted Realm view 中验证一个 basis 的全部条件同时成立：完整 ActorId 仍是 effective joined、其 effective membership Event ref 与冻结值逐字相等、`route(member_id)` 等于 intent 的冻结 target service，并且该 Event 的 scope、history、reference disclosure、canonical payload 与 plaintext policy 仍允许发送。只有至少一个完整 basis 通过全部条件，目标才仍有权接收；这是 tuple 内 AND、tuple 间 OR，MUST NOT 跨两个 basis 拼凑条件，也 MUST NOT 把恒定的 ActorId routing projection、可达 endpoint 或 service resolution 当成独立授权依据。全部 basis 失效时 intent MUST 原子进入 terminal `cancelled_authority_lost` 且绝不发送。
+每个 intent MUST 在**发送方本地 durable outbox metadata** 冻结 `target_service_id`，以及使它获得投递 authority 的非空 `fanout_authorization_basis` 集。每个 basis 是完整三元组 `(realm_id, member_id: ActorId, membership_event_ref)`，不是其中任意一个字段。每次真正发送前，发送方 MUST 在同一当前 accepted Realm view 中验证一个 basis 的全部条件同时成立：完整 ActorId 仍是 effective joined、其 effective membership Event ref 与冻结值逐字相等、`route(member_id)` 等于 intent 的冻结 target service，并且该 Event 的 scope、history、reference disclosure、canonical payload 与 plaintext policy 仍允许发送。只有至少一个完整 basis 通过全部条件，目标才仍有权接收；这是 tuple 内 AND、tuple 间 OR，MUST NOT 跨两个 basis 拼凑条件，也 MUST NOT 把恒定的 ActorId routing projection、可达 endpoint 或 service resolution 当成独立授权依据。全部 basis 失效时 intent MUST 原子进入 terminal `cancelled_authority_lost` 且绝不发送。capability、install 或 policy 撤销若使全部 frozen basis 不再满足 scope / history / disclosure 条件，同样 MUST `cancelled_authority_lost`；此规则以本节 §4.1.1 为准，不撤销既有 accepted Event / Commit。
 
 同一 service DID 的 endpoint/record 更新只刷新 transport route，MUST NOT 改变冻结 basis、target identity 或原幂等键。AccountId 的 Station 分量变化意味着另一完整 ActorId，不是旧 intent 的 route 更新；之后同一 principal 以新 AccountId、其它 ActorId 或新 membership Event 重新加入，只能影响新 intent，MUST NOT 复活或重定向旧 intent。多个 frozen members 共享同一 service 时，一个成员退出不影响其它仍完整有效的 basis。
 

@@ -4330,6 +4330,8 @@ paths:
             encoding:
               content:
                 contentType: application/octet-stream
+              encryption:
+                contentType: application/json
   /_arkret/self/blob/get:
     head:
       operationId: ak.self.blob.resource.head

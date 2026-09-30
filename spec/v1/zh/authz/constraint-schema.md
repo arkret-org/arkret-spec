@@ -1093,6 +1093,8 @@ function matches_object_window(created_at, duration, now, skew):
 
 ### 16.2 字段访问匹配
 
+**写入字段派生（normative）**：字段路径相对于 registry 登记的 canonical 业务对象（无 `payload.` 前缀、无 Realm / Strand 类型前缀），使用 patch 相同的 dotted path；例如 Realm 为 `name` / `description` / `metadata.fields.x`，Strand 为 `tracks.synthesis.content`。patch 的 write_fields 是全部已验证 op paths，不按修改后值是否变化裁剪。整值 `set` / replacement（如 `ak.realm.profile`）覆盖完整结果对象：write_fields MUST 包含该 writer 的完整可写字段空间，既包含提交值的字段，也包含因省略而清除的旧字段；不得仅比较实际值差异或只计算 caller 提交字段。容器整体替换覆盖其全部后代；只允许子路径的 grant 不能授权祖先整体替换，deny 子路径与触及它的祖先替换相交。数组是整值字段，不以 index 扩展路径；schema、id、创建 provenance 与 reducer-managed 字段仍由各自不可写门控制，不靠 field_access 放开。不能确定完整写入空间时 fail closed。
+
 ```javascript
 function matches_field_access(operation, constraint):
     if operation.mode == "read":

@@ -569,7 +569,7 @@ Realm 与 Circle 的 materialized membership 共用唯一状态集 `join / knock
 | from | to | wire event kind | guard / writer |
 | --- | --- | --- | --- |
 | `leave` | `knock` | scope membership state | target ActorId 自著，且 join rule 允许 |
-| `leave` | `join` | `ak.member.state` 或 exact invite acceptance | target ActorId 自著 / bootstrap creator，或 exact target invite acceptance |
+| `leave` | `join` | `ak.member.state` 或 exact invite acceptance | Realm：target ActorId 自著 / bootstrap creator 或 exact target invite acceptance；Circle：public self-join 或持有 `ak.circle.member.add.others` 的管理员显式加入，并同批 audit |
 | `knock` | `join` | scope membership state | 已授权 reviewer/admin |
 | `knock` | `leave` | scope membership state | target ActorId 或已授权 reviewer/admin |
 | `join` | `leave` | scope membership state | target ActorId 或已授权管理员 |

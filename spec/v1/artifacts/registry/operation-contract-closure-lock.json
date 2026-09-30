@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-29.14",
-  "generated_at": "2026-09-29T11:05:01+08:00",
+  "version": "2026-09-30.2",
+  "generated_at": "2026-09-30T07:56:08+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -17,11 +17,11 @@
     },
     {
       "operation_id": "ak.edge.applet.command.transaction.v1",
-      "sha256": "sha256:23f8b23eb89fcd2a11629e9adc41e7d50f83003277354f660e073af6a041a26b"
+      "sha256": "sha256:4e6a9c7a0b1dfaac58c9f67e8aa3e64fd88587cdd8c37013f6ebdb686f8c7719"
     },
     {
       "operation_id": "ak.edge.applet.managed_actor.command.author.v1",
-      "sha256": "sha256:6fa6edfabc68c9e4e9be91a66e7c5a1eaba0258bebcea3370c19bc3c9232b61a"
+      "sha256": "sha256:7c8874bf439ee633e979359556a08e9b18e32a0344083106d5eccb210a8892b1"
     },
     {
       "operation_id": "ak.edge.applet.read.describe.v1",
@@ -105,11 +105,11 @@
     },
     {
       "operation_id": "ak.gate.account.command.pair_agent_key.v1",
-      "sha256": "sha256:ea25c5d80dd3c4ff80f7ef30756f6187b5bd9589503737006b67299ddd83c1bb"
+      "sha256": "sha256:77fffbffc570954036a387c33e776a8a70cfdbfb02cbd5971b16235705c94370"
     },
     {
       "operation_id": "ak.gate.account.command.pair_device.v1",
-      "sha256": "sha256:8435409c3bf11fdda221709df4f9b47560f7d5b9c2f9175dd99f575aeb1a9d74"
+      "sha256": "sha256:a4ae0a253fa52f6c6c4fc637ed946b349888c12a2e03bb8019f4ed9fca12e358"
     },
     {
       "operation_id": "ak.gate.account.command.refresh_session_grant.v1",
@@ -117,7 +117,7 @@
     },
     {
       "operation_id": "ak.gate.account.command.register.v1",
-      "sha256": "sha256:1910448f8b3fc8279c6676daf37ccb3a4bed5a1d005501e4cfd14089d724e994"
+      "sha256": "sha256:80b520a25c80f839cefca2eb3616693aa43577e60b27f9ace4572836448d0d05"
     },
     {
       "operation_id": "ak.gate.account.command.request_erasure.v1",
@@ -193,11 +193,11 @@
     },
     {
       "operation_id": "ak.open.mimi.command.update_consent.v1",
-      "sha256": "sha256:4dba52192c126d86cab87c631801f88c6c21062d5306071c69a17aeada054929"
+      "sha256": "sha256:7c2d3891c9728c2000af0e0cb877066c9d6f35ed24dec996e47513a8e54cdfc4"
     },
     {
       "operation_id": "ak.open.mimi.command.update_room.v1",
-      "sha256": "sha256:a4bc9faad55b146a8de07b4a0e8049017372bbda6753e357f94195df1063cc4c"
+      "sha256": "sha256:685fa844f60fa92aff3d8d05bf2cbcded43d8de95a3f23b296c3967dee319456"
     },
     {
       "operation_id": "ak.open.mimi.exchange.request_key_material.v1",
@@ -213,7 +213,7 @@
     },
     {
       "operation_id": "ak.open.realm_authority.read.bundle.v1",
-      "sha256": "sha256:e7516fffd1298601a6b2fe5d348f8b26eb9ec751b84831d724f10c0398a37bf9"
+      "sha256": "sha256:89e02040fd8fe287fac730f74d3b7506ca146ecb14269c384b6712ecbb547689"
     },
     {
       "operation_id": "ak.open.service.read.resolution.v1",
@@ -245,11 +245,11 @@
     },
     {
       "operation_id": "ak.peer.committed_event.read.scan.v1",
-      "sha256": "sha256:3418978619bb57b16f54870643f32c87daeee2ea3d6498fb6ab17825a0ffcf36"
+      "sha256": "sha256:d9e11b2a7fae908efbe2e6ec32199b8a03809a12345e32fd46a3a38541cb8995"
     },
     {
       "operation_id": "ak.peer.contacts.command.submit.v1",
-      "sha256": "sha256:8feb425a306982444b37d8849646f0ca54bc6d199095a94efbcdf098c87cd0a7"
+      "sha256": "sha256:e2a27ec78e2384c3e21527977391569470fbe21ef78b913ccf37ff51fdb4e2b8"
     },
     {
       "operation_id": "ak.peer.erasure_receipt.command.submit.v1",
@@ -261,11 +261,11 @@
     },
     {
       "operation_id": "ak.peer.events.command.submit.v1",
-      "sha256": "sha256:a66c4cf02e9d13f082e11fe0da62a910f11a419347ed450f7bda6055465daea5"
+      "sha256": "sha256:1a7d4fcc8797cde5257078b6b2632bb9b0973c44d9e4cad26ba7e066f04114fd"
     },
     {
       "operation_id": "ak.peer.invites.command.submit.v1",
-      "sha256": "sha256:4cabc5634c24e36be1c6f0e1c4ad70d5c9aee99e3649afb6586d7d881945c0b8"
+      "sha256": "sha256:1b2e32be569bf7437190a630fd71b30a991f8880c74a9a60dbe46befd91a0806"
     },
     {
       "operation_id": "ak.peer.keys.keypackages.command.claim.v1",
@@ -293,11 +293,11 @@
     },
     {
       "operation_id": "ak.peer.realm_authority.command.handoff.v1",
-      "sha256": "sha256:af985d3a885ffa8d51fd8d2e864a75b2cd6f5dc8e14f9e055e86130a2934dabb"
+      "sha256": "sha256:db0d76ad1fb3d424212012fd52c1021bb7532a283df8f9c8c3be3d76bcdb7b53"
     },
     {
       "operation_id": "ak.peer.realm_join.read.bootstrap.v1",
-      "sha256": "sha256:01d6119984ab97b7738eb673a6118287bec967c97023a45f5894ad2791205a2d"
+      "sha256": "sha256:e04654dcefdb38b5c0ef9d40f053721eb6862a6e8d4b4e3c227a44201bff58ce"
     },
     {
       "operation_id": "ak.peer.realm_join.read.preview.v1",
@@ -349,11 +349,11 @@
     },
     {
       "operation_id": "ak.root.identity.recovery_policy.command.publish.v1",
-      "sha256": "sha256:b9af014920a260e06a0121ff4f41adb57faf4af4de4a9c8324f273a7da0fcd6f"
+      "sha256": "sha256:973fac211a295d4016f022e383150775cfa32d871200c92e0e76f90763391fc4"
     },
     {
       "operation_id": "ak.root.identity.recovery_policy.resource.get.v1",
-      "sha256": "sha256:71c21d44d56b54b2f81b17e0c889fa522d23bb452f7b2a7776552be1fcc1d94f"
+      "sha256": "sha256:e90340e95c0b264c0022b7c14bce54b4a1f0fbc73850e9008ba3e10a66711989"
     },
     {
       "operation_id": "ak.root.identity.recovery_session.command.create.v1",
@@ -385,7 +385,7 @@
     },
     {
       "operation_id": "ak.self.account.command.update_profile.v1",
-      "sha256": "sha256:4e660a3e96706fe380363c90c7cff71ca8538a8709b4b44ab345446246b161a4"
+      "sha256": "sha256:9040b00aa76f9dd80b441982ba083f616fdc6fbc5d9d4af9acdc3033ac9b8192"
     },
     {
       "operation_id": "ak.self.account.read.describe.v1",
@@ -397,7 +397,7 @@
     },
     {
       "operation_id": "ak.self.account.stream.subscribe.v1",
-      "sha256": "sha256:78d8cb296d3105651b06d26ff9c4363deb092d7d613ff39ff17719ffc0a1d247"
+      "sha256": "sha256:6116696d0aaa7fa1df36459ecccf6d1b7bae99b7496f806f52d5fed72e5ad94a"
     },
     {
       "operation_id": "ak.self.account_data.read.list.v1",
@@ -405,7 +405,7 @@
     },
     {
       "operation_id": "ak.self.account_data.resource.delete.v1",
-      "sha256": "sha256:679accd1956769e4b8f55faad01baa9a7a4522e5b5e68533cba66f6bebd9fbe8"
+      "sha256": "sha256:98f39c6e69408c3892b65f66ac90f415dd3fd208f4119987c92ebd47b3bfb6fd"
     },
     {
       "operation_id": "ak.self.account_data.resource.get.v1",
@@ -413,27 +413,27 @@
     },
     {
       "operation_id": "ak.self.account_data.resource.replace.v1",
-      "sha256": "sha256:cec7abf9302c09e683b16e2c8fa189cfc27e74c83e05fcadef8d6be8497ff034"
+      "sha256": "sha256:99dc7ee1c7f35c0fe8d3fd12326e4b766b548c8660c815949a0bea3c82c7ca0e"
     },
     {
       "operation_id": "ak.self.actor_private_events.command.submit.v1",
-      "sha256": "sha256:0e729571d01e4807e2b60138413af271110e3a93069ea1e71c47520d80c75168"
+      "sha256": "sha256:381a5c3b0c034d2cb5a3b3c92e9de57dd5247a6d622f0415af421b953e88348b"
     },
     {
       "operation_id": "ak.self.actor_profile.read.resolve.v1",
-      "sha256": "sha256:f024dea336135fe1e3cb01cd34c63d9f1a8ae9d3762dbde109d1e2292645c46c"
+      "sha256": "sha256:5d86c03249a34e4a1c3220ed100af501fd4776743ffb50fe5bae17a18c000ec9"
     },
     {
       "operation_id": "ak.self.agent.command.deactivate.v1",
-      "sha256": "sha256:82f3b7aa57e17f0f159e80bfac894531f4033f7613a155af44b4213a96f67717"
+      "sha256": "sha256:380cc892b01beeeae9eb374053c1d3dc75dd2010ed1c600a24cb17d0b0e82d26"
     },
     {
       "operation_id": "ak.self.agent.command.pause.v1",
-      "sha256": "sha256:78b14d3250b599f4f1a67df9b312627155d736bb850b671ab583135181443ae4"
+      "sha256": "sha256:235171ec71ce75080c6126117e43883e041512a62d22955fdfb5a4f859ae4590"
     },
     {
       "operation_id": "ak.self.agent.command.provision.v1",
-      "sha256": "sha256:f08c266f06ad053453f5dc580873077cf1a7aeb1ecfc85e14a1ed35138b466bf"
+      "sha256": "sha256:f897d1241a4987fd196deb12adecb0f1d59d26b4f5e859fda91d0dfd7d0cfb56"
     },
     {
       "operation_id": "ak.self.agent.command.renew_pairing.v1",
@@ -441,7 +441,7 @@
     },
     {
       "operation_id": "ak.self.agent.command.resume.v1",
-      "sha256": "sha256:1e62019b241a698e91cc404273fb55f0591579386f1c368d069759455d9338f4"
+      "sha256": "sha256:49bc5be4270bc17bff4dcd0e064daff502d1de79e9c91fd66af253625e70cf91"
     },
     {
       "operation_id": "ak.self.agent.participation.resource.get.v1",
@@ -461,7 +461,7 @@
     },
     {
       "operation_id": "ak.self.agent.sidecar.command.ensure.v1",
-      "sha256": "sha256:5efbfb19340bdf85d0b2ce590872463172cef36c217825d49a7df6c2dcda96f3"
+      "sha256": "sha256:8f244df1a601ddd1d209bbf62cb30b535c704d03286c4c917e2f08d127bad0b0"
     },
     {
       "operation_id": "ak.self.agent.sidecar.read.list.v1",
@@ -473,27 +473,27 @@
     },
     {
       "operation_id": "ak.self.applet.command.install.v1",
-      "sha256": "sha256:dc2fb581a9c51efc845f132c016800da631520051a6a71ee1c9b242a81e659ac"
+      "sha256": "sha256:5a7bf8b35336f299d68cd6575f20d6b882918259d12618b7e82a2a6a0d42e055"
     },
     {
       "operation_id": "ak.self.applet.command.revoke.v1",
-      "sha256": "sha256:e70d5f266dbde5ff51ed3f883d8b7c02807448221fb2f1bf9e71f53a0250df0b"
+      "sha256": "sha256:5ec98fa64e2374602ea7e94a3af08317315466c050c6e89f8b444ef21ac1cf2c"
     },
     {
       "operation_id": "ak.self.applet.ghost.command.preview.v1",
-      "sha256": "sha256:0bdb805c688b049c0a7411afa7899a53ac85f6304ba36478bece563b01e52399"
+      "sha256": "sha256:8743cd26aa37651cc1f89fe6272b43c3304dd6f9eb49d95f7cc89341aa4173c8"
     },
     {
       "operation_id": "ak.self.applet.ghost.command.provision.v1",
-      "sha256": "sha256:6eb3a984236eb858b4714485b656062a390f3881d974f648861abcce55fb554c"
+      "sha256": "sha256:f6ada7aa8ad0eb1d156c170c3c6906a57293fe6ac86890f94d0ef75a6f92251c"
     },
     {
       "operation_id": "ak.self.applet.install.command.preview.v1",
-      "sha256": "sha256:66a79c8e7bee5fedd758262e3feb15530d67d264ae02d620e6dfb243dc1fcf28"
+      "sha256": "sha256:2862e009591ca10c842b933ea95131c547c4c92c7432a3724f1475e639a742c6"
     },
     {
       "operation_id": "ak.self.applet.revoke.command.preview.v1",
-      "sha256": "sha256:c9a743904da6c5912cd07e5eefd445d375aa2788977cd5c4c163c175dae87b31"
+      "sha256": "sha256:fb1e6f422a68bd600ce22cc7ef76ffd9220b8392e7fc80c51df2dcaec19370e9"
     },
     {
       "operation_id": "ak.self.authz.grants.read.effective.v1",
@@ -521,7 +521,7 @@
     },
     {
       "operation_id": "ak.self.blob.upload.create.v1",
-      "sha256": "sha256:6105fa4632b5a3f8771f51fd520d1c29bb1fe347106915d201aa11a01c364188"
+      "sha256": "sha256:14c114be15b64e650516b8eca5b43a6c402290998a9d090b34b69a0953344c83"
     },
     {
       "operation_id": "ak.self.call.media.exchange.issue_token.v1",
@@ -529,7 +529,7 @@
     },
     {
       "operation_id": "ak.self.circle.command.create.v1",
-      "sha256": "sha256:6d6049061ef6537f07b9865141b12e3d3c517742c5df54f52ac7c2cd9efb43bb"
+      "sha256": "sha256:3d1dbadf89f5b17d19be16cf4a3f43b11533c1ec1aefbf9844191bb2f27a9127"
     },
     {
       "operation_id": "ak.self.circle.command.rotate_scope.v1",
@@ -537,11 +537,11 @@
     },
     {
       "operation_id": "ak.self.circle.member.command.add.v1",
-      "sha256": "sha256:92c4ce40868fe1d075112e5c4700301def1f87f9f538201bfdbbe25ddfc7ea7e"
+      "sha256": "sha256:49a99b419c930c80403d4b1db0bc11e64853011b64273de0344f89b517056f7d"
     },
     {
       "operation_id": "ak.self.circle.member.resource.delete.v1",
-      "sha256": "sha256:98f997c537a21d8249555219f2460c1ad54e923269619a40b56e685bc1db47f8"
+      "sha256": "sha256:5a4f7d3122cba790c1a98fec0ca986f8da285d0410f28c06d1eb8b43651b0668"
     },
     {
       "operation_id": "ak.self.circle.read.list.v1",
@@ -553,19 +553,19 @@
     },
     {
       "operation_id": "ak.self.committed_event.read.scan.v1",
-      "sha256": "sha256:e290a9356a9842d11684e3278131d028eb51494ef11a8a41a43309e098bc29a1"
+      "sha256": "sha256:ed6accc2d89d63018420ba7b7e0e42ceed0fdf39f5062438c829087ba8a5e084"
     },
     {
       "operation_id": "ak.self.committed_event.resource.get.v1",
-      "sha256": "sha256:4f605f85bfc35aee0831e3104c35405389704d997dc45e8a9d4b6fb6f8d5a3af"
+      "sha256": "sha256:2e63a338fcc8104c9ace46ddc76b4b62ee51d1bc8477adbff54e55a3ee5ccb64"
     },
     {
       "operation_id": "ak.self.committed_event.stream.subscribe.v1",
-      "sha256": "sha256:b2acf589bd8b8ac10318baa72bee6bcc95f7d596411c2009709a3d961651ce00"
+      "sha256": "sha256:1059f0cc098444fde5f92edeec6d4fa7393b4a8779d8586abe901305ee606fa8"
     },
     {
       "operation_id": "ak.self.consent.command.grant.v1",
-      "sha256": "sha256:514e0bf1007674a724dbafdaf551f8fba7c1c82486efa2daef38d86c4b1d8e69"
+      "sha256": "sha256:eab74a1978df22d74d66c8d47957a0f010eacbf5400764d5f25332d0070176a5"
     },
     {
       "operation_id": "ak.self.consent.command.request.v1",
@@ -573,7 +573,7 @@
     },
     {
       "operation_id": "ak.self.consent.command.revoke.v1",
-      "sha256": "sha256:597c33a240c8f1bf4ea06f9050dcb3622b4fa3074baa563e9f45803e626abed0"
+      "sha256": "sha256:ed5cd0ce69d36650028514dcde54959c346d5f326cef121be3c22805b2f69e59"
     },
     {
       "operation_id": "ak.self.consent.read.list.v1",
@@ -589,23 +589,23 @@
     },
     {
       "operation_id": "ak.self.contact.command.reject.v1",
-      "sha256": "sha256:e2208279f100dfd2d03580b7b9a8cbf8dfa858078d9ad9b1e117f4454b0bd519"
+      "sha256": "sha256:f0764a76719d6db4d5298f5e8bf07d51e7c1215f7cad121673da2833d36e3a1c"
     },
     {
       "operation_id": "ak.self.contact.command.request.v1",
-      "sha256": "sha256:e0f6e8366605c66872825228049873c12c2953a3d44aa0df40e3c12a9cfdfd6c"
+      "sha256": "sha256:cb93c03c0a8d732bd69bac0ca27015875bb560e595a6464addf43f0df41b0d70"
     },
     {
       "operation_id": "ak.self.contact.command.respond.v1",
-      "sha256": "sha256:945f321a18eb2bca4b3efa4eb7840d4eeb53234672dd4d3d6f614cd5e2565179"
+      "sha256": "sha256:3ed4d576262c30607dce9b1b851b1394eee11693ec1c1526efb17427c900f5ef"
     },
     {
       "operation_id": "ak.self.contact.command.scope_update.v1",
-      "sha256": "sha256:81518983d84054c342d259b01b980bfc19f6d7e7b97fd648df2c3def2c3735d1"
+      "sha256": "sha256:ea9c09ad0fa52375602b23e584a74e55ef509d34ac8cef7a2ec573e0a5ebf30d"
     },
     {
       "operation_id": "ak.self.contact.command.tombstone.v1",
-      "sha256": "sha256:365f51f29a4938a50cea773ee1600a93d8645e03260a13ad7c146091583c255e"
+      "sha256": "sha256:e1c054e1386cb65a851dbe2a10948a583c468edc5d8d191fe1b7925cb34cce4f"
     },
     {
       "operation_id": "ak.self.contact.read.list.v1",
@@ -617,7 +617,7 @@
     },
     {
       "operation_id": "ak.self.current_results.read.exact.v1",
-      "sha256": "sha256:e7f9dac715a53ec2e17b7112a87f22806f1a3e08dd1a39b02b908912cef13c13"
+      "sha256": "sha256:938c9f343950e2ad8b26970249785533ffeae1b8df719722aa5fbb5a85e5fa48"
     },
     {
       "operation_id": "ak.self.device_messages.command.ack.v1",
@@ -637,7 +637,7 @@
     },
     {
       "operation_id": "ak.self.events.command.submit.v1",
-      "sha256": "sha256:ccfb92548b1756548887f1f0eff2162f8160d7e54c5f593fe2157655733e514d"
+      "sha256": "sha256:1897b15bd5ddafd3274888df9e270db8b5f64658f810537c47f859ee553decc6"
     },
     {
       "operation_id": "ak.self.events.read.delivery_status.v1",
@@ -645,7 +645,7 @@
     },
     {
       "operation_id": "ak.self.identity.read.resolution_audit.v1",
-      "sha256": "sha256:93090aa276bac743524b4c369dec16cbac2febae1bd2ad18e38991416244fab9"
+      "sha256": "sha256:abee0505f64acf4d09974d5a9f5a37665369db083d7aa19583c336f3ba758a95"
     },
     {
       "operation_id": "ak.self.invite_locator.command.issue.v1",
@@ -749,7 +749,7 @@
     },
     {
       "operation_id": "ak.self.moderation.command.report.v1",
-      "sha256": "sha256:5f282a4b07c8a5e5ba11585497ee5040f5b1d421d29d77bbfe67dd599b53a900"
+      "sha256": "sha256:4f8073fbf8aa9d701b00b7b8dfec7b41aac1c3c3912312ad701145a86e062922"
     },
     {
       "operation_id": "ak.self.morph.read.list.v1",
@@ -761,7 +761,7 @@
     },
     {
       "operation_id": "ak.self.read_cursor.command.advance.v1",
-      "sha256": "sha256:4550f6b30920a055b32debc68e7182f2a52be8d0623d5d24afe53710e74efc76"
+      "sha256": "sha256:b46cddd0c15f5a35f0d7029cdeace5bf27293e2b6a2c5b542697347a4f756361"
     },
     {
       "operation_id": "ak.self.read_cursor.read.list.v1",
@@ -781,11 +781,11 @@
     },
     {
       "operation_id": "ak.self.realm_join.command.prepare.v1",
-      "sha256": "sha256:de43b0fdb8c2bc66a775e85923a2bf16dfac2c2dceb6b193fea49d65fb5fc088"
+      "sha256": "sha256:7da4aa407ad3e335ce986e05336c5e1076ef4d5f5f622f9de41561a4c8e842da"
     },
     {
       "operation_id": "ak.self.realm_join.read.preview.v1",
-      "sha256": "sha256:7cbcef70d930b5e6f1455fd19684fcc6f1d5cb5512deb72c5e002f41f53f6306"
+      "sha256": "sha256:0d4ab4fb5eaec218df0b044d8e433c378d947644abf6de13c6a6fd71c2fac344"
     },
     {
       "operation_id": "ak.self.realm_link.read.list.v1",
@@ -797,23 +797,23 @@
     },
     {
       "operation_id": "ak.self.realm_state_snapshot.read.by_ref.v1",
-      "sha256": "sha256:0c14b2419594cc7730decff5646f9107769e7a0949e370dc8b0a706a67fc2f6c"
+      "sha256": "sha256:62ece97c32b213208afe49ca3c6f6707ee75bbda39b32fc38008dea72f151cec"
     },
     {
       "operation_id": "ak.self.realm_state_snapshot.read.manifest_head.v1",
-      "sha256": "sha256:a0f0372f8c3c7e1fd5f58f9e30ac61f9e66ffd04b491d711d8971d173a8a9fef"
+      "sha256": "sha256:a0ee90aaf364a213fd0ebc4a249370f736650b846df00a13061f11800d5c0b83"
     },
     {
       "operation_id": "ak.self.security_transaction.command.continue.v1",
-      "sha256": "sha256:1be2c53137d7cbf551b50e399563b535ba389f3f539438857f0fe52e34fa50b4"
+      "sha256": "sha256:889292ed86de128043607d6bbbf064ea257bf7eddce22f27e5a505535ef1fdf6"
     },
     {
       "operation_id": "ak.self.security_transaction.command.create.v1",
-      "sha256": "sha256:9a55da8a497ada395ba5277354c060eefea237f222e97fb87f3aa3d09a1f0444"
+      "sha256": "sha256:5924dba35f56db8221e689969729d2a678e73a80df656276fb35e8aa70e56f65"
     },
     {
       "operation_id": "ak.self.security_transaction.resource.get.v1",
-      "sha256": "sha256:e3ffe088af140c4310721399f9d46e4e4ac30713a6909505b067305ac644b465"
+      "sha256": "sha256:210cbe5f71ac2d71074ade7180dca2e349dc33a90619b09a18959a753b28fe2b"
     },
     {
       "operation_id": "ak.self.signal.command.send.v1",

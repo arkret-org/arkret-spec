@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-20.1",
-  "generated_at": "2026-09-20T22:56:00+08:00",
+  "version": "2026-09-30.2",
+  "generated_at": "2026-09-30T08:03:04+08:00",
   "source_of_truth": true,
   "description": "Canonical machine-readable projection of the reducer-managed-field protection defined in zh/models/event-and-patch.md section 4.2.5. It answers one question per object kind: which ak.schema.patch.v1 paths a generic update surface MUST reject because the value is owned by the reducer, by the create Event, by a dedicated event kind, or by a typed current result, rather than by the actor writing the patch. patch.schema.json is a generic document format and cannot express a per-object forbidden set, so before this registry existed every reducer, SDK and conformance runner had to hard-code its own copy of the list. Reducers, SDKs and conformance runners MUST read the set from here and MUST NOT re-derive it from prose.",
   "registry_rules": [
@@ -485,7 +485,8 @@
         ]
       },
       "update_payload_refs": [
-        "schemas/event-payload.schema.json#/$defs/strand_patch_payload"
+        "schemas/event-payload.schema.json#/$defs/strand_patch_payload",
+        "schemas/event-payload.schema.json#/$defs/strand_tracks_update_payload"
       ],
       "universal_exemptions": [],
       "forbidden_patch_paths": [

@@ -63,7 +63,7 @@
     },
     "applet_id": {
       "$ref": "#/$defs/applet_id",
-      "description": "Optional signed Applet provenance. Required by ak.profile.applet_* when the Event is introduced by an Applet, Ghost Actor, bridge, or delegated applet path. Enters canonical event bytes and therefore is covered by proof.event_digest. When present, authorization_ref MUST also be present and resolve to a real active registration/capability grant binding this applet_id, registration_epoch, action and resource per zh/extensions/applet-integration.md sections 4, 8 and 11. Service-actor self-signature proves provenance but is not an authorization substitute."
+      "description": "Optional signed Applet provenance. Required by ak.profile.applet_* when the Event is introduced by an Applet, Ghost Actor, bridge, or delegated applet path. Enters canonical event bytes and therefore is covered by proof.event_digest. When present, authorization_ref MUST also be present and resolve to a real active registration/capability grant binding this applet_id, registration_epoch, action and resource per zh/extensions/applet-integration.md sections 4, 8 and 11. Service-actor self-signature proves provenance but is not an authorization substitute. Capability-gated actions require a grant covering action/resource. For subject_only operations the referenced grant binds only the exact active install and cannot replace the subject signature, FSM or independent action authority. Service self-authored Events use ActorId.service; only applet_installation_authority explicitly matches that Service to the frozen install authority AccountId (the Service principal, the exact target Station), never generic ActorId equality."
     },
     "external_ref": {
       "$ref": "#/$defs/external_ref",
@@ -97,7 +97,7 @@
   },
   "allOf": [
     {
-      "$comment": "Signed Applet provenance invariants. external_ref is only meaningful when bound to a signed applet_id, and every Applet-originated write, including service-actor self-signature, must cite a real accepted active authorization/delegation grant.",
+      "$comment": "Signed Applet provenance invariants. external_ref is only meaningful when bound to a signed applet_id, and every Applet-originated write, including service-actor self-signature, must cite a real accepted active authorization/delegation grant. On subject_only actions the grant is an exact-install binding, not delegated subject authority.",
       "if": {
         "required": [
           "external_ref"
@@ -2673,7 +2673,7 @@
       "then": {
         "properties": {
           "payload": {
-            "$ref": "./event-payload.schema.json#/$defs/strand_patch_payload"
+            "$ref": "./event-payload.schema.json#/$defs/strand_tracks_update_payload"
           }
         }
       }

@@ -104,7 +104,7 @@ Schema id: `ak.schema.notification.v1`
 - Direct mention 以结构化节点的 `subject_account_id`（完整 AccountId）为目标，逐字节比较两个分量；audience mention 先按 source Event 的 committed stream position、Message effective scope、Realm / Circle policy 与可见性规则展开 receiver set。`strand_watchers` / `strand_engaged` audience 的 watcher 命中由完整 effective watch level 计算，但只作为 receiver-side fanout 条件。
 - 对同一 `(actor_id, source_event_id, notification_kind)` MUST 去重。一个 Message 中重复 direct mention、direct mention 与 audience mention 同时命中、或 watch / reply / assignment 叠加命中，都不得在同一 push delivery window 内产生多次 wakeup。
 - `actor_id` MUST 是接收 notification 的 actor，而不是发送者。默认发送者自 mention 不产生 notification，除非该 actor 的私有 push rule 显式 opt-in。
-- 派生器 MUST 在生成 notification 前应用 access check、history visibility、`level=muted`、blocklist、DND 与 push rule 覆盖；无访问权或被静音时不得留下可查询的 notification stub。
+- Station 派生器 MUST 在生成 notification projection 或 wakeup 前执行 access check、history visibility 与服务端可见 `level=muted` gate；失败时不得留下可查询 stub。个人 blocklist、DND 与完整 push-rule chain 只由持钥 receiver 客户端在用户可感知展示前执行，详见 [push-notifications.md §2.1 / §3.3 / §4.3](../discovery/push-notifications.md)；这些加密偏好不抑制服务端 blind wakeup。
 - 派生器、delivery response、inbox projection 与 push payload MUST NOT 暴露 audience 展开结果、recipient count、watcher 列表、watch level 或命中原因；sender 不得区分某 receiver 是因历史参与、watch 还是 direct mention 命中。
 - `preview` 在 E2EE / redaction / history-limited 场景下 MUST 为空或使用已授权的脱敏摘要；不得因为 notification projection 需要展示而扩大源 Message 的明文可见性。
 
@@ -115,7 +115,7 @@ Schema id: `ak.schema.notification.v1`
 - `relation_kind="assigned_to"`。
 - `from_ref` 是 active Strand id，`to_ref` 是完整 ActorId object。
 - Relation create 不是现有 active `(realm_id, relation_kind, from_ref, to_ref)` assignment tuple 的 no-op 重放；同一 `(actor_id, source_event_id, notification_kind=assignment)` 最多生成一个 notification。
-- 接收 actor 对该 Strand 的 effective Realm / Circle scope 有读取权，且未被 `level=muted`、blocklist、DND 或 push rule 覆盖抑制。
+- 接收 actor 对该 Strand 的 effective Realm / Circle scope 有读取权，且未被服务端可见 `level=muted` gate 抑制；客户端展示前另执行私有 blocklist、DND 与完整 push rule。
 
 派生 notification 的 `actor_id` MUST 是 `to_ref`，`realm_id` MUST 是 Relation 所属 Realm，`source_event_id` MUST 是产生该 Relation create 的 canonical Event id，`source_ref` SHOULD 是新增的 Relation id，`strand_id` MUST 是 `from_ref`。缺少可验证 canonical Event id 时不得生成普通 notification projection；OperationId 不是 EventId，也不得作为本地或 wire `source_event_id` 替代品。
 
@@ -127,7 +127,7 @@ Assignment 只影响通知订阅与 inbox 派生，不扩大 Strand 访问权；
 
 core notification 只把 accepted `ak.strand.update` 对 `metadata.fields.due_at` 的改变视为 schedule-relevant change。扩展 profile 的额外 schedule 字段由该 profile 自己登记；core 实现不得因本节而被迫识别 calendar 字段。
 
-Schedule notification 的 receiver set 是下列集合的并集，并在生成前按 access check、history visibility、`level=muted`、blocklist、DND 与 push rule 覆盖过滤：
+Schedule notification 的 receiver set 是下列集合的并集，并在服务端生成前按 access check、history visibility 与服务端可见 `level=muted` gate 过滤：
 
 - 该 Strand 当前 active `assigned_to` Relation 的 `to_ref` actors。
 - 对该 Strand 显式选择 `watch=all` 的 watchers。
@@ -138,7 +138,7 @@ Schedule notification 的 receiver set 是下列集合的并集，并在生成�
 
 E2EE / plaintext policy 不允许服务端读取 schedule fields 时，服务端不得为了通知而解密或扩展明文可见性；实现 MAY 发送不含 preview 的 blind wakeup，或让客户端在本地解密后根据同一规则完成 inbox 派生。
 
-上述过滤发生在**生成之前**：失去访问权、被 mute/block、被 DND 或 push rule 抑制的 actor MUST NOT 收到 notification、stub 或 push wakeup。实现 MUST NOT 把 DND 只解释为 provider 侧 transport filter 而仍然生成 notification 对象。
+服务端可验证的 access / history / mute 过滤发生在**生成之前**，失败时 MUST NOT 产生 notification、stub 或 wakeup。持钥客户端 MUST 在任何用户可感知 inbox、OS 通知、声音或高亮展示前应用个人 blocklist、DND 与完整 push rule；私有规则可阻止展示而不阻止 blind wakeup。服务端不得索取私有密文规则的明文来完成派生。
 
 Calendar 扩展在此基础上收窄两点，规则正文见 [`calendar-event.md` §10](./calendar-event.md)：一是 receiver 候选集扩展为 `pre_state.attendees ∪ post_state.attendees ∪ assigned_to ∪ watch_all`，使被移除但仍有 scope 读取权的 attendee 也能获知变更；二是 calendar 字段的 dispatcher 职责属于独立的 server profile `ak.profile.calendar_notification_dispatch.v1`，client 侧 `ak.profile.calendar_event.v1` 不承担该职责，core 实现也不因此被迫识别 calendar 字段。
 

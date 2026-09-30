@@ -827,6 +827,15 @@ def _guarded_paths(lint: Lint, path: Path, label: str, definition: Any) -> set[s
         property_names = branch.get("propertyNames")
         if not isinstance(property_names, dict):
             continue
+        # Positive path allow-lists narrow authoring, but do not claim any
+        # reducer-owned prefix as a registry-enforced ban. Explicit negative
+        # guards below still supply every schema_enforced obligation.
+        if set(property_names) == {"pattern"} and isinstance(property_names["pattern"], str):
+            try:
+                re.compile(property_names["pattern"])
+            except re.error:
+                lint.fail(path, f"{label}: invalid positive patch path pattern")
+            continue
         negated = property_names.get("not")
         if not isinstance(negated, dict):
             lint.fail(path, f"{label}: patch propertyNames guard must be a `not` subschema")

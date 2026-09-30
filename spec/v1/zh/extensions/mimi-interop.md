@@ -301,6 +301,8 @@ decoded kind 不一致或 Event 绑定不一致，MUST 对外合并为同一个
 - `ak.open.mimi.exchange.request_key_material.v1`
 - `ak.open.mimi.read.identifiers.v1`
 
+上述来源签名要求对每次调用都适用，包括同部署调用、携带 Bearer user session 或 AgentRuntime session 的请求。会话认证不豁免 HTTP Message Signature；缺来源签名 MUST 在 actor proof、PSI、consent state 或 Event 处理之前以 `http_signature_required` 拒绝并零写入。发送方须使用本 operation 登记的 provider / service 身份，不得以用户或 Agent runtime key 冒充 provider transport key。
+
 其中 identifiers PSI query 虽分类为 read，仍承载反枚举边界，必须逐次认证 provider 来源。
 `ak.open.mimi.read.provider_directory.v1` 明确不要求本 profile，也不得返回本 profile 的三个错误码。
 要求签名的请求绑定：
@@ -380,7 +382,7 @@ transcript 的完整 binding fields 逐族列在 registry 的 `binding_fields`�
 - provider 发起的 key-material / identifier request 的 `requester_id` 是 service principal；无 requester 的 identifier proof 绑定已认证 source service。服务 proof 与服务 outcome 从相应 service 的 accepted key binding／受信 DID authority 取得 key，不得将这种 service 验签规则用于 Account 或 Agent。
 - 远端 Account／Agent 必须通过该 operation 获准使用的当前、保密 authority evidence 验证，证据须绑定 exact identity 与签名 method；实际请求、目标 verifier 和范围由请求自身签名及授权检查绑定。`request_consent` 当前没有通用远端 PCR 披露 carrier；裸 ActorId、provider assertion、同 principal 的本机账号、历史 Event 或其它 operation 的 signer evidence 均不补足这个缺口。没有合法证据来源时 MUST 在创建 correlation 或读取 holder 私有状态前 fail closed（`proof_invalid`），MUST NOT 推导并查询远端私有 PCR。此限制不影响接收 Station 本地可验证的 requester 向任意 exact holder 地址发起 opaque request。
 
-Bearer user session 只证明当前调用会话；它 MUST 与 `actor_id` 一致，并且仍 MUST 验证上述 actor proof。跨 provider 调用还 MUST 同时通过本节的 HTTP Message Signature：provider transport proof 与 actor operation proof 缺一不可，任何一层都不得替代另一层。
+Bearer user session 只证明当前调用会话；它 MUST 与 `actor_id` 一致，并且仍 MUST 验证上述 actor proof。§5 封闭清单内的 operation 还 MUST 同时通过本节的 HTTP Message Signature，与是否跨 provider 或携带有效会话无关：provider transport proof 与 actor operation proof 缺一不可，任何一层都不得替代另一层。
 
 ## 6. Key Material
 

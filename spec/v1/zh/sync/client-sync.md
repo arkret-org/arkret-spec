@@ -176,7 +176,7 @@ arrival order 或缓存拼坐标。redacted／reference-locked row 不提供可�
 
 **客户端不重放治理历史（normative）**：共享授权与对象重建由 own Station 负责，客户端只验证输出绑定、producer 输入与所需 MLS bytes / epoch。上一段所说的「重建」在服务端指获准前缀的重建，在客户端只指它本地已有的展示与密码学状态；它 MUST NOT 被理解为授权客户端重放私有治理闭包，也 MUST NOT 把历史窗口当作当前权限。
 
-窗口起点之上的历史回填走 [`ak.self.committed_event.read.scan.v1`](./service-http-binding.md) 的 `before_position`，逐流进行。subscribe 面不保留第二套分页机制。
+窗口起点之前的向旧历史回填走 [`ak.self.committed_event.read.scan.v1`](./service-http-binding.md) 的 `before_position`，逐流进行。客户端也 MAY 使用 `after_position:null` 从 caller 的 readable floor 开始按 position 升序取得连续获准历史，再以最后位置继续 `after_position` 扫描。两种方向共享可读区间、Commit 连续性与 readable_floor 验证，不扩张历史读取权。floor > 0 时不能补出不可读前缀或清除缺 exact window basis 导致的 preview_only；任何 scan 都不得自建 typed current。subscribe 面不保留第二套分页机制。
 
 ## 6. Event Ordering
 
