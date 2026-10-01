@@ -1,0 +1,61 @@
+{
+  "suite": "shared_pin_admission",
+  "fixture_kind": "semantic",
+  "version": "2026-10-01.1",
+  "profile": "ak.profile.pinned_items.v1",
+  "covers_vectors": [
+    "ak.vector.pin.admission_and_scope.v1"
+  ],
+  "spec_anchor": "spec/v1/zh/models/pins.md#3-scope-safety",
+  "source_refs": [
+    "spec/v1/zh/models/pins.md",
+    "spec/v1/zh/authz/capabilities.md"
+  ],
+  "owner_grant_actions": [
+    "ak.pin.add",
+    "ak.pin.remove",
+    "ak.pin.reorder"
+  ],
+  "cases": [
+    {
+      "case_id": "owner_without_explicit_pin_grant",
+      "event_kind": "ak.pin.add",
+      "expected_error_code": "capability_denied",
+      "expected_committed_writes": 0
+    },
+    {
+      "case_id": "reorder_before_add",
+      "event_kind": "ak.pin.reorder",
+      "expected_error_code": "failed_precondition",
+      "expected_reason_code": "pin_target_not_pinned",
+      "expected_committed_writes": 0
+    },
+    {
+      "case_id": "reorder_after_remove",
+      "event_kind": "ak.pin.reorder",
+      "expected_error_code": "failed_precondition",
+      "expected_reason_code": "pin_target_not_pinned",
+      "expected_committed_writes": 0
+    },
+    {
+      "case_id": "foreign_or_hidden_target",
+      "event_kind": "ak.pin.add",
+      "expected_error_code": "not_found",
+      "expected_committed_writes": 0
+    },
+    {
+      "case_id": "stale_rank",
+      "event_kind": "ak.pin.reorder",
+      "expected_error_code": "failed_precondition",
+      "expected_committed_writes": 0
+    },
+    {
+      "case_id": "dot_set_keeps_add_reorder_remove",
+      "expected_assertion_count": 3
+    }
+  ],
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.pin.admission_and_scope.v1"
+  }
+}

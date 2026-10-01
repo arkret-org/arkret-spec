@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-29.1",
-  "generated_at": "2026-09-29T00:06:00+08:00",
+  "version": "2026-10-01",
+  "generated_at": "2026-10-01T14:17:59+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -512,14 +512,34 @@
             {
               "id": "welcome_roster_requires_complete_historical_leaf_authority",
               "requirement": "Genesis leaf ownership is producer-signed; every surviving Add has recipient-Station signed historical provenance; a current and target-cut authorized member receives only a complete governance-signed roster before local RFC-tree leaf-index binding.",
-              "vectors": ["ak.vector.mls.roster_authority.v1"],
+              "vectors": [
+                "ak.vector.mls.roster_authority.v1"
+              ],
               "required_case_refs": [
-                {"fixture_ref": "fixtures/mls-roster-authority-fixture.json", "case_id": "genesis_explicit_distinct_key_accept"},
-                {"fixture_ref": "fixtures/mls-roster-authority-fixture.json", "case_id": "remote_add_before_attestation_unavailable"},
-                {"fixture_ref": "fixtures/mls-roster-authority-fixture.json", "case_id": "forged_or_mismatched_attestation_reject"},
-                {"fixture_ref": "fixtures/mls-roster-authority-fixture.json", "case_id": "same_tuple_remove_add_keeps_new_provenance"},
-                {"fixture_ref": "fixtures/mls-roster-authority-fixture.json", "case_id": "former_member_and_hidden_scope_not_found"},
-                {"fixture_ref": "fixtures/mls-roster-authority-fixture.json", "case_id": "page_digest_or_cut_change_reject"}
+                {
+                  "fixture_ref": "fixtures/mls-roster-authority-fixture.json",
+                  "case_id": "genesis_explicit_distinct_key_accept"
+                },
+                {
+                  "fixture_ref": "fixtures/mls-roster-authority-fixture.json",
+                  "case_id": "remote_add_before_attestation_unavailable"
+                },
+                {
+                  "fixture_ref": "fixtures/mls-roster-authority-fixture.json",
+                  "case_id": "forged_or_mismatched_attestation_reject"
+                },
+                {
+                  "fixture_ref": "fixtures/mls-roster-authority-fixture.json",
+                  "case_id": "same_tuple_remove_add_keeps_new_provenance"
+                },
+                {
+                  "fixture_ref": "fixtures/mls-roster-authority-fixture.json",
+                  "case_id": "former_member_and_hidden_scope_not_found"
+                },
+                {
+                  "fixture_ref": "fixtures/mls-roster-authority-fixture.json",
+                  "case_id": "page_digest_or_cut_change_reject"
+                }
               ]
             },
             {
@@ -5909,7 +5929,9 @@
         "ak.schema.pin.v1",
         "ak.schema.event_payload.v1"
       ],
-      "required_fixtures": [],
+      "required_fixtures": [
+        "shared-pin-admission-fixture.json"
+      ],
       "optional_extensions": [],
       "feature_discovery": {
         "required": [

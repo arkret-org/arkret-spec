@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-29.5",
+  "version": "2026-10-01.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-29T11:32:00+08:00",
+  "generated_at": "2026-10-01T14:29:30+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -3396,9 +3396,13 @@
       "vector_id": "ak.vector.mls.roster_authority.v1",
       "status": "active",
       "domain": "mls",
-      "applies_to_fixtures": ["mls-roster-authority-fixture.json"],
+      "applies_to_fixtures": [
+        "mls-roster-authority-fixture.json"
+      ],
       "description": "Genesis producer-signed leaf-key ownership, recipient Station signed historical Add attestation, governance Station complete roster manifest, dual-cut member disclosure and member-authorized cross-Station Genesis public material forwarding, and fail-closed absence, mismatch, replay, same-tuple Remove+Add and pagination cases.",
-      "source_refs": ["spec/v1/artifacts/fixtures/mls-roster-authority-fixture.json"]
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/mls-roster-authority-fixture.json"
+      ]
     },
     {
       "vector_id": "ak.vector.mls.governance_binding_closure.v1",
@@ -4990,6 +4994,18 @@
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/zh/crypto-media/media-service-binding.md",
         "spec/v1/artifacts/fixtures/webrtc-media-plaintext-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.pin.admission_and_scope.v1",
+      "status": "active",
+      "domain": "pin",
+      "applies_to_fixtures": [
+        "shared-pin-admission-fixture.json"
+      ],
+      "description": "Exact owner grant ceiling, explicit Pin authority, hidden target non-enumeration, expected-rank refusal, reorder-without-live-add refusal and immutable add/reorder/remove dot-set assertions.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/shared-pin-admission-fixture.json"
       ]
     }
   ]

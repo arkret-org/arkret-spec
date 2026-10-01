@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-30.1",
-  "generated_at": "2026-09-30T07:56:07+08:00",
+  "version": "2026-10-01",
+  "generated_at": "2026-10-01T14:17:59+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -4702,8 +4702,7 @@
         "state_resolution"
       ],
       "description": "Sub-reason for failed_precondition when ak.pin.reorder addresses a (pin_scope, target_ref) that has no causally earlier surviving ak.pin.add assertion to inherit note and the remaining entry fields from. Reducers MUST NOT synthesize a rank-only entry that would put the target back into the roster. See zh/models/pins.md section 4.",
-      "status": "reserved",
-      "activation_condition": "Promote pin_target_not_pinned to active only in the same release that adds a canonical machine producer path under spec/v1/artifacts outside reports and this registry."
+      "status": "active"
     },
     {
       "code": "policy_denied",

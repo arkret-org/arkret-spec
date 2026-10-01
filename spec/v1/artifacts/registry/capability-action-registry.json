@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-28.1",
+  "version": "2026-10-01",
   "source_of_truth": false,
-  "generated_at": "2026-09-28T06:37:00+08:00",
+  "generated_at": "2026-10-01T14:17:59+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -1264,6 +1264,9 @@
         "ak.object.read_metadata",
         "ak.object.restore",
         "ak.object.stage.set",
+        "ak.pin.add",
+        "ak.pin.remove",
+        "ak.pin.reorder",
         "ak.policy.action",
         "ak.policy.manage",
         "ak.policy.set",
@@ -1338,6 +1341,9 @@
       "grant_authority_rule": {
         "require_profile_null": true,
         "include_actions": [
+          "ak.pin.add",
+          "ak.pin.remove",
+          "ak.pin.reorder",
           "ak.rsvp.set"
         ],
         "exclude_flags": [

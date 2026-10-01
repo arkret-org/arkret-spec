@@ -531,6 +531,11 @@
       "version": "2026-09-23"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/shared-pin-admission-fixture.json",
+      "sha256": "249de463600dd1b28fbbb074d89bfa43e664af8a39daddf2e0c8cf1b2cb14e82",
+      "version": "2026-10-01.1"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/signal-federation-fixture.json",
       "sha256": "70311999d69ae27f5b2db3e92eab279edbe8cbdc4ef6cc24b18a900707673529",
       "version": "2026-09-25"

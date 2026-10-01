@@ -22,7 +22,7 @@ Shared pin 是进入 Realm reducer 的共享投影事实，用于把 Message、S
 
 **架构决策（normative boundary）**：Pin 有意不建模为 `Relation.kind=pinned`。Relation 表达对象之间可查询、可参与图遍历的语义边；Pin 表达某个 projection home 的有序 UI roster，`pin_scope` 不是关系端点或安全边界，且 reorder 是高频 CAS 排序操作。把 Pin 放入 Relation 会让 UI 排序边进入通用关系图、改变 graph query / relation-kind registry 语义并混淆 scope。实现 MUST 使用本文件的 pin typed current result 与三类 event，MUST NOT 以 `Relation` 代替 shared Pin。
 
-实现声明 `ak.profile.pinned_items.v1` 时，MUST 支持 `ak.pin.add`、`ak.pin.remove` 和 `ak.pin.reorder`。
+实现声明 `ak.profile.pinned_items.v1` 时，MUST 支持 `ak.pin.add`、`ak.pin.remove` 和 `ak.pin.reorder`。Realm effective owner MAY 在自己的 Realm resource 上逐字授予这三项 action，唯一上界来源是 [`capabilities.md` §3.2](../authz/capabilities.md) 与 compiled `ak.realm.owner.grant_authority_rule.include_actions[]`；该 grant authority 不赋予 owner 直接 pin 权限，也不绕过本文件 §3 的 scope safety。
 
 ## 2. Pin Scope
 
