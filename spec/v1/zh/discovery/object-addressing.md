@@ -3,7 +3,7 @@ title: Object Addressing & Shareable Links
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-02
+updated: 2026-10-01
 ---
 
 ## 0. 规范语言
@@ -79,7 +79,7 @@ web+arkret:realm/<realm>/strand/<strand>?lt=invite&tok=<token>   # invite link
 
 ### 3.3 Realm alias 与人类短地址（normative）
 
-`<realm>` 段的 alias 与用户 handle 共享同一套人类地址形态，二者只在 sigil 与命名空间上区分。
+`<realm>` 段的 alias 与用户 handle 共享同一套 canonical 地址语法，二者由命名空间、类型上下文与显式输入 sigil 区分。
 
 **Realm alias canonical grammar**：realm alias 的 canonical 形态是 `<localpart>:<domain>`，与 [`identity/identity-handles.md` §3.1/§17](../identity/identity-handles.md) 定义的 handle canonical 形态**同语法**：
 
@@ -87,27 +87,27 @@ web+arkret:realm/<realm>/strand/<strand>?lt=invite&tok=<token>   # invite link
 - `<domain>`：运营该 alias 的部署 / 组织（realm alias issuer）的权威域，至少两个 label；用户输入 MAY 是 U-label，canonical wire MUST 是按 [`conformance/encoding.md` §2.2.1](../conformance/encoding.md) 得到的小写 A-label。
 - canonical alias **不含** sigil。`#general:acme.example`、`general@acme.example`、裸 `general` 等形态 MUST NOT 作为 canonical alias 出现在 `web+arkret:` path 段、缓存键或 `resolve_*` 规范化结果中（带 sigil 形态仅可作为 §下文「输入路由」的解析输入）。
 
-**人类短地址与 sigil（display + 输入路由）**：面向人的短地址用前导 sigil 标注目标类型：
+**人类短地址与 sigil（输入路由）**：显式路由输入可用前导 sigil 标注目标类型：
 
 | 短地址形态 | 目标类型 | 解析 operation |
 | --- | --- | --- |
 | `@<localpart>:<domain>` | 用户 handle | `resolve_handle`（见 [identity-handles §3](../identity/identity-handles.md)） |
 | `#<localpart>:<domain>` | realm alias | `resolve_realm`（见 [discovery-directory §9](./discovery-directory.md)） |
 
-sigil 承担两个 normative 职责：
+显示与输入规则：
 
-- **输出（display / share）**：客户端渲染、@mention、可分享短文本、二维码 SHOULD 以带 sigil 形态呈现 realm alias（`#`）与 handle（`@`），使人一眼区分「频道 / realm」与「人」。
+- **输出（display / share）**：客户端 SHOULD 以带 `#` 形态呈现 realm alias。Handle 的普通显示、复制、可分享短文本与二维码 MUST 使用 canonical `<localpart>:<domain>`，MUST NOT 添加前导 `@`；消息 @mention 语法独立于 Handle 值（见 identity-handles §3.1/§3.8.2）。
 - **输入路由（parse）**：客户端接受带 sigil 输入时，MUST 用 sigil 选择解析命名空间（`#` → `resolve_realm`，`@` → `resolve_handle`），并在解析前 strip sigil 还原 canonical `<localpart>:<domain>`。
 
-sigil 是展示与输入层 affordance，**不是 wire 的一部分**：strip 后的 canonical 才进 `resolve_*` 输入、`web+arkret:` path、§4.2 target descriptor、签名 transcript、Directory 缓存键、`handle` / alias 字段。这与 handle 的 `@` 纪律（identity-handles §3.1）一致。
+输入 sigil **不是 wire 的一部分**：strip 后的 canonical 才进 `resolve_*` 输入、`web+arkret:` path、§4.2 target descriptor、签名 transcript、Directory 缓存键、`handle` / alias 字段。`@` 只属于 mention 或显式输入路由语法，不用于普通 Handle 显示（identity-handles §3.1）。
 
 **无 sigil 裸输入的 default（normative）**：通用输入框 / 搜索框收到无 sigil 的裸 `<localpart>:<domain>` 时，客户端 MUST NOT 静默猜测单一类型，而是：
 
 - MUST 同时对 handle 与 realm alias 两个命名空间发起解析；
 - 命中**唯一**命名空间时直接采用该结果；
-- 命中**多个**命名空间时 MUST 向用户呈现消歧选择（`@…` vs `#…`），不得擅自取其一。
+- 命中**多个**命名空间时 MUST 向用户呈现明确标注类型的消歧选择（Handle vs Realm），不得擅自取其一；Handle 值仍按 canonical 形态显示。
 
-**命名空间不相交，无全局唯一约束（normative）**：handle 与 realm alias 占据**两个不相交的命名空间**，分别由 `resolve_handle` 解析为 holder / principal DID、由 `resolve_realm` 解析为 `ak:realm:<44-char-token>`。协议 **MUST NOT** 要求两命名空间间全局唯一：同一 `<localpart>:<domain>` MAY 同时是一个 handle 与一个 realm alias，由 sigil 在显示 / 输入期区分，线上字段（自带类型上下文）无歧义。同一 `<domain>` 的 issuer **MAY** 选择在两命名空间间保留 / 对齐同名（本地治理策略），但这不是协议强制约束，实现 MUST NOT 因此在两命名空间间引入跨注册表唯一性检查。
+**命名空间不相交，无全局唯一约束（normative）**：handle 与 realm alias 占据**两个不相交的命名空间**，分别由 `resolve_handle` 解析为 holder / principal DID、由 `resolve_realm` 解析为 `ak:realm:<44-char-token>`。协议 **MUST NOT** 要求两命名空间间全局唯一：同一 `<localpart>:<domain>` MAY 同时是一个 handle 与一个 realm alias，由明确的类型上下文与显式输入 sigil 区分，线上字段（自带类型上下文）无歧义。同一 `<domain>` 的 issuer **MAY** 选择在两命名空间间保留 / 对齐同名（本地治理策略），但这不是协议强制约束，实现 MUST NOT 因此在两命名空间间引入跨注册表唯一性检查。
 
 **alias 的唯一 wire 承载（normative）**：realm alias 的唯一 wire 承载是专用 facet Event `ak.realm.alias`，它写入 `realm_alias`（`commit-ordered projection`，`result_selector=null`，`execution=security`）。payload 封闭为两种互斥形态：declaration `{"alias": "<localpart>:<domain>"}` 与精确 value tombstone `{"tombstone": true}`（wire schema 见 [`event-payload.schema.json`](../../artifacts/schemas/event-payload.schema.json) 的 `$defs/realm_alias_payload`）。由此推出以下 MUST：
 

@@ -3,7 +3,7 @@ title: Handle 与 Claim 证明
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-25
+updated: 2026-10-01
 ---
 
 ## 0. 规范语言
@@ -64,7 +64,7 @@ Handle MAY 变更、冻结、迁移或重新绑定。
 示例字符串与可能扮演的角色：
 
 - `alice@example.com`、`+86 138...`、通讯录用户名、外部账号 ID → Connection Identifier；若 holder 主动公布可升格为 Handle。
-- `@alice:acme.example`、`alice@acme.example`、`alice@alice.dev` → Handle（统一形态，详见 §3）。
+- `alice:acme.example`、`alice:alice.dev` → Handle（统一显示与 canonical 形态，详见 §3）；`@alice:acme.example` 与 `alice@acme.example` 仅为输入语法或别名。
 - `@alice:acme.example/summary` → v1 不支持的旧组合输入；它不是 handle，也不得自动归约为 Agent mention。
 - 组织账号、计费账号、客服账号、受管员工编号 → Administrative Identifier。
 - `Alice Zhang`、昵称 → Display Name。
@@ -92,16 +92,17 @@ Handle 是统一概念：协议层只有一种 canonical handle 形态、一套�
 
 ### 3.1 显示形态与 canonical handle
 
-Handle 分两层：**显示形态**面向用户，**canonical handle** 面向协议。两层之间是确定性 normalization。
+Handle 的普通显示与协议 canonical 值使用同一形态：`<localpart>:<domain>`。输入别名经过确定性 normalization 后才得到 canonical handle。
 
 **显示形态（UI 层）**：
 
 | 形态 | 用途 | 示例 |
 | --- | --- | --- |
-| `@<localpart>:<domain>` | 默认显示与 @mention；带前导 `@` 与邮箱区分 | `@alice:acme.example`、`@alice:alice.dev` |
-| `<localpart>@<domain>` | 联系人框 / 企业目录 / 邮箱风格输入 | `alice@acme.example`、`alice@alice.dev` |
+| `<localpart>:<domain>` | Handle 显示、复制与分享 | `alice:acme.example`、`alice:alice.dev` |
+| `@<localpart>:<domain>` | 消息 @mention 语法 / 显式 handle 输入路由 | `@alice:acme.example`、`@alice:alice.dev` |
+| `<localpart>@<domain>` | 联系人框 / 企业目录 / 邮箱风格输入别名 | `alice@acme.example`、`alice@alice.dev` |
 
-客户端 SHOULD 以 `@<localpart>:<domain>` 作为默认渲染形态。`<localpart>@<domain>` MAY 作为输入别名；客户端在 normalize 阶段消除差异。
+客户端显示、复制或分享 Handle 值时 MUST 使用 canonical `<localpart>:<domain>`，MUST NOT 添加前导 `@`。`@` 只作为消息 mention 或显式输入路由语法，不属于 Handle 值。`<localpart>@<domain>` MAY 作为输入别名；客户端在 normalize 阶段消除差异。
 
 **Canonical handle（协议层）**：
 
@@ -116,7 +117,7 @@ Handle 分两层：**显示形态**面向用户，**canonical handle** 面向协
 
 `acct:` alias 按 RFC 7565 构造：prepared localpart 以 UTF-8 编码，对 URI 中非直接允许的 octet 做大写十六进制 percent-encoding；host 使用 canonical A-label；不得携带 port。比较遵循 RFC 3986 的 scheme / host case 与 percent-encoding normalization，不参与 Arkret canonical handle equality。
 
-**与 realm alias 的关系（normative）**：handle 的 `@` sigil 与 realm alias 的 `#` sigil（见 [`discovery/object-addressing.md` §3.3](../discovery/object-addressing.md)）构成同一套人类短地址体系：两者 canonical 形态同为 `<localpart>:<domain>`（不含 sigil），但占据**不相交命名空间**——handle 经 `resolve_handle` 解析为 holder / principal DID，realm alias 经 `resolve_realm` 解析为 `ak:realm:<44-char-token>`。同一 `<localpart>:<domain>` MAY 同时是一个 handle 与一个 realm alias；协议**不要求**二者全局唯一，sigil 在显示 / 输入期区分类型，线上字段凭其类型上下文消歧。`@` 与 `#` 均为展示 + 输入路由 affordance，strip 后才进 wire。
+**与 realm alias 的关系（normative）**：handle 输入的 `@` sigil 与 realm alias 的 `#` sigil（见 [`discovery/object-addressing.md` §3.3](../discovery/object-addressing.md)）可用于显式输入路由：两者 canonical 形态同为 `<localpart>:<domain>`（不含 sigil），但占据**不相交命名空间**——handle 经 `resolve_handle` 解析为 holder / principal DID，realm alias 经 `resolve_realm` 解析为 `ak:realm:<44-char-token>`。同一 `<localpart>:<domain>` MAY 同时是一个 handle 与一个 realm alias；协议**不要求**二者全局唯一，输入 sigil 与明确的类型上下文负责消歧。`@` 不用于普通 Handle 显示；输入 sigil strip 后才进 wire。
 
 ### 3.2 解析结果必含字段
 
@@ -464,10 +465,10 @@ UI 渲染 mention / profile reference 时 MUST 按下列流程（HandleClaim sta
    MUST 使用 resolution_as_of 对应的 claim_set_snapshot / policy_snapshot，
    不得静默 live-resolve 到当前状态）。
 3. 显示判定：
-   - step 1 成功 → 显示 "@{localpart}:{domain}"（来自选中 `handle_claim.claim.handle`）；
+   - step 1 成功 → 使用 "{localpart}:{domain}"（来自选中 `handle_claim.claim.handle`）；
    - step 2 成功且 `handle_claim.status == "verified"`、`resolution_as_of < handle_claim.fresh_until`、core 未过期且 revocation fields 为 null
      （或 §6.0 server-attested verified hint 命中且本地 trust policy TTL 内）
-     → 显示 "@{localpart}:{domain}"（来自该 handle_claim 的 canonical handle）。
+     → 使用 "{localpart}:{domain}"（来自该 handle_claim 的 canonical handle）。
 4. 解析失败（DID 不可达 / 无 active claim / §3.2.1 选择不唯一 /
    MemberIdentity snapshot 不可构造或不唯一 / step 1 校验 a-d 任一失败 /
    step 2 `status ∈ {pending, revoked}` 或 status/core freshness 已过期）：
@@ -478,6 +479,8 @@ UI 渲染 mention / profile reference 时 MUST 按下列流程（HandleClaim sta
 5. 任何 fallback path MUST 在 UI 上有明确的视觉降级标识；
    实现 MUST NOT 把 fallback 显示成与正常解析无差别的形态。
 ```
+
+上述步骤选择的 Handle 值不含前导 `@`。消息 mention renderer MAY 在该值外添加 `@` 作为提及语法；普通身份、账号设置、管理、复制与分享视图 MUST 按 §3.1 直接使用 canonical Handle 值。
 
 `resolution_as_of` 是本次渲染选择的解析基准时刻：实时渲染通常是 renderer 解析这一刻；历史 replay / audit 是被重放视图声明的 as-of 时刻。它与 §3.2.1 的确定性六元组配合使用（`subject_account_id` / `context` / `claim_set_snapshot` / `policy_snapshot` / `holder_primary_handle_at_as_of` / `resolution_as_of`）。`claim_set_snapshot` 与 `policy_snapshot` 都是 as-of snapshot（详见 §3.2.1 normative 段）。同一 mention 在不同时刻可能因 handle claim set 变化、cache TTL、claim 生效或过期边界、DID Document update、Realm policy 调整或 MemberIdentity subject disclosure 变化落入不同分支，这是预期行为而非违反确定性——确定性保证的是六元组等同时输出等同。
 
