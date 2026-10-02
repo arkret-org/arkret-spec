@@ -6301,6 +6301,8 @@
           "coordinates",
           "authorization_basis",
           "group_state_ref",
+          "initial_exact_pair_group_state_ref",
+          "peer_mls_admission",
           "send_blockers"
         ],
         "closed": true,
@@ -6349,13 +6351,16 @@
             "required": [
               "state",
               "coordinates",
-              "authorization_basis"
+              "authorization_basis",
+              "peer_mls_admission"
             ],
             "properties": [
               "state",
               "coordinates",
               "authorization_basis",
-              "group_state_ref"
+              "group_state_ref",
+              "initial_exact_pair_group_state_ref",
+              "peer_mls_admission"
             ],
             "closed": true
           },

@@ -838,6 +838,10 @@ binding 尚不存在时普通 DM participant authority 未激活，因此 **MUST
 任一语义字段改变的 endorsement **MUST** 在 effect projection 前拒绝。背书继续携原 registered bootstrap
 source 与 exact founding-unit ref，不得为重复背书发明新的 authority source 或兼容 wire 分支。
 
+首次 completion 的 durable Welcome **MUST** 属于当前仍 occupied 的 peer leaf 的创建 Add；验证方按 accepted consumed-proposal provenance 的 leaf index 与 Commit 位置判定创建 Add。同一 Commit 的 Remove 针对 before-state leaf，不得因 wire consumed-proposal ordinal 排在 Add 后而移除该 Commit 新创建的 Add 来源，后续 Update 不改变创建来源，Remove 使该来源失效，重新 Add 即使复用相同 actor、endpoint 或 signature key 也必须使用新来源。已移除 leaf 的旧 consumed claim **MUST NOT** 证明新 leaf 已 durable。至少一个当前 authorized peer leaf 的 exact Add/Welcome claim 已 consumed，才满足 joiner durable 条件；其余 current gates 与 exact-pair roster 检查不变。
+
+首次 Add 的 claim terminal 后，founder 在 `provisional_history_send` 内 **MAY** 通过同组 ordinary Remove/re-add 替换该 exact peer endpoint，使用 fresh claim 与 fresh Welcome；不得迟到 consume、复活旧 claim、扩大 pair 或重建 Genesis。`initial_exact_pair_group_state_ref` 永久指向首个 accepted exact-pair winning state；repair completion 只更新当前 occupied leaf 的 durable 证据，不改变该 immutable ref、founding basis、binding digest 输入或坐标。
+
 ### 7.3 唯一 group 与 repair
 
 DM Realm 与所有其它 MLS-backed effective scope 使用同一规则：
@@ -995,6 +999,10 @@ effect **MUST** 全部保持零写入。拒绝不是已提交 exact replay；后
 | `temporarily_unavailable` | 必需依赖不可验证，无法安全归类 |
 
 求值优先级固定：依赖不足以验证 current round 或 founder 时 `temporarily_unavailable`；无 Realm 时区分 `creation_blocked | creation_required | awaiting_founder`；有 Realm 后 identity/materialization/terminal/governance-Station 冲突优先 `suspended`；否则无 binding 为 `provisional`；最后才在 binding、unique group state 与 daily gates 齐备时 `found`。`retry_after` 只是调度提示，**MUST NOT** 产生 fallback authority。
+
+`provisional` **MUST** 携带 `peer_mls_admission`，只读供料值为封闭集合 `missing | pending | durable | repair_required`，以同一 governing cut 的 current occupied peer leaf 创建 Add、exact Welcome/claim binding 和 recipient durable consume 为依据。无 occupied peer Add 为 `missing`；至少一个 occupied authorized peer leaf 的 exact claim consumed 为 `durable`；否则至少一个 exact claim 仍在有效等待期限内为 `pending`；全部对应 claim terminal/已过期为 `repair_required`。缺少必要 provenance 或无法验证 claim 状态时服务 **MUST NOT** 猜测 terminal，返回依赖不可用并保留既有坐标的本地缓存。该状态仅向通过既有 exact-pair/current authorization read gate 的 caller 供应，不披露 raw claim ledger、endpoint 清单或第三方状态。
+
+客户端只在 `missing` 或 `repair_required` 时执行相应 fresh admission；`pending` 时等待 exact durable consume，不因本地时间、opaque claim failure 或 roster 已含 peer 而重做 Add；`durable` 时才尝试首次 binding。供料不是写权限，接受事务 **MUST** 重算所有事实，陈旧供料不能放行 Event。首次 exact-pair state 已存在时 `provisional` 还 **MUST** 携带 `initial_exact_pair_group_state_ref`，逐字等于 immutable 首次 ref；binding author 不得用当前 epoch 的 Commit 替代它。
 
 `provisional` **MUST** 携带 `authorization_basis`，其值必须逐项等于 accepted founding unit 所固化的原始授权依据（§8.3）。客户端直接使用该依据 author binding，**MUST NOT** 以 current Contact round、current runtime key 或跨流时间推断重建它。该供料不授予额外权限；binding integrity 与 current participant/bootstrap gates 仍独立执行。
 

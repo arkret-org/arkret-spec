@@ -88,6 +88,9 @@ def check_error_code_closure(lint: Lint) -> None:
         # .md §9.1). It ends in _required and appears on sentences about what
         # the resolver returns, so it would otherwise trip the heuristic.
         "creation_required",
+        # Current occupied peer leaf admission result, not a reason code
+        # (direct-conversation-operations.schema.json provisional branch).
+        "repair_required",
         # Closed decision values of the device-revocation gate receipt
         # (device-revocation-state.schema.json#/$defs/
         # device_revocation_gate_decision_receipt.decision,

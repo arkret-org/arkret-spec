@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-02.1",
+  "version": "2026-10-02.3",
   "source_of_truth": true,
-  "generated_at": "2026-10-02T11:26:26+08:00",
+  "generated_at": "2026-10-02T16:26:27+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -344,10 +344,10 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/identity/contact-and-direct-conversation.md#72-bootstrap-participant-authority",
-      "section_digest": "sha256:9d52673dd423438f10ca12f5d4346a4a4459d80e5c00a954b2c743672c33892f",
-      "requirement": "Only the exact founder uses registered provisional message authority before peer durable Welcome, with accepted Genesis and current gates. First accepted Bound permanently exits bootstrap; equivalent later endorsements cannot reactivate it.",
+      "section_digest": "sha256:4f3bb112fd407469c2481dd1f80f67b440f2244ba0b16f8f669c45e09e09869a",
+      "requirement": "Only the exact founder uses registered provisional message authority before peer durable Welcome, with accepted Genesis and current gates. First accepted Bound permanently exits bootstrap; equivalent later endorsements cannot reactivate it. Completion requires the currently occupied peer leaf creation Add and its own durable consume; Remove/re-add cannot inherit an obsolete receipt. Terminal first claims repair in the same group while preserving the immutable initial exact-pair ref.",
       "testability_grade": "audit",
-      "test_plan": "Run registered provisional-source policy tests; block exact private Realm claim at epoch 0 and consume after Add, then verify real submitted message epoch, peer since_join boundary and eventual convergence. Test post-Bound rejection of bootstrap authority and equivalent endorsement accumulation."
+      "test_plan": "Run registered provisional-source policy tests; block exact private Realm claim at epoch 0 and consume after Add, then verify real submitted message epoch, peer since_join boundary and eventual convergence. Test post-Bound rejection of bootstrap authority and equivalent endorsement accumulation. Run terminal_founding_claim_repairs_the_same_group_and_keeps_the_first_binding_ref with terminal/pending/durable read cuts, fresh Remove/Add, rejected current-ref substitution and old consumed leaf receipt isolation; verify the four closed resolver admission states and original aa-runtime live repair. The same-Commit Remove is ordered after Add on the wire, and must retire only the before-state leaf."
     },
     {
       "clause_id": "AK-NC-044",

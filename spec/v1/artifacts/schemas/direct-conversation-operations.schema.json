@@ -117,7 +117,8 @@
           "required": [
             "state",
             "coordinates",
-            "authorization_basis"
+            "authorization_basis",
+            "peer_mls_admission"
           ],
           "properties": {
             "state": {
@@ -132,6 +133,20 @@
             "group_state_ref": {
               "$ref": "./principal-operations.schema.json#/$defs/event_id",
               "description": "Complete Event identity of the unique derived MLS group's exact current winning Genesis/Commit state. Consumers recover the suite and full Event digest from this ID."
+            },
+            "initial_exact_pair_group_state_ref": {
+              "$ref": "./principal-operations.schema.json#/$defs/event_id",
+              "description": "Immutable first accepted exact-pair winning state; present once it exists and never replaced by a repair Commit."
+            },
+            "peer_mls_admission": {
+              "type": "string",
+              "enum": [
+                "missing",
+                "pending",
+                "durable",
+                "repair_required"
+              ],
+              "description": "Authoritative current occupied peer leaf admission state at this read cut; not a write authorization or a client timer."
             }
           },
           "additionalProperties": false

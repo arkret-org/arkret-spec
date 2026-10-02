@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 8886,
+    "total_properties": 8888,
     "total_schema_documents": 166,
     "by_presence_class": {
-      "optional": 2104,
+      "optional": 2105,
       "optional_defaulted": 48,
-      "required": 6261,
+      "required": 6262,
       "required_nullable": 309,
       "tristate": 164
     },
@@ -4818,6 +4818,8 @@
         "/$defs/direct_conversation_resolve_outcome/oneOf/3/properties/authorization_basis": "required",
         "/$defs/direct_conversation_resolve_outcome/oneOf/3/properties/coordinates": "required",
         "/$defs/direct_conversation_resolve_outcome/oneOf/3/properties/group_state_ref": "optional",
+        "/$defs/direct_conversation_resolve_outcome/oneOf/3/properties/initial_exact_pair_group_state_ref": "optional",
+        "/$defs/direct_conversation_resolve_outcome/oneOf/3/properties/peer_mls_admission": "required",
         "/$defs/direct_conversation_resolve_outcome/oneOf/3/properties/state": "required",
         "/$defs/direct_conversation_resolve_outcome/oneOf/4/properties/coordinates": "required",
         "/$defs/direct_conversation_resolve_outcome/oneOf/4/properties/group_state_ref": "required",
