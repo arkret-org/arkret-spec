@@ -9,12 +9,10 @@ interface Props {
   description?: string;
 }
 
-// SEO/OG defaults: include both Chinese (primary audience) and English so
-// search engines and social previews don't render Chinese-only metadata for
-// English-speaking referrers.
+// Keep search and sharing metadata aligned with the visible protocol positioning.
 const {
-  title = "Arkret · 人与 AI Agent 的去中心化加密协作协议",
-  description = "Arkret 让个人、组织与 AI Agent 通过自托管服务跨域协作，以 MLS 端到端加密保护内容，并保留可迁移的开放协作模型。",
+  title = "Arkret · 人与 AI Agent 的联邦式协作协议",
+  description = "可自托管的联邦协作协议：各方 Station 跨组织互联，每个 Realm 由单一治理 Station 确认写入；启用 MLS 的空间以端到端加密保护正文，消息、任务与 Agent 产出共享开放对象模型。",
 } = Astro.props;
 ---
 

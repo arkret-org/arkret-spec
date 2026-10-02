@@ -2,17 +2,40 @@
 title: Arkret Protocol (English entry)
 status: candidate
 stability: v1
-updated: 2026-06-04
+updated: 2026-10-02
 normative: false
 ---
 
 > Informative entry page. This is **not** a normative English translation.
 
-Arkret is a decentralized collaboration protocol for people, organizations,
-and AI agents. Participants can federate through independently operated
-services, protect confidential Realm, Circle, and Agent Sidecar scopes with
-MLS end-to-end encryption, and use different clients to project the same open
-collaboration model as conversations, tasks, documents, calendars, or calls.
+Arkret is a self-hostable, federated collaboration protocol for people,
+organizations, and AI agents. Participants connect independently operated
+Stations and use an open object model for conversations, tasks, documents,
+calendars, and calls. Each Realm has one governance Station at a time: it
+admits shared writes, assigns order within each visibility stream, and signs
+RealmCommits. Other Stations forward submissions and replicate authorized
+records; federation does not imply multi-writer consensus.
+
+MLS end-to-end encryption protects content in enabled Realm, Circle, and
+Agent Sidecar scopes. Routing and activity metadata remain visible to
+carrying services. Clients check producer proofs, user intent, and content
+cryptography while relying on their Account Station and the Realm's current
+governance authority for the corresponding server results. Signatures do not
+guarantee censorship resistance, correct admission by a compromised authority,
+or service availability.
+
+Personal conversations with an owned Agent use a separate Direct Conversation
+Realm. Sidecars provide private Agent context within an existing project Realm;
+publishing a result into shared collaboration requires an explicit new Event.
+
+“Decentralized” can describe independent deployment and service choice only
+with those qualifications. The current v1 model has an explicit authority per
+Realm. Planned governance handoff requires the old authority to be online;
+permanent loss without handoff leaves verifiable caches read-only and requires
+an explicit successor Realm for continued collaboration. Accounts remain bound
+to their Station and do not automatically carry over to another Station.
+See [authority and handoff](../zh/sync/authority-commit-log.md) and
+[server trust boundaries](../zh/sync/server-trusted-results.md).
 
 ## Language policy
 

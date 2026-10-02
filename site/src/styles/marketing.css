@@ -495,7 +495,7 @@ body.ak-marketing .ak-mono {
 .ak-entry-grid--wide {
   /* 400px tracks give 3 columns at the 1400px shell — six entries land as an
    * even 3x2 block instead of a row of five plus one orphan. */
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr));
   gap: 0.8rem;
 }
 
@@ -708,7 +708,7 @@ section.ak-section {
   display: grid;
   /* Wide tracks: each concept is one full sentence, so 3 roomy columns read
    * better than 5 narrow ones at the 1400px shell width. */
-  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr));
   gap: 1rem;
 }
 
@@ -752,7 +752,7 @@ section.ak-section {
 
 .ak-eco-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
   gap: 1rem;
 }
 
@@ -780,6 +780,7 @@ section.ak-section {
 
 .ak-eco-card-head {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
@@ -836,10 +837,10 @@ section.ak-section {
   background: currentColor;
 }
 
-.ak-eco-status--stable {
-  color: var(--ak-success);
-  border-color: color-mix(in srgb, var(--ak-success) 35%, transparent);
-  background: color-mix(in srgb, var(--ak-success) 12%, transparent);
+.ak-eco-status--candidate {
+  color: var(--ak-warn);
+  border-color: color-mix(in srgb, var(--ak-warn) 35%, transparent);
+  background: color-mix(in srgb, var(--ak-warn) 12%, transparent);
 }
 
 .ak-eco-status--wip {
@@ -1010,7 +1011,7 @@ section.ak-section {
 
 .ak-pillar-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
   gap: 0.9rem;
 }
 
@@ -1308,6 +1309,25 @@ body.ak-marketing a.ak-os-banner:hover .ak-os-banner-cta {
 }
 
 @media (max-width: 720px) {
+  .ak-nav--marketing {
+    height: auto;
+  }
+  .ak-nav--marketing .ak-nav-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    height: auto;
+    padding-block: 0.65rem;
+    gap: 0.65rem;
+  }
+  .ak-nav--marketing .ak-nav-links {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    flex-wrap: wrap;
+  }
+  .ak-nav--marketing .ak-nav-tools {
+    grid-column: 2;
+    grid-row: 1;
+  }
   .ak-nav-row {
     gap: 1rem;
   }

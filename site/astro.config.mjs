@@ -127,7 +127,7 @@ export default defineConfig({
     starlight({
       title: "Arkret Spec",
       description:
-        "Arkret v1 — federated, end-to-end encrypted collaboration for people, organizations, and AI agents.",
+        "Arkret v1 — self-hostable federated collaboration for people, organizations, and AI agents, with one governance Station per Realm and MLS end-to-end encryption for enabled scopes.",
       defaultLocale: "zh",
       // Suppress Starlight's auto-injected /404 route: it issues a
       // `getEntry('docs','404')` lookup at build time to find a user override,

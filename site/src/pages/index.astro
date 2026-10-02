@@ -2,25 +2,24 @@
 import MarketingLayout from "~/layouts/MarketingLayout.astro";
 import { repoUrl, specReleaseTag, specReleaseLabel } from "~/lib/site-meta";
 
-/* Lead with the collaboration outcomes a product team or organization gets.
- * Protocol mechanics come later as the explanation for how those outcomes
- * remain portable and independently verifiable. */
+/* Lead with federation and collaboration outcomes, then explain authority,
+ * confidentiality, and availability within the current v1 trust model. */
 
 const capabilities = [
   {
     mark: "联邦",
     title: "不必加入同一家 SaaS",
-    body: "个人、团队和组织可以运行自己的 Station，并在共享 Realm 中直接协作。成员关系、数据驻地和服务选择不再由单一平台垄断。",
+    body: "个人、团队和组织可以独立运营 Station（协议服务器），按 Realm 的联邦策略跨域协作。各方选择自己的账号服务与部署位置，共享空间有明确的治理方。",
   },
   {
     mark: "E2EE",
-    title: "服务器负责送达，不负责阅读",
-    body: "需要保密的 Realm、Circle 与 Agent Sidecar 使用独立的 MLS 加密边界。正文只在授权端点解密，联邦服务器转发密文也能完成同步。",
+    title: "加密正文，由授权端点解密",
+    body: "启用 MLS 的 Realm、Circle 与 Agent Sidecar 各有独立加密边界。Station 无需解密正文即可接纳和同步事件；发送者、路由与活动时序等元数据仍可见。",
   },
   {
     mark: "Human + Agent",
     title: "Agent 是协作者，不是超级账号",
-    body: "Agent 以独立 Actor 身份加入，受 capability、责任链和 Realm policy 约束；它可以在私人 Sidecar 中工作，再由人明确发布到团队空间。",
+    body: "Agent 以独立 Actor 身份参与，受明确授权、责任链和 Realm policy 约束。与个人 Agent 的私聊使用独立 Realm；项目内的私有草稿使用 Sidecar，公开产出须显式发布。",
   },
 ];
 
@@ -28,12 +27,12 @@ const scenarios = [
   {
     concept: "跨公司项目交付",
     title: "甲乙双方各用自己的服务器",
-    body: "客户、供应商和审计方进入同一个受控 Realm；各自保留身份、基础设施与数据副本，只同步项目需要的加密协作内容。",
+    body: "客户、供应商和审计方通过各自 Station 加入同一个 Realm，按权限同步项目记录。Realm 的治理 Station 统一接纳写入；启用 MLS 时，协作正文以密文跨站传递。",
   },
   {
     concept: "个人 Agent 工作区",
     title: "先私下研究，再选择是否公开",
-    body: "Agent 在当前 Realm 的私人 Sidecar 中读取获准上下文、整理方案和生成草稿；未经显式发布，不进入团队时间线，也不会改变共享对象。",
+    body: "用户与自己 Agent 的日常私聊使用独立双成员 Realm。项目中的上下文协作使用当前 Realm 的私人 Sidecar，读取获准内容、整理草稿，再显式发布到共享空间。",
   },
   {
     concept: "产品研发与应急响应",
@@ -47,8 +46,8 @@ const scenarios = [
   },
   {
     concept: "跨工具长期协作",
-    title: "换界面、换客户端，不必迁移事实",
-    body: "同一批协作对象可以被桌面端、移动端或领域客户端重新投影；搜索、收件箱和视图默认在本地派生，产品体验不锁死协议数据。",
+    title: "同一套协作对象，可以有不同界面",
+    body: "不同客户端可把获准访问的同一批对象显示为聊天、看板或时间线；搜索、收件箱和视图默认在本地派生。更换界面无需重新定义协作事实。",
   },
   {
     concept: "开放社区与生态集成",
@@ -61,33 +60,39 @@ const foundations = [
   {
     plane: "Boundary",
     name: "Realm / Circle / Sidecar",
-    what: "把成员、历史、授权、联邦和加密范围放在明确边界里；团队协作、私密子群与个人 Agent 上下文互不混用。",
+    what: "Realm 定义治理与联邦边界；Circle 裁剪成员和历史范围；Sidecar 承载项目内的个人 Agent 上下文。各边界有独立的可见事件流。",
     outcome: "谁能参与、能看到什么",
   },
   {
     plane: "Confidentiality",
     name: "MLS 端到端加密",
-    what: "每个需要加密的 scope 使用独立 group 与 epoch；成员移除、设备变化和历史访问都与密钥状态一起收敛。",
-    outcome: "内容只对授权端点可读",
+    what: "启用 MLS 的 scope 使用独立 group 与 epoch；客户端完成内容认证与解密。明文空间、获准导出和 Agent runtime 的可见范围须另行确认。",
+    outcome: "正文保密，元数据另有边界",
     security: true,
   },
   {
     plane: "Federation",
     name: "各方 Station 互联",
-    what: "服务端按 Realm 交换增量、补齐历史并转发密文；任何一方都可以自托管，也可以更换受托服务。",
-    outcome: "跨域同步，不交出控制权",
+    what: "各方 Station 按授权转发写入、同步已接纳记录与补齐历史。副本不取得写入裁决权，跨站传播不等于多站共同排序。",
+    outcome: "独立部署，按权限跨站同步",
+  },
+  {
+    plane: "Authority",
+    name: "单治理 Station / RealmCommit",
+    what: "每个 Realm 在同一任期只有一个治理 Station；它按当前授权接纳 Event，为对应事件流分配连续位置并签发 RealmCommit，确认写入生效。",
+    outcome: "共享事实有明确的确认方",
   },
   {
     plane: "Participation",
     name: "人、Agent 与 Applet",
-    what: "每个参与者都有独立身份和最小权限；委派、审批、撤销与责任归属进入同一治理模型。",
+    what: "人的设备、Agent runtime 与 Applet 使用各自的签名和授权路径；委派、撤销与责任归属进入同一治理模型，Agent 不因接入而获得额外权限。",
     outcome: "能做什么、由谁负责",
   },
   {
     plane: "Portability",
-    name: "Event 与本地投影",
-    what: "持久修改由参与者签名并按因果链同步，客户端据此生成聊天、看板、文档和时间线；服务端不是唯一真相源。",
-    outcome: "可验证、可重放、可换界面",
+    name: "签名记录与开放对象模型",
+    what: "producer 签名证明事件来源，RealmCommit 确认接纳与逐流顺序；客户端从获准记录派生产品视图。导出与重放仍受历史访问、保留策略和密钥可用性约束。",
+    outcome: "可追溯、可投影、可互操作",
   },
 ];
 
@@ -99,7 +104,7 @@ const entryPoints = [
     badge: "map",
   },
   {
-    title: "去中心化架构",
+    title: "联邦架构与信任边界",
     description: "Station、联邦拓扑与信任边界",
     href: "/zh/v1/overview/architecture/",
     badge: "normative",
@@ -117,10 +122,10 @@ const entryPoints = [
     badge: "agent",
   },
   {
-    title: "主权部署",
-    description: "内网、外部协作飞地与数据驻地",
-    href: "/zh/v1/sync/sovereign-deployment/",
-    badge: "deploy",
+    title: "写入确认与治理交接",
+    description: "单治理方、逐流提交与故障恢复边界",
+    href: "/zh/v1/sync/authority-commit-log/",
+    badge: "authority",
   },
   {
     title: "接口与 Catalog",
@@ -157,7 +162,7 @@ const entryPoints = [
       <div class="ak-hero-eyebrow">
         <span class="ak-pill ak-pill--accent">
           <span class="ak-pill-dot" aria-hidden="true"></span>
-          {specReleaseTag} · {specReleaseLabel}
+          {specReleaseTag} · {specReleaseLabel} 候选规范
         </span>
         <span class="ak-pill ak-pill--license">
           <span class="ak-pill-mono">Apache 2.0</span>
@@ -166,12 +171,12 @@ const entryPoints = [
       </div>
       <h1>
         人与 AI Agent 的<br />
-        <span class="ak-h1-accent">去中心化加密协作</span>
+        <span class="ak-h1-accent">联邦式协作协议</span>
       </h1>
       <p class="ak-lead">
-        Arkret 让个人、团队和组织使用自己掌控的身份、密钥与服务器，仍能在同一个 Realm 中协作。
-        消息、任务、文档、日历、通话，以及 Agent 的委派与产出，都可以跨组织联邦同步；
-        需要保密的内容由参与者端到端加密，服务器只负责验证边界和完成送达。
+        各方可以自托管 Station，在明确治理的 Realm（协作边界）中跨组织协作。
+        消息、任务、文档、日历与 Agent 产出共享开放对象模型，启用 MLS 的空间以端到端加密保护正文。
+        每个 Realm 由一个治理 Station 确认写入，再按权限同步到参与方。
       </p>
       <div class="ak-cta-row">
         <a class="ak-btn ak-btn-primary" href="/zh/v1/spec-map/">
@@ -184,15 +189,15 @@ const entryPoints = [
       <dl class="ak-hero-stats" aria-label="Arkret 核心能力">
         <div class="ak-hero-stat">
           <dt>自托管联邦</dt>
-          <dd>各方保留自己的 Station 与数据驻地</dd>
+          <dd>各方独立运营 Station，按策略互联</dd>
         </div>
         <div class="ak-hero-stat">
           <dt>MLS E2EE</dt>
-          <dd>Realm、Circle 与 Sidecar 独立加密</dd>
+          <dd>启用加密的 scope 各用独立密钥组</dd>
         </div>
         <div class="ak-hero-stat">
-          <dt>Human + Agent</dt>
-          <dd>同一协作图，独立身份、权限与责任链</dd>
+          <dt>明确治理</dt>
+          <dd>每 Realm 单治理方，写入有签名确认</dd>
         </div>
       </dl>
     </div>
@@ -203,10 +208,10 @@ const entryPoints = [
       <div class="ak-section-head">
         <div>
           <span class="ak-section-tag">核心能力</span>
-          <h2>把协作能力放回参与者手里</h2>
+          <h2>自主部署，跨组织协作</h2>
         </div>
         <p class="ak-section-sub">
-          Arkret 不是另一个中心化工作台，而是让不同组织、客户端和 Agent 安全互通的开放协议。
+          用开放协议连接不同组织、客户端与 Agent，让服务选择、内容保密和权限治理都有明确边界。
         </p>
       </div>
       <div class="ak-pillar-grid">
@@ -256,7 +261,7 @@ const entryPoints = [
           <h2>这些能力如何成立</h2>
         </div>
         <p class="ak-section-sub">
-          先有可用的协作体验，再由边界、加密、联邦和可验证历史共同保证它不依赖中心平台。
+          独立部署与跨站复制，让协作不绑定同一家平台；每个 Realm 的写入确认仍依赖其治理 Station。
         </p>
       </div>
       <ol class="ak-stack">
@@ -273,6 +278,40 @@ const entryPoints = [
           ))
         }
       </ol>
+    </div>
+  </section>
+
+  <section class="ak-section ak-section-tight" id="trust-boundaries" aria-labelledby="trust-boundaries-title">
+    <div class="ak-shell">
+      <div class="ak-section-head">
+        <div>
+          <span class="ak-section-tag">治理与信任</span>
+          <h2 id="trust-boundaries-title">联邦部署，明确权威</h2>
+        </div>
+        <p class="ak-section-sub">
+          “去中心化”只适合限定描述部署与服务选择。当前 v1 更准确的定位是：可自托管、支持 MLS 端到端加密、每 Realm 单权威的联邦协作协议。
+        </p>
+      </div>
+      <div class="ak-pillar-grid">
+        <article class="ak-pillar-card">
+          <span class="ak-pillar-mark">服务信任</span>
+          <h3>选择 Station，也选择信任边界</h3>
+          <p>自己的账号 Station 负责会话、账号与本地可见性；Realm 治理 Station 负责共享写入的授权与确认。客户端核对用户意图、事件来源签名与内容加密；这些检查不能保证治理方不会扣留或错误接纳事件。</p>
+          <a href="/zh/v1/sync/server-trusted-results/">阅读服务器信任边界</a>
+        </article>
+        <article class="ak-pillar-card">
+          <span class="ak-pillar-mark">内容保密</span>
+          <h3>E2EE 保护正文，范围须明确</h3>
+          <p>持有相应密钥的端点可解密内容，获准读取的 Agent runtime 也是端点。明文空间不享有同样保密性；E2EE 不隐藏全部元数据，也不阻止获准成员复制或披露内容。</p>
+          <a href="/zh/v1/security/server-threat-model/">阅读威胁模型</a>
+        </article>
+        <article class="ak-pillar-card">
+          <span class="ak-pillar-mark">连续性</span>
+          <h3>副本与签名，不等于自动接管</h3>
+          <p>协作 Realm 的治理更换需要旧治理方在线完成计划交接。若其永久丢失且未交接，可验证缓存保持只读，继续协作须新建后继 Realm。账号绑定所属 Station，不能因同一 DID 而跨站继承。</p>
+          <a href="/zh/v1/sync/authority-commit-log/">阅读交接与恢复规则</a>
+        </article>
+      </div>
     </div>
   </section>
 
@@ -311,9 +350,9 @@ const entryPoints = [
       <a class="ak-os-banner" href="/ecosystem/">
         <div class="ak-os-banner-text">
           <span class="ak-section-tag">官方实现</span>
-          <h2>自托管 Station、跨平台客户端与协议工具链——全部开源</h2>
+          <h2>从 Station 到客户端的开源参考栈</h2>
           <p>
-            从 MLS E2EE、联邦同步到人与 Agent 的协作边界，都有规范、SDK、服务端、客户端和一致性测试共同承载。
+            规范、SDK、服务端、客户端与一致性测试正在共同实现 v1。候选规范与实现成熟度分别说明，实际支持范围以各实现声明和验收结果为准。
           </p>
         </div>
         <span class="ak-os-banner-cta">

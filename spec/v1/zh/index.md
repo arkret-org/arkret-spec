@@ -3,7 +3,7 @@ title: Arkret Protocol
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-02
+updated: 2026-10-02
 see_also:
   - spec-map.md
   - overview/architecture.md
@@ -19,10 +19,17 @@ see_also:
 
 ## 1. 范围（Scope）
 
-`arkret-spec` 是 **Arkret v1 去中心化协作协议规范**。Arkret 让个人、组织与 AI Agent 使用各自掌控的
-身份、密钥和 Station，在 Realm 中跨域联邦协作；需要保密的 Realm / Circle / Agent Sidecar 以独立
-MLS scope 提供端到端加密，服务器无需读取正文即可完成验证、同步与投递。Agent 以独立 Actor 参与，
-受 capability、accountability 与 Realm policy 约束，并可在 controller 的私人 Sidecar 中工作后再显式发布。
+`arkret-spec` 是 **Arkret v1 联邦式协作协议规范**。个人、组织与 AI Agent 可通过独立运营的 Station
+在 Realm 中跨域协作；每个 Realm 在同一任期只有一个治理 Station，负责接纳写入、确定逐 stream 顺序并
+签发 RealmCommit。启用 MLS 的 Realm / Circle / Agent Sidecar 以独立 scope 保护正文，服务器仍承担授权、
+同步与投递职责，并可见路由等元数据。Agent 以独立 Actor 参与，受 capability、accountability 与 Realm policy
+约束；个人 Agent 私聊使用独立 Direct Conversation Realm，项目内私人上下文使用 Sidecar，产出须显式发布。
+
+这里的自主性指部署、服务选择与开放协作模型，不代表无中心写入、多站共识或无需信任服务器。
+普通客户端信任自己的账号 Station 和 Realm 当前治理方的相应结果，同时核对事件来源、用户意图与内容密码学；
+签名不保证治理方不审查、不扣留或不错误接纳。治理交接与永久故障的边界见
+[`sync/authority-commit-log.md` §8](./sync/authority-commit-log.md#8-治理-station-更换)，服务器信任边界见
+[`sync/server-trusted-results.md`](./sync/server-trusted-results.md)。
 
 为让这些能力跨客户端、跨服务商长期互操作，协议把协作写入定义为可验证 Event，并把聊天、看板、文档、
 日历、通话等产品形态定义为同一协作对象图的不同投影：

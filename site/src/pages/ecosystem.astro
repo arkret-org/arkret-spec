@@ -1,7 +1,7 @@
 ---
 import MarketingLayout from "~/layouts/MarketingLayout.astro";
 
-type Status = "stable" | "wip" | "planned";
+type Status = "candidate" | "wip" | "planned";
 
 interface Project {
   name: string;
@@ -19,9 +19,9 @@ interface Tier {
 }
 
 const statusLabel: Record<Status, string> = {
-  stable: "stable",
-  wip: "in development",
-  planned: "planned",
+  candidate: "候选规范",
+  wip: "开发中",
+  planned: "规划中",
 };
 
 const tiers: Tier[] = [
@@ -34,9 +34,9 @@ const tiers: Tier[] = [
       {
         name: "arkret-spec",
         tag: "protocol · this site",
-        status: "stable",
+        status: "candidate",
         body:
-          "协议规范本体。定义自托管联邦、MLS 加密边界、人与 Agent 的协作模型，以及语言中立的 registry / schema / profile / OpenAPI。本站点直接由规范和机读构件派生。",
+          "v1 候选规范。定义自托管联邦、每 Realm 单治理 Station、RealmCommit 写入确认、MLS 加密边界与 Agent 协作模型；本站点直接由中文规范与语言中立的机读构件派生。",
         href: "/zh/v1/spec-map/",
       },
       {
@@ -44,7 +44,7 @@ const tiers: Tier[] = [
         tag: "sdk · rust",
         status: "wip",
         body:
-          "协议基础 SDK。提供 MLS 与 scope 绑定、联邦 envelope 校验、canonical JSON、HLC、schema 验证和 capability constraint 求值等可复用能力。",
+          "协议基础 SDK。提供强类型 wire 模型、签名与 canonical JSON、RealmCommit / typed current 校验、MLS scope 绑定和授权求值等共享能力。",
       },
     ],
   },
@@ -52,35 +52,42 @@ const tiers: Tier[] = [
     id: "principal",
     title: "Station 部署栈",
     blurb:
-      "个人或组织自托管的服务端组件：连接其它参与方的 Station，保存本方副本并转发 E2EE 内容，同时接入企业身份、运维与推送系统。",
+      "个人或组织独立运营的服务端组件。账号 Station 处理本方账号与同步；被选为 Realm 治理方的 Station 接纳共享写入、维护状态并签发提交确认，其它站点按权限转发与复制。",
     projects: [
       {
         name: "soland",
         tag: "server · principal",
         status: "wip",
         body:
-          "Station 参考实现。负责 Realm 状态、加密事件接入与 reducer、授权求值、历史补齐，以及与其他 Station 的联邦同步。",
+          "Station 参考实现。承担 Event、领域状态、outbox 与 RealmCommit 的原子接纳，维护逐流顺序和 typed current，并提供账号同步、联邦转发、MLS 公共状态与 Welcome 投递。",
       },
       {
         name: "coauth",
         tag: "server · auth-bridge",
         status: "wip",
         body:
-          "组织部署 Station 时的内部账号桥。把企业 OIDC / SSO 与 Arkret DID 绑定，统一管理账号、密钥轮换、内部权限策略。",
+          "Station 认证边界内的账号与认证支持实现。承接 OIDC / SSO、DID 绑定、注册、会话与恢复；客户端通过 Station 公布的 Account Authority 入口访问，它不产生第二个公开 Arkret 服务角色或 Realm 治理权威。",
       },
       {
         name: "sodmin",
         tag: "ops · admin-ui",
         status: "wip",
         body:
-          "服务器管理员控制台。基于 soland + coauth 的接口，提供空间审计、capability 管理、用户绑定与 federation 健康监控。",
+          "服务器管理员控制台。提供部署管理、账号绑定、联邦健康、Realm 提交头与计划交接视图；治理密钥和用户设备密钥的协议状态只读，管理界面不持有 Arkret 签名密钥。",
       },
       {
         name: "floria",
         tag: "server · push-gateway",
         status: "wip",
         body:
-          "Arkret push gateway 的实现。把客户端订阅的事件流分发到 APNs / FCM / WebPush，并保留 audited E2EE 所要求的最小元数据约束。",
+          "推送网关实现。接入 APNs / FCM / WebPush，按推送规则发送唤醒通知；正文仍由客户端按权限同步和解密，推送不构成写入确认。",
+      },
+      {
+        name: "teabay",
+        tag: "server · directory",
+        status: "wip",
+        body:
+          "目录服务实现。承接条目发现、查询、反枚举、下架审计与新鲜度管理；发现结果提供候选入口，不替代账号接入信任、成员资格或写入授权。",
       },
     ],
   },
@@ -88,36 +95,58 @@ const tiers: Tier[] = [
     id: "client",
     title: "客户端栈",
     blurb:
-      "在用户端完成解密、验证与投影，把同一协作对象图呈现为消息、任务、文档或 Agent 工作区；服务端不需要掌握产品体验。",
+      "在用户端核对操作意图、验证内容来源、解密并生成产品视图。共享状态的接纳依据由治理方确认，聊天、看板与个人 Agent 工作区由客户端呈现。",
     projects: [
+      {
+        name: "garth",
+        tag: "client · shared-engine",
+        status: "wip",
+        body:
+          "运行时中立的共享客户端引擎。基于 SDK 处理会话传输、同步循环、耐久游标、去重、收件与发送队列，供界面客户端和 Agent 消费。",
+      },
       {
         name: "inkson",
         tag: "client · cross-platform",
         status: "wip",
         body:
-          "跨平台参考客户端。在 macOS / Windows / Linux / iOS / Android 上提供同一套联邦、E2EE 和人与 Agent 协作体验。",
+          "跨平台参考客户端。面向 Web、桌面与移动端开发消息、看板、MLS 加密、个人 Agent 私聊与项目 Sidecar 体验；各平台与流程的可用程度以实际构建和验收为准。",
       },
       {
         name: "chime",
         tag: "sdk · client-push",
         status: "wip",
         body:
-          "客户端使用的 push SDK。负责与 floria 建立长连接、解码通知 envelope、调度本地系统通知。inkson 等客户端通过它接收推送。",
+          "客户端推送与通知集成层。连接 floria 的订阅与平台通知能力，帮助 inkson 等客户端接收唤醒并调度本地通知。",
       },
     ],
   },
   {
     id: "identity",
-    title: "可选身份与信任服务",
+    title: "可选身份基础设施",
     blurb:
-      "v1 的长期 principal 与默认 service DID method 固定为 did:webvh（did.jsonl 历史链 + SCID + witness）。无域名用户的 did.jsonl 默认由自己的 Account Authority 在子域托管；下面这些组件在需要公共托管、独立 witness / mirror 或跨服务商迁移时启用。",
+      "v1 长期 principal 与默认 service DID 使用 did:webvh。自己的 Station 认证边界可承担 DID 历史托管；公共托管、独立 witness 与 mirror 属于可选基础设施，不替代 Realm 治理权威，也不让绑定某 Station 的账号自动跨站延续。",
     projects: [
       {
         name: "starid",
         tag: "identity · did:webvh",
         status: "planned",
         body:
-          "可选的公共 did:webvh 托管与 high-trust 服务实现。提供 did.jsonl 托管、witness / mirror、handle 绑定与密钥轮换审计。自建 Account Authority 已能承担 did.jsonl 托管，因此 v1 core 不强依赖它。",
+          "规划中的公共 did:webvh 托管与身份辅助服务，面向 DID 历史托管、witness / mirror、handle 绑定与轮换审计。它不是 v1 最小 Station 部署的必需组件。",
+      },
+    ],
+  },
+  {
+    id: "integrations",
+    title: "外部系统集成",
+    blurb:
+      "按显式授权连接消息网络与业务系统。桥接端点可能读取获准内容，其可见性和外发权限必须纳入项目的数据边界。",
+    projects: [
+      {
+        name: "bridges",
+        tag: "integration · applets",
+        status: "wip",
+        body:
+          "第三方消息桥 Applet 集合。连接外部聊天平台，将外部来源映射为带来源记录的协作事件；外部平台的权限和加密边界须单独评估。",
       },
     ],
   },
@@ -125,14 +154,14 @@ const tiers: Tier[] = [
     id: "conformance",
     title: "一致性与测试",
     blurb:
-      "把联邦同步、状态收敛、权限边界、Agent 行为与 E2EE 合规性变成可执行用例，让不同实现仍能安全互通。",
+      "用可执行场景验证联邦同步、提交顺序、权限边界、Agent 行为与 E2EE。实现支持范围与通过的测试分别披露，候选规范不等于完整互操作认证。",
     projects: [
       {
         name: "cotest",
         tag: "conformance · test-suite",
         status: "wip",
         body:
-          "协议级一致性测试套件。模拟单服务器 / 多服务器场景，对 reducer、federation、authz 求值、E2EE profile 做端到端验证；定位类似 Matrix 的 Complement。",
+          "联合端到端与协议一致性测试套件。连接真实 Station 和客户端，覆盖跨站协作、消息、身份恢复、MLS 与权限边界；通过结果仅证明对应源码和已执行场景。",
       },
     ],
   },
@@ -148,11 +177,12 @@ const tiers: Tier[] = [
       <span class="ak-section-tag">OPEN REFERENCE STACK</span>
       <h1>
         从协议到客户端，<br />
-        <span class="ak-h1-accent">把去中心化协作真正跑起来</span>
+        <span class="ak-h1-accent">构建可自托管的联邦协作</span>
       </h1>
       <p class="ak-lead">
         Arkret 不只描述消息格式。参考实现覆盖自托管 Station、跨组织联邦、MLS 端到端加密、
         企业身份接入、跨平台客户端与一致性测试，让团队可以从可执行组件开始构建人与 Agent 的协作产品。
+        当前 v1 处于候选阶段，参考实现持续开发；各组件的可用功能与支持范围以实际声明和验收结果为准。
       </p>
     </div>
   </section>

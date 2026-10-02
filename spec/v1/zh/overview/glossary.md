@@ -3,7 +3,7 @@ title: 术语表
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-15
+updated: 2026-10-02
 see_also:
   - ../index.md
   - architecture.md
@@ -37,7 +37,7 @@ see_also:
 
 | 术语 | 中文说明 | 定义 |
 | --- | --- | --- |
-| Arkret | 协议名称 | 去中心化协作对象协议族，定义 identity、写入、同步、授权、显示与审计规则。 |
+| Arkret | 协议名称 | 可自托管的联邦协作对象协议族，定义 identity、写入、同步、授权、显示与审计规则；每个 Realm 在同一任期由一个治理 Station 接纳共享写入，见 [`../sync/authority-commit-log.md`](../sync/authority-commit-log.md)。 |
 | kind 轴 | 协议自有分类轴 | Arkret 自有 discriminator、routing、registry family 与 reducer/projection 分派字段；使用 `kind` / `*_kind(s)`。与外部 `type`、闭集 `class`、有序 `tier` 正交；权威判据见 [`common-fields.md` §2](../models/common-fields.md#2-类型记法)。 |
 | type 轴 | 外部标准分类轴 | 只允许直接继承外部标准字段和值集并要求原样往返的分类；每个路径必须登记在 `classification-field-registry.json`，不得作为 Arkret 自有分派。与 `kind` / `class` / `tier` 交叉参照同上。 |
 | class 轴 | 无序闭集分类轴 | 有限、无序、闭合且不选择互斥对象 shape 的分类；使用 `*_class(es)` 并必须解析到 finite value set。自由标签和开放 taxonomy 不属于 class。 |

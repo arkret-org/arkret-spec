@@ -3,7 +3,7 @@ title: Architecture
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-12
+updated: 2026-10-02
 see_also:
   - ../sync/operations-sync.md
   - ../sync/service-surface.md
@@ -25,7 +25,7 @@ see_also:
 
 Arkret 的顶层架构要同时满足四件事：
 
-- 去中心化身份与发布
+- 独立运营的身份与 Station、跨域联邦发布，以及每 Realm 明确的单治理写入权威
 - 多主体协作对象共享
 - 对人类友好的工作界面
 - 对 AI agent 友好的执行与可审计沉淀模型
