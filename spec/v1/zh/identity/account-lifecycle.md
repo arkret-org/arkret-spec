@@ -228,7 +228,9 @@ MUST NOT 清除后来接纳的会话或另一认证事务。失效必须覆盖�
 删除失败必须显示存储错误并保持禁止自动恢复的当前运行态，不能报告清理完成或降低存储安全等级。
 网络超时、5xx、429、材料暂不可读与协议验证失败不得被臆断为服务端撤销，也不得触发身份或密钥重建。
 资源服务器调用 issuer introspection 的 S2S 请求失败（包括 S2S 凭据被拒）、非成功 HTTP 响应或
-不完整成功响应 MUST 返回 `503 auth_unavailable`，不得转换成终端用户 `401 unauthenticated`。
+不完整成功响应 MUST 返回已登记的 `503 temporarily_unavailable`（见
+[`api-conventions.md` §3.3](../sync/api-conventions.md) 与标准错误码 registry），
+不得转换成终端用户 `401 unauthenticated`。
 只有成功验证的 issuer outcome 明确声明该 grant 非 active，才可据此拒绝该用户会话。
 只清理本次失效会话所拥有的凭据/绑定缓存；另一活动 handoff 的 holder、exact request 和长期
 device、Recovery Key、DID/PCR/MLS、secret-storage 材料 MUST 保留。
