@@ -115,13 +115,22 @@ MLS public state 由 accepted Genesis/Commit Event 及其 RealmCommit 投影。
 授权结果绑定 exact selector、authority generation、current revision 与 caller audience。机读合同是
 [`signer-key-operations.schema.json`](../../artifacts/schemas/signer-key-operations.schema.json)。
 
-**结果不镜像身份（normative）**：current 与 historical 结果的 key 统一使用封闭 `query_signing_key`，只含
-`public_key_b64u`、完整 `authorization_ref: committed_event_ref`、`revision{commit_id,stream_position}` 与
-`governance_generation`。`actor` 与 `verification_method` **只从 enclosing selector 取得**，key MUST NOT 重复
-携带这两个字段。`revision` 是该 authorization stream 在解析时已验证的 current revision，MUST 与
+**结果不镜像身份（normative）**：ordinary human 的 `current_admission/account_device` resolved key
+使用封闭 `current_device_signing_key`，恰含 `public_key_b64u`。自己的 Station MUST 在本次查询中复用
+§8.2 的设备目录验证：本地从同一耐久 PCR current cut 取材，跨站只经既有
+`ak.peer.keys.read.lookup.v1` 按完整 AccountId 与 exact device selector 取材，独立验证 origin Service
+签名、issuer/method、device、当前 generation、active 状态及授权/attestation 时窗，并逐字核对 selector
+的 device verification method。当前 recipient 与 sender MUST 同属请求的可见普通 Realm；取材失败、撤销、
+换代、过期、错 Station/method/device 或缺材料均返回同形 `unavailable`。MUST NOT 返回 PCR Commit/history、
+伪造坐标、把 Contact 历史 producer 或缓存 key 当 current authority。结果只用于本次冻结操作，下一次操作必须重查。
+
+current Agent 与两个 historical 分支继续使用封闭 `query_signing_key`，只含 `public_key_b64u`、完整
+`authorization_ref: committed_event_ref`、`revision{commit_id,stream_position}` 与 `governance_generation`。
+`actor` 与 `verification_method` **只从 enclosing selector 取得**，key MUST NOT 重复携带这两个字段。
+`revision` 是该 authorization stream 在解析时已验证的 current revision，MUST 与
 `authorization_ref.stream_ref` 属于同一 stream、位置不得早于 authorization Event，并由其 RealmCommit 验证
-`governance_generation`；缺任一坐标或绑定时必须返回 `unavailable`，不得只返回缓存 key bytes。SDK MAY 在本地
-由 selector 与 key 组装完整缓存类型，但 MUST NOT 把该身份镜像写回 self wire result。
+`governance_generation`；缺任一坐标或绑定时必须返回 `unavailable`。human current 的 key-only 结果
+MUST NOT 用于 historical、Agent、Signal 的独立 signer 或高风险 Control root。
 
 **关联只靠完整 selector（normative）**：每个请求 selector 恰好对应一个结果，不省略、不重复、不额外添加。
 结果关联 MUST 使用**完整 selector 的相等性**——`verification_mode`、`sender_kind`、完整 AccountId、
@@ -151,7 +160,7 @@ Station MUST 是服务本请求的自己 Station；结果 context MUST 逐字回
 bytes MAY 缓存，但 `(actor, method, key)` MUST NOT 替代 exact authorization Event 实例——同一 key 的重新授权
 必须按独立授权实例核对。
 
-**`authorization_ref` 是必填（normative）**：所有 resolved 分支的 `query_signing_key` MUST 携带真实适用的
+**`authorization_ref` 是必填（normative）**：current Agent 与所有 historical resolved 分支的 `query_signing_key` MUST 携带真实适用的
 accepted 授权 Event 完整坐标、current revision 与 governance generation；历史 Agent 与普通设备没有例外。
 缺失或无法取得时 MUST 返回同形且逐字回显完整 selector 的 `unavailable`，MUST NOT 把裸缓存公钥当作成功，
 也 MUST NOT 用细分 reason 泄漏隐藏状态。
@@ -168,3 +177,5 @@ DID 解析证据可以作为 producer/service proof 验证输入，但不代表 
 ### 5.9 Media result
 
 Media 内容完整性由 blob ref 和 producer-signed 引用证明；可见性和接纳位置由 RealmCommit/current result 证明。
+
+closed schema 正反例见 `ak.vector.signer_key.human_current_privacy.v1` 与 `current-signer-contact-endpoint-fixture.json`。

@@ -842,6 +842,22 @@ source 与 exact founding-unit ref，不得为重复背书发明新的 authority
 
 首次 Add 的 claim terminal 后，founder 在 `provisional_history_send` 内 **MAY** 通过同组 ordinary Remove/re-add 替换该 exact peer endpoint，使用 fresh claim 与 fresh Welcome；不得迟到 consume、复活旧 claim、扩大 pair 或重建 Genesis。`initial_exact_pair_group_state_ref` 永久指向首个 accepted exact-pair winning state；repair completion 只更新当前 occupied leaf 的 durable 证据，不改变该 immutable ref、founding basis、binding digest 输入或坐标。
 
+
+
+既有 holder-authenticated `ak.self.contact.read.list.v1` 的 accepted human row MAY 携闭合
+`peer_endpoint{contact_event_ref,device_id}`，其它状态与 Agent row MUST NOT 携带。自己的 Station MUST
+从所选当前 accepted round 的已验签并耐久保存的 source receipt producer 机械导出：normal round 的
+requester 端取 peer response producer，target 端取 peer request producer；glare 取 peer 的原 request producer。
+来源必须逐字绑定 row 的完整 peer AccountId、当前 round、原 request/response Event ref、issuer Station
+与 human device method（principal DID 的 exact DeviceId fragment）。缺来源或任一绑定不成立时省略。
+投影不要求客户端读取 peer PCR，也不依赖瞬时缓存或显式 continuity export；重载、重试及另一 holder
+设备重新读取同一投影。contact_event_ref 是所选 round 的 exact peer 来源；glare 的两条 request 可不同于 row 的单一 request 摘要，客户端不得据摘要重建或替换该引用。
+
+它只提供 exact KeyPackage claim selector，不证明持续 Device/MLS authority。客户端仍须每次使用现有
+current KeyPackage claim、设备 generation/revocation gate 与 Realm governance 验证后才能 Add/Welcome；
+撤销、轮换、无可用 package 或缺投影时失败关闭，不猜设备、不枚举全设备、不以 Contact producer 替代
+当前签名者证据。既有 Contact 当前授权及 scope gates 不变。
+
 ### 7.3 唯一 group 与 repair
 
 DM Realm 与所有其它 MLS-backed effective scope 使用同一规则：
@@ -1117,3 +1133,5 @@ Conformance **MUST** 覆盖：
 - 隐私：非 participant 对任意阶段的 pair 查询与不存在逐字相同。
 
 synthetic glare accepted Event、跨双方 CAS、server next-action、successor Realm/Strand、timeout takeover、minimum-token 归一、server-allocated founding ID、reserved/materializing draft、min-service-DID coordinator 与 view-dependent effect digest **MUST** 由负例拒绝。
+
+closed schema 正反例见 `ak.vector.contact.peer_endpoint_selector.v1` 与 `current-signer-contact-endpoint-fixture.json`。

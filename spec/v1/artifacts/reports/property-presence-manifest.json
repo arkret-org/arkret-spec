@@ -15,19 +15,19 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 8888,
+    "total_properties": 8898,
     "total_schema_documents": 166,
     "by_presence_class": {
-      "optional": 2105,
+      "optional": 2108,
       "optional_defaulted": 48,
-      "required": 6262,
+      "required": 6268,
       "required_nullable": 309,
-      "tristate": 164
+      "tristate": 165
     },
-    "tristate_occurrences": 164,
-    "tristate_audit_targets": 131,
+    "tristate_occurrences": 165,
+    "tristate_audit_targets": 132,
     "tristate_sdk_dispositions": {
-      "absent_null_equivalent": 121,
+      "absent_null_equivalent": 122,
       "condition_guarded": 9,
       "distinct": 1
     }
@@ -75,6 +75,7 @@
     "calendar-event.schema.json/$defs/recurrence/allOf/1/then/properties/by_day",
     "calendar-event.schema.json/allOf/0/then/properties/recurrence",
     "calendar-event.schema.json/allOf/1/then/properties/recurrence",
+    "contact-operations.schema.json/$defs/contact_list_row/allOf/2/then/properties/peer",
     "contact-operations.schema.json/$defs/contact_round_evidence_bundle/allOf/0/else/properties/current_proofs",
     "contact-operations.schema.json/$defs/contact_round_evidence_bundle/allOf/0/else/properties/request_receipts",
     "contact-operations.schema.json/$defs/contact_round_evidence_bundle/allOf/0/then/properties/current_proofs",
@@ -507,6 +508,16 @@
       "instance_path": "/by_day",
       "occurrences": [
         "/$defs/recurrence/allOf/1/then/properties/by_day"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "contact-operations.schema.json",
+      "shape": "/$defs/contact_list_row",
+      "instance_path": "/peer",
+      "occurrences": [
+        "/$defs/contact_list_row/allOf/2/then/properties/peer"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -4095,6 +4106,9 @@
         "/$defs/contact_list/properties/next_cursor": "optional",
         "/$defs/contact_list_row/allOf/0/if/properties/state": "required",
         "/$defs/contact_list_row/allOf/1/if/properties/state": "required",
+        "/$defs/contact_list_row/allOf/2/then/properties/peer": "tristate",
+        "/$defs/contact_list_row/allOf/2/then/properties/peer/properties/kind": "optional",
+        "/$defs/contact_list_row/allOf/2/then/properties/state": "optional",
         "/$defs/contact_list_row/properties/bidirectional_scopes": "required",
         "/$defs/contact_list_row/properties/contact_agents": "optional",
         "/$defs/contact_list_row/properties/continuity_evidence": "optional",
@@ -4104,6 +4118,7 @@
         "/$defs/contact_list_row/properties/granted_to_peer_scopes": "required",
         "/$defs/contact_list_row/properties/next_prepare_input": "optional",
         "/$defs/contact_list_row/properties/peer": "required",
+        "/$defs/contact_list_row/properties/peer_endpoint": "optional",
         "/$defs/contact_list_row/properties/request_event_ref": "optional",
         "/$defs/contact_list_row/properties/request_message": "optional",
         "/$defs/contact_list_row/properties/response_event_ref": "optional",
@@ -4189,6 +4204,8 @@
         "/$defs/contact_peer/oneOf/1/properties/actor_id": "required",
         "/$defs/contact_peer/oneOf/1/properties/controller_account_id": "required",
         "/$defs/contact_peer/oneOf/1/properties/kind": "required",
+        "/$defs/contact_peer_endpoint/properties/contact_event_ref": "required",
+        "/$defs/contact_peer_endpoint/properties/device_id": "required",
         "/$defs/contact_reject_outcome/allOf/1/properties/result_kind": "required",
         "/$defs/contact_reject_request/oneOf/0/properties/action": "required",
         "/$defs/contact_reject_request/oneOf/0/properties/idempotency_key": "required",
@@ -11052,9 +11069,13 @@
         "/$defs/current_agent_selector/properties/sender_kind": "required",
         "/$defs/current_agent_selector/properties/verification_method": "required",
         "/$defs/current_agent_selector/properties/verification_mode": "required",
-        "/$defs/current_outcome/properties/key": "required",
-        "/$defs/current_outcome/properties/selector": "required",
-        "/$defs/current_outcome/properties/status": "required",
+        "/$defs/current_device_signing_key/properties/public_key_b64u": "required",
+        "/$defs/current_outcome/oneOf/0/properties/key": "required",
+        "/$defs/current_outcome/oneOf/0/properties/selector": "required",
+        "/$defs/current_outcome/oneOf/0/properties/status": "required",
+        "/$defs/current_outcome/oneOf/1/properties/key": "required",
+        "/$defs/current_outcome/oneOf/1/properties/selector": "required",
+        "/$defs/current_outcome/oneOf/1/properties/status": "required",
         "/$defs/historical_account_device_outcome/properties/accepted_at": "required",
         "/$defs/historical_account_device_outcome/properties/key": "required",
         "/$defs/historical_account_device_outcome/properties/selector": "required",

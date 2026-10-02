@@ -108,6 +108,47 @@ class SelfSignerResultTests(unittest.TestCase):
         request["queries"][0]["committed_event_ref"] = self.committed_ref()
         self.assertFalse(self.validator("query_request_body").is_valid(request))
 
+    def test_human_current_is_key_only_and_cannot_cross_branches(self):
+        selector = self.request("current_admission", "account_device")["queries"][0]
+        result = {"selector": selector, "status": "resolved", "key": {"public_key_b64u": "A" * 43}}
+        self.validator("current_outcome").validate(result)
+        for field, value in self.key().items():
+            if field == "public_key_b64u":
+                continue
+            changed = copy.deepcopy(result)
+            changed["key"][field] = value
+            self.assertFalse(self.validator("current_outcome").is_valid(changed))
+        for mode, sender in [("current_admission", "agent"), ("historical_event", "agent"), ("historical_event", "account_device")]:
+            changed = copy.deepcopy(result)
+            changed["selector"] = self.request(mode, sender)["queries"][0]
+            if mode == "historical_event":
+                changed["accepted_at"] = "2026-09-10T00:00:00.000Z"
+            fragment = "current_outcome" if mode == "current_admission" else "historical_" + sender + "_outcome"
+            self.assertFalse(self.validator(fragment).is_valid(changed))
+
+    def test_contact_endpoint_is_closed_and_only_for_accepted_humans(self):
+        row = {"peer": {"kind": "human", "account_id": self.request()["recipient_account_id"]},
+               "state": "accepted", "granted_to_peer_scopes": [], "granted_by_peer_scopes": [], "bidirectional_scopes": [],
+               "next_prepare_input": {"contact_round_id": "sha256:" + "1" * 64, "version": 2,
+                                      "predecessor_event_ref": self.committed_ref()["event_id"]},
+               "peer_endpoint": {"contact_event_ref": self.committed_ref()["event_id"],
+                                 "device_id": "ak:device:01964137-0000-7000-8000-000000000001"}}
+        validator = self.validator("contact_list_row", "contact-operations.schema.json")
+        validator.validate(row)
+        for field in ["contact_event_ref", "device_id"]:
+            changed = copy.deepcopy(row)
+            del changed["peer_endpoint"][field]
+            self.assertFalse(validator.is_valid(changed))
+        changed = copy.deepcopy(row)
+        changed["peer_endpoint"]["authorization_ref"] = self.committed_ref()
+        self.assertFalse(validator.is_valid(changed))
+        for state in ["pending_outgoing", "pending_incoming", "rejected", "expired", "tombstoned"]:
+            changed = copy.deepcopy(row)
+            changed["state"] = state
+            del changed["next_prepare_input"]
+            changed["request_event_ref"] = self.committed_ref()["event_id"]
+            self.assertFalse(validator.is_valid(changed))
+
     def test_no_sync_bundle_on_the_subscribe_frame(self):
         self.assertNotIn("agent_signer_evidence_bundle", self.documents["account-subscribe-frame.schema.json"]["properties"])
 

@@ -176,6 +176,11 @@
       "version": "2026-09-28.1"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/current-signer-contact-endpoint-fixture.json",
+      "sha256": "7db2a2a51d3ef362afca63365bddecfa9eb2938d46ad18ef3c44f488709b2d2f",
+      "version": "2026-10-02.2"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/cursor-negative-fixture.json",
       "sha256": "9d254028cdea7e6dc0497e002a36c581b243a18d81260547dfc92e9698525bab",
       "version": "2026-09-20.1"

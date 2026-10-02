@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-01.1",
+  "version": "2026-10-02.3",
   "source_of_truth": true,
-  "generated_at": "2026-10-01T14:29:30+08:00",
+  "generated_at": "2026-10-02T23:41:06+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -5006,6 +5006,32 @@
       "description": "Exact owner grant ceiling, explicit Pin authority, hidden target non-enumeration, expected-rank refusal, reorder-without-live-add refusal and immutable add/reorder/remove dot-set assertions.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/shared-pin-admission-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.contact.peer_endpoint_selector.v1",
+      "status": "active",
+      "domain": "contact",
+      "applies_to_fixtures": [
+        "current-signer-contact-endpoint-fixture.json"
+      ],
+      "description": "Two-field peer endpoint is closed, only on accepted human rows; all other states and Agent rows reject it.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/current-signer-contact-endpoint-fixture.json",
+        "spec/v1/zh/identity/contact-and-direct-conversation.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.signer_key.human_current_privacy.v1",
+      "status": "active",
+      "domain": "signer_key",
+      "applies_to_fixtures": [
+        "current-signer-contact-endpoint-fixture.json"
+      ],
+      "description": "Human current key-only is closed and cannot substitute for Agent or historical coordinates.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/current-signer-contact-endpoint-fixture.json",
+        "spec/v1/zh/sync/server-trusted-results.md"
       ]
     }
   ]

@@ -969,6 +969,9 @@
           "items": {
             "$ref": "#/$defs/contact_agent_projection"
           }
+        },
+        "peer_endpoint": {
+          "$ref": "#/$defs/contact_peer_endpoint"
         }
       },
       "allOf": [
@@ -1017,6 +1020,27 @@
               "required": [
                 "request_message"
               ]
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "peer_endpoint"
+            ]
+          },
+          "then": {
+            "properties": {
+              "state": {
+                "const": "accepted"
+              },
+              "peer": {
+                "properties": {
+                  "kind": {
+                    "const": "human"
+                  }
+                }
+              }
             }
           }
         }
@@ -3835,6 +3859,23 @@
       },
       "additionalProperties": false,
       "description": "Closed delegated producer branch, required exactly for a legal Agent controller-device Contact Event with executed_by. The receiver verifies the original producer signature and separately validates this complete Agent DID history against exact actor/controller/Station and the create-locked tuple."
+    },
+    "contact_peer_endpoint": {
+      "type": "object",
+      "required": [
+        "contact_event_ref",
+        "device_id"
+      ],
+      "properties": {
+        "contact_event_ref": {
+          "$ref": "#/$defs/event_id"
+        },
+        "device_id": {
+          "$ref": "./common-ids.schema.json#/$defs/device_id"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Exact selector mechanically derived from the verified peer producer of the selected accepted Contact round. Not current Device or MLS authority. Omit when no verified source exists."
     }
   }
 }

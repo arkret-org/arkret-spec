@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-02.3",
+  "version": "2026-10-02.5",
   "source_of_truth": true,
-  "generated_at": "2026-10-02T16:26:27+08:00",
+  "generated_at": "2026-10-02T23:09:31+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -344,10 +344,10 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/identity/contact-and-direct-conversation.md#72-bootstrap-participant-authority",
-      "section_digest": "sha256:4f3bb112fd407469c2481dd1f80f67b440f2244ba0b16f8f669c45e09e09869a",
+      "section_digest": "sha256:2dde00a742fe9394eda3608da3e2f897c10a0512ccfd1b207400950bbd838f70",
       "requirement": "Only the exact founder uses registered provisional message authority before peer durable Welcome, with accepted Genesis and current gates. First accepted Bound permanently exits bootstrap; equivalent later endorsements cannot reactivate it. Completion requires the currently occupied peer leaf creation Add and its own durable consume; Remove/re-add cannot inherit an obsolete receipt. Terminal first claims repair in the same group while preserving the immutable initial exact-pair ref.",
       "testability_grade": "audit",
-      "test_plan": "Run registered provisional-source policy tests; block exact private Realm claim at epoch 0 and consume after Add, then verify real submitted message epoch, peer since_join boundary and eventual convergence. Test post-Bound rejection of bootstrap authority and equivalent endorsement accumulation. Run terminal_founding_claim_repairs_the_same_group_and_keeps_the_first_binding_ref with terminal/pending/durable read cuts, fresh Remove/Add, rejected current-ref substitution and old consumed leaf receipt isolation; verify the four closed resolver admission states and original aa-runtime live repair. The same-Commit Remove is ordered after Add on the wire, and must retire only the before-state leaf."
+      "test_plan": "Run registered provisional-source policy tests; block exact private Realm claim at epoch 0 and consume after Add, then verify real submitted message epoch, peer since_join boundary and eventual convergence. Test post-Bound rejection of bootstrap authority and equivalent endorsement accumulation. Run terminal_founding_claim_repairs_the_same_group_and_keeps_the_first_binding_ref with terminal/pending/durable read cuts, fresh Remove/Add, rejected current-ref substitution and old consumed leaf receipt isolation; verify the four closed resolver admission states and original aa-runtime live repair. The same-Commit Remove is ordered after Add on the wire, and must retire only the before-state leaf. Contact peer endpoint source/reload/glare is additionally checked in Cotest direct_conversation_founding_live and the closed schema fixture."
     },
     {
       "clause_id": "AK-NC-044",
@@ -384,10 +384,10 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/sync/server-trusted-results.md#56-按次-current-与精确历史签名公钥",
-      "section_digest": "sha256:4612b1bb7d83137df9799cef6e94b19d83341aef6b24f1e68e8ce9da401bb011",
-      "requirement": "Self signer keys omit actor/method mirrors, retain complete selector association and invocation context, require historical committed_event_ref plus an independent committed authorization_ref/current revision/governance generation, and leave Signal standalone identity and peer portable evidence intact.",
+      "section_digest": "sha256:f7f4ea63965c8ce6d4f85971949d7e2f68cb52d74d0b072fabed27ff8fcf0938",
+      "requirement": "Self signer keys omit actor/method mirrors, retain complete selector association and invocation context, require historical committed_event_ref plus an independent committed authorization_ref/current revision/governance generation, and leave Signal standalone identity and peer portable evidence intact. Ordinary human current results contain only public_key_b64u after own-Station exact-device directory verification; PCR coordinates remain private and key-only cannot cross into Agent/history.",
       "testability_grade": "api_shape",
-      "test_plan": "Run tools.test_self_signer_result_schema and tools.test_residual_simplification for closed query keys, mandatory authorization, historical separation, reordered/unavailable results, duplicate/missing selectors, different methods/Events and invocation mismatch. Runtime authorization, producer signatures and Signal gates remain required and tracked by the existing owner."
+      "test_plan": "Run tools.test_self_signer_result_schema and tools.test_residual_simplification for closed query keys, mandatory authorization, historical separation, reordered/unavailable results, duplicate/missing selectors, different methods/Events and invocation mismatch. Runtime authorization, producer signatures and Signal gates remain required and tracked by the existing owner. Run current-signer-contact-endpoint-fixture.json schema cases and Cotest signer_keys_query_live against rebuilt two-Station binaries."
     },
     {
       "clause_id": "AK-NC-051",
@@ -538,7 +538,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/sync/server-trusted-results.md#56-按次-current-与精确历史签名公钥",
-      "section_digest": "sha256:4612b1bb7d83137df9799cef6e94b19d83341aef6b24f1e68e8ce9da401bb011",
+      "section_digest": "sha256:f7f4ea63965c8ce6d4f85971949d7e2f68cb52d74d0b072fabed27ff8fcf0938",
       "requirement": "An ordinary client obtains exact historical signing keys from its own Station using a committed_event_ref copied only from a verified stream_row. Every result independently keeps the accepted authorization coordinate, revision and governance generation so historical MLS binding remains verifiable; target and authorization refs may differ, and a stable (actor, method, key) triple never substitutes for either exact Event instance.",
       "testability_grade": "audit",
       "test_plan": "Run ak.vector.signer_key.historical_commit_coordinate.v1 and tools.test_signer_key_historical_coordinate_gate: both historical selectors require the four-coordinate ref, target and authorization remain independent, redacted/current-projection/cursor/time sources stay unresolved, and missing coordinates never downgrade to current query. The fixture is a machine semantic suite; production signer resolution and commit verification remain implementation evidence."
@@ -548,7 +548,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/sync/server-trusted-results.md#56-按次-current-与精确历史签名公钥",
-      "section_digest": "sha256:4612b1bb7d83137df9799cef6e94b19d83341aef6b24f1e68e8ce9da401bb011",
+      "section_digest": "sha256:f7f4ea63965c8ce6d4f85971949d7e2f68cb52d74d0b072fabed27ff8fcf0938",
       "requirement": "A current self signing-key result serves only the operation that froze it. A same-batch or byte-identical in-flight query may be merged, but a completed result MUST NOT be reused for a future Signal, a future operation or a reconnection. Result association uses complete selector equality rather than array position, and a duplicate, missing or extra selector rejects the whole result.",
       "testability_grade": "audit",
       "test_plan": "Audited against signer-key-operations.schema.json and the self query contract: the review pass asserts results carry no reusable lifetime, that the request context is echoed verbatim and bound to the authenticated SessionGrant account, and that association is specified by complete selector equality with no index-based path. No vector exists because the obligation forbids a later reuse rather than fixing a byte artifact."

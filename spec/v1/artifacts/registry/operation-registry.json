@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-02.1",
+  "version": "2026-10-02.2",
   "source_of_truth": false,
-  "generated_at": "2026-10-02T09:55:23+08:00",
+  "generated_at": "2026-10-02T23:05:58+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -3067,7 +3067,7 @@
       "http": "GET /_arkret/self/contacts",
       "grpc": "SelfContact/List",
       "mq": "self.contact.query.list",
-      "notes": "Authenticated holder projection from server-verified durable Contact evidence. pending_incoming includes request_event_ref and the exact optional request_message; respond/reject use peer and request_event_ref. Complete continuity_evidence is exported only for explicit boolean query include_continuity=true (default false); online recontact uses Station durable checkpoint and bounded tail. Private Consent and account-data notes are not Contact authority.",
+      "notes": "Authenticated holder projection from server-verified durable Contact evidence. pending_incoming includes request_event_ref and the exact optional request_message; respond/reject use peer and request_event_ref. Complete continuity_evidence is exported only for explicit boolean query include_continuity=true (default false); online recontact uses Station durable checkpoint and bounded tail. Private Consent and account-data notes are not Contact authority. Accepted human rows may carry peer_endpoint{contact_event_ref,device_id} mechanically derived from the verified peer producer receipt of the selected current Contact round; other states and Agent rows forbid it. Missing source omits the projection. Reload, another holder device and glare use the same durable projection; current KeyPackage claim and MLS governance still authorize Add, never this historical selector. No peer PCR read or device enumeration.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list"
@@ -3904,7 +3904,7 @@
       "http": "POST /_arkret/self/signer-keys/query",
       "grpc": "SelfSignerKeys/Resolve",
       "mq": "self.signer_keys.query.resolve",
-      "notes": "Own Station validates 1..64 exact account-device/Agent current or historical selectors. Current keys serve this validation invocation only. Each historical selector requires committed_event_ref copied from one verified account-subscribe or per-stream-scan stream_row; its stream Realm must equal request.realm_id. A bare EventId, current projection, cursor, timestamp, arrival order or cached sighting cannot supply the coordinate, and missing or redacted history remains unavailable without current-query fallback. Every resolved key independently carries its accepted authorization_ref as another committed_event_ref plus the verified current revision and governance generation of that authorization stream; the target and authorization refs may differ and must never be forced equal. Exactly one resolved/unavailable result maps by complete selector equality rather than array position; unavailable echoes that complete selector. Request <=64 KiB; each result <=16 KiB; complete response <=1 MiB. No third history carrier, portable closure, caller-selected receiver, or current-directory substitution for history.",
+      "notes": "Own Station validates 1..64 exact account-device/Agent current or historical selectors. Current keys serve this validation invocation only. Each historical selector requires committed_event_ref copied from one verified account-subscribe or per-stream-scan stream_row; its stream Realm must equal request.realm_id. A bare EventId, current projection, cursor, timestamp, arrival order or cached sighting cannot supply the coordinate, and missing or redacted history remains unavailable without current-query fallback. Current ordinary human account_device returns only public_key_b64u after own-Station verification of the existing exact-device directory at this invocation; no PCR coordinates or history disclosure. Current Agent and every historical resolved key independently carry its accepted authorization_ref as another committed_event_ref plus the verified current revision and governance generation of that authorization stream; the target and authorization refs may differ and must never be forced equal. Exactly one resolved/unavailable result maps by complete selector equality rather than array position; unavailable echoes that complete selector. Request <=64 KiB; each result <=16 KiB; complete response <=1 MiB. No third history carrier, portable closure, caller-selected receiver, or current-directory substitution for history.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/signer-key-operations.schema.json#/$defs/query_request_body",

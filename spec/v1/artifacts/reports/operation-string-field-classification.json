@@ -8,11 +8,11 @@
   ],
   "description": "Exhaustive classification of operation DTO schema/status/reason_code/reason properties into closed literals/enums, validated open protocol tokens, or bounded human-readable text. Any unconstrained audited string fails generation.",
   "summary": {
-    "total_fields": 71,
+    "total_fields": 70,
     "by_classification": {
       "bounded_free_text": 6,
       "closed_enum": 30,
-      "closed_literal": 17,
+      "closed_literal": 16,
       "validated_open_reason_code": 18
     },
     "unclassified": 0
@@ -552,14 +552,6 @@
       "shape": "StrandWatchCurrentPresent",
       "field": "status",
       "pointer": "#/$defs/StrandWatchCurrentPresent/properties/status",
-      "classification": "closed_literal",
-      "basis": "JSON Schema const"
-    },
-    {
-      "schema_file": "signer-key-operations.schema.json",
-      "shape": "current_outcome",
-      "field": "status",
-      "pointer": "#/$defs/current_outcome/properties/status",
       "classification": "closed_literal",
       "basis": "JSON Schema const"
     },

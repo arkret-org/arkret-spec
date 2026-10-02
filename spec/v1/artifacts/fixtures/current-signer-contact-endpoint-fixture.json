@@ -1,0 +1,491 @@
+{
+  "suite": "current_signer_contact_endpoint",
+  "version": "2026-10-02.2",
+  "covers_vectors": [
+    "ak.vector.signer_key.human_current_privacy.v1",
+    "ak.vector.contact.peer_endpoint_selector.v1"
+  ],
+  "description": "Executable closed schema boundaries for human current key-only results and accepted human Contact peer selectors. Live authority and source signature verification are covered by implementation tests, not by schema assertions.",
+  "runner": {
+    "kind": "json_schema_validation_cases",
+    "schema_dialect": "https://json-schema.org/draft/2020-12/schema",
+    "assertion_fields": [
+      "schema_ref",
+      "expect_valid",
+      "instance"
+    ]
+  },
+  "schema_validation_cases": [
+    {
+      "name": "human_current_key_only",
+      "schema_ref": "schemas/signer-key-operations.schema.json#/$defs/current_outcome",
+      "expect_valid": true,
+      "instance": {
+        "selector": {
+          "verification_mode": "current_admission",
+          "sender_kind": "account_device",
+          "actor": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:web:alice.example",
+              "station_id": "ak:did_core:web:station.example"
+            }
+          },
+          "verification_method": "did:web:alice.example#ak:device:01964137-0000-7000-8000-000000000001",
+          "device_id": "ak:device:01964137-0000-7000-8000-000000000001"
+        },
+        "status": "resolved",
+        "key": {
+          "public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+        }
+      }
+    },
+    {
+      "name": "human_current_forbids_authorization_ref",
+      "schema_ref": "schemas/signer-key-operations.schema.json#/$defs/current_outcome",
+      "expect_valid": false,
+      "instance": {
+        "selector": {
+          "verification_mode": "current_admission",
+          "sender_kind": "account_device",
+          "actor": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:web:alice.example",
+              "station_id": "ak:did_core:web:station.example"
+            }
+          },
+          "verification_method": "did:web:alice.example#ak:device:01964137-0000-7000-8000-000000000001",
+          "device_id": "ak:device:01964137-0000-7000-8000-000000000001"
+        },
+        "status": "resolved",
+        "key": {
+          "public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "authorization_ref": {
+            "event_id": "ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g",
+            "commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
+            "stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AZocxLUuB-7lfxVbVJzNCcxSEn-aDa07Di6MnigFwGfd"
+            },
+            "stream_position": 7
+          }
+        }
+      },
+      "first_expected_error": "$: {'selector': {'verification_mode': 'current_admission', 'sender_kind': 'account_device', 'actor': {'kind': 'account', 'account_id': {'principal_id': 'ak:did_core:web:alice.example', 'station_id': 'ak:did_core:web:station.example'}}, 'verification_method': 'did:web:alice.example#ak:device:01964137-0000-7000-8000-000000000001', 'device_id': 'ak:device:01964137-0000-7000-8000-000000000001'}, 'status': 'resolved', 'key': {'public_key_b64u': 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', 'authorization_ref': {'event_id': 'ak:event:Ae6YFfDokA1FLUx_l-MhAbSvTvoys2ZpRPmqFwrWjd9g', 'commit_id': 'ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4', 'stream_ref': {'kind': 'realm', 'realm_id': 'ak:realm:AZocxLUuB-7lfxVbVJzNCcxSEn-aDa07Di6MnigFwGfd'}, 'stream_position': 7}}} is not valid under any of the given schemas"
+    },
+    {
+      "name": "human_current_forbids_revision",
+      "schema_ref": "schemas/signer-key-operations.schema.json#/$defs/current_outcome",
+      "expect_valid": false,
+      "instance": {
+        "selector": {
+          "verification_mode": "current_admission",
+          "sender_kind": "account_device",
+          "actor": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:web:alice.example",
+              "station_id": "ak:did_core:web:station.example"
+            }
+          },
+          "verification_method": "did:web:alice.example#ak:device:01964137-0000-7000-8000-000000000001",
+          "device_id": "ak:device:01964137-0000-7000-8000-000000000001"
+        },
+        "status": "resolved",
+        "key": {
+          "public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "revision": {
+            "commit_id": "ak:realm_commit:AQPhm6Di_JMyu-JM932ww_EvyQU0dIIEO2ykFmYb9nD5",
+            "stream_position": 15
+          }
+        }
+      },
+      "first_expected_error": "$: {'selector': {'verification_mode': 'current_admission', 'sender_kind': 'account_device', 'actor': {'kind': 'account', 'account_id': {'principal_id': 'ak:did_core:web:alice.example', 'station_id': 'ak:did_core:web:station.example'}}, 'verification_method': 'did:web:alice.example#ak:device:01964137-0000-7000-8000-000000000001', 'device_id': 'ak:device:01964137-0000-7000-8000-000000000001'}, 'status': 'resolved', 'key': {'public_key_b64u': 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', 'revision': {'commit_id': 'ak:realm_commit:AQPhm6Di_JMyu-JM932ww_EvyQU0dIIEO2ykFmYb9nD5', 'stream_position': 15}}} is not valid under any of the given schemas"
+    },
+    {
+      "name": "human_current_forbids_governance_generation",
+      "schema_ref": "schemas/signer-key-operations.schema.json#/$defs/current_outcome",
+      "expect_valid": false,
+      "instance": {
+        "selector": {
+          "verification_mode": "current_admission",
+          "sender_kind": "account_device",
+          "actor": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:web:alice.example",
+              "station_id": "ak:did_core:web:station.example"
+            }
+          },
+          "verification_method": "did:web:alice.example#ak:device:01964137-0000-7000-8000-000000000001",
+          "device_id": "ak:device:01964137-0000-7000-8000-000000000001"
+        },
+        "status": "resolved",
+        "key": {
+          "public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "governance_generation": 4
+        }
+      },
+      "first_expected_error": "$: {'selector': {'verification_mode': 'current_admission', 'sender_kind': 'account_device', 'actor': {'kind': 'account', 'account_id': {'principal_id': 'ak:did_core:web:alice.example', 'station_id': 'ak:did_core:web:station.example'}}, 'verification_method': 'did:web:alice.example#ak:device:01964137-0000-7000-8000-000000000001', 'device_id': 'ak:device:01964137-0000-7000-8000-000000000001'}, 'status': 'resolved', 'key': {'public_key_b64u': 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', 'governance_generation': 4}} is not valid under any of the given schemas"
+    },
+    {
+      "name": "key_only_forbids_current_admission_agent",
+      "schema_ref": "schemas/signer-key-operations.schema.json#/$defs/current_outcome",
+      "expect_valid": false,
+      "instance": {
+        "selector": {
+          "verification_mode": "current_admission",
+          "sender_kind": "agent",
+          "actor": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:web:alice.example",
+              "station_id": "ak:did_core:web:station.example"
+            }
+          },
+          "verification_method": "did:web:alice.example#runtime"
+        },
+        "status": "resolved",
+        "key": {
+          "public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+        }
+      },
+      "first_expected_error": "$: {'selector': {'verification_mode': 'current_admission', 'sender_kind': 'agent', 'actor': {'kind': 'account', 'account_id': {'principal_id': 'ak:did_core:web:alice.example', 'station_id': 'ak:did_core:web:station.example'}}, 'verification_method': 'did:web:alice.example#runtime'}, 'status': 'resolved', 'key': {'public_key_b64u': 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'}} is not valid under any of the given schemas"
+    },
+    {
+      "name": "key_only_forbids_historical_event_agent",
+      "schema_ref": "schemas/signer-key-operations.schema.json#/$defs/historical_agent_outcome",
+      "expect_valid": false,
+      "instance": {
+        "selector": {
+          "verification_mode": "historical_event",
+          "sender_kind": "agent",
+          "actor": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:web:alice.example",
+              "station_id": "ak:did_core:web:station.example"
+            }
+          },
+          "verification_method": "did:web:alice.example#runtime",
+          "committed_event_ref": {
+            "event_id": "ak:event:ARf0hBMoVkQqflOWgdkxNzM3DDLeIZcTJgfcuk16MrSh",
+            "commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
+            "stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AZocxLUuB-7lfxVbVJzNCcxSEn-aDa07Di6MnigFwGfd"
+            },
+            "stream_position": 12
+          }
+        },
+        "status": "resolved",
+        "key": {
+          "public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+        },
+        "accepted_at": "2026-09-10T00:00:00.000Z"
+      },
+      "first_expected_error": "$.key: 'authorization_ref' is a required property"
+    },
+    {
+      "name": "key_only_forbids_historical_event_account_device",
+      "schema_ref": "schemas/signer-key-operations.schema.json#/$defs/historical_account_device_outcome",
+      "expect_valid": false,
+      "instance": {
+        "selector": {
+          "verification_mode": "historical_event",
+          "sender_kind": "account_device",
+          "actor": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:web:alice.example",
+              "station_id": "ak:did_core:web:station.example"
+            }
+          },
+          "verification_method": "did:web:alice.example#ak:device:01964137-0000-7000-8000-000000000001",
+          "device_id": "ak:device:01964137-0000-7000-8000-000000000001",
+          "committed_event_ref": {
+            "event_id": "ak:event:ARf0hBMoVkQqflOWgdkxNzM3DDLeIZcTJgfcuk16MrSh",
+            "commit_id": "ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4",
+            "stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AZocxLUuB-7lfxVbVJzNCcxSEn-aDa07Di6MnigFwGfd"
+            },
+            "stream_position": 12
+          }
+        },
+        "status": "resolved",
+        "key": {
+          "public_key_b64u": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+        },
+        "accepted_at": "2026-09-10T00:00:00.000Z"
+      },
+      "first_expected_error": "$.key: 'authorization_ref' is a required property"
+    },
+    {
+      "name": "accepted_human_endpoint",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list_row",
+      "expect_valid": true,
+      "instance": {
+        "peer": {
+          "kind": "human",
+          "account_id": {
+            "principal_id": "ak:did_core:web:alice.example",
+            "station_id": "ak:did_core:web:station.example"
+          }
+        },
+        "state": "accepted",
+        "next_prepare_input": {
+          "contact_round_id": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "version": 2,
+          "predecessor_event_ref": "ak:event:ARf0hBMoVkQqflOWgdkxNzM3DDLeIZcTJgfcuk16MrSh"
+        },
+        "granted_to_peer_scopes": [],
+        "granted_by_peer_scopes": [],
+        "bidirectional_scopes": [],
+        "peer_endpoint": {
+          "contact_event_ref": "ak:event:ARf0hBMoVkQqflOWgdkxNzM3DDLeIZcTJgfcuk16MrSh",
+          "device_id": "ak:device:01964137-0000-7000-8000-000000000001"
+        }
+      }
+    },
+    {
+      "name": "endpoint_requires_contact_event_ref",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list_row",
+      "expect_valid": false,
+      "instance": {
+        "peer": {
+          "kind": "human",
+          "account_id": {
+            "principal_id": "ak:did_core:web:alice.example",
+            "station_id": "ak:did_core:web:station.example"
+          }
+        },
+        "state": "accepted",
+        "next_prepare_input": {
+          "contact_round_id": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "version": 2,
+          "predecessor_event_ref": "ak:event:ARf0hBMoVkQqflOWgdkxNzM3DDLeIZcTJgfcuk16MrSh"
+        },
+        "granted_to_peer_scopes": [],
+        "granted_by_peer_scopes": [],
+        "bidirectional_scopes": [],
+        "peer_endpoint": {
+          "device_id": "ak:device:01964137-0000-7000-8000-000000000001"
+        }
+      },
+      "first_expected_error": "$.peer_endpoint: 'contact_event_ref' is a required property"
+    },
+    {
+      "name": "endpoint_requires_device_id",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list_row",
+      "expect_valid": false,
+      "instance": {
+        "peer": {
+          "kind": "human",
+          "account_id": {
+            "principal_id": "ak:did_core:web:alice.example",
+            "station_id": "ak:did_core:web:station.example"
+          }
+        },
+        "state": "accepted",
+        "next_prepare_input": {
+          "contact_round_id": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "version": 2,
+          "predecessor_event_ref": "ak:event:ARf0hBMoVkQqflOWgdkxNzM3DDLeIZcTJgfcuk16MrSh"
+        },
+        "granted_to_peer_scopes": [],
+        "granted_by_peer_scopes": [],
+        "bidirectional_scopes": [],
+        "peer_endpoint": {
+          "contact_event_ref": "ak:event:ARf0hBMoVkQqflOWgdkxNzM3DDLeIZcTJgfcuk16MrSh"
+        }
+      },
+      "first_expected_error": "$.peer_endpoint: 'device_id' is a required property"
+    },
+    {
+      "name": "endpoint_forbids_pending_outgoing",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list_row",
+      "expect_valid": false,
+      "instance": {
+        "peer": {
+          "kind": "human",
+          "account_id": {
+            "principal_id": "ak:did_core:web:alice.example",
+            "station_id": "ak:did_core:web:station.example"
+          }
+        },
+        "state": "pending_outgoing",
+        "granted_to_peer_scopes": [],
+        "granted_by_peer_scopes": [],
+        "bidirectional_scopes": [],
+        "peer_endpoint": {
+          "contact_event_ref": "ak:event:ARf0hBMoVkQqflOWgdkxNzM3DDLeIZcTJgfcuk16MrSh",
+          "device_id": "ak:device:01964137-0000-7000-8000-000000000001"
+        },
+        "request_event_ref": "ak:event:ARf0hBMoVkQqflOWgdkxNzM3DDLeIZcTJgfcuk16MrSh"
+      },
+      "first_expected_error": "$.state: 'accepted' was expected"
+    },
+    {
+      "name": "endpoint_forbids_pending_incoming",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list_row",
+      "expect_valid": false,
+      "instance": {
+        "peer": {
+          "kind": "human",
+          "account_id": {
+            "principal_id": "ak:did_core:web:alice.example",
+            "station_id": "ak:did_core:web:station.example"
+          }
+        },
+        "state": "pending_incoming",
+        "granted_to_peer_scopes": [],
+        "granted_by_peer_scopes": [],
+        "bidirectional_scopes": [],
+        "peer_endpoint": {
+          "contact_event_ref": "ak:event:ARf0hBMoVkQqflOWgdkxNzM3DDLeIZcTJgfcuk16MrSh",
+          "device_id": "ak:device:01964137-0000-7000-8000-000000000001"
+        },
+        "request_event_ref": "ak:event:ARf0hBMoVkQqflOWgdkxNzM3DDLeIZcTJgfcuk16MrSh"
+      },
+      "first_expected_error": "$.state: 'accepted' was expected"
+    },
+    {
+      "name": "endpoint_forbids_rejected",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list_row",
+      "expect_valid": false,
+      "instance": {
+        "peer": {
+          "kind": "human",
+          "account_id": {
+            "principal_id": "ak:did_core:web:alice.example",
+            "station_id": "ak:did_core:web:station.example"
+          }
+        },
+        "state": "rejected",
+        "granted_to_peer_scopes": [],
+        "granted_by_peer_scopes": [],
+        "bidirectional_scopes": [],
+        "peer_endpoint": {
+          "contact_event_ref": "ak:event:ARf0hBMoVkQqflOWgdkxNzM3DDLeIZcTJgfcuk16MrSh",
+          "device_id": "ak:device:01964137-0000-7000-8000-000000000001"
+        },
+        "request_event_ref": "ak:event:ARf0hBMoVkQqflOWgdkxNzM3DDLeIZcTJgfcuk16MrSh"
+      },
+      "first_expected_error": "$.state: 'accepted' was expected"
+    },
+    {
+      "name": "endpoint_forbids_expired",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list_row",
+      "expect_valid": false,
+      "instance": {
+        "peer": {
+          "kind": "human",
+          "account_id": {
+            "principal_id": "ak:did_core:web:alice.example",
+            "station_id": "ak:did_core:web:station.example"
+          }
+        },
+        "state": "expired",
+        "granted_to_peer_scopes": [],
+        "granted_by_peer_scopes": [],
+        "bidirectional_scopes": [],
+        "peer_endpoint": {
+          "contact_event_ref": "ak:event:ARf0hBMoVkQqflOWgdkxNzM3DDLeIZcTJgfcuk16MrSh",
+          "device_id": "ak:device:01964137-0000-7000-8000-000000000001"
+        },
+        "request_event_ref": "ak:event:ARf0hBMoVkQqflOWgdkxNzM3DDLeIZcTJgfcuk16MrSh"
+      },
+      "first_expected_error": "$.state: 'accepted' was expected"
+    },
+    {
+      "name": "endpoint_forbids_tombstoned",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list_row",
+      "expect_valid": false,
+      "instance": {
+        "peer": {
+          "kind": "human",
+          "account_id": {
+            "principal_id": "ak:did_core:web:alice.example",
+            "station_id": "ak:did_core:web:station.example"
+          }
+        },
+        "state": "tombstoned",
+        "granted_to_peer_scopes": [],
+        "granted_by_peer_scopes": [],
+        "bidirectional_scopes": [],
+        "peer_endpoint": {
+          "contact_event_ref": "ak:event:ARf0hBMoVkQqflOWgdkxNzM3DDLeIZcTJgfcuk16MrSh",
+          "device_id": "ak:device:01964137-0000-7000-8000-000000000001"
+        },
+        "request_event_ref": "ak:event:ARf0hBMoVkQqflOWgdkxNzM3DDLeIZcTJgfcuk16MrSh"
+      },
+      "first_expected_error": "$.state: 'accepted' was expected"
+    },
+    {
+      "name": "endpoint_forbids_agent",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list_row",
+      "expect_valid": false,
+      "instance": {
+        "peer": {
+          "kind": "agent",
+          "actor_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:web:alice.example",
+              "station_id": "ak:did_core:web:station.example"
+            }
+          },
+          "controller_account_id": {
+            "principal_id": "ak:did_core:web:alice.example",
+            "station_id": "ak:did_core:web:station.example"
+          }
+        },
+        "state": "accepted",
+        "next_prepare_input": {
+          "contact_round_id": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "version": 2,
+          "predecessor_event_ref": "ak:event:ARf0hBMoVkQqflOWgdkxNzM3DDLeIZcTJgfcuk16MrSh"
+        },
+        "granted_to_peer_scopes": [],
+        "granted_by_peer_scopes": [],
+        "bidirectional_scopes": [],
+        "peer_endpoint": {
+          "contact_event_ref": "ak:event:ARf0hBMoVkQqflOWgdkxNzM3DDLeIZcTJgfcuk16MrSh",
+          "device_id": "ak:device:01964137-0000-7000-8000-000000000001"
+        }
+      },
+      "first_expected_error": "$.peer.kind: 'human' was expected"
+    },
+    {
+      "name": "endpoint_forbids_extra_evidence",
+      "schema_ref": "schemas/contact-operations.schema.json#/$defs/contact_list_row",
+      "expect_valid": false,
+      "instance": {
+        "peer": {
+          "kind": "human",
+          "account_id": {
+            "principal_id": "ak:did_core:web:alice.example",
+            "station_id": "ak:did_core:web:station.example"
+          }
+        },
+        "state": "accepted",
+        "next_prepare_input": {
+          "contact_round_id": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "version": 2,
+          "predecessor_event_ref": "ak:event:ARf0hBMoVkQqflOWgdkxNzM3DDLeIZcTJgfcuk16MrSh"
+        },
+        "granted_to_peer_scopes": [],
+        "granted_by_peer_scopes": [],
+        "bidirectional_scopes": [],
+        "peer_endpoint": {
+          "contact_event_ref": "ak:event:ARf0hBMoVkQqflOWgdkxNzM3DDLeIZcTJgfcuk16MrSh",
+          "device_id": "ak:device:01964137-0000-7000-8000-000000000001",
+          "producer_signer": {}
+        }
+      },
+      "first_expected_error": "$.peer_endpoint: Additional properties are not allowed ('producer_signer' was unexpected)"
+    }
+  ]
+}

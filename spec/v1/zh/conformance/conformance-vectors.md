@@ -671,3 +671,8 @@ native Event 不创建回显；第二设备得到相同排序、状态与去重�
 
 `ak.vector.sidecar.union_history_checkpoint.v1` MUST 证明：Sidecar 并集历史暴露的检查点受请求方自身资格限制，
 绝不把历史可见性扩大到请求主体的 effective access 之外。
+
+`ak.vector.signer_key.human_current_privacy.v1` 与 `ak.vector.contact.peer_endpoint_selector.v1`
+用 `current-signer-contact-endpoint-fixture.json` 执行 closed schema 正反例：human current 只含公钥且不可
+替代 Agent/history；Contact 两字段 endpoint 只属于 accepted human。真实跨站取材、撤销与 exact round
+来源签名必须另行用服务与联合测试验证，schema 通过不代表 live 授权通过。

@@ -787,6 +787,12 @@ human Account 设备作为 Event 实际签名方时，producer 解析只有 §8.
 
 本 evidence 的完整对象、内容地址与失败矩阵由 [`ak.vector.device.account_device_signer_evidence.v1`](../../artifacts/registry/vector-registry.json) 固定；缺 accepted covering Commit、错 Service 历史 assertion method、错 ref 均不得产生可用 row，也不得作为 `producer_device_evidence` 被接纳；跨站转发的正负例由 [`ak.vector.federation.authority_forward_producer_device_evidence.v1`](../../artifacts/registry/vector-registry.json) 固定。
 
+
+ordinary human current self signer 查询复用本节既有 exact-device 目录验证，自己的 Station 验证 origin
+projection 后只返回本次冻结操作的公钥；不披露 PCR 授权 Commit/history。结果形状与失败边界见
+[server-trusted-results §5.6](../sync/server-trusted-results.md#56-按次-current-与精确历史签名公钥)。
+Contact 列表的 peer_endpoint 只提供首次 exact device selector，不代替本节 current gates。
+
 #### 8.2.1 跨站 peer 设备目录与 prekey lookup（normative）
 
 `keys/query` 的目标 AccountId 的 `station_id` 不是本 Station 时，本 Station MUST 通过

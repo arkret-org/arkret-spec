@@ -278,25 +278,50 @@
       "x-arkret-max-canonical-bytes": 65536
     },
     "current_outcome": {
-      "type": "object",
-      "required": [
-        "selector",
-        "status",
-        "key"
-      ],
-      "properties": {
-        "selector": {
-          "$ref": "#/$defs/current_selector"
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "selector",
+            "status",
+            "key"
+          ],
+          "properties": {
+            "selector": {
+              "$ref": "#/$defs/current_agent_selector"
+            },
+            "status": {
+              "const": "resolved"
+            },
+            "key": {
+              "$ref": "#/$defs/query_signing_key"
+            }
+          },
+          "additionalProperties": false,
+          "x-arkret-max-canonical-bytes": 16384
         },
-        "status": {
-          "const": "resolved"
-        },
-        "key": {
-          "$ref": "#/$defs/query_signing_key"
+        {
+          "type": "object",
+          "required": [
+            "selector",
+            "status",
+            "key"
+          ],
+          "properties": {
+            "selector": {
+              "$ref": "#/$defs/current_account_device_selector"
+            },
+            "status": {
+              "const": "resolved"
+            },
+            "key": {
+              "$ref": "#/$defs/current_device_signing_key"
+            }
+          },
+          "additionalProperties": false,
+          "x-arkret-max-canonical-bytes": 16384
         }
-      },
-      "additionalProperties": false,
-      "x-arkret-max-canonical-bytes": 16384
+      ]
     },
     "historical_account_device_outcome": {
       "type": "object",
@@ -410,6 +435,21 @@
       },
       "additionalProperties": false,
       "x-arkret-max-canonical-bytes": 1048576
+    },
+    "current_device_signing_key": {
+      "type": "object",
+      "required": [
+        "public_key_b64u"
+      ],
+      "properties": {
+        "public_key_b64u": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$",
+          "description": "Canonical unpadded base64url of exactly 32 Ed25519 public-key bytes; this is public material, not reusable current authorization."
+        }
+      },
+      "additionalProperties": false,
+      "description": "Own-Station verified ordinary human current key, valid only for the frozen invocation and exact enclosing selector. No PCR coordinates or portable evidence are disclosed."
     }
   }
 }
