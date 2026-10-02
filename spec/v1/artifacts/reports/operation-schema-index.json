@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-01",
+  "version": "2026-10-02.3",
   "source_of_truth": false,
-  "generated_at": "2026-10-01T14:17:59+08:00",
+  "generated_at": "2026-10-02T11:26:26+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -6299,6 +6299,7 @@
           "blockers",
           "retry_after_ms",
           "coordinates",
+          "authorization_basis",
           "group_state_ref",
           "send_blockers"
         ],
@@ -6347,11 +6348,13 @@
             "schema_kind": null,
             "required": [
               "state",
-              "coordinates"
+              "coordinates",
+              "authorization_basis"
             ],
             "properties": [
               "state",
               "coordinates",
+              "authorization_basis",
               "group_state_ref"
             ],
             "closed": true

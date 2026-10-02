@@ -996,6 +996,8 @@ effect **MUST** 全部保持零写入。拒绝不是已提交 exact replay；后
 
 求值优先级固定：依赖不足以验证 current round 或 founder 时 `temporarily_unavailable`；无 Realm 时区分 `creation_blocked | creation_required | awaiting_founder`；有 Realm 后 identity/materialization/terminal/governance-Station 冲突优先 `suspended`；否则无 binding 为 `provisional`；最后才在 binding、unique group state 与 daily gates 齐备时 `found`。`retry_after` 只是调度提示，**MUST NOT** 产生 fallback authority。
 
+`provisional` **MUST** 携带 `authorization_basis`，其值必须逐项等于 accepted founding unit 所固化的原始授权依据（§8.3）。客户端直接使用该依据 author binding，**MUST NOT** 以 current Contact round、current runtime key 或跨流时间推断重建它。该供料不授予额外权限；binding integrity 与 current participant/bootstrap gates 仍独立执行。
+
 resolver 对已存在的 unique group winning state **MUST** 返回完整 `group_state_ref`，不存在 winning state 时省略。该 ref 是 winning Genesis/Commit 的完整 Event ID，suite 与全部 Event digest bytes 均从 ref 无损恢复，MUST NOT 再返回 sibling `group_state_digest`。
 `found` 必有该 ref；`provisional`/`suspended` 在 winning state 已存在时也不得隐藏。客户端不得从最大 epoch、局部 MLS snapshot 或坐标猜 Event ID。
 

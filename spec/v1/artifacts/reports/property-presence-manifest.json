@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 8885,
+    "total_properties": 8886,
     "total_schema_documents": 166,
     "by_presence_class": {
       "optional": 2104,
       "optional_defaulted": 48,
-      "required": 6260,
+      "required": 6261,
       "required_nullable": 309,
       "tristate": 164
     },
@@ -4815,6 +4815,7 @@
         "/$defs/direct_conversation_resolve_outcome/oneOf/1/properties/state": "required",
         "/$defs/direct_conversation_resolve_outcome/oneOf/2/properties/retry_after_ms": "optional",
         "/$defs/direct_conversation_resolve_outcome/oneOf/2/properties/state": "required",
+        "/$defs/direct_conversation_resolve_outcome/oneOf/3/properties/authorization_basis": "required",
         "/$defs/direct_conversation_resolve_outcome/oneOf/3/properties/coordinates": "required",
         "/$defs/direct_conversation_resolve_outcome/oneOf/3/properties/group_state_ref": "optional",
         "/$defs/direct_conversation_resolve_outcome/oneOf/3/properties/state": "required",

@@ -116,7 +116,8 @@
         {
           "required": [
             "state",
-            "coordinates"
+            "coordinates",
+            "authorization_basis"
           ],
           "properties": {
             "state": {
@@ -124,6 +125,9 @@
             },
             "coordinates": {
               "$ref": "#/$defs/direct_conversation_coordinates"
+            },
+            "authorization_basis": {
+              "$ref": "./event-payload.schema.json#/$defs/direct_conversation_authorization_basis"
             },
             "group_state_ref": {
               "$ref": "./principal-operations.schema.json#/$defs/event_id",
