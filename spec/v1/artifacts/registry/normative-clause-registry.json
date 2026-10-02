@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-01",
+  "version": "2026-10-02.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-01T05:00:22+08:00",
+  "generated_at": "2026-10-02T11:26:26+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -334,10 +334,10 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/identity/contact-and-direct-conversation.md#83-binding-与日常-authority",
-      "section_digest": "sha256:1c7eab68b50d4b75445763916a6e02edaf603634f915b8d7b736ec6ab8cdb9b4",
-      "requirement": "Any equivalent Bound endorsement accepted by the Realm confirmed sequence can establish ordinary participant authority; the display representative is not an authority head. Distinct binding semantics, wrong Strand and missing confirmation fail closed. The current governance Station performs ordinary admission from authenticated Contact intervals and committed revocations; the origin Station need not be online, while a non-authority receiver can only queue or forward. Founding evidence never becomes an ordinary origin co-signature requirement. Clients consume exact Event plus RealmCommit results without replaying governance history.",
+      "section_digest": "sha256:e58751eb90121224a8f59a8729403e7831765567010d63ac92a8376ee7b9c17b",
+      "requirement": "Any equivalent Bound endorsement accepted by the Realm confirmed sequence can establish ordinary participant authority; the display representative is not an authority head. Distinct binding semantics, wrong Strand and missing confirmation fail closed. The current governance Station performs ordinary admission from authenticated Contact intervals and committed revocations; the origin Station need not be online, while a non-authority receiver can only queue or forward. Founding evidence never becomes an ordinary origin co-signature requirement. Clients consume exact Event plus RealmCommit results without replaying governance history. The current gate follows the immutable founding authorization basis: accepted_contact requires current directional Contact grants; agent_controller requires the exact current controller-owned active Agent and accepted runtime key, without a Contact grant. Runtime key replacement does not rewrite founding or binding identity.",
       "testability_grade": "audit",
-      "test_plan": "Run Direct Conversation authority and capability-ref tests with one, repeated and concurrent equivalent endorsements, missing confirmation, foreign participants and wrong Strand. Execute bidirectional encrypted messages with origin offline and the current governance Station online; verify each accepted Event has one covering RealmCommit and non-authority receivers only queue or forward. Repeat with the governance Station unavailable and require no shared accepted effect. Known Contact revocation and reload must preserve committed history while blocking later admission; delayed responses cannot reinstall old context. Schema fixtures reject found without binding_event_ref."
+      "test_plan": "Run Direct Conversation authority and capability-ref tests with one, repeated and concurrent equivalent endorsements, missing confirmation, foreign participants and wrong Strand. Execute bidirectional encrypted messages with origin offline and the current governance Station online; verify each accepted Event has one covering RealmCommit and non-authority receivers only queue or forward. Repeat with the governance Station unavailable and require no shared accepted effect. Known Contact revocation and reload must preserve committed history while blocking later admission; delayed responses cannot reinstall old context. Schema fixtures reject found without binding_event_ref. Exercise owned-Agent bootstrap Message and Add admission without Contact, paused Agent rejection, controller/Station mismatch rejection, and current-key replacement under the same founding basis."
     },
     {
       "clause_id": "AK-NC-043",

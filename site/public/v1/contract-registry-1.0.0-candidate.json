@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-02.1",
+  "version": "2026-10-02.3",
   "source_of_truth": true,
-  "generated_at": "2026-10-02T09:55:23+08:00",
+  "generated_at": "2026-10-02T11:26:26+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -233,7 +233,7 @@
           "accepted_exact_four_event_founding_unit",
           "no_accepted_binding_endorsement",
           "unique_scope_derived_group_state_cross_binding_exact",
-          "current_signed_directional_contact_heads_gate_for_send_like_actions",
+          "current_authorization_basis_gate_for_send_like_actions_contact_or_owned_agent_controller",
           "verifier_derived_provisional_founder_or_exact_pair_completion_phase",
           "exact_pair_completion_requires_recipient_durable_welcome",
           "action_specific_endpoint_and_lifecycle_gates"
@@ -297,7 +297,7 @@
           "unique_scope_derived_group_state_cross_binding_exact",
           "realm_binding_and_target_strand_non_terminal_or_suspended",
           "resource_within_dm_realm_non_circle_discussion_scope",
-          "current_signed_directional_contact_heads_gate_for_send_like_actions",
+          "current_authorization_basis_gate_for_send_like_actions_contact_or_owned_agent_controller",
           "action_specific_self_device_mls_and_agent_gates"
         ],
         "revocation_model": "structural_profile_lifecycle",
@@ -382,8 +382,8 @@
         "failure_mode": "atomic_rollback"
       }
     ],
-    "version": "2026-09-20.2",
-    "generated_at": "2026-09-20T06:33:46+08:00",
+    "version": "2026-10-02.1",
+    "generated_at": "2026-10-02T11:10:00+08:00",
     "metadata_authority": "contract_registry_section"
   },
   "event_kind_registry": {

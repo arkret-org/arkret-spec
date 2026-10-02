@@ -919,6 +919,14 @@ binding **MUST NOT** 携带 `binding_state`、`supersedes_binding_ref`、永久 
 
 日常写 authority 唯一来自 `ak.authority.direct_conversation_participant.v1` 与接收 Station 本地已验证的 accepted binding、exact-two membership、双方 directional Contact 授权区间、唯一 group 的 exact-pair winning state 及 action-specific lifecycle gate 的交集。这里的普通准入采用 §3 的已验证区间与已知撤销规则，不要求逐次刷新 source current lease 或联络 origin / 治理 Station；初次缺证仍 pending，已知撤销立即阻止新 live。技术 root、`created_by`、founder 身份、本地 slot 与普通 grant **MUST NOT** 替代该 evaluator。root mask 只允许 current materialization 的精确 founding/repair effects；`found` 后 **MUST NOT** 恢复 owner/admin authority。
 
+**授权基础的分支必须贯穿 current gate（normative）**：上文的双方 directional Contact gate 只适用于
+`authorization_basis.kind="accepted_contact"`。`kind="agent_controller"` 的 controller↔自有 Agent 分支
+不建立或要求 Contact；bootstrap send、MLS Add/Welcome、bound 后日常动作与 repair 均改验 §5.4 的 exact
+controller/Agent Account pair、accepted 且仍 current 的 provision/controller binding、Agent active lifecycle 与
+当前有效 runtime-key authorization，并继续叠加 action-specific endpoint、membership 与 delegation gates。
+不能只凭 founding slot 或裸 principal 判定 ownership，不能把此分支用于 Agent↔第三方。合法 runtime-key
+替换不改写原 founding `authorization_basis` 或 binding digest；旧 endpoint 随当前 key authorization 失效。
+
 ### 8.4 admission reason producer 与优先级（normative）
 
 Direct Conversation 的普通单 Event 写入继续使用 `ak.self.events.command.submit.v1`，请求中的 signed Event 位于
