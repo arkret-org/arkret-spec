@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.agent_provisioning.v1",
-  "version": "2026-09-29.1",
+  "version": "2026-10-02.1",
   "suite": "agent_vectors",
   "runner": {
     "kind": "named_suite",
@@ -499,7 +499,7 @@
         "agent_id": "ak:did_core:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey",
         "verification_method": "did:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey:agent.example#runtime-1",
         "pairing_request_id": "pairing_request:01964137-0000-7000-8000-000000000000",
-        "pairing_code": "AAAAAAAAAAAAAAAAAAAAAA",
+        "pairing_code": "01234567",
         "pairing_expires_at_inputs": [
           "2026-07-17T13:50:07.734Z"
         ],
@@ -519,12 +519,12 @@
         "created_at": "2026-07-17T13:45:07.734Z",
         "expires_at": "2026-07-17T13:50:07.734Z",
         "runtime_key_binding_digest": "sha256:decd9c3f255fc94de28715c7c3b1bbc1f3dc5b3be5ffaa8ef1f5d362222b45f3",
-        "transcript_digest": "sha256:62e35ff25dcbcce1c1336bda6a27cbb3c2b4e89c338d135333ac00ca5fabf40a",
+        "transcript_digest": "sha256:ea1cd637cfa929a6adf905fa36d3f50b877a26a22f4ed541b491963f010ee3e2",
         "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
         "signature_algorithm": "Ed25519"
       },
-      "canonical_possession_transcript_json": "{\"audience_id\":\"ak:did_core:webvh:z6mkfixturepairexample\",\"challenge\":\"pairing_request:01964137-0000-7000-8000-000000000000\",\"context\":\"ak.agent_runtime_key_possession_proof.v1\",\"created_at\":\"2026-07-17T13:45:07.734Z\",\"expires_at\":\"2026-07-17T13:50:07.734Z\",\"kind\":\"agent_runtime_key_possession\",\"pairing_code\":\"AAAAAAAAAAAAAAAAAAAAAA\",\"runtime_key_binding_digest\":\"sha256:decd9c3f255fc94de28715c7c3b1bbc1f3dc5b3be5ffaa8ef1f5d362222b45f3\",\"signature_algorithm\":\"Ed25519\",\"verification_method\":\"did:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey:agent.example#runtime-1\"}",
-      "expected_possession_transcript_digest": "sha256:62e35ff25dcbcce1c1336bda6a27cbb3c2b4e89c338d135333ac00ca5fabf40a",
+      "canonical_possession_transcript_json": "{\"audience_id\":\"ak:did_core:webvh:z6mkfixturepairexample\",\"challenge\":\"pairing_request:01964137-0000-7000-8000-000000000000\",\"context\":\"ak.agent_runtime_key_possession_proof.v1\",\"created_at\":\"2026-07-17T13:45:07.734Z\",\"expires_at\":\"2026-07-17T13:50:07.734Z\",\"kind\":\"agent_runtime_key_possession\",\"pairing_code\":\"01234567\",\"runtime_key_binding_digest\":\"sha256:decd9c3f255fc94de28715c7c3b1bbc1f3dc5b3be5ffaa8ef1f5d362222b45f3\",\"signature_algorithm\":\"Ed25519\",\"verification_method\":\"did:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey:agent.example#runtime-1\"}",
+      "expected_possession_transcript_digest": "sha256:ea1cd637cfa929a6adf905fa36d3f50b877a26a22f4ed541b491963f010ee3e2",
       "canonical_pairing_request_binding_json": "{\"agent_id\":\"ak:did_core:webvh:QmTnpRaadxso9gmuqCaoT54ib4kWKNt1F5UuqXN6i5hwey\",\"approval_request_id\":\"approval_request:01964137-0000-7000-8000-000000000000\",\"audience_id\":\"ak:did_core:webvh:z6mkfixturepairexample\",\"controller_principal_id\":\"ak:did_core:webvh:z6mkcontroller\",\"expires_at\":\"2026-07-17T13:50:07.734Z\",\"kind\":\"ak.agent.key_pairing_request_binding.v1\",\"operation_id\":\"ak.gate.account.command.pair_agent_key.v1\",\"pairing_request_id\":\"pairing_request:01964137-0000-7000-8000-000000000000\",\"runtime_key_binding_digest\":\"sha256:decd9c3f255fc94de28715c7c3b1bbc1f3dc5b3be5ffaa8ef1f5d362222b45f3\"}",
       "expected_pairing_request_binding_digest": "sha256:3431d2babe511100e320582fff9b4b01b2eeb23fda4c6bc36c4e02242c086ea5",
       "assertions": [

@@ -1025,7 +1025,7 @@ def operation_schema_index_payload(catalog: dict[str, Any]) -> dict[str, Any]:
         if "request" in entry or "response" in entry:
             operations.append(entry)
 
-    return {
+    payload = {
         "version": version,
         "source_of_truth": False,
         "generated_at": generated_at,
@@ -1037,6 +1037,7 @@ def operation_schema_index_payload(catalog: dict[str, Any]) -> dict[str, Any]:
         "description": "Generated DTO index for registered operations with request_schema_ref/response_schema_ref. JSON Schema files remain the canonical source; this report is a machine-readable summary for SDK/conformance tooling and prose drift review.",
         "operations": operations,
     }
+    return preserve_artifact_metadata_when_semantics_match(OPERATION_SCHEMA_INDEX_PATH, payload)
 
 
 def profile_summary_text() -> str:

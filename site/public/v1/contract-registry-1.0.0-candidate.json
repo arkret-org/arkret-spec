@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-01",
+  "version": "2026-10-02.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-01T14:17:59+08:00",
+  "generated_at": "2026-10-02T09:55:23+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -12890,7 +12890,7 @@
         "http": "POST /_arkret/open/agent-pairing/runtime-key-requests",
         "grpc": "OpenAgentPairing/SubmitRuntimeKeyRequest",
         "mq": "open.agent_pairing.command.submit_runtime_key_request",
-        "notes": "Runtime submits one candidate with an Ed25519 PoP over the authoritative handle, at-least-128-bit pairing secret, service DID, stable raw-key binding and at-most-five-minute window. Same-binding retries refresh the verified PoP while preserving candidate/approval/notification identity; different candidate on one handle conflicts. Controller signs the inline-key authorize Event once; approval is independent of PoP refresh. Secret and proof occur only in request body and confidential verifier material.",
+        "notes": "Runtime submits one candidate with an Ed25519 PoP over the authoritative handle, eight-digit decimal pairing code, service DID, stable raw-key binding and at-most-five-minute window. Same-binding retries refresh the verified PoP while preserving candidate/approval/notification identity; different candidate on one handle conflicts. Controller signs the inline-key authorize Event once; approval is independent of PoP refresh. Secret and proof occur only in request body and confidential verifier material.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
@@ -16019,8 +16019,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-09-30.2",
-    "generated_at": "2026-09-30T11:10:00+08:00",
+    "version": "2026-10-02.1",
+    "generated_at": "2026-10-02T09:55:23+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",

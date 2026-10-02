@@ -138,8 +138,8 @@
     },
     "pairing_secret": {
       "type": "string",
-      "pattern": "^[A-Za-z0-9_-]{22,128}$",
-      "description": "One-time CSPRNG pairing secret carrying at least 128 bits of entropy. It is transmitted only in JSON bodies, never in URLs or logs."
+      "pattern": "^[0-9]{8}$",
+      "description": "One-time eight-digit decimal pairing code generated uniformly by a CSPRNG, including leading zeroes. It is accepted only with the matching opaque pairing_request_id; the code alone is never a lookup credential. It is transmitted only in JSON bodies, never in URLs or logs."
     },
     "device_pairing_code": {
       "type": "string",
@@ -1223,7 +1223,7 @@
     },
     "agent_renew_pairing_outcome": {
       "type": "object",
-      "description": "Fresh single-use pairing handle and CSPRNG secret with at least 128 bits of entropy. Attach or replacement is derived at approval from the complete current authorization set. Renew does not change principal, slug, lifecycle, keys, grants or history and never gates on sibling slug availability.",
+      "description": "Fresh single-use opaque pairing handle and uniformly generated eight-digit decimal CSPRNG code. Attach or replacement is derived at approval from the complete current authorization set. Renew does not change principal, slug, lifecycle, keys, grants or history and never gates on sibling slug availability.",
       "required": [
         "agent_id",
         "principal_control_realm_id",

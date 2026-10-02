@@ -28,7 +28,7 @@ class AgentPairingBootstrapSchemaTest(unittest.TestCase):
             "service_id": "ak:did_core:web:station.example",
             "agent_id": "ak:did_core:web:agent.example",
             "pairing_request_id": "pair-1",
-            "pairing_code": "abcdefghijklmnopqrstuvwxyz123456",
+            "pairing_code": "01234567",
             "pairing_expires_at": "2026-09-08T00:00:00.000Z",
             "runtime_identity": {
                 "controller_account_id": {
@@ -39,6 +39,14 @@ class AgentPairingBootstrapSchemaTest(unittest.TestCase):
             },
         }
         self.validator.validate(bootstrap)
+        for code in ("00000000", "99999999"):
+            valid = copy.deepcopy(bootstrap)
+            valid["pairing_code"] = code
+            self.validator.validate(valid)
+        for code in ("1234567", "123456789", "1234567a", "１２３４５６７８", "abcdefghijklmnopqrstuvwxyz123456"):
+            invalid_code = copy.deepcopy(bootstrap)
+            invalid_code["pairing_code"] = code
+            self.assertFalse(self.validator.is_valid(invalid_code), code)
         legacy = copy.deepcopy(bootstrap)
         del legacy["runtime_identity"]
         self.validator.validate(legacy)

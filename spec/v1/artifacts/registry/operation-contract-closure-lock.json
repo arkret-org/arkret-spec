@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-30.8",
-  "generated_at": "2026-09-30T11:08:07+08:00",
+  "version": "2026-10-02.1",
+  "generated_at": "2026-10-02T09:53:52+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -141,15 +141,15 @@
     },
     {
       "operation_id": "ak.open.agent_pairing.command.submit_runtime_key_request.v1",
-      "sha256": "sha256:5d7af8fa592e1a5e2020fdb5a4fd51cd9b880de350d7b25052e448859ff9519c"
+      "sha256": "sha256:26a28ced8d4be44fa28d0b04fb8f976711d040f3b08c59374b0748b82c27f00d"
     },
     {
       "operation_id": "ak.open.agent_pairing.read.resolve.v1",
-      "sha256": "sha256:50af9d4747184290894b9bc84fc83c7ef672b79b1d464d7204cd92f32f599819"
+      "sha256": "sha256:43a7e2a7f305589f748534c4ee2df8a0ce31338ee34b466d76f91827bf922103"
     },
     {
       "operation_id": "ak.open.agent_pairing.read.runtime_key_request_status.v1",
-      "sha256": "sha256:0d042f56181cc0df908467a085519266bf4828a5fa1f7afc9d49c7dd233b42ad"
+      "sha256": "sha256:5570a640e54de2fa8fd337c27a0222a4b2b8641f6be00790fdbb6ca5f413d2d4"
     },
     {
       "operation_id": "ak.open.device_pairing.command.stage.v1",
@@ -433,11 +433,11 @@
     },
     {
       "operation_id": "ak.self.agent.command.provision.v1",
-      "sha256": "sha256:78e7896787c0b74d03034a746f6e15437135d0900f7091634d7fca2c7b98828b"
+      "sha256": "sha256:50d0981719633b77d2a7f6ab221b7946e3674435e640ae7009368bbe9f9784a2"
     },
     {
       "operation_id": "ak.self.agent.command.renew_pairing.v1",
-      "sha256": "sha256:162b821469e429a8df00617250652b5442335752d519a149496d867549616d61"
+      "sha256": "sha256:6961bd6bbcc83521eb2a0a763ac4edb7fd8dd089f2f6e59d4bc61f8ad27f0ff3"
     },
     {
       "operation_id": "ak.self.agent.command.resume.v1",
@@ -457,7 +457,7 @@
     },
     {
       "operation_id": "ak.self.agent.resource.get.v1",
-      "sha256": "sha256:e78c37eb1247aabc43dfa12392cb6b3039fb286b3a0e4bebc21051ed029cb945"
+      "sha256": "sha256:cc33fcbc33b3e20bc4340285a5c8e481f66c6547fa4d9cf87c0129358b277d87"
     },
     {
       "operation_id": "ak.self.agent.sidecar.command.ensure.v1",
