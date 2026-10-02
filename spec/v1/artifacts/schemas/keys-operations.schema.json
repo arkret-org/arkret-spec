@@ -210,7 +210,8 @@
           "$ref": "#/$defs/non_empty_string"
         },
         "device_authorize_event_id": {
-          "$ref": "#/$defs/event_id"
+          "$ref": "#/$defs/event_id",
+          "x-arkret-preimage-commitment": "fixed_event"
         },
         "authorized_generation_ref": {
           "$ref": "./recovery-session.schema.json#/$defs/pcr_generation_ref"

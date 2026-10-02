@@ -14,14 +14,20 @@ updated: 2026-07-02
 
 ## 1. Applet Registration Schema
 
+单主体 identity、条件 transport、首次 bootstrap 与严格 invocation 的完整准入合同另见
+[applet-client-and-invocation](./applet-client-and-invocation.md)。Applet Account 的 principal 必须
+等于 service_id；Applets 仅使用 did:webvh，旧 Bot identity 与 install_bot 分支都拒绝。
+
+
 ```json fragment
 {
   "kind": "ak.applet.registration",
   "applet_id": "ak:applet:dd552c17-0000-7000-8000-000000000000",
   "service_id": "ak:did_core:webvh:z5ApPLeTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z",
   "controller_principal_id": "ak:did_core:webvh:z2dmjQyDxVnosYTzHAMbzYDRZkVrD32ea9Sr2XNs8NkgMB5mn",
+  "transport": {"kind":"https_push"},
   "base_url": "https://applet.example/applet",
-  "bot_actor_id": "ak:did_core:webvh:z5AppletBotActorScid",
+  "applet_actor_id": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:z5ApPLeTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z","station_id":"ak:did_core:webvh:z6MkStationScid"}},
   "claimed_profiles": [
     "ak.profile.applet_service.v1",
     "ak.profile.applet_bridge.v1"
@@ -69,14 +75,14 @@ updated: 2026-07-02
 > capability；但 profile-bound grant authority rule 只能读取已 accepted registration Event
 > 中的该字段，不能读取带外 package cache、preview DTO 或 registry 响应。
 
-> **`registration_epoch`（registration epoch hash）**：对该 registration 的 canonical security transcript（不含 `proof` 与 `registration_epoch` 自身）取的稳定 epoch hash，唯一标识本次 registration 的安全版本。它用于 [`applet-integration.md` §11](./applet-integration.md) 的 delegated-agent grant 绑定：grant constraint MUST 绑定 `registration_epoch`。transcript MUST 通过 [`ak.schema.applet_registration_epoch_transcript.v1`](../../artifacts/schemas/applet-registration-epoch-transcript.schema.json) 校验，并按下方 §1.0.1 的唯一算法计算。registration 首次接受、renew / key 变更或 binding invalidation 时，verifier MUST 展开 transcript evidence，按 method-specific version evidence 读取 service DID Document，并确认 DID Document digest、accepted signing key set 与 epoch 捕获值一致。Applet service 必须能为所有 creation / Event 提供可历史复验的 `AuthenticatedSignerResolutionEvidence::Service`，因此 v1 registration epoch 只接受 `did:webvh` 与 `did:key`；无历史版本证明的 `did:web` 必须 fail closed，不能以 current snapshot、HTTP 来源签名或 registration epoch hash替代。普通 grant 存储、匹配与 reducer replay 只绑定已接受的该 epoch，不得逐次 re-fetch。该字段 required。
+> **`registration_epoch`（registration epoch hash）**：对该 registration 的 canonical security transcript（不含 `proof` 与 `registration_epoch` 自身）取的稳定 epoch hash，唯一标识本次 registration 的安全版本。它用于 [`applet-integration.md` §11](./applet-integration.md) 的 delegated-agent grant 绑定：grant constraint MUST 绑定 `registration_epoch`。transcript MUST 通过 [`ak.schema.applet_registration_epoch_transcript.v1`](../../artifacts/schemas/applet-registration-epoch-transcript.schema.json) 校验，并按下方 §1.0.1 的唯一算法计算。registration 首次接受、renew / key 变更或 binding invalidation 时，verifier MUST 展开 transcript evidence，按 method-specific version evidence 读取 service DID Document，并确认 DID Document digest、accepted signing key set 与 epoch 捕获值一致。Applet service 必须能为所有 creation / Event 提供可历史复验的 `AuthenticatedSignerResolutionEvidence::Service`，因此 v1 registration epoch 只接受 `did:webvh`；无历史版本证明的 `did:web` 必须 fail closed，不能以 current snapshot、HTTP 来源签名或 registration epoch hash替代。普通 grant 存储、匹配与 reducer replay 只绑定已接受的该 epoch，不得逐次 re-fetch。该字段 required。
 
 ### 1.0.1 `registration_epoch` transcript 与计算算法（normative）
 
 唯一 canonical transcript 是 `ak.schema.applet_registration_epoch_transcript.v1` 的 closed object，顶层字段依次为：`schema`、`derived_registration`、`service_did_document`、`accepted_signing_keys`、`endpoint_policy`、`webhook_auth`、`security_policy`。不得加入 package id、package digest、proof、registration epoch 自身或实现私有缓存字段。
 
 - `derived_registration` MUST 固定包含 schema 所列的 registration 安全字段；`proof`、`registration_epoch` 与派生 `manifest` 不进入该对象。manifest 的安全含义必须展开到 `endpoint_policy`、`webhook_auth` 与 `security_policy`，不得通过嵌套 opaque manifest 间接参与 hash。
-- `service_did_document` MUST 包含 `service_id`、canonical DID Document 的 `document_digest` 与 closed `method_version`。`method_version.method` 只允许 `did:webvh|did:key`，`unversioned_refetch` 固定为 `false`，并至少给出 `version_id` 或 `version_time`；`did:key` 使用其合成稳定 version id。没有稳定版本证据、必须依赖 current refetch 的 method 不能形成 Applet producer 的历史 signer root，MUST fail closed。
+- `service_did_document` MUST 包含 `service_id`、canonical DID Document 的 `document_digest` 与 closed `method_version`。`method_version.method` 只允许 `did:webvh`，`unversioned_refetch` 固定为 `false`，并至少给出 `version_id` 或 `version_time`；`did:key` expansion 不能承担 Applet Account，必须拒绝。没有稳定版本证据、必须依赖 current refetch 的 method 不能形成 Applet producer 的历史 signer root，MUST fail closed。
 - 以下数组是数学集合，producer MUST 先按 UTF-8 字节序升序排列并拒绝重复项：`protocols`、`requested_scopes`、`claimed_profiles`、`webhook_auth.accepted_signature_algorithms`、`accepted_signing_keys`（按 `key_ref`）、三个 namespace bucket（按 `pattern`，相同 pattern 再按 `exclusive=false` 在前）、`endpoint_policy.endpoints`（按 `method`、`path`、`auth` 的 tuple）。同一排序键重复 MUST fail closed，不能靠“保留第一项”消歧。
 - 任意 optional 字段缺失时 MUST 直接省略；不得以 JSON `null` 代替。对象成员顺序最终由 JCS 处理；上述数组排序在 JCS 之前完成。
 - transcript 通过 schema 与集合规范化校验后，令 `canonical_bytes = JCS(transcript)`；令域分离字节为 UTF-8 `arkret-applet-registration-epoch-v1\n`（末尾单个 LF，字节 `0a`）；最终值为 `registration_epoch = "sha256:" + lowercase_hex(SHA-256(domain_separator || canonical_bytes))`。
@@ -107,8 +113,9 @@ required 集合与顺序均直接从 schema 读取，本节不复述派生清单
 | `applet_id` | yes | 唯一合法形态为 `ak:applet:<uuidv7>`；其它形态均不合法。 |
 | `service_id` | yes | Applet runtime 的稳定 service `did_core_id`。 |
 | `controller_principal_id` | yes | 对 package 负责的 controller `did_core_id`；package proof VM 的 bare `did` 必须经 adapter 投影到该值。 |
-| `base_url` | yes | Applet API base URL。 |
-| `bot_actor_id` | yes | 可见 bot actor 的稳定 `did_core_id`；不得含 `#fragment`。 |
+| `transport` | yes | Closed `https_push|client_pull`；两支同样使用 service 持钥认证。 |
+| `base_url` | conditional | 仅 https_push 必填；client_pull 禁止。 |
+| `applet_actor_id` | yes | 完整 account ActorId；principal_id 必须等于 service_id，保留 exact Station。 |
 | `claimed_profiles` | yes | v1 Applet profile id 数组；MUST 至少包含 `ak.profile.applet_service.v1`。 |
 | `protocols` | yes | 外部协议标识数组。 |
 | `namespaces` | yes | `actors` / `realms` / `handles` 对象形态 namespace。 |
@@ -136,8 +143,9 @@ Package -> registration 派生映射:
 | `applet_id` | `applet_id` | 原样复制；只接受 `ak:applet:<uuidv7>`。 |
 | `service_id` | `service_id` | 原样复制；必须可解析并绑定 Applet endpoint。 |
 | `controller_principal_id` | `controller_principal_id` | 原样复制；必须验证 controller proof。 |
-| `base_url` | `base_url` | 原样复制；必须与 service DID Document binding 一致。 |
-| `bot_actor_id` | `bot_actor_id` | 原样复制；不得含 `#fragment`。 |
+| `transport` | `transport` | 原样复制；进入安全 epoch transcript。 |
+| `base_url` | `base_url` | https_push 原样复制并验证 DID endpoint；client_pull 两侧都禁止。 |
+| `applet_actor_id` | `applet_actor_id` | 原样复制 complete Account；principal core 逐字等于 service_id。 |
 | `protocols` | `protocols` | 原样复制；空数组非法。 |
 | `namespaces` | `namespaces` | canonicalize 后复制；只接受对象形态。 |
 | `receive_events` | `receive_events` | 原样复制；不得从 `endpoint_policy` 猜测默认值。 |
@@ -158,10 +166,10 @@ Widget declaration 的字段顺序与 schema 一致：`schema`、`widget_origin`
 [`applet-managed-actor.schema.json`](../../artifacts/schemas/applet-managed-actor.schema.json) 为唯一闭合
 wire schema。payload 必须携完整 `actor_id: ActorId`；Applet managed actor 使用
 `account` 分支，`principal_id` 与 `station_id` 封闭在其 `account_id` 对象内。payload 还必须携闭合
-`actor_role=bot|ghost`、`initial_resolution`、v1 唯一合法的完整 WebVH
+`actor_role=applet|ghost`、`initial_resolution`、v1 唯一合法的完整 WebVH
 `method_history_evidence`、immutable `registration_ref` 与 `applet_authority_ref`。did:web snapshot 与
 did:key expansion 不能为长期可轮换的高风险 managed authority 提供所需 history/version pinning，均非法。Ghost 还必须携
-`external_ref`，Bot 禁止携该字段。contract registry 的 provision typed current result subject 是 pair 的复合键，不能仅按
+`external_ref`，Applet 自身禁止携该字段。contract registry 的 provision typed current result subject 是 pair 的复合键，不能仅按
 core id 做 CAS。Package/registration/Ghost durable record 只保存 accepted provision Event 与 PCR genesis
 anchor；current resolution ref 不属于这些对象。provision typed current result subject 是 `JCS(actor_id)`，不得以裸
 `principal_id` 或平行 server sidecar 建立第二套 CAS 键。
@@ -173,7 +181,7 @@ anchor；current resolution ref 不属于这些对象。provision typed current 
 [`applet-install-authoring.schema.json`](../../artifacts/schemas/applet-install-authoring.schema.json)。
 
 Install preview request 只含 `applet_package` 与 closed `authoring_request_basis`。install basis 固定
-`purpose=install_bot`，精确绑定目标 Station、安装管理员、typed `applet_id`、Applet
+`purpose=install_applet`，精确绑定目标 Station、安装管理员、typed `applet_id`、Applet
 `service_id`、`package_digest`、effective scope、审批/策略，并且唯一内嵌管理员签名的
 `registration_event` 与 `capability_grant_events`。basis 不携请求时间。registration epoch evidence 只在
 `registration_event.payload.manifest.registration_epoch_evidence` 出现；preview 顶层、basis sibling、package
@@ -182,7 +190,7 @@ Install preview request 只含 `applet_package` 与 closed `authoring_request_ba
 Station 重新验证 package、Event/evidence、当前策略和 namespace，生成 canonical `InstallPlan`，再返回
 `{plan, authoring_request}`。Station 自行取得 `issued_at`，要求
 `0 < expires_at-issued_at <= 5 minutes` 且 `proof.created_at == issued_at`。closed request 固定
-`purpose=install_bot`，携 exact basis、`plan_digest`、current `governance_station_id`、时间窗与 proof。
+`purpose=install_applet`，携 exact basis、`plan_digest`、current `governance_station_id`、时间窗与 proof。
 `request_payload_digest` 是不含 proof 的 closed request 的 RFC 8785 SHA-256，逐字等于
 `proof.payload_digest`；`authoring_request_digest` 是完整 signed request 的 RFC 8785 SHA-256。协议不
 mint request ID。相同 subject/payload 的 preview 返回 ledger 中已保存的 exact signed bytes；异 payload 的
@@ -191,12 +199,12 @@ mint request ID。相同 subject/payload 的 preview 返回 ledger 中已保存�
 客户端把 exact signed request relay 到标准
 `POST /_arkret/edge/applet/managed-actors/author`
 （`ak.edge.applet.managed_actor.command.author.v1`）。该 operation 以
-`purpose=install_bot|provision_ghost` 的 closed union 同时服务 Bot 与 Ghost；Applet service 必须用
+`purpose=install_applet|provision_ghost` 的 closed union 同时服务 Applet 与 Ghost；Applet service 必须用
 current trusted Station service identity/key 验证 proof，并逐字校验 package/service/admin
 Event/evidence/actor/plan/expiry 绑定；不得只接受自洽历史 key。Applet service 按既有 creation admission 签
-`ak.applet.managed_actor.provision`、Bot PCR `ak.realm.create`、
+`ak.applet.managed_actor.provision`、Applet PCR `ak.realm.create`、
 `ak.identity.accountability_grant`、`ak.profile.create` 四个 formal Events：provision/accountability 使用 service actor，
-PCR genesis/Profile 使用 service `executed_by`，不得新增预生效 Bot 直签特例。四个 Event 对象只在 closed
+PCR genesis/Profile 使用 service `executed_by`，不得新增预生效 Applet Account 直签特例。四个 Event 对象只在 closed
 `managed_actor_bundle` 的 role-neutral 字段
 `managed_actor_provision_event/pcr_genesis_event/accountability_grant_event/profile_event` 出现一次；禁止
 `bot_*`、`ghost_*` alias。bundle proof 绑定完整 signed-request digest 与不含 proof 的 closed bundle。
@@ -215,7 +223,7 @@ handle、method history 与 provision state。restart 后 exact replay 返回原
 私钥或依赖易失内存 cache。
 
 四个 creation Event 的 actual producer 都是 Applet service：provision/accountability 的 actor 是 service，PCR
-genesis/Profile 则由相同 service 作为 `executed_by`；尚未 accepted 的 Bot/Ghost 不签这四条 Event。Applet
+genesis/Profile 则由相同 service 作为 `executed_by`；尚未 accepted 的 Applet/Ghost 不签这四条 Event。Applet
 service MUST 从 request 中唯一的 registration epoch evidence 与自己已验证的完整 method-native DID state 构建
 一份 `AuthenticatedSignerResolutionEvidence::Service`，使用统一 canonical helper 重算
 `signer_resolution_evidence_ref`，在返回 bundle 前原子保存 exact root；四条 Event 的唯一 producer proof 是 closed
@@ -234,13 +242,13 @@ Commit request 只有：
 }
 ```
 Station 从 authoring request 唯一提取管理员 Events/evidence/scope/policies，从 bundle 唯一提取四个
-Applet/Bot Events，重新计算所有 digest、Event refs、plan 与权限，并在一个 durable transaction 内原子提交完整
+Applet Events，重新计算所有 digest、Event refs、plan 与权限，并在一个 durable transaction 内原子提交完整
 formal Event 集合、Applet record、namespace/managed-authority claims 与 idempotency outcome。任何失败必须零
 Event 可见；Station 不得代签、重建或逐条 fan-out。
 
 同一 `(applet_id,target_station_id)` 的后续 Realm/Circle install 走 closed
 `reuse_existing_managed_actor` 分支，只重验首次 accepted provision/PCR/accountability/profile anchors 并提交
-本次 registration/grant；不得再携新 bundle 或创建第二 Bot。Ghost subject 是
+本次 registration/grant；不得再携新 bundle 或创建第二 Applet DID。Ghost subject 是
 `(provision_ghost,applet_id,target_station_id,external_ref)`，Realm 与 package digest 均不是 identity
 维度，因此同 external tuple 跨 Realm 复用、跨 target Station 独立。
 

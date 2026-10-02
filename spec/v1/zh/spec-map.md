@@ -73,7 +73,8 @@ see_also:
 | Trello 看板 / 列 / 卡片 | Board/List 是 Space.kind；卡片是 Strand；拖拽位置是 `ak.strand.move` / Relation 派生投影。 | `models/realm-and-space.md`、`models/views.md` |
 | Jira issue / workflow / issue links | Issue 对应 Strand；粗粒度进度是 `stage`；细粒度 workflow 由 Realm profile 声明；依赖、阻塞、指派是 Relation。 | `models/strand-and-message.md`、`models/relation.md`、`models/common-fields.md` |
 | Watchers / 通知规则 / 勿扰 | Watch typed current result 决定是否关注；push rule 决定如何投递；DND 和 blocklist 属于 actor-private account data。 | `models/strand-and-message.md` §8、`discovery/push-notifications.md`、`discovery/client-preferences.md` |
-| 小程序 / Bot / Agent / 外部集成 | Applet/Agent 是扩展主体或服务；共享结果仍要落为 Event、Strand、Message、Morph 或 Relation。外部 runtime 的私有协议 session 不进入 Arkret 共享 history。 | `extensions/applet-integration.md`、`models/extension-objects.md` |
+| 小程序 / Bot / Agent / 外部集成 | Applet/Agent 是扩展主体或服务；共享结果仍要落为 Event、Strand、Message、Morph 或 Relation。外部 runtime 的私有协议 session 不进入 Arkret 共享 history。 | `extensions/applet-client-and-invocation.md` | Applet 单主体原生轮换、主动领取首装和严格按调用 MLS 披露／结果转交。 |
+| `extensions/applet-integration.md`、`models/extension-objects.md` |
 
 ## 3. 核心概念边界
 

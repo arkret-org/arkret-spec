@@ -394,7 +394,7 @@ Applet install 签发的每个 `ak.capability.grant` MUST 携带以下规范约�
   "registration_epoch": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
 }
 ```
-`applet_id`、`executed_by`、`registration_epoch` 三个字段 MUST 同时出现；缺少任一字段或把字段放入其他 family / subkind 均为 `schema_violation`。grant 的 `resources[]` MUST 精确覆盖单次 install 的 `effective_scope`，并作为 `(applet_id, effective_scope, registration_epoch)` 中 scope 的唯一 wire 表达；constraint 不重复存储 `effective_scope`。`executed_by` MUST 是 registration 接受的 service / `bot_actor_id` 的 `did_core_id`，或已按 Applet profile provision 的具体 ghost actor `did_core_id`；控制证明中的DID URL 必须经 adapter 投影到该值，不得仅凭 namespace wildcard 签发代表 native principal 的 grant。
+`applet_id`、`executed_by`、`registration_epoch` 三个字段 MUST 同时出现；缺少任一字段或把字段放入其他 family / subkind 均为 `schema_violation`。grant 的 `resources[]` MUST 精确覆盖单次 install 的 `effective_scope`，并作为 `(applet_id, effective_scope, registration_epoch)` 中 scope 的唯一 wire 表达；constraint 不重复存储 `effective_scope`。`executed_by` MUST 是 registration 接受的 service / `applet_actor_id` 的 `did_core_id`，或已按 Applet profile provision 的具体 ghost actor `did_core_id`；控制证明中的DID URL 必须经 adapter 投影到该值，不得仅凭 namespace wildcard 签发代表 native principal 的 grant。
 
 该约束只表达 grant-local 绑定，所以 canonical `evaluation_class=grant_local`。授权 verifier 仍 MUST 解析 `applet_id` 指向的 accepted registration，展开 `registration_epoch` evidence，并验证 grant resource selector、Event `scope_ref`、Event `executed_by` 与 registration 的当前有效 key/material 一致；这一步不得因 grant-local 分类而跳过或缓存为永远有效。未登记的 `constraint_kind` MUST fail closed。
 
@@ -1465,3 +1465,13 @@ Child grant MUST 等于或窄于其 issuer-authority grants。`max_authority_dep
   时不得自动继承移动权。
 - `wip_limit_override=false` 时，若目标 `Space(kind=list).fields.wip_limit_enforcement` 为 `reject`
   或 `require_review`，移动必须失败或进入审批路径。
+
+
+## Applet 调用的 exact 关联
+
+`authority_control.applet_authority` MAY 携 `invocation_ref: CommittedEventRef`，除此 subkind 外
+禁止此字段。它把已经具有相同 Applet/executed_by/registration_epoch 的 grant 进一步缩小到
+独立 invocation Circle 的一个 accepted invocation Event；不是泛化读取、授权 subject-kind
+门槛或源群密钥授予。receiver 必须核 exact invocation 的 source Commit、target Account、
+install/epoch、真实期限和 resource/action 子集，不能按裸 EventId/mention/动态标签扩大授权。
+完整执行与结果转交规则见 [Applet 调用合同 §3](../extensions/applet-client-and-invocation.md)。

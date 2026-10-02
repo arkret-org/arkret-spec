@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-01",
+  "version": "2026-10-03.1",
   "source_of_truth": false,
-  "generated_at": "2026-10-01T14:17:59+08:00",
+  "generated_at": "2026-10-03T03:35:20+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -1999,6 +1999,16 @@
       "root_control_only": true,
       "notes": "Advances the Realm authority-root delegation generation, which invalidates every grant descending from a realm_root ref of the previous generation. Authored only by the current controller against the frozen pre-state digest; it MUST NOT be granted, so it is excluded from every derived owner authority set. profiles/conformance-profiles.json lists it in the root-owner mask's allowed_root_control_actions alongside ak.realm.owner.transfer.",
       "event_mapping_kind": "same_name"
+    },
+    {
+      "action": "ak.applet.invoke",
+      "category": "content",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "target_event_kinds": [],
+      "event_mapping_kind": "non_event_surface",
+      "profile": "ak.profile.applet_service.v1",
+      "description": "Explicit permission to disclose selected currently readable source content to an installed Applet. Exact source resources, target policy and current install are independently checked; mention and read permission alone never authorize export."
     }
   ],
   "event_mapping_kind_definitions": {

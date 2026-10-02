@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-02.3",
+  "version": "2026-10-03.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-02T23:41:06+08:00",
+  "generated_at": "2026-10-03T03:33:04+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -5032,6 +5032,31 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/current-signer-contact-endpoint-fixture.json",
         "spec/v1/zh/sync/server-trusted-results.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.applet.self_actor_contract.v1",
+      "status": "active",
+      "domain": "applet",
+      "applies_to_profiles": [
+        "ak.profile.applet_service.v1"
+      ],
+      "description": "Executable contract-only schema/role-alignment/bootstrap reference model and plaintext detached signature mutations; not a live runtime support claim.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/applet-self-actor-fixture.json",
+        "spec/v1/zh/extensions/applet-client-and-invocation.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.applet.self_actor_live_lifecycle.v1",
+      "status": "reserved",
+      "domain": "applet",
+      "applies_to_profiles": [
+        "ak.profile.applet_service.v1"
+      ],
+      "description": "Activate only after SDK, Station, independent runtime and client implement self-subject rotation, URL-free bootstrap, durable fence/ack and minimal-disclosure MLS/result relay. Contract models cannot satisfy this live obligation.",
+      "source_refs": [
+        "spec/v1/zh/extensions/applet-client-and-invocation.md"
       ]
     }
   ]

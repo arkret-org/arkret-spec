@@ -10,8 +10,8 @@
     "applet_id",
     "service_id",
     "controller_principal_id",
-    "base_url",
-    "bot_actor_id",
+    "transport",
+    "applet_actor_id",
     "claimed_profiles",
     "protocols",
     "namespaces",
@@ -44,7 +44,15 @@
       "$ref": "#/$defs/applet_id"
     },
     "service_id": {
-      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+      "allOf": [
+        {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        {
+          "type": "string",
+          "pattern": "^ak:did_core:webvh:[^\\s/?#]+$"
+        }
+      ]
     },
     "controller_principal_id": {
       "$ref": "./common-ids.schema.json#/$defs/did_core_id",
@@ -54,13 +62,31 @@
       ],
       "description": "Accountable human or organization publisher principal. The Applet runtime service_id is never accepted as this controller."
     },
+    "transport": {
+      "$ref": "#/$defs/applet_transport"
+    },
     "base_url": {
       "type": "string",
       "format": "uri",
       "pattern": "^https://"
     },
-    "bot_actor_id": {
-      "$ref": "./common-ids.schema.json#/$defs/actor_id"
+    "applet_actor_id": {
+      "allOf": [
+        {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
+        },
+        {
+          "properties": {
+            "kind": {
+              "const": "account"
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        }
+      ],
+      "description": "Applet account projection. Its account principal MUST equal the transport service; Station identity remains exact. This is not a second DID."
     },
     "claimed_profiles": {
       "type": "array",
@@ -369,7 +395,7 @@
           "items": {
             "$ref": "#/$defs/endpoint_entry"
           },
-          "minItems": 1
+          "minItems": 0
         }
       },
       "patternProperties": {
@@ -456,7 +482,94 @@
     "widget": {
       "$ref": "./applet-widget-declaration.schema.json",
       "description": "Optional Applet widget declaration. When present, it MUST validate ak.schema.applet_widget_declaration.v1."
+    },
+    "applet_transport": {
+      "type": "object",
+      "required": [
+        "kind"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "https_push",
+            "client_pull"
+          ]
+        }
+      },
+      "additionalProperties": false
     }
   },
-  "additionalProperties": false
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "transport": {
+            "properties": {
+              "kind": {
+                "const": "https_push"
+              }
+            }
+          }
+        },
+        "required": [
+          "transport"
+        ]
+      },
+      "then": {
+        "required": [
+          "base_url"
+        ]
+      },
+      "else": {
+        "not": {
+          "required": [
+            "base_url"
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "transport": {
+            "properties": {
+              "kind": {
+                "const": "https_push"
+              }
+            }
+          }
+        },
+        "required": [
+          "transport"
+        ]
+      },
+      "then": {
+        "properties": {
+          "endpoint_policy": {
+            "properties": {
+              "endpoints": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "endpoint_policy": {
+            "properties": {
+              "endpoints": {
+                "maxItems": 0
+              }
+            }
+          },
+          "receive_signals": {
+            "const": false
+          }
+        }
+      }
+    }
+  ]
 }

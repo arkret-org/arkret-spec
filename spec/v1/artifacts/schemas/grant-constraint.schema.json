@@ -750,6 +750,9 @@
     "depends_on_moderation_state": {
       "type": "boolean",
       "description": "Cache-invalidation hint: when true, this grant's authorization decisions depend on the moderation_state typed current result (see capabilities.md Â§18.1) and the grant's cache entry MUST be invalidated when that typed current result changes. Default false: ordinary grants (ak.strand.update / ak.message.create / organization membership grants) do NOT take a cache hit on every moderation decision. v1 capabilities.md Â§18.1 lists three conditions where MUST be explicitly true (moderator-role grants, condition-selector subjects referencing moderation state, constraints referencing moderation queue / typed current result). Schema-side enforcement of condition (2) is in capability-grant.schema.json via if/then on actions[]; conditions (1) and (3) are reducer-side lint. Cache invalidation hint outside the eight constraint families; it does not participate in allow/deny evaluation and is documented in capabilities.md Â§6 / constraint-schema.md."
+    },
+    "invocation_ref": {
+      "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
     }
   },
   "allOf": [
@@ -1033,6 +1036,30 @@
         "required": [
           "message_edit_window"
         ]
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "invocation_ref"
+        ]
+      },
+      "then": {
+        "required": [
+          "constraint_kind",
+          "constraint_subkind",
+          "applet_id",
+          "executed_by",
+          "registration_epoch"
+        ],
+        "properties": {
+          "constraint_kind": {
+            "const": "authority_control"
+          },
+          "constraint_subkind": {
+            "const": "applet_authority"
+          }
+        }
       }
     }
   ],

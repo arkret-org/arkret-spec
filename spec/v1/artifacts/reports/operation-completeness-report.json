@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-02.4",
+  "version": "2026-10-03.1",
   "source_of_truth": false,
-  "generated_at": "2026-10-02T23:05:58+08:00",
+  "generated_at": "2026-10-03T03:33:04+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,10 +18,10 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 209,
+    "total_operations": 211,
     "by_completeness_class": {
       "binary_or_redirect": 2,
-      "typed_schema": 207
+      "typed_schema": 209
     },
     "by_surface_class_and_completeness_class": {
       "core": {
@@ -32,10 +32,10 @@
       },
       "extension": {
         "binary_or_redirect": 2,
-        "typed_schema": 125
+        "typed_schema": 126
       },
       "interop_bridge": {
-        "typed_schema": 21
+        "typed_schema": 22
       }
     }
   },
@@ -52,6 +52,20 @@
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ak.edge.applet.client.command.exchange.v1",
+      "surface_class": "interop_bridge",
+      "http": "POST /_arkret/edge/applet/client/exchange",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/applet-client-operations.schema.json#/$defs/exchange_request_body",
+      "response_schema_ref": "schemas/applet-client-operations.schema.json#/$defs/exchange_outcome",
+      "openapi_component_refs": {
+        "request": "../schemas/applet-client-operations.schema.json#/$defs/exchange_request_body",
+        "response": "../schemas/applet-client-operations.schema.json#/$defs/exchange_outcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
       "operation_id": "ak.edge.applet.command.transaction.v1",
@@ -1667,6 +1681,20 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/GhostActorProvisionRequestBody",
         "response": "#/components/schemas/GhostActorProvisionOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.self.applet.install.command.cancel.v1",
+      "surface_class": "extension",
+      "http": "POST /_arkret/self/applets/install/cancel",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/applet-client-operations.schema.json#/$defs/cancel_request_body",
+      "response_schema_ref": "schemas/applet-client-operations.schema.json#/$defs/cancel_outcome",
+      "openapi_component_refs": {
+        "request": "../schemas/applet-client-operations.schema.json#/$defs/cancel_request_body",
+        "response": "../schemas/applet-client-operations.schema.json#/$defs/cancel_outcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

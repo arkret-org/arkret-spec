@@ -134,7 +134,7 @@
         "pcr_genesis_ref",
         "accountability_grant_ref",
         "profile_event_ref",
-        "initial_package_bot_actor_id"
+        "initial_package_applet_actor_id"
       ],
       "properties": {
         "actor_id": {
@@ -152,7 +152,7 @@
         "profile_event_ref": {
           "$ref": "#/$defs/event_ref"
         },
-        "initial_package_bot_actor_id": {
+        "initial_package_applet_actor_id": {
           "$ref": "./common-ids.schema.json#/$defs/actor_id"
         }
       },
@@ -185,9 +185,9 @@
         "applet_id",
         "registration_event_ref",
         "registration_epoch",
-        "bot_actor_id",
-        "bot_actor_provision_ref",
-        "bot_principal_control_realm_id",
+        "applet_actor_id",
+        "applet_actor_provision_ref",
+        "applet_principal_control_realm_id",
         "capability_grant_refs",
         "e2ee_authorization_refs",
         "widget_policy_ref",
@@ -214,13 +214,13 @@
         "registration_epoch": {
           "$ref": "#/$defs/digest"
         },
-        "bot_actor_id": {
+        "applet_actor_id": {
           "$ref": "./common-ids.schema.json#/$defs/actor_id"
         },
-        "bot_actor_provision_ref": {
+        "applet_actor_provision_ref": {
           "$ref": "#/$defs/event_ref"
         },
-        "bot_principal_control_realm_id": {
+        "applet_principal_control_realm_id": {
           "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "capability_grant_refs": {

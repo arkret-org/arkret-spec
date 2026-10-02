@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-02.5",
+  "version": "2026-10-03.2",
   "source_of_truth": true,
-  "generated_at": "2026-10-02T23:09:31+08:00",
+  "generated_at": "2026-10-03T03:43:38+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -528,8 +528,8 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/crypto-media/device-lifecycle.md#15-applet-device-delegation",
-      "section_digest": "sha256:17df6d81f85b8c5f9c32551b64b4f3bb4f996595e7f65ea7a434acb744f1948c",
-      "requirement": "An Applet-managed Bot or Ghost joins E2EE through the ordinary device branch rather than a third recipient endpoint branch: its restricted delegated device resolves through an accepted authorization_binding_kind=\"applet_managed_delegation\" ak.device.authorize submitted as an ordinary successor Event in that principal own applet_managed_control PCR. Every KeyPackage publication, Welcome admission and MLS durable receipt from that device is ANDed with the revoke fence of the exact Applet install named by that authorize payload applet_id, failing closed with applet_revoked without waiting for a separate ak.device.revoke.",
+      "section_digest": "sha256:8629d955da438d113a47c3508766f1cb7809628e8f78c3173d0ceeba857cd04a",
+      "requirement": "An Applet self Account or managed Ghost joins E2EE through the ordinary device branch rather than a third recipient endpoint branch: its restricted delegated device resolves through an accepted authorization_binding_kind=\"applet_managed_delegation\" ak.device.authorize submitted as an ordinary successor Event in that principal own applet_managed_control PCR. Every KeyPackage publication, Welcome admission and MLS durable receipt from that device is ANDed with the revoke fence of the exact Applet install named by that authorize payload applet_id, failing closed with applet_revoked without waiting for a separate ak.device.revoke.",
       "testability_grade": "audit",
       "test_plan": "Audited against the delegation contract: a conformance run fences an Applet install and asserts that the delegated device next KeyPackage publication, Welcome admission and durable receipt are each rejected with applet_revoked while no ak.device.revoke exists and the authorize Event is still present in the PCR, and that historical accepted Events remain verifiable. No vector exists because the obligation is a conjunction across two lifecycles."
     },
@@ -683,6 +683,36 @@
         "ak.vector.identity.test_signing_material_rejected.v1",
         "ak.vector.identity.reserved_test_identifier_rejected.v1"
       ]
+    },
+    {
+      "clause_id": "AK-NC-083",
+      "status": "active",
+      "category": "security",
+      "source_anchor": "spec/v1/zh/extensions/applet-client-and-invocation.md#12-原生轮换与-exact-account-对齐",
+      "section_digest": "sha256:be690ca3abd43d16ac0839ac88b3f1ecef70b5b29b30aca4b37e670536897c88",
+      "requirement": "Applet Service epoch and each exact Station Account PCR must align native version, document and approved key set; service-first/PCR-first pause business, historical evidence remains immutable.",
+      "testability_grade": "audit",
+      "test_plan": "Contract alignment models pass; independently verify native histories, per-Station CAS, paused business and resumed completion under real Station/runtime restart in owner 0847 before live support."
+    },
+    {
+      "clause_id": "AK-NC-084",
+      "status": "active",
+      "category": "distributed_write",
+      "source_anchor": "spec/v1/zh/extensions/applet-client-and-invocation.md#22-首次安装阶段消除-active-install-循环",
+      "section_digest": "sha256:d5680b58adfcaa402d8db04b29fac55d9b8106751feea5260999635bde6dcb81",
+      "requirement": "No-URL bootstrap authenticates exact administrator-approved request and Applet epoch possession without active install; submit cannot accept staged facts, terminal CAS and explicit admin commit are durable.",
+      "testability_grade": "audit",
+      "test_plan": "Contract branch/model tests pass; live zero-install runtime bootstrap, response loss, conflict, expiry/cancel/supersede and restart require independent runtime plus authoritative Station UoW in 0847."
+    },
+    {
+      "clause_id": "AK-NC-085",
+      "status": "active",
+      "category": "privacy",
+      "source_anchor": "spec/v1/zh/extensions/applet-client-and-invocation.md#3-严格按调用的最小披露",
+      "section_digest": "sha256:b7b36454dde7ff1810db50103057cd0c93290daec602c751a25b6c2603e58c65",
+      "requirement": "Strict invocation uses an independent MLS Circle and exact receiving grants; re-encrypted selected attachments, independently signed plaintext result and current invoker relay cannot transfer original group keys or falsify authorship.",
+      "testability_grade": "audit",
+      "test_plan": "SDK signature and MLS isolation components pass. Live scope/grant/history/blob bypass, revoke, attachment supersets, offline relay and client attribution require independently deployed runtime and clients in 0847. Contract KAT projections are not native authority evidence."
     }
   ]
 }

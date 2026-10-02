@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/applet-install-authoring.schema.json",
   "title": "Arkret Applet Managed-Actor Authoring DTOs",
-  "description": "The single closed Station preview to Applet authoring carrier for install_bot and provision_ghost. No install-only operation, branch-specific bundle aliases, or derived request identifier exists.",
+  "description": "The single closed Station preview to Applet authoring carrier for install_applet and provision_ghost. No install-only operation, branch-specific bundle aliases, or derived request identifier exists.",
   "oneOf": [
     {
       "$ref": "#/$defs/install_authoring_request_basis"
@@ -259,7 +259,7 @@
           "const": "ak.schema.applet_install_authoring_request_basis.v1"
         },
         "purpose": {
-          "const": "install_bot"
+          "const": "install_applet"
         },
         "target_station_id": {
           "$ref": "#/$defs/did_core_id"
@@ -379,7 +379,7 @@
         },
         "purpose": {
           "enum": [
-            "install_bot",
+            "install_applet",
             "provision_ghost"
           ]
         },
@@ -418,7 +418,7 @@
             ],
             "properties": {
               "purpose": {
-                "const": "install_bot"
+                "const": "install_applet"
               }
             }
           },
@@ -472,6 +472,9 @@
         },
         "authoring_request": {
           "$ref": "#/$defs/authoring_request"
+        },
+        "managed_actor_bundle": {
+          "$ref": "./applet-install-authoring.schema.json#/$defs/managed_actor_bundle"
         }
       },
       "additionalProperties": false

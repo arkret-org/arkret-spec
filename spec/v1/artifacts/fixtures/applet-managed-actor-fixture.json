@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.applet_bridge.v1",
-  "version": "2026-09-25.1",
+  "version": "2026-10-03.1",
   "suite": "applet_managed_actor_authority",
   "runner": {
     "kind": "named_suite",
@@ -18,7 +18,7 @@
       }
     }
   },
-  "fixed_bot_unit_order": [
+  "fixed_applet_unit_order": [
     "ak.applet.registration",
     "ak.capability.grant",
     "ak.applet.managed_actor.provision",
@@ -34,7 +34,7 @@
   ],
   "cases": [
     {
-      "name": "bot_exact_pair_and_initial_resolution",
+      "name": "applet_exact_pair_and_initial_resolution",
       "mutation": "none",
       "expect": "accepted"
     },
@@ -104,13 +104,13 @@
       "expect": "applet_managed_actor_provision_invalid"
     },
     {
-      "name": "actor_reuses_service_or_controller",
+      "name": "ghost_reuses_service_or_controller",
       "mutation": "actor_id == service_id || actor_id == controller_principal_id",
       "expect": "applet_managed_actor_provision_invalid"
     },
     {
-      "name": "bot_does_not_equal_registration_bot",
-      "mutation": "provision.actor_id != registration.bot_actor_id",
+      "name": "applet_does_not_equal_registration_actor",
+      "mutation": "provision.actor_id != registration.applet_actor_id",
       "expect": "applet_managed_actor_provision_invalid"
     },
     {
@@ -211,12 +211,12 @@
     },
     {
       "name": "delegated_device_authorize_is_ordinary_successor",
-      "mutation": "after the accepted Bot install unit and the accepted Ghost provisioning unit, each managed principal submits one ordinary successor ak.device.authorize with authorization_binding_kind=applet_managed_delegation, authorized_by equal to its own actor_id.account_id.principal_id, a non-null expires_at, a non-empty scopes and the applet_id of the exact active install",
+      "mutation": "after the accepted Applet install unit and the accepted Ghost provisioning unit, each managed principal submits one ordinary successor ak.device.authorize with authorization_binding_kind=applet_managed_delegation, authorized_by equal to its own actor_id.account_id.principal_id, a non-null expires_at, a non-empty scopes and the applet_id of the exact active install",
       "expect": "accepted"
     },
     {
       "name": "delegated_device_authorize_cannot_join_closed_aggregate",
-      "mutation": "carry the same ak.device.authorize as a fifth Event of the Ghost authoring bundle or as a seventh fact of the Bot install fixed set",
+      "mutation": "carry the same ak.device.authorize as a fifth Event of the Ghost authoring bundle or as a seventh fact of the Applet install fixed set",
       "expect": "schema_violation"
     },
     {

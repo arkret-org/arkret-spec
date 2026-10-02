@@ -1068,8 +1068,8 @@
         "applet_id",
         "service_id",
         "controller_principal_id",
-        "base_url",
-        "bot_actor_id",
+        "transport",
+        "applet_actor_id",
         "claimed_profiles",
         "protocols",
         "namespaces",
@@ -1089,8 +1089,15 @@
           "description": "Stable canonical Applet identifier; service identity is carried separately in service_id."
         },
         "service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-          "description": "DID of the service hosting the applet runtime."
+          "allOf": [
+            {
+              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+            },
+            {
+              "type": "string",
+              "pattern": "^ak:did_core:webvh:[^\\s/?#]+$"
+            }
+          ]
         },
         "controller_principal_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
@@ -1100,13 +1107,31 @@
           ],
           "description": "Accountable human or organization publisher principal that signs the registration; the runtime service_id is not an eligible controller."
         },
+        "transport": {
+          "$ref": "./applet-package.schema.json#/$defs/applet_transport"
+        },
         "base_url": {
           "type": "string",
           "format": "uri",
           "pattern": "^https://"
         },
-        "bot_actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/actor_id"
+        "applet_actor_id": {
+          "allOf": [
+            {
+              "$ref": "./common-ids.schema.json#/$defs/actor_id"
+            },
+            {
+              "properties": {
+                "kind": {
+                  "const": "account"
+                }
+              },
+              "required": [
+                "kind"
+              ]
+            }
+          ],
+          "description": "Applet account projection. Its principal_id MUST equal service_id; Station identity remains exact. This is not a second DID."
         },
         "claimed_profiles": {
           "type": "array",
@@ -1202,7 +1227,37 @@
           "$ref": "#/$defs/timestamp"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "transport": {
+                "properties": {
+                  "kind": {
+                    "const": "https_push"
+                  }
+                }
+              }
+            },
+            "required": [
+              "transport"
+            ]
+          },
+          "then": {
+            "required": [
+              "base_url"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "base_url"
+              ]
+            }
+          }
+        }
+      ]
     },
     "applet_managed_actor_provision_payload": {
       "$ref": "./applet-managed-actor.schema.json#/$defs/applet_managed_actor_provision_payload"
@@ -2789,6 +2844,51 @@
                 "description": "Inline text body. Authoritative bound is 256 KiB UTF-8 bytes enforced by a byte validator; maxLength is a not-wider code-point fast bound. Longer bodies MUST use ak.content.long_text (zh/models/content-types.md section 4.1.4)."
               }
             }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "ak.content.applet.invocation"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "$ref": "./content-block-applet.schema.json#/$defs/invocation"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "ak.content.applet.result"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "$ref": "./content-block-applet.schema.json#/$defs/execution_outcome"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "ak.content.applet.relay"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "$ref": "./content-block-applet.schema.json#/$defs/relay"
           }
         }
       ]

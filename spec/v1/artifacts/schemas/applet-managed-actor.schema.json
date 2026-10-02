@@ -41,7 +41,7 @@
     },
     "applet_managed_actor_provision_payload": {
       "type": "object",
-      "description": "Immutable service-authored authority for one Applet-managed Bot or Ghost principal. It precedes and is cross-bound to the principal's applet_managed_control PCR genesis; it is not the actor's mutable resolution head.",
+      "description": "Immutable service-authored authority for one Applet self Account or managed Ghost principal. It precedes and is cross-bound to the principal's applet_managed_control PCR genesis; it is not the actor's mutable resolution head.",
       "required": [
         "schema",
         "applet_id",
@@ -69,7 +69,7 @@
         "actor_role": {
           "type": "string",
           "enum": [
-            "bot",
+            "applet",
             "ghost"
           ]
         },
@@ -95,7 +95,7 @@
           "if": {
             "properties": {
               "actor_role": {
-                "const": "bot"
+                "const": "applet"
               }
             },
             "required": [

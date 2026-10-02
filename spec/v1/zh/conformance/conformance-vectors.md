@@ -676,3 +676,7 @@ native Event 不创建回显；第二设备得到相同排序、状态与去重�
 用 `current-signer-contact-endpoint-fixture.json` 执行 closed schema 正反例：human current 只含公钥且不可
 替代 Agent/history；Contact 两字段 endpoint 只属于 accepted human。真实跨站取材、撤销与 exact round
 来源签名必须另行用服务与联合测试验证，schema 通过不代表 live 授权通过。
+
+`ak.vector.applet.self_actor_contract.v1` 验证封闭 schema、轮换／首装参考状态机、独立明文签名
+和 SDK MLS 群隔离。此证据只覆盖合同与密码学组件，不证明独立 runtime 安装生命周期。
+`ak.vector.applet.self_actor_live_lifecycle.v1` 保持 reserved，激活条件见 Applet client/invocation 合同 §4。

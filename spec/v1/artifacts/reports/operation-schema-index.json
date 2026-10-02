@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-02.3",
+  "version": "2026-10-02.4",
   "source_of_truth": false,
-  "generated_at": "2026-10-02T11:26:26+08:00",
+  "generated_at": "2026-10-02T23:05:58+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -4864,9 +4864,9 @@
           "applet_id",
           "registration_event_ref",
           "registration_epoch",
-          "bot_actor_id",
-          "bot_actor_provision_ref",
-          "bot_principal_control_realm_id",
+          "applet_actor_id",
+          "applet_actor_provision_ref",
+          "applet_principal_control_realm_id",
           "capability_grant_refs",
           "e2ee_authorization_refs",
           "widget_policy_ref",
@@ -4878,9 +4878,9 @@
           "applet_id",
           "registration_event_ref",
           "registration_epoch",
-          "bot_actor_id",
-          "bot_actor_provision_ref",
-          "bot_principal_control_realm_id",
+          "applet_actor_id",
+          "applet_actor_provision_ref",
+          "applet_principal_control_realm_id",
           "capability_grant_refs",
           "e2ee_authorization_refs",
           "widget_policy_ref",
@@ -5027,7 +5027,8 @@
         ],
         "properties": [
           "plan",
-          "authoring_request"
+          "authoring_request",
+          "managed_actor_bundle"
         ],
         "closed": true
       }
@@ -8798,6 +8799,246 @@
           "supported_operation_bundles",
           "transport_bindings",
           "invite_addressing"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.edge.applet.client.command.exchange.v1",
+      "success_shape_kind": "schema_resource",
+      "request": {
+        "schema_ref": "schemas/applet-client-operations.schema.json#/$defs/exchange_request_body",
+        "schema_kind": "oneOf",
+        "required": [
+          "kind",
+          "applet_id",
+          "registration_epoch"
+        ],
+        "properties": [
+          "kind",
+          "applet_id",
+          "registration_epoch",
+          "authoring_request_digest",
+          "managed_actor_bundle",
+          "registration_ref",
+          "effective_scope",
+          "max_items",
+          "item_digest",
+          "outcome"
+        ],
+        "closed": true,
+        "variants": [
+          {
+            "schema_ref": "schemas/applet-client-operations.schema.json#/$defs/bootstrap_claim",
+            "schema_kind": "object",
+            "required": [
+              "kind",
+              "applet_id",
+              "registration_epoch",
+              "authoring_request_digest"
+            ],
+            "properties": [
+              "kind",
+              "applet_id",
+              "registration_epoch",
+              "authoring_request_digest"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/applet-client-operations.schema.json#/$defs/bootstrap_submit",
+            "schema_kind": "object",
+            "required": [
+              "kind",
+              "applet_id",
+              "registration_epoch",
+              "authoring_request_digest",
+              "managed_actor_bundle"
+            ],
+            "properties": [
+              "kind",
+              "applet_id",
+              "registration_epoch",
+              "authoring_request_digest",
+              "managed_actor_bundle"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/applet-client-operations.schema.json#/$defs/installed_claim",
+            "schema_kind": "object",
+            "required": [
+              "kind",
+              "applet_id",
+              "registration_epoch",
+              "registration_ref",
+              "effective_scope",
+              "max_items"
+            ],
+            "properties": [
+              "kind",
+              "applet_id",
+              "registration_epoch",
+              "registration_ref",
+              "effective_scope",
+              "max_items"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/applet-client-operations.schema.json#/$defs/installed_ack",
+            "schema_kind": "object",
+            "required": [
+              "kind",
+              "applet_id",
+              "registration_epoch",
+              "registration_ref",
+              "effective_scope",
+              "item_digest",
+              "outcome"
+            ],
+            "properties": [
+              "kind",
+              "applet_id",
+              "registration_epoch",
+              "registration_ref",
+              "effective_scope",
+              "item_digest",
+              "outcome"
+            ],
+            "closed": true
+          }
+        ]
+      },
+      "response": {
+        "schema_ref": "schemas/applet-client-operations.schema.json#/$defs/exchange_outcome",
+        "schema_kind": "oneOf",
+        "required": [
+          "kind"
+        ],
+        "properties": [
+          "kind",
+          "authoring_request",
+          "authoring_request_digest",
+          "managed_actor_bundle",
+          "authoring_context",
+          "status",
+          "items",
+          "item_digest"
+        ],
+        "closed": true,
+        "variants": [
+          {
+            "schema_ref": "schemas/applet-client-operations.schema.json#/$defs/bootstrap_pending",
+            "schema_kind": "object",
+            "required": [
+              "kind",
+              "authoring_request"
+            ],
+            "properties": [
+              "kind",
+              "authoring_request"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/applet-client-operations.schema.json#/$defs/bootstrap_authored",
+            "schema_kind": "object",
+            "required": [
+              "kind",
+              "authoring_request_digest",
+              "managed_actor_bundle"
+            ],
+            "properties": [
+              "kind",
+              "authoring_request_digest",
+              "managed_actor_bundle"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/applet-client-operations.schema.json#/$defs/bootstrap_committed",
+            "schema_kind": "object",
+            "required": [
+              "kind",
+              "authoring_request_digest",
+              "authoring_context"
+            ],
+            "properties": [
+              "kind",
+              "authoring_request_digest",
+              "authoring_context"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/applet-client-operations.schema.json#/$defs/bootstrap_closed",
+            "schema_kind": "object",
+            "required": [
+              "kind",
+              "authoring_request_digest",
+              "status"
+            ],
+            "properties": [
+              "kind",
+              "authoring_request_digest",
+              "status"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/applet-client-operations.schema.json#/$defs/installed_items",
+            "schema_kind": "object",
+            "required": [
+              "kind",
+              "items"
+            ],
+            "properties": [
+              "kind",
+              "items"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/applet-client-operations.schema.json#/$defs/installed_acknowledged",
+            "schema_kind": "object",
+            "required": [
+              "kind",
+              "item_digest"
+            ],
+            "properties": [
+              "kind",
+              "item_digest"
+            ],
+            "closed": true
+          }
+        ]
+      }
+    },
+    {
+      "operation_id": "ak.self.applet.install.command.cancel.v1",
+      "success_shape_kind": "schema_resource",
+      "request": {
+        "schema_ref": "schemas/applet-client-operations.schema.json#/$defs/cancel_request_body",
+        "schema_kind": "object",
+        "required": [
+          "authoring_request_digest"
+        ],
+        "properties": [
+          "authoring_request_digest"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/applet-client-operations.schema.json#/$defs/cancel_outcome",
+        "schema_kind": "object",
+        "required": [
+          "authoring_request_digest",
+          "status"
+        ],
+        "properties": [
+          "authoring_request_digest",
+          "status"
         ],
         "closed": true
       }

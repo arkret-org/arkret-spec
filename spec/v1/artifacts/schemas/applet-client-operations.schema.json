@@ -1,0 +1,733 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/applet-client-operations.schema.json",
+  "title": "Arkret Applet Client Exchange",
+  "$ref": "#/$defs/exchange_request_body",
+  "$defs": {
+    "bootstrap_claim": {
+      "type": "object",
+      "required": [
+        "kind",
+        "applet_id",
+        "registration_epoch",
+        "authoring_request_digest"
+      ],
+      "properties": {
+        "kind": {
+          "const": "bootstrap_claim"
+        },
+        "applet_id": {
+          "$ref": "./common-ids.schema.json#/$defs/applet_id"
+        },
+        "registration_epoch": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+        },
+        "authoring_request_digest": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+        }
+      },
+      "additionalProperties": false
+    },
+    "bootstrap_submit": {
+      "type": "object",
+      "required": [
+        "kind",
+        "applet_id",
+        "registration_epoch",
+        "authoring_request_digest",
+        "managed_actor_bundle"
+      ],
+      "properties": {
+        "kind": {
+          "const": "bootstrap_submit"
+        },
+        "applet_id": {
+          "$ref": "./common-ids.schema.json#/$defs/applet_id"
+        },
+        "registration_epoch": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+        },
+        "authoring_request_digest": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+        },
+        "managed_actor_bundle": {
+          "$ref": "./applet-install-authoring.schema.json#/$defs/managed_actor_bundle"
+        }
+      },
+      "additionalProperties": false
+    },
+    "installed_claim": {
+      "type": "object",
+      "required": [
+        "kind",
+        "applet_id",
+        "registration_epoch",
+        "registration_ref",
+        "effective_scope",
+        "max_items"
+      ],
+      "properties": {
+        "kind": {
+          "const": "installed_claim"
+        },
+        "applet_id": {
+          "$ref": "./common-ids.schema.json#/$defs/applet_id"
+        },
+        "registration_epoch": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+        },
+        "registration_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "effective_scope": {
+          "$ref": "./applet-install-plan.schema.json#/$defs/effective_scope"
+        },
+        "max_items": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 64
+        }
+      },
+      "additionalProperties": false
+    },
+    "installed_ack": {
+      "type": "object",
+      "required": [
+        "kind",
+        "applet_id",
+        "registration_epoch",
+        "registration_ref",
+        "effective_scope",
+        "item_digest",
+        "outcome"
+      ],
+      "properties": {
+        "kind": {
+          "const": "installed_ack"
+        },
+        "applet_id": {
+          "$ref": "./common-ids.schema.json#/$defs/applet_id"
+        },
+        "registration_epoch": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+        },
+        "registration_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "effective_scope": {
+          "$ref": "./applet-install-plan.schema.json#/$defs/effective_scope"
+        },
+        "item_digest": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+        },
+        "outcome": {
+          "$ref": "#/$defs/task_outcome"
+        }
+      },
+      "additionalProperties": false
+    },
+    "exchange_request_body": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/bootstrap_claim"
+        },
+        {
+          "$ref": "#/$defs/bootstrap_submit"
+        },
+        {
+          "$ref": "#/$defs/installed_claim"
+        },
+        {
+          "$ref": "#/$defs/installed_ack"
+        }
+      ]
+    },
+    "task": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "operation_id",
+            "actor_id"
+          ],
+          "properties": {
+            "operation_id": {
+              "const": "ak.edge.applet.actor.read.resolve.v1"
+            },
+            "actor_id": {
+              "$ref": "./common-ids.schema.json#/$defs/actor_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "operation_id",
+            "body"
+          ],
+          "properties": {
+            "operation_id": {
+              "const": "ak.edge.applet.command.transaction.v1"
+            },
+            "body": {
+              "$ref": "./applet-edge-operations.schema.json#/$defs/applet_transaction_request_body"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "operation_id",
+            "body"
+          ],
+          "properties": {
+            "operation_id": {
+              "const": "ak.edge.applet.managed_actor.command.author.v1"
+            },
+            "body": {
+              "$ref": "./applet-install-authoring.schema.json#/$defs/author_request_body"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "operation_id"
+          ],
+          "properties": {
+            "operation_id": {
+              "const": "ak.edge.applet.read.describe.v1"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "operation_id"
+          ],
+          "properties": {
+            "operation_id": {
+              "const": "ak.edge.applet.read.ping.v1"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "operation_id",
+            "protocol"
+          ],
+          "properties": {
+            "operation_id": {
+              "const": "ak.edge.applet.read.protocol_metadata.v1"
+            },
+            "protocol": {
+              "$ref": "./applet-edge-operations.schema.json#/$defs/protocol"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "operation_id",
+            "realm_id_or_alias"
+          ],
+          "properties": {
+            "operation_id": {
+              "const": "ak.edge.applet.realm.read.resolve.v1"
+            },
+            "realm_id_or_alias": {
+              "$ref": "./account-operations.schema.json#/$defs/non_empty_string"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "operation_id",
+            "query"
+          ],
+          "properties": {
+            "operation_id": {
+              "const": "ak.edge.applet.third_party_locations.read.list.v1"
+            },
+            "query": {
+              "$ref": "./applet-edge-operations.schema.json#/$defs/third_party_query"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "operation_id",
+            "query"
+          ],
+          "properties": {
+            "operation_id": {
+              "const": "ak.edge.applet.third_party_users.read.list.v1"
+            },
+            "query": {
+              "$ref": "./applet-edge-operations.schema.json#/$defs/third_party_query"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "task_outcome": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "operation_id",
+            "status",
+            "body"
+          ],
+          "properties": {
+            "operation_id": {
+              "const": "ak.edge.applet.actor.read.resolve.v1"
+            },
+            "status": {
+              "const": "completed"
+            },
+            "body": {
+              "$ref": "./applet-edge-operations.schema.json#/$defs/applet_actor_view"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "operation_id",
+            "status",
+            "body"
+          ],
+          "properties": {
+            "operation_id": {
+              "const": "ak.edge.applet.command.transaction.v1"
+            },
+            "status": {
+              "const": "completed"
+            },
+            "body": {
+              "$ref": "./applet-edge-operations.schema.json#/$defs/applet_transaction_outcome"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "operation_id",
+            "status",
+            "body"
+          ],
+          "properties": {
+            "operation_id": {
+              "const": "ak.edge.applet.managed_actor.command.author.v1"
+            },
+            "status": {
+              "const": "completed"
+            },
+            "body": {
+              "$ref": "./applet-install-authoring.schema.json#/$defs/author_outcome"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "operation_id",
+            "status",
+            "body"
+          ],
+          "properties": {
+            "operation_id": {
+              "const": "ak.edge.applet.read.describe.v1"
+            },
+            "status": {
+              "const": "completed"
+            },
+            "body": {
+              "$ref": "./service-describe.schema.json"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "operation_id",
+            "status",
+            "body"
+          ],
+          "properties": {
+            "operation_id": {
+              "const": "ak.edge.applet.read.ping.v1"
+            },
+            "status": {
+              "const": "completed"
+            },
+            "body": {
+              "$ref": "./applet-edge-operations.schema.json#/$defs/applet_ping_outcome"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "operation_id",
+            "status",
+            "body"
+          ],
+          "properties": {
+            "operation_id": {
+              "const": "ak.edge.applet.read.protocol_metadata.v1"
+            },
+            "status": {
+              "const": "completed"
+            },
+            "body": {
+              "$ref": "./applet-edge-operations.schema.json#/$defs/applet_protocol_metadata"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "operation_id",
+            "status",
+            "body"
+          ],
+          "properties": {
+            "operation_id": {
+              "const": "ak.edge.applet.realm.read.resolve.v1"
+            },
+            "status": {
+              "const": "completed"
+            },
+            "body": {
+              "$ref": "./applet-edge-operations.schema.json#/$defs/applet_realm_view"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "operation_id",
+            "status",
+            "body"
+          ],
+          "properties": {
+            "operation_id": {
+              "const": "ak.edge.applet.third_party_locations.read.list.v1"
+            },
+            "status": {
+              "const": "completed"
+            },
+            "body": {
+              "$ref": "./applet-edge-operations.schema.json#/$defs/applet_third_party_location_list"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "operation_id",
+            "status",
+            "body"
+          ],
+          "properties": {
+            "operation_id": {
+              "const": "ak.edge.applet.third_party_users.read.list.v1"
+            },
+            "status": {
+              "const": "completed"
+            },
+            "body": {
+              "$ref": "./applet-edge-operations.schema.json#/$defs/applet_third_party_user_list"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "operation_id",
+            "status",
+            "problem"
+          ],
+          "properties": {
+            "operation_id": {
+              "type": "string",
+              "enum": [
+                "ak.edge.applet.actor.read.resolve.v1",
+                "ak.edge.applet.command.transaction.v1",
+                "ak.edge.applet.managed_actor.command.author.v1",
+                "ak.edge.applet.read.describe.v1",
+                "ak.edge.applet.read.ping.v1",
+                "ak.edge.applet.read.protocol_metadata.v1",
+                "ak.edge.applet.realm.read.resolve.v1",
+                "ak.edge.applet.third_party_locations.read.list.v1",
+                "ak.edge.applet.third_party_users.read.list.v1"
+              ]
+            },
+            "status": {
+              "const": "failed"
+            },
+            "problem": {
+              "$ref": "./http-problem-details.schema.json"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "queue_envelope": {
+      "type": "object",
+      "required": [
+        "applet_id",
+        "registration_epoch",
+        "registration_ref",
+        "effective_scope",
+        "issued_at",
+        "task",
+        "proof"
+      ],
+      "properties": {
+        "applet_id": {
+          "$ref": "./common-ids.schema.json#/$defs/applet_id"
+        },
+        "registration_epoch": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+        },
+        "registration_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "effective_scope": {
+          "$ref": "./applet-install-plan.schema.json#/$defs/effective_scope"
+        },
+        "issued_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "task": {
+          "$ref": "#/$defs/task"
+        },
+        "proof": {
+          "$ref": "./applet-install-authoring.schema.json#/$defs/managed_actor_proof"
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "task": {
+                "properties": {
+                  "operation_id": {
+                    "not": {
+                      "const": "ak.edge.applet.command.transaction.v1"
+                    },
+                    "type": "string",
+                    "pattern": "^ak\\.[a-z0-9_.]+\\.v1$"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "expires_at"
+            ]
+          }
+        }
+      ],
+      "x-arkret-signature-domain": "ak.applet_client_queue_proof.v1"
+    },
+    "bootstrap_pending": {
+      "type": "object",
+      "required": [
+        "kind",
+        "authoring_request"
+      ],
+      "properties": {
+        "kind": {
+          "const": "bootstrap_pending"
+        },
+        "authoring_request": {
+          "$ref": "./applet-install-authoring.schema.json#/$defs/authoring_request"
+        }
+      },
+      "additionalProperties": false
+    },
+    "bootstrap_authored": {
+      "type": "object",
+      "required": [
+        "kind",
+        "authoring_request_digest",
+        "managed_actor_bundle"
+      ],
+      "properties": {
+        "kind": {
+          "const": "bootstrap_authored"
+        },
+        "authoring_request_digest": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+        },
+        "managed_actor_bundle": {
+          "$ref": "./applet-install-authoring.schema.json#/$defs/managed_actor_bundle"
+        }
+      },
+      "additionalProperties": false
+    },
+    "bootstrap_committed": {
+      "type": "object",
+      "required": [
+        "kind",
+        "authoring_request_digest",
+        "authoring_context"
+      ],
+      "properties": {
+        "kind": {
+          "const": "bootstrap_committed"
+        },
+        "authoring_request_digest": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+        },
+        "authoring_context": {
+          "$ref": "./applet-edge-operations.schema.json#/$defs/applet_managed_actor_authoring_context"
+        }
+      },
+      "additionalProperties": false
+    },
+    "bootstrap_closed": {
+      "type": "object",
+      "required": [
+        "kind",
+        "authoring_request_digest",
+        "status"
+      ],
+      "properties": {
+        "kind": {
+          "const": "bootstrap_closed"
+        },
+        "authoring_request_digest": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "expired",
+            "cancelled",
+            "superseded"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "installed_items": {
+      "type": "object",
+      "required": [
+        "kind",
+        "items"
+      ],
+      "properties": {
+        "kind": {
+          "const": "installed_items"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/queue_envelope"
+          },
+          "minItems": 0,
+          "maxItems": 64
+        }
+      },
+      "additionalProperties": false
+    },
+    "installed_acknowledged": {
+      "type": "object",
+      "required": [
+        "kind",
+        "item_digest"
+      ],
+      "properties": {
+        "kind": {
+          "const": "installed_acknowledged"
+        },
+        "item_digest": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+        }
+      },
+      "additionalProperties": false
+    },
+    "exchange_outcome": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/bootstrap_pending"
+        },
+        {
+          "$ref": "#/$defs/bootstrap_authored"
+        },
+        {
+          "$ref": "#/$defs/bootstrap_committed"
+        },
+        {
+          "$ref": "#/$defs/bootstrap_closed"
+        },
+        {
+          "$ref": "#/$defs/installed_items"
+        },
+        {
+          "$ref": "#/$defs/installed_acknowledged"
+        }
+      ]
+    },
+    "cancel_request_body": {
+      "type": "object",
+      "required": [
+        "authoring_request_digest"
+      ],
+      "properties": {
+        "authoring_request_digest": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+        }
+      },
+      "additionalProperties": false
+    },
+    "cancel_outcome": {
+      "type": "object",
+      "required": [
+        "authoring_request_digest",
+        "status"
+      ],
+      "properties": {
+        "authoring_request_digest": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+        },
+        "status": {
+          "const": "cancelled"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

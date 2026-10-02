@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/applet-registration-epoch-transcript.schema.json",
   "title": "Arkret Applet Registration Epoch Transcript",
-  "description": "Closed, normalized security transcript hashed to produce an Applet registration_epoch. The hash input is the UTF-8 domain separator arkret-applet-registration-epoch-v1\\n followed by the JCS bytes of this object. Applet producer identity is restricted to versioned did:webvh or stable did:key so the same accepted state can form a historical Service signer root.",
+  "description": "Closed security transcript for a single did:webvh Applet subject; transport and exact account projection are security bindings.",
   "type": "object",
   "required": [
     "schema",
@@ -72,8 +72,8 @@
         "applet_id",
         "service_id",
         "controller_principal_id",
-        "base_url",
-        "bot_actor_id",
+        "transport",
+        "applet_actor_id",
         "protocols",
         "namespaces",
         "receive_events",
@@ -90,7 +90,15 @@
           "$ref": "./common-ids.schema.json#/$defs/applet_id"
         },
         "service_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+          "allOf": [
+            {
+              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+            },
+            {
+              "type": "string",
+              "pattern": "^ak:did_core:webvh:[^\\s/?#]+$"
+            }
+          ]
         },
         "controller_principal_id": {
           "$ref": "./common-ids.schema.json#/$defs/did_core_id",
@@ -99,13 +107,31 @@
             "organization"
           ]
         },
+        "transport": {
+          "$ref": "./applet-package.schema.json#/$defs/applet_transport"
+        },
         "base_url": {
           "type": "string",
           "format": "uri",
           "pattern": "^https://"
         },
-        "bot_actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/actor_id"
+        "applet_actor_id": {
+          "allOf": [
+            {
+              "$ref": "./common-ids.schema.json#/$defs/actor_id"
+            },
+            {
+              "properties": {
+                "kind": {
+                  "const": "account"
+                }
+              },
+              "required": [
+                "kind"
+              ]
+            }
+          ],
+          "description": "Applet account projection. Its principal_id MUST equal service_id; Station identity remains exact. This is not a second DID."
         },
         "protocols": {
           "$ref": "#/$defs/string_set"
@@ -129,7 +155,37 @@
           "$ref": "#/$defs/timestamp"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "transport": {
+                "properties": {
+                  "kind": {
+                    "const": "https_push"
+                  }
+                }
+              }
+            },
+            "required": [
+              "transport"
+            ]
+          },
+          "then": {
+            "required": [
+              "base_url"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "base_url"
+              ]
+            }
+          }
+        }
+      ]
     },
     "service_did_document": {
       "type": "object",
@@ -160,8 +216,7 @@
       ],
       "properties": {
         "method": {
-          "type": "string",
-          "pattern": "^did:[a-z0-9]+$"
+          "const": "did:webvh"
         },
         "version_id": {
           "allOf": [
@@ -275,5 +330,53 @@
       },
       "additionalProperties": false
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "derived_registration": {
+            "properties": {
+              "transport": {
+                "properties": {
+                  "kind": {
+                    "const": "https_push"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "endpoint_policy": {
+            "properties": {
+              "endpoints": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "endpoint_policy": {
+            "properties": {
+              "endpoints": {
+                "maxItems": 0
+              }
+            }
+          },
+          "derived_registration": {
+            "properties": {
+              "receive_signals": {
+                "const": false
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
 }

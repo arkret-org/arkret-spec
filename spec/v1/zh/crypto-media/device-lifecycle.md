@@ -267,7 +267,7 @@ identity root 只单向承诺两条 Event 的 payload digest，不承诺 Event i
 - `registration_anchor`：PCR genesis 的第二条 authorize；domain `ak.device_authorize_possession_proof.v1`，见 §5.2.1。
 - `pcr_recovery`：PCR-policy recovery unit 的第二条 authorize（包含 policy 显式选择 did_root factor 的情况）；domain `ak.device_authorize_recovery_possession_proof.v1`，并绑定 recovery session/policy/generation。
 - `accepted_device`：已有 accepted device 批准新设备；domain `ak.device_authorize_accepted_device_possession_proof.v1`，见 §5.2.2。
-- `applet_managed_delegation`：Applet-managed Bot / Ghost principal 在自己已接受的 `applet_managed_control` PCR 中授权一台受限 delegated device；domain `ak.device_authorize_applet_managed_possession_proof.v1`，见 §5.2.3 与 §15。
+- `applet_managed_delegation`：Applet Account / Ghost principal 在自己已接受的 `applet_managed_control` PCR 中授权一台受限 delegated device；domain `ak.device_authorize_applet_managed_possession_proof.v1`，见 §5.2.3 与 §15。
 
 四个 domain 都登记在 [`proof-context-registry.json`](../../artifacts/registry/proof-context-registry.json)。verifier MUST 先从 payload 的 `authorization_binding_kind` 选定 domain 与成员集合，MUST NOT 尝试其它 domain，也 MUST NOT 接受跨 binding kind 复用的 transcript。
 
@@ -340,7 +340,7 @@ transcript 的 `account_id` 取自待签 Event 的完整 account `actor_id`，�
 
 #### 5.2.3 `applet_managed_delegation` possession transcript（normative）
 
-Applet-managed Bot / Ghost principal 在结构上不可能有 founding device：`purpose="applet_managed_control"` 的 PCR genesis MUST NOT 携带 `FoundingDeviceDescriptor`，而它所在的 install / Ghost 创建单元又是封闭固定集合，该 Realm 首个 RealmCommit 覆盖的 genesis unit 恰含一条 `ak.realm.create`。因此它的设备**不在** genesis 内产生，而是在 provision 与 PCR genesis 都已接受之后，作为一条**普通后继 `ak.device.authorize`** 提交到同一个 PCR。这条后继 Event 走普通 Event admission（完整 `expected_revision`、checkpoint 与 signer evidence），不属于任何原子 native unit，因此不触发也不放宽 genesis unit 的 `events.len() == 1` 形状。
+Applet Account / Ghost principal 在结构上不可能有 founding device：`purpose="applet_managed_control"` 的 PCR genesis MUST NOT 携带 `FoundingDeviceDescriptor`，而它所在的 install / Ghost 创建单元又是封闭固定集合，该 Realm 首个 RealmCommit 覆盖的 genesis unit 恰含一条 `ak.realm.create`。因此它的设备**不在** genesis 内产生，而是在 provision 与 PCR genesis 都已接受之后，作为一条**普通后继 `ak.device.authorize`** 提交到同一个 PCR。这条后继 Event 走普通 Event admission（完整 `expected_revision`、checkpoint 与 signer evidence），不属于任何原子 native unit，因此不触发也不放宽 genesis unit 的 `events.len() == 1` 形状。
 
 设备 possession 签名对象是 §5.2.1 的同一个 core 加 `applet_id`，完整成员集合为：
 
@@ -1408,7 +1408,7 @@ history/pre-rotation 验证仍须完成；即使它验证成功，两条 Event �
 
 ## 15. Applet Device Delegation
 
-Applet-managed principal（Bot Actor 与 Ghost Actor，见 [`../extensions/applet-integration.md` §3.3 / §3.4](../extensions/applet-integration.md)）如需参与 E2EE——发布 KeyPackage、作为 Welcome 接收方入组、签署 MLS durable receipt——MUST 使用**受限 delegated device**。本节对 Bot 与 Ghost 等效适用：两者用同一个 managed-actor provision + `applet_managed_control` PCR 模型，因此也用同一条设备授权路径，不存在只覆盖其中一方的形态。
+Applet-managed principal（Bot Actor 与 Ghost Actor，见 [`../extensions/applet-integration.md` §3.3 / §3.4](../extensions/applet-integration.md)）如需参与 E2EE——发布 KeyPackage、作为 Welcome 接收方入组、签署 MLS durable receipt——MUST 使用**受限 delegated device**。本节对 Applet 与 Ghost 等效适用：两者用同一个 managed-actor provision + `applet_managed_control` PCR 模型，因此也用同一条设备授权路径，不存在只覆盖其中一方的形态。
 
 Delegated device 不引入新的 MLS recipient endpoint 分支：它就是普通 device 分支的成员，§9.2.1 的 device / Agent 两分支封闭 XOR 不变。
 

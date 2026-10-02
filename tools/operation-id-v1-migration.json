@@ -838,6 +838,14 @@
     {
       "old": "ak.server.read.describe",
       "new": "ak.server.read.describe.v1"
+    },
+    {
+      "old": "ak.edge.applet.client.command.exchange",
+      "new": "ak.edge.applet.client.command.exchange.v1"
+    },
+    {
+      "old": "ak.self.applet.install.command.cancel",
+      "new": "ak.self.applet.install.command.cancel.v1"
     }
   ]
 }

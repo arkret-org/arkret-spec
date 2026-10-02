@@ -371,6 +371,51 @@
               }
             }
           }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "ak.content.applet.invocation"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "$ref": "./content-block-applet.schema.json#/$defs/invocation"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "ak.content.applet.result"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "$ref": "./content-block-applet.schema.json#/$defs/execution_outcome"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "ak.content.applet.relay"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "$ref": "./content-block-applet.schema.json#/$defs/relay"
+          }
         }
       ]
     },

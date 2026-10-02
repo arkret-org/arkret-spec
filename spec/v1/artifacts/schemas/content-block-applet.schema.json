@@ -1,0 +1,259 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/content-block-applet.schema.json",
+  "title": "Arkret Applet Invocation Content",
+  "$ref": "#/$defs/invocation",
+  "$defs": {
+    "disclosed_attachment": {
+      "type": "object",
+      "required": [
+        "source_blob_ref",
+        "attachment"
+      ],
+      "properties": {
+        "source_blob_ref": {
+          "$ref": "./agent-operations.schema.json#/$defs/blob_ref"
+        },
+        "attachment": {
+          "$ref": "./blob.schema.json#/$defs/encrypted_attachment"
+        }
+      },
+      "additionalProperties": false
+    },
+    "disclosed_content": {
+      "type": "object",
+      "required": [
+        "source_ref",
+        "content",
+        "provenance",
+        "attachments"
+      ],
+      "properties": {
+        "source_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "content": {
+          "$ref": "./message.schema.json#/$defs/content_block"
+        },
+        "provenance": {
+          "const": "invoker_disclosure"
+        },
+        "attachments": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/disclosed_attachment"
+          },
+          "minItems": 0,
+          "maxItems": 32
+        }
+      },
+      "additionalProperties": false
+    },
+    "invocation": {
+      "type": "object",
+      "required": [
+        "kind",
+        "body",
+        "applet_id",
+        "applet_actor_id",
+        "registration_ref",
+        "registration_epoch",
+        "source_scope",
+        "source_message_ref",
+        "expires_at",
+        "disclosure_grant_refs",
+        "items",
+        "reply_resource",
+        "invoker_actor_id",
+        "signer_evidence",
+        "signature"
+      ],
+      "properties": {
+        "kind": {
+          "const": "ak.content.applet.invocation"
+        },
+        "body": {
+          "type": "string"
+        },
+        "applet_id": {
+          "$ref": "./common-ids.schema.json#/$defs/applet_id"
+        },
+        "applet_actor_id": {
+          "allOf": [
+            {
+              "$ref": "./common-ids.schema.json#/$defs/actor_id"
+            },
+            {
+              "properties": {
+                "kind": {
+                  "const": "account"
+                }
+              },
+              "required": [
+                "kind"
+              ]
+            }
+          ],
+          "description": "Applet account projection. Its principal_id MUST equal service_id; Station identity remains exact. This is not a second DID."
+        },
+        "registration_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "registration_epoch": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+        },
+        "source_scope": {
+          "$ref": "./event-envelope.schema.json#/$defs/scope_ref"
+        },
+        "source_message_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "disclosure_grant_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "./agent-operations.schema.json#/$defs/grant_id"
+          },
+          "minItems": 1,
+          "maxItems": 1024
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/disclosed_content"
+          },
+          "minItems": 1,
+          "maxItems": 64
+        },
+        "reply_resource": {
+          "$ref": "./resource-selector.schema.json"
+        },
+        "invoker_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
+        },
+        "signer_evidence": {
+          "$ref": "./account-device-signer-evidence.schema.json"
+        },
+        "signature": {
+          "$ref": "./detached-object-signature.schema.json#/$defs/applet_disclosure_signature"
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-signature-domain": "ak.applet_disclosure_signature.v1"
+    },
+    "execution_outcome": {
+      "type": "object",
+      "required": [
+        "kind",
+        "body",
+        "invocation_ref",
+        "invocation_digest",
+        "applet_actor_id",
+        "recipient_actor_id",
+        "registration_ref",
+        "registration_epoch",
+        "signer_evidence",
+        "signature",
+        "content"
+      ],
+      "properties": {
+        "kind": {
+          "const": "ak.content.applet.result"
+        },
+        "body": {
+          "type": "string"
+        },
+        "invocation_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "invocation_digest": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+        },
+        "applet_actor_id": {
+          "allOf": [
+            {
+              "$ref": "./common-ids.schema.json#/$defs/actor_id"
+            },
+            {
+              "properties": {
+                "kind": {
+                  "const": "account"
+                }
+              },
+              "required": [
+                "kind"
+              ]
+            }
+          ],
+          "description": "Applet account projection. Its principal_id MUST equal service_id; Station identity remains exact. This is not a second DID."
+        },
+        "recipient_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
+        },
+        "registration_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "registration_epoch": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+        },
+        "signer_evidence": {
+          "$ref": "./applet-edge-operations.schema.json#/$defs/managed_actor_principal_signer_evidence"
+        },
+        "signature": {
+          "$ref": "./detached-object-signature.schema.json#/$defs/applet_result_signature"
+        },
+        "content": {
+          "$ref": "./message.schema.json#/$defs/content_block"
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-signature-domain": "ak.applet_result_signature.v1"
+    },
+    "relay": {
+      "type": "object",
+      "required": [
+        "kind",
+        "body",
+        "invocation_event",
+        "invocation_commit",
+        "result_event",
+        "result_commit",
+        "invocation_content",
+        "result_content",
+        "verification_scope"
+      ],
+      "properties": {
+        "kind": {
+          "const": "ak.content.applet.relay"
+        },
+        "body": {
+          "type": "string"
+        },
+        "invocation_event": {
+          "$ref": "./event-envelope.schema.json"
+        },
+        "invocation_commit": {
+          "$ref": "./realm-commit.schema.json"
+        },
+        "result_event": {
+          "$ref": "./event-envelope.schema.json"
+        },
+        "result_commit": {
+          "$ref": "./realm-commit.schema.json"
+        },
+        "invocation_content": {
+          "$ref": "#/$defs/invocation"
+        },
+        "result_content": {
+          "$ref": "#/$defs/execution_outcome"
+        },
+        "verification_scope": {
+          "const": "relay_disclosure"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

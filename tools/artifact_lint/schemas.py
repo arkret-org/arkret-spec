@@ -1351,8 +1351,11 @@ def check_profile_requirements(lint: Lint, known: dict[str, set[str]]) -> None:
                 "requested_action_binding": "grant.action_in_registration.requested_scopes",
             }
             for field, expected in expected_bindings.items():
-                if rule.get(field) != expected:
-                    lint.fail(path, f"{label}.{field} must equal {expected}")
+                accepted = {expected}
+                if field == "scope_binding" and rule.get("grantable_action") == "ak.applet.invoke":
+                    accepted.add("grant.resources_within_registration_scope")
+                if rule.get(field) not in accepted:
+                    lint.fail(path, f"{label}.{field} must be a registered binding: {sorted(accepted)}")
             if rule.get("required_registration_event_kind") == "ak.applet.registration":
                 registration_required = applet_registration_payload.get("required", [])
                 registration_properties = applet_registration_payload.get("properties", {})

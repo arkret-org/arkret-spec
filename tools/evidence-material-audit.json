@@ -1,12 +1,12 @@
 {
-  "version": 23,
+  "version": 24,
   "source_of_truth": false,
   "narrative_source": "spec/v1/zh/models/common-fields.md#r6-证据类名词分工",
   "scope": [
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 351,
+  "audited_occurrence_count": 354,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -206,7 +206,7 @@
     {
       "file": "applet-registration-epoch-evidence.schema.json",
       "key": "method_version_evidence",
-      "occurrences": 3,
+      "occurrences": 2,
       "disposition": "polymorphic_container",
       "material_families": [
         "proof",
@@ -357,7 +357,7 @@
     {
       "file": "contract-registry.json",
       "key": "deployment_evidence",
-      "occurrences": 38,
+      "occurrences": 39,
       "disposition": "registry_contract",
       "reason": "References the registered implementation prototype or normative role requirement that proves one frozen operation bundle support vector."
     },
@@ -861,7 +861,7 @@
     {
       "file": "operation-registry.json",
       "key": "deployment_evidence",
-      "occurrences": 38,
+      "occurrences": 39,
       "disposition": "registry_contract",
       "reason": "Generated operation-bundle projection of the canonical deployment evidence references."
     },
@@ -1046,6 +1046,17 @@
       "occurrences": 1,
       "disposition": "registry_contract",
       "reason": "Defines independently verified existing authority and complete authorized current-read inputs to the client-local durable transaction; it introduces no wire evidence carrier, proof RPC or Station-signed local proposal."
+    },
+    {
+      "file": "content-block-applet.schema.json",
+      "key": "signer_evidence",
+      "occurrences": 2,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "attestation",
+        "transcript"
+      ],
+      "reason": "Invocation Device historical authorization and exact Applet Principal native history with Station Service attester are independent complete roots; neither is a caller-supplied bare key."
     }
   ]
 }

@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-02.4",
+  "version": "2026-10-03.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-02T23:05:58+08:00",
+  "generated_at": "2026-10-03T03:33:04+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -8631,6 +8631,12 @@
           "rejection": "MUST NOT advance the business version and MUST NOT create a direction that does not exist."
         }
       ]
+    },
+    {
+      "contract_id": "ak.applet.self_actor.v1",
+      "status": "active",
+      "defined_in": "zh/extensions/applet-client-and-invocation.md",
+      "description": "Single did:webvh Applet subject, exact-Account rotation alignment, isolated preinstall exchange and MLS Circle invocation disclosure/relay. No Agent SessionGrant or source-group key transfer."
     }
   ],
   "schema_registry": {
@@ -8993,7 +8999,7 @@
         "file": "schemas/applet-install-authoring.schema.json",
         "fragment": "#/$defs/authoring_request",
         "status": "active",
-        "description": "Station-signed, expiry-bounded install_bot or provision_ghost managed-actor authoring request.",
+        "description": "Station-signed, expiry-bounded install_applet or provision_ghost managed-actor authoring request.",
         "consumer_binding": {
           "kind": "standalone_schema_alias",
           "selector": "Applet install or Ghost preview and unified managed-actor author request",
@@ -10360,10 +10366,52 @@
         "fragment": "#/$defs/welcome",
         "status": "active",
         "description": "Server authentication-success frame carrying effective connection and channel limits."
+      },
+      {
+        "schema_id": "ak.schema.applet_client_operations.v1",
+        "file": "schemas/applet-client-operations.schema.json",
+        "status": "active",
+        "description": "applet client operations"
+      },
+      {
+        "schema_id": "ak.schema.content_block_applet_invocation.v1",
+        "file": "schemas/content-block-applet.schema.json",
+        "status": "active",
+        "description": "content block applet invocation",
+        "fragment": "#/$defs/invocation",
+        "consumer_binding": {
+          "kind": "standalone_schema_alias",
+          "selector": "ak.content.applet.invocation",
+          "normative_ref": "zh/extensions/applet-client-and-invocation.md"
+        }
+      },
+      {
+        "schema_id": "ak.schema.content_block_applet_result.v1",
+        "file": "schemas/content-block-applet.schema.json",
+        "status": "active",
+        "description": "content block applet result",
+        "fragment": "#/$defs/execution_outcome",
+        "consumer_binding": {
+          "kind": "standalone_schema_alias",
+          "selector": "ak.content.applet.result",
+          "normative_ref": "zh/extensions/applet-client-and-invocation.md"
+        }
+      },
+      {
+        "schema_id": "ak.schema.content_block_applet_relay.v1",
+        "file": "schemas/content-block-applet.schema.json",
+        "status": "active",
+        "description": "content block applet relay",
+        "fragment": "#/$defs/relay",
+        "consumer_binding": {
+          "kind": "standalone_schema_alias",
+          "selector": "ak.content.applet.relay",
+          "normative_ref": "zh/extensions/applet-client-and-invocation.md"
+        }
       }
     ],
-    "version": "2026-09-28.1",
-    "generated_at": "2026-09-28T23:54:00+08:00",
+    "version": "2026-10-03.1",
+    "generated_at": "2026-10-03T03:35:20+08:00",
     "metadata_authority": "contract_registry_section"
   },
   "id_kind_registry": {
@@ -11682,6 +11730,51 @@
           "http_signature_invalid",
           "signature_window_invalid"
         ]
+      },
+      {
+        "scenario_id": "ak.http_signature.scenario.applet_client.v1",
+        "label": "Applet active client exchange",
+        "applies_to": "ak.edge.applet.client.command.exchange.v1",
+        "extends": "ak.http_signature.scenario.service_to_service.v1",
+        "additional_covered_components": [
+          "content-digest",
+          "source-service-id",
+          "destination-service-id",
+          "idempotency-key"
+        ],
+        "conditional_covered_components": [
+          {
+            "component": "source-trust-domain",
+            "condition": "the transaction crosses trust domains"
+          },
+          {
+            "component": "destination-trust-domain",
+            "condition": "the transaction crosses trust domains"
+          }
+        ],
+        "required_headers": [
+          "Signature",
+          "Signature-Input",
+          "Arkret-Operation",
+          "Content-Digest",
+          "Source-Service-ID",
+          "Destination-Service-ID",
+          "Idempotency-Key"
+        ],
+        "freshness_profile_id": "ak.http_signature.freshness.v1",
+        "prose_bindings": [
+          "zh/extensions/applet-client-and-invocation.md"
+        ],
+        "machine_projections": [],
+        "operations": [
+          "ak.edge.applet.client.command.exchange.v1"
+        ],
+        "vectors": [],
+        "error_codes": [
+          "http_signature_required",
+          "http_signature_invalid",
+          "signature_window_invalid"
+        ]
       }
     ]
   },
@@ -12156,7 +12249,8 @@
           "ak.edge.applet.read.protocol_metadata.v1",
           "ak.edge.applet.managed_actor.command.author.v1",
           "ak.edge.applet.third_party_users.read.list.v1",
-          "ak.edge.applet.third_party_locations.read.list.v1"
+          "ak.edge.applet.third_party_locations.read.list.v1",
+          "ak.edge.applet.client.command.exchange.v1"
         ],
         "surface_class": "interop_bridge"
       },
@@ -12166,7 +12260,8 @@
           "ak.self.applet.install.command.preview.v1",
           "ak.self.applet.command.install.v1",
           "ak.self.applet.revoke.command.preview.v1",
-          "ak.self.applet.command.revoke.v1"
+          "ak.self.applet.command.revoke.v1",
+          "ak.self.applet.install.command.cancel.v1"
         ],
         "surface_class": "extension"
       },
@@ -12378,7 +12473,7 @@
         "http": "POST /_arkret/edge/applet/managed-actors/author",
         "grpc": "EdgeApplet/ManagedActorAuthor",
         "mq": "edge.applet.managed_actor.command.author",
-        "notes": "The Applet service consumes the one signed install_bot or provision_ghost authoring request and returns the exact role-neutral four-Event bundle. All four creation Events use the Applet service as actual producer and reference the same real Service AuthenticatedSignerResolutionEvidence root derived from the accepted registration epoch; a pre-effective Bot or Ghost never signs them. Its durable ledger is keyed by branch subject plus full signed-request digest and preserves exact request/bundle bytes, the Service root, actor key handle, method history, and provision state. No derived request ID or branch-specific Event aliases exist.",
+        "notes": "The Applet service consumes the one signed install_applet or provision_ghost authoring request and returns the exact role-neutral four-Event bundle. All four creation Events use the Applet service as actual producer and reference the same real Service AuthenticatedSignerResolutionEvidence root derived from the accepted registration epoch; a pre-effective Bot or Ghost never signs them. Its durable ledger is keyed by branch subject plus full signed-request digest and preserves exact request/bundle bytes, the Service root, actor key handle, method history, and provision state. No derived request ID or branch-specific Event aliases exist.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "canonical_hash",
@@ -15777,6 +15872,49 @@
         "success_shape_kind": "service_describe",
         "response_schema_ref": "schemas/service-describe.schema.json",
         "notes": ""
+      },
+      {
+        "operation_id": "ak.edge.applet.client.command.exchange.v1",
+        "http": "POST /_arkret/edge/applet/client/exchange",
+        "grpc": "EdgeApplet/ClientExchange",
+        "mq": "edge.applet.client.command.exchange",
+        "body_class": "non_streaming_json",
+        "success_shape_kind": "schema_resource",
+        "idempotency_mechanism": "idempotency_key",
+        "retry_safe": true,
+        "request_schema_ref": "schemas/applet-client-operations.schema.json#/$defs/exchange_request_body",
+        "response_schema_ref": "schemas/applet-client-operations.schema.json#/$defs/exchange_outcome",
+        "auth_requirements": {
+          "service_signature": {
+            "signature_scenario_id": "ak.http_signature.scenario.applet_client.v1",
+            "per_delivery": true,
+            "bearer_only_allowed": false,
+            "contract": "Resolve the canonical signature scenario; preinstall authorizes only the exact admin-approved request, installed traffic rechecks current install/grants/epoch/scope."
+          }
+        },
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "Durable local request, bundle, queue and ack ledger only; Events retain dedicated admission."
+        },
+        "notes": "Hosted at the target Station, never at the Applet. Claim is read-only and repeats the earliest unacked exact task per lane. No session, arbitrary history cursor or staged install. Bootstrap bundle is not committed until the administrator submits the exact existing install operation. Each claim uses a new Idempotency-Key after a known response; response-loss retry reuses the exact key/body. Current disclosure authority is rechecked before returning any cached bytes."
+      },
+      {
+        "operation_id": "ak.self.applet.install.command.cancel.v1",
+        "http": "POST /_arkret/self/applets/install/cancel",
+        "grpc": "SelfApplet/InstallCancel",
+        "mq": "self.applet.install.command.cancel",
+        "body_class": "non_streaming_json",
+        "success_shape_kind": "schema_resource",
+        "idempotency_mechanism": "canonical_hash",
+        "canonical_hash_input": "full_body",
+        "retry_safe": true,
+        "request_schema_ref": "schemas/applet-client-operations.schema.json#/$defs/cancel_request_body",
+        "response_schema_ref": "schemas/applet-client-operations.schema.json#/$defs/cancel_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "Cancel only the authenticated original installing administrator pending request; no Realm Event is admitted."
+        },
+        "notes": "Same holder/request terminal CAS as preview/commit; accepted install cannot be cancelled and must use revoke. Exact cancel retry preserves terminal state."
       }
     ],
     "direct_conversation_admission_mappings": {
@@ -16019,8 +16157,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-10-02.2",
-    "generated_at": "2026-10-02T23:05:58+08:00",
+    "version": "2026-10-03.1",
+    "generated_at": "2026-10-03T03:35:20+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",
@@ -17324,6 +17462,23 @@
         "members": [
           {
             "operation_id": "ak.self.keys.keypackages.read.claim.v1",
+            "binding_kind": "http_json"
+          }
+        ]
+      },
+      {
+        "operation_bundle_id": "ak.operation_bundle.station.applet_client.v1",
+        "service_kind": "station",
+        "deployment_evidence": [
+          "normative:zh/extensions/applet-client-and-invocation.md"
+        ],
+        "members": [
+          {
+            "operation_id": "ak.edge.applet.client.command.exchange.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.self.applet.install.command.cancel.v1",
             "binding_kind": "http_json"
           }
         ]
@@ -19327,6 +19482,16 @@
         "root_control_only": true,
         "notes": "Advances the Realm authority-root delegation generation, which invalidates every grant descending from a realm_root ref of the previous generation. Authored only by the current controller against the frozen pre-state digest; it MUST NOT be granted, so it is excluded from every derived owner authority set. profiles/conformance-profiles.json lists it in the root-owner mask's allowed_root_control_actions alongside ak.realm.owner.transfer.",
         "event_mapping_kind": "same_name"
+      },
+      {
+        "action": "ak.applet.invoke",
+        "category": "content",
+        "risk_tier": "high",
+        "required_constraints": [],
+        "target_event_kinds": [],
+        "event_mapping_kind": "non_event_surface",
+        "profile": "ak.profile.applet_service.v1",
+        "description": "Explicit permission to disclose selected currently readable source content to an installed Applet. Exact source resources, target policy and current install are independently checked; mention and read permission alone never authorize export."
       }
     ],
     "event_mapping_kind_definitions": {
@@ -19337,8 +19502,8 @@
       "scope_suffix_variant": "Action adds actor/scope/role qualifiers while reducer admission targets a shared event kind.",
       "operation_verb": "Action token names an operation/command verb that does not match its target event kind name(s); reducer admission resolves the resulting event kind(s) via target_event_kinds. Literal action matching per the actions[] rule applies; carries no aggregate-admin family semantics."
     },
-    "version": "2026-10-01",
-    "generated_at": "2026-10-01T14:17:59+08:00",
+    "version": "2026-10-03.1",
+    "generated_at": "2026-10-03T03:35:20+08:00",
     "metadata_authority": "contract_registry_section"
   },
   "calendar_timezone_registry": {
@@ -19939,10 +20104,21 @@
             }
           }
         ]
+      },
+      "applet_self_actor": {
+        "allowed_methods": [
+          "did:webvh"
+        ],
+        "required_adapter_properties": {
+          "network_resolved_document": true,
+          "verifiable_control_history": true,
+          "pre_rotation_commitment": true,
+          "ongoing_did_governance": true
+        }
       }
     },
-    "version": "2026-09-30.4",
-    "generated_at": "2026-09-30T11:12:40+08:00",
+    "version": "2026-10-03.1",
+    "generated_at": "2026-10-03T03:35:20+08:00",
     "metadata_authority": "contract_registry_section"
   },
   "binding_kind_registry": {

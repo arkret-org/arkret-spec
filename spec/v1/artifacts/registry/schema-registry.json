@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-28.1",
+  "version": "2026-10-03.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-28T23:54:00+08:00",
+  "generated_at": "2026-10-03T03:35:20+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -363,7 +363,7 @@
       "file": "schemas/applet-install-authoring.schema.json",
       "fragment": "#/$defs/authoring_request",
       "status": "active",
-      "description": "Station-signed, expiry-bounded install_bot or provision_ghost managed-actor authoring request.",
+      "description": "Station-signed, expiry-bounded install_applet or provision_ghost managed-actor authoring request.",
       "consumer_binding": {
         "kind": "standalone_schema_alias",
         "selector": "Applet install or Ghost preview and unified managed-actor author request",
@@ -1730,6 +1730,48 @@
       "fragment": "#/$defs/welcome",
       "status": "active",
       "description": "Server authentication-success frame carrying effective connection and channel limits."
+    },
+    {
+      "schema_id": "ak.schema.applet_client_operations.v1",
+      "file": "schemas/applet-client-operations.schema.json",
+      "status": "active",
+      "description": "applet client operations"
+    },
+    {
+      "schema_id": "ak.schema.content_block_applet_invocation.v1",
+      "file": "schemas/content-block-applet.schema.json",
+      "status": "active",
+      "description": "content block applet invocation",
+      "fragment": "#/$defs/invocation",
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "ak.content.applet.invocation",
+        "normative_ref": "zh/extensions/applet-client-and-invocation.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.content_block_applet_result.v1",
+      "file": "schemas/content-block-applet.schema.json",
+      "status": "active",
+      "description": "content block applet result",
+      "fragment": "#/$defs/execution_outcome",
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "ak.content.applet.result",
+        "normative_ref": "zh/extensions/applet-client-and-invocation.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.content_block_applet_relay.v1",
+      "file": "schemas/content-block-applet.schema.json",
+      "status": "active",
+      "description": "content block applet relay",
+      "fragment": "#/$defs/relay",
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "ak.content.applet.relay",
+        "normative_ref": "zh/extensions/applet-client-and-invocation.md"
+      }
     }
   ],
   "metadata_authority": "contract_registry_section"

@@ -9635,3 +9635,56 @@ paths:
       security:
       - sessionGrantAuth: []
         dpopProof: []
+  /_arkret/edge/applet/client/exchange:
+    post:
+      operationId: ak.edge.applet.client.command.exchange
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.edge.applet.client.command.exchange.v1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/applet-client-operations.schema.json#/$defs/exchange_request_body
+      responses:
+        '200':
+          description: Successful exact Applet lifecycle outcome.
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/applet-client-operations.schema.json#/$defs/exchange_outcome
+      security:
+      - serviceHttpMessageSignatures: []
+  /_arkret/self/applets/install/cancel:
+    post:
+      operationId: ak.self.applet.install.command.cancel
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.self.applet.install.command.cancel.v1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/applet-client-operations.schema.json#/$defs/cancel_request_body
+      responses:
+        '200':
+          description: Successful exact Applet lifecycle outcome.
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/applet-client-operations.schema.json#/$defs/cancel_outcome
+      security:
+      - sessionGrantAuth: []
+        dpopProof: []

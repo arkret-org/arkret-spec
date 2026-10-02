@@ -1208,16 +1208,22 @@ def check_detached_object_signature_registration(lint: Lint) -> None:
             f"removed snapshot proof context must not return: {REMOVED_REALM_SNAPSHOT_PROOF_CONTEXT}",
         )
 
+    # Applet plaintext domains have their own contract/transcript fixture. It is
+    # deliberately not represented as live method-history or MLS evidence.
+    applet_contexts = {
+        "ak.applet_disclosure_signature.v1": "applet_disclosure_signature",
+        "ak.applet_result_signature.v1": "applet_result_signature",
+    }
     expected_contexts = list(DETACHED_SIGNATURE_CONTEXTS)
     properties = signature_schema.get("properties")
     defs = signature_schema.get("$defs")
     enum = properties.get("context", {}).get("enum") if isinstance(properties, dict) else None
-    if enum != expected_contexts:
-        lint.fail(DETACHED_OBJECT_SIGNATURE_SCHEMA, "context enum must contain exactly the six registered detached-object contexts in canonical order")
+    if enum != expected_contexts + list(applet_contexts):
+        lint.fail(DETACHED_OBJECT_SIGNATURE_SCHEMA, "context enum must contain exactly the registered detached-object contexts in canonical order")
     if not isinstance(defs, dict) or set(defs) != {
         config["definition"] for config in DETACHED_SIGNATURE_CONTEXTS.values()
-    }:
-        lint.fail(DETACHED_OBJECT_SIGNATURE_SCHEMA, "$defs must contain exactly one branch for each of the six contexts")
+    } | set(applet_contexts.values()):
+        lint.fail(DETACHED_OBJECT_SIGNATURE_SCHEMA, "$defs must contain exactly one branch for each registered context")
     else:
         for context, config in DETACHED_SIGNATURE_CONTEXTS.items():
             branch = defs.get(config["definition"])
@@ -1227,6 +1233,13 @@ def check_detached_object_signature_registration(lint: Lint) -> None:
                 branch_context = None
             if branch_context != context:
                 lint.fail(DETACHED_OBJECT_SIGNATURE_SCHEMA, f"$defs.{config['definition']} must const-bind {context}")
+        for context, definition in applet_contexts.items():
+            branch = defs.get(definition, {})
+            if branch.get("allOf", [{}, {}])[1].get("properties", {}).get("context", {}).get("const") != context:
+                lint.fail(DETACHED_OBJECT_SIGNATURE_SCHEMA, f"$defs.{definition} must const-bind {context}")
+            row = next((row for row in registry.get("domain_separations", []) if row.get("domain") == context), None)
+            if not isinstance(row, dict) or row.get("transcript_schema_refs") != [f"schemas/detached-object-signature.schema.json#/$defs/{definition}"]:
+                lint.fail(PROOF_CONTEXT_REGISTRY, f"{context} must own its registered signature transcript")
     digest_schema = properties.get("signed_digest") if isinstance(properties, dict) else None
     if digest_schema != {
         "type": "string",

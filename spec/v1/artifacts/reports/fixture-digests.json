@@ -52,18 +52,23 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-managed-actor-fixture.json",
-      "sha256": "1067ffd504d63c17e6f474bc18ad8ce58e2a6b17f11308c19f08bc534d32675c",
-      "version": "2026-09-25.1"
+      "sha256": "d03193a8a2c7c84ad01984e51fa52bad241f2b99aaa473261d7bcdcdab2f40ad",
+      "version": "2026-10-03.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-registration-epoch-fixture.json",
-      "sha256": "b177fbcdc56062b81a8ce5ded237df1c835027b24841dd375bd03e2715521686",
-      "version": "2026-08-31"
+      "sha256": "532d561c12e4c33a5ac379b1c0946fe16bb9460e73502a0c7ecd8caf848e71e0",
+      "version": "2026-10-03.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-revoke-saga-fixture.json",
       "sha256": "7a0f64b0385fd2c31f641cee4d6031034bad90fc347c2cdae1cb6f242d3e4f26",
       "version": "2026-09-29.1"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/applet-self-actor-fixture.json",
+      "sha256": "5c82966b7af16b63bacd505b4ceba5cffc88c8457e7274b348d50b191b14f547",
+      "version": "2026-10-03.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/approval-signature-kat-fixture.json",

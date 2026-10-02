@@ -549,7 +549,8 @@ Resolver policy MUST 至少定义：
     "did:webvh": {
       "role": [
         "human_principal_anchor",
-        "human_did_root_recovery",
+        "applet_self_actor",
+      "human_did_root_recovery",
         "human_relocatable",
         "ongoing_did_governance",
         "service"

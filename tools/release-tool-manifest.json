@@ -1,10 +1,11 @@
 {
-  "version": "2026-09-27.1",
+  "version": "2026-10-03.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-27T14:50:00+08:00",
+  "generated_at": "2026-10-03T03:43:38+08:00",
   "description": "Closed executable inventory for the artifact and release gates. Pipelines execute only listed check ids; runner code supplies implementation but cannot add an unregistered check.",
   "pipelines": {
     "artifact_check": [
+      "applet_self_actor_contract",
       "authority_commit_protocol",
       "result_family_writer_gate",
       "current_principal_schema",
@@ -47,38 +48,175 @@
     ]
   },
   "checks": [
-    { "check_id": "applet_delivery_authentication_kat", "label": "applet delivery authentication KAT", "owner_script": "tools/check_applet_delivery_authentication_kat.py" },
-    { "check_id": "approval_signature_kat", "label": "approval signature KAT", "owner_script": "tools/check_approval_signature_kat.py" },
-    { "check_id": "artifact_lint", "label": "artifact lint", "owner_script": "tools/artifact_lint/__main__.py" },
-    { "check_id": "artifact_pipeline", "label": "artifact pipeline", "owner_script": "tools/artifact_pipeline.py" },
-    { "check_id": "artifact_versions", "label": "artifact versions", "owner_script": "tools/check_artifact_versions.py" },
-    { "check_id": "authority_commit_protocol", "label": "authority commit protocol", "owner_script": "tools/test_authority_commit_protocol.py" },
-    { "check_id": "contact_round_kat", "label": "contact round KAT", "owner_script": "tools/check_contact_round_kat.py" },
-    { "check_id": "content_bound_event_id_kat", "label": "content-bound Event-ID KAT", "owner_script": "tools/generate_content_bound_event_id_fixture.py" },
-    { "check_id": "creator_bootstrap_transaction_test", "label": "creator bootstrap transaction test", "owner_script": "tools/test_mls_creator_bootstrap_transaction_lint.py" },
-    { "check_id": "crossref", "label": "crossref", "owner_script": "site/scripts/crossref-check.mjs" },
-    { "check_id": "current_principal_schema", "label": "current principal schema", "owner_script": "tools/test_current_principal_schema.py" },
-    { "check_id": "cursor_negative_fixture", "label": "cursor negative fixture", "owner_script": "tools/check_cursor_negative_fixture.py" },
-    { "check_id": "event_kind_vector_gap", "label": "event kind vector gap", "owner_script": "tools/check_event_kind_vector_gaps.py" },
-    { "check_id": "event_reference_inventory", "label": "event reference inventory", "owner_script": "tools/gen_event_reference_inventory.py" },
-    { "check_id": "fixture_digests", "label": "fixture digests", "owner_script": "tools/check_fixture_digests.py" },
-    { "check_id": "handle_claim_kat", "label": "handle claim KAT", "owner_script": "tools/check_handle_claim_kat.py" },
-    { "check_id": "key_backup_hardening_kat", "label": "key backup hardening KAT", "owner_script": "tools/regenerate_key_backup_hardening_kat.mjs" },
-    { "check_id": "long_text_schema_test", "label": "long text schema test", "owner_script": "tools/test_long_text_schema.py" },
-    { "check_id": "openapi_operation_selector", "label": "openapi operation selector", "owner_script": "tools/check_openapi_operation_selectors.py" },
-    { "check_id": "operation_closure_locks", "label": "operation closure locks", "owner_script": "tools/check_operation_closure_locks.py" },
-    { "check_id": "operation_completeness_report", "label": "operation completeness report", "owner_script": "tools/gen_operation_completeness_report.py" },
-    { "check_id": "operation_string_classification", "label": "operation string classification", "owner_script": "tools/gen_operation_string_field_classification.py" },
-    { "check_id": "operation_string_classification_test", "label": "operation string classification test", "owner_script": "tools/test_operation_string_field_classification.py" },
-    { "check_id": "payload_validator_profile", "label": "payload validator profile", "owner_script": "tools/check_payload_validator_profiles.py" },
-    { "check_id": "property_presence_manifest", "label": "property presence manifest", "owner_script": "tools/gen_property_presence_manifest.py" },
-    { "check_id": "prose_lint", "label": "prose lint", "owner_script": "tools/lint_spec.py" },
-    { "check_id": "result_family_writer_gate", "label": "result family writer gate", "owner_script": "tools/test_result_family_writer_gate.py" },
-    { "check_id": "schema_constructability_test", "label": "schema constructability test", "owner_script": "tools/test_schema_constructability_lint.py" },
-    { "check_id": "schema_consumer_coverage", "label": "schema consumer coverage", "owner_script": "tools/gen_schema_consumer_coverage.py" },
-    { "check_id": "sdk_conformance_claim", "label": "SDK conformance claim current-contract binding", "owner_script": "tools/regenerate_sdk_conformance_claim.py" },
-    { "check_id": "session_grant_kat", "label": "session grant KAT", "owner_script": "tools/check_session_grant_kat.py" },
-    { "check_id": "strict_spec_lint", "label": "strict spec lint", "owner_script": "tools/lint_spec.py" },
-    { "check_id": "vector_registry_traceability", "label": "vector registry traceability", "owner_script": "tools/check_vector_registry_traceability.py" }
+    {
+      "check_id": "applet_delivery_authentication_kat",
+      "label": "applet delivery authentication KAT",
+      "owner_script": "tools/check_applet_delivery_authentication_kat.py"
+    },
+    {
+      "check_id": "applet_self_actor_contract",
+      "label": "applet self actor contract",
+      "owner_script": "tools/check_applet_self_actor_contract.py"
+    },
+    {
+      "check_id": "approval_signature_kat",
+      "label": "approval signature KAT",
+      "owner_script": "tools/check_approval_signature_kat.py"
+    },
+    {
+      "check_id": "artifact_lint",
+      "label": "artifact lint",
+      "owner_script": "tools/artifact_lint/__main__.py"
+    },
+    {
+      "check_id": "artifact_pipeline",
+      "label": "artifact pipeline",
+      "owner_script": "tools/artifact_pipeline.py"
+    },
+    {
+      "check_id": "artifact_versions",
+      "label": "artifact versions",
+      "owner_script": "tools/check_artifact_versions.py"
+    },
+    {
+      "check_id": "authority_commit_protocol",
+      "label": "authority commit protocol",
+      "owner_script": "tools/test_authority_commit_protocol.py"
+    },
+    {
+      "check_id": "contact_round_kat",
+      "label": "contact round KAT",
+      "owner_script": "tools/check_contact_round_kat.py"
+    },
+    {
+      "check_id": "content_bound_event_id_kat",
+      "label": "content-bound Event-ID KAT",
+      "owner_script": "tools/generate_content_bound_event_id_fixture.py"
+    },
+    {
+      "check_id": "creator_bootstrap_transaction_test",
+      "label": "creator bootstrap transaction test",
+      "owner_script": "tools/test_mls_creator_bootstrap_transaction_lint.py"
+    },
+    {
+      "check_id": "crossref",
+      "label": "crossref",
+      "owner_script": "site/scripts/crossref-check.mjs"
+    },
+    {
+      "check_id": "current_principal_schema",
+      "label": "current principal schema",
+      "owner_script": "tools/test_current_principal_schema.py"
+    },
+    {
+      "check_id": "cursor_negative_fixture",
+      "label": "cursor negative fixture",
+      "owner_script": "tools/check_cursor_negative_fixture.py"
+    },
+    {
+      "check_id": "event_kind_vector_gap",
+      "label": "event kind vector gap",
+      "owner_script": "tools/check_event_kind_vector_gaps.py"
+    },
+    {
+      "check_id": "event_reference_inventory",
+      "label": "event reference inventory",
+      "owner_script": "tools/gen_event_reference_inventory.py"
+    },
+    {
+      "check_id": "fixture_digests",
+      "label": "fixture digests",
+      "owner_script": "tools/check_fixture_digests.py"
+    },
+    {
+      "check_id": "handle_claim_kat",
+      "label": "handle claim KAT",
+      "owner_script": "tools/check_handle_claim_kat.py"
+    },
+    {
+      "check_id": "key_backup_hardening_kat",
+      "label": "key backup hardening KAT",
+      "owner_script": "tools/regenerate_key_backup_hardening_kat.mjs"
+    },
+    {
+      "check_id": "long_text_schema_test",
+      "label": "long text schema test",
+      "owner_script": "tools/test_long_text_schema.py"
+    },
+    {
+      "check_id": "openapi_operation_selector",
+      "label": "openapi operation selector",
+      "owner_script": "tools/check_openapi_operation_selectors.py"
+    },
+    {
+      "check_id": "operation_closure_locks",
+      "label": "operation closure locks",
+      "owner_script": "tools/check_operation_closure_locks.py"
+    },
+    {
+      "check_id": "operation_completeness_report",
+      "label": "operation completeness report",
+      "owner_script": "tools/gen_operation_completeness_report.py"
+    },
+    {
+      "check_id": "operation_string_classification",
+      "label": "operation string classification",
+      "owner_script": "tools/gen_operation_string_field_classification.py"
+    },
+    {
+      "check_id": "operation_string_classification_test",
+      "label": "operation string classification test",
+      "owner_script": "tools/test_operation_string_field_classification.py"
+    },
+    {
+      "check_id": "payload_validator_profile",
+      "label": "payload validator profile",
+      "owner_script": "tools/check_payload_validator_profiles.py"
+    },
+    {
+      "check_id": "property_presence_manifest",
+      "label": "property presence manifest",
+      "owner_script": "tools/gen_property_presence_manifest.py"
+    },
+    {
+      "check_id": "prose_lint",
+      "label": "prose lint",
+      "owner_script": "tools/lint_spec.py"
+    },
+    {
+      "check_id": "result_family_writer_gate",
+      "label": "result family writer gate",
+      "owner_script": "tools/test_result_family_writer_gate.py"
+    },
+    {
+      "check_id": "schema_constructability_test",
+      "label": "schema constructability test",
+      "owner_script": "tools/test_schema_constructability_lint.py"
+    },
+    {
+      "check_id": "schema_consumer_coverage",
+      "label": "schema consumer coverage",
+      "owner_script": "tools/gen_schema_consumer_coverage.py"
+    },
+    {
+      "check_id": "sdk_conformance_claim",
+      "label": "SDK conformance claim current-contract binding",
+      "owner_script": "tools/regenerate_sdk_conformance_claim.py"
+    },
+    {
+      "check_id": "session_grant_kat",
+      "label": "session grant KAT",
+      "owner_script": "tools/check_session_grant_kat.py"
+    },
+    {
+      "check_id": "strict_spec_lint",
+      "label": "strict spec lint",
+      "owner_script": "tools/lint_spec.py"
+    },
+    {
+      "check_id": "vector_registry_traceability",
+      "label": "vector registry traceability",
+      "owner_script": "tools/check_vector_registry_traceability.py"
+    }
   ]
 }

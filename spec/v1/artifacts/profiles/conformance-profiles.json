@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-01",
-  "generated_at": "2026-10-01T14:17:59+08:00",
+  "version": "2026-10-03.1",
+  "generated_at": "2026-10-03T03:33:04+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -3776,23 +3776,7 @@
         "conformance",
         "startup_claim_guard"
       ],
-      "operation_requirements": [
-        {
-          "direction": "provide",
-          "operation_id": "ak.edge.applet.read.describe.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.edge.applet.read.ping.v1",
-          "binding_kind": "http_json"
-        },
-        {
-          "direction": "provide",
-          "operation_id": "ak.edge.applet.command.transaction.v1",
-          "binding_kind": "http_json"
-        }
-      ],
+      "operation_requirements": [],
       "required_event_kinds": [
         "ak.applet.registration"
       ],
@@ -3801,10 +3785,15 @@
         "ak.schema.event.v1",
         "ak.schema.event_payload.v1",
         "ak.schema.applet_package.v1",
-        "ak.schema.applet_registration_epoch_transcript.v1"
+        "ak.schema.applet_registration_epoch_transcript.v1",
+        "ak.schema.applet_client_operations.v1",
+        "ak.schema.content_block_applet_invocation.v1",
+        "ak.schema.content_block_applet_result.v1",
+        "ak.schema.content_block_applet_relay.v1"
       ],
       "required_fixtures": [
-        "applet-registration-epoch-fixture.json"
+        "applet-registration-epoch-fixture.json",
+        "applet-self-actor-fixture.json"
       ],
       "optional_extensions": [],
       "feature_discovery": {
@@ -3813,9 +3802,13 @@
           "supported_protocols",
           "namespace",
           "service_id",
-          "bot_actor_id",
+          "applet_actor_id",
           "transaction_delivery_authentication_record",
-          "transaction_replay_binding"
+          "transaction_replay_binding",
+          "transport",
+          "applet_self_actor",
+          "invocation_disclosure",
+          "invocation_result_relay"
         ],
         "unsupported_optional": "return unsupported_feature"
       },
@@ -3839,8 +3832,67 @@
         "transaction_push_delivery_authentication_record_must": "Receivers MUST derive and persist the closed delivery_authentication_record from verified inputs, including operation/direction, source/destination, signature label, verification method/key digest/algorithm, registration epoch, idempotency key, content digest, ordered covered components, created and expires. They MUST recompute delivery_authentication_record_digest with domain ak.applet.delivery_authentication_record.v1; neither value is caller supplied.",
         "transaction_push_replay_binding_must": "The idempotency identity MUST include operation_id, direction, Source-Service-ID, Destination-Service-ID and Idempotency-Key; the cached record MUST bind canonical body digest, delivery_authentication_record and its receiver-recomputed digest. A replay with a different body digest or authentication-record digest MUST fail closed.",
         "transaction_push_inbound_registration_must": "For app/bridge->arkret inbound push, Source-Service-ID MUST match an active effective Applet install and Signature-Input keyid MUST equal the current registration webhook_auth.key_ref; missing install or key mismatch MUST fail closed with applet_registration_unauthorized or http_signature_invalid.",
-        "transaction_push_actor_binding_must": "The source service signature authenticates only the Applet service. Each durable Event in the transaction MUST still verify event proofs, applet_id, authorization_ref, actor_id namespace and capability grants; namespace or actor-source confusion MUST fail closed."
-      }
+        "transaction_push_actor_binding_must": "The source service signature authenticates only the Applet service. Each durable Event in the transaction MUST still verify event proofs, applet_id, authorization_ref, actor_id namespace and capability grants; namespace or actor-source confusion MUST fail closed.",
+        "self_actor_contract": {
+          "normative_ref": "zh/extensions/applet-client-and-invocation.md",
+          "single_subject_method": "did:webvh",
+          "account_binding": "applet_actor_id.account_id.principal_id == service_id",
+          "current_alignment": "exact Account accepted PCR version and active registration epoch version must match",
+          "transport_choice": [
+            "https_push",
+            "client_pull"
+          ],
+          "client_operation_id": "ak.edge.applet.client.command.exchange.v1",
+          "signature_scenario_id": "ak.http_signature.scenario.applet_client.v1",
+          "unsupported_policy": "unsupported_feature with zero writes; never advertise the unsupported branch"
+        },
+        "operation_requirements_by_transport": {
+          "selector": "/transport/kind",
+          "https_push": [
+            {
+              "direction": "provide",
+              "operation_id": "ak.edge.applet.read.describe.v1",
+              "binding_kind": "http_json"
+            },
+            {
+              "direction": "provide",
+              "operation_id": "ak.edge.applet.read.ping.v1",
+              "binding_kind": "http_json"
+            },
+            {
+              "direction": "provide",
+              "operation_id": "ak.edge.applet.command.transaction.v1",
+              "binding_kind": "http_json"
+            }
+          ],
+          "client_pull": [
+            {
+              "direction": "consume",
+              "operation_id": "ak.edge.applet.client.command.exchange.v1",
+              "binding_kind": "http_json"
+            }
+          ]
+        },
+        "transport_branch_claim_guard": "A runtime must implement the selected package transport branch and all its operation requirements before claiming the common Applet profile; task execution is the client equivalent of the same provided operation. No URL fallback."
+      },
+      "non_event_grant_authority_rules": [
+        {
+          "issuer_action": "ak.realm.admin",
+          "issuer_owner_authority_allowed": true,
+          "grantable_action": "ak.applet.invoke",
+          "required_registration_event_kind": "ak.applet.registration",
+          "required_claimed_profile": "ak.profile.applet_service.v1",
+          "required_constraint_kind": "authority_control",
+          "required_constraint_subkind": "applet_authority",
+          "subject_binding": "registration.service_id",
+          "scope_binding": "grant.resources_within_registration_scope",
+          "epoch_binding": "constraint.registration_epoch_exact_registration",
+          "requested_action_binding": "grant.action_in_registration.requested_scopes"
+        }
+      ],
+      "required_actions": [
+        "ak.applet.invoke"
+      ]
     },
     "ak.profile.applet_bridge.v1": {
       "enforcement_phases": [

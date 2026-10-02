@@ -15,7 +15,7 @@ ENTRYPOINT = "ak.suite.applet.managed_actor_authority.v1"
 # Every case is deliberately named here. Adding a fixture row without an
 # executable expectation makes the suite fail instead of silently skipping it.
 EXPECTED: dict[str, tuple[str, Any]] = {
-    "bot_exact_pair_and_initial_resolution": ("expect", "accepted"),
+    "applet_exact_pair_and_initial_resolution": ("expect", "accepted"),
     "ghost_namespace_matches_verified_did": ("expect", "accepted"),
     "ghost_namespace_pattern_pins_service_scid": ("expect", "applet_namespace_pattern_invalid"),
     "ghost_host_segment_differs_from_service_host": ("expect", "applet_managed_actor_provision_invalid"),
@@ -25,8 +25,8 @@ EXPECTED: dict[str, tuple[str, Any]] = {
     "ghost_external_tuple_rejects_extra_mirrors": ("expect", "schema_violation"),
     "ghost_provision_requires_registration_service_signature": ("expect", "http_signature_required_or_invalid"),
     "remote_station_claim": ("expect", "applet_managed_actor_provision_invalid"),
-    "actor_reuses_service_or_controller": ("expect", "applet_managed_actor_provision_invalid"),
-    "bot_does_not_equal_registration_bot": ("expect", "applet_managed_actor_provision_invalid"),
+    "ghost_reuses_service_or_controller": ("expect", "applet_managed_actor_provision_invalid"),
+    "applet_does_not_equal_registration_actor": ("expect", "applet_managed_actor_provision_invalid"),
     "ghost_core_used_for_did_namespace": ("expect", "applet_namespace_mismatch"),
     "invalid_method_history_or_witness": ("expect", "identity_method_evidence_invalid"),
     "non_webvh_method_evidence_is_not_a_managed_authority": ("expect", "schema_violation"),

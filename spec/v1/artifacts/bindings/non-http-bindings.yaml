@@ -67,6 +67,7 @@ grpc:
       ParticipationReplace: ak.self.agent.participation.resource.replace.v1
       ParticipationGet: ak.self.agent.participation.resource.get.v1
     EdgeApplet:
+      ClientExchange: ak.edge.applet.client.command.exchange.v1
       ManagedActorAuthor: ak.edge.applet.managed_actor.command.author.v1
       Describe: ak.edge.applet.read.describe.v1
       Ping: ak.edge.applet.read.ping.v1
@@ -77,6 +78,7 @@ grpc:
       ThirdPartyUsers: ak.edge.applet.third_party_users.read.list.v1
       Transaction: ak.edge.applet.command.transaction.v1
     SelfApplet:
+      InstallCancel: ak.self.applet.install.command.cancel.v1
       InstallPreview: ak.self.applet.install.command.preview.v1
       Install: ak.self.applet.command.install.v1
       RevokePreview: ak.self.applet.revoke.command.preview.v1
@@ -334,6 +336,8 @@ mq:
       signatures:
         type: array
   topics:
+    self.applet.install.command.cancel: ak.self.applet.install.command.cancel.v1
+    edge.applet.client.command.exchange: ak.edge.applet.client.command.exchange.v1
     self.security_transaction.command.create: ak.self.security_transaction.command.create.v1
     self.security_transaction.resource.get: ak.self.security_transaction.resource.get.v1
     self.security_transaction.command.continue: ak.self.security_transaction.command.continue.v1

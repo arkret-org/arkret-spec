@@ -36,7 +36,7 @@
         "service",
         "integration"
       ],
-      "description": "Closed Actor classification. agent is reserved exclusively for a controller-provisioned Agent; Applet-created or Applet-hosted automation uses bot; Ghost Actor is provenance rather than an actor_kind and uses integration for an external account/integration mirror or bot for an external bot mirror. MUST NOT include device: a device is an endpoint rather than an Actor principal. actor_kind alone grants no authority; authorization still requires the normative DID, provisioning/registration, Grant and Constraint evidence. See zh/models/actor.md."
+      "description": "Closed Actor classification. agent is reserved exclusively for a controller-provisioned Agent; Applet self actors use service with accepted registration/provision provenance; Ghost Actor is provenance rather than an actor_kind and uses integration for an external account/integration mirror or bot for an external bot mirror. MUST NOT include device: a device is an endpoint rather than an Actor principal. actor_kind alone grants no authority; authorization still requires the normative DID, provisioning/registration, Grant and Constraint evidence. See zh/models/actor.md."
     },
     "display_name": {
       "$ref": "string-profiles.schema.json#/$defs/display_text_128"
@@ -117,7 +117,7 @@
             "service",
             "integration"
           ],
-          "description": "Closed Actor classification. agent is reserved exclusively for a controller-provisioned Agent; Applet-created or Applet-hosted automation uses bot; Ghost Actor is provenance rather than an actor_kind and uses integration for an external account/integration mirror or bot for an external bot mirror. MUST NOT include device: a device is an endpoint rather than an Actor principal. actor_kind alone grants no authority; authorization still requires the normative DID, provisioning/registration, Grant and Constraint evidence. See zh/models/actor.md."
+          "description": "Closed Actor classification. agent is reserved exclusively for a controller-provisioned Agent; Applet self actors use service with accepted registration/provision provenance; Ghost Actor is provenance rather than an actor_kind and uses integration for an external account/integration mirror or bot for an external bot mirror. MUST NOT include device: a device is an endpoint rather than an Actor principal. actor_kind alone grants no authority; authorization still requires the normative DID, provisioning/registration, Grant and Constraint evidence. See zh/models/actor.md."
         },
         "display_name": {
           "$ref": "string-profiles.schema.json#/$defs/display_text_128"
