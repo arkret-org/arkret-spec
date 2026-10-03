@@ -34,6 +34,7 @@ class DirectConversationAdmissionGateTest(unittest.TestCase):
                 gate.SCHEMA,
                 gate.RESOLVER_SCHEMA,
                 gate.FIXTURE,
+                gate.RUNTIME_FIXTURE,
                 gate.SIGNAL_SCHEMA,
                 gate.SIGNAL_FIXTURE,
             )
@@ -89,6 +90,50 @@ class DirectConversationAdmissionGateTest(unittest.TestCase):
 
     def test_complete_contract_passes(self) -> None:
         self.assertEqual(self.run_gate(), [])
+
+    def test_runtime_rotation_cannot_be_skipped_for_unchanged_membership(self) -> None:
+        def mutate(documents):
+            documents[gate.RUNTIME_FIXTURE.resolve()]["owned_agent_runtime_repair"]["cases"][0]["expected_plan"] = "no_change"
+
+        self.assert_red(mutate, "current endpoint/gate classification")
+
+    def test_same_key_reauthorization_still_changes_the_complete_endpoint(self) -> None:
+        def mutate(documents):
+            documents[gate.RUNTIME_FIXTURE.resolve()]["owned_agent_runtime_repair"]["cases"][1]["expected_plan"] = "no_change"
+
+        self.assert_red(mutate, "current endpoint/gate classification")
+
+    def test_paused_runtime_cannot_be_added(self) -> None:
+        def mutate(documents):
+            documents[gate.RUNTIME_FIXTURE.resolve()]["owned_agent_runtime_repair"]["cases"][4]["expected_plan"] = "remove_add_runtime"
+
+        self.assert_red(mutate, "current endpoint/gate classification")
+
+    def test_runtime_repair_cannot_advance_membership_revision(self) -> None:
+        def mutate(documents):
+            documents[gate.RUNTIME_FIXTURE.resolve()]["owned_agent_runtime_repair"]["invariants"]["key_access_revision_delta"] = 1
+
+        self.assert_red(mutate, "same-group invariants")
+
+    def test_human_second_device_cannot_replace_the_first_leaf(self) -> None:
+        def mutate(documents):
+            documents[gate.RUNTIME_FIXTURE.resolve()]["owned_agent_runtime_repair"]["cases"][-1]["expected_plan"] = "remove_add_runtime"
+
+        self.assert_red(mutate, "current endpoint/gate classification")
+
+    def test_runtime_repair_negative_case_cannot_disappear(self) -> None:
+        def mutate(documents):
+            documents[gate.RUNTIME_FIXTURE.resolve()]["owned_agent_runtime_repair"]["cases"].pop()
+
+        self.assert_red(mutate, "every scheduling and fail-closed case")
+
+    def test_runtime_fixture_cannot_be_unlinked_from_the_active_vector(self) -> None:
+        def mutate(documents):
+            row = next(row for row in documents[gate.VECTORS.resolve()]["vectors"]
+                       if row["vector_id"] == gate.VECTOR_IDS["direct_conversation_participant_authority_denied"])
+            row["source_refs"].pop()
+
+        self.assert_red(mutate, "retain the runtime endpoint repair fixture")
 
     def test_binding_producer_removal_fails(self) -> None:
         self.assert_red(self.remove_rule("direct_conversation_binding_invalid"), "exactly seven rules")

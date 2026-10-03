@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-03.1",
+  "version": "2026-10-03.2",
   "source_of_truth": true,
-  "generated_at": "2026-10-03T03:33:04+08:00",
+  "generated_at": "2026-10-03T12:58:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1773,9 +1773,10 @@
       "applies_to_fixtures": [
         "direct-conversation-admission-fixture.json"
       ],
-      "description": "Every required participant-authority input passes in the positive case. Each binding, membership, MLS, Contact, device, and Agent input failure plus consent, owner, and local-row fallbacks collapses to the same non-enumerating direct_conversation_participant_authority_denied result.",
+      "description": "Every required participant-authority input passes in the positive case. Each binding, membership, MLS, Contact, device, and Agent input failure plus consent, owner, and local-row fallbacks collapses to the same non-enumerating direct_conversation_participant_authority_denied result. Owned-Agent runtime endpoint reconciliation preserves current gates and the original group/binding even when Actor membership is unchanged.",
       "source_refs": [
-        "spec/v1/artifacts/fixtures/direct-conversation-admission-fixture.json"
+        "spec/v1/artifacts/fixtures/direct-conversation-admission-fixture.json",
+        "spec/v1/artifacts/fixtures/direct-conversation-runtime-endpoint-repair-fixture.json"
       ]
     },
     {

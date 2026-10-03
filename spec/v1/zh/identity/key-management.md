@@ -168,6 +168,8 @@ agent key 行使的 capability grant 无论 action 风险级别都与其它主�
 
 #### 3.6.1 Agent runtime pairing 与 session(normative)
 
+**Direct 端点恢复交叉约束**：accepted runtime-key authorization 替换后，旧 runtime endpoint 失效而 Agent Actor membership 可保持不变。controller↔自有 Agent 的普通同步器按 [`contact-and-direct-conversation.md` §8.2](./contact-and-direct-conversation.md) 比较完整 current endpoint，并复用同一 group 的标准 KeyPackage／Remove/Add／Welcome；pairing 成功本身不授予 MLS leaf、不恢复旧 private state，也不改写 Direct lifetime binding。
+
 `ak.profile.agent_provisioning.v1` 定义了一条面向普通用户的 Agent 流程，以现有 agent key 原语为基础:
 
 PCR create admission 必须从 durable provisioning 状态读取 prepare 锁定的 exact `initial_resolution`，再与 genesis 携带值逐字段比较；只校验请求自带值格式正确或 `project(did)==agent_id` 不足以建立 create-locked 绑定。普通 Event policy admission 与 delegated Agent envelope admission 两条路径都必须使用同一份保存值。

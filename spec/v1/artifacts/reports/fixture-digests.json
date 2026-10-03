@@ -216,6 +216,11 @@
       "version": 1
     },
     {
+      "path": "spec/v1/artifacts/fixtures/direct-conversation-runtime-endpoint-repair-fixture.json",
+      "sha256": "345ccfab47656fd6b91e5387b4c528cb082d1f4007feb715ed15c47af8da5004",
+      "version": 1
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/direct-conversation-signal-admission-fixture.json",
       "sha256": "a1cc9f762e23b2f5e57db5bcfb8949225a9ec45b6c7d1edcc2712e30c49054a1",
       "version": 1

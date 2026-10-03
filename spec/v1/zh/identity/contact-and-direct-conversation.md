@@ -892,6 +892,10 @@ canonical DM Realm **MUST** 拒绝 `ak.realm.destroy` 与任何 `ak.realm.tombst
 
 只要至少一名 current authorized member 仍持有该唯一 group 的 private state，其普通同步器观察 accepted membership 变化后，按既有 KeyPackage claim 合同取得回归方 exact package，并在同一 group author 普通 Remove/Add Commit 与 Welcome。该流程完整复用普通 Commit winner、key-access revision、claim consumption 与 Welcome admission；DC 不定义专用 carrier、operation、queue、feature、barrier、quorum 或幂等账本。
 
+**自有 Agent runtime 端点收敛（normative）**：`agent_controller` 分支中，accepted runtime-key authorization 的替换也触发普通端点收敛；它不改变二人 Actor membership，不要求再次 join/rejoin，也不推进 `key_access_revision`。有 current authorization 且保有该唯一 group 私态的 controller endpoint，其普通同步器在获知授权变化或重新读取相关 current 状态时 **MUST** 比较 verified occupied roster 与当前完整 Agent endpoint `(agent_id, verification_method, authorized_event_ref)`；不能仅因 ActorId 已在 group 而跳过。授权、controller binding、Agent active、membership 与 scope gates 全部成立且当前端点缺失时，**MUST** 按既有合同取得该端点的 exact signed KeyPackage claim，并在同一 ordinary winning Commit 中 Remove 同一 Agent 的旧 runtime leaf（若存在）、Add 当前端点、交付其自己的 Welcome。只替换同一完整 ActorId 的 Agent runtime；同一 human Actor 的不同 device 是独立 leaf，不得据 ActorId 合并或移除。
+
+当前完整端点已在 verified roster 时 **MUST NOT** 因重复观察同一授权而再次 Add。缺少 current authorization、合法 fresh claim 或任何 current gate 时失败关闭／等待对应依赖；不得以旧 leaf 或旧 membership 代替授权。该恢复不改写 Realm、Strand、pair、founding authorization basis、binding digest 或 initial exact-pair ref，不要求新 binding endorsement，不复制旧 active MLS state，不回退 epoch。所有私态丢失仍适用 §7.3；同步通知只唤醒重读，不能成为 Add authority。
+
 任一 directional Contact 已撤回时，membership Event 可以被保存，但 KeyPackage claim、MLS Add 与发送必须保持拒绝，resolver 返回 `suspended`。若没有成员保有 private state，则按 §7.3 终结旧 encrypted DC scope；同一 pair / trust domain 没有 successor Realm。
 
 ### 8.3 binding 与日常 authority
@@ -1110,6 +1114,8 @@ founding 相关的机读入口是 [`ak.vector.direct_conversation.founding_unit.
 机读 fixture 见 [`direct-conversation-fixture.json`](../sync/authority-commit-log.md)。
 
 Conformance **MUST** 覆盖：
+
+- 自有 Agent 换钥或 same-key re-authorization 后 Actor membership 不变、`key_access_revision` 不增，但 current endpoint 缺失仍触发普通 Add/Welcome；有旧 runtime leaf 时同一 Commit Remove/Add，group ID 与 lifetime binding 不变、epoch 前进；当前端点重复观察不重复 Add，human 第二设备不替换第一设备，paused／缺 current key／缺 fresh claim 不得 Add，所有私态丢失不得重新 Genesis。机读调度边界复用 `direct-conversation-runtime-endpoint-repair-fixture.json#/owned_agent_runtime_repair`，密码学转录仍按普通 MLS Commit／Welcome 合同验证；
 
 - founder 派生：normal 取根轮次 responder、glare 取 §2 严格排序后 `requests[0].request_event_ref` 的 signed Event author `ActorId`，两侧独立计算一致；把 normal 分支误算为 requester、把 Station receipt issuer 当作 founder、乱序或重复 request refs（即使摘要不同）**MUST** 被两侧 admission 拒绝；反向 receipt 到达顺序、摘要排序与解码后 digest 排序不得改变 founder；
 - 非 founder 提交 founding unit 在 self 与 peer 两条路径均拒绝；

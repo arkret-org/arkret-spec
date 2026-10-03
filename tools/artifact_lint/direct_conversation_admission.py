@@ -17,6 +17,7 @@ VECTORS = ARTIFACTS / "registry" / "vector-registry.json"
 SCHEMA = ARTIFACTS / "schemas" / "authority-commit-operations.schema.json"
 RESOLVER_SCHEMA = ARTIFACTS / "schemas" / "direct-conversation-operations.schema.json"
 FIXTURE = ARTIFACTS / "fixtures" / "direct-conversation-admission-fixture.json"
+RUNTIME_FIXTURE = ARTIFACTS / "fixtures" / "direct-conversation-runtime-endpoint-repair-fixture.json"
 SIGNAL_FIXTURE = ARTIFACTS / "fixtures" / "direct-conversation-signal-admission-fixture.json"
 SIGNAL_SCHEMA = ARTIFACTS / "schemas" / "signal-envelope.schema.json"
 SIGNAL_PROSE = SPEC_ROOT / "zh" / "sync" / "signal.md"
@@ -99,6 +100,54 @@ def _find(rows: Any, field: str, value: str) -> dict[str, Any] | None:
 
 def _defs(document: Any) -> dict[str, Any]:
     return document.get("$defs", {}) if isinstance(document, dict) else {}
+
+
+def _check_owned_agent_runtime_repair(lint: Lint, fixture: dict[str, Any]) -> None:
+    contract = fixture.get("owned_agent_runtime_repair", {})
+    invariants = {
+        "membership_event_count": 0,
+        "key_access_revision_delta": 0,
+        "group_id_unchanged": True,
+        "lifetime_binding_unchanged": True,
+        "epoch_reset_allowed": False,
+        "human_devices_collapsed_by_actor": False,
+    }
+    if contract.get("invariants") != invariants or contract.get("classification_only") is not True:
+        lint.fail(RUNTIME_FIXTURE, "runtime repair must retain the same-group invariants and classification-only boundary")
+    required_cases = {
+        "rotated_runtime_without_membership_change", "same_key_new_authorization",
+        "current_endpoint_already_present", "previous_leaf_already_removed", "paused_agent",
+        "missing_current_authorization", "missing_fresh_claim", "controller_binding_revoked",
+        "membership_inactive", "scope_gate_denies", "different_actor", "all_private_state_lost",
+        "second_human_device",
+    }
+    cases = contract.get("cases", [])
+    if {case.get("case_id") for case in cases} != required_cases or len(cases) != len(required_cases):
+        lint.fail(RUNTIME_FIXTURE, "runtime repair must retain every scheduling and fail-closed case")
+    base = contract.get("base_input", {})
+    gates = ("controller_binding_current", "agent_active", "membership_current", "scope_gate_current",
+             "runtime_authorization_current", "same_complete_actor")
+    for case in cases:
+        inputs = {**base, **case.get("mutations", {})}
+        if inputs.get("target_endpoint_kind") == "human_device":
+            plan = "independent_human_endpoint"
+        elif not all(inputs.get(gate) is True for gate in gates):
+            plan = "blocked"
+        elif not inputs.get("private_state_available"):
+            plan = "private_state_unavailable"
+        elif inputs.get("current_endpoint_present"):
+            plan = "no_change"
+        elif not inputs.get("fresh_claim_valid"):
+            plan = "blocked"
+        else:
+            plan = "remove_add_runtime" if inputs.get("previous_runtime_present") else "add_runtime"
+        if case.get("expected_plan") != plan:
+            lint.fail(RUNTIME_FIXTURE, f"runtime repair {case.get('case_id')} violates current endpoint/gate classification")
+    source = read_text(PROSE)
+    for marker in ("自有 Agent runtime 端点收敛（normative）", "不推进 `key_access_revision`",
+                   "同一 human Actor 的不同 device 是独立 leaf", "owned_agent_runtime_repair"):
+        if marker not in source:
+            lint.fail(PROSE, f"runtime repair prose missing {marker!r}")
 
 
 def check_direct_conversation_admission_producers(lint: Lint) -> None:
@@ -234,6 +283,7 @@ def check_direct_conversation_admission_producers(lint: Lint) -> None:
     for field in ("realm_commit_count", "event_write_count", "projection_write_count", "outbox_write_count", "durable_effect_count"):
         if zero.get(field) != 0:
             lint.fail(FIXTURE, f"all Direct Conversation rejections must keep {field}=0")
+    _check_owned_agent_runtime_repair(lint, load_json(lint, RUNTIME_FIXTURE) or {})
     if fixture.get("precedence") != list(REASONS):
         lint.fail(FIXTURE, "fixture precedence must match the canonical mapping")
 
@@ -243,6 +293,9 @@ def check_direct_conversation_admission_producers(lint: Lint) -> None:
         row = _find(vector_rows, "vector_id", vector_id)
         if not isinstance(row, dict) or row.get("status") != "active" or row.get("applies_to_fixtures") != [FIXTURE.name]:
             lint.fail(VECTORS, f"{reason} must have one active dedicated vector bound to the fixture")
+    participant_vector = _find(vector_rows, "vector_id", VECTOR_IDS["direct_conversation_participant_authority_denied"])
+    if not isinstance(participant_vector, dict) or "spec/v1/artifacts/fixtures/" + RUNTIME_FIXTURE.name not in participant_vector.get("source_refs", []):
+        lint.fail(VECTORS, "participant authority vector must retain the runtime endpoint repair fixture")
 
     for path, markers in {
         PROSE: ("8.4 admission reason producer", "direct_conversation_third_party_member_forbidden", "全部保持零写入"),

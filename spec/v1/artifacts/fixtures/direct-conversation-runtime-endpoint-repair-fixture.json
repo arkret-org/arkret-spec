@@ -1,0 +1,130 @@
+{
+  "fixture_id": "ak.fixture.direct_conversation.runtime_endpoint_repair.v1",
+  "version": 1,
+  "covers_vectors": [
+    "ak.vector.direct_conversation.admission.participant_authority_denied.v1"
+  ],
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.direct_conversation.admission_producers.v1"
+  },
+  "profile": "ak.profile.direct_conversation_realm.v1",
+  "owned_agent_runtime_repair": {
+    "prose_ref": "identity/contact-and-direct-conversation.md#82-rejoin-后的-mls-收敛",
+    "classification_only": true,
+    "base_input": {
+      "target_endpoint_kind": "agent_runtime",
+      "controller_binding_current": true,
+      "agent_active": true,
+      "membership_current": true,
+      "scope_gate_current": true,
+      "runtime_authorization_current": true,
+      "private_state_available": true,
+      "fresh_claim_valid": true,
+      "current_endpoint_present": false,
+      "previous_runtime_present": true,
+      "same_complete_actor": true,
+      "raw_signing_key_changed": true
+    },
+    "invariants": {
+      "membership_event_count": 0,
+      "key_access_revision_delta": 0,
+      "group_id_unchanged": true,
+      "lifetime_binding_unchanged": true,
+      "epoch_reset_allowed": false,
+      "human_devices_collapsed_by_actor": false
+    },
+    "cases": [
+      {
+        "case_id": "rotated_runtime_without_membership_change",
+        "mutations": {},
+        "expected_plan": "remove_add_runtime"
+      },
+      {
+        "case_id": "same_key_new_authorization",
+        "mutations": {
+          "raw_signing_key_changed": false
+        },
+        "expected_plan": "remove_add_runtime"
+      },
+      {
+        "case_id": "current_endpoint_already_present",
+        "mutations": {
+          "current_endpoint_present": true,
+          "fresh_claim_valid": false
+        },
+        "expected_plan": "no_change"
+      },
+      {
+        "case_id": "previous_leaf_already_removed",
+        "mutations": {
+          "previous_runtime_present": false
+        },
+        "expected_plan": "add_runtime"
+      },
+      {
+        "case_id": "paused_agent",
+        "mutations": {
+          "agent_active": false
+        },
+        "expected_plan": "blocked"
+      },
+      {
+        "case_id": "missing_current_authorization",
+        "mutations": {
+          "runtime_authorization_current": false
+        },
+        "expected_plan": "blocked"
+      },
+      {
+        "case_id": "missing_fresh_claim",
+        "mutations": {
+          "fresh_claim_valid": false
+        },
+        "expected_plan": "blocked"
+      },
+      {
+        "case_id": "controller_binding_revoked",
+        "mutations": {
+          "controller_binding_current": false
+        },
+        "expected_plan": "blocked"
+      },
+      {
+        "case_id": "membership_inactive",
+        "mutations": {
+          "membership_current": false
+        },
+        "expected_plan": "blocked"
+      },
+      {
+        "case_id": "scope_gate_denies",
+        "mutations": {
+          "scope_gate_current": false
+        },
+        "expected_plan": "blocked"
+      },
+      {
+        "case_id": "different_actor",
+        "mutations": {
+          "same_complete_actor": false
+        },
+        "expected_plan": "blocked"
+      },
+      {
+        "case_id": "all_private_state_lost",
+        "mutations": {
+          "private_state_available": false
+        },
+        "expected_plan": "private_state_unavailable"
+      },
+      {
+        "case_id": "second_human_device",
+        "mutations": {
+          "target_endpoint_kind": "human_device"
+        },
+        "expected_plan": "independent_human_endpoint"
+      }
+    ]
+  }
+}
