@@ -3,7 +3,7 @@ title: Signal Extension
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-25
+updated: 2026-10-03
 ---
 
 # Signal Extension
@@ -20,7 +20,7 @@ encrypted envelope、一条 send/subscribe live rail 与一个可选单跳 peer 
 
 ```text
 SignalEnvelope {
-  realm_id, scope_ref, sender_actor_id, sender_device_id?, commit_ref,
+  realm_id, scope_ref, sender_actor_id, sender_device_id?, authority_commit_id, parent_realm_authority_commit_id?,
   signal_class, sent_at, expires_at, encrypted_payload, proof
 }
 ```
@@ -58,7 +58,7 @@ counter；AAD 是该 header 的 JCS bytes。header 是下列对象，全部成�
 
 ```text
 signal_aad_header = {
-  realm_id, scope_ref, sender_actor_id, sender_device_id?, commit_ref, signal_class, sent_at, expires_at,
+  realm_id, scope_ref, sender_actor_id, sender_device_id?, authority_commit_id, parent_realm_authority_commit_id?, signal_class, sent_at, expires_at,
   scheme: encrypted_payload.scheme, key_ref: encrypted_payload.key_ref, purpose: encrypted_payload.purpose,
   aead_profile: encrypted_payload.aead_profile, epoch: encrypted_payload.epoch, nonce: encrypted_payload.nonce
 }
@@ -155,6 +155,36 @@ ActorId 一致。同 principal/device 在不同 Station 下的账号具有独立
 
 ## 3. Admission 与能力广告
 
+### 3.0 独立 scope 与父 Realm 授权 cut
+
+`authority_commit_id` MUST 指向 `scope_ref` 对应独立 stream 的 exact accepted RealmCommit。
+Realm Signal MUST 省略 `parent_realm_authority_commit_id`；Circle Signal MUST 携带该字段，且它 MUST
+指向同一父 Realm 的 Realm stream 的 exact accepted RealmCommit。null、另一个 Realm、另一种 stream
+或未验证的 Commit MUST 拒绝。两个引用同时进入完整 envelope digest 与 §1 的 AAD。
+
+Circle 的成员与 MLS basis 使用 scope cut；Realm membership、capability 与 moderation action 使用显式父
+Realm cut。两个 stream 的 position 不可比较，MUST NOT 按 wall clock 推断跨 stream 因果顺序。
+每个声明 Commit 自己的 committed_at MUST 不晚于 sent_at。Circle 历史 join 的
+parent_membership_revision MUST 等于所声明父 Realm cut 上该发送者的 exact active join revision，
+且 scope current 与父 Realm current 必须仍绑定同一个有效 join；leave / rejoin 不得复活旧 Circle join。
+
+Station MUST 在同一个 authority read 中验证 historical 与 current 双视图：发送者在两个历史 cut
+及两个 current 均有有效 membership，Realm / scope 均未 terminal、frozen 或 archived；moderation 的
+`ak.call.moderate` grant、issuer graph、ownership root、authority reset 与时间约束在父 Realm historical
+cut（sent_at）及 current（当前投递时间）均 MUST 成立。后来的 grant 不得使旧父 cut 获得授权；
+显式引用 grant 后的父 cut 可以与未变化的 Circle cut 配对。任何 current revoke、reset、到期或 join
+revision 变化 MUST 在出站重检及逐帧投递时拒绝，不写 Event 或 RealmCommit，也不继续 relay。
+
+覆盖证明 MUST 来自当前唯一治理 Station 已签发的 accepted history 或签名 snapshot 与可验证 tail。
+每个 source cut 独立证明其所属 stream、完整 Commit identity、authority generation 与当前已知 head。
+handoff 后未变化的 scope head 可以继续有效，但 MUST 由连续、已验证的 handoff manifest / snapshot
+绑定到当前治理任期；不得仅因 head 的 generation 较旧认定它失效，也不得缺少覆盖时推断它有效。
+已知 stale、历史缺口、父 source cut 缺失、无法证明当前覆盖或读取超时均 MUST 失败关闭；本地只读
+projection 不得生成第二份 membership / capability ledger。可执行向量为
+`ak.vector.signal.scope_authority_cuts.v1`。
+
+### 3.1 三层准入职责
+
 Signal 把来源授权、联邦准入与端到端身份分成三层，MUST NOT 因函数复用而把三个角色的
 验证责任混成一个“所有 verifier 都查询 current device directory”的要求：
 
@@ -180,7 +210,7 @@ stale 的 basis 不能靠猜测补全。该检查不要求 Station 取得 MLS se
 
 客户端只消费自己 Account Station 的已认证 Signal stream。Station 在 self ingress / peer ingress 及投递时读取同一个 current governance Station 已签发事实的验证投影，并执行各自时间边界的只读 fresh gate；客户端 MUST NOT 为每个 Signal 下载或重放 membership、capability、RealmCommit checkpoint，也不得以本地尚未取得完整治理历史阻塞解密。客户端仍核对订阅来源、Realm/scope、可信当前签名 key 与本地 MLS 的 exact leaf/group/epoch/state binding，验证 producer signature、AAD/AEAD、TTL、plaintext schema 与 replay。服务器治理结果不替代这些端到端检查。
 
-source 和 recipient 的设备授权使用 **current** 状态，`commit_ref` 只选择 Realm/scope 授权域，
+source 和 recipient 的设备授权使用 **current** 状态，`authority_commit_id` 只选择 Realm/scope 授权域，
 不选择设备授权历史。source 使用自己托管的 exact AccountId 的 accepted device projection。
 source 每次准入与出站 fresh 检查 MUST 同时满足原 accepted 设备授权的 `now >= not_before`，
 以及非空 `expires_at` 的 `now < expires_at`；缓存 `active` 标记和 Signal TTL 不延长该有效期。
@@ -229,13 +259,13 @@ MUST 以 `signal_plaintext_forbidden` fail closed。
 
 conformance（`ak.vector.signal.device_authorization_domain.v1`）至少覆盖：
 
-1. 设备在 current directory 为 active、授权晚于 `commit_ref`：source 与 recipient self 投递的设备授权检查通过，仍须独立通过 MLS 与 scope 检查；
-2. 设备在 `commit_ref` 时曾 active、当前已 revoked / fenced：source/recipient 拒绝，包括 leaf 尚未 Remove；
+1. 设备在 current directory 为 active、授权晚于 `authority_commit_id`：source 与 recipient self 投递的设备授权检查通过，仍须独立通过 MLS 与 scope 检查；
+2. 设备在 `authority_commit_id` 时曾 active、当前已 revoked / fenced：source/recipient 拒绝，包括 leaf 尚未 Remove；
 3. fragment 看似为 device id，但 `verification_method` 的 bare DID 经 adapter 投影不等于
    `sender_actor_id` 的 signing principal 分量，或 fragment 不等于 `sender_device_id`，或
    current directory 信任锚属于同 principal 的另一 Station：source/recipient 拒绝；
 4. current directory key 或 Tier-2 / service-attested 信任锚缺失：source/recipient fail closed；destination 没有远端目录但 transport checks 均通过时仍可 relay；
-5. 设备 current active 但 sender 在 Realm `commit_ref` 下无 scope 发送资格或缺
+5. 设备 current active 但 sender 在 Realm `authority_commit_id` 下无 scope 发送资格或缺
    `signal_class` action：拒绝；
 6. 恶意 source 以有效 peer 签名提交结构正确但 producer signature 伪造的 envelope：destination
    可转交，recipient MUST 验签拒绝，即使密文能解开；proof digest/transcript 或 sender routing 不匹配则在 destination 丢弃；
@@ -347,7 +377,7 @@ destination 在任何 local fanout 前 MUST：
    destination 把收到的 signal 再转发第三 peer；
 4. 验证完整 `SignalEnvelope` closed schema、proof method 的 §1 identity projection、
    重算移除 proof 的 envelope digest、以外层 `sent_at` 注入 `created_at` 重建的 closed detached-JWS
-   transcript 与 header 结构，再验证 `commit_ref`、sender 在 signed scope/basis 的资格与
+   transcript 与 header 结构，再验证 `authority_commit_id`、sender 在 signed scope/basis 的资格与
    current membership、三值 `signal_class` action gate、TTL、外层 accepted epoch/state/ciphersuite basis。
    这些是结构、完整性和 transport admission 检查，**不是** producer signature 的密码学验证。
    destination MUST NOT 查询远端 current device directory、重放远端 PCR 或维护 MLS public-tree /
@@ -456,7 +486,7 @@ MUST 生成新的 Event/Message identity，不得猜测或复用旧 identity。
 内；`ak.schema.signal_message_stream.v1` identity 固定 discussion family，plaintext frame 不携
 `track_name`。sender MUST 同时持有 `ak.message.stream.send` 和目标
 Message create 所需授权；因为精确 kind 与 target 按 §1 强制加密，service 只能执行外层实时
-发送资格与 scope gate，recipient MUST 在展示前按 `commit_ref` basis 重验这两个产品级 action。
+发送资格与 scope gate，recipient MUST 在展示前按 `authority_commit_id` basis 重验这两个产品级 action。
 授权、scope、schema 或 AEAD 任一项不可验证时 MUST fail closed 且不得显示正文。
 
 ### 7.2 帧与资源常数

@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-03.2",
-  "generated_at": "2026-10-03T11:12:53+08:00",
+  "version": "2026-10-04.1",
+  "generated_at": "2026-10-04T00:05:55+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -17,11 +17,11 @@
     },
     {
       "operation_id": "ak.edge.applet.client.command.exchange.v1",
-      "sha256": "sha256:e1a1813321dd16eb086566d2ce806cca7ed6bf91c5736fa2fc3c284fc172eb8f"
+      "sha256": "sha256:47998ef179afe6320111126632688546de6e55fed01608751a66d76b703cdb18"
     },
     {
       "operation_id": "ak.edge.applet.command.transaction.v1",
-      "sha256": "sha256:e0a4aa9d2d23211319de2f1933fe33de380b12ffce7006dbd915f8d824baf521"
+      "sha256": "sha256:1cf4881337bb3372946d8f990430e2a72d8e29fe7a5c3a7e64df241dea072667"
     },
     {
       "operation_id": "ak.edge.applet.managed_actor.command.author.v1",
@@ -297,11 +297,11 @@
     },
     {
       "operation_id": "ak.peer.realm_authority.command.handoff.v1",
-      "sha256": "sha256:30b8f17143bb794cd548f689086cafd0cd3cef5dec81d8da536900cdde4ee4ab"
+      "sha256": "sha256:cb51fa9cd635b1ebd7009d1d5049ccbc2dd2dc60089ee9f0e4c30f6e2b667293"
     },
     {
       "operation_id": "ak.peer.realm_join.read.bootstrap.v1",
-      "sha256": "sha256:1afbbd7268b4be6178c8272aad55c9f68919c0d479a516d07b7bee7d052347ce"
+      "sha256": "sha256:a3653d449a2ae4c05464afb46f97fb8e57e92b41425d1877ebc38e85b6887458"
     },
     {
       "operation_id": "ak.peer.realm_join.read.preview.v1",
@@ -309,7 +309,7 @@
     },
     {
       "operation_id": "ak.peer.signal.command.relay.v1",
-      "sha256": "sha256:7b49e71756820bdcc5dbdfccc5609748ed5fcd23b5550d10a86270a0efca57de"
+      "sha256": "sha256:81e1ddecceb9a1beaa448888a07208cf6e94a9e821a46777d47d90a171beb060"
     },
     {
       "operation_id": "ak.root.identity.command.submit_did_operation.v1",
@@ -401,7 +401,7 @@
     },
     {
       "operation_id": "ak.self.account.stream.subscribe.v1",
-      "sha256": "sha256:1d474e7a12599c5b44d7c97e03aad2d3ac06a79fc10da3555e4afce95a3d6a1a"
+      "sha256": "sha256:a165b25e873d3ccaa9bc2628fccadc88e94856c775dcc18cfa382009c832c818"
     },
     {
       "operation_id": "ak.self.account_data.read.list.v1",
@@ -805,11 +805,11 @@
     },
     {
       "operation_id": "ak.self.realm_state_snapshot.read.by_ref.v1",
-      "sha256": "sha256:c6415abf9606b42a0fa73e5b0e81cb5f7f0fffe990beb8b2dc6910a52682f9c9"
+      "sha256": "sha256:a33ccdc817aa707197ae4731d65c5b444f12a379787a7ea7a22f42eceba128c1"
     },
     {
       "operation_id": "ak.self.realm_state_snapshot.read.manifest_head.v1",
-      "sha256": "sha256:5a2b304bbd10eb579323728050427ad3c6e1f47c18057963feb62491e4191065"
+      "sha256": "sha256:ce97c3bf26bddb129e007bd06d886178e795c1b44e7575b9e3fed5ab48790e89"
     },
     {
       "operation_id": "ak.self.security_transaction.command.continue.v1",
@@ -825,11 +825,11 @@
     },
     {
       "operation_id": "ak.self.signal.command.send.v1",
-      "sha256": "sha256:17e9c96586c2c42ab3c7e223eec3e7b741f8509dccea8762b7d019d50dff1659"
+      "sha256": "sha256:8878d526b2ed122006b209b65bc1e17d23e25d3e7007b10f5cccd80054a67a51"
     },
     {
       "operation_id": "ak.self.signal.stream.subscribe.v1",
-      "sha256": "sha256:1cd6925db5353666e4485054eb739d04f8c765c6217bf266e491f4123f1c9a35"
+      "sha256": "sha256:01a492ee68a4d23e5882b44b75260a595a27ecee14f647f18ee936fe37d62bb9"
     },
     {
       "operation_id": "ak.self.signer_keys.read.resolve.v1",

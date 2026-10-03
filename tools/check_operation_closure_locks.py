@@ -193,13 +193,20 @@ def payload(kind: str, rows: list[dict[str, str]]) -> dict[str, Any]:
     }
 
 
-def next_lock_version(path: Path, actual: dict[str, Any]) -> str:
+def next_lock_version(path: Path, actual: dict[str, Any], generated_at: Any = None) -> str:
     version = actual.get("version")
     match = LOCK_VERSION_RE.fullmatch(version) if isinstance(version, str) else None
     if not match:
         raise ValueError(
             f"{path.name}: cannot advance unsupported lock version {version!r}"
         )
+    generated = parse_generated_at(generated_at)
+    if generated is not None:
+        civil_date = generated.date().isoformat()
+        if civil_date > match.group(1):
+            return f"{civil_date}.1"
+        if civil_date < match.group(1):
+            raise ValueError(f"{path.name}: generated_at would regress the version date")
     return f"{match.group(1)}.{int(match.group(2)) + 1}"
 
 
@@ -265,10 +272,10 @@ def verify_or_append(path: Path, expected: dict[str, Any], generate: bool) -> li
             [*actual.get("closures", []), *(expected_rows[item] for item in additions)],
             key=lambda row: row[key],
         )
-        actual["version"] = next_lock_version(path, actual)
         actual["generated_at"] = next_generated_at(
             actual.get("generated_at"), expected.get("generated_at")
         )
+        actual["version"] = next_lock_version(path, actual, actual["generated_at"])
         path.write_text(
             json.dumps(actual, ensure_ascii=False, indent=2) + "\n",
             encoding="utf-8",
@@ -299,10 +306,10 @@ def refresh_candidate_lock(
     if not path.exists() or changed:
         refreshed = copy.deepcopy(expected)
         if path.exists():
-            refreshed["version"] = next_lock_version(path, actual)
             refreshed["generated_at"] = next_generated_at(
                 actual.get("generated_at"), refreshed.get("generated_at")
             )
+            refreshed["version"] = next_lock_version(path, actual, refreshed["generated_at"])
         path.write_text(
             json.dumps(refreshed, ensure_ascii=False, indent=2) + "\n",
             encoding="utf-8",
@@ -338,6 +345,8 @@ def self_test(catalog: dict[str, Any]) -> list[str]:
         errors.append("stable release tag probe was accepted as candidate")
     if next_lock_version(Path("probe.json"), {"version": "2026-08-27.1"}) != "2026-08-27.2":
         errors.append("lock version advance probe failed")
+    if next_lock_version(Path("probe.json"), {"version": "2026-08-27.1"}, "2026-08-28T00:00:01+08:00") != "2026-08-28.1":
+        errors.append("lock version midnight rollover probe failed")
     return errors
 
 

@@ -115,6 +115,17 @@ class SignalEnvelopeSchemaTest(unittest.TestCase):
         envelope["proof"]["jws"] = "eyJhbGciOiJFZDI1NTE5In0.." + "B" * 86
         self.validator.validate(envelope)
 
+    def test_circle_requires_exact_parent_realm_cut_and_realm_forbids_it(self):
+        envelope = self.envelope()
+        parent = "ak:realm_commit:" + "B" * 44
+        self.assertFalse(self.validator.is_valid({**envelope, "parent_realm_authority_commit_id": parent}))
+        envelope["scope_ref"] = {"kind": "circle", "realm_id": envelope["realm_id"], "circle_id": "ak:circle:" + "A" * 44}
+        self.assertFalse(self.validator.is_valid(envelope))
+        envelope["parent_realm_authority_commit_id"] = parent
+        self.validator.validate(envelope)
+        for invalid in (None, "", envelope["realm_id"]):
+            self.assertFalse(self.validator.is_valid({**envelope, "parent_realm_authority_commit_id": invalid}))
+
 
 if __name__ == "__main__":
     unittest.main()

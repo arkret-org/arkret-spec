@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-03.1",
-  "generated_at": "2026-10-03T03:33:04+08:00",
+  "version": "2026-10-03.2",
+  "generated_at": "2026-10-03T22:38:46+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -3338,7 +3338,8 @@
         "single_hop_must": "A destination MUST NOT relay a peer-received SignalEnvelope to a third service. The original sender-side service performs one direct request per eligible destination service.",
         "no_kind_advertisement_must": "Describe MUST advertise only this profile and operation support; exact product signal kind and target remain encrypted and MUST NOT appear in supported-kinds or routing metadata.",
         "opaque_outcome_must": "A valid authenticated request returns only {accepted:true}; no recipient, binding, capability, count or per-item outcome is exposed.",
-        "retry_must": "The operation forbids Idempotency-Key, is retry_safe=false and uses uncertain_outcome.strategy=drop_unconfirmed. A lost response MUST NOT cause automatic request replay."
+        "retry_must": "The operation forbids Idempotency-Key, is retry_safe=false and uses uncertain_outcome.strategy=drop_unconfirmed. A lost response MUST NOT cause automatic request replay.",
+        "scope_authority_cut_must": "Circle Signal MUST bind independent exact accepted scope and parent Realm cuts in proof/AAD, validate historical and current parent membership/capability and scope membership/MLS in one authority read, and fail closed on current revoke/reset/ownership/join changes or missing current lineage/coverage. Realm Signal MUST omit the parent field. No cross-stream position or wall-clock causal inference is allowed."
       }
     },
     "ak.profile.identity_registry.v1": {

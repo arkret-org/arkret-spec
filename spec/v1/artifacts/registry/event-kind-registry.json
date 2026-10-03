@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-30.2",
+  "version": "2026-10-04.1",
   "source_of_truth": false,
-  "generated_at": "2026-09-30T08:03:04+08:00",
+  "generated_at": "2026-10-04T00:22:38+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -3571,6 +3571,10 @@
                   "envelope_field": "event_id"
                 },
                 {
+                  "name": "cipher_suite",
+                  "field": "payload.cipher_suite"
+                },
+                {
                   "name": "current_mls_commit_event_ref",
                   "envelope_field": "event_id"
                 },
@@ -3594,7 +3598,7 @@
             }
           },
           "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/mls_group_value",
-          "notes": "crypto-media/encryption-and-audit.md section 5.1 makes ak.mls.genesis the single per-scope creator of the closed MlsGroupCurrent of section 2.5, and mls_genesis_payload carries no group id, so payload.governance_binding.effective_scope is the only subject source and is the scope_ref the mls_group selector requires. The three numeric members are read from the signed governance_binding rather than written as registry literals; mls_genesis_payload allOf-locks next_epoch and key_access_revision to 0, so the projection stays a pure function of the payload and the schema, not the registry, enforces the genesis zero. Genesis is its own current Commit, so both Event refs are this Event."
+          "notes": "crypto-media/encryption-and-audit.md section 5.1 makes ak.mls.genesis the single per-scope creator of the closed MlsGroupCurrent of section 2.5, and mls_genesis_payload carries no group id, so payload.governance_binding.effective_scope is the only subject source and is the scope_ref the mls_group selector requires. The three numeric members are read from the signed governance_binding rather than written as registry literals; mls_genesis_payload allOf-locks next_epoch and key_access_revision to 0, so the projection stays a pure function of the payload and the schema, not the registry, enforces the genesis zero. Genesis is its own current Commit, so both Event refs are this Event. The immutable cipher_suite is copied from the accepted Genesis payload, retained by every winning Commit, and disclosed in signed current/snapshot values for since-join replicas."
         }
       ],
       "id_source": "not_an_object_id",

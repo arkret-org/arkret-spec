@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-03.3",
+  "version": "2026-10-04.3",
   "source_of_truth": true,
-  "generated_at": "2026-10-03T11:12:53+08:00",
+  "generated_at": "2026-10-04T00:30:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -3954,6 +3954,10 @@
                     "envelope_field": "event_id"
                   },
                   {
+                    "name": "cipher_suite",
+                    "field": "payload.cipher_suite"
+                  },
+                  {
                     "name": "current_mls_commit_event_ref",
                     "envelope_field": "event_id"
                   },
@@ -3977,7 +3981,7 @@
               }
             },
             "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/mls_group_value",
-            "notes": "crypto-media/encryption-and-audit.md section 5.1 makes ak.mls.genesis the single per-scope creator of the closed MlsGroupCurrent of section 2.5, and mls_genesis_payload carries no group id, so payload.governance_binding.effective_scope is the only subject source and is the scope_ref the mls_group selector requires. The three numeric members are read from the signed governance_binding rather than written as registry literals; mls_genesis_payload allOf-locks next_epoch and key_access_revision to 0, so the projection stays a pure function of the payload and the schema, not the registry, enforces the genesis zero. Genesis is its own current Commit, so both Event refs are this Event."
+            "notes": "crypto-media/encryption-and-audit.md section 5.1 makes ak.mls.genesis the single per-scope creator of the closed MlsGroupCurrent of section 2.5, and mls_genesis_payload carries no group id, so payload.governance_binding.effective_scope is the only subject source and is the scope_ref the mls_group selector requires. The three numeric members are read from the signed governance_binding rather than written as registry literals; mls_genesis_payload allOf-locks next_epoch and key_access_revision to 0, so the projection stays a pure function of the payload and the schema, not the registry, enforces the genesis zero. Genesis is its own current Commit, so both Event refs are this Event. The immutable cipher_suite is copied from the accepted Genesis payload, retained by every winning Commit, and disclosed in signed current/snapshot values for since-join replicas."
           }
         ],
         "id_source": "not_an_object_id",
@@ -8459,8 +8463,8 @@
         }
       }
     },
-    "version": "2026-09-30.2",
-    "generated_at": "2026-09-30T08:03:04+08:00",
+    "version": "2026-10-04.1",
+    "generated_at": "2026-10-04T00:22:38+08:00",
     "bootstrap_event_kinds": [
       "ak.device.authorize",
       "ak.device.reanchor",
@@ -10055,7 +10059,7 @@
         "schema_id": "ak.schema.result_projection.v1",
         "file": "schemas/typed-current-result.schema.json",
         "status": "active",
-        "description": "Closed typed current-result selector and value union."
+        "description": "Closed typed current-result selector and value union. MLS current includes the immutable accepted Genesis cipher_suite so signed snapshots prove the public encryption basis without disclosing prejoin Genesis FullView."
       },
       {
         "schema_id": "ak.schema.rsvp.v1",
@@ -10130,7 +10134,7 @@
         "schema_id": "ak.schema.signal_envelope.v1",
         "file": "schemas/signal-envelope.schema.json",
         "status": "active",
-        "description": "Encrypted-only Signal Extension envelope; product payload types remain inside ciphertext."
+        "description": "Encrypted-only Signal envelope with exact scope authority_commit_id and Circle-only parent_realm_authority_commit_id; both enter proof digest and pre-encryption AAD. Product payloads remain encrypted."
       },
       {
         "schema_id": "ak.schema.signal_message_stream.v1",
@@ -10410,8 +10414,8 @@
         }
       }
     ],
-    "version": "2026-10-03.1",
-    "generated_at": "2026-10-03T03:35:20+08:00",
+    "version": "2026-10-04.2",
+    "generated_at": "2026-10-04T00:30:00+08:00",
     "metadata_authority": "contract_registry_section"
   },
   "id_kind_registry": {

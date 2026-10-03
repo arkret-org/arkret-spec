@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-03.2",
+  "version": "2026-10-03.4",
   "source_of_truth": true,
-  "generated_at": "2026-10-03T12:58:00+08:00",
+  "generated_at": "2026-10-03T23:14:24+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -5058,6 +5058,19 @@
       "description": "Activate only after SDK, Station, independent runtime and client implement self-subject rotation, URL-free bootstrap, durable fence/ack and minimal-disclosure MLS/result relay. Contract models cannot satisfy this live obligation.",
       "source_refs": [
         "spec/v1/zh/extensions/applet-client-and-invocation.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.signal.scope_authority_cuts.v1",
+      "status": "active",
+      "domain": "signal",
+      "applies_to_fixtures": [
+        "signal-federation-fixture.json"
+      ],
+      "description": "Circle Signal binds independent scope and parent Realm accepted cuts in proof and AAD; historical and current membership/capability gates both hold. Later grants never authorize old parent cuts, current revoke/reset/ownership/join changes deny, and idle heads require verified handoff manifest coverage.",
+      "source_refs": [
+        "spec/v1/zh/sync/signal.md",
+        "spec/v1/artifacts/fixtures/signal-federation-fixture.json"
       ]
     }
   ]

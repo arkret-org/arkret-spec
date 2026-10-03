@@ -32,6 +32,10 @@
     "authority_commit_id": {
       "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
     },
+    "parent_realm_authority_commit_id": {
+      "$ref": "./common-ids.schema.json#/$defs/realm_commit_id",
+      "description": "Required exactly for Circle Signal: independent exact accepted parent Realm stream cut for membership and capability. Enters envelope proof digest and pre-encryption AAD; never inferred from another stream position or wall clock."
+    },
     "signal_class": {
       "type": "string",
       "enum": [
@@ -180,5 +184,38 @@
       },
       "additionalProperties": false
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "scope_ref": {
+            "properties": {
+              "kind": {
+                "const": "circle"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          }
+        },
+        "required": [
+          "scope_ref"
+        ]
+      },
+      "then": {
+        "required": [
+          "parent_realm_authority_commit_id"
+        ]
+      },
+      "else": {
+        "not": {
+          "required": [
+            "parent_realm_authority_commit_id"
+          ]
+        }
+      }
+    }
+  ]
 }

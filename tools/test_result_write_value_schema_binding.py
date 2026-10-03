@@ -173,8 +173,8 @@ class ResultWriteValueSchemaBindingTest(unittest.TestCase):
         self.assertIn("member 'revoked_reason' is not declared", reported[0])
 
     def test_a_whole_value_set_that_drops_a_required_member_is_reported(self) -> None:
-        """`ak.mls.genesis` writes all seven members `mls_group_value` requires;
-        a `set` that writes six materialises a value that violates its own
+        """`ak.mls.genesis` writes every member `mls_group_value` requires;
+        a `set` that drops one materialises a value that violates its own
         registered schema on the first replay."""
 
         def mutate(document):
@@ -189,6 +189,18 @@ class ResultWriteValueSchemaBindingTest(unittest.TestCase):
         reported = self._newly_reported({EVENT_KINDS: mutate})
         self.assertEqual(len(reported), 1, reported)
         self.assertIn("whole-value set but does not write 'epoch'", reported[0])
+
+    def test_genesis_must_write_the_immutable_cipher_suite(self) -> None:
+        def mutate(document):
+            projection = row_of(document, "ak.mls.genesis")["result_writes"][0]["result_projection"]
+            projection["value_projection"]["members"] = [
+                member for member in projection["value_projection"]["members"]
+                if member["name"] != "cipher_suite"
+            ]
+
+        reported = self._newly_reported({EVENT_KINDS: mutate})
+        self.assertEqual(len(reported), 1, reported)
+        self.assertIn("whole-value set but does not write 'cipher_suite'", reported[0])
 
     def test_a_merge_is_not_held_to_the_required_floor(self) -> None:
         """A `merge` writes only the members it names; the rest belong to the

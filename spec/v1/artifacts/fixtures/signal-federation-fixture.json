@@ -1,6 +1,6 @@
 {
   "suite": "signal_peer_relay",
-  "version": "2026-09-25",
+  "version": "2026-10-03.1",
   "profile": "ak.profile.signal_peer_relay.v1",
   "runner": {
     "kind": "generated_limit_cases",
@@ -9,7 +9,8 @@
   },
   "covers_vectors": [
     "ak.vector.signal.peer_relay.v1",
-    "ak.vector.signal.device_authorization_domain.v1"
+    "ak.vector.signal.device_authorization_domain.v1",
+    "ak.vector.signal.scope_authority_cuts.v1"
   ],
   "source_refs": [
     "spec/v1/zh/sync/signal.md",
@@ -403,6 +404,99 @@
         "decision": "reject_before_display_or_effects",
         "recipient_high_water_advanced": false,
         "aead_success_cannot_override_rejection": true
+      }
+    },
+    {
+      "name": "scope_authority_cuts",
+      "vector_id": "ak.vector.signal.scope_authority_cuts.v1",
+      "input": {
+        "generator": {
+          "kind": "signal_scope_authority_cut_matrix",
+          "carrier_cases": [
+            {
+              "case_id": "realm_without_parent",
+              "scope": "realm",
+              "parent": "absent",
+              "expected_valid": true
+            },
+            {
+              "case_id": "realm_with_parent",
+              "scope": "realm",
+              "parent": "present",
+              "expected_valid": false
+            },
+            {
+              "case_id": "circle_without_parent",
+              "scope": "circle",
+              "parent": "absent",
+              "expected_valid": false
+            },
+            {
+              "case_id": "circle_with_parent",
+              "scope": "circle",
+              "parent": "present",
+              "expected_valid": true
+            },
+            {
+              "case_id": "circle_null_parent",
+              "scope": "circle",
+              "parent": "null",
+              "expected_valid": false
+            }
+          ],
+          "authority_cases": [
+            {
+              "case_id": "grant_before_selected_parent_cut",
+              "expected": "admit"
+            },
+            {
+              "case_id": "grant_after_selected_parent_cut",
+              "expected": "deny"
+            },
+            {
+              "case_id": "new_parent_cut_with_unchanged_circle_cut",
+              "expected": "admit"
+            },
+            {
+              "case_id": "current_revoke",
+              "expected": "deny"
+            },
+            {
+              "case_id": "current_authority_reset",
+              "expected": "deny"
+            },
+            {
+              "case_id": "current_ownership_transfer",
+              "expected": "deny_old_root_authority"
+            },
+            {
+              "case_id": "parent_leave_or_rejoin",
+              "expected": "deny_old_circle_join"
+            },
+            {
+              "case_id": "handoff_unchanged_scope_head_with_verified_manifest",
+              "expected": "admit"
+            },
+            {
+              "case_id": "handoff_missing_manifest_or_known_stale",
+              "expected": "unavailable"
+            },
+            {
+              "case_id": "foreign_parent_or_wrong_stream",
+              "expected": "deny"
+            }
+          ]
+        }
+      },
+      "expected": {
+        "independent_source_cuts": true,
+        "historical_and_current": true,
+        "cross_stream_position_ordering": false,
+        "wall_clock_causal_inference": false,
+        "producer_proof_and_aad_bind_both_cuts": true,
+        "denied_relay_count": 0,
+        "denied_event_write_count": 0,
+        "denied_realm_commit_write_count": 0
       }
     }
   ]

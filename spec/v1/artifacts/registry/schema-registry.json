@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-03.1",
+  "version": "2026-10-04.2",
   "source_of_truth": false,
-  "generated_at": "2026-10-03T03:35:20+08:00",
+  "generated_at": "2026-10-04T00:30:00+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -1419,7 +1419,7 @@
       "schema_id": "ak.schema.result_projection.v1",
       "file": "schemas/typed-current-result.schema.json",
       "status": "active",
-      "description": "Closed typed current-result selector and value union."
+      "description": "Closed typed current-result selector and value union. MLS current includes the immutable accepted Genesis cipher_suite so signed snapshots prove the public encryption basis without disclosing prejoin Genesis FullView."
     },
     {
       "schema_id": "ak.schema.rsvp.v1",
@@ -1494,7 +1494,7 @@
       "schema_id": "ak.schema.signal_envelope.v1",
       "file": "schemas/signal-envelope.schema.json",
       "status": "active",
-      "description": "Encrypted-only Signal Extension envelope; product payload types remain inside ciphertext."
+      "description": "Encrypted-only Signal envelope with exact scope authority_commit_id and Circle-only parent_realm_authority_commit_id; both enter proof digest and pre-encryption AAD. Product payloads remain encrypted."
     },
     {
       "schema_id": "ak.schema.signal_message_stream.v1",

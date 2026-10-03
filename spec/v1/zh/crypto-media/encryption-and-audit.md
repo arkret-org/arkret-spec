@@ -3,7 +3,7 @@ title: Encryption and MLS
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-16
+updated: 2026-10-03
 sidebar:
   label: Encryption & MLS
 ---
@@ -351,6 +351,7 @@ membership Event，失效 leaf 集合只由同 cut 的 effective 判定求得。
 MlsGroupCurrent {
   effective_scope
   genesis_event_ref
+  cipher_suite
   current_mls_commit_event_ref
   epoch
   current_key_access_revision
@@ -358,6 +359,9 @@ MlsGroupCurrent {
   public_tree_ref
 }
 ```
+
+`cipher_suite` MUST 是 Genesis 已接纳的登记 canonical ciphersuite id，且后续 winning Commit 不得修改它。
+签名 snapshot/current MUST 携带该公共值，使 since-join 成员 Station 在没有 prejoin Genesis FullView 时仍能验证 Signal 外层 cipher basis；不得推测或使用 envelope 自述作为授权来源。
 
 #### 2.5.1 固定 GroupContext binding
 

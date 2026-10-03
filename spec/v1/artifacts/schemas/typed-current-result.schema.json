@@ -1049,6 +1049,7 @@
       "required": [
         "effective_scope",
         "genesis_event_ref",
+        "cipher_suite",
         "current_mls_commit_event_ref",
         "epoch",
         "current_key_access_revision",
@@ -1061,6 +1062,9 @@
         },
         "genesis_event_ref": {
           "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "cipher_suite": {
+          "$ref": "./event-payload.schema.json#/$defs/non_empty_string"
         },
         "current_mls_commit_event_ref": {
           "$ref": "./common-ids.schema.json#/$defs/event_id"

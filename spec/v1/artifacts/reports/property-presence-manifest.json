@@ -15,13 +15,13 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9075,
+    "total_properties": 9079,
     "total_schema_documents": 168,
     "by_presence_class": {
-      "optional": 2122,
+      "optional": 2123,
       "optional_defaulted": 48,
-      "required": 6416,
-      "required_nullable": 313,
+      "required": 6418,
+      "required_nullable": 314,
       "tristate": 176
     },
     "tristate_occurrences": 176,
@@ -11219,6 +11219,8 @@
         "/$defs/signal_proof/properties/jws": "required",
         "/$defs/signal_proof/properties/kind": "required",
         "/$defs/signal_proof/properties/verification_method": "required",
+        "/allOf/0/if/properties/scope_ref": "required_nullable",
+        "/allOf/0/if/properties/scope_ref/properties/kind": "required",
         "/properties/authority_commit_id": "required",
         "/properties/encrypted_payload": "required",
         "/properties/encrypted_payload/properties/aead_profile": "required",
@@ -11230,6 +11232,7 @@
         "/properties/encrypted_payload/properties/purpose": "required",
         "/properties/encrypted_payload/properties/scheme": "required",
         "/properties/expires_at": "required",
+        "/properties/parent_realm_authority_commit_id": "optional",
         "/properties/proof": "required",
         "/properties/realm_id": "required",
         "/properties/scope_ref": "required",
@@ -11239,6 +11242,7 @@
         "/properties/signal_class": "required"
       },
       "conditionally_required": [
+        "/properties/parent_realm_authority_commit_id",
         "/properties/sender_device_id"
       ]
     },
@@ -11822,6 +11826,7 @@
         "/$defs/mls_group_result/properties/selector/properties/scope_ref": "required",
         "/$defs/mls_group_result/properties/source_stream_ref": "required",
         "/$defs/mls_group_result/properties/value": "required",
+        "/$defs/mls_group_value/properties/cipher_suite": "required",
         "/$defs/mls_group_value/properties/covered_key_access_revision": "required",
         "/$defs/mls_group_value/properties/current_key_access_revision": "required",
         "/$defs/mls_group_value/properties/current_mls_commit_event_ref": "required",
