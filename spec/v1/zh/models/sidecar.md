@@ -186,6 +186,24 @@ Sidecar 拥有独立 MLS group，但该 group 直接绑定 `sidecar_id`，不绑
 不存在 controller-global Sidecar MLS group：不同 `sidecar_id` 的 Add/Remove/Update、Welcome、epoch、future
 epoch key 与 reconciliation 状态彼此隔离，任何一项都不得跨 Sidecar 复用或传播。
 
+**独立受限握手合同（normative）**：Sidecar Proposal／Commit 的 wire 输入 MUST 是完整 RFC 9420
+`PublicMessage` 形态 `MLSMessage`，复用既有 `ak.mls.commit` 与 `MlsCommitSubmission`；v1 Proposal 仅内联于
+Commit，不新增独立 Proposal Event。治理 Station MUST 从本 Sidecar 的 accepted base public tree 对原始 bytes
+验证实际 Commit 签名、Member sender 的完整 ActorId、全部 inline Proposal、post-Commit tree 与 GroupContext；
+sender MUST 等于 signed Event 的 `actor_id`。`PrivateMessage`、裸 Proposal／Commit、替代摘要或 producer
+提供的 post-state 断言均 MUST 以 `schema_violation` 零写入拒绝；Proposal reference 仍按
+[`../crypto-media/encryption-and-audit.md` §2.2.2](../crypto-media/encryption-and-audit.md) 以 `unsupported_feature` 零写入。
+Station MUST 在原接纳事务冻结 consumed Proposal 的原 wire ordinal、精确 TLS body、已验 sender 与 leaf target
+provenance；Remove+Add 即使 leaf 元组相同仍是新 provenance，不能由最终 tree、desired roster 或 Welcome 补造。
+
+`PublicMessage` 只描述 RFC wire 形态，**不授予公开或父 Realm 成员读取权**。握手 bytes、public tree 与历史
+provenance MUST 继续经过本 Sidecar 既有当前及目标 accepted cut 的披露门；普通 Realm 成员、其它 Sidecar
+参与者与无本 Sidecar 授权的 Agent 不得读取。准入仍以本节 Sidecar controller／desired authority 和已签 binding
+为准，不继承 Realm／Circle committer 权限。治理 Station MUST NOT 取得 `membership_key` 或其它成员 secret，
+也不得把 membership MAC 当作它的准入证据；成员 MUST 在本地验证 MAC。应用 payload 与 Welcome 保持原有
+加密保护，不新增 Principal／Account／Device／Realm 外 locator 披露。不适用 Realm／Circle 的 creator-bootstrap
+transaction；独立 group、stream、epoch 和下面的参与者签名绑定不变。
+
 `participant_authority_digest` 必须覆盖：
 
 ```json fragment

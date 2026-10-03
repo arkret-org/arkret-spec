@@ -5945,6 +5945,23 @@ def check_mls_governance_binding_closure_vector(lint: Lint) -> None:
 
     schema_path = ARTIFACTS / "schemas" / "event-payload.schema.json"
     schema = load_json(lint, schema_path)
+    expected_sidecar_handshake = {
+        "effective_scope_kinds": [
+            "sidecar"
+        ],
+        "proposal_wire_format": "mls_public_message",
+        "commit_wire_format": "mls_public_message",
+        "secret_mac_verification_role": "member",
+        "participant_authority_binding": "exact_accepted_cut",
+        "consumed_proposal_provenance": "inline_signed_commit",
+        "handshake_disclosure": "sidecar_authorized_only",
+        "application_and_welcome_protection": "unchanged",
+        "creator_bootstrap_transaction": "excluded"
+    }
+    if (schema or {}).get("x-arkret-sidecar-handshake-contract") != expected_sidecar_handshake:
+        lint.fail(schema_path, "Sidecar handshake must preserve its complete PublicMessage, member-MAC, exact-cut and restricted-disclosure contract")
+    if ((schema or {}).get("x-arkret-public-handshake-contract") or {}).get("effective_scope_kinds") != ["realm", "circle"]:
+        lint.fail(schema_path, "Sidecar handshake must remain separate from the Realm/Circle contract")
     definitions = schema.get("$defs", {}) if isinstance(schema, dict) else {}
     binding_schema = definitions.get("mls_governance_binding")
     if not isinstance(binding_schema, dict):

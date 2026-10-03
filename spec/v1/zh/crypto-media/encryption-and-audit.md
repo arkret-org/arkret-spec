@@ -137,6 +137,9 @@ v1 没有任何例外：不存在只用 `(realm_id, principal_id)` 匹配 leaf �
 7. **Sidecar 走独立契约**：`sidecar` 形态的 effective scope **不适用**本节契约，它按
    [`../models/sidecar.md`](../models/sidecar.md) §6 保持自己独立的 MLS 绑定与握手契约。
    实现 MUST NOT 把本节的 wire 形态、provenance 持久化义务或验证角色默认套到 sidecar scope 上。
+   §6 显式规定 Sidecar 在自己的受限披露与参与者 authority 门内采用完整 `PublicMessage`，由非成员
+   Station 验证实际公开 transition 并冻结 inline provenance，成员验证 MAC；它不继承 Realm／Circle
+   committer 权限或 creator-bootstrap transaction。机器合同为独立的 `x-arkret-sidecar-handshake-contract`。
 
 **v1 consumed Proposal 的唯一来源（normative）**：共享 Event 只有 `ak.mls.genesis` 与
 `ak.mls.commit`，Proposal 仅内联于后者，见 [`authority-commit-log.md` §9](../sync/authority-commit-log.md)。

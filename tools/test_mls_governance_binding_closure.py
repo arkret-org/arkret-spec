@@ -43,6 +43,30 @@ class MlsGovernanceBindingClosureTest(unittest.TestCase):
     def test_committed_closure_passes(self) -> None:
         self.assertEqual(self._run(), [])
 
+    def test_sidecar_private_handshake_is_not_a_station_verifiable_transition(self) -> None:
+        def mutate(value):
+            value["x-arkret-sidecar-handshake-contract"]["commit_wire_format"] = "mls_private_message"
+
+        self.assertTrue(any("Sidecar handshake" in error for error in self._run(SCHEMA, mutate)))
+
+    def test_sidecar_handshake_cannot_disclose_to_realm_members_or_give_station_mac_secrets(self) -> None:
+        for field, replacement in (
+            ("handshake_disclosure", "realm_members"),
+            ("secret_mac_verification_role", "station"),
+            ("participant_authority_binding", "desired_roster_only"),
+        ):
+            with self.subTest(field=field):
+                def mutate(value, field=field, replacement=replacement):
+                    value["x-arkret-sidecar-handshake-contract"][field] = replacement
+
+                self.assertTrue(any("Sidecar handshake" in error for error in self._run(SCHEMA, mutate)))
+
+    def test_sidecar_handshake_cannot_default_to_the_realm_circle_contract(self) -> None:
+        def mutate(value):
+            value["x-arkret-public-handshake-contract"]["effective_scope_kinds"].append("sidecar")
+
+        self.assertTrue(any("remain separate" in error for error in self._run(SCHEMA, mutate)))
+
     def test_circle_acceptance_kat_is_required(self) -> None:
         def mutate(value):
             value["cases"][0]["accepted"] = [

@@ -9272,5 +9272,18 @@
     "replacement_provenance": "consumed_remove_add_not_tuple_equality",
     "sidecar_policy": "separate_contract",
     "handshake_disclosure": "no_additional_disclosure"
+  },
+  "x-arkret-sidecar-handshake-contract": {
+    "effective_scope_kinds": [
+      "sidecar"
+    ],
+    "proposal_wire_format": "mls_public_message",
+    "commit_wire_format": "mls_public_message",
+    "secret_mac_verification_role": "member",
+    "participant_authority_binding": "exact_accepted_cut",
+    "consumed_proposal_provenance": "inline_signed_commit",
+    "handshake_disclosure": "sidecar_authorized_only",
+    "application_and_welcome_protection": "unchanged",
+    "creator_bootstrap_transaction": "excluded"
   }
 }
