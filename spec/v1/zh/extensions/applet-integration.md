@@ -893,6 +893,8 @@ GET /_arkret/edge/applet/third_party/locations?protocol=slack&team=T123&channel=
 
 §4b 的合规安装必须为该 Applet 铸造一个或多个与 `(applet_id, effective_scope, registration_epoch)` 绑定的 active grant。安装若未产生覆盖待写 action/resource 的真实 grant，就尚未形成可写入状态，Applet MUST NOT 发送携 `applet_id` 的 Event。需要创建 portal Strand 的 grant 必须覆盖 `ak.strand.create`；需要写入 bridge 审计错误的 grant 必须覆盖 `ak.applet.bridge_error`。不得使用 sentinel ref、静态占位 grant、service 签名或隐式部署特权代替。grant 被 revoke 后，新的 portal Strand 创建与新的 `ak.applet.bridge_error` 都 MUST fail closed；撤销事实由撤销动作及部署侧安全审计记录，不要求已失去授权的 Applet 再写 Realm 审计 Event。
 
+`ak.applet.bridge_error` 是 `capabilities.md` §3.2 与 owner compiled `grant_authority_rule.include_actions[]` 登记的 exact grant issuer exception：root/co-owner 可在安装事务中为此 action 签发上述专用 grant，但这不授予 owner 直接 author 该 Event，也不扩展到其它 Applet profile action。安装及入站接纳仍 MUST 验证完整 Service Account subject、专用 native Service actor 映射、精确 installation/registration epoch/resource、producer 签名与当前 revoke fence。
+
 示例：
 
 ```json fragment

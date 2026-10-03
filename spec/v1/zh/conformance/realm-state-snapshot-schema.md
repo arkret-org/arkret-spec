@@ -3,7 +3,7 @@ title: Realm State Snapshot Schema
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-16
+updated: 2026-10-03
 sidebar:
   label: Realm Snapshot
 ---
@@ -43,6 +43,15 @@ revision 的位置不晚于**该 stream** 的可见 head；不得从 selector �
 revision 所指 Commit 时还须逐字核对其 stream、commit id 与 position。落在获授权 history floor 之前的
 row 由当前治理 Station 的这份签名 snapshot 承诺，不能要求受限接收者下载不可见前史来补证；
 范围或坐标不一致时整份丢弃。
+
+Relation 使用已登记的 `relation` result：selector 是完整 `primary_conflict_domain`，
+value 是该 domain 唯一的完整当前 Relation（含 active 或 tombstoned 状态），不另造按 RelationId
+选取的 current 身份或冲突集合。它的 `source_stream_ref` MUST 等于当前 value 的源作用域；
+Circle scope 不进入 primary-domain 身份。除源 Realm/Circle 成员可见性外，完整 row 还 MUST
+满足 [`../models/relation.md` §4](../models/relation.md#4-跨-realm-引用) 对两个 endpoint 的
+reference-disclosure 要求。无权、未知或不可证明可披露的 endpoint 不得通过 Snapshot 泄露；
+该完整 row MUST 省略，不能将 locked stub、部分 Relation 或未授权 target-side reverse edge
+写入 canonical `current_state_entries[]`。重取旧 Snapshot 时也必须重新执行同一披露判定。
 
 **内容型与状态型 family 的披露（normative）**：「可向该请求者披露」按 family 性质分两类。
 `message_revision` 是 v1 唯一的内容型 family：它的 value 就是承载 Event 的 create／revise payload，即历史内容。

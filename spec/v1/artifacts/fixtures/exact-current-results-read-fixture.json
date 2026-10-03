@@ -1,13 +1,14 @@
 {
   "fixture_id": "ak.fixture.exact_current_results_read.v1",
-  "version": "2026-09-24",
+  "version": "2026-10-03",
   "suite": "exact_current_results_read",
   "fixture_kind": "schema_only",
   "spec_anchor": "spec/v1/zh/sync/current-results.md",
   "source_refs": [
     "spec/v1/artifacts/schemas/exact-current-results-read.schema.json",
     "spec/v1/zh/sync/current-results.md",
-    "spec/v1/zh/sync/service-surface.md"
+    "spec/v1/zh/sync/service-surface.md",
+    "spec/v1/zh/conformance/realm-state-snapshot-schema.md"
   ],
   "runner": {
     "kind": "json_schema_validation_cases",
@@ -39,6 +40,70 @@
     }
   },
   "valid_outcomes": [
+    {
+      "name": "authorized_relation_present_snapshot_carrier",
+      "value": {
+        "status": "present",
+        "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+        "governance_generation": 4,
+        "effective_stream_head": {
+          "stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+          },
+          "stream_position": 12,
+          "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
+        },
+        "entry": {
+          "selector": {
+            "kind": "relation",
+            "primary_conflict_domain": {
+              "domain_kind": "tuple",
+              "relation_kind": "assigned_to",
+              "from_ref": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+              "to_ref": {
+                "kind": "account",
+                "account_id": {
+                  "principal_id": "ak:did_core:web:alice.example",
+                  "station_id": "ak:did_core:web:station.example"
+                }
+              }
+            }
+          },
+          "source_stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+          },
+          "revision": {
+            "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq",
+            "stream_position": 12
+          },
+          "value": {
+            "schema": "ak.schema.relation.v1",
+            "id": "ak:relation:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq",
+            "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+            "relation_kind": "assigned_to",
+            "from_ref": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+            "to_ref": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:web:alice.example",
+                "station_id": "ak:did_core:web:station.example"
+              }
+            },
+            "state": "active",
+            "created_by": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:web:alice.example",
+                "station_id": "ak:did_core:web:station.example"
+              }
+            },
+            "created_at": "2026-10-03T03:00:00.000Z"
+          }
+        }
+      }
+    },
     {
       "name": "authorized_relation_never_written",
       "value": {

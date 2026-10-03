@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-03.1",
+  "version": "2026-10-03.2",
   "source_of_truth": false,
-  "generated_at": "2026-10-03T03:35:20+08:00",
+  "generated_at": "2026-10-03T08:03:04+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -1217,6 +1217,7 @@
       "grant_authority_actions": [
         "ak.agent.key.authorize",
         "ak.agent.key.revoke",
+        "ak.applet.bridge_error",
         "ak.approval.vote",
         "ak.audit.accessed",
         "ak.audit.export",
@@ -1341,6 +1342,7 @@
       "grant_authority_rule": {
         "require_profile_null": true,
         "include_actions": [
+          "ak.applet.bridge_error",
           "ak.pin.add",
           "ak.pin.remove",
           "ak.pin.reorder",

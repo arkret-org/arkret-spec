@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-03.1",
+  "version": "2026-10-03.3",
   "source_of_truth": true,
-  "generated_at": "2026-10-03T03:33:04+08:00",
+  "generated_at": "2026-10-03T11:12:53+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -18700,6 +18700,7 @@
         "grant_authority_actions": [
           "ak.agent.key.authorize",
           "ak.agent.key.revoke",
+          "ak.applet.bridge_error",
           "ak.approval.vote",
           "ak.audit.accessed",
           "ak.audit.export",
@@ -18824,6 +18825,7 @@
         "grant_authority_rule": {
           "require_profile_null": true,
           "include_actions": [
+            "ak.applet.bridge_error",
             "ak.pin.add",
             "ak.pin.remove",
             "ak.pin.reorder",
@@ -19502,8 +19504,8 @@
       "scope_suffix_variant": "Action adds actor/scope/role qualifiers while reducer admission targets a shared event kind.",
       "operation_verb": "Action token names an operation/command verb that does not match its target event kind name(s); reducer admission resolves the resulting event kind(s) via target_event_kinds. Literal action matching per the actions[] rule applies; carries no aggregate-admin family semantics."
     },
-    "version": "2026-10-03.1",
-    "generated_at": "2026-10-03T03:35:20+08:00",
+    "version": "2026-10-03.2",
+    "generated_at": "2026-10-03T08:03:04+08:00",
     "metadata_authority": "contract_registry_section"
   },
   "calendar_timezone_registry": {
@@ -21049,9 +21051,10 @@
           "class": "admission_input",
           "consumed_by": [
             "zh/models/relation.md",
-            "zh/models/common-fields.md section 5.2"
+            "zh/models/common-fields.md section 5.2",
+            "zh/conformance/realm-state-snapshot-schema.md section 3"
           ],
-          "note": "The single current Relation value for one primary_conflict_domain. create/update/tombstone compare its exact revision and lifecycle before writing; its event-derived RelationId remains in the value for stable history and object references."
+          "note": "The single current Relation value for one primary_conflict_domain, also carried by complete Realm Snapshots when its source scope and both endpoint references are disclosable. create/update/tombstone compare its exact revision and lifecycle before writing; its event-derived RelationId remains in the value for stable history and object references."
         }
       },
       {
@@ -21278,8 +21281,8 @@
         }
       }
     ],
-    "version": "2026-09-29.1",
-    "generated_at": "2026-09-29T11:05:00+08:00",
+    "version": "2026-10-03.1",
+    "generated_at": "2026-10-03T11:12:53+08:00",
     "metadata_authority": "contract_registry_section"
   }
 }

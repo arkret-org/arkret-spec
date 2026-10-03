@@ -20,6 +20,9 @@
       "$ref": "#/$defs/message_reactions_result"
     },
     {
+      "$ref": "#/$defs/relation_result"
+    },
+    {
       "$ref": "#/$defs/mls_group_result"
     },
     {

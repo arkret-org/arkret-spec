@@ -51,6 +51,30 @@ def writes_by_kind() -> dict[str, list[dict]]:
 
 
 class CapabilityGrantLifecycleTest(unittest.TestCase):
+    def test_owner_can_grant_only_the_exact_native_bridge_error_exception(self) -> None:
+        from tools.artifact_pipeline import capability_action_derivations
+
+        registry = load(REGISTRY)
+        actions = {
+            row["action"]: row
+            for row in registry["capability_action_registry"]["actions"]
+        }
+        owner = actions["ak.realm.owner"]
+        derived = capability_action_derivations(registry)["ak.realm.owner"]
+        self.assertIn("ak.applet.bridge_error", owner["grant_authority_rule"]["include_actions"])
+        self.assertIn("ak.applet.bridge_error", derived["grant_authority_actions"])
+        self.assertNotIn("ak.applet.bridge_error", derived["target_event_kinds"])
+        for action, row in actions.items():
+            if row.get("profile") == "ak.profile.applet_bridge.v1":
+                with self.subTest(action=action):
+                    self.assertEqual(
+                        action in derived["grant_authority_actions"],
+                        action == "ak.applet.bridge_error",
+                    )
+        bridge_error = actions["ak.applet.bridge_error"]
+        self.assertEqual(bridge_error["required_constraints"], ["applet_id", "registration_epoch"])
+        self.assertIn("active_applet_registration_exact", bridge_error["required_evaluator_checks"])
+
     def test_the_family_has_exactly_its_three_local_writers(self) -> None:
         self.assertEqual(
             sorted(writes_by_kind()),

@@ -247,8 +247,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/exact-current-results-read-fixture.json",
-      "sha256": "0c0e2db3cc430db4d61ffeda4b217f0250d5db30c93197a9937ae39bb78aad29",
-      "version": "2026-09-24"
+      "sha256": "ecc43ad1eb7dd63b06d3da9fa3918ecfd0e983dc8d9234075b5147edd7d0fe1c",
+      "version": "2026-10-03"
     },
     {
       "path": "spec/v1/artifacts/fixtures/expected-state-digest-kat-fixture.json",
