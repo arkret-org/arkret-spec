@@ -345,6 +345,14 @@ selector——响应可见范围仍由 [§3](#3-当前结果响应) 决定。
 拒绝整批响应并重新获取当前 authority bundle；不得任择覆盖。较新 revision 原子替换旧值；来自旧
 `governance_generation` 的响应不得覆盖新任期结果。
 
+此一致性比较的前提是两条结果均符合现行 closed typed value schema。本地持久缓存若无法通过该 schema，
+客户端 MUST 将该行及依赖它的 authoring 读取视为不可用，并重新获取、验证当前 authority bundle 和完整签名
+Realm state snapshot；仅在该验证成功后，MAY 在原子持久事务中以快照的原始 typed row 重建无效缓存。
+客户端 MUST NOT 为缓存补字段、归一化已签字节或从 UI／Event 猜测值。恢复仍 MUST 检查相同 source stream、
+同 position 的 Commit identity、revision／stream head 单调和 governance generation；它不豁免两个有效结果的
+同 revision 异字节拒绝规则。增量或未验证响应 MUST NOT 触发此恢复，身份密钥、MLS 私有状态与待发送队列
+MUST NOT 随投影缓存重建而清除。
+
 响应只包含调用者当前有权读取的 selector。省略不表示空值、删除或权限；领域若允许显式空值，必须由其 typed value
 表达。成员退出、Circle 撤权或 Station 更换后，客户端必须按新授权范围清除不可再见的缓存，但不得由响应差异推断隐藏对象。
 
