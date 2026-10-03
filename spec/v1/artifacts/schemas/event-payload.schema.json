@@ -5464,7 +5464,8 @@
           "$ref": "#/$defs/mls_governance_binding"
         },
         "created_at": {
-          "$ref": "#/$defs/timestamp"
+          "$ref": "#/$defs/timestamp",
+          "description": "The single frozen Genesis authoring timestamp. MUST equal the outer Event.created_at exactly. Cross-field equality is semantic admission, registered by ak.mls.genesis genesis_timestamp_contract in the canonical contract registry; JSON Schema shape validation alone is insufficient."
         }
       },
       "allOf": [
@@ -5489,7 +5490,26 @@
           }
         }
       ],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-arkret-genesis-timestamp-contract": {
+        "event_field": "created_at",
+        "payload_field": "created_at",
+        "comparison": "canonical_timestamp_string_equality",
+        "effective_scope_kinds": [
+          "realm",
+          "circle",
+          "sidecar"
+        ],
+        "check_phase": "before_any_accepted_effect",
+        "mismatch_error_code": "failed_precondition",
+        "mismatch_reason_code": null,
+        "mismatch_accepted_effects": [],
+        "accepted_evidence_rule": "independent_revalidation_before_winner_selection",
+        "independent_clocks": [
+          "producer_proof.created_at",
+          "committed_at"
+        ]
+      }
     },
     "mls_governance_binding": {
       "type": "object",

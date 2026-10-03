@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-04.3",
+  "version": "2026-10-04.4",
   "source_of_truth": true,
-  "generated_at": "2026-10-04T00:30:00+08:00",
+  "generated_at": "2026-10-04T05:55:18+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -3987,6 +3987,25 @@
         "id_source": "not_an_object_id",
         "result_effect_ownership": {
           "kind": "typed_result_writer"
+        },
+        "genesis_timestamp_contract": {
+          "event_field": "created_at",
+          "payload_field": "created_at",
+          "comparison": "canonical_timestamp_string_equality",
+          "effective_scope_kinds": [
+            "realm",
+            "circle",
+            "sidecar"
+          ],
+          "check_phase": "before_any_accepted_effect",
+          "mismatch_error_code": "failed_precondition",
+          "mismatch_reason_code": null,
+          "mismatch_accepted_effects": [],
+          "accepted_evidence_rule": "independent_revalidation_before_winner_selection",
+          "independent_clocks": [
+            "producer_proof.created_at",
+            "committed_at"
+          ]
         }
       },
       {
@@ -8463,8 +8482,8 @@
         }
       }
     },
-    "version": "2026-10-04.1",
-    "generated_at": "2026-10-04T00:22:38+08:00",
+    "version": "2026-10-04.2",
+    "generated_at": "2026-10-04T05:55:18+08:00",
     "bootstrap_event_kinds": [
       "ak.device.authorize",
       "ak.device.reanchor",

@@ -5,7 +5,7 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.mls.creator_bootstrap_recovery.v1"
   },
-  "version": "2026-10-01",
+  "version": "2026-10-04",
   "covers_vectors": [
     "ak.vector.mls.creator_bootstrap_recovery.v1"
   ],
@@ -17,7 +17,8 @@
     "deleting every current and UI projection before the recoverer runs does not change any outcome",
     "no run reaches write-ready from an HTTP success, a duplicate code, a queue item, an emitted flag or a page projection",
     "no run writes this record or any of its fields onto a Realm Event, a current projection, an Account Data key, a sync surface or a federation surface",
-    "no run amends the closed creation intent at or after realm_accepted, and no run opens a second record for the same logical key when the selector changes at genesis_intent_persisted"
+    "no run amends the closed creation intent at or after realm_accepted, and no run opens a second record for the same logical key when the selector changes at genesis_intent_persisted",
+    "timestamp_gate_cases recompute only the signed Event timestamp admission predicate, not signature, authority, RFC, CAS or complete acceptance. Equality passes this gate without proving acceptance; either direction of a one-millisecond mismatch rejects before all accepted effects and is ineligible as an accepted winner. The later proof and commit clocks remain independent. Real Station zero-write and winner/reload execution belongs to implementation conformance."
   ],
   "crash_cases": [
     {
@@ -393,6 +394,242 @@
         "the only legal continuations are finishing this attempt or reaching a terminal state and opening a new attempt generation",
         "a new attempt generation inherits the selector from the original durable intent and never re-reads it from UI state, a default, a Realm profile or a facet"
       ]
+    }
+  ],
+  "timestamp_gate_cases": [
+    {
+      "name": "realm_equal",
+      "event": {
+        "kind": "ak.mls.genesis",
+        "created_at": "2026-10-02T12:41:42.285Z",
+        "payload": {
+          "created_at": "2026-10-02T12:41:42.285Z",
+          "governance_binding": {
+            "effective_scope": {
+              "kind": "realm"
+            }
+          }
+        },
+        "producer_proof": {
+          "created_at": "2026-10-02T12:41:43.000Z"
+        }
+      },
+      "committed_at": "2026-10-02T12:41:44.000Z",
+      "expected": {
+        "timestamp_gate_passes": true,
+        "mismatch_error_code": null,
+        "mismatch_reason_code": null,
+        "mismatch_accepted_effects": [],
+        "timestamp_eligible_as_accepted_winner": true
+      }
+    },
+    {
+      "name": "realm_outer_one_ms_later",
+      "event": {
+        "kind": "ak.mls.genesis",
+        "created_at": "2026-10-02T12:41:42.286Z",
+        "payload": {
+          "created_at": "2026-10-02T12:41:42.285Z",
+          "governance_binding": {
+            "effective_scope": {
+              "kind": "realm"
+            }
+          }
+        },
+        "producer_proof": {
+          "created_at": "2026-10-02T12:41:43.000Z"
+        }
+      },
+      "committed_at": "2026-10-02T12:41:44.000Z",
+      "expected": {
+        "timestamp_gate_passes": false,
+        "mismatch_error_code": "failed_precondition",
+        "mismatch_reason_code": null,
+        "mismatch_accepted_effects": [],
+        "timestamp_eligible_as_accepted_winner": false
+      }
+    },
+    {
+      "name": "realm_payload_one_ms_later",
+      "event": {
+        "kind": "ak.mls.genesis",
+        "created_at": "2026-10-02T12:41:42.285Z",
+        "payload": {
+          "created_at": "2026-10-02T12:41:42.286Z",
+          "governance_binding": {
+            "effective_scope": {
+              "kind": "realm"
+            }
+          }
+        },
+        "producer_proof": {
+          "created_at": "2026-10-02T12:41:43.000Z"
+        }
+      },
+      "committed_at": "2026-10-02T12:41:44.000Z",
+      "expected": {
+        "timestamp_gate_passes": false,
+        "mismatch_error_code": "failed_precondition",
+        "mismatch_reason_code": null,
+        "mismatch_accepted_effects": [],
+        "timestamp_eligible_as_accepted_winner": false
+      }
+    },
+    {
+      "name": "circle_equal",
+      "event": {
+        "kind": "ak.mls.genesis",
+        "created_at": "2026-10-02T12:41:42.285Z",
+        "payload": {
+          "created_at": "2026-10-02T12:41:42.285Z",
+          "governance_binding": {
+            "effective_scope": {
+              "kind": "circle"
+            }
+          }
+        },
+        "producer_proof": {
+          "created_at": "2026-10-02T12:41:43.000Z"
+        }
+      },
+      "committed_at": "2026-10-02T12:41:44.000Z",
+      "expected": {
+        "timestamp_gate_passes": true,
+        "mismatch_error_code": null,
+        "mismatch_reason_code": null,
+        "mismatch_accepted_effects": [],
+        "timestamp_eligible_as_accepted_winner": true
+      }
+    },
+    {
+      "name": "circle_outer_one_ms_later",
+      "event": {
+        "kind": "ak.mls.genesis",
+        "created_at": "2026-10-02T12:41:42.286Z",
+        "payload": {
+          "created_at": "2026-10-02T12:41:42.285Z",
+          "governance_binding": {
+            "effective_scope": {
+              "kind": "circle"
+            }
+          }
+        },
+        "producer_proof": {
+          "created_at": "2026-10-02T12:41:43.000Z"
+        }
+      },
+      "committed_at": "2026-10-02T12:41:44.000Z",
+      "expected": {
+        "timestamp_gate_passes": false,
+        "mismatch_error_code": "failed_precondition",
+        "mismatch_reason_code": null,
+        "mismatch_accepted_effects": [],
+        "timestamp_eligible_as_accepted_winner": false
+      }
+    },
+    {
+      "name": "circle_payload_one_ms_later",
+      "event": {
+        "kind": "ak.mls.genesis",
+        "created_at": "2026-10-02T12:41:42.285Z",
+        "payload": {
+          "created_at": "2026-10-02T12:41:42.286Z",
+          "governance_binding": {
+            "effective_scope": {
+              "kind": "circle"
+            }
+          }
+        },
+        "producer_proof": {
+          "created_at": "2026-10-02T12:41:43.000Z"
+        }
+      },
+      "committed_at": "2026-10-02T12:41:44.000Z",
+      "expected": {
+        "timestamp_gate_passes": false,
+        "mismatch_error_code": "failed_precondition",
+        "mismatch_reason_code": null,
+        "mismatch_accepted_effects": [],
+        "timestamp_eligible_as_accepted_winner": false
+      }
+    },
+    {
+      "name": "sidecar_equal",
+      "event": {
+        "kind": "ak.mls.genesis",
+        "created_at": "2026-10-02T12:41:42.285Z",
+        "payload": {
+          "created_at": "2026-10-02T12:41:42.285Z",
+          "governance_binding": {
+            "effective_scope": {
+              "kind": "sidecar"
+            }
+          }
+        },
+        "producer_proof": {
+          "created_at": "2026-10-02T12:41:43.000Z"
+        }
+      },
+      "committed_at": "2026-10-02T12:41:44.000Z",
+      "expected": {
+        "timestamp_gate_passes": true,
+        "mismatch_error_code": null,
+        "mismatch_reason_code": null,
+        "mismatch_accepted_effects": [],
+        "timestamp_eligible_as_accepted_winner": true
+      }
+    },
+    {
+      "name": "sidecar_outer_one_ms_later",
+      "event": {
+        "kind": "ak.mls.genesis",
+        "created_at": "2026-10-02T12:41:42.286Z",
+        "payload": {
+          "created_at": "2026-10-02T12:41:42.285Z",
+          "governance_binding": {
+            "effective_scope": {
+              "kind": "sidecar"
+            }
+          }
+        },
+        "producer_proof": {
+          "created_at": "2026-10-02T12:41:43.000Z"
+        }
+      },
+      "committed_at": "2026-10-02T12:41:44.000Z",
+      "expected": {
+        "timestamp_gate_passes": false,
+        "mismatch_error_code": "failed_precondition",
+        "mismatch_reason_code": null,
+        "mismatch_accepted_effects": [],
+        "timestamp_eligible_as_accepted_winner": false
+      }
+    },
+    {
+      "name": "sidecar_payload_one_ms_later",
+      "event": {
+        "kind": "ak.mls.genesis",
+        "created_at": "2026-10-02T12:41:42.285Z",
+        "payload": {
+          "created_at": "2026-10-02T12:41:42.286Z",
+          "governance_binding": {
+            "effective_scope": {
+              "kind": "sidecar"
+            }
+          }
+        },
+        "producer_proof": {
+          "created_at": "2026-10-02T12:41:43.000Z"
+        }
+      },
+      "committed_at": "2026-10-02T12:41:44.000Z",
+      "expected": {
+        "timestamp_gate_passes": false,
+        "mismatch_error_code": "failed_precondition",
+        "mismatch_reason_code": null,
+        "mismatch_accepted_effects": [],
+        "timestamp_eligible_as_accepted_winner": false
+      }
     }
   ]
 }

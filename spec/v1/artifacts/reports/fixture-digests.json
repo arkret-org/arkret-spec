@@ -372,8 +372,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-creator-bootstrap-recovery-fixture.json",
-      "sha256": "7c4b7fad1dc8a982f19b584c6ed85c2c9ed624f54f6fd519de2d4dfc590ff4e3",
-      "version": "2026-10-01"
+      "sha256": "799bbbfbb90f53af6cbdb011b68d137d2f05965c37e2af02e58947f6526fa529",
+      "version": "2026-10-04"
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-cross-station-welcome-replication-fixture.json",

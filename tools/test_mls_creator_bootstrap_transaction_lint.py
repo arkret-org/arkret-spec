@@ -26,7 +26,7 @@ FIXTURE_PATH = lint_fixtures.MLS_CREATOR_BOOTSTRAP_FIXTURE_PATH.resolve()
 
 
 class MlsCreatorBootstrapTransactionLintTest(unittest.TestCase):
-    def _run(self, *, mutate_registry=None, mutate_fixture=None) -> list[str]:
+    def _run(self, *, mutate_registry=None, mutate_fixture=None, mutate_contract=None, mutate_schema=None) -> list[str]:
         original_load_json = lint_fixtures.load_json
         overrides: dict[Path, object] = {}
 
@@ -39,6 +39,10 @@ class MlsCreatorBootstrapTransactionLintTest(unittest.TestCase):
             snapshot(REGISTRY_PATH, mutate_registry)
         if mutate_fixture is not None:
             snapshot(FIXTURE_PATH, mutate_fixture)
+        if mutate_contract is not None:
+            snapshot((lint_fixtures.ARTIFACTS / "registry" / "contract-registry.json").resolve(), mutate_contract)
+        if mutate_schema is not None:
+            snapshot((lint_fixtures.ARTIFACTS / "schemas" / "event-payload.schema.json").resolve(), mutate_schema)
 
         def load_json_with_overrides(lint, path):
             resolved = path.resolve()
@@ -56,6 +60,38 @@ class MlsCreatorBootstrapTransactionLintTest(unittest.TestCase):
 
     def test_committed_tree_passes(self) -> None:
         self.assertEqual(self._run(), [])
+
+    def test_timestamp_mismatch_cannot_be_accepted_winner(self) -> None:
+        def mutate(fixture):
+            fixture["timestamp_gate_cases"][1]["expected"]["timestamp_eligible_as_accepted_winner"] = True
+        self.assertTrue(any("does not recompute" in e for e in self._run(mutate_fixture=mutate)))
+
+    def test_timestamp_mismatch_cannot_write_accepted_effects(self) -> None:
+        def mutate(fixture):
+            fixture["timestamp_gate_cases"][1]["expected"]["mismatch_accepted_effects"] = ["public_blob", "genesis_slot"]
+        self.assertTrue(any("does not recompute" in e for e in self._run(mutate_fixture=mutate)))
+
+    def test_timestamp_comparison_uses_actual_signed_fields(self) -> None:
+        def mutate(fixture):
+            fixture["timestamp_gate_cases"][0]["event"]["payload"]["created_at"] = "2026-10-02T12:41:42.286Z"
+        self.assertTrue(any("does not recompute" in e for e in self._run(mutate_fixture=mutate)))
+
+    def test_timestamp_all_scopes_and_directions_are_required(self) -> None:
+        for index in range(9):
+            with self.subTest(index=index):
+                errors = self._run(mutate_fixture=lambda f: f["timestamp_gate_cases"].pop(index))
+                self.assertTrue(any("every scope" in e for e in errors))
+
+    def test_timestamp_contract_cannot_introduce_tolerance(self) -> None:
+        def mutate(catalog):
+            row = next(r for r in catalog["event_kind_registry"]["event_kinds"] if r["event_kind"] == "ak.mls.genesis")
+            row["genesis_timestamp_contract"]["comparison"] = "one_millisecond_tolerance"
+        self.assertTrue(any("exact equality" in e for e in self._run(mutate_contract=mutate)))
+
+    def test_timestamp_schema_annotation_cannot_drift(self) -> None:
+        def mutate(schema):
+            del schema["$defs"]["mls_genesis_payload"]["x-arkret-genesis-timestamp-contract"]
+        self.assertTrue(any("schema annotation" in e for e in self._run(mutate_schema=mutate)))
 
     def test_pinned_evidence_requires_definite_genesis_absence_contract(self) -> None:
         errors = self._run(mutate_registry=lambda registry: registry['governance_evidence_contract'].pop('genesis_absence_rule'))

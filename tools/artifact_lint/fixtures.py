@@ -8305,6 +8305,76 @@ def check_mls_creator_bootstrap_amendment(
     return amendable_state
 
 
+def check_mls_genesis_timestamp_cases(lint: Lint, fixture: dict) -> None:
+    """Execute the Genesis timestamp predicate, not full Event acceptance."""
+    contract_path = ARTIFACTS / "registry" / "contract-registry.json"
+    catalog = load_json(lint, contract_path)
+    genesis = next((row for row in catalog["event_kind_registry"]["event_kinds"]
+                    if row.get("event_kind") == "ak.mls.genesis"), {})
+    contract = genesis.get("genesis_timestamp_contract")
+    required = {
+        "event_field": "created_at", "payload_field": "created_at",
+        "comparison": "canonical_timestamp_string_equality",
+        "effective_scope_kinds": ["realm", "circle", "sidecar"],
+        "check_phase": "before_any_accepted_effect",
+        "mismatch_error_code": "failed_precondition", "mismatch_reason_code": None,
+        "mismatch_accepted_effects": [],
+        "accepted_evidence_rule": "independent_revalidation_before_winner_selection",
+        "independent_clocks": ["producer_proof.created_at", "committed_at"],
+    }
+    if contract != required:
+        lint.fail(contract_path, "Genesis timestamp contract must retain exact equality, all scopes, zero effects and independent revalidation")
+        return
+    schema_path = ARTIFACTS / "schemas" / "event-payload.schema.json"
+    schema = load_json(lint, schema_path)
+    if schema["$defs"]["mls_genesis_payload"].get("x-arkret-genesis-timestamp-contract") != contract:
+        lint.fail(schema_path, "Genesis timestamp schema annotation must match the canonical semantic admission contract")
+    time_schema = load_json(lint, ARTIFACTS / "schemas" / "time.schema.json")
+    validator = Draft202012Validator(time_schema["$defs"]["timestamp"], format_checker=schema_format_checker())
+    cases = fixture.get("timestamp_gate_cases")
+    if not isinstance(cases, list):
+        lint.fail(MLS_CREATOR_BOOTSTRAP_FIXTURE_PATH, "timestamp_gate_cases must execute the Genesis timestamp contract")
+        return
+    coverage = set()
+    for case in cases:
+        if not isinstance(case, dict):
+            lint.fail(MLS_CREATOR_BOOTSTRAP_FIXTURE_PATH, "Genesis timestamp case must be an object")
+            continue
+        try:
+            event = case["event"]
+            outer = event[contract["event_field"]]
+            inner = event["payload"][contract["payload_field"]]
+            scope = event["payload"]["governance_binding"]["effective_scope"]["kind"]
+            if event["kind"] != "ak.mls.genesis" or scope not in contract["effective_scope_kinds"]:
+                raise ValueError("not a registered Genesis scope")
+            for timestamp in (outer, inner, event["producer_proof"]["created_at"], case["committed_at"]):
+                if not validator.is_valid(timestamp):
+                    raise ValueError("non-canonical timestamp input")
+            delta = (datetime.fromisoformat(outer) - datetime.fromisoformat(inner)).total_seconds()
+            if delta not in (0, -0.001, 0.001):
+                raise ValueError("case must exercise equality or a one-millisecond difference")
+            if event["producer_proof"]["created_at"] == outer or case["committed_at"] == outer:
+                raise ValueError("case must exercise independent proof and commit clocks")
+            if (scope, delta) in coverage:
+                raise ValueError("duplicate timestamp predicate coverage")
+            coverage.add((scope, delta))
+            passes = outer == inner
+            expected = {
+                "timestamp_gate_passes": passes,
+                "mismatch_error_code": None if passes else contract["mismatch_error_code"],
+                "mismatch_reason_code": contract["mismatch_reason_code"],
+                "mismatch_accepted_effects": contract["mismatch_accepted_effects"],
+                "timestamp_eligible_as_accepted_winner": passes,
+            }
+            if case["expected"] != expected:
+                raise ValueError("expected timestamp admission/winner outcome does not recompute")
+        except (KeyError, TypeError, ValueError) as exc:
+            lint.fail(MLS_CREATOR_BOOTSTRAP_FIXTURE_PATH, f"Genesis timestamp case {case.get('name')!r}: {exc}")
+    required_coverage = {(scope, delta) for scope in contract["effective_scope_kinds"] for delta in (0, -0.001, 0.001)}
+    if coverage != required_coverage:
+        lint.fail(MLS_CREATOR_BOOTSTRAP_FIXTURE_PATH, "Genesis timestamp cases must cover equality and both one-millisecond directions in every scope")
+
+
 def check_mls_creator_bootstrap_transaction(lint: Lint) -> None:
     """Bind the creator bootstrap FSM to a crash vector on both sides of every arrow.
 
@@ -8496,6 +8566,7 @@ def check_mls_creator_bootstrap_transaction(lint: Lint) -> None:
     fixture = load_json(lint, fixture_path)
     if not isinstance(fixture, dict):
         return
+    check_mls_genesis_timestamp_cases(lint, fixture)
     if fixture.get("covers_vectors") != [MLS_CREATOR_BOOTSTRAP_VECTOR_ID]:
         lint.fail(fixture_path, f"covers_vectors must be exactly [{MLS_CREATOR_BOOTSTRAP_VECTOR_ID!r}]")
     if fixture.get("registry_under_test") != "spec/v1/artifacts/registry/mls-creator-bootstrap-transaction-registry.json":

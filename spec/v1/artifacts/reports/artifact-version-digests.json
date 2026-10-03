@@ -81,9 +81,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
-      "version": "2026-10-04.3",
-      "generated_at": "2026-10-04T00:30:00+08:00",
-      "content_digest": "sha256:ce3d94278c37650ab9e116fcb42946dad7d9c3c403093c03cf64e7dfd6249e85"
+      "version": "2026-10-04.4",
+      "generated_at": "2026-10-04T05:55:18+08:00",
+      "content_digest": "sha256:7c6626d1dff7c15608d69e5c8f12f00846589f51dd6a82810671df1293a213ac"
     },
     {
       "path": "spec/v1/artifacts/registry/current-result-registry.json",
@@ -135,9 +135,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/event-kind-registry.json",
-      "version": "2026-10-04.1",
-      "generated_at": "2026-10-04T00:22:38+08:00",
-      "content_digest": "sha256:93b1a2beedc769b0778c1de9ff40583c1582aed608c67f07c37de24aa3d66f4a"
+      "version": "2026-10-04.2",
+      "generated_at": "2026-10-04T05:55:18+08:00",
+      "content_digest": "sha256:37032f3d6325811c0284adf57453621606b038d5c4efbdc0f7907e6da3f9dcc7"
     },
     {
       "path": "spec/v1/artifacts/registry/event-kind-vector-gap-registry.json",
@@ -195,9 +195,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/mls-creator-bootstrap-transaction-registry.json",
-      "version": "2026-10-01",
-      "generated_at": "2026-10-01T05:00:22+08:00",
-      "content_digest": "sha256:f085ff4bbdd3616c58162687969a00b44190600cec05b278e6892a3e771f0de0"
+      "version": "2026-10-04",
+      "generated_at": "2026-10-04T05:51:15+08:00",
+      "content_digest": "sha256:72bb9134a586e4bbf9eb737dc6d6271a23af159aa7b2f4b5186955002178ee19"
     },
     {
       "path": "spec/v1/artifacts/registry/mls-extension-registry.json",
@@ -213,9 +213,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/normative-clause-registry.json",
-      "version": "2026-10-03.3",
-      "generated_at": "2026-10-03T17:09:08+08:00",
-      "content_digest": "sha256:815515364f62e16bf4525a3a0da08f3e31707cbae356f85a84c44395878f2f00"
+      "version": "2026-10-04",
+      "generated_at": "2026-10-04T05:57:02+08:00",
+      "content_digest": "sha256:4a7be7fe77da8edb084a4bfebeaeb226065511e41a453f05590a358caeac3fe4"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-bundle-closure-lock.json",
@@ -231,9 +231,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-10-04.1",
-      "generated_at": "2026-10-04T00:05:55+08:00",
-      "content_digest": "sha256:d91c3c73d10daab87097e4114293747a9a078805befc5b78fb1263e98f983838"
+      "version": "2026-10-04.2",
+      "generated_at": "2026-10-04T05:55:18+08:00",
+      "content_digest": "sha256:7320f7f51fd3d37859cc5abb2b8cd6333ae2fb532738eb4eba538e4c07e9ec60"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
@@ -369,9 +369,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/vector-registry.json",
-      "version": "2026-10-03.4",
-      "generated_at": "2026-10-03T23:14:24+08:00",
-      "content_digest": "sha256:c4638e36502f37efa69415b7c76f829094cadc4e747d23cf2f31cbb06675ac74"
+      "version": "2026-10-04",
+      "generated_at": "2026-10-04T05:57:02+08:00",
+      "content_digest": "sha256:88d399b2455a352d78e5df82a542c4564a41b4bc1679adab81a1671a143bd052"
     },
     {
       "path": "tools/artifact-anchor-fragment-exemptions.json",
@@ -423,9 +423,9 @@
     },
     {
       "path": "tools/evidence-material-audit.json",
-      "version": 24,
+      "version": 25,
       "generated_at": null,
-      "content_digest": "sha256:16b14fbeb8b3c543752dc6730073004c4efb0f275619c6e639c53d73fca3be34"
+      "content_digest": "sha256:3201b334174ee1ab101a42fba202dd9ce485cc37fc9a623239efa52d61b09350"
     },
     {
       "path": "tools/fixture-schema-instance-binding-registry.json",

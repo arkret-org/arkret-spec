@@ -1,12 +1,12 @@
 {
-  "version": 24,
+  "version": 25,
   "source_of_truth": false,
   "narrative_source": "spec/v1/zh/models/common-fields.md#r6-证据类名词分工",
   "scope": [
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 354,
+  "audited_occurrence_count": 357,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -1057,6 +1057,27 @@
         "transcript"
       ],
       "reason": "Invocation Device historical authorization and exact Applet Principal native history with Station Service attester are independent complete roots; neither is a caller-supplied bare key."
+    },
+    {
+      "file": "contract-registry.json",
+      "key": "accepted_evidence_rule",
+      "occurrences": 1,
+      "disposition": "registry_contract",
+      "reason": "Declares independent Genesis timestamp revalidation before accepted-winner selection; it carries no evidence material and is not a wire member."
+    },
+    {
+      "file": "event-kind-registry.json",
+      "key": "accepted_evidence_rule",
+      "occurrences": 1,
+      "disposition": "registry_contract",
+      "reason": "Declares independent Genesis timestamp revalidation before accepted-winner selection; it carries no evidence material and is not a wire member."
+    },
+    {
+      "file": "event-payload.schema.json",
+      "key": "accepted_evidence_rule",
+      "occurrences": 1,
+      "disposition": "registry_contract",
+      "reason": "Declares independent Genesis timestamp revalidation before accepted-winner selection; it carries no evidence material and is not a wire member."
     }
   ]
 }

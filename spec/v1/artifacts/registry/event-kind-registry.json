@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-04.1",
+  "version": "2026-10-04.2",
   "source_of_truth": false,
-  "generated_at": "2026-10-04T00:22:38+08:00",
+  "generated_at": "2026-10-04T05:55:18+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -3604,6 +3604,25 @@
       "id_source": "not_an_object_id",
       "result_effect_ownership": {
         "kind": "typed_result_writer"
+      },
+      "genesis_timestamp_contract": {
+        "event_field": "created_at",
+        "payload_field": "created_at",
+        "comparison": "canonical_timestamp_string_equality",
+        "effective_scope_kinds": [
+          "realm",
+          "circle",
+          "sidecar"
+        ],
+        "check_phase": "before_any_accepted_effect",
+        "mismatch_error_code": "failed_precondition",
+        "mismatch_reason_code": null,
+        "mismatch_accepted_effects": [],
+        "accepted_evidence_rule": "independent_revalidation_before_winner_selection",
+        "independent_clocks": [
+          "producer_proof.created_at",
+          "committed_at"
+        ]
       }
     },
     {

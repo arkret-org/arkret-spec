@@ -557,6 +557,21 @@ Genesis 经 `ak.self.events.command.submit.v1` 的普通 Event 分支单独提�
 不携 Welcome；其它初始 endpoint 由随后第一条带 Welcome 的 `ak.mls.commit` 加入。Station 提交前验证 creator
 current authority 与「roster 恰为创建者」。
 
+**Genesis 创建时间（normative）**：每条 `ak.mls.genesis` 的 payload `created_at` MUST 与外层 Event
+`created_at` 逐字相等；两者使用同一个 canonical UTC 毫秒 timestamp，表示同一次 Genesis 创建。
+本规则适用于所有 effective scope，包括保留独立握手合同的 Sidecar。创建者 MUST 在冻结 unsigned Genesis core
+时只确定一次该值，并同时写入两处；签名、入队、重试与 reload MUST 保持该值和 exact Event 字节，
+不得各取一次墙钟或在重试时刷新时间。它不要求 `producer_proof.created_at` 或服务器 `committed_at` 与之相等，
+也不引入提交时限、时钟容差或以创建时间判断竞争赢家的规则。
+治理 Station MUST 在准入事务产生任何 accepted effects 前验证两字段相等；即使只相差一毫秒，
+也 MUST 以不带 `reason_code` 的 `failed_precondition` 零写入拒绝，包含不保存该事务附带的 public Blob、
+不占用 Genesis 槽、不写 Event／Commit／current／outbox。跨站转发 MUST 保持原签名 Event，禁止改写任一时间。
+消费者在认定 exact accepted Genesis（包括 creator-bootstrap 的竞争赢家）时 MUST 独立重验本规则；
+Station 的 accepted 标签不能替代验证。时间不一致的历史 Event 不得被修补或视为合法赢家；
+本地保持不可写并报告无效 accepted evidence，不得仅凭该 Event 转入 `superseded` 或再造 Genesis。
+JSON Schema 仅验证两处 timestamp 的形状；跨字段相等由 canonical Event-kind registry 的
+`genesis_timestamp_contract` 登记为语义准入义务，不能以 payload schema 通过代替它。
+
 Genesis 的签名 payload 必带 `creator_leaf_authority`：声明 epoch-0 唯一 leaf 的 Ed25519 signature key、
 创建者 exact endpoint 与该 endpoint 在 Genesis accepted cut 的授权 Event ref。它由 Genesis 的
 `producer_proof` 连同其余 payload 一起签署，表达 producer 对该 MLS leaf key 的显式归属绑定；
