@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.agent_participation_policy.v1",
-  "version": "2026-09-25",
+  "version": "2026-10-04",
   "suite": "agent_participation",
   "runner": {
     "kind": "named_suite",
@@ -102,8 +102,100 @@
         "a visible selector value whose subject_account_id differs from the known picker target is rejected for label verification; no Directory selector lookup operation exists",
         "expected_actor_id is a consistency assertion: a service Actor never matches and it cannot select a winner out of an ambiguous label",
         "a local authorized source may supply the known full AccountId but cannot establish cross-Station selector uniqueness; this ruling adds no read, notification or participation right to a non-member",
-        "an Agent whose provision has not completed cannot receive a verified label, and a server must not expose private provision material to fill a fabricated lookup response"
-      ]
+        "an Agent whose provision has not completed cannot receive a verified label, and a server must not expose private provision material to fill a fabricated lookup response",
+        "Explicit candidate selection binds a visible draft token range to the exact known AccountId; unselected strings, edited/deleted tokens and private holder notes never create or retarget a mention. Routing follows sidecar section 8.1, with no private-failure fallback or automatic mixed-target split."
+      ],
+      "composer_contract": {
+        "selected_input": "@me/summary",
+        "unselected_input": "@me/summary",
+        "selected_target_source": "known_authorized_agent_account_id",
+        "unselected_target_count": 0,
+        "edited_token_binding_count": 0,
+        "private_holder_label": "Private colleague note",
+        "shared_holder_label": "alice:acme.example",
+        "routing_cases": [
+          {
+            "scope": "realm",
+            "owned": true,
+            "other": false,
+            "audience": false,
+            "choice": "default",
+            "expected": "sidecar"
+          },
+          {
+            "scope": "realm",
+            "owned": true,
+            "other": true,
+            "audience": false,
+            "choice": "default",
+            "expected": "blocked"
+          },
+          {
+            "scope": "realm",
+            "owned": true,
+            "other": true,
+            "audience": true,
+            "choice": "shared",
+            "expected": "shared"
+          },
+          {
+            "scope": "realm",
+            "owned": false,
+            "other": true,
+            "audience": false,
+            "choice": "default",
+            "expected": "shared"
+          },
+          {
+            "scope": "realm",
+            "owned": true,
+            "other": false,
+            "audience": true,
+            "choice": "default",
+            "expected": "blocked"
+          },
+          {
+            "scope": "circle",
+            "owned": true,
+            "other": true,
+            "audience": true,
+            "choice": "default",
+            "expected": "shared"
+          },
+          {
+            "scope": "direct",
+            "owned": true,
+            "other": false,
+            "audience": false,
+            "choice": "default",
+            "expected": "direct"
+          },
+          {
+            "scope": "sidecar",
+            "owned": true,
+            "other": false,
+            "audience": false,
+            "choice": "default",
+            "expected": "sidecar"
+          },
+          {
+            "scope": "sidecar",
+            "owned": true,
+            "other": true,
+            "audience": false,
+            "choice": "shared",
+            "expected": "blocked"
+          },
+          {
+            "scope": "sidecar",
+            "owned": true,
+            "other": false,
+            "audience": true,
+            "choice": "default",
+            "expected": "blocked"
+          }
+        ]
+      }
     },
     {
       "name": "ceiling_tighten",

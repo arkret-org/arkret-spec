@@ -4771,7 +4771,8 @@
           "$ref": "#/$defs/timestamp"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "description": " Readable holder/slug or me/slug labels are UI candidate input only: explicit selection binds the complete AccountId and a visible draft token range. Draft routing and ranges are local state, never additional wire fields. Private controller petnames must not enter shared body or metadata; mention_text_original and handle/slug snapshots do not supply current renderer labels."
     },
     "mimi_message_provenance": {
       "type": "object",

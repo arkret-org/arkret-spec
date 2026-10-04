@@ -42,8 +42,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-participation-fixture.json",
-      "sha256": "cf9ad39acc32fad6149ce51893afee004df20f48b022feeb1a422eda12464c20",
-      "version": "2026-09-25"
+      "sha256": "f500310b7512682ff5c4e67d864940e2f52e7467b775cdfe8cb34eb4cfa2f953",
+      "version": "2026-10-04"
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-vectors-fixture.json",

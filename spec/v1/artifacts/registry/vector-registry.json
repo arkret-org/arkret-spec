@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-04",
+  "version": "2026-10-04.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-04T05:57:02+08:00",
+  "generated_at": "2026-10-04T15:38:48+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -187,7 +187,7 @@
       "applies_to_fixtures": [
         "agent-participation-fixture.json"
       ],
-      "description": "An authorized picker starts with an exact full Agent AccountId; a visible current selector claim may verify its label only when proof and bound target match byte for byte. Free-text controller-handle/slug input cannot create a mention; ambiguous or unavailable labels fail closed without changing an ordinary known-account mention.",
+      "description": "Authorized candidates bind exact full AccountIds to visible draft token ranges. Readable holder/slug input filters candidates but unselected text does not address an account; edits revoke bindings, private holder notes stay local, and ordinary/Circle/Direct/Sidecar routing follows the explicit v1 composer matrix without retargeting or silent public fallback.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/agent-participation-fixture.json"
       ]

@@ -652,6 +652,8 @@ Sidecar 内 Event 不触发来源 Strand 参与者的通知；Sidecar 作用域�
 `ak.vector.sidecar.explicit_publish.v1` MUST 证明：只有显式的 controller 确认才创建一条被 allowlist 允许的
 普通共享 Event，且其中零私有标识符、零历史、零定位符。
 
+`ak.vector.agent.selector_label_known_account.v1` 的 `agent-participation-fixture.json` MUST 同时验证可读短输入的显式候选选择：完整 AccountId 与可见 token 范围逐字节绑定，未选择字符串不派生目标，token 改字/删除/chip 移除后不以另一处同名文本复活，跨 Station 与改名不改绑；私有 holder 备注不进入共享正文或 metadata。其 composer routing cases 按 sidecar §8.1 覆盖普通 Realm、自有/混合/audience 目标、显式 shared、Circle、Direct 与已寄宿 Sidecar；混合私有目标阻止发送，不自动拆分或降级群发送。运行该本地合同向量不替代真实 MLS、private-failure、publish 与第二设备的 live 验收。
+
 `ak.vector.sidecar.multi_agent_publish.v1` MUST 证明：Agent 执行 publish 时 `actor_id` 与 `executed_by`
 MUST 是单一 Agent DID，不得出现 Agent 组式的复合归属；另一 Agent 的 grant 不覆盖该内容或缺少新鲜审批时
 MUST fail closed；它凭自己的 grant 可独立发布，归属仍是其单一 DID。

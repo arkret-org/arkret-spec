@@ -496,6 +496,8 @@ holder 的实时身份面还 MUST 应用 [`discovery/client-preferences.md` §3.
 
 历史 replay / audit / export 仍按 `resolution_as_of` 和事件快照执行本节流程；当前 `petname` 最多作为明确标注的 holder-private name 并列，MUST NOT 覆盖 as-of handle、`display_name_at_time`、`subject_account_id` 或 audit attribution，也不得写入共享 Event、forward、quote、share 或 Realm export。
 
+Agent 的可读候选输入、token 范围绑定与 viewer-local `me` 按 [strand-and-message §9.4.1](../models/strand-and-message.md) 执行；它们不改变本节逐字段用途。`mention_text_original` 不参与阅读侧渲染；本地 controller 备注不得通过任何 mention 字段或共享正文出站。
+
 #### 3.8.3 与 actor 归因的关系
 
 `display_name_at_time`、`handle_at_time`、`controller_subject_account_id`、`controller_handle_at_time`、`agent_slug_at_time`、`mention_text_original` 都是 **UI 元数据**，对协议层信任决策完全透明。verifier / reducer / policy engine MUST 忽略这些字段，只读 `subject_account_id` 做以下判断：

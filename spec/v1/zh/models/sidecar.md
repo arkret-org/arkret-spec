@@ -292,6 +292,21 @@ Strand Event：
 
 Circle 内容不得使用本节映射或发布规则跨越 Circle 边界。
 
+### 8.1 Composer 发送路由
+
+以下是 v1 客户端发送合同；选择只存于本地草稿，不新增协议字段、resolver、Sidecar 成员或投递权。只有已绑定完整 AccountId 的 mention 才计入直接目标；普通 `@me/slug` 字符串不触发 Sidecar。
+
+| 当前入口/目标 | 默认与可选路由 | 发送前边界 |
+| --- | --- | --- |
+| 联系人 controller/Agent Direct Conversation | 保持该独立双成员 Direct Conversation | 不调用 Sidecar ensure，不要求 Realm/Strand context。 |
+| 普通 Realm Strand，无自有 Agent mention | 普通 Strand | 他人 Agent、普通人类与 audience mention 沿用普通授权；不凭字符串转私有。 |
+| 普通 Realm Strand，只含自有 Agent（可含 controller 自身） | 默认私有 Sidecar；可显式选择“发送到群” | 显示 controller/当前获授权自有 Agents 的私有 scope；shared 选择必须在当前草稿与 scope 上显式作出。 |
+| 普通 Realm Strand，自有 Agent 与其他人类/他人 Agent/任一 audience mention 混合 | 私有默认下阻止发送，提示显式选择群发送或修改目标 | 不自动拆分成两条消息、不静默丢弃其他目标、不自动转为群发送；仅 private participants 的直接引用不会扩大私有 scope。 |
+| Circle Strand | 普通 Circle Strand；不提供 Sidecar 路由 | 自有 Agent 也必须满足 Circle 读取/participation/E2EE 门；明确显示 Circle scope，不通过 Sidecar 跨越边界。 |
+| 已寄宿 Sidecar | 保持该私有 Sidecar | 提及 private scope 外目标或任一 audience mention 时阻止发送；退出私有视图后新写普通消息，或按 §8 显式 publish 新 Event，不能以切换按钮发布 private history。 |
+
+客户端 MUST 在普通 composer 中提供自有 Agent 的“私有协作/发送到群”显式选择，并在发送前展示真实 scope；Circle/Direct 显示其固定 scope。私有选择作用于 controller 与 Sidecar effective roster，mention 是请求寻址子集而不是加密收件人全体。Sidecar pending/not-ready/失败 MUST 保留草稿并拒绝私有发送，MUST NOT 降级为普通 Strand。显式 shared 选择 MUST 绑定当前 Realm/Strand/目标集合，草稿编辑、目标变更、scope/账号/私有视图变化 MUST 清除该选择；失败重试仍须校验真实 scope，不能复用前一个会话的决定。选择 shared 不复制 private envelope/history；发布仍须 §8 的最终 allowlist 确认与新 Event。
+
 ## 9. Ensure 与读取
 
 `ak.self.agent.sidecar.command.ensure.v1` 使用 prepare/commit：prepare 固定 new/existing 分支、Event ID、

@@ -718,9 +718,20 @@ Markdown 链接。客户端 reducer 可从 Message content AST 派生 mention �
 
 Agent 不要求拥有公开 handle。v1 仅允许已授权 picker 从已知完整 Agent `subject_account_id` 构造普通结构化 mention；picker MAY 展示经当前 `agent_selector_claim` typed current 与该 AccountId 逐字节校验的 controller-scoped `agent_slug` label。该值的 `visibility` / `audience` 必须允许该 requester 与当前 Realm 的 `intent="mention"`，并检查 Agent active lifecycle、Agent Profile 分类和已验证 accountability；没有通过校验的 label 不显示为 verified，也不能参与目标选择。已知 AccountId 仍需独立满足 Message effective scope 的成员、历史可读性及 Agent gate；label 不授予这些权限。
 
-自由文本 `@<controller-handle>/<agent_slug>` 在 v1 **不是** Agent mention 输入别名。客户端 MUST NOT 用 controller handle、slug、roster/Profile hint、某一 Station 的 selector current 行或本地 Event/cache 猜出完整 Agent AccountId，也不得恢复旧 transport convenience／未登记 Directory resolve。原因是 selector namespace 只有 `(controller principal, agent_slug)`，而同 principal 在不同 Station 的 Account/PCR 独立；现行协议没有跨 Station 完整 current 候选集与 absence proof，单站读数不能证明全局唯一。未解析 token MAY 保留为普通文本，但 MUST NOT 生成 mention 节点、Agent selector metadata 或定向通知。已知目标 picker 成功后，mention 节点的 `subject_account_id` MUST 逐字节来自该获授权完整 AccountId，不得从裸 principal、controller handle Station、DID 默认 Station 或当前 authoring Station 重建。服务端 / reducer / dispatcher 对已提交事件仍只信任 `subject_account_id` 与已验证 agent/accountability/provisioning 状态，不信任 `mention_text_original`。
+未绑定到具体候选的自由文本 `@<controller-handle>/<agent_slug>` 在 v1 **不是** Agent mention 自动寻址别名。`@holder/slug` 与自有 Agent 的 `@me/slug` MAY 用于过滤已授权完整候选，显式选择或明确确认该具体候选后才建立结构化 mention；客户端 MUST NOT 因只有一个搜索结果而在普通发送时自动绑定，多候选 MUST 提供完整身份与上下文消歧，不得静默选择第一个。客户端 MUST NOT 用 controller handle、slug、roster/Profile hint、某一 Station 的 selector current 行或本地 Event/cache 猜出完整 Agent AccountId，也不得恢复旧 transport convenience／未登记 Directory resolve。原因是 selector namespace 只有 `(controller principal, agent_slug)`，而同 principal 在不同 Station 的 Account/PCR 独立；现行协议没有跨 Station 完整 current 候选集与 absence proof，单站读数不能证明全局唯一。未解析 token MAY 保留为普通文本，但 MUST NOT 生成 mention 节点、Agent selector metadata 或定向通知。已知目标 picker 成功后，mention 节点的 `subject_account_id` MUST 逐字节来自该获授权完整 AccountId，不得从裸 principal、controller handle Station、DID 默认 Station 或当前 authoring Station 重建。服务端 / reducer / dispatcher 对已提交事件仍只信任 `subject_account_id` 与已验证 agent/accountability/provisioning 状态，不信任 `mention_text_original`。
 
 任何跨 roster / Directory / bridge 的已知 Agent label 披露仍须反枚举：只有请求者已与目标共享可见 scope，或当前 selector 值 `visibility="public"`／`audience` 明确授权该 requester 与 `intent="mention"`，才可展示 slug。未授权、绑定不存在、controller 不可见、Agent 已停用或撤销、或冲突一律不泄露该 label，不得用错误形态探测 Agent 是否存在。本规则不注册一个以 slug 为检索键的公开目录或跨 Station resolver。
+
+
+**可读候选与草稿绑定（normative）**：
+
+- `holder` 仅为 controller 的 UI 标签，不是新协议主体或 wire 字段。已校验且允许当前 requester/context 披露的 selector 与 controller 材料可形成 `@holder/slug`；当前 viewer 经已验证 controller 关系确认自己控制目标时 MAY 使用本地 `@me/slug`。这些字符串都不替代完整 `subject_account_id`。
+- 缺少 verified selector 时，完整已授权目标仍可选择；客户端 MAY 用 `@holder/<name-only>`（含本地 `@me/<name-only>`）或普通 name-only/truncated-DID 表示，但 MUST 标注 name-only/unresolved，MUST NOT 宣称该后缀是经校验的 slug。inventory/Profile 裸 slug、旧 mention metadata 不得作为 current selector evidence。
+- 已选 token 的草稿绑定 MUST 包含具体完整 AccountId 与明确的可见 token 范围。编辑 token、删除 token 或删除 chip MUST 解除其绑定；前后正文编辑可更新范围，但不得把相同字符串的另一处出现当作原 token。重输同名字符串不恢复已解除绑定；必须重新选中候选。同名、异 Station 目标可分别选择，修改文字不能暗中改绑。
+- 客户端构造的共享正文与所有 mention metadata MUST 排除本地 Contact `petname`/私有 note；本地 holder 显示按 client-preferences §3.6 覆盖，出站表示使用获准披露的公开材料或安全 fallback。该规则不要求扫描或改写用户任意自由正文。
+- 阅读侧以持久化 AccountId 查找本次可见 current/as-of evidence；`mention_text_original` 不参与渲染，`handle_at_time`、`controller_handle_at_time`、`agent_slug_at_time` 不作为当前显示字段。`display_name_at_time` 按现有 name-only fallback 使用。`me` 只能是 viewer 的本地显示选择，不得按阅读者自身账号重新绑定；历史 replay/audit/export 不得静默以当前状态替代缺失 as-of evidence。
+
+**发送 scope 选择（normative）**：提及不决定共享消息的唯一发送 scope。客户端 MUST 在发送前显示实际 scope 与可读取参与者边界，并按 [sidecar §8.1](./sidecar.md#81-composer-发送路由) 选择普通 Strand 或私有 Sidecar；发送选择仅为本地草稿意图，不新增 Event 字段、不改变 §9.4.5 的第三方投递 gate。
 
 结构化 mention 节点唯一的 wire 承载位置是所属 Content Block 的 `mentions[]` 数组（schema `$defs.mention_node`，见 [content-types.md](./content-types.md)）。节点形态（与 [`identity/identity-handles.md` §3.8.1](../identity/identity-handles.md) normative shape 对齐）：
 
