@@ -1,6 +1,6 @@
 {
   "fixture_id": "ak.fixture.exact_current_results_read.v1",
-  "version": "2026-10-03",
+  "version": "2026-10-04.1",
   "suite": "exact_current_results_read",
   "fixture_kind": "schema_only",
   "spec_anchor": "spec/v1/zh/sync/current-results.md",
@@ -19,7 +19,7 @@
       "instance"
     ]
   },
-  "description": "Closed exact-current read cases for Relation primary-domain and moderation-target selectors. All outcomes bind one Realm, governing generation and effective stream head; invalid cases must fail before a caller can treat local state as current authority.",
+  "description": "Closed exact-current read cases for Relation primary-domain and moderation-target selectors. All outcomes bind one Realm, governing generation and effective stream head; invalid cases must fail before a caller can treat local state as current authority. Agent mode exact reads cover both current values and affirmative never-written without a guessed-ID enumeration right.",
   "schema_ref": "schemas/exact-current-results-read.schema.json",
   "request": {
     "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
@@ -202,6 +202,190 @@
           "target_ref": "ak:message:Abz8ZrG1_9zdkxN9VA-u0IBsaEOpJkC71uo1V6fZ72VY"
         }
       }
+    },
+    {
+      "name": "agent_mode_exact_request",
+      "schema_ref": "schemas/exact-current-results-read.schema.json#/$defs/exact_current_results_read_request",
+      "expect_valid": true,
+      "instance": {
+        "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+        "selector": {
+          "kind": "agent_interaction",
+          "agent_account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+            "station_id": "ak:did_core:webvh:z6mkfixturestation"
+          }
+        }
+      }
+    },
+    {
+      "name": "agent_mode_present",
+      "schema_ref": "schemas/exact-current-results-read.schema.json#/$defs/exact_current_results_read_outcome",
+      "expect_valid": true,
+      "instance": {
+        "status": "present",
+        "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+        "governance_generation": 4,
+        "effective_stream_head": {
+          "stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+          },
+          "stream_position": 12,
+          "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
+        },
+        "entry": {
+          "selector": {
+            "kind": "agent_interaction",
+            "agent_account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+              "station_id": "ak:did_core:webvh:z6mkfixturestation"
+            }
+          },
+          "source_stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+          },
+          "revision": {
+            "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq",
+            "stream_position": 12
+          },
+          "value": {
+            "controller_account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+              "station_id": "ak:did_core:webvh:z6mkfixturestation"
+            },
+            "interaction_mode": "public"
+          }
+        }
+      }
+    },
+    {
+      "name": "agent_mode_never_written",
+      "schema_ref": "schemas/exact-current-results-read.schema.json#/$defs/exact_current_results_read_outcome",
+      "expect_valid": true,
+      "instance": {
+        "status": "never_written",
+        "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+        "governance_generation": 4,
+        "effective_stream_head": {
+          "stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+          },
+          "stream_position": 12,
+          "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
+        },
+        "selector": {
+          "kind": "agent_interaction",
+          "agent_account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+            "station_id": "ak:did_core:webvh:z6mkfixturestation"
+          }
+        }
+      }
+    },
+    {
+      "name": "agent_mode_partial_account_rejected",
+      "schema_ref": "schemas/exact-current-results-read.schema.json#/$defs/exact_current_results_read_request",
+      "expect_valid": false,
+      "instance": {
+        "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+        "selector": {
+          "kind": "agent_interaction",
+          "agent_account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkfixtureagent"
+          }
+        }
+      },
+      "first_expected_error": "contains:selector"
+    },
+    {
+      "name": "agent_mode_null_current_rejected",
+      "schema_ref": "schemas/exact-current-results-read.schema.json#/$defs/exact_current_results_read_outcome",
+      "expect_valid": false,
+      "instance": {
+        "status": "present",
+        "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+        "governance_generation": 4,
+        "effective_stream_head": {
+          "stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+          },
+          "stream_position": 12,
+          "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
+        },
+        "entry": {
+          "selector": {
+            "kind": "agent_interaction",
+            "agent_account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+              "station_id": "ak:did_core:webvh:z6mkfixturestation"
+            }
+          },
+          "source_stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+          },
+          "revision": {
+            "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq",
+            "stream_position": 12
+          },
+          "value": {
+            "controller_account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+              "station_id": "ak:did_core:webvh:z6mkfixturestation"
+            },
+            "interaction_mode": null
+          }
+        }
+      },
+      "first_expected_error": "contains:not valid under any of the given schemas"
+    },
+    {
+      "name": "agent_mode_private_selection_rejected",
+      "schema_ref": "schemas/exact-current-results-read.schema.json#/$defs/exact_current_results_read_outcome",
+      "expect_valid": false,
+      "instance": {
+        "status": "present",
+        "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+        "governance_generation": 4,
+        "effective_stream_head": {
+          "stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+          },
+          "stream_position": 12,
+          "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
+        },
+        "entry": {
+          "selector": {
+            "kind": "agent_interaction",
+            "agent_account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+              "station_id": "ak:did_core:webvh:z6mkfixturestation"
+            }
+          },
+          "source_stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+          },
+          "revision": {
+            "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq",
+            "stream_position": 12
+          },
+          "value": {
+            "controller_account_id": {
+              "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+              "station_id": "ak:did_core:webvh:z6mkfixturestation"
+            },
+            "interaction_mode": "public",
+            "selection": {}
+          }
+        }
+      },
+      "first_expected_error": "contains:not valid under any of the given schemas"
     }
   ],
   "runtime_rejections": [
@@ -225,5 +409,8 @@
       "name": "unauthorized_or_invisible_selector",
       "reason": "returns indistinguishable not_found, never never_written"
     }
+  ],
+  "covers_vectors": [
+    "ak.vector.agent.interaction_mode.v1"
   ]
 }

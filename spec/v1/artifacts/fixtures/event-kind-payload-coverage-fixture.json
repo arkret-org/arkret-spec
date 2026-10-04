@@ -1,6 +1,6 @@
 {
   "suite": "event_kind_payload_coverage_fixture",
-  "version": "2026-09-25",
+  "version": "2026-10-04.1",
   "runner": {
     "kind": "registry_coverage",
     "inputs": [
@@ -413,6 +413,124 @@
           }
         }
       }
+    },
+    {
+      "name": "agent_interaction_private_first_set",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/agent_interaction_set_payload",
+      "expect_valid": true,
+      "instance": {
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "interaction_mode": "private"
+      }
+    },
+    {
+      "name": "agent_interaction_public_first_set",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/agent_interaction_set_payload",
+      "expect_valid": true,
+      "instance": {
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "interaction_mode": "public"
+      }
+    },
+    {
+      "name": "agent_interaction_missing_mode",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/agent_interaction_set_payload",
+      "expect_valid": false,
+      "instance": {
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        }
+      },
+      "first_expected_error": "contains:interaction_mode"
+    },
+    {
+      "name": "agent_interaction_null_mode",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/agent_interaction_set_payload",
+      "expect_valid": false,
+      "instance": {
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "interaction_mode": null
+      },
+      "first_expected_error": "contains:interaction_mode"
+    },
+    {
+      "name": "agent_interaction_unknown_wire_mode",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/agent_interaction_set_payload",
+      "expect_valid": false,
+      "instance": {
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "interaction_mode": "unknown"
+      },
+      "first_expected_error": "contains:interaction_mode"
+    },
+    {
+      "name": "agent_interaction_reject_participation_selection",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/agent_interaction_set_payload",
+      "expect_valid": false,
+      "instance": {
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "interaction_mode": "private",
+        "selection": {}
+      },
+      "first_expected_error": "contains:selection"
+    },
+    {
+      "name": "agent_interaction_reject_sidecar_member_selection",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/agent_interaction_set_payload",
+      "expect_valid": false,
+      "instance": {
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "interaction_mode": "private",
+        "members": []
+      },
+      "first_expected_error": "contains:members"
     }
   ],
   "assertions": [
@@ -432,5 +550,8 @@
       "id": "unknown_durable_kind_fails_closed",
       "rule": "An unknown durable event kind is rejected before reducer dispatch."
     }
+  ],
+  "covers_vectors": [
+    "ak.vector.agent.interaction_mode.v1"
   ]
 }

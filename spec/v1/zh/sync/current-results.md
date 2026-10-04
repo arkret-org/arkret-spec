@@ -105,6 +105,10 @@ Realm、每个 Circle、每个 Sidecar 分别拥有独立 commit stream。当前
 - `realm_link`：以 `(target_realm_id, link_kind)` 选择一条 Realm 间链接
   （见 [`../models/realm-links.md` §5](../models/realm-links.md)）；
 - `member_state`：以完整 `actor_id` 选择成员状态；
+- `agent_interaction`：以完整 `agent_account_id` 选择本 Realm 的 Agent 模式，value 为
+  `{controller_account_id,interaction_mode}`，由 `ak.agent.interaction.set` 单一 whole-value writer 写入，
+  controller-only proof 与 expected_revision CAS 见 [Agent 交互](../models/agent-interaction.md)。
+  Circle／Strand 消费父 Realm current，不注册局部覆盖；snapshot 缺项不是默认私人证明。
 
 `parent_membership` admission 同时把 current `realm_policy_bundle`、目标 Realm 内每个 source 对应的 active
 `realm_link{link_kind="join_gate_from"}`、source/target current authority tenure 与 source `member_state` 当作权威事务输入。
@@ -156,10 +160,13 @@ membership 为 `join` 才满足 gate（[`../governance/join-policy.md` §4](../g
   relation identity 字段 create-lock，改变 domain 必须 tombstone 旧值后 create 新值（见
   [`../models/relation.md` §6](../models/relation.md)）。这些族与 `strand`、`view` 是同一对象 current-value 形态。
   需要给 producer 取得该 exact revision 时，只能调用
-  `ak.self.current_results.read.exact.v1`：它以 closed `primary_conflict_domain` 或 moderation `target_ref`
+  `ak.self.current_results.read.exact.v1`：它以 closed `primary_conflict_domain`、moderation `target_ref` 或
+  `agent_interaction{agent_account_id}`
   读取一个 selector，并在同一 durable cut 返回当前治理任期、effective stream head 与 selector-identical
-  `present` entry／获授权 `never_written`。`never_written` 只为 Relation create 的 null CAS 开口；Relation
-  update/tombstone 与 moderation lift 必须消费 `present.revision`。权限不足、不可见、未知或跨 Realm 统一
+  `present` entry／获授权 `never_written`。`never_written` 为 Relation create 的 null CAS 以及 Agent mode
+  首写／已确认私人默认开口；Relation update/tombstone 与 moderation lift 必须消费 `present.revision`。
+  Agent mode read 必须已获授权知道 exact Agent AccountId，不能用 guessed ID 探测私人参与；返回的 mode
+  不授予 selector/profile 披露或第三方唤醒权。权限不足、不可见、未知或跨 Realm 统一
   `not_found`，不得通过 absence 分支枚举状态；generation/head/selector 不匹配一律 fail closed；
   带物理 lifecycle 的五族（`circle` / `morph` / `relation` / `space` /
   `strand`）的 `state` 成员**只由**专用 `ak.<kind>.archive` / `.restore` / `.tombstone` 写入，

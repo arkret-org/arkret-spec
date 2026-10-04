@@ -4,6 +4,7 @@
   "title": "Arkret Typed Realm Current Result",
   "description": "Closed domain result selected without protocol typed current result IDs. Every result names the last authority commit that affected the typed target.",
   "oneOf": [
+    { "$ref": "#/$defs/agent_interaction_result" },
     {
       "$ref": "#/$defs/realm_authority_root_result"
     },
@@ -4073,6 +4074,63 @@
         "source_stream_ref": { "$ref": "./realm-commit.schema.json#/$defs/stream_ref" },
         "revision": { "$ref": "#/$defs/revision" },
         "value": { "$ref": "#/$defs/strand_watch_value" }
+      },
+      "additionalProperties": false
+    },
+    "agent_interaction_value": {
+      "type": "object",
+      "required": [
+        "controller_account_id",
+        "interaction_mode"
+      ],
+      "properties": {
+        "controller_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "interaction_mode": {
+          "type": "string",
+          "enum": [
+            "private",
+            "public"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_interaction_result": {
+      "type": "object",
+      "required": [
+        "selector",
+        "source_stream_ref",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "agent_account_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "agent_interaction"
+            },
+            "agent_account_id": {
+              "$ref": "./common-ids.schema.json#/$defs/account_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        "source_stream_ref": {
+          "$ref": "./realm-commit.schema.json#/$defs/stream_ref"
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "#/$defs/agent_interaction_value"
+        }
       },
       "additionalProperties": false
     }

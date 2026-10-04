@@ -766,6 +766,12 @@ MUST NOT：
 
 `ak.profile.agent_participation_policy.v1` 注册 Agent 的分层 participation ceiling 与 controller selection 面。它继承 `ak.profile.agent_provisioning.v1`。
 
+本 profile 同时 MUST 支持 [agent-interaction.md](../models/agent-interaction.md) 的 Realm 模式：
+`ak.agent.interaction.set`、controller-only admission、`agent_interaction` current、exact read、private 默认／
+unknown 区分及共享 Agent producer／executor 门；它不公开 participation selection 五位记录，
+不改变 Sidecar roster，也不通过退群／重入切换模式。Fixture `agent-participation-fixture.json` 的
+`ak.vector.agent.interaction_mode.v1` 与载体正反例 MUST 执行；产品／服务能力须完成真实实施后才可宣称支持。
+
 MUST 支持:
 - `ak.self.agent.participation.resource.replace.v1` 与 `ak.self.agent.participation.resource.get.v1`。selection 是 controller
   的私有偏好，唯一 authority 是 controller 所属 Account Authority；它不是 Realm 事实，也不经 peer relay。

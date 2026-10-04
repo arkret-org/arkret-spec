@@ -42,8 +42,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-participation-fixture.json",
-      "sha256": "f500310b7512682ff5c4e67d864940e2f52e7467b775cdfe8cb34eb4cfa2f953",
-      "version": "2026-10-04"
+      "sha256": "13c8d7cb5f361649f918c38c4da0cb479063e0af93df951e86c63f95151dca24",
+      "version": "2026-10-04.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-vectors-fixture.json",
@@ -247,8 +247,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/event-kind-payload-coverage-fixture.json",
-      "sha256": "422c4691e75f7e1c697131821a6f731784cc26328e83564a462336071715c898",
-      "version": "2026-09-25"
+      "sha256": "b2fb5d49b5f5e7410842eff38b0107fb3b52fa009e6850626055763ee7ba1d72",
+      "version": "2026-10-04.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/event-payload-value-closure-fixture.json",
@@ -257,8 +257,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/exact-current-results-read-fixture.json",
-      "sha256": "ecc43ad1eb7dd63b06d3da9fa3918ecfd0e983dc8d9234075b5147edd7d0fe1c",
-      "version": "2026-10-03"
+      "sha256": "ed8204e64861d0769ebc6d611a14268af037b501c0d40c1bd4f05844cea59e80",
+      "version": "2026-10-04.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/expected-state-digest-kat-fixture.json",

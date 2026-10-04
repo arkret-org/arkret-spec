@@ -223,6 +223,11 @@ Accountability 状态按 `(issuer, subject, normalized exact scope set)` 独立�
 
 ## 4. 跨链路引用对照
 
+Agent 的 Realm 公开／私人交互模式是 [agent-interaction.md](./agent-interaction.md) 的独立控制事实，
+不得从 actor_kind、selector visibility、membership、第三方 mention bit 或主人身份推导。
+模式不改变 Agent 身份、Realm／Circle membership 或 Sidecar 自动派生参与者；它额外约束候选展示、
+第三方请求及共享 producer／executed_by 准入，不能替代任何普通读取或执行权限。
+
 主体引用字段的完整跨字段对照与语义以 [common-fields.md §4](./common-fields.md) 为唯一规范来源。
 
 ## 5. Actor 与协作图

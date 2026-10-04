@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-04.5",
-  "generated_at": "2026-10-04T10:36:45+00:00",
+  "version": "2026-10-04.6",
+  "generated_at": "2026-10-04T20:52:42+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -4551,13 +4551,17 @@
       "inherits": [
         "ak.profile.agent_provisioning.v1"
       ],
-      "required_event_kinds": [],
+      "required_event_kinds": [
+        "ak.agent.interaction.set"
+      ],
       "rejected_event_kinds": [],
       "required_schemas": [
         "ak.schema.principal_operations.v1"
       ],
       "wire_contract_refs": [
-        "schemas/principal-operations.schema.json#/$defs/participation_replace_request"
+        "schemas/principal-operations.schema.json#/$defs/participation_replace_request",
+        "schemas/event-payload.schema.json#/$defs/agent_interaction_set_payload",
+        "schemas/typed-current-result.schema.json#/$defs/agent_interaction_result"
       ],
       "required_fixtures": [
         "agent-participation-fixture.json"
@@ -4570,7 +4574,8 @@
           "third_party_mention_gate",
           "session_scope_details_participation",
           "five_bit_ceiling_closed",
-          "selection_cas_version"
+          "selection_cas_version",
+          "realm_agent_interaction_mode"
         ],
         "unsupported_optional": "fail closed; deny agent participation when the ceiling is unknown or stale"
       }

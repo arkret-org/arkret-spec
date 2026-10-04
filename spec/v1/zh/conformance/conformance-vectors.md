@@ -684,3 +684,9 @@ native Event 不创建回显；第二设备得到相同排序、状态与去重�
 `ak.vector.applet.self_actor_live_lifecycle.v1` 保持 reserved，激活条件见 Applet client/invocation 合同 §4。
 
 `ak.vector.direct_conversation.chat_topic_structure.v1`：由 `direct-conversation-structure-fixture.json` 与 artifact structure gate 逐项执行 Space 密文／明文互斥、解密 plaintext 封闭字段集、独立 Space(kind=topic) 的密文载体、Strand.topic 的显式整体 set/unset、必需完整 CAS、非法 null／子路径／rank 负例，并校验九项 participant action、独立 main/target、root Topic 以及 List／Board 不得充当 Topic 的边界；不宣称此 wire 向量已代替真实 MLS、双设备、跨站或 Agent 产品验收。
+
+`ak.vector.agent.interaction_mode.v1`：`agent-participation-fixture.json` 与 artifact fixture gate 执行已确认
+private 默认／unknown 区分、controller-only／CAS／委托禁止、共享 action 门及公开／私人 composer 矩阵，
+`event-kind-payload-coverage-fixture.json` 执行模式 payload 的 closed schema 正反例。Containment assertions
+固定 Sidecar roster 不变、Circle 不跨界、Message scope 不迁移、上下文不自动发布及 fanout 非追溯；
+这些声明与决策表不证明生产端的模型信息流、真实 MLS、时序侧信道或第二设备已经通过，实施需另行验收。

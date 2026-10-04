@@ -1851,7 +1851,96 @@ def check_operation_selector_fixture(lint: Lint) -> None:
         )
 
 
+def check_agent_interaction_contract(lint: Lint) -> None:
+    """Execute the normative mode, authorization and route decision tables."""
+    path = ARTIFACTS / "fixtures" / "agent-participation-fixture.json"
+    document = load_json(lint, path)
+    contract = document.get("interaction_contract", {})
+    if contract.get("event_kind") != "ak.agent.interaction.set":
+        lint.fail(path, "agent interaction fixture lacks its registered mode writer")
+        return
+    for row in contract.get("mode_cases", []):
+        result = "unknown"
+        if row.get("binding_valid"):
+            if row.get("status") == "never_written":
+                result = "private"
+            elif row.get("status") == "present" and row.get("mode") in {"private", "public"}:
+                result = row["mode"]
+        if row.get("expected") != result:
+            lint.fail(path, f"agent interaction mode case mismatch: {row}")
+    for row in contract.get("admission_cases", []):
+        accepted = (
+            all(row.get(key) is True for key in (
+                "controller_matches", "active_member", "agent_binding_valid",
+                "device_valid", "expected_revision_matches",
+            )) and row.get("delegated") is False and row.get("scope") == "realm"
+        )
+        if row.get("expected") is not accepted:
+            lint.fail(path, f"agent interaction admission case mismatch: {row.get('name')}")
+    for row in contract.get("shared_action_cases", []):
+        accepted = row.get("mode") == "public" and row.get("ordinary_authority") is True
+        if row.get("expected") is not accepted:
+            lint.fail(path, f"agent interaction shared action case mismatch: {row}")
+    for row in contract.get("request_cases", []):
+        scope, mode, own = row.get("scope"), row.get("mode"), row.get("controller_request")
+        if scope == "sidecar":
+            permitted = own is True
+        elif scope == "direct" and own is True:
+            permitted = True
+        else:
+            permitted = scope in {"realm", "circle", "direct"} and mode == "public" and (
+                own is True or row.get("third_party_gate") is True
+            )
+        permitted = permitted and row.get("ordinary_authority") is True
+        if row.get("expected") is not permitted:
+            lint.fail(path, f"agent interaction directed request case mismatch: {row}")
+    observation_cases = contract.get("observation_cases", [])
+    for row in observation_cases:
+        if row.get("expected_directed_count") != 0 or row.get("expected_stub") is not False or row.get("expected_shared_message_preserved") is not True:
+            lint.fail(path, f"agent interaction observation case mismatch: {row}")
+    routing = document.get("cases", [{}])[0].get("composer_contract", {}).get("routing_cases", [])
+    for row in routing:
+        scope, mode = row.get("scope"), row.get("interaction_mode")
+        if scope == "sidecar":
+            result = "blocked" if row.get("other") or row.get("audience") else "sidecar"
+        elif scope == "direct" and row.get("owned"):
+            result = "direct"
+        elif mode not in {"private", "public"}:
+            result = "blocked"
+        elif scope == "direct":
+            result = "direct" if row.get("owned") or mode == "public" else "blocked"
+        elif scope == "circle":
+            result = "blocked" if mode == "private" and row.get("owned") else "shared"
+        elif scope == "realm":
+            if mode == "public":
+                result = "shared"
+            elif not row.get("owned"):
+                result = "shared"
+            else:
+                result = "blocked" if row.get("other") or row.get("audience") else "sidecar"
+        else:
+            result = "blocked"
+        if row.get("expected") != result:
+            lint.fail(path, f"agent interaction composer case mismatch: {row}")
+    required_invariants = {
+        "mode_changes_sidecar_roster": False, "sidecar_manual_membership": False,
+        "circle_private_routes_to_realm_sidecar": False, "message_revision_changes_scope": False,
+        "private_history_auto_published": False, "shared_reply_uses_sidecar_context": False,
+        "private_can_read_authorized_group_context": True, "third_party_private_mention_deletes_message": False,
+        "queued_action_uses_current_mode": True, "mode_change_replays_old_notifications": False,
+        "controller_private_tools_allowed_with_authority": True, "private_mode_erases_shared_identity": False,
+        "mode_has_circle_or_strand_override": False,
+    }
+    if contract.get("invariants") != required_invariants:
+        lint.fail(path, "agent interaction normative containment invariant drift")
+    if not all(contract.get(key) for key in ("mode_cases", "admission_cases", "shared_action_cases")) or not routing:
+        lint.fail(path, "agent interaction decision tables must not be empty")
+    if len(contract.get("request_cases", [])) != 48 or {row.get("target_status") for row in observation_cases} != {"private", "unknown", "undisclosed", "nonexistent", "deactivated", "gate_closed"}:
+        lint.fail(path, "agent interaction directed request or negative observation coverage is incomplete")
+
+
 def check_fixture_runner_contract(lint: Lint) -> None:
+    check_agent_interaction_contract(lint)
     fixture_root = ARTIFACTS / "fixtures"
     runner_registry_path = ARTIFACTS / "registry" / "runner-kind-registry.json"
     runner_registry = load_json(lint, runner_registry_path)

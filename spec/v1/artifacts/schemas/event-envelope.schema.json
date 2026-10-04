@@ -2772,6 +2772,45 @@
           }
         }
       }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.agent.interaction.set"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/agent_interaction_set_payload"
+          },
+          "scope_ref": {
+            "properties": {
+              "kind": {
+                "const": "realm"
+              }
+            }
+          },
+          "actor_id": {
+            "properties": {
+              "kind": {
+                "const": "account"
+              }
+            },
+            "$ref": "./common-ids.schema.json#/$defs/actor_id"
+          }
+        },
+        "not": {
+          "required": [
+            "executed_by"
+          ]
+        }
+      }
     }
   ],
   "$defs": {
@@ -5851,6 +5890,7 @@
             "kind": {
               "enum": [
                 "ak.agent.action_approve",
+                "ak.agent.interaction.set",
                 "ak.agent.key.authorize",
                 "ak.agent.key.revoke",
                 "ak.agent.provision",
@@ -5996,6 +6036,7 @@
             "ak.agent.action_reject",
             "ak.agent.action_request",
             "ak.agent.draft.propose",
+            "ak.agent.interaction.set",
             "ak.agent.key.authorize",
             "ak.agent.key.revoke",
             "ak.agent.provision",

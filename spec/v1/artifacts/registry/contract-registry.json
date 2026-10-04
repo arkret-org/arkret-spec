@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-04.10",
+  "version": "2026-10-04.11",
   "source_of_truth": true,
-  "generated_at": "2026-10-04T10:36:45+00:00",
+  "generated_at": "2026-10-04T20:52:42+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -475,7 +475,8 @@
       "direct_conversation_genesis": "Admitted only for an ak.realm.create that carries exactly one critical semantic_refs[] role=direct_conversation_contact_round pointing to the portable Contact round evidence bundle and its continuity chain to the pair's root Contact round. The verifier derives founder from the root Contact round (normal branch: the root-round responder; glare branch: the full signed request Event author ActorId referenced by requests[0], never the Station receipt issuer_id; requests MUST be strictly ascending by the complete request_event_ref wire string UTF-8 unsigned bytes, with duplicate Event refs rejected regardless of receipt digest and no receiver-side sorting or deduplication), then requires created_by == actor_id == founder, recomputes pair_key from sorted_pair_member_ids and the trust domain, and pins the Direct Conversation profile, exact-two participants and the create-locked baseline: genesis initial_join_rule=closed, initial_discoverability=invite_only and initial_history_access=since_join are constants, and any other value rejects the whole unit with direct_conversation_founding_unit_invalid. Accepted-at Contact round validity and current directional Contact gates are evaluated separately so Event validity never depends on delivery order.",
       "self_authored_proof": "Admitted by a proof bound to the subject principal's identity: either the subject's DID-bound signature / proof of possession, or a currently valid delegated-control proof whose authorization_ref is bound by the subject DID Document. Reducer MUST verify actor == subject, executed_by/authorization_ref when delegated, a fresh replay-protected proof, and that the accepted-at delegation purpose/scope explicitly covers the target event kind, resource and operation; mere presence of a DID-bound delegation is never sufficient. No Realm capability grant is consulted. Fail-closed: missing, stale, unbound, purpose-inapplicable or scope-inapplicable proof MUST be rejected.",
       "sidecar_account_self_authored_proof": "Admitted only when Event actor_id is the account branch and its complete AccountId is the authenticated controller account. The reducer derives controller_account_id byte-for-byte from actor_id.account_id, uses (realm_id, controller_account_id) as the singleton key, and rejects the service actor branch with sidecar_create_denied before revealing existence. The same exact AccountId binds Sidecar membership, MLS genesis and participant authority; principal-only equality is forbidden.",
-      "service_attested": "Written by a protocol service component (Auth/Gate server, Events node, applet host, agent runtime) under its service-ID attestation as part of operating the protocol. Reducer MUST verify the issuing service's authority and its binding to the subject/scope; not a user capability. Fail-closed."
+      "service_attested": "Written by a protocol service component (Auth/Gate server, Events node, applet host, agent runtime) under its service-ID attestation as part of operating the protocol. Reducer MUST verify the issuing service's authority and its binding to the subject/scope; not a user capability. Fail-closed.",
+      "agent_controller_self_authored_proof": "Only a current active controller account may sign a Realm-scoped ak.agent.interaction.set for its exact active member Agent. Author, authenticated account and payload controller AccountId must match in both components; current provision/accountability, controller membership generation, device authorization and expected_revision CAS are checked before any effects. Service authors, Agent self-writes, administrators and executed_by delegation cannot substitute. No capability grants authority for this class. See models/agent-interaction.md section 1."
     },
     "admission_predicate_contract": {
       "closed_world": true,
@@ -569,7 +570,7 @@
       "coverage_audit": {
         "soland_missing_helper_callers": 10,
         "active_family_callers": 9,
-        "registered_active_families": 4,
+        "registered_active_families": 5,
         "excluded_per_leg_mute": {
           "observed_component_order": [
             "call_id",
@@ -831,6 +832,58 @@
               }
             }
           }
+        },
+        {
+          "derivation_id": "ak.current_key.agent_interaction.v1",
+          "result_family": "agent_interaction",
+          "api_name": "derive_agent_interaction_current_key",
+          "parameters": [
+            {
+              "name": "agent_account_id",
+              "value_shape": "AccountId"
+            }
+          ],
+          "domain": "ak.current_key.agent_interaction.v1",
+          "components": [
+            {
+              "parameter": "agent_account_id",
+              "normalization": "rfc8785_jcs_value",
+              "registry_sources": [
+                "payload.agent_account_id"
+              ]
+            }
+          ],
+          "kat": {
+            "arguments": {
+              "agent_account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+                "station_id": "ak:did_core:webvh:z6mkfixturestation"
+              }
+            },
+            "normalized_components": [
+              {
+                "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+                "station_id": "ak:did_core:webvh:z6mkfixturestation"
+              }
+            ],
+            "preimage_utf8": "ak.current_key.agent_interaction.v1\n[{\"principal_id\":\"ak:did_core:webvh:z6mkfixtureagent\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"}]",
+            "expected_output": "XC-TBdzlBrrFN19TS-KzuT7uQh3MKOzG_glR0cl2E0I",
+            "negative_cases": {
+              "reordered_components": {
+                "disposition": "not_applicable_single_component"
+              },
+              "wrong_family_domain": {
+                "domain": "ak.current_key.wrong_family.v1",
+                "expected_output": "yFNbRy7QItWZhXAfI6x-vyQ4-VG1ZU7fsVou_IiJ_BY"
+              },
+              "extra_component": {
+                "disposition": "reject_before_hash"
+              },
+              "type_mismatch": {
+                "disposition": "reject_before_hash"
+              }
+            }
+          }
         }
       ]
     },
@@ -841,7 +894,7 @@
       "Event carries no chain predecessor or authority-commit proof. Only RealmCommit carries previous_commit_ref, and only within the same stream.",
       "Reducers derive typed current results by replaying committed Events in stream position order. Account-private material is outside shared authority-commit streams.",
       "wire_scope=durable_event does NOT imply reducer_input=true. A durable Event is one whose exact bytes a RealmCommit can cover; reducer_input=true additionally asserts that replaying this Realm's committed Events suffices to derive the typed current results the kind writes. A kind whose real durable effect is holder-Station private service state -- keyed on material that never enters the Event stream, or on a counterpart mirror that zh/identity/contact-and-direct-conversation.md section 3 forbids from advancing a reducer -- MUST carry reducer_input=false and MUST name the canonical service_contracts row that spells out its branches, durable effect, unique key, prior-state CAS, exact retry and zero-side-effect rejection. Withdrawing Realm typed-result dispatch never withdraws the kind's admission, signature, commit evidence or private transactional effect: the five ak.contact.* kinds are the worked example (ak.contact.admission.v1). Setting reducer_input=false without registering where the effect actually lands is the defect this rule exists to prevent.",
-      "result_writes[] is the machine contract for which typed current results one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row: a declared value_projection member MUST be declared by that row's value_schema_ref, and a whole-value set MUST write every member that schema requires. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 117 of the 121 reducer_input kinds declare it; the remaining 4 have an explicit durable-fact or authority-commit effect classification and intentionally no typed-current-result row. The declaring kinds are deliberately not enumerated here: event_kinds[] already is that list, and tools/artifact_lint:result_write_coverage_note recomputes both counts from the rows. Normative prose MUST NOT cite result_writes[] for a kind that does not declare it. The converse obligation binds a declaring kind: its rows MUST enumerate EVERY typed current result its accepted admission writes on the shared face; atomic multi-family writes land all rows in one batch or none.",
+      "result_writes[] is the machine contract for which typed current results one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row: a declared value_projection member MUST be declared by that row's value_schema_ref, and a whole-value set MUST write every member that schema requires. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 118 of the 122 reducer_input kinds declare it; the remaining 4 have an explicit durable-fact or authority-commit effect classification and intentionally no typed-current-result row. The declaring kinds are deliberately not enumerated here: event_kinds[] already is that list, and tools/artifact_lint:result_write_coverage_note recomputes both counts from the rows. Normative prose MUST NOT cite result_writes[] for a kind that does not declare it. The converse obligation binds a declaring kind: its rows MUST enumerate EVERY typed current result its accepted admission writes on the shared face; atomic multi-family writes land all rows in one batch or none.",
       "Every active persistent kind (durable_event or actor_private_event) MUST carry one closed result_effect_ownership object. A typed_result_writer owns non-empty result_writes[] and no second owner; a private_service_effect names an active service_contracts row whose branches cover that exact actor-private Event kind; a durable_fact_no_current_projection names its normative definition and carries no typed-current-result write; an authority_commit_effect names the structured authority-commit service contract and MUST NOT introduce a second governance counter; an owned_gap is temporary only while it names a live owner_report and exact closure condition. Unknown classifications, unresolved definitions, orphan service branches, shared/private mixing, malformed authority contracts or any classification that contradicts reducer_input/result_writes[] fail tools/artifact_lint:result_effect_ownership.",
       "transition_contracts declares the lifecycle axis of a typed current result family: its closed state set, its entry idiom (exactly one of initial_state / initial_states / template), its terminal states and its allowed (from, to) edges. tools/artifact_lint:fsm_reachability reads it together with every transition result_projection and requires that each declared state be reachable from the entry set, that each allowed edge have a write that can perform it, that no const edge leave the table and that no terminal state carry an outgoing edge. A family that declares a machine MUST NOT be written by any non-transition projection: a set installs a state without passing the table, which would make allowed_transitions documentation rather than a rule. Between the authority-commit clean break and 2026-09-18 this block did not exist while the gate still read it under the removed cell_* names, so check reported success over four normative paragraphs (zh/models/circle.md, zh/models/morph.md, zh/models/realm-and-space.md, zh/models/strand-and-message.md) that name transition_contracts as the source of truth for object lifecycle transitions; an absent or empty block is now a failure. Those four object families are themselves still unregistered, so their archive / restore lifecycle has no machine contract yet -- that is a coverage gap, not a licence to read the prose as satisfied.",
       "Dot-bearing keyed sets serialize by the tuple (complete event_id in unsigned UTF-8 byte order, numeric write_index). write_index is canonical decimal without leading zeros. Duplicate dots or one dot with conflicting values are rejected, never silently folded. This ordering is not authority or causal ordering."
@@ -1151,6 +1204,53 @@
         "result_effect_ownership": {
           "kind": "private_service_effect",
           "service_contract_id": "ak.actor_private.effects.v1"
+        }
+      },
+      {
+        "event_kind": "ak.agent.interaction.set",
+        "category": "agent",
+        "status": "active",
+        "verb_form": "base",
+        "wire_scope": "durable_event",
+        "reducer_input": true,
+        "admission": "agent_controller_self_authored_proof",
+        "payload": "Controller-only per-Realm interaction mode with exact expected_revision CAS; plaintext control, never a membership, Account Data or private participation write. Circle and Strand inherit the Realm mode and only narrow ordinary permissions. Verified never-written defaults to private; unknown fails closed. Mode transitions do not change membership or Sidecar MLS participants. models/agent-interaction.md sections 1-5.",
+        "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/agent_interaction_set_payload",
+        "id_source": "not_an_object_id",
+        "result_writes": [
+          {
+            "result_family": "agent_interaction",
+            "result_selector": {
+              "kind": "composite",
+              "components": [
+                {
+                  "kind": "canonical_json",
+                  "field": "payload.agent_account_id"
+                }
+              ]
+            },
+            "result_projection": {
+              "kind": "set",
+              "value_projection": {
+                "kind": "object",
+                "members": [
+                  {
+                    "name": "controller_account_id",
+                    "field": "payload.controller_account_id"
+                  },
+                  {
+                    "name": "interaction_mode",
+                    "field": "payload.interaction_mode"
+                  }
+                ]
+              }
+            },
+            "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/agent_interaction_value",
+            "notes": "models/agent-interaction.md section 1. Realm is the source stream, not a subject component. Same-value writes still advance revision. CAS, exact current ownership and controller-only signing are atomic guards. expected_revision is never stored; no MLS or member writes occur. Current mode is independently checked at every shared Agent action admission."
+          }
+        ],
+        "result_effect_ownership": {
+          "kind": "typed_result_writer"
         }
       },
       {
@@ -8590,8 +8690,8 @@
         }
       }
     },
-    "version": "2026-10-04.4",
-    "generated_at": "2026-10-04T07:33:06+08:00",
+    "version": "2026-10-04.5",
+    "generated_at": "2026-10-04T20:52:42+08:00",
     "bootstrap_event_kinds": [
       "ak.device.authorize",
       "ak.device.reanchor",
@@ -8631,7 +8731,8 @@
         "self_authored_proof",
         "sidecar_account_self_authored_proof",
         "service_attested",
-        "crypto_verifiable"
+        "crypto_verifiable",
+        "agent_controller_self_authored_proof"
       ],
       "acceptance": "A consumer accepts the Event only with a valid RealmCommit in the derived stream and a continuous authority-generation chain.",
       "schema_projection": "schemas/event-envelope.schema.json#/$defs/shared_event_envelope",
@@ -15125,7 +15226,7 @@
         "http": "POST /_arkret/self/current-results/exact",
         "grpc": "SelfCurrentResults/ReadExact",
         "mq": "self.current_results.query.exact",
-        "notes": "Authenticated non-enumerating read of exactly one closed Relation primary_conflict_domain or moderation_state target_ref selector from the current governing Station. The outcome binds realm_id, governance_generation, effective_stream_head and either one selector-identical present entry or an affirmative never_written selector from the same durable cut. never_written may supply expected_revision=null only for Relation create; moderation lift and Relation update/tombstone require present. Invisible, foreign, unknown and unauthorized selectors all return the same not_found and MUST NOT return never_written. Unavailable authority, incomplete coverage, timeout, stale generation, snapshot omission and holder-local history prove no absence. Consumers verify selector equality, Realm/stream binding, current governance generation and revision not ahead of the effective head before authoring; CAS conflict requires a new read, user confirmation and signature.",
+        "notes": "Authenticated non-enumerating read of exactly one closed Relation primary_conflict_domain or moderation_state target_ref selector from the current governing Station. The outcome binds realm_id, governance_generation, effective_stream_head and either one selector-identical present entry or an affirmative never_written selector from the same durable cut. never_written may supply expected_revision=null only for Relation create; moderation lift and Relation update/tombstone require present. Invisible, foreign, unknown and unauthorized selectors all return the same not_found and MUST NOT return never_written. Unavailable authority, incomplete coverage, timeout, stale generation, snapshot omission and holder-local history prove no absence. Consumers verify selector equality, Realm/stream binding, current governance generation and revision not ahead of the effective head before authoring; CAS conflict requires a new read, user confirmation and signature. Agent interaction also accepts the exact agent_interaction selector with complete agent_account_id; authorized same-cut never_written permits an omitted expected_revision first mode write and confirmed private default. A guessed ID is not disclosure authority. Mode reads do not expose private participation selection or authorize interaction.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/exact-current-results-read.schema.json#/$defs/exact_current_results_read_request",
@@ -16288,8 +16389,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-10-04.3",
-    "generated_at": "2026-10-04T05:02:28+00:00",
+    "version": "2026-10-04.4",
+    "generated_at": "2026-10-04T20:52:42+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",
@@ -21486,10 +21587,22 @@
           ],
           "note": "Notification dispatch and authorized watcher projection read the exact per-Strand Actor watch value."
         }
+      },
+      {
+        "result_kind": "agent_interaction",
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/agent_interaction_result",
+        "consumption": {
+          "class": "admission_input",
+          "consumed_by": [
+            "models/agent-interaction.md §1",
+            "models/agent-interaction.md §3"
+          ],
+          "note": "Exact current Realm mode gates shared Agent producer/executor actions and directed third-party delivery; it never grants capability or changes Sidecar participants."
+        }
       }
     ],
-    "version": "2026-10-03.1",
-    "generated_at": "2026-10-03T11:12:53+08:00",
+    "version": "2026-10-04.1",
+    "generated_at": "2026-10-04T20:52:42+08:00",
     "metadata_authority": "contract_registry_section"
   }
 }

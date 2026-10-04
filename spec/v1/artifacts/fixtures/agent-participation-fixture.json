@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.agent_participation_policy.v1",
-  "version": "2026-10-04",
+  "version": "2026-10-04.1",
   "suite": "agent_participation",
   "runner": {
     "kind": "named_suite",
@@ -12,7 +12,8 @@
     "ak.vector.agent.participation.effective_intersection.v1",
     "ak.vector.agent.participation.selection_cas.v1",
     "ak.vector.agent.participation.session_overlay.v1",
-    "ak.vector.agent.participation.third_party_mention_gate.v1"
+    "ak.vector.agent.participation.third_party_mention_gate.v1",
+    "ak.vector.agent.interaction_mode.v1"
   ],
   "cases": [
     {
@@ -120,7 +121,8 @@
             "other": false,
             "audience": false,
             "choice": "default",
-            "expected": "sidecar"
+            "expected": "sidecar",
+            "interaction_mode": "private"
           },
           {
             "scope": "realm",
@@ -128,7 +130,8 @@
             "other": true,
             "audience": false,
             "choice": "default",
-            "expected": "blocked"
+            "expected": "blocked",
+            "interaction_mode": "private"
           },
           {
             "scope": "realm",
@@ -136,7 +139,8 @@
             "other": true,
             "audience": true,
             "choice": "shared",
-            "expected": "shared"
+            "expected": "blocked",
+            "interaction_mode": "private"
           },
           {
             "scope": "realm",
@@ -144,7 +148,8 @@
             "other": true,
             "audience": false,
             "choice": "default",
-            "expected": "shared"
+            "expected": "shared",
+            "interaction_mode": "public"
           },
           {
             "scope": "realm",
@@ -152,7 +157,8 @@
             "other": false,
             "audience": true,
             "choice": "default",
-            "expected": "blocked"
+            "expected": "blocked",
+            "interaction_mode": "private"
           },
           {
             "scope": "circle",
@@ -160,7 +166,8 @@
             "other": true,
             "audience": true,
             "choice": "default",
-            "expected": "shared"
+            "expected": "blocked",
+            "interaction_mode": "private"
           },
           {
             "scope": "direct",
@@ -168,7 +175,8 @@
             "other": false,
             "audience": false,
             "choice": "default",
-            "expected": "direct"
+            "expected": "direct",
+            "interaction_mode": "private"
           },
           {
             "scope": "sidecar",
@@ -176,7 +184,8 @@
             "other": false,
             "audience": false,
             "choice": "default",
-            "expected": "sidecar"
+            "expected": "sidecar",
+            "interaction_mode": "private"
           },
           {
             "scope": "sidecar",
@@ -184,7 +193,8 @@
             "other": true,
             "audience": false,
             "choice": "shared",
-            "expected": "blocked"
+            "expected": "blocked",
+            "interaction_mode": "private"
           },
           {
             "scope": "sidecar",
@@ -192,7 +202,44 @@
             "other": false,
             "audience": true,
             "choice": "default",
+            "expected": "blocked",
+            "interaction_mode": "private"
+          },
+          {
+            "scope": "realm",
+            "owned": true,
+            "other": false,
+            "audience": false,
+            "interaction_mode": "public",
+            "choice": "default",
+            "expected": "shared"
+          },
+          {
+            "scope": "realm",
+            "owned": true,
+            "other": true,
+            "audience": true,
+            "interaction_mode": "public",
+            "choice": "default",
+            "expected": "shared"
+          },
+          {
+            "scope": "realm",
+            "owned": true,
+            "other": false,
+            "audience": false,
+            "interaction_mode": "unknown",
+            "choice": "shared",
             "expected": "blocked"
+          },
+          {
+            "scope": "sidecar",
+            "owned": true,
+            "other": false,
+            "audience": false,
+            "interaction_mode": "public",
+            "choice": "default",
+            "expected": "sidecar"
           }
         ]
       }
@@ -488,5 +535,708 @@
         "participation is an additional action gate and never materializes a capability grant"
       ]
     }
-  ]
+  ],
+  "interaction_contract": {
+    "event_kind": "ak.agent.interaction.set",
+    "vector_id": "ak.vector.agent.interaction_mode.v1",
+    "mode_cases": [
+      {
+        "status": "never_written",
+        "binding_valid": true,
+        "expected": "private"
+      },
+      {
+        "status": "present",
+        "mode": "public",
+        "binding_valid": true,
+        "expected": "public"
+      },
+      {
+        "status": "present",
+        "mode": "private",
+        "binding_valid": true,
+        "expected": "private"
+      },
+      {
+        "status": "missing",
+        "binding_valid": true,
+        "expected": "unknown"
+      },
+      {
+        "status": "stale",
+        "mode": "public",
+        "binding_valid": true,
+        "expected": "unknown"
+      },
+      {
+        "status": "present",
+        "mode": "public",
+        "binding_valid": false,
+        "expected": "unknown"
+      }
+    ],
+    "admission_cases": [
+      {
+        "controller_matches": true,
+        "active_member": true,
+        "agent_binding_valid": true,
+        "device_valid": true,
+        "delegated": false,
+        "scope": "realm",
+        "expected_revision_matches": true,
+        "name": "controller_mode_set",
+        "expected": true
+      },
+      {
+        "controller_matches": false,
+        "active_member": true,
+        "agent_binding_valid": true,
+        "device_valid": true,
+        "delegated": false,
+        "scope": "realm",
+        "expected_revision_matches": true,
+        "name": "reject_controller_matches",
+        "expected": false
+      },
+      {
+        "controller_matches": true,
+        "active_member": false,
+        "agent_binding_valid": true,
+        "device_valid": true,
+        "delegated": false,
+        "scope": "realm",
+        "expected_revision_matches": true,
+        "name": "reject_active_member",
+        "expected": false
+      },
+      {
+        "controller_matches": true,
+        "active_member": true,
+        "agent_binding_valid": false,
+        "device_valid": true,
+        "delegated": false,
+        "scope": "realm",
+        "expected_revision_matches": true,
+        "name": "reject_agent_binding_valid",
+        "expected": false
+      },
+      {
+        "controller_matches": true,
+        "active_member": true,
+        "agent_binding_valid": true,
+        "device_valid": false,
+        "delegated": false,
+        "scope": "realm",
+        "expected_revision_matches": true,
+        "name": "reject_device_valid",
+        "expected": false
+      },
+      {
+        "controller_matches": true,
+        "active_member": true,
+        "agent_binding_valid": true,
+        "device_valid": true,
+        "delegated": false,
+        "scope": "realm",
+        "expected_revision_matches": false,
+        "name": "reject_expected_revision_matches",
+        "expected": false
+      },
+      {
+        "controller_matches": true,
+        "active_member": true,
+        "agent_binding_valid": true,
+        "device_valid": true,
+        "delegated": true,
+        "scope": "realm",
+        "expected_revision_matches": true,
+        "name": "reject_delegated",
+        "expected": false
+      },
+      {
+        "controller_matches": true,
+        "active_member": true,
+        "agent_binding_valid": true,
+        "device_valid": true,
+        "delegated": false,
+        "scope": "sidecar",
+        "expected_revision_matches": true,
+        "name": "reject_sidecar_mode_write",
+        "expected": false
+      }
+    ],
+    "shared_action_cases": [
+      {
+        "action": "ak.message.create",
+        "mode": "private",
+        "ordinary_authority": true,
+        "expected": false
+      },
+      {
+        "action": "ak.message.create",
+        "mode": "public",
+        "ordinary_authority": true,
+        "expected": true
+      },
+      {
+        "action": "ak.message.create",
+        "mode": "unknown",
+        "ordinary_authority": true,
+        "expected": false
+      },
+      {
+        "action": "ak.message.revise",
+        "mode": "private",
+        "ordinary_authority": true,
+        "expected": false
+      },
+      {
+        "action": "ak.message.revise",
+        "mode": "public",
+        "ordinary_authority": true,
+        "expected": true
+      },
+      {
+        "action": "ak.message.revise",
+        "mode": "unknown",
+        "ordinary_authority": true,
+        "expected": false
+      },
+      {
+        "action": "ak.reaction.add",
+        "mode": "private",
+        "ordinary_authority": true,
+        "expected": false
+      },
+      {
+        "action": "ak.reaction.add",
+        "mode": "public",
+        "ordinary_authority": true,
+        "expected": true
+      },
+      {
+        "action": "ak.reaction.add",
+        "mode": "unknown",
+        "ordinary_authority": true,
+        "expected": false
+      },
+      {
+        "action": "ak.reaction.remove",
+        "mode": "private",
+        "ordinary_authority": true,
+        "expected": false
+      },
+      {
+        "action": "ak.reaction.remove",
+        "mode": "public",
+        "ordinary_authority": true,
+        "expected": true
+      },
+      {
+        "action": "ak.reaction.remove",
+        "mode": "unknown",
+        "ordinary_authority": true,
+        "expected": false
+      },
+      {
+        "action": "ak.relation.create",
+        "mode": "private",
+        "ordinary_authority": true,
+        "expected": false
+      },
+      {
+        "action": "ak.relation.create",
+        "mode": "public",
+        "ordinary_authority": true,
+        "expected": true
+      },
+      {
+        "action": "ak.relation.create",
+        "mode": "unknown",
+        "ordinary_authority": true,
+        "expected": false
+      },
+      {
+        "action": "external_tool",
+        "mode": "private",
+        "ordinary_authority": true,
+        "expected": false
+      },
+      {
+        "action": "external_tool",
+        "mode": "public",
+        "ordinary_authority": true,
+        "expected": true
+      },
+      {
+        "action": "external_tool",
+        "mode": "unknown",
+        "ordinary_authority": true,
+        "expected": false
+      },
+      {
+        "action": "controller_executed_by_agent",
+        "mode": "private",
+        "ordinary_authority": true,
+        "expected": false
+      },
+      {
+        "action": "controller_executed_by_agent",
+        "mode": "public",
+        "ordinary_authority": true,
+        "expected": true
+      },
+      {
+        "action": "controller_executed_by_agent",
+        "mode": "unknown",
+        "ordinary_authority": true,
+        "expected": false
+      },
+      {
+        "action": "ak.message.create",
+        "mode": "public",
+        "ordinary_authority": false,
+        "expected": false
+      }
+    ],
+    "invariants": {
+      "mode_changes_sidecar_roster": false,
+      "sidecar_manual_membership": false,
+      "circle_private_routes_to_realm_sidecar": false,
+      "message_revision_changes_scope": false,
+      "private_history_auto_published": false,
+      "shared_reply_uses_sidecar_context": false,
+      "private_can_read_authorized_group_context": true,
+      "third_party_private_mention_deletes_message": false,
+      "queued_action_uses_current_mode": true,
+      "mode_change_replays_old_notifications": false,
+      "controller_private_tools_allowed_with_authority": true,
+      "private_mode_erases_shared_identity": false,
+      "mode_has_circle_or_strand_override": false
+    },
+    "request_cases": [
+      {
+        "scope": "realm",
+        "mode": "private",
+        "controller_request": false,
+        "third_party_gate": false,
+        "ordinary_authority": true,
+        "expected": false
+      },
+      {
+        "scope": "realm",
+        "mode": "private",
+        "controller_request": false,
+        "third_party_gate": true,
+        "ordinary_authority": true,
+        "expected": false
+      },
+      {
+        "scope": "realm",
+        "mode": "private",
+        "controller_request": true,
+        "third_party_gate": false,
+        "ordinary_authority": true,
+        "expected": false
+      },
+      {
+        "scope": "realm",
+        "mode": "private",
+        "controller_request": true,
+        "third_party_gate": true,
+        "ordinary_authority": true,
+        "expected": false
+      },
+      {
+        "scope": "realm",
+        "mode": "public",
+        "controller_request": false,
+        "third_party_gate": false,
+        "ordinary_authority": true,
+        "expected": false
+      },
+      {
+        "scope": "realm",
+        "mode": "public",
+        "controller_request": false,
+        "third_party_gate": true,
+        "ordinary_authority": true,
+        "expected": true
+      },
+      {
+        "scope": "realm",
+        "mode": "public",
+        "controller_request": true,
+        "third_party_gate": false,
+        "ordinary_authority": true,
+        "expected": true
+      },
+      {
+        "scope": "realm",
+        "mode": "public",
+        "controller_request": true,
+        "third_party_gate": true,
+        "ordinary_authority": true,
+        "expected": true
+      },
+      {
+        "scope": "realm",
+        "mode": "unknown",
+        "controller_request": false,
+        "third_party_gate": false,
+        "ordinary_authority": true,
+        "expected": false
+      },
+      {
+        "scope": "realm",
+        "mode": "unknown",
+        "controller_request": false,
+        "third_party_gate": true,
+        "ordinary_authority": true,
+        "expected": false
+      },
+      {
+        "scope": "realm",
+        "mode": "unknown",
+        "controller_request": true,
+        "third_party_gate": false,
+        "ordinary_authority": true,
+        "expected": false
+      },
+      {
+        "scope": "realm",
+        "mode": "unknown",
+        "controller_request": true,
+        "third_party_gate": true,
+        "ordinary_authority": true,
+        "expected": false
+      },
+      {
+        "scope": "circle",
+        "mode": "private",
+        "controller_request": false,
+        "third_party_gate": false,
+        "ordinary_authority": true,
+        "expected": false
+      },
+      {
+        "scope": "circle",
+        "mode": "private",
+        "controller_request": false,
+        "third_party_gate": true,
+        "ordinary_authority": true,
+        "expected": false
+      },
+      {
+        "scope": "circle",
+        "mode": "private",
+        "controller_request": true,
+        "third_party_gate": false,
+        "ordinary_authority": true,
+        "expected": false
+      },
+      {
+        "scope": "circle",
+        "mode": "private",
+        "controller_request": true,
+        "third_party_gate": true,
+        "ordinary_authority": true,
+        "expected": false
+      },
+      {
+        "scope": "circle",
+        "mode": "public",
+        "controller_request": false,
+        "third_party_gate": false,
+        "ordinary_authority": true,
+        "expected": false
+      },
+      {
+        "scope": "circle",
+        "mode": "public",
+        "controller_request": false,
+        "third_party_gate": true,
+        "ordinary_authority": true,
+        "expected": true
+      },
+      {
+        "scope": "circle",
+        "mode": "public",
+        "controller_request": true,
+        "third_party_gate": false,
+        "ordinary_authority": true,
+        "expected": true
+      },
+      {
+        "scope": "circle",
+        "mode": "public",
+        "controller_request": true,
+        "third_party_gate": true,
+        "ordinary_authority": true,
+        "expected": true
+      },
+      {
+        "scope": "circle",
+        "mode": "unknown",
+        "controller_request": false,
+        "third_party_gate": false,
+        "ordinary_authority": true,
+        "expected": false
+      },
+      {
+        "scope": "circle",
+        "mode": "unknown",
+        "controller_request": false,
+        "third_party_gate": true,
+        "ordinary_authority": true,
+        "expected": false
+      },
+      {
+        "scope": "circle",
+        "mode": "unknown",
+        "controller_request": true,
+        "third_party_gate": false,
+        "ordinary_authority": true,
+        "expected": false
+      },
+      {
+        "scope": "circle",
+        "mode": "unknown",
+        "controller_request": true,
+        "third_party_gate": true,
+        "ordinary_authority": true,
+        "expected": false
+      },
+      {
+        "scope": "sidecar",
+        "mode": "private",
+        "controller_request": false,
+        "third_party_gate": false,
+        "ordinary_authority": true,
+        "expected": false
+      },
+      {
+        "scope": "sidecar",
+        "mode": "private",
+        "controller_request": false,
+        "third_party_gate": true,
+        "ordinary_authority": true,
+        "expected": false
+      },
+      {
+        "scope": "sidecar",
+        "mode": "private",
+        "controller_request": true,
+        "third_party_gate": false,
+        "ordinary_authority": true,
+        "expected": true
+      },
+      {
+        "scope": "sidecar",
+        "mode": "private",
+        "controller_request": true,
+        "third_party_gate": true,
+        "ordinary_authority": true,
+        "expected": true
+      },
+      {
+        "scope": "sidecar",
+        "mode": "public",
+        "controller_request": false,
+        "third_party_gate": false,
+        "ordinary_authority": true,
+        "expected": false
+      },
+      {
+        "scope": "sidecar",
+        "mode": "public",
+        "controller_request": false,
+        "third_party_gate": true,
+        "ordinary_authority": true,
+        "expected": false
+      },
+      {
+        "scope": "sidecar",
+        "mode": "public",
+        "controller_request": true,
+        "third_party_gate": false,
+        "ordinary_authority": true,
+        "expected": true
+      },
+      {
+        "scope": "sidecar",
+        "mode": "public",
+        "controller_request": true,
+        "third_party_gate": true,
+        "ordinary_authority": true,
+        "expected": true
+      },
+      {
+        "scope": "sidecar",
+        "mode": "unknown",
+        "controller_request": false,
+        "third_party_gate": false,
+        "ordinary_authority": true,
+        "expected": false
+      },
+      {
+        "scope": "sidecar",
+        "mode": "unknown",
+        "controller_request": false,
+        "third_party_gate": true,
+        "ordinary_authority": true,
+        "expected": false
+      },
+      {
+        "scope": "sidecar",
+        "mode": "unknown",
+        "controller_request": true,
+        "third_party_gate": false,
+        "ordinary_authority": true,
+        "expected": true
+      },
+      {
+        "scope": "sidecar",
+        "mode": "unknown",
+        "controller_request": true,
+        "third_party_gate": true,
+        "ordinary_authority": true,
+        "expected": true
+      },
+      {
+        "scope": "direct",
+        "mode": "private",
+        "controller_request": false,
+        "third_party_gate": false,
+        "ordinary_authority": true,
+        "expected": false
+      },
+      {
+        "scope": "direct",
+        "mode": "private",
+        "controller_request": false,
+        "third_party_gate": true,
+        "ordinary_authority": true,
+        "expected": false
+      },
+      {
+        "scope": "direct",
+        "mode": "private",
+        "controller_request": true,
+        "third_party_gate": false,
+        "ordinary_authority": true,
+        "expected": true
+      },
+      {
+        "scope": "direct",
+        "mode": "private",
+        "controller_request": true,
+        "third_party_gate": true,
+        "ordinary_authority": true,
+        "expected": true
+      },
+      {
+        "scope": "direct",
+        "mode": "public",
+        "controller_request": false,
+        "third_party_gate": false,
+        "ordinary_authority": true,
+        "expected": false
+      },
+      {
+        "scope": "direct",
+        "mode": "public",
+        "controller_request": false,
+        "third_party_gate": true,
+        "ordinary_authority": true,
+        "expected": true
+      },
+      {
+        "scope": "direct",
+        "mode": "public",
+        "controller_request": true,
+        "third_party_gate": false,
+        "ordinary_authority": true,
+        "expected": true
+      },
+      {
+        "scope": "direct",
+        "mode": "public",
+        "controller_request": true,
+        "third_party_gate": true,
+        "ordinary_authority": true,
+        "expected": true
+      },
+      {
+        "scope": "direct",
+        "mode": "unknown",
+        "controller_request": false,
+        "third_party_gate": false,
+        "ordinary_authority": true,
+        "expected": false
+      },
+      {
+        "scope": "direct",
+        "mode": "unknown",
+        "controller_request": false,
+        "third_party_gate": true,
+        "ordinary_authority": true,
+        "expected": false
+      },
+      {
+        "scope": "direct",
+        "mode": "unknown",
+        "controller_request": true,
+        "third_party_gate": false,
+        "ordinary_authority": true,
+        "expected": true
+      },
+      {
+        "scope": "direct",
+        "mode": "unknown",
+        "controller_request": true,
+        "third_party_gate": true,
+        "ordinary_authority": true,
+        "expected": true
+      }
+    ],
+    "observation_cases": [
+      {
+        "target_status": "private",
+        "expected_directed_count": 0,
+        "expected_stub": false,
+        "expected_shared_message_preserved": true
+      },
+      {
+        "target_status": "unknown",
+        "expected_directed_count": 0,
+        "expected_stub": false,
+        "expected_shared_message_preserved": true
+      },
+      {
+        "target_status": "undisclosed",
+        "expected_directed_count": 0,
+        "expected_stub": false,
+        "expected_shared_message_preserved": true
+      },
+      {
+        "target_status": "nonexistent",
+        "expected_directed_count": 0,
+        "expected_stub": false,
+        "expected_shared_message_preserved": true
+      },
+      {
+        "target_status": "deactivated",
+        "expected_directed_count": 0,
+        "expected_stub": false,
+        "expected_shared_message_preserved": true
+      },
+      {
+        "target_status": "gate_closed",
+        "expected_directed_count": 0,
+        "expected_stub": false,
+        "expected_shared_message_preserved": true
+      }
+    ]
+  }
 }

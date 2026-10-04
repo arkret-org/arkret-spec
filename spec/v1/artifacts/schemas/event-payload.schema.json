@@ -9338,6 +9338,34 @@
         }
       },
       "additionalProperties": false
+    },
+    "agent_interaction_set_payload": {
+      "type": "object",
+      "description": "Realm-scoped controller-only Agent interaction mode. Signed plaintext control, not membership or private participation selection. CAS and authority admission are defined in zh/models/agent-interaction.md section 1.",
+      "required": [
+        "agent_account_id",
+        "controller_account_id",
+        "interaction_mode"
+      ],
+      "properties": {
+        "agent_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "controller_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "interaction_mode": {
+          "type": "string",
+          "enum": [
+            "private",
+            "public"
+          ]
+        },
+        "expected_revision": {
+          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+        }
+      },
+      "additionalProperties": false
     }
   },
   "x-arkret-public-handshake-contract": {

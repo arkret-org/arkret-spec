@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-03.1",
+  "version": "2026-10-04.1",
   "source_of_truth": false,
-  "generated_at": "2026-10-03T11:12:53+08:00",
+  "generated_at": "2026-10-04T20:52:42+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Closed typed current-result families derived from authority-committed Events. Selectors are domain types, never alternate typed current result IDs. Each row also records its CONSUMPTION: consumption.class is one of the consumption_classes below, consumption.consumed_by names the zh prose sections that read the current value, and consumption.note says what is read and to decide what. check_every_result_family_has_a_writer closes the writer direction; this ledger is the reader direction, which had no gate and no record. consumed_by is non-empty for every class except record_only, and a record_only row's note MUST name the section that states the family's purpose so the classification is checkable rather than an absence of evidence. Citations resolve through check_artifact_prose_section_refs.",
@@ -938,6 +938,18 @@
           "models/strand-and-message.md §8"
         ],
         "note": "Notification dispatch and authorized watcher projection read the exact per-Strand Actor watch value."
+      }
+    },
+    {
+      "result_kind": "agent_interaction",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/agent_interaction_result",
+      "consumption": {
+        "class": "admission_input",
+        "consumed_by": [
+          "models/agent-interaction.md §1",
+          "models/agent-interaction.md §3"
+        ],
+        "note": "Exact current Realm mode gates shared Agent producer/executor actions and directed third-party delivery; it never grants capability or changes Sidecar participants."
       }
     }
   ],

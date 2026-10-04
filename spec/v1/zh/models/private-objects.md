@@ -175,6 +175,11 @@ closed `{target_scope, selection, version}`，`selection` 五位恰为
 
 ### 4.2 隐私边界(normative)
 
+`agent_interaction` 是 Realm-scoped、controller 自著 `ak.agent.interaction.set` 的治理 current，
+不是本节的 controller-private participation selection，也不是 Account Data；机器 value 与披露边界见
+[agent-interaction.md](./agent-interaction.md)。其记录或模式变化 MUST NOT 修改 Sidecar 派生成员，
+公开参与也不得自动公开 private prompt、工具结果或 Sidecar history。
+
 针对上述 agent-attributed private state:
 
 - 存储 MUST 使用 `wire_scope=actor_private_event` 通道(encrypted account data 或 actor-private stream);不得进入 shared Realm data-plane history 或 control-plane RealmCommit history。

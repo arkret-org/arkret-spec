@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-04.3",
+  "version": "2026-10-04.4",
   "source_of_truth": true,
-  "generated_at": "2026-10-04T18:01:04+08:00",
+  "generated_at": "2026-10-04T20:52:42+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -5097,6 +5097,23 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/mls-roster-client-roles-fixture.json",
         "spec/v1/zh/crypto-media/encryption-and-audit.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.agent.interaction_mode.v1",
+      "status": "active",
+      "domain": "agent",
+      "applies_to_fixtures": [
+        "agent-participation-fixture.json",
+        "event-kind-payload-coverage-fixture.json",
+        "exact-current-results-read-fixture.json"
+      ],
+      "description": "Realm Agent interaction mode carrier, controller/CAS admission, automatic Sidecar roster, public/private composer and action gates, non-retroactive delivery, scope containment and private context isolation.",
+      "source_refs": [
+        "spec/v1/zh/models/agent-interaction.md",
+        "spec/v1/artifacts/fixtures/agent-participation-fixture.json",
+        "spec/v1/artifacts/fixtures/event-kind-payload-coverage-fixture.json",
+        "spec/v1/artifacts/fixtures/exact-current-results-read-fixture.json"
       ]
     }
   ]

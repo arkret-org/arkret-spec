@@ -15,19 +15,19 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9111,
+    "total_properties": 9129,
     "total_schema_documents": 168,
     "by_presence_class": {
-      "optional": 2136,
+      "optional": 2140,
       "optional_defaulted": 48,
-      "required": 6436,
+      "required": 6449,
       "required_nullable": 314,
-      "tristate": 177
+      "tristate": 178
     },
-    "tristate_occurrences": 177,
-    "tristate_audit_targets": 140,
+    "tristate_occurrences": 178,
+    "tristate_audit_targets": 141,
     "tristate_sdk_dispositions": {
-      "absent_null_equivalent": 130,
+      "absent_null_equivalent": 131,
       "condition_guarded": 9,
       "distinct": 1
     }
@@ -97,6 +97,7 @@
     "dnd-schedule.schema.json/$defs/schedule/allOf/0/then/properties/periods",
     "erasure-receipt.schema.json/properties/legal_hold_ref",
     "erasure-verification-stub.schema.json/properties/legal_hold_ref",
+    "event-envelope.schema.json/allOf/140/then/properties/scope_ref",
     "event-payload.schema.json/$defs/account_data_set_payload/properties/body",
     "event-payload.schema.json/$defs/circle_member_state_payload/properties/expected_membership",
     "event-payload.schema.json/$defs/content_block/allOf/2/then/properties/body",
@@ -668,6 +669,16 @@
       "instance_path": "/legal_hold_ref",
       "occurrences": [
         "/properties/legal_hold_ref"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "event-envelope.schema.json",
+      "shape": "#",
+      "instance_path": "/scope_ref",
+      "occurrences": [
+        "/allOf/140/then/properties/scope_ref"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -5686,6 +5697,12 @@
         "/allOf/139/then/properties/payload": "optional",
         "/allOf/14/if/properties/kind": "required",
         "/allOf/14/then/properties/payload": "optional",
+        "/allOf/140/if/properties/kind": "required",
+        "/allOf/140/then/properties/actor_id": "optional",
+        "/allOf/140/then/properties/actor_id/properties/kind": "required",
+        "/allOf/140/then/properties/payload": "optional",
+        "/allOf/140/then/properties/scope_ref": "tristate",
+        "/allOf/140/then/properties/scope_ref/properties/kind": "optional",
         "/allOf/15/if/properties/kind": "required",
         "/allOf/15/then/properties/payload": "optional",
         "/allOf/16/if/properties/kind": "required",
@@ -5956,6 +5973,10 @@
         "/$defs/agent_draft_propose_payload/properties/proposed_action": "required",
         "/$defs/agent_draft_propose_payload/properties/summary": "optional",
         "/$defs/agent_draft_propose_payload/properties/target": "required",
+        "/$defs/agent_interaction_set_payload/properties/agent_account_id": "required",
+        "/$defs/agent_interaction_set_payload/properties/controller_account_id": "required",
+        "/$defs/agent_interaction_set_payload/properties/expected_revision": "optional",
+        "/$defs/agent_interaction_set_payload/properties/interaction_mode": "required",
         "/$defs/agent_key_approval_evidence/allOf/0/if/properties/kind": "required",
         "/$defs/agent_key_approval_evidence/properties/approved_by": "optional",
         "/$defs/agent_key_approval_evidence/properties/evidence_ref": "optional",
@@ -11578,6 +11599,14 @@
         "/$defs/agent_action_approval_result/properties/selector/properties/kind": "required",
         "/$defs/agent_action_approval_result/properties/source_stream_ref": "required",
         "/$defs/agent_action_approval_result/properties/value": "required",
+        "/$defs/agent_interaction_result/properties/revision": "required",
+        "/$defs/agent_interaction_result/properties/selector": "required",
+        "/$defs/agent_interaction_result/properties/selector/properties/agent_account_id": "required",
+        "/$defs/agent_interaction_result/properties/selector/properties/kind": "required",
+        "/$defs/agent_interaction_result/properties/source_stream_ref": "required",
+        "/$defs/agent_interaction_result/properties/value": "required",
+        "/$defs/agent_interaction_value/properties/controller_account_id": "required",
+        "/$defs/agent_interaction_value/properties/interaction_mode": "required",
         "/$defs/agent_key_authorization_entry/properties/tag_id": "required",
         "/$defs/agent_key_authorization_entry/properties/value": "required",
         "/$defs/agent_key_result/properties/revision": "required",

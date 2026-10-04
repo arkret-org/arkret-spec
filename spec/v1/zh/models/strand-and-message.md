@@ -833,6 +833,12 @@ Audience mention 的失败不得污染普通消息写入语义：实现 MAY 接�
 
 #### 9.4.5 Agent 第三方 mention 投递 gate
 
+dispatcher MUST 先按 [agent-interaction.md](./agent-interaction.md) 判定实际 Realm 的当前模式。
+private／unknown 的第三方 direct／audience mention 不产生 Agent 定向派生；public 再求交下列门。
+主人普通 Realm composer 向自己的 public Agent 请求走共享消息，向 private Agent 请求走 Sidecar；
+Circle 私人请求不跨到 Realm Sidecar。mode 不影响普通 history 可读权；public 转 private 不撤销旧 fanout，
+但实际共享回复／动作接纳仍须重新通过 current public 门。密文内容门由持钥端承担，服务端强制可验证部分。
+
 当一条 `ak.message.create` / `ak.message.revise`（含 direct mention 与 audience mention）的某个 mention target 是一个 **Agent** principal 时，dispatcher / reducer 在为该 agent 派生 mention notification 前 MUST 解析该 message effective_scope（Strand → Circle / Realm），并以当前 `controller selection ∩ deployment/Realm/Circle/Strand governance policy` 求出 participation gate。`accept_third_party_mention` 只决定是否允许第三方触发投递；requested scope、key scope、Realm capability、membership/history 与 E2EE access 仍是独立前置条件，任一缺失都拒绝投递：
 
 - mention 作者 == 该 agent 的 controller principal：照常投递（仍受该 agent 是否被授权读取该 scope 约束）。

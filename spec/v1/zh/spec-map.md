@@ -159,6 +159,7 @@ see_also:
 | `models/morph.md` | Morph 开放对象、`morph_kind` 合并优先级、标准 facets、schema evolution。 |
 | `models/relation.md` | Relation 一等关系、标准 `relation_kind` 与基数、跨 Realm 规则、关系记录与应用规则边界、冲突处理。 |
 | `models/actor.md` | Actor 与 Actor Profile、`actor_kind`、accountability。 |
+| `models/agent-interaction.md` | Realm-scoped Agent 公开／私人模式、controller-only current/CAS、成员披露边界、消息路由、共享执行门及私有上下文隔离。 |
 | `models/governance-objects.md` | Schema、Policy、Capability Grant、Invite 治理对象。 |
 | `models/private-objects.md` | Read Cursor、Notification、actor-private account data 引导。 |
 | `models/account-data.md` | principal/actor-private Account Data 的存储、namespace key、value encryption、HKDF/AAD transcript 与文档放置规则单一真相源。 |

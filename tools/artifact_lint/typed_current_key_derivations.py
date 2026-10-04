@@ -2,7 +2,7 @@
 
 Decision 0079 keeps ``result_selector.kind = composite`` as a closed, ordered
 family descriptor while forbidding the old generic ``composite_subject`` API.
-This gate pins the first four active families, their generated API metadata,
+This gate pins the registered active families, their generated API metadata,
 their selector sources and their domain-separated KATs.  The digest is only a
 row locator; it has no authority semantics.
 """
@@ -28,6 +28,12 @@ _ALGORITHM_PROFILE = {
 }
 
 _FAMILIES = {
+    "agent_interaction": {
+        "derivation_id": "ak.current_key.agent_interaction.v1",
+        "api_name": "derive_agent_interaction_current_key",
+        "parameters": [("agent_account_id", "AccountId")],
+        "components": [("agent_account_id", "rfc8785_jcs_value", {"payload.agent_account_id"})],
+    },
     "member_state": {
         "derivation_id": "ak.current_key.member_state.v1",
         "api_name": "derive_member_state_current_key",
@@ -162,9 +168,9 @@ def _check_family_row(lint: Lint, row: Any, expected: dict[str, Any]) -> None:
         return
     values = [arguments[name] for name in parameter_names]
     for value, (_, parameter_type) in zip(values, expected["parameters"]):
-        if parameter_type == "ActorId" and not isinstance(value, dict):
-            _fail(lint, f"family {family!r} ActorId KAT argument must be an object")
-        elif parameter_type != "ActorId" and not isinstance(value, str):
+        if parameter_type in {"ActorId", "AccountId"} and not isinstance(value, dict):
+            _fail(lint, f"family {family!r} {parameter_type} KAT argument must be an object")
+        elif parameter_type not in {"ActorId", "AccountId"} and not isinstance(value, str):
             _fail(lint, f"family {family!r} {parameter_type} KAT argument must be a string")
     if kat.get("normalized_components") != values:
         _fail(lint, f"family {family!r}.kat normalized components must preserve typed arguments")
@@ -288,7 +294,7 @@ def _check_typed_current_key_derivations(lint: Lint, registry: Any) -> None:
     expected_audit = {
         "soland_missing_helper_callers": 10,
         "active_family_callers": 9,
-        "registered_active_families": 4,
+        "registered_active_families": len(_FAMILIES),
         "excluded_per_leg_mute": {
             "observed_component_order": ["call_id", "actor_id", "device_id"],
             "active_result_family": "call_mute_override",
