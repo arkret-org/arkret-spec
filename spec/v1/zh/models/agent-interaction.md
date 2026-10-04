@@ -82,6 +82,11 @@ MUST 拒绝其共享消息创建／编辑、reaction、共享对象／Relation�
 必须保持原 scope。主人自著的普通群消息不受此 Agent 出站门影响；私人 Agent 仍可在 Sidecar 或主人独立
 Direct 内按原权限调用私有工具、产生私有动作，不自动扩大到其它用户的 Direct。
 
+私人模式不禁止维持已授权成员资格所必需的 `ak.mls.genesis`／`ak.mls.commit`、Agent 自身的
+`ak.member.state`，以及只影响自身的 Strand watch／read cursor。此例外只免除交互模式门，MUST 继续通过
+原有 producer、membership、MLS roster／governance 和目标主体授权；不得借维护 Event 修改第三方成员、
+共享协作对象或产生第三方通知。PCR／Agent control Realm 的身份治理独立于普通协作 Realm 的交互模式。
+
 服务端 MUST 强制可验证的 author／executor／scope／模式与 action 门；E2EE 正文里的 mention 或模型
 上下文不能假装由无密钥服务端读出。持钥客户端和 runtime MUST 验证内容触发、私有 provenance 与队列绑定。
 明文场景派生器执行内容门；无法识别密文内容的 blind wakeup MUST NOT 成为私人 Agent 的执行授权。

@@ -62,11 +62,14 @@ class ExactCurrentResultsReadTest(unittest.TestCase):
             definition,
             resolver=RefResolver(base_uri=SCHEMA.as_uri(), referrer=self.schema, store=self.schema_store),
         )
+        negative = next(case for case in self.fixture["schema_validation_cases"] if case["name"] == "moderation_never_written_is_not_a_schema_outcome")
+        self.assertTrue(list(validator.iter_errors(negative["instance"])))
+
+    def test_all_schema_vectors_respect_their_declared_fragment(self):
         for case in self.fixture["schema_validation_cases"]:
-            self.assertTrue(
-                list(validator.iter_errors(case["instance"])),
-                msg=f'{case["name"]} unexpectedly matched the outcome schema',
-            )
+            fragment = case["schema_ref"].split("#/$defs/")[1]
+            validator = Draft202012Validator(self.schema["$defs"][fragment], resolver=RefResolver(base_uri=SCHEMA.as_uri(), referrer=self.schema, store=self.schema_store))
+            self.assertEqual(case["expect_valid"], not list(validator.iter_errors(case["instance"])), case["name"])
 
     def test_operation_is_closed_and_read_only(self):
         operation = next(
