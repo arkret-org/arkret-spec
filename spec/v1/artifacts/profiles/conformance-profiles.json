@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-04.4",
-  "generated_at": "2026-10-04T07:10:43+00:00",
+  "version": "2026-10-04.5",
+  "generated_at": "2026-10-04T10:36:45+00:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -2070,7 +2070,7 @@
         "schema_refs MUST contain ak.profile.direct_conversation_realm.v1 and fields.collaboration_role MUST equal direct_conversation; either marker without the other is schema_violation.",
         "The Realm scope is plaintext until its single ak.mls.genesis is accepted; that accepted RealmCommit irreversibly activates standard RFC 9420 for the scope and every later content write MUST be an MLS application message.",
         "Exactly the two ActorIds in the immutable binding may be Realm principal members; any third-party join or invite MUST be rejected.",
-        "Stable participants may author only the closed Chat/flat Topic structural actions of participant_authority.structural_contract; all other Space kinds, non-root List topologies, plaintext metadata and bootstrap extensions fail closed.",
+        "Stable participants may author only the closed Chat/flat Topic structural actions of participant_authority.structural_contract; all other Space kinds, non-root Topic topologies, plaintext metadata and bootstrap extensions fail closed.",
         "The canonical main Strand MUST be active, belong to the Realm, have no Circle scope, and expose an active primary discussion track.",
         "First creation MUST be the founder's caller-authored four-Event unit submitted through the direct_conversation_founding branch of ak.self.events.command.submit.v1. realm_id and main_strand_id are retyped from the first and fourth Event IDs, so the service MUST NOT allocate an identifier, issue a reserved or materializing draft, or elect a coordinator; it only verifies the unit, CAS-closes its local (founder_id, trust_domain_id, pair_key) slot and accepts zero or four Events atomically.",
         "The founding slot admits the first valid unit only. A second unit for the same pair MUST be refused with direct_conversation_slot_already_committed and zero writes; a byte-identical replay MUST return the same four byte-identical source RealmCommits without changing the fourth committed_at; the same idempotency key with a different unit MUST be duplicate_conflict. The slot MUST NOT reopen into creation_required after a committed unit, and no founding receipt exists.",
@@ -2146,9 +2146,8 @@
             "encrypted_metadata"
           ],
           "space_kinds": [
-            "list"
+            "topic"
           ],
-          "list_parent": "root_in_same_realm",
           "scope": "realm_default_only",
           "main_archive": "forbidden",
           "create_metadata": "encrypted_metadata_only_no_plaintext_title_summary_labels_fields_avatar",
@@ -2160,7 +2159,8 @@
           "space_metadata_plaintext_schema_ref": "schemas/space.schema.json#/$defs/space_metadata",
           "forbidden_space_kind_reason": "direct_conversation_space_forbidden",
           "topic": "strand_topic_whole_set_or_unset_with_required_expected_state_digest",
-          "topic_current": "strand_current_only_no_board_position_or_relation"
+          "topic_current": "strand_current_only_no_board_position_or_relation",
+          "topic_parent": "root_in_same_realm"
         },
         "personal_watch_contract": {
           "action": "ak.strand.watch.set",

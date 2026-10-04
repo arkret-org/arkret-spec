@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-04.4",
+  "version": "2026-10-04.5",
   "source_of_truth": false,
-  "generated_at": "2026-10-04T07:10:43+00:00",
+  "generated_at": "2026-10-04T10:36:45+00:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "source_pattern": "^ak\\.authority\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$",
@@ -143,9 +143,8 @@
           "encrypted_metadata"
         ],
         "space_kinds": [
-          "list"
+          "topic"
         ],
-        "list_parent": "root_in_same_realm",
         "scope": "realm_default_only",
         "main_archive": "forbidden",
         "create_metadata": "encrypted_metadata_only_no_plaintext_title_summary_labels_fields_avatar",
@@ -157,7 +156,8 @@
         "space_metadata_plaintext_schema_ref": "schemas/space.schema.json#/$defs/space_metadata",
         "forbidden_space_kind_reason": "direct_conversation_space_forbidden",
         "topic": "strand_topic_whole_set_or_unset_with_required_expected_state_digest",
-        "topic_current": "strand_current_only_no_board_position_or_relation"
+        "topic_current": "strand_current_only_no_board_position_or_relation",
+        "topic_parent": "root_in_same_realm"
       },
       "personal_watch_contract": {
         "action": "ak.strand.watch.set",

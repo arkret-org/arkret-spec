@@ -683,4 +683,4 @@ native Event 不创建回显；第二设备得到相同排序、状态与去重�
 和 SDK MLS 群隔离。此证据只覆盖合同与密码学组件，不证明独立 runtime 安装生命周期。
 `ak.vector.applet.self_actor_live_lifecycle.v1` 保持 reserved，激活条件见 Applet client/invocation 合同 §4。
 
-`ak.vector.direct_conversation.chat_topic_structure.v1`：由 `direct-conversation-structure-fixture.json` 与 artifact structure gate 逐项执行 Space 密文／明文互斥、解密 plaintext 封闭字段集、List 放置与显式 null 取消分类的必填 target、完整 CAS 与禁止 rank 负例，并校验十二项 participant action、独立 main/target、root Board/直属 List 与撤销边界；不宣称此 wire 向量已代替真实 MLS、双设备、跨站或 Agent 产品验收。
+`ak.vector.direct_conversation.chat_topic_structure.v1`：由 `direct-conversation-structure-fixture.json` 与 artifact structure gate 逐项执行 Space 密文／明文互斥、解密 plaintext 封闭字段集、独立 Space(kind=topic) 的密文载体、Strand.topic 的显式整体 set/unset、必需完整 CAS、非法 null／子路径／rank 负例，并校验九项 participant action、独立 main/target、root Topic 以及 List／Board 不得充当 Topic 的边界；不宣称此 wire 向量已代替真实 MLS、双设备、跨站或 Agent 产品验收。

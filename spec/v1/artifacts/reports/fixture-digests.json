@@ -227,8 +227,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/direct-conversation-structure-fixture.json",
-      "sha256": "8890cf5f8697244c8c68f9738c689106715d92edff02f8d7ca3d25a7cdf36f38",
-      "version": "2026-10-04.3"
+      "sha256": "65a7770f5736895fb10d7f6d468fa1f509ab24973198afa67e2f15dba7dc7304",
+      "version": "2026-10-04.4"
     },
     {
       "path": "spec/v1/artifacts/fixtures/discovery-profile-fixture.json",

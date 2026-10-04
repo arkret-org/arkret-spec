@@ -9,7 +9,7 @@
       "value": {
         "schema": "ak.schema.space.v1",
         "realm_id": "ak:realm:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "kind": "list",
+        "kind": "topic",
         "encrypted_metadata": {
           "version": "1.0",
           "content_type": "application/json",
@@ -36,7 +36,7 @@
       "value": {
         "schema": "ak.schema.space.v1",
         "realm_id": "ak:realm:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "kind": "list",
+        "kind": "topic",
         "encrypted_metadata": {
           "version": "1.0",
           "content_type": "application/json",
@@ -64,7 +64,7 @@
       "value": {
         "schema": "ak.schema.space.v1",
         "realm_id": "ak:realm:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "kind": "list",
+        "kind": "topic",
         "encrypted_metadata": {
           "version": "1.0",
           "content_type": "application/json",
@@ -92,7 +92,7 @@
       "value": {
         "schema": "ak.schema.space.v1",
         "realm_id": "ak:realm:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "kind": "list",
+        "kind": "topic",
         "encrypted_metadata": {
           "version": "1.0",
           "content_type": "application/json",
@@ -122,7 +122,7 @@
       "value": {
         "schema": "ak.schema.space.v1",
         "realm_id": "ak:realm:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "kind": "list",
+        "kind": "topic",
         "encrypted_metadata": {
           "version": "1.0",
           "content_type": "application/json",
@@ -150,7 +150,7 @@
       "value": {
         "schema": "ak.schema.space.v1",
         "realm_id": "ak:realm:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "kind": "list",
+        "kind": "topic",
         "encrypted_metadata": {
           "version": "1.0",
           "content_type": "application/json",
@@ -180,7 +180,7 @@
       "value": {
         "schema": "ak.schema.space.v1",
         "realm_id": "ak:realm:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "kind": "list",
+        "kind": "topic",
         "created_by": {
           "kind": "account",
           "account_id": {
@@ -198,7 +198,7 @@
       "value": {
         "schema": "ak.schema.space.v1",
         "realm_id": "ak:realm:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "kind": "list",
+        "kind": "topic",
         "created_by": {
           "kind": "account",
           "account_id": {
@@ -429,7 +429,7 @@
       "expect_valid": false
     }
   ],
-  "version": "2026-10-04.3",
+  "version": "2026-10-04.4",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.direct_conversation.chat_topic_structure.v1"

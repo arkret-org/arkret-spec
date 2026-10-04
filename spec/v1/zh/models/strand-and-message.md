@@ -63,7 +63,7 @@ Schema id: `ak.schema.strand.v1`
 | `agent_participation` | no | `object{agent:{reply_message,reaction_add,reaction_remove,accept_third_party_mention,act_on_behalf:boolean}}` | component省略时继承有效Circle/Realm父级；一旦出现五位全部required且closed，只能逐位收紧，unknown/stale/fork全deny。旧三位/`reply`别名拒绝。第三方mention gate见§9.4.5。 | Agent在Strand scope内的治理上限。 |
 | `metadata` | no | `object` | MAY contain `title`, `summary`, `fields` and profile-defined keys. `metadata.title` 1..512 chars；`metadata.summary` SHOULD <= 2048 chars。 | 用户可读 Strand metadata；scope 激活 MLS 后必须放入 `encrypted_metadata`。 |
 | `encrypted_metadata` | conditional | `EncryptedPayload` | 与 `metadata` 二选一；plaintext 是同一个 Strand metadata object。 | E2EE 场景下包裹 `title` / `summary` / 用户可读 `fields` 等 metadata。 |
-| `topic` | no | `object{space_id:SpaceId,rank:string}` | 仅稳定 DM Realm 的 Chat，引用同 Realm active root List；create 必须省略，update 仅显式整体 set/unset 且 required expected_state_digest。详见 Contact／Direct Conversation §8.3.1。 | Realm 内唯一共享分类；不是 Board position，省略表示未分类。 |
+| `topic` | no | `object{space_id:SpaceId,rank:string}` | 仅稳定 DM Realm 的 Chat，引用同 Realm active root Topic Space(kind=topic)；create 必须省略，update 仅显式整体 set/unset 且 required expected_state_digest。详见 Contact／Direct Conversation §8.3.1。 | Realm 内唯一共享分类；不是 Board position，省略表示未分类。 |
 | `content` | no | `ContentBlock` | 见 [`content-types.md`](./content-types.md)；与 `encrypted_content` 二选一。 | Strand 自身的正文，即 UI 的 **Description**。它不属于 synthesis / discussion 任一 track。 |
 | `encrypted_content` | conditional | `EncryptedPayload` | 与 `content` 二选一；见 `encrypted-envelope.schema.json`。 | E2EE 场景下包裹 Strand Description 的 ContentBlock。 |
 | `tracks` | yes | `map<TrackName, StrandTrack>` | 至少 1 个 key；key 唯一性由 map 结构保证；至多 1 个 entry `is_primary=true`。 | 轨道定义、默认入口与轨道访问继承。 |

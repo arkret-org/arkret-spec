@@ -39,7 +39,7 @@
     },
     "kind": {
       "type": "string",
-      "description": "Space kind. v1 standard kinds include 'space', 'project', 'folder', 'board', and 'list'. Profile-defined kinds (e.g., 'swimlane', 'calendar_bucket', 'page_group') MAY be added via Realm schema/profile and MUST be registered. Unknown kind MUST schema_violation.",
+      "description": "Space kind. v1 standard kinds include 'space', 'project', 'folder', 'board', 'list', and 'topic'. Profile-defined kinds (e.g., 'swimlane', 'calendar_bucket', 'page_group') MAY be added via Realm schema/profile and MUST be registered. Unknown kind MUST schema_violation.",
       "minLength": 1
     },
     "rank": {

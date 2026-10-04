@@ -29,8 +29,8 @@ def check_direct_conversation_structure(lint: Lint) -> None:
     expected = {
         "chat_update_paths": ["encrypted_metadata", "topic"],
         "space_update_paths": ["rank", "encrypted_metadata"],
-        "space_kinds": ["list"],
-        "list_parent": "root_in_same_realm",
+        "space_kinds": ["topic"],
+        "topic_parent": "root_in_same_realm",
         "scope": "realm_default_only",
         "main_archive": "forbidden",
         "bootstrap": "no_structural_extension_before_stable_binding",

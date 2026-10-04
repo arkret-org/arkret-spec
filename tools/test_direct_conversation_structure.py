@@ -44,6 +44,21 @@ class DirectConversationStructureTests(unittest.TestCase):
                     gate.check_direct_conversation_structure(lint)
                 self.assertTrue(lint.errors)
 
+    def test_list_and_board_cannot_replace_the_topic_subtype(self):
+        baseline = load_json(Lint(), gate.CONTRACT)
+        for kind in ("list", "board"):
+            with self.subTest(kind=kind):
+                changed = copy.deepcopy(baseline)
+                source = next(row for row in changed["authority_source_registry"]["sources"]
+                              if row["authority_source_id"] == "ak.authority.direct_conversation_participant.v1")
+                source["structural_contract"]["space_kinds"] = [kind]
+                def read(lint, path):
+                    return changed if path == gate.CONTRACT else load_json(lint, path)
+                lint = Lint()
+                with patch.object(gate, "load_json", read):
+                    gate.check_direct_conversation_structure(lint)
+                self.assertTrue(lint.errors)
+
     def test_personal_watch_cannot_be_removed_or_widened(self):
         baseline = load_json(Lint(), gate.CONTRACT)
         for mutation in range(4):
