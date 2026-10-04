@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-04.4",
+  "version": "2026-10-04.9",
   "source_of_truth": true,
-  "generated_at": "2026-10-04T05:55:18+08:00",
+  "generated_at": "2026-10-04T07:10:43+00:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -264,7 +264,16 @@
           "ak.reaction.remove",
           "ak.read_cursor.advance",
           "ak.receipt.broadcast",
+          "ak.space.archive",
+          "ak.space.create",
+          "ak.space.restore",
+          "ak.space.tombstone",
+          "ak.space.update",
+          "ak.strand.archive",
           "ak.strand.create",
+          "ak.strand.restore",
+          "ak.strand.update",
+          "ak.strand.watch.set",
           "ak.typing.broadcast"
         ],
         "event_action_allowlist": [
@@ -278,7 +287,16 @@
           "ak.reaction.add",
           "ak.reaction.remove",
           "ak.read_cursor.advance",
-          "ak.strand.create"
+          "ak.space.archive",
+          "ak.space.create",
+          "ak.space.restore",
+          "ak.space.tombstone",
+          "ak.space.update",
+          "ak.strand.archive",
+          "ak.strand.create",
+          "ak.strand.restore",
+          "ak.strand.update",
+          "ak.strand.watch.set"
         ],
         "encrypted_signal_product_actions": [
           "ak.call.signal.send",
@@ -306,7 +324,59 @@
         "delegated_event_rule": "conjunctive_with_executor_delegation",
         "failure_mode": "fail_closed_or_dependency_pending",
         "denial_reason_code": "direct_conversation_participant_authority_denied",
-        "denial_privacy": "collapse_all_failed_activation_checks_without_naming_the_failed_input"
+        "denial_privacy": "collapse_all_failed_activation_checks_without_naming_the_failed_input",
+        "structural_actions": [
+          "ak.strand.create",
+          "ak.strand.update",
+          "ak.strand.archive",
+          "ak.strand.restore",
+          "ak.space.create",
+          "ak.space.update",
+          "ak.space.archive",
+          "ak.space.restore",
+          "ak.space.tombstone"
+        ],
+        "structural_contract": {
+          "normative_source": "zh/identity/contact-and-direct-conversation.md §8.3.1",
+          "canonical_main": "active_same_realm_non_circle_primary_discussion_anchor_independent_of_actual_target",
+          "chat_create": "event_derived_same_realm_non_circle_active_primary_discussion_without_content_or_extra_tracks",
+          "chat_update_paths": [
+            "encrypted_metadata",
+            "topic"
+          ],
+          "space_update_paths": [
+            "rank",
+            "encrypted_metadata"
+          ],
+          "space_kinds": [
+            "list"
+          ],
+          "list_parent": "root_in_same_realm",
+          "scope": "realm_default_only",
+          "main_archive": "forbidden",
+          "create_metadata": "encrypted_metadata_only_no_plaintext_title_summary_labels_fields_avatar",
+          "update_metadata": "whole_envelope_set_only_no_ciphertext_subpaths",
+          "revocation": "current_contact_or_owned_agent_controller_gate_for_all_structural_actions",
+          "bootstrap": "no_structural_extension_before_stable_binding",
+          "denial": "direct_conversation_participant_authority_denied",
+          "lifecycle": "independent_no_cascade_live_topic_refs_include_archived_chats",
+          "space_metadata_plaintext_schema_ref": "schemas/space.schema.json#/$defs/space_metadata",
+          "forbidden_space_kind_reason": "direct_conversation_space_forbidden",
+          "topic": "strand_topic_whole_set_or_unset_with_required_expected_state_digest",
+          "topic_current": "strand_current_only_no_board_position_or_relation"
+        },
+        "personal_watch_contract": {
+          "action": "ak.strand.watch.set",
+          "watcher": "full_payload_watcher_actor_id_equals_envelope_actor_id",
+          "target": "actual_non_circle_chat_strand_in_same_direct_realm",
+          "authority": "stable_participant_and_accepted_binding_endorsement_only",
+          "bootstrap": "forbidden",
+          "others": "forbidden_including_the_other_stable_participant",
+          "preimage": "existing_whole_value_cas",
+          "default": "mentions_only_when_never_written",
+          "disclosure": "existing_actor_private_watch_current_rules",
+          "denial": "direct_conversation_participant_authority_denied"
+        }
       },
       {
         "authority_source_id": "ak.authority.direct_conversation_repair.v1",
@@ -382,8 +452,8 @@
         "failure_mode": "atomic_rollback"
       }
     ],
-    "version": "2026-10-02.1",
-    "generated_at": "2026-10-02T11:10:00+08:00",
+    "version": "2026-10-04.4",
+    "generated_at": "2026-10-04T07:10:43+00:00",
     "metadata_authority": "contract_registry_section"
   },
   "event_kind_registry": {
@@ -6771,6 +6841,10 @@
                   {
                     "name": "avatar_blob_ref",
                     "field": "payload.object.avatar_blob_ref"
+                  },
+                  {
+                    "name": "encrypted_metadata",
+                    "field": "payload.object.encrypted_metadata"
                   }
                 ]
               }
@@ -7027,7 +7101,8 @@
                 "summary",
                 "labels",
                 "fields",
-                "avatar_blob_ref"
+                "avatar_blob_ref",
+                "encrypted_metadata"
               ]
             },
             "derived_members": [
@@ -7242,7 +7317,7 @@
         "verb_form": "base",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Ordinary causal placement update. The destination is validated against the signed basis and cannot change privacy scope or grant read access.",
+        "payload": "Board-scoped placement or explicit null unplace, preserving Strand identity and history. Unplace requires complete position CAS and no rank.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/strand_move_payload",
         "result_writes": [
           {
@@ -7277,7 +7352,39 @@
               }
             },
             "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/strand_position_value",
-            "notes": "models/realm-and-space.md section 3.6 pins result_selector.kind to typed_pair with the two ordered components id:space(payload.board_space_id) and id:strand(payload.strand_id), forbids the tuple and composite SHA-256 subject, and pins the value shape to list_space_id with rank, or null. target_space_id is the only destination carrier on the wire because list_space_id is a forbidden wire name per models/strand-and-message.md section 7.1, so the rename happens exactly here. expected_position is an optional explicit compare-and-set outside the projection."
+            "notes": "models/realm-and-space.md section 3.6 pins result_selector.kind to typed_pair with the two ordered components id:space(payload.board_space_id) and id:strand(payload.strand_id), forbids the tuple and composite SHA-256 subject, and pins the value shape to list_space_id with rank, or null. target_space_id is the only destination carrier on the wire because list_space_id is a forbidden wire name per models/strand-and-message.md section 7.1, so the rename happens exactly here. expected_position is an optional explicit compare-and-set outside the projection.",
+            "condition": {
+              "kind": "field_present",
+              "field": "payload.rank"
+            }
+          },
+          {
+            "result_family": "strand_position",
+            "result_selector": {
+              "kind": "typed_pair",
+              "components": [
+                {
+                  "kind": "id:space",
+                  "field": "payload.board_space_id"
+                },
+                {
+                  "kind": "id:strand",
+                  "field": "payload.strand_id"
+                }
+              ]
+            },
+            "result_projection": {
+              "kind": "set",
+              "value": {
+                "const": null
+              }
+            },
+            "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/strand_position_value",
+            "notes": "Explicit unplace clears only this Board/Strand position to null after complete expected_position CAS. The accepted null retains its Commit and revision; it is never an absent result or an implicit delete.",
+            "condition": {
+              "kind": "field_absent",
+              "field": "payload.rank"
+            }
           }
         ],
         "id_source": "reference",
@@ -7538,6 +7645,7 @@
                 "agent_participation",
                 "metadata",
                 "encrypted_metadata",
+                "topic",
                 "content",
                 "encrypted_content",
                 "tracks"
@@ -7564,7 +7672,7 @@
               "created_at"
             ],
             "value_schema_ref": "schemas/strand.schema.json",
-            "notes": "Ordinary Strand patches may reach only the ordinary fields and the exact tracks.synthesis.content / tracks.synthesis.encrypted_content paths admitted by strand_patch_payload. Ancestor replacements, track configuration, lifecycle and stage axes are forbidden. The Synthesis track must exist and be active both before and after acceptance. expected_state_digest and all scope checks precede the atomic write; every rejection has zero side effects."
+            "notes": "Ordinary Strand patches may reach only the ordinary fields and the exact tracks.synthesis.content / tracks.synthesis.encrypted_content paths admitted by strand_patch_payload. Ancestor replacements, track configuration, lifecycle and stage axes are forbidden. The Synthesis track must exist and be active both before and after acceptance. expected_state_digest and all scope checks precede the atomic write; every rejection has zero side effects. Whole topic set/unset is admitted only in a stably bound Direct Conversation with required expected_state_digest; topic is single-sourced by the strand current."
           }
         ],
         "result_effect_ownership": {
@@ -8482,8 +8590,8 @@
         }
       }
     },
-    "version": "2026-10-04.2",
-    "generated_at": "2026-10-04T05:55:18+08:00",
+    "version": "2026-10-04.4",
+    "generated_at": "2026-10-04T07:33:06+08:00",
     "bootstrap_event_kinds": [
       "ak.device.authorize",
       "ak.device.reanchor",
@@ -13680,7 +13788,7 @@
         "http": "POST /_arkret/peer/mls/roster-authority/query",
         "grpc": "PeerMls/RosterAuthority",
         "mq": "peer.mls.query.roster_authority",
-        "notes": "Current governance Station returns one signed page of a complete historical MLS roster only to the caller Actor's authenticated Account Station, after both current-head and target-cut member/history gates. Every signed page manifest carries the two immutable public Blob refs from the exact accepted Genesis so a later-joined member can construct the separate material read without crossing its history floor. Each Add record carries the exact attestor Station's complete historical authenticated service resolution frozen with its verified receipt and attestation; the signed full-record digest binds that closure. Pages hold the longest continuous prefix of 1..8 complete records fitting the 2 MiB canonical response limit, with a cut-bound cursor naming the next record. Missing Genesis refs, Add attestation, attestor resolution or changing cut, and a single record that cannot fit, are uniformly unavailable, never a partial list. The peer service signature is mandatory and each page repeats the same signed manifest.",
+        "notes": "Current governance Station returns one signed page of a complete historical MLS roster only to the caller Actor's authenticated Account Station, after both current-head and target-cut member/history gates. Every signed page manifest carries the two immutable public Blob refs from the exact accepted Genesis so a later-joined member can construct the separate material read without crossing its history floor. Each Add record carries the exact attestor Station's complete historical authenticated service resolution frozen with its verified receipt and attestation; the signed full-record digest binds that closure. Pages hold the longest continuous prefix of 1..8 complete records fitting the 2 MiB canonical response limit, with a cut-bound cursor naming the next record. Missing Genesis refs, Add attestation, attestor resolution or changing cut, and a single record that cannot fit, are uniformly unavailable, never a partial list. The peer service signature is mandatory and each page repeats the same signed manifest. Governance budgets both this page and its exact self_roster_read_outcome key projection within 2 MiB; the Account Station must verify inline method history itself, not blindly proxy a verified label. A retained Commit signer never authorizes first live discovery.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/roster_read_request",
@@ -15645,11 +15753,11 @@
         "http": "POST /_arkret/self/mls/roster-authority/query",
         "grpc": "SelfMls/RosterAuthority",
         "mq": "self.mls.query.roster_authority",
-        "notes": "Authenticated member's Account Station verifies caller_actor_id equals its exact session Actor, current-head and target-cut group/history authority, then proxies the signed roster page from current governance Station. A later-joined member verifies the manifest before using its signed exact Genesis public Blob refs in the separate material read. Each Add's attestor resolution is available only inside that authorized signed roster record and must verify the original receipt and attestation at their historical times; it is not a current delivery route. Pages contain a continuous 1..8-record prefix within the 2 MiB canonical response limit, with no caller-selected page size. The Station never constructs leaf indices or bypasses missing provenance; a former member cannot read by citing an old cut.",
+        "notes": "Authenticated own Account Station binds the exact session Actor, request selectors and current/target authorization, verifies governance authority and the complete frozen method-native attestor closures and both original historical signatures, then returns the unchanged governance roster page plus purpose-bound public keys. Ordinary clients independently verify manifest, recipient double signatures, ordered digest and RFC leaf/Proposal bindings without a method-history verifier or live resolver. This self-only result is non-portable, has no verified boolean and grants no reusable authorization or current route. Both peer page and exact self projection including key material fit the 2 MiB canonical response limit; governance computes the longest continuous 1..8-record prefix fitting both.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
-        "request_schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/roster_read_request",
-        "response_schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/roster_read_outcome"
+        "request_schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/member_roster_read_request",
+        "response_schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/self_roster_read_outcome"
       },
       {
         "operation_id": "ak.self.realm.read.export.v1",
@@ -16180,8 +16288,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-10-03.1",
-    "generated_at": "2026-10-03T03:35:20+08:00",
+    "version": "2026-10-04.3",
+    "generated_at": "2026-10-04T05:02:28+00:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",
@@ -19855,11 +19963,80 @@
         "did_requirement": "forbidden",
         "expected_core_path": "the Arkret-owned id or *_id field",
         "route_evidence": "none; an isolated core is not resolvable"
+      },
+      {
+        "boundary_id": "mls_roster_retained_attestor_history",
+        "responsibility": "method_evidence",
+        "schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/roster_add_record",
+        "did_path": "attestor_resolution.normalized_did_document.did",
+        "did_requirement": "required",
+        "expected_core_path": "attestation.attestor_station_id",
+        "route_evidence": "authorized inline frozen closure only; no network request",
+        "verification_roles": [
+          "account_station",
+          "governance_station",
+          "independent_auditor"
+        ]
       }
     ],
-    "version": "2026-09-19.1",
-    "generated_at": "2026-09-19T18:59:50+08:00",
-    "metadata_authority": "contract_registry_section"
+    "version": "2026-10-04.2",
+    "generated_at": "2026-10-04T05:02:28+00:00",
+    "metadata_authority": "contract_registry_section",
+    "mls_roster_verification_contract": {
+      "roles": {
+        "ordinary_client": {
+          "method_history_verifier": false,
+          "live_did_discovery": false,
+          "input": "authenticated_own_station_self_roster_outcome",
+          "checks": [
+            "exact_account_actor_and_selectors",
+            "governance_manifest_signature",
+            "complete_ordered_records_digest",
+            "recipient_claim_receipt_signature",
+            "recipient_add_attestation_signature",
+            "rfc9420_credential_leaf_and_proposal_binding"
+          ]
+        },
+        "account_station": {
+          "method_history_verifier": true,
+          "history_source": "inline_frozen_attestor_resolution",
+          "checks": [
+            "governance_authority_generation_and_manifest",
+            "dual_cut_scope_membership_history_policy",
+            "method_native_history_and_station_role_core",
+            "assertion_method_at_claimed_at_and_attested_at",
+            "original_recipient_signatures"
+          ],
+          "output": "self_roster_read_outcome",
+          "failure_code": "revision_unavailable"
+        },
+        "governance_station": {
+          "method_history_verifier": true,
+          "initial_history_source": "already_verified_same_core_route",
+          "freeze": "exact_add_attestation_acceptance_transaction",
+          "replay": "immutable_original_closure"
+        },
+        "independent_auditor": {
+          "method_history_verifier": true,
+          "history_source": "authorized_inline_closure",
+          "live_discovery": "requires_separate_registered_route_source_no_roster_exception"
+        }
+      },
+      "self_result_portable": false,
+      "network_from_retained_commit_signer": false,
+      "historical_closure_is_current_route": false,
+      "historical_currentness": "claimed_at_and_attested_at_not_current_did_head",
+      "self_key_binding": "exact_manifest_and_page_record_digest_no_reusable_authorization",
+      "pagination_budget": "both_peer_page_and_exact_self_projection_at_most_2097152_bytes",
+      "member_selector": {
+        "self_request": "member_roster_read_request",
+        "peer_request": "roster_read_request",
+        "genesis_source": "own_station_same_authorized_cut_immutable_accepted_provenance",
+        "requires_client_prejoin_genesis_or_complete_current_baseline": false,
+        "manifest_governance_and_head_source": "authenticated_own_station_authorized_original_signed_manifest",
+        "conflicting_or_missing_authorized_provenance": "revision_unavailable"
+      }
+    }
   },
   "did_authority_verifier_actions": [
     {
@@ -19882,6 +20059,13 @@
       "evidence_class": "accepted_at_history",
       "freshness_profile_id": null,
       "purpose": "Verify the invite subject Account principal against authenticated accepted-at DID history at the covering claim Commit cut, selecting a document-declared method or an exact effective native WebVH updateKeys did:key method under identity-did.md section 3.4. The key DID is not the subject identity; missing historical control evidence fails closed."
+    },
+    {
+      "site_kind": "verifier_action",
+      "site_id": "ak.verifier.mls.roster_attestor_at_signed_times.v1",
+      "evidence_class": "accepted_at_history",
+      "freshness_profile_id": null,
+      "purpose": "Account Station, governance Station and authorized independent auditor verify the immutable inline Station method history and assertionMethod at exact claimed_at and attested_at. Ordinary clients consume bound public keys from their authenticated own Station. This action authorizes no live discovery or current route."
     }
   ],
   "did_method_adapter_registry": {

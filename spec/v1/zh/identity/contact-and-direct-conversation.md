@@ -880,7 +880,7 @@ Founding、peer Add 和以后 repair 都只通过该 group 的 ordinary winning 
 
 ### 8.1 稳定坐标
 
-同 pair 只有一个 immutable Realm 与 main Strand。leave、block、tombstone、scope 撤回、Agent pause、erasure 或恢复 **MUST NOT** 创建 successor Realm、Strand 或 binding。
+同 pair 只有一个 immutable Realm 与 main Strand。leave、block、tombstone、scope 撤回、Agent pause、erasure 或恢复 **MUST NOT** 创建替换 canonical main 的 successor Strand、successor Realm 或 binding；这不禁止在稳定 binding 后显式创建同 Realm 的额外普通 discussion Strand。
 
 canonical DM Realm **MUST** 拒绝 `ak.realm.destroy` 与任何 `ak.realm.tombstone`（`direct_conversation_terminal_forbidden`）。`ak.realm.archive` 与 `ak.realm.freeze` 是普通可逆 facet：具备合法 authority 与 CAS basis 时可设置，且 **MUST** 保留普通 unarchive/unfreeze 路径；它们只令 resolver 附带 send blocker，**MUST NOT** 产生 successor 或新坐标。
 
@@ -950,6 +950,35 @@ controller/Agent Account pair、accepted 且仍 current 的 provision/controller
 当前有效 runtime-key authorization，并继续叠加 action-specific endpoint、membership 与 delegation gates。
 不能只凭 founding slot 或裸 principal 判定 ownership，不能把此分支用于 Agent↔第三方。合法 runtime-key
 替换不改写原 founding `authorization_basis` 或 binding digest；旧 endpoint 随当前 key authorization 失效。
+
+### 8.3.1 Chat 与平铺 Topic 的结构动作（normative）
+
+Direct Conversation 保留 stable pair／唯一 DM Realm／binding。Main Chat 是 immutable main_strand_id；Chat 是同 Realm、non-Circle、active primary discussion 的普通 Strand。Topic 是同 Realm root Space(kind=list)，parent_space_id MUST 省略；不建立 Collection、Board 容器、嵌套 Topic 或额外 MLS group。默认只创建 Main Chat，不自动创建 Topic，不新增 ChatId／TopicId／Space kind。
+
+每个 Chat 至多一个 Topic，分类唯一真相是 strand current 的可选 topic={space_id,rank}；rank 为 1..128 位 ASCII 字母数字。省略 topic 表示未分类。Main Chat 可分类但身份不变。Topic 只影响共享导航，不承载消息，不改变成员、历史资格、Realm default pointer 或模型会话。MUST NOT 为 DM 分类写 Board-scoped position 或 contains Relation。
+
+稳定 participant 对等拥有封闭九动作：ak.strand.create/update/archive/restore 与 ak.space.create/update/archive/restore/tombstone。所有动作在同一 authority cut 验证 canonical main 锚点和实际 target；create 校验 event-derived 新对象，不要求 target 已存在。bootstrap 不增加结构权限。current Contact／owned-Agent controller、provision/runtime、membership、device、executor delegation 与 participation gate 均保持；technical root、created_by 或普通 grant 不替代 participant authority。
+
+| 动作 | 精确 target、字段与生命周期 |
+| --- | --- |
+| Strand create | active 同 Realm non-Circle primary discussion；仅单 discussion track，无 description、stage、schema 扩展、Agent ceiling 或初始 topic；标题使用 encrypted_metadata。 |
+| Strand update | 同 Realm active Chat；仅整体 set encrypted_metadata，或 topic 的显式整体 set／unset。不得写 topic 子路径、直接值、null、tracks、content、stage、scope 或 metadata 明文。每次 topic 变更 MUST 带 expected_state_digest，等于完整前像 strand current canonical JSON 的 SHA-256；不匹配按现行 CAS 零写入拒绝。set 的 Topic 必须是同 Realm active non-Circle root List。unset 必须已有 topic，可解除归档 Topic 的引用。标题更新不要求分类 CAS；二者同写时仍要求 CAS。 |
+| Strand archive/restore | 仅额外 Chat，沿用 active→archived／archived→active；不得 archive/redact main 或破坏 main 锚点。分类保留，不级联 Topic lifecycle。 |
+| Space create | 仅同 Realm non-Circle root List，无父容器、schema 扩展、用户明文 metadata、fields 或 child_scope_policy；metadata 必须加密。 |
+| Space update | 同 Realm root List；仅整体 set encrypted_metadata 或合法 rank；不得写 kind、scope、schema、WIP、parent 或 child policy。 |
+| Space archive/restore/tombstone | 独立 Space lifecycle，无隐式分类迁移；tombstone 必须无有效 topic 引用，archived Chat 的引用同样属于活依赖，拒绝 reason=space_has_live_dependents，零写入。 |
+
+ak.strand.move/reorder 与 ak.space.parent 不属于此 participant 扩展。分类通过 ak.strand.update；首次分类、换 Topic、Topic 内排序均整体 set topic，取消分类显式 unset。取消后保留 strand current revision 与历史，不删除 Chat／消息或重建 Strand。Topic 内按 rank、相同 rank 时按 Strand ID 稳定排序。Topic 自身按 Space rank、相同 rank 时按 Space ID 排序。客户端基于获授权完整 current 显式生成 CAS，不补隐式前像。
+
+结构权限失败折叠 direct_conversation_participant_authority_denied；未登记 Space kind 保留 direct_conversation_space_forbidden。合法 authority 后 CAS、FSM 与活依赖 gate 保留各自 reason。Topic archive 不归档 Chat；不得向 archived/tombstoned Topic 新分类，已有归属保持，全部聊天／通知可找回 active Chat。失效引用保留历史，等待显式 unset／换 Topic，不自动迁移、复活或清空上下文。
+
+Chat／Topic 用户 metadata 使用同一 Realm group 下的完整 encrypted_metadata；create/update/current/read/snapshot/replica 无用户明文标题镜像。必要结构 ID／kind／topic／rank 可见。消息、reaction、read cursor、草稿、通知、导航及 Signal recipient 解密后校验以实际 Strand 为准。Agent 默认以实际 (realm_id,strand_id) 隔离模型输入并回复原 Strand；同 Topic 下两个 Chat 不合并，换 Topic、改名、archive 不重建会话，生成中的回复不跟随 UI selection。跨 Chat 引用须显式且获授权。
+
+### 8.3.2 每个 Chat 的个人通知设置（normative）
+
+稳定 participant authority 的单 Event 动作 allowlist 另包含 `ak.strand.watch.set`，它不是 §8.3.1 的结构动作。仅允许 participant 写自己的完整 `(strand_id, watcher_actor_id)` cell：`payload.watcher_actor_id` MUST 逐字等于 envelope 的完整 `actor_id`，target MUST 是同一 DM Realm 内 non-Circle Chat 的实际 Strand。必须携带既有 participant authorization_ref 与合法 accepted binding endorsement ref；bootstrap source、technical root、普通 grant 和 founder 身份不授予该动作。
+
+该权限不包含 `ak.strand.watch.set.others`，包括写 pair 中另一 participant 的 cell；失败按 closed participant evaluator 折叠为 `direct_conversation_participant_authority_denied`，零 durable 写入。membership、Contact／owned-Agent controller、MLS、device、executor delegation 与实际 target lifecycle gates 均继续适用。合法 authority 后保留 Strand watch whole-value CAS、读回与本人私有披露规则；未写 cell 的默认 mentions-only 不变。通知按实际 Strand 路由，不按 Main Chat 或 Topic 汇总后冒充目标。
 
 ### 8.4 admission reason producer 与优先级（normative）
 

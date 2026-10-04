@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 43,
+  "version": 47,
   "kind": "identifier_classification_registry",
   "source_of_truth": false,
   "generated_from": [
@@ -26,8 +26,8 @@
     "unregistered_object_identifier"
   ],
   "type_derived_summary": {
-    "typed_object_id": 907,
-    "responsibility_identity_material": 538,
+    "typed_object_id": 909,
+    "responsibility_identity_material": 539,
     "registry_catalog_symbol": 35
   },
   "pending_rename_convergence": [],
@@ -42,6 +42,14 @@
       "pending_convergence": true
     },
     {
+      "name": "addressed_agent_ids",
+      "terminal_signature": "[]",
+      "category": "typed_object_id",
+      "occurrences": 1,
+      "example_path": "agent-sidecar-event-exchange-binding.schema.json#/$defs/request_context/allOf/0/if/properties/addressed_agent_ids",
+      "reason": "Constraint refinement branch of a property whose base declaration is typed elsewhere; it adds cardinality, not a value category."
+    },
+    {
       "name": "admission_id",
       "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"]]",
       "category": "unregistered_object_identifier",
@@ -49,14 +57,6 @@
       "example_path": "authority-commit-operations.schema.json#/$defs/membership_compensation_delegation_core/properties/admission_id",
       "reason": "Names the durable failed-join admission whose exact identity participates in the membership-compensation single-use CAS; no ak: admission kind is registered in current v1.",
       "pending_convergence": true
-    },
-    {
-      "name": "addressed_agent_ids",
-      "terminal_signature": "[]",
-      "category": "typed_object_id",
-      "occurrences": 1,
-      "example_path": "agent-sidecar-event-exchange-binding.schema.json#/$defs/request_context/allOf/0/if/properties/addressed_agent_ids",
-      "reason": "Constraint refinement branch of a property whose base declaration is typed elsewhere; it adds cardinality, not a value category."
     },
     {
       "name": "agent_id",
@@ -428,7 +428,7 @@
       "name": "mls_group_id",
       "terminal_signature": "[[\"pattern\", \"^[A-Za-z0-9_-]{43}$\"]]",
       "category": "external_system_identifier",
-      "occurrences": 21,
+      "occurrences": 22,
       "example_path": "circle-operations.schema.json#/$defs/circle_view/properties/mls_group_id",
       "reason": "RFC 9420 MLS group_id, derived from the effective scope by the fixed v1 digest and never an Arkret typed ID. Every occurrence now refs the one terminal in common-ids.schema.json, so the three earlier signatures collapsed into this one."
     },
@@ -662,20 +662,20 @@
       "pending_convergence": true
     },
     {
-      "name": "target_id",
-      "terminal_signature": "[[\"pattern\", \"^[A-Za-z0-9][A-Za-z0-9_-]{15,127}$\"]]",
-      "category": "opaque_correlation",
-      "occurrences": 1,
-      "example_path": "service-operation-dtos.schema.json#/$defs/EventDeliveryTargetStatus/properties/target_id",
-      "reason": "Service-generated bounded opaque coordinate for one frozen fanout target status. It correlates delivery-status reads but does not encode the destination service DID and cannot authorize delivery."
-    },
-    {
       "name": "target_device_ids",
       "terminal_signature": "[]",
       "category": "typed_object_id",
       "occurrences": 2,
       "example_path": "keypackage-operations.schema.json#/$defs/keypackages_claim_request_body/allOf/2/then/properties/target_device_ids",
       "reason": "Constraint refinement branch of a property whose base declaration is typed elsewhere; it adds cardinality, not a value category."
+    },
+    {
+      "name": "target_id",
+      "terminal_signature": "[[\"pattern\", \"^[A-Za-z0-9][A-Za-z0-9_-]{15,127}$\"]]",
+      "category": "opaque_correlation",
+      "occurrences": 1,
+      "example_path": "service-operation-dtos.schema.json#/$defs/EventDeliveryTargetStatus/properties/target_id",
+      "reason": "Service-generated bounded opaque coordinate for one frozen fanout target status. It correlates delivery-status reads but does not encode the destination service DID and cannot authorize delivery."
     },
     {
       "name": "to_version_id",

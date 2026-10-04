@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-02.4",
+  "version": "2026-10-04.7",
   "source_of_truth": false,
-  "generated_at": "2026-10-02T23:05:58+08:00",
+  "generated_at": "2026-10-04T07:34:07+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -7987,13 +7987,12 @@
       "operation_id": "ak.self.mls.read.roster_authority.v1",
       "success_shape_kind": "typed_response",
       "request": {
-        "schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/roster_read_request",
+        "schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/member_roster_read_request",
         "schema_kind": "object",
         "required": [
           "realm_id",
           "effective_scope",
           "mls_group_id",
-          "genesis_event_ref",
           "target_commit_event_ref",
           "target_epoch",
           "caller_actor_id"
@@ -8002,7 +8001,6 @@
           "realm_id",
           "effective_scope",
           "mls_group_id",
-          "genesis_event_ref",
           "target_commit_event_ref",
           "target_epoch",
           "caller_actor_id",
@@ -8011,18 +8009,17 @@
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/roster_read_outcome",
+        "schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/self_roster_read_outcome",
         "schema_kind": "object",
         "required": [
-          "manifest",
-          "page_index",
-          "records"
+          "roster",
+          "manifest_signing_key",
+          "add_signing_keys"
         ],
         "properties": [
-          "manifest",
-          "page_index",
-          "records",
-          "next_cursor"
+          "roster",
+          "manifest_signing_key",
+          "add_signing_keys"
         ],
         "closed": true
       }

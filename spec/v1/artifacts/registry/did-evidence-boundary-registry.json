@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-19.1",
+  "version": "2026-10-04.2",
   "source_of_truth": false,
-  "generated_at": "2026-09-19T18:59:50+08:00",
+  "generated_at": "2026-10-04T05:02:28+00:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -83,7 +83,76 @@
       "did_requirement": "forbidden",
       "expected_core_path": "the Arkret-owned id or *_id field",
       "route_evidence": "none; an isolated core is not resolvable"
+    },
+    {
+      "boundary_id": "mls_roster_retained_attestor_history",
+      "responsibility": "method_evidence",
+      "schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/roster_add_record",
+      "did_path": "attestor_resolution.normalized_did_document.did",
+      "did_requirement": "required",
+      "expected_core_path": "attestation.attestor_station_id",
+      "route_evidence": "authorized inline frozen closure only; no network request",
+      "verification_roles": [
+        "account_station",
+        "governance_station",
+        "independent_auditor"
+      ]
     }
   ],
-  "metadata_authority": "contract_registry_section"
+  "metadata_authority": "contract_registry_section",
+  "mls_roster_verification_contract": {
+    "roles": {
+      "ordinary_client": {
+        "method_history_verifier": false,
+        "live_did_discovery": false,
+        "input": "authenticated_own_station_self_roster_outcome",
+        "checks": [
+          "exact_account_actor_and_selectors",
+          "governance_manifest_signature",
+          "complete_ordered_records_digest",
+          "recipient_claim_receipt_signature",
+          "recipient_add_attestation_signature",
+          "rfc9420_credential_leaf_and_proposal_binding"
+        ]
+      },
+      "account_station": {
+        "method_history_verifier": true,
+        "history_source": "inline_frozen_attestor_resolution",
+        "checks": [
+          "governance_authority_generation_and_manifest",
+          "dual_cut_scope_membership_history_policy",
+          "method_native_history_and_station_role_core",
+          "assertion_method_at_claimed_at_and_attested_at",
+          "original_recipient_signatures"
+        ],
+        "output": "self_roster_read_outcome",
+        "failure_code": "revision_unavailable"
+      },
+      "governance_station": {
+        "method_history_verifier": true,
+        "initial_history_source": "already_verified_same_core_route",
+        "freeze": "exact_add_attestation_acceptance_transaction",
+        "replay": "immutable_original_closure"
+      },
+      "independent_auditor": {
+        "method_history_verifier": true,
+        "history_source": "authorized_inline_closure",
+        "live_discovery": "requires_separate_registered_route_source_no_roster_exception"
+      }
+    },
+    "self_result_portable": false,
+    "network_from_retained_commit_signer": false,
+    "historical_closure_is_current_route": false,
+    "historical_currentness": "claimed_at_and_attested_at_not_current_did_head",
+    "self_key_binding": "exact_manifest_and_page_record_digest_no_reusable_authorization",
+    "pagination_budget": "both_peer_page_and_exact_self_projection_at_most_2097152_bytes",
+    "member_selector": {
+      "self_request": "member_roster_read_request",
+      "peer_request": "roster_read_request",
+      "genesis_source": "own_station_same_authorized_cut_immutable_accepted_provenance",
+      "requires_client_prejoin_genesis_or_complete_current_baseline": false,
+      "manifest_governance_and_head_source": "authenticated_own_station_authorized_original_signed_manifest",
+      "conflicting_or_missing_authorized_provenance": "revision_unavailable"
+    }
+  }
 }

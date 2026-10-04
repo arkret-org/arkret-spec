@@ -15,19 +15,19 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9079,
+    "total_properties": 9111,
     "total_schema_documents": 168,
     "by_presence_class": {
-      "optional": 2123,
+      "optional": 2136,
       "optional_defaulted": 48,
-      "required": 6418,
+      "required": 6436,
       "required_nullable": 314,
-      "tristate": 176
+      "tristate": 177
     },
-    "tristate_occurrences": 176,
-    "tristate_audit_targets": 139,
+    "tristate_occurrences": 177,
+    "tristate_audit_targets": 140,
     "tristate_sdk_dispositions": {
-      "absent_null_equivalent": 129,
+      "absent_null_equivalent": 130,
       "condition_guarded": 9,
       "distinct": 1
     }
@@ -112,6 +112,7 @@
     "event-payload.schema.json/$defs/organization_moderation_policy_rule/properties/expires_at",
     "event-payload.schema.json/$defs/realm_organization_payload/properties/expires_at",
     "event-payload.schema.json/$defs/realm_set_default_strand_payload/properties/expected_default_strand_id",
+    "event-payload.schema.json/$defs/strand_patch_payload/allOf/0/if/properties/patch",
     "event-payload.schema.json/$defs/strand_watch_set_payload/properties/expected_value",
     "file-transfer.schema.json/allOf/0/then/properties/access",
     "file-transfer.schema.json/allOf/0/then/properties/encryption",
@@ -799,6 +800,16 @@
       "instance_path": "/expected_default_strand_id",
       "occurrences": [
         "/$defs/realm_set_default_strand_payload/properties/expected_default_strand_id"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "event-payload.schema.json",
+      "shape": "/$defs/strand_patch_payload",
+      "instance_path": "/patch",
+      "occurrences": [
+        "/$defs/strand_patch_payload/allOf/0/if/properties/patch"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -6904,8 +6915,13 @@
         "/$defs/strand_move_payload/properties/rank": "required",
         "/$defs/strand_move_payload/properties/strand_id": "required",
         "/$defs/strand_move_payload/properties/target_space_id": "required",
+        "/$defs/strand_patch_payload/allOf/0/if/properties/patch": "tristate",
         "/$defs/strand_patch_payload/properties/expected_state_digest": "optional",
         "/$defs/strand_patch_payload/properties/patch": "required",
+        "/$defs/strand_patch_payload/properties/patch/properties/topic": "optional",
+        "/$defs/strand_patch_payload/properties/patch/properties/topic/oneOf/0/properties/$op": "required",
+        "/$defs/strand_patch_payload/properties/patch/properties/topic/oneOf/0/properties/value": "required",
+        "/$defs/strand_patch_payload/properties/patch/properties/topic/oneOf/1/properties/$op": "required",
         "/$defs/strand_patch_payload/properties/target_ref": "required",
         "/$defs/strand_reorder_payload/properties/board_space_id": "required",
         "/$defs/strand_reorder_payload/properties/expected_position": "optional",
@@ -7001,7 +7017,8 @@
         "/$defs/rsvp_entry/properties/response",
         "/$defs/sidecar_context_attach_payload/properties/predecessor_event_ref",
         "/$defs/space_patch_payload/properties/child_scope_policy",
-        "/$defs/space_patch_payload/properties/patch"
+        "/$defs/space_patch_payload/properties/patch",
+        "/$defs/strand_patch_payload/properties/expected_state_digest"
       ]
     },
     "exact-current-results-read.schema.json": {
@@ -8746,6 +8763,13 @@
         "/$defs/member_group_state_material_read_request/properties/realm_id": "required",
         "/$defs/member_group_state_material_read_request/properties/target_commit_event_ref": "required",
         "/$defs/member_group_state_material_read_request/properties/target_epoch": "required",
+        "/$defs/member_roster_read_request/properties/caller_actor_id": "required",
+        "/$defs/member_roster_read_request/properties/cursor": "optional",
+        "/$defs/member_roster_read_request/properties/effective_scope": "required",
+        "/$defs/member_roster_read_request/properties/mls_group_id": "required",
+        "/$defs/member_roster_read_request/properties/realm_id": "required",
+        "/$defs/member_roster_read_request/properties/target_commit_event_ref": "required",
+        "/$defs/member_roster_read_request/properties/target_epoch": "required",
         "/$defs/mls_add_authority_attestation/properties/actor_id": "required",
         "/$defs/mls_add_authority_attestation/properties/attested_at": "required",
         "/$defs/mls_add_authority_attestation/properties/attestor_station_id": "required",
@@ -8771,6 +8795,9 @@
         "/$defs/roster_add_record/properties/kind": "required",
         "/$defs/roster_add_record/properties/proposal_wire_b64u": "required",
         "/$defs/roster_add_record/properties/sender_actor_id": "required",
+        "/$defs/roster_add_signing_keys/properties/attestation_signing_key": "required",
+        "/$defs/roster_add_signing_keys/properties/claim_receipt_signing_key": "required",
+        "/$defs/roster_add_signing_keys/properties/record_digest": "required",
         "/$defs/roster_genesis_record/properties/actor_id": "required",
         "/$defs/roster_genesis_record/properties/authorization_event_ref": "required",
         "/$defs/roster_genesis_record/properties/endpoint": "required",
@@ -8804,7 +8831,12 @@
         "/$defs/roster_read_request/properties/mls_group_id": "required",
         "/$defs/roster_read_request/properties/realm_id": "required",
         "/$defs/roster_read_request/properties/target_commit_event_ref": "required",
-        "/$defs/roster_read_request/properties/target_epoch": "required"
+        "/$defs/roster_read_request/properties/target_epoch": "required",
+        "/$defs/roster_signing_key/properties/public_key_b64u": "required",
+        "/$defs/roster_signing_key/properties/verification_method": "required",
+        "/$defs/self_roster_read_outcome/properties/add_signing_keys": "required",
+        "/$defs/self_roster_read_outcome/properties/manifest_signing_key": "required",
+        "/$defs/self_roster_read_outcome/properties/roster": "required"
       }
     },
     "mls-welcome-delivery.schema.json": {
@@ -11002,6 +11034,7 @@
         "/$defs/ProjectionSpaceList/properties/total": "required",
         "/$defs/ProjectionSpaceRow/properties/created_at": "tristate",
         "/$defs/ProjectionSpaceRow/properties/created_by": "tristate",
+        "/$defs/ProjectionSpaceRow/properties/encrypted_metadata": "optional",
         "/$defs/ProjectionSpaceRow/properties/kind": "required",
         "/$defs/ProjectionSpaceRow/properties/parent_space_id": "tristate",
         "/$defs/ProjectionSpaceRow/properties/rank": "tristate",
@@ -11009,7 +11042,7 @@
         "/$defs/ProjectionSpaceRow/properties/space_id": "required",
         "/$defs/ProjectionSpaceRow/properties/state": "required",
         "/$defs/ProjectionSpaceRow/properties/state_changed_at": "tristate",
-        "/$defs/ProjectionSpaceRow/properties/title": "required",
+        "/$defs/ProjectionSpaceRow/properties/title": "optional",
         "/$defs/ProjectionSpaceRow/properties/updated_at": "tristate",
         "/$defs/ProjectionStrandList/properties/has_more": "required",
         "/$defs/ProjectionStrandList/properties/next_cursor": "optional",
@@ -11034,6 +11067,7 @@
         "/$defs/ProjectionStrandRow/properties/strand_id": "required",
         "/$defs/ProjectionStrandRow/properties/summary": "tristate",
         "/$defs/ProjectionStrandRow/properties/title": "tristate",
+        "/$defs/ProjectionStrandRow/properties/topic": "optional",
         "/$defs/ProjectionStrandRow/properties/updated_at": "tristate",
         "/$defs/ProjectionStrandRow/properties/updated_by": "tristate",
         "/$defs/PublicRealmMetadata/properties/avatar_blob_ref": "optional",
@@ -11199,6 +11233,8 @@
         "/$defs/DeviceMessagesGetOutcome/properties/ack_token",
         "/$defs/OrganizationControlProof/properties/quorum_threshold",
         "/$defs/ProjectionMorphRow/properties/stage",
+        "/$defs/ProjectionSpaceRow/properties/encrypted_metadata",
+        "/$defs/ProjectionSpaceRow/properties/title",
         "/$defs/ProjectionStrandRow/properties/stage",
         "/$defs/SessionGrantIntrospectGrant/properties/device_binding",
         "/$defs/SessionGrantIntrospectGrant/properties/device_id",
@@ -11417,13 +11453,20 @@
         "/$defs/child_scope_policy/allOf/0/if/properties/kind": "required",
         "/$defs/child_scope_policy/properties/kind": "required",
         "/$defs/child_scope_policy/properties/scope_circle_id": "optional",
+        "/$defs/space_metadata/properties/avatar_blob_ref": "optional",
+        "/$defs/space_metadata/properties/fields": "optional",
+        "/$defs/space_metadata/properties/labels": "optional",
+        "/$defs/space_metadata/properties/summary": "optional",
+        "/$defs/space_metadata/properties/title": "required",
         "/allOf/0/if/properties/state": "required",
         "/allOf/1/if/properties/kind": "required_nullable",
         "/allOf/1/then/properties/fields": "optional",
+        "/allOf/2/oneOf/1/properties/fields": "optional",
         "/properties/avatar_blob_ref": "optional",
         "/properties/child_scope_policy": "optional",
         "/properties/created_at": "required",
         "/properties/created_by": "required",
+        "/properties/encrypted_metadata": "optional",
         "/properties/fields": "optional",
         "/properties/fields/properties/wip_limit": "optional",
         "/properties/fields/properties/wip_limit_enforcement": "optional",
@@ -11439,13 +11482,15 @@
         "/properties/state": "optional",
         "/properties/state_changed_at": "optional",
         "/properties/summary": "optional",
-        "/properties/title": "required",
+        "/properties/title": "optional",
         "/properties/updated_at": "optional",
         "/properties/updated_by": "optional"
       },
       "conditionally_required": [
         "/$defs/child_scope_policy/properties/scope_circle_id",
-        "/properties/state_changed_at"
+        "/properties/encrypted_metadata",
+        "/properties/state_changed_at",
+        "/properties/title"
       ]
     },
     "strand.schema.json": {
@@ -11457,6 +11502,8 @@
         "/$defs/strand_metadata/properties/fields": "optional",
         "/$defs/strand_metadata/properties/summary": "optional",
         "/$defs/strand_metadata/properties/title": "optional",
+        "/$defs/strand_topic/properties/rank": "required",
+        "/$defs/strand_topic/properties/space_id": "required",
         "/$defs/strand_track/properties/content": "optional",
         "/$defs/strand_track/properties/enabled": "optional_defaulted",
         "/$defs/strand_track/properties/encrypted_content": "optional",
@@ -11492,6 +11539,7 @@
         "/properties/stage_changed_at": "optional",
         "/properties/state": "optional",
         "/properties/state_changed_at": "optional",
+        "/properties/topic": "optional",
         "/properties/tracks": "required",
         "/properties/tracks/properties/discussion": "optional",
         "/properties/tracks/properties/synthesis": "optional",

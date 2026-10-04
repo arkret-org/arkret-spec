@@ -39,6 +39,11 @@ v1 保留三类可被 Account Station 转达的权威结果：
 
 客户端仍独立验证 Event producer proof 的自身一致性（[`federation.md` §3](./federation.md)）、MLS/attachment 密码学和用户意图。外站 human 设备的授权以治理 Station 的 RealmCommit 为准；authority signature 不能替代 producer proof 的自身一致性检查，也不能替代 MLS 认证。
 
+MLS roster 也按此分工：Account Station 验原时点完整方法权威，self-only typed 结果携原治理页及
+绑定 exact manifest／record／签名用途的公钥，客户端用它们独立验原 recipient 双签、manifest
+与 RFC leaf。没有通用 `verified` 布尔捷径，也没有 MLS-only 方法历史例外；精确 carrier、授权与
+失败关闭见 [encryption-and-audit §2.2](../crypto-media/encryption-and-audit.md)。
+
 ## 3. 转发与缓存
 
 Account Station 可以缓存已验证结果并对自己账号开放，但必须保留 exact authority bytes 和验证状态。
@@ -66,7 +71,7 @@ profile，不得恢复 authority-commit/RealmCommit/typed current result 双平�
 
 ### 1.1 攻击者与责任矩阵
 
-Account Station 只对 session、本地可见性与缓存负责，不产生 Realm finality。
+Account Station 负责 session、本地可见性、缓存与本客户端合同中的身份历史验证，不产生 Realm finality。
 
 ### 1.2 普通客户端的 Station 接入（normative）
 

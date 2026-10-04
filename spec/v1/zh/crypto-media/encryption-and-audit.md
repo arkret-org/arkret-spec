@@ -196,16 +196,28 @@ attestation 保留至同一历史 cut 不再可读；重放同一 attestation �
 
 `ak.self.mls.read.roster_authority.v1` 经成员的 Account Station 用
 `ak.peer.mls.read.roster_authority.v1` 向治理 Station 取得同一 accepted group／epoch cut 的完整历史
-provenance。两端均须在读取时 current 与目标 accepted cut 对完整 ActorId、effective scope、membership、
+provenance。self 使用封闭的 `member_roster_read_request`，按顺序提交 `realm_id`、
+`effective_scope`、`mls_group_id`、`target_commit_event_ref`、`target_epoch`、`caller_actor_id` 及可选
+`cursor`，不接受调用方的 `genesis_event_ref`。Account Station 绑定自己的认证会话与完整 ActorId，
+在同一授权读取 cut 核验目标后，从 exact scope/group 的已接纳 typed current 或治理方已签署并耐久
+冻结的 replica Genesis provenance 得到唯一 Genesis；两者同时存在时必须一致。缺失或冲突使已授权
+请求 `revision_unavailable`，无权或不可见目标仍为 `not_found`。Station 将该 Genesis 与原目标选择器
+组成字段完整的既有 peer `roster_read_request`，分页续读仍重新授权并绑定相同 Genesis/目标/head。
+普通客户端无需先读取入组前 Genesis Event 或完整 Account/Realm current 基线，必须只从自己 Station
+的持久认证会话消费原 signed manifest 中的 Genesis、治理 Station 与 head；该 Station 已验证它们与
+当前治理 generation/genesis/handoff 相符。客户端仍核对原请求的全部字段、全部页的相同 manifest，
+并独立验原 manifest、recipient 双签、完整有序摘要与 RFC MLS 安装，不能信任第三方同形结果。
+两端均须在读取时 current 与目标 accepted cut 对完整 ActorId、effective scope、membership、
 history 与 policy 做授权；曾经是成员但已离组者不得仅凭历史身份读取。任何本应位于该 cut 的 Add 证明
 缺失、签名无效、冲突或超过保留范围，已授权请求整份结果统一 `revision_unavailable`，
 不返回部分 roster、缺项数或可枚举的原因；无权或不可见目标统一 `not_found`。
 每条历史 Add 的完整 attestor resolution 仅随这条受权记录披露，不提供按 Station ID 独立枚举的读面；
 虽然 service resolution 本身可公开取得，该记录揭示某个 scope 的历史 attestor 拓扑，故必须服从上述
-相同的 current／target cut、scope、history、policy 与 retention 门。客户端 MUST 对每条 closure
+相同的 current／target cut、scope、history、policy 与 retention 门。Account Station MUST 对每条 closure
 独立验证完整 method-native 历史、`service_id`／`service_kind`，并在原 `claimed_at` 与
-`attested_at` 验原 receipt 与 attestation 的历史 `assertionMethod` 和签名；不允许用 manifest
-签名代替 recipient 的两份历史签名，也不允许用当前 DID Document 代替原历史 key。
+`attested_at` 验原 receipt 与 attestation 的历史 `assertionMethod` 和签名。普通 full/e2ee 客户端
+MUST 消费下述自己 Station 的精确公钥结果，独立验证原 recipient 的两份签名，不执行方法历史
+verifier；不允许用 manifest 签名代替双签，也不允许用当前 DID Document 代替原历史 key。
 结果由治理 Station 对 exact scope／group／Genesis／target Commit／epoch、Genesis payload 中不变的
 `group_info_ref` 与 `ratchet_tree_ref`、完整记录总数与全量 JCS digest
 作 domain-separated 签名；分页只传输同一冻结集合，客户端须收齐、验签并重算 digest，拒绝重复、跳页或
@@ -216,7 +228,10 @@ Event ref；其它 epoch 的目标 ref 必须是产生目标 epoch 的 accepted 
 同一 group 的最新 accepted Commit Event。冻结集合先放唯一 Genesis 记录，再按 accepted Commit 的
 stream position 递增、同一 Commit 中 consumed Proposal 的 wire 顺序放每条历史 Add 记录。治理
 Station 在签 manifest 前按完整 canonical JSON 响应的 2 MiB 上限确定页边界：每页取从下一个
-未返回记录开始、在该上限内可容纳的最长连续前缀，记录数为 1..8；不得截断单条或跳项。
+未返回记录开始、peer 页与下述完整 self 公钥投影两者均在该上限内可容纳的最长连续前缀，
+记录数为 1..8；不得截断单条或跳项。self 预算包括 wrapper、manifest 公钥与每条 Add 的两份
+精确公钥条目；verification method 直接取原签名 kid，公钥均为 43 字符，因此治理 Station 可
+在分页前计算该投影的精确编码大小。Account Station MUST 重验两者上限，不得自行分裂治理页。
 `page_count` 是按该确定性边界得到的页数，不由 `ceil(total_records/8)` 推算。计算页边界时须计入
 最终签名 manifest、`page_index` 与 `next_cursor` 的编码大小；签名后若最终页超限，必须重算并
 重新签名，不能发送超限响应。
@@ -251,6 +266,51 @@ Station 的签名 manifest 是这些 body／ordinal／sender 与已接纳 Commit
 Station 的原 claim outcome 仍可按 §9 的既有短期规则清理，但其签名 attestation／outbox 须至少保留至
 治理 Station 确认持久安装。具体 closed wire、签名和页完整性由
 `mls-roster-authority.schema.json` 定义；缺证据时 Welcome 安装保持 `decryption_pending`。
+
+
+**普通客户端 roster 消费合同（normative）**：此处不存在 MLS-only 方法历史例外。治理 Station
+在 Add 安装时验证并冻结历史 closure；own Account Station 在每次受权 self 读取时验证其历史
+Station 角色、same-core、已登记 method 版本、完整方法证明、两时点 assertionMethod 与双签，
+并独立核对治理 signer 的 accepted generation／genesis／handoff 绑定与 manifest。独立审计者
+在其授权内验证完整 closure；审计角色不会扩大普通客户端的职责或披露范围。
+
+peer 返回原 `roster_read_outcome`；self 返回封闭 `self_roster_read_outcome`，按 wire 顺序包含：
+`roster`（原 peer 页逐字不变）、`manifest_signing_key`、`add_signing_keys[]`。每个 signing key
+只有 `verification_method` 与 `public_key_b64u`；manifest key 必须在原 `issued_at` 授权给该
+generation 的治理 Station。每条 Add key row 按该页 Add 顺序携 `record_digest`、
+`claim_receipt_signing_key`、`attestation_signing_key`；digest 是完整该记录（含 closure）的 JCS
+SHA-256，两个 key 分别在原 `claimed_at` 与 `attested_at` 选取，verification method 必须等于
+对应原签名的 `kid`，且同 core 的 Station 在对应时点拥有 `assertionMethod`。Genesis 没有 Add
+key row；缺项、重复、额外 key row 或不同记录绑定 MUST 拒绝。客户端还 MUST 对原 kid
+做无网络的注册 adapter 投影，逐字匹配 manifest 的 governance_station_id 或 attestation 的
+attestor_station_id，并核对 receipt.destination_id 与该 attestor 相同；该确定性标识投影不是
+方法历史验证。公钥可以因历史轮换而不同。
+
+客户端 MUST 只从持久接纳的自己 Station 认证会话取得该 self 结果，并核对完整 AccountId／
+ActorId 与本次请求的 Realm、scope、group、Genesis、target Commit／epoch、页与 cursor。该
+结果不是可转交第三方的身份权威证明，也不提供可复用的 device/service authorization。客户端
+按 exact 原签名转录用这些公钥独立验证 manifest 与 recipient 双签、完整有序 digest、Add
+Proposal／ActorId／endpoint／authorize Event／leaf key，以及 RFC GroupInfo、tree、Credential
+与 leaf 认证；公钥结果不替代这些检查，也不授权跳过 MLS 验证。closure 原件仍在治理签名
+digest 内，但普通客户端不做 method-native 重放、human PCR reducer 或 current DID 检查，
+不保存通用历史权威闭包；MLS 的耐久 exact 安装证据仍按原合同保留。
+
+缺少自己 Station 的精确公钥结果、只有未签名 `verified` 布尔值、仅有治理 manifest 或远端
+自报同形公钥，均 MUST 阻止安装，保持 `decryption_pending`。已授权缺证／未知 method 版本／
+错角色或 core／篡改／原时点撤销／双签无效使 self 整份 `revision_unavailable`；无权仍
+`not_found`。后来正常轮换或当前 endpoint 不可达不使原时点有效签名失效。
+
+普通客户端与 own Station 的职责符合性 MUST 执行 `ak.vector.mls.roster_client_roles.v1`；
+完整 native history／RFC MLS 安装的 named suite 不得用 shape-only 或签名 KAT 通过替代。
+
+**取证与路由（normative）**：内联历史验证只消费受权冻结 closure，不产生网络请求。首次治理
+定位和缺失服务证据 MUST 沿用已登记 locator、独立 bootstrap `resolution_url` 或已验证 same-core
+route，由 own Station 执行相应已登记调用；客户端不能从 retained RealmCommit signer、
+receipt/attestation kid、DID 托管域或裸 core 推导首次 live discovery 权限。缺少起点时失败关闭，
+不增加新的 call site。历史 closure 不得写入当前 endpoint route cache；当前路由 freshness
+与原时点签名有效性分别验证，不能以当前重新 resolve 替换 accepted-at evidence。机器职责与
+来源以 canonical `did_evidence_boundary_registry.mls_roster_verification_contract` 和
+`mls_roster_retained_attestor_history` 为准。
 
 **成员读取 Genesis public material（normative）**：`ak.self.mls.read.group_state_material.v1` 是成员设备
 取得同一 accepted Genesis 所承诺 RFC GroupInfo 与 ratchet tree 原字节的唯一成员端操作；它不授予设备

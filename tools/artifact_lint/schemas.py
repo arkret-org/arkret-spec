@@ -4303,6 +4303,7 @@ def check_did_and_device_constraints(lint: Lint) -> None:
         "did_method_evidence",
         "third_party_proof",
         "ordinary_identity_reference",
+        "mls_roster_retained_attestor_history",
     }
     boundary_ids: set[str] = set()
     for index, row in enumerate(boundaries if isinstance(boundaries, list) else []):

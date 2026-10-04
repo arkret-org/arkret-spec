@@ -103,6 +103,10 @@
       "$ref": "./encrypted-envelope.schema.json",
       "description": "Encrypted envelope whose plaintext is a strand_metadata object. Required instead of plaintext metadata once the enclosing scope has an accepted ak.mls.genesis; before that activation the scope is plaintext and after it the plaintext branch MUST be rejected with mls_activation_irreversible."
     },
+    "topic": {
+      "$ref": "#/$defs/strand_topic",
+      "description": "Optional single Topic classification for a stably bound Direct Conversation Chat. Root same-Realm List Space only. Whole set/unset via ak.strand.update requires the exact current digest CAS. Omitted means unclassified; no Board position or canonical Relation mirrors this field."
+    },
     "content": {
       "$ref": "#/$defs/content_block",
       "description": "Strand description body. This is base Strand content and is independent of the synthesis and discussion tracks."
@@ -485,6 +489,11 @@
             "required": [
               "encrypted_payload"
             ]
+          },
+          {
+            "required": [
+              "topic"
+            ]
           }
         ]
       },
@@ -731,6 +740,24 @@
     },
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
+    },
+    "strand_topic": {
+      "type": "object",
+      "required": [
+        "space_id",
+        "rank"
+      ],
+      "properties": {
+        "space_id": {
+          "type": "string",
+          "pattern": "^ak:space:[A-Za-z0-9_-]{44}$"
+        },
+        "rank": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9]{1,128}$"
+        }
+      },
+      "additionalProperties": false
     }
   },
   "unevaluatedProperties": false

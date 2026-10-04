@@ -8,7 +8,6 @@
     "schema",
     "realm_id",
     "kind",
-    "title",
     "created_by",
     "created_at"
   ],
@@ -105,6 +104,10 @@
       "type": "string",
       "pattern": "^ak:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|blake3):[0-9a-f]{64})$"
     },
+    "encrypted_metadata": {
+      "$ref": "./encrypted-envelope.schema.json",
+      "description": "Whole MLS metadata envelope; decrypted plaintext is #/$defs/space_metadata. Mutually exclusive with plaintext title, summary, labels and avatar_blob_ref. Public fields in this branch contain only registered structural policy. No plaintext title mirror on current/read/snapshot/replica, search or notification surfaces."
+    },
     "state": {
       "type": "string",
       "enum": [
@@ -185,6 +188,61 @@
           }
         }
       }
+    },
+    {
+      "oneOf": [
+        {
+          "required": [
+            "title"
+          ],
+          "not": {
+            "required": [
+              "encrypted_metadata"
+            ]
+          }
+        },
+        {
+          "required": [
+            "encrypted_metadata"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "title"
+                ]
+              },
+              {
+                "required": [
+                  "summary"
+                ]
+              },
+              {
+                "required": [
+                  "labels"
+                ]
+              },
+              {
+                "required": [
+                  "avatar_blob_ref"
+                ]
+              }
+            ]
+          },
+          "properties": {
+            "fields": {
+              "type": "object",
+              "propertyNames": {
+                "enum": [
+                  "wip_limit",
+                  "wip_limit_enforcement",
+                  "view_id"
+                ]
+              }
+            }
+          }
+        }
+      ]
     }
   ],
   "$defs": {
@@ -229,6 +287,62 @@
           }
         }
       ],
+      "additionalProperties": false
+    },
+    "space_metadata": {
+      "type": "object",
+      "required": [
+        "title"
+      ],
+      "properties": {
+        "title": {
+          "$ref": "string-profiles.schema.json#/$defs/display_text_256"
+        },
+        "summary": {
+          "$ref": "string-profiles.schema.json#/$defs/short_text",
+          "maxLength": 2048
+        },
+        "labels": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "uniqueItems": true
+        },
+        "fields": {
+          "type": "object",
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "rank"
+                ]
+              },
+              {
+                "required": [
+                  "wip_limit"
+                ]
+              },
+              {
+                "required": [
+                  "wip_limit_enforcement"
+                ]
+              },
+              {
+                "required": [
+                  "view_id"
+                ]
+              }
+            ]
+          }
+        },
+        "avatar_blob_ref": {
+          "type": "string",
+          "pattern": "^ak:blob:(?:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|(?:sha256|blake3):[0-9a-f]{64})$"
+        }
+      },
       "additionalProperties": false
     }
   },

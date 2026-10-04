@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-03.2",
-  "generated_at": "2026-10-03T22:38:46+08:00",
+  "version": "2026-10-04.4",
+  "generated_at": "2026-10-04T07:10:43+00:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -1981,50 +1981,61 @@
         "schemas/contact-operations.schema.json#/$defs/contact_scope_update_request",
         "schemas/contact-operations.schema.json#/$defs/contact_tombstone_request",
         "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_request",
-        "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_outcome"
+        "schemas/contact-operations.schema.json#/$defs/peer_contact_submit_outcome",
+        "schemas/space.schema.json#/$defs/space_metadata",
+        "schemas/strand.schema.json#/$defs/strand_topic"
       ],
       "required_event_kinds": [
-        "ak.realm.create",
+        "ak.call.state",
+        "ak.direct_conversation.bound",
         "ak.member.state",
-        "ak.strand.create",
         "ak.message.create",
-        "ak.message.revise",
         "ak.message.redact",
+        "ak.message.revise",
+        "ak.mls.commit",
+        "ak.mls.genesis",
         "ak.reaction.add",
         "ak.reaction.remove",
         "ak.read_cursor.advance",
-        "ak.call.state",
-        "ak.direct_conversation.bound",
-        "ak.mls.genesis",
-        "ak.mls.commit"
-      ],
-      "rejected_event_kinds": [
-        "ak.space.create",
-        "ak.space.update",
-        "ak.space.parent",
+        "ak.realm.create",
         "ak.space.archive",
+        "ak.space.create",
         "ak.space.restore",
         "ak.space.tombstone",
-        "ak.invite.create",
-        "ak.invite.cancel",
+        "ak.space.update",
+        "ak.strand.archive",
+        "ak.strand.create",
+        "ak.strand.restore",
+        "ak.strand.update",
+        "ak.strand.watch.set"
+      ],
+      "rejected_event_kinds": [
         "ak.invite.accept",
-        "ak.invite.third_party",
+        "ak.invite.cancel",
         "ak.invite.claim",
-        "ak.invite.revoke"
+        "ak.invite.create",
+        "ak.invite.revoke",
+        "ak.invite.third_party",
+        "ak.space.parent",
+        "ak.strand.move",
+        "ak.strand.reorder"
       ],
       "required_schemas": [
         "ak.schema.realm.v1",
         "ak.schema.strand.v1",
         "ak.schema.event.v1",
-        "ak.schema.event_payload.v1"
+        "ak.schema.event_payload.v1",
+        "ak.schema.space.v1"
       ],
       "required_fixtures": [
-        "peer-event-submit-semantic-union-fixture.json"
+        "peer-event-submit-semantic-union-fixture.json",
+        "direct-conversation-structure-fixture.json"
       ],
       "required_vectors": [
         "ak.vector.direct_conversation.founding_admission.v1",
         "ak.vector.direct_conversation.founding_authoring_material.v1",
-        "ak.vector.direct_conversation.founding_unit.v1"
+        "ak.vector.direct_conversation.founding_unit.v1",
+        "ak.vector.direct_conversation.chat_topic_structure.v1"
       ],
       "optional_extensions": [],
       "feature_discovery": {
@@ -2059,7 +2070,7 @@
         "schema_refs MUST contain ak.profile.direct_conversation_realm.v1 and fields.collaboration_role MUST equal direct_conversation; either marker without the other is schema_violation.",
         "The Realm scope is plaintext until its single ak.mls.genesis is accepted; that accepted RealmCommit irreversibly activates standard RFC 9420 for the scope and every later content write MUST be an MLS application message.",
         "Exactly the two ActorIds in the immutable binding may be Realm principal members; any third-party join or invite MUST be rejected.",
-        "Space events are forbidden in a Direct Conversation Realm with direct_conversation_space_forbidden; additional ordinary Strands remain allowed.",
+        "Stable participants may author only the closed Chat/flat Topic structural actions of participant_authority.structural_contract; all other Space kinds, non-root List topologies, plaintext metadata and bootstrap extensions fail closed.",
         "The canonical main Strand MUST be active, belong to the Realm, have no Circle scope, and expose an active primary discussion track.",
         "First creation MUST be the founder's caller-authored four-Event unit submitted through the direct_conversation_founding branch of ak.self.events.command.submit.v1. realm_id and main_strand_id are retyped from the first and fourth Event IDs, so the service MUST NOT allocate an identifier, issue a reserved or materializing draft, or elect a coordinator; it only verifies the unit, CAS-closes its local (founder_id, trust_domain_id, pair_key) slot and accepts zero or four Events atomically.",
         "The founding slot admits the first valid unit only. A second unit for the same pair MUST be refused with direct_conversation_slot_already_committed and zero writes; a byte-identical replay MUST return the same four byte-identical source RealmCommits without changing the fourth committed_at; the same idempotency key with a different unit MUST be duplicate_conflict. The slot MUST NOT reopen into creation_required after a committed unit, and no founding receipt exists.",
@@ -2068,7 +2079,8 @@
         "Between the accepted founding unit and the first legal binding endorsement, pre-binding writes MUST cite authorization_ref=ak.authority.direct_conversation_bootstrap_participant.v1 with exactly one critical semantic_refs[] role=direct_conversation_founding_unit reference to the accepted ak.realm.create. The verifier recomputes the mutually exclusive phase from accepted facts; the producer MUST NOT declare it. Both phases retire permanently once the first legal endorsement is accepted.",
         "The binding is immutable and fixes pair_key, participant pair, Realm and main Strand exactly once. It carries no authored lifecycle state or MLS group; an encrypted Direct Conversation has one scope-derived group and one monotonic epoch lineage projected from accepted history.",
         "Principal-private deletion and global content/key erasure retain stable pair, Realm and main Strand identity. The resolver never returns a competing candidate or performs winner selection.",
-        "Participant authority and root-owner masking are conjunctive profile admission rules and MUST be evaluated from the same accepted evidence basis as the target action; neither created_by nor membership alone is an authorization source."
+        "Participant authority and root-owner masking are conjunctive profile admission rules and MUST be evaluated from the same accepted evidence basis as the target action; neither created_by nor membership alone is an authorization source.",
+        "Stable Direct Conversation participants may write only their own actual Chat watch cell through the accepted binding authority; others and bootstrap writes are denied, preserving whole-value CAS and private disclosure."
       ],
       "participant_authority": {
         "authority_source_id": "ak.authority.direct_conversation_participant.v1",
@@ -2087,10 +2099,19 @@
           "ak.reaction.remove",
           "ak.read_cursor.advance",
           "ak.receipt.broadcast",
+          "ak.space.archive",
+          "ak.space.create",
+          "ak.space.restore",
+          "ak.space.tombstone",
+          "ak.space.update",
+          "ak.strand.archive",
           "ak.strand.create",
+          "ak.strand.restore",
+          "ak.strand.update",
+          "ak.strand.watch.set",
           "ak.typing.broadcast"
         ],
-        "scope_rule": "non_suspended_non_circle_discussion_strands_in_stably_bound_realm_using_the_unique_scope_derived_mls_group",
+        "scope_rule": "action_specific_chat_root_topic_targets_in_stably_bound_realm_with_independent_canonical_main_anchor",
         "consent_gated_actions": [
           "ak.call.join",
           "ak.call.screen_share",
@@ -2099,10 +2120,60 @@
           "ak.reaction.add",
           "ak.reaction.remove",
           "ak.receipt.broadcast",
+          "ak.space.archive",
+          "ak.space.create",
+          "ak.space.restore",
+          "ak.space.tombstone",
+          "ak.space.update",
+          "ak.strand.archive",
+          "ak.strand.create",
+          "ak.strand.restore",
+          "ak.strand.update",
           "ak.typing.broadcast"
         ],
         "generation_rule": "independent_of_realm_authority_generation",
-        "delegated_actor_rule": "participant_authority_and_agent_provision_runtime_participation_all_required"
+        "delegated_actor_rule": "participant_authority_and_agent_provision_runtime_participation_all_required",
+        "structural_contract": {
+          "normative_source": "zh/identity/contact-and-direct-conversation.md §8.3.1",
+          "canonical_main": "active_same_realm_non_circle_primary_discussion_anchor_independent_of_actual_target",
+          "chat_create": "event_derived_same_realm_non_circle_active_primary_discussion_without_content_or_extra_tracks",
+          "chat_update_paths": [
+            "encrypted_metadata",
+            "topic"
+          ],
+          "space_update_paths": [
+            "rank",
+            "encrypted_metadata"
+          ],
+          "space_kinds": [
+            "list"
+          ],
+          "list_parent": "root_in_same_realm",
+          "scope": "realm_default_only",
+          "main_archive": "forbidden",
+          "create_metadata": "encrypted_metadata_only_no_plaintext_title_summary_labels_fields_avatar",
+          "update_metadata": "whole_envelope_set_only_no_ciphertext_subpaths",
+          "revocation": "current_contact_or_owned_agent_controller_gate_for_all_structural_actions",
+          "bootstrap": "no_structural_extension_before_stable_binding",
+          "denial": "direct_conversation_participant_authority_denied",
+          "lifecycle": "independent_no_cascade_live_topic_refs_include_archived_chats",
+          "space_metadata_plaintext_schema_ref": "schemas/space.schema.json#/$defs/space_metadata",
+          "forbidden_space_kind_reason": "direct_conversation_space_forbidden",
+          "topic": "strand_topic_whole_set_or_unset_with_required_expected_state_digest",
+          "topic_current": "strand_current_only_no_board_position_or_relation"
+        },
+        "personal_watch_contract": {
+          "action": "ak.strand.watch.set",
+          "watcher": "full_payload_watcher_actor_id_equals_envelope_actor_id",
+          "target": "actual_non_circle_chat_strand_in_same_direct_realm",
+          "authority": "stable_participant_and_accepted_binding_endorsement_only",
+          "bootstrap": "forbidden",
+          "others": "forbidden_including_the_other_stable_participant",
+          "preimage": "existing_whole_value_cas",
+          "default": "mentions_only_when_never_written",
+          "disclosure": "existing_actor_private_watch_current_rules",
+          "denial": "direct_conversation_participant_authority_denied"
+        }
       },
       "root_owner_mask": {
         "founding_phase": {
@@ -2682,7 +2753,8 @@
       ],
       "required_fixtures": [
         "privacy-security-fixture.json",
-        "capability-relinquish-authoring-fixture.json"
+        "capability-relinquish-authoring-fixture.json",
+        "mls-roster-client-roles-fixture.json"
       ],
       "optional_extensions": [
         "ak.profile.e2ee_client.v1",
@@ -2696,7 +2768,23 @@
           "pending_state"
         ],
         "unsupported_optional": "surface unavailable capability before write"
-      }
+      },
+      "mls_roster_verification": {
+        "method_history_verifier": false,
+        "live_did_discovery": false,
+        "input": "authenticated_own_station_self_roster_outcome",
+        "checks": [
+          "exact_account_actor_and_selectors",
+          "governance_manifest_signature",
+          "complete_ordered_records_digest",
+          "recipient_claim_receipt_signature",
+          "recipient_add_attestation_signature",
+          "rfc9420_credential_leaf_and_proposal_binding"
+        ]
+      },
+      "required_vectors": [
+        "ak.vector.mls.roster_client_roles.v1"
+      ]
     },
     "ak.profile.e2ee_client.v1": {
       "enforcement_phases": [
@@ -2758,6 +2846,16 @@
           "direction": "consume",
           "operation_id": "ak.self.keys.backups.resource.delete.v1",
           "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.mls.read.roster_authority.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.self.mls.read.group_state_material.v1",
+          "binding_kind": "http_json"
         }
       ],
       "inherits": [
@@ -2772,11 +2870,13 @@
       "required_schemas": [
         "ak.schema.encrypted_envelope.v1",
         "ak.schema.media_metadata.v1",
-        "ak.schema.key_backup.v1"
+        "ak.schema.key_backup.v1",
+        "ak.schema.mls_roster_authority.v1"
       ],
       "required_fixtures": [
         "mls-rfc9420-kat-fixture.json",
-        "privacy-security-fixture.json"
+        "privacy-security-fixture.json",
+        "mls-roster-client-roles-fixture.json"
       ],
       "optional_extensions": [
         "ak.profile.agent_signer_evidence.v1"
@@ -2790,7 +2890,23 @@
         ],
         "unsupported_optional": "preserve encrypted events and expose key_missing"
       },
-      "conditional_requirements": {}
+      "conditional_requirements": {},
+      "mls_roster_verification": {
+        "method_history_verifier": false,
+        "live_did_discovery": false,
+        "input": "authenticated_own_station_self_roster_outcome",
+        "checks": [
+          "exact_account_actor_and_selectors",
+          "governance_manifest_signature",
+          "complete_ordered_records_digest",
+          "recipient_claim_receipt_signature",
+          "recipient_add_attestation_signature",
+          "rfc9420_credential_leaf_and_proposal_binding"
+        ]
+      },
+      "required_vectors": [
+        "ak.vector.mls.roster_client_roles.v1"
+      ]
     },
     "ak.profile.agent_signer_evidence.v1": {
       "description": "Portable ordinary-Realm Agent signer authorization evidence. Producers publish one reusable Agent authority state attestation and independent privacy-minimal controller gate. Their maximum 300 second windows constrain direct current-query consumption only; verified ordinary publication evidence remains reusable without periodic refresh and is fenced by known revocation. Historical evidence freezes the original producer proof and authorization evidence, or a distinct receiver receipt. Server and peer consumers verify complete identity/method/history dependencies and reuse unchanged material. Ordinary clients consume authenticated own-Station signing-key results and independently verify message signature/MLS/replay; later terminal transitions do not invalidate previously accepted history.",
@@ -3068,9 +3184,12 @@
       "required_fixtures": [
         "privacy-security-fixture.json",
         "session-grant-issuance-fixture.json",
-        "capability-relinquish-authoring-fixture.json"
+        "capability-relinquish-authoring-fixture.json",
+        "mls-roster-client-roles-fixture.json"
       ],
-      "required_vectors": [],
+      "required_vectors": [
+        "ak.vector.mls.roster_client_roles.v1"
+      ],
       "optional_extensions": [
         "ak.profile.federation_minimal.v1",
         "snapshot_witness"
@@ -3103,6 +3222,19 @@
         "third_party_invite_lifecycle_recovery_must": "Provisioning MUST be idempotent on request_id with byte-identical canonical intent and MUST fail duplicate_conflict on a reused request_id with any different intent; activation MUST return the same immutable binding for a byte-identical retry, a concurrent duplicate and a retry after a process restart; the binding and the out-of-band delivery intent MUST be committed atomically before success is returned; and an unactivated record MUST expire at activation_expires_at, zeroize its material on the third-party-invites.md section 6.1 schedule and never be revived.",
         "third_party_invite_handoff_bundle_advertisement_must": "A deployment MUST advertise ak.operation_bundle.station.third_party_invite_handoff.v1 only when every registered member operation is reachable at its registered path and a complete closed loop runs for both offline_token and lookup, from ak.open.third_party_invite.command.provision.v1 through Event authoring and acceptance, ak.self.third_party_invite.read.acceptance_attestation.v1, ak.open.third_party_invite.command.activate.v1 and real out-of-band delivery to a successful ak.open.third_party_invite.command.present_token.v1 binding_proof, using registered operations only. An implementation-private HTTP surface, an /_arkret/_conformance/* endpoint, database or keystore seeding of the token, salt, pepper or ephemeral private key, and a success branch that exists only in a test build MUST NOT be counted; route existence, negative-case coverage and schema validation alone are not support.",
         "push_registration_role_must": "Push is optional. A Station advertising ak.operation_bundle.station.push.v1 MUST provide register_device and unregister_device for the authenticated exact AccountId whose station_id is that service. The Station role does not provide notify; a co-located gateway has a separate push_gateway role-scoped describe and bundle claim."
+      },
+      "mls_roster_verification": {
+        "method_history_verifier": true,
+        "history_source": "inline_frozen_attestor_resolution",
+        "checks": [
+          "governance_authority_generation_and_manifest",
+          "dual_cut_scope_membership_history_policy",
+          "method_native_history_and_station_role_core",
+          "assertion_method_at_claimed_at_and_attested_at",
+          "original_recipient_signatures"
+        ],
+        "output": "self_roster_read_outcome",
+        "failure_code": "revision_unavailable"
       }
     },
     "ak.profile.federation_minimal.v1": {

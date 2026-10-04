@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-04.1",
+  "version": "2026-10-04.3",
   "source_of_truth": true,
-  "generated_at": "2026-10-04T15:38:48+08:00",
+  "generated_at": "2026-10-04T18:01:04+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -5071,6 +5071,32 @@
       "source_refs": [
         "spec/v1/zh/sync/signal.md",
         "spec/v1/artifacts/fixtures/signal-federation-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.direct_conversation.chat_topic_structure.v1",
+      "status": "active",
+      "domain": "direct_conversation",
+      "applies_to_fixtures": [
+        "direct-conversation-structure-fixture.json"
+      ],
+      "description": "Executed flat Topic whole-field set/unset CAS and encrypted metadata vectors; participant scope and lifecycle boundaries are pinned by the structural contract gate. Live implementation acceptance remains separately required.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/direct-conversation-structure-fixture.json",
+        "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.mls.roster_client_roles.v1",
+      "status": "active",
+      "domain": "mls",
+      "applies_to_fixtures": [
+        "mls-roster-client-roles-fixture.json"
+      ],
+      "description": "Own Station validates inline historical authority; ordinary full/e2ee clients consume exact purpose-bound keys and independently verify original double signatures without method history or live discovery. Key rotation, wrong core/role, tampered evidence, unregistered discovery, remote results and boolean-only results fail closed. Signature/key binding KAT and closed self carrier are executable; complete native history/RFC MLS acceptance remains the named suite obligation.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/mls-roster-client-roles-fixture.json",
+        "spec/v1/zh/crypto-media/encryption-and-audit.md"
       ]
     }
   ]

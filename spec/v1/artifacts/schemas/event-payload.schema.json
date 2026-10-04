@@ -8671,6 +8671,13 @@
                   }
                 ]
               }
+            },
+            {
+              "not": {
+                "required": [
+                  "topic"
+                ]
+              }
             }
           ]
         }
@@ -8741,15 +8748,67 @@
         "patch": {
           "$ref": "#/$defs/patch",
           "propertyNames": {
-            "pattern": "^(?:(?:scope_circle_id|schema_refs|agent_participation|metadata|encrypted_metadata|content|encrypted_content)(?:\\.[a-z][a-z0-9_]{0,63})*|tracks\\.synthesis\\.(?:content|encrypted_content))$"
+            "pattern": "^(?:(?:scope_circle_id|schema_refs|agent_participation|metadata|encrypted_metadata|content|encrypted_content)(?:\\.[a-z][a-z0-9_]{0,63})*|topic|tracks\\.synthesis\\.(?:content|encrypted_content))$"
           },
-          "description": "Only the two exact Synthesis content paths may reach tracks; replacing tracks, a track entry or configuration is forbidden."
+          "description": "Only the two exact Synthesis content paths may reach tracks; replacing tracks, a track entry or configuration is forbidden.",
+          "properties": {
+            "topic": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "required": [
+                    "$op",
+                    "value"
+                  ],
+                  "properties": {
+                    "$op": {
+                      "const": "set"
+                    },
+                    "value": {
+                      "$ref": "./strand.schema.json#/$defs/strand_topic"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "$op"
+                  ],
+                  "properties": {
+                    "$op": {
+                      "const": "unset"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              ]
+            }
+          }
         },
         "expected_state_digest": {
           "$ref": "#/$defs/digest"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "patch": {
+                "required": [
+                  "topic"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "expected_state_digest"
+            ]
+          }
+        }
+      ]
     },
     "strand_reorder_payload": {
       "type": "object",

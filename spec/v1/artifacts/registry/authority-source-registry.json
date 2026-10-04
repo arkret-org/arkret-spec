@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-02.1",
+  "version": "2026-10-04.4",
   "source_of_truth": false,
-  "generated_at": "2026-10-02T11:10:00+08:00",
+  "generated_at": "2026-10-04T07:10:43+00:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "source_pattern": "^ak\\.authority\\.[a-z0-9_]+(?:\\.[a-z0-9_]+)*\\.v[0-9]+$",
@@ -58,7 +58,16 @@
         "ak.reaction.remove",
         "ak.read_cursor.advance",
         "ak.receipt.broadcast",
+        "ak.space.archive",
+        "ak.space.create",
+        "ak.space.restore",
+        "ak.space.tombstone",
+        "ak.space.update",
+        "ak.strand.archive",
         "ak.strand.create",
+        "ak.strand.restore",
+        "ak.strand.update",
+        "ak.strand.watch.set",
         "ak.typing.broadcast"
       ],
       "event_action_allowlist": [
@@ -72,7 +81,16 @@
         "ak.reaction.add",
         "ak.reaction.remove",
         "ak.read_cursor.advance",
-        "ak.strand.create"
+        "ak.space.archive",
+        "ak.space.create",
+        "ak.space.restore",
+        "ak.space.tombstone",
+        "ak.space.update",
+        "ak.strand.archive",
+        "ak.strand.create",
+        "ak.strand.restore",
+        "ak.strand.update",
+        "ak.strand.watch.set"
       ],
       "encrypted_signal_product_actions": [
         "ak.call.signal.send",
@@ -100,7 +118,59 @@
       "delegated_event_rule": "conjunctive_with_executor_delegation",
       "failure_mode": "fail_closed_or_dependency_pending",
       "denial_reason_code": "direct_conversation_participant_authority_denied",
-      "denial_privacy": "collapse_all_failed_activation_checks_without_naming_the_failed_input"
+      "denial_privacy": "collapse_all_failed_activation_checks_without_naming_the_failed_input",
+      "structural_actions": [
+        "ak.strand.create",
+        "ak.strand.update",
+        "ak.strand.archive",
+        "ak.strand.restore",
+        "ak.space.create",
+        "ak.space.update",
+        "ak.space.archive",
+        "ak.space.restore",
+        "ak.space.tombstone"
+      ],
+      "structural_contract": {
+        "normative_source": "zh/identity/contact-and-direct-conversation.md §8.3.1",
+        "canonical_main": "active_same_realm_non_circle_primary_discussion_anchor_independent_of_actual_target",
+        "chat_create": "event_derived_same_realm_non_circle_active_primary_discussion_without_content_or_extra_tracks",
+        "chat_update_paths": [
+          "encrypted_metadata",
+          "topic"
+        ],
+        "space_update_paths": [
+          "rank",
+          "encrypted_metadata"
+        ],
+        "space_kinds": [
+          "list"
+        ],
+        "list_parent": "root_in_same_realm",
+        "scope": "realm_default_only",
+        "main_archive": "forbidden",
+        "create_metadata": "encrypted_metadata_only_no_plaintext_title_summary_labels_fields_avatar",
+        "update_metadata": "whole_envelope_set_only_no_ciphertext_subpaths",
+        "revocation": "current_contact_or_owned_agent_controller_gate_for_all_structural_actions",
+        "bootstrap": "no_structural_extension_before_stable_binding",
+        "denial": "direct_conversation_participant_authority_denied",
+        "lifecycle": "independent_no_cascade_live_topic_refs_include_archived_chats",
+        "space_metadata_plaintext_schema_ref": "schemas/space.schema.json#/$defs/space_metadata",
+        "forbidden_space_kind_reason": "direct_conversation_space_forbidden",
+        "topic": "strand_topic_whole_set_or_unset_with_required_expected_state_digest",
+        "topic_current": "strand_current_only_no_board_position_or_relation"
+      },
+      "personal_watch_contract": {
+        "action": "ak.strand.watch.set",
+        "watcher": "full_payload_watcher_actor_id_equals_envelope_actor_id",
+        "target": "actual_non_circle_chat_strand_in_same_direct_realm",
+        "authority": "stable_participant_and_accepted_binding_endorsement_only",
+        "bootstrap": "forbidden",
+        "others": "forbidden_including_the_other_stable_participant",
+        "preimage": "existing_whole_value_cas",
+        "default": "mentions_only_when_never_written",
+        "disclosure": "existing_actor_private_watch_current_rules",
+        "denial": "direct_conversation_participant_authority_denied"
+      }
     },
     {
       "authority_source_id": "ak.authority.direct_conversation_repair.v1",

@@ -51,12 +51,12 @@
       "prose_only": 2,
       "schema_reference": 163,
       "startup_compile": 224,
-      "vectors": 115
+      "vectors": 116
     },
     "without_wire_consumer": 1,
     "explicit_prose_only": 2,
     "unresolved_consumer_coverage": 0,
-    "without_vector_coverage": 109,
+    "without_vector_coverage": 108,
     "unresolved_vector_disposition": 0
   },
   "without_wire_consumer": [
@@ -138,7 +138,6 @@
     "ak.schema.message_prepare_request.v1",
     "ak.schema.mimi_operations.v1",
     "ak.schema.mls_commit_submission.v1",
-    "ak.schema.mls_roster_authority.v1",
     "ak.schema.mls_welcome_delivery.v1",
     "ak.schema.object_addressing.v1",
     "ak.schema.patch.v1",
@@ -2843,18 +2842,13 @@
       "consumers": {
         "inbound": "fragment",
         "outbound": "fragment",
-        "startup_compile": "exact"
+        "startup_compile": "exact",
+        "vectors": "required_schema"
       },
       "wire_covered": true,
       "vector_coverage": {
-        "disposition": "operation_e2e_owned",
-        "owners": [
-          "ak.peer.mls.command.attest_add.v1",
-          "ak.peer.mls.read.roster_authority.v1",
-          "ak.self.mls.read.group_state_material.v1",
-          "ak.self.mls.read.roster_authority.v1"
-        ],
-        "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
+        "disposition": "direct",
+        "evidence": "required_schema"
       }
     },
     {

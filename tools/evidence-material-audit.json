@@ -1,12 +1,12 @@
 {
-  "version": 25,
+  "version": 26,
   "source_of_truth": false,
   "narrative_source": "spec/v1/zh/models/common-fields.md#r6-证据类名词分工",
   "scope": [
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 357,
+  "audited_occurrence_count": 361,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -371,7 +371,7 @@
     {
       "file": "contract-registry.json",
       "key": "evidence_class",
-      "occurrences": 15,
+      "occurrences": 16,
       "disposition": "registry_contract",
       "reason": "Closed DID-authority evidence classification on exact operation and Event call sites; it carries no evidence instance."
     },
@@ -427,7 +427,7 @@
     {
       "file": "contract-registry.json",
       "key": "route_evidence",
-      "occurrences": 8,
+      "occurrences": 9,
       "disposition": "registry_contract",
       "reason": "Names the already-authenticated carrier or route coordinate required before a stable core may enter a registered resolution boundary; it carries no evidence instance."
     },
@@ -463,14 +463,14 @@
     {
       "file": "did-evidence-boundary-registry.json",
       "key": "route_evidence",
-      "occurrences": 8,
+      "occurrences": 9,
       "disposition": "registry_contract",
       "reason": "Generated view of the closed route-coordinate requirement for each DID evidence boundary; it carries no evidence instance."
     },
     {
       "file": "did-freshness-profile-registry.json",
       "key": "evidence_class",
-      "occurrences": 21,
+      "occurrences": 22,
       "disposition": "registry_contract",
       "reason": "Bidirectional call-site metadata distinguishing registration, historical, current, successor, recovery and governance checks."
     },

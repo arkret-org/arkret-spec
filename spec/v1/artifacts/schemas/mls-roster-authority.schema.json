@@ -15,145 +15,507 @@
     "member_group_state_material_read_request": {
       "type": "object",
       "description": "Authenticated member read of accepted Genesis public RFC material at an exact target membership/history cut. The Account Station binds caller_actor_id to the session and forwards all selectors unchanged to governance.",
-      "required": ["realm_id", "effective_scope", "mls_group_id", "epoch", "group_state_event_id", "caller_actor_id", "target_commit_event_ref", "target_epoch", "group_info_ref", "ratchet_tree_ref"],
+      "required": [
+        "realm_id",
+        "effective_scope",
+        "mls_group_id",
+        "epoch",
+        "group_state_event_id",
+        "caller_actor_id",
+        "target_commit_event_ref",
+        "target_epoch",
+        "group_info_ref",
+        "ratchet_tree_ref"
+      ],
       "properties": {
-        "realm_id": {"$ref": "./service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialRequestBody/properties/realm_id"},
-        "effective_scope": {"$ref": "./service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialRequestBody/properties/effective_scope"},
-        "mls_group_id": {"$ref": "./service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialRequestBody/properties/mls_group_id"},
-        "epoch": {"$ref": "./service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialRequestBody/properties/epoch"},
-        "group_state_event_id": {"$ref": "./service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialRequestBody/properties/group_state_event_id"},
-        "caller_actor_id": {"$ref": "./service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialRequestBody/properties/caller_actor_id"},
-        "target_commit_event_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
-        "target_epoch": {"$ref": "./service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialRequestBody/properties/target_epoch"},
-        "group_info_ref": {"$ref": "./common-ids.schema.json#/$defs/blob_ref"},
-        "ratchet_tree_ref": {"$ref": "./common-ids.schema.json#/$defs/blob_ref"},
-        "max_response_bytes": {"$ref": "./service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialRequestBody/properties/max_response_bytes"}
+        "realm_id": {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialRequestBody/properties/realm_id"
+        },
+        "effective_scope": {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialRequestBody/properties/effective_scope"
+        },
+        "mls_group_id": {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialRequestBody/properties/mls_group_id"
+        },
+        "epoch": {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialRequestBody/properties/epoch"
+        },
+        "group_state_event_id": {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialRequestBody/properties/group_state_event_id"
+        },
+        "caller_actor_id": {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialRequestBody/properties/caller_actor_id"
+        },
+        "target_commit_event_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "target_epoch": {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialRequestBody/properties/target_epoch"
+        },
+        "group_info_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/blob_ref"
+        },
+        "ratchet_tree_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/blob_ref"
+        },
+        "max_response_bytes": {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialRequestBody/properties/max_response_bytes"
+        }
       },
       "additionalProperties": false
     },
     "mls_add_authority_attestation": {
       "type": "object",
       "description": "Signed by the exact recipient Account Station after the accepted Commit and Welcome have been verified in its replica transaction. The original claim outcome may then expire; this immutable attestation remains replayable until governance installation is acknowledged.",
-      "required": ["attestor_station_id", "realm_id", "effective_scope", "mls_group_id", "genesis_event_ref", "commit_event_ref", "commit_stream_position", "epoch", "welcome_id", "claim_id", "actor_id", "endpoint", "authorization_event_ref", "leaf_signature_key_b64u", "claim_record_digest", "claim_receipt", "attested_at", "signature"],
+      "required": [
+        "attestor_station_id",
+        "realm_id",
+        "effective_scope",
+        "mls_group_id",
+        "genesis_event_ref",
+        "commit_event_ref",
+        "commit_stream_position",
+        "epoch",
+        "welcome_id",
+        "claim_id",
+        "actor_id",
+        "endpoint",
+        "authorization_event_ref",
+        "leaf_signature_key_b64u",
+        "claim_record_digest",
+        "claim_receipt",
+        "attested_at",
+        "signature"
+      ],
       "properties": {
-        "attestor_station_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
-        "realm_id": {"$ref": "./common-ids.schema.json#/$defs/realm_id"},
-        "effective_scope": {"$ref": "./event-payload.schema.json#/$defs/effective_scope"},
-        "mls_group_id": {"$ref": "./common-ids.schema.json#/$defs/mls_group_id"},
-        "genesis_event_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
-        "commit_event_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
-        "commit_stream_position": {"type": "integer", "minimum": 1},
-        "epoch": {"type": "integer", "minimum": 1},
-        "welcome_id": {"$ref": "./common-ids.schema.json#/$defs/mls_welcome_delivery_id"},
-        "claim_id": {"$ref": "./mls-welcome-delivery.schema.json#/properties/keypackage_claim_ref"},
-        "actor_id": {"$ref": "./common-ids.schema.json#/$defs/actor_id"},
-        "endpoint": {"$ref": "./mls-welcome-delivery.schema.json#/properties/recipient_endpoint"},
-        "authorization_event_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
-        "leaf_signature_key_b64u": {"$ref": "#/$defs/signature_key"},
-        "claim_record_digest": {"$ref": "#/$defs/digest"},
-        "claim_receipt": {"$ref": "./keypackage-operations.schema.json#/$defs/peer_keypackage_claim_receipt"},
-        "attested_at": {"$ref": "./event-payload.schema.json#/$defs/timestamp"},
-        "signature": {"$ref": "./keypackage-operations.schema.json#/$defs/signature"}
+        "attestor_station_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "effective_scope": {
+          "$ref": "./event-payload.schema.json#/$defs/effective_scope"
+        },
+        "mls_group_id": {
+          "$ref": "./common-ids.schema.json#/$defs/mls_group_id"
+        },
+        "genesis_event_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "commit_event_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "commit_stream_position": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "epoch": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "welcome_id": {
+          "$ref": "./common-ids.schema.json#/$defs/mls_welcome_delivery_id"
+        },
+        "claim_id": {
+          "$ref": "./mls-welcome-delivery.schema.json#/properties/keypackage_claim_ref"
+        },
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
+        },
+        "endpoint": {
+          "$ref": "./mls-welcome-delivery.schema.json#/properties/recipient_endpoint"
+        },
+        "authorization_event_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "leaf_signature_key_b64u": {
+          "$ref": "#/$defs/signature_key"
+        },
+        "claim_record_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "claim_receipt": {
+          "$ref": "./keypackage-operations.schema.json#/$defs/peer_keypackage_claim_receipt"
+        },
+        "attested_at": {
+          "$ref": "./event-payload.schema.json#/$defs/timestamp"
+        },
+        "signature": {
+          "$ref": "./keypackage-operations.schema.json#/$defs/signature"
+        }
       },
       "additionalProperties": false
     },
     "attest_add_request": {
       "type": "object",
       "description": "Transport-only full claim outcome lets governance verify the destination receipt's claims_digest before retaining only the signed minimal attestation. It is never returned by roster read.",
-      "required": ["attestation", "claim_outcome"],
+      "required": [
+        "attestation",
+        "claim_outcome"
+      ],
       "properties": {
-        "attestation": {"$ref": "#/$defs/mls_add_authority_attestation"},
-        "claim_outcome": {"$ref": "./keypackage-operations.schema.json#/$defs/keypackages_claim_outcome"}
+        "attestation": {
+          "$ref": "#/$defs/mls_add_authority_attestation"
+        },
+        "claim_outcome": {
+          "$ref": "./keypackage-operations.schema.json#/$defs/keypackages_claim_outcome"
+        }
       },
       "additionalProperties": false
     },
     "attest_add_outcome": {
       "type": "object",
-      "required": ["status", "attestation_digest"],
+      "required": [
+        "status",
+        "attestation_digest"
+      ],
       "properties": {
-        "status": {"enum": ["installed", "duplicate"]},
-        "attestation_digest": {"$ref": "#/$defs/digest"}
+        "status": {
+          "enum": [
+            "installed",
+            "duplicate"
+          ]
+        },
+        "attestation_digest": {
+          "$ref": "#/$defs/digest"
+        }
       },
       "additionalProperties": false
     },
+    "member_roster_read_request": {
+      "type": "object",
+      "required": [
+        "realm_id",
+        "effective_scope",
+        "mls_group_id",
+        "target_commit_event_ref",
+        "target_epoch",
+        "caller_actor_id"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "effective_scope": {
+          "$ref": "./event-payload.schema.json#/$defs/effective_scope"
+        },
+        "mls_group_id": {
+          "$ref": "./common-ids.schema.json#/$defs/mls_group_id"
+        },
+        "target_commit_event_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "target_epoch": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "caller_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
+        },
+        "cursor": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        }
+      },
+      "additionalProperties": false,
+      "description": "Authenticated own-Station member selector. The Station authorizes the exact accepted target and derives Genesis from immutable accepted provenance in the same read cut; the member need not read a prejoin Genesis or a complete current baseline."
+    },
     "roster_read_request": {
       "type": "object",
-      "required": ["realm_id", "effective_scope", "mls_group_id", "genesis_event_ref", "target_commit_event_ref", "target_epoch", "caller_actor_id"],
+      "required": [
+        "realm_id",
+        "effective_scope",
+        "mls_group_id",
+        "genesis_event_ref",
+        "target_commit_event_ref",
+        "target_epoch",
+        "caller_actor_id"
+      ],
       "properties": {
-        "realm_id": {"$ref": "./common-ids.schema.json#/$defs/realm_id"},
-        "effective_scope": {"$ref": "./event-payload.schema.json#/$defs/effective_scope"},
-        "mls_group_id": {"$ref": "./common-ids.schema.json#/$defs/mls_group_id"},
-        "genesis_event_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
-        "target_commit_event_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
-        "target_epoch": {"type": "integer", "minimum": 0},
-        "caller_actor_id": {"$ref": "./common-ids.schema.json#/$defs/actor_id"},
-        "cursor": {"type": "string", "minLength": 1, "maxLength": 1024}
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "effective_scope": {
+          "$ref": "./event-payload.schema.json#/$defs/effective_scope"
+        },
+        "mls_group_id": {
+          "$ref": "./common-ids.schema.json#/$defs/mls_group_id"
+        },
+        "genesis_event_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "target_commit_event_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "target_epoch": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "caller_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
+        },
+        "cursor": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        }
       },
       "additionalProperties": false
     },
     "roster_genesis_record": {
       "type": "object",
-      "required": ["kind", "genesis_event_ref", "actor_id", "leaf_signature_key_b64u", "endpoint", "authorization_event_ref"],
+      "required": [
+        "kind",
+        "genesis_event_ref",
+        "actor_id",
+        "leaf_signature_key_b64u",
+        "endpoint",
+        "authorization_event_ref"
+      ],
       "properties": {
-        "kind": {"const": "genesis"},
-        "genesis_event_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
-        "actor_id": {"$ref": "./common-ids.schema.json#/$defs/actor_id"},
-        "leaf_signature_key_b64u": {"$ref": "#/$defs/signature_key"},
-        "endpoint": {"$ref": "./mls-welcome-delivery.schema.json#/properties/recipient_endpoint"},
-        "authorization_event_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"}
+        "kind": {
+          "const": "genesis"
+        },
+        "genesis_event_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
+        },
+        "leaf_signature_key_b64u": {
+          "$ref": "#/$defs/signature_key"
+        },
+        "endpoint": {
+          "$ref": "./mls-welcome-delivery.schema.json#/properties/recipient_endpoint"
+        },
+        "authorization_event_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        }
       },
       "additionalProperties": false
     },
     "roster_add_record": {
       "type": "object",
-      "required": ["kind", "commit_event_ref", "consumed_proposal_ordinal", "sender_actor_id", "proposal_wire_b64u", "attestation", "attestor_resolution"],
+      "required": [
+        "kind",
+        "commit_event_ref",
+        "consumed_proposal_ordinal",
+        "sender_actor_id",
+        "proposal_wire_b64u",
+        "attestation",
+        "attestor_resolution"
+      ],
       "properties": {
-        "kind": {"const": "add"},
-        "commit_event_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
-        "consumed_proposal_ordinal": {"type": "integer", "minimum": 0, "description": "Zero-based index of this inline Add in the accepted Commit PublicMessage's ProposalOrRef vector, counting every consumed Proposal kind."},
-        "sender_actor_id": {"$ref": "./common-ids.schema.json#/$defs/actor_id"},
-        "proposal_wire_b64u": {"type": "string", "minLength": 1, "pattern": "^[A-Za-z0-9_-]+$", "description": "Canonical unpadded base64url of the exact TLS-serialized RFC 9420 Proposal body at consumed_proposal_ordinal in the accepted, signed Commit PublicMessage. It is never an independent Proposal handshake input or a synthetic ProposalRef."},
-        "attestation": {"$ref": "#/$defs/mls_add_authority_attestation"},
-        "attestor_resolution": {"$ref": "./identity-resolution.schema.json#/$defs/authenticated_service_resolution", "description": "Complete method-native Station history verified and durably frozen with this exact Add attestation. Its service_id must equal attestation.attestor_station_id and its historical assertion methods must verify both the original claim receipt and the Add attestation. This evidence is not a current delivery route."}
+        "kind": {
+          "const": "add"
+        },
+        "commit_event_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "consumed_proposal_ordinal": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Zero-based index of this inline Add in the accepted Commit PublicMessage's ProposalOrRef vector, counting every consumed Proposal kind."
+        },
+        "sender_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
+        },
+        "proposal_wire_b64u": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "description": "Canonical unpadded base64url of the exact TLS-serialized RFC 9420 Proposal body at consumed_proposal_ordinal in the accepted, signed Commit PublicMessage. It is never an independent Proposal handshake input or a synthetic ProposalRef."
+        },
+        "attestation": {
+          "$ref": "#/$defs/mls_add_authority_attestation"
+        },
+        "attestor_resolution": {
+          "$ref": "./identity-resolution.schema.json#/$defs/authenticated_service_resolution",
+          "description": "Complete method-native Station history verified and durably frozen with this exact Add attestation. Its service_id must equal attestation.attestor_station_id and its historical assertion methods must verify both the original claim receipt and the Add attestation. This evidence is not a current delivery route."
+        }
       },
       "additionalProperties": false
     },
     "roster_record": {
-      "oneOf": [{"$ref": "#/$defs/roster_genesis_record"}, {"$ref": "#/$defs/roster_add_record"}]
+      "oneOf": [
+        {
+          "$ref": "#/$defs/roster_genesis_record"
+        },
+        {
+          "$ref": "#/$defs/roster_add_record"
+        }
+      ]
     },
     "roster_manifest": {
       "type": "object",
       "description": "Governance Station signature covers every member except signature, including both immutable Blob refs copied from the exact accepted Genesis. A later-joined member verifies this manifest before using those refs in the member public material request. records_digest is SHA-256 over RFC 8785 JCS of the complete ordered roster_record array, independent of page boundaries.",
-      "required": ["governance_station_id", "realm_id", "effective_scope", "mls_group_id", "genesis_event_ref", "group_info_ref", "ratchet_tree_ref", "target_commit_event_ref", "target_epoch", "authority_head_commit_event_ref", "caller_actor_id", "total_records", "page_count", "records_digest", "issued_at", "signature"],
+      "required": [
+        "governance_station_id",
+        "realm_id",
+        "effective_scope",
+        "mls_group_id",
+        "genesis_event_ref",
+        "group_info_ref",
+        "ratchet_tree_ref",
+        "target_commit_event_ref",
+        "target_epoch",
+        "authority_head_commit_event_ref",
+        "caller_actor_id",
+        "total_records",
+        "page_count",
+        "records_digest",
+        "issued_at",
+        "signature"
+      ],
       "properties": {
-        "governance_station_id": {"$ref": "./common-ids.schema.json#/$defs/did_core_id"},
-        "realm_id": {"$ref": "./common-ids.schema.json#/$defs/realm_id"},
-        "effective_scope": {"$ref": "./event-payload.schema.json#/$defs/effective_scope"},
-        "mls_group_id": {"$ref": "./common-ids.schema.json#/$defs/mls_group_id"},
-        "genesis_event_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
-        "group_info_ref": {"$ref": "./common-ids.schema.json#/$defs/blob_ref"},
-        "ratchet_tree_ref": {"$ref": "./common-ids.schema.json#/$defs/blob_ref"},
-        "target_commit_event_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
-        "target_epoch": {"type": "integer", "minimum": 0},
-        "authority_head_commit_event_ref": {"$ref": "./common-ids.schema.json#/$defs/event_id"},
-        "caller_actor_id": {"$ref": "./common-ids.schema.json#/$defs/actor_id"},
-        "total_records": {"type": "integer", "minimum": 1},
-        "page_count": {"type": "integer", "minimum": 1},
-        "records_digest": {"$ref": "#/$defs/digest"},
-        "issued_at": {"$ref": "./event-payload.schema.json#/$defs/timestamp"},
-        "signature": {"$ref": "./keypackage-operations.schema.json#/$defs/signature"}
+        "governance_station_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "effective_scope": {
+          "$ref": "./event-payload.schema.json#/$defs/effective_scope"
+        },
+        "mls_group_id": {
+          "$ref": "./common-ids.schema.json#/$defs/mls_group_id"
+        },
+        "genesis_event_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "group_info_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/blob_ref"
+        },
+        "ratchet_tree_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/blob_ref"
+        },
+        "target_commit_event_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "target_epoch": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "authority_head_commit_event_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "caller_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
+        },
+        "total_records": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "page_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "records_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "issued_at": {
+          "$ref": "./event-payload.schema.json#/$defs/timestamp"
+        },
+        "signature": {
+          "$ref": "./keypackage-operations.schema.json#/$defs/signature"
+        }
       },
       "additionalProperties": false
     },
     "roster_read_outcome": {
       "type": "object",
-      "description": "One governance-signed page containing the longest continuous prefix of 1..8 complete records that fits the 2 MiB canonical JSON response limit. Pages are cut-bound, and next_cursor identifies the next record offset; no caller-selected page size or partial record is permitted.",
-      "required": ["manifest", "page_index", "records"],
+      "description": "One governance-signed page containing the longest continuous prefix of 1..8 complete records that fits the 2 MiB canonical JSON response limit. Pages are cut-bound, and next_cursor identifies the next record offset; no caller-selected page size or partial record is permitted. Page boundaries also include the exact self-only signing-key projection budget; either envelope exceeding 2 MiB makes the complete roster unavailable.",
+      "required": [
+        "manifest",
+        "page_index",
+        "records"
+      ],
       "properties": {
-        "manifest": {"$ref": "#/$defs/roster_manifest"},
-        "page_index": {"type": "integer", "minimum": 0},
-        "records": {"type": "array", "minItems": 1, "maxItems": 8, "items": {"$ref": "#/$defs/roster_record"}},
-        "next_cursor": {"type": "string", "minLength": 1, "maxLength": 1024}
+        "manifest": {
+          "$ref": "#/$defs/roster_manifest"
+        },
+        "page_index": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "records": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "items": {
+            "$ref": "#/$defs/roster_record"
+          }
+        },
+        "next_cursor": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        }
+      },
+      "additionalProperties": false
+    },
+    "roster_signing_key": {
+      "type": "object",
+      "description": "Public key selected by the authenticated own Account Station for the enclosing exact signed object and its original timestamp. A DID URL is only a key selector; this result is not portable authority or a resolver source.",
+      "required": [
+        "verification_method",
+        "public_key_b64u"
+      ],
+      "properties": {
+        "verification_method": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        },
+        "public_key_b64u": {
+          "$ref": "#/$defs/signature_key"
+        }
+      },
+      "additionalProperties": false
+    },
+    "roster_add_signing_keys": {
+      "type": "object",
+      "required": [
+        "record_digest",
+        "claim_receipt_signing_key",
+        "attestation_signing_key"
+      ],
+      "properties": {
+        "record_digest": {
+          "$ref": "#/$defs/digest",
+          "description": "SHA-256 of RFC 8785 JCS of the exact complete Add record on this page, including frozen closure."
+        },
+        "claim_receipt_signing_key": {
+          "$ref": "#/$defs/roster_signing_key"
+        },
+        "attestation_signing_key": {
+          "$ref": "#/$defs/roster_signing_key"
+        }
+      },
+      "additionalProperties": false
+    },
+    "self_roster_read_outcome": {
+      "type": "object",
+      "description": "Non-portable authenticated own-Station result. roster is the unchanged signed governance page. Exactly one key entry per Add record on that page, in the same order; no entry for Genesis. Keys bind exact signature kid, purpose, timestamp and record digest; current or remote self-asserted keys cannot substitute. Entire canonical response is at most 2 MiB.",
+      "required": [
+        "roster",
+        "manifest_signing_key",
+        "add_signing_keys"
+      ],
+      "properties": {
+        "roster": {
+          "$ref": "#/$defs/roster_read_outcome"
+        },
+        "manifest_signing_key": {
+          "$ref": "#/$defs/roster_signing_key"
+        },
+        "add_signing_keys": {
+          "type": "array",
+          "maxItems": 8,
+          "items": {
+            "$ref": "#/$defs/roster_add_signing_keys"
+          }
+        }
       },
       "additionalProperties": false
     }

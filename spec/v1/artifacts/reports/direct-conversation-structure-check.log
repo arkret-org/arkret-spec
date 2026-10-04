@@ -1,0 +1,92 @@
+test_attachment_reuses_registered_aead_and_never_exports_group_state (__main__.AppletSelfActorContractTests.test_attachment_reuses_registered_aead_and_never_exports_group_state) ... ok
+test_bootstrap_schema_cannot_carry_business_selector_or_bearer (__main__.AppletSelfActorContractTests.test_bootstrap_schema_cannot_carry_business_selector_or_bearer) ... ok
+test_content_schema_requires_distinct_device_and_principal_evidence (__main__.AppletSelfActorContractTests.test_content_schema_requires_distinct_device_and_principal_evidence) ... ok
+test_plaintext_transcripts_detect_body_target_install_epoch_replay (__main__.AppletSelfActorContractTests.test_plaintext_transcripts_detect_body_target_install_epoch_replay) ... ok
+test_profile_branch_operations_are_closed_and_directions_match_transport (__main__.AppletSelfActorContractTests.test_profile_branch_operations_are_closed_and_directions_match_transport) ... ok
+test_r1_exact_station_updates_do_not_update_another_account (__main__.AppletSelfActorContractTests.test_r1_exact_station_updates_do_not_update_another_account) ... ok
+test_r1_service_first_pcr_first_and_key_document_mismatch (__main__.AppletSelfActorContractTests.test_r1_service_first_pcr_first_and_key_document_mismatch) ... ok
+test_r2_cancel_expiry_supersede_are_terminal_zero_effects (__main__.AppletSelfActorContractTests.test_r2_cancel_expiry_supersede_are_terminal_zero_effects) ... ok
+test_r2_no_active_install_bootstrap_then_explicit_commit_exact_retry (__main__.AppletSelfActorContractTests.test_r2_no_active_install_bootstrap_then_explicit_commit_exact_retry) ... ok
+test_relay_does_not_claim_ciphertext_plaintext_equivalence (__main__.AppletSelfActorContractTests.test_relay_does_not_claim_ciphertext_plaintext_equivalence) ... ok
+test_transport_choices_are_mutually_exclusive (__main__.AppletSelfActorContractTests.test_transport_choices_are_mutually_exclusive) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 0.101s
+
+OK
+....................
+----------------------------------------------------------------------
+Ran 20 tests in 0.378s
+
+OK
+.....
+----------------------------------------------------------------------
+Ran 5 tests in 0.035s
+
+OK
+...
+----------------------------------------------------------------------
+Ran 3 tests in 0.045s
+
+OK
+OpenAPI operation selectors: ok (211 operations)
+operation closure locks: ok
+operation completeness report: clean
+event reference inventory clean (184 fields)
+payload-validator-profile-check: immutable ak.schema.define profile and 7 KAT cases passed
+event-kind vector-gap registry clean (13 explicit gaps)
+property presence manifest: clean
+schema consumer coverage: clean
+operation string-field classification: clean
+....
+----------------------------------------------------------------------
+Ran 4 tests in 0.024s
+
+OK
+.........
+----------------------------------------------------------------------
+Ran 9 tests in 0.199s
+
+OK
+..........
+----------------------------------------------------------------------
+Ran 10 tests in 3.854s
+
+OK
+SDK conformance claim fixture is current
+........................
+----------------------------------------------------------------------
+Ran 24 tests in 0.125s
+
+OK
+fixture-digest-check: 123 fixtures match D:\Works\arkret-org\arkret-spec\spec\v1\artifacts\reports\fixture-digests.json
+vector registry traceability: every one of 352 active rows is fixture-backed (56 non-gating rows carry a reason)
+session-grant KAT: accepted vectors and contract closure verified
+Contact delegated Actor locator KAT: 3 signed branches and 12 negative mutations across 5 carrier conditionals OK
+contact round KAT: 5 signed producer facts, 45 producer mutations, 3 round cases and 7 outgoing-slot negatives and 3 request-order negatives OK
+handle claim KAT: core/status/revocation/proof transcripts OK
+fixed-suite Event-ID fixture: OK
+applet-delivery-authentication-kat: record closed, projection consistent, digests recomputed from the pinned preimage
+approval-signature KAT: signing bytes, Ed25519 signatures, event_id invariance and registry closure verified
+key-backup hardening KAT: exact §7.2 AEAD, signatures, and negative mutations OK
+cursor negative oversized vector: PASS (6000 valid base64url chars > 5464 pre-decode cap)
+Artifact version metadata passed (90 artifacts).
+[lint 1/6] \u57fa\u7840\u6587\u4ef6\u4e0e\u89c4\u8303\u6ce8\u518c\u8868 ...
+[lint 1/6] \u57fa\u7840\u6587\u4ef6\u4e0e\u89c4\u8303\u6ce8\u518c\u8868 done (5.30s)
+[lint 2/6] Schema\u3001profile \u4e0e\u6388\u6743\u95ed\u5305 ...
+[lint 2/6] Schema\u3001profile \u4e0e\u6388\u6743\u95ed\u5305 done (15.91s)
+[lint 3/6] OpenAPI \u4e0e operation \u7ed1\u5b9a ...
+[lint 3/6] OpenAPI \u4e0e operation \u7ed1\u5b9a done (0.88s)
+[lint 4/6] Fixtures\u3001\u6837\u4f8b\u4e0e\u5411\u91cf ...
+[lint 4/6] Fixtures\u3001\u6837\u4f8b\u4e0e\u5411\u91cf done (18.40s)
+[lint 5/6] \u6b63\u6587\u5f15\u7528\u4e0e\u7ed3\u6784\u5316\u547d\u540d ...
+[lint 5/6] \u6b63\u6587\u5f15\u7528\u4e0e\u7ed3\u6784\u5316\u547d\u540d done (19.78s)
+[lint 6/6] \u9519\u8bef\u3001\u5b57\u6bb5\u987a\u5e8f\u4e0e\u5b89\u5168\u8fb9\u754c ...
+[lint 6/6] \u9519\u8bef\u3001\u5b57\u6bb5\u987a\u5e8f\u4e0e\u5b89\u5168\u8fb9\u754c done (10.13s)
+Artifact registry lint passed (133 event kinds, 224 schemas, 48 typed ID kinds, 211 operations, 59 claimable profiles, 78 profile id references, 70.41s).
+
+0 error(s), 0 warning(s)
+contract policy: active-contract checks only
+profile summary: 50 implementation, 7 deployment, 7 vector-group, 2 hardening, 78 requirement blocks
+registry diff: clean
+PASSED: check: all steps clean

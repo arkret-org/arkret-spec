@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-04.4",
+  "version": "2026-10-04.9",
   "source_of_truth": false,
-  "generated_at": "2026-10-04T05:55:18+08:00",
+  "generated_at": "2026-10-04T07:10:43+00:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -2578,11 +2578,11 @@
       "surface_class": "extension",
       "http": "POST /_arkret/self/mls/roster-authority/query",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/roster_read_request",
-      "response_schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/roster_read_outcome",
+      "request_schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/member_roster_read_request",
+      "response_schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/self_roster_read_outcome",
       "openapi_component_refs": {
-        "request": "#/components/schemas/MlsRosterAuthorityReadRequestBody",
-        "response": "#/components/schemas/MlsRosterAuthorityReadOutcome"
+        "request": "#/components/schemas/MlsMemberRosterAuthorityReadRequestBody",
+        "response": "#/components/schemas/MlsSelfRosterAuthorityReadOutcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

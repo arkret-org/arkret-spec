@@ -559,7 +559,7 @@ Direct Conversation Realm MUST：
 - genesis `purpose="direct_conversation"`；reducer 据此投影只读的 `fields.collaboration_role="direct_conversation"`（[§2.3.A](#23a-字段-carrier-inventorynormative)）。`schema_refs` 不承载该角色，`ak.profile.direct_conversation_realm.v1` 的适用条件是该 genesis `purpose`。不得复用 `fields.purpose="direct_message"`，因为 `fields.purpose` 已用于身份控制类 Realm。
 - `found` 且可发送时 active member count 等于 2；任一 participant 离开、被移除或其它 gate 失败时，同一稳定 DM 投影为 `suspended`，恢复时仍使用原 Realm。向 DM Realm 加第三人 MUST 被拒绝。binding 或 membership 投影不能解析为恰好两个 distinct principal participant 时，新写入 MUST fail closed，reason 为 `direct_conversation_member_count_invalid`；既有稳定会话投影为 `suspended` 而不是被替换。升级多人聊天必须创建新的普通 Realm / Strand，再用 Relation 或 Message 引用旧 DM 内容。
 - `default_join_rule` 为 `closed` 或等价 fail-closed policy。**这里必须区分三件事（normative）**：（a）**bootstrap peer join**——Realm bootstrap batch 内由 creator 写入的第二个成员（pair 的另一方）是 DM Realm 成立的必要步骤，MUST 被接受；它走 authorized-writer 分支（creator 在同批 genesis unit 内使用 staged authority-root proof 取得的 effective `ak.realm.owner`，见 [§2.5](#25-akrealmcreate-reducer-bootstrapnormative)），属于 [`../governance/join-policy.md` §4](../governance/join-policy.md) `closed` 行的封闭豁免列表第 3 项。（b）**pair 外 invite/join**——候选 Actor 不属于 immutable pair 时，MUST 先以 `direct_conversation_third_party_member_forbidden` 拒绝；即使同一请求也是 invite，也不得改报 invite reason。（c）**pair 内 active-DM invite**——候选属于 immutable pair、但请求仍试图走 invite flow 时，MUST 以 `direct_conversation_invite_forbidden` 拒绝。实现 MUST NOT 把（a）当成（b）或（c）拒掉，否则 1:1 私聊永远只有 1 个成员，违反“active member count 等于 2”。
-- `ak.space.*` Event MUST 以 `direct_conversation_space_forbidden` 拒绝；额外普通 Strand MAY 存在，但不改变 binding 指定的默认 main Strand。
+- 稳定 binding 后允许 [Contact／Direct Conversation §8.3.1](../identity/contact-and-direct-conversation.md#831-chat-与平铺-topic-的结构动作normative) 登记的 root List Topic、Strand.topic 唯一分类与额外普通 discussion Strand；逐目标 participant evaluator 必须完整通过。其它 Space kinds、Circle、parent 拓扑、field_access 与 bootstrap 结构扩展均拒绝，不改变 binding 指定的默认 main Strand。
 - 通过一次性 principal-scoped `ak.direct_conversation.bound` fact 绑定 unordered participant pair、`realm_id` 与 `main_strand_id`。同一 `(trust_domain,pair_key)` 只有一组永久坐标，且由 founder 一次 author 的四 Event atomic unit 自身派生（见 [`../identity/contact-and-direct-conversation.md` §5.5](../identity/contact-and-direct-conversation.md)）；不存在服务端预分配 ID、reserved/materializing draft、第二候选或 winner tie-break。
 - DM Realm 继续只有一个技术 authority-root controller，但 root 的 operational owner aggregate MUST 与 `ak.profile.direct_conversation_realm.v1` 的 phase mask 求交。founding 之外的普通消息、成员、policy、grant 与 terminal 写不得借 owner 绕过；双方日常写统一从 `ak.authority.direct_conversation_participant.v1` 求值。
 - participant authority 只在 immutable binding、恰好两个 stable participant、actor active membership、conversation 未 suspended、Realm/Strand/MLS cross-binding、非终态 scope 与 action-specific gate 同时成立时生效。membership、`created_by`、role/projection mirror 与相同 `pair_key` 都不是其替代来源；authority reset 不使 baseline 失效。
@@ -595,11 +595,12 @@ Schema id: `ak.schema.space.v1`
 | `kind` | yes | `string` | v1 标准 kind 包括 `space`、`project`、`folder`、`board`、`list`；profile 可注册新 kind。 | Space 类型。 |
 | `rank` | no | `string` | 见 `encoding.md` §9。 | 在 parent 内的位置。MUST 出现在 Space 顶层，**不**得作为 `fields.rank` 嵌套字段（与 [`relation.md` §2](./relation.md) 对 Relation 的相同约束对齐；wire 上 `fields.rank` MUST 被拒绝为 `schema_violation`，详见 [`artifacts/registry/forbidden-wire-fields.json`](../../artifacts/registry/forbidden-wire-fields.json)）。 |
 | `schema_refs` | no | `array<string>` | 可选 schema/profile 引用。 | 约束本 Space 容纳的资源类型 / fields。 |
-| `title` | yes | `string` | 1..256 chars。 | 显示名。 |
+| `title` | conditional | `string` | 1..256 chars；与 `encrypted_metadata` 互斥。 | 未激活 MLS 时的明文显示名。 |
 | `summary` | no | `string` | <= 2048 chars。 | 简短说明。 |
 | `labels` | no | `array<string>` |  | 用户/系统标签。 |
 | `fields` | no | `object` | kind-specific 字段。 | 扩展字段。 |
 | `avatar_blob_ref` | no | `id:blob` |  | Space 图标。 |
+| `encrypted_metadata` | conditional | `EncryptedEnvelope` | 与明文 title／summary／labels／avatar 互斥；MLS 激活后必填。 | 解密后为封闭 `space_metadata`，不复制用户明文到服务端投影。 |
 | `state` | no | `enum(active, archived, tombstoned)` | 默认 `active`。 | Space 生命周期状态。 |
 | `state_changed_at` | no | `timestamp` | `state != active` 时必填。 | 最近一次 state 转换时间。 |
 | `created_by` | yes | `ActorId` |  | 创建者。 |
@@ -608,6 +609,14 @@ Schema id: `ak.schema.space.v1`
 | `updated_at` | no | `timestamp` | 不早于 `created_at`。 | 最近更新时间。 |
 
 Space 是 v1 标准协作容器中唯一把顶层 `kind` 用作产品 / 容器子类型的对象：`board`、`list`、`folder` 等都在 Space.kind 表达。Realm 不按 kind 分裂安全边界；Strand 的业务分类也不放顶层 kind，必须通过 schema/profile、`metadata.fields`、Relation、labels、Morph type 或 facet 表达。View.kind 是投影响应族，不表示协作容器类型。
+
+### 3.2.1 Space metadata 的 MLS 载体（normative）
+
+Space 的用户 metadata 明文形状为 `space.schema.json#/$defs/space_metadata`：必填 `title`，可选 `summary`、`labels`、`fields`、`avatar_blob_ref`，字段集封闭，依次沿用上表约束。未激活 scope MLS 时以这些顶层字段表示；一旦该 scope 的 `ak.mls.genesis` accepted，create 与 update MUST 使用唯一完整 `encrypted_metadata: EncryptedEnvelope`，解密 plaintext MUST 符合该形状，purpose 为既有 `metadata`，按冻结外层 Event 的 kind／scope／event identity 构造 AAD，复用同一 Realm／Circle 的 RFC 9420 application message。MUST NOT 往 title 塞 ciphertext、加密整条结构 Event、保留旧用户明文镜像或回退 plaintext。
+
+`id/schema/realm_id/scope_circle_id/child_scope_policy/parent_space_id/kind/rank/schema_refs/state` 与审计字段仍为结构／路由字段；Station 无需解密即可验证 authority、拓扑、lifecycle 与 CAS。encrypted 分支禁止顶层 title／summary／labels／avatar；顶层 fields 仅允许已登记机器政策 `wip_limit/wip_limit_enforcement/view_id`，用户扩展 fields 在密文 plaintext 内，且不得重述这些机器政策或 rank。DM 分类的更窄 participant 合同禁止这些机器政策与 schema 扩展。
+
+create 原子写 space／space_parent／space_child_scope_policy；密文作为 space 的唯一用户 metadata 被 current/read/snapshot/replica 原样保留。update 沿用 `ak.space.update.patch`，加密 metadata 只能整体 set `encrypted_metadata`，不得 patch envelope 子路径或产生明密文双份；普通 `rank` 与独立 child policy 合同不变。客户端在获授权且验证 accepted cut 后解密到个人显示缓存；服务 API、搜索索引、通知预览与服务缓存 MUST NOT 生成用户明文副本。非 participant 的查询／枚举裁剪不因结构可见字段放宽。
 
 ### 3.3 行为规则
 

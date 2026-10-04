@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-04.2",
+  "version": "2026-10-04.4",
   "source_of_truth": false,
-  "generated_at": "2026-10-04T05:55:18+08:00",
+  "generated_at": "2026-10-04T07:33:06+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -6388,6 +6388,10 @@
                 {
                   "name": "avatar_blob_ref",
                   "field": "payload.object.avatar_blob_ref"
+                },
+                {
+                  "name": "encrypted_metadata",
+                  "field": "payload.object.encrypted_metadata"
                 }
               ]
             }
@@ -6644,7 +6648,8 @@
               "summary",
               "labels",
               "fields",
-              "avatar_blob_ref"
+              "avatar_blob_ref",
+              "encrypted_metadata"
             ]
           },
           "derived_members": [
@@ -6859,7 +6864,7 @@
       "verb_form": "base",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Ordinary causal placement update. The destination is validated against the signed basis and cannot change privacy scope or grant read access.",
+      "payload": "Board-scoped placement or explicit null unplace, preserving Strand identity and history. Unplace requires complete position CAS and no rank.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/strand_move_payload",
       "result_writes": [
         {
@@ -6894,7 +6899,39 @@
             }
           },
           "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/strand_position_value",
-          "notes": "models/realm-and-space.md section 3.6 pins result_selector.kind to typed_pair with the two ordered components id:space(payload.board_space_id) and id:strand(payload.strand_id), forbids the tuple and composite SHA-256 subject, and pins the value shape to list_space_id with rank, or null. target_space_id is the only destination carrier on the wire because list_space_id is a forbidden wire name per models/strand-and-message.md section 7.1, so the rename happens exactly here. expected_position is an optional explicit compare-and-set outside the projection."
+          "notes": "models/realm-and-space.md section 3.6 pins result_selector.kind to typed_pair with the two ordered components id:space(payload.board_space_id) and id:strand(payload.strand_id), forbids the tuple and composite SHA-256 subject, and pins the value shape to list_space_id with rank, or null. target_space_id is the only destination carrier on the wire because list_space_id is a forbidden wire name per models/strand-and-message.md section 7.1, so the rename happens exactly here. expected_position is an optional explicit compare-and-set outside the projection.",
+          "condition": {
+            "kind": "field_present",
+            "field": "payload.rank"
+          }
+        },
+        {
+          "result_family": "strand_position",
+          "result_selector": {
+            "kind": "typed_pair",
+            "components": [
+              {
+                "kind": "id:space",
+                "field": "payload.board_space_id"
+              },
+              {
+                "kind": "id:strand",
+                "field": "payload.strand_id"
+              }
+            ]
+          },
+          "result_projection": {
+            "kind": "set",
+            "value": {
+              "const": null
+            }
+          },
+          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/strand_position_value",
+          "notes": "Explicit unplace clears only this Board/Strand position to null after complete expected_position CAS. The accepted null retains its Commit and revision; it is never an absent result or an implicit delete.",
+          "condition": {
+            "kind": "field_absent",
+            "field": "payload.rank"
+          }
         }
       ],
       "id_source": "reference",
@@ -7155,6 +7192,7 @@
               "agent_participation",
               "metadata",
               "encrypted_metadata",
+              "topic",
               "content",
               "encrypted_content",
               "tracks"
@@ -7181,7 +7219,7 @@
             "created_at"
           ],
           "value_schema_ref": "schemas/strand.schema.json",
-          "notes": "Ordinary Strand patches may reach only the ordinary fields and the exact tracks.synthesis.content / tracks.synthesis.encrypted_content paths admitted by strand_patch_payload. Ancestor replacements, track configuration, lifecycle and stage axes are forbidden. The Synthesis track must exist and be active both before and after acceptance. expected_state_digest and all scope checks precede the atomic write; every rejection has zero side effects."
+          "notes": "Ordinary Strand patches may reach only the ordinary fields and the exact tracks.synthesis.content / tracks.synthesis.encrypted_content paths admitted by strand_patch_payload. Ancestor replacements, track configuration, lifecycle and stage axes are forbidden. The Synthesis track must exist and be active both before and after acceptance. expected_state_digest and all scope checks precede the atomic write; every rejection has zero side effects. Whole topic set/unset is admitted only in a stably bound Direct Conversation with required expected_state_digest; topic is single-sourced by the strand current."
         }
       ],
       "result_effect_ownership": {

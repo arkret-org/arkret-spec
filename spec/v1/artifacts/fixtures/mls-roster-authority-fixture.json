@@ -5,7 +5,7 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.mls.roster_authority.v1"
   },
-  "version": "2026-09-29.8",
+  "version": "2026-10-04.1",
   "profile": "ak.profile.e2ee_client.v1",
   "covers_vectors": [
     "ak.vector.mls.roster_authority.v1"
@@ -55,11 +55,20 @@
       "semantic_outcome": "accept",
       "instance": {
         "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
-        "effective_scope": {"kind": "realm", "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"},
+        "effective_scope": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+        },
         "mls_group_id": "QjKOSorlqs3IquY7OikTUTy_Z0mMiL0X2mK4jAOT4R4",
         "epoch": 0,
         "group_state_event_id": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
-        "caller_actor_id": {"kind": "account", "account_id": {"principal_id": "ak:did_core:web:bob.example", "station_id": "ak:did_core:web:bob-station.example"}},
+        "caller_actor_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:web:bob.example",
+            "station_id": "ak:did_core:web:bob-station.example"
+          }
+        },
         "target_commit_event_ref": "ak:event:ARELvWOpF6BRhrks3DlbQy-9XIE6aAQQumDQp7fA4Ape",
         "target_epoch": 0,
         "group_info_ref": "ak:blob:sha256:1111111111111111111111111111111111111111111111111111111111111111",
@@ -181,7 +190,7 @@
     {
       "given": "An authenticated recipient Station route supplies a complete method-native resolution at peer attest_add ingress; governance verifies the original claim receipt at claimed_at and Add attestation at attested_at, then freezes that exact resolution with the Add. A current and target-cut authorized member reads the signed roster after the recipient's route has changed or become unreachable",
       "expected": {
-        "decision": "the Add record carries the immutable attestor_resolution with matching station service_id and service_kind; the signed full-record digest covers it, and the member verifies both historical assertion methods and signatures offline without deriving a URL from kid"
+        "decision": "governance freezes the original full closure and own Account Station independently verifies both historical assertion methods, Station core/role and original signatures offline; ordinary client consumes the bound self-only public keys and independently verifies both signatures, manifest, ordered digest and RFC leaf without method history or any URL derivation"
       },
       "name": "frozen_attestor_resolution_authorized_positive",
       "covers_decision_points": [
@@ -211,7 +220,7 @@
     {
       "given": "Several consecutive Add records carry complete WebVH histories that make eight records exceed the 2 MiB canonical response ceiling, while each full record plus signed envelope fits alone",
       "expected": {
-        "decision": "governance deterministically emits the largest contiguous 1..8-record prefix that fits each page, signs one complete-array digest and resulting page_count, and advances an opaque cursor to the exact next record without truncation, duplication or gap"
+        "decision": "governance deterministically emits the largest contiguous 1..8-record prefix that fits each page, signs one complete-array digest and resulting page_count, and advances an opaque cursor to the exact next record without truncation, duplication or gap; both peer page and exact self-only key projection including wrapper fit the same 2 MiB bound"
       },
       "name": "attestor_resolution_byte_bounded_pages_positive",
       "covers_decision_points": [

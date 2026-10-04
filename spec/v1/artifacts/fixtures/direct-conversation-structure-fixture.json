@@ -1,0 +1,440 @@
+{
+  "schema": "ak.fixture.direct_conversation_structure.v1",
+  "description": "Executed flat Topic, whole-field CAS and encrypted metadata schema vectors. They do not attest live device, authority or MLS acceptance.",
+  "vector_id": "ak.vector.direct_conversation.chat_topic_structure.v1",
+  "cases": [
+    {
+      "case_id": "encrypted_root_topic",
+      "schema_ref": "schemas/space.schema.json",
+      "value": {
+        "schema": "ak.schema.space.v1",
+        "realm_id": "ak:realm:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "kind": "list",
+        "encrypted_metadata": {
+          "version": "1.0",
+          "content_type": "application/json",
+          "encryption_context": {
+            "epoch": 0,
+            "group_state_ref": "ak:event:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "ciphertext": "QQ"
+        },
+        "created_by": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:web:alice.example",
+            "station_id": "ak:did_core:web:station.example"
+          }
+        },
+        "created_at": "2026-10-04T00:00:00.000Z"
+      },
+      "expect_valid": true
+    },
+    {
+      "case_id": "encrypted_space_plaintext_title",
+      "schema_ref": "schemas/space.schema.json",
+      "value": {
+        "schema": "ak.schema.space.v1",
+        "realm_id": "ak:realm:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "kind": "list",
+        "encrypted_metadata": {
+          "version": "1.0",
+          "content_type": "application/json",
+          "encryption_context": {
+            "epoch": 0,
+            "group_state_ref": "ak:event:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "ciphertext": "QQ"
+        },
+        "created_by": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:web:alice.example",
+            "station_id": "ak:did_core:web:station.example"
+          }
+        },
+        "created_at": "2026-10-04T00:00:00.000Z",
+        "title": "Secret"
+      },
+      "expect_valid": false
+    },
+    {
+      "case_id": "encrypted_space_plaintext_summary",
+      "schema_ref": "schemas/space.schema.json",
+      "value": {
+        "schema": "ak.schema.space.v1",
+        "realm_id": "ak:realm:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "kind": "list",
+        "encrypted_metadata": {
+          "version": "1.0",
+          "content_type": "application/json",
+          "encryption_context": {
+            "epoch": 0,
+            "group_state_ref": "ak:event:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "ciphertext": "QQ"
+        },
+        "created_by": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:web:alice.example",
+            "station_id": "ak:did_core:web:station.example"
+          }
+        },
+        "created_at": "2026-10-04T00:00:00.000Z",
+        "summary": "Secret"
+      },
+      "expect_valid": false
+    },
+    {
+      "case_id": "encrypted_space_plaintext_labels",
+      "schema_ref": "schemas/space.schema.json",
+      "value": {
+        "schema": "ak.schema.space.v1",
+        "realm_id": "ak:realm:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "kind": "list",
+        "encrypted_metadata": {
+          "version": "1.0",
+          "content_type": "application/json",
+          "encryption_context": {
+            "epoch": 0,
+            "group_state_ref": "ak:event:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "ciphertext": "QQ"
+        },
+        "created_by": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:web:alice.example",
+            "station_id": "ak:did_core:web:station.example"
+          }
+        },
+        "created_at": "2026-10-04T00:00:00.000Z",
+        "labels": [
+          "Secret"
+        ]
+      },
+      "expect_valid": false
+    },
+    {
+      "case_id": "encrypted_space_plaintext_avatar_blob_ref",
+      "schema_ref": "schemas/space.schema.json",
+      "value": {
+        "schema": "ak.schema.space.v1",
+        "realm_id": "ak:realm:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "kind": "list",
+        "encrypted_metadata": {
+          "version": "1.0",
+          "content_type": "application/json",
+          "encryption_context": {
+            "epoch": 0,
+            "group_state_ref": "ak:event:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "ciphertext": "QQ"
+        },
+        "created_by": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:web:alice.example",
+            "station_id": "ak:did_core:web:station.example"
+          }
+        },
+        "created_at": "2026-10-04T00:00:00.000Z",
+        "avatar_blob_ref": "ak:blob:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "expect_valid": false
+    },
+    {
+      "case_id": "encrypted_space_plaintext_fields",
+      "schema_ref": "schemas/space.schema.json",
+      "value": {
+        "schema": "ak.schema.space.v1",
+        "realm_id": "ak:realm:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "kind": "list",
+        "encrypted_metadata": {
+          "version": "1.0",
+          "content_type": "application/json",
+          "encryption_context": {
+            "epoch": 0,
+            "group_state_ref": "ak:event:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "ciphertext": "QQ"
+        },
+        "created_by": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:web:alice.example",
+            "station_id": "ak:did_core:web:station.example"
+          }
+        },
+        "created_at": "2026-10-04T00:00:00.000Z",
+        "fields": {
+          "secret": "Secret"
+        }
+      },
+      "expect_valid": false
+    },
+    {
+      "case_id": "space_missing_metadata",
+      "schema_ref": "schemas/space.schema.json",
+      "value": {
+        "schema": "ak.schema.space.v1",
+        "realm_id": "ak:realm:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "kind": "list",
+        "created_by": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:web:alice.example",
+            "station_id": "ak:did_core:web:station.example"
+          }
+        },
+        "created_at": "2026-10-04T00:00:00.000Z"
+      },
+      "expect_valid": false
+    },
+    {
+      "case_id": "space_plaintext_before_activation",
+      "schema_ref": "schemas/space.schema.json",
+      "value": {
+        "schema": "ak.schema.space.v1",
+        "realm_id": "ak:realm:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "kind": "list",
+        "created_by": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:web:alice.example",
+            "station_id": "ak:did_core:web:station.example"
+          }
+        },
+        "created_at": "2026-10-04T00:00:00.000Z",
+        "title": "Title"
+      },
+      "expect_valid": true
+    },
+    {
+      "case_id": "metadata_title",
+      "schema_ref": "schemas/space.schema.json#/$defs/space_metadata",
+      "value": {
+        "title": "Topic"
+      },
+      "expect_valid": true
+    },
+    {
+      "case_id": "plaintext_reject_kind18",
+      "schema_ref": "schemas/space.schema.json#/$defs/space_metadata",
+      "value": {
+        "title": "Topic",
+        "kind": "list"
+      },
+      "expect_valid": false
+    },
+    {
+      "case_id": "plaintext_reject_state19",
+      "schema_ref": "schemas/space.schema.json#/$defs/space_metadata",
+      "value": {
+        "title": "Topic",
+        "state": "active"
+      },
+      "expect_valid": false
+    },
+    {
+      "case_id": "plaintext_reject_parent_space_id20",
+      "schema_ref": "schemas/space.schema.json#/$defs/space_metadata",
+      "value": {
+        "title": "Topic",
+        "parent_space_id": "ak:space:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "expect_valid": false
+    },
+    {
+      "case_id": "plaintext_reject_fields21",
+      "schema_ref": "schemas/space.schema.json#/$defs/space_metadata",
+      "value": {
+        "title": "Topic",
+        "fields": {
+          "wip_limit": 3
+        }
+      },
+      "expect_valid": false
+    },
+    {
+      "case_id": "plaintext_reject_fields22",
+      "schema_ref": "schemas/space.schema.json#/$defs/space_metadata",
+      "value": {
+        "title": "Topic",
+        "fields": {
+          "view_id": "view"
+        }
+      },
+      "expect_valid": false
+    },
+    {
+      "case_id": "topic_valid",
+      "schema_ref": "schemas/strand.schema.json#/$defs/strand_topic",
+      "value": {
+        "space_id": "ak:space:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "rank": "a0"
+      },
+      "expect_valid": true
+    },
+    {
+      "case_id": "topic_rank_missing",
+      "schema_ref": "schemas/strand.schema.json#/$defs/strand_topic",
+      "value": {
+        "space_id": "ak:space:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "expect_valid": false
+    },
+    {
+      "case_id": "topic_space_missing",
+      "schema_ref": "schemas/strand.schema.json#/$defs/strand_topic",
+      "value": {
+        "rank": "a0"
+      },
+      "expect_valid": false
+    },
+    {
+      "case_id": "topic_null",
+      "schema_ref": "schemas/strand.schema.json#/$defs/strand_topic",
+      "value": null,
+      "expect_valid": false
+    },
+    {
+      "case_id": "topic_bad_rank",
+      "schema_ref": "schemas/strand.schema.json#/$defs/strand_topic",
+      "value": {
+        "space_id": "ak:space:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "rank": "_"
+      },
+      "expect_valid": false
+    },
+    {
+      "case_id": "topic_empty_rank",
+      "schema_ref": "schemas/strand.schema.json#/$defs/strand_topic",
+      "value": {
+        "space_id": "ak:space:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "rank": ""
+      },
+      "expect_valid": false
+    },
+    {
+      "case_id": "topic_long_rank",
+      "schema_ref": "schemas/strand.schema.json#/$defs/strand_topic",
+      "value": {
+        "space_id": "ak:space:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "rank": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "expect_valid": false
+    },
+    {
+      "case_id": "topic_extra_key",
+      "schema_ref": "schemas/strand.schema.json#/$defs/strand_topic",
+      "value": {
+        "space_id": "ak:space:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "rank": "a0",
+        "board_space_id": "ak:space:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "expect_valid": false
+    },
+    {
+      "case_id": "topic_set_cas",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/strand_patch_payload",
+      "value": {
+        "target_ref": "ak:strand:Abbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "expected_state_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "patch": {
+          "topic": {
+            "$op": "set",
+            "value": {
+              "space_id": "ak:space:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "rank": "a0"
+            }
+          }
+        }
+      },
+      "expect_valid": true
+    },
+    {
+      "case_id": "topic_unset_cas",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/strand_patch_payload",
+      "value": {
+        "target_ref": "ak:strand:Abbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "expected_state_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "patch": {
+          "topic": {
+            "$op": "unset"
+          }
+        }
+      },
+      "expect_valid": true
+    },
+    {
+      "case_id": "topic_set_no_cas",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/strand_patch_payload",
+      "value": {
+        "target_ref": "ak:strand:Abbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "patch": {
+          "topic": {
+            "$op": "set",
+            "value": {
+              "space_id": "ak:space:Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "rank": "a0"
+            }
+          }
+        }
+      },
+      "expect_valid": false
+    },
+    {
+      "case_id": "topic_unset_no_cas",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/strand_patch_payload",
+      "value": {
+        "target_ref": "ak:strand:Abbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "patch": {
+          "topic": {
+            "$op": "unset"
+          }
+        }
+      },
+      "expect_valid": false
+    },
+    {
+      "case_id": "topic_set_null",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/strand_patch_payload",
+      "value": {
+        "target_ref": "ak:strand:Abbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "expected_state_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "patch": {
+          "topic": {
+            "$op": "set",
+            "value": null
+          }
+        }
+      },
+      "expect_valid": false
+    },
+    {
+      "case_id": "topic_subpath",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/strand_patch_payload",
+      "value": {
+        "target_ref": "ak:strand:Abbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "expected_state_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "patch": {
+          "topic.rank": {
+            "$op": "set",
+            "value": "a0"
+          }
+        }
+      },
+      "expect_valid": false
+    }
+  ],
+  "version": "2026-10-04.3",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.direct_conversation.chat_topic_structure.v1"
+  },
+  "covers_vectors": [
+    "ak.vector.direct_conversation.chat_topic_structure.v1"
+  ]
+}

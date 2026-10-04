@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from .direct_conversation_structure import check_direct_conversation_structure
+from .mls_roster_client_roles import check_mls_roster_client_roles
+
 from .forbidden_wire import check_forbidden_wire_contexts
 from .approval_eligibility import check_approval_requirement_eligibility
 
@@ -897,6 +900,8 @@ def main(argv: list[str] | None = None) -> int:
             ("error_uniqueness", lambda: check_error_code_registry_uniqueness(lint)),
             ("error_mapping", lambda: check_operations_error_mapping_closure(lint)),
             ("consent_current_clean_break", lambda: check_consent_current_clean_break(lint)),
+            ("mls_roster_client_roles", lambda: check_mls_roster_client_roles(lint)),
+            ("direct_conversation_structure", lambda: check_direct_conversation_structure(lint)),
             ("direct_conversation_local_blocker_clean_break", lambda: check_direct_conversation_local_blocker_clean_break(lint)),
             ("fixture_reasons", lambda: check_fixture_reject_reason_closure(lint)),
             ("error_closure", lambda: check_error_code_closure(lint)),

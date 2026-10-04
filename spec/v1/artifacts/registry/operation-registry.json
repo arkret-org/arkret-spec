@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-03.1",
+  "version": "2026-10-04.3",
   "source_of_truth": false,
-  "generated_at": "2026-10-03T03:35:20+08:00",
+  "generated_at": "2026-10-04T05:02:28+00:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -1754,7 +1754,7 @@
       "http": "POST /_arkret/peer/mls/roster-authority/query",
       "grpc": "PeerMls/RosterAuthority",
       "mq": "peer.mls.query.roster_authority",
-      "notes": "Current governance Station returns one signed page of a complete historical MLS roster only to the caller Actor's authenticated Account Station, after both current-head and target-cut member/history gates. Every signed page manifest carries the two immutable public Blob refs from the exact accepted Genesis so a later-joined member can construct the separate material read without crossing its history floor. Each Add record carries the exact attestor Station's complete historical authenticated service resolution frozen with its verified receipt and attestation; the signed full-record digest binds that closure. Pages hold the longest continuous prefix of 1..8 complete records fitting the 2 MiB canonical response limit, with a cut-bound cursor naming the next record. Missing Genesis refs, Add attestation, attestor resolution or changing cut, and a single record that cannot fit, are uniformly unavailable, never a partial list. The peer service signature is mandatory and each page repeats the same signed manifest.",
+      "notes": "Current governance Station returns one signed page of a complete historical MLS roster only to the caller Actor's authenticated Account Station, after both current-head and target-cut member/history gates. Every signed page manifest carries the two immutable public Blob refs from the exact accepted Genesis so a later-joined member can construct the separate material read without crossing its history floor. Each Add record carries the exact attestor Station's complete historical authenticated service resolution frozen with its verified receipt and attestation; the signed full-record digest binds that closure. Pages hold the longest continuous prefix of 1..8 complete records fitting the 2 MiB canonical response limit, with a cut-bound cursor naming the next record. Missing Genesis refs, Add attestation, attestor resolution or changing cut, and a single record that cannot fit, are uniformly unavailable, never a partial list. The peer service signature is mandatory and each page repeats the same signed manifest. Governance budgets both this page and its exact self_roster_read_outcome key projection within 2 MiB; the Account Station must verify inline method history itself, not blindly proxy a verified label. A retained Commit signer never authorizes first live discovery.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/roster_read_request",
@@ -3719,11 +3719,11 @@
       "http": "POST /_arkret/self/mls/roster-authority/query",
       "grpc": "SelfMls/RosterAuthority",
       "mq": "self.mls.query.roster_authority",
-      "notes": "Authenticated member's Account Station verifies caller_actor_id equals its exact session Actor, current-head and target-cut group/history authority, then proxies the signed roster page from current governance Station. A later-joined member verifies the manifest before using its signed exact Genesis public Blob refs in the separate material read. Each Add's attestor resolution is available only inside that authorized signed roster record and must verify the original receipt and attestation at their historical times; it is not a current delivery route. Pages contain a continuous 1..8-record prefix within the 2 MiB canonical response limit, with no caller-selected page size. The Station never constructs leaf indices or bypasses missing provenance; a former member cannot read by citing an old cut.",
+      "notes": "Authenticated own Account Station binds the exact session Actor, request selectors and current/target authorization, verifies governance authority and the complete frozen method-native attestor closures and both original historical signatures, then returns the unchanged governance roster page plus purpose-bound public keys. Ordinary clients independently verify manifest, recipient double signatures, ordered digest and RFC leaf/Proposal bindings without a method-history verifier or live resolver. This self-only result is non-portable, has no verified boolean and grants no reusable authorization or current route. Both peer page and exact self projection including key material fit the 2 MiB canonical response limit; governance computes the longest continuous 1..8-record prefix fitting both.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
-      "request_schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/roster_read_request",
-      "response_schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/roster_read_outcome"
+      "request_schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/member_roster_read_request",
+      "response_schema_ref": "schemas/mls-roster-authority.schema.json#/$defs/self_roster_read_outcome"
     },
     {
       "operation_id": "ak.self.realm.read.export.v1",

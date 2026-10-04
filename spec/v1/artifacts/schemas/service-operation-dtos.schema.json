@@ -192,42 +192,90 @@
     "StrandWatchCurrentRequestBody": {
       "type": "object",
       "description": "Exact self watch selector. It cannot enumerate watchers or supply an expected CAS value.",
-      "required": ["realm_id", "strand_id", "watcher_actor_id"],
+      "required": [
+        "realm_id",
+        "strand_id",
+        "watcher_actor_id"
+      ],
       "properties": {
-        "realm_id": { "$ref": "./common-ids.schema.json#/$defs/realm_id" },
-        "strand_id": { "$ref": "./event-payload.schema.json#/$defs/strand_id" },
-        "watcher_actor_id": { "$ref": "./common-ids.schema.json#/$defs/actor_id" }
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "strand_id": {
+          "$ref": "./event-payload.schema.json#/$defs/strand_id"
+        },
+        "watcher_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
+        }
       },
       "additionalProperties": false
     },
     "StrandWatchCurrentOutcome": {
       "description": "A verified never-written fact is distinct from a written result whose value was cleared to null.",
       "oneOf": [
-        { "$ref": "#/$defs/StrandWatchCurrentNeverWritten" },
-        { "$ref": "#/$defs/StrandWatchCurrentPresent" }
+        {
+          "$ref": "#/$defs/StrandWatchCurrentNeverWritten"
+        },
+        {
+          "$ref": "#/$defs/StrandWatchCurrentPresent"
+        }
       ]
     },
     "StrandWatchCurrentNeverWritten": {
       "type": "object",
-      "required": ["status", "realm_id", "governance_generation", "stream_head", "selector"],
+      "required": [
+        "status",
+        "realm_id",
+        "governance_generation",
+        "stream_head",
+        "selector"
+      ],
       "properties": {
-        "status": { "const": "never_written" },
-        "realm_id": { "$ref": "./common-ids.schema.json#/$defs/realm_id" },
-        "governance_generation": { "type": "integer", "minimum": 0 },
-        "stream_head": { "$ref": "./realm-commit.schema.json#/$defs/stream_head" },
-        "selector": { "$ref": "./typed-current-result.schema.json#/$defs/strand_watch_result/properties/selector" }
+        "status": {
+          "const": "never_written"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "governance_generation": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "stream_head": {
+          "$ref": "./realm-commit.schema.json#/$defs/stream_head"
+        },
+        "selector": {
+          "$ref": "./typed-current-result.schema.json#/$defs/strand_watch_result/properties/selector"
+        }
       },
       "additionalProperties": false
     },
     "StrandWatchCurrentPresent": {
       "type": "object",
-      "required": ["status", "realm_id", "governance_generation", "stream_head", "result"],
+      "required": [
+        "status",
+        "realm_id",
+        "governance_generation",
+        "stream_head",
+        "result"
+      ],
       "properties": {
-        "status": { "const": "current" },
-        "realm_id": { "$ref": "./common-ids.schema.json#/$defs/realm_id" },
-        "governance_generation": { "type": "integer", "minimum": 0 },
-        "stream_head": { "$ref": "./realm-commit.schema.json#/$defs/stream_head" },
-        "result": { "$ref": "./typed-current-result.schema.json#/$defs/strand_watch_result" }
+        "status": {
+          "const": "current"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "governance_generation": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "stream_head": {
+          "$ref": "./realm-commit.schema.json#/$defs/stream_head"
+        },
+        "result": {
+          "$ref": "./typed-current-result.schema.json#/$defs/strand_watch_result"
+        }
       },
       "additionalProperties": false
     },
@@ -1583,9 +1631,18 @@
         }
       },
       "dependentRequired": {
-        "caller_actor_id": ["target_commit_event_ref", "target_epoch"],
-        "target_commit_event_ref": ["caller_actor_id", "target_epoch"],
-        "target_epoch": ["caller_actor_id", "target_commit_event_ref"]
+        "caller_actor_id": [
+          "target_commit_event_ref",
+          "target_epoch"
+        ],
+        "target_commit_event_ref": [
+          "caller_actor_id",
+          "target_epoch"
+        ],
+        "target_epoch": [
+          "caller_actor_id",
+          "target_commit_event_ref"
+        ]
       },
       "additionalProperties": false
     },
@@ -2245,7 +2302,6 @@
         "space_id",
         "realm_id",
         "kind",
-        "title",
         "state"
       ],
       "properties": {
@@ -2262,6 +2318,9 @@
         },
         "title": {
           "$ref": "string-profiles.schema.json#/$defs/display_text_256"
+        },
+        "encrypted_metadata": {
+          "$ref": "./encrypted-envelope.schema.json"
         },
         "parent_space_id": {
           "type": [
@@ -2302,7 +2361,29 @@
         "updated_at": {
           "$ref": "./time.schema.json#/$defs/nullable_timestamp"
         }
-      }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "title"
+          ],
+          "not": {
+            "required": [
+              "encrypted_metadata"
+            ]
+          }
+        },
+        {
+          "required": [
+            "encrypted_metadata"
+          ],
+          "not": {
+            "required": [
+              "title"
+            ]
+          }
+        }
+      ]
     },
     "ProjectionStrandList": {
       "type": "object",
@@ -2436,6 +2517,9 @@
             }
           ],
           "description": "Derived display summary from plaintext-visible Strand metadata.summary; null when metadata is encrypted or hidden from the service profile."
+        },
+        "topic": {
+          "$ref": "./strand.schema.json#/$defs/strand_topic"
         },
         "board_space_id": {
           "type": [

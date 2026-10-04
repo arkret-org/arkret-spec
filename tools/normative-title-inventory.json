@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-30.1",
+  "version": "2026-10-04.5",
   "source_of_truth": true,
-  "generated_at": "2026-09-30T11:12:40+08:00",
+  "generated_at": "2026-10-04T07:15:25+00:00",
   "description": "Closed inventory of current spec/v1/zh headings that explicitly carry the （normative） marker. Any addition, removal, rename, or move is reviewed as a protocol change and refreshes this source-of-truth inventory.",
   "titles": [
     {
@@ -646,6 +646,16 @@
     },
     {
       "page": "identity/contact-and-direct-conversation.md",
+      "heading": "8.3.1 Chat 与平铺 Topic 的结构动作（normative）",
+      "fragment": "831-chat-与平铺-topic-的结构动作normative"
+    },
+    {
+      "page": "identity/contact-and-direct-conversation.md",
+      "heading": "8.3.2 每个 Chat 的个人通知设置（normative）",
+      "fragment": "832-每个-chat-的个人通知设置normative"
+    },
+    {
+      "page": "identity/contact-and-direct-conversation.md",
       "heading": "8.4 admission reason producer 与优先级（normative）",
       "fragment": "84-admission-reason-producer-与优先级normative"
     },
@@ -998,6 +1008,11 @@
       "page": "models/realm-and-space.md",
       "heading": "2.8 Realm 角色分类（normative）",
       "fragment": "28-realm-角色分类normative"
+    },
+    {
+      "page": "models/realm-and-space.md",
+      "heading": "3.2.1 Space metadata 的 MLS 载体（normative）",
+      "fragment": "321-space-metadata-的-mls-载体normative"
     },
     {
       "page": "models/realm-links.md",

@@ -765,10 +765,14 @@ components:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/MlsGroupStateMaterialRequestBody
     MlsMemberGroupStateMaterialReadRequestBody:
       $ref: ../schemas/mls-roster-authority.schema.json#/$defs/member_group_state_material_read_request
+    MlsMemberRosterAuthorityReadRequestBody:
+      $ref: ../schemas/mls-roster-authority.schema.json#/$defs/member_roster_read_request
     MlsRosterAuthorityReadOutcome:
       $ref: ../schemas/mls-roster-authority.schema.json#/$defs/roster_read_outcome
     MlsRosterAuthorityReadRequestBody:
       $ref: ../schemas/mls-roster-authority.schema.json#/$defs/roster_read_request
+    MlsSelfRosterAuthorityReadOutcome:
+      $ref: ../schemas/mls-roster-authority.schema.json#/$defs/self_roster_read_outcome
     ModerationReportOutcome:
       $ref: ../schemas/service-operation-dtos.schema.json#/$defs/ModerationReportOutcome
     OrganizationRegistrationChallenge:
@@ -5159,20 +5163,20 @@ paths:
       - sessionGrantAuth: []
         dpopProof: []
       summary: Read an authorized signed MLS roster authority page from the current governance Station.
-      description: The joined member verifies the complete signed manifest before using its Genesis GroupInfo and ratchet-tree Blob refs as exact selectors for the separate member public material read.
+      description: The authenticated own Station authorizes the exact accepted member target and derives immutable Genesis provenance at the same cut. The member independently verifies the original signed manifest, all recipient signatures and the full ordered transcript before RFC MLS installation; no prejoin client Genesis or complete current baseline is required.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MlsRosterAuthorityReadRequestBody'
+              $ref: '#/components/schemas/MlsMemberRosterAuthorityReadRequestBody'
       responses:
         '200':
           description: One page bound to the exact governance-signed complete roster manifest.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MlsRosterAuthorityReadOutcome'
+                $ref: '#/components/schemas/MlsSelfRosterAuthorityReadOutcome'
         '503':
           description: Authorized history or complete attestation is unavailable (revision_unavailable).
           content:

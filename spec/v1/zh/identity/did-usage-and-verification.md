@@ -42,6 +42,11 @@ contact、session 或 account lifecycle authority。
 
 本文件的 DID authority verifier、方法历史与 accepted binding store 义务适用于接纳外部材料的 Station、registry、联邦服务及独立审计者。普通客户端通过自己的已认证 Station 消费结果，核对完整账号、subject、purpose 与 freshness，不实现这些历史 verifier 或持久证据闭包；详见 [服务器信任与结果消费](../sync/server-trusted-results.md)。普通客户端自己 Station 的首次接入与重连同样不承担方法历史 verifier，按 [server-trusted-results §1.2](../sync/server-trusted-results.md#12-普通客户端的-station-接入normative) 核对显式信任起点与持久认证绑定。客户端本地签署及端到端密钥/消息认证继续执行。
 
+MLS roster 的冻结 attestor closure 也遵循上述角色合同：own Account Station 验证完整方法历史并
+给普通客户端返回绑定 exact 页／原签名用途的公钥；客户端独立验 manifest、recipient 双签和 RFC leaf，
+不执行方法历史。内联 closure 不授予 live discovery 或 current route；详见
+[encryption-and-audit §2.2](../crypto-media/encryption-and-audit.md)。
+
 ## 2. DID 身份材料的正交分类与命名
 
 对象 schema 是字段必填性与精确 shape 的唯一真相源。本节不再人工穷举字段名；跨 schema 清单由

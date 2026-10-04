@@ -226,6 +226,11 @@
       "version": 1
     },
     {
+      "path": "spec/v1/artifacts/fixtures/direct-conversation-structure-fixture.json",
+      "sha256": "8890cf5f8697244c8c68f9738c689106715d92edff02f8d7ca3d25a7cdf36f38",
+      "version": "2026-10-04.3"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/discovery-profile-fixture.json",
       "sha256": "276e8f2abbccd010fc1e74d7d74c8ad29fe77e3344be73c04741d6cf7720d881",
       "version": "2026-07-10"
@@ -402,8 +407,13 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-roster-authority-fixture.json",
-      "sha256": "1678f7fb51a843fcae91647372d97544a385ff16cfa0f2b498e4af16688d8da4",
-      "version": "2026-09-29.8"
+      "sha256": "e0ddfef1e3d30dc273040191a7ac0e518d0fac69d741c1b89f7114a0c9cf0027",
+      "version": "2026-10-04.1"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/mls-roster-client-roles-fixture.json",
+      "sha256": "c4fec7c2a82d72fa9ac0fd9f12953e645148a38c16790f523a2531bfc3907852",
+      "version": "2026-10-04.6"
     },
     {
       "path": "spec/v1/artifacts/fixtures/operation-registry-coverage-fixture.json",
