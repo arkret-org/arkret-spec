@@ -105,7 +105,7 @@
     },
     "topic": {
       "$ref": "#/$defs/strand_topic",
-      "description": "Optional single Topic classification for a stably bound Direct Conversation Chat. Root same-Realm List Space only. Whole set/unset via ak.strand.update requires the exact current digest CAS. Omitted means unclassified; no Board position or canonical Relation mirrors this field."
+      "description": "Optional single Topic classification for a stably bound Direct Conversation Chat. Root same-Realm Topic Space(kind=topic) only. Whole set/unset via ak.strand.update requires the exact current digest CAS. Omitted means unclassified; no Board position or canonical Relation mirrors this field."
     },
     "content": {
       "$ref": "#/$defs/content_block",
