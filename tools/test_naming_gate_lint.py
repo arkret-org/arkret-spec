@@ -966,12 +966,12 @@ class IdentifierRoleSuffixTest(MutationHarness):
 
     def test_object_array_cannot_claim_ids_representation(self) -> None:
         def mutate(document):
-            shape = document["$defs"]["directory_actor_search_outcome"]
+            shape = document["$defs"]["directory_realm_search_outcome"]
             shape["required"] = [
-                "actor_ids" if item == "actors" else item
+                "realm_ids" if item == "realms" else item
                 for item in shape["required"]
             ]
-            shape["properties"]["actor_ids"] = shape["properties"].pop("actors")
+            shape["properties"]["realm_ids"] = shape["properties"].pop("realms")
 
         errors = self.lint_with_file(
             SCHEMA_DIR / "directory-operations.schema.json",
@@ -1120,7 +1120,7 @@ class IdentifierRoleSuffixTest(MutationHarness):
             check=check_identifier_role_suffix_contracts,
         )
         self.assertTrue(
-            any("DID-method selector token is not a complete DID" in error for error in errors),
+            any("closed DID-method selector is not a complete DID" in error for error in errors),
             errors,
         )
         self.assertTrue(any("expected_suffix=none" in error for error in errors), errors)

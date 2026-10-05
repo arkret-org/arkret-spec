@@ -46,6 +46,10 @@
     "final_stream_heads_digest": {
       "$ref": "./event-envelope.schema.json#/$defs/digest"
     },
+    "historical_signer_facts_digest": {
+      "$ref": "./account-operations.schema.json#/$defs/sha256_digest",
+      "description": "New handoffs require SHA256(JCS complete sorted {target,producer_signer_fact} inventory); existing_original-only schema absence cannot transfer new digest-bearing history. Both original handoff contexts sign it."
+    },
     "snapshot_ref": {
       "$ref": "./common-ids.schema.json#/$defs/realm_snapshot_id"
     },

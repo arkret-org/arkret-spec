@@ -90,7 +90,7 @@ class SectionIdentityGateTest(unittest.TestCase):
         ratchet = RATCHET if ratchet is None else ratchet
 
         with tempfile.TemporaryDirectory() as raw:
-            root = Path(raw)
+            root = Path(raw).resolve()
             zh = root / "spec" / "v1" / "zh"
             zh.mkdir(parents=True)
             page_paths = []
@@ -137,7 +137,7 @@ class SectionIdentityGateTest(unittest.TestCase):
                 gate, "markdown_files", lambda: page_paths
             ), mock.patch.object(
                 core, "ROOT", root
-            ):
+            ), mock.patch.dict(Lint.rel.__globals__, {"ROOT": root}):
                 if which in ("all", "numbers"):
                     gate.check_numbered_heading_identity(lint)
                 if which in ("all", "links"):

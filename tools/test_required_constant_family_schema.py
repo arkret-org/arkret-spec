@@ -28,7 +28,7 @@ class RequiredConstantFamilySchemaTest(unittest.TestCase):
         cases = [
             ("account-operations.schema.json", "identity_abandonment_outcome", ("status",)),
             ("account-operations.schema.json", "account_request_erasure_outcome", ("status",)),
-            ("directory-operations.schema.json", "directory_agent_selector_resolution_outcome", ("verified",)),
+            ("directory-operations.schema.json", "public_realm_directory_entry", ("verified",)),
             ("holder-quarantine.schema.json", "quarantine_entry", ("status",)),
             ("mimi-operations.schema.json", "mimi_request_consent_outcome", ("status",)),
             ("mimi-operations.schema.json", "mimi_update_consent_outcome", ("status",)),
@@ -36,7 +36,6 @@ class RequiredConstantFamilySchemaTest(unittest.TestCase):
             ("principal-locator.schema.json", "invite_locator_revoke_outcome", ("status",)),
             ("recovery-session.schema.json", "recovery_session_proof_submit_outcome", ("state", "verification")),
             ("service-operation-dtos.schema.json", "ModerationReportOutcome", ("status",)),
-            ("service-operation-dtos.schema.json", "EventDisclosure", ("status",)),
         ]
         for file_name, definition, members in cases:
             with self.subTest(file_name=file_name, definition=definition):
@@ -120,28 +119,17 @@ class RequiredConstantFamilySchemaTest(unittest.TestCase):
             "pcr_policy",
         )
 
-    def test_pcd_profile_fixed_parameters_are_not_echoed(self) -> None:
-        describe = load("service-describe.schema.json")["properties"]["private_contact_discovery"]
-        self.assert_members_absent(
-            describe,
-            "oprf_mode",
-            "ciphersuite",
-            "derived_prefix_bytes",
-            "proof_shape",
-            "response_size_buckets_bytes",
-        )
-        self.assert_members_absent(describe["properties"]["anti_enumeration_delay"], "distribution")
-
+    def test_retired_pcd_wire_surfaces_cannot_return(self) -> None:
+        describe = load("service-describe.schema.json")
+        self.assertNotIn("private_contact_discovery", describe["properties"])
         directory = load("directory-operations.schema.json")["$defs"]
-        for definition in (
-            "psi_blind_request_body",
-            "psi_blind_outcome",
-            "psi_match_request_body",
-            "psi_match_outcome",
-        ):
-            schema = directory[definition]
-            self.assert_members_absent(schema, "ciphersuite", "derived_prefix_bytes")
-            self.assertIn("profile", schema["required"])
+        for definition in ("psi_blind_request_body", "psi_blind_outcome", "psi_match_request_body", "psi_match_outcome"):
+            self.assertNotIn(definition, directory)
+        withheld = load("service-operation-dtos.schema.json")["$defs"]["EventDisclosure"]
+        self.assertEqual(withheld["required"], ["status"])
+        self.assertEqual(withheld["properties"], {"status": {"const": "withheld"}})
+        self.assertFalse(withheld["additionalProperties"])
+
 
 
 if __name__ == "__main__":

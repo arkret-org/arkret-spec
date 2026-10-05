@@ -83,6 +83,8 @@ def _defs(document: Any) -> dict[str, Any]:
 
 
 def check_signer_key_historical_coordinate(lint: Lint) -> None:
+    _check_foreign_human_delivery_shape(lint)
+    _check_foreign_human_crypto_transcript(lint)
     schema = load_json(lint, SCHEMA)
     definitions = _defs(schema)
     if not definitions:
@@ -209,3 +211,185 @@ def check_signer_key_historical_coordinate(lint: Lint) -> None:
 
     if "check_signer_key_historical_coordinate(lint)" not in read_text(RUNNER):
         lint.fail(RUNNER, "phase-2 runner must invoke the historical signer coordinate gate")
+
+
+def _check_foreign_human_delivery_shape(lint: Lint) -> None:
+    """Schema/registry closure only; this is not a signature/runtime proof."""
+    authority = load_json(lint, AUTHORITY_SCHEMA)
+    defs = _defs(authority)
+    expected = ["event_id", "actor", "device_id", "verification_method", "key", "accepted_at"]
+    fact = defs.get("human_historical_signer_fact", {})
+    if fact.get("required") != expected or list(fact.get("properties", {})) != expected or fact.get("additionalProperties") is not False:
+        lint.fail(AUTHORITY_SCHEMA, "Human fact must remain minimal, required and closed in exact field order")
+    if fact.get("properties", {}).get("key", {}).get("$ref") != "./signer-key-operations.schema.json#/$defs/query_signing_key":
+        lint.fail(AUTHORITY_SCHEMA, "Human fact must reuse complete original query_signing_key")
+    peer = defs.get("peer_stream_scan_outcome", {})
+    if list(peer.get("properties", {})) != ["committed_events", "readable_floor", "truncated", "producer_signer_facts"] or "producer_signer_facts" not in peer.get("required", []) or peer.get("additionalProperties") is not False:
+        lint.fail(AUTHORITY_SCHEMA, "peer scan must carry required closed original fact entries")
+    if "producer_signer_facts" in defs.get("stream_scan_outcome", {}).get("properties", {}):
+        lint.fail(AUTHORITY_SCHEMA, "self scan must not acquire peer fact metadata")
+    commit = load_json(lint, ARTIFACTS / "schemas" / "realm-commit.schema.json")
+    fields = list(commit.get("properties", {}))
+    if fields[-3:] != ["committed_at", "producer_signer_fact_digest", "signature"]:
+        lint.fail(AUTHORITY_SCHEMA, "original Commit must commit Human fact digest before signature")
+    contract = load_json(lint, CONTRACT)
+    rule = contract.get("did_evidence_boundary_registry", {}).get("governance_result_consumption_contract", {}).get("foreign_human_historical_signer_delivery", {})
+    if rule.get("target_commit_identity_in_fact") is not False or rule.get("source_accepted_time") != "original_authorization_commit.committed_at" or rule.get("covers_local_governor_human_for_foreign_member") is not True:
+        lint.fail(CONTRACT, "Human source must bind original authorization time, avoid target-ID cycle and cover local governor")
+    op = _find(contract.get("operation_registry", {}).get("operations"), "operation_id", "ak.peer.committed_event.read.scan.v1")
+    if not isinstance(op, dict) or op.get("response_schema_ref") != "schemas/authority-commit-operations.schema.json#/$defs/peer_stream_scan_outcome":
+        lint.fail(CONTRACT, "peer operation must select its fact-bearing scan response")
+    fixture = load_json(lint, FIXTURE).get("foreign_human_historical_signer_delivery", {})
+    if fixture.get("contract") != rule or fixture.get("source_times", {}).get("accepted_at") != "original_authorization_commit.committed_at":
+        lint.fail(FIXTURE, "Human source fixture plan must match source-time/no-cycle carrier contract")
+
+    keys_path = ARTIFACTS / "schemas" / "keys-operations.schema.json"
+    keys = _defs(load_json(lint, keys_path))
+    directory = keys.get("device_projection_attestation_core", {})
+    forward = keys.get("forward_device_projection_attestation_core", {})
+    if "event_authorization" in directory.get("properties", {}) or directory.get("additionalProperties") is not False:
+        lint.fail(keys_path, "directory must remain closed without PCR source metadata")
+    if "event_authorization" not in forward.get("required", []) or forward.get("additionalProperties") is not False:
+        lint.fail(keys_path, "forward must require closed Event-bound original source")
+    expected_source = ["event_id", "verification_method", "destination_service_id", "forward_body_digest", "authorization_ref", "revision", "governance_generation", "accepted_at"]
+    source = keys.get("human_event_authorization", {})
+    fixed_ref = "./account-operations.schema.json#/$defs/sha256_digest"
+    if source.get("properties", {}).get("forward_body_digest", {}).get("$ref") != fixed_ref:
+        lint.fail(keys_path, "forward body digest must be fixed SHA256")
+    if commit.get("properties", {}).get("producer_signer_fact_digest", {}).get("$ref") != fixed_ref:
+        lint.fail(AUTHORITY_SCHEMA, "original Human fact digest must be fixed SHA256")
+    handoff = load_json(lint, ARTIFACTS / "schemas" / "realm-authority-handoff.schema.json")
+    if handoff.get("properties", {}).get("historical_signer_facts_digest", {}).get("$ref") != fixed_ref:
+        lint.fail(AUTHORITY_SCHEMA, "historical handoff inventory digest must be fixed SHA256")
+    if source.get("required") != expected_source or list(source.get("properties", {})) != expected_source or source.get("additionalProperties") is not False:
+        lint.fail(keys_path, "origin source must be complete, closed and contain no fabricated target Commit")
+
+def _foreign_human_transcript_errors(transcript: dict) -> list[str]:
+    """Published-key byte KAT only; no PCR/current/SQL admission is implied."""
+    import base64
+    import hashlib
+    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+    from .core import canonical_json
+    from .fixtures import base58btc_decode
+    errors = []
+    def jcs(value):
+        return canonical_json(value).encode()
+    def sha(value):
+        return 'sha256:' + hashlib.sha256(jcs(value)).hexdigest()
+    def raw(value):
+        return base64.urlsafe_b64decode(value+'='*(-len(value)%4))
+    def token(kind, value):
+        return 'ak:'+kind+':'+base64.urlsafe_b64encode(b'\x01'+hashlib.sha256(jcs(value)).digest()).rstrip(b'=').decode()
+    def check(condition, branch):
+        if not condition:
+            errors.append(branch)
+    def verify_jws(proof, binding, public):
+        protected, payload, signature = proof['jws'].split('.')
+        check(payload == '', 'detached_jws_payload')
+        check(json.loads(raw(protected)) == {'alg':'Ed25519'}, 'jose_algorithm')
+        Ed25519PublicKey.from_public_bytes(raw(public)).verify(raw(signature), protected.encode()+b'.'+base64.urlsafe_b64encode(jcs(binding)).rstrip(b'='))
+    def verify_origin(wrapper, public):
+        core=wrapper['attestation'];proof=wrapper['proof']
+        binding={'context':'ak.device_projection_attestation_proof.v1','payload_digest':sha({'attestation':core})}
+        for key in ['account_id','device_id','device_signing_key_did','hpke_key','device_authorize_event_id','authorized_generation_ref','device_status','attested_at','expires_at']:
+            binding[key]=core[key]
+        binding.update(verification_method=proof['verification_method'],created_at=proof['created_at'])
+        check(proof['created_at']==core['attested_at'], 'origin_time_binding')
+        verify_jws(proof,binding,public)
+        return core,binding
+    def verify_detached(signature, host, public, context):
+        check(signature['context']==context, 'detached_context')
+        check(signature['signature_algorithm']=='Ed25519', 'detached_algorithm')
+        check(signature['signed_digest']==sha(host), 'complete_unsigned_digest')
+        envelope={key:signature[key] for key in ['context','signature_algorithm','verification_method','signed_digest','created_at']}
+        Ed25519PublicKey.from_public_bytes(raw(public)).verify(raw(signature['sig']),(context+'\n').encode()+jcs(envelope))
+    import json
+    try:
+        kat=load_json(Lint(),ARTIFACTS/'fixtures'/'detached-object-signature-kat-fixture.json')
+        keys={key['test_key_ref']:key['public_key_b64u'] for key in kat['test_keys']}
+        human=keys['rfc8032_test_1_ed25519_key'];station=keys['conformance_ed25519_fixture_key']
+        check(transcript['keys']['human_public_key_b64u']==human,'published_human_key')
+        check(transcript['keys']['origin_governor_public_key_b64u']==station,'published_station_key')
+        event=transcript['event'];proof=event['producer_proof'];body={key:value for key,value in event.items() if key not in ['event_id','producer_proof','unsigned']}
+        check(event['event_id']==token('event',body),'event_content_id')
+        check(proof['event_digest']==sha(body),'event_digest')
+        binding={'context':'ak.event_proof.v1','event_digest':sha(body),'actor_id':event['actor_id'],'verification_method':proof['verification_method'],'created_at':proof['created_at']}
+        for key in ['domain','audience']:
+            if key in proof:binding[key]=proof[key]
+        verify_jws(proof,binding,human)
+        check(transcript['event_binding']==binding,'event_binding_record')
+        core,ob=verify_origin(transcript['origin_attestation'],station)
+        check(transcript['origin_binding']==ob,'origin_binding_record')
+        alt,ab=verify_origin(transcript['alternate_authentic_origin_attestation'],station)
+        check(transcript['alternate_origin_binding']==ab,'alternate_origin_binding_record')
+        fact=transcript['fact'];auth=core['event_authorization']
+        check(set(fact)=={'event_id','actor','device_id','verification_method','key','accepted_at'},'fact_closed')
+        check(fact['event_id']==event['event_id'] and fact['actor']==event['actor_id'],'fact_actual_producer')
+        check(fact['verification_method']==proof['verification_method'] and fact['device_id']==proof['verification_method'].split('#')[1],'fact_device_method')
+        check(core['account_id']==fact['actor']['account_id'] and core['device_id']==fact['device_id'],'origin_account_device')
+        check(base58btc_decode(core['device_signing_key_did'].split(':')[-1][1:])==b'\xed\x01'+raw(human),'origin_actual_key')
+        check(fact['key']['public_key_b64u']==human,'fact_actual_key')
+        check(auth['authorization_ref']['event_id']==core['device_authorize_event_id'],'origin_authorizer_event')
+        check(auth['event_id']==event['event_id'] and auth['verification_method']==proof['verification_method'],'origin_exact_event_method')
+        check(auth['forward_body_digest']==sha({'branch':'authority_forward','event_submission':{'event':event}}),'origin_exact_forward_body')
+        check(auth['destination_service_id']=='ak:did_core:webvh:z6mkfixturegovernor','origin_exact_destination')
+        for key in ['authorization_ref','revision','governance_generation']:
+            check(auth[key]==fact['key'][key],'origin_fact_'+key)
+        check(auth['accepted_at']==fact['accepted_at'],'origin_source_time')
+        check(auth['revision']['stream_position']>=auth['authorization_ref']['stream_position'],'source_revision_floor')
+        check(alt['event_authorization']['event_id']==auth['event_id'] and alt['device_signing_key_did']==core['device_signing_key_did'],'alternate_same_event_key')
+        check(alt['event_authorization']['revision']!=auth['revision'],'alternate_distinct_source')
+        check({k:v for k,v in alt.items() if k!='event_authorization'} == {k:v for k,v in core.items() if k!='event_authorization'}, 'alternate_same_original_device_projection')
+        check({k:v for k,v in alt['event_authorization'].items() if k!='revision'} == {k:v for k,v in auth.items() if k!='revision'}, 'alternate_same_source_except_revision')
+        alt_auth = alt['event_authorization']
+        alt_key = dict(fact['key'])
+        for field in ['authorization_ref', 'revision', 'governance_generation']:
+            alt_key[field] = alt_auth[field]
+        expected_alternate_fact = dict(fact, device_id=alt['device_id'], verification_method=alt_auth['verification_method'], key=alt_key, accepted_at=alt_auth['accepted_at'])
+        check(transcript['alternate_fact'] == expected_alternate_fact, 'alternate_fact_from_authentic_origin')
+        commit=transcript['commit'];unsigned={key:value for key,value in commit.items() if key!='signature'};id_body={key:value for key,value in unsigned.items() if key!='commit_id'}
+        check(commit['commit_id']==token('realm_commit',id_body),'commit_content_id')
+        check(commit['event_ref']==event['event_id'] and commit['realm_id']==event['realm_id'] and commit['stream_ref']==event['scope_ref'],'commit_exact_target')
+        check(commit['producer_signer_fact_digest']==sha(fact),'original_governor_fact_digest')
+        check(commit['producer_signer_fact_digest']!=sha(transcript['alternate_fact']),'alternate_source_cannot_replace_governor_choice')
+        verify_detached(commit['signature'],unsigned,station,'ak.realm_commit_signature.v1')
+        check(commit['signature']['created_at']==commit['committed_at'],'commit_signature_time')
+        check(transcript['commit_signature_transcript']['unsigned_projection']==unsigned,'commit_transcript_projection')
+        target={'event_id':event['event_id'],'commit_id':commit['commit_id'],'stream_ref':commit['stream_ref'],'stream_position':commit['stream_position']}
+        entry={'target':target,'producer_signer_fact':fact}
+        check(transcript['replication']=={'event_submission':{'event':event},'source_commit':commit,'producer_signer_fact':fact},'replication_originals')
+        scan=transcript['peer_scan'];check(scan['committed_events']==[{'commit':commit,'event':event}],'scan_original_rows');check(scan['producer_signer_facts']==[entry],'scan_exact_one_fact')
+        h=transcript['handoff'];hu={key:value for key,value in h.items() if key not in ['old_authority_signature','new_authority_acceptance_signature']}
+        check(h['historical_signer_facts_digest']==sha(transcript['handoff_inventory']),'handoff_inventory_digest')
+        inventory = transcript['handoff_inventory']
+        expected_targets = []
+        for original in transcript['handoff_fenced_imported_originals']:
+            oc = original['commit']; oe = original['event']
+            check(oc == commit and oe == event, 'handoff_exact_verified_original_bytes')
+            if 'producer_signer_fact_digest' in oc:
+                check(oc['event_ref'] == oe['event_id'], 'handoff_original_event_pair')
+                expected_targets.append({'event_id':oe['event_id'],'commit_id':oc['commit_id'],'stream_ref':oc['stream_ref'],'stream_position':oc['stream_position']})
+        def order(t):
+            return (jcs(t['stream_ref']), t['stream_position'], t['event_id'].encode(), t['commit_id'].encode())
+        targets = [item['target'] for item in inventory]
+        check(len({jcs(t) for t in targets}) == len(targets), 'handoff_inventory_duplicate')
+        check(targets == sorted(targets, key=order), 'handoff_inventory_canonical_order')
+        check(sorted(targets,key=order) == sorted(expected_targets,key=order), 'handoff_inventory_exact_fenced_set')
+        check(inventory==[entry],'handoff_complete_original_fact')
+        check(h['handoff_id']==token('realm_authority_handoff',{key:value for key,value in hu.items() if key!='handoff_id'}),'handoff_content_id')
+        verify_detached(h['old_authority_signature'],hu,station,'ak.realm_authority_handoff_old_signature.v1')
+        verify_detached(h['new_authority_acceptance_signature'],hu,human,'ak.realm_authority_handoff_new_acceptance_signature.v1')
+        check(h['old_authority_signature']['signed_digest']==h['new_authority_acceptance_signature']['signed_digest'],'handoff_same_projection')
+    except Exception as exc:
+        errors.append('cryptographic_transcript_invalid:'+type(exc).__name__)
+    return errors
+
+
+def _check_foreign_human_crypto_transcript(lint: Lint) -> None:
+    fixture = load_json(lint, FIXTURE)
+    transcript = fixture.get("foreign_human_historical_signer_delivery", {}).get("crypto_transcript")
+    if not isinstance(transcript, dict):
+        lint.fail(FIXTURE, "real Human/Commit cryptographic transcript is missing")
+        return
+    for branch in _foreign_human_transcript_errors(transcript):
+        lint.fail(FIXTURE, "foreign Human cryptographic KAT: " + branch)

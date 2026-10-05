@@ -260,3 +260,21 @@ DID 解析证据可以作为 producer/service proof 验证输入，但不代表 
 Media 内容完整性由 blob ref 和 producer-signed 引用证明；可见性和接纳位置由 RealmCommit/current result 证明。
 
 closed schema 正反例见 `ak.vector.signer_key.human_current_privacy.v1` 与 `current-signer-contact-endpoint-fixture.json`。
+
+## Foreign Human historical signer delivery (Normative)
+
+本节新增普通Human业务接纳的原事务冻结职责；既有§5.6 self Human PCR强冻结合同并不自动覆盖ordinary，本节不得把新职责说成既有实现已完整支持。普通local Human在治理接纳锁定的PCR current授权cut冻结revision；foreign Human由origin发送前同锁定cut冻结revision并签精确来源，governor在原接受事务验证并保留该原cut而非读取其它current cut。业务Realm accepted time与producer PCR任期均独立。
+
+本节固定服务 origin→governor→member 的原历史供材；普通客户端 §2.1/§5.6 的两个 exact target 来源、独立Human Ed验证、session/account fence与可读floor不变。客户端 MUST NOT 由裸fact/event_id造target，也不得执行foreign PCR NativeAudit。
+
+现 authority-commit-operations 的 closed `human_historical_signer_fact` 顺序 MUST 为 event_id、actor、device_id、verification_method、key、accepted_at；actor 是实际Human signer完整Account ActorId（executed_by优先，否则actor_id），key复用既有 query_signing_key 的 public_key_b64u/authorization_ref/revision/governance_generation。授权四坐标独立于业务target四坐标；revision/PCR治理generation是原授权cut，accepted_at是原授权Commit.committed_at。actor/device_id/verification_method/event_id仅为原Event的逐字对应检查，MUST NOT 成为第二身份权威。事实 MUST 在原接纳事务准备，原producer proof、完整Account/device/method/key和授权实例都吻合。不得用业务Commit时间或current key/revision补齐。
+
+governor对所有新普通Realm Human device business Event MUST 同事务冻此fact并让原RealmCommit承诺其摘要，包含local-governor Human给foreign-member的Direct四项、ordinary/registered aggregate与实际Human MLS Commit，不以当前foreign member/outbox非空才条件生成。Agent/Service/PCR注册恢复等专用native branch MUST NOT 借用本Human来源。缺source时新接纳零效果failclosed；accepted exact retry先返回原durable outcome，不重取current、重签Commit或换fact。
+
+member仅在原source authority/Commit签名、内容ID、stream连续性与合法Full披露都通过后，重算fact digest并核原完整Event实际producer与真Ed proof；原件与immutable fact同一replica事务保存，重复必须逐字相等，冲突零写/冻结。历史query沿原selector/status/key/accepted_at闭形状与原读取授权返回，current状态后来改变不重写原实例。旧missing-source rows维持Unavailable，不回填旧Commit或扩大PCRhistory许可。
+
+authorization_ref携PCR RealmId、position、Event/CommitId，revision/generation可跨Event/设备关联；公开factdigest在已知候选fact时也可确认内容，哈希MUST NOT被描述成匿名或不可关联。
+
+此处仅批准经当前recipient授权与Full可见性门允许的普通业务验签所需key及原授权坐标/revision/PCRgeneration/时点的窄metadata披露，不披露PCR Event/Commit bytes、predecessors、授权链、恢复材料或其它账号device目录。fact不授current权限，原admission/capability/policy/approval/native audit职责独立。
+
+本条款复用检验向量 `ak.vector.signer_key.historical_commit_coordinate.v1`；签名字节夹具仅证明密码学转录，不替代原接纳事务与实际交接验证。

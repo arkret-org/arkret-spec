@@ -9579,7 +9579,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: ../schemas/authority-commit-operations.schema.json#/$defs/stream_scan_outcome
+                $ref: ../schemas/authority-commit-operations.schema.json#/$defs/peer_stream_scan_outcome
       security:
       - serviceHttpMessageSignatures: []
   /_arkret/peer/realm-authority/handoff:

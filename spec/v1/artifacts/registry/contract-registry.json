@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-05.6",
+  "version": "2026-10-06.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-05T19:43:32+08:00",
+  "generated_at": "2026-10-06T01:49:40+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -13774,11 +13774,11 @@
         "http": "POST /_arkret/peer/streams/scan",
         "grpc": "PeerStreams/Scan",
         "mq": "peer.streams.read.scan",
-        "notes": "Replicate one visibility-authorized stream from its current governance Station.",
+        "notes": "Replicate one visibility-authorized stream from its current governance Station. Full digest-bearing Human rows carry original Commit-bound immutable facts; original source Ed/coordinates/time are verified and atomically retained, including bootstrap tail and cold backfill. No PCR history or current-key reconstruction.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "schema_resource",
         "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request",
-        "response_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_outcome"
+        "response_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_stream_scan_outcome"
       },
       {
         "operation_id": "ak.peer.invites.command.submit.v1",
@@ -16400,8 +16400,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-10-05.4",
-    "generated_at": "2026-10-05T19:44:53+08:00",
+    "version": "2026-10-06.1",
+    "generated_at": "2026-10-06T01:26:43+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",
@@ -20091,8 +20091,8 @@
         ]
       }
     ],
-    "version": "2026-10-05.6",
-    "generated_at": "2026-10-05T19:43:32+08:00",
+    "version": "2026-10-06.1",
+    "generated_at": "2026-10-06T01:26:43+08:00",
     "metadata_authority": "contract_registry_section",
     "mls_roster_verification_contract": {
       "roles": {
@@ -20222,6 +20222,26 @@
           "changes_ordinary_received_floor": false,
           "missing_or_conflicting_fact": "existing_unavailable_without_current_query_fallback"
         }
+      },
+      "foreign_human_historical_signer_delivery": {
+        "fact_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/human_historical_signer_fact",
+        "origin_source": "original_same_cut_station_event_bound_authorization",
+        "governor_binding": "original_realm_commit_producer_signer_fact_digest",
+        "fact_digest_input": "SHA256(RFC8785_JCS(human_historical_signer_fact))",
+        "target_commit_identity_in_fact": false,
+        "source_accepted_time": "original_authorization_commit.committed_at",
+        "covers_local_governor_human_for_foreign_member": true,
+        "carry": [
+          "committed_event_submission.producer_signer_fact",
+          "peer_stream_scan_outcome.producer_signer_facts",
+          "handoff_request.historical_signer_facts"
+        ],
+        "retain": "canonical_originals_and_exact_fact_atomic_immutable",
+        "existing_original_missing_original_source": "unavailable_no_current_backfill",
+        "current_authorization_effect": "none",
+        "client_target_sources_unchanged": true,
+        "private_pcr_bytes_disclosed": false,
+        "audit_closure_replicated": false
       }
     },
     "agent_authority_evidence_contract": {

@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-26.2",
+  "version": "2026-10-06.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-26T10:20:00+08:00",
+  "generated_at": "2026-10-06T01:49:40+08:00",
   "description": "Canonical test signing material, reserved identifiers, and the closed role inventory for every concrete did:webvh identity example in artifacts and normative prose. Identity roles are exactly test_material, deployment_like_example, and derived_positive; only test_material enters the reserved namespace. Derived positives bind recomputable fixture pointers.",
   "rules": [
     "published_signing_material[].fingerprint is sha256 over the ALGORITHM-DEFINED public key encoding named by public_key_encoding, never over JWK, multibase, PEM or any JSON text. The same public key carried under a different kid, DID, JWK member order or transport encoding MUST produce the same fingerprint.",
@@ -572,12 +572,24 @@
       ]
     },
     {
-      "value": "did:webvh:z6mkfixture:alice.example#ak",
+      "value": "did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000001",
       "role": "deployment_like_example",
       "sources": [
-        "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json",
-        "spec/v1/artifacts/fixtures/pcr-genesis-fixture.json",
+        "spec/v1/artifacts/fixtures/keypackage-lifecycle-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixture:alice.example#ak:device:0196419b-0000-7000-8000-000000000002",
+      "role": "deployment_like_example",
+      "sources": [
         "spec/v1/artifacts/fixtures/websocket-binding-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixture:alice.example#ak:device:019a0000-0000-7000-8000-000000000001",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/pcr-genesis-fixture.json"
       ]
     },
     {
@@ -641,6 +653,13 @@
       ]
     },
     {
+      "value": "did:webvh:z6mkfixture:human.example#ak:device:019a0000-0000-7000-8000-00000000000b",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/signer-key-historical-coordinate-fixture.json"
+      ]
+    },
+    {
       "value": "did:webvh:z6mkfixture:issuer.example#key-1",
       "role": "deployment_like_example",
       "sources": [
@@ -666,20 +685,6 @@
       "role": "test_material",
       "sources": [
         "spec/v1/artifacts/fixtures/did-webvh-v1-fixture.json"
-      ]
-    },
-    {
-      "value": "did:webvh:z6mkfixtureprincipalexample:principal.example#ed25519-2026-05-fixture",
-      "role": "test_material",
-      "sources": [
-        "spec/v1/artifacts/fixtures/franking-proof-transcript-fixture.json"
-      ]
-    },
-    {
-      "value": "did:webvh:z6mkfixtureprincipalexample:principal.example#rotated-key",
-      "role": "deployment_like_example",
-      "sources": [
-        "spec/v1/artifacts/fixtures/franking-proof-transcript-fixture.json"
       ]
     },
     {
@@ -771,6 +776,13 @@
       ]
     },
     {
+      "value": "did:webvh:z6mkfixturealice:alice.example",
+      "role": "test_material",
+      "sources": [
+        "spec/v1/artifacts/fixtures/detached-object-signature-kat-fixture.json"
+      ]
+    },
+    {
       "value": "did:webvh:z6mkfixturealice:alice.example#device-fixture",
       "role": "test_material",
       "sources": [
@@ -845,6 +857,13 @@
       ]
     },
     {
+      "value": "did:webvh:z6mkfixturegovernor:governor.example#assertion-fixture",
+      "role": "test_material",
+      "sources": [
+        "spec/v1/artifacts/fixtures/signer-key-historical-coordinate-fixture.json"
+      ]
+    },
+    {
       "value": "did:webvh:z6mkfixturemanager:manager.example",
       "role": "test_material",
       "sources": [
@@ -882,7 +901,7 @@
       ]
     },
     {
-      "value": "did:webvh:z6mkfixtureorgexecutor:org.example#ak",
+      "value": "did:webvh:z6mkfixtureorgexecutor:org.example#ak:device:019a0000-0000-7000-8000-00000000000b",
       "role": "deployment_like_example",
       "sources": [
         "spec/v1/artifacts/fixtures/content-bound-event-id-fixture.json"
@@ -903,6 +922,20 @@
       ]
     },
     {
+      "value": "did:webvh:z6mkfixtureprincipalexample:principal.example#ed25519-2026-05-fixture",
+      "role": "test_material",
+      "sources": [
+        "spec/v1/artifacts/fixtures/franking-proof-transcript-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixtureprincipalexample:principal.example#rotated-key",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/franking-proof-transcript-fixture.json"
+      ]
+    },
+    {
       "value": "did:webvh:z6mkfixtureproduceraexample:producer-a.example",
       "role": "test_material",
       "sources": [
@@ -914,27 +947,6 @@
       "role": "test_material",
       "sources": [
         "spec/v1/artifacts/fixtures/producer-allocated-identity-fixture.json"
-      ]
-    },
-    {
-      "value": "did:webvh:z6mkfixturealice:alice.example",
-      "role": "test_material",
-      "sources": [
-        "spec/v1/artifacts/fixtures/detached-object-signature-kat-fixture.json"
-      ]
-    },
-    {
-      "value": "did:webvh:z6mkfixturestationa:station-a.example",
-      "role": "test_material",
-      "sources": [
-        "spec/v1/artifacts/fixtures/detached-object-signature-kat-fixture.json"
-      ]
-    },
-    {
-      "value": "did:webvh:z6mkfixturestationb:station-b.example",
-      "role": "test_material",
-      "sources": [
-        "spec/v1/artifacts/fixtures/detached-object-signature-kat-fixture.json"
       ]
     },
     {
@@ -960,6 +972,13 @@
       ]
     },
     {
+      "value": "did:webvh:z6mkfixturestationa:station-a.example",
+      "role": "test_material",
+      "sources": [
+        "spec/v1/artifacts/fixtures/detached-object-signature-kat-fixture.json"
+      ]
+    },
+    {
       "value": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
       "role": "test_material",
       "sources": [
@@ -969,11 +988,26 @@
       ]
     },
     {
+      "value": "did:webvh:z6mkfixturestationb:station-b.example",
+      "role": "test_material",
+      "sources": [
+        "spec/v1/artifacts/fixtures/detached-object-signature-kat-fixture.json"
+      ]
+    },
+    {
       "value": "did:webvh:z6mkfixturestationb:station-b.example#assertion-fixture",
       "role": "test_material",
       "sources": [
         "spec/v1/artifacts/fixtures/contact-round-kat.json",
-        "spec/v1/artifacts/fixtures/detached-object-signature-kat-fixture.json"
+        "spec/v1/artifacts/fixtures/detached-object-signature-kat-fixture.json",
+        "spec/v1/artifacts/fixtures/signer-key-historical-coordinate-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixturestationexample:origin.example#assertion-fixture",
+      "role": "test_material",
+      "sources": [
+        "spec/v1/artifacts/fixtures/signer-key-historical-coordinate-fixture.json"
       ]
     },
     {

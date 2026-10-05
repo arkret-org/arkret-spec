@@ -28,10 +28,10 @@ class MimiReportAbuseRequestSchemaTest(unittest.TestCase):
     def test_request_is_the_closed_compact_shape(self) -> None:
         request = self.schema["$defs"]["mimi_report_abuse_request_body"]
         self.assertFalse(request["additionalProperties"])
-        self.assertEqual(set(request["required"]), {"reporter_authority", "report_event"})
+        self.assertEqual(set(request["required"]), {"reporter_authority", "report_claim"})
         self.assertEqual(
             set(request["properties"]),
-            {"reporter_authority", "report_event"},
+            {"reporter_authority", "report_claim"},
         )
 
     def test_signed_event_and_transport_id_have_no_outer_mirrors(self) -> None:
@@ -67,9 +67,9 @@ class MimiReportAbuseRequestSchemaTest(unittest.TestCase):
                 "payload_digest",
                 "issuer",
                 "operation_id",
-                "report_event",
-                    "membership_event_id",
-                "room_binding_event_id",
+                "report_claim",
+                    "membership_ref",
+                "room_binding_ref",
                 "expires_at",
                 "verification_method",
                 "created_at",

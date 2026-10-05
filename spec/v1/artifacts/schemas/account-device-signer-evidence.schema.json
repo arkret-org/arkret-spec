@@ -16,5 +16,24 @@
       "$ref": "./identity-resolution.schema.json#/$defs/authenticated_service_resolution"
     }
   },
-  "additionalProperties": false
+  "additionalProperties": false,
+  "$defs": {
+    "forward_account_device_signer_evidence": {
+      "description": "authority_forward-only complete original Station closure. Must never appear in current keys/query or peer directory.",
+      "type": "object",
+      "required": [
+        "device_projection_attestation",
+        "service_resolution"
+      ],
+      "properties": {
+        "device_projection_attestation": {
+          "$ref": "./keys-operations.schema.json#/$defs/forward_device_projection_attestation"
+        },
+        "service_resolution": {
+          "$ref": "./identity-resolution.schema.json#/$defs/authenticated_service_resolution"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
 }

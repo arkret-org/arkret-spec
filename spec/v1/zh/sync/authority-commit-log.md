@@ -164,3 +164,15 @@ Handoff 必须绑定：连续 generation、旧/新 service identity、change Eve
 每个 MLS effective scope 属于其对应 Realm、Circle 或 Sidecar stream。`key_access_revision` 只由该 scope stream 上改变 current joined 成员集合的 membership Event 在同一事务加一；endpoint authorization 与 policy 变化不推进它，已撤销 endpoint 的发送由 send gate 同 cut 拒绝。encrypted application Event 的 epoch、group state ref 和 key-access revision 必须都等于 current，否则拒绝。
 
 Add 使用 `MlsCommitSubmission` 原子提交 Commit Event 和全部 producer-signed Welcome deliveries。治理 Station 在同一事务中提交 Commit、更新 public state、写本站 recipient queues 和 outbox；跨站 recipient 的 Welcome 写入指向其 routing service 的 outbox intent，随 Commit 的 committed-replication item 由成员站在同一 replica 事务按本地 claim ledger 复核入队；任一本站可判定的 Welcome 无效则零写入。Handoff 迁移 public tree、epoch、revision、claim 状态和 Welcome queues，但不迁移任何成员 private MLS state。
+
+## Human signer fact commitment and transfer (Normative)
+
+原RealmCommit在committed_at后signature前 MAY 有 producer_signer_fact_digest；schema仅为旧原件解码允许缺省，新普通Human device业务接纳 MUST 携带，其它producer/PCRnative分支禁止。摘要为 SHA256(RFC8785_JCS(human_historical_signer_fact))。fact不含业务targetCommitId/position；Event内容ID先固定，fact准备后入Commit，最终所有字段设完才按现 content-ID规则排commit_id/signature重算ID，再按现RealmCommit signature投影仅排signature签完整对象（包含commit_id与factdigest）。MUST NOT 改字段后保留旧ID/签名，也不得把fact targetCommitId塞回摘要造成环。原proof context与版本不变。
+
+原immutable fact MUST 与原accepted Commit同寿命持久保留；v1不删除accepted Commit。retention/redaction/withheld只改变合法披露，不补造或替换原事实，也不允许带隐藏row metadata。
+
+计划handoff MUST 同冻结cut迁移全部原digest-bearing Commit/fact及原既有合法private audit。现RealmAuthorityHandoff在final_stream_heads_digest后携historical_signer_facts_digest，现handoff_request在原四字段后携historical_signer_facts；newhandoff即使无facts亦携空数组及其digest。inventory是完整 {target,producer_signer_fact}，按stream_ref JCS UTF8、numeric stream_position、event_id UTF8、commit_id UTF8排序；digest为SHA256(JCS数组)。target只能由原已accepted Commit配出，逐项核Commitfactdigest。new governor MUST 在冻结 cut 下将已导入原件中全部 digest-bearing Full Commit 的 exact target 集合与 inventory entry target 集合作相等比较：没有重复、缺项或额外项，逐项签名不能代替全集核验。交接治理授权负责迁移所有 stream 的冻结原件（含依法迁移的隐藏 stream/private audit），MUST NOT 以普通成员 readable floor 裁剪此全集；普通 peer Full 披露仍受原成员可见性与 floor 门约束，不能借交接权限扩大普通查询。原非流请求预算不扩，超过既有预算返回 limit_exceeded，禁止 partial 导入后启动。禁止从snapshot current补历史，漏项/冲突/digest错零导入，完成原chain/原件/facts原子导入前不得签new acceptance或启动authority。
+
+old/new handoff unsigned projection仍仅删两signature，保留handoff_id及所有实际字段，新增inventorydigest由两个原context覆盖。旧无digesthandoff只可exact 旧已签原件解码，不能迁移或宣称已闭合新digest-bearing历史。旧没有完整source/digest的Commit保持旧原字节与Unavailable，不重签后冒原记录。正式切换须将全部原件签名/ID消费者同批同步，未支持新成员的消费者failclosed。
+
+本条款复用检验向量 `ak.vector.signer_key.historical_commit_coordinate.v1`；签名字节夹具仅证明密码学转录，不替代原接纳事务与实际交接验证。

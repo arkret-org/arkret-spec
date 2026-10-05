@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-05.6",
+  "version": "2026-10-06.1",
   "source_of_truth": false,
-  "generated_at": "2026-10-05T19:43:32+08:00",
+  "generated_at": "2026-10-06T01:49:40+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -859,10 +859,10 @@
       "http": "POST /_arkret/peer/streams/scan",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request",
-      "response_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_outcome",
+      "response_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_stream_scan_outcome",
       "openapi_component_refs": {
         "request": "../schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request",
-        "response": "../schemas/authority-commit-operations.schema.json#/$defs/stream_scan_outcome"
+        "response": "../schemas/authority-commit-operations.schema.json#/$defs/peer_stream_scan_outcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

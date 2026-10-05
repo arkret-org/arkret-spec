@@ -16,6 +16,9 @@
       "$ref": "#/$defs/stream_scan_outcome"
     },
     {
+      "$ref": "#/$defs/peer_stream_scan_outcome"
+    },
+    {
       "$ref": "#/$defs/authority_bundle_request"
     },
     {
@@ -139,8 +142,8 @@
           "$ref": "./mls-commit-submission.schema.json"
         },
         "producer_device_evidence": {
-          "$ref": "./account-device-signer-evidence.schema.json",
-          "description": "authority_forward only. Complete account_device evidence for a cross-Station human device producer, freshly signed by the forwarding Station (the producer's account Station) from the same durable cut as its live gate before every forwarding attempt and persisted with its ref before sending; never a cached or keys/query-returned object. The governance Station verifies Source-Service-ID equals attestation.account_id.station_id, the attestation signature under the carried Service history at attested_at, now earlier than attestation expires_at, the original authorization_window covering both Event created_at and now, device_status active, and exact producer AccountId/device fragment/key binding, and persists the complete object and ref inside the acceptance transaction for audit only. An exact duplicate Event returns its original outcome before evidence freshness is checked."
+          "$ref": "./account-device-signer-evidence.schema.json#/$defs/forward_account_device_signer_evidence",
+          "description": "authority_forward only. Complete account_device evidence for a cross-Station human device producer, freshly signed by the forwarding Station (the producer's account Station) from the same durable cut as its live gate before every forwarding attempt and persisted with its ref before sending; never a cached or keys/query-returned object. The governance Station verifies Source-Service-ID equals attestation.account_id.station_id, the attestation signature under the carried Service history at attested_at, now earlier than attestation expires_at, the original authorization_window covering both Event created_at and now, device_status active, and exact producer AccountId/device fragment/key binding, and persists the complete object and ref inside the acceptance transaction for audit only. An exact duplicate Event returns its original outcome before evidence freshness is checked. event_authorization is required, covers the exact original Event and destination/canonical body, and freezes independent original authorization coordinates, revision, PCR tenure and source accepted_at. The complete evidence remains private audit; only the separately committed minimal fact is replicated."
         },
         "producer_agent_evidence": {
           "$ref": "./agent-authority-evidence.schema.json#/$defs/agent_producer_evidence"
@@ -394,7 +397,7 @@
     },
     "committed_event_submission": {
       "type": "object",
-      "description": "One exact source canonical Event inside an EventAdmissionSubmission containing only event, paired with the source-signed RealmCommit that accepted it. Private approval_signatures are forbidden on committed replication and stay in the governance Station's accepted-at audit. event_submission.event.event_id MUST equal source_commit.event_ref; realm and stream coordinates, governance generation, current source authority signature and previous_commit_ref continuity MUST verify exactly. The receiver does not redo the source admission approval. This shape accepts only the full producer Event, never a withheld or projection-only read view. For every ak.mls.commit, genesis_event_ref is required, frozen from the exact accepted group Genesis in the governance acceptance transaction, and covered by the authenticated canonical peer request; it is forbidden for other kinds. The receiver binds it to the exact Commit and immutable group provenance in the same replica transaction and never infers it from base_group_state_ref. welcomes is allowed only when the source Event is ak.mls.commit and carries exactly the MlsWelcomeDelivery objects of that Commit whose recipients the destination Station hosts, in submission order; the destination re-verifies each claim against its own claim ledger and queues the passing Welcomes in the same replica transaction as the Commit (zh/crypto-media/encryption-and-audit.md section 2.2).",
+      "description": "One exact source canonical Event inside an EventAdmissionSubmission containing only event, paired with the source-signed RealmCommit that accepted it. Private approval_signatures are forbidden on committed replication and stay in the governance Station's accepted-at audit. event_submission.event.event_id MUST equal source_commit.event_ref; realm and stream coordinates, governance generation, current source authority signature and previous_commit_ref continuity MUST verify exactly. The receiver does not redo the source admission approval. This shape accepts only the full producer Event, never a withheld or projection-only read view. For every ak.mls.commit, genesis_event_ref is required, frozen from the exact accepted group Genesis in the governance acceptance transaction, and covered by the authenticated canonical peer request; it is forbidden for other kinds. The receiver binds it to the exact Commit and immutable group provenance in the same replica transaction and never infers it from base_group_state_ref. welcomes is allowed only when the source Event is ak.mls.commit and carries exactly the MlsWelcomeDelivery objects of that Commit whose recipients the destination Station hosts, in submission order; the destination re-verifies each claim against its own claim ledger and queues the passing Welcomes in the same replica transaction as the Commit (zh/crypto-media/encryption-and-audit.md section 2.2). Every source Commit carrying producer_signer_fact_digest requires exactly this immutable Human fact; a fact without the digest is forbidden. Receiver checks exact Event/actual producer/device/method, original Commit digest and true Event Ed proof, retaining fact with canonical Event/Commit atomically. The fact does not replace admission/current membership or approval evidence.",
       "required": [
         "event_submission",
         "source_commit"
@@ -419,6 +422,9 @@
             "$ref": "./mls-welcome-delivery.schema.json"
           },
           "description": "Exact producer-signed Welcome deliveries of this ak.mls.commit for recipients hosted by the destination Station, written into this outbox intent by the governance Station inside the Commit acceptance transaction. Absent for every other Event kind and when the destination hosts no recipient of the Commit."
+        },
+        "producer_signer_fact": {
+          "$ref": "#/$defs/human_historical_signer_fact"
         }
       },
       "allOf": [
@@ -499,6 +505,32 @@
                   "event"
                 ]
               }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "source_commit": {
+                "required": [
+                  "producer_signer_fact_digest"
+                ]
+              }
+            },
+            "required": [
+              "source_commit"
+            ]
+          },
+          "then": {
+            "required": [
+              "producer_signer_fact"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "producer_signer_fact"
+              ]
             }
           }
         }
@@ -1776,6 +1808,129 @@
         },
         "authority_bundle": {
           "$ref": "./realm-authority-bundle.schema.json"
+        },
+        "historical_signer_facts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/human_historical_signer_fact_entry"
+          },
+          "description": "Private complete canonical inventory at the frozen authority handoff cut: exact target set equals all imported digest-bearing Full Commit originals, without duplicates, missing or extra entries. Canonical order: JCS UTF-8 stream_ref, numeric stream_position, UTF-8 event_id, UTF-8 commit_id. Authority handoff covers all authorized streams; ordinary peer member floors remain separate. Existing request budget applies: limit_exceeded rejects without partial authority startup. No private PCR bodies. New handoffs require the inventory, including empty array.",
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "handoff": {
+                "required": [
+                  "historical_signer_facts_digest"
+                ]
+              }
+            },
+            "required": [
+              "handoff"
+            ]
+          },
+          "then": {
+            "required": [
+              "historical_signer_facts"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "historical_signer_facts"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "human_historical_signer_fact": {
+      "type": "object",
+      "description": "Minimal immutable original Human device signer source frozen in governance acceptance. Actual signing Account, independent authorization coordinates/revision/PCR tenure and source accepted time. No target CommitId/position, current permission, verified flag or private PCR bytes.",
+      "required": [
+        "event_id",
+        "actor",
+        "device_id",
+        "verification_method",
+        "key",
+        "accepted_at"
+      ],
+      "properties": {
+        "event_id": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "actor": {
+          "$ref": "./signer-key-operations.schema.json#/$defs/signing_account_actor_id"
+        },
+        "device_id": {
+          "$ref": "./common-ids.schema.json#/$defs/device_id"
+        },
+        "verification_method": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
+        },
+        "key": {
+          "$ref": "./signer-key-operations.schema.json#/$defs/query_signing_key"
+        },
+        "accepted_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "human_historical_signer_fact_entry": {
+      "type": "object",
+      "description": "Complete target association derived only after the original governance Commit exists. Fact digest excludes this outer target.",
+      "required": [
+        "target",
+        "producer_signer_fact"
+      ],
+      "properties": {
+        "target": {
+          "$ref": "#/$defs/committed_event_ref"
+        },
+        "producer_signer_fact": {
+          "$ref": "#/$defs/human_historical_signer_fact"
+        }
+      },
+      "additionalProperties": false
+    },
+    "peer_stream_scan_outcome": {
+      "type": "object",
+      "description": "Peer-only authorized original rows plus original governance-Commit-bound Human signer facts. Includes bootstrap tail/cold scan/backfill. Full digest-bearing Human rows require exactly one ordered entry. Hidden/withheld/redacted/existing_original-without-digest/Agent/Service rows have no entry; association and complete source verification are runtime obligations.",
+      "required": [
+        "committed_events",
+        "truncated",
+        "producer_signer_facts"
+      ],
+      "properties": {
+        "committed_events": {
+          "type": "array",
+          "maxItems": 1000,
+          "description": "Contiguous caller-visible committed Event views for the requested stream, ordered by RealmCommit stream_position. Full and withheld rows preserve the same verifiable Commit chain.",
+          "items": {
+            "$ref": "#/$defs/stream_row"
+          }
+        },
+        "readable_floor": {
+          "$ref": "#/$defs/readable_floor",
+          "description": "Verifiable bottom of this caller's readable range on the requested stream. It MUST be present on every page whose scan reached that bottom (a before_position page with truncated false, and an after_position page whose first row is at it), MAY be present on any other page of the same stream, and MUST be omitted only when the caller may read no commit of this stream at all, which is also the only case in which an empty committed_events[] with truncated false is legal."
+        },
+        "truncated": {
+          "type": "boolean",
+          "description": "True when at least one further commit that this caller is permitted to read exists beyond this page in the requested direction, i.e. the scan stopped on limit. It is a statement about the caller's permitted range, never about the physical stream: a scan that stopped on the newest readable position (after_position) or on readable_floor.oldest_position (before_position) MUST set it false even when the Station holds further commits this caller may not read. History outside the caller's range MUST NOT set it, a page that stopped on the floor MUST NOT be presented as truncation, and truncated MUST NOT be used to conceal a floor. An empty committed_events[] with truncated false means the caller's permitted range is exhausted in that direction, never that the physical stream is empty or absent."
+        },
+        "producer_signer_facts": {
+          "type": "array",
+          "maxItems": 1000,
+          "items": {
+            "$ref": "#/$defs/human_historical_signer_fact_entry"
+          }
         }
       },
       "additionalProperties": false

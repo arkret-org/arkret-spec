@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-05.5",
+  "version": "2026-10-06.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-05T21:15:00+08:00",
+  "generated_at": "2026-10-06T01:49:40+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -793,6 +793,56 @@
       "evidence_refs": [
         "ak.vector.agent.interaction_mode.v1"
       ]
+    },
+    {
+      "clause_id": "AK-NC-093",
+      "status": "active",
+      "category": "security",
+      "source_anchor": "spec/v1/zh/crypto-media/device-lifecycle.md#foreign-human-event-authorization-source-normative",
+      "section_digest": "sha256:447ba5762715c67d1c35280babfbf688ebad090188bdce9f41f2247056d0f3c1",
+      "requirement": "Foreign Human event authorization source (Normative)",
+      "testability_grade": "audit",
+      "test_plan": "Executed in the isolated candidate: independent canonical preimage/content-ID recomputation and real public conformance Ed25519 bytes for Human Event, sole Origin wrapper (including a second authentic same-key/different-revision source), GovCommit fact digest and dual-signed handoff transcript; 17 schema cases and 208 signed-leaf mutations, including validly re-signed incomplete handoff inventory and source replacement, passed. Official spec generation, closure, version, full check, determinism, all 169 mandatory CI self-test modules, Naming require-full and Node cross-reference gates passed. These conformance transcripts do not prove real original PCR admission lineage, historical Service/DID authority chains, PostgreSQL atomic freeze/retain/archive, complete Direct4 or MLS business admission, live peer bootstrap/coldscan/backfill, fenced handoff transfer or native/full/S3 behavior. Those audit obligations remain pending; no fabricated accepted outcome, current-key backfill or implementation conformance claim is licensed."
+    },
+    {
+      "clause_id": "AK-NC-094",
+      "status": "active",
+      "category": "security",
+      "source_anchor": "spec/v1/zh/sync/server-trusted-results.md#foreign-human-historical-signer-delivery-normative",
+      "section_digest": "sha256:150a424e7a7de6ce3f0f0c136f391d04dd564329bc11101d4efa23b8cb0d2d5c",
+      "requirement": "Foreign Human historical signer delivery (Normative)",
+      "testability_grade": "audit",
+      "test_plan": "Executed in the isolated candidate: independent canonical preimage/content-ID recomputation and real public conformance Ed25519 bytes for Human Event, sole Origin wrapper (including a second authentic same-key/different-revision source), GovCommit fact digest and dual-signed handoff transcript; 17 schema cases and 208 signed-leaf mutations, including validly re-signed incomplete handoff inventory and source replacement, passed. Official spec generation, closure, version, full check, determinism, all 169 mandatory CI self-test modules, Naming require-full and Node cross-reference gates passed. These conformance transcripts do not prove real original PCR admission lineage, historical Service/DID authority chains, PostgreSQL atomic freeze/retain/archive, complete Direct4 or MLS business admission, live peer bootstrap/coldscan/backfill, fenced handoff transfer or native/full/S3 behavior. Those audit obligations remain pending; no fabricated accepted outcome, current-key backfill or implementation conformance claim is licensed."
+    },
+    {
+      "clause_id": "AK-NC-095",
+      "status": "active",
+      "category": "distributed_write",
+      "source_anchor": "spec/v1/zh/sync/authority-commit-log.md#human-signer-fact-commitment-and-transfer-normative",
+      "section_digest": "sha256:10a6c664c5d6a9de23a9050579b76f53453c8a5edf2fd488244f4eb81ac18569",
+      "requirement": "Human signer fact commitment and transfer (Normative)",
+      "testability_grade": "audit",
+      "test_plan": "Executed in the isolated candidate: independent canonical preimage/content-ID recomputation and real public conformance Ed25519 bytes for Human Event, sole Origin wrapper (including a second authentic same-key/different-revision source), GovCommit fact digest and dual-signed handoff transcript; 17 schema cases and 208 signed-leaf mutations, including validly re-signed incomplete handoff inventory and source replacement, passed. Official spec generation, closure, version, full check, determinism, all 169 mandatory CI self-test modules, Naming require-full and Node cross-reference gates passed. These conformance transcripts do not prove real original PCR admission lineage, historical Service/DID authority chains, PostgreSQL atomic freeze/retain/archive, complete Direct4 or MLS business admission, live peer bootstrap/coldscan/backfill, fenced handoff transfer or native/full/S3 behavior. Those audit obligations remain pending; no fabricated accepted outcome, current-key backfill or implementation conformance claim is licensed."
+    },
+    {
+      "clause_id": "AK-NC-096",
+      "status": "active",
+      "category": "distributed_write",
+      "source_anchor": "spec/v1/zh/sync/federation.md#human-historical-signer-fact-transport-normative",
+      "section_digest": "sha256:e778711f3d2e1a164983e4457bb24f1296d9375620c986f1e7866b5237d92d6e",
+      "requirement": "Human historical signer fact transport (Normative)",
+      "testability_grade": "audit",
+      "test_plan": "Executed in the isolated candidate: independent canonical preimage/content-ID recomputation and real public conformance Ed25519 bytes for Human Event, sole Origin wrapper (including a second authentic same-key/different-revision source), GovCommit fact digest and dual-signed handoff transcript; 17 schema cases and 208 signed-leaf mutations, including validly re-signed incomplete handoff inventory and source replacement, passed. Official spec generation, closure, version, full check, determinism, all 169 mandatory CI self-test modules, Naming require-full and Node cross-reference gates passed. These conformance transcripts do not prove real original PCR admission lineage, historical Service/DID authority chains, PostgreSQL atomic freeze/retain/archive, complete Direct4 or MLS business admission, live peer bootstrap/coldscan/backfill, fenced handoff transfer or native/full/S3 behavior. Those audit obligations remain pending; no fabricated accepted outcome, current-key backfill or implementation conformance claim is licensed."
+    },
+    {
+      "clause_id": "AK-NC-097",
+      "status": "active",
+      "category": "privacy",
+      "source_anchor": "spec/v1/zh/identity/key-management.md#foreign-business-signer-metadata-boundary-normative",
+      "section_digest": "sha256:e97cae4af87063c4f395678a830b8fd600ba650b74a4b26c573b98585cadd8b1",
+      "requirement": "Foreign business signer metadata boundary (Normative)",
+      "testability_grade": "audit",
+      "test_plan": "Executed in the isolated candidate: independent canonical preimage/content-ID recomputation and real public conformance Ed25519 bytes for Human Event, sole Origin wrapper (including a second authentic same-key/different-revision source), GovCommit fact digest and dual-signed handoff transcript; 17 schema cases and 208 signed-leaf mutations, including validly re-signed incomplete handoff inventory and source replacement, passed. Official spec generation, closure, version, full check, determinism, all 169 mandatory CI self-test modules, Naming require-full and Node cross-reference gates passed. These conformance transcripts do not prove real original PCR admission lineage, historical Service/DID authority chains, PostgreSQL atomic freeze/retain/archive, complete Direct4 or MLS business admission, live peer bootstrap/coldscan/backfill, fenced handoff transfer or native/full/S3 behavior. Those audit obligations remain pending; no fabricated accepted outcome, current-key backfill or implementation conformance claim is licensed."
     }
   ]
 }

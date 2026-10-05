@@ -97,7 +97,7 @@ class ProofContextClosureLintTest(unittest.TestCase):
     def test_local_directory_proof_cannot_move_back_to_contexts(self) -> None:
         def move_to_contexts(document) -> None:
             row = self._domain_row(
-                document, "ak.directory_resolve_target_request_proof.v1"
+                document, "ak.mimi_reporter_authority_proof.v1"
             )
             document["domain_separations"].remove(row)
             moved = copy.deepcopy(row)
@@ -138,7 +138,7 @@ class ProofContextClosureLintTest(unittest.TestCase):
     def test_outer_binding_field_requires_explicit_injection(self) -> None:
         def drop_injection(document) -> None:
             row = self._domain_row(
-                document, "ak.directory_resolve_handle_request_proof.v1"
+                document, "ak.mimi_reporter_authority_proof.v1"
             )
             row["injected_fields"] = [
                 entry for entry in row["injected_fields"] if entry["field"] != "issuer"
@@ -279,51 +279,34 @@ class ProofContextClosureLintTest(unittest.TestCase):
         self.assertAnyContains(errors, "consumer_operation is not a registered operation")
 
     def test_dto_container_may_not_pack_families_behind_one_proof_node(self) -> None:
-        """The directory state: 5 request families, one shared proofs alias, one row."""
-
+        families = {
+            "mimi_identifier_query_request_body": "ak.mimi_identifier_query_request_proof.v1",
+            "mimi_identifier_query_outcome": "ak.mimi_identifier_query_outcome_proof.v1",
+            "mimi_key_material_request_body": "ak.mimi_key_material_request_proof.v1",
+            "mimi_key_material_outcome": "ak.mimi_key_material_outcome_proof.v1",
+            "mimi_request_consent_request_body": "ak.mimi_request_consent_request_proof.v1",
+        }
         def repack_registry(document) -> None:
-            for context in (
-                "ak.directory_resolve_target_request_proof.v1",
-                "ak.directory_resolve_organization_request_proof.v1",
-                "ak.directory_resolve_handle_request_proof.v1",
-                "ak.directory_resolve_agent_selector_request_proof.v1",
-                "ak.directory_list_handles_for_subject_request_proof.v1",
-            ):
+            for context in families.values():
                 self._drop_row(document, context)
-                document["domain_separations"] = [
-                    row
-                    for row in document["domain_separations"]
-                    if row.get("domain") != context
-                ]
-            document["contexts"].append(
-                {
-                    "context": "ak.directory_operation_proof.v1",
-                    "object_family": "directory_operation",
-                    "binding_fields": ["payload_digest", "issuer", "operation_id"],
-                    "defined_in": "zh/discovery/discovery-directory.md",
-                    "schema_ref": "schemas/directory-operations.schema.json",
-                }
-            )
-
+            document["contexts"].append({
+                "context": "ak.mimi_packed_operation_proof.v1",
+                "object_family": "mimi_packed_operation",
+                "binding_fields": ["payload_digest", "issuer", "operation_id"],
+                "defined_in": "zh/sync/federation.md",
+                "schema_ref": "schemas/mimi-operations.schema.json",
+            })
         def repack_schema(document) -> None:
-            document["$defs"]["proofs"] = {
-                "type": "array",
-                "items": {"$ref": "./event-envelope.schema.json#/$defs/proof"},
-                "minItems": 1,
-            }
-            for family in DIRECTORY_PROOF_FAMILIES:
+            document["$defs"]["proofs"] = {"type": "array", "items": {"$ref": "./event-envelope.schema.json#/$defs/proof"}, "minItems": 1}
+            for family in families:
                 node = document["$defs"][family]
-                node.pop("x-arkret-signature-domain")
+                node.pop("x-arkret-proof-context")
+                node["properties"].pop("proof", None)
                 node["properties"]["proofs"] = {"$ref": "#/$defs/proofs"}
-
-        errors = self._run_with_mutations(
-            {
-                REGISTRY: repack_registry,
-                SCHEMAS / "directory-operations.schema.json": repack_schema,
-            }
-        )
+        errors = self._run_with_mutations({REGISTRY: repack_registry, SCHEMAS / "mimi-operations.schema.json": repack_schema})
         self.assertAnyContains(errors, "is a packed shared-proof leaf")
         self.assertAnyContains(errors, "5 object families")
+
 
     def test_each_dto_request_family_needs_its_own_row(self) -> None:
         """Dropping one per-family row must not fall back to a sibling family's context."""

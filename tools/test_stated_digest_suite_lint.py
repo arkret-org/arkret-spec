@@ -20,7 +20,6 @@ SCHEMA_NAMES = (
     "service-operation-dtos.schema.json",
     "erasure-verification-stub.schema.json",
     "realm-genesis.schema.json",
-    "event-batch-receipt.schema.json",
 )
 
 
@@ -95,14 +94,12 @@ class StatedDigestSuiteLintTest(unittest.TestCase):
         errors = self._lint("realm-genesis.schema.json", mutate)
         self.assertTrue(any("must not restore derived device_key_digest" in error for error in errors), errors)
 
-    def test_receipt_key_digest_multi_suite_fails(self) -> None:
-        def mutate(schema) -> None:
-            schema["$defs"]["pcr_genesis_scope"]["properties"]["hpke_key_digest"]["$ref"] = (
-                "./account-operations.schema.json#/$defs/digest"
-            )
+    def test_realm_commit_fact_digest_is_fixed_sha256(self) -> None:
+        schema = core.parse_json_text((SCHEMA_DIR / "realm-commit.schema.json").read_text())
+        self.assertEqual(schema["properties"]["producer_signer_fact_digest"]["$ref"], "./account-operations.schema.json#/$defs/sha256_digest")
+        digest = core.parse_json_text((SCHEMA_DIR / "account-operations.schema.json").read_text())["$defs"]["sha256_digest"]
+        self.assertEqual(digest["pattern"], "^sha256:[0-9a-f]{64}$")
 
-        errors = self._lint("event-batch-receipt.schema.json", mutate)
-        self.assertTrue(any("hpke_key_digest must remain fixed SHA-256" in error for error in errors), errors)
 
 
 if __name__ == "__main__":

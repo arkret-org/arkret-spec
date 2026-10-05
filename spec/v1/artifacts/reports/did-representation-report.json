@@ -1806,6 +1806,16 @@
       ]
     },
     {
+      "schema_path": "authority-commit-operations.schema.json#/$defs/human_historical_signer_fact/properties/verification_method",
+      "property_name": "verification_method",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_url",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "pattern:^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
+      ]
+    },
+    {
       "schema_path": "authority-commit-operations.schema.json#/$defs/membership_compensation_delegation_core/properties/executor_id",
       "property_name": "executor_id",
       "semantic_category": "responsibility_identity_material",
@@ -4813,6 +4823,36 @@
       "external_literal_owner": false,
       "terminal_signature": [
         "ref:account_id"
+      ]
+    },
+    {
+      "schema_path": "keys-operations.schema.json#/$defs/forward_device_projection_attestation_core/properties/account_id",
+      "property_name": "account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
+      ]
+    },
+    {
+      "schema_path": "keys-operations.schema.json#/$defs/human_event_authorization/properties/destination_service_id",
+      "property_name": "destination_service_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "keys-operations.schema.json#/$defs/human_event_authorization/properties/verification_method",
+      "property_name": "verification_method",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_url",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_url"
       ]
     },
     {

@@ -95,41 +95,28 @@ class RealmJoinLocatorCarriersGateTest(unittest.TestCase):
             with self.subTest(mutate=mutate):
                 self.assert_red(mutate, "directly referencing")
 
-    def test_directory_three_carriers_directly_ref_canonical_core(self) -> None:
-        for definition in (
-            "realm_preview",
-            "directory_realm_resolution_outcome",
-            "directory_target_resolution_outcome",
-        ):
-            with self.subTest(definition=definition):
-                self.assert_red(
-                    lambda d, definition=definition: d["directory"]["$defs"][definition]["properties"]["join_candidates"]["items"].__setitem__("$ref", "./other.schema.json"),
-                    "directly referencing",
-                )
+    def test_directory_resolution_uses_public_metadata_entry(self) -> None:
+        directory = self.documents["directory"]["$defs"]
+        self.assertEqual(directory["directory_realm_resolution_outcome"], {"$ref": "#/$defs/public_realm_directory_entry"})
+        self.assertNotIn("realm_preview", directory)
+        self.assertNotIn("directory_target_resolution_outcome", directory)
 
-    def test_directory_three_carriers_require_minimum_one(self) -> None:
-        for definition in (
-            "realm_preview",
-            "directory_realm_resolution_outcome",
-            "directory_target_resolution_outcome",
-        ):
-            with self.subTest(definition=definition):
-                self.assert_red(
-                    lambda d, definition=definition: d["directory"]["$defs"][definition]["properties"]["join_candidates"].pop("minItems"),
-                    "must be a 1..8",
-                )
 
-    def test_directory_three_carriers_cap_at_eight(self) -> None:
-        for definition in (
-            "realm_preview",
-            "directory_realm_resolution_outcome",
-            "directory_target_resolution_outcome",
-        ):
-            with self.subTest(definition=definition):
-                self.assert_red(
-                    lambda d, definition=definition: d["directory"]["$defs"][definition]["properties"]["join_candidates"].__setitem__("maxItems", 9),
-                    "must be a 1..8",
-                )
+
+    def test_directory_public_entry_is_closed(self) -> None:
+        entry = self.documents["directory"]["$defs"]["public_realm_directory_entry"]
+        self.assertEqual(set(entry["properties"]), {"realm_id", "public_metadata", "indexed_at", "expires_at"})
+        self.assertFalse(entry["additionalProperties"])
+
+
+
+    def test_directory_search_cap_is_current_public_contract(self) -> None:
+        result = self.documents["directory"]["$defs"]["directory_realm_search_outcome"]
+        self.assertEqual(result["properties"]["realms"]["maxItems"], 100)
+        self.assertEqual(result["properties"]["realms"]["items"], {"$ref": "#/$defs/public_realm_directory_entry"})
+        self.assertFalse(result["additionalProperties"])
+
+
 
     def test_all_arrays_keep_unique_items_schema_floor(self) -> None:
         self.assert_red(
@@ -137,12 +124,13 @@ class RealmJoinLocatorCarriersGateTest(unittest.TestCase):
             "must be a 1..8",
         )
 
-    def test_directory_disclosure_field_stays_optional(self) -> None:
-        self.assertEqual(self.errors_after(lambda _: None), [])
-        self.assert_red(
-            lambda d: d["directory"]["$defs"]["realm_preview"]["required"].append("join_candidates"),
-            "optional for disclosure",
-        )
+    def test_directory_cannot_disclose_private_join_candidates(self) -> None:
+        entry = self.documents["directory"]["$defs"]["public_realm_directory_entry"]
+        self.assertNotIn("join_candidates", entry["properties"])
+        self.assertNotIn("join_candidates", entry["required"])
+        self.assertNotIn("authority_locator_hints", entry["properties"])
+
+
 
     def test_invite_and_intake_carriers_stay_required(self) -> None:
         mutations = (
@@ -158,7 +146,7 @@ class RealmJoinLocatorCarriersGateTest(unittest.TestCase):
         self.assertEqual(gate.realm_join_locator_array_errors([]), ["locator array item count must be within 1..8"])
         self.assertNotIn(
             "join_candidates",
-            self.documents["directory"]["$defs"]["realm_preview"]["required"],
+            self.documents["directory"]["$defs"]["public_realm_directory_entry"]["required"],
         )
 
     def test_exact_duplicate_cannot_hide_behind_unique_items(self) -> None:

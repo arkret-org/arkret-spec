@@ -31,6 +31,8 @@ class SignerKeyHistoricalCoordinateGateTest(unittest.TestCase):
                 gate.ERROR_MAPPING,
                 gate.VECTORS,
                 gate.FIXTURE,
+                gate.ARTIFACTS / "schemas" / "keys-operations.schema.json",
+                gate.ARTIFACTS / "schemas" / "realm-commit.schema.json",
             )
         }
         self.texts = {
@@ -274,6 +276,129 @@ class SignerKeyHistoricalCoordinateGateTest(unittest.TestCase):
             texts[gate.RUNNER.resolve()] = texts[gate.RUNNER.resolve()].replace("check_signer_key_historical_coordinate(lint)", "check_removed(lint)")
 
         self.assert_red(marker="phase-2 runner", text_mutate=mutate)
+
+
+    def test_foreign_fact_target_commit_cannot_enter_digest_projection(self) -> None:
+        def mutate(docs):
+            fact = docs[gate.AUTHORITY_SCHEMA.resolve()]["$defs"]["human_historical_signer_fact"]
+            fact["properties"]["commit_id"] = {"type": "string"}
+        self.assert_red(mutate, "minimal, required and closed")
+
+    def test_foreign_source_time_cannot_be_target_time(self) -> None:
+        def mutate(docs):
+            rule = docs[gate.CONTRACT.resolve()]["did_evidence_boundary_registry"]["governance_result_consumption_contract"]["foreign_human_historical_signer_delivery"]
+            rule["source_accepted_time"] = "target_commit.committed_at"
+        self.assert_red(mutate, "original authorization time")
+
+    def test_peer_fact_metadata_cannot_enter_self_scan(self) -> None:
+        def mutate(docs):
+            defs = docs[gate.AUTHORITY_SCHEMA.resolve()]["$defs"]
+            defs["stream_scan_outcome"]["properties"]["producer_signer_facts"] = {"type": "array"}
+        self.assert_red(mutate, "self scan must not acquire")
+
+    def test_directory_cannot_disclose_forward_source(self) -> None:
+        def mutate(docs):
+            path = (gate.ARTIFACTS / "schemas" / "keys-operations.schema.json").resolve()
+            docs[path]["$defs"]["device_projection_attestation_core"]["properties"]["event_authorization"] = {"type": "object"}
+        self.assert_red(mutate, "directory must remain closed")
+
+    def test_forward_cannot_omit_event_bound_source(self) -> None:
+        def mutate(docs):
+            path = (gate.ARTIFACTS / "schemas" / "keys-operations.schema.json").resolve()
+            docs[path]["$defs"]["forward_device_projection_attestation_core"]["required"].remove("event_authorization")
+        self.assert_red(mutate, "forward must require")
+
+
+    def test_foreign_human_real_signatures_recompute_independently(self) -> None:
+        transcript = self.documents[gate.FIXTURE.resolve()]["foreign_human_historical_signer_delivery"]["crypto_transcript"]
+        self.assertEqual(gate._foreign_human_transcript_errors(transcript), [])
+
+    def test_foreign_human_every_signed_leaf_mutation_is_rejected(self) -> None:
+        original = self.documents[gate.FIXTURE.resolve()]["foreign_human_historical_signer_delivery"]["crypto_transcript"]
+        def leaves(value, path=()):
+            if isinstance(value, dict):
+                for key, child in value.items():
+                    yield from leaves(child, path+(key,))
+            elif isinstance(value, list):
+                for key, child in enumerate(value):
+                    yield from leaves(child, path+(key,))
+            else:
+                yield path, value
+        for root in ["event", "origin_attestation", "fact", "commit", "handoff", "handoff_inventory", "alternate_authentic_origin_attestation", "alternate_fact", "handoff_fenced_imported_originals"]:
+            for path, value in leaves(original[root]):
+                with self.subTest(layer=root, path=path):
+                    changed = copy.deepcopy(original)
+                    cursor = changed[root]
+                    for key in path[:-1]:
+                        cursor = cursor[key]
+                    cursor[path[-1]] = (not value if isinstance(value, bool) else value+1 if isinstance(value, int) else 0 if value is None else value+"_changed")
+                    self.assertTrue(gate._foreign_human_transcript_errors(changed))
+
+    def test_same_event_same_key_second_authentic_origin_cannot_replace_governor_choice(self) -> None:
+        transcript = copy.deepcopy(self.documents[gate.FIXTURE.resolve()]["foreign_human_historical_signer_delivery"]["crypto_transcript"])
+        self.assertEqual(gate._foreign_human_transcript_errors(transcript), [])
+        transcript["origin_attestation"] = transcript["alternate_authentic_origin_attestation"]
+        transcript["origin_binding"] = transcript["alternate_origin_binding"]
+        transcript["fact"] = transcript["alternate_fact"]
+        self.assertIn("original_governor_fact_digest", gate._foreign_human_transcript_errors(transcript))
+
+    def test_forward_core_only_signed_preimage_is_not_wrapper_proof(self) -> None:
+        from tools.regenerate_foreign_human_signer_transcript import jws, sha, KEY_A_SEED
+        transcript = copy.deepcopy(self.documents[gate.FIXTURE.resolve()]["foreign_human_historical_signer_delivery"]["crypto_transcript"])
+        binding = copy.deepcopy(transcript["origin_binding"])
+        binding["payload_digest"] = sha(transcript["origin_attestation"]["attestation"])
+        transcript["origin_attestation"]["proof"]["jws"] = jws(binding, KEY_A_SEED)
+        errors = gate._foreign_human_transcript_errors(transcript)
+        self.assertTrue(any("InvalidSignature" in error for error in errors))
+
+    def test_commit_valid_station_signature_does_not_replace_content_id_check(self) -> None:
+        from tools.regenerate_detached_object_signature_kat import make_signature, KEY_A_SEED
+        transcript = copy.deepcopy(self.documents[gate.FIXTURE.resolve()]["foreign_human_historical_signer_delivery"]["crypto_transcript"])
+        commit = transcript["commit"]
+        commit["stream_position"] += 1
+        unsigned = {key:value for key,value in commit.items() if key != "signature"}
+        commit["signature"], _ = make_signature("ak.realm_commit_signature.v1", unsigned, commit["signature"]["verification_method"], KEY_A_SEED)
+        self.assertIn("commit_content_id", gate._foreign_human_transcript_errors(transcript))
+
+    def test_peer_scan_and_handoff_missing_original_facts_are_rejected(self) -> None:
+        original = self.documents[gate.FIXTURE.resolve()]["foreign_human_historical_signer_delivery"]["crypto_transcript"]
+        for field in ["peer_scan", "handoff_inventory"]:
+            transcript = copy.deepcopy(original)
+            if field == "peer_scan":
+                transcript[field]["producer_signer_facts"] = []
+                expected = "scan_exact_one_fact"
+            else:
+                transcript[field] = []
+                expected = "handoff_inventory_digest"
+            self.assertIn(expected, gate._foreign_human_transcript_errors(transcript))
+
+    def test_handoff_resigned_incomplete_inventory_cannot_replace_fenced_set(self) -> None:
+        from tools.regenerate_foreign_human_signer_transcript import sha, typed_id
+        from tools.regenerate_detached_object_signature_kat import make_signature, KEY_A_SEED, KEY_B_SEED
+        t = copy.deepcopy(self.documents[gate.FIXTURE.resolve()]["foreign_human_historical_signer_delivery"]["crypto_transcript"])
+        t["handoff_inventory"] = []
+        h = t["handoff"]
+        old_vm = h["old_authority_signature"]["verification_method"]
+        new_vm = h["new_authority_acceptance_signature"]["verification_method"]
+        h["historical_signer_facts_digest"] = sha([])
+        unsigned = {k:v for k,v in h.items() if k not in ["handoff_id", "old_authority_signature", "new_authority_acceptance_signature"]}
+        h["handoff_id"] = typed_id("realm_authority_handoff", unsigned)
+        unsigned = {k:v for k,v in h.items() if k not in ["old_authority_signature", "new_authority_acceptance_signature"]}
+        h["old_authority_signature"], _ = make_signature("ak.realm_authority_handoff_old_signature.v1", unsigned, old_vm, KEY_A_SEED)
+        h["new_authority_acceptance_signature"], _ = make_signature("ak.realm_authority_handoff_new_acceptance_signature.v1", unsigned, new_vm, KEY_B_SEED)
+        errors = gate._foreign_human_transcript_errors(t)
+        self.assertIn("handoff_inventory_exact_fenced_set", errors)
+        self.assertNotIn("handoff_inventory_digest", errors)
+        self.assertFalse(any("InvalidSignature" in error for error in errors))
+
+    def test_handoff_duplicate_and_extra_inventory_rejected(self) -> None:
+        original = self.documents[gate.FIXTURE.resolve()]["foreign_human_historical_signer_delivery"]["crypto_transcript"]
+        t = copy.deepcopy(original)
+        t["handoff_inventory"].append(copy.deepcopy(t["handoff_inventory"][0]))
+        self.assertIn("handoff_inventory_duplicate", gate._foreign_human_transcript_errors(t))
+        t = copy.deepcopy(original)
+        t["handoff_fenced_imported_originals"] = []
+        self.assertIn("handoff_inventory_exact_fenced_set", gate._foreign_human_transcript_errors(t))
 
 
 if __name__ == "__main__":

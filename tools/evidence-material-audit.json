@@ -1,12 +1,12 @@
 {
-  "version": 29,
+  "version": 30,
   "source_of_truth": false,
   "narrative_source": "spec/v1/zh/models/common-fields.md#r6-证据类名词分工",
   "scope": [
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 381,
+  "audited_occurrence_count": 382,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -1173,6 +1173,17 @@
       "occurrences": 1,
       "disposition": "qualifier",
       "reason": "Agent producer closure uses only actual signer dependencies; authority evidence never grants participation current. References address exact canonical roots and do not themselves carry material."
+    },
+    {
+      "file": "account-device-signer-evidence.schema.json",
+      "key": "forward_account_device_signer_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation"
+      ],
+      "reason": "Closed forward-only container combines the original Station attestation over the complete Event-bound immutable authorization source with the existing device verification proof. Directory evidence remains a distinct closed branch."
     }
   ]
 }

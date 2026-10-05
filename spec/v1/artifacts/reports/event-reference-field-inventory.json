@@ -7,7 +7,7 @@
   "generated_by": "tools/gen_event_reference_inventory.py",
   "description": "Complete schema-property inventory for Event ID/ref/digest fields. EventId is itself the complete suite-tagged cryptographic identity; no companion-digest wrapper or truncated identity class exists. External protocol event identifiers are classified separately and never enter the Arkret EventId value space.",
   "counts": {
-    "complete_event_id": 178,
+    "complete_event_id": 181,
     "digest_copy_or_commitment": 8,
     "external_event_namespace": 1
   },
@@ -322,6 +322,12 @@
       "schema": "authority-commit-operations.schema.json",
       "json_pointer": "/$defs/direct_conversation_founding_missing_dependency/oneOf/2/properties/source_event_ref",
       "field": "source_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "authority-commit-operations.schema.json",
+      "json_pointer": "/$defs/human_historical_signer_fact/properties/event_id",
+      "field": "event_id",
       "classification": "complete_event_id"
     },
     {
@@ -784,6 +790,18 @@
       "schema": "keys-operations.schema.json",
       "json_pointer": "/$defs/device_projection_attestation_core/properties/device_authorize_event_id",
       "field": "device_authorize_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "keys-operations.schema.json",
+      "json_pointer": "/$defs/forward_device_projection_attestation_core/properties/device_authorize_event_id",
+      "field": "device_authorize_event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "keys-operations.schema.json",
+      "json_pointer": "/$defs/human_event_authorization/properties/event_id",
+      "field": "event_id",
       "classification": "complete_event_id"
     },
     {

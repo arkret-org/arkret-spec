@@ -1277,6 +1277,144 @@
         }
       },
       "additionalProperties": false
+    },
+    "human_event_authorization": {
+      "type": "object",
+      "description": "Exact pre-admission Human source. accepted_at is the original authorization Commit time; no target Commit exists yet. All fields enter the original Station attestation payload digest. Never present in directory/current-query evidence.",
+      "required": [
+        "event_id",
+        "verification_method",
+        "destination_service_id",
+        "forward_body_digest",
+        "authorization_ref",
+        "revision",
+        "governance_generation",
+        "accepted_at"
+      ],
+      "properties": {
+        "event_id": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "verification_method": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        },
+        "destination_service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "forward_body_digest": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+        },
+        "authorization_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "revision": {
+          "$ref": "./typed-current-result.schema.json#/$defs/revision"
+        },
+        "governance_generation": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "accepted_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "forward_device_projection_attestation_core": {
+      "type": "object",
+      "description": "Forward-only closed same-cut Human device attestation. Original current projection fields plus a required exact Event-bound immutable authorization source. This is not a directory row or a grant.",
+      "required": [
+        "account_id",
+        "device_id",
+        "device_signing_key_did",
+        "hpke_key",
+        "device_authorize_event_id",
+        "authorized_generation_ref",
+        "device_status",
+        "attested_at",
+        "expires_at",
+        "authorization_window",
+        "event_authorization"
+      ],
+      "properties": {
+        "account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id",
+          "description": "Exact account owning the device projection. The proof controller MUST project exactly onto account_id.station_id; an attestation that verifies under any other Station key is not evidence about this account."
+        },
+        "device_id": {
+          "$ref": "#/$defs/device_id"
+        },
+        "device_signing_key_did": {
+          "$ref": "#/$defs/did_key"
+        },
+        "hpke_key": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "device_authorize_event_id": {
+          "$ref": "#/$defs/event_id",
+          "x-arkret-preimage-commitment": "fixed_event"
+        },
+        "authorized_generation_ref": {
+          "$ref": "./recovery-session.schema.json#/$defs/pcr_generation_ref"
+        },
+        "device_status": {
+          "const": "active",
+          "description": "This surface attests usable devices only. A revoked or fenced device is omitted from device_keys or reported through the non-enumerating failures shape, so the attested status is constant rather than a disclosure channel."
+        },
+        "attested_at": {
+          "$ref": "#/$defs/timestamp",
+          "description": "MUST be strictly earlier than expires_at and MUST equal proof.created_at."
+        },
+        "expires_at": {
+          "$ref": "#/$defs/timestamp",
+          "description": "Fresh authority_forward first-admission deadline: now MUST be earlier than expires_at; a new attempt MUST NOT reuse cached evidence. Exact already-accepted retry returns the original outcome before freshness checks. Original accepted historical verification uses original attested_at and MUST NOT reapply current TTL."
+        },
+        "authorization_window": {
+          "type": "object",
+          "required": [
+            "not_before",
+            "expires_at"
+          ],
+          "properties": {
+            "not_before": {
+              "$ref": "./time.schema.json#/$defs/timestamp"
+            },
+            "expires_at": {
+              "anyOf": [
+                {
+                  "$ref": "./time.schema.json#/$defs/timestamp"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "description": "Exact source device authorization window. null expiry means no time limit. This is distinct from attestation cache freshness; ordinary publication uses this window and applicable revocation closures."
+        },
+        "event_authorization": {
+          "$ref": "#/$defs/human_event_authorization"
+        }
+      },
+      "additionalProperties": false
+    },
+    "forward_device_projection_attestation": {
+      "type": "object",
+      "description": "authority_forward Human-only wrapper. Existing proof context and unique unsigned {attestation:core} projection; no new profile or proof context.",
+      "required": [
+        "attestation",
+        "proof"
+      ],
+      "properties": {
+        "attestation": {
+          "$ref": "#/$defs/forward_device_projection_attestation_core"
+        },
+        "proof": {
+          "$ref": "./principal-operations.schema.json#/$defs/signature"
+        }
+      },
+      "additionalProperties": false
     }
   }
 }

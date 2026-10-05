@@ -254,3 +254,15 @@ DID route 更新不得泄露隐藏 stream inventory，也不得取代已签 hand
 ### 8.5 Failure normalization
 
 错误响应必须避免区分 hidden/nonexistent/unauthorized Realm、Circle 或 Sidecar。
+
+## Human historical signer fact transport (Normative)
+
+committed_replication的每项沿现 committed_event_submission原四字段后追加producer_signer_fact。当原sourceCommit有producer_signer_fact_digest时 MUST 恰携一份fact；缺digest禁带fact，原Event仍完整逐字不变，approval_signatures、完整producer_device_evidence/Service audit闭包仍不复制。registered Atomic Direct四项复用相同nested载体，各事实与原四项同一materialization事务，无新receipt。local governor Human来源同样必须冻结/运输；不得因未走authority_forward而缺供材。
+
+现 ak.peer.committed_event.read.scan.v1 专用peer_stream_scan_outcome保committed_events/readable_floor/truncated顺序，最后required producer_signer_facts。每个合法Full且原Commit有digest的Human row恰一{target,producer_signer_fact}，顺序与page positions一致，target全四坐标等原Commit/Event；其它Fullproducer、withheld/redacted、不可读或无digest旧已签原件 row禁带。缺/重/额外/sibling/隐藏rowfacts整页零安装。扫描请求RFC9421签名不认证response metadata；消费者 MUST 独立验原GovCommit内容ID/签名/治理chain和factdigest、原Event Ed及合法披露，不能因请求signed或transport success便标verified。
+
+membership bootstrap从现签名snapshot＋获准stream tail补材，coldscan/backfill与后续普通replication沿同一原件/fact验证；snapshot current不替代原事实，无第三客户端target来源。self scan/AccountSubscribe wire形状不变，Station只在服务面验证并retain后供既有历史query。不能保留任何可安装Full Event/Commit却绕过fact检查的peer/bootstrap补材支路。
+
+原body/per-result/query/page预算不扩大；peer scan不足预算缩连续prefix，不跳position，replication减batch。Direct registered四项超预算全拒不得partial；原floor/history/membership/MLS/reference disclosure gates全保留。Outbox从原事务持久fact逐字构造，发送时原fanout basis仍需合法；source fact不延长投递权。
+
+本条款复用检验向量 `ak.vector.signer_key.historical_commit_coordinate.v1`；签名字节夹具仅证明密码学转录，不替代原接纳事务与实际交接验证。

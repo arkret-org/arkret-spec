@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-04.7",
+  "version": "2026-10-05.6",
   "source_of_truth": false,
-  "generated_at": "2026-10-04T07:34:07+08:00",
+  "generated_at": "2026-10-05T19:43:32+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -2784,16 +2784,18 @@
         ]
       },
       "response": {
-        "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_outcome",
+        "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_stream_scan_outcome",
         "schema_kind": "object",
         "required": [
           "committed_events",
-          "truncated"
+          "truncated",
+          "producer_signer_facts"
         ],
         "properties": [
           "committed_events",
           "readable_floor",
-          "truncated"
+          "truncated",
+          "producer_signer_facts"
         ],
         "closed": true
       }
@@ -3109,7 +3111,8 @@
           "handoff",
           "final_stream_heads",
           "snapshot",
-          "authority_bundle"
+          "authority_bundle",
+          "historical_signer_facts"
         ],
         "closed": true
       },
@@ -3138,6 +3141,7 @@
           "from_service_id",
           "to_service_id",
           "final_stream_heads_digest",
+          "historical_signer_facts_digest",
           "snapshot_ref",
           "change_event_ref",
           "change_commit_id",

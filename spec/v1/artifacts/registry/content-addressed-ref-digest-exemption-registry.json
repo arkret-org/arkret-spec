@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-29.1",
+  "version": "2026-10-06.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-29T03:11:42+08:00",
+  "generated_at": "2026-10-06T01:49:40+08:00",
   "description": "Closed per-field exemption registry for zh/conformance/encoding.md 4.0.1. A closed object that carries a complete content-addressed typed ref (an id_kind_registry special form marked content_addressed, with a pattern that is exactly that one form) already carries the suite and every digest octet of the referenced bytes, so any sibling digest property in that object is a forbidden wire mirror unless this registry states the distinct preimage it commits to. Rows are keyed by (schema file, json path of the properties object, digest field). content_addressed_refs must equal the current set of in-scope content-addressed ref properties in that object so a later ref addition forces a fresh ruling. Every row is a ruling: there is no undecided kind.",
   "registry_rules": {
     "exemption_id_pattern": "^ak\\.exemption\\.sibling_digest\\.[a-z0-9_]+\\.v[0-9]+$",
@@ -170,6 +170,39 @@
       },
       "preimage": "Digest of the service DID log head at version_id; the receipt id is SHA-256(canonical_json(receipt claims))",
       "spec_anchor": "spec/v1/zh/identity/identity-did.md"
+    },
+    {
+      "exemption_id": "ak.exemption.sibling_digest.handoff_historical_signer_facts.v1",
+      "status": "active",
+      "kind": "distinct_preimage",
+      "subject": {
+        "schema_file": "schemas/realm-authority-handoff.schema.json",
+        "json_path": "$.properties",
+        "digest_field": "historical_signer_facts_digest",
+        "content_addressed_refs": [
+          "handoff_id",
+          "snapshot_ref",
+          "change_commit_id"
+        ]
+      },
+      "preimage": "SHA256 of the canonical sorted complete original target/fact inventory, not the body addressed by handoff_id, the current snapshot or the change Commit; both existing handoff signature projections commit this distinct migration inventory.",
+      "spec_anchor": "spec/v1/zh/sync/authority-commit-log.md"
+    },
+    {
+      "exemption_id": "ak.exemption.sibling_digest.realm_commit_producer_signer_fact.v1",
+      "status": "active",
+      "kind": "distinct_preimage",
+      "subject": {
+        "schema_file": "schemas/realm-commit.schema.json",
+        "json_path": "$.properties",
+        "digest_field": "producer_signer_fact_digest",
+        "content_addressed_refs": [
+          "commit_id",
+          "previous_commit_ref"
+        ]
+      },
+      "preimage": "SHA256(RFC8785_JCS(human_historical_signer_fact)) of the immutable original Human authorization source, excluding business target Commit ID and position. This is distinct from both the complete unsigned Commit body addressed by commit_id and the preceding Commit addressed by previous_commit_ref.",
+      "spec_anchor": "spec/v1/zh/sync/authority-commit-log.md"
     }
   ]
 }

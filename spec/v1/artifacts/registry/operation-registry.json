@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-05.4",
+  "version": "2026-10-06.1",
   "source_of_truth": false,
-  "generated_at": "2026-10-05T19:44:53+08:00",
+  "generated_at": "2026-10-06T01:26:43+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -1628,11 +1628,11 @@
       "http": "POST /_arkret/peer/streams/scan",
       "grpc": "PeerStreams/Scan",
       "mq": "peer.streams.read.scan",
-      "notes": "Replicate one visibility-authorized stream from its current governance Station.",
+      "notes": "Replicate one visibility-authorized stream from its current governance Station. Full digest-bearing Human rows carry original Commit-bound immutable facts; original source Ed/coordinates/time are verified and atomically retained, including bootstrap tail and cold backfill. No PCR history or current-key reconstruction.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request",
-      "response_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_outcome"
+      "response_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_stream_scan_outcome"
     },
     {
       "operation_id": "ak.peer.invites.command.submit.v1",

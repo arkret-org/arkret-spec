@@ -60,7 +60,7 @@ class TypedPairSubjectTest(unittest.TestCase):
         ]
         self.assertEqual(
             sorted(kind for kind, _, _ in observed),
-            ["ak.strand.move", "ak.strand.reorder"],
+            ["ak.strand.move", "ak.strand.move", "ak.strand.reorder"],
         )
         for kind, family, selector in observed:
             self.assertEqual(family, "strand_position", kind)

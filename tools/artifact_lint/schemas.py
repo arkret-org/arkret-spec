@@ -3717,6 +3717,19 @@ REANCHOR_SCOPE_LOCAL_FIELDS = (
 
 def check_account_identity_carrier_closure(lint: Lint) -> None:
     """Prevent known account/actor carriers from falling back to bare DID keys."""
+    payload_path = ARTIFACTS / "schemas" / "event-payload.schema.json"
+    reanchor = load_json(lint, payload_path).get("$defs", {}).get("device_reanchor_payload", {})
+    props = reanchor.get("properties", {})
+    required = reanchor.get("required", [])
+    if props.get("account_id") != {"$ref": "./common-ids.schema.json#/$defs/account_id"} or "account_id" not in required:
+        lint.fail(payload_path, "device_reanchor_payload must require the exact AccountId")
+    for field in (*REANCHOR_RETIRED_AUTHORITY_FIELDS, "station_id", "did_core_id"):
+        if field in props or field in required:
+            lint.fail(payload_path, "device_reanchor_payload must not restore split or retired authority selectors")
+    for field in ("previous_device_generation", "new_device_generation"):
+        if field not in required or props.get(field, {}).get("type") != "integer":
+            lint.fail(payload_path, "device_reanchor_payload requires canonical integer device generation CAS")
+
     targets = (
         ("websocket-frame", "/$defs/events_open_parameters/properties/actor_ids/items", "actor_id"),
         ("service-operation-dtos", "/$defs/EventsQueryPostRequestBody/properties/actor_ids/items", "actor_id"),
@@ -3768,96 +3781,7 @@ def check_account_identity_carrier_closure(lint: Lint) -> None:
         lint.fail(payload_path, "membership_payload must not restore a routing carrier")
 
 
-def check_device_reanchor_payload_receipt_binding(lint: Lint) -> None:
-    """The re-anchor receipt scope and its payload must select the same authority."""
-    payload_path = ARTIFACTS / "schemas" / "event-payload.schema.json"
-    receipt_path = ARTIFACTS / "schemas" / "event-batch-receipt.schema.json"
-    payload_schema = load_json(lint, payload_path)
-    receipt_schema = load_json(lint, receipt_path)
-    if not isinstance(payload_schema, dict) or not isinstance(receipt_schema, dict):
-        return
 
-    payload = payload_schema.get("$defs", {}).get("device_reanchor_payload")
-    scope = receipt_schema.get("$defs", {}).get("device_reanchor_scope")
-    if not isinstance(payload, dict):
-        lint.fail(payload_path, "$defs.device_reanchor_payload is missing")
-        return
-    if not isinstance(scope, dict):
-        lint.fail(receipt_path, "$defs.device_reanchor_scope is missing")
-        return
-
-    payload_props = payload.get("properties", {})
-    scope_props = scope.get("properties", {})
-    payload_required = set(payload.get("required", []))
-    scope_required = set(scope.get("required", []))
-
-    for name in ("reanchor_digest", "replacement_authorize_digest"):
-        if name in scope_props or name in scope_required:
-            lint.fail(
-                receipt_path,
-                f"$defs.device_reanchor_scope.{name} duplicates the digest encoded by the unique typed events[] item",
-            )
-
-    pcr_scope = receipt_schema.get("$defs", {}).get("pcr_genesis_scope")
-    if isinstance(pcr_scope, dict):
-        pcr_props = pcr_scope.get("properties", {})
-        pcr_required = set(pcr_scope.get("required", []))
-        for name in ("create_digest", "founding_authorize_digest"):
-            if name in pcr_props or name in pcr_required:
-                lint.fail(
-                    receipt_path,
-                    f"$defs.pcr_genesis_scope.{name} duplicates the digest encoded by the unique typed events[] item",
-                )
-
-    for name in REANCHOR_RETIRED_AUTHORITY_FIELDS:
-        if name in payload_props:
-            lint.fail(
-                payload_path,
-                f"$defs.device_reanchor_payload.{name} restores a retired DID-version authority field; "
-                "the base re-anchor branch selects authority only through exact AccountId and the "
-                "PCR-local device generation CAS",
-            )
-        if name in scope_props:
-            lint.fail(
-                receipt_path,
-                f"$defs.device_reanchor_scope.{name} restores a retired DID-version authority field; "
-                "the receipt scope MUST mirror the payload authority selection",
-            )
-
-    for path, props, required in ((payload_path, payload_props, payload_required), (receipt_path, scope_props, scope_required)):
-        if "account_id" not in required or props.get("account_id", {}).get("$ref") != "./common-ids.schema.json#/$defs/account_id":
-            lint.fail(path, "device re-anchor authority must require canonical AccountId")
-        if "principal_id" in props or "station_id" in props:
-            lint.fail(path, "device re-anchor authority must not restore a split account pair")
-
-    shared = [name for name in scope_props if name not in REANCHOR_SCOPE_LOCAL_FIELDS]
-    for name in sorted(shared):
-        if name not in payload_props:
-            lint.fail(
-                receipt_path,
-                f"$defs.device_reanchor_scope.{name} has no counterpart in device_reanchor_payload; "
-                "a receipt MUST NOT commit an authority field the covered Event does not carry",
-            )
-            continue
-        if name not in scope_required or name not in payload_required:
-            lint.fail(
-                receipt_path,
-                f"$defs.device_reanchor_scope.{name} must be required on both the payload and the "
-                "receipt scope so the two can only be compared exactly",
-            )
-        if scope_props[name].get("$ref") != payload_props[name].get("$ref"):
-            lint.fail(
-                receipt_path,
-                f"$defs.device_reanchor_scope.{name} does not reuse the payload $ref; a second shape "
-                "for the same authority field allows silent substitution",
-            )
-
-    for name in ("account_id", "previous_device_generation", "new_device_generation"):
-        if name not in scope_required:
-            lint.fail(
-                receipt_path,
-                f"$defs.device_reanchor_scope must require {name} to bind the exact re-anchored authority",
-            )
 
 
 

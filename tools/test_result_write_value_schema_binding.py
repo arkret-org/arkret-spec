@@ -156,9 +156,9 @@ class ResultWriteValueSchemaBindingTest(unittest.TestCase):
             write["value_schema_ref"] = f"{TYPED_CURRENT_RESULT}#/$defs/member_state_result"
 
         reported = self._newly_reported({EVENT_KINDS: mutate})
-        self.assertEqual(len(reported), 4, reported)
+        self.assertEqual(len(reported), 5, reported)
         self.assertTrue(any("member 'membership' is not declared" in line for line in reported))
-        for owed in ("'selector'", "'revision'", "'value'"):
+        for owed in ("'selector'", "'revision'", "'source_stream_ref'", "'value'"):
             self.assertTrue(
                 any(f"does not write {owed}" in line for line in reported), (owed, reported)
             )

@@ -1418,3 +1418,15 @@ Delegated device 不引入新的 MLS recipient endpoint 分支：它就是普通
 - **不得向上委托**：delegated device MUST NOT 授权任何新设备——它 MUST NOT 作为 `accepted_device` 分支的批准方，也 MUST NOT 签发第二条 `applet_managed_delegation` authorize。managed principal 的设备集合只能由其 controller method 直接授权。
 - **不得跨 namespace**：delegated device 的 to-device 权限 MUST 只覆盖其 Applet namespace 内的 actor。
 - **不进入 PCR recovery**：`applet_managed_control` PCR 不使用 `pcr_recovery` 分支。Applet 丢失 delegated device 私钥时，正确做法是 revoke 该设备并授权一台新的 delegated device；MUST NOT 为 managed principal 发起 human recovery session 或 factor transcript。
+
+## Foreign Human event authorization source (Normative)
+
+本节仅扩 Human device 的现 `authority_forward` 来源；目录、current keys/query 与其它 producer MUST NOT 携 `event_authorization`。使用现 account-device-signer-evidence schema 的 `forward_account_device_signer_evidence`，根仍为 device_projection_attestation/service_resolution；现目录定义保持 closed，不复制 PCR 原件。
+
+forward-only attestation core 在 authorization_window 后 MUST 携 required closed `event_authorization`，顺序 event_id、verification_method、destination_service_id、forward_body_digest、authorization_ref、revision、governance_generation、accepted_at。origin MUST 在本地 PCR 同一锁定授权 cut 取得完整 Account/device/method/key、原 accepted authorize 四坐标、该 cut current revision Commit 与 PCR治理generation、原授权窗口及原授权 Commit.committed_at。accepted_at MUST NOT 取业务目标 Commit、Event.created_at、attested_at 或后来 current 的时间。业务 Event 此时未提交，MUST NOT 造业务 CommitId/position。
+
+origin MUST 真验 exact producer Event/proof 后签完整来源；forward_body_digest 是 SHA256(JCS 完整 peer_submit_request 仅删除 producer_device_evidence))，destination_service_id 等于实际认证 Destination-Service-ID。原字段与新增 source 全部进入现 proof context 的 payload_digest；唯一 unsigned projection 是完整 wrapper 只删 proof，保留 {attestation:complete_core}，MUST NOT 改成 core-only 或尝试两个预像。Service原历史 method/proof 与 attested_at 绑定，source窗口及原准入当前门保持独立。首次 forward 仍实时 current准入；accepted历史按原时点验原件，不因今天 attestation过期撤销原accepted事实。
+
+origin签发/持久化 MUST 对同cut revision、授权原件、完整 Account/key/window 逐字复核；cut变化重prepare，禁止 later-current补。同步forward lost-response只逐字重发原body，新的尝试重取source；不得新增queued-forward ledger。governor从完整原evidence验证并冻最小fact，原evidence仍仅private accepted-at audit，不复制Service closure或PCR正文给成员。
+
+治理方 MUST 逐字核 event_authorization.event_id 等于完整目标 Event.event_id，verification_method 等于实际 producer proof 方法及 device fragment，完整 Account/device/key 等于 core 与 actual signer，destination_service_id 等于认证 Destination-Service-ID，forward_body_digest 等于收到的原 canonical body 只删 producer_device_evidence 后的摘要。authorization_ref.event_id MUST 等于 core.device_authorize_event_id；该 ref 的 stream 必须是此完整 Account 的原 PCR realm stream，四坐标必须对应 origin 同 cut 的原 accepted 授权事实。revision 是同 PCR stream 上本次 source cut 的 covering Commit，position 不得早于 authorizer position；PCR 治理 generation 与该 revision 一致，不能取 device generation 或业务 Realm generation。accepted_at 逐字等于原 authorizer Commit.committed_at；原授权窗口覆盖目标 Event/proof 时间及首次准入 now。上述关系必须由真实 origin 完整 signed 来源支持，governor 不得凭 payload 声明、本地非 owner PCR 或 later current 补足；任何关系缺失或冲突，首次准入零写。accepted exact retry 保持原优先顺序。

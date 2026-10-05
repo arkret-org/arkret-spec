@@ -28,7 +28,7 @@ class AccountIdentityCarrierClosureTest(unittest.TestCase):
         lint = core.Lint()
         with patch.object(schemas, "load_json", load):
             if reanchor:
-                schemas.check_device_reanchor_payload_receipt_binding(lint)
+                schemas.check_account_identity_carrier_closure(lint)
             else:
                 schemas.check_account_identity_carrier_closure(lint)
         return lint.errors
@@ -69,9 +69,9 @@ class AccountIdentityCarrierClosureTest(unittest.TestCase):
 
     def test_reanchor_cannot_omit_exact_account(self):
         def mutate(value):
-            value["$defs"]["device_reanchor_scope"]["required"].remove("account_id")
+            value["$defs"]["device_reanchor_payload"]["required"].remove("account_id")
 
-        self.assertTrue(self.check("event-batch-receipt.schema.json", mutate, reanchor=True))
+        self.assertTrue(self.check("event-payload.schema.json", mutate, reanchor=True))
 
     def test_get_subscription_uses_encoded_actor_objects(self):
         lint = core.Lint()
@@ -80,18 +80,17 @@ class AccountIdentityCarrierClosureTest(unittest.TestCase):
 
     def test_get_subscription_cannot_restore_bare_did_items(self):
         original = bindings.load_yaml
-
         def load(lint, path):
             value = copy.deepcopy(original(lint, path))
-            operation = value["paths"]["/_arkret/self/events/subscribe"]["get"]
+            operation = bindings.openapi_operations_by_id(value)["ak.self.committed_event.stream.subscribe.v1"]
             parameter = next(p for p in operation["parameters"] if p.get("name") == "actor_ids")
             parameter["schema"]["items"] = {"$ref": "../schemas/common-ids.schema.json#/$defs/did_core_id"}
             return value
-
         lint = core.Lint()
         with patch.object(bindings, "load_yaml", load):
             bindings.check_openapi_core_selector_constraints(lint)
         self.assertTrue(any("JCS ActorId" in error for error in lint.errors), lint.errors)
+
 
 
 if __name__ == "__main__":

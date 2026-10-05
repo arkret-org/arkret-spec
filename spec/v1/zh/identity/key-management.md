@@ -1394,3 +1394,7 @@ key authorization/lifecycle/generation 的确认性可由合法 PCR 治理结果
 本章原始 genesis/controller delegation、实际 producer 历史公钥与签名、method-native 身份根、独立 Account gate
 和 Agent authority attestation 仍各自验证；目标 Realm governance Station 或普通 Station service key 不因此取得 PCR producer Event 签名资格。
 稳定材料耐久共享，只验证新增事实；已知撤销立即失效相应当前资格，历史签名事实不由 current resolver 重建。
+
+## Foreign business signer metadata boundary (Normative)
+
+Foreign Human合法Full普通业务验签仅可取得 server-trusted-results 的最小human_historical_signer_fact（key、原授权四坐标/revision/PCRgeneration/源时点）；此窄metadata例外不许可下载/重放PCR/controlstream、PCR Event/Commit正文、predecessors、完整授权链、恢复材料或其它device目录，也不得成为普通backup读取前置。现exact current holder NativeAudit职责/访问门保持独立；目录/current-query不得携forward event_authorization，普通客户端只消费own-Station合法结果并独立真Ed验签，不持Service/PCRnative verifier或新browserkey。

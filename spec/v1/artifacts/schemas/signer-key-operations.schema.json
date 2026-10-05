@@ -92,7 +92,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Query-only key material. Identity and method are taken exclusively from the enclosing complete selector. authorization_ref, revision and governance_generation are all mandatory; if any cannot be verified the result is unavailable rather than partial success."
+      "description": "Shared resolved key shape for existing current Agent and historical Agent/Human roles; each enclosing selector/outcome retains its own authority and source rules. Only new ordinary Human historical delivery uses original governance Commit-bound immutable facts. Independent original authorization coordinates/revision/PCR governance generation remain mandatory where the enclosing role requires them; no current fallback or new target source."
     },
     "current_account_device_selector": {
       "type": "object",

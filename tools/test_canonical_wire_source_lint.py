@@ -19,7 +19,6 @@ SCHEMA_NAMES = (
     "agent-operations.schema.json",
     "agent-membership-cascade.schema.json",
     "account-data-encrypted-value.schema.json",
-    "event-batch-receipt.schema.json",
     "key-backup.schema.json",
     "key-backup-active-series.schema.json",
 )
@@ -107,27 +106,41 @@ class CanonicalWireSourceLintTest(unittest.TestCase):
         errors = self._lint("account-data-encrypted-value.schema.json", mutate)
         self.assertTrue(any("duplicates local digests" in error for error in errors), errors)
 
-    def test_receipt_item_digest_mirror_fails(self) -> None:
-        def mutate(schema) -> None:
-            schema["$defs"]["event_receipt_row"]["properties"]["event_digest"] = {"type": "object"}
+    def test_committed_replication_item_digest_mirror_fails(self) -> None:
+        from jsonschema import Draft202012Validator
+        from tools.generate_content_bound_event_id_fixture import schema_registry
+        fixture = core.parse_json_text((ROOT / "spec/v1/artifacts/fixtures/signer-key-historical-coordinate-fixture.json").read_text())
+        row = copy.deepcopy(fixture["foreign_human_historical_signer_delivery"]["crypto_transcript"]["replication"])
+        schema = core.parse_json_text((SCHEMA_DIR / "authority-commit-operations.schema.json").read_text())
+        validator = Draft202012Validator({"$ref": schema["$id"] + "#/$defs/committed_event_submission"}, registry=schema_registry())
+        self.assertEqual(list(validator.iter_errors(row)), [])
+        row["event_digest"] = {"type": "object"}
+        self.assertTrue(list(validator.iter_errors(row)))
 
-        errors = self._lint("event-batch-receipt.schema.json", mutate)
-        self.assertTrue(any("derive event_digest from event_id" in error for error in errors), errors)
 
-    def test_receipt_frontier_mirror_fails(self) -> None:
-        def mutate(schema) -> None:
-            schema["properties"]["frontier"] = {"type": "object"}
+    def test_committed_replication_frontier_mirror_fails(self) -> None:
+        from jsonschema import Draft202012Validator
+        from tools.generate_content_bound_event_id_fixture import schema_registry
+        fixture = core.parse_json_text((ROOT / "spec/v1/artifacts/fixtures/signer-key-historical-coordinate-fixture.json").read_text())
+        row = copy.deepcopy(fixture["foreign_human_historical_signer_delivery"]["crypto_transcript"]["replication"])
+        schema = core.parse_json_text((SCHEMA_DIR / "authority-commit-operations.schema.json").read_text())
+        validator = Draft202012Validator({"$ref": schema["$id"] + "#/$defs/committed_event_submission"}, registry=schema_registry())
+        self.assertEqual(list(validator.iter_errors(row)), [])
+        row["frontier"] = {"type": "object"}
+        self.assertTrue(list(validator.iter_errors(row)))
 
-        errors = self._lint("event-batch-receipt.schema.json", mutate)
-        self.assertTrue(any("must not claim an unscoped partial frontier" in error for error in errors), errors)
 
     def test_special_scope_digest_mirror_fails(self) -> None:
-        def mutate(schema) -> None:
-            scope = schema["$defs"]["device_reanchor_scope"]
-            scope["properties"]["reanchor_digest"] = {"type": "string"}
+        from jsonschema import Draft202012Validator
+        from tools.generate_content_bound_event_id_fixture import schema_registry
+        fixture = core.parse_json_text((ROOT / "spec/v1/artifacts/fixtures/signer-key-historical-coordinate-fixture.json").read_text())
+        row = copy.deepcopy(fixture["foreign_human_historical_signer_delivery"]["crypto_transcript"]["replication"])
+        schema = core.parse_json_text((SCHEMA_DIR / "authority-commit-operations.schema.json").read_text())
+        validator = Draft202012Validator({"$ref": schema["$id"] + "#/$defs/committed_event_submission"}, registry=schema_registry())
+        self.assertEqual(list(validator.iter_errors(row)), [])
+        row["reanchor_digest"] = {"type": "object"}
+        self.assertTrue(list(validator.iter_errors(row)))
 
-        errors = self._lint("event-batch-receipt.schema.json", mutate)
-        self.assertTrue(any("derive typed Event digests" in error for error in errors), errors)
 
     def test_key_backup_generation_string_fails(self) -> None:
         def mutate(schema) -> None:

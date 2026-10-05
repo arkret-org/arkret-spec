@@ -62,6 +62,10 @@
     "committed_at": {
       "$ref": "./time.schema.json#/$defs/timestamp"
     },
+    "producer_signer_fact_digest": {
+      "$ref": "./account-operations.schema.json#/$defs/sha256_digest",
+      "description": "SHA-256 of JCS human_historical_signer_fact; required by new ordinary Human-device business admission, forbidden for other producer/native/PCR branches. Optional in schema only for exact existing_original decode. Includes no target Commit identity; all finalized members enter existing Commit content-ID and detached signature projections."
+    },
     "signature": {
       "$ref": "./detached-object-signature.schema.json#/$defs/realm_commit_signature"
     }

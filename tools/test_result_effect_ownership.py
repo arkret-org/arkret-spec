@@ -5,6 +5,8 @@ from __future__ import annotations
 import copy
 import sys
 import unittest
+import tempfile
+from unittest.mock import patch
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -153,14 +155,21 @@ class ResultEffectOwnershipTest(unittest.TestCase):
 
     def test_owned_gap_requires_a_live_owner_report(self) -> None:
         def mutate(document: dict) -> None:
-            event_row(document, "ak.schema.define")["result_effect_ownership"] = {
+            row = event_row(document, "ak.schema.define")
+            row.pop("result_writes")
+            row["result_effect_ownership"] = {
                 "kind": "owned_gap",
                 "owner_report": "arkret-work/tasks/spec-open/no-such-report.md",
-                "closure_condition": "Register the complete typed result write contract and replace this temporary classification.",
+                "closure_condition": "Register ak.schema.define result_writes[] including family, selector, projection, value schema, guard and field source.",
             }
-
-        errors = self._new_errors(mutate)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve() / "arkret-spec"
+            root.mkdir()
+            (root.parent / "arkret-work").mkdir()
+            with patch.object(gate, "ROOT", root):
+                errors = self._new_errors(mutate)
         self.assertTrue(any("orphaned" in error for error in errors), errors)
+
 
     def test_owned_gap_requires_a_precise_closure_condition(self) -> None:
         def mutate(document: dict) -> None:

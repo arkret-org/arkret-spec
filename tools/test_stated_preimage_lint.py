@@ -126,16 +126,16 @@ class StatedPreimageLintTest(unittest.TestCase):
         )
 
     def test_schema_validation_placeholders_stay_exempt(self) -> None:
-        # That fixture asserts JSON-Schema admissibility only and its digests are
-        # shaped placeholders. The carve-out must be exactly this narrow: the key
-        # is still subject to the registration guard above.
+        # Inject a registered shape-only pair; existing cases no longer state bytes.
+        # No accepted outcome or cryptographic truth is asserted by this probe.
         def mutate(fixture):
-            node = self._first_node_with(fixture, "canonical_bytes_base64url")
-            assert node is not None and "digest" in node, node
-            node["digest"] = "sha256:" + "e" * 64
-
+            fixture["shape_only_registered_pair_probe"] = {
+                "canonical_bytes_base64url": "e30",
+                "digest": "sha256:" + "e" * 64,
+            }
         errors = self._lint_mutated_fixture("schema-validation-fixture.json", mutate)
         self.assertEqual(errors, [])
+
 
 
 if __name__ == "__main__":

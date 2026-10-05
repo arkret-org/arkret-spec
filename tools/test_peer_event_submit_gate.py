@@ -150,7 +150,7 @@ class PeerEventSubmitGateTest(unittest.TestCase):
 
     def test_replication_welcomes_are_only_for_mls_commit(self) -> None:
         def mutate(documents: dict) -> None:
-            rule = self.defs(documents)["committed_event_submission"]["allOf"][0]
+            rule = next(row for row in self.defs(documents)["committed_event_submission"]["allOf"] if "then" in row and "event_submission" in row["then"].get("properties", {}))
             rule["then"]["properties"]["event_submission"]["properties"]["event"]["properties"]["kind"]["const"] = "ak.mls.genesis"
 
         self.assert_red(mutate, "only for an ak.mls.commit source Event")
@@ -205,7 +205,7 @@ class PeerEventSubmitGateTest(unittest.TestCase):
                 "$ref": "./keys-operations.schema.json#/$defs/device_projection_attestation"
             }
 
-        self.assert_red(mutate, "directly reuse account-device-signer-evidence")
+        self.assert_red(mutate, "directly reuse closed forward account-device-signer-evidence")
 
     def test_producer_device_evidence_is_not_schema_required(self) -> None:
         def mutate(documents: dict) -> None:

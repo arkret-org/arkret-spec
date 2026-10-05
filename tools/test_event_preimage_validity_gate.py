@@ -111,7 +111,7 @@ class EventPreimageValidityGateTest(unittest.TestCase):
 
         errors = self._validity_errors(mutate)
         self.assertTrue(
-            any("$.refs" in error for error in errors),
+            any("$.semantic_refs" in error for error in errors),
             errors,
         )
 

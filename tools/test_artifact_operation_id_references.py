@@ -71,7 +71,7 @@ class ArtifactOperationIdReferenceTest(unittest.TestCase):
         ledger = EMPTY_LEDGER if ledger is None else ledger
 
         with tempfile.TemporaryDirectory() as raw:
-            root = Path(raw)
+            root = Path(raw).resolve()
             artifacts_root = root / "spec" / "v1" / "artifacts"
             (artifacts_root / "registry").mkdir(parents=True)
             (artifacts_root / "registry" / "operation-registry.json").write_text(
@@ -100,7 +100,7 @@ class ArtifactOperationIdReferenceTest(unittest.TestCase):
             lint = Lint()
             with mock.patch.object(gate, "ARTIFACTS", artifacts_root), mock.patch.object(
                 gate, "OPERATION_ID_REFERENCE_LEDGER_PATH", ledger_path
-            ), mock.patch.object(core, "ROOT", root):
+            ), mock.patch.object(core, "ROOT", root), mock.patch.object(gate, "ROOT", root):
                 gate.check_artifact_operation_id_references(lint)
             return lint.errors
 

@@ -245,8 +245,8 @@ def check_peer_event_submit_semantic_union(lint: Lint) -> None:
         )
         if kind_const != "ak.mls.genesis" or _required(genesis_rule.get("then", {})) != {"mls_genesis_material"} or _required(genesis_rule.get("else", {}).get("not", {})) != {"mls_genesis_material"}:
             _fail(lint, SCHEMA, "the Event kind alone must decide mls_genesis_material: required for ak.mls.genesis, forbidden otherwise")
-    if _ref_name(peer_properties.get("producer_device_evidence")) != "./account-device-signer-evidence.schema.json":
-        _fail(lint, SCHEMA, "authority_forward producer_device_evidence must directly reuse account-device-signer-evidence")
+    if _ref_name(peer_properties.get("producer_device_evidence")) != "./account-device-signer-evidence.schema.json#/$defs/forward_account_device_signer_evidence":
+        _fail(lint, SCHEMA, "authority_forward producer_device_evidence must directly reuse closed forward account-device-signer-evidence")
     if isinstance(branches, list):
         for item in branches:
             if isinstance(item, dict) and "producer_device_evidence" in _required(item):
@@ -265,8 +265,8 @@ def check_peer_event_submit_semantic_union(lint: Lint) -> None:
     committed = defs["committed_event_submission"]
     if _required(committed) != {"event_submission", "source_commit"} or committed.get("additionalProperties") is not False:
         _fail(lint, SCHEMA, "committed_event_submission must be closed EventAdmissionSubmission + source_commit")
-    if set(committed.get("properties", {})) != {"event_submission", "source_commit", "genesis_event_ref", "welcomes"}:
-        _fail(lint, SCHEMA, "committed_event_submission properties must be the Event pair plus the MLS Commit Genesis ref and welcomes carriers, with no echoes or hints")
+    if set(committed.get("properties", {})) != {"event_submission", "source_commit", "genesis_event_ref", "welcomes", "producer_signer_fact"}:
+        _fail(lint, SCHEMA, "committed_event_submission properties must be the Event pair plus the MLS Commit Genesis ref, welcomes and original Human fact carriers, with no echoes or hints")
     if _ref_name(committed.get("properties", {}).get("genesis_event_ref")) != "./common-ids.schema.json#/$defs/event_id":
         _fail(lint, SCHEMA, "committed_event_submission.genesis_event_ref must be a canonical EventId")
     genesis_rules = [

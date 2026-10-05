@@ -1178,3 +1178,7 @@ Conformance **MUST** 覆盖：
 synthetic glare accepted Event、跨双方 CAS、server next-action、successor Realm/Strand、timeout takeover、minimum-token 归一、server-allocated founding ID、reserved/materializing draft、min-service-DID coordinator 与 view-dependent effect digest **MUST** 由负例拒绝。
 
 closed schema 正反例见 `ak.vector.contact.peer_endpoint_selector.v1` 与 `current-signer-contact-endpoint-fixture.json`。
+
+## Direct founding Human historical source (Normative)
+
+现registered Direct四项的每个实际Human device producer MUST 按server-trusted-results新ordinary冻结职责，在原完整founding事务保原授权fact与GovCommitdigest，包含local governor Human为foreign member产生的四项。peer materialization复用committed_event_submission.producer_signer_fact，各item exact原件/事实核验同四项事务原子，缺任一fact零materialization，不新增receipt/独立Direct载体。四项不包含后续Bound Event；最小来源闭包不允许造Bound、绕原Contact/Direct审批与durable binding门，亦不宣称供材修复可单因解释S3后续无submit。

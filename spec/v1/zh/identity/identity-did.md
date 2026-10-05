@@ -1190,3 +1190,7 @@ Arkret v1 对 DID 实现要求如下：
 - `did_core_id` / `did` projection、resolution Event、Profile current projection 与选择性 RealmCommit/typed current result evidence MUST 有正负向 conformance coverage；身份等价只由相同 `did_core_id` 建立。
 - Normalized principal view MUST 保留 raw document hash、method-specific proof、current control keys、service bindings、arkret bindings 和 evidence；不得丢弃外部 DID 的原始语义。
 - 无法验证 method history 的 adapter 只能声明 limited trust profile，并且 MUST NOT 被默认用于高风险组织、service delegation 或长期 principal 创建。
+
+## Foreign Human signer metadata and NativeAudit (Normative)
+
+仅对当前recipient已获Full披露授权的普通业务target，服务可按server-trusted-results运输最小原Human signer fact。PCR authorization_ref/revision/generation是可关联元数据；factdigest亦可能确认已知候选内容，不是匿名化。此窄例外不授权peer读取PCR Event/Commit正文、history/链，也不替代exact current-holder NativeAudit。目录/current-device/current-key lookup保持原closed形状，MUST NOT携forward event_authorization；历史供材不改变admission/current authority，ordinary客户端不新增方法历史 verifier、profile或browserkey。

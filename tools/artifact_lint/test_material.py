@@ -245,7 +245,7 @@ _MATCHERS = {
 
 _IDENTITY_ROLES = {"test_material", "deployment_like_example", "derived_positive"}
 _WEBVH_VALUE_RE = re.compile(
-    r"did:webvh:[A-Za-z0-9][A-Za-z0-9._%:-]*(?:#[A-Za-z0-9._-]+)?"
+    r"did:webvh:[A-Za-z0-9][A-Za-z0-9._%:-]*(?:#[A-Za-z0-9._%:-]+)?"
 )
 
 
