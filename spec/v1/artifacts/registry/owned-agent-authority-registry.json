@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-05",
+  "version": "2026-10-05.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-05T19:21:55+08:00",
+  "generated_at": "2026-10-05T21:15:00+08:00",
   "normative_source": "zh/authz/owned-agent-authority.md",
   "source_kind": "owned_agent",
   "grant_event_kind": "ak.capability.grant",
@@ -43,6 +43,7 @@
     "explicit_confirmation": true,
     "all_grant_paths_current_controller_ceiling": true,
     "current_management_gate": true,
+    "agent_policy_payload_exact_cas": true,
     "parent_quota_shared_atomic": true,
     "full_actor_identity": true,
     "terminal_source": true,

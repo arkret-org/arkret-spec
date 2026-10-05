@@ -143,15 +143,14 @@ class PreimageIdentityExemptionLintTest(unittest.TestCase):
         errors = self._run(json_mutations={ENVELOPE_SCHEMA_PATH: mutate})
         self.assertTrue(any("cannot declare no_event_identity" in error for error in errors), errors)
 
-    def test_pointer_closure_is_34_candidates_in_13_files(self) -> None:
+    def test_pointer_closure_is_41_candidates_in_15_files(self) -> None:
         lint = Lint()
         candidates = lint_artifacts.preimage_reachable_properties(lint)
         self.assertEqual(lint.errors, [])
-        # 2210 removed ak.relation.resolve and its retained_event_id carrier;
-        # the read-only Directory decision later removed the announce request_id
-        # carrier, so the exact reachable closure fell from 36 to 34.
-        self.assertEqual(len(candidates), 34)
-        self.assertEqual(len({key[0] for key in candidates}), 13)
+        # Owned authority, controller membership and other accepted payload
+        # references expanded the published closure. Policy CAS adds no Event ID.
+        self.assertEqual(len(candidates), 41)
+        self.assertEqual(len({key[0] for key in candidates}), 15)
         self.assertFalse(any(key[0] == "approval-signature.schema.json" for key in candidates))
 
     def test_unreferenced_defs_sibling_is_not_walked(self) -> None:

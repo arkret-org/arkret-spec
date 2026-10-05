@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-05.4",
+  "version": "2026-10-05.5",
   "source_of_truth": true,
-  "generated_at": "2026-10-05T19:43:32+08:00",
+  "generated_at": "2026-10-05T21:15:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -763,8 +763,8 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/owned-agent-authority.md#3-管理限制与默认值",
-      "section_digest": "sha256:c8cf06d997cd7b1f8815076629c27543fc3bc1bb0ac3750d802cb878f6e9e194",
-      "requirement": "The default Agent management gate permits member self-service only with verified current absence of restrictions; policy controller selectors cover current and future Agents and user grants or local allow cannot override effective bans. Join-only restrictions preserve existing participation.",
+      "section_digest": "sha256:9d3ecfe0948671e30c8d44ad206775d1655e5e1b554d570b4ef71ba60b832133",
+      "requirement": "The default Agent management gate permits member self-service only with verified current absence of restrictions; controller selectors cover current and future Agents and user grants cannot override effective bans. Agent Policy payloads require nullable exact current CAS; other families forbid it and rebinding cannot bypass it. Join-only restrictions preserve existing participation.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.agent.interaction_mode.v1"

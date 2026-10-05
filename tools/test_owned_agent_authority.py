@@ -1,5 +1,6 @@
 """Mutation coverage for controller ceilings, withdrawal and management bans."""
 import copy
+import json
 import unittest
 from unittest.mock import patch
 from tools.artifact_lint import owned_agent_authority as gate
@@ -26,12 +27,55 @@ class OwnedAgentAuthorityTest(unittest.TestCase):
     def test_current_ceiling_and_management_cannot_be_removed(self):
         for key in ('all_grant_paths_current_controller_ceiling', 'current_management_gate',
                     'parent_quota_shared_atomic', 'read_delivery_material_current_gate',
-                    'issuer_revoke_without_capability', 'terminal_source'):
+                    'issuer_revoke_without_capability', 'terminal_source',
+                    'agent_policy_payload_exact_cas'):
             with self.subTest(key=key):
                 def mutate(name, doc):
                     if name == 'owned-agent-authority-registry.json':
                         doc['invariants'][key] = False
                 self.assertTrue(self.run_gate(mutate))
+
+    def test_agent_policy_cas_is_required_nullable_and_family_specific(self):
+        fixture = gate.load_json(gate.Lint(), gate.ARTIFACTS / 'fixtures/agent-participation-fixture.json')
+        source = json.loads(fixture['owned_agent_authority_contract']['schema_cases'][0]['canonical_json'])['grant']
+        body = {'policy_id': 'ak:policy:0198ff00-0000-7000-8000-000000000001',
+                'expected_revision': None,
+                'value': {'schema': 'ak.schema.policy.v1',
+                          'id': 'ak:policy:0198ff00-0000-7000-8000-000000000001',
+                          'realm_id': source['realm_id'], 'policy_kind': 'agent',
+                          'rules': [{'rule_id': 'ban', 'kind': 'agent', 'effect': 'deny',
+                                     'agent_target': {'kind': 'all'}, 'agent_operations': ['join']}],
+                          'default_effect': 'allow', 'created_by': source['issuer_id'],
+                          'created_at': source['issued_at']}}
+        validator = gate.schema_validator(gate.ARTIFACTS / 'schemas/event-payload.schema.json',
+                                          '#/$defs/policy_set_state_payload')
+        self.assertEqual(list(validator.iter_errors(body)), [])
+        body['expected_revision'] = {'commit_id': 'ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4', 'stream_position': 7}
+        self.assertEqual(list(validator.iter_errors(body)), [])
+        body['expected_revision'] = 7
+        self.assertTrue(list(validator.iter_errors(body)))
+        del body['expected_revision']
+        self.assertTrue(list(validator.iter_errors(body)))
+        body['value']['policy_kind'] = 'access'
+        body['value']['rules'] = [{'rule_id': 'allow', 'kind': 'action', 'effect': 'allow', 'actions': ['ak.message.create']}]
+        self.assertEqual(list(validator.iter_errors(body)), [])
+        body['expected_revision'] = None
+        self.assertTrue(list(validator.iter_errors(body)))
+
+    def test_agent_policy_cas_mutations_fail(self):
+        for field in ('then', 'else', 'if'):
+            with self.subTest(field=field):
+                def mutate(name, doc):
+                    if name == 'event-payload.schema.json':
+                        doc['$defs']['policy_set_state_payload'].pop(field)
+                self.assertTrue(self.run_gate(mutate))
+
+    def test_agent_policy_cas_fixture_cannot_be_removed(self):
+        def mutate(name, doc):
+            if name == 'agent-participation-fixture.json':
+                cases = doc['owned_agent_authority_contract']['schema_cases']
+                cases[:] = [c for c in cases if c['name'] != 'agent_policy_first_write_null']
+        self.assertTrue(self.run_gate(mutate))
 
     def test_bypass_verdicts_fail(self):
         names = ('independent_agent_grant_parent_zero', 'controller_ban_future_agent',

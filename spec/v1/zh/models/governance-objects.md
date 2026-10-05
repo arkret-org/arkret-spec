@@ -116,7 +116,10 @@ Schema id: `ak.schema.policy.v1`
 
 `PolicyRule` 的完整 closed schema（`rule_id` / `kind` / `effect` 必填，`kind` enum、各 kind 的条件字段、`kind=extension` 的 `schema_ref` / `profile_ref` / `params`）由 [`policy.schema.json`](../../artifacts/schemas/policy.schema.json) 的 `policy_rule` `$def` 权威定义；本节字段表不重复展开 rule 内部结构。
 
-`ak.policy.set` 的 payload 只允许 required `{policy_id,value}`。`value.schema` 直接由
+`ak.policy.set` 的 payload 通常只允许 required `{policy_id,value}`；唯一例外是 generic
+`policy_kind=agent`，其 payload 必须为 `{policy_id,expected_revision,value}`，required nullable
+`expected_revision` 的精确 CAS 与首次写证据按 [自有 Agent 授权 §3](../authz/owned-agent-authority.md)。
+其它 kind/family 禁止该字段，Event 顶层仍禁止 revision。`value.schema` 直接由
 [`policy_set_state_payload`](../../artifacts/schemas/event-payload.schema.json) 的 `oneOf` 选择：
 `ak.schema.policy.v1` 使用 [`policy.schema.json`](../../artifacts/schemas/policy.schema.json) root，
 `ak.schema.recovery_policy.v1` 使用 [`recovery-policy.schema.json`](../../artifacts/schemas/recovery-policy.schema.json)

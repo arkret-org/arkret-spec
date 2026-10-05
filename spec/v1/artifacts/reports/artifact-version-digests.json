@@ -213,9 +213,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/normative-clause-registry.json",
-      "version": "2026-10-05.4",
-      "generated_at": "2026-10-05T19:43:32+08:00",
-      "content_digest": "sha256:72889e3d7170ae2879c1e0b26a990104bfd80ca4d1dc5ea5225d3773ef33c1de"
+      "version": "2026-10-05.5",
+      "generated_at": "2026-10-05T21:15:00+08:00",
+      "content_digest": "sha256:907bf937950382b1063f404aad6109c94b06d12f0bb059dca32abc822dc02b05"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-bundle-closure-lock.json",
@@ -231,9 +231,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-10-05.10",
-      "generated_at": "2026-10-05T19:43:32+08:00",
-      "content_digest": "sha256:381f307e764180c7183ee19678c1e3bc87876494456b09c2856d4ba5e9eb3f48"
+      "version": "2026-10-05.11",
+      "generated_at": "2026-10-05T19:43:33+08:00",
+      "content_digest": "sha256:0006190bb3f27f66d73b82a540a081b7ea8c95bca9f3a8c72bf26a23c1c2c833"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
@@ -255,9 +255,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/owned-agent-authority-registry.json",
-      "version": "2026-10-05",
-      "generated_at": "2026-10-05T19:21:55+08:00",
-      "content_digest": "sha256:020bc690386ee75b6a537f6ca19c9376d896f5251a966ce331e52c3d07b73817"
+      "version": "2026-10-05.1",
+      "generated_at": "2026-10-05T21:15:00+08:00",
+      "content_digest": "sha256:faec761a6dfa2134095a5070d95d152767796922509a3f9cb3ab90056caf910f"
     },
     {
       "path": "spec/v1/artifacts/registry/payload-validator-profile-registry.json",

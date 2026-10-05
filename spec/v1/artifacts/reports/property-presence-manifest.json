@@ -15,20 +15,20 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9189,
+    "total_properties": 9193,
     "total_schema_documents": 168,
     "by_presence_class": {
       "optional": 2150,
       "optional_defaulted": 48,
-      "required": 6492,
-      "required_nullable": 319,
-      "tristate": 180
+      "required": 6494,
+      "required_nullable": 320,
+      "tristate": 181
     },
-    "tristate_occurrences": 180,
-    "tristate_audit_targets": 143,
+    "tristate_occurrences": 181,
+    "tristate_audit_targets": 144,
     "tristate_sdk_dispositions": {
       "absent_null_equivalent": 133,
-      "condition_guarded": 9,
+      "condition_guarded": 10,
       "distinct": 1
     }
   },
@@ -113,6 +113,7 @@
     "event-payload.schema.json/$defs/mls_genesis_payload/allOf/0/properties/governance_binding/properties/base_group_state_ref",
     "event-payload.schema.json/$defs/moderation_decision_payload/properties/expires_at",
     "event-payload.schema.json/$defs/organization_moderation_policy_rule/properties/expires_at",
+    "event-payload.schema.json/$defs/policy_set_state_payload/properties/expected_revision",
     "event-payload.schema.json/$defs/realm_organization_payload/properties/expires_at",
     "event-payload.schema.json/$defs/realm_set_default_strand_payload/properties/expected_default_strand_id",
     "event-payload.schema.json/$defs/strand_patch_payload/allOf/0/if/properties/patch",
@@ -816,6 +817,16 @@
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "event-payload.schema.json",
+      "shape": "/$defs/policy_set_state_payload",
+      "instance_path": "/expected_revision",
+      "occurrences": [
+        "/$defs/policy_set_state_payload/properties/expected_revision"
+      ],
+      "sdk_disposition": "condition_guarded",
+      "rationale": "A conditional branch requires this property. Draft 2020-12 validation rejects missing in that branch; explicit null remains the branch's empty value."
     },
     {
       "schema_file": "event-payload.schema.json",
@@ -6792,6 +6803,10 @@
         "/$defs/policy_action_state_payload/properties/action_id": "optional",
         "/$defs/policy_action_state_payload/properties/policy_id": "optional",
         "/$defs/policy_action_state_payload/properties/value": "required",
+        "/$defs/policy_set_state_payload/if/properties/value": "required_nullable",
+        "/$defs/policy_set_state_payload/if/properties/value/properties/policy_kind": "required",
+        "/$defs/policy_set_state_payload/if/properties/value/properties/schema": "required",
+        "/$defs/policy_set_state_payload/properties/expected_revision": "tristate",
         "/$defs/policy_set_state_payload/properties/policy_id": "required",
         "/$defs/policy_set_state_payload/properties/value": "required",
         "/$defs/poll_response_head/properties/poll_event_ref": "required",
@@ -7106,6 +7121,7 @@
         "/$defs/moderation_report_payload/properties/source_provider_id",
         "/$defs/policy_action_state_payload/properties/action_id",
         "/$defs/policy_action_state_payload/properties/policy_id",
+        "/$defs/policy_set_state_payload/properties/expected_revision",
         "/$defs/preview_policy_payload/properties/value/properties/history",
         "/$defs/realm_organization_payload/properties/authorization/properties/delegation_ref",
         "/$defs/realm_organization_payload/properties/revokes_statement_id",

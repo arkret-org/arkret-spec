@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.agent_participation_policy.v1",
-  "version": "2026-10-05.3",
+  "version": "2026-10-05.4",
   "suite": "agent_participation",
   "runner": {
     "kind": "named_suite",
@@ -4735,6 +4735,48 @@
         "fragment": "#/$defs/policy_rule",
         "valid": false,
         "canonical_json": "{\"agent_operations\":[\"execute\",\"read\",\"deliver\"],\"agent_target\":{\"agent_account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixtureagent\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"},\"controller_account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturecontroller\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"},\"kind\":\"controller\"},\"effect\":\"deny\",\"kind\":\"agent\",\"rule_id\":\"ban_member_agents\"}"
+      },
+      {
+        "name": "agent_policy_first_write_null",
+        "schema_file": "schemas/event-payload.schema.json",
+        "fragment": "#/$defs/policy_set_state_payload",
+        "valid": true,
+        "canonical_json": "{\"policy_id\":\"ak:policy:0198ff00-0000-7000-8000-000000000001\",\"expected_revision\":null,\"value\":{\"schema\":\"ak.schema.policy.v1\",\"id\":\"ak:policy:0198ff00-0000-7000-8000-000000000001\",\"realm_id\":\"ak:realm:AT47eNekH0_aKZyIMsXq_s1FAWdYXC71_CUxQ5O478t-\",\"policy_kind\":\"agent\",\"rules\":[{\"rule_id\":\"ban\",\"kind\":\"agent\",\"effect\":\"deny\",\"agent_target\":{\"kind\":\"all\"},\"agent_operations\":[\"join\"]}],\"default_effect\":\"allow\",\"created_by\":{\"kind\":\"account\",\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturecontroller\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"}},\"created_at\":\"2026-10-05T11:15:00.000Z\"}}"
+      },
+      {
+        "name": "agent_policy_update_exact_revision",
+        "schema_file": "schemas/event-payload.schema.json",
+        "fragment": "#/$defs/policy_set_state_payload",
+        "valid": true,
+        "canonical_json": "{\"policy_id\":\"ak:policy:0198ff00-0000-7000-8000-000000000001\",\"expected_revision\":{\"commit_id\":\"ak:realm_commit:ARNRmzDi2r78zveOLmoHOb6AephFMwVuGE1fwXmCoeo4\",\"stream_position\":7},\"value\":{\"schema\":\"ak.schema.policy.v1\",\"id\":\"ak:policy:0198ff00-0000-7000-8000-000000000001\",\"realm_id\":\"ak:realm:AT47eNekH0_aKZyIMsXq_s1FAWdYXC71_CUxQ5O478t-\",\"policy_kind\":\"agent\",\"rules\":[{\"rule_id\":\"ban\",\"kind\":\"agent\",\"effect\":\"deny\",\"agent_target\":{\"kind\":\"all\"},\"agent_operations\":[\"join\"]}],\"default_effect\":\"allow\",\"created_by\":{\"kind\":\"account\",\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturecontroller\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"}},\"created_at\":\"2026-10-05T11:15:00.000Z\"}}"
+      },
+      {
+        "name": "agent_policy_missing_revision",
+        "schema_file": "schemas/event-payload.schema.json",
+        "fragment": "#/$defs/policy_set_state_payload",
+        "valid": false,
+        "canonical_json": "{\"policy_id\":\"ak:policy:0198ff00-0000-7000-8000-000000000001\",\"value\":{\"schema\":\"ak.schema.policy.v1\",\"id\":\"ak:policy:0198ff00-0000-7000-8000-000000000001\",\"realm_id\":\"ak:realm:AT47eNekH0_aKZyIMsXq_s1FAWdYXC71_CUxQ5O478t-\",\"policy_kind\":\"agent\",\"rules\":[{\"rule_id\":\"ban\",\"kind\":\"agent\",\"effect\":\"deny\",\"agent_target\":{\"kind\":\"all\"},\"agent_operations\":[\"join\"]}],\"default_effect\":\"allow\",\"created_by\":{\"kind\":\"account\",\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturecontroller\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"}},\"created_at\":\"2026-10-05T11:15:00.000Z\"}}"
+      },
+      {
+        "name": "agent_policy_malformed_revision",
+        "schema_file": "schemas/event-payload.schema.json",
+        "fragment": "#/$defs/policy_set_state_payload",
+        "valid": false,
+        "canonical_json": "{\"policy_id\":\"ak:policy:0198ff00-0000-7000-8000-000000000001\",\"expected_revision\":{\"stream_position\":7},\"value\":{\"schema\":\"ak.schema.policy.v1\",\"id\":\"ak:policy:0198ff00-0000-7000-8000-000000000001\",\"realm_id\":\"ak:realm:AT47eNekH0_aKZyIMsXq_s1FAWdYXC71_CUxQ5O478t-\",\"policy_kind\":\"agent\",\"rules\":[{\"rule_id\":\"ban\",\"kind\":\"agent\",\"effect\":\"deny\",\"agent_target\":{\"kind\":\"all\"},\"agent_operations\":[\"join\"]}],\"default_effect\":\"allow\",\"created_by\":{\"kind\":\"account\",\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturecontroller\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"}},\"created_at\":\"2026-10-05T11:15:00.000Z\"}}"
+      },
+      {
+        "name": "non_agent_policy_revision_forbidden",
+        "schema_file": "schemas/event-payload.schema.json",
+        "fragment": "#/$defs/policy_set_state_payload",
+        "valid": false,
+        "canonical_json": "{\"policy_id\":\"ak:policy:0198ff00-0000-7000-8000-000000000001\",\"expected_revision\":null,\"value\":{\"schema\":\"ak.schema.policy.v1\",\"id\":\"ak:policy:0198ff00-0000-7000-8000-000000000001\",\"realm_id\":\"ak:realm:AT47eNekH0_aKZyIMsXq_s1FAWdYXC71_CUxQ5O478t-\",\"policy_kind\":\"access\",\"rules\":[{\"rule_id\":\"allow\",\"kind\":\"action\",\"effect\":\"allow\",\"actions\":[\"ak.message.create\"]}],\"default_effect\":\"allow\",\"created_by\":{\"kind\":\"account\",\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturecontroller\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"}},\"created_at\":\"2026-10-05T11:15:00.000Z\"}}"
+      },
+      {
+        "name": "non_agent_policy_revision_omitted",
+        "schema_file": "schemas/event-payload.schema.json",
+        "fragment": "#/$defs/policy_set_state_payload",
+        "valid": true,
+        "canonical_json": "{\"policy_id\":\"ak:policy:0198ff00-0000-7000-8000-000000000001\",\"value\":{\"schema\":\"ak.schema.policy.v1\",\"id\":\"ak:policy:0198ff00-0000-7000-8000-000000000001\",\"realm_id\":\"ak:realm:AT47eNekH0_aKZyIMsXq_s1FAWdYXC71_CUxQ5O478t-\",\"policy_kind\":\"access\",\"rules\":[{\"rule_id\":\"allow\",\"kind\":\"action\",\"effect\":\"allow\",\"actions\":[\"ak.message.create\"]}],\"default_effect\":\"allow\",\"created_by\":{\"kind\":\"account\",\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturecontroller\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"}},\"created_at\":\"2026-10-05T11:15:00.000Z\"}}"
       },
       {
         "name": "issuer_grant_exact_selector",

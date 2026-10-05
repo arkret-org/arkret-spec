@@ -5,6 +5,7 @@ from .core import ARTIFACTS, Lint, load_json, schema_validator
 INVARIANTS = {
     'default_self_service': True, 'explicit_confirmation': True,
     'all_grant_paths_current_controller_ceiling': True, 'current_management_gate': True,
+    'agent_policy_payload_exact_cas': True,
     'parent_quota_shared_atomic': True, 'full_actor_identity': True, 'terminal_source': True,
     'issuer_revoke_without_capability': True, 'ineffective_exact_revision_read': True,
     'read_delivery_material_current_gate': True, 'global_cross_grant_deny': True,
@@ -90,6 +91,14 @@ def check_owned_agent_authority(lint: Lint) -> None:
         if rows[kind].get('admission') != 'capability_or_owned_agent':
             lint.fail(path, f'{kind} loses the owned Agent source or issuer-only withdrawal branch')
     grant = load_json(lint, ARTIFACTS / 'schemas/capability-grant.schema.json')
+    payload = load_json(lint, ARTIFACTS / 'schemas/event-payload.schema.json')['$defs']['policy_set_state_payload']
+    if payload.get('then') != {'required': ['expected_revision']} or payload.get('else') != {'not': {'required': ['expected_revision']}}:
+        lint.fail(path, 'Agent Policy CAS must be required in its payload and forbidden for other families')
+    condition = payload.get('if', {}).get('properties', {}).get('value', {})
+    if condition.get('properties') != {'schema': {'const': 'ak.schema.policy.v1'}, 'policy_kind': {'const': 'agent'}} or set(condition.get('required', [])) != {'schema', 'policy_kind'}:
+        lint.fail(path, 'Agent Policy CAS family discriminator drift')
+    if payload.get('properties', {}).get('expected_revision', {}).get('oneOf') != [{'type': 'null'}, {'$ref': './typed-current-result.schema.json#/$defs/revision'}]:
+        lint.fail(path, 'Agent Policy CAS must use the nullable exact typed current revision')
     ref = grant['$defs']['owned_agent_authority_ref']
     fields = {'kind', 'realm_id', 'controller_account_id', 'controller_join_event_id', 'agent_join_event_id'}
     if set(ref.get('required', [])) != fields or set(ref['properties']) != fields or ref.get('additionalProperties') is not False:
@@ -114,6 +123,13 @@ def check_owned_agent_authority(lint: Lint) -> None:
     for case in cases:
         if case.get('expected') != decide(case, contract):
             lint.fail(fixture_path, f"owned Agent case {case['name']} decision drift")
+    cas_cases = {
+        'agent_policy_first_write_null', 'agent_policy_update_exact_revision',
+        'agent_policy_missing_revision', 'agent_policy_malformed_revision',
+        'non_agent_policy_revision_forbidden', 'non_agent_policy_revision_omitted',
+    }
+    if not cas_cases <= {item['name'] for item in fixture['schema_cases']}:
+        lint.fail(fixture_path, 'Agent Policy CAS schema coverage is incomplete')
     for item in fixture['schema_cases']:
         validator = schema_validator(ARTIFACTS / item['schema_file'], item['fragment'])
         valid = not list(validator.iter_errors(json.loads(item['canonical_json'])))
