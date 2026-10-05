@@ -469,7 +469,9 @@ Station 与 generation-0 governance Station 不同，从而把“一个 DID 在�
 零写入与判定依据（[`../models/realm-and-space.md` §2.5](../models/realm-and-space.md)）。
 
 `ak.vector.signer_key.historical_commit_coordinate.v1` MUST 证明：account subscribe 与 per-stream scan 的已验证
-`stream_row{commit,event}` 是 historical signer selector 唯一坐标来源；两个 historical selector 都携完整
+`stream_row{commit,event}` 及本次冻结 self 提交 Event 与 bound accepted outcome 原 Commit 配对是封闭坐标来源；
+self 提交 MUST 核对请求、分支、aggregate slot、内容引用及完整账号/Station/会话绑定，不能推进 head/floor
+或强制下载 PCR 历史。两个 historical selector 都携完整
 `committed_event_ref` 并拒绝裸 `event_id`。selector target 与 key `authorization_ref` 分别验证且允许不相等；
 resolved key 同时携 authorization stream 的 current `revision` 与 `governance_generation`。向量必须分别拒绝
 EventId／commit_id／stream_ref／stream_position／Realm 错配、current projection 嵌套 Event 伪造来源、按数组下标
@@ -478,6 +480,10 @@ EventId／commit_id／stream_ref／stream_position／Realm 错配、current proj
 verified row 到达、没有后续 Account 帧且产品 fold 已有变化时，仍必须主动查询历史签名证据；证据到达
 后重新验证同一消息，不依赖刷新。暂时查询失败须保持待验并能在授权的正常恢复/重试后收敛，换账号
 迟到结果、缺失 envelope 或失败的 MLS leaf authorization 不能因此展示正文。
+向量还 MUST 覆盖 Human 自己 PCR 的原 self-admission 与 accepted fullAccount binding、Agent PCR genesis
+的原 accepted provision/完整 controllerAccount/原 delegation 同事务事实及独立历史授权。错 slot、外来 Commit、
+sibling Account、foreign admission、非 Human actual producer、registration 早序缺授权、current row 补事实、
+缺授权四坐标、推进 head/floor、PCR history 读取前置与 current-query fallback 都必须零写拒绝。
 
 ### 3.11 邀请
 

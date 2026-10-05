@@ -1,5 +1,5 @@
 {
-  "version": "2026-09-25.1",
+  "version": "2026-10-05.1",
   "source_of_truth": true,
   "description": "Closed outward-exposure decision for every event kind admitted into a Principal Control Realm. ak.profile.principal_control_realm.v1 realm_event_kind_policy.allowed_event_kinds closes the write direction; this registry closes the read direction. A kind with an empty exposures[] is PCR-private and MUST NOT be reachable through any ak.open.* / ak.peer.* / cross-principal ak.self.* surface or public DID Document entry. A kind with exposures[] declares every path by which it legitimately leaves the Realm, each with its carrier form, exact schema location and gating authorization policy. Adding an outward path without registering it here is a release-gate failure, not an implementation detail.",
   "registry_rules": [
@@ -9,7 +9,8 @@
     "carrier declares what actually crosses the boundary: exact_event is the verbatim signed Event, derived_field is a projected value, receipt and authority commit are acceptance evidence over the Event, did_service_entry is a public DID Document service entry.",
     "authorization_policy_id and anti_enumeration_policy_id MUST reference a policy registered below. public is an explicit policy value; a missing authorization_policy_id is never read as public.",
     "Every exposure resolves exactly one reusable outward disclosure policy through outward_disclosure_policy_mapping, unless it carries an explicit outward_disclosure_policy_id override. The referenced policy is defined in outward-disclosure-policy-registry.json.",
-    "surface=operation requires an operation_id registered in operation-registry.json and a direction of request or response. surface=did_document carries no operation_id because a DID Document is published outside the operation registry."
+    "surface=operation requires an operation_id registered in operation-registry.json and a direction of request or response. surface=did_document carries no operation_id because a DID Document is published outside the operation registry.",
+    "Existing self signer-key historical results for a self-submitted Human PCR target expose only query_signing_key: original same-Station self-admission and exact target must bind the authenticated recipient fullAccount to the actual Human producer fullAccount and complete immutable historical authorization/proof. Controller Human Agent PCR genesis additionally binds original accepted provision, complete controllerAccount and original delegation in that same transaction. This does not expose PCR Events/history, grant scan/membership, alter floor, allow sibling/foreign admission, or reconstruct missing facts from current rows."
   ],
   "carrier_kinds": {
     "exact_event": "The verbatim signed Event Envelope, byte-preserved by the carrier.",
@@ -379,5 +380,5 @@
       "exposures": []
     }
   ],
-  "generated_at": "2026-09-25T19:50:00+08:00"
+  "generated_at": "2026-10-05T19:29:15+08:00"
 }

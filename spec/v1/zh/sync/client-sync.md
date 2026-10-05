@@ -155,12 +155,17 @@ Typed current result至少绑定 selector、value/status、领域二元 revision
 RealmCommit。客户端核对 request/account/Realm/selector 与来源范围后安装结果，不执行 authority-commit projection/typed current result reducer。
 
 该 source coordinate 只绑定写出 current entry 的 source Event，不绑定 entry value 中任意嵌套 Event。历史
-signer-key selector 的 `committed_event_ref` 只能从已验证 `realm_sync_entry.committed_events[]` 的
+signer-key selector 的 `committed_event_ref` 可从已验证 `realm_sync_entry.committed_events[]` 的
 `stream_row{commit,event}` 逐字构造；窗口外回填继续使用 §5.2 的 per-stream scan，其
 `stream_scan_outcome.committed_events[]` 复用同一个 `stream_row`。两条面必须核对 Commit signature／generation、
 Realm／stream／position／predecessor 与 `commit.event_ref == event.event_id` 后才可建本地耐久索引；不得新增
 Event 字段、account sibling map 或 signer 专用 carrier，也不得从 current projection、cursor、producer time、
 arrival order 或缓存拼坐标。redacted／reference-locked row 不提供可验 producer envelope，必须保持 unresolved。
+另一封闭来源是 [server-trusted-results §2.1](./server-trusted-results.md#21-普通客户端消费既有治理结果normative)
+的本次 self 提交冻结完整自签请求 Event 与 bound accepted outcome 原 Commit；按该合同验证分支、每个
+aggregate slot、完整账号/Station/会话与内容引用后可构造同一 exact target，且不得推进 head/floor、声明
+timeline 已读或强制扫描 PCR。受限 Human PCR historical key 查询遵守该文 §5.6 原 self-admission 与
+完整 immutable 历史事实规则；普通 stream row 的 floor、连续性与 MLS 验证不变。
 
 ### 5.2 State At Window Start (limited timeline 边界状态)
 

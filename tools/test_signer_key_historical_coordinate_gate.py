@@ -227,6 +227,48 @@ class SignerKeyHistoricalCoordinateGateTest(unittest.TestCase):
 
         self.assert_red(marker="不得新增", text_mutate=mutate)
 
+    def test_self_submission_rule_single_field_mutations(self) -> None:
+        def leaves(value, prefix=()):
+            for key, item in value.items():
+                if isinstance(item, dict):
+                    yield from leaves(item, prefix + (key,))
+                else:
+                    yield prefix + (key,)
+
+        for path in leaves(gate.SELF_SUBMISSION_RULE):
+            for target in (gate.CONTRACT, gate.FIXTURE):
+                with self.subTest(path=path, target=target.name):
+                    def mutate(docs, path=path, target=target):
+                        if target == gate.CONTRACT:
+                            value = docs[target.resolve()]["did_evidence_boundary_registry"]["governance_result_consumption_contract"]["self_submission_historical_source"]
+                        else:
+                            value = docs[target.resolve()]["self_submission_rule"]
+                        for key in path[:-1]:
+                            value = value[key]
+                        value[path[-1]] = None
+                    self.assert_red(mutate, "restricted PCR rules")
+
+    def test_self_submission_cannot_add_raw_local_source(self) -> None:
+        def mutate(docs):
+            docs[gate.FIXTURE.resolve()]["construction_sources"].append("raw_local_event")
+        self.assert_red(mutate, "close coordinate construction")
+
+    def test_self_submission_negative_cases_are_required(self) -> None:
+        for case in sorted(gate.NEGATIVE_CASES):
+            if not case.startswith("self_submission_"):
+                continue
+            with self.subTest(case=case):
+                def mutate(docs, case=case):
+                    docs[gate.FIXTURE.resolve()]["negative_cases"].remove(case)
+                self.assert_red(mutate, "negative cases")
+
+    def test_self_submission_positive_flows_are_required(self) -> None:
+        for flow in sorted(gate.SELF_SUBMISSION_FLOWS):
+            with self.subTest(flow=flow):
+                def mutate(docs, flow=flow):
+                    docs[gate.FIXTURE.resolve()]["positive_flows"].remove(flow)
+                self.assert_red(mutate, "no-scan flows")
+
     def test_runner_invokes_gate(self) -> None:
         def mutate(texts: dict) -> None:
             texts[gate.RUNNER.resolve()] = texts[gate.RUNNER.resolve()].replace("check_signer_key_historical_coordinate(lint)", "check_removed(lint)")

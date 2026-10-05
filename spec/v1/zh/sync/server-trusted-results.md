@@ -60,6 +60,14 @@ MLS roster 也按此分工：Account Station 验原时点完整方法权威，se
 材料不可得或验证失败时 MUST 返回该 operation 既有不可用/拒绝结果，MUST NOT 返回可用于写入的伪成功。
 原 authority bytes MUST 原样保留，最终事实仍来自治理 Station，自己的 Station 不产生新 finality。
 
+**本次 self 提交原件（normative）**：成功 self submit outcome 也是本合同的既有输入。客户端
+MUST 先按本次冻结请求验证 outcome 分支及每个 aggregate slot 的逐项对应，再将该请求中完整自签 Event
+与该 slot 返回的原 accepted RealmCommit 配对；MUST 核对 Event/Commit content ID、event_ref、Realm、scope、
+stream 与 position，且请求及结果仍绑定同一已接纳 Station、完整 authenticated AccountId 与本地会话/账号世代。
+Rejected 分支、任意本地 Event、外来 Commit 或错 slot 不构成此来源。消费该配对只构造本次 exact target，
+MUST NOT 推进 stream head/floor、宣称已读取 timeline，或要求下载/重放 PCR/control stream；后续 timeline
+仍按其独立 scan floor 与连续性消费。独立 producer proof、精确历史公钥、Ed 签名与 MLS 检查仍全部必需。
+
 客户端 MUST 独立核对：
 
 1. 实际请求仍使用已接纳 Station base、完整认证账号与当前本地账号会话；迟到的另一账号、重新接入前
@@ -182,11 +190,13 @@ MUST NOT 用于 historical、Agent、Signal 的独立 signer 或高风险 Contro
 `committed_event_ref{event_id,commit_id,stream_ref,stream_position}`，且 `stream_ref.realm_id` 必须等于请求
 `realm_id`。该引用是“待验 producer 签名的 historical Event”；结果 key 的 `authorization_ref` 是“使该 key
 在该历史点有效的 accepted authorization Event”。两者 MAY 相同但 MUST 独立验证，协议不得强制相等、互相替代
-或因 key bytes 相同而合并授权代次。唯一构造来源是已验证
+或因 key bytes 相同而合并授权代次。构造来源封闭为以下既有输入：已验证
 `realm_sync_entry.committed_events[]` 或 `stream_scan_outcome.committed_events[]` 的 `stream_row{commit,event}`：客户端先验证
 该 row 所属认证 self 结果的原 RealmCommit generation／stream／position／predecessor，消费 Station 先验治理签名；
 普通客户端按 §2.1 消费该原件并核对 `commit.event_ref == event.event_id`，
-再逐字复制四坐标。current projection 中嵌套的 Event、`event_states[]`、account cursor、arrival order、
+再逐字复制四坐标；或者 §2.1 本次 self 提交的冻结完整自签请求 Event 与 bound accepted outcome
+原 Commit 配对，按该节逐项核对后复制同一四坐标。后者不是新的历史传输 carrier，不需要补扫 PCR，
+也不提供 predecessor 历史或推进 stream head 的依据。current projection 中嵌套的 Event、`event_states[]`、account cursor、arrival order、
 `created_at`、SignerEvidenceRef 或本地曾见同 EventId 都不能补出坐标；current entry 的 source coordinate 只证明
 该 entry 自身来源，不外推给 value 内嵌 Event。
 
@@ -195,6 +205,23 @@ redacted／reference-locked row 即使暴露 EventId 或 Commit coordinate，也
 EventId 时不得全 Realm 探测、按时间／cursor 猜 position，也不得降级成 `current_admission` query。缓存与耐久索引
 必须以完整 target `committed_event_ref` 为键并保留独立 authorization ref/revision；重启、乱序 response 与迟到
 的另一账号 response 都必须重新核对完整 selector 与 recipient context。
+
+**self 提交的 Human PCR 历史公钥（normative）**：既有 self signer-key operation 的
+`historical_event/account_device` 分支 MAY 对本 Station 已接纳的本次 self 提交 PCR target 解析完整历史 key，
+仅当 authenticated recipient 的完整 AccountId 等于 target 的实际 Human producer 完整 AccountId，且当前
+请求认证/授权有效。实际 producer 按 producer envelope（含适用的 executed_by 或 MLS actual signer）确定，
+MUST NOT 仅以 actor、相同 principal 或 controller 名义替代。治理 Station MUST 在原接纳事务持久冻结
+self-admission 来源、本次 accepted fullAccount binding、exact target 四坐标、原 proof 与完整 immutable
+历史授权事实；该事实必须足以独立验证 authorization_ref、revision、governance_generation 及原授权时点。
+Agent PCR genesis 的 controller Human 自签提交还 MUST 绑定原 accepted provision、完整 controllerAccount
+及原 delegation 的同事务事实；其他正式 Agent PCR self 提交亦须有其原接纳事实。registration 早序缺授权、
+后来 current Agent row/current DID、同 principal 或 peer backfill 均不能补成此来源。非 Human actual producer
+不能使用本分支。缺失或冲突事实、错 recipient/Station、错 target、sibling/foreign admission MUST 返回
+既有同形 `unavailable`，无写入、无 current-query fallback。
+
+本分支只返回既有 `query_signing_key`，MUST NOT 返回 PCR Event/history、Commit chain 或新增 wire 字段；
+它不授予 PCR scan/membership、不修改 floor，也不放宽普通 Realm/full-received 历史的既有 disclosure、floor
+与 selector 规则。历史授权后来撤销或换代不能改写原事实，也不能恢复当前授权；当前认证仍独立必需。
 
 **历史签名证据解析的活性（normative）**：收到已认证的完整 committed Agent Event、且本地缺少其
 exact historical signer 证据时，客户端 MUST 将该 target 的解析工作绑定到承载它的 stream 消费路径。

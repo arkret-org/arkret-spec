@@ -1382,7 +1382,11 @@ Arkret v1 对设备、会话和恢复要求如下：
 - Recovery policy grammar 由 `ak.schema.recovery_policy.v1`（`artifacts/schemas/recovery-policy.schema.json`）规范化；publish / rotate 与 `recovery_unlock` key revoke 的 wire 形态由 §8.1 描述。grammar MUST 表达封闭的 `methods`（`did_root`、`recovery_unlock`、`device_quorum`、`trusted_recovery_service` 四项）、每个 `recovery_unlock` key 的 `not_before` / `expires_at` / `revoked_at`、顶层 `cooldown_seconds` 与恢复 receipt。v1 不存在 threshold、share holder、`n` 镜像或 signed approval requirement，grammar MUST NOT 恢复它们。恢复只改变控制链，不自动授予内容读取、历史内容解密或业务 capability。
 - Recovery policy publication 的 `ak.vector.identity.recovery_policy_publication.v1` MUST 由至少两个独立 runner 覆盖 canonical `EventAdmissionSubmission`、PCR allowlist/reducer/RealmCommit admission、threshold recovery signing/HPKE key 闭包、issuer projection、跨字段不一致、未 RealmCommit retry 与特殊写路径绕过拒绝。
 - Recovery receipt 由 `ak.schema.recovery_receipt.v1`（`artifacts/schemas/recovery-receipt.schema.json`）规范化；签名输入固定为 `UTF8("ak.identity.recovery_receipt.signature.v1\n") || RFC8785_JCS(receipt 的全部实际存在顶层成员，排除 auth_data)`，不携字段名清单。`crypto-media/device-lifecycle.md` §14 finalize 写入的 receipt MUST 通过该 schema 校验，并绑定 `recovery_session_id` / `policy_id` / `policy_version` / `new_device_id` / `identity_model` / `previous_model_generation_ref` / `result_model_generation_ref` / authorization path refs / `proof_summary` / `unlocked_backups` / `welcome_count` / `outcome`。
-- Backup series MUST 满足 §7.6：客户端检查自己 Station 列表结果的 exact AccountId、PCR 与当前 active pointer，按 immutable envelope 的 `supersedes_id` 链选择对应尾部并解密；不得以下载或重放 PCR/control stream 历史作为普通备份读取的前置条件。
+- Backup series MUST 满足 §7.6：客户端检查自己 Station 列表结果的 exact AccountId、PCR 与当前 active pointer，按 immutable envelope 的 `supersedes_id` 链选择对应尾部并解密；不得以下载或重放 PCR/control stream 历史作为普通备份读取的前置条件。本次自签提交及原 bound accepted outcome 可按
+  [server-trusted-results §2.1](../sync/server-trusted-results.md#21-普通客户端消费既有治理结果normative) 构造 exact target，
+  独立历史验签公钥按该文 §5.6 的原 self-admission/fullAccount/immutable fact 规则取得；不得因此开放 PCR 历史、
+  推进 scan floor/head 或以 current key 补历史授权。Agent PCR genesis 的 controller Human 自签同样要求原
+  accepted provision、完整 controllerAccount 与原 delegation 同事务冻结，缺事实必须失败关闭。
 
 
 PCR 治理事实的非投票消费按 [authority_commit-profiles §9](../sync/authority-commit-log.md)：

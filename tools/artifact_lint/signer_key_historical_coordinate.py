@@ -24,7 +24,36 @@ VECTOR_ID = "ak.vector.signer_key.historical_commit_coordinate.v1"
 COMMITTED_REF = "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
 HISTORICAL_DEFS = ("historical_account_device_selector", "historical_agent_selector")
 CURRENT_DEFS = ("current_account_device_selector", "current_agent_selector")
+SELF_SUBMISSION_RULE = {'coordinate_source': 'frozen_complete_signed_request_event_and_bound_accepted_outcome_original_commit',
+ 'binding': 'same_accepted_station_authenticated_full_account_and_local_session_epoch',
+ 'correlation': 'validated_request_outcome_branch_and_each_aggregate_slot',
+ 'checks': ['event_and_commit_content_ids', 'event_ref_realm_scope_stream_position'],
+ 'advances_stream_head_or_floor': False,
+ 'requires_pcr_history_scan': False,
+ 'historical_key_authorization': 'independent_complete_original_authorization_coordinates_and_proof',
+ 'pcr_human_query': {'recipient': 'authenticated_full_account_equals_actual_human_producer_full_account',
+                     'provenance': 'original_same_station_self_admission_transaction_and_exact_target',
+                     'human_binding': 'original_accepted_full_account_binding',
+                     'agent_genesis_binding': 'original_accepted_provision_complete_controller_account_and_original_delegation_same_transaction',
+                     'fact': 'complete_immutable_original_historical_authorization_and_proof',
+                     'current_authentication_required': True,
+                     'foreign_or_sibling_admission_allowed': False,
+                     'current_row_fact_backfill_allowed': False,
+                     'grants_pcr_history_or_membership': False,
+                     'changes_ordinary_received_floor': False,
+                     'missing_or_conflicting_fact': 'existing_unavailable_without_current_query_fallback'}}
+SELF_SUBMISSION_FLOWS = {'controller_human_agent_pcr_genesis_resolves_from_original_provision_delegation_transaction', 'human_pcr_self_submission_resolves_from_original_self_admission_without_scan', 'self_submission_checks_each_aggregate_slot_without_advancing_head_or_floor', 'historical_authorization_revoked_later_keeps_original_fact_without_current_authority'}
+
 NEGATIVE_CASES = {
+    'self_submission_wrong_slot_or_foreign_commit',
+    'self_submission_wrong_station_account_or_epoch',
+    'self_submission_sibling_or_foreign_admission',
+    'self_submission_non_human_actual_producer',
+    'self_submission_registration_missing_original_authorization',
+    'self_submission_agent_current_row_backfills_provision_or_delegation',
+    'self_submission_missing_complete_historical_authorization',
+    'self_submission_advances_head_or_floor',
+    'self_submission_requires_pcr_history_scan',
     "changed_projection_short_circuits_historical_query",
     "agent_reply_waits_for_unrelated_account_frame_or_reload",
     "historical_selector_uses_bare_event_id",
@@ -119,6 +148,12 @@ def check_signer_key_historical_coordinate(lint: Lint) -> None:
         if not isinstance(notes, str) or marker not in notes:
             lint.fail(CONTRACT, f"signer-key operation notes are missing {marker!r}")
 
+    consumption = contract.get("did_evidence_boundary_registry", {}).get("governance_result_consumption_contract", {})
+    if consumption.get("historical_producer_coordinates") != "original_authorized_self_stream_row_or_bound_self_submission_exact_committed_event_ref":
+        lint.fail(CONTRACT, "historical source contract must retain stream rows and bound self submissions")
+    if consumption.get("self_submission_historical_source") != SELF_SUBMISSION_RULE:
+        lint.fail(CONTRACT, "self submission source must preserve exact binding, immutable authorization and restricted PCR rules")
+
     mappings = load_json(lint, ERROR_MAPPING)
     error_row = _find(mappings.get("operations") if isinstance(mappings, dict) else None, "operation_id", OPERATION_ID)
     error_description = error_row.get("description") if isinstance(error_row, dict) else None
@@ -139,6 +174,12 @@ def check_signer_key_historical_coordinate(lint: Lint) -> None:
             "ak.self.committed_event.read.scan.v1.stream_scan_outcome.committed_events",
         ]:
             lint.fail(FIXTURE, "fixture must retain exactly the two existing stream_row carrier sources")
+        if fixture.get("construction_sources") != fixture.get("carrier_sources", []) + ["self_submit.frozen_signed_request_and_bound_accepted_outcome"]:
+            lint.fail(FIXTURE, "fixture must close coordinate construction over existing rows and bound self submissions")
+        if fixture.get("self_submission_rule") != SELF_SUBMISSION_RULE:
+            lint.fail(FIXTURE, "self submission fixture must preserve exact binding, immutable authorization and restricted PCR rules")
+        if not SELF_SUBMISSION_FLOWS.issubset(set(fixture.get("positive_flows", []))):
+            lint.fail(FIXTURE, "fixture is missing self submission authorization and no-scan flows")
         positive = fixture.get("positive_case")
         selector_ref = positive.get("selector", {}).get("committed_event_ref") if isinstance(positive, dict) else None
         authorization_ref = positive.get("resolved_key", {}).get("authorization_ref") if isinstance(positive, dict) else None
@@ -156,7 +197,7 @@ def check_signer_key_historical_coordinate(lint: Lint) -> None:
             lint.fail(FIXTURE, "fixture is missing historical signer resolution liveness flows")
 
     prose = {
-        SERVER_PROSE: ("历史坐标来源与双引用分离", "MAY 相同", "不得降级成 `current_admission`", "历史签名证据解析的活性"),
+        SERVER_PROSE: ("历史坐标来源与双引用分离", "MAY 相同", "不得降级成 `current_admission`", "历史签名证据解析的活性", "本次 self 提交原件", "self 提交的 Human PCR 历史公钥", "同事务事实", "MUST NOT 推进"),
         SYNC_PROSE: ("realm_sync_entry.committed_events[]", "stream_scan_outcome.committed_events[]", "不得新增"),
         VECTOR_PROSE: (VECTOR_ID, "authorization_ref", "current-query 降级"),
     }

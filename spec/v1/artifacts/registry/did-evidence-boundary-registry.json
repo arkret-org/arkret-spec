@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-05.4",
+  "version": "2026-10-05.6",
   "source_of_truth": false,
-  "generated_at": "2026-10-05T18:26:25+08:00",
+  "generated_at": "2026-10-05T19:43:32+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -202,8 +202,33 @@
     "new_operations": false,
     "authority_origin": "current_governance_station_original_commit_or_snapshot",
     "local_context_binding": "persistent_station_selection_plus_authenticated_full_account_and_request_epoch",
-    "historical_producer_coordinates": "original_authorized_self_stream_row_exact_committed_event_ref",
-    "failure": "existing_operation_refusal_or_unavailable_no_state_advancement"
+    "historical_producer_coordinates": "original_authorized_self_stream_row_or_bound_self_submission_exact_committed_event_ref",
+    "failure": "existing_operation_refusal_or_unavailable_no_state_advancement",
+    "self_submission_historical_source": {
+      "coordinate_source": "frozen_complete_signed_request_event_and_bound_accepted_outcome_original_commit",
+      "binding": "same_accepted_station_authenticated_full_account_and_local_session_epoch",
+      "correlation": "validated_request_outcome_branch_and_each_aggregate_slot",
+      "checks": [
+        "event_and_commit_content_ids",
+        "event_ref_realm_scope_stream_position"
+      ],
+      "advances_stream_head_or_floor": false,
+      "requires_pcr_history_scan": false,
+      "historical_key_authorization": "independent_complete_original_authorization_coordinates_and_proof",
+      "pcr_human_query": {
+        "recipient": "authenticated_full_account_equals_actual_human_producer_full_account",
+        "provenance": "original_same_station_self_admission_transaction_and_exact_target",
+        "human_binding": "original_accepted_full_account_binding",
+        "agent_genesis_binding": "original_accepted_provision_complete_controller_account_and_original_delegation_same_transaction",
+        "fact": "complete_immutable_original_historical_authorization_and_proof",
+        "current_authentication_required": true,
+        "foreign_or_sibling_admission_allowed": false,
+        "current_row_fact_backfill_allowed": false,
+        "grants_pcr_history_or_membership": false,
+        "changes_ordinary_received_floor": false,
+        "missing_or_conflicting_fact": "existing_unavailable_without_current_query_fallback"
+      }
+    }
   },
   "agent_authority_evidence_contract": {
     "state_fields": [
