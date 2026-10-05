@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-05.1",
+  "version": "2026-10-05.2",
   "source_of_truth": true,
-  "generated_at": "2026-10-05T02:40:00+08:00",
+  "generated_at": "2026-10-05T12:28:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -4713,7 +4713,7 @@
       "applies_to_fixtures": [
         "signer-key-historical-coordinate-fixture.json"
       ],
-      "description": "Historical account-device and Agent signer selectors address only a verified authority-committed Event by the closed committed_event_ref copied from account-subscribe or per-stream-scan stream_row. Bare EventId, nested current projection material, cursor/time/arrival/cache inference, redacted rows and current-query fallback remain unresolved. A resolved key independently binds its authorization committed_event_ref, current authorization-stream revision and governance generation; target and authorization references may differ and are never merged by equal key bytes. Complete selector equality survives restart, response reordering, account-context changes and bounded historical scan.",
+      "description": "Historical account-device and Agent signer selectors address only a verified authority-committed Event by the closed committed_event_ref copied from account-subscribe or per-stream-scan stream_row. Bare EventId, nested current projection material, cursor/time/arrival/cache inference, redacted rows and current-query fallback remain unresolved. A resolved key independently binds its authorization committed_event_ref, current authorization-stream revision and governance generation; target and authorization references may differ and are never merged by equal key bytes. Complete selector equality survives restart, response reordering, account-context changes and bounded historical scan. A single Agent reply must resolve pending historical evidence even when the product projection changes and no later account frame arrives, then revalidate the same pending message without a page reload.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/signer-key-historical-coordinate-fixture.json",
         "spec/v1/zh/conformance/conformance-vectors.md"

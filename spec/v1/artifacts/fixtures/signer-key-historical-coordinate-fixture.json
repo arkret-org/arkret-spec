@@ -1,5 +1,5 @@
 {
-  "version": "2026-09-24.1",
+  "version": "2026-10-05.1",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.signer_key.historical_commit_coordinate.v1"
@@ -92,7 +92,10 @@
     "restart_restores_full_coordinate_index",
     "out_of_order_results_join_by_complete_selector",
     "unavailable_echoes_complete_selector",
-    "bounded_history_scan_respects_readable_floor"
+    "bounded_history_scan_respects_readable_floor",
+    "single_agent_reply_resolves_without_later_account_frame",
+    "changed_product_projection_still_resolves_historical_signer",
+    "verified_key_revalidates_pending_reply_without_reload"
   ],
   "negative_cases": [
     "historical_selector_uses_bare_event_id",
@@ -113,6 +116,8 @@
     "redacted_row_used_for_producer_signature_verification",
     "late_response_for_another_recipient_account",
     "bare_event_id_downgraded_to_current_query",
-    "cursor_or_created_at_used_to_guess_position"
+    "cursor_or_created_at_used_to_guess_position",
+    "changed_projection_short_circuits_historical_query",
+    "agent_reply_waits_for_unrelated_account_frame_or_reload"
   ]
 }

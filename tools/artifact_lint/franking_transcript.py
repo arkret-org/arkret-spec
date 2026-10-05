@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from .core import ARTIFACTS, Any, Lint, base64, canonical_json, hashlib, load_json
+from .core import ARTIFACTS, SPEC_ROOT, Any, Lint, base64, canonical_json, hashlib, load_json, read_text
 
 try:
     from cryptography.exceptions import InvalidSignature
@@ -17,6 +17,8 @@ VECTOR_ID = "ak.vector.moderation.franking_proof_transcript.v1"
 REGISTRY = ARTIFACTS / "registry" / "proof-context-registry.json"
 VECTOR_REGISTRY = ARTIFACTS / "registry" / "vector-registry.json"
 FIXTURE = ARTIFACTS / "fixtures" / "franking-proof-transcript-fixture.json"
+CURRENT_SCHEMA = ARTIFACTS / "schemas" / "typed-current-result.schema.json"
+MODERATION_PROSE = SPEC_ROOT / "zh" / "governance" / "content-moderation.md"
 FIELDS = [
     "domain",
     "realm_id",
@@ -26,6 +28,31 @@ FIELDS = [
     "received_at",
     "replay_nonce",
 ]
+
+
+def _check_current_installation(lint: Lint) -> None:
+    current = load_json(lint, CURRENT_SCHEMA)
+    row = current.get("$defs", {}).get("moderation_franking_proof_result", {})
+    properties = row.get("properties", {})
+    selector = properties.get("selector", {})
+    if (
+        row.get("additionalProperties") is not False
+        or row.get("required") != ["selector", "source_stream_ref", "revision", "value"]
+        or selector.get("additionalProperties") is not False
+        or selector.get("required") != ["kind", "event_id"]
+        or selector.get("properties", {}).get("kind", {}).get("const") != "moderation_franking_proof"
+        or selector.get("properties", {}).get("event_id", {}).get("$ref") != "./common-ids.schema.json#/$defs/event_id"
+        or properties.get("value", {}).get("$ref") != "./moderation-evidence.schema.json#/$defs/franking_proof"
+    ):
+        lint.fail(CURRENT_SCHEMA, "franking current must retain the closed target Event selector and canonical proof value")
+    prose = read_text(MODERATION_PROSE)
+    for marker in (
+        "typed current 安装与举报验证的分离",
+        "`value.event_id` 等于 selector",
+        "普通聊天的同步与展示 MUST NOT 等待",
+    ):
+        if marker not in prose:
+            lint.fail(MODERATION_PROSE, f"franking current installation boundary is missing {marker!r}")
 
 
 def _decode(value: Any) -> bytes | None:
@@ -67,6 +94,7 @@ def _project_webvh_method_controller(verification_method: Any) -> str | None:
 
 
 def check_franking_proof_transcript(lint: Lint) -> None:
+    _check_current_installation(lint)
     registry = load_json(lint, REGISTRY)
     vectors = load_json(lint, VECTOR_REGISTRY)
     fixture = load_json(lint, FIXTURE)

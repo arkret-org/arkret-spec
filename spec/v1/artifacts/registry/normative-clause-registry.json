@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-05.1",
+  "version": "2026-10-05.2",
   "source_of_truth": true,
-  "generated_at": "2026-10-05T02:40:00+08:00",
+  "generated_at": "2026-10-05T12:28:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -384,7 +384,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/sync/server-trusted-results.md#56-按次-current-与精确历史签名公钥",
-      "section_digest": "sha256:7f4bd0a6c487c5e3c2f166761967932b545c92e387a65cadb937f86131d57c3b",
+      "section_digest": "sha256:e96bd2704e9d48787f53c596898fff430e7341e985184478d3f134edb3e58180",
       "requirement": "Self signer keys omit actor/method mirrors, retain complete selector association and invocation context, require historical committed_event_ref plus an independent committed authorization_ref/current revision/governance generation, and leave Signal standalone identity and peer portable evidence intact. Ordinary human current results contain only public_key_b64u after own-Station exact-device directory verification; PCR coordinates remain private and key-only cannot cross into Agent/history.",
       "testability_grade": "api_shape",
       "test_plan": "Run tools.test_self_signer_result_schema and tools.test_residual_simplification for closed query keys, mandatory authorization, historical separation, reordered/unavailable results, duplicate/missing selectors, different methods/Events and invocation mismatch. Runtime authorization, producer signatures and Signal gates remain required and tracked by the existing owner. Run current-signer-contact-endpoint-fixture.json schema cases and Cotest signer_keys_query_live against rebuilt two-Station binaries."
@@ -538,17 +538,17 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/sync/server-trusted-results.md#56-按次-current-与精确历史签名公钥",
-      "section_digest": "sha256:7f4bd0a6c487c5e3c2f166761967932b545c92e387a65cadb937f86131d57c3b",
-      "requirement": "An ordinary client obtains exact historical signing keys from its own Station using a committed_event_ref copied only from a original stream_row consumed from its persistently bound authenticated own Station after Station native governance verification and client exact coordinates/continuity checks. Every result independently keeps the accepted authorization coordinate, revision and governance generation so historical MLS binding remains verifiable; target and authorization refs may differ, and a stable (actor, method, key) triple never substitutes for either exact Event instance.",
+      "section_digest": "sha256:e96bd2704e9d48787f53c596898fff430e7341e985184478d3f134edb3e58180",
+      "requirement": "An ordinary client obtains exact historical signing keys from its own Station using a committed_event_ref copied only from a original stream_row consumed from its persistently bound authenticated own Station after Station native governance verification and client exact coordinates/continuity checks. Every result independently keeps the accepted authorization coordinate, revision and governance generation so historical MLS binding remains verifiable; target and authorization refs may differ, and a stable (actor, method, key) triple never substitutes for either exact Event instance. A committed Agent reply with unresolved exact historical signing evidence triggers per-stream resolution independently of product projection changes, later Account frames or a page reload; exact target and producer MLS authorization gates remain mandatory before publishing verified content.",
       "testability_grade": "audit",
-      "test_plan": "Run ak.vector.signer_key.historical_commit_coordinate.v1 and tools.test_signer_key_historical_coordinate_gate: both historical selectors require the four-coordinate ref, target and authorization remain independent, redacted/current-projection/cursor/time sources stay unresolved, and missing coordinates never downgrade to current query. The fixture is a machine semantic suite; production signer resolution and commit verification remain implementation evidence."
+      "test_plan": "Run ak.vector.signer_key.historical_commit_coordinate.v1 and tools.test_signer_key_historical_coordinate_gate: both historical selectors require the four-coordinate ref, target and authorization remain independent, redacted/current-projection/cursor/time sources stay unresolved, and missing coordinates never downgrade to current query. The fixture is a machine semantic suite; production signer resolution and commit verification remain implementation evidence. Inkson identity::agent_signer_evidence::historical_result_tests::changed_realm_projection_resolves_agent_reply_without_an_account_frame exercises the real HTTP selector and verified producer transition with a changed product projection and no subsequent Account frame. The named suite has no Cotest production executor yet; owner1725 retains live/full-matrix acceptance."
     },
     {
       "clause_id": "AK-NC-069",
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/sync/server-trusted-results.md#56-按次-current-与精确历史签名公钥",
-      "section_digest": "sha256:7f4bd0a6c487c5e3c2f166761967932b545c92e387a65cadb937f86131d57c3b",
+      "section_digest": "sha256:e96bd2704e9d48787f53c596898fff430e7341e985184478d3f134edb3e58180",
       "requirement": "A current self signing-key result serves only the operation that froze it. A same-batch or byte-identical in-flight query may be merged, but a completed result MUST NOT be reused for a future Signal, a future operation or a reconnection. Result association uses complete selector equality rather than array position, and a duplicate, missing or extra selector rejects the whole result.",
       "testability_grade": "audit",
       "test_plan": "Audited against signer-key-operations.schema.json and the self query contract: the review pass asserts results carry no reusable lifetime, that the request context is echoed verbatim and bound to the authenticated SessionGrant account, and that association is specified by complete selector equality with no index-based path. No vector exists because the obligation forbids a later reuse rather than fixing a byte artifact."
@@ -723,6 +723,16 @@
       "requirement": "Ordinary clients consume only persistently bound authenticated own-Station original governance results, checking full Account and request epoch, exact selectors/scope/cuts, content IDs and per-stream continuity without native method history or retained-signer discovery. Station/auditor governance signature, nonce and native history verification and client producer/MLS/attachment cryptography remain mandatory. No new wire result, operation, boolean trust flag or portable authority is introduced.",
       "testability_grade": "audit",
       "test_plan": "Run the complete official artifact pipeline, including all executable governance_result_consumption_roles fixture policy cases. These cases prove only the machine role/input policy. Audit the authenticated host transport and durable context, then execute native cryptographic negative suites and fresh three-Station S3 bilateral encrypted messages in owner1725; policy fixture success alone is not implementation or live acceptance evidence."
+    },
+    {
+      "clause_id": "AK-NC-087",
+      "status": "active",
+      "category": "state_machine",
+      "source_anchor": "spec/v1/zh/governance/content-moderation.md#34-e2ee-举报-evidence-package-与-franking",
+      "section_digest": "sha256:ae5f8082866cc2e1f46c85254af0415e1a4b75385c8b74689658de60d413966c",
+      "requirement": "An authorized own-Station moderation_franking_proof current row is installed independently of report workflow and moderator verification. The closed selector names the target Event, value repeats that target and Realm, and the value remains the canonical closed FrankingProof. Installing the current row grants no permission or cryptographic verdict; ordinary MLS chat must not wait for a report or optional existence anchor, while invalid source, cut, scope or target bindings fail closed.",
+      "testability_grade": "api_shape",
+      "test_plan": "Run tools.test_franking_current_installation_gate and the existing franking transcript/controller gates: mutations of selector target type, canonical value reference, row closure and the ordinary-chat independence obligation must fail. This checks schema and normative guards, not moderator verification or native client installation; Inkson current installation and owner1725 live acceptance remain implementation evidence."
     }
   ]
 }

@@ -284,6 +284,19 @@ Franking 信任链：
 5. 按上述唯一 JCS transcript 验证签名，并对 `replay_nonce` 执行有界跨举报去重。
 6. 若需要证明 franking proof 在服务 key 有效期内已存在，取得 byte-identical proof Event、一个确认安全 RealmCommit 中的确切 `existence_anchor`，并验证该 Event 的 `CommittedEventRef` 与同 stream commit ancestry。验证确切 franking grant/generation、原 producer proof/authority refs、target、服务 key、RealmCommit 唯一签名与有界时间；整个 anchor 不确定区间必须位于 key 有效期且不早于 `proof.received_at`。proof Event 不进入 RealmCommit.delta，anchor 只对其已存在这一安全事实作承诺。它不证明自报 received_at 恰为真实投递时间。缺证据时只保留服务签名声明，不宣称有独立时间证明；普通聊天不等待该可选证明。
 
+**typed current 安装与举报验证的分离（normative）**：own Station 向已授权账号披露
+`moderation_franking_proof` current row 时，客户端 MUST 按现行 closed schema 安装该已登记 family，
+不以客户端是否打开举报界面或实现 moderator 工作流为前置条件。安装 MUST 验证 enclosing signed
+snapshot 的 Realm、source stream、revision 与 head/floor 绑定，并核对 `value.realm_id` 等于该 Realm、
+`value.event_id` 等于 selector 的被证明 Event ID，以及完整 `franking_proof` value 的封闭形状。
+合法 current row MUST NOT 因缺少举报界面 installer 而阻断普通 Account baseline；未知 family、非法
+value 或签名/cut 绑定失败仍按 [`client-sync.md` §5.2](../sync/client-sync.md) 拒绝，不得静默跳过。
+
+上述安装只认证 Station 返回的当前接收证明，不产生 moderator 对材料的密码学 verdict、独立存在时间证明、
+明文真实性或新的读取权限。举报处置仍 MUST 执行本节完整验证；普通聊天的同步与展示 MUST NOT 等待
+举报操作或可选 `existence_anchor`。本段不改变前述完整 proof 的披露限制，也不允许在缺材料时展示
+尚未通过普通 producer/MLS 验证的消息。
+
 ## 4. 用户屏蔽 (Ignore/Block)
 
 ### 4.1 屏蔽是 Actor-Private 状态

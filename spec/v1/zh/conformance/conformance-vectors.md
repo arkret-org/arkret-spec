@@ -474,7 +474,10 @@ Station 与 generation-0 governance Station 不同，从而把“一个 DID 在�
 resolved key 同时携 authorization stream 的 current `revision` 与 `governance_generation`。向量必须分别拒绝
 EventId／commit_id／stream_ref／stream_position／Realm 错配、current projection 嵌套 Event 伪造来源、按数组下标
 关联、redacted row、换账号迟到 response 和 current-query 降级；重启恢复、乱序 outcome、受限历史 scan 与
-逐字回显 selector 的 unavailable 必须保持同一完整坐标。
+逐字回显 selector 的 unavailable 必须保持同一完整坐标。单条 Agent 回复由 account 或 per-stream
+verified row 到达、没有后续 Account 帧且产品 fold 已有变化时，仍必须主动查询历史签名证据；证据到达
+后重新验证同一消息，不依赖刷新。暂时查询失败须保持待验并能在授权的正常恢复/重试后收敛，换账号
+迟到结果、缺失 envelope 或失败的 MLS leaf authorization 不能因此展示正文。
 
 ### 3.11 邀请
 

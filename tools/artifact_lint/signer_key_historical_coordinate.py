@@ -25,6 +25,8 @@ COMMITTED_REF = "./authority-commit-operations.schema.json#/$defs/committed_even
 HISTORICAL_DEFS = ("historical_account_device_selector", "historical_agent_selector")
 CURRENT_DEFS = ("current_account_device_selector", "current_agent_selector")
 NEGATIVE_CASES = {
+    "changed_projection_short_circuits_historical_query",
+    "agent_reply_waits_for_unrelated_account_frame_or_reload",
     "historical_selector_uses_bare_event_id",
     "request_realm_differs_from_selector_stream_realm",
     "row_event_id_differs_from_commit_event_ref",
@@ -145,9 +147,16 @@ def check_signer_key_historical_coordinate(lint: Lint) -> None:
         negatives = set(fixture.get("negative_cases", []))
         if not NEGATIVE_CASES.issubset(negatives):
             lint.fail(FIXTURE, "fixture is missing historical coordinate negative cases")
+        positive_flows = set(fixture.get("positive_flows", []))
+        if not {
+            "single_agent_reply_resolves_without_later_account_frame",
+            "changed_product_projection_still_resolves_historical_signer",
+            "verified_key_revalidates_pending_reply_without_reload",
+        }.issubset(positive_flows):
+            lint.fail(FIXTURE, "fixture is missing historical signer resolution liveness flows")
 
     prose = {
-        SERVER_PROSE: ("历史坐标来源与双引用分离", "MAY 相同", "不得降级成 `current_admission`"),
+        SERVER_PROSE: ("历史坐标来源与双引用分离", "MAY 相同", "不得降级成 `current_admission`", "历史签名证据解析的活性"),
         SYNC_PROSE: ("realm_sync_entry.committed_events[]", "stream_scan_outcome.committed_events[]", "不得新增"),
         VECTOR_PROSE: (VECTOR_ID, "authorization_ref", "current-query 降级"),
     }

@@ -197,6 +197,30 @@ class SignerKeyHistoricalCoordinateGateTest(unittest.TestCase):
 
         self.assert_red(marker="MAY 相同", text_mutate=mutate)
 
+    def test_fixture_requires_query_despite_product_changes(self) -> None:
+        def mutate(docs: dict) -> None:
+            docs[gate.FIXTURE.resolve()]["positive_flows"].remove(
+                "changed_product_projection_still_resolves_historical_signer"
+            )
+
+        self.assert_red(mutate, "liveness flows")
+
+    def test_fixture_rejects_waiting_for_reload(self) -> None:
+        def mutate(docs: dict) -> None:
+            docs[gate.FIXTURE.resolve()]["negative_cases"].remove(
+                "agent_reply_waits_for_unrelated_account_frame_or_reload"
+            )
+
+        self.assert_red(mutate, "negative cases")
+
+    def test_prose_keeps_resolution_liveness(self) -> None:
+        def mutate(texts: dict) -> None:
+            texts[gate.SERVER_PROSE.resolve()] = texts[gate.SERVER_PROSE.resolve()].replace(
+                "历史签名证据解析的活性", "历史查询说明", 1
+            )
+
+        self.assert_red(marker="历史签名证据解析的活性", text_mutate=mutate)
+
     def test_sync_prose_forbids_third_carrier(self) -> None:
         def mutate(texts: dict) -> None:
             texts[gate.SYNC_PROSE.resolve()] = texts[gate.SYNC_PROSE.resolve()].replace("不得新增", "可以新增", 1)

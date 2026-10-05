@@ -2173,7 +2173,7 @@
     },
     "moderation_franking_proof_result": {
       "type": "object",
-      "description": "The receiving-service proof that one encrypted target Event was received (governance/content-moderation.md section 6). The subject is the proven Event id. A proof exists independently of any later report, so nothing about a report is part of the subject or the value.",
+      "description": "The receiving-service proof that one encrypted target Event was received (governance/content-moderation.md section 3.4). The subject is the proven Event id. Installing an authorized signed current row is independent of a later report and does not itself establish moderator verification or an existence-time verdict.",
       "required": [
         "selector",
         "source_stream_ref",

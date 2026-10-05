@@ -59,8 +59,9 @@ Realm、每个 Circle、每个 Sidecar 分别拥有独立 commit stream。当前
   （见 [`../extensions/mimi-interop.md` §3](../extensions/mimi-interop.md)）；subject 是外部 room URI
   而**不是** Arkret id——同一 Realm / Strand 可被绑进多个 room，该值是向 MIMI 的投影，从不是 Arkret 侧的真相；
 - `moderation_franking_proof`：以被证明 Event 的 `payload.event_id` 选择一条接收方 franking 证明
-  （见 [`../governance/content-moderation.md` §6](../governance/content-moderation.md)）；证明独立于任何后续
-  report 产生，因此 `report_id` / `target_ref` 既不是 payload 字段也不进 subject；
+  （见 [`../governance/content-moderation.md` §3.4](../governance/content-moderation.md)）；证明独立于任何后续
+  report 产生，因此 `report_id` / `target_ref` 既不是 payload 字段也不进 subject。授权披露后的 closed
+  current 安装与 moderator 举报验证分别执行；普通 baseline 不以举报 UI 或独立存在时间证明为前置；
 - `moderation_report`：以来源举报 Event 自身的 EventId 选择一条已受理的 `ak.self.moderation.report`
   （见 [`../governance/content-moderation.md` §3.3](../governance/content-moderation.md)）；value 是原封闭
   report payload，family 不可变。`ak.moderation.decision{decision="dismiss"}` 的 `payload.target_ref` 逐字

@@ -196,6 +196,18 @@ EventId 时不得全 Realm 探测、按时间／cursor 猜 position，也不得�
 必须以完整 target `committed_event_ref` 为键并保留独立 authorization ref/revision；重启、乱序 response 与迟到
 的另一账号 response 都必须重新核对完整 selector 与 recipient context。
 
+**历史签名证据解析的活性（normative）**：收到已认证的完整 committed Agent Event、且本地缺少其
+exact historical signer 证据时，客户端 MUST 将该 target 的解析工作绑定到承载它的 stream 消费路径。
+满足上述坐标来源与读取权限后，MUST 主动发起或合并同一 exact selector 的查询，MUST NOT 依赖未来
+Account 帧、另一条消息、页面刷新或产品投影是否发生变化才启动。缺完整 envelope/坐标、权限或有效
+查询结果时继续 unresolved；不得降级查询或绕过签名验证。
+
+暂时失败的解析 MUST 保留有界待验工作，在仍获授权时通过正常网络恢复或明确重试继续处理；不得
+无限紧密轮询、全 Realm 探测或把 `unavailable` 当作授权成功。已验证结果到达后 MUST 按原 exact
+target、recipient 与会话/账号世代重新核对，并重新验证对应待验消息及其 MLS leaf authorization
+绑定，再更新展示。只有发送者证明与内容解密均通过才能展示正文。本段不使 Account cursor 或已安装
+current 变成 producer authority，也不要求为了等待 key 而回退已经验证的 stream head。
+
 **调用语境不可丢（normative）**：`recipient_account_id` MUST 逐字等于已认证 SessionGrant 的完整账号，其
 Station MUST 是服务本请求的自己 Station；结果 context MUST 逐字回显请求。current 结果只供**本次冻结的操作**
 消费：同批或完全相同且已在途的查询 MAY 合并，但已完成的结果 MUST NOT 供未来操作或重连使用。稳定公钥
