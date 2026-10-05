@@ -1901,20 +1901,21 @@ def check_agent_interaction_contract(lint: Lint) -> None:
     routing = document.get("cases", [{}])[0].get("composer_contract", {}).get("routing_cases", [])
     for row in routing:
         scope, mode = row.get("scope"), row.get("interaction_mode")
-        if scope == "sidecar":
-            result = "blocked" if row.get("other") or row.get("audience") else "sidecar"
-        elif scope == "direct" and row.get("owned"):
+        owned = row.get("owned") is True and row.get("token_bound", True) is True
+        if scope == "direct" and owned:
             result = "direct"
+        elif scope in {"realm", "circle"} and not owned and not row.get("other"):
+            result = "shared"
         elif mode not in {"private", "public"}:
             result = "blocked"
         elif scope == "direct":
-            result = "direct" if row.get("owned") or mode == "public" else "blocked"
+            result = "direct" if owned or mode == "public" else "blocked"
         elif scope == "circle":
-            result = "blocked" if mode == "private" and row.get("owned") else "shared"
+            result = "blocked" if mode == "private" and owned else "shared"
         elif scope == "realm":
             if mode == "public":
                 result = "shared"
-            elif not row.get("owned"):
+            elif not owned:
                 result = "shared"
             else:
                 result = "blocked" if row.get("other") or row.get("audience") else "sidecar"

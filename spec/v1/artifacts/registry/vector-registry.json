@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-05.6",
+  "version": "2026-10-05.7",
   "source_of_truth": true,
-  "generated_at": "2026-10-05T22:55:00+08:00",
+  "generated_at": "2026-10-05T23:24:48+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -187,7 +187,7 @@
       "applies_to_fixtures": [
         "agent-participation-fixture.json"
       ],
-      "description": "Authorized candidates bind exact full AccountIds to visible draft token ranges. Readable holder/slug input filters candidates but unselected text does not address an account; edits revoke bindings, private holder notes stay local, and ordinary/Circle/Direct/Sidecar routing follows the explicit v1 composer matrix without retargeting or silent public fallback.",
+      "description": "Authorized candidates bind exact full AccountIds to current draft token ranges. Readable holder/slug input filters candidates but unselected text does not address an account; edits revoke bindings and private holder notes stay local. Each source Strand draft/send routes only by its current bound targets: no Agent mention or only public Agents use the original Strand, current owned private Agents use Sidecar, and mixed/unknown targets keep the existing rejection rule. Prior private session, addressed targets, accepted requests and merged history never supply a current target; Circle and independent Direct keep their scope contracts, without silent private-failure fallback.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/agent-participation-fixture.json"
       ]

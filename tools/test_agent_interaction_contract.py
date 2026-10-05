@@ -31,10 +31,15 @@ class AgentInteractionContractTest(unittest.TestCase):
         self.assertTrue(self.run_gate(lambda d: d['interaction_contract']['shared_action_cases'][0].update(expected=True)))
 
     def test_public_owner_does_not_route_private(self):
-        self.assertTrue(self.run_gate(lambda d: d['cases'][0]['composer_contract']['routing_cases'][10].update(expected='sidecar')))
+        self.assertTrue(self.run_gate(lambda d: next(row for row in d['cases'][0]['composer_contract']['routing_cases'] if row['name'] == 'current_public_owned_mention_routes_original_strand').update(expected='sidecar')))
 
     def test_circle_cannot_route_private_to_realm(self):
-        self.assertTrue(self.run_gate(lambda d: d['cases'][0]['composer_contract']['routing_cases'][5].update(expected='sidecar')))
+        self.assertTrue(self.run_gate(lambda d: next(row for row in d['cases'][0]['composer_contract']['routing_cases'] if row['name'] == 'circle_private_mention_never_routes_realm_sidecar').update(expected='sidecar')))
+
+    def test_prior_private_history_does_not_supply_a_current_target(self):
+        for name in ['no_agent_after_private_session', 'no_agent_after_restored_private_history', 'deleted_private_token_does_not_reuse_last_request', 'public_mention_after_private_history']:
+            with self.subTest(name=name):
+                self.assertTrue(self.run_gate(lambda d: next(row for row in d['cases'][0]['composer_contract']['routing_cases'] if row['name'] == name).update(expected='sidecar')))
 
     def test_mode_cannot_rewrite_roster(self):
         self.assertTrue(self.run_gate(lambda d: d['interaction_contract']['invariants'].update(mode_changes_sidecar_roster=True)))

@@ -304,22 +304,31 @@ Circle 内容不得使用本节映射或发布规则跨越 Circle 边界。
 
 以下是 v1 客户端发送合同；本地发送意图与 [Agent 交互模式](./agent-interaction.md) 的 Realm current 分离。
 只有已绑定完整 AccountId 的 mention 才计入直接目标；普通 `@me/slug` 字符串不触发 Sidecar。
+原 Strand 的固定合并历史只决定阅读呈现，不决定下一条消息的发送 scope。客户端 MUST 对每份草稿、
+每次发送与重试重新读取当前有效 token 绑定及模式／权限：当前消息没有 Agent mention 时使用原
+Strand；只有当前消息明确绑定主人的私人 Agent 时才选择 Sidecar；公开 Agent 使用原 Strand。
+旧 Sidecar session、以前的 addressed targets、last verified request、已显示的私密回复和恢复出来的
+历史 MUST NOT 补入当前草稿的目标或使无 Agent mention 的消息保持私密发送。提及已编辑／删除／解绑
+时即从当前寻址集合移除，不以旧 picker、旧请求或同名文本恢复；固定合并显示也不新增隐式私密入口。
+没有 Agent 目标的普通草稿不要求以前 Agent 的模式或 Sidecar readiness；旧私密上下文的模式 unknown、
+MLS 未就绪或恢复失败不得成为该普通草稿的发送门，仍须通过原 Strand 的正常授权。
 
 | 当前入口/目标 | 默认与可选路由 | 发送前边界 |
 | --- | --- | --- |
 | 联系人 controller/Agent Direct Conversation | 保持该独立双成员 Direct Conversation | 不调用 Sidecar ensure，不要求 Realm/Strand context。 |
-| 普通 Realm Strand，无自有 Agent mention | 普通 Strand | 他人 Agent、普通人类与 audience mention 沿用普通授权；不凭字符串转私有。 |
+| 普通 Realm Strand，无 Agent mention | 原普通 Strand | 即使此前发送过私密消息或已恢复 Sidecar 历史，仍使用原 Strand；普通人类与 audience mention 沿用普通授权，不凭字符串或历史转私有。 |
+| 普通 Realm Strand，只提及他人 Agent | 原普通 Strand | 沿用现有模式／触发／第三方授权门；不能路由到他人的 Sidecar。 |
 | 普通 Realm Strand，只含公开 Agent（可含其它共享目标） | 普通共享 Strand，包括主人提及自己的公开 Agent | 模式不授予回复／读取／第三方投递权限；仍求交现有各门。 |
 | 普通 Realm Strand，只含主人的私人 Agent（可含主人自身） | 私有 Sidecar | 不提供将私人请求直接“发送到群”的绕过；显式成果 publish 另走 §8。 |
-| 普通 Realm Strand，私人／公开 Agent 混合，或私人 Agent 与外部／audience 混合 | 阻止发送，保留草稿并要求修改目标或进入明确私有视图 | 不自动拆分、丢弃目标、转群或改变模式；unknown 模式也阻止发送。第三方手工构造 private mention 只抑制 Agent 触发，不改变原共享消息 scope。 |
+| 普通 Realm Strand，私人／公开 Agent 混合，或私人 Agent 与外部／audience 混合 | 阻止发送，保留草稿并要求修改当前目标 | 不自动拆分、丢弃目标、转群或改变模式；unknown 模式也阻止发送。第三方手工构造 private mention 只抑制 Agent 触发，不改变原共享消息 scope。 |
 | Circle Strand | 公开目标保持普通 Circle；主人私人 Agent 交互阻止发送 | 不提供 Realm Sidecar 路由，不复制 Circle 内容；公开目标仍需 Circle 读取／participation／E2EE 门。 |
-| 原 Strand 中的 Sidecar 私密输入入口 | 保持该私有 Sidecar | 提及 private scope 外目标或任一 audience mention 时阻止发送；另用普通输入入口新写普通消息，或按 §8 显式 publish 新 Event，不能以展示状态发布 private history。 |
 
 客户端 MUST 在发送前展示实际 scope 与可读取者边界；Circle／Direct 显示其固定 scope。公开／私人模式
-由主人独立设置，不是当前草稿的“发送到群”按钮。Sidecar 私密输入入口是私有协作入口，公开 Agent 在此也
-保持私有会话；mention 是请求寻址子集，不是加密收件人全体，也不得修改 derived roster。Sidecar
+由主人独立设置，不是当前草稿的“发送到群”按钮。原 Strand 的发送 scope 与可读取者提示 MUST 随当前
+草稿的实际路由更新，不能因为仍显示 Sidecar 历史而沿用私密提示。mention 是请求寻址子集，不是
+加密收件人全体，也不得修改 derived roster。Sidecar
 pending／not-ready／失败 MUST 保留草稿并拒绝私有发送，MUST NOT 降级普通 Strand。草稿、目标、模式、
-scope／账号／私有视图变化 MUST 撤销先前 shared 确认，恢复与重试重查当前模式及权限。Private publish
+scope／账号变化 MUST 撤销先前 shared 确认，恢复与重试重查当前模式及权限。Private publish
 仍须 §8 的最终 allowlist 确认和新 Event；reply／revise／附件／引用等不得迁移已有 Message scope。
 
 已验证 controller 关系与完整 Agent AccountId 满足 [`strand-and-message.md` §9.4.1](./strand-and-message.md)

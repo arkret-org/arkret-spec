@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.agent_participation_policy.v1",
-  "version": "2026-10-05.4",
+  "version": "2026-10-05.5",
   "suite": "agent_participation",
   "runner": {
     "kind": "named_suite",
@@ -104,7 +104,7 @@
         "expected_actor_id is a consistency assertion: a service Actor never matches and it cannot select a winner out of an ambiguous label",
         "a local authorized source may supply the known full AccountId but cannot establish cross-Station selector uniqueness; this ruling adds no read, notification or participation right to a non-member",
         "an Agent whose provision has not completed cannot receive a verified label, and a server must not expose private provision material to fill a fabricated lookup response",
-        "Explicit candidate selection binds a visible draft token range to the exact known AccountId; unselected strings, edited/deleted tokens and private holder notes never create or retarget a mention. Routing follows sidecar section 8.1, with no private-failure fallback or automatic mixed-target split."
+        "Explicit candidate selection binds a visible draft token range to the exact known AccountId; unselected strings, edited/deleted tokens and private holder notes never create or retarget a mention. Routing follows sidecar section 8.1 for each current draft and send attempt: no Agent target uses the original Strand, current private owned Agent targets use Sidecar, public targets use the original Strand. Prior Sidecar session, addressed targets, accepted requests or merged history never supply a current target. No private-failure fallback or automatic mixed-target split."
       ],
       "composer_contract": {
         "selected_input": "@me/summary",
@@ -122,7 +122,8 @@
             "audience": false,
             "choice": "default",
             "expected": "sidecar",
-            "interaction_mode": "private"
+            "interaction_mode": "private",
+            "name": "current_private_owned_mention_routes_sidecar"
           },
           {
             "scope": "realm",
@@ -131,7 +132,8 @@
             "audience": false,
             "choice": "default",
             "expected": "blocked",
-            "interaction_mode": "private"
+            "interaction_mode": "private",
+            "name": "composer_route_1"
           },
           {
             "scope": "realm",
@@ -140,7 +142,8 @@
             "audience": true,
             "choice": "shared",
             "expected": "blocked",
-            "interaction_mode": "private"
+            "interaction_mode": "private",
+            "name": "composer_route_2"
           },
           {
             "scope": "realm",
@@ -149,7 +152,8 @@
             "audience": false,
             "choice": "default",
             "expected": "shared",
-            "interaction_mode": "public"
+            "interaction_mode": "public",
+            "name": "composer_route_3"
           },
           {
             "scope": "realm",
@@ -158,7 +162,8 @@
             "audience": true,
             "choice": "default",
             "expected": "blocked",
-            "interaction_mode": "private"
+            "interaction_mode": "private",
+            "name": "composer_route_4"
           },
           {
             "scope": "circle",
@@ -167,7 +172,8 @@
             "audience": true,
             "choice": "default",
             "expected": "blocked",
-            "interaction_mode": "private"
+            "interaction_mode": "private",
+            "name": "circle_private_mention_never_routes_realm_sidecar"
           },
           {
             "scope": "direct",
@@ -176,34 +182,8 @@
             "audience": false,
             "choice": "default",
             "expected": "direct",
-            "interaction_mode": "private"
-          },
-          {
-            "scope": "sidecar",
-            "owned": true,
-            "other": false,
-            "audience": false,
-            "choice": "default",
-            "expected": "sidecar",
-            "interaction_mode": "private"
-          },
-          {
-            "scope": "sidecar",
-            "owned": true,
-            "other": true,
-            "audience": false,
-            "choice": "shared",
-            "expected": "blocked",
-            "interaction_mode": "private"
-          },
-          {
-            "scope": "sidecar",
-            "owned": true,
-            "other": false,
-            "audience": true,
-            "choice": "default",
-            "expected": "blocked",
-            "interaction_mode": "private"
+            "interaction_mode": "private",
+            "name": "composer_route_6"
           },
           {
             "scope": "realm",
@@ -212,7 +192,8 @@
             "audience": false,
             "interaction_mode": "public",
             "choice": "default",
-            "expected": "shared"
+            "expected": "shared",
+            "name": "current_public_owned_mention_routes_original_strand"
           },
           {
             "scope": "realm",
@@ -221,7 +202,8 @@
             "audience": true,
             "interaction_mode": "public",
             "choice": "default",
-            "expected": "shared"
+            "expected": "shared",
+            "name": "composer_route_11"
           },
           {
             "scope": "realm",
@@ -230,15 +212,77 @@
             "audience": false,
             "interaction_mode": "unknown",
             "choice": "shared",
-            "expected": "blocked"
+            "expected": "blocked",
+            "name": "composer_route_12"
           },
           {
-            "scope": "sidecar",
+            "name": "no_agent_after_private_session",
+            "scope": "realm",
+            "owned": false,
+            "other": false,
+            "audience": false,
+            "choice": "default",
+            "interaction_mode": "private",
+            "token_bound": true,
+            "previous_sidecar_session": true,
+            "last_verified_request_target": true,
+            "restored_private_history": true,
+            "expected": "shared"
+          },
+          {
+            "name": "no_agent_after_restored_private_history",
+            "scope": "realm",
+            "owned": false,
+            "other": false,
+            "audience": false,
+            "choice": "default",
+            "interaction_mode": "unknown",
+            "token_bound": true,
+            "previous_sidecar_session": true,
+            "last_verified_request_target": true,
+            "restored_private_history": true,
+            "expected": "shared"
+          },
+          {
+            "name": "deleted_private_token_does_not_reuse_last_request",
+            "scope": "realm",
             "owned": true,
             "other": false,
             "audience": false,
-            "interaction_mode": "public",
             "choice": "default",
+            "interaction_mode": "private",
+            "token_bound": false,
+            "previous_sidecar_session": true,
+            "last_verified_request_target": true,
+            "restored_private_history": true,
+            "expected": "shared"
+          },
+          {
+            "name": "public_mention_after_private_history",
+            "scope": "realm",
+            "owned": true,
+            "other": false,
+            "audience": false,
+            "choice": "default",
+            "interaction_mode": "public",
+            "token_bound": true,
+            "previous_sidecar_session": true,
+            "last_verified_request_target": true,
+            "restored_private_history": true,
+            "expected": "shared"
+          },
+          {
+            "name": "current_private_mention_after_shared_message",
+            "scope": "realm",
+            "owned": true,
+            "other": false,
+            "audience": false,
+            "choice": "default",
+            "interaction_mode": "private",
+            "token_bound": true,
+            "previous_sidecar_session": false,
+            "last_verified_request_target": false,
+            "restored_private_history": false,
             "expected": "sidecar"
           }
         ]

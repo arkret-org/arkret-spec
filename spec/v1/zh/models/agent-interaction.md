@@ -110,7 +110,11 @@ sidecar/direct 的 controller 请求与 private scope 内 Agent 协作不属于�
 Agent（可含主人自身）时 MUST 使用 Sidecar。两种模式混合，或私人 Agent 与外部／audience 混合 MUST
 阻止发送，不自动拆分、不丢目标、不公开私人请求。模式 unknown MUST 保留草稿并阻止发送。
 第三方手工构造 private mention 不转其消息到主人的 Sidecar，也不删除原消息，只抑制私人触发。
-普通字面 @ 不寻址。已打开 Sidecar 保持私有，公开 Agent 参与其中不使会话自动发布。
+普通字面 @ 不寻址。原 Strand 每份草稿与每次发送／重试 MUST 按当前有效完整 AccountId mention
+重新判路由；没有 Agent mention 使用原 Strand，公开 Agent 使用原 Strand。Sidecar 合并历史、旧私密
+session、旧 addressed targets 或 last verified request 均不得隐式填入目标或使下一条消息继续私密发送。
+用户删除／解绑私人 Agent mention 后，无 Agent mention 的新消息恢复原 Strand 路由与受众提示。
+已接纳 Sidecar 私密历史保持私密，只供原获授权参与者读取；改变新草稿路由不发布或迁移旧历史。
 
 Circle composer 中主人向私人 Agent 的交互 MUST 阻止；不得把 Circle 请求、引用、附件或上下文转到
 Realm Sidecar。公开 Agent 在 Circle 仍须本 Circle 读取／membership／MLS 门；父 Realm join 不替代这些门。

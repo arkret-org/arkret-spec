@@ -663,7 +663,7 @@ Sidecar 内 Event 不触发来源 Strand 参与者的通知；Sidecar 作用域�
 `ak.vector.sidecar.explicit_publish.v1` MUST 证明：只有显式的 controller 确认才创建一条被 allowlist 允许的
 普通共享 Event，且其中零私有标识符、零历史、零定位符。
 
-`ak.vector.agent.selector_label_known_account.v1` 的 `agent-participation-fixture.json` MUST 同时验证可读短输入的显式候选选择：完整 AccountId 与可见 token 范围逐字节绑定，未选择字符串不派生目标，token 改字/删除/chip 移除后不以另一处同名文本复活，跨 Station 与改名不改绑；私有 holder 备注不进入共享正文或 metadata。其 composer routing cases 按 sidecar §8.1 覆盖普通 Realm、自有/混合/audience 目标、显式 shared、Circle、Direct 与已寄宿 Sidecar；混合私有目标阻止发送，不自动拆分或降级群发送。运行该本地合同向量不替代真实 MLS、private-failure、publish 与第二设备的 live 验收。
+`ak.vector.agent.selector_label_known_account.v1` 的 `agent-participation-fixture.json` MUST 同时验证可读短输入的显式候选选择：完整 AccountId 与可见 token 范围逐字节绑定，未选择字符串不派生目标，token 改字/删除/chip 移除后不以另一处同名文本复活，跨 Station 与改名不改绑；私有 holder 备注不进入共享正文或 metadata。其 composer routing cases 按 sidecar §8.1 覆盖普通 Realm、当前草稿自有/混合/audience 目标、公开 Agent、Circle、Direct 与已恢复私密历史后不沿用旧目标；无 Agent mention 的新草稿回到原 Strand，混合私有目标阻止发送，不自动拆分或降级群发送。运行该本地合同向量不替代真实 MLS、private-failure、publish 与第二设备的 live 验收。
 
 `ak.vector.sidecar.multi_agent_publish.v1` MUST 证明：Agent 执行 publish 时 `actor_id` 与 `executed_by`
 MUST 是单一 Agent DID，不得出现 Agent 组式的复合归属；另一 Agent 的 grant 不覆盖该内容或缺少新鲜审批时
@@ -696,6 +696,7 @@ pin／局部折叠／HLC，固定合并展示不引入新的授权或存储键�
 | `sidecar_responsive_bounded_history` | 在声明的设备、历史规模、单批预算和退避参数下，注入验证等待并连续输入、滚动、取消；页面持续可操作。工作量随受影响增量增长，不因无关 render 重放全部历史；相关读取授权／历史 signer 证据／MLS basis 变化仍重新验证。当前读取资格丧失时旧缓存不得替代权限；Agent 作者化撤销不追溯剥夺 controller 仍获准读取的历史。 |
 | `sidecar_partial_failure_isolation` | 对可证明 Realm-scope 的 source Strand，Realm 存在其它无关 Circle／Sidecar 不得使 exact watch/current 判定不可用。单独使 source Strand watch/current 请求暂不可用，或私密缓存持久化失败；普通讨论仍可操作，Sidecar 不丢弃安全 checkpoint、不依赖刷新恢复、不进入阻塞重试；耐久失败不得虚报投影完成。 |
 | `sidecar_bound_mention_draft_acceptance` | 主人行不在当前成员显示列表但 verified controller 与完整 Agent AccountId 已绑定时，标签仍为 `@me/slug`。pending／失败保留草稿和选择；发送途中修改草稿或切换账号/scope，迟到成功不清除新输入；重复点击不重复请求。 |
+| `sidecar_per_draft_route_after_private_history` | 在同一原 Strand 先发送并收到私密回复，再依次提交无 Agent mention、当前绑定公开 Agent、当前绑定私人 Agent 的新消息；前两条进入原 Strand，第三条进入 Sidecar，实际 durable scope、模型投递与受众提示一致。删除／解绑私人 mention、重开卡片、恢复历史与重试不得借旧目标切回 Sidecar；旧私密历史始终保留且不向普通其它成员披露。混合目标继续按 §8.1 阻止，不自动拆分或猜测。 |
 
 `ak.vector.sidecar.non_disclosure_surface_matrix.v1` MUST 证明：每一个共享列表、展开、动态、导出、URL、
 日志与遥测面都不披露 Sidecar 定位符、身份、内容或折叠输入。
