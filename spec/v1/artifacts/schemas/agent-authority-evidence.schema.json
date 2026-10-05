@@ -383,7 +383,8 @@
         "commit_lineages",
         "commits",
         "authority_bundle",
-        "signer_dependencies"
+        "signer_dependencies",
+        "producer_bindings"
       ],
       "properties": {
         "authority_id": {
@@ -439,6 +440,14 @@
             "$ref": "#/$defs/agent_signer_dependency"
           },
           "description": "Exactly the recursive producer proof dependencies used by genesis, authorization, lifecycle and authority transition Events. Sorted by signer_resolution_evidence_ref UTF-8 bytes. Missing ref is unresolved; duplicate ref, conflicting bytes, cycle or surplus is rejected."
+        },
+        "producer_bindings": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/agent_producer_binding"
+          }
         }
       },
       "additionalProperties": false
@@ -585,7 +594,7 @@
     },
     "agent_producer_evidence": {
       "type": "object",
-      "description": "authority_forward Agent sibling. Event signer_resolution_evidence_ref addresses the six-member authenticated_signer_evidence alone; authority state and controller gate are independent signed siblings. authority_resolution supplies method-native history for the state attestation and controller gate at their respective observation times. It carries no participation selection. Canonical persistence restores compact state first.",
+      "description": "authority_forward Agent sibling. The retained producer signer_resolution_evidence_ref addresses the six-member authenticated_signer_evidence alone; authority state and controller gate are independent signed siblings. authority_resolution supplies method-native history for the state attestation and controller gate at their respective observation times. It carries no participation selection. Canonical persistence restores compact state first.",
       "required": [
         "authenticated_signer_evidence",
         "agent_authority_state_evidence",
@@ -666,6 +675,26 @@
           "additionalProperties": false
         }
       ]
+    },
+    "agent_producer_binding": {
+      "type": "object",
+      "required": [
+        "event_ref",
+        "accepted_commit_id",
+        "signer_resolution_evidence_ref"
+      ],
+      "properties": {
+        "event_ref": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "accepted_commit_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
+        },
+        "signer_resolution_evidence_ref": {
+          "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref"
+        }
+      },
+      "additionalProperties": false
     }
   }
 }

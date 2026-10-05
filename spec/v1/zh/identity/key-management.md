@@ -296,8 +296,11 @@ controller device 状态解析历史签名。随后 MUST 按 registry 从签名 
 
 每个 state witness 都必须携带完整 signed RealmCommit 与 closed `result_value`。receiver 验证 RealmCommit id、
 governance-Station signature、Realm 与 lineage，并把 `result_value` 与该 Commit 覆盖的 typed current result 逐字比较。
-signed RealmCommit 本身就是该 typed current result 的完整承诺：receiver 重算 Commit ID、验证治理 Station
-signature 与 stream 链接，再把 `result_value` 与该 Commit 覆盖的 typed current result 逐字比较即告完成。
+signed RealmCommit 绑定 accepted Event 与 stream 坐标，并不直接携带或承诺 typed current result value。
+receiver MUST 重算 Commit ID、验证治理 Station signature 与 stream 链接，从原始已签 Event 的 registered
+reducer write 重算对应状态，并验证独立 state attestation 对完整 witness/result 和 source cut 的绑定。
+不能仅凭 Commit 签名接受任意 caller 提供的 value；source cut 处的状态有效性由该 PCR 权威签署的
+完整 state assertion 确认，历史链本身不证明未来未发生撤销。
 witness **MUST NOT** 携带或要求任何附加的聚合摘要、leaf digest/index/count 或 Merkle inclusion proof；
 携带这类成员的 witness MUST 被拒绝，缺 signed RealmCommit/value 或 typed current result/subject/actor/controller
 错配同样 fail closed。
@@ -362,9 +365,11 @@ state 必须携带其确切 RealmCommit 集合与足以验证对应 authority ge
 
 `authority_bundle` 复用 `agent_accepted_authority_bundle` 定义的最小 accepted-at 投影：`{realm_id,genesis_event,genesis_commit,authority_transitions,signer_histories}`。genesis 与连续 handoff 确定各代治理 Station，method-native histories 在各原始签发/接纳时刻验签；不携在线 nonce/current assertion，也不因此授予实时 route 或其它 Event 权限。genesis 原件必须与 state 相同，transition 不得越过 source cut，历史 resolution 仅保留实际签名所需记录；缺历史 unresolved，未使用记录 surplus。
 
-`signer_dependencies` 按 `signer_resolution_evidence_ref` 的 UTF-8 字节严格升序，恰好包含 genesis、authorization、lifecycle 与 authority transition Event 的 producer proof 实际递归引用。机读 closed union 仅允许 human device root、service ASRE 加 method-native resolution、Agent sibling closure。human ref 寻址完整 device root；service/Agent ref 寻址六成员 ASRE，额外的闭包/历史是独立 sibling。不得把 ASRE 自报 key 当作已验证 authority。递归 Agent 的 accepted-at 由引用它的原 Event 对应 Commit 冻结，不能用接收时间；跨不同 AccountId、scope 或 cut 的同名方法不能代换。相同 ref 在同一依赖集合仅保留一次，同 ref 异内容、循环和 surplus 拒绝；缺项 unresolved。恢复 compact 后以完整 evidence 的 RFC 8785 JCS bytes 计唯一 262144-byte 上限，不另计一套 state 限额。大小检查须在递归展开之前进行，循环检查须在再次进入同一 ref 之前进行。
+现行 closed producer proof 不含 signer ref，MUST NOT 新增该字段或改写原始已签 bytes。原接纳事务的 signer 取材由 state 的 `producer_bindings` 显式承载：每项 closed `{event_ref,accepted_commit_id,signer_resolution_evidence_ref}`，按完整 Event ID 的 UTF-8 字节严格升序；恰好覆盖 genesis、authorization、lifecycle 与 authority transition 的去重原 Event 集。各 accepted Commit MUST 在 `commits` 中逐字绑定该 Event，`accepted_at` 仅取该 Commit 的 `committed_at`。binding 与来源材料在原接纳事务冻结并保留，由唯一 state attestation 认证，不能从当前设备状态重建。
 
-正式 peer ingress 只在 `authority_forward` 登记 `producer_agent_evidence`（`ak.schema.agent_producer_evidence.v1`）：`{authenticated_signer_evidence,agent_authority_state_evidence,controller_account_gate_attestation,authority_resolution}`。实际 producer 是 Agent runtime 时 required，human device/service 与其它 peer 分支 forbidden；实际 producer 取 `executed_by`（存在时），否则 `actor_id`，MLS 取 Commit Event。同携 device/Agent evidence、缺 required carrier 或 surplus 为 `schema_violation` 且零写入。Event proof ref MUST 等于六字段 ASRE 的 JCS SHA-256 content ref，ASRE method/key/subject/authority Commit 必须与完整 Agent AccountId、state authorization/source cut 一致。authenticated forwarding Station MUST 等于该 Agent AccountId.station_id；入口身份、producer proof、state attestation 与 controller gate 各自验证。`authority_resolution` 在 attestation/gate 的各观察时刻认证历史方法。
+`signer_dependencies` 按 `signer_resolution_evidence_ref` 的 UTF-8 字节严格升序，恰好包含上述 producer bindings 实际使用的递归依赖。机读 closed union 仅允许 human device root、service ASRE 加 method-native resolution、Agent sibling closure。human ref 寻址完整 device root；service/Agent ref 寻址六成员 ASRE，额外的闭包/历史是独立 sibling。不得把 ASRE 自报 key 当作已验证 authority。递归 Agent 的 accepted-at 由引用它的原 Event 对应 Commit 冻结，不能用接收时间；跨不同 AccountId、scope 或 cut 的同名方法不能代换。相同 ref 在同一依赖集合仅保留一次，同 ref 异内容、循环和 surplus 拒绝；缺项 unresolved。恢复 compact 后以完整 evidence 的 RFC 8785 JCS bytes 计唯一 262144-byte 上限，不另计一套 state 限额。大小检查须在递归展开之前进行，循环检查须在再次进入同一 ref 之前进行。
+
+正式 peer ingress 只在 `authority_forward` 登记 `producer_agent_evidence`（`ak.schema.agent_producer_evidence.v1`）：`{authenticated_signer_evidence,agent_authority_state_evidence,controller_account_gate_attestation,authority_resolution}`。实际 producer 是 Agent runtime 时 required，human device/service 与其它 peer 分支 forbidden；实际 producer 取 `executed_by`（存在时），否则 `actor_id`，MLS 取 Commit Event。同携 device/Agent evidence、缺 required carrier 或 surplus 为 `schema_violation` 且零写入。该 producer 的 signer ref 由六字段 ASRE 的 JCS SHA-256 派生并在本次接纳事务保留，不能要求 Event proof 携不存在的 ref。ASRE method/key/subject/authority Commit 必须与完整 Agent AccountId、state authorization/source cut 一致，且其 key 必须验证原 producer proof。authenticated forwarding Station MUST 等于该 Agent AccountId.station_id；入口身份、producer proof、state attestation 与 controller gate 各自验证。`authority_resolution` 在 attestation/gate 的各观察时刻认证历史方法。
 
 冷缓存发送完整 state；compact 仅由接收方本地已完整验证的 exact digest 恢复，cache miss 为既有 `dependency_missing` 且零接纳，不在线取回。发送方可经同一正式入口重新提交完整 body；canonical_hash 因 body 改变而为新请求，Event 的 exact replay 仍返回原 committed outcome。首接纳事务 MUST 原子保留恢复后的完整 carrier/ref 与唯一 Event/RealmCommit，不能持久化 compact 为 canonical signer evidence。复制接收方保持既有治理签名消费职责，不重复首次 producer admission。独立 controller gate 不携 participation selection，完整授权包不替代动作时 participation current。
 

@@ -23,7 +23,7 @@ def check_agent_runtime_contract(lint: Lint) -> None:
     required = {'authority_id', 'agent_id', 'source_commit_id', 'pcr_genesis_event',
                 'key_authorization_event', 'authorization', 'key_state_witness',
                 'agent_lifecycle_witness', 'commit_lineages', 'commits',
-                'authority_bundle', 'signer_dependencies'}
+                'authority_bundle', 'signer_dependencies', 'producer_bindings'}
     if set(state.get('required', [])) != required or set(state['properties']) != required:
         lint.fail(path, 'Agent state must carry the exact complete authority closure')
     if state.get('additionalProperties') is not False:

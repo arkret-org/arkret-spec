@@ -81,9 +81,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
-      "version": "2026-10-05.2",
-      "generated_at": "2026-10-05T11:14:20+08:00",
-      "content_digest": "sha256:ba3dd907b9191cb45b2f422b9d26f54171c0194f618f6a326d9c53dd35281931"
+      "version": "2026-10-05.3",
+      "generated_at": "2026-10-05T11:24:52+08:00",
+      "content_digest": "sha256:d80261990ead71a6ded62aea9b296cad029874326e1af38199b8dfe4dfd23481"
     },
     {
       "path": "spec/v1/artifacts/registry/current-result-registry.json",
@@ -105,9 +105,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/did-evidence-boundary-registry.json",
-      "version": "2026-10-05.2",
-      "generated_at": "2026-10-05T11:14:20+08:00",
-      "content_digest": "sha256:97ef93b83fde232945e26faea0f8f89ac7ee84c1c160f2f749abb1644ce69943"
+      "version": "2026-10-05.3",
+      "generated_at": "2026-10-05T11:24:52+08:00",
+      "content_digest": "sha256:aae29136026b41030921f093ca373b2beac62cd13cc576f92a30c8f3e382cfcc"
     },
     {
       "path": "spec/v1/artifacts/registry/did-freshness-profile-registry.json",
@@ -231,9 +231,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-10-05.4",
-      "generated_at": "2026-10-05T11:14:22+08:00",
-      "content_digest": "sha256:80f780fb404b839b02a746ad29617eb85891f1cdd69cebb8b07d935ce61f32f9"
+      "version": "2026-10-05.5",
+      "generated_at": "2026-10-05T11:24:52+08:00",
+      "content_digest": "sha256:f2b0e1a99a30d7fdd9924eb1f48d287ebc84bf31332455f4838eb5d22be7492d"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
@@ -423,9 +423,9 @@
     },
     {
       "path": "tools/evidence-material-audit.json",
-      "version": 27,
+      "version": 28,
       "generated_at": null,
-      "content_digest": "sha256:01ca63f20c929b17e8f6899e52ec5caa327a860bc587a997e16966374224d90b"
+      "content_digest": "sha256:fe97f278a4d0bbabbd8cee5146c187af3cbdf52733f1bfbabc25e94273948535"
     },
     {
       "path": "tools/fixture-schema-instance-binding-registry.json",
@@ -441,9 +441,9 @@
     },
     {
       "path": "tools/identifier-classification-registry.json",
-      "version": 49,
+      "version": 51,
       "generated_at": null,
-      "content_digest": "sha256:d28daba96b9b20454e9a35cb88be15cc7340331108b36a3e30f144ffe5420ad8"
+      "content_digest": "sha256:84092555f8d9fc85f6f27b3acf32a83bdc271ce667941ce16b96e528ad75b093"
     },
     {
       "path": "tools/identifier-role-suffix-registry.json",

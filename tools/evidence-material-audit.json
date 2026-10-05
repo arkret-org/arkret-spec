@@ -1,12 +1,12 @@
 {
-  "version": 27,
+  "version": 28,
   "source_of_truth": false,
   "narrative_source": "spec/v1/zh/models/common-fields.md#r6-证据类名词分工",
   "scope": [
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 375,
+  "audited_occurrence_count": 376,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -1130,7 +1130,7 @@
     {
       "file": "agent-authority-evidence.schema.json",
       "key": "signer_resolution_evidence_ref",
-      "occurrences": 3,
+      "occurrences": 4,
       "disposition": "qualifier",
       "reason": "Agent producer closure uses only actual signer dependencies; authority evidence never grants participation current. References address exact canonical roots and do not themselves carry material."
     },

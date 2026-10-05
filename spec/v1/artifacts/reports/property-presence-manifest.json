@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9149,
+    "total_properties": 9153,
     "total_schema_documents": 168,
     "by_presence_class": {
       "optional": 2141,
       "optional_defaulted": 48,
-      "required": 6468,
+      "required": 6472,
       "required_nullable": 314,
       "tristate": 178
     },
@@ -2404,6 +2404,7 @@
         "/$defs/agent_authority_state/properties/key_authorization_event": "required",
         "/$defs/agent_authority_state/properties/key_state_witness": "required",
         "/$defs/agent_authority_state/properties/pcr_genesis_event": "required",
+        "/$defs/agent_authority_state/properties/producer_bindings": "required",
         "/$defs/agent_authority_state/properties/signer_dependencies": "required",
         "/$defs/agent_authority_state/properties/source_commit_id": "required",
         "/$defs/agent_authority_state_attestation/properties/authority_id": "required",
@@ -2442,6 +2443,9 @@
         "/$defs/agent_lifecycle_witness/properties/commit_id": "required",
         "/$defs/agent_lifecycle_witness/properties/provenance": "required",
         "/$defs/agent_lifecycle_witness/properties/result": "required",
+        "/$defs/agent_producer_binding/properties/accepted_commit_id": "required",
+        "/$defs/agent_producer_binding/properties/event_ref": "required",
+        "/$defs/agent_producer_binding/properties/signer_resolution_evidence_ref": "required",
         "/$defs/agent_producer_evidence/properties/agent_authority_state_evidence": "required",
         "/$defs/agent_producer_evidence/properties/authenticated_signer_evidence": "required",
         "/$defs/agent_producer_evidence/properties/authority_resolution": "required",
