@@ -804,6 +804,14 @@ controller/Agent 分支的第 3 条 Agent join **MUST** 显式携带 `agent_cont
 - founding unit 后必须提交该 scope 唯一的 `ak.mls.genesis`，其 accepted RealmCommit 将 scope 不可逆激活为 standard RFC 9420；
 - exact-two active participants 是独立 membership/profile 约束。
 
+Agent participation 的 Realm ceiling 读取 MUST 使用该 accepted founding unit 的固定 baseline。
+本 profile 不要求也不允许为此追加 `ak.realm.policies`；缺少普通 Realm 的 policy-bundle current
+不代表本 Direct 的 baseline 未知。验证 create-locked genesis current 的 covering Commit 与完整
+四-Commit founding unit 后，未声明的 Agent participation Realm component 继承部署 ceiling；
+这不是默认放行未知治理状态。controller current selection、Strand component、普通 participant
+authority、membership、lifecycle 与 MLS gates 仍逐项独立成立，source current／unit 不完整或
+坐标不匹配时仍 MUST fail closed。
+
 DC 的 `history_access` 由 create 条件写原子初始化并永久固定为 `since_join`；任何 update 或 `all_history_for_current_members` materialized state 都必须拒绝。
 
 DC 不存在第二套 profile-fixed history sharing 对象。Exact-peer-only 来自 immutable exact-two participant binding 与 current
