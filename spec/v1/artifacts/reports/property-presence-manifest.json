@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9193,
+    "total_properties": 9192,
     "total_schema_documents": 168,
     "by_presence_class": {
       "optional": 2150,
       "optional_defaulted": 48,
-      "required": 6494,
+      "required": 6493,
       "required_nullable": 320,
       "tristate": 181
     },
@@ -2992,7 +2992,6 @@
         "/properties/collapsed": "optional",
         "/properties/context_ref": "required",
         "/properties/controller_account_id": "required",
-        "/properties/display_mode": "required",
         "/properties/origin_device_id": "required",
         "/properties/pinned": "optional",
         "/properties/schema": "required",

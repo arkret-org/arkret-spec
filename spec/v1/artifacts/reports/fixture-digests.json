@@ -147,8 +147,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/client-sync-fixture.json",
-      "sha256": "556861c6bf756d108d30cac7af1e53bea4ea01b42a539b7a248378934726a66f",
-      "version": "2026-09-23"
+      "sha256": "8743be2690cf6b6649e6d69b9e184badd3774fa0b091a269bd8616bcd6b3025e",
+      "version": "2026-10-05.2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/consent-cache-invalidation-fixture.json",
@@ -564,6 +564,11 @@
       "path": "spec/v1/artifacts/fixtures/shared-pin-admission-fixture.json",
       "sha256": "249de463600dd1b28fbbb074d89bfa43e664af8a39daddf2e0c8cf1b2cb14e82",
       "version": "2026-10-01.1"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/sidecar-view-state-schema-fixture.json",
+      "sha256": "d39e978221688f394585c2409582cdcad94a9dae5ce5b21d86a207b7aafe6a80",
+      "version": "2026-10-05.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/signal-federation-fixture.json",

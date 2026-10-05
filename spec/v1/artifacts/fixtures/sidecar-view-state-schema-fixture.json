@@ -1,0 +1,81 @@
+{
+  "suite": "sidecar_view_state_closed",
+  "version": "2026-10-05.1",
+  "fixture_kind": "schema_only",
+  "description": "Closed plaintext schema evidence for fixed merged Sidecar view state only. No encrypted transport, cryptographic proof, MLS, atomic installation, live responsiveness or cross-user delivery is established by these cases.",
+  "runner": {
+    "kind": "json_schema_validation_cases"
+  },
+  "covers_vectors": [
+    "ak.vector.sidecar.view_state_closed.v1"
+  ],
+  "schema_validation_cases": [
+    {
+      "name": "sidecar_view_state_fixed_merged_has_no_display_mode",
+      "schema_ref": "schemas/agent-sidecar-view-state.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "schema": "ak.schema.agent_sidecar_view_state.v1",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+        },
+        "sidecar_id": "ak:sidecar:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI",
+        "context_ref": {
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "strand_id": "ak:strand:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "pinned": true,
+        "collapsed": false,
+        "updated_hlc": "019999999999-0000-00000001",
+        "origin_device_id": "ak:device:01964137-1000-7000-8000-000000000011"
+      }
+    },
+    {
+      "name": "sidecar_view_state_rejects_obsolete_context_merged_field",
+      "schema_ref": "schemas/agent-sidecar-view-state.schema.json",
+      "expect_valid": false,
+      "instance": {
+        "schema": "ak.schema.agent_sidecar_view_state.v1",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+        },
+        "sidecar_id": "ak:sidecar:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI",
+        "context_ref": {
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "strand_id": "ak:strand:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "pinned": true,
+        "collapsed": false,
+        "updated_hlc": "019999999999-0000-00000001",
+        "origin_device_id": "ak:device:01964137-1000-7000-8000-000000000011",
+        "display_mode": "context_merged"
+      },
+      "first_expected_error": "$: Additional properties are not allowed ('display_mode' was unexpected)"
+    },
+    {
+      "name": "sidecar_view_state_rejects_obsolete_sidecar_only_field",
+      "schema_ref": "schemas/agent-sidecar-view-state.schema.json",
+      "expect_valid": false,
+      "instance": {
+        "schema": "ak.schema.agent_sidecar_view_state.v1",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixture",
+          "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
+        },
+        "sidecar_id": "ak:sidecar:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI",
+        "context_ref": {
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "strand_id": "ak:strand:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "pinned": true,
+        "collapsed": false,
+        "updated_hlc": "019999999999-0000-00000001",
+        "origin_device_id": "ak:device:01964137-1000-7000-8000-000000000011",
+        "display_mode": "sidecar_only"
+      },
+      "first_expected_error": "$: Additional properties are not allowed ('display_mode' was unexpected)"
+    }
+  ]
+}

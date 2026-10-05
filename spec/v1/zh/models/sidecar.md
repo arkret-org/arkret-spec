@@ -3,7 +3,7 @@ title: Agent Sidecar
 status: candidate
 normative: true
 stability: v1
-updated: 2026-08-07
+updated: 2026-10-05
 ---
 
 ## 0. 规范语言
@@ -274,8 +274,16 @@ result selector。获授权参与者解密集合元素后，按 plaintext `excha
 折叠 coordinator reassignment 和 terminal state；错误 controller／scope／context、无法认证的密文、
 未覆盖 basis 或非法状态迁移都必须在 keyed-set add 之前拒绝，且不得留下部分写入。
 
-客户端 MAY 在普通 Strand shell 中显示 Sidecar-private view，但必须明确标记 private provenance，且
-进入/退出 Sidecar 不得改变普通 Strand canonical history。
+提供 Sidecar 上下文交互的客户端 MUST 在原 source Strand 的讨论中，向当前获授权的 controller
+合并展示普通 Strand 消息及其 Sidecar 的已验证 request 与显式 user-facing response，并明确标记
+private provenance。该寄宿展示方式固定为合并展示，不提供 Sidecar-only 显示模式或显示模式切换；
+pin／折叠只调整局部呈现，不改变该默认阅读入口。读取自己的私密消息 MUST NOT 以 publish、共享
+审批、切换私密视图或手动刷新为前提。没有私密消息时保留普通讨论及输入入口，不隐藏原 Strand。
+
+这只是 controller 的本地私密投影，不改变普通 Strand canonical history、成员、授权或 MLS roster。
+除该 Sidecar 当前获授权的 controller／Agent 外，其它用户 MUST NOT 接收或读取这些 Sidecar 消息，
+包括同一 source Strand 的其它成员；共享历史、通知、未读与搜索 MUST NOT 因该投影产生私密内容或
+Sidecar 存在差异。controller 本人看到请求／回复不创建普通 Event，也不构成显式发布。
 
 v1 exchange profile 固定 source-track routed origin 与 coordinator completion policy；
 `ak.schema.agent_sidecar_exchange_projection.v1` cache 不携 `origin` / `completion_policy`，request-role
@@ -305,14 +313,56 @@ Circle 内容不得使用本节映射或发布规则跨越 Circle 边界。
 | 普通 Realm Strand，只含主人的私人 Agent（可含主人自身） | 私有 Sidecar | 不提供将私人请求直接“发送到群”的绕过；显式成果 publish 另走 §8。 |
 | 普通 Realm Strand，私人／公开 Agent 混合，或私人 Agent 与外部／audience 混合 | 阻止发送，保留草稿并要求修改目标或进入明确私有视图 | 不自动拆分、丢弃目标、转群或改变模式；unknown 模式也阻止发送。第三方手工构造 private mention 只抑制 Agent 触发，不改变原共享消息 scope。 |
 | Circle Strand | 公开目标保持普通 Circle；主人私人 Agent 交互阻止发送 | 不提供 Realm Sidecar 路由，不复制 Circle 内容；公开目标仍需 Circle 读取／participation／E2EE 门。 |
-| 已寄宿 Sidecar | 保持该私有 Sidecar | 提及 private scope 外目标或任一 audience mention 时阻止发送；退出私有视图后新写普通消息，或按 §8 显式 publish 新 Event，不能以切换按钮发布 private history。 |
+| 原 Strand 中的 Sidecar 私密输入入口 | 保持该私有 Sidecar | 提及 private scope 外目标或任一 audience mention 时阻止发送；另用普通输入入口新写普通消息，或按 §8 显式 publish 新 Event，不能以展示状态发布 private history。 |
 
 客户端 MUST 在发送前展示实际 scope 与可读取者边界；Circle／Direct 显示其固定 scope。公开／私人模式
-由主人独立设置，不是当前草稿的“发送到群”按钮。显式进入 Sidecar 是私有协作入口，公开 Agent 在此也
+由主人独立设置，不是当前草稿的“发送到群”按钮。Sidecar 私密输入入口是私有协作入口，公开 Agent 在此也
 保持私有会话；mention 是请求寻址子集，不是加密收件人全体，也不得修改 derived roster。Sidecar
 pending／not-ready／失败 MUST 保留草稿并拒绝私有发送，MUST NOT 降级普通 Strand。草稿、目标、模式、
 scope／账号／私有视图变化 MUST 撤销先前 shared 确认，恢复与重试重查当前模式及权限。Private publish
 仍须 §8 的最终 allowlist 确认和新 Event；reply／revise／附件／引用等不得迁移已有 Message scope。
+
+已验证 controller 关系与完整 Agent AccountId 满足 [`strand-and-message.md` §9.4.1](./strand-and-message.md)
+时，本地 `@me/slug` 标签不依赖成员列表是否呈现主人行；标签不替代结构化绑定。发送异步进行时 MUST
+保留草稿与已绑定目标，只有同一账号／scope／草稿意图的请求得到 bound accepted outcome 后才能清除
+该请求的输入；失败或迟到的结果不得清除后续编辑。重复点击 MUST NOT 创建重复 request 或重复 Agent
+执行。发送成功仅表示请求已接纳，不表示 Agent 已生成回复或用户已经看到回复。
+
+### 8.2 实时私密阅读与恢复
+
+真实生产 account-stream consumer、逐流补拉与重启恢复 MUST 对 Sidecar 使用同一验证和安装边界，
+不能只在离线测试或未接线 follower 中执行：冻结经认证的 exact account／Realm／governance generation
+及 Sidecar stream head，验证该 cut 所需的连续 committed history、typed current、historical signer 与
+exact MLS group state，然后在同一耐久事务安装相互一致的私密历史、current 及重建派生投影的验证 basis；checkpoint
+只能在该事务耐久完成后推进。派生投影 MAY 为非耐久缓存，但只能从完整安装且仍获授权的 cut
+重建并发布到 UI，不得展示事务中的候选中间态。任一验证失败或依赖缺失时 MUST NOT 安装部分 current／投影或宣称最新
+历史完整，MUST NOT 用另一个 Realm／Sidecar／generation 的 head、较新的 current 或部分事件凑齐该 cut。
+遵循 [`client-sync.md` §5](../sync/client-sync.md) 与 [`current-results.md` §3–§5](../sync/current-results.md)。
+
+已接纳回复及其验证依赖可取得时，consumer MUST 自动补齐并重新验证，然后更新原讨论中的私密投影，
+不等待下一条用户消息或手动刷新。断线、cursor 失效或客户端重启后 MUST 自动恢复同一已接纳历史与
+回复，按 Event id 去重，不重发请求、不再次执行 Agent、不清除身份密钥、MLS 私有状态或待发送草稿。
+来源 Strand current／watch 的独立读取失败不得取消获授权 Sidecar 的续传；任何重试仍服从现有授权、
+分页、generation 和撤权门。服务不可用时不承诺回复产生或固定完成时限，但恢复不能依赖用户刷新。
+
+历史验证、解密、补拉和缓存持久化 MUST 有界调度，不得在每次渲染、滚动或输入时同步重放全部私密
+历史。实现 MAY 使用经验证的增量检查点与缓存，但 MUST 绑定完整 account、exact scope、generation、
+已验证 head、历史 signer 与 MLS state；缓存命中不得省略这些安全边界。新增事件或依赖变化必须触发
+相应重新验证，撤权立即禁止展示不可再读内容。验证／恢复等待 MUST 保持页面滚动、输入及取消可操作；
+Agent 当前作者化或未来 epoch 参与资格的撤销不等于 controller 当前历史读取资格被撤销；合法已读历史
+与历史 MLS state 保留仍遵守既有 history/access 合同，不得用当前作者化状态追溯删除主人历史。
+自动重试 MUST 遵循退避与资源预算，不得因重试形成阻塞循环。正常 Signal 流 drain／续订或
+健康连接上的 reconnect hint MUST NOT 累积故障次数并扩张错误退避；实际失败与正常续订分别处理。
+Signal 只辅助唤醒，不替代 committed reply 的验证与续传，缺失或延迟的 Signal 不得使已接纳回复只能
+等待下一条用户消息或手动刷新。
+
+在当前授权仍允许读取时，已验证的上一完整 cut MAY 保留为明确标注非最新的历史；等待验证的新回复
+MUST NOT 被伪装为已验证或当前结果。恢复提示只影响未就绪的私密部分，不阻塞普通讨论。没有可验证
+历史时显示可恢复空态与具体状态，不使用共享消息、默认明文或未经认证的缓存冒充私密回复。
+
+诊断和验收 MUST 区分请求接纳、模型完成、回复接纳、客户端接收、客户端验证与用户可见这六个边界；
+发送成功、模型完成或订阅连接存活均不能单独证明回复显示成功。诊断记录 MUST 遵循既有私密日志／遥测
+隔离，不向共享面输出私密正文、Event／Sidecar 定位符、密钥或 exchange material。
 
 ## 9. Ensure 与读取
 
@@ -346,6 +396,11 @@ context mappings。
    也不得触发另一个 Sidecar 的 MLS Add、payload delivery 或 future epoch key 交付。
 
 ### 10.1 必跑 conformance vectors
+
+`ak.vector.sidecar.view_state_closed.v1` 为 active schema-only 向量，通过
+`sidecar-view-state-schema-fixture.json` 验证无模式 view-state shape 与旧模式字段拒绝；它不证明真实
+MLS、主人合并显示、实时恢复或 UI 响应性。这些生产验收见
+[`conformance-vectors.md` §3.16](../conformance/conformance-vectors.md)。
 
 下列向量在 [`vector-registry.json`](../../artifacts/registry/vector-registry.json) 中当前均为 `reserved`：
 尚无机器 fixture 承载，激活前不构成认证证据。每个向量在补齐 fixture 并回到 `active` 的同一变更中成为必跑项。

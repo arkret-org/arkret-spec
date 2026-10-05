@@ -1,6 +1,6 @@
 {
   "suite": "client_sync",
-  "version": "2026-09-23",
+  "version": "2026-10-05.2",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.sync.client_account_stream.v1"
@@ -172,6 +172,80 @@
       ],
       "expected": "accepted",
       "expected_state": "the position-1 delta survives; the older baseline MUST NOT overwrite it"
+    },
+    {
+      "name": "sidecar_history_current_projection_same_cut_before_checkpoint",
+      "steps": [
+        {
+          "step": 0,
+          "action": "deliver_incremental",
+          "stream_ref": {
+            "kind": "sidecar",
+            "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+            "sidecar_id": "ak:sidecar:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+          },
+          "stream_position": 1
+        },
+        {
+          "step": 1,
+          "action": "install_typed_current_result",
+          "durable": true,
+          "expected_state": "one transaction installs verified Sidecar history, typed current and the verified basis for a private projection at the same authenticated stream head and generation"
+        },
+        {
+          "step": 2,
+          "action": "advance_durable_cursor",
+          "cursor": "ak:cursor:sidecar-position-1"
+        }
+      ],
+      "expected": "accepted",
+      "expected_state": "a restart recovers the response once from the same durable cut; no request replay or Agent execution"
+    },
+    {
+      "name": "sidecar_missing_tail_does_not_install_newer_current_or_checkpoint",
+      "steps": [
+        {
+          "step": 0,
+          "action": "deliver_incremental",
+          "stream_ref": {
+            "kind": "sidecar",
+            "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+            "sidecar_id": "ak:sidecar:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+          },
+          "stream_position": 2
+        },
+        {
+          "step": 1,
+          "action": "install_typed_current_result",
+          "durable": false,
+          "expected_state": "the newer current is missing its required continuous committed tail"
+        }
+      ],
+      "expected": "rejected",
+      "reason": "incomplete same-cut proof cannot partially install current, history, projection verification basis or checkpoint; retain the prior verified authorized cut"
+    },
+    {
+      "name": "sidecar_projection_transaction_failure_preserves_prior_cut",
+      "steps": [
+        {
+          "step": 0,
+          "action": "deliver_incremental",
+          "stream_ref": {
+            "kind": "sidecar",
+            "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+            "sidecar_id": "ak:sidecar:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+          },
+          "stream_position": 1
+        },
+        {
+          "step": 1,
+          "action": "install_typed_current_result",
+          "durable": false,
+          "expected_state": "transaction persistence fails before history, current and projection verification basis become durable"
+        }
+      ],
+      "expected": "rejected",
+      "reason": "roll back the whole candidate cut and keep the old checkpoint; no successful visibility claim from an undurable result"
     }
   ],
   "reconnect": [
@@ -235,6 +309,24 @@
       ],
       "other_streams_reset": false,
       "to_device_acks_reset": false
+    },
+    {
+      "name": "sidecar_missing_tail_recovers_automatically_without_another_request",
+      "stored_cursor": "ak:cursor:sidecar-prior-verified-cut",
+      "server_outcome": "stream_tail_missing",
+      "affected_stream_ref": {
+        "kind": "sidecar",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "sidecar_id": "ak:sidecar:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+      },
+      "expected": "resume",
+      "recovered_streams": [
+        "sidecar"
+      ],
+      "baseline_redone": false,
+      "expected_client_action": "bounded backfill of the missing authenticated tail, same-cut atomic install, then update private projection without refresh, request resend or repeated Agent execution",
+      "mls_private_state_deleted": false,
+      "delivery_acks_invalidated": false
     }
   ],
   "delivery_cancellation": [

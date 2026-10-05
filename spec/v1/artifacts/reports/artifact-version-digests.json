@@ -3,15 +3,15 @@
   "artifacts": [
     {
       "path": "spec/v1/artifacts/profiles/conformance-profiles.json",
-      "version": "2026-10-05.1",
-      "generated_at": "2026-10-05T02:40:00+08:00",
-      "content_digest": "sha256:8cdb5ffdd0e2d0b98aca028f64073781c9ca5e174f203e5702b4a34958f6dcd9"
+      "version": "2026-10-05.3",
+      "generated_at": "2026-10-05T22:55:00+08:00",
+      "content_digest": "sha256:d72c6a1a159129e18f869fc7ef3dc8a859ef0904b34f3b003209f174858c093d"
     },
     {
       "path": "spec/v1/artifacts/registry/account-data-key-registry.json",
-      "version": "2026-09-28.1",
-      "generated_at": "2026-09-28T04:06:31+08:00",
-      "content_digest": "sha256:e62b88f34c59defc52c9fbae1fcf1b7e81435edfeed02d31b2f5bf910cc6a3bf"
+      "version": "2026-10-05.2",
+      "generated_at": "2026-10-05T22:53:00+08:00",
+      "content_digest": "sha256:e537b9e052f52ecf1d1bdcabd17b1d01de9a84aa43f70af4ebee4597b97f2ae1"
     },
     {
       "path": "spec/v1/artifacts/registry/account-status-replica-decision-table.json",
@@ -375,9 +375,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/vector-registry.json",
-      "version": "2026-10-05.5",
-      "generated_at": "2026-10-05T19:43:32+08:00",
-      "content_digest": "sha256:0731045f12a3d36b092d3843a36f5bf7068ec90291d227b396067822fdf3296c"
+      "version": "2026-10-05.6",
+      "generated_at": "2026-10-05T22:55:00+08:00",
+      "content_digest": "sha256:6aeb5c295ac69897d364d2c74bccd99c0c62606dc2e561fe62c56061de127e0e"
     },
     {
       "path": "tools/artifact-anchor-fragment-exemptions.json",

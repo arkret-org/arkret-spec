@@ -9,7 +9,6 @@
     "controller_account_id",
     "sidecar_id",
     "context_ref",
-    "display_mode",
     "updated_hlc",
     "origin_device_id"
   ],
@@ -25,9 +24,6 @@
     },
     "context_ref": {
       "$ref": "#/$defs/strand_context_ref"
-    },
-    "display_mode": {
-      "$ref": "#/$defs/display_mode"
     },
     "pinned": {
       "type": "boolean"
@@ -59,13 +55,6 @@
         }
       },
       "additionalProperties": false
-    },
-    "display_mode": {
-      "type": "string",
-      "enum": [
-        "context_merged",
-        "sidecar_only"
-      ]
     },
     "hlc": {
       "$ref": "./agent-sidecar-exchange-projection.schema.json#/$defs/hlc"

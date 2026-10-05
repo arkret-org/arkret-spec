@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-28.1",
+  "version": "2026-10-05.2",
   "source_of_truth": true,
-  "generated_at": "2026-09-28T04:06:31+08:00",
+  "generated_at": "2026-10-05T22:53:00+08:00",
   "description": "Canonical registry of standard Account Data key patterns. Every row explicitly declares its closed writer authorities, holder self-surface operations, cross-device merge primitive, and delete semantics; see spec/v1/zh/models/account-data.md section 5.",
   "registry_rules": [
     "writer_authorities is a non-empty unique array over the closed v1 set holder_event | station_cas. holder_event requires non-empty write_event_kinds; station_cas requires plaintext_account_data plus plaintext_schema and does not mint an Event.",
@@ -526,7 +526,7 @@
         "ak.account_data.set"
       ],
       "deletion_mode": "physical_delete",
-      "description": "Controller-private per-context Sidecar hosted-view state. controller_account_key is derive_account_data_key(RFC8785_JCS(controller_account_id)) from models/account-data.md section 2; the structured AccountId is never inserted directly into the colon-delimited key. Synchronizes display_mode (context_merged or sidecar_only), pin/collapse state, and HLC without changing either Strand, Track, access, read, watch, notification, or search state.",
+      "description": "Controller-private per-context Sidecar hosted-view state. controller_account_key is derive_account_data_key(RFC8785_JCS(controller_account_id)) from models/account-data.md section 2; the structured AccountId is never inserted directly into the colon-delimited key. Synchronizes only pin/local-collapse state and HLC, without changing either Strand, Track, access, read, watch, notification, or search state. The source Strand always merges authorized private Sidecar requests and user-facing replies for the controller, without publish or a display-mode field.",
       "source_refs": [
         "spec/v1/zh/models/private-objects.md"
       ]

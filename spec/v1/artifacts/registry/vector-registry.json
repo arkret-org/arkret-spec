@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-05.5",
+  "version": "2026-10-05.6",
   "source_of_truth": true,
-  "generated_at": "2026-10-05T19:43:32+08:00",
+  "generated_at": "2026-10-05T22:55:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -4592,7 +4592,7 @@
       "applies_to_profiles": [
         "ak.profile.agent_sidecar.v1"
       ],
-      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: Event-fold and local-cache recovery: rebuild from accepted private history, fold validation, no Account Data merge, controller-controlled ordering and sibling resolution, terminal absorption, reassignment, action-by-response-set mapping, and projection schema state invariants. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: Event-fold and local-cache recovery: rebuild from accepted private history, fold validation, no Account Data merge, controller-controlled ordering and sibling resolution, terminal absorption, reassignment, action-by-response-set mapping, and projection schema state invariants. The actual account-stream consumer, backfill and restart paths atomically install history, current and projection verification basis at one authenticated cut before checkpoints; incomplete cuts preserve the prior authorized verified cut and recover automatically, without refresh or repeated request execution. Live UI responsiveness and bounded scheduling require the named production acceptance cases in sidecar section 8.2 and conformance-vectors section 3.16. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/models/sidecar.md"
       ]
@@ -4629,7 +4629,7 @@
       "applies_to_profiles": [
         "ak.profile.agent_sidecar.v1"
       ],
-      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: Context attach establishes only the source-context mapping and rejects extra track or message fields under the closed schema; the local echo projection rebuilds without duplicating requests or Agent executions, orders after the last seen shared position by stable key, keeps the main Strand title, breadcrumb and track tabs visible in both modes, shows an empty state instead of falling back to shared read/write, and admits only requests and explicit user-facing responses into the echo. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: Context attach establishes only the source-context mapping and rejects extra track or message fields under the closed schema; the local echo projection rebuilds without duplicating requests or Agent executions, orders after the last seen shared position by stable key, keeps the main Strand title, breadcrumb and track tabs visible in fixed merged presentation; the authorized controller reads requests and user-facing replies without publish, approval, mode switching or manual refresh, while other source Strand members receive and see none of them; the closed view-state plaintext has no display_mode field, shows an empty state instead of falling back to shared read/write, and admits only requests and explicit user-facing responses into the echo. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/models/sidecar.md"
       ]
@@ -4812,7 +4812,7 @@
       "applies_to_fixtures": [
         "client-sync-fixture.json"
       ],
-      "description": "Own-Station account aggregate stream: per-stream tail continuity, durable cursor checkpoints, projection-before-checkpoint ordering, reconnect reset vs resume, and explicit delivery cancellation.",
+      "description": "Own-Station account aggregate stream: per-stream tail continuity, durable cursor checkpoints, projection-before-checkpoint ordering, reconnect reset vs resume, and explicit delivery cancellation. Includes Sidecar same-cut history/current/projection verification basis installation, missing-tail rejection with prior-cut preservation, automatic reconnect/restart recovery and cursor advancement only after durable installation; fixture evidence does not claim production browser responsiveness.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/client-sync-fixture.json"
       ]
@@ -5130,6 +5130,21 @@
         "spec/v1/zh/sync/server-trusted-results.md",
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/fixtures/governance-result-consumption-roles-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.sidecar.view_state_closed.v1",
+      "status": "active",
+      "domain": "sidecar",
+      "applies_to_fixtures": [
+        "sidecar-view-state-schema-fixture.json"
+      ],
+      "description": "Executable JSON Schema positive and negative cases for the existing v1 Sidecar view-state plaintext: pin/local-collapse/HLC remain, display_mode is not a field and both former mode values are rejected. Schema-only evidence does not claim live owner display, privacy, MLS or synchronization acceptance.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/sidecar-view-state-schema-fixture.json",
+        "spec/v1/zh/models/private-objects.md",
+        "spec/v1/zh/models/sidecar.md",
+        "spec/v1/zh/conformance/conformance-vectors.md"
       ]
     }
   ]

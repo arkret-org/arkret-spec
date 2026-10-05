@@ -3,7 +3,7 @@ title: Client Sync
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-20
+updated: 2026-10-05
 see_also:
   - authority-commit-log.md
   - current-results.md
@@ -147,6 +147,12 @@ terminal removal、no-resurrection、active controller device allow、四类 aud
 ### 5.0 current 与 timeline 的载体边界（normative）
 
 Timeline 是 committed Event 的展示序列；current 是 own Station返回的 typed result。Timeline 不能替代 current，current 也不能证明客户端已下载全部历史。
+
+Sidecar 的真实 account-stream consumer、逐流补拉和重启恢复 MUST 执行
+[`sidecar.md` §8.2](../models/sidecar.md) 的同 cut 原子安装合同。不能只追加私密历史而保留不匹配的
+current，也不能先推进 cursor 再安装投影。有界恢复与等待不得阻塞页面输入；普通 Strand watch/current
+的独立失败不取消 Sidecar 的获授权续传。具名生产验收见
+[`conformance-vectors.md` §3.16](../conformance/conformance-vectors.md)。
 
 ### 5.1 服务器当前结果
 

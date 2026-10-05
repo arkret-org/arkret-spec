@@ -3,7 +3,7 @@ title: Conformance Vectors
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-25
+updated: 2026-10-05
 see_also:
   - normative-language.md
   - ../sync/authority-commit-log.md
@@ -648,6 +648,8 @@ creator 设备只从该 genesis Event 唯一 producer proof 的 `verification_me
 `ak.vector.sidecar.exchange_projection_recovery.v1` MUST 证明：从已接纳的私有历史重建 Event 折叠与本地缓存恢复；
 因果折叠校验；不与 Account Data 合并；controller 控制的排序与兄弟项裁决；终态吸收；重新指派；
 按响应集合的动作映射；以及投影 schema 的状态不变量。
+实时消费与恢复另须按 sidecar §8.2 在生产 account-stream 路径验证同 cut 历史/current 与投影验证 basis 原子安装，
+缺尾／较新 current 拒绝部分安装、上一完整 cut 保留、重连和重启自动恢复，不以刷新或后续请求触发恢复。
 
 `ak.vector.sidecar.context_locator_recovery.v1` MUST 证明：仅 controller 可用的完整分页与结构化 Event 配对
 即可恢复私有 Sidecar 上下文定位符，无需新增任何披露端点。
@@ -669,10 +671,31 @@ MUST fail closed；它凭自己的 grant 可独立发布，归属仍是其单一
 
 `ak.vector.sidecar.hosted_projection.v1` MUST 证明：context attach 只建立来源上下文映射，额外的 track 或
 message 字段按封闭 schema 拒绝且不创建 Strand 或 Relation；本地交换投影缓存删除并重建后不重复 request
-或 Agent 执行，回显位于已见共享位置之后并按稳定键排序；主 Strand 的标题、面包屑与 Track 页签在两种模式下
-保持可见，缺失的 Sidecar 私有视图显示空态而不回退到共享读写；合并视图按 Sidecar Event id 去重并持续显示
-来源与仅 controller 可见标识；只有 request 与显式面向用户的响应可进入回显，内部协作 Event 与 Sidecar 内
+或 Agent 执行，回显位于已见共享位置之后并按稳定键排序；主 Strand 的标题、面包屑与 Track 页签在固定合并展示中
+保持可见，缺失的 Sidecar 私有视图显示可恢复空态而不回退到共享读写；合并视图按 Sidecar Event id 去重并持续显示
+来源与私密可见边界标识；只有 request 与显式面向用户的响应可进入回显，内部协作 Event 与 Sidecar 内
 native Event 不创建回显；第二设备得到相同排序、状态与去重结果，且无需在来源 Realm 重放私有 Event。
+controller 读取自己的 request／response 不要求 publish／审批／模式切换，不生成普通 Event；其它普通成员
+不接收、不显示这些私密消息。`ak.schema.agent_sidecar_view_state.v1` 不接受 `display_mode`，只保存现有
+pin／局部折叠／HLC，固定合并展示不引入新的授权或存储键。
+
+以下具名验收适用于提供 Sidecar 上下文交互的生产客户端，MUST 使用当前构建、真实服务与真实 MLS，
+并保存逐边界证据；artifact/schema 或组件测试通过不替代本表。Sidecar reserved vector 的激活规则不变，
+登记这些验收不表示已有实现通过，也不把没有 runner 的向量改为 active。
+
+`ak.vector.sidecar.view_state_closed.v1` 由 `sidecar-view-state-schema-fixture.json` 的 JSON Schema runner
+执行无模式 plaintext 正例及两个旧模式字段拒绝负例；它只证明 closed shape，不替代上述生产验收或
+其它 Sidecar reserved vector 的 MLS／隐私／恢复证据。
+
+| Case | 场景与必须观察的结果 |
+| --- | --- |
+| `sidecar_owner_merged_private_read` | 同一来源 Strand 由 controller 和另一普通成员各自打开。controller 不点击 publish／审批／模式按钮就看到已验证私密请求与回复；普通成员无该消息、私密计数、未读或通知；普通 Strand durable history 没有新增回显 Event。 |
+| `sidecar_live_reply_same_cut` | 连续至少三次已绑定 `@me/slug` 请求；每次分别证明请求接纳、回复接纳、客户端验证及原讨论可见。回复均无需刷新、重开卡片或下一条请求；生产订阅与补拉路径安装的 history/current 同 cut，Event id 不重复。 |
+| `sidecar_incomplete_cut_recovery` | 暂扣私密 tail 或 historical signer／MLS 依赖，交付较新 current。不能展示未验证新回复或推进 checkpoint；当前授权仍允许时上一完整 cut 可标明非最新并保持可读。恢复依赖后自动验证同 cut 并显示回复，不清除密钥或重发请求。 |
+| `sidecar_restart_exactly_once` | 分别在回复接纳后、历史/current 事务耐久前和耐久后断线／终止客户端。重连／重启从安全 checkpoint 自动恢复，reply 一次可见、Agent 无重复执行；cursor 失效只重建对应基线。正常 Signal drain／续订不累积故障退避；Signal 不到达时仍自动续传 committed reply。 |
+| `sidecar_responsive_bounded_history` | 在声明的设备、历史规模、单批预算和退避参数下，注入验证等待并连续输入、滚动、取消；页面持续可操作。工作量随受影响增量增长，不因无关 render 重放全部历史；相关读取授权／历史 signer 证据／MLS basis 变化仍重新验证。当前读取资格丧失时旧缓存不得替代权限；Agent 作者化撤销不追溯剥夺 controller 仍获准读取的历史。 |
+| `sidecar_partial_failure_isolation` | 对可证明 Realm-scope 的 source Strand，Realm 存在其它无关 Circle／Sidecar 不得使 exact watch/current 判定不可用。单独使 source Strand watch/current 请求暂不可用，或私密缓存持久化失败；普通讨论仍可操作，Sidecar 不丢弃安全 checkpoint、不依赖刷新恢复、不进入阻塞重试；耐久失败不得虚报投影完成。 |
+| `sidecar_bound_mention_draft_acceptance` | 主人行不在当前成员显示列表但 verified controller 与完整 Agent AccountId 已绑定时，标签仍为 `@me/slug`。pending／失败保留草稿和选择；发送途中修改草稿或切换账号/scope，迟到成功不清除新输入；重复点击不重复请求。 |
 
 `ak.vector.sidecar.non_disclosure_surface_matrix.v1` MUST 证明：每一个共享列表、展开、动态、导出、URL、
 日志与遥测面都不披露 Sidecar 定位符、身份、内容或折叠输入。

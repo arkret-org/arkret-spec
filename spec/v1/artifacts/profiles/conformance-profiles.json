@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-05.1",
-  "generated_at": "2026-10-05T02:40:00+08:00",
+  "version": "2026-10-05.3",
+  "generated_at": "2026-10-05T22:55:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -4562,7 +4562,8 @@
         "schemas/principal-operations.schema.json#/$defs/sidecar_stream_head"
       ],
       "required_fixtures": [
-        "privacy-security-fixture.json"
+        "privacy-security-fixture.json",
+        "sidecar-view-state-schema-fixture.json"
       ],
       "optional_extensions": [],
       "feature_discovery": {
@@ -4578,7 +4579,10 @@
           "navigation_visibility_scope_only",
           "hosted_strand_sidecar_surface",
           "strand_level_context_identity",
-          "sidecar_display_modes",
+          "sidecar_fixed_merged_owner_read",
+          "sidecar_owner_read_without_publish",
+          "sidecar_live_same_cut_installation",
+          "sidecar_bounded_responsive_recovery",
           "multi_track_native_sidecar_write_target",
           "source_event_deterministic_merge",
           "private_event_echo_deduplication",

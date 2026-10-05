@@ -2,7 +2,7 @@
 title: Arkret Protocol (English entry)
 status: candidate
 stability: v1
-updated: 2026-10-02
+updated: 2026-10-05
 normative: false
 ---
 
@@ -25,8 +25,12 @@ guarantee censorship resistance, correct admission by a compromised authority,
 or service availability.
 
 Personal conversations with an owned Agent use a separate Direct Conversation
-Realm. Sidecars provide private Agent context within an existing project Realm;
-publishing a result into shared collaboration requires an explicit new Event.
+Realm. Sidecars provide private Agent context within an existing project Realm.
+Clients show the controller's verified private requests and replies alongside
+the original Strand discussion without a display-mode switch, publish step or
+manual refresh. Other users do not receive or read these private messages.
+Publishing a result into shared collaboration separately requires an explicit
+new Event; see the normative [Sidecar contract](../zh/models/sidecar.md).
 
 “Decentralized” can describe independent deployment and service choice only
 with those qualifications. The current v1 model has an explicit authority per
