@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-05.2",
+  "version": "2026-10-05.3",
   "source_of_truth": true,
-  "generated_at": "2026-10-05T12:28:00+08:00",
+  "generated_at": "2026-10-05T18:26:25+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -5108,12 +5108,14 @@
         "event-kind-payload-coverage-fixture.json",
         "exact-current-results-read-fixture.json"
       ],
-      "description": "Realm Agent interaction mode carrier, controller/CAS admission, automatic Sidecar roster, public/private composer and action gates, non-retroactive delivery, scope containment and private context isolation.",
+      "description": "Realm Agent interaction mode carrier, controller/CAS admission, automatic Sidecar roster, public/private composer and action gates, non-retroactive delivery, scope containment and private context isolation. Explicit scoped reply configuration, independent human/Agent message authority, partial acceptance, effective readiness, and cold/reset/restart recovery boundaries.",
       "source_refs": [
         "spec/v1/zh/models/agent-interaction.md",
         "spec/v1/artifacts/fixtures/agent-participation-fixture.json",
         "spec/v1/artifacts/fixtures/event-kind-payload-coverage-fixture.json",
-        "spec/v1/artifacts/fixtures/exact-current-results-read-fixture.json"
+        "spec/v1/artifacts/fixtures/exact-current-results-read-fixture.json",
+        "spec/v1/zh/authz/capabilities.md",
+        "spec/v1/zh/conformance/conformance-profiles.md"
       ]
     },
     {

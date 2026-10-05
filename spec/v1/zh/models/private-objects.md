@@ -171,6 +171,10 @@ closed `{target_scope, selection, version}`，`selection` 五位恰为
 它不授予 capability、不写 Realm Event、不复制 ceiling/effective；target 在实际动作时将当前 selection 与
 本地 current ceiling、普通 capability 和 lifecycle 求交。
 
+配置 UI MUST 将 selection 偏好与已接纳 grant、当前有效动作分别展示；只有明确确认的完整
+回复配置入口才可协调独立 grant authoring，不能让本 replace 悄悄写 Realm grant。入口、就地
+结果与重置后验收见 [agent-interaction §4.1](./agent-interaction.md#41-公开回复配置与有效状态normative)。
+
 `ak.schema.agent_sidecar_exchange_projection.v1` 不属于本节 Account Data：它只是 controller 设备从 Sidecar private Event history 生成的本地可删除 cache/SDK DTO，不注册 account-data key，不进入 account stream，也不跨设备合并。真相源是 Sidecar private Event history 本身（[`sidecar.md` §8](./sidecar.md)）；fold 与 cache 恢复的判据由 [`../conformance/conformance-vectors.md` §11.10.4](../conformance/conformance-vectors.md) 固化。
 
 ### 4.2 隐私边界(normative)

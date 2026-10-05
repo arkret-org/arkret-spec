@@ -631,6 +631,14 @@ v1 只有 `before_commit` 一种审批模式，顺序固定为三步，MUST NOT 
 
 canonical 展开表:
 
+本表不要求用户在高级页面手写 action／DID。公开 Agent 的正常回复入口 MUST 按
+[agent-interaction §4.1](../models/agent-interaction.md#41-公开回复配置与有效状态normative) 展示并
+确认实际 scope，以既有独立 grant authoring 完成配置；human 与 Agent 的 membership 均不
+自动物化消息授权。创建时的全局 action ceiling 与 controller participation 是不同的输入，
+即使复用可读标签也 MUST 区分其作用与当前有效权限，不能把“Reply as agent”已选中显示成
+该 Realm 消息 grant 已接受。仅消息回复可直接签署 `ak.message.create` 的窄 grant，不新增 preset。
+上述配置、独立授权与恢复边界由既有 `ak.vector.agent.interaction_mode.v1` 的产品决策表覆盖。
+
 | 预设 | Canonical actions | Required constraints | Resource scope | 语义 / 边界 |
 | --- | --- | --- | --- | --- |
 | `read` | `ak.event.read` | 显式 resource selector(MUST) | 显式 Realm / Strand / Circle scope,MUST NOT Realm-wide 无约束 | 授予**内容层**事件投影读能力。`ak.event.read` 是 `non_event_surface` 的内容读能力,**MUST NOT** 被解释为授予 events 服务面本身——agent 要真正调用 events 查询 / 订阅 endpoint,其 **session 还 MUST 携带对应服务面 scope**(`ak.self.committed_event.read.scan.v1` / `ak.self.committed_event.stream.subscribe.v1`,§5.5;见下方「服务面 scope 与内容能力分层」)。二者按 **AND** 组合:读取 surface 由服务面 scope 授权,payload 由 `ak.event.read` + membership / history visibility 授权(见 [`../models/relation.md` §4.2](../models/relation.md))。**MUST NOT** 隐含 object content/history 读取、`ak.object.read*`、`ak.strand.read`、MLS private state 或 MLS membership。 |

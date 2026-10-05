@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-05.3",
+  "version": "2026-10-05.4",
   "source_of_truth": true,
-  "generated_at": "2026-10-05T11:24:52+08:00",
+  "generated_at": "2026-10-05T18:26:25+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -20087,8 +20087,8 @@
         ]
       }
     ],
-    "version": "2026-10-05.3",
-    "generated_at": "2026-10-05T11:24:52+08:00",
+    "version": "2026-10-05.4",
+    "generated_at": "2026-10-05T18:26:25+08:00",
     "metadata_authority": "contract_registry_section",
     "mls_roster_verification_contract": {
       "roles": {
@@ -20229,7 +20229,32 @@
       "internal_channel_crosses_station_boundary": false,
       "remote_selection_carrier": false,
       "missing_current_selection": "deny",
-      "authority_evidence_grants_participation": false
+      "authority_evidence_grants_participation": false,
+      "product_configuration": {
+        "vector_id": "ak.vector.agent.interaction_mode.v1",
+        "fixture_ref": "fixtures/agent-participation-fixture.json#/reply_configuration_contract",
+        "membership_grants_message_create": false,
+        "agent_inherits_controller_authority": false,
+        "normal_entry_requires_raw_did_or_action": false,
+        "explicit_account_scope_action_confirmation": true,
+        "preference_or_mode_write_materializes_grant": false,
+        "separate_authorized_grant_submission": true,
+        "default_message_action": "ak.message.create",
+        "default_scope_is_narrowest_applicable": true,
+        "extra_actions_or_realm_expansion_require_confirmation": true,
+        "cross_service_atomic_success": false,
+        "reuse_active_bound_grant": true,
+        "selected_configured_and_effective_are_distinct": true,
+        "unknown_is_effective": false,
+        "effective_state_is_new_wire_or_authority": false,
+        "inline_progress_and_result": true,
+        "pending_intent_blocks_duplicate_clicks": true,
+        "unknown_submission_reuses_exact_signed_bytes": true,
+        "definitive_refusal_replays_ciphertext": false,
+        "reset_or_new_binding_inherits_old_authority": false,
+        "private_selection_disclosed_to_third_party": false,
+        "cold_setup_and_retained_restart_require_live_reply": true
+      }
     }
   },
   "did_authority_verifier_actions": [

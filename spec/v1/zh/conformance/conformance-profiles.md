@@ -797,6 +797,11 @@ MUST 支持:
   Strand ceiling`。任一输入 unknown/stale 时 fail closed。Account Authority 可在 session grant 中签发当前
   selection/version 与同值的 `next_replace_input.expected_version`；target service 必须自行读取当前治理 ceiling，
   不得信任 session 中复制的 ceiling/effective
+- 提供公开回复配置的客户端 MUST 执行 [agent-interaction §4.1](../models/agent-interaction.md#41-公开回复配置与有效状态normative)
+  的正常入口、scope 确认、独立 signer／issuer、复用有效 grant 与逐步骤接纳合同；不得要求普通用户
+  手写 DID/action、把已选 preference 当有效授权或宣称跨服务原子成功。配置／有效状态是本地诊断，
+  不向 session、Account Data 或服务响应添加新字段。fixture 的产品决策表必须执行；独立空库首次
+  加入配置、保留状态重启和同 scope 真实加密回复另行作产品验收，不以 fixture 通过宣称实现完成。
 - 产品全局默认只可作为 SDK/UI authoring preference，不进入 admission、session 或服务 receipt。Agent
   pause/deactivate 继续是全局紧急停机；deployment ceiling 是 target 本地运行时安全门，只能进一步拒绝动作，
   不进入 controller selection wire、Realm reducer 或跨服务共识

@@ -81,9 +81,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
-      "version": "2026-10-05.3",
-      "generated_at": "2026-10-05T11:24:52+08:00",
-      "content_digest": "sha256:d80261990ead71a6ded62aea9b296cad029874326e1af38199b8dfe4dfd23481"
+      "version": "2026-10-05.4",
+      "generated_at": "2026-10-05T18:26:25+08:00",
+      "content_digest": "sha256:9b0435d5ec2801f81a7ba29f8940f4c13f0f9601c7506699cb2246bc6481277e"
     },
     {
       "path": "spec/v1/artifacts/registry/current-result-registry.json",
@@ -105,9 +105,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/did-evidence-boundary-registry.json",
-      "version": "2026-10-05.3",
-      "generated_at": "2026-10-05T11:24:52+08:00",
-      "content_digest": "sha256:aae29136026b41030921f093ca373b2beac62cd13cc576f92a30c8f3e382cfcc"
+      "version": "2026-10-05.4",
+      "generated_at": "2026-10-05T18:26:25+08:00",
+      "content_digest": "sha256:e98e93caca3166d11e828566d051a7021213003a74941cfee0f42dce736a217f"
     },
     {
       "path": "spec/v1/artifacts/registry/did-freshness-profile-registry.json",
@@ -369,9 +369,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/vector-registry.json",
-      "version": "2026-10-05.2",
-      "generated_at": "2026-10-05T12:28:00+08:00",
-      "content_digest": "sha256:e08954207972af6f59cec7867922e1b7b7f2c88ddadb8896a854461a384e3b4d"
+      "version": "2026-10-05.3",
+      "generated_at": "2026-10-05T18:26:25+08:00",
+      "content_digest": "sha256:6daec569b7c182210ed8aac45bca0303fe3f892737f24f825b5a81fbc15f080b"
     },
     {
       "path": "tools/artifact-anchor-fragment-exemptions.json",
@@ -471,9 +471,9 @@
     },
     {
       "path": "tools/normative-title-inventory.json",
-      "version": "2026-10-05.1",
-      "generated_at": "2026-10-05T02:40:00+08:00",
-      "content_digest": "sha256:990cdf41af6fb8c4c5480640232917e3c496ebe928d57b55cbae098b6911f3be"
+      "version": "2026-10-05.2",
+      "generated_at": "2026-10-05T18:26:25+08:00",
+      "content_digest": "sha256:4b1838860650d82eccf40bfdb0f93d94ca641608faea732c36bb40fb84ff173a"
     },
     {
       "path": "tools/operation-note-field-exemptions.json",

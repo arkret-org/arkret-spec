@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-05.1",
+  "version": "2026-10-05.2",
   "source_of_truth": true,
-  "generated_at": "2026-10-05T02:40:00+08:00",
+  "generated_at": "2026-10-05T18:26:25+08:00",
   "description": "Closed inventory of current spec/v1/zh headings that explicitly carry the （normative） marker. Any addition, removal, rename, or move is reviewed as a protocol change and refreshes this source-of-truth inventory.",
   "titles": [
     {
@@ -873,6 +873,11 @@
       "page": "models/actor.md",
       "heading": "3.3.1 `accountable_principal_ids` 的可验证性（normative）",
       "fragment": "331-accountable_principal_ids-的可验证性normative"
+    },
+    {
+      "page": "models/agent-interaction.md",
+      "heading": "4.1 公开回复配置与有效状态（normative）",
+      "fragment": "41-公开回复配置与有效状态normative"
     },
     {
       "page": "models/common-fields.md",

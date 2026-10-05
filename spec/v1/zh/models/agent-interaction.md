@@ -43,6 +43,14 @@ MUST NOT 把 peer transport 的 Service bearer 身份冒充主人，也不得要
 CAS 失配 MUST 以既有 `failed_precondition` 零写入拒绝；Event、whole-value current 与 RealmCommit 原子接纳。
 same-value 设置也产生新 revision；不触发补发、不改变 membership generation，不驱动 MLS Add／Remove。
 
+**Human／Agent 的共同授权原则（normative）**：普通协作 Realm 的 membership 本身不授予
+`ak.message.create`，此规则同时适用于 human 与 Agent。Realm authority-root 的 current controller
+按 [realm-and-space §2.5](./realm-and-space.md#25-akrealmcreate-reducer-bootstrapnormative) 取得 owner
+operational authority；其它账号依其自身有效 capability grant 求值。Agent 是独立完整 AccountId，
+MUST NOT 继承 controller 的 root／owner／admin／grant。产品可通过成员角色或下面的显式配置流程
+简化授权输入，但 MUST 实际签署并接纳相应 grant；角色标签、入群和 UI 开关均不是授权源。
+独立 Direct 的已登记 participant authority source 保持原合同，不由本段追加普通 Realm grant。
+
 value 恰为 `{controller_account_id,interaction_mode}`，按同一 stream 的 committed position 整体置换。
 controller binding 与当前 ownership 不一致时，该值不可授权动作。首写前只有治理端同一 current cut 验证
 never-written 才得到已确认默认 `private`；snapshot 缺项、缓存缺失、stale／fork／未取得 head 均为 unknown，
@@ -117,6 +125,40 @@ AccountId、Realm、actual scope 和 request／exchange 隔离上下文、队列
 主人最终 allowlist 确认、自著新普通 Event，不复制 private envelope、私有身份引用／metadata 或历史。
 该发布不开放私人 Agent 的共享 producer 身份；服务器不承担不可验证的密文语义信息流判定。
 
+### 4.1 公开回复配置与有效状态（normative）
+
+提供公开 Agent 回复配置的产品 MUST 提供可读的正常配置入口；用户 MUST NOT 被要求先寻找高级
+权限页面、复制 DID 或手填 action token 才能完成普通消息回复配置。入口可以嵌入 Add Agent 或
+成员设置，但仅 Add／Join、Public 模式写入及 participation replace 仍 MUST NOT 自动生成 grant。
+
+“允许此 Agent 在此 scope 回复”是一个需明确确认的产品操作，而不是新的协议 operation 或授权
+预设。产品 MUST 在确认前绑定已获授权的完整 Agent AccountId，展示实际 Realm／Circle／Strand、
+拟授动作、有效期／限制和是否将 Agent 模式改为 public。默认只选择本次回复所需的
+`ak.message.create` 和最窄适用 scope；扩至整个 Realm 或增加 reaction／其它动作 MUST 明确展示
+并获确认。若使用 [capabilities §9.1](../authz/capabilities.md#91-agent-授权预设展开normative)
+的注册 preset，MUST 完整展开并展示其动作，不得把仅消息权限冒称为包含 reaction 的 preset。
+
+一次用户确认 MAY 驱动数个既有独立写入：获授权 issuer 自著的 `ak.capability.grant`、controller
+自著的 `ak.agent.interaction.set` 与 controller-only participation replace。产品 MUST 分别验证
+各自 signer、issuer 上界、scope／resource 和 CAS；controller 不具备 grant issuer authority 时
+MUST 显示尚需获授权签发者完成授权，不得借 controller ownership、Agent key/session 或服务代签
+补齐。已存在且覆盖已确认账号／action／resource 的有效 grant MUST 复用；不得为正常刷新或重启
+重复签发。该协调不是原子 batch，没有跨 Realm Event 与私有 participation 的统一事务或成功回执。
+任一步拒绝或 unknown MUST 保留各步真实结果，不能把其它步骤的成功显示为全部配置完成。
+
+UI MUST 区分“已选择允许回复”“所需配置已确认接纳”和“当前可以回复”。最后一项只可来自
+当前已验证的完整账号／scope 绑定、public mode、有效消息 authority、内容／服务面 scope、
+membership／lifecycle、current participation／各级 ceiling、runtime session/key 及实际 scope
+MLS readiness 的共同满足；本地开关、过期观察、配对成功或模型已经运行均不能替代这些输入。
+unknown MUST 显示待核实并驱动已有恢复路径，已确认缺授权 MUST 向获权 controller／issuer 显示
+该具体缺项及正常配置入口。不得为此向第三方披露 controller-private selection、私人 Agent
+存在性或私有诊断；第三方继续使用既有通用拒绝。此有效状态是本地产品诊断，不是新的 wire
+字段、Account Data key、权限证明或服务端准入来源，最终动作仍由原门独立求值。
+
+异步提交开始时 MUST 就地显示进度并阻止同一意图重复点击；queued／结果未知不得显示成功，
+须用既有耐久 authoring 身份恢复同一 signed submission，不能另造 grant Event。成功提示必须
+来自正式接纳结果，GrantId 只从被接纳的 EventId 按现行规则派生；失败须就地显示可处理状态。
+
 ## 5. 转换、非追溯与验收
 
 fanout 按派生时的 current mode 与第三方 gate 一次性求值；之后模式／gate 改变不补发、不撤销旧派生。
@@ -128,3 +170,14 @@ fanout 按派生时的 current mode 与第三方 gate 一次性求值；之后�
 须覆盖负向向量，不承诺每次网络耗时相等。正式 fixture 绑定 `ak.vector.agent.interaction_mode.v1`，覆盖
 controller-only CAS／unknown、roster 不变、路由矩阵、强行 mention、各共享写／代行门、切换竞态和私有上下文隔离；
 机器 schema 验收不替代 SDK／服务／客户端／E2EE 实机验收。
+
+公开回复配置验收 MUST 包含：human joined 但无消息 authority、Realm root controller、Agent
+不得继承 controller authority、仅 mode／selection 不能生成 grant、普通入口的一次明确 scope
+确认、无 issuer／越过全局 ceiling／错 Station 或 scope、部分接受／响应丢失／重复点击，以及
+restart／重新配对／清库后的重新核对。保留同一完整账号与 Realm 的恢复 MUST 复用仍有效的
+grant；新账号、新 Station 或新 Realm MUST 重新取得明确绑定的授权，不得按同名 Agent 复活
+旧权限。清理本地 endpoint 私态时，配对／密钥恢复／MLS 入群按原合同分别完成，不能以服务端
+grant 尚在宣称 endpoint 已可发送。明确拒绝的密文不重放，修复权限后用新请求实测；旧 private
+请求、context 与 acknowledged history 不因新 grant 自动发布或重执行。产品 MUST 以独立空库
+首次配置和保留状态重启分别验证真实 mention → model → 同 scope 的已接纳、可显示加密回复，
+不能以手工插 grant、修数据库、恢复已有会话或延长等待预算替代冷启动验收。

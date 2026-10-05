@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.agent_participation_policy.v1",
-  "version": "2026-10-05.1",
+  "version": "2026-10-05.2",
   "suite": "agent_participation",
   "runner": {
     "kind": "named_suite",
@@ -1372,5 +1372,512 @@
       "ceiling_bit": true,
       "expected": "deny"
     }
-  ]
+  ],
+  "reply_configuration_contract": {
+    "registry_ref": "registry/contract-registry.json#/did_evidence_boundary_registry/agent_participation_runtime_contract/product_configuration",
+    "vector_id": "ak.vector.agent.interaction_mode.v1",
+    "authorization_cases": [
+      {
+        "name": "human_joined_without_write_authority",
+        "actor_kind": "human",
+        "exact_account_scope_binding": true,
+        "joined": true,
+        "actor_root_authority": false,
+        "controller_root_authority": false,
+        "effective_message_grant": false,
+        "other_action_gates": true,
+        "expected": false
+      },
+      {
+        "name": "human_realm_root_controller",
+        "actor_kind": "human",
+        "exact_account_scope_binding": true,
+        "joined": true,
+        "actor_root_authority": true,
+        "controller_root_authority": false,
+        "effective_message_grant": false,
+        "other_action_gates": true,
+        "expected": true
+      },
+      {
+        "name": "human_with_effective_message_grant",
+        "actor_kind": "human",
+        "exact_account_scope_binding": true,
+        "joined": true,
+        "actor_root_authority": false,
+        "controller_root_authority": false,
+        "effective_message_grant": true,
+        "other_action_gates": true,
+        "expected": true
+      },
+      {
+        "name": "agent_does_not_inherit_owner_controller",
+        "actor_kind": "agent",
+        "exact_account_scope_binding": true,
+        "joined": true,
+        "actor_root_authority": false,
+        "controller_root_authority": true,
+        "effective_message_grant": false,
+        "other_action_gates": true,
+        "expected": false
+      },
+      {
+        "name": "agent_joined_without_write_authority",
+        "actor_kind": "agent",
+        "exact_account_scope_binding": true,
+        "joined": true,
+        "actor_root_authority": false,
+        "controller_root_authority": false,
+        "effective_message_grant": false,
+        "other_action_gates": true,
+        "expected": false
+      },
+      {
+        "name": "agent_with_effective_message_grant",
+        "actor_kind": "agent",
+        "exact_account_scope_binding": true,
+        "joined": true,
+        "actor_root_authority": false,
+        "controller_root_authority": false,
+        "effective_message_grant": true,
+        "other_action_gates": true,
+        "expected": true
+      },
+      {
+        "name": "grant_wrong_station_or_scope",
+        "actor_kind": "human",
+        "exact_account_scope_binding": false,
+        "joined": true,
+        "actor_root_authority": false,
+        "controller_root_authority": false,
+        "effective_message_grant": true,
+        "other_action_gates": true,
+        "expected": false
+      },
+      {
+        "name": "grant_cannot_replace_membership",
+        "actor_kind": "human",
+        "exact_account_scope_binding": true,
+        "joined": false,
+        "actor_root_authority": false,
+        "controller_root_authority": false,
+        "effective_message_grant": true,
+        "other_action_gates": true,
+        "expected": false
+      },
+      {
+        "name": "grant_cannot_bypass_independent_action_gates",
+        "actor_kind": "human",
+        "exact_account_scope_binding": true,
+        "joined": true,
+        "actor_root_authority": false,
+        "controller_root_authority": false,
+        "effective_message_grant": true,
+        "other_action_gates": false,
+        "expected": false
+      }
+    ],
+    "setup_cases": [
+      {
+        "name": "preference_alone_never_grants",
+        "intent": "preference_only",
+        "exact_account_scope_binding": true,
+        "global_scope_allows": true,
+        "grant_state": "missing",
+        "confirmation_is_explicit": false,
+        "issuer_can_grant": true,
+        "expected": "no_grant"
+      },
+      {
+        "name": "public_mode_alone_never_grants",
+        "intent": "mode_only",
+        "exact_account_scope_binding": true,
+        "global_scope_allows": true,
+        "grant_state": "missing",
+        "confirmation_is_explicit": false,
+        "issuer_can_grant": true,
+        "expected": "no_grant"
+      },
+      {
+        "name": "missing_grant_requires_scope_confirmation",
+        "intent": "shared_reply",
+        "exact_account_scope_binding": true,
+        "global_scope_allows": true,
+        "grant_state": "missing",
+        "confirmation_is_explicit": false,
+        "issuer_can_grant": true,
+        "expected": "needs_confirmation"
+      },
+      {
+        "name": "confirmed_normal_entry_authors_separate_grant",
+        "intent": "shared_reply",
+        "exact_account_scope_binding": true,
+        "global_scope_allows": true,
+        "grant_state": "missing",
+        "confirmation_is_explicit": true,
+        "issuer_can_grant": true,
+        "expected": "publish_grant"
+      },
+      {
+        "name": "controller_without_issuer_authority",
+        "intent": "shared_reply",
+        "exact_account_scope_binding": true,
+        "global_scope_allows": true,
+        "grant_state": "missing",
+        "confirmation_is_explicit": true,
+        "issuer_can_grant": false,
+        "expected": "requires_issuer"
+      },
+      {
+        "name": "accepted_matching_grant_is_reused",
+        "intent": "shared_reply",
+        "exact_account_scope_binding": true,
+        "global_scope_allows": true,
+        "grant_state": "accepted",
+        "confirmation_is_explicit": false,
+        "issuer_can_grant": true,
+        "expected": "reuse_grant"
+      },
+      {
+        "name": "unknown_grant_is_not_absence",
+        "intent": "shared_reply",
+        "exact_account_scope_binding": true,
+        "global_scope_allows": true,
+        "grant_state": "unknown",
+        "confirmation_is_explicit": false,
+        "issuer_can_grant": true,
+        "expected": "pending"
+      },
+      {
+        "name": "wrong_account_or_scope_confirmation",
+        "intent": "shared_reply",
+        "exact_account_scope_binding": false,
+        "global_scope_allows": true,
+        "grant_state": "missing",
+        "confirmation_is_explicit": true,
+        "issuer_can_grant": true,
+        "expected": "blocked"
+      },
+      {
+        "name": "realm_grant_cannot_expand_global_ceiling",
+        "intent": "shared_reply",
+        "exact_account_scope_binding": true,
+        "global_scope_allows": false,
+        "grant_state": "missing",
+        "confirmation_is_explicit": true,
+        "issuer_can_grant": true,
+        "expected": "blocked"
+      },
+      {
+        "name": "refused_grant_is_not_configuration_success",
+        "intent": "shared_reply",
+        "exact_account_scope_binding": true,
+        "global_scope_allows": true,
+        "grant_state": "refused",
+        "confirmation_is_explicit": false,
+        "issuer_can_grant": true,
+        "expected": "refused"
+      }
+    ],
+    "readiness_cases": [
+      {
+        "name": "accepted_configuration_and_current_gates",
+        "configuration_accepted": true,
+        "actor_binding": true,
+        "public_mode": true,
+        "message_authority": true,
+        "content_service_scope": true,
+        "membership_lifecycle": true,
+        "participation_ceiling": true,
+        "runtime_session_key": true,
+        "scope_mls": true,
+        "expected": "ready"
+      },
+      {
+        "name": "selected_preference_is_not_accepted_configuration",
+        "configuration_accepted": false,
+        "actor_binding": true,
+        "public_mode": true,
+        "message_authority": true,
+        "content_service_scope": true,
+        "membership_lifecycle": true,
+        "participation_ceiling": true,
+        "runtime_session_key": true,
+        "scope_mls": true,
+        "expected": "not_configured"
+      },
+      {
+        "name": "partial_or_unknown_configuration",
+        "configuration_accepted": null,
+        "actor_binding": true,
+        "public_mode": true,
+        "message_authority": true,
+        "content_service_scope": true,
+        "membership_lifecycle": true,
+        "participation_ceiling": true,
+        "runtime_session_key": true,
+        "scope_mls": true,
+        "expected": "pending"
+      },
+      {
+        "name": "missing_actor_binding",
+        "configuration_accepted": true,
+        "actor_binding": false,
+        "public_mode": true,
+        "message_authority": true,
+        "content_service_scope": true,
+        "membership_lifecycle": true,
+        "participation_ceiling": true,
+        "runtime_session_key": true,
+        "scope_mls": true,
+        "expected": "blocked"
+      },
+      {
+        "name": "unknown_actor_binding",
+        "configuration_accepted": true,
+        "actor_binding": null,
+        "public_mode": true,
+        "message_authority": true,
+        "content_service_scope": true,
+        "membership_lifecycle": true,
+        "participation_ceiling": true,
+        "runtime_session_key": true,
+        "scope_mls": true,
+        "expected": "pending"
+      },
+      {
+        "name": "missing_public_mode",
+        "configuration_accepted": true,
+        "actor_binding": true,
+        "public_mode": false,
+        "message_authority": true,
+        "content_service_scope": true,
+        "membership_lifecycle": true,
+        "participation_ceiling": true,
+        "runtime_session_key": true,
+        "scope_mls": true,
+        "expected": "blocked"
+      },
+      {
+        "name": "unknown_public_mode",
+        "configuration_accepted": true,
+        "actor_binding": true,
+        "public_mode": null,
+        "message_authority": true,
+        "content_service_scope": true,
+        "membership_lifecycle": true,
+        "participation_ceiling": true,
+        "runtime_session_key": true,
+        "scope_mls": true,
+        "expected": "pending"
+      },
+      {
+        "name": "missing_message_authority",
+        "configuration_accepted": true,
+        "actor_binding": true,
+        "public_mode": true,
+        "message_authority": false,
+        "content_service_scope": true,
+        "membership_lifecycle": true,
+        "participation_ceiling": true,
+        "runtime_session_key": true,
+        "scope_mls": true,
+        "expected": "blocked"
+      },
+      {
+        "name": "unknown_message_authority",
+        "configuration_accepted": true,
+        "actor_binding": true,
+        "public_mode": true,
+        "message_authority": null,
+        "content_service_scope": true,
+        "membership_lifecycle": true,
+        "participation_ceiling": true,
+        "runtime_session_key": true,
+        "scope_mls": true,
+        "expected": "pending"
+      },
+      {
+        "name": "missing_content_service_scope",
+        "configuration_accepted": true,
+        "actor_binding": true,
+        "public_mode": true,
+        "message_authority": true,
+        "content_service_scope": false,
+        "membership_lifecycle": true,
+        "participation_ceiling": true,
+        "runtime_session_key": true,
+        "scope_mls": true,
+        "expected": "blocked"
+      },
+      {
+        "name": "unknown_content_service_scope",
+        "configuration_accepted": true,
+        "actor_binding": true,
+        "public_mode": true,
+        "message_authority": true,
+        "content_service_scope": null,
+        "membership_lifecycle": true,
+        "participation_ceiling": true,
+        "runtime_session_key": true,
+        "scope_mls": true,
+        "expected": "pending"
+      },
+      {
+        "name": "missing_membership_lifecycle",
+        "configuration_accepted": true,
+        "actor_binding": true,
+        "public_mode": true,
+        "message_authority": true,
+        "content_service_scope": true,
+        "membership_lifecycle": false,
+        "participation_ceiling": true,
+        "runtime_session_key": true,
+        "scope_mls": true,
+        "expected": "blocked"
+      },
+      {
+        "name": "unknown_membership_lifecycle",
+        "configuration_accepted": true,
+        "actor_binding": true,
+        "public_mode": true,
+        "message_authority": true,
+        "content_service_scope": true,
+        "membership_lifecycle": null,
+        "participation_ceiling": true,
+        "runtime_session_key": true,
+        "scope_mls": true,
+        "expected": "pending"
+      },
+      {
+        "name": "missing_participation_ceiling",
+        "configuration_accepted": true,
+        "actor_binding": true,
+        "public_mode": true,
+        "message_authority": true,
+        "content_service_scope": true,
+        "membership_lifecycle": true,
+        "participation_ceiling": false,
+        "runtime_session_key": true,
+        "scope_mls": true,
+        "expected": "blocked"
+      },
+      {
+        "name": "unknown_participation_ceiling",
+        "configuration_accepted": true,
+        "actor_binding": true,
+        "public_mode": true,
+        "message_authority": true,
+        "content_service_scope": true,
+        "membership_lifecycle": true,
+        "participation_ceiling": null,
+        "runtime_session_key": true,
+        "scope_mls": true,
+        "expected": "pending"
+      },
+      {
+        "name": "missing_runtime_session_key",
+        "configuration_accepted": true,
+        "actor_binding": true,
+        "public_mode": true,
+        "message_authority": true,
+        "content_service_scope": true,
+        "membership_lifecycle": true,
+        "participation_ceiling": true,
+        "runtime_session_key": false,
+        "scope_mls": true,
+        "expected": "blocked"
+      },
+      {
+        "name": "unknown_runtime_session_key",
+        "configuration_accepted": true,
+        "actor_binding": true,
+        "public_mode": true,
+        "message_authority": true,
+        "content_service_scope": true,
+        "membership_lifecycle": true,
+        "participation_ceiling": true,
+        "runtime_session_key": null,
+        "scope_mls": true,
+        "expected": "pending"
+      },
+      {
+        "name": "missing_scope_mls",
+        "configuration_accepted": true,
+        "actor_binding": true,
+        "public_mode": true,
+        "message_authority": true,
+        "content_service_scope": true,
+        "membership_lifecycle": true,
+        "participation_ceiling": true,
+        "runtime_session_key": true,
+        "scope_mls": false,
+        "expected": "blocked"
+      },
+      {
+        "name": "unknown_scope_mls",
+        "configuration_accepted": true,
+        "actor_binding": true,
+        "public_mode": true,
+        "message_authority": true,
+        "content_service_scope": true,
+        "membership_lifecycle": true,
+        "participation_ceiling": true,
+        "runtime_session_key": true,
+        "scope_mls": null,
+        "expected": "pending"
+      }
+    ],
+    "recovery_cases": [
+      {
+        "name": "retained_restart_reuses_grant",
+        "kind": "restart",
+        "same_account_scope_binding": true,
+        "active_message_grant": true,
+        "expected": "reuse_grant"
+      },
+      {
+        "name": "same_agent_repairing_reuses_grant_but_restores_endpoint",
+        "kind": "endpoint_replacement",
+        "same_account_scope_binding": true,
+        "active_message_grant": true,
+        "expected": "reuse_grant_restore_endpoint"
+      },
+      {
+        "name": "cleared_database_requires_new_confirmation",
+        "kind": "reset",
+        "same_account_scope_binding": true,
+        "active_message_grant": true,
+        "expected": "needs_new_confirmation"
+      },
+      {
+        "name": "new_account_station_or_realm_cannot_reuse_grant",
+        "kind": "restart",
+        "same_account_scope_binding": false,
+        "active_message_grant": true,
+        "expected": "needs_new_confirmation"
+      },
+      {
+        "name": "expired_or_revoked_grant_requires_new_confirmation",
+        "kind": "restart",
+        "same_account_scope_binding": true,
+        "active_message_grant": false,
+        "expected": "needs_new_confirmation"
+      },
+      {
+        "name": "response_loss_retains_exact_grant_submission",
+        "kind": "unknown_submission",
+        "same_account_scope_binding": true,
+        "active_message_grant": true,
+        "expected": "retain_exact_pending_submission"
+      },
+      {
+        "name": "definitive_message_refusal_requires_new_request",
+        "kind": "refused_submission",
+        "same_account_scope_binding": true,
+        "active_message_grant": true,
+        "expected": "new_request_after_authority_repair"
+      }
+    ]
+  }
 }

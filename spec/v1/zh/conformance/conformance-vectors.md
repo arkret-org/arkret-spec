@@ -692,6 +692,12 @@ native Event 不创建回显；第二设备得到相同排序、状态与去重�
 private 默认／unknown 区分、controller-only／CAS／委托禁止、共享 action 门及公开／私人 composer 矩阵，
 `event-kind-payload-coverage-fixture.json` 执行模式 payload 的 closed schema 正反例。Containment assertions
 固定 Sidecar roster 不变、Circle 不跨界、Message scope 不迁移、上下文不自动发布及 fanout 非追溯；
+同 fixture 的 `reply_configuration_contract` 决策表验证 human／Agent 独立消息 authority、明确配置
+与仅 preference／mode 的区别、grant issuer／scope／ceiling、逐步骤接纳和 unknown、有效状态与
+重启／重新配对／重置／提交响应丢失边界。机读产品合同绑定 canonical registry 中
+`did_evidence_boundary_registry.agent_participation_runtime_contract.product_configuration`；它不
+引入 wire、profile 或通用自动授权。真实冷启动／保留状态重启的 mention、模型与已显示密文回复
+须按 agent-interaction §5 另行验收。
 这些声明与决策表不证明生产端的模型信息流、真实 MLS、时序侧信道或第二设备已经通过，实施需另行验收。
 
 ### 3.26 治理结果消费角色
