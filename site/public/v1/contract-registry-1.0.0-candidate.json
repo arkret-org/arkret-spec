@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-05.1",
+  "version": "2026-10-05.2",
   "source_of_truth": true,
-  "generated_at": "2026-10-05T02:40:00+08:00",
+  "generated_at": "2026-10-05T11:14:20+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -10640,10 +10640,17 @@
           "selector": "ak.content.applet.relay",
           "normative_ref": "zh/extensions/applet-client-and-invocation.md"
         }
+      },
+      {
+        "schema_id": "ak.schema.agent_producer_evidence.v1",
+        "file": "schemas/agent-authority-evidence.schema.json",
+        "fragment": "#/$defs/agent_producer_evidence",
+        "status": "active",
+        "description": "authority_forward Agent sibling: six-member ASRE, complete portable authority state, independent controller account gate and method-native authority history. No participation selection."
       }
     ],
-    "version": "2026-10-04.2",
-    "generated_at": "2026-10-04T00:30:00+08:00",
+    "version": "2026-10-05.2",
+    "generated_at": "2026-10-05T11:14:20+08:00",
     "metadata_authority": "contract_registry_section"
   },
   "id_kind_registry": {
@@ -13714,7 +13721,7 @@
         "http": "POST /_arkret/peer/events",
         "grpc": "PeerEvents/Submit",
         "mq": "peer.events.command.submit",
-        "notes": "The sole peer Event ingress is a closed semantic union. authority_forward sends one exact producer Event or MLS Commit to the verified current governance Station, which alone may sign a new RealmCommit; an ak.mls.genesis Event additionally carries mls_genesis_material, the raw bytes of the two content-addressed Blobs it references, which the governance Station hashes against the refs and stores in the acceptance transaction, and every other kind omits it. committed_replication carries replications[1..100] whose rows are {event_submission, source_commit}, plus required immutable genesis_event_ref for every ak.mls.commit and forbidden for every other kind; only a Commit may additionally carry welcomes[] of recipients hosted by the destination. The governance Station freezes the Genesis ref from its accepted group provenance in the Commit acceptance transaction and the authenticated canonical peer request signature covers it. The receiver binds it to the exact Commit and immutable group provenance in the replica transaction, re-verifies Welcomes against its own claim ledger and queues passing Welcomes in that same transaction; it never infers Genesis from a preceding Commit ref or current tree. Processing, committed_event wrappers, sender membership witnesses, destination echoes and response coordinate echoes are absent. The receiver derives authorization from verified committed history and stores exact source facts without first admission, re-signing, or second fanout. registered_atomic_unit carries only registered all-or-nothing source-committed units (Direct Conversation founding or membership compensation), never per-item partial materialization. canonical_hash/full_body binds the complete selected branch and exact replay returns the original branch outcome. Exact full-request replay preserves the first outcome bytes, item order and stored status. duplicate describes initial processing under a different full request whose exact source Event/Commit already exists; it is not a replacement status for a replayed stored outcome.",
+        "notes": "The sole peer Event ingress is a closed semantic union. authority_forward sends one exact producer Event or MLS Commit to the verified current governance Station, which alone may sign a new RealmCommit; an ak.mls.genesis Event additionally carries mls_genesis_material, the raw bytes of the two content-addressed Blobs it references, which the governance Station hashes against the refs and stores in the acceptance transaction, and every other kind omits it. committed_replication carries replications[1..100] whose rows are {event_submission, source_commit}, plus required immutable genesis_event_ref for every ak.mls.commit and forbidden for every other kind; only a Commit may additionally carry welcomes[] of recipients hosted by the destination. The governance Station freezes the Genesis ref from its accepted group provenance in the Commit acceptance transaction and the authenticated canonical peer request signature covers it. The receiver binds it to the exact Commit and immutable group provenance in the replica transaction, re-verifies Welcomes against its own claim ledger and queues passing Welcomes in that same transaction; it never infers Genesis from a preceding Commit ref or current tree. Processing, committed_event wrappers, sender membership witnesses, destination echoes and response coordinate echoes are absent. The receiver derives authorization from verified committed history and stores exact source facts without first admission, re-signing, or second fanout. registered_atomic_unit carries only registered all-or-nothing source-committed units (Direct Conversation founding or membership compensation), never per-item partial materialization. canonical_hash/full_body binds the complete selected branch and exact replay returns the original branch outcome. Exact full-request replay preserves the first outcome bytes, item order and stored status. duplicate describes initial processing under a different full request whose exact source Event/Commit already exists; it is not a replacement status for a replayed stored outcome. authority_forward registers producer_agent_evidence exactly for actual Agent runtime producers, independently of outer actor_id; human/device and service producers forbid it. Compact requires a fully verified exact state_digest cache, otherwise dependency_missing. Restored complete evidence is retained atomically with first admission; it never grants participation current.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "schema_resource",
         "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
@@ -14569,7 +14576,7 @@
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_outcome",
-        "notes": ""
+        "notes": " Controller-only bearer+DPoP; Agent runtime is forbidden. Runtime consumes authenticated session participation overlay only, never as action-time current."
       },
       {
         "operation_id": "ak.self.agent.participation.resource.replace.v1",
@@ -14580,7 +14587,7 @@
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "object_id",
         "retry_safe": true,
-        "notes": "Controller-only full replacement of one Account-Authority-owned per-scope selection. The authenticated bearer+DPoP session is the authority proof. First write uses expected_version=0; each accepted write increments the exact agent/scope slot by one. Governance ceilings and ordinary Agent capabilities are evaluated at action time and are not copied into this record.",
+        "notes": "Controller-only full replacement of one Account-Authority-owned per-scope selection. The authenticated bearer+DPoP session is the authority proof. First write uses expected_version=0; each accepted write increments the exact agent/scope slot by one. Governance ceilings and ordinary Agent capabilities are evaluated at action time and are not copied into this record. Controller-only bearer+DPoP; Agent runtime is forbidden. Runtime consumes authenticated session participation overlay only, never as action-time current.",
         "request_schema_ref": "schemas/principal-operations.schema.json#/$defs/participation_replace_request",
         "response_schema_ref": "schemas/agent-operations.schema.json#/$defs/agent_participation_outcome",
         "durable_effect": {
@@ -16389,8 +16396,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-10-04.4",
-    "generated_at": "2026-10-04T20:52:42+08:00",
+    "version": "2026-10-05.2",
+    "generated_at": "2026-10-05T11:14:20+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",
@@ -20080,8 +20087,8 @@
         ]
       }
     ],
-    "version": "2026-10-05.1",
-    "generated_at": "2026-10-05T02:40:00+08:00",
+    "version": "2026-10-05.2",
+    "generated_at": "2026-10-05T11:14:20+08:00",
     "metadata_authority": "contract_registry_section",
     "mls_roster_verification_contract": {
       "roles": {
@@ -20187,6 +20194,41 @@
       "local_context_binding": "persistent_station_selection_plus_authenticated_full_account_and_request_epoch",
       "historical_producer_coordinates": "original_authorized_self_stream_row_exact_committed_event_ref",
       "failure": "existing_operation_refusal_or_unavailable_no_state_advancement"
+    },
+    "agent_authority_evidence_contract": {
+      "state_fields": [
+        "authority_id",
+        "agent_id",
+        "source_commit_id",
+        "pcr_genesis_event",
+        "key_authorization_event",
+        "authorization",
+        "key_state_witness",
+        "agent_lifecycle_witness",
+        "commit_lineages",
+        "commits",
+        "authority_bundle",
+        "signer_dependencies"
+      ],
+      "peer_carrier": "producer_agent_evidence",
+      "peer_branch": "authority_forward",
+      "signer_ref_preimage": "authenticated_signer_evidence",
+      "state_digest_preimage": "complete_state",
+      "max_canonical_bytes_schema_ref": "schemas/agent-authority-evidence.schema.json#/$defs/agent_authority_state_evidence",
+      "compact_cache_miss": "dependency_missing",
+      "known_digest_request": false,
+      "extra_fetch_endpoint": false,
+      "participation_in_state": false
+    },
+    "agent_participation_runtime_contract": {
+      "get_replace_role": "controller",
+      "runtime_selection_source": "authenticated_session_overlay",
+      "target_selection_source": "authenticated_owner_current",
+      "overlay_is_action_time_current": false,
+      "internal_channel_crosses_station_boundary": false,
+      "remote_selection_carrier": false,
+      "missing_current_selection": "deny",
+      "authority_evidence_grants_participation": false
     }
   },
   "did_authority_verifier_actions": [

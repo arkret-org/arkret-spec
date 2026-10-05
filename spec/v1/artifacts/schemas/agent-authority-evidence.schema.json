@@ -192,7 +192,7 @@
           "items": {
             "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
           },
-          "description": "Ordered predecessor chain from witness_commit_id up to and including source_commit_id."
+          "description": "Ordered inclusive path from witness_commit_id to source_commit_id, increasing stream_position by exactly one at each step. Every ID addresses the matching complete member of state.commits."
         }
       },
       "additionalProperties": false
@@ -380,7 +380,10 @@
         "authorization",
         "key_state_witness",
         "agent_lifecycle_witness",
-        "commit_lineages"
+        "commit_lineages",
+        "commits",
+        "authority_bundle",
+        "signer_dependencies"
       ],
       "properties": {
         "authority_id": {
@@ -416,10 +419,29 @@
           "items": {
             "$ref": "#/$defs/commit_lineage"
           }
+        },
+        "commits": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./realm-commit.schema.json"
+          },
+          "description": "Exact union of genesis, witness and lineage Commits through source_commit_id, sorted by stream_position. No gaps, duplicate IDs/positions, forks or unrelated Commits."
+        },
+        "authority_bundle": {
+          "$ref": "#/$defs/agent_accepted_authority_bundle"
+        },
+        "signer_dependencies": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/agent_signer_dependency"
+          },
+          "description": "Exactly the recursive producer proof dependencies used by genesis, authorization, lifecycle and authority transition Events. Sorted by signer_resolution_evidence_ref UTF-8 bytes. Missing ref is unresolved; duplicate ref, conflicting bytes, cycle or surplus is rejected."
         }
       },
-      "additionalProperties": false,
-      "x-arkret-max-canonical-bytes": 262144
+      "additionalProperties": false
     },
     "agent_authority_state_attestation": {
       "type": "object",
@@ -523,6 +545,127 @@
       },
       "additionalProperties": false,
       "x-arkret-max-canonical-bytes": 16384
+    },
+    "agent_accepted_authority_bundle": {
+      "type": "object",
+      "description": "Minimal accepted-at RealmAuthorityBundle projection for this PCR closure only. No online nonce/current assertion or routing authority. The genesis and consecutive handoffs determine each Commit generation; signer_histories are exactly the method-native histories used by Commit, producer dependency and state signatures. Unused records are surplus. It does not authorize other Events or controller binding.",
+      "required": [
+        "realm_id",
+        "genesis_event",
+        "genesis_commit",
+        "authority_transitions",
+        "signer_histories"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "genesis_event": {
+          "$ref": "./event-envelope.schema.json"
+        },
+        "genesis_commit": {
+          "$ref": "./realm-commit.schema.json"
+        },
+        "authority_transitions": {
+          "type": "array",
+          "items": {
+            "$ref": "./realm-authority-bundle.schema.json#/$defs/authority_transition"
+          }
+        },
+        "signer_histories": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./identity-resolution.schema.json#/$defs/authenticated_service_resolution"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_producer_evidence": {
+      "type": "object",
+      "description": "authority_forward Agent sibling. Event signer_resolution_evidence_ref addresses the six-member authenticated_signer_evidence alone; authority state and controller gate are independent signed siblings. authority_resolution supplies method-native history for the state attestation and controller gate at their respective observation times. It carries no participation selection. Canonical persistence restores compact state first.",
+      "required": [
+        "authenticated_signer_evidence",
+        "agent_authority_state_evidence",
+        "controller_account_gate_attestation",
+        "authority_resolution"
+      ],
+      "properties": {
+        "authenticated_signer_evidence": {
+          "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/agent_signer_evidence"
+        },
+        "agent_authority_state_evidence": {
+          "$ref": "#/$defs/agent_authority_state_evidence"
+        },
+        "controller_account_gate_attestation": {
+          "$ref": "#/$defs/controller_account_gate_attestation"
+        },
+        "authority_resolution": {
+          "$ref": "./identity-resolution.schema.json#/$defs/authenticated_service_resolution"
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_signer_dependency": {
+      "oneOf": [
+        {
+          "type": "object",
+          "description": "Ref is the JCS SHA-256 content address of account_device_signer_evidence. Validate the original accepted producer at its accepted_at, not against a newly issued current device projection.",
+          "required": [
+            "signer_resolution_evidence_ref",
+            "account_device_signer_evidence"
+          ],
+          "properties": {
+            "signer_resolution_evidence_ref": {
+              "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref"
+            },
+            "account_device_signer_evidence": {
+              "$ref": "./account-device-signer-evidence.schema.json"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "description": "Ref addresses authenticated_signer_evidence alone. Verify its exact method/key/subject using the carried method-native history at the original accepted-at instant.",
+          "required": [
+            "signer_resolution_evidence_ref",
+            "authenticated_signer_evidence",
+            "service_resolution"
+          ],
+          "properties": {
+            "signer_resolution_evidence_ref": {
+              "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref"
+            },
+            "authenticated_signer_evidence": {
+              "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/service_signer_evidence"
+            },
+            "service_resolution": {
+              "$ref": "./identity-resolution.schema.json#/$defs/authenticated_service_resolution"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "description": "Ref addresses agent_evidence.authenticated_signer_evidence alone. Recursively validate the complete accepted-at Agent closure; repeated refs are deduplicated and cycles rejected.",
+          "required": [
+            "signer_resolution_evidence_ref",
+            "agent_evidence"
+          ],
+          "properties": {
+            "signer_resolution_evidence_ref": {
+              "$ref": "./authenticated-signer-resolution-evidence.schema.json#/$defs/signer_evidence_ref"
+            },
+            "agent_evidence": {
+              "$ref": "#/$defs/agent_producer_evidence"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
     }
   }
 }

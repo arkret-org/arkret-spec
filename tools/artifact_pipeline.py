@@ -1301,7 +1301,7 @@ def run_long_text_schema_test() -> int:
 def run_schema_constructability_test() -> int:
     result = subprocess.run(
         [sys.executable, "-m", "unittest", "tools.test_schema_constructability_lint",
-         "tools.test_forbidden_wire_contexts"],
+         "tools.test_forbidden_wire_contexts", "tools.test_agent_runtime_contract"],
         cwd=ROOT,
     )
     return result.returncode

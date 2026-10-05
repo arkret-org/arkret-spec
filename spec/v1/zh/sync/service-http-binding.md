@@ -162,6 +162,12 @@ HTTP operation 的通用 batch 分支。以后若登记独立 Event 的便捷 ba
   其它两支不得携带它。`event_submission` 的 Event 是 `ak.mls.genesis` 时必带、其它 kind 禁带
   `mls_genesis_material`（Genesis 所引两个 Blob 的原始字节），治理 Station 核对内容寻址后在接纳事务内保存
   （[`../crypto-media/encryption-and-audit.md` §5.1.2](../crypto-media/encryption-and-audit.md)）。
+  Agent runtime producer 改用正式 sibling `producer_agent_evidence`，human device/service producer 禁带；
+  同携两个 producer evidence 或缺 required evidence 为 `schema_violation` 且零写入。实际 producer 以
+  `executed_by`（存在时）否则 `actor_id` 为准，MLS 以 Commit Event 为准。其完整 AccountId、
+  ASRE ref/key、完整 PCR 闭包、独立 controller gate 与历史服务方法按
+  [`key-management.md` §3.6.1](../identity/key-management.md) 验证并在首接纳事务原子保留；
+  compact state cache miss 为 `dependency_missing`，只能经同一 ingress 完整重交，不新增取回端点。
 - `committed_replication`：携 `replications[1..100]`；每项直接是
   `{event_submission: EventAdmissionSubmission, source_commit: RealmCommit}`，其中 `event_submission` 只能是
   `{event: 完整 source Event}`；`approval_signatures` MUST 省略，带该成员的 item 为 `schema_violation` 且零写入。

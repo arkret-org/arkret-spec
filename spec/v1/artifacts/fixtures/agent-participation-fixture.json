@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.agent_participation_policy.v1",
-  "version": "2026-10-04.1",
+  "version": "2026-10-05.1",
   "suite": "agent_participation",
   "runner": {
     "kind": "named_suite",
@@ -1238,5 +1238,139 @@
         "expected_shared_message_preserved": true
       }
     ]
-  }
+  },
+  "runtime_access_cases": [
+    {
+      "name": "same_station_current",
+      "role": "target",
+      "selection_source": "authenticated_owner_current",
+      "same_station": true,
+      "current_selection": true,
+      "complete_governance_cut": true,
+      "exact_binding": true,
+      "selection_bit": true,
+      "ceiling_bit": true,
+      "expected": "allow"
+    },
+    {
+      "name": "missing_same_station",
+      "role": "target",
+      "selection_source": "authenticated_owner_current",
+      "same_station": false,
+      "current_selection": true,
+      "complete_governance_cut": true,
+      "exact_binding": true,
+      "selection_bit": true,
+      "ceiling_bit": true,
+      "expected": "deny"
+    },
+    {
+      "name": "missing_current_selection",
+      "role": "target",
+      "selection_source": "authenticated_owner_current",
+      "same_station": true,
+      "current_selection": false,
+      "complete_governance_cut": true,
+      "exact_binding": true,
+      "selection_bit": true,
+      "ceiling_bit": true,
+      "expected": "deny"
+    },
+    {
+      "name": "missing_complete_governance_cut",
+      "role": "target",
+      "selection_source": "authenticated_owner_current",
+      "same_station": true,
+      "current_selection": true,
+      "complete_governance_cut": false,
+      "exact_binding": true,
+      "selection_bit": true,
+      "ceiling_bit": true,
+      "expected": "deny"
+    },
+    {
+      "name": "missing_exact_binding",
+      "role": "target",
+      "selection_source": "authenticated_owner_current",
+      "same_station": true,
+      "current_selection": true,
+      "complete_governance_cut": true,
+      "exact_binding": false,
+      "selection_bit": true,
+      "ceiling_bit": true,
+      "expected": "deny"
+    },
+    {
+      "name": "missing_selection_bit",
+      "role": "target",
+      "selection_source": "authenticated_owner_current",
+      "same_station": true,
+      "current_selection": true,
+      "complete_governance_cut": true,
+      "exact_binding": true,
+      "selection_bit": false,
+      "ceiling_bit": true,
+      "expected": "deny"
+    },
+    {
+      "name": "missing_ceiling_bit",
+      "role": "target",
+      "selection_source": "authenticated_owner_current",
+      "same_station": true,
+      "current_selection": true,
+      "complete_governance_cut": true,
+      "exact_binding": true,
+      "selection_bit": true,
+      "ceiling_bit": false,
+      "expected": "deny"
+    },
+    {
+      "name": "session_overlay",
+      "role": "target",
+      "selection_source": "session_overlay",
+      "same_station": true,
+      "current_selection": true,
+      "complete_governance_cut": true,
+      "exact_binding": true,
+      "selection_bit": true,
+      "ceiling_bit": true,
+      "expected": "deny"
+    },
+    {
+      "name": "session_active",
+      "role": "target",
+      "selection_source": "session_active",
+      "same_station": true,
+      "current_selection": true,
+      "complete_governance_cut": true,
+      "exact_binding": true,
+      "selection_bit": true,
+      "ceiling_bit": true,
+      "expected": "deny"
+    },
+    {
+      "name": "portable_authority_state",
+      "role": "target",
+      "selection_source": "portable_authority_state",
+      "same_station": true,
+      "current_selection": true,
+      "complete_governance_cut": true,
+      "exact_binding": true,
+      "selection_bit": true,
+      "ceiling_bit": true,
+      "expected": "deny"
+    },
+    {
+      "name": "runtime_is_not_target",
+      "role": "runtime",
+      "selection_source": "authenticated_owner_current",
+      "same_station": true,
+      "current_selection": true,
+      "complete_governance_cut": true,
+      "exact_binding": true,
+      "selection_bit": true,
+      "ceiling_bit": true,
+      "expected": "deny"
+    }
+  ]
 }

@@ -116,7 +116,7 @@
     },
     "peer_submit_request": {
       "type": "object",
-      "description": "The only peer Event ingress. branch is a semantic discriminator, not a routing hint: authority_forward performs first admission at the current governance Station; committed_replication stores source-committed replicas; registered_atomic_unit performs one registered all-or-nothing materialization. Bodies cannot be reinterpreted across branches. producer_device_evidence is allowed only on authority_forward and its presence is decided by the Event, not by the forwarder: it MUST be present when the actual signer (executed_by when present, otherwise actor_id; the Commit Event for mls_submission) is an Account whose proof verification_method fragment is an ak:device: id, and MUST be absent otherwise. The schema cannot express that Event-dependent rule, so the governance Station enforces it after producer resolution and rejects a missing or surplus member with schema_violation and zero writes (zh/crypto-media/device-lifecycle.md section 8.2.2). mls_genesis_material is likewise allowed only on the authority_forward event branch, and there the Event kind alone decides it: required for ak.mls.genesis, forbidden otherwise.",
+      "description": "The only peer Event ingress. branch is a semantic discriminator, not a routing hint: authority_forward performs first admission at the current governance Station; committed_replication stores source-committed replicas; registered_atomic_unit performs one registered all-or-nothing materialization. Bodies cannot be reinterpreted across branches. producer_device_evidence is allowed only on authority_forward and its presence is decided by the Event, not by the forwarder: it MUST be present when the actual signer (executed_by when present, otherwise actor_id; the Commit Event for mls_submission) is an Account whose proof verification_method fragment is an ak:device: id, and MUST be absent otherwise. The schema cannot express that Event-dependent rule, so the governance Station enforces it after producer resolution and rejects a missing or surplus member with schema_violation and zero writes (zh/crypto-media/device-lifecycle.md section 8.2.2). mls_genesis_material is likewise allowed only on the authority_forward event branch, and there the Event kind alone decides it: required for ak.mls.genesis, forbidden otherwise. producer_agent_evidence is required exactly when the actual producer is an Agent runtime key; it is forbidden for human-device and service producers and on committed_replication/registered_atomic_unit. Missing, surplus or simultaneous device/Agent evidence is schema_violation with zero writes. Complete AccountId, runtime method/key, ASRE content ref, state and independent controller gate must all match. Missing compact cache is dependency_missing; no extra fetch endpoint. producer_agent_evidence is required exactly when the actual producer is an Agent runtime key; it is forbidden for human-device and service producers and on committed_replication/registered_atomic_unit. Missing, surplus or simultaneous device/Agent evidence is schema_violation with zero writes. Complete AccountId, runtime method/key, ASRE content ref, state and independent controller gate must all match. Missing compact cache is dependency_missing; no extra fetch endpoint.",
       "required": [
         "branch"
       ],
@@ -141,6 +141,9 @@
         "producer_device_evidence": {
           "$ref": "./account-device-signer-evidence.schema.json",
           "description": "authority_forward only. Complete account_device evidence for a cross-Station human device producer, freshly signed by the forwarding Station (the producer's account Station) from the same durable cut as its live gate before every forwarding attempt and persisted with its ref before sending; never a cached or keys/query-returned object. The governance Station verifies Source-Service-ID equals attestation.account_id.station_id, the attestation signature under the carried Service history at attested_at, now earlier than attestation expires_at, the original authorization_window covering both Event created_at and now, device_status active, and exact producer AccountId/device fragment/key binding, and persists the complete object and ref inside the acceptance transaction for audit only. An exact duplicate Event returns its original outcome before evidence freshness is checked."
+        },
+        "producer_agent_evidence": {
+          "$ref": "./agent-authority-evidence.schema.json#/$defs/agent_producer_evidence"
         },
         "replications": {
           "type": "array",
@@ -292,6 +295,11 @@
                 "required": [
                   "mls_genesis_material"
                 ]
+              },
+              {
+                "required": [
+                  "producer_agent_evidence"
+                ]
               }
             ]
           }
@@ -332,12 +340,27 @@
                 "required": [
                   "mls_genesis_material"
                 ]
+              },
+              {
+                "required": [
+                  "producer_agent_evidence"
+                ]
               }
             ]
           }
         }
       ],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "not": {
+            "required": [
+              "producer_device_evidence",
+              "producer_agent_evidence"
+            ]
+          }
+        }
+      ]
     },
     "peer_submit_outcome": {
       "description": "Closed peer Event-submit outcome union. Replication reports one same-order item result for every input; registered units report exactly one indivisible outcome.",

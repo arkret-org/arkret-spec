@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-04.8",
-  "generated_at": "2026-10-04T20:52:43+08:00",
+  "version": "2026-10-05.4",
+  "generated_at": "2026-10-05T11:14:22+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -265,7 +265,7 @@
     },
     {
       "operation_id": "ak.peer.events.command.submit.v1",
-      "sha256": "sha256:2c423628039f42520716ee597e961ba387d88c1e2774891274cf8b81f1e5de86"
+      "sha256": "sha256:ef2938692358e43edca48acd50c441078554924ce4bd341b14c2b8cff49db0a9"
     },
     {
       "operation_id": "ak.peer.invites.command.submit.v1",
@@ -449,11 +449,11 @@
     },
     {
       "operation_id": "ak.self.agent.participation.resource.get.v1",
-      "sha256": "sha256:7690de73d3dfb6b9d3b370ad3ab5a6c6117d495810ca49c09f481780673a4052"
+      "sha256": "sha256:48674d2e9c29e50972584ba0a76a40d75a7157df025eb4e93a5b77a5af0e54dc"
     },
     {
       "operation_id": "ak.self.agent.participation.resource.replace.v1",
-      "sha256": "sha256:bce09358397e74c9089e9503cc41d54609621d36ec018a71bfd219479e2f6688"
+      "sha256": "sha256:f4702cfd2bafb8e020acea241cf585ede42f9c2f9d24e81355856da39c1bc360"
     },
     {
       "operation_id": "ak.self.agent.read.list.v1",

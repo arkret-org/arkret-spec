@@ -845,7 +845,7 @@ Circle 私人请求不跨到 Realm Sidecar。mode 不影响普通 history 可读
 - mention 作者 != controller 且 effective `accept_third_party_mention=false`：MUST NOT 为该 agent 派生任何 mention notification、inbox row、push wakeup，也 MUST NOT 把该 mention 纳入该 agent 的 `ak.self.committed_event.stream.subscribe.v1` 投影。该抑制只针对该 agent 自身；对 message 的其他人类 target、shared history、其它投影无影响。
 - effective `accept_third_party_mention=true`：照常投递，并继续受 `level=muted`、个人 blocklist、DND、rate-limit 等本节既有更高优先级规则约束（§9.4.1–§9.4.4）。
 
-该 gate 是 reducer / dispatcher 强制规则，不依赖 agent runtime 自觉；runtime 可从 session `scope_details.participation` 与 `ak.self.agent.participation.resource.get.v1` 取得 selection/version 用于主动遵守，但 target MUST 以当前本地治理状态重新求交，不得信任客户端复制的 effective 值。任一 required policy source 未知或 stale 时 MUST fail closed 为不投递。
+该 gate 是 reducer / dispatcher 强制规则，不依赖 agent runtime 自觉；runtime 只能从已认证、绑定自身 exact session 的 `scope_details.participation` overlay 取得 selection/version 用于主动遵守。`ak.self.agent.participation.resource.get.v1` 与 replace 始终 controller-only，runtime MUST NOT 调用或冒充 controller。overlay 是签发/refresh 时的观察，不能证明动作时 current；target MUST 独立取得当前 controller selection 与当前完整治理 cut 后重新求交，不得信任客户端复制的 effective 值。任一 required policy source 未知或 stale 时 MUST fail closed 为不投递。取材角色及跨站边界见 [conformance-profiles §18](../conformance/conformance-profiles.md)。
 
 求值时点与非追溯语义（normative）：
 

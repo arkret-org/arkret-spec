@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-05.1",
+  "version": "2026-10-05.2",
   "source_of_truth": false,
-  "generated_at": "2026-10-05T02:40:00+08:00",
+  "generated_at": "2026-10-05T11:14:20+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -204,5 +204,40 @@
     "local_context_binding": "persistent_station_selection_plus_authenticated_full_account_and_request_epoch",
     "historical_producer_coordinates": "original_authorized_self_stream_row_exact_committed_event_ref",
     "failure": "existing_operation_refusal_or_unavailable_no_state_advancement"
+  },
+  "agent_authority_evidence_contract": {
+    "state_fields": [
+      "authority_id",
+      "agent_id",
+      "source_commit_id",
+      "pcr_genesis_event",
+      "key_authorization_event",
+      "authorization",
+      "key_state_witness",
+      "agent_lifecycle_witness",
+      "commit_lineages",
+      "commits",
+      "authority_bundle",
+      "signer_dependencies"
+    ],
+    "peer_carrier": "producer_agent_evidence",
+    "peer_branch": "authority_forward",
+    "signer_ref_preimage": "authenticated_signer_evidence",
+    "state_digest_preimage": "complete_state",
+    "max_canonical_bytes_schema_ref": "schemas/agent-authority-evidence.schema.json#/$defs/agent_authority_state_evidence",
+    "compact_cache_miss": "dependency_missing",
+    "known_digest_request": false,
+    "extra_fetch_endpoint": false,
+    "participation_in_state": false
+  },
+  "agent_participation_runtime_contract": {
+    "get_replace_role": "controller",
+    "runtime_selection_source": "authenticated_session_overlay",
+    "target_selection_source": "authenticated_owner_current",
+    "overlay_is_action_time_current": false,
+    "internal_channel_crosses_station_boundary": false,
+    "remote_selection_carrier": false,
+    "missing_current_selection": "deny",
+    "authority_evidence_grants_participation": false
   }
 }

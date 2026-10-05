@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-04.2",
+  "version": "2026-10-05.2",
   "source_of_truth": false,
-  "generated_at": "2026-10-04T00:30:00+08:00",
+  "generated_at": "2026-10-05T11:14:20+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -1772,6 +1772,13 @@
         "selector": "ak.content.applet.relay",
         "normative_ref": "zh/extensions/applet-client-and-invocation.md"
       }
+    },
+    {
+      "schema_id": "ak.schema.agent_producer_evidence.v1",
+      "file": "schemas/agent-authority-evidence.schema.json",
+      "fragment": "#/$defs/agent_producer_evidence",
+      "status": "active",
+      "description": "authority_forward Agent sibling: six-member ASRE, complete portable authority state, independent controller account gate and method-native authority history. No participation selection."
     }
   ],
   "metadata_authority": "contract_registry_section"

@@ -1,12 +1,12 @@
 {
-  "version": 26,
+  "version": 27,
   "source_of_truth": false,
   "narrative_source": "spec/v1/zh/models/common-fields.md#r6-证据类名词分工",
   "scope": [
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 361,
+  "audited_occurrence_count": 375,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -66,7 +66,7 @@
     {
       "file": "agent-authority-evidence.schema.json",
       "key": "agent_authority_state_evidence",
-      "occurrences": 1,
+      "occurrences": 2,
       "disposition": "polymorphic_container",
       "material_families": [
         "proof",
@@ -1078,6 +1078,101 @@
       "occurrences": 1,
       "disposition": "registry_contract",
       "reason": "Declares independent Genesis timestamp revalidation before accepted-winner selection; it carries no evidence material and is not a wire member."
+    },
+    {
+      "file": "agent-authority-evidence.schema.json",
+      "key": "account_device_signer_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "reason": "Agent producer closure uses only actual signer dependencies; authority evidence never grants participation current. References address exact canonical roots and do not themselves carry material.",
+      "material_families": [
+        "proof",
+        "attestation",
+        "transcript"
+      ]
+    },
+    {
+      "file": "agent-authority-evidence.schema.json",
+      "key": "agent_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "reason": "Agent producer closure uses only actual signer dependencies; authority evidence never grants participation current. References address exact canonical roots and do not themselves carry material.",
+      "material_families": [
+        "proof",
+        "attestation",
+        "transcript"
+      ]
+    },
+    {
+      "file": "agent-authority-evidence.schema.json",
+      "key": "agent_producer_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "reason": "Agent producer closure uses only actual signer dependencies; authority evidence never grants participation current. References address exact canonical roots and do not themselves carry material.",
+      "material_families": [
+        "proof",
+        "attestation",
+        "transcript"
+      ]
+    },
+    {
+      "file": "agent-authority-evidence.schema.json",
+      "key": "authenticated_signer_evidence",
+      "occurrences": 2,
+      "disposition": "polymorphic_container",
+      "reason": "Agent producer closure uses only actual signer dependencies; authority evidence never grants participation current. References address exact canonical roots and do not themselves carry material.",
+      "material_families": [
+        "proof",
+        "attestation",
+        "transcript"
+      ]
+    },
+    {
+      "file": "agent-authority-evidence.schema.json",
+      "key": "signer_resolution_evidence_ref",
+      "occurrences": 3,
+      "disposition": "qualifier",
+      "reason": "Agent producer closure uses only actual signer dependencies; authority evidence never grants participation current. References address exact canonical roots and do not themselves carry material."
+    },
+    {
+      "file": "authority-commit-operations.schema.json",
+      "key": "producer_agent_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "reason": "Agent producer closure uses only actual signer dependencies; authority evidence never grants participation current. References address exact canonical roots and do not themselves carry material.",
+      "material_families": [
+        "proof",
+        "attestation",
+        "transcript"
+      ]
+    },
+    {
+      "file": "contract-registry.json",
+      "key": "agent_authority_evidence_contract",
+      "occurrences": 1,
+      "disposition": "registry_contract",
+      "reason": "Agent producer closure uses only actual signer dependencies; authority evidence never grants participation current. References address exact canonical roots and do not themselves carry material."
+    },
+    {
+      "file": "contract-registry.json",
+      "key": "authority_evidence_grants_participation",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Agent producer closure uses only actual signer dependencies; authority evidence never grants participation current. References address exact canonical roots and do not themselves carry material."
+    },
+    {
+      "file": "did-evidence-boundary-registry.json",
+      "key": "agent_authority_evidence_contract",
+      "occurrences": 1,
+      "disposition": "registry_contract",
+      "reason": "Agent producer closure uses only actual signer dependencies; authority evidence never grants participation current. References address exact canonical roots and do not themselves carry material."
+    },
+    {
+      "file": "did-evidence-boundary-registry.json",
+      "key": "authority_evidence_grants_participation",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Agent producer closure uses only actual signer dependencies; authority evidence never grants participation current. References address exact canonical roots and do not themselves carry material."
     }
   ]
 }

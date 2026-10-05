@@ -214,12 +214,12 @@ def check_peer_event_submit_semantic_union(lint: Lint) -> None:
         if constants != ["authority_forward", "authority_forward", "committed_replication", "registered_atomic_unit"]:
             _fail(lint, SCHEMA, "peer_submit_request alternatives drift from the registered branch partition")
         allowed_fields = (
-            {"branch", "event_submission", "mls_genesis_material", "producer_device_evidence"},
-            {"branch", "mls_submission", "producer_device_evidence"},
+            {"branch", "event_submission", "mls_genesis_material", "producer_device_evidence", "producer_agent_evidence"},
+            {"branch", "mls_submission", "producer_device_evidence", "producer_agent_evidence"},
             {"branch", "replications"},
             {"branch", "unit"},
         )
-        all_branch_fields = {"event_submission", "mls_genesis_material", "mls_submission", "producer_device_evidence", "replications", "unit"}
+        all_branch_fields = {"event_submission", "mls_genesis_material", "mls_submission", "producer_device_evidence", "producer_agent_evidence", "replications", "unit"}
         for index, (item, allowed) in enumerate(zip(branches, allowed_fields, strict=True)):
             forbidden = {
                 next(iter(_required(candidate)))
@@ -230,7 +230,7 @@ def check_peer_event_submit_semantic_union(lint: Lint) -> None:
                 _fail(lint, SCHEMA, f"peer_submit_request alternative {index} must reject every cross-branch field")
 
     peer_properties = peer.get("properties", {})
-    if set(peer_properties) != {"branch", "event_submission", "mls_genesis_material", "mls_submission", "producer_device_evidence", "replications", "unit"}:
+    if set(peer_properties) != {"branch", "event_submission", "mls_genesis_material", "mls_submission", "producer_device_evidence", "producer_agent_evidence", "replications", "unit"}:
         _fail(lint, SCHEMA, "peer_submit_request properties must be the exact branch field set")
     if _ref_name(peer_properties.get("mls_genesis_material")) != "#/$defs/mls_genesis_material":
         _fail(lint, SCHEMA, "authority_forward mls_genesis_material must use the closed mls_genesis_material definition")
