@@ -81,9 +81,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
-      "version": "2026-10-06.1",
-      "generated_at": "2026-10-06T01:49:40+08:00",
-      "content_digest": "sha256:c331e61f624fb642a87536800f7a39692ae3ca6e728c1fe290fcfad0bc4ea2f1"
+      "version": "2026-10-06.2",
+      "generated_at": "2026-10-06T02:34:08+08:00",
+      "content_digest": "sha256:4f48be12359edf5e752eaa37ac9ea32f7eaa56457f982f1bd3e9408c89dd3bed"
     },
     {
       "path": "spec/v1/artifacts/registry/current-result-registry.json",
@@ -105,9 +105,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/did-evidence-boundary-registry.json",
-      "version": "2026-10-06.1",
-      "generated_at": "2026-10-06T01:26:43+08:00",
-      "content_digest": "sha256:c5912bcfcbf63087af8cdee1a060f62b796c7b6a1b08c07839a84b0479ec69e6"
+      "version": "2026-10-06.2",
+      "generated_at": "2026-10-06T02:34:08+08:00",
+      "content_digest": "sha256:9c447ea39bc6da36e3054492c2ad73dc4239f77ca7a07ca8e8377da2c8ebe657"
     },
     {
       "path": "spec/v1/artifacts/registry/did-freshness-profile-registry.json",
@@ -213,9 +213,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/normative-clause-registry.json",
-      "version": "2026-10-06.1",
-      "generated_at": "2026-10-06T01:49:40+08:00",
-      "content_digest": "sha256:6e1c5433624189aad657bbb95f5a7406fd803d8174d24fe1db7b5851a7c93ede"
+      "version": "2026-10-06.2",
+      "generated_at": "2026-10-06T02:37:59+08:00",
+      "content_digest": "sha256:166d1141c021d19d89db1b7b1de108373c4b2a6e67fc9cd541e4cb257efe2ac6"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-bundle-closure-lock.json",
@@ -231,9 +231,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-10-06.1",
-      "generated_at": "2026-10-06T01:49:40+08:00",
-      "content_digest": "sha256:ad34157f7e405aac8d4b7e1d01143522892da710f0d97f99f5da6c41f10a6376"
+      "version": "2026-10-06.2",
+      "generated_at": "2026-10-06T01:49:41+08:00",
+      "content_digest": "sha256:fef9ceb4d3313dfba35cf379c9688814b5f28ebdf7fd1557dd89a0125e14fd05"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",

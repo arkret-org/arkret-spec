@@ -15,13 +15,13 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9235,
+    "total_properties": 9237,
     "total_schema_documents": 168,
     "by_presence_class": {
-      "optional": 2155,
+      "optional": 2156,
       "optional_defaulted": 48,
       "required": 6528,
-      "required_nullable": 323,
+      "required_nullable": 324,
       "tristate": 181
     },
     "tristate_occurrences": 181,
@@ -7728,14 +7728,19 @@
         "/$defs/shared_realm_evidence/properties/inviter_member_ref": "required",
         "/$defs/shared_realm_evidence/properties/kind": "required",
         "/$defs/shared_realm_evidence/properties/realm_id": "required",
+        "/allOf/0/if/properties/invite_commit": "required_nullable",
         "/properties/authority_locator_hints": "required",
         "/properties/idempotency_key": "required",
         "/properties/introduction_evidence": "required",
         "/properties/invite_address": "required",
         "/properties/invite_commit": "required",
         "/properties/invite_event": "required",
+        "/properties/producer_signer_fact": "optional",
         "/properties/schema": "required"
-      }
+      },
+      "conditionally_required": [
+        "/properties/producer_signer_fact"
+      ]
     },
     "invite-delivery.schema.json": {
       "schema_ids": [

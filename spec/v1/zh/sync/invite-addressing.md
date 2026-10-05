@@ -349,10 +349,12 @@ operation_id = ak.peer.invites.command.submit.v1
 
 request body 为 `ak.schema.invite_delivery_request.v1`。接收方 Station MUST：
 
+该 peer request 在 `invite_commit` 后携可选 `producer_signer_fact`，其出现当且仅当原 Commit 携 `producer_signer_fact_digest`；新普通 Human Invite 接纳必须已有该 digest。发送方 MUST 从 Event／Commit 同事务冻结的 admission archive 读取原 fact，禁止以 current key 或重新签名补材。接收方 MUST 独立核原治理签名／内容 ID、fact digest 与原 Event Ed 后再处理下列步骤；缺材以既有 Unavailable 拒绝且零 holder 写入。最小元数据只向既有 exact invitee AccountId 的 Station 定向披露，不扩大成员扫描或 PCR history 权限，也不写入 holder delivery typed current value。self dispatch 请求不变，本地已接受分支复用原事实，不能合成 peer 身份。
+
 1. 验证 service-to-service authentication，绑定 Source/Destination service `did_core_id`、trust domain、Content-Digest 与 idempotency key；接收方从已验证的 exact canonical body bytes 内部计算 request digest。
 2. 验证 `Destination-Service-ID == invite_address.account_id.station_id`。
 3. 验证 `invite_address.service_resolution`，要求完整证据的 `service_id` 等于 `invite_address.account_id.station_id`、adapter 投影 `project(did)` 等于该 `did_core_id`，并校验 freshness、service kind 与实际 target URL；carrier 不能单独授权投递。
-4. 验证 invite_event.kind 为 ak.invite.create、内容绑定的 Event / Invite ID 与 Realm ID，并按 [`federation.md` §3](./federation.md) 的“非治理接收方以治理签名为准”验证：producer proof 自身一致（`event_digest`、`verification_method` 投影与 human 设备 fragment）；`invite_commit` 的治理签名有效，且其签发方在已验证的 authority chain 中是当时的 current governance Station；`invite_commit.event_ref` 与 invite Event 逐字对应。接收方不为此独立解析外站 human 设备 key 或取材；inviter 恰为本站托管账号时仍 MUST 用本地 PCR 完整验签。不得相信发送者自报公钥、仅使用 Source-Service-ID，或要求账号原站在线。保留目标、有效期及重放约束。
+4. 验证 invite_event.kind 为 ak.invite.create、内容绑定的 Event / Invite ID 与 Realm ID，并按 [`federation.md` §3](./federation.md) 的“非治理接收方以治理签名为准”验证：producer proof 自身一致（`event_digest`、`verification_method` 投影与 human 设备 fragment）；`invite_commit` 的治理签名有效，且其签发方在已验证的 authority chain 中是当时的 current governance Station；`invite_commit.event_ref` 与 invite Event 逐字对应。接收方不为此查询外站 current human 设备 key 或 PCR；新普通 Human Invite MUST 用随附原 fact 核 digest 与 Event Ed，inviter 恰为本站托管账号也使用原不可变事实，不能以 current key 改写历史来源。不得相信发送者自报公钥、仅使用 Source-Service-ID，或要求账号原站在线。保留目标、有效期及重放约束。
    投递仅证明已认证发送者发出邀请，**不验证或宣称**其 Realm 管理权限、成员资格或邀请 durable acceptance。接收方 MUST NOT 为投递求值成员级 Realm 授权闭包、要求本地 accepted RealmCommit 或获取 Realm peer dependencies。请求不承载邀请专用 authority-commit bundles；普通 authority-commit、RealmCommit 签名和 signer authority 准入规则保持不变。正常加入 / 同步负责 Realm 授权及 durable acceptance，投递不得物化 Realm、membership、accepted RealmCommit、projection 或 checkpoint。
    本步在 holder 查询、policy、consent、quota 与任何写入之前执行。结构错误返回 schema_violation，无效签名或 proof 绑定返回已注册的 signature_invalid；请求体仍受现有 8 MiB 上限约束。未能验证的 authority ref 不得作为任何可信状态或授权依据。
 5. 验证 `invite_event.payload.invitee_account_id == invite_address.account_id`，必须比较完整 AccountId。

@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-06.1",
+  "version": "2026-10-06.2",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.signer_key.historical_commit_coordinate.v1"
@@ -175,14 +175,23 @@
       "carry": [
         "committed_event_submission.producer_signer_fact",
         "peer_stream_scan_outcome.producer_signer_facts",
-        "handoff_request.historical_signer_facts"
+        "handoff_request.historical_signer_facts",
+        "invite_delivery_request.producer_signer_fact"
       ],
       "retain": "canonical_originals_and_exact_fact_atomic_immutable",
       "existing_original_missing_original_source": "unavailable_no_current_backfill",
       "current_authorization_effect": "none",
       "client_target_sources_unchanged": true,
       "private_pcr_bytes_disclosed": false,
-      "audit_closure_replicated": false
+      "audit_closure_replicated": false,
+      "invite_delivery": {
+        "recipient": "existing_exact_invitee_account_station_only",
+        "source": "original_same_admission_archive",
+        "verification": "original_governance_chain_commit_id_signature_fact_digest_event_ed",
+        "membership_or_pcr_read_granted": false,
+        "holder_delivery_value_extended": false,
+        "missing_source": "existing_unavailable_zero_holder_writes"
+      }
     },
     "actual_executed": false,
     "crypto_transcript_status": "generated_real_Ed_bytes_native_authority_and_business_pending",

@@ -27,6 +27,7 @@ class SignerKeyHistoricalCoordinateGateTest(unittest.TestCase):
                 gate.SCHEMA,
                 gate.AUTHORITY_SCHEMA,
                 gate.ACCOUNT_SYNC_SCHEMA,
+                gate.INVITE_SCHEMA,
                 gate.CONTRACT,
                 gate.ERROR_MAPPING,
                 gate.VECTORS,
@@ -295,6 +296,28 @@ class SignerKeyHistoricalCoordinateGateTest(unittest.TestCase):
             defs = docs[gate.AUTHORITY_SCHEMA.resolve()]["$defs"]
             defs["stream_scan_outcome"]["properties"]["producer_signer_facts"] = {"type": "array"}
         self.assert_red(mutate, "self scan must not acquire")
+
+    def test_invite_cannot_omit_original_fact_carrier(self) -> None:
+        def mutate(docs):
+            del docs[gate.INVITE_SCHEMA.resolve()]["properties"]["producer_signer_fact"]
+        self.assert_red(mutate, "closed original fact")
+
+    def test_invite_cannot_allow_missing_or_unbound_fact(self) -> None:
+        for branch in ("then", "else"):
+            with self.subTest(branch=branch):
+                def mutate(docs):
+                    docs[gate.INVITE_SCHEMA.resolve()]["allOf"][0][branch] = {}
+                self.assert_red(mutate, "exactly when")
+
+    def test_invite_cannot_expand_membership_or_pcr_read(self) -> None:
+        def mutate(docs):
+            docs[gate.CONTRACT.resolve()]["did_evidence_boundary_registry"]["governance_result_consumption_contract"]["foreign_human_historical_signer_delivery"]["invite_delivery"]["membership_or_pcr_read_granted"] = True
+        self.assert_red(mutate, "exact-recipient-only")
+
+    def test_self_dispatch_cannot_echo_fact(self) -> None:
+        def mutate(docs):
+            docs[gate.INVITE_SCHEMA.resolve()]["$defs"]["self_invite_dispatch_request_body"]["properties"]["producer_signer_fact"] = {}
+        self.assert_red(mutate, "Self dispatch cannot")
 
     def test_directory_cannot_disclose_forward_source(self) -> None:
         def mutate(docs):

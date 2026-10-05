@@ -10,6 +10,7 @@ from .core import ARTIFACTS, ROOT, SPEC_ROOT, Lint, load_json, read_text
 SCHEMA = ARTIFACTS / "schemas" / "signer-key-operations.schema.json"
 AUTHORITY_SCHEMA = ARTIFACTS / "schemas" / "authority-commit-operations.schema.json"
 ACCOUNT_SYNC_SCHEMA = ARTIFACTS / "schemas" / "account-subscribe-frame.schema.json"
+INVITE_SCHEMA = ARTIFACTS / "schemas" / "invite-delivery-request.schema.json"
 CONTRACT = ARTIFACTS / "registry" / "contract-registry.json"
 ERROR_MAPPING = ARTIFACTS / "registry" / "operations-error-mapping.json"
 VECTORS = ARTIFACTS / "registry" / "vector-registry.json"
@@ -242,6 +243,19 @@ def _check_foreign_human_delivery_shape(lint: Lint) -> None:
     fixture = load_json(lint, FIXTURE).get("foreign_human_historical_signer_delivery", {})
     if fixture.get("contract") != rule or fixture.get("source_times", {}).get("accepted_at") != "original_authorization_commit.committed_at":
         lint.fail(FIXTURE, "Human source fixture plan must match source-time/no-cycle carrier contract")
+
+    invite = load_json(lint, INVITE_SCHEMA)
+    properties = list(invite.get("properties", {}))
+    if properties[:4] != ["schema", "invite_event", "invite_commit", "producer_signer_fact"] or invite.get("properties", {}).get("producer_signer_fact", {}).get("$ref") != "./authority-commit-operations.schema.json#/$defs/human_historical_signer_fact" or invite.get("additionalProperties") is not False:
+        lint.fail(INVITE_SCHEMA, "Invite notification must carry closed original fact after its original Commit")
+    condition = {"if": {"properties": {"invite_commit": {"required": ["producer_signer_fact_digest"]}}, "required": ["invite_commit"]}, "then": {"required": ["producer_signer_fact"]}, "else": {"not": {"required": ["producer_signer_fact"]}}}
+    if condition not in invite.get("allOf", []):
+        lint.fail(INVITE_SCHEMA, "Invite fact must appear exactly when original Commit carries its digest")
+    if "producer_signer_fact" in invite.get("$defs", {}).get("self_invite_dispatch_request_body", {}).get("properties", {}):
+        lint.fail(INVITE_SCHEMA, "Self dispatch cannot echo or reconstruct an original signer fact")
+    delivery_rule = rule.get("invite_delivery", {})
+    if "invite_delivery_request.producer_signer_fact" not in rule.get("carry", []) or delivery_rule.get("recipient") != "existing_exact_invitee_account_station_only" or delivery_rule.get("membership_or_pcr_read_granted") is not False or delivery_rule.get("holder_delivery_value_extended") is not False or delivery_rule.get("missing_source") != "existing_unavailable_zero_holder_writes":
+        lint.fail(CONTRACT, "Invite fact disclosure must remain exact-recipient-only without membership, PCR or holder carrier expansion")
 
     keys_path = ARTIFACTS / "schemas" / "keys-operations.schema.json"
     keys = _defs(load_json(lint, keys_path))

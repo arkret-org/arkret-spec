@@ -587,8 +587,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/signer-key-historical-coordinate-fixture.json",
-      "sha256": "686541349a09a7567448438ea83f8a7c4eff174d320ba85b06aeaf1150099eec",
-      "version": "2026-10-06.1"
+      "sha256": "b357f5072bae9d7dbe6eaaaee54c15235da6ad6fcdfaa234411d616f13aeec95",
+      "version": "2026-10-06.2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/strand-watch-current-read-fixture.json",

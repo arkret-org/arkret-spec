@@ -45,8 +45,8 @@ handoff proof 必须分别验证。
 5. response 不携带调用方不可见的其它 stream head。
 
 **非治理接收方以治理签名为准（normative）**：接收 `committed_replication` 的成员 Station、接收邀请投递的
-Station，以及其它非治理的 committed Event 消费方，MUST NOT 为验签独立解析外站 human 设备的 key，也不为此
-取材（不调用 peer 设备目录、不要求 `producer_device_evidence`）。它们只验证以下三项：
+Station，以及其它非治理的 committed Event 消费方，MUST NOT 为验签查询外站 current human 设备 key 或
+PCR history（不调用 peer 设备目录、不要求 `producer_device_evidence`）。它们验证以下各项：
 
 1. producer proof 自身一致：`event_digest` 覆盖 exact canonical Event bytes；`verification_method` 的 bare DID
    经已登记 adapter 投影后等于实际签名方（有 `executed_by` 时取它，否则取 `actor_id`）的 principal；human
@@ -54,10 +54,14 @@ Station，以及其它非治理的 committed Event 消费方，MUST NOT 为验�
 2. 治理 Station 签发的 `RealmCommit` 签名有效，且该 Station 在已验证的 authority chain（genesis／handoff）中是
    该 Commit 所在 generation 当时的 current governance Station；
 3. `RealmCommit` 与 Event 的 ref、position、`previous_commit_ref` 连续性按上文第 1–3 项核对。
+4. 普通 Human device Full Event MUST 按本文 Human historical signer fact transport 核原不可变 fact、
+   `producer_signer_fact_digest` 与原 Event Ed；仅治理签名和 proof 自身一致不能替代该检查。旧原件缺原
+   digest／fact 时保持 Unavailable，不从当前目录、snapshot 或新签名补材。
 
 producer 设备的授权由接纳它的治理 Station 负责（[`../crypto-media/device-lifecycle.md` §8.2.2](../crypto-media/device-lifecycle.md)），
-其 `RealmCommit` 即是对这次授权判定的签名承诺。producer 恰为本站托管账号时，接收方仍 MUST 用本地 PCR 的
-`device_authorization`／`device_generation` 完整验签，key 不符即拒绝。Agent producer 的既有证据规则不变。
+其 `RealmCommit` 即是对这次授权判定与所选原 fact 的签名承诺。producer 恰为本站托管账号时，接收方也 MUST
+使用原不可变历史事实，不能以今天的 PCR `device_authorization`／`device_generation` 改写它；
+native PCR 和 Agent producer 保持各自既有完整证据规则，不采用普通 Human fact 分支。
 残余风险（informative）：被攻破的治理 Station 可以在自己治理的 Realm 内以外站用户的名义伪造 Event；消息内容
 仍受 MLS 认证保护，该风险与它对 ordering、membership 的既有权力同级。正负例由
 [`ak.vector.federation.non_governance_receiver_trusts_governance_commit.v1`](../../artifacts/registry/vector-registry.json) 固定。
@@ -262,6 +266,8 @@ committed_replication的每项沿现 committed_event_submission原四字段后�
 现 ak.peer.committed_event.read.scan.v1 专用peer_stream_scan_outcome保committed_events/readable_floor/truncated顺序，最后required producer_signer_facts。每个合法Full且原Commit有digest的Human row恰一{target,producer_signer_fact}，顺序与page positions一致，target全四坐标等原Commit/Event；其它Fullproducer、withheld/redacted、不可读或无digest旧已签原件 row禁带。缺/重/额外/sibling/隐藏rowfacts整页零安装。扫描请求RFC9421签名不认证response metadata；消费者 MUST 独立验原GovCommit内容ID/签名/治理chain和factdigest、原Event Ed及合法披露，不能因请求signed或transport success便标verified。
 
 membership bootstrap从现签名snapshot＋获准stream tail补材，coldscan/backfill与后续普通replication沿同一原件/fact验证；snapshot current不替代原事实，无第三客户端target来源。self scan/AccountSubscribe wire形状不变，Station只在服务面验证并retain后供既有历史query。不能保留任何可安装Full Event/Commit却绕过fact检查的peer/bootstrap补材支路。
+
+现 `ak.peer.invites.command.submit.v1` 的定向加入前通知复用 `invite_delivery_request.producer_signer_fact`，紧随原 `invite_commit`。原 Commit 有 digest 时 MUST 恰携其同事务保留的原 fact，无 digest 时禁止携带；新普通 Human Invite 接纳仍 MUST 有 digest。接收方 MUST 独立验证原治理 chain、Commit 内容 ID／治理签名、fact digest 与原 Event Ed，并按既有 exact invitee AccountId、Destination Station、invitation binding 与私有 receive policy 门处理；缺原件／fact 返回既有 Unavailable，不写 holder projection。该最小来源元数据例外仅供既有定向 Full Invite 原件的接收 Station 验证，不授予 Realm 成员身份、PCR history、其它 stream 或第三方查询权限。邀请未接受的接收方 MUST NOT 借 peer scan 获取 fact；发送方从原 durable admission archive 取材，不采用 current key、今日时间或重新签名。self dispatch wire 不变，本地已接受分支可复用原准入事实。事实不进入 holder invite delivery typed current value，也不成为客户端的新 target 来源。
 
 原body/per-result/query/page预算不扩大；peer scan不足预算缩连续prefix，不跳position，replication减batch。Direct registered四项超预算全拒不得partial；原floor/history/membership/MLS/reference disclosure gates全保留。Outbox从原事务持久fact逐字构造，发送时原fanout basis仍需合法；source fact不延长投递权。
 
