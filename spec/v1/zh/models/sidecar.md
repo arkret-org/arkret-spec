@@ -354,6 +354,14 @@ exact MLS group state，然后在同一耐久事务安装相互一致的私密�
 来源 Strand current／watch 的独立读取失败不得取消获授权 Sidecar 的续传；任何重试仍服从现有授权、
 分页、generation 和撤权门。服务不可用时不承诺回复产生或固定完成时限，但恢复不能依赖用户刷新。
 
+Agent runtime 对已通过既有 Account 帧／逐流验证的 durable pending 条目 MUST 按 exact `stream_ref`
+及相应 cursor 的 scope／filter 绑定保留各流顺序、处理状态和恢复位置。一条共享流因群内交互模式
+unknown 或暂不可确认而等待，MUST NOT 阻塞另一条已获授权 Sidecar／主人 Direct 流的独立请求与回复；
+这些私有请求仍执行自己的完整授权、历史与 MLS 验证，不以取得群内 public 模式为前提。等待条目
+MUST NOT 被静默丢弃、标为已处理或 ACK，也不得借另一条流的成功越过自身未完成位置或推进其 cursor。
+独立调度不建立跨流总序，不豁免 [`client-sync.md` §5.2](../sync/client-sync.md) 的整份 Account 帧验证
+与聚合 cursor 安装边界，也不改变该文 §10 的 recipient delivery 累计 ACK 合同。
+
 历史验证、解密、补拉和缓存持久化 MUST 有界调度，不得在每次渲染、滚动或输入时同步重放全部私密
 历史。实现 MAY 使用经验证的增量检查点与缓存，但 MUST 绑定完整 account、exact scope、generation、
 已验证 head、历史 signer 与 MLS state；缓存命中不得省略这些安全边界。新增事件或依赖变化必须触发

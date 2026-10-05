@@ -694,7 +694,7 @@ pin／局部折叠／HLC，固定合并展示不引入新的授权或存储键�
 | `sidecar_incomplete_cut_recovery` | 暂扣私密 tail 或 historical signer／MLS 依赖，交付较新 current。不能展示未验证新回复或推进 checkpoint；当前授权仍允许时上一完整 cut 可标明非最新并保持可读。恢复依赖后自动验证同 cut 并显示回复，不清除密钥或重发请求。 |
 | `sidecar_restart_exactly_once` | 分别在回复接纳后、历史/current 事务耐久前和耐久后断线／终止客户端。重连／重启从安全 checkpoint 自动恢复，reply 一次可见、Agent 无重复执行；cursor 失效只重建对应基线。正常 Signal drain／续订不累积故障退避；Signal 不到达时仍自动续传 committed reply。 |
 | `sidecar_responsive_bounded_history` | 在声明的设备、历史规模、单批预算和退避参数下，注入验证等待并连续输入、滚动、取消；页面持续可操作。工作量随受影响增量增长，不因无关 render 重放全部历史；相关读取授权／历史 signer 证据／MLS basis 变化仍重新验证。当前读取资格丧失时旧缓存不得替代权限；Agent 作者化撤销不追溯剥夺 controller 仍获准读取的历史。 |
-| `sidecar_partial_failure_isolation` | 对可证明 Realm-scope 的 source Strand，Realm 存在其它无关 Circle／Sidecar 不得使 exact watch/current 判定不可用。单独使 source Strand watch/current 请求暂不可用，或私密缓存持久化失败；普通讨论仍可操作，Sidecar 不丢弃安全 checkpoint、不依赖刷新恢复、不进入阻塞重试；耐久失败不得虚报投影完成。 |
+| `sidecar_partial_failure_isolation` | 对可证明 Realm-scope 的 source Strand，Realm 存在其它无关 Circle／Sidecar 不得使 exact watch/current 判定不可用。单独使 source Strand watch/current 请求暂不可用，或私密缓存持久化失败；普通讨论仍可操作，Sidecar 不丢弃安全 checkpoint、不依赖刷新恢复、不进入阻塞重试；耐久失败不得虚报投影完成。另交付已验证的共享流条目并使其群内模式 unknown，随后交付独立获授权 Sidecar／主人 Direct 请求；私有回复无需取得群内 public 模式即可执行并可见，共享条目仍保留待处理且不被 ACK／丢弃，各流保序、去重与 cursor 绑定不被混用。恢复共享模式后只恢复该流未完成条目；非法 Account 帧仍整体拒绝，不推进聚合 cursor。 |
 | `sidecar_bound_mention_draft_acceptance` | 主人行不在当前成员显示列表但 verified controller 与完整 Agent AccountId 已绑定时，标签仍为 `@me/slug`。pending／失败保留草稿和选择；发送途中修改草稿或切换账号/scope，迟到成功不清除新输入；重复点击不重复请求。 |
 | `sidecar_per_draft_route_after_private_history` | 在同一原 Strand 先发送并收到私密回复，再依次提交无 Agent mention、当前绑定公开 Agent、当前绑定私人 Agent 的新消息；前两条进入原 Strand，第三条进入 Sidecar，实际 durable scope、模型投递与受众提示一致。删除／解绑私人 mention、重开卡片、恢复历史与重试不得借旧目标切回 Sidecar；旧私密历史始终保留且不向普通其它成员披露。混合目标继续按 §8.1 阻止，不自动拆分或猜测。 |
 
