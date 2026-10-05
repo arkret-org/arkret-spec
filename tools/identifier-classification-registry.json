@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 51,
+  "version": 53,
   "kind": "identifier_classification_registry",
   "source_of_truth": false,
   "generated_from": [
@@ -26,8 +26,8 @@
     "unregistered_object_identifier"
   ],
   "type_derived_summary": {
-    "typed_object_id": 911,
-    "responsibility_identity_material": 544,
+    "typed_object_id": 914,
+    "responsibility_identity_material": 549,
     "registry_catalog_symbol": 35
   },
   "pending_rename_convergence": [],

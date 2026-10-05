@@ -4,6 +4,37 @@
   "$defs": {
     "timestamp": {
       "$ref": "./time.schema.json#/$defs/timestamp"
+    },
+    "owned_agent_authority_ref": {
+      "type": "object",
+      "required": [
+        "kind",
+        "realm_id",
+        "controller_account_id",
+        "controller_join_event_id",
+        "agent_join_event_id"
+      ],
+      "properties": {
+        "kind": {
+          "const": "owned_agent"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "controller_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "controller_join_event_id": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id",
+          "x-arkret-preimage-commitment": "fixed_event"
+        },
+        "agent_join_event_id": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id",
+          "x-arkret-preimage-commitment": "fixed_event"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Explicit terminal owned-Agent execution source, not general regrant or Realm root control. Exact controller and Agent join generations are pinned; current controller authority is reevaluated at each use. See zh/authz/owned-agent-authority.md."
     }
   },
   "title": "Arkret Capability Grant Body",
@@ -115,7 +146,7 @@
       "minItems": 1,
       "uniqueItems": true,
       "maxItems": 16,
-      "description": "The signed semantic authority lineage this grant was issued under. A root controller's grant anchors on the accepted Realm authority Event; any further grant anchors on grants its issuer already holds. These closed refs intentionally carry no producer-selected current-result revision, authorization-state digest, Station id or commit basis: the governing Station resolves their current typed results at acceptance, fails closed when current authority cannot be proved fresh, and records the accepting RealmCommit as the decision basis. Authorization is recomputed from these refs on every decision, so revoking an ancestor invalidates its descendants without a cascading write.",
+      "description": "The signed semantic authority lineage this grant was issued under. A root controller's grant anchors on the accepted Realm authority Event; any further grant anchors on grants its issuer already holds. These closed refs intentionally carry no producer-selected current-result revision, authorization-state digest, Station id or commit basis: the governing Station resolves their current typed results at acceptance, fails closed when current authority cannot be proved fresh, and records the accepting RealmCommit as the decision basis. Authorization is recomputed from these refs on every decision, so revoking an ancestor invalidates its descendants without a cascading write. The sole owned_agent ref is an explicit non-regrant exception; it pins ownership membership and continuously bounds the Agent by current controller authority.",
       "items": {
         "oneOf": [
           {
@@ -163,6 +194,9 @@
             },
             "additionalProperties": false,
             "description": "A committed authority root in the same Realm as the grant. It is terminal for cycle checks. The accepting Station verifies the named Event/controller/generation against durable current authority; the ref does not carry a Station-local commit wrapper."
+          },
+          {
+            "$ref": "#/$defs/owned_agent_authority_ref"
           }
         ]
       }
@@ -170,39 +204,46 @@
     "authority_depth": {
       "type": "integer",
       "minimum": 1,
-      "description": "Reducer-derived absolute distance from the authority root: a realm_root ref counts 0, so a root controller's grant is 1 and a member's re-grant is 2. Derived from the refs, never author-declared, so it cannot be misreported — which is what makes it safe to answer 'how far did this authority spread' with a single field instead of a recursive join. Taken at issuance and not recomputed on revocation; a later chain may be shorter than the recorded value, which is the conservative direction for a max_authority_depth decision."
+      "description": "Reducer-derived absolute distance from the authority root: a realm_root ref counts 0, so a root controller's grant is 1 and a member's re-grant is 2. Derived from the refs, never author-declared, so it cannot be misreported — which is what makes it safe to answer 'how far did this authority spread' with a single field instead of a recursive join. Taken at issuance and not recomputed on revocation; a later chain may be shorter than the recorded value, which is the conservative direction for a max_authority_depth decision. A dedicated terminal owned_agent source has depth 1 and cannot become a parent grant."
     },
     "authority_root_refs": {
       "type": "array",
       "minItems": 1,
       "uniqueItems": true,
-      "description": "Reducer-derived set of committed authority roots this grant ultimately descends from: direct realm_root refs plus the union of every parent grant's roots. Deduplicated on (realm_id, authority_event_ref, authority_generation) and sorted canonically by unsigned-byte order.",
+      "description": "Reducer-derived set of committed authority roots this grant ultimately descends from: direct realm_root refs plus the union of every parent grant's roots. Deduplicated on (realm_id, authority_event_ref, authority_generation) and sorted canonically by unsigned-byte order. For an owned_agent source the sole root is that exact owned_agent ref; it never confers Realm root-control authority.",
       "items": {
-        "type": "object",
-        "required": [
-          "kind",
-          "realm_id",
-          "authority_event_ref",
-          "authority_generation"
-        ],
-        "properties": {
-          "kind": {
-            "const": "realm_root"
+        "oneOf": [
+          {
+            "type": "object",
+            "required": [
+              "kind",
+              "realm_id",
+              "authority_event_ref",
+              "authority_generation"
+            ],
+            "properties": {
+              "kind": {
+                "const": "realm_root"
+              },
+              "realm_id": {
+                "$ref": "./common-ids.schema.json#/$defs/realm_id"
+              },
+              "authority_event_ref": {
+                "$ref": "./common-ids.schema.json#/$defs/event_id",
+                "x-arkret-preimage-commitment": "fixed_event"
+              },
+              "authority_generation": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "The delegation generation of the root this grant descends from, carried verbatim from the realm_root ref. Part of the dedup key, because the same root at a different generation is a different authority."
+              }
+            },
+            "additionalProperties": false
           },
-          "realm_id": {
-            "$ref": "./common-ids.schema.json#/$defs/realm_id"
-          },
-          "authority_event_ref": {
-            "$ref": "./common-ids.schema.json#/$defs/event_id",
-            "x-arkret-preimage-commitment": "fixed_event"
-          },
-          "authority_generation": {
-            "type": "integer",
-            "minimum": 0,
-            "description": "The delegation generation of the root this grant descends from, carried verbatim from the realm_root ref. Part of the dedup key, because the same root at a different generation is a different authority."
+          {
+            "$ref": "#/$defs/owned_agent_authority_ref"
           }
-        },
-        "additionalProperties": false
+        ]
       }
     }
   },
@@ -247,6 +288,83 @@
                 "depends_on_moderation_state": {
                   "const": true
                 }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "issuer_authority_refs": {
+            "contains": {
+              "$ref": "./capability-grant.schema.json#/$defs/owned_agent_authority_ref"
+            }
+          }
+        },
+        "required": [
+          "issuer_authority_refs"
+        ]
+      },
+      "then": {
+        "required": [
+          "realm_id",
+          "constraints"
+        ],
+        "properties": {
+          "issuer_id": {
+            "$ref": "./common-ids.schema.json#/$defs/actor_id",
+            "type": "object",
+            "required": [
+              "kind"
+            ],
+            "properties": {
+              "kind": {
+                "const": "account"
+              }
+            }
+          },
+          "subject": {
+            "type": "object",
+            "required": [
+              "kind"
+            ],
+            "properties": {
+              "kind": {
+                "const": "account"
+              }
+            }
+          },
+          "issuer_authority_refs": {
+            "minItems": 1,
+            "maxItems": 1,
+            "items": {
+              "$ref": "./capability-grant.schema.json#/$defs/owned_agent_authority_ref"
+            }
+          },
+          "constraints": {
+            "contains": {
+              "type": "object",
+              "required": [
+                "constraint_kind",
+                "max_authority_depth"
+              ],
+              "properties": {
+                "constraint_kind": {
+                  "const": "authority_control"
+                },
+                "max_authority_depth": {
+                  "const": 0
+                },
+                "authority_regrant_allowed": {
+                  "const": false
+                }
+              },
+              "not": {
+                "required": [
+                  "constraint_subkind"
+                ]
               }
             }
           }

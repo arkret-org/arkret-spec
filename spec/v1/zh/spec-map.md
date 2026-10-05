@@ -179,6 +179,7 @@ see_also:
 | 文档 | 内容 |
 | --- | --- |
 | `authz/capabilities.md` | Capability、delegation、revocation、claim 条件。 |
+| `authz/owned-agent-authority.md` | 自有 Agent 显式受限来源、主人当前权限上界、共享 quota、主人撤回及管理员禁令。 |
 | `sync/authority-commit-log.md` | Authority commit、独立 stream、治理 Station 轮换与 handoff。 |
 | `authz/offline-publication.md` | 离线 Event 排队、提交时当前授权与不签发通用离线租约的边界。 |
 | `authz/constraint-schema.md` | Capability / policy 约束表达式、条件字段和组合语义。 |

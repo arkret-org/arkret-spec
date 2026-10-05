@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-23.1",
+  "version": "2026-10-05",
   "source_of_truth": true,
-  "generated_at": "2026-09-23T22:27:30+08:00",
+  "generated_at": "2026-10-05T19:21:55+08:00",
   "value_set_evolution_note": "Per zh/conformance/schema-registry.md §6.1: entries carrying value_set_evolution='open' are open registry sets (adding a value is a backward-compatible minor; codegen SHOULD use non-exhaustive Unknown(String) fallback). value_set_evolution='schema_selector' registries are algorithm-agility token sources whose canonical-object selectors are frozen per schema version (codegen MUST generate per-schema-version closed types; adding an active value requires a schema version bump). Registries WITHOUT this field are simply not classified here (they may be structural sources such as the contract registry or manifest, or value sets not yet classified); consumers MUST consult §6.1 and the registry's own registry_rules rather than assuming a registry is or is not a codegen value-set source from the mere absence of this field.",
   "registries": [
     {
@@ -189,6 +189,14 @@
       "description": "Standard service-level and per-item error code registry."
     },
     {
+      "name": "event_kind_vector_gaps",
+      "file": "registry/event-kind-vector-gap-registry.json",
+      "kind": "event_kind_vector_gap_registry",
+      "source_role": "canonical",
+      "source_of_truth": true,
+      "description": "Explicit checked backlog of active Event kinds without directly searchable fixture/vector evidence. Consumed by tools/check_event_kind_vector_gaps.py."
+    },
+    {
       "name": "event_kinds",
       "file": "registry/event-kind-registry.json",
       "kind": "event_kind_registry",
@@ -197,14 +205,6 @@
       "source_of_truth": false,
       "generated_from": "registry/contract-registry.json",
       "description": "Generated registry view for standard ak.* Event.kind values and wire scopes."
-    },
-    {
-      "name": "event_kind_vector_gaps",
-      "file": "registry/event-kind-vector-gap-registry.json",
-      "kind": "event_kind_vector_gap_registry",
-      "source_role": "canonical",
-      "source_of_truth": true,
-      "description": "Explicit checked backlog of active Event kinds without directly searchable fixture/vector evidence. Consumed by tools/check_event_kind_vector_gaps.py."
     },
     {
       "name": "exporter_labels",
@@ -359,6 +359,14 @@
       "source_role": "canonical",
       "source_of_truth": true,
       "description": "Reusable gate-order and observable-failure-equivalence policies referenced by operation and carrier exposure contracts."
+    },
+    {
+      "name": "owned_agent_authority",
+      "file": "registry/owned-agent-authority-registry.json",
+      "kind": "authorization_contract",
+      "source_role": "canonical",
+      "source_of_truth": true,
+      "description": "Explicit terminal owned Agent grant, dynamic controller ceiling, shared quota and administrator policy contract."
     },
     {
       "name": "payload_validator_profiles",

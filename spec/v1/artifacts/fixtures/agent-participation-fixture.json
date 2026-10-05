@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.agent_participation_policy.v1",
-  "version": "2026-10-05.2",
+  "version": "2026-10-05.3",
   "suite": "agent_participation",
   "runner": {
     "kind": "named_suite",
@@ -1519,7 +1519,7 @@
         "expected": "publish_grant"
       },
       {
-        "name": "controller_without_issuer_authority",
+        "name": "unverified_controller_without_issuer_authority",
         "intent": "shared_reply",
         "exact_account_scope_binding": true,
         "global_scope_allows": true,
@@ -1577,6 +1577,32 @@
         "confirmation_is_explicit": false,
         "issuer_can_grant": true,
         "expected": "refused"
+      },
+      {
+        "name": "owned_controller_without_general_grant_authority",
+        "intent": "shared_reply",
+        "exact_account_scope_binding": true,
+        "global_scope_allows": true,
+        "grant_state": "missing",
+        "confirmation_is_explicit": true,
+        "issuer_can_grant": false,
+        "expected": "publish_grant",
+        "verified_owned_source": true,
+        "current_controller_authority": true,
+        "management_allows": true
+      },
+      {
+        "name": "owned_controller_management_denied",
+        "intent": "shared_reply",
+        "exact_account_scope_binding": true,
+        "global_scope_allows": true,
+        "grant_state": "missing",
+        "confirmation_is_explicit": true,
+        "issuer_can_grant": false,
+        "expected": "blocked",
+        "verified_owned_source": true,
+        "current_controller_authority": true,
+        "management_allows": false
       }
     ],
     "readiness_cases": [
@@ -1879,5 +1905,2883 @@
         "expected": "new_request_after_authority_repair"
       }
     ]
+  },
+  "owned_agent_authority_contract": {
+    "registry_ref": "registry/owned-agent-authority-registry.json",
+    "vector_id": "ak.vector.agent.interaction_mode.v1",
+    "required_case_names": [
+      "ordinary_member_no_grant_action",
+      "original_issuer_no_revoke_action",
+      "revoke_after_leave_offline",
+      "revoke_wrong_original_issuer",
+      "revoke_wrong_revision",
+      "revoke_independent_admin_grant",
+      "revoke_target_unknown",
+      "terminal_account_cannot_sign_revoke",
+      "revoked_record_does_not_restore",
+      "new_confirmation_after_revoke",
+      "new_grant_without_confirmation",
+      "new_source_must_be_terminal",
+      "grant_scope_widening",
+      "agent_key_ceiling_narrower",
+      "admin_action_not_owned_source",
+      "grant_action_not_owned_source",
+      "agent_cannot_reenter_source_with_child_agent",
+      "service_scope_not_owned_source",
+      "independent_agent_grant_parent_zero",
+      "owner_transfer_parent_zero",
+      "equivalent_parent_changed",
+      "temporary_gate_restored",
+      "controller_rejoined_wrong_generation",
+      "wrong_station_controller",
+      "wrong_realm_or_scope",
+      "global_deny_other_parent",
+      "no_cross_grant_splice",
+      "own_message_wrong_author",
+      "own_agent_message_edit",
+      "fixed_device_condition_unmapped",
+      "parent_quota_exhausted",
+      "parent_expired",
+      "agent_pause_gate",
+      "unknown_parent",
+      "unknown_management_not_absent",
+      "controller_ban_future_agent",
+      "join_ban_blocks_new",
+      "join_no_message_permission",
+      "join_ban_keeps_existing",
+      "authorize_ban_keeps_existing",
+      "authorize_ban_blocks_new",
+      "specific_agent_ban",
+      "specific_agent_ban_keeps_sibling",
+      "controller_station_ban_exact",
+      "realm_all_agent_ban",
+      "user_allow_cannot_override_ban",
+      "other_grant_cannot_override_ban",
+      "new_runtime_cannot_override_ban",
+      "mode_change_cannot_override_ban",
+      "ban_removed_current_selection_retained",
+      "ban_removed_revoked_still_terminal",
+      "read_ban_existing_subscription",
+      "delivery_ban_existing_subscription",
+      "blob_parent_read_zero",
+      "future_epoch_parent_zero",
+      "sidecar_parent_content_zero",
+      "unknown_remote_delivery",
+      "cold_restart_cannot_reuse_allow",
+      "new_submission_after_management_commit",
+      "accepted_retry_after_revoke",
+      "unaccepted_retry_after_revoke",
+      "quarantine_not_allow",
+      "review_not_allow"
+    ],
+    "cases": [
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": true,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "authorize",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "ordinary_member_no_grant_action",
+        "expected": "allow"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": true,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "revoke",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "original_issuer_no_revoke_action",
+        "expected": "allow"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": false,
+        "agent_binding_valid": false,
+        "controller_permission": false,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": false,
+        "parent_quota_available": true,
+        "operation": "revoke",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [
+          {
+            "target": {
+              "kind": "controller",
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+                "station_id": "ak:did_core:webvh:z6mkfixturestation"
+              }
+            },
+            "operations": [
+              "authorize"
+            ],
+            "effect": "deny"
+          }
+        ],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "revoke_after_leave_offline",
+        "expected": "allow"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": false,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": true,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "revoke",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "revoke_wrong_original_issuer",
+        "expected": "deny"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": false,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": true,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "revoke",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "revoke_wrong_revision",
+        "expected": "deny"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": false,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": true,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "revoke",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "revoke_independent_admin_grant",
+        "expected": "deny"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": false,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": true,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "revoke",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "revoke_target_unknown",
+        "expected": "deny"
+      },
+      {
+        "signing_eligible": false,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": true,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "revoke",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "terminal_account_cannot_sign_revoke",
+        "expected": "deny"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": true,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "execute",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [],
+        "matched_global_deny": false,
+        "grant_terminal": true,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "revoked_record_does_not_restore",
+        "expected": "deny"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": true,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "authorize",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "new_confirmation_after_revoke",
+        "expected": "allow"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": false,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": true,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "authorize",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "new_grant_without_confirmation",
+        "expected": "deny"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": false,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": true,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "authorize",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "new_source_must_be_terminal",
+        "expected": "deny"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": true,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": false,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "authorize",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "grant_scope_widening",
+        "expected": "deny"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": true,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": false,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "authorize",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "agent_key_ceiling_narrower",
+        "expected": "deny"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": true,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "authorize",
+        "action": "ak.realm.admin",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "admin_action_not_owned_source",
+        "expected": "deny"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": true,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "authorize",
+        "action": "ak.capability.grant",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "grant_action_not_owned_source",
+        "expected": "deny"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": true,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "authorize",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "agent_cannot_reenter_source_with_child_agent",
+        "expected": "deny",
+        "controller_is_agent": true
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": true,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "authorize",
+        "action": "ak.self.current_results.read.exact.v1",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "service_scope_not_owned_source",
+        "expected": "deny"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": false,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": false,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "execute",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "independent_agent_grant_parent_zero",
+        "expected": "deny"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": false,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "execute",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "owner_transfer_parent_zero",
+        "expected": "deny"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": true,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "execute",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "equivalent_parent_changed",
+        "expected": "allow",
+        "parent_source": "new_equivalent_grant"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": true,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "execute",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "temporary_gate_restored",
+        "expected": "allow"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": false,
+        "controller_permission": true,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "authorize",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "controller_rejoined_wrong_generation",
+        "expected": "deny"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": false,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": true,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "authorize",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "wrong_station_controller",
+        "expected": "deny"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": true,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": false,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "authorize",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "wrong_realm_or_scope",
+        "expected": "deny"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": true,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "authorize",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [],
+        "matched_global_deny": true,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "global_deny_other_parent",
+        "expected": "deny"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": true,
+        "whole_allow_path": false,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "authorize",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "no_cross_grant_splice",
+        "expected": "deny"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": true,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": false,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "authorize",
+        "action": "ak.message.revise.own",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "own_message_wrong_author",
+        "expected": "deny"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": true,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "authorize",
+        "action": "ak.message.revise.own",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "own_agent_message_edit",
+        "expected": "allow"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": true,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": false,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "authorize",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "fixed_device_condition_unmapped",
+        "expected": "deny"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": true,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": false,
+        "operation": "authorize",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "parent_quota_exhausted",
+        "expected": "deny"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": false,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "authorize",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "parent_expired",
+        "expected": "deny"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": true,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": false,
+        "parent_quota_available": true,
+        "operation": "execute",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "agent_pause_gate",
+        "expected": "deny"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": false,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": true,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "authorize",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "unknown_parent",
+        "expected": "pending"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": false,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": true,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "authorize",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "unknown_management_not_absent",
+        "expected": "pending"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": true,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "execute",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfuturenewagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [
+          {
+            "target": {
+              "kind": "controller",
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+                "station_id": "ak:did_core:webvh:z6mkfixturestation"
+              }
+            },
+            "operations": [
+              "execute"
+            ],
+            "effect": "deny"
+          }
+        ],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "controller_ban_future_agent",
+        "expected": "deny"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": true,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "join",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [
+          {
+            "target": {
+              "kind": "controller",
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+                "station_id": "ak:did_core:webvh:z6mkfixturestation"
+              }
+            },
+            "operations": [
+              "join"
+            ],
+            "effect": "deny"
+          }
+        ],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "join_ban_blocks_new",
+        "expected": "deny"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": false,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "join",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "join_no_message_permission",
+        "expected": "allow"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": true,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "execute",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [
+          {
+            "target": {
+              "kind": "controller",
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+                "station_id": "ak:did_core:webvh:z6mkfixturestation"
+              }
+            },
+            "operations": [
+              "join"
+            ],
+            "effect": "deny"
+          }
+        ],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "join_ban_keeps_existing",
+        "expected": "allow"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": true,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "execute",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [
+          {
+            "target": {
+              "kind": "controller",
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+                "station_id": "ak:did_core:webvh:z6mkfixturestation"
+              }
+            },
+            "operations": [
+              "authorize"
+            ],
+            "effect": "deny"
+          }
+        ],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "authorize_ban_keeps_existing",
+        "expected": "allow"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": true,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "authorize",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [
+          {
+            "target": {
+              "kind": "controller",
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+                "station_id": "ak:did_core:webvh:z6mkfixturestation"
+              }
+            },
+            "operations": [
+              "authorize"
+            ],
+            "effect": "deny"
+          }
+        ],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "authorize_ban_blocks_new",
+        "expected": "deny"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": true,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "execute",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [
+          {
+            "target": {
+              "kind": "agent",
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+                "station_id": "ak:did_core:webvh:z6mkfixturestation"
+              }
+            },
+            "operations": [
+              "execute"
+            ],
+            "effect": "deny"
+          }
+        ],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "specific_agent_ban",
+        "expected": "deny"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": true,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "execute",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [
+          {
+            "target": {
+              "kind": "agent",
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mksiblingagent",
+                "station_id": "ak:did_core:webvh:z6mkfixturestation"
+              }
+            },
+            "operations": [
+              "execute"
+            ],
+            "effect": "deny"
+          }
+        ],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "specific_agent_ban_keeps_sibling",
+        "expected": "allow"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": true,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "execute",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [
+          {
+            "target": {
+              "kind": "controller",
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+                "station_id": "ak:did_core:webvh:z6mkotherstation"
+              }
+            },
+            "operations": [
+              "execute"
+            ],
+            "effect": "deny"
+          }
+        ],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "controller_station_ban_exact",
+        "expected": "allow"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": true,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "execute",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [
+          {
+            "target": {
+              "kind": "all"
+            },
+            "operations": [
+              "execute"
+            ],
+            "effect": "deny"
+          }
+        ],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "realm_all_agent_ban",
+        "expected": "deny"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": true,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "execute",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [
+          {
+            "target": {
+              "kind": "controller",
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+                "station_id": "ak:did_core:webvh:z6mkfixturestation"
+              }
+            },
+            "operations": [
+              "execute"
+            ],
+            "effect": "deny"
+          },
+          {
+            "target": {
+              "kind": "controller",
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+                "station_id": "ak:did_core:webvh:z6mkfixturestation"
+              }
+            },
+            "operations": [
+              "execute"
+            ],
+            "effect": "allow"
+          }
+        ],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "user_allow_cannot_override_ban",
+        "expected": "deny"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": false,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": true,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "execute",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [
+          {
+            "target": {
+              "kind": "controller",
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+                "station_id": "ak:did_core:webvh:z6mkfixturestation"
+              }
+            },
+            "operations": [
+              "execute"
+            ],
+            "effect": "deny"
+          }
+        ],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "other_grant_cannot_override_ban",
+        "expected": "deny"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": true,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "execute",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [
+          {
+            "target": {
+              "kind": "controller",
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+                "station_id": "ak:did_core:webvh:z6mkfixturestation"
+              }
+            },
+            "operations": [
+              "execute"
+            ],
+            "effect": "deny"
+          }
+        ],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "new_runtime_cannot_override_ban",
+        "expected": "deny",
+        "runtime": "replacement"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": true,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "execute",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [
+          {
+            "target": {
+              "kind": "controller",
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+                "station_id": "ak:did_core:webvh:z6mkfixturestation"
+              }
+            },
+            "operations": [
+              "execute"
+            ],
+            "effect": "deny"
+          }
+        ],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "mode_change_cannot_override_ban",
+        "expected": "deny",
+        "mode": "public"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": true,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "execute",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "ban_removed_current_selection_retained",
+        "expected": "allow"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": true,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "execute",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [],
+        "matched_global_deny": false,
+        "grant_terminal": true,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "ban_removed_revoked_still_terminal",
+        "expected": "deny"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": true,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "read",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [
+          {
+            "target": {
+              "kind": "controller",
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+                "station_id": "ak:did_core:webvh:z6mkfixturestation"
+              }
+            },
+            "operations": [
+              "read"
+            ],
+            "effect": "deny"
+          }
+        ],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "read_ban_existing_subscription",
+        "expected": "deny"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": true,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "deliver",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [
+          {
+            "target": {
+              "kind": "controller",
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+                "station_id": "ak:did_core:webvh:z6mkfixturestation"
+              }
+            },
+            "operations": [
+              "deliver"
+            ],
+            "effect": "deny"
+          }
+        ],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "delivery_ban_existing_subscription",
+        "expected": "deny"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": false,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "read",
+        "action": "ak.object.read_content",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "blob_parent_read_zero",
+        "expected": "deny"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": false,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "deliver",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "future_epoch_parent_zero",
+        "expected": "deny"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": false,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "read",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "sidecar_parent_content_zero",
+        "expected": "deny",
+        "scope": "sidecar"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": false,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": true,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "deliver",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "unknown_remote_delivery",
+        "expected": "pending"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": false,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": true,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "execute",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "cold_restart_cannot_reuse_allow",
+        "expected": "pending"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": true,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "execute",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [
+          {
+            "target": {
+              "kind": "controller",
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+                "station_id": "ak:did_core:webvh:z6mkfixturestation"
+              }
+            },
+            "operations": [
+              "execute"
+            ],
+            "effect": "deny"
+          }
+        ],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "new_submission_after_management_commit",
+        "expected": "deny"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": false,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "execute",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [],
+        "matched_global_deny": false,
+        "grant_terminal": true,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "accepted_retry_after_revoke",
+        "expected": "reuse_accepted",
+        "accepted_identity": true
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": false,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "execute",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [],
+        "matched_global_deny": false,
+        "grant_terminal": true,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "unaccepted_retry_after_revoke",
+        "expected": "deny"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": true,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "execute",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [
+          {
+            "target": {
+              "kind": "controller",
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+                "station_id": "ak:did_core:webvh:z6mkfixturestation"
+              }
+            },
+            "operations": [
+              "execute"
+            ],
+            "effect": "quarantine"
+          }
+        ],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "quarantine_not_allow",
+        "expected": "quarantine"
+      },
+      {
+        "signing_eligible": true,
+        "exact_account_binding": true,
+        "owned_source": true,
+        "original_issuer": true,
+        "target_present": true,
+        "exact_revision": true,
+        "current_evidence": true,
+        "management_evidence": true,
+        "explicit_confirmation": true,
+        "terminal_source": true,
+        "controller_join_active": true,
+        "agent_binding_valid": true,
+        "controller_permission": true,
+        "whole_allow_path": true,
+        "identity_conditions_preserved": true,
+        "scope_within_confirmation": true,
+        "global_key_ceiling": true,
+        "agent_action_gates": true,
+        "parent_quota_available": true,
+        "operation": "execute",
+        "action": "ak.message.create",
+        "controller_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "agent_account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixtureagent",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        },
+        "management_rules": [
+          {
+            "target": {
+              "kind": "controller",
+              "account_id": {
+                "principal_id": "ak:did_core:webvh:z6mkfixturecontroller",
+                "station_id": "ak:did_core:webvh:z6mkfixturestation"
+              }
+            },
+            "operations": [
+              "execute"
+            ],
+            "effect": "require_review"
+          }
+        ],
+        "matched_global_deny": false,
+        "grant_terminal": false,
+        "general_grant_action": false,
+        "general_revoke_action": false,
+        "name": "review_not_allow",
+        "expected": "require_review"
+      }
+    ],
+    "schema_cases": [
+      {
+        "name": "terminal_owned_authoring",
+        "schema_file": "schemas/event-payload.schema.json",
+        "fragment": "#/$defs/capability_grant_payload",
+        "valid": true,
+        "canonical_json": "{\"grant\":{\"actions\":[\"ak.message.create\"],\"constraints\":[{\"authority_regrant_allowed\":false,\"constraint_kind\":\"authority_control\",\"effect\":\"allow\",\"max_authority_depth\":0}],\"issued_at\":\"2026-10-05T11:15:00.000Z\",\"issuer_authority_refs\":[{\"agent_join_event_id\":\"ak:event:AYiuAGW19-r6xLyA5D4ctC2TaxnJuWsi2Jv8od2-Ltp7\",\"controller_account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturecontroller\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"},\"controller_join_event_id\":\"ak:event:AQFBAf_L0lyU_AYzrTkQ0qZzjxYiQ7ER2PpVeM_vtVn1\",\"kind\":\"owned_agent\",\"realm_id\":\"ak:realm:AT47eNekH0_aKZyIMsXq_s1FAWdYXC71_CUxQ5O478t-\"}],\"issuer_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturecontroller\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"},\"kind\":\"account\"},\"realm_id\":\"ak:realm:AT47eNekH0_aKZyIMsXq_s1FAWdYXC71_CUxQ5O478t-\",\"resources\":[{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AT47eNekH0_aKZyIMsXq_s1FAWdYXC71_CUxQ5O478t-\"}],\"schema\":\"ak.schema.capability.v1\",\"subject\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixtureagent\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"},\"kind\":\"account\"}}}"
+      },
+      {
+        "name": "nonterminal_owned_authoring",
+        "schema_file": "schemas/event-payload.schema.json",
+        "fragment": "#/$defs/capability_grant_payload",
+        "valid": false,
+        "canonical_json": "{\"grant\":{\"actions\":[\"ak.message.create\"],\"constraints\":[{\"authority_regrant_allowed\":false,\"constraint_kind\":\"authority_control\",\"effect\":\"allow\",\"max_authority_depth\":1}],\"issued_at\":\"2026-10-05T11:15:00.000Z\",\"issuer_authority_refs\":[{\"agent_join_event_id\":\"ak:event:AYiuAGW19-r6xLyA5D4ctC2TaxnJuWsi2Jv8od2-Ltp7\",\"controller_account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturecontroller\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"},\"controller_join_event_id\":\"ak:event:AQFBAf_L0lyU_AYzrTkQ0qZzjxYiQ7ER2PpVeM_vtVn1\",\"kind\":\"owned_agent\",\"realm_id\":\"ak:realm:AT47eNekH0_aKZyIMsXq_s1FAWdYXC71_CUxQ5O478t-\"}],\"issuer_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturecontroller\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"},\"kind\":\"account\"},\"realm_id\":\"ak:realm:AT47eNekH0_aKZyIMsXq_s1FAWdYXC71_CUxQ5O478t-\",\"resources\":[{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AT47eNekH0_aKZyIMsXq_s1FAWdYXC71_CUxQ5O478t-\"}],\"schema\":\"ak.schema.capability.v1\",\"subject\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixtureagent\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"},\"kind\":\"account\"}}}"
+      },
+      {
+        "name": "owned_missing_terminal_constraint",
+        "schema_file": "schemas/event-payload.schema.json",
+        "fragment": "#/$defs/capability_grant_payload",
+        "valid": false,
+        "canonical_json": "{\"grant\":{\"actions\":[\"ak.message.create\"],\"issued_at\":\"2026-10-05T11:15:00.000Z\",\"issuer_authority_refs\":[{\"agent_join_event_id\":\"ak:event:AYiuAGW19-r6xLyA5D4ctC2TaxnJuWsi2Jv8od2-Ltp7\",\"controller_account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturecontroller\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"},\"controller_join_event_id\":\"ak:event:AQFBAf_L0lyU_AYzrTkQ0qZzjxYiQ7ER2PpVeM_vtVn1\",\"kind\":\"owned_agent\",\"realm_id\":\"ak:realm:AT47eNekH0_aKZyIMsXq_s1FAWdYXC71_CUxQ5O478t-\"}],\"issuer_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturecontroller\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"},\"kind\":\"account\"},\"realm_id\":\"ak:realm:AT47eNekH0_aKZyIMsXq_s1FAWdYXC71_CUxQ5O478t-\",\"resources\":[{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AT47eNekH0_aKZyIMsXq_s1FAWdYXC71_CUxQ5O478t-\"}],\"schema\":\"ak.schema.capability.v1\",\"subject\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixtureagent\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"},\"kind\":\"account\"}}}"
+      },
+      {
+        "name": "owned_ref_mixed_lineage",
+        "schema_file": "schemas/event-payload.schema.json",
+        "fragment": "#/$defs/capability_grant_payload",
+        "valid": false,
+        "canonical_json": "{\"grant\":{\"actions\":[\"ak.message.create\"],\"constraints\":[{\"authority_regrant_allowed\":false,\"constraint_kind\":\"authority_control\",\"effect\":\"allow\",\"max_authority_depth\":0}],\"issued_at\":\"2026-10-05T11:15:00.000Z\",\"issuer_authority_refs\":[{\"agent_join_event_id\":\"ak:event:AYiuAGW19-r6xLyA5D4ctC2TaxnJuWsi2Jv8od2-Ltp7\",\"controller_account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturecontroller\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"},\"controller_join_event_id\":\"ak:event:AQFBAf_L0lyU_AYzrTkQ0qZzjxYiQ7ER2PpVeM_vtVn1\",\"kind\":\"owned_agent\",\"realm_id\":\"ak:realm:AT47eNekH0_aKZyIMsXq_s1FAWdYXC71_CUxQ5O478t-\"},{\"grant_id\":\"ak:grant:AWkp_LRabiuNzkxWHXWpl_YS5_jG4nVYeocsHG9sGDvP\",\"kind\":\"grant\"}],\"issuer_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturecontroller\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"},\"kind\":\"account\"},\"realm_id\":\"ak:realm:AT47eNekH0_aKZyIMsXq_s1FAWdYXC71_CUxQ5O478t-\",\"resources\":[{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AT47eNekH0_aKZyIMsXq_s1FAWdYXC71_CUxQ5O478t-\"}],\"schema\":\"ak.schema.capability.v1\",\"subject\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixtureagent\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"},\"kind\":\"account\"}}}"
+      },
+      {
+        "name": "owned_missing_controller_generation",
+        "schema_file": "schemas/event-payload.schema.json",
+        "fragment": "#/$defs/capability_grant_payload",
+        "valid": false,
+        "canonical_json": "{\"grant\":{\"actions\":[\"ak.message.create\"],\"constraints\":[{\"authority_regrant_allowed\":false,\"constraint_kind\":\"authority_control\",\"effect\":\"allow\",\"max_authority_depth\":0}],\"issued_at\":\"2026-10-05T11:15:00.000Z\",\"issuer_authority_refs\":[{\"agent_join_event_id\":\"ak:event:AYiuAGW19-r6xLyA5D4ctC2TaxnJuWsi2Jv8od2-Ltp7\",\"controller_account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturecontroller\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"},\"kind\":\"owned_agent\",\"realm_id\":\"ak:realm:AT47eNekH0_aKZyIMsXq_s1FAWdYXC71_CUxQ5O478t-\"}],\"issuer_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturecontroller\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"},\"kind\":\"account\"},\"realm_id\":\"ak:realm:AT47eNekH0_aKZyIMsXq_s1FAWdYXC71_CUxQ5O478t-\",\"resources\":[{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AT47eNekH0_aKZyIMsXq_s1FAWdYXC71_CUxQ5O478t-\"}],\"schema\":\"ak.schema.capability.v1\",\"subject\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixtureagent\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"},\"kind\":\"account\"}}}"
+      },
+      {
+        "name": "owned_missing_agent_generation",
+        "schema_file": "schemas/event-payload.schema.json",
+        "fragment": "#/$defs/capability_grant_payload",
+        "valid": false,
+        "canonical_json": "{\"grant\":{\"actions\":[\"ak.message.create\"],\"constraints\":[{\"authority_regrant_allowed\":false,\"constraint_kind\":\"authority_control\",\"effect\":\"allow\",\"max_authority_depth\":0}],\"issued_at\":\"2026-10-05T11:15:00.000Z\",\"issuer_authority_refs\":[{\"controller_account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturecontroller\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"},\"controller_join_event_id\":\"ak:event:AQFBAf_L0lyU_AYzrTkQ0qZzjxYiQ7ER2PpVeM_vtVn1\",\"kind\":\"owned_agent\",\"realm_id\":\"ak:realm:AT47eNekH0_aKZyIMsXq_s1FAWdYXC71_CUxQ5O478t-\"}],\"issuer_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturecontroller\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"},\"kind\":\"account\"},\"realm_id\":\"ak:realm:AT47eNekH0_aKZyIMsXq_s1FAWdYXC71_CUxQ5O478t-\",\"resources\":[{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AT47eNekH0_aKZyIMsXq_s1FAWdYXC71_CUxQ5O478t-\"}],\"schema\":\"ak.schema.capability.v1\",\"subject\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixtureagent\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"},\"kind\":\"account\"}}}"
+      },
+      {
+        "name": "owned_producer_snapshot_forbidden",
+        "schema_file": "schemas/event-payload.schema.json",
+        "fragment": "#/$defs/capability_grant_payload",
+        "valid": false,
+        "canonical_json": "{\"grant\":{\"actions\":[\"ak.message.create\"],\"constraints\":[{\"authority_regrant_allowed\":false,\"constraint_kind\":\"authority_control\",\"effect\":\"allow\",\"max_authority_depth\":0}],\"issued_at\":\"2026-10-05T11:15:00.000Z\",\"issuer_authority_refs\":[{\"agent_join_event_id\":\"ak:event:AYiuAGW19-r6xLyA5D4ctC2TaxnJuWsi2Jv8od2-Ltp7\",\"controller_account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturecontroller\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"},\"controller_join_event_id\":\"ak:event:AQFBAf_L0lyU_AYzrTkQ0qZzjxYiQ7ER2PpVeM_vtVn1\",\"expected_revision\":{},\"kind\":\"owned_agent\",\"realm_id\":\"ak:realm:AT47eNekH0_aKZyIMsXq_s1FAWdYXC71_CUxQ5O478t-\"}],\"issuer_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturecontroller\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"},\"kind\":\"account\"},\"realm_id\":\"ak:realm:AT47eNekH0_aKZyIMsXq_s1FAWdYXC71_CUxQ5O478t-\",\"resources\":[{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AT47eNekH0_aKZyIMsXq_s1FAWdYXC71_CUxQ5O478t-\"}],\"schema\":\"ak.schema.capability.v1\",\"subject\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixtureagent\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"},\"kind\":\"account\"}}}"
+      },
+      {
+        "name": "owned_condition_subject_forbidden",
+        "schema_file": "schemas/event-payload.schema.json",
+        "fragment": "#/$defs/capability_grant_payload",
+        "valid": false,
+        "canonical_json": "{\"grant\":{\"actions\":[\"ak.message.create\"],\"constraints\":[{\"authority_regrant_allowed\":false,\"constraint_kind\":\"authority_control\",\"effect\":\"allow\",\"max_authority_depth\":0}],\"issued_at\":\"2026-10-05T11:15:00.000Z\",\"issuer_authority_refs\":[{\"agent_join_event_id\":\"ak:event:AYiuAGW19-r6xLyA5D4ctC2TaxnJuWsi2Jv8od2-Ltp7\",\"controller_account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturecontroller\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"},\"controller_join_event_id\":\"ak:event:AQFBAf_L0lyU_AYzrTkQ0qZzjxYiQ7ER2PpVeM_vtVn1\",\"kind\":\"owned_agent\",\"realm_id\":\"ak:realm:AT47eNekH0_aKZyIMsXq_s1FAWdYXC71_CUxQ5O478t-\"}],\"issuer_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturecontroller\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"},\"kind\":\"account\"},\"realm_id\":\"ak:realm:AT47eNekH0_aKZyIMsXq_s1FAWdYXC71_CUxQ5O478t-\",\"resources\":[{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AT47eNekH0_aKZyIMsXq_s1FAWdYXC71_CUxQ5O478t-\"}],\"schema\":\"ak.schema.capability.v1\",\"subject\":{\"kind\":\"condition\",\"required_claims\":[]}}}"
+      },
+      {
+        "name": "controller_management_selector",
+        "schema_file": "schemas/policy.schema.json",
+        "fragment": "#/$defs/policy_rule",
+        "valid": true,
+        "canonical_json": "{\"agent_operations\":[\"execute\",\"read\",\"deliver\"],\"agent_target\":{\"controller_account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturecontroller\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"},\"kind\":\"controller\"},\"effect\":\"deny\",\"kind\":\"agent\",\"rule_id\":\"ban_member_agents\"}"
+      },
+      {
+        "name": "bare_controller_forbidden",
+        "schema_file": "schemas/policy.schema.json",
+        "fragment": "#/$defs/policy_rule",
+        "valid": false,
+        "canonical_json": "{\"agent_operations\":[\"execute\",\"read\",\"deliver\"],\"agent_target\":{\"controller_account_id\":\"ak:did_core:webvh:z6mkfixturecontroller\",\"kind\":\"controller\"},\"effect\":\"deny\",\"kind\":\"agent\",\"rule_id\":\"ban_member_agents\"}"
+      },
+      {
+        "name": "unknown_management_operation",
+        "schema_file": "schemas/policy.schema.json",
+        "fragment": "#/$defs/policy_rule",
+        "valid": false,
+        "canonical_json": "{\"agent_operations\":[\"create_all\"],\"agent_target\":{\"controller_account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturecontroller\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"},\"kind\":\"controller\"},\"effect\":\"deny\",\"kind\":\"agent\",\"rule_id\":\"ban_member_agents\"}"
+      },
+      {
+        "name": "mixed_controller_agent_selector",
+        "schema_file": "schemas/policy.schema.json",
+        "fragment": "#/$defs/policy_rule",
+        "valid": false,
+        "canonical_json": "{\"agent_operations\":[\"execute\",\"read\",\"deliver\"],\"agent_target\":{\"agent_account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixtureagent\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"},\"controller_account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturecontroller\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"},\"kind\":\"controller\"},\"effect\":\"deny\",\"kind\":\"agent\",\"rule_id\":\"ban_member_agents\"}"
+      },
+      {
+        "name": "issuer_grant_exact_selector",
+        "schema_file": "schemas/exact-current-results-read.schema.json",
+        "fragment": "#/$defs/exact_current_results_read_request",
+        "valid": true,
+        "canonical_json": "{\"realm_id\":\"ak:realm:AT47eNekH0_aKZyIMsXq_s1FAWdYXC71_CUxQ5O478t-\",\"selector\":{\"grant_id\":\"ak:grant:AWkp_LRabiuNzkxWHXWpl_YS5_jG4nVYeocsHG9sGDvP\",\"kind\":\"capability_grant\"}}"
+      }
+    ],
+    "quota_sequence": {
+      "limit": 2,
+      "requests": [
+        {
+          "parent_grant": "parent",
+          "controller_account": "{\"principal_id\":\"ak:did_core:webvh:z6mkfixturecontroller\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"}",
+          "window": 1,
+          "event_id": "one",
+          "actor": "controller"
+        },
+        {
+          "parent_grant": "parent",
+          "controller_account": "{\"principal_id\":\"ak:did_core:webvh:z6mkfixturecontroller\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"}",
+          "window": 1,
+          "event_id": "two",
+          "actor": "agent_a"
+        },
+        {
+          "parent_grant": "parent",
+          "controller_account": "{\"principal_id\":\"ak:did_core:webvh:z6mkfixturecontroller\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"}",
+          "window": 1,
+          "event_id": "two",
+          "actor": "agent_a"
+        },
+        {
+          "parent_grant": "parent",
+          "controller_account": "{\"principal_id\":\"ak:did_core:webvh:z6mkfixturecontroller\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestation\"}",
+          "window": 1,
+          "event_id": "three",
+          "actor": "agent_b"
+        }
+      ],
+      "expected": [
+        "allow",
+        "allow",
+        "reuse_accepted",
+        "deny"
+      ]
+    }
   }
 }

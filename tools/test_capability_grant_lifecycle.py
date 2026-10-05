@@ -108,11 +108,16 @@ class CapabilityGrantLifecycleTest(unittest.TestCase):
     def test_authority_refs_are_semantic_lineage_not_client_selected_state(self) -> None:
         grant = load(SCHEMAS / "capability-grant.schema.json")
         alternatives = grant["properties"]["issuer_authority_refs"]["items"]["oneOf"]
+        alternatives = [
+            grant["$defs"][alternative["$ref"].split("/")[-1]]
+            if "$ref" in alternative else alternative
+            for alternative in alternatives
+        ]
         by_kind = {
             alternative["properties"]["kind"]["const"]: alternative
             for alternative in alternatives
         }
-        self.assertEqual(set(by_kind), {"grant", "realm_root"})
+        self.assertEqual(set(by_kind), {"grant", "realm_root", "owned_agent"})
         forbidden = {
             "expected_revision",
             "auth_state_digest",

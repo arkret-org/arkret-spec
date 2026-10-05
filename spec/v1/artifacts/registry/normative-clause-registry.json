@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-05.2",
+  "version": "2026-10-05.3",
   "source_of_truth": true,
-  "generated_at": "2026-10-05T12:28:00+08:00",
+  "generated_at": "2026-10-05T19:28:51+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -210,8 +210,8 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/capabilities.md#10-issuer-authority",
-      "section_digest": "sha256:7c5977d129b9d901897bc25de370c911f93b639997def3162b0837aa066ef89b",
-      "requirement": "A grant stays within the union of the authorities its issuer_authority_refs name and within their per-action validity window. A grant without ordinary authority_control cannot be a grant ref; a ref with authority_regrant_allowed=false can issue only an explicitly terminal max_authority_depth=0 child. A grant ref supplies issuer authority only when its concrete subject ActorId equals the child issuer ActorId in full; cycles, inactive refs and same-DID cross-Station replay MUST fail closed rather than widen the effective permission set. A first-issued grant whose ancestor no longer authorizes uses failed_precondition with grant_exceeds_issuer_authority; other security operations use capability_denied without disclosing inaccessible ancestor state. A realm_root ref is valid only while the authority-root typed current result's current authority_generation still equals the generation the ref carries, read under the registered inclusion proof at a RealmCommit basis; that delegation generation advances only on ak.realm.authority.reset and MUST NOT be conflated with the governing Station tenure governance_generation, so a planned Station handoff MUST NOT invalidate any grant and a controller transfer MUST leave every child grant valid.",
+      "section_digest": "sha256:f1125f56d9cd004ca46e64ff4a1d86a39c3263e955ae8ed34c56ec49620e2989",
+      "requirement": "For ordinary grant/root lineage (the dedicated owned_agent terminal source has its own registered contract): A grant stays within the union of the authorities its issuer_authority_refs name and within their per-action validity window. A grant without ordinary authority_control cannot be a grant ref; a ref with authority_regrant_allowed=false can issue only an explicitly terminal max_authority_depth=0 child. A grant ref supplies issuer authority only when its concrete subject ActorId equals the child issuer ActorId in full; cycles, inactive refs and same-DID cross-Station replay MUST fail closed rather than widen the effective permission set. A first-issued grant whose ancestor no longer authorizes uses failed_precondition with grant_exceeds_issuer_authority; other security operations use capability_denied without disclosing inaccessible ancestor state. A realm_root ref is valid only while the authority-root typed current result's current authority_generation still equals the generation the ref carries, read under the registered inclusion proof at a RealmCommit basis; that delegation generation advances only on ak.realm.authority.reset and MUST NOT be conflated with the governing Station tenure governance_generation, so a planned Station handoff MUST NOT invalidate any grant and a controller transfer MUST leave every child grant valid.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.capability.authority_cycle.v1",
@@ -568,7 +568,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/authz/capabilities.md#104-revoke-与-relinquish-的分工normative",
-      "section_digest": "sha256:0c6d303ec3d89e97b153f01ce97146455cdad07d26cdb30ec276b70e176915d0",
+      "section_digest": "sha256:989e2fe4fc4b8ea32cb23372a9dcd3c8409366997a081768d30b37f25df7d82c",
       "requirement": "ak.capability.relinquish is subject-only self-service: the reducer accepts it only when the acting actor is the grant's own subject, and it MUST NOT additionally require the actor to hold ak.capability.revoke, because a narrow holder would otherwise be unable to give up what it holds. A relinquish by anyone other than the subject is rejected with reason grant_relinquish_not_subject. Descendants of the relinquished grant fail on read through refs, exactly as they do after a revoke.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -733,6 +733,66 @@
       "requirement": "An authorized own-Station moderation_franking_proof current row is installed independently of report workflow and moderator verification. The closed selector names the target Event, value repeats that target and Realm, and the value remains the canonical closed FrankingProof. Installing the current row grants no permission or cryptographic verdict; ordinary MLS chat must not wait for a report or optional existence anchor, while invalid source, cut, scope or target bindings fail closed.",
       "testability_grade": "api_shape",
       "test_plan": "Run tools.test_franking_current_installation_gate and the existing franking transcript/controller gates: mutations of selector target type, canonical value reference, row closure and the ordinary-chat independence obligation must fail. This checks schema and normative guards, not moderator verification or native client installation; Inkson current installation and owner1725 live acceptance remain implementation evidence."
+    },
+    {
+      "clause_id": "AK-NC-088",
+      "status": "active",
+      "category": "authorization",
+      "source_anchor": "spec/v1/zh/authz/owned-agent-authority.md#1-显式自有授权来源",
+      "section_digest": "sha256:1ab174ae4e316059637a6ba9fbddf9d7c9bff76515d10fa724b32edc3ee8e521",
+      "requirement": "An explicit original-controller grant to an exact owned Agent needs no general grant action or parent regrant right; both membership generations and ownership are verified, the source is terminal and cannot be reentered by an Agent controller.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.agent.interaction_mode.v1"
+      ]
+    },
+    {
+      "clause_id": "AK-NC-089",
+      "status": "active",
+      "category": "authorization",
+      "source_anchor": "spec/v1/zh/authz/owned-agent-authority.md#2-动作与持续上界",
+      "section_digest": "sha256:5aa6f49331c1079a2f1fd0bdcaa7b562d3d3b8a2cc9fce36089581354ee5b83f",
+      "requirement": "All ordinary owned-Agent grant and reading paths remain bounded by current controller authority, original scope, global/key ceilings and shared parent quotas; partial loss, global deny, own-object conditions and equivalent current sources are evaluated without cross-grant splicing.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.agent.interaction_mode.v1"
+      ]
+    },
+    {
+      "clause_id": "AK-NC-090",
+      "status": "active",
+      "category": "authorization",
+      "source_anchor": "spec/v1/zh/authz/owned-agent-authority.md#3-管理限制与默认值",
+      "section_digest": "sha256:c8cf06d997cd7b1f8815076629c27543fc3bc1bb0ac3750d802cb878f6e9e194",
+      "requirement": "The default Agent management gate permits member self-service only with verified current absence of restrictions; policy controller selectors cover current and future Agents and user grants or local allow cannot override effective bans. Join-only restrictions preserve existing participation.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.agent.interaction_mode.v1"
+      ]
+    },
+    {
+      "clause_id": "AK-NC-091",
+      "status": "active",
+      "category": "authorization",
+      "source_anchor": "spec/v1/zh/authz/owned-agent-authority.md#4-主人撤回恢复与重试",
+      "section_digest": "sha256:68dcc908d9ce7d999c491bae9f34a930ebc4c087e3d2879c9a277fc87b2307cc",
+      "requirement": "The original issuer may revoke its owned-Agent grant with exact CAS without a revoke action or online runtime; ineffective and terminal exact reads remain available, old revoked records never restore and fresh explicitly confirmed grants may be issued under current gates.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.agent.interaction_mode.v1"
+      ]
+    },
+    {
+      "clause_id": "AK-NC-092",
+      "status": "active",
+      "category": "authorization",
+      "source_anchor": "spec/v1/zh/authz/owned-agent-authority.md#5-current-依赖远端与审计",
+      "section_digest": "sha256:1800f791003052dab6ff5daad3e12ceaadfe6702fe75835b6b59c022a3d5b997",
+      "requirement": "Current admission and future reads, subscriptions, attachments and access-material delivery use authoritative controller and management gates; accepted exact retries preserve history and unaccepted candidates revalidate, unknown remote evidence never authorizes new delivery.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.agent.interaction_mode.v1"
+      ]
     }
   ]
 }

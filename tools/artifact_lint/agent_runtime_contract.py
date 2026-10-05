@@ -48,6 +48,8 @@ def reply_configuration_decision(table: str, case: dict):
             return 'invalid'
         if case.get('confirmation_is_explicit') is not True:
             return 'needs_confirmation'
+        if case.get('verified_owned_source') is True:
+            return 'publish_grant' if case.get('current_controller_authority') is True and case.get('management_allows') is True else 'blocked'
         return 'publish_grant' if case.get('issuer_can_grant') is True else 'requires_issuer'
     if table == 'readiness_cases':
         configured = case.get('configuration_accepted')
@@ -115,7 +117,8 @@ def check_reply_configuration_contract(lint: Lint, runtime: dict, fixture: dict,
         'setup_cases': {
             'preference_alone_never_grants', 'public_mode_alone_never_grants',
             'missing_grant_requires_scope_confirmation', 'confirmed_normal_entry_authors_separate_grant',
-            'controller_without_issuer_authority', 'accepted_matching_grant_is_reused',
+            'unverified_controller_without_issuer_authority', 'accepted_matching_grant_is_reused',
+            'owned_controller_without_general_grant_authority', 'owned_controller_management_denied',
             'unknown_grant_is_not_absence', 'wrong_account_or_scope_confirmation',
             'realm_grant_cannot_expand_global_ceiling', 'refused_grant_is_not_configuration_success',
         },

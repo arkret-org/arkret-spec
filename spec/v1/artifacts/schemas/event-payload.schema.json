@@ -2299,7 +2299,86 @@
               "$ref": "./capability-grant.schema.json#/properties/issuer_authority_refs"
             }
           },
-          "additionalProperties": false
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "issuer_authority_refs": {
+                    "contains": {
+                      "$ref": "./capability-grant.schema.json#/$defs/owned_agent_authority_ref"
+                    }
+                  }
+                },
+                "required": [
+                  "issuer_authority_refs"
+                ]
+              },
+              "then": {
+                "required": [
+                  "realm_id",
+                  "constraints"
+                ],
+                "properties": {
+                  "issuer_id": {
+                    "$ref": "./common-ids.schema.json#/$defs/actor_id",
+                    "type": "object",
+                    "required": [
+                      "kind"
+                    ],
+                    "properties": {
+                      "kind": {
+                        "const": "account"
+                      }
+                    }
+                  },
+                  "subject": {
+                    "type": "object",
+                    "required": [
+                      "kind"
+                    ],
+                    "properties": {
+                      "kind": {
+                        "const": "account"
+                      }
+                    }
+                  },
+                  "issuer_authority_refs": {
+                    "minItems": 1,
+                    "maxItems": 1,
+                    "items": {
+                      "$ref": "./capability-grant.schema.json#/$defs/owned_agent_authority_ref"
+                    }
+                  },
+                  "constraints": {
+                    "contains": {
+                      "type": "object",
+                      "required": [
+                        "constraint_kind",
+                        "max_authority_depth"
+                      ],
+                      "properties": {
+                        "constraint_kind": {
+                          "const": "authority_control"
+                        },
+                        "max_authority_depth": {
+                          "const": 0
+                        },
+                        "authority_regrant_allowed": {
+                          "const": false
+                        }
+                      },
+                      "not": {
+                        "required": [
+                          "constraint_subkind"
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
         }
       },
       "additionalProperties": false

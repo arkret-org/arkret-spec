@@ -1,0 +1,63 @@
+{
+  "version": "2026-10-05",
+  "source_of_truth": true,
+  "generated_at": "2026-10-05T19:21:55+08:00",
+  "normative_source": "zh/authz/owned-agent-authority.md",
+  "source_kind": "owned_agent",
+  "grant_event_kind": "ak.capability.grant",
+  "revoke_event_kind": "ak.capability.revoke",
+  "policy_event_kind": "ak.policy.set",
+  "policy_kind": "agent",
+  "rule_kind": "agent",
+  "exact_read_operation": "ak.self.current_results.read.exact.v1",
+  "supported_actions": [
+    "ak.event.read",
+    "ak.message.create",
+    "ak.message.redact.own",
+    "ak.message.revise.own",
+    "ak.object.read",
+    "ak.object.read_content",
+    "ak.object.read_history",
+    "ak.object.read_metadata",
+    "ak.reaction.add",
+    "ak.reaction.remove",
+    "ak.strand.read"
+  ],
+  "source_ref_schema": "schemas/capability-grant.schema.json#/$defs/owned_agent_authority_ref",
+  "policy_target_schema": "schemas/policy.schema.json#/$defs/agent_target",
+  "dynamic_ceiling_applies_to": [
+    "owned_agent_grant",
+    "independent_agent_grant",
+    "membership_read",
+    "sidecar_content_boundary"
+  ],
+  "management_operations": [
+    "join",
+    "authorize",
+    "execute",
+    "read",
+    "deliver"
+  ],
+  "invariants": {
+    "default_self_service": true,
+    "explicit_confirmation": true,
+    "all_grant_paths_current_controller_ceiling": true,
+    "current_management_gate": true,
+    "parent_quota_shared_atomic": true,
+    "full_actor_identity": true,
+    "terminal_source": true,
+    "issuer_revoke_without_capability": true,
+    "ineffective_exact_revision_read": true,
+    "read_delivery_material_current_gate": true,
+    "global_cross_grant_deny": true,
+    "regrant_to_arbitrary_subject": false,
+    "revoked_record_auto_restores": false,
+    "join_ban_stops_existing": false,
+    "management_allow_grants_authority": false,
+    "unknown_means_no_ban": false,
+    "controller_private_selection_disclosed": false,
+    "source_controller_is_not_agent": true
+  },
+  "fixture_ref": "fixtures/agent-participation-fixture.json#/owned_agent_authority_contract",
+  "vector_id": "ak.vector.agent.interaction_mode.v1"
+}

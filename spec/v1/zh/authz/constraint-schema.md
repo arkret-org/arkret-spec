@@ -407,6 +407,8 @@ fail closed。这些规则与 [`capabilities.md` §10.1](./capabilities.md) 的�
 
 **`authority_regrant_allowed`**：
 
+本节仍限制通用 `kind="grant"` ref。[自有 Agent 专用来源](./owned-agent-authority.md) 不引用不可转授的主人 grant 作 parent，而由 controller 原签、exact membership binding 与持续当前权限 gate 建立 terminal 执行分支；不得用它修改普通 constraint 默认或给第三人转授。该 owned_agent grant 自身不能成为任何下游 grant ref。
+
 - grant 没有普通 `authority_control` constraint 时，不具备再授权能力，MUST NOT 被 child grant
   的 `issuer_authority_refs[]` 引用；reducer MUST 返回 `failed_precondition`
   （`reason="authority_regrant_denied"`）。`constraint_subkind=applet_authority` 只表达 Applet
@@ -452,6 +454,8 @@ fail closed。这些规则与 [`capabilities.md` §10.1](./capabilities.md) 的�
 }
 ```
 `constraint_scope` 是封闭 v1 枚举，取值 MUST 属于 `{per_actor, per_space, per_realm, global}`；未注册值是 `schema_violation`，接收方 MUST fail closed。`quota` 计数器始终按 actor 绑定，并以 `grant_id` + `constraint_id`（缺失时用该 constraint 的 canonical hash）区分不同授权约束；`constraint_scope` 只选择额外切片维度：
+
+自有 Agent 的持续父上界求值按 [owned-agent-authority.md](./owned-agent-authority.md) 使用主人来源的原 grant/constraint 与 controller ActorId counter，同主人和其它自有 Agent 共享原子扣减；Agent 自身更严 counter 仍独立满足。不能把父 quota 复制为每个 Agent 一份或按新授权重置；下面的 actor/slice/window 规则在父 counter 上同样适用。
 
 | `constraint_scope` | quota counter key |
 | --- | --- |

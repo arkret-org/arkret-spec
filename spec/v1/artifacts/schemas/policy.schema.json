@@ -115,7 +115,8 @@
             "rate_limit",
             "crypto",
             "moderation",
-            "extension"
+            "extension",
+            "agent"
           ]
         },
         "effect": {
@@ -190,6 +191,23 @@
         "params": {
           "type": "object",
           "additionalProperties": true
+        },
+        "agent_target": {
+          "$ref": "#/$defs/agent_target"
+        },
+        "agent_operations": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "join",
+              "authorize",
+              "execute",
+              "read",
+              "deliver"
+            ]
+          }
         }
       },
       "additionalProperties": false,
@@ -272,6 +290,69 @@
             "required": [
               "params"
             ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "agent"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "agent_target",
+              "agent_operations"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "conditions"
+                  ]
+                },
+                {
+                  "required": [
+                    "params"
+                  ]
+                },
+                {
+                  "required": [
+                    "schema_ref"
+                  ]
+                },
+                {
+                  "required": [
+                    "profile_ref"
+                  ]
+                },
+                {
+                  "required": [
+                    "servers"
+                  ]
+                }
+              ]
+            }
+          },
+          "else": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "agent_target"
+                  ]
+                },
+                {
+                  "required": [
+                    "agent_operations"
+                  ]
+                }
+              ]
+            }
           }
         }
       ]
@@ -367,10 +448,91 @@
           }
         }
       ]
+    },
+    "agent_target": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "const": "all"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "controller_account_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "controller"
+            },
+            "controller_account_id": {
+              "$ref": "./common-ids.schema.json#/$defs/account_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "agent_account_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "agent"
+            },
+            "agent_account_id": {
+              "$ref": "./common-ids.schema.json#/$defs/account_id"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
     }
   },
   "patternProperties": {
     "^x_[a-z][a-z0-9_]{0,63}$": true
   },
-  "additionalProperties": false
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "rules": {
+            "contains": {
+              "properties": {
+                "kind": {
+                  "const": "agent"
+                }
+              },
+              "required": [
+                "kind"
+              ]
+            }
+          }
+        },
+        "required": [
+          "rules"
+        ]
+      },
+      "then": {
+        "required": [
+          "realm_id"
+        ],
+        "properties": {
+          "policy_kind": {
+            "const": "agent"
+          }
+        }
+      }
+    }
+  ]
 }

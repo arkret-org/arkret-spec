@@ -175,6 +175,8 @@ closed `{target_scope, selection, version}`，`selection` 五位恰为
 回复配置入口才可协调独立 grant authoring，不能让本 replace 悄悄写 Realm grant。入口、就地
 结果与重置后验收见 [agent-interaction §4.1](./agent-interaction.md#41-公开回复配置与有效状态normative)。
 
+主人可明确 author [自有受限 Grant](../authz/owned-agent-authority.md)，selection 仍不能替代该原签授权、主人 current 上界或管理 Policy；未知 current 不能被当作无禁令。管理员收紧不修改 controller-private selection，也不因此读取它。
+
 `ak.schema.agent_sidecar_exchange_projection.v1` 不属于本节 Account Data：它只是 controller 设备从 Sidecar private Event history 生成的本地可删除 cache/SDK DTO，不注册 account-data key，不进入 account stream，也不跨设备合并。真相源是 Sidecar private Event history 本身（[`sidecar.md` §8](./sidecar.md)）；fold 与 cache 恢复的判据由 [`../conformance/conformance-vectors.md` §11.10.4](../conformance/conformance-vectors.md) 固化。
 
 ### 4.2 隐私边界(normative)

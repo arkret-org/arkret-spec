@@ -20,7 +20,7 @@
         "did_core_id": "Stable principal or service core that issued a proof, receipt, claim, or registry statement."
       },
       "occurrences_by_profile": {
-        "actor_id": 1,
+        "actor_id": 3,
         "did_core_id": 28
       },
       "reason": "The enclosing schema decides whether issuer authority requires an exact routed actor or a stable DID core; each occurrence remains closed to one carrier."
@@ -1946,6 +1946,26 @@
       ]
     },
     {
+      "schema_path": "capability-grant.schema.json#/$defs/owned_agent_authority_ref/properties/controller_account_id",
+      "property_name": "controller_account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
+      ]
+    },
+    {
+      "schema_path": "capability-grant.schema.json#/allOf/1/then/properties/issuer_id",
+      "property_name": "issuer_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "actor_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:actor_id"
+      ]
+    },
+    {
       "schema_path": "capability-grant.schema.json#/properties/issuer_id",
       "property_name": "issuer_id",
       "semantic_category": "responsibility_identity_material",
@@ -3018,6 +3038,16 @@
     {
       "schema_path": "event-payload.schema.json#/$defs/call_state_payload/properties/roster_delta/oneOf/1/properties/actor_id",
       "property_name": "actor_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "actor_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:actor_id"
+      ]
+    },
+    {
+      "schema_path": "event-payload.schema.json#/$defs/capability_grant_payload/properties/grant/allOf/0/then/properties/issuer_id",
+      "property_name": "issuer_id",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "actor_id",
       "external_literal_owner": false,
@@ -5386,6 +5416,26 @@
       ]
     },
     {
+      "schema_path": "policy.schema.json#/$defs/agent_target/oneOf/1/properties/controller_account_id",
+      "property_name": "controller_account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
+      ]
+    },
+    {
+      "schema_path": "policy.schema.json#/$defs/agent_target/oneOf/2/properties/agent_account_id",
+      "property_name": "agent_account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
+      ]
+    },
+    {
       "schema_path": "policy.schema.json#/$defs/server_selector/properties/service_id",
       "property_name": "service_id",
       "semantic_category": "responsibility_identity_material",
@@ -7619,6 +7669,18 @@
     },
     {
       "source": "json_schema",
+      "schema_path": "capability-grant.schema.json#/$defs/owned_agent_authority_ref/properties/controller_account_id",
+      "property_name": "controller_account_id",
+      "resolved_carrier": "account_id",
+      "required_subject_class": "account",
+      "contract_carrier": "account_id",
+      "account_scoped": true,
+      "required_evidence": [
+        "exact_account_authority_binding"
+      ]
+    },
+    {
+      "source": "json_schema",
       "schema_path": "consent-operations.schema.json#/$defs/consent_request_request_body/properties/holder_account_id",
       "property_name": "holder_account_id",
       "resolved_carrier": "account_id",
@@ -7779,6 +7841,18 @@
       "account_scoped": true,
       "required_evidence": [
         "exact_account_ownership_binding"
+      ]
+    },
+    {
+      "source": "json_schema",
+      "schema_path": "policy.schema.json#/$defs/agent_target/oneOf/1/properties/controller_account_id",
+      "property_name": "controller_account_id",
+      "resolved_carrier": "account_id",
+      "required_subject_class": "account",
+      "contract_carrier": "account_id",
+      "account_scoped": true,
+      "required_evidence": [
+        "exact_account_authority_binding"
       ]
     },
     {

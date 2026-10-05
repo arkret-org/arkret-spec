@@ -198,6 +198,8 @@ membership 为 `join` 才满足 gate（[`../governance/join-policy.md` §4](../g
 - `identity_resolution`：singleton，Realm 当前 did resolution 的五成员 `resolution_projection`；genesis object 携带 `initial_resolution` 时由 `ak.realm.create` 条件初始化，此后只由 `ak.identity.resolution.update` 改写（见 [`../identity/identity-did.md` §4.2](../identity/identity-did.md)）；
 - `identity_accountability`：以 `(issuer principal, subject principal, 归一化 exact scope set)` 选择一条问责背书；第三个分量按 `ak.accountability_scope_set.v1` 摘要，因此 wire 上的单个字符串与它的单元素数组落在同一个 subject；它有两个写入方（独立的 `ak.identity.accountability_grant` 与 `ak.agent.provision` 的原子问责投影），见 [`../models/actor.md` §3.3.1](../models/actor.md)；
 - `capability_grant`：以 `grant_id` 选择一条 Capability Grant 的完整投影（含 reducer 派生的 `authority_depth` / `authority_root_refs`，见 [`capabilities.md` §10](../authz/capabilities.md)）；
+
+  自有受限授权原 issuer 的非枚举 exact read 也使用 `ak.self.current_results.read.exact.v1` 与该 family 的完整 selector，返回含 ineffective/terminal grant 的同 cut value/revision；不返回 grant never_written，不要求 issuer 仍有被授行动权。读取、撤回 CAS 与独立授权闭合见 [owned-agent-authority.md](../authz/owned-agent-authority.md)。
 - `pin`：以完整封闭的 `pin_scope`（`{kind, id}`）选择一个 pin scope 的 tagged 断言集；它是 `keyed-set projection`，
   三条 `ak.pin.*` 各加一条断言，roster、remove-wins 与冲突视图都是读侧折叠（见 [`../models/pins.md` §4.1](../models/pins.md)）；
 - `direct_conversation_binding`：以 `pair_key` 选择一条 canonical Direct Conversation 的

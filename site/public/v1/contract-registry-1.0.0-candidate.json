@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-05.4",
+  "version": "2026-10-05.5",
   "source_of_truth": true,
-  "generated_at": "2026-10-05T18:26:25+08:00",
+  "generated_at": "2026-10-05T19:28:51+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -476,7 +476,8 @@
       "self_authored_proof": "Admitted by a proof bound to the subject principal's identity: either the subject's DID-bound signature / proof of possession, or a currently valid delegated-control proof whose authorization_ref is bound by the subject DID Document. Reducer MUST verify actor == subject, executed_by/authorization_ref when delegated, a fresh replay-protected proof, and that the accepted-at delegation purpose/scope explicitly covers the target event kind, resource and operation; mere presence of a DID-bound delegation is never sufficient. No Realm capability grant is consulted. Fail-closed: missing, stale, unbound, purpose-inapplicable or scope-inapplicable proof MUST be rejected.",
       "sidecar_account_self_authored_proof": "Admitted only when Event actor_id is the account branch and its complete AccountId is the authenticated controller account. The reducer derives controller_account_id byte-for-byte from actor_id.account_id, uses (realm_id, controller_account_id) as the singleton key, and rejects the service actor branch with sidecar_create_denied before revealing existence. The same exact AccountId binds Sidecar membership, MLS genesis and participant authority; principal-only equality is forbidden.",
       "service_attested": "Written by a protocol service component (Auth/Gate server, Events node, applet host, agent runtime) under its service-ID attestation as part of operating the protocol. Reducer MUST verify the issuing service's authority and its binding to the subject/scope; not a user capability. Fail-closed.",
-      "agent_controller_self_authored_proof": "Only a current active controller account may sign a Realm-scoped ak.agent.interaction.set for its exact active member Agent. Author, authenticated account and payload controller AccountId must match in both components; current provision/accountability, controller membership generation, device authorization and expected_revision CAS are checked before any effects. Service authors, Agent self-writes, administrators and executed_by delegation cannot substitute. No capability grants authority for this class. See models/agent-interaction.md section 1."
+      "agent_controller_self_authored_proof": "Only a current active controller account may sign a Realm-scoped ak.agent.interaction.set for its exact active member Agent. Author, authenticated account and payload controller AccountId must match in both components; current provision/accountability, controller membership generation, device authorization and expected_revision CAS are checked before any effects. Service authors, Agent self-writes, administrators and executed_by delegation cannot substitute. No capability grants authority for this class. See models/agent-interaction.md section 1.",
+      "capability_or_owned_agent": "Ordinary capability admission remains required except for ak.capability.grant with the sole closed owned_agent source, or ak.capability.revoke of that source by its original issuer/controller. The source grants only explicitly registered terminal actions; exact account ownership/membership, current controller ceiling, global/key bounds and Agent policy are mandatory. Revoke needs no action authority, active join or runtime, but requires original issuer proof, signing eligibility and exact target CAS. Administrators and other targets use ordinary capability admission. See zh/authz/owned-agent-authority.md."
     },
     "admission_predicate_contract": {
       "closed_world": true,
@@ -2051,7 +2052,7 @@
         "verb_form": "base",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Capability Grant genesis. grant.id is omitted; GrantId is derived by retyping this Event's event_id and inserted only in the reducer projection.",
+        "payload": "Capability Grant genesis. grant.id is omitted; GrantId is derived by retyping this Event's event_id and inserted only in the reducer projection. Dedicated owned_agent source admission follows authz/owned-agent-authority.md; ordinary capability admission is unchanged.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/capability_grant_payload",
         "result_writes": [
           {
@@ -2080,14 +2081,15 @@
               }
             ],
             "value_schema_ref": "schemas/capability-grant.schema.json",
-            "notes": "grant_id is event-derived, so the id:grant selector retypes this create Event's id; encoding.md section 9.5.1 allows envelope.event_id only through that derived form, never as a bare subject field. The projected status is active. status, authority_depth and authority_root_refs are required reducer-materialised members and are not part of the producer's closed authoring body, so an author-supplied value MUST be rejected rather than trusted. issuer_authority_refs are signed semantic lineage only: the governing Station resolves and locks target-Realm local current dependencies at the accepting RealmCommit; producer-selected per-ref revisions, digests and Station-local commit wrappers are forbidden, and every root or parent grant must belong to the target Realm. A derivation outside the closed set is a new normative reducer rule, not a registry edit."
+            "notes": "grant_id is event-derived, so the id:grant selector retypes this create Event's id; encoding.md section 9.5.1 allows envelope.event_id only through that derived form, never as a bare subject field. The projected status is active. status, authority_depth and authority_root_refs are required reducer-materialised members and are not part of the producer's closed authoring body, so an author-supplied value MUST be rejected rather than trusted. issuer_authority_refs are signed semantic lineage only: the governing Station resolves and locks target-Realm local current dependencies at the accepting RealmCommit; producer-selected per-ref revisions, digests and Station-local commit wrappers are forbidden, and every root or parent grant must belong to the target Realm. A derivation outside the closed set is a new normative reducer rule, not a registry edit. The owned_agent execution root derives depth=1 and roots=[the sole owned_agent ref]; it is terminal and never a Realm controller. Its original issuer can revoke without a capability action, using exact current CAS."
           }
         ],
         "id_source": "event_derived",
         "id_kind": "grant",
         "result_effect_ownership": {
           "kind": "typed_result_writer"
-        }
+        },
+        "admission": "capability_or_owned_agent"
       },
       {
         "event_kind": "ak.capability.relinquish",
@@ -2144,7 +2146,7 @@
         "verb_form": "base",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Capability revocation",
+        "payload": "Capability revocation Dedicated owned_agent source admission follows authz/owned-agent-authority.md; ordinary capability admission is unchanged.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/capability_revoke_payload",
         "result_writes": [
           {
@@ -2176,13 +2178,14 @@
               }
             ],
             "value_schema_ref": "schemas/capability-grant.schema.json",
-            "notes": "authz/capabilities.md section 12.1: revoke names an existing grant_id and moves it to the terminal revoked status, so the projection is a merge over the already-projected grant rather than a set -- the immutable grant body survives the close. revoked_by and revoked_at come from the signed envelope, never from the payload, because the closing authority is the Event's own signer. payload.expected_revision is the reducer's compare-and-set precondition; the registry has no spelling for an optimistic-concurrency guard, so it stays a prose rule."
+            "notes": "authz/capabilities.md section 12.1: revoke names an existing grant_id and moves it to the terminal revoked status, so the projection is a merge over the already-projected grant rather than a set -- the immutable grant body survives the close. revoked_by and revoked_at come from the signed envelope, never from the payload, because the closing authority is the Event's own signer. payload.expected_revision is the reducer's compare-and-set precondition; the registry has no spelling for an optimistic-concurrency guard, so it stays a prose rule. The owned_agent execution root derives depth=1 and roots=[the sole owned_agent ref]; it is terminal and never a Realm controller. Its original issuer can revoke without a capability action, using exact current CAS."
           }
         ],
         "id_source": "not_an_object_id",
         "result_effect_ownership": {
           "kind": "typed_result_writer"
-        }
+        },
+        "admission": "capability_or_owned_agent"
       },
       {
         "event_kind": "ak.circle.archive",
@@ -8690,8 +8693,8 @@
         }
       }
     },
-    "version": "2026-10-04.5",
-    "generated_at": "2026-10-04T20:52:42+08:00",
+    "version": "2026-10-05.1",
+    "generated_at": "2026-10-05T19:21:55+08:00",
     "bootstrap_event_kinds": [
       "ak.device.authorize",
       "ak.device.reanchor",
@@ -8732,7 +8735,8 @@
         "sidecar_account_self_authored_proof",
         "service_attested",
         "crypto_verifiable",
-        "agent_controller_self_authored_proof"
+        "agent_controller_self_authored_proof",
+        "capability_or_owned_agent"
       ],
       "acceptance": "A consumer accepts the Event only with a valid RealmCommit in the derived stream and a continuous authority-generation chain.",
       "schema_projection": "schemas/event-envelope.schema.json#/$defs/shared_event_envelope",
@@ -15233,7 +15237,7 @@
         "http": "POST /_arkret/self/current-results/exact",
         "grpc": "SelfCurrentResults/ReadExact",
         "mq": "self.current_results.query.exact",
-        "notes": "Authenticated non-enumerating read of exactly one closed Relation primary_conflict_domain or moderation_state target_ref selector from the current governing Station. The outcome binds realm_id, governance_generation, effective_stream_head and either one selector-identical present entry or an affirmative never_written selector from the same durable cut. never_written may supply expected_revision=null only for Relation create; moderation lift and Relation update/tombstone require present. Invisible, foreign, unknown and unauthorized selectors all return the same not_found and MUST NOT return never_written. Unavailable authority, incomplete coverage, timeout, stale generation, snapshot omission and holder-local history prove no absence. Consumers verify selector equality, Realm/stream binding, current governance generation and revision not ahead of the effective head before authoring; CAS conflict requires a new read, user confirmation and signature. Agent interaction also accepts the exact agent_interaction selector with complete agent_account_id; authorized same-cut never_written permits an omitted expected_revision first mode write and confirmed private default. A guessed ID is not disclosure authority. Mode reads do not expose private participation selection or authorize interaction.",
+        "notes": "Authenticated non-enumerating read of exactly one closed Relation primary_conflict_domain or moderation_state target_ref selector from the current governing Station. The outcome binds realm_id, governance_generation, effective_stream_head and either one selector-identical present entry or an affirmative never_written selector from the same durable cut. never_written may supply expected_revision=null only for Relation create; moderation lift and Relation update/tombstone require present. Invisible, foreign, unknown and unauthorized selectors all return the same not_found and MUST NOT return never_written. Unavailable authority, incomplete coverage, timeout, stale generation, snapshot omission and holder-local history prove no absence. Consumers verify selector equality, Realm/stream binding, current governance generation and revision not ahead of the effective head before authoring; CAS conflict requires a new read, user confirmation and signature. Agent interaction also accepts the exact agent_interaction selector with complete agent_account_id; authorized same-cut never_written permits an omitted expected_revision first mode write and confirmed private default. A guessed ID is not disclosure authority. Mode reads do not expose private participation selection or authorize interaction. Original issuers may also read an exact capability_grant selector for their owned_agent grants, including ineffective and terminal rows and the exact CAS revision. No grant never_written or third-party disclosure. See authz/owned-agent-authority.md section 4.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/exact-current-results-read.schema.json#/$defs/exact_current_results_read_request",
@@ -16396,8 +16400,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-10-05.2",
-    "generated_at": "2026-10-05T11:14:20+08:00",
+    "version": "2026-10-05.3",
+    "generated_at": "2026-10-05T19:21:55+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",

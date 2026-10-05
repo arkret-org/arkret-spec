@@ -1,12 +1,12 @@
 {
-  "version": 28,
+  "version": 29,
   "source_of_truth": false,
   "narrative_source": "spec/v1/zh/models/common-fields.md#r6-证据类名词分工",
   "scope": [
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 376,
+  "audited_occurrence_count": 381,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -826,7 +826,7 @@
     {
       "file": "normative-clause-registry.json",
       "key": "evidence_refs",
-      "occurrences": 34,
+      "occurrences": 39,
       "disposition": "registry_contract",
       "reason": "Names the conformance vectors that prove a normative clause; it is a coverage pointer, not a wire material instance."
     },

@@ -142,6 +142,8 @@ Grant 的 `subject` 可以是具体 ActorId，也可以是条件选择器。
 
 ### 3.2 首发 grant 的 issuer 自身权限上界（normative）
 
+自有 Agent 的专用 `kind="owned_agent"` source 按 [owned-agent-authority.md](./owned-agent-authority.md) 接纳：普通主人可显式签发不可再转授的受限 grant，无需通用 grant action 或 parent authority_control；Agent 保持独立 subject，所有普通协作 Realm 行为持续求交主人当前权限与管理禁令。本节以下 `realm_root`／`grant` 的通用 issuer 规则不替代该专用分支。
+
 以 `kind="grant"` ref 签出的 grant 由 §10.1 强制逐 action 的 `child.actions[] ⊆ union(refs.actions)`、resources 收窄等上界约束，防止再授权扩权。**以 `kind="realm_root"` ref 签出的 grant 受对称的 issuer 自身权限上界约束**：仅持有 `ak.capability.grant` action 本身**不足以**签发任意 grant。两条路径是同一种 grant，只是 `issuer_authority_refs[]` 的 ref 类型不同。
 
 签发以 `realm_root` ref 为根的 `ak.capability.grant` 时，reducer **MUST** 校验：grant 的 `actions[]` 与 `resources[]` 所表达的能力 **MUST ⊆** issuer 在治理 Station 接纳该 Event 的原子判定点**自身当前有效持有**的 effective capability。effective capability 的来源是一个**封闭列表**：active 上游 grant（含 `ak.realm.admin` / `ak.policy.manage` 等 admin capability 与 `ak.realm.owner` co-owner grant），或本节下文的 Realm authority-root typed current result current controller。**membership、`created_by`、Realm 角色标签与任何 `realm_state.owner` 一类投影镜像都不是授权来源**，MUST NOT 参与该判定。issuer 不得签发授予他人超出自身持有能力的 grant。
@@ -668,6 +670,8 @@ canonical 展开表:
 
 v1 只有**一种** grant 形态。每条 grant 用 `issuer_authority_refs[]` 记录它是凭什么被签出的：
 
+除本节通用 `realm_root`／`grant` lineage 外，已登记的单个 `owned_agent` ref 是专用 terminal 自有执行来源，字段、depth/root 派生、当前上界及禁止再转授由 [owned-agent-authority.md](./owned-agent-authority.md) 定义。它不是第三人转授或 Realm root control，也不能与其它 refs 混用。下列通用 lineage 算法不把该来源当成普通 parent grant。
+
 | | root controller 直发 | 普通 principal 再授予 |
 | --- | --- | --- |
 | ref | `{kind:"realm_root", realm_id, authority_event_ref, authority_generation}` | 一个或多个 `{kind:"grant", grant_id}` |
@@ -756,6 +760,8 @@ Reducer MUST 把 `issuer_authority_refs[]` 中 `kind="grant"` 的条目视为有
 - `ak.capability.revoke`：actor MUST 先通过普通 action authorization，随后 target guard 只接受 `actor == target.issuer`，或 actor 是 **target grant 自身 `realm_id`** 的 current root controller。所有 `authority_root_refs[]` 均属于该 Realm，控制其它 Realm 的 root 不获得撤销权。后一分支保证 Realm 转让后新 root owner 能治理旧 controller 签出的 grant；普通 co-owner 与 sibling 不能借 `ak.realm.owner` 撤销上游或同级 grant。不满足时 reducer MUST 拒绝，reason=`grant_revoke_not_authorized`。
 - `ak.capability.relinquish`：subject-only self-service state-changing Event，只接受 `actor == target.subject`。它只减少 actor 自身权限，因此 **MUST NOT** 要求 actor 另持 `ak.capability.revoke`——否则一个窄权限持有人可能无权放弃自己持有的东西。不满足时 reducer MUST 拒绝，reason=`grant_relinquish_not_subject`。被放弃 grant 的 descendants 同样按 refs 在读取时失效。
 - authority-root typed current result **不是** grant，不能成为 revoke / relinquish 的 target；root controller 退出只能走 `ak.realm.owner.transfer`。
+
+上面的 revoke 普通 action gate 有且仅有 [自有受限授权撤回](./owned-agent-authority.md) 的 original issuer/controller 收权例外：合法主人签名和 exact target CAS 足够，无需 revoke action、仍有父行动权、管理新增许可或 Agent runtime 在线。该例外不适用于他人／管理员独立 grant。exact revision 读面覆盖自己的 ineffective/terminal owned_agent grant，撤回终态不阻止以后重新确认签发新的 grant。
 - target guard 需要 target 才能校验 issuer / root-controller / subject 关系，所以 target grant 尚未投影时治理方 **MUST NOT** 接纳该 revoke / relinquish，也 **MUST NOT** 预写未经关系校验的 tombstone。提交方 MAY 把它留在本地队列（[`../models/event-and-patch.md` §5.1](../models/event-and-patch.md) 的 `queued` 本地持久态），在 target grant 可见后**重新**检查 target guard 与 exact revision 并重新提交；该本地待发状态不是共享 reducer 状态，也不得被当作已接纳。接纳发生在治理方的单次原子接纳事务内，因此不存在"grant 先短暂可用于授权判定"的窗口；验证通过后 §12.1 的终态规则照旧（已 revoked 的 `grant_id` re-add 不复活）。材料不全时 MUST NOT 反过来伪造终局拒绝——未知不是 rejected。
 
 subject authoring 的唯一 revision 读面是 `ak.self.authz.grants.read.effective.v1`：治理 Station MUST 从同一次原子
@@ -904,6 +910,8 @@ profile-gated 动作沿用同一原则：出现在 schedule、roster 或成员�
 9. 判断 claim issuer 是否可信。
 10. 判断 claim 是否有效、未过期、未撤销。
 11. 若需要 approval，校验 responsible / guardian / controller approval 证据。**「是否需要」有两个独立来源，MUST 都求值**：命中 grant 上的 approval constraint（[`constraint-schema.md` §9](./constraint-schema.md)），以及 Realm 治理面登记的审批配置（[`../models/governance-objects.md` §3.5](../models/governance-objects.md)）。后者在第 7 步判定为 ALLOWED 之后求值，只能收紧不能授予；两层要求 MUST 各自被满足，任一层写 `approval_required=false` MUST NOT 取消另一层的要求。
+
+自有 Agent 在上述各步之外还 MUST 执行 [owned-agent-authority.md](./owned-agent-authority.md) 的 controller 当前上界、原签自有来源范围、共享父 quota 与当前 Agent 管理 policy。此 AND gate 覆盖所有普通 grant、membership-derived reading、query/delivery/未来访问材料，不因另有一条 ALLOWED 路径、省略 parent ref 或旧 session 而豁免。
 12. 应用 revoke 和 superseding 规则。
 
 Facets 不属于独立授权输入。算法 MUST NOT 在上述步骤之外读取 Morph facets、View renderer 或 track profile 来授予、拒绝或升级权限。第 7 步若检查 Realm schema、Morph profile 或 reducer policy，只能读取其中明确声明的字段规则、状态机 或 policy 条件；MUST NOT 把 facets 本身当作状态机、动作或授权规则。

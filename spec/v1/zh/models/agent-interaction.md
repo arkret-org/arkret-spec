@@ -51,6 +51,8 @@ MUST NOT 继承 controller 的 root／owner／admin／grant。产品可通过成
 简化授权输入，但 MUST 实际签署并接纳相应 grant；角色标签、入群和 UI 开关均不是授权源。
 独立 Direct 的已登记 participant authority source 保持原合同，不由本段追加普通 Realm grant。
 
+普通主人可通过 [自有 Agent 受限来源](../authz/owned-agent-authority.md) 明确授权，无需另持通用 grant action 或管理员补签；这是一条独立签名的 terminal grant，不是继承。全部普通协作授权路径在动作、读取和投递时继续受主人当前权限与有效管理禁令的硬上界。
+
 value 恰为 `{controller_account_id,interaction_mode}`，按同一 stream 的 committed position 整体置换。
 controller binding 与当前 ownership 不一致时，该值不可授权动作。首写前只有治理端同一 current cut 验证
 never-written 才得到已确认默认 `private`；snapshot 缺项、缓存缺失、stale／fork／未取得 head 均为 unknown，
@@ -140,9 +142,10 @@ AccountId、Realm、actual scope 和 request／exchange 隔离上下文、队列
 
 一次用户确认 MAY 驱动数个既有独立写入：获授权 issuer 自著的 `ak.capability.grant`、controller
 自著的 `ak.agent.interaction.set` 与 controller-only participation replace。产品 MUST 分别验证
-各自 signer、issuer 上界、scope／resource 和 CAS；controller 不具备 grant issuer authority 时
-MUST 显示尚需获授权签发者完成授权，不得借 controller ownership、Agent key/session 或服务代签
-补齐。已存在且覆盖已确认账号／action／resource 的有效 grant MUST 复用；不得为正常刷新或重启
+各自 signer、issuer 上界、scope／resource 和 CAS；已验证主人为自有 Agent 配置支持动作时 MUST 使用
+[自有受限来源](../authz/owned-agent-authority.md)，主人当前可在该范围发言时不得要求管理员另给授权。
+非自有／不支持该来源的动作仍需正式获权 issuer，不得借 Agent key/session 或服务代签补齐。
+已存在且覆盖已确认账号／action／resource 的有效 grant MUST 复用；不得为正常刷新或重启
 重复签发。该协调不是原子 batch，没有跨 Realm Event 与私有 participation 的统一事务或成功回执。
 任一步拒绝或 unknown MUST 保留各步真实结果，不能把其它步骤的成功显示为全部配置完成。
 
