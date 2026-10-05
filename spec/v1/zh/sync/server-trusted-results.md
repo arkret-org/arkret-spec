@@ -44,6 +44,42 @@ MLS roster 也按此分工：Account Station 验原时点完整方法权威，se
 与 RFC leaf。没有通用 `verified` 布尔捷径，也没有 MLS-only 方法历史例外；精确 carrier、授权与
 失败关闭见 [encryption-and-audit §2.2](../crypto-media/encryption-and-audit.md)。
 
+### 2.1 普通客户端消费既有治理结果（normative）
+
+上述治理链、Station 方法历史、治理签名与 nonce 验证由消费 Account Station 执行；独立审计者
+按自己的已登记来源执行同一验证。普通客户端 MUST 经 §1.2 已持久接纳、已认证到完整 AccountId
+的自己的 Station 消费原件，MUST NOT 把该客户端消费合同当作独立治理审计或第三方 portable proof。
+客户端 MUST NOT 从 retained Commit 的 signature kid 发起首次 DID discovery、猜测治理 endpoint，
+或为普通同步、current、提交、join、MLS 恢复强制执行方法历史 verifier。
+
+`ak.vector.authority_commit_projection.result_consumption_roles.v1` 验证本节的角色与输入边界。
+
+本合同只复用既有 self Account/committed-event 同步与 scan、typed exact current、Snapshot head/by-ref
+和 self submit outcome，不添加 `verified` 布尔、第二套 receipt、通用 Station key 或 discovery operation。
+自己的 Station MUST 在返回前独立验证该结果的原治理证明、同 stream 连续性、generation 与可见性；
+材料不可得或验证失败时 MUST 返回该 operation 既有不可用/拒绝结果，MUST NOT 返回可用于写入的伪成功。
+原 authority bytes MUST 原样保留，最终事实仍来自治理 Station，自己的 Station 不产生新 finality。
+
+客户端 MUST 独立核对：
+
+1. 实际请求仍使用已接纳 Station base、完整认证账号与当前本地账号会话；迟到的另一账号、重新接入前
+   的 response 或任意 remote/self-shaped result MUST NOT 安装为当前状态。无账号回显的既有 self carrier
+   由该认证请求及其固定本地上下文绑定账号，不增加 wire 镜像。
+2. Realm、effective scope、完整 selector、Event/Commit/ref、revision/generation 与请求及原件逐字一致；
+   重复 selector、重复位置、缺必需项、外 scope 或混合 cut MUST 拒绝。客户端仍重算 content-addressed ID
+   与封闭 shape；TLS/session 信任不授权改写原坐标或忽略明显矛盾。
+3. 每个可见 stream 独立检查 position/predecessor 连续性与已保存 head，禁止同 position 换 Commit、
+   generation/head 回退和把 snapshot 的 sibling head 当本 stream 的 replay predecessor。受历史权限限制的
+   起点仅接受既有 exact Snapshot basis；裸 cursor、到达时间、preview row 和本地 reducer 不能补出 anchor。
+   head/current 与历史 floor 必须来自同一获准 cut；并发 cut 变化按既有不可用合同重取，不能拼接通过。
+4. 每条有 producer envelope 的 Event 仍独立检查 producer proof 自身一致性及 exact historical signer
+   selector；redacted/reference-locked row 不提供 producer 验证材料。MLS roster 原双签、manifest、RFC9420
+   leaf/credential/proposal、application AEAD/AAD、attachment 完整性及用户待签意图继续独立验证。
+
+普通客户端可以持久保存已绑定上述上下文的原件与连续性 checkpoint；MUST NOT 保存可复用的裸 `verified`
+结论、以 current key 替代历史授权实例或把自己的 Station 结果转授给其它角色。自选 Station 或其 TLS/origin
+失陷仍是 §1.2 的残余暴露；本合同不声称检测自己 Station 对有效治理原件的遗漏或虚假验证声明。
+
 ## 3. 转发与缓存
 
 Account Station 可以缓存已验证结果并对自己账号开放，但必须保留 exact authority bytes 和验证状态。
@@ -148,7 +184,8 @@ MUST NOT 用于 historical、Agent、Signal 的独立 signer 或高风险 Contro
 在该历史点有效的 accepted authorization Event”。两者 MAY 相同但 MUST 独立验证，协议不得强制相等、互相替代
 或因 key bytes 相同而合并授权代次。唯一构造来源是已验证
 `realm_sync_entry.committed_events[]` 或 `stream_scan_outcome.committed_events[]` 的 `stream_row{commit,event}`：客户端先验证
-RealmCommit signature／generation／stream／position／predecessor，并核对 `commit.event_ref == event.event_id`，
+该 row 所属认证 self 结果的原 RealmCommit generation／stream／position／predecessor，消费 Station 先验治理签名；
+普通客户端按 §2.1 消费该原件并核对 `commit.event_ref == event.event_id`，
 再逐字复制四坐标。current projection 中嵌套的 Event、`event_states[]`、account cursor、arrival order、
 `created_at`、SignerEvidenceRef 或本地曾见同 EventId 都不能补出坐标；current entry 的 source coordinate 只证明
 该 entry 自身来源，不外推给 value 内嵌 Event。

@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-04.4",
+  "version": "2026-10-05.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-04T20:52:42+08:00",
+  "generated_at": "2026-10-05T02:40:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -5114,6 +5114,20 @@
         "spec/v1/artifacts/fixtures/agent-participation-fixture.json",
         "spec/v1/artifacts/fixtures/event-kind-payload-coverage-fixture.json",
         "spec/v1/artifacts/fixtures/exact-current-results-read-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.authority_commit_projection.result_consumption_roles.v1",
+      "status": "active",
+      "domain": "authority_commit_projection",
+      "applies_to_fixtures": [
+        "governance-result-consumption-roles-fixture.json"
+      ],
+      "description": "Executable role/input policy: ordinary clients consume their persistently bound authenticated own Station original results, retaining exact cuts, continuity and producer/MLS checks; Station/auditor native verification is mandatory. Policy execution does not claim production cryptographic or live cross-station acceptance.",
+      "source_refs": [
+        "spec/v1/zh/sync/server-trusted-results.md",
+        "spec/v1/zh/conformance/conformance-vectors.md",
+        "spec/v1/artifacts/fixtures/governance-result-consumption-roles-fixture.json"
       ]
     }
   ]

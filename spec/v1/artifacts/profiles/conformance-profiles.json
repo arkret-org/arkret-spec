@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-04.6",
-  "generated_at": "2026-10-04T20:52:42+08:00",
+  "version": "2026-10-05.1",
+  "generated_at": "2026-10-05T02:40:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -2448,7 +2448,8 @@
       ],
       "required_fixtures": [
         "scalability-limits-fixture.json",
-        "protocol-edge-cases-fixture.json"
+        "protocol-edge-cases-fixture.json",
+        "governance-result-consumption-roles-fixture.json"
       ],
       "optional_extensions": [
         "realm_state_snapshot_bootstrap"
@@ -2461,7 +2462,22 @@
           "limits"
         ],
         "unsupported_optional": "omit optional feature or return unsupported_feature"
-      }
+      },
+      "governance_result_consumption": {
+        "method_history_verifier": true,
+        "input": "registered_governance_evidence_sources",
+        "checks": [
+          "genesis_and_continuous_handoff_chain",
+          "historical_governance_signature_and_content_id",
+          "nonce_audience_generation_and_freshness",
+          "independent_stream_continuity",
+          "selector_visibility_and_original_bytes"
+        ],
+        "output": "existing_self_results_only"
+      },
+      "required_vectors": [
+        "ak.vector.authority_commit_projection.result_consumption_roles.v1"
+      ]
     },
     "ak.profile.chat_mvp.v1": {
       "enforcement_phases": [
@@ -2754,7 +2770,8 @@
       "required_fixtures": [
         "privacy-security-fixture.json",
         "capability-relinquish-authoring-fixture.json",
-        "mls-roster-client-roles-fixture.json"
+        "mls-roster-client-roles-fixture.json",
+        "governance-result-consumption-roles-fixture.json"
       ],
       "optional_extensions": [
         "ak.profile.e2ee_client.v1",
@@ -2783,8 +2800,24 @@
         ]
       },
       "required_vectors": [
-        "ak.vector.mls.roster_client_roles.v1"
-      ]
+        "ak.vector.mls.roster_client_roles.v1",
+        "ak.vector.authority_commit_projection.result_consumption_roles.v1"
+      ],
+      "governance_result_consumption": {
+        "method_history_verifier": false,
+        "live_did_discovery": false,
+        "input": "authenticated_persistently_bound_own_station_original_results",
+        "portable": false,
+        "checks": [
+          "full_account_and_station_binding",
+          "original_closed_shapes_and_content_ids",
+          "exact_realm_scope_selectors_and_coordinates",
+          "independent_stream_continuity_and_no_rollback",
+          "exact_snapshot_floor_and_same_cut",
+          "producer_proof_self_consistency",
+          "independent_mls_and_attachment_authentication"
+        ]
+      }
     },
     "ak.profile.e2ee_client.v1": {
       "enforcement_phases": [
@@ -2876,7 +2909,8 @@
       "required_fixtures": [
         "mls-rfc9420-kat-fixture.json",
         "privacy-security-fixture.json",
-        "mls-roster-client-roles-fixture.json"
+        "mls-roster-client-roles-fixture.json",
+        "governance-result-consumption-roles-fixture.json"
       ],
       "optional_extensions": [
         "ak.profile.agent_signer_evidence.v1"
@@ -2905,8 +2939,24 @@
         ]
       },
       "required_vectors": [
-        "ak.vector.mls.roster_client_roles.v1"
-      ]
+        "ak.vector.mls.roster_client_roles.v1",
+        "ak.vector.authority_commit_projection.result_consumption_roles.v1"
+      ],
+      "governance_result_consumption": {
+        "method_history_verifier": false,
+        "live_did_discovery": false,
+        "input": "authenticated_persistently_bound_own_station_original_results",
+        "portable": false,
+        "checks": [
+          "full_account_and_station_binding",
+          "original_closed_shapes_and_content_ids",
+          "exact_realm_scope_selectors_and_coordinates",
+          "independent_stream_continuity_and_no_rollback",
+          "exact_snapshot_floor_and_same_cut",
+          "producer_proof_self_consistency",
+          "independent_mls_and_attachment_authentication"
+        ]
+      }
     },
     "ak.profile.agent_signer_evidence.v1": {
       "description": "Portable ordinary-Realm Agent signer authorization evidence. Producers publish one reusable Agent authority state attestation and independent privacy-minimal controller gate. Their maximum 300 second windows constrain direct current-query consumption only; verified ordinary publication evidence remains reusable without periodic refresh and is fenced by known revocation. Historical evidence freezes the original producer proof and authorization evidence, or a distinct receiver receipt. Server and peer consumers verify complete identity/method/history dependencies and reuse unchanged material. Ordinary clients consume authenticated own-Station signing-key results and independently verify message signature/MLS/replay; later terminal transitions do not invalidate previously accepted history.",
@@ -3185,10 +3235,12 @@
         "privacy-security-fixture.json",
         "session-grant-issuance-fixture.json",
         "capability-relinquish-authoring-fixture.json",
-        "mls-roster-client-roles-fixture.json"
+        "mls-roster-client-roles-fixture.json",
+        "governance-result-consumption-roles-fixture.json"
       ],
       "required_vectors": [
-        "ak.vector.mls.roster_client_roles.v1"
+        "ak.vector.mls.roster_client_roles.v1",
+        "ak.vector.authority_commit_projection.result_consumption_roles.v1"
       ],
       "optional_extensions": [
         "ak.profile.federation_minimal.v1",
@@ -3235,6 +3287,18 @@
         ],
         "output": "self_roster_read_outcome",
         "failure_code": "revision_unavailable"
+      },
+      "governance_result_consumption": {
+        "method_history_verifier": true,
+        "input": "registered_governance_evidence_sources",
+        "checks": [
+          "genesis_and_continuous_handoff_chain",
+          "historical_governance_signature_and_content_id",
+          "nonce_audience_generation_and_freshness",
+          "independent_stream_continuity",
+          "selector_visibility_and_original_bytes"
+        ],
+        "output": "existing_self_results_only"
       }
     },
     "ak.profile.federation_minimal.v1": {

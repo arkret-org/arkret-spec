@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-04.11",
+  "version": "2026-10-05.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-04T20:52:42+08:00",
+  "generated_at": "2026-10-05T02:40:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -20080,8 +20080,8 @@
         ]
       }
     ],
-    "version": "2026-10-04.2",
-    "generated_at": "2026-10-04T05:02:28+00:00",
+    "version": "2026-10-05.1",
+    "generated_at": "2026-10-05T02:40:00+08:00",
     "metadata_authority": "contract_registry_section",
     "mls_roster_verification_contract": {
       "roles": {
@@ -20137,6 +20137,56 @@
         "manifest_governance_and_head_source": "authenticated_own_station_authorized_original_signed_manifest",
         "conflicting_or_missing_authorized_provenance": "revision_unavailable"
       }
+    },
+    "governance_result_consumption_contract": {
+      "roles": {
+        "ordinary_client": {
+          "method_history_verifier": false,
+          "live_did_discovery": false,
+          "input": "authenticated_persistently_bound_own_station_original_results",
+          "portable": false,
+          "checks": [
+            "full_account_and_station_binding",
+            "original_closed_shapes_and_content_ids",
+            "exact_realm_scope_selectors_and_coordinates",
+            "independent_stream_continuity_and_no_rollback",
+            "exact_snapshot_floor_and_same_cut",
+            "producer_proof_self_consistency",
+            "independent_mls_and_attachment_authentication"
+          ]
+        },
+        "account_station": {
+          "method_history_verifier": true,
+          "input": "registered_governance_evidence_sources",
+          "checks": [
+            "genesis_and_continuous_handoff_chain",
+            "historical_governance_signature_and_content_id",
+            "nonce_audience_generation_and_freshness",
+            "independent_stream_continuity",
+            "selector_visibility_and_original_bytes"
+          ],
+          "output": "existing_self_results_only"
+        },
+        "independent_auditor": {
+          "method_history_verifier": true,
+          "input": "independently_registered_evidence_sources",
+          "checks": [
+            "genesis_and_continuous_handoff_chain",
+            "historical_governance_signature_and_content_id",
+            "nonce_audience_generation_and_freshness",
+            "independent_stream_continuity",
+            "selector_visibility_and_original_bytes"
+          ]
+        }
+      },
+      "network_from_retained_commit_signer": false,
+      "boolean_only_success": false,
+      "new_wire_carriers": false,
+      "new_operations": false,
+      "authority_origin": "current_governance_station_original_commit_or_snapshot",
+      "local_context_binding": "persistent_station_selection_plus_authenticated_full_account_and_request_epoch",
+      "historical_producer_coordinates": "original_authorized_self_stream_row_exact_committed_event_ref",
+      "failure": "existing_operation_refusal_or_unavailable_no_state_advancement"
     }
   },
   "did_authority_verifier_actions": [

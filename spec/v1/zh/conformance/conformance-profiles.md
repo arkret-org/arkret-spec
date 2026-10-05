@@ -168,6 +168,12 @@ MAY 支持 gossip、snapshot-assisted bootstrap、MIMI facade、Applet bridge �
 
 不声明该 profile 的实现仍可独立支持本地 Signal 或 durable federation；它必须省略 peer relay operation 广告，而不是把远端成员能力逐人暴露。
 
+通用治理结果同样采用上述角色分工：`full_client` / `e2ee_client` 的
+`governance_result_consumption` 只允许自己 Station 的绑定原件、结构连续性与独立 producer/MLS 验证；
+`station` / `core_event_store` 保留完整原生治理验证，详见
+[server-trusted-results §2.1](../sync/server-trusted-results.md#21-普通客户端消费既有治理结果normative)。
+普通客户端不隐式继承 server-only `core_event_store` 的方法历史 verifier。
+
 ## 3. 通用强制要求（所有 Profile 必须遵守）
 
 以下要求不依赖具体角色，必须作为可互操作实现的基础：

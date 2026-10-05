@@ -246,7 +246,7 @@ Event 提交与其 `RealmCommit` 之间授权被撤销时，该 Event MUST 以�
 
 `ak.vector.authority_commit_projection.invalid_proof_fails_closed.v1` MUST 证明：
 producer proof 或 `RealmCommit` 签名无效、绑定错误 `governance_generation`、或 `previous_commit_ref` /
-`stream_position` 链接不成立时，消费方 MUST 拒绝该 Commit 并保持依赖它的状态未变更，
+`stream_position` 链接不成立时，消费 Station / 独立审计 verifier MUST 拒绝该 Commit 并保持依赖它的状态未变更，
 MUST NOT 降级为“签名可疑但内容看起来合理”的接受路径。
 
 `ak.vector.authority_commit_projection.exact_retry_preserves_authorization_and_cas.v1` MUST 证明：
@@ -690,3 +690,12 @@ private 默认／unknown 区分、controller-only／CAS／委托禁止、共享 
 `event-kind-payload-coverage-fixture.json` 执行模式 payload 的 closed schema 正反例。Containment assertions
 固定 Sidecar roster 不变、Circle 不跨界、Message scope 不迁移、上下文不自动发布及 fanout 非追溯；
 这些声明与决策表不证明生产端的模型信息流、真实 MLS、时序侧信道或第二设备已经通过，实施需另行验收。
+
+### 3.26 治理结果消费角色
+
+`ak.vector.authority_commit_projection.result_consumption_roles.v1` MUST 证明普通 full/e2ee 客户端
+只消费已持久接纳、绑定完整账号的自己 Station 的既有原件，不执行方法历史或 retained signer discovery；
+错账号/base/selector/scope、混 cut、回退/同位置换 Commit、无 exact floor anchor 与 boolean-only 结果拒绝。
+客户端 producer/MLS/attachment 验证保留；Station 与独立审计者的历史、治理签名、nonce/链验证不被角色
+分工削弱。角色策略 fixture 的通过只证明机器职责与输入边界；原治理密码学、生产接线和真实跨站验收
+仍须各自执行，不能由策略 fixture 推断通过。

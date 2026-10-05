@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-04.2",
+  "version": "2026-10-05.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-04T05:08:05+00:00",
+  "generated_at": "2026-10-05T02:40:00+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -384,7 +384,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/sync/server-trusted-results.md#56-按次-current-与精确历史签名公钥",
-      "section_digest": "sha256:f7f4ea63965c8ce6d4f85971949d7e2f68cb52d74d0b072fabed27ff8fcf0938",
+      "section_digest": "sha256:7f4bd0a6c487c5e3c2f166761967932b545c92e387a65cadb937f86131d57c3b",
       "requirement": "Self signer keys omit actor/method mirrors, retain complete selector association and invocation context, require historical committed_event_ref plus an independent committed authorization_ref/current revision/governance generation, and leave Signal standalone identity and peer portable evidence intact. Ordinary human current results contain only public_key_b64u after own-Station exact-device directory verification; PCR coordinates remain private and key-only cannot cross into Agent/history.",
       "testability_grade": "api_shape",
       "test_plan": "Run tools.test_self_signer_result_schema and tools.test_residual_simplification for closed query keys, mandatory authorization, historical separation, reordered/unavailable results, duplicate/missing selectors, different methods/Events and invocation mismatch. Runtime authorization, producer signatures and Signal gates remain required and tracked by the existing owner. Run current-signer-contact-endpoint-fixture.json schema cases and Cotest signer_keys_query_live against rebuilt two-Station binaries."
@@ -538,8 +538,8 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/sync/server-trusted-results.md#56-按次-current-与精确历史签名公钥",
-      "section_digest": "sha256:f7f4ea63965c8ce6d4f85971949d7e2f68cb52d74d0b072fabed27ff8fcf0938",
-      "requirement": "An ordinary client obtains exact historical signing keys from its own Station using a committed_event_ref copied only from a verified stream_row. Every result independently keeps the accepted authorization coordinate, revision and governance generation so historical MLS binding remains verifiable; target and authorization refs may differ, and a stable (actor, method, key) triple never substitutes for either exact Event instance.",
+      "section_digest": "sha256:7f4bd0a6c487c5e3c2f166761967932b545c92e387a65cadb937f86131d57c3b",
+      "requirement": "An ordinary client obtains exact historical signing keys from its own Station using a committed_event_ref copied only from a original stream_row consumed from its persistently bound authenticated own Station after Station native governance verification and client exact coordinates/continuity checks. Every result independently keeps the accepted authorization coordinate, revision and governance generation so historical MLS binding remains verifiable; target and authorization refs may differ, and a stable (actor, method, key) triple never substitutes for either exact Event instance.",
       "testability_grade": "audit",
       "test_plan": "Run ak.vector.signer_key.historical_commit_coordinate.v1 and tools.test_signer_key_historical_coordinate_gate: both historical selectors require the four-coordinate ref, target and authorization remain independent, redacted/current-projection/cursor/time sources stay unresolved, and missing coordinates never downgrade to current query. The fixture is a machine semantic suite; production signer resolution and commit verification remain implementation evidence."
     },
@@ -548,7 +548,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/sync/server-trusted-results.md#56-按次-current-与精确历史签名公钥",
-      "section_digest": "sha256:f7f4ea63965c8ce6d4f85971949d7e2f68cb52d74d0b072fabed27ff8fcf0938",
+      "section_digest": "sha256:7f4bd0a6c487c5e3c2f166761967932b545c92e387a65cadb937f86131d57c3b",
       "requirement": "A current self signing-key result serves only the operation that froze it. A same-batch or byte-identical in-flight query may be merged, but a completed result MUST NOT be reused for a future Signal, a future operation or a reconnection. Result association uses complete selector equality rather than array position, and a duplicate, missing or extra selector rejects the whole result.",
       "testability_grade": "audit",
       "test_plan": "Audited against signer-key-operations.schema.json and the self query contract: the review pass asserts results carry no reusable lifetime, that the request context is echoed verbatim and bound to the authenticated SessionGrant account, and that association is specified by complete selector equality with no index-based path. No vector exists because the obligation forbids a later reuse rather than fixing a byte artifact."
@@ -713,6 +713,16 @@
       "requirement": "Strict invocation uses an independent MLS Circle and exact receiving grants; re-encrypted selected attachments, independently signed plaintext result and current invoker relay cannot transfer original group keys or falsify authorship.",
       "testability_grade": "audit",
       "test_plan": "SDK signature and MLS isolation components pass. Live scope/grant/history/blob bypass, revoke, attachment supersets, offline relay and client attribution require independently deployed runtime and clients in 0847. Contract KAT projections are not native authority evidence."
+    },
+    {
+      "clause_id": "AK-NC-086",
+      "status": "active",
+      "category": "security",
+      "source_anchor": "spec/v1/zh/sync/server-trusted-results.md#21-普通客户端消费既有治理结果normative",
+      "section_digest": "sha256:a299b825601d0638cf83dd629f31c4370ba8087a8cacd831d5d6898ccf6ef6b0",
+      "requirement": "Ordinary clients consume only persistently bound authenticated own-Station original governance results, checking full Account and request epoch, exact selectors/scope/cuts, content IDs and per-stream continuity without native method history or retained-signer discovery. Station/auditor governance signature, nonce and native history verification and client producer/MLS/attachment cryptography remain mandatory. No new wire result, operation, boolean trust flag or portable authority is introduced.",
+      "testability_grade": "audit",
+      "test_plan": "Run the complete official artifact pipeline, including all executable governance_result_consumption_roles fixture policy cases. These cases prove only the machine role/input policy. Audit the authenticated host transport and durable context, then execute native cryptographic negative suites and fresh three-Station S3 bilateral encrypted messages in owner1725; policy fixture success alone is not implementation or live acceptance evidence."
     }
   ]
 }

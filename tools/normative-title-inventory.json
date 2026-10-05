@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-04.5",
+  "version": "2026-10-05.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-04T07:15:25+00:00",
+  "generated_at": "2026-10-05T02:40:00+08:00",
   "description": "Closed inventory of current spec/v1/zh headings that explicitly carry the （normative） marker. Any addition, removal, rename, or move is reviewed as a protocol change and refreshes this source-of-truth inventory.",
   "titles": [
     {
@@ -1158,6 +1158,11 @@
       "page": "sync/server-trusted-results.md",
       "heading": "1.2 普通客户端的 Station 接入（normative）",
       "fragment": "12-普通客户端的-station-接入normative"
+    },
+    {
+      "page": "sync/server-trusted-results.md",
+      "heading": "2.1 普通客户端消费既有治理结果（normative）",
+      "fragment": "21-普通客户端消费既有治理结果normative"
     },
     {
       "page": "sync/service-http-binding.md",

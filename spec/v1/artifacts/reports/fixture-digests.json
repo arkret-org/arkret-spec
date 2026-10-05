@@ -296,6 +296,11 @@
       "version": "2026-09-21.1"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/governance-result-consumption-roles-fixture.json",
+      "sha256": "59f5acc6849d3066a42f71e17643032362da1ff1629186a864c82087155288ad",
+      "version": "2026-10-05.1"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/handle-claim-kat.json",
       "sha256": "faeee9e93f3f181916b819d5fea356d9de99f9464ce4a34c566ff19b2582558b",
       "version": "2026-09-19.1"

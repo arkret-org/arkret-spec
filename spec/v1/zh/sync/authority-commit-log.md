@@ -104,12 +104,16 @@ Account Station 对本地提交只可报告 `queued`、`forwarding`、`committed
 跨 stream 不提供原子提交。跨 Realm/Circle/Sidecar 工作流使用 exact committed ref、幂等 saga 和明确补偿 Event。
 
 `exact committed ref` 是闭合四元组 `event_id + commit_id + stream_ref + stream_position`。
-任何 verifier 仍必须验证 Commit 签名与 authority chain；caller-supplied Event、仅 Event ID、猜测性 scan
+消费 Station 与独立审计 verifier 仍必须验证 Commit 签名与 authority chain；普通客户端按
+[`server-trusted-results.md` §2.1](./server-trusted-results.md#21-普通客户端消费既有治理结果normative)
+消费自己的已认证 Station 验证后转达的原件，不重放方法历史。caller-supplied Event、仅 Event ID、猜测性 scan
 或脱离已验证读取结果的 ref 都不是已接纳证明。该合同只解析各自 stream 内的位置，不建立任何跨 stream 顺序。
 
 ## 6. 读取、验证与完整性边界
 
-消费方对每条获准 stream 独立验证：
+消费 Station 与独立审计者对每条获准 stream 独立验证以下六项。普通客户端的原件、
+账号/cut/连续性检查及独立 producer/MLS 验证按 `server-trusted-results.md` §2.1；不能把 Station
+治理历史职责强加给普通客户端，也不能免除 Station 的任何一项验证：
 
 1. authority generation 由 genesis + 连续 handoff chain 授权；
 2. Commit signature 和 content-addressed ID 正确；
@@ -127,7 +131,8 @@ Snapshot 是当前治理 Station 签署的 closed `realm-state-snapshot.schema.j
 加入流程必须为：
 
 1. invite、分享链接、邀请人 Station 或 Directory 提供 `realm_id` 和 authority locator candidate；
-2. 客户端取得 genesis Event/Commit、完整连续 handoff chain 和当前方 nonce-bound assertion；
+2. 申请人的 Account Station 取得并验证 genesis Event/Commit、完整连续 handoff chain 和当前方 nonce-bound assertion；
+   普通客户端只经自己的已认证 Station 发起准备并消费既有结果，不选择外站或执行方法历史；
 3. join Event 经自己的 Account Station 转发到已验证的当前治理 Station；
 4. 只有 membership Commit 成功后才获得可见性；
 5. 申请人的 Station 从当前治理 Station 拉取签名 Snapshot 和获准 stream 的 tail。

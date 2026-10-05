@@ -1,0 +1,461 @@
+{
+  "suite": "governance_result_consumption_roles",
+  "fixture_kind": "semantic",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.authority_commit_projection.result_consumption_roles.v1"
+  },
+  "version": "2026-10-05.1",
+  "profile": "ak.profile.full_client.v1",
+  "covers_vectors": [
+    "ak.vector.authority_commit_projection.result_consumption_roles.v1"
+  ],
+  "machine_contracts": [
+    "registry/contract-registry.json",
+    "profiles/conformance-profiles.json"
+  ],
+  "description": "Executable role policy only. Original governance crypto, producer/MLS crypto, durable host context and live integration require separate actual assertions.",
+  "cases": [
+    {
+      "name": "legal_cross_station_original_self_result",
+      "role": "ordinary_client",
+      "source": "authenticated_persistently_bound_own_station_original_results",
+      "checks": [
+        "full_account_and_station_binding",
+        "original_closed_shapes_and_content_ids",
+        "exact_realm_scope_selectors_and_coordinates",
+        "independent_stream_continuity_and_no_rollback",
+        "exact_snapshot_floor_and_same_cut",
+        "producer_proof_self_consistency",
+        "independent_mls_and_attachment_authentication"
+      ],
+      "method_history_verifier": false,
+      "live_did_discovery": false,
+      "portable": false,
+      "expected": "accept"
+    },
+    {
+      "name": "missing_full_account_and_station_binding",
+      "role": "ordinary_client",
+      "source": "authenticated_persistently_bound_own_station_original_results",
+      "checks": [
+        "original_closed_shapes_and_content_ids",
+        "exact_realm_scope_selectors_and_coordinates",
+        "independent_stream_continuity_and_no_rollback",
+        "exact_snapshot_floor_and_same_cut",
+        "producer_proof_self_consistency",
+        "independent_mls_and_attachment_authentication"
+      ],
+      "method_history_verifier": false,
+      "live_did_discovery": false,
+      "portable": false,
+      "expected": "reject"
+    },
+    {
+      "name": "missing_original_closed_shapes_and_content_ids",
+      "role": "ordinary_client",
+      "source": "authenticated_persistently_bound_own_station_original_results",
+      "checks": [
+        "full_account_and_station_binding",
+        "exact_realm_scope_selectors_and_coordinates",
+        "independent_stream_continuity_and_no_rollback",
+        "exact_snapshot_floor_and_same_cut",
+        "producer_proof_self_consistency",
+        "independent_mls_and_attachment_authentication"
+      ],
+      "method_history_verifier": false,
+      "live_did_discovery": false,
+      "portable": false,
+      "expected": "reject"
+    },
+    {
+      "name": "missing_exact_realm_scope_selectors_and_coordinates",
+      "role": "ordinary_client",
+      "source": "authenticated_persistently_bound_own_station_original_results",
+      "checks": [
+        "full_account_and_station_binding",
+        "original_closed_shapes_and_content_ids",
+        "independent_stream_continuity_and_no_rollback",
+        "exact_snapshot_floor_and_same_cut",
+        "producer_proof_self_consistency",
+        "independent_mls_and_attachment_authentication"
+      ],
+      "method_history_verifier": false,
+      "live_did_discovery": false,
+      "portable": false,
+      "expected": "reject"
+    },
+    {
+      "name": "missing_independent_stream_continuity_and_no_rollback",
+      "role": "ordinary_client",
+      "source": "authenticated_persistently_bound_own_station_original_results",
+      "checks": [
+        "full_account_and_station_binding",
+        "original_closed_shapes_and_content_ids",
+        "exact_realm_scope_selectors_and_coordinates",
+        "exact_snapshot_floor_and_same_cut",
+        "producer_proof_self_consistency",
+        "independent_mls_and_attachment_authentication"
+      ],
+      "method_history_verifier": false,
+      "live_did_discovery": false,
+      "portable": false,
+      "expected": "reject"
+    },
+    {
+      "name": "missing_exact_snapshot_floor_and_same_cut",
+      "role": "ordinary_client",
+      "source": "authenticated_persistently_bound_own_station_original_results",
+      "checks": [
+        "full_account_and_station_binding",
+        "original_closed_shapes_and_content_ids",
+        "exact_realm_scope_selectors_and_coordinates",
+        "independent_stream_continuity_and_no_rollback",
+        "producer_proof_self_consistency",
+        "independent_mls_and_attachment_authentication"
+      ],
+      "method_history_verifier": false,
+      "live_did_discovery": false,
+      "portable": false,
+      "expected": "reject"
+    },
+    {
+      "name": "missing_producer_proof_self_consistency",
+      "role": "ordinary_client",
+      "source": "authenticated_persistently_bound_own_station_original_results",
+      "checks": [
+        "full_account_and_station_binding",
+        "original_closed_shapes_and_content_ids",
+        "exact_realm_scope_selectors_and_coordinates",
+        "independent_stream_continuity_and_no_rollback",
+        "exact_snapshot_floor_and_same_cut",
+        "independent_mls_and_attachment_authentication"
+      ],
+      "method_history_verifier": false,
+      "live_did_discovery": false,
+      "portable": false,
+      "expected": "reject"
+    },
+    {
+      "name": "missing_independent_mls_and_attachment_authentication",
+      "role": "ordinary_client",
+      "source": "authenticated_persistently_bound_own_station_original_results",
+      "checks": [
+        "full_account_and_station_binding",
+        "original_closed_shapes_and_content_ids",
+        "exact_realm_scope_selectors_and_coordinates",
+        "independent_stream_continuity_and_no_rollback",
+        "exact_snapshot_floor_and_same_cut",
+        "producer_proof_self_consistency"
+      ],
+      "method_history_verifier": false,
+      "live_did_discovery": false,
+      "portable": false,
+      "expected": "reject"
+    },
+    {
+      "name": "wrong_station",
+      "role": "ordinary_client",
+      "source": "remote_self_shaped_result",
+      "checks": [
+        "full_account_and_station_binding",
+        "original_closed_shapes_and_content_ids",
+        "exact_realm_scope_selectors_and_coordinates",
+        "independent_stream_continuity_and_no_rollback",
+        "exact_snapshot_floor_and_same_cut",
+        "producer_proof_self_consistency",
+        "independent_mls_and_attachment_authentication"
+      ],
+      "method_history_verifier": false,
+      "live_did_discovery": false,
+      "portable": false,
+      "expected": "reject"
+    },
+    {
+      "name": "boolean_only",
+      "role": "ordinary_client",
+      "source": "boolean_only_result",
+      "checks": [
+        "full_account_and_station_binding",
+        "original_closed_shapes_and_content_ids",
+        "exact_realm_scope_selectors_and_coordinates",
+        "independent_stream_continuity_and_no_rollback",
+        "exact_snapshot_floor_and_same_cut",
+        "producer_proof_self_consistency",
+        "independent_mls_and_attachment_authentication"
+      ],
+      "method_history_verifier": false,
+      "live_did_discovery": false,
+      "portable": false,
+      "expected": "reject"
+    },
+    {
+      "name": "ordinary_forced_history",
+      "role": "ordinary_client",
+      "source": "authenticated_persistently_bound_own_station_original_results",
+      "checks": [
+        "full_account_and_station_binding",
+        "original_closed_shapes_and_content_ids",
+        "exact_realm_scope_selectors_and_coordinates",
+        "independent_stream_continuity_and_no_rollback",
+        "exact_snapshot_floor_and_same_cut",
+        "producer_proof_self_consistency",
+        "independent_mls_and_attachment_authentication"
+      ],
+      "method_history_verifier": true,
+      "live_did_discovery": false,
+      "portable": false,
+      "expected": "reject"
+    },
+    {
+      "name": "retained_signer_discovery",
+      "role": "ordinary_client",
+      "source": "authenticated_persistently_bound_own_station_original_results",
+      "checks": [
+        "full_account_and_station_binding",
+        "original_closed_shapes_and_content_ids",
+        "exact_realm_scope_selectors_and_coordinates",
+        "independent_stream_continuity_and_no_rollback",
+        "exact_snapshot_floor_and_same_cut",
+        "producer_proof_self_consistency",
+        "independent_mls_and_attachment_authentication"
+      ],
+      "method_history_verifier": false,
+      "live_did_discovery": true,
+      "portable": false,
+      "expected": "reject"
+    },
+    {
+      "name": "self_result_portability",
+      "role": "ordinary_client",
+      "source": "authenticated_persistently_bound_own_station_original_results",
+      "checks": [
+        "full_account_and_station_binding",
+        "original_closed_shapes_and_content_ids",
+        "exact_realm_scope_selectors_and_coordinates",
+        "independent_stream_continuity_and_no_rollback",
+        "exact_snapshot_floor_and_same_cut",
+        "producer_proof_self_consistency",
+        "independent_mls_and_attachment_authentication"
+      ],
+      "method_history_verifier": false,
+      "live_did_discovery": false,
+      "portable": true,
+      "expected": "reject"
+    },
+    {
+      "name": "account_station_complete_verification",
+      "role": "account_station",
+      "source": "registered_governance_evidence_sources",
+      "checks": [
+        "genesis_and_continuous_handoff_chain",
+        "historical_governance_signature_and_content_id",
+        "nonce_audience_generation_and_freshness",
+        "independent_stream_continuity",
+        "selector_visibility_and_original_bytes"
+      ],
+      "method_history_verifier": true,
+      "live_did_discovery": false,
+      "portable": false,
+      "expected": "accept"
+    },
+    {
+      "name": "account_station_missing_native_verifier",
+      "role": "account_station",
+      "source": "registered_governance_evidence_sources",
+      "checks": [
+        "genesis_and_continuous_handoff_chain",
+        "historical_governance_signature_and_content_id",
+        "nonce_audience_generation_and_freshness",
+        "independent_stream_continuity",
+        "selector_visibility_and_original_bytes"
+      ],
+      "method_history_verifier": false,
+      "live_did_discovery": false,
+      "portable": false,
+      "expected": "reject"
+    },
+    {
+      "name": "account_station_missing_genesis_and_continuous_handoff_chain",
+      "role": "account_station",
+      "source": "registered_governance_evidence_sources",
+      "checks": [
+        "historical_governance_signature_and_content_id",
+        "nonce_audience_generation_and_freshness",
+        "independent_stream_continuity",
+        "selector_visibility_and_original_bytes"
+      ],
+      "method_history_verifier": true,
+      "live_did_discovery": false,
+      "portable": false,
+      "expected": "reject"
+    },
+    {
+      "name": "account_station_missing_historical_governance_signature_and_content_id",
+      "role": "account_station",
+      "source": "registered_governance_evidence_sources",
+      "checks": [
+        "genesis_and_continuous_handoff_chain",
+        "nonce_audience_generation_and_freshness",
+        "independent_stream_continuity",
+        "selector_visibility_and_original_bytes"
+      ],
+      "method_history_verifier": true,
+      "live_did_discovery": false,
+      "portable": false,
+      "expected": "reject"
+    },
+    {
+      "name": "account_station_missing_nonce_audience_generation_and_freshness",
+      "role": "account_station",
+      "source": "registered_governance_evidence_sources",
+      "checks": [
+        "genesis_and_continuous_handoff_chain",
+        "historical_governance_signature_and_content_id",
+        "independent_stream_continuity",
+        "selector_visibility_and_original_bytes"
+      ],
+      "method_history_verifier": true,
+      "live_did_discovery": false,
+      "portable": false,
+      "expected": "reject"
+    },
+    {
+      "name": "account_station_missing_independent_stream_continuity",
+      "role": "account_station",
+      "source": "registered_governance_evidence_sources",
+      "checks": [
+        "genesis_and_continuous_handoff_chain",
+        "historical_governance_signature_and_content_id",
+        "nonce_audience_generation_and_freshness",
+        "selector_visibility_and_original_bytes"
+      ],
+      "method_history_verifier": true,
+      "live_did_discovery": false,
+      "portable": false,
+      "expected": "reject"
+    },
+    {
+      "name": "account_station_missing_selector_visibility_and_original_bytes",
+      "role": "account_station",
+      "source": "registered_governance_evidence_sources",
+      "checks": [
+        "genesis_and_continuous_handoff_chain",
+        "historical_governance_signature_and_content_id",
+        "nonce_audience_generation_and_freshness",
+        "independent_stream_continuity"
+      ],
+      "method_history_verifier": true,
+      "live_did_discovery": false,
+      "portable": false,
+      "expected": "reject"
+    },
+    {
+      "name": "independent_auditor_complete_verification",
+      "role": "independent_auditor",
+      "source": "independently_registered_evidence_sources",
+      "checks": [
+        "genesis_and_continuous_handoff_chain",
+        "historical_governance_signature_and_content_id",
+        "nonce_audience_generation_and_freshness",
+        "independent_stream_continuity",
+        "selector_visibility_and_original_bytes"
+      ],
+      "method_history_verifier": true,
+      "live_did_discovery": false,
+      "portable": false,
+      "expected": "accept"
+    },
+    {
+      "name": "independent_auditor_missing_native_verifier",
+      "role": "independent_auditor",
+      "source": "independently_registered_evidence_sources",
+      "checks": [
+        "genesis_and_continuous_handoff_chain",
+        "historical_governance_signature_and_content_id",
+        "nonce_audience_generation_and_freshness",
+        "independent_stream_continuity",
+        "selector_visibility_and_original_bytes"
+      ],
+      "method_history_verifier": false,
+      "live_did_discovery": false,
+      "portable": false,
+      "expected": "reject"
+    },
+    {
+      "name": "independent_auditor_missing_genesis_and_continuous_handoff_chain",
+      "role": "independent_auditor",
+      "source": "independently_registered_evidence_sources",
+      "checks": [
+        "historical_governance_signature_and_content_id",
+        "nonce_audience_generation_and_freshness",
+        "independent_stream_continuity",
+        "selector_visibility_and_original_bytes"
+      ],
+      "method_history_verifier": true,
+      "live_did_discovery": false,
+      "portable": false,
+      "expected": "reject"
+    },
+    {
+      "name": "independent_auditor_missing_historical_governance_signature_and_content_id",
+      "role": "independent_auditor",
+      "source": "independently_registered_evidence_sources",
+      "checks": [
+        "genesis_and_continuous_handoff_chain",
+        "nonce_audience_generation_and_freshness",
+        "independent_stream_continuity",
+        "selector_visibility_and_original_bytes"
+      ],
+      "method_history_verifier": true,
+      "live_did_discovery": false,
+      "portable": false,
+      "expected": "reject"
+    },
+    {
+      "name": "independent_auditor_missing_nonce_audience_generation_and_freshness",
+      "role": "independent_auditor",
+      "source": "independently_registered_evidence_sources",
+      "checks": [
+        "genesis_and_continuous_handoff_chain",
+        "historical_governance_signature_and_content_id",
+        "independent_stream_continuity",
+        "selector_visibility_and_original_bytes"
+      ],
+      "method_history_verifier": true,
+      "live_did_discovery": false,
+      "portable": false,
+      "expected": "reject"
+    },
+    {
+      "name": "independent_auditor_missing_independent_stream_continuity",
+      "role": "independent_auditor",
+      "source": "independently_registered_evidence_sources",
+      "checks": [
+        "genesis_and_continuous_handoff_chain",
+        "historical_governance_signature_and_content_id",
+        "nonce_audience_generation_and_freshness",
+        "selector_visibility_and_original_bytes"
+      ],
+      "method_history_verifier": true,
+      "live_did_discovery": false,
+      "portable": false,
+      "expected": "reject"
+    },
+    {
+      "name": "independent_auditor_missing_selector_visibility_and_original_bytes",
+      "role": "independent_auditor",
+      "source": "independently_registered_evidence_sources",
+      "checks": [
+        "genesis_and_continuous_handoff_chain",
+        "historical_governance_signature_and_content_id",
+        "nonce_audience_generation_and_freshness",
+        "independent_stream_continuity"
+      ],
+      "method_history_verifier": true,
+      "live_did_discovery": false,
+      "portable": false,
+      "expected": "reject"
+    }
+  ]
+}
