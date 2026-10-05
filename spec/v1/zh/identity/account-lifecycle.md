@@ -377,6 +377,8 @@ Account Authority 向 Station 复制状态的唯一写 operation 是 `ak.peer.ac
 
 上述 genesis/CAS、record identity/proof、gap/stale/duplicate/fork、幂等冲突与 fanout incomplete/complete 转换由 conformance vector `ak.vector.account_status.issuer_ledger.v1` 闭合。
 
+Controller account gate 的严格依据复用本节原签 issuer-ledger record，见 key-management.md：只公开现有 typed record id 和完整 signed record 摘要，由 AA 私有 current cut 断言。它不把 record 转为 Event，不增加 status publication、receipt 或 ledger 的 authority；初始 active 的 binding default 与后继 active 必须区分。
+
 Current account status 是 ledger current head 的 `status`。该 ledger 是 Account Authority 单写者的 strict hash chain，不存在并发 Event head、severity winner 或 PCR reducer。`account_id` 是 lifecycle key；同一 principal 绑定的其它 `account_id` 独立求值。
 
 `AccountStatusRecord.expires_at` 仅是管理端与 UI 的复核/续期提示，不会在到时自动解除 `locked`、`suspended` 或其它状态。解除或改变状态仍 MUST 由 Account Authority 提交 successor record；receiver MUST NOT 根据本地墙钟合成状态。

@@ -51,12 +51,12 @@
       "prose_only": 2,
       "schema_reference": 164,
       "startup_compile": 225,
-      "vectors": 116
+      "vectors": 117
     },
     "without_wire_consumer": 1,
     "explicit_prose_only": 2,
     "unresolved_consumer_coverage": 0,
-    "without_vector_coverage": 109,
+    "without_vector_coverage": 108,
     "unresolved_vector_disposition": 0
   },
   "without_wire_consumer": [
@@ -107,7 +107,6 @@
     "ak.schema.contact_remark.v1",
     "ak.schema.contact_scope_update.v1",
     "ak.schema.content_block_poll.v1",
-    "ak.schema.controller_account_gate_attestation.v1",
     "ak.schema.controller_account_gate_attestation_issue_outcome.v1",
     "ak.schema.controller_account_gate_attestation_issue_request_body.v1",
     "ak.schema.current_principal_outcome.v1",
@@ -1730,19 +1729,13 @@
       "consumers": {
         "prose": "normative_text",
         "schema_reference": "exact",
-        "startup_compile": "exact"
+        "startup_compile": "exact",
+        "vectors": "fixture"
       },
       "wire_covered": true,
       "vector_coverage": {
-        "disposition": "composed_schema_owned",
-        "owners": [
-          "ak.schema.agent_authority_state_attestation.v1",
-          "ak.schema.agent_authority_state_evidence.v1",
-          "ak.schema.agent_producer_evidence.v1",
-          "ak.schema.controller_account_gate_attestation_issue_outcome.v1",
-          "ak.schema.controller_account_gate_attestation_issue_request_body.v1"
-        ],
-        "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
+        "disposition": "direct",
+        "evidence": "fixture"
       },
       "fragment": "#/$defs/controller_account_gate_attestation"
     },

@@ -15,13 +15,13 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9237,
+    "total_properties": 9241,
     "total_schema_documents": 168,
     "by_presence_class": {
-      "optional": 2156,
+      "optional": 2158,
       "optional_defaulted": 48,
-      "required": 6528,
-      "required_nullable": 324,
+      "required": 6529,
+      "required_nullable": 325,
       "tristate": 181
     },
     "tristate_occurrences": 181,
@@ -2497,6 +2497,10 @@
         "/$defs/controller_account_gate_attestation/allOf/0/else/properties/eligibility": "optional",
         "/$defs/controller_account_gate_attestation/allOf/0/if/properties/status": "required",
         "/$defs/controller_account_gate_attestation/allOf/0/then/properties/eligibility": "optional",
+        "/$defs/controller_account_gate_attestation/allOf/1/if/properties/basis": "required_nullable",
+        "/$defs/controller_account_gate_attestation/allOf/1/if/properties/basis/properties/kind": "required",
+        "/$defs/controller_account_gate_attestation/allOf/1/then/properties/eligibility": "optional",
+        "/$defs/controller_account_gate_attestation/allOf/1/then/properties/status": "optional",
         "/$defs/controller_account_gate_attestation/properties/authority_id": "required",
         "/$defs/controller_account_gate_attestation/properties/basis": "required",
         "/$defs/controller_account_gate_attestation/properties/basis_digest": "required",
@@ -2516,9 +2520,9 @@
         "/$defs/controller_account_gate_basis/oneOf/0/properties/binding_receipt_digest": "required",
         "/$defs/controller_account_gate_basis/oneOf/0/properties/binding_version": "required",
         "/$defs/controller_account_gate_basis/oneOf/0/properties/kind": "required",
+        "/$defs/controller_account_gate_basis/oneOf/1/properties/account_status_record_id": "required",
         "/$defs/controller_account_gate_basis/oneOf/1/properties/kind": "required",
-        "/$defs/controller_account_gate_basis/oneOf/1/properties/status_checkpoint_digest": "required",
-        "/$defs/controller_account_gate_basis/oneOf/1/properties/status_event_id": "required",
+        "/$defs/controller_account_gate_basis/oneOf/1/properties/status_record_digest": "required",
         "/$defs/detached_jws/properties/jws": "required",
         "/$defs/detached_jws/properties/kind": "required"
       }

@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-06.2",
+  "version": "2026-10-06.3",
   "source_of_truth": true,
-  "generated_at": "2026-10-06T02:37:59+08:00",
+  "generated_at": "2026-10-06T06:27:20+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -664,7 +664,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/identity/account-lifecycle.md#31-account-authority-issuer-ledger-与复制载体normative",
-      "section_digest": "sha256:f9cc80192c75a9fbc5bf9ea3a45f8aa9fbae184aa8686d3e3f6ce815efb74767",
+      "section_digest": "sha256:c8363f5d4c31d2a35bd9861db232dba378a7ee78f13cdd132a55b514af4e2baa",
       "requirement": "The Account Authority issuer ledger chains genesis and CAS successors inside the binding commit transaction, binds each record to its issuer identity and proof, classifies every replica state through one closed table, and bounds the fanout outbox.",
       "testability_grade": "vector",
       "evidence_refs": [

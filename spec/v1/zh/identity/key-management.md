@@ -308,9 +308,35 @@ witness **MUST NOT** 携带或要求任何附加的聚合摘要、leaf digest/in
 `controller_account_gate_attestation` 的机读合同是 `ak.schema.controller_account_gate_attestation.v1`（同一 schema 文件的 `controller_account_gate_attestation`），`schema` 成员 MUST 逐字携带该 id。它由 Account Authority 在 domain `ak.controller_account_gate.v1` 下签名，只公开
 controller principal `did_core_id`、closed active/inactive eligibility、六值 account status、`basis.kind` 对应的最小
 binding/status digest 与时窗。`account_binding_default` 表示权威私有 binding 上尚无更严格 accepted status head；
-`account_status_event` 绑定真实 status Event/checkpoint digest。`status=active` 当且仅当 `eligibility=active`；其它状态
+`account_status_record` 绑定真实 issuer-ledger current head 的 `account_status_record_id` 与
+`status_record_digest = SHA-256(JCS(完整原签 AccountStatusRecord))`；摘要包含 record id 与 proof。
+AccountStatusRecord 不是 Event，不引用 RealmCommit、Station checkpoint 或新聚合 checkpoint。`status=active` 当且仅当 `eligibility=active`；其它状态
 全部 inactive。由于 portable evidence 不公开 service-local account identity，任何 `account_id`、raw account typed current result 或
 caller 自报 active 布尔值都是 schema violation。
+
+签发新的 gate MUST 在同一个稳定的私有 ledger head、完整 binding 与 account 状态 cut 下判断 basis。
+`account_binding_default` 只允许已确认尚无 ledger head，或与当前完整 AccountId/PCR、Account Authority、binding version
+完全匹配的初始 `status_seq=1,status=active`、无 predecessor record；同时当前 account 必须 active。
+任何后继 head，包括 Pause 后恢复为 active 的 record，MUST 使用 `account_status_record`，不得退回 binding default。
+AA MUST 使用此前已经接纳、不可变的原 signed record，验证其 record id、原历史 AA proof、完整私有 subject/binding
+以及 current head 关系，且 gate.status MUST 等于该 record.status；缺失原件或不能证明上述关系时拒绝新签发。
+不得把 record id 转型为 EventId、重建或重签 status record、以当前 DID/PCR 值填补历史缺材。
+
+`basis_digest` 的唯一 preimage 明确为下面的公开字段投影（不带 domain prefix）：
+`SHA-256(JCS({principal_id: gate.principal_id, accepted_id: gate.authority_id, status: gate.status, basis: gate.basis}))`。
+这里 `accepted_id` 只是该既有投影的派生键，不是新增 wire 成员；它代表原部署内请求的 `agent_authority_id`，
+既有接纳门已经要求其等于 owning AA/Station，不能由调用方另填或从隐藏 local account 猜测。
+接收 SDK MUST 从原 Gate 公开字段重新计算并精确比较 `basis_digest`；即使 AA 签名有效，摘要不匹配也拒绝。
+该可计算性不证明隐藏 Record 的原件/私有 current cut，不能借此扩大读取权。
+gate 的 `ak.controller_account_gate.v1` 签名 preimage、TTL、
+部署内认证 operation 与 request-id exact replay 不变。exact durable replay 返回原已保存 gate bytes，不重新判断
+当前 head，也不得修改历史签名字节；本次修正不使旧 `account_status_event` branch 成为新签发或新接纳依据。
+接收方只验证 Gate 的 closed shape、basis digest、AA 历史 method 授权与独立签名、时窗、六状态/eligibility
+及原 controller/Station 关系；本 branch 不授权读取隐藏 signed record、完整 AccountId/PCR 或私有 ledger。
+该 typed record id 与摘要会暴露同一私有 head 被重复引用时的相等性，不声称零元数据；它们不授予原件读取权。
+记录摘要不是 AA current assertion 的独立证明：AA 对私有原件与 current cut 的正确性承担职责，接收方保留该残余信任。
+本闭包复用 conformance vector `ak.vector.account_status.issuer_ledger.v1`，覆盖 initial default 与六状态 successor。
+Record 先签名并成为 accepted head，Gate 后承诺其完整摘要；Record proof 不引用 Gate，因此不存在摘要循环。
 
 Account Authority 是同一 owning Station 下的独立签名职责，可以使用专用 verification method，但没有独立 service DID（见 overview/architecture.md 与 sync/service-surface.md）。消费者从实际 Agent 完整 AccountId 独立取得 Station：gate.authority_id MUST 等于该 Station；controller 的完整 AccountId 从 key_authorization_event 的已验证原始 producer proof 与可携带授权 与 producer 身份取得，MUST 等于 {principal_id: binding.controller_principal_id, station_id: Agent AccountId.station_id}。同 principal 在另一 Station 的 Account 或 gate 自报 authority 均不能替代。controller binding 使用该 Event 冻结的 producer method/key 验签；设备 method 不要求出现在 Principal DID assertionMethod 中，不再携带独立 controller signer evidence ref。
 

@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-06.2",
+  "version": "2026-10-06.4",
   "source_of_truth": false,
-  "generated_at": "2026-10-06T02:34:08+08:00",
+  "generated_at": "2026-10-06T06:44:34+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -283,7 +283,35 @@
     "compact_cache_miss": "dependency_missing",
     "known_digest_request": false,
     "extra_fetch_endpoint": false,
-    "participation_in_state": false
+    "participation_in_state": false,
+    "controller_account_gate_basis": {
+      "default": "stable_absence_or_exact_initial_active_binding",
+      "successor": "account_status_record",
+      "record_id_schema_ref": "schemas/common-ids.schema.json#/$defs/account_status_record_id",
+      "record_digest_preimage": "complete_original_signed_account_status_record",
+      "record_digest_suite": "sha256",
+      "issuer_source": "private_stable_issuer_ledger_head_and_binding_cut",
+      "consumer_record_fetch": false,
+      "consumer_verifies_hidden_record": false,
+      "new_status_event_or_checkpoint": false,
+      "successor_active_uses_default": false,
+      "exact_replay": "original_saved_gate_bytes_before_current_rejudgment",
+      "basis_digest_preimage": {
+        "canonicalization": "jcs",
+        "digest_suite": "sha256",
+        "domain_prefix": false,
+        "fields": {
+          "principal_id": "gate.principal_id",
+          "accepted_id": "gate.authority_id",
+          "status": "gate.status",
+          "basis": "gate.basis"
+        },
+        "accepted_id_source": "original_internal_request_agent_authority_id_equal_owning_aa_station",
+        "accepted_id_is_wire_member": false,
+        "consumer_recompute_exact_eq": true,
+        "consumer_record_fetch": false
+      }
+    }
   },
   "agent_participation_runtime_contract": {
     "get_replace_role": "controller",

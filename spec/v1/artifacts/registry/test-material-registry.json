@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-06.1",
+  "version": "2026-10-06.2",
   "source_of_truth": true,
-  "generated_at": "2026-10-06T01:49:40+08:00",
+  "generated_at": "2026-10-06T06:27:20+08:00",
   "description": "Canonical test signing material, reserved identifiers, and the closed role inventory for every concrete did:webvh identity example in artifacts and normative prose. Identity roles are exactly test_material, deployment_like_example, and derived_positive; only test_material enters the reserved namespace. Derived positives bind recomputable fixture pointers.",
   "rules": [
     "published_signing_material[].fingerprint is sha256 over the ALGORITHM-DEFINED public key encoding named by public_key_encoding, never over JWK, multibase, PEM or any JSON text. The same public key carried under a different kid, DID, JWK member order or transport encoding MUST produce the same fingerprint.",
@@ -47,6 +47,7 @@
       "fingerprint": "sha256:56475aa75463474c0285df5dbf2bcab73da651358839e9b77481b2eab107708c",
       "why": "Ed25519 key generated from the published fixed seed bytes 0x00 through 0x1f. It signs the Ed25519 detached-JWS KAT, the franking proof transcript, the KeyPackage write transcript, the key backup hardening offline transcript, the human endpoint MLS KeyPackage KAT, the recovery transcript and the producer signer KAT, so every one of those fixtures hands a verifier a working private key.",
       "source_fixtures": [
+        "spec/v1/artifacts/fixtures/account-status-issuer-ledger-fixture.json",
         "spec/v1/artifacts/fixtures/approval-signature-kat-fixture.json",
         "spec/v1/artifacts/fixtures/contact-round-kat.json",
         "spec/v1/artifacts/fixtures/content-bound-event-id-fixture.json",

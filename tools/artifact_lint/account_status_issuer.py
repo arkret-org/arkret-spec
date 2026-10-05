@@ -65,3 +65,17 @@ def check_account_status_issuer_genesis(lint: Lint) -> None:
             FIXTURE_PATH,
             "AK-NC-081/genesis_creation evidence must be exactly ['/genesis_rules']",
         )
+
+    # The same canonical ledger vector also closes the private Gate source role.
+    try:
+        from tools.regenerate_controller_gate_basis_fixture import build, verify_case, default_allowed
+        contract = data.get("controller_gate_basis_contract")
+        if contract != build(data):
+            raise ValueError("controller Gate basis transcript drift")
+        for case in contract["cases"]:
+            verify_case(case)
+        for decision in contract["default_decisions"]:
+            if default_allowed(decision["binding"], decision["head"], decision["user_active"]) != decision["allowed"]:
+                raise ValueError("default source decision")
+    except Exception as error:
+        lint.fail(FIXTURE_PATH, "controller Gate basis contract: " + str(error))
