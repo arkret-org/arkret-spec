@@ -24,10 +24,15 @@ jobs:
       - name: Run lint self-tests
         run: |
           set -e
+          status=0
           for test in tools/test_*.py; do
             echo "=== $test ==="
-            python "$test"
+            module="${test%.py}"
+            if ! python -m "${module//\//.}"; then
+              status=1
+            fi
           done
+          exit "$status"
       # The naming predicates are only as good as the surface they reach. This
       # fails the build if the schema walker ever stops reaching a declared
       # property, which is how the rules silently stopped applying before, and

@@ -141,7 +141,7 @@ def main() -> None:
     fixture["cases"] = [row for row in fixture["cases"] if row.get("vector_id") != VECTOR_ID]
     fixture["cases"].append(case)
     fixture["version"] = "2026-09-24.4"
-    FIXTURE.write_text(json.dumps(fixture, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    FIXTURE.write_text(json.dumps(fixture, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
     subprocess.run(["node", "tools/regenerate_key_backup_hardening_kat.mjs"], cwd=ROOT, check=True)
 
 
