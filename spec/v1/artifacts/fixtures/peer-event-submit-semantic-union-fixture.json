@@ -1,6 +1,6 @@
 {
   "profile": "ak.vector.peer.event_submit.semantic_union.v1",
-  "version": "2026-09-28.1",
+  "version": "2026-10-06.1",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.peer.event_submit.semantic_union.v1"
@@ -19,7 +19,7 @@
     "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
     "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_outcome",
     "schemas/authority-commit-operations.schema.json#/$defs/membership_compensation_evidence",
-    "schemas/account-device-signer-evidence.schema.json"
+    "schemas/account-device-signer-evidence.schema.json#/$defs/forward_account_device_signer_evidence"
   ],
   "cases": [
     {
@@ -165,7 +165,7 @@
       "producer_resolution": "single_rule_for_every_event_kind",
       "signer_selector": "executed_by_when_present_else_actor_id; mls_submission uses its commit_event",
       "evidence_member": "producer_device_evidence",
-      "evidence_schema_ref": "schemas/account-device-signer-evidence.schema.json",
+      "evidence_schema_ref": "schemas/account-device-signer-evidence.schema.json#/$defs/forward_account_device_signer_evidence",
       "evidence_presence": "required iff actual signer is an Account and proof.verification_method fragment is ak:device:; forbidden otherwise; never allowed on committed_replication or registered_atomic_unit",
       "setup": {
         "account_station": "station_a",

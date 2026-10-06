@@ -207,6 +207,25 @@ class PeerEventSubmitGateTest(unittest.TestCase):
 
         self.assert_red(mutate, "directly reuse closed forward account-device-signer-evidence")
 
+    def test_forward_fixture_rejects_directory_evidence_reference(self) -> None:
+        def mutate(documents: dict) -> None:
+            fixture = documents[gate.FIXTURE.resolve()]
+            gate._find(fixture["cases"], "name", "authority_forward_producer_device_evidence")["evidence_schema_ref"] = "schemas/account-device-signer-evidence.schema.json"
+
+        self.assert_red(mutate, "fixture must reference the closed forward evidence definition")
+
+    def test_forward_fixture_requires_forward_evidence_reference(self) -> None:
+        def mutate(documents: dict) -> None:
+            fixture = documents[gate.FIXTURE.resolve()]
+            fixture["required_schema_refs"] = [
+                "schemas/account-device-signer-evidence.schema.json"
+                if ref == "schemas/account-device-signer-evidence.schema.json#/$defs/forward_account_device_signer_evidence"
+                else ref
+                for ref in fixture["required_schema_refs"]
+            ]
+
+        self.assert_red(mutate, "required_schema_refs must include the closed forward evidence definition")
+
     def test_producer_device_evidence_is_not_schema_required(self) -> None:
         def mutate(documents: dict) -> None:
             self.defs(documents)["peer_submit_request"]["oneOf"][0]["required"].append("producer_device_evidence")

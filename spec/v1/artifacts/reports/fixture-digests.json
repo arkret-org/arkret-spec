@@ -437,8 +437,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/peer-event-submit-semantic-union-fixture.json",
-      "sha256": "99daeacaadb6e3ced6368ce428b0dacc5b598bd079a646ae55957cd26af2c16a",
-      "version": "2026-09-28.1"
+      "sha256": "01d9063dd899a60c715581988ab9205b68f78dc470613c6467e6064410975842",
+      "version": "2026-10-06.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/privacy-security-fixture.json",

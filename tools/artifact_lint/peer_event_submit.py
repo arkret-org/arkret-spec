@@ -539,6 +539,12 @@ def check_peer_event_submit_semantic_union(lint: Lint) -> None:
     forward_case = _find(fixture.get("cases"), "name", "authority_forward_producer_device_evidence")
     if not isinstance(forward_case, dict) or forward_case.get("vector_id") != PRODUCER_EVIDENCE_VECTOR:
         _fail(lint, FIXTURE, "authority-forward producer-evidence case must carry its vector_id")
+    forward_evidence_ref = "schemas/account-device-signer-evidence.schema.json#/$defs/forward_account_device_signer_evidence"
+    if not isinstance(forward_case, dict) or forward_case.get("evidence_schema_ref") != forward_evidence_ref:
+        _fail(lint, FIXTURE, "authority-forward fixture must reference the closed forward evidence definition")
+    required_refs = fixture.get("required_schema_refs")
+    if not isinstance(required_refs, list) or forward_evidence_ref not in required_refs:
+        _fail(lint, FIXTURE, "authority-forward fixture required_schema_refs must include the closed forward evidence definition")
     for operation_id in ("ak.peer.events.command.submit.v1", "ak.self.events.command.submit.v1"):
         row = _find(mapping.get("operations"), "operation_id", operation_id)
         codes = set(row.get("operation_specific", [])) if isinstance(row, dict) else set()
