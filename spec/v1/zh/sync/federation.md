@@ -3,7 +3,7 @@ title: Station Federation and Authority Replication
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-16
+updated: 2026-10-06
 see_also:
   - ../conformance/normative-language.md
   - authority-commit-log.md
@@ -179,7 +179,23 @@ typed reducer 推进本地 current，并据此完成本节的接收方重验。�
 原样，只作 canonical 持有，不推进 current，也不构成复制权。连续性从该 join 重新起算：终止 Commit 与该 join 之间的
 位置与首次开流时 join 之前的位置相同，本 Station 对其没有复制权，不补齐，也不按下文「Withheld 链节点」拉取。
 Circle bootstrap 必须验证该 member 的父 Realm 本地 current `member_state` 为 `join`，且其 `revision` 逐字段等于该 Circle join 的 `parent_membership_revision`（[`../models/circle.md` §9.1](../models/circle.md)）。本地 Realm 副本在同一 Realm stream 上尚未覆盖该 revision（Circle 先到、Realm 滞后），或本地父 current 已是另一 revision（该父 join 已被 leave／ban／rejoin 取代，该 Circle join 已 effective-invalid）时，均不构成本机托管成员的有效 join：MUST `dependency_missing` 零写该项，不开流、不锚定；前者待 Realm 副本推进后由重试成功，后者由发送方发送前的 basis 重验转为 `cancelled_authority_lost`。比较只用 Commit 身份与父 Realm stream 内的 position，不与 Circle stream position 互认；`membership_commit_id` 必须指向其自身 Circle join 的 covering Commit，不能以父 Realm join 替代。snapshot 只包含同一 accepted cut 中 caller 有权读取的 stream 与 current；本 Circle stream 的 floor 精确等于该 Circle join 位置，其它可读 stream 继续按各自 history floor 裁剪，不套用 Circle 的 position。
-需要多 Event 的 bootstrap 仍使用 registered atomic unit。
+需要多 Event 的 bootstrap 仍使用 registered atomic unit。上述一般单项 bootstrap 的首次开流前缀仍以该 join
+位置为 floor；Circle 继续适用上一段自身 join 与父 membership revision 规则。本段不把 Direct Conversation
+四项 founding 拆成四个单项 bootstrap，也不扩张一般首次开流或 rejoin 的前缀权限。
+
+**已完成原子单元 materialization 后的 Snapshot 刷新（normative）**：成员站已经完成 registered atomic unit
+materialization 后，刷新治理 Snapshot 应保留该 caller 依 history-visibility §3.1 已证明的 canonical history floor。
+在 `since_join` 下，只有该 caller 的当前有效 join Commit 与 position 0 属于同一已登记、已接受原子单元，
+并有该单元完整已接受原件与连续 RealmCommit 链证明时，才保留创始成员 floor 0：普通 Realm bootstrap 创建者，
+或 Direct Conversation founding 四项中对应完整 Actor 的初始成员。不得仅凭 Realm purpose、成员名称、低位置或
+缓存的旧创始身份降低 floor；当前 join 被 rejoin 替代时仍以该当前 join 为 floor。原件缺失或单元证明不完整时，
+继续适用现有缺依赖与 history/current membership 门。
+
+此类已完成原子 materialization 的刷新不得为套用一般单项 bootstrap 前缀而把已证明合法的 floor 0 改写为
+join position，或删除同单元中原本合法的 current rows。仍须验证治理 Snapshot 签名、tenure/generation、完整
+caller/stream scope、当前有效 join、原子单元证明、visible heads 与连续前缀，并要求待发布 Snapshot 与该 Account
+完整 current cut 一致。不新增读取操作、DTO、其它 stream 权限或跨 stream 位置比较；不改变一般首次单项 bootstrap、
+一般 rejoin 与 Circle 的原规则。
 
 **Withheld 链节点（normative）**：同一 stream 上本机托管成员无权取得完整 bytes 的位置不会进入本 Station 的
 目标集，其后继的 `previous_commit_ref` 因而指向本地未持有的位置。接收方对该项仍 MUST `dependency_missing` 零写入，
