@@ -1243,3 +1243,5 @@ Applet v1 conformance 按 profile 继承拆分。实现声明某 profile 时 MUS
 - **History 读取不可越权**：widget MUST NOT 通过任何接口读取超出其 capability scope 的 Event history；host 客户端 MUST 以 widget 的 scoped capability 为准做 history 访问授权，未授权范围 MUST 拒绝。
 - **写入同样不可越权（防 confused-deputy）**：所有经 widget scoped token 发起的调用——无论 read 还是 write——node / host MUST 以该 scoped capability 授权，MUST NOT 回退到 host 用户的 full session 权限。任何经 widget scoped token 的 Event submit / 副作用写入，其授权范围 MUST 受 `token_scope` 约束并 MUST NOT 超出；若写入路径回退到 host 用户 full session，widget 即可借宿主越权写入，构成 confused-deputy，MUST 拒绝。
 - **Consent**：`consent_required=true` 时，host 客户端 MUST 在加载 widget 前向用户展示其 origin 与请求 scope，未获 consent MUST NOT 加载。
+
+普通成员对已获准读取的 Applet 代发 Event，MUST 使用原 RealmCommit 绑定的最小 Service 历史验签投影，合同见 sync/authority-commit-log.md。该只读投影只服务 exact Event 验签，不授予 runtime completion、私有创建／问责记录或整段历史读取权；current 安装状态变化不替代原 accepted fact。

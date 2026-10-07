@@ -64,7 +64,7 @@
     },
     "producer_signer_fact_digest": {
       "$ref": "./account-operations.schema.json#/$defs/sha256_digest",
-      "description": "SHA-256 of JCS human_historical_signer_fact; required by new ordinary Human-device business admission, forbidden for other producer/native/PCR branches. Optional in schema only for exact existing_original decode. Includes no target Commit identity; all finalized members enter existing Commit content-ID and detached signature projections."
+      "description": "Fixed SHA256 over RFC8785 JCS of the original immutable Human or Applet Service producer fact, excluding the outer target coordinate. Freeze before Commit identity/signature and retain with acceptance; exact replay, replica and handoff preserve this original digest."
     },
     "signature": {
       "$ref": "./detached-object-signature.schema.json#/$defs/realm_commit_signature"

@@ -377,6 +377,11 @@ NORMALIZED_STRING_SET_CONTEXTS = {
 
 
 VALUE_PROJECTION_DERIVATIONS = {
+    "calendar_source_effective_scope",
+    "calendar_schedule_source_ref",
+    "accepted_current_revision",
+    "calendar_metadata_context",
+    "realm_authority_event_ref",
     "mls_group_id_from_effective_scope",
     "event_digest_from_event_id",
     "mls_commit_transition_digest",
@@ -456,6 +461,11 @@ CELL_WRITE_DERIVATIONS = {
     # shape (`ak.moderation.decision.lift` carries one and writes a keyed set).
     "consent_status",
     "realm_authority_generation_successor",
+    "realm_authority_event_ref",
+    "calendar_source_effective_scope",
+    "calendar_schedule_source_ref",
+    "accepted_current_revision",
+    "calendar_metadata_context",
     "realm_controller_epoch_successor",
     # zh/models/common-fields.md section 3.3 registers the three reusable public
     # metadata rules. They are not three View-specific strings: every canonical

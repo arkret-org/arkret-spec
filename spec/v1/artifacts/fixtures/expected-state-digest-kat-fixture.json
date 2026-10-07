@@ -1,6 +1,6 @@
 {
   "profile": "ak.vector.current_results.expected_state_digest.v1",
-  "version": "2026-09-26.2",
+  "version": "2026-10-07.1",
   "runner": {
     "kind": "known_answer_tests"
   },
@@ -29,7 +29,8 @@
             }
           },
           "controller_epoch": 0,
-          "authority_generation": 0
+          "authority_generation": 0,
+          "authority_event_ref": "ak:event:AXKJvMpMFIFTD9GYNEzOeImU-2ytvLCtsCq3Mrq9-Ci8"
         }
       },
       "digest_input_value": {
@@ -41,10 +42,11 @@
           }
         },
         "controller_epoch": 0,
-        "authority_generation": 0
+        "authority_generation": 0,
+        "authority_event_ref": "ak:event:AXKJvMpMFIFTD9GYNEzOeImU-2ytvLCtsCq3Mrq9-Ci8"
       },
-      "canonical_utf8": "{\"authority_generation\":0,\"controller_actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturealice\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationa\"},\"kind\":\"account\"},\"controller_epoch\":0}",
-      "expected_digest": "sha256:20732cac29148913b4f7f707b0e9b209f31b7eba412f6cdbbd1eb4db2d7eb1dc",
+      "canonical_utf8": "{\"authority_event_ref\":\"ak:event:AXKJvMpMFIFTD9GYNEzOeImU-2ytvLCtsCq3Mrq9-Ci8\",\"authority_generation\":0,\"controller_actor_id\":{\"account_id\":{\"principal_id\":\"ak:did_core:webvh:z6mkfixturealice\",\"station_id\":\"ak:did_core:webvh:z6mkfixturestationa\"},\"kind\":\"account\"},\"controller_epoch\":0}",
+      "expected_digest": "sha256:59af752dff46099fc17ee1a7441acc82d00b531d33e216122ad452671dfa1dd5",
       "why": "A single-value family digests its complete frozen typed current value."
     },
     {

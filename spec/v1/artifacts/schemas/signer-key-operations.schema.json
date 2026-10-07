@@ -233,6 +233,9 @@
         },
         {
           "$ref": "#/$defs/historical_agent_selector"
+        },
+        {
+          "$ref": "#/$defs/historical_service_selector"
         }
       ]
     },
@@ -428,6 +431,9 @@
               },
               {
                 "$ref": "#/$defs/unavailable_outcome"
+              },
+              {
+                "$ref": "#/$defs/historical_service_outcome"
               }
             ]
           }
@@ -450,6 +456,113 @@
       },
       "additionalProperties": false,
       "description": "Own-Station verified ordinary human current key, valid only for the frozen invocation and exact enclosing selector. No PCR coordinates or portable evidence are disclosed."
+    },
+    "signing_service_actor_id": {
+      "type": "object",
+      "required": [
+        "kind",
+        "service_id"
+      ],
+      "properties": {
+        "kind": {
+          "const": "service"
+        },
+        "service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        }
+      },
+      "additionalProperties": false
+    },
+    "historical_service_selector": {
+      "type": "object",
+      "required": [
+        "verification_mode",
+        "sender_kind",
+        "actor",
+        "verification_method",
+        "committed_event_ref"
+      ],
+      "properties": {
+        "verification_mode": {
+          "const": "historical_event"
+        },
+        "sender_kind": {
+          "const": "service"
+        },
+        "actor": {
+          "$ref": "#/$defs/signing_service_actor_id"
+        },
+        "verification_method": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
+        },
+        "committed_event_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref",
+          "description": "Exact committed coordinate of the historical Event being verified. Its stream_ref.realm_id MUST equal the enclosing request realm_id. It is constructed only from a verified stream_row, never from a bare Event, current projection, cursor, time or cache order."
+        }
+      },
+      "additionalProperties": false
+    },
+    "service_historical_signing_key": {
+      "type": "object",
+      "required": [
+        "public_key_b64u",
+        "applet_id",
+        "registration_epoch",
+        "registration_ref",
+        "authorization_ref",
+        "effective_scope"
+      ],
+      "properties": {
+        "public_key_b64u": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$",
+          "description": "Canonical unpadded base64url of exactly 32 Ed25519 public-key bytes; this is public material, not reusable current authorization."
+        },
+        "applet_id": {
+          "$ref": "./common-ids.schema.json#/$defs/applet_id"
+        },
+        "registration_epoch": {
+          "$ref": "./event-payload.schema.json#/$defs/digest"
+        },
+        "registration_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "authorization_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "effective_scope": {
+          "$ref": "./event-envelope.schema.json#/$defs/scope_ref"
+        }
+      },
+      "additionalProperties": false
+    },
+    "historical_service_outcome": {
+      "type": "object",
+      "required": [
+        "selector",
+        "status",
+        "key",
+        "accepted_at"
+      ],
+      "properties": {
+        "selector": {
+          "$ref": "#/$defs/historical_service_selector"
+        },
+        "status": {
+          "const": "resolved"
+        },
+        "key": {
+          "$ref": "#/$defs/service_historical_signing_key"
+        },
+        "accepted_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp",
+          "description": "Original target governance Commit committed_at; frozen before signing its fact digest."
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-max-canonical-bytes": 16384
     }
   }
 }

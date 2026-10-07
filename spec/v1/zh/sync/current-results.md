@@ -41,6 +41,7 @@ Realm、每个 Circle、每个 Sidecar 分别拥有独立 commit stream。当前
 每条结果是一个 closed typed object，包含领域 `selector`、`revision` 与完整领域值。v1 登记的 selector kind 为：
 
 - `realm_profile`：当前 Realm profile；
+- `calendar_schedule_source`：以 strand_id 选择与该 Strand current 同一 stream／revision 的最小日程来源与加密重建上下文，见 [Calendar §6](../models/calendar-event.md)；
 - 以下十五个是 **per-Realm 单例 Realm facet**，subject 为 JSON null
   （[`../conformance/encoding.md` §9.5.1](../conformance/encoding.md) 禁止把 envelope 的
   `realm_id` 再写进 subject），各由同名 facet Event kind 单独承载：

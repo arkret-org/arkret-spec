@@ -323,11 +323,14 @@ human `purpose="principal_control"` 分支的可构造 genesis 字节、第二 S
    {
      "controller_actor_id": "<envelope.actor_id>",
      "controller_epoch": 0,
-     "authority_generation": 0
+     "authority_generation": 0,
+     "authority_event_ref": "<envelope.event_id>"
    }
    ```
 
    该值是 [`typed-current-result.schema.json`](../../artifacts/schemas/typed-current-result.schema.json) 的封闭 `realm_authority_root_value`，由三个写入方的 `value_schema_ref` 以 JSON Pointer 指向；它**没有**自己的 `ak.schema.*` id，理由见 [`../sync/current-results.md` §1](../sync/current-results.md)。`(realm_id, result_selector)` 是该 Realm **终身稳定的 authority root identity**；`controller_actor_id` 是当前控制者，`controller_epoch` 只随 `ak.realm.owner.transfer` 递增，`authority_generation` 只随 `ak.realm.authority.reset` 递增；二者都由 registered reducer contract 从 `expected_state_digest` 锁定的冻结前态 `checked_add` 得出，author 无可选值。该 `authority_generation` 是**授权委派代次**，与 `RealmCommit` 的治理 Station 任期代次 `governance_generation` 是两个不同的计数器，MUST NOT 互相替代（见 [`authz/capabilities.md` §10](../authz/capabilities.md#10-issuer-authority)）。owner/admin coverage 由 v1 固定领域 reducer 解释，不进入该 typed current result。author 不得自行提供这些派生字段。
+
+   `authority_event_ref` MUST 是创建当前委派代次的 exact EventId：genesis 为本 create Event，authority reset 在同一接纳事务递增 generation 并设置为本 reset Event；owner transfer 与 Station handoff MUST 保留该引用。它与 current result 的 revision 正交。`expected_state_digest` MUST 覆盖完整四成员 current value。普通客户端经已认证 own Station 的既有 exact root current 取得该引用，MUST 绑定请求账号／会话、Realm、selector 与 cut；该引用不授予隐藏 reset 原件读取权。无法从已验证耐久事实确定引用时 MUST 保持不可用，不得猜测或以 Station generation 替代。
 
 3. **条件写入 `identity_resolution` singleton**：仅当 `payload.object.initial_resolution` 存在时，投影其完整已登记 resolution commitment。
 4. **条件写入 `agent_status` typed current result**：仅当 `payload.object.purpose == "agent_control"` 时，以完整 Agent account ActorId 的 `canonical_json(envelope.actor_id)` 作为唯一 composite 分量派生 subject，把该 Agent 从 `uninitialized` 推进到 `active`。后续 pause / resume / deactivate 必须复用同一 subject；Agent 与 controller 的 principal 分量分别由 `envelope.actor_id` / `executed_by` 派生，lifecycle payload 不携 `agent_id` 或任何 controller identity 镜像，且这四个 kind 的 `executed_by` 与配对 `authorization_ref` 由 event-kind admission 规则强制存在。

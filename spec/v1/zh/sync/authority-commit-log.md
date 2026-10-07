@@ -95,6 +95,12 @@ Account Station 对本地提交只可报告 `queued`、`forwarding`、`committed
 
 协议没有共享 pending、Ack、defer、RealmCommit prepare 或 closure 阶段。
 
+普通 `ak.mls.commit` 的本地恢复 MUST 绑定完整冻结 Event 与 exact retry unit。客户端只有取得现有受权载体的确定性治理拒绝、且该结果排除同 Event 早先已接纳及仍在处理的成功尝试时，才 MAY 释放 exact own pending candidate。治理 `rejected` 的生产者 MUST 在相同 Event 的幂等／接纳互斥边界内查重；已有 Commit MUST 返回原 Commit，不能后来改报 rejected。不存在这种排他终局语义的响应只能保留 unknown，不能依据标签或 HTTP 状态猜测。
+
+零写入语义 Problem（包括 `failed_precondition`／`governance_binding_mismatch`）只证明该次处理未写入，不能证明早先丢响应尝试未成功。请求层400/422、transport failure、权限丢失、不可见／not_found、retryable/unavailable MUST NOT 释放候选。已有受权 exact Event 读取或 exact retry 可以恢复原 accepted Commit；读取缺失不证明全局未接纳。不新增普通 Commit 查询面、共享 pending 或 Genesis wire。unknown MUST 耐久保留原冻结提交字节、重试身份、candidate bytes／身份及恢复 checkpoint，重启不得重签、重加密或恢复 pre-authoring snapshot。
+
+本地拒绝恢复 MUST 先耐久记录绑定 exact Event 的终局证据与清理意图，再只清 exact own candidate 并耐久保存密码状态，最后完成队列终止与 staged checkpoint retirement；实现 MAY 以一个本地原子事务完成，否则各阶段 MUST 幂等恢复。MUST 保持已安装 epoch、application ratchet、Signal nonce 和其它 candidate；候选不匹配时不得误删。清理后崩溃重启须从耐久清理结果续接，不能重新安装冻结的旧 pending checkpoint。已取得 accepted Commit 时 MUST 保留成功事实，迟到请求错误不得覆盖；与排他拒绝冲突的受权结果 MUST 保留证据、停止破坏性清理，不按到达顺序选终局。
+
 ## 5. Typed reducer 与并发
 
 共享状态按同一 stream 的 Commit position 顺序执行 typed reducer。协议不提供 typed current result key、通用 CRDT、deterministic projection、rank、dot、通用 predicate 或 state-root DSL。
@@ -167,7 +173,7 @@ Add 使用 `MlsCommitSubmission` 原子提交 Commit Event 和全部 producer-si
 
 ## Human signer fact commitment and transfer (Normative)
 
-原RealmCommit在committed_at后signature前 MAY 有 producer_signer_fact_digest；schema仅为旧原件解码允许缺省，新普通Human device业务接纳 MUST 携带，其它producer/PCRnative分支禁止。摘要为 SHA256(RFC8785_JCS(human_historical_signer_fact))。fact不含业务targetCommitId/position；Event内容ID先固定，fact准备后入Commit，最终所有字段设完才按现 content-ID规则排commit_id/signature重算ID，再按现RealmCommit signature投影仅排signature签完整对象（包含commit_id与factdigest）。MUST NOT 改字段后保留旧ID/签名，也不得把fact targetCommitId塞回摘要造成环。原proof context与版本不变。
+原RealmCommit在committed_at后signature前 MAY 有 producer_signer_fact_digest；schema仅为旧原件解码允许缺省，新普通 Human device 与 Applet Service 业务接纳 MUST 携带，其它 producer/PCR native 分支禁止。摘要为 SHA256(RFC8785_JCS(historical_producer_signer_fact))；该联合仅包含原 Human fact 与 Service fact，原 Human 编码和摘要不变。fact不含业务targetCommitId/position；Event内容ID先固定，fact准备后入Commit，最终所有字段设完才按现 content-ID规则排commit_id/signature重算ID，再按现RealmCommit signature投影仅排signature签完整对象（包含commit_id与factdigest）。MUST NOT 改字段后保留旧ID/签名，也不得把fact targetCommitId塞回摘要造成环。原proof context与版本不变。
 
 原immutable fact MUST 与原accepted Commit同寿命持久保留；v1不删除accepted Commit。retention/redaction/withheld只改变合法披露，不补造或替换原事实，也不允许带隐藏row metadata。
 
@@ -176,3 +182,7 @@ Add 使用 `MlsCommitSubmission` 原子提交 Commit Event 和全部 producer-si
 old/new handoff unsigned projection仍仅删两signature，保留handoff_id及所有实际字段，新增inventorydigest由两个原context覆盖。旧无digesthandoff只可exact 旧已签原件解码，不能迁移或宣称已闭合新digest-bearing历史。旧没有完整source/digest的Commit保持旧原字节与Unavailable，不重签后冒原记录。正式切换须将全部原件签名/ID消费者同批同步，未支持新成员的消费者failclosed。
 
 本条款复用检验向量 `ak.vector.signer_key.historical_commit_coordinate.v1`；签名字节夹具仅证明密码学转录，不替代原接纳事务与实际交接验证。
+
+普通成员获准读取 exact Applet Service Event 后，self signer query 的 `historical_event` / `service` selector MUST 只披露该原件在接纳时冻结的 ServiceHistoricalSigningKey 和原 Commit committed_at。该 key 按 public_key_b64u、applet_id、registration_epoch、registration_ref、authorization_ref、effective_scope 顺序闭合；后两引用分别为原 accepted registration 与原 installation capability grant 创建事件的完整 committed coordinate，effective_scope 为该 Event 的已核安装 scope。历史 target 必须由该可读原 Event/Commit 构造；查询不可借这些引用读取隐藏原件。current Service selector 禁止。缺材料、错 target、错 scope、非 Service actor、未获准读取均只返回 unavailable，不得用 current DID key 或 runtime completion 补出历史答案。
+
+治理 Station MUST 在接受事务同一 authority/registration/installation/grant 锁定截点重核原 Service DID epoch、原 producer Ed25519 proof、method、grant 约束及 scope，并逐字比较签 Commit 前准备的最小 fact。Service fact 依次含 event_id、actor（actual_signer 的完整 Service actor）、verification_method、key、accepted_at；accepted_at 是原目标 Commit 的 committed_at，fact 内不得含目标 Commit 坐标，以免摘要循环。原 Commit 摘要、fact 与 canonical Event 同事务冻结。peer replication、peer scan 与 planned handoff 的原 producer_signer_fact/inventory 使用 Human/Service 闭合联合，逐项核原治理签名、原 fact digest 与原 producer proof，复制原字节，不重新按当前 key/安装状态授权。普通 Applet 创建、问责记录仍保原读取权限；最小公钥投影不包含 private runtime fixed set、私钥、控制 Realm 历史或私有 Profile 内容。

@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-06.4",
+  "version": "2026-10-07.2",
   "source_of_truth": true,
-  "generated_at": "2026-10-06T06:44:34+08:00",
+  "generated_at": "2026-10-07T09:17:08+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -4865,7 +4865,7 @@
               }
             },
             "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/policy_value",
-            "notes": "models/governance-objects.md section 3.2: the payload is exactly {policy_id, value}, value.schema picks the generic Policy or the RecoveryPolicy root directly in the payload schema, and semantic admission requires policy_id to equal value.id (generic) or value.policy_id (recovery) verbatim -- so the subject is the payload's own policy_id and the projection replaces the whole document. state / reason are not wire fields of this Event."
+            "notes": "models/governance-objects.md section 3.2: the ordinary Policy and RecoveryPolicy payload is exactly {policy_id, value}; Agent management Policy families use exactly {policy_id, value, expected_revision}, with required nullable expected_revision under their registered CAS contract. expected_revision is not part of the projected Policy value. For each family, value.schema picks the generic Policy or the RecoveryPolicy root directly in the payload schema, and semantic admission requires policy_id to equal value.id (generic) or value.policy_id (recovery) verbatim -- so the subject is the payload's own policy_id and the projection replaces the whole document. state / reason are not wire fields of this Event."
           }
         ],
         "result_effect_ownership": {
@@ -5217,6 +5217,10 @@
               {
                 "name": "authority_generation",
                 "derivation": "realm_authority_generation_successor"
+              },
+              {
+                "name": "authority_event_ref",
+                "derivation": "realm_authority_event_ref"
               }
             ],
             "retained_members": [
@@ -5224,7 +5228,7 @@
               "controller_epoch"
             ],
             "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_authority_root_value",
-            "notes": "authz/capabilities.md section on authority-root successor counters fixes the whole write: the payload carries no patch, so allowed_paths is empty and the only change is the derived successor generation; controller_actor_id and controller_epoch are preserved verbatim from the CAS-frozen pre-state. Overflow of the JSON safe-integer ceiling MUST fail the Event with realm_authority_root_conflict rather than wrap, saturate or keep the old value. This is the only kind that advances authority_generation, which is why a realm_root grant ref binding a generation is a revocable delegation rather than a permanent one."
+            "notes": "authz/capabilities.md section on authority-root successor counters fixes the whole write: the payload carries no patch, so allowed_paths is empty and the changes are the derived successor generation and authority_event_ref set to this accepted reset Event ID; controller_actor_id and controller_epoch are preserved verbatim from the CAS-frozen pre-state. Overflow of the JSON safe-integer ceiling MUST fail the Event with realm_authority_root_conflict rather than wrap, saturate or keep the old value. This is the only kind that advances authority_generation, which is why a realm_root grant ref binding a generation is a revocable delegation rather than a permanent one."
           }
         ],
         "result_effect_ownership": {
@@ -5355,12 +5359,16 @@
                   {
                     "name": "authority_generation",
                     "literal": 0
+                  },
+                  {
+                    "name": "authority_event_ref",
+                    "envelope_field": "event_id"
                   }
                 ]
               }
             },
             "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_authority_root_value",
-            "notes": "Unconditional. Every member is derived here; an author-supplied member, a non-zero genesis epoch or generation, or any member outside the closed three-field shape MUST fail the whole bootstrap unit with realm_authority_root_conflict."
+            "notes": "Unconditional. Every member is derived here; an author-supplied member, a non-zero genesis epoch or generation, or any member outside the closed four-field shape MUST fail the whole bootstrap unit with realm_authority_root_conflict."
           },
           {
             "result_family": "identity_resolution",
@@ -5778,10 +5786,11 @@
               }
             ],
             "retained_members": [
-              "authority_generation"
+              "authority_generation",
+              "authority_event_ref"
             ],
             "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_authority_root_value",
-            "notes": "authz/capabilities.md section on authority-root successor counters fixes the write: controller_actor_id is the single author-writable member and controller_epoch is derived by checked_add from the CAS-frozen pre-state, so no counter is author-selectable. authority_generation is preserved verbatim, which is what keeps every existing child grant valid across a controller rotation. Overflow MUST fail the Event with realm_authority_root_conflict. Without this write the registered controller rotation of models/realm-and-space.md section 2.5 had no machine expression at all and controller_epoch could never leave the genesis literal 0."
+            "notes": "authz/capabilities.md section on authority-root successor counters fixes the write: controller_actor_id is the single author-writable member and controller_epoch is derived by checked_add from the CAS-frozen pre-state, so no counter is author-selectable. authority_generation is preserved verbatim, which is what keeps every existing child grant valid across a controller rotation. Overflow MUST fail the Event with realm_authority_root_conflict. Without this write the registered controller rotation of models/realm-and-space.md section 2.5 had no machine expression at all and controller_epoch could never leave the genesis literal 0. authority_event_ref is preserved with authority_generation; the current revision is not the delegation anchor."
           }
         ],
         "result_effect_ownership": {
@@ -7312,6 +7321,39 @@
             ],
             "value_schema_ref": "schemas/strand.schema.json",
             "notes": "zh/models/common-fields.md section 5.2 maps the kind to its target state, so the payload names only the target object and an optional reason. allowed_paths is empty and there is no patch field: this write moves the value only through derived_members[], which is what the state axis has always required -- `state` is in universal_forbidden_patch_paths with basis dedicated_event_owned, so no author may reach it and object_initial_state only ever produces the value a create installs. Before object_lifecycle_state existed this kind had nothing it could legally declare and sat at result_writes: []. Pre-state guards are normative in section 5.2 and in this object's own model section: a same-state transition, a restore of a tombstoned object and any lifecycle write onto a terminal object MUST fail with failed_precondition and write nothing. Every member other than the four named here is retained verbatim."
+          },
+          {
+            "result_family": "calendar_schedule_source",
+            "result_selector": {
+              "kind": "id:strand",
+              "field": "payload.target_ref"
+            },
+            "result_projection": {
+              "kind": "set",
+              "value_projection": {
+                "kind": "object",
+                "members": [
+                  {
+                    "name": "effective_scope",
+                    "derivation": "calendar_source_effective_scope"
+                  },
+                  {
+                    "name": "source",
+                    "derivation": "calendar_schedule_source_ref"
+                  },
+                  {
+                    "name": "strand_revision",
+                    "derivation": "accepted_current_revision"
+                  },
+                  {
+                    "name": "metadata_context",
+                    "derivation": "calendar_metadata_context"
+                  }
+                ]
+              }
+            },
+            "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/calendar_schedule_source_value",
+            "notes": "models/calendar-event.md section 6: every Strand writer atomically refreshes the paired Strand revision. Only eligible signed Calendar/metadata ancestor intent replaces source; title-only, tracks and lifecycle preserve it. Whole encrypted_metadata replacement is eligible; metadata_context is the original actual signer/kind and exact envelope digest, not a cropped producer signature. Source may precede readable floor under current scope authorization; unrelated historical Event fields are not disclosed."
           }
         ],
         "result_effect_ownership": {
@@ -7405,6 +7447,38 @@
             ],
             "value_schema_ref": "schemas/strand.schema.json",
             "notes": "zh/models/strand-and-message.md. strand_id is derived from this Event id. The author projection contains only ordinary Strand business members; schema, Realm binding, initial lifecycle and audit members are reducer-derived. The business stage axis is initialized or changed only by ak.strand.stage.set, so create leaves stage and stage_changed_at absent."
+          },
+          {
+            "result_family": "calendar_schedule_source",
+            "result_selector": {
+              "kind": "id:strand"
+            },
+            "result_projection": {
+              "kind": "set",
+              "value_projection": {
+                "kind": "object",
+                "members": [
+                  {
+                    "name": "effective_scope",
+                    "derivation": "calendar_source_effective_scope"
+                  },
+                  {
+                    "name": "source",
+                    "derivation": "calendar_schedule_source_ref"
+                  },
+                  {
+                    "name": "strand_revision",
+                    "derivation": "accepted_current_revision"
+                  },
+                  {
+                    "name": "metadata_context",
+                    "derivation": "calendar_metadata_context"
+                  }
+                ]
+              }
+            },
+            "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/calendar_schedule_source_value",
+            "notes": "models/calendar-event.md section 6: every Strand writer atomically refreshes the paired Strand revision. Only eligible signed Calendar/metadata ancestor intent replaces source; title-only, tracks and lifecycle preserve it. Whole encrypted_metadata replacement is eligible; metadata_context is the original actual signer/kind and exact envelope digest, not a cropped producer signature. Source may precede readable floor under current scope authorization; unrelated historical Event fields are not disclosed."
           }
         ],
         "id_source": "event_derived",
@@ -7602,6 +7676,39 @@
             ],
             "value_schema_ref": "schemas/strand.schema.json",
             "notes": "zh/models/common-fields.md section 5.2 maps the kind to its target state, so the payload names only the target object and an optional reason. allowed_paths is empty and there is no patch field: this write moves the value only through derived_members[], which is what the state axis has always required -- `state` is in universal_forbidden_patch_paths with basis dedicated_event_owned, so no author may reach it and object_initial_state only ever produces the value a create installs. Before object_lifecycle_state existed this kind had nothing it could legally declare and sat at result_writes: []. Pre-state guards are normative in section 5.2 and in this object's own model section: a same-state transition, a restore of a tombstoned object and any lifecycle write onto a terminal object MUST fail with failed_precondition and write nothing. Every member other than the four named here is retained verbatim."
+          },
+          {
+            "result_family": "calendar_schedule_source",
+            "result_selector": {
+              "kind": "id:strand",
+              "field": "payload.target_ref"
+            },
+            "result_projection": {
+              "kind": "set",
+              "value_projection": {
+                "kind": "object",
+                "members": [
+                  {
+                    "name": "effective_scope",
+                    "derivation": "calendar_source_effective_scope"
+                  },
+                  {
+                    "name": "source",
+                    "derivation": "calendar_schedule_source_ref"
+                  },
+                  {
+                    "name": "strand_revision",
+                    "derivation": "accepted_current_revision"
+                  },
+                  {
+                    "name": "metadata_context",
+                    "derivation": "calendar_metadata_context"
+                  }
+                ]
+              }
+            },
+            "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/calendar_schedule_source_value",
+            "notes": "models/calendar-event.md section 6: every Strand writer atomically refreshes the paired Strand revision. Only eligible signed Calendar/metadata ancestor intent replaces source; title-only, tracks and lifecycle preserve it. Whole encrypted_metadata replacement is eligible; metadata_context is the original actual signer/kind and exact envelope digest, not a cropped producer signature. Source may precede readable floor under current scope authorization; unrelated historical Event fields are not disclosed."
           }
         ],
         "result_effect_ownership": {
@@ -7660,6 +7767,39 @@
             ],
             "value_schema_ref": "schemas/strand.schema.json",
             "notes": "zh/models/strand-and-message.md section 3.2 and zh/models/common-fields.md section 5.3. expected_stage is a pre-state guard and is not stored. An actual accepted transition derives stage_changed_at from Event created_at; a same-value exact retry preserves it. Archived or redacted targets and failed guards have zero side effects."
+          },
+          {
+            "result_family": "calendar_schedule_source",
+            "result_selector": {
+              "kind": "id:strand",
+              "field": "payload.strand_id"
+            },
+            "result_projection": {
+              "kind": "set",
+              "value_projection": {
+                "kind": "object",
+                "members": [
+                  {
+                    "name": "effective_scope",
+                    "derivation": "calendar_source_effective_scope"
+                  },
+                  {
+                    "name": "source",
+                    "derivation": "calendar_schedule_source_ref"
+                  },
+                  {
+                    "name": "strand_revision",
+                    "derivation": "accepted_current_revision"
+                  },
+                  {
+                    "name": "metadata_context",
+                    "derivation": "calendar_metadata_context"
+                  }
+                ]
+              }
+            },
+            "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/calendar_schedule_source_value",
+            "notes": "models/calendar-event.md section 6: every Strand writer atomically refreshes the paired Strand revision. Only eligible signed Calendar/metadata ancestor intent replaces source; title-only, tracks and lifecycle preserve it. Whole encrypted_metadata replacement is eligible; metadata_context is the original actual signer/kind and exact envelope digest, not a cropped producer signature. Source may precede readable floor under current scope authorization; unrelated historical Event fields are not disclosed."
           }
         ],
         "result_effect_ownership": {
@@ -7714,6 +7854,39 @@
             ],
             "value_schema_ref": "schemas/strand.schema.json",
             "notes": "zh/models/strand-and-message.md section 4.8. This dedicated writer changes only the tracks map and atomically enforces active-track and unique-primary invariants. Lifecycle, stage and identity members are retained; a disabled target, invalid post-state or failed expected_state_digest rejects without update metadata."
+          },
+          {
+            "result_family": "calendar_schedule_source",
+            "result_selector": {
+              "kind": "id:strand",
+              "field": "payload.target_ref"
+            },
+            "result_projection": {
+              "kind": "set",
+              "value_projection": {
+                "kind": "object",
+                "members": [
+                  {
+                    "name": "effective_scope",
+                    "derivation": "calendar_source_effective_scope"
+                  },
+                  {
+                    "name": "source",
+                    "derivation": "calendar_schedule_source_ref"
+                  },
+                  {
+                    "name": "strand_revision",
+                    "derivation": "accepted_current_revision"
+                  },
+                  {
+                    "name": "metadata_context",
+                    "derivation": "calendar_metadata_context"
+                  }
+                ]
+              }
+            },
+            "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/calendar_schedule_source_value",
+            "notes": "models/calendar-event.md section 6: every Strand writer atomically refreshes the paired Strand revision. Only eligible signed Calendar/metadata ancestor intent replaces source; title-only, tracks and lifecycle preserve it. Whole encrypted_metadata replacement is eligible; metadata_context is the original actual signer/kind and exact envelope digest, not a cropped producer signature. Source may precede readable floor under current scope authorization; unrelated historical Event fields are not disclosed."
           }
         ],
         "result_effect_ownership": {
@@ -7776,6 +7949,39 @@
             ],
             "value_schema_ref": "schemas/strand.schema.json",
             "notes": "Ordinary Strand patches may reach only the ordinary fields and the exact tracks.synthesis.content / tracks.synthesis.encrypted_content paths admitted by strand_patch_payload. Ancestor replacements, track configuration, lifecycle and stage axes are forbidden. The Synthesis track must exist and be active both before and after acceptance. expected_state_digest and all scope checks precede the atomic write; every rejection has zero side effects. Whole topic set/unset is admitted only in a stably bound Direct Conversation with required expected_state_digest; topic is single-sourced by the strand current."
+          },
+          {
+            "result_family": "calendar_schedule_source",
+            "result_selector": {
+              "kind": "id:strand",
+              "field": "payload.target_ref"
+            },
+            "result_projection": {
+              "kind": "set",
+              "value_projection": {
+                "kind": "object",
+                "members": [
+                  {
+                    "name": "effective_scope",
+                    "derivation": "calendar_source_effective_scope"
+                  },
+                  {
+                    "name": "source",
+                    "derivation": "calendar_schedule_source_ref"
+                  },
+                  {
+                    "name": "strand_revision",
+                    "derivation": "accepted_current_revision"
+                  },
+                  {
+                    "name": "metadata_context",
+                    "derivation": "calendar_metadata_context"
+                  }
+                ]
+              }
+            },
+            "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/calendar_schedule_source_value",
+            "notes": "models/calendar-event.md section 6: every Strand writer atomically refreshes the paired Strand revision. Only eligible signed Calendar/metadata ancestor intent replaces source; title-only, tracks and lifecycle preserve it. Whole encrypted_metadata replacement is eligible; metadata_context is the original actual signer/kind and exact envelope digest, not a cropped producer signature. Source may precede readable floor under current scope authorization; unrelated historical Event fields are not disclosed."
           }
         ],
         "result_effect_ownership": {
@@ -8693,8 +8899,8 @@
         }
       }
     },
-    "version": "2026-10-05.1",
-    "generated_at": "2026-10-05T19:21:55+08:00",
+    "version": "2026-10-07.2",
+    "generated_at": "2026-10-07T09:17:08+08:00",
     "bootstrap_event_kinds": [
       "ak.device.authorize",
       "ak.device.reanchor",
@@ -21803,10 +22009,21 @@
           ],
           "note": "Exact current Realm mode gates shared Agent producer/executor actions and directed third-party delivery; it never grants capability or changes Sidecar participants."
         }
+      },
+      {
+        "result_kind": "calendar_schedule_source",
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/calendar_schedule_source_result",
+        "consumption": {
+          "class": "delivery_input",
+          "consumed_by": [
+            "models/calendar-event.md §6"
+          ],
+          "note": "Own-Station current source and minimal encrypted metadata context permit authorized current schedule reconstruction below history floor. No schedule plaintext predicate is an admission gate."
+        }
       }
     ],
-    "version": "2026-10-04.1",
-    "generated_at": "2026-10-04T20:52:42+08:00",
+    "version": "2026-10-07.1",
+    "generated_at": "2026-10-07T09:02:53+08:00",
     "metadata_authority": "contract_registry_section"
   }
 }

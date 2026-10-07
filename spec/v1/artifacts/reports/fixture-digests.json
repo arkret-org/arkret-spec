@@ -262,8 +262,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/expected-state-digest-kat-fixture.json",
-      "sha256": "b9cdb651d55e5a1d10e352930123dd9b56193e97b1219c9683bc3ab6ed047fa4",
-      "version": "2026-09-26.2"
+      "sha256": "1ee769017d4ae5f1707b994262de2648f77f290de894a37a362a8451631b9092",
+      "version": "2026-10-07.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/fanout-route-miss-fixture.json",

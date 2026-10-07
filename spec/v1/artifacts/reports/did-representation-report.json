@@ -1866,6 +1866,16 @@
       ]
     },
     {
+      "schema_path": "authority-commit-operations.schema.json#/$defs/service_historical_signer_fact/properties/verification_method",
+      "property_name": "verification_method",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_url",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "pattern:^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
+      ]
+    },
+    {
       "schema_path": "authority-set-policy.schema.json#/properties/authorization_rules/items/properties/issuers/items/properties/verification_method",
       "property_name": "verification_method",
       "semantic_category": "responsibility_identity_material",
@@ -7166,6 +7176,16 @@
       ]
     },
     {
+      "schema_path": "signer-key-operations.schema.json#/$defs/historical_service_selector/properties/verification_method",
+      "property_name": "verification_method",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_url",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "pattern:^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
+      ]
+    },
+    {
       "schema_path": "signer-key-operations.schema.json#/$defs/query_outcome/properties/recipient_account_id",
       "property_name": "recipient_account_id",
       "semantic_category": "responsibility_identity_material",
@@ -7193,6 +7213,16 @@
       "external_literal_owner": false,
       "terminal_signature": [
         "ref:account_id"
+      ]
+    },
+    {
+      "schema_path": "signer-key-operations.schema.json#/$defs/signing_service_actor_id/properties/service_id",
+      "property_name": "service_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
       ]
     },
     {
@@ -7343,6 +7373,16 @@
       "external_literal_owner": false,
       "terminal_signature": [
         "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "typed-current-result.schema.json#/$defs/calendar_metadata_context/properties/signer_id",
+      "property_name": "signer_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "actor_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:actor_id"
       ]
     },
     {

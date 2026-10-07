@@ -697,6 +697,8 @@ wire 上不存在"这是不是一次转授"的语义位——ref 的类型就是
 
 **求值时机（normative）**：child grant 的有效性在**每次授权判定时**按当前 refs 状态重算，不做级联写。`kind="grant"` ref 必须保持 active，且其具体 `subject` 必须与 child 的 `issuer_id` 做完整 ActorId 相等比较；只比较 `signing_principal_id` 或裸 DID MUST 视为未提供 issuer authority，并以 `failed_precondition`、reason=`grant_exceeds_issuer_authority` fail closed。该比较只读取已物化 ActorId，不得按 DID 二次查询或把当前路由服务替换进身份；因此离线 replay、迁移和联邦重放不会把同一 DID 的另一 Station 实例串成授权链。`kind="grant"` ref 失活按 action 传播；`kind="realm_root"` ref 只检查 typed current result 存在、Realm 未终止且当前 `authority_generation` 与 ref 相同，**不比较** current controller / epoch。因此 `ak.realm.owner.transfer` 不影响任何既有 child，只有 `ak.realm.authority.reset` 才整代失效。
 
+普通 author MUST 从已认证 own Station 的既有 exact `realm_authority_root` current value 取得 required `authority_event_ref` 与 `authority_generation`，绑定请求完整账号／会话、Realm、selector 和 current cut。genesis 引用 accepted create Event；reset 同事务换代并更新引用；owner transfer／Station handoff MUST 保留委派 anchor。current revision 可能来自较后 transfer，MUST NOT 作为该 anchor。current 引用披露不扩大历史 floor，也不要求普通客户端取得隐藏 reset 原件；缺准确材料 MUST fail closed。`realm_authority_event_ref` 是 reset writer 的具名派生，值恰为该 accepted reset 的 envelope.event_id，作者无可选值。
+
 **接受后物化字段（normative）**：reducer MUST 物化下列两个字段；它们都不属于 producer 的 closed authoring body，因此不可由作者谎报：
 
 - `authority_depth`：`realm_root` ref 深度为 0，grant 自身为 `max(refs.authority_depth) + 1`。root controller 直发为 1，成员再授予为 2。取签发时静态值，撤销不重算——撤销只改有效性、不改历史结构；实际链深可能小于记录值，对 `max_authority_depth` 判定是偏严方向。

@@ -7,7 +7,7 @@
   "generated_by": "tools/gen_event_reference_inventory.py",
   "description": "Complete schema-property inventory for Event ID/ref/digest fields. EventId is itself the complete suite-tagged cryptographic identity; no companion-digest wrapper or truncated identity class exists. External protocol event identifiers are classified separately and never enter the Arkret EventId value space.",
   "counts": {
-    "complete_event_id": 180,
+    "complete_event_id": 183,
     "digest_copy_or_commitment": 8,
     "external_event_namespace": 1
   },
@@ -328,6 +328,12 @@
       "schema": "authority-commit-operations.schema.json",
       "json_pointer": "/$defs/membership_compensation_delegation_core/properties/join_event_ref",
       "field": "join_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "authority-commit-operations.schema.json",
+      "json_pointer": "/$defs/service_historical_signer_fact/properties/event_id",
+      "field": "event_id",
       "classification": "complete_event_id"
     },
     {
@@ -1111,6 +1117,12 @@
       "classification": "complete_event_id"
     },
     {
+      "schema": "signer-key-operations.schema.json",
+      "json_pointer": "/$defs/historical_service_selector/properties/committed_event_ref",
+      "field": "committed_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
       "schema": "typed-current-result.schema.json",
       "json_pointer": "/$defs/device_authorization_value/properties/device_authorize_event_id",
       "field": "device_authorize_event_id",
@@ -1144,6 +1156,12 @@
       "schema": "typed-current-result.schema.json",
       "json_pointer": "/$defs/moderation_report_result/properties/selector/properties/event_id",
       "field": "event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "typed-current-result.schema.json",
+      "json_pointer": "/$defs/realm_authority_root_value/properties/authority_event_ref",
+      "field": "authority_event_ref",
       "classification": "complete_event_id"
     }
   ]

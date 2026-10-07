@@ -25,6 +25,9 @@
         },
         {
           "$ref": "./typed-current-result.schema.json#/$defs/capability_grant_result/properties/selector"
+        },
+        {
+          "$ref": "./typed-current-result.schema.json#/$defs/calendar_schedule_source_result/properties/selector"
         }
       ]
     },
@@ -90,6 +93,9 @@
         },
         {
           "$ref": "./typed-current-result.schema.json#/$defs/capability_grant_result"
+        },
+        {
+          "$ref": "./typed-current-result.schema.json#/$defs/calendar_schedule_source_result"
         }
       ]
     },

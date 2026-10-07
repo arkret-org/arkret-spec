@@ -102,6 +102,12 @@ v1 recurrence 是 RFC 8984 JSCalendar `RecurrenceRule` 的 snake_case 子集：`
 当前 schedule revision 是**该 Strand 所属 stream 上最后一个被接受的 eligible schedule revision**。次序只由治理 Station 在该 stream 上给出的 `stream_position` 决定：位置更大的已接纳写入取代位置更小的。中间任意不写 Calendar 子树的更新既不产生 schedule revision，也不影响该次序。实现 MUST NOT 用 HLC、`created_at`、墙钟或本地接收顺序选值；同一段已提交前缀在任何重放顺序下 MUST 给出同一个当前 revision。
 Calendar patch 与标题／正文 patch 使用同一对象基线规则，不添加额外 schedule base。
 
+**受限历史的 current 来源（normative）**：既有 current 体系的 `calendar_schedule_source` selector 以 `strand_id` 精确选择 closed `calendar_schedule_source_value`，字段顺序固定为 `effective_scope, source, strand_revision, metadata_context`。每个 Strand writer MUST 同事务更新此结果与 Strand current；两结果的 revision／stream MUST 相同，value.strand_revision MUST 等于该 revision。`accepted_current_revision` 派生本次 accepted Commit 的 `{commit_id,stream_position}`；`calendar_source_effective_scope` 从 create-locked Strand scope 派生。来源 `source` 是最后 eligible 写入的 exact committed ref 或 JSON null；`calendar_schedule_source_ref` 按完整原接纳前缀与签名写入空间求值，title-only／tracks／生命周期后继保留来源。不得以本次对象 revision 补造来源。whole `encrypted_metadata` set/unset 是 metadata 祖先写入，不按明文差异或密文相等判断。
+
+`calendar_metadata_context` 在当前 encrypted_metadata 存在时保存其原加密上下文：closed `{source,event_kind,signer_id,payload_digest}`，source 为产生当前 envelope 的 exact committed ref，event_kind 只允许 Strand create/update，signer_id 为原已验证 Event 的 actual_signer（执行代署取 executed_by），payload_digest 为该 exact envelope 的既有摘要。未加密时 metadata_context MUST 为 null。不能用最后对象写入的 kind/signer覆盖旧加密上下文。客户端 MUST 与同 cut Strand ciphertext、effective scope、来源 stream／position 和完整请求账号／会话绑定；sender domain 使用完整 ActorId 的 canonical JCS，复用现有 AEAD context 重建。该材料是 own Station 认证 current 投影，不是 producer 对裁剪 Event 的签名，不交付原 Event 的无关旧标题或字段。
+
+current 来源／最小上下文 MAY 早于 caller history floor，但只有当前 Strand scope 的获授权读者能取得；该例外不开放历史 scan、runtime 私有材料或历史解密密钥。现有 exact current 读取登记该 selector，不枚举对象；无权／隐藏目标保持既有不披露结果，缺准确配对／来源／上下文保持 unavailable。本站和审计者仍完整验证原接纳事实；普通客户端按既有 own Station 角色消费，重启与新设备不要求本机旧 Event 缓存。服务只判公开 intent/envelope，available 与 encrypted_unresolved 由持钥客户端解密并校验完整日程后求值。
+
 Calendar schedule projection MUST 暴露 canonical `schedule_revision_source` 与 `schedule_resolution_state`：
 
 - `available`：唯一 winner 的 Calendar schedule 已解密并通过 schema；只有此状态 MAY 展开 occurrence、发送 RSVP 或派生精确 schedule notification。
