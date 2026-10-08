@@ -819,6 +819,8 @@ def check_exporter_label_registry(lint: Lint) -> None:
     if not isinstance(labels, list) or not labels:
         lint.fail(path, "exporter-label-registry.json: labels MUST be a non-empty list")
         return
+    from .blob_content_key import check as check_blob_content_key
+    check_blob_content_key(lint, data)
     required = {"label", "context_fields", "output_bytes", "applies_to_profiles", "grandfathered"}
     seen: set[str] = set()
     for index, entry in enumerate(labels):

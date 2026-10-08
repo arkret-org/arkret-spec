@@ -562,6 +562,9 @@ MLS epoch、target、scope、routing window 和真实 emoji 的不同 sender 产
 v1 只有 standard RFC 9420 application encryption。每个 application ciphertext由当前 epoch secret按 RFC 9420生成；
 协议不保存或分发额外 epoch content root。
 
+外置加密附件使用 [media-and-blob.md §3.0](./media-and-blob.md) 的 per-object MLS-Exporter
+内容密钥；它不替代 RFC 9420 PrivateMessage，不保存或分发另一个 epoch root，也不授予历史密钥访问权。
+
 ### 2.10 Agent Event 双绑定
 
 Agent发送 encrypted Event时，同时验证 Agent current runtime authorization与其 MLS leaf credential。两项必须指向同一

@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9278,
+    "total_properties": 9279,
     "total_schema_documents": 168,
     "by_presence_class": {
       "optional": 2158,
       "optional_defaulted": 48,
-      "required": 6564,
+      "required": 6565,
       "required_nullable": 327,
       "tristate": 181
     },
@@ -3987,6 +3987,7 @@
         "/$defs/encrypted_attachment/oneOf/1/properties/scheme": "required",
         "/$defs/encrypted_attachment/oneOf/1/properties/segment_bytes": "required",
         "/$defs/encrypted_attachment/properties/blob_ref": "required",
+        "/$defs/encrypted_attachment/properties/content_key_salt": "required",
         "/$defs/encrypted_attachment/properties/encrypted": "required",
         "/$defs/encrypted_attachment/properties/encryption_algorithm": "required",
         "/$defs/encrypted_attachment/properties/key_ref": "required",

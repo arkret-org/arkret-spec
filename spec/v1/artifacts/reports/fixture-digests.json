@@ -96,6 +96,11 @@
       "version": "2026-09-10"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/blob-content-key-fixture.json",
+      "sha256": "579ee82df454894ca5ca6ec680f269fc1f8971b35747eb93fbd3c82411b82c56",
+      "version": "2026-10-08.1"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/blob-stream-aead-fixture.json",
       "sha256": "aa2083342295daae7674672a2c43c959116dede7cdb2070e74bca8671480128c",
       "version": "2026-07-03"
@@ -599,6 +604,11 @@
       "path": "spec/v1/artifacts/fixtures/string-profile-fixture.json",
       "sha256": "1f19a092023d01b4058af3408620f92ecbbad953e15827f81e1fe6a8b6adde23",
       "version": "2026-08-02"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/terminal-replication-authority-fixture.json",
+      "sha256": "5591c47cb0510bad25d0e09d1349c83dee50e049a35035cbf4f3ab5db640b775",
+      "version": "2026-10-08"
     },
     {
       "path": "spec/v1/artifacts/fixtures/test-material-rejection-fixture.json",

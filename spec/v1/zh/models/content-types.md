@@ -166,6 +166,7 @@ E2EE Message 的 long-text descriptor 位于已认证的 `encrypted_content` pla
       "algorithm": "MLS",
       "group_state_ref": "ak:event:AckEwH4jJdfBphZALp-M3ga3R1KDhI2KpvVb8MZiOMbW"
     },
+    "content_key_salt": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
     "size_bytes": 700000,
     "media_type": "text/plain",
     "nonce_prefix": "AAAAAAAAAAAAAAAAAAAAAAAAAA",

@@ -1,0 +1,70 @@
+{
+  "version": "2026-10-08",
+  "suite": "terminal_replication_authority",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.federation.terminal_replication_authority.v1"
+  },
+  "covers_vectors": [
+    "ak.vector.federation.terminal_replication_authority.v1"
+  ],
+  "cases": [
+    {
+      "name": "joined_holder_terminal",
+      "vector_id": "ak.vector.federation.terminal_replication_authority.v1",
+      "assertions": [
+        "Still-authorized holder receives exact terminal Event and Commit via durable ordinary fanout; verified contiguous installation atomically persists the terminal live fence."
+      ]
+    },
+    {
+      "name": "last_member_leave_then_terminal",
+      "vector_id": "ak.vector.federation.terminal_replication_authority.v1",
+      "assertions": [
+        "Deliver last-member leave/ban and close live eligibility atomically; later terminal creates no intent for that departed holder and no synthetic terminal label."
+      ]
+    },
+    {
+      "name": "another_joined_member_remains",
+      "vector_id": "ak.vector.federation.terminal_replication_authority.v1",
+      "assertions": [
+        "One member leaving does not close station eligibility while another hosted joined member can read the complete canonical Event."
+      ]
+    },
+    {
+      "name": "authority_lost_before_send",
+      "vector_id": "ak.vector.federation.terminal_replication_authority.v1",
+      "assertions": [
+        "Cancel a frozen terminal intent when all original basis triples lose authority; new join does not revive old basis."
+      ]
+    },
+    {
+      "name": "missing_predecessor",
+      "vector_id": "ak.vector.federation.terminal_replication_authority.v1",
+      "assertions": [
+        "An authorized terminal receiver repairs the chain with already registered authorized history/snapshot; no discontinuous Commit, authority bypass or withheld private-history disclosure."
+      ]
+    },
+    {
+      "name": "departure_with_gap",
+      "vector_id": "ak.vector.federation.terminal_replication_authority.v1",
+      "assertions": [
+        "Existing withheld-chain repair reaches the termination Commit inclusive, never grants post-departure terminal/history replication."
+      ]
+    },
+    {
+      "name": "restart_and_stale_delivery",
+      "vector_id": "ak.vector.federation.terminal_replication_authority.v1",
+      "assertions": [
+        "Restart and delayed ingress do not reactivate the departed stream; cached history is last verified history, not current Realm state."
+      ]
+    },
+    {
+      "name": "hard_erasure",
+      "vector_id": "ak.vector.federation.terminal_replication_authority.v1",
+      "assertions": [
+        "Historical holders still receive authenticated erasure_receipt_package on the separate registered erasure rail; terminal fanout does not substitute for erasure."
+      ]
+    }
+  ],
+  "fixture_kind": "semantic"
+}

@@ -738,3 +738,17 @@ private 默认／unknown 区分、controller-only／CAS／委托禁止、共享 
 客户端 producer/MLS/attachment 验证保留；Station 与独立审计者的历史、治理签名、nonce/链验证不被角色
 分工削弱。角色策略 fixture 的通过只证明机器职责与输入边界；原治理密码学、生产接线和真实跨站验收
 仍须各自执行，不能由策略 fixture 推断通过。
+
+### 3.27 附件内容密钥与终态复制资格
+
+`ak.vector.blob.content_key_derivation.v1` MUST 复现 SHA-256／SHA-384 MLS cipher-suite KDF 下
+两种附件形态的 exact JCS Context 与 32-byte key，覆盖 scope／group genesis／epoch／scheme／algorithm／salt
+分离、等价 group-state ref、required canonical salt 的 schema 正负例、历史 checkpoint 授权与 descriptor／AAD
+篡改拒绝。`blob-content-key-fixture.json` 的 exporter-secret KAT 由 `artifact_lint` 的 `exporter_labels`
+门禁重算；该 KAT 不证明完整 MLS checkpoint 恢复或生产加解密链通过。
+
+`ak.vector.federation.terminal_replication_authority.v1` MUST 覆盖最后成员 leave／ban 后不投递后继终态、
+尚有另一个具资格托管成员时继续投递、发送前 basis 失效、终止 Commit（含）的缺口修复、终态接收连续性、
+live fence 原子持久化与重启／迟到投递不复活。离站关闭不产生 Realm terminal knowledge，独立 erasure receipt
+义务保留。`terminal-replication-authority-fixture.json` 固定这些协议断言；真实源站 fanout、接收事务与跨站
+HTTP／PG 验收须由工程执行，不以 fixture 存在或规范门禁通过代替。

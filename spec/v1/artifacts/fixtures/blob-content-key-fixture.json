@@ -1,0 +1,352 @@
+{
+  "profile": "ak.profile.blob_node.v1",
+  "version": "2026-10-08.1",
+  "suite": "blob_content_key",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.blob.content_key.v1"
+  },
+  "covers_vectors": [
+    "ak.vector.blob.content_key_derivation.v1"
+  ],
+  "notes": "Exporter-secret KATs verify RFC 9420 sections 8 and 8.5 independently of MLS state creation; authorization/state resolution cases require the consuming implementation and do not claim live MLS interoperability. artifact_lint exporter_labels executes the frozen byte KAT and salt grammar checks.",
+  "kats": [
+    {
+      "hash": "sha256",
+      "exporter_secret_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+      "context": {
+        "effective_scope": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4f"
+        },
+        "genesis_event_ref": "ak:event:AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4f",
+        "epoch": 7,
+        "scheme": "ak.blob.stream_aead.v1",
+        "encryption_algorithm": "mls_exporter_aead_aes_256_gcm_stream",
+        "content_key_salt": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8"
+      },
+      "context_utf8": "{\"content_key_salt\":\"AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8\",\"effective_scope\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4f\"},\"encryption_algorithm\":\"mls_exporter_aead_aes_256_gcm_stream\",\"epoch\":7,\"genesis_event_ref\":\"ak:event:AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4f\",\"scheme\":\"ak.blob.stream_aead.v1\"}",
+      "content_key_hex": "68765ec975ef49519f1b9d343ea0aba771c5cb9a8a04a8490d9887de93736232",
+      "separation_inputs": {
+        "effective_scope": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AQECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8g"
+        },
+        "genesis_event_ref": "ak:event:AQECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8g",
+        "epoch": 8,
+        "scheme": "ak.blob.whole_file_aead.v1",
+        "encryption_algorithm": "mls_exporter_aead_xchacha20poly1305_stream",
+        "content_key_salt": "AQIDBAUGBwgJCgsMDQ4PEBESExQVFhcYGRobHB0eHyA"
+      }
+    },
+    {
+      "hash": "sha256",
+      "exporter_secret_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+      "context": {
+        "effective_scope": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4f"
+        },
+        "genesis_event_ref": "ak:event:AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4f",
+        "epoch": 7,
+        "scheme": "ak.blob.whole_file_aead.v1",
+        "encryption_algorithm": "mls_exporter_aead_xchacha20poly1305",
+        "content_key_salt": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8"
+      },
+      "context_utf8": "{\"content_key_salt\":\"AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8\",\"effective_scope\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4f\"},\"encryption_algorithm\":\"mls_exporter_aead_xchacha20poly1305\",\"epoch\":7,\"genesis_event_ref\":\"ak:event:AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4f\",\"scheme\":\"ak.blob.whole_file_aead.v1\"}",
+      "content_key_hex": "913b63192a30f149ba9bdd93f6f894a3a716f8fe1c8146bc0bc1b85043fd2305",
+      "separation_inputs": {
+        "effective_scope": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AQECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8g"
+        },
+        "genesis_event_ref": "ak:event:AQECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8g",
+        "epoch": 8,
+        "scheme": "ak.blob.stream_aead.v1",
+        "encryption_algorithm": "mls_exporter_aead_aes_256_gcm",
+        "content_key_salt": "AQIDBAUGBwgJCgsMDQ4PEBESExQVFhcYGRobHB0eHyA"
+      }
+    },
+    {
+      "hash": "sha384",
+      "exporter_secret_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f",
+      "context": {
+        "effective_scope": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4f"
+        },
+        "genesis_event_ref": "ak:event:AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4f",
+        "epoch": 7,
+        "scheme": "ak.blob.stream_aead.v1",
+        "encryption_algorithm": "mls_exporter_aead_aes_256_gcm_stream",
+        "content_key_salt": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8"
+      },
+      "context_utf8": "{\"content_key_salt\":\"AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8\",\"effective_scope\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4f\"},\"encryption_algorithm\":\"mls_exporter_aead_aes_256_gcm_stream\",\"epoch\":7,\"genesis_event_ref\":\"ak:event:AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4f\",\"scheme\":\"ak.blob.stream_aead.v1\"}",
+      "content_key_hex": "ba2fe64f7ed41eea9093b91ac0fe82212ed527f58c826f68c6f01bca1b20df39",
+      "separation_inputs": {
+        "effective_scope": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AQECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8g"
+        },
+        "genesis_event_ref": "ak:event:AQECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8g",
+        "epoch": 8,
+        "scheme": "ak.blob.whole_file_aead.v1",
+        "encryption_algorithm": "mls_exporter_aead_xchacha20poly1305_stream",
+        "content_key_salt": "AQIDBAUGBwgJCgsMDQ4PEBESExQVFhcYGRobHB0eHyA"
+      }
+    },
+    {
+      "hash": "sha384",
+      "exporter_secret_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f",
+      "context": {
+        "effective_scope": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4f"
+        },
+        "genesis_event_ref": "ak:event:AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4f",
+        "epoch": 7,
+        "scheme": "ak.blob.whole_file_aead.v1",
+        "encryption_algorithm": "mls_exporter_aead_xchacha20poly1305",
+        "content_key_salt": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8"
+      },
+      "context_utf8": "{\"content_key_salt\":\"AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8\",\"effective_scope\":{\"kind\":\"realm\",\"realm_id\":\"ak:realm:AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4f\"},\"encryption_algorithm\":\"mls_exporter_aead_xchacha20poly1305\",\"epoch\":7,\"genesis_event_ref\":\"ak:event:AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4f\",\"scheme\":\"ak.blob.whole_file_aead.v1\"}",
+      "content_key_hex": "c6f0f53c002b40ddca93573e787242b1111cbd5d255b68534799a0ae9d5fc0d5",
+      "separation_inputs": {
+        "effective_scope": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AQECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8g"
+        },
+        "genesis_event_ref": "ak:event:AQECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8g",
+        "epoch": 8,
+        "scheme": "ak.blob.stream_aead.v1",
+        "encryption_algorithm": "mls_exporter_aead_aes_256_gcm",
+        "content_key_salt": "AQIDBAUGBwgJCgsMDQ4PEBESExQVFhcYGRobHB0eHyA"
+      }
+    }
+  ],
+  "salt_cases": [
+    {
+      "value": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
+      "valid": true
+    },
+    {
+      "value": "",
+      "valid": false
+    },
+    {
+      "value": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=",
+      "valid": false
+    },
+    {
+      "value": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHg",
+      "valid": false
+    },
+    {
+      "value": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8g",
+      "valid": false
+    },
+    {
+      "value": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh9",
+      "valid": false
+    }
+  ],
+  "cases": [
+    {
+      "name": "equivalent_refs",
+      "vector_id": "ak.vector.blob.content_key_derivation.v1",
+      "assertions": [
+        "An Event ref and equivalent proof hash resolved to the same verified winning group state produce the same key; the immutable wire key_ref remains AAD-bound."
+      ]
+    },
+    {
+      "name": "historical_epoch",
+      "vector_id": "ak.vector.blob.content_key_derivation.v1",
+      "assertions": [
+        "Recover an authorized historical epoch; never substitute current epoch or use a reference as permission."
+      ]
+    },
+    {
+      "name": "state_resolution_failure",
+      "vector_id": "ak.vector.blob.content_key_derivation.v1",
+      "assertions": [
+        "Unresolved, non-winning, ambiguous or wrong-scope state and missing/unauthorized checkpoint fail before exporter or decrypt; no fallback."
+      ]
+    },
+    {
+      "name": "descriptor_binding",
+      "vector_id": "ak.vector.blob.content_key_derivation.v1",
+      "assertions": [
+        "Missing or malformed salt and unregistered key/key-envelope members fail closed; changing salt, key_ref, scheme, algorithm, size or MIME fails AEAD/outer authentication and releases no unauthenticated plaintext."
+      ]
+    },
+    {
+      "name": "durable_retry",
+      "vector_id": "ak.vector.blob.content_key_derivation.v1",
+      "assertions": [
+        "Exact retry/restart uses the same salt, frozen descriptor and ciphertext; changed plaintext creates a new object salt."
+      ]
+    },
+    {
+      "name": "thumbnail",
+      "vector_id": "ak.vector.blob.content_key_derivation.v1",
+      "assertions": [
+        "Use separate salt/key/nonce for an independently encrypted thumbnail; refs and metadata are outer-authenticated and no post-encryption digest enters KDF/AAD."
+      ]
+    }
+  ],
+  "descriptor_cases": [
+    {
+      "name": "stream_valid",
+      "valid": true,
+      "descriptor": {
+        "blob_ref": "ak:blob:sha256:0101010101010101010101010101010101010101010101010101010101010101",
+        "encrypted": true,
+        "encryption_algorithm": "mls_exporter_aead_aes_256_gcm_stream",
+        "scheme": "ak.blob.stream_aead.v1",
+        "key_ref": {
+          "algorithm": "MLS",
+          "group_state_ref": "ak:event:AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4f"
+        },
+        "content_key_salt": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
+        "size_bytes": 1025,
+        "media_type": "application/octet-stream",
+        "nonce_prefix": "AAECAwQFBg",
+        "segment_bytes": 1024
+      }
+    },
+    {
+      "name": "whole_omitted_scheme_valid",
+      "valid": true,
+      "descriptor": {
+        "blob_ref": "ak:blob:sha256:0101010101010101010101010101010101010101010101010101010101010101",
+        "encrypted": true,
+        "encryption_algorithm": "mls_exporter_aead_aes_256_gcm",
+        "key_ref": {
+          "algorithm": "MLS",
+          "group_state_ref": "ak:event:AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4f"
+        },
+        "content_key_salt": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
+        "size_bytes": 1025,
+        "media_type": "application/octet-stream",
+        "nonce": "AAAAAAAAAAAAAAAB"
+      }
+    },
+    {
+      "name": "missing_salt",
+      "valid": false,
+      "descriptor": {
+        "blob_ref": "ak:blob:sha256:0101010101010101010101010101010101010101010101010101010101010101",
+        "encrypted": true,
+        "encryption_algorithm": "mls_exporter_aead_aes_256_gcm_stream",
+        "scheme": "ak.blob.stream_aead.v1",
+        "key_ref": {
+          "algorithm": "MLS",
+          "group_state_ref": "ak:event:AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4f"
+        },
+        "size_bytes": 1025,
+        "media_type": "application/octet-stream",
+        "nonce_prefix": "AAECAwQFBg",
+        "segment_bytes": 1024
+      }
+    },
+    {
+      "name": "salt_padding",
+      "valid": false,
+      "descriptor": {
+        "blob_ref": "ak:blob:sha256:0101010101010101010101010101010101010101010101010101010101010101",
+        "encrypted": true,
+        "encryption_algorithm": "mls_exporter_aead_aes_256_gcm_stream",
+        "scheme": "ak.blob.stream_aead.v1",
+        "key_ref": {
+          "algorithm": "MLS",
+          "group_state_ref": "ak:event:AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4f"
+        },
+        "content_key_salt": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=",
+        "size_bytes": 1025,
+        "media_type": "application/octet-stream",
+        "nonce_prefix": "AAECAwQFBg",
+        "segment_bytes": 1024
+      }
+    },
+    {
+      "name": "random_key_forbidden",
+      "valid": false,
+      "descriptor": {
+        "blob_ref": "ak:blob:sha256:0101010101010101010101010101010101010101010101010101010101010101",
+        "encrypted": true,
+        "encryption_algorithm": "mls_exporter_aead_aes_256_gcm_stream",
+        "scheme": "ak.blob.stream_aead.v1",
+        "key_ref": {
+          "algorithm": "MLS",
+          "group_state_ref": "ak:event:AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4f"
+        },
+        "content_key_salt": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
+        "size_bytes": 1025,
+        "media_type": "application/octet-stream",
+        "nonce_prefix": "AAECAwQFBg",
+        "segment_bytes": 1024,
+        "content_key": "0000000000000000000000000000000000000000000000000000000000000000"
+      }
+    },
+    {
+      "name": "key_envelope_forbidden",
+      "valid": false,
+      "descriptor": {
+        "blob_ref": "ak:blob:sha256:0101010101010101010101010101010101010101010101010101010101010101",
+        "encrypted": true,
+        "encryption_algorithm": "mls_exporter_aead_aes_256_gcm_stream",
+        "scheme": "ak.blob.stream_aead.v1",
+        "key_ref": {
+          "algorithm": "MLS",
+          "group_state_ref": "ak:event:AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4f"
+        },
+        "content_key_salt": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
+        "size_bytes": 1025,
+        "media_type": "application/octet-stream",
+        "nonce_prefix": "AAECAwQFBg",
+        "segment_bytes": 1024,
+        "key_envelope": {}
+      }
+    },
+    {
+      "name": "wire_epoch_forbidden",
+      "valid": false,
+      "descriptor": {
+        "blob_ref": "ak:blob:sha256:0101010101010101010101010101010101010101010101010101010101010101",
+        "encrypted": true,
+        "encryption_algorithm": "mls_exporter_aead_aes_256_gcm_stream",
+        "scheme": "ak.blob.stream_aead.v1",
+        "key_ref": {
+          "algorithm": "MLS",
+          "group_state_ref": "ak:event:AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4f"
+        },
+        "content_key_salt": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
+        "size_bytes": 1025,
+        "media_type": "application/octet-stream",
+        "nonce_prefix": "AAECAwQFBg",
+        "segment_bytes": 1024,
+        "epoch": 7
+      }
+    },
+    {
+      "name": "mixed_nonce_scheme",
+      "valid": false,
+      "descriptor": {
+        "blob_ref": "ak:blob:sha256:0101010101010101010101010101010101010101010101010101010101010101",
+        "encrypted": true,
+        "encryption_algorithm": "mls_exporter_aead_aes_256_gcm_stream",
+        "scheme": "ak.blob.stream_aead.v1",
+        "key_ref": {
+          "algorithm": "MLS",
+          "group_state_ref": "ak:event:AQABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4f"
+        },
+        "content_key_salt": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
+        "size_bytes": 1025,
+        "media_type": "application/octet-stream",
+        "nonce_prefix": "AAECAwQFBg",
+        "segment_bytes": 1024,
+        "nonce": "AAAAAAAAAAAAAAAB"
+      }
+    }
+  ]
+}

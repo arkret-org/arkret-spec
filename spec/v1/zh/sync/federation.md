@@ -133,6 +133,10 @@ Service 历史在 `attested_at` 的 assertion method 与签名、attestation `ex
 
 **终止托管成员资格的 membership Event（normative）**：使某成员由 effective joined 变为非 joined 的 membership Event（本人或管理员提交的 `ak.member.state{leave|ban}`）被接纳后，该成员在同一 accepted Realm view 里已不是 joined，上文目标集不会包含只因它而持有本 stream 的 Station。发送方 MUST 在事件前该成员为 effective joined 时，为该 Event 额外创建一份指向该成员 routing service（排除本机、按 service 去重）的 intent，其 basis 是 `(realm_id, member_id, 本 Event 的 ref)`；发送前的重验只把「仍是 effective joined」换成「该成员当前 effective membership Event 逐字就是本 Event」，`route(member_id)` 等于冻结 target 等其余 basis 规则不变——该成员随后再次加入或状态再变，本 intent 即 `cancelled_authority_lost`。接收方按事件前状态重验本机托管成员资格（该 `member_id` 在本地为 joined），并要求它是持有 head 的直接后继；保存后以 reducer 推进 membership 与账号摘要。此后该成员不再构成持有依据，本 Station 若再无其它 joined 托管成员，即不再是该 stream 后继 Commit 的目标。该 Station 因这名成员而有的 `ak.peer.committed_event.read.scan.v1` 复制权延续到这条终止 Commit（含）为止：它可按下文「Withheld 链节点」补齐终止 Commit 之前本地缺失的位置（包括因该成员离开而被取消投递的位置），此后不再有复制权。
 
+**离站副本与 Realm 终态（normative）**：在安装最后一名 effective joined 托管成员的终止 membership Commit 的同一耐久事务内，接收站 MUST 关闭该 stream 的 live 复制、普通写入代理与实时投影资格；重启、旧 route、迟到 fanout 或历史 backfill 不得恢复资格。已有获授权缓存可以按历史政策读取，但 MUST 标明最后已验证状态而非当前 live 状态。该关闭是 membership authority loss，不是 Realm terminal，MUST NOT 合成 terminal Event、终态标签或 successor。重新取得资格只按既有合法 join／bootstrap 合同处理。后续 Realm 终态 Event 的目标集合、冻结 basis 重验、缺口恢复与接收连续性均无特殊豁免；仍有另一名具资格托管成员的站继续按普通规则接收。hard erasure receipt 走独立已登记载体，不受此 Event 复制截止替代。
+
+以上边界由 `ak.vector.federation.terminal_replication_authority.v1` 固定；fixture 不替代真实源站 fanout 与接收事务验收。
+
 面向单个成员的 to-device、push、KeyPackage、邀请或其它 direct rail 只使用该成员 ActorId 投影出的 exact routing service，MUST NOT 扩张为 Realm fanout。发送方对目标集合中的每个 distinct service MUST 创建独立、持久的 outbox intent；本地 Event 的 accepted 状态、按 service DID 去重后的完整目标集合与全部 outbox intents MUST 在同一 durable transaction 中提交。任一写入失败时整个事务回滚。
 
 目标暂时缺少 verified route **不得**拒绝已经通过 admission 的本地 Event，也不得返回 `service_unavailable` 来撤销本地 acceptance。该目标必须以 `pending_route` 状态原子写入；已有 verified route 但尚未收到 peer 成功响应的目标写为 `pending_delivery`。两种 pending 状态都必须跨重启恢复、按同一 idempotency key 重试，并在超过部署运维阈值后告警；只要冻结的接收 authority 仍有效，就不得因 TTL、尝试次数、dead-letter 上限、cache eviction 或进程重启静默终止义务。

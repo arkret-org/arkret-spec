@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-19.1",
-  "generated_at": "2026-09-19T04:34:00+08:00",
+  "version": "2026-10-08",
+  "generated_at": "2026-10-08T12:00:00+08:00",
   "source_of_truth": true,
   "description": "Canonical registry of all normative MLS-Exporter and MLS ExpandWithLabel domain-separation labels in Arkret v1. Each label is a wire-breaking security parameter: implementations MUST use the exact label string, primitive, and Context field shape, and MUST NOT migrate or reuse keys across distinct labels without a new profile. MLS-Exporter entries MUST NOT derive with an empty Context; an ExpandWithLabel entry follows its registered context_encoding, including an explicitly registered empty context. Domain separation is defined by exact label inequality; forbid_reuse_with is a non-exhaustive human/tooling hint and MUST NOT be interpreted as an allow-list or require symmetric closure. Per-entry defined_in points to the normative source. See zh/crypto-media/media-service-binding.md §8.",
   "labels": [
@@ -156,6 +156,33 @@
       "forbid_reuse_with": [
         "ak.rtc-frame-key/v1",
         "ak.rtc-recording-key/v1"
+      ]
+    },
+    {
+      "label": "ak.blob-content-key-v1",
+      "primitive": "MLS-Exporter",
+      "purpose": "Fresh per-object MLS encrypted attachment content key, including independently salted thumbnails",
+      "defined_in": "zh/crypto-media/media-and-blob.md §3.0",
+      "context_fields": [
+        "effective_scope",
+        "genesis_event_ref",
+        "epoch",
+        "scheme",
+        "encryption_algorithm",
+        "content_key_salt"
+      ],
+      "context_encoding": "RFC 8785 JCS UTF-8 bytes of closed {effective_scope,genesis_event_ref,epoch,scheme,encryption_algorithm,content_key_salt}; resolve the exact winning MLS state and immutable group genesis before constructing Context; normalize omitted whole-file scheme only",
+      "output_bytes": 32,
+      "applies_to_profiles": [
+        "ak.profile.blob_node.v1"
+      ],
+      "grandfathered": false,
+      "empty_context_forbidden": true,
+      "empty_context_error": "mls_exporter_context_invalid",
+      "forbid_reuse_with": [
+        "ak.reaction-routing-root-v1",
+        "ak.signal-root-v1",
+        "ak.rtc-frame-key/v1"
       ]
     }
   ]

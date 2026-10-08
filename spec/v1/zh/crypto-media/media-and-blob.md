@@ -127,28 +127,69 @@ winning state、hash/ref 歧义或缺少该 state 时 MUST 在密钥派生和解
     "algorithm": "MLS",
     "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix"
   },
+  "content_key_salt": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
   "nonce": "base64url...",
   "size_bytes": 1234,
   "media_type": "image/png",
   "encryption_algorithm": "xchacha20_poly1305"
 }
 ```
+### 3.0 MLS per-object 内容密钥（normative）
+
+closed `encrypted_attachment` 在 `key_ref` 后增加 required `content_key_salt`，值为
+`base64url_no_pad(CSPRNG(32 octets))`，canonical wire 恰为 43 chars。salt 是公开派生输入，不是
+content key、key envelope、Blob 上传 metadata 或新对象 ID。每个新附件 object（包括缩略图）独立生成，
+先与 immutable descriptor intent 耐久冻结；exact retry、上传恢复与同一密文再次引用 MUST 复用原
+salt／descriptor／密文，改变明文或加密参数的重新加密 MUST 创建新 salt。不同 object MUST NOT 复用 salt。
+
+Producer 使用冻结的 authoring scope 与已验证 group provenance；接收端先验证承载 descriptor 的
+ContentBlock 与 enclosing Event。双方均按 §3 解析 exact winning
+MLS state、其 epoch、immutable genesis Event ref 和 effective scope，恢复获授权的该 epoch MLS
+checkpoint。effective scope 使用 encryption-and-audit §5.1 的 closed 形态，必须与 enclosing Event
+及该 group provenance 逐字段匹配，不从下载 URL 或当前 UI 推断。historical epoch 不得替换为当前 epoch；
+拥有 ref、salt 或密文字节不授予历史读取或密钥恢复权。缺 state／secret、非 winning state、scope 不符、
+非 canonical salt 或未授权时 MUST 在派生／解密前 fail closed，不使用其它 epoch、随机 key 或其它 label fallback。
+
+```text
+Context = JCS({effective_scope,genesis_event_ref,epoch,scheme,encryption_algorithm,content_key_salt})
+content_key = MLS-Exporter("ak.blob-content-key-v1", Context, 32)
+```
+
+primitive 是 RFC 9420 §8.5 的 MLS-Exporter，使用该 exact epoch 的 exporter_secret 和 MLS
+cipher suite 的 Hash／KDF；不是 Realm ID 的 digest suite，也不是对 secret 直接 HKDF。label 的唯一真源是
+exporter-label-registry。Context 的逻辑字段顺序如上，实际 UTF-8 字节严格由 RFC 8785 JCS 排序，
+不加换行、BOM、null、未知成员或字符串化的数字；`epoch` 为解析出的整数。whole-file descriptor 省略
+`scheme` 时唯一补为 `ak.blob.whole_file_aead.v1`；algorithm 保持 descriptor 的 exact registered string。
+`genesis_event_ref` 是已验证 group 的 immutable genesis EventId，不是当前 Commit ref；Event ref 与等价
+proof-hash `key_ref` 解析到同一 group state 时 MUST 得到同一 Context 与 key，wire `key_ref` 不直接进入 KDF。
+32 bytes 对应本 descriptor 已登记的 AES-256-GCM／XChaCha20-Poly1305 内容密钥长度。
+
+`blob_ref`、密文 digest、enclosing Event ID 和接受后的 Commit 不得进入 KDF：它们依赖密文，会造成循环。
+`content_key_salt` MUST 同时进入 §3.1／§3.3.3 的 immutable AAD。原 canonical `key_ref` 继续进入 AAD，
+所以等价 ref 的 key 相同不允许在加密后替换 descriptor 的 ref。完整 descriptor（包括 salt、ref、scheme、
+algorithm、nonce／prefix、分段参数、明文尺寸与 MIME）必须由已认证 ContentBlock／Event 绑定，
+Blob metadata 的最小 encryption 分类不携带这些字段，也不能作为派生权威。thumbnail 使用独立 salt
+与 nonce，仍是本合同的附件；不另登记 thumbnail 密钥载体或 label。
+
+字节级 KAT、Context 分离、ref 等价与失败关闭向量见
+`ak.vector.blob.content_key_derivation.v1`；此合同不修改非 MLS file-transfer 的独立 key_delivery。
+
 ### 3.1 AEAD nonce uniqueness（normative）
 
-AEAD nonce 在同一 `key_ref` 下复用会使该 key 下使用相关 nonce 的密文同时失去机密性与完整性。整文件形态使用与 [`../conformance/encoding.md` §10.1](../conformance/encoding.md) 相同的 full-width counter 编码：`nonce = I2OSP(durable_sender_counter, AEAD.Nn)`；`N_AEAD`、counter 持久化、replay 防护与 AAD binding 的唯一规范源是 encoding §10.1 / §10.2。Blob / attachment envelope 的 `purpose` 取值固定为 `"blob-attachment"`。
+AEAD nonce 在同一 §3.0 派生 key 下复用会使相关密文同时失去机密性与完整性；不同 salt 的不同 key 不共享 replay 域。整文件形态使用 full-width counter 编码：`nonce = I2OSP(durable_sender_counter, AEAD.Nn)`；nonce 长度、counter 持久化、replay 防护与 AAD binding 以本节为准。Blob / attachment envelope 的 `purpose` 取值固定为 `"blob-attachment"`。
 
 1. **Wire encoding**: `nonce` 字段 base64url 编码 N_AEAD 字节(XChaCha20-Poly1305 → 24 bytes;AES-GCM → 12 bytes);接收方 MUST 在解密前校验 nonce 长度匹配 AEAD algorithm 声明。
 
-2. **AAD binding（normative）**: Blob / attachment envelope 的 AEAD AAD MUST 是 encoding [§10.2](../conformance/encoding.md) 的 **pre-encryption immutable header** 的 canonical bytes。该 header 对整文件形态 (`ak.blob.whole_file_aead.v1`) 至少绑定：
+2. **AAD binding（normative）**: Blob / attachment envelope 的 AEAD AAD MUST 是 本节 **pre-encryption immutable header** 的 RFC 8785 JCS UTF-8 bytes。该 header 对整文件形态 (`ak.blob.whole_file_aead.v1`) 至少绑定：
 
    - `scheme`、`alg`、`key_ref`（canonical 形态）、按本节唯一规则派生的 `epoch`；
-   - `nonce`；
+   - `content_key_salt`、`nonce`；
    - `purpose = "blob-attachment"`、`aead_profile`；
    - `media_type`；
    - `size_bytes`——在 `encrypted_attachment` descriptor 中它是**明文**字节数（§3.3.1 的段数只从它与 `segment_bytes` 派生），在 authority commit 之前即已确定，因此进入 AAD 不产生任何循环。它与 Blob metadata 顶层的 `size_bytes`（存储的密文字节数）是两个不同对象上的不同量，实现 MUST NOT 互相替代；descriptor 中 MUST NOT 再增加第二个明文尺寸字段；
    - 任何 profile 声明的 content policy digest（该 digest 必须在加密前已确定）。
 
-   分块形态的逐段 AAD 见 §3.3.3。**content-addressed `blob_ref` MUST NOT 进入 AAD**：其内嵌 digest 覆盖含 AEAD tag 的完整密文，进入生成同一 tag 的 AAD 会形成不可构造循环（encoding §10.2）。它是 post-encryption commitment，MUST 由引用该附件的已签名 Event / encrypted descriptor / upload receipt 覆盖；若某条 Blob 路径没有任何外层认证，MUST 补齐该认证，MUST NOT 把 ref 或其 digest 塞回 AEAD AAD。
+   分块形态的逐段 AAD 见 §3.3.3。**content-addressed `blob_ref` MUST NOT 进入 AAD**：其内嵌 digest 覆盖含 AEAD tag 的完整密文，进入生成同一 tag 的 AAD 会形成不可构造循环（本节 immutable header 规则）。它是 post-encryption commitment，MUST 由引用该附件的已签名 Event / encrypted descriptor / upload receipt 覆盖；若某条 Blob 路径没有任何外层认证，MUST 补齐该认证，MUST NOT 把 ref 或其 digest 塞回 AEAD AAD。
 
 3. **禁止形态**: 实现 **MUST NOT** 使用以下 nonce 来源:
    - 纯随机 96-bit nonce(birthday bound 不够);
@@ -157,7 +198,7 @@ AEAD nonce 在同一 `key_ref` 下复用会使该 key 下使用相关 nonce 的�
    - HMAC/Hash 输出截断后直接作为完整 nonce 的形态；
    - 任何不是 `I2OSP(durable_sender_counter, AEAD.Nn)` 的整文件 nonce 形态。
 
-4. **整文件形态（`ak.blob.whole_file_aead.v1`）接收方校验（normative）**：整文件 envelope 只携单 `nonce` 字段。Producer MUST 以原子 CAS 耐久预留严格递增的 `durable_sender_counter`，并把整个 `AEAD.Nn` 字节 nonce 编码为 `I2OSP(counter, AEAD.Nn)`；不得为 sender domain、device 或其它信息保留高位 prefix。Receiver MUST 解码恰好 `AEAD.Nn` 字节的 nonce，以 `OS2IP(nonce)` 取得 counter，并把 `(key_ref, purpose, aead_profile, counter)` 绑定到 exact ciphertext digest。相同 tuple 的相同密文折叠；相同 tuple 的不同密文 MUST 以 `failed_precondition`（`aead_nonce_counter_replay`）fail closed。高位字节不是任意 padding：任何不等于该 counter 的 canonical full-width `I2OSP` 编码、counter 回退／复用、counter 耗尽后的继续发送或 random fallback 都 MUST 拒绝（reason `aead_nonce_derivation_invalid`）。
+4. **整文件形态（`ak.blob.whole_file_aead.v1`）接收方校验（normative）**：整文件 envelope 只携单 `nonce` 字段。Producer MUST 以原子 CAS 耐久预留严格递增的 `durable_sender_counter`，并把整个 `AEAD.Nn` 字节 nonce 编码为 `I2OSP(counter, AEAD.Nn)`；不得为 sender domain、device 或其它信息保留高位 prefix。Receiver MUST 使用 §3.0 的 exact canonical Context 作为 key identity（不是 raw `key_ref`，等价 ref 不分裂 replay 域），解码恰好 `AEAD.Nn` 字节的 nonce，以 `OS2IP(nonce)` 取得 counter，并把 `(Context, purpose, aead_profile, counter)` 绑定到 exact ciphertext digest。相同 tuple 的相同密文折叠；相同 tuple 的不同密文 MUST 以 `failed_precondition`（`aead_nonce_counter_replay`）fail closed。高位字节不是任意 padding：任何不等于该 counter 的 canonical full-width `I2OSP` 编码、counter 回退／复用、counter 耗尽后的继续发送或 random fallback 都 MUST 拒绝（reason `aead_nonce_derivation_invalid`）。
 
 E2EE 附件 metadata MUST 使用 [`blob.schema.json#/$defs/encrypted_attachment`](../../artifacts/schemas/blob.schema.json) 的 wire 形态。Producer 必须提供由 stored ciphertext bytes 派生的 content-addressed `blob_ref`，不得再提供 sibling `ciphertext_digest` 或明文 hash；若 deployment 出于审计需要保留 plaintext commitment，必须使用每事件随机 salt 的 commitment 或服务持有的 HMAC / pepper commitment，边界见 [`encryption-and-audit.md` §2.3](./encryption-and-audit.md)。
 
@@ -205,7 +246,7 @@ nonce = nonce_prefix || u32_be(segment_index) || last_segment_flag
   last_segment_flag  1 字节：0x00 普通段 / 0x01 末段
 ```
 
-`N_AEAD` 取值见 [`../conformance/encoding.md` §10.1](../conformance/encoding.md)（XChaCha20-Poly1305 → 24，因此 `nonce_prefix` 为 19 字节；AES-GCM → 12，`nonce_prefix` 为 7 字节）。
+`N_AEAD` 取值见 §3.1（XChaCha20-Poly1305 → 24，因此 `nonce_prefix` 为 19 字节；AES-GCM → 12，`nonce_prefix` 为 7 字节）。
 
 - `nonce_prefix` MUST per-object 随机生成（至少 `N_AEAD - 5` 字节 CSPRNG 输出），并在 envelope 中以 base64url 编码携带（字段 `nonce_prefix`）。同一 content key 下不同 object MUST 使用不同 `nonce_prefix`。
 - 与 §3.1 整文件形态的兼容关系：§3.1 的 nonce 是整个 `AEAD.Nn` 字节宽度上的 `I2OSP(durable_sender_counter, AEAD.Nn)`，没有 sender prefix。本 scheme 使用 per-object 随机 `nonce_prefix` 加单调 segment 后缀；每个 transfer 又使用 fresh content key（content key MUST NOT 跨 transfer 复用，见 §3.3.4），因此 `(content key, nonce)` 对在全局唯一。两种 scheme 的 nonce 构造由 `scheme` 封闭分派，接收方不得把 stream prefix 规则套用到 whole-file nonce，也不得把 whole-file full-width counter 规则套用到 stream segment nonce。
@@ -217,6 +258,7 @@ nonce = nonce_prefix || u32_be(segment_index) || last_segment_flag
 
 - `scheme = "ak.blob.stream_aead.v1"`
 - `key_ref`（canonical 形态，见 §3）
+- `content_key_salt`（canonical 形态，见 §3.0）
 - `nonce_prefix`（本 object 的随机前缀）
 - `segment_index`
 - `last_segment_flag`
@@ -225,12 +267,12 @@ nonce = nonce_prefix || u32_be(segment_index) || last_segment_flag
 
 `segment_index`、`last_segment_flag` 已进入 nonce，本节要求其同时进入 AAD，使重排、截断与末段伪造在 AEAD 层即被拒绝（tag 校验失败）。
 
-上述字段全部在 AEAD authority commit 前确定，构成 encoding [§10.2](../conformance/encoding.md) 意义上的 pre-encryption immutable header。**逐段 AAD MUST NOT 包含 `blob_ref` 或其内嵌 digest**（§3.3.5 的整体 digest 覆盖每段的 tag，进入 AAD 会形成循环）、也 MUST NOT 包含任何其它 post-encryption 值。整体 commitment 的认证归属见 §3.1 第 2 条与 §3.3.5。
+上述字段全部在 AEAD authority commit 前确定，构成本节的 pre-encryption immutable header，其 canonical bytes 使用 RFC 8785 JCS。**逐段 AAD MUST NOT 包含 `blob_ref` 或其内嵌 digest**（§3.3.5 的整体 digest 覆盖每段的 tag，进入 AAD 会形成循环）、也 MUST NOT 包含任何其它 post-encryption 值。整体 commitment 的认证归属见 §3.1 第 2 条与 §3.3.5。
 
 #### 3.3.4 Content key 与 thumbnail
 
-- 每个附件 object MUST 使用 fresh content key；content key MUST NOT 跨 object / 跨 transfer 复用。key 派生与 key_ref 形态沿用 §3 与 [`encryption-and-audit.md` §2.3](./encryption-and-audit.md)。
-- thumbnail 在分块形态下仍走 §4 / §5.3 的**整文件形态**：缩略图通常远小于 `segment_bytes`，无需分块；其独立 AEAD key / nonce context（`purpose="thumbnail"`、独立 key derivation / AAD，不复用正文 key+nonce）规则不变（见 §5.3）。即正文密文使用 `ak.blob.stream_aead.v1` 时，其缩略图附件 envelope 仍 SHOULD 使用 `ak.blob.whole_file_aead.v1`。
+- 每个附件 object MUST 使用 §3.0 的 fresh per-object content key；content key MUST NOT 跨 object / 跨 transfer 复用，不能把 PrivateMessage 的 application ratchet 当附件 KDF。
+- thumbnail 在分块形态下仍走 §4 / §5.3 的**整文件形态**：其独立 salt、key 与 nonce 按 §3.0／§3.1 产生，`purpose` 仍为 `blob-attachment`。正文密文使用 `ak.blob.stream_aead.v1` 时，其缩略图附件 envelope 仍 SHOULD 使用 `ak.blob.whole_file_aead.v1`。
 
 #### 3.3.5 `blob_ref` 内嵌 digest（分块形态语义，normative）
 
@@ -239,7 +281,7 @@ nonce = nonce_prefix || u32_be(segment_index) || last_segment_flag
 - `blob_ref=ak:blob:<suite>:<hex>` 的 `<suite>:<hex>` = 对全部 segment 密文（每段含其各自 AEAD tag）按 segment_index 升序拼接后的完整字节流，用 Realm digest suite（见 [`../conformance/encoding.md` §3.2](../conformance/encoding.md)）求得。
 - 拼接顺序 MUST 严格按 segment_index 升序，且覆盖恰好派生的 `N` 段、不含其它字节。
 - 语义分层：per-segment AEAD tag 提供**增量**校验（边下边验），content-addressed `blob_ref` 提供**整体**完整性（防止整体替换 / 段集合层面的攻击）。两者都 MUST 校验通过。
-- **认证归属（normative）**：`blob_ref` 是 post-encryption commitment，MUST NOT 出现在任何 segment 的 AEAD AAD 中（encoding [§10.2](../conformance/encoding.md)）。它自身的真实性由引用该附件的已签名 Event / encrypted descriptor（例如 `ak.content.file` / `ak.content.long_text` 的 attachment、file-transfer record）或 upload receipt 承担；接收方 MUST 以外层已认证值为准，MUST NOT 采信仅由传输层提供的 digest。
+- **认证归属（normative）**：`blob_ref` 是 post-encryption commitment，MUST NOT 出现在任何 segment 的 AEAD AAD 中（本节 immutable header 规则）。它自身的真实性由引用该附件的已签名 Event / encrypted descriptor（例如 `ak.content.file` / `ak.content.long_text` 的 attachment、file-transfer record）或 upload receipt 承担；接收方 MUST 以外层已认证值为准，MUST NOT 采信仅由传输层提供的 digest。
 
 #### 3.3.6 解密 MUST（normative）
 
@@ -266,6 +308,7 @@ nonce = nonce_prefix || u32_be(segment_index) || last_segment_flag
     "algorithm": "MLS",
     "group_state_ref": "ak:event:Af-qizSfVETcKiliXG093VVneO4nQF194ZXGkMWJijix"
   },
+  "content_key_salt": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
   "nonce_prefix": "base64url-N_AEAD-minus-5-bytes",
   "segment_bytes": 262144,
   "size_bytes": 3211264,
@@ -429,7 +472,7 @@ Cache-Control: public, immutable, max-age=31536000
 - 服务端生成私有明文缩略图前，该服务 MUST 列入 `plaintext_visible_services`，且 `data_classes[]` 覆盖 `thumbnail` / `attachment_preview`。
 - 预览 URL、尺寸、MIME、文件名和 unsafe 标记都必须服从 Realm policy 与 capability，不能绕过正文授权。
 - 缩略图必须重新绑定源 blob、生成参数、生成服务 DID 和可见性；删除、撤回、保留策略或 legal hold 改变时，派生内容必须随源内容重新判定。
-- 缩略图 descriptor MUST 至少绑定 content-addressed `source_blob_ref`、`thumbnail_blob_ref`、`width`、`height`、`media_type`、`generated_by?`、`visibility` 和 `derivation_profile`；两项 ref 的内嵌 digest 分别是 exact stored bytes 的唯一承诺，descriptor 不携 `source_ciphertext_digest` / `thumbnail_ciphertext_digest`。若源附件是 E2EE，缩略图必须使用独立 AEAD key / nonce context，推荐 `purpose="thumbnail"` 并把两项 ref、尺寸和生成参数纳入 key derivation / AAD；不得复用原附件正文 key+nonce，也不得把明文缩略图 hash 暴露给未获授权服务。
+- 缩略图 descriptor MUST 至少绑定 content-addressed `source_blob_ref`、`thumbnail_blob_ref`、`width`、`height`、`media_type`、`generated_by?`、`visibility` 和 `derivation_profile`；两项 ref 的内嵌 digest 分别是 exact stored bytes 的唯一承诺，descriptor 不携 `source_ciphertext_digest` / `thumbnail_ciphertext_digest`。若源附件是 E2EE，缩略图必须使用独立 AEAD key / nonce context，密钥按 §3.0 的独立 salt 派生，AAD 使用 §3.1 的 `purpose="blob-attachment"`；两项 ref、尺寸和生成参数由外层已认证 thumbnail descriptor 绑定，`thumbnail_blob_ref` 不进入 KDF／AAD；不得复用原附件正文 key+nonce，也不得把明文缩略图 hash 暴露给未获授权服务。
 - producer SHOULD 使用 `thumbnails[]` 数组表达上述绑定。Consumer 收到只含 `media-metadata.schema.json` 的 `preview_blob_ref`、缺少 `thumbnails[]` descriptor 的 metadata 时，必须按源 blob 的最严格可见性处理，不得因缺少 descriptor 而放宽访问或缓存。
 
 `media-metadata.visibility` 的标准取值是 `public` / `realm_bound` / `actor_private` / `device_bound`。`realm_bound` 表示访问受 owning Realm、Circle scope 与 capability 共同约束；它不是 Space 边界。`actor_private` 表示仅 issuing actor 的授权会话可通过 header auth 获取，MUST NOT 被转换为 bearer presign URL。`presign` 是 §5.4 定义的**下载通道机制**（发放短 TTL bearer URL），不是 visibility 维度上的取值；blob 的 visibility 仍按上述四值之一判定，是否允许 presign 由 §5.4.4.1 的 fail-closed 规则按 visibility 与 Realm policy 决定（例如 `actor_private` MUST NOT 走 presign）。`presigned` 不是合法 visibility 枚举值。

@@ -12,6 +12,7 @@
         "encrypted",
         "encryption_algorithm",
         "key_ref",
+        "content_key_salt",
         "size_bytes",
         "media_type"
       ],
@@ -67,6 +68,11 @@
           },
           "additionalProperties": false
         },
+        "content_key_salt": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$",
+          "description": "Canonical base64url-no-pad encoding of a fresh 32-octet CSPRNG per-object salt. MLS-Exporter and immutable AAD binding are defined in zh/crypto-media/media-and-blob.md section 3.0; this is public input, never the content key."
+        },
         "size_bytes": {
           "type": "integer",
           "minimum": 0
@@ -92,7 +98,7 @@
             "nonce": {
               "type": "string",
               "pattern": "^[A-Za-z0-9_-]{16,64}$",
-              "$comment": "zh/crypto-media/media-and-blob.md §3.1: the whole-file nonce MUST be the canonical full-width I2OSP(durable_sender_counter, AEAD.Nn) encoding; a nonce that is not that deterministic derivation (truncated prefix, counter rollback, exhausted-counter continue, or random fallback) is rejected with reason aead_nonce_derivation_invalid. Before AEAD decryption the receiver binds (key_ref, purpose, aead_profile, counter) to the exact ciphertext digest: an identical retry folds idempotently, while a different ciphertext under an already bound tuple is rejected with failed_precondition reason aead_nonce_counter_replay and produces no plaintext or durable effect."
+              "$comment": "zh/crypto-media/media-and-blob.md §3.1: the whole-file nonce MUST be the canonical full-width I2OSP(durable_sender_counter, AEAD.Nn) encoding; a nonce that is not that deterministic derivation (truncated prefix, counter rollback, exhausted-counter continue, or random fallback) is rejected with reason aead_nonce_derivation_invalid. Before AEAD decryption the receiver binds (canonical resolved MLS-Exporter Context, purpose, aead_profile, counter) to the exact ciphertext digest: an identical retry folds idempotently, while a different ciphertext under an already bound tuple is rejected with failed_precondition reason aead_nonce_counter_replay and produces no plaintext or durable effect."
             }
           },
           "required": [
@@ -147,7 +153,8 @@
           }
         }
       ],
-      "unevaluatedProperties": false
+      "unevaluatedProperties": false,
+      "description": "Closed authenticated ContentBlock attachment descriptor. Required content_key_salt binds the per-object MLS-Exporter key and AEAD AAD; it is never upload metadata."
     },
     "storage_encryption": {
       "description": "Storage-visible encryption classification only; no plaintext MIME, plaintext size, nonce, group or key reference. Private attachment descriptors remain in authenticated Content Blocks.",

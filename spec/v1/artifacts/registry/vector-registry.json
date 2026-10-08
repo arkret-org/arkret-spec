@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-06.2",
+  "version": "2026-10-08",
   "source_of_truth": true,
-  "generated_at": "2026-10-06T06:27:20+08:00",
+  "generated_at": "2026-10-08T12:00:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -5149,6 +5149,32 @@
         "spec/v1/zh/models/private-objects.md",
         "spec/v1/zh/models/sidecar.md",
         "spec/v1/zh/conformance/conformance-vectors.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.blob.content_key_derivation.v1",
+      "status": "active",
+      "domain": "blob",
+      "applies_to_fixtures": [
+        "blob-content-key-fixture.json"
+      ],
+      "description": "Byte-exact RFC 9420 MLS-Exporter KAT for attachment content keys: JCS Context, both AEAD schemes, salt/group/scope/epoch/algorithm separation, equivalent key-ref resolution, invalid salt and unauthorized checkpoint failures.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/blob-content-key-fixture.json",
+        "spec/v1/zh/crypto-media/media-and-blob.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.federation.terminal_replication_authority.v1",
+      "status": "active",
+      "domain": "federation",
+      "applies_to_fixtures": [
+        "terminal-replication-authority-fixture.json"
+      ],
+      "description": "Terminal Event fanout uses existing joined-member authority, durable basis revalidation and continuous-chain admission. Last-member departure fences live effects without inventing Realm terminal knowledge; erasure receipts retain their separate contract.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/terminal-replication-authority-fixture.json",
+        "spec/v1/zh/sync/federation.md"
       ]
     }
   ]

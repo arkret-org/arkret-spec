@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-05.2",
+  "version": "2026-10-08",
   "source_of_truth": true,
-  "generated_at": "2026-10-05T18:26:25+08:00",
+  "generated_at": "2026-10-08T12:00:00+08:00",
   "description": "Closed inventory of current spec/v1/zh headings that explicitly carry the （normative） marker. Any addition, removal, rename, or move is reviewed as a protocol change and refreshes this source-of-truth inventory.",
   "titles": [
     {
@@ -403,6 +403,11 @@
       "page": "crypto-media/encryption-and-audit.md",
       "heading": "持久恢复的完成条件（normative）",
       "fragment": "持久恢复的完成条件normative"
+    },
+    {
+      "page": "crypto-media/media-and-blob.md",
+      "heading": "3.0 MLS per-object 内容密钥（normative）",
+      "fragment": "30-mls-per-object-内容密钥normative"
     },
     {
       "page": "crypto-media/media-and-blob.md",
