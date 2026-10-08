@@ -12,8 +12,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/account-status-issuer-ledger-fixture.json",
-      "sha256": "9a80664635d0f453b94eadaaabebe90a433e4938fc3932e409a00b1ceaac46a2",
-      "version": "2026-10-06.2"
+      "sha256": "f34b91249c3f905e7a65cdc407a362bbe8142e77197952045bfc81df2ae791b8",
+      "version": "2026-10-08.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/actor-private-events-submit-fixture.json",

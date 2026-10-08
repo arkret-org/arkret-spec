@@ -332,7 +332,6 @@ factor 时，current DID control proof 才可作为附加分支；该分支必�
   "previous_account_status_record_id": "ak:account_status_record:Abbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
   "status": "suspended",
   "reason_code": "abuse_review",
-  "effective_at": "2026-04-26T00:00:00.000Z",
   "issued_at": "2026-04-26T00:00:00.000Z",
   "proof": {
     "kind": "detached_jws",
@@ -379,6 +378,10 @@ Account Authority 向 Station 复制状态的唯一写 operation 是 `ak.peer.ac
 
 Controller account gate 的严格依据复用本节原签 issuer-ledger record，见 key-management.md：只公开现有 typed record id 和完整 signed record 摘要，由 AA 私有 current cut 断言。它不把 record 转为 Event，不增加 status publication、receipt 或 ledger 的 authority；初始 active 的 binding default 与后继 active 必须区分。
 
+**时间合同（normative）**：`issued_at` 是 Account Authority 签发 record 的时间，同时是签名 key 历史窗口和 `proof.created_at` 的基准，不是预定生效时间。Account Authority 的状态在 §3.1 原子事务提交时生效；receiver 的本地 gate 在该 exact record 被单调 replica 原子接纳后使用它。`issued_at` 不必等于数据库 commit 或 receiver `accepted_at`，不得据其相对本地墙钟的早晚延迟、提前或撤销 current status；key 历史授权、proof 与既有 freshness 校验仍必须成立。需要产品调度时，先保存本地未签发 intent，到实际执行时走普通签发/CAS transaction，不预签未来 successor。
+
+`AccountStatusRecord` 的 closed wire core MUST NOT 携带 `effective_at`；旧字段无论等于、早于或晚于 `issued_at` 均须在 issuer/receiver 形状校验阶段拒绝且零写入，不得删除未知字段后接纳或重建原签材料。本裁决正式收敛此前允许两个独立 timestamp 的合法域，不声称旧 schema 已约束相等或本次删除是旧域上的无损变换。删除改变 unsigned core 的 JCS、record id、proof payload digest 与 JWS binding bytes；fixture、predecessor 链和引用完整 signed record 的摘要必须同批重算。当前未发布 v1 不保留旧字段兼容分支。
+
 Current account status 是 ledger current head 的 `status`。该 ledger 是 Account Authority 单写者的 strict hash chain，不存在并发 Event head、severity winner 或 PCR reducer。`account_id` 是 lifecycle key；同一 principal 绑定的其它 `account_id` 独立求值。
 
 `AccountStatusRecord.expires_at` 仅是管理端与 UI 的复核/续期提示，不会在到时自动解除 `locked`、`suspended` 或其它状态。解除或改变状态仍 MUST 由 Account Authority 提交 successor record；receiver MUST NOT 根据本地墙钟合成状态。
@@ -386,7 +389,7 @@ Current account status 是 ledger current head 的 `status`。该 ledger 是 Acc
 1. 所有授权 gate MUST 读取本地 authoritative head（Account Authority）或已验证 monotonic replica（其它服务）；freshness 不足时向 Account Authority resolve，不能回调 holder device。
 2. 降低严格度只由 Account Authority current-head transaction 执行，receiver 不接受绕过 predecessor 的恢复 record。
 3. **`erasure_pending` 是 terminal 状态（normative，不可逆）**：任何 successor 均以 `erasure_pending_is_terminal` 拒绝。
-4. 普通读面返回 `current_status`、`current_status_record_id` 与 `current_status_seq`；`reason_code`、`reason`、`effective_at` 来自同一 current record，不存在 producer-biased winner。
+4. 普通读面返回 `current_status`、`current_status_record_id` 与 `current_status_seq`；`reason_code`、`reason`、`issued_at` 来自同一 current record，不存在 producer-biased winner。
 
 **Deactivation 进度 flag（normative）**：`status` 是封闭 6 值枚举（不含下列 token）。`deactivation_partial`（§7.1）与 `deactivation_federation_incomplete`（§7 末）**不是** `status` 值，而是 `deactivated` 状态下叠加的**独立服务侧 flag**，表达 deactivation fanout 的完成进度：
 

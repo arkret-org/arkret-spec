@@ -12,6 +12,7 @@ from .core import ARTIFACTS, Lint, load_json
 
 
 FIXTURE_PATH = ARTIFACTS / "fixtures" / "account-status-issuer-ledger-fixture.json"
+SCHEMA_PATH = ARTIFACTS / "schemas" / "account-operations.schema.json"
 
 GENESIS_REQUIREMENT = (
     "The genesis record is created inside the binding commit transaction, carries no "
@@ -23,6 +24,23 @@ def check_account_status_issuer_genesis(lint: Lint) -> None:
     data = load_json(lint, FIXTURE_PATH)
     if not isinstance(data, dict):
         return
+
+    schema = load_json(lint, SCHEMA_PATH)
+    record_shape = schema.get("$defs", {}).get("account_status_record", {}) if isinstance(schema, dict) else {}
+    if ("effective_at" in record_shape.get("properties", {})
+            or "effective_at" in record_shape.get("required", [])
+            or record_shape.get("additionalProperties") is not False):
+        lint.fail(SCHEMA_PATH, "account_status_record must reject retired effective_at")
+    try:
+        from tools.regenerate_controller_gate_basis_fixture import refresh_ledger
+        if refresh_ledger(data) != data:
+            lint.fail(FIXTURE_PATH, "account status ledger identity/proof/reference transcript drift")
+    except Exception as error:
+        lint.fail(FIXTURE_PATH, "account status ledger transcript: " + str(error))
+    for group in ("records", "conflicting_records"):
+        for row in data.get("ledger", {}).get(group, []):
+            if "effective_at" in row.get("record", {}):
+                lint.fail(FIXTURE_PATH, "account_status_record must reject retired effective_at")
 
     rules = data.get("genesis_rules")
     if not isinstance(rules, dict):

@@ -42,6 +42,29 @@ class AccountStatusIssuerGenesisLintTest(unittest.TestCase):
     def test_committed_fixture_passes(self) -> None:
         self.assertEqual(self.run_gate(self.body), [])
 
+    def test_retired_effective_at_is_rejected_for_all_time_relations(self) -> None:
+        for timestamp in ("2026-08-05T00:00:00.000Z", "2026-08-06T00:00:00.000Z", "2026-08-07T00:00:00.000Z"):
+            with self.subTest(timestamp=timestamp):
+                body = copy.deepcopy(self.body)
+                body["ledger"]["records"][0]["record"]["effective_at"] = timestamp
+                self.assertTrue(any("retired effective_at" in error for error in self.run_gate(body)))
+
+    def test_record_id_and_signature_drift_is_rejected(self) -> None:
+        body = copy.deepcopy(self.body)
+        body["ledger"]["records"][0]["record"]["proof"]["jws"] = "a..b"
+        self.assertTrue(any("transcript drift" in error for error in self.run_gate(body)))
+
+    def test_wire_schema_rejects_retired_time_in_signed_record(self) -> None:
+        import jsonschema
+        schema = json.loads(gate.SCHEMA_PATH.read_text(encoding="utf-8"))
+        resolver = jsonschema.RefResolver(base_uri=gate.SCHEMA_PATH.resolve().as_uri(), referrer=schema)
+        validator = jsonschema.Draft202012Validator({"$ref": "#/$defs/account_status_record"}, resolver=resolver)
+        record = self.body["ledger"]["records"][0]["record"]
+        self.assertEqual(list(validator.iter_errors(record)), [])
+        for timestamp in ("2026-08-05T00:00:00.000Z", "2026-08-06T00:00:00.000Z", "2026-08-07T00:00:00.000Z"):
+            changed = dict(record, effective_at=timestamp)
+            self.assertTrue(list(validator.iter_errors(changed)))
+
     def test_station_checkpoint_wait_turns_the_gate_red(self) -> None:
         body = copy.deepcopy(self.body)
         body["genesis_rules"]["waits_for_station_checkpoint"] = True

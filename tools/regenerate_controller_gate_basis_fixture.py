@@ -37,7 +37,7 @@ def record(core, seq, status, previous=None):
     value = copy.deepcopy(core)
     for field in ("account_status_record_id", "proof", "reason_code", "previous_account_status_record_id"):
         value.pop(field, None)
-    value.update(status_seq=seq, status=status, issued_at=f"2026-08-{seq+5:02d}T00:00:00.000Z", effective_at=f"2026-08-{seq+5:02d}T00:00:00.000Z")
+    value.update(status_seq=seq, status=status, issued_at=f"2026-08-{seq+5:02d}T00:00:00.000Z")
     if previous:
         value["previous_account_status_record_id"] = previous["account_status_record_id"]
     rid = "ak:account_status_record:" + b64u(b"\x01" + hashlib.sha256(jcs(value)).digest())
@@ -129,23 +129,66 @@ def verify_case(case):
     verify_jws(gate["proof"]["jws"], gate_bytes(gate))
 
 
+def refresh_ledger(data):
+    """Rebuild record identities, predecessor references and fixture signatures."""
+    data = copy.deepcopy(data)
+    ledger = data["ledger"]
+    rows = ledger["records"] + ledger["conflicting_records"]
+    sources = {row["record"]["account_status_record_id"]: row["record"] for row in rows}
+    rebuilt = {}
+
+    def rebuild(old_id):
+        if old_id in rebuilt:
+            return rebuilt[old_id]
+        core = copy.deepcopy(sources[old_id])
+        core.pop("account_status_record_id")
+        old_proof = core.pop("proof")
+        previous = core.get("previous_account_status_record_id")
+        if previous in sources:
+            core["previous_account_status_record_id"] = rebuild(previous)["account_status_record_id"]
+        rid = "ak:account_status_record:" + b64u(b"\x01" + hashlib.sha256(jcs(core)).digest())
+        proof = {"kind": "detached_jws", "verification_method": old_proof["verification_method"], "payload_digest": digest(core), "created_at": core["issued_at"]}
+        binding = {"context": "ak.account_status_record_proof.v1", "payload_digest": proof["payload_digest"], "verification_method": proof["verification_method"], "created_at": proof["created_at"]}
+        proof["jws"] = jws(jcs(binding))
+        rebuilt[old_id] = dict(core, account_status_record_id=rid, proof=proof)
+        return rebuilt[old_id]
+
+    for row in rows:
+        signed = rebuild(row["record"]["account_status_record_id"])
+        core = {k: v for k, v in signed.items() if k not in ("account_status_record_id", "proof")}
+        row.update(record=signed, unsigned_core_canonical_bytes_utf8=jcs(core).decode(), unsigned_core_digest=digest(core), account_status_record_id=signed["account_status_record_id"])
+    ids = {old: new["account_status_record_id"] for old, new in rebuilt.items()}
+
+    def references(value):
+        if isinstance(value, str):
+            return ids.get(value, value)
+        if isinstance(value, list):
+            return [references(item) for item in value]
+        if isinstance(value, dict):
+            return {k: references(v) for k, v in value.items()}
+        return value
+
+    return references(data)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
     data = json.loads(FIXTURE.read_text())
-    expected = build(data)
+    refreshed = refresh_ledger(data)
+    expected = build(refreshed)
+    refreshed["controller_gate_basis_contract"] = expected
     for case in expected["cases"]:
         verify_case(case)
     for decision in expected["default_decisions"]:
         if default_allowed(decision["binding"], decision["head"], decision["user_active"]) != decision["allowed"]:
             raise ValueError("default source decision")
     if args.check:
-        if data.get("controller_gate_basis_contract") != expected:
-            raise SystemExit("controller gate basis transcript drift")
+        if data != refreshed:
+            raise SystemExit("account status ledger/controller gate basis transcript drift")
     else:
-        data["controller_gate_basis_contract"] = expected
-        FIXTURE.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
+        FIXTURE.write_text(json.dumps(refreshed, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
 
 
 if __name__ == "__main__":

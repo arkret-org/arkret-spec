@@ -1717,7 +1717,6 @@
         "status_seq",
         "status",
         "issued_at",
-        "effective_at",
         "proof"
       ],
       "properties": {
@@ -1767,10 +1766,8 @@
           "$ref": "string-profiles.schema.json#/$defs/audit_reason_text"
         },
         "issued_at": {
-          "$ref": "#/$defs/timestamp"
-        },
-        "effective_at": {
-          "$ref": "#/$defs/timestamp"
+          "$ref": "#/$defs/timestamp",
+          "description": "Account Authority signing time and historical-key lookup instant, not a scheduled activation time. Current status follows the atomically committed issuer-ledger head or the accepted monotonic replica head, irrespective of local wall clock. effective_at is forbidden, including equal, future or backdated values; receivers must reject it without writes, never strip it or reconstruct signed bytes."
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp"

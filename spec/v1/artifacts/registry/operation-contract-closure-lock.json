@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-07.4",
-  "generated_at": "2026-10-07T09:17:09+08:00",
+  "version": "2026-10-08.1",
+  "generated_at": "2026-10-08T22:37:07+00:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -241,11 +241,11 @@
     },
     {
       "operation_id": "ak.peer.account_status.command.submit.v1",
-      "sha256": "sha256:1367de0536f159888a1d3a713d09129b1b17ef4b6316722d87059d1f0adb4493"
+      "sha256": "sha256:8cf1ea00025cbf426c1c7495378e4e3a01fb3c87658eead7bd057b758104964b"
     },
     {
       "operation_id": "ak.peer.account_status.read.resolve.v1",
-      "sha256": "sha256:b606319db2caee4404e8d9fc758be4cb21b504f0fd05dec2e913bf078c58d008"
+      "sha256": "sha256:134399f17e39719e5379198a3a7fe9c83b7e3441ce9d467a8ca4b122f731a274"
     },
     {
       "operation_id": "ak.peer.committed_event.read.scan.v1",
