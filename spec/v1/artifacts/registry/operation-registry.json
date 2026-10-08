@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-06.1",
+  "version": "2026-10-09.1",
   "source_of_truth": false,
-  "generated_at": "2026-10-06T01:26:43+08:00",
+  "generated_at": "2026-10-09T07:30:26+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -3918,7 +3918,7 @@
       "http": "GET /_arkret/self/realms/{realm_id}/spaces",
       "grpc": "SelfSpace/List",
       "mq": "self.space.query.list",
-      "notes": "Extension read surface listing reducer-maintained Space lifecycle rows for a Realm. This is a derived read model, not a canonical truth source.",
+      "notes": "Extension read surface listing caller-visible reducer-maintained Space lifecycle rows for a Realm. This is a paginated derived read model, not a canonical truth source or a tree query. Client navigation may use disclosed parent references, but missing parents do not prove roots or inaccessible ancestors; pages do not promise one authority cut. No hidden-ancestor chain, accessible flag, nested children, or Realm summary is returned. See zh/models/space-hierarchy.md section 7.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/ProjectionSpaceList"
