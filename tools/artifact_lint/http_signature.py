@@ -457,7 +457,7 @@ def _check_boundary_vectors(
     for operation in catalog.get("operation_registry", {}).get("operations", []):
         if not isinstance(operation, dict):
             continue
-        signature = operation.get("auth_requirements", {}).get("service_signature")
+        signature = operation.get("auth_requirements", {}).get("service_signature") or operation.get("auth_requirements", {}).get("managed_device_signature")
         if not isinstance(signature, dict):
             continue
         scenario = scenarios.get(signature.get("signature_scenario_id"))
@@ -534,7 +534,7 @@ def _check_operations(
     for operation in operations:
         if not isinstance(operation, dict):
             continue
-        signature = operation.get("auth_requirements", {}).get("service_signature")
+        signature = operation.get("auth_requirements", {}).get("service_signature") or operation.get("auth_requirements", {}).get("managed_device_signature")
         if not isinstance(signature, dict):
             continue
         operation_id = operation.get("operation_id")

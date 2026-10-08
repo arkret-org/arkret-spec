@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-07.2",
+  "version": "2026-10-09.2",
   "source_of_truth": false,
-  "generated_at": "2026-10-07T09:17:08+08:00",
+  "generated_at": "2026-10-09T07:42:46+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,10 +18,10 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 211,
+    "total_operations": 215,
     "by_completeness_class": {
       "binary_or_redirect": 2,
-      "typed_schema": 209
+      "typed_schema": 213
     },
     "by_surface_class_and_completeness_class": {
       "core": {
@@ -32,10 +32,10 @@
       },
       "extension": {
         "binary_or_redirect": 2,
-        "typed_schema": 126
+        "typed_schema": 129
       },
       "interop_bridge": {
-        "typed_schema": 22
+        "typed_schema": 23
       }
     }
   },
@@ -52,20 +52,6 @@
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
-    },
-    {
-      "operation_id": "ak.edge.applet.client.command.exchange.v1",
-      "surface_class": "interop_bridge",
-      "http": "POST /_arkret/edge/applet/client/exchange",
-      "success_shape_kind": "schema_resource",
-      "request_schema_ref": "schemas/applet-client-operations.schema.json#/$defs/exchange_request_body",
-      "response_schema_ref": "schemas/applet-client-operations.schema.json#/$defs/exchange_outcome",
-      "openapi_component_refs": {
-        "request": "../schemas/applet-client-operations.schema.json#/$defs/exchange_request_body",
-        "response": "../schemas/applet-client-operations.schema.json#/$defs/exchange_outcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
       "operation_id": "ak.edge.applet.command.transaction.v1",
@@ -1630,6 +1616,48 @@
       "reason": "registry declares artifact schema ref(s) for response."
     },
     {
+      "operation_id": "ak.self.applet.authority.read.material.v1",
+      "surface_class": "extension",
+      "http": "POST /_arkret/self/applets/{applet_id}/authority/material",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/applet-authority-material.schema.json#/$defs/request",
+      "response_schema_ref": "schemas/applet-authority-material.schema.json#/$defs/outcome",
+      "openapi_component_refs": {
+        "request": "../schemas/applet-authority-material.schema.json#/$defs/request",
+        "response": "../schemas/applet-authority-material.schema.json#/$defs/outcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.self.applet.bot.command.preview.v1",
+      "surface_class": "interop_bridge",
+      "http": "POST /_arkret/self/applets/{applet_id}/bots/provision/preview",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/applet-bot-operations.schema.json#/$defs/bot_preview_request_body",
+      "response_schema_ref": "schemas/applet-bot-operations.schema.json#/$defs/bot_preview_outcome",
+      "openapi_component_refs": {
+        "request": "../schemas/applet-bot-operations.schema.json#/$defs/bot_preview_request_body",
+        "response": "../schemas/applet-bot-operations.schema.json#/$defs/bot_preview_outcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.self.applet.bot.command.provision.v1",
+      "surface_class": "interop_bridge",
+      "http": "POST /_arkret/self/applets/{applet_id}/bots/provision",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/applet-bot-operations.schema.json#/$defs/bot_actor_provision_request_body",
+      "response_schema_ref": "schemas/applet-bot-operations.schema.json#/$defs/bot_actor_provision_outcome",
+      "openapi_component_refs": {
+        "request": "../schemas/applet-bot-operations.schema.json#/$defs/bot_actor_provision_request_body",
+        "response": "../schemas/applet-bot-operations.schema.json#/$defs/bot_actor_provision_outcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
       "operation_id": "ak.self.applet.command.install.v1",
       "surface_class": "extension",
       "http": "POST /_arkret/self/applets/install",
@@ -1681,20 +1709,6 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/GhostActorProvisionRequestBody",
         "response": "#/components/schemas/GhostActorProvisionOutcome"
-      },
-      "completeness_class": "typed_schema",
-      "reason": "registry declares artifact schema ref(s) for request, response."
-    },
-    {
-      "operation_id": "ak.self.applet.install.command.cancel.v1",
-      "surface_class": "extension",
-      "http": "POST /_arkret/self/applets/install/cancel",
-      "success_shape_kind": "schema_resource",
-      "request_schema_ref": "schemas/applet-client-operations.schema.json#/$defs/cancel_request_body",
-      "response_schema_ref": "schemas/applet-client-operations.schema.json#/$defs/cancel_outcome",
-      "openapi_component_refs": {
-        "request": "../schemas/applet-client-operations.schema.json#/$defs/cancel_request_body",
-        "response": "../schemas/applet-client-operations.schema.json#/$defs/cancel_outcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -2513,6 +2527,48 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/KeysUploadRequestBody",
         "response": "#/components/schemas/KeysUploadOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.self.management_review.command.decide.v1",
+      "surface_class": "extension",
+      "http": "POST /_arkret/self/management-reviews/decisions",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/management-review-operations.schema.json#/$defs/decision",
+      "response_schema_ref": "schemas/management-review-operations.schema.json#/$defs/outcome",
+      "openapi_component_refs": {
+        "request": "../schemas/management-review-operations.schema.json#/$defs/decision",
+        "response": "../schemas/management-review-operations.schema.json#/$defs/outcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.self.management_review.command.request.v1",
+      "surface_class": "extension",
+      "http": "POST /_arkret/self/management-reviews/requests",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/management-review-operations.schema.json#/$defs/request",
+      "response_schema_ref": "schemas/management-review-operations.schema.json#/$defs/outcome",
+      "openapi_component_refs": {
+        "request": "../schemas/management-review-operations.schema.json#/$defs/request",
+        "response": "../schemas/management-review-operations.schema.json#/$defs/outcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.self.management_review.read.status.v1",
+      "surface_class": "extension",
+      "http": "POST /_arkret/self/management-reviews/status",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/management-review-operations.schema.json#/$defs/lookup",
+      "response_schema_ref": "schemas/management-review-operations.schema.json#/$defs/outcome",
+      "openapi_component_refs": {
+        "request": "../schemas/management-review-operations.schema.json#/$defs/lookup",
+        "response": "../schemas/management-review-operations.schema.json#/$defs/outcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

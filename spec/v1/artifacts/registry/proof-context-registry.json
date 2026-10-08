@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-06.1",
+  "version": "2026-10-09.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-06T01:49:40+08:00",
+  "generated_at": "2026-10-09T07:31:39+08:00",
   "description": "Canonical security-domain labels for Arkret detached proofs and non-Event cryptographic transcripts. contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript, and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
     "context values and object_family values MUST be unique",
@@ -1598,97 +1598,6 @@
       ],
       "defined_in": "zh/authz/constraint-schema.md",
       "schema_ref": "schemas/approval-signature.schema.json#/$defs/approval_signature_input"
-    },
-    {
-      "domain": "ak.applet_disclosure_signature.v1",
-      "object_family": "applet_disclosure_signature",
-      "primitive": "detached_signature",
-      "schema_ref": "schemas/content-block-applet.schema.json#/$defs/invocation",
-      "transcript_schema_refs": [
-        "schemas/detached-object-signature.schema.json#/$defs/applet_disclosure_signature"
-      ],
-      "signature_member": "signature",
-      "excluded_signature_members": [
-        "signature"
-      ],
-      "binding_fields": [
-        "context",
-        "signature_algorithm",
-        "verification_method",
-        "signed_digest",
-        "created_at"
-      ],
-      "canonicalization": "RFC8785_JCS",
-      "digest_suite": "SHA-256",
-      "digest_input": "RFC8785_JCS(unsigned_projection)",
-      "digest_encoding": "sha256:lowercase_hex",
-      "prefix_form": "UTF8(domain + LF)",
-      "prefix_bytes_hex": "616b2e6170706c65745f646973636c6f737572655f7369676e61747572652e76310a",
-      "signature_input": "prefix_bytes || RFC8785_JCS(signature_envelope_without_sig)",
-      "signature_algorithm": "Ed25519",
-      "signature_encoding": "base64url_no_pad_64_bytes",
-      "domain_is_a_transcript_member": true,
-      "signer_authority": "Original invocation Device with historical AccountDeviceSignerEvidence",
-      "defined_in": "zh/extensions/applet-client-and-invocation.md#32-可验证的披露内容与附件",
-      "known_answer_ref": "fixtures/applet-self-actor-fixture.json#/signature_kats/invocation"
-    },
-    {
-      "domain": "ak.applet_result_signature.v1",
-      "object_family": "applet_result_signature",
-      "primitive": "detached_signature",
-      "schema_ref": "schemas/content-block-applet.schema.json#/$defs/execution_outcome",
-      "transcript_schema_refs": [
-        "schemas/detached-object-signature.schema.json#/$defs/applet_result_signature"
-      ],
-      "signature_member": "signature",
-      "excluded_signature_members": [
-        "signature"
-      ],
-      "binding_fields": [
-        "context",
-        "signature_algorithm",
-        "verification_method",
-        "signed_digest",
-        "created_at"
-      ],
-      "canonicalization": "RFC8785_JCS",
-      "digest_suite": "SHA-256",
-      "digest_input": "RFC8785_JCS(unsigned_projection)",
-      "digest_encoding": "sha256:lowercase_hex",
-      "prefix_form": "UTF8(domain + LF)",
-      "prefix_bytes_hex": "616b2e6170706c65745f726573756c745f7369676e61747572652e76310a",
-      "signature_input": "prefix_bytes || RFC8785_JCS(signature_envelope_without_sig)",
-      "signature_algorithm": "Ed25519",
-      "signature_encoding": "base64url_no_pad_64_bytes",
-      "domain_is_a_transcript_member": true,
-      "signer_authority": "Exact Applet Account Principal root and installing Station attester at the accepted aligned epoch",
-      "defined_in": "zh/extensions/applet-client-and-invocation.md#33-执行签名结果与原群转交",
-      "known_answer_ref": "fixtures/applet-self-actor-fixture.json#/signature_kats/result"
-    },
-    {
-      "domain": "ak.applet_client_queue_proof.v1",
-      "object_family": "applet_client_queue",
-      "primitive": "detached_signature",
-      "binding_fields": [
-        "context",
-        "payload_digest",
-        "verification_method",
-        "created_at",
-        "audience_id"
-      ],
-      "defined_in": "zh/extensions/applet-client-and-invocation.md#23-已安装阶段队列结果与撤销",
-      "schema_ref": "schemas/applet-client-operations.schema.json#/$defs/queue_envelope",
-      "injected_fields": [
-        {
-          "field": "context",
-          "source": "constant ak.applet_client_queue_proof.v1"
-        }
-      ],
-      "transcript_schema_refs": [
-        "schemas/applet-install-authoring.schema.json#/$defs/managed_actor_proof"
-      ],
-      "prefix_bytes_hex": "616b2e6170706c65745f636c69656e745f71756575655f70726f6f662e76310a",
-      "signer_authority": "Exact target Station Service and exact Applet service audience, verified independently of task producer proofs"
     }
   ]
 }

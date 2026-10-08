@@ -48,7 +48,7 @@ class ApprovalRequirementEligibilityTest(unittest.TestCase):
     def test_live_registry_is_closed(self) -> None:
         self.assertEqual(self._run(), [])
 
-    def test_every_action_resolves_and_non_event_actions_are_ineligible(self) -> None:
+    def test_every_action_resolves_and_non_event_requires_registered_override(self) -> None:
         registry = gate.load_json(gate.Lint(), gate.ACTION_REGISTRY)
         block = registry["approval_requirement_eligibility"]
         overrides = {row["action"] for row in block["action_overrides"]}
@@ -57,11 +57,23 @@ class ApprovalRequirementEligibilityTest(unittest.TestCase):
             if row["event_mapping_kind"] == "non_event_surface"
         ]
         self.assertGreater(len(non_event), 0)
-        self.assertTrue(all(row["action"] not in overrides for row in non_event))
+        self.assertFalse(overrides.intersection(row["action"] for row in non_event))
+        self.assertEqual(overrides, {"ak.applet.bot.provision", "ak.applet.ghost.provision"})
+        carriers = {row["carrier_id"]: row for row in block["carriers"]}
+        for row in block["action_overrides"]:
+            self.assertEqual(carriers[row["carrier_id"]]["carrier_class"], "non_event_operation")
         self.assertEqual(
             block["event_mapping_defaults"]["non_event_surface"],
             "ineligible_no_registered_carrier",
         )
+
+    def test_aggregate_override_requires_all_target_event_kinds(self) -> None:
+        def mutate(documents: dict[Path, dict]) -> None:
+            registry = documents[gate.OPERATION_REGISTRY.resolve()]
+            operation = next(row for row in registry["operations"] if row["operation_id"] == "ak.self.applet.bot.command.provision.v1")
+            operation["durable_effect"]["event_kinds"].remove("ak.applet.managed_actor.provision")
+        errors = self._new_errors(mutate)
+        self.assertTrue(any("covering every target Event kind" in error for error in errors), errors)
 
     def test_missing_mapping_default_breaks_full_universe_coverage(self) -> None:
         def mutate(documents: dict[Path, dict]) -> None:

@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/applet-device-authentication.schema.json",
+  "title": "Arkret Applet Managed Device Authentication",
+  "type": "object",
+  "description": "RFC9421 Arkret-Managed-Device header value: base64url without padding of RFC8785 JCS of this closed object. Covered metadata is authenticated with the accepted device key; request scope is intersected with device authorization, exact installation and all business gates.",
+  "required": [
+    "account_id",
+    "device_id",
+    "authorization_event_id",
+    "applet_id",
+    "effective_scope",
+    "nonce"
+  ],
+  "properties": {
+    "account_id": {
+      "$ref": "./common-ids.schema.json#/$defs/account_id"
+    },
+    "device_id": {
+      "$ref": "./common-ids.schema.json#/$defs/device_id"
+    },
+    "authorization_event_id": {
+      "$ref": "./common-ids.schema.json#/$defs/event_id"
+    },
+    "applet_id": {
+      "$ref": "./common-ids.schema.json#/$defs/applet_id"
+    },
+    "effective_scope": {
+      "$ref": "./applet-install-plan.schema.json#/$defs/effective_scope"
+    },
+    "nonce": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{22,128}$",
+      "description": "Independent random request nonce with at least 128 bits of entropy, signed inside the closed metadata."
+    }
+  },
+  "additionalProperties": false
+}

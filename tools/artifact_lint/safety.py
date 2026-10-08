@@ -1115,8 +1115,7 @@ def check_applet_install_epoch_evidence_carrier(lint: Lint) -> None:
 
     for definition_name in (
         "applet_install_preview_request_body",
-        "applet_install_first_request_body",
-        "applet_install_reuse_request_body",
+        "applet_install_request_body",
     ):
         request = definitions.get(definition_name)
         properties = request.get("properties") if isinstance(request, dict) else None
@@ -1127,7 +1126,6 @@ def check_applet_install_epoch_evidence_carrier(lint: Lint) -> None:
             "registration_epoch_evidence",
             "registration_event",
             "capability_grant_events",
-            "plan_digest",
             "effective_scope",
             "bot_actor_provision_event",
             "bot_pcr_genesis_event",
@@ -1141,6 +1139,8 @@ def check_applet_install_epoch_evidence_carrier(lint: Lint) -> None:
             "requested_at",
             "requested_expires_at",
         }
+        if definition_name == "applet_install_preview_request_body":
+            forbidden.add("plan_digest")
         mirrored = sorted(forbidden.intersection(properties))
         if mirrored:
             lint.fail(

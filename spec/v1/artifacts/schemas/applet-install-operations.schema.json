@@ -96,84 +96,21 @@
       "additionalProperties": false
     },
     "applet_install_request_body": {
-      "oneOf": [
-        {
-          "$ref": "#/$defs/applet_install_first_request_body"
-        },
-        {
-          "$ref": "#/$defs/applet_install_reuse_request_body"
-        }
-      ]
-    },
-    "applet_install_first_request_body": {
       "type": "object",
       "required": [
         "applet_package",
-        "authoring_request",
-        "managed_actor_bundle"
+        "authoring_request_basis",
+        "plan_digest"
       ],
       "properties": {
         "applet_package": {
           "$ref": "#/$defs/applet_package"
         },
-        "authoring_request": {
-          "$ref": "./applet-install-authoring.schema.json#/$defs/authoring_request"
+        "authoring_request_basis": {
+          "$ref": "./applet-install-authoring.schema.json#/$defs/install_authoring_request_basis"
         },
-        "managed_actor_bundle": {
-          "$ref": "./applet-install-authoring.schema.json#/$defs/managed_actor_bundle"
-        }
-      },
-      "additionalProperties": false
-    },
-    "reuse_existing_managed_actor": {
-      "type": "object",
-      "description": "Immutable anchors of the one existing Bot authority winner for this applet and target Station. The receiver recomputes every field from accepted local state.",
-      "required": [
-        "actor_id",
-        "managed_actor_provision_ref",
-        "pcr_genesis_ref",
-        "accountability_grant_ref",
-        "profile_event_ref",
-        "initial_package_applet_actor_id"
-      ],
-      "properties": {
-        "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/actor_id"
-        },
-        "managed_actor_provision_ref": {
-          "$ref": "#/$defs/event_ref"
-        },
-        "pcr_genesis_ref": {
-          "$ref": "#/$defs/event_ref"
-        },
-        "accountability_grant_ref": {
-          "$ref": "#/$defs/event_ref"
-        },
-        "profile_event_ref": {
-          "$ref": "#/$defs/event_ref"
-        },
-        "initial_package_applet_actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/actor_id"
-        }
-      },
-      "additionalProperties": false
-    },
-    "applet_install_reuse_request_body": {
-      "type": "object",
-      "required": [
-        "applet_package",
-        "authoring_request",
-        "reuse_existing_managed_actor"
-      ],
-      "properties": {
-        "applet_package": {
-          "$ref": "#/$defs/applet_package"
-        },
-        "authoring_request": {
-          "$ref": "./applet-install-authoring.schema.json#/$defs/authoring_request"
-        },
-        "reuse_existing_managed_actor": {
-          "$ref": "#/$defs/reuse_existing_managed_actor"
+        "plan_digest": {
+          "$ref": "#/$defs/digest"
         }
       },
       "additionalProperties": false
@@ -185,9 +122,6 @@
         "applet_id",
         "registration_event_ref",
         "registration_epoch",
-        "applet_actor_id",
-        "applet_actor_provision_ref",
-        "applet_principal_control_realm_id",
         "capability_grant_refs",
         "e2ee_authorization_refs",
         "widget_policy_ref",
@@ -213,15 +147,6 @@
         },
         "registration_epoch": {
           "$ref": "#/$defs/digest"
-        },
-        "applet_actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/actor_id"
-        },
-        "applet_actor_provision_ref": {
-          "$ref": "#/$defs/event_ref"
-        },
-        "applet_principal_control_realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "capability_grant_refs": {
           "type": "array",

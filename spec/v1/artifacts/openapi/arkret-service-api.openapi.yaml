@@ -303,6 +303,12 @@ components:
         management APIs outside the Arkret protocol namespace.
 
         '
+    managedDeviceMetadata:
+      type: apiKey
+      in: header
+      name: Arkret-Managed-Device
+      description: Covered RFC9421 canonical closed managed Account/Device/authorization/Applet/scope
+        metadata; only registered operations, never a SessionGrant.
   headers:
     XArkretRequestId:
       description: Stable request identifier.
@@ -1797,10 +1803,13 @@ paths:
   /_arkret/self/events:
     post:
       operationId: ak.self.events.command.submit
-      summary: Submit one closed self Event or registered atomic-unit branch to current governance
-      description: Ordinary Event and MLS submissions keep their single-submit semantics. Direct Conversation founding is an
-        ordered four-Event all-or-nothing unit and membership compensation is a one-Event aggregate with closed transport-only
-        evidence and a single-use CAS. The Account Station reports committed only after receiving the authority-signed RealmCommit(s).
+      summary: Submit one closed self Event or registered atomic-unit branch to current
+        governance
+      description: Ordinary Event and MLS submissions keep their single-submit semantics.
+        Direct Conversation founding is an ordered four-Event all-or-nothing unit and
+        membership compensation is a one-Event aggregate with closed transport-only
+        evidence and a single-use CAS. The Account Station reports committed only after
+        receiving the authority-signed RealmCommit(s).
       parameters:
       - name: Arkret-Operation
         in: header
@@ -1825,6 +1834,13 @@ paths:
       security:
       - sessionGrantAuth: []
         dpopProof: []
+      - httpMessageSignature: []
+        managedDeviceMetadata: []
+        destinationServiceId: []
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        contentDigest: []
   /_arkret/self/events/delivery-status:
     query:
       operationId: ak.self.events.read.delivery_status
@@ -1878,6 +1894,9 @@ paths:
         destinationServiceId: []
         sourceTrustDomain: []
         destinationTrustDomain: []
+      - httpMessageSignature: []
+        managedDeviceMetadata: []
+        destinationServiceId: []
       summary: Streaming event subscription with optional catch-up replay.
       description: 'Opens a streaming subscription scoped by `realms[]` / `actors[]`. Returns
 
@@ -1919,9 +1938,9 @@ paths:
         explode: true
       - name: actor_ids
         in: query
-        description: Repeated actor_ids values, each the percent-encoded RFC 8785 JCS serialization of one closed ActorId.
-          Decode and validate against common-ids actor_id before authorization; bare DID values are forbidden. UNION within,
-          intersection with realm_ids. Exact identity includes Station; duplicate ActorIds are rejected.
+        description: Repeated actor_ids values, each the percent-encoded RFC 8785 JCS serialization of one closed ActorId. Decode
+          and validate against common-ids actor_id before authorization; bare DID values are forbidden. UNION within, intersection
+          with realm_ids. Exact identity includes Station; duplicate ActorIds are rejected.
         schema:
           type: array
           items:
@@ -1934,7 +1953,8 @@ paths:
         explode: true
       - name: after
         in: query
-        description: Subscription start cursor (exclusive). Same semantics as ak.self.committed_event.read.scan.v1's `after=` parameter.
+        description: Subscription start cursor (exclusive). Same semantics as ak.self.committed_event.read.scan.v1's `after=`
+          parameter.
         schema:
           $ref: '#/components/schemas/Cursor'
       - name: catchup
@@ -1959,6 +1979,9 @@ paths:
         dpopProof: []
       - httpMessageSignature: []
         sourceServiceId: []
+        destinationServiceId: []
+      - httpMessageSignature: []
+        managedDeviceMetadata: []
         destinationServiceId: []
       parameters:
       - name: Arkret-Operation
@@ -2391,7 +2414,10 @@ paths:
               schema:
                 $ref: ../schemas/authority-commit-operations.schema.json#/$defs/direct_conversation_founding_dependency_missing_problem
       security:
-      - serviceHttpMessageSignatures: []
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        contentDigest: []
   /_arkret/peer/invites:
     post:
       operationId: ak.peer.invites.command.submit
@@ -3987,8 +4013,12 @@ paths:
       - httpMessageSignature: []
         sourceServiceId: []
         destinationServiceId: []
+      - httpMessageSignature: []
+        managedDeviceMetadata: []
+        destinationServiceId: []
       summary: Read an exact previously issued signed Realm snapshot by reference.
-      description: The authenticated account must still be entitled to every disclosed row, head, and floor. A current head cannot substitute for this exact snapshot.
+      description: The authenticated account must still be entitled to every disclosed row, head, and floor. A current head
+        cannot substitute for this exact snapshot.
       parameters:
       - name: Arkret-Operation
         in: header
@@ -4023,6 +4053,9 @@ paths:
       - httpMessageSignature: []
         sourceServiceId: []
         destinationServiceId: []
+      - httpMessageSignature: []
+        managedDeviceMetadata: []
+        destinationServiceId: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -4038,7 +4071,8 @@ paths:
           $ref: '#/components/schemas/RealmId'
       responses:
         '200':
-          description: The current governance Station's complete closed signed Realm State Snapshot with inline current rows, visible heads, and history floors.
+          description: The current governance Station's complete closed signed Realm State Snapshot with inline current rows,
+            visible heads, and history floors.
           content:
             application/json:
               schema:
@@ -4315,6 +4349,9 @@ paths:
       security:
       - sessionGrantAuth: []
         dpopProof: []
+      - httpMessageSignature: []
+        managedDeviceMetadata: []
+        destinationServiceId: []
       responses:
         '200':
           description: Blob accepted
@@ -4354,6 +4391,9 @@ paths:
         sourceServiceId: []
         destinationServiceId: []
       - presignParam: []
+      - httpMessageSignature: []
+        managedDeviceMetadata: []
+        destinationServiceId: []
       responses:
         '200':
           description: Blob metadata
@@ -4366,6 +4406,9 @@ paths:
         sourceServiceId: []
         destinationServiceId: []
       - presignParam: []
+      - httpMessageSignature: []
+        managedDeviceMetadata: []
+        destinationServiceId: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -4454,6 +4497,9 @@ paths:
       security:
       - sessionGrantAuth: []
         dpopProof: []
+      - httpMessageSignature: []
+        managedDeviceMetadata: []
+        destinationServiceId: []
       requestBody:
         required: true
         content:
@@ -4726,6 +4772,9 @@ paths:
       security:
       - sessionGrantAuth: []
         dpopProof: []
+      - httpMessageSignature: []
+        managedDeviceMetadata: []
+        destinationServiceId: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -4769,6 +4818,9 @@ paths:
       security:
       - sessionGrantAuth: []
         dpopProof: []
+      - httpMessageSignature: []
+        managedDeviceMetadata: []
+        destinationServiceId: []
       summary: Explicit to-device delivery acknowledgement.
       description: 'Cumulative, monotonic, naturally idempotent acknowledgement bound to the
 
@@ -4968,17 +5020,17 @@ paths:
     post:
       operationId: ak.self.current_results.read.exact
       summary: Read one exact Relation or moderation current result.
-      description: >-
-        The authenticated caller selects one closed Relation primary conflict domain or
-        moderation target. The current governing Station answers from one durable cut with
-        the current governance generation and effective stream head. Unauthorized, invisible,
-        foreign and unknown selectors are indistinguishable not_found outcomes and never
-        produce never_written.
+      description: The authenticated caller selects one closed Relation primary conflict domain or moderation target. The current
+        governing Station answers from one durable cut with the current governance generation and effective stream head. Unauthorized,
+        invisible, foreign and unknown selectors are indistinguishable not_found outcomes and never produce never_written.
       security:
       - sessionGrantAuth: []
         dpopProof: []
       - httpMessageSignature: []
         sourceServiceId: []
+        destinationServiceId: []
+      - httpMessageSignature: []
+        managedDeviceMetadata: []
         destinationServiceId: []
       parameters:
       - name: Arkret-Operation
@@ -5128,6 +5180,9 @@ paths:
       security:
       - sessionGrantAuth: []
         dpopProof: []
+      - httpMessageSignature: []
+        managedDeviceMetadata: []
+        destinationServiceId: []
       summary: Read exact accepted Genesis public MLS material through the member's Account Station.
       requestBody:
         required: true
@@ -5162,8 +5217,13 @@ paths:
       security:
       - sessionGrantAuth: []
         dpopProof: []
+      - httpMessageSignature: []
+        managedDeviceMetadata: []
+        destinationServiceId: []
       summary: Read an authorized signed MLS roster authority page from the current governance Station.
-      description: The authenticated own Station authorizes the exact accepted member target and derives immutable Genesis provenance at the same cut. The member independently verifies the original signed manifest, all recipient signatures and the full ordered transcript before RFC MLS installation; no prejoin client Genesis or complete current baseline is required.
+      description: The authenticated own Station authorizes the exact accepted member target and derives immutable Genesis provenance
+        at the same cut. The member independently verifies the original signed manifest, all recipient signatures and the full
+        ordered transcript before RFC MLS installation; no prejoin client Genesis or complete current baseline is required.
       requestBody:
         required: true
         content:
@@ -5203,6 +5263,9 @@ paths:
       security:
       - sessionGrantAuth: []
         dpopProof: []
+      - httpMessageSignature: []
+        managedDeviceMetadata: []
+        destinationServiceId: []
       summary: Obtain own-Station current or exact locally accepted historical signing keys.
       requestBody:
         required: true
@@ -5303,6 +5366,9 @@ paths:
       security:
       - sessionGrantAuth: []
         dpopProof: []
+      - httpMessageSignature: []
+        managedDeviceMetadata: []
+        destinationServiceId: []
       responses:
         '200':
           description: MLS KeyPackage upload result
@@ -5334,6 +5400,9 @@ paths:
         sourceServiceId: []
         destinationServiceId: []
         contentDigest: []
+      - httpMessageSignature: []
+        managedDeviceMetadata: []
+        destinationServiceId: []
       responses:
         '200':
           description: MLS KeyPackage claim result
@@ -5365,6 +5434,9 @@ paths:
         sourceServiceId: []
         destinationServiceId: []
         contentDigest: []
+      - httpMessageSignature: []
+        managedDeviceMetadata: []
+        destinationServiceId: []
       responses:
         '200':
           description: MLS KeyPackage consume result
@@ -5392,6 +5464,9 @@ paths:
       security:
       - sessionGrantAuth: []
         dpopProof: []
+      - httpMessageSignature: []
+        managedDeviceMetadata: []
+        destinationServiceId: []
       responses:
         '200':
           description: MLS KeyPackage revoke result
@@ -5419,6 +5494,9 @@ paths:
       security:
       - sessionGrantAuth: []
         dpopProof: []
+      - httpMessageSignature: []
+        managedDeviceMetadata: []
+        destinationServiceId: []
       summary: Read one claim of the caller's own KeyPackage before decrypting its Welcome.
       description: 'Owner-only read of the claim ledger at the caller''s own Account Station.
 
@@ -9581,7 +9659,10 @@ paths:
               schema:
                 $ref: ../schemas/authority-commit-operations.schema.json#/$defs/peer_stream_scan_outcome
       security:
-      - serviceHttpMessageSignatures: []
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        contentDigest: []
   /_arkret/peer/realm-authority/handoff:
     post:
       operationId: ak.peer.realm_authority.command.handoff
@@ -9609,7 +9690,10 @@ paths:
               schema:
                 $ref: ../schemas/realm-authority-handoff.schema.json
       security:
-      - serviceHttpMessageSignatures: []
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        contentDigest: []
   /_arkret/self/streams/scan:
     post:
       operationId: ak.self.committed_event.read.scan
@@ -9639,9 +9723,12 @@ paths:
       security:
       - sessionGrantAuth: []
         dpopProof: []
-  /_arkret/edge/applet/client/exchange:
+      - httpMessageSignature: []
+        managedDeviceMetadata: []
+        destinationServiceId: []
+  /_arkret/self/applets/{applet_id}/bots/provision/preview:
     post:
-      operationId: ak.edge.applet.client.command.exchange
+      operationId: ak.self.applet.bot.command.preview
       parameters:
       - name: Arkret-Operation
         in: header
@@ -9649,25 +9736,33 @@ paths:
         description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
-          const: ak.edge.applet.client.command.exchange.v1
-      requestBody:
+          const: ak.self.applet.bot.command.preview.v1
+      - name: applet_id
+        in: path
         required: true
-        content:
-          application/json:
-            schema:
-              $ref: ../schemas/applet-client-operations.schema.json#/$defs/exchange_request_body
-      responses:
-        '200':
-          description: Successful exact Applet lifecycle outcome.
-          content:
-            application/json:
-              schema:
-                $ref: ../schemas/applet-client-operations.schema.json#/$defs/exchange_outcome
+        schema:
+          type: string
       security:
-      - serviceHttpMessageSignatures: []
-  /_arkret/self/applets/install/cancel:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        contentDigest: []
+      responses:
+        '200':
+          description: Exact registered outcome
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/applet-bot-operations.schema.json#/$defs/bot_preview_outcome
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/applet-bot-operations.schema.json#/$defs/bot_preview_request_body
+  /_arkret/self/applets/{applet_id}/bots/provision:
     post:
-      operationId: ak.self.applet.install.command.cancel
+      operationId: ak.self.applet.bot.command.provision
       parameters:
       - name: Arkret-Operation
         in: header
@@ -9675,20 +9770,160 @@ paths:
         description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
         schema:
           type: string
-          const: ak.self.applet.install.command.cancel.v1
+          const: ak.self.applet.bot.command.provision.v1
+      - name: applet_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        contentDigest: []
+      responses:
+        '200':
+          description: Exact registered outcome
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/applet-bot-operations.schema.json#/$defs/bot_actor_provision_outcome
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: ../schemas/applet-client-operations.schema.json#/$defs/cancel_request_body
+              $ref: ../schemas/applet-bot-operations.schema.json#/$defs/bot_actor_provision_request_body
+  /_arkret/self/applets/{applet_id}/authority/material:
+    post:
+      operationId: ak.self.applet.authority.read.material
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.self.applet.authority.read.material.v1
+      - name: applet_id
+        in: path
+        required: true
+        schema:
+          type: string
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        contentDigest: []
       responses:
         '200':
-          description: Successful exact Applet lifecycle outcome.
+          description: Exact registered outcome
           content:
             application/json:
               schema:
-                $ref: ../schemas/applet-client-operations.schema.json#/$defs/cancel_outcome
+                $ref: ../schemas/applet-authority-material.schema.json#/$defs/outcome
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/applet-authority-material.schema.json#/$defs/request
+  /_arkret/self/management-reviews/requests:
+    post:
+      operationId: ak.self.management_review.command.request
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.self.management_review.command.request.v1
       security:
       - sessionGrantAuth: []
         dpopProof: []
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        contentDigest: []
+      responses:
+        '200':
+          description: Exact registered outcome
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/management-review-operations.schema.json#/$defs/outcome
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/management-review-operations.schema.json#/$defs/request
+  /_arkret/self/management-reviews/decisions:
+    post:
+      operationId: ak.self.management_review.command.decide
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.self.management_review.command.decide.v1
+      security:
+      - sessionGrantAuth: []
+        dpopProof: []
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        contentDigest: []
+      responses:
+        '200':
+          description: Exact registered outcome
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/management-review-operations.schema.json#/$defs/outcome
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/management-review-operations.schema.json#/$defs/decision
+  /_arkret/self/management-reviews/status:
+    post:
+      operationId: ak.self.management_review.read.status
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.self.management_review.read.status.v1
+      security:
+      - sessionGrantAuth: []
+        dpopProof: []
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        contentDigest: []
+      responses:
+        '200':
+          description: Exact registered outcome
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/management-review-operations.schema.json#/$defs/outcome
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/management-review-operations.schema.json#/$defs/lookup

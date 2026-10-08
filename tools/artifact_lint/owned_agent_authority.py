@@ -15,7 +15,7 @@ INVARIANTS = {
     'unknown_means_no_ban': False, 'controller_private_selection_disclosed': False,
 }
 
-OPERATIONS = ['join', 'authorize', 'execute', 'read', 'deliver']
+OPERATIONS = ['join', 'authorize', 'execute', 'read', 'deliver', 'publish', 'serve']
 SUPPORTED = ['ak.event.read', 'ak.message.create', 'ak.message.redact.own',
              'ak.message.revise.own', 'ak.object.read', 'ak.object.read_content',
              'ak.object.read_history', 'ak.object.read_metadata', 'ak.reaction.add',
@@ -95,7 +95,7 @@ def check_owned_agent_authority(lint: Lint) -> None:
     if payload.get('then') != {'required': ['expected_revision']} or payload.get('else') != {'not': {'required': ['expected_revision']}}:
         lint.fail(path, 'Agent Policy CAS must be required in its payload and forbidden for other families')
     condition = payload.get('if', {}).get('properties', {}).get('value', {})
-    if condition.get('properties') != {'schema': {'const': 'ak.schema.policy.v1'}, 'policy_kind': {'const': 'agent'}} or set(condition.get('required', [])) != {'schema', 'policy_kind'}:
+    if condition.get('properties') != {'schema': {'const': 'ak.schema.policy.v1'}, 'policy_kind': {'enum': ['agent', 'applet']}} or set(condition.get('required', [])) != {'schema', 'policy_kind'}:
         lint.fail(path, 'Agent Policy CAS family discriminator drift')
     if payload.get('properties', {}).get('expected_revision', {}).get('oneOf') != [{'type': 'null'}, {'$ref': './typed-current-result.schema.json#/$defs/revision'}]:
         lint.fail(path, 'Agent Policy CAS must use the nullable exact typed current revision')

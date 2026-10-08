@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/applet-authority-material.schema.json",
+  "title": "Arkret Applet Authority Material",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/request"
+    },
+    {
+      "$ref": "#/$defs/outcome"
+    }
+  ],
+  "$defs": {
+    "request": {
+      "type": "object",
+      "required": [
+        "effective_scope",
+        "grant_ids"
+      ],
+      "properties": {
+        "effective_scope": {
+          "$ref": "./applet-install-plan.schema.json#/$defs/effective_scope"
+        },
+        "grant_ids": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./agent-operations.schema.json#/$defs/grant_id"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "outcome": {
+      "type": "object",
+      "required": [
+        "applet_id",
+        "effective_scope",
+        "registration",
+        "grant_events",
+        "current_results"
+      ],
+      "properties": {
+        "applet_id": {
+          "$ref": "./common-ids.schema.json#/$defs/applet_id"
+        },
+        "effective_scope": {
+          "$ref": "./applet-install-plan.schema.json#/$defs/effective_scope"
+        },
+        "registration": {
+          "$ref": "./applet-edge-operations.schema.json#/$defs/applet_committed_event"
+        },
+        "grant_events": {
+          "type": "array",
+          "items": {
+            "$ref": "./applet-edge-operations.schema.json#/$defs/applet_committed_event"
+          },
+          "minItems": 1
+        },
+        "current_results": {
+          "type": "array",
+          "items": {
+            "$ref": "./exact-current-results-read.schema.json#/$defs/exact_current_result_present"
+          },
+          "minItems": 1
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

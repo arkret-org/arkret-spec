@@ -44,9 +44,9 @@ ref 是签名覆盖的 immutable 意图，**MUST NOT** 带 producer-selected rev
 
 ## 3. 管理限制与默认值
 
-管理 carrier 为 `ak.policy.set` 的 generic Policy，`policy_kind="agent"`，rule `kind="agent"`；使用 [policy.schema.json](../../artifacts/schemas/policy.schema.json) 的 closed `agent_target` 与 `agent_operations`。写入者 **MUST** 通过该 Realm/scope 当前 `ak.policy.set` coverage（含正式 policy/manage/root coverage），不能凭 UI 管理员角色或 controller 身份写入。policy.id/Realm 绑定与原签不变。仅该 Agent Policy 的 closed payload **MUST** 按字段顺序携带 `{policy_id,expected_revision,value}`：`expected_revision` 是 required nullable `CurrentRevision`，`null` 只表达已由完整当前治理证据证明的首次写，object 必须逐字匹配该 typed Policy row 的最后 `{commit_id,stream_position}`。未知／遗漏／私有缓存缺行不是首次写证据；错修订必须零效果拒绝。该字段 **MUST NOT** 进入 Event 顶层、Policy value 或 Agent source ref；其它 Policy kind/family 的 payload **MUST NOT** 携带它。已成为 Agent Policy 的 id **MUST NOT** 重绑为其它 policy kind/family 绕过 CAS；解除禁令须明确更新同一 Agent Policy 的规则，并通过其当前精确修订。已 accepted 的 exact Event retry 沿原 durable outcome，不重做 current CAS。
+管理 carrier 为 `ak.policy.set` 的 generic Policy，`policy_kind="agent"`，rule `kind="agent"`；使用 [policy.schema.json](../../artifacts/schemas/policy.schema.json) 的 closed `agent_target` 与 `agent_operations`。写入者 **MUST** 通过该 Realm/scope 当前 `ak.policy.set` coverage（含正式 policy/manage/root coverage），不能凭 UI 管理员角色或 controller 身份写入。policy.id/Realm 绑定与原签不变。该 Agent／Applet 管理 Policy 的 closed payload **MUST** 按字段顺序携带 `{policy_id,expected_revision,value}`：`expected_revision` 是 required nullable `CurrentRevision`，`null` 只表达已由完整当前治理证据证明的首次写，object 必须逐字匹配该 typed Policy row 的最后 `{commit_id,stream_position}`。未知／遗漏／私有缓存缺行不是首次写证据；错修订必须零效果拒绝。该字段 **MUST NOT** 进入 Event 顶层、Policy value 或 Agent source ref；除 Agent／Applet 管理 Policy 外其它 kind/family 的 payload **MUST NOT** 携带它。已成为 Agent Policy 的 id **MUST NOT** 重绑为其它 policy kind/family 绕过 CAS；解除禁令须明确更新同一 Agent Policy 的规则，并通过其当前精确修订。已 accepted 的 exact Event retry 沿原 durable outcome，不重做 current CAS。
 
-`agent_target.kind` 是 `all`、`controller` 或 `agent`；后两者只携对应完整 AccountId，selector 只使用 verified ownership，不用 slug、profile 标签或裸 principal。`agent_operations` 是非空去重数组：`join`、`authorize`、`execute`、`read`、`deliver`。`actions` 与 `resources` 若存在为 AND 收窄；动作使用内容 action token，不能借服务面 scope 授予内容。读取或投递先映射所需内容动作；不能确定映射则拒绝。execute 的具体操作仍通过已有 action mapping，不新增权限 action。
+`agent_target.kind` 是 `all`、`controller` 或 `agent`；后两者只携对应完整 AccountId，selector 只使用 verified ownership，不用 slug、profile 标签或裸 principal。`agent_operations` 是非空去重数组：`join`、`authorize`、`execute`、`read`、`deliver`、`publish`、`serve`。`actions` 与 `resources` 若存在为 AND 收窄；动作使用内容 action token，不能借服务面 scope 授予内容。读取或投递先映射所需内容动作；不能确定映射则拒绝。execute 的具体操作仍通过已有 action mapping，不新增权限 action。
 
 默认经完整当前治理证据确认无适用 Agent policy 时，管理 gate 为 allow：有效成员可自行添加、明确授权自有 Agent，无管理员逐次批准。该 allow 不是动作权限或自动全选。证据 unknown/stale/fork 与私有缓存缺行 **MUST NOT** 当作 absent。rule 内部按既有 priority 与同 priority 取严规则；多个适用 Policy 及 Realm/Circle/Strand 层的结果按 deny > quarantine > require_review > allow 求交，不允许用户设置或较窄 scope allow 覆盖父级有效限制。审批未有登记 carrier 的操作 **MUST NOT** 接纳 require_review 配置，不能用审批要求制造永远无法满足的分支。
 
@@ -77,3 +77,8 @@ exact signed Event 重试先确认已有 durable admission outcome：已 accepte
 Add Agent／Reply as agent 正常入口 **MUST** 展示完整账号、实际 scope、最窄动作与当前管理限制，明确确认后用上述自有来源 author Grant，并分别配置 mode/participation；两者独立，不冒报跨服务原子成功。不要求用户手填 DID/action，也不要求可发言主人找管理员补签。selected、accepted、effective 分开显示，主人可撤回与重新授权；管理员入口区分禁止新增、禁止授权及限制已有行为，scope/主体/期限与最终 current 结果可核对。
 
 机器 fixture 与反变异 **MUST** 覆盖普通成员无 grant/revoke action 的自助、错主体/scope/binding、不可转授、全部 grant 路径动态上界、全局 deny/身份条件、多父路径/共享 quota、部分收权/expiry/root transfer、管理员按主人覆盖未来 Agents、禁止新增不误停已有、撤回/重新授权、未知依赖、并发与 exact retry、读取及订阅/附件/未来材料屏障、重启和独立 replay。静态 fixture 通过不证明 SDK、服务、客户端或真实加密回复已实现。
+
+
+## 7. 精细治理与审批
+
+同Policy默认值、用户例外、publish/serve分离及申请/批准/消费完整合同 **MUST** 按 [managed-governance.md](./managed-governance.md) 执行。join与publish现在有登记的ApprovalSignature carrier；其它管理操作没有本族review carrier时仍禁止require_review。个人Agent保留owned_agent专用terminal来源及所有替代路径的动态主人上界，不能把Applet业务grant链迁为owned_agent。

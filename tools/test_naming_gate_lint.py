@@ -1120,7 +1120,7 @@ class IdentifierRoleSuffixTest(MutationHarness):
             check=check_identifier_role_suffix_contracts,
         )
         self.assertTrue(
-            any("closed DID-method selector is not a complete DID" in error for error in errors),
+            any("DID-method selector" in error and "not a complete DID" in error for error in errors),
             errors,
         )
         self.assertTrue(any("expected_suffix=none" in error for error in errors), errors)

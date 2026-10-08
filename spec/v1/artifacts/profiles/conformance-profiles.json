@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-05.3",
-  "generated_at": "2026-10-05T22:55:00+08:00",
+  "version": "2026-10-09.1",
+  "generated_at": "2026-10-09T07:31:39+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -2391,7 +2391,7 @@
         "An Agent principal_control_realm_id and immutable requested_scope commitment MUST be verified from the unique ArkretPrincipalControlRealm DID service entry at accepted-at; the public entry fixes only realm_id, controller_did, authorization_ref and the domain-separated requested_scope_digest. The complete scope MUST come from a controller-signed verifier/audience/challenge-bound private disclosure whose digest matches that commitment. Implementation-private deterministic derivation or a service-local Agent row is not protocol evidence.",
         "Agent PCR genesis created_by MUST equal the Agent DID and governance_station_id MUST name the generation-0 governance Station; a controller authoring under delegation MUST be recorded as executed_by and MUST NOT synthesize an Agent signature.",
         "An Agent PCR genesis carries no anchor ref: delegated_pcr_genesis is selected by payload.object.purpose alone, and admission MUST instead reverse-look-up an already accepted ak.agent.provision in the controller PCR whose payload.principal_control_realm_id equals retype(this genesis event_id). No match means zero writes. The genesis MUST arrive in a submission separate from that provision, because a same-unit or same-batch pair is the unconstructible shape encoding.md §3.1 forbids. The Agent PCR and its controller PCR MUST be hosted by the same Station, since the reverse look-up and the realm-id claim uniqueness are both local decisions.",
-        "An applet_managed_control PCR genesis carries no FoundingDeviceDescriptor and its accepted genesis unit holds exactly one ak.realm.create, so the principal owns no device at genesis. Its delegated device MUST be authorized by an ordinary post-genesis successor ak.device.authorize with authorization_binding_kind=applet_managed_delegation, authorized_by equal to actor_id.account_id.principal_id, a non-null expires_at, a non-empty scopes and the applet_id of the exact install that provisioned the principal. That Event MUST NOT use a unit-local candidate overlay or join any atomic native unit: its signer is the already accepted managed-actor controller method, resolved from the accepted current resolution typed current result, so the closed set of overlay units (PCR genesis and PCR-policy recovery) stays exactly two. The device MUST stop being an effective signer as soon as that install is fenced, with applet_revoked and without waiting for a separate ak.device.revoke.",
+        "An applet_managed_control PCR genesis carries no FoundingDeviceDescriptor and its accepted genesis unit holds exactly one ak.realm.create, so the principal owns no device at genesis. Its delegated device MUST be authorized by an ordinary post-genesis successor ak.device.authorize with authorization_binding_kind=applet_managed_delegation, authorized_by equal to actor_id.account_id.principal_id, a non-null expires_at, a non-empty scopes and the applet_id of the exact install that provisioned the principal. That Event MUST NOT use a unit-local candidate overlay or join any atomic native unit: its signer is the already accepted managed-actor controller method, resolved from the accepted current resolution typed current result, so the closed set of overlay units (PCR genesis and PCR-policy recovery) stays exactly two. Device business eligibility MUST intersect the active installation for the requested scope. Fencing the creation scope does not fence another independently authorized scope; no active scope permits new business. See Applet integration section 18.",
         "A PCR MUST NOT carry a Realm alias. ak.realm.alias is absent from realm_event_kind_policy.allowed_event_kinds, so a PCR is addressable only by realm_id; a human-readable alias on an identity-infrastructure control stream would publish the principal's control Realm under a guessable name.",
         "realm_event_kind_policy.allowed_event_kinds is closed in both directions: every kind whose normative prose requires a PCR write MUST appear in it, and every listed kind MUST have such prose. ak.identity.resolution.update is the only post-genesis successor of the create-locked identity_resolution typed current result, and ak.contact.scope.update is the only directional Contact scope fact; both commit in the holder PCR and both are listed. The pcr-exposure-registry.json event-kind set MUST equal this allowlist, so an admitted kind can never lack a declared outward-exposure decision."
       ]
@@ -3973,7 +3973,23 @@
         "conformance",
         "startup_claim_guard"
       ],
-      "operation_requirements": [],
+      "operation_requirements": [
+        {
+          "direction": "provide",
+          "operation_id": "ak.edge.applet.read.describe.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.edge.applet.read.ping.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.edge.applet.command.transaction.v1",
+          "binding_kind": "http_json"
+        }
+      ],
       "required_event_kinds": [
         "ak.applet.registration"
       ],
@@ -3982,15 +3998,10 @@
         "ak.schema.event.v1",
         "ak.schema.event_payload.v1",
         "ak.schema.applet_package.v1",
-        "ak.schema.applet_registration_epoch_transcript.v1",
-        "ak.schema.applet_client_operations.v1",
-        "ak.schema.content_block_applet_invocation.v1",
-        "ak.schema.content_block_applet_result.v1",
-        "ak.schema.content_block_applet_relay.v1"
+        "ak.schema.applet_registration_epoch_transcript.v1"
       ],
       "required_fixtures": [
-        "applet-registration-epoch-fixture.json",
-        "applet-self-actor-fixture.json"
+        "applet-registration-epoch-fixture.json"
       ],
       "optional_extensions": [],
       "feature_discovery": {
@@ -3999,13 +4010,8 @@
           "supported_protocols",
           "namespace",
           "service_id",
-          "applet_actor_id",
           "transaction_delivery_authentication_record",
-          "transaction_replay_binding",
-          "transport",
-          "applet_self_actor",
-          "invocation_disclosure",
-          "invocation_result_relay"
+          "transaction_replay_binding"
         ],
         "unsupported_optional": "return unsupported_feature"
       },
@@ -4030,65 +4036,22 @@
         "transaction_push_replay_binding_must": "The idempotency identity MUST include operation_id, direction, Source-Service-ID, Destination-Service-ID and Idempotency-Key; the cached record MUST bind canonical body digest, delivery_authentication_record and its receiver-recomputed digest. A replay with a different body digest or authentication-record digest MUST fail closed.",
         "transaction_push_inbound_registration_must": "For app/bridge->arkret inbound push, Source-Service-ID MUST match an active effective Applet install and Signature-Input keyid MUST equal the current registration webhook_auth.key_ref; missing install or key mismatch MUST fail closed with applet_registration_unauthorized or http_signature_invalid.",
         "transaction_push_actor_binding_must": "The source service signature authenticates only the Applet service. Each durable Event in the transaction MUST still verify event proofs, applet_id, authorization_ref, actor_id namespace and capability grants; namespace or actor-source confusion MUST fail closed.",
-        "self_actor_contract": {
-          "normative_ref": "zh/extensions/applet-client-and-invocation.md",
-          "single_subject_method": "did:webvh",
-          "account_binding": "applet_actor_id.account_id.principal_id == service_id",
-          "current_alignment": "exact Account accepted PCR version and active registration epoch version must match",
-          "transport_choice": [
-            "https_push",
-            "client_pull"
-          ],
-          "client_operation_id": "ak.edge.applet.client.command.exchange.v1",
-          "signature_scenario_id": "ak.http_signature.scenario.applet_client.v1",
-          "unsupported_policy": "unsupported_feature with zero writes; never advertise the unsupported branch"
-        },
-        "operation_requirements_by_transport": {
-          "selector": "/transport/kind",
-          "https_push": [
-            {
-              "direction": "provide",
-              "operation_id": "ak.edge.applet.read.describe.v1",
-              "binding_kind": "http_json"
-            },
-            {
-              "direction": "provide",
-              "operation_id": "ak.edge.applet.read.ping.v1",
-              "binding_kind": "http_json"
-            },
-            {
-              "direction": "provide",
-              "operation_id": "ak.edge.applet.command.transaction.v1",
-              "binding_kind": "http_json"
-            }
-          ],
-          "client_pull": [
-            {
-              "direction": "consume",
-              "operation_id": "ak.edge.applet.client.command.exchange.v1",
-              "binding_kind": "http_json"
-            }
-          ]
-        },
-        "transport_branch_claim_guard": "A runtime must implement the selected package transport branch and all its operation requirements before claiming the common Applet profile; task execution is the client equivalent of the same provided operation. No URL fallback."
+        "managed_authority_contract_must": "Service-only install, 0..N independent Bot/Ghost; exact role creation actions, ordinary Service parent to terminal child and Device content supply follow registry/applet-managed-authority-registry.json and zh/authz/managed-governance.md."
       },
       "non_event_grant_authority_rules": [
         {
           "issuer_action": "ak.realm.admin",
           "issuer_owner_authority_allowed": true,
-          "grantable_action": "ak.applet.invoke",
+          "grantable_action": "ak.applet.bot.provision",
           "required_registration_event_kind": "ak.applet.registration",
           "required_claimed_profile": "ak.profile.applet_service.v1",
           "required_constraint_kind": "authority_control",
           "required_constraint_subkind": "applet_authority",
           "subject_binding": "registration.service_id",
-          "scope_binding": "grant.resources_within_registration_scope",
+          "scope_binding": "grant.resource_exact_registration_scope",
           "epoch_binding": "constraint.registration_epoch_exact_registration",
           "requested_action_binding": "grant.action_in_registration.requested_scopes"
         }
-      ],
-      "required_actions": [
-        "ak.applet.invoke"
       ]
     },
     "ak.profile.applet_bridge.v1": {

@@ -106,6 +106,8 @@ Schema id: `ak.schema.policy.v1`
 | `policy_kind` | yes | `enum(access, encryption, retention, federation, moderation, discoverability, join, history_access, plaintext_visibility, media, applet, agent)` |  | 策略类型。 |
 | `rules` | yes | non-empty `array<PolicyRule>` | `minItems=1`；每条规则必须有 `rule_id`、`kind`、`effect`；规则顶层 closed，profile 扩展必须使用 `kind=extension` + `schema_ref` / `profile_ref` + `params`。纯默认策略也必须显式写一条覆盖目标 scope 的规则，不接受空数组。 | 策略规则。 |
 | `default_effect` | yes | `enum(allow, deny, quarantine, require_review)` |  | 默认效果。 |
+| `default_review_requirement` | optional | 管理Policy默认require_review时必填的完整批准人、threshold与期限；不生成grant。 |
+| `default_operations` | array | optional | require_review 管理默认适用的 join/publish/create_bot/map_ghost 子集；同时必填审批要求，未选操作默认 deny。 |
 | `priority` | no | `integer` | 数值大者优先；缺省视为 `0`。同 `priority` 冲突的确定性裁决见下方说明。 | 策略优先级。 |
 | `not_before` | no | `timestamp` |  | 生效时间。 |
 | `expires_at` | no | `timestamp` |  | 过期时间。 |

@@ -8,11 +8,11 @@
   ],
   "description": "Exhaustive classification of operation DTO schema/status/reason_code/reason properties into closed literals/enums, validated open protocol tokens, or bounded human-readable text. Any unconstrained audited string fails generation.",
   "summary": {
-    "total_fields": 73,
+    "total_fields": 72,
     "by_classification": {
       "bounded_free_text": 6,
       "closed_enum": 31,
-      "closed_literal": 18,
+      "closed_literal": 17,
       "validated_open_reason_code": 18
     },
     "unclassified": 0
@@ -130,22 +130,6 @@
       "pointer": "#/$defs/operation_status_outcome/properties/status",
       "classification": "closed_enum",
       "basis": "JSON Schema enum"
-    },
-    {
-      "schema_file": "applet-client-operations.schema.json",
-      "shape": "bootstrap_closed",
-      "field": "status",
-      "pointer": "#/$defs/bootstrap_closed/properties/status",
-      "classification": "closed_enum",
-      "basis": "JSON Schema enum"
-    },
-    {
-      "schema_file": "applet-client-operations.schema.json",
-      "shape": "cancel_outcome",
-      "field": "status",
-      "pointer": "#/$defs/cancel_outcome/properties/status",
-      "classification": "closed_literal",
-      "basis": "JSON Schema const"
     },
     {
       "schema_file": "applet-edge-operations.schema.json",
@@ -408,6 +392,14 @@
       "shape": "query_failure",
       "field": "reason_code",
       "pointer": "#/$defs/query_failure/properties/reason_code",
+      "classification": "closed_enum",
+      "basis": "JSON Schema enum"
+    },
+    {
+      "schema_file": "management-review-operations.schema.json",
+      "shape": "outcome",
+      "field": "status",
+      "pointer": "#/$defs/outcome/properties/status",
       "classification": "closed_enum",
       "basis": "JSON Schema enum"
     },

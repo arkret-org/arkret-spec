@@ -1,0 +1,66 @@
+{
+  "version": "2026-10-09.1",
+  "source_of_truth": true,
+  "generated_at": "2026-10-09T07:31:39+08:00",
+  "normative_source": "zh/extensions/applet-integration.md",
+  "managed_roles": [
+    "bot",
+    "ghost"
+  ],
+  "bot_cardinality": {
+    "minimum": 0,
+    "maximum": null
+  },
+  "creation_actions": {
+    "bot": "ak.applet.bot.provision",
+    "ghost": "ak.applet.ghost.provision"
+  },
+  "authority_chain": {
+    "parent_subject_kind": "service",
+    "child_issuer_kind": "service",
+    "child_subject_kind": "account",
+    "source_kind": "grant",
+    "terminal_child": true,
+    "ordinary_authority_control_required": true,
+    "managed_subject_verified_provision_required": true,
+    "all_alternative_authority_paths_current_installation_ceiling": true,
+    "shared_parent_quota": true
+  },
+  "device_authentication": {
+    "schema_ref": "schemas/applet-device-authentication.schema.json",
+    "signature_scenario_id": "ak.http_signature.scenario.applet_managed_device.v1",
+    "operations": [
+      "ak.self.blob.command.presign.v1",
+      "ak.self.blob.resource.get.v1",
+      "ak.self.blob.resource.head.v1",
+      "ak.self.blob.upload.create.v1",
+      "ak.self.device_messages.command.ack.v1",
+      "ak.self.device_messages.read.list.v1",
+      "ak.self.keys.keypackages.command.claim.v1",
+      "ak.self.keys.keypackages.command.consume.v1",
+      "ak.self.keys.keypackages.command.revoke.v1",
+      "ak.self.keys.keypackages.read.claim.v1",
+      "ak.self.keys.keypackages.upload.create.v1",
+      "ak.self.mls.read.group_state_material.v1",
+      "ak.self.mls.read.roster_authority.v1",
+      "ak.self.signer_keys.read.resolve.v1",
+      "ak.self.current_results.read.exact.v1",
+      "ak.self.committed_event.resource.get.v1",
+      "ak.self.committed_event.read.scan.v1",
+      "ak.self.committed_event.stream.subscribe.v1",
+      "ak.self.realm_state_snapshot.read.by_ref.v1",
+      "ak.self.realm_state_snapshot.read.manifest_head.v1",
+      "ak.self.events.command.submit.v1"
+    ],
+    "replay_key": [
+      "account_id",
+      "device_id",
+      "nonce"
+    ],
+    "service_key_is_device_key": false
+  },
+  "content_delivery": "exact_managed_account_device_via_station",
+  "service_base_url": "mandatory_https_management_endpoint",
+  "personal_agent_source": "owned_agent",
+  "creation_scope_revoke_is_global_device_revoke": false
+}

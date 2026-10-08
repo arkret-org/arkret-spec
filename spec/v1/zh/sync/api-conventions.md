@@ -738,3 +738,10 @@ Access-Control-Expose-Headers: Retry-After, Content-Digest, Digest, Content-Disp
 - 记录可审计但不泄露明文的安全日志
 - 对管理操作要求更强认证
 - 对联邦写入执行 reputation / quarantine 策略
+
+
+## 受限managed Device认证例外
+
+self默认SessionGrant+DPoP之外，只有 [Applet integration §18](../extensions/applet-integration.md) 与registered applet_managed_device scenario明确列出的operation接受已授权Bot/Ghost Device HTTP签名。Service管理请求只用自身正式Service认证，不能取得内容Device资格；两类认证均不生成AppletSessionGrant。
+
+`ak.self.events.command.submit.v1` 的 Applet Service 认证例外仅限受管 own PCR 的独立 Principal 原签控制转交及原 Service 的 terminal child grant／revoke；详见 extensions/applet-integration.md §18.2b。不得泛化到其它 self operations 或业务权限。

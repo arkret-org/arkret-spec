@@ -7,7 +7,7 @@
   "generated_by": "tools/gen_event_reference_inventory.py",
   "description": "Complete schema-property inventory for Event ID/ref/digest fields. EventId is itself the complete suite-tagged cryptographic identity; no companion-digest wrapper or truncated identity class exists. External protocol event identifiers are classified separately and never enter the Arkret EventId value space.",
   "counts": {
-    "complete_event_id": 183,
+    "complete_event_id": 186,
     "digest_copy_or_commitment": 8,
     "external_event_namespace": 1
   },
@@ -235,6 +235,18 @@
       "classification": "complete_event_id"
     },
     {
+      "schema": "applet-bot-operations.schema.json",
+      "json_pointer": "/$defs/bot_actor_provision_outcome/properties/profile_event_ref",
+      "field": "profile_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "applet-device-authentication.schema.json",
+      "json_pointer": "/properties/authorization_event_id",
+      "field": "authorization_event_id",
+      "classification": "complete_event_id"
+    },
+    {
       "schema": "applet-edge-operations.schema.json",
       "json_pointer": "/$defs/applet_transaction_outcome/properties/committed_event_refs",
       "field": "committed_event_refs",
@@ -248,8 +260,20 @@
     },
     {
       "schema": "applet-ghost-operations.schema.json",
+      "json_pointer": "/$defs/existing_managed_actor/properties/profile_event_ref",
+      "field": "profile_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "applet-ghost-operations.schema.json",
       "json_pointer": "/$defs/ghost_actor_provision_outcome/properties/profile_event_ref",
       "field": "profile_event_ref",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "applet-install-authoring.schema.json",
+      "json_pointer": "/$defs/bot_authoring_request_basis/properties/registration_event_ref",
+      "field": "registration_event_ref",
       "classification": "complete_event_id"
     },
     {
@@ -274,12 +298,6 @@
       "schema": "applet-install-operations.schema.json",
       "json_pointer": "/$defs/applet_revoke_submitted_event_step/properties/submitted_event_id",
       "field": "submitted_event_id",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "applet-install-operations.schema.json",
-      "json_pointer": "/$defs/reuse_existing_managed_actor/properties/profile_event_ref",
-      "field": "profile_event_ref",
       "classification": "complete_event_id"
     },
     {

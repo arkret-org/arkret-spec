@@ -1024,7 +1024,7 @@ _SUPPLY_DISPOSITIONS = frozenset({"external_form", "open_finding", "deferred_sup
 # parameters and content, caller-generated keys/nonces/ids, OAuth/PKCE values,
 # W3C Data Integrity proof members, and digests over caller-authored content.
 _SUPPLY_CLIENT_LOCAL_RE = re.compile(
-    r"(^signature$|_signature$|^signed_|idempotency_key|request_id$|^nonce$|"
+    r"(^signature$|_signature$|^signed_|authoring_request_basis$|idempotency_key|request_id$|^nonce$|"
     r"client_|display_name|^name$|^slug$|^text$|^body$|^content$|^message$|"
     r"^reason$|^label$|^title$|^description$|public_key|keypackage|^keys$|"
     r"^payload_bytes$|^ciphertext|plaintext|^password|^locale$|^timezone$|"

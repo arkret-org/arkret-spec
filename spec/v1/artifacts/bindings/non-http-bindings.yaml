@@ -3,8 +3,8 @@ operation_registry: ../registry/operation-registry.json
 coverage: complete_except_http_only
 coverage_contract: Every registered operation that is not marked http_only_variant=true MUST appear at least once in this
   binding artifact. Operations marked http_only_variant=true MUST NOT appear here. Every grpc and mq value declared by the
-  canonical contract registry MUST appear here under its exact Service/Method or topic key; empty services and duplicate
-  operation bindings are forbidden. tools/artifact_lint enforces these rules after parsing this file as YAML.
+  canonical contract registry MUST appear here under its exact Service/Method or topic key; empty services and duplicate operation
+  bindings are forbidden. tools/artifact_lint enforces these rules after parsing this file as YAML.
 frame_schemas:
   websocket:
     required:
@@ -67,7 +67,6 @@ grpc:
       ParticipationReplace: ak.self.agent.participation.resource.replace.v1
       ParticipationGet: ak.self.agent.participation.resource.get.v1
     EdgeApplet:
-      ClientExchange: ak.edge.applet.client.command.exchange.v1
       ManagedActorAuthor: ak.edge.applet.managed_actor.command.author.v1
       Describe: ak.edge.applet.read.describe.v1
       Ping: ak.edge.applet.read.ping.v1
@@ -78,13 +77,14 @@ grpc:
       ThirdPartyUsers: ak.edge.applet.third_party_users.read.list.v1
       Transaction: ak.edge.applet.command.transaction.v1
     SelfApplet:
-      InstallCancel: ak.self.applet.install.command.cancel.v1
       InstallPreview: ak.self.applet.install.command.preview.v1
       Install: ak.self.applet.command.install.v1
       RevokePreview: ak.self.applet.revoke.command.preview.v1
       Revoke: ak.self.applet.command.revoke.v1
       GhostPreview: ak.self.applet.ghost.command.preview.v1
       GhostProvision: ak.self.applet.ghost.command.provision.v1
+      BotPreview: ak.self.applet.bot.command.preview.v1
+      BotProvision: ak.self.applet.bot.command.provision.v1
     SelfAuthz:
       Check: ak.self.authz.read.check.v1
       GetEffectiveGrants: ak.self.authz.grants.read.effective.v1
@@ -314,6 +314,11 @@ grpc:
       Handoff: ak.peer.realm_authority.command.handoff.v1
     PeerStreams:
       Scan: ak.peer.committed_event.read.scan.v1
+    SelfManagement:
+      AppletAuthorityReadMaterial: ak.self.applet.authority.read.material.v1
+      Management_ReviewCommandRequest: ak.self.management_review.command.request.v1
+      Management_ReviewCommandDecide: ak.self.management_review.command.decide.v1
+      Management_ReviewReadStatus: ak.self.management_review.read.status.v1
 mq:
   envelope:
     required:
@@ -336,8 +341,6 @@ mq:
       signatures:
         type: array
   topics:
-    self.applet.install.command.cancel: ak.self.applet.install.command.cancel.v1
-    edge.applet.client.command.exchange: ak.edge.applet.client.command.exchange.v1
     self.security_transaction.command.create: ak.self.security_transaction.command.create.v1
     self.security_transaction.resource.get: ak.self.security_transaction.resource.get.v1
     self.security_transaction.command.continue: ak.self.security_transaction.command.continue.v1
@@ -538,6 +541,12 @@ mq:
     self.realm_state_snapshot.query.by_ref: ak.self.realm_state_snapshot.read.by_ref.v1
     self.realm_state_snapshot.query.manifest_head: ak.self.realm_state_snapshot.read.manifest_head.v1
     server.query.describe: ak.server.read.describe.v1
+    self.applet.bot.command.preview: ak.self.applet.bot.command.preview.v1
+    self.applet.bot.command.provision: ak.self.applet.bot.command.provision.v1
+    self.applet.authority.read.material: ak.self.applet.authority.read.material.v1
+    self.management_review.command.request: ak.self.management_review.command.request.v1
+    self.management_review.command.decide: ak.self.management_review.command.decide.v1
+    self.management_review.read.status: ak.self.management_review.read.status.v1
 libp2p:
   envelope:
     required:

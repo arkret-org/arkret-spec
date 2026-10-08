@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-07.2",
+  "version": "2026-10-09.2",
   "source_of_truth": false,
-  "generated_at": "2026-10-07T09:17:08+08:00",
+  "generated_at": "2026-10-09T07:42:46+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -1180,7 +1180,7 @@
             "payload_path": "actor_role",
             "const": "bot"
           },
-          "admission": "service_attested"
+          "admission": "capability_gated"
         },
         {
           "when": {
@@ -1202,7 +1202,7 @@
       "admission_checks": [
         "envelope actor_id and proof signer equal payload.service_id; applet_id equals payload.applet_id",
         "registration_ref resolves to the exact active registration whose service_id and applet_id match",
-        "applet_authority_ref resolves to an active scope-matching grant; actor_role=ghost additionally requires action ak.applet.ghost.provision",
+        "applet_authority_ref resolves to an active scope-matching grant; actor_role=bot requires ak.applet.bot.provision; actor_role=ghost requires ak.applet.ghost.provision",
         "the separately submitted applet_managed_control genesis derives its Realm id from its own Event id and carries exactly one critical provision ref, avoiding a provision/genesis hash cycle",
         "the exact account ActorId is unused and initial_resolution projects to the actor principal",
         "actor_role=ghost: the initial_resolution did is did:webvh, its SCID segment is the ghost's own validated SCID and differs from the service and controller SCIDs, and its host segment equals the host segment of the bare did the registration service_id currently resolves to; otherwise applet_managed_actor_provision_invalid",
@@ -1636,7 +1636,10 @@
       "result_effect_ownership": {
         "kind": "typed_result_writer"
       },
-      "admission": "capability_or_owned_agent"
+      "admission": "capability_or_owned_agent",
+      "admission_checks": [
+        "Applet Service-authored terminal child: exact active installation, accepted managed Account subject/role, real business parent with ordinary authority_control and allowed_managed_actor_roles; parent.subject equals issuer ActorId.service, full narrowing and historical Service signer evidence. No creation-only parent or arbitrary recipient. See authz/managed-governance.md section 4."
+      ]
     },
     {
       "event_kind": "ak.capability.relinquish",
@@ -1732,7 +1735,10 @@
       "result_effect_ownership": {
         "kind": "typed_result_writer"
       },
-      "admission": "capability_or_owned_agent"
+      "admission": "capability_or_owned_agent",
+      "admission_checks": [
+        "Exact Applet Service issuer may revoke only its own accepted terminal managed child, with exact revision/CAS and historical source; no general revoke power or active business parent is needed to close that child. Retained legal Service authentication and current signer eligibility still required."
+      ]
     },
     {
       "event_kind": "ak.circle.archive",
@@ -4395,7 +4401,7 @@
       "verb_form": "base",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Policy object set",
+      "payload": "Policy object set Applet governance policy has the same exact-CAS mandatory expected_revision rule as Agent governance policy; kind cannot be rebound to bypass it.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/policy_set_state_payload",
       "id_source": "reference",
       "result_writes": [
@@ -4427,7 +4433,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
-      "payload": "Actor profile create",
+      "payload": "Actor profile create Applet-managed public applet_interaction intent requires actual scope, subject signature, publish governance and applicable management approvals; all alternate creation/patch paths share the gate.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/actor_profile_create_payload",
       "id_source": "event_derived",
       "id_kind": "actor_profile",
@@ -4516,7 +4522,7 @@
       "wire_scope": "durable_event",
       "reducer_input": true,
       "admission": "self_authored_proof",
-      "payload": "Actor profile update; resolution and every resolution.* path are forbidden because the PCR resolution typed current result is the sole write authority for that materialized projection.",
+      "payload": "Actor profile update; resolution and every resolution.* path are forbidden because the PCR resolution typed current result is the sole write authority for that materialized projection. Setting Applet managed applet_service_intent to public additionally requires current publish governance and management ApprovalSignature when configured; subject signature is unchanged. Applet-managed public applet_interaction intent requires actual scope, subject signature, publish governance and applicable management approvals; all alternate creation/patch paths share the gate.",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/actor_profile_update_payload",
       "id_source": "reference",
       "result_writes": [

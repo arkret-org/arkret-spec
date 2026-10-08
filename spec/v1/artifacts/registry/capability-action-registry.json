@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-03.2",
+  "version": "2026-10-09.1",
   "source_of_truth": false,
-  "generated_at": "2026-10-03T08:03:04+08:00",
+  "generated_at": "2026-10-09T07:31:39+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -37,12 +37,47 @@
           "event",
           "operation"
         ]
+      },
+      {
+        "carrier_id": "applet_bot_provision.approval_signatures",
+        "carrier_class": "non_event_operation",
+        "operation_id": "ak.self.applet.bot.command.provision.v1",
+        "request_schema_ref": "schemas/applet-bot-operations.schema.json#/$defs/bot_actor_provision_request_body",
+        "carrier_schema_ref": "schemas/applet-bot-operations.schema.json#/$defs/bot_actor_provision_request_body/properties/approval_signatures",
+        "carrier_field": "approval_signatures",
+        "evidence_schema_ref": "schemas/approval-signature.schema.json",
+        "allowed_target_kinds": [
+          "operation"
+        ]
+      },
+      {
+        "carrier_id": "applet_ghost_provision.approval_signatures",
+        "carrier_class": "non_event_operation",
+        "operation_id": "ak.self.applet.ghost.command.provision.v1",
+        "request_schema_ref": "schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_request_body",
+        "carrier_schema_ref": "schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_request_body/properties/approval_signatures",
+        "carrier_field": "approval_signatures",
+        "evidence_schema_ref": "schemas/approval-signature.schema.json",
+        "allowed_target_kinds": [
+          "operation"
+        ]
       }
     ],
     "default_carrier_by_eligibility_kind": {
       "event_submission_carrier": "event_admission_submission.approval_signatures"
     },
-    "action_overrides": []
+    "action_overrides": [
+      {
+        "action": "ak.applet.bot.provision",
+        "eligibility_kind": "registered_operation_carrier",
+        "carrier_id": "applet_bot_provision.approval_signatures"
+      },
+      {
+        "action": "ak.applet.ghost.provision",
+        "eligibility_kind": "registered_operation_carrier",
+        "carrier_id": "applet_ghost_provision.approval_signatures"
+      }
+    ]
   },
   "registry_rules": [
     "Wire capability grant.actions[] entries MUST be drawn from this registry; wildcards / segment globs are statically rejected by capability-grant.schema.json.",
@@ -55,7 +90,8 @@
     "grant_authority_actions lists the action ids an issuer holding this action MAY sign a grant for (capabilities.md section 3.2 issuer upper bound). It is a separate namespace from target_event_kinds, which only expresses direct Event admission: several actions can map to one event kind, so an event-kind subset MUST NOT be used to satisfy an action-level grant authority question.",
     "coverage_rule and grant_authority_rule declare how target_event_kinds and grant_authority_actions are derived from the other rows. When a rule is present the materialized list is a cached projection: tools/artifact_pipeline.py generate rewrites it and check rejects any hand edit on either this registry or the generated view.",
     "root_control_only=true marks an action that only the current controller of the Realm authority-root typed current result may author. It is never grantable and never enters a derived owner authority set. subject_only=true marks a self-service action whose only authority is the target subject's own signature. reducer_only=true marks a record the reducer materializes and no principal may author. The three flags are orthogonal and combinable.",
-    "approval_requirement_eligibility is the only v1 decision source for whether a grant approval constraint or ak.policy.action approval requirement may target an action. Every event_mapping_kind resolves through event_mapping_defaults; a non_event_surface action is ineligible unless one exact action_overrides row selects registered_operation_carrier and names a reachable carrier. Implementations MUST NOT infer eligibility from action spelling, risk tier, prose, or an invented action-to-operation mapping."
+    "approval_requirement_eligibility is the only v1 decision source for whether a grant approval constraint or ak.policy.action approval requirement may target an action. Every event_mapping_kind resolves through event_mapping_defaults; a non_event_surface action is ineligible unless one exact action_overrides row selects registered_operation_carrier and names a reachable carrier. Implementations MUST NOT infer eligibility from action spelling, risk tier, prose, or an invented action-to-operation mapping.",
+    "A closed aggregate command MAY override the default Event approval carrier only through an explicitly registered operation carrier whose durable effect includes every action target Event kind; ordinary submission cannot split that aggregate."
   ],
   "reserved_actions": [],
   "actions": [
@@ -201,7 +237,7 @@
         "ak.applet.managed_actor.provision"
       ],
       "profile": "ak.profile.applet_bridge.v1",
-      "event_mapping_kind": "aggregate_admin",
+      "event_mapping_kind": "operation_verb",
       "notes": "Authorizes only actor_role=ghost ak.applet.managed_actor.provision inside the closed four-Event Ghost unit: provision, applet_managed_control PCR genesis, accountability grant and profile create. The conditional Event admission and operation validator require the exact active registration/grant/scope and atomic set."
     },
     {
@@ -1130,6 +1166,7 @@
       "risk_tier": "high",
       "required_constraints": [],
       "target_event_kinds": [
+        "ak.agent.interaction.set",
         "ak.agent.key.authorize",
         "ak.agent.key.revoke",
         "ak.applet.registration",
@@ -1168,6 +1205,8 @@
         "ak.organization.moderation_policy",
         "ak.policy.action",
         "ak.policy.set",
+        "ak.profile.create",
+        "ak.profile.update",
         "ak.reaction.add",
         "ak.reaction.remove",
         "ak.realm.alias",
@@ -1215,9 +1254,13 @@
         "ak.view.update"
       ],
       "grant_authority_actions": [
+        "ak.agent.join",
         "ak.agent.key.authorize",
         "ak.agent.key.revoke",
+        "ak.agent.publish",
         "ak.applet.bridge_error",
+        "ak.applet.join",
+        "ak.applet.publish",
         "ak.approval.vote",
         "ak.audit.accessed",
         "ak.audit.export",
@@ -2003,14 +2046,73 @@
       "event_mapping_kind": "same_name"
     },
     {
-      "action": "ak.applet.invoke",
-      "category": "content",
+      "action": "ak.applet.bot.provision",
+      "category": "management",
       "risk_tier": "high",
-      "required_constraints": [],
-      "target_event_kinds": [],
-      "event_mapping_kind": "non_event_surface",
+      "required_constraints": [
+        "applet_id",
+        "executed_by",
+        "registration_epoch"
+      ],
+      "required_evaluator_checks": [
+        "active_applet_registration_exact",
+        "bot_managed_actor_provision_unit_atomic"
+      ],
+      "target_event_kinds": [
+        "ak.applet.managed_actor.provision"
+      ],
       "profile": "ak.profile.applet_service.v1",
-      "description": "Explicit permission to disclose selected currently readable source content to an installed Applet. Exact source resources, target policy and current install are independently checked; mention and read permission alone never authorize export."
+      "event_mapping_kind": "operation_verb",
+      "notes": "Only actor_role=bot inside the exact post-install four-Event creation operation; creation does not authorize membership or business actions."
+    },
+    {
+      "action": "ak.agent.join",
+      "category": "management",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.member.state"
+      ],
+      "profile": null,
+      "event_mapping_kind": "operation_verb",
+      "notes": "Self Agent join still requires verified current controller intent and all original join gates; this label only selects management review and never creates membership by grant."
+    },
+    {
+      "action": "ak.agent.publish",
+      "category": "management",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.agent.interaction.set"
+      ],
+      "profile": null,
+      "event_mapping_kind": "operation_verb",
+      "notes": "Controller-only public intent. Independent grants cannot override controller signature or public service governance."
+    },
+    {
+      "action": "ak.applet.publish",
+      "category": "management",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.profile.create",
+        "ak.profile.update"
+      ],
+      "profile": null,
+      "event_mapping_kind": "operation_verb",
+      "notes": "Management gate for public intent of an accepted Applet-managed Bot/Ghost, using reserved closed applet_interaction in the subject-signed profile. It does not authorize arbitrary profile edits or override native self-authored control."
+    },
+    {
+      "action": "ak.applet.join",
+      "category": "management",
+      "risk_tier": "medium",
+      "required_constraints": [],
+      "target_event_kinds": [
+        "ak.member.state"
+      ],
+      "profile": null,
+      "event_mapping_kind": "operation_verb",
+      "notes": "Subject-only managed Bot/Ghost join governance approval label. It grants no right to sign another subject join or bypass membership/MLS."
     }
   ],
   "event_mapping_kind_definitions": {

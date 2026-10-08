@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-06.1",
+  "version": "2026-10-09.1",
   "source_of_truth": false,
-  "generated_at": "2026-10-06T01:49:40+08:00",
+  "generated_at": "2026-10-09T07:31:39+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -4816,50 +4816,18 @@
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_install_request_body",
-        "schema_kind": "oneOf",
+        "schema_kind": "object",
         "required": [
           "applet_package",
-          "authoring_request"
+          "authoring_request_basis",
+          "plan_digest"
         ],
         "properties": [
           "applet_package",
-          "authoring_request",
-          "managed_actor_bundle",
-          "reuse_existing_managed_actor"
+          "authoring_request_basis",
+          "plan_digest"
         ],
-        "closed": true,
-        "variants": [
-          {
-            "schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_install_first_request_body",
-            "schema_kind": "object",
-            "required": [
-              "applet_package",
-              "authoring_request",
-              "managed_actor_bundle"
-            ],
-            "properties": [
-              "applet_package",
-              "authoring_request",
-              "managed_actor_bundle"
-            ],
-            "closed": true
-          },
-          {
-            "schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_install_reuse_request_body",
-            "schema_kind": "object",
-            "required": [
-              "applet_package",
-              "authoring_request",
-              "reuse_existing_managed_actor"
-            ],
-            "properties": [
-              "applet_package",
-              "authoring_request",
-              "reuse_existing_managed_actor"
-            ],
-            "closed": true
-          }
-        ]
+        "closed": true
       },
       "response": {
         "schema_ref": "schemas/applet-install-operations.schema.json#/$defs/applet_install_outcome",
@@ -4869,9 +4837,6 @@
           "applet_id",
           "registration_event_ref",
           "registration_epoch",
-          "applet_actor_id",
-          "applet_actor_provision_ref",
-          "applet_principal_control_realm_id",
           "capability_grant_refs",
           "e2ee_authorization_refs",
           "widget_policy_ref",
@@ -4883,9 +4848,6 @@
           "applet_id",
           "registration_event_ref",
           "registration_epoch",
-          "applet_actor_id",
-          "applet_actor_provision_ref",
-          "applet_principal_control_realm_id",
           "capability_grant_refs",
           "e2ee_authorization_refs",
           "widget_policy_ref",
@@ -4946,13 +4908,13 @@
         "schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/ghost_preview_request_body",
         "schema_kind": "object",
         "required": [
-          "realm_id",
-          "external_ref"
+          "external_ref",
+          "effective_scope"
         ],
         "properties": [
-          "realm_id",
           "external_ref",
-          "display_name"
+          "display_name",
+          "effective_scope"
         ],
         "closed": true
       },
@@ -4963,7 +4925,8 @@
           "authoring_request"
         ],
         "properties": [
-          "authoring_request"
+          "authoring_request",
+          "existing_managed_actor"
         ],
         "closed": true
       }
@@ -4973,16 +4936,30 @@
       "success_shape_kind": "typed_response",
       "request": {
         "schema_ref": "schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_request_body",
-        "schema_kind": "object",
-        "required": [
-          "authoring_request",
-          "managed_actor_bundle"
-        ],
-        "properties": [
-          "authoring_request",
-          "managed_actor_bundle"
-        ],
-        "closed": true
+        "schema_kind": "oneOf",
+        "required": [],
+        "properties": [],
+        "closed": false,
+        "variants": [
+          {
+            "schema_ref": "schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_request_body",
+            "schema_kind": null,
+            "required": [
+              "managed_actor_bundle"
+            ],
+            "properties": [],
+            "closed": false
+          },
+          {
+            "schema_ref": "schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_request_body",
+            "schema_kind": null,
+            "required": [
+              "existing_managed_actor"
+            ],
+            "properties": [],
+            "closed": false
+          }
+        ]
       },
       "response": {
         "schema_ref": "schemas/applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_outcome",
@@ -5027,13 +5004,10 @@
         "schema_ref": "schemas/applet-install-authoring.schema.json#/$defs/install_preview_outcome",
         "schema_kind": "object",
         "required": [
-          "plan",
-          "authoring_request"
+          "plan"
         ],
         "properties": [
-          "plan",
-          "authoring_request",
-          "managed_actor_bundle"
+          "plan"
         ],
         "closed": true
       }
@@ -8806,241 +8780,218 @@
       }
     },
     {
-      "operation_id": "ak.edge.applet.client.command.exchange.v1",
+      "operation_id": "ak.self.applet.bot.command.preview.v1",
       "success_shape_kind": "schema_resource",
       "request": {
-        "schema_ref": "schemas/applet-client-operations.schema.json#/$defs/exchange_request_body",
-        "schema_kind": "oneOf",
-        "required": [
-          "kind",
-          "applet_id",
-          "registration_epoch"
-        ],
-        "properties": [
-          "kind",
-          "applet_id",
-          "registration_epoch",
-          "authoring_request_digest",
-          "managed_actor_bundle",
-          "registration_ref",
-          "effective_scope",
-          "max_items",
-          "item_digest",
-          "outcome"
-        ],
-        "closed": true,
-        "variants": [
-          {
-            "schema_ref": "schemas/applet-client-operations.schema.json#/$defs/bootstrap_claim",
-            "schema_kind": "object",
-            "required": [
-              "kind",
-              "applet_id",
-              "registration_epoch",
-              "authoring_request_digest"
-            ],
-            "properties": [
-              "kind",
-              "applet_id",
-              "registration_epoch",
-              "authoring_request_digest"
-            ],
-            "closed": true
-          },
-          {
-            "schema_ref": "schemas/applet-client-operations.schema.json#/$defs/bootstrap_submit",
-            "schema_kind": "object",
-            "required": [
-              "kind",
-              "applet_id",
-              "registration_epoch",
-              "authoring_request_digest",
-              "managed_actor_bundle"
-            ],
-            "properties": [
-              "kind",
-              "applet_id",
-              "registration_epoch",
-              "authoring_request_digest",
-              "managed_actor_bundle"
-            ],
-            "closed": true
-          },
-          {
-            "schema_ref": "schemas/applet-client-operations.schema.json#/$defs/installed_claim",
-            "schema_kind": "object",
-            "required": [
-              "kind",
-              "applet_id",
-              "registration_epoch",
-              "registration_ref",
-              "effective_scope",
-              "max_items"
-            ],
-            "properties": [
-              "kind",
-              "applet_id",
-              "registration_epoch",
-              "registration_ref",
-              "effective_scope",
-              "max_items"
-            ],
-            "closed": true
-          },
-          {
-            "schema_ref": "schemas/applet-client-operations.schema.json#/$defs/installed_ack",
-            "schema_kind": "object",
-            "required": [
-              "kind",
-              "applet_id",
-              "registration_epoch",
-              "registration_ref",
-              "effective_scope",
-              "item_digest",
-              "outcome"
-            ],
-            "properties": [
-              "kind",
-              "applet_id",
-              "registration_epoch",
-              "registration_ref",
-              "effective_scope",
-              "item_digest",
-              "outcome"
-            ],
-            "closed": true
-          }
-        ]
-      },
-      "response": {
-        "schema_ref": "schemas/applet-client-operations.schema.json#/$defs/exchange_outcome",
-        "schema_kind": "oneOf",
-        "required": [
-          "kind"
-        ],
-        "properties": [
-          "kind",
-          "authoring_request",
-          "authoring_request_digest",
-          "managed_actor_bundle",
-          "authoring_context",
-          "status",
-          "items",
-          "item_digest"
-        ],
-        "closed": true,
-        "variants": [
-          {
-            "schema_ref": "schemas/applet-client-operations.schema.json#/$defs/bootstrap_pending",
-            "schema_kind": "object",
-            "required": [
-              "kind",
-              "authoring_request"
-            ],
-            "properties": [
-              "kind",
-              "authoring_request"
-            ],
-            "closed": true
-          },
-          {
-            "schema_ref": "schemas/applet-client-operations.schema.json#/$defs/bootstrap_authored",
-            "schema_kind": "object",
-            "required": [
-              "kind",
-              "authoring_request_digest",
-              "managed_actor_bundle"
-            ],
-            "properties": [
-              "kind",
-              "authoring_request_digest",
-              "managed_actor_bundle"
-            ],
-            "closed": true
-          },
-          {
-            "schema_ref": "schemas/applet-client-operations.schema.json#/$defs/bootstrap_committed",
-            "schema_kind": "object",
-            "required": [
-              "kind",
-              "authoring_request_digest",
-              "authoring_context"
-            ],
-            "properties": [
-              "kind",
-              "authoring_request_digest",
-              "authoring_context"
-            ],
-            "closed": true
-          },
-          {
-            "schema_ref": "schemas/applet-client-operations.schema.json#/$defs/bootstrap_closed",
-            "schema_kind": "object",
-            "required": [
-              "kind",
-              "authoring_request_digest",
-              "status"
-            ],
-            "properties": [
-              "kind",
-              "authoring_request_digest",
-              "status"
-            ],
-            "closed": true
-          },
-          {
-            "schema_ref": "schemas/applet-client-operations.schema.json#/$defs/installed_items",
-            "schema_kind": "object",
-            "required": [
-              "kind",
-              "items"
-            ],
-            "properties": [
-              "kind",
-              "items"
-            ],
-            "closed": true
-          },
-          {
-            "schema_ref": "schemas/applet-client-operations.schema.json#/$defs/installed_acknowledged",
-            "schema_kind": "object",
-            "required": [
-              "kind",
-              "item_digest"
-            ],
-            "properties": [
-              "kind",
-              "item_digest"
-            ],
-            "closed": true
-          }
-        ]
-      }
-    },
-    {
-      "operation_id": "ak.self.applet.install.command.cancel.v1",
-      "success_shape_kind": "schema_resource",
-      "request": {
-        "schema_ref": "schemas/applet-client-operations.schema.json#/$defs/cancel_request_body",
+        "schema_ref": "schemas/applet-bot-operations.schema.json#/$defs/bot_preview_request_body",
         "schema_kind": "object",
         "required": [
-          "authoring_request_digest"
+          "effective_scope",
+          "request_id"
         ],
         "properties": [
-          "authoring_request_digest"
+          "effective_scope",
+          "request_id",
+          "display_name"
         ],
         "closed": true
       },
       "response": {
-        "schema_ref": "schemas/applet-client-operations.schema.json#/$defs/cancel_outcome",
+        "schema_ref": "schemas/applet-bot-operations.schema.json#/$defs/bot_preview_outcome",
         "schema_kind": "object",
         "required": [
-          "authoring_request_digest",
-          "status"
+          "authoring_request"
         ],
         "properties": [
-          "authoring_request_digest",
-          "status"
+          "authoring_request"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.applet.bot.command.provision.v1",
+      "success_shape_kind": "schema_resource",
+      "request": {
+        "schema_ref": "schemas/applet-bot-operations.schema.json#/$defs/bot_actor_provision_request_body",
+        "schema_kind": "object",
+        "required": [
+          "authoring_request",
+          "managed_actor_bundle"
+        ],
+        "properties": [
+          "authoring_request",
+          "managed_actor_bundle",
+          "approval_signatures"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/applet-bot-operations.schema.json#/$defs/bot_actor_provision_outcome",
+        "schema_kind": "object",
+        "required": [
+          "managed_actor_provision_ref",
+          "principal_control_realm_id",
+          "profile_event_ref",
+          "accountability_grant_ref",
+          "authorization_ref",
+          "bot_actor_id"
+        ],
+        "properties": [
+          "managed_actor_provision_ref",
+          "principal_control_realm_id",
+          "profile_event_ref",
+          "accountability_grant_ref",
+          "authorization_ref",
+          "display_name",
+          "bot_actor_id"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.applet.authority.read.material.v1",
+      "success_shape_kind": "schema_resource",
+      "request": {
+        "schema_ref": "schemas/applet-authority-material.schema.json#/$defs/request",
+        "schema_kind": "object",
+        "required": [
+          "effective_scope",
+          "grant_ids"
+        ],
+        "properties": [
+          "effective_scope",
+          "grant_ids"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/applet-authority-material.schema.json#/$defs/outcome",
+        "schema_kind": "object",
+        "required": [
+          "applet_id",
+          "effective_scope",
+          "registration",
+          "grant_events",
+          "current_results"
+        ],
+        "properties": [
+          "applet_id",
+          "effective_scope",
+          "registration",
+          "grant_events",
+          "current_results"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.management_review.command.request.v1",
+      "success_shape_kind": "schema_resource",
+      "request": {
+        "schema_ref": "schemas/management-review-operations.schema.json#/$defs/request",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "effective_scope",
+          "management_operation",
+          "requester_actor_id",
+          "target"
+        ],
+        "properties": [
+          "request_id",
+          "effective_scope",
+          "management_operation",
+          "requester_actor_id",
+          "target"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/management-review-operations.schema.json#/$defs/outcome",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "status",
+          "target_digest",
+          "expires_at"
+        ],
+        "properties": [
+          "request_id",
+          "status",
+          "target_digest",
+          "expires_at",
+          "approval_signatures"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.management_review.command.decide.v1",
+      "success_shape_kind": "schema_resource",
+      "request": {
+        "schema_ref": "schemas/management-review-operations.schema.json#/$defs/decision",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "expected_status",
+          "decision"
+        ],
+        "properties": [
+          "request_id",
+          "expected_status",
+          "decision",
+          "approval_signatures"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/management-review-operations.schema.json#/$defs/outcome",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "status",
+          "target_digest",
+          "expires_at"
+        ],
+        "properties": [
+          "request_id",
+          "status",
+          "target_digest",
+          "expires_at",
+          "approval_signatures"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.management_review.read.status.v1",
+      "success_shape_kind": "schema_resource",
+      "request": {
+        "schema_ref": "schemas/management-review-operations.schema.json#/$defs/lookup",
+        "schema_kind": "object",
+        "required": [
+          "request_id"
+        ],
+        "properties": [
+          "request_id"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/management-review-operations.schema.json#/$defs/outcome",
+        "schema_kind": "object",
+        "required": [
+          "request_id",
+          "status",
+          "target_digest",
+          "expires_at"
+        ],
+        "properties": [
+          "request_id",
+          "status",
+          "target_digest",
+          "expires_at",
+          "approval_signatures"
         ],
         "closed": true
       }

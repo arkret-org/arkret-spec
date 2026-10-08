@@ -20,9 +20,7 @@
         "ak.realm_authority_handoff_new_acceptance_signature.v1",
         "ak.realm_authority_current_assertion_signature.v1",
         "ak.realm_snapshot_signature.v1",
-        "ak.mls_welcome_delivery_signature.v1",
-        "ak.applet_disclosure_signature.v1",
-        "ak.applet_result_signature.v1"
+        "ak.mls_welcome_delivery_signature.v1"
       ]
     },
     "signature_algorithm": {
@@ -126,34 +124,6 @@
           "properties": {
             "context": {
               "const": "ak.mls_welcome_delivery_signature.v1"
-            }
-          }
-        }
-      ]
-    },
-    "applet_disclosure_signature": {
-      "allOf": [
-        {
-          "$ref": "#"
-        },
-        {
-          "properties": {
-            "context": {
-              "const": "ak.applet_disclosure_signature.v1"
-            }
-          }
-        }
-      ]
-    },
-    "applet_result_signature": {
-      "allOf": [
-        {
-          "$ref": "#"
-        },
-        {
-          "properties": {
-            "context": {
-              "const": "ak.applet_result_signature.v1"
             }
           }
         }

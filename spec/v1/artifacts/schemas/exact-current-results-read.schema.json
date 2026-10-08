@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/exact-current-results-read.schema.json",
   "title": "Arkret Exact Current Results Read",
-  "description": "Exact authorized Relation, moderation or Agent interaction current read at one governing-Station cut. It is non-enumerating and binds never-written to the exact selector. Includes the original issuer-only exact owned_agent capability_grant read, including ineffective and terminal rows; no never_written for grants.",
+  "description": "Exact authorized Relation, moderation or Agent interaction current read at one governing-Station cut. It is non-enumerating and binds never-written to the exact selector. Includes the original issuer-only exact owned_agent capability_grant read, including ineffective and terminal rows; no never_written for grants. Also supports an exact Agent/Applet Policy CAS read by the scope-authorized policy setter, including authoritative never_written; not policy enumeration. Also supports an exact Agent/Applet Policy CAS read by the scope-authorized policy setter, including authoritative never_written; not policy enumeration. Also supports an exact Agent/Applet Policy CAS read by the scope-authorized policy setter, including authoritative never_written; not policy enumeration. Also supports an exact Agent/Applet Policy CAS read by the scope-authorized policy setter, including authoritative never_written; not policy enumeration.",
   "oneOf": [
     {
       "$ref": "#/$defs/exact_current_results_read_request"
@@ -28,6 +28,9 @@
         },
         {
           "$ref": "./typed-current-result.schema.json#/$defs/calendar_schedule_source_result/properties/selector"
+        },
+        {
+          "$ref": "./typed-current-result.schema.json#/$defs/policy_result/properties/selector"
         }
       ]
     },
@@ -96,6 +99,9 @@
         },
         {
           "$ref": "./typed-current-result.schema.json#/$defs/calendar_schedule_source_result"
+        },
+        {
+          "$ref": "./typed-current-result.schema.json#/$defs/policy_result"
         }
       ]
     },
@@ -169,6 +175,9 @@
             },
             {
               "$ref": "./typed-current-result.schema.json#/$defs/agent_interaction_result/properties/selector"
+            },
+            {
+              "$ref": "./typed-current-result.schema.json#/$defs/policy_result/properties/selector"
             }
           ]
         }

@@ -712,9 +712,6 @@ pin／局部折叠／HLC，固定合并展示不引入新的授权或存储键�
 替代 Agent/history；Contact 两字段 endpoint 只属于 accepted human。真实跨站取材、撤销与 exact round
 来源签名必须另行用服务与联合测试验证，schema 通过不代表 live 授权通过。
 
-`ak.vector.applet.self_actor_contract.v1` 验证封闭 schema、轮换／首装参考状态机、独立明文签名
-和 SDK MLS 群隔离。此证据只覆盖合同与密码学组件，不证明独立 runtime 安装生命周期。
-`ak.vector.applet.self_actor_live_lifecycle.v1` 保持 reserved，激活条件见 Applet client/invocation 合同 §4。
 
 `ak.vector.direct_conversation.chat_topic_structure.v1`：由 `direct-conversation-structure-fixture.json` 与 artifact structure gate 逐项执行 Space 密文／明文互斥、解密 plaintext 封闭字段集、独立 Space(kind=topic) 的密文载体、Strand.topic 的显式整体 set/unset、必需完整 CAS、非法 null／子路径／rank 负例，并校验九项 participant action、独立 main/target、root Topic 以及 List／Board 不得充当 Topic 的边界；不宣称此 wire 向量已代替真实 MLS、双设备、跨站或 Agent 产品验收。
 

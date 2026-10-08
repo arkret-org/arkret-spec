@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-05.1",
+  "version": "2026-10-09.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-05T21:15:00+08:00",
+  "generated_at": "2026-10-09T07:31:39+08:00",
   "normative_source": "zh/authz/owned-agent-authority.md",
   "source_kind": "owned_agent",
   "grant_event_kind": "ak.capability.grant",
@@ -36,7 +36,9 @@
     "authorize",
     "execute",
     "read",
-    "deliver"
+    "deliver",
+    "publish",
+    "serve"
   ],
   "invariants": {
     "default_self_service": true,

@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-08",
+  "version": "2026-10-09.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-08T12:00:00+08:00",
+  "generated_at": "2026-10-09T07:31:39+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -5040,31 +5040,6 @@
       ]
     },
     {
-      "vector_id": "ak.vector.applet.self_actor_contract.v1",
-      "status": "active",
-      "domain": "applet",
-      "applies_to_profiles": [
-        "ak.profile.applet_service.v1"
-      ],
-      "description": "Executable contract-only schema/role-alignment/bootstrap reference model and plaintext detached signature mutations; not a live runtime support claim.",
-      "source_refs": [
-        "spec/v1/artifacts/fixtures/applet-self-actor-fixture.json",
-        "spec/v1/zh/extensions/applet-client-and-invocation.md"
-      ]
-    },
-    {
-      "vector_id": "ak.vector.applet.self_actor_live_lifecycle.v1",
-      "status": "reserved",
-      "domain": "applet",
-      "applies_to_profiles": [
-        "ak.profile.applet_service.v1"
-      ],
-      "description": "Activate only after SDK, Station, independent runtime and client implement self-subject rotation, URL-free bootstrap, durable fence/ack and minimal-disclosure MLS/result relay. Contract models cannot satisfy this live obligation.",
-      "source_refs": [
-        "spec/v1/zh/extensions/applet-client-and-invocation.md"
-      ]
-    },
-    {
       "vector_id": "ak.vector.signal.scope_authority_cuts.v1",
       "status": "active",
       "domain": "signal",
@@ -5175,6 +5150,19 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/terminal-replication-authority-fixture.json",
         "spec/v1/zh/sync/federation.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.applet.managed_governance.v1",
+      "status": "active",
+      "domain": "applet",
+      "applies_to_fixtures": [
+        "managed-governance-fixture.json"
+      ],
+      "description": "Service-only installation, exact Service parent to independent terminal managed Account, closed Policy/review/Device metadata and RFC9421 Ed25519 request KAT, dynamic current/quota/scope matrices. Protocol reference checks only, not a live Station certification.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/managed-governance-fixture.json",
+        "spec/v1/zh/authz/managed-governance.md"
       ]
     }
   ]

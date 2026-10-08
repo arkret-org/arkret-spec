@@ -1,11 +1,11 @@
 {
-  "version": "2026-10-03.2",
+  "version": "2026-10-09.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-03T03:43:38+08:00",
+  "generated_at": "2026-10-09T07:31:39+08:00",
   "description": "Closed executable inventory for the artifact and release gates. Pipelines execute only listed check ids; runner code supplies implementation but cannot add an unregistered check.",
   "pipelines": {
     "artifact_check": [
-      "applet_self_actor_contract",
+      "managed_governance_contract",
       "authority_commit_protocol",
       "result_family_writer_gate",
       "current_principal_schema",
@@ -52,11 +52,6 @@
       "check_id": "applet_delivery_authentication_kat",
       "label": "applet delivery authentication KAT",
       "owner_script": "tools/check_applet_delivery_authentication_kat.py"
-    },
-    {
-      "check_id": "applet_self_actor_contract",
-      "label": "applet self actor contract",
-      "owner_script": "tools/check_applet_self_actor_contract.py"
     },
     {
       "check_id": "approval_signature_kat",
@@ -142,6 +137,11 @@
       "check_id": "long_text_schema_test",
       "label": "long text schema test",
       "owner_script": "tools/test_long_text_schema.py"
+    },
+    {
+      "check_id": "managed_governance_contract",
+      "label": "managed governance and Device signature contract",
+      "owner_script": "tools/test_managed_governance_contract.py"
     },
     {
       "check_id": "openapi_operation_selector",

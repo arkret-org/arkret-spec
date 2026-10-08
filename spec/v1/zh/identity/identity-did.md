@@ -549,8 +549,7 @@ Resolver policy MUST 至少定义：
     "did:webvh": {
       "role": [
         "human_principal_anchor",
-        "applet_self_actor",
-      "human_did_root_recovery",
+        "human_did_root_recovery",
         "human_relocatable",
         "ongoing_did_governance",
         "service"
@@ -1194,3 +1193,6 @@ Arkret v1 对 DID 实现要求如下：
 ## Foreign Human signer metadata and NativeAudit (Normative)
 
 仅对当前recipient已获Full披露授权的普通业务target，服务可按server-trusted-results运输最小原Human signer fact。PCR authorization_ref/revision/generation是可关联元数据；factdigest亦可能确认已知候选内容，不是匿名化。此窄例外不授权peer读取PCR Event/Commit正文、history/链，也不替代exact current-holder NativeAudit。目录/current-device/current-key lookup保持原closed形状，MUST NOT携forward event_authorization；历史供材不改变admission/current authority，ordinary客户端不新增方法历史 verifier、profile或browserkey。
+
+
+Applet Service、Bot、Ghost与controller保持独立身份；Service registration不保存默认Bot。managed主体验证与逐scope授权按 [managed governance](../authz/managed-governance.md) 执行。

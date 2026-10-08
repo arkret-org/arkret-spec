@@ -1,0 +1,336 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/management-review-operations.schema.json",
+  "title": "Arkret Management Review Operations",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/request"
+    },
+    {
+      "$ref": "#/$defs/decision"
+    },
+    {
+      "$ref": "#/$defs/lookup"
+    },
+    {
+      "$ref": "#/$defs/outcome"
+    }
+  ],
+  "$defs": {
+    "target": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "event"
+          ],
+          "properties": {
+            "kind": {
+              "const": "event"
+            },
+            "event": {
+              "$ref": "./event-envelope.schema.json"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "applet_id",
+            "request_body"
+          ],
+          "properties": {
+            "kind": {
+              "const": "bot_creation"
+            },
+            "applet_id": {
+              "$ref": "./common-ids.schema.json#/$defs/applet_id"
+            },
+            "request_body": {
+              "$ref": "./applet-bot-operations.schema.json#/$defs/bot_actor_provision_request_body"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "applet_id",
+            "request_body"
+          ],
+          "properties": {
+            "kind": {
+              "const": "ghost_creation"
+            },
+            "applet_id": {
+              "$ref": "./common-ids.schema.json#/$defs/applet_id"
+            },
+            "request_body": {
+              "$ref": "./applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_request_body"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "request": {
+      "type": "object",
+      "required": [
+        "request_id",
+        "effective_scope",
+        "management_operation",
+        "requester_actor_id",
+        "target"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "./realm-join-intake.schema.json#/$defs/request_id"
+        },
+        "effective_scope": {
+          "$ref": "./applet-install-plan.schema.json#/$defs/effective_scope"
+        },
+        "management_operation": {
+          "enum": [
+            "join",
+            "publish",
+            "create_bot",
+            "map_ghost"
+          ]
+        },
+        "requester_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
+        },
+        "target": {
+          "$ref": "#/$defs/target"
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "management_operation": {
+                "const": "create_bot"
+              }
+            },
+            "required": [
+              "management_operation"
+            ]
+          },
+          "then": {
+            "properties": {
+              "target": {
+                "properties": {
+                  "kind": {
+                    "const": "bot_creation"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "management_operation": {
+                "const": "map_ghost"
+              }
+            },
+            "required": [
+              "management_operation"
+            ]
+          },
+          "then": {
+            "properties": {
+              "target": {
+                "properties": {
+                  "kind": {
+                    "const": "ghost_creation"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "management_operation": {
+                "const": "join"
+              }
+            },
+            "required": [
+              "management_operation"
+            ]
+          },
+          "then": {
+            "properties": {
+              "target": {
+                "properties": {
+                  "kind": {
+                    "const": "event"
+                  },
+                  "event": {
+                    "properties": {
+                      "kind": {
+                        "enum": [
+                          "ak.member.state"
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "management_operation": {
+                "const": "publish"
+              }
+            },
+            "required": [
+              "management_operation"
+            ]
+          },
+          "then": {
+            "properties": {
+              "target": {
+                "properties": {
+                  "kind": {
+                    "const": "event"
+                  },
+                  "event": {
+                    "properties": {
+                      "kind": {
+                        "enum": [
+                          "ak.agent.interaction.set",
+                          "ak.profile.create",
+                          "ak.profile.update"
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "lookup": {
+      "type": "object",
+      "required": [
+        "request_id"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "./realm-join-intake.schema.json#/$defs/request_id"
+        }
+      },
+      "additionalProperties": false
+    },
+    "decision": {
+      "type": "object",
+      "required": [
+        "request_id",
+        "expected_status",
+        "decision"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "./realm-join-intake.schema.json#/$defs/request_id"
+        },
+        "expected_status": {
+          "const": "pending"
+        },
+        "decision": {
+          "enum": [
+            "approve",
+            "reject",
+            "cancel"
+          ]
+        },
+        "approval_signatures": {
+          "type": "array",
+          "items": {
+            "$ref": "./approval-signature.schema.json"
+          },
+          "minItems": 1
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "decision": {
+                "const": "approve"
+              }
+            },
+            "required": [
+              "decision"
+            ]
+          },
+          "then": {
+            "required": [
+              "approval_signatures"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "approval_signatures"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "outcome": {
+      "type": "object",
+      "required": [
+        "request_id",
+        "status",
+        "target_digest",
+        "expires_at"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "./realm-join-intake.schema.json#/$defs/request_id"
+        },
+        "status": {
+          "enum": [
+            "pending",
+            "approved",
+            "rejected",
+            "cancelled",
+            "expired",
+            "consumed",
+            "superseded"
+          ]
+        },
+        "target_digest": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+        },
+        "expires_at": {
+          "$ref": "./account-operations.schema.json#/$defs/timestamp"
+        },
+        "approval_signatures": {
+          "type": "array",
+          "items": {
+            "$ref": "./approval-signature.schema.json"
+          },
+          "minItems": 1
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -372,22 +372,6 @@
       "new": "ak.root.identity.service_registration.resource.get.v1"
     },
     {
-      "old": "ak.self.account_data.read.list",
-      "new": "ak.self.account_data.read.list.v1"
-    },
-    {
-      "old": "ak.self.account_data.resource.delete",
-      "new": "ak.self.account_data.resource.delete.v1"
-    },
-    {
-      "old": "ak.self.account_data.resource.get",
-      "new": "ak.self.account_data.resource.get.v1"
-    },
-    {
-      "old": "ak.self.account_data.resource.replace",
-      "new": "ak.self.account_data.resource.replace.v1"
-    },
-    {
       "old": "ak.self.account.command.revoke_cursor",
       "new": "ak.self.account.command.revoke_cursor.v1"
     },
@@ -406,6 +390,22 @@
     {
       "old": "ak.self.account.stream.subscribe",
       "new": "ak.self.account.stream.subscribe.v1"
+    },
+    {
+      "old": "ak.self.account_data.read.list",
+      "new": "ak.self.account_data.read.list.v1"
+    },
+    {
+      "old": "ak.self.account_data.resource.delete",
+      "new": "ak.self.account_data.resource.delete.v1"
+    },
+    {
+      "old": "ak.self.account_data.resource.get",
+      "new": "ak.self.account_data.resource.get.v1"
+    },
+    {
+      "old": "ak.self.account_data.resource.replace",
+      "new": "ak.self.account_data.resource.replace.v1"
     },
     {
       "old": "ak.self.actor_private_events.command.submit",
@@ -462,6 +462,18 @@
     {
       "old": "ak.self.agent.sidecar.resource.get",
       "new": "ak.self.agent.sidecar.resource.get.v1"
+    },
+    {
+      "old": "ak.self.applet.authority.read.material",
+      "new": "ak.self.applet.authority.read.material.v1"
+    },
+    {
+      "old": "ak.self.applet.bot.command.preview",
+      "new": "ak.self.applet.bot.command.preview.v1"
+    },
+    {
+      "old": "ak.self.applet.bot.command.provision",
+      "new": "ak.self.applet.bot.command.provision.v1"
     },
     {
       "old": "ak.self.applet.command.install",
@@ -720,12 +732,24 @@
       "new": "ak.self.keys.upload.create.v1"
     },
     {
-      "old": "ak.self.media_service_binding.read.resolve",
-      "new": "ak.self.media_service_binding.read.resolve.v1"
+      "old": "ak.self.management_review.command.decide",
+      "new": "ak.self.management_review.command.decide.v1"
+    },
+    {
+      "old": "ak.self.management_review.command.request",
+      "new": "ak.self.management_review.command.request.v1"
+    },
+    {
+      "old": "ak.self.management_review.read.status",
+      "new": "ak.self.management_review.read.status.v1"
     },
     {
       "old": "ak.self.media.read.ice_config",
       "new": "ak.self.media.read.ice_config.v1"
+    },
+    {
+      "old": "ak.self.media_service_binding.read.resolve",
+      "new": "ak.self.media_service_binding.read.resolve.v1"
     },
     {
       "old": "ak.self.messages.command.prepare",
@@ -760,6 +784,18 @@
       "new": "ak.self.read_cursor.read.list.v1"
     },
     {
+      "old": "ak.self.realm.read.export",
+      "new": "ak.self.realm.read.export.v1"
+    },
+    {
+      "old": "ak.self.realm.read.streams",
+      "new": "ak.self.realm.read.streams.v1"
+    },
+    {
+      "old": "ak.self.realm.resource.get",
+      "new": "ak.self.realm.resource.get.v1"
+    },
+    {
       "old": "ak.self.realm_join.command.prepare",
       "new": "ak.self.realm_join.command.prepare.v1"
     },
@@ -782,18 +818,6 @@
     {
       "old": "ak.self.realm_state_snapshot.read.manifest_head",
       "new": "ak.self.realm_state_snapshot.read.manifest_head.v1"
-    },
-    {
-      "old": "ak.self.realm.read.export",
-      "new": "ak.self.realm.read.export.v1"
-    },
-    {
-      "old": "ak.self.realm.read.streams",
-      "new": "ak.self.realm.read.streams.v1"
-    },
-    {
-      "old": "ak.self.realm.resource.get",
-      "new": "ak.self.realm.resource.get.v1"
     },
     {
       "old": "ak.self.security_transaction.command.continue",
@@ -838,14 +862,6 @@
     {
       "old": "ak.server.read.describe",
       "new": "ak.server.read.describe.v1"
-    },
-    {
-      "old": "ak.edge.applet.client.command.exchange",
-      "new": "ak.edge.applet.client.command.exchange.v1"
-    },
-    {
-      "old": "ak.self.applet.install.command.cancel",
-      "new": "ak.self.applet.install.command.cancel.v1"
     }
   ]
 }

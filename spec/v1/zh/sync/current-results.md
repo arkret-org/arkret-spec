@@ -372,6 +372,10 @@ MUST NOT 随投影缓存重建而清除。
 的 exact current read；它在同一治理任期和 effective stream head 下明确区分未写入与写后清空。
 该精确响应也只是一时观察，不豁免提交时的当前授权与 CAS 再验证。
 
+Agent／Applet Policy 的 exact CAS 读取沿 `ak.self.current_results.read.exact.v1` 已登记 policy selector，
+仅当前 scope 有 `ak.policy.set` 权限者可得原 typed row 或权威 never_written；不凭省略推断初次 null，
+不枚举其他 Policy，read permission 不代替写入时的 current CAS 和审批校验。
+
 ## 4. 有界基线与续传
 
 `AccountCurrentResult.coverage` 携带 `realm_id`、`stream_heads[]` 与 `complete_for_authorized_streams`。只有在：

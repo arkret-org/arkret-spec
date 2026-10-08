@@ -188,3 +188,8 @@ grant 尚在宣称 endpoint 已可发送。明确拒绝的密文不重放，修�
 请求、context 与 acknowledged history 不因新 grant 自动发布或重执行。产品 MUST 以独立空库
 首次配置和保留状态重启分别验证真实 mention → model → 同 scope 的已接纳、可显示加密回复，
 不能以手工插 grant、修数据库、恢复已有会话或延长等待预算替代冷启动验收。
+
+
+## Realm 公开治理门
+
+controller-only public模式接纳另须通过publish治理；持续公开请求和共享出站还须通过serve治理与实际caller/action/resource授权。管理者不能代写主人模式。模式public而serve失效时保留原签意图、拒绝新公开交付，不停止原本合法的私有协作。审批和用户差异化规则按 [managed-governance.md](../authz/managed-governance.md) 执行。

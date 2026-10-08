@@ -398,11 +398,6 @@ Morph 权限粒度与 Strand 平行(`ak.morph.read` / `ak.morph.create` / `ak.mo
 - `ak.circle.audit`（high risk；审计读取 Circle 元数据 / activity rollup，MUST 与 `ak.audit.accessed` 配对）
 - `ak.realm.admin`
 - `ak.realm.owner`（high risk；Realm 内最高显式授权聚合。两个来源见 §3.2：authority-root typed current result 的 current controller，或一条 active 的普通 co-owner grant。它同时携带两个由 registry 规则派生的集合——`target_event_kinds` 只用于直接 Event admission，`grant_authority_actions` 只用于 §3.2 的 issuer 上界；两者 MUST NOT 互换使用。`root_control_only` / `subject_only` / `reducer_only` 的 action 不在任一集合内，因此 owner 既不能直接 author 也不能签发它们）
-- `ak.applet.invoke`（high risk、non-event surface、profile=`ak.profile.applet_service.v1`；仅授权 exact
-  Applet 接收显式披露的 source resources，不等于源群读取或 execution。首发只按该 profile 的
-  `non_event_grant_authority_rules`、同 cut 管理上界、active exact registration、full subject authority
-  pair、applet_authority epoch 与 installation resource ceiling 求值；原 caller 的 read/policy/consent
-  独立检查，见 [Applet 调用合同](../extensions/applet-client-and-invocation.md)。）
 - `ak.applet.ghost.provision`（high risk、profile=`ak.profile.applet_bridge.v1`、`target_event_kinds=[]`、`event_mapping_kind=non_event_surface`；授权 installed Applet service 调用闭合的 Ghost Actor provisioning aggregate；grant MUST 以 `applet_id`、`executed_by`、`registration_epoch` 约束绑定 active registration，且不得解释为对 `ak.identity.accountability_grant` 或 `ak.profile.create` 的通用授权）
 - `ak.realm.link`（管理 Realm 间关系图，target=`ak.realm.link`）
 - `ak.realm.alias`（high risk；占用、改名或 tombstone Realm 的人类可读 alias，target=`ak.realm.alias`；alias 是用户会键入和转发的地址，夺取或改指它是钓鱼 / 冒名原语，见 [`../discovery/object-addressing.md` §3.3](../discovery/object-addressing.md)）
@@ -995,3 +990,6 @@ Arkret v1 固定：
 ## 附录 B. 可携带授权与撤销（informative）
 
 Arkret 使用已确认的 grant Event 及精确委托证据作为可携带授权。grant/revoke 的变更有唯一安全顺序，使用既有 grant 的普通数据可离线并发。传播中的撤销通过作用域、授权实例和关闭集合收敛；短 TTL 不能消除网络分区的取舍。
+
+
+Applet业务下放 **MUST** 使用真实Service ActorId parent→本Appletaccepted Bot／Ghost terminal child的普通grant链；ordinary authority_control的allowed_managed_actor_roles明确批准角色，创建grant／问责／namespace不构成业务parent。持续Applet上界、scope撤销与精细审批按 [managed governance](../authz/managed-governance.md) 执行。

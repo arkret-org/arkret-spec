@@ -262,7 +262,12 @@ def check_approval_requirement_eligibility(lint: Lint) -> None:
             lint.fail(ACTION_REGISTRY, f"approval action override names unknown action {action!r}")
             continue
         if row.get("event_mapping_kind") != "non_event_surface":
-            lint.fail(ACTION_REGISTRY, f"approval action override {action!r} is not non_event_surface")
+            carrier = carrier_by_id.get(override.get("carrier_id"), {})
+            operation = operation_by_id.get(carrier.get("operation_id"), {})
+            effect = operation.get("durable_effect", {})
+            targets = row.get("target_event_kinds", [])
+            if effect.get("kind") != "event_log" or not targets or not set(targets).issubset(effect.get("event_kinds", [])):
+                lint.fail(ACTION_REGISTRY, f"approval action override {action!r} requires a registered aggregate carrier covering every target Event kind")
         if override.get("eligibility_kind") != "registered_operation_carrier":
             lint.fail(ACTION_REGISTRY, f"approval action override {action!r} must select registered_operation_carrier")
         if override.get("carrier_id") not in carrier_by_id:

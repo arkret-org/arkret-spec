@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-05.2",
+  "version": "2026-10-09.1",
   "source_of_truth": false,
-  "generated_at": "2026-10-05T11:14:20+08:00",
+  "generated_at": "2026-10-09T07:31:39+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -327,7 +327,7 @@
       "file": "schemas/applet-install-authoring.schema.json",
       "fragment": "#/$defs/install_authoring_request_basis",
       "status": "active",
-      "description": "Canonical unsigned basis frozen by the Station preview and covered by the install authoring request signature.",
+      "description": "Administrator-authored service installation intent, including exact registration and parent grants; no managed Account.",
       "consumer_binding": {
         "kind": "standalone_schema_alias",
         "selector": "Applet install preview authoring_request.basis",
@@ -363,7 +363,7 @@
       "file": "schemas/applet-install-authoring.schema.json",
       "fragment": "#/$defs/authoring_request",
       "status": "active",
-      "description": "Station-signed, expiry-bounded install_applet or provision_ghost managed-actor authoring request.",
+      "description": "Station-signed, expiry-bounded provision_bot or provision_ghost authoring request.",
       "consumer_binding": {
         "kind": "standalone_schema_alias",
         "selector": "Applet install or Ghost preview and unified managed-actor author request",
@@ -1732,53 +1732,51 @@
       "description": "Server authentication-success frame carrying effective connection and channel limits."
     },
     {
-      "schema_id": "ak.schema.applet_client_operations.v1",
-      "file": "schemas/applet-client-operations.schema.json",
-      "status": "active",
-      "description": "applet client operations"
-    },
-    {
-      "schema_id": "ak.schema.content_block_applet_invocation.v1",
-      "file": "schemas/content-block-applet.schema.json",
-      "status": "active",
-      "description": "content block applet invocation",
-      "fragment": "#/$defs/invocation",
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "ak.content.applet.invocation",
-        "normative_ref": "zh/extensions/applet-client-and-invocation.md"
-      }
-    },
-    {
-      "schema_id": "ak.schema.content_block_applet_result.v1",
-      "file": "schemas/content-block-applet.schema.json",
-      "status": "active",
-      "description": "content block applet result",
-      "fragment": "#/$defs/execution_outcome",
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "ak.content.applet.result",
-        "normative_ref": "zh/extensions/applet-client-and-invocation.md"
-      }
-    },
-    {
-      "schema_id": "ak.schema.content_block_applet_relay.v1",
-      "file": "schemas/content-block-applet.schema.json",
-      "status": "active",
-      "description": "content block applet relay",
-      "fragment": "#/$defs/relay",
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "ak.content.applet.relay",
-        "normative_ref": "zh/extensions/applet-client-and-invocation.md"
-      }
-    },
-    {
       "schema_id": "ak.schema.agent_producer_evidence.v1",
       "file": "schemas/agent-authority-evidence.schema.json",
       "fragment": "#/$defs/agent_producer_evidence",
       "status": "active",
       "description": "authority_forward Agent sibling: six-member ASRE, complete portable authority state, independent controller account gate and method-native authority history. No participation selection."
+    },
+    {
+      "schema_id": "ak.schema.applet_bot_operations.v1",
+      "file": "schemas/applet-bot-operations.schema.json",
+      "status": "active",
+      "description": "Closed post-install Bot creation preview and commit DTOs."
+    },
+    {
+      "schema_id": "ak.schema.applet_bot_authoring_request_basis.v1",
+      "file": "schemas/applet-install-authoring.schema.json",
+      "fragment": "#/$defs/bot_authoring_request_basis",
+      "status": "active",
+      "description": "Exact installed Service Bot creation intent and scope.",
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "Bot preview authoring_request.basis",
+        "normative_ref": "zh/extensions/applet-integration.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.applet_device_authentication.v1",
+      "file": "schemas/applet-device-authentication.schema.json",
+      "status": "active",
+      "description": "Closed signed managed Device request metadata.",
+      "consumer_binding": {
+        "kind": "prose_only",
+        "rationale": "RFC9421 Arkret-Managed-Device header encoding is normative in extensions/applet-integration.md."
+      }
+    },
+    {
+      "schema_id": "ak.schema.applet_authority_material.v1",
+      "file": "schemas/applet-authority-material.schema.json",
+      "status": "active",
+      "description": "Exact Service-authenticated parent grant and current material; no group content."
+    },
+    {
+      "schema_id": "ak.schema.management_review_operations.v1",
+      "file": "schemas/management-review-operations.schema.json",
+      "status": "active",
+      "description": "Private durable management review requests, decisions and outcome; pending carries no authority."
     }
   ],
   "metadata_authority": "contract_registry_section"

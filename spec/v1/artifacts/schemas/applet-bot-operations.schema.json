@@ -1,0 +1,142 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/applet-bot-operations.schema.json",
+  "title": "Arkret Applet Bot Provision Operations",
+  "description": "Closed preview, commit, and outcome DTOs for receiver-side Applet-managed Bot provisioning. The commit carrier is exactly the signed authoring request plus its role-neutral managed-actor bundle.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/bot_preview_request_body"
+    },
+    {
+      "$ref": "#/$defs/bot_preview_outcome"
+    },
+    {
+      "$ref": "#/$defs/bot_actor_provision_request_body"
+    },
+    {
+      "$ref": "#/$defs/bot_actor_provision_outcome"
+    }
+  ],
+  "$defs": {
+    "bot_preview_request_body": {
+      "type": "object",
+      "required": [
+        "effective_scope",
+        "request_id"
+      ],
+      "properties": {
+        "effective_scope": {
+          "$ref": "./applet-install-plan.schema.json#/$defs/effective_scope"
+        },
+        "request_id": {
+          "$ref": "./realm-join-intake.schema.json#/$defs/request_id"
+        },
+        "display_name": {
+          "$ref": "./account-operations.schema.json#/$defs/non_empty_string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "bot_preview_outcome": {
+      "type": "object",
+      "required": [
+        "authoring_request"
+      ],
+      "properties": {
+        "authoring_request": {
+          "allOf": [
+            {
+              "$ref": "./applet-install-authoring.schema.json#/$defs/authoring_request"
+            },
+            {
+              "properties": {
+                "purpose": {
+                  "const": "provision_bot"
+                }
+              }
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "bot_actor_provision_request_body": {
+      "type": "object",
+      "required": [
+        "authoring_request",
+        "managed_actor_bundle"
+      ],
+      "properties": {
+        "authoring_request": {
+          "allOf": [
+            {
+              "$ref": "./applet-install-authoring.schema.json#/$defs/authoring_request"
+            },
+            {
+              "properties": {
+                "purpose": {
+                  "const": "provision_bot"
+                }
+              }
+            }
+          ]
+        },
+        "managed_actor_bundle": {
+          "$ref": "./applet-install-authoring.schema.json#/$defs/managed_actor_bundle"
+        },
+        "approval_signatures": {
+          "type": "array",
+          "items": {
+            "$ref": "./approval-signature.schema.json"
+          },
+          "minItems": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "bot_actor_provision_outcome": {
+      "type": "object",
+      "required": [
+        "managed_actor_provision_ref",
+        "principal_control_realm_id",
+        "profile_event_ref",
+        "accountability_grant_ref",
+        "authorization_ref",
+        "bot_actor_id"
+      ],
+      "properties": {
+        "managed_actor_provision_ref": {
+          "$ref": "#/$defs/event_ref"
+        },
+        "principal_control_realm_id": {
+          "$ref": "#/$defs/realm_id"
+        },
+        "profile_event_ref": {
+          "$ref": "#/$defs/event_ref"
+        },
+        "accountability_grant_ref": {
+          "$ref": "#/$defs/event_ref"
+        },
+        "authorization_ref": {
+          "$ref": "#/$defs/grant_ref"
+        },
+        "display_name": {
+          "$ref": "string-profiles.schema.json#/$defs/display_text_256"
+        },
+        "bot_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
+        }
+      },
+      "additionalProperties": false
+    },
+    "event_ref": {
+      "$ref": "./account-operations.schema.json#/$defs/event_id"
+    },
+    "realm_id": {
+      "$ref": "./common-ids.schema.json#/$defs/realm_id"
+    },
+    "grant_ref": {
+      "$ref": "./agent-operations.schema.json#/$defs/grant_id"
+    }
+  }
+}

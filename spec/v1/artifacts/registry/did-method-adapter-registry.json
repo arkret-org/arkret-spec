@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-03.1",
+  "version": "2026-10-09.1",
   "source_of_truth": false,
-  "generated_at": "2026-10-03T03:35:20+08:00",
+  "generated_at": "2026-10-09T07:33:41+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -248,17 +248,6 @@
           }
         }
       ]
-    },
-    "applet_self_actor": {
-      "allowed_methods": [
-        "did:webvh"
-      ],
-      "required_adapter_properties": {
-        "network_resolved_document": true,
-        "verifiable_control_history": true,
-        "pre_rotation_commitment": true,
-        "ongoing_did_governance": true
-      }
     }
   },
   "metadata_authority": "contract_registry_section"

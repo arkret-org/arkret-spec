@@ -56,6 +56,23 @@
         "require_review"
       ]
     },
+    "default_review_requirement": {
+      "$ref": "#/$defs/management_review_requirement"
+    },
+    "default_operations": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "join",
+          "publish",
+          "create_bot",
+          "map_ghost"
+        ]
+      },
+      "description": "Required when a managed default is require_review: only these review-capable operations use that default; nonselected operations default deny unless an explicit rule matches."
+    },
     "priority": {
       "type": "integer"
     },
@@ -116,7 +133,8 @@
             "crypto",
             "moderation",
             "extension",
-            "agent"
+            "agent",
+            "applet"
           ]
         },
         "effect": {
@@ -205,9 +223,37 @@
               "authorize",
               "execute",
               "read",
-              "deliver"
+              "deliver",
+              "publish",
+              "serve"
             ]
           }
+        },
+        "applet_target": {
+          "$ref": "#/$defs/applet_target"
+        },
+        "applet_operations": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "install",
+              "create_bot",
+              "map_ghost",
+              "join",
+              "authorize",
+              "execute",
+              "read",
+              "deliver",
+              "publish",
+              "serve",
+              "invoke"
+            ]
+          }
+        },
+        "review_requirement": {
+          "$ref": "#/$defs/management_review_requirement"
         }
       },
       "additionalProperties": false,
@@ -334,6 +380,16 @@
                   "required": [
                     "servers"
                   ]
+                },
+                {
+                  "required": [
+                    "applet_target"
+                  ]
+                },
+                {
+                  "required": [
+                    "applet_operations"
+                  ]
                 }
               ]
             }
@@ -352,6 +408,181 @@
                   ]
                 }
               ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "applet"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "applet_target",
+              "applet_operations"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "agent_target"
+                  ]
+                },
+                {
+                  "required": [
+                    "agent_operations"
+                  ]
+                },
+                {
+                  "required": [
+                    "conditions"
+                  ]
+                },
+                {
+                  "required": [
+                    "params"
+                  ]
+                },
+                {
+                  "required": [
+                    "servers"
+                  ]
+                },
+                {
+                  "required": [
+                    "schema_ref"
+                  ]
+                },
+                {
+                  "required": [
+                    "profile_ref"
+                  ]
+                }
+              ]
+            }
+          },
+          "else": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "applet_target"
+                  ]
+                },
+                {
+                  "required": [
+                    "applet_operations"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "review_requirement"
+            ]
+          },
+          "then": {
+            "properties": {
+              "kind": {
+                "enum": [
+                  "agent",
+                  "applet"
+                ]
+              },
+              "effect": {
+                "const": "require_review"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "enum": [
+                  "agent",
+                  "applet"
+                ]
+              },
+              "effect": {
+                "const": "require_review"
+              }
+            },
+            "required": [
+              "kind",
+              "effect"
+            ]
+          },
+          "then": {
+            "required": [
+              "review_requirement"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "agent"
+              },
+              "effect": {
+                "const": "require_review"
+              }
+            },
+            "required": [
+              "kind",
+              "effect"
+            ]
+          },
+          "then": {
+            "properties": {
+              "agent_operations": {
+                "items": {
+                  "enum": [
+                    "join",
+                    "publish"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "applet"
+              },
+              "effect": {
+                "const": "require_review"
+              }
+            },
+            "required": [
+              "kind",
+              "effect"
+            ]
+          },
+          "then": {
+            "properties": {
+              "applet_operations": {
+                "items": {
+                  "enum": [
+                    "join",
+                    "publish",
+                    "create_bot",
+                    "map_ghost"
+                  ]
+                }
+              }
             }
           }
         }
@@ -496,6 +727,113 @@
           "additionalProperties": false
         }
       ]
+    },
+    "applet_target": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "const": "all"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "actor_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "requester"
+            },
+            "actor_id": {
+              "$ref": "./common-ids.schema.json#/$defs/actor_id"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "applet_id",
+            "effective_scope"
+          ],
+          "properties": {
+            "kind": {
+              "const": "installation"
+            },
+            "applet_id": {
+              "$ref": "./common-ids.schema.json#/$defs/applet_id"
+            },
+            "effective_scope": {
+              "$ref": "./applet-install-plan.schema.json#/$defs/effective_scope"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "actor_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "managed_actor"
+            },
+            "actor_id": {
+              "allOf": [
+                {
+                  "$ref": "./common-ids.schema.json#/$defs/actor_id"
+                },
+                {
+                  "properties": {
+                    "kind": {
+                      "const": "account"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "management_review_requirement": {
+      "type": "object",
+      "required": [
+        "approver_actor_ids",
+        "threshold",
+        "max_age_seconds"
+      ],
+      "properties": {
+        "approver_actor_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./common-ids.schema.json#/$defs/actor_id"
+          }
+        },
+        "threshold": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "max_age_seconds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 86400
+        }
+      },
+      "additionalProperties": false
     }
   },
   "patternProperties": {
@@ -530,6 +868,102 @@
         "properties": {
           "policy_kind": {
             "const": "agent"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "rules": {
+            "contains": {
+              "properties": {
+                "kind": {
+                  "const": "applet"
+                }
+              },
+              "required": [
+                "kind"
+              ]
+            }
+          }
+        },
+        "required": [
+          "rules"
+        ]
+      },
+      "then": {
+        "required": [
+          "realm_id"
+        ],
+        "properties": {
+          "policy_kind": {
+            "const": "applet"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "policy_kind": {
+            "enum": [
+              "agent",
+              "applet"
+            ]
+          },
+          "default_effect": {
+            "const": "require_review"
+          }
+        },
+        "required": [
+          "policy_kind",
+          "default_effect"
+        ]
+      },
+      "then": {
+        "required": [
+          "default_review_requirement",
+          "default_operations"
+        ]
+      },
+      "else": {
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "default_review_requirement"
+              ]
+            },
+            {
+              "required": [
+                "default_operations"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "policy_kind": {
+            "const": "agent"
+          }
+        },
+        "required": [
+          "policy_kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "default_operations": {
+            "items": {
+              "enum": [
+                "join",
+                "publish"
+              ]
+            }
           }
         }
       }

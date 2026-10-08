@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-03.1",
-  "generated_at": "2026-10-03T03:33:04+08:00",
+  "version": "2026-10-09.2",
+  "generated_at": "2026-10-09T07:35:11+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json"
@@ -102,16 +102,12 @@
       "sha256": "sha256:30129f86455a7843bacdf3b535266f8a81eb16d5eaf84abe710223915c0d59b1"
     },
     {
-      "operation_bundle_id": "ak.operation_bundle.station.applet_client.v1",
-      "sha256": "sha256:2b76f9795a75bed84d1d5b0899508171525b2c7b530c86363336b3b11b60c5e7"
-    },
-    {
       "operation_bundle_id": "ak.operation_bundle.station.applet_ghost.v1",
-      "sha256": "sha256:6131afd65d66e70f2bde467cce1772e5d03eefda4714905cee33993a882dcad5"
+      "sha256": "sha256:0447d176a867f36f55ab22a26c4cc80bc29752b67eb2ad01c60125472f3969eb"
     },
     {
       "operation_bundle_id": "ak.operation_bundle.station.applet_install.v1",
-      "sha256": "sha256:fa2ec018cbcfeb1b0ca35bc8d0284e9ea8c447193a103cdb20c3436c2e81321a"
+      "sha256": "sha256:6bb04821f2dcd9fdc858aede0466cd1f5dedc5f15a9b7c4972d73c57de231479"
     },
     {
       "operation_bundle_id": "ak.operation_bundle.station.describe.v1",
@@ -132,6 +128,10 @@
     {
       "operation_bundle_id": "ak.operation_bundle.station.keypackage_claim_read.v1",
       "sha256": "sha256:9065eeda7a7157f425e169ce825ca9085e8356fb821f92a7b015c07f6e8007c8"
+    },
+    {
+      "operation_bundle_id": "ak.operation_bundle.station.management_review.v1",
+      "sha256": "sha256:687a70dd4cd918a709a0ca107ce06273330ba63a2ff53765cd3f78d629a9f962"
     },
     {
       "operation_bundle_id": "ak.operation_bundle.station.mimi_interop.v1",

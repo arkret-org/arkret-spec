@@ -3457,7 +3457,7 @@
         "revision",
         "value"
       ],
-      "description": "Registered projection of one Policy document. models/governance-objects.md section 3.2: ak.policy.set is the only writer, its payload is exactly {policy_id, value}, value.schema selects the generic Policy or the RecoveryPolicy family and semantic admission requires the outer policy_id to equal the document's own id verbatim. rules[] is a required non-empty member OF this value and the whole priority / default_effect evaluation of that section runs over it, so a rule is never a subject of its own. The separate ak.policy.rule Event kind that used to assert one rule at a time is deleted: it carried no policy_id, so its rule_id named nothing resolvable, and rule editing submits the whole authorized Policy document through ak.policy.set.",
+      "description": "Registered projection of one Policy document. models/governance-objects.md section 3.2: ak.policy.set is the only writer, its payload is {policy_id, value} for ordinary Policy/RecoveryPolicy, and {policy_id, expected_revision, value} for Agent/Applet management Policy with exact nullable CAS; value.schema selects the Policy or RecoveryPolicy family and semantic admission requires the outer policy_id to equal the document's own id verbatim. rules[] is a required non-empty member OF this value and the whole priority / default_effect evaluation of that section runs over it, so a rule is never a subject of its own. The separate ak.policy.rule Event kind that used to assert one rule at a time is deleted: it carried no policy_id, so its rule_id named nothing resolvable, and rule editing submits the whole authorized Policy document through ak.policy.set.",
       "properties": {
         "selector": {
           "type": "object",

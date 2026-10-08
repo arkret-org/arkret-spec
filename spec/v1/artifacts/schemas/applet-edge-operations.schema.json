@@ -504,15 +504,8 @@
       "additionalProperties": false
     },
     "applet_managed_actor_committed_request": {
-      "description": "The exact original request committed by the installing Station. The install union includes both initial creation and reuse of the existing managed actor; Ghost provisioning retains its original request and bundle.",
-      "oneOf": [
-        {
-          "$ref": "./applet-install-operations.schema.json#/$defs/applet_install_request_body"
-        },
-        {
-          "$ref": "./applet-ghost-operations.schema.json#/$defs/ghost_actor_provision_request_body"
-        }
-      ]
+      "$ref": "./applet-install-authoring.schema.json#/$defs/managed_actor_provision_request_body",
+      "description": "Exact common managed creation request. Its signed authoring_request purpose/basis selects the Bot or Ghost role; service installation has no managed request."
     },
     "applet_service_signer_evidence": {
       "type": "object",

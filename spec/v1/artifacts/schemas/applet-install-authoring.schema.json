@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/applet-install-authoring.schema.json",
   "title": "Arkret Applet Managed-Actor Authoring DTOs",
-  "description": "The single closed Station preview to Applet authoring carrier for install_applet and provision_ghost. No install-only operation, branch-specific bundle aliases, or derived request identifier exists.",
+  "description": "The single closed Station preview to Applet authoring carrier for install_bot and provision_ghost. No install-only operation, branch-specific bundle aliases, or derived request identifier exists.",
   "oneOf": [
     {
       "$ref": "#/$defs/install_authoring_request_basis"
@@ -304,7 +304,8 @@
           }
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "description": "Administrator-authored service installation intent. No Bot or Ghost is created by service installation."
     },
     "ghost_authoring_request_basis": {
       "type": "object",
@@ -314,12 +315,12 @@
         "target_station_id",
         "applet_id",
         "service_id",
-        "realm_id",
         "external_ref",
         "registration_event_ref",
         "authorization_ref",
         "registration_epoch_evidence",
-        "package_digest"
+        "package_digest",
+        "effective_scope"
       ],
       "properties": {
         "schema": {
@@ -336,9 +337,6 @@
         },
         "service_id": {
           "$ref": "#/$defs/did_core_id"
-        },
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
         },
         "external_ref": {
           "$ref": "#/$defs/ghost_external_tuple"
@@ -357,6 +355,12 @@
         },
         "package_digest": {
           "$ref": "#/$defs/digest"
+        },
+        "effective_scope": {
+          "$ref": "./applet-install-plan.schema.json#/$defs/effective_scope"
+        },
+        "existing_managed_actor": {
+          "$ref": "./applet-ghost-operations.schema.json#/$defs/existing_managed_actor"
         }
       },
       "additionalProperties": false
@@ -379,22 +383,19 @@
         },
         "purpose": {
           "enum": [
-            "install_applet",
+            "provision_bot",
             "provision_ghost"
           ]
         },
         "basis": {
           "oneOf": [
             {
-              "$ref": "#/$defs/install_authoring_request_basis"
+              "$ref": "#/$defs/bot_authoring_request_basis"
             },
             {
               "$ref": "#/$defs/ghost_authoring_request_basis"
             }
           ]
-        },
-        "plan_digest": {
-          "$ref": "#/$defs/digest"
         },
         "governance_station_id": {
           "$ref": "#/$defs/did_core_id",
@@ -413,47 +414,39 @@
       "allOf": [
         {
           "if": {
-            "required": [
-              "purpose"
-            ],
             "properties": {
               "purpose": {
-                "const": "install_applet"
+                "const": "provision_bot"
               }
-            }
+            },
+            "required": [
+              "purpose"
+            ]
           },
           "then": {
-            "required": [
-              "plan_digest"
-            ],
             "properties": {
               "basis": {
-                "$ref": "#/$defs/install_authoring_request_basis"
+                "$ref": "#/$defs/bot_authoring_request_basis"
               }
             }
           }
         },
         {
           "if": {
-            "required": [
-              "purpose"
-            ],
             "properties": {
               "purpose": {
                 "const": "provision_ghost"
               }
-            }
+            },
+            "required": [
+              "purpose"
+            ]
           },
           "then": {
             "properties": {
               "basis": {
                 "$ref": "#/$defs/ghost_authoring_request_basis"
               }
-            },
-            "not": {
-              "required": [
-                "plan_digest"
-              ]
             }
           }
         }
@@ -463,18 +456,11 @@
     "install_preview_outcome": {
       "type": "object",
       "required": [
-        "plan",
-        "authoring_request"
+        "plan"
       ],
       "properties": {
         "plan": {
           "$ref": "./applet-install-plan.schema.json"
-        },
-        "authoring_request": {
-          "$ref": "#/$defs/authoring_request"
-        },
-        "managed_actor_bundle": {
-          "$ref": "./applet-install-authoring.schema.json#/$defs/managed_actor_bundle"
         }
       },
       "additionalProperties": false
@@ -482,18 +468,18 @@
     "ghost_preview_request_body": {
       "type": "object",
       "required": [
-        "realm_id",
-        "external_ref"
+        "external_ref",
+        "effective_scope"
       ],
       "properties": {
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
         "external_ref": {
           "$ref": "#/$defs/ghost_external_tuple"
         },
         "display_name": {
           "$ref": "./string-profiles.schema.json#/$defs/display_text_256"
+        },
+        "effective_scope": {
+          "$ref": "./applet-install-plan.schema.json#/$defs/effective_scope"
         }
       },
       "additionalProperties": false
@@ -506,6 +492,9 @@
       "properties": {
         "authoring_request": {
           "$ref": "#/$defs/authoring_request"
+        },
+        "existing_managed_actor": {
+          "$ref": "./applet-ghost-operations.schema.json#/$defs/existing_managed_actor"
         }
       },
       "additionalProperties": false
@@ -627,6 +616,85 @@
       "properties": {
         "managed_actor_bundle": {
           "$ref": "#/$defs/managed_actor_bundle"
+        }
+      },
+      "additionalProperties": false
+    },
+    "bot_authoring_request_basis": {
+      "type": "object",
+      "required": [
+        "schema",
+        "purpose",
+        "target_station_id",
+        "applet_id",
+        "service_id",
+        "registration_event_ref",
+        "authorization_ref",
+        "registration_epoch_evidence",
+        "package_digest",
+        "effective_scope",
+        "request_id"
+      ],
+      "properties": {
+        "schema": {
+          "const": "ak.schema.applet_bot_authoring_request_basis.v1"
+        },
+        "purpose": {
+          "const": "provision_bot"
+        },
+        "target_station_id": {
+          "$ref": "#/$defs/did_core_id"
+        },
+        "applet_id": {
+          "$ref": "./common-ids.schema.json#/$defs/applet_id"
+        },
+        "service_id": {
+          "$ref": "#/$defs/did_core_id"
+        },
+        "display_name": {
+          "$ref": "./string-profiles.schema.json#/$defs/display_text_256"
+        },
+        "registration_event_ref": {
+          "$ref": "./account-operations.schema.json#/$defs/event_id"
+        },
+        "authorization_ref": {
+          "$ref": "./agent-operations.schema.json#/$defs/grant_id"
+        },
+        "registration_epoch_evidence": {
+          "$ref": "#/$defs/registration_epoch_evidence"
+        },
+        "package_digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "effective_scope": {
+          "$ref": "./applet-install-plan.schema.json#/$defs/effective_scope"
+        },
+        "request_id": {
+          "$ref": "./realm-join-intake.schema.json#/$defs/request_id"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Exact installed Service Bot creation intent. request_id is the durable subject key for exact retries; the returned bundle freezes the complete candidate Account and keys."
+    },
+    "managed_actor_provision_request_body": {
+      "type": "object",
+      "required": [
+        "authoring_request",
+        "managed_actor_bundle"
+      ],
+      "properties": {
+        "authoring_request": {
+          "$ref": "./applet-install-authoring.schema.json#/$defs/authoring_request"
+        },
+        "managed_actor_bundle": {
+          "$ref": "./applet-install-authoring.schema.json#/$defs/managed_actor_bundle"
+        },
+        "approval_signatures": {
+          "type": "array",
+          "items": {
+            "$ref": "./approval-signature.schema.json"
+          },
+          "minItems": 1
         }
       },
       "additionalProperties": false

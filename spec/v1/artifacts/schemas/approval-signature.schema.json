@@ -4,7 +4,9 @@
   "title": "Arkret Approval Signature",
   "description": "The single approval evidence type of v1 (zh/authz/constraint-schema.md section 9.2). One approver signs one exact target: either a fully authored Event that has not been submitted yet, or the original typed RequestBody of one operation whose evidence carrier is registered in capability-action-registry.json. The object is not an Event, never enters Realm history, and MUST NOT be written into an EventEnvelope, a signed payload or an Event semantic_refs[] entry. It travels in the carrier registered for the approved action. It proves that an approver approved that target; it proves nothing about the initiator's own authority.",
   "x-arkret-operation-target-carrier-operations": [
-    "ak.self.events.command.submit.v1"
+    "ak.self.events.command.submit.v1",
+    "ak.self.applet.bot.command.provision.v1",
+    "ak.self.applet.ghost.command.provision.v1"
   ],
   "type": "object",
   "required": [
@@ -103,7 +105,9 @@
             "properties": {
               "operation": {
                 "enum": [
-                  "ak.self.events.command.submit.v1"
+                  "ak.self.events.command.submit.v1",
+                  "ak.self.applet.bot.command.provision.v1",
+                  "ak.self.applet.ghost.command.provision.v1"
                 ]
               }
             }
@@ -190,6 +194,35 @@
           },
           "additionalProperties": false,
           "$comment": "An independent one-vote requirement of the exact target List's wip_limit_enforcement=require_review. The revision is that List's metadata current revision at the authority cut, not a client CAS operand or a new Event payload field."
+        },
+        {
+          "type": "object",
+          "required": [
+            "context_kind",
+            "management_operation",
+            "effective_scope",
+            "request_id"
+          ],
+          "properties": {
+            "context_kind": {
+              "const": "management"
+            },
+            "management_operation": {
+              "enum": [
+                "join",
+                "publish",
+                "create_bot",
+                "map_ghost"
+              ]
+            },
+            "effective_scope": {
+              "$ref": "./applet-install-plan.schema.json#/$defs/effective_scope"
+            },
+            "request_id": {
+              "$ref": "./realm-join-intake.schema.json#/$defs/request_id"
+            }
+          },
+          "additionalProperties": false
         }
       ]
     },

@@ -2,7 +2,8 @@ import json
 import unittest
 from pathlib import Path
 
-from jsonschema import Draft202012Validator, RefResolver
+from jsonschema import Draft202012Validator
+from referencing import Registry, Resource
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -24,16 +25,17 @@ class ExactCurrentResultsReadTest(unittest.TestCase):
             cls.schema_store[path.as_uri()] = schema
             if "$id" in schema:
                 cls.schema_store[schema["$id"]] = schema
+        cls.resource_registry = Registry().with_resources((key, Resource.from_contents(value)) for key, value in cls.schema_store.items())
         cls.validator = Draft202012Validator(
             cls.schema,
-            resolver=RefResolver(base_uri=SCHEMA.as_uri(), referrer=cls.schema, store=cls.schema_store),
+            registry=cls.resource_registry,
         )
 
     def validate_fragment(self, fragment, value):
-        definition = self.schema["$defs"][fragment]
+        definition = {"$ref": self.schema["$id"] + "#/$defs/" + fragment}
         validator = Draft202012Validator(
             definition,
-            resolver=RefResolver(base_uri=SCHEMA.as_uri(), referrer=self.schema, store=self.schema_store),
+            registry=self.resource_registry,
         )
         self.assertEqual([], list(validator.iter_errors(value)))
 
@@ -45,10 +47,10 @@ class ExactCurrentResultsReadTest(unittest.TestCase):
     def test_selector_union_rejects_unknown_kind_and_extra_fields(self):
         request = json.loads(json.dumps(self.fixture["request"]))
         request["selector"]["kind"] = "strand"
-        definition = self.schema["$defs"]["exact_current_results_read_request"]
+        definition = {"$ref": self.schema["$id"] + "#/$defs/exact_current_results_read_request"}
         validator = Draft202012Validator(
             definition,
-            resolver=RefResolver(base_uri=SCHEMA.as_uri(), referrer=self.schema, store=self.schema_store),
+            registry=self.resource_registry,
         )
         self.assertTrue(list(validator.iter_errors(request)))
 
@@ -57,10 +59,10 @@ class ExactCurrentResultsReadTest(unittest.TestCase):
         self.assertTrue(list(validator.iter_errors(request)))
 
     def test_moderation_never_written_is_not_a_schema_outcome(self):
-        definition = self.schema["$defs"]["exact_current_results_read_outcome"]
+        definition = {"$ref": self.schema["$id"] + "#/$defs/exact_current_results_read_outcome"}
         validator = Draft202012Validator(
             definition,
-            resolver=RefResolver(base_uri=SCHEMA.as_uri(), referrer=self.schema, store=self.schema_store),
+            registry=self.resource_registry,
         )
         negative = next(case for case in self.fixture["schema_validation_cases"] if case["name"] == "moderation_never_written_is_not_a_schema_outcome")
         self.assertTrue(list(validator.iter_errors(negative["instance"])))
@@ -68,7 +70,7 @@ class ExactCurrentResultsReadTest(unittest.TestCase):
     def test_all_schema_vectors_respect_their_declared_fragment(self):
         for case in self.fixture["schema_validation_cases"]:
             fragment = case["schema_ref"].split("#/$defs/")[1]
-            validator = Draft202012Validator(self.schema["$defs"][fragment], resolver=RefResolver(base_uri=SCHEMA.as_uri(), referrer=self.schema, store=self.schema_store))
+            validator = Draft202012Validator({"$ref": self.schema["$id"] + "#/$defs/" + fragment}, registry=self.resource_registry)
             self.assertEqual(case["expect_valid"], not list(validator.iter_errors(case["instance"])), case["name"])
 
     def test_operation_is_closed_and_read_only(self):
@@ -91,8 +93,8 @@ class ExactCurrentResultsReadTest(unittest.TestCase):
         path = ARTIFACTS / "schemas" / "realm-state-snapshot.schema.json"
         snapshot = json.loads(path.read_text(encoding="utf-8"))
         validator = Draft202012Validator(
-            snapshot["properties"]["current_state_entries"],
-            resolver=RefResolver(base_uri=path.as_uri(), referrer=snapshot, store=self.schema_store),
+            {"$ref": snapshot["$id"] + "#/properties/current_state_entries"},
+            registry=self.resource_registry,
         )
         entry = next(
             case["value"]["entry"] for case in self.fixture["valid_outcomes"]

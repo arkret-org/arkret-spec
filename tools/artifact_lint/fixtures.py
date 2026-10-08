@@ -2525,7 +2525,7 @@ def check_normative_clause_registry(lint: Lint) -> None:
         return
 
     clause_id_re = re.compile(r"^AK-NC-\d{3}$")
-    allowed_status = {"active", "deprecated"}
+    allowed_status = {"active", "inactive"}
     allowed_grades = {"vector", "api_shape", "audit"}
     seen: set[str] = set()
     covered_categories: set[str] = set()

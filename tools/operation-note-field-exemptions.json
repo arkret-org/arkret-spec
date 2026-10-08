@@ -1,51 +1,160 @@
 {
-  "version": 2,
+  "version": 3,
   "source_of_truth": false,
-  "generated_at": "2026-09-28T09:48:03+08:00",
+  "generated_at": "2026-10-09T07:32:56+08:00",
   "description": "Closed inventory of schema field names intentionally mentioned by operation notes although they are not members of that operation's request or response schema closure. The lint requires every entry to remain exercised and rejects every unregistered cross-object mention.",
   "operations": {
-    "ak.gate.account.command.finalize_device_pairing.v1": ["account_handoff_grant", "new_device_pubkey"],
-    "ak.gate.account.command.issue_did_binding_challenge.v1": ["account_handoff_grant", "log_head_digest"],
-    "ak.gate.account.command.issue_identity_binding_challenge.v1": ["account_handoff_grant", "account_subject", "control_key_digest", "did_version_id", "log_head_digest", "principal_id"],
-    "ak.gate.account.command.issue_session_grant.v1": ["account_handoff_grant", "device_binding"],
-    "ak.gate.account.command.pair_agent_key.v1": ["public_key"],
-    "ak.gate.account.command.refresh_session_grant.v1": ["device_binding", "proof_kind", "session_id"],
-    "ak.gate.account.command.register.v1": ["account_handoff_grant", "event_id", "initial_resolution"],
-    "ak.gate.account.command.request_erasure.v1": ["reason_code"],
-    "ak.gate.account.read.claim_device_pairing_code.v1": ["device_binding"],
-    "ak.open.device_pairing.command.stage.v1": ["hpke_key"],
-    "ak.open.device_pairing.read.resolve.v1": ["hpke_key"],
-    "ak.open.device_pairing.read.status.v1": ["device_public_key_did", "device_signature", "hpke_key", "principal_id"],
-    "ak.open.identity.read.resolution.v1": ["principal_control_realm_id"],
-    "ak.open.invite_locator.read.resolve.v1": ["principal_locator"],
-    "ak.open.third_party_invite.command.present_token.v1": ["verification_public_key"],
-    "ak.open.third_party_invite.command.provision.v1": ["invite_id"],
-    "ak.peer.mls.read.group_state_material.v1": ["leaf_index"],
-    "ak.peer.invites.command.submit.v1": ["invitee_account_id"],
-    "ak.root.identity.recovery_session.command.submit_proof.v1": ["request_id"],
-    "ak.self.account.command.update_profile.v1": ["actor_profile"],
-    "ak.self.account_data.read.list.v1": ["account_data"],
-    "ak.self.account_data.resource.delete.v1": ["expected_revision", "expected_server_revision"],
-    "ak.self.account_data.resource.get.v1": ["account_data", "current_revision"],
-    "ak.self.account_data.resource.replace.v1": ["expected_revision", "expected_server_revision"],
-    "ak.self.actor_private_events.command.submit.v1": ["push_route"],
-    "ak.self.applet.command.revoke.v1": ["expected_revision", "registration_epoch"],
-    "ak.self.applet.command.install.v1": ["authoring_context"],
-    "ak.self.applet.ghost.command.provision.v1": ["authoring_context"],
-    "ak.self.applet.revoke.command.preview.v1": ["revoke_plan_digest"],
-    "ak.self.authz.grants.read.effective.v1": ["subject_account_id", "subject_actor_id"],
-    "ak.self.circle.member.command.add.v1": ["join_rule"],
-    "ak.self.circle.member.resource.delete.v1": ["expected_revision"],
-    "ak.self.committed_event.stream.subscribe.v1": ["rate_limited"],
-    "ak.self.consent.command.request.v1": ["account_id", "peer_principal_id", "source_peer_principal_id", "surface_kind"],
-    "ak.self.consent.command.revoke.v1": ["expected_revision"],
-    "ak.self.current_results.read.exact.v1": ["expected_revision"],
-    "ak.self.device_messages.command.send.v1": ["device_message_id", "sender_account_id", "sender_device_id"],
-    "ak.self.invite_locator.command.issue.v1": ["account_id"],
-    "ak.self.invite_receive_policy.resource.replace.v1": ["block_peer", "subject_id"],
-    "ak.self.keys.keypackages.read.claim.v1": ["keypackage_claim_ref"],
-    "ak.self.realm_organization.read.list.v1": ["owning_organization_ids"],
-    "ak.self.realm_state_snapshot.read.by_ref.v1": ["preview_only"],
-    "ak.self.third_party_invite.read.acceptance_attestation.v1": ["accepted_commit_id"]
+    "ak.gate.account.command.finalize_device_pairing.v1": [
+      "account_handoff_grant",
+      "new_device_pubkey"
+    ],
+    "ak.gate.account.command.issue_did_binding_challenge.v1": [
+      "account_handoff_grant",
+      "log_head_digest"
+    ],
+    "ak.gate.account.command.issue_identity_binding_challenge.v1": [
+      "account_handoff_grant",
+      "account_subject",
+      "control_key_digest",
+      "did_version_id",
+      "log_head_digest",
+      "principal_id"
+    ],
+    "ak.gate.account.command.issue_session_grant.v1": [
+      "account_handoff_grant",
+      "device_binding"
+    ],
+    "ak.gate.account.command.pair_agent_key.v1": [
+      "public_key"
+    ],
+    "ak.gate.account.command.refresh_session_grant.v1": [
+      "device_binding",
+      "proof_kind",
+      "session_id"
+    ],
+    "ak.gate.account.command.register.v1": [
+      "account_handoff_grant",
+      "event_id",
+      "initial_resolution"
+    ],
+    "ak.gate.account.command.request_erasure.v1": [
+      "reason_code"
+    ],
+    "ak.gate.account.read.claim_device_pairing_code.v1": [
+      "device_binding"
+    ],
+    "ak.open.device_pairing.command.stage.v1": [
+      "hpke_key"
+    ],
+    "ak.open.device_pairing.read.resolve.v1": [
+      "hpke_key"
+    ],
+    "ak.open.device_pairing.read.status.v1": [
+      "device_public_key_did",
+      "device_signature",
+      "hpke_key",
+      "principal_id"
+    ],
+    "ak.open.identity.read.resolution.v1": [
+      "principal_control_realm_id"
+    ],
+    "ak.open.invite_locator.read.resolve.v1": [
+      "principal_locator"
+    ],
+    "ak.open.third_party_invite.command.present_token.v1": [
+      "verification_public_key"
+    ],
+    "ak.open.third_party_invite.command.provision.v1": [
+      "invite_id"
+    ],
+    "ak.peer.mls.read.group_state_material.v1": [
+      "leaf_index"
+    ],
+    "ak.peer.invites.command.submit.v1": [
+      "invitee_account_id"
+    ],
+    "ak.root.identity.recovery_session.command.submit_proof.v1": [
+      "request_id"
+    ],
+    "ak.self.account.command.update_profile.v1": [
+      "actor_profile"
+    ],
+    "ak.self.account_data.read.list.v1": [
+      "account_data"
+    ],
+    "ak.self.account_data.resource.delete.v1": [
+      "expected_revision",
+      "expected_server_revision"
+    ],
+    "ak.self.account_data.resource.get.v1": [
+      "account_data",
+      "current_revision"
+    ],
+    "ak.self.account_data.resource.replace.v1": [
+      "expected_revision",
+      "expected_server_revision"
+    ],
+    "ak.self.actor_private_events.command.submit.v1": [
+      "push_route"
+    ],
+    "ak.self.applet.command.revoke.v1": [
+      "expected_revision",
+      "registration_epoch"
+    ],
+    "ak.self.applet.ghost.command.provision.v1": [
+      "authoring_context"
+    ],
+    "ak.self.applet.revoke.command.preview.v1": [
+      "revoke_plan_digest"
+    ],
+    "ak.self.authz.grants.read.effective.v1": [
+      "subject_account_id",
+      "subject_actor_id"
+    ],
+    "ak.self.circle.member.command.add.v1": [
+      "join_rule"
+    ],
+    "ak.self.circle.member.resource.delete.v1": [
+      "expected_revision"
+    ],
+    "ak.self.committed_event.stream.subscribe.v1": [
+      "rate_limited"
+    ],
+    "ak.self.consent.command.request.v1": [
+      "account_id",
+      "peer_principal_id",
+      "source_peer_principal_id",
+      "surface_kind"
+    ],
+    "ak.self.consent.command.revoke.v1": [
+      "expected_revision"
+    ],
+    "ak.self.current_results.read.exact.v1": [
+      "expected_revision"
+    ],
+    "ak.self.device_messages.command.send.v1": [
+      "device_message_id",
+      "sender_account_id",
+      "sender_device_id"
+    ],
+    "ak.self.invite_locator.command.issue.v1": [
+      "account_id"
+    ],
+    "ak.self.invite_receive_policy.resource.replace.v1": [
+      "block_peer",
+      "subject_id"
+    ],
+    "ak.self.keys.keypackages.read.claim.v1": [
+      "keypackage_claim_ref"
+    ],
+    "ak.self.realm_organization.read.list.v1": [
+      "owning_organization_ids"
+    ],
+    "ak.self.realm_state_snapshot.read.by_ref.v1": [
+      "preview_only"
+    ],
+    "ak.self.third_party_invite.read.acceptance_attestation.v1": [
+      "accepted_commit_id"
+    ]
   }
 }
