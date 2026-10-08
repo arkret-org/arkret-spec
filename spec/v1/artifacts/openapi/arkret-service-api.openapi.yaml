@@ -4087,15 +4087,13 @@ paths:
         sourceServiceId: []
         destinationServiceId: []
       summary: List Space lifecycle projection rows for a Realm.
-      description: 'Extension read surface over reducer-maintained Space lifecycle
-
-        projection state. It is a derived read model for UI and sync repair,
-
-        not a canonical truth source; canonical truth remains the accepted
-
-        Event history and reducer state.
-
-        '
+      description: >-
+        Paginated caller-visible Space lifecycle projection rows for client navigation
+        and sync repair. This is a derived read model, not a canonical truth source
+        or a tree query. Missing parents do not prove roots or inaccessible ancestors;
+        pages do not promise one authority cut. No hidden-ancestor chain, accessible
+        flag, nested children, or Realm summary is returned. See
+        zh/models/space-hierarchy.md section 7.
       parameters:
       - name: Arkret-Operation
         in: header
