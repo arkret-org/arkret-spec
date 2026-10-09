@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-09.1",
-  "generated_at": "2026-10-09T07:34:36+08:00",
+  "version": "2026-10-09.2",
+  "generated_at": "2026-10-09T00:14:22+00:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -3015,7 +3015,7 @@
         "event_envelope",
         "auth_decision"
       ],
-      "description": "An ak.applet.managed_actor.provision Event in the closed Applet managed-actor creation aggregate does not satisfy its binding rules: actor_id.account_id.station_id is not the receiving Station, the actor collides with the service or controller principal, or the provisioned actor is not the registration's declared bot_actor_id. See zh/extensions/applet-integration.md.",
+      "description": "An ak.applet.managed_actor.provision Event in the closed Applet managed-actor creation aggregate does not satisfy its binding rules: actor_id.account_id.station_id is not the receiving Station, the actor collides with the service or controller principal, or the provisioned independent Bot/Ghost does not match the signed authoring request, accepted Applet registration, role and effective scope. See zh/extensions/applet-integration.md.",
       "status": "active"
     },
     {
