@@ -22,6 +22,8 @@ class SpaceAuthorizationBoundaryTests(unittest.TestCase):
         cls.grant_resources = Draft202012Validator(
             {"$ref": BASE + "capability-grant.schema.json#/properties/resources"},
             registry=cls.registry)
+        cls.current = Draft202012Validator(
+            {"$ref": BASE + "typed-current-result.schema.json"}, registry=cls.registry)
 
     def target(self):
         return {"kind": "space", "realm_id": "ak:realm:" + "A" * 44,
@@ -47,6 +49,35 @@ class SpaceAuthorizationBoundaryTests(unittest.TestCase):
             with self.subTest(field=field):
                 invalid = {**self.target(), field: self.target()["space_id"]}
                 self.assertFalse(self.selector.is_valid(invalid))
+
+    def current_space(self):
+        realm = self.target()["realm_id"]
+        space = self.target()["space_id"]
+        return {
+            "selector": {"kind": "space", "space_id": space},
+            "source_stream_ref": {"kind": "realm", "realm_id": realm},
+            "revision": {"commit_id": "ak:realm_commit:" + "A" * 44,
+                         "stream_position": 7},
+            "value": {
+                "schema": "ak.schema.space.v1", "id": space,
+                "realm_id": realm, "kind": "board", "title": "Planning",
+                "created_at": "2026-09-19T00:00:00.017Z",
+                "created_by": {"kind": "account", "account_id": {
+                    "principal_id": "ak:did_core:webvh:QmYXuueXFw66Cdv8dXuJpvwRr1yEbA91JS3JuoirU39cRR",
+                    "station_id": "ak:did_core:webvh:QmbxBB6f9ppAjv31potzXarSGiCrahRKXPgX3qX5TVco2y",
+                }},
+            },
+        }
+
+    def test_materialized_space_is_readable_through_the_current_result_root(self):
+        self.current.validate(self.current_space())
+
+    def test_space_current_read_keeps_selector_and_value_closed(self):
+        row = self.current_space()
+        self.assertFalse(self.current.is_valid({**row, "selector": {
+            **row["selector"], "kind": "unknown_space_family"}}))
+        self.assertFalse(self.current.is_valid({**row, "value": {
+            **row["value"], "undeclared_authority": "parent"}}))
 
 
 if __name__ == "__main__":

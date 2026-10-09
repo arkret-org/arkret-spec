@@ -20,6 +20,9 @@
       "$ref": "#/$defs/strand_result"
     },
     {
+      "$ref": "#/$defs/space_result"
+    },
+    {
       "$ref": "#/$defs/message_reactions_result"
     },
     {
