@@ -380,7 +380,7 @@ Controller account gate 的严格依据复用本节原签 issuer-ledger record�
 
 **时间合同（normative）**：`issued_at` 是 Account Authority 签发 record 的时间，同时是签名 key 历史窗口和 `proof.created_at` 的基准，不是预定生效时间。Account Authority 的状态在 §3.1 原子事务提交时生效；receiver 的本地 gate 在该 exact record 被单调 replica 原子接纳后使用它。`issued_at` 不必等于数据库 commit 或 receiver `accepted_at`，不得据其相对本地墙钟的早晚延迟、提前或撤销 current status；key 历史授权、proof 与既有 freshness 校验仍必须成立。需要产品调度时，先保存本地未签发 intent，到实际执行时走普通签发/CAS transaction，不预签未来 successor。
 
-`AccountStatusRecord` 的 closed wire core MUST NOT 携带 `effective_at`；旧字段无论等于、早于或晚于 `issued_at` 均须在 issuer/receiver 形状校验阶段拒绝且零写入，不得删除未知字段后接纳或重建原签材料。本裁决正式收敛此前允许两个独立 timestamp 的合法域，不声称旧 schema 已约束相等或本次删除是旧域上的无损变换。删除改变 unsigned core 的 JCS、record id、proof payload digest 与 JWS binding bytes；fixture、predecessor 链和引用完整 signed record 的摘要必须同批重算。当前未发布 v1 不保留旧字段兼容分支。
+`AccountStatusRecord` 的 closed wire core MUST NOT 携带 `effective_at`；该字段无论等于、早于或晚于 `issued_at` 均须在 issuer/receiver 形状校验阶段拒绝且零写入，不得删除未知字段后接纳或重建原签材料。unsigned core 的 JCS、record id、proof payload digest 与 JWS binding bytes 必须按本节的 closed core 派生；fixture、predecessor 链和引用完整 signed record 的摘要必须与该 canonical signed record 一致。
 
 Current account status 是 ledger current head 的 `status`。该 ledger 是 Account Authority 单写者的 strict hash chain，不存在并发 Event head、severity winner 或 PCR reducer。`account_id` 是 lifecycle key；同一 principal 绑定的其它 `account_id` 独立求值。
 

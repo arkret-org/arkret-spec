@@ -1128,7 +1128,7 @@ fail closed。
 不受 series_id/backup_kind 过滤、当前页有无 envelope 或 envelope 的过期/删除影响。
 `backups[]` 的 metadata 仅用于不下载 ciphertext 时分类；它不携带 `source_commit_ref` 或 `recovery_policy_ref`。
 需要这些引用的消费者 MUST 读取完整签名 KeyBackup envelope，并按其闭合 schema 验证；不得从列表副本推断
-active series 或接受旧 ref 形状。
+active series 或接受未登记的 ref 形状。
 
 这里 response DTO 的 `authority_commit_id` 是 Station 对本次 current projection 给出的 confirmed-basis
 provenance；它不是 signed active-series payload 内的 `source_commit_ref`，也不得改名为后者或承载完整
