@@ -1008,8 +1008,10 @@ producer（有 `executed_by` 时取它，否则取 `actor_id`）为 Account 且�
 `device_projection_attestation` 与完整 `service_resolution`，不携原生 PCR log 或私有解密材料。
 缺失、多余、裁剪或错绑定均 `schema_violation`，原 Event／Commit bytes 与 ID 不改。
 
-receiver MUST 按原 covering `commit.committed_at` 验完整 Service native history 的 exact历史
-assertionMethod、origin Station 与 attestation 原签名，核对完整 AccountId／DeviceId、原授权
+receiver MUST 以原 covering `commit.committed_at` 作为接受 cut；完整 Service native history 的
+exact历史 assertionMethod、origin Station 与 attestation 原签名 MUST 按原源签名
+`attested_at` 验证，遵循 [`device-lifecycle.md` §8.2](../crypto-media/device-lifecycle.md)，
+不得把接受 cut 或 receiver 当前时钟替换为源签名时刻。随后核对完整 AccountId／DeviceId、原授权
 Event／generation、device raw signing key及 authorization_window 对 Event created_at 与 committed_at
 的覆盖，再用该真实 key 验原 producer JWS与内容ID。设备 evidence 的 attested_at 必须不晚于原接受
 cut，其 proof window 在该 cut 有效；不能用 receiver current clock 或后来 current Device status
