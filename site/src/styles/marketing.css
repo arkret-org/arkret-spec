@@ -849,10 +849,6 @@ section.ak-section {
   background: var(--ak-accent-soft);
 }
 
-.ak-eco-status--planned {
-  color: var(--ak-fg-muted);
-}
-
 /* ---------- Footer ------------------------------------------------------ */
 
 .ak-foot {

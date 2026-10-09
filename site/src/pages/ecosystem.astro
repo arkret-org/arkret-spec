@@ -1,7 +1,7 @@
 ---
 import MarketingLayout from "~/layouts/MarketingLayout.astro";
 
-type Status = "candidate" | "wip" | "planned";
+type Status = "candidate" | "wip";
 
 interface Project {
   name: string;
@@ -21,7 +21,6 @@ interface Tier {
 const statusLabel: Record<Status, string> = {
   candidate: "候选规范",
   wip: "开发中",
-  planned: "规划中",
 };
 
 const tiers: Tier[] = [
@@ -117,21 +116,6 @@ const tiers: Tier[] = [
         status: "wip",
         body:
           "客户端推送与通知集成层。连接 floria 的订阅与平台通知能力，帮助 inkson 等客户端接收唤醒并调度本地通知。",
-      },
-    ],
-  },
-  {
-    id: "identity",
-    title: "可选身份基础设施",
-    blurb:
-      "v1 长期 principal 与默认 service DID 使用 did:webvh。自己的 Station 认证边界可承担 DID 历史托管；公共托管、独立 witness 与 mirror 属于可选基础设施，不替代 Realm 治理权威，也不让绑定某 Station 的账号自动跨站延续。",
-    projects: [
-      {
-        name: "starid",
-        tag: "identity · did:webvh",
-        status: "planned",
-        body:
-          "规划中的公共 did:webvh 托管与身份辅助服务，面向 DID 历史托管、witness / mirror、handle 绑定与轮换审计。它不是 v1 最小 Station 部署的必需组件。",
       },
     ],
   },
