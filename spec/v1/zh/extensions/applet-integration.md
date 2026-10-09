@@ -603,8 +603,11 @@ transaction push 的逐次签名是传输层来源认证，**不替代** §8 每
 
 安装 Station MUST 在原 Bot／Ghost provision closed unit 实际 committed 且全部效果完成安装后，从同一 accepted
 resolution projection 物化 managed Actor `Principal` root，并冻结签署该实际 PCR RealmCommit 的 Station
-`Service` leaf。三个 leaf 的 `authority_commit_id` MUST 逐字等于本上下文 `realm_stream_head.commit_id`，
-`resolved_at` MUST 为该完成提交实际冻结的 accepted 时间，不得由 author 阶段猜测未来 Commit。
+`Service` leaf。Applet `Service` root 的 `authority_commit_id` MUST 逐字等于本上下文
+`realm_stream_head.commit_id`；managed Principal root 与 Station attester leaf 则 MUST 绑定下述
+`principal_control_commit.commit_id` / `committed_at`，不得把 portal head 用作 PCR authority。
+Applet `Service` root 的 `resolved_at` MUST 为该完成提交实际冻结的 accepted 时间，不得由 author
+阶段猜测未来 Commit。
 同一完成提交物化的 Applet `Service` root、Principal root、attester leaf、完整结果、原请求及 Applet
 交付 outbox 意图 MUST 属于同一可恢复的原子提交。任一 root/ref/closure 冲突使该完成提交整体回滚且不产生
 accepted authoring result。若协议实现将 RealmCommit 确认和派生效果安装分阶段，完成阶段也 MUST 先核确切已确认原
