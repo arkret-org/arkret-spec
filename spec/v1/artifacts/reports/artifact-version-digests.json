@@ -237,9 +237,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-10-09.7",
-      "generated_at": "2026-10-09T10:53:55+08:00",
-      "content_digest": "sha256:7dd1c08cc29de73038a425db3718b3b5f7fbb6dad04a25d4ce9f5f74c47c2b33"
+      "version": "2026-10-09.8",
+      "generated_at": "2026-10-09T10:53:56+08:00",
+      "content_digest": "sha256:40655fa7868b11047547c56f829315248b652002d96daf49b6d0ca8f0daca74c"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",

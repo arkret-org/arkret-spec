@@ -2507,6 +2507,25 @@ def check_typed_current_result_naming(lint: Lint) -> None:
             "register the kind or rename the type to a wrapper word R4 allows",
         )
 
+    # A registered envelope must also be reachable from the public root.
+    branches = schema.get("oneOf")
+    if not isinstance(branches, list):
+        lint.fail(schema_path, "typed current result root needs a oneOf array")
+    else:
+        root_refs = [branch.get("$ref") for branch in branches if isinstance(branch, dict)]
+        expected_refs = {f"#/$defs/{name}" for name in registered}
+        if len(root_refs) != len(branches) or any(not isinstance(ref, str) for ref in root_refs):
+            lint.fail(schema_path, "typed current result root branches need registered $refs")
+        else:
+            missing = sorted(expected_refs - set(root_refs))
+            unexpected = sorted(set(root_refs) - expected_refs)
+            if missing:
+                lint.fail(schema_path, f"registered current envelopes missing from root oneOf: {missing}")
+            if unexpected:
+                lint.fail(schema_path, f"unregistered current envelopes in root oneOf: {unexpected}")
+            if len(root_refs) != len(set(root_refs)):
+                lint.fail(schema_path, "typed current result root repeats an envelope")
+
     # The exemption is per-schema, so prove no other schema quietly reuses the tail.
     for other_path in sorted((ARTIFACTS / "schemas").glob("*.json")):
         if other_path.name == schema_name:

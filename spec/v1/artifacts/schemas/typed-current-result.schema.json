@@ -237,6 +237,27 @@
     },
     {
       "$ref": "#/$defs/calendar_schedule_source_result"
+    },
+    {
+      "$ref": "#/$defs/actor_profile_result"
+    },
+    {
+      "$ref": "#/$defs/direct_conversation_binding_result"
+    },
+    {
+      "$ref": "#/$defs/moderation_report_result"
+    },
+    {
+      "$ref": "#/$defs/morph_result"
+    },
+    {
+      "$ref": "#/$defs/policy_action_result"
+    },
+    {
+      "$ref": "#/$defs/realm_archive_result"
+    },
+    {
+      "$ref": "#/$defs/realm_freeze_result"
     }
   ],
   "$defs": {

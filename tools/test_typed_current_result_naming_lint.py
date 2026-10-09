@@ -86,6 +86,28 @@ class TypedCurrentResultNamingTest(unittest.TestCase):
         runner_source = (ROOT / "tools" / "artifact_lint" / "runner.py").read_text(encoding="utf-8")
         self.assertIn("check_typed_current_result_naming(lint)", runner_source)
 
+    def test_registered_envelope_missing_from_root_fails(self) -> None:
+        def mutate(schema):
+            schema["oneOf"] = [branch for branch in schema["oneOf"]
+                               if branch["$ref"] != "#/$defs/realm_archive_result"]
+
+        errors = self._run({SCHEMA: mutate})
+        self.assertTrue(any("missing from root oneOf" in error for error in errors), errors)
+
+    def test_unregistered_root_envelope_fails(self) -> None:
+        def mutate(schema):
+            schema["oneOf"].append({"$ref": "#/$defs/invented_result"})
+
+        errors = self._run({SCHEMA: mutate})
+        self.assertTrue(any("unregistered current envelopes in root" in error for error in errors), errors)
+
+    def test_duplicate_root_envelope_fails(self) -> None:
+        def mutate(schema):
+            schema["oneOf"].append(dict(schema["oneOf"][0]))
+
+        errors = self._run({SCHEMA: mutate})
+        self.assertTrue(any("repeats an envelope" in error for error in errors), errors)
+
 
 if __name__ == "__main__":
     unittest.main()
