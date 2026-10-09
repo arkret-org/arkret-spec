@@ -283,7 +283,7 @@ Namespace 用于决定：
 
 - 哪些未知 actor 可以向 Applet 查询
 - 哪些 Realm / portal alias 属于 Applet
-- 哪些事件应推送给 Applet
+- 哪些外部主体与位置可由 Applet 映射；namespace 不授权把群内容投递到 base_url
 - Applet 可以为哪些 Ghost Actor 申请或声明身份
 
 Namespace 不等于 capability。  
@@ -434,14 +434,14 @@ POST /_arkret/edge/applet/transactions
 Idempotency-Key: <opaque-string>
 ```
 
-Arkret Station 向 Applet 推送 Event/Signal 批次，或按 §7.3.2 交付已确认 managed Actor 的 authoring 初始化结果。
+Arkret Station 向 Applet 的 base_url 仅交付管理材料，包括按 §7.3.2 交付已确认 managed Actor 的 authoring 初始化结果；群组 Event／Signal 内容必须通过实际 Bot／Ghost Device 的原生接口接收，不得发送到 base_url。反向 Applet Service → Station 的 Event／Signal 批次沿既有独立 producer proof、authorization 与 scope 准入。
 
-请求示例（非完整 schema）：
+以下为反向 Applet → Station 入站 Event／Signal 批次示例（非完整 schema），不是 Station → Applet 的群内容投递。管理 authoring_context 的封闭形态见 §7.3.2。
 
 ```json fragment
 {
   "applet_id": "ak:applet:01904100-0000-7000-8000-aaaaaaaaaaaa",
-  "source_id": "ak:did_core:webvh:z7SrvceTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z",
+  "source_id": "ak:did_core:webvh:z6Mkw8qTnL4rP2vXkBqM9wTyHfJgRdN3sV6cKuYi5oXtAeB1Z",
   "events": [
     {
       "event_id": "ak:event:AQsHmGu_9sPOyJ4aG8VlWQBp8wGGhdC-BjfAaXqrIbk-",
