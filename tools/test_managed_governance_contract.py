@@ -43,9 +43,17 @@ def policy_gate(policies, controller, operation):
 def lineage_effective(state):
     return (state["parent_subject"] == state["child_issuer"] and state["child_issuer"]["kind"] == "service"
             and state["child_subject"]["kind"] == "account" and state["accepted_subject"]
-            and state["ordinary_authority_control"] and "bot" in state["parent_roles"]
+            and state["child_subject"] == state["accepted_subject_actor"]
+            and state["parent_subject"] == state["accepted_managing_service"]
+            and state["child_subject"]["account_id"]["station_id"] == state["hosting_station_id"]
+            and state["ordinary_authority_control"] and state["accepted_role"] in state["parent_roles"]
             and set(state["child_actions"]).issubset(state["parent_actions"])
-            and state["max_child_depth"] == 0 and state["parent_active"] and state["scope_active"])
+            and state["max_child_depth"] == 0 and state["parent_active"] and state["scope_active"]
+            and state["parent_binding_count"] == state["child_binding_count"] == 1
+            and state["parent_binding"]["executed_by"] == state["parent_subject"]
+            and state["child_binding"]["executed_by"] == state["child_subject"] == state["actual_producer"]
+            and all(state["parent_binding"][key] == state["child_binding"][key]
+                    for key in ["applet_id", "registration_epoch", "effect", "evaluation_class"]))
 
 
 class ReviewLedger:
@@ -134,6 +142,28 @@ class ManagedGovernanceTests(unittest.TestCase):
                 state = copy.deepcopy(original)
                 state[key] = value
                 self.assertFalse(lineage_effective(state))
+
+    def test_terminal_executor_transfer_preserves_source_and_rejects_service_borrowing(self):
+        original = self.fixture["lineage"]
+        self.validator("grant-constraint.schema.json").validate(original["parent_binding"])
+        self.validator("grant-constraint.schema.json").validate(original["child_binding"])
+        self.assertTrue(lineage_effective(original))
+        mutations = [
+            ("child_binding", "executed_by", original["parent_subject"]),
+            ("parent_binding", "executed_by", original["child_subject"]),
+            ("child_binding", "applet_id", "ak:applet:01904100-0000-7000-8000-000000000099"),
+            ("child_binding", "registration_epoch", "sha256:" + "b" * 64),
+        ]
+        for name, key, value in mutations:
+            state = copy.deepcopy(original)
+            state[name][key] = value
+            self.assertFalse(lineage_effective(state), (name, key))
+        for key, value in [("actual_producer", original["parent_subject"]),
+                           ("parent_binding_count", 0), ("child_binding_count", 2),
+                           ("hosting_station_id", "ak:did_core:webvh:otherstation")]:
+            state = copy.deepcopy(original)
+            state[key] = value
+            self.assertFalse(lineage_effective(state), key)
 
     def test_scope_revoke_does_not_revoke_other_scope(self):
         scopes = {"A": copy.deepcopy(self.fixture["lineage"]), "B": copy.deepcopy(self.fixture["lineage"])}

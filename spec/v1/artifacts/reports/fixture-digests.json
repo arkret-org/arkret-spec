@@ -367,8 +367,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/managed-governance-fixture.json",
-      "sha256": "448aff142dc124862b98f107e86f54f1c919cb17127906d78e6c63f67cee1f7f",
-      "version": "v1"
+      "sha256": "4870e29330d9a6d039d5fe830a4979c551dfd9f468346fd0e227638544b09cf2",
+      "version": "2026-10-09"
     },
     {
       "path": "spec/v1/artifacts/fixtures/media-binding-fixture.json",

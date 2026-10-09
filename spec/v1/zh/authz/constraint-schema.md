@@ -398,6 +398,8 @@ Applet install 签发的每个 `ak.capability.grant` MUST 携带以下规范约�
 
 该约束只表达 grant-local 绑定，所以 canonical `evaluation_class=grant_local`。授权 verifier 仍 MUST 解析 `applet_id` 指向的 accepted registration，展开 `registration_epoch` evidence，并验证 grant resource selector、Event `scope_ref`、Event `executed_by` 与 registration 的当前有效 key/material 一致；这一步不得因 grant-local 分类而跳过或缓存为永远有效。未登记的 `constraint_kind` MUST fail closed。
 
+Service parent 下放到其 accepted Bot／Ghost terminal child 时，唯一允许的 executor 重绑定按 [managed-governance §4](./managed-governance.md) 执行：parent 绑定 Service，child 绑定自己的完整 Account subject，Applet／epoch 保持相同，逐条证明管理归属／role／hosting Station／scope。不能复制 Service executor 给 Account child，也不能把两条 binding 叠加当作继承；除此特定转换，所有约束继续普通收窄。业务授权引用的 grant subject 与 binding executor **MUST** 都等于实际 producer（有 `Event.executed_by` 时取它，否则取 `Event.actor_id`）。
+
 ### 7.4 再授权控制字段的 reducer 求值规则（normative）
 
 §7.1 / §7.2 的再授权控制字段不只是枚举声明；reducer 在 accept 以 `kind="grant"` 的

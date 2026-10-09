@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.applet_service.v1",
-  "version": "v1",
+  "version": "2026-10-09",
   "suite": "ak.suite.managed_governance.v1",
   "runner": {
     "kind": "named_suite",
@@ -166,7 +166,56 @@
     "max_child_depth": 0,
     "parent_active": true,
     "scope_active": true,
-    "accepted_subject": true
+    "accepted_subject": true,
+    "parent_binding": {
+      "constraint_kind": "authority_control",
+      "constraint_subkind": "applet_authority",
+      "effect": "allow",
+      "evaluation_class": "grant_local",
+      "applet_id": "ak:applet:01904100-0000-7000-8000-000000000011",
+      "executed_by": {
+        "kind": "service",
+        "service_id": "ak:did_core:webvh:z6mkfixtureapplet"
+      },
+      "registration_epoch": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "child_binding": {
+      "constraint_kind": "authority_control",
+      "constraint_subkind": "applet_authority",
+      "effect": "allow",
+      "evaluation_class": "grant_local",
+      "applet_id": "ak:applet:01904100-0000-7000-8000-000000000011",
+      "executed_by": {
+        "kind": "account",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkfixturebot",
+          "station_id": "ak:did_core:webvh:z6mkfixturestation"
+        }
+      },
+      "registration_epoch": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "parent_binding_count": 1,
+    "child_binding_count": 1,
+    "actual_producer": {
+      "kind": "account",
+      "account_id": {
+        "principal_id": "ak:did_core:webvh:z6mkfixturebot",
+        "station_id": "ak:did_core:webvh:z6mkfixturestation"
+      }
+    },
+    "accepted_subject_actor": {
+      "kind": "account",
+      "account_id": {
+        "principal_id": "ak:did_core:webvh:z6mkfixturebot",
+        "station_id": "ak:did_core:webvh:z6mkfixturestation"
+      }
+    },
+    "accepted_managing_service": {
+      "kind": "service",
+      "service_id": "ak:did_core:webvh:z6mkfixtureapplet"
+    },
+    "accepted_role": "bot",
+    "hosting_station_id": "ak:did_core:webvh:z6mkfixturestation"
   },
   "acceptance_cases": [
     "service_only_install_no_bot",

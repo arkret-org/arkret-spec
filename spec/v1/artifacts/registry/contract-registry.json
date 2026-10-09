@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-09.3",
+  "version": "2026-10-09.4",
   "source_of_truth": true,
-  "generated_at": "2026-10-09T07:53:16+08:00",
+  "generated_at": "2026-10-09T10:53:55+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -2091,7 +2091,7 @@
         },
         "admission": "capability_or_owned_agent",
         "admission_checks": [
-          "Applet Service-authored terminal child: exact active installation, accepted managed Account subject/role, real business parent with ordinary authority_control and allowed_managed_actor_roles; parent.subject equals issuer ActorId.service, full narrowing and historical Service signer evidence. No creation-only parent or arbitrary recipient. See authz/managed-governance.md section 4."
+          "Applet Service-authored terminal child: exact active installation, accepted managed Account subject/role, real business parent with ordinary authority_control and allowed_managed_actor_roles; parent.subject equals issuer ActorId.service, full narrowing and historical Service signer evidence. No creation-only parent or arbitrary recipient. See authz/managed-governance.md section 4. Parent and child each have exactly one allow/grant_local applet_authority: parent executor is its Service subject, child executor is its full managed Account subject; same Applet and registration epoch. Only this accepted managed terminal relationship permits executor rebinding; every other constraint and current ancestor ceiling remains mandatory. A Service cannot consume the Account child."
         ]
       },
       {
@@ -8905,8 +8905,8 @@
         }
       }
     },
-    "version": "2026-10-09.2",
-    "generated_at": "2026-10-09T07:42:46+08:00",
+    "version": "2026-10-09.3",
+    "generated_at": "2026-10-09T10:53:55+08:00",
     "bootstrap_event_kinds": [
       "ak.device.authorize",
       "ak.device.reanchor",

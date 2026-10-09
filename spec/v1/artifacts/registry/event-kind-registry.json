@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-09.2",
+  "version": "2026-10-09.3",
   "source_of_truth": false,
-  "generated_at": "2026-10-09T07:42:46+08:00",
+  "generated_at": "2026-10-09T10:53:55+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -1638,7 +1638,7 @@
       },
       "admission": "capability_or_owned_agent",
       "admission_checks": [
-        "Applet Service-authored terminal child: exact active installation, accepted managed Account subject/role, real business parent with ordinary authority_control and allowed_managed_actor_roles; parent.subject equals issuer ActorId.service, full narrowing and historical Service signer evidence. No creation-only parent or arbitrary recipient. See authz/managed-governance.md section 4."
+        "Applet Service-authored terminal child: exact active installation, accepted managed Account subject/role, real business parent with ordinary authority_control and allowed_managed_actor_roles; parent.subject equals issuer ActorId.service, full narrowing and historical Service signer evidence. No creation-only parent or arbitrary recipient. See authz/managed-governance.md section 4. Parent and child each have exactly one allow/grant_local applet_authority: parent executor is its Service subject, child executor is its full managed Account subject; same Applet and registration epoch. Only this accepted managed terminal relationship permits executor rebinding; every other constraint and current ancestor ceiling remains mandatory. A Service cannot consume the Account child."
       ]
     },
     {

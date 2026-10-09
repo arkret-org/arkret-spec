@@ -718,6 +718,8 @@ wire 上不存在"这是不是一次转授"的语义位——ref 的类型就是
 
 违反窗口项 reducer MUST 返回 `failed_precondition` reason=`authority_expiry_widening`；违反 actions / resources / constraints 越界返回 `schema_violation`。
 
+受管 Service parent→本 Applet 已批准具体 Bot／Ghost terminal child 的 `applet_authority.executed_by` 唯一重绑定按 [managed-governance §4](./managed-governance.md) 校验。它不要求 Account child 继续携带 Service executor，不豁免其余约束收窄、真实 parent refs 或当前 Service 上界；普通 grant/delegation 不得复用此例外。
+
 签发时的这组校验是 hygiene；**实际授权以求值时的 refs 存活判定为准**（见上文"求值时机"），两者并存不矛盾。
 
 **固定 authority commit 防滚动续期（normative）**：仅靠"child 自带 `expires_at` ≤ `now + max_authority_lifetime_ms`"不足以约束无限期 ref——ref 持有人可以每 `max_authority_lifetime_ms` 自我再签一次，每次让 child 取得新的 `now + 24h`，从而把无 finite upper bound 的 ref 漂白成事实无限期的链。为关闭该面，当某 action 按 §8 **必须有限期**、而覆盖它的 refs 均无 finite upper bound 时，该 child 链 MUST 绑定一个**固定 `authority_expiry_commit`**，整条链每一级该 action 的 `effective_expires_at` MUST ≤ 该 authority commit，再签 MUST NOT 刷新它：

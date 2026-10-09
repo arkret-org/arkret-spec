@@ -107,6 +107,10 @@ child subject **MUST** 是 accepted provision 属于本 Applet 的具体 Bot／G
 `issuer_authority_refs.kind=grant` 指向真实有效parent；depth、roots、逐动作／资源贡献、全部约束收窄沿普通 lineage合同计算。
 child **MUST** 显式 `max_authority_depth=0`、`authority_regrant_allowed=false`；Service不能授予第三方或另一Applet的主体。
 
+parent 与 child 各 **MUST** 恰有一条 allow、grant_local 的 `applet_authority`。parent 的 `executed_by` **MUST** 等于其 Service subject（亦为 child issuer）；child 的 `executed_by` **MUST** 等于其完整 Bot／Ghost Account subject。两条绑定的 `applet_id`、`registration_epoch` **MUST** 相同；accepted provision 另外证明该 Account 的 Applet／Service 管理归属、角色与 hosting Station，不能靠 namespace 或同 principal 推断。child 复制 Service executor、缺失／重复绑定、混入其它 Applet／epoch／Station 均拒绝。
+
+这是普通约束收窄中有且仅有的受管 terminal executor 重绑定：仅将上述已验证 Service parent 的绑定 executor 换成其已批准具体 Account，不能删掉绑定、保留第二条 Service 绑定或扩大任何其它约束。普通 authority_control、动作／资源／期限、所有 deny／review／quarantine 与共享 ancestor quota 继续原收窄／持续上界；本规则不授权一般 delegation，也不使 terminal child 可再转授。持续 parent 求值使用其 Service 主体事实，child 执行使用其真实 Account producer 事实；不能以一个求值上下文替代两者。Service→Account child 不授权 Service 借用它签 Account 的业务 Event，subject_only 本人同意仍要求该 Account 原签。
+
 这项 Service child准入不需要另授一个无限通用 cap.grant 能力；它是“真实parent允许的一层terminal下放”的封闭准入，
 Service身份／historical signer证据沿 accepted registration与原签grant解析。Station不能代Service签Event。
 没有普通控制、role许可、实际业务 action 或有效 parent均拒绝。创建 grant不能当message action的parent。
