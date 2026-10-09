@@ -679,7 +679,7 @@ wire 上不存在"这是不是一次转授"的语义位——ref 的类型就是
 **`authority_generation` 与 `governance_generation` 是两个不同的计数器（normative）**：`realm_root` ref 里的
 `authority_generation` 是 authority-root typed current result 的**委派代次**，创世为 0，只由
 `ak.realm.authority.reset` 递增，用途只有一个——一次性整代失效本 Realm 由 root 派生的全部 grant。
-`RealmCommit` / snapshot / join intake / `AccountCurrentResult` 上的 `governance_generation` 是**治理 Station
+`RealmCommit` / snapshot / join intake / `AccountCurrentView` 上的 `governance_generation` 是**治理 Station
 任期代次**，只由 `ak.realm.governance_station.change` 递增（见
 [`sync/authority-commit-log.md`](../sync/authority-commit-log.md)）。二者 MUST NOT 互相替代：把托管方换机读成
 授权失效，会让一次例行 handoff 撤销整个 Realm 的授权树；把授权重置读成换机，会让 reset 不产生任何效果。

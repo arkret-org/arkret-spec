@@ -345,7 +345,7 @@ selector——响应可见范围仍由 [§3](#3-当前结果响应) 决定。
 
 ## 3. 当前结果响应
 
-`AccountCurrentResult.current` 是 closed：
+`AccountCurrentView.current` 是 closed：
 
 - `realm_id`：结果所属 Realm；
 - `governance_generation`：当前治理 Station 任期代次；
@@ -378,7 +378,7 @@ Agent／Applet Policy 的 exact CAS 读取沿 `ak.self.current_results.read.exac
 
 ## 4. 有界基线与续传
 
-`AccountCurrentResult.coverage` 携带 `realm_id`、`stream_heads[]` 与 `complete_for_authorized_streams`。只有在：
+`AccountCurrentView.coverage` 携带 `realm_id`、`stream_heads[]` 与 `complete_for_authorized_streams`。只有在：
 
 1. 所有获准 stream 都已扫描到所声明 head；
 2. 对应 entries 已耐久安装；
