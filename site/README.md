@@ -90,6 +90,16 @@ site/
 └── tsconfig.json
 ```
 
+## Netlify 部署
+
+- GitHub 仓库：`arkret-org/arkret-spec`；生产分支：`main`。
+- 正式域名：`arkret.org`；Astro 的 canonical URL 已设为 `https://arkret.org`。
+- 仓库根目录 `netlify.toml` 定义 base directory `site`、构建命令
+  `pnpm run crossref && pnpm run build`、publish directory `dist`。
+- 使用 Node.js 24 与 pnpm 10.28.2；构建会保留完整仓库以读取 `../spec/`。
+- 每次推送均构建，确保 `spec/` 中正文与机读构件更新也触发发布。
+- `.netlify/` 是本地连接状态，已加入 `.gitignore`，不得提交。
+
 ## 演进
 
 - 多版本：将来加 `spec/v1.1/zh/`，`docsLoader` 自动收录为 `/zh/v1.1/...`。

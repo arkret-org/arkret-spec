@@ -1,0 +1,22 @@
+Arkret Spec licensing
+=====================
+
+Copyright 2026 Arkret Spec contributors.
+
+Unless a file carries a separate license notice:
+
+- Protocol specification prose and machine-readable protocol artifacts under
+  spec/, the published catalog snapshot under site/public/v1/, and project
+  documentation (including README files) are licensed under Creative Commons
+  Attribution 4.0 International (CC-BY-4.0). See LICENSES/CC-BY-4.0.txt.
+- Website source code, tooling, tests, configuration, and other original code
+  are licensed under the Apache License, Version 2.0 (Apache-2.0).
+  See LICENSES/Apache-2.0.txt.
+
+Generated protocol content retains the license of its source material when
+rendered or bundled into the website. Referencing or embedding that content
+does not change the license of the surrounding website code.
+
+For attribution of the specification, identify "Arkret Spec contributors",
+link to https://github.com/arkret-org/arkret-spec and the CC-BY-4.0 license,
+and indicate any changes. Preserve existing third-party license notices.

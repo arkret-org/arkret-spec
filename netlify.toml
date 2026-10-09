@@ -1,0 +1,10 @@
+[build]
+  base = "site"
+  command = "pnpm run crossref && pnpm run build"
+  publish = "dist"
+  # Normative content and machine artifacts also live outside the site directory.
+  ignore = "exit 1"
+
+[build.environment]
+  NODE_VERSION = "24"
+  PNPM_VERSION = "10.28.2"

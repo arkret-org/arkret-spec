@@ -8,6 +8,7 @@ site/.astro
 site/.cache
 site/.vite
 site/.output
+.netlify/
 .DS_Store
 _*.md
 .gstack/
