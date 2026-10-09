@@ -384,7 +384,7 @@ Base URL 来自 registration 的 `base_url`。
 
 字段级接口索引：
 
-本表 **surface / 调用方向** 列区分两类 operation:`edge`（节点 → Applet，鉴权主体为 Arkret 节点，路径 `/_arkret/edge/applet/...`）与 `self`（管理员 → 自有 Station aggregate，鉴权主体为管理员 actor，路径 `/_arkret/self/applets/...`）。二者调用方向相反、鉴权主体不同，实现不得套用同一鉴权模型。
+本表 **surface / 调用方向** 列区分 Applet `edge` 管理端点与 Station `self` aggregate。安装／撤销由管理员原签发起；Bot／Ghost preview 与 provision 由已安装 Applet Service 原签 RFC 9421 发起，不能用管理员 session 代替。transaction 的 Applet→Station 与 Station→Applet 方向也必须分别核验来源。各 operation 的认证合同以 operation registry 为准，实现不得套用同一鉴权模型。
 
 | operation_id | surface / 调用方向 | 必填字段 | 可选字段 | 响应字段 | 约束 |
 | --- | --- | --- | --- | --- | --- |
@@ -401,8 +401,10 @@ Base URL 来自 registration 的 `base_url`。
 | `ak.self.applet.command.install.v1` | self（管理员→Station） | `Idempotency-Key`; `applet_package`; `authoring_request_basis`; `plan_digest` | 无 | install / commit response 的完整 required 字段集合以 [`applet-schema.md` §1b](./applet-schema.md) 与契约 `applet-install-operations.schema.json` 为权威源 | 只接纳 Service registration 与管理员原签 grants，不创建或复用 managed Actor。 |
 | `ak.self.applet.revoke.command.preview.v1` | self（管理员→Station） | `path.applet_id`; `effective_scope`; `reason_code`; `revoke_mode` | 无 | `revoke_plan` | 从同一 durable current snapshot 枚举 exact revoke intents；每个 capability intent 必填同一 Grant 的 `expected_revision`，并进入 caller 自算的 `revoke_plan_digest`；见 §4b。 |
 | `ak.self.applet.command.revoke.v1` | self（管理员→Station） | `header.Idempotency-Key`; `path.applet_id`; `revoke_plan_digest`; `effective_scope`; `reason_code`; `revoke_mode`; `capability_revoke_events[]`; `membership_state_events[]` | `proof?: AccountLifecycleProof` | `operation_id`; `revoke_plan_digest`; `status`; `steps[]`; `revoked_refs: AppletRevokeEffectRef[]?`; `rejected[]?` | 重算 plan 并逐项校验 signed revoke 的 exact revision；stale 必须重新 preview／确认／重签。Event effect 使用 `CommittedEventRef`；服务本地 effect 使用非 Event typed resource string；见 §4b。 |
+| `ak.self.applet.bot.command.preview.v1` | self（已安装 Applet Service→Station） | `path.applet_id`; `effective_scope`; `request_id` | `display_name` | `authoring_request` | 从 exact active install 派生 Service 创建授权，签发独立 Bot candidate；不消费安装隐含 Bot，契约见 `applet-bot-operations.schema.json`。 |
+| `ak.self.applet.bot.command.provision.v1` | self（已安装 Applet Service→Station） | `header.Idempotency-Key`; `path.applet_id`; `authoring_request`; `managed_actor_bundle` | `approval_signatures` | Bot provision outcome | 重验 current 创建授权与原四 Event；同一 Applet 可以创建 0..N 个独立 Bot，每个有自己的 Account/PCR/Device，契约见 `applet-bot-operations.schema.json`。 |
 | `ak.self.applet.ghost.command.preview.v1` | self（已安装 Applet service→Station） | `path.applet_id`; `effective_scope`; `external_ref` | `display_name` | `authoring_request` | PS 从 active install 派生全部 current 坐标并签发唯一 current generation；preview 有 durable winner/supersede ledger。 |
-| `ak.self.applet.ghost.command.provision.v1` | self（已安装 Applet service→Station） | `header.Idempotency-Key`; `path.applet_id`; `authoring_request`; `managed_actor_bundle` | `approval_signatures` | Ghost provision outcome | commit 重验 PS proof、Applet bundle proof、`governance_station_id`、external tuple 与 active install；不接受裸四 Event body。 |
+| `ak.self.applet.ghost.command.provision.v1` | self（已安装 Applet service→Station） | `header.Idempotency-Key`; `path.applet_id`; `authoring_request`；fresh 分支 `managed_actor_bundle`，reuse 分支 `existing_managed_actor` | `approval_signatures` | Ghost provision outcome | fresh 与 reuse 互斥，commit 重验 PS proof、`governance_station_id`、external tuple 与 exact full-scope active install；fresh 验原 bundle proof，reuse 重开原 accepted anchors，不产生四 Event 或 completion；不接受裸四 Event body。 |
 
 ### 7.1 Ping
 
