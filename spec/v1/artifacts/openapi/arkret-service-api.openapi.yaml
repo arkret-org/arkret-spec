@@ -32,8 +32,8 @@ info:
 
     prose. The typed surface currently covers `ak.self.events.{command.submit, resource.get,
 
-    read.scan, stream.subscribe}`, `ak.peer.events.{command.submit, read.scan}`, `ak.self.account.{read.viewer,
-    stream.subscribe, command.update_profile}`, `ak.gate.account.{command.register, command.revoke_session}`, `ak.self.realm_state_snapshot.read.manifest_head.v1`,
+    read.scan, stream.subscribe}`, `ak.peer.events.{command.submit, read.scan}`, `ak.self.account.{read.viewer, stream.subscribe,
+    command.update_profile}`, `ak.gate.account.{command.register, command.revoke_session}`, `ak.self.realm_state_snapshot.read.manifest_head.v1`,
 
     `ak.root.identity.{read.resolve, document.resource.get, receipts.read.list, command.submit_did_operation}`, `ak.self.authz.{read.check,
 
@@ -41,10 +41,10 @@ info:
 
     Event-submit schemas are the endpoint-specific `self_submit_request` / `self_submit_outcome`
 
-    and `peer_submit_request` / `peer_submit_outcome` definitions in authority-commit-operations.schema.json; Event reads use `EventView`,
+    and `peer_submit_request` / `peer_submit_outcome` definitions in authority-commit-operations.schema.json; Event reads
+    use `EventView`,
 
-    `stream_scan_request` / `stream_scan_outcome`
-    (authority-commit-operations.schema.json),
+    `stream_scan_request` / `stream_scan_outcome` (authority-commit-operations.schema.json),
 
     `RealmCommit`, `SignalSubmitOutcome`,
 
@@ -307,8 +307,8 @@ components:
       type: apiKey
       in: header
       name: Arkret-Managed-Device
-      description: Covered RFC9421 canonical closed managed Account/Device/authorization/Applet/scope
-        metadata; only registered operations, never a SessionGrant.
+      description: Covered RFC9421 canonical closed managed Account/Device/authorization/Applet/scope metadata; only registered
+        operations, never a SessionGrant.
   headers:
     XArkretRequestId:
       description: Stable request identifier.
@@ -942,7 +942,8 @@ components:
       $ref: ../schemas/invite.schema.json#/$defs/third_party_invite_provision_request_body
   responses:
     MethodNotAllowed:
-      description: Pre-dispatch router failure for a registered path with an unsupported method; Problem code method_not_allowed (HTTP 405). No operation is entered.
+      description: Pre-dispatch router failure for a registered path with an unsupported method; Problem code method_not_allowed
+        (HTTP 405). No operation is entered.
       x-arkret-route-error-code: method_not_allowed
       headers:
         Allow:
@@ -953,13 +954,15 @@ components:
           schema:
             $ref: '#/components/schemas/Problem'
     NotFound:
-      description: Not found or not visible; an unregistered /_arkret/* path instead uses the pre-dispatch unrecognized_endpoint response (HTTP 404).
+      description: Not found or not visible; an unregistered /_arkret/* path instead uses the pre-dispatch unrecognized_endpoint
+        response (HTTP 404).
       content:
         application/problem+json:
           schema:
             $ref: '#/components/schemas/Problem'
     UnrecognizedEndpoint:
-      description: Pre-dispatch router failure for an unregistered /_arkret/* path; Problem code unrecognized_endpoint (HTTP 404). No operation is entered.
+      description: Pre-dispatch router failure for an unregistered /_arkret/* path; Problem code unrecognized_endpoint (HTTP
+        404). No operation is entered.
       x-arkret-route-error-code: unrecognized_endpoint
       content:
         application/problem+json:
@@ -1803,13 +1806,10 @@ paths:
   /_arkret/self/events:
     post:
       operationId: ak.self.events.command.submit
-      summary: Submit one closed self Event or registered atomic-unit branch to current
-        governance
-      description: Ordinary Event and MLS submissions keep their single-submit semantics.
-        Direct Conversation founding is an ordered four-Event all-or-nothing unit and
-        membership compensation is a one-Event aggregate with closed transport-only
-        evidence and a single-use CAS. The Account Station reports committed only after
-        receiving the authority-signed RealmCommit(s).
+      summary: Submit one closed self Event or registered atomic-unit branch to current governance
+      description: Ordinary Event and MLS submissions keep their single-submit semantics. Direct Conversation founding is
+        an ordered four-Event all-or-nothing unit and membership compensation is a one-Event aggregate with closed transport-only
+        evidence and a single-use CAS. The Account Station reports committed only after receiving the authority-signed RealmCommit(s).
       parameters:
       - name: Arkret-Operation
         in: header
@@ -1938,9 +1938,9 @@ paths:
         explode: true
       - name: actor_ids
         in: query
-        description: Repeated actor_ids values, each the percent-encoded RFC 8785 JCS serialization of one closed ActorId. Decode
-          and validate against common-ids actor_id before authorization; bare DID values are forbidden. UNION within, intersection
-          with realm_ids. Exact identity includes Station; duplicate ActorIds are rejected.
+        description: Repeated actor_ids values, each the percent-encoded RFC 8785 JCS serialization of one closed ActorId.
+          Decode and validate against common-ids actor_id before authorization; bare DID values are forbidden. UNION within,
+          intersection with realm_ids. Exact identity includes Station; duplicate ActorIds are rejected.
         schema:
           type: array
           items:
@@ -2179,7 +2179,9 @@ paths:
         destinationTrustDomain: []
         contentDigest: []
       summary: Read a signed page of complete MLS roster authority for an authorized member.
-      description: The governance-signed manifest repeats on every page and binds both immutable public Blob refs from the exact accepted Genesis. A later-joined member verifies this manifest before constructing the separate public material request.
+      description: The governance-signed manifest repeats on every page and binds both immutable public Blob refs from the
+        exact accepted Genesis. A later-joined member verifies this manifest before constructing the separate public material
+        request.
       requestBody:
         required: true
         content:
@@ -2236,13 +2238,11 @@ paths:
 
         GroupInfo/tree consistency. The response is all-or-nothing and never
 
-        contains private tree material, MLS secrets or inferred leaf DTOs. A forwarded
-        self member read includes caller_actor_id and target Commit/epoch; governance
-        independently verifies current and target-cut member/history authority and
-        the calling Station replication right at the target accepted Commit cut.
-        It does not gate a later-joined member Station at the Genesis Commit position.
-        An absent caller_actor_id is only the original Station replication read;
-        source Station replication right is checked at the Genesis Commit position.
+        contains private tree material, MLS secrets or inferred leaf DTOs. A forwarded self member read includes caller_actor_id
+        and target Commit/epoch; governance independently verifies current and target-cut member/history authority and the
+        calling Station replication right at the target accepted Commit cut. It does not gate a later-joined member Station
+        at the Genesis Commit position. An absent caller_actor_id is only the original Station replication read; source Station
+        replication right is checked at the Genesis Commit position.
 
         '
       requestBody:
@@ -2381,10 +2381,10 @@ paths:
     post:
       operationId: ak.peer.events.command.submit
       summary: Process one closed peer authority-forward, committed-replication, or registered-atomic-unit branch
-      description: authority_forward sends one exact Event or MLS submission to current governance for first admission.
-        committed_replication verifies bounded full source EventAdmissionSubmission plus source RealmCommit rows and stores exact
-        replicas without re-signing or second fanout. registered_atomic_unit materializes only registered source-committed units
-        all-or-nothing. canonical_hash/full_body exact replay is branch-stable.
+      description: authority_forward sends one exact Event or MLS submission to current governance for first admission. committed_replication
+        verifies bounded full source EventAdmissionSubmission plus source RealmCommit rows and stores exact replicas without
+        re-signing or second fanout. registered_atomic_unit materializes only registered source-committed units all-or-nothing.
+        canonical_hash/full_body exact replay is branch-stable.
       parameters:
       - name: Arkret-Operation
         in: header
@@ -2407,8 +2407,8 @@ paths:
               schema:
                 $ref: ../schemas/authority-commit-operations.schema.json#/$defs/peer_submit_outcome
         '409':
-          description: A Direct Conversation founding atomic unit lacks one or more bounded exact dependencies. No unit row is
-            materialized; details is a closed typed missing set.
+          description: A Direct Conversation founding atomic unit lacks one or more bounded exact dependencies. No unit row
+            is materialized; details is a closed typed missing set.
           content:
             application/problem+json:
               schema:
@@ -3072,14 +3072,6 @@ paths:
         schema:
           type: string
           const: ak.self.account.stream.subscribe.v1
-      - in: header
-        name: X-Arkret-Wait-For
-        required: false
-        description: Barrier cursor (purpose=barrier) returned from a prior write. Server holds the first delta frame until
-          the local checkpoint covers target.event_id, or returns a registered Problem before NDJSON begins. A barrier is never an Account continuation.
-        schema:
-          type: string
-          pattern: ^ak:cursor:[A-Za-z0-9_-]+$
       - name: after
         in: query
         description: 'Subscription start cursor (exclusive). Frames are pushed after this
@@ -3126,6 +3118,16 @@ paths:
           default: false
         description: Explicitly replace detail interest while preserving authenticated global stream positions; requires after
           and filter.
+      - &id001
+        in: header
+        name: X-Arkret-Wait-For
+        required: false
+        description: Unique barrier wait carrier. Exactly one header; duplicate or other carriers are param_invalid. Shared
+          validation and immutable issuance follow client-sync sections 12.2 and 12.2.1. Waiting requires durable local projection
+          coverage and current permission.
+        schema:
+          type: string
+          pattern: ^ak:cursor:[A-Za-z0-9_-]+$
       responses:
         '200':
           description: One bounded NDJSON round, at most 16 frames and 16 MiB; each canonical frame is at most 8 MiB. Resume
@@ -3135,7 +3137,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/AccountSubscribeFrame'
         '409':
-          description: Registered conflicts. Recoverable serving-prefix lag with validated after uses the exact continuation carrier; other registered conflicts do not authorize recovery.
+          description: Registered conflicts. Recoverable serving-prefix lag with validated after uses the exact continuation
+            carrier; other registered conflicts do not authorize recovery.
           content:
             application/problem+json:
               schema:
@@ -4095,13 +4098,10 @@ paths:
         sourceServiceId: []
         destinationServiceId: []
       summary: List Space lifecycle projection rows for a Realm.
-      description: >-
-        Paginated caller-visible Space lifecycle projection rows for client navigation
-        and sync repair. This is a derived read model, not a canonical truth source
-        or a tree query. Missing parents do not prove roots or inaccessible ancestors;
-        pages do not promise one authority cut. No hidden-ancestor chain, accessible
-        flag, nested children, or Realm summary is returned. See
-        zh/models/space-hierarchy.md section 7.
+      description: Paginated caller-visible Space lifecycle projection rows for client navigation and sync repair. This is
+        a derived read model, not a canonical truth source or a tree query. Missing parents do not prove roots or inaccessible
+        ancestors; pages do not promise one authority cut. No hidden-ancestor chain, accessible flag, nested children, or
+        Realm summary is returned. See zh/models/space-hierarchy.md section 7.
       parameters:
       - name: Arkret-Operation
         in: header
@@ -4205,11 +4205,9 @@ paths:
     post:
       operationId: ak.self.strand.watch.read.current
       summary: Read the authenticated actor's exact Strand watch current value.
-      description: >-
-        Current governing Station reads one exact watch selector and its effective-scope
-        authorization from one confirmed durable basis. A never-written result is explicit;
-        a previously cleared null value carries a real revision. This operation does not
-        enumerate watchers or authorize reads of another actor's private watch state.
+      description: Current governing Station reads one exact watch selector and its effective-scope authorization from one
+        confirmed durable basis. A never-written result is explicit; a previously cleared null value carries a real revision.
+        This operation does not enumerate watchers or authorize reads of another actor's private watch state.
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -4390,6 +4388,7 @@ paths:
         schema:
           type: string
           const: ak.self.blob.resource.head.v1
+      - *id001
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -4427,6 +4426,7 @@ paths:
         name: Range
         schema:
           type: string
+      - *id001
       responses:
         '200':
           description: Blob content
@@ -5026,9 +5026,10 @@ paths:
     post:
       operationId: ak.self.current_results.read.exact
       summary: Read one exact Relation or moderation current result.
-      description: The authenticated caller selects one closed Relation primary conflict domain or moderation target. The current
-        governing Station answers from one durable cut with the current governance generation and effective stream head. Unauthorized,
-        invisible, foreign and unknown selectors are indistinguishable not_found outcomes and never produce never_written.
+      description: The authenticated caller selects one closed Relation primary conflict domain or moderation target. The
+        current governing Station answers from one durable cut with the current governance generation and effective stream
+        head. Unauthorized, invisible, foreign and unknown selectors are indistinguishable not_found outcomes and never produce
+        never_written.
       security:
       - sessionGrantAuth: []
         dpopProof: []
@@ -5227,9 +5228,10 @@ paths:
         managedDeviceMetadata: []
         destinationServiceId: []
       summary: Read an authorized signed MLS roster authority page from the current governance Station.
-      description: The authenticated own Station authorizes the exact accepted member target and derives immutable Genesis provenance
-        at the same cut. The member independently verifies the original signed manifest, all recipient signatures and the full
-        ordered transcript before RFC MLS installation; no prejoin client Genesis or complete current baseline is required.
+      description: The authenticated own Station authorizes the exact accepted member target and derives immutable Genesis
+        provenance at the same cut. The member independently verifies the original signed manifest, all recipient signatures
+        and the full ordered transcript before RFC MLS installation; no prejoin client Genesis or complete current baseline
+        is required.
       requestBody:
         required: true
         content:
@@ -5778,8 +5780,8 @@ paths:
         schema:
           type: string
           const: ak.self.moderation.command.report.v1
-      description: Accepts exactly one direct-holder signed ak.self.moderation.report Event in report_event. The
-        authenticated session principal must equal both the event.actor_id signing principal and payload.reporter_id. The signed Event realm/scope
+      description: Accepts exactly one direct-holder signed ak.self.moderation.report Event in report_event. The authenticated
+        session principal must equal both the event.actor_id signing principal and payload.reporter_id. The signed Event realm/scope
         must equal the accepted target's derived governance scope; absent, invisible and scope-mismatched targets all return
         not_found. The service forwards exact bytes through authority Event submission and never authors, rebuilds, co-signs
         or adds preconditions. Exact replay returns the stored submitted outcome; the same Event id with different bytes returns
@@ -6520,7 +6522,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DevicePairingStatusOutcome'
-
   /_arkret/open/mimi/provider-directory:
     get:
       operationId: ak.open.mimi.read.provider_directory
@@ -7741,7 +7742,9 @@ paths:
       - sessionGrantAuth: []
         dpopProof: []
       summary: Read one holder-private consent result when the query has exactly one match.
-      description: Exact peer and optional consent_scope filtering applies only within the authenticated holder's current results. Multiple matches fail with failed_precondition; callers needing a specific consent_id use the holder-private list.
+      description: Exact peer and optional consent_scope filtering applies only within the authenticated holder's current
+        results. Multiple matches fail with failed_precondition; callers needing a specific consent_id use the holder-private
+        list.
       parameters:
       - name: Arkret-Operation
         in: header
@@ -8959,10 +8962,11 @@ paths:
           default: localhost
     post:
       operationId: ak.gate.account.command.pair_device
-      description: Account Authority coordinates the registered split-admission saga. It freezes authorize_event, submits it
-        byte-identically through ak.peer.events.command.submit.v1 branch=authority_forward, verifies the owning Station RealmCommit,
-        and reaches completed before returning the stored terminal outcome. Retryable or unverifiable Station results preserve
-        the private fence and return temporarily_unavailable; exact completed replay never submits a second Event.
+      description: Account Authority coordinates the registered split-admission saga. It freezes authorize_event, submits
+        it byte-identically through ak.peer.events.command.submit.v1 branch=authority_forward, verifies the owning Station
+        RealmCommit, and reaches completed before returning the stored terminal outcome. Retryable or unverifiable Station
+        results preserve the private fence and return temporarily_unavailable; exact completed replay never submits a second
+        Event.
       parameters:
       - name: Arkret-Operation
         in: header

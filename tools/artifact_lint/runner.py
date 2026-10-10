@@ -8,6 +8,7 @@ from .governance_result_consumption_roles import check_governance_result_consump
 from .agent_runtime_contract import check_agent_runtime_contract
 from .owned_agent_authority import check_owned_agent_authority
 from .account_revision_stale import check_account_revision_stale
+from .cursor_wait_bindings import check_cursor_wait_bindings
 
 from .forbidden_wire import check_forbidden_wire_contexts
 from .approval_eligibility import check_approval_requirement_eligibility
@@ -595,6 +596,7 @@ def main(argv: list[str] | None = None) -> int:
         [
             ("openapi_component_order", lambda: check_openapi_schema_component_order(lint)),
             ("operation_surfaces", lambda: check_operation_surfaces(lint, known)),
+            ("cursor_wait_bindings", lambda: check_cursor_wait_bindings(lint)),
             (
                 "operation_durable_effect",
                 lambda: check_operation_durable_effect_contract(lint),

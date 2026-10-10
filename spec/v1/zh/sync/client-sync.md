@@ -304,13 +304,23 @@ cursor 必须绑定 issuer、account/device、purpose、query-scope digest、exp
 
 ### 12.2 校验流程 (normative)
 
-服务先验证 canonical wire syntax/schema 与 `expires_at`，再在本签发服务查找不透明 `h`、验证存储绑定与 session、purpose、operation 和 query scope，最后才读取 position。v1 没有内联签名或 MAC，句柄查表本身就是完整性检查。syntax/schema 失败使用 `param_invalid`／`invalid_cursor`，wire 过期使用 `cursor_expired`；未知句柄、存储绑定过期或跨绑定使用 `cursor_integrity_invalid`，已知且有效绑定的明确撤销使用 `cursor_revoked`。失败不得推进任何 server-side state。
+服务 MUST 按以下顺序校验，所有接受注册 v1 Cursor 类型的 surface 共用本合同，不按错误文本分派；其它业务自行登记的 continuation 结构仍受其 closed schema 与专属合同约束，不能冒充本类型：
+
+1. canonical wire syntax/schema、固定 v1、时间顺序／TTL／时钟偏移与 context purpose；失败为 `param_invalid`／`invalid_cursor`。请求对象自身违规仍按 operation schema 分类。
+2. 语法合法后核对 wire `expires_at`；`now >= expires_at` 为 `cursor_expired`，即使句柄未知或已撤销。
+3. 在本签发服务查找 `h`，核对服务、完整主体／device、具体 operation、规范 query scope、purpose 及与 wire 逐毫秒一致的不可变 `issued_at`／`expires_at`；未知、存储逻辑到期或任一失配为 `cursor_integrity_invalid`。共享数据库不得接受其它 issuer 的记录。正式 `replace_filter=true` 只豁免旧详情 filter 与新 filter 的相等比较，不豁免其余校验，不修改旧句柄。
+4. 有效请求绑定确认后查适用撤销；明确撤销为 `cursor_revoked`。另一主体、设备、operation 或范围不得获知撤销状态。
+5. 核对当前权限与历史覆盖后读取内部 progress。失败不得签发新 cut、删除句柄、写业务进度、推进 ACK 或执行任何业务副作用。
+
+v1 没有内联签名或 MAC，句柄查表本身就是完整性检查。每个 handle 是不可变签发实例：主体、operation、进度／冻结窗口、时间及私有签发 session 身份不可改写；相同实例重发只返回原 token 与原期限。新期限 MUST 使用不可重复的新 handle，GC 后不得重新生成旧 handle；延长物理保留不得延长逻辑期限。允许在有效且未撤销实例内去重，但不得复活过期或已撤销实例；窗口所需 exact snapshot 至少保留至实例原到期时刻。句柄必须具有至少 128 bit 不可猜测安全强度，词法长度本身不证明熵。
 
 新鲜的外站合法 token 在接收站同样是未知句柄，MUST 返回 `cursor_integrity_invalid`，不能通过请求账号的 Station、caller 声明或私有辅助字段猜测 token issuer。v1 不提供另一种跨站不可识别错误，也不得查询外站位置来接受该 token；签发站坐标与内部 positions 仍不对客户端公开。
 
 ### 12.2.1 Cursor Revoke（high-assurance optional）
 
 高保证部署可撤销 cursor；撤销不影响已提交 RealmCommit、delivery ACK token或 Event ID幂等性。
+
+`ak.self.account.command.revoke_cursor.v1` 在写账前 MUST 按 §12.2 校验目标实例（允许本人已撤销实例用于幂等），验证目标完整账号属于 caller 且 device 属于当前认证设备。未知／外站／跨主体／改写目标拒绝为 `cursor_integrity_invalid`；合法 wire 已到期为 `cursor_expired`，零写入。本人重复相同实例和 scope 返回原有效结果，不延长撤销期限。`this_cursor` 同时匹配已验证实例身份与完整账号；私有辅助字段不得改变撤销身份。`same_device` 覆盖该账号该设备，`same_session` 只覆盖签发 session 的确切认证身份，caller 必须属于该 session；session 身份保存在服务端，不新增 wire 字段，也不得把同 device 当同 session。范围撤销在原撤销保留期内同样覆盖新签发实例，换 handle 不能绕过。组撤销保留至撤销时刻加 stream TTL 硬上限，单实例撤销保留至原实例期限；重复请求不续期。服务重启恢复撤销账本，GC 后未知分类不要求永久 tombstone。签发、撤销与消费必须以耐久账本保证一致可见，已完成撤销之后不得成功消费该范围；撤销期间尚未完成的读取仍须在安装／返回边界复核。
 
 ### 12.3 过期或缺口恢复流程
 
@@ -326,7 +336,7 @@ cursor 必须绑定 issuer、account/device、purpose、query-scope digest、exp
 
 该 Account 错误的唯一恢复 carrier 为 [`account-subscribe-frame.schema.json#/$defs/account_revision_stale_problem`](../../artifacts/schemas/account-subscribe-frame.schema.json)：`continuation_cursor` REQUIRED，逐字等于本次已验证的 `after`。不得重新签发一个较新或较旧 cut、返回未登记 `frontier`、披露内部 position vector，或把 barrier token 当作 stream continuation。无 `after` 的 initial baseline 不使用此 carrier；其它 operation 的 `revision_stale` 不因此取得 Account 恢复语义。已开始 NDJSON 的 round 不得夹入 Problem 或伪造错误 frame；未完成 round 按原连接中断恢复规则保留最后耐久 cut。
 
-客户端核对 HTTP 与 Problem status 均为409、exact type URI、typed carrier及原请求 cursor 逐字一致，保留完整耐久 checkpoint、已验证历史、current投影、非空MLS私态与确切未消费ACK。错误响应本身没有可安装的数据，不推进 cut、不隐式ACK、不重做baseline；不得从任意409或未知扩展取得恢复指令。客户端按原 filter/device/operation 与 continuation 继续同一 Account catchup，使用既有有界退避，持续落后时返回未解决错误而非重置状态。服务追上后通过正常 Account frames 补拉获准内容，客户端仍须完成签名、连续性、same-cut和耐久安装屏障，之后才接受成功响应的新 cursor。单流历史扫描仍按 `stream_position` 续传，不把该 cursor 用作 scan position。
+客户端核对 HTTP 与 Problem status 均为409、exact type URI、typed carrier及原请求 cursor 逐字一致，保留完整耐久 checkpoint、已验证历史、current投影、非空MLS私态与确切未消费ACK。错误响应本身没有可安装的数据，不推进 cut、不隐式ACK、不重做baseline；不得从任意409或未知扩展取得恢复指令。客户端按原 filter/device/operation、原 wait-for 目标与 continuation 继续同一 Account catchup，使用既有有界退避，持续落后时返回未解决错误而非重置状态。服务追上后通过正常 Account frames 补拉获准内容，客户端仍须完成签名、连续性、same-cut和耐久安装屏障，之后才接受成功响应的新 cursor。单流历史扫描仍按 `stream_position` 续传，不把该 cursor 用作 scan position。
 
 独立生产验收必须由正常服务解析真实签发的 `after`，在确实可恢复的服务前沿落后时产生409及 exact continuation，验证拒绝零业务效果；解除落后后，普通 Account driver 自动补拉并耐久安装正常签名数据，随后新OS进程读回。脚本错误注入、仅等待成功、仅检查 cursor 字符串或空私态不能替代 `revision_stale_keeps_the_cursor_and_continues_backfill`；23项canonical义务不减。
 

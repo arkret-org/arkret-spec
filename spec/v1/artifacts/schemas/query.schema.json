@@ -263,7 +263,8 @@
         },
         "wait_for": {
           "type": "string",
-          "minLength": 1
+          "pattern": "^ak:cursor:[A-Za-z0-9_-]+$",
+          "description": "Unique body wait carrier only for an operation/binding explicitly registered in operation-registry.wait_for_bindings. No current generic query operation is registered. Header or consistency aliases are forbidden."
         }
       },
       "additionalProperties": false,

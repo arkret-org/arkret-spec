@@ -319,7 +319,8 @@
           "default": "this_cursor"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "description": "Revoke an immutable local cursor issuance owned by the authenticated exact account and current device. Validate the canonical token and durable binding before writing. same_session requires the exact private issuing-session identity; it is not a same_device alias. Repetition is idempotent without extending the horizon. Expired, unknown, foreign, altered and unauthorized targets produce zero writes. See client-sync sections 12.2 and 12.2.1."
     },
     "AccountLogoutOutcome": {
       "type": "object",

@@ -513,8 +513,8 @@ HTTP/JSON binding 的 cursor purpose 位置一致性如下：`purpose=stream` �
 规则：
 
 - 客户端 MUST 把 cursor 当作不透明字符串，禁止解析以推断排序、权限或服务身份。
-- 任何接受 cursor 的接口 MUST 在 wire/schema 层先拒绝不满足注册 cursor 类型与词法约束的值并返回 `schema_violation`；对通过该层但令牌结构、完整性或请求绑定无效的 cursor 返回 `param_invalid`，对已过期 cursor 返回 `cursor_expired`。
-- 同一字符串 cursor 在不同 issuing 服务间不可移植；跨服务复用 MUST `param_invalid`。
+- Cursor 字段缺失或外层请求形状违规沿该 operation 的请求 schema 分类；已提供的 token 词法、canonical body、版本、TTL 或 context purpose 无效统一使用 `param_invalid`／`invalid_cursor`。完整阶段与优先级唯一见 [`client-sync.md` §12.2](./client-sync.md)：合法 wire 过期为 `cursor_expired`，未知、时间绑定或请求绑定失配为 `cursor_integrity_invalid`，有效绑定确认后才分类明确撤销。
+- 同一字符串 cursor 在不同 issuing 服务间不可移植；合法外站未知句柄与本地未知句柄均 MUST 返回 `cursor_integrity_invalid`，不得猜测 issuer。
 - TTL 硬上限：barrier cursor 与 stream cursor 的 `expires_at - issued_at` 硬上限的**唯一 canonical 数值定义点**是 [`cursor.schema.json`](../../artifacts/schemas/cursor.schema.json) 的 `expires_at`；本节与 [`encoding.md` §8](../conformance/encoding.md) 都不重复字面毫秒数值。
 - 声明 `ak.feature.cursor_revoke_high_assurance.v1` feature 的服务必须实现 [`client-sync.md` §12.2.1](./client-sync.md) 的 revocation set。已撤销但仍在 TTL 内的 cursor MUST 返回 `cursor_revoked`；完整性失败仍返回 `cursor_integrity_invalid`，不得泄露 revocation set。
 
@@ -588,7 +588,11 @@ X-Arkret-Wait-For: <cursor>
 
 如果服务在超时前到达该 cursor 描述的 authority stream position，则返回正常结果；否则，已证明可追赶的本地前沿落后使用 `revision_stale`／409，服务故障或无法证明可追赶使用 `temporarily_unavailable`／503，上游依赖超时可使用 `timeout`。不得任意附加未登记的 stream head／frontier 扩展。Account subscribe 的有效 `after` 恢复 carrier 与安装屏障按 [`client-sync.md` §12.3.2](./client-sync.md)；它不让 barrier cursor 成为 Account continuation。stream cursor 不得用于 wait-for header；服务端遇到 `purpose=stream` 的 cursor 出现在 wait-for 上下文 MUST 返回 `param_invalid`。
 
-**Wait-for canonical 与投影（normative）**：`X-Arkret-Wait-For` HTTP header 是 wait-for barrier 的 wire canonical 形态；[`../conformance/query-schema.md §2`](../conformance/query-schema.md) 嵌套形态 `consistency: { wait_for, timeout_ms }` 与 [`../../artifacts/openapi/arkret-service-api.openapi.yaml`](../../artifacts/openapi/arkret-service-api.openapi.yaml) request body 扁平字段 `wait_for: string` 是同义投影，三者等价绑定到同一 RYW (read-your-writes) barrier 语义。服务端 MUST 接受任一形态并解析为相同 cursor；客户端 MAY 选择任一形态。当同一请求同时出现多种形态且取值不一致时，服务端 MUST 按下列优先级解析：(1) `X-Arkret-Wait-For` header；(2) request body `wait_for`；(3) `consistency.wait_for`。
+**Wait-for 唯一载体（normative）**：每个 `(operation_id, binding)` 只能有一个登记载体；机器合同为 operation registry 的 `wait_for_bindings`。HTTP Account subscribe 与 Blob GET/HEAD 使用一个 `X-Arkret-Wait-For` header；Account WebSocket open 使用每个 channel 的 `parameters.wait_for`，不是连接级 header。重复 header（即使值相同）、未登记载体、`consistency.wait_for` 及同请求多载体均 MUST 以 `param_invalid` 拒绝，不选择优先级、不忽略等待目标。未登记 binding 不因本节取得等待能力。复用 query request schema 的 operation 只有显式登记后才能使用 body 顶层 `wait_for`；当前没有已登记的通用 query operation。
+
+两种 Account binding 共享 barrier 类型、当前读取权限、有效绑定与撤销校验、相关投影耐久覆盖和有界等待语义。HTTP 首帧前失败返回登记 Problem；WebSocket 按 channel 的正式错误投影关闭该 channel，不影响其它 channel。通知须先注册再检查或提供等价无丢唤醒保证；返回数据前重新核对权限和投影。已提交不等于本地投影完成；多 stream 没有共同全局进度。Account 可恢复落后只按 §12.3.2 的条件逐字回显原 `after`，重试同时保留原等待目标；任意等待超时不得制造 continuation。
+
+当前 v1 保留五字段 cursor 与 barrier，不接受紧凑句柄或 `CommittedEventRef` 作为新的等待格式。Event barrier 绑定已验证的 exact Event/Commit 与该读面投影；AccountStatus 的可选 `barrier_cursor` 仅可绑定其已签名 record/sequence 与接收方投影，不得伪造 RealmCommit，也不证明跨服务传播或物理擦除完成。没有所需投影等待事实的 producer MUST 省略可选 barrier 字段；closed response 未登记的 producer MUST NOT 增加字段。
 
 ## 9. Rate Limit
 

@@ -1150,7 +1150,7 @@ UTF-8 字节序，随后 series_seq 数值、backup_id canonical 字节序升序
 limit_exceeded，不返回不完整 metadata。客户端只在分页完成后声明目标范围完整，不以部分页缺项删除本地状态。
 
 cursor 是自己 Station 签发的 opaque 列表位置，绑定 operation、完整账号、过滤条件、排序和服务端列表修订及 active 指针
-状态。跨账号/operation/过滤条件、篡改、已失效修订必须拒绝为 cursor_invalid；不能退化成从头页并报告 continuation 成功。
+状态。Cursor 校验及错误顺序统一见 [`../sync/client-sync.md` §12.2](../sync/client-sync.md)：词法／wire／purpose 失败为 param_invalid／invalid_cursor，合法 wire 到期为 cursor_expired，跨账号/operation/过滤条件、篡改、已失效修订为 cursor_integrity_invalid，有效绑定后的明确撤销为 cursor_revoked；不能退化成从头页并报告 continuation 成功。
 列表内容或 active 指针改变可使旧 cursor 失效；客户端重新读取目标过滤范围。每页仍执行当前设备/账号读取授权，缓存命中
 不豁免撤销。分页不要求持有所有历史治理状态，也不使账号导航等待所有备份页。
 

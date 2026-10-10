@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-09.4",
+  "version": "2026-10-10.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-09T10:53:55+08:00",
+  "generated_at": "2026-10-10T23:55:48+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -12436,7 +12436,8 @@
       "coordination_relations is the canonical machine source for a public operation that spans independently durable services. Every relation MUST name the entry operation, every registered sub-operation, exact request/receipt bindings, the durable owner and fence transitions, crash recovery owner, terminal success boundary and closed downstream error translation. Prose alone MUST NOT create an unregistered cross-service write edge.",
       "Within one service_kind, active current-v1 bundles MUST NOT overlap on an identical (operation_id,binding_kind) pair. Pairs using a different binding kind are distinct.",
       "Only registered ak.operation_bundle.*.v1 ids may appear in current-v1 ServiceDescribe. Current-v1 defines no vendor bundle wire namespace; vendor-private collections may only appear as ignorable x_* metadata and never affect capability decisions. Unknown bundle ids fail closed and are never expanded by name.",
-      "Request wire/canonical byte budget violations MUST return payload_too_large (HTTP 413); count-only schema violations with valid request bytes MUST return schema_violation (HTTP 422), except explicit operation count semantics. An otherwise valid request whose complete response or evaluation exceeds its semantic budget returns limit_exceeded (HTTP 413) or its defined typed unavailable result. Request byte errors take precedence over coincident schema errors. Error classification MUST NOT depend on diagnostic text substring matching."
+      "Request wire/canonical byte budget violations MUST return payload_too_large (HTTP 413); count-only schema violations with valid request bytes MUST return schema_violation (HTTP 422), except explicit operation count semantics. An otherwise valid request whose complete response or evaluation exceeds its semantic budget returns limit_exceeded (HTTP 413) or its defined typed unavailable result. Request byte errors take precedence over coincident schema errors. Error classification MUST NOT depend on diagnostic text substring matching.",
+      "wait_for_bindings is the closed catalog of unique (operation_id, binding_kind) wait carriers. Reject unregistered or duplicate carriers with param_invalid; no priority selection or connection-level WebSocket wait header exists. Target type and validation follow cursor.schema.json and client-sync sections 12.2 and 12.2.1."
     ],
     "surface_classes": {
       "core": "Base interoperable surfaces used for documentation and lint; v1 support does not imply wire reachability without explicit supported_operation_bundles advertisement.",
@@ -14529,7 +14530,7 @@
         "http": "POST /_arkret/self/account/cursor/revoke",
         "grpc": "SelfAccount/CursorRevoke",
         "mq": "self.account.command.revoke_cursor",
-        "notes": "High-assurance optional endpoint to revoke a previously issued cursor authority. Revocation hits return cursor_revoked and MUST NOT advance account subscribe position, barrier wait, or dropped recovery state. To-device queue deletion is decoupled from cursors entirely and happens only via ak.self.device_messages.command.ack.v1.",
+        "notes": "High-assurance optional endpoint to revoke a previously issued cursor authority. Revocation hits return cursor_revoked and MUST NOT advance account subscribe position, barrier wait, or dropped recovery state. To-device queue deletion is decoupled from cursors entirely and happens only via ak.self.device_messages.command.ack.v1. Validate canonical token, immutable issuing instance, exact account/device ownership and selected scope before any ledger write. same_session uses exact private issuing-session identity, not the device. Repeating the same authorized instance/scope is idempotent without renewing its horizon. Expired target fails cursor_expired; unknown, cross-subject or altered target fails cursor_integrity_invalid. Effective revocation is classified only after valid request binding.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "schema_resource",
         "idempotency_mechanism": "object_id",
@@ -16907,8 +16908,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-10-09.3",
-    "generated_at": "2026-10-09T07:53:16+08:00",
+    "version": "2026-10-10.6",
+    "generated_at": "2026-10-10T23:55:48+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.soland_station.v1",
@@ -18250,7 +18251,33 @@
         ]
       }
     ],
-    "metadata_authority": "contract_registry_section"
+    "metadata_authority": "contract_registry_section",
+    "wait_for_bindings": [
+      {
+        "operation_id": "ak.self.account.stream.subscribe.v1",
+        "binding_kind": "http_json",
+        "carrier": "header",
+        "field": "X-Arkret-Wait-For"
+      },
+      {
+        "operation_id": "ak.self.account.stream.subscribe.v1",
+        "binding_kind": "websocket",
+        "carrier": "channel_open_parameters",
+        "field": "wait_for"
+      },
+      {
+        "operation_id": "ak.self.blob.resource.get.v1",
+        "binding_kind": "http_json",
+        "carrier": "header",
+        "field": "X-Arkret-Wait-For"
+      },
+      {
+        "operation_id": "ak.self.blob.resource.head.v1",
+        "binding_kind": "http_json",
+        "carrier": "header",
+        "field": "X-Arkret-Wait-For"
+      }
+    ]
   },
   "capability_action_registry": {
     "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",

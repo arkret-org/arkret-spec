@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-10.2",
+  "version": "2026-10-11.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-10T10:34:19+00:00",
+  "generated_at": "2026-10-11T00:12:12+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -104,7 +104,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#8-cursor",
-      "section_digest": "sha256:35ee8a49cbb73fc6bc58739afc5cbc59abc0b04e3cdadbcf17fd2f23ef2d5e94",
+      "section_digest": "sha256:34c8f32d23dbc490d5146fdfecfb78e95b05894d634cd9882762b49d5dcc04f9",
       "requirement": "Cursors are opaque server-issued tokens bound to their query scope; clients MUST NOT parse or forge them and cross-scope replay MUST be rejected. Unknown handles, including a fresh foreign-service handle, fail with cursor_integrity_invalid before server-side advancement. Foreign-service and local-tamper recovery remain independent cases and preserve verified Commits, MLS private state and delivery ACKs through durable fresh-process readback.",
       "testability_grade": "vector",
       "evidence_refs": [

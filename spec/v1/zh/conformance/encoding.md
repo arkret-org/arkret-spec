@@ -284,7 +284,7 @@ Cursor 是签发服务端可验证的不透明 continuation token。v1 core 只�
 Cursor 必须绑定调用方（完整 `AccountId` 与 device）、purpose、operation 与 filter digest，不得跨调用方、
 跨 operation、跨过滤条件或跨签发服务重放；任一项变化都要求新 cursor。
 
-服务先校验 syntax/schema 与 wire `expires_at`，再查本服务的 `h` 绑定。未知句柄（包括新鲜的外站正常签发 token）、存储绑定过期或绑定不匹配 MUST 零状态推进返回 `cursor_integrity_invalid`；wire 过期使用 `cursor_expired`，已知有效绑定的明确撤销使用 `cursor_revoked`。不透明 wire 没有公开 issuer，接收站 MUST NOT 将未知外站句柄与未知篡改句柄分成不同错误，也不能信任 caller、私有辅助字段或 Account Station 来推断签发者。跨站恢复仍单独验收，见 client-sync §12.3.1。
+服务按 [`../sync/client-sync.md` §12.2](../sync/client-sync.md) 的唯一阶段顺序先校验 syntax/schema、TTL 与 context purpose，再核对 wire `expires_at`，再查本服务的 `h` 绑定并逐毫秒核对不可变时间；有效请求绑定后才分类撤销。未知句柄（包括新鲜的外站正常签发 token）、存储绑定过期或绑定不匹配 MUST 零状态推进返回 `cursor_integrity_invalid`；wire 过期使用 `cursor_expired`，已知有效绑定的明确撤销使用 `cursor_revoked`。不透明 wire 没有公开 issuer，接收站 MUST NOT 将未知外站句柄与未知篡改句柄分成不同错误，也不能信任 caller、私有辅助字段或 Account Station 来推断签发者。跨站恢复仍单独验收，见 client-sync §12.3.1。
 
 **stream 绑定按面区分**：列表分页 cursor 绑定它那一个列表；account 聚合 cursor 绑定的是一**组**获准 stream 的
 位置（`positions` 是复数），服务端把它解析成每条流各自的位置后逐流推进——这不构成跨流位置比较，也不得被
