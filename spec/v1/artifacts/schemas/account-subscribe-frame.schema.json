@@ -1462,6 +1462,21 @@
         }
       ]
     },
+    "account_revision_stale_problem": {
+      "description": "Registered pre-NDJSON RFC 9457 recovery carrier for ak.self.account.stream.subscribe.v1 only. After session, live cursor and current disclosure validation, a recoverable verified serving prefix is behind an accepted head bound to after. continuation_cursor MUST echo that exact after byte for byte. No checkpoint installation, baseline reset, new authority, private state deletion or delivery ACK follows from this refusal; only ordinary verified Account frames can advance the cut. Unknown, forked, irrecoverable or unavailable authority is not this producer condition. See client-sync section 12.3.2.",
+      "allOf": [
+        { "$ref": "./http-problem-details.schema.json" },
+        {
+          "type": "object",
+          "required": ["continuation_cursor"],
+          "properties": {
+            "type": { "const": "https://arkret.org/problems/revision_stale" },
+            "status": { "const": 409 },
+            "continuation_cursor": { "$ref": "#/$defs/cursor_value" }
+          }
+        }
+      ]
+    },
     "realm_list_row": {
       "type": "object",
       "properties": {

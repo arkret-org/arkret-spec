@@ -3,7 +3,7 @@ title: Client Sync
 status: candidate
 normative: true
 stability: v1
-updated: 2026-10-05
+updated: 2026-10-10
 see_also:
   - authority-commit-log.md
   - current-results.md
@@ -322,7 +322,13 @@ cursor 必须绑定 issuer、account/device、purpose、query-scope digest、exp
 
 #### 12.3.2 `revision_stale`（旧 cursor 仍有效，可继续 backfill）
 
-该历史错误名只表示服务仍能从已有 cursor补拉更早的获准内容；它不是 actor/RealmCommit checkpoint。客户端按响应 continuation继续。
+该错误表示服务仍可恢复，但本地已验证的服务前沿尚未覆盖请求要求的已接受 RealmCommit；它不是 cursor 无效，也不是 actor/RealmCommit checkpoint。Account continuation 的最低前沿来自已验证 `after` 的服务端逐流 head 绑定，不从 token wire、请求人声明或未验证 current 缓存推断。服务必须先验证 session、cursor 全部绑定及当前披露资格；仅在能证明目标已接受、当前服务前缀是其连续前缀且追赶仍可完成时，才可在发送首个 NDJSON frame 前返回 `revision_stale`／409。恢复中的已接受历史或投影尚未追上该绑定是正常 producer 条件；未知目标、不完整权限证据、同位置不同 Commit、authority fork、存储故障和无法恢复的缺失不得分类为可追赶落后。无法证明可恢复时使用 `temporarily_unavailable`／503；真正跨过 retained floor 仍使用原 resync 合同。
+
+该 Account 错误的唯一恢复 carrier 为 [`account-subscribe-frame.schema.json#/$defs/account_revision_stale_problem`](../../artifacts/schemas/account-subscribe-frame.schema.json)：`continuation_cursor` REQUIRED，逐字等于本次已验证的 `after`。不得重新签发一个较新或较旧 cut、返回未登记 `frontier`、披露内部 position vector，或把 barrier token 当作 stream continuation。无 `after` 的 initial baseline 不使用此 carrier；其它 operation 的 `revision_stale` 不因此取得 Account 恢复语义。已开始 NDJSON 的 round 不得夹入 Problem 或伪造错误 frame；未完成 round 按原连接中断恢复规则保留最后耐久 cut。
+
+客户端核对 HTTP 与 Problem status 均为409、exact type URI、typed carrier及原请求 cursor 逐字一致，保留完整耐久 checkpoint、已验证历史、current投影、非空MLS私态与确切未消费ACK。错误响应本身没有可安装的数据，不推进 cut、不隐式ACK、不重做baseline；不得从任意409或未知扩展取得恢复指令。客户端按原 filter/device/operation 与 continuation 继续同一 Account catchup，使用既有有界退避，持续落后时返回未解决错误而非重置状态。服务追上后通过正常 Account frames 补拉获准内容，客户端仍须完成签名、连续性、same-cut和耐久安装屏障，之后才接受成功响应的新 cursor。单流历史扫描仍按 `stream_position` 续传，不把该 cursor 用作 scan position。
+
+独立生产验收必须由正常服务解析真实签发的 `after`，在确实可恢复的服务前沿落后时产生409及 exact continuation，验证拒绝零业务效果；解除落后后，普通 Account driver 自动补拉并耐久安装正常签名数据，随后新OS进程读回。脚本错误注入、仅等待成功、仅检查 cursor 字符串或空私态不能替代 `revision_stale_keeps_the_cursor_and_continues_backfill`；23项canonical义务不减。
 
 #### 12.3.3 历史完整性边界（两分支共用）
 

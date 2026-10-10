@@ -49,7 +49,7 @@
       "outbound": 63,
       "prose": 103,
       "prose_only": 3,
-      "schema_reference": 162,
+      "schema_reference": 163,
       "startup_compile": 226,
       "vectors": 113
     },
@@ -2348,13 +2348,16 @@
       "file": "schemas/http-problem-details.schema.json",
       "consumers": {
         "declared_wire": "dynamic_schema_ref",
+        "schema_reference": "exact",
         "startup_compile": "exact"
       },
       "wire_covered": true,
       "vector_coverage": {
-        "disposition": "runtime_dispatch_owned",
-        "owner": "dynamic_schema_ref",
-        "rationale": "This schema is selected inside a registered dynamic/runtime dispatch surface. Coverage belongs to that enclosing dispatch vector because the object is never admitted independently."
+        "disposition": "composed_schema_owned",
+        "owners": [
+          "ak.schema.account_subscribe_frame.v1"
+        ],
+        "rationale": "This schema is admitted only as a typed component of the listed logical schemas. Its instance cases belong in those composed vectors so reference resolution and surrounding invariants are tested together."
       },
       "consumer_binding": {
         "kind": "dynamic_schema_ref",

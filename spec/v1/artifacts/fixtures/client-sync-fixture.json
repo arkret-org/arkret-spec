@@ -1,6 +1,6 @@
 {
   "suite": "client_sync",
-  "version": "2026-10-10.1",
+  "version": "2026-10-10.2",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.sync.client_account_stream.v1"
@@ -300,6 +300,18 @@
       "name": "revision_stale_keeps_the_cursor_and_continues_backfill",
       "stored_cursor": "ak:cursor:account-backfill",
       "server_outcome": "revision_stale",
+      "response_problem": {
+        "type": "https://arkret.org/problems/revision_stale",
+        "title": "Checkpoint stale",
+        "status": 409,
+        "detail": "Verified serving prefix is catching up to the accepted head bound to after",
+        "continuation_cursor": "ak:cursor:account-backfill"
+      },
+      "producer_condition": "validated_after_accepted_head_ahead_of_recoverable_verified_serving_prefix",
+      "checkpoint_advanced_on_error": false,
+      "delivery_acks_invalidated": false,
+      "mls_private_state_deleted": false,
+      "fresh_process_readback": true,
       "expected": "resume",
       "baseline_redone": false,
       "discard_old_cursor": false,

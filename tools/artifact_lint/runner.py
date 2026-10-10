@@ -7,6 +7,7 @@ from .mls_roster_client_roles import check_mls_roster_client_roles
 from .governance_result_consumption_roles import check_governance_result_consumption_roles
 from .agent_runtime_contract import check_agent_runtime_contract
 from .owned_agent_authority import check_owned_agent_authority
+from .account_revision_stale import check_account_revision_stale
 
 from .forbidden_wire import check_forbidden_wire_contexts
 from .approval_eligibility import check_approval_requirement_eligibility
@@ -890,6 +891,7 @@ def main(argv: list[str] | None = None) -> int:
             ("normative_roles", lambda: check_normative_prose_role_names(lint)),
             ("station_role_clean_break", lambda: check_station_role_clean_break(lint)),
             ("account_notification", lambda: check_account_notification_prose_schema_alignment(lint)),
+            ("account_revision_stale", lambda: check_account_revision_stale(lint)),
         ],
         quiet=args.quiet,
         timing=args.timing,

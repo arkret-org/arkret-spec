@@ -147,8 +147,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/client-sync-fixture.json",
-      "sha256": "0f45517a7c01e5451fd3c2e433ff7b3249dffb1b349fc6456c6b470e1031f980",
-      "version": "2026-10-10.1"
+      "sha256": "4be07a84d050c654d06816f5f162eb0c7a3fa9af7793bee802bc32806578beb4",
+      "version": "2026-10-10.2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/consent-cache-invalidation-fixture.json",

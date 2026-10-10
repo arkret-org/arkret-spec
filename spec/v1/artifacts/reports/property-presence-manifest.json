@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9225,
+    "total_properties": 9228,
     "total_schema_documents": 170,
     "by_presence_class": {
-      "optional": 2178,
+      "optional": 2180,
       "optional_defaulted": 48,
-      "required": 6496,
+      "required": 6497,
       "required_nullable": 324,
       "tristate": 179
     },
@@ -2121,6 +2121,9 @@
         "/$defs/account_filter/properties/realm_ids": "optional",
         "/$defs/account_filter/properties/stream_refs": "optional",
         "/$defs/account_filter/properties/window_limit": "optional_defaulted",
+        "/$defs/account_revision_stale_problem/allOf/1/properties/continuation_cursor": "required",
+        "/$defs/account_revision_stale_problem/allOf/1/properties/status": "optional",
+        "/$defs/account_revision_stale_problem/allOf/1/properties/type": "optional",
         "/$defs/account_subscribe_request/allOf/0/if/properties/replace_filter": "required",
         "/$defs/account_subscribe_request/properties/after": "optional",
         "/$defs/account_subscribe_request/properties/catchup": "optional_defaulted",

@@ -3,7 +3,7 @@ title: HTTP/JSON Binding 通用约定
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-20
+updated: 2026-10-10
 ---
 
 ## 0. 规范语言
@@ -586,7 +586,7 @@ scan 若只收 opaque cursor，规范自己的 bootstrap 起不了步。federati
 X-Arkret-Wait-For: <cursor>
 ```
 
-如果服务在超时前到达该 cursor 描述的 authority stream position，则返回正常结果；否则 SHOULD 返回 `temporarily_unavailable` 或 `timeout`，并附带当前 stream head。stream cursor 不得用于 wait-for header；服务端遇到 `purpose=stream` 的 cursor 出现在 wait-for 上下文 MUST 返回 `param_invalid`。
+如果服务在超时前到达该 cursor 描述的 authority stream position，则返回正常结果；否则，已证明可追赶的本地前沿落后使用 `revision_stale`／409，服务故障或无法证明可追赶使用 `temporarily_unavailable`／503，上游依赖超时可使用 `timeout`。不得任意附加未登记的 stream head／frontier 扩展。Account subscribe 的有效 `after` 恢复 carrier 与安装屏障按 [`client-sync.md` §12.3.2](./client-sync.md)；它不让 barrier cursor 成为 Account continuation。stream cursor 不得用于 wait-for header；服务端遇到 `purpose=stream` 的 cursor 出现在 wait-for 上下文 MUST 返回 `param_invalid`。
 
 **Wait-for canonical 与投影（normative）**：`X-Arkret-Wait-For` HTTP header 是 wait-for barrier 的 wire canonical 形态；[`../conformance/query-schema.md §2`](../conformance/query-schema.md) 嵌套形态 `consistency: { wait_for, timeout_ms }` 与 [`../../artifacts/openapi/arkret-service-api.openapi.yaml`](../../artifacts/openapi/arkret-service-api.openapi.yaml) request body 扁平字段 `wait_for: string` 是同义投影，三者等价绑定到同一 RYW (read-your-writes) barrier 语义。服务端 MUST 接受任一形态并解析为相同 cursor；客户端 MAY 选择任一形态。当同一请求同时出现多种形态且取值不一致时，服务端 MUST 按下列优先级解析：(1) `X-Arkret-Wait-For` header；(2) request body `wait_for`；(3) `consistency.wait_for`。
 

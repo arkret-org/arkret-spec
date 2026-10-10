@@ -3076,7 +3076,7 @@ paths:
         name: X-Arkret-Wait-For
         required: false
         description: Barrier cursor (purpose=barrier) returned from a prior write. Server holds the first delta frame until
-          the local checkpoint covers target.event_id, or emits an error frame (timeout / revision_stale / temporarily_unavailable).
+          the local checkpoint covers target.event_id, or returns a registered Problem before NDJSON begins. A barrier is never an Account continuation.
         schema:
           type: string
           pattern: ^ak:cursor:[A-Za-z0-9_-]+$
@@ -3134,6 +3134,14 @@ paths:
             application/x-ndjson:
               schema:
                 $ref: '#/components/schemas/AccountSubscribeFrame'
+        '409':
+          description: Registered conflicts. Recoverable serving-prefix lag with validated after uses the exact continuation carrier; other registered conflicts do not authorize recovery.
+          content:
+            application/problem+json:
+              schema:
+                anyOf:
+                - $ref: ../schemas/account-subscribe-frame.schema.json#/$defs/account_revision_stale_problem
+                - $ref: ../schemas/http-problem-details.schema.json
   /_arkret/self/account/profile:
     post:
       operationId: ak.self.account.command.update_profile
