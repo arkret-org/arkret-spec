@@ -50,7 +50,7 @@ Schema id：`ak.schema.agent_sidecar.v1`。
 | `schema` | yes | const | `ak.schema.agent_sidecar.v1` |
 | `realm_id` | yes | `id:realm` | 从 create Event scope 派生，create-locked |
 | `controller_account_id` | yes | `did_core_id` | 等于 create Event `actor_id`，create-locked |
-| `state` | yes | enum | `active | suspended | tombstoned`，reducer-derived |
+| `state` | yes | enum | `active \| suspended \| tombstoned`，reducer-derived |
 | `state_changed_at` | conditional | timestamp | 非 active 时必填 |
 | `created_at` | yes | timestamp | 等于 accepted create Event `created_at` |
 | `updated_at` | no | timestamp | reducer-derived |

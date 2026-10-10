@@ -88,7 +88,7 @@ Transport binding MUST 映射到 `artifacts/registry/contract-registry.json#oper
 | `ak.peer.events.command.submit.v1` | 唯一 peer Event ingress；closed union 严分 `authority_forward` 单提交、bounded `committed_replication` 与 `registered_atomic_unit`。 |
 | `ak.peer.committed_event.read.scan.v1` | federation peer 按获准的单个 authority stream 与 `stream_position` 拉取或回填 Event；不使用 cursor。 |
 | `ak.peer.contacts.command.submit.v1` | federation peer以closed XOR投递原签名`ak.contact.*` fact、对应source-signed acceptance receipt与可刷新current proof；不得承载`ak.direct_conversation.bound`、共享Realm Event或unsigned service row。 |
-| `ak.self.contact.command.scope_update.v1` | Contact issuer-local signed full-set scope replacement，固定`phase=prepare|commit`。 |
+| `ak.self.contact.command.scope_update.v1` | Contact issuer-local signed full-set scope replacement，固定`phase=prepare\|commit`。 |
 | `ak.self.agent.participation.resource.replace.v1` | controller 通过 bearer+DPoP 在自己的 Account Authority 原子替换一个 versioned per-scope selection；不产生 Realm Event、不走 peer relay。 |
 | `ak.self.account.read.viewer.v1` | 当前 holder 的账号主体自读；响应使用 signed handle claim / ref / digest。 |
 | `ak.self.account.command.update_profile.v1` | closed `{profile_event}` 提交 holder-signed `ak.profile.create` 或 `ak.profile.update`；Event 的 `actor_id` 必须是 `kind="account"` 且其 `account_id` 逐字段等于 authenticated session 的 exact `AccountId`，`realm_id` 必须等于该账号的本地唯一 PCR lineage，服务端只走 ordinary admission。create ID 由 Event 派生；Event preconditions 为空，update 并发只使用可选 signed `payload.expected_state_digest`，patch 仍只允许 display/avatar/profile_fields；exact replay 不重复 account-aggregate delta。 |

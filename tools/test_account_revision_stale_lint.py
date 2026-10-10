@@ -3,9 +3,14 @@
 import copy
 import json
 import unittest
+import sys
+from pathlib import Path
 
-from artifact_lint.account_revision_stale import CASE, FIXTURE, MAPPING, SCHEMA, check_account_revision_stale, contract_errors
-from artifact_lint.core import Lint
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from tools.artifact_lint.account_revision_stale import CASE, FIXTURE, MAPPING, SCHEMA, check_account_revision_stale, contract_errors
+from tools.artifact_lint.core import Lint
 
 
 class AccountRevisionStaleTests(unittest.TestCase):

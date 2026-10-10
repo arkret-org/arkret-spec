@@ -10,25 +10,28 @@ and the gate that keeps the citation honest.
 
 from __future__ import annotations
 
+import sys
 import json
 import re
 import unittest
 from pathlib import Path
 
-from artifact_lint.core import Lint
-from artifact_lint.prose import (
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from tools.artifact_lint.core import Lint
+from tools.artifact_lint.prose import (
     ARTIFACT_PROSE_SECTION_REF_EXEMPTIONS_PATH,
     _artifact_prose_section_citations,
     check_artifact_prose_section_refs,
     check_prose_markdown_link_section_refs,
     check_prose_plain_text_section_refs,
 )
-from artifact_lint.prose import (
+from tools.artifact_lint.prose import (
     _PLAIN_PROSE_SECTION_REF_RE,
     _prose_page_index,
 )
 
-ROOT = Path(__file__).resolve().parents[1]
 SPEC = ROOT / "spec" / "v1"
 ARTIFACTS = SPEC / "artifacts"
 EVENT_AND_PATCH = SPEC / "zh" / "models" / "event-and-patch.md"

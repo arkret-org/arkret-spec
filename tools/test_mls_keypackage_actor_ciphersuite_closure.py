@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sys
 import base64
 import json
 import shutil
@@ -8,8 +9,11 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from artifact_lint import fixtures
-from artifact_lint.core import ARTIFACTS, Lint
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from tools.artifact_lint import fixtures
+from tools.artifact_lint.core import ARTIFACTS, Lint
 
 
 REQUIRED_FILES = (

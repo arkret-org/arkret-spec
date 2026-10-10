@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sys
 import json
 import shutil
 import tempfile
@@ -7,8 +8,11 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from artifact_lint import safety
-from artifact_lint.core import ARTIFACTS, Lint
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from tools.artifact_lint import safety
+from tools.artifact_lint.core import ARTIFACTS, Lint
 
 
 class DetachedJwsAlgorithmGateTest(unittest.TestCase):

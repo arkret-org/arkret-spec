@@ -697,13 +697,13 @@ request／outcome 或字段。未知、未认证、不完整或不一致证据�
 
 原子切点（normative）：
 
-- selector 在 `ak.realm.create` 的**第一次网络副作用之前**、任何治理证据读取之前、任何依赖 selector 的
++ selector 在 `ak.realm.create` 的**第一次网络副作用之前**、任何治理证据读取之前、任何依赖 selector 的
   随机材料生成之前落盘；
-- governance binding 在任何依赖它的 MLS / HPKE 随机材料之前钉住；
-- epoch-0 private state、public 原始字节与 exact unsigned Genesis core 作为**同一个恢复单元**提交，且必须早于
++ governance binding 在任何依赖它的 MLS / HPKE 随机材料之前钉住；
++ epoch-0 private state、public 原始字节与 exact unsigned Genesis core 作为**同一个恢复单元**提交，且必须早于
   public blob 上传、Genesis 签名与入队；
-- exact signed Event bytes 与 outbound queue item 在同一次 durable commit 中建立；
-- `ready` 与 send-gate 索引原子发布。
++ exact signed Event bytes 与 outbound queue item 在同一次 durable commit 中建立；
++ `ready` 与 send-gate 索引原子发布。
 
 记录停留在 `genesis_intent_persisted` 时，整条封闭 creation intent MAY 在一次原子 durable commit 中被**整体
 替换**（自转移 `genesis_intent_persisted_to_genesis_intent_persisted`）；对单个 selector 的部分 patch 不是合法
@@ -752,14 +752,14 @@ authority transaction。
 
 ## 7. v1 集成要求
 
-- Realm、每个 Circle分别决定是否通过 Genesis不可逆激活MLS；
-- shared MLS Event只有 `ak.mls.genesis` 与 `ak.mls.commit`；
-- Welcome与Commit同一authority transaction durable enqueue；跨站 recipient 的 Welcome 随同一 Commit 的
++ Realm、每个 Circle分别决定是否通过 Genesis不可逆激活MLS；
++ shared MLS Event只有 `ak.mls.genesis` 与 `ak.mls.commit`；
++ Welcome与Commit同一authority transaction durable enqueue；跨站 recipient 的 Welcome 随同一 Commit 的
   committed-replication item 在成员站同一 replica 事务入队；
-- KeyPackage只在专用ledger；
-- fixed GroupContext binding只含scope、base、epoch transition与key-access revision；
-- 新member/endpoint只从Add/Welcome epoch获得密文能力；
-- governance Station handoff迁移public state、claim records与Welcome outbox，不迁移member secrets。
++ KeyPackage只在专用ledger；
++ fixed GroupContext binding只含scope、base、epoch transition与key-access revision；
++ 新member/endpoint只从Add/Welcome epoch获得密文能力；
++ governance Station handoff迁移public state、claim records与Welcome outbox，不迁移member secrets。
 
 ## 持久恢复的完成条件（normative）
 

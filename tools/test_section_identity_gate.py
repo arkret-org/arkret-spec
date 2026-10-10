@@ -14,15 +14,19 @@ real prose shows up as a failure here rather than as quiet permission.
 
 from __future__ import annotations
 
+import sys
 import json
 import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
 
-from artifact_lint import core
-from artifact_lint import section_identity as gate
-from artifact_lint.core import Lint
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from tools.artifact_lint import core
+from tools.artifact_lint import section_identity as gate
+from tools.artifact_lint.core import Lint
 
 NEWLINE = chr(10)
 

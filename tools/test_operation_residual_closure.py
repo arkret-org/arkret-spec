@@ -2,17 +2,20 @@
 
 from __future__ import annotations
 
+import sys
 import json
 import unittest
 from pathlib import Path
 
 import yaml
 
-from artifact_lint.bindings import check_non_http_binding_exactness
-from artifact_lint.core import Lint
-
-
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from tools.artifact_lint.bindings import check_non_http_binding_exactness
+from tools.artifact_lint.core import Lint
+
+
 ARTIFACTS = ROOT / "spec" / "v1" / "artifacts"
 SPEC_ZH = ROOT / "spec" / "v1" / "zh"
 

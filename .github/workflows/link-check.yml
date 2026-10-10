@@ -19,5 +19,5 @@ jobs:
           -v "$PWD:/workspace"
           -w /workspace
           lycheeverse/lychee:0.24.2
-            --config lychee.toml
-            README.md "spec/v1/**/*.md"
+          --config lychee.toml
+          README.md "spec/v1/**/*.md"

@@ -2,15 +2,19 @@
 
 from __future__ import annotations
 
+import sys
 import copy
 import unittest
 from pathlib import Path
 
-from artifact_lint.bindings import (
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from tools.artifact_lint.bindings import (
     check_internal_operation_set_subset,
     check_non_http_binding_exactness,
 )
-from artifact_lint.core import Lint
+from tools.artifact_lint.core import Lint
 
 
 OP_ONE = "ak.self.probe.command.one.v1"

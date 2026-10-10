@@ -1,11 +1,17 @@
 """Mutation tests for the active Direct Conversation structure gate."""
 
+import sys
 import copy
 import unittest
 from unittest.mock import patch
 
-from artifact_lint.core import Lint, load_json
-from artifact_lint import direct_conversation_structure as gate
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from tools.artifact_lint.core import Lint, load_json
+from tools.artifact_lint import direct_conversation_structure as gate
 
 
 class DirectConversationStructureTests(unittest.TestCase):
