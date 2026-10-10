@@ -1,0 +1,22 @@
+# Named Docker contexts need the complete normative source and artifacts, but
+# no checkout credentials or local documentation build caches.
+.git
+**/.git
+.claude
+.codex-tmp
+.local
+.ssh
+.gnupg
+.secrets
+.env
+.env.local
+.env.production
+.*.log
+**/__pycache__
+**/node_modules
+site/dist
+site/.astro
+site/.cache
+site/.vite
+site/.output
+.netlify
