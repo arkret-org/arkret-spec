@@ -354,6 +354,12 @@ def check_operations_error_mapping_closure(lint: Lint) -> None:
             if not isinstance(row, dict):
                 lint.fail(mapping_path, f"operations[{index}] must be an object")
                 continue
+            if row.get("operation_id") == "ak.self.account.stream.subscribe.v1":
+                required = {"cursor_expired", "cursor_integrity_invalid", "cursor_revoked"}
+                declared = {code for code in row.get("operation_specific", []) if isinstance(code, str)}
+                missing = required - declared
+                if missing:
+                    lint.fail(mapping_path, f"Account subscribe cursor recovery errors missing: {sorted(missing)}")
             for code in row.get("operation_specific", []):
                 if not isinstance(code, str):
                     lint.fail(mapping_path, f"operations[{index}].operation_specific contains non-string code")

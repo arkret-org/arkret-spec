@@ -40,6 +40,19 @@ class OperationErrorMappingAliasTest(unittest.TestCase):
     def test_current_aliases_match_operation_registry(self) -> None:
         self.assertEqual(self.run_gate(), [])
 
+    def test_account_cursor_recovery_errors_cannot_be_omitted(self) -> None:
+        for code in ("cursor_expired", "cursor_integrity_invalid", "cursor_revoked"):
+            with self.subTest(code=code):
+                def mutate(mapping: dict) -> None:
+                    row = next(
+                        row for row in mapping["operations"]
+                        if row["operation_id"] == "ak.self.account.stream.subscribe.v1"
+                    )
+                    row["operation_specific"].remove(code)
+
+                errors = self.run_gate(mutate)
+                self.assertTrue(any("cursor recovery errors missing" in error for error in errors), errors)
+
     def test_retired_alias_is_rejected(self) -> None:
         def mutate(mapping: dict) -> None:
             row = next(

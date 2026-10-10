@@ -1,6 +1,6 @@
 {
-  "version": "2026-09-20.1",
-  "generated_at": "2026-09-20T07:04:15+08:00",
+  "version": "2026-10-10.1",
+  "generated_at": "2026-10-10T16:30:00+08:00",
   "source_of_truth": true,
   "description": "Canonical service_kind vocabulary. A service_kind names an independent protocol identity or trust role that a remote party must distinguish. It never classifies Station-internal processes, operation bundles, features, limits, or transport bindings. This registry is the single source of valid values and per-context eligibility for Service Describe, Realm join candidates, ServiceRegistrationKey, and the MIMI provider directory. Consumers MUST derive their closed value space from active rows whose valid_in includes the applicable context.",
   "registry_rules": [
