@@ -304,7 +304,9 @@ cursor 必须绑定 issuer、account/device、purpose、query-scope digest、exp
 
 ### 12.2 校验流程 (normative)
 
-服务先验签/MAC与 expiry，再核对 session、purpose和 query scope，最后才读取 position。失败不得推进任何 server-side state。
+服务先验证 canonical wire syntax/schema 与 `expires_at`，再在本签发服务查找不透明 `h`、验证存储绑定与 session、purpose、operation 和 query scope，最后才读取 position。v1 没有内联签名或 MAC，句柄查表本身就是完整性检查。syntax/schema 失败使用 `param_invalid`／`invalid_cursor`，wire 过期使用 `cursor_expired`；未知句柄、存储绑定过期或跨绑定使用 `cursor_integrity_invalid`，已知且有效绑定的明确撤销使用 `cursor_revoked`。失败不得推进任何 server-side state。
+
+新鲜的外站合法 token 在接收站同样是未知句柄，MUST 返回 `cursor_integrity_invalid`，不能通过请求账号的 Station、caller 声明或私有辅助字段猜测 token issuer。v1 不提供另一种跨站不可识别错误，也不得查询外站位置来接受该 token；签发站坐标与内部 positions 仍不对客户端公开。
 
 ### 12.2.1 Cursor Revoke（high-assurance optional）
 
@@ -314,9 +316,9 @@ cursor 必须绑定 issuer、account/device、purpose、query-scope digest、exp
 
 恢复优先级为：account baseline、目标 typed snapshot、每条获准 stream tail、按需旧历史。不得回退到邀请人/旧 authority的任意日志。
 
-#### 12.3.1 `cursor_expired` / `cursor_integrity_invalid` / `cursor_unrecognized`（旧 cursor MUST 废弃）
+#### 12.3.1 `cursor_expired` / `cursor_integrity_invalid`（旧 cursor MUST 废弃）
 
-丢弃旧 cursor并重做对应 surface baseline；不删除本地已验证 Commit或MLS private state。
+丢弃旧 cursor并重做对应 surface baseline；不删除本地已验证 Commit或MLS private state，不消费或失效已有 delivery ACK。跨站误投与本地篡改必须分别验收：前者须由独立真实 Station 正常签发并绑定 token，再原样提交接收站，后者使用本地 token 的未知篡改句柄。两者均验证拒绝零服务副作用、仅对应 surface baseline 重建、非空私态与确切 ACK 保持，并在恢复后用新进程读回耐久状态；不得用相同错误码合并或删去跨站 case。
 
 #### 12.3.2 `revision_stale`（旧 cursor 仍有效，可继续 backfill）
 

@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-09.2",
-  "generated_at": "2026-10-09T00:14:22+00:00",
+  "version": "2026-10-10.1",
+  "generated_at": "2026-10-10T09:25:31+00:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -955,7 +955,7 @@
       "code": "cursor_expired",
       "http_status": 410,
       "scope": "endpoint",
-      "description": "The opaque cursor (ak:cursor:...) has a valid shape but its `x` expiry is in the past. Client MUST request a fresh cursor (initial /account/subscribe, /snapshot/head, or new write barrier).",
+      "description": "The opaque cursor (ak:cursor:...) has a valid shape but its expires_at is in the past. Client MUST request a fresh cursor (initial /account/subscribe, /snapshot/head, or new write barrier).",
       "type_uri": "https://arkret.org/problems/cursor_expired",
       "title": "Cursor expired",
       "status": "active"
@@ -964,7 +964,7 @@
       "code": "cursor_integrity_invalid",
       "http_status": 400,
       "scope": "endpoint",
-      "description": "Cursor integrity check failed for the v1 stateful opaque handle (client-sync §12.1, canonical body `{v, purpose, issued_at, expires_at, h}`): the `h` handle is unknown / revoked / expired / cross-bound, or its stored binding (principal, device, service, filter_digest, purpose) does not match the authenticated request. Distinct from cursor_expired (TTL) and cursor_unrecognized (cross-service portability miss). Client MUST clear local cursor cache and restart from initial /account/subscribe.",
+      "description": "Cursor integrity check failed for the v1 stateful opaque handle (client-sync §12.1, canonical body `{v, purpose, issued_at, expires_at, h}`): the h handle is unknown, its stored binding has expired, or the binding does not match the authenticated account/device/service/operation/filter/purpose. A fresh cursor issued by another service and an unknown tampered handle are indistinguishable at this service and MUST both fail with this code. Syntax failures use param_invalid with invalid_cursor; wire expires_at expiry uses cursor_expired; an explicitly revoked valid binding uses cursor_revoked. Before any server-side advancement, reject and rebuild only the affected surface baseline without deleting verified Commits, MLS private state or delivery ACKs.",
       "type_uri": "https://arkret.org/problems/cursor_integrity_invalid",
       "title": "Cursor integrity invalid",
       "status": "active"
@@ -976,15 +976,6 @@
       "description": "Cursor integrity is valid but the issuing service has explicitly revoked this cursor authority before TTL expiry. Endpoint MUST NOT advance subscription position, barrier wait, or dropped recovery state; caller MUST restart from a fresh cursor. To-device queue deletion is decoupled from cursors and unaffected (client-sync.md §10.1).",
       "type_uri": "https://arkret.org/problems/cursor_revoked",
       "title": "Cursor revoked",
-      "status": "active"
-    },
-    {
-      "code": "cursor_unrecognized",
-      "http_status": 400,
-      "scope": "endpoint",
-      "description": "The cursor decoded successfully but cannot be used by this service because it is a stateful handle issued by another service. Caller MUST restart sync from a fresh cursor.",
-      "type_uri": "https://arkret.org/problems/cursor_unrecognized",
-      "title": "Cursor unrecognized",
       "status": "active"
     },
     {
@@ -3421,7 +3412,7 @@
       "applies_to": [
         "client_sync"
       ],
-      "description": "Cursor's `x` expiry is in the past; caller MUST request a fresh cursor.",
+      "description": "Cursor's expires_at is in the past; caller MUST request a fresh cursor.",
       "status": "active"
     },
     {
@@ -3430,7 +3421,7 @@
         "client_sync",
         "encoding"
       ],
-      "description": "Cursor failed the §8.3.1 integrity check: the stateful `h` handle is unknown / revoked / expired / cross-bound, or its stored binding (principal / device / service / filter_digest / purpose) does not match the authenticated request. Distinct from cursor_expired (TTL) and cursor_unrecognized (cross-service portability miss). Triggered before any server-side state advancement (/account/subscribe after= resume, X-Arkret-Wait-For release, dropped/resync_required recovery; to-device queue deletion is decoupled from cursors per client-sync.md §10.1). Client MUST clear local cursor cache and restart from initial /account/subscribe.",
+      "description": "Cursor failed the stateful handle integrity check: h is unknown, its stored binding has expired, or account/device/service/operation/filter/purpose binding does not match. A fresh foreign-service cursor and an unknown tampered handle MUST both use this code; the wire contains no public issuer proof. Syntax failures use invalid_cursor, wire expires_at expiry uses cursor_expired, and explicit revocation of a valid binding uses cursor_revoked. Reject before any server-side advancement, discard only the affected surface cursor, rebuild its baseline, and preserve verified Commits, MLS private state and delivery ACKs.",
       "status": "active"
     },
     {
@@ -3440,14 +3431,6 @@
         "encoding"
       ],
       "description": "Cursor passed syntax and integrity validation but is present in the issuing service's revocation set. Treated as an authority revocation, not tamper; endpoint MUST NOT advance server-side state.",
-      "status": "active"
-    },
-    {
-      "code": "cursor_unrecognized",
-      "applies_to": [
-        "client_sync"
-      ],
-      "description": "Cursor decoded successfully but cannot be used by this service because it is a stateful handle issued by another service. This is a cross-service portability miss, not TTL expiry and not local integrity failure; caller MUST restart sync from a fresh cursor.",
       "status": "active"
     },
     {
@@ -4083,7 +4066,7 @@
         "client_sync",
         "encoding"
       ],
-      "description": "Cursor payload fails the §8.2 / §8.3 cursor syntax or schema before integrity verification. HTTP endpoints surface this as top-level `param_invalid` with reason_code `invalid_cursor`. Expiry uses `cursor_expired`; handle lookup or cross-binding failures use `cursor_integrity_invalid`; cross-service portability misses use `cursor_unrecognized`.",
+      "description": "Cursor payload fails the cursor syntax or schema before integrity verification. HTTP endpoints surface this as top-level param_invalid with reason_code invalid_cursor. Wire expires_at expiry uses cursor_expired; unknown handles, including a fresh foreign-service handle, and cross-binding failures use cursor_integrity_invalid; explicit revocation of a valid binding uses cursor_revoked.",
       "status": "active"
     },
     {

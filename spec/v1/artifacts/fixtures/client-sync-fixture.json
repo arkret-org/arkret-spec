@@ -1,6 +1,6 @@
 {
   "suite": "client_sync",
-  "version": "2026-10-05.2",
+  "version": "2026-10-10.1",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.sync.client_account_stream.v1"
@@ -271,19 +271,30 @@
     {
       "name": "cursor_integrity_invalid_redoes_only_that_surface_baseline",
       "stored_cursor": "ak:cursor:account-tampered",
+      "cursor_origin": "local_unknown_tampered_handle",
       "server_outcome": "cursor_integrity_invalid",
       "expected": "reset",
       "baseline_redone": true,
       "discard_old_cursor": true,
-      "server_state_advanced": false
+      "server_state_advanced": false,
+      "local_verified_commits_deleted": false,
+      "mls_private_state_deleted": false,
+      "delivery_acks_invalidated": false,
+      "fresh_process_readback": true
     },
     {
-      "name": "cursor_unrecognized_redoes_only_that_surface_baseline",
-      "stored_cursor": "ak:cursor:account-unknown",
-      "server_outcome": "cursor_unrecognized",
+      "name": "foreign_station_cursor_redoes_only_that_surface_baseline",
+      "stored_cursor": "ak:cursor:account-foreign-station",
+      "cursor_origin": "distinct_station_valid_issued_binding",
+      "server_outcome": "cursor_integrity_invalid",
       "expected": "reset",
       "baseline_redone": true,
-      "discard_old_cursor": true
+      "discard_old_cursor": true,
+      "server_state_advanced": false,
+      "local_verified_commits_deleted": false,
+      "mls_private_state_deleted": false,
+      "delivery_acks_invalidated": false,
+      "fresh_process_readback": true
     },
     {
       "name": "revision_stale_keeps_the_cursor_and_continues_backfill",

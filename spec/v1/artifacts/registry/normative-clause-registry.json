@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-09.7",
+  "version": "2026-10-10.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-09T17:52:56+08:00",
+  "generated_at": "2026-10-10T09:25:31+00:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -104,13 +104,14 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/conformance/encoding.md#8-cursor",
-      "section_digest": "sha256:e0160697346a0382e756714510a622485370f912db41bbb9cd5ee9fc13af9596",
-      "requirement": "Cursors are opaque server-issued tokens bound to their query scope; clients MUST NOT parse or forge them and cross-scope replay MUST be rejected.",
+      "section_digest": "sha256:35ee8a49cbb73fc6bc58739afc5cbc59abc0b04e3cdadbcf17fd2f23ef2d5e94",
+      "requirement": "Cursors are opaque server-issued tokens bound to their query scope; clients MUST NOT parse or forge them and cross-scope replay MUST be rejected. Unknown handles, including a fresh foreign-service handle, fail with cursor_integrity_invalid before server-side advancement. Foreign-service and local-tamper recovery remain independent cases and preserve verified Commits, MLS private state and delivery ACKs through durable fresh-process readback.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.encoding.cursor_opaque.core.v1",
         "ak.vector.encoding.reject_invalid_cursor.core.v1",
-        "ak.vector.sync.cursor_binding.v1"
+        "ak.vector.sync.cursor_binding.v1",
+        "ak.vector.sync.client_account_stream.v1"
       ]
     },
     {
