@@ -2160,7 +2160,7 @@ def check_normative_prose_role_names(lint: Lint) -> None:
     forbidden = {
         "cotest::": "private runner module path",
         "cotest scanner": "implementation-specific scanner role",
-        "teabay Directory": "implementation-specific Directory Service role",
+        "flagon Directory": "implementation-specific Directory Service role",
     }
     files = sorted(set(zh_root.rglob("*.md")) | set(zh_root.rglob("*.mdx")))
     for path in files:

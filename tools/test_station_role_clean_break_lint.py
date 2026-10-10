@@ -252,12 +252,12 @@ class StationRoleCleanBreakGateTest(unittest.TestCase):
         errors = self._role_name_errors(
             {
                 "zh/conformance.md": NORMATIVE_FRONTMATTER
-                + "验收由 cotest\nscanner 执行，Directory 由 teabay\nDirectory 提供。\n"
+                + "验收由 cotest\nscanner 执行，Directory 由 flagon\nDirectory 提供。\n"
             }
         )
         self.assertEqual(len(errors), 2, errors)
         self.assertTrue(any("cotest scanner" in error for error in errors), errors)
-        self.assertTrue(any("teabay Directory" in error for error in errors), errors)
+        self.assertTrue(any("flagon Directory" in error for error in errors), errors)
 
     def test_sister_gate_still_reports_a_single_line_occurrence(self) -> None:
         errors = self._role_name_errors(

@@ -16945,7 +16945,7 @@
         "prototype_id": "ak.deployment_prototype.teabay_directory_service.v1",
         "service_kind": "directory_service",
         "evidence_kind": "reference_implementation",
-        "evidence_ref": "teabay:crates/server/src/kinds.rs#SUPPORTED_OPERATIONS",
+        "evidence_ref": "flagon:crates/server/src/kinds.rs#SUPPORTED_OPERATIONS",
         "independent_gates": [
           "private_contact_discovery"
         ]
