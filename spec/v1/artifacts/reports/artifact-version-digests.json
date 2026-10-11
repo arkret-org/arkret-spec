@@ -87,9 +87,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
-      "version": "2026-10-11.1",
-      "generated_at": "2026-10-11T08:13:43+08:00",
-      "content_digest": "sha256:d5e98065cc04e97663e620ab0e7d26f1ae3f83d73b781e30c9b214f8493b83c1"
+      "version": "2026-10-11.2",
+      "generated_at": "2026-10-11T23:19:36+08:00",
+      "content_digest": "sha256:0d44155f87ecfb937cf9218a56902c46b24e222f6f14668b11d910e2c44827cf"
     },
     {
       "path": "spec/v1/artifacts/registry/current-result-registry.json",
@@ -219,15 +219,15 @@
     },
     {
       "path": "spec/v1/artifacts/registry/normative-clause-registry.json",
-      "version": "2026-10-11.2",
-      "generated_at": "2026-10-11T08:11:40+08:00",
-      "content_digest": "sha256:d94a2606e3995122257314f52064683992e0a769243d8f007706f06d0b25a139"
+      "version": "2026-10-11.3",
+      "generated_at": "2026-10-11T23:36:50+08:00",
+      "content_digest": "sha256:827147554a3b8ae457760b9bbbedd4c9006e57da5103ee64aed1825b688ecd44"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-bundle-closure-lock.json",
-      "version": "2026-10-09.2",
-      "generated_at": "2026-10-09T07:35:11+08:00",
-      "content_digest": "sha256:26befde767f284d0a67c2380f3692f7ede4d56d670304d82ab81dd4b4e98f685"
+      "version": "2026-10-11.2",
+      "generated_at": "2026-10-11T23:19:37+08:00",
+      "content_digest": "sha256:e52fddd959b0488f93a6615c92918e980f8a6d658105993c7306ea8f1ea635c9"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-clause-registry.json",
@@ -243,9 +243,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
-      "version": "2026-10-11",
-      "generated_at": "2026-10-11T08:11:40+08:00",
-      "content_digest": "sha256:08ab906e7485af4a3b1608a3c08d0cf1eb0fb20b0e0dfc9268fe590620e6c82b"
+      "version": "2026-10-11.1",
+      "generated_at": "2026-10-11T23:19:36+08:00",
+      "content_digest": "sha256:c0af4aa2111fe006fb5f38eea42770ed5c8b68b406751dc603f08e8ce68450c3"
     },
     {
       "path": "spec/v1/artifacts/registry/operations-error-mapping.json",
@@ -435,9 +435,9 @@
     },
     {
       "path": "tools/evidence-material-audit.json",
-      "version": 31,
+      "version": 32,
       "generated_at": null,
-      "content_digest": "sha256:4f6fbd69349d040797e4ddb32832a555a8ff683255debd640806f3d673a74521"
+      "content_digest": "sha256:43fbfc1199ef4d774a9b059990f4713298c4cdd520f19d7a07aabc4f4d5f00f5"
     },
     {
       "path": "tools/fixture-schema-instance-binding-registry.json",

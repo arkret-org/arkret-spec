@@ -2008,6 +2008,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EventView'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /_arkret/peer/account-status/resolve:
     post:
       operationId: ak.peer.account_status.read.resolve

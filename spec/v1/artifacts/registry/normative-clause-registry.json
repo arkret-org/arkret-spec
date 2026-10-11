@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-11.2",
+  "version": "2026-10-11.3",
   "source_of_truth": true,
-  "generated_at": "2026-10-11T08:11:40+08:00",
+  "generated_at": "2026-10-11T23:36:50+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -376,10 +376,10 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/sync/service-surface.md#30-describe-response-claim-levels",
-      "section_digest": "sha256:85c2da139264a35873fd016c4279154363842c0fbb3828baa9f21ddec4686d1f",
-      "requirement": "supported_profiles is the sole complete-profile self-declaration. verified_profiles ids are unique and contained in supported_profiles, with independently verified evidence. Both calendar profiles require nonempty executable registered TZDB releases.",
+      "section_digest": "sha256:84ccffb6c0580a7526d1ae84c750f501dfe72220ccd940614ff30ca931ec4d9f",
+      "requirement": "supported_profiles is the sole complete-profile self-declaration. verified_profiles ids are unique and contained in supported_profiles, with independently verified evidence. Both calendar profiles require nonempty executable registered TZDB releases. Operation reachability is only the advertised bundle member union. Same-role overlap requires explicit, acyclic inclusion of registered current-v1 bundles with non-empty strict exact-pair member subsets; advertising an included bundle never advertises its parent, other members or complete lifecycle.",
       "testability_grade": "api_shape",
-      "test_plan": "Run tools.test_residual_simplification and full schema fixtures for both calendar profiles, supported/verified advertisements, missing/empty/unknown TZDB, forbidden claimed_profiles and verified subset violations. This is schema and reference semantic evidence, not a live profile activation or calendar execution test."
+      "test_plan": "Run tools.test_residual_simplification and full schema fixtures for both calendar profiles, supported/verified advertisements, missing/empty/unknown TZDB, forbidden claimed_profiles and verified subset violations. This is schema and reference semantic evidence, not a live profile activation or calendar execution test. Run tools.test_operation_residual_closure for declared strict and transitive inclusion, undeclared/partial/equal overlap, missing/non-v1 IDs, cross-role inclusion, empty/duplicate/unsorted inclusion lists, binding mismatch, cycles and frozen closure digest changes. These registry checks do not establish provider lifecycle availability."
     },
     {
       "clause_id": "AK-NC-050",

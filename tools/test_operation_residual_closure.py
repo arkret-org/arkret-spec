@@ -14,6 +14,7 @@ sys.path.insert(0, str(ROOT))
 
 from tools.artifact_lint.bindings import check_non_http_binding_exactness
 from tools.artifact_lint.core import Lint
+from tools.artifact_lint.foundation import operation_bundle_inclusion_errors
 
 
 ARTIFACTS = ROOT / "spec" / "v1" / "artifacts"
@@ -185,6 +186,89 @@ class OperationResidualClosureTest(unittest.TestCase):
             lint, path, yaml.safe_load(path.read_text(encoding="utf-8")), known
         )
         self.assertEqual([], lint.errors)
+
+
+class OperationBundleInclusionTest(unittest.TestCase):
+    def bundle(self, name, operations, included=None, role="station"):
+        row = {
+            "operation_bundle_id": f"ak.operation_bundle.{role}.{name}.v1",
+            "service_kind": role,
+            "members": [{"operation_id": operation, "binding_kind": "http_json"} for operation in operations],
+        }
+        if included is not None:
+            row["included_operation_bundle_ids"] = included
+        return row
+
+    def test_declared_strict_inclusion_accepts_only_shared_exact_pairs(self):
+        child = self.bundle("issuer", ["issue"])
+        parent = self.bundle("lifecycle", ["issue", "activate"], [child["operation_bundle_id"]])
+        self.assertEqual([], operation_bundle_inclusion_errors([child, parent]))
+
+    def test_undeclared_overlap_stays_rejected(self):
+        self.assertTrue(operation_bundle_inclusion_errors([
+            self.bundle("issuer", ["issue"]), self.bundle("lifecycle", ["issue", "activate"])
+        ]))
+
+    def test_missing_or_non_v1_inclusion_is_rejected(self):
+        for target in ["ak.operation_bundle.station.missing.v1", "ak.operation_bundle.station.issuer.v2"]:
+            with self.subTest(target=target):
+                self.assertTrue(operation_bundle_inclusion_errors([self.bundle("lifecycle", ["issue", "activate"], [target])]))
+
+    def test_cross_role_inclusion_is_rejected_without_banning_cross_role_pairs(self):
+        child = self.bundle("issuer", ["issue"], role="identity_registry")
+        parent = self.bundle("lifecycle", ["issue", "activate"])
+        self.assertEqual([], operation_bundle_inclusion_errors([child, parent]))
+        parent["included_operation_bundle_ids"] = [child["operation_bundle_id"]]
+        self.assertTrue(operation_bundle_inclusion_errors([child, parent]))
+
+    def test_empty_equal_and_partial_member_sets_are_rejected(self):
+        for operations in [[], ["issue", "activate"], ["issue", "other"]]:
+            with self.subTest(operations=operations):
+                child = self.bundle("issuer", operations)
+                parent = self.bundle("lifecycle", ["issue", "activate"], [child["operation_bundle_id"]])
+                self.assertTrue(operation_bundle_inclusion_errors([child, parent]))
+
+    def test_binding_mismatch_is_not_containment(self):
+        child = self.bundle("issuer", ["issue"])
+        child["members"][0]["binding_kind"] = "websocket"
+        parent = self.bundle("lifecycle", ["issue", "activate"], [child["operation_bundle_id"]])
+        self.assertTrue(operation_bundle_inclusion_errors([child, parent]))
+
+    def test_cycle_and_self_inclusion_are_rejected(self):
+        child = self.bundle("issuer", ["issue"])
+        parent = self.bundle("lifecycle", ["issue", "activate"], [child["operation_bundle_id"]])
+        child["included_operation_bundle_ids"] = [parent["operation_bundle_id"]]
+        self.assertTrue(any("cycle" in error for error in operation_bundle_inclusion_errors([child, parent])))
+        child["included_operation_bundle_ids"] = [child["operation_bundle_id"]]
+        self.assertTrue(any("cycle" in error for error in operation_bundle_inclusion_errors([child])))
+
+    def test_inclusion_list_is_closed_unique_and_sorted(self):
+        child = self.bundle("issuer", ["issue"])
+        for invalid in [[], "not-an-array", [None], [child["operation_bundle_id"]] * 2]:
+            with self.subTest(invalid=invalid):
+                parent = self.bundle("lifecycle", ["issue", "activate"], invalid)
+                self.assertTrue(operation_bundle_inclusion_errors([child, parent]))
+        other = self.bundle("another_issuer", ["activate"])
+        parent = self.bundle("lifecycle", ["issue", "activate"], [child["operation_bundle_id"], other["operation_bundle_id"]])
+        self.assertTrue(any("canonical-sorted" in error for error in operation_bundle_inclusion_errors([child, other, parent])))
+
+    def test_transitive_inclusion_is_valid_but_shared_siblings_are_rejected(self):
+        child = self.bundle("issuer", ["issue"])
+        parent = self.bundle("lifecycle", ["issue", "activate"], [child["operation_bundle_id"]])
+        root = self.bundle("complete", ["issue", "activate", "present"], [parent["operation_bundle_id"]])
+        self.assertEqual([], operation_bundle_inclusion_errors([child, parent, root]))
+        sibling = self.bundle("other", ["issue", "status"], [child["operation_bundle_id"]])
+        self.assertTrue(operation_bundle_inclusion_errors([child, parent, sibling]))
+
+    def test_inclusion_is_part_of_frozen_bundle_closure(self):
+        from tools.check_operation_closure_locks import bundle_closures
+
+        child = self.bundle("issuer", ["issue"])
+        parent = self.bundle("lifecycle", ["issue", "activate"])
+        before = bundle_closures({"operation_registry": {"operation_bundles": [child, parent]}})
+        parent["included_operation_bundle_ids"] = [child["operation_bundle_id"]]
+        after = bundle_closures({"operation_registry": {"operation_bundles": [child, parent]}})
+        self.assertNotEqual(before, after)
 
 
 if __name__ == "__main__":

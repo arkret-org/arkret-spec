@@ -291,6 +291,8 @@ Claim 成功但 MLS Welcome / KeyPackage 派发尚未完成时，成员资格可
 
 自己 Station 是治理接纳与当前权限的验证方（[`server-trusted-results.md` §1](./server-trusted-results.md)）。`ak.self.third_party_invite.read.acceptance_attestation.v1`（`POST /_arkret/self/third-party-invites/acceptance-attestation`）把该验证结果表达为一份用途受限、可移植的签名对象 [`invite.schema.json#/$defs/third_party_invite_acceptance_attestation`](../../artifacts/schemas/invite.schema.json)。
 
+真实实现本节接口的 Station MAY 独立广告 `ak.operation_bundle.station.third_party_invite_acceptance_attestation.v1`。该 bundle 的唯一成员是 `ak.self.third_party_invite.read.acceptance_attestation.v1` 的 `http_json` binding；它只声明本节接受证据签发接口的 wire 可达性，不声明验证服务的预配、激活、状态查询或出示能力，也不激活任何 profile。调用方 MUST 按 [`service-surface.md` §3.0.1](./service-surface.md#301-bundle-展开与-transport-求交) 展开已广告 bundle 并选择共同支持的 binding，MUST NOT 因为服务是 Station 就推定该接口可达。
+
 Station 在签发前 MUST 在同一 current accepted serializable gate 中确认：调用会话的完整 AccountId 就是该 `ak.invite.third_party` create Event 的 author；同 cut 已验 create Event/Commit 且纯状态 `invite_lifecycle` 处于 `pending`；请求的 `verification_id` 与该已接受 create Event 的冻结 `third_party_invite.verification_id` 一致且仍在当前 `allowed_third_party_invite_verification_ids` 集合内（§2.1）。任一条不成立时，不可见、非本人 author 与非 pending 统一返回 §6 的 `not_found`；无法证明 current checkpoint 完整时返回 `revision_unavailable`，MUST NOT 用陈旧 basis 签发。
 
 签名 transcript 为
@@ -347,5 +349,7 @@ Station 在签发前 MUST 在同一 current accepted serializable gate 中确认
 - 该 bundle 登记的每一个 member operation 都在其已登记路径上真实可用；
 - 存在一条完整闭环，从 `ak.open.third_party_invite.command.provision.v1` 开始，经 author 与接受、`ak.self.third_party_invite.read.acceptance_attestation.v1`、`ak.open.third_party_invite.command.activate.v1`、真实带外投递，直到 `ak.open.third_party_invite.command.present_token.v1` 成功签发 `binding_proof`，全程只使用已登记 operation；
 - `offline_token` 与 `lookup` 两种模式各自跑通该闭环。
+
+§7.4 的独立接受证据 bundle 不替代上述任何条件；只广告该单成员 bundle 的 Station MUST NOT 据此广告完整 `ak.operation_bundle.station.third_party_invite_handoff.v1` 或推定其它四个 member operation 可达。
 
 下列做法 MUST NOT 被计入上述条件，且其存在本身不构成对该 bundle 的支持：实现私有 HTTP 面或 `/_arkret/_conformance/*` 端点；直接向数据库或密钥库灌入 token、salt、pepper 或临时私钥；只在测试构建中存在的成功分支；以及任何绕过 §7.5 接受证据判定的捷径。路由存在、负例通过或 schema 校验通过都不足以广告该 bundle。

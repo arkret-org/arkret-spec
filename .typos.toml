@@ -44,3 +44,6 @@ mis = "mis"
 Mis = "Mis"
 # legitimate plural of canonicalization
 canonicalizations = "canonicalizations"
+
+[default.extend-identifiers]
+ANDed = "ANDed"

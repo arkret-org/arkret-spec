@@ -170,6 +170,8 @@ def bundle_closures(catalog: dict[str, Any]) -> list[dict[str, str]]:
             "service_kind": bundle["service_kind"],
             "members": bundle["members"],
         }
+        if "included_operation_bundle_ids" in bundle:
+            frozen["included_operation_bundle_ids"] = bundle["included_operation_bundle_ids"]
         rows.append({"operation_bundle_id": identity, "sha256": digest(frozen)})
     return sorted(rows, key=lambda row: row["operation_bundle_id"])
 

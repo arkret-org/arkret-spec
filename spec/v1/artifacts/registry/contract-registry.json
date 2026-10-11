@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-11.1",
+  "version": "2026-10-11.2",
   "source_of_truth": true,
-  "generated_at": "2026-10-11T08:13:43+08:00",
+  "generated_at": "2026-10-11T23:19:36+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -12434,7 +12434,7 @@
       "Every canonical Arkret HTTP request MUST carry exactly one Arkret-Operation header naming the exact versioned operation_id before body parsing. The receiver MUST verify that the selector is locally advertised and belongs to the selected method/path family and binding. A missing selector fails with operation_selector_required; an empty candidate set, unknown id, duplicate selector, or value outside the route family fails with unsupported_operation_version. Endpoint uniqueness, payload-shape inference, client SDK version, implicit defaults, and version fallback MUST NOT replace the selector. This invariant keeps existing clients stable when another operation version is added to the same HTTP endpoint family.",
       "operation_bundles is the only canonical bundle member source. Each registered bundle freezes one service_kind and a canonical unique set of (operation_id,binding_kind) members; changing a member requires a new bundle id.",
       "coordination_relations is the canonical machine source for a public operation that spans independently durable services. Every relation MUST name the entry operation, every registered sub-operation, exact request/receipt bindings, the durable owner and fence transitions, crash recovery owner, terminal success boundary and closed downstream error translation. Prose alone MUST NOT create an unregistered cross-service write edge.",
-      "Within one service_kind, active current-v1 bundles MUST NOT overlap on an identical (operation_id,binding_kind) pair. Pairs using a different binding kind are distinct.",
+      "Within one service_kind, active current-v1 bundles MUST NOT overlap on an identical (operation_id,binding_kind) pair unless one explicitly includes the other through included_operation_bundle_ids. Included IDs MUST be non-empty, unique, canonical-sorted registered current-v1 bundles of the same service_kind whose non-empty exact member sets are strict subsets of the including bundle. Inclusion MUST be acyclic; valid transitive containment is permitted, but undeclared, equal-set and partial overlaps are forbidden. Different binding kinds are distinct. Advertising an included bundle never advertises its parent or other members and never establishes a full lifecycle or profile claim.",
       "Only registered ak.operation_bundle.*.v1 ids may appear in current-v1 ServiceDescribe. Current-v1 defines no vendor bundle wire namespace; vendor-private collections may only appear as ignorable x_* metadata and never affect capability decisions. Unknown bundle ids fail closed and are never expanded by name.",
       "Request wire/canonical byte budget violations MUST return payload_too_large (HTTP 413); count-only schema violations with valid request bytes MUST return schema_violation (HTTP 422), except explicit operation count semantics. An otherwise valid request whose complete response or evaluation exceeds its semantic budget returns limit_exceeded (HTTP 413) or its defined typed unavailable result. Request byte errors take precedence over coincident schema errors. Error classification MUST NOT depend on diagnostic text substring matching.",
       "wait_for_bindings is the closed catalog of unique (operation_id, binding_kind) wait carriers. Reject unregistered or duplicate carriers with param_invalid; no priority selection or connection-level WebSocket wait header exists. Target type and validation follow cursor.schema.json and client-sync sections 12.2 and 12.2.1."
@@ -16908,8 +16908,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-10-11",
-    "generated_at": "2026-10-11T08:11:40+08:00",
+    "version": "2026-10-11.1",
+    "generated_at": "2026-10-11T23:19:36+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.coland_station.v1",
@@ -17417,6 +17417,19 @@
         ]
       },
       {
+        "operation_bundle_id": "ak.operation_bundle.station.third_party_invite_acceptance_attestation.v1",
+        "service_kind": "station",
+        "deployment_evidence": [
+          "normative:zh/sync/third-party-invites.md#74-接受证据-acceptance-attestationnormative"
+        ],
+        "members": [
+          {
+            "operation_id": "ak.self.third_party_invite.read.acceptance_attestation.v1",
+            "binding_kind": "http_json"
+          }
+        ]
+      },
+      {
         "operation_bundle_id": "ak.operation_bundle.station.third_party_invite_handoff.v1",
         "service_kind": "station",
         "deployment_evidence": [
@@ -17443,6 +17456,9 @@
             "operation_id": "ak.self.third_party_invite.read.acceptance_attestation.v1",
             "binding_kind": "http_json"
           }
+        ],
+        "included_operation_bundle_ids": [
+          "ak.operation_bundle.station.third_party_invite_acceptance_attestation.v1"
         ]
       },
       {

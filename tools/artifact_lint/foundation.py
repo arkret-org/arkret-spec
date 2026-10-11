@@ -1838,6 +1838,77 @@ def check_registries(lint: Lint) -> dict[str, set[str]]:
     }
 
 
+def operation_bundle_inclusion_errors(bundles: list) -> list[str]:
+    """Require explicit same-role strict containment for shared wire pairs."""
+    rows = {
+        row["operation_bundle_id"]: row
+        for row in bundles
+        if isinstance(row, dict) and isinstance(row.get("operation_bundle_id"), str)
+    }
+    pairs = {
+        identity: {
+            (member["operation_id"], member["binding_kind"])
+            for member in (row.get("members") if isinstance(row.get("members"), list) else [])
+            if isinstance(member, dict)
+            and isinstance(member.get("operation_id"), str)
+            and isinstance(member.get("binding_kind"), str)
+        }
+        for identity, row in rows.items()
+    }
+    errors: list[str] = []
+    declared: dict[str, list[str]] = {}
+    valid: dict[str, list[str]] = {}
+    for identity, row in rows.items():
+        included = row.get("included_operation_bundle_ids", [])
+        if "included_operation_bundle_ids" in row and (
+            not isinstance(included, list)
+            or not included
+            or not all(isinstance(item, str) for item in included)
+            or included != sorted(set(included))
+        ):
+            errors.append(f"{identity}.included_operation_bundle_ids must be non-empty, unique and canonical-sorted")
+            continue
+        declared[identity] = included
+        valid[identity] = []
+        for target in included:
+            child = rows.get(target)
+            if not re.fullmatch(r"ak\.operation_bundle(?:\.[a-z0-9_]+)+\.v1", target) or child is None:
+                errors.append(f"{identity} includes unregistered bundle {target}")
+            elif child.get("service_kind") != row.get("service_kind"):
+                errors.append(f"{identity} includes a different service_kind bundle {target}")
+            elif not pairs[target] or not pairs[target] < pairs[identity]:
+                errors.append(f"{identity} must include a non-empty strict member subset: {target}")
+            else:
+                valid[identity].append(target)
+
+    def reaches(graph: dict[str, list[str]], start: str, target: str) -> bool:
+        pending = list(graph.get(start, []))
+        seen: set[str] = set()
+        while pending:
+            current = pending.pop()
+            if current == target:
+                return True
+            if current not in seen:
+                seen.add(current)
+                pending.extend(graph.get(current, []))
+        return False
+
+    for identity in declared:
+        if reaches(declared, identity, identity):
+            errors.append(f"operation bundle inclusion cycle: {identity}")
+    identities = sorted(rows)
+    for index, identity in enumerate(identities):
+        for other in identities[index + 1:]:
+            if rows[identity].get("service_kind") != rows[other].get("service_kind"):
+                continue
+            overlap = pairs[identity] & pairs[other]
+            if overlap and not (
+                reaches(valid, identity, other) or reaches(valid, other, identity)
+            ):
+                errors.append(f"{identity} overlaps {other} without declared strict inclusion on pairs {sorted(overlap)!r}")
+    return errors
+
+
 def check_operation_bundles_and_features(lint: Lint) -> None:
     """Validate the clean-break ServiceDescribe deployment catalogs."""
     operation_path = ARTIFACTS / "registry" / "operation-registry.json"
@@ -1874,7 +1945,6 @@ def check_operation_bundles_and_features(lint: Lint) -> None:
         if isinstance(row, dict) and isinstance(row.get("prototype_id"), str)
     }
     bundle_pattern = re.compile(r"^ak\.operation_bundle(?:\.[a-z0-9_]+)+\.v1$")
-    pair_owners: dict[tuple[str, str, str], str] = {}
     bundle_ids: set[str] = set()
     bundle_pairs: set[tuple[str, str]] = set()
     expected_bundle_keys = {
@@ -1885,7 +1955,7 @@ def check_operation_bundles_and_features(lint: Lint) -> None:
         if not isinstance(bundle, dict):
             lint.fail(operation_path, f"{spot} must be an object")
             continue
-        if set(bundle) != expected_bundle_keys:
+        if set(bundle) not in (expected_bundle_keys, expected_bundle_keys | {"included_operation_bundle_ids"}):
             lint.fail(operation_path, f"{spot} must use the closed bundle row shape")
         bundle_id = bundle.get("operation_bundle_id")
         service_kind = bundle.get("service_kind")
@@ -1927,15 +1997,12 @@ def check_operation_bundles_and_features(lint: Lint) -> None:
                 lint.fail(operation_path, f"{member_spot} references unknown operation {operation_id!r}")
             if binding_kind not in bindings:
                 lint.fail(operation_path, f"{member_spot} references unknown binding {binding_kind!r}")
-            owner_key = (str(service_kind), str(operation_id), str(binding_kind))
-            previous = pair_owners.get(owner_key)
-            if previous is not None:
-                lint.fail(operation_path, f"{bundle_id} overlaps {previous} on pair {pair!r}")
-            pair_owners[owner_key] = bundle_id
             bundle_pairs.add((str(operation_id), str(binding_kind)))
         if canonical_members != sorted(set(canonical_members)):
             lint.fail(operation_path, f"{bundle_id}.members must be unique and canonical-sorted")
 
+    for error in operation_bundle_inclusion_errors(operation_registry.get("operation_bundles", [])):
+        lint.fail(operation_path, error)
     uncovered_operations = sorted(operations - {operation_id for operation_id, _ in bundle_pairs})
     if uncovered_operations:
         lint.fail(

@@ -130,6 +130,10 @@ unresolved，MUST NOT 回退到相邻或更新的 release。空集合或无法�
 
 实现先展开 canonical operation bundle，再与调用方和服务共同支持的 transport 求交。求交为空即不支持，不得静默替换另一个 operation。
 
+同一 `service_kind` 的 bundle 只在显式登记包含关系时 MAY 共享 `(operation_id, binding_kind)`。包含方的可选 `included_operation_bundle_ids` MUST 是非空、无重复、规范排序的已登记 current-v1 bundle ID 集合；每个被包含 bundle MUST 属于同一 `service_kind`，且其非空成员集合 MUST 是包含方成员集合的严格子集，operation 与 binding 均逐项精确匹配。包含关系 MUST 无环；未声明包含关系、部分相交或成员集合完全相同的同角色 bundle MUST 拒绝。经上述合法关系传递包含的 bundle 同样属于已声明包含关系。
+
+广告包含方表示其全部显式 `members` 可达，但不会替调用方完成其它 profile 或完整业务闭环的验证。广告被包含方不表示包含方、其它成员、profile 或完整流程可用；客户端 MUST 继续仅按实际广告 bundle 的成员 union 求值。包含关系不改变任何 operation 的认证、授权、状态或绑定合同。
+
 ### 3.1 Identity Resolution Surface
 
 Identity surface 处理 method-native DID 状态，不处理 Realm Event finality。
