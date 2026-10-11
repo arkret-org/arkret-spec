@@ -1,5 +1,5 @@
 {
-  "version": "2026-09-19.2",
+  "version": "2026-10-11",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.events.redaction.v1"
@@ -578,7 +578,7 @@
           "kind": "event",
           "event_id": "ak:event:Aaomk9KpwpygaBKk0u99M8nVyytIUnh4DQmHUjTXFRka"
         },
-        "issuer_id": "ak:did_core:webvh:z6mkfixturesolandexample",
+        "issuer_id": "ak:did_core:webvh:z6mkfixturecolandexample",
         "subject": {
           "kind": "event",
           "subject_ref": "ak:event:AVXhtV275ld1GsXBcgORhXkFjGv93zkTVrWlW10MSEqR"
@@ -620,7 +620,7 @@
         "issued_at": "2026-04-26T00:05:00.000Z",
         "proofs": [
           {
-            "verification_method": "did:webvh:z6mkfixturesolandexample:soland.example#federation-fanout-key",
+            "verification_method": "did:webvh:z6mkfixturecolandexample:coland.example#federation-fanout-key",
             "payload_digest": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
             "signature": "receipt-signature-base64url-placeholder"
           }

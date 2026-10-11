@@ -3,9 +3,9 @@
   "artifacts": [
     {
       "path": "spec/v1/artifacts/profiles/conformance-profiles.json",
-      "version": "2026-10-09.1",
-      "generated_at": "2026-10-09T07:31:39+08:00",
-      "content_digest": "sha256:9b05958a7468644f29935073a7650c8e9933c630768d7cd09fc52fc55693fe50"
+      "version": "2026-10-11",
+      "generated_at": "2026-10-11T08:11:40+08:00",
+      "content_digest": "sha256:218fec1aac149a0643ab0bdf49ad36c0ebbf006d1c3b04c2c73e346a7f6c31d2"
     },
     {
       "path": "spec/v1/artifacts/registry/account-data-key-registry.json",
@@ -87,9 +87,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
-      "version": "2026-10-10.1",
-      "generated_at": "2026-10-10T23:55:48+08:00",
-      "content_digest": "sha256:d4401a0e806dc3a56f5af2ae10389e25bba0762dcbc7cf1640ea1143c4b59da4"
+      "version": "2026-10-11.1",
+      "generated_at": "2026-10-11T08:13:43+08:00",
+      "content_digest": "sha256:d5e98065cc04e97663e620ab0e7d26f1ae3f83d73b781e30c9b214f8493b83c1"
     },
     {
       "path": "spec/v1/artifacts/registry/current-result-registry.json",
@@ -141,9 +141,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/event-kind-registry.json",
-      "version": "2026-10-09.3",
-      "generated_at": "2026-10-09T10:53:55+08:00",
-      "content_digest": "sha256:9f483e6c4b64cc6c6f686d4b38ea3e7e2afaf7b63145f1ab9d98807c746cfa95"
+      "version": "2026-10-11",
+      "generated_at": "2026-10-11T08:11:40+08:00",
+      "content_digest": "sha256:633a612f0081a9c99ff55235fa332f077bc983e99c75268ea1144b9562f1b40d"
     },
     {
       "path": "spec/v1/artifacts/registry/event-kind-vector-gap-registry.json",
@@ -219,9 +219,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/normative-clause-registry.json",
-      "version": "2026-10-11.1",
-      "generated_at": "2026-10-11T00:12:12+08:00",
-      "content_digest": "sha256:bef84ade115e8701de6b293f207e40e63cbf17e7706b5dbbcc558779a59d65cb"
+      "version": "2026-10-11.2",
+      "generated_at": "2026-10-11T08:11:40+08:00",
+      "content_digest": "sha256:d94a2606e3995122257314f52064683992e0a769243d8f007706f06d0b25a139"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-bundle-closure-lock.json",
@@ -243,9 +243,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
-      "version": "2026-10-10.6",
-      "generated_at": "2026-10-10T23:55:48+08:00",
-      "content_digest": "sha256:217138a62fcb01718ca79477f3bd91e20549d98390b0bae59243e32c932d82ee"
+      "version": "2026-10-11",
+      "generated_at": "2026-10-11T08:11:40+08:00",
+      "content_digest": "sha256:08ab906e7485af4a3b1608a3c08d0cf1eb0fb20b0e0dfc9268fe590620e6c82b"
     },
     {
       "path": "spec/v1/artifacts/registry/operations-error-mapping.json",
@@ -351,9 +351,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/service-kind-registry.json",
-      "version": "2026-10-10.1",
-      "generated_at": "2026-10-10T16:30:00+08:00",
-      "content_digest": "sha256:b24ff7c79224679227d0d2e84d09cb6a47a5b8fce638b5649085ed2ffe07b53a"
+      "version": "2026-10-11",
+      "generated_at": "2026-10-11T08:11:40+08:00",
+      "content_digest": "sha256:00391963ced0f421bad96ea086d386dd0e4d55c8184c6bce97eca2305823b245"
     },
     {
       "path": "spec/v1/artifacts/registry/signature-alg-registry.json",
@@ -369,9 +369,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/test-material-registry.json",
-      "version": "2026-10-06.2",
-      "generated_at": "2026-10-06T06:27:20+08:00",
-      "content_digest": "sha256:fe8e9bea75a7b77158310e6288341e93829e0c5f19668b625f296f1510f14fd4"
+      "version": "2026-10-11",
+      "generated_at": "2026-10-11T08:11:40+08:00",
+      "content_digest": "sha256:69bfd27633ebb781a818276e16ba16412ac0460fa3cc81d3818d2e3acf1b02db"
     },
     {
       "path": "spec/v1/artifacts/registry/track-name-registry.json",
@@ -519,9 +519,9 @@
     },
     {
       "path": "tools/reason-code-producer-baseline.json",
-      "version": 5,
+      "version": 6,
       "generated_at": null,
-      "content_digest": "sha256:c790e98ce13771aa1424b0fa660ce410f868beb2160e8166b9b6d1e9cd81f90b"
+      "content_digest": "sha256:1a903cc8bfadce6d14e69da3e01e5071937abd421ad85d98736f42e78cb16b2a"
     },
     {
       "path": "tools/reducer-managed-owner-baseline.json",

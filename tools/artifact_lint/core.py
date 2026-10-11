@@ -582,7 +582,7 @@ EFFECT_PROJECTION_ENVELOPE_FIELDS = {
 # schema MUST reach a caller-signed Event.
 #
 # An operation that declares an event_log effect and takes no signed Event is
-# declaring a durable effect it cannot legally produce. soland implements exactly
+# declaring a durable effect it cannot legally produce. coland implements exactly
 # these operations through `accept_local_operations`, which builds no wire Event at
 # all — and five of them went on to mint the object id the missing Event would have
 # derived.

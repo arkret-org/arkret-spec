@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 5,
+  "version": 6,
   "kind": "reason_code_producer_baseline",
   "source_of_truth": false,
   "generated_from": [
@@ -75,7 +75,7 @@
       "code": "claim_rate_limited",
       "ruling": "2026-09-04-2130",
       "registry_version": "2026-09-04.3",
-      "why": "同一条件由已登记且已接线的 keypackage_claim_rate_limited 承载（device-lifecycle.md:783 + fixture + soland）。"
+      "why": "同一条件由已登记且已接线的 keypackage_claim_rate_limited 承载（device-lifecycle.md:783 + fixture + coland）。"
     },
     {
       "code": "counter_bound_exceeded",
@@ -214,7 +214,7 @@
       "code": "scope_expansion_forbidden",
       "ruling": "2026-09-04-2130",
       "registry_version": "2026-09-04.3",
-      "why": "§10.1 收窄违规由已登记且正文已点名的 grant_exceeds_issuer_authority 承载（capabilities.md:165 + soland apply_capability.rs:1046/1105）。"
+      "why": "§10.1 收窄违规由已登记且正文已点名的 grant_exceeds_issuer_authority 承载（capabilities.md:165 + coland apply_capability.rs:1046/1105）。"
     },
     {
       "code": "share_commitment_mismatch",

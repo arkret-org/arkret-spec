@@ -292,7 +292,7 @@ def _check_typed_current_key_derivations(lint: Lint, registry: Any) -> None:
         _fail(lint, "algorithm_profile drifted from the locator-only domain-separated profile")
 
     expected_audit = {
-        "soland_missing_helper_callers": 10,
+        "coland_missing_helper_callers": 10,
         "active_family_callers": 9,
         "registered_active_families": len(_FAMILIES),
         "excluded_per_leg_mute": {

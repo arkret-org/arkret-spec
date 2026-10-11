@@ -2008,7 +2008,7 @@ def check_operation_bundles_and_features(lint: Lint) -> None:
     if identity_core != identity_surface:
         lint.fail(
             operation_path,
-            "identity_registry.http_core must exactly project Soland's mounted identity_registry surface",
+            "identity_registry.http_core must exactly project Coland's mounted identity_registry surface",
         )
 
     directory_surface = surface_operations.get("directory_discovery", set())

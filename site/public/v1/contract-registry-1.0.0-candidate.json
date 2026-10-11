@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-10.1",
+  "version": "2026-10-11.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-10T23:55:48+08:00",
+  "generated_at": "2026-10-11T08:13:43+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -569,7 +569,7 @@
         "authority_semantics": "none"
       },
       "coverage_audit": {
-        "soland_missing_helper_callers": 10,
+        "coland_missing_helper_callers": 10,
         "active_family_callers": 9,
         "registered_active_families": 5,
         "excluded_per_leg_mute": {
@@ -8905,8 +8905,8 @@
         }
       }
     },
-    "version": "2026-10-09.3",
-    "generated_at": "2026-10-09T10:53:55+08:00",
+    "version": "2026-10-11",
+    "generated_at": "2026-10-11T08:11:40+08:00",
     "bootstrap_event_kinds": [
       "ak.device.authorize",
       "ak.device.reanchor",
@@ -16908,14 +16908,14 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-10-10.6",
-    "generated_at": "2026-10-10T23:55:48+08:00",
+    "version": "2026-10-11",
+    "generated_at": "2026-10-11T08:11:40+08:00",
     "deployment_prototypes": [
       {
-        "prototype_id": "ak.deployment_prototype.soland_station.v1",
+        "prototype_id": "ak.deployment_prototype.coland_station.v1",
         "service_kind": "station",
         "evidence_kind": "reference_implementation",
-        "evidence_ref": "soland:crates/http/src/wire.rs#canonical_operation_ids",
+        "evidence_ref": "coland:crates/http/src/wire.rs#canonical_operation_ids",
         "independent_gates": [
           "agent_runtime",
           "applet",
@@ -16928,21 +16928,21 @@
         ]
       },
       {
-        "prototype_id": "ak.deployment_prototype.soland_directory_service.v1",
+        "prototype_id": "ak.deployment_prototype.coland_directory_service.v1",
         "service_kind": "directory_service",
         "evidence_kind": "reference_implementation",
-        "evidence_ref": "soland:crates/http/src/routing/spaces/directory.rs#protocol_router",
+        "evidence_ref": "coland:crates/http/src/routing/spaces/directory.rs#protocol_router",
         "independent_gates": []
       },
       {
-        "prototype_id": "ak.deployment_prototype.soland_identity_registry.v1",
+        "prototype_id": "ak.deployment_prototype.coland_identity_registry.v1",
         "service_kind": "identity_registry",
         "evidence_kind": "reference_implementation",
-        "evidence_ref": "soland:crates/http/src/routing/identity/mod.rs#protocol_router",
+        "evidence_ref": "coland:crates/http/src/routing/identity/mod.rs#protocol_router",
         "independent_gates": []
       },
       {
-        "prototype_id": "ak.deployment_prototype.teabay_directory_service.v1",
+        "prototype_id": "ak.deployment_prototype.flagon_directory_service.v1",
         "service_kind": "directory_service",
         "evidence_kind": "reference_implementation",
         "evidence_ref": "flagon:crates/server/src/kinds.rs#SUPPORTED_OPERATIONS",
@@ -17015,7 +17015,7 @@
         "operation_bundle_id": "ak.operation_bundle.directory_service.describe.v1",
         "service_kind": "directory_service",
         "deployment_evidence": [
-          "ak.deployment_prototype.teabay_directory_service.v1"
+          "ak.deployment_prototype.flagon_directory_service.v1"
         ],
         "members": [
           {
@@ -17028,7 +17028,7 @@
         "operation_bundle_id": "ak.operation_bundle.identity_registry.describe.v1",
         "service_kind": "identity_registry",
         "deployment_evidence": [
-          "ak.deployment_prototype.soland_identity_registry.v1"
+          "ak.deployment_prototype.coland_identity_registry.v1"
         ],
         "members": [
           {
@@ -17080,7 +17080,7 @@
         "operation_bundle_id": "ak.operation_bundle.station.describe.v1",
         "service_kind": "station",
         "deployment_evidence": [
-          "ak.deployment_prototype.soland_station.v1"
+          "ak.deployment_prototype.coland_station.v1"
         ],
         "members": [
           {
@@ -17215,7 +17215,7 @@
         "operation_bundle_id": "ak.operation_bundle.directory_service.public_read.v1",
         "service_kind": "directory_service",
         "deployment_evidence": [
-          "ak.deployment_prototype.teabay_directory_service.v1"
+          "ak.deployment_prototype.flagon_directory_service.v1"
         ],
         "members": [
           {
@@ -17236,7 +17236,7 @@
         "operation_bundle_id": "ak.operation_bundle.identity_registry.http_core.v1",
         "service_kind": "identity_registry",
         "deployment_evidence": [
-          "ak.deployment_prototype.soland_identity_registry.v1"
+          "ak.deployment_prototype.coland_identity_registry.v1"
         ],
         "members": [
           {
@@ -17317,7 +17317,7 @@
         "operation_bundle_id": "ak.operation_bundle.station.agent_pairing_handoff.v1",
         "service_kind": "station",
         "deployment_evidence": [
-          "ak.deployment_prototype.soland_station.v1#agent_pairing_handoff"
+          "ak.deployment_prototype.coland_station.v1#agent_pairing_handoff"
         ],
         "members": [
           {
@@ -17338,7 +17338,7 @@
         "operation_bundle_id": "ak.operation_bundle.station.agent_runtime.v1",
         "service_kind": "station",
         "deployment_evidence": [
-          "ak.deployment_prototype.soland_station.v1#agent_runtime"
+          "ak.deployment_prototype.coland_station.v1#agent_runtime"
         ],
         "members": [
           {
@@ -17399,7 +17399,7 @@
         "operation_bundle_id": "ak.operation_bundle.station.device_pairing_handoff.v1",
         "service_kind": "station",
         "deployment_evidence": [
-          "ak.deployment_prototype.soland_station.v1#device_pairing_handoff"
+          "ak.deployment_prototype.coland_station.v1#device_pairing_handoff"
         ],
         "members": [
           {
@@ -17420,7 +17420,7 @@
         "operation_bundle_id": "ak.operation_bundle.station.third_party_invite_handoff.v1",
         "service_kind": "station",
         "deployment_evidence": [
-          "ak.deployment_prototype.soland_station.v1#third_party_invite_handoff"
+          "ak.deployment_prototype.coland_station.v1#third_party_invite_handoff"
         ],
         "members": [
           {
@@ -17449,7 +17449,7 @@
         "operation_bundle_id": "ak.operation_bundle.station.applet.v1",
         "service_kind": "station",
         "deployment_evidence": [
-          "ak.deployment_prototype.soland_station.v1#applet"
+          "ak.deployment_prototype.coland_station.v1#applet"
         ],
         "members": [
           {
@@ -17494,7 +17494,7 @@
         "operation_bundle_id": "ak.operation_bundle.station.applet_ghost.v1",
         "service_kind": "station",
         "deployment_evidence": [
-          "ak.deployment_prototype.soland_station.v1#applet_ghost"
+          "ak.deployment_prototype.coland_station.v1#applet_ghost"
         ],
         "members": [
           {
@@ -17519,7 +17519,7 @@
         "operation_bundle_id": "ak.operation_bundle.station.applet_install.v1",
         "service_kind": "station",
         "deployment_evidence": [
-          "ak.deployment_prototype.soland_station.v1#applet_install"
+          "ak.deployment_prototype.coland_station.v1#applet_install"
         ],
         "members": [
           {
@@ -17548,7 +17548,7 @@
         "operation_bundle_id": "ak.operation_bundle.station.http_core_current.v1",
         "service_kind": "station",
         "deployment_evidence": [
-          "ak.deployment_prototype.soland_station.v1"
+          "ak.deployment_prototype.coland_station.v1"
         ],
         "members": [
           {
@@ -18038,7 +18038,7 @@
         "operation_bundle_id": "ak.operation_bundle.station.mimi_interop.v1",
         "service_kind": "station",
         "deployment_evidence": [
-          "ak.deployment_prototype.soland_station.v1#mimi_interop"
+          "ak.deployment_prototype.coland_station.v1#mimi_interop"
         ],
         "members": [
           {
@@ -18087,7 +18087,7 @@
         "operation_bundle_id": "ak.operation_bundle.station.push.v1",
         "service_kind": "station",
         "deployment_evidence": [
-          "ak.deployment_prototype.soland_station.v1#push"
+          "ak.deployment_prototype.coland_station.v1#push"
         ],
         "members": [
           {
@@ -18104,7 +18104,7 @@
         "operation_bundle_id": "ak.operation_bundle.station.tus_upload.v1",
         "service_kind": "station",
         "deployment_evidence": [
-          "ak.deployment_prototype.soland_station.v1#tus_upload"
+          "ak.deployment_prototype.coland_station.v1#tus_upload"
         ],
         "members": [
           {
@@ -18117,7 +18117,7 @@
         "operation_bundle_id": "ak.operation_bundle.station.websocket.v1",
         "service_kind": "station",
         "deployment_evidence": [
-          "ak.deployment_prototype.soland_station.v1#websocket"
+          "ak.deployment_prototype.coland_station.v1#websocket"
         ],
         "members": [
           {

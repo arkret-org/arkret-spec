@@ -51,13 +51,13 @@ Markdown catalog 页面可以继续存在于 `/catalog/schemas/`；它是人类�
 
 服务端或客户端不应复制 generated profile requirement 表；需要本地别名时，应能追溯到 SDK/generated artifact。
 
-## Soland
+## Coland
 
-Soland 是 Station，不是协议 registry 的来源。
+Coland 是 Station，不是协议 registry 的来源。
 
 - Event kind admission 先查 `event-kind-registry.json` 的 active durable event kind。
 - 已有强语义 validator 可以继续留在 `crates/http/src/routing/events/operations/`，用于 strand、message、redaction 等需要 server policy 的路径。
-- 对没有手写强语义 validator 的 active event kind，Soland 应 fallback 到 SDK artifact payload validator。
+- 对没有手写强语义 validator 的 active event kind，Coland 应 fallback 到 SDK artifact payload validator。
 - server-local event-kind 常量应逐步缩为 alias 和 readable match arms；新增 standard event kind 不应要求先修改这些常量才能被识别。
 
 ## Inkson

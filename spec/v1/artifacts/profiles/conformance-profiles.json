@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-09.1",
-  "generated_at": "2026-10-09T07:31:39+08:00",
+  "version": "2026-10-11",
+  "generated_at": "2026-10-11T08:11:40+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -4880,7 +4880,7 @@
         "mls_last_resort_forbidden_must": "Realms claiming this profile MUST NOT allow last-resort KeyPackage join: services MUST NOT advertise ak.feature.mls_last_resort_keypackage.v1 for those Realms, claim responses MUST NOT return last_resort=true packages, and requesters MUST treat any last_resort=true claim record as profile-forbidden and fail closed.",
         "key_transparency_must": "High-risk identity, recovery, service delegation and membership decisions MUST verify ak.schema.key_transparency.v1 inclusion and consistency proofs under ak.profile.key_transparency.v1; missing or invalid proof fails closed.",
         "realm_hosting_boundary_must": "This deployment profile is advertised only through ServiceDescribe.supported_profiles and MUST NOT be written into Realm genesis, schema_refs or any Realm facet. It creates no primary_server, hosted_on, home_server, canonical mirror or complete-history authority.",
-        "canonical_realm_data_path_must": "Realm creation, facets, invitation, membership, Event persistence, federation and recovery MUST use registered ak.* Event kinds and operations backed by the canonical durable Event store. Private /_soland/* endpoints, in-memory Realm records, caller-seeded Realm ids and arbitrary JSON store-and-forward queues MUST NOT satisfy this profile.",
+        "canonical_realm_data_path_must": "Realm creation, facets, invitation, membership, Event persistence, federation and recovery MUST use registered ak.* Event kinds and operations backed by the canonical durable Event store. Private /_coland/* endpoints, in-memory Realm records, caller-seeded Realm ids and arbitrary JSON store-and-forward queues MUST NOT satisfy this profile.",
         "live_claim_gate_must": "ServiceDescribe MUST omit this profile unless live conformance evidence covers independent Station processes and databases, restart on both sides, durable-outbox outage recovery, external-member boundaries, and effective federation_policy enforcement on ingress, destination selection and fanout. Static fixture ids and private state-machine tests are insufficient."
       }
     },

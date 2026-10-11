@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-06.2",
+  "version": "2026-10-11",
   "source_of_truth": true,
-  "generated_at": "2026-10-06T06:27:20+08:00",
+  "generated_at": "2026-10-11T08:11:40+08:00",
   "description": "Canonical test signing material, reserved identifiers, and the closed role inventory for every concrete did:webvh identity example in artifacts and normative prose. Identity roles are exactly test_material, deployment_like_example, and derived_positive; only test_material enters the reserved namespace. Derived positives bind recomputable fixture pointers.",
   "rules": [
     "published_signing_material[].fingerprint is sha256 over the ALGORITHM-DEFINED public key encoding named by public_key_encoding, never over JWK, multibase, PEM or any JSON text. The same public key carried under a different kid, DID, JWK member order or transport encoding MUST produce the same fingerprint.",
@@ -966,7 +966,7 @@
       ]
     },
     {
-      "value": "did:webvh:z6mkfixturesolandexample:soland.example#federation-fanout-key",
+      "value": "did:webvh:z6mkfixturecolandexample:coland.example#federation-fanout-key",
       "role": "deployment_like_example",
       "sources": [
         "spec/v1/artifacts/fixtures/redaction-fixture.json"

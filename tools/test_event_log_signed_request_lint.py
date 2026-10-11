@@ -3,7 +3,7 @@
 The state this gate exists to make visible: an operation declares
 `durable_effect.kind = "event_log"` — it writes a signed Event into the log — while
 its request carries no Event to sign with, and the service is forbidden from
-signing one itself. soland implements these operations through
+signing one itself. coland implements these operations through
 `accept_local_operations`, which builds no wire Event at all; several of them went
 on to mint the object id the missing Event would have derived.
 

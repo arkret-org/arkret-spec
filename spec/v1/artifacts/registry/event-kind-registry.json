@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-09.3",
+  "version": "2026-10-11",
   "source_of_truth": false,
-  "generated_at": "2026-10-09T10:53:55+08:00",
+  "generated_at": "2026-10-11T08:11:40+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -116,7 +116,7 @@
       "authority_semantics": "none"
     },
     "coverage_audit": {
-      "soland_missing_helper_callers": 10,
+      "coland_missing_helper_callers": 10,
       "active_family_callers": 9,
       "registered_active_families": 5,
       "excluded_per_leg_mute": {

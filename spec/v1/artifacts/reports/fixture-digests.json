@@ -507,8 +507,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/redaction-fixture.json",
-      "sha256": "f88c3f8c3d1f7a3a215fa1be6d30cb73c03968a102279522b7c70dee20549251",
-      "version": "2026-09-19.2"
+      "sha256": "c3e804d7dcd66b2c485b668c770abf2022f5c3845d88c40b7a4df92d896e0fcd",
+      "version": "2026-10-11"
     },
     {
       "path": "spec/v1/artifacts/fixtures/relation-structural-realm-fixture.json",

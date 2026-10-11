@@ -350,12 +350,12 @@ Sovereign deployment 不增加 Realm 类型或 Realm hosting authority。实现�
 | --- | --- | --- |
 | 创建 enclave 内 Collaboration Realm | `ak.self.events.command.submit.v1` 提交原子 `ak.realm.create → ak.realm.profile → ak.realm.policy_bundle → ak.realm.join_rule → ak.realm.history_access → ak.realm.discovery → creator ak.member.state{join}` | 不得调用私有 Realm create endpoint，也不得由 enclave 配置预置同一 `realm_id` |
 | 邀请与外部加入 | durable `ak.invite.create` / `ak.invite.accept`；私有投递使用 `ak.self.invites.command.dispatch.v1` 与 `ak.peer.invites.command.submit.v1` | invite locator、路由 token 与 receive policy 不进入 Realm Event；加入事实不存入部署私有 account/invite map |
-| 客户端提交与读取 | `ak.self.events.command.submit.v1`、`ak.self.committed_event.read.scan.v1`、`ak.self.committed_event.resource.get.v1`、`ak.self.committed_event.stream.subscribe.v1` | 这些 operation 访问 canonical Event store，不得切换到 `/_soland/*` shadow state |
+| 客户端提交与读取 | `ak.self.events.command.submit.v1`、`ak.self.committed_event.read.scan.v1`、`ak.self.committed_event.resource.get.v1`、`ak.self.committed_event.stream.subscribe.v1` | 这些 operation 访问 canonical Event store，不得切换到 `/_coland/*` shadow state |
 | Blob 进入目标域 | `ak.self.blob.upload.create.v1` 创建目标域 Blob，再由目标 Realm 的新 canonical Event 引用；读取使用 `ak.self.blob.resource.get.v1` | v1 没有“保留源 Event identity 的跨 Realm/跨区 Blob copy”operation；密钥不得随 export 泄露给非目标受众 |
 | Realm policy、组织关系与成员路由 | `ak.realm.policy_bundle`、`ak.realm.discovery`、`ak.realm.organization`、`ak.member.state` | deployment profile、organization relationship、governance Station 与成员 Station routing 各自保持 §3.2 的边界 |
 | 源 Realm 内撤回/隔离 | `ak.message.redact`、`ak.redaction`、committed `ak.moderation.decision` / `ak.moderation.decision.lift` | 这些 Event 只改变其所在 scope 的状态；不构成“已净化导出包”或跨区传输许可 |
 
-current-v1 **没有** export/import review record、declassification approval、malware-scan receipt、watermark receipt、跨区 transfer job、任意内容 queue 或 sovereign boundary audit Event/operation。部署 MAY 在本地执行并审计这些流程，但 MUST NOT 把本地记录宣告为 Arkret interoperable state、profile feature 或 Realm history。实现不得用 `/_soland/*` 或其它私有接口补出协议状态；若未来要把其中任一行为升级为可互操作能力，必须先完整登记 closed schema、operation、authorization、Event/admission、durable store、replay/failure 语义与 conformance evidence。
+current-v1 **没有** export/import review record、declassification approval、malware-scan receipt、watermark receipt、跨区 transfer job、任意内容 queue 或 sovereign boundary audit Event/operation。部署 MAY 在本地执行并审计这些流程，但 MUST NOT 把本地记录宣告为 Arkret interoperable state、profile feature 或 Realm history。实现不得用 `/_coland/*` 或其它私有接口补出协议状态；若未来要把其中任一行为升级为可互操作能力，必须先完整登记 closed schema、operation、authorization、Event/admission、durable store、replay/failure 语义与 conformance evidence。
 
 ## 8. Applet 与 Agent 控制
 
