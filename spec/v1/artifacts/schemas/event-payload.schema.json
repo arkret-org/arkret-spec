@@ -233,7 +233,7 @@
         "approval_nonce": {
           "type": "string",
           "pattern": "^[A-Za-z0-9_-]{22,86}$",
-          "description": "At least 128 bits of controller-generated entropy; one immutable allocation per controller ActorId and target Realm. It cannot be released or reassigned."
+          "description": "At least 128 bits of controller-generated entropy; one immutable allocation per exact controller ActorId across all target Realms. The namespace is (controller ActorId, approval_nonce), without a Realm component. It cannot be released or reassigned."
         },
         "expires_at": {
           "$ref": "#/$defs/timestamp",

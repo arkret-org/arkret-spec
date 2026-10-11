@@ -717,6 +717,9 @@ MUST NOT 互用 nonce，也 MUST NOT 把一方的满足自动换算成另一方�
 
 - Agent confirmation 成功**只**满足 Agent draft 的发布 gate，MUST NOT 免除目标 Event 的 grant／
   governance approval 要求；两者都命中时 MUST 都被满足，且 MUST 能**分别**拒绝。
+- confirmation nonce 的命名空间恰为 `(controller ActorId, approval_nonce)`，不含 Realm 分量。
+  同一 exact controller ActorId 跨目标 Realm 也 MUST NOT 重用该 nonce；不同 Station 的 controller
+  Account 是不同 ActorId。一次分配 MUST NOT 释放或重绑，且与 detached approval 的 nonce 空间独立。
 - `ak.agent.action_approve` 的有效期只由 payload `expires_at` 表达；payload 不含 `approved_at`，确认时间即
   envelope `created_at`，仅作展示。唯一判定时钟是覆盖相关 Event 的 RealmCommit `committed_at`，零容差、含等号：
   确认 Event 的 covering `committed_at` MUST `<= expires_at`，否则以顶层 `failed_precondition`（不带专用 reason）
