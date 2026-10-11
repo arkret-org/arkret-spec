@@ -256,6 +256,37 @@ class ManagedGovernanceTests(unittest.TestCase):
         self.assertFalse(validator.is_valid({**context, "management_operation": "deliver"}))
         self.assertFalse(validator.is_valid({**context, "approved": True}))
 
+    def test_registered_approval_operation_targets_and_contexts_are_closed(self):
+        schema = json.loads((ART / "schemas/approval-signature.schema.json").read_text())
+        contexts = {row["properties"]["context_kind"]["const"] for row in schema["$defs"]["approval_context"]["oneOf"]}
+        self.assertEqual(contexts, {"grant", "realm_governance", "list_wip", "management"})
+        eligibility = self.catalog["capability_action_registry"]["approval_requirement_eligibility"]
+        carriers = {row["carrier_id"]: row for row in eligibility["carriers"]}
+        projected = {row["operation_id"] for row in carriers.values() if "operation" in row["allowed_target_kinds"]}
+        self.assertEqual(set(schema["x-arkret-operation-target-carrier-operations"]), projected)
+        fixture = json.loads((ART / "fixtures/approval-signature-kat-fixture.json").read_text())
+        candidate = copy.deepcopy(fixture["vectors"][0]["approval_signature"])
+        candidate["input"]["approval_target"] = {"target_kind": "operation"}
+        validator = self.validator("approval-signature.schema.json")
+        for operation in projected:
+            candidate["input"]["operation"] = operation
+            validator.validate(candidate)
+        candidate["input"]["operation"] = "ak.self.management_review.command.decide.v1"
+        self.assertFalse(validator.is_valid(candidate))
+        candidate["input"]["approval_context"] = {"context_kind": "proposal"}
+        self.assertFalse(validator.is_valid(candidate))
+        for override in eligibility["action_overrides"]:
+            carrier = carriers[override["carrier_id"]]
+            self.assertEqual(override["eligibility_kind"], "registered_operation_carrier")
+            self.assertEqual(carrier["allowed_target_kinds"], ["operation"])
+            request = carrier["request_schema_ref"].split("#/", 1)
+            document = json.loads((ART / request[0]).read_text())
+            body = document
+            for component in request[1].split("/"):
+                body = body[component]
+            self.assertIn(carrier["carrier_field"], body["properties"])
+            self.assertFalse(body["additionalProperties"])
+
     def test_first_device_and_service_child_have_a_real_transport_carrier(self):
         operations = {o["operation_id"]: o for o in self.catalog["operation_registry"]["operations"]}
         submission = operations["ak.self.events.command.submit.v1"]

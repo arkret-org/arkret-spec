@@ -142,7 +142,7 @@
       "additionalProperties": false
     },
     "approval_context": {
-      "description": "Which independent requirement this signature answers. Grant, Realm governance and List WIP votes use the same signed input, proof, carrier and nonce rules; their quorums remain independent. A List WIP signature binds the exact List metadata current revision and cannot be counted as a grant or Realm governance vote (zh/models/space-hierarchy.md section 6; zh/authz/constraint-schema.md section 9.2).",
+      "description": "Which independent requirement this signature answers. The closed branches are grant, realm_governance, list_wip and management. A qualified grant-context vote MAY count separately toward grant and Realm governance requirements; each quorum remains independent. List WIP binds the exact List metadata revision and cannot cross-count. Management binds a private durable request ledger, its exact operation and effective scope; neither other contexts nor Agent confirmation replace it (zh/authz/constraint-schema.md section 9.2; zh/authz/managed-governance.md section 3).",
       "oneOf": [
         {
           "type": "object",

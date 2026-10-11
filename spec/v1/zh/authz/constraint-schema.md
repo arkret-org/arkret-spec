@@ -575,13 +575,14 @@ MUST NOT 被实现成「先对 JSON 求 SHA-256、再签那个摘要」的第二
 
 #### 9.2.2 `approval_context`：该审批要求来自哪一层（normative）
 
-`approval_context` 是 closed XOR，三支在 schema 层可判定：
+`approval_context` 是 closed XOR，四支在 schema 层可判定：
 
 | 支 | 形状 | 含义 |
 | --- | --- | --- |
 | `grant` | `{"context_kind":"grant","grant_id": GrantId}` | §9.1 挂在**一份具体 grant** 上的审批要求。`grant_id` MUST 是本次操作的某个**满足的依赖 grant**。 |
 | `realm_governance` | `{"context_kind":"realm_governance"}` | [`../models/governance-objects.md` §3.5](../models/governance-objects.md) 登记在 `(action token, scope)` 上的 Realm 治理面审批要求。 |
 | `list_wip` | `{"context_kind":"list_wip","list_space_id": SpaceId,"list_policy_revision": CurrentRevision}` | [`../models/space-hierarchy.md` §6](../models/space-hierarchy.md) 的精确目标 List 在超限且 `wip_limit_enforcement=require_review` 时独立施加的一票审批要求；revision 是该 List metadata typed current 的完整 `{commit_id,stream_position}`。 |
+| `management` | `{"context_kind":"management","management_operation": ManagementOperation,"effective_scope": ScopeRef,"request_id": RequestId}` | [`managed-governance.md` §3](./managed-governance.md) 的私有耐久申请；operation 封闭为 `join/publish/create_bot/map_ghost`，scope 与 request id 绑定原候选及该申请的治理依据。 |
 
 `realm_governance` 支 MUST NOT 携带 `policy_id` / `action_id` 一类治理配置标识：
 本 Realm 对该动作的审批要求由 `realm_id` + `action` + `approval_target` 已经完整确定，
@@ -591,6 +592,11 @@ MUST NOT 被实现成「先对 JSON 求 SHA-256、再签那个摘要」的第二
 而伪造一个 `grant_id`。反向也成立：一份 `realm_governance` 证据 MUST NOT 被当成对某份特定 grant
 的批准。一份 `grant` 支证据若**同时**满足两层各自现行的资格条件，MAY 分别计入两层；
 两层的合并方式仍按 §9.3，各自 quorum 独立判定，MUST NOT 把票数合并成一个阈值。
+
+`management` 支 MUST 命中 §3 的同一私有 request ledger，并按该节验证候选、请求人、实际 producer、
+受益主体、批准权、current revisions、期限及终态。管理票 MUST NOT 计入 grant、Realm governance
+或 List WIP 的 quorum，反向也不得替代管理批准。管理申请、决定与查询不是审批证据的业务载体；
+最终批准仍经原 Event submission 或已登记 creation operation 接纳并同事务消费。
 
 `list_wip` 支仅能用于 `ak.strand.move` 的 Event target：`action` MUST 为 `ak.strand.move`，
 `operation` MUST 是承载该 Event 的已登记提交 operation。`list_space_id` MUST 等于已签
@@ -652,12 +658,16 @@ request schema、carrier schema pointer、字段名、evidence schema 与允许�
 从该 operation 的 canonical request schema **真实可达**。原 typed RequestBody MUST NOT 为容纳 evidence 而放开
 `additionalProperties`，未登记字段也不得被借用。
 
-v1 的 `non_event_surface` 默认值是 `ineligible_no_registered_carrier`，当前没有 action override；因此 grant
-approval constraint 与 `ak.policy.action` 的 `approval_required=true` 都 MUST NOT 命中任何 non-event action。
-这不是「目前没有」的事实描述，而是写入时禁令。将来只有先登记真实 carrier 并为 exact action 增加
-`registered_operation_carrier` override，才可表达要求；不得为了凑闭合而虚构 action→operation 映射。
-`operation` target 支保留，但只能使用 schema 从 carrier registry 投影出的 operation；v1 的唯一值是
-`ak.self.events.command.submit.v1`，其 `EventAdmissionSubmission.approval_signatures[]` 是可达真实载体。
+v1 的 `non_event_surface` 默认值是 `ineligible_no_registered_carrier`；没有 exact registered-operation
+override 的 action MUST NOT 被 grant approval constraint 或 `ak.policy.action` 要求审批。
+只有先登记真实 carrier 并为 exact action 指定 `registered_operation_carrier`，才可表达该要求；
+不得为了凑闭合而虚构 action→operation 映射，也不得从内部生成的 Event 反推外层 operation 载体。
+当前 Bot／Ghost provision 使用 exact action override 和各自外层 `approval_signatures[]`；
+其内部原子 Event 不得被拆开提交以绕过 creation operation 的批准。
+`operation` target 只接受 schema 从 carrier registry 投影出的 operation。当前三项为
+`ak.self.events.command.submit.v1`、`ak.self.applet.bot.command.provision.v1` 与
+`ak.self.applet.ghost.command.provision.v1`；新增载体须同步 canonical registry、可达 schema 与验证证据，
+不因本节的列举自动获得资格。管理 context 与 creation request 的绑定另见 `managed-governance.md` §3。
 
 **接纳审计**：治理 Station MUST 在接纳／执行的**同一原子事务**内持久化 evidence、验证依据、
 nonce 消费记录与到原始提交的绑定。共享 Realm Event store 保持原 Event 字节不变；
@@ -741,11 +751,16 @@ Agent 自己的私有 draft 能力（`ak.agent.draft.propose` / `ak.agent.action
 在 `artifact_pipeline check` 内重算并**真实做 Ed25519 验签**。实现 MUST 能重现它的三条接纳向量，
 并 MUST 拒绝它的每一条否例。
 
+该 KAT 的范围是下表已有 grant／Realm governance 的 Event 与 self-submit operation 原像，
+不宣称验证 management ledger 或 Bot／Ghost creation 的生产消费。四支 context、creation carrier
+的 closed 分派及管理原子性参考决策由 [`tools/test_managed_governance_contract.py`](../../../../tools/test_managed_governance_contract.py)
+与 carrier eligibility 门禁共同验证；实现还须执行 SDK 管理签名正反例及真实 Station 接纳事务。
+
 | 向量 | 覆盖 |
 | --- | --- |
 | `ak.vector.authz.approval_signature_bytes.v1` | `grant` + `event` 支：§9.2.1 的 `signing_bytes` 逐字节、detached JWS 空 payload 段、`request_canonical_digest` 覆盖含 producer proof 的完整 Event |
-| `ak.vector.authz.approval_signature_governance_context.v1` | `realm_governance` + `event` 支：该支不携带 `grant_id`，也不携带任何治理配置引用；一份签名 MUST NOT 跨两层复用 |
-| `ak.vector.authz.approval_signature_operation_target.v1` | `grant` + `operation` 支：action=`ak.strand.create`，operation=`ak.self.events.command.submit.v1`；摘要覆盖省略 evidence 字段的原 typed RequestBody，且该 operation 是 carrier registry 中真实可达的唯一 operation-target carrier |
+| `ak.vector.authz.approval_signature_governance_context.v1` | `realm_governance` + `event` 支：该支不携带 `grant_id` 或治理配置引用，不能满足 grant 层；合格 `grant` 支票能否分别计入两层仍按 §9.2.2 与 §9.3 的独立资格／quorum 判定 |
+| `ak.vector.authz.approval_signature_operation_target.v1` | `grant` + `operation` 支：action=`ak.strand.create`，operation=`ak.self.events.command.submit.v1`；摘要覆盖省略 evidence 字段的原 typed RequestBody；本向量只验证 self-submit 分支，不代表覆盖所有 registered-operation carrier |
 | `ak.vector.authz.approval_signature_negative.v1` | 三类否例：换字节或错构造 → `signature_invalid`；形状错误 → `schema_violation`；签名有效但不可接纳 → `claim_required` reason=`approval_required` 或 `failed_precondition` reason=`approval_nonce_reused` |
 
 fixture 的 `event_id_invariance` 块给出 §9.2.5 那句「不改变目标 Event」的可核对形式：目标 Event 的摘要

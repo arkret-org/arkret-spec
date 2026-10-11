@@ -158,8 +158,8 @@ Moderation policy（举报、franking、审核流程）见 [`../governance/conte
 [`capability-action-registry.json#approval_requirement_eligibility`](../../artifacts/registry/capability-action-registry.json)
 解析为 `event_submission_carrier` 或带真实 carrier 引用的 `registered_operation_carrier`。解析为
 `ineligible_no_registered_carrier` 时 reducer MUST 拒绝为 `schema_violation`
-（reason=`approval_carrier_unregistered`），且不得写 `policy_action` current result。因而 v1 当前所有
-`event_mapping_kind=non_event_surface` action 都禁止被本配置要求审批；`approval_required=false` 只撤回本层要求，
+（reason=`approval_carrier_unregistered`），且不得写 `policy_action` current result。未登记 exact operation carrier
+例外的 `event_mapping_kind=non_event_surface` action 禁止被本配置要求审批；`approval_required=false` 只撤回本层要求，
 不需要 carrier。实现 MUST NOT 以 risk tier、action 名称或未登记的 action→operation 猜测替代 registry 判定。
 
 **这是审批配置，不是执行回执，也不是审批授权（normative）**：该 value 只声明「某 action 需不需要审批、需要几票、
