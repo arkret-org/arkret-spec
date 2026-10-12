@@ -209,6 +209,43 @@ class SessionGrantKatTests(unittest.TestCase):
             "standard claims must reject a recovery_candidate_device holder",
         )
 
+    def test_introspection_preserves_closed_agent_resource_scope(self) -> None:
+        validator = artifact_lint_core.schema_validator(
+            check_session_grant_kat.CLAIMS_SCHEMA_PATH.resolve(),
+            "#/$defs/SessionGrantIntrospectGrant",
+        )
+        claims = self._claims_by_vector()["issuer_a_closed_preimage"]
+        key_ref = "ak:event:AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+        realm = "ak:realm:AZocxLUuB-7lfxVbVJzNCcxSEn-aDa07Di6MnigFwGfd"
+        grant = {
+            "id": claims["jti"], "issuer_id": claims["issuer_id"],
+            "account_id": claims["account_id"], "audience_id": claims["audience_id"],
+            "scopes": claims["scopes"], "expires_at": claims["expires_at"],
+            "revocation_ref": "issuer-ledger-fixture", "session_public_key": claims["session_public_key"],
+            "cnf_jkt": "fixture-rfc7638-thumbprint", "credential_class": "standard",
+            "holder_binding": {"kind": "agent_runtime", "agent_id": claims["account_id"]["principal_id"],
+                "agent_key_authorization_ref": key_ref, "verification_method": "did:web:agent.example#runtime"},
+            "scope_details": {"controller_principal_id": claims["account_id"]["principal_id"],
+                "agent_key_authorization_ref": key_ref, "realm_ids": [realm], "strand_ids": [],
+                "resources": {"realm_ids": [realm], "strand_ids": []},
+                "constraints": {"allowed_tracks": ["discussion"], "allowed_data_labels": [], "allowed_endpoints": []},
+                "capability_grant_refs": [], "policy_refs": []},
+        }
+        self.assertEqual(list(validator.iter_errors(grant)), [])
+        for field in grant["scope_details"]:
+            missing = copy.deepcopy(grant)
+            del missing["scope_details"][field]
+            self.assertTrue(list(validator.iter_errors(missing)), field)
+            null = copy.deepcopy(grant)
+            null["scope_details"][field] = None
+            self.assertTrue(list(validator.iter_errors(null)), field)
+        for field in ["resources", "constraints"]:
+            unknown = copy.deepcopy(grant)
+            unknown["scope_details"][field]["unregistered"] = []
+            self.assertTrue(list(validator.iter_errors(unknown)), field)
+        del grant["scope_details"]
+        self.assertTrue(list(validator.iter_errors(grant)))
+
     def test_introspection_grant_requires_cnf_jkt_but_inactive_may_omit_grant(self) -> None:
         validator = artifact_lint_core.schema_validator(
             check_session_grant_kat.CLAIMS_SCHEMA_PATH.resolve(),

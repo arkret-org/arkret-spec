@@ -3100,6 +3100,108 @@
         "device_binding": {
           "$ref": "#/$defs/SessionGrantDeviceBinding",
           "description": "Exact origin-derived device authorization preimage taken from the revocation gate's allow receipt. Required only for standard human_device grants and forbidden for recovery candidate-device and Agent grants."
+        },
+        "scope_details": {
+          "$ref": "#/$defs/SignedSessionGrantClaims/properties/scope_details",
+          "required": [
+            "controller_principal_id",
+            "agent_key_authorization_ref",
+            "realm_ids",
+            "strand_ids",
+            "resources",
+            "constraints",
+            "capability_grant_refs",
+            "policy_refs"
+          ],
+          "description": "Exact immutable Agent scope_details from this credential's issuer-ledger claims, returned only over authenticated introspection. Required for Agent runtime grants and forbidden for human and recovery grants; preserves resource, constraint and participation ceilings without client claim parsing.",
+          "properties": {
+            "controller_principal_id": {
+              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+            },
+            "agent_key_authorization_ref": {
+              "$ref": "./common-ids.schema.json#/$defs/event_id"
+            },
+            "realm_ids": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "$ref": "./common-ids.schema.json#/$defs/realm_id"
+              }
+            },
+            "strand_ids": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "$ref": "./agent-operations.schema.json#/$defs/strand_id"
+              }
+            },
+            "resources": {
+              "type": "object",
+              "required": [
+                "realm_ids",
+                "strand_ids"
+              ],
+              "properties": {
+                "realm_ids": {
+                  "type": "array",
+                  "uniqueItems": true,
+                  "items": {
+                    "$ref": "./common-ids.schema.json#/$defs/realm_id"
+                  }
+                },
+                "strand_ids": {
+                  "type": "array",
+                  "uniqueItems": true,
+                  "items": {
+                    "$ref": "./agent-operations.schema.json#/$defs/strand_id"
+                  }
+                }
+              },
+              "additionalProperties": false
+            },
+            "constraints": {
+              "type": "object",
+              "required": [
+                "allowed_tracks",
+                "allowed_data_labels",
+                "allowed_endpoints"
+              ],
+              "properties": {
+                "allowed_tracks": {
+                  "$ref": "./grant-constraint.schema.json#/properties/allowed_tracks"
+                },
+                "allowed_data_labels": {
+                  "$ref": "./grant-constraint.schema.json#/properties/allowed_data_labels"
+                },
+                "allowed_endpoints": {
+                  "$ref": "./grant-constraint.schema.json#/properties/allowed_endpoints"
+                },
+                "allowed_strand_ids": {
+                  "$ref": "./grant-constraint.schema.json#/properties/allowed_strand_ids"
+                }
+              },
+              "additionalProperties": false
+            },
+            "capability_grant_refs": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "policy_refs": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "participations": {
+              "type": "array",
+              "items": {
+                "$ref": "./agent-operations.schema.json#/$defs/agent_participation_entry"
+              }
+            }
+          },
+          "additionalProperties": false
         }
       },
       "allOf": [
@@ -3221,6 +3323,9 @@
             ]
           },
           "then": {
+            "required": [
+              "scope_details"
+            ],
             "not": {
               "anyOf": [
                 {
@@ -3233,6 +3338,13 @@
                     "device_binding"
                   ]
                 }
+              ]
+            }
+          },
+          "else": {
+            "not": {
+              "required": [
+                "scope_details"
               ]
             }
           }

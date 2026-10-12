@@ -7026,6 +7026,16 @@
       ]
     },
     {
+      "schema_path": "service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectGrant/properties/scope_details/properties/controller_principal_id",
+      "property_name": "controller_principal_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
       "schema_path": "service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectRequestBody/properties/audience_id",
       "property_name": "audience_id",
       "semantic_category": "responsibility_identity_material",
@@ -7945,6 +7955,18 @@
       "account_scoped": true,
       "required_evidence": [
         "exact_account_authority_binding"
+      ]
+    },
+    {
+      "source": "json_schema",
+      "schema_path": "service-operation-dtos.schema.json#/$defs/SessionGrantIntrospectGrant/properties/scope_details/properties/controller_principal_id",
+      "property_name": "controller_principal_id",
+      "resolved_carrier": "did_core_id",
+      "required_subject_class": "principal",
+      "contract_carrier": "did_core_id",
+      "account_scoped": false,
+      "required_evidence": [
+        "accepted_controller_principal_binding"
       ]
     },
     {

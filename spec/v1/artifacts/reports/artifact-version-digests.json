@@ -219,9 +219,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/normative-clause-registry.json",
-      "version": "2026-10-11.3",
-      "generated_at": "2026-10-11T23:36:50+08:00",
-      "content_digest": "sha256:827147554a3b8ae457760b9bbbedd4c9006e57da5103ee64aed1825b688ecd44"
+      "version": "2026-10-12.1",
+      "generated_at": "2026-10-12T08:02:07+08:00",
+      "content_digest": "sha256:04ede69c58cb2d6b4160f78f0086719556047b3c9aa36269349cb6ec8d5b0548"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-bundle-closure-lock.json",
@@ -453,9 +453,9 @@
     },
     {
       "path": "tools/identifier-classification-registry.json",
-      "version": 58,
+      "version": 59,
       "generated_at": null,
-      "content_digest": "sha256:6a1965017c3e4718d015ef75034a8c8b7ca94c836375dea0518d3faecf2548df"
+      "content_digest": "sha256:af180daeef77f2b11076b84582536b893a3afeab173f588c229b51b84825bdc8"
     },
     {
       "path": "tools/identifier-role-suffix-registry.json",
