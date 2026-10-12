@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-08",
+  "version": "2026-10-12",
   "suite": "terminal_replication_authority",
   "runner": {
     "kind": "named_suite",
@@ -41,14 +41,14 @@
       "name": "missing_predecessor",
       "vector_id": "ak.vector.federation.terminal_replication_authority.v1",
       "assertions": [
-        "An authorized terminal receiver repairs the chain with already registered authorized history/snapshot; no discontinuous Commit, authority bypass or withheld private-history disclosure."
+        "An authorized terminal receiver repairs the chain with already registered authorized history/snapshot; no discontinuous Commit, authority bypass or withheld private-history disclosure. Retry the unfinished dependency_missing position using the unchanged full body and canonical-hash identity; preserve successful positions and current transport/origin/recipient authorization."
       ]
     },
     {
       "name": "departure_with_gap",
       "vector_id": "ak.vector.federation.terminal_replication_authority.v1",
       "assertions": [
-        "Existing withheld-chain repair reaches the termination Commit inclusive, never grants post-departure terminal/history replication."
+        "Existing withheld-chain repair reaches the termination Commit inclusive, never grants post-departure terminal/history replication. The original full-body retry can complete only the unfinished positions through the departure cut; post-cut ingress is capability_denied before any gap recovery or cached success."
       ]
     },
     {

@@ -607,8 +607,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/terminal-replication-authority-fixture.json",
-      "sha256": "5591c47cb0510bad25d0e09d1349c83dee50e049a35035cbf4f3ab5db640b775",
-      "version": "2026-10-08"
+      "sha256": "627e10ce6769f3a8f589c2ddd2bc0adb8be11add1bd3e6cd3ed5b7f973916abf",
+      "version": "2026-10-12"
     },
     {
       "path": "spec/v1/artifacts/fixtures/test-material-rejection-fixture.json",

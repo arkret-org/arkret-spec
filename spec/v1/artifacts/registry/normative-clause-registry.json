@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-12.1",
+  "version": "2026-10-12.2",
   "source_of_truth": true,
-  "generated_at": "2026-10-12T08:02:07+08:00",
+  "generated_at": "2026-10-12T23:47:39+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -156,11 +156,12 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/sync/api-conventions.md#6-幂等",
-      "section_digest": "sha256:5eac10b9540a971cad5ef19007f49bd686d3e66097e935a430359a32683055d5",
-      "requirement": "Every write operation declares a machine-readable idempotency mechanism and retry safety; clients MUST NOT be left to guess the recovery path of an uncertain outcome.",
+      "section_digest": "sha256:31b900f8b00daac76c8517ba6db6996de8d1069243ff3da8af1b8876a40feb97",
+      "requirement": "Every write operation declares a machine-readable idempotency mechanism and retry safety; clients MUST NOT be left to guess the recovery path of an uncertain outcome. Committed-replication dependency_missing is an unfinished position: retry the original complete canonical body after verified repair without rewriting successful positions or bypassing current transport, origin binding or recipient authority; existing terminal idempotency retention remains at least 24 hours.",
       "testability_grade": "vector",
       "evidence_refs": [
-        "ak.vector.api.request_idempotency.v1"
+        "ak.vector.api.request_idempotency.v1",
+        "ak.vector.federation.terminal_replication_authority.v1"
       ]
     },
     {

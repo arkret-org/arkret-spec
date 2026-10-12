@@ -86,7 +86,7 @@ Directory 首次 ingest 所需的依赖 MUST 以同一条获准 stream 中的 ex
 
 服务签名先于任何内层对象处理，但不替代 Event/Commit proof。
 
-**撤销后的幂等重放（normative）**：`ak.peer.events.command.submit.v1` 的 closed 三分支请求均先验当前 RFC 9421 peer service 签名与当前 service DID key。签名方法已撤销、无法解析、当前 key 不获授权或 cryptographic signature 验证失败时返回 `signature_invalid`；`created` / `expires` 缺失或不满足 [service-http-binding.md §8.3](./service-http-binding.md) 共享时效窗口时返回 `signature_window_invalid`。时效检查同样先于幂等结果查询，不得查看幂等缓存后返回 `stored`、`duplicate` 或 `historical_only`；已接纳的旧 Event/Commit 不被撤回。当前签名有效但 Realm 的 origin service binding 已移除时返回 `capability_denied`。只有当前 transport 认证、schema 与本轮授权均通过，且 exact body、签名、幂等键及内部 key-state／授权 basis 与已存条目一致时，才可重放原逐项结果（首次 `stored` 仍为 `stored`，不改报 `duplicate`）而不产生新写入；basis 变化必须重跑授权。幂等键和历史缓存均不是当前认证或历史读取许可。v1 peer submit 不提供撤销密钥的历史诊断成功分支。
+**撤销后的幂等重放（normative）**：`ak.peer.events.command.submit.v1` 的 closed 三分支请求均先验当前 RFC 9421 peer service 签名与当前 service DID key。签名方法已撤销、无法解析、当前 key 不获授权或 cryptographic signature 验证失败时返回 `signature_invalid`；`created` / `expires` 缺失或不满足 [service-http-binding.md §8.3](./service-http-binding.md) 共享时效窗口时返回 `signature_window_invalid`。时效检查同样先于幂等结果查询，不得查看幂等缓存后返回 `stored`、`duplicate` 或 `historical_only`；已接纳的旧 Event/Commit 不被撤回。当前签名有效但 Realm 的 origin service binding 已移除时返回 `capability_denied`。只有当前 transport 认证、schema 与本轮授权均通过，且 exact body、签名、幂等键及内部 key-state／授权 basis 与已存条目一致时，才可重放原逐项结果（首次 `stored` 仍为 `stored`，不改报 `duplicate`）而不产生新写入；basis 变化必须重跑授权。committed replication 的 `dependency_missing` 是§4.1.1已登记的未完成复制位置，不是可永久冻结的首次耐久终局；原完整 body 的缺口恢复重试按 [api-conventions.md §6.2](./api-conventions.md#62-客户端重试义务normative) 仅推进该未完成位置，已成功位置与原成功结果仍受本段约束。幂等键和历史缓存均不是当前认证或历史读取许可。v1 peer submit 不提供撤销密钥的历史诊断成功分支。
 
 ### 3.4 Peer policy
 
@@ -206,8 +206,9 @@ caller/stream scope、当前有效 join、原子单元证明、visible heads 与
 并 MUST 以 `ak.peer.committed_event.read.scan.v1` 拉取缺口：scan 对这些位置返回的 withheld 行（经已验证 authority
 chain 验签、带 `event_ref` 的 `RealmCommit`，不带 Event bytes）作为**仅用于连续性的链节点**保存——它推进持有
 head 并参与 `previous_commit_ref` 核对，但 MUST NOT 进入 canonical Event store、reducer、dedupe 或
-`proof.event_digest` 重算，本地读取面对它同样只返回 withheld 分支。发送方对 `dependency_missing` 按原幂等键
-正常重试，缺口补齐后同一 Commit 即可 `stored`；committed replication 本身仍不携带 withheld 项
+`proof.event_digest` 重算，本地读取面对它同样只返回 withheld 分支。发送方对 `dependency_missing` 保留原完整 body、同一 canonical-hash identity 与原幂等键
+正常重试；该位置尚无首次耐久终局，已验证缺口补齐后同一 Commit 即可 `stored`，不重新写入同请求已经成功的位置。
+每次仍先验当前 transport、origin binding 与复制权；复制截止线之后的缺口不构成新的历史权限。已有幂等记录及首次耐久成功结果的至少24小时保留下限不变（api-conventions §6.1／§6.2）；committed replication 本身仍不携带 withheld 项
 （[`../models/relation.md` §4.5](../models/relation.md)）。
 接收方只保存 exact source bytes，**不得**重做首次 admission、重签 `RealmCommit` 或创建第二轮 fanout。
 
