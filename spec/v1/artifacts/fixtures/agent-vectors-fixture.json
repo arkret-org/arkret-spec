@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.agent_provisioning.v1",
-  "version": "2026-10-13",
+  "version": "2026-10-13.1",
   "suite": "agent_vectors",
   "runner": {
     "kind": "named_suite",
@@ -570,7 +570,7 @@
       "runner": "cotest::conformance::agent_vectors::run_agent_repairing_supersede_vector",
       "assertions": [
         "renew_pairing accepts an active or paused agent without changing lifecycle intent, existing keys, or grants before pairing completes",
-        "renew_pairing returns one fresh handle and required high-entropy secret; attach/replace derives from current exact authorization dots",
+        "renew_pairing returns one fresh opaque pairing_request_id and exactly eight uniformly CSPRNG-generated ASCII digits; the code alone cannot resolve a request and attach/replace derives from current exact authorization dots",
         "issuing a new pairing handle makes every previous handle permanently unresolvable",
         "one controller-signed authorize event carries an exact supersedes set and atomically replaces every prior active authorization dot with reason superseded_by_repairing",
         "stale, partial, extra, or wrong authorized_event_ref supersedes sets fail closed without changing any key",
