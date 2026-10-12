@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.agent_provisioning.v1",
-  "version": "2026-10-13.1",
+  "version": "2026-10-13.2",
   "suite": "agent_vectors",
   "runner": {
     "kind": "named_suite",
@@ -471,8 +471,8 @@
       "assertions": [
         "the public did:webvh history never contains the complete requested_scope, resource selectors, or constraints",
         "the disclosure validates against agent-requested-scope-disclosure.schema.json and its controller proof payload_digest",
-        "the verifier consumes request_id and challenge once and rejects replay, wrong audience, stale proof, and digest mismatch",
-        "accepted disclosure is stored only as encrypted verifier-private evidence keyed by agent, digest, verifier, and audience"
+        "the verifier consumes request_id and challenge once per accepted intent and rejects cross-intent replay, wrong audience, stale proof, and digest mismatch; exact retry reads or recovers the same durable command",
+        "retaining an accepted disclosure is optional; any retained evidence is encrypted and verifier-private with a cache key including agent, digest, verifier, and audience, while a non-retaining verifier must not persist the raw disclosure"
       ]
     },
     {
