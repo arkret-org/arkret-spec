@@ -104,6 +104,38 @@ sidecar/direct 的 controller 请求与 private scope 内 Agent 协作不属于�
 已明确处于获授权 Sidecar／主人 Direct 的私有请求不依赖群内模式读取成功；模式 unknown 不能阻止这些
 独立已确定 scope 的私有协作，也不能授权任何共享动作。
 
+### 3.1 同治理 Station 的固定公开消息回复准备（normative）
+
+实现 MAY 把原生 Agent runtime 作为实际 scope 治理 Station 的进程内消费者装配。该消费者只承载
+固定 `ak.message.create` 同 scope 消息回复的 authoring 准备，不是通用模型调用、工具调用或新 wire
+operation；不得恢复已撤回的 invocation/result/relay 合同。原通知、watch 或 durable inbox 仅提供
+候选。持钥消费者 MUST 核验原 accepted 入站 Event/Commit、内容触发、完整 caller、Agent/controller、
+实际 ScopeRef/Strand、独立 MLS readiness 与私有 provenance；不能由 blind wakeup 构造这些事实。
+
+实际模型输入发送前，消费者 MUST 在原治理 Station 的当前串行屏障内独立验证 caller 的实际权限、
+Agent public、Execute 与 Serve、主人动态上界、Agent 原 authority、当前 participation、key/session/
+immutable provision ceiling、membership/lifecycle，以及实际目标和全部 mandatory constraints。
+该准备把原 MessageCreate 作为本次固定回复的实际业务目的，MUST NOT 授予其它动作；模型仅生成
+回复 text，无已登记实际 action/resource 的工具与其它副作用 MUST 禁用。正文内容、write field、
+data label 或 endpoint 所需事实在发送前未知时 MUST fail closed，不能等待模型或最终 Event 补证。
+
+本节最窄实现仅可采用完整、当前且不欠 quota reservation 的 allow 路径；owner、Agent 和全部父
+上界均须满足。quota-only 或无法证明完整 unreserved 路径的准备 MUST 拒绝，不能用输入 EventId、
+input digest、随机 UUID 或预计最终 EventId 冒充已登记 quota operation identity。仍须先应用全部
+适用 deny/quarantine/review，再选择完整允许路径，不得删去未决 mandatory constraint。
+
+消费者 MUST 在 verifier-private 耐久 backing 中冻结 exact 来源、实际模型请求及其 canonical input
+摘要，并在第一次可能发出请求前记录不可自动重跑的 handoff 状态。该 backing 不是权限来源。
+current 屏障 MUST 保持到真实模型输入交付，时钟上界须紧邻物理交付再查；排队 allow、旧 observation、
+advisory 或 TTL cache 不能替代。异常、取消、重启或响应丢失不能证明未交付时，原输入保持 unknown，
+不得自动重新调用模型；新显式业务请求是新候选，旧私有输入不得随 public 恢复而重放。
+
+生成完整回复后，以原 SDK/Agent signer 和实际 MLS scope 自著原 MessageCreate，随后通过原提交
+容器及全部当前接纳门。最终 EventId 由完整 canonical Event 派生，不得预先伪造 placeholder Event。
+私密 backing MUST 绑定原 input digest 与 exact final signed Event/canonical digest；最终提交 unknown
+仅重试同 signed Event。准备不扣 quota，也不产生 capability、业务 Event 或可重用 allow；最终原
+UOW 的正常配额和当前裁决独立执行，不能被准备替代。独立远端 runtime 无已登记真实屏障仍拒绝。
+
 ## 4. Composer 与私有信息流
 
 普通 Realm composer 只含公开 Agent 时 MUST 使用普通共享 Strand，即使作者是主人；只含主人的私人

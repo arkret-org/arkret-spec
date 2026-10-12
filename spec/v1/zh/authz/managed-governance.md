@@ -47,6 +47,12 @@ publish 只控制主人开启本 scope public 意图的接纳；serve 持续控�
 管理员 **MUST NOT** 代签主人模式；serve 被禁止时保留原签 public 意图但停止后续公开服务，合法私有协作不因此被封禁。
 Realm public 不表示跨 Realm、匿名或全网可调用。publish 被禁止只阻止新开启；停止已公开服务须限制 serve。
 
+同治理 Station 的固定公开消息回复 authoring 准备按 [agent-interaction §3.1](../models/agent-interaction.md#31-同治理-station-的固定公开消息回复准备normative)
+执行。Execute/Serve 对该原 MessageCreate 业务目的的实际 ScopeRef/Strand、caller、Agent/controller
+和物理模型输入交付求值；该进程内准备不是 `invoke` action 或远端 current 判定。仅完整 unreserved
+路径可以交付模型输入；其它实际动作必须分别取得自己的已登记映射及全部当前门，不能借回复准备
+执行工具、Signal、其它对象写入或隐含服务动作。最终 MessageCreate 原接纳裁决仍独立执行。
+
 Applet 操作是 `install/create_bot/map_ghost/join/authorize/execute/read/deliver/publish/serve/invoke`。
 install 保留 `ak.realm.admin` 门；普通成员没有隐式安装权。create_bot/map_ghost 分别要求真实创建 grant，
 accepted installation、当前治理及所要求审批；禁止新创建不自动停用既有主体。具体主体的持续操作仍按本节相应门判定。

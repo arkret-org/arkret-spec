@@ -481,6 +481,15 @@ quota authority MUST 同时满足：
 
 `constraint_scope="global"` 的“global”边界仍是该 enforcing service 的 quota domain（含其全部副本 / region），不是全联邦所有独立 service 的隐式共享计数器。若一个 quota 必须跨多个互不共享线性化存储的独立 authority 生效，v1 core 要求 policy 指定一个共同 quota authority 并让所有写入向其原子 reservation；否则 MUST fail closed。[`event-auth-state-resolution.md` §6](./event-auth-state-resolution.md) 的 issuer-local data-plane counter 不能自动充当该共同 authority，也不能把完整预算复制给各 issuer；只有注册了额度分配、回收、epoch 与总和不超发证明的独立 escrow profile 才能替代上述单 authority，v1 core 不定义这样的 multi-authority profile。
 
+固定公开消息回复的原生 authoring 准备在没有已登记、可耐久 exact 绑定的 pre-Event quota
+operation identity 时，仅可使用完整 unreserved allow 路径（见 [agent-interaction §3.1](../models/agent-interaction.md#31-同治理-station-的固定公开消息回复准备normative)）。
+准备的 canonical input digest 和入站 Event/Commit 是私密恢复/provenance 绑定，不是该回复的
+quota operation identity。最终回复 Event 尚未完整自著时不能预分配其 content-addressed EventId。
+quota-only、未知条件或 authority/identity 不可证的准备 MUST 在任何模型输入发送前拒绝；不得在
+模型调用后以最终 Event 的扣额倒证此前执行。准备本身不预留/扣减 quota；最终 signed Event
+按原 registry identity、完整当前权限及本节原 reservation 规则接纳，不是两次 quota 消费。
+该窄实现不宣称支持 pre-Event hard-quota authoring；扩展必须另具完整正式 identity/恢复合同。
+
 ### 8.2 资源限制（constraint_subkind=resource）
 
 ```json schema=schemas/grant-constraint.schema.json

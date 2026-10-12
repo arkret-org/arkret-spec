@@ -483,9 +483,9 @@
     },
     {
       "path": "tools/normative-title-inventory.json",
-      "version": "2026-10-08",
-      "generated_at": "2026-10-08T12:00:00+08:00",
-      "content_digest": "sha256:3ed2f8aa68e5b030ca29cf7613c88bca8630d4cd1ae7b010b3a6352126d82e3f"
+      "version": "2026-10-13",
+      "generated_at": "2026-10-13T01:49:22+08:00",
+      "content_digest": "sha256:e111993c74381496d68718f2c49f21c3df828a941c3f82c47878e7e5599847fc"
     },
     {
       "path": "tools/operation-note-field-exemptions.json",
