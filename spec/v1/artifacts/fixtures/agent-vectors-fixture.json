@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.agent_provisioning.v1",
-  "version": "2026-10-02.1",
+  "version": "2026-10-12",
   "suite": "agent_vectors",
   "runner": {
     "kind": "named_suite",
@@ -376,7 +376,7 @@
         "genesis admission reverse-looks-up an accepted ak.agent.provision whose payload.principal_control_realm_id equals retype of this create event_id",
         "retype of the accepted genesis event_id equals the declared principal_control_realm_id byte for byte",
         "the whole sequence derives without event_id_digest_mismatch, which is the constructibility proof for the named encoding.md §3.1 class C exemption",
-        "accepting the genesis returns awaiting_did_binding and keeps the Agent invisible; only accepting controller-signed continuous DID entry 1 moves agent_status from uninitialized to active, publishes the pairing handle and returns status=complete",
+        "accepting the genesis uniquely writes the uninitialized-to-active agent_status transition under its position-zero RealmCommit and returns awaiting_did_binding while the Agent stays invisible; only accepting controller-signed continuous DID entry 1 publishes the existing lifecycle projection and pairing handle and returns status=complete, without rewriting agent_status or creating another lifecycle Event or RealmCommit",
         "an ak.realm.create whose purpose is not agent_control triggers neither the agent-status write nor the reverse look-up"
       ]
     },

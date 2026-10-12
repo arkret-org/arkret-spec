@@ -565,8 +565,11 @@ entry 1 的 create-locked 四元组 `{realm_id, controller_did, authorization_re
 `ak.self.agent.resource.get.v1` 的可见性**全部推迟到 binding update 被接受之后**。genesis accepted 后状态改为
 `status=awaiting_did_binding`，但仍没有可见 Agent 对象。因此不存在"lifecycle 取什么值"、
 "能否 pause/deactivate"、"readiness 该报哪个 blocker"这三个问题：没有可投影的 Agent 对象。genesis 被接受时
-只确认 PCR；binding update 被接受时才一次性创建 pairing handle、把 lifecycle 写入 `active`（见 §3.6.3
-下一段与 [`../models/actor.md` §3.3](../models/actor.md)），并把 outcome 推进到 `status=complete`。
+在其 position-zero RealmCommit 下确认 PCR 并按下一段唯一写入首次 `active` typed current；该耐久事实
+在 bootstrap 未完成时 MUST NOT 单独授予 Agent 的对外可见性、配对、runtime/session 或管理操作资格。
+binding update 被接受后才创建 pairing handle、发布已经由 genesis 建立的 lifecycle projection，并把
+outcome 推进到 `status=complete`。DID method-native update MUST NOT 另写 `agent_status` 或生成第二个
+lifecycle Event／RealmCommit；完整 bootstrap 门与 lifecycle current 门是独立的 AND 条件。
 
 **genesis 是唯一的首次 active 写入（normative）**：`agent_status` 的 FSM 只有
 `uninitialized -> active` 一条离开初始态的边，而 `ak.self.agent.pause` / `resume` / `deactivate` 都要求非
