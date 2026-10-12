@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-09.1",
+  "version": "2026-10-13.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-09T07:31:39+08:00",
+  "generated_at": "2026-10-13T04:14:16+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -313,7 +313,7 @@
       "applies_to_fixtures": [
         "agent-vectors-fixture.json"
       ],
-      "description": "Agent bootstrap is constructed in one acyclic order: controller-signed PCR-independent DID entry 0 -> exact initial_resolution -> frozen genesis create -> realm_id=retype(event_id) -> accepted provision -> accepted PCR -> controller-signed create-locked DID entry 1. Covers awaiting_pcr_genesis and awaiting_did_binding invisibility, exact durable commitment comparison, activation only after entry 1, and rejection of same-batch submission, undeclared genesis, duplicate claim, service-chosen realm id, cross-server split or wrong DID update key/tuple.",
+      "description": "Agent bootstrap is constructed in one acyclic order: controller-signed PCR-independent DID entry 0 -> exact initial_resolution -> frozen genesis create -> realm_id=retype(event_id) -> accepted provision -> separately accepted PCR -> controller-signed create-locked DID entry 1. Covers awaiting_pcr_genesis and awaiting_did_binding invisibility, genesis as the unique active lifecycle writer and entry 1 as visibility publication, exact durable commitments, unsupported generic Agent batch carrier schema rejection, undeclared genesis, duplicate claim, service-chosen realm id, cross-server split and wrong DID update key/tuple. Unsupported carrier rejection is not a business batch or event digest failure.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/agent-vectors-fixture.json"
       ]

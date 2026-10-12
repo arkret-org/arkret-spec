@@ -516,8 +516,13 @@ PCR id；PCR service binding 必须是 create accepted 后的连续 DID update�
    inception 不依赖 PCR；genesis 只依赖 accepted inception；provision 依赖已冻结 genesis 的派生 id，依赖
    方向严格单向，每个对象都可构造。
 5. **另一次提交 genesis create**。该 create MUST 在一次**独立的提交**中送出，MUST NOT 与 provision 同属
-   一个原子 unit 或同一 ordered submit batch——那正是 §3.1 B 类禁令，会让两条 Event 互为原像而不可构造。
-   Genesis admission MUST 反查：controller PCR 中是否存在一条**已 accepted** 的 `ak.agent.provision`，其
+   一个原子 unit 或同一 ordered submit batch。v1 没有 Agent provision/genesis 的通用同批提交载体；
+   `ak.self.events.command.submit.v1` 的 closed `self_submit_request` 不接受 `events[]`，封闭的
+   `ordinary_realm_bootstrap` 也不得承载 Agent PCR。把安全事务内部的 `EventsSubmitBatchRequestBody`
+   误送 self submit MUST 按未知/错误载体返回 `schema_violation` 且零写入，不能报成已执行的批内授权
+   或 `event_id_digest_mismatch`。两条正常独立冻结的 Event 仍为上文单向可构造；是否存在未登记载体
+   不是内容寻址失败的判据。真正原像不匹配继续按 encoding 的原 digest 检查拒绝。
+   Genesis admission MUST 反查：controller PCR 中是否存在一条此前独立提交中**已 accepted** 的 `ak.agent.provision`，其
    `payload.principal_control_realm_id` 逐字等于 `retype(本 create 的 event_id)`。无匹配 MUST 零写入拒绝。
 6. **发布 DID binding update**。genesis accepted 后 outcome 进入 `status=awaiting_did_binding`。controller 使用
    entry 0 `nextKeyHashes[0]` 预承诺的 update key 签发连续 entry 1，保留 controller delegation，并新增唯一

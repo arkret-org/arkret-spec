@@ -381,9 +381,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/vector-registry.json",
-      "version": "2026-10-09.1",
-      "generated_at": "2026-10-09T07:31:39+08:00",
-      "content_digest": "sha256:aef09bbcf6c704e219017fe7fe26476626f1441f79c5a9ae344c6060c6555517"
+      "version": "2026-10-13.1",
+      "generated_at": "2026-10-13T04:14:16+08:00",
+      "content_digest": "sha256:1dfbcc088affb418722bed74adfa20334f513f6bffda647af90fb693f69e6107"
     },
     {
       "path": "tools/artifact-anchor-fragment-exemptions.json",

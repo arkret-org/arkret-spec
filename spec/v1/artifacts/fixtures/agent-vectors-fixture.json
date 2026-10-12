@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.agent_provisioning.v1",
-  "version": "2026-10-12",
+  "version": "2026-10-13",
   "suite": "agent_vectors",
   "runner": {
     "kind": "named_suite",
@@ -383,13 +383,19 @@
     {
       "name": "agent_pcr_genesis_same_batch_rejected",
       "vector_id": "ak.vector.agent.pcr_genesis_declaration.v1",
-      "submission": "ak.agent.provision and its declared agent_control ak.realm.create in one ordered submit batch",
+      "submission": "the SDK nested security-transaction EventsSubmitBatchRequestBody containing exact controller-signed ak.agent.provision and its frozen agent_control create, sent as the body of ak.self.events.command.submit.v1",
       "expected": {
         "outcome": "rejected",
-        "error": "event_id_digest_mismatch",
-        "exemptible": false,
+        "error": "schema_violation",
         "writes": 0
-      }
+      },
+      "operation_id": "ak.self.events.command.submit.v1",
+      "carrier_source": "service-operation-dtos.schema.json#/$defs/EventsSubmitBatchRequestBody",
+      "assertions": [
+        "v1 self_submit_request has no generic Agent provision/genesis batch branch; the nested security-transaction array cannot authorize a self submit",
+        "a canonical typed batch with valid frozen Event bytes is rejected as schema_violation with complete accepted and Agent state unchanged",
+        "this is an unsupported-carrier negative, not a claimed business batch execution or digest mismatch; ordinary independent genesis/provision Event identities and the accepted-prior declaration gate remain mandatory"
+      ]
     },
     {
       "name": "agent_pcr_genesis_without_declaration_rejected",
