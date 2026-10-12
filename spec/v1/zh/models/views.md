@@ -416,7 +416,9 @@ Board projection MUST NOT 默认显示 Realm 中的全部 Strand。实现 MUST �
 
 Board 展示由客户端按 §6.2 从已授权对象图本地派生，不登记独立的 v1 wire response 类型，也不要求服务端提供 View projection HTTP 入口。
 
-单个 document Morph 的受托读取面是 `GET /_arkret/self/realms/{realm_id}/morphs/{morph_id}`（operation `ak.self.morph.resource.get.v1`）。响应 schema 为 `schemas/view.schema.json#/$defs/document_morph_projection_outcome`，用于返回授权可见的 `document`、`versions`、`relations`、`comments` 与 `cursor_presence` 派生数据；它不是 document 的 canonical state，客户端仍以 Morph/Relation/Message/Event 历史和返回的 projection checkpoint 做校验。
+单个 document Morph 的受托读取面是 `GET /_arkret/self/realms/{realm_id}/morphs/{morph_id}`（operation `ak.self.morph.resource.get.v1`）。响应 schema 为 `schemas/view.schema.json#/$defs/document_morph_projection_outcome`，用于返回授权可见的 `document`、`versions`、`relations` 与 `comments` 派生数据；它不是 document 的 canonical state，客户端仍以 Morph/Relation/Message/Event 历史做校验。可选 `checkpoint` 仅在 Station 能提供与这些已接纳来源绑定的真实 state digest 时返回，不得仅根据 stream heads 构造摘要。
+
+该读取面 MUST NOT 解密、聚合或投影加密 Signal；`ak.presence.v1` 的在线状态不是文档坐标。客户端只能按已经登记的 Signal payload 契约本地派生授权可见的临时状态。当前 v1 没有登记文档协作光标 payload，本读取面不提供也不宣称支持文档光标。
 
 ## 7. Timeline / Chat Projection
 

@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-11.1",
+  "version": "2026-10-12.1",
   "source_of_truth": false,
-  "generated_at": "2026-10-11T23:19:36+08:00",
+  "generated_at": "2026-10-12T14:05:22+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -3810,7 +3810,7 @@
       "http": "GET /_arkret/self/realms/{realm_id}/morphs/{morph_id}",
       "grpc": "SelfMorph/Get",
       "mq": "self.morph.resource.get",
-      "notes": "Optional extension read surface returning the authorized document body, version, relation, comment, and cursor-presence read-model for a single document Morph addressed within its Realm. Canonical truth remains the Morph/Relation/Message event history.",
+      "notes": "Optional extension read surface returning the authorized document body, version, relation, and comment read-model for a single document Morph addressed within its Realm. Canonical truth remains the Morph/Relation/Message event history.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "response_schema_ref": "schemas/view.schema.json#/$defs/document_morph_projection_outcome"

@@ -87,9 +87,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
-      "version": "2026-10-11.2",
-      "generated_at": "2026-10-11T23:19:36+08:00",
-      "content_digest": "sha256:0d44155f87ecfb937cf9218a56902c46b24e222f6f14668b11d910e2c44827cf"
+      "version": "2026-10-12.1",
+      "generated_at": "2026-10-12T14:05:22+08:00",
+      "content_digest": "sha256:583c5a804563a7b99fae45e177b3aecb902b36c5e91199ebf3632f8a9cc82963"
     },
     {
       "path": "spec/v1/artifacts/registry/current-result-registry.json",
@@ -237,15 +237,15 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-10-11.2",
-      "generated_at": "2026-10-11T08:13:44+08:00",
-      "content_digest": "sha256:38cb97401df207248624b326fe5da9f292a42a4d4b89905c4c55ea18827767f7"
+      "version": "2026-10-11.3",
+      "generated_at": "2026-10-11T23:19:36+08:00",
+      "content_digest": "sha256:25e53906b77d0fead748a0ed8d828c2453e0ce3df0995ecdbbdad47a51932e76"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
-      "version": "2026-10-11.1",
-      "generated_at": "2026-10-11T23:19:36+08:00",
-      "content_digest": "sha256:c0af4aa2111fe006fb5f38eea42770ed5c8b68b406751dc603f08e8ce68450c3"
+      "version": "2026-10-12.1",
+      "generated_at": "2026-10-12T14:05:22+08:00",
+      "content_digest": "sha256:75fa9e5117dfc42c0cf6dd4714c5e16b2e0b95af8e7f3b73812b447b8fc306ae"
     },
     {
       "path": "spec/v1/artifacts/registry/operations-error-mapping.json",
@@ -417,9 +417,9 @@
     },
     {
       "path": "tools/collection-naming-registry.json",
-      "version": "2026-09-29.1",
+      "version": "2026-10-12.1",
       "generated_at": null,
-      "content_digest": "sha256:47a748ccaae8cca6fd45bf68cf61a575f6e760c2a07664fb15410bb9983f3055"
+      "content_digest": "sha256:c43c5f9374e075a476c2811afbdde39adfdaaa043c2b3af51305408b554f83b0"
     },
     {
       "path": "tools/common-object-field-matrix.json",

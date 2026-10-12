@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9244,
+    "total_properties": 9243,
     "total_schema_documents": 170,
     "by_presence_class": {
       "optional": 2183,
       "optional_defaulted": 48,
-      "required": 6510,
+      "required": 6509,
       "required_nullable": 324,
       "tristate": 179
     },
@@ -12385,7 +12385,6 @@
         "/$defs/dashboard_config/properties/widgets/items/properties/widget_id": "required",
         "/$defs/document_morph_projection_outcome/properties/checkpoint": "optional",
         "/$defs/document_morph_projection_outcome/properties/comments": "required",
-        "/$defs/document_morph_projection_outcome/properties/cursor_presence": "required",
         "/$defs/document_morph_projection_outcome/properties/document": "required",
         "/$defs/document_morph_projection_outcome/properties/document/properties/body": "required_nullable",
         "/$defs/document_morph_projection_outcome/properties/document/properties/created_at": "optional",

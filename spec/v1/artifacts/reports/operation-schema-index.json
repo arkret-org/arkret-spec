@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-09.1",
+  "version": "2026-10-11.2",
   "source_of_truth": false,
-  "generated_at": "2026-10-09T07:31:39+08:00",
+  "generated_at": "2026-10-11T23:19:36+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -7836,15 +7836,13 @@
           "document",
           "versions",
           "relations",
-          "comments",
-          "cursor_presence"
+          "comments"
         ],
         "properties": [
           "document",
           "versions",
           "relations",
           "comments",
-          "cursor_presence",
           "checkpoint"
         ],
         "closed": true

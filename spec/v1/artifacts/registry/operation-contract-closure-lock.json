@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-11.2",
-  "generated_at": "2026-10-11T08:13:44+08:00",
+  "version": "2026-10-11.3",
+  "generated_at": "2026-10-11T23:19:36+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -293,11 +293,11 @@
     },
     {
       "operation_id": "ak.peer.realm_authority.command.handoff.v1",
-      "sha256": "sha256:2ce751094bb95106adcbb51e6dc5e56f2fab9b4aa3d14cdfa2c56f103caf5203"
+      "sha256": "sha256:a3be1029f3634c0dfa0c4cf35bbcd227b8004c50d8f61a1d42ed4abed435d95d"
     },
     {
       "operation_id": "ak.peer.realm_join.read.bootstrap.v1",
-      "sha256": "sha256:0a8542cc9979df140e111e1c12299edad0bbca11601825fa0c73742811373e87"
+      "sha256": "sha256:4901777f701fbff842148e66dcdf890fa037ecbb02a030497c4fb9882a9205e8"
     },
     {
       "operation_id": "ak.peer.realm_join.read.preview.v1",
@@ -397,7 +397,7 @@
     },
     {
       "operation_id": "ak.self.account.stream.subscribe.v1",
-      "sha256": "sha256:da719a3463a951daf443666ecad22c6a225e7029851aef5628fb85b656ac9e9d"
+      "sha256": "sha256:a9a83f090b0db9399c1e631e7f469183ea7a9c264e70378d02a7a66890031f55"
     },
     {
       "operation_id": "ak.self.account_data.read.list.v1",
@@ -781,7 +781,7 @@
     },
     {
       "operation_id": "ak.self.morph.resource.get.v1",
-      "sha256": "sha256:39aca44a0625d8b21311cea9dbb64c233c950d49cadeac1891fd3fcbfb7fe7eb"
+      "sha256": "sha256:f4a09e11c052abcdb5df2fa4066a6fb02786a57ae8e58cb2386379bb84b5a625"
     },
     {
       "operation_id": "ak.self.read_cursor.command.advance.v1",
@@ -821,11 +821,11 @@
     },
     {
       "operation_id": "ak.self.realm_state_snapshot.read.by_ref.v1",
-      "sha256": "sha256:3d44fedc9f25c028fb0d210c7076588042d52dd4312052fd8d7e3d950628ebb1"
+      "sha256": "sha256:c02a1ca338ce23a8084469ed5c5f022ffc0641a773d3eb79ca327b05acd71d75"
     },
     {
       "operation_id": "ak.self.realm_state_snapshot.read.manifest_head.v1",
-      "sha256": "sha256:81e0722c3394a015c4b7ad484539a19fcbb55351f60a342635db0170761b4319"
+      "sha256": "sha256:398935ba0e904c31f44b2289715782036f0420c3901936bfb8f3bcc9d06e2128"
     },
     {
       "operation_id": "ak.self.security_transaction.command.continue.v1",

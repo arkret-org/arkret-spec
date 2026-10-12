@@ -167,8 +167,7 @@
         "document",
         "versions",
         "relations",
-        "comments",
-        "cursor_presence"
+        "comments"
       ],
       "properties": {
         "document": {
@@ -246,13 +245,6 @@
           }
         },
         "comments": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "additionalProperties": true
-          }
-        },
-        "cursor_presence": {
           "type": "array",
           "items": {
             "type": "object",

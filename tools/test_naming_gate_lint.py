@@ -1097,8 +1097,8 @@ class IdentifierRoleSuffixTest(MutationHarness):
                 row
                 for row in document["exact_exceptions"]
                 if not (
-                    row["file"] == "view.schema.json"
-                    and row["pointer"].endswith("/properties/cursor_presence")
+                    row["file"] == "sdk-conformance-claim.schema.json"
+                    and row["pointer"].endswith("/properties/evidence")
                 )
             ]
 
@@ -1107,7 +1107,7 @@ class IdentifierRoleSuffixTest(MutationHarness):
             mutate,
             check=check_collection_field_contracts,
         )
-        self.assertTrue(any("role_stem=cursor_presence" in error for error in errors), errors)
+        self.assertTrue(any("role_stem=evidence" in error for error in errors), errors)
 
     def test_did_method_selector_cannot_claim_did_representation(self) -> None:
         def mutate(document):
