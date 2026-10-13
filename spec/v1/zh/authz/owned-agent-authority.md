@@ -3,7 +3,7 @@ title: 自有 Agent 受限授权
 status: candidate
 normative: true
 stability: v1
-updated: 2026-10-05
+updated: 2026-10-14
 ---
 
 ## 0. 规范语言
@@ -41,6 +41,22 @@ ref 是签名覆盖的 immutable 意图，**MUST NOT** 带 producer-selected rev
 签发时 **MUST** 对每个 action/resource selector 验证主人当前可表达的权限覆盖，保留原确认有效期与更严约束；quota 的可用余额只在实际消费时原子判定，签发不消费行动额度。每次执行 **MUST** 重验 current 上界。quota **MUST** 使用被选主人来源的原 `(grant_id,constraint_id,controller ActorId,slice,window)` counter，与主人和其它自有 Agent 共享扣减；Agent 自己的更严 quota 另行满足。多完整合法 allow 路径按 canonical grant ID 无符号 UTF-8 顺序选取当前可满足的路径，选择与 reserve 在同一 quota authority 原子完成；global deny 不因选路径消失，换 Agent/ref/session 或新发授权不重置父 counter。多 counter reservation **MUST** 与业务效果原子提交或以耐久唯一 reservation、失败幂等释放闭合。重试沿原 operation identity 只计一次；跨 authority 无共同 reservation authority 时 hard quota fail closed，不接受异步 overshoot。
 
 上界 **MUST** 覆盖 history/query/scan、Blob/附件、订阅每次后续交付、notification/定向投递及未来 epoch 访问材料，不能只在 session、订阅建立或 Event authoring 时检查。常规成员读取仍按 membership/history visibility，**MUST NOT** 强加显式 `ak.event.read` grant。Strand 所有 track 共用一个 Realm/Circle effective scope；track/字段 constraint 只收窄行为，不产生独立 membership、读取边界或 MLS group。
+
+**Agent 内容会话交集（normative）**：机器合同为 registry 的 `session_content_authority_contract`，具名裁决见 `ak.vector.agent.session_content_authority.v1`。Agent Auth 的 capability-grant 交集 **MUST** 解释为目标 action/resource 上已经成立的完整合法授权路径，不限于 literal `ak.capability.grant`。来源按实际资源 profile 求值：普通 Realm/Circle 的读取使用 exact active membership 与 history visibility；独立 Direct 使用其 accepted participant authority；Sidecar 使用 exact `(realm_id, controller_account_id, sidecar_id)` 的专用 desired/effective authority；其它动作仅能使用该动作已登记的 grant 或 profile authority。读取来源 **MUST NOT** 派生 write/reply/publish 权限，也不得由 provisioning、accountability、私有 requested scope 或 participation selection 单独制造任何内容权限。
+
+签发时 **MUST** 先按每个 action/resource 验证 durable 来源资格，再与 immutable provision ceiling、current accepted key ceiling、本次 session request、资源 policy／管理限制及适用的主人 current 上界求交。该步骤不代替执行时的 history、participation、MLS、quota、approval 等独立门；MLS 尚未完成可保留合法的读取 ceiling，但 **MUST NOT** 因会话已签发就交付业务 payload。普通群与 Sidecar 使用本节主人动态内容上界；独立 Direct 继续使用其 participant 合同，**MUST NOT** 强加其它群的 membership、grant 或管理限制。
+
+本次请求的 `requested_scope` 是会话 action/operation 请求，**不是** provision 的 immutable `requested_scope`；`agent_scope_request` 仅收窄目标。内容会话 **MUST** 有非空、已验证的 Realm 或 Strand selector；省略／空 selector **MUST NOT** 表示所有内容资源。Realm selector 不授予该 Realm 内所有 Circle、Direct 或 Sidecar 的读取资格；每次仍按 actual scope 的 profile 检查 exact binding，Sidecar 身份从 accepted Sidecar binding 派生，不新增 request-side participant 或 sidecar selector。`scope_details` 沿既有 closed 结构物化资源和 typed constraints；`capability_grant_refs` 仅列实际使用的 literal grant，没有 literal grant 的合法读取允许该数组为空，**MUST NOT** 伪造 grant ref。`policy_refs` 也不要求合成默认 allow Policy：只有完整 current 治理证据证明没有适用限制时才使用既有默认值，unknown／缺行仍拒绝。
+
+签发与消费 **MUST NOT** 把不同路径的 action、resource、constraint 分别求并集后拼出完整 allow。现有扁平 ceiling 无法精确保留多路径相关性时，issuer **MUST** 保守收窄到可表达的共同覆盖或要求按资源重新申请会话，**MUST NOT** 放大为笛卡尔积。所有来源的匹配 deny/quarantine/review 仍按既有规则取严，conditional authority 的未物化条件、history 窗口、mandatory provision constraints 与 quota 在实际消费时继续重验，不能因未出现在 `scope_details` 的有限字段中被丢弃。
+
+**服务会话续接与 current 来源（normative）**：初始服务会话可没有内容 action；在合法 membership／Direct／Sidecar 来源建立后，runtime **MUST** 用既有 `ak.gate.account.command.issue_session_grant.v1`、新 proof challenge 与新的签名 request intent 申请所需 content action 和 selector。新签发不要求 predecessor session 已含该 action，也不要求 controller 为正常会话签发再次在线批准；它 **MUST** 在已验证 provision/key ceiling 内重新求交，不能补回上层遗漏的 action。immutable provision 缺项仍须 provision 新 Agent，key 缺项仍须正式 key 续权／轮换。旧会话的 immutable claims 不改变；新 issue 建立独立 session chain，不隐式 supersede 旧链，旧链仍只能行使原 ceiling 并受同样 current 门约束，需要终止时走既有 revoke。
+
+`ak.gate.account.command.refresh_session_grant.v1` 只轮换 predecessor 的既有 action/resource/constraint ceiling，不接收新 scope request，不增加内容 action、资源或条件权限；必须复验 current holder/key/lifecycle 与该 ceiling 的权威来源，无法满足时拒绝，runtime 通过 fresh issue 申请较窄或新增的合法范围。正常 refresh 沿既有 issuer-ledger transaction 原子 supersede predecessor 并继承 `session_id`；exact issue/refresh replay 沿既有 byte-identical／terminal 合同，**MUST NOT** 借重试重算并返回扩权凭据。参与选择更新仅在原授权 ceiling 内生效，旧 session overlay 不能替代 current selection。
+
+同一 Station 内来源资格 **MUST** 由 owning Station 从 accepted、完整且 exact-account/resource 绑定的有效权威状态提供给 issuer，并与签发结果绑定；部署内 channel 沿 `service-http-binding §2.2.3`，不新增公开 operation、receipt 或 evidence carrier。current/freshness 的含义沿来源原合同：独立 Direct 继续使用已验证授权区间与已知撤销规则，不新增逐次 source lease／origin 查询。introspection 返回 exact credential 的冻结 ceiling，**不是** membership／主人 current／Sidecar effective 的替代证明；每次实际读取、排队后交付与未来 epoch 材料领取 **MUST** 在目标资源 authority 的准入边界重验适用的当前有效门。来源按其原合同已知撤回后即使 JWT 未过期也不得继续供给；unknown/stale/fork、取材失败或跨独立治理边界没有已登记且可验证的来源时 fail closed。已领取的历史密文／本地密钥不能被追溯收回，不得把停止新供给宣称为抹除既有知识。
+
+**Sidecar 引导分阶段（normative）**：首次 Welcome／claim read／consume 的资格使用 exact current desired authority、accepted Add/Welcome/claim lineage 与 current Agent endpoint，以及 requested/key/session、主人内容上界和 read/deliver 管理门。Welcome／未来 epoch 访问材料的内容读取映射为 `ak.event.read`，目标从 accepted Add/Commit/Welcome lineage 派生到 exact Sidecar scope，不能按父 Realm 或 runtime 自报目标放行。claim read／consume 保留各自 service operation、exact recipient ledger／receipt 与 profile gate，不因它们是 ledger 操作要求 `ak.message.create` 或其它内容写 grant；它们也不额外授予 Welcome／payload 读取权。**MUST NOT** 为取得建立 effective 所需的材料提前要求该 endpoint 已 effective。desired 本身也不是业务 payload 读取资格；只有该 endpoint 完成既有 Welcome 验证、durable MLS state 与 consume 后才按 effective 门供给业务 payload。其它 Sidecar 的 effective、父 Realm membership 单独或另一 endpoint 的 consume 均不得替代；撤回 desired 后旧 queued Welcome 与未来 epoch 材料同样拒绝。
 
 ## 3. 管理限制与默认值
 

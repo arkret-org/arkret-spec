@@ -472,6 +472,59 @@ value shape := { "level": "mentions_only" | "participating" | "all" | "muted",
 - 成功响应只在两支中择一：`status=never_written` 表示在所报 `governance_generation` 与 exact `stream_head` 下，该 selector **从未有过 accepted watch 写入**，不携 revision/value；`status=current` 携完整 `strand_watch_result{selector,revision,value}`。已写入又以 `level:null` 清空时仍是 `current`，`value:null` 且 revision 必须存在；绝不能归为 `never_written`。请求和响应的 Realm、selector、effective stream 必须逐字对应。客户端只在经过 current governance 验证、且没有更高 generation 的结果覆盖时使用前态：`never_written` 才可省略 `expected_value`，`current` 必须按完整 value 发送（包括显式 `null` 与 `level_public`）。读后并发变更仍由提交时 whole-value CAS 拒绝；`failed_precondition` 后必须重读并请用户重新确认，不能改用默认值或自动重试覆盖。handoff 后旧 generation 的结果全部废止并重读。
 - typed current result 的 scope 归属：`<strand_id>` 隐含决定 Strand.realm_id；typed current result 的 `effective_scope` 由 Strand.scope_circle_id 决定（`scope_circle_id=null` → typed current result 落在 Realm-default scope namespace；`scope_circle_id` 指向 Circle → typed current result 落在该 Circle scope namespace，单源不双投影）。详见 §8.9。
 
+### 8.3.1 跨站本人精确 Watch 读取（normative）
+
+**唯一承载与身份**：当 Account Station 不是 Realm 的 current governing Station 时，MUST 调用
+`ak.peer.strand.watch.read.current.v1`（`POST /_arkret/peer/strands/watch/current`）。请求和成功响应分别复用
+`StrandWatchCurrentRequestBody` 与 `StrandWatchCurrentOutcome`，字段、顺序、16 KiB canonical 请求／响应预算及
+两支 presence 语义与 self 面相同；不扩张 bootstrap 或 generic exact-current selector union。self 面仅接受
+账号认证的 effective `ActorId`，包括托管的 human／Agent／integration Account；`kind=service` 没有本操作的本人读权。
+发起站先验证当前 session／device 与完整本人 selector，不向外站传递 bearer、DPoP 或 session grant。
+peer 请求 MUST 使用 [HTTP service-to-service 签名](../sync/service-http-binding.md#82-peer-signature-与-content-digestnormative)，
+接收方 MUST 核对 `watcher_actor_id.kind=account`、完整 `account_id.station_id` 等于已认证 `Source-Service-ID`，
+且自身 current governing service 等于 `Destination-Service-ID`。来源站为其本人认证决定负责；S2S 签名不代替治理站的
+当前 Realm／effective scope 可读权校验。相同 principal、另一 station、`.others` 写能力、普通复制权、审计能力或
+`level_public=true` 均不授权本 peer 面读取他人的 cell；审计读仍走 §8.5 的原闭环。
+
+**治理 cut 与肯定未写入**：治理站 MUST 在同一次一致耐久观察中验证 current tenure、Strand effective scope、
+完整 watcher 的当前 membership／可读权、durable row 和该 scope 的 exact stream head；Circle 必须同时满足当前父 Realm
+及 Circle 门，父 Realm membership 不代替 Circle membership。`current` 的 `source_stream_ref` MUST 等于所报
+`stream_head.stream_ref`，revision 必须属于该 stream 的已接纳连续前缀，不得跨 stream 比较 position。
+`never_written` 仅在治理站已证明该 effective namespace 的 accepted Watch 写入来源完整、同 cut durable 物化完整，且
+该完整 selector 从未写入时成立；检查对象是 payload 的 `watcher_actor_id`，不是 envelope author，因此 `.others`
+接纳的写入同样排除 never-written。generation 为零、缺 durable row、成员 snapshot 省略或保留历史 floor 都不构成证明。
+已写后清空的 `value:null` 与 revision MUST 保留，压缩、重启和交接不得删除该事实或重置为初始态。
+
+**handoff 与恢复**：新治理站 MUST 在 [planned handoff](../sync/authority-commit-log.md#8-治理-station-更换) 的同一冻结 cut
+完整验证并原子导入所有相关 stream 的原 accepted Watch 来源及完整 durable Watch current（包括 null 行），
+并核对原件／reducer 重建结果与导入值、revision、source stream 一致。交接治理权限的完整原件与 current 不得套用普通
+成员 snapshot 的披露过滤或 history floor；本条不增加 handoff wire 字段或独立 omission proof。完整验证／导入前
+不得签 new acceptance 或启动该 authority。完成后，即使 generation 非零，新治理站也 MUST 能肯定回答从未写入的
+合法 selector；不能一律以非零任期拒绝。来源缺失、清空行遗漏、物化冲突或恢复完备性未确认时
+MUST `revision_unavailable`，不能从交接 snapshot 缺项或新数据库空表补造 never-written。
+
+**返回与最终交付**：Account Station MUST 先按 [authority discovery](../sync/service-http-binding.md#41-nonce-bound-bundle)
+验证 genesis、连续 handoff chain、最高已观察 generation 与自己的 fresh nonce-bound assertion，再向唯一 current governor
+发起 peer read，并通过已验证服务 endpoint 的认证安全 transport 绑定请求与响应。响应 MUST 精确匹配 request Realm／
+完整 selector、已验证 generation／governor；head、source stream、revision 与两支 presence 必须通过校验，响应不得
+泄漏额外 watcher、隐藏 stream head、membership roster 或原件。该结果是治理站认证的当前观察，不是客户端必须下载的
+治理历史证明，也不授予未来写权。普通客户端仍只请求自己的 Account Station。
+
+远端读事务是 Realm 授权与 current 的线性化点；释放 self 响应前的本地交付 guard 是 session／device／账号授权的
+线性化点，两者不得冒称分布式数据库事务。Account Station MUST 以这次已验证的远端完整结果作为 current 来源，
+在最终交付边界重验原会话／device generation、撤回及适用的 Agent session 内容门；不得因本地没有 governing tenure、
+完整 reducer row 或同字节本地副本而拒绝一个已合法验证的远端 cut，也不得跳过交付 guard。该响应仅用于这次读，
+不得作为可重放的授权缓存。若最终交付前已观察更高治理 generation、调用者权限撤回或与结果冲突的较新 scope／current
+依据，MUST 丢弃结果并重新取得合法当前 cut；不可确认时失败关闭。未观察到的读后并发变更不追溯撤销已线性化读取，
+后续写入仍由接纳时的当前权限与 whole-value CAS 裁决，冲突后重读并重新确认。不得为了反复重读同一授权依据形成无界重试。
+
+**失败与发现**：认证通过后，错误来源站、service／他人 selector、未知或不可读 Strand／scope 使用同一 `not_found`；
+signature／audience／请求字节错误保持既有通用认证及预算错误。authority、head、Watch 来源、远端响应验证或 handoff
+未决使用 `revision_unavailable`，远端不可达也不得转为成功缺项、默认 level 或 never-written。已确认本地 session／device
+撤回保持原认证／交付拒绝，不伪装成 remote 成功。peer 操作属于已登记的
+`ak.operation_bundle.station.http_peer_watch_current.v1`；Station／federation profile 的提供与消费义务由机器矩阵声明，
+发现不支持时失败关闭，不调用外站 self 面。同站路径执行相同 cut、presence、隐私与最终交付语义。
+
 ### 8.4 写入授权
 
 - 默认：`ak.strand.watch.set` MUST 满足 `payload.watcher_actor_id == envelope.actor_id`。reducer 在写入前校验，不满足 `failed_precondition`（`reason="watch_must_be_self"`）。普通成员写入自己的 watch state 需要持有 `ak.strand.watch.set` capability（low risk_tier，admin 默认 bundle 给所有成员）。

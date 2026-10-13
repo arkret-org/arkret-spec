@@ -47,13 +47,13 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-vectors-fixture.json",
-      "sha256": "f1b7c73adc9d85648444fff9b7ee0373aa814629824dc0cfaebc7f325b555402",
-      "version": "2026-10-13.2"
+      "sha256": "ef0874369c853efac800e6d25efbe9d6c41e0281916355991171a33df85d5ce3",
+      "version": "2026-10-14.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-managed-actor-fixture.json",
-      "sha256": "905f7098117f3651bf49da2b63f06378fef8aab61c5b61c956d89eba19954d70",
-      "version": "2026-10-09.2"
+      "sha256": "7946e3c41eb539e57355cc3ae68d6e72104f7b399ddea2ae3d13e73d045c418c",
+      "version": "2026-10-14.3"
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-registration-epoch-fixture.json",
@@ -152,8 +152,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/consent-cache-invalidation-fixture.json",
-      "sha256": "89e4ecc377c0671308af2a5a975d813c23dc186f17bea25db4a08041a4d40aa4",
-      "version": "2026-10-14.2"
+      "sha256": "683dbf07e5662895c9280473aeba88e38cd2625223b888170966dad87d65dd20",
+      "version": "2026-10-14.3"
     },
     {
       "path": "spec/v1/artifacts/fixtures/contact-remark-fixture.json",
@@ -597,8 +597,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/strand-watch-current-read-fixture.json",
-      "sha256": "b8a7e3a0c7c56bddf24284a09b11fa5ed38142f06a089b279e6e42d9cf45d336",
-      "version": "2026-09-21"
+      "sha256": "da03c86b74fa906d77c99397867f40f4ec0c57139ae2eb2dee1e6698951e8873",
+      "version": "2026-10-14.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/string-profile-fixture.json",

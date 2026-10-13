@@ -309,10 +309,10 @@ human `purpose="principal_control"` 分支的可构造 genesis 字节、第二 S
 
 #### 2.5.1 Bootstrap 步骤
 
-`ak.realm.create` 是 Realm 生命周期的 genesis Event，只建立 Realm identity/security core、generation-0 governance Station 与终身稳定的 authority root。显示内容、policy 与 membership 都由同一原子 bootstrap unit 中各自的 registered facet Event 建立。
+`ak.realm.create` 是 Realm 生命周期的 genesis Event，建立 Realm identity/security core、generation-0 governance Station、终身稳定的 authority root 及下述已登记条件状态。显示内容、policy 与 membership 都由同一原子 bootstrap unit 中各自的 registered facet Event 建立。
 
 
-以下两项是所有 purpose 共有的无条件 registered writes；另有五条 registered condition row。任何实现不得由 create 顺带写 profile 或 member 状态；Agent lifecycle 与三个互斥 purpose 的 history-access 初始化仅限下述已登记条件写入。完整集合及条件以机读 registry 为准。
+以下两项是所有 purpose 共有的无条件 registered writes；另有六条 registered condition row。任何实现不得由 create 顺带写 profile 或 member 状态；Agent lifecycle、三个互斥 purpose 的 history-access 初始化与受管 PCR 的 device-generation 初始化仅限下述已登记条件写入。完整集合及条件以机读 registry 为准。
 
 `ak.realm.create` 的 registered writes MUST 由该 Event 的 canonical reducer contract 原子承担。全部 writes 在 [`contract-registry.json`](../../artifacts/registry/contract-registry.json) 的 `ak.realm.create.result_writes[]` 中登记；wire 不重复携带：
 
@@ -337,8 +337,9 @@ human `purpose="principal_control"` 分支的可构造 genesis 字节、第二 S
 5. **条件写入 `realm_history_access` FSM typed current result**：仅当 `payload.object.purpose == "direct_conversation"` 时，原子执行 `null -> since_join`。
 6. **条件写入同一 history-access FSM typed current result**：仅当 `payload.object.purpose == "principal_control"` 时，原子执行 `null -> since_join`。
 7. **条件写入同一 history-access FSM typed current result**：仅当 `payload.object.purpose == "agent_control"` 时，原子执行 `null -> since_join`。
+8. **条件写入 `device_generation` singleton**：仅当 `payload.object.purpose == "applet_managed_control"` 且完整通过 `applet_managed_pcr_genesis` admission 时，由本 create 初始化 `{current_device_generation_ref:1}`；selector 为 `null`，值为 reducer 常量，不是作者提供的字段。此写入不产生 Device，不能套用 ordinary Realm／Agent／human create；create-once、原子失败与重试规则见 [`../crypto-media/device-lifecycle.md` §5.5.4](../crypto-media/device-lifecycle.md)。
 
-以上两条无条件写入加五条条件 row 构成 create 的完整 projection；第 5 至 7 条按唯一 `payload.object.purpose` 互斥命中。普通 Collaboration 的 history 初值仍来自显式 bootstrap facet；profile、member 与其它初始 state 由后续 slots 的 registered writes 产生，完整 unit 的所有 writes 在**同一个接纳事务**内一起落下；各条 Event 各自获得同一 Realm stream 上 position 连续的独立 RealmCommit（一条 RealmCommit 恰好接纳一条 Event，见 [`../identity/contact-and-direct-conversation.md` §6.1](../identity/contact-and-direct-conversation.md)），不存在一笔覆盖整个 unit 的 Commit。任一 required write 失败，整个 unit MUST 原子回滚；authority-root 缺失时返回 `realm_authority_root_missing`。
+以上两条无条件写入加六条条件 row 构成 create 的完整 projection；第 5 至 8 条按唯一 `payload.object.purpose` 互斥命中。普通 Collaboration 的 history 初值仍来自显式 bootstrap facet；profile、member 与其它初始 state 由后续 slots 的 registered writes 产生，完整 unit 的所有 writes 在**同一个接纳事务**内一起落下；各条 Event 各自获得同一 Realm stream 上 position 连续的独立 RealmCommit（一条 RealmCommit 恰好接纳一条 Event，见 [`../identity/contact-and-direct-conversation.md` §6.1](../identity/contact-and-direct-conversation.md)），不存在一笔覆盖整个 unit 的 Commit。任一 required write 失败，整个 unit MUST 原子回滚；authority-root 缺失时返回 `realm_authority_root_missing`。
 
 普通 Collaboration bootstrap 的唯一 self 提交载体是 `ak.self.events.command.submit.v1`
 的 `ordinary_realm_bootstrap` closed 分支（`POST /_arkret/self/events`，见

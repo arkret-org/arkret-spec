@@ -641,6 +641,8 @@ creator 设备只从该 genesis Event 唯一 producer proof 的 `verification_me
 变异该 proof MUST fail closed，payload 携带 creator 主体或设备标识 MUST 判 `schema_violation`；
 崩溃恢复重放字节相同的 Event 并激活已接纳的临时快照，失败方的快照必须销毁并通过胜者 group 重新加入。
 
+`ak.vector.agent.session_content_authority.v1` MUST 证明：无 literal grant 的 membership/history、Direct participant 与 Sidecar 专用读取可以签发受限内容会话，但不派生写权限；provision/key/request/session ceiling、非空资源 selector、同资源完整授权路径、条件与全局 deny 不可绕过；完整治理证明 absent policy 与 unknown 区别处理；初始服务会话用 fresh issue 取得内容 ceiling，refresh 不扩权且 exact replay 不重新签发；Sidecar desired 允许 exact endpoint 的 Welcome 引导，但 payload 仍要求 effective；撤回、queued／future epoch、错 endpoint／Sidecar、跨站无可验证来源与不相关群限制必须覆盖正反例。机器 fixture 为 `agent-vectors-fixture.json#/session_content_authority_contract`，判定输入仅表示已独立验证的来源与门，不充当 wire authority 或实机通过证据。
+
 `ak.vector.sidecar.mls_effective_access.v1` MUST 证明：desired 成员资格、已投递 Welcome 或已认领 KeyPackage
 单独都不是 effective 证据，任何不完整组合保持 pending；已接纳的 Add Commit、引用该 Commit 且绑定匹配的
 已接纳 Welcome，与该设备已认证会话对同一 claim 的消费三者齐备后，该设备才生效，同 principal 的其它设备
@@ -765,3 +767,5 @@ private 默认／unknown 区分、controller-only／CAS／委托禁止、共享 
 live fence 原子持久化与重启／迟到投递不复活。离站关闭不产生 Realm terminal knowledge，独立 erasure receipt
 义务保留。`terminal-replication-authority-fixture.json` 固定这些协议断言；真实源站 fanout、接收事务与跨站
 HTTP／PG 验收须由工程执行，不以 fixture 存在或规范门禁通过代替。
+
+`ak.vector.state.strand_watch_current_read.v1` MUST 通过 `strand-watch-current-read-fixture.json` 的跨站具名用例证明：来源站与完整账号绑定、同 principal 不同 Station 私有隔离、合法 Circle 与不可见 Circle、无本地 tenure 的远端交付、handoff 后肯定未写入及清空行保留、他人代写不能冒充从未写入、session/device/权限撤回时迟到结果拒绝、错误 generation/head/source/revision 拒绝，以及真实写入前态与并发 whole-value CAS。规范 fixture／schema 执行不代替 SDK／Coland／客户端／真实跨站 PG 与 HTTP 验收。

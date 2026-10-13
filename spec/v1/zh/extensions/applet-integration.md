@@ -913,6 +913,7 @@ Ghost映射唯一键是Applet、hosting Station、exact external tuple，不包�
 另一Applet或错hosting Account不得借猜出的tuple获取映射。pending review绑定完整已返回候选bundle，批准后换公钥或主体必须重新申请。
 
 创建成功不产生membership、child业务grant、Deviceauthorize或MLS资格。这些是各自原签后继步骤。
+该创建事务内，合法 `applet_managed_pcr_genesis` 的 `ak.realm.create` MUST 同时写入本 PCR 的 `device_generation={current_device_generation_ref:1}`，来源是该 create 的 genesis RealmCommit；Device 目录仍为空。重试／跨 scope Ghost reuse 不重置此值，DID resolution rotation 与 Service epoch 变化也不改写它；初始化与确定性历史重建合同见 [device lifecycle §5.5.4](../crypto-media/device-lifecycle.md)。
 
 ## 10. Portal Realm
 
@@ -1197,6 +1198,7 @@ authorization_event_id必须是该Device当前accepted合法授权实例，posse
 转交已经由具体 Bot／Ghost Principal 原签的 own PCR 合法 identity／device 控制后继。
 首个 `ak.device.authorize` 不要求一个尚不存在的 accepted Device 或 SessionGrant：runtime 使用已 accepted Bot／Ghost
 Principal 的真实当前 key 签 Event，候选 Device 自己签完整 possession transcript，Service 只签覆盖原件的 HTTP 请求。
+首 authorize 的 `authorized_generation_ref` MUST 等于受管 genesis 已写入的 PCR-local current generation；replacement／扩 scope 也只匹配现有 generation，不推进它。Station MUST 在同一锁定接纳 cut 核该 generation 的 accepted writer／Commit、最新 accepted PCR resolution 与普通 `expected_revision`／checkpoint CAS。缺 generation、generation 不符、不属于当前 accepted resolution 的 Principal key 或 CAS 冲突均零写入，不能用 payload 自报值或 Service epoch 补足。
 Station 先核 accepted provision／PCR resolution 与 full Account／Service provenance，再按原 native control、授权者、
 期限、scope、possession、current/CAS 合同接纳；不能用 Service 签名代替 Principal 或候选 Device 签名。
 替换／扩 scope Device authorization 仍须独立合法本 scope 安装与当前许可；最小撤销／identity 维护不因业务 scope 全部撤销而死锁。

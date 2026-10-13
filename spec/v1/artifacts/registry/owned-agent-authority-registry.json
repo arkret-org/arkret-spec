@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-09.1",
+  "version": "2026-10-14.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-09T07:31:39+08:00",
+  "generated_at": "2026-10-14T06:38:42+08:00",
   "normative_source": "zh/authz/owned-agent-authority.md",
   "source_kind": "owned_agent",
   "grant_event_kind": "ak.capability.grant",
@@ -62,5 +62,56 @@
     "source_controller_is_not_agent": true
   },
   "fixture_ref": "fixtures/agent-participation-fixture.json#/owned_agent_authority_contract",
-  "vector_id": "ak.vector.agent.interaction_mode.v1"
+  "vector_id": "ak.vector.agent.interaction_mode.v1",
+  "session_content_authority_contract": {
+    "vector_id": "ak.vector.agent.session_content_authority.v1",
+    "fixture_ref": "fixtures/agent-vectors-fixture.json#/session_content_authority_contract",
+    "authority_paths": [
+      "capability_grant",
+      "membership_read",
+      "direct_participant",
+      "sidecar_read"
+    ],
+    "read_actions": [
+      "ak.event.read",
+      "ak.object.read",
+      "ak.object.read_content",
+      "ak.object.read_history",
+      "ak.object.read_metadata",
+      "ak.strand.read"
+    ],
+    "issuance_operation": "ak.gate.account.command.issue_session_grant.v1",
+    "refresh_operation": "ak.gate.account.command.refresh_session_grant.v1",
+    "scope_addition": "fresh_issue_new_signed_intent",
+    "refresh_ceiling": "preserve_predecessor_no_expansion",
+    "source_supply": "owning_station_authenticated_current_with_exact_binding",
+    "cross_authority_unregistered_source": "fail_closed",
+    "flat_encoding": "conservative_common_coverage_or_separate_resource_request",
+    "sidecar_bootstrap": "desired_exact_endpoint_accepted_lineage_not_effective",
+    "sidecar_payload": "effective_exact_endpoint",
+    "invariants": {
+      "literal_read_grant_required": false,
+      "provision_or_participation_grants_content": false,
+      "source_read_grants_write": false,
+      "new_issue_requires_predecessor_content": false,
+      "fresh_issue_supersedes_old_chain": false,
+      "refresh_expands_ceiling": false,
+      "empty_content_selector_is_unbounded": false,
+      "absent_policy_requires_synthetic_ref": false,
+      "unknown_policy_means_absent": false,
+      "bootstrap_requires_effective": false,
+      "desired_grants_payload": false,
+      "old_overlay_is_current_authority": false,
+      "unrelated_realm_limits_independent_direct": false,
+      "future_material_rechecks_current": true,
+      "all_content_paths_obey_provision_key_session": true,
+      "same_resource_complete_allow_path": true,
+      "all_matching_denies_apply": true,
+      "current_gate_each_delivery": true,
+      "retained_conditions_checked_at_use": true,
+      "exact_replay_keeps_original_credential": true
+    },
+    "material_read_action": "ak.event.read",
+    "keypackage_ledger_gate": "service_exact_endpoint_and_profile_not_content_write"
+  }
 }

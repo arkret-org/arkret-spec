@@ -2671,6 +2671,38 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PeerKeysQueryOutcome'
+  /_arkret/peer/strands/watch/current:
+    post:
+      operationId: ak.peer.strand.watch.read.current
+      summary: Read one own-account watch current cut from the governing Station for its Account Station.
+      description: Current governing Station reads one exact watch selector and its effective-scope authorization from one
+        confirmed durable basis. A never-written result is explicit; a previously cleared null value carries a real revision.
+        The watcher account station_id must equal Source-Service-ID; Destination-Service-ID must be the verified current governor. No session credential is forwarded. Source, response and final delivery checks follow strand-and-message section 8.3.1. This operation does not enumerate watchers or authorize another account's private watch read.
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.peer.strand.watch.read.current.v1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StrandWatchCurrentRequestBody'
+      responses:
+        '200':
+          description: Exact authorized watch current or proven never-written state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StrandWatchCurrentOutcome'
   /_arkret/peer/realm-joins/preview:
     post:
       operationId: ak.peer.realm_join.read.preview
@@ -4207,15 +4239,12 @@ paths:
     post:
       operationId: ak.self.strand.watch.read.current
       summary: Read the authenticated actor's exact Strand watch current value.
-      description: Current governing Station reads one exact watch selector and its effective-scope authorization from one
+      description: The Account Station uses the registered peer watch current carrier for foreign governance and reads one exact watch selector and its effective-scope authorization from one
         confirmed durable basis. A never-written result is explicit; a previously cleared null value carries a real revision.
         This operation does not enumerate watchers or authorize reads of another actor's private watch state.
       security:
       - sessionGrantAuth: []
         dpopProof: []
-      - httpMessageSignature: []
-        sourceServiceId: []
-        destinationServiceId: []
       parameters:
       - name: Arkret-Operation
         in: header
@@ -9939,3 +9968,102 @@ paths:
           application/json:
             schema:
               $ref: ../schemas/management-review-operations.schema.json#/$defs/lookup
+
+  /_arkret/self/rtc/invitation:
+    post:
+      operationId: ak.self.call.invitation.command.send
+      summary: See zh/crypto-media/webrtc-signaling.md section 3b. Producer-signed exact invitation; sender responses
+        are always deferred. Admission is an authorized consumer-only current holder PCR verdict, never public Consent
+        lookup or a reusable capability.
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.self.call.invitation.command.send.v1
+      security:
+      - sessionGrantAuth: []
+        dpopProof: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/call-invitation-operations.schema.json#/$defs/send_request_body
+      responses:
+        '200':
+          description: Opaque deferred result independent of holder existence and delivery.
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/call-invitation-operations.schema.json#/$defs/send_outcome
+  /_arkret/peer/rtc/invitation:
+    post:
+      operationId: ak.peer.call.invitation.command.relay
+      summary: See zh/crypto-media/webrtc-signaling.md section 3b. Producer-signed exact invitation; sender responses
+        are always deferred. Admission is an authorized consumer-only current holder PCR verdict, never public Consent
+        lookup or a reusable capability.
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.peer.call.invitation.command.relay.v1
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+        contentDigest: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/call-invitation-operations.schema.json#/$defs/send_request_body
+      responses:
+        '200':
+          description: Opaque deferred result independent of holder existence and delivery.
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/call-invitation-operations.schema.json#/$defs/send_outcome
+  /_arkret/peer/rtc/invitation-admission:
+    post:
+      operationId: ak.peer.call.invitation.read.admission
+      summary: See zh/crypto-media/webrtc-signaling.md section 3b. Producer-signed exact invitation; sender responses
+        are always deferred. Admission is an authorized consumer-only current holder PCR verdict, never public Consent
+        lookup or a reusable capability.
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.peer.call.invitation.read.admission.v1
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+        contentDigest: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/call-invitation-operations.schema.json#/$defs/admission_request_body
+      responses:
+        '200':
+          description: Authorized consumer-only verdict.
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/call-invitation-operations.schema.json#/$defs/admission_outcome

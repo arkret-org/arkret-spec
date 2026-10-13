@@ -187,6 +187,11 @@ grpc:
     SelfSignal:
       Send: ak.self.signal.command.send.v1
       Subscribe: ak.self.signal.stream.subscribe.v1
+    SelfCallInvitation:
+      Send: ak.self.call.invitation.command.send.v1
+    PeerCallInvitation:
+      Relay: ak.peer.call.invitation.command.relay.v1
+      Admission: ak.peer.call.invitation.read.admission.v1
     SelfCallMedia:
       TokenExchange: ak.self.call.media.exchange.issue_token.v1
     RootIdentity:
@@ -288,6 +293,8 @@ grpc:
       List: ak.self.space.read.list.v1
     SelfStrand:
       List: ak.self.strand.read.list.v1
+    PeerStrandWatch:
+      Current: ak.peer.strand.watch.read.current.v1
     SelfStrandWatch:
       Current: ak.self.strand.watch.read.current.v1
     SelfMorph:
@@ -363,6 +370,9 @@ mq:
     peer.realm_join.query.preview: ak.peer.realm_join.read.preview.v1
     peer.signal.command.relay: ak.peer.signal.command.relay.v1
     self.signal.command.send: ak.self.signal.command.send.v1
+    self.call.invitation.command.send: ak.self.call.invitation.command.send.v1
+    peer.call.invitation.command.relay: ak.peer.call.invitation.command.relay.v1
+    peer.call.invitation.read.admission: ak.peer.call.invitation.read.admission.v1
     self.signal.stream.subscribe: ak.self.signal.stream.subscribe.v1
     self.call.media.exchange.issue_token: ak.self.call.media.exchange.issue_token.v1
     self.account.stream.subscribe: ak.self.account.stream.subscribe.v1
@@ -441,6 +451,7 @@ mq:
     self.moderation.command.report: ak.self.moderation.command.report.v1
     self.space.query.list: ak.self.space.read.list.v1
     self.strand.query.list: ak.self.strand.read.list.v1
+    peer.strand.watch.query.current: ak.peer.strand.watch.read.current.v1
     self.strand.watch.query.current: ak.self.strand.watch.read.current.v1
     self.morph.query.list: ak.self.morph.read.list.v1
     self.morph.resource.get: ak.self.morph.resource.get.v1

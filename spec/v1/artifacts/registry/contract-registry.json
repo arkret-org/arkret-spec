@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-14.1",
+  "version": "2026-10-14.7",
   "source_of_truth": true,
-  "generated_at": "2026-10-14T00:00:04+08:00",
+  "generated_at": "2026-10-14T07:07:39+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -2968,7 +2968,7 @@
               }
             },
             "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/device_generation_value",
-            "notes": "The registration_anchor branch initializes the PCR-local generation to 1. This is the row that dissolves the 'generation family has no registered initializer' objection of crypto-media/device-lifecycle.md 5.5.4: the pcr_genesis_unit is the ordered pair [ak.realm.create, ak.device.authorize], so the unit is how this Event is atomically accepted, not a second producer standing in for it. identity/account-lifecycle.md step 7 states the same initialization from the acceptance side and the two MUST agree. The literal is 1 rather than a copy of payload.authorized_generation_ref because 5.5.2 already requires that field to equal 1 on this branch; projecting the literal makes the family's initial value unforgeable by an author. The other three binding kinds write nothing here: they join an existing generation rather than create one."
+            "notes": "The human registration_anchor branch initializes the PCR-local generation to the reducer literal 1 in the ordered [ak.realm.create, ak.device.authorize] pcr_genesis_unit, agreeing with identity/account-lifecycle.md step 7 and crypto-media/device-lifecycle.md 5.5.4. The distinct managed initializer is the admitted applet_managed_pcr_genesis ak.realm.create writer. The two initializers are mutually exclusive. The other three authorize binding kinds write nothing here: they join an existing generation rather than create or advance one."
           }
         ],
         "id_source": "not_an_object_id",
@@ -5494,6 +5494,29 @@
                 "const": "since_join"
               }
             }
+          },
+          {
+            "result_family": "device_generation",
+            "result_selector": null,
+            "condition": {
+              "kind": "field_equals",
+              "field": "payload.object.purpose",
+              "const": "applet_managed_control"
+            },
+            "result_projection": {
+              "kind": "set",
+              "value_projection": {
+                "kind": "object",
+                "members": [
+                  {
+                    "name": "current_device_generation_ref",
+                    "literal": 1
+                  }
+                ]
+              }
+            },
+            "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/device_generation_value",
+            "notes": "Only an accepted applet_managed_pcr_genesis create initializes this PCR-local singleton, from absent to the reducer literal 1. Full admission verifies the exact provision, Account/Service/Applet provenance, event-derived PCR and initial resolution in the closed four-Event Bot/Ghost aggregate; a purpose claim alone is insufficient. All required writes and the create RealmCommit are atomic, with zero writes on failure. The Device directory stays empty. Ordinary Realm, Agent and human creates do not match. Exact retry restores the original outcome without resetting later current state. Ordinary authorize/replacement, identity resolution rotation, installation reuse and Service epoch changes never write this family. Replay derives the value and source revision from the original accepted create/Commit; neither a database seed nor the first authorize can supply it. crypto-media/device-lifecycle.md 5.5.4."
           }
         ],
         "id_source": "event_derived",
@@ -8905,8 +8928,8 @@
         }
       }
     },
-    "version": "2026-10-11",
-    "generated_at": "2026-10-11T08:11:40+08:00",
+    "version": "2026-10-14",
+    "generated_at": "2026-10-14T05:58:19+08:00",
     "bootstrap_event_kinds": [
       "ak.device.authorize",
       "ak.device.reanchor",
@@ -10866,10 +10889,16 @@
         "fragment": "#/$defs/welcome",
         "status": "active",
         "description": "Server authentication-success frame carrying effective connection and channel limits."
+      },
+      {
+        "schema_id": "ak.schema.call_invitation_operations.v1",
+        "file": "schemas/call-invitation-operations.schema.json",
+        "status": "active",
+        "description": "Closed exact-envelope call invitation relation, opaque submission, authorized holder-current admission and explicit token join branches."
       }
     ],
-    "version": "2026-10-14",
-    "generated_at": "2026-10-14T00:00:03+08:00",
+    "version": "2026-10-14.1",
+    "generated_at": "2026-10-14T06:11:32+08:00",
     "metadata_authority": "contract_registry_section"
   },
   "id_kind_registry": {
@@ -11781,8 +11810,8 @@
     "metadata_authority": "contract_registry_section"
   },
   "http_signature_contract_registry": {
-    "version": "2026-10-09.1",
-    "generated_at": "2026-10-09T07:31:39+08:00",
+    "version": "2026-10-14.1",
+    "generated_at": "2026-10-14T06:45:32+08:00",
     "source_of_truth": true,
     "description": "Canonical single owner of every RFC 9421 HTTP Message Signature contract in Arkret: the shared covered-component baseline, the per-scenario extensions and their trigger conditions, the required signature parameters, and the freshness window numerals. Prose enumerations, conformance profiles and vector descriptions are projections of this block.",
     "normative_source": "zh/sync/service-http-binding.md #8 HTTP Message Signature",
@@ -11989,6 +12018,7 @@
           "ak.peer.keys.read.lookup.v1",
           "ak.peer.mls.command.attest_add.v1",
           "ak.peer.mls.read.roster_authority.v1",
+          "ak.peer.strand.watch.read.current.v1",
           "ak.self.applet.authority.read.material.v1",
           "ak.self.applet.bot.command.preview.v1",
           "ak.self.applet.bot.command.provision.v1",
@@ -12257,6 +12287,50 @@
           "ak.self.realm_state_snapshot.read.by_ref.v1",
           "ak.self.realm_state_snapshot.read.manifest_head.v1",
           "ak.self.events.command.submit.v1"
+        ],
+        "vectors": [],
+        "error_codes": [
+          "http_signature_required",
+          "http_signature_invalid",
+          "signature_window_invalid"
+        ]
+      },
+      {
+        "scenario_id": "ak.http_signature.scenario.call_invitation.v1",
+        "label": "Call invitation relay and authorized current admission",
+        "applies_to": "The registered peer call invitation relay and current admission operations.",
+        "extends": "ak.http_signature.scenario.service_to_service.v1",
+        "additional_covered_components": [
+          "content-digest",
+          "source-service-id",
+          "destination-service-id",
+          "source-trust-domain",
+          "destination-trust-domain"
+        ],
+        "conditional_covered_components": [
+          {
+            "component": "destination-service-endpoint-digest",
+            "condition": "the destination is reached through a shared ingress"
+          }
+        ],
+        "required_headers": [
+          "Signature",
+          "Signature-Input",
+          "Arkret-Operation",
+          "Content-Digest",
+          "Source-Service-ID",
+          "Destination-Service-ID",
+          "Source-Trust-Domain",
+          "Destination-Trust-Domain"
+        ],
+        "freshness_profile_id": "ak.http_signature.freshness.v1",
+        "prose_bindings": [
+          "zh/crypto-media/webrtc-signaling.md"
+        ],
+        "machine_projections": [],
+        "operations": [
+          "ak.peer.call.invitation.command.relay.v1",
+          "ak.peer.call.invitation.read.admission.v1"
         ],
         "vectors": [],
         "error_codes": [
@@ -12537,7 +12611,8 @@
           "ak.peer.keys.keypackages.command.claim.v1",
           "ak.peer.keys.keypackages.read.claim.v1",
           "ak.peer.keys.read.lookup.v1",
-          "ak.peer.signal.command.relay.v1"
+          "ak.peer.signal.command.relay.v1",
+          "ak.peer.strand.watch.read.current.v1"
         ],
         "surface_class": "extension"
       },
@@ -12881,6 +12956,15 @@
           "ak.self.management_review.read.status.v1"
         ],
         "surface_class": "extension"
+      },
+      {
+        "surface": "call_invitation_admission",
+        "surface_class": "extension",
+        "operations": [
+          "ak.self.call.invitation.command.send.v1",
+          "ak.peer.call.invitation.command.relay.v1",
+          "ak.peer.call.invitation.read.admission.v1"
+        ]
       }
     ],
     "operations": [
@@ -13251,7 +13335,7 @@
         "http": "POST /_arkret/gate/account/session-grants",
         "grpc": "GateAccount/IssueSessionGrant",
         "mq": "gate.account.command.issue_session_grant",
-        "notes": "Account Authority single-call issuer-ledger SessionGrant issuance with a closed HumanSessionGrantRequest | RecoverySessionGrantRequest | AgentSessionGrantRequest union. OIDC authorization code is never accepted here; authentication-handoffs is the unique code consumer. Returning-human and recovery requests use Authorization: DPoP <account_handoff_grant> plus matching DPoP. Returning-human issuance requires AcceptedDevicePossessionProof and origin revocation-gate allow, consumes the handoff, and emits Standard + complete device_binding. Recovery issuance requires credential_class=recovery_session, binds the account principal/audience, candidate device and handoff DPoP JWK, emits a <=15 minute non-refreshable recovery_candidate_device grant without device_binding, consumes only the request DPoP JTI, and preserves the handoff for recovery completion. Agent issuance keeps its independent agent_key_proof validator. The issuer uses branch-specific request identity and canonical intent to persist one immutable issuance record and signed JWT before responding. Exact replay is byte-identical; conflict and terminal replay fail closed. The client presents every grant only as Authorization: DPoP plus matching DPoP proof. No Principal Event is authored.",
+        "notes": "Account Authority single-call issuer-ledger SessionGrant issuance with a closed HumanSessionGrantRequest | RecoverySessionGrantRequest | AgentSessionGrantRequest union. OIDC authorization code is never accepted here; authentication-handoffs is the unique code consumer. Returning-human and recovery requests use Authorization: DPoP <account_handoff_grant> plus matching DPoP. Returning-human issuance requires AcceptedDevicePossessionProof and origin revocation-gate allow, consumes the handoff, and emits Standard + complete device_binding. Recovery issuance requires credential_class=recovery_session, binds the account principal/audience, candidate device and handoff DPoP JWK, emits a <=15 minute non-refreshable recovery_candidate_device grant without device_binding, consumes only the request DPoP JTI, and preserves the handoff for recovery completion. Agent issuance keeps its independent agent_key_proof validator. The issuer uses branch-specific request identity and canonical intent to persist one immutable issuance record and signed JWT before responding. Exact replay is byte-identical; conflict and terminal replay fail closed. The client presents every grant only as Authorization: DPoP plus matching DPoP proof. No Principal Event is authored. Agent content scope additions use fresh signed issue intent and verified per-resource grant or registered profile reading authority within provision/key ceilings; no predecessor content scope is required and the existing chain is not implicitly superseded. See owned-agent-authority section 2.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "protocol_sequence",
@@ -13339,7 +13423,7 @@
         "operation_id": "ak.gate.account.command.refresh_session_grant.v1",
         "http_only_variant": true,
         "http": "POST /_arkret/gate/account/session-grants/refresh",
-        "notes": "DPoP-bound issuer-ledger SessionGrant rotation with a closed HumanSessionGrantRefreshRequest | AgentSessionGrantRefreshRequest union. Both branches present the predecessor as Authorization: DPoP plus a matching DPoP proof and carry no client-generated challenge or generic proof_kind. Human refresh additionally carries AcceptedDevicePossessionProof purpose=session_grant_refresh; the origin verifies it under the locked current accepted-device key and applies the predecessor signed device_binding as expected binding in the same current-authorization linearization. Agent refresh carries only AgentSessionRefreshProof and revalidates current runtime-key authorization/lifecycle through its independent validator. The stable request identity is (predecessor_grant_id, refresh_request_digest). One issuer transaction creates the active successor with a fresh issuance nonce, preserves subject/scope/audience/cnf.jkt/session_id, and atomically supersedes the predecessor. Exact replay returns the recorded successor; conflicting or terminal replay never issues another. Account/passkey restoration uses a fresh AccountHandoff then issue, and PCR recovery uses its dedicated completion operation; neither is a refresh proof kind. No Principal Event is authored.",
+        "notes": "DPoP-bound issuer-ledger SessionGrant rotation with a closed HumanSessionGrantRefreshRequest | AgentSessionGrantRefreshRequest union. Both branches present the predecessor as Authorization: DPoP plus a matching DPoP proof and carry no client-generated challenge or generic proof_kind. Human refresh additionally carries AcceptedDevicePossessionProof purpose=session_grant_refresh; the origin verifies it under the locked current accepted-device key and applies the predecessor signed device_binding as expected binding in the same current-authorization linearization. Agent refresh carries only AgentSessionRefreshProof and revalidates current runtime-key authorization/lifecycle through its independent validator. The stable request identity is (predecessor_grant_id, refresh_request_digest). One issuer transaction creates the active successor with a fresh issuance nonce, preserves subject/scope/audience/cnf.jkt/session_id, and atomically supersedes the predecessor. Exact replay returns the recorded successor; conflicting or terminal replay never issues another. Account/passkey restoration uses a fresh AccountHandoff then issue, and PCR recovery uses its dedicated completion operation; neither is a refresh proof kind. No Principal Event is authored. Agent rotation adds no action/resource/constraint ceiling and accepts no scope-request fields; current legitimate content authority is revalidated under its original profile freshness. Scope changes use a fresh issue intent.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "protocol_sequence",
@@ -16504,7 +16588,7 @@
         "http": "POST /_arkret/self/strands/watch/current",
         "grpc": "SelfStrandWatch/Current",
         "mq": "self.strand.watch.query.current",
-        "notes": "Exact non-enumerating self watch current read from the governing Station's durable typed reducer under one confirmed governance generation and effective-scope authorization basis. Request watcher_actor_id MUST be the current authenticated effective ActorId; writing another actor under ak.strand.watch.set.others does not grant this read. Response discriminates never_written from current, including a written value:null with a real revision. Invisible/foreign/unknown selectors collapse to not_found; unresolved current authority returns revision_unavailable. The returned stream head and generation are observations, not future CAS authority. No snapshot omission, local raw Event order or default level proves absence.",
+        "notes": "Exact non-enumerating self watch current read from the governing Station's durable typed reducer under one confirmed governance generation and effective-scope authorization basis. Request watcher_actor_id MUST be the current authenticated effective ActorId; writing another actor under ak.strand.watch.set.others does not grant this read. Response discriminates never_written from current, including a written value:null with a real revision. Invisible/foreign/unknown selectors collapse to not_found; unresolved current authority returns revision_unavailable. The returned stream head and generation are observations, not future CAS authority. No snapshot omission, local raw Event order or default level proves absence. The caller is an account Actor (including hosted Agent/integration accounts), never a service Actor. Foreign governance is fetched solely through ak.peer.strand.watch.read.current.v1; source and final local delivery validation follow strand-and-message section 8.3.1.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentRequestBody",
@@ -16675,6 +16759,107 @@
         "auth_requirements": {
           "service_signature": {
             "signature_scenario_id": "ak.http_signature.scenario.service_to_service.v1"
+          }
+        }
+      },
+      {
+        "operation_id": "ak.self.call.invitation.command.send.v1",
+        "http": "POST /_arkret/self/rtc/invitation",
+        "grpc": "SelfCallInvitation/Send",
+        "mq": "self.call.invitation.command.send",
+        "notes": "See zh/crypto-media/webrtc-signaling.md section 3b. Producer-signed exact invitation; sender responses are always deferred. Admission is an authorized consumer-only current holder PCR verdict, never public Consent lookup or a reusable capability.",
+        "body_class": "non_streaming_json",
+        "max_canonical_body_bytes": 131072,
+        "success_shape_kind": "schema_resource",
+        "idempotency_mechanism": "none",
+        "retry_safe": false,
+        "uncertain_outcome": {
+          "strategy": "drop_unconfirmed"
+        },
+        "request_schema_ref": "schemas/call-invitation-operations.schema.json#/$defs/send_request_body",
+        "response_schema_ref": "schemas/call-invitation-operations.schema.json#/$defs/send_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "ephemeral_invitation_is_not_a_consent_ledger_or_durable_participant"
+        }
+      },
+      {
+        "operation_id": "ak.peer.call.invitation.command.relay.v1",
+        "http": "POST /_arkret/peer/rtc/invitation",
+        "grpc": "PeerCallInvitation/Relay",
+        "mq": "peer.call.invitation.command.relay",
+        "notes": "See zh/crypto-media/webrtc-signaling.md section 3b. Producer-signed exact invitation; sender responses are always deferred. Admission is an authorized consumer-only current holder PCR verdict, never public Consent lookup or a reusable capability.",
+        "body_class": "non_streaming_json",
+        "max_canonical_body_bytes": 131072,
+        "success_shape_kind": "schema_resource",
+        "idempotency_mechanism": "none",
+        "retry_safe": false,
+        "uncertain_outcome": {
+          "strategy": "drop_unconfirmed"
+        },
+        "request_schema_ref": "schemas/call-invitation-operations.schema.json#/$defs/send_request_body",
+        "response_schema_ref": "schemas/call-invitation-operations.schema.json#/$defs/send_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "ephemeral_invitation_is_not_a_consent_ledger_or_durable_participant"
+        },
+        "auth_requirements": {
+          "service_signature": {
+            "signature_scenario_id": "ak.http_signature.scenario.call_invitation.v1",
+            "standard": "RFC 9421 HTTP Message Signature",
+            "bearer_only_allowed": false,
+            "contract": "Covered components, signature parameters and the freshness window come from http_signature_contract_registry. This operation MUST NOT restate them."
+          }
+        }
+      },
+      {
+        "operation_id": "ak.peer.call.invitation.read.admission.v1",
+        "http": "POST /_arkret/peer/rtc/invitation-admission",
+        "grpc": "PeerCallInvitation/Admission",
+        "mq": "peer.call.invitation.read.admission",
+        "notes": "See zh/crypto-media/webrtc-signaling.md section 3b. Producer-signed exact invitation; sender responses are always deferred. Admission is an authorized consumer-only current holder PCR verdict, never public Consent lookup or a reusable capability.",
+        "body_class": "non_streaming_json",
+        "max_canonical_body_bytes": 131072,
+        "success_shape_kind": "schema_resource",
+        "uncertain_outcome": {
+          "strategy": "drop_unconfirmed"
+        },
+        "request_schema_ref": "schemas/call-invitation-operations.schema.json#/$defs/admission_request_body",
+        "response_schema_ref": "schemas/call-invitation-operations.schema.json#/$defs/admission_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "ephemeral_invitation_is_not_a_consent_ledger_or_durable_participant"
+        },
+        "auth_requirements": {
+          "service_signature": {
+            "signature_scenario_id": "ak.http_signature.scenario.call_invitation.v1",
+            "standard": "RFC 9421 HTTP Message Signature",
+            "bearer_only_allowed": false,
+            "contract": "Covered components, signature parameters and the freshness window come from http_signature_contract_registry. This operation MUST NOT restate them."
+          }
+        }
+      },
+      {
+        "operation_id": "ak.peer.strand.watch.read.current.v1",
+        "http": "POST /_arkret/peer/strands/watch/current",
+        "grpc": "PeerStrandWatch/Current",
+        "mq": "peer.strand.watch.query.current",
+        "notes": "Exact own-account watch read served only by the verified current governing Station. Reuses the closed self selector/outcome; watcher_actor_id must be the account Actor asserted by its authenticated Account Station, with account_id.station_id equal to Source-Service-ID and the current governor equal to Destination-Service-ID. No requester session credential is forwarded. The governor independently checks current Realm/effective-scope read authority and durable watch state at one cut. Complete accepted watch provenance and retained cleared rows establish affirmative never_written, including after fully verified handoff import; generation zero or snapshot omission alone does not. The Account Station verifies the authenticated response, exact selector, generation/head/source/revision and its local session/device delivery fence; it must not require a local governing tenure or infer absence from its replica. Known authorization loss or newer governance invalidates pending delivery. Invisible/foreign/unknown selectors use not_found; unconfirmed authority, incomplete provenance or handoff use revision_unavailable. No enumeration, audit or others-read authority, write lease or durable Event. See strand-and-message section 8.3.1.",
+        "body_class": "non_streaming_json",
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentRequestBody",
+        "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentOutcome",
+        "max_canonical_body_bytes": 16384,
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "read_only_exact_current_projection_no_event_or_durable_mutation"
+        },
+        "auth_requirements": {
+          "service_signature": {
+            "signature_scenario_id": "ak.http_signature.scenario.service_to_service.v1",
+            "standard": "RFC 9421 HTTP Message Signature",
+            "bearer_only_allowed": false,
+            "contract": "Covered components, signature parameters and the freshness window come from http_signature_contract_registry. This operation MUST NOT restate them."
           }
         }
       }
@@ -16919,8 +17104,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-10-12.1",
-    "generated_at": "2026-10-12T14:05:22+08:00",
+    "version": "2026-10-14.7",
+    "generated_at": "2026-10-14T07:07:39+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.coland_station.v1",
@@ -17615,6 +17800,14 @@
             "binding_kind": "http_json"
           },
           {
+            "operation_id": "ak.peer.call.invitation.command.relay.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.peer.call.invitation.read.admission.v1",
+            "binding_kind": "http_json"
+          },
+          {
             "operation_id": "ak.peer.committed_event.read.scan.v1",
             "binding_kind": "http_json"
           },
@@ -17740,6 +17933,10 @@
           },
           {
             "operation_id": "ak.self.blob.upload.create.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.self.call.invitation.command.send.v1",
             "binding_kind": "http_json"
           },
           {
@@ -18273,6 +18470,19 @@
           },
           {
             "operation_id": "ak.self.management_review.read.status.v1",
+            "binding_kind": "http_json"
+          }
+        ]
+      },
+      {
+        "operation_bundle_id": "ak.operation_bundle.station.http_peer_watch_current.v1",
+        "service_kind": "station",
+        "deployment_evidence": [
+          "normative:zh/models/strand-and-message.md"
+        ],
+        "members": [
+          {
+            "operation_id": "ak.peer.strand.watch.read.current.v1",
             "binding_kind": "http_json"
           }
         ]
@@ -22187,7 +22397,7 @@
             "crypto-media/device-lifecycle.md §8.2",
             "identity/key-management.md §8"
           ],
-          "note": "Every ak.device.authorize is admitted only if its authorized_generation_ref equals this value, every ak.device.reanchor only if its previous_device_generation does; and a keys/query row is refused when the device's generation does not match it."
+          "note": "Every ak.device.authorize is admitted only if its authorized_generation_ref equals this value, every ak.device.reanchor only if its previous_device_generation does; and a keys/query row is refused when the device's generation does not match it. Managed PCR genesis initializes this value to the literal 1 through its accepted ak.realm.create, without a Device row. Replay and same-cut integrity checks include that original create/Commit; authorize/replacement and DID/Service epoch changes never initialize or reset it."
         }
       },
       {
@@ -22486,8 +22696,8 @@
         }
       }
     ],
-    "version": "2026-10-07.1",
-    "generated_at": "2026-10-07T09:02:53+08:00",
+    "version": "2026-10-14",
+    "generated_at": "2026-10-14T05:58:19+08:00",
     "metadata_authority": "contract_registry_section"
   },
   "rejected_profile_markers": [

@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-14",
+  "version": "2026-10-14.1",
   "source_of_truth": false,
-  "generated_at": "2026-10-14T00:00:03+08:00",
+  "generated_at": "2026-10-14T06:11:32+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -1788,6 +1788,12 @@
       "fragment": "#/$defs/welcome",
       "status": "active",
       "description": "Server authentication-success frame carrying effective connection and channel limits."
+    },
+    {
+      "schema_id": "ak.schema.call_invitation_operations.v1",
+      "file": "schemas/call-invitation-operations.schema.json",
+      "status": "active",
+      "description": "Closed exact-envelope call invitation relation, opaque submission, authorized holder-current admission and explicit token join branches."
     }
   ],
   "metadata_authority": "contract_registry_section"

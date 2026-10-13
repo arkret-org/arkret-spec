@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-13.1",
+  "version": "2026-10-14.2",
   "source_of_truth": true,
-  "generated_at": "2026-10-13T07:35:39+08:00",
+  "generated_at": "2026-10-14T06:22:35+08:00",
   "description": "Canonical security-domain labels for Arkret detached proofs and non-Event cryptographic transcripts. contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript, and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
     "context values and object_family values MUST be unique",
@@ -1628,6 +1628,80 @@
         "jti"
       ],
       "defined_in": "zh/sync/websocket-binding.md#31-challenge_dpop_session_v1-proofnormative"
+    },
+    {
+      "domain": "ak.call.invitation.v1",
+      "object_family": "call_invitation",
+      "primitive": "detached_signature",
+      "schema_ref": "schemas/call-invitation-operations.schema.json#/$defs/invitation_envelope",
+      "binding_fields": [
+        "inviter_actor_id",
+        "holder_account_id",
+        "scope_ref",
+        "call_id",
+        "media",
+        "envelope_digest",
+        "expires_at"
+      ],
+      "defined_in": "zh/crypto-media/webrtc-signaling.md#3b-通话邀请的三层-consent-准入normative",
+      "construction": "UTF8(domain) || 0x00 || RFC8785_JCS(the complete typed signed object with only its proof omitted)",
+      "canonicalization": "RFC8785_JCS",
+      "prefix_form": "UTF8(domain) || 0x00",
+      "prefix_bytes_hex": "616b2e63616c6c2e696e7669746174696f6e2e763100",
+      "signature_input": "prefix_bytes || RFC8785_JCS(unsigned_projection)",
+      "signature_algorithm": "Ed25519",
+      "signature_encoding": "compact_detached_jws",
+      "domain_is_a_transcript_member": false
+    },
+    {
+      "domain": "ak.call.invitation.admission.v1",
+      "object_family": "call_invitation_admission",
+      "primitive": "detached_signature",
+      "schema_ref": "schemas/call-invitation-operations.schema.json#/$defs/admission_outcome",
+      "binding_fields": [
+        "request_digest",
+        "admitted",
+        "authority_generation",
+        "evaluated_at",
+        "expires_at"
+      ],
+      "defined_in": "zh/crypto-media/webrtc-signaling.md#3b-通话邀请的三层-consent-准入normative",
+      "construction": "UTF8(domain) || 0x00 || RFC8785_JCS(the complete typed signed object with only its proof omitted)",
+      "canonicalization": "RFC8785_JCS",
+      "prefix_form": "UTF8(domain) || 0x00",
+      "prefix_bytes_hex": "616b2e63616c6c2e696e7669746174696f6e2e61646d697373696f6e2e763100",
+      "signature_input": "prefix_bytes || RFC8785_JCS(unsigned_projection)",
+      "signature_algorithm": "Ed25519",
+      "signature_encoding": "compact_detached_jws",
+      "domain_is_a_transcript_member": false
+    },
+    {
+      "domain": "ak.call.voluntary_join.v1",
+      "object_family": "call_voluntary_join",
+      "primitive": "detached_signature",
+      "schema_ref": "schemas/call-invitation-operations.schema.json#/$defs/voluntary_join_context",
+      "binding_fields": [
+        "realm_id",
+        "call_id",
+        "actor_id",
+        "device_id",
+        "focus_id",
+        "capability_refs",
+        "desired_media",
+        "join_context"
+      ],
+      "defined_in": "zh/crypto-media/webrtc-signaling.md#3b-通话邀请的三层-consent-准入normative",
+      "construction": "UTF8(domain) || 0x00 || RFC8785_JCS(the complete typed signed object with only its proof omitted)",
+      "transcript_schema_refs": [
+        "schemas/service-operation-dtos.schema.json#/$defs/CallMediaTokenExchangeRequestBody"
+      ],
+      "canonicalization": "RFC8785_JCS",
+      "prefix_form": "UTF8(domain) || 0x00",
+      "prefix_bytes_hex": "616b2e63616c6c2e766f6c756e746172795f6a6f696e2e763100",
+      "signature_input": "prefix_bytes || RFC8785_JCS(unsigned_projection)",
+      "signature_algorithm": "Ed25519",
+      "signature_encoding": "compact_detached_jws",
+      "domain_is_a_transcript_member": false
     }
   ]
 }

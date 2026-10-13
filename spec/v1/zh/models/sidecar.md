@@ -177,6 +177,8 @@ device、accepted MLS group 均就绪且两个集合相等时为 `ready`。这�
 [`../crypto-media/encryption-and-audit.md` §5.1](../crypto-media/encryption-and-audit.md) 的创建者坐标从 Event
 `actor_id` 与唯一 producer proof 的 `verification_method` fragment 派生得到。
 
+Agent session 的专用读取来源与 Welcome 引导按 [owned-agent-authority §2](../authz/owned-agent-authority.md)：exact current desired 与 Add/Welcome/claim lineage 允许为本 endpoint 建立 effective 所需的材料领取／consume，不提前要求 effective；业务 payload 仍须本 endpoint effective，旧 queued Welcome 与未来 epoch 材料也重验 requested/key/session、主人内容上界和管理门。Realm selector 本身不授予其它 controller／Sidecar 内容读取权。
+
 resource-scoped capability、Agent participation selection 与 action policy 继续独立约束 Agent 可以读取之外执行
 的 write、reply、mention、publish 等操作；它们不是第二套 MLS membership，也不得改变上述派生 roster。
 

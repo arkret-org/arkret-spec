@@ -5,13 +5,18 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.consent.cache_invalidation.v1"
   },
-  "version": "2026-10-14.2",
+  "version": "2026-10-14.3",
   "profile": "ak.profile.station.v1",
   "covers_vectors": [
-    "ak.vector.consent.cache_invalidation.v1"
+    "ak.vector.consent.cache_invalidation.v1",
+    "ak.vector.consent.call_invitation_admission.v1"
   ],
   "machine_contracts": [
-    "registry/error-code-registry.json"
+    "registry/error-code-registry.json",
+    "schemas/call-invitation-operations.schema.json",
+    "schemas/signal-stream-frame.schema.json",
+    "schemas/service-operation-dtos.schema.json",
+    "registry/proof-context-registry.json"
   ],
   "description": "Consent revocation invalidates current admission decisions for registered invite, call, presence and MIMI consumers; any-scope invalidation preserves independent grants, current revisions never roll back, excluded private discovery and PSI stay unavailable, and requester outcomes remain opaque.",
   "security_evidence": [
@@ -52,6 +57,75 @@
           "requirement": "Invite requester responses cannot distinguish a revoked Consent from one never granted, including in-flight revocation races.",
           "evidence": [
             "/cases/4"
+          ]
+        }
+      ]
+    },
+    {
+      "vector_id": "ak.vector.consent.call_invitation_admission.v1",
+      "clause_id": "AK-NC-127",
+      "decision_points": [
+        {
+          "id": "call_invitation_three_cuts_allow_a_legal_voice_and_video_call",
+          "requirement": "Valid signed per-holder relation, complete current, exact decrypted Invite and independent membership/capability/focus/device checks succeed at all three current cuts; real token and product are released.",
+          "evidence": [
+            "/cases/5"
+          ]
+        },
+        {
+          "id": "call_invitation_plain_rail_cannot_enter_product",
+          "requirement": "Invite received through ordinary encrypted rail without holder product delivery material cannot ring, push or use invitation token admission.",
+          "evidence": [
+            "/cases/6"
+          ]
+        },
+        {
+          "id": "call_invitation_exact_relation_and_plaintext_mismatch",
+          "requirement": "Changing any holder, full inviter, Call, scope, envelope byte, media, producer signer, audience, subject device or decrypted kind/call/media rejects; digest is not plaintext type evidence.",
+          "evidence": [
+            "/cases/7"
+          ]
+        },
+        {
+          "id": "call_invitation_each_holder_is_independent",
+          "requirement": "A granted holder succeeds while a second denied holder never rings or receives a token; neither holder outcome authorizes the other.",
+          "evidence": [
+            "/cases/8"
+          ]
+        },
+        {
+          "id": "call_invitation_window_constraints_and_independent_grants",
+          "requirement": "Future/expired/unknown-constrained records never authorize; independent valid concrete or any record may still permit. Revoking either invalidates its cache but preserves the other grant.",
+          "evidence": [
+            "/cases/9"
+          ]
+        },
+        {
+          "id": "call_invitation_cross_station_inflight_revoke_and_queue",
+          "requirement": "Real holder authority revoke accepted before each product/ring/token cut denies that stage; queued or in-flight old outcomes are never reused; after-cut revoke does not retroactively hang up established participants.",
+          "evidence": [
+            "/cases/10"
+          ]
+        },
+        {
+          "id": "call_invitation_older_read_retry_and_authority_change",
+          "requirement": "Known revoke/current high-water survives older exact reads and accepted retries; authority-generation switch forces fresh authoritative material and rejects previous authority verdicts.",
+          "evidence": [
+            "/cases/11"
+          ]
+        },
+        {
+          "id": "call_invitation_first_join_voluntary_refresh_and_expansion",
+          "requirement": "Invited first join uses exact relation and fresh token cut; affirmative signed voluntary join is legal; only accepted same actor/device active participant may refresh within accepted media. Unestablished refresh, automatic voluntary fallback and narrower-media expansion reject.",
+          "evidence": [
+            "/cases/12"
+          ]
+        },
+        {
+          "id": "call_invitation_opaque_response_and_recovery",
+          "requirement": "Sender sees identical deferred for absent, revoked, denied, queued or delivered holders; authority/material recovery permits fresh legal retry and all three cuts succeed without durable Consent duplication.",
+          "evidence": [
+            "/cases/13"
           ]
         }
       ]
@@ -118,6 +192,96 @@
         "both requester responses have the same opaque deferred shape and disclosure class",
         "consent_revoked is an internal authorization outcome and MUST NOT be the reason the requester sees",
         "timing does not separate the two"
+      ]
+    },
+    {
+      "name": "call_invitation_three_cuts_allow_a_legal_voice_and_video_call",
+      "given": "The signed exact relation and real accepted holder PCR/Call source facts required by webrtc-signaling section 3b",
+      "action": "Valid signed per-holder relation, complete current, exact decrypted Invite and independent membership/capability/focus/device checks succeed at all three current cuts; real token and product are released.",
+      "decision": "allow",
+      "observed": "actual holder product/ring/token release, current cut and requester wire",
+      "assertions": [
+        "Valid signed per-holder relation, complete current, exact decrypted Invite and independent membership/capability/focus/device checks succeed at all three current cuts; real token and product are released."
+      ]
+    },
+    {
+      "name": "call_invitation_plain_rail_cannot_enter_product",
+      "given": "The signed exact relation and real accepted holder PCR/Call source facts required by webrtc-signaling section 3b",
+      "action": "Invite received through ordinary encrypted rail without holder product delivery material cannot ring, push or use invitation token admission.",
+      "decision": "reject",
+      "observed": "actual holder product/ring/token release, current cut and requester wire",
+      "assertions": [
+        "Invite received through ordinary encrypted rail without holder product delivery material cannot ring, push or use invitation token admission."
+      ]
+    },
+    {
+      "name": "call_invitation_exact_relation_and_plaintext_mismatch",
+      "given": "The signed exact relation and real accepted holder PCR/Call source facts required by webrtc-signaling section 3b",
+      "action": "Changing any holder, full inviter, Call, scope, envelope byte, media, producer signer, audience, subject device or decrypted kind/call/media rejects; digest is not plaintext type evidence.",
+      "decision": "reject",
+      "observed": "actual holder product/ring/token release, current cut and requester wire",
+      "assertions": [
+        "Changing any holder, full inviter, Call, scope, envelope byte, media, producer signer, audience, subject device or decrypted kind/call/media rejects; digest is not plaintext type evidence."
+      ]
+    },
+    {
+      "name": "call_invitation_each_holder_is_independent",
+      "given": "The signed exact relation and real accepted holder PCR/Call source facts required by webrtc-signaling section 3b",
+      "action": "A granted holder succeeds while a second denied holder never rings or receives a token; neither holder outcome authorizes the other.",
+      "decision": "allow",
+      "observed": "actual holder product/ring/token release, current cut and requester wire",
+      "assertions": [
+        "A granted holder succeeds while a second denied holder never rings or receives a token; neither holder outcome authorizes the other."
+      ]
+    },
+    {
+      "name": "call_invitation_window_constraints_and_independent_grants",
+      "given": "The signed exact relation and real accepted holder PCR/Call source facts required by webrtc-signaling section 3b",
+      "action": "Future/expired/unknown-constrained records never authorize; independent valid concrete or any record may still permit. Revoking either invalidates its cache but preserves the other grant.",
+      "decision": "allow",
+      "observed": "actual holder product/ring/token release, current cut and requester wire",
+      "assertions": [
+        "Future/expired/unknown-constrained records never authorize; independent valid concrete or any record may still permit. Revoking either invalidates its cache but preserves the other grant."
+      ]
+    },
+    {
+      "name": "call_invitation_cross_station_inflight_revoke_and_queue",
+      "given": "The signed exact relation and real accepted holder PCR/Call source facts required by webrtc-signaling section 3b",
+      "action": "Real holder authority revoke accepted before each product/ring/token cut denies that stage; queued or in-flight old outcomes are never reused; after-cut revoke does not retroactively hang up established participants.",
+      "decision": "reject",
+      "observed": "actual holder product/ring/token release, current cut and requester wire",
+      "assertions": [
+        "Real holder authority revoke accepted before each product/ring/token cut denies that stage; queued or in-flight old outcomes are never reused; after-cut revoke does not retroactively hang up established participants."
+      ]
+    },
+    {
+      "name": "call_invitation_older_read_retry_and_authority_change",
+      "given": "The signed exact relation and real accepted holder PCR/Call source facts required by webrtc-signaling section 3b",
+      "action": "Known revoke/current high-water survives older exact reads and accepted retries; authority-generation switch forces fresh authoritative material and rejects previous authority verdicts.",
+      "decision": "reject",
+      "observed": "actual holder product/ring/token release, current cut and requester wire",
+      "assertions": [
+        "Known revoke/current high-water survives older exact reads and accepted retries; authority-generation switch forces fresh authoritative material and rejects previous authority verdicts."
+      ]
+    },
+    {
+      "name": "call_invitation_first_join_voluntary_refresh_and_expansion",
+      "given": "The signed exact relation and real accepted holder PCR/Call source facts required by webrtc-signaling section 3b",
+      "action": "Invited first join uses exact relation and fresh token cut; affirmative signed voluntary join is legal; only accepted same actor/device active participant may refresh within accepted media. Unestablished refresh, automatic voluntary fallback and narrower-media expansion reject.",
+      "decision": "allow",
+      "observed": "actual holder product/ring/token release, current cut and requester wire",
+      "assertions": [
+        "Invited first join uses exact relation and fresh token cut; affirmative signed voluntary join is legal; only accepted same actor/device active participant may refresh within accepted media. Unestablished refresh, automatic voluntary fallback and narrower-media expansion reject."
+      ]
+    },
+    {
+      "name": "call_invitation_opaque_response_and_recovery",
+      "given": "The signed exact relation and real accepted holder PCR/Call source facts required by webrtc-signaling section 3b",
+      "action": "Sender sees identical deferred for absent, revoked, denied, queued or delivered holders; authority/material recovery permits fresh legal retry and all three cuts succeed without durable Consent duplication.",
+      "decision": "allow",
+      "observed": "actual holder product/ring/token release, current cut and requester wire",
+      "assertions": [
+        "Sender sees identical deferred for absent, revoked, denied, queued or delivered holders; authority/material recovery permits fresh legal retry and all three cuts succeed without durable Consent duplication."
       ]
     }
   ]

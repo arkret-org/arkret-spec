@@ -1,6 +1,6 @@
 {
   "profile": "ak.vector_group.state.v1",
-  "version": "2026-09-21",
+  "version": "2026-10-14.1",
   "suite": "strand_watch_current_read",
   "runner": {
     "kind": "named_suite",
@@ -35,33 +35,1726 @@
     },
     {
       "name": "whole_value_public_flag_must_match",
-      "current_value": {"level": "all", "level_public": true},
-      "attempt_expected_value": {"level": "all"},
-      "expected": {"decision": "failed_precondition", "effect_count": 0}
+      "current_value": {
+        "level": "all",
+        "level_public": true
+      },
+      "attempt_expected_value": {
+        "level": "all"
+      },
+      "expected": {
+        "decision": "failed_precondition",
+        "effect_count": 0
+      }
     },
     {
       "name": "reverse_arrival_and_missing_tail_do_not_change_current",
-      "local_raw_event_order": ["newer", "older"],
-      "station_accepted_commit_order": ["older", "newer"],
-      "expected": {"read_source": "durable_typed_current_at_confirmed_head", "uses_local_raw_event_order": false}
+      "local_raw_event_order": [
+        "newer",
+        "older"
+      ],
+      "station_accepted_commit_order": [
+        "older",
+        "newer"
+      ],
+      "expected": {
+        "read_source": "durable_typed_current_at_confirmed_head",
+        "uses_local_raw_event_order": false
+      }
     },
     {
       "name": "foreign_or_invisible_selector_is_non_enumerating",
-      "variants": ["foreign_watcher", "invisible_circle_strand", "unknown_strand"],
-      "expected": {"same_result": "not_found", "watch_value_disclosed": false}
+      "variants": [
+        "foreign_watcher",
+        "invisible_circle_strand",
+        "unknown_strand"
+      ],
+      "expected": {
+        "same_result": "not_found",
+        "watch_value_disclosed": false
+      }
     },
     {
       "name": "others_write_does_not_grant_private_read",
       "has_watch_set_others": true,
       "has_notification_audit": false,
-      "expected": {"read_result": "not_found", "watch_value_disclosed": false}
+      "expected": {
+        "read_result": "not_found",
+        "watch_value_disclosed": false
+      }
     },
     {
       "name": "handoff_and_cas_conflict_require_re_read",
       "old_governance_generation": true,
       "concurrent_watch_write": true,
-      "expected": {"old_read_usable": false, "automatic_retry_with_old_value": false, "action": "refresh_current_and_reconfirm"}
+      "expected": {
+        "old_read_usable": false,
+        "automatic_retry_with_old_value": false,
+        "action": "refresh_current_and_reconfirm"
+      }
     }
   ],
-  "minimum_independent_runners": 2
+  "minimum_independent_runners": 2,
+  "cross_station_operation_id": "ak.peer.strand.watch.read.current.v1",
+  "evidence_boundary": "Executable schema and abstract admission/delivery/CAS vectors; no cryptographic, production PG/HTTP, SDK or independent runner completion claim.",
+  "schema_validation_cases": [
+    {
+      "name": "shared_peer_request_complete_account",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentRequestBody",
+      "instance": {
+        "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+        "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+        "watcher_actor_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:web:alice.example",
+            "station_id": "ak:did_core:web:station.example"
+          }
+        }
+      },
+      "expect_valid": true
+    },
+    {
+      "name": "peer_handoff_generation_four_never_written",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentOutcome",
+      "instance": {
+        "status": "never_written",
+        "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+        "governance_generation": 4,
+        "stream_head": {
+          "stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+          },
+          "stream_position": 12,
+          "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
+        },
+        "selector": {
+          "kind": "strand_watch",
+          "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+          "watcher_actor_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:web:alice.example",
+              "station_id": "ak:did_core:web:station.example"
+            }
+          }
+        }
+      },
+      "expect_valid": true
+    },
+    {
+      "name": "peer_written_clear_current_with_revision",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentOutcome",
+      "instance": {
+        "status": "current",
+        "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+        "governance_generation": 4,
+        "stream_head": {
+          "stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+          },
+          "stream_position": 12,
+          "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
+        },
+        "result": {
+          "selector": {
+            "kind": "strand_watch",
+            "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+            "watcher_actor_id": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:web:alice.example",
+                "station_id": "ak:did_core:web:station.example"
+              }
+            }
+          },
+          "source_stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+          },
+          "revision": {
+            "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq",
+            "stream_position": 12
+          },
+          "value": null
+        }
+      },
+      "expect_valid": true
+    },
+    {
+      "name": "peer_whole_value_includes_public_flag",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentOutcome",
+      "instance": {
+        "status": "current",
+        "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+        "governance_generation": 4,
+        "stream_head": {
+          "stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+          },
+          "stream_position": 12,
+          "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
+        },
+        "result": {
+          "selector": {
+            "kind": "strand_watch",
+            "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+            "watcher_actor_id": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:web:alice.example",
+                "station_id": "ak:did_core:web:station.example"
+              }
+            }
+          },
+          "source_stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+          },
+          "revision": {
+            "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq",
+            "stream_position": 12
+          },
+          "value": {
+            "level": "all",
+            "level_public": true
+          }
+        }
+      },
+      "expect_valid": true
+    },
+    {
+      "name": "caller_cannot_supply_governor",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentRequestBody",
+      "instance": {
+        "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+        "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+        "watcher_actor_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:web:alice.example",
+            "station_id": "ak:did_core:web:station.example"
+          }
+        },
+        "governing_service_id": "ak:did_core:web:governor.example"
+      },
+      "expect_valid": false,
+      "first_expected_error": "$: Additional properties are not allowed ('governing_service_id' was unexpected)"
+    },
+    {
+      "name": "caller_cannot_supply_cas",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentRequestBody",
+      "instance": {
+        "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+        "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+        "watcher_actor_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:web:alice.example",
+            "station_id": "ak:did_core:web:station.example"
+          }
+        },
+        "expected_value": null
+      },
+      "expect_valid": false,
+      "first_expected_error": "$: Additional properties are not allowed ('expected_value' was unexpected)"
+    },
+    {
+      "name": "caller_cannot_supply_scope",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentRequestBody",
+      "instance": {
+        "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+        "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+        "watcher_actor_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:web:alice.example",
+            "station_id": "ak:did_core:web:station.example"
+          }
+        },
+        "scope_circle_id": null
+      },
+      "expect_valid": false,
+      "first_expected_error": "$: Additional properties are not allowed ('scope_circle_id' was unexpected)"
+    },
+    {
+      "name": "principal_only_selector_rejected",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentRequestBody",
+      "instance": {
+        "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+        "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+        "watcher_actor_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:web:alice.example"
+          }
+        }
+      },
+      "expect_valid": false,
+      "first_expected_error": "$.watcher_actor_id: {'kind': 'account', 'account_id': {'principal_id': 'ak:did_core:web:alice.example'}} is not valid under any of the given schemas"
+    },
+    {
+      "name": "never_written_cannot_carry_value",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentOutcome",
+      "instance": {
+        "status": "never_written",
+        "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+        "governance_generation": 4,
+        "stream_head": {
+          "stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+          },
+          "stream_position": 12,
+          "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
+        },
+        "selector": {
+          "kind": "strand_watch",
+          "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+          "watcher_actor_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:web:alice.example",
+              "station_id": "ak:did_core:web:station.example"
+            }
+          }
+        },
+        "value": null
+      },
+      "expect_valid": false,
+      "first_expected_error": "$: {'status': 'never_written', 'realm_id': 'ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19', 'governance_generation': 4, 'stream_head': {'stream_ref': {'kind': 'realm', 'realm_id': 'ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19'}, 'stream_position': 12, 'commit_id': 'ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq'}, 'selector': {'kind': 'strand_watch', 'strand_id': 'ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0', 'watcher_actor_id': {'kind': 'account', 'account_id': {'principal_id': 'ak:did_core:web:alice.example', 'station_id': 'ak:did_core:web:station.example'}}}, 'value': None} is not valid under any of the given schemas"
+    },
+    {
+      "name": "never_written_cannot_carry_revision",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentOutcome",
+      "instance": {
+        "status": "never_written",
+        "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+        "governance_generation": 4,
+        "stream_head": {
+          "stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+          },
+          "stream_position": 12,
+          "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
+        },
+        "selector": {
+          "kind": "strand_watch",
+          "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+          "watcher_actor_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:web:alice.example",
+              "station_id": "ak:did_core:web:station.example"
+            }
+          }
+        },
+        "revision": {
+          "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq",
+          "stream_position": 12
+        }
+      },
+      "expect_valid": false,
+      "first_expected_error": "$: {'status': 'never_written', 'realm_id': 'ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19', 'governance_generation': 4, 'stream_head': {'stream_ref': {'kind': 'realm', 'realm_id': 'ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19'}, 'stream_position': 12, 'commit_id': 'ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq'}, 'selector': {'kind': 'strand_watch', 'strand_id': 'ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0', 'watcher_actor_id': {'kind': 'account', 'account_id': {'principal_id': 'ak:did_core:web:alice.example', 'station_id': 'ak:did_core:web:station.example'}}}, 'revision': {'commit_id': 'ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq', 'stream_position': 12}} is not valid under any of the given schemas"
+    },
+    {
+      "name": "no_omission_proof_wire_extension",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentOutcome",
+      "instance": {
+        "status": "never_written",
+        "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+        "governance_generation": 4,
+        "stream_head": {
+          "stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+          },
+          "stream_position": 12,
+          "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
+        },
+        "selector": {
+          "kind": "strand_watch",
+          "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+          "watcher_actor_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:web:alice.example",
+              "station_id": "ak:did_core:web:station.example"
+            }
+          }
+        },
+        "omission_proof": "invented"
+      },
+      "expect_valid": false,
+      "first_expected_error": "$: {'status': 'never_written', 'realm_id': 'ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19', 'governance_generation': 4, 'stream_head': {'stream_ref': {'kind': 'realm', 'realm_id': 'ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19'}, 'stream_position': 12, 'commit_id': 'ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq'}, 'selector': {'kind': 'strand_watch', 'strand_id': 'ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0', 'watcher_actor_id': {'kind': 'account', 'account_id': {'principal_id': 'ak:did_core:web:alice.example', 'station_id': 'ak:did_core:web:station.example'}}}, 'omission_proof': 'invented'} is not valid under any of the given schemas"
+    },
+    {
+      "name": "written_null_requires_revision",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentOutcome",
+      "instance": {
+        "status": "current",
+        "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+        "governance_generation": 4,
+        "stream_head": {
+          "stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+          },
+          "stream_position": 12,
+          "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
+        },
+        "result": {
+          "selector": {
+            "kind": "strand_watch",
+            "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+            "watcher_actor_id": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:web:alice.example",
+                "station_id": "ak:did_core:web:station.example"
+              }
+            }
+          },
+          "source_stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+          },
+          "value": null
+        }
+      },
+      "expect_valid": false,
+      "first_expected_error": "$: {'status': 'current', 'realm_id': 'ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19', 'governance_generation': 4, 'stream_head': {'stream_ref': {'kind': 'realm', 'realm_id': 'ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19'}, 'stream_position': 12, 'commit_id': 'ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq'}, 'result': {'selector': {'kind': 'strand_watch', 'strand_id': 'ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0', 'watcher_actor_id': {'kind': 'account', 'account_id': {'principal_id': 'ak:did_core:web:alice.example', 'station_id': 'ak:did_core:web:station.example'}}}, 'source_stream_ref': {'kind': 'realm', 'realm_id': 'ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19'}, 'value': None}} is not valid under any of the given schemas"
+    },
+    {
+      "name": "current_requires_source_stream",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentOutcome",
+      "instance": {
+        "status": "current",
+        "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+        "governance_generation": 4,
+        "stream_head": {
+          "stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+          },
+          "stream_position": 12,
+          "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
+        },
+        "result": {
+          "selector": {
+            "kind": "strand_watch",
+            "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+            "watcher_actor_id": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:web:alice.example",
+                "station_id": "ak:did_core:web:station.example"
+              }
+            }
+          },
+          "revision": {
+            "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq",
+            "stream_position": 12
+          },
+          "value": null
+        }
+      },
+      "expect_valid": false,
+      "first_expected_error": "$: {'status': 'current', 'realm_id': 'ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19', 'governance_generation': 4, 'stream_head': {'stream_ref': {'kind': 'realm', 'realm_id': 'ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19'}, 'stream_position': 12, 'commit_id': 'ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq'}, 'result': {'selector': {'kind': 'strand_watch', 'strand_id': 'ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0', 'watcher_actor_id': {'kind': 'account', 'account_id': {'principal_id': 'ak:did_core:web:alice.example', 'station_id': 'ak:did_core:web:station.example'}}}, 'revision': {'commit_id': 'ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq', 'stream_position': 12}, 'value': None}} is not valid under any of the given schemas"
+    },
+    {
+      "name": "mutually_exclusive_presence_branches",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentOutcome",
+      "instance": {
+        "status": "current",
+        "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+        "governance_generation": 4,
+        "stream_head": {
+          "stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+          },
+          "stream_position": 12,
+          "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
+        },
+        "selector": {
+          "kind": "strand_watch",
+          "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+          "watcher_actor_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:web:alice.example",
+              "station_id": "ak:did_core:web:station.example"
+            }
+          }
+        }
+      },
+      "expect_valid": false,
+      "first_expected_error": "$: {'status': 'current', 'realm_id': 'ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19', 'governance_generation': 4, 'stream_head': {'stream_ref': {'kind': 'realm', 'realm_id': 'ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19'}, 'stream_position': 12, 'commit_id': 'ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq'}, 'selector': {'kind': 'strand_watch', 'strand_id': 'ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0', 'watcher_actor_id': {'kind': 'account', 'account_id': {'principal_id': 'ak:did_core:web:alice.example', 'station_id': 'ak:did_core:web:station.example'}}}} is not valid under any of the given schemas"
+    },
+    {
+      "name": "peer_authorized_circle_never_written",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentOutcome",
+      "instance": {
+        "status": "never_written",
+        "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+        "governance_generation": 4,
+        "stream_head": {
+          "stream_ref": {
+            "kind": "circle",
+            "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+            "circle_id": "ak:circle:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0"
+          },
+          "stream_position": 12,
+          "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
+        },
+        "selector": {
+          "kind": "strand_watch",
+          "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+          "watcher_actor_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:web:alice.example",
+              "station_id": "ak:did_core:web:station.example"
+            }
+          }
+        }
+      },
+      "expect_valid": true
+    },
+    {
+      "name": "peer_authorized_circle_clear_current",
+      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentOutcome",
+      "instance": {
+        "status": "current",
+        "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+        "governance_generation": 4,
+        "stream_head": {
+          "stream_ref": {
+            "kind": "circle",
+            "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+            "circle_id": "ak:circle:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0"
+          },
+          "stream_position": 12,
+          "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
+        },
+        "result": {
+          "selector": {
+            "kind": "strand_watch",
+            "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+            "watcher_actor_id": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:web:alice.example",
+                "station_id": "ak:did_core:web:station.example"
+              }
+            }
+          },
+          "source_stream_ref": {
+            "kind": "circle",
+            "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+            "circle_id": "ak:circle:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0"
+          },
+          "revision": {
+            "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq",
+            "stream_position": 12
+          },
+          "value": null
+        }
+      },
+      "expect_valid": true
+    }
+  ],
+  "cross_station_cases": [
+    {
+      "name": "cross_station_never_written_without_local_tenure",
+      "input": {},
+      "expected": "never_written"
+    },
+    {
+      "name": "cross_station_current_clear_without_local_row",
+      "input": {
+        "accepted_writes": [
+          {
+            "author": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:web:bob.example",
+                "station_id": "ak:did_core:web:other.example"
+              }
+            },
+            "watcher_actor_id": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:web:alice.example",
+                "station_id": "ak:did_core:web:station.example"
+              }
+            },
+            "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+            "value": null
+          }
+        ],
+        "durable_row": {
+          "selector": {
+            "kind": "strand_watch",
+            "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+            "watcher_actor_id": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:web:alice.example",
+                "station_id": "ak:did_core:web:station.example"
+              }
+            }
+          },
+          "source_stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+          },
+          "revision": {
+            "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq",
+            "stream_position": 12
+          },
+          "value": null
+        },
+        "response": {
+          "status": "current",
+          "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+          "governance_generation": 4,
+          "stream_head": {
+            "stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+            },
+            "stream_position": 12,
+            "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
+          },
+          "result": {
+            "selector": {
+              "kind": "strand_watch",
+              "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+              "watcher_actor_id": {
+                "kind": "account",
+                "account_id": {
+                  "principal_id": "ak:did_core:web:alice.example",
+                  "station_id": "ak:did_core:web:station.example"
+                }
+              }
+            },
+            "source_stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq",
+              "stream_position": 12
+            },
+            "value": null
+          }
+        }
+      },
+      "expected": "current"
+    },
+    {
+      "name": "handoff_nonzero_generation_proven_never_written",
+      "input": {
+        "generation": 9,
+        "response": {
+          "status": "never_written",
+          "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+          "governance_generation": 9,
+          "stream_head": {
+            "stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+            },
+            "stream_position": 12,
+            "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
+          },
+          "selector": {
+            "kind": "strand_watch",
+            "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+            "watcher_actor_id": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:web:alice.example",
+                "station_id": "ak:did_core:web:station.example"
+              }
+            }
+          }
+        }
+      },
+      "expected": "never_written"
+    },
+    {
+      "name": "generation_zero_alone_does_not_prove_absence",
+      "input": {
+        "namespace_complete": false,
+        "generation": 0,
+        "response": {
+          "status": "never_written",
+          "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+          "governance_generation": 0,
+          "stream_head": {
+            "stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+            },
+            "stream_position": 12,
+            "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
+          },
+          "selector": {
+            "kind": "strand_watch",
+            "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+            "watcher_actor_id": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:web:alice.example",
+                "station_id": "ak:did_core:web:station.example"
+              }
+            }
+          }
+        }
+      },
+      "expected": "revision_unavailable"
+    },
+    {
+      "name": "snapshot_omission_does_not_prove_never_written",
+      "input": {
+        "namespace_complete": false
+      },
+      "expected": "revision_unavailable"
+    },
+    {
+      "name": "missing_handoff_import_fails_closed",
+      "input": {
+        "handoff_import_complete": false
+      },
+      "expected": "revision_unavailable"
+    },
+    {
+      "name": "missing_materialization_fails_closed",
+      "input": {
+        "materialization_complete": false
+      },
+      "expected": "revision_unavailable"
+    },
+    {
+      "name": "others_author_write_prevents_never_written",
+      "input": {
+        "accepted_writes": [
+          {
+            "author": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:web:bob.example",
+                "station_id": "ak:did_core:web:other.example"
+              }
+            },
+            "watcher_actor_id": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:web:alice.example",
+                "station_id": "ak:did_core:web:station.example"
+              }
+            },
+            "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+            "value": null
+          }
+        ]
+      },
+      "expected": "revision_unavailable"
+    },
+    {
+      "name": "handoff_omitted_clear_row_fails_closed",
+      "input": {
+        "accepted_writes": [
+          {
+            "author": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:web:bob.example",
+                "station_id": "ak:did_core:web:other.example"
+              }
+            },
+            "watcher_actor_id": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:web:alice.example",
+                "station_id": "ak:did_core:web:station.example"
+              }
+            },
+            "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+            "value": null
+          }
+        ]
+      },
+      "expected": "revision_unavailable"
+    },
+    {
+      "name": "wrong_source_station_cannot_read_cell",
+      "input": {
+        "source_service_id": "ak:did_core:web:other.example"
+      },
+      "expected": "not_found"
+    },
+    {
+      "name": "same_principal_other_station_is_private_cell",
+      "input": {
+        "request": {
+          "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+          "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+          "watcher_actor_id": {
+            "kind": "account",
+            "account_id": {
+              "principal_id": "ak:did_core:web:alice.example",
+              "station_id": "ak:did_core:web:other.example"
+            }
+          }
+        },
+        "response": {
+          "status": "never_written",
+          "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+          "governance_generation": 4,
+          "stream_head": {
+            "stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+            },
+            "stream_position": 12,
+            "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
+          },
+          "selector": {
+            "kind": "strand_watch",
+            "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+            "watcher_actor_id": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:web:alice.example",
+                "station_id": "ak:did_core:web:other.example"
+              }
+            }
+          }
+        }
+      },
+      "expected": "not_found"
+    },
+    {
+      "name": "service_actor_has_no_self_watch_read",
+      "input": {
+        "request": {
+          "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+          "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+          "watcher_actor_id": {
+            "kind": "service",
+            "service_id": "ak:did_core:web:station.example"
+          }
+        },
+        "response": {
+          "status": "never_written",
+          "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+          "governance_generation": 4,
+          "stream_head": {
+            "stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+            },
+            "stream_position": 12,
+            "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
+          },
+          "selector": {
+            "kind": "strand_watch",
+            "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+            "watcher_actor_id": {
+              "kind": "service",
+              "service_id": "ak:did_core:web:station.example"
+            }
+          }
+        }
+      },
+      "expected": "not_found"
+    },
+    {
+      "name": "wrong_destination_is_not_governor",
+      "input": {
+        "destination_service_id": "ak:did_core:web:station.example"
+      },
+      "expected": "revision_unavailable"
+    },
+    {
+      "name": "authorized_circle_self_read",
+      "input": {
+        "scope_kind": "circle",
+        "confirmed_head": {
+          "stream_ref": {
+            "kind": "circle",
+            "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+            "circle_id": "ak:circle:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0"
+          },
+          "stream_position": 12,
+          "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
+        },
+        "response": {
+          "status": "never_written",
+          "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+          "governance_generation": 4,
+          "stream_head": {
+            "stream_ref": {
+              "kind": "circle",
+              "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+              "circle_id": "ak:circle:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0"
+            },
+            "stream_position": 12,
+            "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
+          },
+          "selector": {
+            "kind": "strand_watch",
+            "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+            "watcher_actor_id": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:web:alice.example",
+                "station_id": "ak:did_core:web:station.example"
+              }
+            }
+          }
+        },
+        "scope_stream_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+          "circle_id": "ak:circle:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0"
+        }
+      },
+      "expected": "never_written"
+    },
+    {
+      "name": "parent_membership_cannot_read_hidden_circle",
+      "input": {
+        "readable_scope": false,
+        "scope_kind": "circle",
+        "confirmed_head": {
+          "stream_ref": {
+            "kind": "circle",
+            "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+            "circle_id": "ak:circle:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0"
+          },
+          "stream_position": 12,
+          "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
+        },
+        "response": {
+          "status": "never_written",
+          "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+          "governance_generation": 4,
+          "stream_head": {
+            "stream_ref": {
+              "kind": "circle",
+              "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+              "circle_id": "ak:circle:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0"
+            },
+            "stream_position": 12,
+            "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
+          },
+          "selector": {
+            "kind": "strand_watch",
+            "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+            "watcher_actor_id": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:web:alice.example",
+                "station_id": "ak:did_core:web:station.example"
+              }
+            }
+          }
+        },
+        "scope_stream_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+          "circle_id": "ak:circle:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0"
+        }
+      },
+      "expected": "not_found"
+    },
+    {
+      "name": "unknown_or_unreadable_strand_is_non_enumerating",
+      "input": {
+        "readable_scope": false
+      },
+      "expected": "not_found"
+    },
+    {
+      "name": "revoked_realm_membership_rejects",
+      "input": {
+        "readable_realm": false
+      },
+      "expected": "not_found"
+    },
+    {
+      "name": "unsigned_peer_request_rejected",
+      "input": {
+        "authenticated_peer": false
+      },
+      "expected": "authentication_rejected"
+    },
+    {
+      "name": "unconfirmed_current_governor_fails_closed",
+      "input": {
+        "current_authority_verified": false
+      },
+      "expected": "revision_unavailable"
+    },
+    {
+      "name": "missing_exact_head_fails_closed",
+      "input": {
+        "head_confirmed": false
+      },
+      "expected": "revision_unavailable"
+    },
+    {
+      "name": "session_revoked_before_delivery_withholds",
+      "input": {
+        "session_current": false
+      },
+      "expected": "delivery_rejected"
+    },
+    {
+      "name": "device_replaced_before_delivery_withholds",
+      "input": {
+        "device_current": false
+      },
+      "expected": "delivery_rejected"
+    },
+    {
+      "name": "agent_content_gate_cannot_be_bypassed",
+      "input": {
+        "account_delivery_authorized": false
+      },
+      "expected": "delivery_rejected"
+    },
+    {
+      "name": "known_membership_loss_before_delivery_withholds",
+      "input": {
+        "known_authority_loss": true
+      },
+      "expected": "delivery_rejected"
+    },
+    {
+      "name": "handoff_late_response_is_discarded",
+      "input": {
+        "higher_generation_observed": true
+      },
+      "expected": "revision_unavailable"
+    },
+    {
+      "name": "wrong_response_realm_rejected",
+      "input": {
+        "accepted_writes": [
+          {
+            "author": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:web:bob.example",
+                "station_id": "ak:did_core:web:other.example"
+              }
+            },
+            "watcher_actor_id": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:web:alice.example",
+                "station_id": "ak:did_core:web:station.example"
+              }
+            },
+            "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+            "value": null
+          }
+        ],
+        "durable_row": {
+          "selector": {
+            "kind": "strand_watch",
+            "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+            "watcher_actor_id": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:web:alice.example",
+                "station_id": "ak:did_core:web:station.example"
+              }
+            }
+          },
+          "source_stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+          },
+          "revision": {
+            "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq",
+            "stream_position": 12
+          },
+          "value": null
+        },
+        "response": {
+          "status": "current",
+          "realm_id": "ak:realm:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+          "governance_generation": 4,
+          "stream_head": {
+            "stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+            },
+            "stream_position": 12,
+            "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
+          },
+          "result": {
+            "selector": {
+              "kind": "strand_watch",
+              "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+              "watcher_actor_id": {
+                "kind": "account",
+                "account_id": {
+                  "principal_id": "ak:did_core:web:alice.example",
+                  "station_id": "ak:did_core:web:station.example"
+                }
+              }
+            },
+            "source_stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq",
+              "stream_position": 12
+            },
+            "value": null
+          }
+        },
+        "confirmed_response": {
+          "status": "current",
+          "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+          "governance_generation": 4,
+          "stream_head": {
+            "stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+            },
+            "stream_position": 12,
+            "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
+          },
+          "result": {
+            "selector": {
+              "kind": "strand_watch",
+              "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+              "watcher_actor_id": {
+                "kind": "account",
+                "account_id": {
+                  "principal_id": "ak:did_core:web:alice.example",
+                  "station_id": "ak:did_core:web:station.example"
+                }
+              }
+            },
+            "source_stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq",
+              "stream_position": 12
+            },
+            "value": null
+          }
+        }
+      },
+      "expected": "revision_unavailable"
+    },
+    {
+      "name": "wrong_response_selector_rejected",
+      "input": {
+        "accepted_writes": [
+          {
+            "author": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:web:bob.example",
+                "station_id": "ak:did_core:web:other.example"
+              }
+            },
+            "watcher_actor_id": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:web:alice.example",
+                "station_id": "ak:did_core:web:station.example"
+              }
+            },
+            "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+            "value": null
+          }
+        ],
+        "durable_row": {
+          "selector": {
+            "kind": "strand_watch",
+            "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+            "watcher_actor_id": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:web:alice.example",
+                "station_id": "ak:did_core:web:station.example"
+              }
+            }
+          },
+          "source_stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+          },
+          "revision": {
+            "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq",
+            "stream_position": 12
+          },
+          "value": null
+        },
+        "response": {
+          "status": "current",
+          "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+          "governance_generation": 4,
+          "stream_head": {
+            "stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+            },
+            "stream_position": 12,
+            "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
+          },
+          "result": {
+            "selector": {
+              "kind": "strand_watch",
+              "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+              "watcher_actor_id": {
+                "kind": "account",
+                "account_id": {
+                  "principal_id": "ak:did_core:web:alice.example",
+                  "station_id": "ak:did_core:web:other.example"
+                }
+              }
+            },
+            "source_stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq",
+              "stream_position": 12
+            },
+            "value": null
+          }
+        },
+        "confirmed_response": {
+          "status": "current",
+          "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+          "governance_generation": 4,
+          "stream_head": {
+            "stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+            },
+            "stream_position": 12,
+            "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
+          },
+          "result": {
+            "selector": {
+              "kind": "strand_watch",
+              "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+              "watcher_actor_id": {
+                "kind": "account",
+                "account_id": {
+                  "principal_id": "ak:did_core:web:alice.example",
+                  "station_id": "ak:did_core:web:station.example"
+                }
+              }
+            },
+            "source_stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq",
+              "stream_position": 12
+            },
+            "value": null
+          }
+        }
+      },
+      "expected": "revision_unavailable"
+    },
+    {
+      "name": "wrong_response_generation_rejected",
+      "input": {
+        "accepted_writes": [
+          {
+            "author": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:web:bob.example",
+                "station_id": "ak:did_core:web:other.example"
+              }
+            },
+            "watcher_actor_id": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:web:alice.example",
+                "station_id": "ak:did_core:web:station.example"
+              }
+            },
+            "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+            "value": null
+          }
+        ],
+        "durable_row": {
+          "selector": {
+            "kind": "strand_watch",
+            "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+            "watcher_actor_id": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:web:alice.example",
+                "station_id": "ak:did_core:web:station.example"
+              }
+            }
+          },
+          "source_stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+          },
+          "revision": {
+            "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq",
+            "stream_position": 12
+          },
+          "value": null
+        },
+        "response": {
+          "status": "current",
+          "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+          "governance_generation": 3,
+          "stream_head": {
+            "stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+            },
+            "stream_position": 12,
+            "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
+          },
+          "result": {
+            "selector": {
+              "kind": "strand_watch",
+              "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+              "watcher_actor_id": {
+                "kind": "account",
+                "account_id": {
+                  "principal_id": "ak:did_core:web:alice.example",
+                  "station_id": "ak:did_core:web:station.example"
+                }
+              }
+            },
+            "source_stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq",
+              "stream_position": 12
+            },
+            "value": null
+          }
+        },
+        "confirmed_response": {
+          "status": "current",
+          "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+          "governance_generation": 4,
+          "stream_head": {
+            "stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+            },
+            "stream_position": 12,
+            "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
+          },
+          "result": {
+            "selector": {
+              "kind": "strand_watch",
+              "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+              "watcher_actor_id": {
+                "kind": "account",
+                "account_id": {
+                  "principal_id": "ak:did_core:web:alice.example",
+                  "station_id": "ak:did_core:web:station.example"
+                }
+              }
+            },
+            "source_stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq",
+              "stream_position": 12
+            },
+            "value": null
+          }
+        }
+      },
+      "expected": "revision_unavailable"
+    },
+    {
+      "name": "wrong_response_stream_rejected",
+      "input": {
+        "accepted_writes": [
+          {
+            "author": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:web:bob.example",
+                "station_id": "ak:did_core:web:other.example"
+              }
+            },
+            "watcher_actor_id": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:web:alice.example",
+                "station_id": "ak:did_core:web:station.example"
+              }
+            },
+            "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+            "value": null
+          }
+        ],
+        "durable_row": {
+          "selector": {
+            "kind": "strand_watch",
+            "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+            "watcher_actor_id": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:web:alice.example",
+                "station_id": "ak:did_core:web:station.example"
+              }
+            }
+          },
+          "source_stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+          },
+          "revision": {
+            "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq",
+            "stream_position": 12
+          },
+          "value": null
+        },
+        "response": {
+          "status": "current",
+          "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+          "governance_generation": 4,
+          "stream_head": {
+            "stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+            },
+            "stream_position": 12,
+            "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
+          },
+          "result": {
+            "selector": {
+              "kind": "strand_watch",
+              "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+              "watcher_actor_id": {
+                "kind": "account",
+                "account_id": {
+                  "principal_id": "ak:did_core:web:alice.example",
+                  "station_id": "ak:did_core:web:station.example"
+                }
+              }
+            },
+            "source_stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq",
+              "stream_position": 12
+            },
+            "value": null
+          }
+        },
+        "confirmed_response": {
+          "status": "current",
+          "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+          "governance_generation": 4,
+          "stream_head": {
+            "stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+            },
+            "stream_position": 12,
+            "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
+          },
+          "result": {
+            "selector": {
+              "kind": "strand_watch",
+              "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+              "watcher_actor_id": {
+                "kind": "account",
+                "account_id": {
+                  "principal_id": "ak:did_core:web:alice.example",
+                  "station_id": "ak:did_core:web:station.example"
+                }
+              }
+            },
+            "source_stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq",
+              "stream_position": 12
+            },
+            "value": null
+          }
+        }
+      },
+      "expected": "revision_unavailable"
+    },
+    {
+      "name": "wrong_response_revision_rejected",
+      "input": {
+        "accepted_writes": [
+          {
+            "author": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:web:bob.example",
+                "station_id": "ak:did_core:web:other.example"
+              }
+            },
+            "watcher_actor_id": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:web:alice.example",
+                "station_id": "ak:did_core:web:station.example"
+              }
+            },
+            "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+            "value": null
+          }
+        ],
+        "durable_row": {
+          "selector": {
+            "kind": "strand_watch",
+            "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+            "watcher_actor_id": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:web:alice.example",
+                "station_id": "ak:did_core:web:station.example"
+              }
+            }
+          },
+          "source_stream_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+          },
+          "revision": {
+            "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq",
+            "stream_position": 12
+          },
+          "value": null
+        },
+        "response": {
+          "status": "current",
+          "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+          "governance_generation": 4,
+          "stream_head": {
+            "stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+            },
+            "stream_position": 12,
+            "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
+          },
+          "result": {
+            "selector": {
+              "kind": "strand_watch",
+              "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+              "watcher_actor_id": {
+                "kind": "account",
+                "account_id": {
+                  "principal_id": "ak:did_core:web:alice.example",
+                  "station_id": "ak:did_core:web:station.example"
+                }
+              }
+            },
+            "source_stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq",
+              "stream_position": 13
+            },
+            "value": null
+          }
+        },
+        "confirmed_response": {
+          "status": "current",
+          "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+          "governance_generation": 4,
+          "stream_head": {
+            "stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+            },
+            "stream_position": 12,
+            "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
+          },
+          "result": {
+            "selector": {
+              "kind": "strand_watch",
+              "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+              "watcher_actor_id": {
+                "kind": "account",
+                "account_id": {
+                  "principal_id": "ak:did_core:web:alice.example",
+                  "station_id": "ak:did_core:web:station.example"
+                }
+              }
+            },
+            "source_stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq",
+              "stream_position": 12
+            },
+            "value": null
+          }
+        }
+      },
+      "expected": "revision_unavailable"
+    }
+  ],
+  "submit_cas_cases": [
+    {
+      "name": "first_write_only_after_never_written",
+      "has_current": false,
+      "expected_present": false,
+      "expected": "accepted"
+    },
+    {
+      "name": "written_clear_requires_explicit_null",
+      "has_current": true,
+      "current_value": null,
+      "expected_present": true,
+      "expected_value": null,
+      "expected": "accepted"
+    },
+    {
+      "name": "written_clear_omission_rejected",
+      "has_current": true,
+      "current_value": null,
+      "expected_present": false,
+      "expected": "failed_precondition"
+    },
+    {
+      "name": "whole_public_flag_mismatch_rejected",
+      "has_current": true,
+      "current_value": {
+        "level": "all",
+        "level_public": true
+      },
+      "expected_present": true,
+      "expected_value": {
+        "level": "all"
+      },
+      "expected": "failed_precondition"
+    },
+    {
+      "name": "read_then_concurrent_write_rejected_at_submit",
+      "has_current": true,
+      "current_value": {
+        "level": "muted"
+      },
+      "expected_present": true,
+      "expected_value": {
+        "level": "all"
+      },
+      "expected": "failed_precondition"
+    }
+  ],
+  "cross_station_basis": {
+    "request": {
+      "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+      "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+      "watcher_actor_id": {
+        "kind": "account",
+        "account_id": {
+          "principal_id": "ak:did_core:web:alice.example",
+          "station_id": "ak:did_core:web:station.example"
+        }
+      }
+    },
+    "source_service_id": "ak:did_core:web:station.example",
+    "destination_service_id": "ak:did_core:web:governor.example",
+    "current_governor": "ak:did_core:web:governor.example",
+    "authenticated_peer": true,
+    "current_authority_verified": true,
+    "readable_realm": true,
+    "readable_scope": true,
+    "scope_kind": "realm",
+    "head_confirmed": true,
+    "namespace_complete": true,
+    "materialization_complete": true,
+    "handoff_import_complete": true,
+    "generation": 4,
+    "accepted_writes": [],
+    "durable_row": null,
+    "local_governing_tenure": false,
+    "local_watch_row": false,
+    "session_current": true,
+    "device_current": true,
+    "account_delivery_authorized": true,
+    "known_authority_loss": false,
+    "higher_generation_observed": false,
+    "confirmed_head": {
+      "stream_ref": {
+        "kind": "realm",
+        "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+      },
+      "stream_position": 12,
+      "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
+    },
+    "response": {
+      "status": "never_written",
+      "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19",
+      "governance_generation": 4,
+      "stream_head": {
+        "stream_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+        },
+        "stream_position": 12,
+        "commit_id": "ak:realm_commit:AT33EWBTXdTx5CjY-ogbIIF2T4vh-v7jCMCQ80Fss2Rq"
+      },
+      "selector": {
+        "kind": "strand_watch",
+        "strand_id": "ak:strand:AdP2S6y0Ms7yp9-GNvXZ3sVfvTEo8mtnV3G_RfApIOn0",
+        "watcher_actor_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:web:alice.example",
+            "station_id": "ak:did_core:web:station.example"
+          }
+        }
+      }
+    },
+    "scope_stream_ref": {
+      "kind": "realm",
+      "realm_id": "ak:realm:AdkQ-RmB1a8zyc52yl9GWAsodQ_EUle1WAVZqbO7pc19"
+    }
+  }
 }

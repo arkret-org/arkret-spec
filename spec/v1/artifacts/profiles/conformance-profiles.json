@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-11.1",
-  "generated_at": "2026-10-11T15:11:26+08:00",
+  "version": "2026-10-14.3",
+  "generated_at": "2026-10-14T07:08:02+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -3197,6 +3197,16 @@
           "direction": "provide",
           "operation_id": "ak.root.identity.read.resolve.v1",
           "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.peer.strand.watch.read.current.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.peer.strand.watch.read.current.v1",
+          "binding_kind": "http_json"
         }
       ],
       "inherits": [
@@ -3236,11 +3246,13 @@
         "session-grant-issuance-fixture.json",
         "capability-relinquish-authoring-fixture.json",
         "mls-roster-client-roles-fixture.json",
-        "governance-result-consumption-roles-fixture.json"
+        "governance-result-consumption-roles-fixture.json",
+        "strand-watch-current-read-fixture.json"
       ],
       "required_vectors": [
+        "ak.vector.authority_commit_projection.result_consumption_roles.v1",
         "ak.vector.mls.roster_client_roles.v1",
-        "ak.vector.authority_commit_projection.result_consumption_roles.v1"
+        "ak.vector.state.strand_watch_current_read.v1"
       ],
       "optional_extensions": [
         "ak.profile.federation_minimal.v1",
@@ -3316,6 +3328,16 @@
           "direction": "provide",
           "operation_id": "ak.peer.committed_event.read.scan.v1",
           "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.peer.strand.watch.read.current.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.peer.strand.watch.read.current.v1",
+          "binding_kind": "http_json"
         }
       ],
       "inherits": [
@@ -3332,7 +3354,9 @@
         "ak.schema.event.v1",
         "ak.schema.event_payload.v1"
       ],
-      "required_fixtures": [],
+      "required_fixtures": [
+        "strand-watch-current-read-fixture.json"
+      ],
       "prose_requirement_coverage": [
         {
           "requirement": "service DID authentication and destination binding validation",
@@ -3398,7 +3422,10 @@
         ],
         "fail_closed_behavior": "A receiver that cannot verify the minimum profile, sees a missing/inconsistent binding_profile or key_access_revision, or cannot prove the relaxed federation guard MUST reject or quarantine the affected MLS artifact/Event.",
         "minimum_binding": "The fixed v1 MLS GroupContext binding of crypto-media/encryption-and-audit.md section 2.5.1 {effective_scope, base_group_state_ref, previous_epoch, next_epoch, key_access_revision}."
-      }
+      },
+      "required_vectors": [
+        "ak.vector.state.strand_watch_current_read.v1"
+      ]
     },
     "ak.profile.signal_message_stream.v1": {
       "role": "client",
@@ -4426,6 +4453,13 @@
           "structured_human_approval_request"
         ],
         "unsupported_optional": "fail closed; never fallback to password / OIDC / passkey validator"
+      },
+      "rules": {
+        "session_content_authority_contract_ref": "registry/owned-agent-authority-registry.json#/session_content_authority_contract",
+        "scope_addition_must": "Use fresh issue with a new signed intent within verified provision/key ceilings; refresh preserves the predecessor ceiling.",
+        "content_source_must": "Evaluate complete resource-profile authority paths; literal reading grants are not mandatory for membership, Direct or Sidecar reading.",
+        "sidecar_bootstrap_must": "Use desired exact endpoint authority and accepted Add/Welcome/claim lineage for bootstrap; payload still requires effective access.",
+        "current_gate_must": "Revalidate actual content, delivery and future material under original profile freshness and known-revocation rules; unregistered cross-authority supply fails closed."
       }
     },
     "ak.profile.agent_delegation_policy.v1": {

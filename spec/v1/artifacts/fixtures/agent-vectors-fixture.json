@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.agent_provisioning.v1",
-  "version": "2026-10-13.2",
+  "version": "2026-10-14.1",
   "suite": "agent_vectors",
   "runner": {
     "kind": "named_suite",
@@ -18,7 +18,8 @@
     "ak.vector.agent.controller_lifecycle.v1",
     "ak.vector.agent.act_on_behalf.v1",
     "ak.vector.agent.session_grant.replay.v1",
-    "ak.vector.agent_auth.human_approval_required.v1"
+    "ak.vector.agent_auth.human_approval_required.v1",
+    "ak.vector.agent.session_content_authority.v1"
   ],
   "schema_validation_cases": [
     {
@@ -664,5 +665,948 @@
       ]
     }
   ],
-  "vectors": []
+  "vectors": [],
+  "session_content_authority_contract": {
+    "vector_id": "ak.vector.agent.session_content_authority.v1",
+    "registry_ref": "registry/owned-agent-authority-registry.json#/session_content_authority_contract",
+    "input_semantics": "Verified authority predicates and symbolic resource labels, not wire proofs or runtime acceptance evidence. Each case overlays defaults.",
+    "defaults": {
+      "phase": "issue",
+      "action": "ak.event.read",
+      "resource": "A",
+      "provision_allows": true,
+      "key_allows": true,
+      "request_allows": true,
+      "session_allows": true,
+      "content_selector_present": true,
+      "runtime_floor_complete": true,
+      "proof_valid": true,
+      "holder_current": true,
+      "same_account_scope": true,
+      "source_current": true,
+      "source_supply_verified": true,
+      "policy_state": "absent_proven",
+      "management_allows": true,
+      "controller_allows": true,
+      "global_deny": false,
+      "history_visible": true,
+      "participation_allows": true,
+      "conditions_allow": true,
+      "quota_available": true,
+      "approval_allows": true,
+      "mls_ready": true,
+      "desired": true,
+      "effective": true,
+      "exact_endpoint": true,
+      "accepted_lineage": true,
+      "flat_encoding_safe": true,
+      "refresh_ceiling_unchanged": true,
+      "scope_request_field_present": false,
+      "replay_state": "none",
+      "paths": [
+        {
+          "kind": "membership_read",
+          "actions": [
+            "ak.event.read"
+          ],
+          "resources": [
+            "A"
+          ],
+          "complete": true,
+          "active": true
+        }
+      ],
+      "resource_profile": "realm"
+    },
+    "required_case_names": [
+      "membership_read_without_literal_grant",
+      "membership_does_not_grant_write",
+      "literal_write_grant",
+      "direct_read_without_realm_grant",
+      "direct_registered_write_authority",
+      "direct_wrong_participant_binding",
+      "sidecar_read_without_literal_grant",
+      "sidecar_read_does_not_grant_write",
+      "provision_only_is_not_authority",
+      "participation_only_is_not_authority",
+      "accountability_only_is_not_authority",
+      "service_only_session",
+      "fresh_issue_after_service_session",
+      "issue_pending_mls_is_only_ceiling",
+      "refresh_preserves_existing_ceiling",
+      "refresh_rejects_scope_expansion",
+      "refresh_rejects_scope_request_field",
+      "refresh_current_authority_lost",
+      "exact_issue_replay_unchanged",
+      "terminal_issue_replay",
+      "conflicting_issue_replay",
+      "bootstrap_desired_not_yet_effective",
+      "bootstrap_wrong_endpoint",
+      "bootstrap_missing_add_welcome_claim_lineage",
+      "desired_cannot_read_payload",
+      "effective_sidecar_payload",
+      "wrong_sidecar_binding",
+      "queued_welcome_after_desired_revoke",
+      "future_epoch_material_after_desired_revoke",
+      "valid_future_epoch_material",
+      "cross_authority_source_unregistered",
+      "no_policy_with_complete_current_evidence",
+      "policy_unknown_is_not_absent",
+      "explicit_policy_allow",
+      "policy_deny",
+      "action_resource_cannot_be_spliced",
+      "unsafe_flat_cross_product",
+      "one_complete_path_among_alternatives",
+      "revoked_grant_path_cannot_restore",
+      "revoked_literal_read_does_not_erase_membership",
+      "provision_omits_content",
+      "key_omits_content",
+      "request_omits_content",
+      "content_selector_missing",
+      "runtime_mandatory_floor_missing",
+      "issuer_proof_invalid",
+      "holder_authorization_replaced",
+      "source_stale_or_unknown",
+      "ordinary_controller_read_revoked",
+      "management_read_denied",
+      "global_deny_overrides_complete_allow",
+      "session_service_only_cannot_read",
+      "history_not_visible",
+      "participation_current_denied",
+      "condition_not_satisfied",
+      "quota_exhausted",
+      "approval_missing",
+      "mls_not_ready_for_payload",
+      "direct_authority_cannot_read_ordinary_realm",
+      "realm_grant_cannot_replace_sidecar_authority",
+      "realm_membership_cannot_replace_direct_participant",
+      "direct_verified_interval_without_origin_poll"
+    ],
+    "cases": [
+      {
+        "name": "membership_read_without_literal_grant",
+        "input": {},
+        "expected": "allow"
+      },
+      {
+        "name": "membership_does_not_grant_write",
+        "input": {
+          "action": "ak.message.create"
+        },
+        "expected": "deny"
+      },
+      {
+        "name": "literal_write_grant",
+        "input": {
+          "action": "ak.message.create",
+          "paths": [
+            {
+              "kind": "capability_grant",
+              "actions": [
+                "ak.message.create"
+              ],
+              "resources": [
+                "A"
+              ],
+              "complete": true,
+              "active": true
+            }
+          ]
+        },
+        "expected": "allow"
+      },
+      {
+        "name": "direct_read_without_realm_grant",
+        "input": {
+          "paths": [
+            {
+              "kind": "direct_participant",
+              "actions": [
+                "ak.event.read"
+              ],
+              "resources": [
+                "A"
+              ],
+              "complete": true,
+              "active": true
+            }
+          ],
+          "controller_allows": false,
+          "unrelated_realm_denies": true,
+          "resource_profile": "direct"
+        },
+        "expected": "allow"
+      },
+      {
+        "name": "direct_registered_write_authority",
+        "input": {
+          "action": "ak.message.create",
+          "paths": [
+            {
+              "kind": "direct_participant",
+              "actions": [
+                "ak.message.create"
+              ],
+              "resources": [
+                "A"
+              ],
+              "complete": true,
+              "active": true
+            }
+          ],
+          "resource_profile": "direct"
+        },
+        "expected": "allow"
+      },
+      {
+        "name": "direct_wrong_participant_binding",
+        "input": {
+          "same_account_scope": false,
+          "paths": [
+            {
+              "kind": "direct_participant",
+              "actions": [
+                "ak.event.read"
+              ],
+              "resources": [
+                "A"
+              ],
+              "complete": true,
+              "active": true
+            }
+          ],
+          "resource_profile": "direct"
+        },
+        "expected": "deny"
+      },
+      {
+        "name": "sidecar_read_without_literal_grant",
+        "input": {
+          "paths": [
+            {
+              "kind": "sidecar_read",
+              "actions": [
+                "ak.event.read"
+              ],
+              "resources": [
+                "A"
+              ],
+              "complete": true,
+              "active": true
+            }
+          ],
+          "resource_profile": "sidecar"
+        },
+        "expected": "allow"
+      },
+      {
+        "name": "sidecar_read_does_not_grant_write",
+        "input": {
+          "action": "ak.message.create",
+          "paths": [
+            {
+              "kind": "sidecar_read",
+              "actions": [
+                "ak.message.create"
+              ],
+              "resources": [
+                "A"
+              ],
+              "complete": true,
+              "active": true
+            }
+          ],
+          "resource_profile": "sidecar"
+        },
+        "expected": "deny"
+      },
+      {
+        "name": "provision_only_is_not_authority",
+        "input": {
+          "paths": []
+        },
+        "expected": "deny"
+      },
+      {
+        "name": "participation_only_is_not_authority",
+        "input": {
+          "paths": [
+            {
+              "kind": "participation",
+              "actions": [
+                "ak.event.read"
+              ],
+              "resources": [
+                "A"
+              ],
+              "complete": true,
+              "active": true
+            }
+          ]
+        },
+        "expected": "deny"
+      },
+      {
+        "name": "accountability_only_is_not_authority",
+        "input": {
+          "paths": [
+            {
+              "kind": "accountability",
+              "actions": [
+                "ak.event.read"
+              ],
+              "resources": [
+                "A"
+              ],
+              "complete": true,
+              "active": true
+            }
+          ]
+        },
+        "expected": "deny"
+      },
+      {
+        "name": "service_only_session",
+        "input": {
+          "action": "service_operation",
+          "paths": [],
+          "content_selector_present": false,
+          "source_current": false,
+          "policy_state": "unknown"
+        },
+        "expected": "allow"
+      },
+      {
+        "name": "fresh_issue_after_service_session",
+        "input": {
+          "session_allows": false,
+          "predecessor_has_content": false
+        },
+        "expected": "allow"
+      },
+      {
+        "name": "issue_pending_mls_is_only_ceiling",
+        "input": {
+          "mls_ready": false,
+          "effective": false,
+          "paths": [
+            {
+              "kind": "sidecar_read",
+              "actions": [
+                "ak.event.read"
+              ],
+              "resources": [
+                "A"
+              ],
+              "complete": true,
+              "active": true
+            }
+          ],
+          "resource_profile": "sidecar"
+        },
+        "expected": "allow"
+      },
+      {
+        "name": "refresh_preserves_existing_ceiling",
+        "input": {
+          "phase": "refresh"
+        },
+        "expected": "allow"
+      },
+      {
+        "name": "refresh_rejects_scope_expansion",
+        "input": {
+          "phase": "refresh",
+          "refresh_ceiling_unchanged": false
+        },
+        "expected": "deny"
+      },
+      {
+        "name": "refresh_rejects_scope_request_field",
+        "input": {
+          "phase": "refresh",
+          "scope_request_field_present": true
+        },
+        "expected": "deny"
+      },
+      {
+        "name": "refresh_current_authority_lost",
+        "input": {
+          "phase": "refresh",
+          "source_current": false
+        },
+        "expected": "deny"
+      },
+      {
+        "name": "exact_issue_replay_unchanged",
+        "input": {
+          "replay_state": "active_exact",
+          "source_current": false
+        },
+        "expected": "reuse_original"
+      },
+      {
+        "name": "terminal_issue_replay",
+        "input": {
+          "replay_state": "terminal_exact"
+        },
+        "expected": "deny"
+      },
+      {
+        "name": "conflicting_issue_replay",
+        "input": {
+          "replay_state": "conflict"
+        },
+        "expected": "deny"
+      },
+      {
+        "name": "bootstrap_desired_not_yet_effective",
+        "input": {
+          "phase": "bootstrap",
+          "effective": false,
+          "mls_ready": false,
+          "paths": [
+            {
+              "kind": "sidecar_read",
+              "actions": [
+                "ak.event.read"
+              ],
+              "resources": [
+                "A"
+              ],
+              "complete": true,
+              "active": true
+            }
+          ],
+          "resource_profile": "sidecar"
+        },
+        "expected": "allow"
+      },
+      {
+        "name": "bootstrap_wrong_endpoint",
+        "input": {
+          "phase": "bootstrap",
+          "effective": false,
+          "exact_endpoint": false,
+          "paths": [
+            {
+              "kind": "sidecar_read",
+              "actions": [
+                "ak.event.read"
+              ],
+              "resources": [
+                "A"
+              ],
+              "complete": true,
+              "active": true
+            }
+          ],
+          "resource_profile": "sidecar"
+        },
+        "expected": "deny"
+      },
+      {
+        "name": "bootstrap_missing_add_welcome_claim_lineage",
+        "input": {
+          "phase": "bootstrap",
+          "accepted_lineage": false,
+          "paths": [
+            {
+              "kind": "sidecar_read",
+              "actions": [
+                "ak.event.read"
+              ],
+              "resources": [
+                "A"
+              ],
+              "complete": true,
+              "active": true
+            }
+          ],
+          "resource_profile": "sidecar"
+        },
+        "expected": "deny"
+      },
+      {
+        "name": "desired_cannot_read_payload",
+        "input": {
+          "phase": "payload",
+          "effective": false,
+          "paths": [
+            {
+              "kind": "sidecar_read",
+              "actions": [
+                "ak.event.read"
+              ],
+              "resources": [
+                "A"
+              ],
+              "complete": true,
+              "active": true
+            }
+          ],
+          "resource_profile": "sidecar"
+        },
+        "expected": "deny"
+      },
+      {
+        "name": "effective_sidecar_payload",
+        "input": {
+          "phase": "payload",
+          "paths": [
+            {
+              "kind": "sidecar_read",
+              "actions": [
+                "ak.event.read"
+              ],
+              "resources": [
+                "A"
+              ],
+              "complete": true,
+              "active": true
+            }
+          ],
+          "resource_profile": "sidecar"
+        },
+        "expected": "allow"
+      },
+      {
+        "name": "wrong_sidecar_binding",
+        "input": {
+          "phase": "payload",
+          "same_account_scope": false,
+          "paths": [
+            {
+              "kind": "sidecar_read",
+              "actions": [
+                "ak.event.read"
+              ],
+              "resources": [
+                "A"
+              ],
+              "complete": true,
+              "active": true
+            }
+          ],
+          "resource_profile": "sidecar"
+        },
+        "expected": "deny"
+      },
+      {
+        "name": "queued_welcome_after_desired_revoke",
+        "input": {
+          "phase": "bootstrap",
+          "desired": false,
+          "paths": [
+            {
+              "kind": "sidecar_read",
+              "actions": [
+                "ak.event.read"
+              ],
+              "resources": [
+                "A"
+              ],
+              "complete": true,
+              "active": true
+            }
+          ],
+          "resource_profile": "sidecar"
+        },
+        "expected": "deny"
+      },
+      {
+        "name": "future_epoch_material_after_desired_revoke",
+        "input": {
+          "phase": "future_material",
+          "desired": false,
+          "paths": [
+            {
+              "kind": "sidecar_read",
+              "actions": [
+                "ak.event.read"
+              ],
+              "resources": [
+                "A"
+              ],
+              "complete": true,
+              "active": true
+            }
+          ],
+          "resource_profile": "sidecar"
+        },
+        "expected": "deny"
+      },
+      {
+        "name": "valid_future_epoch_material",
+        "input": {
+          "phase": "future_material",
+          "paths": [
+            {
+              "kind": "sidecar_read",
+              "actions": [
+                "ak.event.read"
+              ],
+              "resources": [
+                "A"
+              ],
+              "complete": true,
+              "active": true
+            }
+          ],
+          "resource_profile": "sidecar"
+        },
+        "expected": "allow"
+      },
+      {
+        "name": "cross_authority_source_unregistered",
+        "input": {
+          "source_supply_verified": false
+        },
+        "expected": "deny"
+      },
+      {
+        "name": "no_policy_with_complete_current_evidence",
+        "input": {},
+        "expected": "allow"
+      },
+      {
+        "name": "policy_unknown_is_not_absent",
+        "input": {
+          "policy_state": "unknown"
+        },
+        "expected": "deny"
+      },
+      {
+        "name": "explicit_policy_allow",
+        "input": {
+          "policy_state": "allow"
+        },
+        "expected": "allow"
+      },
+      {
+        "name": "policy_deny",
+        "input": {
+          "policy_state": "deny"
+        },
+        "expected": "deny"
+      },
+      {
+        "name": "action_resource_cannot_be_spliced",
+        "input": {
+          "action": "ak.message.create",
+          "paths": [
+            {
+              "kind": "capability_grant",
+              "actions": [
+                "ak.event.read"
+              ],
+              "resources": [
+                "A"
+              ],
+              "complete": true,
+              "active": true
+            },
+            {
+              "kind": "capability_grant",
+              "actions": [
+                "ak.message.create"
+              ],
+              "resources": [
+                "B"
+              ],
+              "complete": true,
+              "active": true
+            }
+          ]
+        },
+        "expected": "deny"
+      },
+      {
+        "name": "unsafe_flat_cross_product",
+        "input": {
+          "flat_encoding_safe": false
+        },
+        "expected": "deny"
+      },
+      {
+        "name": "one_complete_path_among_alternatives",
+        "input": {
+          "paths": [
+            {
+              "kind": "capability_grant",
+              "actions": [
+                "ak.event.read"
+              ],
+              "resources": [
+                "B"
+              ],
+              "complete": true,
+              "active": true
+            },
+            {
+              "kind": "membership_read",
+              "actions": [
+                "ak.event.read"
+              ],
+              "resources": [
+                "A"
+              ],
+              "complete": true,
+              "active": true
+            }
+          ]
+        },
+        "expected": "allow"
+      },
+      {
+        "name": "revoked_grant_path_cannot_restore",
+        "input": {
+          "paths": [
+            {
+              "kind": "capability_grant",
+              "actions": [
+                "ak.event.read"
+              ],
+              "resources": [
+                "A"
+              ],
+              "complete": true,
+              "active": false
+            }
+          ]
+        },
+        "expected": "deny"
+      },
+      {
+        "name": "revoked_literal_read_does_not_erase_membership",
+        "input": {
+          "paths": [
+            {
+              "kind": "capability_grant",
+              "actions": [
+                "ak.event.read"
+              ],
+              "resources": [
+                "A"
+              ],
+              "complete": true,
+              "active": false
+            },
+            {
+              "kind": "membership_read",
+              "actions": [
+                "ak.event.read"
+              ],
+              "resources": [
+                "A"
+              ],
+              "complete": true,
+              "active": true
+            }
+          ]
+        },
+        "expected": "allow"
+      },
+      {
+        "name": "provision_omits_content",
+        "input": {
+          "provision_allows": false
+        },
+        "expected": "deny"
+      },
+      {
+        "name": "key_omits_content",
+        "input": {
+          "key_allows": false
+        },
+        "expected": "deny"
+      },
+      {
+        "name": "request_omits_content",
+        "input": {
+          "request_allows": false
+        },
+        "expected": "deny"
+      },
+      {
+        "name": "content_selector_missing",
+        "input": {
+          "content_selector_present": false
+        },
+        "expected": "deny"
+      },
+      {
+        "name": "runtime_mandatory_floor_missing",
+        "input": {
+          "runtime_floor_complete": false
+        },
+        "expected": "deny"
+      },
+      {
+        "name": "issuer_proof_invalid",
+        "input": {
+          "proof_valid": false
+        },
+        "expected": "deny"
+      },
+      {
+        "name": "holder_authorization_replaced",
+        "input": {
+          "holder_current": false
+        },
+        "expected": "deny"
+      },
+      {
+        "name": "source_stale_or_unknown",
+        "input": {
+          "source_current": false
+        },
+        "expected": "deny"
+      },
+      {
+        "name": "ordinary_controller_read_revoked",
+        "input": {
+          "controller_allows": false
+        },
+        "expected": "deny"
+      },
+      {
+        "name": "management_read_denied",
+        "input": {
+          "management_allows": false
+        },
+        "expected": "deny"
+      },
+      {
+        "name": "global_deny_overrides_complete_allow",
+        "input": {
+          "global_deny": true
+        },
+        "expected": "deny"
+      },
+      {
+        "name": "session_service_only_cannot_read",
+        "input": {
+          "phase": "payload",
+          "session_allows": false
+        },
+        "expected": "deny"
+      },
+      {
+        "name": "history_not_visible",
+        "input": {
+          "phase": "payload",
+          "history_visible": false
+        },
+        "expected": "deny"
+      },
+      {
+        "name": "participation_current_denied",
+        "input": {
+          "phase": "payload",
+          "participation_allows": false
+        },
+        "expected": "deny"
+      },
+      {
+        "name": "condition_not_satisfied",
+        "input": {
+          "phase": "payload",
+          "conditions_allow": false
+        },
+        "expected": "deny"
+      },
+      {
+        "name": "quota_exhausted",
+        "input": {
+          "phase": "payload",
+          "quota_available": false
+        },
+        "expected": "deny"
+      },
+      {
+        "name": "approval_missing",
+        "input": {
+          "phase": "payload",
+          "approval_allows": false
+        },
+        "expected": "deny"
+      },
+      {
+        "name": "mls_not_ready_for_payload",
+        "input": {
+          "phase": "payload",
+          "mls_ready": false
+        },
+        "expected": "deny"
+      },
+      {
+        "name": "direct_authority_cannot_read_ordinary_realm",
+        "input": {
+          "paths": [
+            {
+              "kind": "direct_participant",
+              "actions": [
+                "ak.event.read"
+              ],
+              "resources": [
+                "A"
+              ],
+              "complete": true,
+              "active": true
+            }
+          ]
+        },
+        "expected": "deny"
+      },
+      {
+        "name": "realm_grant_cannot_replace_sidecar_authority",
+        "input": {
+          "resource_profile": "sidecar",
+          "paths": [
+            {
+              "kind": "capability_grant",
+              "actions": [
+                "ak.event.read"
+              ],
+              "resources": [
+                "A"
+              ],
+              "complete": true,
+              "active": true
+            }
+          ]
+        },
+        "expected": "deny"
+      },
+      {
+        "name": "realm_membership_cannot_replace_direct_participant",
+        "input": {
+          "resource_profile": "direct"
+        },
+        "expected": "deny"
+      },
+      {
+        "name": "direct_verified_interval_without_origin_poll",
+        "input": {
+          "resource_profile": "direct",
+          "fresh_origin_poll": false,
+          "paths": [
+            {
+              "kind": "direct_participant",
+              "actions": [
+                "ak.event.read"
+              ],
+              "resources": [
+                "A"
+              ],
+              "complete": true,
+              "active": true
+            }
+          ]
+        },
+        "expected": "allow"
+      }
+    ]
+  }
 }

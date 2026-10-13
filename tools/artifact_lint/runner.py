@@ -6,6 +6,8 @@ from .direct_conversation_structure import check_direct_conversation_structure
 from .mls_roster_client_roles import check_mls_roster_client_roles
 from .governance_result_consumption_roles import check_governance_result_consumption_roles
 from .agent_runtime_contract import check_agent_runtime_contract
+from .agent_session_content import check_agent_session_content
+from .peer_watch_current import check_peer_watch_current
 from .owned_agent_authority import check_owned_agent_authority
 from .account_revision_stale import check_account_revision_stale
 from .cursor_wait_bindings import check_cursor_wait_bindings
@@ -910,6 +912,8 @@ def main(argv: list[str] | None = None) -> int:
             ("mls_roster_client_roles", lambda: check_mls_roster_client_roles(lint)),
             ("governance_result_consumption_roles", lambda: check_governance_result_consumption_roles(lint)),
             ("agent_runtime_contract", lambda: check_agent_runtime_contract(lint)),
+            ("agent_session_content", lambda: check_agent_session_content(lint)),
+            ("peer_watch_current", lambda: check_peer_watch_current(lint)),
             ("owned_agent_authority", lambda: check_owned_agent_authority(lint)),
             ("direct_conversation_structure", lambda: check_direct_conversation_structure(lint)),
             ("direct_conversation_local_blocker_clean_break", lambda: check_direct_conversation_local_blocker_clean_break(lint)),
