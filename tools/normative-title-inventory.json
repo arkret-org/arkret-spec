@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-14.1",
+  "version": "2026-10-14.2",
   "source_of_truth": true,
-  "generated_at": "2026-10-14T06:22:35+08:00",
+  "generated_at": "2026-10-14T07:09:00+08:00",
   "description": "Closed inventory of current spec/v1/zh headings that explicitly carry the （normative） marker. Any addition, removal, rename, or move is reviewed as a protocol change and refreshes this source-of-truth inventory.",
   "titles": [
     {
@@ -1048,6 +1048,11 @@
       "page": "models/relation.md",
       "heading": "4.5 反枚举（normative）",
       "fragment": "45-反枚举normative"
+    },
+    {
+      "page": "models/strand-and-message.md",
+      "heading": "8.3.1 跨站本人精确 Watch 读取（normative）",
+      "fragment": "831-跨站本人精确-watch-读取normative"
     },
     {
       "page": "models/strand-and-message.md",

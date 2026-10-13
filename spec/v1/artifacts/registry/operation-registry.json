@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-14.6",
+  "version": "2026-10-14.7",
   "source_of_truth": false,
-  "generated_at": "2026-10-14T06:42:48+08:00",
+  "generated_at": "2026-10-14T07:07:39+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -145,7 +145,8 @@
         "ak.peer.keys.keypackages.command.claim.v1",
         "ak.peer.keys.keypackages.read.claim.v1",
         "ak.peer.keys.read.lookup.v1",
-        "ak.peer.signal.command.relay.v1"
+        "ak.peer.signal.command.relay.v1",
+        "ak.peer.strand.watch.read.current.v1"
       ],
       "surface_class": "extension"
     },
@@ -4121,7 +4122,7 @@
       "http": "POST /_arkret/self/strands/watch/current",
       "grpc": "SelfStrandWatch/Current",
       "mq": "self.strand.watch.query.current",
-      "notes": "Exact non-enumerating self watch current read from the governing Station's durable typed reducer under one confirmed governance generation and effective-scope authorization basis. Request watcher_actor_id MUST be the current authenticated effective ActorId; writing another actor under ak.strand.watch.set.others does not grant this read. Response discriminates never_written from current, including a written value:null with a real revision. Invisible/foreign/unknown selectors collapse to not_found; unresolved current authority returns revision_unavailable. The returned stream head and generation are observations, not future CAS authority. No snapshot omission, local raw Event order or default level proves absence.",
+      "notes": "Exact non-enumerating self watch current read from the governing Station's durable typed reducer under one confirmed governance generation and effective-scope authorization basis. Request watcher_actor_id MUST be the current authenticated effective ActorId; writing another actor under ak.strand.watch.set.others does not grant this read. Response discriminates never_written from current, including a written value:null with a real revision. Invisible/foreign/unknown selectors collapse to not_found; unresolved current authority returns revision_unavailable. The returned stream head and generation are observations, not future CAS authority. No snapshot omission, local raw Event order or default level proves absence. The caller is an account Actor (including hosted Agent/integration accounts), never a service Actor. Foreign governance is fetched solely through ak.peer.strand.watch.read.current.v1; source and final local delivery validation follow strand-and-message section 8.3.1.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "typed_response",
       "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentRequestBody",
@@ -4366,6 +4367,30 @@
       "auth_requirements": {
         "service_signature": {
           "signature_scenario_id": "ak.http_signature.scenario.call_invitation.v1",
+          "standard": "RFC 9421 HTTP Message Signature",
+          "bearer_only_allowed": false,
+          "contract": "Covered components, signature parameters and the freshness window come from http_signature_contract_registry. This operation MUST NOT restate them."
+        }
+      }
+    },
+    {
+      "operation_id": "ak.peer.strand.watch.read.current.v1",
+      "http": "POST /_arkret/peer/strands/watch/current",
+      "grpc": "PeerStrandWatch/Current",
+      "mq": "peer.strand.watch.query.current",
+      "notes": "Exact own-account watch read served only by the verified current governing Station. Reuses the closed self selector/outcome; watcher_actor_id must be the account Actor asserted by its authenticated Account Station, with account_id.station_id equal to Source-Service-ID and the current governor equal to Destination-Service-ID. No requester session credential is forwarded. The governor independently checks current Realm/effective-scope read authority and durable watch state at one cut. Complete accepted watch provenance and retained cleared rows establish affirmative never_written, including after fully verified handoff import; generation zero or snapshot omission alone does not. The Account Station verifies the authenticated response, exact selector, generation/head/source/revision and its local session/device delivery fence; it must not require a local governing tenure or infer absence from its replica. Known authorization loss or newer governance invalidates pending delivery. Invisible/foreign/unknown selectors use not_found; unconfirmed authority, incomplete provenance or handoff use revision_unavailable. No enumeration, audit or others-read authority, write lease or durable Event. See strand-and-message section 8.3.1.",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentRequestBody",
+      "response_schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentOutcome",
+      "max_canonical_body_bytes": 16384,
+      "durable_effect": {
+        "kind": "none",
+        "rationale": "read_only_exact_current_projection_no_event_or_durable_mutation"
+      },
+      "auth_requirements": {
+        "service_signature": {
+          "signature_scenario_id": "ak.http_signature.scenario.service_to_service.v1",
           "standard": "RFC 9421 HTTP Message Signature",
           "bearer_only_allowed": false,
           "contract": "Covered components, signature parameters and the freshness window come from http_signature_contract_registry. This operation MUST NOT restate them."
@@ -5977,6 +6002,19 @@
         },
         {
           "operation_id": "ak.self.management_review.read.status.v1",
+          "binding_kind": "http_json"
+        }
+      ]
+    },
+    {
+      "operation_bundle_id": "ak.operation_bundle.station.http_peer_watch_current.v1",
+      "service_kind": "station",
+      "deployment_evidence": [
+        "normative:zh/models/strand-and-message.md"
+      ],
+      "members": [
+        {
+          "operation_id": "ak.peer.strand.watch.read.current.v1",
           "binding_kind": "http_json"
         }
       ]

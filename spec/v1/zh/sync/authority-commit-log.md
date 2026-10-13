@@ -159,6 +159,8 @@ Station，新方 key 必须属于 `to_generation/to_service_id`，且只能在�
 
 Handoff 必须绑定：连续 generation、旧/新 service identity、change Event、Realm-stream final change Commit、全部 `final_stream_heads` 的 canonical digest、Snapshot ID/digest，以及旧方和新方签名。
 
+Watch 交接 MUST 保留全部已写 selector 的 durable current，包括带 revision 的 `value:null`，并完整验证其 accepted 来源与同 cut reducer 物化；新治理站只有完成该证明后才可通过本人 exact read 肯定返回 `never_written`。成员 snapshot 缺项不证明从未写入；完整性与交付规则见 [Strand §8.3.1](../models/strand-and-message.md#831-跨站本人精确-watch-读取normative)。
+
 新 generation 在每条已有 stream 上的第一个 Commit 必须以前一 generation 导入的该 stream final head 为 predecessor。旧方在 handoff 生效后永久拒绝新写；新方在未完整导入前不得启动。
 
 旧方永久丢失且没有完成 handoff 时，不允许自动选主、管理员自封或从备份恢复同一 Realm 的写权。可验证缓存保持只读；需要继续协作时创建显式 successor Realm，新的 Realm 不继承旧 position 或 MLS group。

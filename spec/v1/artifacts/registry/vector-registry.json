@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-14.3",
+  "version": "2026-10-14.5",
   "source_of_truth": true,
-  "generated_at": "2026-10-14T06:42:48+08:00",
+  "generated_at": "2026-10-14T07:08:02+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -4792,7 +4792,7 @@
       "applies_to_fixtures": [
         "strand-watch-current-read-fixture.json"
       ],
-      "description": "Exact own watch current read distinguishes never-written from a written null with revision, binds one confirmed governing generation and effective stream head, preserves whole-value CAS including level_public, and rejects foreign/invisible selectors, stale handoff results and raw Event arrival-order guesses.",
+      "description": "Exact own watch current read distinguishes never-written from a written null with revision, binds one confirmed governing generation and effective stream head, preserves whole-value CAS including level_public, and rejects foreign/invisible selectors, stale handoff results and raw Event arrival-order guesses. Cross-Station cases cover authenticated own-Account-Station binding, remote delivery without local tenure, authorized and invisible Circle reads, full Account isolation, handoff provenance including cleared rows and other-author writes, revocation/session/device fences and submit-time CAS.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/strand-watch-current-read-fixture.json"
       ]

@@ -308,6 +308,10 @@
       "new": "ak.peer.signal.command.relay.v1"
     },
     {
+      "old": "ak.peer.strand.watch.read.current",
+      "new": "ak.peer.strand.watch.read.current.v1"
+    },
+    {
       "old": "ak.root.identity.command.submit_did_operation",
       "new": "ak.root.identity.command.submit_did_operation.v1"
     },

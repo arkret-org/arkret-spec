@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-14.5",
-  "generated_at": "2026-10-14T06:42:48+08:00",
+  "version": "2026-10-14.6",
+  "generated_at": "2026-10-14T07:07:39+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -314,6 +314,10 @@
     {
       "operation_id": "ak.peer.signal.command.relay.v1",
       "sha256": "sha256:81e1ddecceb9a1beaa448888a07208cf6e94a9e821a46777d47d90a171beb060"
+    },
+    {
+      "operation_id": "ak.peer.strand.watch.read.current.v1",
+      "sha256": "sha256:09ba23703575aef6a18fe9cc9b22055bc35b3a93b126f206b8284968fd4acff8"
     },
     {
       "operation_id": "ak.root.identity.command.submit_did_operation.v1",
@@ -873,7 +877,7 @@
     },
     {
       "operation_id": "ak.self.strand.watch.read.current.v1",
-      "sha256": "sha256:3a529f91897f54d76e2cc032bb30f75c3bb693c50ab5bf6cf53ab980344307b7"
+      "sha256": "sha256:f92504d0dfb8f87a49f97d414ac71116c037756b715e5789c16ba9e7c03189b1"
     },
     {
       "operation_id": "ak.self.third_party_invite.read.acceptance_attestation.v1",

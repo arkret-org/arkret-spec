@@ -319,7 +319,9 @@ stream head 的下一 position 拉取 tail。Snapshot 内联 `current_state_entr
 
 ### 3.3 站间操作
 
-站间操作只包含 registry 已登记的 Event 转发、逐 stream 复制、authority bundle 与计划 handoff。
+站间操作只允许 registry 已登记的操作；Event 转发、逐 stream 复制、authority 获取、计划 handoff 与本人 Watch 精确读取各按其 closed 合同执行。
+
+`ak.peer.strand.watch.read.current.v1` 使用 `POST /_arkret/peer/strands/watch/current`，复用 self Watch 的 closed request/outcome；来源 Account Station、current governor、同 cut 肯定未写入、handoff 完整导入与最终交付验证见 [Strand §8.3.1](../models/strand-and-message.md#831-跨站本人精确-watch-读取normative)。只使用 S2S 签名，不接受本人 session 凭证转发或 snapshot 缺项推断。
 
 #### 3.3.1.1 Discovery 投影
 
@@ -610,6 +612,7 @@ RFC 9449 DPoP proof 只有 `iat`，没有 `expires` parameter，因此它 **MUST
 | `ak.peer.realm_join.read.bootstrap.v1` | `POST /_arkret/peer/realm-joins/bootstrap` | - | - | request_schema_ref=schemas/realm-join-intake.schema.json#/$defs/peer_bootstrap_request_body; response_schema_ref=schemas/realm-join-intake.schema.json#/$defs/peer_bootstrap_outcome |
 | `ak.peer.realm_join.read.preview.v1` | `POST /_arkret/peer/realm-joins/preview` | - | - | request_schema_ref=schemas/realm-join-intake.schema.json#/$defs/peer_preview_request_body; response_schema_ref=schemas/realm-join-intake.schema.json#/$defs/peer_preview_outcome |
 | `ak.peer.signal.command.relay.v1` | `POST /_arkret/peer/signal` | - | - | request_schema_ref=schemas/signal-relay.schema.json |
+| `ak.peer.strand.watch.read.current.v1` | `POST /_arkret/peer/strands/watch/current` | - | - | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentRequestBody; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentOutcome |
 | `ak.root.identity.command.submit_did_operation.v1` | `POST /_arkret/root/identity/submit-did-operation` | - | - | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitRequestBody; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitOutcome |
 | `ak.root.identity.document.resource.get.v1` | `GET /_arkret/root/identity/document` | - | - | response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/IdentityDocumentView |
 | `ak.root.identity.log.read.list.v1` | `GET /_arkret/root/identity/log` | - | - | response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/IdentityLogListOutcome |

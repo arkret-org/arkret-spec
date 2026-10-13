@@ -191,7 +191,7 @@
   "$defs": {
     "StrandWatchCurrentRequestBody": {
       "type": "object",
-      "description": "Exact self watch selector. It cannot enumerate watchers or supply an expected CAS value.",
+      "description": "Exact own-account watch selector shared by the self and authenticated peer current read. The complete account Actor equals the authenticated self effective Actor, or is asserted by its own Account Station whose identity equals account_id.station_id. Service actors and other-account requests have no read authority. It cannot enumerate watchers or supply an expected CAS value. Authorization and delivery follow strand-and-message section 8.3.1.",
       "required": [
         "realm_id",
         "strand_id",
@@ -211,7 +211,7 @@
       "additionalProperties": false
     },
     "StrandWatchCurrentOutcome": {
-      "description": "A verified never-written fact is distinct from a written result whose value was cleared to null.",
+      "description": "One governing durable cut shared by self and peer. Affirmative never_written requires complete accepted watch provenance, including a fully verified handoff import; a cleared null remains current with revision. Generation/head and the exact selector bind the observation, not a future write lease. Snapshot omission, generation zero and member replicas do not prove absence.",
       "oneOf": [
         {
           "$ref": "#/$defs/StrandWatchCurrentNeverWritten"
