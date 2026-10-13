@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9307,
+    "total_properties": 9310,
     "total_schema_documents": 171,
     "by_presence_class": {
       "optional": 2196,
       "optional_defaulted": 48,
-      "required": 6560,
+      "required": 6563,
       "required_nullable": 324,
       "tristate": 179
     },
@@ -11553,9 +11553,10 @@
       "properties": {
         "/$defs/agent_product_authority/properties/controller_account_id": "required",
         "/$defs/agent_product_authority/properties/controller_grants": "required",
-        "/$defs/agent_product_authority/properties/controller_owner_actions": "required",
         "/$defs/agent_product_authority/properties/current_controller_grants": "required",
+        "/$defs/agent_product_authority/properties/current_controller_owner_actions": "required",
         "/$defs/agent_product_authority/properties/current_management_policies": "required",
+        "/$defs/agent_product_authority/properties/historical_controller_owner_actions": "required",
         "/$defs/agent_product_authority/properties/historical_management_policies": "required",
         "/$defs/agent_product_authority/properties/key_scope": "required",
         "/$defs/delivery_authority/properties/key": "required",
@@ -11568,9 +11569,11 @@
         "/$defs/product_authority/properties/agent": "optional",
         "/$defs/product_authority/properties/authority_commit_id": "required",
         "/$defs/product_authority/properties/current_grants": "required",
+        "/$defs/product_authority/properties/current_product_policies": "required",
         "/$defs/product_authority/properties/current_realm_head": "required",
         "/$defs/product_authority/properties/current_scope_head": "required",
         "/$defs/product_authority/properties/grants": "required",
+        "/$defs/product_authority/properties/historical_product_policies": "required",
         "/$defs/product_authority/properties/owner_actions": "required",
         "/$defs/product_authority/properties/parent_realm_authority_commit_id": "optional",
         "/$defs/product_authority/properties/profile_actions": "required",

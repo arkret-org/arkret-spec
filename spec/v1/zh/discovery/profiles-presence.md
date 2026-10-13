@@ -309,6 +309,23 @@ plaintext 内；不得把目标 Strand 或精确 kind 暴露给 Station sync sur
 - personal blocklist、membership 与 target track 可见性在端侧解密后继续 fail closed。无法对目标
   成员集合安全加密时不得发送，不能降级为服务端可读的明文筛选。
 
+recipient MUST 消费 [Signal §3.1](../sync/signal.md#31-三层准入职责) 的单帧
+`product_authority`，对解密出的 exact Strand、discussion track、外层 Realm/Circle 与完整 sender
+求值 `ak.typing.broadcast`。原 `sent_at` 和当前时刻 MUST 分别通过完整 qualified grants，且同一
+授权 source 在两 cut 均有效；适用 deny、quarantine、require_review 与未知约束优先拒绝。
+同帧完整 access／moderation Policy 也须在两个时刻独立通过；grant、owner 或 participant allow
+不能绕过 Policy 拒绝，未知规则谓词不得猜测为 allow。
+recipient 对目标 discussion 的 membership 派生读取仍须通过适用 `ak.strand.read` Policy
+可见性限制；该读取不要求伪造或额外发放显式成员 read grant。broadcast allow 不覆盖 read deny。
+Direct 只消费已登记 participant gate；owner 身份不隐含非 Event Typing action。Agent 的
+controller 权限、公开 management policy 与 accepted key ceiling 均为独立 AND 条件。
+证据缺失、current head 已被本地 verified cut 超越、scope/target/membership 不再有效时 MUST
+清除旧指示，不得等待下一个 Typing frame。Messages surface（Direct participant scope 另含 DM
+surface）的个人 block/hide 规则按完整 Actor、
+accepted device id／verification method、已验证 handle／DID domain 的适用输入匹配；mute 不隐藏。
+不得以 display name、未经验证的 handle、opaque DID core 字符串或 Actor 关联扩展这些输入。
+重启或连接/session 代际变化后没有原单帧证据的缓存 Typing MUST 清除；不持久化授权材料。
+
 ### 3.6 手动状态偏好 (Manual Presence Preference)
 
 自动状态判定（前台活跃 → `online`、无操作超时 → `idle`、断连 / TTL 过期 → `offline`）覆盖大多数场景，但用户还需要能把自己的状态主动固定为某个值（例如切到 `dnd` 开会），且该选择要跨设备、跨重连生效。presence 广播本身是 Signal（§3.1），不承担持久化；手动偏好的标准存储位置是 actor-private Account Data key `ak.presence.preference`（见 [`account-data-key-registry.json`](../../artifacts/registry/account-data-key-registry.json)），通过 `ak.account_data.set` 写入。解密后的 payload MUST 通过闭合的 [`presence-preference.schema.json`](../../artifacts/schemas/presence-preference.schema.json)：

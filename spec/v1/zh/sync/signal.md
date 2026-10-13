@@ -243,23 +243,37 @@ Event、Commit、授权租约或可写 ledger；客户端 MUST NOT 为它逐帧�
 `current_realm_head`、`current_scope_head` 是最终投递 gate 在同一只读一致性 cut 观察的已验证 head。
 Realm scope 的两个 current head MUST 相同。Station MUST 证明原 basis 及其依赖的完整覆盖，
 按原 `sent_at` 输出 exact sender 的完整有效 `grants`，按投递时刻输出完整有效 `current_grants`；
-两组均涵盖两个 action 的所有匹配 grant，包括 deny、quarantine、require_review。有效资格要求
+两组均涵盖固定产品动作集合 `ak.message.stream.send`、`ak.message.create`、`ak.typing.broadcast`
+的所有匹配 grant，包括 deny、quarantine、require_review。有效资格要求
 完整 accepted issuer graph、root generation、原件绑定和对应时刻的 lifecycle；不得把 snapshot
 revision 猜成 EventId，不得删去无法求值的负向约束。缺口、超时、未知依赖或超过字节/数量上限
 MUST 省略整个 product_authority，MUST NOT 截断一组 grants 后声称完整。
+
+`historical_product_policies` 与 `current_product_policies` MUST 分别包含原／当前 cut 的完整
+适用 `access`／`moderation` Policy，Realm 与 Circle 层分别保留，不以同 id 的更窄 allow 覆盖
+父层限制。按 [governance-objects §3.2／§3.3](../models/governance-objects.md) 的 priority、
+同优先级取严与跨 Policy 的 AND gate 求值；Policy 只收紧独立 capability／participant 权限。
+规则的 action／Realm／exact Strand selector 必须精确匹配。缺少可信 condition、server、quota
+或 extension profile 输入时 fail closed，不能把未知谓词当作未命中后退回 allow；已由已知
+action／resource 排除的规则不适用。inactive Policy 按其 not_before／expires_at 不参与该时刻
+决策。两组必填，即使为空；每组至多64项，并计入同一32 KiB上限。缺失不等于无 Policy。
 
 `owner_actions` 只包含原 basis 与当前 cut 均由该完整 Actor 拥有的已登记 Realm owner 直接 action；
 不能替代非 Event MessageStream send 授权。Direct Conversation 的 `profile_actions` 只来源于
 accepted stable pair、双向当前 contact permission 与原/当前 participant gate，MUST NOT 来源于
 technical root 或普通 capability grant。现有 Direct participant allowlist 只为本投影提供
-`ak.message.create`，未登记 `ak.message.stream.send`；不能据此扩大 Direct 产品权限，
+`ak.message.create` 与已登记的 `ak.typing.broadcast`，未登记 `ak.message.stream.send`；不能据此扩大 Direct 产品权限，
 Direct MessageStream 因缺少 send action 继续 fail closed。两者不得绕过适用的拒绝条件。
 
 Agent 投影 MUST 额外验证 accepted provisioning/current controller binding、controller account
 active、非嵌套 controller、双方原/当前 exact join generation 与 live owned-Agent source。两组
-controller grants 与 owner action 采用相同完整性规则；`historical_management_policies` 和
+controller grants 采用相同完整性规则；`historical_controller_owner_actions` 与
+`current_controller_owner_actions` 分别证明两个 cut 的 owner 直接动作。controller 的两次权限
+各须有一条完整合法来源，但不要求旧 parent grant ID 永久相等，按
+[owned-agent-authority §2](../authz/owned-agent-authority.md) 接受当前等效合法来源；sender 自身
+原签授权源仍须在两 cut 有效，不能以另一条新 grant 替换已撤销来源。`historical_management_policies` 和
 `current_management_policies` 分别为对应 cuts 的完整适用 Agent management policies。
-`key_scope` MUST 来源于本帧 exact accepted runtime key authorization，仅保留两个 action 与
+`key_scope` MUST 来源于本帧 exact accepted runtime key authorization，仅保留上述三个 action 与
 本 Realm 的 Realm/Strand content resource 选择项，保留原约束，不得扩大资源/动作上界或曝光
 其它 Realm 的 key scope。私有 controller participation selection 是 producer 的 intent gate，
 recipient 不猜测、不请求、不公开该私有选择；recipient 仍独立执行公共 controller、management

@@ -109,7 +109,7 @@
     },
     "product_authority": {
       "type": "object",
-      "description": "Own-Station complete authority-qualified MessageStream evidence for this exact envelope, maximum 32768 canonical JSON bytes. Original basis and sent_at equal the envelope. Historical and current grants are independently complete for both actions; never truncate negative constraints or replace historical evidence by the current head. Absence disables MessageStream product display without disabling authenticated decryption of other profiles.",
+      "description": "Own-Station complete authority-qualified Typing and MessageStream evidence for this exact envelope, maximum 32768 canonical JSON bytes. Original basis and sent_at equal the envelope. Historical and current grants are independently complete for all three registered product actions, including negative constraints. Absence disables these product projections without disabling authenticated decryption of other profiles.",
       "required": [
         "authority_commit_id",
         "current_realm_head",
@@ -117,6 +117,8 @@
         "sent_at",
         "grants",
         "current_grants",
+        "historical_product_policies",
+        "current_product_policies",
         "owner_actions",
         "profile_actions"
       ],
@@ -150,6 +152,22 @@
           },
           "maxItems": 64
         },
+        "historical_product_policies": {
+          "type": "array",
+          "items": {
+            "$ref": "./policy.schema.json"
+          },
+          "maxItems": 64,
+          "description": "Complete applicable access/moderation policies at this cut, including parent Realm and Circle restrictions; no narrower allow overrides a parent denial."
+        },
+        "current_product_policies": {
+          "type": "array",
+          "items": {
+            "$ref": "./policy.schema.json"
+          },
+          "maxItems": 64,
+          "description": "Complete applicable access/moderation policies at this cut, including parent Realm and Circle restrictions; no narrower allow overrides a parent denial."
+        },
         "owner_actions": {
           "type": "array",
           "items": {
@@ -161,9 +179,12 @@
         "profile_actions": {
           "type": "array",
           "items": {
-            "const": "ak.message.create"
+            "enum": [
+              "ak.message.create",
+              "ak.typing.broadcast"
+            ]
           },
-          "maxItems": 1,
+          "maxItems": 2,
           "uniqueItems": true
         },
         "agent": {
@@ -179,7 +200,8 @@
         "controller_account_id",
         "controller_grants",
         "current_controller_grants",
-        "controller_owner_actions",
+        "historical_controller_owner_actions",
+        "current_controller_owner_actions",
         "historical_management_policies",
         "current_management_policies",
         "key_scope"
@@ -202,7 +224,15 @@
           },
           "maxItems": 64
         },
-        "controller_owner_actions": {
+        "historical_controller_owner_actions": {
+          "type": "array",
+          "items": {
+            "const": "ak.message.create"
+          },
+          "maxItems": 1,
+          "uniqueItems": true
+        },
+        "current_controller_owner_actions": {
           "type": "array",
           "items": {
             "const": "ak.message.create"
