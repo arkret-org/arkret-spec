@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.applet_bridge.v1",
-  "version": "2026-10-09.2",
+  "version": "2026-10-14.3",
   "suite": "applet_managed_actor_authority",
   "runner": {
     "kind": "named_suite",
@@ -146,11 +146,15 @@
       "mutation": "none",
       "expect_results": [
         "identity_resolution",
-        "realm_history_access=since_join"
+        "realm_history_access=since_join",
+        "device_generation=1"
       ],
       "forbid_results": [
-        "agent_status"
-      ]
+        "agent_status",
+        "device_authorization"
+      ],
+      "expect_device_count": 0,
+      "note": "Stable existing case id; the managed generation initializer is now a required genesis result, while the Device directory stays empty."
     },
     {
       "name": "unit_failure_is_zero_visible",
@@ -185,12 +189,16 @@
     {
       "name": "genesis_resolution_index_rebuild",
       "mutation": "drop rebuildable principal_resolutions row after accepting the PCR genesis, then replay canonical Events",
-      "expect": "exact_authority_pair_current_resolution_restored"
+      "expect": "exact_authority_pair_current_resolution_restored",
+      "expect_generation": 1,
+      "generation_source": "original_managed_pcr_genesis_create_and_commit"
     },
     {
       "name": "restart_replays_genesis_and_rotation",
       "mutation": "restart after accepted applet PCR genesis and one accepted resolution.update",
-      "expect": "projection_state_has_since_join_and_exact_latest_resolution_without_agent_status"
+      "expect": "projection_state_has_since_join_and_exact_latest_resolution_without_agent_status",
+      "expect_generation": 1,
+      "generation_source": "original_managed_pcr_genesis_create_and_commit"
     },
     {
       "name": "revoked_applet_direct_self_signed_write",
@@ -209,8 +217,9 @@
     },
     {
       "name": "delegated_device_authorize_is_ordinary_successor",
-      "mutation": "after the accepted Bot provisioning unit and the accepted Ghost provisioning unit, each managed principal submits one ordinary successor ak.device.authorize with authorization_binding_kind=applet_managed_delegation, authorized_by equal to its own actor_id.account_id.principal_id, a non-null expires_at, a non-empty scopes and the applet_id of the exact active install",
-      "expect": "accepted"
+      "mutation": "after the accepted Bot provisioning unit and the accepted Ghost provisioning unit, each managed principal submits one ordinary successor ak.device.authorize with authorization_binding_kind=applet_managed_delegation, authorized_by equal to its own actor_id.account_id.principal_id, a non-null expires_at, a non-empty scopes and the applet_id of the exact active install; authorized_generation_ref=1 matches the generation already initialized by each accepted PCR genesis",
+      "expect": "accepted",
+      "expect_generation": 1
     },
     {
       "name": "delegated_device_authorize_cannot_join_closed_aggregate",
@@ -236,6 +245,402 @@
       "name": "delegated_device_follows_target_scope_install_fence",
       "mutation": "revoke the exact effective install, then publish a KeyPackage, accept a Welcome and sign an MLS durable receipt with the still-accepted delegated device",
       "expect": "applet_revoked"
+    },
+    {
+      "name": "delegated_device_authorize_missing_generation_is_zero_visible",
+      "mutation": "accepted managed provenance and resolution exist but generation result or its accepted create/Commit provenance is missing; the first authorize MUST NOT initialize it",
+      "expect": "rejected_zero_writes"
+    },
+    {
+      "name": "delegated_device_authorize_wrong_generation_is_zero_visible",
+      "mutation": "first authorize or replacement carries authorized_generation_ref different from the locked current generation",
+      "expect": "rejected_zero_writes"
+    },
+    {
+      "name": "delegated_device_authorize_stale_checkpoint_is_zero_visible",
+      "mutation": "author a valid delegated authorize, then commit a PCR resolution successor before submission so its expected_revision/checkpoint is stale",
+      "expect": "cas_conflict_zero_writes"
+    },
+    {
+      "name": "delegated_device_replacement_keeps_generation",
+      "mutation": "replace an authorization or expand its scopes using the current Principal signer, exact revision/checkpoint, current generation, full candidate possession and separately valid target-scope installation/permission",
+      "expect": "accepted_generation_unchanged"
+    },
+    {
+      "name": "managed_genesis_exact_retry_does_not_reset_generation",
+      "mutation": "retry the original committed creation after later PCR state exists; restore the original outcome without reapplying any genesis writer",
+      "expect": "original_outcome_current_unchanged"
+    },
+    {
+      "name": "managed_genesis_purpose_claim_does_not_bypass_admission",
+      "mutation": "claim applet_managed_control without the exact provision, Service provenance, initial resolution cross-binding or closed four-Event creation aggregate",
+      "expect": "rejected_zero_writes"
+    }
+  ],
+  "generation_projection_scope": "Accepted-history reducer fragments, not complete wire Events or cryptographic/live admission evidence. Rows select canonical result_writes; replay_order indexes the same accepted history facts, so duplicate indexes never reset current state. Admission failures remain separate named obligations for the production executor.",
+  "generation_projection_cases": [
+    {
+      "name": "bot_genesis_initializes_one_without_device",
+      "accepted_history": [
+        {
+          "event_kind": "ak.realm.create",
+          "payload": {
+            "object": {
+              "purpose": "applet_managed_control"
+            }
+          }
+        }
+      ],
+      "replay_order": [
+        0
+      ],
+      "expect_generation_value": {
+        "current_device_generation_ref": 1
+      },
+      "expect_generation_source_index": 0
+    },
+    {
+      "name": "ghost_genesis_initializes_one_without_device",
+      "accepted_history": [
+        {
+          "event_kind": "ak.realm.create",
+          "payload": {
+            "object": {
+              "purpose": "applet_managed_control"
+            }
+          }
+        }
+      ],
+      "replay_order": [
+        0
+      ],
+      "expect_generation_value": {
+        "current_device_generation_ref": 1
+      },
+      "expect_generation_source_index": 0
+    },
+    {
+      "name": "ordinary_create_has_no_device_generation",
+      "accepted_history": [
+        {
+          "event_kind": "ak.realm.create",
+          "payload": {
+            "object": {
+              "purpose": "collaboration"
+            }
+          }
+        }
+      ],
+      "replay_order": [
+        0
+      ],
+      "expect_generation_value": null,
+      "expect_generation_source_index": null
+    },
+    {
+      "name": "agent_create_has_no_device_generation",
+      "accepted_history": [
+        {
+          "event_kind": "ak.realm.create",
+          "payload": {
+            "object": {
+              "purpose": "agent_control"
+            }
+          }
+        }
+      ],
+      "replay_order": [
+        0
+      ],
+      "expect_generation_value": null,
+      "expect_generation_source_index": null
+    },
+    {
+      "name": "human_create_waits_for_registration_authorize",
+      "accepted_history": [
+        {
+          "event_kind": "ak.realm.create",
+          "payload": {
+            "object": {
+              "purpose": "principal_control"
+            }
+          }
+        }
+      ],
+      "replay_order": [
+        0
+      ],
+      "expect_generation_value": null,
+      "expect_generation_source_index": null
+    },
+    {
+      "name": "human_registration_initializer_is_preserved",
+      "accepted_history": [
+        {
+          "event_kind": "ak.realm.create",
+          "payload": {
+            "object": {
+              "purpose": "principal_control"
+            }
+          }
+        },
+        {
+          "event_kind": "ak.device.authorize",
+          "payload": {
+            "authorization_binding_kind": "registration_anchor",
+            "authorized_generation_ref": 1
+          }
+        }
+      ],
+      "replay_order": [
+        0,
+        1
+      ],
+      "expect_generation_value": {
+        "current_device_generation_ref": 1
+      },
+      "expect_generation_source_index": 1
+    },
+    {
+      "name": "managed_first_authorize_does_not_initialize_again",
+      "accepted_history": [
+        {
+          "event_kind": "ak.realm.create",
+          "payload": {
+            "object": {
+              "purpose": "applet_managed_control"
+            }
+          }
+        },
+        {
+          "event_kind": "ak.device.authorize",
+          "payload": {
+            "authorization_binding_kind": "applet_managed_delegation",
+            "authorized_generation_ref": 1
+          }
+        }
+      ],
+      "replay_order": [
+        0,
+        1
+      ],
+      "expect_generation_value": {
+        "current_device_generation_ref": 1
+      },
+      "expect_generation_source_index": 0
+    },
+    {
+      "name": "managed_replacement_keeps_generation",
+      "accepted_history": [
+        {
+          "event_kind": "ak.realm.create",
+          "payload": {
+            "object": {
+              "purpose": "applet_managed_control"
+            }
+          }
+        },
+        {
+          "event_kind": "ak.device.authorize",
+          "payload": {
+            "authorization_binding_kind": "applet_managed_delegation",
+            "authorized_generation_ref": 1
+          }
+        },
+        {
+          "event_kind": "ak.device.authorize",
+          "payload": {
+            "authorization_binding_kind": "applet_managed_delegation",
+            "authorized_generation_ref": 1
+          }
+        }
+      ],
+      "replay_order": [
+        0,
+        1,
+        2
+      ],
+      "expect_generation_value": {
+        "current_device_generation_ref": 1
+      },
+      "expect_generation_source_index": 0
+    },
+    {
+      "name": "managed_resolution_rotation_keeps_generation",
+      "accepted_history": [
+        {
+          "event_kind": "ak.realm.create",
+          "payload": {
+            "object": {
+              "purpose": "applet_managed_control"
+            }
+          }
+        },
+        {
+          "event_kind": "ak.identity.resolution.update",
+          "payload": {
+            "next": {
+              "version_id": "independent-did-version"
+            }
+          }
+        }
+      ],
+      "replay_order": [
+        0,
+        1
+      ],
+      "expect_generation_value": {
+        "current_device_generation_ref": 1
+      },
+      "expect_generation_source_index": 0
+    },
+    {
+      "name": "managed_history_restart_rebuilds_genesis",
+      "accepted_history": [
+        {
+          "event_kind": "ak.realm.create",
+          "payload": {
+            "object": {
+              "purpose": "applet_managed_control"
+            }
+          }
+        },
+        {
+          "event_kind": "ak.identity.resolution.update",
+          "payload": {
+            "next": {
+              "version_id": "independent-did-version"
+            }
+          }
+        },
+        {
+          "event_kind": "ak.device.authorize",
+          "payload": {
+            "authorization_binding_kind": "applet_managed_delegation",
+            "authorized_generation_ref": 1
+          }
+        }
+      ],
+      "replay_order": [
+        0,
+        1,
+        2
+      ],
+      "expect_generation_value": {
+        "current_device_generation_ref": 1
+      },
+      "expect_generation_source_index": 0
+    },
+    {
+      "name": "human_reanchor_remains_the_only_advance",
+      "accepted_history": [
+        {
+          "event_kind": "ak.realm.create",
+          "payload": {
+            "object": {
+              "purpose": "principal_control"
+            }
+          }
+        },
+        {
+          "event_kind": "ak.device.authorize",
+          "payload": {
+            "authorization_binding_kind": "registration_anchor",
+            "authorized_generation_ref": 1
+          }
+        },
+        {
+          "event_kind": "ak.device.reanchor",
+          "payload": {
+            "previous_device_generation": 1,
+            "new_device_generation": 2
+          }
+        }
+      ],
+      "replay_order": [
+        0,
+        1,
+        2
+      ],
+      "expect_generation_value": {
+        "current_device_generation_ref": 2
+      },
+      "expect_generation_source_index": 2
+    },
+    {
+      "name": "accepted_initializer_exact_replay_never_resets_later_current",
+      "accepted_history": [
+        {
+          "event_kind": "ak.realm.create",
+          "payload": {
+            "object": {
+              "purpose": "principal_control"
+            }
+          }
+        },
+        {
+          "event_kind": "ak.device.authorize",
+          "payload": {
+            "authorization_binding_kind": "registration_anchor",
+            "authorized_generation_ref": 1
+          }
+        },
+        {
+          "event_kind": "ak.device.reanchor",
+          "payload": {
+            "previous_device_generation": 1,
+            "new_device_generation": 2
+          }
+        }
+      ],
+      "replay_order": [
+        0,
+        1,
+        2,
+        1
+      ],
+      "expect_generation_value": {
+        "current_device_generation_ref": 2
+      },
+      "expect_generation_source_index": 2
+    },
+    {
+      "name": "managed_genesis_exact_replay_restores_same_result",
+      "accepted_history": [
+        {
+          "event_kind": "ak.realm.create",
+          "payload": {
+            "object": {
+              "purpose": "applet_managed_control"
+            }
+          }
+        },
+        {
+          "event_kind": "ak.identity.resolution.update",
+          "payload": {
+            "next": {
+              "version_id": "independent-did-version"
+            }
+          }
+        },
+        {
+          "event_kind": "ak.device.authorize",
+          "payload": {
+            "authorization_binding_kind": "applet_managed_delegation",
+            "authorized_generation_ref": 1
+          }
+        }
+      ],
+      "replay_order": [
+        0,
+        1,
+        2,
+        0
+      ],
+      "expect_generation_value": {
+        "current_device_generation_ref": 1
+      },
+      "expect_generation_source_index": 0
     }
   ]
 }

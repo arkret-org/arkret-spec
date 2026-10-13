@@ -342,6 +342,8 @@ transcript 的 `account_id` 取自待签 Event 的完整 account `actor_id`，�
 
 Applet-managed Bot / Ghost principal 在结构上不可能有 founding device：`purpose="applet_managed_control"` 的 PCR genesis MUST NOT 携带 `FoundingDeviceDescriptor`，而它所在的 install / Ghost 创建单元又是封闭固定集合，该 Realm 首个 RealmCommit 覆盖的 genesis unit 恰含一条 `ak.realm.create`。因此它的设备**不在** genesis 内产生，而是在 provision 与 PCR genesis 都已接受之后，作为一条**普通后继 `ak.device.authorize`** 提交到同一个 PCR。这条后继 Event 走普通 Event admission（完整 `expected_revision`、checkpoint 与 signer evidence），不属于任何原子 native unit，因此不触发也不放宽 genesis unit 的 `events.len() == 1` 形状。
 
+合法 `applet_managed_pcr_genesis` 分支的这条 `ak.realm.create` MUST 在创建单元的原子接纳事务中初始化该 PCR 的 `device_generation` result 为 `{current_device_generation_ref: 1}`，其来源 revision 是覆盖该 create 的 position-zero RealmCommit（§5.5.4）。此时 Device 目录仍为空；初始化不产生 Device、session、membership、业务 grant 或 MLS 资格。首 authorize MUST 匹配该已接受初值；后续 replacement／扩 scope authorize MUST 匹配接纳时刻 current generation，不能自行初始化、重置或推进它。二者均 MUST 在同一接纳事务的锁定 PCR cut 重验 generation、当前 resolution 与完整 `expected_revision`／checkpoint；缺初值、generation 不符、不属于当前 accepted resolution 的 signer 或 CAS 冲突均零写入拒绝，不得把“目录为空”当作初始化权限。
+
 设备 possession 签名对象是 §5.2.1 的同一个 core 加 `applet_id`，完整成员集合为：
 
 ```json fragment
@@ -501,14 +503,19 @@ Arkret v1 没有让远端 verifier 证明 source 已完整披露 PCR 历史的�
 
 PCR-local generation 是一个 Realm 级单值 typed current result，family 名 `device_generation`，selector 除 kind 外无成分（一个 PCR 一份）。封闭 value 恰为 `current_device_generation_ref` 一个成员。
 
-写入方有两个，**都是已登记的 Event kind**：
+写入方有三个，**都是已登记的 Event kind**：
 
+- `ak.realm.create` 且 `payload.object.purpose == "applet_managed_control"`：仅已完整通过 `applet_managed_pcr_genesis` admission 的受管 PCR genesis 初始化为常量 `1`。接纳方 MUST 验证 exact accepted provision、完整 Account／Service／Applet provenance、event-derived PCR 与初始 resolution 的交叉绑定，并遵守封闭四 Event 创建单元与 create-once；仅自报 purpose 不构成合法分支。generation 从不存在初始化，随该创建事务的 Event、RealmCommit 与其它 required writes 原子可见；任何失败零写入。普通 Realm、Agent 与 human create MUST NOT 命中此 writer。
 - `ak.device.authorize` 且 `authorization_binding_kind == "registration_anchor"`：置为 `1`。该 Event 是 `pcr_genesis_unit` 的两条成员之一（有序 `[ak.realm.create, ak.device.authorize]`，见 [`../identity/key-management.md`](../identity/key-management.md)），因此「generation 的初始值由 genesis unit 而非任何已登记 Event 写入」**不成立**：写它的正是这条已登记 Event，unit 只是它被原子接纳的方式。登记这一支不会产生「初始值没有写入方」的 family。
 - `ak.device.reanchor`：置为 `payload.new_device_generation`。接纳方 **MUST** 同时要求 `payload.previous_device_generation` 等于当前值，且 `new_device_generation` 是其直接后继。
 
+上述两个初始化分支互斥；`ak.device.reanchor` 仍只适用于已有合法 recovery admission，不因登记受管初始化而授予 Bot／Ghost human recovery。其余 authorize 分支只写各设备的授权实例，不写 generation。受管 Principal 的 DID resolution／key rotation、Service registration epoch 变化、Device replacement／扩 scope、安装撤销或复用均 MUST NOT 隐式初始化、推进或重置 generation。
+
+精确重试 MUST 恢复原 accepted outcome，不重执行初始化或把后来 current 改回 `1`；不同 create 仍按既有 create-once／冲突规则拒绝。确定性 reducer MUST 从已接受的 Event／RealmCommit 历史按原 stream 顺序重建这三个 writer 的结果，受管初值的来源必须是原 genesis create／Commit，不能由首 authorize、裸数据库 seed 或当前 DID／Service 坐标补造。读侧同 cut 完整性检查 MUST 识别此 create 来源，并比对最近合法 generation writer 的值与 revision；初始化本身不使任何 Device 成为 active。
+
 `keys/query` 响应里的 `device_generation_state`（[`keys-operations.schema.json`](../../artifacts/schemas/keys-operations.schema.json)）只呈现该 result 的 `current_device_generation_ref`；协议没有 generation 级状态成员。
 
-generation ref **MUST NOT** 等于或派生自 DID `versionId`；该既有规则不变。
+generation ref **MUST NOT** 派生自 DID `versionId`、Service registration epoch、Realm authority generation 或治理 Station `governance_generation`，也不得以这些坐标替代它或要求数值相同／同步推进；各坐标独立验证，独立计数的数值偶然相同不构成错误。
 
 ### 5.6 Privacy-Preserving Push
 
@@ -552,7 +559,7 @@ create / rotate / revoke、stale sibling、exact replay 与隐私 GC 的可执�
 
 ## 6. Device List Sync
 
-设备新增、撤销、签名或算法更新只由该 principal 的 Principal Control Realm 上已提交的 `ak.device.authorize`、`ak.device.revoke` 与 `ak.device.reanchor` 表达；权威设备列表是这些 Event 写入的 `device_authorization` 与 `device_generation` typed current，协议不定义第二个"设备列表更新"Event。它们不进入任一共享 Realm 控制面 RealmCommit coverage；共享 Realm 只能通过 MLS Welcome / Remove、device trust proof 或 explicit membership / KeyPackage event 感知其结果。
+设备新增、撤销、签名或算法更新只由该 principal 的 Principal Control Realm 上已提交的 `ak.device.authorize`、`ak.device.revoke` 与 `ak.device.reanchor` 表达；权威设备列表折叠这些 Event 写入的授权／撤销事实与 §5.5.4 的 `device_generation` typed current，受管 PCR generation 的初始 writer 是合法 genesis `ak.realm.create`，但它不产生设备行。协议不定义第二个"设备列表更新"Event。它们不进入任一共享 Realm 控制面 RealmCommit coverage；共享 Realm 只能通过 MLS Welcome / Remove、device trust proof 或 explicit membership / KeyPackage event 感知其结果。
 
 Account Subscribe 的聚合提示 `delta.device_lists` 固定为 `{changed: principal_did[], left: principal_did[]}`，只指出哪些 principal 的权威设备列表需要刷新或清除；具体设备行只从上述 typed current（本账号经 account subscribe device list baseline，跨账号经 `ak.self.keys.read.lookup.v1`）读取。实现 MUST NOT 把 `device_id` 写入 `delta.device_lists.changed/left`，也不得把聚合提示当作完整设备清单。
 

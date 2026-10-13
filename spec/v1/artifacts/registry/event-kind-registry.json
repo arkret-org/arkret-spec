@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-11",
+  "version": "2026-10-14",
   "source_of_truth": false,
-  "generated_at": "2026-10-11T08:11:40+08:00",
+  "generated_at": "2026-10-14T05:58:19+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -2515,7 +2515,7 @@
             }
           },
           "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/device_generation_value",
-          "notes": "The registration_anchor branch initializes the PCR-local generation to 1. This is the row that dissolves the 'generation family has no registered initializer' objection of crypto-media/device-lifecycle.md 5.5.4: the pcr_genesis_unit is the ordered pair [ak.realm.create, ak.device.authorize], so the unit is how this Event is atomically accepted, not a second producer standing in for it. identity/account-lifecycle.md step 7 states the same initialization from the acceptance side and the two MUST agree. The literal is 1 rather than a copy of payload.authorized_generation_ref because 5.5.2 already requires that field to equal 1 on this branch; projecting the literal makes the family's initial value unforgeable by an author. The other three binding kinds write nothing here: they join an existing generation rather than create one."
+          "notes": "The human registration_anchor branch initializes the PCR-local generation to the reducer literal 1 in the ordered [ak.realm.create, ak.device.authorize] pcr_genesis_unit, agreeing with identity/account-lifecycle.md step 7 and crypto-media/device-lifecycle.md 5.5.4. The distinct managed initializer is the admitted applet_managed_pcr_genesis ak.realm.create writer. The two initializers are mutually exclusive. The other three authorize binding kinds write nothing here: they join an existing generation rather than create or advance one."
         }
       ],
       "id_source": "not_an_object_id",
@@ -5041,6 +5041,29 @@
               "const": "since_join"
             }
           }
+        },
+        {
+          "result_family": "device_generation",
+          "result_selector": null,
+          "condition": {
+            "kind": "field_equals",
+            "field": "payload.object.purpose",
+            "const": "applet_managed_control"
+          },
+          "result_projection": {
+            "kind": "set",
+            "value_projection": {
+              "kind": "object",
+              "members": [
+                {
+                  "name": "current_device_generation_ref",
+                  "literal": 1
+                }
+              ]
+            }
+          },
+          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/device_generation_value",
+          "notes": "Only an accepted applet_managed_pcr_genesis create initializes this PCR-local singleton, from absent to the reducer literal 1. Full admission verifies the exact provision, Account/Service/Applet provenance, event-derived PCR and initial resolution in the closed four-Event Bot/Ghost aggregate; a purpose claim alone is insufficient. All required writes and the create RealmCommit are atomic, with zero writes on failure. The Device directory stays empty. Ordinary Realm, Agent and human creates do not match. Exact retry restores the original outcome without resetting later current state. Ordinary authorize/replacement, identity resolution rotation, installation reuse and Service epoch changes never write this family. Replay derives the value and source revision from the original accepted create/Commit; neither a database seed nor the first authorize can supply it. crypto-media/device-lifecycle.md 5.5.4."
         }
       ],
       "id_source": "event_derived",

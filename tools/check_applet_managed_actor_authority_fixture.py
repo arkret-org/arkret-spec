@@ -10,6 +10,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE = ROOT / "spec/v1/artifacts/fixtures/applet-managed-actor-fixture.json"
+CONTRACT = ROOT / "spec/v1/artifacts/registry/contract-registry.json"
 ENTRYPOINT = "ak.suite.applet.managed_actor_authority.v1"
 
 # Every case is deliberately named here. Adding a fixture row without an
@@ -38,6 +39,7 @@ EXPECTED: dict[str, tuple[str, Any]] = {
         [
             "identity_resolution",
             "realm_history_access=since_join",
+            "device_generation=1",
         ],
     ),
     "unit_failure_is_zero_visible": ("expect", "no_event_no_projection_no_record_no_idempotency_result"),
@@ -57,10 +59,16 @@ EXPECTED: dict[str, tuple[str, Any]] = {
     "delegated_device_authorize_authorized_by_must_self_anchor": ("expect", "device_unauthorized"),
     "delegated_device_authorize_requires_bounded_delegation": ("expect", "schema_violation"),
     "delegated_device_follows_target_scope_install_fence": ("expect", "applet_revoked"),
+    "delegated_device_authorize_missing_generation_is_zero_visible": ("expect", "rejected_zero_writes"),
+    "delegated_device_authorize_wrong_generation_is_zero_visible": ("expect", "rejected_zero_writes"),
+    "delegated_device_authorize_stale_checkpoint_is_zero_visible": ("expect", "cas_conflict_zero_writes"),
+    "delegated_device_replacement_keeps_generation": ("expect", "accepted_generation_unchanged"),
+    "managed_genesis_exact_retry_does_not_reset_generation": ("expect", "original_outcome_current_unchanged"),
+    "managed_genesis_purpose_claim_does_not_bypass_admission": ("expect", "rejected_zero_writes"),
 }
 
 
-def run_named_suite(fixture: dict[str, Any]) -> list[str]:
+def run_named_suite(fixture: dict[str, Any], catalog: dict[str, Any] | None = None) -> list[str]:
     errors: list[str] = []
     runner = fixture.get("runner")
     if runner != {"kind": "named_suite", "entrypoint": ENTRYPOINT}:
@@ -89,12 +97,112 @@ def run_named_suite(fixture: dict[str, Any]) -> list[str]:
         if case.get(field) != expected:
             errors.append(f"{case['name']}: {field} must equal {expected!r}")
         if case["name"] == "pcr_genesis_materializes_resolution_and_history_only":
-            if case.get("forbid_results") != ["agent_status"]:
-                errors.append(f"{case['name']}: agent status must remain forbidden")
+            if case.get("forbid_results") != ["agent_status", "device_authorization"]:
+                errors.append(f"{case['name']}: agent status and Device authorization must remain forbidden")
+            if case.get("expect_device_count") != 0:
+                errors.append(f"{case['name']}: genesis must leave the Device directory empty")
         if case["name"] == "ghost_external_tuple_is_single_closed_carrier":
             if set(case.get("external_ref", {})) != {"protocol", "instance_id", "external_id"}:
                 errors.append(f"{case['name']}: external_ref must be the exact closed tuple")
         errors.extend(namespace_shape_errors(case))
+    catalog = catalog if catalog is not None else json.loads(CONTRACT.read_text(encoding="utf-8"))
+    return errors + generation_projection_errors(fixture, catalog)
+
+
+GENERATION_CASES = {
+    "bot_genesis_initializes_one_without_device": (1, 0),
+    "ghost_genesis_initializes_one_without_device": (1, 0),
+    "ordinary_create_has_no_device_generation": (None, None),
+    "agent_create_has_no_device_generation": (None, None),
+    "human_create_waits_for_registration_authorize": (None, None),
+    "human_registration_initializer_is_preserved": (1, 1),
+    "managed_first_authorize_does_not_initialize_again": (1, 0),
+    "managed_replacement_keeps_generation": (1, 0),
+    "managed_resolution_rotation_keeps_generation": (1, 0),
+    "managed_history_restart_rebuilds_genesis": (1, 0),
+    "human_reanchor_remains_the_only_advance": (2, 2),
+    "accepted_initializer_exact_replay_never_resets_later_current": (2, 2),
+    "managed_genesis_exact_replay_restores_same_result": (1, 0),
+}
+
+
+def fragment_field(fragment: dict[str, Any], path: str) -> Any:
+    value: Any = fragment
+    for member in path.split("."):
+        if not isinstance(value, dict) or member not in value:
+            raise ValueError(f"fragment has no {path}")
+        value = value[member]
+    return value
+
+
+def generation_projection_errors(fixture: dict[str, Any], catalog: dict[str, Any]) -> list[str]:
+    """Evaluate canonical writes over accepted-history fragments, never admission.
+
+    A repeated history index is the same accepted fact, not a new Event. This
+    exercises deterministic rebuild and duplicate consumption without pretending
+    to run signature verification, provisioning or a production transaction.
+    """
+    errors: list[str] = []
+    rows = fixture.get("generation_projection_cases")
+    if not isinstance(rows, list):
+        return ["generation_projection_cases must be an array"]
+    names = [row.get("name") for row in rows if isinstance(row, dict)]
+    if len(names) != len(rows) or len(set(names)) != len(names) or set(names) != set(GENERATION_CASES):
+        return ["generation_projection_cases must consume every registered generation case exactly once"]
+    event_rows = {row["event_kind"]: row for row in catalog["event_kind_registry"]["event_kinds"]}
+    for row in rows:
+        name = row["name"]
+        number, expected_source = GENERATION_CASES[name]
+        expected = None if number is None else {"current_device_generation_ref": number}
+        if row.get("expect_generation_value") != expected:
+            errors.append(f"{name}: incorrect expected generation value")
+        if "expect_generation_source_index" not in row or row["expect_generation_source_index"] != expected_source:
+            errors.append(f"{name}: incorrect expected accepted generation writer source")
+        try:
+            history = row["accepted_history"]
+            order = row["replay_order"]
+            if not isinstance(history, list) or not history or not isinstance(order, list):
+                raise ValueError("accepted history and replay order must be nonempty arrays")
+            seen: set[int] = set()
+            value = None
+            source_index = None
+            for index in order:
+                if type(index) is not int or not 0 <= index < len(history):
+                    raise ValueError("invalid accepted-history index")
+                if index in seen:
+                    continue
+                if index != len(seen):
+                    raise ValueError("first consumption must follow accepted stream order")
+                seen.add(index)
+                fragment = history[index]
+                event = event_rows[fragment["event_kind"]]
+                for write in event.get("result_writes") or []:
+                    if write.get("result_family") != "device_generation":
+                        continue
+                    condition = write.get("condition")
+                    if condition is not None:
+                        if condition.get("kind") != "field_equals":
+                            raise ValueError("unsupported generation writer condition")
+                        if fragment_field(fragment, condition["field"]) != condition["const"]:
+                            continue
+                    projection = write["result_projection"]
+                    if write.get("result_selector") is not None or projection.get("kind") != "set":
+                        raise ValueError("generation writer must set a singleton")
+                    members = projection["value_projection"]["members"]
+                    value = {
+                        member["name"]: member["literal"] if "literal" in member
+                        else fragment_field(fragment, member["field"])
+                        for member in members
+                    }
+                    source_index = index
+            if seen != set(range(len(history))):
+                raise ValueError("accepted history contains unconsumed Events")
+            if value != expected:
+                errors.append(f"{name}: canonical replay produced {value!r}, expected {expected!r}")
+            if source_index != expected_source:
+                errors.append(f"{name}: canonical replay source is {source_index!r}, expected {expected_source!r}")
+        except (KeyError, TypeError, ValueError) as error:
+            errors.append(f"{name}: {error}")
     return errors
 
 
@@ -173,7 +281,8 @@ def main() -> int:
         for error in errors:
             print(f"applet-managed-actor-authority: {error}")
         return 1
-    print(f"applet-managed-actor-authority: {len(fixture['cases'])} cases consumed")
+    print(f"applet-managed-actor-authority: {len(fixture['cases'])} named obligations and "
+          f"{len(fixture['generation_projection_cases'])} canonical replay cases consumed")
     return 0
 
 

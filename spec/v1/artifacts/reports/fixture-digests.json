@@ -52,8 +52,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-managed-actor-fixture.json",
-      "sha256": "905f7098117f3651bf49da2b63f06378fef8aab61c5b61c956d89eba19954d70",
-      "version": "2026-10-09.2"
+      "sha256": "7946e3c41eb539e57355cc3ae68d6e72104f7b399ddea2ae3d13e73d045c418c",
+      "version": "2026-10-14.3"
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-registration-epoch-fixture.json",

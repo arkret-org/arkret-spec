@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-07.1",
+  "version": "2026-10-14",
   "source_of_truth": false,
-  "generated_at": "2026-10-07T09:02:53+08:00",
+  "generated_at": "2026-10-14T05:58:19+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Closed typed current-result families derived from authority-committed Events. Selectors are domain types, never alternate typed current result IDs. Each row also records its CONSUMPTION: consumption.class is one of the consumption_classes below, consumption.consumed_by names the zh prose sections that read the current value, and consumption.note says what is read and to decide what. check_every_result_family_has_a_writer closes the writer direction; this ledger is the reader direction, which had no gate and no record. consumed_by is non-empty for every class except record_only, and a record_only row's note MUST name the section that states the family's purpose so the classification is checkable rather than an absence of evidence. Citations resolve through check_artifact_prose_section_refs.",
@@ -665,7 +665,7 @@
           "crypto-media/device-lifecycle.md §8.2",
           "identity/key-management.md §8"
         ],
-        "note": "Every ak.device.authorize is admitted only if its authorized_generation_ref equals this value, every ak.device.reanchor only if its previous_device_generation does; and a keys/query row is refused when the device's generation does not match it."
+        "note": "Every ak.device.authorize is admitted only if its authorized_generation_ref equals this value, every ak.device.reanchor only if its previous_device_generation does; and a keys/query row is refused when the device's generation does not match it. Managed PCR genesis initializes this value to the literal 1 through its accepted ak.realm.create, without a Device row. Replay and same-cut integrity checks include that original create/Commit; authorize/replacement and DID/Service epoch changes never initialize or reset it."
       }
     },
     {
