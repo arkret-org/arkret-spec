@@ -9939,3 +9939,102 @@ paths:
           application/json:
             schema:
               $ref: ../schemas/management-review-operations.schema.json#/$defs/lookup
+
+  /_arkret/self/rtc/invitation:
+    post:
+      operationId: ak.self.call.invitation.command.send
+      summary: See zh/crypto-media/webrtc-signaling.md section 3b. Producer-signed exact invitation; sender responses
+        are always deferred. Admission is an authorized consumer-only current holder PCR verdict, never public Consent
+        lookup or a reusable capability.
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.self.call.invitation.command.send.v1
+      security:
+      - sessionGrantAuth: []
+        dpopProof: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/call-invitation-operations.schema.json#/$defs/send_request_body
+      responses:
+        '200':
+          description: Opaque deferred result independent of holder existence and delivery.
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/call-invitation-operations.schema.json#/$defs/send_outcome
+  /_arkret/peer/rtc/invitation:
+    post:
+      operationId: ak.peer.call.invitation.command.relay
+      summary: See zh/crypto-media/webrtc-signaling.md section 3b. Producer-signed exact invitation; sender responses
+        are always deferred. Admission is an authorized consumer-only current holder PCR verdict, never public Consent
+        lookup or a reusable capability.
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.peer.call.invitation.command.relay.v1
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+        contentDigest: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/call-invitation-operations.schema.json#/$defs/send_request_body
+      responses:
+        '200':
+          description: Opaque deferred result independent of holder existence and delivery.
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/call-invitation-operations.schema.json#/$defs/send_outcome
+  /_arkret/peer/rtc/invitation-admission:
+    post:
+      operationId: ak.peer.call.invitation.read.admission
+      summary: See zh/crypto-media/webrtc-signaling.md section 3b. Producer-signed exact invitation; sender responses
+        are always deferred. Admission is an authorized consumer-only current holder PCR verdict, never public Consent
+        lookup or a reusable capability.
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.peer.call.invitation.read.admission.v1
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+        contentDigest: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/call-invitation-operations.schema.json#/$defs/admission_request_body
+      responses:
+        '200':
+          description: Authorized consumer-only verdict.
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/call-invitation-operations.schema.json#/$defs/admission_outcome

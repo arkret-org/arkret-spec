@@ -745,7 +745,8 @@
         "call_id",
         "actor_id",
         "device_id",
-        "focus_id"
+        "focus_id",
+        "join_context"
       ],
       "properties": {
         "realm_id": {
@@ -790,6 +791,9 @@
               "type": "boolean"
             }
           }
+        },
+        "join_context": {
+          "$ref": "./call-invitation-operations.schema.json#/$defs/join_context"
         }
       },
       "additionalProperties": false

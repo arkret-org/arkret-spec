@@ -1,0 +1,417 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/call-invitation-operations.schema.json",
+  "title": "Call invitation admission operations",
+  "description": "Closed transient invitation relation, holder-authority cut and token join context. Does not extend the encrypted Signal envelope. Conformance: ak.vector.consent.call_invitation_admission.v1.",
+  "anyOf": [
+    {
+      "$ref": "#/$defs/send_request_body"
+    },
+    {
+      "$ref": "#/$defs/send_outcome"
+    },
+    {
+      "$ref": "#/$defs/admission_request_body"
+    },
+    {
+      "$ref": "#/$defs/admission_outcome"
+    },
+    {
+      "$ref": "#/$defs/delivery_view"
+    },
+    {
+      "$ref": "#/$defs/join_context"
+    }
+  ],
+  "$defs": {
+    "media": {
+      "type": "object",
+      "required": [
+        "audio",
+        "video",
+        "screen"
+      ],
+      "properties": {
+        "audio": {
+          "type": "boolean"
+        },
+        "video": {
+          "type": "boolean"
+        },
+        "screen": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Exact normalized invitation media. Omitted screen in decrypted CallMediaSelection normalizes to false. At least one media flag is true; video or screen selects video_call, otherwise audio selects voice_call."
+    },
+    "invitation_envelope": {
+      "type": "object",
+      "required": [
+        "inviter_actor_id",
+        "holder_account_id",
+        "scope_ref",
+        "call_id",
+        "media",
+        "envelope_digest",
+        "expires_at",
+        "proof"
+      ],
+      "properties": {
+        "inviter_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
+        },
+        "holder_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "scope_ref": {
+          "$ref": "./event-envelope.schema.json#/$defs/scope_ref"
+        },
+        "call_id": {
+          "type": "string",
+          "pattern": "^ak:call:[A-Za-z0-9_-]{44}$"
+        },
+        "media": {
+          "$ref": "#/$defs/media"
+        },
+        "envelope_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "proof": {
+          "$ref": "#/$defs/invitation_proof"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Producer-signed directional relation for one exact encrypted invitation and one holder. It is transient, not a Signal ID, Consent ledger, Call creator inference or participant authorization.",
+      "x-arkret-signature-domain": "ak.call.invitation.v1"
+    },
+    "send_request_body": {
+      "type": "object",
+      "required": [
+        "invitation",
+        "envelope"
+      ],
+      "properties": {
+        "invitation": {
+          "$ref": "#/$defs/invitation_envelope"
+        },
+        "envelope": {
+          "$ref": "./signal-envelope.schema.json"
+        }
+      },
+      "additionalProperties": false
+    },
+    "send_outcome": {
+      "type": "object",
+      "required": [
+        "status"
+      ],
+      "properties": {
+        "status": {
+          "const": "deferred",
+          "type": "string",
+          "enum": [
+            "deferred"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "admission_request_body": {
+      "type": "object",
+      "required": [
+        "invitation",
+        "envelope",
+        "admission_phase",
+        "audience_actor_id",
+        "subject_actor_id",
+        "subject_device_id",
+        "nonce"
+      ],
+      "properties": {
+        "invitation": {
+          "$ref": "#/$defs/invitation_envelope"
+        },
+        "envelope": {
+          "$ref": "./signal-envelope.schema.json"
+        },
+        "admission_phase": {
+          "enum": [
+            "product_delivery",
+            "media_token"
+          ],
+          "type": "string"
+        },
+        "audience_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
+        },
+        "subject_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
+        },
+        "subject_device_id": {
+          "$ref": "./common-ids.schema.json#/$defs/device_id"
+        },
+        "nonce": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{22,64}$"
+        },
+        "focus_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^(?!ak:)"
+        },
+        "desired_media": {
+          "$ref": "#/$defs/media"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Only the authenticated holder hosting Station or exact currently authorized media issuer may request a verdict from the current holder PCR authority. Not a requester API. A new nonce and current evaluation are required for every actual release cut.",
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "admission_phase": {
+                "const": "media_token"
+              }
+            },
+            "required": [
+              "admission_phase"
+            ]
+          },
+          "then": {
+            "required": [
+              "focus_id",
+              "desired_media"
+            ]
+          },
+          "else": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "focus_id"
+                  ]
+                },
+                {
+                  "required": [
+                    "desired_media"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "admission_outcome": {
+      "type": "object",
+      "required": [
+        "request_digest",
+        "admitted",
+        "authority_generation",
+        "evaluated_at",
+        "expires_at",
+        "proof"
+      ],
+      "properties": {
+        "request_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "admitted": {
+          "type": "boolean"
+        },
+        "authority_generation": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        },
+        "evaluated_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "proof": {
+          "$ref": "#/$defs/admission_proof"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Minimal audience/request/stage-bound verdict, consumed only as the direct response to the outstanding fresh authorized request. Signature/TTL alone never authorize another cut. No Consent ID, revision, value, PCR head, existence or history is disclosed.",
+      "x-arkret-signature-domain": "ak.call.invitation.admission.v1"
+    },
+    "delivery_view": {
+      "type": "object",
+      "required": [
+        "invitation",
+        "request",
+        "outcome"
+      ],
+      "properties": {
+        "invitation": {
+          "$ref": "#/$defs/invitation_envelope"
+        },
+        "request": {
+          "$ref": "#/$defs/admission_request_body"
+        },
+        "outcome": {
+          "$ref": "#/$defs/admission_outcome"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Own-Station delivery material attached only after the holder product gate. Client independently reads complete holder-private Consent current before ringing. This material never replays as a media-token verdict."
+    },
+    "join_context": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/invitation_join_context"
+        },
+        {
+          "$ref": "#/$defs/voluntary_join_context"
+        },
+        {
+          "$ref": "#/$defs/refresh_join_context"
+        }
+      ]
+    },
+    "invitation_proof": {
+      "type": "object",
+      "required": [
+        "verification_method",
+        "jws"
+      ],
+      "properties": {
+        "verification_method": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
+        },
+        "jws": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+\\.\\.[A-Za-z0-9_-]+$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "admission_proof": {
+      "type": "object",
+      "required": [
+        "verification_method",
+        "jws"
+      ],
+      "properties": {
+        "verification_method": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
+        },
+        "jws": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+\\.\\.[A-Za-z0-9_-]+$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "invitation_join_context": {
+      "type": "object",
+      "required": [
+        "kind",
+        "invitation",
+        "envelope"
+      ],
+      "properties": {
+        "kind": {
+          "const": "invitation",
+          "type": "string",
+          "enum": [
+            "invitation"
+          ]
+        },
+        "invitation": {
+          "$ref": "#/$defs/invitation_envelope"
+        },
+        "envelope": {
+          "$ref": "./signal-envelope.schema.json"
+        }
+      },
+      "additionalProperties": false
+    },
+    "voluntary_join_context": {
+      "type": "object",
+      "required": [
+        "kind",
+        "expires_at",
+        "created_at",
+        "nonce",
+        "proof"
+      ],
+      "properties": {
+        "kind": {
+          "const": "voluntary",
+          "type": "string",
+          "enum": [
+            "voluntary"
+          ]
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "created_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "nonce": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{22,64}$"
+        },
+        "proof": {
+          "$ref": "#/$defs/voluntary_join_proof"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Explicit affirmative join intent signed by the requesting actor/device over the complete token RequestBody with this proof omitted. It cannot be selected by receipt of an invitation, background retry, push handler or automatic fallback.",
+      "x-arkret-signature-domain": "ak.call.voluntary_join.v1"
+    },
+    "voluntary_join_proof": {
+      "type": "object",
+      "required": [
+        "verification_method",
+        "jws"
+      ],
+      "properties": {
+        "verification_method": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
+        },
+        "jws": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+\\.\\.[A-Za-z0-9_-]+$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "refresh_join_context": {
+      "type": "object",
+      "required": [
+        "kind",
+        "participant_id"
+      ],
+      "properties": {
+        "kind": {
+          "const": "refresh",
+          "type": "string",
+          "enum": [
+            "refresh"
+          ]
+        },
+        "participant_id": {
+          "type": "string",
+          "pattern": "^ak:rtc_participant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

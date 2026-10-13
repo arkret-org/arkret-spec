@@ -152,8 +152,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/consent-cache-invalidation-fixture.json",
-      "sha256": "89e4ecc377c0671308af2a5a975d813c23dc186f17bea25db4a08041a4d40aa4",
-      "version": "2026-10-14.2"
+      "sha256": "683dbf07e5662895c9280473aeba88e38cd2625223b888170966dad87d65dd20",
+      "version": "2026-10-14.3"
     },
     {
       "path": "spec/v1/artifacts/fixtures/contact-remark-fixture.json",

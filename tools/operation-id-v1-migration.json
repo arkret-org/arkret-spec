@@ -236,6 +236,14 @@
       "new": "ak.peer.account_status.read.resolve.v1"
     },
     {
+      "old": "ak.peer.call.invitation.command.relay",
+      "new": "ak.peer.call.invitation.command.relay.v1"
+    },
+    {
+      "old": "ak.peer.call.invitation.read.admission",
+      "new": "ak.peer.call.invitation.read.admission.v1"
+    },
+    {
       "old": "ak.peer.committed_event.read.scan",
       "new": "ak.peer.committed_event.read.scan.v1"
     },
@@ -526,6 +534,10 @@
     {
       "old": "ak.self.blob.upload.create",
       "new": "ak.self.blob.upload.create.v1"
+    },
+    {
+      "old": "ak.self.call.invitation.command.send",
+      "new": "ak.self.call.invitation.command.send.v1"
     },
     {
       "old": "ak.self.call.media.exchange.issue_token",

@@ -92,6 +92,8 @@ sidebar:
 
 ## 3. Token Exchange (normative)
 
+通话邀请的三层 Consent、exact 关系、current cut 与 mandatory `join_context` 分支见 [`webrtc-signaling.md` §3b](./webrtc-signaling.md)。token issuer **MUST** 独立执行其适用分支；较早产品投递成功不得替代首次接触 token cut。
+
 会议加入前，客户端 MUST 先向 `foci[].token_endpoint` 兑换 backend 凭证；issuer 是 Arkret-side 授权组件。`backend_token` 是由同级 `backend_kind` 判别的 closed union：`arkret_native` 必须携带 [`bindings/arkret-native.md` §2](./bindings/arkret-native.md) 的 typed object；`livekit`、`mediasoup`、`janus`、`moq_relay` 必须携带非空 opaque string，并由对应 backend SDK 继续解析。客户端 MUST 拒绝 branch 不匹配、未知 backend 或把 object 再编码成 JSON string 的响应。Token endpoint 等价于 [MSC4195 `lk-jwt-service`](https://github.com/element-hq/lk-jwt-service)，但绑定到 Arkret 的 capability、当前 accepted Realm policy；服务实际取得媒体明文时还必须绑定当前 `key_access_revision`。
 
 请求：
@@ -120,7 +122,8 @@ Content-Type: application/json
   "capability_refs": [
     "ak:grant:AUFBzmnhUmJ_VzOH2YJX1xVzwAsxVk_-5MZ_5wu41zCA"
   ],
-  "desired_media": { "audio": true, "video": true, "screen": false }
+  "desired_media": { "audio": true, "video": true, "screen": false },
+  "join_context": { "kind": "voluntary", "created_at": "2026-05-27T12:30:00.000Z", "expires_at": "2026-05-27T12:31:00.000Z", "nonce": "AAAAAAAAAAAAAAAAAAAAAA", "proof": { "verification_method": "did:webvh:z6mkfixture:alice.example#device-1", "jws": "AA..AA" } }
 }
 ```
 
@@ -307,3 +310,5 @@ Conformance vectors for the full media binding framework：
 **Conformance negative vector** `ak.vector.webrtc.media_plaintext_downgrade.v1` 必须覆盖：(a) 当前 accepted policy 未授权 `media_service_decrypts` ⇒ 拒绝加入；(b) SFU 未列入 `plaintext_visible_services` 而协商解密 ⇒ 拒绝媒体；(c) UI 未显示警示 ⇒ 拒绝加入。
 
 实际效果：SFU / MCU 不能在 MLS transcript 之外单独变更为可解密媒体的一方。任何看起来“切换成功”但未被当前 accepted policy 授权的状态都是 attack，必须 fail closed。
+
+本节首次接触准入向量为 `ak.vector.consent.call_invitation_admission.v1`，执行义务见 webrtc-signaling §3b。

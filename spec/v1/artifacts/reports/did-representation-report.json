@@ -1946,6 +1946,76 @@
       ]
     },
     {
+      "schema_path": "call-invitation-operations.schema.json#/$defs/admission_proof/properties/verification_method",
+      "property_name": "verification_method",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_url",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "pattern:^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
+      ]
+    },
+    {
+      "schema_path": "call-invitation-operations.schema.json#/$defs/admission_request_body/properties/audience_actor_id",
+      "property_name": "audience_actor_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "actor_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:actor_id"
+      ]
+    },
+    {
+      "schema_path": "call-invitation-operations.schema.json#/$defs/admission_request_body/properties/subject_actor_id",
+      "property_name": "subject_actor_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "actor_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:actor_id"
+      ]
+    },
+    {
+      "schema_path": "call-invitation-operations.schema.json#/$defs/invitation_envelope/properties/holder_account_id",
+      "property_name": "holder_account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
+      ]
+    },
+    {
+      "schema_path": "call-invitation-operations.schema.json#/$defs/invitation_envelope/properties/inviter_actor_id",
+      "property_name": "inviter_actor_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "actor_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:actor_id"
+      ]
+    },
+    {
+      "schema_path": "call-invitation-operations.schema.json#/$defs/invitation_proof/properties/verification_method",
+      "property_name": "verification_method",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_url",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "pattern:^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
+      ]
+    },
+    {
+      "schema_path": "call-invitation-operations.schema.json#/$defs/voluntary_join_proof/properties/verification_method",
+      "property_name": "verification_method",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_url",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "pattern:^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
+      ]
+    },
+    {
       "schema_path": "call-recording-artifact.schema.json#/$defs/call_recording_deletion_audit/properties/requested_by",
       "property_name": "requested_by",
       "semantic_category": "responsibility_identity_material",
@@ -7845,6 +7915,18 @@
       "account_scoped": false,
       "required_evidence": [
         "accepted_controller_principal_binding"
+      ]
+    },
+    {
+      "source": "json_schema",
+      "schema_path": "call-invitation-operations.schema.json#/$defs/invitation_envelope/properties/holder_account_id",
+      "property_name": "holder_account_id",
+      "resolved_carrier": "account_id",
+      "required_subject_class": "account",
+      "contract_carrier": "account_id",
+      "account_scoped": true,
+      "required_evidence": [
+        "exact_account_ownership_binding"
       ]
     },
     {

@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-14.2",
+  "version": "2026-10-14.5",
   "source_of_truth": false,
-  "generated_at": "2026-10-14T05:58:19+08:00",
+  "generated_at": "2026-10-14T06:26:20+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,10 +18,10 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 215,
+    "total_operations": 218,
     "by_completeness_class": {
       "binary_or_redirect": 2,
-      "typed_schema": 213
+      "typed_schema": 216
     },
     "by_surface_class_and_completeness_class": {
       "core": {
@@ -32,7 +32,7 @@
       },
       "extension": {
         "binary_or_redirect": 2,
-        "typed_schema": 129
+        "typed_schema": 132
       },
       "interop_bridge": {
         "typed_schema": 23
@@ -835,6 +835,34 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/AccountStatusResolveRequestBody",
         "response": "#/components/schemas/AccountStatusResolveOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.peer.call.invitation.command.relay.v1",
+      "surface_class": "extension",
+      "http": "POST /_arkret/peer/rtc/invitation",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/call-invitation-operations.schema.json#/$defs/send_request_body",
+      "response_schema_ref": "schemas/call-invitation-operations.schema.json#/$defs/send_outcome",
+      "openapi_component_refs": {
+        "request": "../schemas/call-invitation-operations.schema.json#/$defs/send_request_body",
+        "response": "../schemas/call-invitation-operations.schema.json#/$defs/send_outcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.peer.call.invitation.read.admission.v1",
+      "surface_class": "extension",
+      "http": "POST /_arkret/peer/rtc/invitation-admission",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/call-invitation-operations.schema.json#/$defs/admission_request_body",
+      "response_schema_ref": "schemas/call-invitation-operations.schema.json#/$defs/admission_outcome",
+      "openapi_component_refs": {
+        "request": "../schemas/call-invitation-operations.schema.json#/$defs/admission_request_body",
+        "response": "../schemas/call-invitation-operations.schema.json#/$defs/admission_outcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."
@@ -1827,6 +1855,20 @@
       "openapi_component_refs": {
         "request": "#/components/schemas/BlobUploadRequestBody",
         "response": "#/components/schemas/BlobUploadOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.self.call.invitation.command.send.v1",
+      "surface_class": "extension",
+      "http": "POST /_arkret/self/rtc/invitation",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/call-invitation-operations.schema.json#/$defs/send_request_body",
+      "response_schema_ref": "schemas/call-invitation-operations.schema.json#/$defs/send_outcome",
+      "openapi_component_refs": {
+        "request": "../schemas/call-invitation-operations.schema.json#/$defs/send_request_body",
+        "response": "../schemas/call-invitation-operations.schema.json#/$defs/send_outcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

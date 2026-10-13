@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-12.1",
+  "version": "2026-10-14.5",
   "source_of_truth": false,
-  "generated_at": "2026-10-12T14:05:22+08:00",
+  "generated_at": "2026-10-14T06:26:20+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -489,6 +489,15 @@
         "ak.self.management_review.read.status.v1"
       ],
       "surface_class": "extension"
+    },
+    {
+      "surface": "call_invitation_admission",
+      "surface_class": "extension",
+      "operations": [
+        "ak.self.call.invitation.command.send.v1",
+        "ak.peer.call.invitation.command.relay.v1",
+        "ak.peer.call.invitation.read.admission.v1"
+      ]
     }
   ],
   "operations": [
@@ -4285,6 +4294,83 @@
           "signature_scenario_id": "ak.http_signature.scenario.service_to_service.v1"
         }
       }
+    },
+    {
+      "operation_id": "ak.self.call.invitation.command.send.v1",
+      "http": "POST /_arkret/self/rtc/invitation",
+      "grpc": "SelfCallInvitation/Send",
+      "mq": "self.call.invitation.command.send",
+      "notes": "See zh/crypto-media/webrtc-signaling.md section 3b. Producer-signed exact invitation; sender responses are always deferred. Admission is an authorized consumer-only current holder PCR verdict, never public Consent lookup or a reusable capability.",
+      "body_class": "non_streaming_json",
+      "max_canonical_body_bytes": 131072,
+      "success_shape_kind": "schema_resource",
+      "idempotency_mechanism": "none",
+      "retry_safe": false,
+      "uncertain_outcome": {
+        "strategy": "drop_unconfirmed"
+      },
+      "request_schema_ref": "schemas/call-invitation-operations.schema.json#/$defs/send_request_body",
+      "response_schema_ref": "schemas/call-invitation-operations.schema.json#/$defs/send_outcome",
+      "durable_effect": {
+        "kind": "none",
+        "rationale": "ephemeral_invitation_is_not_a_consent_ledger_or_durable_participant"
+      }
+    },
+    {
+      "operation_id": "ak.peer.call.invitation.command.relay.v1",
+      "http": "POST /_arkret/peer/rtc/invitation",
+      "grpc": "PeerCallInvitation/Relay",
+      "mq": "peer.call.invitation.command.relay",
+      "notes": "See zh/crypto-media/webrtc-signaling.md section 3b. Producer-signed exact invitation; sender responses are always deferred. Admission is an authorized consumer-only current holder PCR verdict, never public Consent lookup or a reusable capability.",
+      "body_class": "non_streaming_json",
+      "max_canonical_body_bytes": 131072,
+      "success_shape_kind": "schema_resource",
+      "idempotency_mechanism": "none",
+      "retry_safe": false,
+      "uncertain_outcome": {
+        "strategy": "drop_unconfirmed"
+      },
+      "request_schema_ref": "schemas/call-invitation-operations.schema.json#/$defs/send_request_body",
+      "response_schema_ref": "schemas/call-invitation-operations.schema.json#/$defs/send_outcome",
+      "durable_effect": {
+        "kind": "none",
+        "rationale": "ephemeral_invitation_is_not_a_consent_ledger_or_durable_participant"
+      },
+      "auth_requirements": {
+        "service_signature": {
+          "signature_scenario_id": "ak.http_signature.scenario.call_invitation.v1",
+          "standard": "RFC 9421 HTTP Message Signature",
+          "bearer_only_allowed": false,
+          "contract": "Covered components, signature parameters and the freshness window come from http_signature_contract_registry. This operation MUST NOT restate them."
+        }
+      }
+    },
+    {
+      "operation_id": "ak.peer.call.invitation.read.admission.v1",
+      "http": "POST /_arkret/peer/rtc/invitation-admission",
+      "grpc": "PeerCallInvitation/Admission",
+      "mq": "peer.call.invitation.read.admission",
+      "notes": "See zh/crypto-media/webrtc-signaling.md section 3b. Producer-signed exact invitation; sender responses are always deferred. Admission is an authorized consumer-only current holder PCR verdict, never public Consent lookup or a reusable capability.",
+      "body_class": "non_streaming_json",
+      "max_canonical_body_bytes": 131072,
+      "success_shape_kind": "schema_resource",
+      "uncertain_outcome": {
+        "strategy": "drop_unconfirmed"
+      },
+      "request_schema_ref": "schemas/call-invitation-operations.schema.json#/$defs/admission_request_body",
+      "response_schema_ref": "schemas/call-invitation-operations.schema.json#/$defs/admission_outcome",
+      "durable_effect": {
+        "kind": "none",
+        "rationale": "ephemeral_invitation_is_not_a_consent_ledger_or_durable_participant"
+      },
+      "auth_requirements": {
+        "service_signature": {
+          "signature_scenario_id": "ak.http_signature.scenario.call_invitation.v1",
+          "standard": "RFC 9421 HTTP Message Signature",
+          "bearer_only_allowed": false,
+          "contract": "Covered components, signature parameters and the freshness window come from http_signature_contract_registry. This operation MUST NOT restate them."
+        }
+      }
     }
   ],
   "direct_conversation_admission_mappings": {
@@ -5221,6 +5307,14 @@
           "binding_kind": "http_json"
         },
         {
+          "operation_id": "ak.peer.call.invitation.command.relay.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "operation_id": "ak.peer.call.invitation.read.admission.v1",
+          "binding_kind": "http_json"
+        },
+        {
           "operation_id": "ak.peer.committed_event.read.scan.v1",
           "binding_kind": "http_json"
         },
@@ -5346,6 +5440,10 @@
         },
         {
           "operation_id": "ak.self.blob.upload.create.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "operation_id": "ak.self.call.invitation.command.send.v1",
           "binding_kind": "http_json"
         },
         {

@@ -103,6 +103,9 @@
         },
         "product_authority": {
           "$ref": "#/$defs/product_authority"
+        },
+        "call_invitation": {
+          "$ref": "./call-invitation-operations.schema.json#/$defs/delivery_view"
         }
       },
       "additionalProperties": false

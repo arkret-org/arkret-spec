@@ -3,7 +3,7 @@ title: WebRTC Calls and Meetings
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-02
+updated: 2026-10-14
 sidebar:
   label: WebRTC Calls
 ---
@@ -68,7 +68,7 @@ WebRTC 信令会暴露设备、网络和媒体能力。所有信令 MUST：
 - `ak.call.screen_share` SHOULD 独立授权。
 - `ak.realm.media_service` 只应授予管理员或受信服务。
 - Actor 加入 call 的资格 MUST 按分层 predicate 校验，不得依赖泛化口语状态（如笼统的「被 ban / suspended」）：(a) 在目标 `realm_id` 的 Realm membership 必须为 `join`；(b) 若 call scoped 到某 Circle，该 actor 还必须是该 Circle 的活跃成员；(c) account lifecycle status MUST NOT 为 `suspended` / `deactivated` / `erasure_pending`；(d) 发起设备的 device grant MUST NOT 被 revoked，且其 `ak.call.join` capability grant 未被 revoke。任一条不满足 MUST NOT 加入。
-- `signal_kind=invite` 还 MUST 通过 [`identity/consent-model.md` §6.2](../identity/consent-model.md) 的 `voice_call` / `video_call` consent gate；服务端投递、目标客户端响铃 UI 与 media token 签发都不得仅信任发起方 preflight。
+- `signal_kind=invite` 的产品准入按 §3b 执行，并 MUST 通过 [`identity/consent-model.md` §6.2](../identity/consent-model.md) 的 `voice_call` / `video_call` consent gate；服务端投递、目标客户端响铃 UI 与 media token 签发都不得仅信任发起方 preflight。
 - 外部 guest 加入必须通过 invite 或 meeting-specific guest grant。
 
 ### 3a. 主持 / 审核（kick / ban / end-for-all，normative）
@@ -99,6 +99,73 @@ v1 的主持动作只有 kick／ban／end-for-all：通过 `ak.call.signal{signa
 - kick / ban MUST 以 `ak.call.state.moderation_delta.op="remove_participant"` 留痕(其 `removal` 为 `{ actor_id, device_id?, action, removed_by, removed_at }`;`ban` 省略 `device_id` 表示按 actor 维度)。token issuer 与 SFU 在签发 / 接纳 participant 前 MUST 校验目标不在 `call_moderation` effective authority-ordered keyed set 的 ban 集合内，违反 `call_participant_removed`。
 - v1 不签发强制静音权限，也不从旧 per-leg 缓存或保留的 call-only `call_mute_override` 结果推导媒体许可；未知或不一致的历史覆盖值不能被解释为已解除静音，应失败关闭该媒体权限判定。
 - 所有主持信令受 §5 的 `seq` 单调性防回滚；`moderation` 帧 MUST 由具备 `ak.call.moderate` 的 actor 签名。
+
+### 3b. 通话邀请的三层 Consent 准入（normative）
+
+`signal_kind=invite` 的服务端投递义务是 **holder Station 产品／通知路径的准入**。通用 Signal rail 仍是 encrypted-only 盲转发；普通 rail 的接收、解密或 `ak.call.create` 的存在均 **MUST NOT** 被视为通话产品准入。通用 envelope **MUST NOT** 增加 kind、holder、call 或 Consent 字段。MessageStream product authority 也 **MUST NOT** 替代本节材料。
+
+#### 3b.1 关系、来源与签名
+
+唯一载体是 [`call-invitation-operations.schema.json`](../../artifacts/schemas/call-invitation-operations.schema.json) 的 `invitation_envelope`。全部字段必填且封闭，字段次序为 `inviter_actor_id, holder_account_id, scope_ref, call_id, media, envelope_digest, expires_at, proof`。`inviter_actor_id` 是完整 tagged ActorId，`holder_account_id` 是完整 AccountId；`scope_ref` 是 exact effective scope；`call_id` **MUST** 由同 Realm 已 accepted `ak.call.create` 派生。create 的 `initial_state`、创建者、roster 成员与 token 请求主体都 **MUST NOT** 被猜作此次 inviter／holder。
+
+`media` 是闭合 `{audio,video,screen}`，三个布尔值必填，至少一个为 true。解密 Invite 的可选 `media.screen` 缺席仅在比较时归一化为 false。`video=true` 或 `screen=true` 对应 `video_call`，否则 `audio=true` 对应 `voice_call`；视频不是 voice 与 video 的隐含双许可。后续 media token 的 desired media **MUST** 是该关系 media 的子集；增加 video／screen 必须取得覆盖扩展媒体的新邀请关系与新准入，不能借 voice 成功扩大权限。
+
+`envelope_digest` 是 SHA-256 的 RFC 8785 JCS **完整 producer-signed SignalEnvelope（含 proof）**，仅绑定此次 exact 密文。它 **MUST NOT** 成为持久 Signal ID，也不能证明明文为 invite。关系 `expires_at` **MUST** 不晚于 envelope expiry；各消费者仍独立检查实际时间和 Invite 的解密 lifetime。每个 holder 单独签一份关系，禁止一个 holder 的通过覆盖多人邀请。
+
+关系由实际 producer 以与 envelope.proof 相同的受权 verification method 签名。签名输入为 `UTF8("ak.call.invitation.v1") || 0x00 || RFC8785_JCS(invitation_envelope 去除 proof)`，JWS 为 detached；`proof` 仅含 `verification_method,jws`。验证者 **MUST** 校验完整 inviter 等于已验证 envelope sender、scope 与 Realm 相等、exact digest、当前设备／Agent key 权限以及原 Signal rail 的 membership／capability／AEAD 规则。仅 requester 自报关系、签名有效但来源未受权或 digest 相等都不足以准入。不得改变、解密、重签或再加密原 envelope。
+
+#### 3b.2 受权提交、交付与 current 判定
+
+正式 operations、HTTP／gRPC／MQ 及 closed DTO 以 canonical registry 为准：
+
+| operation | HTTP | request / outcome |
+| --- | --- | --- |
+| `ak.self.call.invitation.command.send.v1` | `POST /_arkret/self/rtc/invitation` | `send_request_body` / `send_outcome` |
+| `ak.peer.call.invitation.command.relay.v1` | `POST /_arkret/peer/rtc/invitation` | 同上 |
+| `ak.peer.call.invitation.read.admission.v1` | `POST /_arkret/peer/rtc/invitation-admission` | `admission_request_body` / `admission_outcome` |
+
+sender 向自身 Station 提交 exact `{invitation,envelope}`；认证主体 **MUST** 等于 inviter。Station 在校验 producer 与现有 call signaling 权限后，只向 holder hosting Station 作单跳 relay。peer relay 的来源 **MUST** 是已验证实际 inviter hosting Station；Agent 来源按现有受权托管关系解析。peer operations 的 RFC 9421 覆盖集、窗口、参数与 shared-ingress 条件只引用 `ak.http_signature.scenario.call_invitation.v1`。relay 不允许提交者指定另一来源、另一消费者或任意 audience。
+
+<!-- BEGIN ak-http-signature-covered-set ak.http_signature.scenario.call_invitation.v1 -->
+- `@method`、`@target-uri`、`@authority`
+- `arkret-operation`
+- `content-digest`（relay request 总是带 body）
+- `source-service-id`、`destination-service-id`
+- `source-trust-domain`、`destination-trust-domain`
+- `destination-service-endpoint-digest`（条件项：经 shared ingress 抵达 destination 时必需）
+<!-- END ak-http-signature-covered-set -->
+
+两个 send／relay operation 对合法形状与受权来源一律返回闭合 `{"status":"deferred"}`，不披露 holder existence、Consent、限速结果、产品送达／响铃。schema／producer authentication／来源权限错误可按已有错误合同拒绝，但不得以 holder 或 Consent 相关错误区分正常投递与静默拒绝。无 Consent 的 call invite **MUST NOT** 进入响铃／push；本通话接口不提供 quarantine 的自动产品 fallback。
+
+holder hosting Station 只能向 **holder PCR 的当前 authority** 发起 `admission_phase=product_delivery` 判定；`audience_actor_id` 必须是该 hosting Station 的完整 Service ActorId，subject 必须是 holder Account ActorId，device 必须是将消费的 holder 当前受权设备。媒体服务只允许已验证目标 Realm 当前 media service binding 锚定的 exact token issuer，发起 `admission_phase=media_token` 判定；subject 仍是 exact holder Account ActorId／本次请求设备，focus 与 desired media 必填并核对原 token 请求。每个设备／holder 分别检查。服务身份、角色、完整 scope／Call 与 Realm current membership／capability **MUST** 独立验证；requester 及其它 Station／Service **MUST NOT** 调用此受权读取。holder PCR authority 切换必须按现有独立可信治理配置解析，目标 Realm governance 不成为 Consent writer。
+
+判定请求必须携带 exact invitation 与 envelope、stage、audience、subject actor／device 和 CSPRNG 至少 128 bit 的 nonce。每次实际放行须有新的 outstanding request，不能复用旧 nonce／旧 outcome。authority 在同一个 PCR serializable admission cut 校验所有完整 current records：完整 peer、active、concrete scope 或独立 `any`、`not_before <= cut_time < expires_at` 与 constraints。缺席端点表示无相应时间界；多个稳定 consent_id 可独立满足。当前 v1 的 Consent constraints 无已登记非空子字段语义，只有缺席或空数组不收窄；任一非空约束数组 **MUST** 使该条 record 不可授权，而不能跳过约束。其它 independently eligible record 仍独立求值。
+
+`admission_outcome` 只包含 `request_digest, admitted, authority_generation, evaluated_at, expires_at, proof`；request_digest 是完整 canonical 请求的 SHA-256。它不披露 Consent ID／revision／值／列表／PCR head／历史。签名输入为 `UTF8("ak.call.invitation.admission.v1") || 0x00 || RFC8785_JCS(outcome 去除 proof)`；key **MUST** 命中独立锚定的 holder 当前 PCR governance Station signing key，generation **MUST** 等于同一可信配置。窗口上限为 evaluated_at 后 30 秒且不晚于 invitation expiry；消费者必须核验 exact outstanding request digest、audience／subject／stage 和当前 generation。`admitted=false` 及不可验证 authority／outcome 均不放行，不向原 requester 转发判定。
+
+只有通过 holder product cut 的 exact envelope 才能在自身受认证 live Signal stream 的 `delivery_authority.call_invitation` 携带闭合 `delivery_view`。它包含 exact invitation、该设备的 product request 与 outcome，**MUST** 绑定同 frame recipient、sender、scope 和 envelope；不扩展 generic envelope／peer Signal relay。push 只能由同 product gate 的内部交付动作产生，不携带公开可转用材料。没有该材料的普通 rail Invite 可以解密，但客户端 **MUST** 丢弃其响铃、push 与首次接触 token 产品路径；不得再查“Call 存在”后绕过材料要求。
+
+#### 3b.3 响铃、时间与撤销竞争
+
+目标客户端在响铃前 **MUST** 核对已解密 plaintext 确为 Invite，call_id、normalized media、verified sender／device 与 exact关系一致，holder 等于当前登录完整 Account，scope 与已安装 accepted Call 相等；声明／明文不一致立即拒绝产品。客户端随后独立读取并验证／安装 holder-private **完整** Consent typed current（已有 `ak.self.realm_state_snapshot.read.manifest_head.v1` 及 signed snapshot／current tail 安装路径，typed value 使用 `typed-current-result.schema.json#/$defs/consent_result`）；list／get 仅用于定位稳定 ID，`ConsentView.state=active` 不能代替完整 value。读取必须完成所需 list 分页，在本次响铃前取得同 authority／generation 的新鲜 manifest head，完成该 head 的签名 snapshot 与连续 current tail 安装，并取得匹配 concrete／any records 的完整值与 accepted source Commit／revision 并检查时间和 constraints；列表／读竞争、缺失记录或 authority 变化须刷新，不可猜有效值。读取前后的 account、设备、authority、current reset generation 改变使本次 attempt 无效。响铃仍独立执行本地 blocklist 和现有产品 gate。
+
+三层各自的线性化点为：(1) holder PCR authority 的 **本次 product 放行**串行 cut；(2) holder 客户端使用新鲜已验证／安装 current 的本次响铃产品 cut；(3) token issuer 为已准备但尚未释放的 token 所请求的 **本次 media_token** holder authority cut。revoke 在对应 authority cut 前 accepted 必须使该 cut 不得以该 record 放行；在 cut 后 accepted 不追溯取消已完成该 cut 的动作，但下一层／下一次邀请必须重验。网络在途 revoke 的意义按 holder authority 的 Commit 顺序决定，不能按 requester 时间戳或两站墙钟猜顺序。远端 verdict 只证明绑定请求的该 cut；其 TTL／签名不等于后续 cut 的 current freshness。
+
+排队、断线、设备切换、authority 切换或等待后不得用预检查／旧 outcome 放行，**MUST** 发起新 current 判定。token 在取得 final verdict 后必须立即释放，不能保存为将来兑换的凭据；若继续等待、发现已知撤销或 generation 改变，则废弃未释放 token 并重验。已知 revoke 即时失效相关缓存与尚未放行决定；旧 read／exact accepted Event retry 不得回退 revision、解除已知 revoke 或 resurrect active。撤销 `any` 使 peer 的全部 derived scope cache 失效，但不删除独立 concrete grant；反向亦同。
+
+不可验证、窗口过期、authority 暂不可用或材料未到时，本次产品准入 **MUST** 有界刷新／等待或拒绝，使用已有 `temporarily_unavailable`／`failed_precondition` 语义；合法材料恢复后允许新的合法重试，不得永久禁用通话来代替 gate。对原 requester 的结果仍为 deferred。较早 cut 后发生 revoke 时，本节不要求挂断已 established 通话，也不把 first-contact 关系当 durable roster／participant authorization。
+
+#### 3b.4 Token 生命周期分支
+
+`CallMediaTokenExchangeRequestBody.join_context` 必填，是闭合 union，原 body 其它字段保持各自语义：
+
+- `kind=invitation` 携带此次 invitation 与 exact envelope。首次邀请导致的加入及尚未完成相应准入只能走此分支；请求 actor 必须是 holder，media 不超过关系，token issuer 在 §3b.3 final cut 向 holder current authority 重新求值，不能以 product verdict 替代。重复邀请必须重新检查。
+- `kind=voluntary` 必填 `created_at,expires_at,nonce,proof`，有效窗口不超过 60 秒，nonce 为至少 128 bit CSPRNG；不得重放为另一次主动意图。它携带独立 detached proof，表达本次请求 actor／device 的显式主动建会／加入意图。签名输入为 `UTF8("ak.call.voluntary_join.v1") || 0x00 || RFC8785_JCS(完整 token RequestBody 仅去除 join_context.proof)`，preserve 所有 optional 成员存在性。verification method 必须是当前受权请求设备／Agent endpoint 的 signer；接收邀请、后台重试、自动 push handler 不得选择或生成此分支，客户端必须由新的明确主动用户意图驱动。该分支无 inviter／holder 推断，不取消 membership／capability／focus／device 检查。
+- `kind=refresh` 必填 `participant_id`。issuer **MUST** 从 accepted durable roster 校验同 Realm／Call／完整 actor／device 的当前 active participant 与 participant binding，不接受 requester 自报 established；媒体只能在现有已接受 participant 授权范围内。没有 accepted participant、尚未完成 first invite 或扩大媒体不得走 refresh；前两者须 invitation／显式 voluntary，扩大媒体需适用的新准入及既有独立 capability。
+
+三分支都继续执行 [`media-service-binding.md` §3／§6](./media-service-binding.md) 的全部参与授权与后续 durable roster 落账。本节关系／判定不签发 Realm membership、不替代 participant binding，不把 call.create 作者当 inviter，不引入第二 Consent 授权账本。
+
+本节向量 `ak.vector.consent.call_invitation_admission.v1` 属于原 `ak.suite.consent.cache_invalidation.v1` 生产执行义务，必须覆盖合法成功与三层拒绝／恢复、exact关联、逐 holder、authority 切换及跨站在途 revoke；拒绝所有合法邀请不能证明实现完成。
 
 ## 4. ICE Server Discovery
 

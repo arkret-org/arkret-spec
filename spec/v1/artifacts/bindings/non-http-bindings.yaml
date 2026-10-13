@@ -187,6 +187,11 @@ grpc:
     SelfSignal:
       Send: ak.self.signal.command.send.v1
       Subscribe: ak.self.signal.stream.subscribe.v1
+    SelfCallInvitation:
+      Send: ak.self.call.invitation.command.send.v1
+    PeerCallInvitation:
+      Relay: ak.peer.call.invitation.command.relay.v1
+      Admission: ak.peer.call.invitation.read.admission.v1
     SelfCallMedia:
       TokenExchange: ak.self.call.media.exchange.issue_token.v1
     RootIdentity:
@@ -363,6 +368,9 @@ mq:
     peer.realm_join.query.preview: ak.peer.realm_join.read.preview.v1
     peer.signal.command.relay: ak.peer.signal.command.relay.v1
     self.signal.command.send: ak.self.signal.command.send.v1
+    self.call.invitation.command.send: ak.self.call.invitation.command.send.v1
+    peer.call.invitation.command.relay: ak.peer.call.invitation.command.relay.v1
+    peer.call.invitation.read.admission: ak.peer.call.invitation.read.admission.v1
     self.signal.stream.subscribe: ak.self.signal.stream.subscribe.v1
     self.call.media.exchange.issue_token: ak.self.call.media.exchange.issue_token.v1
     self.account.stream.subscribe: ak.self.account.stream.subscribe.v1

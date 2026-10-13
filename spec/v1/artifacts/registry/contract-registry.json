@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-14.2",
+  "version": "2026-10-14.5",
   "source_of_truth": true,
-  "generated_at": "2026-10-14T05:58:19+08:00",
+  "generated_at": "2026-10-14T06:26:20+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -10889,10 +10889,16 @@
         "fragment": "#/$defs/welcome",
         "status": "active",
         "description": "Server authentication-success frame carrying effective connection and channel limits."
+      },
+      {
+        "schema_id": "ak.schema.call_invitation_operations.v1",
+        "file": "schemas/call-invitation-operations.schema.json",
+        "status": "active",
+        "description": "Closed exact-envelope call invitation relation, opaque submission, authorized holder-current admission and explicit token join branches."
       }
     ],
-    "version": "2026-10-14",
-    "generated_at": "2026-10-14T00:00:03+08:00",
+    "version": "2026-10-14.1",
+    "generated_at": "2026-10-14T06:11:32+08:00",
     "metadata_authority": "contract_registry_section"
   },
   "id_kind_registry": {
@@ -11804,8 +11810,8 @@
     "metadata_authority": "contract_registry_section"
   },
   "http_signature_contract_registry": {
-    "version": "2026-10-09.1",
-    "generated_at": "2026-10-09T07:31:39+08:00",
+    "version": "2026-10-14.1",
+    "generated_at": "2026-10-14T06:11:32+08:00",
     "source_of_truth": true,
     "description": "Canonical single owner of every RFC 9421 HTTP Message Signature contract in Arkret: the shared covered-component baseline, the per-scenario extensions and their trigger conditions, the required signature parameters, and the freshness window numerals. Prose enumerations, conformance profiles and vector descriptions are projections of this block.",
     "normative_source": "zh/sync/service-http-binding.md #8 HTTP Message Signature",
@@ -12280,6 +12286,50 @@
           "ak.self.realm_state_snapshot.read.by_ref.v1",
           "ak.self.realm_state_snapshot.read.manifest_head.v1",
           "ak.self.events.command.submit.v1"
+        ],
+        "vectors": [],
+        "error_codes": [
+          "http_signature_required",
+          "http_signature_invalid",
+          "signature_window_invalid"
+        ]
+      },
+      {
+        "scenario_id": "ak.http_signature.scenario.call_invitation.v1",
+        "label": "Call invitation relay and authorized current admission",
+        "applies_to": "The registered peer call invitation relay and current admission operations.",
+        "extends": "ak.http_signature.scenario.service_to_service.v1",
+        "additional_covered_components": [
+          "content-digest",
+          "source-service-id",
+          "destination-service-id",
+          "source-trust-domain",
+          "destination-trust-domain"
+        ],
+        "conditional_covered_components": [
+          {
+            "component": "destination-service-endpoint-digest",
+            "condition": "the destination is reached through a shared ingress"
+          }
+        ],
+        "required_headers": [
+          "Signature",
+          "Signature-Input",
+          "Arkret-Operation",
+          "Content-Digest",
+          "Source-Service-ID",
+          "Destination-Service-ID",
+          "Source-Trust-Domain",
+          "Destination-Trust-Domain"
+        ],
+        "freshness_profile_id": "ak.http_signature.freshness.v1",
+        "prose_bindings": [
+          "zh/crypto-media/webrtc-signaling.md"
+        ],
+        "machine_projections": [],
+        "operations": [
+          "ak.peer.call.invitation.command.relay.v1",
+          "ak.peer.call.invitation.read.admission.v1"
         ],
         "vectors": [],
         "error_codes": [
@@ -12904,6 +12954,15 @@
           "ak.self.management_review.read.status.v1"
         ],
         "surface_class": "extension"
+      },
+      {
+        "surface": "call_invitation_admission",
+        "surface_class": "extension",
+        "operations": [
+          "ak.self.call.invitation.command.send.v1",
+          "ak.peer.call.invitation.command.relay.v1",
+          "ak.peer.call.invitation.read.admission.v1"
+        ]
       }
     ],
     "operations": [
@@ -16700,6 +16759,83 @@
             "signature_scenario_id": "ak.http_signature.scenario.service_to_service.v1"
           }
         }
+      },
+      {
+        "operation_id": "ak.self.call.invitation.command.send.v1",
+        "http": "POST /_arkret/self/rtc/invitation",
+        "grpc": "SelfCallInvitation/Send",
+        "mq": "self.call.invitation.command.send",
+        "notes": "See zh/crypto-media/webrtc-signaling.md section 3b. Producer-signed exact invitation; sender responses are always deferred. Admission is an authorized consumer-only current holder PCR verdict, never public Consent lookup or a reusable capability.",
+        "body_class": "non_streaming_json",
+        "max_canonical_body_bytes": 131072,
+        "success_shape_kind": "schema_resource",
+        "idempotency_mechanism": "none",
+        "retry_safe": false,
+        "uncertain_outcome": {
+          "strategy": "drop_unconfirmed"
+        },
+        "request_schema_ref": "schemas/call-invitation-operations.schema.json#/$defs/send_request_body",
+        "response_schema_ref": "schemas/call-invitation-operations.schema.json#/$defs/send_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "ephemeral_invitation_is_not_a_consent_ledger_or_durable_participant"
+        }
+      },
+      {
+        "operation_id": "ak.peer.call.invitation.command.relay.v1",
+        "http": "POST /_arkret/peer/rtc/invitation",
+        "grpc": "PeerCallInvitation/Relay",
+        "mq": "peer.call.invitation.command.relay",
+        "notes": "See zh/crypto-media/webrtc-signaling.md section 3b. Producer-signed exact invitation; sender responses are always deferred. Admission is an authorized consumer-only current holder PCR verdict, never public Consent lookup or a reusable capability.",
+        "body_class": "non_streaming_json",
+        "max_canonical_body_bytes": 131072,
+        "success_shape_kind": "schema_resource",
+        "idempotency_mechanism": "none",
+        "retry_safe": false,
+        "uncertain_outcome": {
+          "strategy": "drop_unconfirmed"
+        },
+        "request_schema_ref": "schemas/call-invitation-operations.schema.json#/$defs/send_request_body",
+        "response_schema_ref": "schemas/call-invitation-operations.schema.json#/$defs/send_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "ephemeral_invitation_is_not_a_consent_ledger_or_durable_participant"
+        },
+        "auth_requirements": {
+          "service_signature": {
+            "signature_scenario_id": "ak.http_signature.scenario.call_invitation.v1",
+            "standard": "RFC 9421 HTTP Message Signature",
+            "bearer_only_allowed": false,
+            "contract": "Covered components, signature parameters and the freshness window come from http_signature_contract_registry. This operation MUST NOT restate them."
+          }
+        }
+      },
+      {
+        "operation_id": "ak.peer.call.invitation.read.admission.v1",
+        "http": "POST /_arkret/peer/rtc/invitation-admission",
+        "grpc": "PeerCallInvitation/Admission",
+        "mq": "peer.call.invitation.read.admission",
+        "notes": "See zh/crypto-media/webrtc-signaling.md section 3b. Producer-signed exact invitation; sender responses are always deferred. Admission is an authorized consumer-only current holder PCR verdict, never public Consent lookup or a reusable capability.",
+        "body_class": "non_streaming_json",
+        "max_canonical_body_bytes": 131072,
+        "success_shape_kind": "schema_resource",
+        "uncertain_outcome": {
+          "strategy": "drop_unconfirmed"
+        },
+        "request_schema_ref": "schemas/call-invitation-operations.schema.json#/$defs/admission_request_body",
+        "response_schema_ref": "schemas/call-invitation-operations.schema.json#/$defs/admission_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "ephemeral_invitation_is_not_a_consent_ledger_or_durable_participant"
+        },
+        "auth_requirements": {
+          "service_signature": {
+            "signature_scenario_id": "ak.http_signature.scenario.call_invitation.v1",
+            "standard": "RFC 9421 HTTP Message Signature",
+            "bearer_only_allowed": false,
+            "contract": "Covered components, signature parameters and the freshness window come from http_signature_contract_registry. This operation MUST NOT restate them."
+          }
+        }
       }
     ],
     "direct_conversation_admission_mappings": {
@@ -16942,8 +17078,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-10-12.1",
-    "generated_at": "2026-10-12T14:05:22+08:00",
+    "version": "2026-10-14.5",
+    "generated_at": "2026-10-14T06:26:20+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.coland_station.v1",
@@ -17638,6 +17774,14 @@
             "binding_kind": "http_json"
           },
           {
+            "operation_id": "ak.peer.call.invitation.command.relay.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.peer.call.invitation.read.admission.v1",
+            "binding_kind": "http_json"
+          },
+          {
             "operation_id": "ak.peer.committed_event.read.scan.v1",
             "binding_kind": "http_json"
           },
@@ -17763,6 +17907,10 @@
           },
           {
             "operation_id": "ak.self.blob.upload.create.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.self.call.invitation.command.send.v1",
             "binding_kind": "http_json"
           },
           {

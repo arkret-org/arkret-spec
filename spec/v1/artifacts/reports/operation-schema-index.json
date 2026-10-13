@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-11.2",
+  "version": "2026-10-14.3",
   "source_of_truth": false,
-  "generated_at": "2026-10-11T23:19:36+08:00",
+  "generated_at": "2026-10-14T06:22:35+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -5202,7 +5202,8 @@
           "call_id",
           "actor_id",
           "device_id",
-          "focus_id"
+          "focus_id",
+          "join_context"
         ],
         "properties": [
           "realm_id",
@@ -5211,7 +5212,8 @@
           "device_id",
           "focus_id",
           "capability_refs",
-          "desired_media"
+          "desired_media",
+          "join_context"
         ],
         "closed": true
       },
@@ -8990,6 +8992,112 @@
           "target_digest",
           "expires_at",
           "approval_signatures"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.call.invitation.command.send.v1",
+      "success_shape_kind": "schema_resource",
+      "request": {
+        "schema_ref": "schemas/call-invitation-operations.schema.json#/$defs/send_request_body",
+        "schema_kind": "object",
+        "required": [
+          "invitation",
+          "envelope"
+        ],
+        "properties": [
+          "invitation",
+          "envelope"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/call-invitation-operations.schema.json#/$defs/send_outcome",
+        "schema_kind": "object",
+        "required": [
+          "status"
+        ],
+        "properties": [
+          "status"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.peer.call.invitation.command.relay.v1",
+      "success_shape_kind": "schema_resource",
+      "request": {
+        "schema_ref": "schemas/call-invitation-operations.schema.json#/$defs/send_request_body",
+        "schema_kind": "object",
+        "required": [
+          "invitation",
+          "envelope"
+        ],
+        "properties": [
+          "invitation",
+          "envelope"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/call-invitation-operations.schema.json#/$defs/send_outcome",
+        "schema_kind": "object",
+        "required": [
+          "status"
+        ],
+        "properties": [
+          "status"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.peer.call.invitation.read.admission.v1",
+      "success_shape_kind": "schema_resource",
+      "request": {
+        "schema_ref": "schemas/call-invitation-operations.schema.json#/$defs/admission_request_body",
+        "schema_kind": "object",
+        "required": [
+          "invitation",
+          "envelope",
+          "admission_phase",
+          "audience_actor_id",
+          "subject_actor_id",
+          "subject_device_id",
+          "nonce"
+        ],
+        "properties": [
+          "invitation",
+          "envelope",
+          "admission_phase",
+          "audience_actor_id",
+          "subject_actor_id",
+          "subject_device_id",
+          "nonce",
+          "focus_id",
+          "desired_media"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/call-invitation-operations.schema.json#/$defs/admission_outcome",
+        "schema_kind": "object",
+        "required": [
+          "request_digest",
+          "admitted",
+          "authority_generation",
+          "evaluated_at",
+          "expires_at",
+          "proof"
+        ],
+        "properties": [
+          "request_digest",
+          "admitted",
+          "authority_generation",
+          "evaluated_at",
+          "expires_at",
+          "proof"
         ],
         "closed": true
       }

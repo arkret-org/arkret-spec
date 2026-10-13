@@ -131,6 +131,10 @@ holder Station必须在 invite delivery、Contact delivery 与 consent request �
 
 holder 可主动签发短期 green-light，绑定 holder、peer、scope、audience、PCR RealmCommit 与 expiry。验证方必须向 current authority确认 freshness；green-light 不包含 Consent value或其它 peer 列表。
 
+### 6.3 通话首次接触
+
+通话产品投递、客户端响铃及适用的首次接触 media token 必须分别重验完整 current，采用 [`webrtc-signaling.md` §3b](../crypto-media/webrtc-signaling.md) 的 exact invitation／受权读取合同。该关系不改变 holder PCR 真源；generic encrypted rail 不构成产品准入。非空且未登记语义的 constraints 数组 使该条 record 不可授权，独立其它 concrete／any record 仍单独求值。
+
 ## 7. MIMI 映射
 
 MIMI update facade只接受调用方签署的 `EventAdmissionSubmission`，并按 decision 映射到 `ak.consent.grant` 或 `ak.consent.revoke`。facade不得构造 Event。对外投影只暴露最小 `(peer, scope, active)`，不暴露 reason、evidence 或 revision。

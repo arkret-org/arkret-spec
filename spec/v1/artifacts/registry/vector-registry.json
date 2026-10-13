@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-14.1",
+  "version": "2026-10-14.2",
   "source_of_truth": true,
-  "generated_at": "2026-10-14T02:45:36+08:00",
+  "generated_at": "2026-10-14T06:11:32+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -5163,6 +5163,21 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/managed-governance-fixture.json",
         "spec/v1/zh/authz/managed-governance.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.consent.call_invitation_admission.v1",
+      "status": "active",
+      "domain": "consent",
+      "applies_to_profiles": [
+        "ak.profile.station.v1"
+      ],
+      "description": "Producer-signed exact encrypted invitation and per-holder current product/ring/token cuts, independent grants, revoke races, explicit token lifecycle branches, opaque responses and lawful recovery.",
+      "source_refs": [
+        "spec/v1/zh/crypto-media/webrtc-signaling.md",
+        "spec/v1/zh/crypto-media/media-service-binding.md",
+        "spec/v1/artifacts/schemas/call-invitation-operations.schema.json",
+        "spec/v1/artifacts/fixtures/consent-cache-invalidation-fixture.json"
       ]
     }
   ]

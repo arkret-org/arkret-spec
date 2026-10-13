@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-13",
+  "version": "2026-10-14.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-13T01:49:22+08:00",
+  "generated_at": "2026-10-14T06:22:35+08:00",
   "description": "Closed inventory of current spec/v1/zh headings that explicitly carry the （normative） marker. Any addition, removal, rename, or move is reviewed as a protocol change and refreshes this source-of-truth inventory.",
   "titles": [
     {
@@ -473,6 +473,11 @@
       "page": "crypto-media/media-service-binding.md",
       "heading": "8.2 治理绑定（normative）",
       "fragment": "82-治理绑定normative"
+    },
+    {
+      "page": "crypto-media/webrtc-signaling.md",
+      "heading": "3b. 通话邀请的三层 Consent 准入（normative）",
+      "fragment": "3b-通话邀请的三层-consent-准入normative"
     },
     {
       "page": "discovery/client-preferences.md",
