@@ -50,6 +50,8 @@ quota_exhausted approval_missing mls_not_ready_for_payload
 direct_authority_cannot_read_ordinary_realm realm_grant_cannot_replace_sidecar_authority
 realm_membership_cannot_replace_direct_participant
 direct_verified_interval_without_origin_poll
+sidecar_explicit_write_grant sidecar_write_grant_without_effective
+sidecar_write_grant_after_desired_loss sidecar_material_not_a_write_grant_operation
 '''.split())
 
 
@@ -63,7 +65,11 @@ def path_allows(path, case):
     if profile == 'direct':
         return kind == 'direct_participant'
     if profile == 'sidecar':
-        return kind == 'sidecar_read' and case['action'] in READ_ACTIONS and case.get('desired') is True
+        if case.get('desired') is not True:
+            return False
+        if case['action'] in READ_ACTIONS:
+            return kind == 'sidecar_read'
+        return kind == 'capability_grant'
     if profile not in ('realm', 'circle'):
         return False
     return kind == 'capability_grant' or (kind == 'membership_read' and case['action'] in READ_ACTIONS)
@@ -106,7 +112,7 @@ def decide(case):
     if case.get('resource_profile') == 'sidecar' and case.get('exact_endpoint') is not True:
         return 'deny'
     if phase in ('bootstrap', 'future_material'):
-        if case.get('resource_profile') != 'sidecar' or case.get('accepted_lineage') is not True:
+        if case.get('resource_profile') != 'sidecar' or case.get('accepted_lineage') is not True or case.get('action') != 'ak.event.read':
             return 'deny'
     if phase not in ('issue', 'refresh'):
         if not all(case.get(key) is True for key in (
