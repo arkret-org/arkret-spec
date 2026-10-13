@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-09.1",
+  "version": "2026-10-13",
   "source_of_truth": false,
-  "generated_at": "2026-10-09T07:31:39+08:00",
+  "generated_at": "2026-10-13T07:24:13+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -46,6 +46,17 @@
       "file": "schemas/account-data-operations.schema.json",
       "status": "active",
       "description": "Closed request/response DTO bundle for self-surface actor-private account_data operations (ak.self.account_data.*); see zh/discovery/client-preferences.md."
+    },
+    {
+      "schema_id": "ak.schema.account_device_signer_evidence.v1",
+      "file": "schemas/account-device-signer-evidence.schema.json",
+      "status": "active",
+      "description": "Closed content-addressed account-device signer evidence retaining the exact origin attestation and full method-native Service resolution; the same type is the cross-Station authority_forward producer_device_evidence.",
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "schemas/account-device-signer-evidence.schema.json",
+        "normative_ref": "zh/crypto-media/device-lifecycle.md#82-设备验签公钥目录normative"
+      }
     },
     {
       "schema_id": "ak.schema.account_operations.v1",
@@ -157,6 +168,20 @@
       "description": "Authorized shared-Realm projection of another principal's global Actor Profile. It is the only outward carrier for the PCR-resident ak.profile.create / ak.profile.update facts."
     },
     {
+      "schema_id": "ak.schema.agent_authority_state_attestation.v1",
+      "file": "schemas/agent-authority-evidence.schema.json",
+      "fragment": "#/$defs/agent_authority_state_attestation",
+      "status": "active",
+      "description": "The single Agent Authority state signature under ak.agent_authority_state_evidence.v1, binding authority, verification method, state digest and observation window."
+    },
+    {
+      "schema_id": "ak.schema.agent_authority_state_evidence.v1",
+      "file": "schemas/agent-authority-evidence.schema.json",
+      "fragment": "#/$defs/agent_authority_state_evidence",
+      "status": "active",
+      "description": "Portable Agent Authority state evidence: one exact confirmed RealmCommit state, its JCS SHA-256 digest and the single Agent Authority attestation over that digest."
+    },
+    {
       "schema_id": "ak.schema.agent_draft.v1",
       "file": "schemas/agent-draft-private.schema.json",
       "status": "active",
@@ -199,20 +224,6 @@
       }
     },
     {
-      "schema_id": "ak.schema.agent_authority_state_attestation.v1",
-      "file": "schemas/agent-authority-evidence.schema.json",
-      "fragment": "#/$defs/agent_authority_state_attestation",
-      "status": "active",
-      "description": "The single Agent Authority state signature under ak.agent_authority_state_evidence.v1, binding authority, verification method, state digest and observation window."
-    },
-    {
-      "schema_id": "ak.schema.agent_authority_state_evidence.v1",
-      "file": "schemas/agent-authority-evidence.schema.json",
-      "fragment": "#/$defs/agent_authority_state_evidence",
-      "status": "active",
-      "description": "Portable Agent Authority state evidence: one exact confirmed RealmCommit state, its JCS SHA-256 digest and the single Agent Authority attestation over that digest."
-    },
-    {
       "schema_id": "ak.schema.agent_membership_cascade.v1",
       "file": "schemas/agent-membership-cascade.schema.json",
       "status": "active",
@@ -230,6 +241,13 @@
       "fragment": "#/$defs/agent_pairing_bootstrap",
       "status": "active",
       "description": "One-time bootstrap DTO for Agent runtime pairing. Resolves to the sub-schema at file + fragment (agent-operations.schema.json#/$defs/agent_pairing_bootstrap), not the top-level oneOf DTO bundle that ak.schema.agent_operations.v1 maps to."
+    },
+    {
+      "schema_id": "ak.schema.agent_producer_evidence.v1",
+      "file": "schemas/agent-authority-evidence.schema.json",
+      "fragment": "#/$defs/agent_producer_evidence",
+      "status": "active",
+      "description": "authority_forward Agent sibling: six-member ASRE, complete portable authority state, independent controller account gate and method-native authority history. No participation selection."
     },
     {
       "schema_id": "ak.schema.agent_provision.v1",
@@ -290,6 +308,40 @@
       "consumer_binding": {
         "kind": "prose_only",
         "rationale": "No v1 operation or Event admits this whole object; ak.applet.* Events use event-payload.schema.json definitions."
+      }
+    },
+    {
+      "schema_id": "ak.schema.applet_authority_material.v1",
+      "file": "schemas/applet-authority-material.schema.json",
+      "status": "active",
+      "description": "Exact Service-authenticated parent grant and current material; no group content."
+    },
+    {
+      "schema_id": "ak.schema.applet_bot_authoring_request_basis.v1",
+      "file": "schemas/applet-install-authoring.schema.json",
+      "fragment": "#/$defs/bot_authoring_request_basis",
+      "status": "active",
+      "description": "Exact installed Service Bot creation intent and scope.",
+      "consumer_binding": {
+        "kind": "standalone_schema_alias",
+        "selector": "Bot preview authoring_request.basis",
+        "normative_ref": "zh/extensions/applet-integration.md"
+      }
+    },
+    {
+      "schema_id": "ak.schema.applet_bot_operations.v1",
+      "file": "schemas/applet-bot-operations.schema.json",
+      "status": "active",
+      "description": "Closed post-install Bot creation preview and commit DTOs."
+    },
+    {
+      "schema_id": "ak.schema.applet_device_authentication.v1",
+      "file": "schemas/applet-device-authentication.schema.json",
+      "status": "active",
+      "description": "Closed signed managed Device request metadata.",
+      "consumer_binding": {
+        "kind": "prose_only",
+        "rationale": "RFC9421 Arkret-Managed-Device header encoding is normative in extensions/applet-integration.md."
       }
     },
     {
@@ -417,17 +469,6 @@
       "description": "The single approval evidence type of v1: one approver's detached signature over the closed approval input, carried beside the target in the submission container and never inside an Event."
     },
     {
-      "schema_id": "ak.schema.account_device_signer_evidence.v1",
-      "file": "schemas/account-device-signer-evidence.schema.json",
-      "status": "active",
-      "description": "Closed content-addressed account-device signer evidence retaining the exact origin attestation and full method-native Service resolution; the same type is the cross-Station authority_forward producer_device_evidence.",
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "schemas/account-device-signer-evidence.schema.json",
-        "normative_ref": "zh/crypto-media/device-lifecycle.md#82-设备验签公钥目录normative"
-      }
-    },
-    {
       "schema_id": "ak.schema.authenticated_signer_resolution_evidence.v1",
       "file": "schemas/authenticated-signer-resolution-evidence.schema.json",
       "status": "active",
@@ -515,6 +556,12 @@
       "file": "schemas/circle-operations.schema.json",
       "status": "active",
       "description": "Closed request/response DTO bundle for self-surface Circle administration operations (ak.self.circle.*); see zh/models/circle.md."
+    },
+    {
+      "schema_id": "ak.schema.committed_event_subscribe_frame.v1",
+      "file": "schemas/committed-event-subscribe-frame.schema.json",
+      "status": "active",
+      "description": "Closed data/control frame union for ak.self.committed_event.stream.subscribe.v1."
     },
     {
       "schema_id": "ak.schema.common_ids.v1",
@@ -750,12 +797,6 @@
       "description": "Closed authenticated request/outcome carrier for one exact Relation primary-domain or moderation-target current result at a governing-Station durable cut."
     },
     {
-      "schema_id": "ak.schema.committed_event_subscribe_frame.v1",
-      "file": "schemas/committed-event-subscribe-frame.schema.json",
-      "status": "active",
-      "description": "Closed data/control frame union for ak.self.committed_event.stream.subscribe.v1."
-    },
-    {
       "schema_id": "ak.schema.extension_manifest.v1",
       "file": "schemas/extension-manifest.schema.json",
       "status": "active",
@@ -830,6 +871,17 @@
     {
       "schema_id": "ak.schema.ice_config_response.v1",
       "file": "schemas/ice-config-response.schema.json"
+    },
+    {
+      "schema_id": "ak.schema.identity_link.v1",
+      "file": "schemas/identity-link.schema.json",
+      "status": "active",
+      "description": "Closed canonical historical MLS IdentityLink plaintext; no current identity disclosure authority.",
+      "consumer_binding": {
+        "kind": "mls_encrypted_payload",
+        "selector": "application/vnd.arkret.identity-link+json",
+        "normative_ref": "zh/conformance/conformance-vectors.md#35-consent-与-identity-link"
+      }
     },
     {
       "schema_id": "ak.schema.identity_receipt.v1",
@@ -959,6 +1011,12 @@
       "file": "schemas/keys-operations.schema.json",
       "status": "active",
       "description": "Closed request/response DTO bundle for ak.self.keys.upload.create.v1, query, claim, and key backup put/list/delete responses."
+    },
+    {
+      "schema_id": "ak.schema.management_review_operations.v1",
+      "file": "schemas/management-review-operations.schema.json",
+      "status": "active",
+      "description": "Private durable management review requests, decisions and outcome; pending carries no authority."
     },
     {
       "schema_id": "ak.schema.media_metadata.v1",
@@ -1730,53 +1788,6 @@
       "fragment": "#/$defs/welcome",
       "status": "active",
       "description": "Server authentication-success frame carrying effective connection and channel limits."
-    },
-    {
-      "schema_id": "ak.schema.agent_producer_evidence.v1",
-      "file": "schemas/agent-authority-evidence.schema.json",
-      "fragment": "#/$defs/agent_producer_evidence",
-      "status": "active",
-      "description": "authority_forward Agent sibling: six-member ASRE, complete portable authority state, independent controller account gate and method-native authority history. No participation selection."
-    },
-    {
-      "schema_id": "ak.schema.applet_bot_operations.v1",
-      "file": "schemas/applet-bot-operations.schema.json",
-      "status": "active",
-      "description": "Closed post-install Bot creation preview and commit DTOs."
-    },
-    {
-      "schema_id": "ak.schema.applet_bot_authoring_request_basis.v1",
-      "file": "schemas/applet-install-authoring.schema.json",
-      "fragment": "#/$defs/bot_authoring_request_basis",
-      "status": "active",
-      "description": "Exact installed Service Bot creation intent and scope.",
-      "consumer_binding": {
-        "kind": "standalone_schema_alias",
-        "selector": "Bot preview authoring_request.basis",
-        "normative_ref": "zh/extensions/applet-integration.md"
-      }
-    },
-    {
-      "schema_id": "ak.schema.applet_device_authentication.v1",
-      "file": "schemas/applet-device-authentication.schema.json",
-      "status": "active",
-      "description": "Closed signed managed Device request metadata.",
-      "consumer_binding": {
-        "kind": "prose_only",
-        "rationale": "RFC9421 Arkret-Managed-Device header encoding is normative in extensions/applet-integration.md."
-      }
-    },
-    {
-      "schema_id": "ak.schema.applet_authority_material.v1",
-      "file": "schemas/applet-authority-material.schema.json",
-      "status": "active",
-      "description": "Exact Service-authenticated parent grant and current material; no group content."
-    },
-    {
-      "schema_id": "ak.schema.management_review_operations.v1",
-      "file": "schemas/management-review-operations.schema.json",
-      "status": "active",
-      "description": "Private durable management review requests, decisions and outcome; pending carries no authority."
     }
   ],
   "metadata_authority": "contract_registry_section"

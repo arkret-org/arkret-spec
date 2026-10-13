@@ -85,9 +85,9 @@ class ReviewLedger:
 class ManagedGovernanceTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.fixture = json.loads((ART / "fixtures/managed-governance-fixture.json").read_text())
-        cls.catalog = json.loads((ART / "registry/contract-registry.json").read_text())
-        docs = [json.loads(p.read_text()) for p in (ART / "schemas").glob("*.json")]
+        cls.fixture = json.loads((ART / "fixtures/managed-governance-fixture.json").read_text(encoding="utf-8"))
+        cls.catalog = json.loads((ART / "registry/contract-registry.json").read_text(encoding="utf-8"))
+        docs = [json.loads(p.read_text(encoding="utf-8")) for p in (ART / "schemas").glob("*.json")]
         cls.registry = Registry().with_resources((d["$id"], Resource.from_contents(d)) for d in docs)
 
     def validator(self, file, fragment=""):
@@ -110,13 +110,13 @@ class ManagedGovernanceTests(unittest.TestCase):
         self.assertFalse(self.validator("policy.schema.json").is_valid(invalid))
 
     def test_installation_has_no_default_actor_or_creation_side_effect(self):
-        package = json.loads((ART / "schemas/applet-package.schema.json").read_text())
+        package = json.loads((ART / "schemas/applet-package.schema.json").read_text(encoding="utf-8"))
         self.assertIn("base_url", package["required"])
         self.assertNotIn("bot_actor_id", package["properties"])
         self.assertNotIn("transport", package["properties"])
         operation = next(o for o in self.catalog["operation_registry"]["operations"] if o["operation_id"] == "ak.self.applet.command.install.v1")
         self.assertEqual(operation["durable_effect"]["event_kinds"], ["ak.applet.registration", "ak.capability.grant"])
-        actor = json.loads((ART / "schemas/applet-managed-actor.schema.json").read_text())
+        actor = json.loads((ART / "schemas/applet-managed-actor.schema.json").read_text(encoding="utf-8"))
         self.assertEqual(actor["$defs"]["applet_managed_actor_provision_payload"]["properties"]["actor_role"]["enum"], ["bot", "ghost"])
 
     def test_scope_and_role_creation_contract_cannot_reintroduce_pull(self):
@@ -124,7 +124,7 @@ class ManagedGovernanceTests(unittest.TestCase):
         self.assertIn("ak.self.applet.bot.command.provision.v1", operations)
         self.assertIn("ak.self.applet.ghost.command.provision.v1", operations)
         self.assertNotIn("ak.edge.applet.client.command.exchange.v1", operations)
-        defs = json.loads((ART / "schemas/applet-install-authoring.schema.json").read_text())["$defs"]
+        defs = json.loads((ART / "schemas/applet-install-authoring.schema.json").read_text(encoding="utf-8"))["$defs"]
         self.assertEqual(defs["authoring_request"]["properties"]["purpose"]["enum"], ["provision_bot", "provision_ghost"])
         self.assertIn("effective_scope", defs["ghost_preview_request_body"]["required"])
         self.assertNotIn("realm_id", defs["ghost_preview_request_body"]["properties"])
@@ -257,14 +257,14 @@ class ManagedGovernanceTests(unittest.TestCase):
         self.assertFalse(validator.is_valid({**context, "approved": True}))
 
     def test_registered_approval_operation_targets_and_contexts_are_closed(self):
-        schema = json.loads((ART / "schemas/approval-signature.schema.json").read_text())
+        schema = json.loads((ART / "schemas/approval-signature.schema.json").read_text(encoding="utf-8"))
         contexts = {row["properties"]["context_kind"]["const"] for row in schema["$defs"]["approval_context"]["oneOf"]}
         self.assertEqual(contexts, {"grant", "realm_governance", "list_wip", "management"})
         eligibility = self.catalog["capability_action_registry"]["approval_requirement_eligibility"]
         carriers = {row["carrier_id"]: row for row in eligibility["carriers"]}
         projected = {row["operation_id"] for row in carriers.values() if "operation" in row["allowed_target_kinds"]}
         self.assertEqual(set(schema["x-arkret-operation-target-carrier-operations"]), projected)
-        fixture = json.loads((ART / "fixtures/approval-signature-kat-fixture.json").read_text())
+        fixture = json.loads((ART / "fixtures/approval-signature-kat-fixture.json").read_text(encoding="utf-8"))
         candidate = copy.deepcopy(fixture["vectors"][0]["approval_signature"])
         candidate["input"]["approval_target"] = {"target_kind": "operation"}
         validator = self.validator("approval-signature.schema.json")
@@ -280,7 +280,7 @@ class ManagedGovernanceTests(unittest.TestCase):
             self.assertEqual(override["eligibility_kind"], "registered_operation_carrier")
             self.assertEqual(carrier["allowed_target_kinds"], ["operation"])
             request = carrier["request_schema_ref"].split("#/", 1)
-            document = json.loads((ART / request[0]).read_text())
+            document = json.loads((ART / request[0]).read_text(encoding="utf-8"))
             body = document
             for component in request[1].split("/"):
                 body = body[component]
@@ -293,7 +293,7 @@ class ManagedGovernanceTests(unittest.TestCase):
         self.assertEqual(submission["auth_requirements"]["service_signature"]["signature_scenario_id"],
                          "ak.http_signature.scenario.service_to_service.v1")
         self.assertIn("managed_device_signature", submission["auth_requirements"])
-        api = yaml.safe_load((ART / "openapi/arkret-service-api.openapi.yaml").read_text())
+        api = yaml.safe_load((ART / "openapi/arkret-service-api.openapi.yaml").read_text(encoding="utf-8"))
         schemes = api["components"]["securitySchemes"]
         self.assertEqual(schemes["managedDeviceMetadata"]["name"], "Arkret-Managed-Device")
         for path in api["paths"].values():
@@ -307,7 +307,7 @@ class ManagedGovernanceTests(unittest.TestCase):
         self.assertTrue(any("managedDeviceMetadata" in group and "sourceServiceId" not in group for group in groups))
 
     def test_device_allowlist_content_supply_and_no_admin_recovery(self):
-        contract = json.loads((ART / "registry/applet-managed-authority-registry.json").read_text())
+        contract = json.loads((ART / "registry/applet-managed-authority-registry.json").read_text(encoding="utf-8"))
         allowed = contract["device_authentication"]["operations"]
         for operation in ["ak.self.keys.keypackages.upload.create.v1", "ak.self.keys.keypackages.read.claim.v1",
                           "ak.self.keys.keypackages.command.consume.v1", "ak.self.device_messages.read.list.v1",

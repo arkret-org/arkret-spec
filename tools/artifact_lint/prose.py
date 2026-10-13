@@ -1799,6 +1799,8 @@ def check_markdown_full_object_example(lint: Lint, path: Path, block_index: int,
 
 
 def check_markdown_examples(lint: Lint, known: dict[str, set[str]]) -> None:
+    catalog = load_json(lint, ARTIFACTS / "registry/contract-registry.json")
+    rejected_markers = catalog.get("rejected_profile_markers", []) if isinstance(catalog, dict) else []
     for path in markdown_files():
         text = path.read_text(encoding="utf-8")
 
@@ -1809,7 +1811,13 @@ def check_markdown_examples(lint: Lint, known: dict[str, set[str]]) -> None:
             if schema_id not in known["schema_ids"]:
                 lint.fail(path, f"markdown references unknown schema id: {schema_id}")
         for profile_id in PROFILE_ID_TOKEN_RE.findall(text):
-            if profile_id not in known["profiles"]:
+            rejection_anchor = any(
+                row.get("profile_id") == profile_id
+                and row.get("behavior") == "reject_without_activation_or_registration"
+                and row.get("defined_in") == path.relative_to(ARTIFACTS.parent).as_posix()
+                for row in rejected_markers
+            )
+            if profile_id not in known["profiles"] and not rejection_anchor:
                 lint.fail(path, f"markdown references unknown profile: {profile_id}")
 
         for prefix_match in TYPED_ID_PREFIX_TOKEN_RE.finditer(text):

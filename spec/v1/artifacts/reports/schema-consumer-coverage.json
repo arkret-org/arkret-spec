@@ -41,22 +41,22 @@
     "unresolved": "no direct vector or reviewed higher-level coverage owner has been identified; this is a release blocker."
   },
   "summary": {
-    "total_schemas": 226,
+    "total_schemas": 227,
     "by_consumer": {
-      "declared_wire": 58,
+      "declared_wire": 59,
       "event_kind": 7,
       "inbound": 52,
       "outbound": 63,
-      "prose": 103,
+      "prose": 104,
       "prose_only": 3,
       "schema_reference": 163,
-      "startup_compile": 226,
+      "startup_compile": 227,
       "vectors": 113
     },
     "without_wire_consumer": 2,
     "explicit_prose_only": 3,
     "unresolved_consumer_coverage": 0,
-    "without_vector_coverage": 113,
+    "without_vector_coverage": 114,
     "unresolved_vector_disposition": 0
   },
   "without_wire_consumer": [
@@ -129,6 +129,7 @@
     "ak.schema.high_risk_authority_proof.v1",
     "ak.schema.http_problem_details.v1",
     "ak.schema.ice_config_response.v1",
+    "ak.schema.identity_link.v1",
     "ak.schema.invite_delivery.v1",
     "ak.schema.invite_delivery_request.v1",
     "ak.schema.invite_receive_policy.v1",
@@ -1526,6 +1527,7 @@
           "ak.schema.high_risk_authority_proof.v1",
           "ak.schema.holder_quarantine.v1",
           "ak.schema.ice_config_response.v1",
+          "ak.schema.identity_link.v1",
           "ak.schema.identity_receipt.v1",
           "ak.schema.identity_resolution.v1",
           "ak.schema.invite.v1",
@@ -2380,6 +2382,26 @@
           "ak.self.media.read.ice_config.v1"
         ],
         "rationale": "This logical schema is a whole operation catalog or operation-bound DTO. Instance coverage belongs to the listed request/response E2E owners; a second whole-document vector would only exercise the catalog union rather than an independently admitted wire object."
+      }
+    },
+    {
+      "schema_id": "ak.schema.identity_link.v1",
+      "file": "schemas/identity-link.schema.json",
+      "consumers": {
+        "declared_wire": "mls_encrypted_payload",
+        "prose": "normative_text",
+        "startup_compile": "exact"
+      },
+      "wire_covered": true,
+      "vector_coverage": {
+        "disposition": "runtime_dispatch_owned",
+        "owner": "mls_encrypted_payload",
+        "rationale": "This schema is selected inside a registered dynamic/runtime dispatch surface. Coverage belongs to that enclosing dispatch vector because the object is never admitted independently."
+      },
+      "consumer_binding": {
+        "kind": "mls_encrypted_payload",
+        "selector": "application/vnd.arkret.identity-link+json",
+        "normative_ref": "zh/conformance/conformance-vectors.md#35-consent-与-identity-link"
       }
     },
     {
@@ -4348,6 +4370,7 @@
           "ak.schema.handle_claim_revocation.v1",
           "ak.schema.holder_quarantine.v1",
           "ak.schema.ice_config_response.v1",
+          "ak.schema.identity_link.v1",
           "ak.schema.identity_receipt.v1",
           "ak.schema.identity_resolution.v1",
           "ak.schema.invite.v1",

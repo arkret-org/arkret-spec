@@ -511,6 +511,23 @@ def check_schema_refs(lint: Lint, known: dict[str, set[str]]) -> None:
                                     f"{json_path}.{ref_key} contains its own event_id {event_id}",
                                 )
                 for key, child in value.items():
+                    if path.name == "contract-registry.json" and json_path == "$" and key == "rejected_profile_markers":
+                        if not isinstance(child, list):
+                            lint.fail(path, "rejected_profile_markers must be an array")
+                        else:
+                            seen = set()
+                            for marker in child:
+                                if (not isinstance(marker, dict) or set(marker) != {"profile_id", "behavior", "defined_in"}
+                                    or marker.get("behavior") != "reject_without_activation_or_registration"
+                                    or marker.get("profile_id") in known["profiles"]
+                                    or not isinstance(marker.get("profile_id"), str)
+                                    or not PROFILE_ID_TOKEN_RE.fullmatch(marker["profile_id"])
+                                    or marker["profile_id"] in seen
+                                    or not (ARTIFACTS.parent / marker.get("defined_in", "")).is_file()):
+                                    lint.fail(path, "rejected profile marker must be closed, unique, anchored and absent from active profiles")
+                                else:
+                                    seen.add(marker["profile_id"])
+                        continue
                     child_path = f"{json_path}.{key}"
                     schema_ids.update(SCHEMA_ID_TOKEN_RE.findall(key))
                     profile_ids.update(PROFILE_ID_TOKEN_RE.findall(key))

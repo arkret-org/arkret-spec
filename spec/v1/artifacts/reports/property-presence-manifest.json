@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9243,
-    "total_schema_documents": 170,
+    "total_properties": 9289,
+    "total_schema_documents": 171,
     "by_presence_class": {
-      "optional": 2183,
+      "optional": 2193,
       "optional_defaulted": 48,
-      "required": 6509,
+      "required": 6545,
       "required_nullable": 324,
       "tristate": 179
     },
@@ -7446,6 +7446,59 @@
         "/properties/signature": "required",
         "/properties/ttl_seconds": "required",
         "/properties/turn_required": "optional_defaulted"
+      }
+    },
+    "identity-link.schema.json": {
+      "schema_ids": [
+        "ak.schema.identity_link.v1"
+      ],
+      "properties": {
+        "/$defs/proof/properties/payload_digest": "required",
+        "/$defs/proof/properties/signature": "required",
+        "/$defs/proof/properties/signature_algorithm": "required",
+        "/$defs/proof/properties/verification_method": "required",
+        "/$defs/proof_metadata/properties/signature_algorithm": "required",
+        "/$defs/proof_metadata/properties/verification_method": "required",
+        "/$defs/proof_preimage/properties/device_id": "required",
+        "/$defs/proof_preimage/properties/disclosure_policy_id": "optional",
+        "/$defs/proof_preimage/properties/effective_at": "required",
+        "/$defs/proof_preimage/properties/expires_at": "optional",
+        "/$defs/proof_preimage/properties/mls_epoch": "required",
+        "/$defs/proof_preimage/properties/mls_group_id": "optional",
+        "/$defs/proof_preimage/properties/mls_leaf_index": "required",
+        "/$defs/proof_preimage/properties/pairwise_id": "required",
+        "/$defs/proof_preimage/properties/principal_id": "required",
+        "/$defs/proof_preimage/properties/proof": "required",
+        "/$defs/proof_preimage/properties/realm_id": "required",
+        "/$defs/proof_preimage/properties/response_signing_algorithm": "required",
+        "/$defs/proof_preimage/properties/response_signing_public_key_b64u": "required",
+        "/$defs/proof_preimage/properties/response_signing_public_key_digest": "required",
+        "/$defs/proof_preimage/properties/response_signing_verification_method": "required",
+        "/$defs/proof_preimage/properties/schema": "required",
+        "/$defs/proof_preimage/properties/status": "required",
+        "/$defs/proof_preimage/properties/strand_id": "optional",
+        "/$defs/proof_preimage/properties/track_name": "optional",
+        "/$defs/proof_preimage/properties/trust_domain": "required",
+        "/properties/device_id": "required",
+        "/properties/disclosure_policy_id": "optional",
+        "/properties/effective_at": "required",
+        "/properties/expires_at": "optional",
+        "/properties/mls_epoch": "required",
+        "/properties/mls_group_id": "optional",
+        "/properties/mls_leaf_index": "required",
+        "/properties/pairwise_id": "required",
+        "/properties/principal_id": "required",
+        "/properties/proof": "required",
+        "/properties/realm_id": "required",
+        "/properties/response_signing_algorithm": "required",
+        "/properties/response_signing_public_key_b64u": "required",
+        "/properties/response_signing_public_key_digest": "required",
+        "/properties/response_signing_verification_method": "required",
+        "/properties/schema": "required",
+        "/properties/status": "required",
+        "/properties/strand_id": "optional",
+        "/properties/track_name": "optional",
+        "/properties/trust_domain": "required"
       }
     },
     "identity-receipt.schema.json": {

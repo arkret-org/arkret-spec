@@ -263,6 +263,21 @@ PSI 索引在下一轮轮转中排除该 peer。
 
 v1 不登记通用 identity-link 当前查询或披露操作，因此原四层 directory／sync／invite／本地 profile 的当前 lookup 与统一失效向量不适用。客户端为验证已接受历史 MLS 消息而保存的 IdentityLink 仍按消息对应的历史 Event、Commit、MLS epoch 与 leaf 验签；成员离开、ban 或 policy 收紧不追溯清除该历史认证证据。任何已登记操作若在当前 cut 披露身份，仍须按该操作自己的 current authorization、membership 和 visibility gate 重验，不能把历史 IdentityLink 当作当前披露许可。
 
+该历史 MLS plaintext 的唯一 wire schema 为 `ak.schema.identity_link.v1`，机器合同为
+[`identity-link.schema.json`](../../artifacts/schemas/identity-link.schema.json)，MLS content type 为
+`application/vnd.arkret.identity-link+json`。所有 required 成员必须逐字承载；optional 成员缺席与
+显式 null 不等价，本合同不接纳 null，也不补写默认 status。完整 plaintext 必须是其对象的 RFC 8785
+canonical JSON。response-signing public key 是 pairwise DID 下的 Ed25519 公钥，其 digest 为该原始
+32 octets 的 SHA-256；这些字段、scope、epoch 与 leaf index 都只是待验证的绑定，不能代替对应历史
+Event/Commit、MLS group 与 LeafNode 的独立验证。
+
+IdentityLink 的本地 proof 不是通用 Event detached-JWS leaf。其原像为精确 UTF-8 bytes
+`ak.identity_link.v1` 后接一个 LF octet，再接 `proof_preimage` 的 JCS bytes；`proof_preimage` 保留
+完整对象与 proof 的 verification_method/signature_algorithm，仅删除 proof.payload_digest 与
+proof.signature。payload_digest 为该完整原像的 SHA-256，signature 覆盖同一原像。该唯一分隔符登记在
+proof-context-registry 的 domain_separations，不得用于其它 object family。验证者必须按该历史消息
+的已认证来源与已授权的历史 key 验签，不能使用本对象自报的 principal、key 或字段作为信任起点。
+
 ### 3.6 Contact 与 Direct Conversation
 
 `ak.vector.contact.next_prepare_input.v1` MUST 证明：`ak.self.contact.read.list.v1` 投影携带封闭的

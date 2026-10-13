@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-09.1",
+  "version": "2026-10-13.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-09T07:31:39+08:00",
+  "generated_at": "2026-10-13T07:35:39+08:00",
   "description": "Canonical security-domain labels for Arkret detached proofs and non-Event cryptographic transcripts. contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript, and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
     "context values and object_family values MUST be unique",
@@ -827,6 +827,20 @@
       ]
     },
     {
+      "domain": "ak.agent_authority_state_evidence.v1",
+      "object_family": "agent_authority_state_evidence",
+      "primitive": "detached_signature",
+      "binding_fields": [
+        "authority_id",
+        "verification_method",
+        "state_digest",
+        "issued_at",
+        "expires_at"
+      ],
+      "defined_in": "zh/identity/key-management.md",
+      "schema_ref": "schemas/agent-authority-evidence.schema.json#/$defs/agent_authority_state_attestation"
+    },
+    {
       "domain": "ak.applet_managed_actor_authoring_request_proof.v1",
       "object_family": "applet_managed_actor_authoring_request",
       "primitive": "detached_signature",
@@ -871,6 +885,25 @@
       "transcript_schema_refs": [
         "schemas/applet-install-authoring.schema.json#/$defs/managed_actor_proof"
       ]
+    },
+    {
+      "domain": "ak.approval.signature.v1",
+      "object_family": "approval_signature",
+      "primitive": "detached_signature",
+      "binding_fields": [
+        "approval_context",
+        "approval_target",
+        "request_canonical_digest",
+        "operation",
+        "action",
+        "realm_id",
+        "initiating_actor_id",
+        "approver_did",
+        "approved_at",
+        "nonce"
+      ],
+      "defined_in": "zh/authz/constraint-schema.md",
+      "schema_ref": "schemas/approval-signature.schema.json#/$defs/approval_signature_input"
     },
     {
       "domain": "ak.contact.glare_unconsumed_slot.v1",
@@ -963,6 +996,52 @@
       "schema_ref": "schemas/agent-authority-evidence.schema.json#/$defs/controller_account_gate_attestation"
     },
     {
+      "domain": "ak.device_authorize_accepted_device_possession_proof.v1",
+      "object_family": "device_authorize_accepted_device_possession",
+      "primitive": "detached_signature",
+      "binding_fields": [
+        "account_id",
+        "device_id",
+        "device_public_key_did",
+        "hpke_key",
+        "algorithms",
+        "device_key_algorithm",
+        "authorization_binding_kind",
+        "pairing_challenge_transcript_digest"
+      ],
+      "defined_in": "zh/crypto-media/device-lifecycle.md",
+      "schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_target_proof",
+      "transcript_schema_refs": [
+        "schemas/device-pairing.schema.json#/$defs/device_pairing_target_proof"
+      ]
+    },
+    {
+      "domain": "ak.device_authorize_applet_managed_possession_proof.v1",
+      "object_family": "device_authorize_applet_managed_possession",
+      "primitive": "detached_signature",
+      "binding_fields": [
+        "device_id",
+        "device_public_key_did",
+        "hpke_key",
+        "algorithms",
+        "device_key_algorithm",
+        "authorized_by",
+        "not_before",
+        "expires_at",
+        "scopes",
+        "recovery_session_id",
+        "authorization_binding_kind",
+        "authorized_generation_ref",
+        "account_id",
+        "applet_id"
+      ],
+      "defined_in": "zh/crypto-media/device-lifecycle.md",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/device_authorize_applet_managed_possession_transcript",
+      "transcript_schema_refs": [
+        "schemas/event-payload.schema.json#/$defs/device_authorize_applet_managed_possession_transcript"
+      ]
+    },
+    {
       "domain": "ak.device_authorize_possession_proof.v1",
       "object_family": "device_authorize_possession",
       "primitive": "detached_signature",
@@ -1013,52 +1092,6 @@
       ]
     },
     {
-      "domain": "ak.device_authorize_applet_managed_possession_proof.v1",
-      "object_family": "device_authorize_applet_managed_possession",
-      "primitive": "detached_signature",
-      "binding_fields": [
-        "device_id",
-        "device_public_key_did",
-        "hpke_key",
-        "algorithms",
-        "device_key_algorithm",
-        "authorized_by",
-        "not_before",
-        "expires_at",
-        "scopes",
-        "recovery_session_id",
-        "authorization_binding_kind",
-        "authorized_generation_ref",
-        "account_id",
-        "applet_id"
-      ],
-      "defined_in": "zh/crypto-media/device-lifecycle.md",
-      "schema_ref": "schemas/event-payload.schema.json#/$defs/device_authorize_applet_managed_possession_transcript",
-      "transcript_schema_refs": [
-        "schemas/event-payload.schema.json#/$defs/device_authorize_applet_managed_possession_transcript"
-      ]
-    },
-    {
-      "domain": "ak.device_authorize_accepted_device_possession_proof.v1",
-      "object_family": "device_authorize_accepted_device_possession",
-      "primitive": "detached_signature",
-      "binding_fields": [
-        "account_id",
-        "device_id",
-        "device_public_key_did",
-        "hpke_key",
-        "algorithms",
-        "device_key_algorithm",
-        "authorization_binding_kind",
-        "pairing_challenge_transcript_digest"
-      ],
-      "defined_in": "zh/crypto-media/device-lifecycle.md",
-      "schema_ref": "schemas/device-pairing.schema.json#/$defs/device_pairing_target_proof",
-      "transcript_schema_refs": [
-        "schemas/device-pairing.schema.json#/$defs/device_pairing_target_proof"
-      ]
-    },
-    {
       "domain": "ak.franking_proof.signature.v1",
       "object_family": "moderation_franking_proof",
       "primitive": "detached_signature",
@@ -1095,38 +1128,34 @@
       ]
     },
     {
-      "domain": "ak.identity_creation_control_proof.v1",
-      "object_family": "identity_creation_control",
+      "domain": "ak.identity_link.v1",
+      "object_family": "identity_link",
       "primitive": "detached_signature",
+      "prefix_bytes_hex": "616b2e6964656e746974795f6c696e6b2e76310a",
+      "schema_ref": "schemas/identity-link.schema.json#/$defs/proof_preimage",
       "binding_fields": [
-        "proof_kind",
-        "challenge_id",
-        "challenge",
-        "purpose",
-        "account_subject",
+        "schema",
+        "status",
+        "pairwise_id",
         "principal_id",
-        "did",
-        "registration_anchor_digest",
-        "did_version_id",
-        "control_key_digest",
-        "pcr_realm_id",
-        "realm_create_payload_digest",
-        "founding_authorize_payload_digest",
-        "initial_session_request_digest",
-        "genesis_unit_kinds",
-        "identity_creation_lease_id",
-        "lease_fence",
-        "dpop_jkt",
-        "audience_id",
-        "origin",
+        "device_id",
+        "realm_id",
         "trust_domain",
-        "issued_at",
+        "strand_id",
+        "track_name",
+        "mls_group_id",
+        "mls_leaf_index",
+        "mls_epoch",
+        "response_signing_verification_method",
+        "response_signing_algorithm",
+        "response_signing_public_key_b64u",
+        "response_signing_public_key_digest",
+        "effective_at",
         "expires_at",
-        "verification_key_multibase",
-        "signature_algorithm"
+        "disclosure_policy_id",
+        "proof"
       ],
-      "defined_in": "zh/identity/account-lifecycle.md#212-account-handoffpcr-genesis-与首次-standard-grantnormative",
-      "schema_ref": "schemas/account-operations.schema.json#/$defs/identity_creation_control_proof"
+      "defined_in": "zh/conformance/conformance-vectors.md#35-consent-与-identity-link"
     },
     {
       "domain": "ak.identity.recovery_device_possession.v1",
@@ -1208,6 +1237,40 @@
           "source": "pure function: the RFC 8785 JCS bytes of this receipt object with auth_data removed"
         }
       ]
+    },
+    {
+      "domain": "ak.identity_creation_control_proof.v1",
+      "object_family": "identity_creation_control",
+      "primitive": "detached_signature",
+      "binding_fields": [
+        "proof_kind",
+        "challenge_id",
+        "challenge",
+        "purpose",
+        "account_subject",
+        "principal_id",
+        "did",
+        "registration_anchor_digest",
+        "did_version_id",
+        "control_key_digest",
+        "pcr_realm_id",
+        "realm_create_payload_digest",
+        "founding_authorize_payload_digest",
+        "initial_session_request_digest",
+        "genesis_unit_kinds",
+        "identity_creation_lease_id",
+        "lease_fence",
+        "dpop_jkt",
+        "audience_id",
+        "origin",
+        "trust_domain",
+        "issued_at",
+        "expires_at",
+        "verification_key_multibase",
+        "signature_algorithm"
+      ],
+      "defined_in": "zh/identity/account-lifecycle.md#212-account-handoffpcr-genesis-与首次-standard-grantnormative",
+      "schema_ref": "schemas/account-operations.schema.json#/$defs/identity_creation_control_proof"
     },
     {
       "domain": "ak.keypackage.claim_terminal_receipt.v1",
@@ -1300,6 +1363,39 @@
       "schema_ref": "schemas/keypackage-operations.schema.json#/$defs/recipient_mls_durable_receipt"
     },
     {
+      "domain": "ak.mls_welcome_delivery_signature.v1",
+      "object_family": "mls_welcome_delivery_signature",
+      "primitive": "detached_signature",
+      "schema_ref": "schemas/mls-welcome-delivery.schema.json",
+      "transcript_schema_refs": [
+        "schemas/detached-object-signature.schema.json#/$defs/mls_welcome_delivery_signature"
+      ],
+      "signature_member": "producer_proof",
+      "excluded_signature_members": [
+        "producer_proof"
+      ],
+      "binding_fields": [
+        "context",
+        "signature_algorithm",
+        "verification_method",
+        "signed_digest",
+        "created_at"
+      ],
+      "canonicalization": "RFC8785_JCS",
+      "digest_suite": "SHA-256",
+      "digest_input": "RFC8785_JCS(unsigned_projection)",
+      "digest_encoding": "sha256:lowercase_hex",
+      "prefix_form": "UTF8(domain + LF)",
+      "prefix_bytes_hex": "616b2e6d6c735f77656c636f6d655f64656c69766572795f7369676e61747572652e76310a",
+      "signature_input": "prefix_bytes || RFC8785_JCS(signature_envelope_without_sig)",
+      "signature_algorithm": "Ed25519",
+      "signature_encoding": "base64url_no_pad_64_bytes",
+      "domain_is_a_transcript_member": true,
+      "signer_authority": "commit_event_ref exact winning ak.mls.commit Event producer signing authority and its already verified verification_method",
+      "defined_in": "zh/crypto-media/encryption-and-audit.md#261-welcome-producer-proof",
+      "known_answer_ref": "fixtures/detached-object-signature-kat-fixture.json#/cases/5"
+    },
+    {
       "domain": "ak.peer_contact.control_receipt.v1",
       "object_family": "peer_contact_control_receipt",
       "primitive": "detached_signature",
@@ -1357,12 +1453,12 @@
       ]
     },
     {
-      "domain": "ak.realm_commit_signature.v1",
-      "object_family": "realm_commit_signature",
+      "domain": "ak.realm_authority_current_assertion_signature.v1",
+      "object_family": "realm_authority_current_assertion_signature",
       "primitive": "detached_signature",
-      "schema_ref": "schemas/realm-commit.schema.json",
+      "schema_ref": "schemas/realm-authority-bundle.schema.json#/$defs/current_assertion",
       "transcript_schema_refs": [
-        "schemas/detached-object-signature.schema.json#/$defs/realm_commit_signature"
+        "schemas/detached-object-signature.schema.json#/$defs/realm_authority_current_assertion_signature"
       ],
       "signature_member": "signature",
       "excluded_signature_members": [
@@ -1380,48 +1476,14 @@
       "digest_input": "RFC8785_JCS(unsigned_projection)",
       "digest_encoding": "sha256:lowercase_hex",
       "prefix_form": "UTF8(domain + LF)",
-      "prefix_bytes_hex": "616b2e7265616c6d5f636f6d6d69745f7369676e61747572652e76310a",
+      "prefix_bytes_hex": "616b2e7265616c6d5f617574686f726974795f63757272656e745f617373657274696f6e5f7369676e61747572652e76310a",
       "signature_input": "prefix_bytes || RFC8785_JCS(signature_envelope_without_sig)",
       "signature_algorithm": "Ed25519",
       "signature_encoding": "base64url_no_pad_64_bytes",
       "domain_is_a_transcript_member": true,
-      "signer_authority": "governance_generation exact governance Station service signing key authorized by the verified authority chain; verification_method belongs to that exact service identity",
-      "defined_in": "zh/sync/authority-commit-log.md#3-realmcommit-与逐-stream-单链",
-      "known_answer_ref": "fixtures/detached-object-signature-kat-fixture.json#/cases/0"
-    },
-    {
-      "domain": "ak.realm_authority_handoff_old_signature.v1",
-      "object_family": "realm_authority_handoff_old_signature",
-      "primitive": "detached_signature",
-      "schema_ref": "schemas/realm-authority-handoff.schema.json",
-      "transcript_schema_refs": [
-        "schemas/detached-object-signature.schema.json#/$defs/realm_authority_handoff_old_signature"
-      ],
-      "signature_member": "old_authority_signature",
-      "excluded_signature_members": [
-        "old_authority_signature",
-        "new_authority_acceptance_signature"
-      ],
-      "binding_fields": [
-        "context",
-        "signature_algorithm",
-        "verification_method",
-        "signed_digest",
-        "created_at"
-      ],
-      "canonicalization": "RFC8785_JCS",
-      "digest_suite": "SHA-256",
-      "digest_input": "RFC8785_JCS(unsigned_projection)",
-      "digest_encoding": "sha256:lowercase_hex",
-      "prefix_form": "UTF8(domain + LF)",
-      "prefix_bytes_hex": "616b2e7265616c6d5f617574686f726974795f68616e646f66665f6f6c645f7369676e61747572652e76310a",
-      "signature_input": "prefix_bytes || RFC8785_JCS(signature_envelope_without_sig)",
-      "signature_algorithm": "Ed25519",
-      "signature_encoding": "base64url_no_pad_64_bytes",
-      "domain_is_a_transcript_member": true,
-      "signer_authority": "from_generation and from_service_id exact old governance Station service signing key that remains current at the frozen handoff cut",
-      "defined_in": "zh/sync/authority-commit-log.md#8-治理-station-更换",
-      "known_answer_ref": "fixtures/detached-object-signature-kat-fixture.json#/cases/1"
+      "signer_authority": "current_generation and current_service_id exact current governance Station service signing key derived from the verified genesis-to-handoff chain",
+      "defined_in": "zh/sync/service-surface.md#26-service-did-权威入口与路由解析normative",
+      "known_answer_ref": "fixtures/detached-object-signature-kat-fixture.json#/cases/3"
     },
     {
       "domain": "ak.realm_authority_handoff_new_acceptance_signature.v1",
@@ -1458,12 +1520,46 @@
       "known_answer_ref": "fixtures/detached-object-signature-kat-fixture.json#/cases/2"
     },
     {
-      "domain": "ak.realm_authority_current_assertion_signature.v1",
-      "object_family": "realm_authority_current_assertion_signature",
+      "domain": "ak.realm_authority_handoff_old_signature.v1",
+      "object_family": "realm_authority_handoff_old_signature",
       "primitive": "detached_signature",
-      "schema_ref": "schemas/realm-authority-bundle.schema.json#/$defs/current_assertion",
+      "schema_ref": "schemas/realm-authority-handoff.schema.json",
       "transcript_schema_refs": [
-        "schemas/detached-object-signature.schema.json#/$defs/realm_authority_current_assertion_signature"
+        "schemas/detached-object-signature.schema.json#/$defs/realm_authority_handoff_old_signature"
+      ],
+      "signature_member": "old_authority_signature",
+      "excluded_signature_members": [
+        "old_authority_signature",
+        "new_authority_acceptance_signature"
+      ],
+      "binding_fields": [
+        "context",
+        "signature_algorithm",
+        "verification_method",
+        "signed_digest",
+        "created_at"
+      ],
+      "canonicalization": "RFC8785_JCS",
+      "digest_suite": "SHA-256",
+      "digest_input": "RFC8785_JCS(unsigned_projection)",
+      "digest_encoding": "sha256:lowercase_hex",
+      "prefix_form": "UTF8(domain + LF)",
+      "prefix_bytes_hex": "616b2e7265616c6d5f617574686f726974795f68616e646f66665f6f6c645f7369676e61747572652e76310a",
+      "signature_input": "prefix_bytes || RFC8785_JCS(signature_envelope_without_sig)",
+      "signature_algorithm": "Ed25519",
+      "signature_encoding": "base64url_no_pad_64_bytes",
+      "domain_is_a_transcript_member": true,
+      "signer_authority": "from_generation and from_service_id exact old governance Station service signing key that remains current at the frozen handoff cut",
+      "defined_in": "zh/sync/authority-commit-log.md#8-治理-station-更换",
+      "known_answer_ref": "fixtures/detached-object-signature-kat-fixture.json#/cases/1"
+    },
+    {
+      "domain": "ak.realm_commit_signature.v1",
+      "object_family": "realm_commit_signature",
+      "primitive": "detached_signature",
+      "schema_ref": "schemas/realm-commit.schema.json",
+      "transcript_schema_refs": [
+        "schemas/detached-object-signature.schema.json#/$defs/realm_commit_signature"
       ],
       "signature_member": "signature",
       "excluded_signature_members": [
@@ -1481,14 +1577,14 @@
       "digest_input": "RFC8785_JCS(unsigned_projection)",
       "digest_encoding": "sha256:lowercase_hex",
       "prefix_form": "UTF8(domain + LF)",
-      "prefix_bytes_hex": "616b2e7265616c6d5f617574686f726974795f63757272656e745f617373657274696f6e5f7369676e61747572652e76310a",
+      "prefix_bytes_hex": "616b2e7265616c6d5f636f6d6d69745f7369676e61747572652e76310a",
       "signature_input": "prefix_bytes || RFC8785_JCS(signature_envelope_without_sig)",
       "signature_algorithm": "Ed25519",
       "signature_encoding": "base64url_no_pad_64_bytes",
       "domain_is_a_transcript_member": true,
-      "signer_authority": "current_generation and current_service_id exact current governance Station service signing key derived from the verified genesis-to-handoff chain",
-      "defined_in": "zh/sync/service-surface.md#26-service-did-权威入口与路由解析normative",
-      "known_answer_ref": "fixtures/detached-object-signature-kat-fixture.json#/cases/3"
+      "signer_authority": "governance_generation exact governance Station service signing key authorized by the verified authority chain; verification_method belongs to that exact service identity",
+      "defined_in": "zh/sync/authority-commit-log.md#3-realmcommit-与逐-stream-单链",
+      "known_answer_ref": "fixtures/detached-object-signature-kat-fixture.json#/cases/0"
     },
     {
       "domain": "ak.realm_snapshot_signature.v1",
@@ -1524,39 +1620,6 @@
       "known_answer_ref": "fixtures/detached-object-signature-kat-fixture.json#/cases/4"
     },
     {
-      "domain": "ak.mls_welcome_delivery_signature.v1",
-      "object_family": "mls_welcome_delivery_signature",
-      "primitive": "detached_signature",
-      "schema_ref": "schemas/mls-welcome-delivery.schema.json",
-      "transcript_schema_refs": [
-        "schemas/detached-object-signature.schema.json#/$defs/mls_welcome_delivery_signature"
-      ],
-      "signature_member": "producer_proof",
-      "excluded_signature_members": [
-        "producer_proof"
-      ],
-      "binding_fields": [
-        "context",
-        "signature_algorithm",
-        "verification_method",
-        "signed_digest",
-        "created_at"
-      ],
-      "canonicalization": "RFC8785_JCS",
-      "digest_suite": "SHA-256",
-      "digest_input": "RFC8785_JCS(unsigned_projection)",
-      "digest_encoding": "sha256:lowercase_hex",
-      "prefix_form": "UTF8(domain + LF)",
-      "prefix_bytes_hex": "616b2e6d6c735f77656c636f6d655f64656c69766572795f7369676e61747572652e76310a",
-      "signature_input": "prefix_bytes || RFC8785_JCS(signature_envelope_without_sig)",
-      "signature_algorithm": "Ed25519",
-      "signature_encoding": "base64url_no_pad_64_bytes",
-      "domain_is_a_transcript_member": true,
-      "signer_authority": "commit_event_ref exact winning ak.mls.commit Event producer signing authority and its already verified verification_method",
-      "defined_in": "zh/crypto-media/encryption-and-audit.md#261-welcome-producer-proof",
-      "known_answer_ref": "fixtures/detached-object-signature-kat-fixture.json#/cases/5"
-    },
-    {
       "domain": "ak.websocket_auth.v1",
       "object_family": "websocket_dpop_replay_ledger",
       "primitive": "replay_cache_namespace",
@@ -1565,39 +1628,6 @@
         "jti"
       ],
       "defined_in": "zh/sync/websocket-binding.md#31-challenge_dpop_session_v1-proofnormative"
-    },
-    {
-      "domain": "ak.agent_authority_state_evidence.v1",
-      "object_family": "agent_authority_state_evidence",
-      "primitive": "detached_signature",
-      "binding_fields": [
-        "authority_id",
-        "verification_method",
-        "state_digest",
-        "issued_at",
-        "expires_at"
-      ],
-      "defined_in": "zh/identity/key-management.md",
-      "schema_ref": "schemas/agent-authority-evidence.schema.json#/$defs/agent_authority_state_attestation"
-    },
-    {
-      "domain": "ak.approval.signature.v1",
-      "object_family": "approval_signature",
-      "primitive": "detached_signature",
-      "binding_fields": [
-        "approval_context",
-        "approval_target",
-        "request_canonical_digest",
-        "operation",
-        "action",
-        "realm_id",
-        "initiating_actor_id",
-        "approver_did",
-        "approved_at",
-        "nonce"
-      ],
-      "defined_in": "zh/authz/constraint-schema.md",
-      "schema_ref": "schemas/approval-signature.schema.json#/$defs/approval_signature_input"
     }
   ]
 }

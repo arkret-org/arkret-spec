@@ -1,0 +1,245 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/identity-link.schema.json",
+  "title": "Arkret Historical MLS IdentityLink",
+  "description": "Closed canonical plaintext retained only as exact historical MLS authentication material. This is not a current disclosure operation, lookup response, credential, membership grant, or a minimal_metadata_realm profile. The enclosing verified Event/Commit, MLS epoch and exact LeafNode remain mandatory authentication context.",
+  "type": "object",
+  "required": [
+    "schema",
+    "status",
+    "pairwise_id",
+    "principal_id",
+    "device_id",
+    "realm_id",
+    "trust_domain",
+    "mls_leaf_index",
+    "mls_epoch",
+    "response_signing_verification_method",
+    "response_signing_algorithm",
+    "response_signing_public_key_b64u",
+    "response_signing_public_key_digest",
+    "effective_at",
+    "proof"
+  ],
+  "properties": {
+    "schema": {
+      "const": "ak.schema.identity_link.v1"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "revoked"
+      ]
+    },
+    "pairwise_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+    },
+    "principal_id": {
+      "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+    },
+    "device_id": {
+      "$ref": "./common-ids.schema.json#/$defs/device_id"
+    },
+    "realm_id": {
+      "$ref": "./common-ids.schema.json#/$defs/realm_id"
+    },
+    "trust_domain": {
+      "$ref": "./common-ids.schema.json#/$defs/trust_domain"
+    },
+    "strand_id": {
+      "$ref": "./strand.schema.json#/properties/id"
+    },
+    "track_name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "mls_group_id": {
+      "$ref": "./common-ids.schema.json#/$defs/mls_group_id"
+    },
+    "mls_leaf_index": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "mls_epoch": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "response_signing_verification_method": {
+      "type": "string",
+      "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
+    },
+    "response_signing_algorithm": {
+      "const": "Ed25519"
+    },
+    "response_signing_public_key_b64u": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]+$"
+    },
+    "response_signing_public_key_digest": {
+      "$ref": "./event-envelope.schema.json#/$defs/digest"
+    },
+    "effective_at": {
+      "$ref": "./time.schema.json#/$defs/timestamp"
+    },
+    "expires_at": {
+      "$ref": "./time.schema.json#/$defs/timestamp"
+    },
+    "disclosure_policy_id": {
+      "$ref": "./policy.schema.json#/properties/id"
+    },
+    "proof": {
+      "$ref": "#/$defs/proof"
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "proof": {
+      "type": "object",
+      "required": [
+        "verification_method",
+        "signature_algorithm",
+        "payload_digest",
+        "signature"
+      ],
+      "properties": {
+        "verification_method": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
+        },
+        "signature_algorithm": {
+          "const": "Ed25519"
+        },
+        "payload_digest": {
+          "$ref": "./event-envelope.schema.json#/$defs/digest"
+        },
+        "signature": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "proof_metadata": {
+      "type": "object",
+      "required": [
+        "verification_method",
+        "signature_algorithm"
+      ],
+      "properties": {
+        "verification_method": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
+        },
+        "signature_algorithm": {
+          "const": "Ed25519"
+        }
+      },
+      "additionalProperties": false
+    },
+    "proof_preimage": {
+      "type": "object",
+      "required": [
+        "schema",
+        "status",
+        "pairwise_id",
+        "principal_id",
+        "device_id",
+        "realm_id",
+        "trust_domain",
+        "mls_leaf_index",
+        "mls_epoch",
+        "response_signing_verification_method",
+        "response_signing_algorithm",
+        "response_signing_public_key_b64u",
+        "response_signing_public_key_digest",
+        "effective_at",
+        "proof"
+      ],
+      "properties": {
+        "schema": {
+          "const": "ak.schema.identity_link.v1"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "active",
+            "revoked"
+          ]
+        },
+        "pairwise_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "principal_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "device_id": {
+          "$ref": "./common-ids.schema.json#/$defs/device_id"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "trust_domain": {
+          "$ref": "./common-ids.schema.json#/$defs/trust_domain"
+        },
+        "strand_id": {
+          "$ref": "./strand.schema.json#/properties/id"
+        },
+        "track_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "mls_group_id": {
+          "$ref": "./common-ids.schema.json#/$defs/mls_group_id"
+        },
+        "mls_leaf_index": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "mls_epoch": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "response_signing_verification_method": {
+          "type": "string",
+          "pattern": "^did:[a-z0-9]+:[^\\s#?]+#[A-Za-z0-9._:-]+$"
+        },
+        "response_signing_algorithm": {
+          "const": "Ed25519"
+        },
+        "response_signing_public_key_b64u": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "response_signing_public_key_digest": {
+          "$ref": "./event-envelope.schema.json#/$defs/digest"
+        },
+        "effective_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "disclosure_policy_id": {
+          "$ref": "./policy.schema.json#/properties/id"
+        },
+        "proof": {
+          "$ref": "#/$defs/proof_metadata"
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-signature-domain": "ak.identity_link.v1",
+      "dependentRequired": {
+        "strand_id": [
+          "track_name"
+        ]
+      }
+    }
+  },
+  "dependentRequired": {
+    "strand_id": [
+      "track_name"
+    ]
+  }
+}
