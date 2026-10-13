@@ -234,6 +234,37 @@ sender/proof 逐字相等，并以 exact key 和 authorization_ref 核对本地�
 仍逐帧核对 producer signature、完整 Actor、实际 MLS leaf/group/epoch、AAD/AEAD、TTL、plaintext schema
 与 replay；稳定 public-key bytes 缓存不能替代同 key 的不同授权实例。
 
+`delivery_authority.product_authority` 是可选的封闭、单帧只读产品证据投影，固定上限为
+32 KiB canonical JSON。Account Station MUST 对每一种密文 Signal 使用相同取材规则，MUST NOT
+根据 ciphertext 推断 kind 或 Strand。该投影沿既有 authenticated self frame 消费，不新增 RPC、
+Event、Commit、授权租约或可写 ledger；客户端 MUST NOT 为它逐帧下载或重放完整治理历史。
+
+投影的 `authority_commit_id`、可选父 Realm basis 与 `sent_at` MUST 与本帧 envelope 逐字一致；
+`current_realm_head`、`current_scope_head` 是最终投递 gate 在同一只读一致性 cut 观察的已验证 head。
+Realm scope 的两个 current head MUST 相同。Station MUST 证明原 basis 及其依赖的完整覆盖，
+按原 `sent_at` 输出 exact sender 的完整有效 `grants`，按投递时刻输出完整有效 `current_grants`；
+两组均涵盖两个 action 的所有匹配 grant，包括 deny、quarantine、require_review。有效资格要求
+完整 accepted issuer graph、root generation、原件绑定和对应时刻的 lifecycle；不得把 snapshot
+revision 猜成 EventId，不得删去无法求值的负向约束。缺口、超时、未知依赖或超过字节/数量上限
+MUST 省略整个 product_authority，MUST NOT 截断一组 grants 后声称完整。
+
+`owner_actions` 只包含原 basis 与当前 cut 均由该完整 Actor 拥有的已登记 Realm owner 直接 action；
+不能替代非 Event MessageStream send 授权。Direct Conversation 的 `profile_actions` 只来源于
+accepted stable pair、双向当前 contact permission 与原/当前 participant gate，MUST NOT 来源于
+technical root 或普通 capability grant。现有 Direct participant allowlist 只为本投影提供
+`ak.message.create`，未登记 `ak.message.stream.send`；不能据此扩大 Direct 产品权限，
+Direct MessageStream 因缺少 send action 继续 fail closed。两者不得绕过适用的拒绝条件。
+
+Agent 投影 MUST 额外验证 accepted provisioning/current controller binding、controller account
+active、非嵌套 controller、双方原/当前 exact join generation 与 live owned-Agent source。两组
+controller grants 与 owner action 采用相同完整性规则；`historical_management_policies` 和
+`current_management_policies` 分别为对应 cuts 的完整适用 Agent management policies。
+`key_scope` MUST 来源于本帧 exact accepted runtime key authorization，仅保留两个 action 与
+本 Realm 的 Realm/Strand content resource 选择项，保留原约束，不得扩大资源/动作上界或曝光
+其它 Realm 的 key scope。私有 controller participation selection 是 producer 的 intent gate，
+recipient 不猜测、不请求、不公开该私有选择；recipient 仍独立执行公共 controller、management
+与 key ceiling 的 AND gate。无法证明任一项时省略整个产品证据。
+
 没有有效可信材料时只可在 Signal TTL 内有界等待；未验证不得展示、更新 high-water 或执行业务，过期即丢弃。
 
 foreign evidence authority 必须在签发前同时验证 authenticated requester Station、requester exact
@@ -488,6 +519,20 @@ MUST 生成新的 Event/Message identity，不得猜测或复用旧 identity。
 Message create 所需授权；因为精确 kind 与 target 按 §1 强制加密，service 只能执行外层实时
 发送资格与 scope gate，recipient MUST 在展示前按 `authority_commit_id` basis 重验这两个产品级 action。
 授权、scope、schema 或 AEAD 任一项不可验证时 MUST fail closed 且不得显示正文。
+
+`ak.realm.owner` 的 grant-authority 有 `ak.message.stream.send` 这一明确 profile 例外，
+可签发该独立 grant；owner role 不直接覆盖这个非 Event action，producer 仍须持有明确 grant。
+
+recipient MUST 消费 §3.1 的单帧 `product_authority`，以解密出的 exact Strand、外层 Realm/Circle
+scope、完整 sender Actor、discussion/message facts，分别求值 send 与 create。每个 action
+均 MUST 在原 `sent_at` 和当前展示时刻通过共享 constraint 语义；同一 grant source MUST 在
+两组求值中都有效，owner/profile 独立角色仍按其登记边界处理。任一 cut 的 deny、quarantine
+或未解除 review 优先；quota 需要未提供的 reservation、未知字段/依赖均不能猜测满足。
+Agent 的 controller 权限及 historical/current management 与 key ceiling 必须同时通过。
+本地已知撤权、scope containment、current visibility、block/hide 与 session/generation fence
+仍优先于已收到的投影；证据不存在只拒绝 MessageStream 展示，不阻塞其它已认证 profile 解密。
+self advisory 的 Actor/context 不承载此授权证据，MUST NOT 以当前 advisory 替代原 basis。
+
 
 ### 7.2 帧与资源常数
 

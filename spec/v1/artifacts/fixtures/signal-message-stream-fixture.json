@@ -1,6 +1,6 @@
 {
   "suite": "signal_message_stream",
-  "version": "2026-07-28",
+  "version": "2026-10-14",
   "profile": "ak.profile.signal_message_stream.v1",
   "runner": {
     "kind": "json_schema_and_semantic_cases",
@@ -14,7 +14,8 @@
     "spec/v1/zh/sync/signal.md",
     "spec/v1/zh/models/strand-and-message.md",
     "spec/v1/artifacts/schemas/signal-message-stream.schema.json",
-    "spec/v1/artifacts/schemas/signal-envelope.schema.json"
+    "spec/v1/artifacts/schemas/signal-envelope.schema.json",
+    "spec/v1/artifacts/schemas/signal-stream-frame.schema.json"
   ],
   "cases": [
     {
@@ -125,6 +126,41 @@
         "preview_final_binding": false,
         "preview_never_durable": true,
         "message_create_payload_contains_message_id": "schema_violation"
+      }
+    },
+    {
+      "name": "recipient_dual_action_authority_matrix",
+      "vector_id": "ak.vector.signal.message_stream.v1",
+      "input": {
+        "generator": {
+          "kind": "signal_product_authority_matrix",
+          "mutations": [
+            "none",
+            "missing_send",
+            "missing_create",
+            "revoked_source",
+            "replacement_grant",
+            "wrong_strand",
+            "same_principal_other_station",
+            "wrong_basis",
+            "explicit_null",
+            "historical_unknown_deny",
+            "current_unknown_review"
+          ]
+        }
+      },
+      "expected": {
+        "none": "show_preview",
+        "missing_send": "reject_without_body",
+        "missing_create": "reject_without_body",
+        "revoked_source": "reject_without_body",
+        "replacement_grant": "reject_without_body",
+        "wrong_strand": "reject_without_body",
+        "same_principal_other_station": "reject_before_high_water",
+        "wrong_basis": "reject_before_high_water",
+        "explicit_null": "schema_violation",
+        "historical_unknown_deny": "reject_without_body",
+        "current_unknown_review": "reject_without_body"
       }
     }
   ]

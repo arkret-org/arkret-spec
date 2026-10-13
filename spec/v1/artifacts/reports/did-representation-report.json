@@ -7216,6 +7216,16 @@
       ]
     },
     {
+      "schema_path": "signal-stream-frame.schema.json#/$defs/agent_product_authority/properties/controller_account_id",
+      "property_name": "controller_account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
+      ]
+    },
+    {
       "schema_path": "signal-stream-frame.schema.json#/$defs/delivery_authority/properties/recipient_account_id",
       "property_name": "recipient_account_id",
       "semantic_category": "responsibility_identity_material",
@@ -8047,6 +8057,18 @@
       "account_scoped": false,
       "required_evidence": [
         "accepted_controller_principal_binding"
+      ]
+    },
+    {
+      "source": "json_schema",
+      "schema_path": "signal-stream-frame.schema.json#/$defs/agent_product_authority/properties/controller_account_id",
+      "property_name": "controller_account_id",
+      "resolved_carrier": "account_id",
+      "required_subject_class": "account",
+      "contract_carrier": "account_id",
+      "account_scoped": true,
+      "required_evidence": [
+        "exact_account_authority_binding"
       ]
     },
     {

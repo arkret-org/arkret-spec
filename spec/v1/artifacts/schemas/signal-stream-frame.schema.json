@@ -100,6 +100,132 @@
         },
         "key": {
           "$ref": "./signer-key-operations.schema.json#/$defs/station_signing_key"
+        },
+        "product_authority": {
+          "$ref": "#/$defs/product_authority"
+        }
+      },
+      "additionalProperties": false
+    },
+    "product_authority": {
+      "type": "object",
+      "description": "Own-Station complete authority-qualified MessageStream evidence for this exact envelope, maximum 32768 canonical JSON bytes. Original basis and sent_at equal the envelope. Historical and current grants are independently complete for both actions; never truncate negative constraints or replace historical evidence by the current head. Absence disables MessageStream product display without disabling authenticated decryption of other profiles.",
+      "required": [
+        "authority_commit_id",
+        "current_realm_head",
+        "current_scope_head",
+        "sent_at",
+        "grants",
+        "current_grants",
+        "owner_actions",
+        "profile_actions"
+      ],
+      "properties": {
+        "authority_commit_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
+        },
+        "parent_realm_authority_commit_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
+        },
+        "current_realm_head": {
+          "$ref": "./realm-commit.schema.json#/$defs/stream_head"
+        },
+        "current_scope_head": {
+          "$ref": "./realm-commit.schema.json#/$defs/stream_head"
+        },
+        "sent_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "grants": {
+          "type": "array",
+          "items": {
+            "$ref": "./capability-grant.schema.json"
+          },
+          "maxItems": 64
+        },
+        "current_grants": {
+          "type": "array",
+          "items": {
+            "$ref": "./capability-grant.schema.json"
+          },
+          "maxItems": 64
+        },
+        "owner_actions": {
+          "type": "array",
+          "items": {
+            "const": "ak.message.create"
+          },
+          "maxItems": 1,
+          "uniqueItems": true
+        },
+        "profile_actions": {
+          "type": "array",
+          "items": {
+            "const": "ak.message.create"
+          },
+          "maxItems": 1,
+          "uniqueItems": true
+        },
+        "agent": {
+          "$ref": "#/$defs/agent_product_authority"
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_product_authority": {
+      "type": "object",
+      "description": "Accepted exact controller and live owned-Agent join source, ordinary controller authority, historical/current public management bounds and the accepted signing key ceiling projected into this Realm. Private participation preferences remain producer intent gates.",
+      "required": [
+        "controller_account_id",
+        "controller_grants",
+        "current_controller_grants",
+        "controller_owner_actions",
+        "historical_management_policies",
+        "current_management_policies",
+        "key_scope"
+      ],
+      "properties": {
+        "controller_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "controller_grants": {
+          "type": "array",
+          "items": {
+            "$ref": "./capability-grant.schema.json"
+          },
+          "maxItems": 64
+        },
+        "current_controller_grants": {
+          "type": "array",
+          "items": {
+            "$ref": "./capability-grant.schema.json"
+          },
+          "maxItems": 64
+        },
+        "controller_owner_actions": {
+          "type": "array",
+          "items": {
+            "const": "ak.message.create"
+          },
+          "maxItems": 1,
+          "uniqueItems": true
+        },
+        "historical_management_policies": {
+          "type": "array",
+          "items": {
+            "$ref": "./policy.schema.json"
+          },
+          "maxItems": 64
+        },
+        "current_management_policies": {
+          "type": "array",
+          "items": {
+            "$ref": "./policy.schema.json"
+          },
+          "maxItems": 64
+        },
+        "key_scope": {
+          "$ref": "./event-payload.schema.json#/$defs/agent_key_scope"
         }
       },
       "additionalProperties": false

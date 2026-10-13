@@ -582,8 +582,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/signal-message-stream-fixture.json",
-      "sha256": "02159b45236ac2954f741e623e9ab05932fc19bfd87b96086895ccdeca3a88db",
-      "version": "2026-07-28"
+      "sha256": "7bc9054b91d0ccfe1561b9bb885a38005958b493de9432b750fbb15491bf914d",
+      "version": "2026-10-14"
     },
     {
       "path": "spec/v1/artifacts/fixtures/signal-sequence-high-water-fixture.json",

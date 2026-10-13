@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-13",
+  "version": "2026-10-14",
   "source_of_truth": false,
-  "generated_at": "2026-10-13T07:24:13+08:00",
+  "generated_at": "2026-10-14T00:00:03+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -1586,7 +1586,7 @@
       "schema_id": "ak.schema.signal_stream_frame.v1",
       "file": "schemas/signal-stream-frame.schema.json",
       "status": "active",
-      "description": "Closed data/control frame union for ak.self.signal.stream.subscribe.v1."
+      "description": "Closed data/control frame union for ak.self.signal.stream.subscribe.v1, with optional exact-envelope historical/current dual-action product authority and public Agent ceilings."
     },
     {
       "schema_id": "ak.schema.signal_typing.v1",

@@ -4429,6 +4429,7 @@
           "ak.schema.service_operation_dtos.v1",
           "ak.schema.signal_envelope.v1",
           "ak.schema.signal_presence.v1",
+          "ak.schema.signal_stream_frame.v1",
           "ak.schema.signer_key_query_outcome.v1",
           "ak.schema.signer_key_query_request.v1",
           "ak.schema.space.v1",
