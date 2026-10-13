@@ -3117,7 +3117,7 @@
             "capability_grant_refs",
             "policy_refs"
           ],
-          "description": "Exact immutable Agent scope_details from this credential's issuer-ledger claims, returned only over authenticated introspection. Required for Agent runtime grants and forbidden for human and recovery grants; preserves resource, constraint and participation ceilings without client claim parsing.",
+          "description": "Exact immutable Agent scope_details from this credential's issuer-ledger claims, returned only over authenticated introspection. Required for Agent runtime grants and forbidden for human and recovery grants; preserves resource, constraint and participation ceilings without client claim parsing. This ceiling is not a current content authorization source. Literal capability_grant_refs may be empty for legitimate membership, Direct or Sidecar reading. All actual profile/current/endpoint gates are revalidated at use.",
           "properties": {
             "controller_principal_id": {
               "$ref": "./common-ids.schema.json#/$defs/did_core_id"
@@ -3190,7 +3190,8 @@
               "type": "array",
               "items": {
                 "type": "string"
-              }
+              },
+              "description": "Literal grants actually used at issuance only. An empty array is valid for registered non-grant read authority and MUST NOT be interpreted as no reading eligibility or replaced by synthetic grants."
             },
             "policy_refs": {
               "type": "array",
@@ -3720,7 +3721,7 @@
     },
     "AgentSessionGrantRefreshRequest": {
       "type": "object",
-      "description": "Agent rotation binds the predecessor grant's agent_id, accepted agent_key_authorization_ref and proof.verification_method. Agent MLS endpoints have no device_id; a refresh carrying one is invalid.",
+      "description": "Agent rotation binds the predecessor grant's agent_id, accepted agent_key_authorization_ref and proof.verification_method. Agent MLS endpoints have no device_id; a refresh carrying one is invalid. Rotation preserves the predecessor action/resource/constraint ceiling and accepts no requested_scope or agent_scope_request. Current authority is revalidated; scope additions or narrower recovery use a fresh AgentSessionGrantRequest with a new signed intent.",
       "additionalProperties": false,
       "required": [
         "grant_jwt",
@@ -3843,7 +3844,8 @@
           "items": {
             "type": "string",
             "minLength": 1
-          }
+          },
+          "description": "This issuance request action/operation ceiling is distinct from the immutable provision requested_scope. Content additions require fresh issue intent and current legitimate resource authority within provision/key ceilings; refresh cannot add scope."
         },
         "agent_key_authorization_ref": {
           "type": "string",
@@ -3852,7 +3854,7 @@
         },
         "agent_scope_request": {
           "type": "object",
-          "description": "`ak.profile.agent_auth.v1` overlay. Narrowing hints for the\nissued session scope. Service-surface requested_scope values are intersected\nwith the immutable provision requested_scope, accepted agent_key_scope and\nendpoint/resource policy; content actions are additionally intersected with\nindependent effective Realm capability grants, participation, membership,\nhistory visibility and E2EE policy. Provision mandatory constraints remain in\nforce at every layer. REQUIRED when `proof.proof_kind=\"agent_key_proof\"`; MUST\nbe omitted for human session grants. `track_names` is a request-side narrowing\nfield only — the materialized session grant MUST express track scope via the\ncanonical `allowed_tracks` constraint, not via a new `track_names` grant.\n",
+          "description": "Narrowing-only Agent Auth overlay. Content issuance requires a non-empty verified Realm or Strand selector and intersects each action/resource with its complete registered authority path: literal grant, ordinary membership/history reading, Direct participant authority or dedicated Sidecar reading. Service scopes confer no content authority. Realm selection does not bypass Circle/Sidecar profile gates; exact Sidecar/endpoint binding is derived from accepted facts. Typed constraints and action-time current gates remain independent. No literal read grant is required for legitimate profile reading. track_names materializes only as allowed_tracks.",
           "additionalProperties": false,
           "properties": {
             "realm_ids": {

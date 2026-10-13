@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-14.2",
+  "version": "2026-10-14.3",
   "source_of_truth": true,
-  "generated_at": "2026-10-14T06:11:32+08:00",
+  "generated_at": "2026-10-14T06:42:48+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -5178,6 +5178,19 @@
         "spec/v1/zh/crypto-media/media-service-binding.md",
         "spec/v1/artifacts/schemas/call-invitation-operations.schema.json",
         "spec/v1/artifacts/fixtures/consent-cache-invalidation-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.agent.session_content_authority.v1",
+      "status": "active",
+      "domain": "agent",
+      "applies_to_fixtures": [
+        "agent-vectors-fixture.json"
+      ],
+      "description": "Resource-bound Agent content session authority: legitimate non-grant reading, independent ceilings/current gates, fresh issue versus non-expanding rotation, exact replay and phased Sidecar Welcome/effective access.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/agent-vectors-fixture.json",
+        "spec/v1/zh/authz/owned-agent-authority.md"
       ]
     }
   ]

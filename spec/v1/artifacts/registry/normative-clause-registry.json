@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-14.4",
+  "version": "2026-10-14.5",
   "source_of_truth": true,
-  "generated_at": "2026-10-14T06:26:20+08:00",
+  "generated_at": "2026-10-14T06:42:48+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -169,7 +169,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/sync/api-conventions.md#3-认证",
-      "section_digest": "sha256:116716fe61c1e566e9af8bdfbde345791ac7a51e8569ecf437dd33042438f8b2",
+      "section_digest": "sha256:890c397f8052ba9b85eae210e4ddd0ca2b199a8337431a11cd1a0ad5e5a9365a",
       "requirement": "Protected current-v1 endpoints require sender-constrained proof of possession; a bare bearer session grant MUST NOT authenticate a protected request.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -754,11 +754,12 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/owned-agent-authority.md#2-动作与持续上界",
-      "section_digest": "sha256:5aa6f49331c1079a2f1fd0bdcaa7b562d3d3b8a2cc9fce36089581354ee5b83f",
-      "requirement": "All ordinary owned-Agent grant and reading paths remain bounded by current controller authority, original scope, global/key ceilings and shared parent quotas; partial loss, global deny, own-object conditions and equivalent current sources are evaluated without cross-grant splicing.",
+      "section_digest": "sha256:a835f28dd8c983b40c8bf3053b8032b7c8c886d74666e90db96b623cb182496c",
+      "requirement": "All ordinary owned-Agent grant and reading paths remain bounded by current controller authority, original scope, global/key ceilings and shared parent quotas; partial loss, global deny, own-object conditions and equivalent current sources are evaluated without cross-grant splicing. Agent session issuance includes complete registered profile read sources without mandatory literal grants, preserves resource/action correlation, and uses fresh issue for scope changes; refresh is non-expanding and Sidecar bootstrap eligibility is distinct from effective payload access.",
       "testability_grade": "vector",
       "evidence_refs": [
-        "ak.vector.agent.interaction_mode.v1"
+        "ak.vector.agent.interaction_mode.v1",
+        "ak.vector.agent.session_content_authority.v1"
       ]
     },
     {

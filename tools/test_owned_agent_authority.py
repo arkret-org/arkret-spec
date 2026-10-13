@@ -4,6 +4,7 @@ import json
 import unittest
 from unittest.mock import patch
 from tools.artifact_lint import owned_agent_authority as gate
+from tools.artifact_lint import agent_session_content as session_gate
 
 
 class OwnedAgentAuthorityTest(unittest.TestCase):
@@ -121,6 +122,76 @@ class OwnedAgentAuthorityTest(unittest.TestCase):
             if name == 'agent-participation-fixture.json':
                 doc['owned_agent_authority_contract']['cases'].pop()
         self.assertTrue(self.run_gate(mutate))
+
+
+class AgentSessionContentTest(unittest.TestCase):
+    def run_gate(self, mutation=None):
+        original = session_gate.load_json
+
+        def changed(lint, path):
+            value = copy.deepcopy(original(lint, path))
+            if mutation:
+                mutation(path.name, value)
+            return value
+
+        lint = session_gate.Lint()
+        with patch.object(session_gate, 'load_json', changed):
+            session_gate.check_agent_session_content(lint)
+        return lint.errors
+
+    def test_committed_source_scope_and_bootstrap_contract(self):
+        self.assertEqual(self.run_gate(), [])
+
+    def test_every_security_boundary_has_an_independent_expected_decision(self):
+        fixture = session_gate.load_json(session_gate.Lint(), session_gate.ARTIFACTS / 'fixtures/agent-vectors-fixture.json')
+        for case in fixture['session_content_authority_contract']['cases']:
+            with self.subTest(case=case['name']):
+                def mutate(name, doc):
+                    if name == 'agent-vectors-fixture.json':
+                        row = next(c for c in doc['session_content_authority_contract']['cases'] if c['name'] == case['name'])
+                        row['expected'] = 'deny' if row['expected'] != 'deny' else 'allow'
+                self.assertTrue(self.run_gate(mutate))
+
+    def test_each_invariant_cannot_be_reversed(self):
+        for key in session_gate.INVARIANTS:
+            with self.subTest(invariant=key):
+                def mutate(name, doc):
+                    if name == 'owned-agent-authority-registry.json':
+                        value = doc['session_content_authority_contract']['invariants'][key]
+                        doc['session_content_authority_contract']['invariants'][key] = not value
+                self.assertTrue(self.run_gate(mutate))
+
+    def test_source_paths_cannot_be_spliced(self):
+        base = session_gate.load_json(session_gate.Lint(), session_gate.ARTIFACTS / 'fixtures/agent-vectors-fixture.json')['session_content_authority_contract']['defaults']
+        for action in ('ak.event.read', 'ak.message.create'):
+            for resource in ('A', 'B'):
+                paths = [
+                    {'kind': 'capability_grant', 'actions': ['ak.event.read'], 'resources': ['A'], 'complete': True, 'active': True},
+                    {'kind': 'capability_grant', 'actions': ['ak.message.create'], 'resources': ['B'], 'complete': True, 'active': True},
+                ]
+                expected = 'allow' if (action, resource) in (('ak.event.read', 'A'), ('ak.message.create', 'B')) else 'deny'
+                self.assertEqual(session_gate.decide(base | {'action': action, 'resource': resource, 'paths': paths}), expected)
+
+    def test_missing_or_duplicate_cases_are_rejected(self):
+        for duplicate in (False, True):
+            def mutate(name, doc):
+                if name == 'agent-vectors-fixture.json':
+                    cases = doc['session_content_authority_contract']['cases']
+                    if duplicate:
+                        cases[-1] = copy.deepcopy(cases[0])
+                    else:
+                        cases.pop()
+            self.assertTrue(self.run_gate(mutate))
+
+    def test_refresh_cannot_gain_scope_fields_and_reads_need_no_fake_ref(self):
+        def mutate(name, doc):
+            if name == 'service-operation-dtos.schema.json':
+                doc['$defs']['AgentSessionGrantRefreshRequest']['properties']['requested_scope'] = {'type': 'array'}
+        self.assertTrue(self.run_gate(mutate))
+        def mutate_refs(name, doc):
+            if name == 'service-operation-dtos.schema.json':
+                doc['$defs']['SessionGrantIntrospectGrant']['properties']['scope_details']['properties']['capability_grant_refs']['minItems'] = 1
+        self.assertTrue(self.run_gate(mutate_refs))
 
 
 if __name__ == '__main__':

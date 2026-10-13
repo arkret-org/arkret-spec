@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-14.5",
+  "version": "2026-10-14.6",
   "source_of_truth": true,
-  "generated_at": "2026-10-14T06:26:20+08:00",
+  "generated_at": "2026-10-14T06:42:48+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -13333,7 +13333,7 @@
         "http": "POST /_arkret/gate/account/session-grants",
         "grpc": "GateAccount/IssueSessionGrant",
         "mq": "gate.account.command.issue_session_grant",
-        "notes": "Account Authority single-call issuer-ledger SessionGrant issuance with a closed HumanSessionGrantRequest | RecoverySessionGrantRequest | AgentSessionGrantRequest union. OIDC authorization code is never accepted here; authentication-handoffs is the unique code consumer. Returning-human and recovery requests use Authorization: DPoP <account_handoff_grant> plus matching DPoP. Returning-human issuance requires AcceptedDevicePossessionProof and origin revocation-gate allow, consumes the handoff, and emits Standard + complete device_binding. Recovery issuance requires credential_class=recovery_session, binds the account principal/audience, candidate device and handoff DPoP JWK, emits a <=15 minute non-refreshable recovery_candidate_device grant without device_binding, consumes only the request DPoP JTI, and preserves the handoff for recovery completion. Agent issuance keeps its independent agent_key_proof validator. The issuer uses branch-specific request identity and canonical intent to persist one immutable issuance record and signed JWT before responding. Exact replay is byte-identical; conflict and terminal replay fail closed. The client presents every grant only as Authorization: DPoP plus matching DPoP proof. No Principal Event is authored.",
+        "notes": "Account Authority single-call issuer-ledger SessionGrant issuance with a closed HumanSessionGrantRequest | RecoverySessionGrantRequest | AgentSessionGrantRequest union. OIDC authorization code is never accepted here; authentication-handoffs is the unique code consumer. Returning-human and recovery requests use Authorization: DPoP <account_handoff_grant> plus matching DPoP. Returning-human issuance requires AcceptedDevicePossessionProof and origin revocation-gate allow, consumes the handoff, and emits Standard + complete device_binding. Recovery issuance requires credential_class=recovery_session, binds the account principal/audience, candidate device and handoff DPoP JWK, emits a <=15 minute non-refreshable recovery_candidate_device grant without device_binding, consumes only the request DPoP JTI, and preserves the handoff for recovery completion. Agent issuance keeps its independent agent_key_proof validator. The issuer uses branch-specific request identity and canonical intent to persist one immutable issuance record and signed JWT before responding. Exact replay is byte-identical; conflict and terminal replay fail closed. The client presents every grant only as Authorization: DPoP plus matching DPoP proof. No Principal Event is authored. Agent content scope additions use fresh signed issue intent and verified per-resource grant or registered profile reading authority within provision/key ceilings; no predecessor content scope is required and the existing chain is not implicitly superseded. See owned-agent-authority section 2.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "protocol_sequence",
@@ -13421,7 +13421,7 @@
         "operation_id": "ak.gate.account.command.refresh_session_grant.v1",
         "http_only_variant": true,
         "http": "POST /_arkret/gate/account/session-grants/refresh",
-        "notes": "DPoP-bound issuer-ledger SessionGrant rotation with a closed HumanSessionGrantRefreshRequest | AgentSessionGrantRefreshRequest union. Both branches present the predecessor as Authorization: DPoP plus a matching DPoP proof and carry no client-generated challenge or generic proof_kind. Human refresh additionally carries AcceptedDevicePossessionProof purpose=session_grant_refresh; the origin verifies it under the locked current accepted-device key and applies the predecessor signed device_binding as expected binding in the same current-authorization linearization. Agent refresh carries only AgentSessionRefreshProof and revalidates current runtime-key authorization/lifecycle through its independent validator. The stable request identity is (predecessor_grant_id, refresh_request_digest). One issuer transaction creates the active successor with a fresh issuance nonce, preserves subject/scope/audience/cnf.jkt/session_id, and atomically supersedes the predecessor. Exact replay returns the recorded successor; conflicting or terminal replay never issues another. Account/passkey restoration uses a fresh AccountHandoff then issue, and PCR recovery uses its dedicated completion operation; neither is a refresh proof kind. No Principal Event is authored.",
+        "notes": "DPoP-bound issuer-ledger SessionGrant rotation with a closed HumanSessionGrantRefreshRequest | AgentSessionGrantRefreshRequest union. Both branches present the predecessor as Authorization: DPoP plus a matching DPoP proof and carry no client-generated challenge or generic proof_kind. Human refresh additionally carries AcceptedDevicePossessionProof purpose=session_grant_refresh; the origin verifies it under the locked current accepted-device key and applies the predecessor signed device_binding as expected binding in the same current-authorization linearization. Agent refresh carries only AgentSessionRefreshProof and revalidates current runtime-key authorization/lifecycle through its independent validator. The stable request identity is (predecessor_grant_id, refresh_request_digest). One issuer transaction creates the active successor with a fresh issuance nonce, preserves subject/scope/audience/cnf.jkt/session_id, and atomically supersedes the predecessor. Exact replay returns the recorded successor; conflicting or terminal replay never issues another. Account/passkey restoration uses a fresh AccountHandoff then issue, and PCR recovery uses its dedicated completion operation; neither is a refresh proof kind. No Principal Event is authored. Agent rotation adds no action/resource/constraint ceiling and accepts no scope-request fields; current legitimate content authority is revalidated under its original profile freshness. Scope changes use a fresh issue intent.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "typed_response",
         "idempotency_mechanism": "protocol_sequence",
@@ -17078,8 +17078,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-10-14.5",
-    "generated_at": "2026-10-14T06:26:20+08:00",
+    "version": "2026-10-14.6",
+    "generated_at": "2026-10-14T06:42:48+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.coland_station.v1",

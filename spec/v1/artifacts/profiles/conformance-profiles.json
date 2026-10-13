@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-11.1",
-  "generated_at": "2026-10-11T15:11:26+08:00",
+  "version": "2026-10-14.1",
+  "generated_at": "2026-10-14T06:38:42+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -4426,6 +4426,13 @@
           "structured_human_approval_request"
         ],
         "unsupported_optional": "fail closed; never fallback to password / OIDC / passkey validator"
+      },
+      "rules": {
+        "session_content_authority_contract_ref": "registry/owned-agent-authority-registry.json#/session_content_authority_contract",
+        "scope_addition_must": "Use fresh issue with a new signed intent within verified provision/key ceilings; refresh preserves the predecessor ceiling.",
+        "content_source_must": "Evaluate complete resource-profile authority paths; literal reading grants are not mandatory for membership, Direct or Sidecar reading.",
+        "sidecar_bootstrap_must": "Use desired exact endpoint authority and accepted Add/Welcome/claim lineage for bootstrap; payload still requires effective access.",
+        "current_gate_must": "Revalidate actual content, delivery and future material under original profile freshness and known-revocation rules; unregistered cross-authority supply fails closed."
       }
     },
     "ak.profile.agent_delegation_policy.v1": {

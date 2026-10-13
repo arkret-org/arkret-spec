@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-14.4",
-  "generated_at": "2026-10-14T06:22:35+08:00",
+  "version": "2026-10-14.5",
+  "generated_at": "2026-10-14T06:42:48+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -97,7 +97,7 @@
     },
     {
       "operation_id": "ak.gate.account.command.issue_session_grant.v1",
-      "sha256": "sha256:e7f48b70613d293e6e1c2385ba75a45c1c97832786a4c5480facb172d6a3edf4"
+      "sha256": "sha256:462544a47e8888c95f48e77f3315888e74a11002783efe9c968bc96ef435b51b"
     },
     {
       "operation_id": "ak.gate.account.command.logout.v1",
@@ -113,7 +113,7 @@
     },
     {
       "operation_id": "ak.gate.account.command.refresh_session_grant.v1",
-      "sha256": "sha256:3ead2e6ed3c6280a5aeb70d504cce62a22ddd80f9c6c973cead96519df8a72d3"
+      "sha256": "sha256:a9b5eba22e24364f457446cd0b29a638af57ed265635d4a26b7b1069c817a156"
     },
     {
       "operation_id": "ak.gate.account.command.register.v1",
