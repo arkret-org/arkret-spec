@@ -256,10 +256,11 @@ MUST 逐字保留：重试 MUST NOT 剥除授权引用、MUST NOT 把陈旧 CAS 
 
 ### 3.5 Consent 与 identity link
 
-`ak.vector.consent.cache_invalidation.v1` MUST 证明：consent 处于 active 时被缓存的 private contact discovery
-结果、invite capability gate 与 PSI 索引，在 subject 撤销 consent 后立即失效——directory lookup 不再返回该 peer，
-下一次 invite 提交 MUST 前置条件失败并重判 capability gate，`any` 范围的撤销 MUST 失效全部 scope cache，
-PSI 索引在下一轮轮转中排除该 peer。
+`ak.vector.consent.cache_invalidation.v1` MUST 证明：holder 撤销 Consent 后，仍登记的 invite、通话、presence 与
+MIMI 消费者在实际准入边界重判同一 typed current，不能用陈旧缓存或在途 preflight 授权；`any` 撤销必须失效该
+peer 的全部具体 scope cache，但不得撤销其它独立 Consent。较旧的读取结果或 exact Event 重放不得回退 current
+revision 或重新激活许可。invite delivery 对 requester 保持 opaque `deferred`，撤销与从未授权不得可区分。
+未登记 private-contact discovery／PSI 入口必须不可调用、不可广告且零索引变化；不存在正向查询或轮转义务。
 
 v1 不登记通用 identity-link 当前查询或披露操作，因此原四层 directory／sync／invite／本地 profile 的当前 lookup 与统一失效向量不适用。客户端为验证已接受历史 MLS 消息而保存的 IdentityLink 仍按消息对应的历史 Event、Commit、MLS epoch 与 leaf 验签；成员离开、ban 或 policy 收紧不追溯清除该历史认证证据。任何已登记操作若在当前 cut 披露身份，仍须按该操作自己的 current authorization、membership 和 visibility gate 重验，不能把历史 IdentityLink 当作当前披露许可。
 

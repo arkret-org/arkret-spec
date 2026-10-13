@@ -88,7 +88,9 @@ Grant/Revoke Event 的 actor 与认证 holder 必须是 holder PCR 当前 author
 
 ### 4.1.1 缓存失效
 
-Revoke 被 RealmCommit 接纳后，holder Station必须立即使相应 invite gate、通话 gate、presence、private discovery 与 MIMI consent cache 失效。`any` 被撤销时，使该 peer 的全部具体 scope cache 失效。缓存不得把 current revision 回退或延迟已知撤销。
+Revoke 被 RealmCommit 接纳后，holder Station必须立即使相应 invite gate、通话 gate、presence 与 MIMI consent cache 失效。`any` 被撤销时，使该 peer 的全部具体 scope cache 失效；其它独立 active Consent 仍按 §5 求值。缓存不得把 current revision 回退或延迟已知撤销。没有缓存的消费者必须在实际准入边界读取同一 current，不能复用已撤销的 preflight。
+
+current-v1 不提供 private-contact discovery 或 PSI（见 [`discovery/discovery-directory.md` §1／§6](../discovery/discovery-directory.md)）。本条不要求恢复这些入口、索引或轮转；未登记入口必须不可调用、不可广告且不得改变索引。已登记的 MIMI identifiers facade 不得调用未登记发现协议或用 Consent 构造匹配结果。
 
 ### 4.1.2 引入证据
 

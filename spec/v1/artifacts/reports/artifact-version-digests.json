@@ -219,9 +219,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/normative-clause-registry.json",
-      "version": "2026-10-13",
-      "generated_at": "2026-10-13T07:35:39+08:00",
-      "content_digest": "sha256:cc24ba95dfa593f03a500c1f0a233a8b7512267d61758f48d5ea0dfd59ff60d7"
+      "version": "2026-10-14.1",
+      "generated_at": "2026-10-14T02:45:36+08:00",
+      "content_digest": "sha256:312f6974cc6b2a245693b763371534ee066e88e73593d100aac8e4f3964aca40"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-bundle-closure-lock.json",
@@ -381,9 +381,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/vector-registry.json",
-      "version": "2026-10-13.1",
-      "generated_at": "2026-10-13T04:14:16+08:00",
-      "content_digest": "sha256:1dfbcc088affb418722bed74adfa20334f513f6bffda647af90fb693f69e6107"
+      "version": "2026-10-14.1",
+      "generated_at": "2026-10-14T02:45:36+08:00",
+      "content_digest": "sha256:3fa09e884f8be40c234a9b03f8a3aafc645021b692bcc757923dae834d92839f"
     },
     {
       "path": "tools/artifact-anchor-fragment-exemptions.json",

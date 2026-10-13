@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-13.1",
+  "version": "2026-10-14.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-13T04:14:16+08:00",
+  "generated_at": "2026-10-14T02:45:36+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1382,7 +1382,7 @@
       "applies_to_profiles": [
         "ak.profile.station.v1"
       ],
-      "description": "Revoking consent immediately invalidates the cached private contact discovery result, invite capability gate and PSI index: directory lookup stops returning the peer, the next invite submission fails its precondition and re-evaluates the gate, an any-scope revoke clears every scope cache, and the next PSI rotation excludes the peer.",
+      "description": "Consent revocation invalidates current admission decisions for registered invite, call, presence and MIMI consumers; any-scope invalidation preserves independent grants, current revisions never roll back, excluded private discovery and PSI stay unavailable, and requester outcomes remain opaque.",
       "source_refs": [
         "spec/v1/zh/conformance/conformance-vectors.md",
         "spec/v1/artifacts/registry/error-code-registry.json",

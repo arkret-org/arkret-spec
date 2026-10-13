@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-13",
+  "version": "2026-10-14.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-13T07:35:39+08:00",
+  "generated_at": "2026-10-14T02:45:36+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -595,8 +595,8 @@
       "status": "active",
       "category": "privacy",
       "source_anchor": "spec/v1/zh/conformance/conformance-vectors.md#35-consent-与-identity-link",
-      "section_digest": "sha256:9978bf31f8c45dd500c2d0fa559827ea68d45ac15bcd3d49ae468ed8fe6b8471",
-      "requirement": "Revoking consent immediately invalidates the cached private contact discovery result, the invite capability gate and every scope cache, and the next PSI rotation excludes the peer.",
+      "section_digest": "sha256:893fa26698287810e7940b1b21d0bd37744187461bd574fac87426a81024f229",
+      "requirement": "Consent revocation invalidates current admission decisions for registered invite, call, presence and MIMI consumers; any-scope invalidation preserves independent grants, current revisions never roll back, excluded private discovery and PSI stay unavailable, and requester outcomes remain opaque.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.consent.cache_invalidation.v1"
