@@ -4337,7 +4337,8 @@
         "focus_id",
         "participant_id",
         "media",
-        "participant_binding_digest",
+        "expires_at",
+        "nonce",
         "issuer_kid",
         "sig"
       ],
@@ -4372,8 +4373,13 @@
         "media": {
           "$ref": "./call-invitation-operations.schema.json#/$defs/media"
         },
-        "participant_binding_digest": {
-          "$ref": "./event-envelope.schema.json#/$defs/digest"
+        "expires_at": {
+          "$ref": "./event-payload.schema.json#/$defs/timestamp"
+        },
+        "nonce": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{22,64}$",
+          "description": "Private CSPRNG nonce with at least 128 bits of entropy. Included in the receipt signature and public receipt digest; never exposed separately."
         },
         "issuer_kid": {
           "$ref": "./event-payload.schema.json#/$defs/participant_binding/properties/issuer_kid"

@@ -1803,7 +1803,7 @@
     },
     "call_moderation_result": {
       "type": "object",
-      "description": "Commit-ordered projection of the ak.call.state moderation_delta axis (crypto-media/call-state.md section 4.1).",
+      "description": "Complete committed assertion set for one Call axis, with a Commit-ordered read-side fold and whole-axis current revision.",
       "required": [
         "selector",
         "source_stream_ref",
@@ -1834,14 +1834,14 @@
           "$ref": "#/$defs/revision"
         },
         "value": {
-          "$ref": "./event-payload.schema.json#/$defs/call_state_payload/properties/moderation_delta"
+          "$ref": "#/$defs/call_moderation_value"
         }
       },
       "additionalProperties": false
     },
     "call_roster_result": {
       "type": "object",
-      "description": "Commit-ordered projection of the ak.call.state roster_delta axis. The current value is the last accepted write on the stream; per-participant durable identity is (call_id, actor_id, device_id).",
+      "description": "Complete committed assertion set for one Call axis, with a Commit-ordered read-side fold and whole-axis current revision.",
       "required": [
         "selector",
         "source_stream_ref",
@@ -1872,7 +1872,7 @@
           "$ref": "#/$defs/revision"
         },
         "value": {
-          "$ref": "./event-payload.schema.json#/$defs/call_state_payload/properties/roster_delta"
+          "$ref": "#/$defs/call_roster_value"
         }
       },
       "additionalProperties": false
@@ -4643,6 +4643,80 @@
         }
       },
       "additionalProperties": false
+    },
+    "call_roster_assertion": {
+      "type": "object",
+      "required": [
+        "tag_id",
+        "source_commit",
+        "value"
+      ],
+      "properties": {
+        "tag_id": {
+          "$ref": "#/$defs/canonical_event_dot"
+        },
+        "source_commit": {
+          "$ref": "./realm-commit.schema.json"
+        },
+        "value": {
+          "$ref": "./event-payload.schema.json#/$defs/call_state_payload/properties/roster_delta"
+        }
+      },
+      "additionalProperties": false
+    },
+    "call_roster_value": {
+      "type": "object",
+      "required": [
+        "assertions"
+      ],
+      "properties": {
+        "assertions": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/call_roster_assertion"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "description": "Complete immutable assertion set sorted by canonical event dot, folded by covering source Commit stream_position. All deltas retain their exact original carrier and Commit; no private mapping."
+    },
+    "call_moderation_assertion": {
+      "type": "object",
+      "required": [
+        "tag_id",
+        "source_commit",
+        "value"
+      ],
+      "properties": {
+        "tag_id": {
+          "$ref": "#/$defs/canonical_event_dot"
+        },
+        "source_commit": {
+          "$ref": "./realm-commit.schema.json"
+        },
+        "value": {
+          "$ref": "./event-payload.schema.json#/$defs/call_state_payload/properties/moderation_delta"
+        }
+      },
+      "additionalProperties": false
+    },
+    "call_moderation_value": {
+      "type": "object",
+      "required": [
+        "assertions"
+      ],
+      "properties": {
+        "assertions": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/call_moderation_assertion"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "description": "Complete immutable assertion set sorted by canonical event dot, folded by covering source Commit stream_position. All deltas retain their exact original carrier and Commit; no private mapping."
     }
   }
 }

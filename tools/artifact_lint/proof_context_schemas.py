@@ -2658,6 +2658,45 @@ def check_result_value_member_closure(lint: Lint) -> None:
                 )
 
 
+def _check_committed_assertion_provenance(lint: Lint, where: str, write: dict, projection: dict) -> None:
+    """Source provenance is a declared accepting-Commit member, never a payload input."""
+    registry = load_json(lint, CURRENT_RESULT_REGISTRY)
+    family = next((row for row in registry.get("result_kinds", [])
+                   if row.get("result_kind") == write.get("result_family")), None)
+    if not family:
+        return
+    ref = family.get("schema_ref", "")
+    file_ref, _, fragment = ref.partition("#")
+    path = ARTIFACTS / file_ref
+    def follow(node, current_path):
+        for _ in range(12):
+            if not isinstance(node, dict) or "$ref" not in node:
+                return node, current_path
+            target, _, pointer = node["$ref"].partition("#")
+            if target:
+                current_path = (ARTIFACTS / target) if target.startswith("schemas/") else current_path.parent / target
+            document = load_json(lint, current_path)
+            node = resolve_json_pointer(document, "#" + pointer) if pointer else document
+        return {}, current_path
+    try:
+        node, path = follow(resolve_json_pointer(load_json(lint, path), "#" + fragment), path)
+        value, path = follow(node.get("properties", {}).get("value", {}), path)
+        items = value.get("properties", {}).get("assertions", {}).get("items", {})
+        entry, path = follow(items, path)
+        required = "source_commit" in entry.get("required", [])
+        declared = projection.get("source_commit") is True
+        if required != declared:
+            lint.fail(EVENT_KIND_REGISTRY, f"{where} source_commit projection and required assertion provenance disagree")
+        if declared:
+            source = entry.get("properties", {}).get("source_commit", {})
+            source, source_path = follow(source, path)
+            if source_path.resolve() != (ARTIFACTS / "schemas/realm-commit.schema.json").resolve():
+                lint.fail(EVENT_KIND_REGISTRY, f"{where} assertion source_commit must be the complete RealmCommit schema")
+    except (KeyError, IndexError, ValueError, TypeError):
+        if projection.get("source_commit") is True:
+            lint.fail(EVENT_KIND_REGISTRY, f"{where} committed assertion schema cannot be resolved")
+
+
 def _check_result_keyed_set_projection(lint: Lint, where: str, write: dict, projection: dict) -> None:
     """Validate one keyed-set `result_projection` and its `for_each` closure.
 
@@ -2697,9 +2736,13 @@ def _check_result_keyed_set_projection(lint: Lint, where: str, write: dict, proj
     """
     kind = projection["kind"]
     if kind == "keyed_set_add":
-        unknown = set(projection) - {"kind", "tag", "value"}
+        unknown = set(projection) - {"kind", "tag", "value", "source_commit"}
         if unknown:
             lint.fail(EVENT_KIND_REGISTRY, f"{where}.result_projection has unknown member(s) {sorted(unknown)}")
+        if "source_commit" in projection and projection["source_commit"] is not True:
+            lint.fail(EVENT_KIND_REGISTRY, f"{where}.result_projection.source_commit must be true accepting-cut provenance")
+        else:
+            _check_committed_assertion_provenance(lint, where, write, projection)
         if projection.get("tag") != {"dot": True}:
             lint.fail(
                 EVENT_KIND_REGISTRY,
@@ -3247,6 +3290,8 @@ def check_result_write_contracts(lint: Lint) -> None:
             elif projection["kind"] == "apply_patch":
                 _check_result_apply_patch_projection(lint, where, write, projection, kind)
             elif projection["kind"] in _RESULT_KEYED_SET_KINDS:
+                if projection.get("source_commit") is True and row.get("wire_scope") != "durable_event":
+                    lint.fail(EVENT_KIND_REGISTRY, f"{where} source_commit requires a committed durable Event writer")
                 _check_result_keyed_set_projection(lint, where, write, projection)
             elif "value" not in projection and "value_projection" not in projection:
                 lint.fail(

@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-14",
+  "version": "2026-10-14.1",
   "source_of_truth": false,
-  "generated_at": "2026-10-14T05:58:19+08:00",
+  "generated_at": "2026-10-14T20:04:54.906502+00:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -1541,11 +1541,16 @@
             "field": "payload.moderation_delta"
           },
           "result_projection": {
-            "kind": "set",
+            "kind": "keyed_set_add",
+            "tag": {
+              "dot": true
+            },
+            "source_commit": true,
             "value": {
               "field": "payload.moderation_delta"
             }
-          }
+          },
+          "notes": "crypto-media/call-state.md section 4.1: retain every original delta and its covering accepted Commit, use canonical dot ordering for the assertion set and Commit stream_position for the read-side effective-set fold; leave/restore guards the whole-axis revision. source_commit is immutable accepting-cut provenance, never supplied by the producer."
         },
         {
           "result_family": "call_roster",
@@ -1560,11 +1565,16 @@
             "field": "payload.roster_delta"
           },
           "result_projection": {
-            "kind": "set",
+            "kind": "keyed_set_add",
+            "tag": {
+              "dot": true
+            },
+            "source_commit": true,
             "value": {
               "field": "payload.roster_delta"
             }
-          }
+          },
+          "notes": "crypto-media/call-state.md section 4.1: retain every original delta and its covering accepted Commit, use canonical dot ordering for the assertion set and Commit stream_position for the read-side effective-set fold; leave/restore guards the whole-axis revision. source_commit is immutable accepting-cut provenance, never supplied by the producer."
         },
         {
           "result_family": "call_mute_override",

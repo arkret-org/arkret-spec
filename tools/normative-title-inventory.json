@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-14.4",
+  "version": "2026-10-14.8",
   "source_of_truth": true,
-  "generated_at": "2026-10-14T19:29:31+08:00",
+  "generated_at": "2026-10-14T21:50:30Z",
   "description": "Closed inventory of current spec/v1/zh headings that explicitly carry the （normative） marker. Any addition, removal, rename, or move is reviewed as a protocol change and refreshes this source-of-truth inventory.",
   "titles": [
     {
@@ -238,6 +238,11 @@
       "page": "crypto-media/call-state.md",
       "heading": "4.2 `state` 状态机（normative）",
       "fragment": "42-state-状态机normative"
+    },
+    {
+      "page": "crypto-media/call-state.md",
+      "heading": "4.3 完整集合 current 与接受来源（normative）",
+      "fragment": "43-完整集合-current-与接受来源normative"
     },
     {
       "page": "crypto-media/call-state.md",
