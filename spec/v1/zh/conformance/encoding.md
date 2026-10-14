@@ -56,8 +56,10 @@ DID、URI、域名、email 和电话号码仍使用各自的外部 profile，不
 
 ## 3. Digest suite
 
-Realm genesis 固定 Realm 的 active digest suite。内容摘要写作 registry 定义的 suite-tagged digest；不同
-suite 的摘要不能比较为相等。Event、RealmCommit、handoff 与 snapshot 的 ID 都从各自 canonical body
+Event、Event-derived object、Realm 与 RealmCommit identity 固定 current-v1 JCS + SHA-256，不由 Realm
+genesis 的字段选择。Blob 内容寻址可使用 owning schema 允许的 active suite，并由 typed Blob ref 显式
+携带；内容摘要写作 registry 定义的 suite-tagged digest，不同 suite 的摘要不能比较为相等。
+Event、RealmCommit、handoff 与 snapshot 的 ID 都从各自 canonical body
 计算，验证方 MUST 从 ID 恢复 suite 并重算。
 
 ### 3.1 内容寻址预映射
@@ -85,7 +87,7 @@ suite 的摘要不能比较为相等。Event、RealmCommit、handoff 与 snapsho
 
 ### 3.2 Suite-tagged digest
 
-具体 suite 由 typed ID 或所属 Realm genesis 唯一决定；实现不得尝试多种 suite 后择一通过。
+具体 suite 由 owning domain 的规范与 typed ID／ref 唯一决定；实现不得尝试多种 suite 后择一通过。
 
 ### 3.3 Stream 链接与 Commit ID 承诺
 

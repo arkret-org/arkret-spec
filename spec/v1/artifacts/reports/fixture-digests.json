@@ -92,8 +92,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/blob-content-key-fixture.json",
-      "sha256": "579ee82df454894ca5ca6ec680f269fc1f8971b35747eb93fbd3c82411b82c56",
-      "version": "2026-10-08.1"
+      "sha256": "d43cb166f92a69d4ed642c412f6aca7270c306055b6fcf5a2cd4d9134f294d82",
+      "version": "2026-10-14.2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/blob-stream-aead-fixture.json",

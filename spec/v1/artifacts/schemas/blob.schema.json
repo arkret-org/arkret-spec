@@ -59,8 +59,8 @@
                 },
                 {
                   "type": "string",
-                  "pattern": "^(sha256|blake3):[0-9a-f]{64}$",
-                  "description": "Equivalent group state proof hash."
+                  "pattern": "^sha256:[0-9a-f]{64}$",
+                  "description": "Content digest of the accepted ak.mls.genesis or winning ak.mls.commit Event, using the Event ID canonical preimage and digest suite. Re-encode the complete suite and digest bytes as EventId and use the same authenticated authorized winning-state resolution; possession is not authorization. The original key_ref remains AAD-bound."
                 }
               ],
               "description": "v1 MLS group state lookup hint. MUST point to accepted ak.mls.genesis / winning ak.mls.commit / equivalent group state proof. Does NOT replace MLS transcript verification."

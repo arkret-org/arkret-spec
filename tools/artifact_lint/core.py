@@ -804,6 +804,8 @@ _REJECT_REASON_CODE_RE = re.compile(r"^[a-z][a-z0-9_]+$")
 # the digest is only reachable through `arkret-applet-registration-epoch-v1\n`,
 # so pinning the pair pins the domain separator too.
 STATED_PREIMAGE_DIGEST_PAIRS: tuple[tuple[str, str, str, str, str], ...] = (
+    ("event_preimage_canonical_bytes_utf8", "proof_hash", "utf8", "sha256_hex", ""),
+    ("wrong_preimage_utf8", "wrong_proof_hash", "utf8", "sha256_hex", ""),
     ("expected_canonical_bytes_utf8", "expected_subject", "utf8", "base64url", ""),
     ("expected_canonical_bytes_utf8", "expected_digest", "utf8", "sha256_hex", ""),
     ("tag_preimage_utf8", "batch_tag", "utf8", "base64url", ""),

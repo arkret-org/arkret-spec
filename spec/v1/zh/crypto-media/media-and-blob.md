@@ -119,6 +119,20 @@ TUS 创建请求的 `POST` MUST 携带
 accepted genesis 或 winning commit，proof hash 必须解析到等价的 exact winning group state；无法解析、非
 winning state、hash/ref 歧义或缺少该 state 时 MUST 在密钥派生和解密前 fail closed。
 
+这里的 proof hash **仅指该 accepted `ak.mls.genesis` 或 winning `ak.mls.commit` Event 的内容摘要**，
+不是 producer proof、签名、GroupInfo、公共树或 checkpoint 的摘要。其原像、JCS canonical bytes、
+字段省略与 digest construction MUST 逐字使用 Event ID 的既有规范；不引入附件专属 digest 域。
+`Hash` 的 suite MUST 等于该 EventId header 编码的 suite，digest bytes MUST 等于该 EventId 的全部
+32 digest octets。current v1 Event identity 固定为 JCS + SHA-256，因此该分支仅接受 `sha256:`；
+Blob 的 `blake3:` 支持不得扩展到 group-state proof hash。解析者 MUST 将 `suite || digest` 重编码成 canonical EventId，并复用 Event-ref 的
+同一认证读取／winning-state 解析路径；现有 group-state-material 的 EventId selector 即是解析入口，
+不得增设 hash 查询协议。不得只凭 ID 重编码成功就认定 Event 已被认证或 state 已被接受。
+
+两种引用均 MUST 验证 exact accepted Event 的 producer proof、治理接受及 effective scope，并从同一
+已验证 group provenance 恢复 immutable genesis、epoch；持有的 checkpoint MUST 对应该 state 且有
+独立历史读取授权。错误原像、错误 suite、非 winner、歧义、scope/genesis 不符或缺授权均在派生前
+拒绝。EventId 重编码只用于解析，不改变已认证 descriptor 中的 raw `key_ref` 或其 AAD。
+
 ```json fragment
 {
   "blob_ref": "ak:blob:sha256:...",
@@ -278,7 +292,7 @@ nonce = nonce_prefix || u32_be(segment_index) || last_segment_flag
 
 为保持与整文件形态一致的**单值整体完整性**语义：
 
-- `blob_ref=ak:blob:<suite>:<hex>` 的 `<suite>:<hex>` = 对全部 segment 密文（每段含其各自 AEAD tag）按 segment_index 升序拼接后的完整字节流，用 Realm digest suite（见 [`../conformance/encoding.md` §3.2](../conformance/encoding.md)）求得。
+- `blob_ref=ak:blob:<suite>:<hex>` 的 `<suite>:<hex>` = 对全部 segment 密文（每段含其各自 AEAD tag）按 segment_index 升序拼接后的完整字节流，用该 Blob ref 显式选择的 active Blob digest suite（见 [`../conformance/encoding.md` §3.2](../conformance/encoding.md)）求得；不由 Realm/Event identity suite 或 MLS cipher suite 推断。
 - 拼接顺序 MUST 严格按 segment_index 升序，且覆盖恰好派生的 `N` 段、不含其它字节。
 - 语义分层：per-segment AEAD tag 提供**增量**校验（边下边验），content-addressed `blob_ref` 提供**整体**完整性（防止整体替换 / 段集合层面的攻击）。两者都 MUST 校验通过。
 - **认证归属（normative）**：`blob_ref` 是 post-encryption commitment，MUST NOT 出现在任何 segment 的 AEAD AAD 中（本节 immutable header 规则）。它自身的真实性由引用该附件的已签名 Event / encrypted descriptor（例如 `ak.content.file` / `ak.content.long_text` 的 attachment、file-transfer record）或 upload receipt 承担；接收方 MUST 以外层已认证值为准，MUST NOT 采信仅由传输层提供的 digest。

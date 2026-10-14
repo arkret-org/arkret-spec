@@ -49,6 +49,35 @@ def check(lint, registry):
         assert entry["context_fields"] == FIELDS and entry["output_bytes"] == 32
         assert entry["empty_context_forbidden"] is True
         fixture = load_json(lint, path)
+        alias = next(case for case in fixture["cases"] if case["name"] == "equivalent_refs")
+        preimage = alias["event_preimage_canonical_bytes_utf8"]
+        state_event = json.loads(preimage)
+        assert state_event["kind"] in ("ak.mls.genesis", "ak.mls.commit")
+        assert "producer_proof" not in state_event and "event_id" not in state_event
+        assert jcs(state_event).decode() == preimage
+        event_digest = hashlib.sha256(preimage.encode()).digest()
+        assert alias["proof_hash"] == "sha256:" + event_digest.hex()
+        assert alias["event_ref"] == "ak:event:" + base64.urlsafe_b64encode(b"\x01" + event_digest).decode().rstrip("=")
+        assert hashlib.sha256(alias["wrong_preimage_utf8"].encode()).digest() != event_digest
+        for case in alias["resolution_cases"]:
+            given = case["input"]
+            reference = given["group_state_ref"]
+            if re.fullmatch(r"sha256:[0-9a-f]{64}", reference):
+                reference = "ak:event:" + base64.urlsafe_b64encode(b"\x01" + bytes.fromhex(reference[7:])).decode().rstrip("=")
+            candidates = [state for state in given["authenticated_states"]
+                          if state["event_ref"] == reference and state["accepted_winner"]]
+            epoch = None
+            if len(candidates) == 1:
+                state = candidates[0]
+                checkpoint = given["checkpoint"]
+                if (checkpoint and checkpoint["authorized"]
+                        and checkpoint["event_ref"] == reference
+                        and all(state[field] == checkpoint[field] for field in
+                                ("effective_scope", "genesis_event_ref", "epoch"))
+                        and all(state[field] == given[field] for field in
+                                ("effective_scope", "genesis_event_ref"))):
+                    epoch = state["epoch"]
+            assert epoch == case["expected_epoch"], case["name"]
         assert len(fixture["kats"]) == 4
         for kat in fixture["kats"]:
             context = kat["context"]
