@@ -99,13 +99,7 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
     "roster_delta": {
       "op": "join",
       "participant": {
-        "actor_id": {
-          "kind": "account",
-          "account_id": {
-            "principal_id": "ak:did_core:webvh:zBfFLx7gUhQB7dPEQCj3qeHZR",
-            "station_id": "ak:did_core:webvh:z6mkfixturestationexample"
-          }
-        },
+        "actor_id": "ak:did_core:key:z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH",
         "device_id": "ak:device:01964137-0000-7000-8000-000000000000",
         "joined_at": "2026-04-26T00:00:00Z",
         "foci_preferred": [
@@ -157,12 +151,13 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
 
 - `focus`：是 `call_focus` 的**完整目标值**，`mode` required、`session_focus` optional。首个 committed `session_focus` 后，任何后继 `focus` 写入都 MUST 原样携带它；省略或改写均以 `session_focus_already_committed` 拒绝。`mode` 只允许按 §6 单向升级。
 - `roster_delta`：participant 的稳定领域身份是 `(call_id, actor_id, device_id)`。`op=join` 创建或更新该 participant；`op=leave` 携带同一 `actor_id/device_id` 与 roster `expected_revision`。未知 participant、跨 call、身份不匹配或 stale revision MUST 拒绝。每 Event 只允许一个 roster delta；effective roster 上限为 1,000。
-- `roster_delta.participant` 的 durable 身份最小化：除 Realm policy 明确要求实名审计且已披露外，`actor_id` MUST 使用 call-scoped pairwise DID，`device_id` MUST 使用仅在该 call 内稳定的 typed device alias。`joined_at` 若写入 durable event MUST 向下取整到 5 分钟 bucket。
+- `roster_delta.participant` 的 durable 身份最小化：`actor_id` 是匿名 did_core_id scalar，MUST 使用 call-scoped pairwise DID，`device_id` MUST 使用仅在该 call 内稳定的 typed device alias。`joined_at` 若写入 durable event MUST 向下取整到 5 分钟 bucket。
+- 完整认证主体与上述匿名元组仅通过 media-service-binding §3.2 的私有签署 subject_binding 关联；它不得写入 roster／Event。public participant_binding 必须签匿名元组，refresh 必须同时验私有映射与 accepted 活跃 roster。
 - `roster_delta.participant.foci_preferred`：客户端本地 focus 偏好列表；后加入者不得改变已 committed `session_focus`。
 - `roster_delta.participant.participant_id`：来自 token exchange 响应的 SFU-local handle，scope 限 `(call_id, focus_id, sfu_did)`。
 - `roster_delta.participant.participant_binding`：token issuer 对 `(realm_id, call_id, focus_id, actor_id, device_id, participant_id, expires_at)` 的签名承诺。reducer **MUST** 验证：
   1. `issuer_kid` 解析到的 service DID 出现在当前 epoch `ak.realm.media_service.service_id`；
-  2. 从 enclosing Event/Call 取得 `realm_id` / `call_id`，从该 participant entry 取得 `focus_id` / 完整 `actor_id` / `device_id` / `participant_id`，并与 binding 的 `expires_at` 重建唯一签名七元组；写入时 entry 的 `focus_id` 必须等于已接受的 selected focus，后续 focus 变化不得重解释旧 entry；
+  2. 从 enclosing Event/Call 取得 `realm_id` / `call_id`，从该 participant entry 取得 `focus_id` / 匿名 `actor_id` / device alias / `participant_id`，并与 binding 的 `expires_at` 重建唯一签名七元组；写入时 entry 的 `focus_id` 必须等于已接受的 selected focus，后续 focus 变化不得重解释旧 entry；
   3. `expires_at` > event `created_at`（不接受已过期 binding）；
   4. `sig` 通过签名验证。
   任一失败 → `failed_precondition` `reason="participant_binding_invalid"`。

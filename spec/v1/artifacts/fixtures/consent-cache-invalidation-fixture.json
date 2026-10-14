@@ -5,7 +5,7 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.consent.cache_invalidation.v1"
   },
-  "version": "2026-10-14.3",
+  "version": "2026-10-14.4",
   "profile": "ak.profile.station.v1",
   "covers_vectors": [
     "ak.vector.consent.cache_invalidation.v1",
@@ -271,7 +271,9 @@
       "decision": "allow",
       "observed": "actual holder product/ring/token release, current cut and requester wire",
       "assertions": [
-        "Invited first join uses exact relation and fresh token cut; affirmative signed voluntary join is legal; only accepted same actor/device active participant may refresh within accepted media. Unestablished refresh, automatic voluntary fallback and narrower-media expansion reject."
+        "Invited first join uses exact relation and fresh token cut; affirmative signed voluntary join is legal; only accepted same actor/device active participant may refresh within accepted media. Unestablished refresh, automatic voluntary fallback and narrower-media expansion reject.",
+        "Durable roster contains only call-scoped pseudonymous DID/device alias; authenticated Account/device and private signed mapping never enter Event, current snapshot, generic Signal, backend token or telemetry.",
+        "Established refresh verifies private subject_binding signature and exact authenticated Account/device, accepted anonymous alias/focus/participant and public-binding digest; receipt alone cannot establish a leg or expand media, and wrong Station/device/alias/digest/signature rejects. Accepted historical issuer key remains verifiable after restart or rotation without accepting an uncommitted old binding."
       ]
     },
     {

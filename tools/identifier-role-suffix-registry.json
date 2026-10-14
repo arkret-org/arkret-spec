@@ -1,5 +1,5 @@
 {
-  "version": "2026-09-25",
+  "version": "2026-10-14.1",
   "source_of_truth": false,
   "normative_rule": "NC-IDROLE-001",
   "forbidden_arkret_owned_fields": [
@@ -54,6 +54,18 @@
         "did_core_id": "Stable claim, mention, selector, or accountability subject core."
       },
       "reason": "Contact concurrency requires exact actor identity while claims and selectors intentionally identify stable principals."
+    },
+    {
+      "field": "actor_id",
+      "representation_profiles": [
+        "actor_id",
+        "did_core_id"
+      ],
+      "profile_meanings": {
+        "actor_id": "Exact authenticated Account or Service actor; preserves every Account component.",
+        "did_core_id": "Call-scoped anonymous roster DID core only, in call_participant and CallMediaRosterIdentity. Never an authorization principal or a routed Account."
+      },
+      "reason": "media-service-binding 3.2 separates authenticated token subjects from durable anonymous roster coordinates; each schema occurrence is closed to one representation and private subject_binding alone connects the two."
     }
   ],
   "responsibility_field_contracts": [

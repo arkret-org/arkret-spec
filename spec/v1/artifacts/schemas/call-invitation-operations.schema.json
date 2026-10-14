@@ -396,7 +396,8 @@
       "type": "object",
       "required": [
         "kind",
-        "participant_id"
+        "participant_id",
+        "subject_binding"
       ],
       "properties": {
         "kind": {
@@ -409,6 +410,9 @@
         "participant_id": {
           "type": "string",
           "pattern": "^ak:rtc_participant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "subject_binding": {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/CallMediaSubjectBinding"
         }
       },
       "additionalProperties": false

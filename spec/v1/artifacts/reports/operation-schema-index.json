@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-14.7",
+  "version": "2026-10-14.8",
   "source_of_truth": false,
-  "generated_at": "2026-10-14T07:27:04+08:00",
+  "generated_at": "2026-10-14T07:56:11+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -5231,7 +5231,9 @@
           "participant_id",
           "participant_binding",
           "expires_at",
-          "backend_kind"
+          "backend_kind",
+          "roster_identity",
+          "subject_binding"
         ],
         "properties": [
           "realm_id",
@@ -5244,7 +5246,9 @@
           "participant_id",
           "participant_binding",
           "expires_at",
-          "backend_kind"
+          "backend_kind",
+          "roster_identity",
+          "subject_binding"
         ],
         "closed": true
       }

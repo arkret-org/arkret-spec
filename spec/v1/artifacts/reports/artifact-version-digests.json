@@ -219,9 +219,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/normative-clause-registry.json",
-      "version": "2026-10-14.7",
-      "generated_at": "2026-10-14T08:30:50+08:00",
-      "content_digest": "sha256:9e5f634457c9102679ba9cff4727dcffc403c4b81beb7bbe1be8c1fdd38dcac2"
+      "version": "2026-10-14.9",
+      "generated_at": "2026-10-14T19:19:00+08:00",
+      "content_digest": "sha256:3884aa50e78bbf3ad5d3ee21e39962eda13d10ef0481f68e4ce65226e05139eb"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-bundle-closure-lock.json",
@@ -237,9 +237,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-10-14.9",
-      "generated_at": "2026-10-14T07:56:12+08:00",
-      "content_digest": "sha256:81b81e46b96c40e5a28550eb1b5e5789cb3cfc85fd4b6bfb3b3a90598391331d"
+      "version": "2026-10-14.11",
+      "generated_at": "2026-10-14T18:59:15+08:00",
+      "content_digest": "sha256:b58e4d889230887058e1f194979348774782c3867733afe9b6ec1aed420bd888"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
@@ -291,9 +291,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/proof-context-registry.json",
-      "version": "2026-10-14.3",
-      "generated_at": "2026-10-14T07:27:04+08:00",
-      "content_digest": "sha256:c66bdcddd6f074ea7b075035ae262881d0b7930fe035da3bcc5c96fceaf92f5f"
+      "version": "2026-10-14.4",
+      "generated_at": "2026-10-14T18:59:15+08:00",
+      "content_digest": "sha256:d705fdfeee4d35759bc531094e83751143bf9bdcee4b79bdb823bffdf221a2f2"
     },
     {
       "path": "spec/v1/artifacts/registry/protocol-layer-registry.json",
@@ -453,15 +453,15 @@
     },
     {
       "path": "tools/identifier-classification-registry.json",
-      "version": 63,
+      "version": 64,
       "generated_at": null,
-      "content_digest": "sha256:cd713c9038317830a21550409e4918722c7ace51f626c28ec3293f86e018cd31"
+      "content_digest": "sha256:c6b2c1f86222a5223f2abef9416844dfd18a88605afc8d71443a116ad744e59a"
     },
     {
       "path": "tools/identifier-role-suffix-registry.json",
-      "version": "2026-09-25",
+      "version": "2026-10-14.1",
       "generated_at": null,
-      "content_digest": "sha256:2e5ae6a26aeda42c4c2c676560cb0fe2a5cce033ed4ddc12681859af2236eeea"
+      "content_digest": "sha256:8a8f8d2883671df9ad27f817369a35e4a15f512dae96de98d63235acf8795b3f"
     },
     {
       "path": "tools/naming-convention-rules.json",
@@ -483,9 +483,9 @@
     },
     {
       "path": "tools/normative-title-inventory.json",
-      "version": "2026-10-14.2",
-      "generated_at": "2026-10-14T07:09:00+08:00",
-      "content_digest": "sha256:c195f9eccc3bc86345da9fb3e9148b0790b4384ea3b40d4260d5fa30fc0b06da"
+      "version": "2026-10-14.3",
+      "generated_at": "2026-10-14T18:59:15+08:00",
+      "content_digest": "sha256:087a5b595750f0d8df7d744a72bbbd70ee0f077262516b63dbe496b0be998e47"
     },
     {
       "path": "tools/operation-note-field-exemptions.json",

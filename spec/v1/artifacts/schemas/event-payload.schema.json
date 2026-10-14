@@ -1371,7 +1371,8 @@
       ],
       "properties": {
         "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/actor_id"
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
+          "description": "Call-scoped pseudonymous DID core; never the authenticated full Account or Service ActorId."
         },
         "device_id": {
           "$ref": "#/$defs/device_id"
