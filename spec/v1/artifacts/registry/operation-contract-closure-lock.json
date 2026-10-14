@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-14.15",
-  "generated_at": "2026-10-14T05:31:43+00:00",
+  "version": "2026-10-14.16",
+  "generated_at": "2026-10-14T05:31:44+00:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -477,7 +477,7 @@
     },
     {
       "operation_id": "ak.self.agent.resource.get.v1",
-      "sha256": "sha256:1e10d43e087794305272d07899906f673eb5ef2015b08d8581fafd7f36e8959b"
+      "sha256": "sha256:54f43819d08a180e5193437d384dbed987d5997585cc40c08c4c14f0dcf170e3"
     },
     {
       "operation_id": "ak.self.agent.sidecar.command.ensure.v1",

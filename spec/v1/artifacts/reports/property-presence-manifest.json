@@ -15,10 +15,10 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9431,
+    "total_properties": 9432,
     "total_schema_documents": 173,
     "by_presence_class": {
-      "optional": 2214,
+      "optional": 2215,
       "optional_defaulted": 48,
       "required": 6662,
       "required_nullable": 324,
@@ -2846,6 +2846,7 @@
         "/$defs/key_state/properties/authorized_verification_method": "optional",
         "/$defs/key_state/properties/controller_account_id": "required",
         "/$defs/key_state/properties/controller_authorization_ref": "required",
+        "/$defs/key_state/properties/current_key_authorization": "optional",
         "/$defs/key_state/properties/current_signer_evidence": "optional",
         "/$defs/key_state/properties/pairing_code": "optional",
         "/$defs/key_state/properties/pairing_expires_at": "optional",

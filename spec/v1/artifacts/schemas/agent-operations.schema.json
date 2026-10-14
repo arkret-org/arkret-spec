@@ -438,7 +438,7 @@
     },
     "key_state": {
       "type": "object",
-      "description": "Controller-private key, pairing-handle and authorization material for a generic Agent view. When active authorization exists, signer_resolution_evidence_ref and current_signer_evidence provide the same complete activation closure delivered to the runtime; an Account Authority may independently rebuild it, while authorized_event_ref remains provenance only. This object deliberately carries no lifecycle, readiness, presence, runtime_state or backup-readiness field: the only three generic status axes are siblings on agent_projection, while pairing poll alone exposes its operation-local runtime_state diagnostic.",
+      "description": "Controller-private key, pairing-handle and authorization material for a generic Agent view. Active authorization delivers the exact accepted current authorize Event and covering RealmCommit in current_key_authorization, separately from the compact current_signer_evidence; original pairing custody is immutable and is not a substitute for replacement authorization scope, audience or expiry. No lifecycle, readiness, presence, runtime_state or backup-readiness field is carried here.",
       "required": [
         "agent_id",
         "controller_account_id",
@@ -504,6 +504,10 @@
         },
         "current_signer_evidence": {
           "$ref": "#/$defs/agent_current_signer_evidence"
+        },
+        "current_key_authorization": {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/CommittedEventView",
+          "description": "Complete accepted current ak.agent.key.authorize Event and its covering RealmCommit; the full Event branch is required, never withheld. Required when an active authorization exists and omitted otherwise. Event id, actor Account, controller execution/delegation, PCR, method, raw key digest, expiry and covering Commit must match the active dot and sibling compact signer evidence. The source grants no authority and cannot replace current lifecycle, accountability or immutable provision ceiling checks. It carries neither private requested_scope disclosure nor raw pairing PoP."
         }
       },
       "dependentRequired": {
@@ -511,7 +515,8 @@
           "current_signer_evidence"
         ],
         "current_signer_evidence": [
-          "signer_resolution_evidence_ref"
+          "signer_resolution_evidence_ref",
+          "current_key_authorization"
         ],
         "pairing_request_id": [
           "pairing_expires_at"
@@ -522,6 +527,13 @@
         ],
         "pairing_expires_at": [
           "pairing_request_id"
+        ],
+        "current_key_authorization": [
+          "authorized_event_ref",
+          "authorized_verification_method",
+          "authorized_public_key_digest",
+          "signer_resolution_evidence_ref",
+          "current_signer_evidence"
         ]
       },
       "additionalProperties": false
