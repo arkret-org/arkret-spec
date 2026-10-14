@@ -54,6 +54,27 @@ class EventAdmissionContractTest(unittest.TestCase):
         self.assertIn("target Event independently retains", definition)
         self.assertIn("current provision/accountability", definition)
 
+    def test_message_rejects_independent_agent_context(self):
+        validator = Draft202012Validator({
+            "$ref": "https://arkret.org/v1/schemas/event-payload.schema.json#/$defs/message_create_payload"
+        }, registry=self.resources)
+        payload = {
+            "strand_id": "ak:strand:AUOjN8M8xm-W1G1Ve9UR6sHKJh7JPG7bM8ZDnzcGJ2Vh",
+            "track_name": "discussion",
+            "content": {"kind": "ak.content.text", "body": "Envelope attribution"},
+        }
+        self.assertTrue(validator.is_valid(payload))
+        payload["agent_context"] = {
+            "agent_id": "ak:did_core:web:agent.example",
+            "operator_or_controller": "controller",
+            "execution_purpose": "reply",
+            "authorization_ref": "grant",
+        }
+        self.assertTrue(any(
+            error.validator == "additionalProperties" and "agent_context" in error.message
+            for error in validator.iter_errors(payload)
+        ))
+
     def test_zero_ref_count_matches_absence_but_positive_count_does_not(self):
         for count in [0, 1]:
             validator = Draft202012Validator(predicate_schema({"ref_role": "attestation", "ref_exact_count": count}))

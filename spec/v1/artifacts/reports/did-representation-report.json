@@ -3482,16 +3482,6 @@
       ]
     },
     {
-      "schema_path": "event-payload.schema.json#/$defs/message_create_payload/properties/agent_context/properties/agent_id",
-      "property_name": "agent_id",
-      "semantic_category": "responsibility_identity_material",
-      "representation_profile": "did_core_id",
-      "external_literal_owner": false,
-      "terminal_signature": [
-        "ref:did_core_id"
-      ]
-    },
-    {
       "schema_path": "event-payload.schema.json#/$defs/mimi_message_provenance/properties/attributed_sender_actor_id",
       "property_name": "attributed_sender_actor_id",
       "semantic_category": "responsibility_identity_material",

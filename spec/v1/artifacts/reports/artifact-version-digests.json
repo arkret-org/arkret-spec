@@ -237,9 +237,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-10-14.19",
-      "generated_at": "2026-10-14T21:36:25.563487+00:00",
-      "content_digest": "sha256:b0dd107f9fd7ca1cc90f7e8cd70f69c9ab996e7199702745a452fca379d823bc"
+      "version": "2026-10-15.1",
+      "generated_at": "2026-10-15T05:54:30+08:00",
+      "content_digest": "sha256:224a984708a0b125039681269dfd5803efc4b135c65beeff56350f7717261cac"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
@@ -453,9 +453,9 @@
     },
     {
       "path": "tools/identifier-classification-registry.json",
-      "version": 66,
-      "generated_at": "2026-10-14T20:06:56.040774+00:00",
-      "content_digest": "sha256:d7a8d645fe53d47ee479ccd4f5dc996bd64afa4c3a8679b12f3d09aece4a2bfe"
+      "version": 67,
+      "generated_at": "2026-10-14T22:25:16+00:00",
+      "content_digest": "sha256:9b95d51a426dc45d888ebb2c5c64b0fe4fc297df6e5ae942cfb03e19eed19248"
     },
     {
       "path": "tools/identifier-role-suffix-registry.json",
