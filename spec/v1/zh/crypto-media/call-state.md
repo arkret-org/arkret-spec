@@ -117,8 +117,6 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
           "video": true,
           "screen": false
         },
-        "realm_id": "ak:realm:...",
-        "call_id": "ak:call:ARzVic5s2NUShp82C8GPo-shbkm7isUWyvILLThc3aNL",
         "focus_id": "fra-1"
       }
     }
