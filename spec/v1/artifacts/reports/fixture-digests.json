@@ -47,8 +47,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-vectors-fixture.json",
-      "sha256": "dd9eed68334f7d1d123a5c3532ce15692532a6ac65509617d47e7079947763b2",
-      "version": "2026-10-14.2"
+      "sha256": "cf1aef9ceaca151535680224806a6bb56c230a4fa7cb350863f6d319e809b0a9",
+      "version": "2026-10-14.3"
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-managed-actor-fixture.json",

@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-14.7",
+  "version": "2026-10-14.8",
   "source_of_truth": true,
-  "generated_at": "2026-10-14T05:21:58Z",
+  "generated_at": "2026-10-14T11:50:04Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -164,7 +164,7 @@
       "applies_to_fixtures": [
         "agent-vectors-fixture.json"
       ],
-      "description": "Agent key authorizations and accountability grants without expires_at stay valid until revoked; same-key re-authorization atomically replaces every observed authorization dot, concurrent re-authorizations fold to the intersection of scope and audience with the earliest finite expiry, and pause fails new sessions closed and invalidates issued ones inside a freshness window of at most sixty seconds.",
+      "description": "Agent key authorizations and accountability grants without expires_at stay valid until revoked; same-key re-authorization atomically replaces every observed authorization dot in a commit-ordered projection, at most one replacement based on the same old revision succeeds, stale basis is rejected without merging concurrent permission heads, and pause fails new sessions closed and invalidates issued ones inside a freshness window of at most sixty seconds.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/agent-vectors-fixture.json"
       ]

@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.agent_provisioning.v1",
-  "version": "2026-10-14.2",
+  "version": "2026-10-14.3",
   "suite": "agent_vectors",
   "runner": {
     "kind": "named_suite",
@@ -587,7 +587,7 @@
       "assertions": [
         "agent key authorization without expires_at is accepted and remains valid until revoked",
         "same-key re-authorization atomically removes all observed authorization dots and adds one replacement dot",
-        "concurrent same-key re-authorizations fold to the intersection of scope and audience and the earliest finite expiry",
+        "same-key re-authorizations are commit-ordered: at most one replacement based on the same old revision succeeds, stale basis is rejected, and concurrent permission heads are never merged",
         "accountability grant without expires_at is accepted and verifies accountable_principal_ids",
         "agent grants at every risk tier without temporal constraints are accepted unless the action registry required_constraints list expires_at",
         "session issuance long after provisioning succeeds while the chain is unrevoked",
