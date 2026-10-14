@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-14.15",
+  "version": "2026-10-14.16",
   "source_of_truth": true,
-  "generated_at": "2026-10-14T21:50:30Z",
+  "generated_at": "2026-10-14T21:52:50.985065+00:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -240,7 +240,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/crypto-media/call-state.md#4-会议状态事件",
-      "section_digest": "sha256:30ddea121fe868272e07a4e6a3aae18517e6092a627e8c42eae8aadd631baaea",
+      "section_digest": "sha256:9521cf1b63495d4e6a3c71c776881e89ed840351822d5b995a610130f30f533b",
       "requirement": "Call state transitions follow the registered matrix, terminal states are absorbing, exact Event replay is a no-op, and competing commands against one revision produce one confirmed successor plus durable stale rejection outcomes. Compact media bindings carry only expires_at/issuer_kid/sig; rebuild the signed seven-tuple from the exact enclosing Event/Call and roster entry, require its frozen focus to match the accepted selection on write, and never reinterpret old signatures using a later focus. v1 rejects every mute_override write, including a mixed delta, because the retained call-only selector cannot represent independent legs; ordinary call and self-mute paths remain available. Durable participant actor/device are anonymous call-scoped coordinates; public binding signs that tuple, while only a private signed subject_binding may link the authenticated complete Account/device to an accepted active leg for refresh.",
       "testability_grade": "vector",
       "evidence_refs": [
