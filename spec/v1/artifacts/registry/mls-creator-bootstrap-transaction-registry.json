@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-04",
+  "version": "2026-10-14",
   "source_of_truth": true,
-  "generated_at": "2026-10-04T05:51:15+08:00",
+  "generated_at": "2026-10-14T11:18:13+08:00",
   "description": "Canonical closed state machine for the single client-local durable transaction that carries one encrypted effective scope from the creator's explicit genesis intent to MLS write-ready. It is the machine-readable form of zh/crypto-media/encryption-and-audit.md section 5.1.2 and the only source a conforming client uses to decide what it must persist, in what order, and which single next arrow a recoverer may execute.",
   "registry_rules": [
     "This record is client-local normative durable state protected by the device secret. It is not a wire object, not a Realm Event, not an Account Data key and not a server transaction. It MUST NOT enter the ak.realm.create payload, any current projection or query result, client sync or federation.",
@@ -120,9 +120,10 @@
       "allowed_exits": [
         "genesis_intent_persisted",
         "realm_accepted",
+        "superseded",
         "quarantined"
       ],
-      "retry_rule": "A retry re-reads this record and continues from it. It MUST NOT re-read the proposed binding from UI state, a default, a Realm profile, an accepted history facet or any projection. A creator who changes the selection while the record is still in this state does not open a second attempt: the whole closed intent is replaced atomically through genesis_intent_persisted_to_genesis_intent_persisted.",
+      "retry_rule": "A retry re-reads this record and continues from it. It MUST NOT re-read the proposed binding from UI state, a default, a Realm profile, an accepted history facet or any projection. A creator who changes the selection while the record is still in this state does not open a second attempt: the whole closed intent is replaced atomically through genesis_intent_persisted_to_genesis_intent_persisted. If an exact independently authenticated read finds an accepted scope-create and a different accepted Genesis before realm_accepted was durably recorded, transition directly to superseded and retain that accepted create with the winner; never invent an intervening absence or generate epoch zero.",
       "gc_rule": "retain_until_ready",
       "failure_disposition": "quarantined"
     },
@@ -305,6 +306,7 @@
       "authority_source": "own_station_exact_accepted_genesis_that_is_not_this_record_attempt",
       "entry_predicate": "An exact query found that a different Genesis is already accepted for this effective scope.",
       "required_durable_fields": [
+        "the exact accepted scope-create Event, covering Commit and verified authority retained with the winning Genesis, including when the loser never reached realm_accepted",
         "the winning Genesis Event id and its immutable binding",
         "the loser Event id and digest, when this record had signed one"
       ],
@@ -360,6 +362,14 @@
       "commit_boundary": "The accepted Realm-create result and the definite Genesis-absent result are committed together into the same record.",
       "crash_before_commit": "The recoverer resolves the create Event id already derived from the frozen unit. It MUST NOT submit a second create and MUST NOT read an unknown result as absent.",
       "crash_after_commit": "The record is at realm_accepted and the recoverer verifies existing authority and authorized current evidence using the frozen selector."
+    },
+    {
+      "transition_id": "genesis_intent_persisted_to_superseded",
+      "from_state": "genesis_intent_persisted",
+      "to_state": "superseded",
+      "commit_boundary": "The exact accepted scope-create, independently authenticated distinct accepted Genesis and immutable winner binding are retained atomically under the original intent without claiming Genesis absence. No loser epoch-zero material is generated.",
+      "crash_before_commit": "The original intent remains. Reload repeats exact accepted reads; unavailable evidence keeps the intent unchanged and never permits a second create or new private material.",
+      "crash_after_commit": "The original intent and terminal winner are durable. Reload never resumes creator authoring; private access proceeds only through independently authenticated Welcome, migration or recovery."
     },
     {
       "transition_id": "realm_accepted_to_governance_result_pinned",

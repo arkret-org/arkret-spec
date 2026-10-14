@@ -201,9 +201,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/mls-creator-bootstrap-transaction-registry.json",
-      "version": "2026-10-04",
-      "generated_at": "2026-10-04T05:51:15+08:00",
-      "content_digest": "sha256:72bb9134a586e4bbf9eb737dc6d6271a23af159aa7b2f4b5186955002178ee19"
+      "version": "2026-10-14",
+      "generated_at": "2026-10-14T11:18:13+08:00",
+      "content_digest": "sha256:0f61a18a299e7dab8ea3f96969f3c28b27ba3def353a479dc1fc9d57255c804c"
     },
     {
       "path": "spec/v1/artifacts/registry/mls-extension-registry.json",
@@ -219,9 +219,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/normative-clause-registry.json",
-      "version": "2026-10-14.7",
-      "generated_at": "2026-10-14T08:30:50+08:00",
-      "content_digest": "sha256:9e5f634457c9102679ba9cff4727dcffc403c4b81beb7bbe1be8c1fdd38dcac2"
+      "version": "2026-10-14.8",
+      "generated_at": "2026-10-14T11:18:13+08:00",
+      "content_digest": "sha256:bdde05e8ad2527b39dd7876fcb991d440606abebb9ae163a905c4c979472e48f"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-bundle-closure-lock.json",
@@ -381,9 +381,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/vector-registry.json",
-      "version": "2026-10-14.5",
-      "generated_at": "2026-10-14T07:08:02+08:00",
-      "content_digest": "sha256:d6d8c567e83935c2a58ba309a1463bde20b4167ca2ba0ba9551186daad24cc17"
+      "version": "2026-10-14.6",
+      "generated_at": "2026-10-14T11:18:13+08:00",
+      "content_digest": "sha256:2dfdc030284c39e6b1afef6e26d05e910578eaa3a42823f3ee42adca9524689a"
     },
     {
       "path": "tools/artifact-anchor-fragment-exemptions.json",

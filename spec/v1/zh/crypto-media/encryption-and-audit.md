@@ -695,6 +695,12 @@ request／outcome 或字段。未知、未认证、不完整或不一致证据�
 签名与入队。钉住前可用原 selector 和新 transport nonce 重读既有证据；钉住后只复用原证据与 binding，不能
 用刷新后的 cut 或 UI 投影静默替换。并发 accepted Genesis winner 进入 `superseded`，仍由原正式准入 CAS 裁定。
 
+若 scope-create 已接受，但客户端在提交 `realm_accepted` 前崩溃，另一 endpoint 在此期间接受了 Genesis，
+恢复方 MUST 在独立验证 exact accepted scope-create／covering Commit 和同 scope 的合法 accepted Genesis 后，
+通过 registry 的 `genesis_intent_persisted_to_superseded` 直接原子保存原 intent、accepted create 与 winner。
+此路径 MUST NOT 伪造 Genesis absence 或中间 `realm_accepted`，也不得生成 loser epoch-0 材料、签名或队列项。
+读面不可用或 winner 不合法时保留原状态并保持不可写；成功终止后只能经独立 Welcome、迁移或恢复取得 winner 私态。
+
 原子切点（normative）：
 
 + selector 在 `ak.realm.create` 的**第一次网络副作用之前**、任何治理证据读取之前、任何依赖 selector 的
