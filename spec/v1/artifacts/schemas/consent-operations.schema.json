@@ -21,6 +21,12 @@
     },
     {
       "$ref": "#/$defs/consent_request_outcome"
+    },
+    {
+      "$ref": "#/$defs/consent_current_read_request_body"
+    },
+    {
+      "$ref": "#/$defs/consent_current_read_outcome"
     }
   ],
   "$defs": {
@@ -207,6 +213,99 @@
         }
       },
       "additionalProperties": false
+    },
+    "consent_current_read_request_body": {
+      "type": "object",
+      "required": [
+        "holder_account_id",
+        "peer",
+        "consent_scope",
+        "audience_actor_id",
+        "nonce"
+      ],
+      "properties": {
+        "holder_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "peer": {
+          "$ref": "#/$defs/consent_peer"
+        },
+        "consent_scope": {
+          "$ref": "#/$defs/consent_scope"
+        },
+        "audience_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id"
+        },
+        "nonce": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{22,64}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "consent_current_read_proof": {
+      "type": "object",
+      "required": [
+        "verification_method",
+        "jws"
+      ],
+      "properties": {
+        "verification_method": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        },
+        "jws": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+\\.\\.[A-Za-z0-9_-]+$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "consent_current_read_outcome": {
+      "type": "object",
+      "required": [
+        "request_digest",
+        "realm_id",
+        "governance_generation",
+        "effective_stream_head",
+        "consents",
+        "evaluated_at",
+        "expires_at",
+        "proof"
+      ],
+      "properties": {
+        "request_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "governance_generation": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        },
+        "effective_stream_head": {
+          "$ref": "./realm-commit.schema.json#/$defs/stream_head"
+        },
+        "consents": {
+          "type": "array",
+          "items": {
+            "$ref": "./typed-current-result.schema.json#/$defs/consent_result"
+          }
+        },
+        "evaluated_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "proof": {
+          "$ref": "#/$defs/consent_current_read_proof"
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-signature-domain": "ak.consent.current_read.v1"
     }
   }
 }

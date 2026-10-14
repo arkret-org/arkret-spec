@@ -10067,3 +10067,68 @@ paths:
             application/json:
               schema:
                 $ref: ../schemas/call-invitation-operations.schema.json#/$defs/admission_outcome
+
+  /_arkret/self/consent/current:
+    post:
+      operationId: ak.self.consent.read.current
+      summary: Holder-private full typed current for one exact peer and requested scope plus independent any records.
+        Same holder PCR serialized cut; the holder hosting Station alone may proxy a peer read, never an inviter or
+        media issuer. See zh/identity/consent-model.md section 6.3.1.
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.self.consent.read.current.v1
+      security:
+      - sessionGrantAuth: []
+        dpopProof: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/consent-operations.schema.json#/$defs/consent_current_read_request_body
+      responses:
+        '200':
+          description: Holder-private complete matching typed current at one PCR authority cut.
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/consent-operations.schema.json#/$defs/consent_current_read_outcome
+  /_arkret/peer/consent/current:
+    post:
+      operationId: ak.peer.consent.read.current
+      summary: Holder-private full typed current for one exact peer and requested scope plus independent any records.
+        Same holder PCR serialized cut; the holder hosting Station alone may proxy a peer read, never an inviter or
+        media issuer. See zh/identity/consent-model.md section 6.3.1.
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.peer.consent.read.current.v1
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+        contentDigest: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/consent-operations.schema.json#/$defs/consent_current_read_request_body
+      responses:
+        '200':
+          description: Holder-private complete matching typed current at one PCR authority cut.
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/consent-operations.schema.json#/$defs/consent_current_read_outcome

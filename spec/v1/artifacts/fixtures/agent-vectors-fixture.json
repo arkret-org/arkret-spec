@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.agent_provisioning.v1",
-  "version": "2026-10-14.1",
+  "version": "2026-10-14.2",
   "suite": "agent_vectors",
   "runner": {
     "kind": "named_suite",
@@ -780,7 +780,11 @@
       "direct_authority_cannot_read_ordinary_realm",
       "realm_grant_cannot_replace_sidecar_authority",
       "realm_membership_cannot_replace_direct_participant",
-      "direct_verified_interval_without_origin_poll"
+      "direct_verified_interval_without_origin_poll",
+      "sidecar_explicit_write_grant",
+      "sidecar_write_grant_without_effective",
+      "sidecar_write_grant_after_desired_loss",
+      "sidecar_material_not_a_write_grant_operation"
     ],
     "cases": [
       {
@@ -1606,6 +1610,96 @@
           ]
         },
         "expected": "allow"
+      },
+      {
+        "name": "sidecar_explicit_write_grant",
+        "input": {
+          "resource_profile": "sidecar",
+          "action": "ak.message.create",
+          "paths": [
+            {
+              "kind": "capability_grant",
+              "actions": [
+                "ak.message.create"
+              ],
+              "resources": [
+                "A"
+              ],
+              "complete": true,
+              "active": true
+            }
+          ],
+          "phase": "payload"
+        },
+        "expected": "allow"
+      },
+      {
+        "name": "sidecar_write_grant_without_effective",
+        "input": {
+          "resource_profile": "sidecar",
+          "action": "ak.message.create",
+          "paths": [
+            {
+              "kind": "capability_grant",
+              "actions": [
+                "ak.message.create"
+              ],
+              "resources": [
+                "A"
+              ],
+              "complete": true,
+              "active": true
+            }
+          ],
+          "phase": "payload",
+          "effective": false
+        },
+        "expected": "deny"
+      },
+      {
+        "name": "sidecar_write_grant_after_desired_loss",
+        "input": {
+          "resource_profile": "sidecar",
+          "action": "ak.message.create",
+          "paths": [
+            {
+              "kind": "capability_grant",
+              "actions": [
+                "ak.message.create"
+              ],
+              "resources": [
+                "A"
+              ],
+              "complete": true,
+              "active": true
+            }
+          ],
+          "phase": "payload",
+          "desired": false
+        },
+        "expected": "deny"
+      },
+      {
+        "name": "sidecar_material_not_a_write_grant_operation",
+        "input": {
+          "resource_profile": "sidecar",
+          "action": "ak.message.create",
+          "paths": [
+            {
+              "kind": "capability_grant",
+              "actions": [
+                "ak.message.create"
+              ],
+              "resources": [
+                "A"
+              ],
+              "complete": true,
+              "active": true
+            }
+          ],
+          "phase": "bootstrap"
+        },
+        "expected": "deny"
       }
     ]
   }

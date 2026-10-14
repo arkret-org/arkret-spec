@@ -1667,9 +1667,11 @@
       "vector_coverage": {
         "disposition": "operation_e2e_owned",
         "owners": [
+          "ak.peer.consent.read.current.v1",
           "ak.self.consent.command.grant.v1",
           "ak.self.consent.command.request.v1",
           "ak.self.consent.command.revoke.v1",
+          "ak.self.consent.read.current.v1",
           "ak.self.consent.read.list.v1",
           "ak.self.consent.resource.get.v1"
         ],

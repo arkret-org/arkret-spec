@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9361,
+    "total_properties": 9376,
     "total_schema_documents": 172,
     "by_presence_class": {
       "optional": 2199,
       "optional_defaulted": 48,
-      "required": 6611,
+      "required": 6626,
       "required_nullable": 324,
       "tristate": 179
     },
@@ -4308,6 +4308,21 @@
         "ak.schema.consent_operations.v1"
       ],
       "properties": {
+        "/$defs/consent_current_read_outcome/properties/consents": "required",
+        "/$defs/consent_current_read_outcome/properties/effective_stream_head": "required",
+        "/$defs/consent_current_read_outcome/properties/evaluated_at": "required",
+        "/$defs/consent_current_read_outcome/properties/expires_at": "required",
+        "/$defs/consent_current_read_outcome/properties/governance_generation": "required",
+        "/$defs/consent_current_read_outcome/properties/proof": "required",
+        "/$defs/consent_current_read_outcome/properties/realm_id": "required",
+        "/$defs/consent_current_read_outcome/properties/request_digest": "required",
+        "/$defs/consent_current_read_proof/properties/jws": "required",
+        "/$defs/consent_current_read_proof/properties/verification_method": "required",
+        "/$defs/consent_current_read_request_body/properties/audience_actor_id": "required",
+        "/$defs/consent_current_read_request_body/properties/consent_scope": "required",
+        "/$defs/consent_current_read_request_body/properties/holder_account_id": "required",
+        "/$defs/consent_current_read_request_body/properties/nonce": "required",
+        "/$defs/consent_current_read_request_body/properties/peer": "required",
         "/$defs/consent_grant_request_body/properties/grant_event": "required",
         "/$defs/consent_grant_request_body/properties/grant_event/allOf/1/properties/event": "required_nullable",
         "/$defs/consent_grant_request_body/properties/grant_event/allOf/1/properties/event/properties/kind": "required",

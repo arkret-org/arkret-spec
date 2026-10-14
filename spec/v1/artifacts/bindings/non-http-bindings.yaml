@@ -127,6 +127,7 @@ grpc:
       GroupStateMaterial: ak.self.mls.read.group_state_material.v1
       RosterAuthority: ak.self.mls.read.roster_authority.v1
     SelfConsent:
+      ReadCurrent: ak.self.consent.read.current.v1
       List: ak.self.consent.read.list.v1
       Get: ak.self.consent.resource.get.v1
       Grant: ak.self.consent.command.grant.v1
@@ -189,6 +190,8 @@ grpc:
       Subscribe: ak.self.signal.stream.subscribe.v1
     SelfCallInvitation:
       Send: ak.self.call.invitation.command.send.v1
+    PeerConsent:
+      ReadCurrent: ak.peer.consent.read.current.v1
     PeerCallInvitation:
       Relay: ak.peer.call.invitation.command.relay.v1
       Admission: ak.peer.call.invitation.read.admission.v1
@@ -426,6 +429,8 @@ mq:
     self.mls.query.roster_authority: ak.self.mls.read.roster_authority.v1
     self.realm.query.streams: ak.self.realm.read.streams.v1
     self.consent.query.list: ak.self.consent.read.list.v1
+    self.consent.read.current: ak.self.consent.read.current.v1
+    peer.consent.read.current: ak.peer.consent.read.current.v1
     self.consent.resource.get: ak.self.consent.resource.get.v1
     self.consent.command.grant: ak.self.consent.command.grant.v1
     self.consent.command.revoke: ak.self.consent.command.revoke.v1

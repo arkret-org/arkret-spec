@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-14.7",
+  "version": "2026-10-14.8",
   "source_of_truth": true,
-  "generated_at": "2026-10-14T07:07:39+08:00",
+  "generated_at": "2026-10-14T07:56:11+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-08-30.1",
@@ -11810,8 +11810,8 @@
     "metadata_authority": "contract_registry_section"
   },
   "http_signature_contract_registry": {
-    "version": "2026-10-14.1",
-    "generated_at": "2026-10-14T06:45:32+08:00",
+    "version": "2026-10-14.2",
+    "generated_at": "2026-10-14T07:27:04+08:00",
     "source_of_truth": true,
     "description": "Canonical single owner of every RFC 9421 HTTP Message Signature contract in Arkret: the shared covered-component baseline, the per-scenario extensions and their trigger conditions, the required signature parameters, and the freshness window numerals. Prose enumerations, conformance profiles and vector descriptions are projections of this block.",
     "normative_source": "zh/sync/service-http-binding.md #8 HTTP Message Signature",
@@ -12338,6 +12338,49 @@
           "http_signature_invalid",
           "signature_window_invalid"
         ]
+      },
+      {
+        "scenario_id": "ak.http_signature.scenario.consent_current_read.v1",
+        "label": "Holder hosting Station private full current proxy",
+        "applies_to": "ak.peer.consent.read.current.v1",
+        "extends": "ak.http_signature.scenario.service_to_service.v1",
+        "additional_covered_components": [
+          "content-digest",
+          "source-service-id",
+          "destination-service-id",
+          "source-trust-domain",
+          "destination-trust-domain"
+        ],
+        "conditional_covered_components": [
+          {
+            "component": "destination-service-endpoint-digest",
+            "condition": "the destination is reached through a shared ingress"
+          }
+        ],
+        "required_headers": [
+          "Signature",
+          "Signature-Input",
+          "Arkret-Operation",
+          "Content-Digest",
+          "Source-Service-ID",
+          "Destination-Service-ID",
+          "Source-Trust-Domain",
+          "Destination-Trust-Domain"
+        ],
+        "freshness_profile_id": "ak.http_signature.freshness.v1",
+        "prose_bindings": [
+          "zh/identity/consent-model.md"
+        ],
+        "machine_projections": [],
+        "operations": [
+          "ak.peer.consent.read.current.v1"
+        ],
+        "vectors": [],
+        "error_codes": [
+          "http_signature_required",
+          "http_signature_invalid",
+          "signature_window_invalid"
+        ]
       }
     ]
   },
@@ -12693,7 +12736,9 @@
           "ak.self.consent.resource.get.v1",
           "ak.self.consent.command.grant.v1",
           "ak.self.consent.command.revoke.v1",
-          "ak.self.consent.command.request.v1"
+          "ak.self.consent.command.request.v1",
+          "ak.self.consent.read.current.v1",
+          "ak.peer.consent.read.current.v1"
         ],
         "surface_class": "extension"
       },
@@ -16862,6 +16907,52 @@
             "contract": "Covered components, signature parameters and the freshness window come from http_signature_contract_registry. This operation MUST NOT restate them."
           }
         }
+      },
+      {
+        "operation_id": "ak.self.consent.read.current.v1",
+        "http": "POST /_arkret/self/consent/current",
+        "grpc": "SelfConsent/ReadCurrent",
+        "mq": "self.consent.read.current",
+        "notes": "Holder-private full typed current for one exact peer and requested scope plus independent any records. Same holder PCR serialized cut; the holder hosting Station alone may proxy a peer read, never an inviter or media issuer. See zh/identity/consent-model.md section 6.3.1.",
+        "body_class": "non_streaming_json",
+        "max_canonical_body_bytes": 65536,
+        "success_shape_kind": "schema_resource",
+        "uncertain_outcome": {
+          "strategy": "requery"
+        },
+        "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_current_read_request_body",
+        "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_current_read_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "holder_private_current_read_only"
+        }
+      },
+      {
+        "operation_id": "ak.peer.consent.read.current.v1",
+        "http": "POST /_arkret/peer/consent/current",
+        "grpc": "PeerConsent/ReadCurrent",
+        "mq": "peer.consent.read.current",
+        "notes": "Holder-private full typed current for one exact peer and requested scope plus independent any records. Same holder PCR serialized cut; the holder hosting Station alone may proxy a peer read, never an inviter or media issuer. See zh/identity/consent-model.md section 6.3.1.",
+        "body_class": "non_streaming_json",
+        "max_canonical_body_bytes": 65536,
+        "success_shape_kind": "schema_resource",
+        "uncertain_outcome": {
+          "strategy": "requery"
+        },
+        "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_current_read_request_body",
+        "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_current_read_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "holder_private_current_read_only"
+        },
+        "auth_requirements": {
+          "service_signature": {
+            "signature_scenario_id": "ak.http_signature.scenario.consent_current_read.v1",
+            "standard": "RFC 9421 HTTP Message Signature",
+            "bearer_only_allowed": false,
+            "contract": "Covered components, signature parameters and the freshness window come from http_signature_contract_registry. This operation MUST NOT restate them."
+          }
+        }
       }
     ],
     "direct_conversation_admission_mappings": {
@@ -17104,8 +17195,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-10-14.7",
-    "generated_at": "2026-10-14T07:07:39+08:00",
+    "version": "2026-10-14.8",
+    "generated_at": "2026-10-14T07:56:11+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.coland_station.v1",
@@ -17812,6 +17903,10 @@
             "binding_kind": "http_json"
           },
           {
+            "operation_id": "ak.peer.consent.read.current.v1",
+            "binding_kind": "http_json"
+          },
+          {
             "operation_id": "ak.peer.contacts.command.submit.v1",
             "binding_kind": "http_json"
           },
@@ -17989,6 +18084,10 @@
           },
           {
             "operation_id": "ak.self.consent.command.revoke.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.self.consent.read.current.v1",
             "binding_kind": "http_json"
           },
           {

@@ -1,7 +1,7 @@
 {
   "version": "2026-10-14.7",
   "source_of_truth": false,
-  "generated_at": "2026-10-14T07:07:39+08:00",
+  "generated_at": "2026-10-14T07:27:04+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -9178,6 +9178,102 @@
             "closed": true
           }
         ]
+      }
+    },
+    {
+      "operation_id": "ak.self.consent.read.current.v1",
+      "success_shape_kind": "schema_resource",
+      "request": {
+        "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_current_read_request_body",
+        "schema_kind": "object",
+        "required": [
+          "holder_account_id",
+          "peer",
+          "consent_scope",
+          "audience_actor_id",
+          "nonce"
+        ],
+        "properties": [
+          "holder_account_id",
+          "peer",
+          "consent_scope",
+          "audience_actor_id",
+          "nonce"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_current_read_outcome",
+        "schema_kind": "object",
+        "required": [
+          "request_digest",
+          "realm_id",
+          "governance_generation",
+          "effective_stream_head",
+          "consents",
+          "evaluated_at",
+          "expires_at",
+          "proof"
+        ],
+        "properties": [
+          "request_digest",
+          "realm_id",
+          "governance_generation",
+          "effective_stream_head",
+          "consents",
+          "evaluated_at",
+          "expires_at",
+          "proof"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.peer.consent.read.current.v1",
+      "success_shape_kind": "schema_resource",
+      "request": {
+        "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_current_read_request_body",
+        "schema_kind": "object",
+        "required": [
+          "holder_account_id",
+          "peer",
+          "consent_scope",
+          "audience_actor_id",
+          "nonce"
+        ],
+        "properties": [
+          "holder_account_id",
+          "peer",
+          "consent_scope",
+          "audience_actor_id",
+          "nonce"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_current_read_outcome",
+        "schema_kind": "object",
+        "required": [
+          "request_digest",
+          "realm_id",
+          "governance_generation",
+          "effective_stream_head",
+          "consents",
+          "evaluated_at",
+          "expires_at",
+          "proof"
+        ],
+        "properties": [
+          "request_digest",
+          "realm_id",
+          "governance_generation",
+          "effective_stream_head",
+          "consents",
+          "evaluated_at",
+          "expires_at",
+          "proof"
+        ],
+        "closed": true
       }
     }
   ]
