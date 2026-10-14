@@ -135,6 +135,27 @@ holder 可主动签发短期 green-light，绑定 holder、peer、scope、audien
 
 通话产品投递、客户端响铃及适用的首次接触 media token 必须分别重验完整 current，采用 [`webrtc-signaling.md` §3b](../crypto-media/webrtc-signaling.md) 的 exact invitation／受权读取合同。该关系不改变 holder PCR 真源；generic encrypted rail 不构成产品准入。非空且未登记语义的 constraints 数组 使该条 record 不可授权，独立其它 concrete／any record 仍单独求值。
 
+### 6.3.1 Holder-private 完整 current 读取
+
+普通 Realm snapshot 的披露不能被用来开放 holder PCR；列表／get 的 ConsentView 也不含完整值。完整读取正式复用 Consent surface，operation 为 `ak.self.consent.read.current.v1`（`POST /_arkret/self/consent/current`）及仅供 hosting Station 代理的 `ak.peer.consent.read.current.v1`（`POST /_arkret/peer/consent/current`）。closed request／outcome 见 `consent-operations.schema.json` 的 `consent_current_read_request_body`／`consent_current_read_outcome`。
+
+两个入口均使用 exact `holder_account_id,peer,consent_scope,audience_actor_id,nonce`，nonce 至少128 bit CSPRNG；self 的认证 Account **MUST** 等于完整 holder，audience **MUST** 是 holder hosting Station 的完整 Service ActorId。peer 只允许该 hosting Station，经当前 PCR authority 读取；邀请发起者、媒体 issuer、同 principal 的另一 Station Account 与普通 Realm governance **MUST NOT** 取得完整值。hosting Station 必须先完成认证 holder／其正式controller的授权，不得把 requester 的声明作为代理资格。完整值只交给该 holder 的认证 self 会话，不向 caller of invitation 或其它消费者转发。
+
+current authority 在与 Grant／Revoke 相同的 PCR serializable cut 读取全部 exact peer、requested scope 及独立 any 的 current records（请求 any 时只匹配 any），包括 active／revoked，不按列表状态猜许可。outcome 由该 cut 的实际 PCR Realm、generation、effective Realm stream head 及完整 `consent_result` rows组成；空集合只表示此 cut 无匹配记录。每 row 的稳定 ID、source stream与current revision必须绑定实际accepted source，完整值包括not_before、expires_at、constraints与状态。此 operation 不签发授权、不写第二账本、不改变 current；list／get继续只用于定位稳定 ID／展示。完整 targeted read 消除 list 与 exact read 的竞争；consumer仍独立求值所有 eligible concrete／any records。
+
+outcome 的 request_digest 是完整请求 RFC8785 JCS 的 SHA-256；签名输入为 `UTF8("ak.consent.current_read.v1") || 0x00 || RFC8785_JCS(outcome仅去除proof)`。proof为 closed `{verification_method,jws}`，当前 authority key／generation须从独立可信配置锚定，不能来自结果自报。窗口不超过evaluated_at后30秒。hosting Station必须验证原outstanding请求、nonce／audience／holder、该generation及签名，再经authenticated self交付；holder客户端必须验证并安装完整typed rows及head，对本地已知更晚head／revoke不回退。材料不完整、时间过期、authority变更或旧读均刷新／拒绝本次，恢复后合法重试；不能仅因历史验签或窗口未过就重复许可。
+
+peer签名场景只引用 `ak.http_signature.scenario.consent_current_read.v1`，适用覆盖集如下：
+
+<!-- BEGIN ak-http-signature-covered-set ak.http_signature.scenario.consent_current_read.v1 -->
+- `@method`、`@target-uri`、`@authority`
+- `arkret-operation`
+- `content-digest`（relay request 总是带 body）
+- `source-service-id`、`destination-service-id`
+- `source-trust-domain`、`destination-trust-domain`
+- `destination-service-endpoint-digest`（条件项：经 shared ingress 抵达 destination 时必需）
+<!-- END ak-http-signature-covered-set -->
+
 ## 7. MIMI 映射
 
 MIMI update facade只接受调用方签署的 `EventAdmissionSubmission`，并按 decision 映射到 `ak.consent.grant` 或 `ak.consent.revoke`。facade不得构造 Event。对外投影只暴露最小 `(peer, scope, active)`，不暴露 reason、evidence 或 revision。

@@ -87,9 +87,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
-      "version": "2026-10-14.7",
-      "generated_at": "2026-10-14T07:07:39+08:00",
-      "content_digest": "sha256:53bc40d4aba7ec160891a6142f565c2d156b05b03974cb49fb6bb0421ae7bb2b"
+      "version": "2026-10-14.8",
+      "generated_at": "2026-10-14T07:56:11+08:00",
+      "content_digest": "sha256:c5cc711d2d13bc77df13390cf26e82fb7979879ea3699fb24a48b385764482bc"
     },
     {
       "path": "spec/v1/artifacts/registry/current-result-registry.json",
@@ -219,15 +219,15 @@
     },
     {
       "path": "spec/v1/artifacts/registry/normative-clause-registry.json",
-      "version": "2026-10-14.5",
-      "generated_at": "2026-10-14T06:42:48+08:00",
-      "content_digest": "sha256:bafc269c9f4f685cfffa4ed6d0d4a4d9174cae98aec00400d8188f4de06a6fba"
+      "version": "2026-10-14.6",
+      "generated_at": "2026-10-14T07:51:12+08:00",
+      "content_digest": "sha256:900bcf64ebc41f69fc6bcab52cdf765aeb17289823d9a2ec94f74fa507b884f6"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-bundle-closure-lock.json",
-      "version": "2026-10-14.3",
-      "generated_at": "2026-10-14T07:07:39+08:00",
-      "content_digest": "sha256:832c22f758ce02294cb5d01270c12b98d835cc3f825e62e93328a01e60890799"
+      "version": "2026-10-14.4",
+      "generated_at": "2026-10-14T07:27:04+08:00",
+      "content_digest": "sha256:04d562feeed9985fcb598f010b8cfb2b06c319f5986f986b09e8ade9fe42692e"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-clause-registry.json",
@@ -237,21 +237,21 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-10-14.6",
-      "generated_at": "2026-10-14T07:07:39+08:00",
-      "content_digest": "sha256:8fcd070b682ff7c6e4efd921319fa4f860ce1e7fc4e48219b52bdf0a121c5fec"
+      "version": "2026-10-14.7",
+      "generated_at": "2026-10-14T07:27:04+08:00",
+      "content_digest": "sha256:11e54db73524b0744e9e5f415eb74776f0a652d64f9fd00d80db6d838d1a1273"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
-      "version": "2026-10-14.7",
-      "generated_at": "2026-10-14T07:07:39+08:00",
-      "content_digest": "sha256:549703e13addd62f55650deabd35f090b5139eeb816c7e4f4d171cfaf871046c"
+      "version": "2026-10-14.8",
+      "generated_at": "2026-10-14T07:56:11+08:00",
+      "content_digest": "sha256:adef5432e70c5890f603672a17dba81877e391b58b78da745ad5bdc48bf0005d"
     },
     {
       "path": "spec/v1/artifacts/registry/operations-error-mapping.json",
-      "version": "2026-10-14.2",
-      "generated_at": "2026-10-14T07:08:02+08:00",
-      "content_digest": "sha256:3e82b1a4469d4b4262ccf392a9fc06eba639d039cbce142773041dd6b720f8d2"
+      "version": "2026-10-14.3",
+      "generated_at": "2026-10-14T07:56:11+08:00",
+      "content_digest": "sha256:6fc067c26ed4aa82275e971c20fb5afad5b0940f8259b43edbf229ba8c350a5f"
     },
     {
       "path": "spec/v1/artifacts/registry/outward-disclosure-policy-registry.json",
@@ -291,9 +291,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/proof-context-registry.json",
-      "version": "2026-10-14.2",
-      "generated_at": "2026-10-14T06:22:35+08:00",
-      "content_digest": "sha256:ab71e9d46fc9912d228aa0cb5e9000e988875bb37ac540d203f63bcece5ff154"
+      "version": "2026-10-14.3",
+      "generated_at": "2026-10-14T07:27:04+08:00",
+      "content_digest": "sha256:c66bdcddd6f074ea7b075035ae262881d0b7930fe035da3bcc5c96fceaf92f5f"
     },
     {
       "path": "spec/v1/artifacts/registry/protocol-layer-registry.json",
@@ -453,9 +453,9 @@
     },
     {
       "path": "tools/identifier-classification-registry.json",
-      "version": 62,
+      "version": 63,
       "generated_at": null,
-      "content_digest": "sha256:731a47b194f7154ce619b33ea4ba50c3849408975e7c1b5a5dff7499b5f58234"
+      "content_digest": "sha256:cd713c9038317830a21550409e4918722c7ace51f626c28ec3293f86e018cd31"
     },
     {
       "path": "tools/identifier-role-suffix-registry.json",

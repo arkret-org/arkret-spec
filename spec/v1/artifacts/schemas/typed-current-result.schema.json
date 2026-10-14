@@ -3197,7 +3197,11 @@
           ],
           "properties": {
             "kind": {
-              "const": "consent"
+              "const": "consent",
+              "type": "string",
+              "enum": [
+                "consent"
+              ]
             },
             "consent_id": {
               "$ref": "./event-payload.schema.json#/$defs/consent_grant_payload/properties/consent_id"

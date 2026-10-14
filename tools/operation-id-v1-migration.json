@@ -248,6 +248,10 @@
       "new": "ak.peer.committed_event.read.scan.v1"
     },
     {
+      "old": "ak.peer.consent.read.current",
+      "new": "ak.peer.consent.read.current.v1"
+    },
+    {
       "old": "ak.peer.contacts.command.submit",
       "new": "ak.peer.contacts.command.submit.v1"
     },
@@ -594,6 +598,10 @@
     {
       "old": "ak.self.consent.command.revoke",
       "new": "ak.self.consent.command.revoke.v1"
+    },
+    {
+      "old": "ak.self.consent.read.current",
+      "new": "ak.self.consent.read.current.v1"
     },
     {
       "old": "ak.self.consent.read.list",

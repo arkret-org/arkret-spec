@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-14.7",
+  "version": "2026-10-14.8",
   "source_of_truth": false,
-  "generated_at": "2026-10-14T07:07:39+08:00",
+  "generated_at": "2026-10-14T07:56:11+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -227,7 +227,9 @@
         "ak.self.consent.resource.get.v1",
         "ak.self.consent.command.grant.v1",
         "ak.self.consent.command.revoke.v1",
-        "ak.self.consent.command.request.v1"
+        "ak.self.consent.command.request.v1",
+        "ak.self.consent.read.current.v1",
+        "ak.peer.consent.read.current.v1"
       ],
       "surface_class": "extension"
     },
@@ -4396,6 +4398,52 @@
           "contract": "Covered components, signature parameters and the freshness window come from http_signature_contract_registry. This operation MUST NOT restate them."
         }
       }
+    },
+    {
+      "operation_id": "ak.self.consent.read.current.v1",
+      "http": "POST /_arkret/self/consent/current",
+      "grpc": "SelfConsent/ReadCurrent",
+      "mq": "self.consent.read.current",
+      "notes": "Holder-private full typed current for one exact peer and requested scope plus independent any records. Same holder PCR serialized cut; the holder hosting Station alone may proxy a peer read, never an inviter or media issuer. See zh/identity/consent-model.md section 6.3.1.",
+      "body_class": "non_streaming_json",
+      "max_canonical_body_bytes": 65536,
+      "success_shape_kind": "schema_resource",
+      "uncertain_outcome": {
+        "strategy": "requery"
+      },
+      "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_current_read_request_body",
+      "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_current_read_outcome",
+      "durable_effect": {
+        "kind": "none",
+        "rationale": "holder_private_current_read_only"
+      }
+    },
+    {
+      "operation_id": "ak.peer.consent.read.current.v1",
+      "http": "POST /_arkret/peer/consent/current",
+      "grpc": "PeerConsent/ReadCurrent",
+      "mq": "peer.consent.read.current",
+      "notes": "Holder-private full typed current for one exact peer and requested scope plus independent any records. Same holder PCR serialized cut; the holder hosting Station alone may proxy a peer read, never an inviter or media issuer. See zh/identity/consent-model.md section 6.3.1.",
+      "body_class": "non_streaming_json",
+      "max_canonical_body_bytes": 65536,
+      "success_shape_kind": "schema_resource",
+      "uncertain_outcome": {
+        "strategy": "requery"
+      },
+      "request_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_current_read_request_body",
+      "response_schema_ref": "schemas/consent-operations.schema.json#/$defs/consent_current_read_outcome",
+      "durable_effect": {
+        "kind": "none",
+        "rationale": "holder_private_current_read_only"
+      },
+      "auth_requirements": {
+        "service_signature": {
+          "signature_scenario_id": "ak.http_signature.scenario.consent_current_read.v1",
+          "standard": "RFC 9421 HTTP Message Signature",
+          "bearer_only_allowed": false,
+          "contract": "Covered components, signature parameters and the freshness window come from http_signature_contract_registry. This operation MUST NOT restate them."
+        }
+      }
     }
   ],
   "direct_conversation_admission_mappings": {
@@ -5344,6 +5392,10 @@
           "binding_kind": "http_json"
         },
         {
+          "operation_id": "ak.peer.consent.read.current.v1",
+          "binding_kind": "http_json"
+        },
+        {
           "operation_id": "ak.peer.contacts.command.submit.v1",
           "binding_kind": "http_json"
         },
@@ -5521,6 +5573,10 @@
         },
         {
           "operation_id": "ak.self.consent.command.revoke.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "operation_id": "ak.self.consent.read.current.v1",
           "binding_kind": "http_json"
         },
         {
