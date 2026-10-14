@@ -772,3 +772,5 @@ authority transaction。
 sender只有在exact submission已由current governance Station确认为accepted/duplicate并耐久保存post-Commit private state后，
 才把本地transition标为完成。recipient只有在Welcome、producer proof、经 `ak.self.keys.keypackages.read.claim.v1` 读取并验证的
 claim binding、Commit lineage与完整RFC 9420处理均成功且private state耐久保存后才ACK。任何崩溃恢复都重放相同ID和bytes，不生成平行transition。
+
+Watch／Circle 跨 actor 写入与 Watch 私有前态读取的唯一已登记审计接纳、重放和交付合同见 [authority-commit-log §5.2／§5.3](../sync/authority-commit-log.md#52-业务与审计配对单元normative)。`watch_audit_read` 记录获授权的治理读取，不作为可复用读票或网络交付成功证明；不能通过普通投影绕过该 command。

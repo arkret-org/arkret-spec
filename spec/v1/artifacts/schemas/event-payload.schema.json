@@ -1236,7 +1236,7 @@
     },
     "audit_accessed_payload": {
       "type": "object",
-      "description": "Strict payload for ak.audit.accessed. It binds the writer, logical target and any paired Event. The current governance Station evaluates the access against committed typed state; no typed current result or caller-authored state-head digest is carried.",
+      "description": "Strict audit payload. watch_set_others and circle_member_set_others belong to one registered audit_paired_event unit. watch_audit_read is admitted only through the dedicated audited-read command and is not a reusable preaccepted read ticket. The target and writer are checked against the signed business Event or authenticated auditor and current effective scope. No caller-authored state head or result ID is carried.",
       "required": [
         "access_kind",
         "writer_actor_id",
@@ -1249,6 +1249,7 @@
           "type": "string",
           "enum": [
             "watch_set_others",
+            "circle_member_set_others",
             "watch_audit_read",
             "e2ee_late_recovery",
             "policy_audit_read",
@@ -1286,7 +1287,10 @@
           "if": {
             "properties": {
               "access_kind": {
-                "const": "watch_set_others"
+                "enum": [
+                  "watch_set_others",
+                  "circle_member_set_others"
+                ]
               }
             },
             "required": [
@@ -1314,7 +1318,21 @@
           "then": {
             "required": [
               "target_actor_id"
-            ]
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "paired_event_id"
+                  ]
+                },
+                {
+                  "required": [
+                    "late_recovery_original_event_id"
+                  ]
+                }
+              ]
+            }
           }
         },
         {
@@ -8951,7 +8969,7 @@
     },
     "strand_watch_set_payload": {
       "type": "object",
-      "description": "Payload for ak.strand.watch.set. Writes the (strand_id, watcher_actor_id) watch typed current result. The new typed current result value is computed from payload.level + payload.level_public: when level is null the effect is set null (clear, equivalent to mentions_only); when level is a string the effect is set { level, level_public? }. Reducer invariants: (1) watcher_actor_id MUST equal envelope.actor_id unless writer holds ak.strand.watch.set.others; (2) when watcher_actor_id != envelope.actor_id (.others write), level MUST be one of {mentions_only, participating, all} and level_public MUST be omitted or false — writing muted or level_public=true on behalf of another actor MUST failed_precondition; (3) .others writes MUST have one same-batch ak.audit.accessed event pointing to the watch Event with semantic_refs[role=audit_pair], and its payload access_kind=watch_set_others must bind writer_actor_id, target_actor_id, target_ref=strand_id and paired_event_id. The Station validates current watch state and atomically commits both Events; no caller-authored result head is carried. See models/strand-and-message.md §8.4.",
+      "description": "Payload for ak.strand.watch.set. Writes the (strand_id, watcher_actor_id) watch typed current result. The new typed current result value is computed from payload.level + payload.level_public: when level is null the effect is set null (clear, equivalent to mentions_only); when level is a string the effect is set { level, level_public? }. Reducer invariants: (1) watcher_actor_id MUST equal envelope.actor_id unless writer holds ak.strand.watch.set.others; (2) when watcher_actor_id != envelope.actor_id (.others write), level MUST be one of {mentions_only, participating, all} and level_public MUST be omitted or false — writing muted or level_public=true on behalf of another actor MUST failed_precondition; (3) .others writes MUST have exactly one ak.audit.accessed Event as the second slot of the registered audit_paired_event unit pointing to the watch Event with semantic_refs[role=audit_pair], and its payload access_kind=watch_set_others must bind writer_actor_id, target_actor_id, target_ref=strand_id and paired_event_id. The Station validates current watch state and atomically commits both Events; no caller-authored result head is carried. See models/strand-and-message.md §8.4.",
       "required": [
         "strand_id",
         "watcher_actor_id",

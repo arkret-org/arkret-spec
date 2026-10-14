@@ -122,6 +122,7 @@ servers:
   variables:
     host:
       default: localhost
+
 components:
   securitySchemes:
     bearerAuth:
@@ -809,6 +810,8 @@ components:
       $ref: ../schemas/keys-operations.schema.json#/$defs/peer_keys_query_outcome
     PeerKeysQueryRequestBody:
       $ref: ../schemas/keys-operations.schema.json#/$defs/peer_keys_query_request_body
+    PeerWatchAuditReadRequestBody:
+      $ref: ../schemas/watch-audit-operations.schema.json#/$defs/peer_watch_audit_read_request
     PrincipalLocator:
       $ref: ../schemas/principal-locator.schema.json
     PrincipalLocatorResolveRequestBody:
@@ -940,6 +943,10 @@ components:
       $ref: ../schemas/invite.schema.json#/$defs/third_party_invite_provision_outcome
     ThirdPartyInviteProvisionRequestBody:
       $ref: ../schemas/invite.schema.json#/$defs/third_party_invite_provision_request_body
+    WatchAuditReadOutcome:
+      $ref: ../schemas/watch-audit-operations.schema.json#/$defs/watch_audit_read_outcome
+    WatchAuditReadRequestBody:
+      $ref: ../schemas/watch-audit-operations.schema.json#/$defs/watch_audit_read_request
   responses:
     MethodNotAllowed:
       description: Pre-dispatch router failure for a registered path with an unsupported method; Problem code method_not_allowed
@@ -1098,6 +1105,65 @@ components:
           schema:
             $ref: '#/components/schemas/Problem'
 paths:
+  /_arkret/self/strands/watch/audit-read:
+    post:
+      operationId: ak.self.strand.watch.command.audit_read
+      summary: Commit an authorized Watch audit and return its frozen exact observation.
+      description: Signed audit Event selects the target. Audit acceptance and exact Watch observation are one governing transaction. Exact command replay returns the original frozen observation under current disclosure and final delivery guards. No standalone audit ticket, watcher enumeration, forwarded session credential, or caller-authored head.
+      security:
+      - sessionGrantAuth: []
+        dpopProof: []
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.self.strand.watch.command.audit_read.v1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WatchAuditReadRequestBody'
+      responses:
+        '200':
+          description: Original accepted audit Commit and its frozen authorized Watch observation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WatchAuditReadOutcome'
+  /_arkret/peer/strands/watch/audit-read:
+    post:
+      operationId: ak.peer.strand.watch.command.audit_read
+      summary: Commit an authorized Watch audit and return its frozen exact observation.
+      description: Signed audit Event selects the target. Audit acceptance and exact Watch observation are one governing transaction. Exact command replay returns the original frozen observation under current disclosure and final delivery guards. No standalone audit ticket, watcher enumeration, forwarded session credential, or caller-authored head.
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.peer.strand.watch.command.audit_read.v1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PeerWatchAuditReadRequestBody'
+      responses:
+        '200':
+          description: Original accepted audit Commit and its frozen authorized Watch observation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WatchAuditReadOutcome'
   /_arkret/describe:
     get:
       operationId: ak.server.read.describe

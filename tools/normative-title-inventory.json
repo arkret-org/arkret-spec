@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-14.2",
+  "version": "2026-10-14.3",
   "source_of_truth": true,
-  "generated_at": "2026-10-14T07:09:00+08:00",
+  "generated_at": "2026-10-14T05:20:39Z",
   "description": "Closed inventory of current spec/v1/zh headings that explicitly carry the （normative） marker. Any addition, removal, rename, or move is reviewed as a protocol change and refreshes this source-of-truth inventory.",
   "titles": [
     {
@@ -1110,6 +1110,21 @@
       "fragment": "72-单-stream-扫描用位置不用-cursornormative"
     },
     {
+      "page": "sync/authority-commit-log.md",
+      "heading": "5.1 登记式原子单元（normative）",
+      "fragment": "51-登记式原子单元normative"
+    },
+    {
+      "page": "sync/authority-commit-log.md",
+      "heading": "5.2 业务与审计配对单元（normative）",
+      "fragment": "52-业务与审计配对单元normative"
+    },
+    {
+      "page": "sync/authority-commit-log.md",
+      "heading": "5.3 带审计的 Watch 精确读取（normative）",
+      "fragment": "53-带审计的-watch-精确读取normative"
+    },
+    {
       "page": "sync/client-sync.md",
       "heading": "11.1 Events 面的 query-scope digest（normative）",
       "fragment": "111-events-面的-query-scope-digestnormative"
@@ -1198,6 +1213,11 @@
       "page": "sync/service-http-binding.md",
       "heading": "3.1.5 Realm fanout delivery status（normative）",
       "fragment": "315-realm-fanout-delivery-statusnormative"
+    },
+    {
+      "page": "sync/service-http-binding.md",
+      "heading": "3.3.2 带审计的 Watch 精确读取（normative）",
+      "fragment": "332-带审计的-watch-精确读取normative"
     },
     {
       "page": "sync/service-http-binding.md",

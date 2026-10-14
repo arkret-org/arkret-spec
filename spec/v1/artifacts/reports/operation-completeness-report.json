@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-14.8",
+  "version": "2026-10-14.10",
   "source_of_truth": false,
-  "generated_at": "2026-10-14T07:56:11+08:00",
+  "generated_at": "2026-10-14T05:31:41Z",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,21 +18,21 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 221,
+    "total_operations": 223,
     "by_completeness_class": {
       "binary_or_redirect": 2,
-      "typed_schema": 219
+      "typed_schema": 221
     },
     "by_surface_class_and_completeness_class": {
       "core": {
-        "typed_schema": 46
+        "typed_schema": 47
       },
       "deployment_local": {
         "typed_schema": 15
       },
       "extension": {
         "binary_or_redirect": 2,
-        "typed_schema": 135
+        "typed_schema": 136
       },
       "interop_bridge": {
         "typed_schema": 23
@@ -1102,6 +1102,20 @@
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request."
+    },
+    {
+      "operation_id": "ak.peer.strand.watch.command.audit_read.v1",
+      "surface_class": "extension",
+      "http": "POST /_arkret/peer/strands/watch/audit-read",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/watch-audit-operations.schema.json#/$defs/peer_watch_audit_read_request",
+      "response_schema_ref": "schemas/watch-audit-operations.schema.json#/$defs/watch_audit_read_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/PeerWatchAuditReadRequestBody",
+        "response": "#/components/schemas/WatchAuditReadOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
       "operation_id": "ak.peer.strand.watch.read.current.v1",
@@ -3018,6 +3032,20 @@
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for response."
+    },
+    {
+      "operation_id": "ak.self.strand.watch.command.audit_read.v1",
+      "surface_class": "core",
+      "http": "POST /_arkret/self/strands/watch/audit-read",
+      "success_shape_kind": "typed_response",
+      "request_schema_ref": "schemas/watch-audit-operations.schema.json#/$defs/watch_audit_read_request",
+      "response_schema_ref": "schemas/watch-audit-operations.schema.json#/$defs/watch_audit_read_outcome",
+      "openapi_component_refs": {
+        "request": "#/components/schemas/WatchAuditReadRequestBody",
+        "response": "#/components/schemas/WatchAuditReadOutcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
     },
     {
       "operation_id": "ak.self.strand.watch.read.current.v1",

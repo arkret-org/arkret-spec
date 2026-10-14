@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-14.4",
-  "generated_at": "2026-10-14T07:27:04+08:00",
+  "version": "2026-10-14.6",
+  "generated_at": "2026-10-14T12:58:28+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json"
@@ -116,6 +116,10 @@
     {
       "operation_bundle_id": "ak.operation_bundle.station.device_pairing_handoff.v1",
       "sha256": "sha256:327b13926746e62347899019ffe8b0b408493cd2bfbf4b65e0bb4ace4315e5a6"
+    },
+    {
+      "operation_bundle_id": "ak.operation_bundle.station.http_audit_operations.v1",
+      "sha256": "sha256:4d7b7217f946ef0588df114c48c8f27ae6e1714aa6ab83e939d9f0bbbb3db2a9"
     },
     {
       "operation_bundle_id": "ak.operation_bundle.station.http_core_current.v1",

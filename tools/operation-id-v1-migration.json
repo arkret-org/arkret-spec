@@ -312,6 +312,10 @@
       "new": "ak.peer.signal.command.relay.v1"
     },
     {
+      "old": "ak.peer.strand.watch.command.audit_read",
+      "new": "ak.peer.strand.watch.command.audit_read.v1"
+    },
+    {
       "old": "ak.peer.strand.watch.read.current",
       "new": "ak.peer.strand.watch.read.current.v1"
     },
@@ -874,6 +878,10 @@
     {
       "old": "ak.self.strand.read.list",
       "new": "ak.self.strand.read.list.v1"
+    },
+    {
+      "old": "ak.self.strand.watch.command.audit_read",
+      "new": "ak.self.strand.watch.command.audit_read.v1"
     },
     {
       "old": "ak.self.strand.watch.read.current",

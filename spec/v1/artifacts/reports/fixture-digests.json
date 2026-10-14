@@ -511,6 +511,11 @@
       "version": "2026-10-11"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/registered-atomic-unit-and-watch-audit-fixture.json",
+      "sha256": "190914c8d781be2ef461eeb05c72c8d6efde21bfcd2e8098169aa05004849ecf",
+      "version": "2026-10-14.2"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/relation-structural-realm-fixture.json",
       "sha256": "21d7de5358f9dc8ef3d30261e444fd668944b48e9af4cfc662986fab952b96a1",
       "version": "2026-09-21.1"

@@ -207,19 +207,20 @@ def check_peer_event_submit_semantic_union(lint: Lint) -> None:
     if peer.get("additionalProperties") is not False or _required(peer) != {"branch"}:
         _fail(lint, SCHEMA, "peer_submit_request must be closed with branch as its common required field")
     branches = peer.get("oneOf") if isinstance(peer, dict) else None
-    if not isinstance(branches, list) or len(branches) != 4:
-        _fail(lint, SCHEMA, "peer_submit_request must have two authority-forward alternatives plus replication and atomic-unit alternatives")
+    if not isinstance(branches, list) or len(branches) != 5:
+        _fail(lint, SCHEMA, "peer_submit_request must have three authority-forward alternatives plus replication and atomic-unit alternatives")
     else:
         constants = [item.get("properties", {}).get("branch", {}).get("const") for item in branches if isinstance(item, dict)]
-        if constants != ["authority_forward", "authority_forward", "committed_replication", "registered_atomic_unit"]:
+        if constants != ["authority_forward", "authority_forward", "authority_forward", "committed_replication", "registered_atomic_unit"]:
             _fail(lint, SCHEMA, "peer_submit_request alternatives drift from the registered branch partition")
         allowed_fields = (
             {"branch", "event_submission", "mls_genesis_material", "producer_device_evidence", "producer_agent_evidence"},
             {"branch", "mls_submission", "producer_device_evidence", "producer_agent_evidence"},
+            {"branch", "atomic_submission", "atomic_producer_evidence"},
             {"branch", "replications"},
             {"branch", "unit"},
         )
-        all_branch_fields = {"event_submission", "mls_genesis_material", "mls_submission", "producer_device_evidence", "producer_agent_evidence", "replications", "unit"}
+        all_branch_fields = {"event_submission", "mls_genesis_material", "mls_submission", "producer_device_evidence", "producer_agent_evidence", "replications", "unit", "atomic_submission", "atomic_producer_evidence"}
         for index, (item, allowed) in enumerate(zip(branches, allowed_fields, strict=True)):
             forbidden = {
                 next(iter(_required(candidate)))
@@ -230,7 +231,7 @@ def check_peer_event_submit_semantic_union(lint: Lint) -> None:
                 _fail(lint, SCHEMA, f"peer_submit_request alternative {index} must reject every cross-branch field")
 
     peer_properties = peer.get("properties", {})
-    if set(peer_properties) != {"branch", "event_submission", "mls_genesis_material", "mls_submission", "producer_device_evidence", "producer_agent_evidence", "replications", "unit"}:
+    if set(peer_properties) != {"branch", "event_submission", "mls_genesis_material", "mls_submission", "producer_device_evidence", "producer_agent_evidence", "replications", "unit", "atomic_submission", "atomic_producer_evidence"}:
         _fail(lint, SCHEMA, "peer_submit_request properties must be the exact branch field set")
     if _ref_name(peer_properties.get("mls_genesis_material")) != "#/$defs/mls_genesis_material":
         _fail(lint, SCHEMA, "authority_forward mls_genesis_material must use the closed mls_genesis_material definition")
@@ -358,8 +359,8 @@ def check_peer_event_submit_semantic_union(lint: Lint) -> None:
 
     atomic = defs.get("peer_registered_atomic_unit", {}).get("oneOf", [])
     atomic_refs = [_ref_name(item) for item in atomic if isinstance(item, dict)]
-    if atomic_refs != ["#/$defs/direct_conversation_founding_federation_submission", "#/$defs/membership_compensation_federation_submission"]:
-        _fail(lint, SCHEMA, "registered atomic unit registry must contain exactly founding and compensation")
+    if atomic_refs != ["#/$defs/direct_conversation_founding_federation_submission", "#/$defs/membership_compensation_federation_submission", "#/$defs/audit_paired_event_federation_submission"]:
+        _fail(lint, SCHEMA, "registered atomic unit registry must contain exactly founding, compensation and audit-paired source units")
 
     evidence = defs["membership_compensation_evidence"]
     if _required(evidence) != {"delegation", "terminal_certificate", "single_use_binding"} or evidence.get("additionalProperties") is not False:

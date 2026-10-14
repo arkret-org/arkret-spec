@@ -8,6 +8,7 @@ from .governance_result_consumption_roles import check_governance_result_consump
 from .agent_runtime_contract import check_agent_runtime_contract
 from .agent_session_content import check_agent_session_content
 from .peer_watch_current import check_peer_watch_current
+from .registered_atomic_units import check_registered_atomic_units
 from .owned_agent_authority import check_owned_agent_authority
 from .account_revision_stale import check_account_revision_stale
 from .cursor_wait_bindings import check_cursor_wait_bindings
@@ -914,6 +915,7 @@ def main(argv: list[str] | None = None) -> int:
             ("agent_runtime_contract", lambda: check_agent_runtime_contract(lint)),
             ("agent_session_content", lambda: check_agent_session_content(lint)),
             ("peer_watch_current", lambda: check_peer_watch_current(lint)),
+            ("registered_atomic_units", lambda: check_registered_atomic_units(lint)),
             ("owned_agent_authority", lambda: check_owned_agent_authority(lint)),
             ("direct_conversation_structure", lambda: check_direct_conversation_structure(lint)),
             ("direct_conversation_local_blocker_clean_break", lambda: check_direct_conversation_local_blocker_clean_break(lint)),

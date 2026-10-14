@@ -1,0 +1,159 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/watch-audit-operations.schema.json",
+  "title": "Arkret Watch Audited Read Operations",
+  "description": "Closed side-effecting audited-read commands. Reuses producer Event, signer evidence, RealmCommit and Watch current types. Authority-commit-log section 5.3 is the normative transaction/replay boundary.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/watch_audit_read_request"
+    },
+    {
+      "$ref": "#/$defs/peer_watch_audit_read_request"
+    },
+    {
+      "$ref": "#/$defs/watch_audit_read_outcome"
+    }
+  ],
+  "$defs": {
+    "watch_audit_submission": {
+      "allOf": [
+        {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
+        },
+        {
+          "properties": {
+            "event": {
+              "properties": {
+                "kind": {
+                  "const": "ak.audit.accessed"
+                },
+                "actor_id": {
+                  "$ref": "./common-ids.schema.json#/$defs/actor_id",
+                  "properties": {
+                    "kind": {
+                      "const": "account"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                },
+                "payload": {
+                  "allOf": [
+                    {
+                      "$ref": "./event-payload.schema.json#/$defs/audit_accessed_payload"
+                    },
+                    {
+                      "properties": {
+                        "access_kind": {
+                          "const": "watch_audit_read"
+                        },
+                        "target_ref": {
+                          "$ref": "./event-payload.schema.json#/$defs/strand_id"
+                        }
+                      },
+                      "required": [
+                        "target_actor_id"
+                      ],
+                      "not": {
+                        "required": [
+                          "paired_event_id"
+                        ]
+                      }
+                    }
+                  ]
+                },
+                "executed_by": {
+                  "$ref": "./common-ids.schema.json#/$defs/actor_id",
+                  "properties": {
+                    "kind": {
+                      "const": "account"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                }
+              },
+              "required": [
+                "kind"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "watch_audit_read_request": {
+      "type": "object",
+      "required": [
+        "audit_submission"
+      ],
+      "properties": {
+        "audit_submission": {
+          "$ref": "#/$defs/watch_audit_submission"
+        }
+      },
+      "additionalProperties": false,
+      "description": "One caller-signed audit Event plus its required approval evidence. Realm, Strand and watcher derive only from the signed Event, not duplicated selector fields. Its actor is the authenticated complete effective Account. The Event ID is a single-use read fence and full canonical request bytes identify exact replay; purpose and accessed_at do not authorize access."
+    },
+    "peer_watch_audit_read_request": {
+      "type": "object",
+      "required": [
+        "audit_submission"
+      ],
+      "properties": {
+        "audit_submission": {
+          "$ref": "#/$defs/watch_audit_submission"
+        },
+        "producer_device_evidence": {
+          "$ref": "./account-device-signer-evidence.schema.json#/$defs/forward_account_device_signer_evidence",
+          "description": "Fresh complete Account Device signer evidence for the signed audit Event, following authority-forward original authorization and per-attempt live gates. Exact command replay uses the durable original read binding before checking new evidence freshness; current disclosure and final delivery still apply."
+        },
+        "producer_agent_evidence": {
+          "$ref": "./agent-authority-evidence.schema.json#/$defs/agent_producer_evidence"
+        }
+      },
+      "additionalProperties": false,
+      "description": "S2S first-admission broker to the nonce-verified current governor for one audited read. Same signed audit_submission as self; no bearer, DPoP or session grant is forwarded. Source-Service-ID binds the complete auditor Account Station and actual producer evidence. Proof presence, fresh device/Agent and controller checks follow authority_forward; both proof alternatives together are forbidden. Audit command actual producer is a Device or Agent runtime Account, never a substituted Service producer; exactly one fresh evidence alternative is required.",
+      "allOf": [
+        {
+          "not": {
+            "required": [
+              "producer_device_evidence",
+              "producer_agent_evidence"
+            ]
+          }
+        }
+      ],
+      "oneOf": [
+        {
+          "required": [
+            "producer_device_evidence"
+          ]
+        },
+        {
+          "required": [
+            "producer_agent_evidence"
+          ]
+        }
+      ]
+    },
+    "watch_audit_read_outcome": {
+      "type": "object",
+      "required": [
+        "audit_commit",
+        "current"
+      ],
+      "properties": {
+        "audit_commit": {
+          "$ref": "./realm-commit.schema.json"
+        },
+        "current": {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/StrandWatchCurrentOutcome"
+        }
+      },
+      "additionalProperties": false,
+      "description": "One original audit Commit and the frozen exact target Watch observation from the same governance transaction. current.stream_head equals the audit Commit coordinate, and generation, Realm and target derive from the request. No roster or extra head. Exact replay returns the original frozen value only under current disclosure/delivery checks; it never reads a newer value using the old audit. An audit records authorized governing read, not guaranteed client receipt."
+    }
+  }
+}

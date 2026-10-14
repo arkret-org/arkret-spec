@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-14.1",
+  "version": "2026-10-14.2",
   "source_of_truth": false,
-  "generated_at": "2026-10-14T06:11:32+08:00",
+  "generated_at": "2026-10-14T12:58:27+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -1794,6 +1794,12 @@
       "file": "schemas/call-invitation-operations.schema.json",
       "status": "active",
       "description": "Closed exact-envelope call invitation relation, opaque submission, authorized holder-current admission and explicit token join branches."
+    },
+    {
+      "schema_id": "ak.schema.watch_audit_operations.v1",
+      "status": "active",
+      "file": "schemas/watch-audit-operations.schema.json",
+      "description": "Side-effecting own-Station audited Watch read broker, frozen result and source audit Commit."
     }
   ],
   "metadata_authority": "contract_registry_section"

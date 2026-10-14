@@ -115,6 +115,114 @@ Account Station 对本地提交只可报告 `queued`、`forwarding`、`committed
 消费自己的已认证 Station 验证后转达的原件，不重放方法历史。caller-supplied Event、仅 Event ID、猜测性 scan
 或脱离已验证读取结果的 ref 都不是已接纳证明。该合同只解析各自 stream 内的位置，不建立任何跨 stream 顺序。
 
+### 5.1 登记式原子单元（normative）
+
+公共入口复用 `ak.self.events.command.submit.v1` 与 `ak.peer.events.command.submit.v1`，不增加通用事务端点。
+`contract-registry.json.atomic_unit_registry` 是可接纳单元、typed request、顺序来源、转发及复制范围的唯一登记。
+caller MUST 选择已登记 closed branch，MUST NOT 提交任意 `events[]`、`atomic=true`、自选 predicate、步骤或跨 stream 计划。
+普通 Realm bootstrap、Direct Conversation founding、membership compensation 保留原 typed shape、专有授权和重放 fence；
+MLS Commit + Welcome 保留专用合同。共享执行框架 MUST NOT 把「共用事务机制」解释成这些业务可以互换参数。
+
+共同接纳规则：治理 Station 在任何效果前固定完整 canonical unit bytes；锁定 current authority、唯一 Realm／effective stream
+及全部适用 current 授权依据；逐 slot 验证 Event ID／digest、完整 actor、实际 producer proof、当前设备／Agent／controller／
+Applet 与两层 approval，并执行该单元登记的 staged 依赖和业务 CAS。所有 Event、逐 Event 连续 RealmCommit、typed current／
+durable fact、必要私密审计、完整请求与原 outcome、outbox MUST 在同一事务耐久提交；失败 MUST 零写入且不占 position。
+只有登记的 staged 依赖可使用同 unit 前一 slot，不能从 caller 数组推导任意依赖或先提交部分效果。
+每个单元只有一个 indivisible outcome，无 per-item partial；不新增 unit-level acceptance receipt。
+
+完整 canonical 请求的 exact retry MUST 返回第一次记录的接纳原件与结果，不能重新运行 reducer、CAS 或 fanout；
+既有 outcome 的 `status:duplicate` 标记可按其登记 schema 返回，除该重放标记外原 Commit／业务结果必须逐字保持；
+不同 bytes 复用同一登记的业务 fence MUST `duplicate_conflict`。原结果和 fence 是耐久事实，不是短期 HTTP cache。
+transport-only producer evidence 刷新不改变内层 signed unit；peer 外层 `canonical_hash/full_body` replay 与内层 unit fence
+分别核对，外层不同不能授权内层再次接纳。存储中已出现部分 unit、原结果或 fence 未决时 MUST `revision_unavailable`，
+不能把缺记录当成首次写。恢复／handoff 必须保留可验证原件、完整 unit 接纳关系、业务 fence 与适用私密审计；
+尚不能重建原 outcome 时只可失败关闭，MUST NOT 重新执行。
+
+所有公共多 Event 单元 MUST 处于同一治理 Station、同一 Realm 和同一 Realm／Circle／Sidecar stream；
+读取父 Realm current 的授权 cut 不产生跨 stream Event 原子性。跨 stream／跨站工作流继续使用 committed ref、幂等恢复与明确补偿。
+Recovery／SecurityRotation 是 durable workflow，不能包装成单笔「全部回滚」的 Event 单元或通用 Saga DSL。
+
+`authority_forward` 是首次接纳：本轮只为 `audit_paired_event` 增加 typed `atomic_submission`，
+其它既有 self-only 单元不能因此被转发。`registered_atomic_unit` 是已 source-committed 单元的整体复制：
+接收方验证原 source Commit／proof／signer fact、顺序与本机披露资格，整体保存／物化或零写；不重审首次 approval、
+不重签 Commit、不产生第二轮 fanout。回传 source acceptance outcome 仅描述原治理站事实，不是接收方新增 finality。
+
+### 5.2 业务与审计配对单元（normative）
+
+`audit_paired_event_unit_submission` 固定为 `{unit_kind:"audit_paired_event",events:[business_submission,audit_submission]}`；
+每个 slot 均是既有 `EventAdmissionSubmission`，保留各自 producer proof 与 required approval signatures。
+第一 slot 仅允许登记的跨 actor `ak.strand.watch.set` 或 `ak.circle.member.state`，第二 slot 恰一条 `ak.audit.accessed`。
+二者的 `realm_id`、derived effective scope／stream、完整 `actor_id`、actual producer（`executed_by` 存在时取它）
+及签名 key MUST 一致；各自委托、当前授权、key/session/provision ceiling 与 approval 仍独立成立。
+同一锁定 origin cut 可支持两个 slot，但不可用只绑定 business Event 的证明替代 audit Event 证明；
+peer 携 fixed `atomic_producer_evidence[2]`，按 business／audit 顺序各自复用 Device／Agent 的既有 typed 证明。
+Device 的 `event_authorization.event_id` 分别等于该 slot Event ID；`forward_body_digest` 均绑定完整 peer request
+仅删除整个 `atomic_producer_evidence` 后的 canonical bytes，避免证明自引用。每个 slot 的窗口、原授权 ref、revision、PCR tenure
+与 accepted_at 独立核对且来自同 origin cut。Service producer 的对应 slot 为 closed 空对象并沿用 Service历史核验；
+不得携顶层单 Event 的 producer evidence，不能省掉任何 slot 的历史／当前检查。
+
+audit payload 的 `writer_actor_id` MUST 等于 business 的完整 actor；`target_actor_id` 与 `target_ref` 按
+`atomic_unit_registry.audit_pairs` 从业务 payload 派生，分别是 Watch 的 watcher／Strand 或 Circle 的 member／Circle。
+`access_kind` 分别为 `watch_set_others`／`circle_member_set_others`；`paired_event_id` 和唯一 critical
+`semantic_refs{role:"audit_pair"}` 的 id MUST 等于 business Event ID，且其内嵌 digest 与业务 canonical digest 一致。
+business MUST NOT 反向引用 audit；先构造 business，再构造 audit，避免 ID 原像循环。
+当前 caller 必须同时满足业务权限与 `ak.audit.accessed`；配对记录不提供新权限、不替代 CAS，也不携 caller 自报的结果 head。
+Watcher／member MUST 与 writer 完整 ActorId 不相等；本人操作保留既有单提交入口。
+每个 business Event ID 和 audit Event ID 都是 single-use fence；任一 ID 与不同 unit bytes 再配对必须 `duplicate_conflict`，
+已单独接纳的 Event 不能补配后再次接纳或占据新位置。
+
+Watch `.others` 的 level 仅可为 `mentions_only|participating|all`，不得清空／代写 `muted` 或 `level_public=true`，
+整值 CAS 规则保持。Circle 跨 actor成员改写统一走此单元：`ak.circle.member.manage` 或
+`ak.circle.member.add.others` 必须按自身 constraints／risk／approval 合法授权，且均不得绕过审计；
+父 Realm join revision、FSM、Circle 当前资格和精确 scope 门保持，不隐式授予成员资格或历史 key。
+缺 slot、多 slot、乱序、未登记 kind、错配、跨 scope、混 producer/key、缺 approval 或 CAS 冲突均整组零写拒绝。
+
+`atomic_submission` 的跨站首次接纳必须使用 §5.1 的 authority-forward 角色及每次新鲜 device／Agent evidence；
+完整 Account Station、current governor 与 S2S covered body 必须绑定。每条 source Commit 后的复制只允许
+`audit_paired_event_federation_submission` 携恰两条原完整 committed Event，保持 business／audit 顺序及同 stream 连续位置。
+普通 `committed_replication` 不得拆开接纳任何配对 slot；`registered_atomic_unit` 不得携首次接纳 producer evidence 或
+private approval signatures。披露任一完整 slot 不合法、来源缺项或已有部分／冲突时整 unit 拒绝；有界 scan 中的 withheld
+记录仍只证明原 Commit 存在，不能据其部分物化或证明从未写入。Snapshot／handoff 的原有完整性与披露门保持。
+
+### 5.3 带审计的 Watch 精确读取（normative）
+
+唯一消费面为 `ak.self.strand.watch.command.audit_read.v1` 与
+`ak.peer.strand.watch.command.audit_read.v1`，绑定见 [HTTP §3.3.2](./service-http-binding.md#332-带审计的-watch-精确读取normative)。
+它们是会写 durable audit Event 的 command，不是普通只读 query。self 请求只有 `audit_submission: EventAdmissionSubmission`；
+Event MUST 是 `ak.audit.accessed{access_kind:"watch_audit_read"}`，不得携 `paired_event_id`。
+Realm、Strand 与 watcher 唯一取自 Event 的 `realm_id`、`payload.target_ref` 与完整 `payload.target_actor_id`；
+`actor_id`／`writer_actor_id` MUST 等于当前认证 effective Account。`purpose` 与 `accessed_at` 是 signed intent，不替代授权，
+服务端 accepted 时间取 RealmCommit 的 `committed_at`。不重复携 caller selector、result id 或猜测的 head。
+
+current governor 在一个事务 cut 中检查完整 auditor 的当前父 Realm membership、Strand 当前 lifecycle／scope、
+`ak.realm.notification.audit` 与 `ak.audit.accessed` 两种权限、所有当前 producer／controller／Agent／Applet／approval 门，
+以及 Watch 原件／durable current 完整性。Circle 下还必须是当前 effective member，或明确持有约束到该 Circle 的
+`ak.circle.audit`。后一情形仅为本 command 的 `watch_audit_read` audit Event 提供记录这次获授权读取的受控接纳例外；
+不授予普通 Circle Event 写入、membership、内容历史或 MLS key。普通 Event 提交／projection 不得复用此例外。
+授权、scope、完整性或 audit 接纳失败时不写 audit、不释放值。成功在同事务接纳一条 audit、签一个 RealmCommit，
+并耐久冻结该 exact Watch observation 与 canonical self request 绑定；事务提交后才释放 `watch_audit_read_outcome`。
+其 `audit_commit` 逐字绑定请求 Event；`current` 复用 `StrandWatchCurrentOutcome`，保留 never_written 与 current:null，
+其 Realm／selector／generation 正确且 `stream_head` 恰为该 audit Commit 的同 stream coordinate。
+
+完整 canonical self request 与唯一 audit Event ID 是一次读取的耐久 fence。第一次只接纳一次；exact retry 只能返回原冻结结果，
+不得重新查询最新值、再次写 audit 或用旧 audit 读新状态。同 audit ID 换 request bytes／approval evidence MUST
+`duplicate_conflict`；先前仅经普通入口／其它操作 accepted 的 audit 没有这份绑定结果，不能改作读票。
+`watch_audit_read` 本身 MUST 只在这两个 command 首接纳；standalone 普通 Event-submit 或 caller 提供 accepted audit ref
+不得开放读取。其它 audit access_kind 的既有入口保持。
+
+回放私有结果仍须当前 disclosure／delivery 许可；它不是可永久重放的授权 cache。已知撤权或不可见为 `not_found`；
+未确认 current authority／scope／导入完整性、丢失 replay material 或已观察更高 governance generation 为 `revision_unavailable`。
+同 generation 的后续 Watch 更新不替换冻结结果；获准重放的值仍是原 audit cut 的观察，不是最新值或未来 CAS 租约。
+handoff 后旧 generation 的冻结结果不能作为新当前前态；需要新审计 Event 取得新观察，旧 audit 不重接纳。
+审计 Event 表示治理站完成这次获授权读取，不证明网络成功或用户已看到；最终本地 session／device／Account／Agent
+交付 gate 撤回时必须扣住结果，已经完成的治理审计不补造回滚或客户端收到的证明。
+
+跨站先复用 nonce-bound authority bundle 确认唯一 current governor；Account Station 不向外站传 bearer／DPoP／session grant，
+peer 以 S2S signature、完整 auditor Account Station 和新鲜 actual-producer device／Agent evidence完成 audit Event 首接纳。
+本 command 的 actual producer 必须为 Account 的 Device 或 Agent runtime，完整 signer Account Station 必须等于 auditor Station；不接纳 Service producer 或 Service 代签。peer 必携恰一种 fresh device／Agent evidence。Event-origin producer proof 不可由服务端代签。每次转发 proof 刷新不改变 signed audit／canonical self request；
+治理站只重放原 read fence，本地最终重验原 credential、device generation、撤回与 Agent 内容上界。
+普通本人 Watch self／peer read 保持原只读合同，`.others` 不授予它们读取他人，公开 level 或 Agent provenance 也不补造审计票。
+
 ## 6. 读取、验证与完整性边界
 
 消费 Station 与独立审计者对每条获准 stream 独立验证以下六项。普通客户端的原件、

@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-14.3",
-  "generated_at": "2026-10-14T07:08:02+08:00",
+  "version": "2026-10-14.4",
+  "generated_at": "2026-10-14T05:21:58Z",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -3207,6 +3207,21 @@
           "direction": "consume",
           "operation_id": "ak.peer.strand.watch.read.current.v1",
           "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.self.strand.watch.command.audit_read.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.peer.strand.watch.command.audit_read.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.peer.strand.watch.command.audit_read.v1",
+          "binding_kind": "http_json"
         }
       ],
       "inherits": [
@@ -3247,12 +3262,15 @@
         "capability-relinquish-authoring-fixture.json",
         "mls-roster-client-roles-fixture.json",
         "governance-result-consumption-roles-fixture.json",
-        "strand-watch-current-read-fixture.json"
+        "strand-watch-current-read-fixture.json",
+        "registered-atomic-unit-and-watch-audit-fixture.json"
       ],
       "required_vectors": [
         "ak.vector.authority_commit_projection.result_consumption_roles.v1",
         "ak.vector.mls.roster_client_roles.v1",
-        "ak.vector.state.strand_watch_current_read.v1"
+        "ak.vector.state.strand_watch_current_read.v1",
+        "ak.vector.state.registered_atomic_units.v1",
+        "ak.vector.state.watch_audit_operations.v1"
       ],
       "optional_extensions": [
         "ak.profile.federation_minimal.v1",
@@ -3338,6 +3356,16 @@
           "direction": "consume",
           "operation_id": "ak.peer.strand.watch.read.current.v1",
           "binding_kind": "http_json"
+        },
+        {
+          "direction": "provide",
+          "operation_id": "ak.peer.strand.watch.command.audit_read.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "direction": "consume",
+          "operation_id": "ak.peer.strand.watch.command.audit_read.v1",
+          "binding_kind": "http_json"
         }
       ],
       "inherits": [
@@ -3355,7 +3383,8 @@
         "ak.schema.event_payload.v1"
       ],
       "required_fixtures": [
-        "strand-watch-current-read-fixture.json"
+        "strand-watch-current-read-fixture.json",
+        "registered-atomic-unit-and-watch-audit-fixture.json"
       ],
       "prose_requirement_coverage": [
         {
@@ -3424,7 +3453,9 @@
         "minimum_binding": "The fixed v1 MLS GroupContext binding of crypto-media/encryption-and-audit.md section 2.5.1 {effective_scope, base_group_state_ref, previous_epoch, next_epoch, key_access_revision}."
       },
       "required_vectors": [
-        "ak.vector.state.strand_watch_current_read.v1"
+        "ak.vector.state.strand_watch_current_read.v1",
+        "ak.vector.state.registered_atomic_units.v1",
+        "ak.vector.state.watch_audit_operations.v1"
       ]
     },
     "ak.profile.signal_message_stream.v1": {

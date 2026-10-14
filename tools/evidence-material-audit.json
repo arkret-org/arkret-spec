@@ -1,12 +1,12 @@
 {
-  "version": 34,
+  "version": 36,
   "source_of_truth": false,
   "narrative_source": "spec/v1/zh/models/common-fields.md#r6-证据类名词分工",
   "scope": [
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 392,
+  "audited_occurrence_count": 404,
   "registrations": [
     {
       "file": "account-operations.schema.json",
@@ -230,7 +230,7 @@
     {
       "file": "authority-commit-operations.schema.json",
       "key": "producer_device_evidence",
-      "occurrences": 1,
+      "occurrences": 2,
       "disposition": "polymorphic_container",
       "material_families": [
         "proof",
@@ -806,7 +806,7 @@
     {
       "file": "normative-clause-registry.json",
       "key": "evidence_refs",
-      "occurrences": 41,
+      "occurrences": 44,
       "disposition": "registry_contract",
       "reason": "Names the conformance vectors that prove a normative clause; it is a coverage pointer, not a wire material instance."
     },
@@ -1099,7 +1099,7 @@
     {
       "file": "authority-commit-operations.schema.json",
       "key": "producer_agent_evidence",
-      "occurrences": 1,
+      "occurrences": 2,
       "disposition": "polymorphic_container",
       "reason": "Agent producer closure uses only actual signer dependencies; authority evidence never grants participation current. References address exact canonical roots and do not themselves carry material.",
       "material_families": [
@@ -1163,16 +1163,75 @@
     {
       "file": "contract-registry.json",
       "key": "deployment_evidence",
-      "occurrences": 41,
+      "occurrences": 42,
       "disposition": "registry_contract",
       "reason": "References the registered implementation prototype or normative role requirement that proves one frozen operation bundle support vector."
     },
     {
       "file": "operation-registry.json",
       "key": "deployment_evidence",
-      "occurrences": 41,
+      "occurrences": 42,
       "disposition": "registry_contract",
       "reason": "Generated operation-bundle projection of the canonical deployment evidence references."
+    },
+    {
+      "file": "watch-audit-operations.schema.json",
+      "key": "producer_agent_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "reason": "Dedicated audited-read command carries the same fresh actual-producer signer dependencies as authority_forward; it grants neither target disclosure nor participation. Agent producer closure uses only actual signer dependencies; authority evidence never grants participation current. References address exact canonical roots and do not themselves carry material.",
+      "material_families": [
+        "proof",
+        "attestation",
+        "transcript"
+      ]
+    },
+    {
+      "file": "watch-audit-operations.schema.json",
+      "key": "producer_device_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation"
+      ],
+      "reason": "Dedicated audited-read command carries the same fresh actual-producer signer dependencies as authority_forward; it grants neither target disclosure nor participation. authority_forward-only carrier of the complete account_device signer evidence (origin device projection attestation plus method-native Service resolution) that a forwarding account Station signs fresh per attempt so the cross-Station governance Station can resolve a human device producer; its presence is decided by the Event."
+    },
+    {
+      "file": "authority-commit-operations.schema.json",
+      "key": "audit_pair_producer_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation",
+        "transcript"
+      ],
+      "reason": "Exactly two ordered actual-producer closures for the fixed business/audit unit; each reuses the existing Event-bound Device or Agent proof family, or an empty slot for a Service signer resolved through its existing history. This outer container grants no rights and is excluded as a whole from the proof body digest."
+    },
+    {
+      "file": "authority-commit-operations.schema.json",
+      "key": "atomic_slot_producer_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation",
+        "transcript"
+      ],
+      "reason": "Exactly two ordered actual-producer closures for the fixed business/audit unit; each reuses the existing Event-bound Device or Agent proof family, or an empty slot for a Service signer resolved through its existing history. This outer container grants no rights and is excluded as a whole from the proof body digest."
+    },
+    {
+      "file": "authority-commit-operations.schema.json",
+      "key": "atomic_producer_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation",
+        "transcript"
+      ],
+      "reason": "Exactly two ordered actual-producer closures for the fixed business/audit unit; each reuses the existing Event-bound Device or Agent proof family, or an empty slot for a Service signer resolved through its existing history. This outer container grants no rights and is excluded as a whole from the proof body digest."
     }
   ]
 }

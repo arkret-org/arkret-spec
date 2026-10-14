@@ -171,7 +171,9 @@ def check_agent_runtime_contract(lint: Lint) -> None:
     peer = load_json(lint, peer_path)['$defs']['peer_submit_request']
     if peer['properties'].get('producer_agent_evidence', {}).get('$ref') != './agent-authority-evidence.schema.json#/$defs/agent_producer_evidence':
         lint.fail(peer_path, 'formal peer ingress must reference Agent carrier')
-    for branch in peer['oneOf'][2:]:
+    for branch in peer['oneOf']:
+        if branch.get('properties', {}).get('branch', {}).get('const') == 'authority_forward':
+            continue
         if {'required': ['producer_agent_evidence']} not in branch['not']['anyOf']:
             lint.fail(peer_path, 'non-forwarding peer branches must forbid Agent evidence')
     asre_path = ARTIFACTS / 'schemas/authenticated-signer-resolution-evidence.schema.json'

@@ -13,6 +13,9 @@ updated: 2026-09-25
 Arkret v1 只定义两个 Station 内安全事务：`RecoveryTransaction` 与
 `SecurityRotationTransaction`。它们是 Station 内的 durable orchestration，不得泛化为可执行 Saga/Plan DSL。
 
+`authority-commit-log` §5.1 的登记式 Event 原子单元可以复用请求固定、事务内持久化、重放与恢复机制，
+但本资源仍是固定 durable workflow。已完成的不可逆步骤不会因后续失败整体回滚；不得将它加入 `atomic_unit_registry` 或执行 caller 自选原子步骤。
+
 ## 1. 共享合同
 
 ```text
