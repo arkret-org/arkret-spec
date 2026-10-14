@@ -605,7 +605,7 @@
         },
         "supersedes": {
           "type": "array",
-          "description": "Exact complete active authorization set at expected_revision and first acceptance, sorted byte-lexicographically by (key_id, authorized_event_ref). Omit exactly when the active set is empty, including after revoke. Each authorization Event identifies its registered add dot. Same-key reauthorization uses the same exact-set rule. Remove the observed old-key typed results atomically and add the new authorization; never infer authority from historical row presence or map overwrite.",
+          "description": "Exact complete signed active authorization basis at first acceptance, sorted byte-lexicographically by (key_id, authorized_event_ref). Each original accepted authorization Event identifies its immutable add dot; the verifier independently checks its covering RealmCommit, relevant typed current revision and current active set in the same confirmation transaction. No separate expected_revision wire member exists for this family. Omit exactly when the active set is empty; after revoke, reattach follows the registered fresh pairing and activation fence. Same-key reauthorization requires a current active key and names every old dot. Remove observed old-key typed results atomically and add one replacement; stale basis fails closed, and historical rows or prior pairing receipts never restore a revoked key.",
           "minItems": 1,
           "uniqueItems": true,
           "items": {
