@@ -239,9 +239,15 @@ Capability actions:
 | `ak.circle.create` | medium | `ak.circle.create` | 创建 Circle。**默认不**在普通成员 bundle 中(防止 Circle 滥用稀释 UX)。 |
 | `ak.circle.manage` | medium | `ak.circle.update`, `ak.circle.archive`, `ak.circle.restore`, `ak.circle.tombstone` | 管理已存在 Circle。 |
 | `ak.circle.member.add` | low | `ak.circle.member.state`(`payload.member_id == envelope.actor_id`，且 transition 合法) | 加入 `join_rule=public` 的 Circle 或自助退出；不得自助解除 ban。v1 `join_rule=invite` 由持有 `ak.circle.member.add.others` 的管理员显式加入，不存在 Circle pending invite / accept workflow。 |
-| `ak.circle.member.manage` | medium | `ak.circle.member.state`(`payload.member_id != envelope.actor_id`) | 邀请/移除他人；Circle admin 持有。 |
+| `ak.circle.member.manage` | medium | `ak.circle.member.state`(`payload.member_id != envelope.actor_id`) | 邀请/移除他人；Circle admin 持有，跨 actor 改写必须使用 `audit_paired_event`。 |
 | `ak.circle.member.add.others` | high | 同上 + 强制带 `ak.audit.accessed` 配对(与 `ak.strand.watch.set.others` 同模式) | 跨成员代写(罕用)，审计配对。 |
 | `ak.circle.audit` | high | 空(read-only)，配对 `ak.audit.accessed` | 不属于 Circle 的 Realm admin 读取 Circle 元数据 / activity rollup 的审计权。 |
+
+跨 actor 的 `ak.circle.member.state` 统一按 [authority-commit-log §5.2](../sync/authority-commit-log.md#52-业务与审计配对单元normative)
+使用 `audit_paired_event`：业务 Event 先成型，恰一条 `ak.audit.accessed{access_kind:"circle_member_set_others"}` 在第二 slot，
+writer、member、Circle、scope 与单向 `audit_pair` 逐项绑定。`member.manage` 与 `member.add.others` 各按自身权限／约束／风险判定，
+都不能绕过 audit capability／approval、合法 FSM 与父 Realm join revision；不授予私有读取或历史 key。
+普通单 Event 入口不得接纳这种跨 actor 改写。合法本人 join／knock／leave 保留既有入口。
 
 **授权评估两层 AND**:
 
@@ -255,6 +261,8 @@ authorized(actor, action, object) ⇔
 其中 `effective_scope(object)` 对 durable Event 使用 immutable signed `scope_ref`，对 materialized object 使用创建 Event scope 或当前 `scope_circle_id` 的规范派生。capability 决定能否执行，Circle membership 决定作用域资格；任一不满足都拒绝。
 
 Circle 管理类 grant MUST 显式约束到 `allowed_circle_ids` / `circle_id` selector，或由 Circle 自身的 admin typed current result 派生；不得把无约束的 Realm-wide `ak.circle.manage` 当作普通管理权限发放。Realm admin 需要读取 Circle 正文或成员细节时 MUST 走 `ak.circle.audit` + `ak.audit.accessed` 配对路径；MLS-backed Circle 中还不能获得历史解密 key，除非被正式加入该 Circle。Plaintext Circle 不存在历史解密 key，但仍不得绕过 Circle membership / audit gate 直接投递或查询。
+
+[Watch 审计读取 command](../sync/authority-commit-log.md#53-带审计的-watch-精确读取normative)对持有当前父 Realm membership、明确 scoped `ak.circle.audit`、notification audit 与 audit-write 权限的非成员，只允许在同一治理 cut 接纳其本次 `watch_audit_read` 审计记录并释放获授权的 Watch cell。该受控例外不得扩展到普通 Circle Event 写入、普通成员查询、membership 或 MLS key。
 
 **Realm 管理权交接与 Circle 隔离（normative）**：Realm ownership / admin capability transfer 只转移 Realm 治理能力，MUST NOT 隐式创建任何 `ak.circle.member.state`、MUST NOT 把接手管理员加入既有 Circle、MUST NOT 赋予既有 Circle 的历史读取 / 解密资格，也不是交接前必须完成的前置条件。若产品希望新管理员继续创建新的 Circle，应在交接 bundle 中显式授予 `ak.circle.create`（或等价的产品管理员角色中显式包含该 action）；这不影响任何既有 Circle。若需要新管理员接管某个既有 Circle 的 lifecycle / membership 管理，必须对该 Circle 显式签发带 `allowed_circle_ids` 的 `ak.circle.manage` / `ak.circle.member.manage` grant；若需要其参与内容讨论，则必须按 §9.1 写入明确的 Circle membership transition。实现 MAY 在交接向导中提示“可选移交哪些 Circle 的管理/成员资格”，但 MUST NOT 要求“把目标管理员加入所有 Circle”作为 Realm admin transfer 的协议条件。
 

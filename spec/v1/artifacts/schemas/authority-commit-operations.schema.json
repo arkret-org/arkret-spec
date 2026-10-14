@@ -81,7 +81,7 @@
       ]
     },
     "self_submit_request": {
-      "description": "Closed self Event-submit union. Ordinary Event and MLS Commit requests retain their current canonical shapes. Ordinary Realm bootstrap, Direct Conversation founding and membership compensation are the only aggregate branches; all are closed and are rejected on every other Event-submit endpoint.",
+      "description": "Closed self Event-submit union: single producer Event, MLS Commit, and exactly the registered ordinary Realm bootstrap, Direct Conversation founding, membership compensation or audit_paired_event unit. Shared atomic execution rules are in authority-commit-log section 5.1 and contract-registry.atomic_unit_registry; each registered branch retains its own typed shape and admission policy. No arbitrary events[] or atomic=true.",
       "oneOf": [
         {
           "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
@@ -97,6 +97,9 @@
         },
         {
           "$ref": "#/$defs/membership_compensation_unit_submission"
+        },
+        {
+          "$ref": "#/$defs/audit_paired_event_unit_submission"
         }
       ]
     },
@@ -114,12 +117,15 @@
         },
         {
           "$ref": "#/$defs/membership_compensation_acceptance_outcome"
+        },
+        {
+          "$ref": "#/$defs/audit_paired_event_acceptance_outcome"
         }
       ]
     },
     "peer_submit_request": {
       "type": "object",
-      "description": "The only peer Event ingress. branch is a semantic discriminator, not a routing hint: authority_forward performs first admission at the current governance Station; committed_replication stores source-committed replicas; registered_atomic_unit performs one registered all-or-nothing materialization. Bodies cannot be reinterpreted across branches. producer_device_evidence is allowed only on authority_forward and its presence is decided by the Event, not by the forwarder: it MUST be present when the actual signer (executed_by when present, otherwise actor_id; the Commit Event for mls_submission) is an Account whose proof verification_method fragment is an ak:device: id, and MUST be absent otherwise. The schema cannot express that Event-dependent rule, so the governance Station enforces it after producer resolution and rejects a missing or surplus member with schema_violation and zero writes (zh/crypto-media/device-lifecycle.md section 8.2.2). mls_genesis_material is likewise allowed only on the authority_forward event branch, and there the Event kind alone decides it: required for ak.mls.genesis, forbidden otherwise. producer_agent_evidence is required exactly when the actual producer is an Agent runtime key; it is forbidden for human-device and service producers and on committed_replication/registered_atomic_unit. Missing, surplus or simultaneous device/Agent evidence is schema_violation with zero writes. Complete AccountId, runtime method/key, ASRE content ref, state and independent controller gate must all match. Missing compact cache is dependency_missing; no extra fetch endpoint. producer_agent_evidence is required exactly when the actual producer is an Agent runtime key; it is forbidden for human-device and service producers and on committed_replication/registered_atomic_unit. Missing, surplus or simultaneous device/Agent evidence is schema_violation with zero writes. Complete AccountId, runtime method/key, ASRE content ref, state and independent controller gate must all match. Missing compact cache is dependency_missing; no extra fetch endpoint.",
+      "description": "Closed peer ingress with three semantic branches. authority_forward performs first admission for one Event, one MLS Commit or one registered audit_paired_event atomic_submission. Its required/forbidden fresh producer_device_evidence or producer_agent_evidence is decided by the actual producer, reused unchanged in role from the single-Event forward contract and checked for both pair slots; both slots must have the same complete actual producer and proof key. mls_genesis_material is event/MLS Genesis-specific and forbidden on atomic_submission. committed_replication stores authorized ordinary source facts; audit-paired source Events must travel together through registered_atomic_unit. registered_atomic_unit only materializes registered source-committed units and forbids first-admission evidence. Mixed branch members and device/Agent evidence mixing are rejected. Outer canonical_hash/full_body replay and the exact inner-unit replay fence are distinct; refreshing transport-only producer evidence never authorizes a second unit acceptance.",
       "required": [
         "branch"
       ],
@@ -158,6 +164,12 @@
         },
         "unit": {
           "$ref": "#/$defs/peer_registered_atomic_unit"
+        },
+        "atomic_submission": {
+          "$ref": "#/$defs/audit_paired_event_unit_submission"
+        },
+        "atomic_producer_evidence": {
+          "$ref": "#/$defs/audit_pair_producer_evidence"
         }
       },
       "oneOf": [
@@ -186,6 +198,16 @@
               {
                 "required": [
                   "unit"
+                ]
+              },
+              {
+                "required": [
+                  "atomic_submission"
+                ]
+              },
+              {
+                "required": [
+                  "atomic_producer_evidence"
                 ]
               }
             ]
@@ -258,6 +280,67 @@
                 "required": [
                   "mls_genesis_material"
                 ]
+              },
+              {
+                "required": [
+                  "atomic_submission"
+                ]
+              },
+              {
+                "required": [
+                  "atomic_producer_evidence"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "required": [
+            "branch",
+            "atomic_submission",
+            "atomic_producer_evidence"
+          ],
+          "properties": {
+            "branch": {
+              "const": "authority_forward"
+            }
+          },
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "event_submission"
+                ]
+              },
+              {
+                "required": [
+                  "mls_submission"
+                ]
+              },
+              {
+                "required": [
+                  "mls_genesis_material"
+                ]
+              },
+              {
+                "required": [
+                  "replications"
+                ]
+              },
+              {
+                "required": [
+                  "unit"
+                ]
+              },
+              {
+                "required": [
+                  "producer_device_evidence"
+                ]
+              },
+              {
+                "required": [
+                  "producer_agent_evidence"
+                ]
               }
             ]
           }
@@ -302,6 +385,16 @@
               {
                 "required": [
                   "producer_agent_evidence"
+                ]
+              },
+              {
+                "required": [
+                  "atomic_submission"
+                ]
+              },
+              {
+                "required": [
+                  "atomic_producer_evidence"
                 ]
               }
             ]
@@ -348,6 +441,16 @@
                 "required": [
                   "producer_agent_evidence"
                 ]
+              },
+              {
+                "required": [
+                  "atomic_submission"
+                ]
+              },
+              {
+                "required": [
+                  "atomic_producer_evidence"
+                ]
               }
             ]
           }
@@ -390,7 +493,14 @@
           "const": "authority_forward"
         },
         "outcome": {
-          "$ref": "#/$defs/submit_outcome"
+          "oneOf": [
+            {
+              "$ref": "#/$defs/submit_outcome"
+            },
+            {
+              "$ref": "#/$defs/audit_paired_event_acceptance_outcome"
+            }
+          ]
         }
       },
       "additionalProperties": false
@@ -1204,13 +1314,16 @@
       "additionalProperties": false
     },
     "peer_registered_atomic_unit": {
-      "description": "Closed registry of peer source-committed atomic units. Every listed unit is persisted and materialized all-or-nothing and produces no new Arkret Event finality.",
+      "description": "Closed source-committed atomic-unit union: Direct Conversation founding, membership compensation and audit_paired_event. No first admission or arbitrary Event collection.",
       "oneOf": [
         {
           "$ref": "#/$defs/direct_conversation_founding_federation_submission"
         },
         {
           "$ref": "#/$defs/membership_compensation_federation_submission"
+        },
+        {
+          "$ref": "#/$defs/audit_paired_event_federation_submission"
         }
       ]
     },
@@ -1231,6 +1344,9 @@
             },
             {
               "$ref": "#/$defs/membership_compensation_acceptance_outcome"
+            },
+            {
+              "$ref": "#/$defs/audit_paired_event_acceptance_outcome"
             },
             {
               "$ref": "#/$defs/registered_atomic_unit_rejection"
@@ -1975,6 +2091,262 @@
         }
       },
       "additionalProperties": false
+    },
+    "audit_paired_watch_submission": {
+      "allOf": [
+        {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
+        },
+        {
+          "properties": {
+            "event": {
+              "properties": {
+                "kind": {
+                  "const": "ak.strand.watch.set"
+                },
+                "payload": {
+                  "$ref": "./event-payload.schema.json#/$defs/strand_watch_set_payload"
+                }
+              },
+              "required": [
+                "kind"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "audit_paired_circle_member_submission": {
+      "allOf": [
+        {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
+        },
+        {
+          "properties": {
+            "event": {
+              "properties": {
+                "kind": {
+                  "const": "ak.circle.member.state"
+                },
+                "payload": {
+                  "$ref": "./event-payload.schema.json#/$defs/circle_member_state_payload"
+                }
+              },
+              "required": [
+                "kind"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "audit_paired_business_submission": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/audit_paired_watch_submission"
+        },
+        {
+          "$ref": "#/$defs/audit_paired_circle_member_submission"
+        }
+      ]
+    },
+    "audit_paired_access_submission": {
+      "allOf": [
+        {
+          "$ref": "./service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission"
+        },
+        {
+          "properties": {
+            "event": {
+              "properties": {
+                "kind": {
+                  "const": "ak.audit.accessed"
+                },
+                "payload": {
+                  "allOf": [
+                    {
+                      "$ref": "./event-payload.schema.json#/$defs/audit_accessed_payload"
+                    },
+                    {
+                      "required": [
+                        "target_actor_id",
+                        "paired_event_id"
+                      ],
+                      "properties": {
+                        "access_kind": {
+                          "enum": [
+                            "watch_set_others",
+                            "circle_member_set_others"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "kind"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "audit_paired_event_unit_submission": {
+      "type": "object",
+      "required": [
+        "unit_kind",
+        "events"
+      ],
+      "properties": {
+        "unit_kind": {
+          "const": "audit_paired_event"
+        },
+        "events": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "prefixItems": [
+            {
+              "$ref": "#/$defs/audit_paired_business_submission"
+            },
+            {
+              "$ref": "#/$defs/audit_paired_access_submission"
+            }
+          ],
+          "items": false
+        }
+      },
+      "additionalProperties": false,
+      "description": "Exactly one producer-signed cross-actor business Event followed by its producer-signed audit Event. The same Realm, effective stream, complete actor and actual producer/key must bind both slots. Runtime checks the registered pair, one-way critical audit_pair ref, canonical Event IDs, current authorization and business CAS. Full canonical unit bytes and unique business/audit Event IDs are the replay fence; no caller-selected atomic batch or parallel UUID is added."
+    },
+    "audit_paired_event_acceptance_outcome": {
+      "type": "object",
+      "required": [
+        "unit_kind",
+        "status",
+        "commits"
+      ],
+      "properties": {
+        "unit_kind": {
+          "const": "audit_paired_event"
+        },
+        "status": {
+          "enum": [
+            "committed",
+            "duplicate"
+          ]
+        },
+        "commits": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "$ref": "./realm-commit.schema.json"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "description": "Original source RealmCommits in business/audit order. Same stream, generation and consecutive positions; exact replay preserves the first outcome bytes. No unit-level acceptance receipt or new Event identity."
+    },
+    "audit_paired_event_federation_submission": {
+      "type": "object",
+      "required": [
+        "unit_kind",
+        "committed_events"
+      ],
+      "properties": {
+        "unit_kind": {
+          "const": "audit_paired_event"
+        },
+        "committed_events": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "prefixItems": [
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/committed_event_submission"
+                },
+                {
+                  "properties": {
+                    "event_submission": {
+                      "$ref": "#/$defs/audit_paired_business_submission"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/committed_event_submission"
+                },
+                {
+                  "properties": {
+                    "event_submission": {
+                      "$ref": "#/$defs/audit_paired_access_submission"
+                    }
+                  }
+                }
+              ]
+            }
+          ],
+          "items": false
+        }
+      },
+      "additionalProperties": false,
+      "description": "Source-committed business/audit pair only. Original proofs, signer facts, same-stream consecutive source Commits and authorized disclosure of both slots are verified before atomic materialization. Approval signatures, first-admission producer evidence and private audited-read outcomes are not copied. Missing/conflicting slot is zero-write refusal, never partial materialization or new finality."
+    },
+    "atomic_slot_producer_evidence": {
+      "description": "One fixed admission slot actual-producer closure. Human Device reuses exact Event-bound forward evidence; Agent reuses its complete closure; a Service producer uses the empty branch and its existing Service history. Presence follows the actual producer, never caller choice. Exactly one family per slot.",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "producer_device_evidence"
+          ],
+          "properties": {
+            "producer_device_evidence": {
+              "$ref": "./account-device-signer-evidence.schema.json#/$defs/forward_account_device_signer_evidence"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "producer_agent_evidence"
+          ],
+          "properties": {
+            "producer_agent_evidence": {
+              "$ref": "./agent-authority-evidence.schema.json#/$defs/agent_producer_evidence"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {},
+          "additionalProperties": false
+        }
+      ]
+    },
+    "audit_pair_producer_evidence": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "prefixItems": [
+        {
+          "$ref": "#/$defs/atomic_slot_producer_evidence"
+        },
+        {
+          "$ref": "#/$defs/atomic_slot_producer_evidence"
+        }
+      ],
+      "items": false,
+      "description": "Fixed business/audit order; fresh actual-producer evidence for each original Event at one origin cut. Each Human event_authorization.event_id binds its own slot. Each forward_body_digest binds the entire canonical peer request with atomic_producer_evidence omitted. Empty slot is permitted only for actual Service producer. Same producer/key identity does not replace either Event-specific authorization."
     }
   }
 }

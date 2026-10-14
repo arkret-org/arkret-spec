@@ -1,10 +1,10 @@
 {
-  "version": "2026-10-14.8",
+  "version": "2026-10-14.10",
   "source_of_truth": true,
-  "generated_at": "2026-10-14T07:56:11+08:00",
+  "generated_at": "2026-10-14T05:31:41Z",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
-    "version": "2026-08-30.1",
+    "version": "2026-10-14.2",
     "ordinary_collaboration": {
       "atomic": true,
       "all_or_nothing": true,
@@ -68,6 +68,12 @@
         {
           "event_kind": "ak.member.state",
           "presence": "required",
+          "condition": "subject_is_genesis_actor_and_membership_is_join",
+          "expected_revision": null
+        },
+        {
+          "event_kind": "ak.member.state",
+          "presence": "required",
           "condition": "subject_is_peer_participant_and_membership_is_join"
         },
         {
@@ -75,12 +81,6 @@
           "presence": "required",
           "condition": "main_strand_and_scope_circle_id_is_null",
           "id_source": "event_derived"
-        },
-        {
-          "event_kind": "ak.member.state",
-          "presence": "required",
-          "condition": "subject_is_genesis_actor_and_membership_is_join",
-          "expected_revision": null
         }
       ],
       "genesis_confirms_complete_unit": true
@@ -89,7 +89,8 @@
       "require_create_derived_realm_id": true,
       "require_complete_genesis_state_commitment": true,
       "fail_closed_until_complete": true
-    }
+    },
+    "generated_at": "2026-10-14T12:58:27+08:00"
   },
   "derived_registry_views": [
     {
@@ -10895,10 +10896,16 @@
         "file": "schemas/call-invitation-operations.schema.json",
         "status": "active",
         "description": "Closed exact-envelope call invitation relation, opaque submission, authorized holder-current admission and explicit token join branches."
+      },
+      {
+        "schema_id": "ak.schema.watch_audit_operations.v1",
+        "status": "active",
+        "file": "schemas/watch-audit-operations.schema.json",
+        "description": "Side-effecting own-Station audited Watch read broker, frozen result and source audit Commit."
       }
     ],
-    "version": "2026-10-14.1",
-    "generated_at": "2026-10-14T06:11:32+08:00",
+    "version": "2026-10-14.2",
+    "generated_at": "2026-10-14T12:58:27+08:00",
     "metadata_authority": "contract_registry_section"
   },
   "id_kind_registry": {
@@ -11810,8 +11817,8 @@
     "metadata_authority": "contract_registry_section"
   },
   "http_signature_contract_registry": {
-    "version": "2026-10-14.2",
-    "generated_at": "2026-10-14T07:27:04+08:00",
+    "version": "2026-10-14.3",
+    "generated_at": "2026-10-14T05:21:58Z",
     "source_of_truth": true,
     "description": "Canonical single owner of every RFC 9421 HTTP Message Signature contract in Arkret: the shared covered-component baseline, the per-scenario extensions and their trigger conditions, the required signature parameters, and the freshness window numerals. Prose enumerations, conformance profiles and vector descriptions are projections of this block.",
     "normative_source": "zh/sync/service-http-binding.md #8 HTTP Message Signature",
@@ -12018,6 +12025,7 @@
           "ak.peer.keys.read.lookup.v1",
           "ak.peer.mls.command.attest_add.v1",
           "ak.peer.mls.read.roster_authority.v1",
+          "ak.peer.strand.watch.command.audit_read.v1",
           "ak.peer.strand.watch.read.current.v1",
           "ak.self.applet.authority.read.material.v1",
           "ak.self.applet.bot.command.preview.v1",
@@ -12633,7 +12641,8 @@
           "ak.self.strand.watch.read.current.v1",
           "ak.self.current_principal.read.resolve.v1",
           "ak.self.current_results.read.exact.v1",
-          "ak.self.realm.read.streams.v1"
+          "ak.self.realm.read.streams.v1",
+          "ak.self.strand.watch.command.audit_read.v1"
         ],
         "surface_class": "core"
       },
@@ -12655,7 +12664,8 @@
           "ak.peer.keys.keypackages.read.claim.v1",
           "ak.peer.keys.read.lookup.v1",
           "ak.peer.signal.command.relay.v1",
-          "ak.peer.strand.watch.read.current.v1"
+          "ak.peer.strand.watch.read.current.v1",
+          "ak.peer.strand.watch.command.audit_read.v1"
         ],
         "surface_class": "extension"
       },
@@ -14111,7 +14121,7 @@
         "http": "POST /_arkret/peer/events",
         "grpc": "PeerEvents/Submit",
         "mq": "peer.events.command.submit",
-        "notes": "The sole peer Event ingress is a closed semantic union. authority_forward sends one exact producer Event or MLS Commit to the verified current governance Station, which alone may sign a new RealmCommit; an ak.mls.genesis Event additionally carries mls_genesis_material, the raw bytes of the two content-addressed Blobs it references, which the governance Station hashes against the refs and stores in the acceptance transaction, and every other kind omits it. committed_replication carries replications[1..100] whose rows are {event_submission, source_commit}, plus required immutable genesis_event_ref for every ak.mls.commit and forbidden for every other kind; only a Commit may additionally carry welcomes[] of recipients hosted by the destination. The governance Station freezes the Genesis ref from its accepted group provenance in the Commit acceptance transaction and the authenticated canonical peer request signature covers it. The receiver binds it to the exact Commit and immutable group provenance in the replica transaction, re-verifies Welcomes against its own claim ledger and queues passing Welcomes in that same transaction; it never infers Genesis from a preceding Commit ref or current tree. Processing, committed_event wrappers, sender membership witnesses, destination echoes and response coordinate echoes are absent. The receiver derives authorization from verified committed history and stores exact source facts without first admission, re-signing, or second fanout. registered_atomic_unit carries only registered all-or-nothing source-committed units (Direct Conversation founding or membership compensation), never per-item partial materialization. canonical_hash/full_body binds the complete selected branch and exact replay returns the original branch outcome. Exact full-request replay preserves the first outcome bytes, item order and stored status. duplicate describes initial processing under a different full request whose exact source Event/Commit already exists; it is not a replacement status for a replayed stored outcome. authority_forward registers producer_agent_evidence exactly for actual Agent runtime producers, independently of outer actor_id; human/device and service producers forbid it. Compact requires a fully verified exact state_digest cache, otherwise dependency_missing. Restored complete evidence is retained atomically with first admission; it never grants participation current.",
+        "notes": "Closed peer ingress with three semantic branches. authority_forward performs first admission for one Event, one MLS Commit or one registered audit_paired_event atomic_submission. The atomic branch requires atomic_producer_evidence[2] in business/audit order; each slot reuses its own existing Device or Agent Event-bound closure, or the closed empty Service branch. Single-Event top-level producer evidence is forbidden on the atomic branch. Both slots must have the same complete actual producer and proof key. mls_genesis_material is event/MLS Genesis-specific and forbidden on atomic_submission. committed_replication stores authorized ordinary source facts; audit-paired source Events must travel together through registered_atomic_unit. registered_atomic_unit only materializes registered source-committed units and forbids first-admission evidence. Mixed branch members and device/Agent evidence mixing are rejected. Outer canonical_hash/full_body replay and the exact inner-unit replay fence are distinct; refreshing transport-only producer evidence never authorizes a second unit acceptance. Every replica unit outcome describes original source acceptance only; it creates no new finality or second fanout.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "schema_resource",
         "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
@@ -14132,9 +14142,9 @@
                 "kind": "event_log",
                 "event_kind_sources": [
                   "$request.event_submission.event.kind",
-                  "$request.mls_submission.commit_event.kind"
+                  "$request.mls_submission.commit_event.kind",
+                  "$request.atomic_submission.events[*].event.kind"
                 ],
-                "event_submission_path": "/event_submission",
                 "rationale": "Only the verified current governance Station performs first admission and signs the new RealmCommit."
               }
             },
@@ -15753,7 +15763,7 @@
         "http": "POST /_arkret/self/events",
         "grpc": "SelfEvents/Submit",
         "mq": "self.events.command.submit",
-        "notes": "Submit an exact producer-signed Event, MLS Commit, ordinary Realm bootstrap unit, Direct Conversation founding unit, or membership compensation unit to the current governance Station. Ordinary bootstrap uses the registered ordered slots in one Realm stream and one all-or-nothing storage transaction; success and exact replay return the same consecutive source RealmCommits without a batch-level receipt. Direct Conversation founding is its own ordered four-Event all-or-nothing unit with a separate founding-slot fence; success and exact replay return the same four consecutive source RealmCommits, whose fourth committed_at is the sole acceptance time. No founding receipt exists. Compensation carries closed transport-only evidence and a single-use CAS. canonical_hash/full_body remains the operation replay identity for every branch; no arbitrary atomic Event batch is admitted. An Event whose kind has wire_scope actor_private_event is refused with unsupported_event_kind and zero writes; it is submitted only through its dedicated actor-private operation. Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Account, Device, scope and current installation. Existing SessionGrant paths are unchanged. The Service-signature alternative accepts only event_submission for an installed Applet exact Service terminal business child or its own child revoke, or forwarding an independently Principal-signed native successor in an accepted managed Account own PCR. This is the first Device authorize bootstrap and retained control-only path after business revocation; no Service substitution of the Principal proof, creation aggregate, human recovery, content read or general write is admitted. Transport authentication alone is never authority.",
+        "notes": "Submit an exact producer-signed Event, MLS Commit, ordinary Realm bootstrap unit, Direct Conversation founding unit, or membership compensation unit to the current governance Station. Ordinary bootstrap uses the registered ordered slots in one Realm stream and one all-or-nothing storage transaction; success and exact replay return the same consecutive source RealmCommits without a batch-level receipt. Direct Conversation founding is its own ordered four-Event all-or-nothing unit with a separate founding-slot fence; success and exact replay return the same four consecutive source RealmCommits, whose fourth committed_at is the sole acceptance time. No founding receipt exists. Compensation carries closed transport-only evidence and a single-use CAS. canonical_hash/full_body remains the operation replay identity for every branch; no arbitrary atomic Event batch is admitted. An Event whose kind has wire_scope actor_private_event is refused with unsupported_event_kind and zero writes; it is submitted only through its dedicated actor-private operation. Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Account, Device, scope and current installation. Existing SessionGrant paths are unchanged. The Service-signature alternative accepts only event_submission for an installed Applet exact Service terminal business child or its own child revoke, or forwarding an independently Principal-signed native successor in an accepted managed Account own PCR. This is the first Device authorize bootstrap and retained control-only path after business revocation; no Service substitution of the Principal proof, creation aggregate, human recovery, content read or general write is admitted. Transport authentication alone is never authority. Registered audit_paired_event is exactly business then audit, atomically accepted with two consecutive source Commits. Shared typed-unit execution/replay boundaries are in atomic_unit_registry. watch_audit_read is not admitted as an ordinary audit Event: use the dedicated command.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "schema_resource",
         "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/self_submit_request",
@@ -16953,6 +16963,56 @@
             "contract": "Covered components, signature parameters and the freshness window come from http_signature_contract_registry. This operation MUST NOT restate them."
           }
         }
+      },
+      {
+        "operation_id": "ak.self.strand.watch.command.audit_read.v1",
+        "http": "POST /_arkret/self/strands/watch/audit-read",
+        "grpc": "SelfStrandWatch/AuditRead",
+        "mq": "self.strand.watch.command.audit_read",
+        "notes": "Side-effecting exact Watch audit read. One caller-signed watch_audit_read Event binds complete auditor, target Strand/watcher and effective scope. The governor checks both read and audit-write capabilities, Scope/Circle/Agent/current producer/approval gates, accepts the audit and freezes one exact observation atomically; no preaccepted audit ticket or caller state head. Full canonical self request and audit Event ID bind durable original-result replay. Current disclosure and final Account/session/device/Agent delivery fences remain required; no receipt means no inferred read effect. Handoff, missing replay material or known conflicting later cut cannot be used to read a new value under this audit. The self Account Station validates fresh nonce current governor and uses only the peer broker without forwarding user credentials. See authority-commit-log sections 5.1-5.3.",
+        "body_class": "non_streaming_json",
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/watch-audit-operations.schema.json#/$defs/watch_audit_read_request",
+        "response_schema_ref": "schemas/watch-audit-operations.schema.json#/$defs/watch_audit_read_outcome",
+        "max_canonical_body_bytes": 1048576,
+        "idempotency_mechanism": "canonical_hash",
+        "canonical_hash_input": "full_body",
+        "retry_safe": true,
+        "durable_effect": {
+          "kind": "event_log",
+          "event_kinds": [
+            "ak.audit.accessed"
+          ]
+        }
+      },
+      {
+        "operation_id": "ak.peer.strand.watch.command.audit_read.v1",
+        "http": "POST /_arkret/peer/strands/watch/audit-read",
+        "grpc": "PeerStrandWatch/AuditRead",
+        "mq": "peer.strand.watch.command.audit_read",
+        "notes": "Side-effecting exact Watch audit read. One caller-signed watch_audit_read Event binds complete auditor, target Strand/watcher and effective scope. The governor checks both read and audit-write capabilities, Scope/Circle/Agent/current producer/approval gates, accepts the audit and freezes one exact observation atomically; no preaccepted audit ticket or caller state head. Full canonical self request and audit Event ID bind durable original-result replay. Current disclosure and final Account/session/device/Agent delivery fences remain required; no receipt means no inferred read effect. Handoff, missing replay material or known conflicting later cut cannot be used to read a new value under this audit. The self Account Station validates fresh nonce current governor and uses only the peer broker without forwarding user credentials. See authority-commit-log sections 5.1-5.3.",
+        "body_class": "non_streaming_json",
+        "success_shape_kind": "typed_response",
+        "request_schema_ref": "schemas/watch-audit-operations.schema.json#/$defs/peer_watch_audit_read_request",
+        "response_schema_ref": "schemas/watch-audit-operations.schema.json#/$defs/watch_audit_read_outcome",
+        "max_canonical_body_bytes": 1048576,
+        "idempotency_mechanism": "canonical_hash",
+        "canonical_hash_input": "full_body",
+        "retry_safe": true,
+        "durable_effect": {
+          "kind": "event_log",
+          "event_kinds": [
+            "ak.audit.accessed"
+          ]
+        },
+        "auth_requirements": {
+          "service_signature": {
+            "signature_scenario_id": "ak.http_signature.scenario.service_to_service.v1",
+            "standard": "RFC 9421 HTTP Message Signature",
+            "bearer_only_allowed": false,
+            "contract": "Canonical S2S scenario, fresh actual-producer device/Agent evidence and exact authenticated auditor Account Station are required. No transported user credential."
+          }
+        }
       }
     ],
     "direct_conversation_admission_mappings": {
@@ -17195,8 +17255,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-10-14.8",
-    "generated_at": "2026-10-14T07:56:11+08:00",
+    "version": "2026-10-14.10",
+    "generated_at": "2026-10-14T05:31:41Z",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.coland_station.v1",
@@ -18585,6 +18645,23 @@
             "binding_kind": "http_json"
           }
         ]
+      },
+      {
+        "operation_bundle_id": "ak.operation_bundle.station.http_audit_operations.v1",
+        "service_kind": "station",
+        "deployment_evidence": [
+          "normative:zh/sync/authority-commit-log.md#51-登记式原子单元normative"
+        ],
+        "members": [
+          {
+            "operation_id": "ak.peer.strand.watch.command.audit_read.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.self.strand.watch.command.audit_read.v1",
+            "binding_kind": "http_json"
+          }
+        ]
       }
     ],
     "metadata_authority": "contract_registry_section",
@@ -19074,8 +19151,11 @@
           "ak.circle.member.state"
         ],
         "profile": null,
-        "notes": "Invite / remove others. Held by Circle admin. payload.member_id != envelope.actor_id using the complete ActorId.",
-        "event_mapping_kind": "scope_suffix_variant"
+        "notes": "Invite / remove others. Held by Circle admin. payload.member_id != envelope.actor_id using the complete ActorId. Every cross-actor change requires the registered audit_paired_event unit; this grant does not bypass audit or grant private content read.",
+        "event_mapping_kind": "scope_suffix_variant",
+        "required_evaluator_checks": [
+          "audit_pair_required"
+        ]
       },
       {
         "action": "ak.event.read",
@@ -20737,8 +20817,8 @@
       "scope_suffix_variant": "Action adds actor/scope/role qualifiers while reducer admission targets a shared event kind.",
       "operation_verb": "Action token names an operation/command verb that does not match its target event kind name(s); reducer admission resolves the resulting event kind(s) via target_event_kinds. Literal action matching per the actions[] rule applies; carries no aggregate-admin family semantics."
     },
-    "version": "2026-10-14",
-    "generated_at": "2026-10-14T00:00:03+08:00",
+    "version": "2026-10-14.2",
+    "generated_at": "2026-10-14T12:58:27+08:00",
     "metadata_authority": "contract_registry_section"
   },
   "calendar_timezone_registry": {
@@ -22805,5 +22885,116 @@
       "behavior": "reject_without_activation_or_registration",
       "defined_in": "zh/crypto-media/encryption-and-audit.md"
     }
-  ]
+  ],
+  "atomic_unit_registry": {
+    "normative_source": "zh/sync/authority-commit-log.md#51-登记式原子单元normative",
+    "rules": [
+      "Only registered closed typed branches may use atomic admission; no client-supplied Event list, predicate or workflow DSL.",
+      "Common execution is exact-byte freeze, authority/scope and producer/approval validation, business-specific staged checks/CAS, atomic Event/Commit/current/outbox/outcome persistence, and original-result replay.",
+      "Authority-forward first admission and source-committed replica materialization are distinct; only audit_paired_event extends forward in this decision. Existing self-only unit restrictions remain.",
+      "One governance Station and one Realm/Circle/Sidecar stream per public Event unit. Cross-stream parent authorization reads do not create cross-stream Event atomicity.",
+      "MLS Commit plus Welcome deliveries is a specialized atomic submission; Recovery/SecurityRotation are durable workflows and do not become public Event units."
+    ],
+    "units": [
+      {
+        "unit_kind": "ordinary_realm_bootstrap",
+        "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/ordinary_realm_bootstrap_unit_submission",
+        "self_submit_operation_id": "ak.self.events.command.submit.v1",
+        "same_governor": true,
+        "same_realm_stream": true,
+        "all_or_nothing": true,
+        "one_commit_per_event": true,
+        "consecutive_commits": true,
+        "replay_fence": "uuidv7_unit_key_and_full_canonical_unit",
+        "authority_forward_path": null,
+        "replication_schema_ref": null,
+        "ordered_slots_ref": "#/realm_bootstrap_registry/ordinary_collaboration/ordered_slots"
+      },
+      {
+        "unit_kind": "direct_conversation_founding",
+        "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/direct_conversation_founding_unit_submission",
+        "self_submit_operation_id": "ak.self.events.command.submit.v1",
+        "same_governor": true,
+        "same_realm_stream": true,
+        "all_or_nothing": true,
+        "one_commit_per_event": true,
+        "consecutive_commits": true,
+        "replay_fence": "uuidv7_founding_slot_and_full_canonical_unit",
+        "authority_forward_path": null,
+        "replication_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/direct_conversation_founding_federation_submission",
+        "ordered_slots_ref": "#/realm_bootstrap_registry/direct_conversation/ordered_slots"
+      },
+      {
+        "unit_kind": "membership_compensation",
+        "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/membership_compensation_unit_submission",
+        "self_submit_operation_id": "ak.self.events.command.submit.v1",
+        "same_governor": true,
+        "same_realm_stream": true,
+        "all_or_nothing": true,
+        "one_commit_per_event": true,
+        "consecutive_commits": true,
+        "replay_fence": "event_id_full_unit_and_single_use_delegation",
+        "authority_forward_path": null,
+        "replication_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/membership_compensation_federation_submission"
+      },
+      {
+        "unit_kind": "audit_paired_event",
+        "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/audit_paired_event_unit_submission",
+        "self_submit_operation_id": "ak.self.events.command.submit.v1",
+        "same_governor": true,
+        "same_realm_stream": true,
+        "all_or_nothing": true,
+        "one_commit_per_event": true,
+        "consecutive_commits": true,
+        "replay_fence": "full_canonical_unit_and_single_use_business_event_id_and_audit_event_id",
+        "authority_forward_path": "/atomic_submission",
+        "replication_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/audit_paired_event_federation_submission"
+      }
+    ],
+    "audit_pairs": [
+      {
+        "event_kind": "ak.strand.watch.set",
+        "access_kind": "watch_set_others",
+        "target_actor_path": "/payload/watcher_actor_id",
+        "target_ref_path": "/payload/strand_id",
+        "business_actions": [
+          "ak.strand.watch.set.others"
+        ]
+      },
+      {
+        "event_kind": "ak.circle.member.state",
+        "access_kind": "circle_member_set_others",
+        "target_actor_path": "/payload/member_id",
+        "target_ref_path": "/payload/circle_id",
+        "business_actions": [
+          "ak.circle.member.manage",
+          "ak.circle.member.add.others"
+        ]
+      }
+    ],
+    "audit_read": {
+      "self_operation_id": "ak.self.strand.watch.command.audit_read.v1",
+      "peer_operation_id": "ak.peer.strand.watch.command.audit_read.v1",
+      "request_schema_ref": "schemas/watch-audit-operations.schema.json#/$defs/watch_audit_read_request",
+      "response_schema_ref": "schemas/watch-audit-operations.schema.json#/$defs/watch_audit_read_outcome",
+      "audit_access_kind": "watch_audit_read",
+      "required_actions": [
+        "ak.realm.notification.audit",
+        "ak.audit.accessed"
+      ],
+      "selector_source": "signed_audit_event_payload",
+      "replay": "frozen_original_observation_under_current_disclosure_and_delivery_not_new_query",
+      "current_response_head": "audit_commit",
+      "circle_authorization": {
+        "current_parent_realm_membership": true,
+        "effective_circle_member_or_scoped_circle_audit": true,
+        "nonmember_exception": "watch_audit_read_command_audit_event_only",
+        "no_membership_content_history_or_mls_key_grant": true
+      },
+      "producer_classes": [
+        "account_device",
+        "agent_runtime"
+      ]
+    }
+  }
 }

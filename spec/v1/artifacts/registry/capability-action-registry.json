@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-14",
+  "version": "2026-10-14.2",
   "source_of_truth": false,
-  "generated_at": "2026-10-14T00:00:03+08:00",
+  "generated_at": "2026-10-14T12:58:27+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -462,8 +462,11 @@
         "ak.circle.member.state"
       ],
       "profile": null,
-      "notes": "Invite / remove others. Held by Circle admin. payload.member_id != envelope.actor_id using the complete ActorId.",
-      "event_mapping_kind": "scope_suffix_variant"
+      "notes": "Invite / remove others. Held by Circle admin. payload.member_id != envelope.actor_id using the complete ActorId. Every cross-actor change requires the registered audit_paired_event unit; this grant does not bypass audit or grant private content read.",
+      "event_mapping_kind": "scope_suffix_variant",
+      "required_evaluator_checks": [
+        "audit_pair_required"
+      ]
     },
     {
       "action": "ak.event.read",

@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-14.8",
+  "version": "2026-10-14.10",
   "source_of_truth": false,
-  "generated_at": "2026-10-14T07:56:11+08:00",
+  "generated_at": "2026-10-14T05:31:41Z",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -2666,6 +2666,19 @@
             "required": [
               "branch",
               "mls_submission"
+            ],
+            "properties": [
+              "branch"
+            ],
+            "closed": false
+          },
+          {
+            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
+            "schema_kind": null,
+            "required": [
+              "branch",
+              "atomic_submission",
+              "atomic_producer_evidence"
             ],
             "properties": [
               "branch"
@@ -6489,6 +6502,19 @@
               "membership_compensation_evidence"
             ],
             "closed": true
+          },
+          {
+            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/audit_paired_event_unit_submission",
+            "schema_kind": "object",
+            "required": [
+              "unit_kind",
+              "events"
+            ],
+            "properties": [
+              "unit_kind",
+              "events"
+            ],
+            "closed": true
           }
         ]
       },
@@ -6590,6 +6616,21 @@
               "unit_kind",
               "status",
               "commit"
+            ],
+            "closed": true
+          },
+          {
+            "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/audit_paired_event_acceptance_outcome",
+            "schema_kind": "object",
+            "required": [
+              "unit_kind",
+              "status",
+              "commits"
+            ],
+            "properties": [
+              "unit_kind",
+              "status",
+              "commits"
             ],
             "closed": true
           }
@@ -9276,6 +9317,78 @@
           "evaluated_at",
           "expires_at",
           "proof"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.self.strand.watch.command.audit_read.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/watch-audit-operations.schema.json#/$defs/watch_audit_read_request",
+        "schema_kind": "object",
+        "required": [
+          "audit_submission"
+        ],
+        "properties": [
+          "audit_submission"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/watch-audit-operations.schema.json#/$defs/watch_audit_read_outcome",
+        "schema_kind": "object",
+        "required": [
+          "audit_commit",
+          "current"
+        ],
+        "properties": [
+          "audit_commit",
+          "current"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.peer.strand.watch.command.audit_read.v1",
+      "success_shape_kind": "typed_response",
+      "request": {
+        "schema_ref": "schemas/watch-audit-operations.schema.json#/$defs/peer_watch_audit_read_request",
+        "schema_kind": "oneOf",
+        "required": [],
+        "properties": [],
+        "closed": false,
+        "variants": [
+          {
+            "schema_ref": "schemas/watch-audit-operations.schema.json#/$defs/peer_watch_audit_read_request",
+            "schema_kind": null,
+            "required": [
+              "producer_device_evidence"
+            ],
+            "properties": [],
+            "closed": false
+          },
+          {
+            "schema_ref": "schemas/watch-audit-operations.schema.json#/$defs/peer_watch_audit_read_request",
+            "schema_kind": null,
+            "required": [
+              "producer_agent_evidence"
+            ],
+            "properties": [],
+            "closed": false
+          }
+        ]
+      },
+      "response": {
+        "schema_ref": "schemas/watch-audit-operations.schema.json#/$defs/watch_audit_read_outcome",
+        "schema_kind": "object",
+        "required": [
+          "audit_commit",
+          "current"
+        ],
+        "properties": [
+          "audit_commit",
+          "current"
         ],
         "closed": true
       }

@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-14.5",
+  "version": "2026-10-14.7",
   "source_of_truth": true,
-  "generated_at": "2026-10-14T07:08:02+08:00",
+  "generated_at": "2026-10-14T05:21:58Z",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -3389,7 +3389,7 @@
       "applies_to_fixtures": [
         "mls-creator-bootstrap-recovery-fixture.json"
       ],
-      "description": "The creator client drives one encrypted effective scope through the single durable transaction genesis_intent_persisted -> realm_accepted -> governance_result_pinned -> epoch0_state_persisted -> genesis_queued -> genesis_accepted -> artifacts_converged -> ready. A crash and a reload are injected before and after every registered arrow, and the run also covers Realm-create response loss, 0->0 response loss, partial public blob upload, sign-before-enqueue, a lost response after the enqueue commit, a lost local confirmation after acceptance, partial artifact persistence, another accepted Genesis winning, a terminal rejection and local corruption. Every positive run ends with exactly one accepted ak.mls.genesis whose bytes equal the bytes frozen in the outbound queue item, deleting every current or UI projection changes no outcome, and no branch declares completion from an HTTP success, a duplicate code, a queue item or an emitted flag. Executable timestamp predicate cases cover equal timestamps, one-millisecond inequality in both directions, independent later proof/commit clocks, zero accepted effects on mismatch and accepted-winner timestamp eligibility for Realm, Circle and Sidecar. Predicate success is not complete Event acceptance; Sidecar remains outside the creator transaction FSM.",
+      "description": "The creator client drives one encrypted effective scope through the single durable transaction genesis_intent_persisted -> realm_accepted -> governance_result_pinned -> epoch0_state_persisted -> genesis_queued -> genesis_accepted -> artifacts_converged -> ready. A crash and a reload are injected before and after every registered arrow, and the run also covers Realm-create response loss, 0->0 response loss, partial public blob upload, sign-before-enqueue, a lost response after the enqueue commit, a lost local confirmation after acceptance, partial artifact persistence, another accepted Genesis winning, a terminal rejection and local corruption. Every positive run ends with exactly one accepted ak.mls.genesis whose bytes equal the bytes frozen in the outbound queue item, deleting every current or UI projection changes no outcome, and no branch declares completion from an HTTP success, a duplicate code, a queue item or an emitted flag. Executable timestamp predicate cases cover equal timestamps, one-millisecond inequality in both directions, independent later proof/commit clocks, zero accepted effects on mismatch and accepted-winner timestamp eligibility for Realm, Circle and Sidecar. Predicate success is not complete Event acceptance; Sidecar remains outside the creator transaction FSM. An accepted winner discovered while the original intent is still at genesis_intent_persisted terminates directly to superseded, preserving the independently authenticated accepted scope-create and winner atomically without manufacturing an absent result; both sides of that arrow include crash and reload.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/mls-creator-bootstrap-recovery-fixture.json"
       ]
@@ -5191,6 +5191,30 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/agent-vectors-fixture.json",
         "spec/v1/zh/authz/owned-agent-authority.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.state.registered_atomic_units.v1",
+      "status": "active",
+      "domain": "state",
+      "applies_to_fixtures": [
+        "registered-atomic-unit-and-watch-audit-fixture.json"
+      ],
+      "description": "Closed typed unit registry, same-governor/same-stream atomicity, exact replay, business/audit slot bindings, producer proofs, CAS and rollback; first admission is distinct from source-committed atomic materialization.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/registered-atomic-unit-and-watch-audit-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.state.watch_audit_operations.v1",
+      "status": "active",
+      "domain": "state",
+      "applies_to_fixtures": [
+        "registered-atomic-unit-and-watch-audit-fixture.json"
+      ],
+      "description": "Side-effecting audited Watch read binds signed auditor/target/scope, independent read and audit capabilities, narrow Circle audit exception, accepted audit and frozen result, exact replay without a new query, current delivery gates and handoff failure closure.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/registered-atomic-unit-and-watch-audit-fixture.json"
       ]
     }
   ]

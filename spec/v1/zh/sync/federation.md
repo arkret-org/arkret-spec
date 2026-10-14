@@ -108,13 +108,18 @@ Event forwarding 始终保留 exact producer bytes，并只将 current authority
 `authority_forward` 是首次准入到治理 Station 的路径：若原 `EventAdmissionSubmission` 带
 `approval_signatures[]`，转发时 MUST 保留该证据供治理 Station 验证；成员站的
 `committed_replication` 则遵守 §4.1.1 的私密证据剥离规则。
+登记的 audit-paired 首次转发复用本入口的 closed `atomic_submission` 与 fixed `atomic_producer_evidence[2]`：
+两个槽位各自的原 Event 授权／证明与整组请求绑定，同事务接纳，禁止顶层单 Event evidence。
+已 source-committed 的配对复制仅走 `registered_atomic_unit`，不能拆成普通复制项；
+具体顺序、逐 Event signer fact、重放与整体失败关闭见 [authority-commit §5.2](./authority-commit-log.md#52-业务与审计配对单元normative)。
+
 转发 `ak.mls.genesis` 时，`authority_forward` 另携 `mls_genesis_material`：Genesis 所引 GroupInfo 与 ratchet tree 两个
 Blob 的原始字节，由治理 Station 核对内容寻址后在接纳事务内保存；其它 kind 禁带（规则见
 [`../crypto-media/encryption-and-audit.md` §5.1.2](../crypto-media/encryption-and-audit.md)）。
 
 **跨站 human 设备 producer（normative）**：transport 认证不证明 producer 设备授权，治理 Station 也没有 producer
 account Station 的 PCR。因此 producer 是 human Account 设备且其 `account_id.station_id` 不是治理 Station 时，
-`ak.peer.events.command.submit.v1` 的 `authority_forward` MUST 携带 `producer_device_evidence`，其它 producer
+`ak.peer.events.command.submit.v1` 的 `authority_forward` 的单 Event／MLS 分支 MUST 携带 `producer_device_evidence`，其它 producer
 MUST NOT 携带；同站接纳读取本地 PCR，不携带证据。forwarding Station 在每次转发尝试前从自己 live gate 的同一
 耐久 cut 现签完整 `account_device_signer_evidence`，先持久化对象与 ref 再发送，不复用缓存；设备已不可用时不转发。
 治理 Station 在任何写入前核对已认证 `Source-Service-ID` 等于 `attestation.account_id.station_id`、对象自带
@@ -282,7 +287,7 @@ DID route 更新不得泄露隐藏 stream inventory，也不得取代已签 hand
 
 ## Human historical signer fact transport (Normative)
 
-committed_replication的每项沿现 committed_event_submission原四字段后追加producer_signer_fact。当原sourceCommit有producer_signer_fact_digest时 MUST 恰携一份fact；缺digest禁带fact，原Event仍完整逐字不变，approval_signatures、完整producer_device_evidence/Service audit闭包仍不复制。registered Atomic Direct四项复用相同nested载体，各事实与原四项同一materialization事务，无新receipt。local governor Human来源同样必须冻结/运输；不得因未走authority_forward而缺供材。
+committed_replication的每项沿现 committed_event_submission原四字段后追加producer_signer_fact。当原sourceCommit有producer_signer_fact_digest时 MUST 恰携一份fact；缺digest禁带fact，原Event仍完整逐字不变，approval_signatures、完整producer_device_evidence/Service audit闭包仍不复制。registered Atomic Direct四项与audit-paired两项复用相同nested载体，各事实与原四项同一materialization事务，无新receipt。local governor Human来源同样必须冻结/运输；不得因未走authority_forward而缺供材。
 
 现 ak.peer.committed_event.read.scan.v1 专用peer_stream_scan_outcome保committed_events/readable_floor/truncated顺序，最后required producer_signer_facts。每个合法Full且原Commit有digest的Human row恰一{target,producer_signer_fact}，顺序与page positions一致，target全四坐标等原Commit/Event；其它Fullproducer、withheld/redacted、不可读或无digest旧已签原件 row禁带。缺/重/额外/sibling/隐藏rowfacts整页零安装。扫描请求RFC9421签名不认证response metadata；消费者 MUST 独立验原GovCommit内容ID/签名/治理chain和factdigest、原Event Ed及合法披露，不能因请求signed或transport success便标verified。
 

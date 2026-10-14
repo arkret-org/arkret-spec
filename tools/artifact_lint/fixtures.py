@@ -8225,6 +8225,7 @@ MLS_CREATOR_BOOTSTRAP_SCENARIOS = (
     "accepted_then_local_confirmation_loss",
     "artifact_partial_persistence",
     "another_genesis_wins",
+    "winner_before_realm_acceptance_checkpoint",
     "terminal_reject",
     "local_corruption",
 )
@@ -8649,6 +8650,8 @@ def check_mls_creator_bootstrap_transaction(lint: Lint) -> None:
         )
     ]
     missing_chain = [item for item in chain if item not in transition_ids]
+    if "genesis_intent_persisted_to_superseded" not in transition_ids:
+        lint.fail(registry_path, "the accepted winner before the local acceptance checkpoint requires genesis_intent_persisted_to_superseded")
     if missing_chain:
         lint.fail(registry_path, f"the ruled progress chain has unregistered arrows: {missing_chain}")
 

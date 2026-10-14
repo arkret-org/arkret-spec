@@ -5,7 +5,7 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.mls.creator_bootstrap_recovery.v1"
   },
-  "version": "2026-10-04",
+  "version": "2026-10-14",
   "covers_vectors": [
     "ak.vector.mls.creator_bootstrap_recovery.v1"
   ],
@@ -228,6 +228,30 @@
         "the ready state and the send-gate index were published in one durable commit",
         "the minimal terminal receipt is readable after compaction"
       ]
+    },
+    {
+      "name": "genesis_intent_persisted_to_superseded__crash_before_commit",
+      "transition": "genesis_intent_persisted_to_superseded",
+      "injection": "pre_commit",
+      "expected_state": "genesis_intent_persisted",
+      "expected": "repeat_exact_reads_without_assuming_absence",
+      "invariants": [
+        "the exact accepted scope-create and winning Genesis are independently authenticated",
+        "no absent result is synthesized and no epoch-zero material is generated",
+        "the winner is committed with the original immutable intent and can only be opened through Welcome, migration or recovery"
+      ]
+    },
+    {
+      "name": "genesis_intent_persisted_to_superseded__crash_after_commit",
+      "transition": "genesis_intent_persisted_to_superseded",
+      "injection": "post_commit",
+      "expected_state": "superseded",
+      "expected": "retain_the_original_intent_and_terminal_winner",
+      "invariants": [
+        "the exact accepted scope-create and winning Genesis are independently authenticated",
+        "no absent result is synthesized and no epoch-zero material is generated",
+        "the winner is committed with the original immutable intent and can only be opened through Welcome, migration or recovery"
+      ]
     }
   ],
   "scenario_cases": [
@@ -393,6 +417,18 @@
         "the durable intent is unchanged and no partial field is written",
         "the only legal continuations are finishing this attempt or reaching a terminal state and opening a new attempt generation",
         "a new attempt generation inherits the selector from the original durable intent and never re-reads it from UI state, a default, a Realm profile or a facet"
+      ]
+    },
+    {
+      "name": "winner_before_realm_acceptance_checkpoint",
+      "given": "the local record is genesis_intent_persisted, scope-create was accepted before a crash, and another endpoint accepted Genesis before reload",
+      "action": "independently resolve the exact original create and the accepted Genesis at one complete current cut",
+      "expected": "superseded",
+      "invariants": [
+        "the original closed intent, exact accepted create and covering Commit, winning Event and immutable binding are durable together",
+        "realm_accepted is never synthesized because no verified absence exists",
+        "no loser private unit, signature or queue item is generated",
+        "unavailable or invalid winner evidence preserves the original intent and closed send gate"
       ]
     }
   ],

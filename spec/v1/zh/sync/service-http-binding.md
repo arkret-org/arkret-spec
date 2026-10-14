@@ -129,7 +129,7 @@ Blob 和其它 binary operation 使用各自登记的 streaming/binary body cont
 `ordinary_realm_bootstrap` 是按 `contract-registry.json.realm_bootstrap_registry.ordinary_collaboration`
 固定 slot 顺序、在同一治理 Station／Realm stream 上整体接纳或整体回滚的原子分支；
 `direct_conversation_founding` 是恰四条有序 Event 的原子分支；`membership_compensation` 是一条 Event、
-closed transport-only evidence 与 single-use CAS 的原子分支。Account Station 必须先耐久保存 exact
+closed transport-only evidence 与 single-use CAS 的原子分支；`audit_paired_event` 是恰 business／audit 两条 Event 的原子分支。所有 branch 共用 [authority-commit-log §5.1](./authority-commit-log.md#51-登记式原子单元normative) 登记式执行与重放规则，保留各自 typed shape。Account Station 必须先耐久保存 exact
 producer-signed bytes，再解析 current authority bundle 并转发；没有验证到 authority-signed
 `RealmCommit` 时不得返回 `committed` 或对其它成员 fanout。这里没有 schema 外的 `queued`／`forwarding`
 success body。`wire_scope=actor_private_event` 的 kind 不经本 operation 接纳：MUST 以 `unsupported_event_kind` 零写入拒绝，
@@ -168,6 +168,7 @@ HTTP operation 的通用 batch 分支。以后若登记独立 Event 的便捷 ba
   ASRE ref/key、完整 PCR 闭包、独立 controller gate 与历史服务方法按
   [`key-management.md` §3.6.1](../identity/key-management.md) 验证并在首接纳事务原子保留；
   compact state cache miss 为 `dependency_missing`，只能经同一 ingress 完整重交，不新增取回端点。
+  `authority_forward` 另有 closed `atomic_submission` alternative，仅携 `audit_paired_event` caller-signed unit；它与 `event_submission`／`mls_submission` exact XOR。两 slot 的 actual producer/key 必须一致，按 `atomic_producer_evidence[2]` 携两份同 origin cut、各自 Event-bound 的 fresh Device 或 Agent evidence并逐项核验，禁止 MLS material／顶层单 Event evidence。外层全 body replay 与内层 signed unit fence 分别验证。
 - `committed_replication`：携 `replications[1..100]`；每项直接是
   `{event_submission: EventAdmissionSubmission, source_commit: RealmCommit}`，其中 `event_submission` 只能是
   `{event: 完整 source Event}`；`approval_signatures` MUST 省略，带该成员的 item 为 `schema_violation` 且零写入。
@@ -184,7 +185,7 @@ HTTP operation 的通用 batch 分支。以后若登记独立 Event 的便捷 ba
   重签 Commit 或创建第二轮 fanout。response 的同序 `replication_outcomes[]` 只允许
   `{status:"stored"|"duplicate"}` 或 `{status:"rejected",reason_code}`；数组位置已绑定输入项，故不重复
   `index` 或 `committed_ref`，也不把 replica persistence 称为 `accepted` finality。
-- `registered_atomic_unit`：只允许 registry 内的 Direct Conversation founding 与 membership compensation。
+- `registered_atomic_unit`：只允许 registry 内的 Direct Conversation founding、membership compensation 与 `audit_paired_event` source-committed unit。
   整个 unit 要么 materialize、要么零写；不存在 per-item partial。DC dependency 缺口使用
   `direct_conversation_founding_missing_dependency_list` 的有界 typed set。
 
@@ -328,6 +329,25 @@ stream head 的下一 position 拉取 tail。Snapshot 内联 `current_state_entr
 Directory、Invite 和分享链接只能提供 `realm_id`、authority locator candidate 和必要的 bootstrap hint。
 客户端必须向 candidate 请求 nonce-bound authority bundle，从 Realm genesis 连续验证 old→new handoff chain，
 然后才接受 current authority 的 snapshot/tail。
+
+atomic first-admission 使用 fixed `atomic_producer_evidence[2]`，按 business／audit 槽位分别携既有 Device／Agent 证明；
+顶层单 Event 的两种 producer evidence 在此分支禁止。证明内的 Event 绑定逐 slot 校验，整体 body 摘要按
+[authority-commit §5.2](./authority-commit-log.md#52-业务与审计配对单元normative)排除该完整证明数组。
+
+### 3.3.2 带审计的 Watch 精确读取（normative）
+
+| operation | HTTP | request → outcome |
+| --- | --- | --- |
+| `ak.self.strand.watch.command.audit_read.v1` | `POST /_arkret/self/strands/watch/audit-read` | `watch-audit-operations.schema.json#/$defs/watch_audit_read_request` → `#/$defs/watch_audit_read_outcome` |
+| `ak.peer.strand.watch.command.audit_read.v1` | `POST /_arkret/peer/strands/watch/audit-read` | `watch-audit-operations.schema.json#/$defs/peer_watch_audit_read_request` → 同一 outcome |
+
+两面都是写 audit Event 的 command，canonical request／response budget 均为 1 MiB，S2S signature 与 actual-producer
+fresh device／Agent evidence复用 §2.7，不能传本地用户凭据或服务端代签 Event。self 的完整 Account 来源与 peer 的
+Source-Service-ID 绑定 auditor，而 watcher 可是另一 actor；专用审计权限由治理站独立核对。
+`authority-commit-log` §5.3 定义唯一 selector 来源、scope／Circle 受控审计例外、同事务 audit 与 frozen current、
+exact replay 和最终交付。HTTP 成功／失败均 `Cache-Control: no-store`；普通本人 current read保持只读及本人绑定。
+提供 `ak.operation_bundle.station.http_audit_operations.v1` 必须同时支持现有 self／peer Event-submit 的 `audit_paired_event`
+分支与上述两个 audited-read command；未知 unit 或未声明支持不能按通用 batch接纳。Station／federation profile提供与消费义务以机器矩阵为准。
 
 ### 3.3.3 Peer 权威复制
 
@@ -613,6 +633,7 @@ RFC 9449 DPoP proof 只有 `iat`，没有 `expires` parameter，因此它 **MUST
 | `ak.peer.realm_join.read.preview.v1` | `POST /_arkret/peer/realm-joins/preview` | - | - | request_schema_ref=schemas/realm-join-intake.schema.json#/$defs/peer_preview_request_body; response_schema_ref=schemas/realm-join-intake.schema.json#/$defs/peer_preview_outcome |
 | `ak.peer.signal.command.relay.v1` | `POST /_arkret/peer/signal` | - | - | request_schema_ref=schemas/signal-relay.schema.json |
 | `ak.peer.strand.watch.read.current.v1` | `POST /_arkret/peer/strands/watch/current` | - | - | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentRequestBody; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentOutcome |
+| `ak.peer.strand.watch.command.audit_read.v1` | `POST /_arkret/peer/strands/watch/audit-read` | - | - | request_schema_ref=schemas/watch-audit-operations.schema.json#/$defs/peer_watch_audit_read_request; response_schema_ref=schemas/watch-audit-operations.schema.json#/$defs/watch_audit_read_outcome |
 | `ak.root.identity.command.submit_did_operation.v1` | `POST /_arkret/root/identity/submit-did-operation` | - | - | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitRequestBody; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/DidOperationSubmitOutcome |
 | `ak.root.identity.document.resource.get.v1` | `GET /_arkret/root/identity/document` | - | - | response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/IdentityDocumentView |
 | `ak.root.identity.log.read.list.v1` | `GET /_arkret/root/identity/log` | - | - | response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/IdentityLogListOutcome |
@@ -757,6 +778,7 @@ RFC 9449 DPoP proof 只有 `iat`，没有 `expires` parameter，因此它 **MUST
 | `ak.self.space.read.list.v1` | `GET /_arkret/self/realms/{realm_id}/spaces` | - | - | response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/ProjectionSpaceList |
 | `ak.self.strand.read.list.v1` | `GET /_arkret/self/realms/{realm_id}/strands` | - | - | response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/ProjectionStrandList |
 | `ak.self.strand.watch.read.current.v1` | `POST /_arkret/self/strands/watch/current` | - | - | request_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentRequestBody; response_schema_ref=schemas/service-operation-dtos.schema.json#/$defs/StrandWatchCurrentOutcome |
+| `ak.self.strand.watch.command.audit_read.v1` | `POST /_arkret/self/strands/watch/audit-read` | - | - | request_schema_ref=schemas/watch-audit-operations.schema.json#/$defs/watch_audit_read_request; response_schema_ref=schemas/watch-audit-operations.schema.json#/$defs/watch_audit_read_outcome |
 | `ak.self.third_party_invite.read.acceptance_attestation.v1` | `POST /_arkret/self/third-party-invites/acceptance-attestation` | - | - | request_schema_ref=schemas/invite.schema.json#/$defs/third_party_invite_acceptance_attestation_request_body; response_schema_ref=schemas/invite.schema.json#/$defs/third_party_invite_acceptance_attestation_outcome |
 | `ak.server.read.describe.v1` | `GET /_arkret/describe` | - | - | response_schema_ref=schemas/service-describe.schema.json |
 <!-- END GENERATED OPERATION FIELD TABLE -->

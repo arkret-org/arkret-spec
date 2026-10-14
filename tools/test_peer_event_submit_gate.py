@@ -183,7 +183,7 @@ class PeerEventSubmitGateTest(unittest.TestCase):
 
     def test_replication_branch_rejects_atomic_unit_field(self) -> None:
         def mutate(documents: dict) -> None:
-            branch = self.defs(documents)["peer_submit_request"]["oneOf"][2]
+            branch = self.defs(documents)["peer_submit_request"]["oneOf"][3]
             branch["not"]["anyOf"] = [
                 item for item in branch["not"]["anyOf"] if item["required"] != ["unit"]
             ]
@@ -192,7 +192,7 @@ class PeerEventSubmitGateTest(unittest.TestCase):
 
     def test_replication_branch_rejects_producer_device_evidence(self) -> None:
         def mutate(documents: dict) -> None:
-            branch = self.defs(documents)["peer_submit_request"]["oneOf"][2]
+            branch = self.defs(documents)["peer_submit_request"]["oneOf"][3]
             branch["not"]["anyOf"] = [
                 item for item in branch["not"]["anyOf"] if item["required"] != ["producer_device_evidence"]
             ]
@@ -469,7 +469,7 @@ class PeerEventSubmitGateTest(unittest.TestCase):
         def mutate(documents: dict) -> None:
             self.defs(documents)["peer_registered_atomic_unit"]["oneOf"].append({"$ref": "#/$defs/submit_request"})
 
-        self.assert_red(mutate, "exactly founding and compensation")
+        self.assert_red(mutate, "exactly founding, compensation and audit-paired source units")
 
     def test_compensation_requires_terminal_certificate(self) -> None:
         def mutate(documents: dict) -> None:

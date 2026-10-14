@@ -166,6 +166,13 @@ class MlsCreatorBootstrapTransactionLintTest(unittest.TestCase):
             errors,
         )
 
+    def test_early_accepted_winner_exit_cannot_disappear(self) -> None:
+        def mutate(registry):
+            registry["transitions"] = [row for row in registry["transitions"]
+                if row["transition_id"] != "genesis_intent_persisted_to_superseded"]
+        self.assertTrue(any("genesis_intent_persisted_to_superseded" in error
+            for error in self._run(mutate_registry=mutate)))
+
     def test_reordering_the_ruled_chain_fails(self) -> None:
         # The ruling rejected RealmAccepted -> GenesisIntentPersisted because it
         # still allows an accepted Realm create with no durable selector.

@@ -1432,7 +1432,10 @@ Delegated device 不引入新的 MLS recipient endpoint 分支：它就是普通
 
 forward-only attestation core 在 authorization_window 后 MUST 携 required closed `event_authorization`，顺序 event_id、verification_method、destination_service_id、forward_body_digest、authorization_ref、revision、governance_generation、accepted_at。origin MUST 在本地 PCR 同一锁定授权 cut 取得完整 Account/device/method/key、原 accepted authorize 四坐标、该 cut current revision Commit 与 PCR治理generation、原授权窗口及原授权 Commit.committed_at。accepted_at MUST NOT 取业务目标 Commit、Event.created_at、attested_at 或后来 current 的时间。业务 Event 此时未提交，MUST NOT 造业务 CommitId/position。
 
-origin MUST 真验 exact producer Event/proof 后签完整来源；forward_body_digest 是 SHA256(JCS 完整 peer_submit_request 仅删除 producer_device_evidence))，destination_service_id 等于实际认证 Destination-Service-ID。原字段与新增 source 全部进入现 proof context 的 payload_digest；唯一 unsigned projection 是完整 wrapper 只删 proof，保留 {attestation:complete_core}，MUST NOT 改成 core-only 或尝试两个预像。Service原历史 method/proof 与 attested_at 绑定，source窗口及原准入当前门保持独立。首次 forward 仍实时 current准入；accepted历史按原时点验原件，不因今天 attestation过期撤销原accepted事实。
+登记的 `audit_paired_event` 首次转发按 [authority-commit §5.2](../sync/authority-commit-log.md#52-业务与审计配对单元normative)的两个固定槽位分别复用本证明；每份 `event_authorization.event_id` 绑定自身 slot，整体 body 摘要仅删除 `atomic_producer_evidence`。
+带审计 Watch read command 的单 Event 证明绑定 `audit_submission.event`；body 摘要为完整 peer read request 仅删除 `producer_device_evidence`，其它来源字段与本节校验相同。
+
+origin MUST 真验 exact producer Event/proof 后签完整来源；forward_body_digest 是 SHA256(JCS 完整单 Event peer_submit_request 仅删除 producer_device_evidence))，destination_service_id 等于实际认证 Destination-Service-ID。原字段与新增 source 全部进入现 proof context 的 payload_digest；唯一 unsigned projection 是完整 wrapper 只删 proof，保留 {attestation:complete_core}，MUST NOT 改成 core-only 或尝试两个预像。Service原历史 method/proof 与 attested_at 绑定，source窗口及原准入当前门保持独立。首次 forward 仍实时 current准入；accepted历史按原时点验原件，不因今天 attestation过期撤销原accepted事实。
 
 origin签发/持久化 MUST 对同cut revision、授权原件、完整 Account/key/window 逐字复核；cut变化重prepare，禁止 later-current补。同步forward lost-response只逐字重发原body，新的尝试重取source；不得新增queued-forward ledger。governor从完整原evidence验证并冻最小fact，原evidence仍仅private accepted-at audit，不复制Service closure或PCR正文给成员。
 

@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-14.9",
+  "version": "2026-10-14.11",
   "source_of_truth": true,
-  "generated_at": "2026-10-14T19:19:00+08:00",
+  "generated_at": "2026-10-14T19:29:31+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -417,7 +417,7 @@
       "status": "active",
       "category": "state_machine",
       "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#512-创建-transaction",
-      "section_digest": "sha256:6cdecdaee4393bc69f05a51d02b48eb0d212c07f236e148d1fc8cc21722069b5",
+      "section_digest": "sha256:84bdd16e0d03a8b74c496d2559014569d370b048511bb5643aae0595ecb27e4d",
       "requirement": "A creator client keeps exactly one client-local durable transaction per (owner_actor_id, effective_scope, operation=mls_genesis) for a realm or circle scope, never for a sidecar scope, and advances it only along the registered arrows genesis_intent_persisted -> realm_accepted -> governance_result_pinned -> epoch0_state_persisted -> genesis_queued -> genesis_accepted -> artifacts_converged -> ready. The selector is persisted before the first Realm-create side effect, before any governance-evidence read and before any selector-dependent randomness; while the record is still at genesis_intent_persisted the whole closed creation intent MAY be replaced in one atomic durable commit and it is immutable from realm_accepted on; the signed Genesis bytes and the outbound queue item are established atomically; ready and the send-gate index are published atomically. Only an exact accepted Event proves completion, the record never reaches a wire, projection, Account Data key, sync or federation surface, and it never authorizes a peer to trust another party's local state. The accepted Genesis producer explicitly signs creator_leaf_authority binding its sole RFC leaf signature key, endpoint and historical authorization Event; the leaf key need not equal the Event signer key. Before any MLS randomness, governance_result_pinned durably binds the exact accepted scope-create Event and covering Commit, independently verified nonce-bound current authority bundle and complete chain, a verified complete authorized current cut proving exact-scope Genesis absence, complete current creator Actor/device/signer authorization, canonical closed local proposal bytes and digest, and its unchanged governance_binding. Missing, partial, unauthenticated or unavailable reads cannot establish absence or permit generation, upload, signing or enqueue. Existing verified reads supply this evidence; no proof RPC, new wire carrier or Station-signed local proposal is introduced. Every Genesis, including Sidecar, freezes one canonical authoring timestamp into both Event.created_at and payload.created_at. The governing Station rejects inequality with generic failed_precondition before any accepted effect, and consumers independently revalidate this equality before accepting a winner. Proof and commit clocks are independent.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -804,7 +804,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/device-lifecycle.md#foreign-human-event-authorization-source-normative",
-      "section_digest": "sha256:447ba5762715c67d1c35280babfbf688ebad090188bdce9f41f2247056d0f3c1",
+      "section_digest": "sha256:c79ab1e0fb137a3c97e831802a31ae7c448c7f0d1fa89ff63a7a9e402aadcf9b",
       "requirement": "Foreign Human event authorization source (Normative)",
       "testability_grade": "audit",
       "test_plan": "Executed in the isolated candidate: independent canonical preimage/content-ID recomputation and real public conformance Ed25519 bytes for Human Event, sole Origin wrapper (including a second authentic same-key/different-revision source), GovCommit fact digest and dual-signed handoff transcript; 17 schema cases and 208 signed-leaf mutations, including validly re-signed incomplete handoff inventory and source replacement, passed. Official spec generation, closure, version, full check, determinism, all 169 mandatory CI self-test modules, Naming require-full and Node cross-reference gates passed. These conformance transcripts do not prove real original PCR admission lineage, historical Service/DID authority chains, PostgreSQL atomic freeze/retain/archive, complete Direct4 or MLS business admission, live peer bootstrap/coldscan/backfill, fenced handoff transfer or native/full/S3 behavior. Those audit obligations remain pending; no fabricated accepted outcome, current-key backfill or implementation conformance claim is licensed."
@@ -834,7 +834,7 @@
       "status": "active",
       "category": "distributed_write",
       "source_anchor": "spec/v1/zh/sync/federation.md#human-historical-signer-fact-transport-normative",
-      "section_digest": "sha256:11a4c8738eeb4b391b6ee2572f9a73138bffa1f2f14506f070819801330af2bb",
+      "section_digest": "sha256:a0db12dcc5eec07e3a6cf3c7a1fc696155ad2e765ef27bcaa26b1d387797d1db",
       "requirement": "Human historical signer fact transport (Normative)",
       "testability_grade": "audit",
       "test_plan": "Executed in the isolated candidate: independent canonical preimage/content-ID recomputation and real public conformance Ed25519 bytes for Human Event, sole Origin wrapper (including a second authentic same-key/different-revision source), GovCommit fact digest and dual-signed handoff transcript; 17 schema cases and 208 signed-leaf mutations, including validly re-signed incomplete handoff inventory and source replacement, passed. Official spec generation, closure, version, full check, determinism, all 169 mandatory CI self-test modules, Naming require-full and Node cross-reference gates passed. These conformance transcripts do not prove real original PCR admission lineage, historical Service/DID authority chains, PostgreSQL atomic freeze/retain/archive, complete Direct4 or MLS business admission, live peer bootstrap/coldscan/backfill, fenced handoff transfer or native/full/S3 behavior. Those audit obligations remain pending; no fabricated accepted outcome, current-key backfill or implementation conformance claim is licensed. Invite notification supplement: closed original fact carrier iff original Commit has its digest, no self-dispatch fact echo, exact recipient Station only, no membership/PCR read or holder value expansion. Four mandatory gate tests (including both conditional mutations) execute these shape and boundary obligations. Real accepted Invite delivery, historical Event Ed verification and zero holder writes on refusal remain native/PG/live implementation obligations."
@@ -871,6 +871,42 @@
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.consent.call_invitation_admission.v1"
+      ]
+    },
+    {
+      "clause_id": "AK-NC-128",
+      "status": "active",
+      "category": "authorization",
+      "source_anchor": "spec/v1/zh/sync/authority-commit-log.md#51-登记式原子单元normative",
+      "section_digest": "sha256:8ea8f81ba8619588180ba5e2ae585e96c109b98659b7c805b632981450683096",
+      "requirement": "Registered closed typed unit execution, durable whole-unit replay, one stream and separate first admission/replication.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.state.registered_atomic_units.v1"
+      ]
+    },
+    {
+      "clause_id": "AK-NC-129",
+      "status": "active",
+      "category": "authorization",
+      "source_anchor": "spec/v1/zh/sync/authority-commit-log.md#52-业务与审计配对单元normative",
+      "section_digest": "sha256:9c35d3c58b565cef943dae633e1b4105d7074ecd5bb1bc58440dd4371255d1f3",
+      "requirement": "Exactly business then audit, complete actor/producer/target/scope binding, capability and CAS gates, indivisible source pair materialization.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.state.registered_atomic_units.v1"
+      ]
+    },
+    {
+      "clause_id": "AK-NC-130",
+      "status": "active",
+      "category": "authorization",
+      "source_anchor": "spec/v1/zh/sync/authority-commit-log.md#53-带审计的-watch-精确读取normative",
+      "section_digest": "sha256:e465aa45143d4e455216239a7b4e607ceeabbde14c64f39d977a277f7e9fbb06",
+      "requirement": "One signed audit command, two capabilities, same-cut accepted audit/frozen result, nonmember scoped Circle exception, replay and final delivery privacy gates.",
+      "testability_grade": "vector",
+      "evidence_refs": [
+        "ak.vector.state.watch_audit_operations.v1"
       ]
     }
   ]

@@ -15,19 +15,19 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9392,
-    "total_schema_documents": 172,
+    "total_properties": 9431,
+    "total_schema_documents": 173,
     "by_presence_class": {
-      "optional": 2199,
+      "optional": 2214,
       "optional_defaulted": 48,
-      "required": 6642,
+      "required": 6662,
       "required_nullable": 324,
-      "tristate": 179
+      "tristate": 183
     },
-    "tristate_occurrences": 179,
-    "tristate_audit_targets": 142,
+    "tristate_occurrences": 183,
+    "tristate_audit_targets": 146,
     "tristate_sdk_dispositions": {
-      "absent_null_equivalent": 131,
+      "absent_null_equivalent": 135,
       "condition_guarded": 10,
       "distinct": 1
     }
@@ -57,6 +57,9 @@
     "applet-install-plan.schema.json/$defs/widget_effect/properties/policy_event_ref",
     "applet-registration-epoch-evidence.schema.json/allOf/0/oneOf/0/properties/method_version_evidence",
     "applet-registration-epoch-evidence.schema.json/allOf/0/oneOf/1/properties/method_version_evidence",
+    "authority-commit-operations.schema.json/$defs/audit_paired_access_submission/allOf/1/properties/event",
+    "authority-commit-operations.schema.json/$defs/audit_paired_circle_member_submission/allOf/1/properties/event",
+    "authority-commit-operations.schema.json/$defs/audit_paired_watch_submission/allOf/1/properties/event",
     "authority-commit-operations.schema.json/$defs/committed_event_submission/allOf/2/then/properties/event_submission",
     "authority-commit-operations.schema.json/$defs/direct_conversation_member_join_submission/allOf/1/properties/event",
     "authority-commit-operations.schema.json/$defs/direct_conversation_realm_create_submission/allOf/1/properties/event",
@@ -216,7 +219,8 @@
     "service-operation-dtos.schema.json/$defs/SignedSessionGrantClaims/allOf/0/then/properties/holder_binding",
     "strand.schema.json/allOf/2/then/properties/metadata",
     "typed-current-result.schema.json/$defs/device_authorization_value/properties/expires_at",
-    "view.schema.json/$defs/query/properties/relation"
+    "view.schema.json/$defs/query/properties/relation",
+    "watch-audit-operations.schema.json/$defs/watch_audit_submission/allOf/1/properties/event"
   ],
   "tristate_audit_targets": [
     {
@@ -351,6 +355,36 @@
       "occurrences": [
         "/allOf/0/oneOf/0/properties/method_version_evidence",
         "/allOf/0/oneOf/1/properties/method_version_evidence"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "authority-commit-operations.schema.json",
+      "shape": "/$defs/audit_paired_access_submission",
+      "instance_path": "/event",
+      "occurrences": [
+        "/$defs/audit_paired_access_submission/allOf/1/properties/event"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "authority-commit-operations.schema.json",
+      "shape": "/$defs/audit_paired_circle_member_submission",
+      "instance_path": "/event",
+      "occurrences": [
+        "/$defs/audit_paired_circle_member_submission/allOf/1/properties/event"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "authority-commit-operations.schema.json",
+      "shape": "/$defs/audit_paired_watch_submission",
+      "instance_path": "/event",
+      "occurrences": [
+        "/$defs/audit_paired_watch_submission/allOf/1/properties/event"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -1672,6 +1706,16 @@
       "instance_path": "/relation",
       "occurrences": [
         "/$defs/query/properties/relation"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "watch-audit-operations.schema.json",
+      "shape": "/$defs/watch_audit_submission",
+      "instance_path": "/event",
+      "occurrences": [
+        "/$defs/watch_audit_submission/allOf/1/properties/event"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -3639,6 +3683,27 @@
         "ak.schema.authority_commit_operations.v1"
       ],
       "properties": {
+        "/$defs/atomic_slot_producer_evidence/oneOf/0/properties/producer_device_evidence": "required",
+        "/$defs/atomic_slot_producer_evidence/oneOf/1/properties/producer_agent_evidence": "required",
+        "/$defs/audit_paired_access_submission/allOf/1/properties/event": "tristate",
+        "/$defs/audit_paired_access_submission/allOf/1/properties/event/properties/kind": "required",
+        "/$defs/audit_paired_access_submission/allOf/1/properties/event/properties/payload": "optional",
+        "/$defs/audit_paired_access_submission/allOf/1/properties/event/properties/payload/allOf/1/properties/access_kind": "optional",
+        "/$defs/audit_paired_circle_member_submission/allOf/1/properties/event": "tristate",
+        "/$defs/audit_paired_circle_member_submission/allOf/1/properties/event/properties/kind": "required",
+        "/$defs/audit_paired_circle_member_submission/allOf/1/properties/event/properties/payload": "optional",
+        "/$defs/audit_paired_event_acceptance_outcome/properties/commits": "required",
+        "/$defs/audit_paired_event_acceptance_outcome/properties/status": "required",
+        "/$defs/audit_paired_event_acceptance_outcome/properties/unit_kind": "required",
+        "/$defs/audit_paired_event_federation_submission/properties/committed_events": "required",
+        "/$defs/audit_paired_event_federation_submission/properties/committed_events/prefixItems/0/allOf/1/properties/event_submission": "optional",
+        "/$defs/audit_paired_event_federation_submission/properties/committed_events/prefixItems/1/allOf/1/properties/event_submission": "optional",
+        "/$defs/audit_paired_event_federation_submission/properties/unit_kind": "required",
+        "/$defs/audit_paired_event_unit_submission/properties/events": "required",
+        "/$defs/audit_paired_event_unit_submission/properties/unit_kind": "required",
+        "/$defs/audit_paired_watch_submission/allOf/1/properties/event": "tristate",
+        "/$defs/audit_paired_watch_submission/allOf/1/properties/event/properties/kind": "required",
+        "/$defs/audit_paired_watch_submission/allOf/1/properties/event/properties/payload": "optional",
         "/$defs/authority_bundle_request/properties/nonce": "required",
         "/$defs/authority_bundle_request/properties/realm_id": "required",
         "/$defs/committed_direct_conversation_member_join/allOf/1/properties/event_submission": "optional",
@@ -3788,6 +3853,9 @@
         "/$defs/peer_submit_request/oneOf/1/properties/branch": "required",
         "/$defs/peer_submit_request/oneOf/2/properties/branch": "required",
         "/$defs/peer_submit_request/oneOf/3/properties/branch": "required",
+        "/$defs/peer_submit_request/oneOf/4/properties/branch": "required",
+        "/$defs/peer_submit_request/properties/atomic_producer_evidence": "optional",
+        "/$defs/peer_submit_request/properties/atomic_submission": "optional",
         "/$defs/peer_submit_request/properties/branch": "required",
         "/$defs/peer_submit_request/properties/event_submission": "optional",
         "/$defs/peer_submit_request/properties/mls_genesis_material": "optional",
@@ -3825,6 +3893,8 @@
         "/$defs/committed_event_submission/properties/genesis_event_ref",
         "/$defs/committed_event_submission/properties/producer_signer_fact",
         "/$defs/handoff_request/properties/historical_signer_facts",
+        "/$defs/peer_submit_request/properties/atomic_producer_evidence",
+        "/$defs/peer_submit_request/properties/atomic_submission",
         "/$defs/peer_submit_request/properties/event_submission",
         "/$defs/peer_submit_request/properties/mls_genesis_material",
         "/$defs/peer_submit_request/properties/mls_submission",
@@ -12646,6 +12716,32 @@
         "/properties/graph",
         "/properties/state_changed_at",
         "/properties/timeline"
+      ]
+    },
+    "watch-audit-operations.schema.json": {
+      "schema_ids": [
+        "ak.schema.watch_audit_operations.v1"
+      ],
+      "properties": {
+        "/$defs/peer_watch_audit_read_request/properties/audit_submission": "required",
+        "/$defs/peer_watch_audit_read_request/properties/producer_agent_evidence": "optional",
+        "/$defs/peer_watch_audit_read_request/properties/producer_device_evidence": "optional",
+        "/$defs/watch_audit_read_outcome/properties/audit_commit": "required",
+        "/$defs/watch_audit_read_outcome/properties/current": "required",
+        "/$defs/watch_audit_read_request/properties/audit_submission": "required",
+        "/$defs/watch_audit_submission/allOf/1/properties/event": "tristate",
+        "/$defs/watch_audit_submission/allOf/1/properties/event/properties/actor_id": "optional",
+        "/$defs/watch_audit_submission/allOf/1/properties/event/properties/actor_id/properties/kind": "required",
+        "/$defs/watch_audit_submission/allOf/1/properties/event/properties/executed_by": "optional",
+        "/$defs/watch_audit_submission/allOf/1/properties/event/properties/executed_by/properties/kind": "required",
+        "/$defs/watch_audit_submission/allOf/1/properties/event/properties/kind": "required",
+        "/$defs/watch_audit_submission/allOf/1/properties/event/properties/payload": "optional",
+        "/$defs/watch_audit_submission/allOf/1/properties/event/properties/payload/allOf/1/properties/access_kind": "optional",
+        "/$defs/watch_audit_submission/allOf/1/properties/event/properties/payload/allOf/1/properties/target_ref": "optional"
+      },
+      "conditionally_required": [
+        "/$defs/peer_watch_audit_read_request/properties/producer_agent_evidence",
+        "/$defs/peer_watch_audit_read_request/properties/producer_device_evidence"
       ]
     },
     "websocket-dpop-proof.schema.json": {

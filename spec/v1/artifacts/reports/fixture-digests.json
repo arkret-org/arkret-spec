@@ -387,8 +387,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-creator-bootstrap-recovery-fixture.json",
-      "sha256": "799bbbfbb90f53af6cbdb011b68d137d2f05965c37e2af02e58947f6526fa529",
-      "version": "2026-10-04"
+      "sha256": "c212b2e4797d9f986d44c662783d3f9dea713be9b704e546a640b17306d30bc3",
+      "version": "2026-10-14"
     },
     {
       "path": "spec/v1/artifacts/fixtures/mls-cross-station-welcome-replication-fixture.json",
@@ -509,6 +509,11 @@
       "path": "spec/v1/artifacts/fixtures/redaction-fixture.json",
       "sha256": "c3e804d7dcd66b2c485b668c770abf2022f5c3845d88c40b7a4df92d896e0fcd",
       "version": "2026-10-11"
+    },
+    {
+      "path": "spec/v1/artifacts/fixtures/registered-atomic-unit-and-watch-audit-fixture.json",
+      "sha256": "190914c8d781be2ef461eeb05c72c8d6efde21bfcd2e8098169aa05004849ecf",
+      "version": "2026-10-14.2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/relation-structural-realm-fixture.json",
