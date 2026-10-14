@@ -42,6 +42,18 @@ class EventAdmissionContractTest(unittest.TestCase):
         synchronize(ROOT, check=True)
         Draft202012Validator.check_schema(self.envelope)
 
+    def test_controller_confirmation_never_falls_back_to_capability_admission(self):
+        rows = {row["event_kind"]: row for row in self.canonical["event_kinds"]}
+        controller = "agent_controller_self_authored_proof"
+        self.assertEqual(rows["ak.agent.action_approve"].get("admission"), controller)
+        self.assertEqual(rows["ak.agent.interaction.set"].get("admission"), controller)
+        self.assertNotIn("admission_variants", rows["ak.agent.action_approve"])
+        # The dedicated controller proof must not be replaced by a wider owner role.
+        definition = self.canonical["admission_class_definitions"][controller]
+        self.assertIn("No capability grants authority", definition)
+        self.assertIn("target Event independently retains", definition)
+        self.assertIn("current provision/accountability", definition)
+
     def test_zero_ref_count_matches_absence_but_positive_count_does_not(self):
         for count in [0, 1]:
             validator = Draft202012Validator(predicate_schema({"ref_role": "attestation", "ref_exact_count": count}))

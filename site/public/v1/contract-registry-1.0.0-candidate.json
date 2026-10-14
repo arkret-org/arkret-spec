@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-14.10",
+  "version": "2026-10-15.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-14T05:31:41Z",
+  "generated_at": "2026-10-15T05:45:52+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-10-14.2",
@@ -477,7 +477,7 @@
       "self_authored_proof": "Admitted by a proof bound to the subject principal's identity: either the subject's DID-bound signature / proof of possession, or a currently valid delegated-control proof whose authorization_ref is bound by the subject DID Document. Reducer MUST verify actor == subject, executed_by/authorization_ref when delegated, a fresh replay-protected proof, and that the accepted-at delegation purpose/scope explicitly covers the target event kind, resource and operation; mere presence of a DID-bound delegation is never sufficient. No Realm capability grant is consulted. Fail-closed: missing, stale, unbound, purpose-inapplicable or scope-inapplicable proof MUST be rejected.",
       "sidecar_account_self_authored_proof": "Admitted only when Event actor_id is the account branch and its complete AccountId is the authenticated controller account. The reducer derives controller_account_id byte-for-byte from actor_id.account_id, uses (realm_id, controller_account_id) as the singleton key, and rejects the service actor branch with sidecar_create_denied before revealing existence. The same exact AccountId binds Sidecar membership, MLS genesis and participant authority; principal-only equality is forbidden.",
       "service_attested": "Written by a protocol service component (Auth/Gate server, Events node, applet host, agent runtime) under its service-ID attestation as part of operating the protocol. Reducer MUST verify the issuing service's authority and its binding to the subject/scope; not a user capability. Fail-closed.",
-      "agent_controller_self_authored_proof": "Only a current active controller account may sign a Realm-scoped ak.agent.interaction.set for its exact active member Agent. Author, authenticated account and payload controller AccountId must match in both components; current provision/accountability, controller membership generation, device authorization and expected_revision CAS are checked before any effects. Service authors, Agent self-writes, administrators and executed_by delegation cannot substitute. No capability grants authority for this class. See models/agent-interaction.md section 1.",
+      "agent_controller_self_authored_proof": "Only a current active controller account may sign a Realm-scoped ak.agent.interaction.set or ak.agent.action_approve for its exact active member Agent. Author and authenticated account must match the current full controller AccountId in both components; current provision/accountability, Agent and controller membership generation, device authorization and Realm stream binding are checked before any effects. interaction.set additionally checks its payload controller AccountId and expected_revision CAS. action_approve additionally binds the accepted immutable request or draft, exact Agent, target Realm, proposed action, target descriptor and complete approved_event_id, checks covering committed_at <= expires_at, and allocates its controller nonce atomically. Service authors, Agent self-writes, administrators and executed_by delegation cannot substitute. No capability grants authority for this class; the target Event independently retains all capability and grant/governance approval requirements. See models/agent-interaction.md section 1 and authz/constraint-schema.md section 9.2.6.",
       "capability_or_owned_agent": "Ordinary capability admission remains required except for ak.capability.grant with the sole closed owned_agent source, or ak.capability.revoke of that source by its original issuer/controller. The source grants only explicitly registered terminal actions; exact account ownership/membership, current controller ceiling, global/key bounds and Agent policy are mandatory. Revoke needs no action authority, active join or runtime, but requires original issuer proof, signing eligibility and exact target CAS. Administrators and other targets use ordinary capability admission. See zh/authz/owned-agent-authority.md."
     },
     "admission_predicate_contract": {
@@ -1139,7 +1139,8 @@
         "verb_form": "base",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Controller-signed one-shot publication authorization in the target Realm safety sequence. approved_event_id binds the complete pre-authored Event. The same confirmed command allocates (controller ActorId, approval_nonce) once; it is not a reusable private approval followed by receiver-local consumption. The original Event remains ordinary data and requires this exact confirmation only when its explicit approval constraint applies.",
+        "admission": "agent_controller_self_authored_proof",
+        "payload": "Controller-signed one-shot publication authorization in the target Realm safety sequence. approved_event_id binds the complete pre-authored Event. The same confirmed command allocates (controller ActorId, approval_nonce) once; it is not a reusable private approval followed by receiver-local consumption. The original Event remains ordinary data. An accepted private request or draft selects its exact confirmation gate; act-on-behalf attribution additionally requires fresh controller confirmation under the Agent delegation profile even without a selected request. Independent grant or governance approval constraints still require their own detached evidence.",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/agent_action_approve_payload",
         "id_source": "not_an_object_id",
         "result_effect_ownership": {
@@ -8929,8 +8930,8 @@
         }
       }
     },
-    "version": "2026-10-14",
-    "generated_at": "2026-10-14T05:58:19+08:00",
+    "version": "2026-10-15.1",
+    "generated_at": "2026-10-15T05:45:52+08:00",
     "bootstrap_event_kinds": [
       "ak.device.authorize",
       "ak.device.reanchor",

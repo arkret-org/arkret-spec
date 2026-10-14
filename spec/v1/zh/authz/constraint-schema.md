@@ -724,8 +724,17 @@ MUST NOT 互用 nonce，也 MUST NOT 把一方的满足自动换算成另一方�
 | `ak.agent.action_approve` | 已登记的 **Event kind**，写 `agent_action_approval` typed current result | exact Agent、draft／request、完整 `approved_event_id`、私有 confirmation nonce | controller 对 exact Agent draft／预写 Event 的**安全确认命令**；`approval_id` 选择不可变记录，`(controller ActorId, approval_nonce)` 一次性分配 |
 | `agent_key_approval_evidence` | `ak.agent.key.*` payload 内的 **tagged 引用** | `evidence_ref` 指向一条已接纳 Event 或 grant | 授权 **provenance** 的可解析引用 |
 
-- Agent confirmation 成功**只**满足 Agent draft 的发布 gate，MUST NOT 免除目标 Event 的 grant／
+- 已接纳的私有 request / draft 选择对应完整 Event 的 confirmation gate；act-on-behalf attribution
+  另按 Agent delegation profile §18.3 要求 fresh controller confirmation，未预先登记 request
+  不能绕过此 gate。普通 reply-as-agent 且未被 request / draft 选择的 Event 不因此增加 confirmation。
+- Agent confirmation 成功**只**满足 Agent draft / request 或 act-on-behalf 的发布 gate，MUST NOT 免除目标 Event 的 grant／
   governance approval 要求；两者都命中时 MUST 都被满足，且 MUST 能**分别**拒绝。
+- `ak.agent.action_approve` 复用 `agent_controller_self_authored_proof` 专用准入，不要求也不由 capability 授予确认权限。
+  唯一合法作者和认证主体是当前 active controller 的完整 AccountId；服务作者、Agent 自签、管理员或
+  `executed_by` 代理不能替代。接纳须验证原生设备签名、当前 accepted provision/accountability、Agent
+  与 controller 的当前 Realm 成员代次，以及 Realm scope / Commit stream 一致性；还须从已接纳的不可变
+  request 或 draft 来源交叉绑定 exact Agent、目标 Realm、proposed action、target descriptor 和完整
+  `approved_event_id`。缺失或不匹配均零写入拒绝。此准入不扩大 controller 或 Agent 对目标 Event 的权限。
 - confirmation nonce 的命名空间恰为 `(controller ActorId, approval_nonce)`，不含 Realm 分量。
   同一 exact controller ActorId 跨目标 Realm 也 MUST NOT 重用该 nonce；不同 Station 的 controller
   Account 是不同 ActorId。一次分配 MUST NOT 释放或重绑，且与 detached approval 的 nonce 空间独立。
