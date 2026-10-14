@@ -733,8 +733,10 @@ MUST NOT 互用 nonce，也 MUST NOT 把一方的满足自动换算成另一方�
   唯一合法作者和认证主体是当前 active controller 的完整 AccountId；服务作者、Agent 自签、管理员或
   `executed_by` 代理不能替代。接纳须验证原生设备签名、当前 accepted provision/accountability、Agent
   与 controller 的当前 Realm 成员代次，以及 Realm scope / Commit stream 一致性；还须从已接纳的不可变
-  request 或 draft 来源交叉绑定 exact Agent、目标 Realm、proposed action、target descriptor 和完整
-  `approved_event_id`。缺失或不匹配均零写入拒绝。此准入不扩大 controller 或 Agent 对目标 Event 的权限。
+  request 或 draft 来源交叉绑定 exact Agent、目标 Realm、proposed action 与 target descriptor，并把签名
+  payload 的完整 `approved_event_id` 固定到该确认。目标 Event 后续发布时再比对该 EventId 与私有 request
+  的完整 canonical digest（draft 则验证对应内容承诺）；确认前不要求目标已进入共享历史。任一缺失或
+  不匹配均零写入拒绝。此准入不扩大 controller 或 Agent 对目标 Event 的权限。
 - confirmation nonce 的命名空间恰为 `(controller ActorId, approval_nonce)`，不含 Realm 分量。
   同一 exact controller ActorId 跨目标 Realm 也 MUST NOT 重用该 nonce；不同 Station 的 controller
   Account 是不同 ActorId。一次分配 MUST NOT 释放或重绑，且与 detached approval 的 nonce 空间独立。

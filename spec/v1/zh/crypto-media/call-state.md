@@ -110,6 +110,7 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
         "participant_binding": {
           "expires_at": "2026-04-26T00:05:00Z",
           "issuer_kid": "did:webvh:zCxjAemtszNh7bTFGWFS4m8gv:media.example#key-1",
+          "subject_binding_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
           "sig": "base64url..."
         },
         "media": {
@@ -153,9 +154,9 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
 - 完整认证主体与上述匿名元组仅通过 media-service-binding §3.2 的私有签署 subject_binding 关联；它不得写入 roster／Event。public participant_binding 必须签匿名元组，refresh 必须同时验私有映射与 accepted 活跃 roster。
 - `roster_delta.participant.foci_preferred`：客户端本地 focus 偏好列表；后加入者不得改变已 committed `session_focus`。
 - `roster_delta.participant.participant_id`：来自 token exchange 响应的 SFU-local handle，scope 限 `(call_id, focus_id, sfu_did)`。
-- `roster_delta.participant.participant_binding`：token issuer 对 `(realm_id, call_id, focus_id, actor_id, device_id, participant_id, expires_at)` 的签名承诺。reducer **MUST** 验证：
+- `roster_delta.participant.participant_binding`：token issuer 对 `(realm_id, call_id, focus_id, actor_id, device_id, participant_id, expires_at, media, issuer_kid, subject_binding_digest)` 的签名承诺。reducer **MUST** 验证：
   1. `issuer_kid` 解析到的 service DID 出现在当前 epoch `ak.realm.media_service.service_id`；
-  2. 从 enclosing Event/Call 取得 `realm_id` / `call_id`，从该 participant entry 取得 `focus_id` / 匿名 `actor_id` / device alias / `participant_id`，并与 binding 的 `expires_at` 重建唯一签名七元组；写入时 entry 的 `focus_id` 必须等于已接受的 selected focus，后续 focus 变化不得重解释旧 entry；
+  2. 从 enclosing Event/Call 取得 `realm_id` / `call_id`，从该 participant entry 取得 `focus_id` / 匿名 `actor_id` / device alias / `participant_id` / 完整 `media`，并与 binding 的 `expires_at`、`issuer_kid`、`subject_binding_digest` 重建唯一签名十字段；写入时 entry 的 `focus_id` 必须等于已接受的 selected focus，后续 focus 变化不得重解释旧 entry；
   3. `expires_at` > event `created_at`（不接受已过期 binding）；
   4. `sig` 通过签名验证。
   任一失败 → `failed_precondition` `reason="participant_binding_invalid"`。
@@ -202,6 +203,12 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
 - ready/failed 必须引用已确认 stop，先停止捕获才发布产物。缺 stop 或属于其它段的 stop 均不生效。
 - 结果独立按所属 stream 的 Commit 顺序与 `expected_revision` 更新；异值竞争不冻结其它段或主通话状态。
 - roster/moderation 更新在同一 authority commit 事务中原子执行；不能脱离该序列释放 token 或移除访问屏障。
+
+### 4.3 完整集合 current 与接受来源（normative）
+
+`call_roster` 与 `call_moderation` 的 value MUST 为完整 `{assertions:[{tag_id,source_commit,value}]}`。value 保留原始对应 delta，不裁字段；tag_id 为 canonical `<event_id>:<write_index>`，write_index 为 canonical registry 的 result_writes 顺序。沿用 `keyed_set_add`，可选 `source_commit:true` 表示 materializer 原子附加该写入的实际接受 RealmCommit，禁止 producer 提供来源。该通用选项只有 committed Event 投影可使用，value schema 必须要求 source_commit；它不新增 state model。
+
+集合按 canonical dot 排序、同 dot 精确去重；consumer MUST 验每个 source_commit 的 Realm、stream、Event dot 与已接受来源，拒绝重复位置或不同同 dot carrier。有效成员和 moderation 由同源 stream_position 升序折叠，撤销增加 assertion，不删除历史 assertion。row revision MUST 等于本轴最后接受 Commit；leave/restore 的 expected_revision 比较整个轴 revision，不比较某个旧 join/ban 的 revision。snapshot 必须完整携带集合和来源，可不披露同流其它无关 Event；消费者不得用单条最新 delta、过程缓存或缺失原文猜完整集合。历史 issuer key 验证锚定对应 join assertion 的 source_commit.committed_at，只有此 accepted public binding 所承诺的 exact private receipt 可续期。
 
 ## 5. 录制与转写
 

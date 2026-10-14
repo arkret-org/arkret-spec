@@ -139,6 +139,7 @@ Content-Type: application/json
   "participant_binding": {
     "expires_at": "2026-05-27T12:34:56.000Z",
     "issuer_kid": "did:webvh:z6mkfixture:media.example#key-1",
+    "subject_binding_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
     "sig": "AA"
   },
   "expires_at": "2026-05-27T12:34:56.000Z",
@@ -178,7 +179,8 @@ Content-Type: application/json
       "video": true,
       "screen": false
     },
-    "participant_binding_digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+    "expires_at": "2026-09-24T12:10:00.000Z",
+    "nonce": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
     "issuer_kid": "did:webvh:z6mkfixture:media.example#key-1",
     "sig": "AA"
   }
@@ -191,11 +193,11 @@ Content-Type: application/json
 - **TTL 短期化**：`backend_token` / `participant_binding` `expires_at` 的硬上限 MUST ≤ 600s（10 分钟）；推荐上限 SHOULD ≤ 300s。过期前客户端 MUST 重新兑换；backend token 一旦泄漏在 TTL 内通常不可吊销（除非 backend 提供 revocation list），短 TTL 是工程兜底。
 - **Token issuer DID 锚定**：`ak.realm.media_service` 是 `commit-ordered projection` 单值 typed current result；`participant_binding.issuer_kid` 的 controller bare DID MUST 逐字等于当前 epoch 唯一 settled `ak.realm.media_service.service_id`，具体 key MUST 命中 §2.1 同一 service 结果 `signing_keys` 中的某个 `verification_method`。typed current result 缺失、必要证明未就绪、安全确认故障或结果 service 不等时均不可用，不存在多 service 列表或“之一”分支；验签不要求逐 token 在线解析 DID。出现新 service / key epoch、binding invalidation 或该结果窗口过期时重新取得 §2.1 的结果，普通客户端不因此获得 DID 权威验证职责。客户端 MUST 拒绝来自未授权 DID 的 token，错误码 `token_issuer_unauthorised`。该规则把 token 签发权与 Realm policy 锁定，防止任意 service 凭空铸造 join token。
   - **命名与类型（normative）**：`issuer_kid` 是 issuer **key identifier**，不是 issuer service identifier，因此该字段名不得改成 `issuer_id`。其值 MUST 是带 verification-method fragment 的 DID URL（例如 `did:web:media.example#key-1`）；去掉 `#fragment` 后得到的 service DID 才与当前 epoch 的 `service_id` 做锚定。`service_id` 标识服务主体，`issuer_kid` 标识该主体用于本次签名的具体密钥，二者不可互换。
-  - **轮换语义（normative）**：`participant_binding` 只承诺六元组 + `expires_at`，**不**绑定签发时的 media_service epoch。issuer 锚定按**写入 `ak.call.state` 时的当前 epoch** `service_id` 判定（[`call-state.md` §4.1](./call-state.md)），因此一次 media_service 轮换（旧 `service_id` 被移出当前 epoch）即时作废由被移出 service 签发、尚在 TTL 内的在途 binding：reducer MUST 以 `token_issuer_unauthorised` 拒绝其落账，客户端 MUST 重新向当前 epoch service 兑换。这是已知的 ≤600s 活性窗口（与 TTL 上限一致），不引入跨 epoch binding 复用；实现 MUST NOT 为旧 epoch binding 增设 grace 接受。
-- **`participant_id` 形态**：作为 SFU-local 短期随机 handle，scope 限 `(call_id, focus_id, sfu_did)`；MUST NOT 携带可关联到长期 actor 身份的可识别信息（与 [`webrtc-signaling.md` §4.1](./webrtc-signaling.md) pairwise pseudonym 规则对齐），也不得由可公开重算的主体元组确定性派生。六元组绑定职责由下方 `participant_binding` 的签名承诺承担。
+  - **轮换语义（normative）**：`participant_binding` 只承诺本节定义的十字段，**不**绑定签发时的 media_service epoch。issuer 锚定按**写入 `ak.call.state` 时的当前 epoch** `service_id` 判定（[`call-state.md` §4.1](./call-state.md)），因此一次 media_service 轮换（旧 `service_id` 被移出当前 epoch）即时作废由被移出 service 签发、尚在 TTL 内的在途 binding：reducer MUST 以 `token_issuer_unauthorised` 拒绝其落账，客户端 MUST 重新向当前 epoch service 兑换。这是已知的 ≤600s 活性窗口（与 TTL 上限一致），不引入跨 epoch binding 复用；实现 MUST NOT 为旧 epoch binding 增设 grace 接受。
+- **`participant_id` 形态**：作为 SFU-local 短期随机 handle，scope 限 `(call_id, focus_id, sfu_did)`；MUST NOT 携带可关联到长期 actor 身份的可识别信息（与 [`webrtc-signaling.md` §4.1](./webrtc-signaling.md) pairwise pseudonym 规则对齐），也不得由可公开重算的主体元组确定性派生。匿名坐标与 media 范围的绑定职责由下方 `participant_binding` 的签名承诺承担。
 - **`participant_id` 传播边界**：因为它本身不携带 actor 链接信息，客户端 **MUST** 把它写入 `ak.call.state.roster_delta.op="join"` 的 participant value（用于 §7 cross-check）——这条安全集合 value 是 Realm-encrypted control state，不构成 actor-身份外泄。但 `participant_id` MUST NOT 进入下列三类 surface：(a) 任何 plaintext audit log / 服务方 access log（包括 backend SFU 自身的日志）；(b) 任何 unencrypted ephemeral / push / telemetry 通道；(c) backend 一侧对外的 metrics、tracing 标签或 cross-tenant 数据导出。Backend 内部允许保留它作为 SFU-local routing handle，但不应跨 call leg / 跨 tenant 复用。
-- **唯一载体与重建**：`participant_binding` 恰为 `{expires_at, issuer_kid, sig}`。token outcome 的顶层 actor_id/device_id 保留 exact request 的完整认证主体；新增 closed roster_identity 携带匿名 actor_id/device alias。public participant_binding 的七元组使用 roster_identity.actor_id/device_id，另由私有 subject_binding 连接认证主体与匿名元组，见 §3.2。durable roster entry 保存 actor_id/device_id/participant_id/focus_id 与该 binding，realm_id 和 call_id 从 enclosing Call 身份取得。写入时 focus_id 必须等于已接受的 selected focus；以后轮换 focus 不改旧 entry 的签名输入。p2p/mesh 不携带这组三字段。无完整七元组的 carrier MUST 拒绝，不能查询不相关状态补齐、使用空值或保留另一种完整 binding 形状。issued_at 没有签名或消费者，删除；签名七元组与域分隔 bytes 保持不变。
-- **`participant_binding` 是 token issuer 对 `(realm_id, call_id, focus_id, actor_id, device_id, participant_id, expires_at)` 的签名承诺**。客户端 MUST 先验证该 binding，再把它写入 / 对照 `call_roster` 已确认活跃集合（见 [`call-state.md` §4](./call-state.md)）。backend 只看到 `participant_id` 与 `backend_token`，不应获得长期 actor 身份。
+- **唯一载体与重建**：`participant_binding` 恰为 `{expires_at, issuer_kid, subject_binding_digest, sig}`。token outcome 的顶层 actor_id/device_id 保留 exact request 的完整认证主体；新增 closed roster_identity 携带匿名 actor_id/device alias。public participant_binding 的匿名坐标使用 roster_identity.actor_id/device_id，另由私有 subject_binding 连接认证主体与匿名元组，见 §3.2。durable roster entry 保存 actor_id/device_id/participant_id/focus_id 与该 binding，realm_id 和 call_id 从 enclosing Call 身份取得。写入时 focus_id 必须等于已接受的 selected focus；以后轮换 focus 不改旧 entry 的签名输入。p2p/mesh 不携带这组 binding 字段。无完整十字段的 carrier MUST 拒绝，不能查询不相关状态补齐、使用空值或保留另一种完整 binding 形状。issued_at 没有签名或消费者，删除；签名十字段与域分隔 bytes 以本节定义为准。
+- **`participant_binding` 是 token issuer 对 `(realm_id, call_id, focus_id, actor_id, device_id, participant_id, expires_at, media, issuer_kid, subject_binding_digest)` 的签名承诺**。客户端 MUST 先验证该 binding，再把它写入 / 对照 `call_roster` 已确认活跃集合（见 [`call-state.md` §4](./call-state.md)）。backend 只看到 `participant_id` 与 `backend_token`，不应获得长期 actor 身份。
 - **落账时序**：客户端在获得 token exchange response 后，MUST 先提交包含本端 `participant_id` 与 `participant_binding` 的单项 `ak.call.state.roster_delta` join，并等待该 event 被服务端接受，之后才可把该 identity 视为 durable roster 成员并向用户暴露/订阅对应 SFU media stream。`ak.call.signal` 中的 `invite` / `answer` 只表示实时协商意图，MUST NOT 作为 participant authorization 或 cross-check 真源。
   - **签名输入（normative，跨实现互通契约）**：`participant_binding.sig` MUST 是 issuer 私钥（对应 `issuer_kid`）对下列字节串的 Ed25519 签名：
 
@@ -203,10 +205,11 @@ Content-Type: application/json
     signing_input =
       "ak.media.participant_binding.v1" || 0x00 ||
       canonical_json({ actor_id, call_id, device_id, expires_at,
-                       focus_id, participant_id, realm_id })
+                       focus_id, participant_id, realm_id, media, issuer_kid, subject_binding_digest })
     ```
 
-    第一段是固定 ASCII 域分隔 label（逐字节等于 `scheme` 值），随后单字节 `0x00` 分隔，再接 7 字段对象的 canonical JSON（RFC 8785 JCS：键按字母序、无多余空白，故字段书写顺序无关）。**签名仅覆盖这 7 个权威字段**；binding 对象另带的 `scheme` / `issuer_kid` / `issued_at` 是**未签名元数据**，MUST NOT 进入 `signing_input`。接收方据 wire 上的 7 个权威字段值重建 `signing_input` 再验签——故篡改任一权威字段都会令验签失败。任何 media service（arkret_native / LiveKit / 第三方）MUST 按此构造，任何客户端 / reducer MUST 按此验签；实现 MUST NOT 引入私有 domain 前缀，也 MUST NOT 把元数据字段并入签名输入，否则破坏跨 service 互通。
+    固定 ASCII 域分隔 label 后接单字节 `0x00`，再接上述十字段的 RFC8785 JCS。`issuer_kid` 与 `subject_binding_digest` 均为签名承诺字段。media 为已签发的完整 `{audio,video,screen}` bool 对象；SFU／MCU roster entry MUST 显式携带相同三字段，不得省略、为 null 或扩大范围。接收方从匿名 roster entry、compact binding 与 enclosing Call 重建全部十字段，任何字段替换均拒绝。
+
 - 调用者 device proof / bearer 有效，未 revoked。
 - Actor 在 `realm_id` 拥有 `ak.call.join` capability；`desired_media` 不超过授权（`ak.call.screen_share` 等子 capability 检查）。
 - Realm policy 允许该 `focus_id`（即 focus 出现在当前 `ak.realm.media_service.foci[]` 中）。
@@ -223,7 +226,7 @@ v1 Ed25519 媒体签名点与其 label 常量（逐字节 ASCII）：
 
 | 签名点 | domain label 常量 | signing_input 覆盖 | 定义处 |
 | --- | --- | --- | --- |
-| `participant_binding.sig` | `ak.media.participant_binding.v1` | `label \|\| 0x00 \|\| canonical_json({actor_id, call_id, device_id, expires_at, focus_id, participant_id, realm_id})`（7 元组，见 §3） | §3（已字节锁，本节仅引用，不改） |
+| `participant_binding.sig` | `ak.media.participant_binding.v1` | `label \|\| 0x00 \|\| canonical_json({actor_id, call_id, device_id, expires_at, focus_id, participant_id, realm_id, media, issuer_kid, subject_binding_digest})`（十字段，见 §3） | §3（已字节锁，本节仅引用，不改） |
 | `subject_binding.sig` | `ak.media.subject_binding.v1` | `label \|\| 0x00 \|\| canonical_json(subject_binding仅去除sig)`，包含 issuer_kid 与 exact public-binding digest | §3.2 |
 | ICE config response `signature` | `ak.media.ice_config.v1` | `label \|\| 0x00 \|\| canonical_json(ICE config response 去除 `signature` 字段后的完整权威对象)`；300 秒 bucket 与 expiry 由已签 `issued_at, ttl_seconds` 计算，不进入 wire | [`webrtc-signaling.md` §4.1](./webrtc-signaling.md) |
 | `backend_token.sig`（`backend_kind="arkret_native"`） | `ak.media.backend_token.v1` | `label \|\| 0x00 \|\| canonical_json(backend_token.payload)` | [`bindings/arkret-native.md` §2](./bindings/arkret-native.md) |
@@ -231,7 +234,7 @@ v1 Ed25519 媒体签名点与其 label 常量（逐字节 ASCII）：
 
 约束细则：
 
-- **ICE config response 签名 MUST 用 distinct label `ak.media.ice_config.v1`（normative）**：ICE config 响应签名覆盖的完整权威对象（包括 `realm_id` / `call_id` / `actor_id` / `device_id` / `issued_at` / `ttl_seconds` / `ice_servers[]` 与策略字段）与 participant_binding 的 7 元组**不同用途、部分字段重叠**；若两者复用同一 label，则一个 issuer key 对 ICE config 的签名可能被在 participant_binding 验证路径下重解释（反之亦然）。因此 ICE config 签名 MUST 以 `ak.media.ice_config.v1` 前缀其 signing_input。canonical 定义见 [`webrtc-signaling.md` §4.1](./webrtc-signaling.md)。
+- **ICE config response 签名 MUST 用 distinct label `ak.media.ice_config.v1`（normative）**：ICE config 响应签名覆盖的完整权威对象（包括 `realm_id` / `call_id` / `actor_id` / `device_id` / `issued_at` / `ttl_seconds` / `ice_servers[]` 与策略字段）与 participant_binding 的十字段**不同用途、部分字段重叠**；若两者复用同一 label，则一个 issuer key 对 ICE config 的签名可能被在 participant_binding 验证路径下重解释（反之亦然）。因此 ICE config 签名 MUST 以 `ak.media.ice_config.v1` 前缀其 signing_input。canonical 定义见 [`webrtc-signaling.md` §4.1](./webrtc-signaling.md)。
 - **不在本 label 体系内的媒体凭证**（据实说明各自的域，MUST NOT 强加 Ed25519 label）：
   - `backend_token`（LiveKit 部署）是 **LiveKit JWT**，自带 `alg` / `iss` 等 JOSE header 与 issuer 标识，其签名域由 JWT 标准与 LiveKit API Key/Secret 决定（见 [`bindings/livekit.md` §2](./bindings/livekit.md)），不进入本节 Ed25519 label 体系。
   - TURN REST 凭证不是 Ed25519 签名而是 **HMAC**：`credential = HMAC-SHA256(turn_shared_secret, username)`，其中 `username = "<expiry-unix>:<per-call-pairwise-pseudonym>"`（见 [`webrtc-signaling.md` §4.1](./webrtc-signaling.md)）；pseudonym 本身亦由 HMAC 派生。HMAC 的域由其 `turn_shared_secret` 与 username 输入构造决定，不属于 Ed25519 签名 domain label 范畴。
@@ -243,13 +246,13 @@ v1 Ed25519 媒体签名点与其 label 常量（逐字节 ASCII）：
 
 issuer MUST 用 CSPRNG 生成不可从公开主体元组重算的 pairwise DID（注册 did:key adapter）与 device alias。它 MUST 私有、耐久、原子地保持同一 `(realm_id,call_id,完整 subject_actor_id,真实 subject_device_id)` 在本 call 内的唯一稳定映射；不同 subject 不得共享 alias，进程重启、精确重试与 token 续期不得重置映射。该表只记录身份对应，不记录 Consent 或建立状态；不得进入 Realm current、snapshot、Signal、backend token、push、日志或 telemetry。跨 issuer 恢复只能使用下述经验证的私有 signed receipt 与 accepted roster，不能从公开 roster 猜主体或自建第二授权账本。
 
-public `participant_binding` 保持 closed `{expires_at,issuer_kid,sig}` 与 `ak.media.participant_binding.v1` 域；七元组的 actor_id/device_id MUST 取匿名 roster_identity，其它字段仍取 exact outcome。客户端写入 roster 时只复制该匿名元组、公有 binding 与实际 media range，reducer 从 enclosing Call／entry 重建七元组验签；不得替换为 token 请求主体。该签名不承诺完整 Account。
+public `participant_binding` 使用 closed `{expires_at,issuer_kid,subject_binding_digest,sig}` 与 `ak.media.participant_binding.v1` 域；十字段中的 actor_id/device_id MUST 取匿名 roster_identity，其它字段仍取 exact outcome。客户端写入 roster 时只复制该匿名元组、公有 binding 与实际 media range，reducer 从 enclosing Call／entry 重建十字段验签；不得替换为 token 请求主体。该签名不承诺完整 Account。
 
-token outcome MUST 另含 closed `subject_binding`，唯一形状见 `service-operation-dtos.schema.json#/$defs/CallMediaSubjectBinding`。它绑定 realm_id、call_id、完整 subject_actor_id、真实 subject_device_id、roster_identity、focus_id、participant_id、已签发 media、participant_binding_digest 与 issuer_kid；digest 为完整 compact public binding（包含 sig）的 RFC8785 JCS SHA-256。`sig` 为 issuer 对 `UTF8("ak.media.subject_binding.v1") || 0x00 || RFC8785_JCS(subject_binding仅去除sig)` 的 Ed25519 签名（base64url，无 padding）。issuer_kid 本身也进入签名。客户端 MUST 在同一个已锚定 media-service key 上验证 public binding 和 subject binding，逐字验证全部主体、别名、Call／focus／participant、digest 与实际请求媒体，再私有保存 receipt。只把匿名 roster_identity 和 public binding 写入 durable roster；subject_binding MUST NOT 进入 Event 或任何上述公共面。
+token outcome MUST 另含 closed `subject_binding`，唯一形状见 `service-operation-dtos.schema.json#/$defs/CallMediaSubjectBinding`。它绑定 realm_id、call_id、完整 subject_actor_id、真实 subject_device_id、roster_identity、focus_id、participant_id、已签发 media、expires_at、私有 nonce 与 issuer_kid；expires_at MUST 等于 public binding 的 expires_at。`sig` 为 issuer 对 `UTF8("ak.media.subject_binding.v1") || 0x00 || RFC8785_JCS(subject_binding仅去除sig)` 的 Ed25519 签名（base64url，无 padding）。issuer_kid 本身也进入签名。客户端 MUST 在同一个已锚定 media-service key 上验证 public binding 和 subject binding，逐字验证全部主体、别名、Call／focus／participant、expiry 与实际请求媒体，再私有保存 receipt。只把匿名 roster_identity 和 public binding 写入 durable roster；subject_binding MUST NOT 进入 Event 或任何上述公共面。
 
-`join_context.kind=refresh` MUST 携带该私有 subject_binding 与 participant_id。consumer MUST 验其签名及完整认证 Account／device，绑定当前 exact Call/focus 与 alias，然后在一个稳定 accepted head 下读取活跃 roster：alias、participant_id、focus_id 与 compact binding digest 全部一致才证明该 leg 已建立。请求 media 必须同时是 receipt 的已签发范围和 accepted roster 的范围子集；同 principal 的另一 Station、另一 device、holder、call、focus、alias、participant 或改写 media／digest 都不能复用 receipt。签名有效本身不是 refresh 授权；未 accepted、已 leave／kick／ban、终态 Call、当前 membership／device／capability 不满足均拒绝。Consent 撤销不自动终止这一已建立 leg，也不允许声明 refresh 绕过首次邀请。
+`join_context.kind=refresh` MUST 携带该私有 subject_binding 与 participant_id。consumer MUST 验其签名及完整认证 Account／device，绑定当前 exact Call/focus 与 alias，然后在一个稳定 accepted head 下读取活跃 roster：alias、participant_id、focus_id 与 public binding 的 subject_binding_digest 等于完整 signed receipt 的 SHA256 JCS digest才证明该 leg 已建立。请求 media 必须同时是 receipt 的已签发范围和 accepted roster 的范围子集；同 principal 的另一 Station、另一 device、holder、call、focus、alias、participant 或改写 media／expiry 都不能复用 receipt。签名有效本身不是 refresh 授权；未 accepted、已 leave／kick／ban、终态 Call、当前 membership／device／capability 不满足均拒绝。Consent 撤销不自动终止这一已建立 leg，也不允许声明 refresh 绕过首次邀请。
 
-receipt 是身份映射证明，不新增有效期或授权 TTL。public binding 的短 TTL 约束其首次落账；当且仅当该 exact binding 已在未过期时 accepted，refresh 可在它过期后验证该历史映射。服务／key 轮换不能把未落账旧 binding 接受为新 roster；历史验签必须锚定该 accepted Commit 时受权的 exact issuer key，不可用当前另一个 key 重解释旧签名。issuer 当前仍须满足现行媒体服务合同，并对原 alias／participant 签发新的 public binding 和 private receipt；客户端提交 accepted roster 更新后再保存新的对应 receipt。材料不可用时拒绝本次并可恢复重试，不退化为 voluntary／invitation 或暴露真实主体。
+issuer MUST 先签完整 private receipt，再以其完整 signed carrier 的 SHA256 JCS digest 填入 public subject_binding_digest，最后签 public binding；没有循环引用。nonce MUST 为每次签发独立生成的至少 128 bit CSPRNG，仅在私有回执内保留；signature 与 digest 均覆盖 nonce，防止旧签名 key 泄露后用候选 Account／device 枚举重算公开摘要。该公开 digest 不携带主体坐标，且 accepted public signature 冻结唯一历史映射；被轮换的旧 key 另签的映射不能复用此 digest。receipt 是身份映射证明，expires_at 与 public 首次落账 TTL 相同，不新增授权 TTL。public binding 的短 TTL 约束其首次落账；当且仅当该 exact binding 已在未过期时 accepted，refresh 可在它过期后验证该历史映射。服务／key 轮换不能把未落账旧 binding 接受为新 roster；历史验签必须锚定该 accepted Commit 时受权的 exact issuer key，不可用当前另一个 key 重解释旧签名。issuer 当前仍须满足现行媒体服务合同，并对原 alias／participant 签发新的 public binding 和 private receipt；客户端提交 accepted roster 更新后再保存新的对应 receipt。材料不可用时拒绝本次并可恢复重试，不退化为 voluntary／invitation 或暴露真实主体。
 
 ## 4. SFU Service
 
@@ -297,7 +300,7 @@ backend "X 加入会议" 通知到达客户端时，客户端 MUST：
 
 1. 从 backend 通知中提取 `participant_id`。
 2. 在当前 `call_roster` 已确认活跃集合 中查找同一 `participant_id`。
-3. 验证该 participant entry 内的 `participant_binding` 签名（[§3](#3-token-exchange-normative)），确认它覆盖与 §3 签发侧完全相同的权威元组 `(realm_id, call_id, focus_id, actor_id, device_id, participant_id, expires_at)`（此处使用该 roster entry 冻结的 `focus_id`，不得以后来变更的 session_focus 替代；签名输入字段集合与名称以 §3 为准，不得省略 `expires_at`）。
+3. 验证该 participant entry 内的 `participant_binding` 签名（[§3](#3-token-exchange-normative)），确认它覆盖与 §3 签发侧完全相同的权威元组 `(realm_id, call_id, focus_id, actor_id, device_id, participant_id, expires_at, media, issuer_kid, subject_binding_digest)`（此处使用该 roster entry 冻结的 `focus_id`，不得以后来变更的 session_focus 替代；签名输入字段集合与名称以 §3 为准，不得省略 `expires_at`）。
 4. 不匹配或签名无效 → 拒绝为该 participant 建立媒体流（不收音、不订阅 video），错误码 `participant_id_unrecognised`。
 
 这道闸门防止 backend 单方面 "塞入" 未经 Realm 授权的参与者——backend 运营方误配置、被入侵或恶意 inject 都无法绕过 Arkret-side `call_roster` 真源。

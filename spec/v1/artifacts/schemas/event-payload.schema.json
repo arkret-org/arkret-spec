@@ -1440,7 +1440,8 @@
       "dependentRequired": {
         "participant_binding": [
           "participant_id",
-          "focus_id"
+          "focus_id",
+          "media"
         ],
         "participant_id": [
           "participant_binding",
@@ -1450,6 +1451,19 @@
           "participant_binding",
           "participant_id"
         ]
+      },
+      "dependentSchemas": {
+        "participant_binding": {
+          "properties": {
+            "media": {
+              "required": [
+                "audio",
+                "video",
+                "screen"
+              ]
+            }
+          }
+        }
       }
     },
     "call_recording_retention": {
@@ -6319,10 +6333,11 @@
     },
     "participant_binding": {
       "type": "object",
-      "description": "Token issuer's signed commitment over (realm_id, call_id, focus_id, actor_id, device_id, participant_id, expires_at) for a media participant. See crypto-media/media-service-binding.md §3 and crypto-media/call-state.md §4.1. v1 uses the single scheme ak.media.participant_binding.v1.",
+      "description": "Signed ten-field anonymous participant commitment, including the issued media range, issuer_kid and SHA256 JCS of the complete signed private subject receipt. The receipt itself is never public.",
       "required": [
         "expires_at",
         "issuer_kid",
+        "subject_binding_digest",
         "sig"
       ],
       "properties": {
@@ -6333,6 +6348,9 @@
           "type": "string",
           "description": "DID URL (with fragment) of the token issuer service signing key. MUST resolve to a service DID present in the current-epoch ak.realm.media_service.service_id.",
           "pattern": "^did:[a-z0-9]+:[^\\s?]+#[^\\s#?]+$"
+        },
+        "subject_binding_digest": {
+          "$ref": "./event-envelope.schema.json#/$defs/digest"
         },
         "sig": {
           "$ref": "#/$defs/non_empty_string"

@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-15.1",
+  "version": "2026-10-15.2",
   "source_of_truth": true,
-  "generated_at": "2026-10-15T05:45:52+08:00",
+  "generated_at": "2026-10-15T05:54:30+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-10-14.2",
@@ -1996,11 +1996,16 @@
               "field": "payload.moderation_delta"
             },
             "result_projection": {
-              "kind": "set",
+              "kind": "keyed_set_add",
+              "tag": {
+                "dot": true
+              },
+              "source_commit": true,
               "value": {
                 "field": "payload.moderation_delta"
               }
-            }
+            },
+            "notes": "crypto-media/call-state.md section 4.1: retain every original delta and its covering accepted Commit, use canonical dot ordering for the assertion set and Commit stream_position for the read-side effective-set fold; leave/restore guards the whole-axis revision. source_commit is immutable accepting-cut provenance, never supplied by the producer."
           },
           {
             "result_family": "call_roster",
@@ -2015,11 +2020,16 @@
               "field": "payload.roster_delta"
             },
             "result_projection": {
-              "kind": "set",
+              "kind": "keyed_set_add",
+              "tag": {
+                "dot": true
+              },
+              "source_commit": true,
               "value": {
                 "field": "payload.roster_delta"
               }
-            }
+            },
+            "notes": "crypto-media/call-state.md section 4.1: retain every original delta and its covering accepted Commit, use canonical dot ordering for the assertion set and Commit stream_position for the read-side effective-set fold; leave/restore guards the whole-axis revision. source_commit is immutable accepting-cut provenance, never supplied by the producer."
           },
           {
             "result_family": "call_mute_override",
@@ -8930,8 +8940,8 @@
         }
       }
     },
-    "version": "2026-10-15.1",
-    "generated_at": "2026-10-15T05:45:52+08:00",
+    "version": "2026-10-15.2",
+    "generated_at": "2026-10-15T05:54:30+08:00",
     "bootstrap_event_kinds": [
       "ak.device.authorize",
       "ak.device.reanchor",
