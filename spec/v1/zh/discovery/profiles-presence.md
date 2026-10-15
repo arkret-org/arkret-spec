@@ -281,8 +281,8 @@ Station sync surface 不得解密、聚合或投影 presence 内容。
 projection。Signal 使用 scope group key，因此发送方只能向整个 signed scope 加密：
 
 - `public` 表示目标 scope 的全部 active members；
-- `contacts_only` 仅当发送方已验证该 scope 的全部 active members 都属于 accepted-contact
-  fact log 时才可发送；否则必须对该 scope 抑制 presence，不能把联系人集合泄露给服务端做筛选；
+- `contacts_only` 仅当发送方已验证该 scope 除 holder 本人以外的全部 active members 都属于当前 accepted-contact
+  fact log，且 holder→peer 方向仍授予 `presence` scope 时才可发送；否则必须对该 scope 抑制 presence，不能把联系人集合泄露给服务端做筛选；
 - `consent_only` 仅当发送方已验证整个 signed scope 的完整 active membership，且除 holder 本人以外的每个完整 ActorId 都满足 holder PCR 当前有效 `presence` 或 `any` Consent 时才可发送。必须在每次实际加密／发送前读取 nonce-bound、完整、未回退的 current；不得复用已知撤销、旧任期、过期或只覆盖部分 peer 的结果。任一 peer 不满足或材料不可用，必须抑制整个 scope 的 presence；不得拆成服务端 per-peer 明文过滤，也不得发送后要求未授权接收端自行隐藏。
 - `nobody` 时客户端不得发送 presence。
 
