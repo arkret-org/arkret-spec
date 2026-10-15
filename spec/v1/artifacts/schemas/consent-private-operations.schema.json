@@ -1,0 +1,602 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/consent-private-operations.schema.json",
+  "title": "Arkret Consent private authority proxy",
+  "description": "Closed holder-hosting-Station proxy to the current PCR authority. Never a generic RPC, arbitrary account-data write or cached permission. Every command preserves its original authorization and atomically executes its private effects at the PCR authority.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/proxy_request"
+    },
+    {
+      "$ref": "#/$defs/proxy_outcome"
+    }
+  ],
+  "$defs": {
+    "holder_session_context": {
+      "type": "object",
+      "required": [
+        "kind",
+        "actor_id",
+        "device_id"
+      ],
+      "properties": {
+        "kind": {
+          "const": "holder_session"
+        },
+        "actor_id": {
+          "allOf": [
+            {
+              "$ref": "./common-ids.schema.json#/$defs/actor_id"
+            },
+            {
+              "properties": {
+                "kind": {
+                  "const": "account"
+                }
+              },
+              "required": [
+                "kind"
+              ]
+            }
+          ]
+        },
+        "device_id": {
+          "$ref": "./common-ids.schema.json#/$defs/device_id"
+        }
+      },
+      "additionalProperties": false
+    },
+    "station_context": {
+      "type": "object",
+      "required": [
+        "kind",
+        "actor_id"
+      ],
+      "properties": {
+        "kind": {
+          "const": "station"
+        },
+        "actor_id": {
+          "allOf": [
+            {
+              "$ref": "./common-ids.schema.json#/$defs/actor_id"
+            },
+            {
+              "properties": {
+                "kind": {
+                  "const": "service"
+                }
+              },
+              "required": [
+                "kind"
+              ]
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "command": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/list_command"
+        },
+        {
+          "$ref": "#/$defs/version_command"
+        },
+        {
+          "$ref": "#/$defs/effects_command"
+        },
+        {
+          "$ref": "#/$defs/invite_policy_command"
+        },
+        {
+          "$ref": "#/$defs/invite_delivery_command"
+        },
+        {
+          "$ref": "#/$defs/request_command"
+        }
+      ]
+    },
+    "command_outcome": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/list_outcome"
+        },
+        {
+          "$ref": "#/$defs/version_outcome"
+        },
+        {
+          "$ref": "#/$defs/effects_outcome"
+        },
+        {
+          "$ref": "#/$defs/invite_policy_outcome"
+        },
+        {
+          "$ref": "#/$defs/invite_delivery_outcome"
+        },
+        {
+          "$ref": "#/$defs/request_outcome"
+        }
+      ]
+    },
+    "list_command": {
+      "type": "object",
+      "required": [
+        "kind",
+        "body"
+      ],
+      "properties": {
+        "kind": {
+          "const": "list"
+        },
+        "body": {
+          "type": "object",
+          "required": [],
+          "properties": {},
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "version_command": {
+      "type": "object",
+      "required": [
+        "kind",
+        "body"
+      ],
+      "properties": {
+        "kind": {
+          "const": "version"
+        },
+        "body": {
+          "type": "object",
+          "required": [
+            "consent_id",
+            "commit_id"
+          ],
+          "properties": {
+            "consent_id": {
+              "$ref": "./consent-operations.schema.json#/$defs/consent_view/properties/consent_id"
+            },
+            "commit_id": {
+              "$ref": "./common-ids.schema.json#/$defs/realm_commit_id"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "effects_command": {
+      "type": "object",
+      "required": [
+        "kind",
+        "body"
+      ],
+      "properties": {
+        "kind": {
+          "const": "effects"
+        },
+        "body": {
+          "type": "object",
+          "required": [],
+          "properties": {},
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "invite_policy_command": {
+      "type": "object",
+      "required": [
+        "kind",
+        "body"
+      ],
+      "properties": {
+        "kind": {
+          "const": "invite_policy"
+        },
+        "body": {
+          "$ref": "./invite-receive-policy.schema.json"
+        }
+      },
+      "additionalProperties": false
+    },
+    "invite_delivery_command": {
+      "type": "object",
+      "required": [
+        "kind",
+        "body"
+      ],
+      "properties": {
+        "kind": {
+          "const": "invite_delivery"
+        },
+        "body": {
+          "type": "object",
+          "required": [
+            "notification_source_service_id",
+            "delivery"
+          ],
+          "properties": {
+            "notification_source_service_id": {
+              "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+            },
+            "delivery": {
+              "$ref": "./invite-delivery-request.schema.json"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "request_command": {
+      "type": "object",
+      "required": [
+        "kind",
+        "body"
+      ],
+      "properties": {
+        "kind": {
+          "const": "request"
+        },
+        "body": {
+          "type": "object",
+          "required": [
+            "requester_actor_id",
+            "request"
+          ],
+          "properties": {
+            "requester_actor_id": {
+              "$ref": "./common-ids.schema.json#/$defs/actor_id"
+            },
+            "request": {
+              "$ref": "./consent-operations.schema.json#/$defs/consent_request_request_body"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "list_outcome": {
+      "type": "object",
+      "required": [
+        "kind",
+        "body"
+      ],
+      "properties": {
+        "kind": {
+          "const": "list"
+        },
+        "body": {
+          "$ref": "./consent-operations.schema.json#/$defs/consent_list"
+        }
+      },
+      "additionalProperties": false
+    },
+    "version_outcome": {
+      "type": "object",
+      "required": [
+        "kind",
+        "body"
+      ],
+      "properties": {
+        "kind": {
+          "const": "version"
+        },
+        "body": {
+          "$ref": "./consent-operations.schema.json#/$defs/consent_view"
+        }
+      },
+      "additionalProperties": false
+    },
+    "effects_outcome": {
+      "type": "object",
+      "required": [
+        "kind",
+        "body"
+      ],
+      "properties": {
+        "kind": {
+          "const": "effects"
+        },
+        "body": {
+          "type": "object",
+          "required": [
+            "holder_quarantine",
+            "invite_delivery",
+            "invite_receive_policy"
+          ],
+          "properties": {
+            "holder_quarantine": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "required": [
+                    "revision",
+                    "content"
+                  ],
+                  "properties": {
+                    "revision": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 18446744073709551615
+                    },
+                    "content": {
+                      "$ref": "./holder-quarantine.schema.json"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "invite_delivery": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "required": [
+                    "revision",
+                    "content"
+                  ],
+                  "properties": {
+                    "revision": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 18446744073709551615
+                    },
+                    "content": {
+                      "$ref": "./invite-delivery.schema.json"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "invite_receive_policy": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "required": [
+                    "revision",
+                    "content"
+                  ],
+                  "properties": {
+                    "revision": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 18446744073709551615
+                    },
+                    "content": {
+                      "$ref": "./invite-receive-policy.schema.json"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "invite_policy_outcome": {
+      "type": "object",
+      "required": [
+        "kind",
+        "body"
+      ],
+      "properties": {
+        "kind": {
+          "const": "invite_policy"
+        },
+        "body": {
+          "type": "object",
+          "required": [
+            "revision",
+            "content"
+          ],
+          "properties": {
+            "revision": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 18446744073709551615
+            },
+            "content": {
+              "$ref": "./invite-receive-policy.schema.json"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "invite_delivery_outcome": {
+      "type": "object",
+      "required": [
+        "kind",
+        "body"
+      ],
+      "properties": {
+        "kind": {
+          "const": "invite_delivery"
+        },
+        "body": {
+          "$ref": "./invite-delivery-request.schema.json#/$defs/invite_delivery_outcome"
+        }
+      },
+      "additionalProperties": false
+    },
+    "request_outcome": {
+      "type": "object",
+      "required": [
+        "kind",
+        "body"
+      ],
+      "properties": {
+        "kind": {
+          "const": "request"
+        },
+        "body": {
+          "$ref": "./consent-operations.schema.json#/$defs/consent_request_outcome"
+        }
+      },
+      "additionalProperties": false
+    },
+    "proxy_request": {
+      "type": "object",
+      "required": [
+        "holder_account_id",
+        "realm_id",
+        "governance_generation",
+        "nonce",
+        "expires_at",
+        "context",
+        "command"
+      ],
+      "properties": {
+        "holder_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "governance_generation": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        },
+        "nonce": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{22,64}$"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "context": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/holder_session_context"
+            },
+            {
+              "$ref": "#/$defs/station_context"
+            }
+          ]
+        },
+        "command": {
+          "$ref": "#/$defs/command"
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "command": {
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "list",
+                      "version",
+                      "effects",
+                      "invite_policy"
+                    ]
+                  }
+                },
+                "required": [
+                  "kind"
+                ]
+              }
+            },
+            "required": [
+              "command"
+            ]
+          },
+          "then": {
+            "properties": {
+              "context": {
+                "properties": {
+                  "kind": {
+                    "const": "holder_session"
+                  }
+                },
+                "required": [
+                  "kind"
+                ]
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "context": {
+                "properties": {
+                  "kind": {
+                    "const": "station"
+                  }
+                },
+                "required": [
+                  "kind"
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "proxy_outcome": {
+      "type": "object",
+      "required": [
+        "request_digest",
+        "realm_id",
+        "governance_generation",
+        "effective_stream_head",
+        "evaluated_at",
+        "expires_at",
+        "outcome"
+      ],
+      "properties": {
+        "request_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "governance_generation": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        },
+        "effective_stream_head": {
+          "$ref": "./realm-commit.schema.json#/$defs/stream_head"
+        },
+        "evaluated_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "outcome": {
+          "$ref": "#/$defs/command_outcome"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "x-arkret-pcr-outward-event-kinds": [
+    "ak.consent.grant",
+    "ak.consent.revoke"
+  ]
+}

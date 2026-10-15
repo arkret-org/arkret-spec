@@ -156,6 +156,31 @@ peer签名场景只引用 `ak.http_signature.scenario.consent_current_read.v1`�
 - `destination-service-endpoint-digest`（条件项：经 shared ingress 抵达 destination 时必需）
 <!-- END ak-http-signature-covered-set -->
 
+### 6.3.2 交接后的私有接受与 hosting 代理（normative）
+
+PCR planned handoff 后，holder 的完整 AccountId 与 hosting Station 不变，Grant／Revoke 及相关私有接受事务由当前 PCR authority 负责。hosting Station MUST 从 inception PCR 与连续 handoff chain 独立确定当前 authority；不能用 AccountId.station_id、接收结果自报的 key 或调用方给出的地址代替。
+
+Grant／Revoke MUST 继续携原 `EventAdmissionSubmission` 经既有 `ak.peer.events.command.submit.v1` 的 `authority_forward` 接纳。该 PCR native 分支只允许 exact holder hosting Station 转发，目标必须是已验证的 holder inception PCR／当前治理任期，producer 必须仍为该 PCR 当前 authority-root controller；当前方在同一 PCR 锁下重验原 device proof、当前设备状态、root ref 与 Consent CAS，并同事务更新 quarantine。它不变成普通协作 Human writer，不创建 `producer_signer_fact_digest`，不复制其它 PCR 历史，也不以 hosting 侧缓存证明当前授权。转发原件、已接受原件的精确重试和原结果必须保留；不能在 hosting Station 重新接纳或代签。
+
+其它私有服务接受正式使用 `ak.peer.consent.command.proxy.v1`（`POST /_arkret/peer/consent/proxy`），closed DTO 见 `consent-private-operations.schema.json`。这不是任意 RPC 或 AccountData PUT；命令集合只包含下表六项。所有请求绑定完整 holder、inception PCR、当前治理 generation、至少128 bit CSPRNG nonce、最多30秒的 outstanding `expires_at`、认证上下文与完整命令。只允许 exact holder hosting Station 作为 RFC9421 Source，Destination 必须是独立验证的当前 PCR authority。沿用 `ak.http_signature.scenario.service_to_service.v1`，不另抄覆盖集，不转发用户 bearer／DPoP／session credential。
+
+| command.kind | context | 接受语义与结果 |
+| --- | --- | --- |
+| `list` | `holder_session` | 同 cut 读取 holder 的 `ConsentList`；只用于展示／定位稳定 ID，不作为最终准入。 |
+| `version` | `holder_session` | 按 exact `consent_id,commit_id` 返回原 accepted Grant／Revoke 的 `ConsentView`，供 Event 精确重试；不得把原结果解释成当前许可。 |
+| `effects` | `holder_session` | 同 cut 读取 holder quarantine、invite delivery 与 receive policy 的完整 revision/content。required nullable cell 的 null 只证明该 cut 从未写入／当前不存在；缺项或来源未知不能当空值。 |
+| `invite_policy` | `holder_session` | 复用原 closed receive policy，完整 account 必须等于 holder；在同一 PCR 私有接受锁下耐久替换并返回 revision/content。 |
+| `invite_delivery` | `station` | 保留原完整 `InviteDeliveryRequest` 及原认证 notification source；重验 Event／Commit／原 producer 证据和 recipient／introduction 关系，沿同一个 receive-policy、quota、去重、Consent current 与最终 private CAS 接受路径执行。对原 requester 仍只给原 opaque 结果。 |
+| `request` | `station` | 保留 hosting Station 已认证的完整 requester ActorId 与原 closed Consent request；requester 必须为该 hosting Station 的真实 Account，目标必须为 exact holder。原 quota／live-entry 去重和 holder-private queue 在同一接受事务执行，结果仍恒为 accepted_for_processing。 |
+
+`holder_session` 的完整 actor 必须等于 exact holder Account；device 必须来自 hosting 侧真实认证会话，并由 PCR authority 在同一接受锁下验证仍为当前 active endpoint。`station` 的 actor 必须是认证 Source 的完整 Service actor，且只准使用表中两项服务命令；不得借它读取、写 policy 或声称 holder root 控制权。两个分支都不能把 caller 的声明当作授权。当前方还须验证 holder 的 inception PCR 绑定与实际本地治理权，冻结中、旧任期或导入未完成均不可用、零写入。
+
+proxy outcome 绑定完整 request digest、PCR、generation、实际 effective Realm stream head、evaluated_at、expires_at 及同名 outcome 分支，窗口不得超出原请求或 evaluated_at 后30秒。hosting Station 必须在认证的当前 authority transport 上核全部绑定、会话／device fence 与已知 head／private-cell revision 高水位，再经原 self surface 交付。缓存的 list、version、effects 或旧 proxy outcome 永不授权新的 delivery CAS。旧任期、已知新撤权、旧 head／cell revision、过期或不完整材料都刷新／拒绝本次；不能回退或换本地 writer。
+
+proxy 的写命令以 `(holder,governance_generation,nonce)` 与完整 request digest 保留原窗口内的耐久精确重试 fence；相同 key 不同 bytes 拒绝，相同请求不再执行私有写入、不延长窗口。原结果回放仍重验当前 disclosure 与设备权限。读取命令重新取得当前 cut，不冻结可反复使用的授权结果。所有这些 fence、policy revision、source quota、去重、quarantine 与 delivery 状态必须随 PCR 私有冻结状态一起完整迁入；新方未证明其完整性时不能签 handoff acceptance。
+
+hosting 侧 AccountData／device 更新只展示已验证 authority 接受的内容与原 revision，不独立推进该业务 revision，不构成第二个 CAS writer。变更接受后须使用原正式 actor-private 更新路径唤醒 holder；通知丢失时从当前 authority 读取并按已知 head／cell 高水位恢复，不能重新执行业务接受。Consent Revoke、quarantine invalidation 与最终 delivery 接受的线性顺序始终由当前方同一事务决定，两个数据库之间不假定分布式事务。
+
 ## 7. MIMI 映射
 
 MIMI update facade只接受调用方签署的 `EventAdmissionSubmission`，并按 decision 映射到 `ak.consent.grant` 或 `ak.consent.revoke`。facade不得构造 Event。对外投影只暴露最小 `(peer, scope, active)`，不暴露 reason、evidence 或 revision。

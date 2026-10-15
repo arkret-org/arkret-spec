@@ -127,5 +127,9 @@
       },
       "additionalProperties": false
     }
-  }
+  },
+  "x-arkret-pcr-outward-event-kinds": [
+    "ak.realm.create",
+    "ak.realm.governance_station.change"
+  ]
 }

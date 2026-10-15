@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-14.10",
+  "version": "2026-10-14.12",
   "source_of_truth": false,
-  "generated_at": "2026-10-14T05:31:41Z",
+  "generated_at": "2026-10-14T23:44:17.455641+00:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -3126,7 +3126,8 @@
           "final_stream_heads",
           "snapshot",
           "authority_bundle",
-          "historical_signer_facts"
+          "historical_signer_facts",
+          "pcr_private_state"
         ],
         "closed": true
       },
@@ -3156,6 +3157,7 @@
           "to_service_id",
           "final_stream_heads_digest",
           "historical_signer_facts_digest",
+          "pcr_private_state_digest",
           "snapshot_ref",
           "change_event_ref",
           "change_commit_id",
@@ -9389,6 +9391,56 @@
         "properties": [
           "audit_commit",
           "current"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.peer.consent.command.proxy.v1",
+      "success_shape_kind": "schema_resource",
+      "request": {
+        "schema_ref": "schemas/consent-private-operations.schema.json#/$defs/proxy_request",
+        "schema_kind": "object",
+        "required": [
+          "holder_account_id",
+          "realm_id",
+          "governance_generation",
+          "nonce",
+          "expires_at",
+          "context",
+          "command"
+        ],
+        "properties": [
+          "holder_account_id",
+          "realm_id",
+          "governance_generation",
+          "nonce",
+          "expires_at",
+          "context",
+          "command"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/consent-private-operations.schema.json#/$defs/proxy_outcome",
+        "schema_kind": "object",
+        "required": [
+          "request_digest",
+          "realm_id",
+          "governance_generation",
+          "effective_stream_head",
+          "evaluated_at",
+          "expires_at",
+          "outcome"
+        ],
+        "properties": [
+          "request_digest",
+          "realm_id",
+          "governance_generation",
+          "effective_stream_head",
+          "evaluated_at",
+          "expires_at",
+          "outcome"
         ],
         "closed": true
       }

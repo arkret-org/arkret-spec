@@ -50,6 +50,11 @@
       "$ref": "./account-operations.schema.json#/$defs/sha256_digest",
       "description": "New handoffs require SHA256(JCS complete sorted {target,producer_signer_fact} inventory); existing_original-only schema absence cannot transfer new digest-bearing history. Both original handoff contexts sign it."
     },
+    "pcr_private_state_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "Required exactly for PCR planned handoff: SHA256 of the complete canonical private handoff manifest, including its undisclosed CSPRNG nonce. Both original signatures cover it; no private archive or manifest enters the public authority bundle."
+    },
     "snapshot_ref": {
       "$ref": "./common-ids.schema.json#/$defs/realm_snapshot_id"
     },

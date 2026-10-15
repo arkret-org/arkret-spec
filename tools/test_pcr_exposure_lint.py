@@ -164,5 +164,87 @@ class PcrExposureLintTest(unittest.TestCase):
         )
 
 
+class PcrPrivateContractTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        from jsonschema import Draft202012Validator
+        from referencing import Registry, Resource
+
+        registry = Registry()
+        for path in (ARTIFACTS / "schemas").glob("*.schema.json"):
+            document = _load(path)
+            registry = registry.with_resource(document["$id"], Resource.from_contents(document))
+        cls.schema = _load(ARTIFACTS / "schemas" / "consent-private-operations.schema.json")
+        cls.authority = _load(ARTIFACTS / "schemas" / "authority-commit-operations.schema.json")
+        cls.validator_type = Draft202012Validator
+        cls.resources = registry
+
+    def validator(self, definition: str):
+        return self.validator_type(
+            {"$ref": self.schema["$id"] + "#/$defs/" + definition},
+            registry=self.resources,
+        )
+
+    def request(self) -> dict:
+        return {
+            "holder_account_id": {"principal_id": "ak:did_core:web:holder.example", "station_id": "ak:did_core:web:host.example"},
+            "realm_id": "ak:realm:" + "A" * 44,
+            "governance_generation": 1,
+            "nonce": "A" * 22,
+            "expires_at": "2026-10-15T00:00:30.000Z",
+            "context": {
+                "kind": "holder_session",
+                "actor_id": {"kind": "account", "account_id": {"principal_id": "ak:did_core:web:holder.example", "station_id": "ak:did_core:web:host.example"}},
+                "device_id": "ak:device:00000000-0000-7000-8000-000000000001",
+            },
+            "command": {"kind": "list", "body": {}},
+        }
+
+    def test_proxy_rejects_generic_commands_extra_fields_and_wrong_context(self) -> None:
+        validator = self.validator("proxy_request")
+        request = self.request()
+        validator.validate(request)
+        mutations = []
+        for kind in ("account_data_write", "event_submit", "unknown"):
+            changed = copy.deepcopy(request)
+            changed["command"]["kind"] = kind
+            mutations.append(changed)
+        changed = copy.deepcopy(request)
+        changed["command"]["body"]["content"] = {}
+        mutations.append(changed)
+        changed = copy.deepcopy(request)
+        changed["context"] = {"kind": "station", "actor_id": {"kind": "service", "service_id": "ak:did_core:web:host.example"}}
+        mutations.append(changed)
+        changed = copy.deepcopy(request)
+        changed["context"]["actor_id"] = {"kind": "service", "service_id": "ak:did_core:web:host.example"}
+        mutations.append(changed)
+        for changed in mutations:
+            self.assertFalse(validator.is_valid(changed), changed)
+
+    def test_effects_requires_all_nullable_cells(self) -> None:
+        validator = self.validator("effects_outcome")
+        outcome = {"kind": "effects", "body": {"holder_quarantine": None, "invite_delivery": None, "invite_receive_policy": None}}
+        validator.validate(outcome)
+        for field in outcome["body"]:
+            changed = copy.deepcopy(outcome)
+            del changed["body"][field]
+            self.assertFalse(validator.is_valid(changed), field)
+        self.assertFalse(validator.is_valid({"kind": "effects", "body": {}}))
+
+    def test_manifest_and_public_digest_are_required_exactly_for_pcr(self) -> None:
+        # Isolate the contextual rule; complete cryptographic handoff acceptance
+        # remains an SDK/server responsibility, never a schema-test assertion.
+        rule = self.authority["$defs"]["handoff_request"]["allOf"][-1]
+        validator = self.validator_type(rule)
+        for purpose in ("principal_control", "agent_control", "applet_managed_control", "collaboration"):
+            request = {"authority_bundle": {"genesis_event": {"payload": {"object": {"purpose": purpose}}}}, "handoff": {}}
+            self.assertEqual(validator.is_valid(request), purpose == "collaboration")
+            request["pcr_private_state"] = {}
+            request["handoff"]["pcr_private_state_digest"] = "sha256:" + "0" * 64
+            self.assertEqual(validator.is_valid(request), purpose != "collaboration")
+            del request["pcr_private_state"]
+            self.assertFalse(validator.is_valid(request))
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -5,7 +5,7 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.consent.cache_invalidation.v1"
   },
-  "version": "2026-10-14.5",
+  "version": "2026-10-14.6",
   "profile": "ak.profile.station.v1",
   "covers_vectors": [
     "ak.vector.consent.cache_invalidation.v1",
@@ -16,7 +16,11 @@
     "schemas/call-invitation-operations.schema.json",
     "schemas/signal-stream-frame.schema.json",
     "schemas/service-operation-dtos.schema.json",
-    "registry/proof-context-registry.json"
+    "registry/proof-context-registry.json",
+    "schemas/consent-private-operations.schema.json",
+    "schemas/realm-authority-handoff.schema.json",
+    "schemas/authority-commit-operations.schema.json",
+    "registry/pcr-exposure-registry.json"
   ],
   "description": "Consent revocation invalidates current admission decisions for registered invite, call, presence and MIMI consumers; any-scope invalidation preserves independent grants, current revisions never roll back, excluded private discovery and PSI stay unavailable, and requester outcomes remain opaque.",
   "security_evidence": [
@@ -256,12 +260,14 @@
     },
     {
       "name": "call_invitation_older_read_retry_and_authority_change",
-      "given": "The signed exact relation and real accepted holder PCR/Call source facts required by webrtc-signaling section 3b",
+      "given": "The signed exact relation and real accepted holder PCR/Call source facts required by webrtc-signaling section 3b; the holder PCR planned handoff uses an actual root-authorized governance change, complete frozen private import, salted private-state manifest and both original handoff signatures, preserving the full holder Account and inception PCR ID.",
       "action": "Known revoke/current high-water survives older exact reads and accepted retries; authority-generation switch forces fresh authoritative material and rejects previous authority verdicts.",
       "decision": "reject",
       "observed": "actual holder product/ring/token release, current cut and requester wire",
       "assertions": [
-        "Known revoke/current high-water survives older exact reads and accepted retries; authority-generation switch forces fresh authoritative material and rejects previous authority verdicts."
+        "Known revoke/current high-water survives older exact reads and accepted retries; authority-generation switch forces fresh authoritative material and rejects previous authority verdicts.",
+        "An absent, incomplete or mismatched private-state import cannot activate the new PCR tenure; no generation update or synthetic Snapshot substitutes for the legal handoff.",
+        "After the legal handoff, original Grant/Revoke retries retain their exact original outcomes, previous-authority verdicts cannot release product/ring/token, and fresh holder-hosting proxy requests recover private reads and authority-local delivery without a second current/CAS writer."
       ]
     },
     {

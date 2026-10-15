@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-14.8",
+  "version": "2026-10-14.9",
   "source_of_truth": true,
-  "generated_at": "2026-10-14T21:50:30Z",
+  "generated_at": "2026-10-14T23:54:02.588067+00:00",
   "description": "Closed inventory of current spec/v1/zh headings that explicitly carry the （normative） marker. Any addition, removal, rename, or move is reviewed as a protocol change and refreshes this source-of-truth inventory.",
   "titles": [
     {
@@ -650,6 +650,11 @@
       "fragment": "81-用户自助擦除入口normative"
     },
     {
+      "page": "identity/consent-model.md",
+      "heading": "6.3.2 交接后的私有接受与 hosting 代理（normative）",
+      "fragment": "632-交接后的私有接受与-hosting-代理normative"
+    },
+    {
       "page": "identity/contact-and-direct-conversation.md",
       "heading": "1.1 陌生人首次接触的 new-source quota（normative）",
       "fragment": "11-陌生人首次接触的-new-source-quotanormative"
@@ -1133,6 +1138,11 @@
       "page": "sync/authority-commit-log.md",
       "heading": "5.3 带审计的 Watch 精确读取（normative）",
       "fragment": "53-带审计的-watch-精确读取normative"
+    },
+    {
+      "page": "sync/authority-commit-log.md",
+      "heading": "8.1 PCR 与 hosting Station 的独立身份（normative）",
+      "fragment": "81-pcr-与-hosting-station-的独立身份normative"
     },
     {
       "page": "sync/client-sync.md",

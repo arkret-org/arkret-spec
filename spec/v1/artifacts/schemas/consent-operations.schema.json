@@ -305,7 +305,11 @@
         }
       },
       "additionalProperties": false,
-      "x-arkret-signature-domain": "ak.consent.current_read.v1"
+      "x-arkret-signature-domain": "ak.consent.current_read.v1",
+      "x-arkret-pcr-outward-event-kinds": [
+        "ak.consent.grant",
+        "ak.consent.revoke"
+      ]
     }
   }
 }

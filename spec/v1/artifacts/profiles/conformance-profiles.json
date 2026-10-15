@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-14.4",
-  "generated_at": "2026-10-14T05:21:58Z",
+  "version": "2026-10-14.5",
+  "generated_at": "2026-10-14T23:44:17.455641+00:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -2261,6 +2261,7 @@
       ],
       "required_event_kinds": [
         "ak.realm.create",
+        "ak.realm.governance_station.change",
         "ak.identity.resolution.update",
         "ak.device.authorize",
         "ak.device.reanchor",
@@ -2313,6 +2314,7 @@
         "allowlist_only": true,
         "allowed_event_kinds": [
           "ak.realm.create",
+          "ak.realm.governance_station.change",
           "ak.identity.resolution.update",
           "ak.device.authorize",
           "ak.device.reanchor",

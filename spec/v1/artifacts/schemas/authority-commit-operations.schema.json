@@ -125,7 +125,7 @@
     },
     "peer_submit_request": {
       "type": "object",
-      "description": "Closed peer ingress with three semantic branches. authority_forward performs first admission for one Event, one MLS Commit or one registered audit_paired_event atomic_submission. Its required/forbidden fresh producer_device_evidence or producer_agent_evidence is decided by the actual producer, reused unchanged in role from the single-Event forward contract and checked for both pair slots; both slots must have the same complete actual producer and proof key. mls_genesis_material is event/MLS Genesis-specific and forbidden on atomic_submission. committed_replication stores authorized ordinary source facts; audit-paired source Events must travel together through registered_atomic_unit. registered_atomic_unit only materializes registered source-committed units and forbids first-admission evidence. Mixed branch members and device/Agent evidence mixing are rejected. Outer canonical_hash/full_body replay and the exact inner-unit replay fence are distinct; refreshing transport-only producer evidence never authorizes a second unit acceptance.",
+      "description": "Closed peer ingress with three semantic branches. authority_forward performs first admission for one Event, one MLS Commit or one registered audit_paired_event atomic_submission. Its required/forbidden fresh producer_device_evidence or producer_agent_evidence is decided by the actual producer, reused unchanged in role from the single-Event forward contract and checked for both pair slots; both slots must have the same complete actual producer and proof key. mls_genesis_material is event/MLS Genesis-specific and forbidden on atomic_submission. committed_replication stores authorized ordinary source facts; audit-paired source Events must travel together through registered_atomic_unit. registered_atomic_unit only materializes registered source-committed units and forbids first-admission evidence. Mixed branch members and device/Agent evidence mixing are rejected. Outer canonical_hash/full_body replay and the exact inner-unit replay fence are distinct; refreshing transport-only producer evidence never authorizes a second unit acceptance. A post-genesis PCR-native Event is decided from verified inception/purpose/current root and its exact registered native accepting unit, never a sender-declared flag. Only its authenticated actual producer hosting Station may forward the exact original to the current PCR governor. The native verifier rechecks the original current device/root proof and private effects under the PCR lock. Separate ordinary-collaboration producer_device_evidence and producer_signer_fact_digest are forbidden for this native branch; their absence never authorizes an ordinary collaboration Event.",
       "required": [
         "branch"
       ],
@@ -466,6 +466,34 @@
             ]
           }
         }
+      ],
+      "x-arkret-pcr-outward-event-kinds": [
+        "ak.agent.key.authorize",
+        "ak.agent.key.revoke",
+        "ak.agent.provision",
+        "ak.consent.grant",
+        "ak.consent.revoke",
+        "ak.contact.accepted",
+        "ak.contact.rejected",
+        "ak.contact.requested",
+        "ak.contact.scope.update",
+        "ak.contact.tombstone",
+        "ak.device.authorize",
+        "ak.device.reanchor",
+        "ak.device.revoke",
+        "ak.direct_conversation.bound",
+        "ak.identity.accountability_grant",
+        "ak.identity.resolution.update",
+        "ak.key_backup.active_series",
+        "ak.mls.commit",
+        "ak.mls.genesis",
+        "ak.policy.set",
+        "ak.profile.create",
+        "ak.profile.update",
+        "ak.realm.governance_station.change",
+        "ak.self.agent.deactivate",
+        "ak.self.agent.pause",
+        "ak.self.agent.resume"
       ]
     },
     "peer_submit_outcome": {
@@ -1932,6 +1960,9 @@
           },
           "description": "Private complete canonical inventory at the frozen authority handoff cut: exact target set equals all imported digest-bearing Full Commit originals, without duplicates, missing or extra entries. Canonical order: JCS UTF-8 stream_ref, numeric stream_position, UTF-8 event_id, UTF-8 commit_id. Authority handoff covers all authorized streams; ordinary peer member floors remain separate. Existing request budget applies: limit_exceeded rejects without partial authority startup. No private PCR bodies. New handoffs require the inventory, including empty array.",
           "uniqueItems": true
+        },
+        "pcr_private_state": {
+          "$ref": "#/$defs/pcr_private_handoff_manifest"
         }
       },
       "additionalProperties": false,
@@ -1961,7 +1992,102 @@
               ]
             }
           }
+        },
+        {
+          "if": {
+            "properties": {
+              "authority_bundle": {
+                "properties": {
+                  "genesis_event": {
+                    "properties": {
+                      "payload": {
+                        "properties": {
+                          "object": {
+                            "properties": {
+                              "purpose": {
+                                "enum": [
+                                  "principal_control",
+                                  "agent_control",
+                                  "applet_managed_control"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "purpose"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "object"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "payload"
+                    ]
+                  }
+                },
+                "required": [
+                  "genesis_event"
+                ]
+              }
+            },
+            "required": [
+              "authority_bundle"
+            ]
+          },
+          "then": {
+            "required": [
+              "pcr_private_state"
+            ],
+            "properties": {
+              "handoff": {
+                "required": [
+                  "pcr_private_state_digest"
+                ]
+              }
+            }
+          },
+          "else": {
+            "not": {
+              "required": [
+                "pcr_private_state"
+              ]
+            },
+            "properties": {
+              "handoff": {
+                "not": {
+                  "required": [
+                    "pcr_private_state_digest"
+                  ]
+                }
+              }
+            }
+          }
         }
+      ],
+      "x-arkret-pcr-outward-event-kinds": [
+        "ak.agent.key.authorize",
+        "ak.agent.key.revoke",
+        "ak.agent.provision",
+        "ak.consent.grant",
+        "ak.consent.revoke",
+        "ak.device.authorize",
+        "ak.device.reanchor",
+        "ak.device.revoke",
+        "ak.direct_conversation.bound",
+        "ak.identity.accountability_grant",
+        "ak.identity.resolution.update",
+        "ak.key_backup.active_series",
+        "ak.mls.commit",
+        "ak.mls.genesis",
+        "ak.policy.set",
+        "ak.profile.create",
+        "ak.profile.update",
+        "ak.realm.create",
+        "ak.self.agent.deactivate",
+        "ak.self.agent.pause",
+        "ak.self.agent.resume"
       ]
     },
     "human_historical_signer_fact": {
@@ -2347,6 +2473,43 @@
       ],
       "items": false,
       "description": "Fixed business/audit order; fresh actual-producer evidence for each original Event at one origin cut. Each Human event_authorization.event_id binds its own slot. Each forward_body_digest binds the entire canonical peer request with atomic_producer_evidence omitted. Empty slot is permitted only for actual Service producer. Same producer/key identity does not replace either Event-specific authorization."
+    },
+    "pcr_private_handoff_manifest": {
+      "type": "object",
+      "required": [
+        "realm_id",
+        "holder_account_id",
+        "governance_generation",
+        "effective_stream_head",
+        "nonce",
+        "state_digest"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "holder_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "governance_generation": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        },
+        "effective_stream_head": {
+          "$ref": "./realm-commit.schema.json#/$defs/stream_head"
+        },
+        "nonce": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{22,64}$"
+        },
+        "state_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Private salted commitment to the complete frozen native-state export, retained only by verified old/new PCR governors; it never replaces actual complete import."
     }
   }
 }

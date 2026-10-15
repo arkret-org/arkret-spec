@@ -271,6 +271,20 @@ Watch 交接 MUST 保留全部已写 selector 的 durable current，包括带 re
 
 新 generation 在每条已有 stream 上的第一个 Commit 必须以前一 generation 导入的该 stream final head 为 predecessor。旧方在 handoff 生效后永久拒绝新写；新方在未完整导入前不得启动。
 
+### 8.1 PCR 与 hosting Station 的独立身份（normative）
+
+PCR 适用同一 planned handoff，不另设选主、generation 修改或缩减迁入分支。完整 AccountId 的 `station_id` 仍标识账号的 hosting Station；当前 PCR `governance_station_id` 由已验证的 genesis→handoff chain 派生。两者可以不同，不能把 hosting Station 当作永不变化的治理权威。交接不更换 inception PCR ID、AccountId、既有 Event／Commit 或 MLS group，不递增 authority-root 委派代次，也不改变原 Grant／Revoke 的效力。
+
+公开 `RealmAuthorityBundle` 对 PCR 只提供既有最小权威证书链：genesis Event／Commit、治理变更 Event／Commit、双签 handoff 与 nonce-bound current assertion。对应 kind 的该项外露必须在 PCR exposure registry 显式登记。它不授予 PCR membership、普通历史 scan、完整 Snapshot 或任何 Consent／设备／恢复内容读取权；私有 frozen stream head 清单与迁入材料仍只交给已验证的交接参与方。未经独立信任的候选地址只是 locator hint。
+
+旧方冻结点必须同时阻止新的控制 Event 与相关 native 私有接受事务；只冻结 Commit 而让 quota、去重或 delivery CAS 继续前进，不构成完整 handoff。完整迁入必须保留所有当前与历史来源、精确重试结果、撤权 tombstone、高水位、未完成私有事务及其业务 fence，不能从成员可读 floor、缺项 Snapshot 或当前设备 key 重建。新方必须对本地导入状态与旧方冻结材料作完整性比较，并在同一激活事务中建立唯一接受位置；任一缺项或未知域都保持不可用，不能签 acceptance。
+
+PCR handoff MUST 携 `pcr_private_state_digest`；非 PCR handoff MUST 不携该成员。私有 handoff request 同时携闭合 `pcr_private_state` manifest：`realm_id,holder_account_id,governance_generation,effective_stream_head,nonce,state_digest`，顺序与 `authority-commit-operations.schema.json` 一致。realm／完整 holder 必须匹配 inception PCR，generation/head 必须等于旧任期冻结截点；nonce 至少128 bit CSPRNG，仅旧／新治理方持有。`state_digest` 是完整冻结 native 私有状态导出 canonical bytes 的 SHA256；公开 `pcr_private_state_digest = SHA256(RFC8785_JCS(pcr_private_state))`。双签沿原 unsigned projection 覆盖该实际成员，context 不变。公开 authority bundle 只携带该加盐承诺，不携 manifest、nonce、私有导出或主体集合。
+
+私有导出与传输仍是既有操作式迁入，不新增公开下载面或普通 peer scan 权。双方必须验证其格式、完整持有者范围及所有 native 域，比较实际耐久导入／重新导出的 canonical 状态与原 state_digest，并同时验证全部 canonical Event／Commit／current／历史签署事实。单独持有相同 manifest、字节文件、Snapshot 或声称导入完成的 flag 均不足以激活。格式或域不受支持时必须在旧方冻结前报告不可迁移；新方发现任何缺项、未知格式、冲突或摘要不等则零激活。导出不得含旧 Station 的全站 signing key；quota 等 holder-private keyed state 必须独立耐久、完整迁移，不能因治理 key 轮换／handoff 换盐而重置同源额度或去重。
+
+Consent current、撤销导致的 holder-private quarantine 更新，以及依赖 Consent 的最终 private delivery CAS 必须归属于同一个 PCR authority 原子接受边界。hosting Station 代理时不得分拆此事务，不得用预检或短期允许回执在自己的独立数据库完成最终写入。其展示／同步副本不得成为第二个授权账本；受权读取、通知、代理命令与最终交付仍须使用正式登记的 exact carrier，并绑定完整 holder Account、当前治理任期及实际请求。未完成这些载体的实现必须在交接前拒绝启动该能力，不能以交接后的永久功能缺失冒称完成。
+
 旧方永久丢失且没有完成 handoff 时，不允许自动选主、管理员自封或从备份恢复同一 Realm 的写权。可验证缓存保持只读；需要继续协作时创建显式 successor Realm，新的 Realm 不继承旧 position 或 MLS group。
 
 ## 9. MLS 边界

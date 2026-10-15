@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-14.11",
+  "version": "2026-10-14.12",
   "source_of_truth": true,
-  "generated_at": "2026-10-14T20:02:22.895953+00:00",
+  "generated_at": "2026-10-14T23:44:17.455641+00:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-10-14.2",
@@ -10912,10 +10912,16 @@
         "status": "active",
         "file": "schemas/watch-audit-operations.schema.json",
         "description": "Side-effecting own-Station audited Watch read broker, frozen result and source audit Commit."
+      },
+      {
+        "schema_id": "ak.schema.consent_private_operations.v1",
+        "file": "schemas/consent-private-operations.schema.json",
+        "status": "active",
+        "description": "Closed six-command private holder-hosting proxy to the PCR authority; no generic transaction or synthetic Event."
       }
     ],
-    "version": "2026-10-14.2",
-    "generated_at": "2026-10-14T12:58:27+08:00",
+    "version": "2026-10-15.1",
+    "generated_at": "2026-10-15T00:03:54.731859+00:00",
     "metadata_authority": "contract_registry_section"
   },
   "id_kind_registry": {
@@ -12032,6 +12038,7 @@
         ],
         "machine_projections": [],
         "operations": [
+          "ak.peer.consent.command.proxy.v1",
           "ak.peer.keys.read.lookup.v1",
           "ak.peer.mls.command.attest_add.v1",
           "ak.peer.mls.read.roster_authority.v1",
@@ -12758,7 +12765,8 @@
           "ak.self.consent.command.revoke.v1",
           "ak.self.consent.command.request.v1",
           "ak.self.consent.read.current.v1",
-          "ak.peer.consent.read.current.v1"
+          "ak.peer.consent.read.current.v1",
+          "ak.peer.consent.command.proxy.v1"
         ],
         "surface_class": "extension"
       },
@@ -14131,7 +14139,7 @@
         "http": "POST /_arkret/peer/events",
         "grpc": "PeerEvents/Submit",
         "mq": "peer.events.command.submit",
-        "notes": "Closed peer ingress with three semantic branches. authority_forward performs first admission for one Event, one MLS Commit or one registered audit_paired_event atomic_submission. The atomic branch requires atomic_producer_evidence[2] in business/audit order; each slot reuses its own existing Device or Agent Event-bound closure, or the closed empty Service branch. Single-Event top-level producer evidence is forbidden on the atomic branch. Both slots must have the same complete actual producer and proof key. mls_genesis_material is event/MLS Genesis-specific and forbidden on atomic_submission. committed_replication stores authorized ordinary source facts; audit-paired source Events must travel together through registered_atomic_unit. registered_atomic_unit only materializes registered source-committed units and forbids first-admission evidence. Mixed branch members and device/Agent evidence mixing are rejected. Outer canonical_hash/full_body replay and the exact inner-unit replay fence are distinct; refreshing transport-only producer evidence never authorizes a second unit acceptance. Every replica unit outcome describes original source acceptance only; it creates no new finality or second fanout.",
+        "notes": "Closed peer ingress with three semantic branches. authority_forward performs first admission for one Event, one MLS Commit or one registered audit_paired_event atomic_submission. The atomic branch requires atomic_producer_evidence[2] in business/audit order; each slot reuses its own existing Device or Agent Event-bound closure, or the closed empty Service branch. Single-Event top-level producer evidence is forbidden on the atomic branch. Both slots must have the same complete actual producer and proof key. mls_genesis_material is event/MLS Genesis-specific and forbidden on atomic_submission. committed_replication stores authorized ordinary source facts; audit-paired source Events must travel together through registered_atomic_unit. registered_atomic_unit only materializes registered source-committed units and forbids first-admission evidence. Mixed branch members and device/Agent evidence mixing are rejected. Outer canonical_hash/full_body replay and the exact inner-unit replay fence are distinct; refreshing transport-only producer evidence never authorizes a second unit acceptance. Every replica unit outcome describes original source acceptance only; it creates no new finality or second fanout. Verified post-genesis PCR-native authority_forward is restricted to the exact actual producer hosting Station and the independently verified current PCR governor; it uses its existing native root/device/placement transaction rather than an ordinary collaboration Human producer evidence/fact branch. No caller flag selects this authority and no PCR history replication or outward read is granted. See identity/consent-model section 6.3.2 and realm-and-space section 2.8.1.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "schema_resource",
         "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
@@ -17023,6 +17031,32 @@
             "contract": "Canonical S2S scenario, fresh actual-producer device/Agent evidence and exact authenticated auditor Account Station are required. No transported user credential."
           }
         }
+      },
+      {
+        "operation_id": "ak.peer.consent.command.proxy.v1",
+        "http": "POST /_arkret/peer/consent/proxy",
+        "grpc": "PeerConsent/Proxy",
+        "mq": "peer.consent.command.proxy",
+        "notes": "Only the exact holder hosting Station proxies the six closed private commands to its independently verified current PCR authority. Holder-session list/version/effects/policy commands require the exact holder Account and a currently active holder device rechecked in the same PCR lock. Station-context invite/request commands preserve the complete authenticated original source and original canonical evidence, use the original opaque result, and never return private values. Current, queue, quota, deduplication and final delivery CAS have one authority-local transaction; a remote verdict never authorizes a hosting-local CAS. Authority generation, nonce/request digest, exact result branch and the 30-second outstanding delivery window are mandatory. See identity/consent-model section 6.3.2. The closed nonce is the request id scoped by exact holder and governance_generation; the complete request digest fences byte-identical writes within the original outstanding window. Reads always reevaluate the current cut and do not replay authority.",
+        "body_class": "non_streaming_json",
+        "max_canonical_body_bytes": 65536,
+        "success_shape_kind": "schema_resource",
+        "request_schema_ref": "schemas/consent-private-operations.schema.json#/$defs/proxy_request",
+        "response_schema_ref": "schemas/consent-private-operations.schema.json#/$defs/proxy_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "read_or_authority_local_private_queue_policy_and_delivery_effects_no_synthetic_event"
+        },
+        "auth_requirements": {
+          "service_signature": {
+            "signature_scenario_id": "ak.http_signature.scenario.service_to_service.v1",
+            "standard": "RFC 9421 HTTP Message Signature",
+            "bearer_only_allowed": false,
+            "contract": "Covered components, signature parameters and the freshness window come from http_signature_contract_registry. This operation MUST NOT restate them."
+          }
+        },
+        "idempotency_mechanism": "request_id",
+        "retry_safe": true
       }
     ],
     "direct_conversation_admission_mappings": {
@@ -17265,8 +17299,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-10-14.10",
-    "generated_at": "2026-10-14T05:31:41Z",
+    "version": "2026-10-15.1",
+    "generated_at": "2026-10-15T00:03:54.731760+00:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.coland_station.v1",
@@ -17970,6 +18004,10 @@
           },
           {
             "operation_id": "ak.peer.committed_event.read.scan.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.peer.consent.command.proxy.v1",
             "binding_kind": "http_json"
           },
           {

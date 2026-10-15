@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-14.2",
+  "version": "2026-10-15.1",
   "source_of_truth": false,
-  "generated_at": "2026-10-14T12:58:27+08:00",
+  "generated_at": "2026-10-15T00:03:54.731859+00:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -1800,6 +1800,12 @@
       "status": "active",
       "file": "schemas/watch-audit-operations.schema.json",
       "description": "Side-effecting own-Station audited Watch read broker, frozen result and source audit Commit."
+    },
+    {
+      "schema_id": "ak.schema.consent_private_operations.v1",
+      "file": "schemas/consent-private-operations.schema.json",
+      "status": "active",
+      "description": "Closed six-command private holder-hosting proxy to the PCR authority; no generic transaction or synthetic Event."
     }
   ],
   "metadata_authority": "contract_registry_section"
