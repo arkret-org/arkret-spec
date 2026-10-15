@@ -66,6 +66,8 @@ Account Authority 是 Station 的账号准入逻辑入口，不是独立 Realm a
 
 服务调用方 MUST 验证 `did_core_id` 对应的 method-native 当前状态、唯一 `ArkretService` entry、`serviceKind` 和 canonical HTTPS endpoint。缓存、邀请和 Directory 行都是 locator。
 
+Station MAY 按 media-service-binding §2.1 兼任媒体 credential issuer；此时验证和 Describe 仍选择真实 station 角色，并继续独立核 Realm 当前 assignment、媒体 profile／backend sub-profile 与已登记 token operation bundle。此职责不新增 service_kind 或独立 Service DID，不允许把 station route 重标为 media_service，也不改变媒体传输拓扑。
+
 Realm authority 还必须验证 genesis 的 generation-0 service、连续 old→new handoff chain、已观察最高 generation 的防回滚约束，以及目标 service 对 caller nonce 的短期 `current_assertion`。只有这一 bundle 验证成功后，endpoint 才可作为 current governance Station。
 
 `current_assertion.signature` 使用 `ak.realm_authority_current_assertion_signature.v1`。其 unsigned projection 是从

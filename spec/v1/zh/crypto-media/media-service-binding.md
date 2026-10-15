@@ -84,6 +84,8 @@ sidebar:
 
 ### 2.1 完整性绑定（normative）
 
+**Station 兼任 issuer（current-v1，normative）**：持有真实 `station` Service DID 的 Station MAY 承担媒体 credential issuer 职责。此时 accepted `payload.value.service_id` MUST 指向该 Station；own-Station binding 的 `route.service_kind` MUST 保留 method-native DID Document 实际声明的 `station`，不得改写为 `media_service`。验证方 MUST 独立验证当前 DID 的唯一该角色 ArkretService entry、完整 method authority／防回退与 canonical HTTPS endpoint，并核该 route 对应的已验证 Station Describe 声明 `ak.profile.media_service_binding.v1`、所选 focus 的 backend sub-profile，以及包含 `ak.self.call.media.exchange.issue_token.v1` HTTP binding 的已登记 Station operation bundle。仅有 Station 身份、Describe profile 或可访问 token URL 均不构成媒体授权；还 MUST 命中目标 Realm 当前 accepted assignment，且所有 credential endpoint origin 与该 route 一致。签署 key MUST 是与该 route 同一已验证当前 DID Document 的 assertion-capable Ed25519 key，所有签名 kid MUST 命中返回的 signing_keys。Station 的此职责不授予媒体明文可见权，也不要求视频流量经过 Station 进程；实际 backend 仍由 focus 描述符选择。独立 `media_service` role 不因本条取得 service_registration_key 资格；其独立身份供给须另行登记，不能由 Station 身份伪装。
+
 `ak.realm.media_service` 的 `service_id`、`ice_config_endpoint` 与 `foci[].token_endpoint` 是媒体 token / TURN credential 签发权与 issuer DID 锚定的**信任根**(见 §3 / §7 与 [`call-state.md` §4.1](./call-state.md))。为保证"谁担保该 `service_id` / endpoint 列表未被篡改",本节固定:
 
 - `ak.realm.media_service` state Event（含 `service_id`、`ice_config_endpoint` 与全部 `foci[].token_endpoint`）MUST 通过普通 Event proof、authority-commit admission 与 accepted RealmCommit state 物化；客户端不得接受未进入当前 accepted policy projection 的本地/OOB endpoint。

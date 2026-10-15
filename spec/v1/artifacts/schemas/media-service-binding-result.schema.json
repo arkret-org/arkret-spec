@@ -61,7 +61,12 @@
         },
         "route": {
           "$ref": "./identity-resolution.schema.json#/$defs/service_route_projection",
-          "description": "Verified route projection of the anchored media service; service_id equals the accepted typed current result service_id and service_kind is media_service."
+          "description": "Verified route projection of the anchored issuer; service_id equals the accepted typed current result service_id. A Station fulfilling the media issuer role retains service_kind station and must independently satisfy the media binding profile, selected backend sub-profile and registered token HTTP operation bundle. Never relabel its DID endpoint as media_service. An independent media_service role requires its separately registered method-native identity; this result does not grant service-registration eligibility.",
+          "properties": {
+            "service_kind": {
+              "enum": ["station", "media_service"]
+            }
+          }
         },
         "signing_keys": {
           "type": "array",

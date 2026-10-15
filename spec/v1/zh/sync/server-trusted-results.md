@@ -259,6 +259,10 @@ DID 解析证据可以作为 producer/service proof 验证输入，但不代表 
 
 Media 内容完整性由 blob ref 和 producer-signed 引用证明；可见性和接纳位置由 RealmCommit/current result 证明。
 
+`ak.self.media_service_binding.read.resolve.v1` 的请求只携 request_id／realm_id，Account 取自认证 session。Station MUST 在同一已确认 accepted basis 核当前 joined membership 与当前 realm_media_service；无可见性或无 assignment 返回 not_found，材料缺失／无法确认当前 basis 返回 temporarily_unavailable，不得以历史上曾写入代替 current。取得外部身份材料期间若 membership、authority generation 或该 Realm head 改变，MUST 拒绝本次结果或重取完整 cut。
+
+返回的 route 与 signing_keys MUST 满足 media-service-binding §2.1，支持真实 station 角色兼任 issuer；route 保留实际已验证角色，禁止转换角色字符串。Station MUST 核当前 DID authority、唯一角色 endpoint、防回退、Describe profile／所选 backend sub-profile 和 token operation bundle，以及 accepted descriptor 中所有 credential endpoint origin。返回 keys 仅含与该同一当前 DID Document／route 一致的 assertion-capable Ed25519 公钥，不向普通客户端输出 method history／DID Document／Describe 原件。结果 request_id／realm_id 精确对应请求；复用时间最多300秒，且不超 route／Describe 的剩余可信窗口；它不成为媒体授权租约，不替代任何 token、Consent、成员或私有主体绑定检查。完整 canonical 请求和响应各不超过64 KiB。
+
 closed schema 正反例见 `ak.vector.signer_key.human_current_privacy.v1` 与 `current-signer-contact-endpoint-fixture.json`。
 
 ## Foreign Human historical signer delivery (Normative)

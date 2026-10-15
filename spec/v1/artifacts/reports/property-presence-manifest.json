@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9520,
+    "total_properties": 9521,
     "total_schema_documents": 174,
     "by_presence_class": {
       "optional": 2217,
       "optional_defaulted": 48,
-      "required": 6737,
+      "required": 6738,
       "required_nullable": 332,
       "tristate": 186
     },
@@ -8795,6 +8795,7 @@
         "/$defs/media_service_binding_outcome/properties/realm_id": "required",
         "/$defs/media_service_binding_outcome/properties/request_id": "required",
         "/$defs/media_service_binding_outcome/properties/route": "required",
+        "/$defs/media_service_binding_outcome/properties/route/properties/service_kind": "required",
         "/$defs/media_service_binding_outcome/properties/signing_keys": "required",
         "/$defs/media_service_binding_request_body/properties/realm_id": "required",
         "/$defs/media_service_binding_request_body/properties/request_id": "required",

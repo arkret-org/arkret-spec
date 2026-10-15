@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-14.5",
-  "generated_at": "2026-10-14T23:44:17.455641+00:00",
+  "version": "2026-10-15.1",
+  "generated_at": "2026-10-15T00:27:32+00:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -5124,7 +5124,7 @@
     },
     "ak.profile.media_service_binding.v1": {
       "role": "server",
-      "description": "Transport-agnostic media backend binding framework. Requires ak.realm.media_service to declare a multi-focus list with backend type discriminator; defines normative token exchange, session focus selection, participant binding, E2EE key injection via MLS-Exporter label ak.rtc-frame-key/v1, and recording artifact pipeline. Specific backends (livekit / arkret_native) declare an additional sub-profile. See zh/crypto-media/media-service-binding.md §2 / §3 / §5–§8 and zh/crypto-media/call-state.md §4.",
+      "description": "Transport-agnostic media backend binding framework. Requires ak.realm.media_service to declare a multi-focus list with backend type discriminator; defines normative token exchange, session focus selection, participant binding, E2EE key injection via MLS-Exporter label ak.rtc-frame-key/v1, and recording artifact pipeline. Specific backends (livekit / arkret_native) declare an additional sub-profile. See zh/crypto-media/media-service-binding.md §2 / §3 / §5–§8 and zh/crypto-media/call-state.md §4. A Station may fulfill the media credential issuer role under its actual station DID endpoint, without a new service identity or relabeling. The accepted Realm assignment, verified current method state and Describe media binding profile, selected backend sub-profile and registered token HTTP operation bundle must all agree; assertion-capable signing keys come from that same current DID Document. This role does not require media traffic to traverse the Station process.",
       "enforcement_phases": [
         "conformance",
         "startup_claim_guard"

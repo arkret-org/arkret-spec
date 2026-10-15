@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-15.3",
+  "version": "2026-10-15.4",
   "source_of_truth": true,
-  "generated_at": "2026-10-15T00:08:09.147814+00:00",
+  "generated_at": "2026-10-15T00:27:32+00:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-10-14.2",
@@ -16298,7 +16298,7 @@
         "http": "POST /_arkret/self/media-service-bindings/query",
         "grpc": "SelfMediaServiceBinding/Resolve",
         "mq": "self.media_service_binding.query.resolve",
-        "notes": "Own-Station verified route and signing keys for the media service anchored by one joined Realm current accepted realm_media_service typed current result. Membership visibility and the anchored typed current result are evaluated under one confirmed basis with exactly one head per Realm; the caller supplies no service id, DID, base URL or candidate origin. The result resolves service identity, purpose and route only: it releases no media key, no backend token and no plaintext-visibility authorization, and expires_at bounds route and key reuse to at most 300 seconds. Invisible Realm or absent anchor returns not_found; unresolved accepted state returns temporarily_unavailable. Request and complete response canonical JSON are each bounded to 64 KiB.",
+        "notes": "Own-Station verified route and signing keys for the media service anchored by one joined Realm current accepted realm_media_service typed current result. Membership visibility and the anchored typed current result are evaluated under one confirmed basis with exactly one head per Realm; the caller supplies no service id, DID, base URL or candidate origin. The result resolves service identity, purpose and route only: it releases no media key, no backend token and no plaintext-visibility authorization, and expires_at bounds route and key reuse to at most 300 seconds. Invisible Realm or absent anchor returns not_found; unresolved accepted state returns temporarily_unavailable. Request and complete response canonical JSON are each bounded to 64 KiB. A Station may fulfill the media credential issuer role under its actual station DID endpoint, without a new service identity or relabeling. The accepted Realm assignment, verified current method state and Describe media binding profile, selected backend sub-profile and registered token HTTP operation bundle must all agree; assertion-capable signing keys come from that same current DID Document. This role does not require media traffic to traverse the Station process.",
         "body_class": "non_streaming_json",
         "max_canonical_body_bytes": 65536,
         "max_items": 16,
@@ -17300,8 +17300,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-10-15.1",
-    "generated_at": "2026-10-15T00:03:54.731760+00:00",
+    "version": "2026-10-15.2",
+    "generated_at": "2026-10-15T00:27:32+00:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.coland_station.v1",
