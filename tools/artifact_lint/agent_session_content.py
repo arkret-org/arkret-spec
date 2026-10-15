@@ -130,7 +130,8 @@ def decide(case):
 
 def check_agent_session_content(lint: Lint) -> None:
     registry_path = ARTIFACTS / 'registry/owned-agent-authority-registry.json'
-    registry = load_json(lint, registry_path).get('session_content_authority_contract', {})
+    authority = load_json(lint, registry_path)
+    registry = authority.get('session_content_authority_contract', {})
     exact_fields = {
         'vector_id': VECTOR,
         'fixture_ref': 'fixtures/agent-vectors-fixture.json#/session_content_authority_contract',
@@ -151,6 +152,23 @@ def check_agent_session_content(lint: Lint) -> None:
     }
     if registry != exact_fields:
         lint.fail(registry_path, 'Agent session content authority, current supply or rotation contract drift')
+    approval_error = authority.get('session_human_approval_contract', {}).get('error')
+    if approval_error != {'status': 403, 'code': 'claim_required',
+                          'reason_code': 'human_approval_required',
+                          'correlation_member': 'approval_request_id'}:
+        lint.fail(registry_path, 'Agent approval must retain its closed RFC9457 error contract')
+    mapping_path = ARTIFACTS / 'registry/operations-error-mapping.json'
+    operations = {row.get('operation_id'): row for row in load_json(lint, mapping_path).get('operations', [])}
+    issue_codes = operations.get(exact_fields['issuance_operation'], {}).get('operation_specific', [])
+    refresh_codes = operations.get(exact_fields['refresh_operation'], {}).get('operation_specific', [])
+    if 'human_approval_required' not in issue_codes or 'human_approval_required' in refresh_codes:
+        lint.fail(mapping_path, 'Agent approval reason must bind issue, never ordinary refresh')
+    errors_path = ARTIFACTS / 'registry/error-code-registry.json'
+    errors = load_json(lint, errors_path)
+    parent = next((row for row in errors.get('codes', []) if row.get('code') == 'claim_required'), {})
+    reason = next((row for row in errors.get('reason_codes', []) if row.get('code') == 'human_approval_required'), {})
+    if parent.get('http_status') != 403 or parent.get('status') != 'active' or reason.get('status') != 'active':
+        lint.fail(errors_path, 'Agent approval requires active claim_required403 and its registered reason')
     fixture_path = ARTIFACTS / 'fixtures/agent-vectors-fixture.json'
     fixture = load_json(lint, fixture_path).get('session_content_authority_contract', {})
     if fixture.get('vector_id') != VECTOR or fixture.get('registry_ref') != 'registry/owned-agent-authority-registry.json#/session_content_authority_contract':

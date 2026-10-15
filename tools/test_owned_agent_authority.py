@@ -142,6 +142,24 @@ class AgentSessionContentTest(unittest.TestCase):
     def test_committed_source_scope_and_bootstrap_contract(self):
         self.assertEqual(self.run_gate(), [])
 
+    def test_approval_error_binding_cannot_disappear_or_require_refresh(self):
+        for mode in ('missing_issue', 'wrong_refresh', 'inactive_reason', 'wrong_parent_status'):
+            with self.subTest(mode=mode):
+                def mutate(name, doc):
+                    if name == 'operations-error-mapping.json':
+                        issue = next(row for row in doc['operations'] if row['operation_id'] == 'ak.gate.account.command.issue_session_grant.v1')
+                        refresh = next(row for row in doc['operations'] if row['operation_id'] == 'ak.gate.account.command.refresh_session_grant.v1')
+                        if mode == 'missing_issue':
+                            issue['operation_specific'].remove('human_approval_required')
+                        elif mode == 'wrong_refresh':
+                            refresh['operation_specific'].append('human_approval_required')
+                    if name == 'error-code-registry.json':
+                        if mode == 'inactive_reason':
+                            next(row for row in doc['reason_codes'] if row['code'] == 'human_approval_required')['status'] = 'reserved'
+                        elif mode == 'wrong_parent_status':
+                            next(row for row in doc['codes'] if row['code'] == 'claim_required')['http_status'] = 401
+                self.assertTrue(self.run_gate(mutate))
+
     def test_every_security_boundary_has_an_independent_expected_decision(self):
         fixture = session_gate.load_json(session_gate.Lint(), session_gate.ARTIFACTS / 'fixtures/agent-vectors-fixture.json')
         for case in fixture['session_content_authority_contract']['cases']:

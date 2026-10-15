@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-10.1",
-  "generated_at": "2026-10-10T09:25:31+00:00",
+  "version": "2026-10-16.1",
+  "generated_at": "2026-10-16T05:31:29.054442+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -3964,7 +3964,7 @@
         "auth_decision",
         "service_call"
       ],
-      "description": "An agent runtime requested a high-risk session scope that requires out-of-band controller approval. The top-level service error is claim_required; error.details carries this reason_code and an opaque approval_request_id. The runtime MUST NOT receive a CAPTCHA, OTP, or browser challenge. See zh/identity/key-management.md §3.2.",
+      "description": "The sole missing explicit owned-Agent content grant can be supplied by the controller while all other current gates are satisfied. The top-level service error is HTTP403 claim_required; RFC9457 direct extensions carry reason_code=human_approval_required and an opaque approval_request_id. The identifier is correlation only, not a bearer, authority source or private-intent lookup. The controller supplies an accepted capability/delegation Event and the runtime retries with signed accepted Event references. No CAPTCHA, OTP, browser challenge or independent approval permission system is introduced. See zh/authz/owned-agent-authority.md section 2.",
       "status": "active"
     },
     {
