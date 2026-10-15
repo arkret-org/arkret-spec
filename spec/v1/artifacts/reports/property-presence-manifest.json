@@ -15,10 +15,10 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9540,
+    "total_properties": 9541,
     "total_schema_documents": 174,
     "by_presence_class": {
-      "optional": 2217,
+      "optional": 2218,
       "optional_defaulted": 48,
       "required": 6754,
       "required_nullable": 335,
@@ -11205,6 +11205,7 @@
         "/$defs/AgentSessionGrantRequest/properties/agent_scope_request/properties/realm_ids": "optional",
         "/$defs/AgentSessionGrantRequest/properties/agent_scope_request/properties/strand_ids": "optional",
         "/$defs/AgentSessionGrantRequest/properties/agent_scope_request/properties/track_names": "optional",
+        "/$defs/AgentSessionGrantRequest/properties/approval_evidence_refs": "optional",
         "/$defs/AgentSessionGrantRequest/properties/dpop_binding_proof": "required",
         "/$defs/AgentSessionGrantRequest/properties/principal_id": "required",
         "/$defs/AgentSessionGrantRequest/properties/proof": "required",

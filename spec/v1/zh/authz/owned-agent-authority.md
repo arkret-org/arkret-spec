@@ -3,7 +3,7 @@ title: 自有 Agent 受限授权
 status: candidate
 normative: true
 stability: v1
-updated: 2026-10-14
+updated: 2026-10-15
 ---
 
 ## 0. 规范语言
@@ -55,6 +55,12 @@ ref 是签名覆盖的 immutable 意图，**MUST NOT** 带 producer-selected rev
 `ak.gate.account.command.refresh_session_grant.v1` 只轮换 predecessor 的既有 action/resource/constraint ceiling，不接收新 scope request，不增加内容 action、资源或条件权限；必须复验 current holder/key/lifecycle 与该 ceiling 的权威来源，无法满足时拒绝，runtime 通过 fresh issue 申请较窄或新增的合法范围。正常 refresh 沿既有 issuer-ledger transaction 原子 supersede predecessor 并继承 `session_id`；exact issue/refresh replay 沿既有 byte-identical／terminal 合同，**MUST NOT** 借重试重算并返回扩权凭据。参与选择更新仅在原授权 ceiling 内生效，旧 session overlay 不能替代 current selection。
 
 同一 Station 内来源资格 **MUST** 由 owning Station 从 accepted、完整且 exact-account/resource 绑定的有效权威状态提供给 issuer，并与签发结果绑定；部署内 channel 沿 `service-http-binding §2.2.3`，不新增公开 operation、receipt 或 evidence carrier。current/freshness 的含义沿来源原合同：独立 Direct 继续使用已验证授权区间与已知撤销规则，不新增逐次 source lease／origin 查询。introspection 返回 exact credential 的冻结 ceiling，**不是** membership／主人 current／Sidecar effective 的替代证明；每次实际读取、排队后交付与未来 epoch 材料领取 **MUST** 在目标资源 authority 的准入边界重验适用的当前有效门。来源按其原合同已知撤回后即使 JWT 未过期也不得继续供给；unknown/stale/fork、取材失败或跨独立治理边界没有已登记且可验证的来源时 fail closed。已领取的历史密文／本地密钥不能被追溯收回，不得把停止新供给宣称为抹除既有知识。
+
+**内容会话带外批准（normative）**：机读合同为 registry 的 `session_human_approval_contract`。仅当普通 Collaboration Realm／Circle 内，本次所需的内容动作全部缺少显式 Agent grant，而已验 holder proof、current Agent／controller、provision／key ceiling、exact membership／ownership、authorize／execute 管理门、participation、主人在同一资源上的完整行动权与必要条件全部满足时，Account Authority **MUST** 返回 HTTP403 RFC9457 `claim_required`，closed extensions 严格为 `reason_code="human_approval_required"` 与 opaque `approval_request_id`。可批准动作限 registry 的 eligible_actions；缺少 own 对象等必要事实视为未知。deny／quarantine／require_review、条件不满足、未知来源、上层缺项及 Direct／Sidecar 专用路径 **MUST NOT** 被转换为此分支。批准不是绕过任何门的例外。
+
+Controller 通过既有带外 UI，明确确认 exact Agent／scope／actions／constraints，再按 §1 的 owned_agent 或已有合法 delegation 来源原签并提交 `ak.capability.grant`。Agent 用新的 proof challenge／新的签名 request intent 重试现有 issue operation，在可选 `approval_evidence_refs` 中引用 accepted grant Event；该数组非空、最多32项、去重并按 canonical EventId UTF-8 字节序排序，属于 request_canonical_digest 覆盖的原始请求。每项 **MUST** 为当前有效、controller 原签、subject exact Agent 且确实用于本次 action/resource 的 accepted grant；Event、covering Commit、current grant 与完整来源仍由 owning Station 核验。错类型、未accepted、伪造、跨账号／资源、撤回／失效或未使用引用 **MUST** 失败关闭。引用只收窄已成立来源，不制造授权；实际使用的 GrantId 沿既有 scope_details 冻结，执行时继续重查 current 门。
+
+`approval_request_id` 只是本次拒绝的关联提示，**MUST NOT** 充当 bearer、批准证据、authority source、重试 request identity，或仅凭它取回私有意图；不新增公开 approval operation、独立审批权限系统或非 Event 授权 carrier。此拒绝 **MUST NOT** 创建 session、issuer reservation／proof replay 或业务效果，不返回 CAPTCHA／OTP／browser redirect／password prompt。已有合法来源的正常签发与 refresh **MUST NOT** 要求人类再次批准；refresh 不接收此引用或扩大 predecessor ceiling。已完成 issue exact replay 沿原 durable outcome，不重新求交，也不因本分支改变历史结果。
 
 **Sidecar 引导分阶段（normative）**：首次 Welcome／claim read／consume 的资格使用 exact current desired authority、accepted Add/Welcome/claim lineage 与 current Agent endpoint，以及 requested/key/session、主人内容上界和 read/deliver 管理门。Welcome／未来 epoch 访问材料的内容读取映射为 `ak.event.read`，目标从 accepted Add/Commit/Welcome lineage 派生到 exact Sidecar scope，不能按父 Realm 或 runtime 自报目标放行。claim read／consume 保留各自 service operation、exact recipient ledger／receipt 与 profile gate，不因它们是 ledger 操作要求 `ak.message.create` 或其它内容写 grant；它们也不额外授予 Welcome／payload 读取权。**MUST NOT** 为取得建立 effective 所需的材料提前要求该 endpoint 已 effective。desired 本身也不是业务 payload 读取资格；只有该 endpoint 完成既有 Welcome 验证、durable MLS state 与 consume 后才按 effective 门供给业务 payload。其它 Sidecar 的 effective、父 Realm membership 单独或另一 endpoint 的 consume 均不得替代；撤回 desired 后旧 queued Welcome 与未来 epoch 材料同样拒绝。
 

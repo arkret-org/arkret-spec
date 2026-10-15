@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-15.4",
+  "version": "2026-10-15.5",
   "source_of_truth": false,
-  "generated_at": "2026-10-15T00:27:32+00:00",
+  "generated_at": "2026-10-15T01:58:34.606459+00:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -794,6 +794,7 @@
           "requested_scope",
           "agent_key_authorization_ref",
           "agent_scope_request",
+          "approval_evidence_refs",
           "requested_scope_disclosure",
           "dpop_binding_proof",
           "proof",
@@ -836,6 +837,7 @@
               "requested_scope",
               "agent_key_authorization_ref",
               "agent_scope_request",
+              "approval_evidence_refs",
               "requested_scope_disclosure",
               "dpop_binding_proof",
               "proof"

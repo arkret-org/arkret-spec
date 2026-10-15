@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-14.1",
+  "version": "2026-10-15.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-14T06:38:42+08:00",
+  "generated_at": "2026-10-15T21:21:00+08:00",
   "normative_source": "zh/authz/owned-agent-authority.md",
   "source_kind": "owned_agent",
   "grant_event_kind": "ak.capability.grant",
@@ -113,5 +113,54 @@
     },
     "material_read_action": "ak.event.read",
     "keypackage_ledger_gate": "service_exact_endpoint_and_profile_not_content_write"
+  },
+  "session_human_approval_contract": {
+    "vector_id": "ak.vector.agent_auth.human_approval_required.v1",
+    "request_schema": "schemas/service-operation-dtos.schema.json#/$defs/AgentSessionGrantRequest",
+    "evidence_member": "approval_evidence_refs",
+    "evidence_event_kind": "ak.capability.grant",
+    "trigger": "only_missing_explicit_owned_agent_grant_with_all_other_current_gates_satisfied",
+    "eligible_actions": [
+      "ak.message.create",
+      "ak.message.redact.own",
+      "ak.message.revise.own",
+      "ak.reaction.add",
+      "ak.reaction.remove"
+    ],
+    "required_gates": [
+      "holder_proof",
+      "current_agent_and_controller",
+      "provision_and_key_ceilings",
+      "exact_membership_and_ownership",
+      "management_authorize_and_execute",
+      "participation",
+      "same_resource_complete_controller_authority",
+      "known_operation_conditions"
+    ],
+    "non_remediable": [
+      "deny",
+      "quarantine",
+      "require_review",
+      "unsatisfied_conditions",
+      "unknown_source",
+      "upper_ceiling_missing",
+      "direct_or_sidecar_profile"
+    ],
+    "error": {
+      "status": 403,
+      "code": "claim_required",
+      "reason_code": "human_approval_required",
+      "correlation_member": "approval_request_id"
+    },
+    "correlation_confers_authority": false,
+    "correlation_resolves_private_intent": false,
+    "interactive_runtime_challenge": false,
+    "retry": "fresh_signed_intent_with_current_accepted_controller_grant_refs",
+    "ref_order": "canonical_EventId_utf8",
+    "max_refs": 32,
+    "all_refs_actually_used": true,
+    "failed_issue_writes_session_or_reservation_or_replay": false,
+    "normal_issue_or_refresh_requires_new_approval": false,
+    "exact_completed_replay_recomputes_authority": false
   }
 }

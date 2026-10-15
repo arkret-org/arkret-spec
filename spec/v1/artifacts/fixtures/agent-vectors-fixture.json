@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.agent_provisioning.v1",
-  "version": "2026-10-15",
+  "version": "2026-10-15.1",
   "suite": "agent_vectors",
   "runner": {
     "kind": "named_suite",
@@ -639,8 +639,10 @@
       "request": {
         "operation_id": "ak.gate.account.command.issue_session_grant.v1",
         "proof_kind": "agent_key_proof",
-        "risk_tier": "high",
-        "requested_scope_requires_controller_approval": true
+        "requested_content_action": "ak.message.create",
+        "authority_state": "only_missing_explicit_owned_agent_grant_with_all_other_current_gates_satisfied",
+        "retry_evidence_member": "approval_evidence_refs",
+        "retry_evidence_event_kind": "ak.capability.grant"
       },
       "expected_error": {
         "type": "https://arkret.org/problems/claim_required",

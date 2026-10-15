@@ -3887,6 +3887,16 @@
             }
           }
         },
+        "approval_evidence_refs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "./common-ids.schema.json#/$defs/event_id"
+          },
+          "description": "Optional narrowing pins to accepted controller-authored ak.capability.grant Events actually used for this exact Agent content session. Sorted by canonical EventId UTF-8 bytes and covered by request_canonical_digest. Each referenced grant must still be current, bind the exact controller/Agent/action/resource and satisfy every existing authority gate. An opaque approval_request_id is not evidence and MUST NOT appear here. No approval-only authority or normal-refresh scope expansion is introduced."
+        },
         "requested_scope_disclosure": {
           "$ref": "./agent-requested-scope-disclosure.schema.json",
           "description": "Optional only for the agent_key_proof branch. A runtime includes this controller-signed private disclosure when the Account Authority does not yet hold verifier-private ceiling evidence established by pairing or an authenticated private evidence transfer. If absent, the authority MUST resolve an already verified disclosure keyed by the same agent_id, DID commitment digest, verifier and audience; a service-local Agent row alone is insufficient."

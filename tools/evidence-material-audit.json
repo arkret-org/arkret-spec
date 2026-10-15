@@ -1,13 +1,24 @@
 {
-  "version": 36,
+  "version": 37,
   "source_of_truth": false,
   "narrative_source": "spec/v1/zh/models/common-fields.md#r6-证据类名词分工",
   "scope": [
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 404,
+  "audited_occurrence_count": 407,
   "registrations": [
+    {
+      "file": "account-device-signer-evidence.schema.json",
+      "key": "forward_account_device_signer_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation"
+      ],
+      "reason": "Closed forward-only container combines the original Station attestation over the complete Event-bound immutable authorization source with the existing device verification proof. Directory evidence remains a distinct closed branch."
+    },
     {
       "file": "account-operations.schema.json",
       "key": "account_registration_evidence_summary",
@@ -65,6 +76,18 @@
     },
     {
       "file": "agent-authority-evidence.schema.json",
+      "key": "account_device_signer_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "reason": "Agent producer closure uses only actual signer dependencies; authority evidence never grants participation current. References address exact canonical roots and do not themselves carry material.",
+      "material_families": [
+        "proof",
+        "attestation",
+        "transcript"
+      ]
+    },
+    {
+      "file": "agent-authority-evidence.schema.json",
       "key": "agent_authority_state_evidence",
       "occurrences": 2,
       "disposition": "polymorphic_container",
@@ -75,6 +98,49 @@
         "transcript"
       ],
       "reason": "Carries one exact confirmed RealmCommit state transcript, its JCS state commitment, the Agent Authority attestation over that commitment and the producer proofs of the Events inside the state."
+    },
+    {
+      "file": "agent-authority-evidence.schema.json",
+      "key": "agent_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "reason": "Agent producer closure uses only actual signer dependencies; authority evidence never grants participation current. References address exact canonical roots and do not themselves carry material.",
+      "material_families": [
+        "proof",
+        "attestation",
+        "transcript"
+      ]
+    },
+    {
+      "file": "agent-authority-evidence.schema.json",
+      "key": "agent_producer_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "reason": "Agent producer closure uses only actual signer dependencies; authority evidence never grants participation current. References address exact canonical roots and do not themselves carry material.",
+      "material_families": [
+        "proof",
+        "attestation",
+        "transcript"
+      ]
+    },
+    {
+      "file": "agent-authority-evidence.schema.json",
+      "key": "authenticated_signer_evidence",
+      "occurrences": 2,
+      "disposition": "polymorphic_container",
+      "reason": "Agent producer closure uses only actual signer dependencies; authority evidence never grants participation current. References address exact canonical roots and do not themselves carry material.",
+      "material_families": [
+        "proof",
+        "attestation",
+        "transcript"
+      ]
+    },
+    {
+      "file": "agent-authority-evidence.schema.json",
+      "key": "signer_resolution_evidence_ref",
+      "occurrences": 4,
+      "disposition": "qualifier",
+      "reason": "Agent producer closure uses only actual signer dependencies; authority evidence never grants participation current. References address exact canonical roots and do not themselves carry material."
     },
     {
       "file": "agent-operations.schema.json",
@@ -162,6 +228,18 @@
     },
     {
       "file": "applet-edge-operations.schema.json",
+      "key": "managed_actor_resolution_update_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation",
+        "transcript"
+      ],
+      "reason": "Combines the signed accepted resolution Event, its continuous RealmCommit history, native method history and authenticated Station signer closure."
+    },
+    {
+      "file": "applet-edge-operations.schema.json",
       "key": "managed_actor_signer_evidence",
       "occurrences": 1,
       "disposition": "polymorphic_container",
@@ -170,6 +248,28 @@
         "attestation"
       ],
       "reason": "Carries the exact managed Actor Principal root together with its single Station Service attester leaf, so the authoring result binds both roots as one adjudicated evidence container."
+    },
+    {
+      "file": "applet-edge-operations.schema.json",
+      "key": "method_history_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "transcript"
+      ],
+      "reason": "Carries complete method-native history and its authenticated proof for the exact accepted successor resolution."
+    },
+    {
+      "file": "applet-edge-operations.schema.json",
+      "key": "producer_device_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "attestation",
+        "transcript"
+      ],
+      "reason": "Carries the immutable original-admission device projection attestation and complete authenticated origin Station native Service history for offline historical producer signature verification."
     },
     {
       "file": "applet-edge-operations.schema.json",
@@ -204,39 +304,17 @@
       "reason": "Carries the complete adapter-selected method history, controller proofs, witness attestations and terminal identity commitments independently verified before managed-actor provisioning."
     },
     {
-      "file": "authority-commit-operations.schema.json",
-      "key": "founding_authority_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation",
-        "commitment"
-      ],
-      "reason": "Peer-only closed Direct Conversation founding authority material transported beside four source-committed rows; the recipient independently verifies it against those commits and the current bounded trust basis."
-    },
-    {
-      "file": "authority-commit-operations.schema.json",
-      "key": "membership_compensation_evidence",
+      "file": "applet-registration-epoch-evidence.schema.json",
+      "key": "method_version_evidence",
       "occurrences": 3,
       "disposition": "polymorphic_container",
       "material_families": [
         "proof",
         "attestation",
-        "commitment"
+        "commitment",
+        "transcript"
       ],
-      "reason": "Closed transport-only aggregate of the caller-signed compensation delegation, terminal failure certificate and exact single-use binding; it is excluded from Event canonical bytes."
-    },
-    {
-      "file": "authority-commit-operations.schema.json",
-      "key": "producer_device_evidence",
-      "occurrences": 2,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation"
-      ],
-      "reason": "authority_forward-only carrier of the complete account_device signer evidence (origin device projection attestation plus method-native Service resolution) that a forwarding account Station signs fresh per attempt so the cross-Station governance Station can resolve a human device producer; its presence is decided by the Event."
+      "reason": "Selects the closed DID-method-native version transcript whose proofs, witness attestations and commitments establish the exact registration epoch."
     },
     {
       "file": "authenticated-signer-resolution-evidence.schema.json",
@@ -277,6 +355,89 @@
       "occurrences": 1,
       "disposition": "qualifier",
       "reason": "Binds, locates, or bounds registered evidence material without carrying a second independently authoritative proof object."
+    },
+    {
+      "file": "authority-commit-operations.schema.json",
+      "key": "atomic_producer_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation",
+        "transcript"
+      ],
+      "reason": "Exactly two ordered actual-producer closures for the fixed business/audit unit; each reuses the existing Event-bound Device or Agent proof family, or an empty slot for a Service signer resolved through its existing history. This outer container grants no rights and is excluded as a whole from the proof body digest."
+    },
+    {
+      "file": "authority-commit-operations.schema.json",
+      "key": "atomic_slot_producer_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation",
+        "transcript"
+      ],
+      "reason": "Exactly two ordered actual-producer closures for the fixed business/audit unit; each reuses the existing Event-bound Device or Agent proof family, or an empty slot for a Service signer resolved through its existing history. This outer container grants no rights and is excluded as a whole from the proof body digest."
+    },
+    {
+      "file": "authority-commit-operations.schema.json",
+      "key": "audit_pair_producer_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation",
+        "transcript"
+      ],
+      "reason": "Exactly two ordered actual-producer closures for the fixed business/audit unit; each reuses the existing Event-bound Device or Agent proof family, or an empty slot for a Service signer resolved through its existing history. This outer container grants no rights and is excluded as a whole from the proof body digest."
+    },
+    {
+      "file": "authority-commit-operations.schema.json",
+      "key": "founding_authority_evidence",
+      "occurrences": 1,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation",
+        "commitment"
+      ],
+      "reason": "Peer-only closed Direct Conversation founding authority material transported beside four source-committed rows; the recipient independently verifies it against those commits and the current bounded trust basis."
+    },
+    {
+      "file": "authority-commit-operations.schema.json",
+      "key": "membership_compensation_evidence",
+      "occurrences": 3,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation",
+        "commitment"
+      ],
+      "reason": "Closed transport-only aggregate of the caller-signed compensation delegation, terminal failure certificate and exact single-use binding; it is excluded from Event canonical bytes."
+    },
+    {
+      "file": "authority-commit-operations.schema.json",
+      "key": "producer_agent_evidence",
+      "occurrences": 2,
+      "disposition": "polymorphic_container",
+      "reason": "Agent producer closure uses only actual signer dependencies; authority evidence never grants participation current. References address exact canonical roots and do not themselves carry material.",
+      "material_families": [
+        "proof",
+        "attestation",
+        "transcript"
+      ]
+    },
+    {
+      "file": "authority-commit-operations.schema.json",
+      "key": "producer_device_evidence",
+      "occurrences": 2,
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation"
+      ],
+      "reason": "authority_forward-only carrier of the complete account_device signer evidence (origin device projection attestation plus method-native Service resolution) that a forwarding account Station signs fresh per attempt so the cross-Station governance Station can resolve a human device producer; its presence is decided by the Event."
     },
     {
       "file": "capability-action-registry.json",
@@ -340,6 +501,34 @@
         "attestation"
       ],
       "reason": "Carries the exact private first-contact evidence whose digest is committed by the signed request Event."
+    },
+    {
+      "file": "contract-registry.json",
+      "key": "accepted_evidence_rule",
+      "occurrences": 1,
+      "disposition": "registry_contract",
+      "reason": "Declares independent Genesis timestamp revalidation before accepted-winner selection; it carries no evidence material and is not a wire member."
+    },
+    {
+      "file": "contract-registry.json",
+      "key": "agent_authority_evidence_contract",
+      "occurrences": 1,
+      "disposition": "registry_contract",
+      "reason": "Agent producer closure uses only actual signer dependencies; authority evidence never grants participation current. References address exact canonical roots and do not themselves carry material."
+    },
+    {
+      "file": "contract-registry.json",
+      "key": "authority_evidence_grants_participation",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Agent producer closure uses only actual signer dependencies; authority evidence never grants participation current. References address exact canonical roots and do not themselves carry material."
+    },
+    {
+      "file": "contract-registry.json",
+      "key": "deployment_evidence",
+      "occurrences": 42,
+      "disposition": "registry_contract",
+      "reason": "References the registered implementation prototype or normative role requirement that proves one frozen operation bundle support vector."
     },
     {
       "file": "contract-registry.json",
@@ -442,6 +631,20 @@
     },
     {
       "file": "did-evidence-boundary-registry.json",
+      "key": "agent_authority_evidence_contract",
+      "occurrences": 1,
+      "disposition": "registry_contract",
+      "reason": "Agent producer closure uses only actual signer dependencies; authority evidence never grants participation current. References address exact canonical roots and do not themselves carry material."
+    },
+    {
+      "file": "did-evidence-boundary-registry.json",
+      "key": "authority_evidence_grants_participation",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Agent producer closure uses only actual signer dependencies; authority evidence never grants participation current. References address exact canonical roots and do not themselves carry material."
+    },
+    {
+      "file": "did-evidence-boundary-registry.json",
       "key": "route_evidence",
       "occurrences": 9,
       "disposition": "registry_contract",
@@ -510,6 +713,13 @@
     },
     {
       "file": "event-kind-registry.json",
+      "key": "accepted_evidence_rule",
+      "occurrences": 1,
+      "disposition": "registry_contract",
+      "reason": "Declares independent Genesis timestamp revalidation before accepted-winner selection; it carries no evidence material and is not a wire member."
+    },
+    {
+      "file": "event-kind-registry.json",
       "key": "evidence_class",
       "occurrences": 1,
       "disposition": "registry_contract",
@@ -521,6 +731,13 @@
       "occurrences": 1,
       "disposition": "registry_contract",
       "reason": "Generated shared-history verifier dependency categories from canonical history_admission_contract; no wire object is introduced."
+    },
+    {
+      "file": "event-payload.schema.json",
+      "key": "accepted_evidence_rule",
+      "occurrences": 1,
+      "disposition": "registry_contract",
+      "reason": "Declares independent Genesis timestamp revalidation before accepted-winner selection; it carries no evidence material and is not a wire member."
     },
     {
       "file": "event-payload.schema.json",
@@ -785,6 +1002,20 @@
       "reason": "The signed report claim identifies external evidence objects without treating those references as authorization or plaintext."
     },
     {
+      "file": "mls-creator-bootstrap-transaction-registry.json",
+      "key": "evidence_source",
+      "occurrences": 1,
+      "disposition": "registry_contract",
+      "reason": "Defines independently verified existing authority and complete authorized current-read inputs to the client-local durable transaction; it introduces no wire evidence carrier, proof RPC or Station-signed local proposal."
+    },
+    {
+      "file": "mls-creator-bootstrap-transaction-registry.json",
+      "key": "governance_evidence_contract",
+      "occurrences": 1,
+      "disposition": "registry_contract",
+      "reason": "Defines independently verified existing authority and complete authorized current-read inputs to the client-local durable transaction; it introduces no wire evidence carrier, proof RPC or Station-signed local proposal."
+    },
+    {
       "file": "moderation-evidence.schema.json",
       "key": "evidence_package",
       "occurrences": 1,
@@ -840,6 +1071,13 @@
     },
     {
       "file": "operation-registry.json",
+      "key": "deployment_evidence",
+      "occurrences": 42,
+      "disposition": "registry_contract",
+      "reason": "Generated operation-bundle projection of the canonical deployment evidence references."
+    },
+    {
+      "file": "operation-registry.json",
       "key": "evidence_class",
       "occurrences": 10,
       "disposition": "registry_contract",
@@ -858,6 +1096,20 @@
       "occurrences": 5,
       "disposition": "registry_contract",
       "reason": "Generated stable source reference for deployment support-vector audit."
+    },
+    {
+      "file": "owned-agent-authority-registry.json",
+      "key": "evidence_event_kind",
+      "occurrences": 1,
+      "disposition": "registry_contract",
+      "reason": "Names the existing accepted controller grant Event kind eligible for the registered session approval retry."
+    },
+    {
+      "file": "owned-agent-authority-registry.json",
+      "key": "evidence_member",
+      "occurrences": 1,
+      "disposition": "registry_contract",
+      "reason": "Names the closed request member containing narrowing references; no new authority material is defined."
     },
     {
       "file": "principal-operations.schema.json",
@@ -931,6 +1183,13 @@
     },
     {
       "file": "service-operation-dtos.schema.json",
+      "key": "approval_evidence_refs",
+      "occurrences": 1,
+      "disposition": "qualifier",
+      "reason": "Pins accepted controller capability grant Events actually used by current source qualification. A reference confers no authority and cannot replace the signed Event, covering Commit or current grant."
+    },
+    {
+      "file": "service-operation-dtos.schema.json",
       "key": "contact_round_evidence",
       "occurrences": 1,
       "disposition": "polymorphic_container",
@@ -973,208 +1232,6 @@
       "reason": "Projection of consent_grant_payload.evidence_ref into the consent typed current result; the referenced consent material may be a proof, attestation, or receipt."
     },
     {
-      "file": "applet-edge-operations.schema.json",
-      "key": "managed_actor_resolution_update_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation",
-        "transcript"
-      ],
-      "reason": "Combines the signed accepted resolution Event, its continuous RealmCommit history, native method history and authenticated Station signer closure."
-    },
-    {
-      "file": "applet-edge-operations.schema.json",
-      "key": "method_history_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "transcript"
-      ],
-      "reason": "Carries complete method-native history and its authenticated proof for the exact accepted successor resolution."
-    },
-    {
-      "file": "applet-edge-operations.schema.json",
-      "key": "producer_device_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "attestation",
-        "transcript"
-      ],
-      "reason": "Carries the immutable original-admission device projection attestation and complete authenticated origin Station native Service history for offline historical producer signature verification."
-    },
-    {
-      "file": "mls-creator-bootstrap-transaction-registry.json",
-      "key": "evidence_source",
-      "occurrences": 1,
-      "disposition": "registry_contract",
-      "reason": "Defines independently verified existing authority and complete authorized current-read inputs to the client-local durable transaction; it introduces no wire evidence carrier, proof RPC or Station-signed local proposal."
-    },
-    {
-      "file": "mls-creator-bootstrap-transaction-registry.json",
-      "key": "governance_evidence_contract",
-      "occurrences": 1,
-      "disposition": "registry_contract",
-      "reason": "Defines independently verified existing authority and complete authorized current-read inputs to the client-local durable transaction; it introduces no wire evidence carrier, proof RPC or Station-signed local proposal."
-    },
-    {
-      "file": "contract-registry.json",
-      "key": "accepted_evidence_rule",
-      "occurrences": 1,
-      "disposition": "registry_contract",
-      "reason": "Declares independent Genesis timestamp revalidation before accepted-winner selection; it carries no evidence material and is not a wire member."
-    },
-    {
-      "file": "event-kind-registry.json",
-      "key": "accepted_evidence_rule",
-      "occurrences": 1,
-      "disposition": "registry_contract",
-      "reason": "Declares independent Genesis timestamp revalidation before accepted-winner selection; it carries no evidence material and is not a wire member."
-    },
-    {
-      "file": "event-payload.schema.json",
-      "key": "accepted_evidence_rule",
-      "occurrences": 1,
-      "disposition": "registry_contract",
-      "reason": "Declares independent Genesis timestamp revalidation before accepted-winner selection; it carries no evidence material and is not a wire member."
-    },
-    {
-      "file": "agent-authority-evidence.schema.json",
-      "key": "account_device_signer_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "reason": "Agent producer closure uses only actual signer dependencies; authority evidence never grants participation current. References address exact canonical roots and do not themselves carry material.",
-      "material_families": [
-        "proof",
-        "attestation",
-        "transcript"
-      ]
-    },
-    {
-      "file": "agent-authority-evidence.schema.json",
-      "key": "agent_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "reason": "Agent producer closure uses only actual signer dependencies; authority evidence never grants participation current. References address exact canonical roots and do not themselves carry material.",
-      "material_families": [
-        "proof",
-        "attestation",
-        "transcript"
-      ]
-    },
-    {
-      "file": "agent-authority-evidence.schema.json",
-      "key": "agent_producer_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "reason": "Agent producer closure uses only actual signer dependencies; authority evidence never grants participation current. References address exact canonical roots and do not themselves carry material.",
-      "material_families": [
-        "proof",
-        "attestation",
-        "transcript"
-      ]
-    },
-    {
-      "file": "agent-authority-evidence.schema.json",
-      "key": "authenticated_signer_evidence",
-      "occurrences": 2,
-      "disposition": "polymorphic_container",
-      "reason": "Agent producer closure uses only actual signer dependencies; authority evidence never grants participation current. References address exact canonical roots and do not themselves carry material.",
-      "material_families": [
-        "proof",
-        "attestation",
-        "transcript"
-      ]
-    },
-    {
-      "file": "agent-authority-evidence.schema.json",
-      "key": "signer_resolution_evidence_ref",
-      "occurrences": 4,
-      "disposition": "qualifier",
-      "reason": "Agent producer closure uses only actual signer dependencies; authority evidence never grants participation current. References address exact canonical roots and do not themselves carry material."
-    },
-    {
-      "file": "authority-commit-operations.schema.json",
-      "key": "producer_agent_evidence",
-      "occurrences": 2,
-      "disposition": "polymorphic_container",
-      "reason": "Agent producer closure uses only actual signer dependencies; authority evidence never grants participation current. References address exact canonical roots and do not themselves carry material.",
-      "material_families": [
-        "proof",
-        "attestation",
-        "transcript"
-      ]
-    },
-    {
-      "file": "contract-registry.json",
-      "key": "agent_authority_evidence_contract",
-      "occurrences": 1,
-      "disposition": "registry_contract",
-      "reason": "Agent producer closure uses only actual signer dependencies; authority evidence never grants participation current. References address exact canonical roots and do not themselves carry material."
-    },
-    {
-      "file": "contract-registry.json",
-      "key": "authority_evidence_grants_participation",
-      "occurrences": 1,
-      "disposition": "qualifier",
-      "reason": "Agent producer closure uses only actual signer dependencies; authority evidence never grants participation current. References address exact canonical roots and do not themselves carry material."
-    },
-    {
-      "file": "did-evidence-boundary-registry.json",
-      "key": "agent_authority_evidence_contract",
-      "occurrences": 1,
-      "disposition": "registry_contract",
-      "reason": "Agent producer closure uses only actual signer dependencies; authority evidence never grants participation current. References address exact canonical roots and do not themselves carry material."
-    },
-    {
-      "file": "did-evidence-boundary-registry.json",
-      "key": "authority_evidence_grants_participation",
-      "occurrences": 1,
-      "disposition": "qualifier",
-      "reason": "Agent producer closure uses only actual signer dependencies; authority evidence never grants participation current. References address exact canonical roots and do not themselves carry material."
-    },
-    {
-      "file": "account-device-signer-evidence.schema.json",
-      "key": "forward_account_device_signer_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation"
-      ],
-      "reason": "Closed forward-only container combines the original Station attestation over the complete Event-bound immutable authorization source with the existing device verification proof. Directory evidence remains a distinct closed branch."
-    },
-    {
-      "file": "applet-registration-epoch-evidence.schema.json",
-      "key": "method_version_evidence",
-      "occurrences": 3,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation",
-        "commitment",
-        "transcript"
-      ],
-      "reason": "Selects the closed DID-method-native version transcript whose proofs, witness attestations and commitments establish the exact registration epoch."
-    },
-    {
-      "file": "contract-registry.json",
-      "key": "deployment_evidence",
-      "occurrences": 42,
-      "disposition": "registry_contract",
-      "reason": "References the registered implementation prototype or normative role requirement that proves one frozen operation bundle support vector."
-    },
-    {
-      "file": "operation-registry.json",
-      "key": "deployment_evidence",
-      "occurrences": 42,
-      "disposition": "registry_contract",
-      "reason": "Generated operation-bundle projection of the canonical deployment evidence references."
-    },
-    {
       "file": "watch-audit-operations.schema.json",
       "key": "producer_agent_evidence",
       "occurrences": 1,
@@ -1196,42 +1253,6 @@
         "attestation"
       ],
       "reason": "Dedicated audited-read command carries the same fresh actual-producer signer dependencies as authority_forward; it grants neither target disclosure nor participation. authority_forward-only carrier of the complete account_device signer evidence (origin device projection attestation plus method-native Service resolution) that a forwarding account Station signs fresh per attempt so the cross-Station governance Station can resolve a human device producer; its presence is decided by the Event."
-    },
-    {
-      "file": "authority-commit-operations.schema.json",
-      "key": "audit_pair_producer_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation",
-        "transcript"
-      ],
-      "reason": "Exactly two ordered actual-producer closures for the fixed business/audit unit; each reuses the existing Event-bound Device or Agent proof family, or an empty slot for a Service signer resolved through its existing history. This outer container grants no rights and is excluded as a whole from the proof body digest."
-    },
-    {
-      "file": "authority-commit-operations.schema.json",
-      "key": "atomic_slot_producer_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation",
-        "transcript"
-      ],
-      "reason": "Exactly two ordered actual-producer closures for the fixed business/audit unit; each reuses the existing Event-bound Device or Agent proof family, or an empty slot for a Service signer resolved through its existing history. This outer container grants no rights and is excluded as a whole from the proof body digest."
-    },
-    {
-      "file": "authority-commit-operations.schema.json",
-      "key": "atomic_producer_evidence",
-      "occurrences": 1,
-      "disposition": "polymorphic_container",
-      "material_families": [
-        "proof",
-        "attestation",
-        "transcript"
-      ],
-      "reason": "Exactly two ordered actual-producer closures for the fixed business/audit unit; each reuses the existing Event-bound Device or Agent proof family, or an empty slot for a Service signer resolved through its existing history. This outer container grants no rights and is excluded as a whole from the proof body digest."
     }
   ]
 }
