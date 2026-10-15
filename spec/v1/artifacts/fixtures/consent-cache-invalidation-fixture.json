@@ -5,7 +5,7 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.consent.cache_invalidation.v1"
   },
-  "version": "2026-10-15.1",
+  "version": "2026-10-15.2",
   "profile": "ak.profile.station.v1",
   "covers_vectors": [
     "ak.vector.consent.cache_invalidation.v1",
@@ -171,7 +171,8 @@
       "assertions": [
         "all decisions derived from that any Consent are invalidated at their actual admission boundaries",
         "no registered consumer continues using a decision derived from the revoked any record",
-        "the independent concrete grant retains its current revision and remains eligible under its own scope and window"
+        "the independent concrete grant retains its current revision and remains eligible under its own scope and window",
+        "Presence consent_only evaluates every other complete ActorId in the current encrypted signed scope using fresh complete presence/any Consent current at the actual sender boundary. One revoked, expired, mismatched or unavailable peer suppresses the whole scope. public and contacts_only remain explicit independent authorizations; no service plaintext filtering or receiver-only hiding substitutes for confidentiality."
       ]
     },
     {

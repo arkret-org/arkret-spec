@@ -258,6 +258,18 @@ class PcrPrivateContractTest(unittest.TestCase):
         ack.validate({"request_digest": "sha256:" + "a" * 64, "status": "applied"})
         self.assertFalse(ack.is_valid({"request_digest": "sha256:" + "a" * 64, "status": "accepted"}))
 
+    def test_presence_visibility_has_an_explicit_closed_consent_mode(self) -> None:
+        schema = _load(ARTIFACTS / "schemas" / "presence-visibility.schema.json")
+        validator = self.validator_type(schema)
+        self.assertEqual(schema["properties"]["presence_visibility"]["enum"], ["public", "contacts_only", "consent_only", "nobody"])
+        for value in schema["properties"]["presence_visibility"]["enum"]:
+            validator.validate({"presence_visibility": value})
+        self.assertFalse(validator.is_valid({"presence_visibility": "peer_filtered"}))
+        self.assertFalse(validator.is_valid({"presence_visibility": "consent_only", "allowed_peers": []}))
+        fixture = _load(ARTIFACTS / "fixtures" / "consent-cache-invalidation-fixture.json")
+        self.assertEqual(len(fixture["cases"]), 14)
+        self.assertTrue(any("consent_only" in assertion for assertion in fixture["cases"][2]["assertions"]))
+
     def test_manifest_and_public_digest_are_required_exactly_for_pcr(self) -> None:
         # Isolate the contextual rule; complete cryptographic handoff acceptance
         # remains an SDK/server responsibility, never a schema-test assertion.

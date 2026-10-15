@@ -14,7 +14,7 @@ sidebar:
 
 ## 1. 边界
 
-Consent 是 holder 在 Principal Control Realm（PCR）中维护的方向性许可，用于 invite、通话发起与 presence 等不以 Contact 为授权依据的动作。Contact request/response、Contact-based create/send 与 Personal DM 只读取双方 holder-signed Contact facts，不读取 Consent。
+Consent 是 holder 在 Principal Control Realm（PCR）中维护的方向性许可，用于 invite、通话发起与 `consent_only` Presence 等不以 Contact 为授权依据的动作。Contact request/response、Contact-based create/send 与 Personal DM 只读取双方 holder-signed Contact facts，不读取 Consent。
 
 Consent 不授予 Realm capability，也不替代目标 Realm 的 membership、policy 或 authorization 检查。它只决定 holder 的 Station 是否允许相应首次接触继续进入目标 operation。
 
@@ -79,7 +79,7 @@ Grant/Revoke Event 的 actor 与认证 holder 必须是 holder PCR 当前 author
 | `invite` | peer 可发起 Realm/Strand invite。 |
 | `voice_call` | peer 可发起语音通话。 |
 | `video_call` | peer 可发起视频通话。 |
-| `presence` | peer 可观察 holder presence。 |
+| `presence` | 在 holder 选择 `consent_only` Presence 模式时，peer 可观察 holder presence；整个 signed scope 的每个其它 active member 必须分别满足当前 `presence`／`any` grant。公开／Contact 模式保持其独立授权依据，不能复用为 Consent 通过。 |
 | `any` | 覆盖全部具体 scope。 |
 
 ### 4.1 `any` 与撤销
@@ -88,7 +88,7 @@ Grant/Revoke Event 的 actor 与认证 holder 必须是 holder PCR 当前 author
 
 ### 4.1.1 缓存失效
 
-Revoke 被 RealmCommit 接纳后，holder Station必须立即使相应 invite gate、通话 gate、presence 与 MIMI consent cache 失效。`any` 被撤销时，使该 peer 的全部具体 scope cache 失效；其它独立 active Consent 仍按 §5 求值。缓存不得把 current revision 回退或延迟已知撤销。没有缓存的消费者必须在实际准入边界读取同一 current，不能复用已撤销的 preflight。
+Revoke 被 RealmCommit 接纳后，holder Station必须立即使相应 invite gate、通话 gate、`consent_only` presence 与 MIMI consent cache 失效。`any` 被撤销时，使该 peer 的全部具体 scope cache 失效；其它独立 active Consent 仍按 §5 求值。缓存不得把 current revision 回退或延迟已知撤销。没有缓存的消费者必须在实际准入边界读取同一 current，不能复用已撤销的 preflight。
 
 current-v1 不提供 private-contact discovery 或 PSI（见 [`discovery/discovery-directory.md` §1／§6](../discovery/discovery-directory.md)）。本条不要求恢复这些入口、索引或轮转；未登记入口必须不可调用、不可广告且不得改变索引。已登记的 MIMI identifiers facade 不得调用未登记发现协议或用 Consent 构造匹配结果。
 

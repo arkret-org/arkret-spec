@@ -13,9 +13,10 @@
       "enum": [
         "public",
         "contacts_only",
+        "consent_only",
         "nobody"
       ],
-      "description": "Closed sender-side visibility policy. public permits effective-scope fanout, contacts_only permits fanout only when every active scope member is an accepted contact, and nobody suppresses presence sends."
+      "description": "Closed sender-side policy. public permits effective-scope fanout, contacts_only requires every other active member to be an accepted Contact, consent_only requires a fresh complete presence/any Consent current for every other active member, and nobody suppresses sends. No receiver-side filtering substitutes for whole-scope confidentiality."
     }
   },
   "additionalProperties": false
