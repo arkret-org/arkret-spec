@@ -149,6 +149,9 @@ Devicescope扩展须主体自己通过普通replacement authorize及完整posses
 future delivery fence不等待MLS Remove；密码学移除仍由合法committer推进epoch，不承诺擦除已交付内容／secret。
 新交付／附件／持续subscription／notification／epoch材料与远端供给 **MUST** 每次过current屏障，缓存不能保持旧allow。
 
+
+受管 Device 的原签上界按 [device lifecycle §16.1–16.2](../crypto-media/device-lifecycle.md#161-原签-scopeaction-配对normative) 的 exact scope／action 配对及逐 operation 合同消费；管理 allow 不替代此上界，metadata 与新增安装不能扩大原配对。
+
 ## 6. 披露与验收
 
 申请人只读自己request，审批人只读合法scope审批所需候选；隐藏request、无权、未知统一not_found。

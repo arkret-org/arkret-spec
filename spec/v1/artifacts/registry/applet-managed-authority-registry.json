@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-09.1",
+  "version": "2026-10-16.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-09T07:31:39+08:00",
+  "generated_at": "2026-10-16T03:09:41.040907+08:00",
   "normative_source": "zh/extensions/applet-integration.md",
   "managed_roles": [
     "bot",
@@ -57,7 +57,165 @@
       "device_id",
       "nonce"
     ],
-    "service_key_is_device_key": false
+    "service_key_is_device_key": false,
+    "scope_schema_ref": "schemas/event-payload.schema.json#/$defs/applet_managed_device_scopes",
+    "scope_matching": {
+      "scope_equality": "exact_closed_realm_or_circle",
+      "entry_order": "utf8_jcs_effective_scope",
+      "action_order": "utf8_ascending_unique_registered",
+      "one_entry_per_scope": true,
+      "cross_entry_combination": false,
+      "realm_includes_circle": false,
+      "sidecar_supported": false,
+      "unknown_scope_or_action": "reject",
+      "resource_scope_source": "authoritative_target_resource_not_request_metadata"
+    },
+    "operation_scope_rules": [
+      {
+        "operation_id": "ak.self.blob.command.presign.v1",
+        "mode": "all_actions",
+        "actions": [
+          "ak.self.blob.command.presign.v1",
+          "ak.object.read_content"
+        ]
+      },
+      {
+        "operation_id": "ak.self.blob.resource.get.v1",
+        "mode": "all_actions",
+        "actions": [
+          "ak.self.blob.resource.get.v1",
+          "ak.object.read_content"
+        ]
+      },
+      {
+        "operation_id": "ak.self.blob.resource.head.v1",
+        "mode": "all_actions",
+        "actions": [
+          "ak.self.blob.resource.head.v1",
+          "ak.object.read_content"
+        ]
+      },
+      {
+        "operation_id": "ak.self.blob.upload.create.v1",
+        "mode": "all_actions",
+        "actions": [
+          "ak.self.blob.upload.create.v1"
+        ]
+      },
+      {
+        "operation_id": "ak.self.device_messages.command.ack.v1",
+        "mode": "device_control",
+        "actions": [],
+        "control_rule": "own_exact_previously_delivered_items_ack"
+      },
+      {
+        "operation_id": "ak.self.device_messages.read.list.v1",
+        "mode": "all_actions",
+        "actions": [
+          "ak.event.read"
+        ]
+      },
+      {
+        "operation_id": "ak.self.keys.keypackages.command.claim.v1",
+        "mode": "all_actions",
+        "actions": [
+          "ak.event.read"
+        ]
+      },
+      {
+        "operation_id": "ak.self.keys.keypackages.command.consume.v1",
+        "mode": "device_control",
+        "actions": [],
+        "control_rule": "own_exact_durable_welcome_receipt_consume"
+      },
+      {
+        "operation_id": "ak.self.keys.keypackages.command.revoke.v1",
+        "mode": "device_control",
+        "actions": [],
+        "control_rule": "own_exact_keypackage_revoke"
+      },
+      {
+        "operation_id": "ak.self.keys.keypackages.read.claim.v1",
+        "mode": "all_actions",
+        "actions": [
+          "ak.event.read"
+        ]
+      },
+      {
+        "operation_id": "ak.self.keys.keypackages.upload.create.v1",
+        "mode": "device_control",
+        "actions": [],
+        "control_rule": "own_scope_bound_keypackage_upload"
+      },
+      {
+        "operation_id": "ak.self.mls.read.group_state_material.v1",
+        "mode": "all_actions",
+        "actions": [
+          "ak.event.read"
+        ]
+      },
+      {
+        "operation_id": "ak.self.mls.read.roster_authority.v1",
+        "mode": "all_actions",
+        "actions": [
+          "ak.event.read"
+        ]
+      },
+      {
+        "operation_id": "ak.self.signer_keys.read.resolve.v1",
+        "mode": "all_actions",
+        "actions": [
+          "ak.event.read"
+        ]
+      },
+      {
+        "operation_id": "ak.self.current_results.read.exact.v1",
+        "mode": "all_actions",
+        "actions": [
+          "ak.event.read"
+        ]
+      },
+      {
+        "operation_id": "ak.self.committed_event.resource.get.v1",
+        "mode": "all_actions",
+        "actions": [
+          "ak.event.read"
+        ]
+      },
+      {
+        "operation_id": "ak.self.committed_event.read.scan.v1",
+        "mode": "all_actions",
+        "actions": [
+          "ak.event.read"
+        ]
+      },
+      {
+        "operation_id": "ak.self.committed_event.stream.subscribe.v1",
+        "mode": "all_actions",
+        "actions": [
+          "ak.event.read"
+        ]
+      },
+      {
+        "operation_id": "ak.self.realm_state_snapshot.read.by_ref.v1",
+        "mode": "all_actions",
+        "actions": [
+          "ak.event.read"
+        ]
+      },
+      {
+        "operation_id": "ak.self.realm_state_snapshot.read.manifest_head.v1",
+        "mode": "all_actions",
+        "actions": [
+          "ak.event.read"
+        ]
+      },
+      {
+        "operation_id": "ak.self.events.command.submit.v1",
+        "mode": "submitted_business_actions",
+        "actions": []
+      }
+    ]
   },
   "content_delivery": "exact_managed_account_device_via_station",
   "service_base_url": "mandatory_https_management_endpoint",

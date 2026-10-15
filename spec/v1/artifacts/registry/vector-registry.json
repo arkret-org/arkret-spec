@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-14.8",
+  "version": "2026-10-16.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-14T11:50:04Z",
+  "generated_at": "2026-10-16T03:12:15.736354+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -5215,6 +5215,19 @@
       "description": "Side-effecting audited Watch read binds signed auditor/target/scope, independent read and audit capabilities, narrow Circle audit exception, accepted audit and frozen result, exact replay without a new query, current delivery gates and handoff failure closure.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/registered-atomic-unit-and-watch-audit-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.applet.device_scopes.v1",
+      "status": "active",
+      "domain": "applet",
+      "applies_to_fixtures": [
+        "applet-device-scope-fixture.json"
+      ],
+      "description": "Canonical exact managed Device scope/action pairs reject cross-entry expansion, inherited scopes, unregistered actions, duplicates and noncanonical order.",
+      "source_refs": [
+        "spec/v1/artifacts/fixtures/applet-device-scope-fixture.json",
+        "spec/v1/zh/crypto-media/device-lifecycle.md"
       ]
     }
   ]

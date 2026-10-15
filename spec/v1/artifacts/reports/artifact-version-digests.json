@@ -33,9 +33,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/applet-managed-authority-registry.json",
-      "version": "2026-10-09.1",
-      "generated_at": "2026-10-09T07:31:39+08:00",
-      "content_digest": "sha256:aebb7a5fed18a9e39a52e504aaae5a3da5aa7593c533b49d53d486f9a347d629"
+      "version": "2026-10-16.1",
+      "generated_at": "2026-10-16T03:09:41.040907+08:00",
+      "content_digest": "sha256:15ab932eaec39943f228b6d81c873beb25d3df04e900d3fd6f1ebf6f46adb219"
     },
     {
       "path": "spec/v1/artifacts/registry/authority-set-policy-registry.json",
@@ -237,9 +237,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-10-15.4",
-      "generated_at": "2026-10-15T01:58:35.606459+00:00",
-      "content_digest": "sha256:5e248a8edac1a22a3142d36c0b1fec16d38814bd9bced6c89654fae1bdfb697d"
+      "version": "2026-10-16.1",
+      "generated_at": "2026-10-16T03:09:41.041924+08:00",
+      "content_digest": "sha256:379b4d73fd7203272f8a1486794b762d56b079204bfcd320bf83e07835013326"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
@@ -381,9 +381,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/vector-registry.json",
-      "version": "2026-10-14.8",
-      "generated_at": "2026-10-14T11:50:04Z",
-      "content_digest": "sha256:a65b4468d34c2be2de8fc15283b0044b1f998ab84ca4770495b44989cbc994ed"
+      "version": "2026-10-16.1",
+      "generated_at": "2026-10-16T03:12:15.736354+08:00",
+      "content_digest": "sha256:e14ae4bca6126092b0f3cefbaf4861c48df49bf33fdd17ce74ca9786638562fb"
     },
     {
       "path": "tools/artifact-anchor-fragment-exemptions.json",
@@ -483,9 +483,9 @@
     },
     {
       "path": "tools/normative-title-inventory.json",
-      "version": "2026-10-15.1",
-      "generated_at": "2026-10-15T01:58:34.606459+00:00",
-      "content_digest": "sha256:da3b7cf74a855677c4abc5912742a81561a5a60f7f12c66924758e670ac13294"
+      "version": "2026-10-16.1",
+      "generated_at": "2026-10-16T03:10:02.144048+08:00",
+      "content_digest": "sha256:fe02aee4943e656256baf10eb0c820032a36d4ed58449cbad544392b4355f48f"
     },
     {
       "path": "tools/operation-note-field-exemptions.json",
@@ -531,9 +531,9 @@
     },
     {
       "path": "tools/release-tool-manifest.json",
-      "version": "2026-10-09.1",
-      "generated_at": "2026-10-09T07:31:39+08:00",
-      "content_digest": "sha256:4a4f93d56a19d7ad270ccea84f5f6d42325ca23035b36639fd7c8e1eb451e80b"
+      "version": "2026-10-16.2",
+      "generated_at": "2026-10-16T03:15:27.549199+08:00",
+      "content_digest": "sha256:b98174173289cd5f260a84e5da733b14761688abc95892f3cc7d45b1deb58cb1"
     },
     {
       "path": "tools/resolution-commitment-pointer-registry.json",

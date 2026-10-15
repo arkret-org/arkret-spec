@@ -359,7 +359,7 @@ Applet-managed Bot / Ghost principal 在结构上不可能有 founding device：
   "authorized_generation_ref": 7,
   "not_before": "2026-09-15T00:00:00.000Z",
   "expires_at": "2026-12-15T00:00:00.000Z",
-  "scopes": ["..."],
+  "scopes": [{"effective_scope": {"kind": "realm", "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"}, "actions": ["ak.event.read"]}],
   "recovery_session_id": null,
   "applet_id": "ak:applet:..."
 }
@@ -370,9 +370,9 @@ Applet-managed Bot / Ghost principal 在结构上不可能有 founding device：
 
 - **`authorized_by` 自锚**：MUST 逐字等于 `Event.actor_id.account_id.principal_id`。授权该设备的是这个 managed principal 自己的 PCR controller key，不是 Applet 的 `service_id`、controller DID 或任何别的 principal；取 `service_id` 会引入一条本规范未定义的跨 principal authority 链路，并与 §3.3「Bot 是独立长期 principal，不复用 Applet service/controller identity」相悖。MUST NOT 使用设备 id。
 - **有界委托**：`expires_at` MUST 存在且 MUST NOT 为 `null`，`scopes` MUST 非空。Applet-managed delegated device 不存在"永久、无限 scope"形态；这与 human / Agent 设备不同，因为持有该设备私钥的是 Applet 运行时，而不是 principal 本人。
-- **`applet_id` 是撤销围栏载体**：MUST 逐字等于创建该 principal 的那条已接受 `ak.applet.managed_actor.provision` 所属的 exact Applet install。它使该设备能被 §15 的 install revoke fence 直接判定，而不需要在设备目录之外另建一张映射表。
+- **`applet_id` 是逐 scope 围栏载体**：MUST 逐字等于创建该 principal 的已接受 `ak.applet.managed_actor.provision` 所属的 exact Applet。原创建 scope 仅证明来源；每项新业务独立按原签配对与该实际 scope 的安装执行 §15 围栏，不把创建安装当作全局 liveness。
 - **不得跨分支复用**：该 payload MUST NOT 携带 `recovery_session_id` 或 `pairing_challenge_transcript_digest`；`registration_anchor` / `pcr_recovery` / `accepted_device` 三个分支同样 MUST NOT 携带 `applet_id`。
-- **前置状态**：接受该 Event 前，该 PCR 中 `ak.applet.managed_actor.provision` 与 `applet_managed_control` genesis MUST 已 accepted，且其 exact Applet install MUST 仍为 active。provision 与 genesis 尚未接受，或 install 已被 fence 时 MUST fail closed，前者按普通依赖未满足处理，后者 code=`applet_revoked`。
+- **前置状态**：接受该 Event 前，该 PCR 中 `ak.applet.managed_actor.provision` 与 `applet_managed_control` genesis MUST 已 accepted，且新列表的每个 exact scope MUST 有同一 owning Service 的 active Applet installation。provision 与 genesis 尚未接受，或任一授权 scope 安装已被 fence 时 MUST fail closed，前者按普通依赖未满足处理，后者 code=`applet_revoked`。
 
 ### 5.3 Event proof key resolution（normative）
 
@@ -436,7 +436,7 @@ Arkret v1 没有让远端 verifier 证明 source 已完整披露 PCR 历史的�
 | `authorized_generation_ref` | payload 逐字 | 见 §5.5.2；**MUST NOT** 由 reducer 读前态产生 |
 | `not_before` | payload 逐字 | |
 | `expires_at` | payload 逐字（可空、可缺） | 与 `not_before` 合称 `authorization_window`，那是同一对值在服务面的呈现名，不是第三个成员 |
-| `scopes` | payload 逐字（可缺） | |
+| `scopes` | payload 逐字（可缺） | managed 分支按 §16.1 配对；typed current 不解码字符串或重排 |
 | `applet_id` | payload 逐字（可缺） | |
 | `recovery_session_id` | payload 逐字（可缺） | |
 | `pairing_challenge_transcript_digest` | payload 逐字（可缺） | §5.2.2 要求 accepted payload 持久保存它 |
@@ -1451,3 +1451,52 @@ Bot/Ghost设备请求认证 **MUST** 按 [Applet integration §18](../extensions
 `@method`, `@target-uri`, `@authority`, `arkret-operation`, `arkret-managed-device`, `destination-service-id`, `content-digest`, `idempotency-key`。body有则content-digest，有幂等键则idempotency-key；签名参数与时窗沿canonical common contract。
 
 <!-- END ak-http-signature-covered-set -->
+
+### 16.1 原签 scope／action 配对（normative）
+
+`applet_managed_delegation` 的 `scopes` MUST 是非空的闭合配对列表；每项字段顺序为
+`effective_scope`、`actions`。前者复用安装的 Realm／Circle ScopeRef，后者是非空的已登记
+CapabilityActionId 列表，按 UTF-8 字节升序且唯一。列表按 RFC8785 JCS(effective_scope) 的
+UTF-8 字节升序，且同一 scope 只能一项；接收方 MUST 拒绝非规范次序、重复 scope／action、
+未知 action／scope、额外字段、空值和通配，不得重排已签字节。其它 Device 授权分支保留原字符串
+列表合同；不存在将字符串解码为 managed authority 的第二种表示。
+
+实际请求所需的每个 `(effective_scope, action)` MUST 在同一个原签项中命中。一个请求需要
+多个 action 时须全部命中该 scope 项；多个资源／queue item／Event 则分别验证全部实际 scope。
+`A/X + B/Y` 不授权 A/Y 或 B/X。Realm 不隐式覆盖 Circle，Circle 不覆盖 Realm 或其它 Circle。
+此合同不授权 Sidecar：Sidecar 有独立参与及披露合同，MUST NOT 借其 parent Realm 安装、
+metadata 或 `ak.event.read` 放行。新增支持必须先正式登记合同。
+
+目标资源的 scope MUST 来自权威 Event／对象／stream／signed MLS group／KeyPackage claim／
+原 durable queue item 或 Blob 的真实用途绑定，且 metadata.effective_scope MUST 与之相等；
+同一次请求含异 scope 内容时应按 exact scope 分请求，不得用调用人自报值替代资源归属。
+无 Circle 的 Realm 内容归 Realm，Circle 内的 Strand／Message／附件／MLS 材料归该 Circle；
+公开 signer／历史依赖仍须绑定本次合法业务所需的最小引用，不授予私有 PCR 全流。
+未知、缺失、冲突或无法权威确定的归属 MUST fail closed，不按 Realm 默认补全。
+
+### 16.2 21-operation 的配对消费（normative）
+
+唯一机器映射为 [applet-managed-authority-registry](../../artifacts/registry/applet-managed-authority-registry.json)
+的 `device_authentication.operation_scope_rules`，必须与原 21-operation allowlist 一一对应。
+`all_actions` 要求同一 scope 项含全部 actions；其中 Blob presign/get/head 同时要求自身服务动作与
+`ak.object.read_content`。Blob upload 要求自身服务动作，提交其引用时另验实际内容动作。
+其余 read／stream（包括 KeyPackage claim/query、Device queue list、MLS／signer／current／
+Event／snapshot）均要求实际目标 scope 的 `ak.event.read`，并保留 membership、history、
+parent 上界及内容读取的 `ak.object.read_content` 附加门。`submitted_business_actions` 从每条
+实际 Event 的正式 action 映射或完整 MLS submission 派生所有所需动作；MUST NOT 把 self/events
+operation 字符串当作任意 Event 权限，禁止以 Device 提交新增 Device、扩权或管理员控制。
+
+`device_control` 只登记四个窄例外，不铸造通用业务 action：upload 只发布本人 Device、exact scope
+绑定的 KeyPackage，须该 scope 原签项、有效安装及原 E2EE 同意；revoke 只收回本人原 KeyPackage；
+consume 只消费本人已经验证并耐久接收的 exact Welcome／claim receipt；ACK 只确认本人已合法交付的
+exact durable items。四者均须 exact scope 原签项、原 Account／Device／authorization 实例及各自原生
+签名／幂等合同；revoke／consume／ACK 可在安装失效后仅作收权／完成旧交付，不返回新群材料或新内容。
+queue list 及每个新 item 始终逐 scope 执行当前全部交付屏障。
+
+配对命中只证明原 Device 授权上界，不替代 HTTP allowlist、current Device／generation／期限、
+实际业务 grant、membership／history、当前安装与 Policy；这些条件 MUST 求 AND。撤销 A 安装不误撤
+独立合法的 B；新增 B 安装不扩展只签 A 的 Device。扩 B 必须由 Principal 原签 replacement authorize，
+候选 Device 再签包含完整新列表的原 possession transcript，沿同 PCR generation／revision CAS 接纳。
+不新增签名域或预像，typed current 原样保留该列表；历史 accepted 事实按原时点和原授权实例复验。
+
+`ak.vector.applet.device_scopes.v1` 用真实合法 ScopeRef／动作执行正反例，向量输入见 [paired scope fixture](../../artifacts/fixtures/applet-device-scope-fixture.json)。

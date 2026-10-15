@@ -1,0 +1,408 @@
+{
+  "version": "2026-10-16.1",
+  "description": "Exact original managed Device scope/action pairs; semantic validity includes canonical ordering and registered actions.",
+  "cases": [
+    {
+      "name": "a_read",
+      "scopes": [
+        {
+          "effective_scope": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+          },
+          "actions": [
+            "ak.event.read"
+          ]
+        },
+        {
+          "effective_scope": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AUJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJC"
+          },
+          "actions": [
+            "ak.message.create"
+          ]
+        }
+      ],
+      "scope": {
+        "kind": "realm",
+        "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+      },
+      "actions": [
+        "ak.event.read"
+      ],
+      "valid": true,
+      "permits": true
+    },
+    {
+      "name": "b_write",
+      "scopes": [
+        {
+          "effective_scope": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+          },
+          "actions": [
+            "ak.event.read"
+          ]
+        },
+        {
+          "effective_scope": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AUJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJC"
+          },
+          "actions": [
+            "ak.message.create"
+          ]
+        }
+      ],
+      "scope": {
+        "kind": "realm",
+        "realm_id": "ak:realm:AUJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJC"
+      },
+      "actions": [
+        "ak.message.create"
+      ],
+      "valid": true,
+      "permits": true
+    },
+    {
+      "name": "no_cross_pair",
+      "scopes": [
+        {
+          "effective_scope": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+          },
+          "actions": [
+            "ak.event.read"
+          ]
+        },
+        {
+          "effective_scope": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AUJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJC"
+          },
+          "actions": [
+            "ak.message.create"
+          ]
+        }
+      ],
+      "scope": {
+        "kind": "realm",
+        "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+      },
+      "actions": [
+        "ak.message.create"
+      ],
+      "valid": true,
+      "permits": false
+    },
+    {
+      "name": "all_actions_required",
+      "scopes": [
+        {
+          "effective_scope": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+          },
+          "actions": [
+            "ak.event.read"
+          ]
+        },
+        {
+          "effective_scope": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AUJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJC"
+          },
+          "actions": [
+            "ak.message.create"
+          ]
+        }
+      ],
+      "scope": {
+        "kind": "realm",
+        "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+      },
+      "actions": [
+        "ak.event.read",
+        "ak.message.create"
+      ],
+      "valid": true,
+      "permits": false
+    },
+    {
+      "name": "realm_does_not_include_circle",
+      "scopes": [
+        {
+          "effective_scope": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+          },
+          "actions": [
+            "ak.event.read"
+          ]
+        },
+        {
+          "effective_scope": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AUJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJC"
+          },
+          "actions": [
+            "ak.message.create"
+          ]
+        }
+      ],
+      "scope": {
+        "kind": "circle",
+        "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
+        "circle_id": "ak:circle:AUNDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0ND"
+      },
+      "actions": [
+        "ak.event.read"
+      ],
+      "valid": true,
+      "permits": false
+    },
+    {
+      "name": "empty",
+      "scopes": [],
+      "scope": {
+        "kind": "realm",
+        "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+      },
+      "actions": [
+        "ak.event.read"
+      ],
+      "valid": false,
+      "permits": false
+    },
+    {
+      "name": "ordinary_strings",
+      "scopes": [
+        "ak.event.read"
+      ],
+      "scope": {
+        "kind": "realm",
+        "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+      },
+      "actions": [
+        "ak.event.read"
+      ],
+      "valid": false,
+      "permits": false
+    },
+    {
+      "name": "duplicate_scope",
+      "scopes": [
+        {
+          "effective_scope": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+          },
+          "actions": [
+            "ak.event.read"
+          ]
+        },
+        {
+          "effective_scope": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+          },
+          "actions": [
+            "ak.event.read"
+          ]
+        }
+      ],
+      "scope": {
+        "kind": "realm",
+        "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+      },
+      "actions": [
+        "ak.event.read"
+      ],
+      "valid": false,
+      "permits": false
+    },
+    {
+      "name": "unsorted_scopes",
+      "scopes": [
+        {
+          "effective_scope": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AUJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJC"
+          },
+          "actions": [
+            "ak.message.create"
+          ]
+        },
+        {
+          "effective_scope": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+          },
+          "actions": [
+            "ak.event.read"
+          ]
+        }
+      ],
+      "scope": {
+        "kind": "realm",
+        "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+      },
+      "actions": [
+        "ak.event.read"
+      ],
+      "valid": false,
+      "permits": false
+    },
+    {
+      "name": "unknown_action",
+      "scopes": [
+        {
+          "effective_scope": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+          },
+          "actions": [
+            "ak.unknown.action"
+          ]
+        }
+      ],
+      "scope": {
+        "kind": "realm",
+        "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+      },
+      "actions": [
+        "ak.event.read"
+      ],
+      "valid": false,
+      "permits": false
+    },
+    {
+      "name": "wildcard_action",
+      "scopes": [
+        {
+          "effective_scope": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+          },
+          "actions": [
+            "ak.*"
+          ]
+        }
+      ],
+      "scope": {
+        "kind": "realm",
+        "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+      },
+      "actions": [
+        "ak.event.read"
+      ],
+      "valid": false,
+      "permits": false
+    },
+    {
+      "name": "empty_actions",
+      "scopes": [
+        {
+          "effective_scope": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+          },
+          "actions": []
+        }
+      ],
+      "scope": {
+        "kind": "realm",
+        "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+      },
+      "actions": [
+        "ak.event.read"
+      ],
+      "valid": false,
+      "permits": false
+    },
+    {
+      "name": "duplicate_actions",
+      "scopes": [
+        {
+          "effective_scope": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+          },
+          "actions": [
+            "ak.event.read",
+            "ak.event.read"
+          ]
+        }
+      ],
+      "scope": {
+        "kind": "realm",
+        "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+      },
+      "actions": [
+        "ak.event.read"
+      ],
+      "valid": false,
+      "permits": false
+    },
+    {
+      "name": "unsorted_actions",
+      "scopes": [
+        {
+          "effective_scope": {
+            "kind": "realm",
+            "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+          },
+          "actions": [
+            "ak.message.create",
+            "ak.event.read"
+          ]
+        }
+      ],
+      "scope": {
+        "kind": "realm",
+        "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+      },
+      "actions": [
+        "ak.event.read"
+      ],
+      "valid": false,
+      "permits": false
+    },
+    {
+      "name": "sidecar",
+      "scopes": [
+        {
+          "effective_scope": {
+            "kind": "sidecar",
+            "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB",
+            "sidecar_id": "ak:sidecar:AURERERERERERERERERERERERERERERERERERERERERE"
+          },
+          "actions": [
+            "ak.event.read"
+          ]
+        }
+      ],
+      "scope": {
+        "kind": "realm",
+        "realm_id": "ak:realm:AUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+      },
+      "actions": [
+        "ak.event.read"
+      ],
+      "valid": false,
+      "permits": false
+    }
+  ],
+  "profile": "ak.profile.applet_bridge.v1",
+  "suite": "applet_device_scopes",
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.applet.device_scopes.v1"
+  },
+  "covers_vectors": [
+    "ak.vector.applet.device_scopes.v1"
+  ]
+}

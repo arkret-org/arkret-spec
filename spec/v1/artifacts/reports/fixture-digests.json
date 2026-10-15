@@ -51,6 +51,11 @@
       "version": "2026-10-15.1"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/applet-device-scope-fixture.json",
+      "sha256": "3cd0094794482ae1cf8077326057a4613fb3c04166727baabf2043f810e3b6ca",
+      "version": "2026-10-16.1"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/applet-managed-actor-fixture.json",
       "sha256": "7946e3c41eb539e57355cc3ae68d6e72104f7b399ddea2ae3d13e73d045c418c",
       "version": "2026-10-14.3"

@@ -1191,6 +1191,10 @@ authorization_event_id必须是该Device当前accepted合法授权实例，posse
 这条allowlist不给新增设备、转授、管理员、账号恢复、他人PCR、备份解锁或任意服务调用资格。
 读取自己的必要public signer/history材料按该动作所需最小披露；private PCR全流读取不由allowlist获得。
 
+原签 `scopes` 的唯一配对形状、exact 资源归属、禁止跨项拼接及 21-operation 动作／控制例外见
+[device lifecycle §16.1–16.2](../crypto-media/device-lifecycle.md#161-原签-scopeaction-配对normative)。
+metadata 只选择本次实际 scope，不扩展原授权；Realm 安装不隐含 Circle 或 Sidecar Device 权限。
+
 ### 18.2b 首个 Device 与 Service 原签 child 的认证
 
 `ak.self.events.command.submit.v1` 登记独立 Service RFC 9421 认证分支，Source-Service-ID 必须是 exact Applet Service。

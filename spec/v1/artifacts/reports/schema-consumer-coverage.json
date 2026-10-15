@@ -992,6 +992,7 @@
           "ak.schema.applet_managed_actor_authoring_bundle.v1",
           "ak.schema.applet_managed_actor_authoring_request.v1",
           "ak.schema.approval_signature.v1",
+          "ak.schema.event_payload.v1",
           "ak.schema.management_review_operations.v1",
           "ak.schema.message.v1",
           "ak.schema.policy.v1",
