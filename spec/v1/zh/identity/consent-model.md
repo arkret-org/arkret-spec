@@ -196,3 +196,15 @@ Consent list/get 仅允许 holder 或 holder 明确授权的 controller。peer �
 ## 9. Conformance
 
 实现至少验证：唯一 `consent_id`、stale revision 拒绝、exact retry、`any` 与具体 scope 的独立性、撤销后 cache 即时失效、跨 Station anti-enumeration、pairwise ActorId隔离以及 requester 观察等价类。
+
+### 6.3.3 authority 接受后的私有效果发布（normative）
+
+`ak.peer.consent.command.publish_effects.v1`（`POST /_arkret/peer/consent/effects`）是当前 PCR authority 到 exact holder hosting Station 的闭合发布载体，DTO 见 `consent-private-operations.schema.json`。它只发布 `holder_quarantine,invite_delivery,invite_receive_policy` 三个 required nullable cell 的完整原 revision/content；不是第七个 proxy 命令，不提供任意 key 或任意 AccountData PUT，也不放宽 §6.3.2 的 holder-session／station 两个 context。
+
+Source MUST 是从 holder inception PCR 与连续 handoff chain 独立验证的当前治理 Station，Destination MUST 等于完整 holder 的 hosting Station。沿用 `ak.http_signature.scenario.service_to_service.v1`。请求绑定完整 holder、realm、generation、至少128 bit CSPRNG nonce、实际 effective Realm stream head、evaluated_at、expires_at 和完整 effects；窗口最多30秒。hosting 不接受调用方地址、自报 key、旧任期、冻结或不完整来源作为权威。新收到的 cut 不得低于包括新 authority assertion 在内的已知 head；同位置不同 Commit 或同 cell revision 不同 content 是分叉，必须拒绝。null 不得抹去已知的非空 cell revision，来源缺失不能被投影成空。
+
+authority 的实际私有 CAS／queue／invalidation 接受与耐久 publication intent MUST 同事务提交；精确业务重试不新增 intent、不再次执行业务 CAS。publisher 每次尝试从当前本地、未冻结 PCR 接受锁取得完整新 cut，在锁外以自己的真实 Service 身份发送；失联重试重新取得 cut／nonce／窗口，不能延长或重复使用旧授权材料。成功确认仅可在同一接受锁下、有匹配 intent sequence 的条件下删除／确认意图；冻结中不得改变导出状态。在途旧确认不能覆盖更新的接受，也不能改变已经冻结的迁移内容。
+
+hosting 验证 Source、当前治理权、请求窗口和已知 head／cell 高水位后，MUST 在一个本地投影事务内保留已验证 cut，按原 business revision/content 更新展示副本并推进正式 cursor-covered `account_data.station_cas` 位置。它不接受业务 CAS、不签发 RealmCommit，不独立增加该 cell 的 business revision。只有实际新增的投影 revision 可经原正式 actor-private 更新路径唤醒 holder；sender 是 hosting Station 自己的真实 Service，authority 不冒充它。等价 publication／确认丢失／冷恢复不得重复投影或 fanout；原 requester 始终只收到原 opaque outcome。
+
+publication outcome 只携完整 request digest 和 `applied|duplicate`，不授予业务授权。意图、确认边界及拒绝回退所需的私有耐久状态必须随 planned handoff 完整迁入；新 governor 用自己的当前身份恢复未确认意图，旧 governor 不得继续发布。holder 离线时也必须保留正式 account subscribe 的 baseline／catch-up；丢失低延迟通知不能通过伪造 holder 会话、重放业务接受、普通 PCR replication 或第二个 CAS writer 修复。未实现该发布载体的实现必须在接受冻结变更前拒绝启动 PCR handoff。

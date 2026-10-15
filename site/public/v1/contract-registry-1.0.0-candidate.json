@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-15.4",
+  "version": "2026-10-15.5",
   "source_of_truth": true,
-  "generated_at": "2026-10-15T00:27:32+00:00",
+  "generated_at": "2026-10-15T01:58:34.606459+00:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-10-14.2",
@@ -12040,6 +12040,7 @@
         "machine_projections": [],
         "operations": [
           "ak.peer.consent.command.proxy.v1",
+          "ak.peer.consent.command.publish_effects.v1",
           "ak.peer.keys.read.lookup.v1",
           "ak.peer.mls.command.attest_add.v1",
           "ak.peer.mls.read.roster_authority.v1",
@@ -12767,7 +12768,8 @@
           "ak.self.consent.command.request.v1",
           "ak.self.consent.read.current.v1",
           "ak.peer.consent.read.current.v1",
-          "ak.peer.consent.command.proxy.v1"
+          "ak.peer.consent.command.proxy.v1",
+          "ak.peer.consent.command.publish_effects.v1"
         ],
         "surface_class": "extension"
       },
@@ -17058,6 +17060,32 @@
         },
         "idempotency_mechanism": "request_id",
         "retry_safe": true
+      },
+      {
+        "operation_id": "ak.peer.consent.command.publish_effects.v1",
+        "http": "POST /_arkret/peer/consent/effects",
+        "grpc": "PeerConsent/PublishEffects",
+        "mq": "peer.consent.command.publish_effects",
+        "notes": "Only the independently verified current holder PCR authority is the RFC9421 Source; Destination is the exact holder hosting Station. Publish the three closed private cells at the actual current cut, with a CSPRNG nonce and a 30-second outstanding window. Authority-local acceptance and the durable publication intent commit atomically. Hosting only materializes original revisions and cursor-covered Station-CAS display, never accepts a second business CAS. Same revision with changed content, stale tenure/head/cell, an unknown source or an incomplete cut is rejected. Duplicate delivery does not change the business revision or repeat fanout. Hosting wakes devices under its own real Service identity. Pending intents migrate, and only the new authority may recover them. See identity/consent-model section 6.3.3.",
+        "body_class": "non_streaming_json",
+        "max_canonical_body_bytes": 1048576,
+        "success_shape_kind": "schema_resource",
+        "request_schema_ref": "schemas/consent-private-operations.schema.json#/$defs/effects_publish_request",
+        "response_schema_ref": "schemas/consent-private-operations.schema.json#/$defs/effects_publish_outcome",
+        "durable_effect": {
+          "kind": "none",
+          "rationale": "projects_existing_authority_accepted_private_cells_and_station_cas_cursor_without_new_business_cas_or_synthetic_event"
+        },
+        "auth_requirements": {
+          "service_signature": {
+            "signature_scenario_id": "ak.http_signature.scenario.service_to_service.v1",
+            "standard": "RFC 9421 HTTP Message Signature",
+            "bearer_only_allowed": false,
+            "contract": "Covered components, signature parameters and the freshness window come from http_signature_contract_registry. This operation MUST NOT restate them."
+          }
+        },
+        "idempotency_mechanism": "request_id",
+        "retry_safe": true
       }
     ],
     "direct_conversation_admission_mappings": {
@@ -17300,8 +17328,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-10-15.2",
-    "generated_at": "2026-10-15T00:27:32+00:00",
+    "version": "2026-10-15.3",
+    "generated_at": "2026-10-15T02:02:26.018481+00:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.coland_station.v1",
@@ -18009,6 +18037,10 @@
           },
           {
             "operation_id": "ak.peer.consent.command.proxy.v1",
+            "binding_kind": "http_json"
+          },
+          {
+            "operation_id": "ak.peer.consent.command.publish_effects.v1",
             "binding_kind": "http_json"
           },
           {

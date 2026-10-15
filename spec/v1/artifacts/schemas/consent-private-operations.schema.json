@@ -9,6 +9,12 @@
     },
     {
       "$ref": "#/$defs/proxy_outcome"
+    },
+    {
+      "$ref": "#/$defs/effects_publish_request"
+    },
+    {
+      "$ref": "#/$defs/effects_publish_outcome"
     }
   ],
   "$defs": {
@@ -590,6 +596,154 @@
         },
         "outcome": {
           "$ref": "#/$defs/command_outcome"
+        }
+      },
+      "additionalProperties": false
+    },
+    "effects_publish_request": {
+      "type": "object",
+      "required": [
+        "holder_account_id",
+        "realm_id",
+        "governance_generation",
+        "nonce",
+        "effective_stream_head",
+        "evaluated_at",
+        "expires_at",
+        "effects"
+      ],
+      "properties": {
+        "holder_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "governance_generation": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        },
+        "nonce": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{22,64}$"
+        },
+        "effective_stream_head": {
+          "$ref": "./realm-commit.schema.json#/$defs/stream_head"
+        },
+        "evaluated_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "effects": {
+          "type": "object",
+          "required": [
+            "holder_quarantine",
+            "invite_delivery",
+            "invite_receive_policy"
+          ],
+          "properties": {
+            "holder_quarantine": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "required": [
+                    "revision",
+                    "content"
+                  ],
+                  "properties": {
+                    "revision": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 18446744073709551615
+                    },
+                    "content": {
+                      "$ref": "./holder-quarantine.schema.json"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "invite_delivery": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "required": [
+                    "revision",
+                    "content"
+                  ],
+                  "properties": {
+                    "revision": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 18446744073709551615
+                    },
+                    "content": {
+                      "$ref": "./invite-delivery.schema.json"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "invite_receive_policy": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "required": [
+                    "revision",
+                    "content"
+                  ],
+                  "properties": {
+                    "revision": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 18446744073709551615
+                    },
+                    "content": {
+                      "$ref": "./invite-receive-policy.schema.json"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false,
+      "description": "Only the independently verified current PCR authority publishes accepted private effects to the exact holder hosting Station; this is a display and wakeup projection, never a private CAS command."
+    },
+    "effects_publish_outcome": {
+      "type": "object",
+      "required": [
+        "request_digest",
+        "status"
+      ],
+      "properties": {
+        "request_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "applied",
+            "duplicate"
+          ]
         }
       },
       "additionalProperties": false

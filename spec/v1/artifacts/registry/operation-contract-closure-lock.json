@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-15.2",
-  "generated_at": "2026-10-15T00:13:24+00:00",
+  "version": "2026-10-15.3",
+  "generated_at": "2026-10-15T01:58:34.606459+00:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -258,6 +258,10 @@
     {
       "operation_id": "ak.peer.consent.command.proxy.v1",
       "sha256": "sha256:b1676d8e1261a2867f6664c62e93faa51c7b6cb6d3ecb138aeaa6e477e87c339"
+    },
+    {
+      "operation_id": "ak.peer.consent.command.publish_effects.v1",
+      "sha256": "sha256:bfbf57a3ee6c144d1ec1b98d8701d8ba7fa0a4084572ceb9cac21769cca19daa"
     },
     {
       "operation_id": "ak.peer.consent.read.current.v1",

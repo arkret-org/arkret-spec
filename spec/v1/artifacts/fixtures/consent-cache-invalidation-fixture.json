@@ -5,7 +5,7 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.consent.cache_invalidation.v1"
   },
-  "version": "2026-10-14.6",
+  "version": "2026-10-15.1",
   "profile": "ak.profile.station.v1",
   "covers_vectors": [
     "ak.vector.consent.cache_invalidation.v1",
@@ -267,7 +267,8 @@
       "assertions": [
         "Known revoke/current high-water survives older exact reads and accepted retries; authority-generation switch forces fresh authoritative material and rejects previous authority verdicts.",
         "An absent, incomplete or mismatched private-state import cannot activate the new PCR tenure; no generation update or synthetic Snapshot substitutes for the legal handoff.",
-        "After the legal handoff, original Grant/Revoke retries retain their exact original outcomes, previous-authority verdicts cannot release product/ring/token, and fresh holder-hosting proxy requests recover private reads and authority-local delivery without a second current/CAS writer."
+        "After the legal handoff, original Grant/Revoke retries retain their exact original outcomes, previous-authority verdicts cannot release product/ring/token, and fresh holder-hosting proxy requests recover private reads and authority-local delivery without a second current/CAS writer.",
+        "Authority-local private acceptance and its durable publication intent commit together. Hosting verifies the current authority publication, projects original cell revisions into account subscribe and wakes devices under its own Service identity. Lost confirmations, offline recovery and migrated pending intents never repeat a business CAS, advance its revision or repeat fanout."
       ]
     },
     {

@@ -193,6 +193,7 @@ grpc:
     PeerConsent:
       ReadCurrent: ak.peer.consent.read.current.v1
       Proxy: ak.peer.consent.command.proxy.v1
+      PublishEffects: ak.peer.consent.command.publish_effects.v1
     PeerCallInvitation:
       Relay: ak.peer.call.invitation.command.relay.v1
       Admission: ak.peer.call.invitation.read.admission.v1
@@ -435,6 +436,7 @@ mq:
     self.consent.read.current: ak.self.consent.read.current.v1
     peer.consent.read.current: ak.peer.consent.read.current.v1
     peer.consent.command.proxy: ak.peer.consent.command.proxy.v1
+    peer.consent.command.publish_effects: ak.peer.consent.command.publish_effects.v1
     self.consent.resource.get: ak.self.consent.resource.get.v1
     self.consent.command.grant: ak.self.consent.command.grant.v1
     self.consent.command.revoke: ak.self.consent.command.revoke.v1

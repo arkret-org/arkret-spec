@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-14.12",
+  "version": "2026-10-15.4",
   "source_of_truth": false,
-  "generated_at": "2026-10-14T23:44:17.455641+00:00",
+  "generated_at": "2026-10-15T00:27:32+00:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -9441,6 +9441,48 @@
           "evaluated_at",
           "expires_at",
           "outcome"
+        ],
+        "closed": true
+      }
+    },
+    {
+      "operation_id": "ak.peer.consent.command.publish_effects.v1",
+      "success_shape_kind": "schema_resource",
+      "request": {
+        "schema_ref": "schemas/consent-private-operations.schema.json#/$defs/effects_publish_request",
+        "schema_kind": "object",
+        "required": [
+          "holder_account_id",
+          "realm_id",
+          "governance_generation",
+          "nonce",
+          "effective_stream_head",
+          "evaluated_at",
+          "expires_at",
+          "effects"
+        ],
+        "properties": [
+          "holder_account_id",
+          "realm_id",
+          "governance_generation",
+          "nonce",
+          "effective_stream_head",
+          "evaluated_at",
+          "expires_at",
+          "effects"
+        ],
+        "closed": true
+      },
+      "response": {
+        "schema_ref": "schemas/consent-private-operations.schema.json#/$defs/effects_publish_outcome",
+        "schema_kind": "object",
+        "required": [
+          "request_digest",
+          "status"
+        ],
+        "properties": [
+          "request_digest",
+          "status"
         ],
         "closed": true
       }

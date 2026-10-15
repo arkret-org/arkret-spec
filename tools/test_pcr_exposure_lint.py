@@ -231,6 +231,33 @@ class PcrPrivateContractTest(unittest.TestCase):
             self.assertFalse(validator.is_valid(changed), field)
         self.assertFalse(validator.is_valid({"kind": "effects", "body": {}}))
 
+    def test_effect_publication_is_closed_and_cannot_become_generic_rpc(self) -> None:
+        validator = self.validator("effects_publish_request")
+        proxy = self.request()
+        request = {key: proxy[key] for key in ("holder_account_id", "realm_id", "governance_generation", "nonce")}
+        request.update({
+            "effective_stream_head": {"stream_ref": {"kind": "realm", "realm_id": proxy["realm_id"]}, "stream_position": 2, "commit_id": "ak:realm_commit:" + "A" * 44},
+            "evaluated_at": "2026-10-15T00:00:00.000Z",
+            "expires_at": "2026-10-15T00:00:30.000Z",
+            "effects": {"holder_quarantine": None, "invite_delivery": None, "invite_receive_policy": None},
+        })
+        validator.validate(request)
+        for key in request:
+            changed = copy.deepcopy(request)
+            del changed[key]
+            self.assertFalse(validator.is_valid(changed), key)
+        for key in request["effects"]:
+            changed = copy.deepcopy(request)
+            del changed["effects"][key]
+            self.assertFalse(validator.is_valid(changed), key)
+        for key in ("context", "command", "arbitrary_account_data"):
+            changed = copy.deepcopy(request)
+            changed[key] = {}
+            self.assertFalse(validator.is_valid(changed), key)
+        ack = self.validator("effects_publish_outcome")
+        ack.validate({"request_digest": "sha256:" + "a" * 64, "status": "applied"})
+        self.assertFalse(ack.is_valid({"request_digest": "sha256:" + "a" * 64, "status": "accepted"}))
+
     def test_manifest_and_public_digest_are_required_exactly_for_pcr(self) -> None:
         # Isolate the contextual rule; complete cryptographic handoff acceptance
         # remains an SDK/server responsibility, never a schema-test assertion.

@@ -10230,3 +10230,35 @@ paths:
             application/json:
               schema:
                 $ref: ../schemas/consent-private-operations.schema.json#/$defs/proxy_outcome
+  /_arkret/peer/consent/effects:
+    post:
+      operationId: ak.peer.consent.command.publish_effects
+      summary: Publish current authority accepted private effects to the exact hosting Station.
+      parameters:
+      - name: Arkret-Operation
+        in: header
+        required: true
+        description: Required exact versioned operation_id selector for every canonical Arkret HTTP request.
+        schema:
+          type: string
+          const: ak.peer.consent.command.publish_effects.v1
+      security:
+      - httpMessageSignature: []
+        sourceServiceId: []
+        destinationServiceId: []
+        sourceTrustDomain: []
+        destinationTrustDomain: []
+        contentDigest: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../schemas/consent-private-operations.schema.json#/$defs/effects_publish_request
+      responses:
+        '200':
+          description: Holder-private complete matching typed current at one PCR authority cut.
+          content:
+            application/json:
+              schema:
+                $ref: ../schemas/consent-private-operations.schema.json#/$defs/effects_publish_outcome

@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-15.4",
+  "version": "2026-10-15.5",
   "source_of_truth": false,
-  "generated_at": "2026-10-15T00:27:32+00:00",
+  "generated_at": "2026-10-15T01:58:34.606459+00:00",
   "generated_from": [
     "registry/contract-registry.json",
     "openapi/arkret-service-api.openapi.yaml"
@@ -18,10 +18,10 @@
     "schema_missing": "OpenAPI declares a typed request/response component not yet mirrored to an artifact schema ref."
   },
   "summary": {
-    "total_operations": 224,
+    "total_operations": 225,
     "by_completeness_class": {
       "binary_or_redirect": 2,
-      "typed_schema": 222
+      "typed_schema": 223
     },
     "by_surface_class_and_completeness_class": {
       "core": {
@@ -32,7 +32,7 @@
       },
       "extension": {
         "binary_or_redirect": 2,
-        "typed_schema": 137
+        "typed_schema": 138
       },
       "interop_bridge": {
         "typed_schema": 23
@@ -891,6 +891,20 @@
       "openapi_component_refs": {
         "request": "../schemas/consent-private-operations.schema.json#/$defs/proxy_request",
         "response": "../schemas/consent-private-operations.schema.json#/$defs/proxy_outcome"
+      },
+      "completeness_class": "typed_schema",
+      "reason": "registry declares artifact schema ref(s) for request, response."
+    },
+    {
+      "operation_id": "ak.peer.consent.command.publish_effects.v1",
+      "surface_class": "extension",
+      "http": "POST /_arkret/peer/consent/effects",
+      "success_shape_kind": "schema_resource",
+      "request_schema_ref": "schemas/consent-private-operations.schema.json#/$defs/effects_publish_request",
+      "response_schema_ref": "schemas/consent-private-operations.schema.json#/$defs/effects_publish_outcome",
+      "openapi_component_refs": {
+        "request": "../schemas/consent-private-operations.schema.json#/$defs/effects_publish_request",
+        "response": "../schemas/consent-private-operations.schema.json#/$defs/effects_publish_outcome"
       },
       "completeness_class": "typed_schema",
       "reason": "registry declares artifact schema ref(s) for request, response."

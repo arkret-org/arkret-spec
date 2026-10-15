@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-14.1",
+  "version": "2026-10-15.1",
   "source_of_truth": true,
   "description": "Closed outward-exposure decision for every event kind admitted into a Principal Control Realm. ak.profile.principal_control_realm.v1 realm_event_kind_policy.allowed_event_kinds closes the write direction; this registry closes the read direction. A kind with an empty exposures[] is PCR-private and MUST NOT be reachable through any ak.open.* / ak.peer.* / cross-principal ak.self.* surface or public DID Document entry. A kind with exposures[] declares every path by which it legitimately leaves the Realm, each with its carrier form, exact schema location and gating authorization policy. Adding an outward path without registering it here is a release-gate failure, not an implementation detail.",
   "registry_rules": [
@@ -73,6 +73,10 @@
     {
       "policy_id": "ak.pcr_exposure_policy.holder_hosting_proxy.v1",
       "description": "Only the exact full holder Account hosting Station authenticated as Source may proxy to its independently verified current PCR authority. Private list/version/effects/policy values require the exact holder-session actor and active device rechecked at the PCR lock. Station-context admission commands have only the original opaque outcome. Exact request/nonce, current tenure, time window, source/head/cell high-water and current disclosure bind every response."
+    },
+    {
+      "policy_id": "ak.pcr_exposure_policy.current_pcr_effect_publication.v1",
+      "description": "Only the independently verified current authority of the exact holder inception PCR publishes the closed three private-effect cells to that holder hosting Station. Source/generation/window/head/cell high-water and equal-revision content bind the projection. No peer history, human disclosure, second business acceptance or arbitrary key is authorized."
     }
   ],
   "anti_enumeration_policies": [
@@ -258,6 +262,18 @@
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.holder_hosting_proxy.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "derived_field",
+          "surface": "operation",
+          "operation_id": "ak.peer.consent.command.publish_effects.v1",
+          "direction": "request",
+          "schema_ref": "schemas/consent-private-operations.schema.json",
+          "json_pointers": [
+            "/$defs/effects_publish_request/properties/effects"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_pcr_effect_publication.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
         }
       ]
     },
@@ -334,6 +350,18 @@
             "/$defs/effects_outcome/properties/body"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.holder_hosting_proxy.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "derived_field",
+          "surface": "operation",
+          "operation_id": "ak.peer.consent.command.publish_effects.v1",
+          "direction": "request",
+          "schema_ref": "schemas/consent-private-operations.schema.json",
+          "json_pointers": [
+            "/$defs/effects_publish_request/properties/effects"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.current_pcr_effect_publication.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
         }
       ]
@@ -1114,5 +1142,5 @@
       ]
     }
   ],
-  "generated_at": "2026-10-14T23:44:17.455641+00:00"
+  "generated_at": "2026-10-15T01:58:34.606459+00:00"
 }

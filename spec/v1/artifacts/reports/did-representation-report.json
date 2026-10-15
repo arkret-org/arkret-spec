@@ -2272,6 +2272,16 @@
       ]
     },
     {
+      "schema_path": "consent-private-operations.schema.json#/$defs/effects_publish_request/properties/holder_account_id",
+      "property_name": "holder_account_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "account_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:account_id"
+      ]
+    },
+    {
       "schema_path": "consent-private-operations.schema.json#/$defs/holder_session_context/properties/actor_id",
       "property_name": "actor_id",
       "semantic_category": "responsibility_identity_material",
@@ -8104,6 +8114,18 @@
     {
       "source": "json_schema",
       "schema_path": "consent-operations.schema.json#/$defs/consent_request_request_body/properties/holder_account_id",
+      "property_name": "holder_account_id",
+      "resolved_carrier": "account_id",
+      "required_subject_class": "account",
+      "contract_carrier": "account_id",
+      "account_scoped": true,
+      "required_evidence": [
+        "exact_account_ownership_binding"
+      ]
+    },
+    {
+      "source": "json_schema",
+      "schema_path": "consent-private-operations.schema.json#/$defs/effects_publish_request/properties/holder_account_id",
       "property_name": "holder_account_id",
       "resolved_carrier": "account_id",
       "required_subject_class": "account",
