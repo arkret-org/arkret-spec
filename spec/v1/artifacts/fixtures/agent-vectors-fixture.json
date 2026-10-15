@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.agent_provisioning.v1",
-  "version": "2026-10-14.3",
+  "version": "2026-10-15",
   "suite": "agent_vectors",
   "runner": {
     "kind": "named_suite",
@@ -616,7 +616,7 @@
       "runner": "cotest::conformance::agent_vectors::run_agent_act_on_behalf_vector",
       "assertions": [
         "controller approvals are single-use",
-        "approval replay fails with approval_already_consumed",
+        "exact approval retry returns the original Commit; nonce rebinding fails with approval_nonce_reused",
         "act-on-behalf without authorization_ref, participation, matching grant scope, or fresh approval fails closed",
         "unauthorised sidecar creation fails with sidecar_create_denied"
       ]

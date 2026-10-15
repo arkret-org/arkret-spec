@@ -42,6 +42,39 @@ class EventAdmissionContractTest(unittest.TestCase):
         synchronize(ROOT, check=True)
         Draft202012Validator.check_schema(self.envelope)
 
+    def test_controller_confirmation_never_falls_back_to_capability_admission(self):
+        rows = {row["event_kind"]: row for row in self.canonical["event_kinds"]}
+        controller = "agent_controller_self_authored_proof"
+        self.assertEqual(rows["ak.agent.action_approve"].get("admission"), controller)
+        self.assertEqual(rows["ak.agent.interaction.set"].get("admission"), controller)
+        self.assertNotIn("admission_variants", rows["ak.agent.action_approve"])
+        # The dedicated controller proof must not be replaced by a wider owner role.
+        definition = self.canonical["admission_class_definitions"][controller]
+        self.assertIn("No capability grants authority", definition)
+        self.assertIn("target Event independently retains", definition)
+        self.assertIn("current provision/accountability", definition)
+
+    def test_message_rejects_independent_agent_context(self):
+        validator = Draft202012Validator({
+            "$ref": "https://arkret.org/v1/schemas/event-payload.schema.json#/$defs/message_create_payload"
+        }, registry=self.resources)
+        payload = {
+            "strand_id": "ak:strand:AUOjN8M8xm-W1G1Ve9UR6sHKJh7JPG7bM8ZDnzcGJ2Vh",
+            "track_name": "discussion",
+            "content": {"kind": "ak.content.text", "body": "Envelope attribution"},
+        }
+        self.assertTrue(validator.is_valid(payload))
+        payload["agent_context"] = {
+            "agent_id": "ak:did_core:web:agent.example",
+            "operator_or_controller": "controller",
+            "execution_purpose": "reply",
+            "authorization_ref": "grant",
+        }
+        self.assertTrue(any(
+            error.validator == "additionalProperties" and "agent_context" in error.message
+            for error in validator.iter_errors(payload)
+        ))
+
     def test_zero_ref_count_matches_absence_but_positive_count_does_not(self):
         for count in [0, 1]:
             validator = Draft202012Validator(predicate_schema({"ref_role": "attestation", "ref_exact_count": count}))

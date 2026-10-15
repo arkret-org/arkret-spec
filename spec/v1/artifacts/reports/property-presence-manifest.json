@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9525,
+    "total_properties": 9520,
     "total_schema_documents": 174,
     "by_presence_class": {
-      "optional": 2218,
+      "optional": 2217,
       "optional_defaulted": 48,
-      "required": 6741,
+      "required": 6737,
       "required_nullable": 332,
       "tristate": 186
     },
@@ -6748,11 +6748,6 @@
         "/$defs/mention_node/properties/mention_text_original": "optional",
         "/$defs/mention_node/properties/resolved_at": "optional",
         "/$defs/mention_node/properties/subject_account_id": "required",
-        "/$defs/message_create_payload/properties/agent_context": "optional",
-        "/$defs/message_create_payload/properties/agent_context/properties/agent_id": "required",
-        "/$defs/message_create_payload/properties/agent_context/properties/authorization_ref": "required",
-        "/$defs/message_create_payload/properties/agent_context/properties/execution_purpose": "required",
-        "/$defs/message_create_payload/properties/agent_context/properties/operator_or_controller": "required",
         "/$defs/message_create_payload/properties/blob_refs": "optional",
         "/$defs/message_create_payload/properties/content": "optional",
         "/$defs/message_create_payload/properties/encrypted_content": "optional",

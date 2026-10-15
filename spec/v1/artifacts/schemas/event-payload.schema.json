@@ -4913,34 +4913,6 @@
           "$ref": "#/$defs/message_id",
           "description": "Optional creation convenience: the message this one replies to. The reducer records it as the message's reply linkage (lifting it onto the message content) and surfaces it as a replies_to relation in the message projection; it does not require a separate canonical ak.relation event. The materialized Message object itself carries no reply_to scalar. See strand-and-message.md §9.1."
         },
-        "agent_context": {
-          "type": "object",
-          "description": "Auditable authorization context required when an Agent authors the message.",
-          "required": [
-            "agent_id",
-            "operator_or_controller",
-            "execution_purpose",
-            "authorization_ref"
-          ],
-          "properties": {
-            "agent_id": {
-              "$ref": "#/$defs/did_core_id"
-            },
-            "operator_or_controller": {
-              "type": "string",
-              "minLength": 1
-            },
-            "execution_purpose": {
-              "type": "string",
-              "minLength": 1
-            },
-            "authorization_ref": {
-              "type": "string",
-              "minLength": 1
-            }
-          },
-          "additionalProperties": false
-        },
         "mimi_provenance": {
           "$ref": "#/$defs/mimi_message_provenance"
         },
