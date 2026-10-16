@@ -188,6 +188,15 @@ def check_agent_session_content(lint: Lint) -> None:
             }
             if case.get('input') != expected:
                 lint.fail(fixture_path, 'Participation refusal must bind a granted reply action, not membership reading')
+        if case.get('name') == 'approval_missing':
+            expected = {
+                'phase': 'payload', 'action': 'ak.message.create',
+                'approval_allows': False,
+                'paths': [{'kind': 'capability_grant', 'actions': ['ak.message.create'],
+                           'resources': ['A'], 'complete': True, 'active': True}],
+            }
+            if case.get('input') != expected:
+                lint.fail(fixture_path, 'Payload approval refusal must bind a granted action with a registered confirmation carrier')
         try:
             actual = decide(defaults | case['input'])
         except (KeyError, TypeError):

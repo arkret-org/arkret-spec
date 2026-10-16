@@ -46,6 +46,8 @@ ref 是签名覆盖的 immutable 意图，**MUST NOT** 带 producer-selected rev
 
 机器向量中的 verified gate predicate **MUST** 对应实际 action/resource 的适用门，不能由默认 action 推出未登记的读取选择位。`participation_current_denied` 显式使用已有完整 capability grant 的 `ak.message.create`，在执行时撤回 `reply_message` selection；原合法会话和 grant 不替代当前 selection。membership/profile 的独立读取仍按其原合同求值，selection 本身不授予或撤回读取资格。
 
+`approval_missing` 的 payload 验收实例同样显式使用已有完整 capability grant 的 `ak.message.create`，采用现行 act-on-behalf 逐次行动确认合同：current selection 与正常 private ActionRequest 保留，缺少 controller 对 exact target 的 accepted ActionApprove 时失败关闭，正常接纳确认后仅允许其绑定的原目标。不得为默认读取来源新增批准载体；本实例不改变其它动作已登记的批准门。此逐次确认与下文内容会话带外批准相互独立，accepted capability／delegation Event、已签发会话及 `approval_evidence_refs` **MUST NOT** 替代 exact 行动确认。
+
 签发时 **MUST** 先按每个 action/resource 验证 durable 来源资格，再与 immutable provision ceiling、current accepted key ceiling、本次 session request、资源 policy／管理限制及适用的主人 current 上界求交。该步骤不代替执行时的 history、participation、MLS、quota、approval 等独立门；MLS 尚未完成可保留合法的读取 ceiling，但 **MUST NOT** 因会话已签发就交付业务 payload。普通群与 Sidecar 使用本节主人动态内容上界；独立 Direct 继续使用其 participant 合同，**MUST NOT** 强加其它群的 membership、grant 或管理限制。
 
 本次请求的 `requested_scope` 是会话 action/operation 请求，**不是** provision 的 immutable `requested_scope`；`agent_scope_request` 仅收窄目标。内容会话 **MUST** 有非空、已验证的 Realm 或 Strand selector；省略／空 selector **MUST NOT** 表示所有内容资源。Realm selector 不授予该 Realm 内所有 Circle、Direct 或 Sidecar 的读取资格；每次仍按 actual scope 的 profile 检查 exact binding，Sidecar 身份从 accepted Sidecar binding 派生，不新增 request-side participant 或 sidecar selector。`scope_details` 沿既有 closed 结构物化资源和 typed constraints；`capability_grant_refs` 仅列实际使用的 literal grant，没有 literal grant 的合法读取允许该数组为空，**MUST NOT** 伪造 grant ref。`policy_refs` 也不要求合成默认 allow Policy：只有完整 current 治理证据证明没有适用限制时才使用既有默认值，unknown／缺行仍拒绝。

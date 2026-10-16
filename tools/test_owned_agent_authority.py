@@ -159,6 +159,23 @@ class AgentSessionContentTest(unittest.TestCase):
                             row.pop('paths')
                 self.assertTrue(self.run_gate(mutate))
 
+    def test_payload_approval_refusal_retains_its_actual_action_and_source(self):
+        for mode in ('read', 'implicit_read', 'membership_write', 'missing_path'):
+            with self.subTest(mode=mode):
+                def mutate(name, doc):
+                    if name == 'agent-vectors-fixture.json':
+                        row = next(c for c in doc['session_content_authority_contract']['cases']
+                                   if c['name'] == 'approval_missing')['input']
+                        if mode == 'read':
+                            row['action'] = 'ak.event.read'
+                        elif mode == 'implicit_read':
+                            row.pop('action')
+                        elif mode == 'membership_write':
+                            row['paths'][0]['kind'] = 'membership_read'
+                        else:
+                            row.pop('paths')
+                self.assertTrue(self.run_gate(mutate))
+
     def test_approval_error_binding_cannot_disappear_or_require_refresh(self):
         for mode in ('missing_issue', 'wrong_refresh', 'inactive_reason', 'wrong_parent_status'):
             with self.subTest(mode=mode):

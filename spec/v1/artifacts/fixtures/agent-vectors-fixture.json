@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.agent_provisioning.v1",
-  "version": "2026-10-16.1",
+  "version": "2026-10-16.2",
   "suite": "agent_vectors",
   "runner": {
     "kind": "named_suite",
@@ -1548,7 +1548,21 @@
         "name": "approval_missing",
         "input": {
           "phase": "payload",
-          "approval_allows": false
+          "action": "ak.message.create",
+          "approval_allows": false,
+          "paths": [
+            {
+              "kind": "capability_grant",
+              "actions": [
+                "ak.message.create"
+              ],
+              "resources": [
+                "A"
+              ],
+              "complete": true,
+              "active": true
+            }
+          ]
         },
         "expected": "deny"
       },
