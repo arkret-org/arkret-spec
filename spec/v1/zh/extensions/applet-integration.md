@@ -1221,6 +1221,13 @@ BotDevice通过自己的durable Device queue读取完整Welcome，验recipient A
 推进并持久化正确group/epoch及claim receipt后才ACK/consume。列表和每个queue item均验该item实际scope的current资格，
 不能因为control queue在线就披露被撤销scope内容。ACK保持原幂等，不重新授予业务资格。
 
+本人 Device 的普通业务、MLS Commit 与已登记 aggregate 的历史验签来源共用
+[Account Device historical signer fact](../sync/server-trusted-results.md#account-device-historical-signer-delivery-normative)。
+治理原接纳事务从真实 accepted provision/PCR/Device authorize 冻结原授权坐标、revision/generation、
+公钥与 source time，由原 Commit 承诺并原子保存；不借 Human／Service 来源，不取 current key 回填历史。
+仅对合法 exact Full recipient 披露最小历史 metadata，不开放私有 PCR 正文或目录；以后 key／scope
+撤销不改写已接纳历史，新业务和新交付仍分别重验 current。
+
 Event/Commit sync、snapshot、signer verification dependencies、signed roster/group material与Blob操作使用同一Device认证，
 本Station需要远端权威材料时沿原peer供应与新交付屏障；客户端不直接冒充peer Service。
 每项仍验current Applet上界、membership/history、设备scope及治理，内容读parent映射见managed-governance§4。

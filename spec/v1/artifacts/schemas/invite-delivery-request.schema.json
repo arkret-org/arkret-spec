@@ -26,7 +26,7 @@
       "description": "Realm-stream authority commit whose event_ref equals invite_event.event_id."
     },
     "producer_signer_fact": {
-      "$ref": "./authority-commit-operations.schema.json#/$defs/human_historical_signer_fact",
+      "$ref": "./authority-commit-operations.schema.json#/$defs/account_device_historical_signer_fact",
       "description": "Exact immutable original Human signer fact retained with invite_commit. Required exactly when invite_commit carries producer_signer_fact_digest; never reconstructed from current keys. Disclosure is limited to the existing exact invite recipient Station notification."
     },
     "authority_locator_hints": {

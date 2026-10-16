@@ -26,7 +26,7 @@ COMMITTED_REF = "./authority-commit-operations.schema.json#/$defs/committed_even
 HISTORICAL_DEFS = ("historical_account_device_selector", "historical_agent_selector")
 CURRENT_DEFS = ("current_account_device_selector", "current_agent_selector")
 SELF_SUBMISSION_RULE = {'coordinate_source': 'frozen_complete_signed_request_event_and_bound_accepted_outcome_original_commit',
- 'binding': 'same_accepted_station_authenticated_full_account_and_local_session_epoch',
+ 'binding': 'same_accepted_station_authenticated_full_account_and_local_credential_epoch_session_or_exact_managed_device_authorization_instance',
  'correlation': 'validated_request_outcome_branch_and_each_aggregate_slot',
  'checks': ['event_and_commit_content_ids', 'event_ref_realm_scope_stream_position'],
  'advances_stream_head_or_floor': False,
@@ -219,11 +219,11 @@ def _check_foreign_human_delivery_shape(lint: Lint) -> None:
     authority = load_json(lint, AUTHORITY_SCHEMA)
     defs = _defs(authority)
     expected = ["event_id", "actor", "device_id", "verification_method", "key", "accepted_at"]
-    fact = defs.get("human_historical_signer_fact", {})
+    fact = defs.get("account_device_historical_signer_fact", {})
     if fact.get("required") != expected or list(fact.get("properties", {})) != expected or fact.get("additionalProperties") is not False:
-        lint.fail(AUTHORITY_SCHEMA, "Human fact must remain minimal, required and closed in exact field order")
+        lint.fail(AUTHORITY_SCHEMA, "Account Device fact must remain minimal, required and closed in exact field order")
     if fact.get("properties", {}).get("key", {}).get("$ref") != "./signer-key-operations.schema.json#/$defs/query_signing_key":
-        lint.fail(AUTHORITY_SCHEMA, "Human fact must reuse complete original query_signing_key")
+        lint.fail(AUTHORITY_SCHEMA, "Account Device fact must reuse complete original query_signing_key")
     peer = defs.get("peer_stream_scan_outcome", {})
     if list(peer.get("properties", {})) != ["committed_events", "readable_floor", "truncated", "producer_signer_facts"] or "producer_signer_facts" not in peer.get("required", []) or peer.get("additionalProperties") is not False:
         lint.fail(AUTHORITY_SCHEMA, "peer scan must carry required closed original fact entries")
@@ -232,11 +232,15 @@ def _check_foreign_human_delivery_shape(lint: Lint) -> None:
     commit = load_json(lint, ARTIFACTS / "schemas" / "realm-commit.schema.json")
     fields = list(commit.get("properties", {}))
     if fields[-3:] != ["committed_at", "producer_signer_fact_digest", "signature"]:
-        lint.fail(AUTHORITY_SCHEMA, "original Commit must commit Human fact digest before signature")
+        lint.fail(AUTHORITY_SCHEMA, "original Commit must commit Account Device fact digest before signature")
     contract = load_json(lint, CONTRACT)
-    rule = contract.get("did_evidence_boundary_registry", {}).get("governance_result_consumption_contract", {}).get("foreign_human_historical_signer_delivery", {})
-    if rule.get("target_commit_identity_in_fact") is not False or rule.get("source_accepted_time") != "original_authorization_commit.committed_at" or rule.get("covers_local_governor_human_for_foreign_member") is not True:
-        lint.fail(CONTRACT, "Human source must bind original authorization time, avoid target-ID cycle and cover local governor")
+    rule = contract.get("did_evidence_boundary_registry", {}).get("governance_result_consumption_contract", {}).get("account_device_historical_signer_delivery", {})
+    if rule.get("target_commit_identity_in_fact") is not False or rule.get("source_accepted_time") != "original_authorization_commit.committed_at" or rule.get("covers_local_governor_account_device_for_foreign_member") is not True:
+        lint.fail(CONTRACT, "Account Device source must bind original authorization time, avoid target-ID cycle and cover local governor")
+    if rule.get("eligible_producer_sources") != ["human_device", "applet_managed_device"] or rule.get("role_resolution") != "accepted_pcr_purpose_and_original_authorization_provenance" or rule.get("unknown_or_agent_runtime_source") != "reject_without_human_or_service_fallback":
+        lint.fail(CONTRACT, "Account Device sources must be exactly Human and accepted managed Device with independent native provenance")
+    if rule.get("managed_device_source") != "accepted_managed_provision_and_exact_pcr_device_authorization_with_original_four_coordinates_revision_and_generation":
+        lint.fail(CONTRACT, "managed Device source must retain exact accepted provenance and original coordinates")
     op = _find(contract.get("operation_registry", {}).get("operations"), "operation_id", "ak.peer.committed_event.read.scan.v1")
     if not isinstance(op, dict) or op.get("response_schema_ref") != "schemas/authority-commit-operations.schema.json#/$defs/peer_stream_scan_outcome":
         lint.fail(CONTRACT, "peer operation must select its fact-bearing scan response")
@@ -246,7 +250,7 @@ def _check_foreign_human_delivery_shape(lint: Lint) -> None:
 
     invite = load_json(lint, INVITE_SCHEMA)
     properties = list(invite.get("properties", {}))
-    if properties[:4] != ["schema", "invite_event", "invite_commit", "producer_signer_fact"] or invite.get("properties", {}).get("producer_signer_fact", {}).get("$ref") != "./authority-commit-operations.schema.json#/$defs/human_historical_signer_fact" or invite.get("additionalProperties") is not False:
+    if properties[:4] != ["schema", "invite_event", "invite_commit", "producer_signer_fact"] or invite.get("properties", {}).get("producer_signer_fact", {}).get("$ref") != "./authority-commit-operations.schema.json#/$defs/account_device_historical_signer_fact" or invite.get("additionalProperties") is not False:
         lint.fail(INVITE_SCHEMA, "Invite notification must carry closed original fact after its original Commit")
     condition = {"if": {"properties": {"invite_commit": {"required": ["producer_signer_fact_digest"]}}, "required": ["invite_commit"]}, "then": {"required": ["producer_signer_fact"]}, "else": {"not": {"required": ["producer_signer_fact"]}}}
     if condition not in invite.get("allOf", []):
@@ -271,7 +275,7 @@ def _check_foreign_human_delivery_shape(lint: Lint) -> None:
     if source.get("properties", {}).get("forward_body_digest", {}).get("$ref") != fixed_ref:
         lint.fail(keys_path, "forward body digest must be fixed SHA256")
     if commit.get("properties", {}).get("producer_signer_fact_digest", {}).get("$ref") != fixed_ref:
-        lint.fail(AUTHORITY_SCHEMA, "original Human fact digest must be fixed SHA256")
+        lint.fail(AUTHORITY_SCHEMA, "original Account Device fact digest must be fixed SHA256")
     handoff = load_json(lint, ARTIFACTS / "schemas" / "realm-authority-handoff.schema.json")
     if handoff.get("properties", {}).get("historical_signer_facts_digest", {}).get("$ref") != fixed_ref:
         lint.fail(AUTHORITY_SCHEMA, "historical handoff inventory digest must be fixed SHA256")

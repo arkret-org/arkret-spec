@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-14.1",
+  "version": "2026-10-16",
   "source_of_truth": true,
-  "generated_at": "2026-10-14T23:51:58.742390+00:00",
+  "generated_at": "2026-10-16T23:37:19+08:00",
   "description": "Closed per-field exemption registry for zh/conformance/encoding.md 4.0.1. A closed object that carries a complete content-addressed typed ref (an id_kind_registry special form marked content_addressed, with a pattern that is exactly that one form) already carries the suite and every digest octet of the referenced bytes, so any sibling digest property in that object is a forbidden wire mirror unless this registry states the distinct preimage it commits to. Rows are keyed by (schema file, json path of the properties object, digest field). content_addressed_refs must equal the current set of in-scope content-addressed ref properties in that object so a later ref addition forces a fresh ruling. Every row is a ruling: there is no undecided kind.",
   "registry_rules": {
     "exemption_id_pattern": "^ak\\.exemption\\.sibling_digest\\.[a-z0-9_]+\\.v[0-9]+$",
@@ -201,7 +201,7 @@
           "previous_commit_ref"
         ]
       },
-      "preimage": "SHA256(RFC8785_JCS(human_historical_signer_fact)) of the immutable original Human authorization source, excluding business target Commit ID and position. This is distinct from both the complete unsigned Commit body addressed by commit_id and the preceding Commit addressed by previous_commit_ref.",
+      "preimage": "SHA256(RFC8785_JCS(account_device_historical_signer_fact)) of the immutable original Human authorization source, excluding business target Commit ID and position. This is distinct from both the complete unsigned Commit body addressed by commit_id and the preceding Commit addressed by previous_commit_ref.",
       "spec_anchor": "spec/v1/zh/sync/authority-commit-log.md"
     },
     {

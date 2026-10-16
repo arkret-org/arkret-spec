@@ -74,6 +74,17 @@ class SignerKeyHistoricalCoordinateGateTest(unittest.TestCase):
     def defs(self, docs: dict) -> dict:
         return docs[gate.SCHEMA.resolve()]["$defs"]
 
+    def test_device_source_role_and_provenance_cannot_be_widened(self) -> None:
+        for key, value, marker in [
+            ("eligible_producer_sources", ["human_device", "applet_managed_device", "agent"], "exactly Human"),
+            ("role_resolution", "account_row_or_proof_shape", "independent native provenance"),
+            ("managed_device_source", "current_key_or_human_fallback", "exact accepted provenance"),
+        ]:
+            def mutate(docs, key=key, value=value):
+                rule = docs[gate.CONTRACT.resolve()]["did_evidence_boundary_registry"]["governance_result_consumption_contract"]["account_device_historical_signer_delivery"]
+                rule[key] = value
+            self.assert_red(mutate, marker)
+
     def test_complete_contract_passes(self) -> None:
         self.assertEqual(self.run_gate(), [])
 
@@ -281,13 +292,13 @@ class SignerKeyHistoricalCoordinateGateTest(unittest.TestCase):
 
     def test_foreign_fact_target_commit_cannot_enter_digest_projection(self) -> None:
         def mutate(docs):
-            fact = docs[gate.AUTHORITY_SCHEMA.resolve()]["$defs"]["human_historical_signer_fact"]
+            fact = docs[gate.AUTHORITY_SCHEMA.resolve()]["$defs"]["account_device_historical_signer_fact"]
             fact["properties"]["commit_id"] = {"type": "string"}
         self.assert_red(mutate, "minimal, required and closed")
 
     def test_foreign_source_time_cannot_be_target_time(self) -> None:
         def mutate(docs):
-            rule = docs[gate.CONTRACT.resolve()]["did_evidence_boundary_registry"]["governance_result_consumption_contract"]["foreign_human_historical_signer_delivery"]
+            rule = docs[gate.CONTRACT.resolve()]["did_evidence_boundary_registry"]["governance_result_consumption_contract"]["account_device_historical_signer_delivery"]
             rule["source_accepted_time"] = "target_commit.committed_at"
         self.assert_red(mutate, "original authorization time")
 
@@ -311,7 +322,7 @@ class SignerKeyHistoricalCoordinateGateTest(unittest.TestCase):
 
     def test_invite_cannot_expand_membership_or_pcr_read(self) -> None:
         def mutate(docs):
-            docs[gate.CONTRACT.resolve()]["did_evidence_boundary_registry"]["governance_result_consumption_contract"]["foreign_human_historical_signer_delivery"]["invite_delivery"]["membership_or_pcr_read_granted"] = True
+            docs[gate.CONTRACT.resolve()]["did_evidence_boundary_registry"]["governance_result_consumption_contract"]["account_device_historical_signer_delivery"]["invite_delivery"]["membership_or_pcr_read_granted"] = True
         self.assert_red(mutate, "exact-recipient-only")
 
     def test_self_dispatch_cannot_echo_fact(self) -> None:

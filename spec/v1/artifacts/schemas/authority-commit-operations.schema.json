@@ -2090,9 +2090,9 @@
         "ak.self.agent.resume"
       ]
     },
-    "human_historical_signer_fact": {
+    "account_device_historical_signer_fact": {
       "type": "object",
-      "description": "Minimal immutable original Human device signer source frozen in governance acceptance. Actual signing Account, independent authorization coordinates/revision/PCR tenure and source accepted time. No target CommitId/position, current permission, verified flag or private PCR bytes.",
+      "description": "Minimal immutable original Account Device signer source for a Human Device or an accepted Applet-managed Bot/Ghost Device. Actual full Account and Device, independent authorization coordinates/revision/PCR tenure and original source accepted time. Each role has its own verified native provenance; never inferred from proof shape. No current permission, verified flag or private PCR bytes.",
       "required": [
         "event_id",
         "actor",
@@ -2194,7 +2194,7 @@
     "historical_producer_signer_fact": {
       "oneOf": [
         {
-          "$ref": "#/$defs/human_historical_signer_fact"
+          "$ref": "#/$defs/account_device_historical_signer_fact"
         },
         {
           "$ref": "#/$defs/service_historical_signer_fact"

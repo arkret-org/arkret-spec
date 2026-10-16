@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-16",
+  "version": "2026-10-16.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-16T18:05:38+08:00",
+  "generated_at": "2026-10-16T23:37:19+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-10-14.2",
@@ -14191,7 +14191,7 @@
         "http": "POST /_arkret/peer/streams/scan",
         "grpc": "PeerStreams/Scan",
         "mq": "peer.streams.read.scan",
-        "notes": "Replicate one visibility-authorized stream from its current governance Station. Full digest-bearing Human rows carry original Commit-bound immutable facts; original source Ed/coordinates/time are verified and atomically retained, including bootstrap tail and cold backfill. No PCR history or current-key reconstruction.",
+        "notes": "Replicate one visibility-authorized stream from its current governance Station. Full digest-bearing Account Device (Human or accepted Applet-managed Bot/Ghost Device) and Service rows carry original Commit-bound immutable facts; original source Ed/coordinates/time are verified and atomically retained, including bootstrap tail and cold backfill. No PCR history or current-key reconstruction.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "schema_resource",
         "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/stream_scan_request",
@@ -17328,8 +17328,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-10-15.3",
-    "generated_at": "2026-10-15T02:02:26.018481+00:00",
+    "version": "2026-10-16.1",
+    "generated_at": "2026-10-16T23:42:57+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.coland_station.v1",
@@ -21244,8 +21244,8 @@
         ]
       }
     ],
-    "version": "2026-10-06.4",
-    "generated_at": "2026-10-06T06:44:34+08:00",
+    "version": "2026-10-16.1",
+    "generated_at": "2026-10-16T23:37:19+08:00",
     "metadata_authority": "contract_registry_section",
     "mls_roster_verification_contract": {
       "roles": {
@@ -21353,7 +21353,7 @@
       "failure": "existing_operation_refusal_or_unavailable_no_state_advancement",
       "self_submission_historical_source": {
         "coordinate_source": "frozen_complete_signed_request_event_and_bound_accepted_outcome_original_commit",
-        "binding": "same_accepted_station_authenticated_full_account_and_local_session_epoch",
+        "binding": "same_accepted_station_authenticated_full_account_and_local_credential_epoch_session_or_exact_managed_device_authorization_instance",
         "correlation": "validated_request_outcome_branch_and_each_aggregate_slot",
         "checks": [
           "event_and_commit_content_ids",
@@ -21376,14 +21376,13 @@
           "missing_or_conflicting_fact": "existing_unavailable_without_current_query_fallback"
         }
       },
-      "foreign_human_historical_signer_delivery": {
-        "fact_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/human_historical_signer_fact",
+      "account_device_historical_signer_delivery": {
+        "fact_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/account_device_historical_signer_fact",
         "origin_source": "original_same_cut_station_event_bound_authorization",
         "governor_binding": "original_realm_commit_producer_signer_fact_digest",
-        "fact_digest_input": "SHA256(RFC8785_JCS(human_historical_signer_fact))",
+        "fact_digest_input": "SHA256(RFC8785_JCS(account_device_historical_signer_fact))",
         "target_commit_identity_in_fact": false,
         "source_accepted_time": "original_authorization_commit.committed_at",
-        "covers_local_governor_human_for_foreign_member": true,
         "carry": [
           "committed_event_submission.producer_signer_fact",
           "peer_stream_scan_outcome.producer_signer_facts",
@@ -21403,7 +21402,15 @@
           "membership_or_pcr_read_granted": false,
           "holder_delivery_value_extended": false,
           "missing_source": "existing_unavailable_zero_holder_writes"
-        }
+        },
+        "covers_local_governor_account_device_for_foreign_member": true,
+        "eligible_producer_sources": [
+          "human_device",
+          "applet_managed_device"
+        ],
+        "role_resolution": "accepted_pcr_purpose_and_original_authorization_provenance",
+        "managed_device_source": "accepted_managed_provision_and_exact_pcr_device_authorization_with_original_four_coordinates_revision_and_generation",
+        "unknown_or_agent_runtime_source": "reject_without_human_or_service_fallback"
       }
     },
     "agent_authority_evidence_contract": {

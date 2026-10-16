@@ -119,4 +119,4 @@ Handoff 迁移公开 MLS state、accepted Commit Events、RealmCommits、pending
 
 ## Human historical signer metadata visibility (Normative)
 
-服务运输human_historical_signer_fact MUST 与同一exact target的当前recipient Full Event可见性/读取授权门一致，保持原join position/history_access/Circle/retention/MLS/reference门。withheld/redacted/floor之外、未披露、未知target不能带fact/key/source坐标或其计数；peer整页fact对应原可见Full row的完整四坐标，缺/重/extra/sibling失败关闭。原fact同accepted Commit持久，披露受当前读取门限制；后来current device撤销不撤销原签名事实，也不恢复新admission资格。
+服务运输account_device_historical_signer_fact MUST 与同一exact target的当前recipient Full Event可见性/读取授权门一致，保持原join position/history_access/Circle/retention/MLS/reference门。withheld/redacted/floor之外、未披露、未知target不能带fact/key/source坐标或其计数；peer整页fact对应原可见Full row的完整四坐标，缺/重/extra/sibling失败关闭。原fact同accepted Commit持久，披露受当前读取门限制；后来current device撤销不撤销原签名事实，也不恢复新admission资格。

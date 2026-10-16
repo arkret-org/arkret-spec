@@ -1822,7 +1822,7 @@
       ]
     },
     {
-      "schema_path": "authority-commit-operations.schema.json#/$defs/direct_conversation_founding_missing_dependency/oneOf/3/properties/verification_method",
+      "schema_path": "authority-commit-operations.schema.json#/$defs/account_device_historical_signer_fact/properties/verification_method",
       "property_name": "verification_method",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "did_url",
@@ -1832,7 +1832,7 @@
       ]
     },
     {
-      "schema_path": "authority-commit-operations.schema.json#/$defs/human_historical_signer_fact/properties/verification_method",
+      "schema_path": "authority-commit-operations.schema.json#/$defs/direct_conversation_founding_missing_dependency/oneOf/3/properties/verification_method",
       "property_name": "verification_method",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "did_url",

@@ -314,6 +314,12 @@
     },
     {
       "schema": "authority-commit-operations.schema.json",
+      "json_pointer": "/$defs/account_device_historical_signer_fact/properties/event_id",
+      "field": "event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "authority-commit-operations.schema.json",
       "json_pointer": "/$defs/committed_event_ref/properties/event_id",
       "field": "event_id",
       "classification": "complete_event_id"
@@ -334,12 +340,6 @@
       "schema": "authority-commit-operations.schema.json",
       "json_pointer": "/$defs/direct_conversation_founding_missing_dependency/oneOf/2/properties/source_event_ref",
       "field": "source_event_ref",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "authority-commit-operations.schema.json",
-      "json_pointer": "/$defs/human_historical_signer_fact/properties/event_id",
-      "field": "event_id",
       "classification": "complete_event_id"
     },
     {

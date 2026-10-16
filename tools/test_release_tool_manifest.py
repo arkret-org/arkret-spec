@@ -18,7 +18,7 @@ class ReleaseToolManifestTest(unittest.TestCase):
             body["pipelines"]["release_strict"],
             ["artifact_pipeline", "crossref", "strict_spec_lint"],
         )
-        self.assertEqual(len(body["pipelines"]["artifact_check"]), 31)
+        self.assertEqual(len(body["pipelines"]["artifact_check"]), 32)
 
     def test_missing_owner_script_is_rejected(self) -> None:
         body = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))

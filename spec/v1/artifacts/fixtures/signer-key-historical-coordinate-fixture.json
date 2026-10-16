@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-06.2",
+  "version": "2026-10-16",
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.signer_key.historical_commit_coordinate.v1"
@@ -140,7 +140,7 @@
   ],
   "self_submission_rule": {
     "coordinate_source": "frozen_complete_signed_request_event_and_bound_accepted_outcome_original_commit",
-    "binding": "same_accepted_station_authenticated_full_account_and_local_session_epoch",
+    "binding": "same_accepted_station_authenticated_full_account_and_local_credential_epoch_session_or_exact_managed_device_authorization_instance",
     "correlation": "validated_request_outcome_branch_and_each_aggregate_slot",
     "checks": [
       "event_and_commit_content_ids",
@@ -165,13 +165,12 @@
   },
   "foreign_human_historical_signer_delivery": {
     "contract": {
-      "fact_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/human_historical_signer_fact",
+      "fact_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/account_device_historical_signer_fact",
       "origin_source": "original_same_cut_station_event_bound_authorization",
       "governor_binding": "original_realm_commit_producer_signer_fact_digest",
-      "fact_digest_input": "SHA256(RFC8785_JCS(human_historical_signer_fact))",
+      "fact_digest_input": "SHA256(RFC8785_JCS(account_device_historical_signer_fact))",
       "target_commit_identity_in_fact": false,
       "source_accepted_time": "original_authorization_commit.committed_at",
-      "covers_local_governor_human_for_foreign_member": true,
       "carry": [
         "committed_event_submission.producer_signer_fact",
         "peer_stream_scan_outcome.producer_signer_facts",
@@ -191,7 +190,15 @@
         "membership_or_pcr_read_granted": false,
         "holder_delivery_value_extended": false,
         "missing_source": "existing_unavailable_zero_holder_writes"
-      }
+      },
+      "covers_local_governor_account_device_for_foreign_member": true,
+      "eligible_producer_sources": [
+        "human_device",
+        "applet_managed_device"
+      ],
+      "role_resolution": "accepted_pcr_purpose_and_original_authorization_provenance",
+      "managed_device_source": "accepted_managed_provision_and_exact_pcr_device_authorization_with_original_four_coordinates_revision_and_generation",
+      "unknown_or_agent_runtime_source": "reject_without_human_or_service_fallback"
     },
     "actual_executed": false,
     "crypto_transcript_status": "generated_real_Ed_bytes_native_authority_and_business_pending",

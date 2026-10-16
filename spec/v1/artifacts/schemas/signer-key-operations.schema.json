@@ -92,7 +92,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Shared resolved key shape for existing current Agent and historical Agent/Human roles; each enclosing selector/outcome retains its own authority and source rules. Only new ordinary Human historical delivery uses original governance Commit-bound immutable facts. Independent original authorization coordinates/revision/PCR governance generation remain mandatory where the enclosing role requires them; no current fallback or new target source."
+      "description": "Shared resolved key shape for existing current Agent and historical Agent/Account Device roles; each enclosing selector/outcome retains its own authority and source rules. Only new ordinary Human and accepted Applet-managed Device historical delivery uses original governance Commit-bound immutable facts. Independent original authorization coordinates/revision/PCR governance generation remain mandatory where the enclosing role requires them; no current fallback or new target source."
     },
     "current_account_device_selector": {
       "type": "object",
