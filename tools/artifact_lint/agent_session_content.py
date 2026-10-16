@@ -179,6 +179,15 @@ def check_agent_session_content(lint: Lint) -> None:
         lint.fail(fixture_path, 'Agent session fixture must retain every distinct source, scope, replay and bootstrap boundary')
     defaults = fixture.get('defaults', {})
     for case in cases:
+        if case.get('name') == 'participation_current_denied':
+            expected = {
+                'phase': 'payload', 'action': 'ak.message.create',
+                'participation_allows': False,
+                'paths': [{'kind': 'capability_grant', 'actions': ['ak.message.create'],
+                           'resources': ['A'], 'complete': True, 'active': True}],
+            }
+            if case.get('input') != expected:
+                lint.fail(fixture_path, 'Participation refusal must bind a granted reply action, not membership reading')
         try:
             actual = decide(defaults | case['input'])
         except (KeyError, TypeError):

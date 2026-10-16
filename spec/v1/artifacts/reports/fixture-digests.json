@@ -47,8 +47,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-vectors-fixture.json",
-      "sha256": "03cfd4560a649e977a199cf8affd482a4a924e15169dd0515f05a6c57a5cb64b",
-      "version": "2026-10-15.1"
+      "sha256": "fbe5228e221df4c56751a03a7556ff183634b68a9616be7a817928b1f5817c88",
+      "version": "2026-10-16.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/applet-device-scope-fixture.json",
