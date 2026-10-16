@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-16.2",
+  "version": "2026-10-16.3",
   "source_of_truth": true,
-  "generated_at": "2026-10-16T13:04:51+08:00",
+  "generated_at": "2026-10-16T13:15:45+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -754,8 +754,8 @@
       "status": "active",
       "category": "authorization",
       "source_anchor": "spec/v1/zh/authz/owned-agent-authority.md#2-动作与持续上界",
-      "section_digest": "sha256:01304e4dad51fe4738f5b3b61c2f3ecb2a0161748dd22f2e13d0918de270f6f5",
-      "requirement": "All ordinary owned-Agent grant and reading paths remain bounded by current controller authority, original scope, global/key ceilings and shared parent quotas; partial loss, global deny, own-object conditions and equivalent current sources are evaluated without cross-grant splicing. Agent session issuance includes complete registered profile read sources without mandatory literal grants, preserves resource/action correlation, and uses fresh issue for scope changes; refresh is non-expanding and Sidecar bootstrap eligibility is distinct from effective payload access. A sole remediable missing owned-Agent grant returns a non-authorizing opaque approval correlation; a fresh signed issue intent pins current accepted controller grant Events, while all nonremediable gates fail closed and normal refresh and completed replay preserve their existing ceilings. Participation predicates apply only to registered gates for the actual action; the current reply-selection refusal uses a complete capability grant for message.create and does not invent a reading selection bit. The payload approval example binds a granted message.create to the existing exact-target act-on-behalf confirmation; session-scope approval does not replace that independent action confirmation.",
+      "section_digest": "sha256:91367a9972e171900a64ac0359ec73e74c40fe3e766346fba76e2f6d1bb5d22e",
+      "requirement": "All ordinary owned-Agent grant and reading paths remain bounded by current controller authority, original scope, global/key ceilings and shared parent quotas; partial loss, global deny, own-object conditions and equivalent current sources are evaluated without cross-grant splicing. Agent session issuance includes complete registered profile read sources without mandatory literal grants, preserves resource/action correlation, and uses fresh issue for scope changes; refresh is non-expanding and Sidecar bootstrap eligibility is distinct from effective payload access. A sole remediable missing owned-Agent grant returns a non-authorizing opaque approval correlation; a fresh signed issue intent pins current accepted controller grant Events, while all nonremediable gates fail closed and normal refresh and completed replay preserve their existing ceilings. Participation predicates apply only to registered gates for the actual action; the current reply-selection refusal uses a complete capability grant for message.create and does not invent a reading selection bit. The payload approval example binds a granted message.create to the existing exact-target act-on-behalf confirmation; session-scope approval does not replace that independent action confirmation. The payload condition and quota examples bind actual constrained message.create grant paths: a temporal window closes while the row and session remain active; issuance does not debit quota, accepted effects count once, exact retry does not count twice, and an exhausted fresh operation leaves no business or reservation effect. Independent membership reading is not charged to an unrelated allow path.",
       "testability_grade": "vector",
       "evidence_refs": [
         "ak.vector.agent.interaction_mode.v1",

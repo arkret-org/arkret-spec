@@ -1,6 +1,6 @@
 {
   "profile": "ak.profile.agent_provisioning.v1",
-  "version": "2026-10-16.2",
+  "version": "2026-10-16.3",
   "suite": "agent_vectors",
   "runner": {
     "kind": "named_suite",
@@ -1532,7 +1532,21 @@
         "name": "condition_not_satisfied",
         "input": {
           "phase": "payload",
-          "conditions_allow": false
+          "action": "ak.message.create",
+          "conditions_allow": false,
+          "paths": [
+            {
+              "kind": "capability_grant",
+              "actions": [
+                "ak.message.create"
+              ],
+              "resources": [
+                "A"
+              ],
+              "complete": true,
+              "active": true
+            }
+          ]
         },
         "expected": "deny"
       },
@@ -1540,7 +1554,21 @@
         "name": "quota_exhausted",
         "input": {
           "phase": "payload",
-          "quota_available": false
+          "action": "ak.message.create",
+          "quota_available": false,
+          "paths": [
+            {
+              "kind": "capability_grant",
+              "actions": [
+                "ak.message.create"
+              ],
+              "resources": [
+                "A"
+              ],
+              "complete": true,
+              "active": true
+            }
+          ]
         },
         "expected": "deny"
       },

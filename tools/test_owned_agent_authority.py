@@ -176,6 +176,24 @@ class AgentSessionContentTest(unittest.TestCase):
                             row.pop('paths')
                 self.assertTrue(self.run_gate(mutate))
 
+    def test_payload_limits_cannot_be_charged_to_membership_reading(self):
+        for case_name in ('condition_not_satisfied', 'quota_exhausted'):
+            for mode in ('read', 'implicit_read', 'membership_write', 'missing_path'):
+                with self.subTest(case=case_name, mode=mode):
+                    def mutate(name, doc):
+                        if name == 'agent-vectors-fixture.json':
+                            row = next(c for c in doc['session_content_authority_contract']['cases']
+                                       if c['name'] == case_name)['input']
+                            if mode == 'read':
+                                row['action'] = 'ak.event.read'
+                            elif mode == 'implicit_read':
+                                row.pop('action')
+                            elif mode == 'membership_write':
+                                row['paths'][0]['kind'] = 'membership_read'
+                            else:
+                                row.pop('paths')
+                    self.assertTrue(self.run_gate(mutate))
+
     def test_approval_error_binding_cannot_disappear_or_require_refresh(self):
         for mode in ('missing_issue', 'wrong_refresh', 'inactive_reason', 'wrong_parent_status'):
             with self.subTest(mode=mode):

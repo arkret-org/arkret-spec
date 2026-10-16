@@ -197,6 +197,15 @@ def check_agent_session_content(lint: Lint) -> None:
             }
             if case.get('input') != expected:
                 lint.fail(fixture_path, 'Payload approval refusal must bind a granted action with a registered confirmation carrier')
+        if case.get('name') in ('condition_not_satisfied', 'quota_exhausted'):
+            gate = 'conditions_allow' if case['name'] == 'condition_not_satisfied' else 'quota_available'
+            expected = {
+                'phase': 'payload', 'action': 'ak.message.create', gate: False,
+                'paths': [{'kind': 'capability_grant', 'actions': ['ak.message.create'],
+                           'resources': ['A'], 'complete': True, 'active': True}],
+            }
+            if case.get('input') != expected:
+                lint.fail(fixture_path, 'Payload limit refusal must bind the actual constrained grant path')
         try:
             actual = decide(defaults | case['input'])
         except (KeyError, TypeError):
