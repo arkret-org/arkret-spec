@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-16",
+  "version": "2026-10-17",
   "source_of_truth": false,
-  "generated_at": "2026-10-16T18:05:38+08:00",
+  "generated_at": "2026-10-17T07:18:06+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -86,6 +86,7 @@
     "Receivers MUST default to risk_tier=high when an action submitted in a grant or evaluated in policy is not present in this registry; this is the freshness fail-closed default required by capabilities.md §18.",
     "required_constraints lists typed-constraint shorthand names that the capability evaluator MUST enforce for the action regardless of the grant author's declarations; absence in this list does NOT disable other declared constraints.",
     "required_evaluator_checks lists non-grant-field invariants (for example actor_eq_target_author or audit_pair_required) that admission control MUST enforce from Event context, reducer state, or paired audit evidence. These are not grant-constraint schema fields.",
+    "applet_managed_self_join requires the candidate's actual accepted managed Bot/Ghost Account Device, actor equal to member_id, membership=join and the exact native Realm/Circle scope, with current provision/installation and original Device bounds. It is an additional management/governance gate, never an unconditional Circle action; ak.circle.member.add, parent membership and independent MLS consent remain separate.",
     "target_event_kinds links the action to one or more ak.* event_kinds in event_kind_registry. Empty array means the action authorizes a read / projection / signaling path that does not produce a durable reducer-input event. Reducer admission for a listed event_kind MUST verify the actor holds at least one matching action grant, except for a root_control_only or subject_only action, whose authority is the registered root-control or subject binding, and except for the subject-bound branches the owning section registers for that event kind (the invitee decline and the joined inviter self-cancel of ak.invite.cancel, zh/models/governance-objects.md section 5.3).",
     "profile is null for v1 core actions, or a ak.profile.*.v<n> id when the action is only meaningful inside that profile. Receivers without the named profile MUST treat the action as unknown (risk_tier=high default).",
     "Every action MUST declare event_mapping_kind. action == single target_event_kind uses same_name; empty target_event_kinds uses non_event_surface; any other mapping MUST use one of the allowed deviation categories.",
@@ -433,7 +434,7 @@
         "ak.circle.member.state"
       ],
       "profile": null,
-      "notes": "Self-service: actor accepts an invite, joins a join_rule=open Circle, or leaves. Reducer enforces payload.member_id == envelope.actor_id using the complete ActorId and transition legality. Self-unbanning MUST fail closed.",
+      "notes": "Self-service join of a join_rule=public Circle or own leave. The complete actor equals the membership subject and all transition/parent membership gates remain mandatory; self-unbanning is forbidden. v1 invite-rule Circle entry uses the registered administrator audit-paired add-others path, not a Circle invite/accept workflow.",
       "event_mapping_kind": "scope_suffix_variant"
     },
     {
@@ -2114,12 +2115,16 @@
       "category": "management",
       "risk_tier": "medium",
       "required_constraints": [],
+      "required_evaluator_checks": [
+        "applet_managed_self_join"
+      ],
       "target_event_kinds": [
+        "ak.circle.member.state",
         "ak.member.state"
       ],
       "profile": null,
       "event_mapping_kind": "operation_verb",
-      "notes": "Subject-only managed Bot/Ghost join governance approval label. It grants no right to sign another subject join or bypass membership/MLS."
+      "notes": "Additional managed Bot/Ghost self-join governance label for the original Account Device-signed Realm or Circle membership join. The applet_managed_self_join context check is mandatory. It never grants ak.circle.member.add, another subject's signature, membership or MLS consent."
     }
   ],
   "event_mapping_kind_definitions": {

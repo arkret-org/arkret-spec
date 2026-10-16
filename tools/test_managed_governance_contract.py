@@ -287,6 +287,37 @@ class ManagedGovernanceTests(unittest.TestCase):
             self.assertIn(carrier["carrier_field"], body["properties"])
             self.assertFalse(body["additionalProperties"])
 
+    def test_native_circle_review_keeps_its_original_account_and_join_scope(self):
+        actions = {row["action"]: row for row in self.catalog["capability_action_registry"]["actions"]}
+        self.assertEqual(actions["ak.applet.join"]["target_event_kinds"], ["ak.circle.member.state", "ak.member.state"])
+        self.assertEqual(actions["ak.applet.join"]["required_evaluator_checks"], ["applet_managed_self_join"])
+        self.assertEqual(actions["ak.circle.member.add"]["target_event_kinds"], ["ak.circle.member.state"])
+        schema = json.loads((ART / "schemas/management-review-operations.schema.json").read_text())
+        join = next(row for row in schema["$defs"]["request"]["allOf"]
+                    if row.get("if", {}).get("properties", {}).get("management_operation", {}).get("const") == "join")
+        gate = join["then"]["properties"]["target"]["properties"]["event"]
+        validator = Draft202012Validator({"$id": schema["$id"], **gate}, registry=self.registry)
+        # The Event envelope independently owns complete shape and signature rules.
+        candidate = {"kind": "ak.circle.member.state",
+                     "scope_ref": {"kind": "circle", "realm_id": self.fixture["identities"]["realm_id"],
+                                   "circle_id": "ak:circle:01904100-0000-7000-8000-000000000001"},
+                     "actor_id": self.fixture["identities"]["bot"],
+                     "applet_id": self.fixture["identities"]["applet_id"],
+                     "payload": {"membership": "join"}}
+        self.assertTrue(validator.is_valid(candidate))
+        for field, value in [("scope_ref", {"kind": "realm"}),
+                             ("actor_id", self.fixture["identities"]["service"]),
+                             ("payload", {"membership": "leave"}),
+                             ("executed_by", self.fixture["identities"]["service"]),
+                             ("kind", "ak.profile.create")]:
+            invalid = copy.deepcopy(candidate)
+            invalid[field] = value
+            self.assertFalse(validator.is_valid(invalid), field)
+        invalid = copy.deepcopy(candidate)
+        del invalid["applet_id"]
+        self.assertFalse(validator.is_valid(invalid))
+        self.assertTrue(validator.is_valid({"kind": "ak.member.state"}))
+
     def test_first_device_and_service_child_have_a_real_transport_carrier(self):
         operations = {o["operation_id"]: o for o in self.catalog["operation_registry"]["operations"]}
         submission = operations["ak.self.events.command.submit.v1"]

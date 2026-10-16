@@ -175,13 +175,70 @@
                     "const": "event"
                   },
                   "event": {
-                    "properties": {
-                      "kind": {
-                        "enum": [
-                          "ak.member.state"
-                        ]
+                    "anyOf": [
+                      {
+                        "properties": {
+                          "kind": {
+                            "enum": [
+                              "ak.member.state"
+                            ]
+                          }
+                        }
+                      },
+                      {
+                        "properties": {
+                          "kind": {
+                            "const": "ak.circle.member.state"
+                          },
+                          "scope_ref": {
+                            "properties": {
+                              "kind": {
+                                "const": "circle"
+                              }
+                            },
+                            "required": [
+                              "kind"
+                            ]
+                          },
+                          "actor_id": {
+                            "$ref": "./common-ids.schema.json#/$defs/actor_id",
+                            "properties": {
+                              "kind": {
+                                "const": "account"
+                              }
+                            },
+                            "required": [
+                              "kind"
+                            ]
+                          },
+                          "applet_id": {
+                            "$ref": "./common-ids.schema.json#/$defs/applet_id"
+                          },
+                          "payload": {
+                            "properties": {
+                              "membership": {
+                                "const": "join"
+                              }
+                            },
+                            "required": [
+                              "membership"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "kind",
+                          "scope_ref",
+                          "actor_id",
+                          "applet_id",
+                          "payload"
+                        ],
+                        "not": {
+                          "required": [
+                            "executed_by"
+                          ]
+                        }
                       }
-                    }
+                    ]
                   }
                 }
               }

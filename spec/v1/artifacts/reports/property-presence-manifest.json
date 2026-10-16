@@ -15,13 +15,13 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9546,
+    "total_properties": 9554,
     "total_schema_documents": 174,
     "by_presence_class": {
       "optional": 2219,
       "optional_defaulted": 48,
-      "required": 6757,
-      "required_nullable": 336,
+      "required": 6763,
+      "required_nullable": 338,
       "tristate": 186
     },
     "tristate_occurrences": 186,
@@ -8744,7 +8744,15 @@
         "/$defs/request/allOf/2/if/properties/management_operation": "required",
         "/$defs/request/allOf/2/then/properties/target": "tristate",
         "/$defs/request/allOf/2/then/properties/target/properties/event": "tristate",
-        "/$defs/request/allOf/2/then/properties/target/properties/event/properties/kind": "optional",
+        "/$defs/request/allOf/2/then/properties/target/properties/event/anyOf/0/properties/kind": "optional",
+        "/$defs/request/allOf/2/then/properties/target/properties/event/anyOf/1/properties/actor_id": "required",
+        "/$defs/request/allOf/2/then/properties/target/properties/event/anyOf/1/properties/actor_id/properties/kind": "required",
+        "/$defs/request/allOf/2/then/properties/target/properties/event/anyOf/1/properties/applet_id": "required",
+        "/$defs/request/allOf/2/then/properties/target/properties/event/anyOf/1/properties/kind": "required",
+        "/$defs/request/allOf/2/then/properties/target/properties/event/anyOf/1/properties/payload": "required_nullable",
+        "/$defs/request/allOf/2/then/properties/target/properties/event/anyOf/1/properties/payload/properties/membership": "required",
+        "/$defs/request/allOf/2/then/properties/target/properties/event/anyOf/1/properties/scope_ref": "required_nullable",
+        "/$defs/request/allOf/2/then/properties/target/properties/event/anyOf/1/properties/scope_ref/properties/kind": "required",
         "/$defs/request/allOf/2/then/properties/target/properties/kind": "optional",
         "/$defs/request/allOf/3/if/properties/management_operation": "required",
         "/$defs/request/allOf/3/then/properties/target": "tristate",

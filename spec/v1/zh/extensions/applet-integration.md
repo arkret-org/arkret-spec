@@ -3,7 +3,7 @@ title: Applet Integration
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-28
+updated: 2026-10-17
 ---
 
 > **状态：extension profile（非 v1 core 互操作必需）**。Applet registry、审核 SLA 与 capability
@@ -801,9 +801,10 @@ Service原签Applet写入 MUST 通过 `ak.edge.applet.command.transaction.v1` �
 - `authorization_ref`
 - `producer_proof`
 
-`authorization_ref` MUST 引用 exact install 中真实 accepted 的 active `ak.capability.grant`，并交叉验证 service authority、`applet_id`、registration epoch 与 producer-signed `scope_ref`。其用途由 event-kind registry 的 admission 合同决定：
+`authorization_ref` MUST 引用本次 admission 合同规定的真实 accepted active `ak.capability.grant`，并与 exact installation、service authority、`applet_id`、registration epoch 和 producer-signed `scope_ref` 交叉验证。其用途由 event-kind registry 的 admission 合同及实际 producer 决定：
 
-- capability-gated Event 必须另外验证该 grant 覆盖具体 action / resource；不能以安装成功替代 action 权限。
+- capability-gated Event 必须验证该 grant 覆盖具体 action / resource；不能以安装成功替代 action 权限。实际 Bot／Ghost Account Device 本人签署时，该 ref MUST 是 Service 签发给该完整 Account 的 terminal child，按 [managed-governance §4](../authz/managed-governance.md) 追溯真实 Service parent／所有贡献祖先，并在本次接纳 cut 重验 exact installation 和各自原约束／原持有人 quota。它不是第二个 installation ref，也不授权 Service 借 child 代签 Account Event。
+- 本人 `ak.circle.member.state{join}` 属于上述 capability-gated 分支：使用实际 Circle 的 `ak.circle.member.add` child，同时额外满足 `ak.applet.join` 的管理／治理审批，保持 Circle join rule／FSM、原签父 membership revision 与独立 E2EE 同意。Realm subject-only join 的安装引用规则不得套用于 Circle；Realm 安装／pair 不覆盖 Circle。
 - `subject_only` Event（如 `ak.invite.accept` 与本人 `ak.member.state` join）不把该 ref 当作 action 授权。该 ref 只绑定 exact installation；本人签名、exact invite、join rule、membership FSM、目标 Realm / Circle policy 与 E2EE admission 仍独立验证。不得为不可授权 action 签发虚构 grant，也不得要求 managed actor 持有 `ak.realm.admin` 才能本人加入。Bot / Ghost 的本人签名按其已登记 managed-principal authority 解析；service 签名不得凭 install ref 冒充任意 native actor。
 
 按事件签署主体进一步区分：
@@ -1037,9 +1038,9 @@ Applet 参与 E2EE Realm 时有三种模式：
 - Bridge 到不支持 E2EE 的外部网络时，客户端 MUST 明确提示加密边界在 bridge 处终止。
 - Applet 托管 Ghost Actor MLS state 时，必须将其视为高敏感密钥材料。
 
-**E2EE 加入授权（normative）**：Bot Actor 或 Applet-managed Ghost Actor 加入 E2EE Realm 的 MLS group（上文模式 1、2）MUST 经过独立的 **E2EE 加入授权**，该授权与普通的 capability grant（如 `ak.strand.create` / `ak.message.create` 等写入权限）**分立**：持有写入 capability 不自动授予把 applet / ghost 成员加入 MLS group 的权利。
+**E2EE 加入授权（normative）**：Bot Actor 或 Applet-managed Ghost Actor 加入 E2EE Realm 或 Circle 的 MLS group（上文模式 1、2）MUST 经过独立的 **E2EE 加入授权**，该授权与普通的 capability grant（如 `ak.strand.create` / `ak.message.create` 等写入权限）**分立**：持有写入 capability 不自动授予把 applet / ghost 成员加入 MLS group 的权利。
 
-- 该 E2EE 加入授权 MUST 由 Realm owner、Realm admin 或 Realm policy 明确授权的 administrator actor 通过已 accepted 的 registration `claimed_profiles[]`（含 `ak.profile.applet_e2ee_join.v1`）、exact install grants 与当前 Realm policy 明确同意，并经 Station authorization capability 校验。该同意不允许管理员代写第三方 `leave→join`：Bot / Ghost 必须本人签署 `ak.member.state` 或接受 exact 定向邀请，按 [common-fields.md §4.5](../models/common-fields.md#45-membership-fsmnormative) 的 FSM 准入，Event 必须携 applet provenance。未登记新的 E2EE consent Event / payload 字段，不得自行添加。Welcome 不能替代 membership 或上述同意。
+- 该 E2EE 加入授权 MUST 由 Realm owner、Realm admin 或 Realm policy 明确授权的 administrator actor 通过已 accepted 的 registration `claimed_profiles[]`（含 `ak.profile.applet_e2ee_join.v1`）、exact install grants 与当前 Realm policy 明确同意，并经 Station authorization capability 校验。该同意不允许管理员代写第三方 `leave→join`：Bot / Ghost 必须本人签署 Realm 的 `ak.member.state`、Circle 的 `ak.circle.member.state`，或在已有正式入口接受 exact 定向邀请，按 [common-fields.md §4.5](../models/common-fields.md#45-membership-fsmnormative) 的 FSM 准入，Event 必须携 applet provenance。未登记新的 E2EE consent Event / payload 字段，不得自行添加。Welcome 不能替代 membership 或上述同意。Circle MLS 须在 exact Circle 逐项重验这些来源及 Circle／父 Realm Policy，Realm 同意不覆盖 Circle；不借本节新增 Circle invite workflow 或放宽 Circle 自助加入门。
 - 缺少该独立 E2EE 加入授权时，Arkret 客户端 MUST NOT 把 applet / ghost 成员加入 MLS group，并 MUST 以 `applet_e2ee_join_unauthorized` 拒绝该加入。
 - 成员加入后，客户端在 MLS group 的成员 roster（成员列表 UI 与 audit 视图）中 MUST 显式标注该成员为 **applet-managed**（区别于 native 人类成员），不得让 applet / ghost 成员在 roster 中表现为普通 native 成员。该标注与 §9 的 Ghost Actor 协议层可区分要求一致。
 

@@ -3,7 +3,7 @@ title: Realm 用户、Agent 与 Applet 精细治理
 status: candidate
 normative: true
 stability: v1
-updated: 2026-10-09
+updated: 2026-10-17
 ---
 
 ## 0. 规范语言与载体
@@ -64,10 +64,21 @@ invoke 按完整 caller 和实际动作／资源匹配；调用人无权时不�
 
 只有 join、publish、create_bot、map_ghost 支持本管理族的 require_review；其它管理操作 **MUST NOT** 配置
 require_review，须用可直接执行的 allow／deny／quarantine 或动作自身已登记审批合同。
-join 与 publish 用完整已 producer 签署的 `ak.member.state`／`ak.agent.interaction.set` Event 作为候选，
+Agent join 与 publish 用完整已 producer 签署的 `ak.member.state`／`ak.agent.interaction.set` Event 作为候选，
 通过原 Event admission 的 `approval_signatures` 消费批准。两个治理 action 标签 `ak.agent.join`、`ak.agent.publish`
 只选择该审批门，不把 subject-only join 或 controller-only 模式改变成持 grant 即可代写。
-Bot／Ghost 本人 join 使用原签 `ak.member.state`，治理 action 为 `ak.applet.join`，不推断 Agent ownership；
+Bot／Ghost 本人 Realm join 使用原签 `ak.member.state`；本人 Circle join 使用实际 Account Device 原签
+`ak.circle.member.state`（`member_id == actor_id`、`membership="join"`、exact Circle scope），
+两者的管理操作均为 join、治理 action 均为 `ak.applet.join`，不推断 Agent ownership。
+机器动作映射对 `ak.applet.join` 登记 `applet_managed_self_join` 上下文检查；它是额外管理／治理门，
++MUST NOT 被当作普通 Circle Event 的无条件动作备选。
++Circle join 还 MUST 独立满足 [circle §8／§9.1](../models/circle.md) 的实际 `ak.circle.member.add`、
+合法 join rule／FSM 与原签 `parent_membership_revision`；`authorization_ref` 选择真实 Service 签发的
+本人 terminal child，Service parent／祖先的持续上界与原 quota 依 §4 求 AND，不能换成安装引用或管理员许可。
+同一 exact Circle 的原 Device pair MUST 包含 `ak.applet.join` 与 `ak.circle.member.add`；管理允许或批准
+不能补足其中任一动作、当前安装或独立 E2EE 同意。这里不新增 Circle invite／跨 actor 代写入口。
+首次 Circle join 的 pending 可以没有该 member 的 Circle membership 行；Station MUST 固定真实 Circle、
+父 Realm exact membership revision 与可空的原 Circle membership，并于消费前重验；未知来源不能当作合法无记录。
 Applet 服务发布使用受管主体在该业务 scope 的原签 `ak.profile.create`／`ak.profile.update`，以 `profile_fields.applet_interaction={effective_scope,mode:"public"|"private"}` 表达本 scope 意图；
 对应管理发布 action `ak.applet.publish`。该 reserved profile 成员必须通过闭合类型核验，不能由普通展示字段或缺值推断 public。
 private 或未写入不开放公开服务；private 切换不要求 publish 审批，serve 仍是持续上界。Service 可为自己的 accepted 受管主体申请审批，不能代 Device 签署该 profile/join Event。
