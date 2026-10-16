@@ -3,7 +3,7 @@ title: Moderation
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-02
+updated: 2026-10-17
 ---
 
 ## 0. 规范语言
@@ -73,7 +73,7 @@ flowchart TB
 - **Capability 是唯一 allow 来源**：黑名单 / moderation policy / personal blocklist 都不能凭空创造权限。
 - **Moderation 决策 MUST committed**（见 §2.6）：`hard_deny` / `quarantine` / `require_review` / `dismiss` 必须通过 committed Event 写入 `moderation_state` typed current result；`dismiss` 仅终结绑定的举报 queue item，不改变目标内容的 effective decision。
 - **Personal Blocklist 不进 typed current result**：它只是接收方本地客户端 view 过滤，不广播、不共享、不替 Realm 删除其他人可见的事实。
-- **Blocklist 不可枚举**：个人 block 命中不得向被屏蔽方或 federation peer 暴露为独立错误码、receipt 差异、presence / typing 差异或 directory 结果差异；对外表现必须与普通不可见、不可达或不存在一致。
+- **Blocklist 的服务端不可枚举边界**：Station 与 federation peer MUST NOT 读取或解密个人 blocklist，也 MUST NOT 在提交、准入、Commit、投递或查询路径中按其命中分支、排队或人为延迟；提交 status、Problem type／reason、响应形状与 directory 结果不得因命中改变。持钥 holder 客户端在接收并验证后执行本地过滤，因此可不发送自动 read receipt、typing 或 presence；这些客户端信号的有无可能被对方观察，v1 不保证端到端不可推断。完整合同、自动回执限制与真实 transport 时序的验收边界见 [`client-preferences.md` §3.5／§3.5.1](../discovery/client-preferences.md)。
 
 ### 2.6 Moderation 决策 MUST committed
 
