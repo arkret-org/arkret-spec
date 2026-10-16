@@ -250,7 +250,10 @@ approval constraint。它 MUST 在跨 grant 合并
   治理层的要求可以作用于不靠单份 grant 接纳的动作，实现 MUST NOT 为了满足 schema 伪造 `grant_id`；
   反向，一份 `realm_governance` 支证据 MUST NOT 被当成对某份特定 grant 的批准。
 - `approver_did` **不是**本次操作的发起者。自签名 MUST NOT 计票，否则 `approval_quorum=1` 等于没有要求；
-- `approver_did` 自身持有一份对 `(A, T)` 有效的 capability grant。`policy_action.value` 不携带
+- `approver_did` 自身持有一份对 `(A, T)` 有效的 capability grant；仅登记的两项 Applet 创建动作按
+  [constraint-schema §9.1](../authz/constraint-schema.md) 的 `approver_capability_action` override，
+  改验对实际 scope 的显式 `ak.realm.admin` grant，不以 root/owner 身份替代。签名 action 与被批准的
+  `(A, T)` 不变。`policy_action.value` 不携带
   `approval_actor_ids`，所以有资格投票的集合由这一条定义，MUST NOT 放宽成「任意 Realm 成员」——
   否则任何人都能凑齐 quorum。
 

@@ -553,6 +553,20 @@ current membership、action/scope capability、时间与签名资格检查。没
 roster 的有效票，不免除独立 Agent confirmation 等已登记的实际 controller 关系检查。
 无正文与消费者合同的 `approver_ids` 字段不在 v1 closed constraint 中，MUST `schema_violation`。
 
+**创建动作批准资格（normative）**：只有 canonical registry
+`approval_requirement_eligibility.action_overrides[].approver_capability_action` 逐字登记的
+`ak.applet.bot.provision` 与 `ak.applet.ghost.provision` 使用 `ak.realm.admin` 作为批准资格 action；
+其余 action 仍使用被批准 action 自身。两项创建的批准人 MUST 在同一 authority cut 对原候选的
+实际 effective scope 持有当前有效的显式 `ak.realm.admin` grant，且其全部适用约束可满足；
+待审批、deny、quarantine 或无法证明当前资格均不能计票。root/owner 身份本身、membership、
+创建许可或管理批准都不替代该显式 grant。该 override 同时适用于本节 grant roster 与
+§9.3 Realm-governance quorum 的资格检查，MUST NOT 从 action 前缀、profile 或部署配置推导。
+签名 input.action、operation、实际 scope、发起 Service、请求原像、历史密钥、时窗与 nonce
+仍绑定原创建动作；批准资格不授予批准人创建权，不改变创建 grant 的 exact Service subject
+与 registration/epoch 约束。发起 Service 的同 principal 自批不得计票，跨 Station 同 principal
+只计一票。roster、threshold、timeout、治理 quorum 仍各自按原合同计算，管理审批独立满足。
+
+
 ### 9.2 Approval signature（normative）
 
 **Approval signature** 是 v1 **唯一**的审批证据类型：一个由 approver DID 签发的独立 wire 对象，

@@ -250,10 +250,18 @@ def check_approval_requirement_eligibility(lint: Lint) -> None:
         lint.fail(ACTION_REGISTRY, "approval action_overrides must be an array")
         overrides = []
     for index, override in enumerate(overrides):
-        if not isinstance(override, dict) or set(override) != {"action", "eligibility_kind", "carrier_id"}:
+        if not isinstance(override, dict) or set(override) not in (
+            {"action", "eligibility_kind", "carrier_id"},
+            {"action", "eligibility_kind", "carrier_id", "approver_capability_action"},
+        ):
             lint.fail(ACTION_REGISTRY, f"approval action_overrides[{index}] has an open or incomplete shape")
             continue
         action = override.get("action")
+        required_qualification = "ak.realm.admin" if action in {
+            "ak.applet.bot.provision", "ak.applet.ghost.provision"
+        } else None
+        if override.get("approver_capability_action") != required_qualification:
+            lint.fail(ACTION_REGISTRY, f"approval action override {action!r} has incorrect approver capability action")
         if action in override_by_action:
             lint.fail(ACTION_REGISTRY, f"duplicate approval action override for {action!r}")
         override_by_action[action] = override

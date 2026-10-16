@@ -71,6 +71,9 @@ Bot／Ghost 本人 join 使用原签 `ak.member.state`，治理 action 为 `ak.a
 Applet 服务发布使用受管主体在该业务 scope 的原签 `ak.profile.create`／`ak.profile.update`，以 `profile_fields.applet_interaction={effective_scope,mode:"public"|"private"}` 表达本 scope 意图；
 对应管理发布 action `ak.applet.publish`。该 reserved profile 成员必须通过闭合类型核验，不能由普通展示字段或缺值推断 public。
 private 或未写入不开放公开服务；private 切换不要求 publish 审批，serve 仍是持续上界。Service 可为自己的 accepted 受管主体申请审批，不能代 Device 签署该 profile/join Event。
+Bot／Ghost 创建动作自身的 grant／Realm-governance 批准资格按 [constraint-schema §9.1](./constraint-schema.md)
+登记的 exact `approver_capability_action=ak.realm.admin`，要求实际 scope 的显式 grant，不给予批准人
+Service 创建许可；该资格与本节管理审批及各自 roster/quorum 独立判定。
 Bot／Ghost 创建批准完整 provision RequestBody，签名放在该 operation 的外层 `approval_signatures`；
 审批目标原像剔除这个证据字段，不能改写 authoring request 或四个 Event。
 

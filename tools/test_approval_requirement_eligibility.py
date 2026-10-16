@@ -67,6 +67,25 @@ class ApprovalRequirementEligibilityTest(unittest.TestCase):
             "ineligible_no_registered_carrier",
         )
 
+    def test_creation_qualification_cannot_be_missing_or_widened(self) -> None:
+        for value in (None, "ak.applet.bot.provision", "ak.realm.owner", "ak.*"):
+            def mutate(documents, value=value):
+                row = self._block(documents)["action_overrides"][0]
+                if value is None:
+                    row.pop("approver_capability_action")
+                else:
+                    row["approver_capability_action"] = value
+            errors = self._new_errors(mutate)
+            self.assertTrue(any("incorrect approver capability action" in error for error in errors), errors)
+
+    def test_qualification_override_cannot_escape_exact_creation_actions(self) -> None:
+        def mutate(documents):
+            row = copy.deepcopy(self._block(documents)["action_overrides"][0])
+            row["action"] = "ak.strand.create"
+            self._block(documents)["action_overrides"].append(row)
+        errors = self._new_errors(mutate)
+        self.assertTrue(any("incorrect approver capability action" in error for error in errors), errors)
+
     def test_aggregate_override_requires_all_target_event_kinds(self) -> None:
         def mutate(documents: dict[Path, dict]) -> None:
             registry = documents[gate.OPERATION_REGISTRY.resolve()]
