@@ -5,16 +5,17 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.authority_commit_projection.result_consumption_roles.v1"
   },
-  "version": "2026-10-05.1",
+  "version": "2026-10-17.1",
   "profile": "ak.profile.full_client.v1",
   "covers_vectors": [
     "ak.vector.authority_commit_projection.result_consumption_roles.v1"
   ],
   "machine_contracts": [
     "registry/contract-registry.json",
-    "profiles/conformance-profiles.json"
+    "profiles/conformance-profiles.json",
+    "schemas/realm-state-snapshot.schema.json"
   ],
-  "description": "Executable role policy only. Original governance crypto, producer/MLS crypto, durable host context and live integration require separate actual assertions.",
+  "description": "Executable role policy only. Original governance crypto, producer/MLS crypto, durable host context and live integration require separate actual assertions. Snapshot cases execute role/generation/exact-original/disclosure policy only; native signatures and durable HTTP installation require production tests.",
   "cases": [
     {
       "name": "legal_cross_station_original_self_result",
@@ -456,6 +457,448 @@
       "live_did_discovery": false,
       "portable": false,
       "expected": "reject"
+    }
+  ],
+  "snapshot_cases": [
+    {
+      "name": "historical_after_handoff",
+      "input": {
+        "role": "ordinary_client",
+        "operation": "by_ref",
+        "current_generation": 2,
+        "snapshot_generation": 1,
+        "basis_generation": 1,
+        "exact_ref_matches": true,
+        "known_tenure": true,
+        "native_governance_verified": true,
+        "ordinary_method_history_required": false,
+        "original_available": true,
+        "all_original_components_disclosable": true,
+        "target_stream_disclosable": true,
+        "context_ids_cut_and_continuity_valid": true,
+        "replaces_newer_current": false,
+        "substitutes_current_head": false,
+        "rewrites_original": false
+      },
+      "expected": "accept_historical"
+    },
+    {
+      "name": "current_head",
+      "input": {
+        "role": "ordinary_client",
+        "operation": "head",
+        "current_generation": 2,
+        "snapshot_generation": 2,
+        "basis_generation": 1,
+        "exact_ref_matches": true,
+        "known_tenure": true,
+        "native_governance_verified": true,
+        "ordinary_method_history_required": false,
+        "original_available": true,
+        "all_original_components_disclosable": true,
+        "target_stream_disclosable": true,
+        "context_ids_cut_and_continuity_valid": true,
+        "replaces_newer_current": false,
+        "substitutes_current_head": false,
+        "rewrites_original": false
+      },
+      "expected": "accept_current"
+    },
+    {
+      "name": "old_tenure_as_head",
+      "input": {
+        "role": "ordinary_client",
+        "operation": "head",
+        "current_generation": 2,
+        "snapshot_generation": 1,
+        "basis_generation": 1,
+        "exact_ref_matches": true,
+        "known_tenure": true,
+        "native_governance_verified": true,
+        "ordinary_method_history_required": false,
+        "original_available": true,
+        "all_original_components_disclosable": true,
+        "target_stream_disclosable": true,
+        "context_ids_cut_and_continuity_valid": true,
+        "replaces_newer_current": false,
+        "substitutes_current_head": false,
+        "rewrites_original": false
+      },
+      "expected": "reject"
+    },
+    {
+      "name": "future_tenure",
+      "input": {
+        "role": "ordinary_client",
+        "operation": "by_ref",
+        "current_generation": 2,
+        "snapshot_generation": 3,
+        "basis_generation": 3,
+        "exact_ref_matches": true,
+        "known_tenure": true,
+        "native_governance_verified": true,
+        "ordinary_method_history_required": false,
+        "original_available": true,
+        "all_original_components_disclosable": true,
+        "target_stream_disclosable": true,
+        "context_ids_cut_and_continuity_valid": true,
+        "replaces_newer_current": false,
+        "substitutes_current_head": false,
+        "rewrites_original": false
+      },
+      "expected": "reject"
+    },
+    {
+      "name": "unknown_historical_tenure",
+      "input": {
+        "role": "ordinary_client",
+        "operation": "by_ref",
+        "current_generation": 2,
+        "snapshot_generation": 1,
+        "basis_generation": 1,
+        "exact_ref_matches": true,
+        "known_tenure": false,
+        "native_governance_verified": true,
+        "ordinary_method_history_required": false,
+        "original_available": true,
+        "all_original_components_disclosable": true,
+        "target_stream_disclosable": true,
+        "context_ids_cut_and_continuity_valid": true,
+        "replaces_newer_current": false,
+        "substitutes_current_head": false,
+        "rewrites_original": false
+      },
+      "expected": "reject"
+    },
+    {
+      "name": "wrong_signer_or_signing_time_key",
+      "input": {
+        "role": "account_station",
+        "operation": "by_ref",
+        "current_generation": 2,
+        "snapshot_generation": 1,
+        "basis_generation": 1,
+        "exact_ref_matches": true,
+        "known_tenure": true,
+        "native_governance_verified": false,
+        "ordinary_method_history_required": false,
+        "original_available": true,
+        "all_original_components_disclosable": true,
+        "target_stream_disclosable": true,
+        "context_ids_cut_and_continuity_valid": true,
+        "replaces_newer_current": false,
+        "substitutes_current_head": false,
+        "rewrites_original": false
+      },
+      "expected": "reject"
+    },
+    {
+      "name": "auditor_historical_after_handoff",
+      "input": {
+        "role": "independent_auditor",
+        "operation": "by_ref",
+        "current_generation": 2,
+        "snapshot_generation": 1,
+        "basis_generation": 1,
+        "exact_ref_matches": true,
+        "known_tenure": true,
+        "native_governance_verified": true,
+        "ordinary_method_history_required": false,
+        "original_available": true,
+        "all_original_components_disclosable": true,
+        "target_stream_disclosable": true,
+        "context_ids_cut_and_continuity_valid": true,
+        "replaces_newer_current": false,
+        "substitutes_current_head": false,
+        "rewrites_original": false
+      },
+      "expected": "accept_historical"
+    },
+    {
+      "name": "auditor_missing_native_verification",
+      "input": {
+        "role": "independent_auditor",
+        "operation": "by_ref",
+        "current_generation": 2,
+        "snapshot_generation": 1,
+        "basis_generation": 1,
+        "exact_ref_matches": true,
+        "known_tenure": true,
+        "native_governance_verified": false,
+        "ordinary_method_history_required": false,
+        "original_available": true,
+        "all_original_components_disclosable": true,
+        "target_stream_disclosable": true,
+        "context_ids_cut_and_continuity_valid": true,
+        "replaces_newer_current": false,
+        "substitutes_current_head": false,
+        "rewrites_original": false
+      },
+      "expected": "reject"
+    },
+    {
+      "name": "ordinary_client_forced_method_history",
+      "input": {
+        "role": "ordinary_client",
+        "operation": "by_ref",
+        "current_generation": 2,
+        "snapshot_generation": 1,
+        "basis_generation": 1,
+        "exact_ref_matches": true,
+        "known_tenure": true,
+        "native_governance_verified": true,
+        "ordinary_method_history_required": true,
+        "original_available": true,
+        "all_original_components_disclosable": true,
+        "target_stream_disclosable": true,
+        "context_ids_cut_and_continuity_valid": true,
+        "replaces_newer_current": false,
+        "substitutes_current_head": false,
+        "rewrites_original": false
+      },
+      "expected": "reject"
+    },
+    {
+      "name": "exact_ref_mismatch",
+      "input": {
+        "role": "ordinary_client",
+        "operation": "by_ref",
+        "current_generation": 2,
+        "snapshot_generation": 1,
+        "basis_generation": 1,
+        "exact_ref_matches": false,
+        "known_tenure": true,
+        "native_governance_verified": true,
+        "ordinary_method_history_required": false,
+        "original_available": true,
+        "all_original_components_disclosable": true,
+        "target_stream_disclosable": true,
+        "context_ids_cut_and_continuity_valid": true,
+        "replaces_newer_current": false,
+        "substitutes_current_head": false,
+        "rewrites_original": false
+      },
+      "expected": "reject"
+    },
+    {
+      "name": "basis_generation_mismatch",
+      "input": {
+        "role": "ordinary_client",
+        "operation": "by_ref",
+        "current_generation": 2,
+        "snapshot_generation": 1,
+        "basis_generation": 2,
+        "exact_ref_matches": true,
+        "known_tenure": true,
+        "native_governance_verified": true,
+        "ordinary_method_history_required": false,
+        "original_available": true,
+        "all_original_components_disclosable": true,
+        "target_stream_disclosable": true,
+        "context_ids_cut_and_continuity_valid": true,
+        "replaces_newer_current": false,
+        "substitutes_current_head": false,
+        "rewrites_original": false
+      },
+      "expected": "reject"
+    },
+    {
+      "name": "wrong_account_session_or_mixed_cut",
+      "input": {
+        "role": "ordinary_client",
+        "operation": "by_ref",
+        "current_generation": 2,
+        "snapshot_generation": 1,
+        "basis_generation": 1,
+        "exact_ref_matches": true,
+        "known_tenure": true,
+        "native_governance_verified": true,
+        "ordinary_method_history_required": false,
+        "original_available": true,
+        "all_original_components_disclosable": true,
+        "target_stream_disclosable": true,
+        "context_ids_cut_and_continuity_valid": false,
+        "replaces_newer_current": false,
+        "substitutes_current_head": false,
+        "rewrites_original": false
+      },
+      "expected": "reject"
+    },
+    {
+      "name": "unrelated_scope_revoked_target_still_readable",
+      "input": {
+        "role": "ordinary_client",
+        "operation": "by_ref",
+        "current_generation": 2,
+        "snapshot_generation": 1,
+        "basis_generation": 1,
+        "exact_ref_matches": true,
+        "known_tenure": true,
+        "native_governance_verified": true,
+        "ordinary_method_history_required": false,
+        "original_available": true,
+        "all_original_components_disclosable": false,
+        "target_stream_disclosable": true,
+        "context_ids_cut_and_continuity_valid": true,
+        "replaces_newer_current": false,
+        "substitutes_current_head": false,
+        "rewrites_original": false
+      },
+      "expected": "unavailable"
+    },
+    {
+      "name": "target_scope_revoked",
+      "input": {
+        "role": "ordinary_client",
+        "operation": "by_ref",
+        "current_generation": 2,
+        "snapshot_generation": 1,
+        "basis_generation": 1,
+        "exact_ref_matches": true,
+        "known_tenure": true,
+        "native_governance_verified": true,
+        "ordinary_method_history_required": false,
+        "original_available": true,
+        "all_original_components_disclosable": false,
+        "target_stream_disclosable": false,
+        "context_ids_cut_and_continuity_valid": true,
+        "replaces_newer_current": false,
+        "substitutes_current_head": false,
+        "rewrites_original": false
+      },
+      "expected": "unavailable"
+    },
+    {
+      "name": "original_missing_or_expired",
+      "input": {
+        "role": "ordinary_client",
+        "operation": "by_ref",
+        "current_generation": 2,
+        "snapshot_generation": 1,
+        "basis_generation": 1,
+        "exact_ref_matches": true,
+        "known_tenure": true,
+        "native_governance_verified": true,
+        "ordinary_method_history_required": false,
+        "original_available": false,
+        "all_original_components_disclosable": true,
+        "target_stream_disclosable": true,
+        "context_ids_cut_and_continuity_valid": true,
+        "replaces_newer_current": false,
+        "substitutes_current_head": false,
+        "rewrites_original": false
+      },
+      "expected": "unavailable"
+    },
+    {
+      "name": "head_substituted_for_exact_basis",
+      "input": {
+        "role": "ordinary_client",
+        "operation": "by_ref",
+        "current_generation": 2,
+        "snapshot_generation": 1,
+        "basis_generation": 1,
+        "exact_ref_matches": true,
+        "known_tenure": true,
+        "native_governance_verified": true,
+        "ordinary_method_history_required": false,
+        "original_available": true,
+        "all_original_components_disclosable": true,
+        "target_stream_disclosable": true,
+        "context_ids_cut_and_continuity_valid": true,
+        "replaces_newer_current": false,
+        "substitutes_current_head": true,
+        "rewrites_original": false
+      },
+      "expected": "reject"
+    },
+    {
+      "name": "unauthorized_components_trimmed",
+      "input": {
+        "role": "ordinary_client",
+        "operation": "by_ref",
+        "current_generation": 2,
+        "snapshot_generation": 1,
+        "basis_generation": 1,
+        "exact_ref_matches": true,
+        "known_tenure": true,
+        "native_governance_verified": true,
+        "ordinary_method_history_required": false,
+        "original_available": true,
+        "all_original_components_disclosable": true,
+        "target_stream_disclosable": true,
+        "context_ids_cut_and_continuity_valid": true,
+        "replaces_newer_current": false,
+        "substitutes_current_head": false,
+        "rewrites_original": true
+      },
+      "expected": "reject"
+    },
+    {
+      "name": "historical_replaces_newer_current",
+      "input": {
+        "role": "ordinary_client",
+        "operation": "by_ref",
+        "current_generation": 2,
+        "snapshot_generation": 1,
+        "basis_generation": 1,
+        "exact_ref_matches": true,
+        "known_tenure": true,
+        "native_governance_verified": true,
+        "ordinary_method_history_required": false,
+        "original_available": true,
+        "all_original_components_disclosable": true,
+        "target_stream_disclosable": true,
+        "context_ids_cut_and_continuity_valid": true,
+        "replaces_newer_current": true,
+        "substitutes_current_head": false,
+        "rewrites_original": false
+      },
+      "expected": "reject"
+    },
+    {
+      "name": "current_rows_advanced_original_still_disclosable",
+      "input": {
+        "role": "ordinary_client",
+        "operation": "by_ref",
+        "current_generation": 2,
+        "snapshot_generation": 1,
+        "basis_generation": 1,
+        "exact_ref_matches": true,
+        "known_tenure": true,
+        "native_governance_verified": true,
+        "ordinary_method_history_required": false,
+        "original_available": true,
+        "all_original_components_disclosable": true,
+        "target_stream_disclosable": true,
+        "context_ids_cut_and_continuity_valid": true,
+        "replaces_newer_current": false,
+        "substitutes_current_head": false,
+        "rewrites_original": false
+      },
+      "expected": "accept_historical"
+    },
+    {
+      "name": "new_visible_stream_does_not_change_exact_original",
+      "input": {
+        "role": "ordinary_client",
+        "operation": "by_ref",
+        "current_generation": 2,
+        "snapshot_generation": 1,
+        "basis_generation": 1,
+        "exact_ref_matches": true,
+        "known_tenure": true,
+        "native_governance_verified": true,
+        "ordinary_method_history_required": false,
+        "original_available": true,
+        "all_original_components_disclosable": true,
+        "target_stream_disclosable": true,
+        "context_ids_cut_and_continuity_valid": true,
+        "replaces_newer_current": false,
+        "substitutes_current_head": false,
+        "rewrites_original": false
+      },
+      "expected": "accept_historical"
     }
   ]
 }

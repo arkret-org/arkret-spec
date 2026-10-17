@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-17",
+  "version": "2026-10-17.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-17T07:18:06+08:00",
+  "generated_at": "2026-10-17T18:08:50+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-10-14.2",
@@ -21249,8 +21249,8 @@
         ]
       }
     ],
-    "version": "2026-10-16.1",
-    "generated_at": "2026-10-16T23:37:19+08:00",
+    "version": "2026-10-17.1",
+    "generated_at": "2026-10-17T18:08:50+08:00",
     "metadata_authority": "contract_registry_section",
     "mls_roster_verification_contract": {
       "roles": {
@@ -21416,6 +21416,24 @@
         "role_resolution": "accepted_pcr_purpose_and_original_authorization_provenance",
         "managed_device_source": "accepted_managed_provision_and_exact_pcr_device_authorization_with_original_four_coordinates_revision_and_generation",
         "unknown_or_agent_runtime_source": "reject_without_human_or_service_fallback"
+      },
+      "snapshot_consumption": {
+        "current_head_generation": "fresh_current_authority_generation",
+        "historical_by_ref_generation": "exact_basis_generation_in_fresh_current_chain",
+        "native_governance_verification_roles": [
+          "account_station",
+          "independent_auditor"
+        ],
+        "ordinary_client_contract": "authenticated_bound_own_station_original_with_exact_context_and_independent_producer_mls_checks",
+        "historical_basis_carrier": "complete_original_signed_snapshot",
+        "current_disclosure_recheck": "every_original_row_head_and_floor",
+        "unrelated_scope_revocation": "whole_exact_original_unavailable",
+        "missing_basis_at_issuance": "per_stream_preview_only",
+        "missing_basis_at_consumption": "reject_account_frame_without_cursor_advance",
+        "historical_may_replace_newer_current": false,
+        "current_head_may_replace_exact_basis": false,
+        "partial_snapshot_rewrite": false,
+        "capacity_contract": "scalability_constraints_section_4_1_complete_inline_maximal_disclosure_admission_budget"
       }
     },
     "agent_authority_evidence_contract": {

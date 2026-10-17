@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-16.4",
+  "version": "2026-10-17.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-16T23:44:29+08:00",
+  "generated_at": "2026-10-17T18:08:50+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -722,10 +722,10 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/sync/server-trusted-results.md#21-普通客户端消费既有治理结果normative",
-      "section_digest": "sha256:312880de5258a35dc0ba0d2b51b0c6e5e56b09e9e5eff55a732ccfc331f4f8eb",
-      "requirement": "Ordinary clients consume only persistently bound authenticated own-Station original governance results, checking full Account and request epoch, exact selectors/scope/cuts, content IDs and per-stream continuity without native method history or retained-signer discovery. Station/auditor governance signature, nonce and native history verification and client producer/MLS/attachment cryptography remain mandatory. No new wire result, operation, boolean trust flag or portable authority is introduced. Successful bound self submit pairs each validated frozen request Event with its original accepted Commit by outcome branch and aggregate slot, constructs only the exact target and advances no timeline head/floor; independent historical producer/MLS verification remains mandatory.",
+      "section_digest": "sha256:ad69739b21ac8fc8c1e3452d1ad61c03be8513acd39c577d24bdabc9c0c9e410",
+      "requirement": "Ordinary clients consume only persistently bound authenticated own-Station original governance results, checking full Account and request epoch, exact selectors/scope/cuts, content IDs and per-stream continuity without native method history or retained-signer discovery. Station/auditor governance signature, nonce and native history verification and client producer/MLS/attachment cryptography remain mandatory. No new wire result, operation, boolean trust flag or portable authority is introduced. Successful bound self submit pairs each validated frozen request Event with its original accepted Commit by outcome branch and aggregate slot, constructs only the exact target and advances no timeline head/floor; independent historical producer/MLS verification remains mandatory. Snapshot current head must use current tenure; exact historical by-ref may use its chain-recognized original tenure. Every original component must remain currently disclosable, including unrelated scopes. Missing exact basis rejects the Account frame without cursor advance; no head substitution, rewrite or current rollback is allowed.",
       "testability_grade": "audit",
-      "test_plan": "Run the complete official artifact pipeline, including all executable governance_result_consumption_roles fixture policy cases. These cases prove only the machine role/input policy. Audit the authenticated host transport and durable context, then execute native cryptographic negative suites and fresh three-Station S3 bilateral encrypted messages in owner1725; policy fixture success alone is not implementation or live acceptance evidence."
+      "test_plan": "Run the complete official artifact pipeline, including all executable governance_result_consumption_roles fixture policy cases. These cases prove only the machine role/input policy. Audit the authenticated host transport and durable context, then execute native cryptographic negative suites and fresh three-Station S3 bilateral encrypted messages in owner1725; policy fixture success alone is not implementation or live acceptance evidence. Execute the Snapshot policy cases and Garth bound HTTP historical-basis regression; the policy matrix does not prove cryptography, revocation transactions or live handoff."
     },
     {
       "clause_id": "AK-NC-087",

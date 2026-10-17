@@ -3,7 +3,7 @@ title: Authority-Attested Results
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-20
+updated: 2026-10-17
 see_also:
   - ../conformance/normative-language.md
   - authority-commit-log.md
@@ -22,7 +22,7 @@ see_also:
 v1 保留三类可被 Account Station 转达的权威结果：
 
 - `RealmCommit`：证明 exact Event 已在某一 Realm/Circle/Sidecar stream 的唯一 position 被接纳；
-- `RealmStateSnapshot`：由当前治理 Station 签名确认指定 authority generation 下的内联 `current_state_entries[]` typed current rows、调用者获准 stream heads 与 history floors；
+- `RealmStateSnapshot`：由其指定 authority generation 当时的治理 Station 签名确认同 cut 的内联 typed current rows、调用者获准 stream heads 与 history floors；当前 `/head` 必须属于当前任期，exact 历史 by-ref 可属于链内旧任期；
 - `TypedCurrentRow`：返回封闭 selector 的 current value 及最后影响它的 Commit revision。
 
 服务不得返回一个既无 RealmCommit 又无 typed snapshot/current signature 绑定的 `accepted=true`。
@@ -59,6 +59,13 @@ MLS roster 也按此分工：Account Station 验原时点完整方法权威，se
 自己的 Station MUST 在返回前独立验证该结果的原治理证明、同 stream 连续性、generation 与可见性；
 材料不可得或验证失败时 MUST 返回该 operation 既有不可用/拒绝结果，MUST NOT 返回可用于写入的伪成功。
 原 authority bytes MUST 原样保留，最终事实仍来自治理 Station，自己的 Station 不产生新 finality。
+
+Snapshot 的当前 `/head` 与历史 exact by-ref 同样遵守本角色分工。Account Station／独立审计者用 fresh current
+authority chain 定位历史任期的原 signer 与 exact signing-time key；普通客户端只经绑定账号／会话的自己 Station
+核对 exact ref、历史 basis generation、同 cut rows／heads／floors 与逐流 anchor，仍独立执行 producer／MLS／附件验证。
+旧任期原件可用于其历史窗口，MUST NOT 冒充 current 或回退 checkpoint。by-ref 每次重验整份原件的当前披露权限；
+无关 scope 失权也可使整份 basis 不可用，不得改签删减原件或用当前 head 顶替。具体验证与失败合同见
+[Snapshot §4](../conformance/realm-state-snapshot-schema.md#4-创建与验证)。
 
 **本次 self 提交原件（normative）**：成功 self submit outcome 也是本合同的既有输入。客户端
 MUST 先按本次冻结请求验证 outcome 分支及每个 aggregate slot 的逐项对应，再将该请求中完整自签 Event

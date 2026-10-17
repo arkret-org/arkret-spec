@@ -3,7 +3,7 @@ title: Scalability Constraints
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-16
+updated: 2026-10-17
 see_also:
   - ../sync/authority-commit-log.md
   - ../sync/service-http-binding.md
@@ -136,6 +136,14 @@ signature 字段后按 RFC 8785 序列化。结果不得超过 8,388,608 bytes�
 边界内计算，不能让两个分别未超限的候选共同越界。读取仍须复测最终 body；若旧数据、损坏或迁移造成超限，读取整份
 `payload_too_large` fail closed。该 Realm 随后只允许能在同一事务中使最大披露投影回到上限内的治理缩减写入，其他写入拒绝；
 不得截断、返回 partial success 或恢复旧 unsigned chunk。
+
+该预算有意约束完整可披露 current，而不仅约束流数量；仍保留且可披露的 `message_revision` payload 与其它
+current 对象都占用容量。它不是由单治理来源或客户端信任模型必然推出的限制。v1 选择有界 Realm 与完整原件：
+Account baseline 的账号分页不提供 Realm 同 cut 状态承诺，不能作为超限 fallback；逐流 scan 也不能要求受限成员
+补取不可读前史来重建 current。部署 MUST 在此预算内规划内容与对象保留，不能承诺无限累积而继续接纳超限写入。
+不登记 Snapshot 分页意味着没有断页续传或部分安装语义；失败重试仍须完整读取并验证同一个对象，当前授权收紧
+按 Snapshot §4.1 拒绝整份原件，成功后才可由各自原 head 接 tail。单纯增大常量、移除准入检查或省略内容型 rows
+都不是本合同允许的容量扩展。
 
 ### 4.2 Progressive authority-commit Backfill Profile
 
