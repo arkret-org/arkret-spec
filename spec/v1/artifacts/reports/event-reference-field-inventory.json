@@ -806,6 +806,12 @@
     },
     {
       "schema": "keys-operations.schema.json",
+      "json_pointer": "/$defs/account_device_event_authorization/properties/event_id",
+      "field": "event_id",
+      "classification": "complete_event_id"
+    },
+    {
+      "schema": "keys-operations.schema.json",
       "json_pointer": "/$defs/device_projection_attestation_core/properties/device_authorize_event_id",
       "field": "device_authorize_event_id",
       "classification": "complete_event_id"
@@ -814,12 +820,6 @@
       "schema": "keys-operations.schema.json",
       "json_pointer": "/$defs/forward_device_projection_attestation_core/properties/device_authorize_event_id",
       "field": "device_authorize_event_id",
-      "classification": "complete_event_id"
-    },
-    {
-      "schema": "keys-operations.schema.json",
-      "json_pointer": "/$defs/human_event_authorization/properties/event_id",
-      "field": "event_id",
       "classification": "complete_event_id"
     },
     {

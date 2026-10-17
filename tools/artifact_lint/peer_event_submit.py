@@ -20,6 +20,39 @@ FIXTURE = ARTIFACTS / "fixtures" / "peer-event-submit-semantic-union-fixture.jso
 OPENAPI = ARTIFACTS / "openapi" / "arkret-service-api.openapi.yaml"
 RUNNER = Path(__file__).with_name("runner.py")
 PRODUCER_EVIDENCE_VECTOR = "ak.vector.federation.authority_forward_producer_device_evidence.v1"
+LIVE_DEVICE_SOURCE_CONTRACT = {'evidence_schema_ref': 'schemas/account-device-signer-evidence.schema.json#/$defs/forward_account_device_signer_evidence',
+ 'eligible_producer_sources': ['human_device', 'applet_managed_device'],
+ 'role_resolution': 'accepted_pcr_purpose_and_original_authorization_provenance',
+ 'human_source': 'accepted_regular_or_accepted_device_authorization_in_original_human_pcr',
+ 'managed_source': ['accepted_managed_provision',
+                    'applet_managed_control_pcr',
+                    'principal_original_managed_device_authorization',
+                    'current_generation_and_resolution',
+                    'exact_authorization_instance_and_window'],
+ 'origin_cut': 'same_locked_pcr_current_and_original_authorization_cut',
+ 'origin_event_verification': 'actual_complete_producer_event_and_device_signature',
+ 'managed_scope_actions': 'every_actual_resource_scope_and_action_in_one_original_signed_pair',
+ 'event_binding': ['event_id',
+                   'verification_method',
+                   'destination_service_id',
+                   'forward_body_digest',
+                   'authorization_ref',
+                   'revision',
+                   'governance_generation',
+                   'accepted_at'],
+ 'source_accepted_time': 'original_authorization_commit.committed_at',
+ 'unsigned_projection': 'complete_wrapper_remove_only_proof',
+ 'governor_business_gate': 'independent_current_membership_service_lineage_terminal_child_applet_installation_policy_management_action_approval_quota_and_domain_revision',
+ 'managed_provenance_at_governor': 'independently_verified_accepted_source_not_applet_label_or_bare_fact',
+ 'missing_or_conflicting_source': 'reject_zero_writes_without_human_service_or_current_key_fallback',
+ 'exact_accepted_retry': 'original_outcome_before_source_freshness',
+ 'new_attempt': 'fresh_source_persist_before_send',
+ 'lost_response': 'byte_identical_complete_body_only',
+ 'private_original': 'accepted_at_audit_only',
+ 'member_delivery': 'existing_full_disclosure_minimal_historical_fact_only',
+ 'directory_or_current_query_expanded': False,
+ 'new_wire_role_session_pcr_read_or_authority_token': False}
+
 PRODUCER_DEVICE_CODES = (
     "device_unauthorized",
     "device_revoked",
@@ -41,7 +74,7 @@ PROSE_MARKERS = {
         "`status=\"stored\"|\"duplicate\"`",
         "`fanout_authorization_basis`",
         "不得把 replica persistence 称为新的 accepted finality",
-        "**跨站 human 设备 producer（normative）**",
+        "**跨站真实 Account Device producer（normative）**",
         "**非治理接收方以治理签名为准（normative）**",
         "`producer_device_evidence`",
     ),
@@ -57,7 +90,7 @@ PROSE_MARKERS = {
         "第四个 Commit 的 `committed_at` 是唯一 founding acceptance time",
     ),
     SPEC_ROOT / "zh" / "crypto-media" / "device-lifecycle.md": (
-        "#### 8.2.2 Human 设备 producer 解析（normative）",
+        "#### 8.2.2 真实 Account Device producer 解析（normative）",
         "`producer_device_evidence`",
         "不按 Control／Data／actor-private 或 event kind 分流",
         "`membership_compensation_unit_submission`",
@@ -540,6 +573,22 @@ def check_peer_event_submit_semantic_union(lint: Lint) -> None:
     forward_case = _find(fixture.get("cases"), "name", "authority_forward_producer_device_evidence")
     if not isinstance(forward_case, dict) or forward_case.get("vector_id") != PRODUCER_EVIDENCE_VECTOR:
         _fail(lint, FIXTURE, "authority-forward producer-evidence case must carry its vector_id")
+    live_source = contract.get("did_evidence_boundary_registry", {}).get("governance_result_consumption_contract", {}).get("account_device_live_forward_source")
+    if live_source != LIVE_DEVICE_SOURCE_CONTRACT:
+        _fail(lint, CONTRACT, "live Device forward source must retain independent native provenance, pair checks, business gates and disclosure limits")
+    if isinstance(forward_case, dict):
+        if forward_case.get("source_contract") != live_source:
+            _fail(lint, FIXTURE, "live Device fixture must match its canonical source contract")
+        source_cases = forward_case.get("source_cases", [])
+        expected_cases = {"human_original_source", "bot_original_source", "ghost_original_source", "managed_missing_provision", "managed_pair_splicing", "managed_governor_business_lost", "agent_not_device", "service_not_device"}
+        if not isinstance(source_cases, list) or len(source_cases) != len(expected_cases) or {case.get("name") for case in source_cases if isinstance(case, dict)} != expected_cases:
+            _fail(lint, FIXTURE, "live Device fixture must cover both native sources and independent denial gates")
+        else:
+            for case in source_cases:
+                allowed = case.get("source") in ("human_device", "applet_managed_device") and all(case.get(key) is True for key in ("native_provenance", "pairs_match", "business_current"))
+                decision = "accept" if allowed else "reject_zero_writes"
+                if case.get("expected") != decision:
+                    _fail(lint, FIXTURE, "live Device source case disagrees with independent source, pair and business checks")
     forward_evidence_ref = "schemas/account-device-signer-evidence.schema.json#/$defs/forward_account_device_signer_evidence"
     if not isinstance(forward_case, dict) or forward_case.get("evidence_schema_ref") != forward_evidence_ref:
         _fail(lint, FIXTURE, "authority-forward fixture must reference the closed forward evidence definition")

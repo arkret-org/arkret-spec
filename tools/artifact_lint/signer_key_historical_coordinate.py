@@ -270,7 +270,7 @@ def _check_foreign_human_delivery_shape(lint: Lint) -> None:
     if "event_authorization" not in forward.get("required", []) or forward.get("additionalProperties") is not False:
         lint.fail(keys_path, "forward must require closed Event-bound original source")
     expected_source = ["event_id", "verification_method", "destination_service_id", "forward_body_digest", "authorization_ref", "revision", "governance_generation", "accepted_at"]
-    source = keys.get("human_event_authorization", {})
+    source = keys.get("account_device_event_authorization", {})
     fixed_ref = "./account-operations.schema.json#/$defs/sha256_digest"
     if source.get("properties", {}).get("forward_body_digest", {}).get("$ref") != fixed_ref:
         lint.fail(keys_path, "forward body digest must be fixed SHA256")

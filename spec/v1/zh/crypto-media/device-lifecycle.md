@@ -866,16 +866,20 @@ genesis、authorization chain、RealmCommit 或目标的 Realm/Contact 清单。
 不存在／不可见／无关系／已撤销／已 fence／policy 拒绝在响应体、状态码与时序上完全同形，且 transport 认证在读取任何
 目标状态前判定；后者证明取材失败与"对方没有设备"是两件事，且不得靠缓存、空列表或延长有效期掩盖。
 
-#### 8.2.2 Human 设备 producer 解析（normative）
+#### 8.2.2 真实 Account Device producer 解析（normative）
 
-human Account 设备签署的任何 Event 只有一条 producer 解析规则，不按 Control／Data／actor-private 或 event kind 分流；v1 不存在 Control 专用的 human signer root，也不存在按 Event 类别 fail closed 的分支。native unit（`registration_anchor`、`pcr_recovery` 与 `ak.device.reanchor`）与 §5.3 的 `applet_managed_delegation` 继续由各自专用 verifier 处理，不适用本节。
+Human 与 accepted Applet-managed Bot／Ghost 本人 Account Device 签署的 Event 共用本节 producer 来源合同，不按 Control／Data／actor-private 或 event kind 分流；本节只证明真实 Device 来源，不新增业务 kind 或 operation 权限。native unit（`registration_anchor`、`pcr_recovery`、`ak.device.reanchor` 以及 §5.3 的 managed Device authorize）继续由各自专用 verifier 处理，不适用本节。
 
-治理 Station 接纳 human 设备 producer 的 Event 时，MUST 解析实际签名方（有 `executed_by` 时取它，否则取 `actor_id`）的 exact `AccountId`、`device_id`、签名 key、授权实例（`device_authorize_event_id`）、generation 与状态，并 MUST 在 commit 位置独立判定 membership、capability、policy 与领域 revision；设备证据只证明 exact signer 在该 generation 的授权来源，不替代这些判定。取材只有两条路径：
+治理 Station 接纳真实 Account Device producer 的 Event 时，MUST 解析实际签名方（有 `executed_by` 时取它，否则取 `actor_id`）的 exact `AccountId`、`device_id`、签名 key、授权实例（`device_authorize_event_id`）、generation 与状态，并 MUST 在 commit 位置独立判定 membership、capability、policy 与领域 revision；设备证据只证明 exact signer 在该 generation 的授权来源，不替代这些判定。取材只有两条路径：
 
 - **同站**：producer 的 `account_id.station_id` 等于本治理 Station 时，MUST 在接纳事务的同一耐久 cut 读取本地 PCR 的 `device_authorization`／`device_generation` typed current result（§5.5.1、§5.5.4）完成解析；请求不携带任何设备证据。
 - **跨站**：否则 MUST 且只能使用 `ak.peer.events.command.submit.v1` 的 `authority_forward` 分支携带的 `producer_device_evidence`。session、transport 认证、`keys/query` 结果、缓存公钥、`principal` 证据或其它 Service attestation 都 MUST NOT 替代它。
 
-**载体**：`producer_device_evidence` 位于 `peer_submit_request` 的 `authority_forward` 分支，与 `event_submission` 或 `mls_submission` 并列，类型直接是 §8.2 的 [`account_device_signer_evidence`](../../artifacts/schemas/account-device-signer-evidence.schema.json)；其它两个分支 MUST NOT 携带它。它的有无完全由 Event 决定，不是可选字段：实际签名方是 Account 且 `proof.verification_method` 的 fragment 是 `ak:device:` 形态时 MUST 携带，其它情况（例如 Agent、Service 或 principal controller method 签名的 Event）MUST NOT 携带；MLS submission 以其 Commit Event 的实际签名方为准。schema 只能表达分支归属，“由 Event 决定必带或禁带”由治理 Station 在解析 producer 后检查，缺失、多余或形状错误均以 `schema_violation` 零写入拒绝。
+**载体**：`producer_device_evidence` 位于 `peer_submit_request` 的 `authority_forward` 分支，与 `event_submission` 或 `mls_submission` 并列，类型为 [`forward_account_device_signer_evidence`](../../artifacts/schemas/account-device-signer-evidence.schema.json#/$defs/forward_account_device_signer_evidence)，与 §8.2 一般目录的根定义严格分开；其它两个分支 MUST NOT 携带它。它的有无完全由 Event 决定，不是可选字段：实际签名方是 Account 且 `proof.verification_method` 的 fragment 是 `ak:device:` 形态时 MUST 携带，其它情况（例如 Agent、Service 或 principal controller method 签名的 Event）MUST NOT 携带；MLS submission 以其 Commit Event 的实际签名方为准。schema 只能表达分支归属，“由 Event 决定必带或禁带”由治理 Station 在解析 producer 后检查，缺失、多余或形状错误均以 `schema_violation` 零写入拒绝。
+
+**原生来源与职责（normative）**：角色 MUST 从 accepted PCR purpose 与真实原授权来源判定，不得按 DID、proof fragment、Applet 标签或裸历史 fact 猜测。Human 沿原 regular／accepted_device 授权；managed 沿 accepted managed provision、真实 `applet_managed_control` PCR、Principal 原签 `applet_managed_delegation`、current generation／resolution、exact authorization instance 与原时窗。缺失、冲突或未知来源 MUST 零写拒绝，不得借 Human Account 行、缓存 current key、Service transport 或 controller／Agent method 补位。
+
+origin MUST 在同一锁定 PCR cut 验完整 producer Event／本人 Device 签名及自己负责的 current Device 门；managed 的每个实际资源 scope／action 还 MUST 命中同一原签 pair。多资源与 MLS 逐真实资源验证，不跨 pair 拼接，不把 metadata 当资源归属。governor MUST 独立验证 current membership、真实 Service lineage／terminal child、Applet／安装、Policy／管理与动作审批、quota 及领域 revision；真实 accepted managed provenance 须独立可验证，取不到时拒绝。origin 的设备 cut 不代表远端业务 current cut。两站的职责 MUST 求 AND。
 
 **生产（forwarding Station A）**：A 即 producer 的 account Station。A MUST 在每次转发尝试前，从自己 live gate 的同一耐久 cut 按 §8.2 的签发规则现签 attestation 并组装完整对象，先持久化完整对象及其 `signer_evidence_ref`，再发送；MUST NOT 复用缓存对象或 `keys/query` 返回过的对象。设备此时已不可用时，A MUST NOT 转发，并以已有的设备码拒绝；A 暂时无法取材时返回 `temporarily_unavailable`。response 丢失时 A MAY 逐字节重放同一完整 body（含原证据）；A 发起新的转发尝试时 MUST 重新现签。
 
@@ -1426,9 +1430,9 @@ Delegated device 不引入新的 MLS recipient endpoint 分支：它就是普通
 - **不得跨 namespace**：delegated device 的 to-device 权限 MUST 只覆盖其 Applet namespace 内的 actor。
 - **不进入 PCR recovery**：`applet_managed_control` PCR 不使用 `pcr_recovery` 分支。Applet 丢失 delegated device 私钥时，正确做法是 revoke 该设备并授权一台新的 delegated device；MUST NOT 为 managed principal 发起 human recovery session 或 factor transcript。
 
-## Foreign Human event authorization source (Normative)
+## Foreign Account Device event authorization source (Normative)
 
-本节仅扩 Human device 的现 `authority_forward` 来源；目录、current keys/query 与其它 producer MUST NOT 携 `event_authorization`。使用现 account-device-signer-evidence schema 的 `forward_account_device_signer_evidence`，根仍为 device_projection_attestation/service_resolution；现目录定义保持 closed，不复制 PCR 原件。
+本节共用 Human 与 accepted Applet-managed 本人 Device 的现 `authority_forward` 来源，逐角色遵守 §8.2.2 原生授权与职责；目录、current keys/query 与其它 producer MUST NOT 携 `event_authorization`。使用现 account-device-signer-evidence schema 的 `forward_account_device_signer_evidence`，根仍为 device_projection_attestation/service_resolution；现目录定义保持 closed，不复制 PCR 原件。
 
 forward-only attestation core 在 authorization_window 后 MUST 携 required closed `event_authorization`，顺序 event_id、verification_method、destination_service_id、forward_body_digest、authorization_ref、revision、governance_generation、accepted_at。origin MUST 在本地 PCR 同一锁定授权 cut 取得完整 Account/device/method/key、原 accepted authorize 四坐标、该 cut current revision Commit 与 PCR治理generation、原授权窗口及原授权 Commit.committed_at。accepted_at MUST NOT 取业务目标 Commit、Event.created_at、attested_at 或后来 current 的时间。业务 Event 此时未提交，MUST NOT 造业务 CommitId/position。
 

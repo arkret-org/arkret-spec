@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-17.1",
+  "version": "2026-10-18.1",
   "source_of_truth": false,
-  "generated_at": "2026-10-17T18:08:50+08:00",
+  "generated_at": "2026-10-18T07:11:21+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -282,6 +282,47 @@
       "current_head_may_replace_exact_basis": false,
       "partial_snapshot_rewrite": false,
       "capacity_contract": "scalability_constraints_section_4_1_complete_inline_maximal_disclosure_admission_budget"
+    },
+    "account_device_live_forward_source": {
+      "evidence_schema_ref": "schemas/account-device-signer-evidence.schema.json#/$defs/forward_account_device_signer_evidence",
+      "eligible_producer_sources": [
+        "human_device",
+        "applet_managed_device"
+      ],
+      "role_resolution": "accepted_pcr_purpose_and_original_authorization_provenance",
+      "human_source": "accepted_regular_or_accepted_device_authorization_in_original_human_pcr",
+      "managed_source": [
+        "accepted_managed_provision",
+        "applet_managed_control_pcr",
+        "principal_original_managed_device_authorization",
+        "current_generation_and_resolution",
+        "exact_authorization_instance_and_window"
+      ],
+      "origin_cut": "same_locked_pcr_current_and_original_authorization_cut",
+      "origin_event_verification": "actual_complete_producer_event_and_device_signature",
+      "managed_scope_actions": "every_actual_resource_scope_and_action_in_one_original_signed_pair",
+      "event_binding": [
+        "event_id",
+        "verification_method",
+        "destination_service_id",
+        "forward_body_digest",
+        "authorization_ref",
+        "revision",
+        "governance_generation",
+        "accepted_at"
+      ],
+      "source_accepted_time": "original_authorization_commit.committed_at",
+      "unsigned_projection": "complete_wrapper_remove_only_proof",
+      "governor_business_gate": "independent_current_membership_service_lineage_terminal_child_applet_installation_policy_management_action_approval_quota_and_domain_revision",
+      "managed_provenance_at_governor": "independently_verified_accepted_source_not_applet_label_or_bare_fact",
+      "missing_or_conflicting_source": "reject_zero_writes_without_human_service_or_current_key_fallback",
+      "exact_accepted_retry": "original_outcome_before_source_freshness",
+      "new_attempt": "fresh_source_persist_before_send",
+      "lost_response": "byte_identical_complete_body_only",
+      "private_original": "accepted_at_audit_only",
+      "member_delivery": "existing_full_disclosure_minimal_historical_fact_only",
+      "directory_or_current_query_expanded": false,
+      "new_wire_role_session_pcr_read_or_authority_token": false
     }
   },
   "agent_authority_evidence_contract": {

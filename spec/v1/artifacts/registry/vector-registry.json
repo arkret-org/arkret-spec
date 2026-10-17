@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-17.1",
+  "version": "2026-10-18.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-17T18:08:50+08:00",
+  "generated_at": "2026-10-18T07:11:21+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -2453,7 +2453,7 @@
       "applies_to_fixtures": [
         "peer-event-submit-semantic-union-fixture.json"
       ],
-      "description": "A human device producer has one resolution rule for every Event kind, with no Control/Data split. A same-Station governance Station resolves the exact AccountId, device, key, authorization instance, generation and status from its local PCR at the acceptance cut and carries no evidence; a cross-Station authority_forward is accepted only with producer_device_evidence freshly signed by the producer's account Station. Revoked, revocation-pending, fenced, not-yet-valid or expired authorization, fragment/key mismatch, source Station mismatch, attestation signed by another Station key, expired evidence, Service history lacking the method at attested_at, evidence carried for an Agent or Service producer, and a human producer without evidence are rejected with the registered active codes and zero writes; an exact replay after evidence expiry returns the original outcome.",
+      "description": "A real Account Device producer (Human or accepted Applet-managed) has one resolution rule for every Event kind, with no Control/Data split. A same-Station governance Station resolves the exact AccountId, device, key, authorization instance, generation and status from its local PCR at the acceptance cut and carries no evidence; a cross-Station authority_forward is accepted only with producer_device_evidence freshly signed by the producer's account Station. Revoked, revocation-pending, fenced, not-yet-valid or expired authorization, fragment/key mismatch, source Station mismatch, attestation signed by another Station key, expired evidence, Service history lacking the method at attested_at, evidence carried for an Agent or Service producer, and an Account Device producer without evidence are rejected with the registered active codes and zero writes; an exact replay after evidence expiry returns the original outcome. Role comes only from accepted PCR purpose and original native authorization, with managed provision/controller-origin/generation/resolution/window and each original scope/action pair independently checked. Governor business authority remains independent; missing provenance, pair splicing, label/fact fallback or directory disclosure expansion is rejected.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/peer-event-submit-semantic-union-fixture.json",
         "spec/v1/zh/crypto-media/device-lifecycle.md",

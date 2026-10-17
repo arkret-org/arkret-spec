@@ -1,12 +1,12 @@
 {
-  "version": 37,
+  "version": 38,
   "source_of_truth": false,
   "narrative_source": "spec/v1/zh/models/common-fields.md#r6-证据类名词分工",
   "scope": [
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 407,
+  "audited_occurrence_count": 409,
   "registrations": [
     {
       "file": "account-device-signer-evidence.schema.json",
@@ -437,7 +437,7 @@
         "proof",
         "attestation"
       ],
-      "reason": "authority_forward-only carrier of the complete account_device signer evidence (origin device projection attestation plus method-native Service resolution) that a forwarding account Station signs fresh per attempt so the cross-Station governance Station can resolve a human device producer; its presence is decided by the Event."
+      "reason": "authority_forward-only carrier of the complete account_device signer evidence (origin device projection attestation plus method-native Service resolution) that a forwarding account Station signs fresh per attempt so the cross-Station governance Station can resolve a real Account Device producer (Human or accepted Applet-managed); its presence is decided by the Event."
     },
     {
       "file": "capability-action-registry.json",
@@ -561,9 +561,9 @@
     {
       "file": "contract-registry.json",
       "key": "evidence_schema_ref",
-      "occurrences": 3,
+      "occurrences": 4,
       "disposition": "registry_contract",
-      "reason": "Names the closed approval evidence item schema required by one registered request carrier; this is carrier metadata, not an evidence instance."
+      "reason": "Names the closed approval evidence item schema required by one registered request carrier; this is carrier metadata, not an evidence instance. Also names the existing forward-only closed real Account Device carrier; the source applicability metadata discloses no PCR or additional directory result."
     },
     {
       "file": "contract-registry.json",
@@ -642,6 +642,13 @@
       "occurrences": 1,
       "disposition": "qualifier",
       "reason": "Agent producer closure uses only actual signer dependencies; authority evidence never grants participation current. References address exact canonical roots and do not themselves carry material."
+    },
+    {
+      "file": "did-evidence-boundary-registry.json",
+      "key": "evidence_schema_ref",
+      "occurrences": 1,
+      "disposition": "registry_contract",
+      "reason": "Names the existing closed forward-only real Account Device source carrier. It is applicability metadata, not evidence material or a new directory disclosure."
     },
     {
       "file": "did-evidence-boundary-registry.json",
@@ -1252,7 +1259,7 @@
         "proof",
         "attestation"
       ],
-      "reason": "Dedicated audited-read command carries the same fresh actual-producer signer dependencies as authority_forward; it grants neither target disclosure nor participation. authority_forward-only carrier of the complete account_device signer evidence (origin device projection attestation plus method-native Service resolution) that a forwarding account Station signs fresh per attempt so the cross-Station governance Station can resolve a human device producer; its presence is decided by the Event."
+      "reason": "Dedicated audited-read command carries the same fresh actual-producer signer dependencies as authority_forward; it grants neither target disclosure nor participation. authority_forward-only carrier of the complete account_device signer evidence (origin device projection attestation plus method-native Service resolution) that a forwarding account Station signs fresh per attempt so the cross-Station governance Station can resolve a real Account Device producer (Human or accepted Applet-managed); its presence is decided by the Event."
     }
   ]
 }

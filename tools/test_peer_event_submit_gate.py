@@ -190,6 +190,28 @@ class PeerEventSubmitGateTest(unittest.TestCase):
 
         self.assert_red(mutate, "reject every cross-branch field")
 
+    def test_live_device_source_cannot_drop_or_widen_any_requirement(self) -> None:
+        for key, value in gate.LIVE_DEVICE_SOURCE_CONTRACT.items():
+            for replacement in (None, True if value is False else "unverified_fallback"):
+                with self.subTest(key=key, replacement=replacement):
+                    def mutate(documents, key=key, replacement=replacement):
+                        contract = documents[gate.CONTRACT.resolve()]["did_evidence_boundary_registry"]["governance_result_consumption_contract"]["account_device_live_forward_source"]
+                        contract[key] = replacement
+                    self.assert_red(mutate, "live Device forward source")
+
+    def test_live_device_fixture_cannot_invert_native_source_or_business_decision(self) -> None:
+        for index in range(8):
+            with self.subTest(index=index):
+                def mutate(documents, index=index):
+                    case = gate._find(documents[gate.FIXTURE.resolve()]["cases"], "name", "authority_forward_producer_device_evidence")["source_cases"][index]
+                    case["expected"] = "reject_zero_writes" if case["expected"] == "accept" else "accept"
+                self.assert_red(mutate, "independent source, pair and business checks")
+
+    def test_live_device_fixture_cannot_omit_a_native_source_or_denial(self) -> None:
+        def mutate(documents):
+            gate._find(documents[gate.FIXTURE.resolve()]["cases"], "name", "authority_forward_producer_device_evidence")["source_cases"].pop()
+        self.assert_red(mutate, "both native sources and independent denial gates")
+
     def test_replication_branch_rejects_producer_device_evidence(self) -> None:
         def mutate(documents: dict) -> None:
             branch = self.defs(documents)["peer_submit_request"]["oneOf"][3]
