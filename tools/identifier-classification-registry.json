@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 70,
+  "version": 71,
   "kind": "identifier_classification_registry",
   "source_of_truth": false,
   "generated_from": [
@@ -26,8 +26,8 @@
     "unregistered_object_identifier"
   ],
   "type_derived_summary": {
-    "typed_object_id": 965,
-    "responsibility_identity_material": 573,
+    "typed_object_id": 961,
+    "responsibility_identity_material": 572,
     "registry_catalog_symbol": 15
   },
   "pending_rename_convergence": [],
@@ -322,7 +322,7 @@
       "name": "focus_id",
       "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"]]",
       "category": "unregistered_object_identifier",
-      "occurrences": 7,
+      "occurrences": 6,
       "example_path": "call-recording-artifact.schema.json#/$defs/recording_encryption/properties/context/properties/focus_id",
       "reason": "Names a durable Arkret object whose kind is not registered in id-kind-registry.json; convergence is to register the kind or retype the field.",
       "pending_convergence": true
@@ -758,5 +758,5 @@
       "reason": "Symbol scoped to the containing document; it is only resolvable inside that object and is never an authorization subject."
     }
   ],
-  "generated_at": "2026-10-17T07:26:27+08:00"
+  "generated_at": "2026-10-17T18:32:41.915787+08:00"
 }

@@ -1389,11 +1389,12 @@
       ],
       "properties": {
         "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id",
-          "description": "Call-scoped pseudonymous DID core; never the authenticated full Account or Service ActorId."
+          "$ref": "./common-ids.schema.json#/$defs/actor_id",
+          "description": "Exact complete ActorId of the authenticated participant; account identity includes both principal_id and station_id. No anonymous DID or device alias."
         },
         "device_id": {
-          "$ref": "#/$defs/device_id"
+          "$ref": "#/$defs/device_id",
+          "description": "The real authenticated DeviceId of this participant, unchanged across the token outcome and roster join/leave."
         },
         "joined_at": {
           "$ref": "#/$defs/timestamp"
@@ -6321,11 +6322,10 @@
     },
     "participant_binding": {
       "type": "object",
-      "description": "Signed ten-field anonymous participant commitment, including the issued media range, issuer_kid and SHA256 JCS of the complete signed private subject receipt. The receipt itself is never public.",
+      "description": "Issuer signature over realm_id, call_id, focus_id, full actor_id, real device_id, participant_id, expires_at, media and issuer_kid. Coordinates are reconstructed from the exact outcome or accepted roster entry.",
       "required": [
         "expires_at",
         "issuer_kid",
-        "subject_binding_digest",
         "sig"
       ],
       "properties": {
@@ -6336,9 +6336,6 @@
           "type": "string",
           "description": "DID URL (with fragment) of the token issuer service signing key. MUST resolve to a service DID present in the current-epoch ak.realm.media_service.service_id.",
           "pattern": "^did:[a-z0-9]+:[^\\s?]+#[^\\s#?]+$"
-        },
-        "subject_binding_digest": {
-          "$ref": "./event-envelope.schema.json#/$defs/digest"
         },
         "sig": {
           "$ref": "#/$defs/non_empty_string"

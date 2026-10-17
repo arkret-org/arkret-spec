@@ -1518,6 +1518,7 @@
           "ak.schema.calendar_event.v1",
           "ak.schema.call_invitation_operations.v1",
           "ak.schema.call_recording_artifact.v1",
+          "ak.schema.call_signal_plaintext.v1",
           "ak.schema.capability.v1",
           "ak.schema.circle.v1",
           "ak.schema.circle_operations.v1",

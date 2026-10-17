@@ -86,13 +86,14 @@ v1 的主持动作只有 kick／ban／end-for-all：通过 `ak.call.signal{signa
   "seq": 30,
   "data": {
     "action": "kick",
-    "target_actor_id": "ak:did_core:webvh:zHuXvTbhiRsj2KEPE64TLhzG4",
+    "target_actor_id": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:zHuXvTbhiRsj2KEPE64TLhzG4","station_id":"ak:did_core:web:station.example"}},
     "target_device_id": "ak:device:01964137-0000-7000-8000-000000000000",
     "reason": "policy_violation"
   }
 }
 ```
 - `action` MUST 为 `kick` / `ban` / `end_for_all` 之一；不得把强制静音编码成第四种 `moderation` action。
+- `target_actor_id` MUST 为完整 ActorId，account 分支同时保留 principal_id 与 station_id；kick 使用真实 target_device_id，ban MUST 省略 device，end_for_all MUST 省略全部 target。不得用 principal 相等替代完整账号相等。
 - `kick`:移除某 `(target_actor_id, target_device_id)` 的当前 call leg。被点名设备收到后 MUST 立即拆除媒体并退出；SFU 部署中 backend 同时按 token issuer 通知断开该 `participant_id`。kick 不阻止该 actor 重新发起 join。
 - `ban`:移除某 `target_actor_id`(其全部设备)并在本通话生命周期内禁止其重新加入。被 ban 的 actor 重新兑换 join token 时，token issuer MUST 拒绝 `call_participant_removed`。
 - `end_for_all`:对全体结束通话。它由 `ak.call.moderate` 授权(v1 不注册独立的 `call.end_for_all`)，并 MUST 紧随一条携带 `ak.call.state.state_transition.to="ended"` 的 durable event；收到的客户端 MUST 全部挂断。
@@ -488,7 +489,7 @@ Candidate payload:
     "audio_muted": true,
     "video_muted": true,
     "by": "moderator",
-    "target_actor_id": "ak:did_core:webvh:zHuXvTbhiRsj2KEPE64TLhzG4",
+    "target_actor_id": {"kind":"account","account_id":{"principal_id":"ak:did_core:webvh:zHuXvTbhiRsj2KEPE64TLhzG4","station_id":"ak:did_core:web:station.example"}},
     "target_device_id": "ak:device:01964137-0000-7000-8000-000000000000"
   }
 }

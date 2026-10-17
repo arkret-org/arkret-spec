@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-14.6",
+  "version": "2026-10-17.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-14T20:46:07.913771+00:00",
+  "generated_at": "2026-10-17T18:25:35.061396+08:00",
   "description": "Canonical security-domain labels for Arkret detached proofs and non-Event cryptographic transcripts. contexts remain schema-bound; domain_separations cover hash, signature, Merkle, HPKE-info and replay-cache-namespace separators and are not a general string registry. A replay_cache_namespace row separates replay-ledger partitions, never a signing transcript, and MUST NOT be carried by a wire or fixture field named proof_context.",
   "registry_rules": [
     "context values and object_family values MUST be unique",
@@ -1724,34 +1724,6 @@
       "signature_input": "prefix_bytes || RFC8785_JCS(outcome_with_only_proof_omitted)",
       "signature_algorithm": "Ed25519",
       "signature_encoding": "compact_detached_jws",
-      "domain_is_a_transcript_member": false
-    },
-    {
-      "domain": "ak.media.subject_binding.v1",
-      "object_family": "call_media_subject_binding",
-      "primitive": "detached_signature",
-      "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/CallMediaSubjectBinding",
-      "binding_fields": [
-        "realm_id",
-        "call_id",
-        "subject_actor_id",
-        "subject_device_id",
-        "roster_identity",
-        "focus_id",
-        "participant_id",
-        "media",
-        "expires_at",
-        "nonce",
-        "issuer_kid"
-      ],
-      "defined_in": "zh/crypto-media/media-service-binding.md#32-私有主体与匿名-roster-绑定normative",
-      "construction": "UTF8(domain) || 0x00 || RFC8785_JCS(the complete typed subject binding with only sig omitted)",
-      "canonicalization": "RFC8785_JCS",
-      "prefix_form": "UTF8(domain) || 0x00",
-      "prefix_bytes_hex": "616b2e6d656469612e7375626a6563745f62696e64696e672e763100",
-      "signature_input": "prefix_bytes || RFC8785_JCS(subject_binding_without_sig)",
-      "signature_algorithm": "Ed25519",
-      "signature_encoding": "base64url_no_pad_64_bytes",
       "domain_is_a_transcript_member": false
     }
   ]

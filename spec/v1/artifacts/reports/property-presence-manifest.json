@@ -15,12 +15,12 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9554,
+    "total_properties": 9546,
     "total_schema_documents": 174,
     "by_presence_class": {
-      "optional": 2219,
+      "optional": 2226,
       "optional_defaulted": 48,
-      "required": 6763,
+      "required": 6748,
       "required_nullable": 338,
       "tristate": 186
     },
@@ -4142,7 +4142,6 @@
         "/$defs/media/properties/video": "required",
         "/$defs/refresh_join_context/properties/kind": "required",
         "/$defs/refresh_join_context/properties/participant_id": "required",
-        "/$defs/refresh_join_context/properties/subject_binding": "required",
         "/$defs/send_outcome/properties/status": "required",
         "/$defs/send_request_body/properties/envelope": "required",
         "/$defs/send_request_body/properties/invitation": "required",
@@ -4213,13 +4212,26 @@
         "ak.schema.call_signal_plaintext.v1"
       ],
       "properties": {
+        "/allOf/0/if/properties/signal_kind": "required",
+        "/allOf/0/then/properties/data": "optional",
+        "/allOf/0/then/properties/data/allOf/0/if/properties/action": "optional",
+        "/allOf/0/then/properties/data/allOf/1/if/properties/action": "optional",
+        "/allOf/0/then/properties/data/allOf/2/if/properties/action": "optional",
+        "/allOf/0/then/properties/data/properties/action": "required",
+        "/allOf/0/then/properties/data/properties/reason": "optional",
+        "/allOf/0/then/properties/data/properties/target_actor_id": "optional",
+        "/allOf/0/then/properties/data/properties/target_device_id": "optional",
         "/properties/call_id": "required",
         "/properties/data": "required",
         "/properties/kind": "required",
         "/properties/payload_sequence": "required",
         "/properties/seq": "required",
         "/properties/signal_kind": "required"
-      }
+      },
+      "conditionally_required": [
+        "/allOf/0/then/properties/data/properties/target_actor_id",
+        "/allOf/0/then/properties/data/properties/target_device_id"
+      ]
     },
     "capability-grant.schema.json": {
       "schema_ids": [
@@ -6934,7 +6946,6 @@
         "/$defs/participant_binding/properties/expires_at": "required",
         "/$defs/participant_binding/properties/issuer_kid": "required",
         "/$defs/participant_binding/properties/sig": "required",
-        "/$defs/participant_binding/properties/subject_binding_digest": "required",
         "/$defs/pin_add_payload/properties/note": "optional",
         "/$defs/pin_add_payload/properties/pin_scope": "required",
         "/$defs/pin_add_payload/properties/rank": "required",
@@ -11282,20 +11293,6 @@
         "/$defs/BlobPresignRequestBody/properties/max_age_seconds": "optional",
         "/$defs/BlobPresignRequestBody/properties/purpose": "optional",
         "/$defs/BlobPresignRequestBody/properties/realm_id": "optional",
-        "/$defs/CallMediaRosterIdentity/properties/actor_id": "required",
-        "/$defs/CallMediaRosterIdentity/properties/device_id": "required",
-        "/$defs/CallMediaSubjectBinding/properties/call_id": "required",
-        "/$defs/CallMediaSubjectBinding/properties/expires_at": "required",
-        "/$defs/CallMediaSubjectBinding/properties/focus_id": "required",
-        "/$defs/CallMediaSubjectBinding/properties/issuer_kid": "required",
-        "/$defs/CallMediaSubjectBinding/properties/media": "required",
-        "/$defs/CallMediaSubjectBinding/properties/nonce": "required",
-        "/$defs/CallMediaSubjectBinding/properties/participant_id": "required",
-        "/$defs/CallMediaSubjectBinding/properties/realm_id": "required",
-        "/$defs/CallMediaSubjectBinding/properties/roster_identity": "required",
-        "/$defs/CallMediaSubjectBinding/properties/sig": "required",
-        "/$defs/CallMediaSubjectBinding/properties/subject_actor_id": "required",
-        "/$defs/CallMediaSubjectBinding/properties/subject_device_id": "required",
         "/$defs/CallMediaTokenExchangeOutcome/allOf/0/else/properties/backend_token": "optional",
         "/$defs/CallMediaTokenExchangeOutcome/allOf/0/if/properties/backend_kind": "required",
         "/$defs/CallMediaTokenExchangeOutcome/allOf/0/then/properties/backend_token": "optional",
@@ -11307,11 +11304,10 @@
         "/$defs/CallMediaTokenExchangeOutcome/properties/device_id": "required",
         "/$defs/CallMediaTokenExchangeOutcome/properties/expires_at": "required",
         "/$defs/CallMediaTokenExchangeOutcome/properties/focus_id": "required",
+        "/$defs/CallMediaTokenExchangeOutcome/properties/media": "required",
         "/$defs/CallMediaTokenExchangeOutcome/properties/participant_binding": "required",
         "/$defs/CallMediaTokenExchangeOutcome/properties/participant_id": "required",
         "/$defs/CallMediaTokenExchangeOutcome/properties/realm_id": "required",
-        "/$defs/CallMediaTokenExchangeOutcome/properties/roster_identity": "required",
-        "/$defs/CallMediaTokenExchangeOutcome/properties/subject_binding": "required",
         "/$defs/CallMediaTokenExchangeRequestBody/properties/actor_id": "required",
         "/$defs/CallMediaTokenExchangeRequestBody/properties/call_id": "required",
         "/$defs/CallMediaTokenExchangeRequestBody/properties/capability_refs": "optional",

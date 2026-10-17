@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-15.5",
+  "version": "2026-10-17.1",
   "source_of_truth": false,
-  "generated_at": "2026-10-15T01:58:34.606459+00:00",
+  "generated_at": "2026-10-17T18:08:50+08:00",
   "generated_from": [
     "registry/contract-registry.json",
     "schemas/*.schema.json"
@@ -5249,8 +5249,7 @@
           "participant_binding",
           "expires_at",
           "backend_kind",
-          "roster_identity",
-          "subject_binding"
+          "media"
         ],
         "properties": [
           "realm_id",
@@ -5264,8 +5263,7 @@
           "participant_binding",
           "expires_at",
           "backend_kind",
-          "roster_identity",
-          "subject_binding"
+          "media"
         ],
         "closed": true
       }

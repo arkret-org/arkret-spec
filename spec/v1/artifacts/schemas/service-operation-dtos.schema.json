@@ -654,8 +654,7 @@
         "participant_binding",
         "expires_at",
         "backend_kind",
-        "roster_identity",
-        "subject_binding"
+        "media"
       ],
       "properties": {
         "realm_id": {
@@ -708,11 +707,9 @@
             "moq_relay"
           ]
         },
-        "roster_identity": {
-          "$ref": "#/$defs/CallMediaRosterIdentity"
-        },
-        "subject_binding": {
-          "$ref": "#/$defs/CallMediaSubjectBinding"
+        "media": {
+          "$ref": "./call-invitation-operations.schema.json#/$defs/media",
+          "description": "Complete actual issued media range, covered by participant_binding and copied unchanged into the accepted roster."
         }
       },
       "allOf": [
@@ -4318,90 +4315,6 @@
         }
       },
       "additionalProperties": false
-    },
-    "CallMediaRosterIdentity": {
-      "type": "object",
-      "required": [
-        "actor_id",
-        "device_id"
-      ],
-      "properties": {
-        "actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
-        },
-        "device_id": {
-          "$ref": "./common-ids.schema.json#/$defs/device_id"
-        }
-      },
-      "additionalProperties": false,
-      "description": "Call-scoped pseudonymous DID core and device alias. Not an AccountId, Service ActorId, route, or authorization principal."
-    },
-    "CallMediaSubjectBinding": {
-      "type": "object",
-      "required": [
-        "realm_id",
-        "call_id",
-        "subject_actor_id",
-        "subject_device_id",
-        "roster_identity",
-        "focus_id",
-        "participant_id",
-        "media",
-        "expires_at",
-        "nonce",
-        "issuer_kid",
-        "sig"
-      ],
-      "properties": {
-        "realm_id": {
-          "$ref": "./common-ids.schema.json#/$defs/realm_id"
-        },
-        "call_id": {
-          "type": "string",
-          "pattern": "^ak:call:[A-Za-z0-9_-]{44}$"
-        },
-        "subject_actor_id": {
-          "$ref": "./common-ids.schema.json#/$defs/actor_id"
-        },
-        "subject_device_id": {
-          "$ref": "./common-ids.schema.json#/$defs/device_id"
-        },
-        "roster_identity": {
-          "$ref": "#/$defs/CallMediaRosterIdentity"
-        },
-        "focus_id": {
-          "type": "string",
-          "pattern": "^(?!ak:)",
-          "minLength": 1,
-          "maxLength": 64
-        },
-        "participant_id": {
-          "type": "string",
-          "description": "SFU-local short handle, scope `(call_id, focus_id, sfu_did)`. UUIDv7-form rtc_participant typed ID.",
-          "pattern": "^ak:rtc_participant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-        },
-        "media": {
-          "$ref": "./call-invitation-operations.schema.json#/$defs/media"
-        },
-        "expires_at": {
-          "$ref": "./event-payload.schema.json#/$defs/timestamp"
-        },
-        "nonce": {
-          "type": "string",
-          "pattern": "^[A-Za-z0-9_-]{22,64}$",
-          "description": "Private CSPRNG nonce with at least 128 bits of entropy. Included in the receipt signature and public receipt digest; never exposed separately."
-        },
-        "issuer_kid": {
-          "$ref": "./event-payload.schema.json#/$defs/participant_binding/properties/issuer_kid"
-        },
-        "sig": {
-          "type": "string",
-          "pattern": "^[A-Za-z0-9_-]+$"
-        }
-      },
-      "additionalProperties": false,
-      "description": "Private signed subject-to-roster mapping receipt. Never carried by a Realm Event/current result, generic Signal, backend token, push or audit log; never independently authorizes refresh.",
-      "x-arkret-signature-domain": "ak.media.subject_binding.v1"
     }
   }
 }

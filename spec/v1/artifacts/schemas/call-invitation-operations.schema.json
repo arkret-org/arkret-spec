@@ -396,8 +396,7 @@
       "type": "object",
       "required": [
         "kind",
-        "participant_id",
-        "subject_binding"
+        "participant_id"
       ],
       "properties": {
         "kind": {
@@ -410,12 +409,10 @@
         "participant_id": {
           "type": "string",
           "pattern": "^ak:rtc_participant:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-        },
-        "subject_binding": {
-          "$ref": "./service-operation-dtos.schema.json#/$defs/CallMediaSubjectBinding"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "description": "An authenticated request names the current accepted participant_id. The issuer independently resolves the exact full ActorId, real DeviceId, Realm, Call, focus and media from current accepted roster; this carrier alone grants no admission."
     }
   }
 }

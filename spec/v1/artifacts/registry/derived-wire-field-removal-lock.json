@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-23.1",
+  "version": "2026-10-17.1",
   "source_of_truth": true,
-  "generated_at": "2026-09-23T13:44:53+08:00",
+  "generated_at": "2026-10-17T18:25:35.062326+08:00",
   "lock_kind": "derived_wire_field_removals",
   "description": "Closed regression lock for every adjudicated deletion of a derived wire field: a member that a ruling removed from a schema object because it is a pure function of members that stay on the wire (or of the enclosing carrier), and whose transcript or verifier role, if any, is now filled by recomputation. Each row pins one exact (schema, path, removed) triple: the removed member MUST NOT return to that object's properties or required (directly or through an allOf/oneOf/anyOf/if-then-else overlay of the same object) and the declared source member MUST remain declared. The lock never infers semantics from field names; a row exists only because a ruling named the exact path.",
   "registry_rules": {
@@ -556,7 +556,7 @@
         "path": "/$defs/CallMediaTokenExchangeRequestBody",
         "field": "call_id"
       },
-      "derivation": "Fixed scheme ak.media.participant_binding.v1. Signed tuple (realm_id,call_id,focus_id,actor_id,device_id,participant_id,expires_at) is reconstructed from the enclosing token exchange or durable call/roster context. issued_at is unsigned and unused.",
+      "derivation": "Fixed scheme ak.media.participant_binding.v1. Signed tuple (realm_id,call_id,focus_id,actor_id,device_id,participant_id,expires_at,media,issuer_kid) is reconstructed from the enclosing token exchange or durable call/roster context. issued_at is unsigned and unused.",
       "spec_anchor": "spec/v1/zh/crypto-media/media-service-binding.md"
     },
     {
@@ -570,7 +570,7 @@
         "path": "/$defs/CallMediaTokenExchangeRequestBody",
         "field": "call_id"
       },
-      "derivation": "Fixed scheme ak.media.participant_binding.v1. Signed tuple (realm_id,call_id,focus_id,actor_id,device_id,participant_id,expires_at) is reconstructed from the enclosing token exchange or durable call/roster context. issued_at is unsigned and unused.",
+      "derivation": "Fixed scheme ak.media.participant_binding.v1. Signed tuple (realm_id,call_id,focus_id,actor_id,device_id,participant_id,expires_at,media,issuer_kid) is reconstructed from the enclosing token exchange or durable call/roster context. issued_at is unsigned and unused.",
       "spec_anchor": "spec/v1/zh/crypto-media/media-service-binding.md"
     },
     {
@@ -584,7 +584,7 @@
         "path": "/$defs/CallMediaTokenExchangeRequestBody",
         "field": "call_id"
       },
-      "derivation": "Fixed scheme ak.media.participant_binding.v1. Signed tuple (realm_id,call_id,focus_id,actor_id,device_id,participant_id,expires_at) is reconstructed from the enclosing token exchange or durable call/roster context. issued_at is unsigned and unused.",
+      "derivation": "Fixed scheme ak.media.participant_binding.v1. Signed tuple (realm_id,call_id,focus_id,actor_id,device_id,participant_id,expires_at,media,issuer_kid) is reconstructed from the enclosing token exchange or durable call/roster context. issued_at is unsigned and unused.",
       "spec_anchor": "spec/v1/zh/crypto-media/media-service-binding.md"
     },
     {
@@ -598,7 +598,7 @@
         "path": "/$defs/CallMediaTokenExchangeRequestBody",
         "field": "call_id"
       },
-      "derivation": "Fixed scheme ak.media.participant_binding.v1. Signed tuple (realm_id,call_id,focus_id,actor_id,device_id,participant_id,expires_at) is reconstructed from the enclosing token exchange or durable call/roster context. issued_at is unsigned and unused.",
+      "derivation": "Fixed scheme ak.media.participant_binding.v1. Signed tuple (realm_id,call_id,focus_id,actor_id,device_id,participant_id,expires_at,media,issuer_kid) is reconstructed from the enclosing token exchange or durable call/roster context. issued_at is unsigned and unused.",
       "spec_anchor": "spec/v1/zh/crypto-media/media-service-binding.md"
     },
     {
@@ -612,7 +612,7 @@
         "path": "/$defs/CallMediaTokenExchangeRequestBody",
         "field": "call_id"
       },
-      "derivation": "Fixed scheme ak.media.participant_binding.v1. Signed tuple (realm_id,call_id,focus_id,actor_id,device_id,participant_id,expires_at) is reconstructed from the enclosing token exchange or durable call/roster context. issued_at is unsigned and unused.",
+      "derivation": "Fixed scheme ak.media.participant_binding.v1. Signed tuple (realm_id,call_id,focus_id,actor_id,device_id,participant_id,expires_at,media,issuer_kid) is reconstructed from the enclosing token exchange or durable call/roster context. issued_at is unsigned and unused.",
       "spec_anchor": "spec/v1/zh/crypto-media/media-service-binding.md"
     },
     {
@@ -626,7 +626,7 @@
         "path": "/$defs/CallMediaTokenExchangeRequestBody",
         "field": "call_id"
       },
-      "derivation": "Fixed scheme ak.media.participant_binding.v1. Signed tuple (realm_id,call_id,focus_id,actor_id,device_id,participant_id,expires_at) is reconstructed from the enclosing token exchange or durable call/roster context. issued_at is unsigned and unused.",
+      "derivation": "Fixed scheme ak.media.participant_binding.v1. Signed tuple (realm_id,call_id,focus_id,actor_id,device_id,participant_id,expires_at,media,issuer_kid) is reconstructed from the enclosing token exchange or durable call/roster context. issued_at is unsigned and unused.",
       "spec_anchor": "spec/v1/zh/crypto-media/media-service-binding.md"
     },
     {
@@ -640,7 +640,7 @@
         "path": "/$defs/CallMediaTokenExchangeRequestBody",
         "field": "call_id"
       },
-      "derivation": "Fixed scheme ak.media.participant_binding.v1. Signed tuple (realm_id,call_id,focus_id,actor_id,device_id,participant_id,expires_at) is reconstructed from the enclosing token exchange or durable call/roster context. issued_at is unsigned and unused.",
+      "derivation": "Fixed scheme ak.media.participant_binding.v1. Signed tuple (realm_id,call_id,focus_id,actor_id,device_id,participant_id,expires_at,media,issuer_kid) is reconstructed from the enclosing token exchange or durable call/roster context. issued_at is unsigned and unused.",
       "spec_anchor": "spec/v1/zh/crypto-media/media-service-binding.md"
     },
     {
@@ -654,7 +654,7 @@
         "path": "/$defs/CallMediaTokenExchangeRequestBody",
         "field": "call_id"
       },
-      "derivation": "Fixed scheme ak.media.participant_binding.v1. Signed tuple (realm_id,call_id,focus_id,actor_id,device_id,participant_id,expires_at) is reconstructed from the enclosing token exchange or durable call/roster context. issued_at is unsigned and unused.",
+      "derivation": "Fixed scheme ak.media.participant_binding.v1. Signed tuple (realm_id,call_id,focus_id,actor_id,device_id,participant_id,expires_at,media,issuer_kid) is reconstructed from the enclosing token exchange or durable call/roster context. issued_at is unsigned and unused.",
       "spec_anchor": "spec/v1/zh/crypto-media/media-service-binding.md"
     },
     {

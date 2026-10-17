@@ -1,5 +1,6 @@
 """The existing Call lifecycle carrier separates genesis from later deltas."""
 import json
+import copy
 import unittest
 from pathlib import Path
 
@@ -16,7 +17,7 @@ def validator(document, subschema):
         if "$id" in content:
             resources.append((content["$id"], Resource.from_contents(content)))
     return Draft202012Validator(
-        {"$schema": document["$schema"], "$id": document["$id"], **subschema},
+        {"$schema": document["$schema"], "$id": document["$id"], "$defs": document.get("$defs", {}), **subschema},
         registry=Registry().with_resources(resources),
     )
 
@@ -70,6 +71,84 @@ class CallCurrentGenesisSchemaTest(unittest.TestCase):
             writer = find_create(registry)["result_writes"][0]
             self.assertEqual(writer["value_schema_ref"],
                              "schemas/typed-current-result.schema.json#/$defs/call_state_result/properties/value")
+
+
+class CallActorIdentitySchemaTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        events = json.loads((SCHEMAS / "event-payload.schema.json").read_text(encoding="utf-8"))
+        operations = json.loads((SCHEMAS / "call-invitation-operations.schema.json").read_text(encoding="utf-8"))
+        cls.roster = validator(events, events["$defs"]["call_state_payload"]["properties"]["roster_delta"])
+        cls.binding = validator(events, events["$defs"]["participant_binding"])
+        cls.refresh = validator(operations, operations["$defs"]["refresh_join_context"])
+        signal = json.loads((SCHEMAS / "call-signal-plaintext.schema.json").read_text(encoding="utf-8"))
+        cls.signal = validator(signal, signal)
+        cls.actor = {"kind": "account", "account_id": {
+            "principal_id": "ak:did_core:web:alice.example",
+            "station_id": "ak:did_core:web:station.example",
+        }}
+        cls.device = "ak:device:01964137-0000-7000-8000-000000000001"
+
+    def test_join_and_leave_use_complete_actor_and_real_device(self):
+        join = {"op": "join", "participant": {"actor_id": self.actor, "device_id": self.device}}
+        leave = {"op": "leave", "actor_id": self.actor, "device_id": self.device,
+                 "expected_revision": {"commit_id": "ak:realm_commit:" + "A" * 44, "stream_position": 3}}
+        self.roster.validate(join)
+        self.roster.validate(leave)
+        for value, owner in [(join, "participant"), (leave, None)]:
+            invalid = copy.deepcopy(value)
+            target = invalid[owner] if owner else invalid
+            target["actor_id"] = self.actor["account_id"]["principal_id"]
+            self.assertFalse(self.roster.is_valid(invalid))
+            target["actor_id"] = {"kind": "account", "account_id": {
+                "principal_id": self.actor["account_id"]["principal_id"]}}
+            self.assertFalse(self.roster.is_valid(invalid))
+
+    def test_refresh_uses_accepted_participant_without_private_receipt(self):
+        refresh = {"kind": "refresh", "participant_id": "ak:rtc_participant:01964137-0000-7000-8000-000000000001"}
+        self.refresh.validate(refresh)
+        refresh["subject_binding"] = {}
+        self.assertFalse(self.refresh.is_valid(refresh))
+        self.assertFalse(self.refresh.is_valid({"kind": "refresh"}))
+
+    def test_moderation_targets_the_same_full_actor_namespace(self):
+        signal = {"kind": "ak.call.signal", "payload_sequence": 1,
+                  "call_id": "ak:call:" + "A" * 44, "signal_kind": "moderation", "seq": 1,
+                  "data": {"action": "kick", "target_actor_id": self.actor, "target_device_id": self.device}}
+        self.signal.validate(signal)
+        signal["data"]["target_actor_id"] = self.actor["account_id"]["principal_id"]
+        self.assertFalse(self.signal.is_valid(signal))
+
+    def test_public_binding_rejects_retired_private_commitment(self):
+        binding = {"expires_at": "2026-10-17T00:05:00.000Z", "issuer_kid": "did:web:media.example#key", "sig": "AA"}
+        self.binding.validate(binding)
+        binding["subject_binding_digest"] = "sha256:" + "00" * 32
+        self.assertFalse(self.binding.is_valid(binding))
+
+    def test_participant_signature_binds_full_station_and_device(self):
+        from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+        from cryptography.exceptions import InvalidSignature
+
+        fields = {"actor_id": self.actor, "device_id": self.device,
+                  "realm_id": "ak:realm:" + "A" * 44, "call_id": "ak:call:" + "A" * 44,
+                  "focus_id": "fra-1", "participant_id": "ak:rtc_participant:01964137-0000-7000-8000-000000000001",
+                  "expires_at": "2026-10-17T00:05:00.000Z", "issuer_kid": "did:web:media.example#key",
+                  "media": {"audio": True, "video": False, "screen": False}}
+        def transcript(value):
+            return b"ak.media.participant_binding.v1\0" + json.dumps(value, sort_keys=True, separators=(",", ":")).encode()
+        key = Ed25519PrivateKey.from_private_bytes(bytes([11]) * 32)
+        signature = key.sign(transcript(fields))
+        key.public_key().verify(signature, transcript(fields))
+        for mutation in ["station", "device", "media"]:
+            changed = copy.deepcopy(fields)
+            if mutation == "station":
+                changed["actor_id"]["account_id"]["station_id"] = "ak:did_core:web:other.example"
+            elif mutation == "device":
+                changed["device_id"] = "ak:device:01964137-0000-7000-8000-000000000002"
+            else:
+                changed["media"]["screen"] = True
+            with self.assertRaises(InvalidSignature):
+                key.public_key().verify(signature, transcript(changed))
 
 
 if __name__ == "__main__":

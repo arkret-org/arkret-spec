@@ -54,5 +54,110 @@
       "description": "Signal-kind-specific payload. Producers and consumers MUST additionally validate the closed field rules for the selected signal_kind in webrtc-signaling.md; this extension point is encrypted end-to-end and is not interpreted by the Signal service."
     }
   },
-  "additionalProperties": false
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "signal_kind": {
+            "const": "moderation"
+          }
+        },
+        "required": [
+          "signal_kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "action"
+            ],
+            "properties": {
+              "action": {
+                "enum": [
+                  "kick",
+                  "ban",
+                  "end_for_all"
+                ]
+              },
+              "target_actor_id": {
+                "$ref": "./common-ids.schema.json#/$defs/actor_id"
+              },
+              "target_device_id": {
+                "$ref": "./common-ids.schema.json#/$defs/device_id"
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "action": {
+                      "const": "kick"
+                    }
+                  }
+                },
+                "then": {
+                  "required": [
+                    "target_actor_id",
+                    "target_device_id"
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "action": {
+                      "const": "ban"
+                    }
+                  }
+                },
+                "then": {
+                  "required": [
+                    "target_actor_id"
+                  ],
+                  "not": {
+                    "required": [
+                      "target_device_id"
+                    ]
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "action": {
+                      "const": "end_for_all"
+                    }
+                  }
+                },
+                "then": {
+                  "not": {
+                    "anyOf": [
+                      {
+                        "required": [
+                          "target_actor_id"
+                        ]
+                      },
+                      {
+                        "required": [
+                          "target_device_id"
+                        ]
+                      }
+                    ]
+                  }
+                }
+              }
+            ],
+            "additionalProperties": false
+          }
+        }
+      }
+    }
+  ]
 }

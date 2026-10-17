@@ -5,7 +5,7 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.consent.cache_invalidation.v1"
   },
-  "version": "2026-10-15.2",
+  "version": "2026-10-17.1",
   "profile": "ak.profile.station.v1",
   "covers_vectors": [
     "ak.vector.consent.cache_invalidation.v1",
@@ -280,8 +280,8 @@
       "observed": "actual holder product/ring/token release, current cut and requester wire",
       "assertions": [
         "Invited first join uses exact relation and fresh token cut; affirmative signed voluntary join is legal; only accepted same actor/device active participant may refresh within accepted media. Unestablished refresh, automatic voluntary fallback and narrower-media expansion reject.",
-        "Durable roster contains only call-scoped pseudonymous DID/device alias and an opaque signed private-receipt digest. Token subject Account/device and private mapping are never copied into roster payload, current snapshot, generic Signal payload, backend token or telemetry; mandatory producer provenance remains unchanged and never establishes roster ownership.",
-        "Established refresh verifies private subject_binding signature and exact authenticated Account/device, accepted anonymous alias/focus/participant and accepted public subject_binding_digest; receipt alone cannot establish a leg or expand media, and wrong Station/device/alias/expiry/digest/signature rejects. Accepted historical issuer key remains verifiable after restart or rotation without accepting an uncommitted old binding."
+        "Durable roster join and leave use the exact complete ActorId and real DeviceId from the authenticated token request. Accounts sharing principal_id but differing in station_id remain distinct. Scalar anonymous DID, roster_identity, subject_binding and subject_binding_digest are not accepted wire carriers.",
+        "Established refresh names participant_id and independently matches the current accepted full actor/device, Realm/Call/focus and signed actual media range. Missing participant, wrong Station/device/participant/focus, revoked permissions, stale leg after kick/leave, terminal Call and media expansion reject. A new voluntary join after kick remains possible under current admission. Accepted historical issuer signatures remain verifiable after restart or rotation without accepting an uncommitted old binding."
       ]
     },
     {
