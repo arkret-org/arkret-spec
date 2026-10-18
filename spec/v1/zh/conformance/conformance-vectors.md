@@ -163,6 +163,8 @@ evidence 解析，`RealmCommit` 签名按对应 generation 的治理 Station his
 
 ### 3.3 授权与 capability
 
+`ak.vector.capability.global_decision_merge.v1` MUST 同时执行 [`constraint-evaluation-fixture.json`](../../artifacts/fixtures/constraint-evaluation-fixture.json)：未知时区／频率、DST边界、缺必要事实、错误evaluation_class与未支持扩展，分别在四种effect及有／无另一无约束grant下判定；已知时窗外和action不适用保留中立，不得以一律拒绝替代正向与边界验证。
+
 `ak.vector.auth.sensitive_field_handling.v1` MUST 证明：`field_access.sensitive_fields` 的读投影处理中，
 `redact` / `hash` / `omit` 都移除原值；`hash` 使用带密钥或加盐的摘要纪律；无法执行的处理方式回退为 `omit`。
 

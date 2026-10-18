@@ -1,12 +1,12 @@
 {
-  "version": 38,
+  "version": 39,
   "source_of_truth": false,
   "narrative_source": "spec/v1/zh/models/common-fields.md#r6-证据类名词分工",
   "scope": [
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 409,
+  "audited_occurrence_count": 411,
   "registrations": [
     {
       "file": "account-device-signer-evidence.schema.json",
@@ -447,6 +447,13 @@
       "reason": "Names the closed approval evidence item schema required by one registered request carrier; this is carrier metadata, not an evidence instance."
     },
     {
+      "file": "capability-action-registry.json",
+      "key": "support_evidence",
+      "occurrences": 1,
+      "disposition": "registry_contract",
+      "reason": "Declares positive-consumer and refusal/unknown boundary evidence categories required for a complete constraint support claim; registry metadata, never a runtime evidence carrier."
+    },
+    {
       "file": "contact-operations.schema.json",
       "key": "contact_continuity_evidence",
       "occurrences": 1,
@@ -599,6 +606,13 @@
       "occurrences": 9,
       "disposition": "registry_contract",
       "reason": "Names the already-authenticated carrier or route coordinate required before a stable core may enter a registered resolution boundary; it carries no evidence instance."
+    },
+    {
+      "file": "contract-registry.json",
+      "key": "support_evidence",
+      "occurrences": 1,
+      "disposition": "registry_contract",
+      "reason": "Declares positive-consumer and refusal/unknown boundary evidence categories required for a complete constraint support claim; registry metadata, never a runtime evidence carrier."
     },
     {
       "file": "did-binding-contracts.schema.json",

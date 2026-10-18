@@ -3,7 +3,7 @@ title: Capability Model
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-19
+updated: 2026-10-18
 ---
 
 ## 0. 规范语言
@@ -13,6 +13,10 @@ updated: 2026-09-19
 ## 1. 目标
 
 Arkret 的权限模型采用 capability 思路，而不是只依赖成员关系或模糊角色。
+
+一次授权判断回答“哪个主体，对哪个实际范围内的哪个对象，采取哪个动作，在什么当前条件下被允许或拒绝”。主体使用完整 ActorId，动作使用正式 action，目标使用实际资源与 selector；附加条件、合法授权来源及其当前有效性共同决定结果。这个说明不新增 wire 请求元组：实现 MUST 从已验证的原请求、目标对象与同一授权 cut 解析这些输入，MUST NOT 接受 caller 自述的角色、范围或已允许布尔值替代它们。
+
+主体、动作与资源命中只是候选来源筛选；实现 MUST 继续执行 controller／祖先上界、当前状态及完整约束。正向 allow 按单 grant 内合取、不同合法来源间选择，命中来源中的 deny／quarantine／require_review 按 [constraint-schema §15](./constraint-schema.md#15-约束求值) 全局收紧。合法成员关系等正式权限来源仍按各领域规范生效，不由这段模型说明新增隐含权限。
 
 这样做的原因是：
 

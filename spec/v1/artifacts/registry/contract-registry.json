@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-18.3",
+  "version": "2026-10-18.4",
   "source_of_truth": true,
-  "generated_at": "2026-10-18T21:05:05+08:00",
+  "generated_at": "2026-10-18T22:08:00+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-10-14.2",
@@ -20919,9 +20919,40 @@
       "scope_suffix_variant": "Action adds actor/scope/role qualifiers while reducer admission targets a shared event kind.",
       "operation_verb": "Action token names an operation/command verb that does not match its target event kind name(s); reducer admission resolves the resulting event kind(s) via target_event_kinds. Literal action matching per the actions[] rule applies; carries no aggregate-admin family semantics."
     },
-    "version": "2026-10-17",
-    "generated_at": "2026-10-17T07:18:06+08:00",
-    "metadata_authority": "contract_registry_section"
+    "version": "2026-10-18.1",
+    "generated_at": "2026-10-18T22:08:00+08:00",
+    "metadata_authority": "contract_registry_section",
+    "constraint_evaluation_contract": {
+      "normative_ref": "zh/authz/constraint-schema.md#150-可判定性与-effect-收敛normative",
+      "predicate_results": [
+        "match",
+        "no_match",
+        "unknown"
+      ],
+      "allow_satisfied_by": [
+        "match"
+      ],
+      "refusal_applies_on": [
+        "match",
+        "unknown"
+      ],
+      "global_refusal_order": [
+        "deny",
+        "quarantine",
+        "require_review"
+      ],
+      "allow_within_grant": "all",
+      "allow_across_grants": "any",
+      "action_mismatch": "neutral_for_effect",
+      "unknown_semantics": "unknown",
+      "missing_verified_facts": "unknown",
+      "support_evidence": [
+        "positive_consumer",
+        "refusal_boundaries",
+        "unknown_boundaries"
+      ],
+      "fixture_ref": "fixtures/constraint-evaluation-fixture.json"
+    }
   },
   "calendar_timezone_registry": {
     "registry_rules": [

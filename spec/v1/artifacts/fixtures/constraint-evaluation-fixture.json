@@ -1,0 +1,994 @@
+{
+  "profile": "ak.vector_group.capability.v1",
+  "version": "2026-10-18.1",
+  "suite": "constraint_evaluation",
+  "runner": {
+    "kind": "json_schema_and_semantic_cases"
+  },
+  "covers_vectors": [
+    "ak.vector.capability.global_decision_merge.v1"
+  ],
+  "description": "Effect-aware three-state constraint evaluation over an exact actor/action/resource, with and without a separate unrestricted matching grant. Positive support is separate from unknown refusal.",
+  "schema_validation_cases": [
+    {
+      "name": "unknown_timezone_allow",
+      "schema_ref": "schemas/grant-constraint.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "constraint_kind": "temporal",
+        "constraint_subkind": "window",
+        "recurrence": {
+          "frequency": "daily",
+          "timezone": "Missing/Zone"
+        },
+        "effect": "allow"
+      },
+      "verification_time": "2026-09-21T01:00:00Z",
+      "action": "ak.message.create",
+      "facts": {},
+      "predicate_result": "unknown",
+      "expected_single_grant": "Unsatisfied",
+      "expected_with_unrestricted_grant": "Allowed"
+    },
+    {
+      "name": "unknown_timezone_deny",
+      "schema_ref": "schemas/grant-constraint.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "constraint_kind": "temporal",
+        "constraint_subkind": "window",
+        "recurrence": {
+          "frequency": "daily",
+          "timezone": "Missing/Zone"
+        },
+        "effect": "deny"
+      },
+      "verification_time": "2026-09-21T01:00:00Z",
+      "action": "ak.message.create",
+      "facts": {},
+      "predicate_result": "unknown",
+      "expected_single_grant": "Denied",
+      "expected_with_unrestricted_grant": "Denied"
+    },
+    {
+      "name": "unknown_timezone_quarantine",
+      "schema_ref": "schemas/grant-constraint.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "constraint_kind": "temporal",
+        "constraint_subkind": "window",
+        "recurrence": {
+          "frequency": "daily",
+          "timezone": "Missing/Zone"
+        },
+        "effect": "quarantine"
+      },
+      "verification_time": "2026-09-21T01:00:00Z",
+      "action": "ak.message.create",
+      "facts": {},
+      "predicate_result": "unknown",
+      "expected_single_grant": "Quarantined",
+      "expected_with_unrestricted_grant": "Quarantined"
+    },
+    {
+      "name": "unknown_timezone_require_review",
+      "schema_ref": "schemas/grant-constraint.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "constraint_kind": "temporal",
+        "constraint_subkind": "window",
+        "recurrence": {
+          "frequency": "daily",
+          "timezone": "Missing/Zone"
+        },
+        "effect": "require_review"
+      },
+      "verification_time": "2026-09-21T01:00:00Z",
+      "action": "ak.message.create",
+      "facts": {},
+      "predicate_result": "unknown",
+      "expected_single_grant": "RequiresReview",
+      "expected_with_unrestricted_grant": "RequiresReview"
+    },
+    {
+      "name": "unsupported_frequency_allow",
+      "schema_ref": "schemas/grant-constraint.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "constraint_kind": "temporal",
+        "constraint_subkind": "window",
+        "recurrence": {
+          "frequency": "monthly",
+          "timezone": "UTC"
+        },
+        "effect": "allow"
+      },
+      "verification_time": "2026-09-21T01:00:00Z",
+      "action": "ak.message.create",
+      "facts": {},
+      "predicate_result": "unknown",
+      "expected_single_grant": "Unsatisfied",
+      "expected_with_unrestricted_grant": "Allowed"
+    },
+    {
+      "name": "unsupported_frequency_deny",
+      "schema_ref": "schemas/grant-constraint.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "constraint_kind": "temporal",
+        "constraint_subkind": "window",
+        "recurrence": {
+          "frequency": "monthly",
+          "timezone": "UTC"
+        },
+        "effect": "deny"
+      },
+      "verification_time": "2026-09-21T01:00:00Z",
+      "action": "ak.message.create",
+      "facts": {},
+      "predicate_result": "unknown",
+      "expected_single_grant": "Denied",
+      "expected_with_unrestricted_grant": "Denied"
+    },
+    {
+      "name": "unsupported_frequency_quarantine",
+      "schema_ref": "schemas/grant-constraint.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "constraint_kind": "temporal",
+        "constraint_subkind": "window",
+        "recurrence": {
+          "frequency": "monthly",
+          "timezone": "UTC"
+        },
+        "effect": "quarantine"
+      },
+      "verification_time": "2026-09-21T01:00:00Z",
+      "action": "ak.message.create",
+      "facts": {},
+      "predicate_result": "unknown",
+      "expected_single_grant": "Quarantined",
+      "expected_with_unrestricted_grant": "Quarantined"
+    },
+    {
+      "name": "unsupported_frequency_require_review",
+      "schema_ref": "schemas/grant-constraint.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "constraint_kind": "temporal",
+        "constraint_subkind": "window",
+        "recurrence": {
+          "frequency": "monthly",
+          "timezone": "UTC"
+        },
+        "effect": "require_review"
+      },
+      "verification_time": "2026-09-21T01:00:00Z",
+      "action": "ak.message.create",
+      "facts": {},
+      "predicate_result": "unknown",
+      "expected_single_grant": "RequiresReview",
+      "expected_with_unrestricted_grant": "RequiresReview"
+    },
+    {
+      "name": "dst_gap_allow",
+      "schema_ref": "schemas/grant-constraint.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "constraint_kind": "temporal",
+        "constraint_subkind": "window",
+        "recurrence": {
+          "frequency": "daily",
+          "timezone": "America/New_York",
+          "window_start": "02:30",
+          "window_end": "03:30"
+        },
+        "effect": "allow"
+      },
+      "verification_time": "2026-03-08T07:00:00Z",
+      "action": "ak.message.create",
+      "facts": {},
+      "predicate_result": "unknown",
+      "expected_single_grant": "Unsatisfied",
+      "expected_with_unrestricted_grant": "Allowed"
+    },
+    {
+      "name": "dst_gap_deny",
+      "schema_ref": "schemas/grant-constraint.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "constraint_kind": "temporal",
+        "constraint_subkind": "window",
+        "recurrence": {
+          "frequency": "daily",
+          "timezone": "America/New_York",
+          "window_start": "02:30",
+          "window_end": "03:30"
+        },
+        "effect": "deny"
+      },
+      "verification_time": "2026-03-08T07:00:00Z",
+      "action": "ak.message.create",
+      "facts": {},
+      "predicate_result": "unknown",
+      "expected_single_grant": "Denied",
+      "expected_with_unrestricted_grant": "Denied"
+    },
+    {
+      "name": "dst_gap_quarantine",
+      "schema_ref": "schemas/grant-constraint.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "constraint_kind": "temporal",
+        "constraint_subkind": "window",
+        "recurrence": {
+          "frequency": "daily",
+          "timezone": "America/New_York",
+          "window_start": "02:30",
+          "window_end": "03:30"
+        },
+        "effect": "quarantine"
+      },
+      "verification_time": "2026-03-08T07:00:00Z",
+      "action": "ak.message.create",
+      "facts": {},
+      "predicate_result": "unknown",
+      "expected_single_grant": "Quarantined",
+      "expected_with_unrestricted_grant": "Quarantined"
+    },
+    {
+      "name": "dst_gap_require_review",
+      "schema_ref": "schemas/grant-constraint.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "constraint_kind": "temporal",
+        "constraint_subkind": "window",
+        "recurrence": {
+          "frequency": "daily",
+          "timezone": "America/New_York",
+          "window_start": "02:30",
+          "window_end": "03:30"
+        },
+        "effect": "require_review"
+      },
+      "verification_time": "2026-03-08T07:00:00Z",
+      "action": "ak.message.create",
+      "facts": {},
+      "predicate_result": "unknown",
+      "expected_single_grant": "RequiresReview",
+      "expected_with_unrestricted_grant": "RequiresReview"
+    },
+    {
+      "name": "dst_ambiguity_allow",
+      "schema_ref": "schemas/grant-constraint.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "constraint_kind": "temporal",
+        "constraint_subkind": "window",
+        "recurrence": {
+          "frequency": "daily",
+          "timezone": "America/New_York",
+          "window_start": "01:30",
+          "window_end": "02:30"
+        },
+        "effect": "allow"
+      },
+      "verification_time": "2026-11-01T06:45:00Z",
+      "action": "ak.message.create",
+      "facts": {},
+      "predicate_result": "unknown",
+      "expected_single_grant": "Unsatisfied",
+      "expected_with_unrestricted_grant": "Allowed"
+    },
+    {
+      "name": "dst_ambiguity_deny",
+      "schema_ref": "schemas/grant-constraint.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "constraint_kind": "temporal",
+        "constraint_subkind": "window",
+        "recurrence": {
+          "frequency": "daily",
+          "timezone": "America/New_York",
+          "window_start": "01:30",
+          "window_end": "02:30"
+        },
+        "effect": "deny"
+      },
+      "verification_time": "2026-11-01T06:45:00Z",
+      "action": "ak.message.create",
+      "facts": {},
+      "predicate_result": "unknown",
+      "expected_single_grant": "Denied",
+      "expected_with_unrestricted_grant": "Denied"
+    },
+    {
+      "name": "dst_ambiguity_quarantine",
+      "schema_ref": "schemas/grant-constraint.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "constraint_kind": "temporal",
+        "constraint_subkind": "window",
+        "recurrence": {
+          "frequency": "daily",
+          "timezone": "America/New_York",
+          "window_start": "01:30",
+          "window_end": "02:30"
+        },
+        "effect": "quarantine"
+      },
+      "verification_time": "2026-11-01T06:45:00Z",
+      "action": "ak.message.create",
+      "facts": {},
+      "predicate_result": "unknown",
+      "expected_single_grant": "Quarantined",
+      "expected_with_unrestricted_grant": "Quarantined"
+    },
+    {
+      "name": "dst_ambiguity_require_review",
+      "schema_ref": "schemas/grant-constraint.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "constraint_kind": "temporal",
+        "constraint_subkind": "window",
+        "recurrence": {
+          "frequency": "daily",
+          "timezone": "America/New_York",
+          "window_start": "01:30",
+          "window_end": "02:30"
+        },
+        "effect": "require_review"
+      },
+      "verification_time": "2026-11-01T06:45:00Z",
+      "action": "ak.message.create",
+      "facts": {},
+      "predicate_result": "unknown",
+      "expected_single_grant": "RequiresReview",
+      "expected_with_unrestricted_grant": "RequiresReview"
+    },
+    {
+      "name": "inside_window_allow",
+      "schema_ref": "schemas/grant-constraint.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "constraint_kind": "temporal",
+        "constraint_subkind": "window",
+        "recurrence": {
+          "frequency": "daily",
+          "timezone": "UTC",
+          "window_start": "00:00",
+          "window_end": "03:00"
+        },
+        "effect": "allow"
+      },
+      "verification_time": "2026-09-21T01:00:00Z",
+      "action": "ak.message.create",
+      "facts": {},
+      "predicate_result": "match",
+      "expected_single_grant": "Allowed",
+      "expected_with_unrestricted_grant": "Allowed"
+    },
+    {
+      "name": "inside_window_deny",
+      "schema_ref": "schemas/grant-constraint.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "constraint_kind": "temporal",
+        "constraint_subkind": "window",
+        "recurrence": {
+          "frequency": "daily",
+          "timezone": "UTC",
+          "window_start": "00:00",
+          "window_end": "03:00"
+        },
+        "effect": "deny"
+      },
+      "verification_time": "2026-09-21T01:00:00Z",
+      "action": "ak.message.create",
+      "facts": {},
+      "predicate_result": "match",
+      "expected_single_grant": "Denied",
+      "expected_with_unrestricted_grant": "Denied"
+    },
+    {
+      "name": "inside_window_quarantine",
+      "schema_ref": "schemas/grant-constraint.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "constraint_kind": "temporal",
+        "constraint_subkind": "window",
+        "recurrence": {
+          "frequency": "daily",
+          "timezone": "UTC",
+          "window_start": "00:00",
+          "window_end": "03:00"
+        },
+        "effect": "quarantine"
+      },
+      "verification_time": "2026-09-21T01:00:00Z",
+      "action": "ak.message.create",
+      "facts": {},
+      "predicate_result": "match",
+      "expected_single_grant": "Quarantined",
+      "expected_with_unrestricted_grant": "Quarantined"
+    },
+    {
+      "name": "inside_window_require_review",
+      "schema_ref": "schemas/grant-constraint.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "constraint_kind": "temporal",
+        "constraint_subkind": "window",
+        "recurrence": {
+          "frequency": "daily",
+          "timezone": "UTC",
+          "window_start": "00:00",
+          "window_end": "03:00"
+        },
+        "effect": "require_review"
+      },
+      "verification_time": "2026-09-21T01:00:00Z",
+      "action": "ak.message.create",
+      "facts": {},
+      "predicate_result": "match",
+      "expected_single_grant": "RequiresReview",
+      "expected_with_unrestricted_grant": "RequiresReview"
+    },
+    {
+      "name": "outside_window_allow",
+      "schema_ref": "schemas/grant-constraint.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "constraint_kind": "temporal",
+        "constraint_subkind": "window",
+        "recurrence": {
+          "frequency": "daily",
+          "timezone": "UTC",
+          "window_start": "09:00",
+          "window_end": "17:00"
+        },
+        "effect": "allow"
+      },
+      "verification_time": "2026-09-21T01:00:00Z",
+      "action": "ak.message.create",
+      "facts": {},
+      "predicate_result": "no_match",
+      "expected_single_grant": "Unsatisfied",
+      "expected_with_unrestricted_grant": "Allowed"
+    },
+    {
+      "name": "outside_window_deny",
+      "schema_ref": "schemas/grant-constraint.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "constraint_kind": "temporal",
+        "constraint_subkind": "window",
+        "recurrence": {
+          "frequency": "daily",
+          "timezone": "UTC",
+          "window_start": "09:00",
+          "window_end": "17:00"
+        },
+        "effect": "deny"
+      },
+      "verification_time": "2026-09-21T01:00:00Z",
+      "action": "ak.message.create",
+      "facts": {},
+      "predicate_result": "no_match",
+      "expected_single_grant": "Allowed",
+      "expected_with_unrestricted_grant": "Allowed"
+    },
+    {
+      "name": "outside_window_quarantine",
+      "schema_ref": "schemas/grant-constraint.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "constraint_kind": "temporal",
+        "constraint_subkind": "window",
+        "recurrence": {
+          "frequency": "daily",
+          "timezone": "UTC",
+          "window_start": "09:00",
+          "window_end": "17:00"
+        },
+        "effect": "quarantine"
+      },
+      "verification_time": "2026-09-21T01:00:00Z",
+      "action": "ak.message.create",
+      "facts": {},
+      "predicate_result": "no_match",
+      "expected_single_grant": "Allowed",
+      "expected_with_unrestricted_grant": "Allowed"
+    },
+    {
+      "name": "outside_window_require_review",
+      "schema_ref": "schemas/grant-constraint.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "constraint_kind": "temporal",
+        "constraint_subkind": "window",
+        "recurrence": {
+          "frequency": "daily",
+          "timezone": "UTC",
+          "window_start": "09:00",
+          "window_end": "17:00"
+        },
+        "effect": "require_review"
+      },
+      "verification_time": "2026-09-21T01:00:00Z",
+      "action": "ak.message.create",
+      "facts": {},
+      "predicate_result": "no_match",
+      "expected_single_grant": "Allowed",
+      "expected_with_unrestricted_grant": "Allowed"
+    },
+    {
+      "name": "other_action_allow",
+      "schema_ref": "schemas/grant-constraint.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "constraint_kind": "temporal",
+        "constraint_subkind": "window",
+        "applies_to_actions": [
+          "ak.message.revise.own"
+        ],
+        "recurrence": {
+          "frequency": "daily",
+          "timezone": "Missing/Zone"
+        },
+        "effect": "allow"
+      },
+      "verification_time": "2026-09-21T01:00:00Z",
+      "action": "ak.message.create",
+      "facts": {},
+      "predicate_result": "not_applicable",
+      "expected_single_grant": "Allowed",
+      "expected_with_unrestricted_grant": "Allowed"
+    },
+    {
+      "name": "other_action_deny",
+      "schema_ref": "schemas/grant-constraint.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "constraint_kind": "temporal",
+        "constraint_subkind": "window",
+        "applies_to_actions": [
+          "ak.message.revise.own"
+        ],
+        "recurrence": {
+          "frequency": "daily",
+          "timezone": "Missing/Zone"
+        },
+        "effect": "deny"
+      },
+      "verification_time": "2026-09-21T01:00:00Z",
+      "action": "ak.message.create",
+      "facts": {},
+      "predicate_result": "not_applicable",
+      "expected_single_grant": "Allowed",
+      "expected_with_unrestricted_grant": "Allowed"
+    },
+    {
+      "name": "other_action_quarantine",
+      "schema_ref": "schemas/grant-constraint.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "constraint_kind": "temporal",
+        "constraint_subkind": "window",
+        "applies_to_actions": [
+          "ak.message.revise.own"
+        ],
+        "recurrence": {
+          "frequency": "daily",
+          "timezone": "Missing/Zone"
+        },
+        "effect": "quarantine"
+      },
+      "verification_time": "2026-09-21T01:00:00Z",
+      "action": "ak.message.create",
+      "facts": {},
+      "predicate_result": "not_applicable",
+      "expected_single_grant": "Allowed",
+      "expected_with_unrestricted_grant": "Allowed"
+    },
+    {
+      "name": "other_action_require_review",
+      "schema_ref": "schemas/grant-constraint.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "constraint_kind": "temporal",
+        "constraint_subkind": "window",
+        "applies_to_actions": [
+          "ak.message.revise.own"
+        ],
+        "recurrence": {
+          "frequency": "daily",
+          "timezone": "Missing/Zone"
+        },
+        "effect": "require_review"
+      },
+      "verification_time": "2026-09-21T01:00:00Z",
+      "action": "ak.message.create",
+      "facts": {},
+      "predicate_result": "not_applicable",
+      "expected_single_grant": "Allowed",
+      "expected_with_unrestricted_grant": "Allowed"
+    },
+    {
+      "name": "missing_target_allow",
+      "schema_ref": "schemas/grant-constraint.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "constraint_kind": "temporal",
+        "constraint_subkind": "edit_window",
+        "applies_to_actions": [
+          "ak.message.revise.own"
+        ],
+        "message_edit_window": "PT15M",
+        "effect": "allow"
+      },
+      "verification_time": "2026-09-21T01:00:00Z",
+      "action": "ak.message.revise.own",
+      "facts": {},
+      "predicate_result": "unknown",
+      "expected_single_grant": "Unsatisfied",
+      "expected_with_unrestricted_grant": "Allowed"
+    },
+    {
+      "name": "missing_target_deny",
+      "schema_ref": "schemas/grant-constraint.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "constraint_kind": "temporal",
+        "constraint_subkind": "edit_window",
+        "applies_to_actions": [
+          "ak.message.revise.own"
+        ],
+        "message_edit_window": "PT15M",
+        "effect": "deny"
+      },
+      "verification_time": "2026-09-21T01:00:00Z",
+      "action": "ak.message.revise.own",
+      "facts": {},
+      "predicate_result": "unknown",
+      "expected_single_grant": "Denied",
+      "expected_with_unrestricted_grant": "Denied"
+    },
+    {
+      "name": "missing_target_quarantine",
+      "schema_ref": "schemas/grant-constraint.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "constraint_kind": "temporal",
+        "constraint_subkind": "edit_window",
+        "applies_to_actions": [
+          "ak.message.revise.own"
+        ],
+        "message_edit_window": "PT15M",
+        "effect": "quarantine"
+      },
+      "verification_time": "2026-09-21T01:00:00Z",
+      "action": "ak.message.revise.own",
+      "facts": {},
+      "predicate_result": "unknown",
+      "expected_single_grant": "Quarantined",
+      "expected_with_unrestricted_grant": "Quarantined"
+    },
+    {
+      "name": "missing_target_require_review",
+      "schema_ref": "schemas/grant-constraint.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "constraint_kind": "temporal",
+        "constraint_subkind": "edit_window",
+        "applies_to_actions": [
+          "ak.message.revise.own"
+        ],
+        "message_edit_window": "PT15M",
+        "effect": "require_review"
+      },
+      "verification_time": "2026-09-21T01:00:00Z",
+      "action": "ak.message.revise.own",
+      "facts": {},
+      "predicate_result": "unknown",
+      "expected_single_grant": "RequiresReview",
+      "expected_with_unrestricted_grant": "RequiresReview"
+    },
+    {
+      "name": "missing_condition_facts_allow",
+      "schema_ref": "schemas/grant-constraint.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "constraint_kind": "field_access",
+        "condition": {
+          "kind": "actor_is_assignee"
+        },
+        "allowed_write_fields": [
+          "content"
+        ],
+        "effect": "allow"
+      },
+      "verification_time": "2026-09-21T01:00:00Z",
+      "action": "ak.message.create",
+      "facts": {},
+      "predicate_result": "unknown",
+      "expected_single_grant": "Unsatisfied",
+      "expected_with_unrestricted_grant": "Allowed"
+    },
+    {
+      "name": "missing_condition_facts_deny",
+      "schema_ref": "schemas/grant-constraint.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "constraint_kind": "field_access",
+        "condition": {
+          "kind": "actor_is_assignee"
+        },
+        "allowed_write_fields": [
+          "content"
+        ],
+        "effect": "deny"
+      },
+      "verification_time": "2026-09-21T01:00:00Z",
+      "action": "ak.message.create",
+      "facts": {},
+      "predicate_result": "unknown",
+      "expected_single_grant": "Denied",
+      "expected_with_unrestricted_grant": "Denied"
+    },
+    {
+      "name": "missing_condition_facts_quarantine",
+      "schema_ref": "schemas/grant-constraint.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "constraint_kind": "field_access",
+        "condition": {
+          "kind": "actor_is_assignee"
+        },
+        "allowed_write_fields": [
+          "content"
+        ],
+        "effect": "quarantine"
+      },
+      "verification_time": "2026-09-21T01:00:00Z",
+      "action": "ak.message.create",
+      "facts": {},
+      "predicate_result": "unknown",
+      "expected_single_grant": "Quarantined",
+      "expected_with_unrestricted_grant": "Quarantined"
+    },
+    {
+      "name": "missing_condition_facts_require_review",
+      "schema_ref": "schemas/grant-constraint.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "constraint_kind": "field_access",
+        "condition": {
+          "kind": "actor_is_assignee"
+        },
+        "allowed_write_fields": [
+          "content"
+        ],
+        "effect": "require_review"
+      },
+      "verification_time": "2026-09-21T01:00:00Z",
+      "action": "ak.message.create",
+      "facts": {},
+      "predicate_result": "unknown",
+      "expected_single_grant": "RequiresReview",
+      "expected_with_unrestricted_grant": "RequiresReview"
+    },
+    {
+      "name": "unsupported_extension_allow",
+      "schema_ref": "schemas/grant-constraint.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "constraint_kind": "temporal",
+        "constraint_subkind": "window",
+        "x_unrecognized_rule": {
+          "enabled": true
+        },
+        "effect": "allow"
+      },
+      "verification_time": "2026-09-21T01:00:00Z",
+      "action": "ak.message.create",
+      "facts": {},
+      "predicate_result": "unknown",
+      "expected_single_grant": "Unsatisfied",
+      "expected_with_unrestricted_grant": "Allowed"
+    },
+    {
+      "name": "unsupported_extension_deny",
+      "schema_ref": "schemas/grant-constraint.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "constraint_kind": "temporal",
+        "constraint_subkind": "window",
+        "x_unrecognized_rule": {
+          "enabled": true
+        },
+        "effect": "deny"
+      },
+      "verification_time": "2026-09-21T01:00:00Z",
+      "action": "ak.message.create",
+      "facts": {},
+      "predicate_result": "unknown",
+      "expected_single_grant": "Denied",
+      "expected_with_unrestricted_grant": "Denied"
+    },
+    {
+      "name": "unsupported_extension_quarantine",
+      "schema_ref": "schemas/grant-constraint.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "constraint_kind": "temporal",
+        "constraint_subkind": "window",
+        "x_unrecognized_rule": {
+          "enabled": true
+        },
+        "effect": "quarantine"
+      },
+      "verification_time": "2026-09-21T01:00:00Z",
+      "action": "ak.message.create",
+      "facts": {},
+      "predicate_result": "unknown",
+      "expected_single_grant": "Quarantined",
+      "expected_with_unrestricted_grant": "Quarantined"
+    },
+    {
+      "name": "unsupported_extension_require_review",
+      "schema_ref": "schemas/grant-constraint.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "constraint_kind": "temporal",
+        "constraint_subkind": "window",
+        "x_unrecognized_rule": {
+          "enabled": true
+        },
+        "effect": "require_review"
+      },
+      "verification_time": "2026-09-21T01:00:00Z",
+      "action": "ak.message.create",
+      "facts": {},
+      "predicate_result": "unknown",
+      "expected_single_grant": "RequiresReview",
+      "expected_with_unrestricted_grant": "RequiresReview"
+    },
+    {
+      "name": "wrong_evaluation_class_allow",
+      "schema_ref": "schemas/grant-constraint.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "constraint_kind": "temporal",
+        "constraint_subkind": "window",
+        "evaluation_class": "external",
+        "effect": "allow"
+      },
+      "verification_time": "2026-09-21T01:00:00Z",
+      "action": "ak.message.create",
+      "facts": {},
+      "predicate_result": "unknown",
+      "expected_single_grant": "Unsatisfied",
+      "expected_with_unrestricted_grant": "Allowed"
+    },
+    {
+      "name": "wrong_evaluation_class_deny",
+      "schema_ref": "schemas/grant-constraint.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "constraint_kind": "temporal",
+        "constraint_subkind": "window",
+        "evaluation_class": "external",
+        "effect": "deny"
+      },
+      "verification_time": "2026-09-21T01:00:00Z",
+      "action": "ak.message.create",
+      "facts": {},
+      "predicate_result": "unknown",
+      "expected_single_grant": "Denied",
+      "expected_with_unrestricted_grant": "Denied"
+    },
+    {
+      "name": "wrong_evaluation_class_quarantine",
+      "schema_ref": "schemas/grant-constraint.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "constraint_kind": "temporal",
+        "constraint_subkind": "window",
+        "evaluation_class": "external",
+        "effect": "quarantine"
+      },
+      "verification_time": "2026-09-21T01:00:00Z",
+      "action": "ak.message.create",
+      "facts": {},
+      "predicate_result": "unknown",
+      "expected_single_grant": "Quarantined",
+      "expected_with_unrestricted_grant": "Quarantined"
+    },
+    {
+      "name": "wrong_evaluation_class_require_review",
+      "schema_ref": "schemas/grant-constraint.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "constraint_kind": "temporal",
+        "constraint_subkind": "window",
+        "evaluation_class": "external",
+        "effect": "require_review"
+      },
+      "verification_time": "2026-09-21T01:00:00Z",
+      "action": "ak.message.create",
+      "facts": {},
+      "predicate_result": "unknown",
+      "expected_single_grant": "RequiresReview",
+      "expected_with_unrestricted_grant": "RequiresReview"
+    },
+    {
+      "name": "missing_session_facts_allow",
+      "schema_ref": "schemas/grant-constraint.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "constraint_kind": "temporal",
+        "constraint_subkind": "session",
+        "max_session_duration": "PT1H",
+        "effect": "allow"
+      },
+      "verification_time": "2026-09-21T01:00:00Z",
+      "action": "ak.message.create",
+      "facts": {},
+      "predicate_result": "unknown",
+      "expected_single_grant": "Unsatisfied",
+      "expected_with_unrestricted_grant": "Allowed"
+    },
+    {
+      "name": "missing_session_facts_deny",
+      "schema_ref": "schemas/grant-constraint.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "constraint_kind": "temporal",
+        "constraint_subkind": "session",
+        "max_session_duration": "PT1H",
+        "effect": "deny"
+      },
+      "verification_time": "2026-09-21T01:00:00Z",
+      "action": "ak.message.create",
+      "facts": {},
+      "predicate_result": "unknown",
+      "expected_single_grant": "Denied",
+      "expected_with_unrestricted_grant": "Denied"
+    },
+    {
+      "name": "missing_session_facts_quarantine",
+      "schema_ref": "schemas/grant-constraint.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "constraint_kind": "temporal",
+        "constraint_subkind": "session",
+        "max_session_duration": "PT1H",
+        "effect": "quarantine"
+      },
+      "verification_time": "2026-09-21T01:00:00Z",
+      "action": "ak.message.create",
+      "facts": {},
+      "predicate_result": "unknown",
+      "expected_single_grant": "Quarantined",
+      "expected_with_unrestricted_grant": "Quarantined"
+    },
+    {
+      "name": "missing_session_facts_require_review",
+      "schema_ref": "schemas/grant-constraint.schema.json",
+      "expect_valid": true,
+      "instance": {
+        "constraint_kind": "temporal",
+        "constraint_subkind": "session",
+        "max_session_duration": "PT1H",
+        "effect": "require_review"
+      },
+      "verification_time": "2026-09-21T01:00:00Z",
+      "action": "ak.message.create",
+      "facts": {},
+      "predicate_result": "unknown",
+      "expected_single_grant": "RequiresReview",
+      "expected_with_unrestricted_grant": "RequiresReview"
+    }
+  ]
+}

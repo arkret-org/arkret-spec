@@ -40,7 +40,8 @@
         "deny",
         "quarantine",
         "require_review"
-      ]
+      ],
+      "description": "Unknown predicates do not satisfy allow and do apply deny, quarantine and require_review. Proven nonmatches do not apply refusal effects; see constraint-schema section 15.0."
     },
     "evaluation_class": {
       "type": "string",
@@ -88,7 +89,7 @@
     },
     "recurrence": {
       "type": "object",
-      "description": "Recurrence rule for temporal constraints. Used by constraint-schema.md Â§3.1.",
+      "description": "Daily/weekly recurrence is core. Unsupported frequency, unknown IANA timezone and necessary unresolved DST boundaries are unknown predicates, never implicit nonmatches.",
       "properties": {
         "frequency": {
           "type": "string",

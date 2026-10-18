@@ -3,7 +3,7 @@ title: 授权约束 Schema
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-30
+updated: 2026-10-18
 ---
 
 ## 0. 规范语言
@@ -76,7 +76,7 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `constraint_subk
 | `confidentiality` | `encryption` | extension | 强制加密、key 轮换、key issuer。 | `ak.profile.constraint.encryption_requirement.v1` |
 | `confidentiality` | `visibility` | extension | 对象 / 消息可见性裁剪、`redacted_history_allowed`。 | `ak.profile.constraint.visibility_control.v1` |
 
-> v1 共 8 个核心 typed family，narrow-scoped 子类作为可选 `constraint_subkind` 表达：`edit_window` / `redact_window` / `window` / `session` 走 `temporal` (constraint_subkind 标记)；`container_move` 走 `scope_limitation`；Applet registration grant 绑定走 `authority_control` (`constraint_subkind=applet_authority`)；`rate_limiting` / `resource_limit` 走 `quota` (`constraint_subkind=rate` / `resource`)；`approval_workflow` / `accountability` 走 `claim_based` (`constraint_subkind=approval` / `accountability`)；其中通过 claim 表达 responsible / guardian / controller 的凭证条件仍走 `constraint_subkind=claim`，不会取代独立的 grant-local `constraint_subkind=accountability`。device/session binding **不是 claim_based 的独立 constraint_subkind**，并入 `constraint_subkind=claim`，通过 claim issuer = accepted PCR device 表达；`encryption_requirement` / `visibility_control` 走 `confidentiality` (`constraint_subkind=encryption` / `visibility`)。底层字段或 constraint_subkind 值——`recurrence` / `max_session_duration` / `condition.kind` / `required_claims[]` 等都是合法字段（见 §3 / §4 / §10）。canonical 8 family：`temporal` / `field_access` / `kind_restriction` / `scope_limitation` / `authority_control` / `quota` / `claim_based` / `confidentiality`。
+> v1 共 8 个 typed family，core 与 extension 的必选归属以本表为准，narrow-scoped 子类作为可选 `constraint_subkind` 表达：`edit_window` / `redact_window` / `window` / `session` 走 `temporal` (constraint_subkind 标记)；`container_move` 走 `scope_limitation`；Applet registration grant 绑定走 `authority_control` (`constraint_subkind=applet_authority`)；`rate_limiting` / `resource_limit` 走 `quota` (`constraint_subkind=rate` / `resource`)；`approval_workflow` / `accountability` 走 `claim_based` (`constraint_subkind=approval` / `accountability`)；其中通过 claim 表达 responsible / guardian / controller 的凭证条件仍走 `constraint_subkind=claim`，不会取代独立的 grant-local `constraint_subkind=accountability`。device/session binding **不是 claim_based 的独立 constraint_subkind**，并入 `constraint_subkind=claim`，通过 claim issuer = accepted PCR device 表达；`encryption_requirement` / `visibility_control` 走 `confidentiality` (`constraint_subkind=encryption` / `visibility`)。底层字段或 constraint_subkind 值——`recurrence` / `max_session_duration` / `condition.kind` / `required_claims[]` 等都是合法字段（见 §3 / §4 / §10）。canonical 8 family：`temporal` / `field_access` / `kind_restriction` / `scope_limitation` / `authority_control` / `quota` / `claim_based` / `confidentiality`。
 
 未注册的 `constraint_kind` 或未注册的 `(constraint_kind, constraint_subkind)` 组合 MUST fail closed。新增 family / constraint_subkind 必须先在本表登记，并在 grant-constraint schema 的 `constraint_kind` 与 `constraint_subkind` enum 中注册。
 
@@ -1018,6 +1018,22 @@ redacted stub，不恢复被删正文、不绕过 history visibility 或 audit g
 
 ## 15. 约束求值
 
+### 15.0 可判定性与 effect 收敛（normative）
+
+每个已适用 predicate 的内部求值结果 MUST 区分 `match`（已证明命中）、`no_match`（已证明不命中）与 `unknown`（语义未支持、必要事实／验证材料缺失、参数不能解释或时间边界无法唯一确定）。这三个名称是求值模型，不新增 wire enum 或 caller 可提交的结果。
+
+| predicate 结果 | allow 是否满足 | deny／quarantine／require_review 是否收紧 |
+| --- | --- | --- |
+| `match` | 是 | 是 |
+| `no_match` | 否 | 否 |
+| `unknown` | 否 | 是 |
+
+实现 MUST NOT 将 `unknown` 先转成 `false` 再复用到全部 effect。§15.3／§15.4 的 `matches` 对 allow 仅接受已证明命中，对拒绝类 effect 则同时接受命中与 unknown；无法解码合法 effect、family／subkind 或封闭字段的输入在 schema／准入阶段失败，不产生允许结果。未支持的正式扩展及无法验证的 `x_` 语义同样不得被删除或改写成无约束 grant。
+
+适用性与 predicate 命中须分开：已验证的 `applies_to_actions` 明确排除本次 action 时，该 temporal constraint 对 allow 中立、对拒绝类不命中；不能将它误当 unknown，也不能用另一 grant 的 allow 忽略本次实际适用的 unknown 拒绝。多个已支持 predicate 按三值逻辑 AND／OR 组合：AND 中已证明为假的分支可以证明整体不命中，OR 中已证明为真的分支可以证明整体命中；否则保留 unknown。结构错误或未登记语义必须先被识别，不得靠短路跳过解析／支持检查。
+
+适用性判定完成后，正常时间窗口外或已验证的不同目标可以产生 no_match；field_access 的已知 condition 为假时仍按§16.2将该条件约束视为不适用，不得把其 allow 中立值改成拒绝。未知时区、未支持的频率与缺少所需事实不能仅因无法完成判断就记为 no_match。所有组合仍遵守§15.4的跨 grant 拒绝、controller／祖先上界、精确 selector 与§8.1的原子 quota reservation。
+
 ### 15.1 求值规则（normative）
 
 求值规则是**任一命中即生效**的全或无模型，不再依赖跨 effect 的优先级排序：
@@ -1106,68 +1122,54 @@ function evaluate_constraints_across_grants(operation, matched_grants):
 
 ```javascript
 function matches_temporal(operation, constraint):
-    now = verification_time_from_server_clock()
+    now = fixed_verification_time()
     skew = protocol_time_tolerance("ak.time_tolerance.temporal_constraint.v1")
+    validate_registered_shape_and_effect(constraint)  # reject invalid wire
+    if constraint.applies_to_actions and operation.action not in constraint.applies_to_actions:
+        return constraint.effect == "allow"
 
-    # "not applicable" is neutral for the enclosing effect fold.
-    # allow constraints use true as neutral; deny/quarantine/review use false.
-    if constraint.applies_to_actions:
-        if operation.action not in constraint.applies_to_actions:
-            return constraint.effect == "allow"
-
-    if constraint.constraint_subkind in {"edit_window", "redact_window"} and not constraint.applies_to_actions:
-        return false  # schema_violation in schema-aware receivers
-
-    if constraint.not_before and now + skew < constraint.not_before:
-        return false
-    if constraint.expires_at and now - skew > constraint.expires_at:
-        return false
+    result = match
+    if constraint.not_before:
+        result = and3(result, truth(now + skew >= constraint.not_before))
+    if constraint.expires_at:
+        result = and3(result, truth(now - skew <= constraint.expires_at))
     if constraint.recurrence:
-        if not matches_recurrence(now, skew, constraint.recurrence):
-            return false
+        result = and3(result, predicate_recurrence(now, skew, constraint.recurrence))
+    if constraint.max_duration or constraint.max_session_duration or constraint.inactivity_timeout:
+        result = and3(result, predicate_verified_session_budget(operation, constraint, now))
+    if constraint.expires_after:
+        result = and3(result, unknown)  # approval expiry is not a temporal session anchor
 
-    if operation.action == "ak.message.revise.own" and constraint.message_edit_window:
-        return matches_object_window(
-            operation.target.created_at,
-            constraint.message_edit_window,
-            now,
-            skew)
-
+    window = null
+    if operation.action == "ak.message.revise.own":
+        window = constraint.message_edit_window
     if operation.action == "ak.message.redact.own":
-        if constraint.message_redact_window:
-            return matches_object_window(
-                operation.target.created_at,
-                constraint.message_redact_window,
-                now,
-                skew)
-        if constraint.message_edit_window and not constraint.redact_after_window_allowed:
-            return matches_object_window(
-                operation.target.created_at,
-                constraint.message_edit_window,
-                now,
-                skew)
+        window = constraint.message_redact_window
+        if not window and constraint.message_edit_window and not constraint.redact_after_window_allowed:
+            window = constraint.message_edit_window
+    if window:
+        result = and3(result, predicate_object_window(operation.target.created_at, window, now, skew))
+    return result == match if constraint.effect == "allow" else result != no_match
 
-    return true
-
-function matches_object_window(created_at, duration, now, skew):
+function predicate_object_window(created_at, duration, now, skew):
     if not created_at or not is_verified_canonical_timestamp(created_at):
-        return false
+        return unknown
     deadline = add_iso8601_duration_utc(created_at, duration)
     if not deadline:
-        return false
-    return now - skew <= deadline
+        return unknown
+    return truth(now - skew <= deadline)
 ```
 
 `operation.target.created_at` MUST 来自 reducer 已验证的 canonical target object / Event，不得信任调用方另传的同名字段。目标不存在、`created_at` 不可验证、duration 无法解析或 UTC 加法溢出时 MUST fail closed。window 是从 target `created_at` 起算的闭区间上界；在 `deadline + skew` 之后不匹配。普通 `not_before` / `expires_at` / `recurrence` 与 object window 同时存在时全部按 AND 求交，伪码不得因 recurrence 命中而提前 `return true` 跳过 edit / redact window。
 
-`matches_recurrence(now, skew, recurrence)` 的 v1 语义：
+`predicate_recurrence(now, skew, recurrence)` 的 v1 语义：
 
-1. `recurrence.timezone` 缺省为 `UTC`；出现时 MUST 是 IANA timezone id。实现无法识别该 timezone 时 MUST fail closed（该 constraint 不匹配）。
-2. `recurrence.frequency` 缺省为 `daily`。v1 core 只定义 `daily` 与 `weekly` 的互操作命中规则；`monthly` / `custom` MUST 由声明该值的 extension profile 定义完整规则，否则接收方 MUST fail closed（该 constraint 不匹配）。
+1. `recurrence.timezone` 缺省为 `UTC`；出现时 MUST 是 IANA timezone id。实现无法识别该 timezone 时 predicate 为 `unknown`，MUST 按§15.0对 effect 收敛。
+2. `recurrence.frequency` 缺省为 `daily`。v1 core 只定义 `daily` 与 `weekly` 的互操作命中规则；`monthly` / `custom` MUST 由声明该值的 extension profile 定义完整规则，否则 predicate 为 `unknown`，MUST 按§15.0对 effect 收敛。
 3. `recurrence.days` 存在时，`now` 转换到 `timezone` 后的 weekday MUST 命中该集合；集合值为 `mon` / `tue` / `wed` / `thu` / `fri` / `sat` / `sun`。`frequency="weekly"` 时 `days` MUST 存在且非空；`frequency="daily"` 且 `days` 缺失时表示每天。
 4. `recurrence.window_start` / `recurrence.window_end` 要么同时缺失（表示全天），要么同时出现并按 schema 的本地 `HH:MM[:SS]` 解析。只出现其中一个时 MUST fail closed。二者同时出现时定义本地每日窗口：`window_start <= window_end` 表示同日闭开区间 `[window_start, window_end)`；`window_start > window_end` 表示跨午夜窗口 `[window_start, 24:00) ∪ [00:00, window_end)`。
 5. 窗口边界使用同一 `skew` 容差：`now + skew` 早于窗口起点或 `now - skew` 不早于窗口终点时不匹配；处在容差带内时按匹配处理，避免合法调用因服务端 / 客户端硬漂移在边界两侧产生跨实现分歧。
-6. 未登记 `frequency` 语义、无法解析的时间、DST gap 中不存在的本地时间、或 ambiguity 未被 timezone 规则确定时 MUST fail closed（该 constraint 不匹配），不得猜测或按本地机器时区回退。
+6. 未登记 `frequency` 语义、无法解析的时间、或判断当前候选窗口所需的边界落在 DST gap／未消解 ambiguity 时，predicate MUST 保留 `unknown`，不得猜测或按本地机器时区回退。已证明当前验证区间不与候选窗口相交时可以排除该候选；其它完整可判定候选命中可以证明 recurrence 命中。仅在所有候选均已证明不命中时返回 `no_match`。
 
 ### 16.2 字段访问匹配
 
@@ -1219,7 +1221,7 @@ function matches_field_access(operation, constraint):
 - `hash`：以 profile 固定的 keyed/salted digest 替换原值（MUST NOT 使用裸明文哈希，避免低熵字典攻击；摘要构造复用 [`../governance/content-moderation.md` §3.4](../governance/content-moderation.md) 的 keyed/salted digest 纪律）。
 - `omit`：从响应中整体删除该字段键。
 
-未声明 `sensitive_handling` 时默认 `omit`。enforce 方无法对某命中字段施加要求的处理（例如无 key 计算 keyed digest）时 **MUST** 降级为 `omit` 而非返回原值。该义务由 conformance vector `ak.vector.auth.sensitive_field_handling.v1` 与 [`capability-fixture.json`](../sync/authority-commit-log.md) 固定。
+未声明 `sensitive_handling` 时默认 `omit`。enforce 方无法对某命中字段施加要求的处理（例如无 key 计算 keyed digest）时 **MUST** 降级为 `omit` 而非返回原值。该义务对应 `ak.vector.auth.sensitive_field_handling.v1`；其执行状态与证据以 [`vector-registry.json`](../../artifacts/registry/vector-registry.json) 登记为准，reserved 状态不能领取已执行信用。
 
 ## 17. 安全考虑
 
@@ -1276,6 +1278,12 @@ function matches_field_access(operation, constraint):
 - 批量约束求值
 
 ## 19. 一致性
+
+core 的必选归属维持§2.2：六个 core family 包含 temporal 普通窗口、window、session 及 quota.rate；机读下限由 `conformance-profiles.json` 的对应 required kinds／subkinds 表达。family 存在、字段可反序列化、全部拒绝或只有负例测试均不等于完整支持。支持声明及 verified conformance 证据 MUST 同时覆盖该实现角色负责的合法正向行为、拒绝／unknown 边界和真实 consumer；普通客户端不因此继承 Station 接纳／外部事实 authority 的全部义务。
+
+session duration、condition、authority scope／path 等需要已验证事实或领域判据时，实现 MUST 将事实绑定本次实际主体、目标和验证上下文；缺事实按§15.0处理，不从 grant 存在推定条件满足，不信任 caller 自报起点／活动状态。`expires_after` 的 approval 期限仍属审批合同，不能未经登记当作普通 temporal session 的替代锚点。未完成正向消费的实现必须如实保留 conformance 缺口，MUST NOT 用 unknown 拒绝结果领取完整支持信用。
+
+field_access 的 admit／deny 与§16.2.1的敏感读输出是两项独立义务。输出方必须在交付明文前完成规定的处理；无法执行指定 hash／redact 时按原规则 omit，无法确定输出责任或安全投影时拒绝相关读取。E2EE 场景的明文成员侧承担输出处理，不要求无明文的 Station 伪造敏感值转换。不得把共享 matcher 的 Allowed 直接当作“敏感投影已完成”。
 
 实现 MUST：
 

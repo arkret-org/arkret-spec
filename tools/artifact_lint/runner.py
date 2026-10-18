@@ -13,6 +13,7 @@ from .owned_agent_authority import check_owned_agent_authority
 from .account_revision_stale import check_account_revision_stale
 from .cursor_wait_bindings import check_cursor_wait_bindings
 from .call_current import check_call_current
+from .constraint_evaluation import check_constraint_evaluation
 
 from .forbidden_wire import check_forbidden_wire_contexts
 from .approval_eligibility import check_approval_requirement_eligibility
@@ -914,6 +915,7 @@ def main(argv: list[str] | None = None) -> int:
             ("mls_roster_client_roles", lambda: check_mls_roster_client_roles(lint)),
             ("governance_result_consumption_roles", lambda: check_governance_result_consumption_roles(lint)),
             ("call_current", lambda: check_call_current(lint)),
+            ("constraint_evaluation", lambda: check_constraint_evaluation(lint)),
             ("agent_runtime_contract", lambda: check_agent_runtime_contract(lint)),
             ("agent_session_content", lambda: check_agent_session_content(lint)),
             ("peer_watch_current", lambda: check_peer_watch_current(lint)),

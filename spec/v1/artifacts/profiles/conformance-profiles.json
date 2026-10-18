@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-15.1",
-  "generated_at": "2026-10-15T00:27:32+00:00",
+  "version": "2026-10-18.1",
+  "generated_at": "2026-10-18T22:08:00+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -2446,12 +2446,15 @@
         "quota"
       ],
       "required_constraint_subkinds": [
+        "window",
+        "session",
         "rate"
       ],
       "required_fixtures": [
         "scalability-limits-fixture.json",
         "protocol-edge-cases-fixture.json",
-        "governance-result-consumption-roles-fixture.json"
+        "governance-result-consumption-roles-fixture.json",
+        "constraint-evaluation-fixture.json"
       ],
       "optional_extensions": [
         "realm_state_snapshot_bootstrap"
@@ -2478,7 +2481,8 @@
         "output": "existing_self_results_only"
       },
       "required_vectors": [
-        "ak.vector.authority_commit_projection.result_consumption_roles.v1"
+        "ak.vector.authority_commit_projection.result_consumption_roles.v1",
+        "ak.vector.capability.global_decision_merge.v1"
       ]
     },
     "ak.profile.chat_mvp.v1": {

@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-18.3",
+  "version": "2026-10-18.4",
   "source_of_truth": true,
-  "generated_at": "2026-10-18T21:05:05+08:00",
+  "generated_at": "2026-10-18T22:08:00+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1228,12 +1228,14 @@
       "status": "active",
       "domain": "capability",
       "applies_to_fixtures": [
-        "protocol-edge-cases-fixture.json"
+        "protocol-edge-cases-fixture.json",
+        "constraint-evaluation-fixture.json"
       ],
-      "description": "Global cross-grant decision merge prevents any allow from bypassing deny, quarantine or review.",
+      "description": "Global cross-grant merge prevents allow from bypassing deny, quarantine or review, including unknown semantics or missing verified facts; proven nonmatches and action mismatch remain neutral.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/protocol-edge-cases-fixture.json",
-        "spec/v1/zh/conformance/conformance-suite.md"
+        "spec/v1/zh/conformance/conformance-suite.md",
+        "spec/v1/artifacts/fixtures/constraint-evaluation-fixture.json"
       ]
     },
     {

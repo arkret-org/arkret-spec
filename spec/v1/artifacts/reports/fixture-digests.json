@@ -166,6 +166,11 @@
       "version": "2026-10-17.1"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/constraint-evaluation-fixture.json",
+      "sha256": "7f2095b8690e4403b4a0d520e7ff5481413cd583920d8f95b1d07e0b850ca26f",
+      "version": "2026-10-18.1"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/contact-remark-fixture.json",
       "sha256": "58047adbe48fb1a3d09462f66f328deeab83ffc76062a1c714649c47b31d830a",
       "version": "2026-09-05.1"

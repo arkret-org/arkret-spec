@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-18.3",
+  "version": "2026-10-18.4",
   "source_of_truth": true,
-  "generated_at": "2026-10-18T21:09:37+08:00",
+  "generated_at": "2026-10-18T22:24:00+08:00",
   "description": "Closed inventory of current spec/v1/zh headings that explicitly carry the （normative） marker. Any addition, removal, rename, or move is reviewed as a protocol change and refreshes this source-of-truth inventory.",
   "titles": [
     {
@@ -58,6 +58,11 @@
       "page": "authz/capabilities.md",
       "heading": "9.1 Agent 授权预设展开（normative）",
       "fragment": "91-agent-授权预设展开normative"
+    },
+    {
+      "page": "authz/constraint-schema.md",
+      "heading": "15.0 可判定性与 effect 收敛（normative）",
+      "fragment": "150-可判定性与-effect-收敛normative"
     },
     {
       "page": "authz/constraint-schema.md",
