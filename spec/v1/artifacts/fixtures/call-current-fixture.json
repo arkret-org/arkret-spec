@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-18.2",
+  "version": "2026-10-19.2",
   "suite": "call_current",
   "fixture_kind": "cryptographic_transcript",
   "runner": {
@@ -3619,6 +3619,75 @@
       }
     }
   ],
+  "followup_rows": {
+    "restore_preserves_kick": {
+      "event": {
+        "kind": "ak.call.state",
+        "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
+        "scope_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
+        },
+        "actor_id": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:web:alice.example",
+            "station_id": "ak:did_core:web:station.example"
+          }
+        },
+        "created_at": "2026-09-20T00:00:00.012Z",
+        "payload": {
+          "call_id": "ak:call:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
+          "moderation_delta": {
+            "op": "restore_participant",
+            "actor_id": {
+              "kind": "account",
+              "account_id": {
+                "principal_id": "ak:did_core:web:alice.example",
+                "station_id": "ak:did_core:web:other-station.example"
+              }
+            },
+            "restored_by": "ak:did_core:web:alice.example",
+            "restored_at": "2026-09-20T00:00:00.000Z",
+            "expected_revision": {
+              "commit_id": "ak:realm_commit:AfCAqvu7nlrxaMJaXLHoQlbfkU7QGEGy1VWcY_-WUf3V",
+              "stream_position": 11
+            }
+          }
+        },
+        "event_id": "ak:event:AXZZ9UP27cub-Pf7Z5J_0DNjoojSoPgUMNC8Es9QYavA",
+        "producer_proof": {
+          "kind": "detached_jws",
+          "verification_method": "did:web:alice.example#ak:device:01964137-0000-7000-8000-000000000001",
+          "event_digest": "sha256:7659f543f6edcb9bf8f7fb67927fd03363a288d2a0f81430d0bc12cf5061abc0",
+          "created_at": "2026-09-20T00:00:00.012Z",
+          "jws": "eyJhbGciOiJFZDI1NTE5In0..fxNnPotqWw1TGAEvDRMFjYxvLSTkz_-BbELAchDrsgBg__Ld5gt-6_gQUnY06jljch-KVV_f0HQ_UGGvtCXDDw"
+        }
+      },
+      "commit": {
+        "commit_id": "ak:realm_commit:AbVyUB4RcI3B11wzPcJ-oik2xvwZawL2FhN4oVDh9jhB",
+        "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X",
+        "stream_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:AXhKITzz2LgqYwjEx7_O3gNJ1DFsB6563X_fKZ-Lqk1X"
+        },
+        "stream_position": 12,
+        "previous_commit_ref": "ak:realm_commit:AfCAqvu7nlrxaMJaXLHoQlbfkU7QGEGy1VWcY_-WUf3V",
+        "event_ref": "ak:event:AXZZ9UP27cub-Pf7Z5J_0DNjoojSoPgUMNC8Es9QYavA",
+        "governance_generation": 1,
+        "authority_ref": "ak:event:Ab5NM2EJKVnWjstBk6Hh6Q97zhPVFnxnEPiW4EnnDZji",
+        "committed_at": "2026-09-20T00:00:00.012Z",
+        "signature": {
+          "context": "ak.realm_commit_signature.v1",
+          "signature_algorithm": "Ed25519",
+          "verification_method": "did:webvh:z6mkfixturestationa:station-a.example#assertion-fixture",
+          "signed_digest": "sha256:d4a0af53968906b90b215ad81f12f9664a82f9e1671335a5048507445b3eb44d",
+          "created_at": "2026-09-20T00:00:00.000Z",
+          "sig": "jvoFuD1ZpaVHTNAmBQtJoTpGXVIdGmj32JaFaKXv4bXNFCezsdWOrUYeUpKsHbvtObCZxin51xttmoKxqpyCAA"
+        }
+      }
+    }
+  },
   "cases": [
     {
       "name": "complete_cold_recovery",
@@ -3843,17 +3912,23 @@
     {
       "name": "omission_unsigned",
       "vector_id": "ak.vector.call_state.compact_current.v1",
-      "expected": "reject"
+      "expected": "reject",
+      "checkpoint": 7,
+      "omit_entry": "non_last_source"
     },
     {
       "name": "omission_resigned_ordinary_trust_boundary",
       "vector_id": "ak.vector.call_state.compact_current.v1",
-      "expected": "accept"
+      "expected": "accept",
+      "checkpoint": 7,
+      "omit_entry": "non_last_source"
     },
     {
       "name": "omission_resigned_complete_replica",
       "vector_id": "ak.vector.call_state.compact_current.v1",
-      "expected": "reject"
+      "expected": "reject",
+      "checkpoint": 7,
+      "omit_entry": "non_last_source"
     },
     {
       "name": "wrong_member_complete_replica",
