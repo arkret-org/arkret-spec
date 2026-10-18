@@ -237,9 +237,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-10-18.9",
-      "generated_at": "2026-10-18T23:54:38+08:00",
-      "content_digest": "sha256:584878a3d08270d64d712a56bce3da571bc414ca5db72fc5c39d9135d6edb801"
+      "version": "2026-10-18.10",
+      "generated_at": "2026-10-18T23:54:39+08:00",
+      "content_digest": "sha256:dfbdddfae7f8e08dd8fc6d70a67cbc744fc803e21f3585ae5688efb7a65e9f2d"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
@@ -249,9 +249,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operations-error-mapping.json",
-      "version": "2026-10-19.2",
-      "generated_at": "2026-10-19T07:04:30+08:00",
-      "content_digest": "sha256:b9a5a9f65413eeab753d5f4014a5350ec806167d032fa99539e5a9c3c52bc23f"
+      "version": "2026-10-19.3",
+      "generated_at": "2026-10-19T07:35:39+08:00",
+      "content_digest": "sha256:00897e1e4d644c8b437741a2503acf72f09d4107a25e536fdcf48b3b9cd7cdcb"
     },
     {
       "path": "spec/v1/artifacts/registry/outward-disclosure-policy-registry.json",

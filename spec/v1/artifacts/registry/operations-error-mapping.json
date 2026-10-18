@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": "2026-10-19.2",
+  "version": "2026-10-19.3",
   "kind": "operations_error_mapping",
   "source_role": "canonical",
   "source_of_truth": true,
-  "generated_at": "2026-10-19T07:04:30+08:00",
+  "generated_at": "2026-10-19T07:35:39+08:00",
   "description": "Canonical mapping from canonical operation_id (artifacts/registry/operation-registry.json) to the error codes the operation MAY emit. Derived from prose error policy in zh/sync/service-http-binding.md §2.3 and from error-code-registry.json scope/description. Receivers of an operation SHOULD treat any error code listed here as a known reply shape; codes that map only to the universal failure surface (e.g. internal_error, service_unavailable) are not repeated per operation. cross-link target for zh/sync/service-http-binding.md §2.3. snapshot_capacity_exceeded applies to every event_log admission branch in the operation registry, including peer authority_forward; committed_replication and other non-admission branches do not produce it.",
   "rules": {
     "universal_codes": "Every protected operation MAY additionally return any of: unauthenticated, auth_expired, soft_logged_out, account_locked, account_suspended, account_deactivated, account_erased, did_proof_required, signature_invalid, capability_denied, schema_violation, json_invalid, query_invalid, param_missing, param_invalid, rate_limited, too_large, conflict, internal_error, service_unavailable, temporarily_unavailable, not_implemented, unsupported_feature, unsupported_event_kind, unsupported_protocol_version, operation_selector_required, unsupported_operation_version. These are the universal failure surface and are NOT repeated in each operation entry. unsupported_protocol_version applies only when the binding implements Arkret-Protocol-Version header or equivalent media-type negotiation; ServiceDescribe consumers also use the same stable code locally before capability intersection. operation_selector_required and unsupported_operation_version are binding-level pre-dispatch failures evaluated before body parsing for every canonical operation.",
@@ -236,7 +236,7 @@
         "device_revocation_pending",
         "device_revoked"
       ],
-      "description": "Consumes the Bound AccountHandoff only after the transaction, terminal receipt and coordinator attestation match the current accepted replacement-device projection, then obtains a fresh exact-intent origin-PS revocation-gate allow before creating one DPoP-bound Standard grant. device_revocation_pending and device_revoked create no grant or issuer-ledger outcome. No temporary recovery grant exists.",
+      "description": "Consumes the Bound AccountHandoff only after the transaction, terminal receipt and coordinator attestation match the current accepted replacement-device projection, then checks the exact authorization and generation through the owning Station private TCB before creating one DPoP-bound Standard grant. A previously accepted replacement that is no longer current is device_generation_fenced; device_revocation_pending and device_revoked also create no grant or issuer-ledger outcome. A restricted RecoverySession grant never upgrades in place.",
       "codes": []
     },
     {
@@ -341,7 +341,7 @@
         "device_revoked",
         "snapshot_capacity_exceeded"
       ],
-      "description": "Account registration validates the frozen DID operation, root control transcript, exact PCR genesis unit and InitialSessionGrantRequest; relays the unit to the Station; verifies the pcr_genesis_unit receipt; commits the one-account/one-principal binding; then obtains a fresh exact-intent origin-PS revocation-gate allow before issuing the first Standard grant from the durable issuer ledger. device_revocation_pending and device_revoked create no grant or issuer-ledger outcome.",
+      "description": "Account registration validates the frozen DID operation, root control transcript, exact PCR genesis unit and InitialSessionGrantRequest; relays the unit to the Station; verifies the pcr_genesis_unit receipt; commits the one-account/one-principal binding; then obtains a fresh exact-intent current-device allow through the owning Station private TCB before issuing the first Standard grant from the durable issuer ledger. device_revocation_pending and device_revoked create no grant or issuer-ledger outcome.",
       "codes": []
     },
     {
