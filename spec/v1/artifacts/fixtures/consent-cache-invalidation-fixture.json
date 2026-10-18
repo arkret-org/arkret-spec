@@ -5,7 +5,7 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.consent.cache_invalidation.v1"
   },
-  "version": "2026-10-18.1",
+  "version": "2026-10-19",
   "profile": "ak.profile.station.v1",
   "covers_vectors": [
     "ak.vector.consent.cache_invalidation.v1",
@@ -113,7 +113,7 @@
         },
         {
           "id": "call_invitation_older_read_retry_and_human_station_binding",
-          "requirement": "Human fixed-Station rejection and stale/read/retry/window fences; independently verified transferable non-Human handoff retains complete-import and old-authority rejection obligations.",
+          "requirement": "Human fixed-Station rejection and stale/read/retry/window fences. Transferable non-Human PCR handoff is independently specified by authority-commit-fixture handoff_private_manifest.transferable_pcr_runtime and cannot be claimed by this Human case.",
           "evidence": [
             "/cases/11"
           ]
@@ -269,8 +269,7 @@
         "Older reads and exact Grant/Revoke retries cannot roll back current high-water or reactivate a revoked grant; original outcomes and revisions remain exact.",
         "Human governance change, freeze/export/import/acceptance/activation and separated-governor proxy/publication reject with zero Event, Commit, head, generation, private state or notification effects even with complete archives and both service signatures.",
         "Foreign-current-authority verdicts, stale or expired outstanding outcomes never release product/ring/token. Valid same-Station key/endpoint updates do not advance governance_generation; every new release independently rechecks the actual current authorization and exact request window.",
-        "Fresh authorized requests at the owning Station recover legal product/ring/token delivery, durable local publication and account-subscribe catch-up without repeating the private CAS or fanout.",
-        "A separately verified transferable non-Human holder retains the existing complete planned handoff case: incomplete import cannot activate, stale old-authority verdicts reject, exact outcomes/fences migrate, and new-authority proxy/publication recover without a second writer."
+        "Fresh authorized requests at the owning Station recover legal product/ring/token delivery, durable local publication and account-subscribe catch-up without repeating the private CAS or fanout."
       ]
     },
     {

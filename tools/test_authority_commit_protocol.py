@@ -67,11 +67,19 @@ class AuthorityCommitProtocolTest(unittest.TestCase):
         case = fixture["cases"][11]
         self.assertEqual(case["name"], "call_invitation_older_read_retry_and_human_station_binding")
         assertions = " ".join(case["assertions"])
-        for obligation in ("zero Event", "Older reads", "exact", "expired", "same-Station", "non-Human", "complete planned handoff", "second writer"):
+        for obligation in ("zero Event", "Older reads", "exact", "expired", "same-Station"):
             self.assertIn(obligation, assertions)
         evidence = next(point for row in fixture["security_evidence"]
                         for point in row["decision_points"] if point["id"] == case["name"])
         self.assertEqual(evidence["evidence"], ["/cases/11"])
+        self.assertNotIn("non-Human", assertions)
+        shared = read("fixtures/authority-commit-fixture.json")["handoff_private_manifest"]["transferable_pcr_runtime"]
+        self.assertTrue(shared["independent_runtime_evidence_required"])
+        self.assertFalse(shared["human_consent_suite_proves_this_contract"])
+        for obligation in ("non-Human", "complete planned handoff", "incomplete import", "stale old-authority", "exact outcomes/fences", "second writer"):
+            self.assertIn(obligation, " ".join(shared["assertions"]))
+        self.assertIn("transferable_pcr_runtime", evidence["requirement"])
+
 
     def test_reply_creation_convenience_uses_closed_payload_field(self):
         payload = read("schemas/event-payload.schema.json")["$defs"]["message_create_payload"]

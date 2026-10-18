@@ -87,8 +87,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/authority-commit-fixture.json",
-      "sha256": "af03614d9e19d5f6d12ba030003f0b5064a50f5896d2969320ef81110a0135f4",
-      "version": "2026-09-20"
+      "sha256": "b8fbc4e29b81f1759b0124d0b570c88d9f999205e2a5f1b2893340c52c436d79",
+      "version": "2026-10-19"
     },
     {
       "path": "spec/v1/artifacts/fixtures/bilateral-continuity-checkpoint-fixture.json",
@@ -162,8 +162,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/consent-cache-invalidation-fixture.json",
-      "sha256": "968e2ae4329ad9a34c56abbf7bbf1e1a7a03d8a85b2005e77c7bbee261f66dff",
-      "version": "2026-10-18.1"
+      "sha256": "58ca0b69478b102347e5124b78a77d832558710d049ee3393510af7af3974bdd",
+      "version": "2026-10-19"
     },
     {
       "path": "spec/v1/artifacts/fixtures/constraint-evaluation-fixture.json",
