@@ -16,6 +16,7 @@ from .call_current import check_call_current
 from .ice_credentials import check_ice_credentials
 from .push_target_boundary import check_push_target_boundary
 from .constraint_evaluation import check_constraint_evaluation
+from .session_budget import check_session_budget
 
 from .forbidden_wire import check_forbidden_wire_contexts
 from .approval_eligibility import check_approval_requirement_eligibility
@@ -920,6 +921,7 @@ def main(argv: list[str] | None = None) -> int:
             ("ice_credentials", lambda: check_ice_credentials(lint)),
             ("push_target_boundary", lambda: check_push_target_boundary(lint)),
             ("constraint_evaluation", lambda: check_constraint_evaluation(lint)),
+            ("session_budget", lambda: check_session_budget(lint)),
             ("agent_runtime_contract", lambda: check_agent_runtime_contract(lint)),
             ("agent_session_content", lambda: check_agent_session_content(lint)),
             ("peer_watch_current", lambda: check_peer_watch_current(lint)),

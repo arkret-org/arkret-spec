@@ -415,6 +415,8 @@ Current account status 是 ledger current head 的 `status`。该 ledger 是 Acc
 
 ### 4.1 显式登出（hard logout）与跨服务吊销编排
 
+**预算与终态边界**：issuer 会话策略配置的绝对／idle 截止按 [constraint-schema §3.2](../authz/constraint-schema.md#32-持续时间限制) 在 issuer ledger 终结原会话 lineage，不能经 refresh、迟到活动或重启复活；必要认证只按现有正式流程建立新会话。局部 grant 的预算不满足仅使该授权路径不可用，不能据此执行全账号 hard logout、撤销其它 Device／Session 或伪报账号终态。客户端 SHOULD 提前提示已知截止并在重新认证时保留合法草稿／进度，不延长服务端权限；会话恢复仍遵守本章的原请求所有权与 exact 终态清理边界。
+
 `soft_logged_out` 是当前 session grant 失效但凭证可恢复的软状态；用户主动「登出」是 **hard logout**——它 MUST 在所有持有该会话凭证的权威处终结会话，而非仅清本地。客户端可见的登出入口是 Principal describe 发布的 Account Authority；Account Authority 内部协调两个权威的状态:
 
 - **Auth Server(认证服务)**:`browser_session`(登录认证上下文)+ 它签发的 `ak.session.grant` 轮换链(及其 `cnf.jkt` 设备持有绑定，见 [`crypto-media/device-lifecycle.md` §3.2](../crypto-media/device-lifecycle.md))。
