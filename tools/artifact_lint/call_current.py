@@ -230,8 +230,7 @@ def run_case(fixture, name):
             return 'accept' if len(entries) == 2 and {jcs(e['value']['participant']['actor_id']) for e in entries} == {jcs(ACTOR), jcs(OTHER)} else 'reject'
         if name == 'restore_preserves_kick':
             prior = axis_row(snapshot, 'moderation')['value']
-            fake = copy.deepcopy(fixture['original_rows'][5])
-            fake['event']['payload']['moderation_delta']['expected_revision'] = revision(prior['last_source']['source_commit'])
+            fake = copy.deepcopy(fixture['followup_rows']['restore_preserves_kick'])
             result = project(prior, fake, 'moderation', indices['moderation'], keys['issuer_public_key_b64u'])
             return 'accept' if len(result['entries']) == 1 and result['entries'][0]['value']['removal']['action'] == 'kick' else 'reject'
         checkpoint = fixture['checkpoints'][6 if name == 'kick_old_leg' else 7]
@@ -372,7 +371,7 @@ def check_call_current(lint: Lint) -> None:
                     'moderation_bounded_by_roster_count', 'kick_expiry', 'private_receipt'):
             if policy[key] is not False:
                 raise ValueError('Call boundary drift: ' + key)
-        for original in fixture['original_rows']:
+        for original in [*fixture['original_rows'], *fixture.get('followup_rows', {}).values()]:
             schema_validator(ARTIFACTS / 'schemas/event-envelope.schema.json', '').validate(original['event'])
             kind = original['event']['kind']
             schema_validator(ARTIFACTS / 'schemas/event-payload.schema.json',
