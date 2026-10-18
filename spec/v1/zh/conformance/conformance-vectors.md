@@ -419,8 +419,8 @@ tombstone 后携其 revision 可创建新 event-derived RelationId。`relation_k
 cipher suite、content profile 或 room policy 组件、proof controller 不等于 `service_id`、未知扩展试图改变路由、
 过期的 `created_at`、以开发摘要冒充签名，以及 HTTP 签名有效但 directory JWS 无效（及其反向）一律 MUST 拒绝。
 
-`ak.vector.mimi.identifier_query_source_signature.v1` MUST 证明：每个 identifiers PSI 查询携带 per-request
-的 RFC 9421 provider-source 签名；缺失或无效签名在 PSI 求值之前失败；`Arkret-Operation` header 存在但未签入
+`ak.vector.mimi.identifier_query_source_signature.v1` MUST 证明：每个 identifiers 查询携带 per-request
+的 RFC 9421 provider-source 签名；缺失或无效签名在构造响应之前失败，合法请求按 MIMI §10 逐项返回无匹配且不调用私有发现／PSI；`Arkret-Operation` header 存在但未签入
 MUST 在覆盖集检查处失败，签入后被替换 MUST 在签名验证处失败；端点指向某一个 MIMI room 时 `mimi-room-uri`
 为必需项；provider directory 读取不继承该 profile。
 

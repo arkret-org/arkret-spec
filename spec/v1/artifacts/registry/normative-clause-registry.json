@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-18.3",
+  "version": "2026-10-19.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-18T23:47:25+08:00",
+  "generated_at": "2026-10-19T07:06:57+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -609,7 +609,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/conformance/conformance-vectors.md#39-federation-与-mimi",
-      "section_digest": "sha256:2e479791acd5f1d2c0c57b040ab4c6339e3f1cd9f27ec1234d5c434a01553665",
+      "section_digest": "sha256:69124cd523b051b1280988b1bdb190dc4c35d2191444f261bfe82471f0fe8113",
       "requirement": "Current peer service authentication precedes idempotency lookup: a revoked origin key yields signature_invalid with zero writes, an active key with a removed origin binding yields capability_denied, and any changed authorization basis requires fresh authorization before an exact cached outcome may replay.",
       "testability_grade": "vector",
       "evidence_refs": [

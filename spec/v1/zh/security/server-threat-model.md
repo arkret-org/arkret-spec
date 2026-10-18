@@ -3,7 +3,7 @@ title: 服务端攻击模型与反制
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-12
+updated: 2026-10-19
 sidebar:
   label: 服务端威胁模型
 ---
@@ -45,7 +45,8 @@ sidebar:
 
 8. **目录与枚举探测（Enumeration / Membership Probe）**
    利用返回时序、状态码差异推断隐私资源可见性、成员关系或组织结构。
-   **Consent / PSI oracle 细分**：PSI 命中位翻转时刻可泄露 grant/revoke 时序，跨 requester 稳定的裸 consent-state hash 可被离线枚举并关联 holder。防护以 [`identity/consent-model.md` §6.1.1 / §6.2.2](../identity/consent-model.md) 为权威：per-`(requester, holder)` 限速与 bucket 化、holder 可审计访问记录，以及 audience-bound opaque response。
+   Directory 只返回仍有效的闭合 public Realm metadata，隐藏、过期、未确认与不存在同形，locator 不授予权限；以 [`discovery/discovery-directory.md` §1–§4／§10](../discovery/discovery-directory.md) 为权威。current-v1 不提供 private-contact discovery／PSI，不存在 PSI 命中位或轮转防护义务。
+   **Consent 首次接触探测**：通过响应差异推断 holder 是否存在、已同意或已收到请求。限速、事务边界与 opaque outcome 以 [`identity/consent-model.md` §6.1／§6.1.1／§6.2](../identity/consent-model.md) 为权威；主动披露的 green-light 只按该文 §6.2.2 生效，不开放 Consent 列表。MIMI identifiers 在认证与 proof 校验后逐项返回 `matched=false`；`request_consent` 仍返回同形 opaque `consent_id`，它既不证明 holder 存在，也不授予权限。provider 不能据此冒充既有用户，身份绑定仍须目标侧 consent proof 或 holder 显式 claim，见 [`extensions/mimi-interop.md` §10](../extensions/mimi-interop.md)。
 
 9. **队列与存储耗尽（Queue / Storage Exhaustion）**
    借助大对象、分页滑动、深分页、历史清单拉取导致资源占用失控。
@@ -100,8 +101,8 @@ sidebar:
 24. **出站 URL / SSRF（Server-Side Request Forgery）**
     攻击者通过 DID Document serviceEndpoint、媒体 URL、Snapshot authority endpoint、Webhook、Applet/Agent endpoint 或联邦 peer discovery 引导服务访问 loopback、私网、link-local、metadata endpoint 或内部控制面。
 
-25. **Directory ingest 写路径滥用（Directory Ingest Abuse）**
-    攻击者污染 Directory 的发现 / 投影 ingest 写路径（与 [`discovery/discovery-directory.md` §8.10 / §11](../discovery/discovery-directory.md) 交叉引用）。具体向量:**announce replay**(重放过期 announce 让陈旧条目复活)、**`as_of` skew**(伪造 `as_of` 时间使旧状态看似最新)、**policy_revision rollback**(回退 policy_revision 绕过更严策略)、**DID hijack**(劫持 announce 来源 DID 冒名注入条目)、**source-ref 伪造**(伪造来源引用让未授权条目进入 directory)、**takedown spoofing**(伪造下架 / takedown 让合法条目被移除)。防护以 discovery-directory §8.10 / §11 的来源 DID 验签、`as_of` 单调 / 时间锚校验、policy_revision 单调、announce 一次性 / 过期窗口、source-ref 授权核验与 takedown 授权链为权威。
+25. **Directory 部署私有索引维护滥用（Directory Local Index Maintenance Abuse）**
+    部署私有装载或下架被越权调用、维护输入被污染、未确认旧行被复用或有效期被擅自延长，会导致误导性公开索引或可用性损失。部署应约束本地维护授权、有效期与操作审计；公开响应边界以 [`discovery/discovery-directory.md` §2–§5／§10–§11](../discovery/discovery-directory.md) 为权威。此维护流程不是 Arkret ingest：current-v1 只广告三读，旧 announce／withdraw 请求必须未知或 unsupported 且零索引变化，不得通过 SDK、ServiceDescribe 或私有 HTTP alias 恢复写面。Directory 不携带 source refs 或治理证据，不证明 current authority；消费方仍按目标领域合同验证授权。
 
 26. **实时活动信号去匿名追踪（Real-time Activity-Signal Deanonymization）**
     攻击者（外部 world-readable 观察者、受托 Station sync surface 或共谋成员）订阅并关联实时活动信号——read receipt（`ak.receipt.read`）已读位置、typing（`ak.typing`）逐键活动、presence（`ak.presence` 的 `dnd` / `idle` / bucket 化 `last_active_at`）、push wakeup timing，以及 reaction routing tag 在同一 `routing_window` 内的频率分布与跨 sender 等值聚类——以重建特定 actor 的活动时间序列、作息画像，甚至去匿名其阅读 / 输入 / 反应行为。这些信号单独看是产品功能，关联后成为去匿名 timing / equality oracle。防护以各自正文为权威：read receipt 的 world-readable / forced-public 组合 fail-closed 与 fanout 收口见 [`discovery/read-receipts.md` §2.5.1](../discovery/read-receipts.md)；typing 的 world_readable scope fail-closed 与 presence `dnd`/`idle` 对未授权观察者 MUST 降级见 [`discovery/profiles-presence.md` §3.4 / §3.5](../discovery/profiles-presence.md)；push wakeup bucket 化见 [`discovery/push-notifications.md` §2.4](../discovery/push-notifications.md)；reaction tag 按 Event 已签 `created_at` 派生一小时 `routing_window`，同 epoch/target/window 的同一 emoji 不按 sender 隔离，但绝不要求每小时 MLS Commit，见 [`crypto-media/encryption-and-audit.md` §2.8](../crypto-media/encryption-and-audit.md)。Mention recipient/token/sidecar 不属于 v1，mention 保持在 ciphertext 中并走 blind/batch wakeup。
@@ -177,11 +178,11 @@ sidebar:
 | 来源身份伪造 | 是 | source DID / message-signature / service signature 验签链。 |
 | 钓鱼 | 是/部分 | 客户端按 object-addressing 与 architecture §6.7 展示 canonical 身份、目标与用户意图；治理来源由自己 Station 的 scoped 结果确认。展示与带外核对仍是客户端职责，不保证识破所有社会工程。 |
 | 恶意载荷 | 是 | blob/mime/hash 扫描、危险标签隔离、`quarantine` 与人工复核。 |
-| 枚举探测 | 是 | 目录/join/probe 接口统一 `not_found`/`forbidden` 时序与时延。 |
+| 枚举探测 | 是 | 按 §2.1 #8 及各领域合同保持不可见结果同形；Directory 只读 public metadata，Consent 首次接触及 MIMI request_consent 保持 opaque outcome，identifiers 不产生匹配。 |
 | 队列耗尽 | 是 | `quota_exceeded`、`rate_limited` 与短时限批量写保护。 |
 | 重放 | 是 | `request_id` 与 canonical hash 绑定，异内容复用返回 `duplicate_conflict`；Event 先重算 content-addressed `event_id`，carried ID 不匹配以 `event_id_digest_mismatch` 拒绝，真正 full-hash collision 以 `witness_disagreement` 隔离。 |
 | 配置误用 | 是 | 变更审计、最小默认权限、fail-closed。 |
-| 拓扑污染 | 是 | 实际接纳/审计角色按 [discovery-directory §8.10 / §11](../discovery/discovery-directory.md) 验来源签名、source-ref 与背书授权，按 service-surface §2.6 验服务路由；普通客户端按已登记 Station 结果消费。不定义通用双签载体。 |
+| 拓扑污染 | 是 | 按 [service-surface §2.6](../sync/service-surface.md) 验服务路由，按目标身份／Realm 领域合同验证当前权威与背书；[Directory §1／§4](../discovery/discovery-directory.md) 仅提供非权威 locator，不能代替这些验证。普通客户端按已登记 Station 结果消费。 |
 | 解析污染 | **部分** | resolver trust domain pinning、method adapter 证据核验、SCID 自证与 entry hash chain、freshness profile 的同步刷新或 fail closed。**默认 `did:webvh` 部署对 hosting 方 split-view 与历史截断不构成完整缓解**——witness 在 base v1 可选、consistency proof 仅高保障 profile 要求，见 §2.1a 的两条 residual risk。 |
 | 冲突/分叉 | **部分** | hash collision 与 actor over-fork 按各自可验证规则 quarantine；普通合法写入保留历史并由该 stream 的接纳次序收敛为单值，不能仅因陈旧或已被取代隔离。已授权恶意作者仍可写恶意内容、延长分支或消耗资源，依靠限速、审计、撤权与数据基准关闭缓解。 |
 | 快照投毒 | 是 | 当前治理 Station 对 closed inline Snapshot 签名，验证 generation、可见 stream head／current row／history floor 同 cut 与后续逐 stream Commit 连续性；不依赖不存在的 chunk hash 链。 |
@@ -190,7 +191,7 @@ sidebar:
 | 会话凭证滥用 | 是 | `account-lifecycle` 强制撤销链路、推送网关 token 与 service token 的短期有效策略。 |
 | MLS epoch 滥用 | 是 | epoch monotonic、移除成员 fail-closed、提交顺序与 commit/proposal 校验。 |
 | 推送网关滥用 | 是 | push gateway 注册与签发源鉴权，推送消息按最小必要字段。**推送侧信道**:collapse/dedup key 跨 window 不可链接、presence push timing bucket 化(默认 ≥60s)、`push_target_id` pairwise 不可跨上下文关联、blind_wakeup counts 不携带明文绝对未读数(见 §2.1 #20 与 [`discovery/push-notifications.md` §2.2 / §2.4 / §5.1](../discovery/push-notifications.md))。 |
-| Directory ingest 滥用 | 是 | announce 来源 DID 验签、`as_of` 单调 / 时间锚、policy_revision 单调防回退、announce 一次性 + 过期窗口、source-ref 授权核验、takedown 授权链(见 §2.1 #25 与 [`discovery/discovery-directory.md` §8.10 / §11](../discovery/discovery-directory.md))。 |
+| Directory 私有维护滥用 | 部署风险 | 本地维护授权、有效期与审计；公开协议三读、旧写零索引变化、结果不授权，以 §2.1 #25 与 [Directory §2–§5／§10–§11](../discovery/discovery-directory.md) 为准。 |
 | URL 凭证泄露 | 是 | 禁止 query string 认证。**单一登记例外**：`ak.self.blob.command.presign.v1` 签发的 pre-signed URL 通过 `?presign=` 携带 server-issued、短时效（≤1h）、单 blob、只读、可撤销的签名 envelope（见 §2.1 #21 与 [`crypto-media/media-and-blob.md` §5.4](../crypto-media/media-and-blob.md)）；E2EE 附件 ciphertext fetch MUST NOT 使用此机制。 |
 | 媒体侧信道探测 | 是 | 私有 blob 的 HEAD/Range/redirect 统一授权；不可见资源不返回大小、MIME、文件名或 Range header。 |
 | 实时媒体 / SFU 滥用 | 是 | participant binding + membership/account/device/capability 分层 admission；`media_service_decrypts` 三层 governance gate；sender-bound exporter key；TURN credential call/focus/audience 绑定；backend artifact 强制 Arkret encrypted-blob pipeline（§2.1 #27）。 |

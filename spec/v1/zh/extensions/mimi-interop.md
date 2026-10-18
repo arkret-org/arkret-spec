@@ -303,7 +303,7 @@ decoded kind 不一致或 Event 绑定不一致，MUST 对外合并为同一个
 
 上述来源签名要求对每次调用都适用，包括同部署调用、携带 Bearer user session 或 AgentRuntime session 的请求。会话认证不豁免 HTTP Message Signature；缺来源签名 MUST 在 actor proof、PSI、consent state 或 Event 处理之前以 `http_signature_required` 拒绝并零写入。发送方须使用本 operation 登记的 provider / service 身份，不得以用户或 Agent runtime key 冒充 provider transport key。
 
-其中 identifiers PSI query 虽分类为 read，仍承载反枚举边界，必须逐次认证 provider 来源。
+其中 identifiers query 虽分类为 read，仍必须逐次认证 provider 来源；认证后按 §10 返回无匹配，不执行 PSI。
 `ak.open.mimi.read.provider_directory.v1` 明确不要求本 profile，也不得返回本 profile 的三个错误码。
 要求签名的请求绑定：
 

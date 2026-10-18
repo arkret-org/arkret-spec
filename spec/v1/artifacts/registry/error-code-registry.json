@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-16.1",
-  "generated_at": "2026-10-16T05:31:29.054442+08:00",
+  "version": "2026-10-19.1",
+  "generated_at": "2026-10-19T07:04:30+08:00",
   "codes": [
     {
       "code": "json_invalid",
@@ -380,7 +380,7 @@
       "code": "source_refs_unverifiable",
       "http_status": 400,
       "scope": "service_call",
-      "description": "Directory ingest or cross-service projection could not verify declared source_refs against the authoritative Station, resource source, or signed projection checkpoint.",
+      "description": "A registered cross-service operation could not verify its source references against the authoritative Station, resource source, or signed projection checkpoint. This code does not register Directory ingest or authorize Directory results as source evidence.",
       "type_uri": "https://arkret.org/problems/source_refs_unverifiable",
       "title": "Source refs unverifiable",
       "status": "active"

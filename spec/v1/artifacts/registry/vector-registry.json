@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-18.5",
+  "version": "2026-10-19.2",
   "source_of_truth": true,
-  "generated_at": "2026-10-18T23:49:11+08:00",
+  "generated_at": "2026-10-19T07:09:41+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -1838,7 +1838,7 @@
       "applies_to_fixtures": [
         "privacy-security-fixture.json"
       ],
-      "description": "Public and listed Realms are returned by keyword search with the common freshness fields, while unlisted, invite_only and secret Realms never appear in search results.",
+      "description": "Only confirmed, unexpired public Realms are returned with closed public metadata and Directory-local indexed_at/expires_at. Listed, restricted, unlisted, invite_only, secret, hidden, expired, unconfirmed and absent Realms remain indistinguishable; unregistered announce/withdraw operations are undiscoverable and have zero index effects; locator results never authorize access.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -1851,7 +1851,7 @@
       "applies_to_fixtures": [
         "privacy-security-fixture.json"
       ],
-      "description": "An entry whose TTL expires without renewal is marked stale or removed, and never keeps answering queries as a current entry.",
+      "description": "An expired entry cannot answer search or resolve and is indistinguishable from a hidden or absent entry. Directory never automatically renews entries; deployment-private maintenance remains outside the interoperability surface.",
       "source_refs": [
         "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
         "spec/v1/zh/discovery/discovery-directory.md"
@@ -3343,7 +3343,7 @@
       "applies_to_profiles": [
         "ak.profile.mimi_interop.v1"
       ],
-      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: Every identifiers PSI query carries a per-request RFC 9421 provider-source signature. Missing or invalid signatures fail before PSI evaluation; a present but unsigned Arkret-Operation header fails the coverage check, and a selector replaced after signing fails signature verification. mimi-room-uri is required whenever the endpoint addresses one MIMI room. The provider-directory read does not inherit this profile. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
+      "description": "Reserved: no conformance fixture carries this vector yet, so it is non-gating and no implementation may claim it. Obligation: Every identifiers query carries a per-request RFC 9421 provider-source signature. Missing or invalid signatures fail before response construction; valid requests return matched=false for every commitment without invoking private discovery or PSI; a present but unsigned Arkret-Operation header fails the coverage check, and a selector replaced after signing fails signature verification. mimi-room-uri is required whenever the endpoint addresses one MIMI room. The provider-directory read does not inherit this profile. Activation: return the row to active only in the change that adds a spec/v1/artifacts/fixtures/ fixture binding this vector_id through vector_id or covers_vectors, with executable accept and reject cases for each decision point above, listed in reports/fixture-digests.json.",
       "source_refs": [
         "spec/v1/zh/extensions/mimi-interop.md"
       ]

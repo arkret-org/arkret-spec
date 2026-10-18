@@ -5,7 +5,7 @@
   },
   "suite": "privacy_security",
   "profile": "ak.vector_group.privacy_security.v1",
-  "version": "2026-09-25.2",
+  "version": "2026-10-19.2",
   "covers_vectors": [
     "ak.vector.directory.public_realm_search.v1",
     "ak.vector.directory.ttl_expiry_removal.v1",
@@ -26,7 +26,7 @@
       "decision_points": [
         {
           "id": "directory_surface_is_read_only_and_non_authoritative",
-          "requirement": "Only the three registered read operations are discoverable; hidden, expired and unknown Realm results stay indistinguishable, and returned metadata is never authorization evidence.",
+          "requirement": "Only the three registered read operations are discoverable; unregistered write attempts change no index; only confirmed, unexpired closed public metadata is returned; all non-public, hidden, expired, unconfirmed and absent results stay indistinguishable; entries never auto-renew and locator metadata never authorizes access.",
           "evidence": [
             "/cases/0"
           ]
@@ -62,7 +62,11 @@
           "private_contact",
           "psi",
           "source_ref"
-        ]
+        ],
+        "unregistered_write_attempts_change_no_index": true,
+        "listed_restricted_and_unconfirmed_realms_are_hidden": true,
+        "expired_entries_never_answer_or_auto_renew": true,
+        "public_metadata_never_contains_source_or_authority_evidence": true
       },
       "assertions": [
         "ServiceDescribe exposes exactly the three read operations and no Directory write operation",

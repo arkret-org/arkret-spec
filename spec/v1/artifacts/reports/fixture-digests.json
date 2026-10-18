@@ -326,6 +326,11 @@
       "version": "2026-07-03"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/ice-credential-lifecycle-fixture.json",
+      "sha256": "500aa28e407463b3dd20d8bc758f884204451aaa066c16bba2db7b229eb2aeb8",
+      "version": "2026-10-19.1"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/identity-recovery-kdf-fixture.json",
       "sha256": "e6117c6833f8a84c6ec8ecafc8a2df4a9f94812f26753b93d012730532673fe7",
       "version": "2026-07-15"
@@ -467,8 +472,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
-      "sha256": "af040b541337b9e0ed475006195e68bccd69ad047e9ebb59d4de3f0b5246bf8f",
-      "version": "2026-09-25.2"
+      "sha256": "1bd28048dca9638cf0d8fa0521a71b34ef2998bc2374277e6c312600cd209486",
+      "version": "2026-10-19.2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/private-view-inbox-account-data-fixture.json",

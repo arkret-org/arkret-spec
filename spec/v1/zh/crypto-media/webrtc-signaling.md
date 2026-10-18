@@ -184,6 +184,10 @@ Content-Type: application/json
 
 请求 schema 见 [`media-operations.schema.json#/$defs/media_ice_config_request_body`](../../artifacts/schemas/media-operations.schema.json)。字段语义如下：
 
+首次获取、定时续期、ICE restart、冷恢复及新设备均 MUST 使用下表相同的五字段 closed body；MUST NOT 回传旧 TURN username、credential、pseudonym、participant_id 或私有恢复票据。每次调用都重新认证完整 ActorId（包括 Account 的 Station）与真实 DeviceId，验证当前设备有效性、Realm membership、适用 policy 和媒体服务绑定；旧响应或用户名的持有不构成上述认证。
+
+本 endpoint 是传输配置发现，允许在 Call 创建／accepted roster join 之前调用。`call_id` 在此仅限定本次凭据作用域，既不证明 Call 存在，也不建立或恢复 accepted leg。入会、媒体 token、已接受 participant 的续期和最终媒体交付仍 MUST 通过 §3b 及 [`media-service-binding.md` §3／§6](./media-service-binding.md) 的独立当前授权门；同一五字段请求的重复出现 MUST NOT 被解释为已入会或恢复成功。
+
 客户端调用 `ice_config_endpoint` 前 MUST 按 [`media-service-binding.md` §2.1](./media-service-binding.md) 消费自己 Station 的已验证媒体服务绑定结果，核对 `ak.realm.media_service` 的该 exact typed current result value 与结果 `route.service_id` 一致，且该 endpoint 的 origin 落在 `route.base_url` 之内。缺失、stale 或不一致时 MUST fail closed(`media_service_binding_uncovered`)，不得向该 endpoint 请求 ICE/TURN credential；ICE config 响应签名的 kid 也 MUST 命中同一结果的 `signing_keys`，否则 `token_issuer_unauthorised`。endpoint 变更不进入 `key_access_revision`，因此这里 **MUST NOT** 额外要求该 event 被当前 epoch MLS governance binding 覆盖，也不得为它强制 rekey。
 
 **凭证缓存与日志脱敏（normative）**：ICE config 响应体携带短期 TURN `credential` / `username`（bearer 性质）。`POST /_arkret/self/rtc/ice-config` 响应 MUST 携带 `Cache-Control: private, no-store`；服务端 MUST NOT 在 access log / metrics / tracing 中记录响应体中的 `credential` 与 `username` 原文，客户端 MUST NOT 把 TURN credential 持久化到普通日志 / 浏览器历史 / analytics。这与 blob presign bearer URL（[`media-and-blob.md` §5.4.3](./media-and-blob.md)）同级:虽然媒体帧另有 SFrame E2EE 且 credential 短时效 per-call，被缓存 / 落日志的 credential 在 TTL 窗口内仍可被取用以滥用 TURN 中继资源。
@@ -287,16 +291,16 @@ Content-Type: application/json
 - TURN credential MUST 短期有效，SHOULD 使用 REST-style ephemeral credential（draft-uberti-rtcweb-turn-rest-00 风格 username = `<expiry-unix>:<pairwise-pseudonym>`，password = `HMAC-SHA256(turn_shared_secret, username)`；实现不得降级为 HMAC-SHA1）。
 - TURN `username` 中的"身份段" MUST 是 **per-call pairwise pseudonym**（建议形态 `ak_pseudonym_call_<random>` 或等价 random tag）。它不得是 principal DID、handle、邮箱或可跨呼叫关联的稳定 ID；该不可关联性只针对 TURN 运营方成立，不对铸造 pseudonym 的 Arkret media service 成立。
 - v1 固定 `ice_bucket(t)=UTC_timestamp(floor(unix_seconds(t)/300)*300)`。server 与 client MUST 从签名覆盖的 `issued_at` 计算该值；不得在 response wire 中另传 bucket 常量或 bucket 起点。客户端 SHOULD 在跨越下一 300 秒 bucket 前 refresh。credential expiry 同样只计算为 `issued_at + ttl_seconds`，不得另传 `expires_at`；canonical timestamp 加法溢出 MUST fail closed。
-- Pseudonym 生成 MUST 使用每次通话的新随机种子或 media service 私有密钥派生，且至少绑定 `(realm_id, call_id, actor_id, device_id, ice_bucket(issued_at), media_service_id)`；推荐：
+- 每次 ICE config 签发（包括同一设备、同一 Call、同一 bucket 内的续期或并发请求）MUST 生成新的 pseudonym。生成由 media service 独占，使用至少 128 bit CSPRNG fresh nonce，且至少绑定 `(realm_id, call_id, actor_id, device_id, ice_bucket(issued_at), media_service_id)`；推荐：
 
   ```text
   pseudonym = "ak_pseudonym_call_" ||
     base64url(HMAC-SHA256(media_service_pseudonym_secret,
-      canonical_json({realm_id, call_id, actor_id, device_id, ice_bucket: ice_bucket(issued_at), nonce})
+      canonical_json({realm_id, call_id, actor_id, device_id, ice_bucket: ice_bucket(issued_at), media_service_id, nonce})
     )[0:16])
   ```
 
-  `nonce` MUST 对每个 `(call_id, actor_id, device_id)` fresh，media service MUST 在签名 ICE config 的内部审计记录中保留 nonce freshness evidence，且不得把 nonce 或其稳定派生值写入 TURN username 之外的可跨 Realm 关联字段。Refresh 时同一 active call leg MAY 复用 pseudonym 以避免 TURN 误判为不同会话，但新 call、new device leg、超过 `ttl_seconds + refresh grace` 的恢复、或 policy 要求匿名重置时 MUST 生成新 pseudonym。Pseudonym 不得仅由稳定 ID 确定性派生。
+  `nonce` MUST 对每次签发 fresh，不得由主体元组、bucket 或私有密钥确定性重算；输出随机 tag 至少 128 bit。不得把 nonce 或可关联的内部输入复制到响应的其它字段、TURN 请求或 telemetry。客户端只把签名响应中的完整 username／credential 交给 ICE agent，不生成、选择、镜像或认领 pseudonym。无需建立用于跨签发复用的 pseudonym→leg 身份映射、持久化 nonce 回执或客户端匿名主体。签名覆盖的完整主体仍对 issuer 可见；该最小披露不承诺抵抗 IP、时序或流量关联。
 - ICE config response MUST 由 media service 签名；current-v1 的 `signature.signature_algorithm` 固定为 `Ed25519`。未来算法只有在 [`signature-alg-registry.json`](../../artifacts/registry/signature-alg-registry.json) 激活、发布新 schema/profile 并闭合生产 signer/verifier 与 capability negotiation 后才可进入该字段；reserved `ML-DSA-65` 当前必须拒绝。签名 canonical bytes MUST 覆盖 response 去除 `signature` 后的完整权威对象，包括 `realm_id`、`call_id`、`actor_id`、`device_id`、`issued_at`、`ttl_seconds`、`ice_servers[]` 与策略字段；derived bucket 与 expiry 由这些已签输入唯一决定，不进入 wire。TLS + service DID 绑定只能认证通道，不能替代响应对象签名。
   - **签名 domain label（normative，跨实现互通契约）**：ICE config response `signature.sig` MUST 是 issuer 私钥（对应 `signature.kid`）按 `signature.signature_algorithm` 指定算法对下列字节串产生的签名；current-v1 只允许 `signature.signature_algorithm="Ed25519"`。未来新 schema/profile 激活的其它 detached JWS 算法只改变验签算法和 key type，不得改变本 signing input、domain label 或 payload digest；reserved `ML-DSA-65` 在激活前必须以 `unsupported_signature_alg` 拒绝：
 
@@ -318,21 +322,35 @@ Content-Type: application/json
 | 触发条件 | 客户端行为 |
 | --- | --- |
 | 当前剩余有效期 ≤ `max(ttl_seconds * 0.25, refresh_lead_seconds)`（响应中携带的 `refresh_lead_seconds` 为权威阈值；由于 §4.1 规定 `refresh_lead_seconds < ttl_seconds`，该阈值始终在 TTL 窗口内，不会触发签发即刷新的风暴) | 在不中断通话的情况下重新调用 ICE config endpoint，获取新一组 `ice_servers[]` 与 credential。 |
-| ICE agent 报告 TURN allocation refresh 失败、收到 `441 Wrong Credentials`、`438 Stale Nonce` 或等价错误 | 立即调用 ICE config endpoint，并对受影响 candidate 触发 ICE restart（`signaling.payload.signal_kind = renegotiate`）。 |
+| TURN 返回 `438 Stale Nonce` | ICE agent 按 TURN challenge 使用新 nonce 重试原请求；它本身不表示 Arkret credential 过期，不单独触发 ICE config 重新签发或 ICE restart。 |
+| ICE agent 报告凭据失效、`441 Wrong Credentials`、allocation 丢失（如 `437 Allocation Mismatch`）或无法恢复的 allocation refresh 失败 | 重新调用 ICE config endpoint，并对受影响 candidate 触发 ICE restart（`signaling.payload.signal_kind = renegotiate`）。 |
 | ICE config endpoint 返回 `turn_credential_expired` | 客户端按服务器返回的 `next_retry_at` / `Retry-After` 退避；超过 30 秒仍无新 credential 时通过 `ak.call.signal` 发出 `error` payload 并以 graceful hangup 收尾。 |
 
 新 credential 应用规则：
 
-- 客户端 MUST 在新 credential 生效后 **保留旧 allocation 直到所有现有 RTP 会话迁移完成**，然后再 `CREATE-PERMISSION` 释放旧通道；不得在 candidate 切换中途让媒体丢包。
+- Arkret ICE config 续期与 TURN `Refresh` transaction 是两个操作。TURN 按 transport 5-tuple 定位 allocation，并要求后续请求使用创建它时的完整 username；即便伪名后缀相同，新 expiry 前缀也不能接管旧 allocation。客户端 MUST 将新配置用于新的 allocation／ICE 协商，不能把新 credential 填进旧 allocation 的 `Refresh` 请求；应通过 ICE restart 完成受影响 candidate 的迁移。
+- 在旧凭据、allocation 和当前媒体授权仍有效时，客户端 MUST 保留旧路径至新 candidate pair 被选中、现有 RTP 已迁移；迁移后由 TURN agent 使用旧 allocation 的认证上下文发送 `Refresh(LIFETIME=0)` 删除旧 allocation，或关闭对应 transport 并按其 lifetime 回收。`CREATE-PERMISSION` 只创建／刷新 peer permission，不释放 allocation。此规则不得延长旧凭据 TTL、绕过撤权或承诺已失效路径无损；新路径不能在旧路径失效前建立时，按现有错误／graceful hangup 规则处理。原生浏览器由其 ICE agent 执行底层 TURN 操作，不新增 Arkret HTTP 操作。
 - 多对多会议中，客户端 MUST 周期检查 `ttl_seconds`（默认每 30 秒），不得依赖单一 timer。
 - Refresh 流程不重放 user-facing UI 提示；通话状态保持 `active`。
-- Refresh 请求 MUST 与原 ICE config 请求一致地携带 per-call pairwise pseudonym（同一通话内 pseudonym 可保持不变，避免 TURN 运营方误判为不同呼叫）。
+- Refresh 继续使用 §4.1 五字段请求；issuer 每次签发 fresh pseudonym，无跨签发复用条件或 `ttl_seconds + refresh grace` 恢复窗口。
+
+| 场景 | 输入与事实 owner | 凭据／leg 处理 |
+| --- | --- | --- |
+| 首领／入会前协商 | 当前认证主体、设备、membership／policy；issuer 签发 | fresh pseudonym；不要求先有 accepted leg，也不建立 leg。 |
+| 定时续期／同 bucket 并发签发 | 同一五字段 body，逐次重新认证；issuer 签发 | 各次独立 fresh；不按请求顺序选定或替换 Call winner，不猜测任何 peer leg。 |
+| ICE restart／mode 切换／mesh 多 peer leg | 同一设备的五字段 body；ICE agent 管理各 allocation／candidate pair | 新签发 fresh；同一有效配置可供本设备各 peer connection 使用，allocation 仍各自独立。`mode` 不选择或改写 durable leg。 |
+| 冷恢复／凭据过期／issuer 重启 | 重新认证并重新获取配置；accepted Call current 是已有参与资格的 owner | fresh；不凭旧 username 恢复身份或媒体资格。SFU accepted participant 的恢复仍按 media-service-binding §3.2，不用本 endpoint 替代。 |
+| 新 Account／Station／device／Realm／Call／issuer | 新请求坐标与各自当前认证／服务绑定 | fresh 且不得继承旧主体的响应、allocation 或 accepted leg。即使 principal_id 相同而 Station 不同，也不是同一 Account。 |
+| membership／设备／policy 撤权，或 Call leave／kick／ban／终态 | 当前身份与 membership 门负责配置签发；Call admission／issuer／最终媒体门负责参与资格 | 身份／membership 门失败不得再签发；Call 撤权立即阻止媒体续期与交付，旧 TURN bearer 或资源残留不恢复媒体授权。 |
 
 服务端规则：
 
 - ICE config endpoint MUST 在响应中携带 `refresh_lead_seconds`（推荐 60、可调），且 MUST 保证 `refresh_lead_seconds < ttl_seconds`，让客户端按统一节奏 refresh。当 `ttl_seconds` 较小(如 60s 下限)以致无法同时满足推荐 floor 60s 与 `refresh_lead_seconds < ttl_seconds` 时，`refresh_lead_seconds < ttl_seconds` 优先，服务端 MUST 选取更小的 lead 值。
-- TURN shared secret MUST 周期轮换（默认 ≤ 24 小时）；轮换时 server MUST 同时接受新旧 secret 一段时间（grace ≥ `ttl_seconds`）以避免 in-call 集体失败。
+- TURN shared secret MUST 周期轮换（默认 ≤ 24 小时）。轮换时 TURN server MUST 保留验证旧 secret 的能力，至少到所有由其签发且未撤销的 credential 的原 expiry；该重叠只保护原有效窗口，MUST NOT 延长 credential expiry 或允许新签发继续使用已停用 secret。新配置使用当前 secret；紧急撤销可提前终止旧凭据并走恢复／失败流程。
+- Credential expiry 固定为签名 `issued_at + ttl_seconds`；TURN allocation 与 permission／channel 各按 TURN lifetime 管理，凭据过期不等于旧 allocation 已物理删除。无 TURN 管理面强制终止能力的部署 MUST NOT 宣称单个 bearer 可即时回收；短 TTL、secret overlap 或伪名轮换均不能代替 Call 撤权后的最终媒体授权。客户端 MUST NOT 在凭据过期后继续用其申请或刷新资源；恢复一律重新认证并 fresh 签发。
 - `turn_credential_expired` 响应 MUST 包含 `next_retry_at`；不得让客户端进入 tight retry loop。
+
+底层 allocation 认证、`438` 重试与删除语义依据 [RFC 8656 §5／§8／§9](https://www.rfc-editor.org/rfc/rfc8656.html)。本节可执行合同材料见 [`ice-credential-lifecycle-fixture.json`](../../artifacts/fixtures/ice-credential-lifecycle-fixture.json)；它验证签发派生与生命周期决策，不替代真实 TURN／浏览器迁移验收。
 
 ## 5. Signaling Envelope
 
