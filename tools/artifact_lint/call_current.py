@@ -173,6 +173,11 @@ def validate_snapshot(snapshot, request, response, keys, *, known_rows=(), histo
                 raise ValueError('source scope')
             if commit['governance_generation'] > generation or commit['stream_position'] > row['revision']['stream_position']:
                 raise ValueError('source beyond accepted axis')
+        if last['value']['op'] in ('join', 'remove_participant'):
+            if not any(entry['tag_id'] == last['tag_id'] for entry in entries):
+                raise ValueError('observable latest source omitted')
+        elif any(entry['source_commit']['stream_position'] >= last['source_commit']['stream_position'] for entry in entries):
+            raise ValueError('leave/restore must follow every retained entry')
         if axis == 'roster':
             for entry in entries:
                 verify_binding(entry, snapshot['realm_id'], selector['call_id'])
@@ -203,7 +208,8 @@ def refresh_allowed(roster, moderation, actor, device):
 
 
 def run_case(fixture, name):
-    snapshot = copy.deepcopy(fixture['checkpoints'][-1])
+    case = next((case for case in fixture['cases'] if case['name'] == name), {})
+    snapshot = copy.deepcopy(fixture['checkpoints'][case.get('checkpoint', -1)])
     request, response = copy.deepcopy(fixture['request_context']), copy.deepcopy(fixture['response_context'])
     keys = fixture['test_keys']
     indices = fixture['write_indices']
@@ -224,8 +230,7 @@ def run_case(fixture, name):
             return 'accept' if len(entries) == 2 and {jcs(e['value']['participant']['actor_id']) for e in entries} == {jcs(ACTOR), jcs(OTHER)} else 'reject'
         if name == 'restore_preserves_kick':
             prior = axis_row(snapshot, 'moderation')['value']
-            fake = copy.deepcopy(fixture['original_rows'][5])
-            fake['event']['payload']['moderation_delta']['expected_revision'] = revision(prior['last_source']['source_commit'])
+            fake = copy.deepcopy(fixture['followup_rows']['restore_preserves_kick'])
             result = project(prior, fake, 'moderation', indices['moderation'], keys['issuer_public_key_b64u'])
             return 'accept' if len(result['entries']) == 1 and result['entries'][0]['value']['removal']['action'] == 'kick' else 'reject'
         checkpoint = fixture['checkpoints'][6 if name == 'kick_old_leg' else 7]
@@ -320,15 +325,15 @@ def run_case(fixture, name):
         if name == 'snapshot_signature_tampered':
             snapshot['signature']['sig'] = 'A' * 86
         else:
-            row['value']['entries'] = []
+            row['value']['entries'] = [entry for entry in row['value']['entries'] if entry['tag_id'] == row['value']['last_source']['tag_id']]
     elif name.startswith('omission_resigned_') or name == 'wrong_member_complete_replica':
         if name == 'wrong_member_complete_replica':
             older = copy.deepcopy(axis_row(fixture['checkpoints'][3], 'roster')['value']['entries'])
             row['value']['entries'] = older
         else:
-            row['value']['entries'] = []
+            row['value']['entries'] = [entry for entry in row['value']['entries'] if entry['tag_id'] == row['value']['last_source']['tag_id']]
         if name.endswith('complete_replica'):
-            kwargs['reference_rows'] = fixture['checkpoints'][-1]['current_state_entries']
+            kwargs['reference_rows'] = fixture['checkpoints'][case.get('checkpoint', -1)]['current_state_entries']
     elif name == 'two_axes_one_commit_distinct_dots':
         mod = axis_row(snapshot, 'moderation')
         if row['revision'] != mod['revision'] or row['value']['last_source']['tag_id'] == mod['value']['last_source']['tag_id']:
@@ -366,7 +371,7 @@ def check_call_current(lint: Lint) -> None:
                     'moderation_bounded_by_roster_count', 'kick_expiry', 'private_receipt'):
             if policy[key] is not False:
                 raise ValueError('Call boundary drift: ' + key)
-        for original in fixture['original_rows']:
+        for original in [*fixture['original_rows'], *fixture.get('followup_rows', {}).values()]:
             schema_validator(ARTIFACTS / 'schemas/event-envelope.schema.json', '').validate(original['event'])
             kind = original['event']['kind']
             schema_validator(ARTIFACTS / 'schemas/event-payload.schema.json',

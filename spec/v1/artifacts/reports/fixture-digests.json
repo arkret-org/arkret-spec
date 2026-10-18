@@ -117,8 +117,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/call-current-fixture.json",
-      "sha256": "28de651c1556643ad5abdfb08f6a64d4922303ca14854a46a6973f83e789f97f",
-      "version": "2026-10-18.2"
+      "sha256": "17006a8e9b4e083c08c0641794d616a91e39cd0666715e7edaf5c09ea38ea507",
+      "version": "2026-10-19.2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/call-force-mute-v1-boundary-fixture.json",

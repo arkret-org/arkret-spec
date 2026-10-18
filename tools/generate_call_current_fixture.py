@@ -189,11 +189,23 @@ def build_fixture():
                                 'expected_revision': revision(axes['roster']['last_source']['source_commit'])}})
     append({'moderation_delta': remove(OTHER, 'ban'),
             'roster_delta': {'op': 'join', 'participant': participant(call_id, ACTOR, 4)}})
+    restore_event = event({'call_id': call_id, 'moderation_delta': {
+        'op': 'restore_participant', 'actor_id': OTHER,
+        'restored_by': ACTOR['account_id']['principal_id'], 'restored_at': T,
+        'expected_revision': revision(axes['moderation']['last_source']['source_commit']),
+    }}, 12)
+    restore_core = {'realm_id': REALM, 'stream_ref': STREAM, 'stream_position': 12,
+                    'previous_commit_ref': rows[-1]['commit']['commit_id'],
+                    'event_ref': restore_event['event_id'], 'governance_generation': 1,
+                    'authority_ref': create['event_id'], 'committed_at': restore_event['created_at']}
+    restore_commit = {'commit_id': typed_id('realm_commit', restore_core), **restore_core}
+    restore_commit['signature'], _ = make_signature('ak.realm_commit_signature.v1', restore_commit, OLD_VM, KEY_A_SEED)
+    followup_rows = {'restore_preserves_kick': {'event': restore_event, 'commit': restore_commit}}
     context = {'account_id': ACTOR['account_id'], 'station_base_url': 'https://station.example',
                'session_epoch': 1, 'realm_id': REALM, 'stream_ref': STREAM, 'call_id': call_id,
                'current_generation': 1, 'known_head': revision(rows[2]['commit'])}
     return {
-        'version': '2026-10-18.2', 'suite': 'call_current', 'fixture_kind': 'cryptographic_transcript',
+        'version': '2026-10-19.2', 'suite': 'call_current', 'fixture_kind': 'cryptographic_transcript',
         'runner': {'kind': 'named_suite', 'entrypoint': 'ak.suite.call_state.compact_current.v1'},
         'generated_by': 'python -m tools.generate_call_current_fixture', 'covers_vectors': [VECTOR],
         'description': 'Synthetic full ActorId conformance transcripts. Actual Ed25519 Event, Commit, Snapshot and participant signatures; no live native DID authority, admission transaction, production performance or joint acceptance is claimed. The known genesis anchor and issuer authority keys are explicit fixture inputs. A below-floor current source does not authorize historical Event disclosure.',
@@ -203,9 +215,9 @@ def build_fixture():
         'issuer_authority_input': {'verification_method': ISSUER_VM, 'accepted_at': T,
                                    'public_key_b64u': public_key(KEY_B_SEED)},
         'request_context': context, 'response_context': copy.deepcopy(context), 'write_indices': indices,
-        'original_rows': rows, 'checkpoints': checkpoints,
+        'original_rows': rows, 'checkpoints': checkpoints, 'followup_rows': followup_rows,
         'cases': [
-            {'name': name, 'vector_id': VECTOR, 'expected': outcome}
+            {'name': name, 'vector_id': VECTOR, 'expected': outcome, **({'checkpoint': 7, 'omit_entry': 'non_last_source'} if name in ('omission_unsigned', 'omission_resigned_ordinary_trust_boundary', 'omission_resigned_complete_replica') else {})}
             for name, outcome in [
                 ('complete_cold_recovery', 'accept'), ('empty_roster_latest_leave', 'accept'),
                 ('empty_moderation_latest_restore', 'accept'), ('unwritten_axis_absent', 'accept'),

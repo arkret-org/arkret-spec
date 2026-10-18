@@ -58,10 +58,11 @@ class CallCurrentTest(unittest.TestCase):
     def test_restore_and_repeated_ban_keep_original_kick(self):
         current = gate.axis_row(self.fixture['checkpoints'][-1], 'moderation')['value']
         kick = next(e for e in current['entries'] if e['value']['removal']['action'] == 'kick')
-        row = copy.deepcopy(self.fixture['original_rows'][5])
-        row['event']['payload']['moderation_delta']['expected_revision'] = revision(current['last_source']['source_commit'])
+        row = copy.deepcopy(self.fixture['followup_rows']['restore_preserves_kick'])
         restored = project(current, row, 'moderation', 6, self.fixture['test_keys']['issuer_public_key_b64u'])
         self.assertEqual(restored['entries'], [kick])
+        self.assertGreater(restored['last_source']['source_commit']['stream_position'], current['last_source']['source_commit']['stream_position'])
+        self.assertEqual(restored['last_source']['source_commit']['event_ref'], row['event']['event_id'])
         removed = project(current, self.fixture['original_rows'][10], 'moderation', 6, self.fixture['test_keys']['issuer_public_key_b64u'])
         self.assertEqual(len(removed['entries']), 2)
         self.assertIn(kick, removed['entries'])
@@ -77,6 +78,14 @@ class CallCurrentTest(unittest.TestCase):
         self.assertEqual(gate.run_case(self.fixture, 'omission_resigned_ordinary_trust_boundary'), 'accept')
         with self.assertRaisesRegex(ValueError, 'complete replica/materializer mismatch'):
             gate.run_case(self.fixture, 'omission_resigned_complete_replica')
+
+    def test_ordinary_omission_retains_the_observable_last_join(self):
+        for name in ('omission_unsigned', 'omission_resigned_ordinary_trust_boundary', 'omission_resigned_complete_replica'):
+            case = next(case for case in self.fixture['cases'] if case['name'] == name)
+            self.assertEqual(case['checkpoint'], 7)
+            value = gate.axis_row(self.fixture['checkpoints'][case['checkpoint']], 'roster')['value']
+            self.assertEqual(len(value['entries']), 2)
+            self.assertEqual(sum(entry['tag_id'] == value['last_source']['tag_id'] for entry in value['entries']), 1)
 
     def test_below_floor_current_is_valid_without_granting_historical_event_read(self):
         self.assertEqual(gate.run_case(self.fixture, 'below_floor_current_binding_key'), 'accept')
