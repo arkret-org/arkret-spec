@@ -3,7 +3,7 @@ title: Media Service Binding
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-02
+updated: 2026-10-18
 sidebar:
   label: Media Service Binding
 ---
@@ -223,6 +223,12 @@ issuer 签署 participant_binding 的九字段，将完整主体、真实设备�
 `join_context.kind=refresh` 恰含 kind 与 participant_id。issuer MUST 在稳定 accepted cut 下读取当前活跃 roster，逐字匹配认证完整 ActorId、真实 DeviceId、realm_id、call_id、focus_id 与 participant_id，并核对 public participant_binding 和原 join source。请求媒体 MUST 为当前 accepted entry 的已签发 media 子集；未知 participant、其它 Station／设备／Call／focus、已 leave／适用 kick／ban、终态 Call 或当前 membership／device／capability 不满足均拒绝。participant_id 不是 bearer 授权，不能单独证明 established。Consent 撤销不自动终止既有 leg，也不能借 refresh 绕过首次邀请或扩大媒体权限。
 
 public binding 的 expires_at 限制首次落账，不能将未 accepted 的过期 binding 当成已有成员。已在有效期内 accepted 的原 binding 可作为历史来源继续验证；历史 key MUST 锚定该 join Commit 的 committed_at，不得用当前其它 key 重解释原签名。续期由当前获准 issuer 对同一活跃 participant_id、完整主体与请求允许的媒体范围签发新 binding；客户端提交 accepted roster 更新后才能将新范围视为 durable。cold recovery 从完整获准 roster 恢复本设备 participant_id，仍须通过本次认证和全部当前门禁，不读取私有身份回执，不自动退化成 voluntary／invitation。
+
+roster 的完整有效 current 形状及冷恢复供材见 [call-state §4.3](./call-state.md#43-完整有效-current-与接受来源normative)。
+有效 SFU／MCU entry 内的 `participant_signing_key` 恰携原 issuer Ed25519 公钥，由原治理 Snapshot
+绑定到该原 join、kid 与接受时点；消费 Account Station 仍独立验证原方法权威。普通客户端用此 key
+重建并独立验原九字段签名，不从 retained kid 发起首次 DID discovery，不以当前 route 的轮换 key
+替代历史 key。该窄来源不授当前 issuer 资格；新 token／续期仍核当前 assignment、route 与权限。
 
 ## 4. SFU Service
 

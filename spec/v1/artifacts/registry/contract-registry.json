@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-18.2",
+  "version": "2026-10-18.3",
   "source_of_truth": true,
-  "generated_at": "2026-10-18T20:42:15+08:00",
+  "generated_at": "2026-10-18T21:05:05+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-10-14.2",
@@ -1996,16 +1996,23 @@
               "field": "payload.moderation_delta"
             },
             "result_projection": {
-              "kind": "keyed_set_add",
-              "tag": {
-                "dot": true
-              },
-              "source_commit": true,
-              "value": {
-                "field": "payload.moderation_delta"
+              "kind": "set",
+              "value_projection": {
+                "kind": "object",
+                "members": [
+                  {
+                    "name": "entries",
+                    "derivation": "call_moderation_effective_entries"
+                  },
+                  {
+                    "name": "last_source",
+                    "derivation": "call_axis_last_source"
+                  }
+                ]
               }
             },
-            "notes": "crypto-media/call-state.md section 4.1: retain every original delta and its covering accepted Commit, use canonical dot ordering for the assertion set and Commit stream_position for the read-side effective-set fold; leave/restore guards the whole-axis revision. source_commit is immutable accepting-cut provenance, never supplied by the producer."
+            "notes": "crypto-media/call-state.md section 4.3: atomically derive complete effective entries from the frozen accepted prestate and this accepted delta; attach its canonical write dot and actual original RealmCommit as last_source. Retain original effective join/removal provenance and original verified participant issuer key where required. Leave/restore advance the whole-axis revision even when entries becomes empty. No append-only assertion set, producer-provided source/key, partial result or new state model.",
+            "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_moderation_value"
           },
           {
             "result_family": "call_roster",
@@ -2020,16 +2027,23 @@
               "field": "payload.roster_delta"
             },
             "result_projection": {
-              "kind": "keyed_set_add",
-              "tag": {
-                "dot": true
-              },
-              "source_commit": true,
-              "value": {
-                "field": "payload.roster_delta"
+              "kind": "set",
+              "value_projection": {
+                "kind": "object",
+                "members": [
+                  {
+                    "name": "entries",
+                    "derivation": "call_roster_effective_entries"
+                  },
+                  {
+                    "name": "last_source",
+                    "derivation": "call_axis_last_source"
+                  }
+                ]
               }
             },
-            "notes": "crypto-media/call-state.md section 4.1: retain every original delta and its covering accepted Commit, use canonical dot ordering for the assertion set and Commit stream_position for the read-side effective-set fold; leave/restore guards the whole-axis revision. source_commit is immutable accepting-cut provenance, never supplied by the producer."
+            "notes": "crypto-media/call-state.md section 4.3: atomically derive complete effective entries from the frozen accepted prestate and this accepted delta; attach its canonical write dot and actual original RealmCommit as last_source. Retain original effective join/removal provenance and original verified participant issuer key where required. Leave/restore advance the whole-axis revision even when entries becomes empty. No append-only assertion set, producer-provided source/key, partial result or new state model.",
+            "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_roster_value"
           },
           {
             "result_family": "call_mute_override",
@@ -8940,8 +8954,8 @@
         }
       }
     },
-    "version": "2026-10-15.2",
-    "generated_at": "2026-10-15T05:54:30+08:00",
+    "version": "2026-10-18.1",
+    "generated_at": "2026-10-18T21:04:17+08:00",
     "bootstrap_event_kinds": [
       "ak.device.authorize",
       "ak.device.reanchor",
@@ -23055,9 +23069,54 @@
         }
       }
     ],
-    "version": "2026-10-14",
-    "generated_at": "2026-10-14T05:58:19+08:00",
-    "metadata_authority": "contract_registry_section"
+    "version": "2026-10-18.1",
+    "generated_at": "2026-10-18T21:04:17+08:00",
+    "metadata_authority": "contract_registry_section",
+    "call_current_contract": {
+      "normative_ref": "spec/v1/zh/crypto-media/call-state.md#43-完整有效-current-与接受来源normative",
+      "families": [
+        "call_roster",
+        "call_moderation"
+      ],
+      "value_members": [
+        "entries",
+        "last_source"
+      ],
+      "derivations": {
+        "call_roster_effective_entries": "replace_join_or_remove_leave_by_exact_full_actor_and_real_device",
+        "call_moderation_effective_entries": "latest_ban_per_full_actor_and_latest_kick_per_full_actor_device_restore_only_ban",
+        "call_axis_last_source": "original_delta_canonical_write_dot_and_actual_accepting_commit"
+      },
+      "ordinary_carrier": "complete_inline_authority_snapshot_via_bound_authenticated_own_station",
+      "source_material": {
+        "active_join": [
+          "original_join_delta",
+          "canonical_write_dot",
+          "original_realm_commit",
+          "original_issuer_ed25519_key_when_participant_binding_present"
+        ],
+        "active_removal": [
+          "original_remove_delta",
+          "canonical_write_dot",
+          "original_realm_commit"
+        ],
+        "axis_tip": [
+          "original_last_delta",
+          "canonical_write_dot",
+          "original_realm_commit"
+        ],
+        "event_producer": "original_full_event_and_exact_historical_signer_on_existing_authorized_stream_row_or_self_submit_pair_only"
+      },
+      "complete_by_shape_and_enclosing_signature": true,
+      "partial_allowed": false,
+      "independent_omission_proof": false,
+      "new_operations": false,
+      "history_floor_bypass": false,
+      "reusable_allow": false,
+      "moderation_bounded_by_roster_count": false,
+      "kick_expiry": false,
+      "private_receipt": false
+    }
   },
   "rejected_profile_markers": [
     {

@@ -3,7 +3,7 @@ title: 服务器当前结果与有界基线
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-21
+updated: 2026-10-18
 sidebar:
   label: 当前结果与基线
 ---
@@ -215,7 +215,7 @@ membership 为 `join` 才满足 gate（[`../governance/join-policy.md` §4](../g
   direct invite 槽位，值为 `{create_event_id}` 或 `null`（空槽）；**subject 不含 `realm_id`**；
 - `invite_directed_invitee`：以 `invite_id` 选择该 Invite 的 create-locked 定向目标 `{invitee_account_id}`；
   它是 `invite_live_target` 的反向索引，三方（3PID）Invite 不写这条，故其前态为**缺失**而不是 `null`；
-- `call_state` / `call_focus` / `call_moderation` / `call_roster`：以 `call_id` 选择 `ak.call.state` 对应轴的 commit-ordered 投影（见 [`call-state.md` §4.1](../crypto-media/call-state.md)）；`call_mute_override` 保留 call-only 形状但 v1 无可接纳写入，不构成媒体授权；
+- `call_state` / `call_focus` / `call_moderation` / `call_roster`：以 `call_id` 选择 `ak.call.state` 对应轴的 commit-ordered 投影（见 [`call-state.md` §4.1](../crypto-media/call-state.md)）；roster／moderation 为完整有效 `{entries,last_source}`，原有效来源、历史 issuer key 与整轴修订合同见该文 §4.3，不再承载全部失效断言。普通读取复用完整内联 Snapshot，不暗增 Call exact-current operation；`call_mute_override` 保留 call-only 形状但 v1 无可接纳写入，不构成媒体授权；
 - `call_recording_state` / `call_transcript_state`：以 `(call_id, recording_id)` 段键选择该段捕获的许可状态；
 - `call_recording_artifact` / `call_transcript_artifact`：以 `(call_id, recording_id)` 段键选择该段捕获的 ready/failed 结果；
 - `device_authorization`：以 `device_id` 选择该设备在本 principal control Realm 内的当前授权事实，整体置换写入；封闭 value 与被排除的成员（`device_status` / `attested_at` / `authorization_window`）见 [`../crypto-media/device-lifecycle.md` §5.5.1](../crypto-media/device-lifecycle.md)；

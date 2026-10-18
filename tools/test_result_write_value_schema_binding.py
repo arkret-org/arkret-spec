@@ -435,19 +435,20 @@ class ResultWriteValueSchemaBindingTest(unittest.TestCase):
         self.assertEqual(len(reported), 2, reported)
         self.assertIn("unknown member(s) ['projected_value']", reported[0])
 
-    def test_committed_call_assertion_cannot_drop_its_source_projection(self) -> None:
+    def test_complete_call_cannot_drop_its_last_source_projection(self) -> None:
         def mutate(document: dict) -> None:
             writes = row_of(document, "ak.call.state")["result_writes"]
-            next(w for w in writes if w["result_family"] == "call_roster")["result_projection"].pop("source_commit")
+            projection = next(w for w in writes if w["result_family"] == "call_roster")["result_projection"]
+            projection["value_projection"]["members"].pop()
         errors = self._newly_reported({EVENT_KINDS: mutate})
-        self.assertTrue(any("required assertion provenance disagree" in error for error in errors), errors)
+        self.assertTrue(any("requires exact complete Call projection" in error for error in errors), errors)
 
     def test_source_commit_cannot_be_read_from_a_producer_field(self) -> None:
         def mutate(document: dict) -> None:
             writes = row_of(document, "ak.call.state")["result_writes"]
             next(w for w in writes if w["result_family"] == "call_roster")["result_projection"]["source_commit"] = {"field": "payload.source_commit"}
         errors = self._newly_reported({EVENT_KINDS: mutate})
-        self.assertTrue(any("must be true accepting-cut provenance" in error for error in errors), errors)
+        self.assertTrue(any("producer-supplied source_commit is forbidden" in error for error in errors), errors)
 
 
 if __name__ == "__main__":

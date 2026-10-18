@@ -3,7 +3,7 @@ title: Authority-Attested Results
 status: candidate
 normative: true
 stability: v1
-updated: 2026-10-17
+updated: 2026-10-18
 see_also:
   - ../conformance/normative-language.md
   - authority-commit-log.md
@@ -94,6 +94,12 @@ MUST NOT 推进 stream head/floor、宣称已读取 timeline，或要求下载/�
 普通客户端可以持久保存已绑定上述上下文的原件与连续性 checkpoint；MUST NOT 保存可复用的裸 `verified`
 结论、以 current key 替代历史授权实例或把自己的 Station 结果转授给其它角色。自选 Station 或其 TLS/origin
 失陷仍是 §1.2 的残余暴露；本合同不声称检测自己 Station 对有效治理原件的遗漏或虚假验证声明。
+
+Call 的完整有效 current 按 [call-state §4.3](../crypto-media/call-state.md#43-完整有效-current-与接受来源normative)
+携带原有效 join/remove 与 Commit，以及原 SFU issuer 的窄公钥；消费 Station 独立验原时点 issuer
+方法权威，普通客户端独立验 participant_binding。该 key 不是 Event producer key；current 的 delta
+和嵌套 Commit 不构成完整 stream_row，也不新增历史 signer selector 来源、历史读取许可或裸 verified。
+收到完整 Event 时本节 producer／MLS／附件职责照旧，缺原件或 exact 历史 key 的相关操作失败关闭。
 
 ## 3. 转发与缓存
 

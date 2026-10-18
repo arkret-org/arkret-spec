@@ -509,10 +509,12 @@ def lint_cell_write_condition(lint: Lint, path: Path, ref: str, condition: objec
 
 
 def lint_value_projection(lint: Lint, path: Path, ref: str, projection: object) -> None:
-    """Validate a declared ordered_log append `op.value` projection.
+    """Validate a declared object-value projection.
 
-    The projection is the pure function a receiver re-runs to rebuild `op.value`
-    from the signed payload, so every member must name exactly one closed source:
+    The projection is the pure reducer a receiver re-runs over the registered
+    inputs. Call state section 4.3 also names frozen accepted prestate, the real
+    accepting Commit and independently verified original issuer material.
+    Every member must name exactly one closed source:
     a literal, a field path, a `select` component, a registered derivation, or
     a digest over a field.
     """

@@ -1803,7 +1803,7 @@
     },
     "call_moderation_result": {
       "type": "object",
-      "description": "Complete committed assertion set for one Call axis, with a Commit-ordered read-side fold and whole-axis current revision.",
+      "description": "Complete effective Call axis with original sources and independent whole-axis revision, bound by the enclosing authenticated authority Snapshot. Not a portable grant or independent omission proof.",
       "required": [
         "selector",
         "source_stream_ref",
@@ -1841,7 +1841,7 @@
     },
     "call_roster_result": {
       "type": "object",
-      "description": "Complete committed assertion set for one Call axis, with a Commit-ordered read-side fold and whole-axis current revision.",
+      "description": "Complete effective Call axis with original sources and independent whole-axis revision, bound by the enclosing authenticated authority Snapshot. Not a portable grant or independent omission proof.",
       "required": [
         "selector",
         "source_stream_ref",
@@ -4644,7 +4644,50 @@
       },
       "additionalProperties": false
     },
-    "call_roster_assertion": {
+    "call_roster_value": {
+      "type": "object",
+      "required": [
+        "entries",
+        "last_source"
+      ],
+      "properties": {
+        "entries": {
+          "type": "array",
+          "uniqueItems": true,
+          "maxItems": 1000,
+          "items": {
+            "$ref": "#/$defs/call_roster_entry"
+          }
+        },
+        "last_source": {
+          "$ref": "#/$defs/call_roster_source"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Complete effective entries sorted by canonical Event dot, plus the exact last accepted axis delta and Commit even when empty. No historical assertion log or partial form. crypto-media/call-state.md section 4.3 defines the deterministic commit-ordered reducer and provenance checks."
+    },
+    "call_moderation_value": {
+      "type": "object",
+      "required": [
+        "entries",
+        "last_source"
+      ],
+      "properties": {
+        "entries": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/call_moderation_entry"
+          }
+        },
+        "last_source": {
+          "$ref": "#/$defs/call_moderation_source"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Complete effective entries sorted by canonical Event dot, plus the exact last accepted axis delta and Commit even when empty. No historical assertion log or partial form. crypto-media/call-state.md section 4.3 defines the deterministic commit-ordered reducer and provenance checks."
+    },
+    "call_roster_source": {
       "type": "object",
       "required": [
         "tag_id",
@@ -4664,24 +4707,59 @@
       },
       "additionalProperties": false
     },
-    "call_roster_value": {
+    "call_roster_entry": {
       "type": "object",
       "required": [
-        "assertions"
+        "tag_id",
+        "source_commit",
+        "value"
       ],
       "properties": {
-        "assertions": {
-          "type": "array",
-          "uniqueItems": true,
-          "items": {
-            "$ref": "#/$defs/call_roster_assertion"
-          }
+        "tag_id": {
+          "$ref": "#/$defs/canonical_event_dot"
+        },
+        "source_commit": {
+          "$ref": "./realm-commit.schema.json"
+        },
+        "value": {
+          "$ref": "./event-payload.schema.json#/$defs/call_state_payload/properties/roster_delta/oneOf/0"
+        },
+        "participant_signing_key": {
+          "$ref": "#/$defs/call_participant_signing_key"
         }
       },
       "additionalProperties": false,
-      "description": "Complete immutable assertion set sorted by canonical event dot, folded by covering source Commit stream_position. All deltas retain their exact original carrier and Commit; no private mapping."
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "value": {
+                "properties": {
+                  "participant": {
+                    "required": [
+                      "participant_binding"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "participant_signing_key"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "participant_signing_key"
+              ]
+            }
+          }
+        }
+      ]
     },
-    "call_moderation_assertion": {
+    "call_moderation_source": {
       "type": "object",
       "required": [
         "tag_id",
@@ -4701,22 +4779,39 @@
       },
       "additionalProperties": false
     },
-    "call_moderation_value": {
+    "call_moderation_entry": {
       "type": "object",
       "required": [
-        "assertions"
+        "tag_id",
+        "source_commit",
+        "value"
       ],
       "properties": {
-        "assertions": {
-          "type": "array",
-          "uniqueItems": true,
-          "items": {
-            "$ref": "#/$defs/call_moderation_assertion"
-          }
+        "tag_id": {
+          "$ref": "#/$defs/canonical_event_dot"
+        },
+        "source_commit": {
+          "$ref": "./realm-commit.schema.json"
+        },
+        "value": {
+          "$ref": "./event-payload.schema.json#/$defs/call_state_payload/properties/moderation_delta/oneOf/0"
+        }
+      },
+      "additionalProperties": false
+    },
+    "call_participant_signing_key": {
+      "type": "object",
+      "required": [
+        "public_key_b64u"
+      ],
+      "properties": {
+        "public_key_b64u": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{43}$"
         }
       },
       "additionalProperties": false,
-      "description": "Complete immutable assertion set sorted by canonical event dot, folded by covering source Commit stream_position. All deltas retain their exact original carrier and Commit; no private mapping."
+      "description": "Exact Ed25519 key for this entry participant_binding issuer_kid at its join source_commit.committed_at. Native issuer authority is independently verified by the consuming Account Station; the ordinary client checks the original binding signature with these Snapshot-bound bytes. No identity mirror, current grant, Event producer key or portable proof."
     }
   }
 }

@@ -116,14 +116,19 @@
       "version": "2026-09-20"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/call-current-fixture.json",
+      "sha256": "28de651c1556643ad5abdfb08f6a64d4922303ca14854a46a6973f83e789f97f",
+      "version": "2026-10-18.2"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/call-force-mute-v1-boundary-fixture.json",
       "sha256": "7fbd0b95398877976aafc488fde4295ad6ec4f89774b2e1744dfc3a2b42edc8c",
       "version": "2026-09-28.2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/call-state-core-fixture.json",
-      "sha256": "98b40e6546de9ccc46e144e222b87f061c65729610ea52f3b316c647df04cdb5",
-      "version": "2026-09-21.1"
+      "sha256": "2e51e5d4616393611d8282cb2a3129d561b9c05ba7411b8ae3ac800af8874460",
+      "version": "2026-10-18.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/call-state-media-lifecycle-fixture.json",

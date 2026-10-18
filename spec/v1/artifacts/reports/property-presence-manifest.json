@@ -15,19 +15,19 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9574,
+    "total_properties": 9586,
     "total_schema_documents": 174,
     "by_presence_class": {
-      "optional": 2232,
+      "optional": 2233,
       "optional_defaulted": 48,
-      "required": 6766,
+      "required": 6775,
       "required_nullable": 338,
-      "tristate": 190
+      "tristate": 192
     },
-    "tristate_occurrences": 190,
-    "tristate_audit_targets": 152,
+    "tristate_occurrences": 192,
+    "tristate_audit_targets": 154,
     "tristate_sdk_dispositions": {
-      "absent_null_equivalent": 141,
+      "absent_null_equivalent": 143,
       "condition_guarded": 10,
       "distinct": 1
     }
@@ -225,6 +225,8 @@
     "service-operation-dtos.schema.json/$defs/SignedSessionGrantClaims/allOf/0/else/properties/holder_binding",
     "service-operation-dtos.schema.json/$defs/SignedSessionGrantClaims/allOf/0/then/properties/holder_binding",
     "strand.schema.json/allOf/2/then/properties/metadata",
+    "typed-current-result.schema.json/$defs/call_roster_entry/allOf/0/if/properties/value",
+    "typed-current-result.schema.json/$defs/call_roster_entry/allOf/0/if/properties/value/properties/participant",
     "typed-current-result.schema.json/$defs/device_authorization_value/properties/expires_at",
     "view.schema.json/$defs/query/properties/relation",
     "watch-audit-operations.schema.json/$defs/watch_audit_submission/allOf/1/properties/event"
@@ -1754,6 +1756,26 @@
       "instance_path": "/metadata",
       "occurrences": [
         "/allOf/2/then/properties/metadata"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "typed-current-result.schema.json",
+      "shape": "/$defs/call_roster_entry",
+      "instance_path": "/value",
+      "occurrences": [
+        "/$defs/call_roster_entry/allOf/0/if/properties/value"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "typed-current-result.schema.json",
+      "shape": "/$defs/call_roster_entry",
+      "instance_path": "/value/participant",
+      "occurrences": [
+        "/$defs/call_roster_entry/allOf/0/if/properties/value/properties/participant"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -12284,22 +12306,27 @@
         "/$defs/call_focus_result/properties/selector/properties/kind": "required",
         "/$defs/call_focus_result/properties/source_stream_ref": "required",
         "/$defs/call_focus_result/properties/value": "required",
-        "/$defs/call_moderation_assertion/properties/source_commit": "required",
-        "/$defs/call_moderation_assertion/properties/tag_id": "required",
-        "/$defs/call_moderation_assertion/properties/value": "required",
+        "/$defs/call_moderation_entry/properties/source_commit": "required",
+        "/$defs/call_moderation_entry/properties/tag_id": "required",
+        "/$defs/call_moderation_entry/properties/value": "required",
         "/$defs/call_moderation_result/properties/revision": "required",
         "/$defs/call_moderation_result/properties/selector": "required",
         "/$defs/call_moderation_result/properties/selector/properties/call_id": "required",
         "/$defs/call_moderation_result/properties/selector/properties/kind": "required",
         "/$defs/call_moderation_result/properties/source_stream_ref": "required",
         "/$defs/call_moderation_result/properties/value": "required",
-        "/$defs/call_moderation_value/properties/assertions": "required",
+        "/$defs/call_moderation_source/properties/source_commit": "required",
+        "/$defs/call_moderation_source/properties/tag_id": "required",
+        "/$defs/call_moderation_source/properties/value": "required",
+        "/$defs/call_moderation_value/properties/entries": "required",
+        "/$defs/call_moderation_value/properties/last_source": "required",
         "/$defs/call_mute_override_result/properties/revision": "required",
         "/$defs/call_mute_override_result/properties/selector": "required",
         "/$defs/call_mute_override_result/properties/selector/properties/call_id": "required",
         "/$defs/call_mute_override_result/properties/selector/properties/kind": "required",
         "/$defs/call_mute_override_result/properties/source_stream_ref": "required",
         "/$defs/call_mute_override_result/properties/value": "required",
+        "/$defs/call_participant_signing_key/properties/public_key_b64u": "required",
         "/$defs/call_recording_artifact_result/properties/revision": "required",
         "/$defs/call_recording_artifact_result/properties/selector": "required",
         "/$defs/call_recording_artifact_result/properties/selector/properties/call_id": "required",
@@ -12314,16 +12341,23 @@
         "/$defs/call_recording_state_result/properties/selector/properties/recording_id": "required",
         "/$defs/call_recording_state_result/properties/source_stream_ref": "required",
         "/$defs/call_recording_state_result/properties/value": "required",
-        "/$defs/call_roster_assertion/properties/source_commit": "required",
-        "/$defs/call_roster_assertion/properties/tag_id": "required",
-        "/$defs/call_roster_assertion/properties/value": "required",
+        "/$defs/call_roster_entry/allOf/0/if/properties/value": "tristate",
+        "/$defs/call_roster_entry/allOf/0/if/properties/value/properties/participant": "tristate",
+        "/$defs/call_roster_entry/properties/participant_signing_key": "optional",
+        "/$defs/call_roster_entry/properties/source_commit": "required",
+        "/$defs/call_roster_entry/properties/tag_id": "required",
+        "/$defs/call_roster_entry/properties/value": "required",
         "/$defs/call_roster_result/properties/revision": "required",
         "/$defs/call_roster_result/properties/selector": "required",
         "/$defs/call_roster_result/properties/selector/properties/call_id": "required",
         "/$defs/call_roster_result/properties/selector/properties/kind": "required",
         "/$defs/call_roster_result/properties/source_stream_ref": "required",
         "/$defs/call_roster_result/properties/value": "required",
-        "/$defs/call_roster_value/properties/assertions": "required",
+        "/$defs/call_roster_source/properties/source_commit": "required",
+        "/$defs/call_roster_source/properties/tag_id": "required",
+        "/$defs/call_roster_source/properties/value": "required",
+        "/$defs/call_roster_value/properties/entries": "required",
+        "/$defs/call_roster_value/properties/last_source": "required",
         "/$defs/call_state_result/properties/revision": "required",
         "/$defs/call_state_result/properties/selector": "required",
         "/$defs/call_state_result/properties/selector/properties/call_id": "required",
@@ -12802,6 +12836,7 @@
         "/$defs/view_result/properties/value": "required"
       },
       "conditionally_required": [
+        "/$defs/call_roster_entry/properties/participant_signing_key",
         "/$defs/call_state_result/properties/value/properties/failure_reason_code",
         "/$defs/circle_member_state_value/properties/parent_membership_revision",
         "/$defs/policy_action_result/properties/selector/properties/action",

@@ -377,6 +377,12 @@ NORMALIZED_STRING_SET_CONTEXTS = {
 
 
 VALUE_PROJECTION_DERIVATIONS = {
+    # Call state section 4.3 derives the complete axis from frozen accepted
+    # prestate, the accepted delta and its actual Commit. Historical issuer
+    # keys come from independently verified original material, never payload.
+    "call_roster_effective_entries",
+    "call_moderation_effective_entries",
+    "call_axis_last_source",
     "calendar_source_effective_scope",
     "calendar_schedule_source_ref",
     "accepted_current_revision",
@@ -442,7 +448,8 @@ VALUE_PROJECTION_IDENTITY_SUBJECTS = {
 # safe-integer ceiling, failing closed on overflow rather than wrapping,
 # saturating or keeping the old value. This is the only pre-state read v1
 # admits: the result is a counter the digest already binds, never a copy of
-# stored protocol state into a new place.
+# stored protocol state into a new place. Call's complete-axis derivations
+# live separately in VALUE_PROJECTION_DERIVATIONS and are commit-ordered.
 CELL_WRITE_DERIVATIONS = {
     "capability_authority_depth",
     "capability_authority_root_refs",

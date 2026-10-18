@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-14",
+  "version": "2026-10-18.1",
   "source_of_truth": false,
-  "generated_at": "2026-10-14T05:58:19+08:00",
+  "generated_at": "2026-10-18T21:04:17+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Closed typed current-result families derived from authority-committed Events. Selectors are domain types, never alternate typed current result IDs. Each row also records its CONSUMPTION: consumption.class is one of the consumption_classes below, consumption.consumed_by names the zh prose sections that read the current value, and consumption.note says what is read and to decide what. check_every_result_family_has_a_writer closes the writer direction; this ledger is the reader direction, which had no gate and no record. consumed_by is non-empty for every class except record_only, and a record_only row's note MUST name the section that states the family's purpose so the classification is checkable rather than an absence of evidence. Citations resolve through check_artifact_prose_section_refs.",
@@ -964,5 +964,50 @@
       }
     }
   ],
-  "metadata_authority": "contract_registry_section"
+  "metadata_authority": "contract_registry_section",
+  "call_current_contract": {
+    "normative_ref": "spec/v1/zh/crypto-media/call-state.md#43-完整有效-current-与接受来源normative",
+    "families": [
+      "call_roster",
+      "call_moderation"
+    ],
+    "value_members": [
+      "entries",
+      "last_source"
+    ],
+    "derivations": {
+      "call_roster_effective_entries": "replace_join_or_remove_leave_by_exact_full_actor_and_real_device",
+      "call_moderation_effective_entries": "latest_ban_per_full_actor_and_latest_kick_per_full_actor_device_restore_only_ban",
+      "call_axis_last_source": "original_delta_canonical_write_dot_and_actual_accepting_commit"
+    },
+    "ordinary_carrier": "complete_inline_authority_snapshot_via_bound_authenticated_own_station",
+    "source_material": {
+      "active_join": [
+        "original_join_delta",
+        "canonical_write_dot",
+        "original_realm_commit",
+        "original_issuer_ed25519_key_when_participant_binding_present"
+      ],
+      "active_removal": [
+        "original_remove_delta",
+        "canonical_write_dot",
+        "original_realm_commit"
+      ],
+      "axis_tip": [
+        "original_last_delta",
+        "canonical_write_dot",
+        "original_realm_commit"
+      ],
+      "event_producer": "original_full_event_and_exact_historical_signer_on_existing_authorized_stream_row_or_self_submit_pair_only"
+    },
+    "complete_by_shape_and_enclosing_signature": true,
+    "partial_allowed": false,
+    "independent_omission_proof": false,
+    "new_operations": false,
+    "history_floor_bypass": false,
+    "reusable_allow": false,
+    "moderation_bounded_by_roster_count": false,
+    "kick_expiry": false,
+    "private_receipt": false
+  }
 }

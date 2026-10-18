@@ -19,3 +19,4 @@ out*.txt
 .codex*
 .agent*
 .*.log
+/artifacts/

@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-15.2",
+  "version": "2026-10-18.1",
   "source_of_truth": false,
-  "generated_at": "2026-10-15T05:54:30+08:00",
+  "generated_at": "2026-10-18T21:04:17+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -1542,16 +1542,23 @@
             "field": "payload.moderation_delta"
           },
           "result_projection": {
-            "kind": "keyed_set_add",
-            "tag": {
-              "dot": true
-            },
-            "source_commit": true,
-            "value": {
-              "field": "payload.moderation_delta"
+            "kind": "set",
+            "value_projection": {
+              "kind": "object",
+              "members": [
+                {
+                  "name": "entries",
+                  "derivation": "call_moderation_effective_entries"
+                },
+                {
+                  "name": "last_source",
+                  "derivation": "call_axis_last_source"
+                }
+              ]
             }
           },
-          "notes": "crypto-media/call-state.md section 4.1: retain every original delta and its covering accepted Commit, use canonical dot ordering for the assertion set and Commit stream_position for the read-side effective-set fold; leave/restore guards the whole-axis revision. source_commit is immutable accepting-cut provenance, never supplied by the producer."
+          "notes": "crypto-media/call-state.md section 4.3: atomically derive complete effective entries from the frozen accepted prestate and this accepted delta; attach its canonical write dot and actual original RealmCommit as last_source. Retain original effective join/removal provenance and original verified participant issuer key where required. Leave/restore advance the whole-axis revision even when entries becomes empty. No append-only assertion set, producer-provided source/key, partial result or new state model.",
+          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_moderation_value"
         },
         {
           "result_family": "call_roster",
@@ -1566,16 +1573,23 @@
             "field": "payload.roster_delta"
           },
           "result_projection": {
-            "kind": "keyed_set_add",
-            "tag": {
-              "dot": true
-            },
-            "source_commit": true,
-            "value": {
-              "field": "payload.roster_delta"
+            "kind": "set",
+            "value_projection": {
+              "kind": "object",
+              "members": [
+                {
+                  "name": "entries",
+                  "derivation": "call_roster_effective_entries"
+                },
+                {
+                  "name": "last_source",
+                  "derivation": "call_axis_last_source"
+                }
+              ]
             }
           },
-          "notes": "crypto-media/call-state.md section 4.1: retain every original delta and its covering accepted Commit, use canonical dot ordering for the assertion set and Commit stream_position for the read-side effective-set fold; leave/restore guards the whole-axis revision. source_commit is immutable accepting-cut provenance, never supplied by the producer."
+          "notes": "crypto-media/call-state.md section 4.3: atomically derive complete effective entries from the frozen accepted prestate and this accepted delta; attach its canonical write dot and actual original RealmCommit as last_source. Retain original effective join/removal provenance and original verified participant issuer key where required. Leave/restore advance the whole-axis revision even when entries becomes empty. No append-only assertion set, producer-provided source/key, partial result or new state model.",
+          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/call_roster_value"
         },
         {
           "result_family": "call_mute_override",

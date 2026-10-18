@@ -3,7 +3,7 @@ title: WebRTC Calls and Meetings
 status: candidate
 normative: true
 stability: v1
-updated: 2026-10-14
+updated: 2026-10-18
 sidebar:
   label: WebRTC Calls
 ---
@@ -97,7 +97,7 @@ v1 的主持动作只有 kick／ban／end-for-all：通过 `ak.call.signal{signa
 - `kick`:移除某 `(target_actor_id, target_device_id)` 的当前 call leg。被点名设备收到后 MUST 立即拆除媒体并退出；SFU 部署中 backend 同时按 token issuer 通知断开该 `participant_id`。kick 不阻止该 actor 重新发起 join。
 - `ban`:移除某 `target_actor_id`(其全部设备)并在本通话生命周期内禁止其重新加入。被 ban 的 actor 重新兑换 join token 时，token issuer MUST 拒绝 `call_participant_removed`。
 - `end_for_all`:对全体结束通话。它由 `ak.call.moderate` 授权(v1 不注册独立的 `call.end_for_all`)，并 MUST 紧随一条携带 `ak.call.state.state_transition.to="ended"` 的 durable event；收到的客户端 MUST 全部挂断。
-- kick / ban MUST 以 `ak.call.state.moderation_delta.op="remove_participant"` 留痕(其 `removal` 为 `{ actor_id, device_id?, action, removed_by, removed_at }`;`ban` 省略 `device_id` 表示按 actor 维度)。token issuer 与 SFU 在签发 / 接纳 participant 前 MUST 校验目标不在 `call_moderation` effective authority-ordered keyed set 的 ban 集合内，违反 `call_participant_removed`。
+- kick / ban MUST 以 `ak.call.state.moderation_delta.op="remove_participant"` 留痕(其 `removal` 为 `{ actor_id, device_id?, action, removed_by, removed_at }`;`ban` 省略 `device_id` 表示按 actor 维度)。token issuer 与 SFU 在签发 / 接纳 participant 前 MUST 校验目标不在 `call_moderation` 完整有效 entries 的 ban 集合内，违反 `call_participant_removed`。entries 保留原 remove 与 Commit；同设备最新 kick 的来源晚于当前 join 时拒绝该旧 leg refresh，后来合法 join 不被旧 kick 永久禁止，restore 仅解 ban。确定性投影、来源与整轴 revision 见 [call-state §4.3](./call-state.md#43-完整有效-current-与接受来源normative)。
 - v1 不签发强制静音权限，也不从旧 per-leg 缓存或保留的 call-only `call_mute_override` 结果推导媒体许可；未知或不一致的历史覆盖值不能被解释为已解除静音，应失败关闭该媒体权限判定。
 - 所有主持信令受 §5 的 `seq` 单调性防回滚；`moderation` 帧 MUST 由具备 `ak.call.moderate` 的 actor 签名。
 

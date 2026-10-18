@@ -3,7 +3,7 @@ title: Call State and Recording
 status: candidate
 normative: true
 stability: v1
-updated: 2026-07-13
+updated: 2026-10-18
 sidebar:
   label: Call State
 ---
@@ -209,11 +209,97 @@ create payload MUST 省略 `call_id`；`call_id = retype(event_id, "call")`，�
 - 结果独立按所属 stream 的 Commit 顺序与 `expected_revision` 更新；异值竞争不冻结其它段或主通话状态。
 - roster/moderation 更新在同一 authority commit 事务中原子执行；不能脱离该序列释放 token 或移除访问屏障。
 
-### 4.3 完整集合 current 与接受来源（normative）
+### 4.3 完整有效 current 与接受来源（normative）
 
-`call_roster` 与 `call_moderation` 的 value MUST 为完整 `{assertions:[{tag_id,source_commit,value}]}`。value 保留原始对应 delta，不裁字段；tag_id 为 canonical `<event_id>:<write_index>`，write_index 为 canonical registry 的 result_writes 顺序。沿用 `keyed_set_add`，可选 `source_commit:true` 表示 materializer 原子附加该写入的实际接受 RealmCommit，禁止 producer 提供来源。该通用选项只有 committed Event 投影可使用，value schema 必须要求 source_commit；它不新增 state model。
+`call_roster` 与 `call_moderation` 的 value MUST 为完整 `{entries,last_source}`，closed shape 由
+[`typed-current-result.schema.json`](../../artifacts/schemas/typed-current-result.schema.json) 的同名 value 定义。
+它们仍属于 `commit-ordered projection`；canonical registry 使用 `set` 与下列封闭 derivation，
+不再使用 Call 的累计 `keyed_set_add`。该变更不改变 Event delta、接受顺序或其它 keyed-set family。
 
-集合按 canonical dot 排序、同 dot 精确去重；consumer MUST 验每个 source_commit 的 Realm、stream、Event dot 与已接受来源，拒绝重复位置或不同同 dot carrier。有效成员和 moderation 由同源 stream_position 升序折叠，撤销增加 assertion，不删除历史 assertion。row revision MUST 等于本轴最后接受 Commit；leave/restore 的 expected_revision 比较整个轴 revision，不比较某个旧 join/ban 的 revision。snapshot 必须完整携带集合和来源，可不披露同流其它无关 Event；消费者不得用单条最新 delta、过程缓存或缺失原文猜完整集合。历史 issuer key 验证锚定对应 join assertion 的 source_commit.committed_at；续期必须重新核对完整认证 ActorId／真实 DeviceId、当前 active participant、原 public binding 与当前权限，不接受 requester 自报 established。
+**确定性投影**：治理 Station MUST 在接受原 Event/RealmCommit 的同一事务内，从锁定的完整前态
+及本次 accepted delta 计算完整后态；副本 MUST 按原 stream 顺序重建同一结果，不得重新接纳或重签来源。
+
+- `call_roster_effective_entries`：以 `(完整 ActorId,真实 DeviceId)` 为键，join 用本次原 join entry
+  替换同键旧 join，leave 仅删除同键 entry；未知目标、错身份及 stale `expected_revision` 按 §4.1 拒绝。
+  `entries` 只含尚未 leave 的最新 join，不保留被替换 join 或 leave 历史；有效 roster 上限仍为 1,000。
+  moderation 不暗中改写 roster：是否允许媒体仍联合读取两个轴及其它当前门禁。
+- `call_moderation_effective_entries`：ban 以完整 ActorId 为键保留最新 remove；kick 以
+  `(完整 ActorId,真实 DeviceId)` 为独立键保留最新 remove。restore 只删除同 actor 的 active ban，
+  MUST NOT 删除 kick。ban 与该 actor 的设备 kick 可以并存。重复同目标 remove 只替换本分支旧来源；
+  不同 Station 的同 principal 不合并，kick 不获隐含期限，也不因 leave、restore 或后来 join 被删除。
+- `call_axis_last_source`：恰为本轴本次 accepted delta 的 `{tag_id,source_commit,value}`，
+  其中 `value` 逐字保留完整原 delta，`tag_id` 为 canonical `<event_id>:<write_index>`，write_index
+  是 canonical registry 的原 `result_writes` 下标，不能按本 Event 实际出现的轴重新编号。
+  `source_commit` 是 materializer 附加的实际原接受 RealmCommit，producer 不得提供或覆盖来源。
+
+每个有效 entry 同样保留 `{tag_id,source_commit,value}` 的完整原 join/remove delta，不裁 participant、
+media、public binding、moderator 或其它原字段。roster entry 有 `participant_binding` 时还 MUST 带
+`participant_signing_key{public_key_b64u}`，否则 MUST 省略此成员。它是原 issuer 在该 join
+`source_commit.committed_at` 适用的 Ed25519 公钥，不是当前其它 key、producer key 或新身份。
+治理接纳 MUST 从独立验证的原 issuer 方法权威取得并耐久保留该精确材料；副本／消费 Account Station
+MUST 独立核原时点 issuer authority、kid/controller 与该 key 的配对，不能只因 snapshot 内有公钥就判其权威。
+该窄公开 key 随已有可见 join 披露，不披露方法历史、Device 目录、PCR 原件或私有回执。缺材料时
+MUST 按既有 operation 不可用合同失败，不能用当前 key 补齐或返回缺 key 的伪完整结果。
+
+**来源、排序与修订**：两条 `entries` 都按 canonical tag_id 字节升序排列，目标键唯一；MUST 拒绝
+重复 dot、重复目标、同一轴 entry 的重复 position 或不同同 dot carrier。`last_source` 与某 entry
+引用同一来源时，三字段 MUST 完全相等，此引用复用不算重复 entry。consumer MUST 核所有来源的
+Realm、Call 所属 stream、`source_commit.event_ref` 与 dot 的 EventId、write index 对应轴，以及
+source position 不晚于该轴 revision／enclosing head；同一来源 Commit 可在不同轴用各自 dot 被引用。
+来源中稀疏 position 不构成连续历史，不得补出隐含全局 position 或拿它推进 stream head。
+原 delta 与 Event 的对应由真实 materializer／已验证 replica 原件保证；Commit 单独没有承诺 delta bytes，
+故仅凭 dot 和 Commit 不得声称完成 producer 验证或独立遗漏证明。
+
+row `revision` MUST 精确等于 `last_source.source_commit` 的 `{commit_id,stream_position}`，
+`source_stream_ref` MUST 与它的 stream_ref 相等；last_source 必须实际写过本轴。leave/restore 即使令
+entries 变空，也 MUST 保留该最后来源并推进整轴 revision，不回退到最后幸存 join/ban。
+`expected_revision` 始终比较整个对应轴，不能比较某 entry 的旧 revision。两轴 revision 可以不同；
+若一个 Event 同时更新两轴，原子可见并共享该 Commit，但 dot 下标各自不同。
+
+**完整性与读取**：普通读取复用完整内联、原治理签名的 Snapshot，经已持久绑定完整 AccountId 的自己
+Station 消费（[server-trusted-results §2.1](../sync/server-trusted-results.md)）；不新增 Call exact-current
+operation、裸 `complete`/`verified`、独立摘要、可复用 allow 票或 portable proof。value 的封闭形状与
+enclosing 原签名绑定该 selector 的完整有效集合，不允许 partial／截断 entries。Snapshot 的当前任期、
+请求、Realm、scope、heads/floors、已知高水位、同 revision 异字节及原子安装规则全部适用。
+
+- `entries:[]` 配完整 last_source 是“轴已写入且现在为空”。从未写过该轴不制造 row、revision 或
+  last_source；只有完整且覆盖目标可见 Call 的获准 Snapshot 能确认“未初始化”，该事实不授媒体权限。
+- 普通响应缺 row、局部 cache 无 row、授权 scope 不明、缺来源／key、混合 cut 或 partial 不能解释为空。
+  MUST 保持未解决并拒绝依赖该状态的操作；不得拼接缓存或截断当前值以绕过 Snapshot 容量门。
+- current head MUST 属 fresh current governance generation，不低于已知高水位；有效 entry 和
+  last_source 可以来自链内旧任期，但其原签名／原时点 key 仍须成立。旧任期 Snapshot 只可按 exact
+  历史 by-ref 使用，不能安装覆盖较新 current。有效同 revision 异 value/source/key MUST 整批拒绝。
+- materializer 与持有完整原投影的 replica MUST 拒绝漏成员、错成员和与前态不符的结果；普通客户端
+  拒绝签名字节篡改和已知矛盾，但不能仅凭名单证明治理方没有重新签出遗漏。不得宣称比既有
+  单 authority 信任模型更强的 Byzantine omission proof。
+
+Call、focus、roster、moderation、membership、device、capability、Consent 与适用 MLS 状态 MUST
+在本次授权所需同一稳定 accepted cut 读取。不同 stream 使用各自 head/revision 与明确的跨流依赖，
+不制造 Call 全局计数。issuer 最终交付前仍须重验当前权限、终态及稳定 cut；先前 current 不成为租约。
+对同一完整 actor/device，kick source position 晚于当前 join source 时 MUST 拒绝该旧 leg
+refresh；只可在同一实际 stream 比较，无法确认来源则失败关闭。之后合法重新 join 的较新来源不被
+旧 kick 永久禁止；active ban 仍拒绝加入与续期。首次接触及 Consent 三层检查保持独立。
+
+#### 4.3.1 消费材料与历史边界
+
+| 消费能力 | 必须取得并验证的材料 |
+| --- | --- |
+| 显示／冷恢复当前名单 | 完整 Snapshot 的获准 roster／moderation rows、entries 与 last_source；保留完整 ActorId／真实 DeviceId，不依赖过程 fold cache |
+| SFU 身份交叉校验与续期 | 原有效 join、其 Commit 时点、原 public participant_binding 与该 entry 的 participant_signing_key；客户端独立重建九字段并验 Ed25519，issuer 同时核当前认证主体、participant_id、focus、media 与全部当前门禁 |
+| P2P／mesh | 既有 signed answer proof 与 admission 验证职责不变；current join 不捏造 SFU participant/key，不把 delta 当 producer envelope |
+| leave／restore 与 kick 旧 leg 拒绝 | 对应整轴 revision、有效目标及其原来源；restore 不移除 kick，空后态仍保留 last_source |
+| Event producer／MLS／附件独立验证 | 仍用既有获准完整 stream_row，或本次冻结自签 Event＋对应 self accepted outcome，及 exact historical signer 材料；current 内 delta 不是完整 Event，嵌套 Commit 不自行授予 signer query 或历史读取 |
+| 授权审计／完整重建 | 原 accepted Event/RealmCommit 历史、producer proof 与原历史授权材料；按原 stream scan／exact Snapshot basis、披露权限和 history floor 读取，不从 current 猜出已移除历史 |
+
+所有原 accepted 历史按原保留与审计合同保存；本节只移除普通 current 的失效断言，不授权删除历史、
+扩大 floor 或回填伪来源。若某操作必须独立验证 producer 原件，而其原件／历史 key 超出当前披露范围或
+暂不可得，该操作 MUST 返回既有不可用结果，不能用 current 摘要替代，也不能要求其它成员代取。
+冷恢复可从完整 current 恢复活跃 participant_id，但仍须本次认证及实际独立签名验证；不恢复私有 receipt。
+有效 ban／不同设备 kick 数量不受 roster 的 1,000 人上限约束；本节只消除重复历史成本，
+不改动 [Snapshot](../conformance/realm-state-snapshot-schema.md) 的全局 8 MiB、完整 inline 与容量接纳规则。
+
+可执行规范样例与拒绝向量：`ak.vector.call_state.compact_current.v1`。它们验证 schema、确定性投影、
+来源坐标与真实签名字节，不冒充生产接纳、原生方法历史验证或产品／联合性能验收。
 
 ## 5. 录制与转写
 

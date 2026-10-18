@@ -62,6 +62,9 @@ tools/
 | `tools/regenerate_crypto_signature_fixture.py` | 从各 KAT 的 `binding_object` 重算 `spec/v1/artifacts/fixtures/crypto-signature-fixture.json` 的 canonical binding bytes、digest、JWS signing input 与确定性 Ed25519 / ES256 / ML-DSA-65 签名，并刷新九个算法负例。需要 `cryptography` 与支持 ML-DSA-65 的 `openssl`（3.5+）。支持 `--check`。 |
 | `tools/generate_hash_transition_fixture.py` | `spec/v1/artifacts/fixtures/hash-transition-fixture.json` 的 SHA-256/BLAKE3 Event、state、control、completeness 与 Seal digest。需要 Python `blake3` 包。 |
 | `tools/regenerate_sdk_conformance_claim.py` | 从完整 `sdk_conformance_contract` 重算 `sdk-conformance-claim-fixture.json` 正例的 `contract_digest`，并用 `franking-proof-transcript-fixture.json` 已发布的 conformance Ed25519 seed 重签；负例保持不变。支持 `--check`。 |
+| `python -m tools.generate_call_current_fixture` | 从 canonical Call write 下标生成 `call-current-fixture.json` 的完整 ActorId、有效集合／空轴、原来源与 Event／Commit／Snapshot／participant Ed25519 转录及拒绝案例。支持 `--check`；不代表真实接纳或原生 DID 权威验证。 |
+
+`python -m tools.measure_call_current --output <path>` 比较完整 ActorId 累计集合与有效 current 的合成 canonical 字节；只测结构，不计生产延迟或数据库成本，输出应留在已忽略的 `artifacts/`。
 
 其余 `generate_*` / `regenerate_*` 脚本在其产出 fixture 的 `generated_by` 字段中自行登记。
 

@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-04.1",
-  "generated_at": "2026-10-04T06:28:38+08:00",
+  "version": "2026-10-18.1",
+  "generated_at": "2026-10-18T21:11:43+08:00",
   "source_of_truth": true,
   "description": "Explicit v1 backlog for active Event kinds with no directly searchable fixture/vector evidence. Absence from this registry is not itself proof of semantic coverage; the check uses the documented conservative token heuristic and this registry prevents uncovered kinds from remaining invisible.",
   "coverage_heuristic": {
@@ -21,11 +21,6 @@
       "event_kind": "ak.audit.erasure_receipt",
       "priority": "high",
       "rationale": "Erasure receipt authority-commit coverage is pending."
-    },
-    {
-      "event_kind": "ak.call.create",
-      "priority": "normal",
-      "rationale": "Call creation lacks a directly searchable vector."
     },
     {
       "event_kind": "ak.circle.history_access",
