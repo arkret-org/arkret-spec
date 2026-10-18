@@ -229,7 +229,8 @@
         "authority_generation": {
           "type": "integer",
           "minimum": 0,
-          "maximum": 18446744073709551615
+          "maximum": 18446744073709551615,
+          "description": "Actual holder PCR governance tenure, independently verified from accepted inception and eligible authority continuity. Human stays at the account Station; same-Station endpoint/key changes do not advance this value. Never an authority-root delegation or device generation."
         },
         "evaluated_at": {
           "$ref": "./time.schema.json#/$defs/timestamp"

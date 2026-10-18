@@ -6,7 +6,7 @@
     "ak.realm_authority_handoff_old_signature.v1",
     "ak.realm_authority_handoff_new_acceptance_signature.v1"
   ],
-  "description": "Closed planned transfer from one Realm authority generation to its unique successor. Both service signatures and the controller-authored change Event are required; this is not a quorum vote.",
+  "description": "Closed planned transfer from one Realm authority generation to its unique successor. Both service signatures and the controller-authored change Event are required; this is not a quorum vote. Eligibility is derived from verified accepted genesis provenance: Human PCR is forbidden at every handoff stage by the PCR profile pcr_governance_policy; valid signatures or schema shape cannot override it.",
   "type": "object",
   "required": [
     "handoff_id",
@@ -53,7 +53,7 @@
     "pcr_private_state_digest": {
       "type": "string",
       "pattern": "^sha256:[0-9a-f]{64}$",
-      "description": "Required exactly for PCR planned handoff: SHA256 of the complete canonical private handoff manifest, including its undisclosed CSPRNG nonce. Both original signatures cover it; no private archive or manifest enters the public authority bundle."
+      "description": "Required exactly for eligible non-Human PCR planned handoff: SHA256 of the complete canonical private handoff manifest, including its undisclosed CSPRNG nonce. Both original signatures cover it; no private archive or manifest enters the public authority bundle."
     },
     "snapshot_ref": {
       "$ref": "./common-ids.schema.json#/$defs/realm_snapshot_id"

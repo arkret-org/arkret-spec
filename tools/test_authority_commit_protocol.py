@@ -16,6 +16,63 @@ def read(relative: str):
 
 
 class AuthorityCommitProtocolTest(unittest.TestCase):
+    def test_pcr_station_binding_cases_replay_the_provenance_policy(self):
+        # This is a semantic policy oracle, not a signature or storage verifier.
+        # provenance_verified means the existing native verifier already succeeded.
+        policy = read("profiles/conformance-profiles.json")["profile_requirements"][
+            "ak.profile.principal_control_realm.v1"
+        ]["pcr_governance_policy"]
+        fixture = read("fixtures/pcr-genesis-fixture.json")
+        cases = [{**row, "input": {**fixture["station_binding_baseline"], **row["input"]}}
+                 for row in fixture["station_binding_cases"]]
+
+        def admissible(value):
+            if value.get("provenance_verified") is not True:
+                return False
+            human = policy["human"]
+            if (value["purpose"], value["genesis_admission"]) == (
+                human["purpose"], human["genesis_admission"]
+            ):
+                if value["authority_evidence"] != "registration_anchor":
+                    return False
+                if not value["account_station"] == value["genesis_governor"] == value["current_governor"]:
+                    return False
+                if value["stage"] in ["governance_change"] + human["rejected_stages"]:
+                    return False
+                if value["stage"] in {"endpoint_update", "key_update", "deployment_update"}:
+                    return value["generation_before"] == value["generation_after"]
+                return value["stage"] in {"genesis", "native_current"}
+            if value["purpose"] == "collaboration":
+                eligible = value["authority_evidence"] == "accepted_ordinary_genesis"
+            else:
+                eligible = any(all(value.get(key) == item for key, item in branch.items())
+                               for branch in policy["transferable_provenance"])
+            return eligible and all(value.get(key) is True for key in policy["transfer_preconditions"])
+
+        self.assertEqual(len({row["name"] for row in cases}), len(cases))
+        stages = {row["input"]["stage"] for row in cases}
+        self.assertTrue(set(policy["human"]["rejected_stages"]).issubset(stages))
+        for row in cases:
+            with self.subTest(case=row["name"]):
+                accepted = admissible(row["input"])
+                self.assertEqual("accept" if accepted else "reject", row["expected"])
+                self.assertEqual(not accepted, row["writes_nothing"])
+        for branch in policy["transferable_provenance"]:
+            self.assertTrue(any(row["expected"] == "accept" and all(
+                row["input"].get(key) == value for key, value in branch.items()
+            ) for row in cases))
+
+    def test_call_case_preserves_freshness_without_a_human_handoff(self):
+        fixture = read("fixtures/consent-cache-invalidation-fixture.json")
+        case = fixture["cases"][11]
+        self.assertEqual(case["name"], "call_invitation_older_read_retry_and_human_station_binding")
+        assertions = " ".join(case["assertions"])
+        for obligation in ("zero Event", "Older reads", "exact", "expired", "same-Station", "non-Human", "complete planned handoff", "second writer"):
+            self.assertIn(obligation, assertions)
+        evidence = next(point for row in fixture["security_evidence"]
+                        for point in row["decision_points"] if point["id"] == case["name"])
+        self.assertEqual(evidence["evidence"], ["/cases/11"])
+
     def test_reply_creation_convenience_uses_closed_payload_field(self):
         payload = read("schemas/event-payload.schema.json")["$defs"]["message_create_payload"]
         self.assertIn("reply_to_id", payload["properties"])

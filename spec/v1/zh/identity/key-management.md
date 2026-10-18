@@ -12,6 +12,8 @@ updated: 2026-09-25
 
 ## 1. 目标
 
+Human 的 PCR、设备／恢复策略、identity-resolution successor 与 KeyPackage current 固定由完整 AccountId 的 owning Station 治理；注册后的 DID 更新、恢复或 controller 委托不构成跨 Station 迁移或主体改判。Station 的合法 key／endpoint／部署更新继续验证原服务身份与历史证据，不推进 PCR 治理任期。其它主体仍按各自 accepted 原生来源与共享 handoff 验证；完整边界见 [`authority-commit-log.md` §8.1](../sync/authority-commit-log.md#81-pcr-治理归属与交接资格normative)。
+
 身份层定义“谁是主体”，加密层定义“如何保护内容”，但真正能让系统安全运行的是密钥管理。
 
 本文定义 Arkret 的密钥生命周期：

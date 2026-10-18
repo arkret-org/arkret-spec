@@ -162,8 +162,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/consent-cache-invalidation-fixture.json",
-      "sha256": "040c1c9c2db258da96dbb4bd98457b2bee37d7baefdc3baad7ce2fe89b80474e",
-      "version": "2026-10-17.1"
+      "sha256": "968e2ae4329ad9a34c56abbf7bbf1e1a7a03d8a85b2005e77c7bbee261f66dff",
+      "version": "2026-10-18.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/constraint-evaluation-fixture.json",
@@ -457,8 +457,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/pcr-genesis-fixture.json",
-      "sha256": "b41dbb73e098b10ca400f41fe312af0169140b83d90a3bacf505eb35b3da803f",
-      "version": 9
+      "sha256": "0c23078501616c2205d8f8173004068db79ee499a4af71e0cb38e6d572416de2",
+      "version": 11
     },
     {
       "path": "spec/v1/artifacts/fixtures/peer-event-submit-semantic-union-fixture.json",

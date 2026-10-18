@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/realm-authority-bundle.schema.json",
   "title": "Arkret Realm Authority Bundle",
-  "description": "Public genesis-to-current authority certificate chain plus a nonce-bound online assertion. It exposes only the Realm stream and never enumerates Circle or Sidecar streams.",
+  "description": "Public genesis-to-current authority certificate chain plus a nonce-bound online assertion. It exposes only the Realm stream and never enumerates Circle or Sidecar streams. Human PCR accepted registration genesis binds the complete Account and its account Station permanently under ak.profile.principal_control_realm.v1 pcr_governance_policy. A Human genesis governor mismatch, authority transition or foreign current governor rejects without effects; provenance is independently verified and is not a caller-supplied flag. Other proven subject branches retain their existing rules. The public operation MUST NOT disclose a Human PCR bundle: indistinguishable not_found under pcr_governance_policy; its private native authority checks remain mandatory. Non-Human managed-device verification retains this carrier.",
   "type": "object",
   "required": [
     "realm_id",

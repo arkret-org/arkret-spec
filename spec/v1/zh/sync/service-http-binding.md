@@ -361,7 +361,7 @@ Peer 复制只交付已签 RealmCommit、exact Event、typed snapshot 和获准�
 
 `POST /_arkret/open/realm-authority/bundle` 返回 `realm-authority-bundle.schema.json`。响应必须绑定
 request nonce、Realm genesis、连续 handoff records、current generation/service identity 和公开 Realm stream head。
-locator、TLS endpoint 或 DID route 只用来找到候选服务，不作为治理权证明。
+locator、TLS endpoint 或 DID route 只用来找到候选服务，不作为治理权证明。Human PCR 的公开 bundle 请求按 PCR profile 的 pcr_governance_policy 返回不可区分的 `not_found`；其原生私有验证保持。普通 Realm 与已验证非 Human PCR 的合法最小材料不受影响，资格见 [authority-commit-log §8.1](./authority-commit-log.md#81-pcr-治理归属与交接资格normative)。
 
 ### 4.2 Planned handoff
 

@@ -36,6 +36,8 @@ Applet-managed Ghost 与 integration。`ActorId` 只允许 `account`（内嵌完
 session 或业务关系；只有显式 current external claim、resolution successor 或启用的 DID-root recovery
 消费 current DID state。
 
+**Human PCR 治理边界（normative）**：Human 注册创世的 governor 与完整 AccountId 的 Station 必须一致并保持同一逻辑 Station 身份；没有独立 Human PCR handoff。账号与控制域的认证、设备、pairing、session、recovery 与 KeyPackage current 均由该 Station TCB 负责，部署拆分不产生另一治理主体。合法同 Station endpoint／key／基础设施更新不改变账号或推进治理任期。判别依据与所有交接入口的拒绝合同见 [`authority-commit-log.md` §8.1](../sync/authority-commit-log.md#81-pcr-治理归属与交接资格normative)。
+
 **Station 生命周期边界（normative）**：本文件所有账号找回与 reactivation 只作用于原 exact
 AccountId 和原 PCR lineage，MUST 遵守 [`common-fields.md` §4.2 的账号隔离铁律](../models/common-fields.md#42-主体引用字段)。
 Station 永久停止服务，其上的 Account 与 PCR 随之终止；协议不定义将其迁移或复活到另一 Station

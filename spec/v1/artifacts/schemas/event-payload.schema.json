@@ -2140,7 +2140,7 @@
                 },
                 "expected_revision": {
                   "$ref": "./typed-current-result.schema.json#/$defs/revision",
-                    "description": "Exact current revision of the entire Call moderation axis observed by the producer, independent of which actor is restored. It compares the same {commit_id, stream_position} as the typed current row, including an empty effective value's latest restore source. It is not a per-participant revision or a producer-chosen counter."
+                  "description": "Exact current revision of the entire Call moderation axis observed by the producer, independent of which actor is restored. It compares the same {commit_id, stream_position} as the typed current row, including an empty effective value's latest restore source. It is not a per-participant revision or a producer-chosen counter."
                 }
               },
               "additionalProperties": false
@@ -9116,7 +9116,8 @@
           "$ref": "./common-ids.schema.json#/$defs/did_core_id"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "description": " Admission requires verified transfer eligibility under the PCR profile pcr_governance_policy; Human PCR rejects without effects even with valid signatures. The payload has no subject-role override."
     },
     "poll_response_head": {
       "type": "object",

@@ -53,6 +53,43 @@ class PcrExposureLintTest(unittest.TestCase):
     def test_committed_registry_passes(self) -> None:
         self.assertEqual(self._run(self.registry), [])
 
+    def test_migration_exposure_cannot_silently_include_human(self) -> None:
+        registry = self._mutate()
+        for row in registry["authorization_policies"]:
+            if row["policy_id"].endswith("planned_handoff_participant.v1"):
+                row["description"] = "Any PCR with valid signatures may migrate."
+        self.assertTrue(any("must exclude Human" in error for error in self._run(registry)))
+
+    def test_subject_policy_mutations_are_rejected(self) -> None:
+        original = _load(PROFILES)
+        for mutation in ("human_transfer", "public_human_bundle", "unknown_fallback", "drop_org", "weaken_import", "unconditional_required"):
+            with self.subTest(mutation=mutation):
+                profiles = copy.deepcopy(original)
+                profile = profiles["profile_requirements"]["ak.profile.principal_control_realm.v1"]
+                policy = profile["pcr_governance_policy"]
+                if mutation == "human_transfer":
+                    policy["human"]["rejected_stages"].remove("activation")
+                elif mutation == "public_human_bundle":
+                    policy["human"]["rejected_stages"].remove("public_authority_bundle")
+                elif mutation == "unknown_fallback":
+                    policy["unknown_provenance"] = "ordinary_realm"
+                elif mutation == "drop_org":
+                    policy["transferable_provenance"].pop(0)
+                elif mutation == "weaken_import":
+                    policy["transfer_preconditions"].remove("complete_frozen_import")
+                else:
+                    profile["required_event_kinds"].append("ak.realm.governance_station.change")
+
+                def fake_load_json(lint, path):
+                    if path == PROFILES:
+                        return profiles
+                    return self.real_load_json(lint, path)
+
+                lint_artifacts.load_json = fake_load_json
+                lint = lint_artifacts.Lint()
+                lint_artifacts.check_pcr_governance_policy(lint)
+                self.assertTrue(lint.errors)
+
     def test_allowlist_kind_without_exposure_decision_is_rejected(self) -> None:
         registry = self._mutate()
         registry["event_kinds"] = [

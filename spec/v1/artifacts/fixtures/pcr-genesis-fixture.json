@@ -1,6 +1,6 @@
 {
   "suite": "ak.fixture.pcr_genesis.v1",
-  "version": 9,
+  "version": 11,
   "runner": {
     "kind": "named_suite",
     "entrypoint": "ak.suite.identity.pcr_genesis.v1"
@@ -1181,5 +1181,530 @@
         "pointer": "/identity_creation_control_transcript/account_subject_preimage/canonical_json"
       }
     }
-  ]
+  ],
+  "station_binding_cases": [
+    {
+      "name": "human_matching_account_station_genesis",
+      "input": {
+        "stage": "genesis"
+      },
+      "expected": "accept",
+      "writes_nothing": false
+    },
+    {
+      "name": "human_wrong_genesis_governor",
+      "input": {
+        "genesis_governor": "station_b",
+        "stage": "genesis"
+      },
+      "expected": "reject",
+      "writes_nothing": true
+    },
+    {
+      "name": "human_governance_change_zero_effects",
+      "input": {
+        "stage": "governance_change"
+      },
+      "expected": "reject",
+      "writes_nothing": true
+    },
+    {
+      "name": "human_freeze_zero_effects",
+      "input": {
+        "stage": "freeze"
+      },
+      "expected": "reject",
+      "writes_nothing": true
+    },
+    {
+      "name": "human_handoff_export_zero_effects",
+      "input": {
+        "stage": "handoff_export"
+      },
+      "expected": "reject",
+      "writes_nothing": true
+    },
+    {
+      "name": "human_handoff_import_zero_effects",
+      "input": {
+        "stage": "handoff_import"
+      },
+      "expected": "reject",
+      "writes_nothing": true
+    },
+    {
+      "name": "human_acceptance_zero_effects",
+      "input": {
+        "stage": "acceptance"
+      },
+      "expected": "reject",
+      "writes_nothing": true
+    },
+    {
+      "name": "human_activation_zero_effects",
+      "input": {
+        "stage": "activation"
+      },
+      "expected": "reject",
+      "writes_nothing": true
+    },
+    {
+      "name": "human_remote_proxy_zero_effects",
+      "input": {
+        "stage": "remote_proxy"
+      },
+      "expected": "reject",
+      "writes_nothing": true
+    },
+    {
+      "name": "human_remote_publication_zero_effects",
+      "input": {
+        "stage": "remote_publication"
+      },
+      "expected": "reject",
+      "writes_nothing": true
+    },
+    {
+      "name": "human_foreign_current_authority_zero_effects",
+      "input": {
+        "stage": "foreign_current_authority"
+      },
+      "expected": "reject",
+      "writes_nothing": true
+    },
+    {
+      "name": "human_same_station_endpoint_update",
+      "input": {
+        "stage": "endpoint_update",
+        "generation_before": 0,
+        "generation_after": 0
+      },
+      "expected": "accept",
+      "writes_nothing": false
+    },
+    {
+      "name": "human_endpoint_update_cannot_change_tenure",
+      "input": {
+        "stage": "endpoint_update",
+        "generation_before": 0,
+        "generation_after": 1
+      },
+      "expected": "reject",
+      "writes_nothing": true
+    },
+    {
+      "name": "human_same_station_key_update",
+      "input": {
+        "stage": "key_update",
+        "generation_before": 0,
+        "generation_after": 0
+      },
+      "expected": "accept",
+      "writes_nothing": false
+    },
+    {
+      "name": "human_key_update_cannot_change_tenure",
+      "input": {
+        "stage": "key_update",
+        "generation_before": 0,
+        "generation_after": 1
+      },
+      "expected": "reject",
+      "writes_nothing": true
+    },
+    {
+      "name": "human_same_station_deployment_update",
+      "input": {
+        "stage": "deployment_update",
+        "generation_before": 0,
+        "generation_after": 0
+      },
+      "expected": "accept",
+      "writes_nothing": false
+    },
+    {
+      "name": "human_deployment_update_cannot_change_tenure",
+      "input": {
+        "stage": "deployment_update",
+        "generation_before": 0,
+        "generation_after": 1
+      },
+      "expected": "reject",
+      "writes_nothing": true
+    },
+    {
+      "name": "human_foreign_governor_current_rejected",
+      "input": {
+        "current_governor": "station_b",
+        "stage": "native_current"
+      },
+      "expected": "reject",
+      "writes_nothing": true
+    },
+    {
+      "name": "unknown_source_cannot_fall_back",
+      "input": {
+        "provenance_verified": false,
+        "stage": "governance_change"
+      },
+      "expected": "reject",
+      "writes_nothing": true
+    },
+    {
+      "name": "human_caller_claimed_org_cannot_reclassify",
+      "input": {
+        "stage": "governance_change",
+        "claimed_subject": "organization"
+      },
+      "expected": "reject",
+      "writes_nothing": true
+    },
+    {
+      "name": "organization_governance_change_preserved",
+      "input": {
+        "genesis_admission": "delegated_pcr_genesis",
+        "authority_evidence": "accepted_organization_authority",
+        "stage": "governance_change"
+      },
+      "expected": "accept",
+      "writes_nothing": false
+    },
+    {
+      "name": "organization_handoff_import_preserved",
+      "input": {
+        "genesis_admission": "delegated_pcr_genesis",
+        "authority_evidence": "accepted_organization_authority",
+        "stage": "handoff_import"
+      },
+      "expected": "accept",
+      "writes_nothing": false
+    },
+    {
+      "name": "organization_activation_preserved",
+      "input": {
+        "genesis_admission": "delegated_pcr_genesis",
+        "authority_evidence": "accepted_organization_authority",
+        "stage": "activation"
+      },
+      "expected": "accept",
+      "writes_nothing": false
+    },
+    {
+      "name": "organization_missing_independent_evidence",
+      "input": {
+        "genesis_admission": "delegated_pcr_genesis",
+        "authority_evidence": "caller_claim",
+        "stage": "activation"
+      },
+      "expected": "reject",
+      "writes_nothing": true
+    },
+    {
+      "name": "organization_missing_current_controller_authorization",
+      "input": {
+        "genesis_admission": "delegated_pcr_genesis",
+        "authority_evidence": "accepted_organization_authority",
+        "stage": "activation",
+        "current_controller_authorization": false
+      },
+      "expected": "reject",
+      "writes_nothing": true
+    },
+    {
+      "name": "organization_missing_generation_and_head_cas",
+      "input": {
+        "genesis_admission": "delegated_pcr_genesis",
+        "authority_evidence": "accepted_organization_authority",
+        "stage": "activation",
+        "generation_and_head_cas": false
+      },
+      "expected": "reject",
+      "writes_nothing": true
+    },
+    {
+      "name": "organization_missing_old_authority_online",
+      "input": {
+        "genesis_admission": "delegated_pcr_genesis",
+        "authority_evidence": "accepted_organization_authority",
+        "stage": "activation",
+        "old_authority_online": false
+      },
+      "expected": "reject",
+      "writes_nothing": true
+    },
+    {
+      "name": "organization_missing_complete_frozen_import",
+      "input": {
+        "genesis_admission": "delegated_pcr_genesis",
+        "authority_evidence": "accepted_organization_authority",
+        "stage": "activation",
+        "complete_frozen_import": false
+      },
+      "expected": "reject",
+      "writes_nothing": true
+    },
+    {
+      "name": "organization_missing_both_service_signatures",
+      "input": {
+        "genesis_admission": "delegated_pcr_genesis",
+        "authority_evidence": "accepted_organization_authority",
+        "stage": "activation",
+        "both_service_signatures": false
+      },
+      "expected": "reject",
+      "writes_nothing": true
+    },
+    {
+      "name": "agent_governance_change_preserved",
+      "input": {
+        "purpose": "agent_control",
+        "genesis_admission": "delegated_pcr_genesis",
+        "authority_evidence": "accepted_controller_provision",
+        "stage": "governance_change"
+      },
+      "expected": "accept",
+      "writes_nothing": false
+    },
+    {
+      "name": "agent_handoff_import_preserved",
+      "input": {
+        "purpose": "agent_control",
+        "genesis_admission": "delegated_pcr_genesis",
+        "authority_evidence": "accepted_controller_provision",
+        "stage": "handoff_import"
+      },
+      "expected": "accept",
+      "writes_nothing": false
+    },
+    {
+      "name": "agent_activation_preserved",
+      "input": {
+        "purpose": "agent_control",
+        "genesis_admission": "delegated_pcr_genesis",
+        "authority_evidence": "accepted_controller_provision",
+        "stage": "activation"
+      },
+      "expected": "accept",
+      "writes_nothing": false
+    },
+    {
+      "name": "agent_missing_independent_evidence",
+      "input": {
+        "purpose": "agent_control",
+        "genesis_admission": "delegated_pcr_genesis",
+        "authority_evidence": "caller_claim",
+        "stage": "activation"
+      },
+      "expected": "reject",
+      "writes_nothing": true
+    },
+    {
+      "name": "agent_missing_current_controller_authorization",
+      "input": {
+        "purpose": "agent_control",
+        "genesis_admission": "delegated_pcr_genesis",
+        "authority_evidence": "accepted_controller_provision",
+        "stage": "activation",
+        "current_controller_authorization": false
+      },
+      "expected": "reject",
+      "writes_nothing": true
+    },
+    {
+      "name": "agent_missing_generation_and_head_cas",
+      "input": {
+        "purpose": "agent_control",
+        "genesis_admission": "delegated_pcr_genesis",
+        "authority_evidence": "accepted_controller_provision",
+        "stage": "activation",
+        "generation_and_head_cas": false
+      },
+      "expected": "reject",
+      "writes_nothing": true
+    },
+    {
+      "name": "agent_missing_old_authority_online",
+      "input": {
+        "purpose": "agent_control",
+        "genesis_admission": "delegated_pcr_genesis",
+        "authority_evidence": "accepted_controller_provision",
+        "stage": "activation",
+        "old_authority_online": false
+      },
+      "expected": "reject",
+      "writes_nothing": true
+    },
+    {
+      "name": "agent_missing_complete_frozen_import",
+      "input": {
+        "purpose": "agent_control",
+        "genesis_admission": "delegated_pcr_genesis",
+        "authority_evidence": "accepted_controller_provision",
+        "stage": "activation",
+        "complete_frozen_import": false
+      },
+      "expected": "reject",
+      "writes_nothing": true
+    },
+    {
+      "name": "agent_missing_both_service_signatures",
+      "input": {
+        "purpose": "agent_control",
+        "genesis_admission": "delegated_pcr_genesis",
+        "authority_evidence": "accepted_controller_provision",
+        "stage": "activation",
+        "both_service_signatures": false
+      },
+      "expected": "reject",
+      "writes_nothing": true
+    },
+    {
+      "name": "applet_managed_governance_change_preserved",
+      "input": {
+        "purpose": "applet_managed_control",
+        "genesis_admission": "applet_managed_pcr_genesis",
+        "authority_evidence": "accepted_managed_provision",
+        "stage": "governance_change"
+      },
+      "expected": "accept",
+      "writes_nothing": false
+    },
+    {
+      "name": "applet_managed_handoff_import_preserved",
+      "input": {
+        "purpose": "applet_managed_control",
+        "genesis_admission": "applet_managed_pcr_genesis",
+        "authority_evidence": "accepted_managed_provision",
+        "stage": "handoff_import"
+      },
+      "expected": "accept",
+      "writes_nothing": false
+    },
+    {
+      "name": "applet_managed_activation_preserved",
+      "input": {
+        "purpose": "applet_managed_control",
+        "genesis_admission": "applet_managed_pcr_genesis",
+        "authority_evidence": "accepted_managed_provision",
+        "stage": "activation"
+      },
+      "expected": "accept",
+      "writes_nothing": false
+    },
+    {
+      "name": "applet_managed_missing_independent_evidence",
+      "input": {
+        "purpose": "applet_managed_control",
+        "genesis_admission": "applet_managed_pcr_genesis",
+        "authority_evidence": "caller_claim",
+        "stage": "activation"
+      },
+      "expected": "reject",
+      "writes_nothing": true
+    },
+    {
+      "name": "applet_managed_missing_current_controller_authorization",
+      "input": {
+        "purpose": "applet_managed_control",
+        "genesis_admission": "applet_managed_pcr_genesis",
+        "authority_evidence": "accepted_managed_provision",
+        "stage": "activation",
+        "current_controller_authorization": false
+      },
+      "expected": "reject",
+      "writes_nothing": true
+    },
+    {
+      "name": "applet_managed_missing_generation_and_head_cas",
+      "input": {
+        "purpose": "applet_managed_control",
+        "genesis_admission": "applet_managed_pcr_genesis",
+        "authority_evidence": "accepted_managed_provision",
+        "stage": "activation",
+        "generation_and_head_cas": false
+      },
+      "expected": "reject",
+      "writes_nothing": true
+    },
+    {
+      "name": "applet_managed_missing_old_authority_online",
+      "input": {
+        "purpose": "applet_managed_control",
+        "genesis_admission": "applet_managed_pcr_genesis",
+        "authority_evidence": "accepted_managed_provision",
+        "stage": "activation",
+        "old_authority_online": false
+      },
+      "expected": "reject",
+      "writes_nothing": true
+    },
+    {
+      "name": "applet_managed_missing_complete_frozen_import",
+      "input": {
+        "purpose": "applet_managed_control",
+        "genesis_admission": "applet_managed_pcr_genesis",
+        "authority_evidence": "accepted_managed_provision",
+        "stage": "activation",
+        "complete_frozen_import": false
+      },
+      "expected": "reject",
+      "writes_nothing": true
+    },
+    {
+      "name": "applet_managed_missing_both_service_signatures",
+      "input": {
+        "purpose": "applet_managed_control",
+        "genesis_admission": "applet_managed_pcr_genesis",
+        "authority_evidence": "accepted_managed_provision",
+        "stage": "activation",
+        "both_service_signatures": false
+      },
+      "expected": "reject",
+      "writes_nothing": true
+    },
+    {
+      "name": "ordinary_realm_shared_handoff_preserved",
+      "input": {
+        "purpose": "collaboration",
+        "genesis_admission": "capability_gated",
+        "authority_evidence": "accepted_ordinary_genesis",
+        "stage": "activation"
+      },
+      "expected": "accept",
+      "writes_nothing": false
+    },
+    {
+      "name": "ordinary_realm_unknown_source_rejected",
+      "input": {
+        "purpose": "collaboration",
+        "genesis_admission": "capability_gated",
+        "provenance_verified": false,
+        "stage": "activation"
+      },
+      "expected": "reject",
+      "writes_nothing": true
+    },
+    {
+      "name": "human_public_authority_bundle_not_disclosed",
+      "input": {
+        "stage": "public_authority_bundle"
+      },
+      "expected": "reject",
+      "writes_nothing": true
+    }
+  ],
+  "station_binding_baseline": {
+    "purpose": "principal_control",
+    "genesis_admission": "registration_anchor",
+    "authority_evidence": "registration_anchor",
+    "provenance_verified": true,
+    "account_station": "station_a",
+    "genesis_governor": "station_a",
+    "current_governor": "station_a",
+    "current_controller_authorization": true,
+    "generation_and_head_cas": true,
+    "old_authority_online": true,
+    "complete_frozen_import": true,
+    "both_service_signatures": true
+  }
 }

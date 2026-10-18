@@ -482,7 +482,7 @@ SCID 段匹配，key id 规则只看 fragment（因此把 fixture 的 key id 重
 同一 human DID 在第二个 Station 上的合法 genesis MUST 重算出不同的 `realm_id`，两条 case 之间只允许 account
 Station 与 generation-0 governance Station 不同，从而把“一个 DID 在两个 Station 上是两个互不迁移的 PCR”
 钉成重算结果而不是文字声明。founding `ak.device.authorize` MUST 携带同一 derived Realm，
-并复用该 descriptor 冻结的 `founding_authorize_payload_digest`。account 维度唯一性是状态判定：event-derived 下
+并复用该 descriptor 冻结的 `founding_authorize_payload_digest`。`ak.vector.identity.pcr_genesis.v1` 还 MUST 验证 Human 创世 governor 不等于账号 Station、change／freeze／handoff import／acceptance／activation／分离 governor proxy／publication 及外站 current authority 全部零效果拒绝，公开 Human PCR authority bundle 不披露 genesis／Commit／current assertion并返回不可区分的not_found；未知／伪装来源不能回落，合法同 Station endpoint／key／部署更新不推进任期。Organization、Agent、Applet-managed 的 accepted 独立来源及普通 Realm 仍按原共享 handoff 验证，单独标签或不完整私态不获准。`pcr-genesis-fixture.json` 的 `station_binding_cases` 固定这些具名前置／结果，语义 case 不替代真实签名或生产事务验收。account 维度唯一性是状态判定：event-derived 下
 第二次 genesis 必然得到不同 `realm_id`，因此 MUST NOT 由标识相等触发拒绝；向量以独立 state case 给出显式前置状态、
 零写入与判定依据（[`../models/realm-and-space.md` §2.5](../models/realm-and-space.md)）。
 

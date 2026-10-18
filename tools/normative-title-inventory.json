@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-18.4",
+  "version": "2026-10-18.5",
   "source_of_truth": true,
-  "generated_at": "2026-10-18T22:24:00+08:00",
+  "generated_at": "2026-10-18T23:47:25+08:00",
   "description": "Closed inventory of current spec/v1/zh headings that explicitly carry the （normative） marker. Any addition, removal, rename, or move is reviewed as a protocol change and refreshes this source-of-truth inventory.",
   "titles": [
     {
@@ -676,8 +676,8 @@
     },
     {
       "page": "identity/consent-model.md",
-      "heading": "6.3.3 authority 接受后的私有效果发布（normative）",
-      "fragment": "633-authority-接受后的私有效果发布normative"
+      "heading": "6.3.3 非 Human 跨 governor 私有效果发布（normative）",
+      "fragment": "633-非-human-跨-governor-私有效果发布normative"
     },
     {
       "page": "identity/contact-and-direct-conversation.md",
@@ -1166,8 +1166,8 @@
     },
     {
       "page": "sync/authority-commit-log.md",
-      "heading": "8.1 PCR 与 hosting Station 的独立身份（normative）",
-      "fragment": "81-pcr-与-hosting-station-的独立身份normative"
+      "heading": "8.1 PCR 治理归属与交接资格（normative）",
+      "fragment": "81-pcr-治理归属与交接资格normative"
     },
     {
       "page": "sync/client-sync.md",

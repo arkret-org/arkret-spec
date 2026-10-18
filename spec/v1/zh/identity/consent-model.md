@@ -139,7 +139,7 @@ holder 可主动签发短期 green-light，绑定 holder、peer、scope、audien
 
 普通 Realm snapshot 的披露不能被用来开放 holder PCR；列表／get 的 ConsentView 也不含完整值。完整读取正式复用 Consent surface，operation 为 `ak.self.consent.read.current.v1`（`POST /_arkret/self/consent/current`）及仅供 hosting Station 代理的 `ak.peer.consent.read.current.v1`（`POST /_arkret/peer/consent/current`）。closed request／outcome 见 `consent-operations.schema.json` 的 `consent_current_read_request_body`／`consent_current_read_outcome`。
 
-两个入口均使用 exact `holder_account_id,peer,consent_scope,audience_actor_id,nonce`，nonce 至少128 bit CSPRNG；self 的认证 Account **MUST** 等于完整 holder，audience **MUST** 是 holder hosting Station 的完整 Service ActorId。peer 只允许该 hosting Station，经当前 PCR authority 读取；邀请发起者、媒体 issuer、同 principal 的另一 Station Account 与普通 Realm governance **MUST NOT** 取得完整值。hosting Station 必须先完成认证 holder／其正式controller的授权，不得把 requester 的声明作为代理资格。完整值只交给该 holder 的认证 self 会话，不向 caller of invitation 或其它消费者转发。
+两个入口均使用 exact `holder_account_id,peer,consent_scope,audience_actor_id,nonce`，nonce 至少128 bit CSPRNG；self 的认证 Account **MUST** 等于完整 holder，audience **MUST** 是 holder hosting Station 的完整 Service ActorId。peer 只允许该 hosting Station，且只用于已验证可独立交接的非 Human PCR，经当前 PCR authority 读取；Human 在 owning Station TCB 内完成同一读取，不使用跨 Station PCR 代理；邀请发起者、媒体 issuer、同 principal 的另一 Station Account 与普通 Realm governance **MUST NOT** 取得完整值。hosting Station 必须先完成认证 holder／其正式controller的授权，不得把 requester 的声明作为代理资格。完整值只交给该 holder 的认证 self 会话，不向 caller of invitation 或其它消费者转发。
 
 current authority 在与 Grant／Revoke 相同的 PCR serializable cut 读取全部 exact peer、requested scope 及独立 any 的 current records（请求 any 时只匹配 any），包括 active／revoked，不按列表状态猜许可。outcome 由该 cut 的实际 PCR Realm、generation、effective Realm stream head 及完整 `consent_result` rows组成；空集合只表示此 cut 无匹配记录。每 row 的稳定 ID、source stream与current revision必须绑定实际accepted source，完整值包括not_before、expires_at、constraints与状态。此 operation 不签发授权、不写第二账本、不改变 current；list／get继续只用于定位稳定 ID／展示。完整 targeted read 消除 list 与 exact read 的竞争；consumer仍独立求值所有 eligible concrete／any records。
 
@@ -158,7 +158,9 @@ peer签名场景只引用 `ak.http_signature.scenario.consent_current_read.v1`�
 
 ### 6.3.2 交接后的私有接受与 hosting 代理（normative）
 
-PCR planned handoff 后，holder 的完整 AccountId 与 hosting Station 不变，Grant／Revoke 及相关私有接受事务由当前 PCR authority 负责。hosting Station MUST 从 inception PCR 与连续 handoff chain 独立确定当前 authority；不能用 AccountId.station_id、接收结果自报的 key 或调用方给出的地址代替。
+Human 的 Grant／Revoke、current、quarantine、quota／去重、policy、delivery 最终 CAS 与通知在 owning Station 的同一 PCR 权威边界内完成；内部拆分仍须原子提交和耐久 exact retry，不产生 remote PCR governor、代理会话证明或跨 governor publication。普通设备同步、account subscribe 的 baseline／catch-up 和本地耐久通知保持。
+
+本节其余跨 governor proxy 仅适用于 [`authority-commit-log.md` §8.1](../sync/authority-commit-log.md#81-pcr-治理归属与交接资格normative) 允许独立交接且具备原有 Consent 能力的非 Human PCR；并不赋予其 Human session 能力。其 planned handoff 后完整 AccountId 与 hosting Station 不变，Grant／Revoke 及私有接受事务归当前 PCR authority。hosting MUST 从 accepted inception／原生来源与连续 handoff chain 独立确定当前 authority；不能用接收结果自报的 key、地址或标签代替。Human 请求该跨站分支 MUST 零效果拒绝。
 
 Grant／Revoke MUST 继续携原 `EventAdmissionSubmission` 经既有 `ak.peer.events.command.submit.v1` 的 `authority_forward` 接纳。该 PCR native 分支只允许 exact holder hosting Station 转发，目标必须是已验证的 holder inception PCR／当前治理任期，producer 必须仍为该 PCR 当前 authority-root controller；当前方在同一 PCR 锁下重验原 device proof、当前设备状态、root ref 与 Consent CAS，并同事务更新 quarantine。它不变成普通协作 Human writer，不创建 `producer_signer_fact_digest`，不复制其它 PCR 历史，也不以 hosting 侧缓存证明当前授权。转发原件、已接受原件的精确重试和原结果必须保留；不能在 hosting Station 重新接纳或代签。
 
@@ -181,6 +183,20 @@ proxy 的写命令以 `(holder,governance_generation,nonce)` 与完整 request d
 
 hosting 侧 AccountData／device 更新只展示已验证 authority 接受的内容与原 revision，不独立推进该业务 revision，不构成第二个 CAS writer。变更接受后须使用原正式 actor-private 更新路径唤醒 holder；通知丢失时从当前 authority 读取并按已知 head／cell 高水位恢复，不能重新执行业务接受。Consent Revoke、quarantine invalidation 与最终 delivery 接受的线性顺序始终由当前方同一事务决定，两个数据库之间不假定分布式事务。
 
+### 6.3.3 非 Human 跨 governor 私有效果发布（normative）
+
+本节仅服务 §6.3.2 的已验证非 Human 分离 governor；Human 的本地通知不依赖此 peer publication，跨站请求零效果拒绝。
+
+`ak.peer.consent.command.publish_effects.v1`（`POST /_arkret/peer/consent/effects`）是当前 PCR authority 到 exact holder hosting Station 的闭合发布载体，DTO 见 `consent-private-operations.schema.json`。它只发布 `holder_quarantine,invite_delivery,invite_receive_policy` 三个 required nullable cell 的完整原 revision/content；不是第七个 proxy 命令，不提供任意 key 或任意 AccountData PUT，也不放宽 §6.3.2 的 holder-session／station 两个 context。
+
+Source MUST 是从 holder inception PCR 与连续 handoff chain 独立验证的当前治理 Station，Destination MUST 等于完整 holder 的 hosting Station。沿用 `ak.http_signature.scenario.service_to_service.v1`。请求绑定完整 holder、realm、generation、至少128 bit CSPRNG nonce、实际 effective Realm stream head、evaluated_at、expires_at 和完整 effects；窗口最多30秒。hosting 不接受调用方地址、自报 key、旧任期、冻结或不完整来源作为权威。新收到的 cut 不得低于包括新 authority assertion 在内的已知 head；同位置不同 Commit 或同 cell revision 不同 content 是分叉，必须拒绝。null 不得抹去已知的非空 cell revision，来源缺失不能被投影成空。
+
+authority 的实际私有 CAS／queue／invalidation 接受与耐久 publication intent MUST 同事务提交；精确业务重试不新增 intent、不再次执行业务 CAS。publisher 每次尝试从当前本地、未冻结 PCR 接受锁取得完整新 cut，在锁外以自己的真实 Service 身份发送；失联重试重新取得 cut／nonce／窗口，不能延长或重复使用旧授权材料。成功确认仅可在同一接受锁下、有匹配 intent sequence 的条件下删除／确认意图；冻结中不得改变导出状态。在途旧确认不能覆盖更新的接受，也不能改变已经冻结的迁移内容。
+
+hosting 验证 Source、当前治理权、请求窗口和已知 head／cell 高水位后，MUST 在一个本地投影事务内保留已验证 cut，按原 business revision/content 更新展示副本并推进正式 cursor-covered `account_data.station_cas` 位置。它不接受业务 CAS、不签发 RealmCommit，不独立增加该 cell 的 business revision。只有实际新增的投影 revision 可经原正式 actor-private 更新路径唤醒 holder；sender 是 hosting Station 自己的真实 Service，authority 不冒充它。等价 publication／确认丢失／冷恢复不得重复投影或 fanout；原 requester 始终只收到原 opaque outcome。
+
+publication outcome 只携完整 request digest 和 `applied|duplicate`，不授予业务授权。意图、确认边界及拒绝回退所需的私有耐久状态必须随 planned handoff 完整迁入；新 governor 用自己的当前身份恢复未确认意图，旧 governor 不得继续发布。holder 离线时也必须保留正式 account subscribe 的 baseline／catch-up；丢失低延迟通知不能通过伪造 holder 会话、重放业务接受、普通 PCR replication 或第二个 CAS writer 修复。未实现该发布载体的实现必须在接受冻结变更前拒绝启动 PCR handoff。
+
 ## 7. MIMI 映射
 
 MIMI update facade只接受调用方签署的 `EventAdmissionSubmission`，并按 decision 映射到 `ak.consent.grant` 或 `ak.consent.revoke`。facade不得构造 Event。对外投影只暴露最小 `(peer, scope, active)`，不暴露 reason、evidence 或 revision。
@@ -196,15 +212,3 @@ Consent list/get 仅允许 holder 或 holder 明确授权的 controller。peer �
 ## 9. Conformance
 
 实现至少验证：唯一 `consent_id`、stale revision 拒绝、exact retry、`any` 与具体 scope 的独立性、撤销后 cache 即时失效、跨 Station anti-enumeration、pairwise ActorId隔离以及 requester 观察等价类。
-
-### 6.3.3 authority 接受后的私有效果发布（normative）
-
-`ak.peer.consent.command.publish_effects.v1`（`POST /_arkret/peer/consent/effects`）是当前 PCR authority 到 exact holder hosting Station 的闭合发布载体，DTO 见 `consent-private-operations.schema.json`。它只发布 `holder_quarantine,invite_delivery,invite_receive_policy` 三个 required nullable cell 的完整原 revision/content；不是第七个 proxy 命令，不提供任意 key 或任意 AccountData PUT，也不放宽 §6.3.2 的 holder-session／station 两个 context。
-
-Source MUST 是从 holder inception PCR 与连续 handoff chain 独立验证的当前治理 Station，Destination MUST 等于完整 holder 的 hosting Station。沿用 `ak.http_signature.scenario.service_to_service.v1`。请求绑定完整 holder、realm、generation、至少128 bit CSPRNG nonce、实际 effective Realm stream head、evaluated_at、expires_at 和完整 effects；窗口最多30秒。hosting 不接受调用方地址、自报 key、旧任期、冻结或不完整来源作为权威。新收到的 cut 不得低于包括新 authority assertion 在内的已知 head；同位置不同 Commit 或同 cell revision 不同 content 是分叉，必须拒绝。null 不得抹去已知的非空 cell revision，来源缺失不能被投影成空。
-
-authority 的实际私有 CAS／queue／invalidation 接受与耐久 publication intent MUST 同事务提交；精确业务重试不新增 intent、不再次执行业务 CAS。publisher 每次尝试从当前本地、未冻结 PCR 接受锁取得完整新 cut，在锁外以自己的真实 Service 身份发送；失联重试重新取得 cut／nonce／窗口，不能延长或重复使用旧授权材料。成功确认仅可在同一接受锁下、有匹配 intent sequence 的条件下删除／确认意图；冻结中不得改变导出状态。在途旧确认不能覆盖更新的接受，也不能改变已经冻结的迁移内容。
-
-hosting 验证 Source、当前治理权、请求窗口和已知 head／cell 高水位后，MUST 在一个本地投影事务内保留已验证 cut，按原 business revision/content 更新展示副本并推进正式 cursor-covered `account_data.station_cas` 位置。它不接受业务 CAS、不签发 RealmCommit，不独立增加该 cell 的 business revision。只有实际新增的投影 revision 可经原正式 actor-private 更新路径唤醒 holder；sender 是 hosting Station 自己的真实 Service，authority 不冒充它。等价 publication／确认丢失／冷恢复不得重复投影或 fanout；原 requester 始终只收到原 opaque outcome。
-
-publication outcome 只携完整 request digest 和 `applied|duplicate`，不授予业务授权。意图、确认边界及拒绝回退所需的私有耐久状态必须随 planned handoff 完整迁入；新 governor 用自己的当前身份恢复未确认意图，旧 governor 不得继续发布。holder 离线时也必须保留正式 account subscribe 的 baseline／catch-up；丢失低延迟通知不能通过伪造 holder 会话、重放业务接受、普通 PCR replication 或第二个 CAS writer 修复。未实现该发布载体的实现必须在接受冻结变更前拒绝启动 PCR handoff。

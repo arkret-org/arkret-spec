@@ -12,6 +12,8 @@ updated: 2026-09-25
 
 ## 1. Login & Authorization Boundaries
 
+Human 的设备授权／撤销、pairing、session issue／refresh 与 current-device 查询以 accepted Human 创世绑定的账号 Station 为唯一 PCR 权威。原生认证 TCB 可按部署需要拆分，但 MUST 在原请求的同一授权截点验证当前设备与设备／事务终局，不能添加独立 Human governor 路由或把远端 verdict 当成本地授权。合法同 Station key／endpoint／部署更新不推进治理任期；完整来源与交接拒绝合同见 [`authority-commit-log.md` §8.1](../sync/authority-commit-log.md#81-pcr-治理归属与交接资格normative)。
+
 去中心化协议摒弃了传统的账号+密码中心化认证模式，身份的本质是持有私钥。Arkret 把以下三件事分开处理：
 
 - **登录因子验证**：Auth Server 验证 password、passkey、OIDC、SSO 或 recovery factor，只能产出 sender-constrained handoff/session、触发 identity-root recovery，或请求已有 accepted device 批准配对；它不能自行产生设备授权。

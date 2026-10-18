@@ -186,7 +186,7 @@ Arkret 的协议文档按“服务角色”定义能力；实际落地时可以�
 
 最小个人或小团队部署只要求一个公开业务数据角色：**Station**。Account Authority 是 Station 对客户端发布的账号准入 capability/surface，不是第二个 service role，也没有独立 `service_kind`、service DID、service registration 或 role-local Describe。实现 MAY 在 Station 认证 TCB 内拆分认证进程、数据库或私有 RPC，但这些拓扑对客户端、peer Station、Directory 与 Realm policy 透明。
 
-Device Pairing 的 `ak.gate.account.*` 条目只定义 client-visible Account Authority surface，不赋予 Account Authority 第二个服务身份或 Realm 治理权威。Account Authority 与 owning Station 之间的函数、RPC、journal、outbox 与恢复状态都是 Station TCB 的实现细节，不登记 canonical self-call 或中间态。共库、拆进程与拆库实现都必须产生相同的唯一 pairing ledger、Event／RealmCommit、terminal outcome 与 exact replay。human PCR 的 current governance MUST 保持与 `AccountId.station_id` 同一 Station 身份谱系，不允许另一 Station 接管该账号或 PCR；验证仍须核对 accepted genesis/治理连续性，不能只凭 `AccountId` 字段推断一份 Commit 有效。此约束不能推广成所有 Realm 的治理规则。
+Device Pairing 的 `ak.gate.account.*` 条目只定义 client-visible Account Authority surface，不赋予 Account Authority 第二个服务身份或 Realm 治理权威。Account Authority 与 owning Station 之间的函数、RPC、journal、outbox 与恢复状态都是 Station TCB 的实现细节，不登记 canonical self-call 或中间态。共库、拆进程与拆库实现都必须产生相同的唯一 pairing ledger、Event／RealmCommit、terminal outcome 与 exact replay。human PCR 的 current governance MUST 保持与 `AccountId.station_id` 同一 Station 身份谱系，不允许另一 Station 接管该账号或 PCR；验证仍须核对 accepted genesis/治理连续性，不能只凭 `AccountId` 字段推断一份 Commit 有效。具体来源判定、全部交接入口的零效果拒绝及其它主体保留的共享能力见 [`authority-commit-log.md` §8.1](../sync/authority-commit-log.md#81-pcr-治理归属与交接资格normative)；此约束不能推广成所有 Realm 的治理规则。
 
 ```text
 Station

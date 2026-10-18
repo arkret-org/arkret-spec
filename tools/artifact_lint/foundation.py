@@ -4678,6 +4678,60 @@ def check_timestamp_profile_single_source(lint: Lint) -> None:
             walk(path, data)
 
 
+def check_pcr_governance_policy(lint: Lint) -> None:
+    """Intersect the shared PCR surface with immutable subject provenance."""
+    path = ARTIFACTS / "profiles" / "conformance-profiles.json"
+    profiles = load_json(lint, path) or {}
+    profile = profiles.get("profile_requirements", {}).get(
+        "ak.profile.principal_control_realm.v1", {}
+    )
+    policy = profile.get("pcr_governance_policy", {})
+    if not isinstance(policy, dict):
+        lint.fail(path, "pcr_governance_policy must be an object")
+        return
+    human = policy.get("human", {})
+    required_human = {
+        "purpose": "principal_control",
+        "genesis_admission": "registration_anchor",
+        "required_evidence": ["registration_anchor", "complete_ordered_genesis_unit", "accepted_receipt", "full_account_binding"],
+        "governor": "account_station",
+        "provenance_mutable": False,
+        "rejected_event_kinds": ["ak.realm.governance_station.change"],
+        "rejected_stages": ["freeze", "handoff_export", "handoff_import", "acceptance", "activation", "remote_proxy", "remote_publication", "foreign_current_authority", "public_authority_bundle"],
+        "same_station_endpoint_key_deployment_update": "preserve_governance_generation",
+        "public_authority_bundle_error": "not_found",
+    }
+    if human != required_human:
+        lint.fail(path, "pcr_governance_policy Human fixed account-Station boundary is incomplete")
+    if policy.get("binding_source") != "verified_accepted_genesis_provenance" or policy.get("unknown_provenance") != "reject_without_effects":
+        lint.fail(path, "pcr_governance_policy must derive immutable accepted provenance and fail closed")
+    expected = [
+        {"purpose": "principal_control", "genesis_admission": "delegated_pcr_genesis", "authority_evidence": "accepted_organization_authority"},
+        {"purpose": "agent_control", "genesis_admission": "delegated_pcr_genesis", "authority_evidence": "accepted_controller_provision"},
+        {"purpose": "applet_managed_control", "genesis_admission": "applet_managed_pcr_genesis", "authority_evidence": "accepted_managed_provision"},
+    ]
+    if policy.get("transferable_provenance") != expected:
+        lint.fail(path, "pcr_governance_policy must preserve independently authorized non-Human transfer branches")
+    if policy.get("transfer_preconditions") != ["current_controller_authorization", "generation_and_head_cas", "old_authority_online", "complete_frozen_import", "both_service_signatures"]:
+        lint.fail(path, "pcr_governance_policy must retain every shared handoff precondition")
+    change = "ak.realm.governance_station.change"
+    if change in profile.get("required_event_kinds", []):
+        lint.fail(path, "Human PCR must not require unconditional handoff support")
+    if change not in profile.get("realm_event_kind_policy", {}).get("allowed_event_kinds", []) or policy.get("required_event_kinds_for_transferable_provenance") != [change]:
+        lint.fail(path, "shared PCR allowlist must retain conditional non-Human handoff support")
+    exposure_path = ARTIFACTS / "registry" / "pcr-exposure-registry.json"
+    exposure = load_json(lint, exposure_path) or {}
+    scoped = {"ak.pcr_exposure_policy." + name + ".v1" for name in (
+        "planned_handoff_participant", "holder_hosting_proxy", "current_pcr_effect_publication"
+    )}
+    for row in exposure.get("authorization_policies", []):
+        if row.get("policy_id") in scoped and (
+            "pcr_governance_policy" not in row.get("description", "")
+            or "Human rejects without effects" not in row.get("description", "")
+        ):
+            lint.fail(exposure_path, "shared PCR migration exposure must exclude Human under pcr_governance_policy")
+
+
 def check_pcr_exposure_registry(lint: Lint) -> None:
     """Close the read direction of the Principal Control Realm.
 
@@ -4687,6 +4741,7 @@ def check_pcr_exposure_registry(lint: Lint) -> None:
     outward decision a registered artifact and fails when the two directions
     disagree.
     """
+    check_pcr_governance_policy(lint)
     path = ARTIFACTS / "registry" / "pcr-exposure-registry.json"
     data = load_json(lint, path)
     if not isinstance(data, dict) or data.get("source_of_truth") is not True:

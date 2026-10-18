@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/consent-private-operations.schema.json",
   "title": "Arkret Consent private authority proxy",
-  "description": "Closed holder-hosting-Station proxy to the current PCR authority. Never a generic RPC, arbitrary account-data write or cached permission. Every command preserves its original authorization and atomically executes its private effects at the PCR authority.",
+  "description": "Only for verified transferable non-Human PCRs with a separated governor under the PCR profile pcr_governance_policy. Human uses owning-Station native acceptance/read/notification and rejects these cross-Station operations without effects. This schema grants no new holder-session eligibility. Closed holder-hosting-Station proxy to the current PCR authority. Never a generic RPC, arbitrary account-data write or cached permission. Every command preserves its original authorization and atomically executes its private effects at the PCR authority.",
   "oneOf": [
     {
       "$ref": "#/$defs/proxy_request"

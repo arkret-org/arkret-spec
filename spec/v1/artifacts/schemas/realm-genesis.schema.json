@@ -248,5 +248,6 @@
       },
       "additionalProperties": false
     }
-  }
+  },
+  "description": " Human PCR accepted registration genesis binds the complete Account and its account Station permanently under ak.profile.principal_control_realm.v1 pcr_governance_policy. A Human genesis governor mismatch, authority transition or foreign current governor rejects without effects; provenance is independently verified and is not a caller-supplied flag. Other proven subject branches retain their existing rules."
 }

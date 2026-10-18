@@ -255,7 +255,7 @@ Snapshot 是当前治理 Station 签署的 closed `realm-state-snapshot.schema.j
 
 ## 8. 治理 Station 更换
 
-只支持旧治理方在线的计划 handoff。controller 先提交 `ak.realm.governance_station.change` 到 Realm stream；旧方随后冻结所有 stream，生成包含每条 final head 的 Snapshot，并签署 `RealmAuthorityHandoff`。新方必须完成验证和导入后签署 acceptance。
+先按 §8.1 的 accepted 来源资格门排除 Human PCR 与未验证来源，再支持旧治理方在线的计划 handoff。controller 先提交 `ak.realm.governance_station.change` 到 Realm stream；旧方随后冻结所有 stream，生成包含每条 final head 的 Snapshot，并签署 `RealmAuthorityHandoff`。新方必须完成验证和导入后签署 acceptance。
 
 handoff 的旧方 `ak.realm_authority_handoff_old_signature.v1` 与新方
 `ak.realm_authority_handoff_new_acceptance_signature.v1` 共享同一个 unsigned projection：从完整 handoff 同时删除
@@ -271,15 +271,25 @@ Watch 交接 MUST 保留全部已写 selector 的 durable current，包括带 re
 
 新 generation 在每条已有 stream 上的第一个 Commit 必须以前一 generation 导入的该 stream final head 为 predecessor。旧方在 handoff 生效后永久拒绝新写；新方在未完整导入前不得启动。
 
-### 8.1 PCR 与 hosting Station 的独立身份（normative）
+### 8.1 PCR 治理归属与交接资格（normative）
 
-PCR 适用同一 planned handoff，不另设选主、generation 修改或缩减迁入分支。完整 AccountId 的 `station_id` 仍标识账号的 hosting Station；当前 PCR `governance_station_id` 由已验证的 genesis→handoff chain 派生。两者可以不同，不能把 hosting Station 当作永不变化的治理权威。交接不更换 inception PCR ID、AccountId、既有 Event／Commit 或 MLS group，不递增 authority-root 委派代次，也不改变原 Grant／Revoke 的效力。
+**Human PCR 固定于账号 Station。** 对已完整验证并接纳的 Human 注册创世，genesis `governance_station_id` MUST 等于创世 actor 的完整 `AccountId.station_id`，之后始终由该逻辑 Station 身份治理。Human 来源由已验证的 `purpose=principal_control`、`registration_anchor` 接纳、完整 ordered genesis unit 与 accepted receipt 共同证明；仅字段缺席、purpose、profile、DID 拼写、调用方角色标签或 current 投影均不能证明来源。该来源与完整 Account／inception PCR 永久绑定，后续委托、恢复、身份 resolution 更新或路由变化均不能将其改判为 Organization。
+
+Human PCR MUST NOT 接纳 `ak.realm.governance_station.change`；旧方冻结／导出交接、新方导入／签 acceptance／激活以及 authority bundle/current assertion 消费均须执行同一资格门。即使 controller、旧／新 Station 都签名、私态完整或新旧 Service 恰好同属企业，也 MUST 在改变任何 Event、Commit、head、generation、私态或通知前以 `failed_precondition` 零效果拒绝。未知或未验证来源保持 unresolved，不得回落到普通 Realm 或可迁移主体。不能先冻结 Human 再以“迁入尚未完成”长期停用它。
+
+固定的是 Station DID core 身份，不是机器、进程、数据库、endpoint 或某一 signing key。同一 Station 的合法部署迁移、endpoint／key 更新仍按原身份与服务证据验证，不创建 handoff、不推进治理任期；账号认证、设备 current、pairing、session、recovery、KeyPackage 与 Consent 仍在 owning Station TCB 的同一权威边界内，可拆进程／库，但不能拆成第二个业务 writer。只比较 Account 字段仍不足以验证 Commit、当前设备或请求权限。Station 永久停止后的 Human Account／PCR 不跨站延续，见 [`account-lifecycle.md` §2](../identity/account-lifecycle.md#2-分层)。
+
+**其它主体保留共享 planned handoff。** Organization 必须证明 accepted organization-governed `delegated_pcr_genesis` 与独立组织权威；Agent 必须证明 accepted `agent_control` 创世及原 controller provision；Applet-managed Bot/Ghost 必须证明 accepted `applet_managed_control` 创世及原 managed provision。它们按本章原有当前 controller、generation/head CAS、旧方在线、完整冻结导入和双签门执行，不因非 Human 标签自动获准。完整 AccountId 的 `station_id` 仍是 hosting 身份，合法交接后可以不同于 PCR governor；初始同站 provision／唯一性约束不改写为任意远程 genesis。交接不更换 inception PCR ID、AccountId、既有 Event／Commit 或 MLS group，不递增 authority-root 委派代次，也不改变原 Grant／Revoke 的效力。普通 Collaboration／Direct Conversation 的共享 handoff 不受 Human 限制。机器合同为既有 PCR profile 的 `pcr_governance_policy`；allowlist 并集不是每种主体的接纳许可。
+
+Human 的 PCR genesis／Commit／current assertion MUST NOT 经 `ak.open.realm_authority.read.bundle.v1` 公开披露；该入口按既有反枚举合同返回不可区分的 `not_found`。其原生私有验证仍核 accepted genesis、原签名与当前授权，不新增公共发现或 PCR 历史面。
+
+以下 PCR handoff／公开 authority bundle／hosting 代理规则只适用于上述已验证且满足交接门的非 Human PCR；不得用于 Human，亦不开放任意账号跨 Station 替换。
 
 公开 `RealmAuthorityBundle` 对 PCR 只提供既有最小权威证书链：genesis Event／Commit、治理变更 Event／Commit、双签 handoff 与 nonce-bound current assertion。对应 kind 的该项外露必须在 PCR exposure registry 显式登记。它不授予 PCR membership、普通历史 scan、完整 Snapshot 或任何 Consent／设备／恢复内容读取权；私有 frozen stream head 清单与迁入材料仍只交给已验证的交接参与方。未经独立信任的候选地址只是 locator hint。
 
 旧方冻结点必须同时阻止新的控制 Event 与相关 native 私有接受事务；只冻结 Commit 而让 quota、去重或 delivery CAS 继续前进，不构成完整 handoff。完整迁入必须保留所有当前与历史来源、精确重试结果、撤权 tombstone、高水位、未完成私有事务及其业务 fence，不能从成员可读 floor、缺项 Snapshot 或当前设备 key 重建。新方必须对本地导入状态与旧方冻结材料作完整性比较，并在同一激活事务中建立唯一接受位置；任一缺项或未知域都保持不可用，不能签 acceptance。
 
-PCR handoff MUST 携 `pcr_private_state_digest`；非 PCR handoff MUST 不携该成员。私有 handoff request 同时携闭合 `pcr_private_state` manifest：`realm_id,holder_account_id,governance_generation,effective_stream_head,nonce,state_digest`，顺序与 `authority-commit-operations.schema.json` 一致。realm／完整 holder 必须匹配 inception PCR，generation/head 必须等于旧任期冻结截点；nonce 至少128 bit CSPRNG，仅旧／新治理方持有。`state_digest` 是完整冻结 native 私有状态导出 canonical bytes 的 SHA256；公开 `pcr_private_state_digest = SHA256(RFC8785_JCS(pcr_private_state))`。双签沿原 unsigned projection 覆盖该实际成员，context 不变。公开 authority bundle 只携带该加盐承诺，不携 manifest、nonce、私有导出或主体集合。
+获准的非 Human PCR handoff MUST 携 `pcr_private_state_digest`；普通非 PCR handoff MUST 不携该成员。Human PCR 不存在合法 handoff。私有 handoff request 同时携闭合 `pcr_private_state` manifest：`realm_id,holder_account_id,governance_generation,effective_stream_head,nonce,state_digest`，顺序与 `authority-commit-operations.schema.json` 一致。realm／完整 holder 必须匹配 inception PCR，generation/head 必须等于旧任期冻结截点；nonce 至少128 bit CSPRNG，仅旧／新治理方持有。`state_digest` 是完整冻结 native 私有状态导出 canonical bytes 的 SHA256；公开 `pcr_private_state_digest = SHA256(RFC8785_JCS(pcr_private_state))`。双签沿原 unsigned projection 覆盖该实际成员，context 不变。公开 authority bundle 只携带该加盐承诺，不携 manifest、nonce、私有导出或主体集合。
 
 私有导出与传输仍是既有操作式迁入，不新增公开下载面或普通 peer scan 权。双方必须验证其格式、完整持有者范围及所有 native 域，比较实际耐久导入／重新导出的 canonical 状态与原 state_digest，并同时验证全部 canonical Event／Commit／current／历史签署事实。单独持有相同 manifest、字节文件、Snapshot 或声称导入完成的 flag 均不足以激活。格式或域不受支持时必须在旧方冻结前报告不可迁移；新方发现任何缺项、未知格式、冲突或摘要不等则零激活。导出不得含旧 Station 的全站 signing key；quota 等 holder-private keyed state 必须独立耐久、完整迁移，不能因治理 key 轮换／handoff 换盐而重置同源额度或去重。
 

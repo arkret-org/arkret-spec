@@ -18,6 +18,8 @@ Arkret v1 只定义两个 Station 内安全事务：`RecoveryTransaction` 与
 
 ## 1. 共享合同
 
+Human 的安全事务 coordinator、PCR current 接纳及设备终局均属完整 AccountId 的 owning Station TCB；不存在独立 Human PCR governor 或跨 governor recovery／rotation 协调分支。拆进程／拆库仍保证原终局、原子步骤与 exact replay，不创造第二个 writer，见 [`authority-commit-log.md` §8.1](../sync/authority-commit-log.md#81-pcr-治理归属与交接资格normative)。
+
 ```text
 SecurityTransaction {
   transaction_id,

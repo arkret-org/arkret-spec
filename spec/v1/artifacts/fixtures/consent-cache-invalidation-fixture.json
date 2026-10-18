@@ -5,7 +5,7 @@
     "kind": "named_suite",
     "entrypoint": "ak.suite.consent.cache_invalidation.v1"
   },
-  "version": "2026-10-17.1",
+  "version": "2026-10-18.1",
   "profile": "ak.profile.station.v1",
   "covers_vectors": [
     "ak.vector.consent.cache_invalidation.v1",
@@ -112,8 +112,8 @@
           ]
         },
         {
-          "id": "call_invitation_older_read_retry_and_authority_change",
-          "requirement": "Known revoke/current high-water survives older exact reads and accepted retries; authority-generation switch forces fresh authoritative material and rejects previous authority verdicts.",
+          "id": "call_invitation_older_read_retry_and_human_station_binding",
+          "requirement": "Human fixed-Station rejection and stale/read/retry/window fences; independently verified transferable non-Human handoff retains complete-import and old-authority rejection obligations.",
           "evidence": [
             "/cases/11"
           ]
@@ -260,16 +260,17 @@
       ]
     },
     {
-      "name": "call_invitation_older_read_retry_and_authority_change",
-      "given": "The signed exact relation and real accepted holder PCR/Call source facts required by webrtc-signaling section 3b; the holder PCR planned handoff uses an actual root-authorized governance change, complete frozen private import, salted private-state manifest and both original handoff signatures, preserving the full holder Account and inception PCR ID.",
-      "action": "Known revoke/current high-water survives older exact reads and accepted retries; authority-generation switch forces fresh authoritative material and rejects previous authority verdicts.",
+      "name": "call_invitation_older_read_retry_and_human_station_binding",
+      "given": "Valid signed invitation, accepted Human registration genesis/unit/receipt and full holder Account at its owning Station; accepted revoke and known current high-water.",
+      "action": "Deliver older reads and accepted retries, attempt a controller-authorized cross-Station Human governance change/import/activation, then retry with fresh current at the original Station.",
       "decision": "reject",
       "observed": "actual holder product/ring/token release, current cut and requester wire",
       "assertions": [
-        "Known revoke/current high-water survives older exact reads and accepted retries; authority-generation switch forces fresh authoritative material and rejects previous authority verdicts.",
-        "An absent, incomplete or mismatched private-state import cannot activate the new PCR tenure; no generation update or synthetic Snapshot substitutes for the legal handoff.",
-        "After the legal handoff, original Grant/Revoke retries retain their exact original outcomes, previous-authority verdicts cannot release product/ring/token, and fresh holder-hosting proxy requests recover private reads and authority-local delivery without a second current/CAS writer.",
-        "Authority-local private acceptance and its durable publication intent commit together. Hosting verifies the current authority publication, projects original cell revisions into account subscribe and wakes devices under its own Service identity. Lost confirmations, offline recovery and migrated pending intents never repeat a business CAS, advance its revision or repeat fanout."
+        "Older reads and exact Grant/Revoke retries cannot roll back current high-water or reactivate a revoked grant; original outcomes and revisions remain exact.",
+        "Human governance change, freeze/export/import/acceptance/activation and separated-governor proxy/publication reject with zero Event, Commit, head, generation, private state or notification effects even with complete archives and both service signatures.",
+        "Foreign-current-authority verdicts, stale or expired outstanding outcomes never release product/ring/token. Valid same-Station key/endpoint updates do not advance governance_generation; every new release independently rechecks the actual current authorization and exact request window.",
+        "Fresh authorized requests at the owning Station recover legal product/ring/token delivery, durable local publication and account-subscribe catch-up without repeating the private CAS or fanout.",
+        "A separately verified transferable non-Human holder retains the existing complete planned handoff case: incomplete import cannot activate, stale old-authority verdicts reject, exact outcomes/fences migrate, and new-authority proxy/publication recover without a second writer."
       ]
     },
     {
