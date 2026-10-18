@@ -511,6 +511,11 @@
       "version": "2026-09-19.1"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/push-target-boundary-fixture.json",
+      "sha256": "0de023da32af689a94b89db8df37a3462ea44aba644660e0720ce9c6e3fc0594",
+      "version": "2026-10-19.2"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/reaction-authority-order-fixture.json",
       "sha256": "d7210e1b53fe94a34b8a3c96817071c1ca366630bb7eed16b54c02f0aaf12447",
       "version": "2026-09-28.1"
