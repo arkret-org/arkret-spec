@@ -184,6 +184,9 @@ stage 请求携带 proof / gate 缺 staged request / stage 泄露 principal 或 
 - **Auth Gateway**：部署在企业内网或受控云端的高安全级别服务器。它通常是组织 DID 明确声明的 session grant issuer 或设备授权服务。只有在企业托管账号场景中，它才 MAY 按组织治理委托托管员工账号的高权限签发材料；对普通个人 DID，网关 SHOULD 只签发短期 session grant，不应托管用户 DID control/update key、device key 或 recovery key。v1 不定义独立 principal signing key。
 
 ### 3.2 登录时序
+
+**持续时间预算**：登录／runtime Session 与单枚短期 SessionGrant 分离，起算与活动规则见 [constraint-schema §3.2](../authz/constraint-schema.md#32-持续时间限制)。轮换必须继承原 `session_id`、原会话起点与已确认活动事实；refresh、重连、重启不重置任何预算，refresh 本身不计业务活动。只有现有认证／issue 流程成功才能建立新 lineage，且不能重置父授权起点；已到期或终结的 lineage 不可恢复。示例 duration 不是部署默认值，正常无感换证不等于强制用户重登。
+
 1. **浏览器会话初始化**：员工在浏览器打开 Web 端应用，本地生成临时会话密钥 `session_key`。
 2. **OIDC 重定向**：浏览器跳转至企业 Okta 完成标准的 OAuth2 / OIDC 身份认证。
 3. **网关授权 (Gateway Delegation)**：Okta 认证成功后回调 Auth Gateway。Gateway 验证员工身份无误后，在自己的 durable issuer ledger 中建立 immutable issuance record，并用 issuer key 签发短期、受众绑定、scope 受限的 `ak.session.grant`，把 `session_key_pub` 绑定到目标 DID principal、设备、origin、audience、过期时间和允许的 operation 集合。Gateway 不持有用户 principal/device/recovery 私钥，不得为该 grant 代签或提交 principal Event。其中绑定的设备 MUST 是客户端持有的稳定协议 `device_id`（`ak:device:<uuid>`，由客户端在认证时显式声明，例如 OAuth `urn:arkret:client:device:<id>` scope 透传到 introspection 的 `org.arkret.device_id` claim）。资源服务器 MUST NOT 从 token / session 标识（如 `jti` / `session_id`）派生或伪造一个 per-token 的 `device_id`——这违反 §4「服务端不得伪造 device identity」，且会让该值在每次 token 轮换时漂移，静默破坏所有按 `(principal, device)` 绑定的不变量（sync cursor 主体/设备匹配、key backup 写入设备授权）。携带认证材料但缺少稳定 device 绑定的会话 MUST 对 device-scoped 操作 fail-closed 拒绝，而非降级放行。

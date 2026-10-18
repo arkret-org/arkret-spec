@@ -636,6 +636,11 @@
       "version": "2026-08-02"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/temporal-session-budget-fixture.json",
+      "sha256": "21672951a529b1fc6479374f2c7966e1d1e50621d5b9c10a1417f35d84860c90",
+      "version": "2026-10-19.1"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/terminal-replication-authority-fixture.json",
       "sha256": "627e10ce6769f3a8f589c2ddd2bc0adb8be11add1bd3e6cd3ed5b7f973916abf",
       "version": "2026-10-12"

@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-18.5",
+  "version": "2026-10-19.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-18T23:47:25+08:00",
+  "generated_at": "2026-10-19T07:36:42+08:00",
   "description": "Closed inventory of current spec/v1/zh headings that explicitly carry the （normative） marker. Any addition, removal, rename, or move is reviewed as a protocol change and refreshes this source-of-truth inventory.",
   "titles": [
     {
@@ -78,6 +78,21 @@
       "page": "authz/constraint-schema.md",
       "heading": "16.2.1 敏感字段处理（normative）",
       "fragment": "1621-敏感字段处理normative"
+    },
+    {
+      "page": "authz/constraint-schema.md",
+      "heading": "3.2.1 预算锚点与作用域（normative）",
+      "fragment": "321-预算锚点与作用域normative"
+    },
+    {
+      "page": "authz/constraint-schema.md",
+      "heading": "3.2.2 合格活动与最小状态（normative）",
+      "fragment": "322-合格活动与最小状态normative"
+    },
+    {
+      "page": "authz/constraint-schema.md",
+      "heading": "3.2.3 时钟、体验与验收（normative）",
+      "fragment": "323-时钟体验与验收normative"
     },
     {
       "page": "authz/constraint-schema.md",

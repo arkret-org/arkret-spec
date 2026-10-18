@@ -20951,7 +20951,57 @@
         "refusal_boundaries",
         "unknown_boundaries"
       ],
-      "fixture_ref": "fixtures/constraint-evaluation-fixture.json"
+      "fixture_ref": "fixtures/constraint-evaluation-fixture.json",
+      "session_budget_contract": {
+        "normative_ref": "zh/authz/constraint-schema.md#321-预算锚点与作用域normative",
+        "anchors": {
+          "max_duration": "original_authorization_acceptance",
+          "max_session_duration": "issuer_session_start",
+          "inactivity_timeout": "issuer_last_qualifying_activity_or_session_start"
+        },
+        "session_owner": "account_authority_issuer_ledger",
+        "binding": [
+          "issuer",
+          "account_with_station",
+          "audience",
+          "holder_with_generation",
+          "session_lineage"
+        ],
+        "refresh_reconnect_restart": "preserve_anchors",
+        "sessionless": "verified_operation_auth_branch_only_session_predicates_neutral",
+        "duration_arithmetic": "utc_calendar_months_clamp_then_elapsed_components",
+        "valid_interval": "anchor_inclusive_deadline_exclusive",
+        "clock_uncertainty": "unknown_on_boundary_overlap_no_skew_grace",
+        "evaluation_class": {
+          "max_duration": "realm_state_or_external_by_authorization_owner",
+          "session_or_idle": "external"
+        },
+        "activity_actions": [
+          "ak.message.create",
+          "ak.message.revise",
+          "ak.message.revise.own",
+          "ak.message.redact",
+          "ak.message.redact.own",
+          "ak.reaction.add",
+          "ak.reaction.remove",
+          "ak.morph.create",
+          "ak.morph.update",
+          "ak.morph.stage.set",
+          "ak.relation.create",
+          "ak.relation.update",
+          "ak.relation.tombstone",
+          "ak.rsvp.set",
+          "ak.object.read_content",
+          "ak.self.blob.resource.get.v1"
+        ],
+        "activity_time": "issuer_acceptance_after_verified_success",
+        "activity_order": "check_current_state_before_monotonic_update",
+        "replay": "first_logical_success_only",
+        "local_failure": "authorization_path_only_not_global_logout",
+        "issuer_expiry": "terminal_lineage_no_resurrection",
+        "fixture_ref": "fixtures/temporal-session-budget-fixture.json",
+        "test_material_scope": "abstract_verified_context_not_internal_receipt_or_production_consumer"
+      }
     }
   },
   "calendar_timezone_registry": {

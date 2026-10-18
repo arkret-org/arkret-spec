@@ -133,15 +133,29 @@
     "max_duration": {
       "type": "string",
       "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$",
-      "description": "ISO 8601 duration."
+      "minLength": 3,
+      "not": {
+        "pattern": "T$"
+      },
+      "description": "From original authorization acceptance, never producer Event time, first use, refresh or not_before. Realm grants use their original RealmCommit.committed_at. Local predicate failure does not log out the account. Nonnegative integer components, at least one; UTC calendar months clamp before elapsed components. Zero expires immediately. Empty components are forbidden; overflow is unknown."
     },
     "max_session_duration": {
       "type": "string",
-      "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$"
+      "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$",
+      "minLength": 3,
+      "not": {
+        "pattern": "T$"
+      },
+      "description": "From the issuer-ledger original authenticated session start. Refresh, reconnect and restart preserve the same lineage and start. Verified sessionless operations make only this predicate neutral. Nonnegative integer components, at least one; UTC calendar months clamp before elapsed components. Zero expires immediately. Empty components are forbidden; overflow is unknown."
     },
     "inactivity_timeout": {
       "type": "string",
-      "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$"
+      "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$",
+      "minLength": 3,
+      "not": {
+        "pattern": "T$"
+      },
+      "description": "From issuer-confirmed last qualifying business activity, initially session start. No refresh, heartbeat, presence, replay or caller-supplied time. Verified sessionless operations make only this predicate neutral. Nonnegative integer components, at least one; UTC calendar months clamp before elapsed components. Zero expires immediately. Empty components are forbidden; overflow is unknown."
     },
     "expires_after": {
       "type": "string",

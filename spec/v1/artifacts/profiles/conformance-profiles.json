@@ -2513,7 +2513,8 @@
         "scalability-limits-fixture.json",
         "protocol-edge-cases-fixture.json",
         "governance-result-consumption-roles-fixture.json",
-        "constraint-evaluation-fixture.json"
+        "constraint-evaluation-fixture.json",
+        "temporal-session-budget-fixture.json"
       ],
       "optional_extensions": [
         "realm_state_snapshot_bootstrap"

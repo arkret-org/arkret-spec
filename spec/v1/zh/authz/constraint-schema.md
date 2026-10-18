@@ -86,8 +86,10 @@ v1 提供 **8 个 constraint family**。某些 family 内通过 `constraint_subk
 
 | (constraint_kind, constraint_subkind) | canonical evaluation_class | 缓存键建议 | 备注 |
 | --- | --- | --- | --- |
-| `temporal`（无 constraint_subkind、无 `recurrence`） | `stateless` | 全局缓存，TTL = `expires_at - now` | `not_before` / `expires_at` 是纯时间预算 |
-| `temporal` 带 `recurrence`、`constraint_subkind=session` 或 `applies_to_actions` | `stateless` | TTL ≤ 下一个 recurrence 边界或 window 剩余时间 | 仍是纯函数，但 TTL 必须缩短 |
+| `temporal`（无 constraint_subkind、无 `recurrence`、无下述预算字段） | `stateless` | 全局缓存，TTL = `expires_at - now` | `not_before` / `expires_at` 是纯时间预算 |
+| `temporal` 带 `recurrence` 或 `applies_to_actions`，但无下述预算字段 | `stateless` | TTL ≤ 下一个 recurrence 边界或 window 剩余时间 | 仍是纯函数，但 TTL 必须缩短 |
+| `temporal` 带 `max_duration`，无 session／idle 字段 | Realm grant 为 `realm_state`；issuer 策略为 `external` | 绑定原授权接受证据、当前授权状态与截止时间 | 按原授权的实际 owner 分类，不能用 Event 自报时间代替接受时间 |
+| `temporal` 带 `max_session_duration` 或 `inactivity_timeout`（不论 subkind 是否省略） | `external` | 不跨请求缓存求值结果 | 依赖签发权威的当前会话／活动事实；单次验证结果不建立第二套会话 authority |
 | `field_access`（无 `condition`） | `stateless` | (constraint_digest, op_kind) | 仅 allow / deny 列表比较 |
 | `field_access` 带 `condition.kind` | `realm_state` | (realm_id, source_commit_ref, op_target) | 大多数 condition.kind（如 `object_is_owned_by_actor`）依赖对象当前 owner |
 | `kind_restriction` | `stateless` | (constraint_digest, op_target_kind) | |
@@ -157,6 +159,42 @@ v1 constraint object 上 approval / accountability / claim 相关字段是扁平
 }
 ```
 > Duration 字段使用 ISO 8601 持续时间格式（`P[n]Y[n]M[n]DT[n]H[n]M[n]S`）。`grant-constraint.schema.json` 中相应字段的 `pattern` 即此格式；`"8h"` / `"1h"` / `"30m"` compact 形态在 v1 wire 上 MUST 被 schema validator 拒绝。
+
+#### 3.2.1 预算锚点与作用域（normative）
+
+本节 Session 指持有人经过认证建立的登录／Agent runtime 授权会话，不指 Strand 讨论、视频 Call、TCP／WebSocket 连接或单张短期凭据。一次会话可以跨越多次 SessionGrant 轮换与网络重连。以下是授权 predicate，不隐式写入 grant 撤销或全账号 logout：
+
+| 字段 | 唯一起点／截止 | 事实 owner 与重置 |
+| --- | --- | --- |
+| `max_duration` | 承载本约束的原授权被权威正式接受的时间，加 duration | Realm grant 取原接受 `RealmCommit.committed_at`；issuer 自身的 session 授权策略取其原 durable issuance acceptance。Event.created_at、not_before、首次使用与内省时间均不是起点。原授权更新／重放不得刷新；新的独立授权才有新起点。 |
+| `max_session_duration` | 当前认证会话首次成功建立的时间，加 duration | Account Authority 的 issuer ledger；不是当前短期 token 的 not_before／签发时间。同一 refresh 链、重连、进程重启沿用原起点。 |
+| `inactivity_timeout` | 当前会话最近一次合格业务活动的权威接受时间，加 duration；尚无活动时用会话起点 | 同一 issuer ledger，仅更新这个标量；活动资格见§3.2.2，不采集人类 presence 或按键。 |
+
+Account Authority MUST 绑定 exact issuer、完整 AccountId（含 Station）、audience、holder 与会话 lineage。Human holder 使用真实 accepted Device／授权 generation；Agent 使用实际 runtime holder／key authorization，不伪造 Device。轮换沿用既有 `session_id`，但不能只按同名 session_id 或 device_id 跨账号、issuer、audience、holder／generation 合并。新认证会话必须经现有正式 issue 与 proof 流程；普通 refresh 或换一张 grant 不能建立新起点，Agent 重新 issue 仍须当前 controller、key 与授权上限，不得重置父授权预算。
+
+授权接受事实由原授权权威验证；会话事实只由 issuer ledger 拥有，经已有认证验证上下文供给 evaluator。Station 不另建本地 session 授权记录，客户端不提交计时锚点。此处描述逻辑事实来源，不新增内部 RPC／receipt 的协议形状或公开 operation，也不改变 SessionGrant signed claims／introspection 的 closed wire schema。缺少供给的角色 MUST 返回 unknown，不能从本地 token 解析、presence、其它 session 或签名有效性补造事实。
+
+只对本次操作实际适用的预算求值。已登记的 operation 认证分支与已验证实际请求共同证明该操作没有跨请求认证会话时，`max_session_duration`／`inactivity_timeout` 不适用，对 allow 中立、对拒绝类不命中；`max_duration` 仍约束实际承载授权。不是因为缺少 session 事实就判 sessionless，unknown operation／未确认认证分支仍为 unknown。applies_to_actions 的排除先按§15.0处理。权威明确确认“从未有合格活动”才使用会话起点；活动事实丢失、缺失或是否存在无法确认均为 unknown，不能按从未活动初始化。已运行会话新启用 idle 策略而无既有事实时同样不能把当前时间当成起点。
+
+#### 3.2.2 合格活动与最小状态（normative）
+
+合格活动的封闭 action 集合由 `capability_action_registry.constraint_evaluation_contract.session_budget_contract.activity_actions` 登记：成功接受的消息创建／修改／撤回、reaction、Morph／Relation／RSVP 业务修改，以及成功交付的内容读取。接受写入或完成交付的服务 MUST 已验证当前 session holder、实际 action／scope 与完整授权；单纯通过认证、拒绝／失败、exact replay、后台同步扫描／订阅／轮询、read cursor／receipt／notification ack、presence、凭据 refresh、连接 heartbeat 与客户端活动声明都不得更新活动时间。未登记 action 不计入，不能凭客户端“前台”标志增加资格。同一业务读取若由自动化发起，仍只证明服务使用，不能据此声称人类在场；普通后台同步使用的扫描／订阅面不在此集合。
+
+issuer 只在经认证的既有部署内执行路径上确认成功 outcome 后，以自身可信接受时间单调更新 last activity；不接受客户端时间或迟到服务报告中的历史时间倒填。服务间无法取得该确认时保留原事实或报 unknown，不伪造新公开活动上报 API。一个逻辑操作的重试只算第一次，不因重放重新更新时间。并发更新与会话终结必须串行化：先检查旧状态、有效期、当前撤销与 issuer 会话策略，再接受活动；已经到期／撤销的会话不能被本次请求、迟到 outcome、refresh 或重启复活。接收较旧结果不得回退 last activity；不能可靠恢复的状态按 unknown。
+
+只保留原会话起点、最近合格活动时间及既有操作幂等／终态所需信息；不建立全局行为账本，不记录按键、阅读轨迹或 presence。活动状态最多保留至会话终结及既有重放／审计所需范围，不能以本约束新增无限期行为留存。
+
+grant 内的预算失败只关闭该授权路径，不触发全账号 logout；grant A 的局部 idle predicate 不命中也不终结仍由其它独立授权合法使用的 session。其它合法业务活动可以改变后续局部 idle predicate，但不能恢复已经终结的 session。真正由 issuer 会话策略规定的 session／idle 到期须终结该 lineage，终态不复活；两者不得混淆。每条 grant 内预算 AND，跨 grant 的 allow OR、拒绝类全局合并与 controller／祖先上限继续按§15.4执行；不能把另一个 grant 的 allow 用来绕过拒绝或父级上限。
+
+#### 3.2.3 时钟、体验与验收（normative）
+
+duration 使用 schema 定义的非负整数分量（年、月、周、日、时、分、秒），至少一个分量；零时长允许但立即到期。UTC 加法先把年／月合为月份，保留 UTC 时分秒并把不存在的月末日期夹到该月末，再加周／日／时／分／秒的实际经过时间；一天为24小时，不用本地 DST，不解析分数／负数或 leap second。溢出、无法解释、未来锚点或不可信时钟为 unknown。not_before／expires_at／recurrence 不改变上述起点，仍独立 AND。
+
+预算有效区间为 `[anchor, deadline)`，刚到 deadline 即不命中；同一求值固定可信 UTC verification time。这里是同一权威时间域内的持续时间预算，不借用§16.1普通时间窗口的对称 skew 宽限，也不得因内省缓存、网络重连或重启延长。若可信时钟只能给出范围，范围全部位于有效区间内才 match，全部不早于 deadline 才 no_match，跨边界或包含起点之前则 unknown。恢复时必须检测时钟回退，不能使已终结 lineage 复活。
+
+协议不强制所有部署配置这些预算，示例数字不是默认值。普通持续阅读、长通话／传输和 Agent 长任务不应默认启用短 idle；未有合格业务活动证明时，不得以“连接还在”或人类在线自动豁免已配置的限制。Agent 使用自身会话，主人暂时不操作不是其空闲事实。短期凭据继续按现有流程无感轮换；已知硬截止 SHOULD 提前提示，必要认证保留本地草稿／进度，但新受保护操作与后续交付仍按截止、撤销及各业务 gate 拒绝，不能给既有流无限授权。缺事实只阻断依赖该事实的授权路径并按§15.0处理拒绝类 unknown，不能伪报账号撤销或清除其它会话。
+
+正式验收材料为 [temporal-session-budget-fixture.json](../../artifacts/fixtures/temporal-session-budget-fixture.json)，由 artifact lint 执行预算运算、effect 合并及生命周期决策；其中 verified context 是数学测试输入，既不是内部 RPC／receipt schema，也不证明生产 issuer、SDK 或 consumer 已提供事实。完整支持仍须§19的正向 consumer 与拒绝／unknown 证据。
 
 ## 4. 字段访问约束
 
@@ -1127,6 +1165,8 @@ function matches_temporal(operation, constraint):
     validate_registered_shape_and_effect(constraint)  # reject invalid wire
     if constraint.applies_to_actions and operation.action not in constraint.applies_to_actions:
         return constraint.effect == "allow"
+    if only_session_budget_predicates(constraint) and verified_auth_branch(operation) == registered_sessionless:
+        return constraint.effect == "allow"
 
     result = match
     if constraint.not_before:
@@ -1158,7 +1198,44 @@ function predicate_object_window(created_at, duration, now, skew):
     if not deadline:
         return unknown
     return truth(now - skew <= deadline)
+
+function predicate_verified_session_budget(operation, constraint, now):
+    applicability = verified_auth_branch(operation)
+    result = match
+    if constraint.max_duration:
+        anchor = verified_original_authorization_acceptance(operation, constraint)
+        result = and3(result, budget_interval(anchor, constraint.max_duration, now))
+    if constraint.max_session_duration or constraint.inactivity_timeout:
+        if applicability == registered_sessionless:
+            return result  # only session predicates are neutral
+        if applicability != session_bound:
+            return and3(result, unknown)
+        session = issuer_verified_current_session(operation)
+        if not session or not exact_holder_lineage_binding(session, operation):
+            return and3(result, unknown)
+        if constraint.max_session_duration:
+            result = and3(result, budget_interval(session.started_at, constraint.max_session_duration, now))
+        if constraint.inactivity_timeout:
+            anchor = session.last_activity_at or session.started_at
+            result = and3(result, budget_interval(anchor, constraint.inactivity_timeout, now))
+    return result
+
+function budget_interval(anchor, duration, now):
+    if not verified_anchor_and_trusted_clock(anchor, now):
+        return unknown
+    deadline = add_iso8601_duration_utc(anchor, duration)  # section 3.2.3
+    if deadline is indeterminate:
+        return unknown
+    if now.earliest < anchor:
+        return unknown
+    if now.latest < deadline:
+        return match
+    if now.earliest >= deadline:
+        return no_match
+    return unknown
 ```
+
+预算 helper 的名字表示§3.2逻辑事实，不是新增 wire 成员；精确 verification time 是 earliest=latest 的退化范围。完整输入形状／来源先验证，伪造或不一致的事实不得靠短路跳过。`only_session_budget_predicates` 表示至少一个 session／idle 字段存在，且无 max_duration、not_before、expires_at、recurrence、expires_after 或当前 action 适用的 object window；其它 temporal predicate 存在时继续独立求值，sessionless 分支中的初始 match 只是 AND 单位元。session 已被撤销／终结、账号／设备／Agent 不再有效时，独立认证与当前授权 gate 直接拒绝，不依赖本 predicate 的 effect，也不由 unrestricted grant 复活。
 
 `operation.target.created_at` MUST 来自 reducer 已验证的 canonical target object / Event，不得信任调用方另传的同名字段。目标不存在、`created_at` 不可验证、duration 无法解析或 UTC 加法溢出时 MUST fail closed。window 是从 target `created_at` 起算的闭区间上界；在 `deadline + skew` 之后不匹配。普通 `not_before` / `expires_at` / `recurrence` 与 object window 同时存在时全部按 AND 求交，伪码不得因 recurrence 命中而提前 `return true` 跳过 edit / redact window。
 
