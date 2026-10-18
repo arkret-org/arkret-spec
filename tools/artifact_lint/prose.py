@@ -1033,12 +1033,9 @@ def check_event_proof_digest_shape(lint: Lint) -> None:
 
 
 def check_legacy_announce_id_form(lint: Lint) -> None:
-    """Reject the pre-registry Directory announce id spelling.
+    """Reject legacy Directory announce IDs without recommending a replacement.
 
-    ``ann_<hex>`` appeared in prose before Directory announce records were
-    registered as typed IDs. The canonical v1 wire form is now
-    ``ak:announce:<uuidv7>``; keeping this guard prevents examples or fixtures
-    from reintroducing the unregistered local prefix.
+    Both the old local prefix and its later typed namespace are retired.
     """
     scan_paths = sorted(SPEC_ROOT.rglob("*.md"))
     scan_paths.extend(raw_artifact_files())
@@ -1052,7 +1049,7 @@ def check_legacy_announce_id_form(lint: Lint) -> None:
                 lint.fail(
                     path,
                     f"line {line_no}: legacy Directory announce id form `ann_*` is forbidden; "
-                    "use `ak:announce:<uuidv7>`.",
+                    "Directory announce identifiers are retired in current-v1.",
                 )
 
 
@@ -1421,7 +1418,7 @@ def check_event_log_operations_carry_a_signed_event(lint: Lint) -> None:
 
 
 def check_directory_field_drift(lint: Lint) -> None:
-    """Directory announce/withdraw prose must not regress to old field names."""
+    """Keep retired Directory fields and discovery obligations out of current-v1."""
     banned = ("announcement_id", "withdraw_id")
     for path in markdown_files():
         if SPEC_ROOT / "zh" not in path.parents:
@@ -1430,6 +1427,42 @@ def check_directory_field_drift(lint: Lint) -> None:
         for token in banned:
             if token in text:
                 lint.fail(path, f"legacy Directory field name present: {token}")
+
+    threat_path = SPEC_ROOT / "zh/security/server-threat-model.md"
+    threat = threat_path.read_text(encoding="utf-8")
+    for token in (
+        "Consent / PSI oracle", "announce replay", "policy_revision rollback",
+        "Directory Ingest Abuse", "discovery-directory §8.10 / §11",
+    ):
+        if token in threat:
+            lint.fail(threat_path, f"retired discovery threat obligation: {token}")
+
+    for filename, definition, fields in (
+        ("directory-operations.schema.json", "public_realm_directory_entry",
+         {"realm_id", "public_metadata", "indexed_at", "expires_at"}),
+        ("service-operation-dtos.schema.json", "PublicRealmMetadata",
+         {"display_name", "summary", "public_locator", "avatar_blob_ref"}),
+    ):
+        path = ARTIFACTS / "schemas" / filename
+        schema = (load_json(lint, path) or {}).get("$defs", {}).get(definition, {})
+        if schema.get("additionalProperties") is not False or set(schema.get("properties", {})) != fields:
+            lint.fail(path, f"{definition} must remain closed public metadata without authority or identity fields")
+
+    path = ARTIFACTS / "fixtures/privacy-security-fixture.json"
+    cases = (load_json(lint, path) or {}).get("cases", [])
+    case = next((row for row in cases if row.get("name") == "directory_read_only_vector_closure"), {})
+    for key in (
+        "query_results_are_closed_public_realm_metadata",
+        "resolve_hidden_expired_and_unknown_realms_are_indistinguishable",
+        "write_operations_are_unregistered",
+        "query_results_are_not_authorization_evidence",
+        "unregistered_write_attempts_change_no_index",
+        "listed_restricted_and_unconfirmed_realms_are_hidden",
+        "expired_entries_never_answer_or_auto_renew",
+        "public_metadata_never_contains_source_or_authority_evidence",
+    ):
+        if case.get("expected", {}).get(key) is not True:
+            lint.fail(path, f"Directory negative contract missing: {key}")
 
 
 

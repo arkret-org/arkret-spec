@@ -4880,49 +4880,31 @@ def check_pcr_exposure_registry(lint: Lint) -> None:
                 f"{unsigned_read} must remain outside the per-request source-signature profile",
             )
     mimi_fixture_path = ARTIFACTS / "fixtures" / "mimi-interop-fixture.json"
-    mimi_fixture = (
-        load_json(lint, mimi_fixture_path) or {}
-        if mimi_fixture_path.exists()
-        else {
-            "cases": [
-                {
-                    "vector_id": "ak.vector.mimi.identifier_query_source_signature.v1",
-                    "cases": [
-                        {
-                            "psi_evaluated": False,
-                            "expected_error_code": "http_signature_required",
-                        },
-                        {
-                            "psi_evaluated": False,
-                            "expected_error_code": "http_signature_invalid",
-                        },
-                    ],
-                }
-            ]
-        }
-    )
-    mimi_cases = mimi_fixture.get("cases", []) if isinstance(mimi_fixture, dict) else []
-    signature_vector = next(
-        (
-            row for row in mimi_cases
-            if isinstance(row, dict)
-            and row.get("vector_id") == "ak.vector.mimi.identifier_query_source_signature.v1"
-        ),
-        None,
-    )
-    if not isinstance(signature_vector, dict):
-        lint.fail(mimi_fixture_path, "missing identifier-query source-signature negative vector")
-    else:
-        negative_codes = {
-            case.get("expected_error_code")
-            for case in signature_vector.get("cases", [])
-            if isinstance(case, dict) and case.get("psi_evaluated") is False
-        }
-        if not {"http_signature_required", "http_signature_invalid"}.issubset(negative_codes):
-            lint.fail(
-                mimi_fixture_path,
-                "identifier-query vector must reject missing and invalid signatures before PSI evaluation",
-            )
+    # A reserved vector without a fixture is not executable evidence. Generic
+    # vector traceability rejects active vectors without real fixture bindings.
+    if mimi_fixture_path.exists():
+        mimi_fixture = load_json(lint, mimi_fixture_path) or {}
+        signature_vector = next(
+            (
+                row for row in mimi_fixture.get("cases", [])
+                if isinstance(row, dict)
+                and row.get("vector_id") == "ak.vector.mimi.identifier_query_source_signature.v1"
+            ),
+            None,
+        )
+        if not isinstance(signature_vector, dict):
+            lint.fail(mimi_fixture_path, "missing identifier-query source-signature negative vector")
+        else:
+            negative_codes = {
+                case.get("expected_error_code")
+                for case in signature_vector.get("cases", [])
+                if isinstance(case, dict) and case.get("identifier_response_constructed") is False
+            }
+            if not {"http_signature_required", "http_signature_invalid"}.issubset(negative_codes):
+                lint.fail(
+                    mimi_fixture_path,
+                    "identifier-query vector must reject missing and invalid signatures before response construction",
+                )
     forbidden_claim_details = {
         "one_time_keys_exhausted",
         "principal_unknown",

@@ -467,8 +467,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/privacy-security-fixture.json",
-      "sha256": "af040b541337b9e0ed475006195e68bccd69ad047e9ebb59d4de3f0b5246bf8f",
-      "version": "2026-09-25.2"
+      "sha256": "1bd28048dca9638cf0d8fa0521a71b34ef2998bc2374277e6c312600cd209486",
+      "version": "2026-10-19.2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/private-view-inbox-account-data-fixture.json",
