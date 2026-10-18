@@ -3950,6 +3950,7 @@
           "ak.schema.agent_producer_evidence.v1",
           "ak.schema.applet_install_operations.v1",
           "ak.schema.approval_signature.v1",
+          "ak.schema.authority_commit_operations.v1",
           "ak.schema.backup_series_erase_confirmation.v1",
           "ak.schema.consent_operations.v1",
           "ak.schema.controller_account_gate_attestation.v1",

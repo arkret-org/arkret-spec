@@ -15,19 +15,19 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9546,
+    "total_properties": 9574,
     "total_schema_documents": 174,
     "by_presence_class": {
-      "optional": 2226,
+      "optional": 2232,
       "optional_defaulted": 48,
-      "required": 6748,
+      "required": 6766,
       "required_nullable": 338,
-      "tristate": 186
+      "tristate": 190
     },
-    "tristate_occurrences": 186,
-    "tristate_audit_targets": 148,
+    "tristate_occurrences": 190,
+    "tristate_audit_targets": 152,
     "tristate_sdk_dispositions": {
-      "absent_null_equivalent": 137,
+      "absent_null_equivalent": 141,
       "condition_guarded": 10,
       "distinct": 1
     }
@@ -65,6 +65,10 @@
     "authority-commit-operations.schema.json/$defs/direct_conversation_realm_create_submission/allOf/1/properties/event",
     "authority-commit-operations.schema.json/$defs/direct_conversation_strand_create_submission/allOf/1/properties/event",
     "authority-commit-operations.schema.json/$defs/handoff_request/allOf/1/then/properties/handoff",
+    "authority-commit-operations.schema.json/$defs/managed_creation_originals/properties/accountability/allOf/1/properties/event",
+    "authority-commit-operations.schema.json/$defs/managed_creation_originals/properties/pcr_genesis/allOf/1/properties/event",
+    "authority-commit-operations.schema.json/$defs/managed_creation_originals/properties/profile/allOf/1/properties/event",
+    "authority-commit-operations.schema.json/$defs/managed_creation_originals/properties/provision/allOf/1/properties/event",
     "authority-commit-operations.schema.json/$defs/ordinary_realm_bootstrap_alias_submission/allOf/1/properties/event",
     "authority-commit-operations.schema.json/$defs/ordinary_realm_bootstrap_creator_join_submission/allOf/1/properties/event",
     "authority-commit-operations.schema.json/$defs/ordinary_realm_bootstrap_discovery_submission/allOf/1/properties/event",
@@ -438,6 +442,46 @@
       "instance_path": "/handoff",
       "occurrences": [
         "/$defs/handoff_request/allOf/1/then/properties/handoff"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "authority-commit-operations.schema.json",
+      "shape": "/$defs/managed_creation_originals",
+      "instance_path": "/accountability/event",
+      "occurrences": [
+        "/$defs/managed_creation_originals/properties/accountability/allOf/1/properties/event"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "authority-commit-operations.schema.json",
+      "shape": "/$defs/managed_creation_originals",
+      "instance_path": "/pcr_genesis/event",
+      "occurrences": [
+        "/$defs/managed_creation_originals/properties/pcr_genesis/allOf/1/properties/event"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "authority-commit-operations.schema.json",
+      "shape": "/$defs/managed_creation_originals",
+      "instance_path": "/profile/event",
+      "occurrences": [
+        "/$defs/managed_creation_originals/properties/profile/allOf/1/properties/event"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "authority-commit-operations.schema.json",
+      "shape": "/$defs/managed_creation_originals",
+      "instance_path": "/provision/event",
+      "occurrences": [
+        "/$defs/managed_creation_originals/properties/provision/allOf/1/properties/event"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -3791,6 +3835,9 @@
         "/$defs/direct_conversation_strand_create_submission/allOf/1/properties/event/properties/kind": "optional",
         "/$defs/direct_conversation_strand_create_submission/allOf/1/properties/event/properties/semantic_refs": "optional",
         "/$defs/direct_conversation_strand_create_submission/allOf/1/properties/event/properties/semantic_refs/not/contains/properties/role": "required",
+        "/$defs/forward_managed_actor_provenance/properties/creation": "required",
+        "/$defs/forward_managed_actor_provenance/properties/current": "required",
+        "/$defs/forward_managed_actor_provenance/properties/service_resolution": "required",
         "/$defs/handoff_request/allOf/0/if/properties/handoff": "required_nullable",
         "/$defs/handoff_request/allOf/1/else/properties/handoff": "optional",
         "/$defs/handoff_request/allOf/1/if/properties/authority_bundle": "required_nullable",
@@ -3807,6 +3854,29 @@
         "/$defs/handoff_request/properties/snapshot": "required",
         "/$defs/historical_producer_signer_fact_entry/properties/producer_signer_fact": "required",
         "/$defs/historical_producer_signer_fact_entry/properties/target": "required",
+        "/$defs/managed_accountability_current/properties/commit": "required",
+        "/$defs/managed_accountability_current/properties/realm_id": "required",
+        "/$defs/managed_accountability_current/properties/result": "required",
+        "/$defs/managed_creation_accepted_event/properties/commit": "required",
+        "/$defs/managed_creation_accepted_event/properties/event": "required",
+        "/$defs/managed_creation_originals/properties/accountability": "required",
+        "/$defs/managed_creation_originals/properties/accountability/allOf/1/properties/event": "tristate",
+        "/$defs/managed_creation_originals/properties/accountability/allOf/1/properties/event/properties/kind": "optional",
+        "/$defs/managed_creation_originals/properties/pcr_genesis": "required",
+        "/$defs/managed_creation_originals/properties/pcr_genesis/allOf/1/properties/event": "tristate",
+        "/$defs/managed_creation_originals/properties/pcr_genesis/allOf/1/properties/event/properties/kind": "optional",
+        "/$defs/managed_creation_originals/properties/profile": "required",
+        "/$defs/managed_creation_originals/properties/profile/allOf/1/properties/event": "tristate",
+        "/$defs/managed_creation_originals/properties/profile/allOf/1/properties/event/properties/kind": "optional",
+        "/$defs/managed_creation_originals/properties/provision": "required",
+        "/$defs/managed_creation_originals/properties/provision/allOf/1/properties/event": "tristate",
+        "/$defs/managed_creation_originals/properties/provision/allOf/1/properties/event/properties/kind": "optional",
+        "/$defs/managed_identity_current/properties/accountability": "required",
+        "/$defs/managed_identity_current/properties/expires_at": "required",
+        "/$defs/managed_identity_current/properties/profile": "required",
+        "/$defs/managed_profile_current/properties/commit": "required",
+        "/$defs/managed_profile_current/properties/realm_id": "required",
+        "/$defs/managed_profile_current/properties/result": "required",
         "/$defs/membership_compensation_acceptance_outcome/properties/commit": "required",
         "/$defs/membership_compensation_acceptance_outcome/properties/status": "required",
         "/$defs/membership_compensation_acceptance_outcome/properties/unit_kind": "required",
@@ -3885,6 +3955,7 @@
         "/$defs/peer_stream_scan_outcome/properties/producer_signer_facts": "required",
         "/$defs/peer_stream_scan_outcome/properties/readable_floor": "optional",
         "/$defs/peer_stream_scan_outcome/properties/truncated": "required",
+        "/$defs/peer_submit_request/allOf/1/then/properties/branch": "optional",
         "/$defs/peer_submit_request/oneOf/0/if/properties/event_submission": "required_nullable",
         "/$defs/peer_submit_request/oneOf/0/if/properties/event_submission/properties/event": "required_nullable",
         "/$defs/peer_submit_request/oneOf/0/if/properties/event_submission/properties/event/properties/kind": "required",
@@ -3901,6 +3972,7 @@
         "/$defs/peer_submit_request/properties/mls_submission": "optional",
         "/$defs/peer_submit_request/properties/producer_agent_evidence": "optional",
         "/$defs/peer_submit_request/properties/producer_device_evidence": "optional",
+        "/$defs/peer_submit_request/properties/producer_managed_provenance": "optional",
         "/$defs/peer_submit_request/properties/replications": "optional",
         "/$defs/peer_submit_request/properties/unit": "optional",
         "/$defs/readable_floor/properties/floor_commit_id": "required",
@@ -3938,6 +4010,7 @@
         "/$defs/peer_submit_request/properties/event_submission",
         "/$defs/peer_submit_request/properties/mls_genesis_material",
         "/$defs/peer_submit_request/properties/mls_submission",
+        "/$defs/peer_submit_request/properties/producer_device_evidence",
         "/$defs/peer_submit_request/properties/replications",
         "/$defs/peer_submit_request/properties/unit",
         "/$defs/stream_scan_request/properties/after_position",

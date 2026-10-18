@@ -130,6 +130,8 @@ Service 历史在 `attested_at` 的 assertion method 与签名、attestation `ex
 [`../crypto-media/device-lifecycle.md` §8.2.2](../crypto-media/device-lifecycle.md)，正负例由
 [`ak.vector.federation.authority_forward_producer_device_evidence.v1`](../../artifacts/registry/vector-registry.json) 固定。
 
+managed 首次普通 Event／完整 MLS 的真实来源须按[device-lifecycle §8.2.2.1](../crypto-media/device-lifecycle.md#8221-managed-首次-forward-的原签来源闭包normative)另携 bounded `producer_managed_provenance` 原签闭包；仅保留于 governor 私有首接纳 audit，不进入本节 fanout／replication／scan／snapshot。原签角色／Service 绑定与当前两站 AND 业务门必须分别验证。
+
 #### 4.1.1 Realm fanout 目标集合与持久 intent（normative）
 
 首次接受本地 Actor 所签 Event 的 Station 是该 Event 实时 push 的唯一编排方；通过 peer 接收面收到该 Event 的 remote Station MUST 验证、持久化并服务其本地成员，但 MUST NOT 因该次 peer ingress 再创建第二轮实时 fanout。缺失副本通过 frontier probe、pull、backfill 或 snapshot 修复，不能靠接收方无界转广播。

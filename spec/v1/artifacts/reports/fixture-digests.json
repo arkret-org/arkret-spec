@@ -371,6 +371,11 @@
       "version": "2026-07-28"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/managed-forward-provenance-fixture.json",
+      "sha256": "12c3886c2e6001a57fae22b4aa30123aa6035173bd893c2207682997523ae427",
+      "version": "2026-10-18.1"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/managed-governance-fixture.json",
       "sha256": "4870e29330d9a6d039d5fe830a4979c551dfd9f468346fd0e227638544b09cf2",
       "version": "2026-10-09"
@@ -447,8 +452,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/peer-event-submit-semantic-union-fixture.json",
-      "sha256": "e685f9b07e839ee9fceb39f43dc4ab6a5127e060b71198accab6b07daa02d1cd",
-      "version": "2026-10-18.1"
+      "sha256": "41563fec4c869dca6f74cf546874c646c25571dd5c7ee08b748ccafb37c51e77",
+      "version": "2026-10-18.2"
     },
     {
       "path": "spec/v1/artifacts/fixtures/privacy-security-fixture.json",

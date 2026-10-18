@@ -291,7 +291,7 @@ Namespace 命中只表示“这个 Applet 是该名称空间的处理方”。
 
 **Namespace 命中不是归属证明（normative）**：namespace 命中只是**路由与排他判据**，**MUST NOT** 被解释为归属证明或授权。managed actor（Bot / Ghost）的归属由已接受的 `ak.applet.managed_actor.provision` 证据建立（§9.1）；凡该证据可达的判定点，实现 MUST 展开并校验该证据，MUST NOT 以 pattern 命中替代。
 
-namespace 在 provision 证据结构上不可达的判定点仍然是判据——§7.3.1 的逐次投递来源独立验证、§7.4 的未知 actor 发现与推送路由、以及 §4b 中发生在任何 Ghost 存在**之前**的 exclusive 冲突门（provision 的四条创建事实按 §9.1 只由接收 Station 保存并重放，不做 peer Event fan-out，因此这些站点拿不到 provision 证据）。但在这些判定点上，namespace 只回答“谁来处理 / 谁排他占用这个名称空间”，同样不产生任何授权。
+namespace 在 provision 证据结构上不可达的判定点仍然是判据——§7.3.1 的逐次投递来源独立验证、§7.4 的未知 actor 发现与推送路由、以及 §4b 中发生在任何 Ghost 存在**之前**的 exclusive 冲突门（provision 的四条创建事实按 §9.1 只由接收 Station 保存并重放，不做 peer Event fan-out；唯一窄例外是 device-lifecycle §8.2.2.1 本人 Device 首次 authority_forward 给当前 governor 的私有原签来源闭包，其它这些站点仍拿不到 provision 证据）。但在这些判定点上，namespace 只回答“谁来处理 / 谁排他占用这个名称空间”，同样不产生任何授权。
 
 该总则与 [`../authz/constraint-schema.md` §7.3](../authz/constraint-schema.md#73-applet-授权绑定constraint_subkindapplet_authority)（grant 的 `executed_by` 不得仅凭 namespace wildcard 签发）以及 §11 规则 4（delegated 代表真人时不得仅凭 wildcard 命中通过）的既有收紧一致；那两条是本总则在具体路径上的实例，不是例外。
 
@@ -905,6 +905,7 @@ Ghost的独立SCID/namespace与外部映射校验仍按§3.4，namespace命中�
 commit重验signed request、完整四Event／proof／crossbinding、current创建grant/Policy/review/安装epoch、expiry及quota。
 四项Event、各stream Commit、主体projection、唯一性、原签Service root、Principal root／Station attester、outcome与completion outbox
 **MUST** 在同一可恢复本地事务接纳；任何失败零业务写。不能通过普通submit、batch或peer逐Event绕过此入口。
+原创建事实只按[device-lifecycle §8.2.2.1](../crypto-media/device-lifecycle.md#8221-managed-首次-forward-的原签来源闭包normative)向本次业务 governor 私有供给固定四原件及其必要 current；这不复制 PCR、创建 projection 或授予业务权，也不执行第二次创建／completion。
 completion沿既有transaction authoring_context返回Applets，runtime持久化完整根和exact request后才ack；
 rotation继续复用§7.3.2.1的原生managed PCR历史闭包，Service epoch与Bot PCR版本互不强制相同。
 
@@ -1252,3 +1253,5 @@ future fence立即生效，密码学Remove另行推进，不能声称撤销擦�
 
 Bot preview/provision 输入及输出与 Ghost 平行，使用独立 request_id，不接受 external_ref；字段权威为 applet-bot-operations.schema.json。
 `ak.vector.capability.applet_bridge_non_event_grant_authority.v1` 同时核验 Bot/Ghost 创建 grant 的 exact Service subject 与已登记 admin issuer 规则。
+
+原签 managed forward 闭包的正负验收由 [`ak.vector.federation.managed_forward_provenance.v1`](../../artifacts/registry/vector-registry.json) 固定。
