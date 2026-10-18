@@ -78,6 +78,14 @@ class CallCurrentTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'complete replica/materializer mismatch'):
             gate.run_case(self.fixture, 'omission_resigned_complete_replica')
 
+    def test_ordinary_omission_retains_the_observable_last_join(self):
+        for name in ('omission_unsigned', 'omission_resigned_ordinary_trust_boundary', 'omission_resigned_complete_replica'):
+            case = next(case for case in self.fixture['cases'] if case['name'] == name)
+            self.assertEqual(case['checkpoint'], 7)
+            value = gate.axis_row(self.fixture['checkpoints'][case['checkpoint']], 'roster')['value']
+            self.assertEqual(len(value['entries']), 2)
+            self.assertEqual(sum(entry['tag_id'] == value['last_source']['tag_id'] for entry in value['entries']), 1)
+
     def test_below_floor_current_is_valid_without_granting_historical_event_read(self):
         self.assertEqual(gate.run_case(self.fixture, 'below_floor_current_binding_key'), 'accept')
         self.assertEqual(gate.run_case(self.fixture, 'exact_history_below_floor'), 'unavailable')

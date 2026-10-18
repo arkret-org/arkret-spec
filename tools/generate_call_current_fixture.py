@@ -193,7 +193,7 @@ def build_fixture():
                'session_epoch': 1, 'realm_id': REALM, 'stream_ref': STREAM, 'call_id': call_id,
                'current_generation': 1, 'known_head': revision(rows[2]['commit'])}
     return {
-        'version': '2026-10-18.2', 'suite': 'call_current', 'fixture_kind': 'cryptographic_transcript',
+        'version': '2026-10-19.1', 'suite': 'call_current', 'fixture_kind': 'cryptographic_transcript',
         'runner': {'kind': 'named_suite', 'entrypoint': 'ak.suite.call_state.compact_current.v1'},
         'generated_by': 'python -m tools.generate_call_current_fixture', 'covers_vectors': [VECTOR],
         'description': 'Synthetic full ActorId conformance transcripts. Actual Ed25519 Event, Commit, Snapshot and participant signatures; no live native DID authority, admission transaction, production performance or joint acceptance is claimed. The known genesis anchor and issuer authority keys are explicit fixture inputs. A below-floor current source does not authorize historical Event disclosure.',
@@ -205,7 +205,7 @@ def build_fixture():
         'request_context': context, 'response_context': copy.deepcopy(context), 'write_indices': indices,
         'original_rows': rows, 'checkpoints': checkpoints,
         'cases': [
-            {'name': name, 'vector_id': VECTOR, 'expected': outcome}
+            {'name': name, 'vector_id': VECTOR, 'expected': outcome, **({'checkpoint': 7, 'omit_entry': 'non_last_source'} if name in ('omission_unsigned', 'omission_resigned_ordinary_trust_boundary', 'omission_resigned_complete_replica') else {})}
             for name, outcome in [
                 ('complete_cold_recovery', 'accept'), ('empty_roster_latest_leave', 'accept'),
                 ('empty_moderation_latest_restore', 'accept'), ('unwritten_axis_absent', 'accept'),

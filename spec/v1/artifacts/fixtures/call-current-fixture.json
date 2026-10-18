@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-18.2",
+  "version": "2026-10-19.1",
   "suite": "call_current",
   "fixture_kind": "cryptographic_transcript",
   "runner": {
@@ -3843,17 +3843,23 @@
     {
       "name": "omission_unsigned",
       "vector_id": "ak.vector.call_state.compact_current.v1",
-      "expected": "reject"
+      "expected": "reject",
+      "checkpoint": 7,
+      "omit_entry": "non_last_source"
     },
     {
       "name": "omission_resigned_ordinary_trust_boundary",
       "vector_id": "ak.vector.call_state.compact_current.v1",
-      "expected": "accept"
+      "expected": "accept",
+      "checkpoint": 7,
+      "omit_entry": "non_last_source"
     },
     {
       "name": "omission_resigned_complete_replica",
       "vector_id": "ak.vector.call_state.compact_current.v1",
-      "expected": "reject"
+      "expected": "reject",
+      "checkpoint": 7,
+      "omit_entry": "non_last_source"
     },
     {
       "name": "wrong_member_complete_replica",

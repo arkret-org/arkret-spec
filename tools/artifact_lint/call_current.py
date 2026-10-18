@@ -173,6 +173,11 @@ def validate_snapshot(snapshot, request, response, keys, *, known_rows=(), histo
                 raise ValueError('source scope')
             if commit['governance_generation'] > generation or commit['stream_position'] > row['revision']['stream_position']:
                 raise ValueError('source beyond accepted axis')
+        if last['value']['op'] in ('join', 'remove_participant'):
+            if not any(entry['tag_id'] == last['tag_id'] for entry in entries):
+                raise ValueError('observable latest source omitted')
+        elif any(entry['source_commit']['stream_position'] >= last['source_commit']['stream_position'] for entry in entries):
+            raise ValueError('leave/restore must follow every retained entry')
         if axis == 'roster':
             for entry in entries:
                 verify_binding(entry, snapshot['realm_id'], selector['call_id'])
@@ -203,7 +208,8 @@ def refresh_allowed(roster, moderation, actor, device):
 
 
 def run_case(fixture, name):
-    snapshot = copy.deepcopy(fixture['checkpoints'][-1])
+    case = next((case for case in fixture['cases'] if case['name'] == name), {})
+    snapshot = copy.deepcopy(fixture['checkpoints'][case.get('checkpoint', -1)])
     request, response = copy.deepcopy(fixture['request_context']), copy.deepcopy(fixture['response_context'])
     keys = fixture['test_keys']
     indices = fixture['write_indices']
@@ -320,15 +326,15 @@ def run_case(fixture, name):
         if name == 'snapshot_signature_tampered':
             snapshot['signature']['sig'] = 'A' * 86
         else:
-            row['value']['entries'] = []
+            row['value']['entries'] = [entry for entry in row['value']['entries'] if entry['tag_id'] == row['value']['last_source']['tag_id']]
     elif name.startswith('omission_resigned_') or name == 'wrong_member_complete_replica':
         if name == 'wrong_member_complete_replica':
             older = copy.deepcopy(axis_row(fixture['checkpoints'][3], 'roster')['value']['entries'])
             row['value']['entries'] = older
         else:
-            row['value']['entries'] = []
+            row['value']['entries'] = [entry for entry in row['value']['entries'] if entry['tag_id'] == row['value']['last_source']['tag_id']]
         if name.endswith('complete_replica'):
-            kwargs['reference_rows'] = fixture['checkpoints'][-1]['current_state_entries']
+            kwargs['reference_rows'] = fixture['checkpoints'][case.get('checkpoint', -1)]['current_state_entries']
     elif name == 'two_axes_one_commit_distinct_dots':
         mod = axis_row(snapshot, 'moderation')
         if row['revision'] != mod['revision'] or row['value']['last_source']['tag_id'] == mod['value']['last_source']['tag_id']:
