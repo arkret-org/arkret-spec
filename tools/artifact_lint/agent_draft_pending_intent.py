@@ -343,6 +343,18 @@ def check_agent_draft_pending_intent(lint: Lint) -> None:
     case_names = {case.get("name") for case in cases or [] if isinstance(case, dict)}
     if fixture.get("covers_vectors") != [VECTOR_ID] or case_names != expected_cases:
         _fail(lint, FIXTURE, "fixture must cover all five closed lifecycle and sync faces")
+    create_case = _find(cases, "name", "pending_intent_create_replay_conflict")
+    private_create = "create_available_with_canonical_private_event_without_realm_commit"
+    if (
+        not isinstance(create_case, dict)
+        or private_create not in set(create_case.get("variants") or [])
+        or "create_available_with_canonical_event_and_authority_commit" in set(create_case.get("variants") or [])
+        or create_case.get("expected", {}).get(private_create)
+        != "private_event_exact_retry_outcome_and_available_pending_intent_committed_atomically_without_realm_commit"
+        or create_case.get("expected", {}).get("transaction_failure_before_commit")
+        != "private_event_exact_retry_outcome_and_pending_intent_all_absent_no_realm_commit"
+    ):
+        _fail(lint, FIXTURE, "private acceptance must atomically retain Event, exact-retry outcome and pending intent without a RealmCommit")
     consume_case = _find(cases, "name", "holder_cas_consumption_and_recovery")
     required_negative = {
         "account_data_cas_conflict",

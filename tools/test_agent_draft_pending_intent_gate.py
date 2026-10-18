@@ -233,6 +233,32 @@ class AgentDraftPendingIntentGateTest(unittest.TestCase):
 
         self.assert_red(mutate, "rollback")
 
+    def test_fixture_cannot_require_shared_commit_for_private_proposal(self) -> None:
+        def mutate(documents: dict) -> None:
+            case = gate._find(documents[gate.FIXTURE.resolve()]["cases"], "name", "pending_intent_create_replay_conflict")
+            good = "create_available_with_canonical_private_event_without_realm_commit"
+            bad = "create_available_with_canonical_event_and_authority_commit"
+            case["variants"] = [bad if value == good else value for value in case["variants"]]
+            case["expected"].pop(good, None)
+            case["expected"][bad] = "one_available_pending_intent_committed_atomically"
+
+        self.assert_red(mutate, "private acceptance")
+
+    def test_fixture_cannot_require_shared_commit_rollback(self) -> None:
+        def mutate(documents: dict) -> None:
+            case = gate._find(documents[gate.FIXTURE.resolve()]["cases"], "name", "pending_intent_create_replay_conflict")
+            case["expected"]["transaction_failure_before_commit"] = "event_authority_commit_and_pending_intent_all_absent"
+
+        self.assert_red(mutate, "private acceptance")
+
+    def test_fixture_cannot_omit_private_exact_retry_ledger(self) -> None:
+        def mutate(documents: dict) -> None:
+            case = gate._find(documents[gate.FIXTURE.resolve()]["cases"], "name", "pending_intent_create_replay_conflict")
+            key = "create_available_with_canonical_private_event_without_realm_commit"
+            case["expected"][key] = "one_available_pending_intent_without_exact_retry_outcome"
+
+        self.assert_red(mutate, "private acceptance")
+
     def test_key_schema_cannot_restore_ambiguous_literal_segments(self) -> None:
         def mutate(documents: dict) -> None:
             schema = documents[gate.PRIVATE_SCHEMA.resolve()]["$defs"]["agent_draft_account_data_key"]

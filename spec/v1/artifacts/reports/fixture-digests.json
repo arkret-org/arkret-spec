@@ -27,8 +27,8 @@
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-draft-pending-intent-fixture.json",
-      "sha256": "52ddfdc7852d274cfff2e1d923687754c4fdfab5eaf202e4dd178414f1f91815",
-      "version": "2026-09-20.6"
+      "sha256": "ed4a674139e23e6be8d439680e492580809d22fecc4470742493e4c1147abc9a",
+      "version": "2026-10-18.1"
     },
     {
       "path": "spec/v1/artifacts/fixtures/agent-membership-cascade-fixture.json",
