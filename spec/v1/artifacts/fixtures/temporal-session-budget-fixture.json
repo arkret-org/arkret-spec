@@ -1,6 +1,6 @@
 {
   "profile": "ak.vector_group.capability.v1",
-  "version": "2026-10-19.1",
+  "version": "2026-10-19.2",
   "suite": "temporal_session_budget",
   "runner": {
     "kind": "known_answer_tests",

@@ -3,9 +3,9 @@
   "artifacts": [
     {
       "path": "spec/v1/artifacts/profiles/conformance-profiles.json",
-      "version": "2026-10-18.3",
-      "generated_at": "2026-10-18T23:54:37+08:00",
-      "content_digest": "sha256:1cb397962d629ff38cbd71e6f6d869571bc254457cd6e7e71a94555400fc84ef"
+      "version": "2026-10-19.1",
+      "generated_at": "2026-10-19T07:39:22+08:00",
+      "content_digest": "sha256:53f9faef18373fca7ff007ad006a4cc7cd23db3326e814cb07b2055b7f0197b3"
     },
     {
       "path": "spec/v1/artifacts/registry/account-data-key-registry.json",
@@ -69,9 +69,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/capability-action-registry.json",
-      "version": "2026-10-18.1",
-      "generated_at": "2026-10-18T22:08:00+08:00",
-      "content_digest": "sha256:bdef73762d64a90069f29fa71b1e047cfa5f5540123a2b90b66d6bbdd82b639c"
+      "version": "2026-10-19.1",
+      "generated_at": "2026-10-19T07:39:22+08:00",
+      "content_digest": "sha256:64e665890b1c6c8ea5fc4ab65e0a277f22805d2ebb019cef6215be309a7a33b0"
     },
     {
       "path": "spec/v1/artifacts/registry/classification-field-registry.json",
@@ -87,9 +87,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
-      "version": "2026-10-18.6",
-      "generated_at": "2026-10-18T23:54:37+08:00",
-      "content_digest": "sha256:76e865e57b54d3a274dfe3044466b72f73cbafe1e1fb7f66f7f812db0d3c111c"
+      "version": "2026-10-19.1",
+      "generated_at": "2026-10-19T07:39:22+08:00",
+      "content_digest": "sha256:171bd2747f655ea6a6ef8d2b3902c9af8a57f2e2277c7741663f55a915d315d9"
     },
     {
       "path": "spec/v1/artifacts/registry/current-result-registry.json",
@@ -237,9 +237,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-10-18.9",
-      "generated_at": "2026-10-18T23:54:38+08:00",
-      "content_digest": "sha256:584878a3d08270d64d712a56bce3da571bc414ca5db72fc5c39d9135d6edb801"
+      "version": "2026-10-18.11",
+      "generated_at": "2026-10-18T23:54:40+08:00",
+      "content_digest": "sha256:415258558df6e3f4009ab3f9b3ff94b336f3f3f5b93bf213dad51df7e031d943"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
@@ -483,9 +483,9 @@
     },
     {
       "path": "tools/normative-title-inventory.json",
-      "version": "2026-10-18.5",
-      "generated_at": "2026-10-18T23:47:25+08:00",
-      "content_digest": "sha256:7a27ff357da310586f76043ee528a4f2b73dff42cedf1a60dae5bd381b8eda86"
+      "version": "2026-10-19.1",
+      "generated_at": "2026-10-19T07:36:42+08:00",
+      "content_digest": "sha256:33b69283a7e8d26538c3291e9e5ccf2f828f9459bd271002be2d3e4a628399a8"
     },
     {
       "path": "tools/operation-note-field-exemptions.json",
