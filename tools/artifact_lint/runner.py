@@ -14,6 +14,7 @@ from .account_revision_stale import check_account_revision_stale
 from .cursor_wait_bindings import check_cursor_wait_bindings
 from .call_current import check_call_current
 from .ice_credentials import check_ice_credentials
+from .push_target_boundary import check_push_target_boundary
 from .constraint_evaluation import check_constraint_evaluation
 
 from .forbidden_wire import check_forbidden_wire_contexts
@@ -917,6 +918,7 @@ def main(argv: list[str] | None = None) -> int:
             ("governance_result_consumption_roles", lambda: check_governance_result_consumption_roles(lint)),
             ("call_current", lambda: check_call_current(lint)),
             ("ice_credentials", lambda: check_ice_credentials(lint)),
+            ("push_target_boundary", lambda: check_push_target_boundary(lint)),
             ("constraint_evaluation", lambda: check_constraint_evaluation(lint)),
             ("agent_runtime_contract", lambda: check_agent_runtime_contract(lint)),
             ("agent_session_content", lambda: check_agent_session_content(lint)),

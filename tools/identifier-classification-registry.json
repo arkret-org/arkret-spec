@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 73,
+  "version": 74,
   "kind": "identifier_classification_registry",
   "source_of_truth": false,
   "generated_from": [
@@ -612,14 +612,6 @@
       "reason": "Symbol scoped to the containing document; it is only resolvable inside that object and is never an authorization subject."
     },
     {
-      "name": "salt_epoch_id",
-      "terminal_signature": "[[\"pattern\", \"^(?!ak:)\"]]",
-      "category": "opaque_correlation",
-      "occurrences": 1,
-      "example_path": "service-describe.schema.json#/properties/privacy_derivation/properties/push_target_id_derivation/properties/salt_epoch_id",
-      "reason": "Bounded opaque handle used to select a stored record; the record, not the handle, carries authority."
-    },
-    {
       "name": "secret_id",
       "terminal_signature": "[[\"pattern\", \"^[A-Za-z0-9_.-]+$\"]]",
       "category": "opaque_correlation",
@@ -758,5 +750,5 @@
       "reason": "Symbol scoped to the containing document; it is only resolvable inside that object and is never an authorization subject."
     }
   ],
-  "generated_at": "2026-10-18T21:14:17+08:00"
+  "generated_at": "2026-10-19T07:30:10+08:00"
 }

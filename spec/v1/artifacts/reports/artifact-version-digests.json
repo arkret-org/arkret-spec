@@ -237,9 +237,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/operation-contract-closure-lock.json",
-      "version": "2026-10-18.9",
-      "generated_at": "2026-10-18T23:54:38+08:00",
-      "content_digest": "sha256:584878a3d08270d64d712a56bce3da571bc414ca5db72fc5c39d9135d6edb801"
+      "version": "2026-10-18.10",
+      "generated_at": "2026-10-18T23:54:39+08:00",
+      "content_digest": "sha256:5e8aa8e67573ab6dac29b9bcfd2dd0a694580015f9078189649da5fcddb31138"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-registry.json",
@@ -369,9 +369,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/test-material-registry.json",
-      "version": "2026-10-18.1",
-      "generated_at": "2026-10-18T21:11:43+08:00",
-      "content_digest": "sha256:3d022788ee5476c1c678fcd7e940138a5f5302a366db4f66f09af9a04b9a434a"
+      "version": "2026-10-19.1",
+      "generated_at": "2026-10-19T07:30:10+08:00",
+      "content_digest": "sha256:7f63774443187fe921b33bad13c128c9e15a7ff8acf30acec9f0e02013fb65d5"
     },
     {
       "path": "spec/v1/artifacts/registry/track-name-registry.json",
@@ -453,9 +453,9 @@
     },
     {
       "path": "tools/identifier-classification-registry.json",
-      "version": 73,
-      "generated_at": "2026-10-18T21:14:17+08:00",
-      "content_digest": "sha256:d5068e78c7e9a2cdce6470979d05a98ec272c8b1141ca1c6118318706aaab808"
+      "version": 74,
+      "generated_at": "2026-10-19T07:30:10+08:00",
+      "content_digest": "sha256:bd8aed8c0a9e9a73ec443efb0f8bfd048f86cd3306ca7ac9054e8d29c347fbec"
     },
     {
       "path": "tools/identifier-role-suffix-registry.json",
@@ -507,9 +507,9 @@
     },
     {
       "path": "tools/prose-field-table-registry.json",
-      "version": 5,
+      "version": 6,
       "generated_at": null,
-      "content_digest": "sha256:8eb6bca6790fb280f21c7b2b2f1aa09db3a5370e1255d1f7bfd6f2148a99c1bc"
+      "content_digest": "sha256:eafd750fff69bf5b47f1d4b75d756efa468ab3f98353f9f477a1783e3bfc13c8"
     },
     {
       "path": "tools/prose-section-identity-ledger.json",
@@ -537,9 +537,9 @@
     },
     {
       "path": "tools/resolution-commitment-pointer-registry.json",
-      "version": "2026-09-19.2",
-      "generated_at": "2026-09-19T21:25:01+08:00",
-      "content_digest": "sha256:9801c684fca8174c88c333a6708d364fc52ca364d1fc5f0a172aa5ab7baca987"
+      "version": "2026-10-19.1",
+      "generated_at": "2026-10-19T07:30:10+08:00",
+      "content_digest": "sha256:b7c6643c4043eed1b075fdcfb94d12c210874192c26bd9116ea6a1b74e2f86d1"
     },
     {
       "path": "tools/schema-root-registry.json",

@@ -15,13 +15,13 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9586,
+    "total_properties": 9577,
     "total_schema_documents": 174,
     "by_presence_class": {
-      "optional": 2233,
+      "optional": 2230,
       "optional_defaulted": 48,
-      "required": 6775,
-      "required_nullable": 338,
+      "required": 6770,
+      "required_nullable": 337,
       "tristate": 192
     },
     "tristate_occurrences": 192,
@@ -192,7 +192,7 @@
     "security-transaction.schema.json/allOf/6/then/properties/accepted_steps",
     "service-describe.schema.json/allOf/1/then/properties/supported_features",
     "service-describe.schema.json/allOf/2/then/properties/verified_profiles",
-    "service-describe.schema.json/allOf/4/then/properties/auth_metadata",
+    "service-describe.schema.json/allOf/3/then/properties/auth_metadata",
     "service-operation-dtos.schema.json/$defs/DeviceMessagesGetOutcome/allOf/0/if/properties/deliveries",
     "service-operation-dtos.schema.json/$defs/ProjectionMorphRow/properties/created_at",
     "service-operation-dtos.schema.json/$defs/ProjectionMorphRow/properties/created_by",
@@ -1433,7 +1433,7 @@
       "shape": "#",
       "instance_path": "/auth_metadata",
       "occurrences": [
-        "/allOf/4/then/properties/auth_metadata"
+        "/allOf/3/then/properties/auth_metadata"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -11158,12 +11158,10 @@
         "/allOf/2/if/properties/development_mode": "required",
         "/allOf/2/then/properties/verified_profiles": "tristate",
         "/allOf/3/if/properties/service_kind": "required",
-        "/allOf/3/then/properties/privacy_derivation": "required_nullable",
-        "/allOf/4/if/properties/service_kind": "required",
-        "/allOf/4/then/properties/auth_metadata": "tristate",
-        "/allOf/5/if/anyOf/0/properties/supported_profiles": "required_nullable",
-        "/allOf/5/if/anyOf/1/properties/verified_profiles": "required_nullable",
-        "/allOf/5/if/anyOf/1/properties/verified_profiles/contains/properties/profile_id": "required",
+        "/allOf/3/then/properties/auth_metadata": "tristate",
+        "/allOf/4/if/anyOf/0/properties/supported_profiles": "required_nullable",
+        "/allOf/4/if/anyOf/1/properties/verified_profiles": "required_nullable",
+        "/allOf/4/if/anyOf/1/properties/verified_profiles/contains/properties/profile_id": "required",
         "/properties/auth_metadata": "required",
         "/properties/auth_metadata/properties/account_authority": "optional",
         "/properties/auth_metadata/properties/did_binding_methods": "optional",
@@ -11204,13 +11202,6 @@
         "/properties/plaintext_visibility/properties/notes": "optional",
         "/properties/plaintext_visibility/properties/payload_paths": "optional",
         "/properties/plaintext_visibility/properties/projection_outputs": "optional",
-        "/properties/privacy_derivation": "optional",
-        "/properties/privacy_derivation/properties/push_target_id_derivation": "optional",
-        "/properties/privacy_derivation/properties/push_target_id_derivation/properties/derivation_profile": "required",
-        "/properties/privacy_derivation/properties/push_target_id_derivation/properties/input_binding": "optional",
-        "/properties/privacy_derivation/properties/push_target_id_derivation/properties/salt_epoch_id": "required",
-        "/properties/privacy_derivation/properties/push_target_id_derivation/properties/salt_rotation_seconds": "required",
-        "/properties/privacy_derivation/properties/push_target_id_derivation/properties/secret_scope": "required",
         "/properties/profile_bindings": "optional",
         "/properties/profile_bindings/additionalProperties/properties/carrier": "required",
         "/properties/protocol_version": "required",
@@ -11259,7 +11250,6 @@
         "/$defs/auth_method/properties/openid_configuration_url",
         "/properties/calendar_tzdb_versions",
         "/properties/invite_addressing",
-        "/properties/privacy_derivation",
         "/properties/rate_limit_policy",
         "/properties/rate_limit_policy_id"
       ]
