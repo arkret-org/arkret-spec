@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-18.7",
-  "generated_at": "2026-10-18T23:47:25+08:00",
+  "version": "2026-10-18.8",
+  "generated_at": "2026-10-18T23:54:37+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -213,7 +213,7 @@
     },
     {
       "operation_id": "ak.open.realm_authority.read.bundle.v1",
-      "sha256": "sha256:e886d3f3b1e79c3f7e891f9ca29a0d667b797c12ea1335cd66514092de185b94"
+      "sha256": "sha256:f038d993fac50cf79acb9d58d9e715f6db31105203728f06911e5d97dd4c0c50"
     },
     {
       "operation_id": "ak.open.service.read.resolution.v1",

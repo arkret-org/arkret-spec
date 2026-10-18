@@ -9738,6 +9738,8 @@ paths:
             application/json:
               schema:
                 $ref: ../schemas/realm-authority-bundle.schema.json
+        '404':
+          description: 'Indistinguishable not_found for Human PCR and unknown or unavailable public authority material.'
       security: []
   /_arkret/peer/streams/scan:
     post:
