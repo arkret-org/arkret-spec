@@ -125,7 +125,7 @@
     },
     "peer_submit_request": {
       "type": "object",
-      "description": "Closed peer ingress with three semantic branches. authority_forward performs first admission for one Event, one MLS Commit or one registered audit_paired_event atomic_submission. Its required/forbidden fresh producer_device_evidence or producer_agent_evidence is decided by the actual producer, reused unchanged in role from the single-Event forward contract and checked for both pair slots; both slots must have the same complete actual producer and proof key. mls_genesis_material is event/MLS Genesis-specific and forbidden on atomic_submission. committed_replication stores authorized ordinary source facts; audit-paired source Events must travel together through registered_atomic_unit. registered_atomic_unit only materializes registered source-committed units and forbids first-admission evidence. Mixed branch members and device/Agent evidence mixing are rejected. Outer canonical_hash/full_body replay and the exact inner-unit replay fence are distinct; refreshing transport-only producer evidence never authorizes a second unit acceptance. A post-genesis PCR-native Event is decided from verified inception/purpose/current root and its exact registered native accepting unit, never a sender-declared flag. Only its authenticated actual producer hosting Station may forward the exact original to the current PCR governor. The native verifier rechecks the original current device/root proof and private effects under the PCR lock. Separate ordinary-collaboration producer_device_evidence and producer_signer_fact_digest are forbidden for this native branch; their absence never authorizes an ordinary collaboration Event.",
+      "description": "Closed peer ingress with three semantic branches. authority_forward performs first admission for one Event, one MLS Commit or one registered audit_paired_event atomic_submission. Its required/forbidden fresh producer_device_evidence or producer_agent_evidence is decided by the actual producer, reused unchanged in role from the single-Event forward contract and checked for both pair slots; both slots must have the same complete actual producer and proof key. mls_genesis_material is event/MLS Genesis-specific and forbidden on atomic_submission. committed_replication stores authorized ordinary source facts; audit-paired source Events must travel together through registered_atomic_unit. registered_atomic_unit only materializes registered source-committed units and forbids first-admission evidence. Mixed branch members and device/Agent evidence mixing are rejected. Outer canonical_hash/full_body replay and the exact inner-unit replay fence are distinct; refreshing transport-only producer evidence never authorizes a second unit acceptance. A post-genesis PCR-native Event is decided from verified inception/purpose/current root and its exact registered native accepting unit, never a sender-declared flag. Only its authenticated actual producer hosting Station may forward the exact original to the current PCR governor. The native verifier rechecks the original current device/root proof and private effects under the PCR lock. Separate ordinary-collaboration producer_device_evidence and producer_signer_fact_digest are forbidden for this native branch; their absence never authorizes an ordinary collaboration Event. Applet-managed Account Device first admission additionally requires producer_managed_provenance; ordinary Human, Agent, Service, native PCR and non-first-admission branches forbid it. The actual authenticated original source, not a tag, decides the presence rule. It enters the existing unsigned body and event_authorization body digest unchanged.",
       "required": [
         "branch"
       ],
@@ -150,6 +150,9 @@
         "producer_device_evidence": {
           "$ref": "./account-device-signer-evidence.schema.json#/$defs/forward_account_device_signer_evidence",
           "description": "authority_forward only. Complete account_device evidence for a cross-Station real Account Device producer (Human or accepted Applet-managed), freshly signed by the forwarding Station (the producer's account Station) from the same durable cut as its live gate before every forwarding attempt and persisted with its ref before sending; never a cached or keys/query-returned object. The governance Station verifies Source-Service-ID equals attestation.account_id.station_id, the attestation signature under the carried Service history at attested_at, now earlier than attestation expires_at, the original authorization_window covering both Event created_at and now, device_status active, and exact producer AccountId/device fragment/key binding, and persists the complete object and ref inside the acceptance transaction for audit only. An exact duplicate Event returns its original outcome before evidence freshness is checked. event_authorization is required, covers the exact original Event and destination/canonical body, and freezes independent original authorization coordinates, revision, PCR tenure and source accepted_at. The complete evidence remains private audit; only the separately committed minimal fact is replicated."
+        },
+        "producer_managed_provenance": {
+          "$ref": "#/$defs/forward_managed_actor_provenance"
         },
         "producer_agent_evidence": {
           "$ref": "./agent-authority-evidence.schema.json#/$defs/agent_producer_evidence"
@@ -341,6 +344,11 @@
                 "required": [
                   "producer_agent_evidence"
                 ]
+              },
+              {
+                "required": [
+                  "producer_managed_provenance"
+                ]
               }
             ]
           }
@@ -395,6 +403,11 @@
               {
                 "required": [
                   "atomic_producer_evidence"
+                ]
+              },
+              {
+                "required": [
+                  "producer_managed_provenance"
                 ]
               }
             ]
@@ -451,6 +464,11 @@
                 "required": [
                   "atomic_producer_evidence"
                 ]
+              },
+              {
+                "required": [
+                  "producer_managed_provenance"
+                ]
               }
             ]
           }
@@ -464,6 +482,52 @@
               "producer_device_evidence",
               "producer_agent_evidence"
             ]
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "producer_managed_provenance"
+            ]
+          },
+          "then": {
+            "required": [
+              "producer_device_evidence"
+            ],
+            "properties": {
+              "branch": {
+                "const": "authority_forward"
+              }
+            },
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "producer_agent_evidence"
+                  ]
+                },
+                {
+                  "required": [
+                    "atomic_submission"
+                  ]
+                },
+                {
+                  "required": [
+                    "atomic_producer_evidence"
+                  ]
+                },
+                {
+                  "required": [
+                    "replications"
+                  ]
+                },
+                {
+                  "required": [
+                    "unit"
+                  ]
+                }
+              ]
+            }
           }
         }
       ],
@@ -2510,6 +2574,193 @@
       },
       "additionalProperties": false,
       "description": "Private salted commitment to the complete frozen native-state export, retained only by verified old/new PCR governors; it never replaces actual complete import."
+    },
+    "managed_creation_accepted_event": {
+      "type": "object",
+      "description": "One exact original native managed-actor creation Event and its original accepted covering Commit; not a committed_replication item or authority to install a PCR replica.",
+      "required": [
+        "event",
+        "commit"
+      ],
+      "properties": {
+        "event": {
+          "$ref": "./event-envelope.schema.json"
+        },
+        "commit": {
+          "$ref": "./realm-commit.schema.json"
+        }
+      },
+      "additionalProperties": false
+    },
+    "managed_creation_originals": {
+      "type": "object",
+      "description": "Exactly the four source-committed originals of one native creation aggregate. Their real Service signatures and typed cross-references establish identity; no caller-declared role, completion, authoring request, private fixed set or unrelated Event is carried.",
+      "required": [
+        "provision",
+        "pcr_genesis",
+        "accountability",
+        "profile"
+      ],
+      "properties": {
+        "provision": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/managed_creation_accepted_event"
+            },
+            {
+              "properties": {
+                "event": {
+                  "properties": {
+                    "kind": {
+                      "const": "ak.applet.managed_actor.provision"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "pcr_genesis": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/managed_creation_accepted_event"
+            },
+            {
+              "properties": {
+                "event": {
+                  "properties": {
+                    "kind": {
+                      "const": "ak.realm.create"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "accountability": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/managed_creation_accepted_event"
+            },
+            {
+              "properties": {
+                "event": {
+                  "properties": {
+                    "kind": {
+                      "const": "ak.identity.accountability_grant"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "profile": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/managed_creation_accepted_event"
+            },
+            {
+              "properties": {
+                "event": {
+                  "properties": {
+                    "kind": {
+                      "const": "ak.profile.create"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "managed_profile_current": {
+      "type": "object",
+      "description": "One whole registered typed current result and the accepted Commit at its exact revision, frozen at the producer Device attestation cut. Not a new exact-current read operation or standalone portable proof.",
+      "required": [
+        "realm_id",
+        "result",
+        "commit"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "result": {
+          "$ref": "./typed-current-result.schema.json#/$defs/actor_profile_result"
+        },
+        "commit": {
+          "$ref": "./realm-commit.schema.json"
+        }
+      },
+      "additionalProperties": false
+    },
+    "managed_accountability_current": {
+      "type": "object",
+      "description": "One whole registered typed current result and the accepted Commit at its exact revision, frozen at the producer Device attestation cut. Not a new exact-current read operation or standalone portable proof.",
+      "required": [
+        "realm_id",
+        "result",
+        "commit"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "result": {
+          "$ref": "./typed-current-result.schema.json#/$defs/identity_accountability_result"
+        },
+        "commit": {
+          "$ref": "./realm-commit.schema.json"
+        }
+      },
+      "additionalProperties": false
+    },
+    "managed_identity_current": {
+      "type": "object",
+      "description": "The two identity/control results needed for this producer only. Profile lives in its actual managed PCR; accountability is the exact original creation endorsement tuple and scope, never an unqualified cross-Realm search. expires_at is bounded by the Device attestation, original Device window and actual endorsement expiry. The existing source signature and event_authorization body digest bind this whole private sibling.",
+      "required": [
+        "profile",
+        "accountability",
+        "expires_at"
+      ],
+      "properties": {
+        "profile": {
+          "$ref": "#/$defs/managed_profile_current"
+        },
+        "accountability": {
+          "$ref": "#/$defs/managed_accountability_current"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "forward_managed_actor_provenance": {
+      "type": "object",
+      "description": "authority_forward event or complete MLS only: at most 1 MiB RFC8785 canonical bytes. Four original Service-signed accepted creation Events, their four Commits, the Applet Service historical resolution, and exactly two current identity results with two covering Commits. Immutable role/Service ownership comes from original signatures, never current projections, tags or a role marker. Source Station resolution is reused from producer_device_evidence. No PCR full stream, completion, private fixed set or private key; private first-admission audit only.",
+      "required": [
+        "creation",
+        "service_resolution",
+        "current"
+      ],
+      "properties": {
+        "creation": {
+          "$ref": "#/$defs/managed_creation_originals"
+        },
+        "service_resolution": {
+          "$ref": "./identity-resolution.schema.json#/$defs/authenticated_service_resolution"
+        },
+        "current": {
+          "$ref": "#/$defs/managed_identity_current"
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-max-canonical-bytes": 1048576
     }
   }
 }

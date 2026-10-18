@@ -913,6 +913,76 @@ origin MUST 在同一锁定 PCR cut 验完整 producer Event／本人 Device 签
 
 本节正负例由 [`ak.vector.federation.authority_forward_producer_device_evidence.v1`](../../artifacts/registry/vector-registry.json) 固定。
 
+#### 8.2.2.1 managed 首次 forward 的原签来源闭包（normative）
+
+`authority_forward` 的普通 `event_submission` 或完整 `mls_submission`，当实际 producer 是
+Applet-managed Account 本人 Device 时，MUST 另带 closed sibling `producer_managed_provenance`。
+类型为 [`forward_managed_actor_provenance`](../../artifacts/schemas/authority-commit-operations.schema.json#/$defs/forward_managed_actor_provenance)。
+Human、Agent、Service、native PCR、`atomic_submission`、`committed_replication` 与
+`registered_atomic_unit` MUST NOT 携带它；缺件、额外成员、混源或冲突均零写拒绝，
+managed 来源不得退回 Human 分支。Applet 标签只触发核验，不能作为角色结论。
+
+| 字段 | 类型 | 必填 | 说明与约束 |
+| --- | --- | --- | --- |
+| `creation` | closed object | required | 恰有 `provision`、`pcr_genesis`、`accountability`、`profile` 四成员；每项仅含原 `event` 与其原 accepted `commit`，不是可扩展 Event 数组。 |
+| `service_resolution` | `AuthenticatedServiceResolution` | required | 原 Applet Service 的真实 method-native 历史及 normalized DID Document，用于独立验证四 Event 的原 Service proof；不得以 origin 的角色投影替代。 |
+| `current` | closed object | required | 恰有 `profile`、`accountability`、`expires_at`。前两项各为 closed `{realm_id, result, commit}`，分别使用原 `actor_profile`／`identity_accountability` typed current 完整 value shape 及其 exact revision 的 accepted covering Commit。 |
+
+整个 sibling 的 RFC 8785 JCS UTF-8 上限为 1 MiB，超限整体以 `payload_too_large` 拒绝，
+不得截断、分页或另建读取接口。总共恰有四个创建 Event、四个创建 Commit、两个 current result
+及两个 covering Commit；重合 Commit 可以逐字重复，不得借重合塞入第五个 Event、任意历史数组、
+completion、authoring request、install fixed set、私钥或完整 PCR stream。
+
+origin MUST 在与本次 `producer_device_evidence` 相同的锁定耐久 cut 取得原件与 current。
+四个原件 MUST 是一次真实 §9.1 native 创建事务的 accepted originals；provision 的完整 Account、
+Applet、Service、actor_role、初始 resolution／method history 与 Ghost external tuple，
+PCR genesis 的 `applet_managed_control` purpose、actor／executed_by 和 provision ref，
+accountability 的 issuer／subject／scope 及 provision ref，Profile 的 actor_kind／managed_by_applet／
+accountable principals／Ghost tuple 与 accountability ref，MUST 交叉闭合。
+角色与 Service 归属只能从这四个原 Service 签名原件及其绑定取得，不新增角色标记。
+创建 scope 可以不同于本次业务 scope；不得把在另一合法 scope 的 Ghost reuse 当成第二次创建。
+
+governor MUST 独立验证每个 Event 的 canonical ID、proof 与 exact covering Commit 的内容地址、
+Event／realm／stream／position／authority 坐标和原接受签名；四个创建 Commit 的 signer MUST 是
+producer 完整 Account 的 hosting Station，同一原事务的接受时间一致。PCR genesis 必须是该 PCR
+position 0 的原 inception，不能借当前 head、命名空间、裸 fact 或重签的创建投影补位。
+原 Service 的 bare DID 投影 MUST 等于 provision 的 service_id，也 MUST 等于本次实际 Applet
+registration 的 Service；历史 assertion method 在原 Event.created_at 合法且逐字匹配原 proof。
+accountability 的 payload proof 与外层 Event proof 必须使用该原 Service 的同一合法 method。
+Source Station 的历史验签闭包复用本次 `producer_device_evidence.service_resolution`，不另造身份根。
+
+`current.profile` 必须位于原 managed PCR，selector、principal、Profile id 与完整 Account 对应；
+其 actor_kind、managed_by_applet、唯一 accountable Service 与 Ghost tuple 必须继续匹配原件。
+`current.accountability` 只能是原创建 endorsement 的 exact Realm／issuer／subject／归一化 scope-set
+记录，必须 active 且覆盖当前时刻；不能跨 Realm 搜索另一条可用 endorsement 补位。
+两个 current result 的 revision 必须逐字绑定其 covering Commit；其签名必须属于该 Commit 的
+Realm／governance generation 的合法治理 Station，不能固定为创建时的 hosting Station。
+governor MUST 复用既有 Realm authority 验证合同，独立验证 genesis 与连续 handoff、对应历史
+Service method 及 covering Commit；可使用已验证的本地 authority closure，或既有
+`ak.open.realm_authority.read.bundle.v1` 取得合法的最小 authority 材料。该公开面仅允许既有
+PCR outward genesis／governance-change，不开放 Profile、accountability 或设备控制历史。
+未知 authority、缺历史或迁移断链均零写拒绝；不得只验裸 Service 签名、以当前 route 代替历史
+generation，也不得用来源闭包新增通用 PCR 读取权。
+缺失、unknown、错误 selector、stale cut、revoked／expired 或当前 lifecycle 非 active 均失败关闭。
+这些是来源 Station 在同一 cut 的当前状态证据；它们不重新定义角色，也不授予目标业务权。
+
+`current.expires_at` MUST 不晚于本次 Device attestation.expires_at、原 Device authorization_window
+的有限上界及 endorsement 实际 expires_at（若有），governor 在接纳／最终效果处 MUST 独立重验该
+最早物理到期边界。origin 原 Device／原签 scope-action pair 门与 governor 的 Service parent／
+terminal child、实际 scope 安装、membership、Policy／管理／批准、quota 及领域 revision 继续求 AND。
+
+**唯一 preimage**：现有 producer Device `event_authorization` 的算法不变；先把本 sibling 原样
+放入完整 unsigned peer body，再按既有规则只删除整个 `producer_device_evidence` 后计算 body digest；
+本 sibling 不得删除，也不得仅删除 evidence 内的 `event_authorization` 而保留其余部分。
+四个创建原件及 current 不引用本次 body digest，避免环。HTTP Service signature 继续覆盖完整 body；
+不增加 proof context、role flag 或第二种 body digest。exact accepted retry 仍先恢复原 outcome，
+响应丢失重投原完整 body；新尝试重取同 cut Device 与 current，不重签原创建 Event。
+
+这是 Applet integration §5／§9.1 与历史可见性规则的窄披露例外：原件仅随已通过本人 Device
+原签 pair 的 exact 首次提交送往当前 governor，只在其原子接受事务的私有 audit 留存。
+不投递给群成员，不进入 replication／scan／snapshot，不新增 PCR／目录／枚举接口；
+后续成员历史仍只使用既有最小 signer fact。未知来源不得因取材失败降低任何业务门。
+
 #### 8.3 客户端设备信任（normative）
 
 客户端信任自己已认证 Station 确认的 exact account-device 当前授权投影。远端 origin Station 的 attestation 及其 assertion key/history 由自己 Station 验证；客户端不执行 DID/PCR 历史验证，不将任意服务直接返回的设备公钥视为本账号服务器结果。跨站目标的取材由自己 Station 按 §8.2.1 完成；客户端 MUST NOT 直连 origin Station 的 peer 面，也 MUST NOT 把自己的 SessionGrant / DPoP 交给任何其它服务。
@@ -1504,3 +1574,5 @@ queue list 及每个新 item 始终逐 scope 执行当前全部交付屏障。
 不新增签名域或预像，typed current 原样保留该列表；历史 accepted 事实按原时点和原授权实例复验。
 
 `ak.vector.applet.device_scopes.v1` 用真实合法 ScopeRef／动作执行正反例，向量输入见 [paired scope fixture](../../artifacts/fixtures/applet-device-scope-fixture.json)。
+
+原签 managed forward 闭包的正负验收由 [`ak.vector.federation.managed_forward_provenance.v1`](../../artifacts/registry/vector-registry.json) 固定。

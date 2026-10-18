@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-18.1",
+  "version": "2026-10-18.2",
   "source_of_truth": true,
-  "generated_at": "2026-10-18T07:11:21+08:00",
+  "generated_at": "2026-10-18T20:42:15+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-10-14.2",
@@ -14142,7 +14142,7 @@
         "http": "POST /_arkret/peer/events",
         "grpc": "PeerEvents/Submit",
         "mq": "peer.events.command.submit",
-        "notes": "Closed peer ingress with three semantic branches. authority_forward performs first admission for one Event, one MLS Commit or one registered audit_paired_event atomic_submission. The atomic branch requires atomic_producer_evidence[2] in business/audit order; each slot reuses its own existing Device or Agent Event-bound closure, or the closed empty Service branch. Single-Event top-level producer evidence is forbidden on the atomic branch. Both slots must have the same complete actual producer and proof key. mls_genesis_material is event/MLS Genesis-specific and forbidden on atomic_submission. committed_replication stores authorized ordinary source facts; audit-paired source Events must travel together through registered_atomic_unit. registered_atomic_unit only materializes registered source-committed units and forbids first-admission evidence. Mixed branch members and device/Agent evidence mixing are rejected. Outer canonical_hash/full_body replay and the exact inner-unit replay fence are distinct; refreshing transport-only producer evidence never authorizes a second unit acceptance. Every replica unit outcome describes original source acceptance only; it creates no new finality or second fanout. Verified post-genesis PCR-native authority_forward is restricted to the exact actual producer hosting Station and the independently verified current PCR governor; it uses its existing native root/device/placement transaction rather than an ordinary collaboration Human producer evidence/fact branch. No caller flag selects this authority and no PCR history replication or outward read is granted. See identity/consent-model section 6.3.2 and realm-and-space section 2.8.1.",
+        "notes": "Closed peer ingress with three semantic branches. authority_forward performs first admission for one Event, one MLS Commit or one registered audit_paired_event atomic_submission. The atomic branch requires atomic_producer_evidence[2] in business/audit order; each slot reuses its own existing Device or Agent Event-bound closure, or the closed empty Service branch. Single-Event top-level producer evidence is forbidden on the atomic branch. Both slots must have the same complete actual producer and proof key. mls_genesis_material is event/MLS Genesis-specific and forbidden on atomic_submission. committed_replication stores authorized ordinary source facts; audit-paired source Events must travel together through registered_atomic_unit. registered_atomic_unit only materializes registered source-committed units and forbids first-admission evidence. Mixed branch members and device/Agent evidence mixing are rejected. Outer canonical_hash/full_body replay and the exact inner-unit replay fence are distinct; refreshing transport-only producer evidence never authorizes a second unit acceptance. Every replica unit outcome describes original source acceptance only; it creates no new finality or second fanout. Verified post-genesis PCR-native authority_forward is restricted to the exact actual producer hosting Station and the independently verified current PCR governor; it uses its existing native root/device/placement transaction rather than an ordinary collaboration Human producer evidence/fact branch. No caller flag selects this authority and no PCR history replication or outward read is granted. See identity/consent-model section 6.3.2 and realm-and-space section 2.8.1. Applet-managed Account Device Event/complete-MLS first admission carries the bounded original Service-signed producer_managed_provenance closure of device-lifecycle 8.2.2.1; its private current identity cut does not replace governor business gates, and replication/atomic/native PCR branches forbid this member.",
         "body_class": "non_streaming_json",
         "success_shape_kind": "schema_resource",
         "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/peer_submit_request",
@@ -17328,8 +17328,8 @@
       "metadata_headers": "Metadata-only success expressed through HTTP headers.",
       "empty_response": "No success body is defined."
     },
-    "version": "2026-10-16.1",
-    "generated_at": "2026-10-16T23:42:57+08:00",
+    "version": "2026-10-18.1",
+    "generated_at": "2026-10-18T20:43:04+08:00",
     "deployment_prototypes": [
       {
         "prototype_id": "ak.deployment_prototype.coland_station.v1",
@@ -21249,8 +21249,8 @@
         ]
       }
     ],
-    "version": "2026-10-18.1",
-    "generated_at": "2026-10-18T07:11:21+08:00",
+    "version": "2026-10-18.2",
+    "generated_at": "2026-10-18T20:43:04+08:00",
     "metadata_authority": "contract_registry_section",
     "mls_roster_verification_contract": {
       "roles": {
@@ -21474,7 +21474,33 @@
         "private_original": "accepted_at_audit_only",
         "member_delivery": "existing_full_disclosure_minimal_historical_fact_only",
         "directory_or_current_query_expanded": false,
-        "new_wire_role_session_pcr_read_or_authority_token": false
+        "new_wire_role_session_pcr_read_or_authority_token": false,
+        "managed_provenance_contract": {
+          "member": "producer_managed_provenance",
+          "schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/forward_managed_actor_provenance",
+          "max_canonical_bytes": 1048576,
+          "creation_slots": [
+            "provision",
+            "pcr_genesis",
+            "accountability",
+            "profile"
+          ],
+          "creation_event_count": 4,
+          "creation_commit_count": 4,
+          "current_families": [
+            "actor_profile",
+            "identity_accountability"
+          ],
+          "current_covering_commit_count": 2,
+          "original_producer": "exact_original_applet_service",
+          "accepted_commit_signer": "creation_producer_account_hosting_station_current_verified_realm_authority_generation",
+          "presence": "required_managed_device_event_or_complete_mls_only_forbidden_human_agent_service_native_pcr_atomic_replication",
+          "current_cut": "same_locked_cut_as_live_device_attestation",
+          "body_digest": "existing_complete_unsigned_peer_body_includes_sibling_remove_only_producer_device_evidence",
+          "retention": "atomic_private_first_admission_audit_only_never_member_replication_scan_snapshot",
+          "failures": "zero_writes_no_human_fallback_no_source_role_projection_no_new_pcr_read_surface",
+          "proof_context_policy": "existing_contexts_unchanged"
+        }
       }
     },
     "agent_authority_evidence_contract": {

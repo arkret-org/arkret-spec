@@ -51,7 +51,26 @@ LIVE_DEVICE_SOURCE_CONTRACT = {'evidence_schema_ref': 'schemas/account-device-si
  'private_original': 'accepted_at_audit_only',
  'member_delivery': 'existing_full_disclosure_minimal_historical_fact_only',
  'directory_or_current_query_expanded': False,
- 'new_wire_role_session_pcr_read_or_authority_token': False}
+ 'new_wire_role_session_pcr_read_or_authority_token': False,
+ 'managed_provenance_contract': {'member': 'producer_managed_provenance',
+                                 'schema_ref': 'schemas/authority-commit-operations.schema.json#/$defs/forward_managed_actor_provenance',
+                                 'max_canonical_bytes': 1048576,
+                                 'creation_slots': ['provision',
+                                                    'pcr_genesis',
+                                                    'accountability',
+                                                    'profile'],
+                                 'creation_event_count': 4,
+                                 'creation_commit_count': 4,
+                                 'current_families': ['actor_profile', 'identity_accountability'],
+                                 'current_covering_commit_count': 2,
+                                 'original_producer': 'exact_original_applet_service',
+                                 'accepted_commit_signer': 'creation_producer_account_hosting_station_current_verified_realm_authority_generation',
+                                 'presence': 'required_managed_device_event_or_complete_mls_only_forbidden_human_agent_service_native_pcr_atomic_replication',
+                                 'current_cut': 'same_locked_cut_as_live_device_attestation',
+                                 'body_digest': 'existing_complete_unsigned_peer_body_includes_sibling_remove_only_producer_device_evidence',
+                                 'retention': 'atomic_private_first_admission_audit_only_never_member_replication_scan_snapshot',
+                                 'failures': 'zero_writes_no_human_fallback_no_source_role_projection_no_new_pcr_read_surface',
+                                 'proof_context_policy': 'existing_contexts_unchanged'}}
 
 PRODUCER_DEVICE_CODES = (
     "device_unauthorized",
@@ -247,13 +266,13 @@ def check_peer_event_submit_semantic_union(lint: Lint) -> None:
         if constants != ["authority_forward", "authority_forward", "authority_forward", "committed_replication", "registered_atomic_unit"]:
             _fail(lint, SCHEMA, "peer_submit_request alternatives drift from the registered branch partition")
         allowed_fields = (
-            {"branch", "event_submission", "mls_genesis_material", "producer_device_evidence", "producer_agent_evidence"},
-            {"branch", "mls_submission", "producer_device_evidence", "producer_agent_evidence"},
+            {"branch", "event_submission", "mls_genesis_material", "producer_device_evidence", "producer_managed_provenance", "producer_agent_evidence"},
+            {"branch", "mls_submission", "producer_device_evidence", "producer_managed_provenance", "producer_agent_evidence"},
             {"branch", "atomic_submission", "atomic_producer_evidence"},
             {"branch", "replications"},
             {"branch", "unit"},
         )
-        all_branch_fields = {"event_submission", "mls_genesis_material", "mls_submission", "producer_device_evidence", "producer_agent_evidence", "replications", "unit", "atomic_submission", "atomic_producer_evidence"}
+        all_branch_fields = {"event_submission", "mls_genesis_material", "mls_submission", "producer_device_evidence", "producer_managed_provenance", "producer_agent_evidence", "replications", "unit", "atomic_submission", "atomic_producer_evidence"}
         for index, (item, allowed) in enumerate(zip(branches, allowed_fields, strict=True)):
             forbidden = {
                 next(iter(_required(candidate)))
@@ -264,8 +283,25 @@ def check_peer_event_submit_semantic_union(lint: Lint) -> None:
                 _fail(lint, SCHEMA, f"peer_submit_request alternative {index} must reject every cross-branch field")
 
     peer_properties = peer.get("properties", {})
-    if set(peer_properties) != {"branch", "event_submission", "mls_genesis_material", "mls_submission", "producer_device_evidence", "producer_agent_evidence", "replications", "unit", "atomic_submission", "atomic_producer_evidence"}:
+    if set(peer_properties) != {"branch", "event_submission", "mls_genesis_material", "mls_submission", "producer_device_evidence", "producer_managed_provenance", "producer_agent_evidence", "replications", "unit", "atomic_submission", "atomic_producer_evidence"}:
         _fail(lint, SCHEMA, "peer_submit_request properties must be the exact branch field set")
+    managed = defs.get("forward_managed_actor_provenance", {})
+    if (_ref_name(peer_properties.get("producer_managed_provenance")) != "#/$defs/forward_managed_actor_provenance"
+            or managed.get("additionalProperties") is not False
+            or _required(managed) != {"creation", "service_resolution", "current"}
+            or set(managed.get("properties", {})) != {"creation", "service_resolution", "current"}
+            or managed.get("x-arkret-max-canonical-bytes") != 1048576):
+        _fail(lint, SCHEMA, "managed provenance must be the bounded closed original-source sibling")
+    creation = defs.get("managed_creation_originals", {})
+    if (creation.get("additionalProperties") is not False
+            or _required(creation) != {"provision", "pcr_genesis", "accountability", "profile"}
+            or set(creation.get("properties", {})) != _required(creation)):
+        _fail(lint, SCHEMA, "managed provenance must contain exactly four named creation originals")
+    current = defs.get("managed_identity_current", {})
+    if (current.get("additionalProperties") is not False
+            or _required(current) != {"profile", "accountability", "expires_at"}
+            or set(current.get("properties", {})) != _required(current)):
+        _fail(lint, SCHEMA, "managed provenance current must be the exact two-result expiry-bound cut")
     if _ref_name(peer_properties.get("mls_genesis_material")) != "#/$defs/mls_genesis_material":
         _fail(lint, SCHEMA, "authority_forward mls_genesis_material must use the closed mls_genesis_material definition")
     genesis_material = defs.get("mls_genesis_material", {})

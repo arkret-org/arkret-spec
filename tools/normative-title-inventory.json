@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-18.1",
+  "version": "2026-10-18.2",
   "source_of_truth": true,
-  "generated_at": "2026-10-18T07:11:21+08:00",
+  "generated_at": "2026-10-18T20:40:00+08:00",
   "description": "Closed inventory of current spec/v1/zh headings that explicitly carry the （normative） marker. Any addition, removal, rename, or move is reviewed as a protocol change and refreshes this source-of-truth inventory.",
   "titles": [
     {
@@ -383,6 +383,11 @@
       "page": "crypto-media/device-lifecycle.md",
       "heading": "8.2.2 真实 Account Device producer 解析（normative）",
       "fragment": "822-真实-account-device-producer-解析normative"
+    },
+    {
+      "page": "crypto-media/device-lifecycle.md",
+      "heading": "8.2.2.1 managed 首次 forward 的原签来源闭包（normative）",
+      "fragment": "8221-managed-首次-forward-的原签来源闭包normative"
     },
     {
       "page": "crypto-media/device-lifecycle.md",

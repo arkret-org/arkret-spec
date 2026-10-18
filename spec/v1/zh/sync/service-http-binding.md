@@ -155,7 +155,7 @@ HTTP operation 的通用 batch 分支。以后若登记独立 Event 的便捷 ba
 
 - `authority_forward`：携一条 exact `EventAdmissionSubmission` 或一份 MLS Commit submission，只允许已验证的
   forwarding Station 调用 exact current governance Station；仅后者执行首次 admission 并签发新
-  `RealmCommit`。本分支另有唯一成员 `producer_device_evidence`（`account_device_signer_evidence`），其有无由
+  `RealmCommit`。本分支另有本人 Device 来源成员 `producer_device_evidence`（`account_device_signer_evidence`），其有无由
   Event 决定：实际签名方是 Account 且 proof fragment 为 `ak:device:` 时必带，其它情况禁带，MLS 以 Commit Event
   的 producer 为准；缺失或多余为 `schema_violation`。forwarding Station 每次转发尝试前现签并先持久化，治理
   Station 按 [`../crypto-media/device-lifecycle.md` §8.2.2](../crypto-media/device-lifecycle.md) 验证后才接纳；
@@ -163,11 +163,12 @@ HTTP operation 的通用 batch 分支。以后若登记独立 Event 的便捷 ba
   `mls_genesis_material`（Genesis 所引两个 Blob 的原始字节），治理 Station 核对内容寻址后在接纳事务内保存
   （[`../crypto-media/encryption-and-audit.md` §5.1.2](../crypto-media/encryption-and-audit.md)）。
   Agent runtime producer 改用正式 sibling `producer_agent_evidence`，human device/service producer 禁带；
-  同携两个 producer evidence 或缺 required evidence 为 `schema_violation` 且零写入。实际 producer 以
+  同携 Device 与 Agent 两类 producer evidence 或缺 required evidence 为 `schema_violation` 且零写入。实际 producer 以
   `executed_by`（存在时）否则 `actor_id` 为准，MLS 以 Commit Event 为准。其完整 AccountId、
   ASRE ref/key、完整 PCR 闭包、独立 controller gate 与历史服务方法按
   [`key-management.md` §3.6.1](../identity/key-management.md) 验证并在首接纳事务原子保留；
   compact state cache miss 为 `dependency_missing`，只能经同一 ingress 完整重交，不新增取回端点。
+  managed Account 本人 Device 的普通 Event／完整 MLS 还 MUST 带 `producer_managed_provenance`：固定四个原 Service 签名创建原件及 accepted Commits、恰两个同 cut current identity result，JCS 上限 1 MiB。仅私有首接纳 audit 留存，既有 body digest 包含该完整 sibling，不新增角色标记、PCR 读取或 proof context；Human／Agent／Service／native PCR／atomic／复制分支禁带。规则见 [device-lifecycle §8.2.2.1](../crypto-media/device-lifecycle.md#8221-managed-首次-forward-的原签来源闭包normative)。
   `authority_forward` 另有 closed `atomic_submission` alternative，仅携 `audit_paired_event` caller-signed unit；它与 `event_submission`／`mls_submission` exact XOR。两 slot 的 actual producer/key 必须一致，按 `atomic_producer_evidence[2]` 携两份同 origin cut、各自 Event-bound 的 fresh Device 或 Agent evidence并逐项核验，禁止 MLS material／顶层单 Event evidence。外层全 body replay 与内层 signed unit fence 分别验证。
 - `committed_replication`：携 `replications[1..100]`；每项直接是
   `{event_submission: EventAdmissionSubmission, source_commit: RealmCommit}`，其中 `event_submission` 只能是
