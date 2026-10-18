@@ -326,6 +326,11 @@
       "version": "2026-07-03"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/ice-credential-lifecycle-fixture.json",
+      "sha256": "500aa28e407463b3dd20d8bc758f884204451aaa066c16bba2db7b229eb2aeb8",
+      "version": "2026-10-19.1"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/identity-recovery-kdf-fixture.json",
       "sha256": "e6117c6833f8a84c6ec8ecafc8a2df4a9f94812f26753b93d012730532673fe7",
       "version": "2026-07-15"
