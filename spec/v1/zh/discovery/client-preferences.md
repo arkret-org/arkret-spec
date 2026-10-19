@@ -92,6 +92,8 @@ Notification projection 的 `dismissed` / `archived` 跨设备状态使用
 （见 [`../sync/client-sync.md` §3.1.2](../sync/client-sync.md)）。Agent runtime approval 分支只做 local dismiss，
 不写该 durable key。
 
+持有者客户端撤销归档时 MUST 使用 [`../models/account-data.md` §5.3](../models/account-data.md) 的有版本 physical-delete/CAS 删除对应 inbox key，不得写入 `read`、`unread`、空对象或新的“恢复”状态。只有删除被接受后，客户端才可把本次恢复呈现为成功；失败或结果未知时 MUST 保留可重试状态。其它设备消费已接受 tombstone，或完成同账户 account-data 基线并确认该 key 缺席后，MUST 清除由该 key 派生的隐藏投影；处理顺序沿用 account-data revision，较旧的归档不得覆盖已接受删除，删除后的新归档仍可生效。恢复 MUST NOT 改变 read cursor，也不得重建源已删除、redacted、撤权或当前不可读的通知正文；通知内容仍从当前有权读取的源投影取得。Agent runtime approval 的 local dismiss 不属于此恢复协议。
+
 Actor-private View 使用 `ak.views.private.<view_id>`；加密 value MUST validate 为
 `ak.schema.view.v1` 且 `visibility="private"`。共享 View 仍只能使用 `ak.view.*` Event。
 
