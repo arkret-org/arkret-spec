@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-19.2",
+  "version": "2026-10-20.1",
   "source_of_truth": false,
-  "generated_at": "2026-10-19T23:17:05+08:00",
+  "generated_at": "2026-10-20T00:18:13+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -25,7 +25,8 @@
     "agent_controller_self_authored_proof": "Only a current active controller account may sign a Realm-scoped ak.agent.interaction.set or ak.agent.action_approve for its exact active member Agent. Author and authenticated account must match the current full controller AccountId in both components; current provision/accountability, Agent and controller membership generation, device authorization and Realm stream binding are checked before any effects. interaction.set additionally checks its payload controller AccountId and expected_revision CAS. action_approve additionally binds the accepted immutable request or draft, exact Agent, target Realm, proposed action, target descriptor and complete approved_event_id, checks covering committed_at <= expires_at, and allocates its controller nonce atomically. Service authors, Agent self-writes, administrators and executed_by delegation cannot substitute. No capability grants authority for this class; the target Event independently retains all capability and grant/governance approval requirements. See models/agent-interaction.md section 1 and authz/constraint-schema.md section 9.2.6.",
     "capability_or_owned_agent": "Ordinary capability admission remains required except for ak.capability.grant with the sole closed owned_agent source, or ak.capability.revoke of that source by its original issuer/controller. The source grants only explicitly registered terminal actions; exact account ownership/membership, current controller ceiling, global/key bounds and Agent policy are mandatory. Revoke needs no action authority, active join or runtime, but requires original issuer proof, signing eligibility and exact target CAS. Administrators and other targets use ordinary capability admission. See zh/authz/owned-agent-authority.md.",
     "realm_actor_creation": "Service-signed Realm actor creation, independent candidate DID controller proof, exact creation_scope installation and bot/ghost provision capability, applicable approval, namespace and atomic identity/request/tuple quota fence. Scope is realm_control, never a new PCR. Invalid method-native evidence fails identity_method_evidence_invalid with zero effects.",
-    "realm_actor_control": "Current complete Realm actor controller method, exact private stream and immutable Applet binding. No Device or Service substitution, executed_by or envelope authorization_ref. Kind-specific CAS, status, installation and management permission checks remain required. Governance status uses its separate capability branch."
+    "realm_actor_control": "Current complete Realm actor controller method, exact private stream and immutable Applet binding. No Device or Service substitution, executed_by or envelope authorization_ref. Kind-specific CAS, status, installation and management permission checks remain required. Governance status uses its separate capability branch.",
+    "realm_actor_recovery": "Current manager Service, complete target Realm actor, enabled accepted recovery policy, exact manager/policy/control/status/generation CAS, native pre-rotation and independent new control PoP. Only recovery.begin/control.reset in realm_control; no business grant, Device, Account or generic Service substitution. Prepare fences old devices; finish checks published exact native evidence. No per-reset human approval."
   },
   "admission_predicate_contract": {
     "closed_world": true,
@@ -444,7 +445,7 @@
     "Event carries no chain predecessor or authority-commit proof. Only RealmCommit carries previous_commit_ref, and only within the same stream.",
     "Reducers derive typed current results by replaying committed Events in stream position order. Account-private material is outside shared authority-commit streams.",
     "wire_scope=durable_event does NOT imply reducer_input=true. A durable Event is one whose exact bytes a RealmCommit can cover; reducer_input=true additionally asserts that replaying this Realm's committed Events suffices to derive the typed current results the kind writes. A kind whose real durable effect is holder-Station private service state -- keyed on material that never enters the Event stream, or on a counterpart mirror that zh/identity/contact-and-direct-conversation.md section 3 forbids from advancing a reducer -- MUST carry reducer_input=false and MUST name the canonical service_contracts row that spells out its branches, durable effect, unique key, prior-state CAS, exact retry and zero-side-effect rejection. Withdrawing Realm typed-result dispatch never withdraws the kind's admission, signature, commit evidence or private transactional effect: the five ak.contact.* kinds are the worked example (ak.contact.admission.v1). Setting reducer_input=false without registering where the effect actually lands is the defect this rule exists to prevent.",
-    "result_writes[] is the machine contract for which typed current results one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row: a declared value_projection member MUST be declared by that row's value_schema_ref, and a whole-value set MUST write every member that schema requires. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 123 of the 126 reducer_input kinds declare it; the remaining 3 have an explicit durable-fact or authority-commit effect classification and intentionally no typed-current-result row. The declaring kinds are deliberately not enumerated here: event_kinds[] already is that list, and tools/artifact_lint:result_write_coverage_note recomputes both counts from the rows. Normative prose MUST NOT cite result_writes[] for a kind that does not declare it. The converse obligation binds a declaring kind: its rows MUST enumerate EVERY typed current result its accepted admission writes on the shared face; atomic multi-family writes land all rows in one batch or none.",
+    "result_writes[] is the machine contract for which typed current results one Event kind writes, in what order, and under which closed condition; zh/models/realm-and-space.md section 2.5.1 and zh/authz/capabilities.md section 10 read it as the source of truth, and tools/artifact_lint:result_write_contracts validates every declared row: a declared value_projection member MUST be declared by that row's value_schema_ref, and a whole-value set MUST write every member that schema requires. COVERAGE IS PARTIAL AND THIS IS A KNOWN GAP: 126 of the 129 reducer_input kinds declare it; the remaining 3 have an explicit durable-fact or authority-commit effect classification and intentionally no typed-current-result row. The declaring kinds are deliberately not enumerated here: event_kinds[] already is that list, and tools/artifact_lint:result_write_coverage_note recomputes both counts from the rows. Normative prose MUST NOT cite result_writes[] for a kind that does not declare it. The converse obligation binds a declaring kind: its rows MUST enumerate EVERY typed current result its accepted admission writes on the shared face; atomic multi-family writes land all rows in one batch or none.",
     "Every active persistent kind (durable_event or actor_private_event) MUST carry one closed result_effect_ownership object. A typed_result_writer owns non-empty result_writes[] and no second owner; a private_service_effect names an active service_contracts row whose branches cover that exact actor-private Event kind; a durable_fact_no_current_projection names its normative definition and carries no typed-current-result write; an authority_commit_effect names the structured authority-commit service contract and MUST NOT introduce a second governance counter; an owned_gap is temporary only while it names a live owner_report and exact closure condition. Unknown classifications, unresolved definitions, orphan service branches, shared/private mixing, malformed authority contracts or any classification that contradicts reducer_input/result_writes[] fail tools/artifact_lint:result_effect_ownership.",
     "transition_contracts declares the lifecycle axis of a typed current result family: its closed state set, its entry idiom (exactly one of initial_state / initial_states / template), its terminal states and its allowed (from, to) edges. tools/artifact_lint:fsm_reachability reads it together with every transition result_projection and requires that each declared state be reachable from the entry set, that each allowed edge have a write that can perform it, that no const edge leave the table and that no terminal state carry an outgoing edge. A family that declares a machine MUST NOT be written by any non-transition projection: a set installs a state without passing the table, which would make allowed_transitions documentation rather than a rule. Between the authority-commit clean break and 2026-09-18 this block did not exist while the gate still read it under the removed cell_* names, so check reported success over four normative paragraphs (zh/models/circle.md, zh/models/morph.md, zh/models/realm-and-space.md, zh/models/strand-and-message.md) that name transition_contracts as the source of truth for object lifecycle transitions; an absent or empty block is now a failure. Those four object families are themselves still unregistered, so their archive / restore lifecycle has no machine contract yet -- that is a coverage gap, not a licence to read the prose as satisfied.",
     "Dot-bearing keyed sets serialize by the tuple (complete event_id in unsigned UTF-8 byte order, numeric write_index). write_index is canonical decimal without leading zeros. Duplicate dots or one dot with conflicting values are rejected, never silently folded. This ordering is not authority or causal ordering."
@@ -4983,6 +4984,87 @@
       }
     },
     {
+      "event_kind": "ak.realm.actor.control.reset",
+      "category": "realm",
+      "status": "active",
+      "verb_form": "base",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "admission": "realm_actor_recovery",
+      "payload": "Realm actor control.reset; same-identity recovery and no business permission.",
+      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_actor_control_reset_payload",
+      "id_source": "not_an_object_id",
+      "result_writes": [
+        {
+          "result_family": "realm_actor_recovery",
+          "result_selector": {
+            "kind": "composite",
+            "components": [
+              {
+                "kind": "canonical_json",
+                "field": "payload.target_actor_id"
+              }
+            ]
+          },
+          "result_projection": {
+            "kind": "set",
+            "value_projection": {
+              "kind": "object",
+              "members": [
+                {
+                  "name": "kind",
+                  "literal": "manager_native"
+                },
+                {
+                  "name": "enabled",
+                  "derivation": "realm_actor_recovery_enabled"
+                },
+                {
+                  "name": "pending",
+                  "literal": null
+                }
+              ]
+            }
+          },
+          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_actor_recovery_value",
+          "notes": "extensions/realm-actors.md sections 4 and 10. Same actor lock, exact accepted prestate, atomic Commit and recovery lifecycle effects."
+        },
+        {
+          "result_family": "realm_actor_control",
+          "result_selector": {
+            "kind": "composite",
+            "components": [
+              {
+                "kind": "canonical_json",
+                "field": "payload.target_actor_id"
+              }
+            ]
+          },
+          "result_projection": {
+            "kind": "set",
+            "value_projection": {
+              "kind": "object",
+              "members": [
+                {
+                  "name": "resolution",
+                  "derivation": "realm_actor_resolution_projection"
+                },
+                {
+                  "name": "control_method_kid",
+                  "derivation": "realm_actor_recovered_control_method"
+                }
+              ]
+            }
+          },
+          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_actor_control_value",
+          "notes": "extensions/realm-actors.md sections 4 and 10. Same actor lock, exact accepted prestate, atomic Commit and recovery lifecycle effects."
+        }
+      ],
+      "result_effect_ownership": {
+        "kind": "typed_result_writer"
+      }
+    },
+    {
       "event_kind": "ak.realm.actor.control.update",
       "category": "realm",
       "status": "active",
@@ -5216,6 +5298,40 @@
           },
           "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_actor_status_value",
           "notes": "extensions/realm-actors.md section 4. Exact actor-local current row at the original accepted Commit; no PCR singleton or caller-selected source coordinate."
+        },
+        {
+          "result_family": "realm_actor_recovery",
+          "result_selector": {
+            "kind": "composite",
+            "components": [
+              {
+                "kind": "canonical_json",
+                "field": "payload.actor_id"
+              }
+            ]
+          },
+          "result_projection": {
+            "kind": "set",
+            "value_projection": {
+              "kind": "object",
+              "members": [
+                {
+                  "name": "kind",
+                  "literal": "manager_native"
+                },
+                {
+                  "name": "enabled",
+                  "literal": true
+                },
+                {
+                  "name": "pending",
+                  "literal": null
+                }
+              ]
+            }
+          },
+          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_actor_recovery_value",
+          "notes": "extensions/realm-actors.md sections 4 and 10. Same actor lock, exact accepted prestate, atomic Commit and recovery lifecycle effects."
         }
       ],
       "result_effect_ownership": {
@@ -5336,6 +5452,188 @@
           },
           "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_actor_device_generation_value",
           "notes": "extensions/realm-actors.md section 4. Exact actor-local current row at the original accepted Commit; no PCR singleton or caller-selected source coordinate."
+        },
+        {
+          "result_family": "realm_actor_control",
+          "result_selector": {
+            "kind": "composite",
+            "components": [
+              {
+                "kind": "canonical_json",
+                "field": "envelope.actor_id"
+              }
+            ]
+          },
+          "result_projection": {
+            "kind": "set",
+            "value_projection": {
+              "kind": "object",
+              "members": [
+                {
+                  "name": "resolution",
+                  "derivation": "realm_actor_resolution_projection"
+                },
+                {
+                  "name": "control_method_kid",
+                  "derivation": "realm_actor_current_control_method"
+                }
+              ]
+            }
+          },
+          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_actor_control_value",
+          "notes": "extensions/realm-actors.md sections 4 and 10. Same actor lock, exact accepted prestate, atomic Commit and recovery lifecycle effects."
+        }
+      ],
+      "result_effect_ownership": {
+        "kind": "typed_result_writer"
+      }
+    },
+    {
+      "event_kind": "ak.realm.actor.recovery.begin",
+      "category": "realm",
+      "status": "active",
+      "verb_form": "base",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "admission": "realm_actor_recovery",
+      "payload": "Realm actor recovery.begin; same-identity recovery and no business permission.",
+      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_actor_recovery_begin_payload",
+      "id_source": "not_an_object_id",
+      "result_writes": [
+        {
+          "result_family": "realm_actor_recovery",
+          "result_selector": {
+            "kind": "composite",
+            "components": [
+              {
+                "kind": "canonical_json",
+                "field": "payload.target_actor_id"
+              }
+            ]
+          },
+          "result_projection": {
+            "kind": "set",
+            "value_projection": {
+              "kind": "object",
+              "members": [
+                {
+                  "name": "kind",
+                  "literal": "manager_native"
+                },
+                {
+                  "name": "enabled",
+                  "derivation": "realm_actor_recovery_enabled"
+                },
+                {
+                  "name": "pending",
+                  "derivation": "realm_actor_recovery_pending"
+                }
+              ]
+            }
+          },
+          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_actor_recovery_value",
+          "notes": "extensions/realm-actors.md sections 4 and 10. Same actor lock, exact accepted prestate, atomic Commit and recovery lifecycle effects."
+        },
+        {
+          "result_family": "realm_actor_status",
+          "result_selector": {
+            "kind": "composite",
+            "components": [
+              {
+                "kind": "canonical_json",
+                "field": "payload.target_actor_id"
+              },
+              {
+                "kind": "literal",
+                "value": "owner"
+              }
+            ]
+          },
+          "result_projection": {
+            "kind": "set",
+            "value": {
+              "const": "paused"
+            }
+          },
+          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_actor_status_value",
+          "notes": "extensions/realm-actors.md sections 4 and 10. Same actor lock, exact accepted prestate, atomic Commit and recovery lifecycle effects."
+        },
+        {
+          "result_family": "realm_actor_device_generation",
+          "result_selector": {
+            "kind": "composite",
+            "components": [
+              {
+                "kind": "canonical_json",
+                "field": "payload.target_actor_id"
+              }
+            ]
+          },
+          "result_projection": {
+            "kind": "set",
+            "value_projection": {
+              "kind": "object",
+              "members": [
+                {
+                  "name": "current_device_generation_ref",
+                  "field": "payload.new_generation"
+                }
+              ]
+            }
+          },
+          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_actor_device_generation_value",
+          "notes": "extensions/realm-actors.md sections 4 and 10. Same actor lock, exact accepted prestate, atomic Commit and recovery lifecycle effects."
+        }
+      ],
+      "result_effect_ownership": {
+        "kind": "typed_result_writer"
+      }
+    },
+    {
+      "event_kind": "ak.realm.actor.recovery.set",
+      "category": "realm",
+      "status": "active",
+      "verb_form": "base",
+      "wire_scope": "durable_event",
+      "reducer_input": true,
+      "admission": "capability_gated",
+      "payload": "Realm actor recovery.set; same-identity recovery and no business permission.",
+      "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/realm_actor_recovery_set_payload",
+      "id_source": "not_an_object_id",
+      "result_writes": [
+        {
+          "result_family": "realm_actor_recovery",
+          "result_selector": {
+            "kind": "composite",
+            "components": [
+              {
+                "kind": "canonical_json",
+                "field": "payload.target_actor_id"
+              }
+            ]
+          },
+          "result_projection": {
+            "kind": "set",
+            "value_projection": {
+              "kind": "object",
+              "members": [
+                {
+                  "name": "kind",
+                  "literal": "manager_native"
+                },
+                {
+                  "name": "enabled",
+                  "field": "payload.enabled"
+                },
+                {
+                  "name": "pending",
+                  "literal": null
+                }
+              ]
+            }
+          },
+          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_actor_recovery_value",
+          "notes": "extensions/realm-actors.md sections 4 and 10. Same actor lock, exact accepted prestate, atomic Commit and recovery lifecycle effects."
         }
       ],
       "result_effect_ownership": {
@@ -5374,6 +5672,45 @@
           },
           "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_actor_status_value",
           "notes": "extensions/realm-actors.md section 4. Exact actor-local current row at the original accepted Commit; no PCR singleton or caller-selected source coordinate."
+        },
+        {
+          "result_family": "realm_actor_recovery",
+          "result_selector": {
+            "kind": "composite",
+            "components": [
+              {
+                "kind": "canonical_json",
+                "field": "payload.target_actor_id"
+              }
+            ]
+          },
+          "result_projection": {
+            "kind": "set",
+            "value_projection": {
+              "kind": "object",
+              "members": [
+                {
+                  "name": "kind",
+                  "literal": "manager_native"
+                },
+                {
+                  "name": "enabled",
+                  "derivation": "realm_actor_recovery_enabled"
+                },
+                {
+                  "name": "pending",
+                  "literal": null
+                }
+              ]
+            }
+          },
+          "value_schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_actor_recovery_value",
+          "notes": "extensions/realm-actors.md sections 4 and 10. Same actor lock, exact accepted prestate, atomic Commit and recovery lifecycle effects.",
+          "condition": {
+            "kind": "field_equals",
+            "field": "payload.state",
+            "const": "retired"
+          }
         }
       ],
       "result_effect_ownership": {
@@ -9237,7 +9574,8 @@
       "agent_controller_self_authored_proof",
       "capability_or_owned_agent",
       "realm_actor_creation",
-      "realm_actor_control"
+      "realm_actor_control",
+      "realm_actor_recovery"
     ],
     "acceptance": "A consumer accepts the Event only with a valid RealmCommit in the derived stream and a continuous authority-generation chain.",
     "schema_projection": "schemas/event-envelope.schema.json#/$defs/shared_event_envelope",

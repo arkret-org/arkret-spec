@@ -117,30 +117,66 @@
       },
       "then": {
         "if": {
-          "properties": {
-            "actor_id": {
-              "$ref": "./common-ids.schema.json#/$defs/realm_actor"
-            },
-            "kind": {
-              "enum": [
-                "ak.realm.actor.control.update",
-                "ak.realm.actor.status.set",
-                "ak.realm.actor.devices.reset",
-                "ak.realm.actor.manager.change",
-                "ak.device.authorize",
-                "ak.device.revoke",
-                "ak.profile.create",
-                "ak.profile.update"
+          "anyOf": [
+            {
+              "properties": {
+                "actor_id": {
+                  "$ref": "./common-ids.schema.json#/$defs/realm_actor"
+                },
+                "kind": {
+                  "enum": [
+                    "ak.realm.actor.control.update",
+                    "ak.realm.actor.status.set",
+                    "ak.realm.actor.devices.reset",
+                    "ak.realm.actor.manager.change",
+                    "ak.device.authorize",
+                    "ak.device.revoke",
+                    "ak.profile.create",
+                    "ak.profile.update"
+                  ]
+                },
+                "scope_ref": {
+                  "$ref": "./realm-actor.schema.json#/$defs/control_scope"
+                }
+              },
+              "required": [
+                "actor_id",
+                "kind",
+                "scope_ref"
               ]
             },
-            "scope_ref": {
-              "$ref": "./realm-actor.schema.json#/$defs/control_scope"
+            {
+              "properties": {
+                "actor_id": {
+                  "allOf": [
+                    {
+                      "$ref": "./common-ids.schema.json#/$defs/actor_id"
+                    },
+                    {
+                      "properties": {
+                        "kind": {
+                          "const": "service"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "kind": {
+                  "enum": [
+                    "ak.realm.actor.recovery.begin",
+                    "ak.realm.actor.control.reset"
+                  ]
+                },
+                "scope_ref": {
+                  "$ref": "./realm-actor.schema.json#/$defs/control_scope"
+                }
+              },
+              "required": [
+                "actor_id",
+                "kind",
+                "scope_ref"
+              ]
             }
-          },
-          "required": [
-            "actor_id",
-            "kind",
-            "scope_ref"
           ]
         },
         "then": {
@@ -2974,7 +3010,10 @@
               "ak.device.authorize",
               "ak.device.revoke",
               "ak.profile.create",
-              "ak.profile.update"
+              "ak.profile.update",
+              "ak.realm.actor.recovery.begin",
+              "ak.realm.actor.control.reset",
+              "ak.realm.actor.recovery.set"
             ]
           }
         },
@@ -3145,6 +3184,170 @@
           "scope_ref": {
             "$ref": "./realm-actor.schema.json#/$defs/control_scope"
           }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.realm.actor.recovery.begin"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/realm_actor_recovery_begin_payload"
+          },
+          "scope_ref": {
+            "$ref": "./realm-actor.schema.json#/$defs/control_scope"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.realm.actor.control.reset"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/realm_actor_control_reset_payload"
+          },
+          "scope_ref": {
+            "$ref": "./realm-actor.schema.json#/$defs/control_scope"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.realm.actor.recovery.set"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "./event-payload.schema.json#/$defs/realm_actor_recovery_set_payload"
+          },
+          "scope_ref": {
+            "$ref": "./realm-actor.schema.json#/$defs/control_scope"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "ak.realm.actor.recovery.begin",
+              "ak.realm.actor.control.reset"
+            ]
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "actor_id": {
+            "allOf": [
+              {
+                "$ref": "./common-ids.schema.json#/$defs/actor_id"
+              },
+              {
+                "properties": {
+                  "kind": {
+                    "const": "service"
+                  }
+                }
+              }
+            ]
+          },
+          "kind": {
+            "enum": [
+              "ak.realm.actor.recovery.begin",
+              "ak.realm.actor.control.reset"
+            ]
+          },
+          "scope_ref": {
+            "$ref": "./realm-actor.schema.json#/$defs/control_scope"
+          }
+        },
+        "required": [
+          "applet_id"
+        ],
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "executed_by"
+              ]
+            },
+            {
+              "required": [
+                "authorization_ref"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "ak.realm.actor.recovery.set"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "actor_id": {
+            "allOf": [
+              {
+                "$ref": "./common-ids.schema.json#/$defs/actor_id"
+              },
+              {
+                "properties": {
+                  "kind": {
+                    "const": "account"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "required": [
+          "applet_id",
+          "authorization_ref"
+        ],
+        "not": {
+          "required": [
+            "executed_by"
+          ]
         }
       }
     }
@@ -5901,10 +6104,13 @@
                 "ak.profile.update",
                 "ak.reaction.add",
                 "ak.reaction.remove",
+                "ak.realm.actor.control.reset",
                 "ak.realm.actor.control.update",
                 "ak.realm.actor.create",
                 "ak.realm.actor.devices.reset",
                 "ak.realm.actor.manager.change",
+                "ak.realm.actor.recovery.begin",
+                "ak.realm.actor.recovery.set",
                 "ak.realm.actor.status.set",
                 "ak.realm.alias",
                 "ak.realm.archive",
@@ -6053,10 +6259,13 @@
             "ak.reaction.add",
             "ak.reaction.remove",
             "ak.read_cursor.advance",
+            "ak.realm.actor.control.reset",
             "ak.realm.actor.control.update",
             "ak.realm.actor.create",
             "ak.realm.actor.devices.reset",
             "ak.realm.actor.manager.change",
+            "ak.realm.actor.recovery.begin",
+            "ak.realm.actor.recovery.set",
             "ak.realm.actor.status.set",
             "ak.realm.alias",
             "ak.realm.archive",

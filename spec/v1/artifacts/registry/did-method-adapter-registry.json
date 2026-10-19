@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-19.1",
+  "version": "2026-10-20.1",
   "source_of_truth": false,
-  "generated_at": "2026-10-19T23:17:05+08:00",
+  "generated_at": "2026-10-20T00:18:13+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -16,7 +16,7 @@
     "A principal resolution update is admitted only in its derived identity-control Realm and only when one exact expected_revision precondition guards ak:result:identity_resolution:null. The guarded whole resolution_projection MUST equal the accepted current typed current result; predecessor event/history coordinates come only from that signed precondition, never from payload mirrors.",
     "Exactly one active adapter, did:webvh:1.0, carries human_principal_anchor=true and declares registration_anchor_kind=webvh_registration; that value is the sole discriminator of the closed principal-registration-anchor contract. A human principal is registered and given PCR genesis only through that branch. Every other method, including did:key and did:web, carries human_principal_anchor=false and MUST fail closed with unsupported_did_method at schema and role admission, before any method parser, history replay or registry write. Adding another human anchor requires a newly registered portable publication-proof or independent-witness trust model with its own threat model and conformance vectors; it MUST NOT enter through a test fixture, an optional sidecar member or a locally widened allowlist.",
     "Direct principal-control proofs have exactly two existing purposes: approval_signature at its signed approved_at and invite_subject_proof at the covering claim RealmCommit committed_at. For a did:webvh principal, a verifier independently authenticates the subject DID SCID and complete native history at that instant, then accepts only a document-declared method or the exact standard did:key:<multibase>#<multibase> of an effective updateKeys member at that instant. The key DID is never projected as the principal identity. No caller key, synthetic root fragment, PCR device key, future state or current-head fallback proves this historical relation. This exception grants no generic Event or SessionGrant authority.",
-    "Realm actor native control uses the accepted realm_actor_control method plus independently validated same-core WebVH history. A declared method or the exact standard did:key method of a currently effective updateKeys member may control that subject; the key DID is not projected as the Realm actor principal. Creation independently verifies its candidate control signature; control update requires both old authorization and new possession. No PCR or identity_resolution_update fallback is available."
+    "Realm actor control is a document-declared method distinct from active and committed native update keys. Native keys only sign WebVH logs. Same-identity recovery requires current manager Service, enabled Realm policy, verified pre-rotation continuation and new control PoP. Native update keys are never Realm actor Event or Device signers."
   ],
   "principal_resolution_contract": {
     "version": "2026-08-30.1",

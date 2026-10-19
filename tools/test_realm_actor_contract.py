@@ -5,7 +5,7 @@ import json
 import unittest
 
 from tools.artifact_lint import core
-from tools.realm_actor_contract import ART, CONTEXTS, FAMILIES, ControlModel, actor, canonical, committed, digest, signature_fixture, token, verify
+from tools.realm_actor_contract import ART, CONTEXTS, FAMILIES, ControlModel, actor, canonical, committed, digest, signature_fixture, token, verify, native_recovery_fixture, verify_native_recovery, native_verify
 
 
 class RealmActorContractTests(unittest.TestCase):
@@ -101,7 +101,8 @@ class RealmActorContractTests(unittest.TestCase):
         for missing in ["controller", "governance", "acceptance"]:
             kwargs = dict(controller=True, governance=True, acceptance=True); kwargs[missing] = False
             self.assertFalse(model.transfer(actor(), (0, 1, 1), **kwargs))
-        self.assertTrue(model.transfer(actor(), (0, 1, 1), controller=True, governance=True, acceptance=True))
+        self.assertFalse(model.transfer(actor(), (0, 1, 1), controller=True, governance=True, acceptance=True))
+        self.assertTrue(model.transfer(actor(), (0, 1, 1), controller=True, governance=True, acceptance=True, native_transfer=True))
         row["owner"] = "active"
         self.assertFalse(model.business(actor(), "old-device"))
 
@@ -188,6 +189,144 @@ class RealmActorContractTests(unittest.TestCase):
         response.validate({"exists":False})
         self.assertFalse(response.is_valid({"exists":False,"actor_id":actor()}))
         self.assertFalse(response.is_valid({"exists":True}))
+
+    def test_kr_native_scid_chain_prerotation_signatures_and_witness(self):
+        vector = native_recovery_fixture()
+        result = verify_native_recovery(vector, vector["log_entries"][:1])
+        self.assertEqual(result["did"], vector["did"])
+        self.assertEqual(result["version_id"], vector["log_entries"][-1]["versionId"])
+        mutations = [
+            lambda v: v.update(scid="wrong"),
+            lambda v: v["log_entries"][1]["parameters"].update(updateKeys=v["log_entries"][0]["parameters"]["updateKeys"]),
+            lambda v: v["log_entries"][1]["proof"][0].update(proofPurpose="authentication"),
+            lambda v: v["log_entries"][1]["proof"][0].update(proofValue=v["log_entries"][0]["proof"][0]["proofValue"]),
+            lambda v: v["log_entries"][1]["state"]["verificationMethod"][0].update(controller="did:web:attacker.example"),
+            lambda v: v["witness_records"].pop(),
+            lambda v: v["witness_records"][1]["proof"][0].update(proofValue=v["witness_records"][0]["proof"][0]["proofValue"]),
+        ]
+        for mutate in mutations:
+            bad = copy.deepcopy(vector); mutate(bad)
+            with self.assertRaises(Exception): verify_native_recovery(bad)
+        changed_prefix = copy.deepcopy(vector["log_entries"][:1]); changed_prefix[0]["versionTime"] = "different"
+        with self.assertRaises(ValueError): verify_native_recovery(vector, changed_prefix)
+
+    def test_kr_native_proof_signs_final_entry_not_predecessor_hash_input(self):
+        vector = native_recovery_fixture(); entry = vector["log_entries"][1]
+        unsigned = {k:v for k,v in entry.items() if k != "proof"}
+        native_verify(unsigned, entry["proof"][0], entry["parameters"]["updateKeys"][0])
+        unsigned["versionId"] = vector["log_entries"][0]["versionId"]
+        with self.assertRaises(Exception): native_verify(unsigned, entry["proof"][0], entry["parameters"]["updateKeys"][0])
+
+    def test_kr_recovery_wire_and_real_service_producer(self):
+        case = signature_fixture()["cases"][4]
+        payload = {**case["unsigned_projection"]["payload_without_control_signature"], "control_signature":case["signature"]}
+        self.validator("realm-actor", "#/$defs/recovery_begin_payload").validate(payload)
+        candidate=signature_fixture()["cases"][0]["candidate"]
+        event={"event_id":token("event"),"kind":"ak.realm.actor.recovery.begin","scope_ref":{"kind":"realm_control","realm_id":token("realm")},"actor_id":{"kind":"service","service_id":candidate["service_id"]},"created_at":"2026-10-19T00:00:00.000Z","payload":payload,"applet_id":candidate["applet_id"],"producer_proof":{"kind":"detached_jws","verification_method":candidate["control_method_kid"],"event_digest":"sha256:"+"1"*64,"created_at":"2026-10-19T00:00:00.000Z","jws":"YQ..Yg"}}
+        v=self.validator("event-envelope","#/$defs/shared_event_envelope");v.validate(event)
+        for change in [{"actor_id":actor()},{"authorization_ref":token("grant")},{"executed_by":actor()},{"scope_ref":{"kind":"realm","realm_id":token("realm")}}]:
+            self.assertFalse(v.is_valid({**event,**change}))
+        for field in payload:
+            bad=copy.deepcopy(payload);bad.pop(field)
+            self.assertFalse(self.validator("realm-actor","#/$defs/recovery_begin_payload").is_valid(bad))
+
+    def test_kr_recovery_pop_every_nested_binding(self):
+        case=signature_fixture()["cases"][4];unsigned=case["unsigned_projection"]
+        public=base64.urlsafe_b64decode(case["public_key_b64u"]+"=")
+        for field in unsigned["payload_without_control_signature"]:
+            bad=copy.deepcopy(unsigned);bad["payload_without_control_signature"].pop(field)
+            self.assertFalse(verify(case["context"],bad,case["signature"],public))
+
+    def test_kr_prepare_rejects_missing_authority_and_partial_effects(self):
+        for invalid in [{"authenticated":False},{"manager":"foreign-service"},{"native_plan":False},{"pop":False},{"expired":True},{"crash":True}]:
+            m=self.created();before=m.export();options={"manager":"old-service",**invalid}
+            self.assertNotIsInstance(m.recovery_begin(actor(),"r",(0,0,1),**options),tuple)
+            self.assertEqual(m.export(),before)
+        m=self.created();before=m.export()
+        self.assertEqual(m.recovery_begin(actor(2),"r",(0,0,1),manager="old-service"),"denied")
+        self.assertEqual(m.export(),before)
+
+    def test_kr_same_identity_fence_and_no_implicit_business_or_mls(self):
+        m=self.created();r=m.rows[canonical(actor())];r["devices"]["old"]=1
+        identity=canonical(actor());accepted=m.recovery_begin(actor(),"r",(0,0,1),manager="old-service")
+        self.assertEqual(accepted,("accepted",1));self.assertEqual(r["generation"],2)
+        self.assertFalse(m.business(actor(),"old"));self.assertEqual(r["control"],"old")
+        self.assertFalse(m.rotate(actor(),0,"other",old_proof=True,new_pop=True,native_continuity=True))
+        self.assertTrue(m.recovery_finish(actor(),1,manager="old-service"))
+        self.assertIn(identity,m.rows);self.assertEqual(r["generation"],2);self.assertEqual(r["owner"],"paused")
+        r["owner"]="active";r["devices"]["new"]=2
+        self.assertFalse(m.business(actor(),"new"))
+        r["cleanup"].clear();self.assertTrue(m.business(actor(),"new"));self.assertFalse(m.business(actor(),"old"))
+
+    def test_kr_finish_publication_witness_crash_and_cas(self):
+        for invalid in [{"authenticated":False},{"manager":"other"},{"published":False},{"matches":False},{"witness":False},{"crash":True}]:
+            m=self.created();m.recovery_begin(actor(),"r",(0,0,1),manager="old-service");before=m.export()
+            self.assertFalse(m.recovery_finish(actor(),1,**{"manager":"old-service",**invalid}))
+            self.assertEqual(m.export(),before)
+        m=self.created();m.recovery_begin(actor(),"r",(0,0,1),manager="old-service")
+        self.assertFalse(m.recovery_finish(actor(),99,manager="old-service"))
+
+    def test_kr_disable_cancel_retire_and_finish_races(self):
+        m=self.created();m.recovery_begin(actor(),"r",(0,0,1),manager="old-service")
+        self.assertTrue(m.recovery_policy(actor(),False,expected=1))
+        self.assertFalse(m.recovery_finish(actor(),1,manager="old-service"))
+        self.assertEqual(next(iter(m.private_inventory["outcomes"].values()))["state"],"cancelled")
+        self.assertTrue(m.recovery_policy(actor(),True,expected=2))
+        self.assertFalse(m.recovery_finish(actor(),1,manager="old-service"))
+        m=self.created();m.recovery_begin(actor(),"r",(0,0,1),manager="old-service")
+        self.assertTrue(m.recovery_finish(actor(),1,manager="old-service"))
+        self.assertTrue(m.recovery_policy(actor(),False,expected=2))
+        self.assertEqual(next(iter(m.private_inventory["outcomes"].values()))["state"],"completed")
+        m=self.created();self.assertTrue(m.recovery_policy(actor(),True,expected=0,retire=True))
+        self.assertEqual(m.recovery_begin(actor(),"r",(1,0,1),manager="old-service"),"denied")
+
+    def test_kr_supersede_exact_replay_authenticated_and_expiry(self):
+        m=self.created();first=m.recovery_begin(actor(),"r",(0,0,1),manager="old-service")
+        self.assertEqual(m.recovery_begin(actor(),"r",(0,0,1),manager="old-service",expired=True),first)
+        self.assertEqual(m.recovery_begin(actor(),"r",(0,0,1),manager="old-service",authenticated=False),"denied")
+        self.assertEqual(m.recovery_begin(actor(),"r",(0,0,1),manager="old-service",intent_digest="changed"),"conflict")
+        self.assertEqual(m.recovery_begin(actor(),"next",(1,0,2),manager="old-service"),"conflict")
+        self.assertEqual(m.recovery_begin(actor(),"next",(1,0,2),manager="old-service",replaces=1),("accepted",2))
+        self.assertFalse(m.recovery_finish(actor(),1,manager="old-service"));self.assertTrue(m.recovery_finish(actor(),2,manager="old-service"))
+
+    def test_kr_governance_handoff_pending_and_pause_survive(self):
+        m=self.created();m.rows[canonical(actor())]["governance"]="paused"
+        m.recovery_begin(actor(),"r",(0,0,1),manager="old-service");export=m.export()
+        successor=ControlModel.handoff(export,export,True)
+        self.assertTrue(successor.recovery_finish(actor(),1,manager="old-service"))
+        self.assertEqual(successor.rows[canonical(actor())]["governance"],"paused")
+        for field in ["pending","recovery_enabled","cleanup"]:
+            incomplete=copy.deepcopy(export);incomplete["rows"][canonical(actor())].pop(field)
+            with self.assertRaises(ValueError):ControlModel.handoff(export,incomplete,True)
+
+    def test_kr_private_recovery_current_and_terminal_carrier(self):
+        value={"selector":{"kind":"realm_actor_recovery","actor_id":actor()},"source_stream_ref":committed()["stream_ref"],"revision":{ "commit_id":token("realm_commit"),"stream_position":0},"value":{"kind":"manager_native","enabled":True,"pending":None}}
+        self.validator("typed-current-result","#/$defs/realm_actor_recovery_result").validate(value)
+        self.validator("realm-actor-material","#/$defs/current_entry").validate({"status":"present","row":value})
+        self.assertFalse(self.validator("realm-actor-material","#/$defs/current_entry").is_valid({"status":"never_written","selector":value["selector"]}))
+
+    def test_kr_plan_is_not_published_evidence(self):
+        plan = signature_fixture()["cases"][4]["unsigned_projection"]["payload_without_control_signature"]["method_history_evidence"]
+        validator = self.validator("realm-actor", "#/$defs/webvh_recovery_plan")
+        validator.validate(plan)
+        published = self.validator("identity-resolution", "#/$defs/webvh_method_history_evidence")
+        self.assertFalse(published.is_valid(plan))
+        self.assertFalse(validator.is_valid({**plan, "evidence": {}}))
+        vector = native_recovery_fixture()
+        vector["witness_records"] = []
+        verify_native_recovery(vector, require_witness=False)
+        with self.assertRaises(ValueError):
+            verify_native_recovery(vector)
+
+    def test_kr_lifecycle_terminal_reference_is_mandatory(self):
+        validator = self.validator("realm-actor-material", "#/$defs/outcome_record")
+        for state in ["pending", "completed", "cancelled", "superseded"]:
+            outcome = {"status": "recovery", "begin_ref": committed(), "state": state,
+                       "terminal_ref": None if state == "pending" else committed(4, 2)}
+            value = {"target_request_digest": "sha256:" + "1" * 64, "outcome": outcome}
+            validator.validate(value)
+            outcome["terminal_ref"] = committed(4, 2) if state == "pending" else None
+            self.assertFalse(validator.is_valid(value))
 
     def created(self):
         model = ControlModel(token("realm")); model.create(actor(), "request", "digest", verified=True, allowed=True)

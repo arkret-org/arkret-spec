@@ -12,8 +12,8 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey,
 
 ROOT = Path(__file__).resolve().parents[1]
 ART = ROOT / "spec/v1/artifacts"
-FAMILIES = ["identity", "control", "manager", "status", "device_generation", "device_authorization", "device_revocation_proposals", "profile"]
-CONTEXTS = ["ak.realm_actor_" + name + "_signature.v1" for name in ["creation", "control_acceptance", "manager_acceptance", "material"]]
+FAMILIES = ["identity", "control", "manager", "status", "device_generation", "device_authorization", "device_revocation_proposals", "profile", "recovery"]
+CONTEXTS = ["ak.realm_actor_" + name + "_signature.v1" for name in ["creation", "control_acceptance", "manager_acceptance", "material", "recovery_acceptance"]]
 
 
 def canonical(value):
@@ -92,8 +92,16 @@ def signature_fixture():
             for child in value: bind_actor(child)
     for host in [create, control, manager, material, request]: bind_actor(host)
     material["request_digest"] = digest(request)
-    hosts = [create, control, manager, material]
+    create["recovery"] = {"kind": "manager_native", "enabled": True}
+    manager.update(next_resolution=resolution, method_history_evidence=evidence)
+    recovery = {"applet_id": applet, "service_id": service, "payload_without_control_signature": {
+        "target_actor_id": create["actor_id"], "request_id": "R" * 22, "manager_ref": committed(), "recovery_ref": committed(),
+        "expected_control_revision": revision(), "expected_owner_status_revision": revision(), "expected_governance_status_revision": revision(),
+        "expected_device_generation_revision": revision(), "expected_generation": 1, "new_generation": 2, "replaces_recovery_ref": None,
+        "next_resolution": resolution, "method_history_evidence": {k: evidence[k] for k in ["log_entries", "witness_records"]}, "next_control_method_kid": method, "expires_at": create["expires_at"]}}
+    hosts = [create, control, manager, material, recovery]
     refs = ["realm-actor.schema.json#/$defs/creation_transcript", "realm-actor.schema.json#/$defs/control_acceptance_transcript", "realm-actor.schema.json#/$defs/manager_acceptance_transcript", "realm-actor-material.schema.json#/$defs/unsigned_outcome"]
+    refs.append("realm-actor.schema.json#/$defs/recovery_acceptance_transcript")
     cases = []
     for i, (context, host, schema_ref) in enumerate(zip(CONTEXTS, hosts, refs, strict=True)):
         seed = bytes([i + 1]) * 32
@@ -101,7 +109,7 @@ def signature_fixture():
         cases.append({"context": context, "unsigned_schema_ref": "schemas/" + schema_ref, "test_seed_hex": seed.hex(), "public_key_b64u": b64(pub), "unsigned_projection": host, "canonical_hex": canonical(host).hex(), "signature_input_hex": message.hex(), "signature": signature})
     original = cases[0].pop("unsigned_projection")
     cases[0]["candidate"] = {**original, "control_signature": cases[0]["signature"]}
-    return {"version": "2026-10-19.1", "suite": "realm_actor_signature_transcripts", "fixture_kind": "semantic", "runner": {"kind": "named_suite", "entrypoint": "ak.suite.realm_actor.contract.v1", "in_tree_checker": "tools/test_realm_actor_contract.py"}, "covers_vectors": ["ak.vector.realm_actor.contract.v1"], "generated_by": "tools/regenerate_realm_actor_fixture.py", "description": "Real deterministic Ed25519 transcript KATs and schema-shaped hosts. The resolution is recomputable from the registered adapter fixture; these signature hosts do not claim native WebVH admission, governance trust or a production SUT. Seeds are public test-only material.", "cases": cases, "device_possession": device_possession_fixture()}
+    return {"version": "2026-10-20.1", "suite": "realm_actor_signature_transcripts", "fixture_kind": "semantic", "runner": {"kind": "named_suite", "entrypoint": "ak.suite.realm_actor.contract.v1", "in_tree_checker": "tools/test_realm_actor_contract.py"}, "covers_vectors": ["ak.vector.realm_actor.contract.v1"], "generated_by": "tools/regenerate_realm_actor_fixture.py", "description": "Real deterministic Ed25519 transcript KATs and schema-shaped hosts. Signature hosts do not claim native admission. Separate native_recovery vectors verify constructed SCID, predecessor hashes, pre-rotation, W3C eddsa-jcs-2022 proofs and witness signatures; no live resolver, governance trust or production SUT claim. Seeds are public test-only material.", "cases": cases, "device_possession": device_possession_fixture(), "native_recovery": native_recovery_fixture()}
 
 
 def device_possession_fixture():
@@ -136,29 +144,80 @@ class ControlModel:
         if not verified or not allowed or expired or subject.get("kind") != "realm" or subject["realm_actor_id"]["realm_id"] != self.realm_id or key in self.rows:
             return "rejected"
         self.head = 0 if self.head is None else self.head + 1
-        self.rows[key] = {"owner": "active", "governance": "active", "generation": 1, "control": "old", "control_revision": self.head, "manager_revision": self.head, "manager_key": "old", "manager": "old-service", "devices": {}, "revoked": set()}
+        self.rows[key] = {"owner": "active", "governance": "active", "generation": 1, "control": "old", "control_revision": self.head, "manager_revision": self.head, "manager_key": "old", "manager": "old-service", "devices": {}, "revoked": set(), "recovery_enabled": True, "recovery_revision": self.head, "pending": None, "cleanup": set()}
         result = ("accepted", self.head)
         self.intents[request_id] = (candidate_digest, result)
         return result
 
     def business(self, subject, device, *, installed=True, grant=True):
         row = self.rows.get(canonical(subject))
-        return bool(row and row["owner"] == row["governance"] == "active" and installed and grant and device not in row["revoked"] and row["devices"].get(device) == row["generation"])
+        return bool(row and not row["pending"] and not row["cleanup"] and row["owner"] == row["governance"] == "active" and installed and grant and device not in row["revoked"] and row["devices"].get(device) == row["generation"])
 
     def rotate(self, subject, expected, new_key, *, old_proof, new_pop, native_continuity):
         row = self.rows[canonical(subject)]
-        if "retired" in (row["owner"], row["governance"]) or expected != row["control_revision"] or not all([old_proof, new_pop, native_continuity]):
+        if row["pending"] or "retired" in (row["owner"], row["governance"]) or expected != row["control_revision"] or not all([old_proof, new_pop, native_continuity]):
             return False
         self.head += 1
         row.update(control=new_key, control_revision=self.head)
         return True
 
-    def transfer(self, subject, expected, *, controller, governance, acceptance):
+    def transfer(self, subject, expected, *, controller, governance, acceptance, native_transfer=False):
         row = self.rows[canonical(subject)]
-        if row["owner"] != "paused" or row["governance"] == "retired" or row["control"] == row["manager_key"] or row["control_revision"] <= row["manager_revision"] or expected != (row["manager_revision"], row["control_revision"], row["generation"]) or not all([controller, governance, acceptance]):
+        if row["pending"] or row["owner"] != "paused" or row["governance"] == "retired" or row["control"] == row["manager_key"] or row["control_revision"] <= row["manager_revision"] or expected != (row["manager_revision"], row["control_revision"], row["generation"]) or not all([controller, governance, acceptance, native_transfer]):
             return False
         self.head += 1
-        row.update(manager="new-service", manager_revision=self.head, manager_key=row["control"], generation=row["generation"] + 1)
+        row.update(manager="new-service", manager_revision=self.head, control_revision=self.head, manager_key=row["control"], generation=row["generation"] + 1)
+        return True
+
+    def recovery_begin(self, subject, request, expected, *, manager, authenticated=True, native_plan=True, pop=True, expired=False, replaces=None, crash=False, intent_digest="fixture-intent"):
+        row = self.rows.get(canonical(subject))
+        if not row or not authenticated or manager != row["manager"]:
+            return "denied"
+        ledger_key = (canonical(subject), row["manager_revision"], request)
+        ledger = self.private_inventory["outcomes"]
+        if ledger_key in ledger:
+            return ("accepted", ledger[ledger_key]["begin"]) if ledger[ledger_key]["digest"] == intent_digest else "conflict"
+        if not row["recovery_enabled"] or "retired" in (row["owner"], row["governance"]) or expired or not native_plan or not pop:
+            return "denied"
+        if expected != (row["recovery_revision"], row["control_revision"], row["generation"]):
+            return "conflict"
+        if replaces != (row["pending"]["begin"] if row["pending"] else None):
+            return "conflict"
+        if crash:
+            return "aborted"
+        if row["pending"]:
+            ledger[row["pending"]["ledger_key"]]["state"] = "superseded"
+        self.head += 1
+        row.update(owner="paused", generation=row["generation"] + 1, recovery_revision=self.head)
+        row["cleanup"].update(row["devices"])
+        row["pending"] = {"begin": self.head, "request": request, "ledger_key": ledger_key, "manager_revision": row["manager_revision"], "control_revision": row["control_revision"], "generation": row["generation"]}
+        ledger[ledger_key] = {"begin": self.head, "state": "pending", "digest": intent_digest}
+        return ("accepted", self.head)
+
+    def recovery_finish(self, subject, begin, *, manager, authenticated=True, published=True, matches=True, witness=True, crash=False):
+        row = self.rows[canonical(subject)]
+        pending = row["pending"]
+        if not authenticated or manager != row["manager"] or not row["recovery_enabled"] or "retired" in (row["owner"], row["governance"]):
+            return False
+        if not pending or begin != pending["begin"] or pending["manager_revision"] != row["manager_revision"] or pending["control_revision"] != row["control_revision"] or pending["generation"] != row["generation"]:
+            return False
+        if not all([published, matches, witness]) or crash:
+            return False
+        self.head += 1
+        row.update(control="recovered", control_revision=self.head, recovery_revision=self.head, pending=None)
+        self.private_inventory["outcomes"][pending["ledger_key"]].update(state="completed", terminal=self.head)
+        return True
+
+    def recovery_policy(self, subject, enabled, *, expected, allowed=True, retire=False):
+        row = self.rows[canonical(subject)]
+        if not allowed or expected != row["recovery_revision"] or (enabled == row["recovery_enabled"] and not retire):
+            return False
+        self.head += 1
+        if row["pending"]:
+            self.private_inventory["outcomes"][row["pending"]["ledger_key"]].update(state="cancelled", terminal=self.head)
+        row.update(recovery_enabled=enabled, recovery_revision=self.head, pending=None)
+        if retire:
+            row["governance"] = "retired"
         return True
 
     def export(self):
@@ -172,3 +231,115 @@ class ControlModel:
         model.__dict__ = copy.deepcopy(actual_import)
         model.tenure += 1
         return model
+
+
+B58 = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+
+
+def base58(raw):
+    number, text = int.from_bytes(raw, "big"), ""
+    while number:
+        number, remainder = divmod(number, 58)
+        text = B58[remainder] + text
+    return "1" * (len(raw) - len(raw.lstrip(b"\0"))) + text
+
+
+def unbase58(text):
+    number = 0
+    for char in text:
+        number = number * 58 + B58.index(char)
+    return b"\0" * (len(text) - len(text.lstrip("1"))) + number.to_bytes((number.bit_length() + 7) // 8, "big")
+
+
+def multihash(raw):
+    return base58(b"\x12\x20" + hashlib.sha256(raw).digest())
+
+
+def multikey(key):
+    return "z" + base58(b"\xed\x01" + key.public_key().public_bytes_raw())
+
+
+def native_sign(document, key, created):
+    public = multikey(key)
+    options = {"type": "DataIntegrityProof", "cryptosuite": "eddsa-jcs-2022", "created": created, "verificationMethod": f"did:key:{public}#{public}", "proofPurpose": "assertionMethod"}
+    raw = hashlib.sha256(canonical(options)).digest() + hashlib.sha256(canonical(document)).digest()
+    return {**options, "proofValue": "z" + base58(key.sign(raw))}
+
+
+def native_verify(document, proof, public):
+    options = {k: v for k, v in proof.items() if k != "proofValue"}
+    if proof.get("type") != "DataIntegrityProof" or proof.get("cryptosuite") != "eddsa-jcs-2022" or proof.get("proofPurpose") != "assertionMethod" or proof.get("verificationMethod") != f"did:key:{public}#{public}":
+        raise ValueError("invalid native proof authority")
+    raw_key = unbase58(public[1:])
+    if public[:1] != "z" or raw_key[:2] != b"\xed\x01" or len(raw_key) != 34 or proof["proofValue"][:1] != "z":
+        raise ValueError("invalid multibase key or signature")
+    data = hashlib.sha256(canonical(options)).digest() + hashlib.sha256(canonical(document)).digest()
+    Ed25519PublicKey.from_public_bytes(raw_key[2:]).verify(unbase58(proof["proofValue"][1:]), data)
+
+
+def native_recovery_fixture():
+    """Construct a bounded native chain; public test seeds, no live resolver."""
+    roots = [Ed25519PrivateKey.from_private_bytes(bytes([70 + i]) * 32) for i in range(5)]
+    controls = [Ed25519PrivateKey.from_private_bytes(bytes([80 + i]) * 32) for i in range(3)]
+    witness = Ed25519PrivateKey.from_private_bytes(bytes([90]) * 32)
+    placeholder = "did:webvh:{SCID}:applet.example:actors:bot"
+    document = lambda did, i: {"@context": ["https://www.w3.org/ns/did/v1"], "id": did, "verificationMethod": [{"id": did + f"#control-{i}", "controller": did, "type": "Multikey", "publicKeyMultibase": multikey(controls[i])}], "authentication": [did + f"#control-{i}"]}
+    first = {"versionId": "{SCID}", "versionTime": "2026-10-20T00:00:00Z", "parameters": {"method": "did:webvh:1.0", "scid": "{SCID}", "updateKeys": [multikey(roots[0])], "nextKeyHashes": [multihash(multikey(roots[1]).encode())], "witness": {"threshold": 1, "witnesses": [{"id": "did:key:" + multikey(witness)}]}}, "state": document(placeholder, 0)}
+    scid = multihash(canonical(first))
+    first = json.loads(json.dumps(first).replace("{SCID}", scid))
+    did = placeholder.replace("{SCID}", scid)
+    entries, witnesses = [], []
+    previous = scid
+    for i in range(4):
+        entry = first if i == 0 else {"versionId": previous, "versionTime": f"2026-10-20T00:0{i}:00Z", "parameters": {"updateKeys": [multikey(roots[i])], "nextKeyHashes": [multihash(multikey(roots[i + 1]).encode())]}, "state": document(did, min(i, 2))}
+        entry["versionId"] = f"{i+1}-" + multihash(canonical(entry))
+        entry["proof"] = [native_sign(entry, roots[i], entry["versionTime"])]
+        entries.append(entry)
+        witnesses.append({"versionId": entry["versionId"], "proof": [native_sign({"versionId": entry["versionId"]}, witness, entry["versionTime"])]})
+        previous = entry["versionId"]
+    return {"description": "Native inception, lost-control reset, manager transition and new-manager successor. W3C eddsa-jcs-2022 proofs sign the final unsigned log entry; entry hashes separately replace versionId with its predecessor. Each entry consumes a fresh committed key. This bounded reference verifier is not a network resolver or production admission.", "root_test_seeds_hex": [(bytes([70+i])*32).hex() for i in range(5)], "control_test_seeds_hex": [(bytes([80+i])*32).hex() for i in range(3)], "witness_test_seed_hex": (bytes([90])*32).hex(), "did": did, "scid": scid, "log_entries": entries, "witness_records": witnesses}
+
+
+def verify_native_recovery(vector, accepted_prefix=None, require_witness=True):
+    """Independently verify the fixture's native cryptographic relations."""
+    entries = vector["log_entries"]
+    if not entries or len(entries) > 4096 or len(canonical(entries)) > 1048576:
+        raise ValueError("invalid history size")
+    if accepted_prefix is not None and entries[:len(accepted_prefix)] != accepted_prefix:
+        raise ValueError("accepted history rollback or sibling")
+    scid = entries[0]["parameters"]["scid"]
+    initial = {k: v for k, v in entries[0].items() if k != "proof"}
+    initial["versionId"] = scid
+    preliminary = json.loads(json.dumps(initial).replace(scid, "{SCID}"))
+    if multihash(canonical(preliminary)) != scid or vector["scid"] != scid:
+        raise ValueError("invalid SCID")
+    previous, next_hashes, spent = scid, None, set()
+    witness_id = entries[0]["parameters"]["witness"]["witnesses"][0]["id"]
+    for i, entry in enumerate(entries):
+        unsigned = {k: v for k, v in entry.items() if k != "proof"}
+        preimage = {**unsigned, "versionId": previous}
+        if entry["versionId"] != f"{i+1}-" + multihash(canonical(preimage)):
+            raise ValueError("invalid entry hash")
+        params = entry["parameters"]
+        if len(params["updateKeys"]) != 1 or len(params["nextKeyHashes"]) != 1:
+            raise ValueError("invalid recovery key profile")
+        key = params["updateKeys"][0]
+        if key in spent or (next_hashes is not None and multihash(key.encode()) not in next_hashes):
+            raise ValueError("invalid pre-rotation")
+        if any(multihash(k.encode()) == params["nextKeyHashes"][0] for k in spent | {key}):
+            raise ValueError("spent next key")
+        state = entry["state"]
+        if state["id"] != vector["did"] or f":{scid}:" not in state["id"]:
+            raise ValueError("DID/core/locator mismatch")
+        control = state["verificationMethod"][0]
+        if control["controller"] != state["id"] or control["id"] not in state["authentication"] or control["publicKeyMultibase"] == key or multihash(control["publicKeyMultibase"].encode()) in params["nextKeyHashes"]:
+            raise ValueError("control/update key confusion")
+        native_verify(unsigned, entry["proof"][0], key)
+        if require_witness:
+            records = [x for x in vector["witness_records"] if x["versionId"] == entry["versionId"]]
+            if len(records) != 1:
+                raise ValueError("missing/duplicate witness")
+            native_verify({"versionId": entry["versionId"]}, records[0]["proof"][0], witness_id.removeprefix("did:key:"))
+        spent.add(key)
+        previous, next_hashes = entry["versionId"], params["nextKeyHashes"]
+    return {"did": vector["did"], "method_history_head": digest(entries[-1]), "version_id": previous}

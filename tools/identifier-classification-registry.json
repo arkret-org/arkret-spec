@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 79,
+  "version": 80,
   "kind": "identifier_classification_registry",
   "source_of_truth": false,
   "generated_from": [
@@ -26,8 +26,8 @@
     "unregistered_object_identifier"
   ],
   "type_derived_summary": {
-    "typed_object_id": 989,
-    "responsibility_identity_material": 627,
+    "typed_object_id": 990,
+    "responsibility_identity_material": 636,
     "registry_catalog_symbol": 15
   },
   "pending_rename_convergence": [],
@@ -599,7 +599,7 @@
       "terminal_signature": "[[\"pattern\", \"^[A-Za-z0-9_-]{22,128}$\"]]",
       "category": "opaque_correlation",
       "reason": "Random creation intent correlation, scoped by Realm and Applet. The alphabet excludes the typed ID namespace.",
-      "occurrences": 2
+      "occurrences": 4
     },
     {
       "name": "revokes_statement_id",
@@ -757,5 +757,5 @@
       "reason": "Symbol scoped to the containing document; it is only resolvable inside that object and is never an authorization subject."
     }
   ],
-  "generated_at": "2026-10-19T23:29:28+08:00"
+  "generated_at": "2026-10-20T00:18:13+08:00"
 }

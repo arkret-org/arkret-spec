@@ -2926,6 +2926,16 @@
       ]
     },
     {
+      "schema_path": "event-envelope.schema.json#/allOf/1/then/if/anyOf/1/properties/actor_id",
+      "property_name": "actor_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "actor_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:actor_id"
+      ]
+    },
+    {
       "schema_path": "event-envelope.schema.json#/allOf/139/then/properties/actor_id",
       "property_name": "actor_id",
       "semantic_category": "responsibility_identity_material",
@@ -2947,6 +2957,26 @@
     },
     {
       "schema_path": "event-envelope.schema.json#/allOf/148/then/else/properties/actor_id",
+      "property_name": "actor_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "actor_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:actor_id"
+      ]
+    },
+    {
+      "schema_path": "event-envelope.schema.json#/allOf/153/then/properties/actor_id",
+      "property_name": "actor_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "actor_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:actor_id"
+      ]
+    },
+    {
+      "schema_path": "event-envelope.schema.json#/allOf/154/then/properties/actor_id",
       "property_name": "actor_id",
       "semantic_category": "responsibility_identity_material",
       "representation_profile": "actor_id",
@@ -6086,6 +6116,36 @@
       ]
     },
     {
+      "schema_path": "realm-actor.schema.json#/$defs/recovery_acceptance_transcript/properties/payload_without_control_signature/properties/next_control_method_kid",
+      "property_name": "next_control_method_kid",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_url",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_url"
+      ]
+    },
+    {
+      "schema_path": "realm-actor.schema.json#/$defs/recovery_acceptance_transcript/properties/service_id",
+      "property_name": "service_id",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_core_id",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_core_id"
+      ]
+    },
+    {
+      "schema_path": "realm-actor.schema.json#/$defs/recovery_begin_payload/properties/next_control_method_kid",
+      "property_name": "next_control_method_kid",
+      "semantic_category": "responsibility_identity_material",
+      "representation_profile": "did_url",
+      "external_literal_owner": false,
+      "terminal_signature": [
+        "ref:did_url"
+      ]
+    },
+    {
       "schema_path": "realm-authority-bundle.schema.json#/$defs/current_assertion/properties/current_service_id",
       "property_name": "current_service_id",
       "semantic_category": "responsibility_identity_material",
@@ -8357,7 +8417,7 @@
     },
     {
       "source": "event_kind_registry.value_projection.members",
-      "schema_path": "event-kind-registry.json#/event_kinds/119/result_writes/0/result_projection/value_projection/members/3/name",
+      "schema_path": "event-kind-registry.json#/event_kinds/122/result_writes/0/result_projection/value_projection/members/3/name",
       "property_name": "controller_account_id",
       "resolved_carrier": "ambiguous",
       "required_subject_class": "account",
@@ -8399,7 +8459,7 @@
     },
     {
       "source": "event_kind_registry.value_projection.members",
-      "schema_path": "event-kind-registry.json#/event_kinds/86/result_writes/1/result_projection/value_projection/members/0/name",
+      "schema_path": "event-kind-registry.json#/event_kinds/89/result_writes/1/result_projection/value_projection/members/0/name",
       "property_name": "controller_actor_id",
       "resolved_carrier": "ambiguous",
       "required_subject_class": "actor",

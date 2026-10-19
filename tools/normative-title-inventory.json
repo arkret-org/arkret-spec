@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-19.4",
+  "version": "2026-10-20.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-19T23:13:59+08:00",
+  "generated_at": "2026-10-20T00:18:13+08:00",
   "description": "Closed inventory of current spec/v1/zh headings that explicitly carry the （normative） marker. Any addition, removal, rename, or move is reviewed as a protocol change and refreshes this source-of-truth inventory.",
   "titles": [
     {
@@ -633,6 +633,11 @@
       "page": "extensions/mimi-interop.md",
       "heading": "5.1 MIMI operation actor proof（normative）",
       "fragment": "51-mimi-operation-actor-proofnormative"
+    },
+    {
+      "page": "extensions/realm-actors.md",
+      "heading": "10. Applet 同身份密钥重置（normative）",
+      "fragment": "10-applet-同身份密钥重置normative"
     },
     {
       "page": "governance/content-moderation.md",

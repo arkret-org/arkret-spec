@@ -1,12 +1,12 @@
 {
-  "version": 41,
+  "version": 43,
   "source_of_truth": false,
   "narrative_source": "spec/v1/zh/models/common-fields.md#r6-证据类名词分工",
   "scope": [
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 401,
+  "audited_occurrence_count": 406,
   "registrations": [
     {
       "file": "account-device-signer-evidence.schema.json",
@@ -1055,8 +1055,19 @@
         "proof",
         "attestation"
       ],
-      "reason": "Complete method-native WebVH history carries cryptographic continuity proofs and witness attestations; neither is inferred from the DID core.",
-      "occurrences": 4
+      "reason": "Native DID continuity material: complete published log/proof/witness and receipt for ordinary updates, and a closed no-receipt signed-log plan for recovery.begin only. The planning branch does not assert publication or completed successor witness verification.",
+      "occurrences": 8
+    },
+    {
+      "file": "realm-actor.schema.json",
+      "key": "published_method_history_evidence",
+      "disposition": "polymorphic_container",
+      "material_families": [
+        "proof",
+        "attestation"
+      ],
+      "reason": "Complete published native DID chain, signatures and witness material for the exact accepted recovery target; independently verified at finish.",
+      "occurrences": 1
     },
     {
       "file": "registration-did-evidence.schema.json",
