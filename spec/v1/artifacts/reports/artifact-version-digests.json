@@ -3,9 +3,9 @@
   "artifacts": [
     {
       "path": "spec/v1/artifacts/profiles/conformance-profiles.json",
-      "version": "2026-10-19.3",
-      "generated_at": "2026-10-19T23:13:59+08:00",
-      "content_digest": "sha256:954b24c88d25fa0542d2f9937d66f776f2390d6cfc3170527060615799a68857"
+      "version": "2026-10-20",
+      "generated_at": "2026-10-20T00:02:42+08:00",
+      "content_digest": "sha256:351cd0bff0c05f488dab91f8f40c1c7a42a9213552bce1ae917f8c27a70cabad"
     },
     {
       "path": "spec/v1/artifacts/registry/account-data-key-registry.json",
@@ -219,9 +219,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/normative-clause-registry.json",
-      "version": "2026-10-19.3",
-      "generated_at": "2026-10-19T23:13:59+08:00",
-      "content_digest": "sha256:80e2a3e1ff3555f6ae1b7a90216de2cd1ac42a51bffbbc90da69c0f477ffc367"
+      "version": "2026-10-20.1",
+      "generated_at": "2026-10-20T00:07:52+08:00",
+      "content_digest": "sha256:695164d2294dda64555270f4bcc42e17ddcfc1ec821f840ac052200856c01ebb"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-bundle-closure-lock.json",

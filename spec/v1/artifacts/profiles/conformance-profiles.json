@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-19.3",
-  "generated_at": "2026-10-19T23:13:59+08:00",
+  "version": "2026-10-20",
+  "generated_at": "2026-10-20T00:02:42+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -2384,7 +2384,7 @@
       },
       "binding_invariants": [
         "realm_id MUST equal the principal_control_realm_id resolved for the principal DID.",
-        "fields.purpose MUST be principal_control for human/organization PCRs, agent_control for Agent PCRs,; schema_refs MUST contain ak.profile.principal_control_realm.v1 in both cases.",
+        "fields.purpose MUST be principal_control for human/organization PCRs, agent_control for Agent PCRs; schema_refs MUST contain ak.profile.principal_control_realm.v1 in both cases.",
         "Within a Principal Control Realm, ak.policy.set is admitted only for ak.root.identity.recovery_policy.command.publish.v1 with canonical payload {policy_id,value}, value.schema=ak.schema.recovery_policy.v1, equal policy ids, and no state/reason; admitting another policy family or bypassing Event, lease, reducer, allowlist, or RealmCommit processing is non-conformant.",
         "A PCR MUST accept its ak.mls.genesis before any control content write; that accepted RealmCommit irreversibly activates standard RFC 9420 for the PCR scope and no plaintext PCR content write is admissible afterwards.",
         "history_access MUST equal since_join. A new same-principal endpoint starts at its own initial Add/Welcome admission; durable device-list and normalized principal views provide the control baseline, and decryption uses only MLS state held locally by that endpoint.",
@@ -2394,7 +2394,7 @@
         "An Agent PCR genesis carries no anchor ref: delegated_pcr_genesis is selected by payload.object.purpose alone, and admission MUST instead reverse-look-up an already accepted ak.agent.provision in the controller PCR whose payload.principal_control_realm_id equals retype(this genesis event_id). No match means zero writes. The genesis MUST arrive in a submission separate from that provision, because a same-unit or same-batch pair is the unconstructible shape encoding.md §3.1 forbids. The Agent PCR and its controller PCR MUST be hosted by the same Station, since the reverse look-up and the realm-id claim uniqueness are both local decisions.",
         "A PCR MUST NOT carry a Realm alias. ak.realm.alias is absent from realm_event_kind_policy.allowed_event_kinds, so a PCR is addressable only by realm_id; a human-readable alias on an identity-infrastructure control stream would publish the principal's control Realm under a guessable name.",
         "realm_event_kind_policy.allowed_event_kinds is closed in both directions: every kind whose normative prose requires a PCR write MUST appear in it, and every listed kind MUST have such prose. ak.identity.resolution.update is the only post-genesis successor of the create-locked identity_resolution typed current result, and ak.contact.scope.update is the only directional Contact scope fact; both commit in the holder PCR and both are listed. The pcr-exposure-registry.json event-kind set MUST equal this allowlist, so an admitted kind can never lack a declared outward-exposure decision.",
-        "Human accepted registration_anchor genesis, its ordered unit and accepted receipt permanently bind the full Account, inception PCR and account Station. Human governance change, freeze/export/import/acceptance/activation, foreign current authority and separated-governor Consent proxy/publication reject without effects. Same-Station valid endpoint/key/deployment changes preserve governance_generation. The shared allowlist and required transfer support for independently verified Organization/Agent/Applet-managed provenance do not authorize Human handoff; pcr_governance_policy is mandatory at every entry point. Unknown provenance never falls back to an ordinary Realm. See zh/sync/authority-commit-log.md section 8.1."
+        "Human accepted registration_anchor genesis, its ordered unit and accepted receipt permanently bind the full Account, inception PCR and account Station. Human governance change, freeze/export/import/acceptance/activation, foreign current authority and separated-governor Consent proxy/publication reject without effects. Same-Station valid endpoint/key/deployment changes preserve governance_generation. The shared allowlist and required transfer support for independently verified Organization/Agent provenance do not authorize Human handoff; Realm Bot/Ghost have no independent PCR and their realm_control state follows the owning Realm handoff. pcr_governance_policy is mandatory at every entry point. Unknown provenance never falls back to an ordinary Realm. See zh/sync/authority-commit-log.md section 8.1."
       ],
       "pcr_governance_policy": {
         "binding_source": "verified_accepted_genesis_provenance",
