@@ -227,7 +227,7 @@ class ResultSelectorEndpointGateTest(unittest.TestCase):
         reported = self._newly_reported(mutate)
         self.assertEqual(len(reported), 1, reported)
         self.assertIn(
-            "canonical_json component must name one payload field or envelope.actor_id",
+            "canonical_json component must name one payload field or registered envelope subject source",
             reported[0],
         )
 

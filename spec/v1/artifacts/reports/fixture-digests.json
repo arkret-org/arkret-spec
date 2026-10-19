@@ -521,6 +521,11 @@
       "version": "2026-09-28.1"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/read-receipt-scope-policy-fixture.json",
+      "sha256": "8a37e6f0343cbea05007d3fe7054664cf81433d4746b85db5aaa08feedcacea7",
+      "version": "2026-10-19.1"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/realm-join-candidate-locator-fixture.json",
       "sha256": "628a5cec2f02f6854e96a3855ac0bd3908bc2581f8ffbced46c13622539aba7b",
       "version": "2026-09-20.3"

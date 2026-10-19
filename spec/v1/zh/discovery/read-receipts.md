@@ -3,7 +3,7 @@ title: "Read Receipts & Markers"
 status: candidate
 normative: true
 stability: v1
-updated: 2026-09-25
+updated: 2026-10-19
 ---
 
 ## 0. 规范语言
@@ -73,56 +73,93 @@ Push Gateway MUST NOT 因 read receipt 产生通知。它只能把 receipt / mar
 - 客户端收到他人的 `ak.receipt.read` 时，SHOULD 在 UI 上更新已读头像的小图标位置；接收行为不依赖发送偏好。
 - 当目标 scope 由 §2.5 声明 `disclosure="required"` 或 `disclosure="disabled"` 时，合规客户端 MUST 按该声明覆盖用户偏好（详见 §2.5）。
 
-### 2.5 Realm 披露策略 (Disclosure Policy)
+### 2.5 Scope 披露策略 (Disclosure Policy)
 
-Realm MAY 通过 `ak.realm.read_receipt_policy` 组件 typed current result 声明本 Realm 内 `ak.receipt.read` 的披露要求。需要让 Strand 时间线与父 Realm 在 read receipt policy 上分离时，整个 Strand 通过 `Strand.scope_circle_id` 落在一个 [Circle](../models/circle.md)（参见 [`../models/strand-and-message.md` §5](../models/strand-and-message.md)）；effective policy 由父 Realm `ak.realm.read_receipt_policy` 与 Circle 自身策略取更严格者。Track 级别 override 不在 v1 范围内。该 policy 由它自己的 Event kind 写入 `realm_read_receipt_policy` typed current result，**不**在 `ak.realm.policy_bundle` payload 内重复声明。它由普通 Event/authority-commit/RealmCommit admission 保护，但不改变 MLS key access，因此按 [`../crypto-media/encryption-and-audit.md` §2.5](../crypto-media/encryption-and-audit.md) 明确排除在 `key_access_revision` 外。
+Realm-default scope 与每个 Circle scope MUST 使用同一套 read receipt policy 合同，各自独立配置、
+独立存取与执行。消息所属的签名 `scope_ref` 决定唯一适用策略：Realm-default 消息只读该 Realm
+scope 的策略，Circle 消息只读该 Circle 的策略。父 Realm、Realm link、`governed_by`、其它 Circle
+及 source Realm 的策略 MUST NOT 参与继承、fallback、合并或“取更严格者”。Realm 的 `required`
+或 `disabled` 都不锁定 Circle 的配置。Track 级策略与 Sidecar 策略不在本合同范围内。
 
-> **Realm 作用域** 由 enclosing Event envelope 的 `realm_id` 决定；payload 本身不重复 `realm_id`。Payload schema 在 [`event-payload.schema.json#/$defs/read_receipt_policy_payload`](../../artifacts/schemas/event-payload.schema.json) 为闭合对象（`additionalProperties: false`），任何未识别字段或字段拼写错误在 wire 解析阶段就会以 `schema_violation` 拒绝。Payload **MUST 至少包含一个字段**（schema `minProperties: 1`）：空 `{}` 在语义上与"从不写该 event"等价，因此 MUST 被拒绝；想要"用默认值"的 Realm 直接省略该 event 即可。
+整个 Strand 的 scope 由 `Strand.scope_circle_id` 与签名 `scope_ref` 绑定，见
+[Circle](../models/circle.md) 和 [Strand §5](../models/strand-and-message.md)。
+Scope 隔离是披露上限；policy 只能在该 scope 已有观察权限内约束阅读行为，不能授予成员资格、
+正文访问权或跨 scope 观察权。
+
+#### 2.5.1 唯一写者与当前状态
+
+唯一写入 Event 为 `ak.scope.read_receipt_policy`。它的签名 envelope `scope_ref` MUST 是闭合的
+Realm 或 Circle 分支（[read_receipt_policy_scope_ref](../../artifacts/schemas/event-envelope.schema.json#/$defs/read_receipt_policy_scope_ref)），
+其中 `realm_id` MUST 等于 envelope `realm_id`；Circle MUST 属于该 Realm。Event 进入该 scope
+自己的 authority commit stream，covering RealmCommit 的 `stream_ref` MUST 标识同一 scope。
+准入 MUST 在同一事务 cut 检查目标 scope 的 `ak.policy.manage` 授权、scope/lifecycle 与有效成员资格；
+Circle 范围的 grant 不能授权父 Realm 或兄弟 Circle，聚合 admin/owner 权限也不跳过 scope 校验。
+拒绝时 MUST 零 accepted effects；成功时 Event、RealmCommit 与 current 替换 MUST 原子提交。
+
+Payload 为 [read_receipt_policy_payload](../../artifacts/schemas/event-payload.schema.json#/$defs/read_receipt_policy_payload)
+闭合非空对象，只包含 `disclosure`、`visibility`；两字段都可省略，但不可显式为 `null`。
+Payload MUST NOT 重复 `scope_ref`、`realm_id` 或 `circle_id`。
 
 ```json fragment
 {
-  "kind": "ak.realm.read_receipt_policy",
-  "payload": {
-    "disclosure": "optional",
-    "visibility": "members",
-    "scope_overrides_allowed": true
-  }
+  "kind": "ak.scope.read_receipt_policy",
+  "scope_ref": {"kind": "circle", "realm_id": "<realm_id>", "circle_id": "<circle_id>"},
+  "payload": {"disclosure": "optional", "visibility": "members"}
 }
 ```
-字段：
+
+唯一 current family 为 `scope_read_receipt_policy`；closed selector 是
+`{kind:"scope_read_receipt_policy",scope_ref:<exact signed scope_ref>}`。
+Subject 是签名 `envelope.scope_ref` 的 canonical JSON 单组件；source stream 与 selector scope MUST
+逐字段一致，revision 为接受该 Event 的同 scope RealmCommit `{commit_id,stream_position}`。
+每次写入完整置换 payload，MUST NOT 把旧值的省略字段补回；默认值仅在读侧解释。
+策略不属于 `ak.realm.policy_bundle`、Circle 对象或 `ak.circle.update` patch，不能产生第二份写者。
+现行 v1 不再登记 `ak.realm.read_receipt_policy`、`realm_read_receipt_policy` 或
+`scope_overrides_allowed`；它们 MUST NOT 被当作兼容写入、selector 或 fallback。
 
 | 字段 | 类型 | 默认 | 说明 |
 | --- | --- | --- | --- |
-| `disclosure` | `enum(required, optional, disabled)` | `optional` | 披露要求级别。该字段同时影响隐私上限与合规义务：`required` = 合规客户端 MUST 在该 scope 发送 receipt；`optional` = 完全交给 Client Preference；`disabled` = 发送客户端 MUST NOT 生成、接收客户端 MUST 丢弃该 scope 的 `ak.receipt.read`。 |
-| `visibility` | `enum(public, members, private)` | `members` | receipt 可见性。`public` = Strand 的 effective scope 可见性允许的全部观察者；`members` = Strand effective scope 的可见成员（`scope_circle_id=null` 时为父 Realm 成员，`scope_circle_id` 指向 Circle 时为该 Circle 成员）；`private` = 仅消息发送者本人。**执行点在客户端**：服务端看不到加密 `SignalEnvelope` 内的 `event_id`，只能按签名 `scope_ref` 收窄 fanout，不能按发送者定向投递（判据见下方规则表）。**警告**：`history_access=all_history_for_current_members` 只扩大当前成员可恢复的正文 epoch range，不扩大 receipt 观察者集合；metadata-private 场景仍 SHOULD 把 receipt-policy 收紧为 `members` 或 `private`。 |
-| `scope_overrides_allowed` | `bool` | `true` | 是否允许 Realm 内的 [Circle](../models/circle.md) 声明独立、**收紧**（不放宽）的 read receipt policy。visibility 的收紧方向固定为 `private` > `members` > `public`。 |
+| `disclosure` | `enum(required, optional, disabled)` | `optional` | `required`：合规客户端 MUST 发送；`optional`：按 Client Preference；`disabled`：MUST NOT 生成，接收端 MUST 丢弃且不呈现。三者是本 scope 的选择，不构成跨 scope 严格度排序。 |
+| `visibility` | `enum(public, members, private)` | `members` | `public`：本 scope 已有权限观察目标 Strand 的全部观察者；`members`：Realm-default scope 的有效 Realm 成员或该 Circle 的有效成员；`private`：仅目标消息的原作者，且仍须具备该 scope 的访问资格。任何值都不得把 Circle 回执披露到 Realm-default scope 或兄弟 Circle。 |
 
-规则：
+#### 2.5.2 同 cut 读取、缺席与更新
 
-- 该策略是**软声明 / 合规承诺**，不是密码学强制。`ak.receipt.read` 由客户端自愿生成，恶意或不合规客户端始终可以"看了不报"。软声明只允许合规客户端按用户偏好不发送自己的 receipt；任何 actor、service、relay 或 federation peer 都不得伪造他人的 `ak.receipt.read`，也不得转发来源 proof 无法验证的 receipt。Realm policy MUST NOT 把 `ak.receipt.read` 当作密码学审计回执使用。
-- 客户端 MUST 在 join Realm / 进入 Strand 时明示当前生效 `disclosure` 与 `visibility`，并在用户偏好 UI 中标注该 scope 的开关是否被 policy 锁定。
-- `disclosure="required"`：合规客户端 MUST NOT 允许用户在该 scope 把 `ak.read_receipt.preferences` 设为 `send=false`，并 SHOULD 在每次进入 track 时按 §2.1 的加密边界发送至少一条覆盖当前可见 head 的 receipt。
-- `disclosure="disabled"`：合规客户端 MUST NOT 生成该 scope 的 `ak.receipt.read`。**执行点在客户端**：Station sync surface 看不到 Signal 的 payload 类型（[`../sync/signal.md`](../sync/signal.md) §1 下外层 header 无任何产品选择器，receipt 与 typing 同为 `session` class 且 payload 不透明），因此**不得**要求服务端识别并丢弃它。接收方客户端解密后 MUST 丢弃并不呈现该 scope 的 receipt。Read Cursor 不受影响。
-- `visibility="private"`：**执行点在客户端**。Station sync surface 能强制的唯一收窄维度是签名的 `scope_ref`：它 MUST 仅向该 scope 内的成员 fanout。它**不能**再收窄到“仅 `event_id` 的发送者”——§2.1 已规定 `event_id` 位于 `encrypted_payload` 内且服务端不得看见或据其路由，要求它按该字段定向投递与§2.1 直接矛盾。接收方客户端解密后，若自己不是该 receipt 所引 `event_id` 的发送者，MUST 丢弃并不呈现。Push Gateway MUST NOT 据 `private` receipt 产生通知。
+发送与呈现前，客户端 MUST 从已验证的 scope current 基线取得策略；基线须证明 exact Realm、scope、
+治理 generation、覆盖的 stream head 与 revision。Strand scope、目标 Event/作者和调用者的有效成员／
+观察资格 MUST 在同一授权读取 cut 重验。不同 stream 无隐含总序，不得拼接两个时刻的裸缓存。
 
-  `private` 的执行点固定在客户端：加密 `SignalEnvelope` 的服务端看不到内部
-  `event_id` 或 signal kind，只能执行外层 scope 收窄。实现 MUST NOT 为定向
-  receipt fanout 在 Signal 外层增加产品语义选择器。
-- 每个 Realm 的 read-receipt policy 只由该 Realm 的本地 `ak.realm.read_receipt_policy` 决定。Realm link、`governed_by`
-  关系或 source Realm policy 不产生 parent floor，也不参与 reducer 接纳。产品可把其它 Realm policy 作为 authoring 建议，
-  但必须由目标 Realm controller 重新签发本地 Event。
-- 与 §2.3 防雪崩规则共存：即便 `disclosure="required"`，客户端仍 MUST 按 debounce / merge 规则发送，不得为合规绕开限流。
+- `present`：只消费 selector-identical、source-stream-identical 且 revision 被该基线覆盖的 current。
+- 从未配置：只有已验证的完整 scope Snapshot/current 披露及其连续 replica tail 能证明该 selector
+  在覆盖 cut 上从未写入时，才采用 `optional` / `members`。该缺席证明只对这个 scope 有效。
+- 请求失败、不可见、未知 scope、不完整 Snapshot、未验证 tail 或页面缓存缺项不构成缺席证明；
+  MUST fail closed：不发送、不呈现，不借用 Realm 或兄弟策略。不得臆造 exact-current 读取分支。
+- 已有策略恢复默认仍由唯一写者显式写入默认值；空 `{}`、`null`、删除 current 或漏行不能表达重置。
+- 策略或资格更新后，客户端 MUST 重新检查待发回执与已有展示；`disabled` 清除已有 hint，
+  `members` / `private` 收窄或资格失效时撤下不再允许的头像。不得只过滤新回执，亦不得自动复活已丢弃信息。
 
-#### 2.5.1 与 history access 的独立性（normative）
+#### 2.5.3 发送、呈现与隔离执行
 
-`history_access` 的 `since_join|all_history_for_current_members` 只决定正文历史范围，不改变 read-receipt
-`visibility`，也不产生公开匿名读取者。二者不得组合出第三套 policy matrix。metadata-private
-场景仍 MUST 把 receipt `visibility` 收紧为 `members` 或 `private`。
+- 策略是软声明／合规承诺，不是密码学审计证明；恶意客户端可不发送或检查自己能解密的 Signal。
+  任何 actor/service/relay/peer MUST NOT 伪造他人回执或转发不可验证来源 proof 的回执。
+- 客户端 MUST 在进入 scope/Strand 时明示该 scope 的 disclosure/visibility 与锁定开关。
+  `required` 禁止 `send=false`，并 SHOULD 在每次进入 track 时按 §2.1 至少发送覆盖当前可见 head 的回执；
+  debounce、合并与限流仍适用。`disabled` 覆盖用户 `send=true`，Read Cursor 不受影响。
+- 回执 target Event、Strand/track、签名 Signal `scope_ref` 和 policy selector MUST 对应同一 scope。
+  错 Realm、错 Circle、兄弟 scope 或只有父 Realm 成员资格的接收者 MUST NOT 获得 Circle 的回执展示。
+- Station sync surface MUST 按签名 scope 与该 scope 的投递授权裁剪 fanout。它看不到加密的 kind/event_id，
+  MUST NOT 通过新增明文产品 selector 识别回执或按消息作者定向路由。
+- 接收端解密后检查 policy 与目标作者；`private` 只允许原消息作者看到，使用完整 ActorId（含 Station）
+  比较，MUST NOT 比较 reader 本人或只比较 principal。缺 target/作者/当前授权证明时 MUST 丢弃且不呈现。
+  Push Gateway MUST NOT 因回执本身产生通知。
+- 此策略不改变 MLS key access，MUST NOT 推进 `key_access_revision`。`history_access` 只决定正文历史
+  范围，不扩大回执观察者，不允许匿名或跨 scope 读取；metadata-private 场景 MUST 使用 `members` 或 `private`。
 
-- read_receipt_policy payload schema MUST 在顶层声明 `additionalProperties=false`，未识别字段 MUST 以 `schema_violation` 在 wire 解析阶段拒绝。
-- `child_privacy_tightening_against_required` 与其它 parent-policy bypass 不是 current-v1 wire 字段，出现时 MUST
-  `schema_violation`。
-- [`event-payload.schema.json#/$defs/read_receipt_policy_payload`](../../artifacts/schemas/event-payload.schema.json) 已以 closed object 落地该结构；正文与 schema 共同构成单一现行契约。
+具名合同向量为 `ak.vector.read_receipt.scope_policy.schema.v1`、
+`ak.vector.read_receipt.scope_policy.independent.v1`、
+`ak.vector.read_receipt.scope_policy.isolation.v1` 与
+`ak.vector.read_receipt.scope_policy.updates.v1`，正反向案例见
+[scope policy fixture](../../artifacts/fixtures/read-receipt-scope-policy-fixture.json)。
+这些规范向量不代表 Station、SDK consumer、客户端或实际联合链路已经完成产品验收。
 
 ## 3. Read Cursor (私有游标)
 

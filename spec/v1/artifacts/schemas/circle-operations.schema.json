@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arkret.org/v1/schemas/circle-operations.schema.json",
   "title": "Arkret Circle Self-Management Operation DTOs",
-  "description": "Closed request/response DTOs for the self-surface Circle administration operations (ak.self.circle.*). Every write operation carries the caller-signed ak.circle.* Event and the service submits those exact bytes through authority Event submission; the durable Circle object model is circle.schema.json. See spec/v1/zh/models/circle.md and spec/v1/zh/sync/service-http-binding.md.",
+  "description": "Closed request/response DTOs for the self-surface Circle administration operations (ak.self.circle.*). Every write operation carries the caller-signed ak.circle.* Event and the service submits those exact bytes through authority Event submission; the durable Circle object model is circle.schema.json. See spec/v1/zh/models/circle.md and spec/v1/zh/sync/service-http-binding.md. Read-receipt policy has only the ak.scope.read_receipt_policy writer and scope_read_receipt_policy current carrier; it is not a Circle object or metadata patch member.",
   "anyOf": [
     {
       "$ref": "#/$defs/circle_create_request_body"
@@ -171,7 +171,7 @@
     },
     "circle_create_request_body": {
       "type": "object",
-      "description": "Carries the caller-signed ak.circle.create Event and nothing else. The Circle id is retype(create_event.event.event_id), so the service cannot name the Circle and MUST NOT synthesize the Event: every actor-supplied field lives in create_event.event.payload.object, and the parent Realm is create_event.event.realm_id. See spec/v1/zh/models/circle.md and spec/v1/zh/sync/service-http-binding.md.",
+      "description": "Carries the caller-signed ak.circle.create Event and nothing else. The Circle id is retype(create_event.event.event_id), so the service cannot name the Circle and MUST NOT synthesize the Event: every actor-supplied field lives in create_event.event.payload.object, and the parent Realm is create_event.event.realm_id. See spec/v1/zh/models/circle.md and spec/v1/zh/sync/service-http-binding.md. Read-receipt policy has only the ak.scope.read_receipt_policy writer and scope_read_receipt_policy current carrier; it is not a Circle object or metadata patch member.",
       "required": [
         "create_event"
       ],

@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-18.2",
+  "version": "2026-10-19.1",
   "source_of_truth": false,
-  "generated_at": "2026-10-18T23:49:11+08:00",
+  "generated_at": "2026-10-19T09:26:45+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "kind_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -3612,7 +3612,7 @@
             }
           },
           "value_schema_ref": "schemas/event-payload.schema.json#/$defs/mimi_room_binding_payload",
-          "notes": "extensions/mimi-interop.md section 3 is the authoritative field set and the payload def already asserted this family and this subject, pointing the reader at a result_selector that did not exist -- the registry named a row in itself that it did not carry. The payload is a closed flat object with no value wrapper, so the projection is the identity on it, exactly as for realm_read_receipt_policy. mimi_room_uri stays a member of the projected value as well as the subject: the binding is a projection of an Arkret discussion track into a MIMI room and is explicitly not canonical truth, so a reader holding only the value must still be able to name the room it describes."
+          "notes": "extensions/mimi-interop.md section 3 is the authoritative field set and the payload def already asserted this family and this subject, pointing the reader at a result_selector that did not exist -- the registry named a row in itself that it did not carry. The payload is a closed flat object with no value wrapper, so the projection is the identity on it, exactly as for scope_read_receipt_policy. mimi_room_uri stays a member of the projected value as well as the subject: the binding is a projection of an Arkret discussion track into a MIMI room and is explicitly not canonical truth, so a reader holding only the value must still be able to name the room it describes."
         }
       ],
       "id_source": "not_an_object_id",
@@ -5511,18 +5511,26 @@
       }
     },
     {
-      "event_kind": "ak.realm.read_receipt_policy",
-      "category": "realm",
+      "event_kind": "ak.scope.read_receipt_policy",
+      "category": "read",
       "status": "active",
       "verb_form": "not_applicable",
       "wire_scope": "durable_event",
       "reducer_input": true,
-      "payload": "Realm-local read receipt disclosure policy (disclosure / visibility / scope_overrides_allowed); Realm links do not create a parent policy floor; see zh/discovery/read-receipts.md §2.5",
+      "payload": "Scope-local read receipt policy (disclosure / visibility); signed scope_ref selects exactly one Realm or Circle, with no inheritance or parent floor; see zh/discovery/read-receipts.md §2.5",
       "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/read_receipt_policy_payload",
       "result_writes": [
         {
-          "result_family": "realm_read_receipt_policy",
-          "result_selector": null,
+          "result_family": "scope_read_receipt_policy",
+          "result_selector": {
+            "kind": "composite",
+            "components": [
+              {
+                "kind": "canonical_json",
+                "field": "envelope.scope_ref"
+              }
+            ]
+          },
           "result_projection": {
             "kind": "set",
             "value": {
@@ -5530,13 +5538,18 @@
             }
           },
           "value_schema_ref": "schemas/event-payload.schema.json#/$defs/read_receipt_policy_payload",
-          "notes": "discovery/read-receipts.md section 2.5 names the family and says this kind is its sole carrier. The payload is a flat closed object with no value wrapper, so the projection is the identity on it. Taking the stricter of parent Realm and Circle policy is a read-side fold, not a projection."
+          "notes": "The sole writer replaces the complete signed payload for exactly envelope.scope_ref. The subject is the canonical scope_ref; source_stream_ref MUST identify that same Realm or Circle stream. Defaults are read-side only after verified same-scope absence; no parent, sibling, or historical value merge."
         }
       ],
       "id_source": "not_an_object_id",
       "result_effect_ownership": {
         "kind": "typed_result_writer"
-      }
+      },
+      "admission_requirements": [
+        "The signed scope_ref is realm or circle and its realm_id equals the enclosing Event realm_id; the covering RealmCommit stream_ref identifies that exact scope.",
+        "Admission checks ak.policy.manage against the target scope at the same transaction cut; Circle grants must cover the exact Circle and cannot authorize the parent or siblings. Lifecycle and effective membership gates remain applicable.",
+        "Event, covering RealmCommit and whole-value current replacement commit atomically; invalid scope, unauthorized write or unavailable current basis produces zero accepted effects."
+      ]
     },
     {
       "event_kind": "ak.realm.restore",

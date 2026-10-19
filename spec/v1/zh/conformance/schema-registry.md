@@ -191,7 +191,7 @@ Signal plaintext payload kind（`ak.presence` / `ak.typing` / `ak.receipt.read` 
 | `ak.realm.history_access` | History visibility state |
 | `ak.realm.discovery` | Discoverability state |
 | `ak.realm.preview_policy` | Preview / peek policy state |
-| `ak.realm.read_receipt_policy` | Realm read receipt disclosure policy state |
+| `ak.scope.read_receipt_policy` | Independently configured Realm/Circle scope read receipt disclosure policy state |
 | `ak.realm.tombstone` | Terminal Realm tombstone or replacement marker |
 | `ak.realm.archive` | Reversible archive state |
 | `ak.realm.freeze` | Temporary freeze state |

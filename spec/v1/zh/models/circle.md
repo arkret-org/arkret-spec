@@ -402,3 +402,12 @@ delivery 边界流动。
 ### Circle lifecycle 合同入口
 
 `circle` 的 lifecycle 以 contract registry 中对应 typed current result family 的 `transition_contracts` 与 Event `result_projection` 为转换真源；本节只定义对象组合规则，不复制转换表。archive 只从 active、restore 只从 archived 发起；非法源分别返回 `circle_not_active` / `circle_not_archived`；终态操作对已终态对象返回 `circle_already_terminal`。新的 same-state 写入不当作幂等成功，已接受 Event 的 exact replay 仍沿通用幂等合同处理。普通 update 只允许 active，不能隐式恢复对象。对象 redaction/terminal 优先于可逆 archive，restore 不能恢复已清除内容。缺对象或依赖时按 common-fields §5.1 保留 pending/replay。
+
+## 14. Scope 已读策略
+
+Realm-default scope 与 Circle scope 复用 [read-receipts §2.5](../discovery/read-receipts.md) 的统一合同。
+`ak.scope.read_receipt_policy` 在签名 `scope_ref` 指向的本 Circle stream 写入
+`scope_read_receipt_policy`；Circle 对象、普通 metadata patch 与 self circle DTO 不另承载策略。
+Circle 策略与父 Realm 及兄弟 Circle 独立，缺席只在完整已验证本 scope 基线证明从未配置后采用默认值。
+父 Realm 的 required/disabled 不限制或补全 Circle 策略；成员资格的父 Realm 交集 gate 仍按 §9.1 执行。
+Circle 内消息的回执不得因 Realm 成员身份、Realm 策略或 public visibility 向父 Realm/兄弟 scope 扩散。

@@ -6968,7 +6968,7 @@
       "additionalProperties": false
     },
     "read_receipt_policy_payload": {
-      "$comment": "Payload for ak.realm.read_receipt_policy. Closed object so typos cause schema_violation. The enclosing Event carries realm_id; payload does not duplicate it. minProperties=1 rejects an empty no-op policy. Realm links and source Realm policies do not create a parent compliance floor. See zh/discovery/read-receipts.md §2.5.1.",
+      "$comment": "Closed whole-value payload for ak.scope.read_receipt_policy. The signed Event scope_ref selects one Realm or Circle; payload never repeats scope identity. No parent policy, inheritance or overrides. minProperties=1 rejects an empty value; omitted members use read-side defaults, never the previous value.",
       "type": "object",
       "minProperties": 1,
       "properties": {
@@ -6987,9 +6987,6 @@
             "members",
             "private"
           ]
-        },
-        "scope_overrides_allowed": {
-          "type": "boolean"
         }
       },
       "additionalProperties": false

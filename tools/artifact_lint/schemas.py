@@ -8,6 +8,7 @@ from .core import (
     ARTIFACTS,
     Any,
     DEVICE_ID_PATTERN,
+    ENVELOPE_SUBJECT_SOURCES,
     DID_BARE_PATTERN,
     DID_LEGACY_GREEDY_PATTERN,
     DID_LEGACY_PREFIX_PATTERN,
@@ -2306,7 +2307,7 @@ def check_composite_subject_terminal_types(
         *,
         require_endpoint: bool = True,
     ) -> bool:
-        if source == "envelope.actor_id":
+        if source in ENVELOPE_SUBJECT_SOURCES:
             return True
         if not source.startswith("payload."):
             return False
@@ -2410,12 +2411,12 @@ def check_composite_subject_terminal_types(
                     and component.get("kind") == "canonical_json"
                 ):
                     source = component.get("field")
-                    if source == "envelope.actor_id":
+                    if source in ENVELOPE_SUBJECT_SOURCES:
                         continue
                     if not isinstance(source, str) or not source.startswith("payload."):
                         lint.fail(
                             event_registry_path,
-                            f"{component_ref} canonical_json component must name one payload field or envelope.actor_id",
+                            f"{component_ref} canonical_json component must name one payload field or registered envelope subject source",
                         )
                         continue
                     resolved, resolved_types = resolved_terminal_types(kind, source)

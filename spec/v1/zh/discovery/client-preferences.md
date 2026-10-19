@@ -411,7 +411,7 @@ storage key 绑定、显式确认证据与 tag 命名空间是同一客户端另
 - 客户端在生成 `ak.receipt.read` 前 MUST 按 (strand, realm, default) 顺序解析有效 `send`，最先命中的非空值生效。
 - 客户端在渲染他人的 `ak.receipt.read` 前 SHOULD 按相同顺序解析有效 `display`；`display=false` 只隐藏本地 UI，不得要求 Station sync surface 停止投递，也不得改变 read cursor、unread count 或 push suppression 的协议状态。
 - 该偏好 MUST NOT 影响 §3 中 actor-private 的 Read Cursor（`ak.read_cursor.advance`）发送或多端同步。
-- 当目标 Realm / Strand 声明 `ak.realm.read_receipt_policy.disclosure="required"`（详见 [`discovery/read-receipts.md`](./read-receipts.md) §2.5）时，合规客户端 MUST NOT 允许该 scope 设置为 `send=false`，并 SHOULD 在 UI 标注该开关被 Realm / Strand 策略锁定；声明为 `disabled` 时同样无视用户的 `send=true` 不发送。
+- 当目标 Strand 所属 Realm-default / Circle scope 的 `ak.scope.read_receipt_policy` 声明 `disclosure="required"`（详见 [`discovery/read-receipts.md`](./read-receipts.md) §2.5）时，合规客户端 MUST NOT 允许该 scope 设置为 `send=false`，并 SHOULD 在 UI 标注该开关被该 scope 策略锁定；声明为 `disabled` 时同样无视用户的 `send=true` 不发送。
 - 客户端 MAY 在 UI 上将常用过滤维度（按 Realm 标签、按 Organization）做成批量编辑入口，但实际 canonical state 仍以本 key 中的逐 ID 覆盖为准。
 
 ## 4. 与本地投影的交互

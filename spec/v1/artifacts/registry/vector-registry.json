@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-19.2",
+  "version": "2026-10-19.5",
   "source_of_truth": true,
-  "generated_at": "2026-10-19T07:09:41+08:00",
+  "generated_at": "2026-10-19T09:37:17+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -5258,6 +5258,58 @@
       "source_refs": [
         "spec/v1/artifacts/fixtures/call-current-fixture.json",
         "spec/v1/zh/crypto-media/call-state.md"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.read_receipt.scope_policy.independent.v1",
+      "status": "active",
+      "domain": "read_receipt",
+      "applies_to_fixtures": [
+        "read-receipt-scope-policy-fixture.json"
+      ],
+      "description": "Independent Realm and Circle policies, defaults and preferences; no parent or sibling fold.",
+      "source_refs": [
+        "spec/v1/zh/discovery/read-receipts.md",
+        "spec/v1/artifacts/fixtures/read-receipt-scope-policy-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.read_receipt.scope_policy.isolation.v1",
+      "status": "active",
+      "domain": "read_receipt",
+      "applies_to_fixtures": [
+        "read-receipt-scope-policy-fixture.json"
+      ],
+      "description": "Exact target/Signal/policy/source scope, complete verified basis, membership and full author AccountId; missing proof fails closed.",
+      "source_refs": [
+        "spec/v1/zh/discovery/read-receipts.md",
+        "spec/v1/artifacts/fixtures/read-receipt-scope-policy-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.read_receipt.scope_policy.schema.v1",
+      "status": "active",
+      "domain": "read_receipt",
+      "applies_to_fixtures": [
+        "read-receipt-scope-policy-fixture.json"
+      ],
+      "description": "Closed shared Realm/Circle policy shape rejects removed overrides, scope identity in payload, Realm-only selectors and unsupported scopes.",
+      "source_refs": [
+        "spec/v1/zh/discovery/read-receipts.md",
+        "spec/v1/artifacts/fixtures/read-receipt-scope-policy-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.read_receipt.scope_policy.updates.v1",
+      "status": "active",
+      "domain": "read_receipt",
+      "applies_to_fixtures": [
+        "read-receipt-scope-policy-fixture.json"
+      ],
+      "description": "Whole-value replacement, explicit default reset and re-evaluation of existing display after disabled/private changes.",
+      "source_refs": [
+        "spec/v1/zh/discovery/read-receipts.md",
+        "spec/v1/artifacts/fixtures/read-receipt-scope-policy-fixture.json"
       ]
     }
   ]

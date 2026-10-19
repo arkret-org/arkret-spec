@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-19.1",
+  "version": "2026-10-19.2",
   "source_of_truth": true,
-  "generated_at": "2026-10-19T07:36:42+08:00",
+  "generated_at": "2026-10-19T09:32:11+08:00",
   "description": "Closed inventory of current spec/v1/zh headings that explicitly carry the （normative） marker. Any addition, removal, rename, or move is reviewed as a protocol change and refreshes this source-of-truth inventory.",
   "titles": [
     {
@@ -598,11 +598,6 @@
       "page": "discovery/push-notifications.md",
       "heading": "3.4 受信公共 Gateway 注册交接（normative）",
       "fragment": "34-受信公共-gateway-注册交接normative"
-    },
-    {
-      "page": "discovery/read-receipts.md",
-      "heading": "2.5.1 与 history access 的独立性（normative）",
-      "fragment": "251-与-history-access-的独立性normative"
     },
     {
       "page": "extensions/applet-integration.md",

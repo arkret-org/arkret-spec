@@ -497,7 +497,7 @@ Arkret v1 把 Realm-level policy 映射为 state-changing Event 的 registered t
 > | `bot` | `ak.realm.policy_bundle` payload 的 `agent_participation` 组件（[`../models/realm-and-space.md` §2.2](../models/realm-and-space.md)） |
 > | `operational` | 无 Arkret 承载；按 §9.2 unknown handling 处理 |
 >
-> MIMI room policy 投影 MUST 落在有效 Realm 的 `ak.realm.policy_bundle` typed current result；不存在 track-scoped policy projection——track 不携带独立 access。当 MIMI room 映射的 Strand 通过 `scope_circle_id` 落在 Realm 内的 [Circle](../models/circle.md) 时，Circle-local policy 通过 Circle 自身 accepted policy 投影表达，与父 Realm policy 取更严格者。
+> MIMI room policy 投影 MUST 落在有效 Realm 的 `ak.realm.policy_bundle` typed current result；不存在 track-scoped policy projection——track 不携带独立 access。当 MIMI room 映射的 Strand 通过 `scope_circle_id` 落在 Realm 内的 [Circle](../models/circle.md) 时，Circle-local policy 通过 Circle 自身 accepted policy 投影表达，与父 Realm policy 取更严格者。 本段不适用于 read receipt policy：已读披露只按消息所属 scope 的独立 `ak.scope.read_receipt_policy` 执行，不做父子继承或取更严（见 [read-receipts §2.5](../discovery/read-receipts.md)）。
 
 ### 9.2 Unknown Handling
 

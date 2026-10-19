@@ -2074,7 +2074,7 @@
       "if": {
         "properties": {
           "kind": {
-            "const": "ak.realm.read_receipt_policy"
+            "const": "ak.scope.read_receipt_policy"
           }
         },
         "required": [
@@ -2085,6 +2085,9 @@
         "properties": {
           "payload": {
             "$ref": "./event-payload.schema.json#/$defs/read_receipt_policy_payload"
+          },
+          "scope_ref": {
+            "$ref": "#/$defs/read_receipt_policy_scope_ref"
           }
         }
       }
@@ -5980,7 +5983,6 @@
                 "ak.realm.policy_bundle",
                 "ak.realm.preview_policy",
                 "ak.realm.profile",
-                "ak.realm.read_receipt_policy",
                 "ak.realm.restore",
                 "ak.realm.schema",
                 "ak.realm.search_policy",
@@ -5993,6 +5995,7 @@
                 "ak.relation.update",
                 "ak.rsvp.set",
                 "ak.schema.define",
+                "ak.scope.read_receipt_policy",
                 "ak.self.agent.deactivate",
                 "ak.self.agent.pause",
                 "ak.self.agent.resume",
@@ -6128,7 +6131,6 @@
             "ak.realm.policy_bundle",
             "ak.realm.preview_policy",
             "ak.realm.profile",
-            "ak.realm.read_receipt_policy",
             "ak.realm.restore",
             "ak.realm.schema",
             "ak.realm.search_policy",
@@ -6141,6 +6143,7 @@
             "ak.relation.update",
             "ak.rsvp.set",
             "ak.schema.define",
+            "ak.scope.read_receipt_policy",
             "ak.self.agent.deactivate",
             "ak.self.agent.pause",
             "ak.self.agent.resume",
@@ -6176,6 +6179,16 @@
       "type": "string",
       "pattern": "^[0-9A-Za-z]{1,128}$",
       "description": "Stable manual sort position under the registered ak.rank.lexofractional.v1 profile: 1..128 characters from the fixed base62 alphabet, compared character by character in ASCII order. It is a producer-chosen ordering token, not a derived or causal value; see zh/conformance/encoding.md section 9.1 for the grammar, rank_between and rebalance rules."
+    },
+    "read_receipt_policy_scope_ref": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/scope_ref/oneOf/0"
+        },
+        {
+          "$ref": "#/$defs/scope_ref/oneOf/1"
+        }
+      ]
     }
   },
   "additionalProperties": false

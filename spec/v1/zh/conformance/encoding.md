@@ -382,7 +382,7 @@ Typed reducer 直接读取 kind 对应的封闭 Event payload 和 envelope；sub
 subject 的 registry 字段来源必须显式命名：payload 来源写成 `payload.<具名路径>`，Event Envelope 来源写成
 `envelope.<字段>`；裸字段名与"先查 payload、再查 envelope"的 fallback 求值一律未定义并 MUST
 `schema_violation`。
-v1 的 envelope 来源白名单只包含 `envelope.actor_id` 一项；`envelope.realm_id`、`envelope.executed_by` 及其它未登记字段均不得用于 subject。
+v1 的 envelope 来源白名单包含 `envelope.actor_id` 与 `envelope.scope_ref`；`envelope.realm_id`、`envelope.executed_by` 及其它未登记字段均不得用于 subject。
 
 需要多字段业务键时，schema 必须列出固定字段、顺序与正规化方法；实现按 typed reducer 构造数据库唯一
 键。该数据库键不是 wire ID，也不得作为跨实现授权材料。

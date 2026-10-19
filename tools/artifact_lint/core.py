@@ -543,6 +543,7 @@ NOTARY_CELL_FAMILY = "ak.component.notary.v1"
 # encoding.md §9.5.1 closes the set of Event Envelope fields a registered cell
 # subject may read.
 #
+# `envelope.scope_ref` is the signed, exact Realm/Circle policy subject.
 # `envelope.actor_id` is the accountable actor. `envelope.event_id` is
 # Event-derived object identity: the created object's id is the create Event's
 # own event_id retyped to the kind declared by `cell_subject.kind`
@@ -555,7 +556,7 @@ NOTARY_CELL_FAMILY = "ak.component.notary.v1"
 # declarations that ever read it were cell subjects, and the typed reducer
 # subjects that replaced them derive object identity from the Event itself
 # rather than by naming an envelope field.
-ENVELOPE_SUBJECT_SOURCES = ("envelope.actor_id",)
+ENVELOPE_SUBJECT_SOURCES = ("envelope.actor_id", "envelope.scope_ref")
 
 
 # Envelope fields §9.5.1 names as explicitly forbidden. Called out separately

@@ -53,7 +53,7 @@ Schema id: `ak.schema.read_cursor.v1`
   收敛：同一 commit stream 上 `stream_position` 更大者胜出；仅当两者互不支配时才取 HLC 较大者，HLC 全等
   才按 `device_id` 作 actor 域内确定性 tiebreaker；不持有 position 已提交坐标时零写入拒绝，
   不得持久化猜测的 winner。
-- Strand 时间线与父 Realm 在 read receipt policy 上需要分离时，整个 Strand 通过 `Strand.scope_circle_id` 落在一个 [Circle](./circle.md)（参见 [strand-and-message.md §5](./strand-and-message.md)）；effective policy 由 Circle 自身策略与父 Realm `ak.realm.read_receipt_policy` 取更严格者。Track 级别 override 不在 v1 范围内。
+- Strand 时间线与父 Realm 在 read receipt policy 上需要分离时，整个 Strand 通过 `Strand.scope_circle_id` 落在一个 [Circle](./circle.md)（参见 [strand-and-message.md §5](./strand-and-message.md)）；Realm 与 Circle 使用统一的 `ak.scope.read_receipt_policy` / `scope_read_receipt_policy` 合同，只消费消息所属 exact scope 的独立策略，不继承或合并父 Realm 策略。Track 级策略不在 v1 范围内。
 
 ## 3. Notification
 

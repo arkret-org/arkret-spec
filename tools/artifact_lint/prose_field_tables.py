@@ -43,7 +43,7 @@ FIELD_TOKEN = re.compile(
     r"(?<![A-Za-z0-9_.])([a-z][a-z0-9]*(?:_[a-z0-9]+)+)(?![A-Za-z0-9_]|\.[a-z])"
 )
 
-MIN_TABLE_ROWS = 3
+MIN_TABLE_ROWS = 2
 
 
 def _resolve_pointer(document: Any, fragment: str) -> Any:

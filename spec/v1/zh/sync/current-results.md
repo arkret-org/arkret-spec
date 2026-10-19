@@ -42,12 +42,12 @@ Realm、每个 Circle、每个 Sidecar 分别拥有独立 commit stream。当前
 
 - `realm_profile`：当前 Realm profile；
 - `calendar_schedule_source`：以 strand_id 选择与该 Strand current 同一 stream／revision 的最小日程来源与加密重建上下文，见 [Calendar §6](../models/calendar-event.md)；
-- 以下十五个是 **per-Realm 单例 Realm facet**，subject 为 JSON null
+- 以下十四个是 **per-Realm 单例 Realm facet**，subject 为 JSON null
   （[`../conformance/encoding.md` §9.5.1](../conformance/encoding.md) 禁止把 envelope 的
   `realm_id` 再写进 subject），各由同名 facet Event kind 单独承载：
   `realm_schema`、`realm_join_rule`、`realm_discovery`、`realm_alias`、`realm_policy_bundle`、
   `realm_asset_privacy_policy`、`realm_plaintext_visible_services`、`realm_media_service`、
-  `realm_read_receipt_policy`、`realm_preview_policy`、`realm_tombstone`、`realm_destroy`、
+  `realm_preview_policy`、`realm_tombstone`、`realm_destroy`、
   `realm_set_default_strand`、`realm_archive`、`realm_freeze`。
   最后两个是**可逆对**：`realm_archive` 由 `ak.realm.archive` / `ak.realm.restore` 写
   `{archived}` 的 true / false，`realm_freeze` 由 `ak.realm.freeze` / `ak.realm.unfreeze` 写
@@ -56,6 +56,10 @@ Realm、每个 Circle、每个 Sidecar 分别拥有独立 commit stream。当前
   值是单成员对象而不是裸布尔，理由与 `space_parent` 相同：裸标量没有字段可供 CAS 谓词指名。
   这两条**不解除**终态、redaction、另一道 gate 或任何 capability 上限；Realm 没有 materialized
   `state` 成员，所以 archive 不是对象 lifecycle 而是一条 facet；
+- `scope_read_receipt_policy`：以签名 Event 的完整 `scope_ref`（Realm 或 Circle）为 selector subject，
+  source stream MUST 对应该 exact scope。唯一写者 `ak.scope.read_receipt_policy` 整值置换 disclosure/visibility，
+  各 scope 独立，无父子继承或取更严。已验证完整 scope 基线证明 never-written 才解释默认值；
+  无权、未知或缺读取证据不能当作默认，见 [read-receipts §2.5](../discovery/read-receipts.md)；
 - `mimi_room_binding`：以 MIMI room URI `payload.mimi_room_uri` 选择一条 MIMI 房间绑定
   （见 [`../extensions/mimi-interop.md` §3](../extensions/mimi-interop.md)）；subject 是外部 room URI
   而**不是** Arkret id——同一 Realm / Strand 可被绑进多个 room，该值是向 MIMI 的投影，从不是 Arkret 侧的真相；

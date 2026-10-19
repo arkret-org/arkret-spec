@@ -107,7 +107,7 @@
       "$ref": "#/$defs/realm_media_service_result"
     },
     {
-      "$ref": "#/$defs/realm_read_receipt_policy_result"
+      "$ref": "#/$defs/scope_read_receipt_policy_result"
     },
     {
       "$ref": "#/$defs/realm_preview_policy_result"
@@ -2249,40 +2249,6 @@
         },
         "value": {
           "$ref": "./event-payload.schema.json#/$defs/realm_media_service_payload/properties/value"
-        }
-      },
-      "additionalProperties": false
-    },
-    "realm_read_receipt_policy_result": {
-      "type": "object",
-      "description": "The Realm read receipt disclosure requirement (discovery/read-receipts.md section 2.5). Strand-level separation goes through a Circle, not through a second subject on this family.",
-      "required": [
-        "selector",
-        "source_stream_ref",
-        "revision",
-        "value"
-      ],
-      "properties": {
-        "selector": {
-          "type": "object",
-          "required": [
-            "kind"
-          ],
-          "properties": {
-            "kind": {
-              "const": "realm_read_receipt_policy"
-            }
-          },
-          "additionalProperties": false
-        },
-        "source_stream_ref": {
-          "$ref": "./realm-commit.schema.json#/$defs/stream_ref"
-        },
-        "revision": {
-          "$ref": "#/$defs/revision"
-        },
-        "value": {
-          "$ref": "./event-payload.schema.json#/$defs/read_receipt_policy_payload"
         }
       },
       "additionalProperties": false
@@ -4812,6 +4778,44 @@
       },
       "additionalProperties": false,
       "description": "Exact Ed25519 key for this entry participant_binding issuer_kid at its join source_commit.committed_at. Native issuer authority is independently verified by the consuming Account Station; the ordinary client checks the original binding signature with these Snapshot-bound bytes. No identity mirror, current grant, Event producer key or portable proof."
+    },
+    "scope_read_receipt_policy_result": {
+      "type": "object",
+      "description": "One independently configured Realm/Circle scope policy. Selector scope_ref and source_stream_ref must identify the same scope; no inheritance, override or broader Realm disclosure.",
+      "required": [
+        "selector",
+        "source_stream_ref",
+        "revision",
+        "value"
+      ],
+      "properties": {
+        "selector": {
+          "type": "object",
+          "required": [
+            "kind",
+            "scope_ref"
+          ],
+          "properties": {
+            "kind": {
+              "const": "scope_read_receipt_policy"
+            },
+            "scope_ref": {
+              "$ref": "./event-envelope.schema.json#/$defs/read_receipt_policy_scope_ref"
+            }
+          },
+          "additionalProperties": false
+        },
+        "source_stream_ref": {
+          "$ref": "./realm-commit.schema.json#/$defs/stream_ref"
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "value": {
+          "$ref": "./event-payload.schema.json#/$defs/read_receipt_policy_payload"
+        }
+      },
+      "additionalProperties": false
     }
   }
 }

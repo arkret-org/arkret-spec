@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-19.1",
+  "version": "2026-10-19.2",
   "source_of_truth": false,
-  "generated_at": "2026-10-19T07:39:22+08:00",
+  "generated_at": "2026-10-19T09:26:45+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -977,14 +977,15 @@
         "ak.policy.action",
         "ak.realm.policy_bundle",
         "ak.realm.asset_privacy_policy",
-        "ak.realm.read_receipt_policy",
+        "ak.scope.read_receipt_policy",
         "ak.realm.preview_policy",
         "ak.realm.search_policy",
         "ak.organization.moderation_policy",
         "ak.mimi.room_binding"
       ],
       "profile": null,
-      "event_mapping_kind": "aggregate_admin"
+      "event_mapping_kind": "aggregate_admin",
+      "notes": "Read-receipt policy management is authorized against the exact signed Realm/Circle scope, never inherited from a parent policy value."
     },
     {
       "action": "ak.policy.set",
@@ -1054,7 +1055,7 @@
         "ak.realm.preview_policy",
         "ak.realm.policy_bundle",
         "ak.realm.asset_privacy_policy",
-        "ak.realm.read_receipt_policy",
+        "ak.scope.read_receipt_policy",
         "ak.realm.media_service",
         "ak.realm.schema",
         "ak.realm.search_policy",
@@ -1064,7 +1065,8 @@
         "ak.mimi.room_binding"
       ],
       "profile": null,
-      "event_mapping_kind": "aggregate_admin"
+      "event_mapping_kind": "aggregate_admin",
+      "notes": "Read-receipt policy management is authorized against the exact signed Realm/Circle scope, never inherited from a parent policy value."
     },
     {
       "action": "ak.realm.alias",
@@ -1229,7 +1231,6 @@
         "ak.realm.policy_bundle",
         "ak.realm.preview_policy",
         "ak.realm.profile",
-        "ak.realm.read_receipt_policy",
         "ak.realm.restore",
         "ak.realm.schema",
         "ak.realm.search_policy",
@@ -1240,6 +1241,7 @@
         "ak.relation.tombstone",
         "ak.relation.update",
         "ak.schema.define",
+        "ak.scope.read_receipt_policy",
         "ak.space.archive",
         "ak.space.create",
         "ak.space.parent",

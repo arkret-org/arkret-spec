@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-19.1",
+  "version": "2026-10-19.2",
   "source_of_truth": true,
-  "generated_at": "2026-10-19T07:39:22+08:00",
+  "generated_at": "2026-10-19T09:26:45+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-10-14.2",
@@ -4066,7 +4066,7 @@
               }
             },
             "value_schema_ref": "schemas/event-payload.schema.json#/$defs/mimi_room_binding_payload",
-            "notes": "extensions/mimi-interop.md section 3 is the authoritative field set and the payload def already asserted this family and this subject, pointing the reader at a result_selector that did not exist -- the registry named a row in itself that it did not carry. The payload is a closed flat object with no value wrapper, so the projection is the identity on it, exactly as for realm_read_receipt_policy. mimi_room_uri stays a member of the projected value as well as the subject: the binding is a projection of an Arkret discussion track into a MIMI room and is explicitly not canonical truth, so a reader holding only the value must still be able to name the room it describes."
+            "notes": "extensions/mimi-interop.md section 3 is the authoritative field set and the payload def already asserted this family and this subject, pointing the reader at a result_selector that did not exist -- the registry named a row in itself that it did not carry. The payload is a closed flat object with no value wrapper, so the projection is the identity on it, exactly as for scope_read_receipt_policy. mimi_room_uri stays a member of the projected value as well as the subject: the binding is a projection of an Arkret discussion track into a MIMI room and is explicitly not canonical truth, so a reader holding only the value must still be able to name the room it describes."
           }
         ],
         "id_source": "not_an_object_id",
@@ -5965,18 +5965,26 @@
         }
       },
       {
-        "event_kind": "ak.realm.read_receipt_policy",
-        "category": "realm",
+        "event_kind": "ak.scope.read_receipt_policy",
+        "category": "read",
         "status": "active",
         "verb_form": "not_applicable",
         "wire_scope": "durable_event",
         "reducer_input": true,
-        "payload": "Realm-local read receipt disclosure policy (disclosure / visibility / scope_overrides_allowed); Realm links do not create a parent policy floor; see zh/discovery/read-receipts.md §2.5",
+        "payload": "Scope-local read receipt policy (disclosure / visibility); signed scope_ref selects exactly one Realm or Circle, with no inheritance or parent floor; see zh/discovery/read-receipts.md §2.5",
         "payload_schema_ref": "schemas/event-payload.schema.json#/$defs/read_receipt_policy_payload",
         "result_writes": [
           {
-            "result_family": "realm_read_receipt_policy",
-            "result_selector": null,
+            "result_family": "scope_read_receipt_policy",
+            "result_selector": {
+              "kind": "composite",
+              "components": [
+                {
+                  "kind": "canonical_json",
+                  "field": "envelope.scope_ref"
+                }
+              ]
+            },
             "result_projection": {
               "kind": "set",
               "value": {
@@ -5984,13 +5992,18 @@
               }
             },
             "value_schema_ref": "schemas/event-payload.schema.json#/$defs/read_receipt_policy_payload",
-            "notes": "discovery/read-receipts.md section 2.5 names the family and says this kind is its sole carrier. The payload is a flat closed object with no value wrapper, so the projection is the identity on it. Taking the stricter of parent Realm and Circle policy is a read-side fold, not a projection."
+            "notes": "The sole writer replaces the complete signed payload for exactly envelope.scope_ref. The subject is the canonical scope_ref; source_stream_ref MUST identify that same Realm or Circle stream. Defaults are read-side only after verified same-scope absence; no parent, sibling, or historical value merge."
           }
         ],
         "id_source": "not_an_object_id",
         "result_effect_ownership": {
           "kind": "typed_result_writer"
-        }
+        },
+        "admission_requirements": [
+          "The signed scope_ref is realm or circle and its realm_id equals the enclosing Event realm_id; the covering RealmCommit stream_ref identifies that exact scope.",
+          "Admission checks ak.policy.manage against the target scope at the same transaction cut; Circle grants must cover the exact Circle and cannot authorize the parent or siblings. Lifecycle and effective membership gates remain applicable.",
+          "Event, covering RealmCommit and whole-value current replacement commit atomically; invalid scope, unauthorized write or unavailable current basis produces zero accepted effects."
+        ]
       },
       {
         "event_kind": "ak.realm.restore",
@@ -8954,8 +8967,8 @@
         }
       }
     },
-    "version": "2026-10-18.2",
-    "generated_at": "2026-10-18T23:49:11+08:00",
+    "version": "2026-10-19.1",
+    "generated_at": "2026-10-19T09:26:45+08:00",
     "bootstrap_event_kinds": [
       "ak.device.authorize",
       "ak.device.reanchor",
@@ -19761,14 +19774,15 @@
           "ak.policy.action",
           "ak.realm.policy_bundle",
           "ak.realm.asset_privacy_policy",
-          "ak.realm.read_receipt_policy",
+          "ak.scope.read_receipt_policy",
           "ak.realm.preview_policy",
           "ak.realm.search_policy",
           "ak.organization.moderation_policy",
           "ak.mimi.room_binding"
         ],
         "profile": null,
-        "event_mapping_kind": "aggregate_admin"
+        "event_mapping_kind": "aggregate_admin",
+        "notes": "Read-receipt policy management is authorized against the exact signed Realm/Circle scope, never inherited from a parent policy value."
       },
       {
         "action": "ak.policy.set",
@@ -19838,7 +19852,7 @@
           "ak.realm.preview_policy",
           "ak.realm.policy_bundle",
           "ak.realm.asset_privacy_policy",
-          "ak.realm.read_receipt_policy",
+          "ak.scope.read_receipt_policy",
           "ak.realm.media_service",
           "ak.realm.schema",
           "ak.realm.search_policy",
@@ -19848,7 +19862,8 @@
           "ak.mimi.room_binding"
         ],
         "profile": null,
-        "event_mapping_kind": "aggregate_admin"
+        "event_mapping_kind": "aggregate_admin",
+        "notes": "Read-receipt policy management is authorized against the exact signed Realm/Circle scope, never inherited from a parent policy value."
       },
       {
         "action": "ak.realm.alias",
@@ -20013,7 +20028,6 @@
           "ak.realm.policy_bundle",
           "ak.realm.preview_policy",
           "ak.realm.profile",
-          "ak.realm.read_receipt_policy",
           "ak.realm.restore",
           "ak.realm.schema",
           "ak.realm.search_policy",
@@ -20024,6 +20038,7 @@
           "ak.relation.tombstone",
           "ak.relation.update",
           "ak.schema.define",
+          "ak.scope.read_receipt_policy",
           "ak.space.archive",
           "ak.space.create",
           "ak.space.parent",
@@ -20919,8 +20934,8 @@
       "scope_suffix_variant": "Action adds actor/scope/role qualifiers while reducer admission targets a shared event kind.",
       "operation_verb": "Action token names an operation/command verb that does not match its target event kind name(s); reducer admission resolves the resulting event kind(s) via target_event_kinds. Literal action matching per the actions[] rule applies; carries no aggregate-admin family semantics."
     },
-    "version": "2026-10-19.1",
-    "generated_at": "2026-10-19T07:39:22+08:00",
+    "version": "2026-10-19.2",
+    "generated_at": "2026-10-19T09:26:45+08:00",
     "metadata_authority": "contract_registry_section",
     "constraint_evaluation_contract": {
       "normative_ref": "zh/authz/constraint-schema.md#150-可判定性与-effect-收敛normative",
@@ -22543,14 +22558,14 @@
         }
       },
       {
-        "result_kind": "realm_read_receipt_policy",
-        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/realm_read_receipt_policy_result",
+        "result_kind": "scope_read_receipt_policy",
+        "schema_ref": "schemas/typed-current-result.schema.json#/$defs/scope_read_receipt_policy_result",
         "consumption": {
           "class": "delivery_input",
           "consumed_by": [
             "discovery/read-receipts.md §2.5"
           ],
-          "note": "disclosure and visibility decide whether a conforming client sends a read receipt and whether a receiver discards one."
+          "note": "Scope-local disclosure and visibility govern receipt sending and rendering only inside the exact signed Realm/Circle scope; no parent or sibling policy participates."
         }
       },
       {
@@ -23150,8 +23165,8 @@
         }
       }
     ],
-    "version": "2026-10-18.1",
-    "generated_at": "2026-10-18T21:04:17+08:00",
+    "version": "2026-10-19.1",
+    "generated_at": "2026-10-19T09:26:45+08:00",
     "metadata_authority": "contract_registry_section",
     "call_current_contract": {
       "normative_ref": "spec/v1/zh/crypto-media/call-state.md#43-完整有效-current-与接受来源normative",

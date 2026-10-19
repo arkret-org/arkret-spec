@@ -1,0 +1,3033 @@
+{
+  "runner": {
+    "kind": "named_suite",
+    "entrypoint": "ak.suite.read_receipt.scope_policy.v1",
+    "in_tree_checker": "tools/artifact_lint/read_receipt_scope_policy.py"
+  },
+  "description": "Unified ak.scope.read_receipt_policy / scope_read_receipt_policy schema and semantic decision vectors. Verified basis/authorization flags are preconditions supplied by the native verifier, not cryptographic evidence or production acceptance. Each case re-evaluates one exact scope; other policies are deliberate non-inputs.",
+  "version": "2026-10-19.1",
+  "covers_vectors": [
+    "ak.vector.read_receipt.scope_policy.schema.v1",
+    "ak.vector.read_receipt.scope_policy.independent.v1",
+    "ak.vector.read_receipt.scope_policy.isolation.v1",
+    "ak.vector.read_receipt.scope_policy.updates.v1"
+  ],
+  "schema_cases": [
+    {
+      "name": "disclosure_required",
+      "vector_id": "ak.vector.read_receipt.scope_policy.schema.v1",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/read_receipt_policy_payload",
+      "instance": {
+        "disclosure": "required"
+      },
+      "expected_valid": true
+    },
+    {
+      "name": "disclosure_optional",
+      "vector_id": "ak.vector.read_receipt.scope_policy.schema.v1",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/read_receipt_policy_payload",
+      "instance": {
+        "disclosure": "optional"
+      },
+      "expected_valid": true
+    },
+    {
+      "name": "disclosure_disabled",
+      "vector_id": "ak.vector.read_receipt.scope_policy.schema.v1",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/read_receipt_policy_payload",
+      "instance": {
+        "disclosure": "disabled"
+      },
+      "expected_valid": true
+    },
+    {
+      "name": "visibility_public",
+      "vector_id": "ak.vector.read_receipt.scope_policy.schema.v1",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/read_receipt_policy_payload",
+      "instance": {
+        "visibility": "public"
+      },
+      "expected_valid": true
+    },
+    {
+      "name": "visibility_members",
+      "vector_id": "ak.vector.read_receipt.scope_policy.schema.v1",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/read_receipt_policy_payload",
+      "instance": {
+        "visibility": "members"
+      },
+      "expected_valid": true
+    },
+    {
+      "name": "visibility_private",
+      "vector_id": "ak.vector.read_receipt.scope_policy.schema.v1",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/read_receipt_policy_payload",
+      "instance": {
+        "visibility": "private"
+      },
+      "expected_valid": true
+    },
+    {
+      "name": "empty",
+      "vector_id": "ak.vector.read_receipt.scope_policy.schema.v1",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/read_receipt_policy_payload",
+      "instance": {},
+      "expected_valid": false
+    },
+    {
+      "name": "explicit_null",
+      "vector_id": "ak.vector.read_receipt.scope_policy.schema.v1",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/read_receipt_policy_payload",
+      "instance": {
+        "disclosure": null
+      },
+      "expected_valid": false
+    },
+    {
+      "name": "unknown_visibility",
+      "vector_id": "ak.vector.read_receipt.scope_policy.schema.v1",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/read_receipt_policy_payload",
+      "instance": {
+        "visibility": "realm_members"
+      },
+      "expected_valid": false
+    },
+    {
+      "name": "removed_override",
+      "vector_id": "ak.vector.read_receipt.scope_policy.schema.v1",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/read_receipt_policy_payload",
+      "instance": {
+        "visibility": "members",
+        "scope_overrides_allowed": true
+      },
+      "expected_valid": false
+    },
+    {
+      "name": "payload_scope",
+      "vector_id": "ak.vector.read_receipt.scope_policy.schema.v1",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/read_receipt_policy_payload",
+      "instance": {
+        "disclosure": "optional",
+        "scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        }
+      },
+      "expected_valid": false
+    },
+    {
+      "name": "removed_parent_bypass",
+      "vector_id": "ak.vector.read_receipt.scope_policy.schema.v1",
+      "schema_ref": "schemas/event-payload.schema.json#/$defs/read_receipt_policy_payload",
+      "instance": {
+        "disclosure": "disabled",
+        "child_privacy_tightening_against_required": true
+      },
+      "expected_valid": false
+    },
+    {
+      "name": "scope_realm",
+      "vector_id": "ak.vector.read_receipt.scope_policy.schema.v1",
+      "schema_ref": "schemas/event-envelope.schema.json#/$defs/read_receipt_policy_scope_ref",
+      "instance": {
+        "kind": "realm",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+      },
+      "expected_valid": true
+    },
+    {
+      "name": "scope_circle",
+      "vector_id": "ak.vector.read_receipt.scope_policy.schema.v1",
+      "schema_ref": "schemas/event-envelope.schema.json#/$defs/read_receipt_policy_scope_ref",
+      "instance": {
+        "kind": "circle",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+      },
+      "expected_valid": true
+    },
+    {
+      "name": "scope_sibling",
+      "vector_id": "ak.vector.read_receipt.scope_policy.schema.v1",
+      "schema_ref": "schemas/event-envelope.schema.json#/$defs/read_receipt_policy_scope_ref",
+      "instance": {
+        "kind": "circle",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "circle_id": "ak:circle:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+      },
+      "expected_valid": true
+    },
+    {
+      "name": "scope_genesis",
+      "vector_id": "ak.vector.read_receipt.scope_policy.schema.v1",
+      "schema_ref": "schemas/event-envelope.schema.json#/$defs/read_receipt_policy_scope_ref",
+      "instance": {
+        "kind": "realm_genesis"
+      },
+      "expected_valid": false
+    },
+    {
+      "name": "scope_sidecar",
+      "vector_id": "ak.vector.read_receipt.scope_policy.schema.v1",
+      "schema_ref": "schemas/event-envelope.schema.json#/$defs/read_receipt_policy_scope_ref",
+      "instance": {
+        "kind": "sidecar",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "sidecar_id": "ak:sidecar:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+      },
+      "expected_valid": false
+    },
+    {
+      "name": "scope_missing_circle",
+      "vector_id": "ak.vector.read_receipt.scope_policy.schema.v1",
+      "schema_ref": "schemas/event-envelope.schema.json#/$defs/read_receipt_policy_scope_ref",
+      "instance": {
+        "kind": "circle",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+      },
+      "expected_valid": false
+    },
+    {
+      "name": "scope_extra_circle",
+      "vector_id": "ak.vector.read_receipt.scope_policy.schema.v1",
+      "schema_ref": "schemas/event-envelope.schema.json#/$defs/read_receipt_policy_scope_ref",
+      "instance": {
+        "kind": "realm",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+      },
+      "expected_valid": false
+    },
+    {
+      "name": "realm_current",
+      "vector_id": "ak.vector.read_receipt.scope_policy.schema.v1",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/scope_read_receipt_policy_result",
+      "instance": {
+        "selector": {
+          "kind": "scope_read_receipt_policy",
+          "scope_ref": {
+            "kind": "realm",
+            "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+          }
+        },
+        "source_stream_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+        },
+        "revision": {
+          "commit_id": "ak:realm_commit:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "stream_position": 1
+        },
+        "value": {
+          "disclosure": "required"
+        }
+      },
+      "expected_valid": true
+    },
+    {
+      "name": "circle_current",
+      "vector_id": "ak.vector.read_receipt.scope_policy.schema.v1",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/scope_read_receipt_policy_result",
+      "instance": {
+        "selector": {
+          "kind": "scope_read_receipt_policy",
+          "scope_ref": {
+            "kind": "circle",
+            "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+            "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+          }
+        },
+        "source_stream_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "revision": {
+          "commit_id": "ak:realm_commit:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "stream_position": 1
+        },
+        "value": {
+          "visibility": "private"
+        }
+      },
+      "expected_valid": true
+    },
+    {
+      "name": "old_selector",
+      "vector_id": "ak.vector.read_receipt.scope_policy.schema.v1",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/scope_read_receipt_policy_result/properties/selector",
+      "instance": {
+        "kind": "realm_read_receipt_policy"
+      },
+      "expected_valid": false
+    },
+    {
+      "name": "scope_selector_missing_subject",
+      "vector_id": "ak.vector.read_receipt.scope_policy.schema.v1",
+      "schema_ref": "schemas/typed-current-result.schema.json#/$defs/scope_read_receipt_policy_result/properties/selector",
+      "instance": {
+        "kind": "scope_read_receipt_policy"
+      },
+      "expected_valid": false
+    }
+  ],
+  "decision_cases": [
+    {
+      "name": "circle_base",
+      "vector_id": "ak.vector.read_receipt.scope_policy.independent.v1",
+      "input": {
+        "scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "signal_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "target_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_verified": true,
+        "complete": true,
+        "scope_authorized": true,
+        "target_verified": true,
+        "viewer_member": true,
+        "viewer_observer": true,
+        "sender_preference": true,
+        "display_preference": true,
+        "viewer": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "target_author": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "reader": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkreader",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "current_status": "present",
+        "policies": [
+          {
+            "selector": {
+              "kind": "scope_read_receipt_policy",
+              "scope_ref": {
+                "kind": "circle",
+                "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+                "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+              }
+            },
+            "source_stream_ref": {
+              "kind": "circle",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "stream_position": 1
+            },
+            "value": {
+              "disclosure": "optional",
+              "visibility": "members"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "send": true,
+        "display": true
+      }
+    },
+    {
+      "name": "realm_disabled_does_not_disable_circle",
+      "vector_id": "ak.vector.read_receipt.scope_policy.independent.v1",
+      "input": {
+        "scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "signal_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "target_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_verified": true,
+        "complete": true,
+        "scope_authorized": true,
+        "target_verified": true,
+        "viewer_member": true,
+        "viewer_observer": true,
+        "sender_preference": true,
+        "display_preference": true,
+        "viewer": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "target_author": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "reader": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkreader",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "current_status": "present",
+        "policies": [
+          {
+            "selector": {
+              "kind": "scope_read_receipt_policy",
+              "scope_ref": {
+                "kind": "realm",
+                "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+              }
+            },
+            "source_stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "stream_position": 1
+            },
+            "value": {
+              "disclosure": "disabled"
+            }
+          },
+          {
+            "selector": {
+              "kind": "scope_read_receipt_policy",
+              "scope_ref": {
+                "kind": "circle",
+                "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+                "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+              }
+            },
+            "source_stream_ref": {
+              "kind": "circle",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "stream_position": 1
+            },
+            "value": {
+              "disclosure": "optional"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "send": true,
+        "display": true
+      }
+    },
+    {
+      "name": "realm_required_does_not_override_circle_disabled",
+      "vector_id": "ak.vector.read_receipt.scope_policy.independent.v1",
+      "input": {
+        "scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "signal_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "target_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_verified": true,
+        "complete": true,
+        "scope_authorized": true,
+        "target_verified": true,
+        "viewer_member": true,
+        "viewer_observer": true,
+        "sender_preference": true,
+        "display_preference": true,
+        "viewer": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "target_author": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "reader": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkreader",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "current_status": "present",
+        "policies": [
+          {
+            "selector": {
+              "kind": "scope_read_receipt_policy",
+              "scope_ref": {
+                "kind": "realm",
+                "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+              }
+            },
+            "source_stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "stream_position": 1
+            },
+            "value": {
+              "disclosure": "required"
+            }
+          },
+          {
+            "selector": {
+              "kind": "scope_read_receipt_policy",
+              "scope_ref": {
+                "kind": "circle",
+                "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+                "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+              }
+            },
+            "source_stream_ref": {
+              "kind": "circle",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "stream_position": 1
+            },
+            "value": {
+              "disclosure": "disabled"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "send": false,
+        "display": false
+      }
+    },
+    {
+      "name": "realm_private_does_not_override_circle_members",
+      "vector_id": "ak.vector.read_receipt.scope_policy.independent.v1",
+      "input": {
+        "scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "signal_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "target_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_verified": true,
+        "complete": true,
+        "scope_authorized": true,
+        "target_verified": true,
+        "viewer_member": true,
+        "viewer_observer": true,
+        "sender_preference": true,
+        "display_preference": true,
+        "viewer": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkother",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "target_author": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "reader": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkreader",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "current_status": "present",
+        "policies": [
+          {
+            "selector": {
+              "kind": "scope_read_receipt_policy",
+              "scope_ref": {
+                "kind": "realm",
+                "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+              }
+            },
+            "source_stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "stream_position": 1
+            },
+            "value": {
+              "visibility": "private"
+            }
+          },
+          {
+            "selector": {
+              "kind": "scope_read_receipt_policy",
+              "scope_ref": {
+                "kind": "circle",
+                "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+                "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+              }
+            },
+            "source_stream_ref": {
+              "kind": "circle",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "stream_position": 1
+            },
+            "value": {
+              "visibility": "members"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "send": true,
+        "display": true
+      }
+    },
+    {
+      "name": "circle_disabled_does_not_disable_realm",
+      "vector_id": "ak.vector.read_receipt.scope_policy.independent.v1",
+      "input": {
+        "scope_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+        },
+        "signal_scope_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+        },
+        "target_scope_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+        },
+        "basis_scope_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+        },
+        "basis_verified": true,
+        "complete": true,
+        "scope_authorized": true,
+        "target_verified": true,
+        "viewer_member": true,
+        "viewer_observer": true,
+        "sender_preference": true,
+        "display_preference": true,
+        "viewer": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "target_author": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "reader": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkreader",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "current_status": "present",
+        "policies": [
+          {
+            "selector": {
+              "kind": "scope_read_receipt_policy",
+              "scope_ref": {
+                "kind": "realm",
+                "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+              }
+            },
+            "source_stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "stream_position": 1
+            },
+            "value": {
+              "disclosure": "optional"
+            }
+          },
+          {
+            "selector": {
+              "kind": "scope_read_receipt_policy",
+              "scope_ref": {
+                "kind": "circle",
+                "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+                "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+              }
+            },
+            "source_stream_ref": {
+              "kind": "circle",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "stream_position": 1
+            },
+            "value": {
+              "disclosure": "disabled"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "send": true,
+        "display": true
+      }
+    },
+    {
+      "name": "sibling_disabled_does_not_override_circle",
+      "vector_id": "ak.vector.read_receipt.scope_policy.independent.v1",
+      "input": {
+        "scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "signal_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "target_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_verified": true,
+        "complete": true,
+        "scope_authorized": true,
+        "target_verified": true,
+        "viewer_member": true,
+        "viewer_observer": true,
+        "sender_preference": true,
+        "display_preference": true,
+        "viewer": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "target_author": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "reader": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkreader",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "current_status": "present",
+        "policies": [
+          {
+            "selector": {
+              "kind": "scope_read_receipt_policy",
+              "scope_ref": {
+                "kind": "circle",
+                "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+                "circle_id": "ak:circle:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+              }
+            },
+            "source_stream_ref": {
+              "kind": "circle",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "circle_id": "ak:circle:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "stream_position": 1
+            },
+            "value": {
+              "disclosure": "disabled"
+            }
+          },
+          {
+            "selector": {
+              "kind": "scope_read_receipt_policy",
+              "scope_ref": {
+                "kind": "circle",
+                "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+                "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+              }
+            },
+            "source_stream_ref": {
+              "kind": "circle",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "stream_position": 1
+            },
+            "value": {
+              "disclosure": "optional"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "send": true,
+        "display": true
+      }
+    },
+    {
+      "name": "verified_circle_absence_uses_own_defaults",
+      "vector_id": "ak.vector.read_receipt.scope_policy.independent.v1",
+      "input": {
+        "scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "signal_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "target_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_verified": true,
+        "complete": true,
+        "scope_authorized": true,
+        "target_verified": true,
+        "viewer_member": true,
+        "viewer_observer": true,
+        "sender_preference": true,
+        "display_preference": true,
+        "viewer": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "target_author": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "reader": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkreader",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "current_status": "never_written",
+        "policies": [
+          {
+            "selector": {
+              "kind": "scope_read_receipt_policy",
+              "scope_ref": {
+                "kind": "realm",
+                "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+              }
+            },
+            "source_stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "stream_position": 1
+            },
+            "value": {
+              "disclosure": "disabled"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "send": true,
+        "display": true
+      }
+    },
+    {
+      "name": "verified_realm_absence_uses_own_defaults",
+      "vector_id": "ak.vector.read_receipt.scope_policy.independent.v1",
+      "input": {
+        "scope_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+        },
+        "signal_scope_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+        },
+        "target_scope_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+        },
+        "basis_scope_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+        },
+        "basis_verified": true,
+        "complete": true,
+        "scope_authorized": true,
+        "target_verified": true,
+        "viewer_member": true,
+        "viewer_observer": true,
+        "sender_preference": true,
+        "display_preference": true,
+        "viewer": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "target_author": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "reader": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkreader",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "current_status": "never_written",
+        "policies": [
+          {
+            "selector": {
+              "kind": "scope_read_receipt_policy",
+              "scope_ref": {
+                "kind": "circle",
+                "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+                "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+              }
+            },
+            "source_stream_ref": {
+              "kind": "circle",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "stream_position": 1
+            },
+            "value": {
+              "disclosure": "disabled"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "send": true,
+        "display": true
+      }
+    },
+    {
+      "name": "required_overrides_send_preference",
+      "vector_id": "ak.vector.read_receipt.scope_policy.independent.v1",
+      "input": {
+        "scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "signal_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "target_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_verified": true,
+        "complete": true,
+        "scope_authorized": true,
+        "target_verified": true,
+        "viewer_member": true,
+        "viewer_observer": true,
+        "sender_preference": false,
+        "display_preference": true,
+        "viewer": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "target_author": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "reader": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkreader",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "current_status": "present",
+        "policies": [
+          {
+            "selector": {
+              "kind": "scope_read_receipt_policy",
+              "scope_ref": {
+                "kind": "circle",
+                "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+                "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+              }
+            },
+            "source_stream_ref": {
+              "kind": "circle",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "stream_position": 1
+            },
+            "value": {
+              "disclosure": "required"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "send": true,
+        "display": true
+      }
+    },
+    {
+      "name": "optional_respects_send_preference",
+      "vector_id": "ak.vector.read_receipt.scope_policy.independent.v1",
+      "input": {
+        "scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "signal_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "target_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_verified": true,
+        "complete": true,
+        "scope_authorized": true,
+        "target_verified": true,
+        "viewer_member": true,
+        "viewer_observer": true,
+        "sender_preference": false,
+        "display_preference": true,
+        "viewer": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "target_author": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "reader": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkreader",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "current_status": "present",
+        "policies": [
+          {
+            "selector": {
+              "kind": "scope_read_receipt_policy",
+              "scope_ref": {
+                "kind": "circle",
+                "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+                "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+              }
+            },
+            "source_stream_ref": {
+              "kind": "circle",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "stream_position": 1
+            },
+            "value": {
+              "disclosure": "optional",
+              "visibility": "members"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "send": false,
+        "display": true
+      }
+    },
+    {
+      "name": "display_preference_is_independent",
+      "vector_id": "ak.vector.read_receipt.scope_policy.independent.v1",
+      "input": {
+        "scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "signal_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "target_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_verified": true,
+        "complete": true,
+        "scope_authorized": true,
+        "target_verified": true,
+        "viewer_member": true,
+        "viewer_observer": true,
+        "sender_preference": true,
+        "display_preference": false,
+        "viewer": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "target_author": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "reader": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkreader",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "current_status": "present",
+        "policies": [
+          {
+            "selector": {
+              "kind": "scope_read_receipt_policy",
+              "scope_ref": {
+                "kind": "circle",
+                "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+                "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+              }
+            },
+            "source_stream_ref": {
+              "kind": "circle",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "stream_position": 1
+            },
+            "value": {
+              "disclosure": "optional",
+              "visibility": "members"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "send": true,
+        "display": false
+      }
+    },
+    {
+      "name": "missing_current",
+      "vector_id": "ak.vector.read_receipt.scope_policy.isolation.v1",
+      "input": {
+        "scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "signal_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "target_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_verified": true,
+        "complete": true,
+        "scope_authorized": true,
+        "target_verified": true,
+        "viewer_member": true,
+        "viewer_observer": true,
+        "sender_preference": true,
+        "display_preference": true,
+        "viewer": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "target_author": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "reader": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkreader",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "current_status": "present",
+        "policies": []
+      },
+      "expected": {
+        "send": false,
+        "display": false
+      }
+    },
+    {
+      "name": "unverified_absence",
+      "vector_id": "ak.vector.read_receipt.scope_policy.isolation.v1",
+      "input": {
+        "scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "signal_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "target_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_verified": false,
+        "complete": true,
+        "scope_authorized": true,
+        "target_verified": true,
+        "viewer_member": true,
+        "viewer_observer": true,
+        "sender_preference": true,
+        "display_preference": true,
+        "viewer": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "target_author": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "reader": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkreader",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "current_status": "never_written",
+        "policies": []
+      },
+      "expected": {
+        "send": false,
+        "display": false
+      }
+    },
+    {
+      "name": "incomplete_absence",
+      "vector_id": "ak.vector.read_receipt.scope_policy.isolation.v1",
+      "input": {
+        "scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "signal_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "target_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_verified": true,
+        "complete": false,
+        "scope_authorized": true,
+        "target_verified": true,
+        "viewer_member": true,
+        "viewer_observer": true,
+        "sender_preference": true,
+        "display_preference": true,
+        "viewer": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "target_author": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "reader": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkreader",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "current_status": "never_written",
+        "policies": []
+      },
+      "expected": {
+        "send": false,
+        "display": false
+      }
+    },
+    {
+      "name": "unavailable_current",
+      "vector_id": "ak.vector.read_receipt.scope_policy.isolation.v1",
+      "input": {
+        "scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "signal_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "target_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_verified": true,
+        "complete": true,
+        "scope_authorized": true,
+        "target_verified": true,
+        "viewer_member": true,
+        "viewer_observer": true,
+        "sender_preference": true,
+        "display_preference": true,
+        "viewer": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "target_author": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "reader": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkreader",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "current_status": "unavailable",
+        "policies": [
+          {
+            "selector": {
+              "kind": "scope_read_receipt_policy",
+              "scope_ref": {
+                "kind": "circle",
+                "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+                "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+              }
+            },
+            "source_stream_ref": {
+              "kind": "circle",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "stream_position": 1
+            },
+            "value": {
+              "disclosure": "optional",
+              "visibility": "members"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "send": false,
+        "display": false
+      }
+    },
+    {
+      "name": "wrong_basis_scope",
+      "vector_id": "ak.vector.read_receipt.scope_policy.isolation.v1",
+      "input": {
+        "scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "signal_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "target_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_scope_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+        },
+        "basis_verified": true,
+        "complete": true,
+        "scope_authorized": true,
+        "target_verified": true,
+        "viewer_member": true,
+        "viewer_observer": true,
+        "sender_preference": true,
+        "display_preference": true,
+        "viewer": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "target_author": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "reader": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkreader",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "current_status": "present",
+        "policies": [
+          {
+            "selector": {
+              "kind": "scope_read_receipt_policy",
+              "scope_ref": {
+                "kind": "circle",
+                "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+                "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+              }
+            },
+            "source_stream_ref": {
+              "kind": "circle",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "stream_position": 1
+            },
+            "value": {
+              "disclosure": "optional",
+              "visibility": "members"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "send": false,
+        "display": false
+      }
+    },
+    {
+      "name": "wrong_signal_scope",
+      "vector_id": "ak.vector.read_receipt.scope_policy.isolation.v1",
+      "input": {
+        "scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "signal_scope_ref": {
+          "kind": "realm",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+        },
+        "target_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_verified": true,
+        "complete": true,
+        "scope_authorized": true,
+        "target_verified": true,
+        "viewer_member": true,
+        "viewer_observer": true,
+        "sender_preference": true,
+        "display_preference": true,
+        "viewer": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "target_author": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "reader": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkreader",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "current_status": "present",
+        "policies": [
+          {
+            "selector": {
+              "kind": "scope_read_receipt_policy",
+              "scope_ref": {
+                "kind": "circle",
+                "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+                "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+              }
+            },
+            "source_stream_ref": {
+              "kind": "circle",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "stream_position": 1
+            },
+            "value": {
+              "disclosure": "optional",
+              "visibility": "members"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "send": false,
+        "display": false
+      }
+    },
+    {
+      "name": "wrong_target_scope",
+      "vector_id": "ak.vector.read_receipt.scope_policy.isolation.v1",
+      "input": {
+        "scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "signal_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "target_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+        },
+        "basis_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_verified": true,
+        "complete": true,
+        "scope_authorized": true,
+        "target_verified": true,
+        "viewer_member": true,
+        "viewer_observer": true,
+        "sender_preference": true,
+        "display_preference": true,
+        "viewer": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "target_author": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "reader": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkreader",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "current_status": "present",
+        "policies": [
+          {
+            "selector": {
+              "kind": "scope_read_receipt_policy",
+              "scope_ref": {
+                "kind": "circle",
+                "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+                "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+              }
+            },
+            "source_stream_ref": {
+              "kind": "circle",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "stream_position": 1
+            },
+            "value": {
+              "disclosure": "optional",
+              "visibility": "members"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "send": false,
+        "display": false
+      }
+    },
+    {
+      "name": "realm_member_without_circle_access",
+      "vector_id": "ak.vector.read_receipt.scope_policy.isolation.v1",
+      "input": {
+        "scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "signal_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "target_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_verified": true,
+        "complete": true,
+        "scope_authorized": false,
+        "target_verified": true,
+        "viewer_member": true,
+        "viewer_observer": true,
+        "sender_preference": true,
+        "display_preference": true,
+        "viewer": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "target_author": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "reader": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkreader",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "current_status": "present",
+        "policies": [
+          {
+            "selector": {
+              "kind": "scope_read_receipt_policy",
+              "scope_ref": {
+                "kind": "circle",
+                "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+                "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+              }
+            },
+            "source_stream_ref": {
+              "kind": "circle",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "stream_position": 1
+            },
+            "value": {
+              "disclosure": "optional",
+              "visibility": "members"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "send": false,
+        "display": false
+      }
+    },
+    {
+      "name": "missing_target_author",
+      "vector_id": "ak.vector.read_receipt.scope_policy.isolation.v1",
+      "input": {
+        "scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "signal_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "target_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_verified": true,
+        "complete": true,
+        "scope_authorized": true,
+        "target_verified": false,
+        "viewer_member": true,
+        "viewer_observer": true,
+        "sender_preference": true,
+        "display_preference": true,
+        "viewer": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "target_author": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "reader": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkreader",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "current_status": "present",
+        "policies": [
+          {
+            "selector": {
+              "kind": "scope_read_receipt_policy",
+              "scope_ref": {
+                "kind": "circle",
+                "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+                "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+              }
+            },
+            "source_stream_ref": {
+              "kind": "circle",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "stream_position": 1
+            },
+            "value": {
+              "disclosure": "optional",
+              "visibility": "members"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "send": false,
+        "display": false
+      }
+    },
+    {
+      "name": "wrong_source_stream",
+      "vector_id": "ak.vector.read_receipt.scope_policy.isolation.v1",
+      "input": {
+        "scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "signal_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "target_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_verified": true,
+        "complete": true,
+        "scope_authorized": true,
+        "target_verified": true,
+        "viewer_member": true,
+        "viewer_observer": true,
+        "sender_preference": true,
+        "display_preference": true,
+        "viewer": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "target_author": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "reader": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkreader",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "current_status": "present",
+        "policies": [
+          {
+            "selector": {
+              "kind": "scope_read_receipt_policy",
+              "scope_ref": {
+                "kind": "circle",
+                "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+                "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+              }
+            },
+            "source_stream_ref": {
+              "kind": "realm",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "stream_position": 1
+            },
+            "value": {
+              "visibility": "members"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "send": false,
+        "display": false
+      }
+    },
+    {
+      "name": "duplicate_selector_rows",
+      "vector_id": "ak.vector.read_receipt.scope_policy.isolation.v1",
+      "input": {
+        "scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "signal_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "target_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_verified": true,
+        "complete": true,
+        "scope_authorized": true,
+        "target_verified": true,
+        "viewer_member": true,
+        "viewer_observer": true,
+        "sender_preference": true,
+        "display_preference": true,
+        "viewer": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "target_author": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "reader": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkreader",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "current_status": "present",
+        "policies": [
+          {
+            "selector": {
+              "kind": "scope_read_receipt_policy",
+              "scope_ref": {
+                "kind": "circle",
+                "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+                "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+              }
+            },
+            "source_stream_ref": {
+              "kind": "circle",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "stream_position": 1
+            },
+            "value": {
+              "visibility": "members"
+            }
+          },
+          {
+            "selector": {
+              "kind": "scope_read_receipt_policy",
+              "scope_ref": {
+                "kind": "circle",
+                "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+                "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+              }
+            },
+            "source_stream_ref": {
+              "kind": "circle",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "stream_position": 1
+            },
+            "value": {
+              "visibility": "private"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "send": false,
+        "display": false
+      }
+    },
+    {
+      "name": "presence_contradicts_never_written",
+      "vector_id": "ak.vector.read_receipt.scope_policy.isolation.v1",
+      "input": {
+        "scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "signal_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "target_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_verified": true,
+        "complete": true,
+        "scope_authorized": true,
+        "target_verified": true,
+        "viewer_member": true,
+        "viewer_observer": true,
+        "sender_preference": true,
+        "display_preference": true,
+        "viewer": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "target_author": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "reader": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkreader",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "current_status": "never_written",
+        "policies": [
+          {
+            "selector": {
+              "kind": "scope_read_receipt_policy",
+              "scope_ref": {
+                "kind": "circle",
+                "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+                "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+              }
+            },
+            "source_stream_ref": {
+              "kind": "circle",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "stream_position": 1
+            },
+            "value": {
+              "disclosure": "optional",
+              "visibility": "members"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "send": false,
+        "display": false
+      }
+    },
+    {
+      "name": "private_author_allowed",
+      "vector_id": "ak.vector.read_receipt.scope_policy.isolation.v1",
+      "input": {
+        "scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "signal_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "target_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_verified": true,
+        "complete": true,
+        "scope_authorized": true,
+        "target_verified": true,
+        "viewer_member": true,
+        "viewer_observer": true,
+        "sender_preference": true,
+        "display_preference": true,
+        "viewer": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "target_author": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "reader": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkreader",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "current_status": "present",
+        "policies": [
+          {
+            "selector": {
+              "kind": "scope_read_receipt_policy",
+              "scope_ref": {
+                "kind": "circle",
+                "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+                "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+              }
+            },
+            "source_stream_ref": {
+              "kind": "circle",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "stream_position": 1
+            },
+            "value": {
+              "visibility": "private"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "send": true,
+        "display": true
+      }
+    },
+    {
+      "name": "private_reader_is_not_author",
+      "vector_id": "ak.vector.read_receipt.scope_policy.isolation.v1",
+      "input": {
+        "scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "signal_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "target_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_verified": true,
+        "complete": true,
+        "scope_authorized": true,
+        "target_verified": true,
+        "viewer_member": true,
+        "viewer_observer": true,
+        "sender_preference": true,
+        "display_preference": true,
+        "viewer": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkreader",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "target_author": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "reader": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkreader",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "current_status": "present",
+        "policies": [
+          {
+            "selector": {
+              "kind": "scope_read_receipt_policy",
+              "scope_ref": {
+                "kind": "circle",
+                "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+                "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+              }
+            },
+            "source_stream_ref": {
+              "kind": "circle",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "stream_position": 1
+            },
+            "value": {
+              "visibility": "private"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "send": true,
+        "display": false
+      }
+    },
+    {
+      "name": "private_same_principal_other_station",
+      "vector_id": "ak.vector.read_receipt.scope_policy.isolation.v1",
+      "input": {
+        "scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "signal_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "target_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_verified": true,
+        "complete": true,
+        "scope_authorized": true,
+        "target_verified": true,
+        "viewer_member": true,
+        "viewer_observer": true,
+        "sender_preference": true,
+        "display_preference": true,
+        "viewer": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkotherstation"
+          }
+        },
+        "target_author": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "reader": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkreader",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "current_status": "present",
+        "policies": [
+          {
+            "selector": {
+              "kind": "scope_read_receipt_policy",
+              "scope_ref": {
+                "kind": "circle",
+                "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+                "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+              }
+            },
+            "source_stream_ref": {
+              "kind": "circle",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "stream_position": 1
+            },
+            "value": {
+              "visibility": "private"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "send": true,
+        "display": false
+      }
+    },
+    {
+      "name": "public_still_requires_scope_access",
+      "vector_id": "ak.vector.read_receipt.scope_policy.isolation.v1",
+      "input": {
+        "scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "signal_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "target_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_verified": true,
+        "complete": true,
+        "scope_authorized": false,
+        "target_verified": true,
+        "viewer_member": true,
+        "viewer_observer": true,
+        "sender_preference": true,
+        "display_preference": true,
+        "viewer": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "target_author": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "reader": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkreader",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "current_status": "present",
+        "policies": [
+          {
+            "selector": {
+              "kind": "scope_read_receipt_policy",
+              "scope_ref": {
+                "kind": "circle",
+                "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+                "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+              }
+            },
+            "source_stream_ref": {
+              "kind": "circle",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "stream_position": 1
+            },
+            "value": {
+              "visibility": "public"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "send": false,
+        "display": false
+      }
+    },
+    {
+      "name": "members_excludes_nonmember_observer",
+      "vector_id": "ak.vector.read_receipt.scope_policy.isolation.v1",
+      "input": {
+        "scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "signal_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "target_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_verified": true,
+        "complete": true,
+        "scope_authorized": true,
+        "target_verified": true,
+        "viewer_member": false,
+        "viewer_observer": true,
+        "sender_preference": true,
+        "display_preference": true,
+        "viewer": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "target_author": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "reader": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkreader",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "current_status": "present",
+        "policies": [
+          {
+            "selector": {
+              "kind": "scope_read_receipt_policy",
+              "scope_ref": {
+                "kind": "circle",
+                "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+                "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+              }
+            },
+            "source_stream_ref": {
+              "kind": "circle",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "stream_position": 1
+            },
+            "value": {
+              "disclosure": "optional",
+              "visibility": "members"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "send": true,
+        "display": false
+      }
+    },
+    {
+      "name": "public_includes_authorized_scope_observer",
+      "vector_id": "ak.vector.read_receipt.scope_policy.isolation.v1",
+      "input": {
+        "scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "signal_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "target_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_verified": true,
+        "complete": true,
+        "scope_authorized": true,
+        "target_verified": true,
+        "viewer_member": false,
+        "viewer_observer": true,
+        "sender_preference": true,
+        "display_preference": true,
+        "viewer": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "target_author": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "reader": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkreader",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "current_status": "present",
+        "policies": [
+          {
+            "selector": {
+              "kind": "scope_read_receipt_policy",
+              "scope_ref": {
+                "kind": "circle",
+                "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+                "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+              }
+            },
+            "source_stream_ref": {
+              "kind": "circle",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "stream_position": 1
+            },
+            "value": {
+              "visibility": "public"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "send": true,
+        "display": true
+      }
+    },
+    {
+      "name": "public_excludes_unqualified_observer",
+      "vector_id": "ak.vector.read_receipt.scope_policy.isolation.v1",
+      "input": {
+        "scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "signal_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "target_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_scope_ref": {
+          "kind": "circle",
+          "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+          "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+        },
+        "basis_verified": true,
+        "complete": true,
+        "scope_authorized": true,
+        "target_verified": true,
+        "viewer_member": true,
+        "viewer_observer": false,
+        "sender_preference": true,
+        "display_preference": true,
+        "viewer": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "target_author": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkauthor",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "reader": {
+          "kind": "account",
+          "account_id": {
+            "principal_id": "ak:did_core:webvh:z6mkreader",
+            "station_id": "ak:did_core:webvh:z6mkstation"
+          }
+        },
+        "current_status": "present",
+        "policies": [
+          {
+            "selector": {
+              "kind": "scope_read_receipt_policy",
+              "scope_ref": {
+                "kind": "circle",
+                "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+                "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+              }
+            },
+            "source_stream_ref": {
+              "kind": "circle",
+              "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+            },
+            "revision": {
+              "commit_id": "ak:realm_commit:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+              "stream_position": 1
+            },
+            "value": {
+              "visibility": "public"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "send": true,
+        "display": false
+      }
+    }
+  ],
+  "update_cases": [
+    {
+      "name": "disable_removes_existing_hint",
+      "vector_id": "ak.vector.read_receipt.scope_policy.updates.v1",
+      "scope_ref": {
+        "kind": "circle",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+      },
+      "viewer": {
+        "kind": "account",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkother",
+          "station_id": "ak:did_core:webvh:z6mkstation"
+        }
+      },
+      "target_author": {
+        "kind": "account",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkauthor",
+          "station_id": "ak:did_core:webvh:z6mkstation"
+        }
+      },
+      "writes": [
+        {
+          "disclosure": "optional",
+          "visibility": "members"
+        },
+        {
+          "disclosure": "disabled"
+        }
+      ],
+      "expected_display": [
+        true,
+        false
+      ]
+    },
+    {
+      "name": "private_removes_third_party_hint",
+      "vector_id": "ak.vector.read_receipt.scope_policy.updates.v1",
+      "scope_ref": {
+        "kind": "circle",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+      },
+      "viewer": {
+        "kind": "account",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkother",
+          "station_id": "ak:did_core:webvh:z6mkstation"
+        }
+      },
+      "target_author": {
+        "kind": "account",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkauthor",
+          "station_id": "ak:did_core:webvh:z6mkstation"
+        }
+      },
+      "writes": [
+        {
+          "visibility": "members"
+        },
+        {
+          "visibility": "private"
+        }
+      ],
+      "expected_display": [
+        true,
+        false
+      ]
+    },
+    {
+      "name": "whole_value_replacement_does_not_merge_old_disabled",
+      "vector_id": "ak.vector.read_receipt.scope_policy.updates.v1",
+      "scope_ref": {
+        "kind": "circle",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+      },
+      "viewer": {
+        "kind": "account",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkauthor",
+          "station_id": "ak:did_core:webvh:z6mkstation"
+        }
+      },
+      "target_author": {
+        "kind": "account",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkauthor",
+          "station_id": "ak:did_core:webvh:z6mkstation"
+        }
+      },
+      "writes": [
+        {
+          "disclosure": "disabled",
+          "visibility": "private"
+        },
+        {
+          "visibility": "members"
+        }
+      ],
+      "expected_display": [
+        false,
+        true
+      ],
+      "fresh_receipt_each_step": true
+    },
+    {
+      "name": "explicit_default_reset",
+      "vector_id": "ak.vector.read_receipt.scope_policy.updates.v1",
+      "scope_ref": {
+        "kind": "circle",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+      },
+      "viewer": {
+        "kind": "account",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkother",
+          "station_id": "ak:did_core:webvh:z6mkstation"
+        }
+      },
+      "target_author": {
+        "kind": "account",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkauthor",
+          "station_id": "ak:did_core:webvh:z6mkstation"
+        }
+      },
+      "writes": [
+        {
+          "visibility": "private"
+        },
+        {
+          "disclosure": "optional",
+          "visibility": "members"
+        }
+      ],
+      "expected_display": [
+        false,
+        true
+      ],
+      "fresh_receipt_each_step": true
+    },
+    {
+      "name": "disabled_hint_does_not_revive_without_new_receipt",
+      "vector_id": "ak.vector.read_receipt.scope_policy.updates.v1",
+      "scope_ref": {
+        "kind": "circle",
+        "realm_id": "ak:realm:Ac1aCK8aQdnkYImvdH3DFjq4jDCP198pXYWCGzGuVyj5",
+        "circle_id": "ak:circle:AUD2WOhX-Xh47vBHtRJPMRfXRQXGiOWQqOrJGJnE8CaI"
+      },
+      "viewer": {
+        "kind": "account",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkother",
+          "station_id": "ak:did_core:webvh:z6mkstation"
+        }
+      },
+      "target_author": {
+        "kind": "account",
+        "account_id": {
+          "principal_id": "ak:did_core:webvh:z6mkauthor",
+          "station_id": "ak:did_core:webvh:z6mkstation"
+        }
+      },
+      "writes": [
+        {
+          "disclosure": "disabled"
+        },
+        {
+          "disclosure": "optional",
+          "visibility": "members"
+        }
+      ],
+      "expected_display": [
+        false,
+        false
+      ]
+    }
+  ]
+}
