@@ -186,7 +186,7 @@ see_also:
 | `authz/event-auth-state-resolution.md` | 当前治理 Station在 commit位置的 producer/authz校验、typed reducer和 committed/rejected状态。 |
 | `governance/join-policy.md` | Join Rule、邀请、knock / restricted / approval 流程和 history visibility 联动。 |
 | `governance/history-visibility.md` | `since_join` / `all_history_for_current_members` 二态、当前成员 gate、plaintext历史和MLS加入后可读边界。 |
-| `governance/scope-settings.md` | Realm / Circle / Sidecar / Space / Strand 的设置继承、独立配置、上限与资格约束矩阵；独立 MLS 激活、retention / legal hold / 明文服务跨 scope 适用边界与尚未闭合的控制载体。 |
+| `governance/scope-settings.md` | Realm / Circle / Sidecar / Space / Strand 的设置继承、独立配置、上限与资格约束矩阵；独立 MLS 激活、retention / legal hold / 明文服务的既有义务、跨站擦除回执与明确未定义的通用能力。 |
 | `governance/content-moderation.md` | 举报、E2EE franking、Realm/Organization 审核策略、个人屏蔽入口。 |
 | `security/server-threat-model.md` | 服务端攻击模型与反滥用规则；物理位于 `security/` 安全分析专项目录。 |
 

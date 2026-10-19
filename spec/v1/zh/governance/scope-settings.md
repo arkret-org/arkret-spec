@@ -59,7 +59,7 @@ Sidecar 内容访问权，也不把 source 的 policy、MLS 或 history 复制�
 | capability、管理员／审核权 | 使用同 Realm 授权体系，但 grant 必须覆盖目标 Circle；Realm 管理身份不附赠私有读取或历史密钥 | Circle capability / proof 不能授权 Sidecar；实际操作使用专用权限与有效参与者门 | selector 不遍历 Space 子树；Track / 字段限制仍单独检查 | [selector §6](../authz/resource-selector-grammar.md#6-匹配算法)、[审核 §2.1](./content-moderation.md#21-审核权由-realm--circle-管理员行使)、[Sidecar §3.2](../models/sidecar.md#32-后续-event-scope) |
 | archive / freeze / terminal | 父 Realm gate 约束 Circle；不合成 Circle lifecycle 写入；Circle 关闭不反向关闭 Realm | controller / Realm / policy / key readiness 派生 suspended 或 terminal；无自著 archive / restore / member Event | Realm gate 仍生效；Space 导航关系不等于子对象 lifecycle 级联 | [Circle §9.2](../models/circle.md#92-lifecycle-cascade)、[Sidecar §7](../models/sidecar.md#7-生命周期)、[Space](../models/space-hierarchy.md) |
 | governance Station / federation | 由所属 Realm 治理域统一承担；Circle 无独立 federation identity，stream 仍独立 | 同一 current governor，独立 stream 与披露资格 | 无独立 federation；跨 Realm View / link 逐目标授权 | [Realm 字段](../models/realm-and-space.md#23-schema-id-与字段)、[federation](../sync/federation.md) |
-| retention / legal hold | 对准确对象、stream、Blob 与实际保留副本求值，不从 Realm-default history / MLS 推导；未定义局部覆盖优先序 | 保留不扩大私有读取、参与者或密钥范围；未登记自动向所有 Sidecar 扩散的 hold | 不沿 Space 导航树推导；Strand 与派生内容按实际来源关联判定 | 本文 §4 |
+| retention / legal hold | 复用已登记对象／副本合同；不从 Realm-default history / MLS 推导，不增加通用 scope TTL 或期限继承 | 保留不扩大私有读取、参与者或密钥范围；不增加通用 hold 控制或自动向所有 Sidecar 扩散 | 不沿 Space 导航树推导；Strand 与派生内容按实际来源关联判定 | 本文 §4 |
 | 明文可见服务 | Realm 名单是必要治理声明，不能代替目标 Circle 授权或解密材料取得合同 | 名单不能把 Sidecar 开放给 Realm 管理员／共享服务；只走已有获授权私有路径 | 按实际内容 scope 及具体服务合同检查；parent 不授权 | 本文 §5 |
 
 个人已读偏好另按 `Strand → Realm → default` 顺序解析。这是 holder-private preference fallback，
@@ -117,18 +117,34 @@ presign 的 hold 检查、强一致回查及拒绝继续按 Blob 专章；不能
 Realm terminal、GC 与 erasure receipt 仍按 [Realm §2.6](../models/realm-and-space.md)区分；
 terminal 不自动擦除，hold 可以阻止适用的物理删除，receipt 必须如实记录结果。
 
-### 4.3 尚未闭合的策略选择
+满足 [Realm §2.6.2](../models/realm-and-space.md#262-跨-station-erasure-receipt-fanoutnormative) 的既有 hard-erasure
+适用条件时，issuing / receiving Station MUST 继续履行 exact receipt / retained stub、peer 投递、耐久重试、
+签名 acknowledgement、接收方实际擦除结果及 incomplete / timeout 义务。`accepted` / `duplicate`
+acknowledgement 只确认接收，不证明物理删除完成；完成或阻断以接收方自己的实际 erasure receipt 为准。
+本机普通 retention / GC 不等于全网擦除；本节不扩大该 hard-erasure 合同的触发条件或目标，也不创建第二套删除确认。
 
-现行 Policy 的 `policy_kind=retention` 分类、Realm 的 `retention_policy_id` 投影、Blob hold 状态与
-本地 queue 保留元数据，不足以定义统一的跨 scope 保留控制协议。v1 未闭合下列一般机制：
+### 4.3 现行 v1 的保留控制范围
 
-- Realm 治理域全体内容与 Realm-default 的 retention selector 如何区分；Circle / Sidecar 局部策略由谁写入、如何读取及如何组合。
-- 多策略之间最短保留期、最低保留期、强制最长保留期与 hold 的冲突规则；不能不区分义务就一律取最短或最长。
-- hold 的唯一签名作者、准确目标集合／来源闭包、设立与解除载体，以及跨 Station 下发、确认、撤销和失败恢复。
+当前 v1 复用已登记的保留、披露、删除及授权合同。以下是明确未定义的通用能力，不是实现必须补齐的缺口：
 
-上述缺口不影响已登记 hold 对已确认目标的禁止删除义务，但 MUST NOT 由部署私有字段、
-Space 子树遍历、裸 Realm ID 或未认证配置伪造新的 Arkret current、跨 scope 扩权或成功 receipt。
-需要新通用控制流程时，必须先完成正式裁决与 carrier / schema / registry / SDK / 验收闭合。
+- 统一的用户可配置 scope TTL、Realm 治理域／未来 scope wildcard 保留设置，以及 Circle / Sidecar 独立保留字段或继承。
+- retention 专用的最低／最高期限双轴、期限覆盖或多策略冲突求解器；已有 Policy 的授权约束与求值规则保持原合同。
+- 通用 hold 设立／解除 Event、管理入口、组织权限、跨 scope 扩张、peer hold 命令或确认 ledger。
+- 为保留密文而托管／导出成员 MLS secrets、保证未来解密的历史密钥归档服务。
+
+`policy_kind=retention` 是现有分类，`retention_policy_id` 是现有投影；两者本身不提供通用 lifetime
+字段或 scope selector。本节不删除或变更这些机器形态，不把部署存储配置解释为 Arkret 协议设置。
+部署已有且合法适用的存储保留／清理安排只约束其实际受控副本，并继续满足 Commit 链、必要原件、
+引用、hold 与披露约束；不得以本机安排宣称所有参与方、远端服务器或备份均已物理删除。
+
+停止普通披露与后台清理完成分别判断；已真实适用的 hold／保留限制继续阻止不合法删除。
+失败或部分完成 MUST 使用该操作已有的结果合同如实表达；本节不增加统一错误、成功回执或新的查询服务。
+hold 解除不恢复内容可见性，后续清理由原流程重新判断资格，不新增自动解除或期限重置业务。
+
+已登记 Blob hold、本地 moderation queue 保留元数据、擦除回执与专用读取／presign／删除检查继续生效。
+不能用“未定义通用 hold”忽略已覆盖目标的禁止删除或强一致检查；也 MUST NOT 由部署私有字段、
+Space 子树、裸 Realm ID 或未认证配置伪造新的 Arkret current、跨 scope 权力或成功结果。
+任何未来新增业务须另行正式定义，不得通过本节或现有扩展成员自行发布为 current-v1 支持。
 
 ## 5. 明文服务的跨 scope 适用边界
 
@@ -160,6 +176,12 @@ service entry 的扩展成员中塞入未登记 scope selector 以声称授权�
 | holder-private account data | Realm 名单不授权个人 blocklist 等 account-private 内容；见 [client-preferences](../discovery/client-preferences.md) |
 | Sidecar 私有上下文 | [Sidecar §5 / §8 / §9](../models/sidecar.md)：只能沿现有获授权私有路径；source attach、Realm 管理权或公开 Agent 模式不开放私有内容 |
 
-现行 service entry 没有闭合的 exact Circle / Sidecar scope consent / selector 合同；Realm-wide 声明
-如何与“仅某 Circle 同意”“某 Sidecar 额外禁止”组合，以及服务获得持续输入时的受限授权、撤销／删除
-证据，是待裁决项。现有专用功能仍按上表合同工作，不因该缺口自动获得通用后台明文访问。
+当前 v1 不增加 Circle / Sidecar 专属 service-consent Event / current、scope selector、例外名单、
+通用后台明文订阅或第三方删除证明平台。这些是明确未定义的通用能力，不是现有功能需要等待的新前置。
+内容提供者的合法授权仍由本节四项条件及该功能已有合同证明，不另造统一的 scope 同意记录。
+
+媒体、Push、search、preview、Agent / Sidecar 已登记的持续服务、current 重验、撤权与必要的专用
+确认继续按原合同执行；不因此增加逐次弹窗，也不移除媒体警示、controller 原签、审批或其它现有要求。
+没有已登记输入路径的后台跨私有 scope 取材 MUST NOT 开放；修复具体功能的来源或接线不足不能借机新增任意明文导出。
+撤权阻止后续输入，索引／缓存按原来源与撤回／保留合同处理；不能宣称已交付外部的明文可被协议追回。
+§4.2 已有 erasure receipt 义务保持，不因不增加通用第三方证明而被免除。

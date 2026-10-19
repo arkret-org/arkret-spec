@@ -95,7 +95,7 @@ Policy 是 reducer 和服务节点判断请求是否可接受的输入。每个 
 quota（速率 / 资源上限）不作为独立 `policy_kind`，而是通过相关 policy（典型 `access` / `media`）的 `rules[]` 内 `quota` 约束表达。Policy 决策与 capability 决策的关系见 §3.3。
 
 `policy_kind` 分类本身不登记新的 scope selector、加密激活或 retention / legal hold 控制载体。
-各对象的独立配置、继承与约束，以及尚未闭合的跨 scope 保留／hold／明文服务控制问题见
+各对象的独立配置、继承与约束，以及现行 v1 保留／hold／明文服务的既有义务和明确未定义的通用能力见
 [`scope-settings.md`](../governance/scope-settings.md)。
 
 ### 3.2 Schema 与字段
