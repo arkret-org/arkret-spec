@@ -320,3 +320,13 @@ old/new handoff unsigned projection仍仅删两signature，保留handoff_id及�
 普通成员获准读取 exact Applet Service Event 后，self signer query 的 `historical_event` / `service` selector MUST 只披露该原件在接纳时冻结的 ServiceHistoricalSigningKey 和原 Commit committed_at。该 key 按 public_key_b64u、applet_id、registration_epoch、registration_ref、authorization_ref、effective_scope 顺序闭合；后两引用分别为原 accepted registration 与原 installation capability grant 创建事件的完整 committed coordinate，effective_scope 为该 Event 的已核安装 scope。历史 target 必须由该可读原 Event/Commit 构造；查询不可借这些引用读取隐藏原件。current Service selector 禁止。缺材料、错 target、错 scope、非 Service actor、未获准读取均只返回 unavailable，不得用 current DID key 或 runtime completion 补出历史答案。
 
 治理 Station MUST 在接受事务同一 authority/registration/installation/grant 锁定截点重核原 Service DID epoch、原 producer Ed25519 proof、method、grant 约束及 scope，并逐字比较签 Commit 前准备的最小 fact。Service fact 依次含 event_id、actor（actual_signer 的完整 Service actor）、verification_method、key、accepted_at；accepted_at 是原目标 Commit 的 committed_at，fact 内不得含目标 Commit 坐标，以免摘要循环。原 Commit 摘要、fact 与 canonical Event 同事务冻结。peer replication、peer scan 与 planned handoff 的原 producer_signer_fact/inventory 使用 Account Device/Service 闭合联合，逐项核原治理签名、原 fact digest 与原 producer proof，复制原字节，不重新按当前 key/安装状态授权。普通 Applet 创建、问责记录仍保原读取权限；最小公钥投影不包含 private runtime fixed set、私钥、控制 Realm 历史或私有 Profile 内容。
+
+## 10. Applet 管理私态的既有交接
+
+所有新建且合法的Realm handoff MUST 携 management_private_state_digest，私有handoff request MUST 携
+management_private_state（含realm_id、governance_generation、final_stream_heads_digest、nonce、state_digest）。
+状态为空仍携同类加盐承诺，不能按Applet安装／review存在与否决定外露。两份现handoff签名覆盖新承诺，nonce至少128bit CSPRNG。
+state_digest绑定完整冻结配置／review ledger、原intent／候选、来源／批准依据、终态／消费／quota／nonce与exact恢复结果
+的canonical私有导出；双方以实际完整导入／重新导出比较，缺项／未知保持不可激活，不只比较manifest。
+公开authority bundle只携加盐承诺，无manifest、私态或下载面。该增补不是PCR资格例外，不允许Human PCR handoff。
+旧任期活动批准superseded、terminal／consumed结果唯一恢复，详见[Applet来源§6](../extensions/applet-management-source.md#6-审批幂等与恢复)。

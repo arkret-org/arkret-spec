@@ -15,19 +15,19 @@
     "optional": "optional and never null."
   },
   "summary": {
-    "total_properties": 9578,
-    "total_schema_documents": 174,
+    "total_properties": 9739,
+    "total_schema_documents": 176,
     "by_presence_class": {
-      "optional": 2230,
+      "optional": 2266,
       "optional_defaulted": 48,
-      "required": 6771,
-      "required_nullable": 337,
-      "tristate": 192
+      "required": 6885,
+      "required_nullable": 340,
+      "tristate": 200
     },
-    "tristate_occurrences": 192,
-    "tristate_audit_targets": 154,
+    "tristate_occurrences": 200,
+    "tristate_audit_targets": 159,
     "tristate_sdk_dispositions": {
-      "absent_null_equivalent": 143,
+      "absent_null_equivalent": 148,
       "condition_guarded": 10,
       "distinct": 1
     }
@@ -55,6 +55,10 @@
     "agent-sidecar-exchange-projection.schema.json/allOf/1/then/properties/user_facing_response_event_ids",
     "agent-sidecar-exchange-projection.schema.json/allOf/3/then/properties/user_facing_response_event_ids",
     "applet-install-plan.schema.json/$defs/widget_effect/properties/policy_event_ref",
+    "applet-management-source.schema.json/$defs/source/allOf/0/if/properties/binding",
+    "applet-management-source.schema.json/$defs/source_request/allOf/0/else/properties/operation_request",
+    "applet-management-source.schema.json/$defs/source_request/allOf/0/if/properties/binding",
+    "applet-management-source.schema.json/$defs/source_request/allOf/0/then/properties/operation_request",
     "applet-registration-epoch-evidence.schema.json/allOf/0/oneOf/0/properties/method_version_evidence",
     "applet-registration-epoch-evidence.schema.json/allOf/0/oneOf/1/properties/method_version_evidence",
     "authority-commit-operations.schema.json/$defs/audit_paired_access_submission/allOf/1/properties/event",
@@ -65,6 +69,7 @@
     "authority-commit-operations.schema.json/$defs/direct_conversation_realm_create_submission/allOf/1/properties/event",
     "authority-commit-operations.schema.json/$defs/direct_conversation_strand_create_submission/allOf/1/properties/event",
     "authority-commit-operations.schema.json/$defs/handoff_request/allOf/1/then/properties/handoff",
+    "authority-commit-operations.schema.json/$defs/handoff_request/allOf/2/if/properties/handoff",
     "authority-commit-operations.schema.json/$defs/managed_creation_originals/properties/accountability/allOf/1/properties/event",
     "authority-commit-operations.schema.json/$defs/managed_creation_originals/properties/pcr_genesis/allOf/1/properties/event",
     "authority-commit-operations.schema.json/$defs/managed_creation_originals/properties/profile/allOf/1/properties/event",
@@ -78,6 +83,8 @@
     "authority-commit-operations.schema.json/$defs/ordinary_realm_bootstrap_policy_bundle_submission/allOf/1/properties/event",
     "authority-commit-operations.schema.json/$defs/ordinary_realm_bootstrap_profile_submission/allOf/1/properties/event",
     "authority-commit-operations.schema.json/$defs/ordinary_realm_bootstrap_realm_create_submission/allOf/1/properties/event",
+    "authority-commit-operations.schema.json/$defs/peer_submit_request/allOf/3/then/properties/event_submission",
+    "authority-commit-operations.schema.json/$defs/peer_submit_request/allOf/3/then/properties/event_submission/properties/event",
     "authority-commit-operations.schema.json/$defs/stream_scan_request/properties/after_position",
     "authority-commit-operations.schema.json/$defs/stream_scan_request/properties/before_position",
     "calendar-event.schema.json/$defs/recurrence/allOf/1/then/properties/by_day",
@@ -146,6 +153,7 @@
     "management-review-operations.schema.json/$defs/request/allOf/2/then/properties/target/properties/event",
     "management-review-operations.schema.json/$defs/request/allOf/3/then/properties/target",
     "management-review-operations.schema.json/$defs/request/allOf/3/then/properties/target/properties/event",
+    "management-review-operations.schema.json/$defs/request/allOf/4/then/properties/target",
     "message.schema.json/$defs/content_block/allOf/2/then/properties/body",
     "mimi-operations.schema.json/$defs/mimi_update_consent_request_body/allOf/0/else/properties/consent_event",
     "mimi-operations.schema.json/$defs/mimi_update_consent_request_body/allOf/0/then/properties/consent_event",
@@ -358,6 +366,37 @@
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
     },
     {
+      "schema_file": "applet-management-source.schema.json",
+      "shape": "/$defs/source",
+      "instance_path": "/binding",
+      "occurrences": [
+        "/$defs/source/allOf/0/if/properties/binding"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "applet-management-source.schema.json",
+      "shape": "/$defs/source_request",
+      "instance_path": "/binding",
+      "occurrences": [
+        "/$defs/source_request/allOf/0/if/properties/binding"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "applet-management-source.schema.json",
+      "shape": "/$defs/source_request",
+      "instance_path": "/operation_request",
+      "occurrences": [
+        "/$defs/source_request/allOf/0/else/properties/operation_request",
+        "/$defs/source_request/allOf/0/then/properties/operation_request"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
       "schema_file": "applet-registration-epoch-evidence.schema.json",
       "shape": "#",
       "instance_path": "/method_version_evidence",
@@ -443,7 +482,8 @@
       "shape": "/$defs/handoff_request",
       "instance_path": "/handoff",
       "occurrences": [
-        "/$defs/handoff_request/allOf/1/then/properties/handoff"
+        "/$defs/handoff_request/allOf/1/then/properties/handoff",
+        "/$defs/handoff_request/allOf/2/if/properties/handoff"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -574,6 +614,26 @@
       "instance_path": "/event",
       "occurrences": [
         "/$defs/ordinary_realm_bootstrap_realm_create_submission/allOf/1/properties/event"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "authority-commit-operations.schema.json",
+      "shape": "/$defs/peer_submit_request",
+      "instance_path": "/event_submission",
+      "occurrences": [
+        "/$defs/peer_submit_request/allOf/3/then/properties/event_submission"
+      ],
+      "sdk_disposition": "absent_null_equivalent",
+      "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
+    },
+    {
+      "schema_file": "authority-commit-operations.schema.json",
+      "shape": "/$defs/peer_submit_request",
+      "instance_path": "/event_submission/event",
+      "occurrences": [
+        "/$defs/peer_submit_request/allOf/3/then/properties/event_submission/properties/event"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -1089,7 +1149,8 @@
         "/$defs/request/allOf/0/then/properties/target",
         "/$defs/request/allOf/1/then/properties/target",
         "/$defs/request/allOf/2/then/properties/target",
-        "/$defs/request/allOf/3/then/properties/target"
+        "/$defs/request/allOf/3/then/properties/target",
+        "/$defs/request/allOf/4/then/properties/target"
       ],
       "sdk_disposition": "absent_null_equivalent",
       "rationale": "encoding.md §2.1.1 applies the v1 default: absent and explicit null are the same empty value, and canonical producers omit the property."
@@ -3148,13 +3209,17 @@
         "ak.schema.applet_authority_material.v1"
       ],
       "properties": {
-        "/$defs/outcome/properties/applet_id": "required",
-        "/$defs/outcome/properties/current_results": "required",
-        "/$defs/outcome/properties/effective_scope": "required",
-        "/$defs/outcome/properties/grant_events": "required",
-        "/$defs/outcome/properties/registration": "required",
-        "/$defs/request/properties/effective_scope": "required",
-        "/$defs/request/properties/grant_ids": "required"
+        "/$defs/outcome/oneOf/0/properties/applet_id": "required",
+        "/$defs/outcome/oneOf/0/properties/current_results": "required",
+        "/$defs/outcome/oneOf/0/properties/device_scope_confirmation": "optional",
+        "/$defs/outcome/oneOf/0/properties/effective_scope": "required",
+        "/$defs/outcome/oneOf/0/properties/grant_events": "required",
+        "/$defs/outcome/oneOf/0/properties/registration": "required",
+        "/$defs/outcome/oneOf/1/properties/managed_source": "required",
+        "/$defs/request/oneOf/0/properties/device_scope_request": "optional",
+        "/$defs/request/oneOf/0/properties/effective_scope": "required",
+        "/$defs/request/oneOf/0/properties/grant_ids": "required",
+        "/$defs/request/oneOf/1/properties/managed_source_request": "required"
       }
     },
     "applet-bot-operations.schema.json": {
@@ -3179,6 +3244,59 @@
         "/$defs/bot_preview_request_body/properties/effective_scope": "required",
         "/$defs/bot_preview_request_body/properties/request_id": "required"
       }
+    },
+    "applet-configuration-operations.schema.json": {
+      "schema_ids": [
+        "ak.schema.applet_configuration_operations.v1"
+      ],
+      "properties": {
+        "/$defs/execution_intent/properties/applet_id": "required",
+        "/$defs/execution_intent/properties/effective_scope": "required",
+        "/$defs/execution_intent/properties/governance_generation": "required",
+        "/$defs/execution_intent/properties/governance_station_id": "required",
+        "/$defs/execution_intent/properties/originating_actor_id": "required",
+        "/$defs/execution_intent/properties/originating_actor_id/properties/kind": "required",
+        "/$defs/execution_intent/properties/registration_epoch": "required",
+        "/$defs/execution_intent/properties/registration_ref": "required",
+        "/$defs/execution_intent/properties/request_id": "required",
+        "/$defs/execution_intent/properties/selection": "required",
+        "/$defs/execution_intent/properties/service_id": "required",
+        "/$defs/execution_outcome/allOf/0/if/properties/status": "optional",
+        "/$defs/execution_outcome/properties/creation_refs": "optional",
+        "/$defs/execution_outcome/properties/evaluated_at": "required",
+        "/$defs/execution_outcome/properties/intent_digest": "required",
+        "/$defs/execution_outcome/properties/proof": "required",
+        "/$defs/execution_outcome/properties/request_id": "required",
+        "/$defs/execution_outcome/properties/service_id": "required",
+        "/$defs/execution_outcome/properties/status": "required",
+        "/$defs/execution_outcome/properties/subject_account_id": "optional",
+        "/$defs/execution_request/properties/command": "required",
+        "/$defs/execution_request/properties/expires_at": "required",
+        "/$defs/execution_request/properties/governance_generation": "required",
+        "/$defs/execution_request/properties/governance_station_id": "required",
+        "/$defs/execution_request/properties/intent": "required",
+        "/$defs/execution_request/properties/issued_at": "required",
+        "/$defs/execution_request/properties/proof": "required",
+        "/$defs/intent/properties/effective_scope": "required",
+        "/$defs/intent/properties/request_id": "required",
+        "/$defs/intent/properties/selection": "required",
+        "/$defs/outcome/properties/admission_status": "required",
+        "/$defs/outcome/properties/intent_digest": "required",
+        "/$defs/outcome/properties/request_id": "required",
+        "/$defs/outcome/properties/review_request_id": "optional",
+        "/$defs/outcome/properties/source_outcome": "optional",
+        "/$defs/request/properties/approval_signatures": "optional",
+        "/$defs/request/properties/command": "required",
+        "/$defs/request/properties/intent": "required",
+        "/$defs/selection/oneOf/0/properties/display_name": "optional",
+        "/$defs/selection/oneOf/0/properties/kind": "required",
+        "/$defs/selection/oneOf/1/properties/account_id": "required",
+        "/$defs/selection/oneOf/1/properties/kind": "required"
+      },
+      "conditionally_required": [
+        "/$defs/execution_outcome/properties/creation_refs",
+        "/$defs/execution_outcome/properties/subject_account_id"
+      ]
     },
     "applet-device-authentication.schema.json": {
       "schema_ids": [
@@ -3556,6 +3674,98 @@
         "/$defs/applet_managed_actor_provision_payload/properties/external_ref"
       ]
     },
+    "applet-management-source.schema.json": {
+      "schema_ids": [
+        "ak.schema.applet_management_source.v1"
+      ],
+      "properties": {
+        "/$defs/managed_device_authorization/properties/accepted_at": "required",
+        "/$defs/managed_device_authorization/properties/authorization_ref": "required",
+        "/$defs/managed_device_authorization/properties/governance_generation": "required",
+        "/$defs/managed_device_authorization/properties/revision": "required",
+        "/$defs/managed_device_authorization/properties/verification_method": "required",
+        "/$defs/managed_device_projection/properties/account_id": "required",
+        "/$defs/managed_device_projection/properties/attested_at": "required",
+        "/$defs/managed_device_projection/properties/authorization_window": "required",
+        "/$defs/managed_device_projection/properties/authorization_window/properties/expires_at": "required",
+        "/$defs/managed_device_projection/properties/authorization_window/properties/not_before": "required",
+        "/$defs/managed_device_projection/properties/authorized_generation_ref": "required",
+        "/$defs/managed_device_projection/properties/device_authorize_event_id": "required",
+        "/$defs/managed_device_projection/properties/device_id": "required",
+        "/$defs/managed_device_projection/properties/device_signing_key_did": "required",
+        "/$defs/managed_device_projection/properties/device_status": "required",
+        "/$defs/managed_device_projection/properties/expires_at": "required",
+        "/$defs/managed_device_projection/properties/hpke_key": "required",
+        "/$defs/managed_device_source/properties/authorization": "required",
+        "/$defs/managed_device_source/properties/projection": "required",
+        "/$defs/operation_binding/allOf/0/else/properties/operation_id": "optional",
+        "/$defs/operation_binding/allOf/0/if/properties/purpose": "optional",
+        "/$defs/operation_binding/allOf/0/then/properties/operation_id": "optional",
+        "/$defs/operation_binding/properties/effective_scope": "required",
+        "/$defs/operation_binding/properties/governance_generation": "required",
+        "/$defs/operation_binding/properties/governance_station_id": "required",
+        "/$defs/operation_binding/properties/nonce": "required",
+        "/$defs/operation_binding/properties/operation_id": "required",
+        "/$defs/operation_binding/properties/purpose": "required",
+        "/$defs/operation_binding/properties/request_digest": "required",
+        "/$defs/operation_binding/properties/requester_actor_id": "required",
+        "/$defs/operation_binding/properties/requester_actor_id/properties/kind": "required",
+        "/$defs/operation_binding/properties/subject_account_id": "required",
+        "/$defs/scope_confirmation/properties/applet_id": "required",
+        "/$defs/scope_confirmation/properties/device_id": "required",
+        "/$defs/scope_confirmation/properties/effective_scope": "required",
+        "/$defs/scope_confirmation/properties/evaluated_at": "required",
+        "/$defs/scope_confirmation/properties/expires_at": "required",
+        "/$defs/scope_confirmation/properties/governance_generation": "required",
+        "/$defs/scope_confirmation/properties/governance_station_id": "required",
+        "/$defs/scope_confirmation/properties/grant_ids": "required",
+        "/$defs/scope_confirmation/properties/nonce": "required",
+        "/$defs/scope_confirmation/properties/proof": "required",
+        "/$defs/scope_confirmation/properties/registration_epoch": "required",
+        "/$defs/scope_confirmation/properties/registration_ref": "required",
+        "/$defs/scope_confirmation/properties/request_digest": "required",
+        "/$defs/scope_confirmation/properties/service_id": "required",
+        "/$defs/scope_confirmation/properties/source_station_id": "required",
+        "/$defs/scope_confirmation/properties/subject_account_id": "required",
+        "/$defs/scope_request/properties/control_event": "required",
+        "/$defs/scope_request/properties/device_id": "required",
+        "/$defs/scope_request/properties/nonce": "required",
+        "/$defs/scope_request/properties/source_station_id": "required",
+        "/$defs/scope_request/properties/subject_account_id": "required",
+        "/$defs/signature/properties/jws": "required",
+        "/$defs/signature/properties/verification_method": "required",
+        "/$defs/source/allOf/0/if/properties/binding": "tristate",
+        "/$defs/source/allOf/0/if/properties/binding/properties/purpose": "optional",
+        "/$defs/source/properties/authority_bundles": "required",
+        "/$defs/source/properties/binding": "required",
+        "/$defs/source/properties/creation": "required",
+        "/$defs/source/properties/current": "required",
+        "/$defs/source/properties/device_source": "optional",
+        "/$defs/source/properties/evaluated_at": "required",
+        "/$defs/source/properties/expires_at": "required",
+        "/$defs/source/properties/proof": "required",
+        "/$defs/source/properties/service_resolution": "required",
+        "/$defs/source/properties/service_resolution/properties/service_kind": "required",
+        "/$defs/source/properties/station_resolution": "required",
+        "/$defs/source/properties/station_resolution/properties/service_kind": "required",
+        "/$defs/source_request/allOf/0/else/properties/operation_request": "tristate",
+        "/$defs/source_request/allOf/0/else/properties/operation_request/properties/management_operation": "required",
+        "/$defs/source_request/allOf/0/else/properties/operation_request/properties/target": "required_nullable",
+        "/$defs/source_request/allOf/0/else/properties/operation_request/properties/target/properties/kind": "optional",
+        "/$defs/source_request/allOf/0/if/properties/binding": "tristate",
+        "/$defs/source_request/allOf/0/if/properties/binding/properties/purpose": "optional",
+        "/$defs/source_request/allOf/0/then/properties/operation_request": "tristate",
+        "/$defs/source_request/allOf/0/then/properties/operation_request/properties/event": "required_nullable",
+        "/$defs/source_request/allOf/0/then/properties/operation_request/properties/event/properties/actor_id": "optional",
+        "/$defs/source_request/allOf/0/then/properties/operation_request/properties/event/properties/actor_id/properties/kind": "required",
+        "/$defs/source_request/allOf/0/then/properties/operation_request/properties/event/properties/kind": "optional",
+        "/$defs/source_request/properties/binding": "required",
+        "/$defs/source_request/properties/operation_request": "required"
+      },
+      "conditionally_required": [
+        "/$defs/source/properties/device_source"
+      ]
+    },
     "applet-package.schema.json": {
       "schema_ids": [
         "ak.schema.applet_package.v1"
@@ -3868,10 +4078,12 @@
         "/$defs/handoff_request/allOf/1/if/properties/authority_bundle/properties/genesis_event/properties/payload/properties/object": "required_nullable",
         "/$defs/handoff_request/allOf/1/if/properties/authority_bundle/properties/genesis_event/properties/payload/properties/object/properties/purpose": "required",
         "/$defs/handoff_request/allOf/1/then/properties/handoff": "tristate",
+        "/$defs/handoff_request/allOf/2/if/properties/handoff": "tristate",
         "/$defs/handoff_request/properties/authority_bundle": "required",
         "/$defs/handoff_request/properties/final_stream_heads": "required",
         "/$defs/handoff_request/properties/handoff": "required",
         "/$defs/handoff_request/properties/historical_signer_facts": "optional",
+        "/$defs/handoff_request/properties/management_private_state": "optional",
         "/$defs/handoff_request/properties/pcr_private_state": "optional",
         "/$defs/handoff_request/properties/snapshot": "required",
         "/$defs/historical_producer_signer_fact_entry/properties/producer_signer_fact": "required",
@@ -3899,6 +4111,11 @@
         "/$defs/managed_profile_current/properties/commit": "required",
         "/$defs/managed_profile_current/properties/realm_id": "required",
         "/$defs/managed_profile_current/properties/result": "required",
+        "/$defs/management_private_handoff_manifest/properties/final_stream_heads_digest": "required",
+        "/$defs/management_private_handoff_manifest/properties/governance_generation": "required",
+        "/$defs/management_private_handoff_manifest/properties/nonce": "required",
+        "/$defs/management_private_handoff_manifest/properties/realm_id": "required",
+        "/$defs/management_private_handoff_manifest/properties/state_digest": "required",
         "/$defs/membership_compensation_acceptance_outcome/properties/commit": "required",
         "/$defs/membership_compensation_acceptance_outcome/properties/status": "required",
         "/$defs/membership_compensation_acceptance_outcome/properties/unit_kind": "required",
@@ -3978,6 +4195,12 @@
         "/$defs/peer_stream_scan_outcome/properties/readable_floor": "optional",
         "/$defs/peer_stream_scan_outcome/properties/truncated": "required",
         "/$defs/peer_submit_request/allOf/1/then/properties/branch": "optional",
+        "/$defs/peer_submit_request/allOf/2/properties/event_submission": "optional",
+        "/$defs/peer_submit_request/allOf/3/if/properties/event_submission": "required_nullable",
+        "/$defs/peer_submit_request/allOf/3/then/properties/branch": "optional",
+        "/$defs/peer_submit_request/allOf/3/then/properties/event_submission": "tristate",
+        "/$defs/peer_submit_request/allOf/3/then/properties/event_submission/properties/event": "tristate",
+        "/$defs/peer_submit_request/allOf/3/then/properties/event_submission/properties/event/properties/kind": "optional",
         "/$defs/peer_submit_request/oneOf/0/if/properties/event_submission": "required_nullable",
         "/$defs/peer_submit_request/oneOf/0/if/properties/event_submission/properties/event": "required_nullable",
         "/$defs/peer_submit_request/oneOf/0/if/properties/event_submission/properties/event/properties/kind": "required",
@@ -4026,6 +4249,7 @@
         "/$defs/committed_event_submission/properties/genesis_event_ref",
         "/$defs/committed_event_submission/properties/producer_signer_fact",
         "/$defs/handoff_request/properties/historical_signer_facts",
+        "/$defs/handoff_request/properties/management_private_state",
         "/$defs/handoff_request/properties/pcr_private_state",
         "/$defs/peer_submit_request/properties/atomic_producer_evidence",
         "/$defs/peer_submit_request/properties/atomic_submission",
@@ -8865,7 +9089,16 @@
         "/$defs/request/allOf/3/then/properties/target/properties/event": "tristate",
         "/$defs/request/allOf/3/then/properties/target/properties/event/properties/kind": "optional",
         "/$defs/request/allOf/3/then/properties/target/properties/kind": "optional",
+        "/$defs/request/allOf/4/then/properties/management_operation": "optional",
+        "/$defs/request/allOf/4/then/properties/requester_actor_id": "optional",
+        "/$defs/request/allOf/4/then/properties/requester_actor_id/properties/kind": "required",
+        "/$defs/request/allOf/4/then/properties/target": "tristate",
+        "/$defs/request/allOf/4/then/properties/target/properties/kind": "optional",
+        "/$defs/request/properties/configuration_ref": "optional",
+        "/$defs/request/properties/configuration_ref/properties/intent_digest": "required",
+        "/$defs/request/properties/configuration_ref/properties/request_id": "required",
         "/$defs/request/properties/effective_scope": "required",
+        "/$defs/request/properties/managed_source": "optional",
         "/$defs/request/properties/management_operation": "required",
         "/$defs/request/properties/request_id": "required",
         "/$defs/request/properties/requester_actor_id": "required",
@@ -10191,6 +10424,7 @@
         "/properties/from_service_id": "required",
         "/properties/handoff_id": "required",
         "/properties/historical_signer_facts_digest": "optional",
+        "/properties/management_private_state_digest": "optional",
         "/properties/new_authority_acceptance_signature": "required",
         "/properties/old_authority_signature": "required",
         "/properties/pcr_private_state_digest": "optional",
@@ -11450,8 +11684,18 @@
         "/$defs/DirectConversationFoundingAuthorityEvidence/oneOf/1/properties/kind": "required",
         "/$defs/EffectiveCapabilityGrantRow/properties/grant": "required",
         "/$defs/EffectiveCapabilityGrantRow/properties/revision": "required",
+        "/$defs/EventAdmissionSubmission/allOf/0/then/properties/event": "optional",
+        "/$defs/EventAdmissionSubmission/allOf/0/then/properties/event/properties/actor_id": "optional",
+        "/$defs/EventAdmissionSubmission/allOf/0/then/properties/event/properties/actor_id/properties/kind": "required",
+        "/$defs/EventAdmissionSubmission/allOf/0/then/properties/event/properties/kind": "optional",
+        "/$defs/EventAdmissionSubmission/allOf/1/then/properties/event": "optional",
+        "/$defs/EventAdmissionSubmission/allOf/1/then/properties/event/properties/actor_id": "optional",
+        "/$defs/EventAdmissionSubmission/allOf/1/then/properties/event/properties/actor_id/properties/kind": "required",
+        "/$defs/EventAdmissionSubmission/allOf/1/then/properties/event/properties/kind": "optional",
         "/$defs/EventAdmissionSubmission/properties/approval_signatures": "optional",
+        "/$defs/EventAdmissionSubmission/properties/device_scope_confirmations": "optional",
         "/$defs/EventAdmissionSubmission/properties/event": "required",
+        "/$defs/EventAdmissionSubmission/properties/subject_managed_source": "optional",
         "/$defs/EventDeliveryStatusOutcome/properties/event_id": "required",
         "/$defs/EventDeliveryStatusOutcome/properties/targets": "required",
         "/$defs/EventDeliveryStatusRequestBody/properties/event_id": "required",

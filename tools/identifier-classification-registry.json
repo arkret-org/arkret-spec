@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "version": 74,
+  "version": 77,
   "kind": "identifier_classification_registry",
   "source_of_truth": false,
   "generated_from": [
@@ -26,9 +26,9 @@
     "unregistered_object_identifier"
   ],
   "type_derived_summary": {
-    "typed_object_id": 965,
-    "responsibility_identity_material": 572,
-    "registry_catalog_symbol": 15
+    "typed_object_id": 979,
+    "responsibility_identity_material": 593,
+    "registry_catalog_symbol": 18
   },
   "pending_rename_convergence": [],
   "classifications": [
@@ -750,5 +750,5 @@
       "reason": "Symbol scoped to the containing document; it is only resolvable inside that object and is never an authorization subject."
     }
   ],
-  "generated_at": "2026-10-19T07:30:10+08:00"
+  "generated_at": "2026-10-19T16:55:52+08:00"
 }

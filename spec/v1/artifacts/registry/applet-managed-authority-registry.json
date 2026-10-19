@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-16.1",
+  "version": "2026-10-19.2",
   "source_of_truth": true,
-  "generated_at": "2026-10-16T03:09:41.040907+08:00",
+  "generated_at": "2026-10-19T16:48:01+08:00",
   "normative_source": "zh/extensions/applet-integration.md",
   "managed_roles": [
     "bot",
@@ -220,5 +220,34 @@
   "content_delivery": "exact_managed_account_device_via_station",
   "service_base_url": "mandatory_https_management_endpoint",
   "personal_agent_source": "owned_agent",
-  "creation_scope_revoke_is_global_device_revoke": false
+  "creation_scope_revoke_is_global_device_revoke": false,
+  "operation_bound_management_source": {
+    "normative_source": "zh/extensions/applet-management-source.md",
+    "source_schema_ref": "schemas/applet-management-source.schema.json#/$defs/source",
+    "subject_operation_id": "ak.self.events.command.submit.v1",
+    "subject_field": "event_submission.subject_managed_source",
+    "review_operation_id": "ak.self.management_review.command.request.v1",
+    "review_field": "managed_source",
+    "material_operation_id": "ak.self.applet.authority.read.material.v1",
+    "device_confirmation_field": "event_submission.device_scope_confirmations",
+    "scope_confirmation_schema_ref": "schemas/applet-management-source.schema.json#/$defs/scope_confirmation",
+    "operation_anchor_excluded_members": [
+      "subject_managed_source",
+      "managed_source",
+      "device_scope_confirmations",
+      "approval_signatures"
+    ],
+    "original_event_producer_proof_retained": true,
+    "child_requires_preexisting_device": false,
+    "failed_business_identity_preregistration": false,
+    "source_canonical_bytes_max": 2097152,
+    "request_canonical_bytes_max": 4194304,
+    "scope_confirmation_canonical_bytes_max": 16384,
+    "scope_confirmation_count_max": 64,
+    "source_lifetime_seconds_max": 60,
+    "configuration_lifetime_seconds_max": 300,
+    "automatic_ghost_permission_is_candidate_vote": false,
+    "business_forward_preimage_unchanged": true,
+    "pending_configuration_per_scope_max": 64
+  }
 }

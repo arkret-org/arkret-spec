@@ -1255,3 +1255,9 @@ Bot preview/provision 输入及输出与 Ghost 平行，使用独立 request_id�
 `ak.vector.capability.applet_bridge_non_event_grant_authority.v1` 同时核验 Bot/Ghost 创建 grant 的 exact Service subject 与已登记 admin issuer 规则。
 
 原签 managed forward 闭包的正负验收由 [`ak.vector.federation.managed_forward_provenance.v1`](../../artifacts/registry/vector-registry.json) 固定。
+
+## 19. 账号 Station、远端配置与随操作来源
+
+跨站配置／来源／审批按[Applet账号来源](./applet-management-source.md)执行：S合法创建，B按实际join／publish准入；
+C可兼任S，但Station与runtime职责及私钥独立。Service child的subject来源、review来源及B→S有限Device scope确认
+均为限定操作附件，不增加身份预登记，不改变§9.1原四Event或§12独立E2EE。

@@ -70,6 +70,10 @@
     },
     "new_authority_acceptance_signature": {
       "$ref": "./detached-object-signature.schema.json#/$defs/realm_authority_handoff_new_acceptance_signature"
+    },
+    "management_private_state_digest": {
+      "$ref": "./account-operations.schema.json#/$defs/sha256_digest",
+      "description": "New eligible handoffs require SHA256(JCS of the private management handoff manifest), including empty state, independent of Applet/review presence. Both existing handoff signatures cover it. Historical originals remain immutable. No private manifest/archive enters public authority bundles."
     }
   },
   "additionalProperties": false

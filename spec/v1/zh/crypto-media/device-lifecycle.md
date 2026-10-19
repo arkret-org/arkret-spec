@@ -1581,3 +1581,10 @@ queue list 及每个新 item 始终逐 scope 执行当前全部交付屏障。
 `ak.vector.applet.device_scopes.v1` 用真实合法 ScopeRef／动作执行正反例，向量输入见 [paired scope fixture](../../artifacts/fixtures/applet-device-scope-fixture.json)。
 
 原签 managed forward 闭包的正负验收由 [`ak.vector.federation.managed_forward_provenance.v1`](../../artifacts/registry/vector-registry.json) 固定。
+
+## 17. 管理用途来源与外站 Device scope
+
+[Applet账号来源](../extensions/applet-management-source.md)登记Service child subject、直接review及外站安装确认的窄用途。
+该来源证明不改变§8.2.2.1的业务forward算法、分支禁带规则或Human directory；不是第三种Device认证。
+首Device仍由accepted Principal原签、候选Device独立possession，Service仅签HTTP。
+S核B有限scope确认及自己的generation／CAS，B业务cut仍重验自己的current，不能用短期确认维持撤销后的业务。

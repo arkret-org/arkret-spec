@@ -61,6 +61,11 @@
       "version": "2026-10-14.3"
     },
     {
+      "path": "spec/v1/artifacts/fixtures/applet-management-source-fixture.json",
+      "sha256": "a5f1baf4a43eebd0b7ced169a7baba67722987fc61ae8ae43b78a77edb5af608",
+      "version": "2026-10-19.2"
+    },
+    {
       "path": "spec/v1/artifacts/fixtures/applet-registration-epoch-fixture.json",
       "sha256": "6745b04187134709fa77236832d753b507acb66076e37be71703d1b26589478b",
       "version": "2026-10-09.1"

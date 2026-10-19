@@ -8,10 +8,10 @@
   ],
   "description": "Exhaustive classification of operation DTO schema/status/reason_code/reason properties into closed literals/enums, validated open protocol tokens, or bounded human-readable text. Any unconstrained audited string fails generation.",
   "summary": {
-    "total_fields": 75,
+    "total_fields": 76,
     "by_classification": {
       "bounded_free_text": 6,
-      "closed_enum": 33,
+      "closed_enum": 34,
       "closed_literal": 18,
       "validated_open_reason_code": 18
     },
@@ -128,6 +128,14 @@
       "shape": "operation_status_outcome",
       "field": "status",
       "pointer": "#/$defs/operation_status_outcome/properties/status",
+      "classification": "closed_enum",
+      "basis": "JSON Schema enum"
+    },
+    {
+      "schema_file": "applet-configuration-operations.schema.json",
+      "shape": "execution_outcome",
+      "field": "status",
+      "pointer": "#/$defs/execution_outcome/properties/status",
       "classification": "closed_enum",
       "basis": "JSON Schema enum"
     },

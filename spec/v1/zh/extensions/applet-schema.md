@@ -365,3 +365,9 @@ GET /_arkret/edge/applet/protocols/{protocol}
 ## 8. 接收与认证边界
 
 base_url仅表示签名审批绑定的HTTPS服务管理入口。Service身份、受管Account、设备与MLS持钥状态相互独立；内容供给、无session Device认证、parent来源及逐scopefence **MUST** 按 [Applet integration §18](./applet-integration.md)与 [managed governance](../authz/managed-governance.md)执行。
+
+## 9. 跨站配置与管理来源载体
+
+字段集与顺序由[configuration schema](../../artifacts/schemas/applet-configuration-operations.schema.json)、
+[management source schema](../../artifacts/schemas/applet-management-source.schema.json)及其现有入口引用闭合。
+完整授权、原像、限值、隐私、续证及恢复按[Applet账号来源](./applet-management-source.md)执行；它们不是Event payload。

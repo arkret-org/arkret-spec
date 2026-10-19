@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-19.3",
+  "version": "2026-10-19.5",
   "source_of_truth": false,
-  "generated_at": "2026-10-19T11:47:58+08:00",
+  "generated_at": "2026-10-19T16:48:01+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -61,6 +61,18 @@
         "allowed_target_kinds": [
           "operation"
         ]
+      },
+      {
+        "carrier_id": "applet_configuration.approval_signatures",
+        "carrier_class": "non_event_operation",
+        "operation_id": "ak.self.applet.configuration.command.submit.v1",
+        "request_schema_ref": "schemas/applet-configuration-operations.schema.json#/$defs/request",
+        "carrier_schema_ref": "schemas/applet-configuration-operations.schema.json#/$defs/request/properties/approval_signatures",
+        "carrier_field": "approval_signatures",
+        "evidence_schema_ref": "schemas/approval-signature.schema.json",
+        "allowed_target_kinds": [
+          "operation"
+        ]
       }
     ],
     "default_carrier_by_eligibility_kind": {
@@ -77,6 +89,21 @@
         "action": "ak.applet.ghost.provision",
         "eligibility_kind": "registered_operation_carrier",
         "carrier_id": "applet_ghost_provision.approval_signatures",
+        "approver_capability_action": "ak.realm.admin"
+      },
+      {
+        "action": "ak.applet.configure",
+        "eligibility_kind": "registered_operation_carrier",
+        "carrier_id": "applet_configuration.approval_signatures",
+        "approver_capability_action": "ak.realm.admin"
+      }
+    ],
+    "operation_action_overrides": [
+      {
+        "action": "ak.realm.admin",
+        "operation_id": "ak.self.applet.configuration.command.submit.v1",
+        "eligibility_kind": "registered_operation_carrier",
+        "carrier_id": "applet_configuration.approval_signatures",
         "approver_capability_action": "ak.realm.admin"
       }
     ]
@@ -1267,6 +1294,7 @@
         "ak.agent.key.revoke",
         "ak.agent.publish",
         "ak.applet.bridge_error",
+        "ak.applet.configure",
         "ak.applet.join",
         "ak.applet.publish",
         "ak.approval.vote",
@@ -2127,6 +2155,19 @@
       "profile": null,
       "event_mapping_kind": "operation_verb",
       "notes": "Additional managed Bot/Ghost self-join governance label for the original Account Device-signed Realm or Circle membership join. The applet_managed_self_join context check is mandatory. It never grants ak.circle.member.add, another subject's signature, membership or MLS consent."
+    },
+    {
+      "action": "ak.applet.configure",
+      "category": "management",
+      "risk_tier": "high",
+      "required_constraints": [],
+      "required_evaluator_checks": [
+        "current_scope_realm_admin"
+      ],
+      "target_event_kinds": [],
+      "profile": null,
+      "event_mapping_kind": "non_event_surface",
+      "notes": "Only bounded configuration intent at B; requires actual scope current explicit ak.realm.admin. Does not grant source create_bot/map_ghost or business join/publish. Original administrator constraints and exact operation approvals remain applicable."
     }
   ],
   "event_mapping_kind_definitions": {

@@ -6,7 +6,8 @@
   "x-arkret-operation-target-carrier-operations": [
     "ak.self.events.command.submit.v1",
     "ak.self.applet.bot.command.provision.v1",
-    "ak.self.applet.ghost.command.provision.v1"
+    "ak.self.applet.ghost.command.provision.v1",
+    "ak.self.applet.configuration.command.submit.v1"
   ],
   "type": "object",
   "required": [
@@ -107,7 +108,8 @@
                 "enum": [
                   "ak.self.events.command.submit.v1",
                   "ak.self.applet.bot.command.provision.v1",
-                  "ak.self.applet.ghost.command.provision.v1"
+                  "ak.self.applet.ghost.command.provision.v1",
+                  "ak.self.applet.configuration.command.submit.v1"
                 ]
               }
             }

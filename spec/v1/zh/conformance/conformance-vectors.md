@@ -771,3 +771,8 @@ live fence 原子持久化与重启／迟到投递不复活。离站关闭不产
 HTTP／PG 验收须由工程执行，不以 fixture 存在或规范门禁通过代替。
 
 `ak.vector.state.strand_watch_current_read.v1` MUST 通过 `strand-watch-current-read-fixture.json` 的跨站具名用例证明：来源站与完整账号绑定、同 principal 不同 Station 私有隔离、合法 Circle 与不可见 Circle、无本地 tenure 的远端交付、handoff 后肯定未写入及清空行保留、他人代写不能冒充从未写入、session/device/权限撤回时迟到结果拒绝、错误 generation/head/source/revision 拒绝，以及真实写入前态与并发 whole-value CAS。规范 fixture／schema 执行不代替 SDK／Coland／客户端／真实跨站 PG 与 HTTP 验收。
+
+## Applet 账号来源与远端接入
+
+`ak.vector.applet.management_source.v1` 对应 applet-management-source-fixture.json，执行正文闭包、closed载体、
+真实Ed25519 domain／原像反变异与MR／CR协议模型；不声明生产或真实双站MLS通过。

@@ -57,8 +57,8 @@ class ApprovalRequirementEligibilityTest(unittest.TestCase):
             if row["event_mapping_kind"] == "non_event_surface"
         ]
         self.assertGreater(len(non_event), 0)
-        self.assertFalse(overrides.intersection(row["action"] for row in non_event))
-        self.assertEqual(overrides, {"ak.applet.bot.provision", "ak.applet.ghost.provision"})
+        self.assertEqual(overrides.intersection(row["action"] for row in non_event), {"ak.applet.configure"})
+        self.assertEqual(overrides, {"ak.applet.bot.provision", "ak.applet.ghost.provision", "ak.applet.configure"})
         carriers = {row["carrier_id"]: row for row in block["carriers"]}
         for row in block["action_overrides"]:
             self.assertEqual(carriers[row["carrier_id"]]["carrier_class"], "non_event_operation")
@@ -66,6 +66,19 @@ class ApprovalRequirementEligibilityTest(unittest.TestCase):
             block["event_mapping_defaults"]["non_event_surface"],
             "ineligible_no_registered_carrier",
         )
+
+    def test_scope_admin_operation_carrier_cannot_be_dropped_or_widened(self) -> None:
+        for change in ("drop", "wrong_operation", "wrong_action"):
+            def mutate(documents, change=change):
+                rows = self._block(documents)["operation_action_overrides"]
+                if change == "drop":
+                    rows.clear()
+                elif change == "wrong_operation":
+                    rows[0]["operation_id"] = "ak.self.applet.command.install.v1"
+                else:
+                    rows[0]["action"] = "ak.realm.owner"
+            errors = self._new_errors(mutate)
+            self.assertTrue(any("operation_action_overrides" in error for error in errors), errors)
 
     def test_creation_qualification_cannot_be_missing_or_widened(self) -> None:
         for value in (None, "ak.applet.bot.provision", "ak.realm.owner", "ak.*"):
@@ -77,6 +90,13 @@ class ApprovalRequirementEligibilityTest(unittest.TestCase):
                     row["approver_capability_action"] = value
             errors = self._new_errors(mutate)
             self.assertTrue(any("incorrect approver capability action" in error for error in errors), errors)
+
+    def test_configuration_qualification_remains_exact_scope_admin(self) -> None:
+        def mutate(documents):
+            row = next(item for item in self._block(documents)["action_overrides"] if item["action"] == "ak.applet.configure")
+            row["approver_capability_action"] = "ak.applet.configure"
+        errors = self._new_errors(mutate)
+        self.assertTrue(any("incorrect approver capability action" in error for error in errors), errors)
 
     def test_qualification_override_cannot_escape_exact_creation_actions(self) -> None:
         def mutate(documents):

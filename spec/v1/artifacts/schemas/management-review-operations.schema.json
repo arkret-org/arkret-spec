@@ -106,6 +106,25 @@
         },
         "target": {
           "$ref": "#/$defs/target"
+        },
+        "managed_source": {
+          "$ref": "./applet-management-source.schema.json#/$defs/source"
+        },
+        "configuration_ref": {
+          "type": "object",
+          "required": [
+            "request_id",
+            "intent_digest"
+          ],
+          "properties": {
+            "request_id": {
+              "$ref": "./realm-join-intake.schema.json#/$defs/request_id"
+            },
+            "intent_digest": {
+              "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false,
@@ -278,7 +297,48 @@
               }
             }
           }
+        },
+        {
+          "if": {
+            "required": [
+              "managed_source"
+            ]
+          },
+          "then": {
+            "properties": {
+              "management_operation": {
+                "enum": [
+                  "join",
+                  "publish"
+                ]
+              },
+              "target": {
+                "properties": {
+                  "kind": {
+                    "const": "event"
+                  }
+                }
+              },
+              "requester_actor_id": {
+                "properties": {
+                  "kind": {
+                    "const": "service"
+                  }
+                },
+                "$ref": "./common-ids.schema.json#/$defs/actor_id"
+              }
+            }
+          }
         }
+      ],
+      "x-arkret-max-canonical-bytes": 4194304,
+      "x-arkret-pcr-outward-event-kinds": [
+        "ak.realm.create",
+        "ak.profile.create",
+        "ak.profile.update",
+        "ak.identity.accountability_grant",
+        "ak.device.authorize",
+        "ak.realm.governance_station.change"
       ]
     },
     "lookup": {

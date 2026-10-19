@@ -1611,3 +1611,7 @@ Child grant MUST 等于或窄于其 issuer-authority grants。`max_authority_dep
 
 
 Applet业务下放 **MUST** 使用真实Service ActorId parent→本Appletaccepted Bot／Ghost terminal child的普通grant链；ordinary authority_control的allowed_managed_actor_roles明确批准角色，创建grant／问责／namespace不构成业务parent。持续Applet上界、scope撤销与精细审批按 [managed governance](../authz/managed-governance.md) 执行。
+
+Applet限定配置的原ak.realm.admin授权约束按capability-action-registry的approval_requirement_eligibility.operation_action_overrides
+选择该exact operation的已登记载体，仍以原admin action验证审批；该行不替换其它admin Event的默认carrier。
+ak.applet.configure标签的额外动作Policy条件独立执行，不能改名绕原grant的审批或quota。详见[Applet账号来源](../extensions/applet-management-source.md)。

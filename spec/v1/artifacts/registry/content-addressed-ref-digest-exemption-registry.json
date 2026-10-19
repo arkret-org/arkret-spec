@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-18.1",
+  "version": "2026-10-19.1",
   "source_of_truth": true,
-  "generated_at": "2026-10-18T23:47:25+08:00",
+  "generated_at": "2026-10-19T16:37:31+08:00",
   "description": "Closed per-field exemption registry for zh/conformance/encoding.md 4.0.1. A closed object that carries a complete content-addressed typed ref (an id_kind_registry special form marked content_addressed, with a pattern that is exactly that one form) already carries the suite and every digest octet of the referenced bytes, so any sibling digest property in that object is a forbidden wire mirror unless this registry states the distinct preimage it commits to. Rows are keyed by (schema file, json path of the properties object, digest field). content_addressed_refs must equal the current set of in-scope content-addressed ref properties in that object so a later ref addition forces a fresh ruling. Every row is a ruling: there is no undecided kind.",
   "registry_rules": {
     "exemption_id_pattern": "^ak\\.exemption\\.sibling_digest\\.[a-z0-9_]+\\.v[0-9]+$",
@@ -220,6 +220,23 @@
       },
       "preimage": "SHA256 of the full canonical private PCR frozen-state manifest, including its unpublished CSPRNG nonce and the complete native-state export digest. These bytes are distinct from the public handoff identity, public/current Snapshot and governance change Commit; both original handoff signatures cover this salted commitment.",
       "spec_anchor": "spec/v1/zh/sync/authority-commit-log.md#81-pcr-治理归属与交接资格normative"
+    },
+    {
+      "exemption_id": "ak.exemption.sibling_digest.handoff_management_private_state.v1",
+      "status": "active",
+      "kind": "distinct_preimage",
+      "subject": {
+        "schema_file": "schemas/realm-authority-handoff.schema.json",
+        "json_path": "$.properties",
+        "digest_field": "management_private_state_digest",
+        "content_addressed_refs": [
+          "handoff_id",
+          "snapshot_ref",
+          "change_commit_id"
+        ]
+      },
+      "preimage": "SHA256 of the salted full canonical private configuration/review migration manifest; commits the complete native frozen export, distinct from handoff identity, snapshot and governance change Commit.",
+      "spec_anchor": "spec/v1/zh/sync/authority-commit-log.md#10-applet-管理私态的既有交接"
     }
   ]
 }

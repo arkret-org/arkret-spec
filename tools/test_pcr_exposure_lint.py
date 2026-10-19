@@ -310,7 +310,10 @@ class PcrPrivateContractTest(unittest.TestCase):
     def test_manifest_and_public_digest_are_required_exactly_for_pcr(self) -> None:
         # Isolate the contextual rule; complete cryptographic handoff acceptance
         # remains an SDK/server responsibility, never a schema-test assertion.
-        rule = self.authority["$defs"]["handoff_request"]["allOf"][-1]
+        rules = [row for row in self.authority["$defs"]["handoff_request"]["allOf"]
+                 if "authority_bundle" in row.get("if", {}).get("properties", {})]
+        self.assertEqual(len(rules), 1)
+        rule = rules[0]
         validator = self.validator_type(rule)
         for purpose in ("principal_control", "agent_control", "applet_managed_control", "collaboration"):
             request = {"authority_bundle": {"genesis_event": {"payload": {"object": {"purpose": purpose}}}}, "handoff": {}}

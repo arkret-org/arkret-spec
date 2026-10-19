@@ -110,6 +110,7 @@ def check_approval_requirement_eligibility(lint: Lint) -> None:
         "carriers",
         "default_carrier_by_eligibility_kind",
         "action_overrides",
+        "operation_action_overrides",
     }
     if set(block) != expected_block_keys:
         lint.fail(
@@ -258,7 +259,7 @@ def check_approval_requirement_eligibility(lint: Lint) -> None:
             continue
         action = override.get("action")
         required_qualification = "ak.realm.admin" if action in {
-            "ak.applet.bot.provision", "ak.applet.ghost.provision"
+            "ak.applet.bot.provision", "ak.applet.ghost.provision", "ak.applet.configure"
         } else None
         if override.get("approver_capability_action") != required_qualification:
             lint.fail(ACTION_REGISTRY, f"approval action override {action!r} has incorrect approver capability action")
@@ -282,6 +283,23 @@ def check_approval_requirement_eligibility(lint: Lint) -> None:
             lint.fail(ACTION_REGISTRY, f"approval action override {action!r} names unknown carrier")
         elif carrier_by_id[override["carrier_id"]].get("carrier_class") != "non_event_operation":
             lint.fail(ACTION_REGISTRY, f"approval action override {action!r} must name a non_event_operation carrier")
+
+    scoped_overrides = block.get("operation_action_overrides")
+    expected_scoped = [{
+        "action": "ak.realm.admin",
+        "operation_id": "ak.self.applet.configuration.command.submit.v1",
+        "eligibility_kind": "registered_operation_carrier",
+        "carrier_id": "applet_configuration.approval_signatures",
+        "approver_capability_action": "ak.realm.admin",
+    }]
+    if scoped_overrides != expected_scoped:
+        lint.fail(ACTION_REGISTRY, "operation_action_overrides must preserve the exact Applet configuration scope-admin carrier; no global admin override")
+    for override in scoped_overrides if isinstance(scoped_overrides, list) else []:
+        if not isinstance(override, dict):
+            continue
+        carrier = carrier_by_id.get(override.get("carrier_id"), {})
+        if carrier.get("operation_id") != override.get("operation_id") or override.get("action") not in action_by_id:
+            lint.fail(ACTION_REGISTRY, "operation/action approval override does not resolve its exact reachable carrier")
 
     for action, row in action_by_id.items():
         mapping_kind = row.get("event_mapping_kind")

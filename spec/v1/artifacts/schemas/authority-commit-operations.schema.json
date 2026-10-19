@@ -125,7 +125,7 @@
     },
     "peer_submit_request": {
       "type": "object",
-      "description": "Closed peer ingress with three semantic branches. authority_forward performs first admission for one Event, one MLS Commit or one registered audit_paired_event atomic_submission. Its required/forbidden fresh producer_device_evidence or producer_agent_evidence is decided by the actual producer, reused unchanged in role from the single-Event forward contract and checked for both pair slots; both slots must have the same complete actual producer and proof key. mls_genesis_material is event/MLS Genesis-specific and forbidden on atomic_submission. committed_replication stores authorized ordinary source facts; audit-paired source Events must travel together through registered_atomic_unit. registered_atomic_unit only materializes registered source-committed units and forbids first-admission evidence. Mixed branch members and device/Agent evidence mixing are rejected. Outer canonical_hash/full_body replay and the exact inner-unit replay fence are distinct; refreshing transport-only producer evidence never authorizes a second unit acceptance. A post-genesis PCR-native Event is decided from verified inception/purpose/current root and its exact registered native accepting unit, never a sender-declared flag. Only its authenticated actual producer hosting Station may forward the exact original to the current PCR governor. The native verifier rechecks the original current device/root proof and private effects under the PCR lock. Separate ordinary-collaboration producer_device_evidence and producer_signer_fact_digest are forbidden for this native branch; their absence never authorizes an ordinary collaboration Event. Applet-managed Account Device first admission additionally requires producer_managed_provenance; ordinary Human, Agent, Service, native PCR and non-first-admission branches forbid it. The actual authenticated original source, not a tag, decides the presence rule. It enters the existing unsigned body and event_authorization body digest unchanged. Human PCR native admission remains within its owning account Station; this peer-native branch is only for eligible non-Human PCR provenance, not a remote Human PCR governor. Ordinary foreign-Human collaboration forwarding retains its own evidence contract.",
+      "description": "Closed peer ingress with three semantic branches. authority_forward performs first admission for one Event, one MLS Commit or one registered audit_paired_event atomic_submission. Its required/forbidden fresh producer_device_evidence or producer_agent_evidence is decided by the actual producer, reused unchanged in role from the single-Event forward contract and checked for both pair slots; both slots must have the same complete actual producer and proof key. mls_genesis_material is event/MLS Genesis-specific and forbidden on atomic_submission. committed_replication stores authorized ordinary source facts; audit-paired source Events must travel together through registered_atomic_unit. registered_atomic_unit only materializes registered source-committed units and forbids first-admission evidence. Mixed branch members and device/Agent evidence mixing are rejected. Outer canonical_hash/full_body replay and the exact inner-unit replay fence are distinct; refreshing transport-only producer evidence never authorizes a second unit acceptance. A post-genesis PCR-native Event is decided from verified inception/purpose/current root and its exact registered native accepting unit, never a sender-declared flag. Only its authenticated actual producer hosting Station may forward the exact original to the current PCR governor. The native verifier rechecks the original current device/root proof and private effects under the PCR lock. Separate ordinary-collaboration producer_device_evidence and producer_signer_fact_digest are forbidden for this native branch; their absence never authorizes an ordinary collaboration Event. Applet-managed Account Device first admission additionally requires producer_managed_provenance; ordinary Human, Agent, Service, native PCR and non-first-admission branches forbid it. The actual authenticated original source, not a tag, decides the presence rule. It enters the existing unsigned body and event_authorization body digest unchanged. Human PCR native admission remains within its owning account Station; this peer-native branch is only for eligible non-Human PCR provenance, not a remote Human PCR governor. Ordinary foreign-Human collaboration forwarding retains its own evidence contract. The existing eligible managed native-PCR authorize forward may carry device_scope_confirmations for the current PCR governor only. All ordinary business, Human, replication and atomic-unit branches forbid this carrier; no management-review or subject-source peer branch is added.",
       "required": [
         "branch"
       ],
@@ -527,6 +527,49 @@
                   ]
                 }
               ]
+            }
+          }
+        },
+        {
+          "properties": {
+            "event_submission": {
+              "not": {
+                "required": [
+                  "subject_managed_source"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "event_submission"
+            ],
+            "properties": {
+              "event_submission": {
+                "required": [
+                  "device_scope_confirmations"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "event_submission": {
+                "properties": {
+                  "event": {
+                    "properties": {
+                      "kind": {
+                        "const": "ak.device.authorize"
+                      }
+                    }
+                  }
+                }
+              },
+              "branch": {
+                "const": "authority_forward"
+              }
             }
           }
         }
@@ -2027,6 +2070,9 @@
         },
         "pcr_private_state": {
           "$ref": "#/$defs/pcr_private_handoff_manifest"
+        },
+        "management_private_state": {
+          "$ref": "#/$defs/management_private_handoff_manifest"
         }
       },
       "additionalProperties": false,
@@ -2126,6 +2172,29 @@
                   ]
                 }
               }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "handoff": {
+                "required": [
+                  "management_private_state_digest"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "management_private_state"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "management_private_state"
+              ]
             }
           }
         }
@@ -2680,7 +2749,7 @@
     },
     "managed_profile_current": {
       "type": "object",
-      "description": "One whole registered typed current result and the accepted Commit at its exact revision, frozen at the producer Device attestation cut. Not a new exact-current read operation or standalone portable proof.",
+      "description": "One original whole typed current result and its covering accepted Commit at the exact revision. Used at the Device forward cut or the registered operation-bound subject/review source cut. Its actual current governor and continuous handoff are independently verified; no standalone permission or generic PCR read.",
       "required": [
         "realm_id",
         "result",
@@ -2701,7 +2770,7 @@
     },
     "managed_accountability_current": {
       "type": "object",
-      "description": "One whole registered typed current result and the accepted Commit at its exact revision, frozen at the producer Device attestation cut. Not a new exact-current read operation or standalone portable proof.",
+      "description": "One original whole typed current result and its covering accepted Commit at the exact revision. Used at the Device forward cut or the registered operation-bound subject/review source cut. Its actual current governor and continuous handoff are independently verified; no standalone permission or generic PCR read.",
       "required": [
         "realm_id",
         "result",
@@ -2722,7 +2791,7 @@
     },
     "managed_identity_current": {
       "type": "object",
-      "description": "The two identity/control results needed for this producer only. Profile lives in its actual managed PCR; accountability is the exact original creation endorsement tuple and scope, never an unqualified cross-Realm search. expires_at is bounded by the Device attestation, original Device window and actual endorsement expiry. The existing source signature and event_authorization body digest bind this whole private sibling.",
+      "description": "Exactly the Profile and accountability current results for the original accepted managed Account. Source-operation freshness is independent of a Device for managed_subject; review and business forwarding additionally intersect the original Device window. Expiry never creates business authority.",
       "required": [
         "profile",
         "accountability",
@@ -2762,6 +2831,36 @@
       },
       "additionalProperties": false,
       "x-arkret-max-canonical-bytes": 1048576
+    },
+    "management_private_handoff_manifest": {
+      "type": "object",
+      "required": [
+        "realm_id",
+        "governance_generation",
+        "final_stream_heads_digest",
+        "nonce",
+        "state_digest"
+      ],
+      "properties": {
+        "realm_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_id"
+        },
+        "governance_generation": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "final_stream_heads_digest": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+        },
+        "nonce": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{22,64}$"
+        },
+        "state_digest": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+        }
+      },
+      "additionalProperties": false
     }
   }
 }

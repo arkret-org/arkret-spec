@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-18.3",
+  "version": "2026-10-19.1",
   "source_of_truth": false,
-  "generated_at": "2026-10-18T23:54:37+08:00",
+  "generated_at": "2026-10-19T16:37:31+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "description": "Canonical operation catalog for generated service operation views and transport bindings.",
@@ -354,7 +354,8 @@
         "ak.edge.applet.read.protocol_metadata.v1",
         "ak.edge.applet.managed_actor.command.author.v1",
         "ak.edge.applet.third_party_users.read.list.v1",
-        "ak.edge.applet.third_party_locations.read.list.v1"
+        "ak.edge.applet.third_party_locations.read.list.v1",
+        "ak.edge.applet.configuration.command.execute.v1"
       ],
       "surface_class": "interop_bridge"
     },
@@ -365,7 +366,8 @@
         "ak.self.applet.command.install.v1",
         "ak.self.applet.revoke.command.preview.v1",
         "ak.self.applet.command.revoke.v1",
-        "ak.self.applet.authority.read.material.v1"
+        "ak.self.applet.authority.read.material.v1",
+        "ak.self.applet.configuration.command.submit.v1"
       ],
       "surface_class": "extension"
     },
@@ -3248,7 +3250,7 @@
       "http": "POST /_arkret/self/events",
       "grpc": "SelfEvents/Submit",
       "mq": "self.events.command.submit",
-      "notes": "Submit an exact producer-signed Event, MLS Commit, ordinary Realm bootstrap unit, Direct Conversation founding unit, or membership compensation unit to the current governance Station. Ordinary bootstrap uses the registered ordered slots in one Realm stream and one all-or-nothing storage transaction; success and exact replay return the same consecutive source RealmCommits without a batch-level receipt. Direct Conversation founding is its own ordered four-Event all-or-nothing unit with a separate founding-slot fence; success and exact replay return the same four consecutive source RealmCommits, whose fourth committed_at is the sole acceptance time. No founding receipt exists. Compensation carries closed transport-only evidence and a single-use CAS. canonical_hash/full_body remains the operation replay identity for every branch; no arbitrary atomic Event batch is admitted. An Event whose kind has wire_scope actor_private_event is refused with unsupported_event_kind and zero writes; it is submitted only through its dedicated actor-private operation. Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Account, Device, scope and current installation. Existing SessionGrant paths are unchanged. The Service-signature alternative accepts only event_submission for an installed Applet exact Service terminal business child or its own child revoke, or forwarding an independently Principal-signed native successor in an accepted managed Account own PCR. This is the first Device authorize bootstrap and retained control-only path after business revocation; no Service substitution of the Principal proof, creation aggregate, human recovery, content read or general write is admitted. Transport authentication alone is never authority. Registered audit_paired_event is exactly business then audit, atomically accepted with two consecutive source Commits. Shared typed-unit execution/replay boundaries are in atomic_unit_registry. watch_audit_read is not admitted as an ordinary audit Event: use the dedicated command.",
+      "notes": "Submit an exact producer-signed Event, MLS Commit, ordinary Realm bootstrap unit, Direct Conversation founding unit, or membership compensation unit to the current governance Station. Ordinary bootstrap uses the registered ordered slots in one Realm stream and one all-or-nothing storage transaction; success and exact replay return the same consecutive source RealmCommits without a batch-level receipt. Direct Conversation founding is its own ordered four-Event all-or-nothing unit with a separate founding-slot fence; success and exact replay return the same four consecutive source RealmCommits, whose fourth committed_at is the sole acceptance time. No founding receipt exists. Compensation carries closed transport-only evidence and a single-use CAS. canonical_hash/full_body remains the operation replay identity for every branch; no arbitrary atomic Event batch is admitted. An Event whose kind has wire_scope actor_private_event is refused with unsupported_event_kind and zero writes; it is submitted only through its dedicated actor-private operation. Applet-managed Bot/Ghost Devices may use the registered applet_managed_device HTTP signature scenario, restricted to their exact Account, Device, scope and current installation. Existing SessionGrant paths are unchanged. The Service-signature alternative accepts only event_submission for an installed Applet exact Service terminal business child or its own child revoke, or forwarding an independently Principal-signed native successor in an accepted managed Account own PCR. This is the first Device authorize bootstrap and retained control-only path after business revocation; no Service substitution of the Principal proof, creation aggregate, human recovery, content read or general write is admitted. Transport authentication alone is never authority. Registered audit_paired_event is exactly business then audit, atomically accepted with two consecutive source Commits. Shared typed-unit execution/replay boundaries are in atomic_unit_registry. watch_audit_read is not admitted as an ordinary audit Event: use the dedicated command. Operation-bound Applet subject/review source, scoped Device confirmation, refresh and authenticated outcome recovery follow zh/extensions/applet-management-source.md; no identity pre-registration or generic PCR read.",
       "body_class": "non_streaming_json",
       "success_shape_kind": "schema_resource",
       "request_schema_ref": "schemas/authority-commit-operations.schema.json#/$defs/self_submit_request",
@@ -4227,7 +4229,7 @@
         "kind": "none",
         "rationale": "Read-only authorized exact material."
       },
-      "notes": "See authz/managed-governance.md; authentication does not grant business rights, unknown current fails closed.",
+      "notes": "See authz/managed-governance.md; authentication does not grant business rights, unknown current fails closed. Operation-bound Applet subject/review source, scoped Device confirmation, refresh and authenticated outcome recovery follow zh/extensions/applet-management-source.md; no identity pre-registration or generic PCR read.",
       "auth_requirements": {
         "service_signature": {
           "signature_scenario_id": "ak.http_signature.scenario.service_to_service.v1",
@@ -4252,7 +4254,7 @@
         "kind": "none",
         "rationale": "Private durable review state only; no Event, grant or membership is created."
       },
-      "notes": "See authz/managed-governance.md; authentication does not grant business rights, unknown current fails closed.",
+      "notes": "See authz/managed-governance.md; authentication does not grant business rights, unknown current fails closed. Operation-bound Applet subject/review source, scoped Device confirmation, refresh and authenticated outcome recovery follow zh/extensions/applet-management-source.md; no identity pre-registration or generic PCR read.",
       "auth_requirements": {
         "service_signature": {
           "signature_scenario_id": "ak.http_signature.scenario.service_to_service.v1"
@@ -4275,7 +4277,7 @@
         "kind": "none",
         "rationale": "Private durable review state only; no Event, grant or membership is created."
       },
-      "notes": "See authz/managed-governance.md; authentication does not grant business rights, unknown current fails closed.",
+      "notes": "See authz/managed-governance.md; authentication does not grant business rights, unknown current fails closed. Operation-bound Applet subject/review source, scoped Device confirmation, refresh and authenticated outcome recovery follow zh/extensions/applet-management-source.md; no identity pre-registration or generic PCR read.",
       "auth_requirements": {
         "service_signature": {
           "signature_scenario_id": "ak.http_signature.scenario.service_to_service.v1"
@@ -4295,7 +4297,7 @@
         "kind": "none",
         "rationale": "Read-only authorized exact material."
       },
-      "notes": "See authz/managed-governance.md; authentication does not grant business rights, unknown current fails closed.",
+      "notes": "See authz/managed-governance.md; authentication does not grant business rights, unknown current fails closed. Operation-bound Applet subject/review source, scoped Device confirmation, refresh and authenticated outcome recovery follow zh/extensions/applet-management-source.md; no identity pre-registration or generic PCR read.",
       "auth_requirements": {
         "service_signature": {
           "signature_scenario_id": "ak.http_signature.scenario.service_to_service.v1"
@@ -4550,6 +4552,48 @@
       },
       "idempotency_mechanism": "request_id",
       "retry_safe": true
+    },
+    {
+      "operation_id": "ak.self.applet.configuration.command.submit.v1",
+      "http": "POST /_arkret/self/applets/{applet_id}/configuration",
+      "grpc": "SelfManagement/AppletConfigurationSubmit",
+      "mq": "self.applet.configuration.command.submit",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "schema_resource",
+      "idempotency_mechanism": "canonical_hash",
+      "canonical_hash_input": "full_body",
+      "retry_safe": true,
+      "request_schema_ref": "schemas/applet-configuration-operations.schema.json#/$defs/request",
+      "response_schema_ref": "schemas/applet-configuration-operations.schema.json#/$defs/outcome",
+      "durable_effect": {
+        "kind": "none",
+        "rationale": "Private bounded configuration intent, result and delivery state only; no Event, account, membership or business grant is implicitly accepted."
+      },
+      "notes": "Normative: zh/extensions/applet-management-source.md. Inner intent identity survives proof refresh and response loss. Scope administrator authorization at B is not a source-Station creation grant. Old-result recovery remains authenticated; no new execution after revoke. pending is a nonterminal progress observation; re-polling the same immutable intent never executes a second source operation. Terminal source outcome bytes remain frozen while B admission status is independently observed."
+    },
+    {
+      "operation_id": "ak.edge.applet.configuration.command.execute.v1",
+      "http": "POST /_arkret/edge/applet/configuration",
+      "grpc": "EdgeApplet/AppletConfigurationExecute",
+      "mq": "edge.applet.configuration.command.execute",
+      "body_class": "non_streaming_json",
+      "success_shape_kind": "schema_resource",
+      "idempotency_mechanism": "canonical_hash",
+      "canonical_hash_input": "full_body",
+      "retry_safe": true,
+      "request_schema_ref": "schemas/applet-configuration-operations.schema.json#/$defs/execution_request",
+      "response_schema_ref": "schemas/applet-configuration-operations.schema.json#/$defs/execution_outcome",
+      "durable_effect": {
+        "kind": "none",
+        "rationale": "Private bounded configuration intent, result and delivery state only; no Event, account, membership or business grant is implicitly accepted."
+      },
+      "notes": "Normative: zh/extensions/applet-management-source.md. Inner intent identity survives proof refresh and response loss. Scope administrator authorization at B is not a source-Station creation grant. Old-result recovery remains authenticated; no new execution after revoke. pending is a nonterminal progress observation; re-polling the same immutable intent never executes a second source operation. Terminal source outcome bytes remain frozen while B admission status is independently observed.",
+      "auth_requirements": {
+        "service_signature": {
+          "signature_scenario_id": "ak.http_signature.scenario.service_to_service.v1",
+          "bearer_only_allowed": false
+        }
+      }
     }
   ],
   "direct_conversation_admission_mappings": {
@@ -5359,6 +5403,10 @@
           "binding_kind": "http_json"
         },
         {
+          "operation_id": "ak.edge.applet.configuration.command.execute.v1",
+          "binding_kind": "http_json"
+        },
+        {
           "operation_id": "ak.edge.applet.managed_actor.command.author.v1",
           "binding_kind": "http_json"
         },
@@ -5430,6 +5478,10 @@
         },
         {
           "operation_id": "ak.self.applet.command.revoke.v1",
+          "binding_kind": "http_json"
+        },
+        {
+          "operation_id": "ak.self.applet.configuration.command.submit.v1",
           "binding_kind": "http_json"
         },
         {

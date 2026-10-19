@@ -1,0 +1,324 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arkret.org/v1/schemas/applet-configuration-operations.schema.json",
+  "title": "Arkret Applet Bounded Configuration Operations",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/request"
+    },
+    {
+      "$ref": "#/$defs/outcome"
+    },
+    {
+      "$ref": "#/$defs/execution_request"
+    },
+    {
+      "$ref": "#/$defs/execution_outcome"
+    }
+  ],
+  "$defs": {
+    "selection": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "const": "new_bot"
+            },
+            "display_name": {
+              "$ref": "./string-profiles.schema.json#/$defs/display_text_256"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "kind",
+            "account_id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "existing_account"
+            },
+            "account_id": {
+              "$ref": "./common-ids.schema.json#/$defs/account_id"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "intent": {
+      "type": "object",
+      "required": [
+        "request_id",
+        "effective_scope",
+        "selection"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "./realm-join-intake.schema.json#/$defs/request_id"
+        },
+        "effective_scope": {
+          "$ref": "./applet-install-plan.schema.json#/$defs/effective_scope"
+        },
+        "selection": {
+          "$ref": "#/$defs/selection"
+        }
+      },
+      "additionalProperties": false
+    },
+    "request": {
+      "type": "object",
+      "required": [
+        "command",
+        "intent"
+      ],
+      "properties": {
+        "command": {
+          "enum": [
+            "configure",
+            "cancel",
+            "recover"
+          ]
+        },
+        "intent": {
+          "$ref": "#/$defs/intent"
+        },
+        "approval_signatures": {
+          "type": "array",
+          "items": {
+            "$ref": "./approval-signature.schema.json"
+          },
+          "minItems": 1,
+          "maxItems": 64
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-max-canonical-bytes": 262144
+    },
+    "execution_intent": {
+      "type": "object",
+      "required": [
+        "request_id",
+        "applet_id",
+        "service_id",
+        "governance_station_id",
+        "governance_generation",
+        "effective_scope",
+        "registration_ref",
+        "registration_epoch",
+        "originating_actor_id",
+        "selection"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "./realm-join-intake.schema.json#/$defs/request_id"
+        },
+        "applet_id": {
+          "$ref": "./common-ids.schema.json#/$defs/applet_id"
+        },
+        "service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "governance_station_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "governance_generation": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        },
+        "effective_scope": {
+          "$ref": "./applet-install-plan.schema.json#/$defs/effective_scope"
+        },
+        "registration_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "registration_epoch": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+        },
+        "originating_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/actor_id",
+          "properties": {
+            "kind": {
+              "const": "account"
+            }
+          }
+        },
+        "selection": {
+          "$ref": "#/$defs/selection"
+        }
+      },
+      "additionalProperties": false
+    },
+    "execution_request": {
+      "type": "object",
+      "required": [
+        "command",
+        "intent",
+        "governance_station_id",
+        "governance_generation",
+        "issued_at",
+        "expires_at",
+        "proof"
+      ],
+      "properties": {
+        "command": {
+          "enum": [
+            "configure",
+            "cancel",
+            "recover"
+          ]
+        },
+        "intent": {
+          "$ref": "#/$defs/execution_intent"
+        },
+        "governance_station_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "governance_generation": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 18446744073709551615
+        },
+        "issued_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "expires_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "proof": {
+          "$ref": "./applet-management-source.schema.json#/$defs/signature"
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-signature-domain": "ak.applet.configuration_command.v1",
+      "x-arkret-max-canonical-bytes": 262144
+    },
+    "execution_outcome": {
+      "type": "object",
+      "required": [
+        "request_id",
+        "intent_digest",
+        "service_id",
+        "status",
+        "evaluated_at",
+        "proof"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "./realm-join-intake.schema.json#/$defs/request_id"
+        },
+        "intent_digest": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+        },
+        "service_id": {
+          "$ref": "./common-ids.schema.json#/$defs/did_core_id"
+        },
+        "status": {
+          "enum": [
+            "pending",
+            "created",
+            "reused",
+            "denied",
+            "cancelled"
+          ]
+        },
+        "subject_account_id": {
+          "$ref": "./common-ids.schema.json#/$defs/account_id"
+        },
+        "creation_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+          },
+          "minItems": 4,
+          "maxItems": 4
+        },
+        "evaluated_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "proof": {
+          "$ref": "./applet-management-source.schema.json#/$defs/signature"
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "enum": [
+                  "created",
+                  "reused"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "subject_account_id",
+              "creation_refs"
+            ]
+          },
+          "else": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "subject_account_id"
+                  ]
+                },
+                {
+                  "required": [
+                    "creation_refs"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "x-arkret-signature-domain": "ak.applet.configuration_outcome.v1",
+      "x-arkret-max-canonical-bytes": 262144
+    },
+    "outcome": {
+      "type": "object",
+      "required": [
+        "request_id",
+        "intent_digest",
+        "admission_status"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "./realm-join-intake.schema.json#/$defs/request_id"
+        },
+        "intent_digest": {
+          "$ref": "./account-operations.schema.json#/$defs/sha256_digest"
+        },
+        "source_outcome": {
+          "$ref": "#/$defs/execution_outcome"
+        },
+        "admission_status": {
+          "enum": [
+            "not_started",
+            "pending",
+            "accepted",
+            "denied",
+            "cancelled"
+          ]
+        },
+        "review_request_id": {
+          "$ref": "./realm-join-intake.schema.json#/$defs/request_id"
+        }
+      },
+      "additionalProperties": false,
+      "x-arkret-max-canonical-bytes": 262144
+    }
+  }
+}

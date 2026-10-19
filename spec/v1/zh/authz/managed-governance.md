@@ -3,7 +3,7 @@ title: Realm 用户、Agent 与 Applet 精细治理
 status: candidate
 normative: true
 stability: v1
-updated: 2026-10-17
+updated: 2026-10-19
 ---
 
 ## 0. 规范语言与载体
@@ -71,8 +71,8 @@ Bot／Ghost 本人 Realm join 使用原签 `ak.member.state`；本人 Circle joi
 `ak.circle.member.state`（`member_id == actor_id`、`membership="join"`、exact Circle scope），
 两者的管理操作均为 join、治理 action 均为 `ak.applet.join`，不推断 Agent ownership。
 机器动作映射对 `ak.applet.join` 登记 `applet_managed_self_join` 上下文检查；它是额外管理／治理门，
-+MUST NOT 被当作普通 Circle Event 的无条件动作备选。
-+Circle join 还 MUST 独立满足 [circle §8／§9.1](../models/circle.md) 的实际 `ak.circle.member.add`、
+MUST NOT 被当作普通 Circle Event 的无条件动作备选。
+Circle join 还 MUST 独立满足 [circle §8／§9.1](../models/circle.md) 的实际 `ak.circle.member.add`、
 合法 join rule／FSM 与原签 `parent_membership_revision`；`authorization_ref` 选择真实 Service 签发的
 本人 terminal child，Service parent／祖先的持续上界与原 quota 依 §4 求 AND，不能换成安装引用或管理员许可。
 同一 exact Circle 的原 Device pair MUST 包含 `ak.applet.join` 与 `ak.circle.member.add`；管理允许或批准
@@ -189,3 +189,12 @@ management ApprovalSignature 的 context.request_id 必须命中同一可见 pen
 误合入的 client-pull、Service 同 core Applet Account 与专用 invocation/result/relay 合同已撤回；
 不保留可选 transport、exchange/cancel、专用消息块／proof domain 或 invoke capability。业务使用实际动作授权，
 内容使用具体 Bot／Ghost Device 的原生 MLS／Blob 通道。AK-NC-083／084／085 仅保留失效编号记录，不构成有效协议要求。
+
+## 7. 外站来源与创建归属
+
+[Applet账号来源](../extensions/applet-management-source.md)是跨站配置、subject／review来源、B→S确认、续证与交接的唯一细化。
+create_bot／map_ghost只约束实际来源scope；B的限定配置命令经原操作者ak.realm.admin及全部原约束核验，
+不审批S创世，B按具体join／publish接纳。自动Ghost一次范围许可与逐次机器核权、单候选review分开。
+§3任一绑定变化不包括仅更新传输来源nonce／签名时间；同request续证不改原intent或TTL，实际批准依据变化仍superseded。
+来源不可用暂停新批准／接纳；按原身份和权限取消／拒绝不要求新鲜来源，当前真实认证的原请求人仍可恢复terminal／consumed结果；不接受过期HTTP或撤销身份。
+Service child producer=C、subject=managed Account，限定附件不要求先有Device／child／membership，来源验证不附赠业务权。

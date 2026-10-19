@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-19.5",
+  "version": "2026-10-19.6",
   "source_of_truth": true,
-  "generated_at": "2026-10-19T09:37:17+08:00",
+  "generated_at": "2026-10-19T16:37:31+08:00",
   "description": "Canonical registry of conformance vector identifiers. Every ak.vector.* identifier referenced by prose or fixtures MUST appear here, and every row MUST point at the prose or fixture source that defines it.",
   "vectors": [
     {
@@ -5310,6 +5310,19 @@
       "source_refs": [
         "spec/v1/zh/discovery/read-receipts.md",
         "spec/v1/artifacts/fixtures/read-receipt-scope-policy-fixture.json"
+      ]
+    },
+    {
+      "vector_id": "ak.vector.applet.management_source.v1",
+      "status": "active",
+      "domain": "applet",
+      "applies_to_fixtures": [
+        "applet-management-source-fixture.json"
+      ],
+      "description": "Operation-bound source, exact scope confirmation, bounded B-to-C configuration, private recovery and MR/CR reference models with real Ed25519 outer transcript KATs; no native-chain or production acceptance claim.",
+      "source_refs": [
+        "spec/v1/zh/extensions/applet-management-source.md",
+        "spec/v1/artifacts/fixtures/applet-management-source-fixture.json"
       ]
     }
   ]

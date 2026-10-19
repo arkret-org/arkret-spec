@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-19.1",
-  "generated_at": "2026-10-19T07:39:22+08:00",
+  "version": "2026-10-19.2",
+  "generated_at": "2026-10-19T16:37:31+08:00",
   "sdk_conformance_contract": {
     "contract_version": "1",
     "claim_required_fields": [
@@ -4176,7 +4176,8 @@
           "epoch_binding": "constraint.registration_epoch_exact_registration",
           "requested_action_binding": "grant.action_in_registration.requested_scopes"
         }
-      ]
+      ],
+      "management_source_contract_must": "Apply zh/extensions/applet-management-source.md and ak.vector.applet.management_source.v1: S creates/B admits, bounded configuration, exact subject/review source, finite Device scope confirmation, no identity pre-registration, private atomic recovery and current-state gates. Required operations belong to the existing Applet installation/edge bundles; no production claim follows from schema or fixture validation."
     },
     "ak.profile.applet_bridge.v1": {
       "enforcement_phases": [
@@ -4248,7 +4249,8 @@
           "external_event_deduplication"
         ],
         "unsupported_optional": "return unsupported_feature"
-      }
+      },
+      "management_source_contract_must": "Apply zh/extensions/applet-management-source.md and ak.vector.applet.management_source.v1: S creates/B admits, bounded configuration, exact subject/review source, finite Device scope confirmation, no identity pre-registration, private atomic recovery and current-state gates. Required operations belong to the existing Applet installation/edge bundles; no production claim follows from schema or fixture validation."
     },
     "ak.profile.applet_delegated.v1": {
       "enforcement_phases": [

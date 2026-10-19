@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-15.1",
+  "version": "2026-10-19.1",
   "source_of_truth": false,
-  "generated_at": "2026-10-15T00:03:54.731859+00:00",
+  "generated_at": "2026-10-19T16:37:31+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "registry_rules": [
@@ -1806,6 +1806,18 @@
       "file": "schemas/consent-private-operations.schema.json",
       "status": "active",
       "description": "Closed six-command private holder-hosting proxy to the PCR authority; no generic transaction or synthetic Event."
+    },
+    {
+      "schema_id": "ak.schema.applet_management_source.v1",
+      "status": "active",
+      "file": "schemas/applet-management-source.schema.json",
+      "description": "Operation-bound managed subject/review provenance and exact Device scope confirmation"
+    },
+    {
+      "schema_id": "ak.schema.applet_configuration_operations.v1",
+      "status": "active",
+      "file": "schemas/applet-configuration-operations.schema.json",
+      "description": "Bounded administrator configuration command, B-to-C execution and source result"
     }
   ],
   "metadata_authority": "contract_registry_section"

@@ -341,3 +341,6 @@ MUST 同批推进该 inventory，并由门禁对当前正文重新求全集，�
 不再属于 current v1，且必须同批清除仍断言它的 canonical registry、schema、fixture 与 operation。
 仅仅找不到机器引用，不构成删除依据；反过来，机器工件仍引用该义务时也不得把锚点改指语义不同的邻节
 来换取门禁通过。
+
+Applet跨站配置与来源使用 `ak.schema.applet_management_source.v1`（schemas/applet-management-source.schema.json）及
+`ak.schema.applet_configuration_operations.v1`（schemas/applet-configuration-operations.schema.json）；它们只由既有窄入口／配置operation引用。

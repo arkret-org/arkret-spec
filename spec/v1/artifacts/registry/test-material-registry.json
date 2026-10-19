@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-19.1",
+  "version": "2026-10-19.2",
   "source_of_truth": true,
-  "generated_at": "2026-10-19T07:30:10+08:00",
+  "generated_at": "2026-10-19T16:37:31+08:00",
   "description": "Canonical test signing material, reserved identifiers, and the closed role inventory for every concrete did:webvh identity example in artifacts and normative prose. Identity roles are exactly test_material, deployment_like_example, and derived_positive; only test_material enters the reserved namespace. Derived positives bind recomputable fixture pointers.",
   "rules": [
     "published_signing_material[].fingerprint is sha256 over the ALGORITHM-DEFINED public key encoding named by public_key_encoding, never over JWK, multibase, PEM or any JSON text. The same public key carried under a different kid, DID, JWK member order or transport encoding MUST produce the same fingerprint.",
@@ -797,6 +797,13 @@
       ]
     },
     {
+      "value": "did:webvh:z6mkfixtureapplet:applet.example#fixture",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/applet-management-source-fixture.json"
+      ]
+    },
+    {
       "value": "did:webvh:z6mkfixtureappletexample:applet.example",
       "role": "test_material",
       "sources": [
@@ -853,6 +860,13 @@
       ]
     },
     {
+      "value": "did:webvh:z6mkfixturecolandexample:coland.example#federation-fanout-key",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/redaction-fixture.json"
+      ]
+    },
+    {
       "value": "did:webvh:z6mkfixturegovacmeexample:gov.acme.example#gov-signing-key-1",
       "role": "deployment_like_example",
       "sources": [
@@ -864,6 +878,13 @@
       "role": "test_material",
       "sources": [
         "spec/v1/artifacts/fixtures/signer-key-historical-coordinate-fixture.json"
+      ]
+    },
+    {
+      "value": "did:webvh:z6mkfixturegovernor:governor.example#fixture",
+      "role": "deployment_like_example",
+      "sources": [
+        "spec/v1/artifacts/fixtures/applet-management-source-fixture.json"
       ]
     },
     {
@@ -965,13 +986,6 @@
       "sources": [
         "spec/v1/artifacts/fixtures/did-webvh-witness-fixture.json",
         "spec/v1/artifacts/fixtures/organization-registration-fixture.json"
-      ]
-    },
-    {
-      "value": "did:webvh:z6mkfixturecolandexample:coland.example#federation-fanout-key",
-      "role": "deployment_like_example",
-      "sources": [
-        "spec/v1/artifacts/fixtures/redaction-fixture.json"
       ]
     },
     {

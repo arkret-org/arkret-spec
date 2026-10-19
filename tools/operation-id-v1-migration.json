@@ -12,6 +12,10 @@
       "new": "ak.edge.applet.command.transaction.v1"
     },
     {
+      "old": "ak.edge.applet.configuration.command.execute",
+      "new": "ak.edge.applet.configuration.command.execute.v1"
+    },
+    {
       "old": "ak.edge.applet.managed_actor.command.author",
       "new": "ak.edge.applet.managed_actor.command.author.v1"
     },
@@ -510,6 +514,10 @@
     {
       "old": "ak.self.applet.command.revoke",
       "new": "ak.self.applet.command.revoke.v1"
+    },
+    {
+      "old": "ak.self.applet.configuration.command.submit",
+      "new": "ak.self.applet.configuration.command.submit.v1"
     },
     {
       "old": "ak.self.applet.ghost.command.preview",

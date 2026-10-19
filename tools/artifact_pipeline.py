@@ -1416,6 +1416,7 @@ def cmd_check(_: argparse.Namespace) -> int:
         return verdict("check", ["pre-lint pipeline"])
     print_contract_status()
     runners = {
+        "applet_management_source_contract": lambda: subprocess.run([sys.executable, "-m", "tools.test_applet_management_source"], cwd=ROOT).returncode,
         "applet_device_scope_contract": lambda: subprocess.run([sys.executable, "-m", "tools.test_applet_device_scope_contract"], cwd=ROOT).returncode,
         "managed_governance_contract": lambda: subprocess.run([sys.executable, "-m", "tools.test_managed_governance_contract"], cwd=ROOT).returncode,
         "authority_commit_protocol": lambda: subprocess.run([sys.executable, "-m", "tools.test_authority_commit_protocol"], cwd=ROOT).returncode,

@@ -76,6 +76,7 @@ grpc:
       ThirdPartyLocations: ak.edge.applet.third_party_locations.read.list.v1
       ThirdPartyUsers: ak.edge.applet.third_party_users.read.list.v1
       Transaction: ak.edge.applet.command.transaction.v1
+      AppletConfigurationExecute: ak.edge.applet.configuration.command.execute.v1
     SelfApplet:
       InstallPreview: ak.self.applet.install.command.preview.v1
       Install: ak.self.applet.command.install.v1
@@ -333,6 +334,7 @@ grpc:
       Management_ReviewCommandRequest: ak.self.management_review.command.request.v1
       Management_ReviewCommandDecide: ak.self.management_review.command.decide.v1
       Management_ReviewReadStatus: ak.self.management_review.read.status.v1
+      AppletConfigurationSubmit: ak.self.applet.configuration.command.submit.v1
 mq:
   envelope:
     required:
@@ -571,6 +573,8 @@ mq:
     self.management_review.command.request: ak.self.management_review.command.request.v1
     self.management_review.command.decide: ak.self.management_review.command.decide.v1
     self.management_review.read.status: ak.self.management_review.read.status.v1
+    self.applet.configuration.command.submit: ak.self.applet.configuration.command.submit.v1
+    edge.applet.configuration.command.execute: ak.edge.applet.configuration.command.execute.v1
 libp2p:
   envelope:
     required:

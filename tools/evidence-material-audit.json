@@ -1,12 +1,12 @@
 {
-  "version": 39,
+  "version": 40,
   "source_of_truth": false,
   "narrative_source": "spec/v1/zh/models/common-fields.md#r6-证据类名词分工",
   "scope": [
     "spec/v1/artifacts/schemas/*.json",
     "spec/v1/artifacts/registry/*.json"
   ],
-  "audited_occurrence_count": 411,
+  "audited_occurrence_count": 413,
   "registrations": [
     {
       "file": "account-device-signer-evidence.schema.json",
@@ -442,7 +442,7 @@
     {
       "file": "capability-action-registry.json",
       "key": "evidence_schema_ref",
-      "occurrences": 3,
+      "occurrences": 4,
       "disposition": "registry_contract",
       "reason": "Names the closed approval evidence item schema required by one registered request carrier; this is carrier metadata, not an evidence instance."
     },
@@ -568,7 +568,7 @@
     {
       "file": "contract-registry.json",
       "key": "evidence_schema_ref",
-      "occurrences": 4,
+      "occurrences": 5,
       "disposition": "registry_contract",
       "reason": "Names the closed approval evidence item schema required by one registered request carrier; this is carrier metadata, not an evidence instance. Also names the existing forward-only closed real Account Device carrier; the source applicability metadata discloses no PCR or additional directory result."
     },

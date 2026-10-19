@@ -1,7 +1,7 @@
 {
-  "version": 4,
+  "version": 5,
   "source_of_truth": false,
-  "generated_at": "2026-10-14T23:51:58.742390+00:00",
+  "generated_at": "2026-10-19T16:37:31+08:00",
   "description": "Closed inventory of schema field names intentionally mentioned by operation notes although they are not members of that operation's request or response schema closure. The lint requires every entry to remain exercised and rejects every unregistered cross-object mention.",
   "operations": {
     "ak.gate.account.command.finalize_device_pairing.v1": [
@@ -99,8 +99,7 @@
       "push_route"
     ],
     "ak.self.applet.command.revoke.v1": [
-      "expected_revision",
-      "registration_epoch"
+      "expected_revision"
     ],
     "ak.self.applet.ghost.command.provision.v1": [
       "authoring_context"

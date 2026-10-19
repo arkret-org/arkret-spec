@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-18.2",
+  "version": "2026-10-19.1",
   "source_of_truth": true,
   "description": "Closed outward-exposure decision for every event kind admitted into a Principal Control Realm. ak.profile.principal_control_realm.v1 realm_event_kind_policy.allowed_event_kinds closes the write direction; this registry closes the read direction. A kind with an empty exposures[] is PCR-private and MUST NOT be reachable through any ak.open.* / ak.peer.* / cross-principal ak.self.* surface or public DID Document entry. A kind with exposures[] declares every path by which it legitimately leaves the Realm, each with its carrier form, exact schema location and gating authorization policy. Adding an outward path without registering it here is a release-gate failure, not an implementation detail.",
   "registry_rules": [
@@ -78,6 +78,10 @@
     {
       "policy_id": "ak.pcr_exposure_policy.current_pcr_effect_publication.v1",
       "description": "Only verified transferable non-Human PCR provenance under the PCR profile pcr_governance_policy is eligible; Human rejects without effects. Only the independently verified current authority of the exact holder inception PCR publishes the closed three private-effect cells to that holder hosting Station. Source/generation/window/head/cell high-water and equal-revision content bind the projection. No peer history, human disclosure, second business acceptance or arbitrary key is authorized."
+    },
+    {
+      "policy_id": "ak.pcr_exposure_policy.applet_operation_source.v1",
+      "description": "Exact accepted C/S managed Account operation source: current authorized owning Service, exact subject and purpose, candidate binding, bounded private audit only; no generic PCR read or source preregistration."
     }
   ],
   "anti_enumeration_policies": [
@@ -558,6 +562,42 @@
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.planned_handoff_participant.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "derived_field",
+          "surface": "operation",
+          "operation_id": "ak.self.applet.authority.read.material.v1",
+          "direction": "response",
+          "schema_ref": "schemas/applet-authority-material.schema.json#/$defs/outcome",
+          "json_pointers": [
+            "/$defs/outcome/oneOf/1/properties/managed_source"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.applet_operation_source.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "derived_field",
+          "surface": "operation",
+          "operation_id": "ak.self.management_review.command.request.v1",
+          "direction": "request",
+          "schema_ref": "schemas/management-review-operations.schema.json#/$defs/request",
+          "json_pointers": [
+            "/$defs/request/properties/managed_source"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.applet_operation_source.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.applet.authority.read.material.v1",
+          "direction": "request",
+          "schema_ref": "schemas/applet-authority-material.schema.json#/$defs/request",
+          "json_pointers": [
+            "/$defs/request/oneOf/0/properties/device_scope_request"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.applet_operation_source.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
         }
       ]
     },
@@ -697,6 +737,42 @@
             "/$defs/handoff_request/properties/snapshot"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.planned_handoff_participant.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.applet.authority.read.material.v1",
+          "direction": "response",
+          "schema_ref": "schemas/applet-authority-material.schema.json#/$defs/outcome",
+          "json_pointers": [
+            "/$defs/outcome/oneOf/1/properties/managed_source"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.applet_operation_source.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.management_review.command.request.v1",
+          "direction": "request",
+          "schema_ref": "schemas/management-review-operations.schema.json#/$defs/request",
+          "json_pointers": [
+            "/$defs/request/properties/managed_source"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.applet_operation_source.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "direction": "request",
+          "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission",
+          "json_pointers": [
+            "/$defs/EventAdmissionSubmission/properties/subject_managed_source"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.applet_operation_source.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
         }
       ]
@@ -897,6 +973,42 @@
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.planned_handoff_participant.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.applet.authority.read.material.v1",
+          "direction": "response",
+          "schema_ref": "schemas/applet-authority-material.schema.json#/$defs/outcome",
+          "json_pointers": [
+            "/$defs/outcome/oneOf/1/properties/managed_source"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.applet_operation_source.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.management_review.command.request.v1",
+          "direction": "request",
+          "schema_ref": "schemas/management-review-operations.schema.json#/$defs/request",
+          "json_pointers": [
+            "/$defs/request/properties/managed_source"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.applet_operation_source.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "direction": "request",
+          "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission",
+          "json_pointers": [
+            "/$defs/EventAdmissionSubmission/properties/subject_managed_source"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.applet_operation_source.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
         }
       ]
     },
@@ -937,6 +1049,42 @@
             "/$defs/handoff_request/properties/snapshot"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.planned_handoff_participant.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "derived_field",
+          "surface": "operation",
+          "operation_id": "ak.self.applet.authority.read.material.v1",
+          "direction": "response",
+          "schema_ref": "schemas/applet-authority-material.schema.json#/$defs/outcome",
+          "json_pointers": [
+            "/$defs/outcome/oneOf/1/properties/managed_source"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.applet_operation_source.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "derived_field",
+          "surface": "operation",
+          "operation_id": "ak.self.management_review.command.request.v1",
+          "direction": "request",
+          "schema_ref": "schemas/management-review-operations.schema.json#/$defs/request",
+          "json_pointers": [
+            "/$defs/request/properties/managed_source"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.applet_operation_source.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "derived_field",
+          "surface": "operation",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "direction": "request",
+          "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission",
+          "json_pointers": [
+            "/$defs/EventAdmissionSubmission/properties/subject_managed_source"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.applet_operation_source.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
         }
       ]
@@ -1013,6 +1161,42 @@
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.planned_handoff_participant.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.applet.authority.read.material.v1",
+          "direction": "response",
+          "schema_ref": "schemas/applet-authority-material.schema.json#/$defs/outcome",
+          "json_pointers": [
+            "/$defs/outcome/oneOf/1/properties/managed_source"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.applet_operation_source.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.management_review.command.request.v1",
+          "direction": "request",
+          "schema_ref": "schemas/management-review-operations.schema.json#/$defs/request",
+          "json_pointers": [
+            "/$defs/request/properties/managed_source"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.applet_operation_source.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "direction": "request",
+          "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission",
+          "json_pointers": [
+            "/$defs/EventAdmissionSubmission/properties/subject_managed_source"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.applet_operation_source.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
         }
       ]
     },
@@ -1051,6 +1235,42 @@
             "/$defs/peer_submit_request/properties/event_submission"
           ],
           "authorization_policy_id": "ak.pcr_exposure_policy.current_pcr_native_forward.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.applet.authority.read.material.v1",
+          "direction": "response",
+          "schema_ref": "schemas/applet-authority-material.schema.json#/$defs/outcome",
+          "json_pointers": [
+            "/$defs/outcome/oneOf/1/properties/managed_source"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.applet_operation_source.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.management_review.command.request.v1",
+          "direction": "request",
+          "schema_ref": "schemas/management-review-operations.schema.json#/$defs/request",
+          "json_pointers": [
+            "/$defs/request/properties/managed_source"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.applet_operation_source.v1",
+          "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
+        },
+        {
+          "carrier": "exact_event",
+          "surface": "operation",
+          "operation_id": "ak.self.events.command.submit.v1",
+          "direction": "request",
+          "schema_ref": "schemas/service-operation-dtos.schema.json#/$defs/EventAdmissionSubmission",
+          "json_pointers": [
+            "/$defs/EventAdmissionSubmission/properties/subject_managed_source"
+          ],
+          "authorization_policy_id": "ak.pcr_exposure_policy.applet_operation_source.v1",
           "anti_enumeration_policy_id": "ak.pcr_anti_enumeration.indistinguishable_not_found.v1"
         }
       ]
@@ -1143,5 +1363,5 @@
       ]
     }
   ],
-  "generated_at": "2026-10-18T23:54:37+08:00"
+  "generated_at": "2026-10-19T16:37:31+08:00"
 }
