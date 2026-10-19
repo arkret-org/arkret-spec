@@ -17,6 +17,10 @@ Agent Sidecar（`ak:sidecar:`）是绑定到一个 `(realm_id, controller_accoun
 它是一等协议对象和原生安全 scope，不是 Circle、Circle profile、Direct Conversation、Strand Track，
 也不是某个 Agent 的 1:1 会话。
 
+与 Realm / Circle / Space / Strand 的设置关系见
+[`scope-settings.md`](../governance/scope-settings.md)。Sidecar 的固定私有／MLS 合同不从 source
+Strand、Circle 或 Realm-default 继承；所属 Realm 的有效资格、生命周期与适用管理门仍须满足。
+
 用户从 Contacts/Direct Messages 产品面点击自己的 Agent 时，客户端 MUST 使用
 [`ak.self.direct_conversation.read.resolve.v1`](../identity/contact-and-direct-conversation.md#91-resolver-状态)
 定位 `{controller, agent}` 的独立双成员 Direct Conversation Realm；尚不存在时由 controller 按

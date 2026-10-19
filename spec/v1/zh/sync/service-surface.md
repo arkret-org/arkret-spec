@@ -242,6 +242,10 @@ moderation lift 必须取得 `present`。任何 CAS 冲突都要求重新读取�
 
 MLS 未激活的 scope 是明文 scope，治理 Station可见内容；这必须向用户披露。MLS 激活后治理 Station仍可见 sender、scope、时间、大小、routing 和 group churn，但不持有 group secret。Directory、Push 与未授权投影服务不得接收正文。
 
+Sidecar 固定要求独立 MLS，未完成激活／readiness 不提供明文业务降级。Realm 明文服务名单的唯一作者、
+exact scope 授权与合法内容交付的组合，以及不授予 Circle / Sidecar / account-private 读取或历史密钥的边界，
+统一见 [`scope-settings.md` §5](../governance/scope-settings.md#5-明文服务的跨-scope-适用边界)。
+
 ## 6. Search / Projection Semantics
 
 搜索、inbox、notification 与 View 默认是 own-Station 或客户端派生结果。任何远端投影都必须标明其来源 committed refs 与可见性边界，且不能成为 authority。

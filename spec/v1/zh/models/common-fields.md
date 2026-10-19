@@ -762,7 +762,7 @@ suite-tagged 完整 digest token，此外 `ak:trust_domain:` 是 deployment-scop
 - **`<axis>_profile`**：v1 协议级**固定选项**（create-locked 或 reducer-enforced 收敛），值是封闭 enum 字符串（`"mls_rfc9420"` / `"quorum"` / ...）。schema 内联约束，无需引用独立对象。Event／RealmCommit 的 content-address suite 不是 profile 字段，而是 current-v1 全局固定合同。
 - **`<axis>_policy`**：v1 协议级**软策略字段**，值仍是 enum 字符串（`"open"` / `"restricted"` / `"closed"` / `"quarantine"` 等），但描述运行时执行策略，与其他 typed current result state 有交互。同样内联，不通过引用对象。
 - **`<axis>_policy_id`**：指向独立 Policy 对象（`ak:policy:<uuid>`）的 ID，pattern `^ak:policy:[0-9a-f]{8}-...`。Policy 对象自身有 schema 与版本，可以被多个对象共享、被 governance event 修订。独立对象用于：(a) 跨对象复用、(b) 大体积或频繁变更、(c) 需要独立审计 / 签名链。
-- **`<axis>_floor`**：某条加密 / 隐私轴上的**下限**字段，值与对应 `<axis>_profile` 取同一封闭 enum，但语义是"只能向上收紧、MUST NOT 放宽继承到的上游基线"。它用于真实子作用域（Circle）声明比父 Realm 更严格的下限；authorization-transparent 的 Space 只表达 placement 谓词，不承载 floor 值。effective 值取上游 `_profile` 与各 scope `_floor` 的更严格者（见 [`circle.md` §7](./circle.md)）。
+- **`_floor` 不构成通用加密／隐私策略轴**：current-v1 不定义 Realm encryption profile 与 Circle encryption / metadata floor 的继承或取严算法。Realm-default / Circle 分别由自己的 Genesis 激活 MLS，Sidecar 固定独立 MLS；Space 只表达 placement 谓词。已登记 `readable_floor` 等历史读取下界按其专章定义，不能据后缀推导其它 floor 字段或策略传播；设置矩阵见 [`scope-settings.md`](../governance/scope-settings.md)。
 
 判定流程：写新字段时若是**封闭 enum**（值集已知、协议级固定）用 `_profile` 或 `_policy`；若是**指向 Policy 对象**用 `_policy_id`；不得在同一对象上同时定义 `xxx_policy` 与 `xxx_policy_id` 表示同一个轴。若字段引用的是"授权该决策的 policy revision Event"，使用带 event 语义的 `_ref` 名称，例如 `policy_event_ref`，不得与 `policy_id` 混用。
 

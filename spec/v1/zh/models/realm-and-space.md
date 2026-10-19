@@ -25,6 +25,10 @@ updated: 2026-09-15
 
 Realm 之间只允许显式 link graph（governance / discoverability / import-export / confidential-extension 等关系），详见 [`realm-links.md`](./realm-links.md)。Space 层级与跨 Realm 导航见 [`space-hierarchy.md`](./space-hierarchy.md)。
 
+Realm 治理域与 Realm-default 内容 scope 的区别，以及 Realm / Circle / Sidecar / Space / Strand 的
+设置继承、上限求交、资格约束、retention / legal hold 与明文服务适用矩阵，统一见
+[`scope-settings.md`](../governance/scope-settings.md)。嵌套或导航关系不构成通用策略继承。
+
 公共字段、lifecycle、reducer 总则见 [`common-fields.md`](./common-fields.md)。
 
 ## 2. Realm
@@ -48,8 +52,9 @@ Realm 之间只允许显式 link graph（governance / discoverability / import-e
 
 ### 2.2 Realm 与 MLS group
 
-Realm 创建时没有加密 profile、content scheme 或 encryption floor。每个 scope 初始为 plaintext；首个
-accepted `ak.mls.genesis` 将该 scope 不可逆地激活为 standard RFC 9420。
+Realm 创建时没有加密 profile、content scheme 或 encryption floor。Realm-default 与每个 Circle
+初始为 plaintext；各自首个 accepted `ak.mls.genesis` 将该 scope 不可逆地激活为 standard RFC 9420。
+Sidecar 固定要求自己的独立 MLS，未完成激活／readiness 时不提供明文业务降级。
 
 **canonical effective scope key bytes（normative）**：`effective_scope` 是 `realm` / `circle` / `sidecar`
 三分支封闭 `oneOf`，它的 canonical key bytes 固定为

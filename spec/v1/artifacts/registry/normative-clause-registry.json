@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-19.1",
+  "version": "2026-10-19.2",
   "source_of_truth": true,
-  "generated_at": "2026-10-19T07:06:57+08:00",
+  "generated_at": "2026-10-19T11:47:58+08:00",
   "description": "Canonical reverse-coverage registry for testable normative clauses. Each row pins one protocol obligation to a stable clause_id, an exact prose anchor, a digest of that section's current text, and the evidence that proves it. It closes the direction vector-registry.json cannot: from prose obligation to executable proof. See spec/v1/zh/conformance/conformance-suite.md section 2.",
   "coverage_scope": {
     "included_categories": [
@@ -119,7 +119,7 @@
       "status": "active",
       "category": "wire",
       "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#23-应用载荷加密",
-      "section_digest": "sha256:142c5425068c863b0def0c9207ff7c67a5414e3674b5f7272373f443ff3a0f42",
+      "section_digest": "sha256:cfad8344affe2fecdcbfe52f282aa9d9e1583625df33bc90d16090157dc36724",
       "requirement": "Encrypted envelopes carry a pre-encryption immutable header; AAD digest and ciphertext digest are computed over fixed transcripts and any mismatch MUST fail closed.",
       "testability_grade": "vector",
       "evidence_refs": [
@@ -185,7 +185,7 @@
       "status": "active",
       "category": "security",
       "source_anchor": "spec/v1/zh/crypto-media/encryption-and-audit.md#23-应用载荷加密",
-      "section_digest": "sha256:142c5425068c863b0def0c9207ff7c67a5414e3674b5f7272373f443ff3a0f42",
+      "section_digest": "sha256:cfad8344affe2fecdcbfe52f282aa9d9e1583625df33bc90d16090157dc36724",
       "requirement": "An accepted ak.mls.genesis activates its effective scope irreversibly: no later Event, downgrade or group replacement returns that scope to plaintext, and a plaintext write after activation is rejected rather than silently accepted or re-encrypted. Encrypted prepare and authority-forward submit into a definitely inactive scope return generic failed_precondition without a durable write; a temporarily unreadable current MLS result returns temporarily_unavailable. Every encrypted envelope is the closed {version, content_type, encryption_context, ciphertext} with encryption_context limited to epoch, group_state_ref and registered routing context; the receiver reconstructs the exact closed pre-encryption header from the outer signed Event, the effective scope, the Event kind, its own verified current public group result and the sender leaf, and MUST NOT trust any copy carried alongside the envelope. Any AAD, ciphertext-digest or encryption_context mismatch fails closed with no partial write, no plaintext downgrade and no retry under different secrets.",
       "testability_grade": "vector",
       "evidence_refs": [

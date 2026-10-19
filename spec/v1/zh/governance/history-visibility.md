@@ -18,6 +18,10 @@ see_also:
 历史可见性同时受 scope membership、join 时刻、Realm/Circle policy、retention 与 MLS 密钥实际可得性约束。
 它不是可转授的通用历史密钥能力。
 
+Realm / Circle 的独立 history、Sidecar 固定私有边界，以及 retention / legal hold 与读取／解密分离的
+跨 scope 矩阵见 [`scope-settings.md`](./scope-settings.md)。下文 §3.2 的 Commit 链保留规则也适用于
+Circle / Sidecar stream；不从 Realm-default 的 history policy 或 position 推导它们的读取下界。
+
 ## 1. 初始来源
 
 用户被邀请加入时，Invite、邀请人 Station 和 Directory 只提供 authority locator candidate。申请人

@@ -347,6 +347,10 @@ effective scope 在没有 accepted `ak.mls.genesis` 时只允许该 Event kind �
 永久激活，后续应用内容必须使用 standard RFC 9420 encrypted envelope，不能 disable、replace group 或回退明文。
 Realm 与每个 Circle 分别激活，父 scope 不隐式激活子 scope。
 
+Realm-default / Circle 的四种激活组合、Sidecar 固定独立 MLS 与 Space 放置检查见
+[`scope-settings.md` §3](../governance/scope-settings.md#3-加密组合与放置)；没有通用的父 Realm
+encryption floor。保留、legal hold 或明文服务名单均不产生额外 MLS secret 交付权，见该文 §4 / §5。
+
 加密 envelope 是 closed `{version,content_type,encryption_context,ciphertext}`；
 `encryption_context` 只含 `epoch`、`group_state_ref` 与已登记 routing context。AAD 从 outer signed Event、
 effective scope、Event kind、current public group result 与 sender leaf 唯一重建。wire 不复制 scope、group id、

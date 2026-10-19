@@ -69,9 +69,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/capability-action-registry.json",
-      "version": "2026-10-19.2",
-      "generated_at": "2026-10-19T09:26:45+08:00",
-      "content_digest": "sha256:b593dcfa13e81866fbccc1f0c3ed4c89ee9313aa710a5458b44244debe2048f6"
+      "version": "2026-10-19.3",
+      "generated_at": "2026-10-19T11:47:58+08:00",
+      "content_digest": "sha256:404c7fae76614c8a535c3df74b6c36d782f75bb25b843837f841563ba82a2b4f"
     },
     {
       "path": "spec/v1/artifacts/registry/classification-field-registry.json",
@@ -87,9 +87,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/contract-registry.json",
-      "version": "2026-10-19.2",
-      "generated_at": "2026-10-19T09:26:45+08:00",
-      "content_digest": "sha256:ebdafce485ae28f35554cc420c6ed7ef95f200e6b680f020e53b36fa74b40552"
+      "version": "2026-10-19.3",
+      "generated_at": "2026-10-19T11:47:58+08:00",
+      "content_digest": "sha256:d978a18a9fcfd43b75778faeeb4a7b006683136792be74cbf1e43b7cfa73bf59"
     },
     {
       "path": "spec/v1/artifacts/registry/current-result-registry.json",
@@ -219,9 +219,9 @@
     },
     {
       "path": "spec/v1/artifacts/registry/normative-clause-registry.json",
-      "version": "2026-10-19.1",
-      "generated_at": "2026-10-19T07:06:57+08:00",
-      "content_digest": "sha256:9c95fdf1e6abaef2979b9ea750952d4944a8326a27c5a28bacaf10bea7643df3"
+      "version": "2026-10-19.2",
+      "generated_at": "2026-10-19T11:47:58+08:00",
+      "content_digest": "sha256:396c832ed17d7f99b6a476b61de417442e52b19375bfce2263f9d686a6468203"
     },
     {
       "path": "spec/v1/artifacts/registry/operation-bundle-closure-lock.json",

@@ -80,7 +80,7 @@ Policy 是 reducer 和服务节点判断请求是否可接受的输入。每个 
 | `policy_kind` | 约束维度 |
 | --- | --- |
 | `access` | capability requirement、object type / facet requirement 等访问准入条件 |
-| `encryption` | encryption profile / metadata 加密下限 |
+| `encryption` | 已登记的加密准入约束；不提供另一套激活模式、父 Realm floor 或密钥继承 |
 | `retention` | 保留与擦除 |
 | `federation` | 联邦准入与传播 |
 | `moderation` | 举报 / 审核 / franking 流程 |
@@ -93,6 +93,10 @@ Policy 是 reducer 和服务节点判断请求是否可接受的输入。每个 
 | `agent` | Agent 运行约束 |
 
 quota（速率 / 资源上限）不作为独立 `policy_kind`，而是通过相关 policy（典型 `access` / `media`）的 `rules[]` 内 `quota` 约束表达。Policy 决策与 capability 决策的关系见 §3.3。
+
+`policy_kind` 分类本身不登记新的 scope selector、加密激活或 retention / legal hold 控制载体。
+各对象的独立配置、继承与约束，以及尚未闭合的跨 scope 保留／hold／明文服务控制问题见
+[`scope-settings.md`](../governance/scope-settings.md)。
 
 ### 3.2 Schema 与字段
 

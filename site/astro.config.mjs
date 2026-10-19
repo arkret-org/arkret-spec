@@ -362,6 +362,7 @@ document.addEventListener("astro:after-swap", boot);
               items: planeItems("governance", [
                 "join-policy",
                 "history-visibility",
+                "scope-settings",
                 "content-moderation",
               ]),
             },

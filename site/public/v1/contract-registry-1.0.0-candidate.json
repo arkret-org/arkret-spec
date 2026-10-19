@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-19.2",
+  "version": "2026-10-19.3",
   "source_of_truth": true,
-  "generated_at": "2026-10-19T09:26:45+08:00",
+  "generated_at": "2026-10-19T11:47:58+08:00",
   "description": "Canonical catalog for generated event/schema/id/operation registry views.",
   "realm_bootstrap_registry": {
     "version": "2026-10-14.2",
@@ -19201,7 +19201,7 @@
           "ak.circle.create"
         ],
         "profile": null,
-        "notes": "Creates an intra-Realm Circle (scoped event/message boundary; optionally MLS-backed depending on parent Realm floor). NOT in default member bundle by default — Circles should be few and stable. See zh/models/circle.md §8.",
+        "notes": "Creates an intra-Realm Circle (scoped event/message boundary; optionally MLS-backed through its own accepted Genesis, independently of Realm-default encryption). NOT in default member bundle by default — Circles should be few and stable. See zh/models/circle.md §8.",
         "event_mapping_kind": "same_name"
       },
       {
@@ -20934,8 +20934,8 @@
       "scope_suffix_variant": "Action adds actor/scope/role qualifiers while reducer admission targets a shared event kind.",
       "operation_verb": "Action token names an operation/command verb that does not match its target event kind name(s); reducer admission resolves the resulting event kind(s) via target_event_kinds. Literal action matching per the actions[] rule applies; carries no aggregate-admin family semantics."
     },
-    "version": "2026-10-19.2",
-    "generated_at": "2026-10-19T09:26:45+08:00",
+    "version": "2026-10-19.3",
+    "generated_at": "2026-10-19T11:47:58+08:00",
     "metadata_authority": "contract_registry_section",
     "constraint_evaluation_contract": {
       "normative_ref": "zh/authz/constraint-schema.md#150-可判定性与-effect-收敛normative",

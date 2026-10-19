@@ -17,7 +17,10 @@ updated: 2026-08-18
 - **Strand**（`ak:strand:`）：Realm 内统一的协作主对象，承载"这件事本身"。
 - **Message**（`ak:message:`）：Strand `discussion` track 时间线中的原子消息。
 
-Strand 通过 `tracks` map 表达多种能力面，并可选通过 `scope_circle_id` 把整个 Strand 落在 Realm 内的某个 [Circle](./circle.md)（子事件 / 子消息边界；可按父 Realm floor 启用独立 MLS）。Track 模型、access 规则、conflict 收敛、ephemeral 信号都在本文一处讲完。
+Strand 通过 `tracks` map 表达多种能力面，并可选通过 `scope_circle_id` 把整个 Strand 落在 Realm 内的某个 [Circle](./circle.md)（子事件 / 子消息边界；由本 Circle 的 Genesis 独立激活 MLS）。Track 模型、access 规则、conflict 收敛、ephemeral 信号都在本文一处讲完。
+
+Strand / Track 的同 scope 适用、Agent 设置继承与上限、retention / legal hold / 明文服务边界见
+[`scope-settings.md`](../governance/scope-settings.md)；容器导航不改变这些设置关系。
 
 Strand 永远只有**一个** effective scope —— 整个 Strand(所有 track)共享同一事件 / 投递 / history 边界。需要"宽 synthesis + 窄 discussion"的场景 MUST 用**两个 Strand + Relation**(`confidential_discussion_of`)表达，详见 [`circle.md` §7.2](./circle.md)。
 
@@ -336,7 +339,7 @@ Strand 永远只有**一个** effective scope。整个 Strand（含所有 track�
 scope 派生、`scope_ref` 对照、projection 与 rebind 的详尽规则以 [`circle.md` §6](./circle.md) 为唯一权威。
 
 - 跨 Strand 的"宽 synthesis + 窄 discussion"模式见 [`circle.md` §7.2](./circle.md)：两个 Strand + `confidential_discussion_of` Relation。
-- Watch、通知、生命周期、metadata 加密 floor 等跨 scope 行为统一在 [`circle.md` §6 / §7 / §9 / §10](./circle.md) 描述；本文件不定义额外特例。
+- Watch、通知、生命周期与独立 MLS 激活等跨 scope 行为统一在 [`circle.md` §6 / §7 / §9 / §10](./circle.md) 描述；本文件不定义额外特例。
 
 ### 5.1 Track 与 scope 关系图
 

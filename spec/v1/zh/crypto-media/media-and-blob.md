@@ -383,6 +383,10 @@ GET /_arkret/self/blob/get?blob_ref=<ref>
 
 Retention 与 erasure 规则：
 
+跨 Realm-default / Circle / Sidecar 的来源 scope、Blob owning Realm、实际保留副本与 hold 的适用边界见
+[`scope-settings.md` §4](../governance/scope-settings.md#4-retention-与-legal-hold-的跨-scope-适用边界)。
+保留副本不授予读取／解密；已覆盖该对象的 hold 不因导航移动或普通披露失效而解除。
+
 - Blob 删除 MUST 由 Realm policy、对象所有权、account lifecycle、retention expiry 或签名 compliance decision 授权。
 - 处于 legal hold 的 blob MUST NOT 被物理删除；服务可以通过 redaction 或 policy 在普通视图中隐藏。
 - Blob 被擦除后，服务 SHOULD 只保留最小 receipt：content-addressed `blob_ref`（包含唯一 digest commitment）、策略允许时的 size class、erasure reason、执行服务 DID、执行时间和签名；不得再携同原像 sibling digest。

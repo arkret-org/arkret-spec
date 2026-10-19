@@ -12,7 +12,7 @@ updated: 2026-07-02
 
 ## 1. 目标
 
-Realm 是硬安全边界，不承担产品导航树职责。因此 Arkret v1 不定义通用 `Realm hierarchy`、`parent Realm` 或 `child Realm` 结构关系。Realm 内的子事件 / 子消息边界由 [Circle](./circle.md) 承担（intra-Realm，不跨 federation；可按父 Realm floor 启用独立 MLS）；若两个独立 Realm 需要治理、发现、mirror 或 confidential extension 关系，必须使用本文件定义的 `ak.realm.link` 并明确 `link_kind`。
+Realm 是硬安全边界，不承担产品导航树职责。因此 Arkret v1 不定义通用 `Realm hierarchy`、`parent Realm` 或 `child Realm` 结构关系。Realm 内的子事件 / 子消息边界由 [Circle](./circle.md) 承担（intra-Realm，不跨 federation；由本 Circle 的 Genesis 独立激活 MLS）；若两个独立 Realm 需要治理、发现、mirror 或 confidential extension 关系，必须使用本文件定义的 `ak.realm.link` 并明确 `link_kind`。
 
 本文定义 Realm 之间的显式 **link graph**：Realm 可以因为治理、发现、导入导出、机密扩展、mirror、迁移或审计需要互相引用，但这些 link 不表达包含关系，也不自动传播权限。
 

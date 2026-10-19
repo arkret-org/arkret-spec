@@ -16,6 +16,10 @@ updated: 2026-07-20
 
 Realm 与 Circle 分工正交:Realm 承担 federation / identity boundary,Circle 承担 intra-Realm scoped event boundary。**一对象一 effective scope** 是协议级硬不变量——任何对象 MUST 只属于一个 effective scope(Realm-default 或某个 Circle)。
 
+本文件的普通对象 scope 规则不把 Sidecar 视为 Circle；原生 Sidecar 见 [`sidecar.md`](./sidecar.md)。
+五类对象的设置继承与约束、保留／hold 和明文服务适用关系见
+[`scope-settings.md`](../governance/scope-settings.md)。
+
 Circle 在自己的 `ak.mls.genesis` 被接受之前是 plaintext delivery-only scope；该 Genesis 的 accepted RealmCommit 把 Circle 不可逆激活为 MLS-backed cryptographic scope（见 §7）。未激活的 Circle 仍然必须执行 Circle membership / history / delivery 裁剪。
 
 **非目标**:Circle **不是** principal Group 的新名字，也不是 Realm 的"默认子圈"。若实现只需要把某个 capability 授给一组 principal，而不需要独立事件历史、投递裁剪或 Strand scope，应使用 [`realm-and-space.md` §4](./realm-and-space.md) 的 Group / capability constraint / resource selector；不得声明 Circle。Realm 自身仍拥有 **Realm-default scope**；Circle 表示 Realm 内更窄的 scoped event boundary。
@@ -52,8 +56,9 @@ Schema id: `ak.schema.circle.v1`
 | `created_at` | create Event 的规范时间 |
 
 Schema 的两个 closed branch 是：create branch 同时禁止 `id/mls_group_id`；materialized branch 要求 `id`，且 MLS
-时要求 derived `mls_group_id`，其值按 [`realm-and-space.md` §2.2](./realm-and-space.md) 的唯一派生式从该 Circle 的 `circle` 分支 effective scope 算出（`realm_id` 与 `circle_id` 都进入 key bytes）。Plaintext、standard MLS、exporter MLS 的
-closed union 见 [`history-visibility.md`](../governance/history-visibility.md) §2。
+时要求 derived `mls_group_id`，其值按 [`realm-and-space.md` §2.2](./realm-and-space.md) 的唯一派生式从该 Circle 的
+`circle` 分支 effective scope 算出，canonical scope key bytes 只取 `UTF8(circle_id)`。未激活／已激活由本 Circle 的
+accepted Genesis 判定；v1 不另定义 exporter MLS 加密模式，Exporter 只用于专章登记的派生用途。
 
 self-surface 的 `circle_view`（[`circle-operations.schema.json#/$defs/circle_view`](../../artifacts/schemas/circle-operations.schema.json)）
 不携 `member_count`：成员数由同载体 required 的 `member_ids.length` 派生，能拿到 `circle_view` 的 caller 自行计数；
@@ -170,7 +175,7 @@ Conformance fixture 见 `artifacts/fixtures/circle-scope-fixture.json`，覆盖 
 
 | 字段 | 影响对象 | 强制性 | 说明 |
 | --- | --- | --- | --- |
-| `Space.scope_circle_id` | Space 对象自身的 metadata 与 structural relation facts | reducer-enforced | Space 自身的 title / parent / rank / contains 事实落在该 Circle scope;**不**使 Space 成为独立 Realm 边界，Space 仍是 authorization-transparent 容器，只是它的 metadata 被该 Circle 的投递 / history / encryption profile 约束。 |
+| `Space.scope_circle_id` | Space 对象自身的 metadata 与 structural relation facts | reducer-enforced | Space 自身的 title / parent / rank / contains 事实落在该 Circle scope;**不**使 Space 成为独立 Realm 边界，Space 仍是 authorization-transparent 容器，只是它的 metadata 被该 Circle 的投递 / history / MLS 激活状态约束。 |
 | `Space.child_scope_policy` | 任何 placement / move 进入该 Space 的子对象 | reducer-enforced | `allow_any` / `require_e2ee` / `require_same_scope` / `require_scope_circle_id` 之一，见 §7。是真正的"该 Space 只接受这种 scope 的子对象"硬约束。 |
 
 实现必须区分 `scope_circle_id`（Space 自身 metadata scope）与 `child_scope_policy`（子对象 placement 硬约束），二者不可互相替代。

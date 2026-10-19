@@ -153,7 +153,7 @@ see_also:
 | `models/realm-and-space.md` | Realm（security boundary）、Space（看板 / 列 / 容器；`kind=board` / `kind=list` / 其他 profile 注册形态）、位置语义、Space lifecycle / server_revision_cas / cascade。 |
 | `models/strand-and-message.md` | Strand（统一协作主对象）、tracks（synthesis / discussion）、`scope_circle_id`（Strand effective scope）、Watch / 通知订阅模型（`watches` Relation + server_revision_cas typed current result + 投影脱敏）、Message、chat 模式、冲突收敛、ephemeral 信号。 |
 | `models/calendar-event.md` | Calendar Strand 的 `schema_refs` 激活、schedule fields、LocalDateTime 半开区间、RFC 8984 recurrence v1 子集、TZDB 版本绑定、schedule revision checkpoint、attendees 与 `ak.rsvp.set` 完整 entry 收敛。 |
-| `models/circle.md` | Circle（intra-Realm 子事件 / 子消息边界）、`scope_circle_id` / `effective_scope`、Circle encryption profile 与父 Realm floor、`Circle.members ⊆ Realm.members`、Realm-default vs Circle scope、Space `child_scope_policy`、跨 scope Relation、`confidential_discussion_of` 模式、MLS-backed Circle rotate amplification 缓解、Circle UX 视觉一致性要求。 |
+| `models/circle.md` | Circle（intra-Realm 子事件 / 子消息边界）、`scope_circle_id` / `effective_scope`、Circle 独立 MLS 激活与历史策略、`Circle.members ⊆ Realm.members`、Realm-default vs Circle scope、Space `child_scope_policy`、跨 scope Relation、`confidential_discussion_of` 模式、MLS-backed Circle rotate amplification 缓解、Circle UX 视觉一致性要求。 |
 | `models/sidecar.md` | Agent Sidecar 独立对象、Event-derived 身份、native scope、Realm-scoped desired/effective 派生集合、独立 MLS、context view 映射、存在性隐私与专用 UI 不变量。 |
 | `models/morph.md` | Morph 开放对象、`morph_kind` 合并优先级、标准 facets、schema evolution。 |
 | `models/relation.md` | Relation 一等关系、标准 `relation_kind` 与基数、跨 Realm 规则、关系记录与应用规则边界、冲突处理。 |
@@ -170,7 +170,7 @@ see_also:
 | `models/pins.md` | Shared pin events、`pin_scope` 解析、Space effective scope 安全边界与 pin projection stub。 |
 | `models/views.md` | View kind / renderer、Query、Board / Timeline / Graph / Document projection。 |
 | `models/content-types.md` | 富文本、媒体、投票、内容 block。 |
-| `models/realm-links.md` | Realm link graph、显式继承、治理 / 发现 / mirror / confidential-extension 关系。 |
+| `models/realm-links.md` | Realm link graph、不传播状态、治理 / 发现 / mirror / confidential-extension 关系。 |
 | `models/space-hierarchy.md` | Space 产品结构层级、跨 Realm 导航、effective default Realm 解析。 |
 
 ### 4.4 授权、治理与状态
@@ -186,6 +186,7 @@ see_also:
 | `authz/event-auth-state-resolution.md` | 当前治理 Station在 commit位置的 producer/authz校验、typed reducer和 committed/rejected状态。 |
 | `governance/join-policy.md` | Join Rule、邀请、knock / restricted / approval 流程和 history visibility 联动。 |
 | `governance/history-visibility.md` | `since_join` / `all_history_for_current_members` 二态、当前成员 gate、plaintext历史和MLS加入后可读边界。 |
+| `governance/scope-settings.md` | Realm / Circle / Sidecar / Space / Strand 的设置继承、独立配置、上限与资格约束矩阵；独立 MLS 激活、retention / legal hold / 明文服务跨 scope 适用边界与尚未闭合的控制载体。 |
 | `governance/content-moderation.md` | 举报、E2EE franking、Realm/Organization 审核策略、个人屏蔽入口。 |
 | `security/server-threat-model.md` | 服务端攻击模型与反滥用规则；物理位于 `security/` 安全分析专项目录。 |
 

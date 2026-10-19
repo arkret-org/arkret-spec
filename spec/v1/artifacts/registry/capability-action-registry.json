@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-19.2",
+  "version": "2026-10-19.3",
   "source_of_truth": false,
-  "generated_at": "2026-10-19T09:26:45+08:00",
+  "generated_at": "2026-10-19T11:47:58+08:00",
   "generated_from": "registry/contract-registry.json",
   "generated_by": "tools/artifact_pipeline.py",
   "action_pattern": "^ak\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$",
@@ -404,7 +404,7 @@
         "ak.circle.create"
       ],
       "profile": null,
-      "notes": "Creates an intra-Realm Circle (scoped event/message boundary; optionally MLS-backed depending on parent Realm floor). NOT in default member bundle by default — Circles should be few and stable. See zh/models/circle.md §8.",
+      "notes": "Creates an intra-Realm Circle (scoped event/message boundary; optionally MLS-backed through its own accepted Genesis, independently of Realm-default encryption). NOT in default member bundle by default — Circles should be few and stable. See zh/models/circle.md §8.",
       "event_mapping_kind": "same_name"
     },
     {
