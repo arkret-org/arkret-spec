@@ -1,6 +1,6 @@
 {
-  "version": "2026-10-20.3",
-  "generated_at": "2026-10-20T04:37:07+08:00",
+  "version": "2026-10-20.5",
+  "generated_at": "2026-10-20T04:37:09+08:00",
   "source_of_truth": false,
   "generated_from": [
     "registry/contract-registry.json",
@@ -17,7 +17,7 @@
     },
     {
       "operation_id": "ak.edge.applet.command.transaction.v1",
-      "sha256": "sha256:696eeedfa1e3051d5b17a9fcbb46452e854ca1dff9cf6a44adb47236d8b8dcb7"
+      "sha256": "sha256:6fb678cb46998da017b9195150b31fbeae47244bdb05b435df093f38fede3251"
     },
     {
       "operation_id": "ak.edge.applet.configuration.command.execute.v1",
@@ -257,7 +257,7 @@
     },
     {
       "operation_id": "ak.peer.committed_event.read.scan.v1",
-      "sha256": "sha256:2b1c438a4cdac34bb9f0ba14ca92ec9040accf881446efc5cdd6556e04febefe"
+      "sha256": "sha256:f206dba504ab0e83fd19bbf9c3385edb76f7be1190065f2e99071e5a2bdb71d8"
     },
     {
       "operation_id": "ak.peer.consent.command.proxy.v1",
@@ -285,7 +285,7 @@
     },
     {
       "operation_id": "ak.peer.events.command.submit.v1",
-      "sha256": "sha256:58be25cccfe905b3287154c5f594b49fde5b84a3299f79e3f6deb00a6202013c"
+      "sha256": "sha256:5a380060c80ef34199dc0d74917b086932c50b38ad7380fd191a82e2062841c7"
     },
     {
       "operation_id": "ak.peer.invites.command.submit.v1",
@@ -317,7 +317,7 @@
     },
     {
       "operation_id": "ak.peer.realm_authority.command.handoff.v1",
-      "sha256": "sha256:1abbdfc941c35d290b0e6dd83cc629c638a159b6b8d381c1895e206ad008856b"
+      "sha256": "sha256:93fe5d1aa138fdb91886fd4bba0fe7210b854602d321ad05a83b8ae42bd98a4f"
     },
     {
       "operation_id": "ak.peer.realm_join.read.bootstrap.v1",
@@ -841,7 +841,7 @@
     },
     {
       "operation_id": "ak.self.realm_actor.read.material.v1",
-      "sha256": "sha256:2051422cd968b6876f4fb6ff039d17ce809b590b6b12624bcd82e2a6465141f0"
+      "sha256": "sha256:1b50cd9d39ec269ccbf4f48cb3fbc57060e04e9a41eb0224fa7750ac72430c67"
     },
     {
       "operation_id": "ak.self.realm_join.command.prepare.v1",

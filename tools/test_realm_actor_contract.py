@@ -127,6 +127,31 @@ class RealmActorContractTests(unittest.TestCase):
         v = self.validator("realm-actor-material", "#/$defs/request"); v.validate(request)
         request["selectors"].append(request["selectors"][0]); self.assertFalse(v.is_valid(request))
 
+    def test_recovery_service_fact_is_closed_and_has_no_business_grant(self):
+        fields = "kind event_id actor_id target_actor_id verification_method public_key_b64u accepted_at applet_id registration_epoch registration_ref manager_ref recovery_ref".split()
+        path = ART / "schemas/authority-commit-operations.schema.json"
+        definition = json.loads(path.read_text(encoding="utf-8"))["$defs"]["realm_recovery_service_historical_signer_fact"]
+        self.assertEqual(list(definition["properties"]), fields)
+        self.assertEqual(definition["required"], fields)
+        fact = {"kind":"realm_recovery_service", "event_id":token("event"),
+                "actor_id":{"kind":"service","service_id":"ak:did_core:webvh:zApplet"},
+                "target_actor_id":actor(), "verification_method":"did:webvh:zApplet:applet.example#signer",
+                "public_key_b64u":base64.urlsafe_b64encode(bytes([1])*32).rstrip(b"=").decode(),
+                "accepted_at":"2026-10-20T00:00:00.000Z", "applet_id":"ak:applet:01904100-0000-7000-8000-bbbbbbbbbbbb",
+                "registration_epoch":"sha256:"+"1"*64, "registration_ref":committed(),
+                "manager_ref":committed(), "recovery_ref":committed(4,1)}
+        v = self.validator("authority-commit-operations", "#/$defs/historical_producer_signer_fact")
+        v.validate(fact)
+        for field in fields:
+            bad = copy.deepcopy(fact); del bad[field]
+            self.assertFalse(v.is_valid(bad), field)
+        for field in ["authorization_ref", "effective_scope", "private_key", "method_history_evidence"]:
+            self.assertFalse(v.is_valid({**fact,field:committed()}), field)
+        bad=copy.deepcopy(fact); bad["actor_id"]=actor()
+        self.assertFalse(v.is_valid(bad))
+        bad=copy.deepcopy(fact); bad["target_actor_id"]=fact["actor_id"]
+        self.assertFalse(v.is_valid(bad))
+
     def test_device_raw_possession_signature_covers_every_field(self):
         from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
         from cryptography.exceptions import InvalidSignature

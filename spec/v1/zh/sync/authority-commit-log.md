@@ -311,7 +311,7 @@ Realm actor 的 claim 原签发方与交接后的 Add 接受方可以不同，�
 
 ## Account Device signer fact commitment and transfer (Normative)
 
-原RealmCommit在committed_at后signature前 MAY 有 producer_signer_fact_digest；新普通 Human Account Device、Realm Device 与 Applet Service 业务接纳 MUST 携带；Realm 控制事件携私有 realm_control fact，其它既有 producer/PCR native 分支保持原规则。字段可省仅对应没有此类 signer fact 的协议分支，不提供旧版 Applet 身份兼容。摘要为 SHA256(RFC8785_JCS(historical_producer_signer_fact))；该联合严格采用 `authority-commit-operations.schema.json` 登记的 Account Device、Service、Realm Device 与 realm_control 四个闭合分支；原 Human Account Device 的字段、编码和摘要不变。Realm Device 使用独立 realm_device fact，不得借用 Account Device 形状；realm_control fact 的私有披露边界仍按 [Realm 主体 §8](../extensions/realm-actors.md#8-exact-控制材料与历史验签) 执行，摘要本身不授予控制原件读取权。fact不含业务targetCommitId/position；Event内容ID先固定，fact准备后入Commit，最终所有字段设完才按现 content-ID规则排commit_id/signature重算ID，再按现RealmCommit signature投影仅排signature签完整对象（包含commit_id与factdigest）。MUST NOT 改字段后保留旧ID/签名，也不得把fact targetCommitId塞回摘要造成环。原proof context与版本不变。
+原RealmCommit在committed_at后signature前 MAY 有 producer_signer_fact_digest；新普通 Human Account Device、Realm Device 与 Applet Service 业务接纳 MUST 携带；Realm 控制事件携私有 realm_control fact，Applet 恢复 Service 事件携私有 realm_recovery_service fact，其它既有 producer/PCR native 分支保持原规则。字段可省仅对应没有此类 signer fact 的协议分支，不提供旧版 Applet 身份兼容。摘要为 SHA256(RFC8785_JCS(historical_producer_signer_fact))；该联合严格采用 `authority-commit-operations.schema.json` 登记的 Account Device、Service、Realm Device、realm_control 与 realm_recovery_service 五个闭合分支；原 Human Account Device 的字段、编码和摘要不变。Realm Device 使用独立 realm_device fact，不得借用 Account Device 形状；realm_control fact 的私有披露边界仍按 [Realm 主体 §8](../extensions/realm-actors.md#8-exact-控制材料与历史验签) 执行，摘要本身不授予控制原件读取权。fact不含业务targetCommitId/position；Event内容ID先固定，fact准备后入Commit，最终所有字段设完才按现 content-ID规则排commit_id/signature重算ID，再按现RealmCommit signature投影仅排signature签完整对象（包含commit_id与factdigest）。MUST NOT 改字段后保留旧ID/签名，也不得把fact targetCommitId塞回摘要造成环。原proof context与版本不变。
 
 原immutable fact MUST 与原accepted Commit同寿命持久保留；v1不删除accepted Commit。retention/redaction/withheld只改变合法披露，不补造或替换原事实，也不允许带隐藏row metadata。
 
@@ -334,3 +334,5 @@ state_digest绑定完整冻结配置／review ledger、原intent／候选、来�
 的canonical私有导出；双方以实际完整导入／重新导出比较，缺项／未知保持不可激活，不只比较manifest。
 公开authority bundle只携加盐承诺，无manifest、私态或下载面。该增补不是PCR资格例外，不允许Human PCR handoff。
 旧任期活动批准superseded、terminal／consumed结果唯一恢复，详见[Applet来源§5](../extensions/applet-management-source.md#5-交接与完整性)。
+
+恢复 Service 的 realm_recovery_service 分支 MUST 按 [Realm 主体 §10.8](../extensions/realm-actors.md#108-恢复-service-的私有历史验签事实) 冻结原登记、管理关系及恢复许可，不适用业务 Service fact 的 installation／grant 要求；其余 Commit 摘要、原始签名、全集交接与私有披露约束全部适用。

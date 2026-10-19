@@ -409,7 +409,7 @@ generation fence 不是 MLS Remove Commit。begin 必须为所有受影响的已
 
 intent 绑定稳定 Realm／完整 actor／manager binding，不把旧治理 Station 永久写成恢复权持有者。新站验证原任期已接受 begin，按新任期提交 finish；HTTP destination／response authority 用当前治理方。治理交接不变更 manager 或 recovery.enabled，不重签旧 Event，不让 begin 的初始 10 分钟期限把合法交接后的续跑拒掉。
 
-恢复材料仍是私有 exact 数据。recovery current 的 selector 加入现有请求上限，普通成员不能枚举恢复状态、方法历史或设备目录。业务历史 fact 不新增恢复流位置或密钥库信息；恢复 Event 的真实 producer 是 Service，使用既有 Service 历史 signer fact，不伪装 realm_control signer。
+恢复材料仍是私有 exact 数据。recovery current 的 selector 加入现有请求上限，普通成员不能枚举恢复状态、方法历史或设备目录。业务历史 fact 不新增恢复流位置或密钥库信息；恢复 Event 的真实 producer 是 Service，MUST 使用私有 realm_recovery_service 历史 signer fact，不伪装业务 Service 或 realm_control signer。
 
 ### 10.6 更换管理 Service 必须交接原生更新权
 
@@ -448,6 +448,18 @@ recovery.set 将 enabled 设为相同值的新 Event 以 failed_precondition 拒
 | 缺发布、必需 witness、确切依赖或 MLS 安全收尾 | dependency_missing |
 
 验收必须覆盖 KR-1～KR-12：完整身份、native真实签验与错误commitment、key职责、持续权限、字段签名、prepare原子性、发布崩溃续跑、撤销竞态、Device／MLS门、原生管理交接、治理交接实际库存、隐私及普通账号范围。参考模型不替代生产事务或真实多站联调。
+
+### 10.8 恢复 Service 的私有历史验签事实
+
+`realm_recovery_service` 仅用于 `realm.actor.recovery.begin` 与 `realm.actor.control.reset` 的原生产者事实。字段顺序为 kind、event_id、actor_id、target_actor_id、verification_method、public_key_b64u、accepted_at、applet_id、registration_epoch、registration_ref、manager_ref、recovery_ref；全部必填，禁止额外字段。actor_id MUST 为实际签名 Service，target_actor_id MUST 为完整 Realm ActorId；Event 的 Realm、Applet、目标主体和记录 MUST 一致。该事实不含业务 authorization_ref，不改变原恢复资格。
+
+registration_ref MUST 是接纳截点有效且经方法原生验证的 Applet Service 登记原件的完整 CommittedEventRef；registration_epoch MUST 绑定该登记，不能用业务安装有效性代替。verification_method 与 public_key_b64u MUST 来自该登记在 accepted_at 的真实 DID 历史，并验证原 Event producer proof。
+
+manager_ref 与 recovery_ref MUST 分别取自接纳事务锁内 manager 与 recovery current 的实际原写入 CommittedEventRef，不得用 head 或调用者声明补造。begin 的 manager_ref 与 recovery_ref MUST 逐字等于 payload.manager_ref 与 payload.recovery_ref；reset 的 recovery_ref MUST 逐字等于 payload.recovery_begin_ref，并满足其 expected_recovery_revision；reset 的 manager_ref MUST 满足 expected_manager_revision。两引用 MUST 属于同一目标 Realm 的 realm_control 流且严格早于本次 Commit。登记、管理关系、恢复 enabled／pending、双 gate、原生恢复材料及 CAS 仍依本节原接纳规则检查，缺失或不一致 MUST 拒绝且零副作用。
+
+原 Event、fact、绑定 fact 摘要的 RealmCommit、恢复 current、generation／fence 及请求结果 MUST 在同一事务冻结。fact 不含自身 target Commit，不能形成摘要环。治理交接 MUST 按完整私有 signer inventory 移交这些原件；缺项或篡改 MUST 阻止导入激活。历史验签沿原接受治理链验证 Commit、fact 摘要及原 Service 签名，不重新要求当前安装、当前业务 grant 或当前管理者仍有效。
+
+该分支只经 realm-actors/material 具名 exact event、获准私有审计及治理私有移交披露；普通成员 signer query、scan、snapshot、subscribe 和普通 peer 复制不得返回该材料。记录只含原签名公钥及授权来源坐标，不含私钥、原生日志或恢复计划。卸载及业务 grant 撤销后的合法恢复 MUST 可验证；错主体、错 Service／登记、错 manager／recovery 原写入、错误签名、越权披露 MUST 拒绝。本条不修改普通 Account／组织／个人 Agent 的身份与恢复，也不新增恢复 HTTP 接口。
 
 ## 11. MLS 领取与跨治理交接续跑
 

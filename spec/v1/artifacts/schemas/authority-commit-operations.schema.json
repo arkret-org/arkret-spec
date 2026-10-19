@@ -2230,6 +2230,9 @@
         },
         {
           "$ref": "#/$defs/realm_control_historical_signer_fact"
+        },
+        {
+          "$ref": "#/$defs/realm_recovery_service_historical_signer_fact"
         }
       ]
     },
@@ -2651,6 +2654,78 @@
           "$ref": "./time.schema.json#/$defs/timestamp"
         },
         "control_event_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        }
+      },
+      "additionalProperties": false
+    },
+    "realm_recovery_service_historical_signer_fact": {
+      "type": "object",
+      "required": [
+        "kind",
+        "event_id",
+        "actor_id",
+        "target_actor_id",
+        "verification_method",
+        "public_key_b64u",
+        "accepted_at",
+        "applet_id",
+        "registration_epoch",
+        "registration_ref",
+        "manager_ref",
+        "recovery_ref"
+      ],
+      "properties": {
+        "kind": {
+          "const": "realm_recovery_service"
+        },
+        "event_id": {
+          "$ref": "./common-ids.schema.json#/$defs/event_id"
+        },
+        "actor_id": {
+          "allOf": [
+            {
+              "$ref": "./common-ids.schema.json#/$defs/actor_id"
+            },
+            {
+              "properties": {
+                "kind": {
+                  "const": "service"
+                }
+              },
+              "required": [
+                "kind"
+              ]
+            }
+          ]
+        },
+        "target_actor_id": {
+          "$ref": "./common-ids.schema.json#/$defs/realm_actor"
+        },
+        "verification_method": {
+          "$ref": "./common-ids.schema.json#/$defs/did_url"
+        },
+        "public_key_b64u": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$",
+          "description": "Canonical unpadded base64url of exactly 32 Ed25519 public-key bytes; this is public material, not reusable current authorization."
+        },
+        "accepted_at": {
+          "$ref": "./time.schema.json#/$defs/timestamp"
+        },
+        "applet_id": {
+          "$ref": "./common-ids.schema.json#/$defs/applet_id"
+        },
+        "registration_epoch": {
+          "$ref": "./event-payload.schema.json#/$defs/digest"
+        },
+        "registration_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "manager_ref": {
+          "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
+        },
+        "recovery_ref": {
           "$ref": "./authority-commit-operations.schema.json#/$defs/committed_event_ref"
         }
       },
