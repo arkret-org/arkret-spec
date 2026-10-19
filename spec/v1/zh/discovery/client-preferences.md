@@ -370,6 +370,8 @@ storage key 绑定、显式确认证据与 tag 命名空间是同一客户端另
 - 删除 Realm 备注 MUST 使用 `ak.self.account_data.resource.delete.v1` 写入 [`../models/account-data.md` §5.3](../models/account-data.md) 定义的有版本 physical-delete tombstone（与 §3.6 联系人备注同一机制），不依赖客户端本地清理，也不得用空对象冒充删除——空对象会被 `ak.self.account_data.resource.replace.v1` 的 closed schema 当作普通值写入，删不掉任何东西。用户离开或被踢出 Realm MAY 触发自动 tombstone（客户端策略，规范不强制）。
 - `ak.contacts.realm.<realm_id>` 与 §3.1 `ak.tags.realm.<realm_id>` 并存：前者负责命名与笔记，后者负责分组与 `order` 排序；客户端 SHOULD 在本地 projection 中按 `realm_id` join 二者，规范上互不替代。
 
+Realm 偏好编辑入口（包括本节备注与 §3.8 已读回执覆盖）SHOULD 提供基于本账户当前可见 Realm 列表的选择器，并沿用本节的同名消歧规则。选择值 MUST 绑定完整 `realm_id`，不得以列表下标、公开标题或本地备注作为身份；候选变化使原选择失效时，客户端 MUST 要求重新选择，不得静默改为另一 Realm。既存私有偏好 MAY 保留并允许持有者清理；其存在、历史选择器缓存或本地收藏均不证明当前 membership，也不得授予正文、Signal 或 current 读取权。此处不要求成员资格变更时自动删除私有备注或偏好，不改变 §3.8 的 scope 策略门。
+
 ### 3.8 已读回执偏好 (Read Receipt Preferences)
 
 控制是否向其他成员发送 `ak.receipt.read`（详见 [`discovery/read-receipts.md`](./read-receipts.md)）。MAY 设全局默认，并对特定 Realm 或 Strand / discussion track 单独重写。
